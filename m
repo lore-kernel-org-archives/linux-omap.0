@@ -1,191 +1,157 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv2 01/17] OMAP3: PM: Adding hwmod data for Smartreflex
-Date: Mon, 22 Mar 2010 12:07:23 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1003221132210.25802@utopia.booyaka.com>
-References: <1268903755-4151-1-git-send-email-thara@ti.com> <1268903755-4151-2-git-send-email-thara@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PM-WIP-OPP][PATCH 3/4] omap: pm: opp: add ability to store data
+ per opp
+Date: Mon, 22 Mar 2010 13:25:05 -0500
+Message-ID: <4BA7B601.1060504@ti.com>
+References: <1268937891-19445-1-git-send-email-nm@ti.com> <1268937891-19445-2-git-send-email-nm@ti.com> <1268937891-19445-3-git-send-email-nm@ti.com> <1268937891-19445-4-git-send-email-nm@ti.com> <20100319144333.GU18995@nokia.com> <4BA3975E.70206@ti.com> <74583B8642AB8841B30447520659FCA9EBAC2C6A@dnce01.ent.ti.com> <4BA770D6.9020707@ti.com> <74583B8642AB8841B30447520659FCA9EBAC3458@dnce01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35210 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753482Ab0CVSHY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 14:07:24 -0400
-In-Reply-To: <1268903755-4151-2-git-send-email-thara@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39027 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754376Ab0CVSZJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Mar 2010 14:25:09 -0400
+In-Reply-To: <74583B8642AB8841B30447520659FCA9EBAC3458@dnce01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>
 
-Hello Thara,
-
-a few comments:
-
-On Thu, 18 Mar 2010, Thara Gopinath wrote:
-
-> This patch adds the hwmod strucutres and other hwmod data for
-> OMAP3 Smartreflex IP's.
+Cousson, Benoit had written, on 03/22/2010 12:46 PM, the following:
+>> From: Menon, Nishanth
+>> Sent: Monday, March 22, 2010 2:30 PM
+>>
+>> Cousson, Benoit had written, on 03/21/2010 04:50 PM, the following:
+>> [...]
+>>>> now in the approach I took,
+>>>> you could have:
+>>>> struct sr_ntarget_type{
+>>>>       unsigned long nTarget;
+>>>>       something else if needed
+>>>> }
+>>> I'm still not convinced...
+>>>
+>>> It appears that there is still some confusion with what OPP is or should
+>> be.
+>>
+>> Errr.. Overall, the idea is to provide an infrastructure to store
+>> information per opp, OPP layer does not make policy decision - that is
+>> left to the caller (a.k.a user modules).
+>>
+>>> The OPP layer, for my point of view was done to handle the freq ->
+>> voltage association per IP. This layer should be flexible because we can
+>> add or remove dynamically any OPP.
+>> yes, this is the basic SOC generic definition of OPP - i agree.
+>>> All the data related to SR and ABB belong to the characterized voltages
+>> that belong to a certain OPP for a voltage rail. These informations are not
+>> configurable at all and not related to any IP. They are well defined for a
+>> particular SoC techno (65nm, 45nm) for a voltage domain.
+>> exactly the reason why this patch is relevant nominal voltage and
+>> frequencies per OPP is not considered dynamic. OPP layer is a data store
+>> layer - it stores information in a centralized manner allowing other
+>> dependent module to query, store and operate on that information.
+>>
+>> the dependency as you rightly pointed out is:
+>> voltage -> SR,ABB information.
+>>
+>> but as you already know,
+>> OPP = (freq,voltage)
+>>
+>> hence there is a indirect dependency of SR, ABB information per OPP.
 > 
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   94 ++++++++++++++++++++++++++++
->  1 files changed, 94 insertions(+), 0 deletions(-)
+> Not at all, you missed the point of storing information per IP vs. information per voltage domain.
+> You first translate the freq to voltage for all IPs that belong to that voltage domain. If you have 10 IPs in the same voltage domain, you will not duplicate 10 times the SR informations.
+I dont think you will. if you register with opp layer 10 times different 
+data, well.. you'd do it.. but anyways.. that is a minor point.
+
 > 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index ed60840..9c0c9e3 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -35,6 +35,8 @@ static struct omap_hwmod omap3xxx_mpu_hwmod;
->  static struct omap_hwmod omap3xxx_l3_hwmod;
->  static struct omap_hwmod omap3xxx_l4_core_hwmod;
->  static struct omap_hwmod omap3xxx_l4_per_hwmod;
-> +static struct omap_hwmod omap34xx_sr1_hwmod;
-> +static struct omap_hwmod omap34xx_sr2_hwmod;
->  
->  /* L3 -> L4_CORE interface */
->  static struct omap_hwmod_ocp_if omap3xxx_l3__l4_core = {
-> @@ -88,9 +90,47 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
->  	.user	= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/* L4 CORE -> SR1 interface */
-> +static struct omap_hwmod_addr_space omap34xx_sr1_addr_space[] = {
-> +	{
-> +		.pa_start	= OMAP34XX_SR1_BASE,
-> +		.pa_end		= OMAP34XX_SR1_BASE + SZ_1K - 1,
-> +		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-
-Why ADDR_MAP_ON_INIT ?  This should only be used for a handful of modules, 
-such as SDRC, SMS, etc.
-
-> +	},
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap3_l4_core__sr1 = {
-> +	.master		= &omap3xxx_l4_core_hwmod,
-> +	.slave		= &omap34xx_sr1_hwmod,
-> +	.clk		= NULL,
-
-This should be "sr_l4_ick"
-
-> +	.addr		= omap34xx_sr1_addr_space,
-> +	.addr_cnt	= ARRAY_SIZE(omap34xx_sr1_addr_space),
-> +	.user		= OCP_USER_MPU,
-> +};
-> +
-> +/* L4 CORE -> SR1 interface */
-> +static struct omap_hwmod_addr_space omap34xx_sr2_addr_space[] = {
-> +	{
-> +		.pa_start	= OMAP34XX_SR2_BASE,
-> +		.pa_end		= OMAP34XX_SR2_BASE + SZ_1K - 1,
-> +		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-
-As above.
-
-> +	},
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap3_l4_core__sr2 = {
-> +	.master		= &omap3xxx_l4_core_hwmod,
-> +	.slave		= &omap34xx_sr2_hwmod,
-> +	.clk		= NULL,
-
-As above.
-
-> +	.addr		= omap34xx_sr2_addr_space,
-> +	.addr_cnt	= ARRAY_SIZE(omap34xx_sr2_addr_space),
-> +	.user		= OCP_USER_MPU,
-> +};
-> +
->  /* Slave interfaces on the L4_CORE interconnect */
->  static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
->  	&omap3xxx_l3__l4_core,
-> +	&omap3_l4_core__sr1,
-> +	&omap3_l4_core__sr2,
->  };
->  
->  /* Master interfaces on the L4_CORE interconnect */
-> @@ -164,12 +204,66 @@ static struct omap_hwmod omap3xxx_mpu_hwmod = {
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->  };
->  
-> +/* SR common */
-> +static struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
-> +	.clkact_shift	= 20,
-> +};
-> +
-> +static struct omap_hwmod_class_sysconfig omap34xx_sr_sysc = {
-> +	.sysc_offs	= 0x24,
-> +	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_NO_CACHE),
-> +	.clockact	= CLOCKACT_TEST_ICLK,
-
-What's the motivation behind this setting?  My understanding is that this 
-is supposed to be set by the clock framework as FCLKEN, ICLKEN bits are 
-set and cleared.  i.e., after *CLKEN is set to 1, the corresponding 
-CLOCKACTIVITY bit would be set to 1; and before *CLKEN is set to 0, the 
-corresponding CLOCKACTIVITY bit would be set to 0.  Is there a need here 
-to initialize the CLOCKACTIVITY bits upon init?
-
-> +	.sysc_fields	= &omap34xx_sr_sysc_fields,
-> +};
-> +
-> +static struct omap_hwmod_class omap34xx_smartreflex_hwmod_class = {
-> +	.name = "smartreflex",
-> +	.sysc = &omap34xx_sr_sysc,
-> +	.rev  = 1,
-
-The above three lines need to be tab-aligned, ideally to the tab stop in 
-the previous structures.
-
-> +};
-> +
-> +/* SR1 */
-> +static struct omap_hwmod_ocp_if *omap34xx_sr1_slaves[] = {
-> +	&omap3_l4_core__sr1,
-> +};
-> +
-> +static struct omap_hwmod omap34xx_sr1_hwmod = {
-> +	.name		= "sr1_hwmod",
-> +	.class		= &omap34xx_smartreflex_hwmod_class,
-> +	.mpu_irqs	= NULL,
-> +	.sdma_chs	= NULL,
-> +	.main_clk	= "sr1_fck",
-> +	.slaves		= omap34xx_sr1_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr1_slaves),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
-> +};
-> +
-> +/* SR2 */
-> +static struct omap_hwmod_ocp_if *omap34xx_sr2_slaves[] = {
-> +	&omap3_l4_core__sr2,
-> +};
-> +
-> +static struct omap_hwmod omap34xx_sr2_hwmod = {
-> +	.name		= "sr2_hwmod",
-> +	.class		= &omap34xx_smartreflex_hwmod_class,
-> +	.mpu_irqs	= NULL,
-> +	.sdma_chs	= NULL,
-> +	.main_clk	= "sr2_fck",
-> +	.slaves		= omap34xx_sr2_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr2_slaves),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
-> +};
-> +
->  static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
->  	&omap3xxx_l3_hwmod,
->  	&omap3xxx_l4_core_hwmod,
->  	&omap3xxx_l4_per_hwmod,
->  	&omap3xxx_l4_wkup_hwmod,
->  	&omap3xxx_mpu_hwmod,
-> +	&omap34xx_sr1_hwmod,
-> +	&omap34xx_sr2_hwmod,
->  	NULL,
->  };
->  
-> -- 
-> 1.7.0.rc1.33.g07cf0f
+>>> So they should belong to a SoC specific file, and should be hard coded
+>> for a voltage domain.
+>> ACK - the question is how would you do it? try to answer these questions:
+>> a) where do you store SR ntarget values which is per OPP in a SOC
+>> generic way?
+>> b) how do you allow SR ntarget value to be queried in a SOC generic way?
 > 
+> By adding a voltage management API similar to the OPP management API, but dedicated to voltage domains.
 
+I like that approach - do we have anything that does it today? nope. the 
+intent of doing SR changes was to introduce these changes, but seems to 
+have been missed somewhere down the pipe. shrug.
 
-- Paul
+> 
+>>> The point is that you should not tie SR Ntarget, ABB... to the OPP itself
+>> but to the voltage. Hence the need to have other voltage -> SR, ABB table
+>> in the voltage management code only.
+>> err.. that is exactly how it is done.
+> 
+> Not really, it uses the OPP ID for the moment.
+Seriously - that is not an explanation - it is a bad implementation.
+
+> 
+>>> We should not clutter the OPP layer with something that is voltage
+>> related.
+>> I dont see your point here. OPP layer is just providing an
+>> infrastructure to store OPP related data.
+> 
+> This is the point... OPP layer is a freq/voltage tuple management layer not a voltage control layer. There is not necessarily a one to one mapping between OPP and voltage.
+I agree from a theoretical perspective. the user of voltage management 
+layer needs the opp layer to know the voltages. The question is where do 
+you want to store the voltage related information?
+
+> 
+>>> The other point is that up to now, all voltage related data are a super
+>> set of the previous SoC data, so you can define only one voltage_data
+>> structure that work for all SoC. If the data is useless for previous
+>> platform, just put 0 or a flag to disable that parameter.
+>> welcome to redundant data. How do you plan to support 35xx devices which
+>> do not have nTarget data? by putting 0s for those fields? you need to
+>> store this data at the end of the day in some data structure, you dont
+>> have a choice. the solution as I pointed in the previous mailchain is to
+>> provide an SOC generic manner which ties the data corresponding to a
+>> OPP(freq/voltage) to the OPP itself.
+> 
+> Welcome to complex data management for a couple of 32 bits data :-)
+:)
+> If you look at the size of the infrastructure you have to put in place, I'm not even sure that you will save one bit.
+I dont claim so.. but it stores only relevant information.. lists are 
+not exactly the most optimal logic, it is just the most flexible :)
+
+> 
+>> if you look at the implementation from Thara's patches today, see:
+>> See:
+>> https://patchwork.kernel.org/patch/86642/
+>> you will endup with a code as follows:
+>> arch/arm/mach-omap2/srdevice.c:
+>>
+>>> +/* Read EFUSE values from control registers for OMAP3430 */
+>>> +static void __init omap34xx_sr_read_efuse(struct omap_smartreflex_data
+>> *sr_data,
+>>> +                                            int sr_id)
+>>> +{
+>>> +    if (sr_id == SR1) {
+[...]
+>>> +            sr_data->sr_nvalue[0] = omap_ctrl_readl(
+>>> +                                    OMAP343X_CONTROL_FUSE_OPP1_VDD2);
+>>> +    }
+>>> +}
+>> well.. that is what you get if you decide that ONLY the module should
+>> store the data-> it will have to have the concept of OPP ID as a result!
+>>
+>> Sorry, I disagree with this.
+> 
+> That, I agree (with you). We need to get rid of the OPP ID stuff.
+
+[...] [I am not about to repeat everything I stated in previous 
+threads.. so  snipping the discussion down.]
+
+> 
+> Otherwise the primary idea to remove OPP ID is good, and the way to go.
+
+good. So lets NAK that SR series and see how else we can implement it 
+without OPP ID. I am open to any clean mechanisms you may propose 
+without using OPP ID referencing :).
+
+-- 
+Regards,
+Nishanth Menon
