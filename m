@@ -1,37 +1,226 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH] omap: delete unused bootloader tag variables
-Date: Mon, 22 Mar 2010 19:28:19 +0200
-Message-ID: <1269278899-16098-1-git-send-email-aaro.koskinen@nokia.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: RE: [PM-WIP-OPP][PATCH 3/4] omap: pm: opp: add ability to store
+ data per opp
+Date: Mon, 22 Mar 2010 18:46:11 +0100
+Message-ID: <74583B8642AB8841B30447520659FCA9EBAC3458@dnce01.ent.ti.com>
+References: <1268937891-19445-1-git-send-email-nm@ti.com>
+ <1268937891-19445-2-git-send-email-nm@ti.com>
+ <1268937891-19445-3-git-send-email-nm@ti.com>
+ <1268937891-19445-4-git-send-email-nm@ti.com>
+ <20100319144333.GU18995@nokia.com> <4BA3975E.70206@ti.com>
+ <74583B8642AB8841B30447520659FCA9EBAC2C6A@dnce01.ent.ti.com>
+ <4BA770D6.9020707@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28906 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306Ab0CVRZb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 13:25:31 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:52840 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753282Ab0CVRqR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 13:46:17 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <4BA770D6.9020707@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>, "Gopinath, Thara" <thara@ti.com>
 
-They are not needed and add over 512 bytes to kernel data.
+>From: Menon, Nishanth
+>Sent: Monday, March 22, 2010 2:30 PM
+>
+>Cousson, Benoit had written, on 03/21/2010 04:50 PM, the following:
+>[...]
+>>>
+>>> now in the approach I took,
+>>> you could have:
+>>> struct sr_ntarget_type{
+>>>       unsigned long nTarget;
+>>>       something else if needed
+>>> }
+>>
+>> I'm still not convinced...
+>>
+>> It appears that there is still some confusion with what OPP is or should
+>be.
+>
+>Errr.. Overall, the idea is to provide an infrastructure to store
+>information per opp, OPP layer does not make policy decision - that is
+>left to the caller (a.k.a user modules).
+>
+>>
+>> The OPP layer, for my point of view was done to handle the freq ->
+>voltage association per IP. This layer should be flexible because we can
+>add or remove dynamically any OPP.
+>yes, this is the basic SOC generic definition of OPP - i agree.
+>>
+>> All the data related to SR and ABB belong to the characterized voltages
+>that belong to a certain OPP for a voltage rail. These informations are not
+>configurable at all and not related to any IP. They are well defined for a
+>particular SoC techno (65nm, 45nm) for a voltage domain.
+>exactly the reason why this patch is relevant nominal voltage and
+>frequencies per OPP is not considered dynamic. OPP layer is a data store
+>layer - it stores information in a centralized manner allowing other
+>dependent module to query, store and operate on that information.
+>
+>the dependency as you rightly pointed out is:
+>voltage -> SR,ABB information.
+>
+>but as you already know,
+>OPP = (freq,voltage)
+>
+>hence there is a indirect dependency of SR, ABB information per OPP.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- arch/arm/plat-omap/common.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+Not at all, you missed the point of storing information per IP vs. information per voltage domain.
+You first translate the freq to voltage for all IPs that belong to that voltage domain. If you have 10 IPs in the same voltage domain, you will not duplicate 10 times the SR informations.
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 01cbb48..f12f0e3 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -44,9 +44,6 @@
- 
- #define NO_LENGTH_CHECK 0xffffffff
- 
--unsigned char omap_bootloader_tag[512];
--int omap_bootloader_tag_len;
--
- struct omap_board_config_kernel *omap_board_config;
- int omap_board_config_size;
- 
--- 
-1.5.6.5
+>> So they should belong to a SoC specific file, and should be hard coded
+>for a voltage domain.
+>ACK - the question is how would you do it? try to answer these questions:
+>a) where do you store SR ntarget values which is per OPP in a SOC
+>generic way?
+>b) how do you allow SR ntarget value to be queried in a SOC generic way?
+
+By adding a voltage management API similar to the OPP management API, but dedicated to voltage domains.
+
+>> The point is that you should not tie SR Ntarget, ABB... to the OPP itself
+>but to the voltage. Hence the need to have other voltage -> SR, ABB table
+>in the voltage management code only.
+>err.. that is exactly how it is done.
+
+Not really, it uses the OPP ID for the moment.
+
+>> We should not clutter the OPP layer with something that is voltage
+>related.
+>I dont see your point here. OPP layer is just providing an
+>infrastructure to store OPP related data.
+
+This is the point... OPP layer is a freq/voltage tuple management layer not a voltage control layer. There is not necessarily a one to one mapping between OPP and voltage.
+
+>>
+>> The other point is that up to now, all voltage related data are a super
+>set of the previous SoC data, so you can define only one voltage_data
+>structure that work for all SoC. If the data is useless for previous
+>platform, just put 0 or a flag to disable that parameter.
+>welcome to redundant data. How do you plan to support 35xx devices which
+>do not have nTarget data? by putting 0s for those fields? you need to
+>store this data at the end of the day in some data structure, you dont
+>have a choice. the solution as I pointed in the previous mailchain is to
+>provide an SOC generic manner which ties the data corresponding to a
+>OPP(freq/voltage) to the OPP itself.
+
+Welcome to complex data management for a couple of 32 bits data :-)
+If you look at the size of the infrastructure you have to put in place, I'm not even sure that you will save one bit.
+
+>if you look at the implementation from Thara's patches today, see:
+>See:
+>https://patchwork.kernel.org/patch/86642/
+>you will endup with a code as follows:
+>arch/arm/mach-omap2/srdevice.c:
+>
+>> +/* Read EFUSE values from control registers for OMAP3430 */
+>> +static void __init omap34xx_sr_read_efuse(struct omap_smartreflex_data
+>*sr_data,
+>> +                                            int sr_id)
+>> +{
+>> +    if (sr_id == SR1) {
+>> +            sr_data->no_opp = opp_get_opp_count(OPP_MPU);
+>> +            sr_data->sr_nvalue = kzalloc(sizeof(sr_data->sr_nvalue) *
+>> +                                    sr_data->no_opp , GFP_KERNEL);
+>> +            if (WARN_ON(!sr_data->sr_nvalue))
+>> +                    return;
+>> +
+>> +            sr_data->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR)
+>&
+>> +                                    OMAP343X_SR1_SENNENABLE_MASK) >>
+>> +                                    OMAP343X_SR1_SENNENABLE_SHIFT;
+>> +            sr_data->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR)
+>&
+>> +                                    OMAP343X_SR1_SENPENABLE_MASK) >>
+>> +                                    OMAP343X_SR1_SENPENABLE_SHIFT;
+>> +            sr_data->sr_nvalue[4] = omap_ctrl_readl(
+>> +                                    OMAP343X_CONTROL_FUSE_OPP5_VDD1);
+>> +            sr_data->sr_nvalue[3] = omap_ctrl_readl(
+>> +                                    OMAP343X_CONTROL_FUSE_OPP4_VDD1);
+>> +            sr_data->sr_nvalue[2] = omap_ctrl_readl(
+>> +                                    OMAP343X_CONTROL_FUSE_OPP3_VDD1);
+>> +            sr_data->sr_nvalue[1] = omap_ctrl_readl(
+>> +                                    OMAP343X_CONTROL_FUSE_OPP2_VDD1);
+>> +            sr_data->sr_nvalue[0] = omap_ctrl_readl(
+>> +                                    OMAP343X_CONTROL_FUSE_OPP1_VDD1);
+>> +    } else if (sr_id == SR2) {
+>> +            sr_data->no_opp = 3;
+>> +            sr_data->sr_nvalue = kzalloc(sizeof(sr_data->sr_nvalue) *
+>> +                                    sr_data->no_opp , GFP_KERNEL);
+>> +            if (WARN_ON(!sr_data->sr_nvalue))
+>> +                    return;
+>> +
+>> +            sr_data->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR)
+>&
+>> +                                    OMAP343X_SR2_SENNENABLE_MASK) >>
+>> +                                    OMAP343X_SR2_SENNENABLE_SHIFT;
+>> +            sr_data->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR)
+>&
+>> +                                    OMAP343X_SR2_SENPENABLE_MASK) >>
+>> +                                    OMAP343X_SR2_SENPENABLE_SHIFT;
+>> +            sr_data->sr_nvalue[2] = omap_ctrl_readl(
+>> +                                    OMAP343X_CONTROL_FUSE_OPP3_VDD2);
+>> +            sr_data->sr_nvalue[1] = omap_ctrl_readl(
+>> +                                    OMAP343X_CONTROL_FUSE_OPP2_VDD2);
+>> +            sr_data->sr_nvalue[0] = omap_ctrl_readl(
+>> +                                    OMAP343X_CONTROL_FUSE_OPP1_VDD2);
+>> +    }
+>> +}
+>well.. that is what you get if you decide that ONLY the module should
+>store the data-> it will have to have the concept of OPP ID as a result!
+>
+>Sorry, I disagree with this.
+
+That, I agree (with you). We need to get rid of the OPP ID stuff.
+
+>>
+>> Regarding the link between voltage domains, there are two different types
+>that should not be necessarily handled by the OPP layer.
+>>
+>> - The first case is the one we have today to handle the MPU -> L3
+>dependency: In that case it is a pure policy dependency, that can or not be
+>applied depending of the need and of the customer.
+>> Is it the OPP layer responsibility to handle policy? If it is the case,
+>we should add much more stuff to expose that to user mode and allow a
+>certain amount of flexibility.
+>Errr... you missed the purpose of the patch I suspect - OPP layer did
+>not implement policy - it just provided an uniform mechanism to store
+>data, the policy of dependency is implemented in resource34xx.c.
+
+Not at all, that's why I'm asking you if you'd like to do that.
+If you want to add the storage in the OPP layer, just add an explicit attribute in the OPP structure. No need to have a dynamic stuff to do that.
+
+>> - The second case is due to HW limitation like on OMAP4, where we cannot
+>have the highest OPP on MPU or IVA with the lowest one on the CORE.
+>> In that case, we probably have to handle that in the low level voltage
+>management part and not in the OPP layer.
+>And how would you implement it? you need to describe this information
+>some place without hardcoding it.. OPP layer allows you that flexibility.
+
+In fact that case should be hardcoded. It will be SoC dependant.
+
+>> Bottom line is I still think this is a little bit over-engineered for the
+>real need, and on the other side that does not fully solve the needs.
+>I strongly disagree with your opinion. I think the OPP layer's job is to
+>store OPP relevant information which can be queried and operated upon by
+>layers that implement policy and functionality - how and when they do it
+>is up to them, OPP layer should provide a mechanism for data storage and
+>this is introduced in this patchset.
+
+Part of the problem I think, is due to the confusion between an OPP layer and a voltage control layer.
+Other part of the problem, is the abuse of "void *" to store any kind of stuff that should be well typed attributes in the OPP structure.
+
+Otherwise the primary idea to remove OPP ID is good, and the way to go.
+
+Regards,
+Benoit
+
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+
+
 
