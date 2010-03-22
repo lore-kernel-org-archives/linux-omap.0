@@ -1,64 +1,153 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] AM35x: Add musb support
-Date: Mon, 22 Mar 2010 16:31:46 +0300
-Message-ID: <4BA77142.3050109@mvista.com>
-References: <1267017495-17548-1-git-send-email-ajay.gupta@ti.com>,<4BA4CCF3.4060500@ru.mvista.com> <19F8576C6E063C45BE387C64729E7394044DCC5F29@dbde02.ent.ti.com> <4BA5FBF6.8010102@mvista.com> <19F8576C6E063C45BE387C64729E7394044DE0E5E6@dbde02.ent.ti.com> <4BA742ED.6080004@ru.mvista.com> <19F8576C6E063C45BE387C64729E7394044DE0E71B@dbde02.ent.ti.com> <4BA74E48.30109@ru.mvista.com> <19F8576C6E063C45BE387C64729E7394044DE0E730@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DE0E730-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Charulatha V <charu@ti.com>
+Subject: [PATCH] OMAP: GPIO: Fix OMAP4 GPIO reg access issues
+Date: Mon, 22 Mar 2010 20:08:24 +0530
+Message-ID: <1269268704-31347-1-git-send-email-charu@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50113 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751235Ab0CVOfI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Mar 2010 10:35:08 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2MEZ547028372
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 22 Mar 2010 09:35:07 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Charulatha V <charu@ti.com>
 
-Gupta, Ajay Kumar wrote:
->> -----Original Message-----
->> From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
->> Sent: Monday, March 22, 2010 4:33 PM
->> To: Gupta, Ajay Kumar
->> Cc: Sergei Shtylyov; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Re: [PATCH] AM35x: Add musb support
->>
->> Gupta, Ajay Kumar wrote:
->>
->>     
->>>>>>> I have not added CPPI4.1 DMA  specific register here..
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>               
->>>>>>    Ah. Then they're not compatible with DA8xx anyway...
->>>>>>
->>>>>>
->>>>>>             
->>>>> We could make it compatible with some change as done at,
->>>>> http://arago-project.org/git/people/?p=sriram/ti-psp-
->>>>>
->>>>>           
->>>> omap.git;a=commitdiff;h=2ecce9529bd56c32997e0b2cbe84f7727ba5b217
->>>>
->>>> I'm not sure where cppi41_dma.c gets the definitions for
->>>> USB_[RT]X_MODE_REG...
->>>>
->>>>         
->>> It is being used from plat/usb.h.
->>>
->>>       
->>    I haven't found where it's included.
->>     
->
-> It's from cppi41_dma.h.
->   
+Access to some of the OMAP4 GPIO registers are not properly handled.
+This patch fixes it.
 
-   Well, you've removed the register #define's from cppi41_dma.h and 
-#includ'ed <plat/usb.h> BUT there's certainly no such header for DA8xx , 
-so as I  suspected you've broken DA8xx support. That certainly won't do. :-/
+Signed-off-by: Charulatha V <charu@ti.com>
+---
+ arch/arm/plat-omap/gpio.c |   61 +++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 55 insertions(+), 12 deletions(-)
 
-WBR, Sergei
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 76a347b..3a9891c 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -137,7 +137,11 @@
+ #define OMAP4_GPIO_IRQSTATUSCLR1	0x0040
+ #define OMAP4_GPIO_IRQWAKEN0		0x0044
+ #define OMAP4_GPIO_IRQWAKEN1		0x0048
+-#define OMAP4_GPIO_SYSSTATUS		0x0104
++#define OMAP4_GPIO_SYSSTATUS		0x0114
++#define OMAP4_GPIO_IRQENABLE1		0x011c
++#define OMAP4_GPIO_WAKE_EN		0x0120
++#define OMAP4_GPIO_IRQSTATUS2		0x0128
++#define OMAP4_GPIO_IRQENABLE2		0x012c
+ #define OMAP4_GPIO_CTRL			0x0130
+ #define OMAP4_GPIO_OE			0x0134
+ #define OMAP4_GPIO_DATAIN		0x0138
+@@ -148,6 +152,10 @@
+ #define OMAP4_GPIO_FALLINGDETECT	0x014c
+ #define OMAP4_GPIO_DEBOUNCENABLE	0x0150
+ #define OMAP4_GPIO_DEBOUNCINGTIME	0x0154
++#define OMAP4_GPIO_CLEARIRQENABLE1	0x0160
++#define OMAP4_GPIO_SETIRQENABLE1	0x0164
++#define OMAP4_GPIO_CLEARWKUENA		0x0180
++#define OMAP4_GPIO_SETWKUENA		0x0184
+ #define OMAP4_GPIO_CLEARDATAOUT		0x0190
+ #define OMAP4_GPIO_SETDATAOUT		0x0194
+ /*
+@@ -591,12 +599,16 @@ static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
+ 		reg += OMAP7XX_GPIO_DATA_OUTPUT;
+ 		break;
+ #endif
+-#ifdef CONFIG_ARCH_OMAP2PLUS
++#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ 	case METHOD_GPIO_24XX:
+-	case METHOD_GPIO_44XX:
+ 		reg += OMAP24XX_GPIO_DATAOUT;
+ 		break;
+ #endif
++#ifdef CONFIG_ARCH_OMAP4
++	case METHOD_GPIO_44XX:
++		reg += OMAP4_GPIO_DATAOUT;
++		break;
++#endif
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1200,11 +1215,17 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ #endif
+ 	if (!cpu_class_is_omap1()) {
+ 		if (!bank->mod_usage) {
++			void __iomem *reg = bank->base;
+ 			u32 ctrl;
+-			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
+-			ctrl &= 0xFFFFFFFE;
++
++			if (cpu_is_omap24xx() || cpu_is_omap34xx())
++				reg += OMAP24XX_GPIO_CTRL;
++			else if (cpu_is_omap44xx())
++				reg += OMAP4_GPIO_CTRL;
++			ctrl = __raw_readl(reg);
+ 			/* Module is enabled, clocks are not gated */
+-			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
++			ctrl &= 0xFFFFFFFE;
++			__raw_writel(ctrl, reg);
+ 		}
+ 		bank->mod_usage |= 1 << offset;
+ 	}
+@@ -1226,22 +1247,34 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ 		__raw_writel(1 << offset, reg);
+ 	}
+ #endif
+-#ifdef CONFIG_ARCH_OMAP2PLUS
+-	if ((bank->method == METHOD_GPIO_24XX) ||
+-			(bank->method == METHOD_GPIO_44XX)) {
++#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
++	if (bank->method == METHOD_GPIO_24XX) {
+ 		/* Disable wake-up during idle for dynamic tick */
+ 		void __iomem *reg = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
+ 		__raw_writel(1 << offset, reg);
+ 	}
+ #endif
++#ifdef CONFIG_ARCH_OMAP4
++	if (bank->method == METHOD_GPIO_44XX) {
++		/* Disable wake-up during idle for dynamic tick */
++		void __iomem *reg = bank->base + OMAP4_GPIO_IRQWAKEN0;
++		__raw_writel(1 << offset, reg);
++	}
++#endif
+ 	if (!cpu_class_is_omap1()) {
+ 		bank->mod_usage &= ~(1 << offset);
+ 		if (!bank->mod_usage) {
++			void __iomem *reg = bank->base;
+ 			u32 ctrl;
+-			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
++
++			if (cpu_is_omap24xx() || cpu_is_omap34xx())
++				reg += OMAP24XX_GPIO_CTRL;
++			else if (cpu_is_omap44xx())
++				reg += OMAP4_GPIO_CTRL;
++			ctrl = __raw_readl(reg);
+ 			/* Module is disabled, clocks are gated */
+ 			ctrl |= 1;
+-			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
++			__raw_writel(ctrl, reg);
+ 		}
+ 	}
+ 	_reset_gpio(bank, bank->chip.base + offset);
+@@ -1570,9 +1603,14 @@ static int gpio_is_input(struct gpio_bank *bank, int mask)
+ 		reg += OMAP7XX_GPIO_DIR_CONTROL;
+ 		break;
+ 	case METHOD_GPIO_24XX:
+-	case METHOD_GPIO_44XX:
+ 		reg += OMAP24XX_GPIO_OE;
+ 		break;
++	case METHOD_GPIO_44XX:
++		reg += OMAP4_GPIO_OE;
++		break;
++	default:
++		WARN_ON(1);
++		return -EINVAL;
+ 	}
+ 	return __raw_readl(reg) & mask;
+ }
+-- 
+1.6.3.3
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
