@@ -1,89 +1,93 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [RFC] omap3: Fix incorrect restore pointer
-Date: Mon, 22 Mar 2010 14:42:37 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03220FBE22@dbde02.ent.ti.com>
-References: <1268994180-25170-1-git-send-email-premi@ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH] AM35x: Add musb support
+Date: Mon, 22 Mar 2010 13:14:05 +0300
+Message-ID: <4BA742ED.6080004@ru.mvista.com>
+References: <1267017495-17548-1-git-send-email-ajay.gupta@ti.com>,<4BA4CCF3.4060500@ru.mvista.com> <19F8576C6E063C45BE387C64729E7394044DCC5F29@dbde02.ent.ti.com> <4BA5FBF6.8010102@mvista.com> <19F8576C6E063C45BE387C64729E7394044DE0E5E6@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39291 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752459Ab0CVJMp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 05:12:45 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2M9Cg1u007697
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 22 Mar 2010 04:12:44 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2M9Cf6b017652
-	for <linux-omap@vger.kernel.org>; Mon, 22 Mar 2010 14:42:41 +0530 (IST)
-In-Reply-To: <1268994180-25170-1-git-send-email-premi@ti.com>
-Content-Language: en-US
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:41141 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751916Ab0CVKOi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 06:14:38 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DE0E5E6@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+
+Hello.
+
+Gupta, Ajay Kumar wrote:
+
+>>>> +/* USB 2.0 OTG module registers */
+>>>> +#define USB_REVISION_REG     0x00
+>>>> +#define USB_CTRL_REG         0x04
+>>>> +#define USB_STAT_REG         0x08
+>>>> +#define USB_EMULATION_REG    0x0c
+>>>> +/* 0x10 Reserved */
+>>>>  Wait... so the mode register isn't supported? Does AM35x support any
+>>>> accelerated modes?
+>>>>
+>>>>         
+>>> Mode register is available though with some difference due to 15Rx/Tx
+>>>       
+>> eps.
+>>     
+>>> I have not added CPPI4.1 DMA  specific register here..
+>>>
+>>>       
+>>    Ah. Then they're not compatible with DA8xx anyway...
+>>     
+>
+> We could make it compatible with some change as done at,
+> http://arago-project.org/git/people/?p=sriram/ti-psp-omap.git;a=commitdiff;h=2ecce9529bd56c32997e0b2cbe84f7727ba5b217
+>   
+
+   I'm not sure where cppi41_dma.c gets the definitions for 
+USB_[RT]X_MODE_REG... anyway, I'm thinking of a different solution now, 
+i.e. moving the functions that access the implementation specific 
+acceleration
+
+>>>> +#define USB_END_OF_INTR_REG  0x60
+>>>>   Hm, I don't see the generic RNDIS EP size registers also. So, generic
+>>>> RNDIS mode isn't supported? Then cppi41_dma.c won't work with this
+>>>> chip... :-/
+>>>>
+>>>>         
+>>> Generic RNDIS mode is suported and CPPi4,1 is already verified to be
+>>>       
+>> working on
+>>     
+>>> AM3517.
+>>>       
+>>    I wonder how it can work as the registers cppi41_dma.c relies upon
+>> are not the same as in DA8xx. Did you make some changes to cppi41_dma.c?
+>>     
+>
+> There were only few changes to make it work. You can see the changes
+> in our internal release tree at,
+> http://arago-project.org/git/people/?p=sriram/ti-psp-omap.git;a=summary
+>
+> They have all the CPPI patches based out of your latest patch. All these
+>   
+
+   My latest was take 5, this tree has take 3 as a base.
+
+> have to be reviewed/cleaned which is not happening as the base CPPI4.1 patch
+> itself is pending to be merged.
+>
+> Any update on CPPI4.1 driver location?
+
+   I'm pretty sure it should be in arch/arm/common/...
+
+>  Are you still waiting for Russell's reply?
+>   
+
+   Well, yes and no. I'm not hoping on Russell's reply though but 
+haven't found time to move the code and post the new patch...
+
+WBR, Sergei
 
 
-
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi,
->>Sanjeev
->>Sent: Friday, March 19, 2010 3:53 PM
->>To: linux-omap@vger.kernel.org
->>Cc: Premi, Sanjeev
->>Subject: [RFC] omap3: Fix incorrect restore pointer
->>
->>Due to check for absolute omap_rev() values against
->>ES3.0 and ES3.1, the restore pointer for OMAP3630 is
->>incorrectly assigned.
->>
->>The problem may be observed with OMAP3430 ES3.1.1
->>as well.
->>
->>Submitting this as RFC because I have only compiled
->>with changes. Haven't yet tried on EVM. Will submit
->>formal patch after testing.
->>
->>Signed-off-by: Sanjeev Premi <premi@ti.com>
->>---
->> arch/arm/mach-omap2/control.c |    7 +++++--
->> 1 files changed, 5 insertions(+), 2 deletions(-)
->>
->>diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
->>index 43f8a33..575593b 100644
->>--- a/arch/arm/mach-omap2/control.c
->>+++ b/arch/arm/mach-omap2/control.c
->>@@ -213,13 +213,16 @@ void omap3_save_scratchpad_contents(void)
->>
->> 	/* Populate the Scratchpad contents */
->> 	scratchpad_contents.boot_config_ptr = 0x0;
->>-	if (omap_rev() != OMAP3430_REV_ES3_0 &&
->>-					omap_rev() != OMAP3430_REV_ES3_1)
->>+
->>+	if (!cpu_is_omap3630() &&
->>+		(cpu_is_34xx() &&
->>+			(omap_rev() < OMAP3430_REV_ES3_0)))
->> 		scratchpad_contents.public_restore_ptr =
->> 			virt_to_phys(get_restore_pointer());
-
-Hi Sanjeev,
-
-Different restore pointer is required for ES3.0 and ES3.1 due to a silicon errata. I do not think the same silicon errata is applicable to 3630. At least I see it removed from the 3630 errata list. So the checks were fine. If ES3.1.1 is impacted you might need to add a ES3.1.1 check. But 3630 need not have this workaround.
-
-Regards
-Thara
->> 	else
->> 		scratchpad_contents.public_restore_ptr =
->> 			virt_to_phys(get_es3_restore_pointer());
->>+
->> 	if (omap_type() == OMAP2_DEVICE_TYPE_GP)
->> 		scratchpad_contents.secure_ram_restore_ptr = 0x0;
->> 	else
->>--
->>1.6.6.1
->>
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
