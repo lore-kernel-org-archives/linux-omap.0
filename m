@@ -1,99 +1,80 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH RFC 2/5] usb: ohci: introduce omap3 ohci-hcd driver
-Date: Mon, 22 Mar 2010 12:23:32 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03220FBD5A@dbde02.ent.ti.com>
-References: <1269171123-9874-1-git-send-email-gadiyar@ti.com>
- <1269171123-9874-2-git-send-email-gadiyar@ti.com>
- <1269171123-9874-3-git-send-email-gadiyar@ti.com>
- <20100321184345.GB3841@gandalf>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 2/3] OMAP3: PM: Smartreflex IP update changes for
+ OMAP3630
+Date: Mon, 22 Mar 2010 12:35:10 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03220FBD71@dbde02.ent.ti.com>
+References: <1268068851-30022-1-git-send-email-thara@ti.com>
+	<1268068851-30022-2-git-send-email-thara@ti.com>
+	<1268068851-30022-3-git-send-email-thara@ti.com>
+ <87lje2u2on.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41615 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753949Ab0CVGxm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 02:53:42 -0400
-In-Reply-To: <20100321184345.GB3841@gandalf>
+Received: from bear.ext.ti.com ([192.94.94.41]:48347 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754181Ab0CVHFV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 03:05:21 -0400
+In-Reply-To: <87lje2u2on.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-Felipe Balbi wrote:
-> On Sun, Mar 21, 2010 at 05:02:00PM +0530, Anand Gadiyar wrote:
-> > This driver has been sitting in internal trees for a long time,
-> > for no real reason. I've finally found the time to clean it
-> > up and submit it for review.
-> 
-> Thanks a lot :-)
-> 
-
-Thanks for the review :)
-
-I also noticed some whitespace issues in PATCH 1. I'll fix that
-before resending.
-
-> > +struct ohci_hcd_omap {
-> > +	struct ohci_hcd		*ohci;
-> > +	struct device		*dev;
-> > +
-> > +	struct clk		*usbhost_ick;
-> > +	struct clk		*usbhost2_120m_fck;
-> > +	struct clk		*usbhost1_48m_fck;
-> > +	struct clk		*usbtll_fck;
-> > +	struct clk		*usbtll_ick;
-> > +
-> > +	/* port_mode: TLL/PHY, 2/3/4/6-PIN, DP-DM/DAT-SE0 */
-> > +	enum ohci_omap3_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-> > +	void __iomem		*uhh_base;
-> > +	void __iomem		*tll_base;
-> > +	void __iomem		*ohci_base;
-> 
-> this is something we need to think carefully, right ? I believe ehci is
-> already ioremap()ing uhh_base and tll_base ??
-> 
-
-Correct. In it's current form, ehci and ohci will be mutually exclusive.
-We'll need to fix this later, but I was hoping to get this driver
-in so people can actually use it and test.
-
-Nobody can use EHCI and OHCI together on OMAP3 today anyway - the only
-problem we'll have right now is that we cannot build-in both drivers in
-the kernel at the same time.
-
-I'll work on getting this in place. I was thinking of moving uhh_* and tll_*
-configuration out of these two drivers and into mach-omap2/usb-ehci.c.
-Along with this, we have the board files specify one set of port-modes for
-each port, instead of one set each for EHCI and OHCI. Then, based on this,
-we can ioremap and configure the UHH and TLL blocks once during init.
-
-What do you think?
-
-> > +
-> > +	 if (omap_rev() <= OMAP3430_REV_ES2_1) {
-> 
-> can we do this check on the platform code instead and set a flag on the
-> platform_data ??
-> 
-> the driver has to be compilable on other archs so we don't break
-> randconfig.
-> 
-
-Yes - good point. I'll do this in the next revision.
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
 
-> > +	.shutdown	= ohci_hcd_omap_shutdown,
-> > +	.driver		= {
-> > +		.name	= "ohci-omap3",
-> > +	},
-> 
-> no suspend/resume yet ?? :-(
-> 
 
-I made this as similar to the current ehci-omap driver as possible.
-I wanted to get the functionality in, while I work on adding the
-power-management support.
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Monday, March 08, 2010 11:16 PM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Menon, Nishanth; Sripathy, Vishwanath; Sawant, Anand;
+>>Cousson, Benoit
+>>Subject: Re: [PATCH 2/3] OMAP3: PM: Smartreflex IP update changes for OMAP3630
+>>
+>>Thara Gopinath <thara@ti.com> writes:
+>>
+>>> OMAP3430 uses the 65nm version of the smartreflex IP where as
+>>> OMAP3630 and OMAP4430 uses the 45nm updated IP.
+>>>
+>>> This patch adds support for the updated smartreflex IP used
+>>> in OMAP3630 and OMAP4 in the smartreflex driver.
+>>>
+>>> Major changes between the two versions of IP involve:
+>>> 1. Change in offset position for ERRCONFIG and SENERROR registers
+>>> 2. Change in bit positions for VP bound interrupt enable and status
+>>>    in ERRCONFIG register.
+>>> 3. Change in bit positions and width of SENNENABLE and SENPENABLE
+>>>    bits in SRCONFIG registers.
+>>> 4. Introduction of separate irq registers for MCU bound interrupts.
+>>> 5. Removal of clockactivity bits in ERRCONFIG and introduction of
+>>>   idlemode and wakeupenable bits in ERRCONFIG.
+>>>
+>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/smartreflex.c |  218 ++++++++++++++++++++++++++++---------
+>>>  arch/arm/mach-omap2/smartreflex.h |   51 +++++++--
+>>>  2 files changed, 208 insertions(+), 61 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+>>> index 7aa84ab..2b1c529 100644
+>>> --- a/arch/arm/mach-omap2/smartreflex.c
+>>> +++ b/arch/arm/mach-omap2/smartreflex.c
+>>> @@ -58,6 +58,18 @@ static struct omap_smartreflex_class_data *sr_class;
+>>>
+>>>  #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
+>>>
+>>> +static inline int sr_type(void)
+>>> +{
+>>> +	if (cpu_is_omap3630())
+>>
+>>what about OMAP4?
 
-- Anand
+Hi Kevin,
+
+OMAP4 support will be added as a different patch once these preliminary patches get accepted.
+
+Regards
+Thara
+
+
