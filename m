@@ -1,128 +1,89 @@
-From: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
-Subject: [PATCH] OMAP3: PM: Modify suspend wakeup timer to use milliseconds instead of seconds
-Date: Mon, 22 Mar 2010 10:10:54 +0200
-Message-ID: <1269245454-24254-1-git-send-email-Ext-Ari.Kauppi@nokia.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [RFC] omap3: Fix incorrect restore pointer
+Date: Mon, 22 Mar 2010 14:42:37 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03220FBE22@dbde02.ent.ti.com>
+References: <1268994180-25170-1-git-send-email-premi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:29417 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165Ab0CVILf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 04:11:35 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39291 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752459Ab0CVJMp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 05:12:45 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2M9Cg1u007697
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 22 Mar 2010 04:12:44 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2M9Cf6b017652
+	for <linux-omap@vger.kernel.org>; Mon, 22 Mar 2010 14:42:41 +0530 (IST)
+In-Reply-To: <1268994180-25170-1-git-send-email-premi@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, tero.kristo@nokia.com
+To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Millisecond resolution is possible and there are use cases for it
-(automatic testing).
 
-Seconds-based interface is preserved for compatibility.
 
-Signed-off-by: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
----
- arch/arm/mach-omap2/pm-debug.c |   11 +++++++++++
- arch/arm/mach-omap2/pm.h       |    2 +-
- arch/arm/mach-omap2/pm34xx.c   |   16 ++++++++--------
- 3 files changed, 20 insertions(+), 9 deletions(-)
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi,
+>>Sanjeev
+>>Sent: Friday, March 19, 2010 3:53 PM
+>>To: linux-omap@vger.kernel.org
+>>Cc: Premi, Sanjeev
+>>Subject: [RFC] omap3: Fix incorrect restore pointer
+>>
+>>Due to check for absolute omap_rev() values against
+>>ES3.0 and ES3.1, the restore pointer for OMAP3630 is
+>>incorrectly assigned.
+>>
+>>The problem may be observed with OMAP3430 ES3.1.1
+>>as well.
+>>
+>>Submitting this as RFC because I have only compiled
+>>with changes. Haven't yet tried on EVM. Will submit
+>>formal patch after testing.
+>>
+>>Signed-off-by: Sanjeev Premi <premi@ti.com>
+>>---
+>> arch/arm/mach-omap2/control.c |    7 +++++--
+>> 1 files changed, 5 insertions(+), 2 deletions(-)
+>>
+>>diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+>>index 43f8a33..575593b 100644
+>>--- a/arch/arm/mach-omap2/control.c
+>>+++ b/arch/arm/mach-omap2/control.c
+>>@@ -213,13 +213,16 @@ void omap3_save_scratchpad_contents(void)
+>>
+>> 	/* Populate the Scratchpad contents */
+>> 	scratchpad_contents.boot_config_ptr = 0x0;
+>>-	if (omap_rev() != OMAP3430_REV_ES3_0 &&
+>>-					omap_rev() != OMAP3430_REV_ES3_1)
+>>+
+>>+	if (!cpu_is_omap3630() &&
+>>+		(cpu_is_34xx() &&
+>>+			(omap_rev() < OMAP3430_REV_ES3_0)))
+>> 		scratchpad_contents.public_restore_ptr =
+>> 			virt_to_phys(get_restore_pointer());
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 8aafd71..0cf2a03 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -37,6 +37,7 @@
- #include "prm-regbits-34xx.h"
- 
- int omap2_pm_debug;
-+static u32 wakeup_timer_seconds;
- 
- #define DUMP_PRM_MOD_REG(mod, reg)    \
- 	regs[reg_count].name = #mod "." #reg; \
-@@ -552,6 +553,12 @@ static int option_set(void *data, u64 val)
- 
- 	if (option == &enable_off_mode)
- 		omap3_pm_off_mode_enable(val);
-+
-+	if (option == &wakeup_timer_seconds)
-+		wakeup_timer_milliseconds = val * 1000;
-+	if (option == &wakeup_timer_milliseconds)
-+		wakeup_timer_seconds = roundup((u32)val, 1000) / 1000;
-+
- 	return 0;
- }
- 
-@@ -605,6 +612,10 @@ static int __init pm_dbg_init(void)
- 				   &sleep_while_idle, &pm_dbg_option_fops);
- 	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUGO, d,
- 				   &wakeup_timer_seconds, &pm_dbg_option_fops);
-+	(void) debugfs_create_file("wakeup_timer_milliseconds",
-+				   S_IRUGO | S_IWUGO, d,
-+				   &wakeup_timer_milliseconds,
-+				   &pm_dbg_option_fops);
- 
- 	/* Only enable for >= ES2.1 . Going to 0V on anything under
- 	 * ES2.1 will eventually cause a crash */
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index b761be5..423395a 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -68,7 +68,7 @@ static inline void omap3_pm_init_vc(struct prm_setup_vc *setup_vc)
- extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
- extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
- 
--extern u32 wakeup_timer_seconds;
-+extern u32 wakeup_timer_milliseconds;
- extern struct omap_dm_timer *gptimer_wakeup;
- 
- #ifdef CONFIG_PM_DEBUG
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 3868c76..cd55968 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -73,7 +73,7 @@ static inline bool is_suspending(void)
- 
- u32 enable_off_mode;
- u32 sleep_while_idle;
--u32 wakeup_timer_seconds;
-+u32 wakeup_timer_milliseconds;
- u32 voltage_off_while_idle;
- 
- struct power_state {
-@@ -640,20 +640,20 @@ out:
- }
- 
- #ifdef CONFIG_SUSPEND
--static void omap2_pm_wakeup_on_timer(u32 seconds)
-+static void omap2_pm_wakeup_on_timer(u32 milliseconds)
- {
- 	u32 tick_rate, cycles;
- 
--	if (!seconds)
-+	if (!milliseconds)
- 		return;
- 
- 	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
--	cycles = tick_rate * seconds;
-+	cycles = tick_rate * milliseconds / 1000;
- 	omap_dm_timer_stop(gptimer_wakeup);
- 	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
- 
--	pr_info("PM: Resume timer in %d secs (%d ticks at %d ticks/sec.)\n",
--		seconds, cycles, tick_rate);
-+	pr_info("PM: Resume timer in %u ms (%u ticks at %u ticks/sec.)\n",
-+		milliseconds, cycles, tick_rate);
- }
- 
- static int omap3_pm_prepare(void)
-@@ -667,8 +667,8 @@ static int omap3_pm_suspend(void)
- 	struct power_state *pwrst;
- 	int state, ret = 0;
- 
--	if (wakeup_timer_seconds)
--		omap2_pm_wakeup_on_timer(wakeup_timer_seconds);
-+	if (wakeup_timer_milliseconds)
-+		omap2_pm_wakeup_on_timer(wakeup_timer_milliseconds);
- 
- 	/* Read current next_pwrsts */
- 	list_for_each_entry(pwrst, &pwrst_list, node)
--- 
-1.6.4.2
+Hi Sanjeev,
 
+Different restore pointer is required for ES3.0 and ES3.1 due to a silicon errata. I do not think the same silicon errata is applicable to 3630. At least I see it removed from the 3630 errata list. So the checks were fine. If ES3.1.1 is impacted you might need to add a ES3.1.1 check. But 3630 need not have this workaround.
+
+Regards
+Thara
+>> 	else
+>> 		scratchpad_contents.public_restore_ptr =
+>> 			virt_to_phys(get_es3_restore_pointer());
+>>+
+>> 	if (omap_type() == OMAP2_DEVICE_TYPE_GP)
+>> 		scratchpad_contents.secure_ram_restore_ptr = 0x0;
+>> 	else
+>>--
+>>1.6.6.1
+>>
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
