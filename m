@@ -1,80 +1,99 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] AM35x: Add musb support
-Date: Mon, 22 Mar 2010 12:12:25 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DE0E5E6@dbde02.ent.ti.com>
-References: <1267017495-17548-1-git-send-email-ajay.gupta@ti.com>,<4BA4CCF3.4060500@ru.mvista.com>
- <19F8576C6E063C45BE387C64729E7394044DCC5F29@dbde02.ent.ti.com>
- <4BA5FBF6.8010102@mvista.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH RFC 2/5] usb: ohci: introduce omap3 ohci-hcd driver
+Date: Mon, 22 Mar 2010 12:23:32 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03220FBD5A@dbde02.ent.ti.com>
+References: <1269171123-9874-1-git-send-email-gadiyar@ti.com>
+ <1269171123-9874-2-git-send-email-gadiyar@ti.com>
+ <1269171123-9874-3-git-send-email-gadiyar@ti.com>
+ <20100321184345.GB3841@gandalf>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BA5FBF6.8010102-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41615 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753949Ab0CVGxm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 02:53:42 -0400
+In-Reply-To: <20100321184345.GB3841@gandalf>
 Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "me@felipebalbi.com" <me@felipebalbi.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-
-> >> +/* USB 2.0 OTG module registers */
-> >> +#define USB_REVISION_REG     0x00
-> >> +#define USB_CTRL_REG         0x04
-> >> +#define USB_STAT_REG         0x08
-> >> +#define USB_EMULATION_REG    0x0c
-> >> +/* 0x10 Reserved */
-> >>  Wait... so the mode register isn't supported? Does AM35x support any
-> >> accelerated modes?
-> >>
-> >
-> > Mode register is available though with some difference due to 15Rx/Tx
-> eps.
-> > I have not added CPPI4.1 DMA  specific register here..
-> >
+Felipe Balbi wrote:
+> On Sun, Mar 21, 2010 at 05:02:00PM +0530, Anand Gadiyar wrote:
+> > This driver has been sitting in internal trees for a long time,
+> > for no real reason. I've finally found the time to clean it
+> > up and submit it for review.
 > 
->    Ah. Then they're not compatible with DA8xx anyway...
-
-We could make it compatible with some change as done at,
-http://arago-project.org/git/people/?p=sriram/ti-psp-omap.git;a=commitdiff;h=2ecce9529bd56c32997e0b2cbe84f7727ba5b217
-
-
-> >> +#define USB_END_OF_INTR_REG  0x60
-> >>   Hm, I don't see the generic RNDIS EP size registers also. So, generic
-> >> RNDIS mode isn't supported? Then cppi41_dma.c won't work with this
-> >> chip... :-/
-> >>
-> >
-> > Generic RNDIS mode is suported and CPPi4,1 is already verified to be
-> working on
-> > AM3517.
-> 
->    I wonder how it can work as the registers cppi41_dma.c relies upon
-> are not the same as in DA8xx. Did you make some changes to cppi41_dma.c?
-
-There were only few changes to make it work. You can see the changes
-in our internal release tree at,
-http://arago-project.org/git/people/?p=sriram/ti-psp-omap.git;a=summary
-
-They have all the CPPI patches based out of your latest patch. All these
-have to be reviewed/cleaned which is not happening as the base CPPI4.1 patch
-itself is pending to be merged. 
-
-Any update on CPPI4.1 driver location? Are you still waiting for Russell's reply?
-
-Ajay
-> 
-> > You can get more details on this at AM3517 TRM,
-> >
-> > http://focus.ti.com/lit/ug/sprugr0/sprugr0.pdf
-> >
-> 
->    Thanks for the pointer...
-> 
-> WBR, Sergei
+> Thanks a lot :-)
 > 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for the review :)
+
+I also noticed some whitespace issues in PATCH 1. I'll fix that
+before resending.
+
+> > +struct ohci_hcd_omap {
+> > +	struct ohci_hcd		*ohci;
+> > +	struct device		*dev;
+> > +
+> > +	struct clk		*usbhost_ick;
+> > +	struct clk		*usbhost2_120m_fck;
+> > +	struct clk		*usbhost1_48m_fck;
+> > +	struct clk		*usbtll_fck;
+> > +	struct clk		*usbtll_ick;
+> > +
+> > +	/* port_mode: TLL/PHY, 2/3/4/6-PIN, DP-DM/DAT-SE0 */
+> > +	enum ohci_omap3_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+> > +	void __iomem		*uhh_base;
+> > +	void __iomem		*tll_base;
+> > +	void __iomem		*ohci_base;
+> 
+> this is something we need to think carefully, right ? I believe ehci is
+> already ioremap()ing uhh_base and tll_base ??
+> 
+
+Correct. In it's current form, ehci and ohci will be mutually exclusive.
+We'll need to fix this later, but I was hoping to get this driver
+in so people can actually use it and test.
+
+Nobody can use EHCI and OHCI together on OMAP3 today anyway - the only
+problem we'll have right now is that we cannot build-in both drivers in
+the kernel at the same time.
+
+I'll work on getting this in place. I was thinking of moving uhh_* and tll_*
+configuration out of these two drivers and into mach-omap2/usb-ehci.c.
+Along with this, we have the board files specify one set of port-modes for
+each port, instead of one set each for EHCI and OHCI. Then, based on this,
+we can ioremap and configure the UHH and TLL blocks once during init.
+
+What do you think?
+
+> > +
+> > +	 if (omap_rev() <= OMAP3430_REV_ES2_1) {
+> 
+> can we do this check on the platform code instead and set a flag on the
+> platform_data ??
+> 
+> the driver has to be compilable on other archs so we don't break
+> randconfig.
+> 
+
+Yes - good point. I'll do this in the next revision.
+
+
+> > +	.shutdown	= ohci_hcd_omap_shutdown,
+> > +	.driver		= {
+> > +		.name	= "ohci-omap3",
+> > +	},
+> 
+> no suspend/resume yet ?? :-(
+> 
+
+I made this as similar to the current ehci-omap driver as possible.
+I wanted to get the functionality in, while I work on adding the
+power-management support.
+
+- Anand
