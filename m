@@ -1,115 +1,78 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC][PATCH 4/5] input: serio: add support for Amstrad Delta serial keyboard port
-Date: Mon, 22 Mar 2010 22:07:47 +0100
-Message-ID: <201003222207.48707.jkrzyszt@tis.icnet.pl>
-References: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com> <20091212232003.GA16760@core.coreip.homeip.net> <200912140111.36458.jkrzyszt@tis.icnet.pl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/7] omap3: serial code for 3630 and zoom2/3 fixes
+Date: Mon, 22 Mar 2010 14:16:05 -0700
+Message-ID: <20100322211604.GV11448@atomide.com>
+References: <1268694252-21985-1-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <200912140111.36458.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55645 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754736Ab0CVVOb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Mar 2010 17:14:31 -0400
 Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+In-Reply-To: <1268694252-21985-1-git-send-email-saaguirre@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-(dropping Tony and e3-hacking for now)
+* Sergio Aguirre <saaguirre@ti.com> [100315 15:59]:
+> Hi,
+> 
+> This series contains fixes for omap2/3/4 serial code, and are
+> fixing:
+>  - Avoid doing ioremap of a zero-based physical address.
+>    (causing a kernel panic during early init on 3630boards)
+>  - Unproper omap_revision check during uart globals setup.
+>    (omap_revision is not yet filled at that point)
+>  - Don't try to enable all uarts generically for zoom2/3
+>    and 3630sdp.
+>  - Make zoom2/3 just register one serial port (ttyS0).
 
-Monday 14 December 2009 01:11:34 Janusz Krzysztofik wrote:
-> Hi Dmitry,
->
-> Sunday 13 December 2009 00:20:03 Dmitry Torokhov napisa=C5=82(a):
-> > atkbd is supposed to support PS/2 devices speaking AT keyboard prot=
-ocol.
-> > We also do support such devices behind dumb controllers that do not
-> > allow querying the device but we expect those to at least produce t=
-he
-> > standard scancodes.
->
-> As far as I can understand, using the atkbd driver is not a good idea=
- in
-> this case because of the keyboard not producing standard scancodes,
-> correct?
->
-> Isn't the hpps2atkbd.h provided keycode table an already supported wa=
-y of
-> introducing exceptions to this standard scancodes requirement? Why co=
-uldn't
-> this method be reused here?
->
-> What I am afraid of is if the driver supposed to be created instead
-> wouldn't require reiplementing most of the atkbd code.
->
-> > I would need to know a bit more about the gamepad, but so far I sti=
-ll
-> > think that current attempot of creating intermediate serio module w=
-hich
-> > allows to use atkbd driver is not the proper solution.
->
-> I modified the serio driver to send exactly what it gets from the buf=
-fer
-> and examined its output with serio_raw. The gamepad (can be connected
-> simultaneously) appeared to send exactly the same scancodes as the ke=
-yboard
-> did. I couldn't see how those might be destinguished whether coming f=
-rom
-> the keybord or from the gamepad. Thus, handling them both together as=
- a
-> single device would probably be the only option here.
->
-> With both devices connected and keys pressed simultaneously, errors o=
-ccure
-> at the lowest level: parity check failed, invalid stop bit, etc. I do=
-n't
-> think it would be possible to do anything about this. But this also m=
-eans
-> that trying to query them in order to get a sensible response would
-> probably be not reliable.
->
-> Any thoughts?
->
-> Thanks,
-> Janusz
+Thanks, I've pulled this into omap-fixes-for-linus.
 
-Hi Dmitry,
+Regards,
 
-You probably missed my last message.
+Tony
 
-Meanwhile, I've connected the Amstrad Delta keyboard to a PC. I can con=
-firm it=20
-speaks PS/2 protocol and is automatically detected by atkbd/i8042 drive=
-rs.=20
-The initial handshake sequence actually looks exactly the same as that =
-of a=20
-standard AT keyboard. The problem persists about different scancodes, g=
-iving=20
-wrong keystrokes.
-
-OTOH, the Amstrad Delta gamepad seems simplified. Connected alone to a =
-PC,=20
-works as well but only when i8042.dumbkbd is set. However, when both de=
-vices=20
-are connected in parallel, initial keyboard handshake allows for both b=
-eing=20
-used (not simultaneously) in default 2-way i8042 mode.
-
-Resuming, if there were a boot/module option to atkbd allowing for non-=
-default=20
-scancode table, or another similiar possibility, both devices would wor=
-k with=20
-a PC using exsisting drivers.
-
-Even if the chance of anyone using this tiny keyboard with a PC is rath=
-er low,=20
-do you still suggest that creating a new, standalone keyboard driver fo=
-r it=20
-is a good idea?
-
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+> This is a subset of the original series found here: [1]
+> 
+> Thanks to:
+>  - Vikram Pandita
+>  - Paul Walmsley
+>  - Kevin Hilman
+>  - Manjunath Kondaiah
+>  - Felipe Balbi
+>  - Tony Lindgreen
+> 
+> For all the feedback recieved so far.
+> 
+> Regards,
+> Sergio
+> 
+> Detailed changelog:
+> 
+> Sergio Aguirre (7):
+>   OMAP3: serial: Check for zero-based physical addr
+>   OMAP3: serial: Use dev_* macros instead of printk
+>   omap2/3/4: serial: Remove condition for getting uart4_phys
+>   omap3: zoom2/3 / 3630sdp: Don't init always all uarts
+>   omap3: 3630sdp: Explicitly enable all UARTs
+>   omap3: zoom 2/3: Change debugboard serial port id
+>   omap3: zoom2/3: Register only 1 8250 port
+> 
+>  arch/arm/configs/omap_zoom2_defconfig        |    2 +-
+>  arch/arm/configs/omap_zoom3_defconfig        |    2 +-
+>  arch/arm/mach-omap2/board-3630sdp.c          |    1 +
+>  arch/arm/mach-omap2/board-zoom-debugboard.c  |    2 +-
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    1 -
+>  arch/arm/mach-omap2/serial.c                 |   35 +++++++++++++------------
+>  6 files changed, 22 insertions(+), 21 deletions(-)
+> 
+> [1] http://marc.info/?l=linux-omap&m=126826639903105&w=2
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
