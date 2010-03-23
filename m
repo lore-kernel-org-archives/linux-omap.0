@@ -1,50 +1,54 @@
-From: ambresh <a0393775@ti.com>
-Subject: Re: [PATCH v2 2/2] OMAP3630 SDRC: Change in DVFS Latency Formula
- for OMAP3630
-Date: Tue, 23 Mar 2010 08:19:05 +0530
-Message-ID: <4BA82C21.4010209@ti.com>
-References: <1268888148-10983-1-git-send-email-pramod.gurav@ti.com> <1268888148-10983-2-git-send-email-pramod.gurav@ti.com> <1268888148-10983-3-git-send-email-pramod.gurav@ti.com> <4BA1D3A3.7090708@ti.com> <FCCFB4CDC6E5564B9182F639FC35608703045F2FF1@dbde02.ent.ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH] AM35x: Add musb support
+Date: Tue, 23 Mar 2010 09:27:14 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DE0E8E6@dbde02.ent.ti.com>
+References: <1267017495-17548-1-git-send-email-ajay.gupta@ti.com>,<4BA4CCF3.4060500@ru.mvista.com>
+ <19F8576C6E063C45BE387C64729E7394044DCC5F29@dbde02.ent.ti.com>
+ <4BA5FBF6.8010102@mvista.com>
+ <19F8576C6E063C45BE387C64729E7394044DE0E5E6@dbde02.ent.ti.com>
+ <4BA742ED.6080004@ru.mvista.com>
+ <19F8576C6E063C45BE387C64729E7394044DE0E71B@dbde02.ent.ti.com>
+ <4BA74E48.30109@ru.mvista.com>
+ <19F8576C6E063C45BE387C64729E7394044DE0E730@dbde02.ent.ti.com>
+ <4BA77142.3050109@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58853 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753074Ab0CWCtU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Mar 2010 22:49:20 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2N2nHKr002988
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 22 Mar 2010 21:49:19 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2N2nFxk023040
-	for <linux-omap@vger.kernel.org>; Tue, 23 Mar 2010 08:19:16 +0530 (IST)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703045F2FF1@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4BA77142.3050109-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: "K, Ambresh" <ambresh@ti.com>, "Gurav , Pramod" <pramod.gurav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Sripathy, Vishwanath wrote:
-
->>>
->> -PFA,
->>
->> - Attached patch provides further optimized 3630 & 3430 path for
->> calculating M2 stablization delay.
->>
->> - The formula used to compute clkoutx2, is actually calculating for
->> clkoutm2x2 according to trm  clkoutx2 = (Fref * 2 * M)/ (N + 1).
->>   (Thanks to Eduardo for pointing this).
->>
-> No, CLKOUTX2 is dependent on M2. Pls refer to table 3-45 (DPLL Operating Mode and Latency) in 3630 TRM Version D. 
+Hi,
+> >>> It is being used from plat/usb.h.
+> >>>
+> >>>
+> >>    I haven't found where it's included.
+> >>
+> >
+> > It's from cppi41_dma.h.
+> >
 > 
+>    Well, you've removed the register #define's from cppi41_dma.h and
+> #includ'ed <plat/usb.h>
 
-Yes! Stabilization delay for CLKOUTx2 is dependent on M2.
+Correct.
 
-Confusion prevailed because of the section 3.5.3.3.3.1 where clkoutx2 is 
-not dependent on M2 factor. And moreover the formula used to calculate 
-clkoutx2 in this case looks like the one used for computing clkout_M2X2 :)
+> BUT there's certainly no such header for DA8xx , so as I  suspected
+> you've broken DA8xx support. That certainly won't do.:-/
 
-Thanks,
-Ambresh
+As cppi4.1 register layouts are different in DA8x and AM3517 so we can't
+use common place (cppi41_dma.h)for them and therefore I moved them
+to plat/usb.h defines.
+
+Ajay
+> 
+> WBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
