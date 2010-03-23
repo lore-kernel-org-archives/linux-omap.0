@@ -1,97 +1,92 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCH 1/5] OMAP: RX51: Add LCD Panel support
-Date: Tue, 23 Mar 2010 13:20:37 +0200
-Message-ID: <4BA8A405.8000307@nokia.com>
-References: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com>	 <1269338191-10734-2-git-send-email-roger.quadros@nokia.com> <74d0deb31003230312x1b1160b5v75f182fd3db8ac25@mail.gmail.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH] musb: fix power field to hold all possible values
+Date: Tue, 23 Mar 2010 17:11:16 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DE0EB15@dbde02.ent.ti.com>
+References: <1266918404-17715-1-git-send-email-ajay.gupta@ti.com>
+ <20100223095154.GA12815@gandalf>
+ <19F8576C6E063C45BE387C64729E7394044DA995E5@dbde02.ent.ti.com>
+ <20100223203215.GA21920@gandalf> <20100225221940.GN28173@atomide.com>
+ <19F8576C6E063C45BE387C64729E7394044DA99E2B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:47343 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253Ab0CWLVa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 07:21:30 -0400
-In-Reply-To: <74d0deb31003230312x1b1160b5v75f182fd3db8ac25@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41819 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751618Ab0CWLlb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 07:41:31 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DA99E2B@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext pHilipp Zabel <philipp.zabel@gmail.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ext pHilipp Zabel wrote:
-> On Tue, Mar 23, 2010 at 10:56 AM, Roger Quadros <roger.quadros@nokia.com> wrote:
->> From: Roger Quadros <roger.quadros@nokia.com>
->>
->> Adds basic support for LCD Panel on Nokia N900
->>
->> Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
->> ---
->>  arch/arm/mach-omap2/Makefile                 |    1 +
->>  arch/arm/mach-omap2/board-rx51-peripherals.c |   13 ++++
->>  arch/arm/mach-omap2/board-rx51-video.c       |   95 ++++++++++++++++++++++++++
->>  3 files changed, 109 insertions(+), 0 deletions(-)
->>  create mode 100644 arch/arm/mach-omap2/board-rx51-video.c
->>
->> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
->> index 4b9fc57..b03cbb4 100644
->> --- a/arch/arm/mach-omap2/Makefile
->> +++ b/arch/arm/mach-omap2/Makefile
->> @@ -122,6 +122,7 @@ obj-$(CONFIG_MACH_NOKIA_N8X0)               += board-n8x0.o
->>  obj-$(CONFIG_MACH_NOKIA_RX51)          += board-rx51.o \
->>                                           board-rx51-sdram.o \
->>                                           board-rx51-peripherals.o \
->> +                                          board-rx51-video.o \
->>                                           hsmmc.o
->>  obj-$(CONFIG_MACH_OMAP_ZOOM2)          += board-zoom2.o \
->>                                           board-zoom-peripherals.o \
->> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
->> index 4377a4c..f404537 100644
->> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
->> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
->> @@ -45,6 +45,7 @@
->>  /* list all spi devices here */
->>  enum {
->>        RX51_SPI_WL1251,
->> +       RX51_SPI_MIPID,         /* LCD panel */
->>  };
->>
->>  static struct wl12xx_platform_data wl1251_pdata;
->> @@ -54,6 +55,11 @@ static struct omap2_mcspi_device_config wl1251_mcspi_config = {
->>        .single_channel = 1,
->>  };
->>
->> +static struct omap2_mcspi_device_config mipid_mcspi_config = {
->> +       .turbo_mode     = 0,
->> +       .single_channel = 1,
->> +};
->> +
->>  static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
->>        [RX51_SPI_WL1251] = {
->>                .modalias               = "wl1251",
->> @@ -64,6 +70,13 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
->>                .controller_data        = &wl1251_mcspi_config,
->>                .platform_data          = &wl1251_pdata,
->>        },
->> +       [RX51_SPI_MIPID] = {
->> +               .modalias               = "acx565akm",
->> +               .bus_num                = 1,
->> +               .chip_select            = 2,
->> +               .max_speed_hz           = 6000000,
->> +               .controller_data        = &mipid_mcspi_config,
->> +       },
->>  };
->>
->>  #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
->> diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
->> new file mode 100644
->> index 0000000..e3e22a8
->> --- /dev/null
->> +++ b/arch/arm/mach-omap2/board-rx51-video.c
->> @@ -0,0 +1,95 @@
->> +/*
->> + * linux/arch/arm/mach-omap2/board-rx51-peripherals.c
+Hi,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Gupta, Ajay Kumar
+> Sent: Friday, February 26, 2010 10:03 AM
+> To: Tony Lindgren; Felipe Balbi
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCH] musb: fix power field to hold all possible values
 > 
-> board-rx51-video.c
+> Hi,
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com]
+> > Sent: Friday, February 26, 2010 3:50 AM
+> > To: Felipe Balbi
+> > Cc: Gupta, Ajay Kumar; linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH] musb: fix power field to hold all possible values
+> >
+> > * Felipe Balbi <me@felipebalbi.com> [100223 12:30]:
+> > > Hi,
+> > >
+> > > On Tue, Feb 23, 2010 at 08:01:50PM +0530, Gupta, Ajay Kumar wrote:
+> > > > Board files are providing the actual mA and it is getting divided in
+> > > > Arch/arm/mach-omap2/usb-musb.c. See the code snippet below,
+> > > >
+> > > >         musb_plat.clock = "ick";
+> > > >         musb_plat.board_data = board_data;
+> > > > -->     musb_plat.power = board_data->power >> 1;
+> > > >         musb_plat.mode = board_data->mode;
+> > > >
+> > > > So we need to either take this patch or fix this logic of dividing
+> the
+> > mA
+> > > > supplied from all omap board files.
+> > >
+> > > that's true, had missed that. Sorry.
+> >
+> > Hmm, I believe this value is also divided somewhere else but
+> > I forgot where. In any case, when making changes like this
+> > please run the standard USB tests for gadgets and OTG.
+> >
+> > Otherwise things are guaranteed to break for USB certs :)
 > 
-yup. thanks :P
+> Tony,
+> 
+> Currently the flow is,
+> 
+> 1. Actual mA provided in all omap board files.
+> 2. mA gets divided in usb-musb.c
+> 3. mA multiplied by two in driver/usb/musb/musb_core.c to pass it to
+>    hcd->power_budget.
+> 
+> So the current patch fixes the logic in step [1] above to fill mA value
+> Above 255.
 
--roger
+Felipe/Tony,
+
+Any update on this patch ?
+
+Regards,
+Ajay
+> 
+> -Ajay
+> >
+> > Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
