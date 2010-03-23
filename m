@@ -1,14 +1,17 @@
 From: Roger Quadros <roger.quadros@nokia.com>
-Subject: [PATCH 1/5] OMAP: RX51: Add LCD Panel support
-Date: Tue, 23 Mar 2010 11:56:27 +0200
-Message-ID: <1269338191-10734-2-git-send-email-roger.quadros@nokia.com>
+Subject: [PATCH 4/5] OMAP: DSS2: Add ACX565AKM Panel Driver
+Date: Tue, 23 Mar 2010 11:56:30 +0200
+Message-ID: <1269338191-10734-5-git-send-email-roger.quadros@nokia.com>
 References: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com>
+ <1269338191-10734-2-git-send-email-roger.quadros@nokia.com>
+ <1269338191-10734-3-git-send-email-roger.quadros@nokia.com>
+ <1269338191-10734-4-git-send-email-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49785 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:49796 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753471Ab0CWJ5I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 05:57:08 -0400
-In-Reply-To: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com>
+	with ESMTP id S1754414Ab0CWJ5L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 05:57:11 -0400
+In-Reply-To: <1269338191-10734-4-git-send-email-roger.quadros@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
@@ -16,167 +19,596 @@ Cc: Tomi.Valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kerne
 
 From: Roger Quadros <roger.quadros@nokia.com>
 
-Adds basic support for LCD Panel on Nokia N900
+This is the panel used on Nokia N900
 
 Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
 ---
- arch/arm/mach-omap2/Makefile                 |    1 +
- arch/arm/mach-omap2/board-rx51-peripherals.c |   13 ++++
- arch/arm/mach-omap2/board-rx51-video.c       |   95 ++++++++++++++++++++++++++
- 3 files changed, 109 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-rx51-video.c
+ drivers/video/omap2/displays/Kconfig           |    5 +
+ drivers/video/omap2/displays/Makefile          |    1 +
+ drivers/video/omap2/displays/panel-acx565akm.c |  551 ++++++++++++++++++++++++
+ 3 files changed, 557 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-acx565akm.c
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4b9fc57..b03cbb4 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -122,6 +122,7 @@ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-sdram.o \
- 					   board-rx51-peripherals.o \
-+					   board-rx51-video.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
- 					   board-zoom-peripherals.o \
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 4377a4c..f404537 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -45,6 +45,7 @@
- /* list all spi devices here */
- enum {
- 	RX51_SPI_WL1251,
-+	RX51_SPI_MIPID,		/* LCD panel */
- };
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index dfb57ee..c34e1f5 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -37,4 +37,9 @@ config PANEL_TPO_TD043MTEA1
+         help
+           LCD Panel used in OMAP3 Pandora
  
- static struct wl12xx_platform_data wl1251_pdata;
-@@ -54,6 +55,11 @@ static struct omap2_mcspi_device_config wl1251_mcspi_config = {
- 	.single_channel	= 1,
- };
- 
-+static struct omap2_mcspi_device_config mipid_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,
-+};
-+
- static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 	[RX51_SPI_WL1251] = {
- 		.modalias		= "wl1251",
-@@ -64,6 +70,13 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 		.controller_data	= &wl1251_mcspi_config,
- 		.platform_data		= &wl1251_pdata,
- 	},
-+	[RX51_SPI_MIPID] = {
-+		.modalias		= "acx565akm",
-+		.bus_num		= 1,
-+		.chip_select		= 2,
-+		.max_speed_hz		= 6000000,
-+		.controller_data	= &mipid_mcspi_config,
-+	},
- };
- 
- #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
++config PANEL_ACX565AKM
++	tristate "ACX565AKM Panel"
++	depends on OMAP2_DSS_SDI
++	help
++	  This is the LCD panel used on Nokia N900
+ endmenu
+diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
+index e2bb321..aa38609 100644
+--- a/drivers/video/omap2/displays/Makefile
++++ b/drivers/video/omap2/displays/Makefile
+@@ -5,3 +5,4 @@ obj-$(CONFIG_PANEL_SHARP_LQ043T1DG01) += panel-sharp-lq043t1dg01.o
+ obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
+ obj-$(CONFIG_PANEL_TOPPOLY_TDO35S) += panel-toppoly-tdo35s.o
+ obj-$(CONFIG_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
++obj-$(CONFIG_PANEL_ACX565AKM) += panel-acx565akm.o
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
 new file mode 100644
-index 0000000..e3e22a8
+index 0000000..a63447f
 --- /dev/null
-+++ b/arch/arm/mach-omap2/board-rx51-video.c
-@@ -0,0 +1,95 @@
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -0,0 +1,551 @@
 +/*
-+ * linux/arch/arm/mach-omap2/board-rx51-peripherals.c
++ * Support for ACX565AKM LCD Panel used on Nokia N900
 + *
-+ * Copyright (C) 2010 Nokia
++ * Copyright (C) 2010 Nokia Corporation
++ * Author: Roger Quadros <roger.quadros@nokia.com>
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Based on panel-generic.c by Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ * Borrowed MIPID SPI code from Imre Deak <imre.deak@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
 +#include <linux/kernel.h>
-+#include <linux/init.h>
++#include <linux/module.h>
 +#include <linux/platform_device.h>
-+#include <linux/gpio.h>
++#include <linux/delay.h>
 +#include <linux/spi/spi.h>
++#include <linux/jiffies.h>
++#include <linux/sched.h>
++#include <linux/backlight.h>
 +
-+#include <asm/mach-types.h>
-+#include <plat/mux.h>
 +#include <plat/display.h>
-+#include <plat/mcspi.h>
 +
-+#include "mux.h"
++#define MIPID_CMD_READ_DISP_ID		0x04
++#define MIPID_CMD_READ_RED		0x06
++#define MIPID_CMD_READ_GREEN		0x07
++#define MIPID_CMD_READ_BLUE		0x08
++#define MIPID_CMD_READ_DISP_STATUS	0x09
++#define MIPID_CMD_RDDSDR		0x0F
++#define MIPID_CMD_SLEEP_IN		0x10
++#define MIPID_CMD_SLEEP_OUT		0x11
++#define MIPID_CMD_DISP_OFF		0x28
++#define MIPID_CMD_DISP_ON		0x29
++#define MIPID_CMD_WRITE_DISP_BRIGHTNESS	0x51
++#define MIPID_CMD_READ_DISP_BRIGHTNESS	0x52
++#define MIPID_CMD_WRITE_CTRL_DISP	0x53
 +
-+#define RX51_LCD_RESET_GPIO	90
++#define CTRL_DISP_BRIGHTNESS_CTRL_ON	(1 << 5)
++#define CTRL_DISP_AMBIENT_LIGHT_CTRL_ON	(1 << 4)
++#define CTRL_DISP_BACKLIGHT_ON		(1 << 2)
++#define CTRL_DISP_AUTO_BRIGHTNESS_ON	(1 << 1)
 +
-+#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++#define MIPID_CMD_READ_CTRL_DISP	0x54
++#define MIPID_CMD_WRITE_CABC		0x55
++#define MIPID_CMD_READ_CABC		0x56
 +
-+static int rx51_lcd_enable(struct omap_dss_device *dssdev)
++#define MIPID_VER_LPH8923		3
++#define MIPID_VER_LS041Y3		4
++#define MIPID_VER_L4F00311		8
++#define MIPID_VER_ACX565AKM		9
++
++struct acx565akm_device {
++	char		*name;
++	int		enabled;
++	int		model;
++	int		revision;
++	u8		display_id[3];
++	unsigned	has_bc:1;
++	unsigned	has_cabc:1;
++	unsigned	cabc_mode;
++	unsigned long	hw_guard_end;		/* next value of jiffies
++						   when we can issue the
++						   next sleep in/out command */
++	unsigned long	hw_guard_wait;		/* max guard time in jiffies */
++
++	struct spi_device	*spi;
++	struct mutex		mutex;
++
++	struct omap_dss_device	*dssdev;
++};
++
++static struct acx565akm_device acx_dev;
++
++/*--------------------MIPID interface-----------------------------*/
++
++static void acx565akm_transfer(struct acx565akm_device *md, int cmd,
++			      const u8 *wbuf, int wlen, u8 *rbuf, int rlen)
 +{
-+	gpio_set_value(dssdev->reset_gpio, 1);
++	struct spi_message	m;
++	struct spi_transfer	*x, xfer[5];
++	int			r;
++
++	BUG_ON(md->spi == NULL);
++
++	spi_message_init(&m);
++
++	memset(xfer, 0, sizeof(xfer));
++	x = &xfer[0];
++
++	cmd &=  0xff;
++	x->tx_buf = &cmd;
++	x->bits_per_word = 9;
++	x->len = 2;
++
++	if (rlen > 1 && wlen == 0) {
++		/*
++		 * Between the command and the response data there is a
++		 * dummy clock cycle. Add an extra bit after the command
++		 * word to account for this.
++		 */
++		x->bits_per_word = 10;
++		cmd <<= 1;
++	}
++	spi_message_add_tail(x, &m);
++
++	if (wlen) {
++		x++;
++		x->tx_buf = wbuf;
++		x->len = wlen;
++		x->bits_per_word = 9;
++		spi_message_add_tail(x, &m);
++	}
++
++	if (rlen) {
++		x++;
++		x->rx_buf	= rbuf;
++		x->len		= rlen;
++		spi_message_add_tail(x, &m);
++	}
++
++	r = spi_sync(md->spi, &m);
++	if (r < 0)
++		dev_dbg(&md->spi->dev, "spi_sync %d\n", r);
++}
++
++static inline void acx565akm_cmd(struct acx565akm_device *md, int cmd)
++{
++	acx565akm_transfer(md, cmd, NULL, 0, NULL, 0);
++}
++
++static inline void acx565akm_write(struct acx565akm_device *md,
++			       int reg, const u8 *buf, int len)
++{
++	acx565akm_transfer(md, reg, buf, len, NULL, 0);
++}
++
++static inline void acx565akm_read(struct acx565akm_device *md,
++			      int reg, u8 *buf, int len)
++{
++	acx565akm_transfer(md, reg, NULL, 0, buf, len);
++}
++
++static void hw_guard_start(struct acx565akm_device *md, int guard_msec)
++{
++	md->hw_guard_wait = msecs_to_jiffies(guard_msec);
++	md->hw_guard_end = jiffies + md->hw_guard_wait;
++}
++
++static void hw_guard_wait(struct acx565akm_device *md)
++{
++	unsigned long wait = md->hw_guard_end - jiffies;
++
++	if ((long)wait > 0 && wait <= md->hw_guard_wait) {
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		schedule_timeout(wait);
++	}
++}
++
++/*----------------------MIPID wrappers----------------------------*/
++
++static void set_sleep_mode(struct acx565akm_device *md, int on)
++{
++	int cmd;
++
++	if (on)
++		cmd = MIPID_CMD_SLEEP_IN;
++	else
++		cmd = MIPID_CMD_SLEEP_OUT;
++	/*
++	 * We have to keep 120msec between sleep in/out commands.
++	 * (8.2.15, 8.2.16).
++	 */
++	hw_guard_wait(md);
++	acx565akm_cmd(md, cmd);
++	hw_guard_start(md, 120);
++}
++
++static void set_display_state(struct acx565akm_device *md, int enabled)
++{
++	int cmd = enabled ? MIPID_CMD_DISP_ON : MIPID_CMD_DISP_OFF;
++
++	acx565akm_cmd(md, cmd);
++}
++
++static int panel_enabled(struct acx565akm_device *md)
++{
++	u32 disp_status;
++	int enabled;
++
++	acx565akm_read(md, MIPID_CMD_READ_DISP_STATUS, (u8 *)&disp_status, 4);
++	disp_status = __be32_to_cpu(disp_status);
++	enabled = (disp_status & (1 << 17)) && (disp_status & (1 << 10));
++	dev_dbg(&md->spi->dev,
++		"LCD panel %senabled by bootloader (status 0x%04x)\n",
++		enabled ? "" : "not ", disp_status);
++	return enabled;
++}
++
++static int panel_detect(struct acx565akm_device *md)
++{
++	acx565akm_read(md, MIPID_CMD_READ_DISP_ID, md->display_id, 3);
++	dev_dbg(&md->spi->dev, "MIPI display ID: %02x%02x%02x\n",
++		md->display_id[0], md->display_id[1], md->display_id[2]);
++
++	switch (md->display_id[0]) {
++	case 0x10:
++		md->model = MIPID_VER_ACX565AKM;
++		md->name = "acx565akm";
++		md->has_bc = 1;
++		md->has_cabc = 1;
++		break;
++	case 0x29:
++		md->model = MIPID_VER_L4F00311;
++		md->name = "l4f00311";
++		break;
++	case 0x45:
++		md->model = MIPID_VER_LPH8923;
++		md->name = "lph8923";
++		break;
++	case 0x83:
++		md->model = MIPID_VER_LS041Y3;
++		md->name = "ls041y3";
++		break;
++	default:
++		md->name = "unknown";
++		dev_err(&md->spi->dev, "invalid display ID\n");
++		return -ENODEV;
++	}
++
++	md->revision = md->display_id[1];
++
++	dev_info(&md->spi->dev, "omapfb: %s rev %02x LCD detected\n",
++			md->name, md->revision);
++
 +	return 0;
 +}
 +
-+static void rx51_lcd_disable(struct omap_dss_device *dssdev)
++/*---------------------------ACX Panel----------------------------*/
++
++static int acx_get_recommended_bpp(struct omap_dss_device *dssdev)
 +{
-+	gpio_set_value(dssdev->reset_gpio, 0);
++	return 16;
 +}
 +
-+static struct omap_dss_device rx51_lcd_device = {
-+	.name			= "lcd",
-+	.driver_name		= "panel-acx565akm",
-+	.type			= OMAP_DISPLAY_TYPE_SDI,
-+	.phy.sdi.datapairs	= 2,
-+	.reset_gpio		= RX51_LCD_RESET_GPIO,
-+	.platform_enable	= rx51_lcd_enable,
-+	.platform_disable	= rx51_lcd_disable,
++static struct omap_video_timings acx_panel_timings = {
++	.x_res		= 800,
++	.y_res		= 480,
++	.pixel_clock	= 24000,
++	.hfp		= 28,
++	.hsw		= 4,
++	.hbp		= 24,
++	.vfp		= 3,
++	.vsw		= 3,
++	.vbp		= 4,
 +};
 +
-+static struct omap_dss_device *rx51_dss_devices[] = {
-+	&rx51_lcd_device,
-+};
++static int acx_panel_probe(struct omap_dss_device *dssdev)
++{
++	int r;
++	struct acx565akm_device *md = &acx_dev;
 +
-+static struct omap_dss_board_info rx51_dss_board_info = {
-+	.num_devices	= ARRAY_SIZE(rx51_dss_devices),
-+	.devices	= rx51_dss_devices,
-+	.default_device	= &rx51_lcd_device,
-+};
++	dev_dbg(&dssdev->dev, "%s\n", __func__);
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					OMAP_DSS_LCD_IHS;
++	/* FIXME AC bias ? */
++	dssdev->panel.timings = acx_panel_timings;
 +
-+struct platform_device rx51_display_device = {
-+	.name	= "omapdss",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data = &rx51_dss_board_info,
++	if (dssdev->platform_enable)
++		dssdev->platform_enable(dssdev);
++	/*
++	 * After reset we have to wait 5 msec before the first
++	 * command can be sent.
++	 */
++	msleep(5);
++
++	md->enabled = panel_enabled(md);
++
++	r = panel_detect(md);
++	if (r) {
++		dev_err(&dssdev->dev, "%s panel detect error\n", __func__);
++		if (!md->enabled && dssdev->platform_disable)
++			dssdev->platform_disable(dssdev);
++		return r;
++	}
++
++	mutex_lock(&acx_dev.mutex);
++	acx_dev.dssdev = dssdev;
++	mutex_unlock(&acx_dev.mutex);
++
++	if (!md->enabled) {
++		if (dssdev->platform_disable)
++			dssdev->platform_disable(dssdev);
++	}
++
++	return 0;
++}
++
++static void acx_panel_remove(struct omap_dss_device *dssdev)
++{
++	dev_dbg(&dssdev->dev, "%s\n", __func__);
++	mutex_lock(&acx_dev.mutex);
++	acx_dev.dssdev = NULL;
++	mutex_unlock(&acx_dev.mutex);
++}
++
++static int acx_panel_power_on(struct omap_dss_device *dssdev)
++{
++	struct acx565akm_device *md = &acx_dev;
++	int r;
++
++	dev_dbg(&dssdev->dev, "%s\n", __func__);
++
++	mutex_lock(&md->mutex);
++
++	r = omapdss_sdi_display_enable(dssdev);
++	if (r) {
++		pr_err("%s sdi enable failed\n", __func__);
++		return r;
++	}
++
++	/*FIXME tweak me */
++	msleep(50);
++
++	if (dssdev->platform_enable) {
++		r = dssdev->platform_enable(dssdev);
++		if (r)
++			goto fail;
++	}
++
++	if (md->enabled) {
++		dev_dbg(&md->spi->dev, "panel already enabled\n");
++		mutex_unlock(&md->mutex);
++		return 0;
++	}
++
++	/*
++	 * We have to meet all the following delay requirements:
++	 * 1. tRW: reset pulse width 10usec (7.12.1)
++	 * 2. tRT: reset cancel time 5msec (7.12.1)
++	 * 3. Providing PCLK,HS,VS signals for 2 frames = ~50msec worst
++	 *    case (7.6.2)
++	 * 4. 120msec before the sleep out command (7.12.1)
++	 */
++	msleep(120);
++
++	set_sleep_mode(md, 0);
++	md->enabled = 1;
++
++	/* 5msec between sleep out and the next command. (8.2.16) */
++	msleep(5);
++	set_display_state(md, 1);
++
++	mutex_unlock(&md->mutex);
++
++	return 0;
++fail:
++	omapdss_sdi_display_disable(dssdev);
++	return r;
++}
++
++static void acx_panel_power_off(struct omap_dss_device *dssdev)
++{
++	struct acx565akm_device *md = &acx_dev;
++
++	dev_dbg(&dssdev->dev, "%s\n", __func__);
++
++	mutex_lock(&md->mutex);
++
++	if (!md->enabled) {
++		mutex_unlock(&md->mutex);
++		return;
++	}
++	set_display_state(md, 0);
++	set_sleep_mode(md, 1);
++	md->enabled = 0;
++	/*
++	 * We have to provide PCLK,HS,VS signals for 2 frames (worst case
++	 * ~50msec) after sending the sleep in command and asserting the
++	 * reset signal. We probably could assert the reset w/o the delay
++	 * but we still delay to avoid possible artifacts. (7.6.1)
++	 */
++	msleep(50);
++
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	/* FIXME need to tweak this delay */
++	msleep(100);
++
++	omapdss_sdi_display_disable(dssdev);
++
++	mutex_unlock(&md->mutex);
++}
++
++static int acx_panel_enable(struct omap_dss_device *dssdev)
++{
++	int r;
++
++	dev_dbg(&dssdev->dev, "%s\n", __func__);
++	r = acx_panel_power_on(dssdev);
++
++	if (r)
++		return r;
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++	return 0;
++}
++
++static void acx_panel_disable(struct omap_dss_device *dssdev)
++{
++	dev_dbg(&dssdev->dev, "%s\n", __func__);
++	acx_panel_power_off(dssdev);
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++}
++
++static int acx_panel_suspend(struct omap_dss_device *dssdev)
++{
++	dev_dbg(&dssdev->dev, "%s\n", __func__);
++	acx_panel_power_off(dssdev);
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++	return 0;
++}
++
++static int acx_panel_resume(struct omap_dss_device *dssdev)
++{
++	int r;
++
++	dev_dbg(&dssdev->dev, "%s\n", __func__);
++	r = acx_panel_power_on(dssdev);
++	if (r)
++		return r;
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++	return 0;
++}
++
++static void acx_panel_set_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	int r;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++		omapdss_sdi_display_disable(dssdev);
++
++	dssdev->panel.timings = *timings;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
++		r = omapdss_sdi_display_enable(dssdev);
++		if (r)
++			dev_err(&dssdev->dev, "%s enable failed\n", __func__);
++	}
++}
++
++static void acx_panel_get_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	*timings = dssdev->panel.timings;
++}
++
++static int acx_panel_check_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	return 0;
++}
++
++
++static struct omap_dss_driver acx_panel_driver = {
++	.probe		= acx_panel_probe,
++	.remove		= acx_panel_remove,
++
++	.enable		= acx_panel_enable,
++	.disable	= acx_panel_disable,
++	.suspend	= acx_panel_suspend,
++	.resume		= acx_panel_resume,
++
++	.set_timings	= acx_panel_set_timings,
++	.get_timings	= acx_panel_get_timings,
++	.check_timings	= acx_panel_check_timings,
++
++	.get_recommended_bpp = acx_get_recommended_bpp,
++
++	.driver         = {
++		.name   = "panel-acx565akm",
++		.owner  = THIS_MODULE,
 +	},
 +};
 +
-+static struct platform_device *rx51_video_devices[] __initdata = {
-+	&rx51_display_device,
-+};
++/*--------------------SPI probe-------------------------*/
 +
-+static int __init rx51_video_init(void)
++static int acx565akm_spi_probe(struct spi_device *spi)
 +{
-+	if (!machine_is_nokia_rx51())
-+		return 0;
++	struct acx565akm_device *md = &acx_dev;
 +
-+	if (omap_mux_init_gpio(RX51_LCD_RESET_GPIO, OMAP_PIN_OUTPUT)) {
-+		pr_err("%s cannot configure MUX for LCD RESET\n", __func__);
-+		return 0;
-+	}
++	dev_dbg(&spi->dev, "%s\n", __func__);
 +
-+	if (gpio_request(RX51_LCD_RESET_GPIO, "LCD ACX565AKM reset")) {
-+		pr_err("%s failed to get LCD Reset GPIO\n", __func__);
-+		return 0;
-+	}
++	spi->mode = SPI_MODE_3;
++	md->spi = spi;
++	mutex_init(&md->mutex);
++	dev_set_drvdata(&spi->dev, md);
 +
-+	gpio_direction_output(RX51_LCD_RESET_GPIO, 1);
++	omap_dss_register_driver(&acx_panel_driver);
 +
-+	platform_add_devices(rx51_video_devices,
-+				ARRAY_SIZE(rx51_video_devices));
 +	return 0;
 +}
 +
-+subsys_initcall(rx51_video_init);
++static int acx565akm_spi_remove(struct spi_device *spi)
++{
++	struct acx565akm_device *md = dev_get_drvdata(&spi->dev);
 +
-+#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
++	dev_dbg(&md->spi->dev, "%s\n", __func__);
++	omap_dss_unregister_driver(&acx_panel_driver);
++
++	return 0;
++}
++
++static struct spi_driver acx565akm_spi_driver = {
++	.driver = {
++		.name	= "acx565akm",
++		.bus	= &spi_bus_type,
++		.owner	= THIS_MODULE,
++	},
++	.probe	= acx565akm_spi_probe,
++	.remove	= __devexit_p(acx565akm_spi_remove),
++};
++
++static int __init acx565akm_init(void)
++{
++	return spi_register_driver(&acx565akm_spi_driver);
++}
++
++static void __exit acx565akm_exit(void)
++{
++	spi_unregister_driver(&acx565akm_spi_driver);
++}
++
++module_init(acx565akm_init);
++module_exit(acx565akm_exit);
++
++MODULE_AUTHOR("Roger Quadros <roger.quadros@nokia.com>");
++MODULE_DESCRIPTION("acx565akm LCD Driver");
++MODULE_LICENSE("GPL");
 -- 
 1.6.0.4
 
