@@ -1,49 +1,59 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: RE: Merge plans for Staging  Synaptics Touchscreen Driver
-Date: Tue, 23 Mar 2010 20:12:46 +0530 (IST)
-Message-ID: <43471.10.24.255.18.1269355366.squirrel@dbdmail.itg.ti.com>
-References: <19039.10.24.255.18.1269336516.squirrel@dbdmail.itg.ti.com>
-    <A24693684029E5489D1D202277BE89445435BE36@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46383 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754043Ab0CWOmu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 10:42:50 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE89445435BE36@dlee02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sriramakrishnan <srk@ti.com>
+Subject: [PATCHv3 3/3] AM3517 EVM : Enable TCA6416 keypad.
+Date: Tue, 23 Mar 2010 20:40:35 +0530
+Message-ID: <1269357035-19754-4-git-send-email-srk@ti.com>
+References: <1269357035-19754-1-git-send-email-srk@ti.com>
+ <1269357035-19754-2-git-send-email-srk@ti.com>
+ <1269357035-19754-3-git-send-email-srk@ti.com>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1269357035-19754-3-git-send-email-srk@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
+Cc: Sriramakrishnan <srk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "pavel@ucw.cz" <pavel@ucw.cz>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> Hi Hemanth,
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of V, Hemanth
->> Sent: Tuesday, March 23, 2010 4:29 AM
->> To: pavel@ucw.cz; linux-input@vger.kernel.org
->> Cc: linux-omap@vger.kernel.org
->> Subject: Merge plans for Staging Synaptics Touchscreen Driver
->>
->> Hi All,
->>
->> Are there any plans to merge the synaptics touchscreen driver
->> (drivers/staging/dream/synaptics_i2c_rmi.c) to
->> drivers/input/touchscreen. We are interested in the same
->> since OMAP3 based Zoom boards use this touchscreen.
->
-> Can you please elaborate on the specific Synaptics touchscreen chip you're attempting to drive?
->
+Update kernel configuration for AM3517EVM to include
+support for TCA6416 keypad.
 
-Sergio,
+Signed-off-by: Sriramakrishnan <srk@ti.com>
+---
+ arch/arm/configs/am3517_evm_defconfig |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
 
-The current driver available in staging directory is for
-Synaptics RMI3 chip 511-000099-01F
-
-Thanks
-Hemanth
-
+diff --git a/arch/arm/configs/am3517_evm_defconfig b/arch/arm/configs/am3517_evm_defconfig
+index 66a10b5..93d5fdf 100644
+--- a/arch/arm/configs/am3517_evm_defconfig
++++ b/arch/arm/configs/am3517_evm_defconfig
+@@ -527,6 +527,7 @@ CONFIG_SCSI_LOWLEVEL=y
+ CONFIG_INPUT=y
+ # CONFIG_INPUT_FF_MEMLESS is not set
+ # CONFIG_INPUT_POLLDEV is not set
++# CONFIG_INPUT_SPARSEKMAP is not set
+ 
+ #
+ # Userland interfaces
+@@ -539,7 +540,20 @@ CONFIG_INPUT_EVDEV=y
+ #
+ # Input Device Drivers
+ #
+-# CONFIG_INPUT_KEYBOARD is not set
++CONFIG_INPUT_KEYBOARD=y
++# CONFIG_KEYBOARD_ADP5588 is not set
++# CONFIG_KEYBOARD_ATKBD is not set
++# CONFIG_QT2160 is not set
++# CONFIG_KEYBOARD_LKKBD is not set
++# CONFIG_KEYBOARD_GPIO is not set
++CONFIG_KEYBOARD_TCA6416=y
++# CONFIG_KEYBOARD_MATRIX is not set
++# CONFIG_KEYBOARD_MAX7359 is not set
++# CONFIG_KEYBOARD_NEWTON is not set
++# CONFIG_KEYBOARD_OPENCORES is not set
++# CONFIG_KEYBOARD_STOWAWAY is not set
++# CONFIG_KEYBOARD_SUNKBD is not set
++# CONFIG_KEYBOARD_XTKBD is not set
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TABLET is not set
+-- 
+1.6.2.4
 
