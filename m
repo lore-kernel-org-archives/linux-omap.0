@@ -1,262 +1,128 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH 2/2] DSPBRIDGE: DSP recovery feature
-Date: Tue, 23 Mar 2010 14:29:14 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CACBDF08@dlee06.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602CA9E405F@dlee06.ent.ti.com>
-	 <94a0d4531003190451h23ad1a16x994973cdfeb3c83f@mail.gmail.com>
-	 <94a0d4531003190853y7b6bda0dg6db8ab263bbb8532@mail.gmail.com>
-	 <19F8576C6E063C45BE387C64729E7394044DE0E3DE@dbde02.ent.ti.com>
-	 <94a0d4531003190918v7e943d5ax16baf6945472530c@mail.gmail.com>
-	 <94a0d4531003191200r425652c3ybf505c353b2ad847@mail.gmail.com>
-	 <496565EC904933469F292DDA3F1663E602CACBD655@dlee06.ent.ti.com>
- <94a0d4531003191511q6135a424r9ce68c632cc826dd@mail.gmail.com>
- <496565EC904933469F292DDA3F1663E602CACBD669@dlee06.ent.ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PM-WIP-OPP][PATCH 3/4] omap: pm: opp: add ability to store data
+ per opp
+Date: Tue, 23 Mar 2010 15:04:46 -0500
+Message-ID: <4BA91EDE.2020900@ti.com>
+References: <1268937891-19445-1-git-send-email-nm@ti.com> <1268937891-19445-2-git-send-email-nm@ti.com> <1268937891-19445-3-git-send-email-nm@ti.com> <1268937891-19445-4-git-send-email-nm@ti.com> <20100319144333.GU18995@nokia.com> <4BA3975E.70206@ti.com> <74583B8642AB8841B30447520659FCA9EBAC2C6A@dnce01.ent.ti.com> <4BA770D6.9020707@ti.com> <74583B8642AB8841B30447520659FCA9EBAC3458@dnce01.ent.ti.com> <4BA7B601.1060504@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB03220FC0C3@dbde02.ent.ti.com> <4BA8BB57.9030307@ti.com> <74583B8642AB8841B30447520659FCA9EBB4A053@dnce01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_496565EC904933469F292DDA3F1663E602CACBDF08dlee06enttico_"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53793 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44919 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752122Ab0CWT3V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Mar 2010 15:29:21 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CACBD669@dlee06.ent.ti.com>
-Content-Language: en-US
+	id S1753157Ab0CWUEt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Mar 2010 16:04:49 -0400
+In-Reply-To: <74583B8642AB8841B30447520659FCA9EBB4A053@dnce01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Hebbar, Shivananda" <x0hebbar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Gopinath, Thara" <thara@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
 
---_002_496565EC904933469F292DDA3F1663E602CACBDF08dlee06enttico_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Cousson, Benoit had written, on 03/23/2010 11:12 AM, the following:
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+>> Sent: Tuesday, March 23, 2010 2:00 PM
+>>
+>> Gopinath, Thara had written, on 03/23/2010 12:06 AM, the following:
+>>>>> [...] [I am not about to repeat everything I stated in previous
+>>>>> threads.. so  snipping the discussion down.]
+>>>>>
+>>>>>> Otherwise the primary idea to remove OPP ID is good, and the way to go.
+>>>>> good. So lets NAK that SR series and see how else we can implement it
+>>>>> without OPP ID. I am open to any clean mechanisms you may propose
+>>>>> without using OPP ID referencing :).
+>>> Ok guys.. In the current V2 series , I have linked N targets with
+>> voltage..
+>>> Only it does not come from voltage layer but from smartreflex devices
+>> layer.
+>>> The smartreflex driver does not use opp ids at all.. Also whether you
+>> call
+>>> it by opp ids or by any other name, we need to know the number of
+>> different
+>>> voltages supported by VDD1 and VDD2 and form the table.. That is exactly
+>>> what I am doing in smartreflex device layer. I am just creating a
+>> table with
+>>> different voltages and N target values associated with those voltages.
+>>> To create this table I need to know there should be 5 voltages for VDD1
+>>> and 3 voltages for VDD2 which unfortunately coincides with the number of
+>>> different OPP's defined in OMAP3430 today..
+>> SR patches should ideally be discussed in SR patch series context
+>> anyways, since we are looking at the fundamentals of OPP:
+>> 3430: VDD1: 5 voltages+frequencies, VDD2: 3 voltages and frequencies
+>> 3630: VDD1: 4 voltages+frequencies, VDD2: 2 voltages and frequencies
+>> are there cases where the number of discrete voltage != number of
+>> supported frequencies?
+> 
+> If you'd like to support DPLL bypass or several frequencies for thermal management purpose it can happen. And believe me; it will happen soon, at least on OMAP4.
+> 
+>> Agreed that for a voltage the characteristic data is unique. but since a
+>> voltage is tied to a frequency, does'nt it make sense to tie it to an
+>> OPP (my initial point in the first place)?
+> 
+> Frequency is an IP characteristic, not a voltage one, hence the need to separate them.
+> 
+[..]
 
+Sigh.. quickly becoming an SR thread, but what the heck..
 
+Trying to brainstorm here: Can we consider an inverse relationship? As 
+in: For a given voltage to a voltage rail, there exists a supported 
+range of frequencies for specific IP modules? does'nt this make sense? I 
+mean for a given voltage to the module, there is only so much range of 
+frequencies you can do on the module that sinks that voltage?
 
-I have tested just using an application (base on bridged code) which is reg=
-istered for fatal events and once it receives an event it prints the receiv=
-ed event:
+In the case of OMAP3, then we will have a 1-1 relation ship, on OMAP4, 
+you'd potentially have 1-many relationship..
 
-status =3D DSPManager_WaitForEvents(notifier, EVENTS, &index,
-								DSP_FOREVER);
-printf("Event received %s\n", evt_name[index]);  <<< print event received
-try_err_out("Catch notification signal", status);
+If this is the representation, then storing that information will still 
+make sense.
 
+The v2 patches implement a logic as follows:
+sr_device.c: arch_initcall:
+	omap34xx_sr_volt_details
+this currently stores voltages (essentially replicates OPP layer 
+information from cpufreq34xx.c other than using OPP indices). The NAK 
+for this approach is still valid from maintainence and redundancy 
+perspective.
 
-And this is what I get:
+What other alternatives do we have?
 
-#####Load baseimage with absolute path, so that kernel thread can load ####=
-#baseimage
+Here is what I can imagine from the few mins I spend thinking about it 
+(just my 2 cents):
 
-# ./cexec.out /dspbridge_reco/ddspbase_tiomap3430.dof64P
+int omap_voltage_notify(omap_device *volt_dev, struct omap_voltage_data 
+*new, struct omap_voltage_data *old, enum voltage_notify_type);
 
+enum voltage_notify_type {
+	VOLTAGE_PRE
+	VOLTAGE_ACTIVATE
+	VOLTAGE_POST
+	VOLTAGE_PAUSE
+	VOLTAGE_RESUME
+}
+or split them up into 4/5 functions..
 
-#####Run listener.out
+I will not need to store SRID or any similar stuff inside various files 
+NOR will i have to replicate another OPP layer in SR/vc codebase.
 
-# ./listener.out
-# DspManager_Open succeeded
-DSPProcessor_Attach succeeded
-DSP node register notify DSP_MMUFAULT succeeded
-DSP node register notify DSP_SYSERROR succeeded
-DSP node register notify DSP_PWRERROR succeeded
-DSP node register notify DSP_StateChange succeeded
-#
+volt_device will contain platform_data similar to what 
+omap_smartreflex_data has today + additional register baseaddress and 
+offset information. it will not contain sr_nvalue, nor sr_volt_data
 
+struct omap_sr_volt_data will be omap_voltage_data be similar to what we 
+provide today.
 
-#####Cause MMUFault.
+The caller has the responsibility of providing the correct voltage_data 
+to the voltage subsystem.
 
-# ./faultapp.out ddspbase_tiomap3430.dof64P test
-DSP device detected !!
-DSPProcessor_Attach succeeded.
-DSPNode_Allocate succeeded.
-DSPNode_Create succeeded.
-DSPNod***** DSPMMU FAULT ***** IRQStatus 0x2  <<< MMUFault caused
-e_Run succeeded.
-DSPProcessor_R***** DSPMMU FAULT ***** fault_addr 0x80000000
-eserveMemory succeeded. dspAddrSbridge_deh_notify: ********** DEVICE EXCEPT=
-ION *
-*********
-end=3D 0x203f0000
-DSPProcessor_Rbridge_deh_notify: DSP_MMUFAULT,err_info =3D 0x0
-eserveMemory succeeded. dspAddrdbridge_deh_notify: DSP_MMUFAULT, High Addre=
-ss =3D
-0x8000
-Recv=3D 0x2040a000
-DSPProcessor_bridge_deh_notify: DSP_MMUFAULT, Low Address =3D 0x0
-Map succeeded.
-DSPProcessor_Mapbridge_deh_notify: DSP_MMUFAULT, fault address =3D 0x800000=
-00
- succeeded.
-Sending DMM BUFs toprint_dsp_trace_buffer:
-DSP MMU FAULT currtask:0x20061114
-
- DSP cmd=3DSETUP, DspRecvBuf=3D0x2b2DSPTrace: DSP MMU FAULT currtask:0x2006=
-1114
-
-f0, DspSendBuf=3D0x122e8
-Read 102400 bytes from input file.
-Event received MMU_FAULT   <<< MMUFault detected by the application (notifi=
-cation was really received) >>>
-Catch notification signal succeeded
-
-^C   <<< kill faultapp.out it is stuck by doing Ctrl + C
-# proc_load: Processor Loaded /dspbridge_reco/ddspbase_tiomap3430.dof64P
-			<<< baseimage was reloaded successfully >>>
-proc_start: dsp in running state
-DspManager_Open succeeded
-DSPProcessor_Attach succeeded
-DSP node register notify DSP_MMUFAULT succeeded
-DSP node register notify DSP_SYSERROR succeeded
-DSP node register notify DSP_PWRERROR succeeded
-DSP node register notify DSP_StateChange succeeded
-
-#
-
-
-#####Run dmmcopy.out sample to make sure DSP was recovered successfully
-
-# ./dmmcopy.out  ddspbase_tiomap3430.dof64P test
-DSP device detected !!
-DSPProcessor_Attach succeeded.
-DSPNode_Allocate succeeded.
-DSPNode_Create succeeded.
-DSPNode_Run succeeded.
-DSPProcessor_ReserveMemory succeeded. dspAddrSend=3D 0x203f0000
-DSPProcessor_ReserveMemory succeeded. dspAddrdRecv=3D 0x2040a000
-DSPProcessor_Map succeeded.
-DSPProcessor_Map succeeded.
-Sending DMM BUFs to DSP cmd=3DSETUP, DspRecvBuf=3D0x203f02e8, DspSendBuf=3D=
-0x2040a2f0
-Read 102400 bytes from input file.
-Writing 102400 bytes to output file.
-Read 33684 bytes from input file.
-Writing 33684 bytes to output file.
-DSPProcessor_UnMap succeeded.
-DSPProcessor_UnMap succeeded.
-DSPProcessor_UnReserveMemory succeeded.
-DSPProcessor_UnReserveMemory succeeded.
-RunTask succeeded.
-
-DSPNode_Terminate succeeded.procwrap_detach: deprecated dspbridge ioctl
-
-DSPNode_Delete succeeded.
-DSPProcessor_Detach succeeded.
-#
+So for today (resource34xx.c or pm34xx.c which ever is triggering the 
+chage) the caller will provide the trigger to the voltage layer- for 
+OMAP3, store the voltage_data against each OPP. For OMAP4 and elsewhere 
+the data could be somewhere else (hwmod itself perhaps if it triggers 
+the transitions eventually?). It seems to scale to me + all those hacks 
+such as get_curr_vdd[12]_voltage() in the current voltage.c can be avoided.
 
 
-You can use the application attached to see if you are able to receive noti=
-fications, if you still don't receives the notifications can you share the =
-code you are using?
-
-
+-- 
 Regards,
-Fernando.
-
-
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Guzman Lugo, Fernando
->Sent: Friday, March 19, 2010 4:31 PM
->To: Felipe Contreras
->Cc: Hebbar, Shivananda; linux-omap@vger.kernel.org; Hiroshi DOYU; Ameya
->Palande; felipe.contreras@nokia.com
->Subject: RE: [PATCH 2/2] DSPBRIDGE: DSP recovery feature
->
->
->
->>-----Original Message-----
->>From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
->>Sent: Friday, March 19, 2010 4:11 PM
->>To: Guzman Lugo, Fernando
->>Cc: Hebbar, Shivananda; linux-omap@vger.kernel.org; Hiroshi DOYU; Ameya
->>Palande; felipe.contreras@nokia.com
->>Subject: Re: [PATCH 2/2] DSPBRIDGE: DSP recovery feature
->>
->>On Fri, Mar 19, 2010 at 11:49 PM, Guzman Lugo, Fernando <x0095840@ti.com>
->>wrote:
->>> Do you mean applying DSP recovery process you are no able to receive
->>MMUFault notifications?
->>>
->>> I am going to check that case. Is there any possibility that the proces=
-s
->>is stuck waiting other event?
->>
->>I think mgr_wait_for_bridge_events is constantly failing, so no
->>MMUFAULT notifications come through.
->
->Ok, I am going to see if the patch is changing something related to that
->function and debug the problem.
->
->Regards,
->Fernando.
->
->>
->>--
->>Felipe Contreras
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---_002_496565EC904933469F292DDA3F1663E602CACBDF08dlee06enttico_
-Content-Type: text/plain; name="listener.c"
-Content-Description: listener.c
-Content-Disposition: attachment; filename="listener.c"; size=3003;
-	creation-date="Tue, 23 Mar 2010 14:02:47 GMT";
-	modification-date="Tue, 23 Mar 2010 14:02:47 GMT"
-Content-Transfer-Encoding: base64
-
-LyoKICogQnJpZGdlIGRyaXZlciBEYWVtb24KICogRFNQIFJlY292ZXJ5IGZlYXR1cmUgZm9yIFRJ
-IE9NQVAgcHJvY2Vzc29ycy4KICoKICogQ29weXJpZ2h0IChDKSAyMDA5IFRleGFzIEluc3RydW1l
-bnRzLCBJbmMuCiAqCiAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJl
-ZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CiAqIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUg
-R05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgdmVyc2lvbiAyIGFzCiAqIHB1Ymxpc2hlZCBieSB0
-aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLgogKgogKiBUSElTIFBST0dSQU0gSVMgUFJPVklE
-RUQgJydBUyBJUycnIEFORCBXSVRIT1VUIEFOWSBFWFBSRVNTIE9SCiAqIElNUExJRUQgV0FSUkFO
-VElFUywgSU5DTFVESU5HLCBXSVRIT1VUIExJTUlUQVRJT04sIFRIRSBJTVBMSUVECiAqIFdBUlJB
-TlRJRVMgT0YgTUVSQ0hBTlRJQklMSVRZIEFORCBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVS
-UE9TRS4KICovCgojaW5jbHVkZSA8c3RkaW8uaD4KI2luY2x1ZGUgPHN0cmluZy5oPgoKI2luY2x1
-ZGUgPGRiYXBpLmg+CgojZGVmaW5lIHRyeV9lcnJfb3V0KG1zZywgZXJyKQkJCQkJCVwKZG8gewkJ
-CQkJCQkJCVwKICAgIGlmIChEU1BfRkFJTEVEKGVycikpIHsJCQkJCQlcCglwcmludGYoIiVzIGZh
-aWxlZCA6IEVyciBOdW0gPSAlbHhcbiIsIG1zZywgZXJyKTsJCVwKCWdvdG8gb3V0OwkJCQkJCQlc
-CiAgICB9IGVsc2UJCQkJCQkJCVwKCXByaW50ZigiJXMgc3VjY2VlZGVkXG4iLCBtc2cpOwkJCQkJ
-XAp9IHdoaWxlICgwKTsKCiNkZWZpbmUgRVZFTlRTIDQKI2RlZmluZSBST09UX0FDQ0VTUwkxNDA2
-CgpjaGFyICpldnRfbmFtZVs1XSA9IHsiTU1VX0ZBVUxUIiwgIlNZU19FUlJPUiIsICJQV1JfRVJS
-T1IiLAoJCSAiU1RBVEVfQ0hBTkdFIiwgIlVOS05PV04ifTsKCgp1bnNpZ25lZCBsb25nIGJyaWRn
-ZV9saXN0ZW5lcih2b2lkKQp7CglEU1BfSFBST0NFU1NPUiBwcm9jOwoJdW5zaWduZWQgaW50IGlu
-ZGV4ID0gMCwgaTsKCXVuc2lnbmVkIGxvbmcgc3RhdHVzID0gRFNQX1NPSzsKCXN0cnVjdCBEU1Bf
-Tk9USUZJQ0FUSU9OICpub3RpZmllcltFVkVOVFNdOwoKCWZvciAoaSA9IDA7IGkgPCBFVkVOVFM7
-IGkrKykgewoJCW5vdGlmaWVyW2ldID0gbWFsbG9jKHNpemVvZihzdHJ1Y3QgRFNQX05PVElGSUNB
-VElPTikpOwoJCWlmICghbm90aWZpZXJbaV0pCgkJCXJldHVybiBEU1BfRU1FTU9SWTsKCQltZW1z
-ZXQobm90aWZpZXJbaV0sIDAsIHNpemVvZihzdHJ1Y3QgRFNQX05PVElGSUNBVElPTikpOwoJfQoK
-CS8qIEJpZyBsaXN0ZW5lciBsb29wICovCgl3aGlsZSAoMSkgewoJCXN0YXR1cyA9IERzcE1hbmFn
-ZXJfT3BlbihST09UX0FDQ0VTUywgTlVMTCk7CgkJdHJ5X2Vycl9vdXQoIkRzcE1hbmFnZXJfT3Bl
-biIsIHN0YXR1cyk7CgkJc3RhdHVzID0gRFNQUHJvY2Vzc29yX0F0dGFjaCgwLCBOVUxMLCAmcHJv
-Yyk7CgkJdHJ5X2Vycl9vdXQoIkRTUFByb2Nlc3Nvcl9BdHRhY2giLCBzdGF0dXMpOwoKCQkvKiBS
-ZWdpc3RlciBub3RpZnkgb2JqZWN0cyAqLwoJCXN0YXR1cyA9IERTUFByb2Nlc3Nvcl9SZWdpc3Rl
-ck5vdGlmeShwcm9jLCBEU1BfTU1VRkFVTFQsCgkJCQkJRFNQX1NJR05BTEVWRU5ULCBub3RpZmll
-clswXSk7CgkJdHJ5X2Vycl9vdXQoIkRTUCBub2RlIHJlZ2lzdGVyIG5vdGlmeSBEU1BfTU1VRkFV
-TFQiLCBzdGF0dXMpOwoKCQlzdGF0dXMgPSBEU1BQcm9jZXNzb3JfUmVnaXN0ZXJOb3RpZnkocHJv
-YywgRFNQX1NZU0VSUk9SLAoJCQkJCURTUF9TSUdOQUxFVkVOVCwgbm90aWZpZXJbMV0pOwoJCXRy
-eV9lcnJfb3V0KCJEU1Agbm9kZSByZWdpc3RlciBub3RpZnkgRFNQX1NZU0VSUk9SIiwgc3RhdHVz
-KTsKCgkJc3RhdHVzID0gRFNQUHJvY2Vzc29yX1JlZ2lzdGVyTm90aWZ5KHByb2MsIERTUF9QV1JF
-UlJPUiwKCQkJCQlEU1BfU0lHTkFMRVZFTlQsIG5vdGlmaWVyWzJdKTsKCQl0cnlfZXJyX291dCgi
-RFNQIG5vZGUgcmVnaXN0ZXIgbm90aWZ5IERTUF9QV1JFUlJPUiIsIHN0YXR1cyk7CgoJCXN0YXR1
-cyA9IERTUFByb2Nlc3Nvcl9SZWdpc3Rlck5vdGlmeShwcm9jLAoJCQlEU1BfUFJPQ0VTU09SU1RB
-VEVDSEFOR0UsIERTUF9TSUdOQUxFVkVOVCwgbm90aWZpZXJbM10pOwoJCXRyeV9lcnJfb3V0KCJE
-U1Agbm9kZSByZWdpc3RlciBub3RpZnkgRFNQX1N0YXRlQ2hhbmdlIiwgc3RhdHVzKTsKCgkJc3Rh
-dHVzID0gRFNQTWFuYWdlcl9XYWl0Rm9yRXZlbnRzKG5vdGlmaWVyLCBFVkVOVFMsICZpbmRleCwK
-CQkJCQkJCQlEU1BfRk9SRVZFUik7CgkJcHJpbnRmKCJFdmVudCByZWNlaXZlZCAlc1xuIiwgZXZ0
-X25hbWVbaW5kZXhdKTsKCQl0cnlfZXJyX291dCgiQ2F0Y2ggbm90aWZpY2F0aW9uIHNpZ25hbCIs
-IHN0YXR1cyk7CgkJc3RhdHVzID0gRHNwTWFuYWdlcl9DbG9zZSgwLCBOVUxMKTsKCX0KCm91dDoK
-CXN0YXR1cyA9IERTUFByb2Nlc3Nvcl9EZXRhY2gocHJvYyk7CglzdGF0dXMgPSBEc3BNYW5hZ2Vy
-X0Nsb3NlKDAsIE5VTEwpOwoKCWZvciAoaSA9IDA7IGkgPCBFVkVOVFM7IGkrKykKCQlmcmVlKG5v
-dGlmaWVyW2ldKTsKCglyZXR1cm4gc3RhdHVzOwp9CgoKaW50IG1haW4gKCkKewoJcGlkX3QgY2hp
-bGRfcGlkLCBjaGlsZF9zaWQ7CgoJLyogRm9yayBvZmYgdGhlIHBhcmVudCBwcm9jZXNzICovCglj
-aGlsZF9waWQgPSBmb3JrKCk7CglpZiAoY2hpbGRfcGlkIDwgMCkgewoJCWV4aXQoMSk7IAkvKiBG
-YWlsdXJlICovCgl9CgkvKiBJZiB3ZSBnb3QgYSBnb29kIFBJRCwgdGhlbiB3ZSBjYW4gZXhpdCB0
-aGUgcGFyZW50IHByb2Nlc3MuICovCglpZiAoY2hpbGRfcGlkID4gMCkgewoJCWV4aXQoMCk7CS8q
-IFN1Y2NlZXNzICovCgl9CgkvKiBDcmVhdGUgYSBuZXcgU0lEIGZvciB0aGUgY2hpbGQgcHJvY2Vz
-cyAqLwoJY2hpbGRfc2lkID0gc2V0c2lkKCk7CglpZiAoY2hpbGRfc2lkIDwgMCkKCQlleGl0KDAp
-OwoKCWJyaWRnZV9saXN0ZW5lcigpOwoKCXJldHVybiAwOwp9CgoK
-
---_002_496565EC904933469F292DDA3F1663E602CACBDF08dlee06enttico_--
+Nishanth Menon
