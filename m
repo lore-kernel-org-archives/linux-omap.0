@@ -1,16 +1,16 @@
 From: Roger Quadros <roger.quadros@nokia.com>
 Subject: Re: [PATCH 1/5] OMAP: RX51: Add LCD Panel support
-Date: Tue, 23 Mar 2010 15:55:39 +0200
-Message-ID: <4BA8C85B.1030606@nokia.com>
+Date: Tue, 23 Mar 2010 15:55:45 +0200
+Message-ID: <4BA8C861.4080501@nokia.com>
 References: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com> <1269338191-10734-2-git-send-email-roger.quadros@nokia.com> <E0D41E29EB0DAC4E9F3FF173962E9E94026F1D1D6C@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:48207 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753472Ab0CWN4P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 09:56:15 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:21457 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753472Ab0CWN4U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 09:56:20 -0400
 In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026F1D1D6C@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
