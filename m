@@ -1,41 +1,74 @@
 From: Roger Quadros <roger.quadros@nokia.com>
-Subject: [PATCH 0/5] OMAP: RX51: Add LCD Panel Support for N900
-Date: Tue, 23 Mar 2010 11:56:26 +0200
-Message-ID: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com>
+Subject: [PATCH 3/5] OMAP: RX51: Add Touch Controller in SPI board info
+Date: Tue, 23 Mar 2010 11:56:29 +0200
+Message-ID: <1269338191-10734-4-git-send-email-roger.quadros@nokia.com>
+References: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com>
+ <1269338191-10734-2-git-send-email-roger.quadros@nokia.com>
+ <1269338191-10734-3-git-send-email-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18669 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:18674 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754486Ab0CWJ5V (ORCPT
+	with ESMTP id S1754500Ab0CWJ5V (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 05:57:21 -0400
+In-Reply-To: <1269338191-10734-3-git-send-email-roger.quadros@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: Tomi.Valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-These patches get the N900 LCD panel working.
-Apply's cleanly on 2.6.34-rc2
+From: Roger Quadros <roger.quadros@nokia.com>
 
-Pre-requisites:
-https://patchwork.kernel.org/patch/86318/
-https://patchwork.kernel.org/patch/86319/
-https://patchwork.kernel.org/patch/86320/
+The Touch controller and LCD Panel share the same SPI bus 1.
+So, we need to define the touch controller in the SPI board info
+else, the SPI bus will be contended due to invalid state of
+Touch controller's Chip Select thus preventing the LCD panel
+from working.
 
+Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
 ---
-Roger Quadros (5):
-  OMAP: RX51: Add LCD Panel support
-  OMAP: RX51: Add "vdds_sdi" supply voltage for SDI
-  OMAP: RX51: Add Touch Controller in SPI board info
-  OMAP: DSS2: Add ACX565AKM Panel Driver
-  OMAP: RX51: Add LCD Panel and framebuffer console to defconfig
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
- arch/arm/configs/rx51_defconfig                |   37 ++-
- arch/arm/mach-omap2/Makefile                   |    1 +
- arch/arm/mach-omap2/board-rx51-peripherals.c   |   43 ++
- arch/arm/mach-omap2/board-rx51-video.c         |   95 ++++
- drivers/video/omap2/displays/Kconfig           |    5 +
- drivers/video/omap2/displays/Makefile          |    1 +
- drivers/video/omap2/displays/panel-acx565akm.c |  551 ++++++++++++++++++++++++
- 7 files changed, 732 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-rx51-video.c
- create mode 100644 drivers/video/omap2/displays/panel-acx565akm.c
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 3ef805e..020f354 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -46,6 +46,7 @@
+ enum {
+ 	RX51_SPI_WL1251,
+ 	RX51_SPI_MIPID,		/* LCD panel */
++	RX51_SPI_TSC2005,	/* Touch Controller */
+ };
+ 
+ static struct wl12xx_platform_data wl1251_pdata;
+@@ -60,6 +61,11 @@ static struct omap2_mcspi_device_config mipid_mcspi_config = {
+ 	.single_channel	= 1,
+ };
+ 
++static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,
++};
++
+ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 	[RX51_SPI_WL1251] = {
+ 		.modalias		= "wl1251",
+@@ -77,6 +83,15 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 		.max_speed_hz		= 6000000,
+ 		.controller_data	= &mipid_mcspi_config,
+ 	},
++	[RX51_SPI_TSC2005] = {
++		.modalias		= "tsc2005",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		/* .irq = OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),*/
++		.max_speed_hz		= 6000000,
++		.controller_data	= &tsc2005_mcspi_config,
++		/* .platform_data = &tsc2005_config,*/
++	},
+ };
+ 
+ #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
+-- 
+1.6.0.4
 
