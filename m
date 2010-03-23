@@ -1,94 +1,56 @@
-From: Sriramakrishnan <srk@ti.com>
-Subject: [PATCHv3 2/3] AM3517: Board hookup for TCA6416 keypad driver.
-Date: Tue, 23 Mar 2010 20:40:34 +0530
-Message-ID: <1269357035-19754-3-git-send-email-srk@ti.com>
-References: <1269357035-19754-1-git-send-email-srk@ti.com>
- <1269357035-19754-2-git-send-email-srk@ti.com>
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1269357035-19754-2-git-send-email-srk@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
-Cc: Sriramakrishnan <srk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
+Date: Tue, 23 Mar 2010 08:27:09 -0700
+Message-ID: <20100323152709.GD11448@atomide.com>
+References: <20100322212025.GW11448@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94026F127117@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56644 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754640Ab0CWPZf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 11:25:35 -0400
+Content-Disposition: inline
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026F127117@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Pais, Allen" <allen.pais@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-Add board specific hookup for TCA6416 keypad driver.
+* Pais, Allen <allen.pais@ti.com> [100322 22:42]:
+> > > 
+> > >  With this patch[DEBUG_LL + earlyprintk],
+> > >  I still haven't been able to boot the kernel.
+> > >  Is it working on your side.
+> > >   
+> > >  The commit am using is : a842b5f9ce70e1b738eabb4d719860070180ed1c
+> > 
+> > I think you will also need the 3630 serial fixes series posted
+> > recently.
+> > 
+> > I just merged those into omap-fixes-for-linus (and master)
+> > branch(es). Maybe give it a try with at commit
+> > b3c7740a120c8a7775cb63b4d094466da5c01692 + this patch?
+> 
+>   Thanks, I'll pull in those fixes. 
+>  I believe the mux errors are fixed. Have a look at
+>  http://dev.omapzoom.org/?p=manju/kernel-omap3-dev.git;a=commit;h=3499f5023ee90dc6ee3868a3147b87fe22a1d9b7
+> 
+>  Patch must have been missed some how.
 
-Signed-off-by: Sriramakrishnan <srk@ti.com>
----
- arch/arm/mach-omap2/board-am3517evm.c |   47 +++++++++++++++++++++++++++++---
- 1 files changed, 42 insertions(+), 5 deletions(-)
+OK, we really should get fixes like that to mainline kernel ASAP
+to avoid duplicating the effort.
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 6ae8805..d50e505 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -20,7 +20,10 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
-+#include <linux/i2c.h>
- #include <linux/i2c/pca953x.h>
-+#include <linux/input.h>
-+#include <linux/tca6416_keypad.h>
- 
- #include <mach/hardware.h>
- #include <mach/am35xx.h>
-@@ -88,16 +91,50 @@ static struct i2c_board_info __initdata am3517evm_tca6416_info_0[] = {
- };
- 
- /* Mounted on UI Card */
--static struct pca953x_platform_data am3517evm_ui_gpio_expander_info_1 = {
-+/* IO expander at address 0x20 on UI card will be managed by Keypad driver */
-+
-+static struct pca953x_platform_data am3517evm_ui_gpio_expander_info_2 = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES + 16,
- };
--static struct pca953x_platform_data am3517evm_ui_gpio_expander_info_2 = {
--	.gpio_base	= OMAP_MAX_GPIO_LINES + 32,
-+
-+/*Keypad Initialization */
-+#define KEYPAD_PIN_MASK                0xFFC0
-+
-+#define KEYPAD_BUTTON(ev_type, ev_code, act_low) \
-+{								\
-+	.type		= ev_type,				\
-+	.code		= ev_code,				\
-+	.active_low	= act_low,				\
-+}
-+
-+#define KEYPAD_BUTTON_LOW(event_code)		\
-+	KEYPAD_BUTTON(EV_KEY, event_code, 1)
-+
-+static struct tca6416_button am3517_gpio_keys[] = {
-+	KEYPAD_BUTTON_LOW(KEY_DOWN),
-+	KEYPAD_BUTTON_LOW(KEY_UP),
-+	KEYPAD_BUTTON_LOW(KEY_MENU),
-+	KEYPAD_BUTTON_LOW(KEY_MODE),
-+	KEYPAD_BUTTON_LOW(KEY_LEFTSHIFT),
-+	KEYPAD_BUTTON_LOW(KEY_REWIND),
-+	KEYPAD_BUTTON_LOW(KEY_FORWARD),
-+	KEYPAD_BUTTON_LOW(KEY_STOP),
-+	KEYPAD_BUTTON_LOW(KEY_PLAY),
-+	KEYPAD_BUTTON_LOW(KEY_RECORD),
- };
-+
-+static struct tca6416_keys_platform_data am3517evm_tca6416_keys_info = {
-+	.buttons	= am3517_gpio_keys,
-+	.nbuttons	= ARRAY_SIZE(am3517_gpio_keys),
-+	.rep		= 1,
-+	.use_polling	= 1,
-+	.pinmask	= KEYPAD_PIN_MASK,
-+};
-+
- static struct i2c_board_info __initdata am3517evm_ui_tca6416_info[] = {
- 	{
--		I2C_BOARD_INFO("tca6416", 0x20),
--		.platform_data = &am3517evm_ui_gpio_expander_info_1,
-+		I2C_BOARD_INFO("tca6416-keys", 0x20),
-+		.platform_data = &am3517evm_tca6416_keys_info,
- 	},
- 	{
- 		I2C_BOARD_INFO("tca6416", 0x21),
--- 
-1.6.2.4
+Then at least one issue remains for zoom3 to be usable..
+I'm getting tons of MMC errors trying to mount root on it:
 
+mmcblk1: error -110 transferring data, sector 2097024, nr 8, card status 0x900  
+end_request: I/O error, dev mmcblk1, sector 2097024
+...
+
+Any ideas if that's fixed somewhere also?
+
+Regards,
+
+Tony
