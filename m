@@ -1,50 +1,126 @@
-From: "Pais, Allen" <allen.pais@ti.com>
-Subject: RE: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
-Date: Tue, 23 Mar 2010 11:16:41 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F127117@dbde02.ent.ti.com>
-References: <20100322212025.GW11448@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
+Subject: [PATCH v2] OMAP3: PM: Add milliseconds interface to suspend wakeup timer
+Date: Tue, 23 Mar 2010 09:04:59 +0200
+Message-ID: <1269327899-22541-1-git-send-email-Ext-Ari.Kauppi@nokia.com>
+References: <1269245454-24254-1-git-send-email-Ext-Ari.Kauppi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36973 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752022Ab0CWFqq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 01:46:46 -0400
-In-Reply-To: <20100322212025.GW11448@atomide.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:59130 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754632Ab0CWHFU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 03:05:20 -0400
+In-Reply-To: <1269245454-24254-1-git-send-email-Ext-Ari.Kauppi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, ext-phil.2.carmody@nokia.com, tero.kristo@nokia.com
 
-> > 
-> >  With this patch[DEBUG_LL + earlyprintk],
-> >  I still haven't been able to boot the kernel.
-> >  Is it working on your side.
-> >   
-> >  The commit am using is : a842b5f9ce70e1b738eabb4d719860070180ed1c
-> 
-> I think you will also need the 3630 serial fixes series posted
-> recently.
-> 
-> I just merged those into omap-fixes-for-linus (and master)
-> branch(es). Maybe give it a try with at commit
-> b3c7740a120c8a7775cb63b4d094466da5c01692 + this patch?
+Millisecond resolution is possible and there are use cases for it
+(automatic testing).
 
-  Thanks, I'll pull in those fixes. 
- I believe the mux errors are fixed. Have a look at
- http://dev.omapzoom.org/?p=manju/kernel-omap3-dev.git;a=commit;h=3499f5023ee90dc6ee3868a3147b87fe22a1d9b7
+Seconds-based interface is preserved for compatibility.
 
- Patch must have been missed some how.
+Signed-off-by: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
 
-- Allen
+---
+v2: Keep seconds and milliseconds interfaces strictly separate:
+ - Consistent interface, setting/getting seconds and milliseconds
+   is always accurate
+ - Fixes potential overflow issues in omap2_pm_wakeup_on_timer
+ - Cleaner patch
+---
+ arch/arm/mach-omap2/pm-debug.c |    7 +++++++
+ arch/arm/mach-omap2/pm.h       |    1 +
+ arch/arm/mach-omap2/pm34xx.c   |   17 ++++++++++-------
+ 3 files changed, 18 insertions(+), 7 deletions(-)
 
-> 
-> BTW, I'm still seeing mux errors on zoom3, have not yet
-> looked into those.
-> 
-> Regards,
-> 
-> Tony
-> 
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 8aafd71..83acaa2 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -548,6 +548,9 @@ static int option_set(void *data, u64 val)
+ {
+ 	u32 *option = data;
+ 
++	if (option == &wakeup_timer_milliseconds && val >= 1000)
++		return -EINVAL;
++
+ 	*option = val;
+ 
+ 	if (option == &enable_off_mode)
+@@ -605,6 +608,10 @@ static int __init pm_dbg_init(void)
+ 				   &sleep_while_idle, &pm_dbg_option_fops);
+ 	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUGO, d,
+ 				   &wakeup_timer_seconds, &pm_dbg_option_fops);
++	(void) debugfs_create_file("wakeup_timer_milliseconds",
++				   S_IRUGO | S_IWUGO, d,
++				   &wakeup_timer_milliseconds,
++				   &pm_dbg_option_fops);
+ 
+ 	/* Only enable for >= ES2.1 . Going to 0V on anything under
+ 	 * ES2.1 will eventually cause a crash */
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index b761be5..b3594a9 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -69,6 +69,7 @@ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+ 
+ extern u32 wakeup_timer_seconds;
++extern u32 wakeup_timer_milliseconds;
+ extern struct omap_dm_timer *gptimer_wakeup;
+ 
+ #ifdef CONFIG_PM_DEBUG
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 3868c76..d7922a5 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -74,6 +74,7 @@ static inline bool is_suspending(void)
+ u32 enable_off_mode;
+ u32 sleep_while_idle;
+ u32 wakeup_timer_seconds;
++u32 wakeup_timer_milliseconds;
+ u32 voltage_off_while_idle;
+ 
+ struct power_state {
+@@ -640,20 +641,21 @@ out:
+ }
+ 
+ #ifdef CONFIG_SUSPEND
+-static void omap2_pm_wakeup_on_timer(u32 seconds)
++static void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
+ {
+ 	u32 tick_rate, cycles;
+ 
+-	if (!seconds)
++	if (!seconds && !milliseconds)
+ 		return;
+ 
+ 	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
+-	cycles = tick_rate * seconds;
++	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
+ 	omap_dm_timer_stop(gptimer_wakeup);
+ 	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
+ 
+-	pr_info("PM: Resume timer in %d secs (%d ticks at %d ticks/sec.)\n",
+-		seconds, cycles, tick_rate);
++	pr_info("PM: Resume timer in %u.%03u secs"
++		" (%d ticks at %d ticks/sec.)\n",
++		seconds, milliseconds, cycles, tick_rate);
+ }
+ 
+ static int omap3_pm_prepare(void)
+@@ -667,8 +669,9 @@ static int omap3_pm_suspend(void)
+ 	struct power_state *pwrst;
+ 	int state, ret = 0;
+ 
+-	if (wakeup_timer_seconds)
+-		omap2_pm_wakeup_on_timer(wakeup_timer_seconds);
++	if (wakeup_timer_seconds || wakeup_timer_milliseconds)
++		omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
++					 wakeup_timer_milliseconds);
+ 
+ 	/* Read current next_pwrsts */
+ 	list_for_each_entry(pwrst, &pwrst_list, node)
+-- 
+1.6.4.2
+
