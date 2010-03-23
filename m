@@ -1,48 +1,50 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PM-WIP-OPP][PATCH 3/4] omap: pm: opp: add ability to store
- data per opp
-Date: Tue, 23 Mar 2010 10:36:32 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03220FC0C3@dbde02.ent.ti.com>
-References: <1268937891-19445-1-git-send-email-nm@ti.com>
- <1268937891-19445-2-git-send-email-nm@ti.com>
- <1268937891-19445-3-git-send-email-nm@ti.com>
- <1268937891-19445-4-git-send-email-nm@ti.com>
- <20100319144333.GU18995@nokia.com> <4BA3975E.70206@ti.com>
- <74583B8642AB8841B30447520659FCA9EBAC2C6A@dnce01.ent.ti.com>
- <4BA770D6.9020707@ti.com>
- <74583B8642AB8841B30447520659FCA9EBAC3458@dnce01.ent.ti.com>
- <4BA7B601.1060504@ti.com>
+From: "Pais, Allen" <allen.pais@ti.com>
+Subject: RE: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
+Date: Tue, 23 Mar 2010 11:16:41 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F127117@dbde02.ent.ti.com>
+References: <20100322212025.GW11448@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35590 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36973 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751555Ab0CWFGr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 01:06:47 -0400
-In-Reply-To: <4BA7B601.1060504@ti.com>
+	id S1752022Ab0CWFqq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 01:46:46 -0400
+In-Reply-To: <20100322212025.GW11448@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Linux-Omap <linux-omap@vger.kernel.org>, "K, Ambresh" <ambresh@ti.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>, "Premi, Sanjeev" <premi@ti.com>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
+> > 
+> >  With this patch[DEBUG_LL + earlyprintk],
+> >  I still haven't been able to boot the kernel.
+> >  Is it working on your side.
+> >   
+> >  The commit am using is : a842b5f9ce70e1b738eabb4d719860070180ed1c
+> 
+> I think you will also need the 3630 serial fixes series posted
+> recently.
+> 
+> I just merged those into omap-fixes-for-linus (and master)
+> branch(es). Maybe give it a try with at commit
+> b3c7740a120c8a7775cb63b4d094466da5c01692 + this patch?
 
+  Thanks, I'll pull in those fixes. 
+ I believe the mux errors are fixed. Have a look at
+ http://dev.omapzoom.org/?p=manju/kernel-omap3-dev.git;a=commit;h=3499f5023ee90dc6ee3868a3147b87fe22a1d9b7
 
->>
->>[...] [I am not about to repeat everything I stated in previous
->>threads.. so  snipping the discussion down.]
->>
->>>
->>> Otherwise the primary idea to remove OPP ID is good, and the way to go.
->>
->>good. So lets NAK that SR series and see how else we can implement it
->>without OPP ID. I am open to any clean mechanisms you may propose
->>without using OPP ID referencing :).
+ Patch must have been missed some how.
 
-Ok guys.. In the current V2 series , I have linked N targets with voltage.. Only it does not come from voltage layer but from smartreflex devices layer. The smartreflex driver does not use opp ids at all.. Also whether you call it by opp ids or by any other name, we need to know the number of different voltages supported by VDD1 and VDD2 and form the table.. That is exactly what I am doing in smartreflex device layer. I am just creating a table with different voltages and N target values associated with those voltages. To create this table I need to know there should be 5 voltages for VDD1 and 3 voltages for VDD2 which unfortunately coincides with the number of different OPP's defined in OMAP3430 today.. 
-I also think it is an excellent idea to NAK a series of 19 patches for which everybody has been shouting for, for this reason.
+- Allen
 
-Regards
-Thara  
-
+> 
+> BTW, I'm still seeing mux errors on zoom3, have not yet
+> looked into those.
+> 
+> Regards,
+> 
+> Tony
+> 
