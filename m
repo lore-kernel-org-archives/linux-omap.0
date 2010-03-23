@@ -1,16 +1,15 @@
 From: Roger Quadros <roger.quadros@nokia.com>
-Subject: [PATCH 3/5] OMAP: RX51: Add Touch Controller in SPI board info
-Date: Tue, 23 Mar 2010 11:56:29 +0200
-Message-ID: <1269338191-10734-4-git-send-email-roger.quadros@nokia.com>
+Subject: [PATCH 2/5] OMAP: RX51: Add "vdds_sdi" supply voltage for SDI
+Date: Tue, 23 Mar 2010 11:56:28 +0200
+Message-ID: <1269338191-10734-3-git-send-email-roger.quadros@nokia.com>
 References: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com>
  <1269338191-10734-2-git-send-email-roger.quadros@nokia.com>
- <1269338191-10734-3-git-send-email-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18674 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:18642 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754500Ab0CWJ5V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 05:57:21 -0400
-In-Reply-To: <1269338191-10734-3-git-send-email-roger.quadros@nokia.com>
+	with ESMTP id S1754432Ab0CWJ5Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 05:57:16 -0400
+In-Reply-To: <1269338191-10734-2-git-send-email-roger.quadros@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
@@ -18,11 +17,8 @@ Cc: Tomi.Valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kerne
 
 From: Roger Quadros <roger.quadros@nokia.com>
 
-The Touch controller and LCD Panel share the same SPI bus 1.
-So, we need to define the touch controller in the SPI board info
-else, the SPI bus will be contended due to invalid state of
-Touch controller's Chip Select thus preventing the LCD panel
-from working.
+The SDI Display subsystem needs access to the vdds_sdi supply
+regulator. This is TWL4030's VAUX1 supply on RX-51.
 
 Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
 ---
@@ -30,45 +26,38 @@ Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
  1 files changed, 15 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 3ef805e..020f354 100644
+index f404537..3ef805e 100644
 --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
 +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -46,6 +46,7 @@
- enum {
- 	RX51_SPI_WL1251,
- 	RX51_SPI_MIPID,		/* LCD panel */
-+	RX51_SPI_TSC2005,	/* Touch Controller */
+@@ -300,6 +300,19 @@ static struct regulator_consumer_supply rx51_vsim_supply = {
+ 	.dev_name = "mmci-omap-hs.1",
  };
  
- static struct wl12xx_platform_data wl1251_pdata;
-@@ -60,6 +61,11 @@ static struct omap2_mcspi_device_config mipid_mcspi_config = {
- 	.single_channel	= 1,
- };
- 
-+static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,
++#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++extern struct platform_device rx51_display_device;
++#endif
++
++static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
++#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++	{
++		.supply	= "vdds_sdi",
++		.dev	= &rx51_display_device.dev,
++	},
++#endif
 +};
 +
- static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 	[RX51_SPI_WL1251] = {
- 		.modalias		= "wl1251",
-@@ -77,6 +83,15 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 		.max_speed_hz		= 6000000,
- 		.controller_data	= &mipid_mcspi_config,
+ static struct regulator_init_data rx51_vaux1 = {
+ 	.constraints = {
+ 		.name			= "V28",
+@@ -310,6 +323,8 @@ static struct regulator_init_data rx51_vaux1 = {
+ 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
  	},
-+	[RX51_SPI_TSC2005] = {
-+		.modalias		= "tsc2005",
-+		.bus_num		= 1,
-+		.chip_select		= 0,
-+		/* .irq = OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),*/
-+		.max_speed_hz		= 6000000,
-+		.controller_data	= &tsc2005_mcspi_config,
-+		/* .platform_data = &tsc2005_config,*/
-+	},
++	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux1_consumers),
++	.consumer_supplies	= rx51_vaux1_consumers,
  };
  
- #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
+ static struct regulator_init_data rx51_vaux2 = {
 -- 
 1.6.0.4
 
