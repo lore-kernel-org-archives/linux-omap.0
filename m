@@ -1,31 +1,70 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: DSP recovery feature
-Date: Wed, 24 Mar 2010 23:14:15 +0200
-Message-ID: <94a0d4531003241414y696aa379uc714c3fb7fc8c3eb@mail.gmail.com>
-References: <Acq8TGBkJRXTEjd3QLyd0bJ27/2C7g==>
-	 <496565EC904933469F292DDA3F1663E602CA9E405F@dlee06.ent.ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC][PATCH 4/5] input: serio: add support for Amstrad Delta serial keyboard port
+Date: Wed, 24 Mar 2010 22:21:22 +0100
+Message-ID: <201003242221.24551.jkrzyszt@tis.icnet.pl>
+References: <D615D960-7E56-492A-9CA0-BA66CF3AAF9B@gmail.com> <201003222207.48707.jkrzyszt@tis.icnet.pl> <20100324161604.GA6338@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:54936 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772Ab0CXVOU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 17:14:20 -0400
-Received: by bwz1 with SMTP id 1so333411bwz.21
-        for <linux-omap@vger.kernel.org>; Wed, 24 Mar 2010 14:14:19 -0700 (PDT)
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CA9E405F@dlee06.ent.ti.com>
+Received: from d1.icnet.pl ([212.160.220.21]:53529 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752841Ab0CXVVg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Mar 2010 17:21:36 -0400
+In-Reply-To: <20100324161604.GA6338@core.coreip.homeip.net>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Mar 5, 2010 at 12:12 PM, Guzman Lugo, Fernando <x0095840@ti.com> wrote:
-> This patch implements a workqueue in charge of reseting
-> DSP in case of fatal error.
+Hi Dmitry,
 
-I found another problem. It seems if after the mmu fault I close the
-driver handle, and open it again on the same process, the driver
-thinks the handle was never closed.
+Wednesday 24 March 2010 17:16:04 Dmitry Torokhov wrote:
+> On Mon, Mar 22, 2010 at 10:07:47PM +0100, Janusz Krzysztofik wrote:
+> >
+> > Meanwhile, I've connected the Amstrad Delta keyboard to a PC. I can
+> > confirm it speaks PS/2 protocol and is automatically detected by
+> > atkbd/i8042 drivers. The initial handshake sequence actually looks
+> > exactly the same as that of a standard AT keyboard.
+>
+> OK, since the device really speaks PS/2 protocol I withdraw my objection
+> of using serio + atkbd combo, however we should not be doing translation
+> in serio.
 
--- 
-Felipe Contreras
+Sure, thank you.
+
+> > The problem persists about different scancodes, giving
+> > wrong keystrokes.
+>
+> This can be dealt with from userspace by loading correct keymap.
+
+Sounds acceptable. I hope the machine's built-in matrix keypad won't be 
+affected.
+
+> > Resuming, if there were a boot/module option to atkbd allowing for
+> > non-default scancode table, or another similiar possibility, both devices
+> > would work with a PC using exsisting drivers.
+>
+> You can train UDEV to load proper keymap. What does teh device report as
+> 'version' in sysfs (output of 'cat
+> /sys/bus/serio/devices/serio0/input/input3/id/bustype', please adjust
+> serioX and inputX to match yours)?
+
+When connected to a PC over a real 2-way i8042 port, the device identifies 
+itself as:
+
+# grep '' /sys/bus/serio/devices/serio0/input/input2/id/*
+/sys/bus/serio/devices/serio0/input/input2/id/bustype:0011
+/sys/bus/serio/devices/serio0/input/input2/id/product:0001
+/sys/bus/serio/devices/serio0/input/input2/id/vendor:0001
+/sys/bus/serio/devices/serio0/input/input2/id/version:ab41
+#
+
+Unfortunatelly, it looks exactly the same as my standard AT keyboard.
+
+Can you imagine any other possible way of distinguishing them?
+
+Thanks,
+Janusz
