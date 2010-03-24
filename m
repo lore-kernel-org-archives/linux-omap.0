@@ -1,80 +1,51 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: n900 doesn't boot with mainline
-Date: Wed, 24 Mar 2010 16:24:09 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032221AA78@dbde02.ent.ti.com>
-References: <20100324104825.GA29419@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PM-WIP-OPP] [PATCH 1/1] OMAP3: PM: cpu-omap: Check governor limits before applying mpu frequency
+Date: Wed, 24 Mar 2010 13:02:31 +0200
+Message-ID: <1269428551-779-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38480 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752488Ab0CXKyR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Mar 2010 06:54:17 -0400
-In-Reply-To: <20100324104825.GA29419@nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:21172 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755426Ab0CXLCv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 07:02:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: ext Nishanth Menon <nm@ti.com>, ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-RmVsaXBlIEJhbGJpIHdyb3RlOg0KPiBIaSBUb255LA0KPiANCj4gSSdtIHVzaW5nIDIuNi4zNC1y
-YzIgYW5kIEkgZ2V0Og0KPiANCj4gWyAgICA0Ljg3NDY5NF0gVW5oYW5kbGVkIGZhdWx0OiBhbGln
-bm1lbnQgZXhjZXB0aW9uICgweDgwMSkgYXQgDQo+IDB4ZmEwNzAwMDkNCj4gWyAgICA0Ljg4MTY4
-M10gSW50ZXJuYWwgZXJyb3I6IDogODAxIFsjMV0NCj4gWyAgICA0Ljg4NTY4MV0gbGFzdCBzeXNm
-cyBmaWxlOiANCj4gWyAgICA0Ljg4ODgyNF0gTW9kdWxlcyBsaW5rZWQgaW46DQo+IFsgICAgNC44
-OTIwODldIENQVTogMCAgICBOb3QgdGFpbnRlZCAgKDIuNi4zNC1yYzItMDAwMTEtZzRmNzg2MjAg
-IzQ3MCkNCj4gWyAgICA0Ljg5ODY4MV0gUEMgaXMgYXQgb21hcF9pMmNfdW5pZGxlKzB4NDQvMHgx
-MzgNCj4gWyAgICA0LjkwMzQ3Ml0gTFIgaXMgYXQgdHJhY2VfaGFyZGlycXNfb25fY2FsbGVyKzB4
-MTU4LzB4MThjDQo+IFsgICAgNC45MDkxNDldIHBjIDogWzxjMDFkOTI1OD5dICAgIGxyIDogWzxj
-MDA3NmViND5dICAgIHBzcjogMjAwMDAwMTMNCj4gWyAgICA0LjkwOTE0OV0gc3AgOiBjZmMyYmYw
-MCAgaXAgOiAwMDAwMDAwOSAgZnAgOiAwMDAwMDAwMA0KPiBbICAgIDQuOTIxMjAzXSByMTA6IGMw
-Mzk0NTYwICByOSA6IDAwMDAwMDAwICByOCA6IGMwMzk0Yjg4DQo+IFsgICAgNC45MjY2OTZdIHI3
-IDogMDAwMDAwMDAgIHI2IDogYzAzOTQ1NTggIHI1IDogY2ZjYmRjMDAgIHI0IDogY2ZjYmRjMDAN
-Cj4gWyAgICA0LjkzMzUzMl0gcjMgOiAwMDAwMDAwOSAgcjIgOiBmYTA3MDAwMCAgcjEgOiAwMDAw
-MDAwMCAgcjAgOiAwMDAwMDAwMA0KPiBbICAgIDQuOTQwMzY4XSBGbGFnczogbnpDdiAgSVJRcyBv
-biAgRklRcyBvbiAgTW9kZSBTVkNfMzIgIElTQSBBUk0gIFNlZ21lbnQga2VybmVsDQo+IFsgICAg
-NC45NDgwMjhdIENvbnRyb2w6IDEwYzUzODdmICBUYWJsZTogODAwMDQwMTkgIERBQzogMDAwMDAw
-MTcNCj4gWyAgICA0Ljk1NDA3MV0gUHJvY2VzcyBzd2FwcGVyIChwaWQ6IDEsIHN0YWNrIGxpbWl0
-ID0gMHhjZmMyYTJlOCkNCj4gWyAgICA0Ljk2MDIwNV0gU3RhY2s6ICgweGNmYzJiZjAwIHRvIDB4
-Y2ZjMmMwMDApDQo+IFsgICAgNC45NjQ4MTNdIGJmMDA6IGMwMzk0YmE0IGMwMjgxZjEwIDAwMDAw
-MDAwIGMwMGZmZDk0IGNmYzhjNTA4IDAwMDAwMDAwIGMwMzk0NTYwIGMwMzk0NTYwDQo+IFsgICAg
-NC45NzMzNThdIGJmMjA6IGMwMzk0NTYwIGMwNTFjODk4IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAw
-MDAwIGMwMTg2ZDc0IGMwMzk0NTYwIGMwMTg1ZTIwDQo+IFsgICAgNC45ODE5MDNdIGJmNDA6IGMw
-Mzk0NTYwIGMwNTFjODk4IGMwNTFjODk4IDAwMDAwMDAwIDAwMDAwMDAwIGMwMTg1ZjE0IGMwMzk0
-NTYwIGMwMzk0NTk0DQo+IFsgICAgNC45OTA0NzhdIGJmNjA6IGMwNTFjODk4IGMwMTg1ZjhjIDAw
-MDAwMDAwIGMwMTg1ZjJjIGMwNTFjODk4IGMwMTg1Njc0IGNmYzE2YTVjIGNmYzhkZDk0DQo+IFsg
-ICAgNC45OTkwMjNdIGJmODA6IGMwNTFjODk4IGNmY2JjOGMwIGMwNTE4MjgwIGMwMTg0ZmU0IGMw
-MzQ2N2ExIDAwMDAwMDkzIGNmYzI4ZDQwIGMwNTFjODk4DQo+IFsgICAgNS4wMDc1OThdIGJmYTA6
-IDAwMDAwMDAwIGMwMDFjZTU0IDAwMDAwMDAwIGMwMTg2MzAwIGMwMDIzMmI4IDAwMDAwMDAwIGMw
-MDFjZTU0IGMwMDJiMmNjDQo+IFsgICAgNS4wMTYxNDNdIGJmYzA6IDAwMDAwMDMxIDAwMDAwMDAw
-IDAwMDAwMDAwIDAwMDAwMTkyIDAwMDAwMDAwIGMwMDIzMmI4IDAwMDAwMDAwIDAwMDAwMDAwDQo+
-IFsgICAgNS4wMjQ3MTldIGJmZTA6IDAwMDAwMDAwIGMwMDA4NjBjIDAwMDAwMDAwIGMwMDA4Njg4
-IDAwMDAwMDAwIGMwMDJjMmE0IDAwMDAwMDAwIDAwMjAyMDAwDQo+IFsgICAgNS4wMzMyOTRdIFs8
-YzAxZDkyNTg+XSAob21hcF9pMmNfdW5pZGxlKzB4NDQvMHgxMzgpIGZyb20gWzxjMDI4MWYxMD5d
-IChvbWFwX2kyY19wcm9iZSsweDE1MC8weDMzOCkNCj4gWyAgICA1LjA0Mjg3N10gWzxjMDI4MWYx
-MD5dIChvbWFwX2kyY19wcm9iZSsweDE1MC8weDMzOCkgZnJvbSBbPGMwMTg2ZDc0Pl0gKHBsYXRm
-b3JtX2Rydl9wcm9iZSsweDE4LzB4MWMpDQo+IFsgICAgNS4wNTI1ODFdIFs8YzAxODZkNzQ+XSAo
-cGxhdGZvcm1fZHJ2X3Byb2JlKzB4MTgvMHgxYykgZnJvbSBbPGMwMTg1ZTIwPl0gKHJlYWxseV9w
-cm9iZSsweDkwLzB4MTNjKQ0KPiBbICAgIDUuMDYyMDQyXSBbPGMwMTg1ZTIwPl0gKHJlYWxseV9w
-cm9iZSsweDkwLzB4MTNjKSBmcm9tIFs8YzAxODVmMTQ+XSAoZHJpdmVyX3Byb2JlX2RldmljZSsw
-eDQ4LzB4NjApDQo+IFsgICAgNS4wNzE1OTRdIFs8YzAxODVmMTQ+XSAoZHJpdmVyX3Byb2JlX2Rl
-dmljZSsweDQ4LzB4NjApIGZyb20gWzxjMDE4NWY4Yz5dIChfX2RyaXZlcl9hdHRhY2grMHg2MC8w
-eDg0KQ0KPiBbICAgIDUuMDgxMzI5XSBbPGMwMTg1ZjhjPl0gKF9fZHJpdmVyX2F0dGFjaCsweDYw
-LzB4ODQpIGZyb20gWzxjMDE4NTY3ND5dIChidXNfZm9yX2VhY2hfZGV2KzB4NDQvMHg3NCkNCj4g
-WyAgICA1LjA5MDc4OV0gWzxjMDE4NTY3ND5dIChidXNfZm9yX2VhY2hfZGV2KzB4NDQvMHg3NCkg
-ZnJvbSBbPGMwMTg0ZmU0Pl0gKGJ1c19hZGRfZHJpdmVyKzB4OWMvMHgxOTApDQo+IFsgICAgNS4x
-MDAyNTBdIFs8YzAxODRmZTQ+XSAoYnVzX2FkZF9kcml2ZXIrMHg5Yy8weDE5MCkgZnJvbSBbPGMw
-MTg2MzAwPl0gKGRyaXZlcl9yZWdpc3RlcisweGE4LzB4ZGMpDQo+IFsgICAgNS4xMDk2NDldIFs8
-YzAxODYzMDA+XSAoZHJpdmVyX3JlZ2lzdGVyKzB4YTgvMHhkYykgZnJvbSBbPGMwMDJiMmNjPl0g
-KGRvX29uZV9pbml0Y2FsbCsweDVjLzB4MWI4KQ0KPiBbICAgIDUuMTE5MTEwXSBbPGMwMDJiMmNj
-Pl0gKGRvX29uZV9pbml0Y2FsbCsweDVjLzB4MWI4KSBmcm9tIFs8YzAwMDg2MGM+XSAoZG9faW5p
-dGNhbGxzKzB4MTQvMHgzMCkNCj4gWyAgICA1LjEyODI5NV0gWzxjMDAwODYwYz5dIChkb19pbml0
-Y2FsbHMrMHgxNC8weDMwKSBmcm9tIFs8YzAwMDg2ODg+XSAoa2VybmVsX2luaXQrMHgzYy8weGNj
-KQ0KPiBbICAgIDUuMTM3MDU0XSBbPGMwMDA4Njg4Pl0gKGtlcm5lbF9pbml0KzB4M2MvMHhjYykg
-ZnJvbSBbPGMwMDJjMmE0Pl0gKGtlcm5lbF90aHJlYWRfZXhpdCsweDAvMHg4KQ0KPiBbICAgIDUu
-MTQ2MTQ4XSBDb2RlOiBlNTk0MjAwNCBlM2EwYzAwOSBlMWEwMzMxYyBlM2EwMTAwMCAoZTE4MjEw
-YjMpIA0KPiBbICAgIDUuMTUyNjE4XSAtLS1bIGVuZCB0cmFjZSAxYjc1YjMxYTI3MTllZDFjIF0t
-LS0NCj4gWyAgICA1LjE1NzUzMV0gS2VybmVsIHBhbmljIC0gbm90IHN5bmNpbmc6IEF0dGVtcHQg
-bCB0byBraWxsIGluaXQhDQo+IA0KPiBkbyB5b3UgaGF2ZSBhIHBhdGNoIGZvciB0aGF0IGFscmVh
-ZHkgPw0KPiANCg0KVGhpcyBvbmU/Og0KaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRj
-aC84NzU5MC8NCg0KLSBBbmFuZA0K
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+
+This patch fix the sequence inside omap_target while setting
+a frequency for OMAP3 devices.
+
+Previously any frequency was set, even if out of range. Now
+the range set by the governor is also checked for OMAP3.
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ arch/arm/plat-omap/cpu-omap.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index a69b557..0674405 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -88,7 +88,7 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	struct cpufreq_freqs freqs;
+ #endif
+ #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+-	unsigned long freq = target_freq * 1000;
++	unsigned long freq;
+ #endif
+ 	int ret = 0;
+ 
+@@ -114,6 +114,7 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+ #elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
++	freq = target_freq * 1000;
+ 	if (opp_find_freq_ceil(OPP_MPU, &freq))
+ 		omap_pm_cpu_set_freq(freq);
+ #endif
+-- 
+1.7.0.2
+
