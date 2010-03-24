@@ -1,31 +1,53 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ehci: omap: fix kernel panic with rmmod
-Date: Wed, 24 Mar 2010 09:56:43 +0200
-Message-ID: <20100324075643.GE7534@nokia.com>
-References: <1268911715-10279-1-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: vram.c broken in mainline
+Date: Wed, 24 Mar 2010 10:04:51 +0200
+Message-ID: <20100324080451.GF7534@nokia.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:60521 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218Ab0CXIFW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 04:05:22 -0400
 Content-Disposition: inline
-In-Reply-To: <1268911715-10279-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Thu, Mar 18, 2010 at 12:28:35PM +0100, ext Ajay Kumar Gupta wrote:
->Sets the regulator values to NULL if they are not defined. This
->is required to fix the kernel panic in exit path when EHCI module
->is removed on the platforms where EHCI regulator are not set.
->
->Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Hi Tomi,
 
-applied, thanks
+drivers/video/omap2/vram.c doesn't compile with 3430sdp in mainline. The 
+patch below fixes it.
+
+ From 668f08d0e3cabd0517a5472cd10ce3d147993d69 Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Date: Wed, 24 Mar 2010 10:03:57 +0200
+Subject: [PATCH] video: omap2: vram: fix compilation of vram.c
+
+a trivial patch changing __early_param into early_param.
+
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+  drivers/video/omap2/vram.c |    2 +-
+  1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
+index 55a4de5..74df5ea 100644
+--- a/drivers/video/omap2/vram.c
++++ b/drivers/video/omap2/vram.c
+@@ -517,7 +517,7 @@ static void __init omap_vram_early_vram(char **p)
+  	if (**p == ',')
+  		omap_vram_def_sdram_start = simple_strtoul((*p) + 1, p, 16);
+  }
+-__early_param("vram=", omap_vram_early_vram);
++early_param("vram=", omap_vram_early_vram);
+  
+  /*
+   * Called from map_io. We need to call to this early enough so that we
+-- 
+1.7.0.rc0.33.g7c3932
+
 
 -- 
 balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
