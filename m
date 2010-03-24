@@ -1,24 +1,48 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [patch-2.6.34-rc2+] ehci patches
-Date: Wed, 24 Mar 2010 14:45:33 +0200
-Message-ID: <1269434734-23524-1-git-send-email-felipe.balbi@nokia.com>
+From: Thomas Weber <weber@corscience.de>
+Subject: [PATCH 2/9] OMAP: Devkit8000: Add missing package selection
+Date: Wed, 24 Mar 2010 13:52:11 +0100
+Message-ID: <1269435138-27192-3-git-send-email-weber@corscience.de>
+References: <1269435138-27192-1-git-send-email-weber@corscience.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53234 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755793Ab0CXMqP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 08:46:15 -0400
+Received: from moutng.kundenserver.de ([212.227.126.187]:62469 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755892Ab0CXMxB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 08:53:01 -0400
+In-Reply-To: <1269435138-27192-1-git-send-email-weber@corscience.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Thomas Weber <weber@corscience.de>
 
-Hi Greg,
+Devkit8000 uses the CUS package for OMAP3530.
 
-There's only one patch for ehci now.
+This patch adds missing package selection for CUS and enables
+CONFIG_MUX.
 
-Ajay Kumar Gupta (1):
-  ehci: omap: fix kernel panic with rmmod
+Replace whitespace with tab in Kconfig.
 
- drivers/usb/host/ehci-omap.c |    6 ++++--
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ arch/arm/mach-omap2/Kconfig |    6 ++++--
  1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index a8a3d1e..2455dcc 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -59,8 +59,10 @@ config MACH_OMAP3_BEAGLE
+ 	select OMAP_PACKAGE_CBB
+ 
+ config MACH_DEVKIT8000
+-        bool "DEVKIT8000 board"
+-        depends on ARCH_OMAP3
++	bool "DEVKIT8000 board"
++	depends on ARCH_OMAP3
++	select OMAP_PACKAGE_CUS
++	select OMAP_MUX
+ 
+ config MACH_OMAP_LDP
+ 	bool "OMAP3 LDP board"
+-- 
+1.6.4.4
 
