@@ -1,70 +1,120 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [patch-2.6.35 01/11] usb: musb: debugfs: musb_exit_debugfs() can be called on probe
-Date: Wed, 24 Mar 2010 14:55:08 +0200
-Message-ID: <1269435318-29153-2-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [patch-2.6.35 02/11] USB: musb: support host/gadget role switching on Blackfin parts
+Date: Wed, 24 Mar 2010 14:55:09 +0200
+Message-ID: <1269435318-29153-3-git-send-email-felipe.balbi@nokia.com>
 References: <1269435318-29153-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56393 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755898Ab0CXM4C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 08:56:02 -0400
-In-Reply-To: <1269435318-29153-1-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1269435318-29153-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Cliff Cai <cliff.cai-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-when we fail to probe(), we can call musb_exit_debugfs().
-Allow that by removing section annotations.
+From: Cliff Cai <cliff.cai-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Cliff Cai <cliff.cai-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.c    |    7 +++++--
- drivers/usb/musb/musb_debugfs.c |    2 +-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/usb/musb/blackfin.c |   69 +++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 63 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 13f36bf..9b88727 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2056,12 +2056,12 @@ bad_config:
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index 3774815..78f33b9 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -171,6 +171,13 @@ static irqreturn_t blackfin_interrupt(int irq, void *__hci)
+ 		retval = musb_interrupt(musb);
+ 	}
  
- 	status = musb_init_debugfs(musb);
- 	if (status < 0)
--		goto fail2;
-+		goto fail4;
- 
- #ifdef CONFIG_SYSFS
- 	status = sysfs_create_group(&musb->controller->kobj, &musb_attr_group);
- 	if (status)
--		goto fail4;
-+		goto fail5;
- #endif
- 
- 	dev_info(dev, "USB %s mode controller at %p using %s, IRQ %d\n",
-@@ -2078,6 +2078,9 @@ bad_config:
- 
- 	return 0;
- 
-+fail5:
-+	musb_exit_debugfs(musb);
++	/* Start sampling ID pin, when plug is removed from MUSB */
++	if (is_otg_enabled(musb) && (musb->xceiv->state == OTG_STATE_B_IDLE
++		|| musb->xceiv->state == OTG_STATE_A_WAIT_BCON)) {
++		mod_timer(&musb_conn_timer, jiffies + TIMER_DELAY);
++		musb->a_wait_bcon = TIMER_DELAY;
++	}
 +
- fail4:
- 	if (!is_otg_enabled(musb) && is_host_enabled(musb))
- 		usb_remove_hcd(musb_to_hcd(musb));
-diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
-index b6a27ba..7768634 100644
---- a/drivers/usb/musb/musb_debugfs.c
-+++ b/drivers/usb/musb/musb_debugfs.c
-@@ -289,7 +289,7 @@ err0:
- 	return ret;
- }
+ 	spin_unlock_irqrestore(&musb->lock, flags);
  
--void __exit musb_exit_debugfs(struct musb *musb)
-+void /* __init_or_exit */ musb_exit_debugfs(struct musb *musb)
- {
- 	debugfs_remove_recursive(musb_debugfs_root);
- }
--- 
-1.7.0.rc0.33.g7c3932
-
+ 	return retval;
+@@ -181,6 +188,7 @@ static void musb_conn_timer_handler(unsigned long _musb)
+ 	struct musb *musb = (void *)_musb;
+ 	unsigned long flags;
+ 	u16 val;
++	static u8 toggle;
+ 
+ 	spin_lock_irqsave(&musb->lock, flags);
+ 	switch (musb->xceiv->state) {
+@@ -188,10 +196,44 @@ static void musb_conn_timer_handler(unsigned long _musb)
+ 	case OTG_STATE_A_WAIT_BCON:
+ 		/* Start a new session */
+ 		val = musb_readw(musb->mregs, MUSB_DEVCTL);
++		val &= ~MUSB_DEVCTL_SESSION;
++		musb_writew(musb->mregs, MUSB_DEVCTL, val);
+ 		val |= MUSB_DEVCTL_SESSION;
+ 		musb_writew(musb->mregs, MUSB_DEVCTL, val);
++		/* Check if musb is host or peripheral. */
++		val = musb_readw(musb->mregs, MUSB_DEVCTL);
++
++		if (!(val & MUSB_DEVCTL_BDEVICE)) {
++			gpio_set_value(musb->config->gpio_vrsel, 1);
++			musb->xceiv->state = OTG_STATE_A_WAIT_BCON;
++		} else {
++			gpio_set_value(musb->config->gpio_vrsel, 0);
++			/* Ignore VBUSERROR and SUSPEND IRQ */
++			val = musb_readb(musb->mregs, MUSB_INTRUSBE);
++			val &= ~MUSB_INTR_VBUSERROR;
++			musb_writeb(musb->mregs, MUSB_INTRUSBE, val);
+ 
++			val = MUSB_INTR_SUSPEND | MUSB_INTR_VBUSERROR;
++			musb_writeb(musb->mregs, MUSB_INTRUSB, val);
++			if (is_otg_enabled(musb))
++				musb->xceiv->state = OTG_STATE_B_IDLE;
++			else
++				musb_writeb(musb->mregs, MUSB_POWER, MUSB_POWER_HSENAB);
++		}
++		mod_timer(&musb_conn_timer, jiffies + TIMER_DELAY);
++		break;
++	case OTG_STATE_B_IDLE:
++
++		if (!is_peripheral_enabled(musb))
++			break;
++		/* Start a new session.  It seems that MUSB needs taking
++		 * some time to recognize the type of the plug inserted?
++		 */
+ 		val = musb_readw(musb->mregs, MUSB_DEVCTL);
++		val |= MUSB_DEVCTL_SESSION;
++		musb_writew(musb->mregs, MUSB_DEVCTL, val);
++		val = musb_readw(musb->mregs, MUSB_DEVCTL);
++
+ 		if (!(val & MUSB_DEVCTL_BDEVICE)) {
+ 			gpio_set_value(musb->config->gpio_vrsel, 1);
+ 			musb->xceiv->state = OTG_STATE_A_WAIT_BCON;
+@@ -206,12 +248,27 @@ static void musb_conn_timer_handler(unsigned long _musb)
+ 			val = MUSB_INTR_SUSPEND | MUSB_INTR_VBUSERROR;
+ 			musb_writeb(musb->mregs, MUSB_INTRUSB, val);
+ 
+-			val = MUSB_POWER_HSENAB;
+-			musb_writeb(musb->mregs, MUSB_POWER, val);
++			/* Toggle the Soft Conn bit, so that we can response to
++			 * the inserting of either A-plug or B-plug.
++			 */
++			if (toggle) {
++				val = musb_readb(musb->mregs, MUSB_POWER);
++				val &= ~MUSB_POWER_SOFTCONN;
++				musb_writeb(musb->mregs, MUSB_POWER, val);
++				toggle = 0;
++			} else {
++				val = musb_readb(musb->mregs, MUSB_POWER);
++				val |= MUSB_POWER_SOFTCONN;
++				musb_writeb(musb->mregs, MUSB_POWER, val);
++				toggle = 1;
++			}
++			/* The delay time is set to 1/4 second by default,
++			 * shortening it, if accelerating A-plug detection
++			 * is needed in OTG mode.
++			 */
++			mod_timer(&musb_conn_timer, jiffies + TIMER_DELAY / 4);
+ 		}
+-		mod_timer(&musb_conn_timer, jiffies + TIMER_DELAY);
+ 		break;
