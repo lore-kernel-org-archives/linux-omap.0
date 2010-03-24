@@ -1,413 +1,827 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH 2/4] DSPBRIDGE: replace sync_enter/leave_cs for tasklets
- with spin_lock_bh
-Date: Tue, 23 Mar 2010 20:58:13 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CACBE04E@dlee06.ent.ti.com>
+Subject: [PATCH 3/4] DSPBRIDGE: modify sync event functions to use
+ completions instead of sems
+Date: Tue, 23 Mar 2010 20:58:57 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CACBE04F@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43678 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33419 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753964Ab0CXB6R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 21:58:17 -0400
+	id S1752750Ab0CXB7A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Mar 2010 21:59:00 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
->From cae4f92de97038b442e06d4d33ba4d36d0754c7b Mon Sep 17 00:00:00 2001
+>From fe3614b420203e22e4e30125ccdef05c8786f595 Mon Sep 17 00:00:00 2001
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Fri, 19 Mar 2010 14:04:28 -0600
-Subject: [PATCH] DSPBRIDGE: replace sync_enter/leave_cs for tasklets with spin_lock_bh
+Date: Tue, 23 Mar 2010 19:59:38 -0600
+Subject: [PATCH] DSPBRIDGE: modify sync event functions to use completions instead of sems
 
-This patch replaces sync_enter/leave_cs function calls used in
- tasklets with spin_lock/unlock_bh functions.
+This functions modifies sync event functions to use completions
+instead of semaphores and also simplifies the code.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/_chnl_sm.h |    2 +-
- drivers/dsp/bridge/services/ntfy.c              |   34 +++++++++-----------
- drivers/dsp/bridge/wmd/_msg_sm.h                |    2 +-
- drivers/dsp/bridge/wmd/chnl_sm.c                |   25 ++++++--------
- drivers/dsp/bridge/wmd/msg_sm.c                 |   39 ++++++++++-------------
- 5 files changed, 45 insertions(+), 57 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/sync.h |  201 +++++++--------------
+ drivers/dsp/bridge/rmgr/node.c              |   12 +-
+ drivers/dsp/bridge/rmgr/strm.c              |    4 +-
+ drivers/dsp/bridge/services/ntfy.c          |   16 +-
+ drivers/dsp/bridge/services/sync.c          |  259 +++++++--------------------
+ drivers/dsp/bridge/wmd/chnl_sm.c            |   17 +-
+ drivers/dsp/bridge/wmd/msg_sm.c             |   51 ++++--
+ 7 files changed, 195 insertions(+), 365 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-index 3c6f891..d961578 100644
---- a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-@@ -116,7 +116,7 @@ struct chnl_mgr {
- 	u32 dw_output_mask;	/* Host output channels w/ full buffers */
- 	u32 dw_last_output;	/* Last output channel fired from DPC */
- 	/* Critical section object handle */
--	struct sync_csobject *hcs_obj;
-+	spinlock_t chnl_mgr_lock;
- 	u32 word_size;		/* Size in bytes of DSP word */
- 	u32 max_channels;	/* Total number of channels */
- 	u32 open_channels;	/* Total number of open channels */
+diff --git a/arch/arm/plat-omap/include/dspbridge/sync.h b/arch/arm/plat-omap/include/dspbridge/sync.h
+index 6b46e2f..c3c68e1 100644
+--- a/arch/arm/plat-omap/include/dspbridge/sync.h
++++ b/arch/arm/plat-omap/include/dspbridge/sync.h
+@@ -19,6 +19,7 @@
+ #ifndef _SYNC_H
+ #define _SYNC_H
+
++#include <dspbridge/errbase.h>
+ #define SIGNATURECS     0x53435953     /* "SYCS" (in reverse) */
+ #define SIGNATUREDPCCS  0x53445953     /* "SYDS" (in reverse) */
+
+@@ -28,8 +29,16 @@
+ /* Maximum string length of a named event */
+ #define SYNC_MAXNAMELENGTH 32
+
+-/* Generic SYNC object: */
+-struct sync_object;
++/**
++ * struct sync_object - the basic sync_object structure
++ * @comp:      use to signal events
++ * @multi_comp:        use to signal multiple events.
++ *
++ */
++struct sync_object{
++       struct completion comp;
++       struct completion *multi_comp;
++};
+
+ /* Generic SYNC CS object: */
+ struct sync_csobject {
+@@ -46,25 +55,6 @@ struct sync_attrs {
+ };
+
+ /*
+- *  ======== sync_close_event ========
+- *  Purpose:
+- *      Close this event handle, freeing resources allocated in sync_open_event
+- *      if necessary.
+- *  Parameters:
+- *      event_obj: Handle to a synchronization event, created/opened in
+- *              sync_open_event.
+- *  Returns:
+- *      DSP_SOK:        Success;
+- *      DSP_EFAIL:      Failed to close event handle.
+- *      DSP_EHANDLE:    Invalid handle.
+- *  Requires:
+- *      SYNC initialized.
+- *  Ensures:
+- *      Any subsequent usage of event_obj would be invalid.
+- */
+-extern dsp_status sync_close_event(IN struct sync_object *event_obj);
+-
+-/*
+  *  ======== sync_delete_cs ========
+  *  Purpose:
+  *      Delete a critical section.
+@@ -162,39 +152,18 @@ extern dsp_status sync_initialize_dpccs(OUT struct sync_csobject
+  */
+ extern dsp_status sync_leave_cs(IN struct sync_csobject *hcs_obj);
+
+-/*
+- *  ======== sync_open_event ========
+- *  Purpose:
+- *      Create/open and initialize an event object for thread synchronization,
+- *      which is initially in the non-signalled state.
+- *  Parameters:
+- *      ph_event:    Pointer to location to receive the event object handle.
+- *      pattrs:     Pointer to sync_attrs object containing initial SYNC
+- *                  sync_object attributes.  If this pointer is NULL, then
+- *                  sync_open_event will create and manage an OS specific
+- *                  syncronization object.
+- *          pattrs->user_event:  Platform's User Mode synchronization object.
+- *
+- *      The behaviour of the SYNC methods depend on the value of
+- *      the user_event attr:
++/**
++ * sync_init_event() - set initial state for a sync_event element
++ * @event:     event to be initialized.
+  *
+- *      1. (user_event == NULL):
+- *          A user mode event is created.
+- *      2. (user_event != NULL):
+- *          A user mode event is supplied by the caller of sync_open_event().
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EFAIL:      Unable to create user mode event.
+- *      DSP_EMEMORY:    Insufficient memory.
+- *      DSP_EINVALIDARG sync_attrs values are invalid.
+- *  Requires:
+- *      - SYNC initialized.
+- *      - ph_event != NULL.
+- *  Ensures:
+- *      If function succeeded, event->event_obj must be a valid event handle.
++ * Set the initial state for a sync_event element.
+  */
+-extern dsp_status sync_open_event(OUT struct sync_object **ph_event,
+-                                 IN OPTIONAL struct sync_attrs *pattrs);
++
++static inline void sync_init_event(struct sync_object *event)
++{
++       init_completion(&event->comp);
++       event->multi_comp = NULL;
++}
+
+ /*
+  * ========= sync_post_message ========
+@@ -213,91 +182,61 @@ extern dsp_status sync_open_event(OUT struct sync_object **ph_event,
+  */
+ extern dsp_status sync_post_message(IN bhandle hWindow, IN u32 uMsg);
+
+-/*
+- *  ======== sync_reset_event ========
+- *  Purpose:
+- *      Reset a syncronization event object state to non-signalled.
+- *  Parameters:
+- *      event_obj:         Handle to a sync event.
+- *  Returns:
+- *      DSP_SOK:        Success;
+- *      DSP_EFAIL:      Failed to reset event.
+- *      DSP_EHANDLE:    Invalid handle.
+- *  Requires:
+- *      SYNC initialized.
+- *  Ensures:
++/**
++ * sync_reset_event() - reset a sync_event element
++ * @event:     event to be reset.
++ *
++ * This function reset to the initial state to @event.
+  */
+-extern dsp_status sync_reset_event(IN struct sync_object *event_obj);
+
+-/*
+- *  ======== sync_set_event ========
+- *  Purpose:
+- *      Signal the event.  Will unblock one waiting thread.
+- *  Parameters:
+- *      event_obj:         Handle to an event object.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EFAIL:      Failed to signal event.
+- *      DSP_EHANDLE:    Invalid handle.
+- *  Requires:
+- *      SYNC initialized.
+- *  Ensures:
++static inline void sync_reset_event(struct sync_object *event)
++{
++       INIT_COMPLETION(event->comp);
++       event->multi_comp = NULL;
++}
++
++/**
++ * sync_set_event() - set or signal and specified event
++ * @event:     Event to be set..
++ *
++ * set the @event, if there is an thread waiting for the event
++ * it will be waken up, this function only wakes one thread.
+  */
+-extern dsp_status sync_set_event(IN struct sync_object *event_obj);
+
+-/*
+- *  ======== sync_wait_on_event ========
+- *  Purpose:
+- *      Wait for an event to be signalled, up to the specified timeout.
+- *  Parameters:
+- *      event_obj:         Handle to an event object.
+- *      dwTimeOut:      The time-out interval, in milliseconds.
+- *                      The function returns if the interval elapses, even if
+- *                      the object's state is nonsignaled.
+- *                      If zero, the function tests the object's state and
+- *                      returns immediately.
+- *                      If SYNC_INFINITE, the function's time-out interval
+- *                      never elapses.
+- *  Returns:
+- *      DSP_SOK:        The object was signalled.
+- *      DSP_EHANDLE:    Invalid handle.
+- *      SYNC_E_FAIL:    Wait failed, possibly because the process terminated.
+- *      SYNC_E_TIMEOUT: Timeout expired while waiting for event to be signalled.
+- *  Requires:
+- *  Ensures:
++void sync_set_event(struct sync_object *event);
++
++/**
++ * sync_wait_on_event() - waits for a event to be set.
++ * @event:     events to wait for it.
++ * @timeout    timeout on waiting for the evetn.
++ *
++ * This functios will wait until @event is set or until timeout. In case of
++ * success the function will return DSP_SOK and
++ * in case of timeout the function will return DSP_ETIMEOUT
+  */
+-extern dsp_status sync_wait_on_event(IN struct sync_object *event_obj,
+-                                    IN u32 dwTimeOut);
+
+-/*
+- *  ======== sync_wait_on_multiple_events ========
+- *  Purpose:
+- *      Wait for any of an array of events to be signalled, up to the
+- *      specified timeout.
+- *      Note: dwTimeOut must be SYNC_INFINITE to signal infinite wait.
+- *  Parameters:
+- *      sync_events:    Array of handles to event objects.
+- *      count:         Number of event handles.
+- *      dwTimeOut:      The time-out interval, in milliseconds.
+- *                      The function returns if the interval elapses, even if
+- *                      no event is signalled.
+- *                      If zero, the function tests the object's state and
+- *                      returns immediately.
+- *                      If SYNC_INFINITE, the function's time-out interval
+- *                      never elapses.
+- *      pu_index:        Location to store index of event that was signalled.
+- *  Returns:
+- *      DSP_SOK:        The object was signalled.
+- *      SYNC_E_FAIL:    Wait failed, possibly because the process terminated.
+- *      SYNC_E_TIMEOUT: Timeout expired before event was signalled.
+- *      DSP_EMEMORY:    Memory allocation failed.
+- *  Requires:
+- *  Ensures:
++static inline dsp_status sync_wait_on_event(struct sync_object *event,
++                                                       unsigned timeout)
++{
++       return wait_for_completion_timeout(&event->comp,
++               msecs_to_jiffies(timeout)) ? DSP_SOK : DSP_ETIMEOUT;
++}
++
++/**
++ * sync_wait_on_multiple_events() - waits for multiple events to be set.
++ * @events:    Array of events to wait for them.
++ * @count:     number of elements of the array.
++ * @timeout    timeout on waiting for the evetns.
++ * @pu_index   index of the event set.
++ *
++ * This functios will wait until any of the array element is set or until
++ * timeout. In case of success the function will return DSP_SOK and
++ * @pu_index will store the index of the array element set and in case
++ * of timeout the function will return DSP_ETIMEOUT.
+  */
+-extern dsp_status sync_wait_on_multiple_events(IN struct sync_object
+-                                              **sync_events,
+-                                              IN u32 count,
+-                                              IN u32 dwTimeout,
+-                                              OUT u32 *pu_index);
++
++dsp_status sync_wait_on_multiple_events(struct sync_object **events,
++                                    unsigned count, unsigned timeout,
++                                    unsigned *index);
+
+ #endif /* _SYNC_H */
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 4afd73b..fef9d9c 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -515,7 +515,13 @@ func_cont:
+        if (DSP_SUCCEEDED(status) && (node_type != NODE_DEVICE)) {
+                /* Create an event that will be posted when RMS_EXIT is
+                 * received. */
+-               status = sync_open_event(&pnode->sync_done, NULL);
++               pnode->sync_done = kzalloc(sizeof(struct sync_object),
++                                                               GFP_KERNEL);
++               if (pnode->sync_done)
++                       sync_init_event(pnode->sync_done);
++               else
++                       status = DSP_EMEMORY;
++
+                if (DSP_SUCCEEDED(status)) {
+                        /*Get the shared mem mgr for this nodes dev object */
+                        status = cmm_get_handle(hprocessor, &hcmm_mgr);
+@@ -2533,8 +2539,8 @@ static void delete_node(struct node_object *hnode,
+                                                            msg_queue_obj);
+                        hnode->msg_queue_obj = NULL;
+                }
+-               if (hnode->sync_done)
+-                       (void)sync_close_event(hnode->sync_done);
++
++               kfree(hnode->sync_done);
+
+                /* Free all stream info */
+                if (hnode->inputs) {
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index 74d5988..699f2dc 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -789,8 +789,8 @@ dsp_status strm_select(IN struct strm_object **strm_tab, u32 nStrms,
+        if (DSP_SUCCEEDED(status) && utimeout > 0 && *pmask == 0) {
+                /* Non-zero timeout */
+                sync_events = (struct sync_object **)mem_alloc(nStrms *
+-                                               sizeof(struct sync_object *),
+-                                               MEM_PAGED);
++                             sizeof(struct sync_object *), MEM_PAGED);
++
+                if (sync_events == NULL) {
+                        status = DSP_EMEMORY;
+                } else {
 diff --git a/drivers/dsp/bridge/services/ntfy.c b/drivers/dsp/bridge/services/ntfy.c
-index 6eb222f..de7ee0c 100644
+index de7ee0c..b7da988 100644
 --- a/drivers/dsp/bridge/services/ntfy.c
 +++ b/drivers/dsp/bridge/services/ntfy.c
-@@ -44,7 +44,7 @@
- struct ntfy_object {
- 	u32 dw_signature;	/* For object validation */
- 	struct lst_list *notify_list;	/* List of notifier objects */
--	struct sync_csobject *sync_obj;	/* For critical sections */
-+	spinlock_t ntfy_lock;	/* For critical sections */
- };
- 
- /*
-@@ -84,20 +84,18 @@ dsp_status ntfy_create(struct ntfy_object **phNtfy)
- 	MEM_ALLOC_OBJECT(notify_obj, struct ntfy_object, NTFY_SIGNATURE);
- 
- 	if (notify_obj) {
-+		spin_lock_init(&notify_obj->ntfy_lock);
- 
--		status = sync_initialize_dpccs(&notify_obj->sync_obj);
--		if (DSP_SUCCEEDED(status)) {
--			notify_obj->notify_list =
--			    mem_calloc(sizeof(struct lst_list), MEM_NONPAGED);
--			if (notify_obj->notify_list == NULL) {
--				(void)sync_delete_cs(notify_obj->sync_obj);
--				MEM_FREE_OBJECT(notify_obj);
--				status = DSP_EMEMORY;
--			} else {
--				INIT_LIST_HEAD(&notify_obj->notify_list->head);
--				*phNtfy = notify_obj;
--			}
-+		notify_obj->notify_list = mem_calloc(sizeof(struct lst_list),
-+							MEM_NONPAGED);
-+		if (!notify_obj->notify_list) {
-+			MEM_FREE_OBJECT(notify_obj);
-+			status = DSP_EMEMORY;
-+		} else {
-+			INIT_LIST_HEAD(&notify_obj->notify_list->head);
-+			*phNtfy = notify_obj;
- 		}
+@@ -201,7 +201,6 @@ dsp_status ntfy_register(struct ntfy_object *ntfy_obj,
+                         u32 event_mask, u32 notify_type)
+ {
+        struct notifier *notifier_obj;
+-       struct sync_attrs sync_attrs_obj;
+        dsp_status status = DSP_SOK;
+
+        DBC_REQUIRE(MEM_IS_VALID_HANDLE(ntfy_obj, NTFY_SIGNATURE));
+@@ -251,9 +250,14 @@ dsp_status ntfy_register(struct ntfy_object *ntfy_obj,
+                        lst_init_elem((struct list_head *)notifier_obj);
+                        /* If there is more than one notification type, each
+                         * type may require its own handler code. */
+-                       status =
+-                           sync_open_event(&notifier_obj->sync_obj,
+-                                           &sync_attrs_obj);
++                       notifier_obj->sync_obj = kzalloc(
++                                       sizeof(struct sync_object), GFP_KERNEL);
 +
- 	} else {
- 		status = DSP_EMEMORY;
- 	}
-@@ -129,8 +127,6 @@ void ntfy_delete(struct ntfy_object *ntfy_obj)
- 		DBC_ASSERT(LST_IS_EMPTY(ntfy_obj->notify_list));
- 		kfree(ntfy_obj->notify_list);
- 	}
--	if (ntfy_obj->sync_obj)
--		(void)sync_delete_cs(ntfy_obj->sync_obj);
- 
- 	MEM_FREE_OBJECT(ntfy_obj);
- }
-@@ -173,7 +169,7 @@ void ntfy_notify(struct ntfy_object *ntfy_obj, u32 event_mask)
- 	 *  event_mask events.
- 	 */
- 
--	(void)sync_enter_cs(ntfy_obj->sync_obj);
-+	spin_lock_bh(&ntfy_obj->ntfy_lock);
- 
- 	notifier_obj = (struct notifier *)lst_first(ntfy_obj->notify_list);
- 	while (notifier_obj != NULL) {
-@@ -189,7 +185,7 @@ void ntfy_notify(struct ntfy_object *ntfy_obj, u32 event_mask)
- 						notifier_obj);
- 	}
- 
--	(void)sync_leave_cs(ntfy_obj->sync_obj);
-+	spin_unlock_bh(&ntfy_obj->ntfy_lock);
- }
- 
++                       if (notifier_obj->sync_obj)
++                               sync_init_event(notifier_obj->sync_obj);
++                       else
++                               status = DSP_EMEMORY;
++
+                        hnotification->handle = notifier_obj->sync_obj;
+
+                        if (DSP_SUCCEEDED(status)) {
+@@ -288,9 +292,7 @@ dsp_status ntfy_register(struct ntfy_object *ntfy_obj,
+  */
+ static void delete_notify(struct notifier *notifier_obj)
+ {
+-       if (notifier_obj->sync_obj)
+-               (void)sync_close_event(notifier_obj->sync_obj);
+-
++       kfree(notifier_obj->sync_obj);
+        kfree(notifier_obj->pstr_name);
+
+        kfree(notifier_obj);
+diff --git a/drivers/dsp/bridge/services/sync.c b/drivers/dsp/bridge/services/sync.c
+index b11d644..66bd12d 100644
+--- a/drivers/dsp/bridge/services/sync.c
++++ b/drivers/dsp/bridge/services/sync.c
+@@ -33,6 +33,8 @@
+ /*  ----------------------------------- This */
+ #include <dspbridge/sync.h>
+
++DEFINE_SPINLOCK(sync_lock);
++
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ #define SIGNATURE       0x434e5953     /* "SYNC" (in reverse) */
+
+@@ -52,14 +54,6 @@ struct wait_object {
+        struct semaphore sem;
+ };
+
+-/* Generic SYNC object: */
+-struct sync_object {
+-       u32 dw_signature;       /* Used for object validation. */
+-       enum sync_state state;
+-       spinlock_t sync_lock;
+-       struct wait_object *wait_obj;
+-};
+-
+ struct sync_dpccsobject {
+        u32 dw_signature;       /* used for object validation */
+        spinlock_t sync_dpccs_lock;
+@@ -76,31 +70,6 @@ static int test_and_set(volatile void *ptr, int val)
+ static void timeout_callback(unsigned long hWaitObj);
+
  /*
-@@ -223,7 +219,7 @@ dsp_status ntfy_register(struct ntfy_object *ntfy_obj,
- 	if (DSP_FAILED(status))
- 		return status;
- 
--	(void)sync_enter_cs(ntfy_obj->sync_obj);
-+	spin_lock_bh(&ntfy_obj->ntfy_lock);
- 
- 	notifier_obj = (struct notifier *)lst_first(ntfy_obj->notify_list);
- 	while (notifier_obj != NULL) {
-@@ -281,7 +277,7 @@ dsp_status ntfy_register(struct ntfy_object *ntfy_obj,
- 			notifier_obj->event_mask = event_mask;
- 		}
- 	}
--	(void)sync_leave_cs(ntfy_obj->sync_obj);
-+	spin_unlock_bh(&ntfy_obj->ntfy_lock);
- 	return status;
+- *  ======== sync_close_event ========
+- *  Purpose:
+- *      Close an existing SYNC event object.
+- */
+-dsp_status sync_close_event(struct sync_object *event_obj)
+-{
+-       dsp_status status = DSP_SOK;
+-       struct sync_object *event = (struct sync_object *)event_obj;
+-
+-       DBC_REQUIRE(event != NULL && event->wait_obj == NULL);
+-
+-       if (MEM_IS_VALID_HANDLE(event_obj, SIGNATURE)) {
+-               if (event->wait_obj)
+-                       status = DSP_EFAIL;
+-
+-               MEM_FREE_OBJECT(event);
+-
+-       } else {
+-               status = DSP_EHANDLE;
+-       }
+-
+-       return status;
+-}
+-
+-/*
+  *  ======== sync_exit ========
+  *  Purpose:
+  *      Cleanup SYNC module.
+@@ -120,190 +89,84 @@ bool sync_init(void)
+        return true;
  }
- 
-diff --git a/drivers/dsp/bridge/wmd/_msg_sm.h b/drivers/dsp/bridge/wmd/_msg_sm.h
-index fb9a19d..bb28d4f 100644
---- a/drivers/dsp/bridge/wmd/_msg_sm.h
-+++ b/drivers/dsp/bridge/wmd/_msg_sm.h
-@@ -86,7 +86,7 @@ struct msg_mgr {
- 
- 	struct io_mgr *hio_mgr;	/* IO manager */
- 	struct lst_list *queue_list;	/* List of MSG_QUEUEs */
--	struct sync_csobject *sync_cs;	/* For critical sections */
-+	spinlock_t msg_mgr_lock;	/* For critical sections */
- 	/* Signalled when MsgFrame is available */
- 	struct sync_object *sync_event;
- 	struct lst_list *msg_free_list;	/* Free MsgFrames ready to be filled */
+
+-/*
+- *  ======== sync_open_event ========
+- *  Purpose:
+- *      Open a new synchronization event object.
++/**
++ * sync_set_event() - set or signal and specified event
++ * @event:     Event to be set..
++ *
++ * set the @event, if there is an thread waiting for the event
++ * it will be waken up, this function only wakes one thread.
+  */
+-dsp_status sync_open_event(OUT struct sync_object **ph_event,
+-                          IN OPTIONAL struct sync_attrs *pattrs)
+-{
+-       struct sync_object *event = NULL;
+-       dsp_status status = DSP_SOK;
+-
+-       DBC_REQUIRE(ph_event != NULL);
+-
+-       /* Allocate memory for sync object */
+-       MEM_ALLOC_OBJECT(event, struct sync_object, SIGNATURE);
+-       if (event != NULL) {
+-               event->state = SO_RESET;
+-               event->wait_obj = NULL;
+-               spin_lock_init(&event->sync_lock);
+-       } else {
+-               status = DSP_EMEMORY;
+-       }
+-
+-       *ph_event = event;
+
+-       return status;
+-}
+-
+-/*
+- *  ======== sync_reset_event ========
+- *  Purpose:
+- *      Reset an event to non-signalled.
+- */
+-dsp_status sync_reset_event(struct sync_object *event_obj)
++void sync_set_event(struct sync_object *event)
+ {
+-       dsp_status status = DSP_SOK;
+-       struct sync_object *event = (struct sync_object *)event_obj;
+-
+-       if (MEM_IS_VALID_HANDLE(event_obj, SIGNATURE))
+-               event->state = SO_RESET;
+-       else
+-               status = DSP_EHANDLE;
+-
+-       return status;
++       spin_lock_bh(&sync_lock);
++       complete(&event->comp);
++       if (event->multi_comp)
++               complete(event->multi_comp);
++       spin_unlock_bh(&sync_lock);
+ }
+
+-/*
+- *  ======== sync_set_event ========
+- *  Purpose:
+- *      Set an event to signaled and unblock one waiting thread.
++/**
++ * sync_wait_on_multiple_events() - waits for multiple events to be set.
++ * @events:    Array of events to wait for them.
++ * @count:     number of elements of the array.
++ * @timeout    timeout on waiting for the evetns.
++ * @pu_index   index of the event set.
+  *
+- *  This function is called from ISR, DPC and user context. Hence interrupts
+- *  are disabled to ensure atomicity.
++ * This functios will wait until any of the array element is set or until
++ * timeout. In case of success the function will return DSP_SOK and
++ * @pu_index will store the index of the array element set or in case
++ * of timeout the function will return DSP_ETIMEOUT or in case of
++ * interrupting by a signal it will return DSP_EFAIL.
+  */
+
+-dsp_status sync_set_event(struct sync_object *event_obj)
++dsp_status sync_wait_on_multiple_events(struct sync_object **events,
++                                    unsigned count, unsigned timeout,
++                                    unsigned *index)
+ {
+-       dsp_status status = DSP_SOK;
+-       struct sync_object *event = (struct sync_object *)event_obj;
+-       unsigned long flags;
+-
+-       if (MEM_IS_VALID_HANDLE(event_obj, SIGNATURE)) {
+-               spin_lock_irqsave(&event_obj->sync_lock, flags);
+-
+-               if (event->wait_obj != NULL &&
+-                   test_and_set(&event->wait_obj->state,
+-                                WO_SIGNALLED) == WO_WAITING) {
+-                       event->state = SO_RESET;
+-                       event->wait_obj->signalling_event = event;
+-                       up(&event->wait_obj->sem);
+-               } else {
+-                       event->state = SO_SIGNALLED;
++       unsigned i;
++       dsp_status status = DSP_EFAIL;
++       struct completion *m_comp;
++
++       m_comp = kmalloc(sizeof(struct completion), GFP_KERNEL);
++       if (!m_comp) {
++               status = DSP_EMEMORY;
++               goto func_end;
++       }
++       init_completion(m_comp);
++
++       spin_lock_bh(&sync_lock);
++       for (i = 0; i < count; i++) {
++               if (completion_done(&events[i]->comp)) {
++                       INIT_COMPLETION(events[i]->comp);
++                       *index = i;
++                       spin_unlock_bh(&sync_lock);
++                       status = DSP_SOK;
++                       goto func_end;
+                }
+-               spin_unlock_irqrestore(&event_obj->sync_lock, flags);
+-       } else {
+-               status = DSP_EHANDLE;
+        }
+-       return status;
+-}
+-
+-/*
+- *  ======== sync_wait_on_event ========
+- *  Purpose:
+- *      Wait for an event to be signalled, up to the specified timeout.
+- *      Note: dwTimeOut must be 0xffffffff to signal infinite wait.
+- */
+-dsp_status sync_wait_on_event(struct sync_object *event_obj, u32 dwTimeout)
+-{
+-       dsp_status status = DSP_SOK;
+-       struct sync_object *event = (struct sync_object *)event_obj;
+-       u32 temp;
+
+-       if (MEM_IS_VALID_HANDLE(event_obj, SIGNATURE))
+-               status = sync_wait_on_multiple_events(&event, 1, dwTimeout,
+-                                                     &temp);
+-       else
+-               status = DSP_EHANDLE;
+-
+-       return status;
+-}
+-
+-/*
+- *  ======== sync_wait_on_multiple_events ========
+- *  Purpose:
+- *      Wait for any of an array of events to be signalled, up to the
+- *      specified timeout.
+- */
+-dsp_status sync_wait_on_multiple_events(struct sync_object **sync_events,
+-                                       u32 count, u32 dwTimeout,
+-                                       OUT u32 *pu_index)
+-{
+-       u32 i;
+-       dsp_status status = DSP_SOK;
+-       u32 curr;
+-       struct wait_object *wp;
++       for (i = 0; i < count; i++)
++               events[i]->multi_comp = m_comp;
+
+-       DBC_REQUIRE(count > 0);
+-       DBC_REQUIRE(sync_events != NULL);
+-       DBC_REQUIRE(pu_index != NULL);
++       spin_unlock_bh(&sync_lock);
+
+-       for (i = 0; i < count; i++)
+-               DBC_REQUIRE(MEM_IS_VALID_HANDLE(sync_events[i], SIGNATURE));
+-
+-       wp = mem_calloc(sizeof(struct wait_object), MEM_NONPAGED);
+-       if (wp == NULL)
+-               return DSP_EMEMORY;
+-
+-       wp->state = WO_WAITING;
+-       wp->signalling_event = NULL;
+-       init_MUTEX_LOCKED(&(wp->sem));
+-
+-       for (curr = 0; curr < count; curr++) {
+-               sync_events[curr]->wait_obj = wp;
+-               if (sync_events[curr]->state == SO_SIGNALLED) {
+-                       if (test_and_set(&(wp->state), WO_SIGNALLED) ==
+-                           WO_WAITING) {
+-                               sync_events[curr]->state = SO_RESET;
+-                               wp->signalling_event = sync_events[curr];
+-                       }
+-                       curr++; /* Will try optimizing later */
+-                       break;
+-               }
+-       }
++       if (!wait_for_completion_interruptible_timeout(m_comp,
++                                       msecs_to_jiffies(timeout)))
++               status = DSP_ETIMEOUT;
+
+-       curr--;                 /* Will try optimizing later */
+-       if (wp->state != WO_SIGNALLED && dwTimeout > 0) {
+-               struct timer_list timeout;
+-               if (dwTimeout != SYNC_INFINITE) {
+-                       init_timer_on_stack(&timeout);
+-                       timeout.function = timeout_callback;
+-                       timeout.data = (unsigned long)wp;
+-                       timeout.expires = jiffies + dwTimeout * HZ / 1000;
+-                       add_timer(&timeout);
+-               }
+-               if (down_interruptible(&(wp->sem))) {
+-                       /*
+-                        * Most probably we are interrupted by a fake signal
+-                        * from freezer. Return -ERESTARTSYS so that this
+-                        * ioctl is restarted, and user space doesn't notice
+-                        * it.
+-                        */
+-                       status = -ERESTARTSYS;
+-               }
+-               if (dwTimeout != SYNC_INFINITE) {
+-                       if (in_interrupt()) {
+-                               del_timer(&timeout);
+-                       } else {
+-                               del_timer_sync(&timeout);
+-                       }
++       spin_lock_bh(&sync_lock);
++       for (i = 0; i < count; i++) {
++               if (completion_done(&events[i]->comp)) {
++                       INIT_COMPLETION(events[i]->comp);
++                       *index = i;
++                       status = DSP_SOK;
+                }
++               events[i]->multi_comp = NULL;
+        }
+-       for (i = 0; i <= curr; i++) {
+-               if (MEM_IS_VALID_HANDLE(sync_events[i], SIGNATURE)) {
+-                       /*  Memory corruption here if sync_events[i] is
+-                        *  freed before following statememt. */
+-                       sync_events[i]->wait_obj = NULL;
+-               }
+-               if (sync_events[i] == wp->signalling_event)
+-                       *pu_index = i;
+-
+-       }
+-       if (wp->signalling_event == NULL && DSP_SUCCEEDED(status))
+-               status = DSP_ETIMEOUT;
+-       kfree(wp);
++       spin_unlock_bh(&sync_lock);
++       kfree(m_comp);
++func_end:
+        return status;
+ }
+
 diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index 0c14bc2..e0a363c 100644
+index e0a363c..0f9ce17 100644
 --- a/drivers/dsp/bridge/wmd/chnl_sm.c
 +++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -169,7 +169,7 @@ func_cont:
- 	 * If DPC is scheduled in process context (iosm_schedule) and any
- 	 * non-mailbox interrupt occurs, that DPC will run and break CS. Hence
- 	 * we disable ALL DPCs. We will try to disable ONLY IO DPC later. */
--	sync_enter_cs(chnl_mgr_obj->hcs_obj);
-+	spin_lock_bh(&chnl_mgr_obj->chnl_mgr_lock);
- 	omap_mbox_disable_irq(dev_ctxt->mbox, IRQ_RX);
- 	if (pchnl->chnl_type == CHNL_PCPY) {
- 		/* This is a processor-copy channel. */
-@@ -231,7 +231,7 @@ func_cont:
- 
- 	}
- 	omap_mbox_enable_irq(dev_ctxt->mbox, IRQ_RX);
--	sync_leave_cs(chnl_mgr_obj->hcs_obj);
-+	spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
- 	if (mb_val != 0)
- 		io_intr_dsp2(chnl_mgr_obj->hio_mgr, mb_val);
- 
-@@ -274,7 +274,7 @@ dsp_status bridge_chnl_cancel_io(struct chnl_object *chnl_obj)
- 
- 	/*  Mark this channel as cancelled, to prevent further IORequests or
- 	 *  IORequests or dispatching. */
--	sync_enter_cs(chnl_mgr_obj->hcs_obj);
-+	spin_lock_bh(&chnl_mgr_obj->chnl_mgr_lock);
- 	pchnl->dw_state |= CHNL_STATECANCEL;
- 	if (LST_IS_EMPTY(pchnl->pio_requests))
- 		goto func_cont;
-@@ -304,7 +304,7 @@ dsp_status bridge_chnl_cancel_io(struct chnl_object *chnl_obj)
- 		}
- 	}
- func_cont:
--	sync_leave_cs(chnl_mgr_obj->hcs_obj);
-+	spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
- func_end:
- 	return status;
- }
-@@ -342,7 +342,9 @@ func_cont:
- 		pchnl->dw_signature = 0x0000;
- 		/* Free the slot in the channel manager: */
- 		pchnl->chnl_mgr_obj->ap_channel[pchnl->chnl_id] = NULL;
-+		spin_lock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
- 		pchnl->chnl_mgr_obj->open_channels -= 1;
-+		spin_unlock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
- 		if (pchnl->ntfy_obj) {
- 			ntfy_delete(pchnl->ntfy_obj);
- 			pchnl->ntfy_obj = NULL;
-@@ -424,9 +426,7 @@ dsp_status bridge_chnl_create(OUT struct chnl_mgr **phChnlMgr,
- 			chnl_mgr_obj->dw_last_output = 0;
- 			chnl_mgr_obj->hdev_obj = hdev_obj;
- 			if (DSP_SUCCEEDED(status))
--				status =
--				    sync_initialize_dpccs
--				    (&chnl_mgr_obj->hcs_obj);
-+				spin_lock_init(&chnl_mgr_obj->chnl_mgr_lock);
- 		} else {
- 			status = DSP_EMEMORY;
- 		}
-@@ -466,9 +466,6 @@ dsp_status bridge_chnl_destroy(struct chnl_mgr *hchnl_mgr)
- 				dev_dbg(bridge, "%s: Error status 0x%x\n",
- 					__func__, status);
- 		}
--		/* release critical section */
--		if (chnl_mgr_obj->hcs_obj)
--			sync_delete_cs(chnl_mgr_obj->hcs_obj);
- 
- 		/* Free channel manager object: */
- 		kfree(chnl_mgr_obj->ap_channel);
-@@ -631,7 +628,7 @@ dsp_status bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 dwTimeOut,
- 		}
- 	}
- 	/* See comment in AddIOReq */
--	sync_enter_cs(pchnl->chnl_mgr_obj->hcs_obj);
-+	spin_lock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
- 	omap_mbox_disable_irq(dev_ctxt->mbox, IRQ_RX);
- 	if (dequeue_ioc) {
- 		/* Dequeue IOC and set pIOC; */
-@@ -684,7 +681,7 @@ dsp_status bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 dwTimeOut,
- 		sync_reset_event(pchnl->sync_event);
- 	}
- 	omap_mbox_enable_irq(dev_ctxt->mbox, IRQ_RX);
--	sync_leave_cs(pchnl->chnl_mgr_obj->hcs_obj);
-+	spin_unlock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
- 	if (dequeue_ioc
- 	    && (pchnl->chnl_type == CHNL_PCPY && pchnl->chnl_id > 1)) {
- 		if (!(ioc.pbuf < (void *)USERMODE_ADDR))
-@@ -889,9 +886,9 @@ dsp_status bridge_chnl_open(OUT struct chnl_object **phChnl,
- 	} else {
- 		/* Insert channel object in channel manager: */
- 		chnl_mgr_obj->ap_channel[pchnl->chnl_id] = pchnl;
--		sync_enter_cs(chnl_mgr_obj->hcs_obj);
-+		spin_lock_bh(&chnl_mgr_obj->chnl_mgr_lock);
- 		chnl_mgr_obj->open_channels++;
--		sync_leave_cs(chnl_mgr_obj->hcs_obj);
-+		spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
- 		/* Return result... */
- 		pchnl->dw_signature = CHNL_SIGNATURE;
- 		pchnl->dw_state = CHNL_STATEREADY;
+@@ -353,7 +353,7 @@ func_cont:
+                 * context.). */
+                if (pchnl->sync_event) {
+                        sync_reset_event(pchnl->sync_event);
+-                       sync_close_event(pchnl->sync_event);
++                       kfree(pchnl->sync_event);
+                        pchnl->sync_event = NULL;
+                }
+                /* Free I/O request and I/O completion queues: */
+@@ -789,7 +789,6 @@ dsp_status bridge_chnl_open(OUT struct chnl_object **phChnl,
+        dsp_status status = DSP_SOK;
+        struct chnl_mgr *chnl_mgr_obj = hchnl_mgr;
+        struct chnl_object *pchnl = NULL;
+-       struct sync_attrs *sync_attr_obj = NULL;
+        struct sync_object *sync_event = NULL;
+        /* Ensure DBC requirements: */
+        DBC_REQUIRE(phChnl != NULL);
+@@ -835,7 +834,12 @@ dsp_status bridge_chnl_open(OUT struct chnl_object **phChnl,
+        pchnl->chnl_packets = pattrs->uio_reqs;
+        pchnl->cio_cs = 0;
+        pchnl->cio_reqs = 0;
+-       status = sync_open_event(&sync_event, sync_attr_obj);
++       sync_event = kzalloc(sizeof(struct sync_object), GFP_KERNEL);
++       if (sync_event)
++               sync_init_event(sync_event);
++       else
++               status = DSP_EMEMORY;
++
+        if (DSP_SUCCEEDED(status))
+                status = ntfy_create(&pchnl->ntfy_obj);
+
+@@ -874,10 +878,9 @@ dsp_status bridge_chnl_open(OUT struct chnl_object **phChnl,
+                        free_chirp_list(pchnl->free_packets_list);
+                        pchnl->free_packets_list = NULL;
+                }
+-               if (sync_event) {
+-                       sync_close_event(sync_event);
+-                       sync_event = NULL;
+-               }
++               kfree(sync_event);
++               sync_event = NULL;
++
+                if (pchnl->ntfy_obj) {
+                        ntfy_delete(pchnl->ntfy_obj);
+                        pchnl->ntfy_obj = NULL;
 diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-index 4b65b8b..73f4e6b 100644
+index 73f4e6b..869cd2c 100644
 --- a/drivers/dsp/bridge/wmd/msg_sm.c
 +++ b/drivers/dsp/bridge/wmd/msg_sm.c
-@@ -95,14 +95,12 @@ dsp_status bridge_msg_create(OUT struct msg_mgr **phMsgMgr,
- 			INIT_LIST_HEAD(&msg_mgr_obj->queue_list->head);
- 			INIT_LIST_HEAD(&msg_mgr_obj->msg_free_list->head);
- 			INIT_LIST_HEAD(&msg_mgr_obj->msg_used_list->head);
--			status = sync_initialize_dpccs(&msg_mgr_obj->sync_cs);
-+			spin_lock_init(&msg_mgr_obj->msg_mgr_lock);
- 		}
- 
- 		/*  Create an event to be used by bridge_msg_put() in waiting
- 		 *  for an available free frame from the message manager. */
--		if (DSP_SUCCEEDED(status))
--			status =
--			    sync_open_event(&msg_mgr_obj->sync_event, NULL);
-+		status = sync_open_event(&msg_mgr_obj->sync_event, NULL);
- 
- 		if (DSP_SUCCEEDED(status))
- 			*phMsgMgr = msg_mgr_obj;
-@@ -182,7 +180,7 @@ dsp_status bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Enter critical section */
--		(void)sync_enter_cs(hmsg_mgr->sync_cs);
-+		spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
- 		/* Initialize message frames and put in appropriate queues */
- 		for (i = 0; i < max_msgs && DSP_SUCCEEDED(status); i++) {
- 			status = add_new_msg(hmsg_mgr->msg_free_list);
-@@ -205,7 +203,7 @@ dsp_status bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
- 
- 		}
- 		/* Exit critical section */
--		(void)sync_leave_cs(hmsg_mgr->sync_cs);
-+		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
- 	} else {
- 		delete_msg_queue(msg_q, 0);
- 	}
-@@ -248,7 +246,7 @@ void bridge_msg_delete_queue(struct msg_queue *msg_queue_obj)
- 		io_msg_pend = msg_queue_obj->io_msg_pend;
- 	}
- 	/* Remove message queue from hmsg_mgr->queue_list */
--	(void)sync_enter_cs(hmsg_mgr->sync_cs);
-+	spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
- 	lst_remove_elem(hmsg_mgr->queue_list,
- 			(struct list_head *)msg_queue_obj);
- 	/* Free the message queue object */
-@@ -258,7 +256,7 @@ void bridge_msg_delete_queue(struct msg_queue *msg_queue_obj)
- 	if (LST_IS_EMPTY(hmsg_mgr->msg_free_list))
- 		sync_reset_event(hmsg_mgr->sync_event);
- func_cont:
--	(void)sync_leave_cs(hmsg_mgr->sync_cs);
-+	spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
+@@ -100,7 +100,12 @@ dsp_status bridge_msg_create(OUT struct msg_mgr **phMsgMgr,
+
+                /*  Create an event to be used by bridge_msg_put() in waiting
+                 *  for an available free frame from the message manager. */
+-               status = sync_open_event(&msg_mgr_obj->sync_event, NULL);
++               msg_mgr_obj->sync_event =
++                               kzalloc(sizeof(struct sync_object), GFP_KERNEL);
++               if (!msg_mgr_obj->sync_event)
++                       status = DSP_EMEMORY;
++               else
++                       sync_init_event(msg_mgr_obj->sync_event);
+
+                if (DSP_SUCCEEDED(status))
+                        *phMsgMgr = msg_mgr_obj;
+@@ -160,8 +165,14 @@ dsp_status bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
+
+        /*  Create event that will be signalled when a message from
+         *  the DSP is available. */
+-       if (DSP_SUCCEEDED(status))
+-               status = sync_open_event(&msg_q->sync_event, NULL);
++       if (DSP_SUCCEEDED(status)) {
++               msg_q->sync_event = kzalloc(sizeof(struct sync_object),
++                                                       GFP_KERNEL);
++               if (msg_q->sync_event)
++                       sync_init_event(msg_q->sync_event);
++               else
++                       status = DSP_EMEMORY;
++       }
+
+        /* Create a notification list for message ready notification. */
+        if (DSP_SUCCEEDED(status))
+@@ -172,11 +183,23 @@ dsp_status bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
+         *  unblock threads in MSG_Put() or MSG_Get(). sync_done_ack
+         *  will be set by the unblocked thread to signal that it
+         *  is unblocked and will no longer reference the object. */
+-       if (DSP_SUCCEEDED(status))
+-               status = sync_open_event(&msg_q->sync_done, NULL);
++       if (DSP_SUCCEEDED(status)) {
++               msg_q->sync_done = kzalloc(sizeof(struct sync_object),
++                                                       GFP_KERNEL);
++               if (msg_q->sync_event)
++                       sync_init_event(msg_q->sync_event);
++               else
++                       status = DSP_EMEMORY;
++       }
+
+-       if (DSP_SUCCEEDED(status))
+-               status = sync_open_event(&msg_q->sync_done_ack, NULL);
++       if (DSP_SUCCEEDED(status)) {
++               msg_q->sync_done_ack = kzalloc(sizeof(struct sync_object),
++                                                       GFP_KERNEL);
++               if (msg_q->sync_event)
++                       sync_init_event(msg_q->sync_done_ack);
++               else
++                       status = DSP_EMEMORY;
++       }
+
+        if (DSP_SUCCEEDED(status)) {
+                /* Enter critical section */
+@@ -573,8 +596,7 @@ static void delete_msg_mgr(struct msg_mgr *hmsg_mgr)
+                hmsg_mgr->msg_used_list = NULL;
+        }
+
+-       if (hmsg_mgr->sync_event)
+-               sync_close_event(hmsg_mgr->sync_event);
++       kfree(hmsg_mgr->sync_event);
+
+        MEM_FREE_OBJECT(hmsg_mgr);
  func_end:
- 	return;
- }
-@@ -290,7 +288,7 @@ dsp_status bridge_msg_get(struct msg_queue *msg_queue_obj,
- 	}
- 
- 	/* Enter critical section */
--	(void)sync_enter_cs(hmsg_mgr->sync_cs);
-+	spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
- 	/* If a message is already there, get it */
- 	if (!LST_IS_EMPTY(msg_queue_obj->msg_used_list)) {
- 		msg_frame_obj = (struct msg_frame *)
-@@ -312,7 +310,7 @@ dsp_status bridge_msg_get(struct msg_queue *msg_queue_obj,
- 
- 	}
- 	/* Exit critical section */
--	(void)sync_leave_cs(hmsg_mgr->sync_cs);
-+	spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
- 	if (DSP_SUCCEEDED(status) && !got_msg) {
- 		/*  Wait til message is available, timeout, or done. We don't
- 		 *  have to schedule the DPC, since the DSP will send messages
-@@ -322,11 +320,11 @@ dsp_status bridge_msg_get(struct msg_queue *msg_queue_obj,
- 		status = sync_wait_on_multiple_events(syncs, 2, utimeout,
- 						      &index);
- 		/* Enter critical section */
--		(void)sync_enter_cs(hmsg_mgr->sync_cs);
-+		spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
- 		if (msg_queue_obj->done) {
- 			msg_queue_obj->io_msg_pend--;
- 			/* Exit critical section */
--			(void)sync_leave_cs(hmsg_mgr->sync_cs);
-+			spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
- 			/*  Signal that we're not going to access msg_queue_obj
- 			 *  anymore, so it can be deleted. */
- 			(void)sync_set_event(msg_queue_obj->sync_done_ack);
-@@ -354,7 +352,7 @@ dsp_status bridge_msg_get(struct msg_queue *msg_queue_obj,
- 				sync_set_event(msg_queue_obj->sync_event);
- 
- 			/* Exit critical section */
--			(void)sync_leave_cs(hmsg_mgr->sync_cs);
-+			spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
- 		}
- 	}
- func_end:
-@@ -386,7 +384,7 @@ dsp_status bridge_msg_put(struct msg_queue *msg_queue_obj,
- 		goto func_end;
- 	}
- 
--	(void)sync_enter_cs(hmsg_mgr->sync_cs);
-+	spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
- 
- 	/* If a message frame is available, use it */
- 	if (!LST_IS_EMPTY(hmsg_mgr->msg_free_list)) {
-@@ -405,7 +403,7 @@ dsp_status bridge_msg_put(struct msg_queue *msg_queue_obj,
- 			sync_reset_event(hmsg_mgr->sync_event);
- 
- 		/* Release critical section before scheduling DPC */
--		(void)sync_leave_cs(hmsg_mgr->sync_cs);
-+		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
- 		/* Schedule a DPC, to do the actual data transfer: */
- 		iosm_schedule(hmsg_mgr->hio_mgr);
- 	} else {
-@@ -414,7 +412,7 @@ dsp_status bridge_msg_put(struct msg_queue *msg_queue_obj,
- 		else
- 			msg_queue_obj->io_msg_pend++;
- 
--		(void)sync_leave_cs(hmsg_mgr->sync_cs);
-+		spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
- 	}
- 	if (DSP_SUCCEEDED(status) && !put_msg) {
- 		/* Wait til a free message frame is available, timeout,
-@@ -426,11 +424,11 @@ dsp_status bridge_msg_put(struct msg_queue *msg_queue_obj,
- 		if (DSP_FAILED(status))
- 			goto func_end;
- 		/* Enter critical section */
--		(void)sync_enter_cs(hmsg_mgr->sync_cs);
-+		spin_lock_bh(&hmsg_mgr->msg_mgr_lock);
- 		if (msg_queue_obj->done) {
- 			msg_queue_obj->io_msg_pend--;
- 			/* Exit critical section */
--			(void)sync_leave_cs(hmsg_mgr->sync_cs);
-+			spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
- 			/*  Signal that we're not going to access msg_queue_obj
- 			 *  anymore, so it can be deleted. */
- 			(void)sync_set_event(msg_queue_obj->sync_done_ack);
-@@ -467,7 +465,7 @@ dsp_status bridge_msg_put(struct msg_queue *msg_queue_obj,
- 				sync_set_event(hmsg_mgr->sync_event);
- func_cont:
- 			/* Exit critical section */
--			(void)sync_leave_cs(hmsg_mgr->sync_cs);
-+			spin_unlock_bh(&hmsg_mgr->msg_mgr_lock);
- 		}
- 	}
- func_end:
-@@ -578,9 +576,6 @@ static void delete_msg_mgr(struct msg_mgr *hmsg_mgr)
- 	if (hmsg_mgr->sync_event)
- 		sync_close_event(hmsg_mgr->sync_event);
- 
--	if (hmsg_mgr->sync_cs)
--		sync_delete_cs(hmsg_mgr->sync_cs);
+@@ -622,14 +644,9 @@ static void delete_msg_queue(struct msg_queue *msg_queue_obj, u32 uNumToDSP)
+        if (msg_queue_obj->ntfy_obj)
+                ntfy_delete(msg_queue_obj->ntfy_obj);
+
+-       if (msg_queue_obj->sync_event)
+-               sync_close_event(msg_queue_obj->sync_event);
 -
- 	MEM_FREE_OBJECT(hmsg_mgr);
+-       if (msg_queue_obj->sync_done)
+-               sync_close_event(msg_queue_obj->sync_done);
+-
+-       if (msg_queue_obj->sync_done_ack)
+-               sync_close_event(msg_queue_obj->sync_done_ack);
++       kfree(msg_queue_obj->sync_event);
++       kfree(msg_queue_obj->sync_done);
++       kfree(msg_queue_obj->sync_done_ack);
+
+        MEM_FREE_OBJECT(msg_queue_obj);
  func_end:
- 	return;
--- 
+--
 1.6.0.4
 
