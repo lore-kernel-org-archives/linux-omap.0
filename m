@@ -1,39 +1,42 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCH 1/9] OMAP: Devkit8000: Fix typo in supplies
-Date: Wed, 24 Mar 2010 13:52:10 +0100
-Message-ID: <1269435138-27192-2-git-send-email-weber@corscience.de>
-References: <1269435138-27192-1-git-send-email-weber@corscience.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:51886 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755856Ab0CXMxB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 08:53:01 -0400
-In-Reply-To: <1269435138-27192-1-git-send-email-weber@corscience.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [patch-2.6.35 05/11] MUSB: OMAP: make musb_platform_suspend() 'static'
+Date: Wed, 24 Mar 2010 14:55:12 +0200
+Message-ID: <1269435318-29153-6-git-send-email-felipe.balbi@nokia.com>
+References: <1269435318-29153-1-git-send-email-felipe.balbi@nokia.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1269435318-29153-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Thomas Weber <weber@corscience.de>
 
-Replace wrong vdss_dsi with vdds_dsi.
+From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
+This function is only called inside omap2430.c...
+
+Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |    2 +-
+ drivers/usb/musb/omap2430.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 5bfc13b..fb0f2f8 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -303,7 +303,7 @@ static struct regulator_consumer_supply devkit8000_vpll2_supplies[] = {
- 	.dev		= &devkit8000_lcd_device.dev,
- 	},
- 	{
--	.supply		= "vdss_dsi",
-+	.supply		= "vdds_dsi",
- 	.dev		= &devkit8000_dss_device.dev,
- 	}
- };
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 218df2c..2633049 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -276,7 +276,7 @@ void musb_platform_restore_context(struct musb *musb,
+ }
+ #endif
+ 
+-int musb_platform_suspend(struct musb *musb)
++static int musb_platform_suspend(struct musb *musb)
+ {
+ 	u32 l;
+ 
 -- 
-1.6.4.4
+1.7.0.rc0.33.g7c3932
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
