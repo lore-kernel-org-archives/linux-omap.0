@@ -1,35 +1,31 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: vram.c broken in mainline
-Date: Wed, 24 Mar 2010 10:11:01 +0200
-Message-ID: <1269418261.3032.31.camel@tubuntu.research.nokia.com>
-References: <20100324080451.GF7534@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] musb: fix power field to hold all possible values
+Date: Wed, 24 Mar 2010 10:11:09 +0200
+Message-ID: <20100324081109.GB29419@nokia.com>
+References: <1266918404-17715-1-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:26507 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755020Ab0CXILQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 04:11:16 -0400
-In-Reply-To: <20100324080451.GF7534@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:32487 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754158Ab0CXIMw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 04:12:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1266918404-17715-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Tue, Feb 23, 2010 at 10:46:44AM +0100, ext Ajay Kumar Gupta wrote:
+>MUSB can supply upto 500mA such as, AM3517 and OMAP3EVM Rev >=E and thus
+>the 'power' field has to hold values above 255.
+>
+>
+>Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-On Wed, 2010-03-24 at 09:04 +0100, Balbi Felipe (Nokia-D/Helsinki)
-wrote:
-> Hi Tomi,
-> 
-> drivers/video/omap2/vram.c doesn't compile with 3430sdp in mainline. The 
-> patch below fixes it.
+applied, thanks
 
-Thanks, but I already have a patch for it in my tree =). I've been busy
-and away, so sending a pull request has been delayed. I'll send pull req
-today.
-
- Tomi
-
-
+-- 
+balbi
