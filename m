@@ -1,58 +1,47 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [patch-2.6.34-rc2+ 02/11] MUSB: fix DaVinci glue layer dependency
-Date: Wed, 24 Mar 2010 13:47:50 +0200
-Message-ID: <1269431279-22438-3-git-send-email-felipe.balbi@nokia.com>
-References: <1269431279-22438-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1269431279-22438-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [patch-2.6.34-rc2+ 00/11] musb patches
+Date: Wed, 24 Mar 2010 13:47:48 +0200
+Message-ID: <1269431279-22438-1-git-send-email-felipe.balbi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:45753 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755842Ab0CXLsr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 07:48:47 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Hi Greg,
 
-CONFIG_ARCH_DAVINCI now embraces both the "real" DaVinci and DA8xx/OMAP-L1x --
-on which the DaVinci glue layer won't work. Change the Makefile dependency to
-CONFIG_ARCH_DAVINCI_DMx which corresponds to "real" DaVinci.
+the following patches are the fixes I have for you for next
+-rc release.
 
-Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
----
- drivers/usb/musb/Kconfig  |    2 +-
- drivers/usb/musb/Makefile |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Ajay Kumar Gupta (2):
+  musb: fix power field to hold all possible values
+  musb: save and restore missing bus control register
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 5e3f3ee..cfd38ed 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -43,7 +43,7 @@ config USB_MUSB_SOC
- 	default y if (BF52x && !BF522 && !BF523)
- 
- comment "DaVinci 35x and 644x USB support"
--	depends on USB_MUSB_HDRC && ARCH_DAVINCI
-+	depends on USB_MUSB_HDRC && ARCH_DAVINCI_DMx
- 
- comment "OMAP 243x high speed USB support"
- 	depends on USB_MUSB_HDRC && ARCH_OMAP2430
-diff --git a/drivers/usb/musb/Makefile b/drivers/usb/musb/Makefile
-index a641a76..a1677f9 100644
---- a/drivers/usb/musb/Makefile
-+++ b/drivers/usb/musb/Makefile
-@@ -6,7 +6,7 @@ musb_hdrc-objs := musb_core.o
- 
- obj-$(CONFIG_USB_MUSB_HDRC)	+= musb_hdrc.o
- 
--ifeq ($(CONFIG_ARCH_DAVINCI),y)
-+ifeq ($(CONFIG_ARCH_DAVINCI_DMx),y)
- 	musb_hdrc-objs	+= davinci.o
- endif
- 
--- 
-1.7.0.rc0.33.g7c3932
+Dan Carpenter (1):
+  musb: potential use after free
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sergei Shtylyov (8):
+  MUSB: fix DaVinci glue layer dependency
+  MUSB: Blackfin: don't fake blackfin_interrupt() result
+  musb_core: don't touch 'musb->clock' in musb_free()
+  musb_core: don't prevent disabling clock on driver unload
+  MUSB: DaVinci: fix musb_platform_init() error cleanup path
+  MUSB: OMAP: don't call clk_put()
+  musb_core: don't call musb_platform_exit() twice
+  musb_core: fix musb_init_controller() error cleanup path
+
+ arch/arm/plat-omap/include/plat/usb.h |    2 +-
+ drivers/usb/musb/Kconfig              |    2 +-
+ drivers/usb/musb/Makefile             |    2 +-
+ drivers/usb/musb/blackfin.c           |    8 +---
+ drivers/usb/musb/davinci.c            |    2 +
+ drivers/usb/musb/musb_core.c          |   76 ++++++++++++++++++---------------
+ drivers/usb/musb/musb_core.h          |    2 +-
+ drivers/usb/musb/musb_host.c          |    1 +
+ drivers/usb/musb/omap2430.c           |    3 -
+ 9 files changed, 50 insertions(+), 48 deletions(-)
+
