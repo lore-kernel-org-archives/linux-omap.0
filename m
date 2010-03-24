@@ -1,66 +1,64 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [patch-2.6.34-rc2+ 10/11] musb_core: don't call musb_platform_exit()
- twice
-Date: Wed, 24 Mar 2010 15:26:09 +0300
-Message-ID: <4BAA04E1.8090204@ru.mvista.com>
-References: <1269431279-22438-1-git-send-email-felipe.balbi@nokia.com> <1269431279-22438-11-git-send-email-felipe.balbi@nokia.com> <4BAA0122.2060402@ru.mvista.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PM-WIP-OPP] [PATCH 1/1] OMAP3: PM: cpu-omap: Check governor
+ limits before applying mpu frequency
+Date: Wed, 24 Mar 2010 07:40:58 -0500
+Message-ID: <4BAA085A.6060100@ti.com>
+References: <1269428551-779-1-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:42206 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755866Ab0CXM0m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 08:26:42 -0400
-In-Reply-To: <4BAA0122.2060402@ru.mvista.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:42642 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755801Ab0CXMlL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Mar 2010 08:41:11 -0400
+In-Reply-To: <1269428551-779-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, Greg KH <greg@kroah.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-Hello, I wrote:
+Eduardo Valentin had written, on 03/24/2010 06:02 AM, the following:
+> From: Eduardo Valentin <eduardo.valentin@nokia.com>
+> 
+> This patch fix the sequence inside omap_target while setting
+> a frequency for OMAP3 devices.
+> 
+> Previously any frequency was set, even if out of range. Now
+> the range set by the governor is also checked for OMAP3.
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+Good catch. thanks.
 
->> From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
->>
->> musb_platform_exit() is called twice from musb_init_controller() iff 
->> controller
->> initialization fails. Move the call (and the DevCtl register writes 
->> surrounding
->> it) from musb_free() to musb_remove().
->>
->> Fix misplaced and now incorrect 'goto's in musb_init_controller().
->>
->> Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
->> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
->> ---
->>  drivers/usb/musb/musb_core.c |   17 +++++++----------
->>  1 files changed, 7 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
->> index 827b813..90ac17b 100644
->> --- a/drivers/usb/musb/musb_core.c
->> +++ b/drivers/usb/musb/musb_core.c
->>   
-> [...]
->> @@ -2054,6 +2046,8 @@ bad_config:
->>              musb_readb(musb->mregs, MUSB_DEVCTL));
->>  
->>      }
->> +    if (status < 0)
->> +        goto fail2;
->>  
->>      status = musb_init_debugfs(musb);
->>      if (status < 0)
->>   
->
->   Hm, I don't see this call in the current driver -- are you sure 
-> you've used the right tree?
+Acked-by: Nishanth Menon <nm@ti.com>
 
-  Right, this is atop of the follwing patch from Greg's 2.6.35-rc1 queue:
+> ---
+>  arch/arm/plat-omap/cpu-omap.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+> index a69b557..0674405 100644
+> --- a/arch/arm/plat-omap/cpu-omap.c
+> +++ b/arch/arm/plat-omap/cpu-omap.c
+> @@ -88,7 +88,7 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	struct cpufreq_freqs freqs;
+>  #endif
+>  #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> -	unsigned long freq = target_freq * 1000;
+> +	unsigned long freq;
+>  #endif
+>  	int ret = 0;
+>  
+> @@ -114,6 +114,7 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+>  	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+>  #elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> +	freq = target_freq * 1000;
+>  	if (opp_find_freq_ceil(OPP_MPU, &freq))
+>  		omap_pm_cpu_set_freq(freq);
+>  #endif
 
-http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/usb/usb-musb-add-debugfs-support.patch
 
-   So, the patch wouldn't apply in the Greg's usb.current series... :-/
-
-WBR, Sergei
-
+-- 
+Regards,
+Nishanth Menon
