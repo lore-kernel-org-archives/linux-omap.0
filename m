@@ -1,30 +1,42 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 00/14] omap DEBUG_LL and multiboot changes for 2.6.34
-Date: Wed, 24 Mar 2010 17:13:02 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032221AAC6@dbde02.ent.ti.com>
-References: <20100126200646.15382.52167.stgit@baageli.muru.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [patch-2.6.34-rc2+ 05/11] musb: potential use after free
+Date: Wed, 24 Mar 2010 13:47:53 +0200
+Message-ID: <1269431279-22438-6-git-send-email-felipe.balbi@nokia.com>
+References: <1269431279-22438-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57742 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755715Ab0CXLnP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Mar 2010 07:43:15 -0400
-In-Reply-To: <20100126200646.15382.52167.stgit@baageli.muru.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:53816 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755841Ab0CXLsk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 07:48:40 -0400
+In-Reply-To: <1269431279-22438-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Greg KH <greg@kroah.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Dan Carpenter <error27@gmail.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-VG9ueSBMaW5kZ3JlbiB3cm90ZToNCj4gVGhlc2UgcGF0Y2hlcyBjbGVhbiB1cCB0aGUgREVCVUdf
-TEwgY29kZSBmb3IgbWFjaC1vbWFwMSBhbmQgbWFjaC1vbWFwMg0KPiBhbmQgdGhlbiBtYWtlcyBt
-dWx0aWJvb3Qgd29yayBmb3IgbWFjaC1vbWFwMi4NCj4gDQo+IE5vdGUgdGhhdCB0aGVzZSBwYXRj
-aGVzIGN1cnJlbnRseSBhbGxvdyBvbmx5IG11bHRpYm9vdCBmb3IgMjQyMCArIDM2eHguDQo+IEFk
-ZGluZyAyNDMwIGFuZCBvbWFwNCBuZWVkcyBmdXJ0aGVyIHdvcmsuDQo+IA0KDQpUb255LA0KDQpQ
-dXJlbHkgb3V0IG9mIGN1cmlvc2l0eSAodHJpZ2dlcmVkIGJ5IHNvbWVvbmUgYXNraW5nIGFib3V0
-IDI0MzBTRFAgb24NCnRoZSBsaXN0KSwgZG8geW91IGtub3cgd2hhdCBpdCdsbCB0YWtlIHRvIGdl
-dCBtdXRsaS1ib290IHdvcmtpbmcgb24gMjQzMD8NCg0KSSdtIG5vdCBmYW1pbGlhciB3aXRoIHRo
-b3NlIGJvYXJkcyBvZiBjb3Vyc2UgLSBkb2VzIGFueW9uZSBzdGlsbCBoYXZlDQp0aGVtIGFyb3Vu
-ZD8NCg0KVGhhbmtzLA0KQW5hbmQNCg==
+From: Dan Carpenter <error27@gmail.com>
+
+We assign "urb->hcpriv = qh;" a few lines down.  I'm pretty sure we
+want it "urb->hcpriv" to be NULL not a freed value.
+
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/usb/musb/musb_host.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index dec896e..877d20b 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -2042,6 +2042,7 @@ static int musb_urb_enqueue(
+ 		 * odd, rare, error prone, but legal.
+ 		 */
+ 		kfree(qh);
++		qh = NULL;
+ 		ret = 0;
+ 	} else
+ 		ret = musb_schedule(musb, qh,
+-- 
+1.7.0.rc0.33.g7c3932
+
