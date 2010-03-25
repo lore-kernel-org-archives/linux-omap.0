@@ -1,25 +1,57 @@
-From: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH 1/2] omap i2c: make errata 1.153 workaround a separate function
-Date: Thu, 25 Mar 2010 11:52:35 +0200
-Message-ID: <1269510757-8119-1-git-send-email-virtuoso@slind.org>
-References: <20100316143025.GR2900@atomide.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100316143025.GR2900-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
-Cc: nm-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [patch-2.6.35 09/11] usb: musb: Makefile: remove unexistent config
+ option
+Date: Thu, 25 Mar 2010 12:53:52 +0300
+Message-ID: <4BAB32B0.9070101@mvista.com>
+References: <1269435318-29153-1-git-send-email-felipe.balbi@nokia.com> <1269435318-29153-10-git-send-email-felipe.balbi@nokia.com> <4BAA28D8.70705@ru.mvista.com> <20100325063812.GN29419@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100325063812.GN29419-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hello.
 
-> Can you please repost and I'll add those too into omap-testing
-> first? Or maybe point to the right patchwork.kernel.org link.
+Felipe Balbi wrote:
 
-Resending.
+>>> Remove the unexistent CONFIG_USB_INVENTRA_MUSB_HAS_AHB_ID
+>>> option from our Makefile.
+>>>
+>>> Problem reported by Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+>>>
+>>> Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+>>> ---
+>>>  drivers/usb/musb/Makefile |    4 ----
+>>>  1 files changed, 0 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/usb/musb/Makefile b/drivers/usb/musb/Makefile
+>>> index a1677f9..4266d79 100644
+>>> --- a/drivers/usb/musb/Makefile
+>>> +++ b/drivers/usb/musb/Makefile
+>>> @@ -74,10 +74,6 @@ endif
+>>>
+>>>  # FIXME remove all these extra "-DMUSB_* things, stick to CONFIG_*
+>>>
+>>> -ifeq ($(CONFIG_USB_INVENTRA_MUSB_HAS_AHB_ID),y)
+>>> -    EXTRA_CFLAGS += -DMUSB_AHB_ID
+>>> -endif
+>>> -
+>>>
+>>
+>>   You forgot to remove FIXME.
+>
+> there's still -DDEBUG there. Maybe it doesn't really matter.
 
-P.S. I think linux-i2c@ mailing list adds some vicious email headers that
-the email clients obey and don't include me in the to/cc in replies. I've
-only found Tony's reply in the archives because I suspected something wrong.
+   -DDEBUG does not match -DMUSB_* pattern.
 
-Regards,
+WBR, Sergei
+
+
 --
-Alex
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
