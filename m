@@ -1,58 +1,51 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [patch-2.6.34-rc2+ 02/11] MUSB: fix DaVinci glue layer dependency
-Date: Thu, 25 Mar 2010 13:14:24 +0200
-Message-ID: <1269515673-27980-3-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [patch-2.6.34-rc2+ 03/11] MUSB: Blackfin: don't fake blackfin_interrupt() result
+Date: Thu, 25 Mar 2010 13:14:25 +0200
+Message-ID: <1269515673-27980-4-git-send-email-felipe.balbi@nokia.com>
 References: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1269515673-27980-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:45802 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754331Ab0CYLPZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 07:15:25 -0400
+In-Reply-To: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, Sergei Shtylyov <sshtylyov@mvista.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-CONFIG_ARCH_DAVINCI now embraces both the "real" DaVinci and DA8xx/OMAP-L1x --
-on which the DaVinci glue layer won't work. Change the Makefile dependency to
-CONFIG_ARCH_DAVINCI_DMx which corresponds to "real" DaVinci.
+Commit a5073b52833e4df8e16c93dc4cbb7e0c558c74a2 (musb_gadget: fix unhandled
+endpoint 0 IRQs) misses this change to blackfin.c: stop faking successful
+result of blackfin_interrupt() and emitting a debug message on an unhandled
+interrupt.
 
-Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sergei Shtylyov <sshtylyov@mvista.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/usb/musb/Kconfig  |    2 +-
- drivers/usb/musb/Makefile |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/musb/blackfin.c |    8 +-------
+ 1 files changed, 1 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index b4c783c..07fe490 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -42,7 +42,7 @@ config USB_MUSB_SOC
- 	default y if (BF52x && !BF522 && !BF523)
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index bcee133..4688870 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -173,13 +173,7 @@ static irqreturn_t blackfin_interrupt(int irq, void *__hci)
  
- comment "DaVinci 35x and 644x USB support"
--	depends on USB_MUSB_HDRC && ARCH_DAVINCI
-+	depends on USB_MUSB_HDRC && ARCH_DAVINCI_DMx
+ 	spin_unlock_irqrestore(&musb->lock, flags);
  
- comment "OMAP 243x high speed USB support"
- 	depends on USB_MUSB_HDRC && ARCH_OMAP2430
-diff --git a/drivers/usb/musb/Makefile b/drivers/usb/musb/Makefile
-index 85710cc..3a485da 100644
---- a/drivers/usb/musb/Makefile
-+++ b/drivers/usb/musb/Makefile
-@@ -6,7 +6,7 @@ musb_hdrc-objs := musb_core.o
+-	/* REVISIT we sometimes get spurious IRQs on g_ep0
+-	 * not clear why... fall in BF54x too.
+-	 */
+-	if (retval != IRQ_HANDLED)
+-		DBG(5, "spurious?\n");
+-
+-	return IRQ_HANDLED;
++	return retval;
+ }
  
- obj-$(CONFIG_USB_MUSB_HDRC)	+= musb_hdrc.o
- 
--ifeq ($(CONFIG_ARCH_DAVINCI),y)
-+ifeq ($(CONFIG_ARCH_DAVINCI_DMx),y)
- 	musb_hdrc-objs	+= davinci.o
- endif
- 
+ static void musb_conn_timer_handler(unsigned long _musb)
 -- 
 1.7.0.rc0.33.g7c3932
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
