@@ -1,39 +1,54 @@
 From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [patch-2.6.34-rc2+ 01/11] musb: fix power field to hold all possible values
-Date: Thu, 25 Mar 2010 13:14:23 +0200
-Message-ID: <1269515673-27980-2-git-send-email-felipe.balbi@nokia.com>
+Subject: [patch-2.6.34-rc2+ 02/11] MUSB: fix DaVinci glue layer dependency
+Date: Thu, 25 Mar 2010 13:14:24 +0200
+Message-ID: <1269515673-27980-3-git-send-email-felipe.balbi@nokia.com>
 References: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1269515673-27980-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 
-MUSB can supply upto 500mA such as, AM3517 and OMAP3EVM Rev >=E and thus
-the 'power' field has to hold values above 255.
+CONFIG_ARCH_DAVINCI now embraces both the "real" DaVinci and DA8xx/OMAP-L1x --
+on which the DaVinci glue layer won't work. Change the Makefile dependency to
+CONFIG_ARCH_DAVINCI_DMx which corresponds to "real" DaVinci.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 ---
- arch/arm/plat-omap/include/plat/usb.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/usb/musb/Kconfig  |    2 +-
+ drivers/usb/musb/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 568578d..876ca8d 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -46,7 +46,7 @@ struct ehci_hcd_omap_platform_data {
- struct omap_musb_board_data {
- 	u8	interface_type;
- 	u8	mode;
--	u8	power;
-+	u16	power;
- };
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index b4c783c..07fe490 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -42,7 +42,7 @@ config USB_MUSB_SOC
+ 	default y if (BF52x && !BF522 && !BF523)
  
- enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
+ comment "DaVinci 35x and 644x USB support"
+-	depends on USB_MUSB_HDRC && ARCH_DAVINCI
++	depends on USB_MUSB_HDRC && ARCH_DAVINCI_DMx
+ 
+ comment "OMAP 243x high speed USB support"
+ 	depends on USB_MUSB_HDRC && ARCH_OMAP2430
+diff --git a/drivers/usb/musb/Makefile b/drivers/usb/musb/Makefile
+index 85710cc..3a485da 100644
+--- a/drivers/usb/musb/Makefile
++++ b/drivers/usb/musb/Makefile
+@@ -6,7 +6,7 @@ musb_hdrc-objs := musb_core.o
+ 
+ obj-$(CONFIG_USB_MUSB_HDRC)	+= musb_hdrc.o
+ 
+-ifeq ($(CONFIG_ARCH_DAVINCI),y)
++ifeq ($(CONFIG_ARCH_DAVINCI_DMx),y)
+ 	musb_hdrc-objs	+= davinci.o
+ endif
+ 
 -- 
 1.7.0.rc0.33.g7c3932
 
