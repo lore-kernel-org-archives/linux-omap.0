@@ -1,46 +1,42 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [patch-2.6.34-rc2+ 07/11] musb_core: don't prevent disabling clock on driver unload
-Date: Thu, 25 Mar 2010 13:14:29 +0200
-Message-ID: <1269515673-27980-8-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [patch-2.6.34-rc2+ 05/11] musb: potential use after free
+Date: Thu, 25 Mar 2010 13:14:27 +0200
+Message-ID: <1269515673-27980-6-git-send-email-felipe.balbi@nokia.com>
 References: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1269515673-27980-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:45888 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754443Ab0CYLPm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 07:15:42 -0400
+In-Reply-To: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Dan Carpenter <error27@gmail.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+From: Dan Carpenter <error27@gmail.com>
 
-Resetting 'musb->clock' to NULL in musb_shutdown() prevents musb_platform_exit()
-from properly disabling the clock when unloading the driver -- don't do it.
+We assign "urb->hcpriv = qh;" a few lines down.  I'm pretty sure we
+want it "urb->hcpriv" to be NULL not a freed value.
 
-Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/usb/musb/musb_core.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ drivers/usb/musb/musb_host.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 03544de..8b68f21 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -965,10 +965,8 @@ static void musb_shutdown(struct platform_device *pdev)
- 	spin_lock_irqsave(&musb->lock, flags);
- 	musb_platform_disable(musb);
- 	musb_generic_disable(musb);
--	if (musb->clock) {
-+	if (musb->clock)
- 		clk_put(musb->clock);
--		musb->clock = NULL;
--	}
- 	spin_unlock_irqrestore(&musb->lock, flags);
- 
- 	/* FIXME power down */
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index dec896e..877d20b 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -2042,6 +2042,7 @@ static int musb_urb_enqueue(
+ 		 * odd, rare, error prone, but legal.
+ 		 */
+ 		kfree(qh);
++		qh = NULL;
+ 		ret = 0;
+ 	} else
+ 		ret = musb_schedule(musb, qh,
 -- 
 1.7.0.rc0.33.g7c3932
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
