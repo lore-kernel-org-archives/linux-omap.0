@@ -1,59 +1,32 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch-2.6.35 09/11] usb: musb: Makefile: remove unexistent
- config option
-Date: Thu, 25 Mar 2010 08:38:12 +0200
-Message-ID: <20100325063812.GN29419@nokia.com>
-References: <1269435318-29153-1-git-send-email-felipe.balbi@nokia.com>
- <1269435318-29153-10-git-send-email-felipe.balbi@nokia.com>
- <4BAA28D8.70705@ru.mvista.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 2/9] OMAP: Devkit8000: Add missing package selection
+Date: Thu, 25 Mar 2010 09:42:37 +0200
+Message-ID: <20100325074237.GP29419@nokia.com>
+References: <1269435138-27192-1-git-send-email-weber@corscience.de>
+ <1269435138-27192-3-git-send-email-weber@corscience.de>
+ <20100324125817.GJ29419@nokia.com>
+ <4BAA7610.2060004@gmail.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:18720 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774Ab0CYHnp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 03:43:45 -0400
 Content-Disposition: inline
-In-Reply-To: <4BAA28D8.70705-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4BAA7610.2060004@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Thomas Weber <thomas.weber.linux@googlemail.com>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, ext Thomas Weber <weber@corscience.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On Wed, Mar 24, 2010 at 03:59:36PM +0100, ext Sergei Shtylyov wrote:
->Felipe Balbi wrote:
->
->> Remove the unexistent CONFIG_USB_INVENTRA_MUSB_HAS_AHB_ID
->> option from our Makefile.
->>
->> Problem reported by Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
->>
->> Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
->> ---
->>  drivers/usb/musb/Makefile |    4 ----
->>  1 files changed, 0 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/usb/musb/Makefile b/drivers/usb/musb/Makefile
->> index a1677f9..4266d79 100644
->> --- a/drivers/usb/musb/Makefile
->> +++ b/drivers/usb/musb/Makefile
->> @@ -74,10 +74,6 @@ endif
->>
->>  # FIXME remove all these extra "-DMUSB_* things, stick to CONFIG_*
->>
->> -ifeq ($(CONFIG_USB_INVENTRA_MUSB_HAS_AHB_ID),y)
->> -	EXTRA_CFLAGS += -DMUSB_AHB_ID
->> -endif
->> -
->>
->
->   You forgot to remove FIXME.
+On Wed, Mar 24, 2010 at 09:29:04PM +0100, ext Thomas Weber wrote:
+>the mach_devkit8000 kconfig option is the only one of the board configs
+>that uses whitespaces for indention at the moment. Thatswhy I replaced
+>these whitespaces with  one tab.
 
-there's still -DDEBUG there. Maybe it doesn't really matter.
-
->
->WBR, Sergei
+ok. makes sense then.
 
 -- 
 balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
