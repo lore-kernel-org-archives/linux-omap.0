@@ -1,55 +1,41 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch-2.6.35 09/11] usb: musb: Makefile: remove unexistent config
- option
-Date: Thu, 25 Mar 2010 12:53:52 +0300
-Message-ID: <4BAB32B0.9070101@mvista.com>
-References: <1269435318-29153-1-git-send-email-felipe.balbi@nokia.com> <1269435318-29153-10-git-send-email-felipe.balbi@nokia.com> <4BAA28D8.70705@ru.mvista.com> <20100325063812.GN29419@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [patch-2.6.34-rc2+ 01/11] musb: fix power field to hold all possible values
+Date: Thu, 25 Mar 2010 13:14:23 +0200
+Message-ID: <1269515673-27980-2-git-send-email-felipe.balbi@nokia.com>
+References: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100325063812.GN29419-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1269515673-27980-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
-Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-Felipe Balbi wrote:
+MUSB can supply upto 500mA such as, AM3517 and OMAP3EVM Rev >=E and thus
+the 'power' field has to hold values above 255.
 
->>> Remove the unexistent CONFIG_USB_INVENTRA_MUSB_HAS_AHB_ID
->>> option from our Makefile.
->>>
->>> Problem reported by Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
->>>
->>> Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
->>> ---
->>>  drivers/usb/musb/Makefile |    4 ----
->>>  1 files changed, 0 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/drivers/usb/musb/Makefile b/drivers/usb/musb/Makefile
->>> index a1677f9..4266d79 100644
->>> --- a/drivers/usb/musb/Makefile
->>> +++ b/drivers/usb/musb/Makefile
->>> @@ -74,10 +74,6 @@ endif
->>>
->>>  # FIXME remove all these extra "-DMUSB_* things, stick to CONFIG_*
->>>
->>> -ifeq ($(CONFIG_USB_INVENTRA_MUSB_HAS_AHB_ID),y)
->>> -    EXTRA_CFLAGS += -DMUSB_AHB_ID
->>> -endif
->>> -
->>>
->>
->>   You forgot to remove FIXME.
->
-> there's still -DDEBUG there. Maybe it doesn't really matter.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+---
+ arch/arm/plat-omap/include/plat/usb.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-   -DDEBUG does not match -DMUSB_* pattern.
-
-WBR, Sergei
-
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index 568578d..876ca8d 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -46,7 +46,7 @@ struct ehci_hcd_omap_platform_data {
+ struct omap_musb_board_data {
+ 	u8	interface_type;
+ 	u8	mode;
+-	u8	power;
++	u16	power;
+ };
+ 
+ enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
+-- 
+1.7.0.rc0.33.g7c3932
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
