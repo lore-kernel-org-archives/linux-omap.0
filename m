@@ -1,62 +1,57 @@
-From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: [RFC][PATCH]DSPBRIDGE:Cleanup unused  success codes
-Date: Fri, 26 Mar 2010 01:37:35 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEB31@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: swirl@gmx.li
+Subject: [PATCH] OMAP: board-sdp-flash.c: Fix typos in debug output
+Date: Thu, 25 Mar 2010 21:21:54 +0100
+Message-ID: <1269548514-32588-1-git-send-email-swirl@gmx.li>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47201 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754702Ab0CYUHx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 16:07:53 -0400
-Content-Language: en-US
+Received: from mail.gmx.net ([213.165.64.20]:58209 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754656Ab0CYUUv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Mar 2010 16:20:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>
+To: tony@atomide.com
+Cc: Thomas Weber <swirl@gmx.li>, vimalsingh@ti.com, linux-omap@vger.kernel.org, Thomas Weber <weber@corscience.de>
 
->From 6ee4200fd19d0a2a41ad90df2af015c2d08438a7 Mon Sep 17 00:00:00 2001
-From: Shivananda Hebbar <x0hebbar@ti.com>
-Date: Wed, 24 Mar 2010 15:54:33 -0600
-Subject: [PATCH] DSPBRIDGE: Remove unused success codes.
+From: Thomas Weber <swirl@gmx.li>
 
-This patch removes unused success codes.
+Corrected type of flash in output (OneNAND => NOR).
+Removed whitespace after newline in output.
+Removed double whitespace in output.
 
-Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
+Signed-off-by: Thomas Weber <weber@corscience.de>
 ---
- arch/arm/plat-omap/include/dspbridge/errbase.h |   12 ------------
- 1 files changed, 0 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/board-sdp-flash.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/errbase.h b/arch/arm/plat-omap/include/dspbridge/errbase.h
-index d60a179..90059bc 100644
---- a/arch/arm/plat-omap/include/dspbridge/errbase.h
-+++ b/arch/arm/plat-omap/include/dspbridge/errbase.h
-@@ -46,24 +46,12 @@
- /* The DSP is already asleep. */
- #define DSP_SALREADYASLEEP          (DSP_SBASE + 3)
+diff --git a/arch/arm/mach-omap2/board-sdp-flash.c b/arch/arm/mach-omap2/board-sdp-flash.c
+index b1b88de..2d02632 100644
+--- a/arch/arm/mach-omap2/board-sdp-flash.c
++++ b/arch/arm/mach-omap2/board-sdp-flash.c
+@@ -253,20 +253,20 @@ void __init sdp_flash_init(struct flash_partitions sdp_partition_info[])
+ 	}
  
--/* The DSP is already awake. */
--#define DSP_SALREADYAWAKE           (DSP_SBASE + 4)
--
--/* TRUE */
--#define DSP_STRUE                   (DSP_SBASE + 5)
--
--/* FALSE */
--#define DSP_SFALSE                  (DSP_SBASE + 6)
--
- /* A library contains no dependent library references */
- #define DSP_SNODEPENDENTLIBS        (DSP_SBASE + 7)
+ 	if (norcs > GPMC_CS_NUM)
+-		printk(KERN_INFO "OneNAND: Unable to find configuration "
+-				" in GPMC\n ");
++		printk(KERN_INFO "NOR: Unable to find configuration "
++				"in GPMC\n");
+ 	else
+ 		board_nor_init(sdp_partition_info[0], norcs);
  
- /* A persistent library is already loaded by the dynamic loader */
- #define DSP_SALREADYLOADED          (DSP_SBASE + 8)
+ 	if (onenandcs > GPMC_CS_NUM)
+ 		printk(KERN_INFO "OneNAND: Unable to find configuration "
+-				" in GPMC\n ");
++				"in GPMC\n");
+ 	else
+ 		board_onenand_init(sdp_partition_info[1], onenandcs);
  
--/* Some error occured, but it is OK to continue */
--#define DSP_OKTO_CONTINUE          (DSP_SBASE + 9)
--
- /* FAILURE Codes */
- 
- /* During enumeration a change in the number or properties of the objects
+ 	if (nandcs > GPMC_CS_NUM)
+ 		printk(KERN_INFO "NAND: Unable to find configuration "
+-				" in GPMC\n ");
++				"in GPMC\n");
+ 	else
+ 		board_nand_init(sdp_partition_info[2], nandcs);
+ }
 -- 
-1.6.0.4
+1.6.4.4
 
