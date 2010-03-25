@@ -1,42 +1,49 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [patch-2.6.34-rc2+ 08/11] MUSB: DaVinci: fix musb_platform_init() error cleanup path
-Date: Thu, 25 Mar 2010 13:14:30 +0200
-Message-ID: <1269515673-27980-9-git-send-email-felipe.balbi@nokia.com>
-References: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:36527 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455Ab0CYLPm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 07:15:42 -0400
-In-Reply-To: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [patch-2.6.34-rc2+ 00/11] musb patches (v2)
+Date: Thu, 25 Mar 2010 13:14:22 +0200
+Message-ID: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Hi Greg,
 
-This function forgets to call clk_disable() iff reading the USB module version
-register returns 0.
+sorry for the last time. There was a bug in my script
+which caused it to rebased against the wrong branch.
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/usb/musb/davinci.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Now rebasing against Linus' today's master.
 
-diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
-index a883f9d..4b0f5be 100644
---- a/drivers/usb/musb/davinci.c
-+++ b/drivers/usb/musb/davinci.c
-@@ -445,6 +445,8 @@ int __init musb_platform_init(struct musb *musb)
- 	return 0;
- 
- fail:
-+	clk_disable(musb->clock);
-+
- 	usb_nop_xceiv_unregister();
- 	return -ENODEV;
- }
--- 
-1.7.0.rc0.33.g7c3932
+Ajay Kumar Gupta (2):
+  musb: fix power field to hold all possible values
+  musb: save and restore missing bus control register
 
+Dan Carpenter (1):
+  musb: potential use after free
+
+Sergei Shtylyov (8):
+  MUSB: fix DaVinci glue layer dependency
+  MUSB: Blackfin: don't fake blackfin_interrupt() result
+  musb_core: don't touch 'musb->clock' in musb_free()
+  musb_core: don't prevent disabling clock on driver unload
+  MUSB: DaVinci: fix musb_platform_init() error cleanup path
+  MUSB: OMAP: don't call clk_put()
+  musb_core: don't call musb_platform_exit() twice
+  musb_core: fix musb_init_controller() error cleanup path
+
+ arch/arm/plat-omap/include/plat/usb.h |    2 +-
+ drivers/usb/musb/Kconfig              |    2 +-
+ drivers/usb/musb/Makefile             |    2 +-
+ drivers/usb/musb/blackfin.c           |    8 +---
+ drivers/usb/musb/davinci.c            |    2 +
+ drivers/usb/musb/musb_core.c          |   77 ++++++++++++++++++--------------
+ drivers/usb/musb/musb_core.h          |    2 +-
+ drivers/usb/musb/musb_host.c          |    1 +
+ drivers/usb/musb/omap2430.c           |    3 -
+ 9 files changed, 51 insertions(+), 48 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
