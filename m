@@ -1,86 +1,299 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC][PATCH 0/19] Cleanup- custom error codes
-Date: Thu, 25 Mar 2010 15:58:14 -0500
-Message-ID: <4BABCE66.7080304@ti.com>
-References: <19F8576C6E063C45BE387C64729E7394044DEBEB1C@dbde02.ent.ti.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [PATCH v2] DSPBRIDGE: DSP recovery feature
+Date: Thu, 25 Mar 2010 16:17:26 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CADC3396@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52810 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50710 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752874Ab0CYU6T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Mar 2010 16:58:19 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DEBEB1C@dbde02.ent.ti.com>
+	id S1752053Ab0CYVRd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 17:17:33 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Hebbar, Shivananda had written, on 03/25/2010 03:06 PM, the following:
-> This RFC patch series tries to address the use of Linux standard error codes in dspbridge.
-> 
-> 1. 41 error codes are not currently used in bridge. Hence they can be removed.
 
-> 
-> 2. 19 error codes are mapped to Linux standard error codes. Patches 1 to 19 contains these changes.
-> 
-> 3. 7 error codes are used as base address to access the rest of error codes which can be removed. Some base addresses are removed as part of 1 but some are still kept as point 4 has dependency on these addresses.
-> Ex: (Removed base address)
-> /* FAILURE Codes: LDR */
-> #define LDR_EBASE                   (DSP_COMP_EBASE + 0x100)
-> 
-> /* Insufficient memory to export class driver services. */
-> #define LDR_E_NOMEMORY              (LDR_EBASE + 0x00)
-> 
-> /* Unable to find WMD file in system directory. */
-> #define LDR_E_FILEUNABLETOOPEN      (LDR_EBASE + 0x01)
-> 
-> 4. For 46 error codes, couldn't find an exact match in Linux error code. This still needs to be worked out. This is not addressed in this patch series. (See attached text file for details)
-lets keep this for stage 2 cleanup.
-> 
-> As for as OMX components concerned, they really don't care about the specific error codes. Hence no changes required for the OMX code.
-> 
-> Shivananda Hebbar (19)
-> 
-> DSPBRIDGE: Cleanup custom error code (DSP_EALREADYCONNECTED ->EISCONN) DSPBRIDGE: Cleanup custom error code (DSP_ECORRUPTFILE ->EBADF)
-> DSPBRIDGE: Cleanup custom error code (DSP_EFILE ->ENOENT) 
-> DSPBRIDGE: Cleanup custom error code (DSP_EHANDLE -> EFAULT) 
-> DSPBRIDGE: Cleanup custom error code (DSP_EINVALIDARG -> EINVAL) 
-> DSPBRIDGE: Cleanup custom error code (DSP_ENOMEM -> ENOMEM) 
-> DSPBRIDGE: Cleanup custom error code (DSP_ENODETYPE -> EPERM)
-> DSPBRIDGE: Cleanup custom error code (DSP_ENOTIMPL -> ENOSYS) 
-> DSPBRIDGE: Cleanup custom error code (DSP_EFOPEN -> EBADF)
-> DSPBRIDGE: Cleanup custom error code (DSP_EPOINTER -> EFAULT) 
-> DSPBRIDGE: Cleanup custom error code (DSP_ERANGE -> EDOM)
-> DSPBRIDGE: Cleanup custom error code (DSP_ESIZE -> EINVAL)
-> DSPBRIDGE: Cleanup custom error code (DSP_ETIMEOUT -> ETIME)
-> DSPBRIDGE: Cleanup custom error code (DSP_EVALUE -> EINVAL)
-> DSPBRIDGE: Cleanup custom error code (DSP_EUUID -> ENOKEY)
-> DSPBRIDGE: Cleanup custom error code (DSP_ENOTCONNECTED -> ENOTCONN)
-> DSPBRIDGE: Cleanup custom error code (CHNL_E_CHANBUSY -> EALREADY)
-> DSPBRIDGE: Cleanup custom error code (CHNL_E_CANCELLED -> ECANCELED)
-> DSPBRIDGE: Cleanup custom error code (WMD_E_TIMEOUT -> ETIMEDOUT)
-> 
+Patch updated with new O_NONBLOCK option in bridge_open function.
 
- > Shivananda Hebbar (1)
- >
- > DSPBRIDGE: Cleanup- unused custom error codes
- >
- > Shivananda Hebbar (1)
- >
- > DSPBRIDGE: Cleanup- unused success codes
 
-please add the remove unused codes into the series.
-love the cleanup *but*:
-arch/arm/plat-omap/include/dspbridge/dbdefs.h:typedef u32 dsp_status;
-1) All usage of dsp_status should be changed to int
-2) You should be using -Exxxx instead of Exxxxx in all the patches.
+>From aa1b238e4bd30eb52a96a7000998cd7d32e37050 Mon Sep 17 00:00:00 2001
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Thu, 25 Mar 2010 15:23:38 -0600
+Subject: [PATCH] DSPBRIDGE: DSP recovery feature
 
-> 
-> 
-[...]
+This patch implements a workqueue in charge of reseting
+DSP in case of fatal error.
 
+Original idea taken from:
+http://android.git.kernel.org/?p=kernel/omap.git;a=commit;h=8af1fbcda4b05a8777b4f3819da98340bd5d9de2
+
+Features:
+-Recovery is done reloading baseimage.
+-Workqueue will load last baseimage loaded.
+-In order workqueue can reload the baseimage absolute path for
+baseimage must be used.
+-Workqueue will wait until all the dspbridge handles are closed
+-During recovery process all ioctl calls will return -EIO except
+mgr_wait_for_bridge_events
+-After DSP crash applications must close their dspbridge handles
+and open a new dspbridge handle, bridge_open function will block until
+recovery process is done or timeout unless O_NONBLOCK flag be pass to
+open function in that case if dspbridge is in recovery process it
+will return immediately with -EBUSY error.
+
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/drv.h |    4 ++
+ drivers/dsp/bridge/Kconfig                 |    7 +++
+ drivers/dsp/bridge/pmgr/wcd.c              |   14 +++----
+ drivers/dsp/bridge/rmgr/drv_interface.c    |   64 +++++++++++++++++++++++++++-
+ drivers/dsp/bridge/rmgr/proc.c             |    9 +---
+ drivers/dsp/bridge/wmd/ue_deh.c            |    6 ++-
+ 6 files changed, 88 insertions(+), 16 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index 41deb86..947cbdd 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -386,4 +386,8 @@ extern dsp_status drv_request_resources(IN u32 dw_context,
+ extern dsp_status drv_release_resources(IN u32 dw_context,
+ 					struct drv_object *hdrv_obj);
+ 
++#ifdef CONFIG_BRIDGE_RECOVERY
++void bridge_recover_schedule(void);
++#endif
++
+ #endif /* DRV_ */
+diff --git a/drivers/dsp/bridge/Kconfig b/drivers/dsp/bridge/Kconfig
+index a3251c3..23b2afc 100644
+--- a/drivers/dsp/bridge/Kconfig
++++ b/drivers/dsp/bridge/Kconfig
+@@ -38,6 +38,13 @@ config BRIDGE_DEBUG
+ 	help
+ 	  Say Y to enable Bridge debugging capabilities
+ 
++config BRIDGE_RECOVERY
++	bool "DSP Recovery Support"
++	depends on MPU_BRIDGE
++	help
++	  In case of DSP fatal error, BRIDGE driver will try to
++	  recover itself.
++
+ comment "Bridge Notifications"
+ 	depends on MPU_BRIDGE
+ 
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index f30e023..15a05a6 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -381,7 +381,7 @@ dsp_status wcd_init_complete2(void)
+ 	dsp_status status = DSP_SOK;
+ 	struct cfg_devnode *dev_node;
+ 	struct dev_object *hdev_obj;
+-	u32 dev_type;
++	u32 dev_type, tmp;
+ 
+ 	DBC_REQUIRE(wcd_c_refs > 0);
+ 
+@@ -396,13 +396,11 @@ dsp_status wcd_init_complete2(void)
+ 		if (DSP_FAILED(dev_get_dev_type(hdev_obj, &dev_type)))
+ 			continue;
+ 
+-		if ((dev_type == DSP_UNIT) || (dev_type == IVA_UNIT)) {
+-			if (DSP_FAILED(proc_auto_start(dev_node, hdev_obj))) {
+-				status = DSP_EFAIL;
+-				/* break; */
+-			}
+-		}
+-	}			/* End For Loop */
++		if ((dev_type == DSP_UNIT) || (dev_type == IVA_UNIT))
++			if (cfg_get_auto_start(dev_node, &tmp) == DSP_SOK
++									&& tmp)
++				proc_auto_start(dev_node, hdev_obj);
++	}
+ 
+ 	return status;
+ }
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index d592181..5f01ab9 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -91,6 +91,15 @@ static s32 shm_size = 0x500000;	/* 5 MB */
+ static u32 phys_mempool_base;
+ static u32 phys_mempool_size;
+ static int tc_wordswapon;	/* Default value is always false */
++#ifdef CONFIG_BRIDGE_RECOVERY
++#define REC_TIMEOUT 5000	/*recovery timeout in msecs */
++static atomic_t bridge_cref;	/* number of bridge open handles */
++static struct workqueue_struct *bridge_rec_queue;
++static struct work_struct bridge_recovery_work;
++static DECLARE_COMPLETION_ONSTACK(bridge_comp);
++static DECLARE_COMPLETION_ONSTACK(bridge_open_comp);
++static bool recover;
++#endif
+ 
+ #ifdef CONFIG_PM
+ struct omap34_xx_bridge_suspend_data {
+@@ -189,6 +198,33 @@ u32 vdd1_dsp_freq[6][4] = {
+ 	{0, 430000, 355000, 430000},
+ };
+ 
++#ifdef CONFIG_BRIDGE_RECOVERY
++static void bridge_recover(struct work_struct *work)
++{
++	struct dev_object *dev;
++	struct cfg_devnode *dev_node;
++	if (atomic_read(&bridge_cref)) {
++		INIT_COMPLETION(bridge_comp);
++		while (!wait_for_completion_timeout(&bridge_comp,
++						msecs_to_jiffies(REC_TIMEOUT)))
++			pr_info("%s:%d handle(s) still opened\n",
++					__func__, atomic_read(&bridge_cref));
++	}
++	dev = dev_get_first();
++	dev_get_dev_node(dev, &dev_node);
++	if (!dev_node || DSP_FAILED(proc_auto_start(dev_node, dev)))
++		pr_err("DSP could not be restarted\n");
++	recover = false;
++	complete_all(&bridge_open_comp);
++}
++
++void bridge_recover_schedule(void)
++{
++	INIT_COMPLETION(bridge_open_comp);
++	recover = true;
++	queue_work(bridge_rec_queue, &bridge_recovery_work);
++}
++#endif
+ #ifdef CONFIG_BRIDGE_DVFS
+ static int dspbridge_post_scale(struct notifier_block *op, unsigned long level,
+ 				void *ptr)
+@@ -323,6 +359,11 @@ static int __devinit omap34_xx_bridge_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++#ifdef CONFIG_BRIDGE_RECOVERY
++	bridge_rec_queue = create_workqueue("bridge_rec_queue");
++	INIT_WORK(&bridge_recovery_work, bridge_recover);
++	INIT_COMPLETION(bridge_comp);
++#endif
+ 	DBC_ASSERT(status == 0);
+ 	DBC_ASSERT(DSP_SUCCEEDED(init_status));
+ 
+@@ -443,6 +484,14 @@ static int bridge_open(struct inode *ip, struct file *filp)
+ 	 * Allocate a new process context and insert it into global
+ 	 * process context list.
+ 	 */
++
++#ifdef CONFIG_BRIDGE_RECOVERY
++	if (recover) {
++		if (filp->f_flags & O_NONBLOCK ||
++			wait_for_completion_interruptible(&bridge_open_comp))
++			return -EBUSY;
++	}
++#endif
+ 	pr_ctxt = mem_calloc(sizeof(struct process_context), MEM_PAGED);
+ 	if (pr_ctxt) {
+ 		pr_ctxt->res_state = PROC_RES_ALLOCATED;
+@@ -457,7 +506,10 @@ static int bridge_open(struct inode *ip, struct file *filp)
+ 	}
+ 
+ 	filp->private_data = pr_ctxt;
+-
++#ifdef CONFIG_BRIDGE_RECOVERY
++	if (!status)
++		atomic_inc(&bridge_cref);
++#endif
+ 	return status;
+ }
+ 
+@@ -484,6 +536,10 @@ static int bridge_release(struct inode *ip, struct file *filp)
+ 	filp->private_data = NULL;
+ 
+ err:
++#ifdef CONFIG_BRIDGE_RECOVERY
++	if (!atomic_dec_return(&bridge_cref))
++		complete(&bridge_comp);
++#endif
+ 	return status;
+ }
+ 
+@@ -496,6 +552,12 @@ static long bridge_ioctl(struct file *filp, unsigned int code,
+ 	union Trapped_Args buf_in;
+ 
+ 	DBC_REQUIRE(filp != NULL);
++#ifdef CONFIG_BRIDGE_RECOVERY
++	if (recover) {
++		status = -EIO;
++		goto err;
++	}
++#endif
+ #ifdef CONFIG_PM
+ 	status = omap34_xxbridge_suspend_lockout(&bridge_suspend_data, filp);
+ 	if (status != 0)
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index b3e4546..1556285 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -53,6 +53,7 @@
+ #include <dspbridge/msg.h>
+ #include <dspbridge/wmdioctl.h>
+ #include <dspbridge/drv.h>
++#include <dspbridge/reg.h>
+ 
+ /*  ----------------------------------- This */
+ #include <dspbridge/proc.h>
+@@ -268,7 +269,6 @@ dsp_status proc_auto_start(struct cfg_devnode *dev_node_obj,
+ 			   struct dev_object *hdev_obj)
+ {
+ 	dsp_status status = DSP_EFAIL;
+-	u32 dw_auto_start = 0;	/* autostart flag */
+ 	struct proc_object *p_proc_object;
+ 	char sz_exec_file[MAXCMDLINELEN];
+ 	char *argv[2];
+@@ -304,11 +304,6 @@ dsp_status proc_auto_start(struct cfg_devnode *dev_node_obj,
+ 	if (DSP_FAILED(status))
+ 		goto func_cont;
+ 
+-	status = cfg_get_auto_start(dev_node_obj, &dw_auto_start);
+-	if (DSP_FAILED(status) || !dw_auto_start) {
+-		status = DSP_EFAIL;
+-		goto func_cont;
+-	}
+ 	/* Get the default executable for this board... */
+ 	dev_get_dev_type(hdev_obj, (u32 *) &dev_type);
+ 	p_proc_object->processor_id = dev_type;
+@@ -1031,6 +1026,8 @@ dsp_status proc_load(void *hprocessor, IN CONST s32 argc_index,
+ 		if (DSP_SUCCEEDED((*p_proc_object->intf_fxns->pfn_brd_status)
+ 				  (p_proc_object->hwmd_context, &brd_state))) {
+ 			pr_info("%s: Processor Loaded %s\n", __func__, pargv0);
++			reg_set_value(DEFEXEC, (u8 *)pargv0,
++							strlen(pargv0) + 1);
+ 			DBC_ASSERT(brd_state == BRD_LOADED);
+ 		}
+ 	}
+diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
+index 231b05e..14dd8ae 100644
+--- a/drivers/dsp/bridge/wmd/ue_deh.c
++++ b/drivers/dsp/bridge/wmd/ue_deh.c
+@@ -288,8 +288,12 @@ void bridge_deh_notify(struct deh_mgr *hdeh_mgr, u32 ulEventMask, u32 dwErrInfo)
+ 		}
+ 
+ 		/* Filter subsequent notifications when an error occurs */
+-		if (dev_context->dw_brd_state != BRD_ERROR)
++		if (dev_context->dw_brd_state != BRD_ERROR) {
+ 			ntfy_notify(deh_mgr_obj->ntfy_obj, ulEventMask);
++#ifdef CONFIG_BRIDGE_RECOVERY
++			bridge_recover_schedule();
++#endif
++		}
+ 
+ 		/* Set the Board state as ERROR */
+ 		dev_context->dw_brd_state = BRD_ERROR;
 -- 
-Regards,
-Nishanth Menon
+1.6.0.4
+
