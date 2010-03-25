@@ -1,7 +1,7 @@
 From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [patch-2.6.34-rc2+ 10/11] musb_core: don't call musb_platform_exit() twice
-Date: Thu, 25 Mar 2010 13:14:32 +0200
-Message-ID: <1269515673-27980-11-git-send-email-felipe.balbi@nokia.com>
+Subject: [patch-2.6.34-rc2+ 11/11] musb_core: fix musb_init_controller() error cleanup path
+Date: Thu, 25 Mar 2010 13:14:33 +0200
+Message-ID: <1269515673-27980-12-git-send-email-felipe.balbi@nokia.com>
 References: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1269515673-27980-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
@@ -12,68 +12,152 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 
-musb_platform_exit() is called twice from musb_init_controller() iff controller
-initialization fails. Move the call (and the DevCtl register writes surrounding
-it) from musb_free() to musb_remove().
-
-Fix mispalced and now incorrect 'goto's in musb_init_controller().
+This function forgets to call usb_remove_hcd() or musb_gadget_cleanup() iff
+sysfs_create_group() fails.
 
 Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+
+[ felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org : review the entire error path
+	not only when we fail hcd or gadget ]
+
 Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.c |   17 +++++++----------
- 1 files changed, 7 insertions(+), 10 deletions(-)
+ drivers/usb/musb/musb_core.c |   51 ++++++++++++++++++++++++++++--------------
+ 1 files changed, 34 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 8b68f21..508fd58 100644
+index 508fd58..705cc4a 100644
 --- a/drivers/usb/musb/musb_core.c
 +++ b/drivers/usb/musb/musb_core.c
-@@ -1851,10 +1851,6 @@ static void musb_free(struct musb *musb)
- 	put_device(musb->xceiv->dev);
- #endif
- 
--	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
--	musb_platform_exit(musb);
--	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
--
+@@ -1878,8 +1878,10 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	 */
+ 	if (!plat) {
+ 		dev_dbg(dev, "no platform_data?\n");
+-		return -ENODEV;
++		status = -ENODEV;
++		goto fail0;
+ 	}
++
+ 	switch (plat->mode) {
+ 	case MUSB_HOST:
  #ifdef CONFIG_USB_MUSB_HDRC_HCD
- 	usb_put_hcd(musb_to_hcd(musb));
- #else
-@@ -2032,8 +2028,6 @@ bad_config:
- 		musb->xceiv->state = OTG_STATE_A_IDLE;
+@@ -1901,13 +1903,16 @@ bad_config:
+ #endif
+ 	default:
+ 		dev_err(dev, "incompatible Kconfig role setting\n");
+-		return -EINVAL;
++		status = -EINVAL;
++		goto fail0;
+ 	}
  
- 		status = usb_add_hcd(musb_to_hcd(musb), -1, 0);
--		if (status)
+ 	/* allocate */
+ 	musb = allocate_instance(dev, plat->config, ctrl);
+-	if (!musb)
+-		return -ENOMEM;
++	if (!musb) {
++		status = -ENOMEM;
++		goto fail0;
++	}
+ 
+ 	spin_lock_init(&musb->lock);
+ 	musb->board_mode = plat->mode;
+@@ -1925,7 +1930,7 @@ bad_config:
+ 		if (IS_ERR(musb->clock)) {
+ 			status = PTR_ERR(musb->clock);
+ 			musb->clock = NULL;
 -			goto fail;
++			goto fail1;
+ 		}
+ 	}
  
- 		DBG(1, "%s mode, status %d, devctl %02x %c\n",
- 			"HOST", status,
-@@ -2048,8 +2042,6 @@ bad_config:
- 		musb->xceiv->state = OTG_STATE_B_IDLE;
+@@ -1944,12 +1949,12 @@ bad_config:
+ 	 */
+ 	musb->isr = generic_interrupt;
+ 	status = musb_platform_init(musb);
+-
+ 	if (status < 0)
+-		goto fail;
++		goto fail2;
++
+ 	if (!musb->isr) {
+ 		status = -ENODEV;
+-		goto fail2;
++		goto fail3;
+ 	}
  
- 		status = musb_gadget_setup(musb);
--		if (status)
--			goto fail;
+ #ifndef CONFIG_MUSB_PIO_ONLY
+@@ -1975,7 +1980,7 @@ bad_config:
+ 			? MUSB_CONTROLLER_MHDRC
+ 			: MUSB_CONTROLLER_HDRC, musb);
+ 	if (status < 0)
+-		goto fail2;
++		goto fail3;
  
- 		DBG(1, "%s mode, status %d, dev%02x\n",
- 			is_otg_enabled(musb) ? "OTG" : "PERIPHERAL",
-@@ -2057,12 +2049,14 @@ bad_config:
- 			musb_readb(musb->mregs, MUSB_DEVCTL));
+ #ifdef CONFIG_USB_MUSB_OTG
+ 	setup_timer(&musb->otg_timer, musb_otg_timer_func, (unsigned long) musb);
+@@ -1988,7 +1993,7 @@ bad_config:
+ 	if (request_irq(nIrq, musb->isr, 0, dev_name(dev), musb)) {
+ 		dev_err(dev, "request_irq %d failed!\n", nIrq);
+ 		status = -ENODEV;
+-		goto fail2;
++		goto fail3;
+ 	}
+ 	musb->nIrq = nIrq;
+ /* FIXME this handles wakeup irqs wrong */
+@@ -2050,12 +2055,12 @@ bad_config:
  
  	}
-+	if (status < 0)
-+		goto fail2;
+ 	if (status < 0)
+-		goto fail2;
++		goto fail3;
  
  #ifdef CONFIG_SYSFS
  	status = sysfs_create_group(&musb->controller->kobj, &musb_attr_group);
--#endif
  	if (status)
- 		goto fail2;
-+#endif
+-		goto fail2;
++		goto fail4;
+ #endif
  
  	dev_info(dev, "USB %s mode controller at %p using %s, IRQ %d\n",
- 			({char *s;
-@@ -2125,7 +2119,6 @@ static int __init musb_probe(struct platform_device *pdev)
- 	/* clobbered by use_dma=n */
- 	orig_dma_mask = dev->dma_mask;
- #endif
+@@ -2072,17 +2077,29 @@ bad_config:
+ 
+ 	return 0;
+ 
+-fail2:
++fail4:
++	if (!is_otg_enabled(musb) && is_host_enabled(musb))
++		usb_remove_hcd(musb_to_hcd(musb));
++	else
++		musb_gadget_cleanup(musb);
++
++fail3:
++	if (musb->irq_wake)
++		device_init_wakeup(dev, 0);
+ 	musb_platform_exit(musb);
+-fail:
+-	dev_err(musb->controller,
+-		"musb_init_controller failed with status %d\n", status);
+ 
++fail2:
+ 	if (musb->clock)
+ 		clk_put(musb->clock);
+-	device_init_wakeup(dev, 0);
++
++fail1:
++	dev_err(musb->controller,
++		"musb_init_controller failed with status %d\n", status);
++
+ 	musb_free(musb);
+ 
++fail0:
++
+ 	return status;
+ 
+ }
+-- 
+1.7.0.rc0.33.g7c3932
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
