@@ -1,38 +1,51 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Question on OTG transceivers
-Date: Fri, 26 Mar 2010 16:15:19 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032221B333@dbde02.ent.ti.com>
-References: <4BA14B06.8050202@billgatliff.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB03220FB2A2@dbde02.ent.ti.com>
- <4BA79588.4040409@billgatliff.com>
+From: NS <nags75@yahoo.com>
+Subject: Problems with workqueue
+Date: Thu, 25 Mar 2010 11:24:00 +0000 (UTC)
+Message-ID: <loom.20100325T122311-43@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60237 "EHLO bear.ext.ti.com"
+Received: from lo.gmane.org ([80.91.229.12]:35271 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751256Ab0CZKpY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2010 06:45:24 -0400
-In-Reply-To: <4BA79588.4040409@billgatliff.com>
-Content-Language: en-US
+	id S1753858Ab0CZKzG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Mar 2010 06:55:06 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1Nv7Bw-0005TV-40
+	for linux-omap@vger.kernel.org; Fri, 26 Mar 2010 11:55:04 +0100
+Received: from 59.97.0.73 ([59.97.0.73])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 11:55:04 +0100
+Received: from nags75 by 59.97.0.73 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 11:55:04 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bill Gatliff <bgat@billgatliff.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Bill Gatliff wrote:
-> Gadiyar, Anand wrote:
-> > Actually, the way the ehci-omap driver is currently written, it assumes
-> > the transceiver is present and available - you don't need a separate
-> > driver to access it.
-> >
-> > For that matter, the same probably holds for the OTG driver as well - you
-> > really don't need a driver for transparent transceivers like the SMSC332x.
-> >   
-> 
-> But I get an OOPS and the system halts when I don't have a transceiver
-> driver...
-> 
+Hi All,
 
-Care to post a bootlog and your .config file? Maybe it's just a simple CONFIG option that
-you are missing?
+I am facing a problem with Work Queues and need some help debugging. We are
+using 2.6.22 Kernel. I know that it is old kernel version, but this kernel
+version was chosen for the product almost a year back and we are not in a
+position to change the kernel version due to time constraints.
+
+Problem description
+We use work queues for the second half of the ISR with a touch screen driver.
+Most of the times, everything works fine. However, occasionally, the work does
+not seem to get a chance to execute.
+
+Questions:
+a) What is the best way to monitor the work execution on the work queues?
+b) Is it possible that the Kernel flushes the work from the work queue sometimes
+and makes the work unavailable?
+c) How to make sure that the work is available on the work queue and how to
+check this?
+
+Any suggestions on this will be really helpful.
+
+with regards,
+NS. 
+
