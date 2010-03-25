@@ -1,364 +1,584 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH 2/3] DSPBRIDGE: allocation of ntfy object take out of ntfy
- module.
-Date: Wed, 24 Mar 2010 22:53:34 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CADC2FF3@dlee06.ent.ti.com>
+Subject: [PATCH 3/3] DSPBRIDGE: simplify and make more use of kernel
+ function in notify module
+Date: Wed, 24 Mar 2010 22:54:14 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CADC2FF4@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37963 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53555 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752016Ab0CYDxw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 23:53:52 -0400
+	id S1752016Ab0CYDyT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Mar 2010 23:54:19 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
+Cc: "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
->From b076d4cbc28aa5dcdf733a0858ec47262abbc22e Mon Sep 17 00:00:00 2001
+>From 87f5751e8838fae3b3eed189eaa9a94a6d8e1ebd Mon Sep 17 00:00:00 2001
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Wed, 24 Mar 2010 20:43:20 -0600
-Subject: [PATCH] DSPBRIDGE: allocation of ntfy object take out of ntfy module.
+Date: Wed, 24 Mar 2010 21:52:26 -0600
+Subject: [PATCH] DSPBRIDGE: simplify and make more use of kernel function in notify module
 
-Allocation of ntfy object now is done on the ntfy module user's
-code, so that ntfy object no need to be always a pointer and
-also it could not be dynamic memory if it is no needed. Now
-a new API is use just to set the init state of the ntfy object
+This patch simplifies and makes more use of kernel functions in
+order to minimize dspbridge notify module.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/ntfy.h |   34 +++++++++++-------
- drivers/dsp/bridge/rmgr/node.c              |   22 ++++++++++--
- drivers/dsp/bridge/rmgr/proc.c              |   16 +++++++--
- drivers/dsp/bridge/services/ntfy.c          |   50 ---------------------------
- drivers/dsp/bridge/wmd/chnl_sm.c            |   12 +++++-
- drivers/dsp/bridge/wmd/msg_sm.c             |   14 ++++++--
- drivers/dsp/bridge/wmd/ue_deh.c             |   11 +++++-
- 7 files changed, 81 insertions(+), 78 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/ntfy.h |  232 ++++++++++++++++++++-------
+ drivers/dsp/bridge/services/ntfy.c          |  212 +-----------------------
+ drivers/dsp/bridge/wmd/chnl_sm.c            |    7 +-
+ drivers/dsp/bridge/wmd/msg_sm.c             |    9 +-
+ drivers/dsp/bridge/wmd/ue_deh.c             |    8 +-
+ 5 files changed, 197 insertions(+), 271 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/ntfy.h b/arch/arm/plat-omap/include/dspbridge/ntfy.h
-index 53f6cbd..4544259 100644
+index 4544259..dfda615 100644
 --- a/arch/arm/plat-omap/include/dspbridge/ntfy.h
 +++ b/arch/arm/plat-omap/include/dspbridge/ntfy.h
-@@ -19,23 +19,29 @@
+@@ -19,18 +19,49 @@
  #ifndef NTFY_
  #define NTFY_
- 
--struct ntfy_object;
-+#include <dspbridge/list.h>
- 
- /*
-- *  ======== ntfy_create ========
-- *  Purpose:
-- *      Create an empty list of notifications.
-- *  Parameters:
-- *      phNtfy:         Location to store handle on output.
-- *  Returns:
-- *      DSP_SOK:        Success.
-- *      DSP_EMEMORY:    Memory allocation failure.
-- *  Requires:
-- *      phNtfy != NULL.
-- *  Ensures:
-- *      DSP_SUCCEEDED(status) <==>  IS_VALID(*phNtfy).
-+ *  ======== ntfy_object ========
+
+-#include <dspbridge/list.h>
++#include <dspbridge/host_os.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
++#include <dspbridge/sync.h>
+
+-/*
+- *  ======== ntfy_object ========
++/**
++ * ntfy_object - head structure to nofify dspbridge events
++ * @head:      List of notify objects
++ * @ntfy_lock: lock for list access.
++ *
   */
--extern dsp_status ntfy_create(OUT struct ntfy_object **phNtfy);
-+struct ntfy_object {
-+	u32 dw_signature;	/* For object validation */
-+	struct lst_list *notify_list;	/* List of notifier objects */
-+	spinlock_t ntfy_lock;	/* For critical sections */
+ struct ntfy_object {
+-       u32 dw_signature;       /* For object validation */
+-       struct lst_list *notify_list;   /* List of notifier objects */
++       struct raw_notifier_head head;/* List of notifier objects */
+        spinlock_t ntfy_lock;   /* For critical sections */
+ };
+
+ /**
++ * ntfy_event - structure store specify event to be notified
++ * @noti_block:        List of notify objects
++ * @event:     event that it respond
++ * @type:      event type (only DSP_SIGNALEVENT supported)
++ * @sync_obj:  sync_event used to set the event
++ *
++ */
++struct ntfy_event {
++       struct notifier_block noti_block;
++       u32 event;      /* Events to be notified about */
++       u32 type;       /* Type of notification to be sent */
++       struct sync_object sync_obj;
 +};
 +
++
 +/**
-+ * ntfy_init() - Set the initial state of the ntfy_object structure.
-+ * @no:		pointer to ntfy_object structure.
++ * dsp_notifier_event() - callback function to nofity events
++ * @this:              pointer to itself struct notifier_block
++ * @event:     event to be notified.
++ * @data:              Currently not used.
 + *
-+ * This function sets the initial state of the ntfy_object in order it
-+ * can be used by the other ntfy functions.
++ */
++int dsp_notifier_event(struct notifier_block *this, unsigned long event,
++                          void *data);
++
++/**
+  * ntfy_init() - Set the initial state of the ntfy_object structure.
+  * @no:                pointer to ntfy_object structure.
+  *
+@@ -40,65 +71,148 @@ struct ntfy_object {
+
+ static inline void ntfy_init(struct ntfy_object *no)
+ {
+-       INIT_LIST_HEAD(&no->notify_list->head);
++       spin_lock_init(&no->ntfy_lock);
++       RAW_INIT_NOTIFIER_HEAD(&no->head);
+ }
+
+-/*
+- *  ======== ntfy_delete ========
+- *  Purpose:
+- *      Free resources allocated in ntfy_create.
+- *  Parameters:
+- *      ntfy_obj:  Handle returned from ntfy_create().
+- *  Returns:
+- *  Requires:
+- *      IS_VALID(ntfy_obj).
+- *  Ensures:
++/**
++ * ntfy_delete() - delete list of nofy events registered.
++ * @ntfy_obj:  Pointer to the ntfy object structure.
++ *
++ * This function is used to remove all the notify events  registered.
++ * unregister function is not needed in this function, to unregister
++ * a ntfy_event please look at ntfy_register function.
++ *
+  */
+-extern void ntfy_delete(IN struct ntfy_object *ntfy_obj);
++static inline void ntfy_delete(struct ntfy_object *ntfy_obj)
++{
++       struct ntfy_event *ne;
++       struct notifier_block *nb;
+
+-/*
+- *  ======== ntfy_notify ========
+- *  Purpose:
+- *      Execute notify function (signal event or post message) for every
+- *      element in the notification list that is to be notified about the
+- *      event specified in event_mask.
+- *  Parameters:
+- *      ntfy_obj:      Handle returned from ntfy_create().
+- *      event_mask: The type of event that has occurred.
+- *  Returns:
+- *  Requires:
+- *      IS_VALID(ntfy_obj).
+- *  Ensures:
++       spin_lock_bh(&ntfy_obj->ntfy_lock);
++       nb = ntfy_obj->head.head;
++       while (nb) {
++               ne = container_of(nb, struct ntfy_event, noti_block);
++               nb = nb->next;
++               kfree(ne);
++       }
++       spin_unlock_bh(&ntfy_obj->ntfy_lock);
++}
++
++/**
++ * ntfy_notify() - nofity all event register for an specific event.
++ * @ntfy_obj:  Pointer to the ntfy_object structure.
++ * @event:     event to be notified.
++ *
++ * This function traverses all the ntfy events registers and
++ * set the event with mach with @event.
+  */
+-extern void ntfy_notify(IN struct ntfy_object *ntfy_obj, IN u32 event_mask);
++static inline void ntfy_notify(struct ntfy_object *ntfy_obj, u32 event)
++{
++       spin_lock_bh(&ntfy_obj->ntfy_lock);
++       raw_notifier_call_chain(&ntfy_obj->head, event, NULL);
++       spin_unlock_bh(&ntfy_obj->ntfy_lock);
++}
+
+-/*
+- *  ======== ntfy_register ========
+- *  Purpose:
+- *      Add a notification element to the list. If the notification is already
+- *      registered, and event_mask != 0, the notification will get posted for
+- *      events specified in the new event mask. If the notification is already
+- *      registered and event_mask == 0, the notification will be unregistered.
+- *  Parameters:
+- *      ntfy_obj:              Handle returned from ntfy_create().
+- *      hnotification:      Handle to a dsp_notification object.
+- *      event_mask:         Events to be notified about.
+- *      notify_type:        Type of notification: DSP_SIGNALEVENT.
+- *  Returns:
+- *      DSP_SOK:            Success.
+- *      DSP_EMEMORY:        Insufficient memory.
+- *      DSP_EVALUE:         event_mask is 0 and hnotification was not
+- *                          previously registered.
+- *      DSP_EHANDLE:        NULL hnotification, hnotification event name
+- *                          too long, or hnotification event name NULL.
+- *  Requires:
+- *      IS_VALID(ntfy_obj).
+- *      hnotification != NULL.
+- *      notify_type is DSP_SIGNALEVENT
+- *  Ensures:
++
++
++/**
++ * ntfy_init() - Create and initialize a ntfy_event structure.
++ * @event:     event that the ntfy event will respond
++ * @type               event type (only DSP_SIGNALEVENT supported)
++ *
++ * This function create a ntfy_event element and sets the event it will
++ * respond the ntfy_event in order it can be used by the other ntfy functions.
++ * In case of success it will return a pointer to the ntfy_event struct
++ * created. Otherwise it will return NULL;
 + */
 +
-+static inline void ntfy_init(struct ntfy_object *no)
++static inline struct ntfy_event *ntfy_event_create(u32 event, u32 type)
 +{
-+	INIT_LIST_HEAD(&no->notify_list->head);
++       struct ntfy_event *ne;
++       ne = kmalloc(sizeof(struct ntfy_event), GFP_KERNEL);
++       if (ne) {
++               sync_init_event(&ne->sync_obj);
++               ne->noti_block.notifier_call = dsp_notifier_event;
++               ne->event = event;
++               ne->type = type;
++       }
++       return ne;
 +}
- 
- /*
-  *  ======== ntfy_delete ========
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index fef9d9c..32df890 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -471,8 +471,14 @@ func_cont:
- 		pnode->prio = attr_in->prio;
- 	}
- 	/* Create object to manage notifications */
--	if (DSP_SUCCEEDED(status))
--		status = ntfy_create(&pnode->ntfy_obj);
-+	if (DSP_SUCCEEDED(status)) {
-+		pnode->ntfy_obj = kmalloc(sizeof(struct ntfy_object),
-+							GFP_KERNEL);
-+		if (pnode->ntfy_obj)
-+			ntfy_init(pnode->ntfy_obj);
-+		else
-+			status = DSP_EMEMORY;
-+	}
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		node_type = node_get_type(pnode);
-@@ -1327,7 +1333,12 @@ dsp_status node_create_mgr(OUT struct node_mgr **phNodeMgr,
- 			status = DSP_EMEMORY;
- 		} else {
- 			INIT_LIST_HEAD(&node_mgr_obj->node_list->head);
--			status = ntfy_create(&node_mgr_obj->ntfy_obj);
-+			node_mgr_obj->ntfy_obj = kmalloc(
-+				sizeof(struct ntfy_object), GFP_KERNEL);
-+			if (node_mgr_obj->ntfy_obj)
-+				ntfy_init(node_mgr_obj->ntfy_obj);
-+			else
-+				status = DSP_EMEMORY;
- 		}
- 		node_mgr_obj->num_created = 0;
- 	} else {
-@@ -2602,6 +2613,7 @@ static void delete_node(struct node_object *hnode,
- 
- 	if (hnode->ntfy_obj) {
- 		ntfy_delete(hnode->ntfy_obj);
-+		kfree(hnode->ntfy_obj);
- 		hnode->ntfy_obj = NULL;
- 	}
- 
-@@ -2657,8 +2669,10 @@ static void delete_node_mgr(struct node_mgr *hnode_mgr)
- 			kfree(hnode_mgr->node_list);
- 		}
- 		mutex_destroy(&hnode_mgr->node_mgr_lock);
--		if (hnode_mgr->ntfy_obj)
-+		if (hnode_mgr->ntfy_obj) {
- 			ntfy_delete(hnode_mgr->ntfy_obj);
-+			kfree(hnode_mgr->ntfy_obj);
-+		}
- 
- 		if (hnode_mgr->pipe_map)
- 			gb_delete(hnode_mgr->pipe_map);
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 4fc4ea1..b3e4546 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -182,7 +182,13 @@ proc_attach(u32 processor_id,
- 	/* This is created with no event mask, no notify mask
- 	 * and no valid handle to the notification. They all get
- 	 * filled up when proc_register_notify is called */
--	status = ntfy_create(&p_proc_object->ntfy_obj);
-+	p_proc_object->ntfy_obj = kmalloc(sizeof(struct ntfy_object),
-+							GFP_KERNEL);
-+	if (p_proc_object->ntfy_obj)
-+		ntfy_init(p_proc_object->ntfy_obj);
-+	else
-+		status = DSP_EMEMORY;
 +
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Insert the Processor Object into the DEV List.
- 		 * Return handle to this Processor Object:
-@@ -197,8 +203,10 @@ proc_attach(u32 processor_id,
- 			if (p_proc_object->is_already_attached)
- 				status = DSP_SALREADYATTACHED;
- 		} else {
--			if (p_proc_object->ntfy_obj)
-+			if (p_proc_object->ntfy_obj) {
- 				ntfy_delete(p_proc_object->ntfy_obj);
-+				kfree(p_proc_object->ntfy_obj);
-+			}
- 
- 			MEM_FREE_OBJECT(p_proc_object);
- 		}
-@@ -396,8 +404,10 @@ dsp_status proc_detach(struct process_context *pr_ctxt)
- 		/* Notify the Client */
- 		ntfy_notify(p_proc_object->ntfy_obj, DSP_PROCESSORDETACH);
- 		/* Remove the notification memory */
--		if (p_proc_object->ntfy_obj)
-+		if (p_proc_object->ntfy_obj) {
- 			ntfy_delete(p_proc_object->ntfy_obj);
-+			kfree(p_proc_object->ntfy_obj);
-+		}
- 
- 		kfree(p_proc_object->psz_last_coff);
- 		p_proc_object->psz_last_coff = NULL;
++/**
++ * ntfy_register() - register new ntfy_event into a given ntfy_object
++ * @ntfy_obj:  Pointer to the ntfy_object structure.
++ * @noti:              Pointer to the handle to be returned to the user space.
++ * @event      event that the ntfy event will respond
++ * @type               event type (only DSP_SIGNALEVENT supported)
++ *
++ * This function register a new ntfy_event into the ntfy_object list,
++ * which will respond to the @event passed.
++ * This function will return DSP_SOK in case of error.
++ * DSP_EHANDLE in case of bad pointers and
++ * DSP_EMemory in case of no memory to create ntfy_event.
+  */
+-extern dsp_status ntfy_register(IN struct ntfy_object *ntfy_obj,
+-                               IN struct dsp_notification *hnotification,
+-                               IN u32 event_mask, IN u32 notify_type);
++static  inline dsp_status ntfy_register(struct ntfy_object *ntfy_obj,
++                        struct dsp_notification *noti,
++                        u32 event, u32 type)
++{
++       struct ntfy_event *ne;
++       dsp_status status = DSP_SOK;
++
++       if (!noti || !ntfy_obj) {
++               status = DSP_EHANDLE;
++               goto func_end;
++       }
++       if (!event) {
++               status = DSP_EINVALIDARG;
++               goto func_end;
++       }
++       ne = ntfy_event_create(event, type);
++       if (!ne) {
++               status = DSP_EMEMORY;
++               goto func_end;
++       }
++       noti->handle = &ne->sync_obj;
++
++       spin_lock_bh(&ntfy_obj->ntfy_lock);
++       raw_notifier_chain_register(&ntfy_obj->head, &ne->noti_block);
++       spin_unlock_bh(&ntfy_obj->ntfy_lock);
++func_end:
++       return status;
++}
++
++/**
++ * ntfy_unregister() - unregister a ntfy_event from a given ntfy_object
++ * @ntfy_obj:  Pointer to the ntfy_object structure.
++ * @noti:              Pointer to the event that will be removed.
++ *
++ * This function unregister a ntfy_event from the ntfy_object list,
++ * @noti contains the event which is wanted to be removed.
++ * This function will return DSP_SOK in case of error.
++ * DSP_EHANDLE in case of bad pointers and
++ * DSP_EMemory in case of no memory to create ntfy_event.
++ */
++static  inline dsp_status ntfy_unregister(struct ntfy_object *ntfy_obj,
++                        struct dsp_notification *noti)
++{
++       dsp_status status = DSP_SOK;
++       struct ntfy_event *ne;
++
++       if (!noti || !ntfy_obj) {
++               status = DSP_EHANDLE;
++               goto func_end;
++       }
++
++       ne = container_of((struct sync_object *)noti, struct ntfy_event,
++                                                               sync_obj);
++       spin_lock_bh(&ntfy_obj->ntfy_lock);
++       raw_notifier_chain_unregister(&ntfy_obj->head,
++                                               &ne->noti_block);
++       kfree(ne);
++       spin_unlock_bh(&ntfy_obj->ntfy_lock);
++func_end:
++       return status;
++}
+
+-#endif /* NTFY_ */
++#endif                         /* NTFY_ */
 diff --git a/drivers/dsp/bridge/services/ntfy.c b/drivers/dsp/bridge/services/ntfy.c
-index 6d7d815..462d54a 100644
+index 462d54a..a2ea698 100644
 --- a/drivers/dsp/bridge/services/ntfy.c
 +++ b/drivers/dsp/bridge/services/ntfy.c
-@@ -39,15 +39,6 @@
- #define NTFY_SIGNATURE      0x5946544e	/* "YFTN" */
- 
- /*
-- *  ======== ntfy_object ========
-- */
--struct ntfy_object {
--	u32 dw_signature;	/* For object validation */
--	struct lst_list *notify_list;	/* List of notifier objects */
--	spinlock_t ntfy_lock;	/* For critical sections */
--};
+@@ -16,214 +16,16 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+
+-/*  ----------------------------------- Host OS */
+-#include <dspbridge/host_os.h>
+-
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dspbridge/std.h>
+-#include <dspbridge/dbdefs.h>
+-#include <dspbridge/errbase.h>
+-
+-/*  ----------------------------------- Trace & Debug */
+-#include <dspbridge/dbc.h>
+-
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/list.h>
+-#include <dspbridge/mem.h>
+-#include <dspbridge/sync.h>
+-
+ /*  ----------------------------------- This */
+ #include <dspbridge/ntfy.h>
+
+-/*  ----------------------------------- Defines, Data Structures, Typedefs */
+-#define NTFY_SIGNATURE      0x5946544e /* "YFTN" */
 -
 -/*
-  *  ======== notifier ========
-  *  This object will be created when a client registers for events.
-  */
-@@ -69,45 +60,6 @@ struct notifier {
- static void delete_notify(struct notifier *notifier_obj);
- 
- /*
-- *  ======== ntfy_create ========
-- *  Purpose:
-- *      Create an empty list of notifications.
+- *  ======== notifier ========
+- *  This object will be created when a client registers for events.
 - */
--dsp_status ntfy_create(struct ntfy_object **phNtfy)
+-struct notifier {
+-       struct list_head list_elem;
+-       u32 event_mask;         /* Events to be notified about */
+-       u32 notify_type;        /* Type of notification to be sent */
+-
+-       /*
+-        *  We keep a copy of the event name to check if the event has
+-        *  already been registered. (SYNC also keeps a copy of the name).
+-        */
+-       char *pstr_name;        /* Name of event */
+-       bhandle event_obj;      /* Handle for notification */
+-       struct sync_object *sync_obj;
+-};
+-
+-/*  ----------------------------------- Function Prototypes */
+-static void delete_notify(struct notifier *notifier_obj);
+-
+-/*
+- *  ======== ntfy_delete ========
+- *  Purpose:
+- *      Free resources allocated in ntfy_create.
+- */
+-void ntfy_delete(struct ntfy_object *ntfy_obj)
++int dsp_notifier_event(struct notifier_block *this, unsigned long event,
++                          void *data)
+ {
+-       struct notifier *notifier_obj;
+-
+-       DBC_REQUIRE(MEM_IS_VALID_HANDLE(ntfy_obj, NTFY_SIGNATURE));
+-
+-       /* Remove any elements remaining in list */
+-       if (ntfy_obj->notify_list) {
+-               while ((notifier_obj =
+-                     (struct notifier *)lst_get_head(ntfy_obj->notify_list))) {
+-                       delete_notify(notifier_obj);
+-               }
+-               DBC_ASSERT(LST_IS_EMPTY(ntfy_obj->notify_list));
+-               kfree(ntfy_obj->notify_list);
+-       }
++       struct  ntfy_event *ne = container_of(this, struct ntfy_event,
++                                                       noti_block);
++       if (ne->event & event)
++               sync_set_event(&ne->sync_obj);
++       return NOTIFY_OK;
+ }
+
+-/*
+- *  ======== ntfy_notify ========
+- *  Purpose:
+- *      Execute notify function (signal event) for every
+- *      element in the notification list that is to be notified about the
+- *      event specified in event_mask.
+- */
+-void ntfy_notify(struct ntfy_object *ntfy_obj, u32 event_mask)
 -{
--	struct ntfy_object *notify_obj;
--	dsp_status status = DSP_SOK;
+-       struct notifier *notifier_obj;
 -
--	DBC_REQUIRE(phNtfy != NULL);
+-       DBC_REQUIRE(MEM_IS_VALID_HANDLE(ntfy_obj, NTFY_SIGNATURE));
 -
--	*phNtfy = NULL;
--	MEM_ALLOC_OBJECT(notify_obj, struct ntfy_object, NTFY_SIGNATURE);
+-       /*
+-        *  Go through notify_list and notify all clients registered for
+-        *  event_mask events.
+-        */
 -
--	if (notify_obj) {
--		spin_lock_init(&notify_obj->ntfy_lock);
+-       spin_lock_bh(&ntfy_obj->ntfy_lock);
 -
--		notify_obj->notify_list = mem_calloc(sizeof(struct lst_list),
--							MEM_NONPAGED);
--		if (!notify_obj->notify_list) {
--			MEM_FREE_OBJECT(notify_obj);
--			status = DSP_EMEMORY;
--		} else {
--			INIT_LIST_HEAD(&notify_obj->notify_list->head);
--			*phNtfy = notify_obj;
--		}
+-       notifier_obj = (struct notifier *)lst_first(ntfy_obj->notify_list);
+-       while (notifier_obj != NULL) {
+-               if (notifier_obj->event_mask & event_mask) {
+-                       /* Notify */
+-                       if (notifier_obj->notify_type == DSP_SIGNALEVENT)
+-                               (void)sync_set_event(notifier_obj->sync_obj);
 -
--	} else {
--		status = DSP_EMEMORY;
--	}
+-               }
+-               notifier_obj =
+-                   (struct notifier *)lst_next(ntfy_obj->notify_list,
+-                                               (struct list_head *)
+-                                               notifier_obj);
+-       }
 -
--	DBC_ENSURE((DSP_FAILED(status) && *phNtfy == NULL) ||
--		   (DSP_SUCCEEDED(status) && MEM_IS_VALID_HANDLE((*phNtfy),
--							 NTFY_SIGNATURE)));
--
--	return status;
+-       spin_unlock_bh(&ntfy_obj->ntfy_lock);
 -}
 -
 -/*
-  *  ======== ntfy_delete ========
-  *  Purpose:
-  *      Free resources allocated in ntfy_create.
-@@ -127,8 +79,6 @@ void ntfy_delete(struct ntfy_object *ntfy_obj)
- 		DBC_ASSERT(LST_IS_EMPTY(ntfy_obj->notify_list));
- 		kfree(ntfy_obj->notify_list);
- 	}
+- *  ======== ntfy_register ========
+- *  Purpose:
+- *      Add a notification element to the list. If the notification is already
+- *      registered, and event_mask != 0, the notification will get posted for
+- *      events specified in the new event mask. If the notification is already
+- *      registered and event_mask == 0, the notification will be unregistered.
+- */
+-dsp_status ntfy_register(struct ntfy_object *ntfy_obj,
+-                        struct dsp_notification *hnotification,
+-                        u32 event_mask, u32 notify_type)
+-{
+-       struct notifier *notifier_obj;
+-       dsp_status status = DSP_SOK;
 -
--	MEM_FREE_OBJECT(ntfy_obj);
- }
- 
- /*
+-       DBC_REQUIRE(MEM_IS_VALID_HANDLE(ntfy_obj, NTFY_SIGNATURE));
+-
+-       if (hnotification == NULL)
+-               status = DSP_EHANDLE;
+-
+-       /* Return DSP_ENOTIMPL if notify_type is not supported */
+-       if (DSP_SUCCEEDED(status)) {
+-               if (!IS_VALID_NOTIFY_MASK(notify_type))
+-                       status = DSP_ENOTIMPL;
+-
+-       }
+-
+-       if (DSP_FAILED(status))
+-               return status;
+-
+-       spin_lock_bh(&ntfy_obj->ntfy_lock);
+-
+-       notifier_obj = (struct notifier *)lst_first(ntfy_obj->notify_list);
+-       while (notifier_obj != NULL) {
+-               /* If there is more than one notification type, each
+-                * type may require its own handler code. */
+-
+-               if (hnotification->handle == notifier_obj->sync_obj) {
+-                       /* found */
+-                       break;
+-               }
+-               notifier_obj =
+-                   (struct notifier *)lst_next(ntfy_obj->notify_list,
+-                                               (struct list_head *)
+-                                               notifier_obj);
+-       }
+-       if (notifier_obj == NULL) {
+-               /* Not registered */
+-               if (event_mask == 0) {
+-                       status = DSP_EVALUE;
+-               } else {
+-                       /* Allocate notifier object, add to list */
+-                       notifier_obj = mem_calloc(sizeof(struct notifier),
+-                                                 MEM_PAGED);
+-                       if (notifier_obj == NULL)
+-                               status = DSP_EMEMORY;
+-
+-               }
+-               if (DSP_SUCCEEDED(status)) {
+-                       lst_init_elem((struct list_head *)notifier_obj);
+-                       /* If there is more than one notification type, each
+-                        * type may require its own handler code. */
+-                       notifier_obj->sync_obj = kzalloc(
+-                                       sizeof(struct sync_object), GFP_KERNEL);
+-
+-                       if (notifier_obj->sync_obj)
+-                               sync_init_event(notifier_obj->sync_obj);
+-                       else
+-                               status = DSP_EMEMORY;
+-
+-                       hnotification->handle = notifier_obj->sync_obj;
+-
+-                       if (DSP_SUCCEEDED(status)) {
+-                               notifier_obj->event_mask = event_mask;
+-                               notifier_obj->notify_type = notify_type;
+-                               lst_put_tail(ntfy_obj->notify_list,
+-                                            (struct list_head *)notifier_obj);
+-                       } else {
+-                               delete_notify(notifier_obj);
+-                       }
+-               }
+-       } else {
+-               /* Found in list */
+-               if (event_mask == 0) {
+-                       /* Remove from list and free */
+-                       lst_remove_elem(ntfy_obj->notify_list,
+-                                       (struct list_head *)notifier_obj);
+-                       delete_notify(notifier_obj);
+-               } else {
+-                       /* Update notification mask (type shouldn't change) */
+-                       notifier_obj->event_mask = event_mask;
+-               }
+-       }
+-       spin_unlock_bh(&ntfy_obj->ntfy_lock);
+-       return status;
+-}
+-
+-/*
+- *  ======== delete_notify ========
+- *  Purpose:
+- *      Free the notification object.
+- */
+-static void delete_notify(struct notifier *notifier_obj)
+-{
+-       kfree(notifier_obj->sync_obj);
+-       kfree(notifier_obj->pstr_name);
+-
+-       kfree(notifier_obj);
+-}
 diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index 0f9ce17..e969d35 100644
+index e969d35..a2f98e9 100644
 --- a/drivers/dsp/bridge/wmd/chnl_sm.c
 +++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -347,6 +347,7 @@ func_cont:
- 		spin_unlock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
- 		if (pchnl->ntfy_obj) {
- 			ntfy_delete(pchnl->ntfy_obj);
-+			kfree(pchnl->ntfy_obj);
- 			pchnl->ntfy_obj = NULL;
- 		}
- 		/* Reset channel event: (NOTE: user_event freed in user
-@@ -840,8 +841,14 @@ dsp_status bridge_chnl_open(OUT struct chnl_object **phChnl,
- 	else
- 		status = DSP_EMEMORY;
- 
--	if (DSP_SUCCEEDED(status))
--		status = ntfy_create(&pchnl->ntfy_obj);
-+	if (DSP_SUCCEEDED(status)) {
-+		pchnl->ntfy_obj = kmalloc(sizeof(struct ntfy_object),
-+							GFP_KERNEL);
-+		if (pchnl->ntfy_obj)
-+			ntfy_init(pchnl->ntfy_obj);
-+		else
-+			status = DSP_EMEMORY;
-+	}
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		if (pchnl->pio_completions && pchnl->pio_requests &&
-@@ -883,6 +890,7 @@ dsp_status bridge_chnl_open(OUT struct chnl_object **phChnl,
- 
- 		if (pchnl->ntfy_obj) {
- 			ntfy_delete(pchnl->ntfy_obj);
-+			kfree(pchnl->ntfy_obj);
- 			pchnl->ntfy_obj = NULL;
- 		}
- 		MEM_FREE_OBJECT(pchnl);
+@@ -924,8 +924,11 @@ dsp_status bridge_chnl_register_notify(struct chnl_object *chnl_obj,
+
+        DBC_ASSERT(!(event_mask & ~(DSP_STREAMDONE | DSP_STREAMIOCOMPLETION)));
+
+-       status = ntfy_register(chnl_obj->ntfy_obj, hnotification, event_mask,
+-                              notify_type);
++       if (event_mask)
++               status = ntfy_register(chnl_obj->ntfy_obj, hnotification,
++                                               event_mask, notify_type);
++       else
++               status = ntfy_unregister(chnl_obj->ntfy_obj, hnotification);
+
+        return status;
+ }
 diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-index 869cd2c..1bfef23 100644
+index 1bfef23..dae6e67 100644
 --- a/drivers/dsp/bridge/wmd/msg_sm.c
 +++ b/drivers/dsp/bridge/wmd/msg_sm.c
-@@ -175,8 +175,14 @@ dsp_status bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
- 	}
- 
- 	/* Create a notification list for message ready notification. */
--	if (DSP_SUCCEEDED(status))
--		status = ntfy_create(&msg_q->ntfy_obj);
-+	if (DSP_SUCCEEDED(status)) {
-+		msg_q->ntfy_obj = kmalloc(sizeof(struct ntfy_object),
-+							GFP_KERNEL);
-+		if (msg_q->ntfy_obj)
-+			ntfy_init(msg_q->ntfy_obj);
-+		else
-+			status = DSP_EMEMORY;
-+	}
- 
- 	/*  Create events that will be used to synchronize cleanup
- 	 *  when the object is deleted. sync_done will be set to
-@@ -641,8 +647,10 @@ static void delete_msg_queue(struct msg_queue *msg_queue_obj, u32 uNumToDSP)
- 		msg_queue_obj->msg_used_list = NULL;
- 	}
- 
--	if (msg_queue_obj->ntfy_obj)
-+	if (msg_queue_obj->ntfy_obj) {
- 		ntfy_delete(msg_queue_obj->ntfy_obj);
-+		kfree(msg_queue_obj->ntfy_obj);
-+	}
- 
- 	kfree(msg_queue_obj->sync_event);
- 	kfree(msg_queue_obj->sync_done);
+@@ -526,9 +526,12 @@ dsp_status bridge_msg_register_notify(struct msg_queue *msg_queue_obj,
+                goto func_end;
+        }
+
+-       status =
+-           ntfy_register(msg_queue_obj->ntfy_obj, hnotification, event_mask,
+-                         notify_type);
++       if (event_mask)
++               status = ntfy_register(msg_queue_obj->ntfy_obj, hnotification,
++                                               event_mask, notify_type);
++       else
++               status = ntfy_unregister(msg_queue_obj->ntfy_obj,
++                                                       hnotification);
+
+        if (status == DSP_EVALUE) {
+                /*  Not registered. Ok, since we couldn't have known. Node
 diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index b88112e..dff8132 100644
+index dff8132..231b05e 100644
 --- a/drivers/dsp/bridge/wmd/ue_deh.c
 +++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -86,7 +86,12 @@ dsp_status bridge_deh_create(OUT struct deh_mgr **phDehMgr,
- 		status = DSP_EMEMORY;
- 	} else {
- 		/* Create an NTFY object to manage notifications */
--		status = ntfy_create(&deh_mgr_obj->ntfy_obj);
-+		deh_mgr_obj->ntfy_obj = kmalloc(sizeof(struct ntfy_object),
-+							GFP_KERNEL);
-+		if (deh_mgr_obj->ntfy_obj)
-+			ntfy_init(deh_mgr_obj->ntfy_obj);
-+		else
-+			status = DSP_EMEMORY;
- 
- 		/* Create a MMUfault DPC */
- 		tasklet_init(&deh_mgr_obj->dpc_tasklet, mmu_fault_dpc,
-@@ -139,8 +144,10 @@ dsp_status bridge_deh_destroy(struct deh_mgr *hdeh_mgr)
- 		/* Release dummy VA buffer */
- 		bridge_deh_release_dummy_mem();
- 		/* If notification object exists, delete it */
--		if (deh_mgr_obj->ntfy_obj)
-+		if (deh_mgr_obj->ntfy_obj) {
- 			(void)ntfy_delete(deh_mgr_obj->ntfy_obj);
-+			kfree(deh_mgr_obj->ntfy_obj);
-+		}
- 		/* Disable DSP MMU fault */
- 		free_irq(INT_DSP_MMU_IRQ, deh_mgr_obj);
- 
--- 
+@@ -173,8 +173,12 @@ dsp_status bridge_deh_register_notify(struct deh_mgr *hdeh_mgr, u32 event_mask,
+        struct deh_mgr *deh_mgr_obj = (struct deh_mgr *)hdeh_mgr;
+
+        if (MEM_IS_VALID_HANDLE(deh_mgr_obj, SIGNATURE)) {
+-               status = ntfy_register(deh_mgr_obj->ntfy_obj, hnotification,
+-                                      event_mask, notify_type);
++               if (event_mask)
++                       status = ntfy_register(deh_mgr_obj->ntfy_obj,
++                               hnotification, event_mask, notify_type);
++               else
++                       status = ntfy_unregister(deh_mgr_obj->ntfy_obj,
++                                                       hnotification);
+        }
+
+        return status;
+--
 1.6.0.4
 
