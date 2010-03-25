@@ -1,256 +1,308 @@
 From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: [RFC][PATCH 0/19] Cleanup- custom error codes
-Date: Fri, 26 Mar 2010 01:36:06 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEB1C@dbde02.ent.ti.com>
+Subject: [RFC][PATCH 10/19] DSPBRIDGE: Cleanup custom error code
+ (DSP_EPOINTER -> EFAULT)
+Date: Fri, 26 Mar 2010 01:36:41 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEB26@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_19F8576C6E063C45BE387C64729E7394044DEBEB1Cdbde02enttico_"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47120 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50123 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754605Ab0CYUGT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Mar 2010 16:06:19 -0400
+	id S1754667Ab0CYUGs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 16:06:48 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
 
---_002_19F8576C6E063C45BE387C64729E7394044DEBEB1Cdbde02enttico_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+>From c4c2d2e82b5329c5fced3730c8b9ea7612bf861c Mon Sep 17 00:00:00 2001
+From: Shivananda Hebbar <x0hebbar@ti.com>
+Date: Wed, 24 Mar 2010 11:26:00 -0600
+Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_EPOINTER -> EFAULT).
 
-This RFC patch series tries to address the use of Linux standard error code=
-s in dspbridge.
+This patch replaces DSP_EPOINTER with EFAULT
 
-Here is the proposal.
+Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/errbase.h |    3 ---
+ arch/arm/plat-omap/include/dspbridge/wmd.h     |    8 ++++----
+ drivers/dsp/bridge/pmgr/cmm.c                  |    2 +-
+ drivers/dsp/bridge/pmgr/wcd.c                  |   18 +++++++++---------
+ drivers/dsp/bridge/services/sync.c             |    2 +-
+ drivers/dsp/bridge/wmd/chnl_sm.c               |   14 +++++++-------
+ drivers/dsp/bridge/wmd/io_sm.c                 |    2 +-
+ drivers/dsp/bridge/wmd/msg_sm.c                |    6 +++---
+ 8 files changed, 26 insertions(+), 29 deletions(-)
 
-As of today there are around 113 DSPBRIDGE specific error codes.
+diff --git a/arch/arm/plat-omap/include/dspbridge/errbase.h b/arch/arm/plat-omap/include/dspbridge/errbase.h
+index aa848c8..da2900c 100644
+--- a/arch/arm/plat-omap/include/dspbridge/errbase.h
++++ b/arch/arm/plat-omap/include/dspbridge/errbase.h
+@@ -99,9 +99,6 @@
+ /* I/O is currently pending. */
+ #define DSP_EPENDING                (DSP_EBASE + 0x11)
+ 
+-/* An invalid pointer was specified. */
+-#define DSP_EPOINTER                (DSP_EBASE + 0x12)
+-
+ /* A parameter is specified outside its valid range. */
+ #define DSP_ERANGE                  (DSP_EBASE + 0x13)
+ 
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
+index 6fe5d3f..8624538 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmd.h
++++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
+@@ -451,7 +451,7 @@ typedef dsp_status(*fxn_chnl_close) (struct chnl_object *chnl_obj);
+  *  Returns:
+  *      DSP_SOK:        Success;
+  *      EFAULT:    Invalid chnl_obj.
+- *      DSP_EPOINTER:   pHostBuf is invalid.
++ *      EFAULT:   pHostBuf is invalid.
+  *      CHNL_E_NOEOS:   User cannot mark EOS on an input channel.
+  *      CHNL_E_CANCELLED: I/O has been cancelled on this channel.  No further
+  *                      I/O is allowed.
+@@ -492,7 +492,7 @@ typedef dsp_status(*fxn_chnl_addioreq) (struct chnl_object
+  *  Returns:
+  *      DSP_SOK:        Success.
+  *      EFAULT:    Invalid chnl_obj.
+- *      DSP_EPOINTER:   pIOC is invalid.
++ *      EFAULT:   pIOC is invalid.
+  *      CHNL_E_NOIOC:   CHNL_IOCNOWAIT was specified as the dwTimeOut parameter
+  *                      yet no I/O completions were queued.
+  *  Requires:
+@@ -556,7 +556,7 @@ typedef dsp_status(*fxn_chnl_flushio) (struct chnl_object *chnl_obj,
+  *  Returns:
+  *      DSP_SOK:        Success;
+  *      EFAULT:    Invalid chnl_obj.
+- *      DSP_EPOINTER:   pInfo == NULL.
++ *      EFAULT:   pInfo == NULL.
+  *  Requires:
+  *  Ensures:
+  *      DSP_SOK:        pInfo points to a filled in chnl_info struct,
+@@ -576,7 +576,7 @@ typedef dsp_status(*fxn_chnl_getinfo) (struct chnl_object *chnl_obj,
+  *  Returns:
+  *      DSP_SOK:            Success;
+  *      EFAULT:        Invalid hchnl_mgr.
+- *      DSP_EPOINTER:       pMgrInfo == NULL.
++ *      EFAULT:       pMgrInfo == NULL.
+  *      CHNL_E_BADCHANID:   Invalid channel ID.
+  *  Requires:
+  *  Ensures:
+diff --git a/drivers/dsp/bridge/pmgr/cmm.c b/drivers/dsp/bridge/pmgr/cmm.c
+index 84bec40..69fbf03 100644
+--- a/drivers/dsp/bridge/pmgr/cmm.c
++++ b/drivers/dsp/bridge/pmgr/cmm.c
+@@ -391,7 +391,7 @@ dsp_status cmm_free_buf(struct cmm_object *hcmm_mgr, void *buf_pa,
+ 			u32 ul_seg_id)
+ {
+ 	struct cmm_object *cmm_mgr_obj = (struct cmm_object *)hcmm_mgr;
+-	dsp_status status = DSP_EPOINTER;
++	dsp_status status = EFAULT;
+ 	struct cmm_mnode *mnode_obj = NULL;
+ 	struct cmm_allocator *allocator = NULL;
+ 	struct cmm_attrs *pattrs;
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index d062d22..8b0aeea 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -174,12 +174,12 @@ static inline void _cp_fm_usr(void *to, const void __user * from,
+ 		return;
+ 
+ 	if (unlikely(!from)) {
+-		*err = DSP_EPOINTER;
++		*err = EFAULT;
+ 		return;
+ 	}
+ 
+ 	if (unlikely(copy_from_user(to, from, bytes)))
+-		*err = DSP_EPOINTER;
++		*err = EFAULT;
+ }
+ 
+ #define CP_FM_USR(to, from, err, n)				\
+@@ -192,12 +192,12 @@ static inline void _cp_to_usr(void __user *to, const void *from,
+ 		return;
+ 
+ 	if (unlikely(!to)) {
+-		*err = DSP_EPOINTER;
++		*err = EFAULT;
+ 		return;
+ 	}
+ 
+ 	if (unlikely(copy_to_user(to, from, bytes)))
+-		*err = DSP_EPOINTER;
++		*err = EFAULT;
+ }
+ 
+ #define CP_TO_USR(to, from, err, n)				\
+@@ -500,7 +500,7 @@ u32 mgrwrap_register_object(union Trapped_Args *args, void *pr_ctxt)
+ 				(char *)args->args_mgr_registerobject.
+ 				psz_path_name, path_size);
+ 	if (!ret) {
+-		status = DSP_EPOINTER;
++		status = EFAULT;
+ 		goto func_end;
+ 	}
+ 
+@@ -1071,7 +1071,7 @@ u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt)
+ 	if (DSP_SUCCEEDED(status)) {
+ 		CP_TO_USR(args->args_node_allocate.ph_node, &hnode, status, 1);
+ 		if (DSP_FAILED(status)) {
+-			status = DSP_EPOINTER;
++			status = EFAULT;
+ 			node_delete(hnode, pr_ctxt);
+ 		}
+ 	}
+@@ -1214,7 +1214,7 @@ u32 nodewrap_free_msg_buf(union Trapped_Args *args, void *pr_ctxt)
+ 	}
+ 
+ 	if (!args->args_node_freemsgbuf.pbuffer)
+-		return DSP_EPOINTER;
++		return EFAULT;
+ 
+ 	if (DSP_SUCCEEDED(status)) {
+ 		status = node_free_msg_buf(args->args_node_freemsgbuf.hnode,
+@@ -1388,7 +1388,7 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
+ 		CP_TO_USR(args->args_strm_allocatebuffer.ap_buffer, ap_buffer,
+ 			  status, num_bufs);
+ 		if (DSP_FAILED(status)) {
+-			status = DSP_EPOINTER;
++			status = EFAULT;
+ 			strm_free_buffer(args->args_strm_allocatebuffer.hstream,
+ 					 ap_buffer, num_bufs, pr_ctxt);
+ 		}
+@@ -1492,7 +1492,7 @@ u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt)
+ 	dsp_status status = DSP_SOK;
+ 
+ 	if (!args->args_strm_issue.pbuffer)
+-		return DSP_EPOINTER;
++		return EFAULT;
+ 
+ 	/* No need of doing CP_FM_USR for the user buffer (pbuffer)
+ 	   as this is done in Bridge internal function bridge_chnl_add_io_req
+diff --git a/drivers/dsp/bridge/services/sync.c b/drivers/dsp/bridge/services/sync.c
+index e7f5c06..6d095c6 100644
+--- a/drivers/dsp/bridge/services/sync.c
++++ b/drivers/dsp/bridge/services/sync.c
+@@ -416,7 +416,7 @@ dsp_status sync_initialize_dpccs(OUT struct sync_csobject **phCSObj)
+ 		/* return CS object */
+ 		*phCSObj = (struct sync_csobject *)pcs_obj;
+ 	} else {
+-		status = DSP_EPOINTER;
++		status = EFAULT;
+ 	}
+ 
+ 	DBC_ASSERT(DSP_FAILED(status) || (pcs_obj));
+diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
+index 43f2731..96488b9 100644
+--- a/drivers/dsp/bridge/wmd/chnl_sm.c
++++ b/drivers/dsp/bridge/wmd/chnl_sm.c
+@@ -110,7 +110,7 @@ dsp_status bridge_chnl_add_io_req(struct chnl_object *chnl_obj, void *pHostBuf,
+ 
+ 	/* Validate args */
+ 	if (!pHostBuf) {
+-		status = DSP_EPOINTER;
++		status = EFAULT;
+ 	} else if (!MEM_IS_VALID_HANDLE(pchnl, CHNL_SIGNATURE)) {
+ 		status = EFAULT;
+ 	} else if (is_eos && CHNL_IS_INPUT(pchnl->chnl_mode)) {
+@@ -158,7 +158,7 @@ dsp_status bridge_chnl_add_io_req(struct chnl_object *chnl_obj, void *pHostBuf,
+ 			if (status) {
+ 				kfree(host_sys_buf);
+ 				host_sys_buf = NULL;
+-				status = DSP_EPOINTER;
++				status = EFAULT;
+ 				goto func_end;
+ 			}
+ 		}
+@@ -563,7 +563,7 @@ dsp_status bridge_chnl_get_info(struct chnl_object *chnl_obj,
+ 			status = EFAULT;
+ 		}
+ 	} else {
+-		status = DSP_EPOINTER;
++		status = EFAULT;
+ 	}
+ 	return status;
+ }
+@@ -590,7 +590,7 @@ dsp_status bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 dwTimeOut,
+ 
+ 	/* Check args: */
+ 	if (pIOC == NULL) {
+-		status = DSP_EPOINTER;
++		status = EFAULT;
+ 	} else if (!MEM_IS_VALID_HANDLE(pchnl, CHNL_SIGNATURE)) {
+ 		status = EFAULT;
+ 	} else if (dwTimeOut == CHNL_IOCNOWAIT) {
+@@ -692,7 +692,7 @@ dsp_status bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 dwTimeOut,
+ 
+ 		/* If the addr is in user mode, then copy it */
+ 		if (!host_sys_buf || !ioc.pbuf) {
+-			status = DSP_EPOINTER;
++			status = EFAULT;
+ 			goto func_cont;
+ 		}
+ 		if (!CHNL_IS_INPUT(pchnl->chnl_mode))
+@@ -705,7 +705,7 @@ dsp_status bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 dwTimeOut,
+ 				status = 0;
+ 		}
+ 		if (status)
+-			status = DSP_EPOINTER;
++			status = EFAULT;
+ func_cont1:
+ 		kfree(host_sys_buf);
+ 	}
+@@ -745,7 +745,7 @@ dsp_status bridge_chnl_get_mgr_info(struct chnl_mgr *hchnl_mgr, u32 uChnlID,
+ 			status = CHNL_E_BADCHANID;
+ 		}
+ 	} else {
+-		status = DSP_EPOINTER;
++		status = EFAULT;
+ 	}
+ 
+ 	return status;
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index fe1378c..96bbb9b 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -715,7 +715,7 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 		ul_shm_base = (u32) MEM_LINEAR_ADDRESS((void *)ul_shm_base,
+ 						       ul_mem_length);
+ 		if (ul_shm_base == 0) {
+-			status = DSP_EPOINTER;
++			status = EFAULT;
+ 			goto func_end;
+ 		}
+ 		/* Register SM */
+diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
+index 89c13e3..217631a 100644
+--- a/drivers/dsp/bridge/wmd/msg_sm.c
++++ b/drivers/dsp/bridge/wmd/msg_sm.c
+@@ -62,12 +62,12 @@ dsp_status bridge_msg_create(OUT struct msg_mgr **phMsgMgr,
+ 	dsp_status status = DSP_SOK;
+ 
+ 	if (!phMsgMgr || !msgCallback || !hdev_obj) {
+-		status = DSP_EPOINTER;
++		status = EFAULT;
+ 		goto func_end;
+ 	}
+ 	dev_get_io_mgr(hdev_obj, &hio_mgr);
+ 	if (!hio_mgr) {
+-		status = DSP_EPOINTER;
++		status = EFAULT;
+ 		goto func_end;
+ 	}
+ 	*phMsgMgr = NULL;
+@@ -437,7 +437,7 @@ dsp_status bridge_msg_put(struct msg_queue *msg_queue_obj,
+ 			status = DSP_EFAIL;
+ 		} else {
+ 			if (LST_IS_EMPTY(hmsg_mgr->msg_free_list)) {
+-				status = DSP_EPOINTER;
++				status = EFAULT;
+ 				goto func_cont;
+ 			}
+ 			/* Get msg from free list */
+-- 
+1.6.0.4
 
-Here are the details:
-
-1. 41 error codes are not currently used in bridge. Hence they can be remov=
-ed.
-
-2. 19 error codes are mapped to Linux standard error codes. Patches 1 to 19=
- contains these changes.
-
-3. 7 error codes are used as base address to access the rest of error codes=
- which can be removed. Some base addresses are removed as part of 1 but som=
-e are still kept as point 4 has dependency on these addresses.
-Ex: (Removed base address)
-/* FAILURE Codes: LDR */
-#define LDR_EBASE                   (DSP_COMP_EBASE + 0x100)
-
-/* Insufficient memory to export class driver services. */
-#define LDR_E_NOMEMORY              (LDR_EBASE + 0x00)
-
-/* Unable to find WMD file in system directory. */
-#define LDR_E_FILEUNABLETOOPEN      (LDR_EBASE + 0x01)
-
-4. For 46 error codes, couldn't find an exact match in Linux error code. Th=
-is still needs to be worked out. This is not addressed in this patch series=
-. (See attached text file for details)
-
-As for as OMX components concerned, they really don't care about the specif=
-ic error codes. Hence no changes required for the OMX code.
-
-Shivananda Hebbar (19)
-
-DSPBRIDGE: Cleanup custom error code (DSP_EALREADYCONNECTED ->EISCONN) DSPB=
-RIDGE: Cleanup custom error code (DSP_ECORRUPTFILE ->EBADF)
-DSPBRIDGE: Cleanup custom error code (DSP_EFILE ->ENOENT)=20
-DSPBRIDGE: Cleanup custom error code (DSP_EHANDLE -> EFAULT)=20
-DSPBRIDGE: Cleanup custom error code (DSP_EINVALIDARG -> EINVAL)=20
-DSPBRIDGE: Cleanup custom error code (DSP_ENOMEM -> ENOMEM)=20
-DSPBRIDGE: Cleanup custom error code (DSP_ENODETYPE -> EPERM)
-DSPBRIDGE: Cleanup custom error code (DSP_ENOTIMPL -> ENOSYS)=20
-DSPBRIDGE: Cleanup custom error code (DSP_EFOPEN -> EBADF)
-DSPBRIDGE: Cleanup custom error code (DSP_EPOINTER -> EFAULT)=20
-DSPBRIDGE: Cleanup custom error code (DSP_ERANGE -> EDOM)
-DSPBRIDGE: Cleanup custom error code (DSP_ESIZE -> EINVAL)
-DSPBRIDGE: Cleanup custom error code (DSP_ETIMEOUT -> ETIME)
-DSPBRIDGE: Cleanup custom error code (DSP_EVALUE -> EINVAL)
-DSPBRIDGE: Cleanup custom error code (DSP_EUUID -> ENOKEY)
-DSPBRIDGE: Cleanup custom error code (DSP_ENOTCONNECTED -> ENOTCONN)
-DSPBRIDGE: Cleanup custom error code (CHNL_E_CHANBUSY -> EALREADY)
-DSPBRIDGE: Cleanup custom error code (CHNL_E_CANCELLED -> ECANCELED)
-DSPBRIDGE: Cleanup custom error code (WMD_E_TIMEOUT -> ETIMEDOUT)
-
-Shivananda Hebbar (1)
-
-DSPBRIDGE: Cleanup- unused custom error codes
-
-Shivananda Hebbar (1)
-
-DSPBRIDGE: Cleanup- unused success codes
-
-
- arch/arm/plat-omap/include/dspbridge/_dcd.h     |    2 +-
- arch/arm/plat-omap/include/dspbridge/chnl.h     |   10 +-
- arch/arm/plat-omap/include/dspbridge/cmm.h      |   28 ++--
- arch/arm/plat-omap/include/dspbridge/cod.h      |    2 +-
- arch/arm/plat-omap/include/dspbridge/dbdcd.h    |   16 +-
- arch/arm/plat-omap/include/dspbridge/dblldefs.h |   10 +-
- arch/arm/plat-omap/include/dspbridge/dev.h      |   36 ++--
- arch/arm/plat-omap/include/dspbridge/disp.h     |   10 +-
- arch/arm/plat-omap/include/dspbridge/drv.h      |    2 +-
- arch/arm/plat-omap/include/dspbridge/errbase.h  |  198 -------------------=
-----
- arch/arm/plat-omap/include/dspbridge/io.h       |    6 +-
- arch/arm/plat-omap/include/dspbridge/mgr.h      |    8 +-
- arch/arm/plat-omap/include/dspbridge/nldrdefs.h |    8 +-
- arch/arm/plat-omap/include/dspbridge/node.h     |   86 +++++-----
- arch/arm/plat-omap/include/dspbridge/nodepriv.h |    8 +-
- arch/arm/plat-omap/include/dspbridge/ntfy.h     |    8 +-
- arch/arm/plat-omap/include/dspbridge/proc.h     |   54 +++---
- arch/arm/plat-omap/include/dspbridge/pwr.h      |   10 +-
- arch/arm/plat-omap/include/dspbridge/rmm.h      |    4 +-
- arch/arm/plat-omap/include/dspbridge/strm.h     |   52 +++---
- arch/arm/plat-omap/include/dspbridge/sync.h     |   26 ++--
- arch/arm/plat-omap/include/dspbridge/wmd.h      |   78 +++++-----
- drivers/dsp/bridge/pmgr/chnl.c                  |    4 +-
- drivers/dsp/bridge/pmgr/cmm.c                   |   34 ++--
- drivers/dsp/bridge/pmgr/cod.c                   |   16 +-
- drivers/dsp/bridge/pmgr/dbll.c                  |   24 ++--
- drivers/dsp/bridge/pmgr/dev.c                   |   36 ++--
- drivers/dsp/bridge/pmgr/dmm.c                   |   10 +-
- drivers/dsp/bridge/pmgr/wcd.c                   |   86 +++++-----
- drivers/dsp/bridge/rmgr/dbdcd.c                 |   24 ++--
- drivers/dsp/bridge/rmgr/disp.c                  |    8 +-
- drivers/dsp/bridge/rmgr/drv.c                   |   14 +-
- drivers/dsp/bridge/rmgr/drv_interface.c         |    2 +-
- drivers/dsp/bridge/rmgr/mgr.c                   |    4 +-
- drivers/dsp/bridge/rmgr/nldr.c                  |   30 ++--
- drivers/dsp/bridge/rmgr/node.c                  |  112 +++++++-------
- drivers/dsp/bridge/rmgr/proc.c                  |   56 ++++----
- drivers/dsp/bridge/rmgr/pwr.c                   |    4 +-
- drivers/dsp/bridge/rmgr/rmm.c                   |   14 +-
- drivers/dsp/bridge/rmgr/strm.c                  |   62 ++++----
- drivers/dsp/bridge/services/cfg.c               |    6 +-
- drivers/dsp/bridge/services/ntfy.c              |   14 +-
- drivers/dsp/bridge/services/sync.c              |   26 ++--
- drivers/dsp/bridge/wmd/_tiomap.h                |    2 +-
- drivers/dsp/bridge/wmd/chnl_sm.c                |   56 ++++----
- drivers/dsp/bridge/wmd/io_sm.c                  |   26 ++--
- drivers/dsp/bridge/wmd/msg_sm.c                 |   32 ++--
- drivers/dsp/bridge/wmd/tiomap3430.c             |   20 ++--
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c         |    8 +-
- drivers/dsp/bridge/wmd/ue_deh.c                 |    4 +-
- 50 files changed, 599 insertions (+), 797 deletions (-)
-
-
-
-
-
-
-
-
-
---_002_19F8576C6E063C45BE387C64729E7394044DEBEB1Cdbde02enttico_
-Content-Type: text/plain; name="Linux_errorcode_match_not_found.txt"
-Content-Description: Linux_errorcode_match_not_found.txt
-Content-Disposition: attachment;
-	filename="Linux_errorcode_match_not_found.txt"; size=5442;
-	creation-date="Fri, 26 Mar 2010 01:14:06 GMT";
-	modification-date="Fri, 26 Mar 2010 01:18:49 GMT"
-Content-Transfer-Encoding: base64
-
-LyogVGhlIHNwZWNpZmllZCBkaXJlY3Rpb24gaXMgaW52YWxpZCAqLw0KI2RlZmluZSBEU1BfRURJ
-UkVDVElPTiAgICAgICAgICAgICAgKERTUF9FQkFTRSArIDYpDQoNCi8qIEEgc3RyZWFtIGhhcyBi
-ZWVuIGlzc3VlZCB0aGUgbWF4aW11bSBudW1iZXIgb2YgYnVmZmVycyBhbGxvd2VkIGluIHRoZQ0K
-ICogc3RyZWFtIGF0IG9uY2UgOyAgYnVmZmVycyBtdXN0IGJlIHJlY2xhaW1lZCBmcm9tIHRoZSBz
-dHJlYW0gYmVmb3JlIGFueQ0KICogbW9yZSBjYW4gYmUgaXNzdWVkLiAqLw0KI2RlZmluZSBEU1Bf
-RVNUUkVBTUZVTEwgICAgICAgICAgICAgKERTUF9FQkFTRSArIDcpDQoNCi8qIEEgZ2VuZXJhbCBm
-YWlsdXJlIG9jY3VycmVkICovDQojZGVmaW5lIERTUF9FRkFJTCAgICAgICAgICAgICAgICAgICAo
-RFNQX0VCQVNFICsgOCkiDQoNCi8qIE5vIG1vcmUgY29ubmVjdGlvbnMgY2FuIGJlIG1hZGUgZm9y
-IHRoaXMgbm9kZS4gKi8NCiNkZWZpbmUgRFNQX0VOT01PUkVDT05ORUNUSU9OUyAgICAgIChEU1Bf
-RUJBU0UgKyAweGYpDQoNCi8qIEEgdGFzayBjcmVhdGlvbiBmYWlsdXJlIG9jY3VycmVkIG9uIHRo
-ZSBEU1AuICovDQojZGVmaW5lIERTUF9FVEFTSyAgICAgICAgICAgICAgICAgICAoRFNQX0VCQVNF
-ICsgMHgxNikNCg0KLyogVGhlIHN0YXRlIG9mIHRoZSBzcGVjaWZpZWQgb2JqZWN0IGlzIGluY29y
-cmVjdCBmb3IgdGhlIHJlcXVlc3RlZA0KICogb3BlcmF0aW9uLiAqLw0KI2RlZmluZSBEU1BfRVdS
-T05HU1RBVEUgICAgICAgICAgICAgKERTUF9FQkFTRSArIDB4MWIpDQoNCi8qIFN5bWJvbCBub3Qg
-Zm91bmQgaW4gdGhlIENPRkYgZmlsZS4gIA0KI2RlZmluZSBEU1BfRVNZTUJPTCAgICAgICAgICAg
-ICAgICAgKERTUF9FQkFTRSArIDB4MWMpDQoNCi8qIFVuYWJsZSB0byByZWFkIGNvbnRlbnQgb2Yg
-RENEIGRhdGEgc2VjdGlvbiA7IHRoaXMgaXMgdHlwaWNhbGx5IGNhdXNlZCBieQ0KICogaW1wcm9w
-ZXJseSBjb25maWd1cmVkIG5vZGVzLiAqLw0KI2RlZmluZSBEU1BfRURDRFJFQURTRUNUICAgICAg
-ICAgICAgKERTUF9FQkFTRSArIDB4MWUpDQoNCi8qIFVuYWJsZSB0byBkZWNvZGUgRENEIGRhdGEg
-c2VjdGlvbiBjb250ZW50IDsgdGhpcyBpcyB0eXBpY2FsbHkgY2F1c2VkIGJ5DQogKiBjaGFuZ2Vz
-IHRvIERTUC9CSU9TIEJyaWRnZSBkYXRhIHN0cnVjdHVyZXMuICovDQojZGVmaW5lIERTUF9FRENE
-UEFSU0VTRUNUICAgICAgICAgICAoRFNQX0VCQVNFICsgMHgxZikNCg0KLyogVW5hYmxlIHRvIGdl
-dCBwb2ludGVyIHRvIERDRCBkYXRhIHNlY3Rpb24gOyB0aGlzIGlzIHR5cGljYWxseSBjYXVzZWQg
-YnkNCiAqIGltcHJvcGVybHkgY29uZmlndXJlZCBVVUlEcy4gKi8NCiNkZWZpbmUgRFNQX0VEQ0RH
-RVRTRUNUICAgICAgICAgICAgIChEU1BfRUJBU0UgKyAweDIwKQ0KDQovKiBVbmFibGUgdG8gbG9h
-ZCBmaWxlIGNvbnRhaW5pbmcgRENEIGRhdGEgc2VjdGlvbiA7IHRoaXMgaXMgdHlwaWNhbGx5DQog
-KiBjYXVzZWQgYnkgYSBtaXNzaW5nIENPRkYgZmlsZS4gKi8NCiNkZWZpbmUgRFNQX0VEQ0RMT0FE
-QkFTRSAgICAgICAgICAgIChEU1BfRUJBU0UgKyAweDIxKQ0KDQovKiBBIHNwZWNpZmllZCBlbnRp
-dHkgd2FzIG5vdCBmb3VuZC4gICovDQojZGVmaW5lIERTUF9FTk9URk9VTkQgICAgICAgICAgICAg
-ICAoRFNQX0VCQVNFICsgMHgyZCkNCg0KLyogQSBzaGFyZWQgbWVtb3J5IGJ1ZmZlciBjb250YWlu
-ZWQgaW4gYSBtZXNzYWdlIG9yIHN0cmVhbSBjb3VsZCBub3QgYmUNCiAqIG1hcHBlZCB0byB0aGUg
-R1BQIGNsaWVudCBwcm9jZXNzJ3MgdmlydHVhbCBzcGFjZS4gKi8NCiNkZWZpbmUgRFNQX0VUUkFO
-U0xBVEUgICAgICAgICAgICAgIChEU1BfRUJBU0UgKyAweDJmKQ0KDQovKiBVbmFibGUgdG8gZmlu
-ZCBhIG5hbWVkIHNlY3Rpb24gaW4gRFNQIGV4ZWN1dGFibGUgKi8NCiNkZWZpbmUgRFNQX0VOT1NF
-Q1QgICAgICAgICAgICAgICAgIChEU1BfRUJBU0UgKyAweDMyKQ0KDQovKiBVbmFibGUgdG8gcmVh
-ZCBmaWxlICovDQojZGVmaW5lIERTUF9FRlJFQUQgICAgICAgICAgICAgICAgICAoRFNQX0VCQVNF
-ICsgMHgzNCkNCg0KLyogQSBub24tZXhpc3RlbnQgbWVtb3J5IHNlZ21lbnQgaWRlbnRpZmllciB3
-YXMgc3BlY2lmaWVkICovDQojZGVmaW5lIERTUF9FT1ZFUkxBWU1FTU9SWSAgICAgICAgICAoRFNQ
-X0VCQVNFICsgMHgzNykNCg0KLyogSW52YWxpZCBzZWdtZW50IElEICovDQojZGVmaW5lIERTUF9F
-QkFEU0VHSUQgICAgICAgICAgICAgICAoRFNQX0VCQVNFICsgMHgzOCkNCg0KLyogSW52YWxpZCBh
-bGlnbm1lbnQgKi8NCiNkZWZpbmUgRFNQX0VBTElHTk1FTlQgICAgICAgICAgICAgICAoRFNQX0VC
-QVNFICsgMHgzOSkNCg0KLyogSW52YWxpZCBzdHJlYW0gbW9kZSAqLw0KI2RlZmluZSBEU1BfRVNU
-Uk1NT0RFICAgICAgICAgICAgICAgKERTUF9FQkFTRSArIDB4M2EpDQoNCi8qIE5vdCBzaGFyZWQg
-bWVtb3J5ICovDQojZGVmaW5lIERTUF9FTk9UU0hBUkVETUVNICAgICAgICAgICAoRFNQX0VCQVNF
-ICsgMHgzYykNCg0KLyogRXJyb3Igb2NjdXJyZWQgaW4gYSBkeW5hbWljIGxvYWRlciBsaWJyYXJ5
-IGZ1bmN0aW9uICovDQojZGVmaW5lIERTUF9FRFlOTE9BRCAgICAgICAgICAgICAgICAoRFNQX0VC
-QVNFICsgMHgzZCkNCg0KLyogRGV2aWNlIGluICdzbGVlcC9zdXNwZW5kJyBtb2RlIGR1ZSB0byBE
-UE0gKi8NCiNkZWZpbmUgRFNQX0VEUE1TVVNQRU5EICAgICAgICAgICAgIChEU1BfRUJBU0UgKyAw
-eDNlKQ0KDQovKiBJbnZhbGlkIHBvaW50ZXIgcGFzc2VkIGludG8gYSBjb25maWd1cmF0aW9uIG1v
-ZHVsZSBmdW5jdGlvbiAqLw0KI2RlZmluZSBDRkdfRV9JTlZBTElEUE9JTlRFUiAgICAgICAgKENG
-R19FQkFTRSArIDB4MDApDQoNCi8qIEludmFsaWQgZGV2aWNlIG5vZGUgaGFuZGxlIHBhc3NlZCBp
-bnRvIGEgY29uZmlndXJhdGlvbiBtb2R1bGUgZnVuY3Rpb24uICovDQojZGVmaW5lIENGR19FX0lO
-VkFMSURIREVWTk9ERSAgICAgICAoQ0ZHX0VCQVNFICsgMHgwMSkNCg0KLyogVW5hYmxlIHRvIHJl
-dHJpZXZlIHJlc291cmNlIGluZm9ybWF0aW9uIGZyb20gdGhlIHJlZ2lzdHJ5LiAqLw0KI2RlZmlu
-ZSBDRkdfRV9SRVNPVVJDRU5PVEFWQUlMICAgICAgKENGR19FQkFTRSArIDB4MDIpDQoNCi8qIE5v
-IHN5bWJvbCB0YWJsZSBpcyBsb2FkZWQgZm9yIHRoaXMgYm9hcmQuICovDQojZGVmaW5lIENPRF9F
-X05PU1lNQk9MU0xPQURFRCAgICAgICAoQ09EX0VCQVNFICsgMHgwMCkNCg0KLyogU3ltYm9sIG5v
-dCBmb3VuZCBpbiBmb3IgdGhpcyBib2FyZC4gKi8NCiNkZWZpbmUgQ09EX0VfU1lNQk9MTk9URk9V
-TkQgICAgICAgIChDT0RfRUJBU0UgKyAweDAxKQ0KDQovKiBVbmFibGUgdG8gaW5pdGlhbGl6ZSB0
-aGUgWkwgQ09GRiBwYXJzaW5nIG1vZHVsZS4gKi8NCiNkZWZpbmUgQ09EX0VfWkxDUkVBVEVGQUlM
-RUQgICAgICAgIChDT0RfRUJBU0UgKyAweDAzKQ0KDQovKiBVbmFibGUgdG8gb3BlbiBEU1AgZXhl
-Y3V0YWJsZSBDT0ZGIGZpbGUuICovDQojZGVmaW5lIENPRF9FX09QRU5GQUlMRUQgICAgICAgICAg
-ICAoQ09EX0VCQVNFICsgMHgwNCkNCg0KLyogQXR0ZW1wdCB0byBjcmVhdGVkIGNoYW5uZWwgbWFu
-YWdlciB3aXRoIHRvbyBtYW55IGNoYW5uZWxzLiAqLw0KI2RlZmluZSBDSE5MX0VfTUFYQ0hBTk5F
-TFMgICAgICAgICAgKENITkxfRUJBU0UgKyAweDAwKQ0KDQovKiBObyBmcmVlIGNoYW5uZWxzIGFy
-ZSBhdmFpbGFibGUuICovDQojZGVmaW5lIENITkxfRV9PVVRPRlNUUkVBTVMgICAgICAgICAoQ0hO
-TF9FQkFTRSArIDB4MDIpDQoNCi8qIENoYW5uZWwgSUQgaXMgb3V0IG9mIHJhbmdlLiAqLw0KI2Rl
-ZmluZSBDSE5MX0VfQkFEQ0hBTklEICAgICAgICAgICAgKENITkxfRUJBU0UgKyAweDAzKQ0KDQov
-KiBkd1RpbWVPdXQgcGFyYW1ldGVyIHdhcyBDSE5MX0lPQ05PV0FJVCwgeWV0IG5vIEkvTyBjb21w
-bGV0aW9ucyB3ZXJlDQogKiBxdWV1ZWQuICovDQojZGVmaW5lIENITkxfRV9OT0lPQyAgICAgICAg
-ICAgICAgICAoQ0hOTF9FQkFTRSArIDB4MDYpDQoNCi8qIEVuZCBvZiBzdHJlYW0gd2FzIGFscmVh
-ZHkgcmVxdWVzdGVkIG9uIHRoaXMgb3V0cHV0IGNoYW5uZWwuICovDQojZGVmaW5lIENITkxfRV9F
-T1MgICAgICAgICAgICAgICAgICAoQ0hOTF9FQkFTRSArIDB4MDkpDQoNCi8qIERTUCB3b3JkIHNp
-emUgb2YgemVybyBjb25maWd1cmVkIGZvciB0aGlzIGRldmljZS4gKi8NCiNkZWZpbmUgQ0hOTF9F
-X0lOVkFMSURXT1JEU0laRSAgICAgIChDSE5MX0VCQVNFICsgMHgwRCkNCg0KLyogQSB6ZXJvIGxl
-bmd0aCBtZW1vcnkgYmFzZSB3YXMgc3BlY2lmaWVkIGZvciBhIHNoYXJlZCBtZW1vcnkgY2xhc3Mg
-ZHJpdmVyLiAqLw0KI2RlZmluZSBDSE5MX0VfSU5WQUxJRE1FTUJBU0UgICAgICAgKENITkxfRUJB
-U0UgKyAweDBFKQ0KDQovKiBNZW1vcnkgbWFwIGlzIG5vdCBjb25maWd1cmVkLCBvciB1bmFibGUg
-dG8gbWFwIHBoeXNpY2FsIHRvIGxpbmVhcg0KICogYWRkcmVzcy4gKi8NCiNkZWZpbmUgQ0hOTF9F
-X05PTUVNTUFQICAgICAgICAgICAgIChDSE5MX0VCQVNFICsgMHgwRikNCg0KLyogQXR0ZW1wdGVk
-IHRvIGNyZWF0ZSBhIGNoYW5uZWwgbWFuYWdlciAgd2hlbiBvbmUgYWxyZWFkeSBleGlzdHMuICov
-DQojZGVmaW5lIENITkxfRV9NR1JFWElTVFMgICAgICAgICAgICAoQ0hOTF9FQkFTRSArIDB4MTAp
-DQoNCi8qIFVuYWJsZSB0byBwbHVnIGNoYW5uZWwgSVNSIGZvciBjb25maWd1cmVkIElSUS4gKi8N
-CiNkZWZpbmUgQ0hOTF9FX0lTUiAgICAgICAgICAgICAgICAgIChDSE5MX0VCQVNFICsgMHgxMSkN
-Cg0KLyogTm8gZnJlZSBJL08gcmVxdWVzdCBwYWNrZXRzIGFyZSBhdmFpbGFibGUuICovDQojZGVm
-aW5lIENITkxfRV9OT0lPUlBTICAgICAgICAgICAgICAoQ0hOTF9FQkFTRSArIDB4MTIpDQoNCi8q
-IEJ1ZmZlciBzaXplIGlzIGxhcmdlciB0aGFuIHRoZSBzaXplIG9mIHBoeXNpY2FsIGNoYW5uZWwu
-IA0KKi8jZGVmaW5lIENITkxfRV9CVUZTSVpFICAgICAgICAgICAgICAoQ0hOTF9FQkFTRSArIDB4
-MTMpDQoNCi8qIFVzZXIgY2Fubm90IG1hcmsgZW5kIG9mIHN0cmVhbSBvbiBhbiBpbnB1dCBjaGFu
-bmVsLiANCiovI2RlZmluZSBDSE5MX0VfTk9FT1MgICAgICAgICAgICAgICAgKENITkxfRUJBU0Ug
-KyAweDE0KQ0KDQovKiBXYWl0IGZvciBmbHVzaCBvcGVyYXRpb24gb24gYW4gb3V0cHV0IGNoYW5u
-ZWwgdGltZWQgb3V0LiANCiovI2RlZmluZSBDSE5MX0VfV0FJVFRJTUVPVVQgICAgICAgICAgKENI
-TkxfRUJBU0UgKyAweDE1KQ0KDQovKiBJbnZhbGlkIHN1YmtleSBwYXJhbWV0ZXIuIA0KKi8jZGVm
-aW5lIFJFR19FX0lOVkFMSURTVUJLRVkgICAgICAgICAoUkVHX0VCQVNFICsgMHgwMCkNCg0KLyog
-Tm8gbW9yZSByZWdpc3RyeSB2YWx1ZXMuDQoqLyNkZWZpbmUgUkVHX0VfTk9NT1JFSVRFTVMgICAg
-ICAgICAgIChSRUdfRUJBU0UgKyAweDAyKQ0K
-
---_002_19F8576C6E063C45BE387C64729E7394044DEBEB1Cdbde02enttico_--
