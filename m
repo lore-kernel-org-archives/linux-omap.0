@@ -1,35 +1,71 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 3/3] DSPBRIDGE: auto select mailbox when compiling bridge
-Date: Thu, 25 Mar 2010 12:37:27 -0500
-Message-ID: <4BAB9F57.9070706@ti.com>
-References: <1269384510-1526-1-git-send-email-omar.ramirez@ti.com> <1269384510-1526-2-git-send-email-omar.ramirez@ti.com> <1269384510-1526-3-git-send-email-omar.ramirez@ti.com> <1269384510-1526-4-git-send-email-omar.ramirez@ti.com> <4BAA642C.8070500@ti.com>
+From: "Hebbar, Shivananda" <x0hebbar@ti.com>
+Subject: [RFC][PATCH 1/19] DSPBRIDGE: Cleanup custom error code
+ (DSP_EALREADYCONNECTED ->EISCONN)
+Date: Fri, 26 Mar 2010 01:36:11 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEB1D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41307 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36980 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751646Ab0CYRhc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Mar 2010 13:37:32 -0400
-In-Reply-To: <4BAA642C.8070500@ti.com>
+	id S1754378Ab0CYUGW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 16:06:22 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
 
-On 3/24/2010 2:12 PM, Chitriki Rudramuni, Deepak wrote:
-> Omar Ramirez Luna wrote:
->> Auto select mailbox when compiling bridgedriver.
->>
->> If selected as module, first install:
->> arch/arm/plat-omap/mailbox.ko
->> arch/arm/mach-omap2/mailbox_mach.ko
->>
->> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com
-[...]
-> Acked-by: Deepak Chitriki<deepak.chitriki@ti.com>
->
+>From 8efca5b26980b94ed9caa812fa702477d4b78fc2 Mon Sep 17 00:00:00 2001
+From: Shivananda Hebbar <x0hebbar@ti.com>
+Date: Tue, 23 Mar 2010 09:10:22 -0600
+Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_EALREADYCONNECTED ->EISCONN)
 
-Pushed to dspbridge.
+This patch replaces DSP_EALREADYCONNECTED with EISCONN.
 
-- Omar
+Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/errbase.h |    3 ---
+ drivers/dsp/bridge/rmgr/node.c                 |    4 ++--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/dspbridge/errbase.h b/arch/arm/plat-omap/include/dspbridge/errbase.h
+index d43ff86..a2fa786 100644
+--- a/arch/arm/plat-omap/include/dspbridge/errbase.h
++++ b/arch/arm/plat-omap/include/dspbridge/errbase.h
+@@ -69,9 +69,6 @@
+ /* The caller does not have access privileges to call this function */
+ #define DSP_EACCESSDENIED           (DSP_EBASE + 0)
+ 
+-/* The Specified Connection already exists */
+-#define DSP_EALREADYCONNECTED       (DSP_EBASE + 1)
+-
+ /* The GPP must be detached from the DSP before this function is called */
+ #define DSP_EATTACHED               (DSP_EBASE + 2)
+ 
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index c18539d..9535dfc 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -933,7 +933,7 @@ dsp_status node_connect(struct node_object *hNode1, u32 uStream1,
+ 			    &(hNode1->create_args.asa.
+ 			      task_arg_obj.strm_out_def[uStream1]);
+ 			if (output->sz_device != NULL)
+-				status = DSP_EALREADYCONNECTED;
++				status = EISCONN;
+ 
+ 		}
+ 		if (node2_type == NODE_TASK || node2_type == NODE_DAISSOCKET) {
+@@ -941,7 +941,7 @@ dsp_status node_connect(struct node_object *hNode1, u32 uStream1,
+ 			    &(hNode2->create_args.asa.
+ 			      task_arg_obj.strm_in_def[uStream2]);
+ 			if (input->sz_device != NULL)
+-				status = DSP_EALREADYCONNECTED;
++				status = EISCONN;
+ 
+ 		}
+ 	}
+-- 
+1.6.0.4
+
