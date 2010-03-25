@@ -1,20 +1,91 @@
-From: "L.A" <la@xcelco.on.ca>
-Subject: Microsoft Notification (Contact Via E-mail:dr_terrycole@btinternet.com)
-Date: Thu, 25 Mar 2010 05:42:40 -0400
-Message-ID: <1269510160.4bab301056b36@webmail.xcelco.on.ca>
-Reply-To: dr_terrycole@btinternet.com
-Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: [PATCH v2 1/2] omap i2c: make errata 1.153 workaround a separate function
+Date: Thu, 25 Mar 2010 11:52:36 +0200
+Message-ID: <1269510757-8119-2-git-send-email-virtuoso@slind.org>
+References: <20100316143025.GR2900@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta01.eastlink.ca ([24.224.136.8]:33933 "EHLO mta01.eastlink.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752694Ab0CYJm4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Mar 2010 05:42:56 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:23778 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256Ab0CYJxR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 05:53:17 -0400
+In-Reply-To: <20100316143025.GR2900@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ben-linux@fluff.org
+Cc: nm@ti.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Alexander Shishkin <virtuoso@slind.org>
 
-You have won 450,000 GBP. Send your Names,Address,Country,Age/Sex,Occupation,
-Tel., to us
+This is to avoid insanely long lines and levels of indentation.
 
+Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+Acked-by: Tony Lindgren <tony@atomide.com>
+CC: linux-i2c@vger.kernel.org
+CC: linux-omap@vger.kernel.org
+CC: nm@ti.com
+---
+ drivers/i2c/busses/i2c-omap.c |   43 ++++++++++++++++++++++------------------
+ 1 files changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 75bf3ad..2d146ac 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -671,6 +671,27 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
+ #define omap_i2c_rev1_isr		NULL
+ #endif
+ 
++/*
++ * OMAP3430 Errata 1.153: When an XRDY/XDR is hit, wait for XUDF before writing
++ * data to DATA_REG. Otherwise some data bytes can be lost while transferring
++ * them from the memory to the I2C interface.
++ */
++static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
++{
++	while (!(*stat & OMAP_I2C_STAT_XUDF)) {
++		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
++			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
++							OMAP_I2C_STAT_XDR));
++			*err |= OMAP_I2C_STAT_XUDF;
++			return -ETIMEDOUT;
++		}
++		cpu_relax();
++		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
++	}
++
++	return 0;
++}
++
+ static irqreturn_t
+ omap_i2c_isr(int this_irq, void *dev_id)
+ {
+@@ -794,25 +815,9 @@ complete:
+ 					break;
+ 				}
+ 
+-				/*
+-				 * OMAP3430 Errata 1.153: When an XRDY/XDR
+-				 * is hit, wait for XUDF before writing data
+-				 * to DATA_REG. Otherwise some data bytes can
+-				 * be lost while transferring them from the
+-				 * memory to the I2C interface.
+-				 */
+-
+-				if (dev->rev <= OMAP_I2C_REV_ON_3430) {
+-						while (!(stat & OMAP_I2C_STAT_XUDF)) {
+-							if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+-								omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+-								err |= OMAP_I2C_STAT_XUDF;
+-								goto complete;
+-							}
+-							cpu_relax();
+-							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+-						}
+-				}
++				if ((dev->rev <= OMAP_I2C_REV_ON_3430) &&
++				    errata_omap3_1p153(dev, &stat, &err))
++					goto complete;
+ 
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
+-- 
+1.6.3.3
 
