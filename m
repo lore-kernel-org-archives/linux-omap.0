@@ -1,54 +1,76 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [patch-2.6.35 (v2) 00/11] musb patches
-Date: Thu, 25 Mar 2010 13:25:17 +0200
-Message-ID: <1269516328-28267-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37475 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753797Ab0CYL0M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 07:26:12 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [patch-2.6.35 (v2) 01/11] usb: musb: debugfs: musb_exit_debugfs() can be called on probe
+Date: Thu, 25 Mar 2010 13:25:18 +0200
+Message-ID: <1269516328-28267-2-git-send-email-felipe.balbi@nokia.com>
+References: <1269516328-28267-1-git-send-email-felipe.balbi@nokia.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1269516328-28267-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-Hi Greg,
+when we fail to probe(), we can call musb_exit_debugfs().
+Allow that by removing section annotations.
 
-v2 of musb patches for next merge window.
+Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+---
 
-Again, sorry for the mistake.
+If wanted, this patch can amended with patch available
+at:
 
-Ajay Kumar Gupta (1):
-  musb: Add extvbus in musb_board_data
+http://kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-07-usb/usb-musb-add-debugfs-support.patch
 
-Anand Gadiyar (2):
-  usb: musb: omap2430: remove unused define
-  usb: musb: omap2430.c: remove unnecessary includes
+ drivers/usb/musb/musb_core.c    |    7 +++++--
+ drivers/usb/musb/musb_debugfs.c |    2 +-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-Cliff Cai (1):
-  USB: musb: support host/gadget role switching on Blackfin parts
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 80bc72c..e2f8bcf 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2057,12 +2057,12 @@ bad_config:
+ 
+ 	status = musb_init_debugfs(musb);
+ 	if (status < 0)
+-		goto fail2;
++		goto fail4;
+ 
+ #ifdef CONFIG_SYSFS
+ 	status = sysfs_create_group(&musb->controller->kobj, &musb_attr_group);
+ 	if (status)
+-		goto fail4;
++		goto fail5;
+ #endif
+ 
+ 	dev_info(dev, "USB %s mode controller at %p using %s, IRQ %d\n",
+@@ -2079,6 +2079,9 @@ bad_config:
+ 
+ 	return 0;
+ 
++fail5:
++	musb_exit_debugfs(musb);
++
+ fail4:
+ 	if (!is_otg_enabled(musb) && is_host_enabled(musb))
+ 		usb_remove_hcd(musb_to_hcd(musb));
+diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
+index b6a27ba..7768634 100644
+--- a/drivers/usb/musb/musb_debugfs.c
++++ b/drivers/usb/musb/musb_debugfs.c
+@@ -289,7 +289,7 @@ err0:
+ 	return ret;
+ }
+ 
+-void __exit musb_exit_debugfs(struct musb *musb)
++void /* __init_or_exit */ musb_exit_debugfs(struct musb *musb)
+ {
+ 	debugfs_remove_recursive(musb_debugfs_root);
+ }
+-- 
+1.7.0.rc0.33.g7c3932
 
-Felipe Balbi (2):
-  usb: musb: debugfs: musb_exit_debugfs() can be called on probe
-  usb: musb: Makefile: remove unexistent config option
-
-Heikki Krogerus (1):
-  usb: musb: add ulpi access operations
-
-Sergei Shtylyov (4):
-  MUSB: OMAP: remove omap_vbus_power()
-  MUSB: Blackfin: remove bfin_vbus_power()
-  MUSB: OMAP: make musb_platform_suspend() 'static'
-  MUSB: Blackfin: remove musb_platform_{suspend|resume}()
-
- arch/arm/mach-omap2/board-omap3evm.c  |    3 +
- arch/arm/mach-omap2/usb-musb.c        |    1 +
- arch/arm/plat-omap/include/plat/usb.h |    1 +
- drivers/usb/musb/Makefile             |    6 --
- drivers/usb/musb/blackfin.c           |   86 ++++++++++++++++++++++--------
- drivers/usb/musb/musb_core.c          |   93 ++++++++++++++++++++++++++++++++-
- drivers/usb/musb/musb_debugfs.c       |    2 +-
- drivers/usb/musb/musb_regs.h          |   10 ++++
- drivers/usb/musb/omap2430.c           |   16 +-----
- 9 files changed, 171 insertions(+), 47 deletions(-)
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
