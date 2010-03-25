@@ -1,71 +1,163 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [patch-2.6.35 (v2) 10/11] musb: Add extvbus in musb_board_data
-Date: Thu, 25 Mar 2010 13:25:27 +0200
-Message-ID: <1269516328-28267-11-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [patch-2.6.35 (v2) 11/11] usb: musb: add ulpi access operations
+Date: Thu, 25 Mar 2010 13:25:28 +0200
+Message-ID: <1269516328-28267-12-git-send-email-felipe.balbi@nokia.com>
 References: <1269516328-28267-1-git-send-email-felipe.balbi@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:38543 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754518Ab0CYL0n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 07:26:43 -0400
-In-Reply-To: <1269516328-28267-1-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1269516328-28267-1-git-send-email-felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Heikki Krogerus <ext-heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Ajay Kumar Gupta <ajay.gupta@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: Heikki Krogerus <ext-heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-EXTVBUS programming is required by OMAP3EVM REV >=E to supply 500mA
-power so adding a flag which can be used by musb driver to program
-EXTVBUS.
+This adds helper functions for ULPI access, and implements
+otg_io_access_ops for musb.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Heikki Krogerus <ext-heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-omap3evm.c  |    3 +++
- arch/arm/mach-omap2/usb-musb.c        |    1 +
- arch/arm/plat-omap/include/plat/usb.h |    1 +
- 3 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/usb/musb/musb_core.c |   86 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/musb/musb_regs.h |   10 +++++
+ 2 files changed, 96 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 017bb2f..7d7b5bc 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -702,6 +702,9 @@ static void __init omap3_evm_init(void)
- 		omap_mux_init_gpio(21, OMAP_PIN_INPUT_PULLUP);
- 		ehci_pdata.reset_gpio_port[1] = 21;
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index e2f8bcf..818c2b9 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -149,6 +149,87 @@ static inline struct musb *dev_to_musb(struct device *dev)
  
-+		/* EVM REV >= E can supply 500mA with EXTVBUS programming */
-+		musb_board_data.power = 500;
-+		musb_board_data.extvbus = 1;
- 	} else {
- 		/* setup EHCI phy reset on MDC */
- 		omap_mux_init_gpio(135, OMAP_PIN_OUTPUT);
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 6d41fa7..96f6787 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -107,6 +107,7 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
- 	musb_plat.board_data = board_data;
- 	musb_plat.power = board_data->power >> 1;
- 	musb_plat.mode = board_data->mode;
-+	musb_plat.extvbus = board_data->extvbus;
+ /*-------------------------------------------------------------------------*/
  
- 	if (platform_device_register(&musb_device) < 0)
- 		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 876ca8d..60c734f 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -47,6 +47,7 @@ struct omap_musb_board_data {
- 	u8	interface_type;
- 	u8	mode;
- 	u16	power;
-+	unsigned extvbus:1;
- };
++#ifndef CONFIG_BLACKFIN
++static int musb_ulpi_read(struct otg_transceiver *otg, u32 offset)
++{
++	void __iomem *addr = otg->io_priv;
++	int	i = 0;
++	u8	r;
++	u8	power;
++
++	/* Make sure the transceiver is not in low power mode */
++	power = musb_readb(addr, MUSB_POWER);
++	power &= ~MUSB_POWER_SUSPENDM;
++	musb_writeb(addr, MUSB_POWER, power);
++
++	/* REVISIT: musbhdrc_ulpi_an.pdf recommends setting the
++	 * ULPICarKitControlDisableUTMI after clearing POWER_SUSPENDM.
++	 */
++
++	musb_writeb(addr, MUSB_ULPI_REG_ADDR, (u8)offset);
++	musb_writeb(addr, MUSB_ULPI_REG_CONTROL,
++			MUSB_ULPI_REG_REQ | MUSB_ULPI_RDN_WR);
++
++	while (!(musb_readb(addr, MUSB_ULPI_REG_CONTROL)
++				& MUSB_ULPI_REG_CMPLT)) {
++		i++;
++		if (i == 10000) {
++			DBG(3, "ULPI read timed out\n");
++			return -ETIMEDOUT;
++		}
++
++	}
++	r = musb_readb(addr, MUSB_ULPI_REG_CONTROL);
++	r &= ~MUSB_ULPI_REG_CMPLT;
++	musb_writeb(addr, MUSB_ULPI_REG_CONTROL, r);
++
++	return musb_readb(addr, MUSB_ULPI_REG_DATA);
++}
++
++static int musb_ulpi_write(struct otg_transceiver *otg,
++		u32 offset, u32 data)
++{
++	void __iomem *addr = otg->io_priv;
++	int	i = 0;
++	u8	r = 0;
++	u8	power;
++
++	/* Make sure the transceiver is not in low power mode */
++	power = musb_readb(addr, MUSB_POWER);
++	power &= ~MUSB_POWER_SUSPENDM;
++	musb_writeb(addr, MUSB_POWER, power);
++
++	musb_writeb(addr, MUSB_ULPI_REG_ADDR, (u8)offset);
++	musb_writeb(addr, MUSB_ULPI_REG_DATA, (u8)data);
++	musb_writeb(addr, MUSB_ULPI_REG_CONTROL, MUSB_ULPI_REG_REQ);
++
++	while (!(musb_readb(addr, MUSB_ULPI_REG_CONTROL)
++				& MUSB_ULPI_REG_CMPLT)) {
++		i++;
++		if (i == 10000) {
++			DBG(3, "ULPI write timed out\n");
++			return -ETIMEDOUT;
++		}
++	}
++
++	r = musb_readb(addr, MUSB_ULPI_REG_CONTROL);
++	r &= ~MUSB_ULPI_REG_CMPLT;
++	musb_writeb(addr, MUSB_ULPI_REG_CONTROL, r);
++
++	return 0;
++}
++#else
++#define musb_ulpi_read(a, b)		NULL
++#define musb_ulpi_write(a, b, c)	NULL
++#endif
++
++static struct otg_io_access_ops musb_ulpi_access = {
++	.read = musb_ulpi_read,
++	.write = musb_ulpi_write,
++};
++
++/*-------------------------------------------------------------------------*/
++
+ #if !defined(CONFIG_USB_TUSB6010) && !defined(CONFIG_BLACKFIN)
  
- enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
+ /*
+@@ -1955,6 +2036,11 @@ bad_config:
+ 		goto fail3;
+ 	}
+ 
++	if (!musb->xceiv->io_ops) {
++		musb->xceiv->io_priv = musb->mregs;
++		musb->xceiv->io_ops = &musb_ulpi_access;
++	}
++
+ #ifndef CONFIG_MUSB_PIO_ONLY
+ 	if (use_dma && dev->dma_mask) {
+ 		struct dma_controller	*c;
+diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
+index fa55aac..2442675 100644
+--- a/drivers/usb/musb/musb_regs.h
++++ b/drivers/usb/musb/musb_regs.h
+@@ -75,6 +75,10 @@
+ /* MUSB ULPI VBUSCONTROL */
+ #define MUSB_ULPI_USE_EXTVBUS	0x01
+ #define MUSB_ULPI_USE_EXTVBUSIND 0x02
++/* ULPI_REG_CONTROL */
++#define MUSB_ULPI_REG_REQ	(1 << 0)
++#define MUSB_ULPI_REG_CMPLT	(1 << 1)
++#define MUSB_ULPI_RDN_WR	(1 << 2)
+ 
+ /* TESTMODE */
+ #define MUSB_TEST_FORCE_HOST	0x80
+@@ -251,6 +255,12 @@
+ /* REVISIT: vctrl/vstatus: optional vendor utmi+phy register at 0x68 */
+ #define MUSB_HWVERS		0x6C	/* 8 bit */
+ #define MUSB_ULPI_BUSCONTROL	0x70	/* 8 bit */
++#define MUSB_ULPI_INT_MASK	0x72	/* 8 bit */
++#define MUSB_ULPI_INT_SRC	0x73	/* 8 bit */
++#define MUSB_ULPI_REG_DATA	0x74	/* 8 bit */
++#define MUSB_ULPI_REG_ADDR	0x75	/* 8 bit */
++#define MUSB_ULPI_REG_CONTROL	0x76	/* 8 bit */
++#define MUSB_ULPI_RAW_DATA	0x77	/* 8 bit */
+ 
+ #define MUSB_EPINFO		0x78	/* 8 bit */
+ #define MUSB_RAMINFO		0x79	/* 8 bit */
 -- 
 1.7.0.rc0.33.g7c3932
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
