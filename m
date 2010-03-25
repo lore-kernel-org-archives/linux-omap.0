@@ -1,115 +1,53 @@
-From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: RE: [RFC][PATCH 0/19] Cleanup- custom error codes
-Date: Fri, 26 Mar 2010 03:07:00 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEB3B@dbde02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC][PATCH 0/19] Cleanup- custom error codes
+Date: Fri, 26 Mar 2010 00:08:16 +0200
+Message-ID: <94a0d4531003251508u1cd3d5f6l85636213b239b9bb@mail.gmail.com>
 References: <19F8576C6E063C45BE387C64729E7394044DEBEB1C@dbde02.ent.ti.com>
- <4BABCE66.7080304@ti.com>
+	 <4BABCE66.7080304@ti.com>
+	 <19F8576C6E063C45BE387C64729E7394044DEBEB3B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42158 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750962Ab0CYVhI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 17:37:08 -0400
-In-Reply-To: <4BABCE66.7080304@ti.com>
-Content-Language: en-US
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:62678 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750782Ab0CYWIS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 18:08:18 -0400
+Received: by bwz1 with SMTP id 1so1327623bwz.21
+        for <linux-omap@vger.kernel.org>; Thu, 25 Mar 2010 15:08:16 -0700 (PDT)
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DEBEB3B@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
+To: "Hebbar, Shivananda" <x0hebbar@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
 
+On Thu, Mar 25, 2010 at 11:37 PM, Hebbar, Shivananda <x0hebbar@ti.com> =
+wrote:
+>> love the cleanup *but*:
+>> arch/arm/plat-omap/include/dspbridge/dbdefs.h:typedef u32 dsp_status=
+;
+>> 1) All usage of dsp_status should be changed to int
+>
+> Looks like MM code uses this variable. Even MM code needs to be chang=
+ed for this. But changes are minimal.
 
- -----Original Message-----
-> From: Menon, Nishanth
-> Sent: Thursday, March 25, 2010 3:58 PM
-> To: Hebbar, Shivananda
-> Cc: linux-omap@vger.kernel.org; Ramirez Luna, Omar; Felipe Contreras;
-> Palande Ameya (Nokia-D/Helsinki)
-> Subject: Re: [RFC][PATCH 0/19] Cleanup- custom error codes
-> 
-> Hebbar, Shivananda had written, on 03/25/2010 03:06 PM, the following:
-> > This RFC patch series tries to address the use of Linux standard error
-> codes in dspbridge.
-> >
-> > 1. 41 error codes are not currently used in bridge. Hence they can be
-> removed.
-> 
-> >
-> > 2. 19 error codes are mapped to Linux standard error codes. Patches 1 to
-> 19 contains these changes.
-> >
-> > 3. 7 error codes are used as base address to access the rest of error
-> codes which can be removed. Some base addresses are removed as part of 1
-> but some are still kept as point 4 has dependency on these addresses.
-> > Ex: (Removed base address)
-> > /* FAILURE Codes: LDR */
-> > #define LDR_EBASE                   (DSP_COMP_EBASE + 0x100)
-> >
-> > /* Insufficient memory to export class driver services. */
-> > #define LDR_E_NOMEMORY              (LDR_EBASE + 0x00)
-> >
-> > /* Unable to find WMD file in system directory. */
-> > #define LDR_E_FILEUNABLETOOPEN      (LDR_EBASE + 0x01)
-> >
-> > 4. For 46 error codes, couldn't find an exact match in Linux error code.
-> This still needs to be worked out. This is not addressed in this patch
-> series. (See attached text file for details)
-> lets keep this for stage 2 cleanup.
-> >
-> > As for as OMX components concerned, they really don't care about the
-> specific error codes. Hence no changes required for the OMX code.
-> >
-> > Shivananda Hebbar (19)
-> >
-> > DSPBRIDGE: Cleanup custom error code (DSP_EALREADYCONNECTED ->EISCONN)
-> DSPBRIDGE: Cleanup custom error code (DSP_ECORRUPTFILE ->EBADF)
-> > DSPBRIDGE: Cleanup custom error code (DSP_EFILE ->ENOENT)
-> > DSPBRIDGE: Cleanup custom error code (DSP_EHANDLE -> EFAULT)
-> > DSPBRIDGE: Cleanup custom error code (DSP_EINVALIDARG -> EINVAL)
-> > DSPBRIDGE: Cleanup custom error code (DSP_ENOMEM -> ENOMEM)
-> > DSPBRIDGE: Cleanup custom error code (DSP_ENODETYPE -> EPERM)
-> > DSPBRIDGE: Cleanup custom error code (DSP_ENOTIMPL -> ENOSYS)
-> > DSPBRIDGE: Cleanup custom error code (DSP_EFOPEN -> EBADF)
-> > DSPBRIDGE: Cleanup custom error code (DSP_EPOINTER -> EFAULT)
-> > DSPBRIDGE: Cleanup custom error code (DSP_ERANGE -> EDOM)
-> > DSPBRIDGE: Cleanup custom error code (DSP_ESIZE -> EINVAL)
-> > DSPBRIDGE: Cleanup custom error code (DSP_ETIMEOUT -> ETIME)
-> > DSPBRIDGE: Cleanup custom error code (DSP_EVALUE -> EINVAL)
-> > DSPBRIDGE: Cleanup custom error code (DSP_EUUID -> ENOKEY)
-> > DSPBRIDGE: Cleanup custom error code (DSP_ENOTCONNECTED -> ENOTCONN)
-> > DSPBRIDGE: Cleanup custom error code (CHNL_E_CHANBUSY -> EALREADY)
-> > DSPBRIDGE: Cleanup custom error code (CHNL_E_CANCELLED -> ECANCELED)
-> > DSPBRIDGE: Cleanup custom error code (WMD_E_TIMEOUT -> ETIMEDOUT)
-> >
-> 
->  > Shivananda Hebbar (1)
->  >
->  > DSPBRIDGE: Cleanup- unused custom error codes
->  >
->  > Shivananda Hebbar (1)
->  >
->  > DSPBRIDGE: Cleanup- unused success codes
-> 
-> please add the remove unused codes into the series.
-Ok
-> love the cleanup *but*:
-> arch/arm/plat-omap/include/dspbridge/dbdefs.h:typedef u32 dsp_status;
-> 1) All usage of dsp_status should be changed to int
+What do you mean by MM uses this variable? If you mean user-space
+(omx, gst-dsp), then no, error codes are passed through ioctl, which
+returns an int.
 
-Looks like MM code uses this variable. Even MM code needs to be changed for this. But changes are minimal.
+And anyway on 32bit dsp_status =3D u32 =3D int.
 
-> 2) You should be using -Exxxx instead of Exxxxx in all the patches.
- Ok!!
+>> 2) You should be using -Exxxx instead of Exxxxx in all the patches.
+> =C2=A0Ok!!
 
-Regards,
-Shivananda
+Yeah, otherwise DSP_FAILED will fail.
 
-> 
-> >
-> >
-> [...]
-> 
-> --
-> Regards,
-> Nishanth Menon
+Cheers.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
