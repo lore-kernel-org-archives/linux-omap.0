@@ -1,91 +1,53 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: [PATCH v2 1/2] omap i2c: make errata 1.153 workaround a separate function
-Date: Thu, 25 Mar 2010 11:52:36 +0200
-Message-ID: <1269510757-8119-2-git-send-email-virtuoso@slind.org>
+From: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
+Subject: [PATCH v2 2/2] omap i2c: add a timeout to the busy waiting
+Date: Thu, 25 Mar 2010 11:52:37 +0200
+Message-ID: <1269510757-8119-3-git-send-email-virtuoso@slind.org>
 References: <20100316143025.GR2900@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23778 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256Ab0CYJxR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 05:53:17 -0400
-In-Reply-To: <20100316143025.GR2900@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100316143025.GR2900-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: nm-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ben-linux@fluff.org
-Cc: nm@ti.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Alexander Shishkin <virtuoso@slind.org>
 
-This is to avoid insanely long lines and levels of indentation.
+The errata 1.153 workaround is busy waiting on XUDF bit in interrupt
+context, which may lead to kernel hangs. The problem can be reproduced
+by running the bus with wrong (too high) speed.
 
-Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
-CC: linux-i2c@vger.kernel.org
-CC: linux-omap@vger.kernel.org
-CC: nm@ti.com
+Signed-off-by: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+CC: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+CC: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+CC: nm-l0cyMroinI0@public.gmane.org
 ---
- drivers/i2c/busses/i2c-omap.c |   43 ++++++++++++++++++++++------------------
- 1 files changed, 24 insertions(+), 19 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 75bf3ad..2d146ac 100644
+index 2d146ac..7d56a25 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -671,6 +671,27 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
- #define omap_i2c_rev1_isr		NULL
- #endif
- 
-+/*
-+ * OMAP3430 Errata 1.153: When an XRDY/XDR is hit, wait for XUDF before writing
-+ * data to DATA_REG. Otherwise some data bytes can be lost while transferring
-+ * them from the memory to the I2C interface.
-+ */
-+static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
-+{
-+	while (!(*stat & OMAP_I2C_STAT_XUDF)) {
-+		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
-+			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
-+							OMAP_I2C_STAT_XDR));
-+			*err |= OMAP_I2C_STAT_XUDF;
-+			return -ETIMEDOUT;
-+		}
-+		cpu_relax();
-+		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+	}
-+
-+	return 0;
-+}
-+
- static irqreturn_t
- omap_i2c_isr(int this_irq, void *dev_id)
+@@ -678,6 +678,8 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
+  */
+ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
  {
-@@ -794,25 +815,9 @@ complete:
- 					break;
- 				}
- 
--				/*
--				 * OMAP3430 Errata 1.153: When an XRDY/XDR
--				 * is hit, wait for XUDF before writing data
--				 * to DATA_REG. Otherwise some data bytes can
--				 * be lost while transferring them from the
--				 * memory to the I2C interface.
--				 */
--
--				if (dev->rev <= OMAP_I2C_REV_ON_3430) {
--						while (!(stat & OMAP_I2C_STAT_XUDF)) {
--							if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
--								omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
--								err |= OMAP_I2C_STAT_XUDF;
--								goto complete;
--							}
--							cpu_relax();
--							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
--						}
--				}
-+				if ((dev->rev <= OMAP_I2C_REV_ON_3430) &&
-+				    errata_omap3_1p153(dev, &stat, &err))
-+					goto complete;
- 
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
++	unsigned long timeout = jiffies + msecs_to_jiffies(1);
++
+ 	while (!(*stat & OMAP_I2C_STAT_XUDF)) {
+ 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+ 			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
+@@ -685,6 +687,12 @@ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ 			*err |= OMAP_I2C_STAT_XUDF;
+ 			return -ETIMEDOUT;
+ 		}
++
++		if (time_after(jiffies, timeout)) {
++			dev_err(dev->dev, "timeout waiting on XUDF bit\n");
++			return 0;
++		}
++
+ 		cpu_relax();
+ 		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 	}
 -- 
 1.6.3.3
-
