@@ -1,58 +1,41 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: PATCH] OMAP3: add mailbox initialization for 3630
-Date: Thu, 25 Mar 2010 18:44:38 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CADC341A@dlee06.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602CADC33F9@dlee06.ent.ti.com>
- <8F7AF80515AF0D4D93307E594F3CB40E4AB211C7@dlee03.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Ranjith Lohithakshan <ranjithl@ti.com>
+Subject: [PATCH] OMAP3: clock: fix enable bit used for dpll4_m4x2 clock
+Date: Fri, 26 Mar 2010 10:25:13 +0530
+Message-ID: <1269579313-10064-1-git-send-email-ranjithl@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56023 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751106Ab0CYXon convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Mar 2010 19:44:43 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4AB211C7@dlee03.ent.ti.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:46948 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751497Ab0CZEzU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Mar 2010 00:55:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, ranjithl@ti.com
 
+The enable bit for dpll4_m4x2 clock should be OMAP3430_PWRDN_DSS1_SHIFT.
+The code erroneously uses OMAP3430_PWRDN_CAM_SHIFT which is meant for
+dpll4_m5x2 clock.
 
+This came into notice during a recent review of the clock tree.
 
->-----Original Message-----
->From: Kanigeri, Hari
->Sent: Thursday, March 25, 2010 4:56 PM
->To: Guzman Lugo, Fernando; linux-omap@vger.kernel.org
->Cc: Doyu Hiroshi (Nokia-D/Helsinki); Palande Ameya (Nokia-D/Helsinki);
->Felipe Contreras
->Subject: RE: PATCH] OMAP3: add mailbox initialization for 3630
->
->Fernando,
->
->> +	if (cpu_is_omap2420() || cpu_is_omap3430() ||
->> +				cpu_is_omap3630() || cpu_is_omap44xx())
->
->looks like this check is applied to all OMAPS. Can we just remove this
->check ?
+Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-There is more defines for more versions like:
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index d5153b6..9cba556 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -895,7 +895,7 @@ static struct clk dpll4_m4x2_ck = {
+ 	.ops		= &clkops_omap2_dflt_wait,
+ 	.parent		= &dpll4_m4_ck,
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+-	.enable_bit	= OMAP3430_PWRDN_CAM_SHIFT,
++	.enable_bit	= OMAP3430_PWRDN_DSS1_SHIFT,
+ 	.flags		= INVERT_ENABLE,
+ 	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+-- 
+1.6.2.4
 
-cpu_is_omap2422
-cpu_is_omap3503
-... etc,
-
-But I suppose that the mailbox is valid for all of them 24XX, 34XX, 36XX, 44XX. But then why it was only checking for cpu_is_omap2420 or cpu_is_omap3430 or cpu_is_omap44xx?
-
-Maybe someone knows the reason. Otherwise I agree with you.
-
-Regards,
-Fernando.
-
-
-
->
->Thank you,
->Best regards,
->Hari
