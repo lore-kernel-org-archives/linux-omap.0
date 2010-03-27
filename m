@@ -1,278 +1,82 @@
 From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: [RFC][PATCH v1 14/19] DSPBRIDGE: Cleanup custom error code
- (DSP_EVALUE -> -EINVAL)
-Date: Sat, 27 Mar 2010 07:58:46 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEE14@dbde02.ent.ti.com>
+Subject: [RFC][PATCH v1 15/19] DSPBRIDGE: Cleanup custom error code
+ (DSP_EUUID -> -ENOKEY)
+Date: Sat, 27 Mar 2010 07:58:51 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEE15@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41930 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39552 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752757Ab0C0C2w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2010 22:28:52 -0400
+	id S1753138Ab0C0C25 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2010 22:28:57 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2R2SnJ7028821
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2R2SrIW006279
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 21:28:52 -0500
+	for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 21:28:56 -0500
 Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2R2SnJH026672
-	for <linux-omap@vger.kernel.org>; Sat, 27 Mar 2010 07:58:49 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2R2SrPu026676
+	for <linux-omap@vger.kernel.org>; Sat, 27 Mar 2010 07:58:53 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From dbd66bb187c17c027db6d8106cf878cf74bdcc43 Mon Sep 17 00:00:00 2001
+>From 67e5343bec9a3f262a02b65fa92c98a1170100f2 Mon Sep 17 00:00:00 2001
 From: Shivananda Hebbar <x0hebbar@ti.com>
-Date: Wed, 24 Mar 2010 12:40:50 -0600
-Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_EVALUE -> -EINVAL)
+Date: Wed, 24 Mar 2010 12:47:45 -0600
+Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_EUUID -> -ENOKEY)
 
-This patch replaces DSP_EVALUE with -EINVAL.
+This patch replaces DSP_EUUID with -ENOKEY.
 
 Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/errbase.h  |    3 ---
- arch/arm/plat-omap/include/dspbridge/node.h     |    4 ++--
- arch/arm/plat-omap/include/dspbridge/nodepriv.h |    2 +-
- arch/arm/plat-omap/include/dspbridge/ntfy.h     |    2 +-
- arch/arm/plat-omap/include/dspbridge/proc.h     |    2 +-
- arch/arm/plat-omap/include/dspbridge/strm.h     |    4 ++--
- arch/arm/plat-omap/include/dspbridge/wmd.h      |    2 +-
- drivers/dsp/bridge/rmgr/node.c                  |   10 +++++-----
- drivers/dsp/bridge/rmgr/proc.c                  |    6 +++---
- drivers/dsp/bridge/rmgr/strm.c                  |    4 ++--
- drivers/dsp/bridge/services/ntfy.c              |    2 +-
- drivers/dsp/bridge/wmd/msg_sm.c                 |    2 +-
- 12 files changed, 20 insertions(+), 23 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/errbase.h |    3 ---
+ arch/arm/plat-omap/include/dspbridge/node.h    |    2 +-
+ drivers/dsp/bridge/rmgr/dbdcd.c                |    2 +-
+ 3 files changed, 2 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/errbase.h b/arch/arm/plat-omap/include/dspbridge/errbase.h
-index 874054c..dedca5d 100644
+index dedca5d..7e2f0b6 100644
 --- a/arch/arm/plat-omap/include/dspbridge/errbase.h
 +++ b/arch/arm/plat-omap/include/dspbridge/errbase.h
-@@ -110,9 +110,6 @@
+@@ -122,9 +122,6 @@
+  * found in the COFF file. */
+ #define DSP_ESYMBOL                 (DSP_EBASE + 0x1c)
  
- #define DSP_ETRUNCATED              (DSP_EBASE + 0x18)
- 
--/* A parameter is invalid. */
--#define DSP_EVALUE                  (DSP_EBASE + 0x1a)
+-/* UUID not found in registry. */
+-#define DSP_EUUID                   (DSP_EBASE + 0x1d)
 -
- /* The state of the specified object is incorrect for the requested
-  * operation. */
- #define DSP_EWRONGSTATE             (DSP_EBASE + 0x1b)
+ /* Unable to read content of DCD data section ; this is typically caused by
+  * improperly configured nodes. */
+ #define DSP_EDCDREADSECT            (DSP_EBASE + 0x1e)
 diff --git a/arch/arm/plat-omap/include/dspbridge/node.h b/arch/arm/plat-omap/include/dspbridge/node.h
-index 9fe302e..00affd0 100644
+index 00affd0..073991b 100644
 --- a/arch/arm/plat-omap/include/dspbridge/node.h
 +++ b/arch/arm/plat-omap/include/dspbridge/node.h
-@@ -167,7 +167,7 @@ extern dsp_status node_close_orphans(struct node_mgr *hnode_mgr,
-  *      DSP_SOK:                Success.
-  *      -EFAULT:            Invalid hNode1 or hNode2.
-  *      -ENOMEM:            Insufficient host memory.
-- *      DSP_EVALUE:             A stream index parameter is invalid.
-+ *      -EINVAL:             A stream index parameter is invalid.
-  *      DSP_EALREADYCONNECTED:  A connection already exists for one of the
-  *                              indices uStream1 or uStream2.
-  *      DSP_EWRONGSTATE:        Either hNode1 or hNode2 is not in the
-@@ -492,7 +492,7 @@ extern dsp_status node_put_message(struct node_object *hnode,
-  *      DSP_SOK:        Success.
-  *      -EFAULT:    Invalid hnode.
-  *      -ENOMEM:    Insufficient memory on GPP.
-- *      DSP_EVALUE:     event_mask is invalid.
-+ *      -EINVAL:     event_mask is invalid.
-  *      -ENOSYS:   Notification type specified by notify_type is not
-  *                      supported.
-  *  Requires:
-diff --git a/arch/arm/plat-omap/include/dspbridge/nodepriv.h b/arch/arm/plat-omap/include/dspbridge/nodepriv.h
-index 05118bf..96b5e54 100644
---- a/arch/arm/plat-omap/include/dspbridge/nodepriv.h
-+++ b/arch/arm/plat-omap/include/dspbridge/nodepriv.h
-@@ -93,7 +93,7 @@ struct node_createargs {
-  *      DSP_SOK:        Success.
-  *      -EFAULT:    Invalid hnode.
-  *      -EPERM:  Not a task or DAIS socket node.
-- *      DSP_EVALUE:     The node's stream corresponding to index and dir
-+ *      -EINVAL:     The node's stream corresponding to index and dir
-  *                      is not a stream to or from the host.
-  *  Requires:
-  *      node_init(void) called.
-diff --git a/arch/arm/plat-omap/include/dspbridge/ntfy.h b/arch/arm/plat-omap/include/dspbridge/ntfy.h
-index 3109c44..d59e0fb 100644
---- a/arch/arm/plat-omap/include/dspbridge/ntfy.h
-+++ b/arch/arm/plat-omap/include/dspbridge/ntfy.h
-@@ -107,7 +107,7 @@ extern void ntfy_notify(IN struct ntfy_object *ntfy_obj, IN u32 event_mask);
+@@ -40,7 +40,7 @@
   *  Returns:
   *      DSP_SOK:            Success.
-  *      -ENOMEM:        Insufficient memory.
-- *      DSP_EVALUE:         event_mask is 0 and hnotification was not
-+ *      -EINVAL:         event_mask is 0 and hnotification was not
-  *                          previously registered.
-  *      -EFAULT:        NULL hnotification, hnotification event name
-  *                          too long, or hnotification event name NULL.
-diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
-index e276cb7..5435169 100644
---- a/arch/arm/plat-omap/include/dspbridge/proc.h
-+++ b/arch/arm/plat-omap/include/dspbridge/proc.h
-@@ -353,7 +353,7 @@ extern dsp_status proc_load(void *hprocessor,
-  *  Returns:
-  *      DSP_SOK     :   Success.
-  *      -EFAULT :   Invalid processor handle or hnotification.
-- *      DSP_EVALUE  :   Parameter event_mask is Invalid
-+ *      -EINVAL  :   Parameter event_mask is Invalid
-  *      DSP_ENOTIMP :   The notification type specified in uNotifyMask
-  *		      is not supported.
-  *      DSP_EFAIL   :   Unable to register for notification.
-diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
-index 507c25a..f53d66b 100644
---- a/arch/arm/plat-omap/include/dspbridge/strm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/strm.h
-@@ -260,7 +260,7 @@ extern dsp_status strm_issue(struct strm_object *hStrm, IN u8 * pbuf,
-  *      DSP_SOK:        Success.
-  *      -EFAULT:    Invalid hnode.
-  *      DSP_EDIRECTION: Invalid dir.
-- *      DSP_EVALUE:     Invalid index.
-+ *      -EINVAL:     Invalid index.
-  *      -EPERM:  hnode is not a task or DAIS socket node.
-  *      DSP_EFAIL:      Unable to open stream.
-  *  Requires:
-@@ -339,7 +339,7 @@ extern dsp_status strm_reclaim(struct strm_object *hStrm,
-  *      DSP_SOK:        Success.
-  *      -EFAULT:    Invalid hStrm.
-  *      -ENOMEM:    Insufficient memory on GPP.
-- *      DSP_EVALUE:     event_mask is invalid.
-+ *      -EINVAL:     event_mask is invalid.
-  *      -ENOSYS:   Notification type specified by notify_type is not
-  *                      supported.
-  *  Requires:
-diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
-index f1ede4e..339acfd 100644
---- a/arch/arm/plat-omap/include/dspbridge/wmd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
-@@ -631,7 +631,7 @@ typedef dsp_status(*fxn_chnl_idle) (struct chnl_object *chnl_obj,
-  *  Returns:
-  *      DSP_SOK:        Success.
-  *      -ENOMEM:    Insufficient memory.
-- *      DSP_EVALUE:     event_mask is 0 and hnotification was not
-+ *      -EINVAL:     event_mask is 0 and hnotification was not
-  *                      previously registered.
-  *      -EFAULT:    NULL hnotification, hnotification event name
-  *                      too long, or hnotification event name NULL.
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 72e4c93..b26052c 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -879,7 +879,7 @@ dsp_status node_connect(struct node_object *hNode1, u32 uStream1,
- 							  NODE_DEVICE
- 							  && uStream2 >=
- 							  MAX_INPUTS(hNode2)))
--			status = DSP_EVALUE;
-+			status = -EINVAL;
+  *      -ENOMEM:        Insufficient memory on GPP.
+- *      DSP_EUUID:          Node UUID has not been registered.
++ *      -ENOKEY:          Node UUID has not been registered.
+  *      DSP_ESYMBOL:        iAlg functions not found for a DAIS node.
+  *      -EDOM:         attr_in != NULL and attr_in->prio out of
+  *                          range.
+diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
+index f3a2ebf..21333fc 100644
+--- a/drivers/dsp/bridge/rmgr/dbdcd.c
++++ b/drivers/dsp/bridge/rmgr/dbdcd.c
+@@ -441,7 +441,7 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+ 		    reg_get_value(sz_reg_key, (u8 *) sz_reg_data, &dw_buf_size);
+ 
+ 	if (DSP_FAILED(status)) {
+-		status = DSP_EUUID;
++		status = -ENOKEY;
+ 		goto func_end;
  	}
- 	if (DSP_SUCCEEDED(status)) {
- 		/*
-@@ -1772,7 +1772,7 @@ dsp_status node_get_channel_id(struct node_object *hnode, u32 dir, u32 index,
- 			       OUT u32 *pulId)
- {
- 	enum node_type node_type;
--	dsp_status status = DSP_EVALUE;
-+	dsp_status status = -EINVAL;
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(dir == DSP_TONODE || dir == DSP_FROMNODE);
- 	DBC_REQUIRE(pulId != NULL);
-@@ -2224,16 +2224,16 @@ dsp_status node_register_notify(struct node_object *hnode, u32 event_mask,
- 	} else {
- 		/* Check if event mask is a valid node related event */
- 		if (event_mask & ~(DSP_NODESTATECHANGE | DSP_NODEMESSAGEREADY))
--			status = DSP_EVALUE;
-+			status = -EINVAL;
  
- 		/* Check if notify type is valid */
- 		if (notify_type != DSP_SIGNALEVENT)
--			status = DSP_EVALUE;
-+			status = -EINVAL;
- 
- 		/* Only one Notification can be registered at a
- 		 * time - Limitation */
- 		if (event_mask == (DSP_NODESTATECHANGE | DSP_NODEMESSAGEREADY))
--			status = DSP_EVALUE;
-+			status = -EINVAL;
- 	}
- 	if (DSP_SUCCEEDED(status)) {
- 		if (event_mask == DSP_NODESTATECHANGE) {
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index d79971f..bdd11a1 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -623,7 +623,7 @@ dsp_status proc_get_resource_info(void *hprocessor, u32 resource_type,
- 					      (struct dsp_memstat *)
- 					      &(resource_info->result.
- 						mem_stat)))
--					status = DSP_EVALUE;
-+					status = -EINVAL;
- 			}
- 		}
- 		break;
-@@ -1150,11 +1150,11 @@ dsp_status proc_register_notify(void *hprocessor, u32 event_mask,
- 	if (event_mask & ~(DSP_PROCESSORSTATECHANGE | DSP_PROCESSORATTACH |
- 			   DSP_PROCESSORDETACH | DSP_PROCESSORRESTART |
- 			   DSP_MMUFAULT | DSP_SYSERROR | DSP_PWRERROR))
--		status = DSP_EVALUE;
-+		status = -EINVAL;
- 
- 	/* Check if notify type is valid */
- 	if (notify_type != DSP_SIGNALEVENT)
--		status = DSP_EVALUE;
-+		status = -EINVAL;
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		/* If event mask is not DSP_SYSERROR, DSP_MMUFAULT,
-diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index 968a172..b78360f 100644
---- a/drivers/dsp/bridge/rmgr/strm.c
-+++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -614,7 +614,7 @@ func_cont:
- 		    MEM_IS_VALID_HANDLE((*phStrm), STRM_SIGNATURE)) ||
- 		   (*phStrm == NULL && (status == -EFAULT ||
- 					status == DSP_EDIRECTION
--					|| status == DSP_EVALUE
-+					|| status == -EINVAL
- 					|| status == DSP_EFAIL)));
- 
- 	dev_dbg(bridge, "%s: hnode: %p dir: 0x%x index: 0x%x pattr: %p "
-@@ -724,7 +724,7 @@ dsp_status strm_register_notify(struct strm_object *hStrm, u32 event_mask,
- 		status = -EFAULT;
- 	} else if ((event_mask & ~((DSP_STREAMIOCOMPLETION) |
- 				   DSP_STREAMDONE)) != 0) {
--		status = DSP_EVALUE;
-+		status = -EINVAL;
- 	} else {
- 		if (notify_type != DSP_SIGNALEVENT)
- 			status = -ENOSYS;
-diff --git a/drivers/dsp/bridge/services/ntfy.c b/drivers/dsp/bridge/services/ntfy.c
-index e64928b..a440ae4 100644
---- a/drivers/dsp/bridge/services/ntfy.c
-+++ b/drivers/dsp/bridge/services/ntfy.c
-@@ -242,7 +242,7 @@ dsp_status ntfy_register(struct ntfy_object *ntfy_obj,
- 	if (notifier_obj == NULL) {
- 		/* Not registered */
- 		if (event_mask == 0) {
--			status = DSP_EVALUE;
-+			status = -EINVAL;
- 		} else {
- 			/* Allocate notifier object, add to list */
- 			notifier_obj = mem_calloc(sizeof(struct notifier),
-diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-index e78b10c..acfa780 100644
---- a/drivers/dsp/bridge/wmd/msg_sm.c
-+++ b/drivers/dsp/bridge/wmd/msg_sm.c
-@@ -503,7 +503,7 @@ dsp_status bridge_msg_register_notify(struct msg_queue *msg_queue_obj,
- 	    ntfy_register(msg_queue_obj->ntfy_obj, hnotification, event_mask,
- 			  notify_type);
- 
--	if (status == DSP_EVALUE) {
-+	if (status == -EINVAL) {
- 		/*  Not registered. Ok, since we couldn't have known. Node
- 		 *  notifications are split between node state change handled
- 		 *  by NODE, and message ready handled by msg_ctrl. */
 -- 
 1.6.0.4
 
