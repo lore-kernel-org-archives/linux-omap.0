@@ -1,273 +1,278 @@
 From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: [RFC][PATCH v1 12/19] DSPBRIDGE: Cleanup custom error code
- (DSP_ESIZE -> -EINVAL)
-Date: Sat, 27 Mar 2010 07:58:31 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEE12@dbde02.ent.ti.com>
+Subject: [RFC][PATCH v1 14/19] DSPBRIDGE: Cleanup custom error code
+ (DSP_EVALUE -> -EINVAL)
+Date: Sat, 27 Mar 2010 07:58:46 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEE14@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41927 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41930 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752882Ab0C0C2i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2010 22:28:38 -0400
+	id S1752757Ab0C0C2w convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2010 22:28:52 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2R2SYSt028818
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2R2SnJ7028821
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 21:28:37 -0500
+	for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 21:28:52 -0500
 Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2R2SYLA026655
-	for <linux-omap@vger.kernel.org>; Sat, 27 Mar 2010 07:58:34 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2R2SnJH026672
+	for <linux-omap@vger.kernel.org>; Sat, 27 Mar 2010 07:58:49 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 992e701bbfcd681cee8af53cfe6fabc32d6d02a3 Mon Sep 17 00:00:00 2001
+>From dbd66bb187c17c027db6d8106cf878cf74bdcc43 Mon Sep 17 00:00:00 2001
 From: Shivananda Hebbar <x0hebbar@ti.com>
-Date: Wed, 24 Mar 2010 11:44:03 -0600
-Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_ESIZE -> -EINVAL)
+Date: Wed, 24 Mar 2010 12:40:50 -0600
+Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_EVALUE -> -EINVAL)
 
-This patch replaces DSP_ESIZE with -EINVAL.
+This patch replaces DSP_EVALUE with -EINVAL.
 
 Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/errbase.h |    3 ---
- arch/arm/plat-omap/include/dspbridge/node.h    |    6 +++---
- arch/arm/plat-omap/include/dspbridge/proc.h    |    2 +-
- arch/arm/plat-omap/include/dspbridge/strm.h    |    4 ++--
- drivers/dsp/bridge/pmgr/wcd.c                  |   18 +++++++++---------
- drivers/dsp/bridge/rmgr/node.c                 |    2 +-
- drivers/dsp/bridge/rmgr/proc.c                 |    2 +-
- drivers/dsp/bridge/rmgr/strm.c                 |    4 ++--
- drivers/dsp/bridge/services/cfg.c              |    2 +-
- 9 files changed, 20 insertions(+), 23 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/errbase.h  |    3 ---
+ arch/arm/plat-omap/include/dspbridge/node.h     |    4 ++--
+ arch/arm/plat-omap/include/dspbridge/nodepriv.h |    2 +-
+ arch/arm/plat-omap/include/dspbridge/ntfy.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/proc.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/strm.h     |    4 ++--
+ arch/arm/plat-omap/include/dspbridge/wmd.h      |    2 +-
+ drivers/dsp/bridge/rmgr/node.c                  |   10 +++++-----
+ drivers/dsp/bridge/rmgr/proc.c                  |    6 +++---
+ drivers/dsp/bridge/rmgr/strm.c                  |    4 ++--
+ drivers/dsp/bridge/services/ntfy.c              |    2 +-
+ drivers/dsp/bridge/wmd/msg_sm.c                 |    2 +-
+ 12 files changed, 20 insertions(+), 23 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/errbase.h b/arch/arm/plat-omap/include/dspbridge/errbase.h
-index 1cc0101..87667a6 100644
+index 874054c..dedca5d 100644
 --- a/arch/arm/plat-omap/include/dspbridge/errbase.h
 +++ b/arch/arm/plat-omap/include/dspbridge/errbase.h
-@@ -99,9 +99,6 @@
- /* I/O is currently pending. */
- #define DSP_EPENDING                (DSP_EBASE + 0x11)
+@@ -110,9 +110,6 @@
  
--/* An invalid size parameter was specified. */
--#define DSP_ESIZE                   (DSP_EBASE + 0x14)
+ #define DSP_ETRUNCATED              (DSP_EBASE + 0x18)
+ 
+-/* A parameter is invalid. */
+-#define DSP_EVALUE                  (DSP_EBASE + 0x1a)
 -
- /* A stream creation failure occurred on the DSP. */
- #define DSP_ESTREAM                 (DSP_EBASE + 0x15)
- 
+ /* The state of the specified object is incorrect for the requested
+  * operation. */
+ #define DSP_EWRONGSTATE             (DSP_EBASE + 0x1b)
 diff --git a/arch/arm/plat-omap/include/dspbridge/node.h b/arch/arm/plat-omap/include/dspbridge/node.h
-index 814065f..7d882f2 100644
+index 9fe302e..00affd0 100644
 --- a/arch/arm/plat-omap/include/dspbridge/node.h
 +++ b/arch/arm/plat-omap/include/dspbridge/node.h
-@@ -79,7 +79,7 @@ extern dsp_status node_allocate(struct proc_object *hprocessor,
-  *      -EFAULT:    Invalid node handle.
-  *      -ENOMEM:    Insufficent memory.
-  *      DSP_EFAIL:      General Failure.
-- *      DSP_ESIZE:      Invalid Size.
-+ *      -EINVAL:      Invalid Size.
+@@ -167,7 +167,7 @@ extern dsp_status node_close_orphans(struct node_mgr *hnode_mgr,
+  *      DSP_SOK:                Success.
+  *      -EFAULT:            Invalid hNode1 or hNode2.
+  *      -ENOMEM:            Insufficient host memory.
+- *      DSP_EVALUE:             A stream index parameter is invalid.
++ *      -EINVAL:             A stream index parameter is invalid.
+  *      DSP_EALREADYCONNECTED:  A connection already exists for one of the
+  *                              indices uStream1 or uStream2.
+  *      DSP_EWRONGSTATE:        Either hNode1 or hNode2 is not in the
+@@ -492,7 +492,7 @@ extern dsp_status node_put_message(struct node_object *hnode,
+  *      DSP_SOK:        Success.
+  *      -EFAULT:    Invalid hnode.
+  *      -ENOMEM:    Insufficient memory on GPP.
+- *      DSP_EVALUE:     event_mask is invalid.
++ *      -EINVAL:     event_mask is invalid.
+  *      -ENOSYS:   Notification type specified by notify_type is not
+  *                      supported.
+  *  Requires:
+diff --git a/arch/arm/plat-omap/include/dspbridge/nodepriv.h b/arch/arm/plat-omap/include/dspbridge/nodepriv.h
+index 05118bf..96b5e54 100644
+--- a/arch/arm/plat-omap/include/dspbridge/nodepriv.h
++++ b/arch/arm/plat-omap/include/dspbridge/nodepriv.h
+@@ -93,7 +93,7 @@ struct node_createargs {
+  *      DSP_SOK:        Success.
+  *      -EFAULT:    Invalid hnode.
+  *      -EPERM:  Not a task or DAIS socket node.
+- *      DSP_EVALUE:     The node's stream corresponding to index and dir
++ *      -EINVAL:     The node's stream corresponding to index and dir
+  *                      is not a stream to or from the host.
   *  Requires:
   *      node_init(void) called.
-  *      pbuffer != NULL.
-@@ -292,14 +292,14 @@ extern dsp_status node_delete_mgr(struct node_mgr *hnode_mgr);
-  *      pu_allocated:    Location to write total number of allocated nodes.
-  *  Returns:
-  *      DSP_SOK:        Success.
-- *      DSP_ESIZE:      node_tab is too small to hold all node handles.
-+ *      -EINVAL:      node_tab is too small to hold all node handles.
-  *  Requires:
-  *      Valid hnode_mgr.
-  *      node_tab != NULL || node_tab_size == 0.
-  *      pu_num_nodes != NULL.
-  *      pu_allocated != NULL.
-  *  Ensures:
-- *      - (DSP_ESIZE && *pu_num_nodes == 0)
-+ *      - (EINVAL && *pu_num_nodes == 0)
-  *      - || (DSP_SOK && *pu_num_nodes <= node_tab_size)  &&
-  *        (*pu_allocated == *pu_num_nodes)
-  */
-diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
-index 5220a1b..64b208c 100644
---- a/arch/arm/plat-omap/include/dspbridge/proc.h
-+++ b/arch/arm/plat-omap/include/dspbridge/proc.h
-@@ -138,7 +138,7 @@ extern dsp_status proc_detach(struct process_context *pr_ctxt);
-  *  Returns:
-  *      DSP_SOK     :   Success.
-  *      -EFAULT :   Invalid processor handle.
-- *      DSP_ESIZE   :   The amount of memory allocated for node_tab is
-+ *      -EINVAL   :   The amount of memory allocated for node_tab is
-  *		      insufficent. That is the number of nodes actually
-  *		      allocated on the DSP is greater than the value
-  *		      specified for node_tab_size.
-diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
-index 73902a8..6f86c04 100644
---- a/arch/arm/plat-omap/include/dspbridge/strm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/strm.h
-@@ -38,7 +38,7 @@
-  *      -EFAULT:    Invalid hStrm.
-  *      -ENOMEM:    Insufficient memory.
-  *      DSP_EFAIL:      Failure occurred, unable to allocate buffers.
-- *      DSP_ESIZE:      usize must be > 0 bytes.
-+ *      -EINVAL:      usize must be > 0 bytes.
-  *  Requires:
-  *      strm_init(void) called.
-  *      ap_buffer != NULL.
-@@ -172,7 +172,7 @@ extern dsp_status strm_get_event_handle(struct strm_object *hStrm,
+diff --git a/arch/arm/plat-omap/include/dspbridge/ntfy.h b/arch/arm/plat-omap/include/dspbridge/ntfy.h
+index 3109c44..d59e0fb 100644
+--- a/arch/arm/plat-omap/include/dspbridge/ntfy.h
++++ b/arch/arm/plat-omap/include/dspbridge/ntfy.h
+@@ -107,7 +107,7 @@ extern void ntfy_notify(IN struct ntfy_object *ntfy_obj, IN u32 event_mask);
   *  Returns:
   *      DSP_SOK:            Success.
-  *      -EFAULT:        Invalid hStrm.
-- *      DSP_ESIZE:          stream_info_size < sizeof(dsp_streaminfo).
-+ *      -EINVAL:          stream_info_size < sizeof(dsp_streaminfo).
-  *      DSP_EFAIL:          Unable to get stream info.
+  *      -ENOMEM:        Insufficient memory.
+- *      DSP_EVALUE:         event_mask is 0 and hnotification was not
++ *      -EINVAL:         event_mask is 0 and hnotification was not
+  *                          previously registered.
+  *      -EFAULT:        NULL hnotification, hnotification event name
+  *                          too long, or hnotification event name NULL.
+diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
+index e276cb7..5435169 100644
+--- a/arch/arm/plat-omap/include/dspbridge/proc.h
++++ b/arch/arm/plat-omap/include/dspbridge/proc.h
+@@ -353,7 +353,7 @@ extern dsp_status proc_load(void *hprocessor,
+  *  Returns:
+  *      DSP_SOK     :   Success.
+  *      -EFAULT :   Invalid processor handle or hnotification.
+- *      DSP_EVALUE  :   Parameter event_mask is Invalid
++ *      -EINVAL  :   Parameter event_mask is Invalid
+  *      DSP_ENOTIMP :   The notification type specified in uNotifyMask
+  *		      is not supported.
+  *      DSP_EFAIL   :   Unable to register for notification.
+diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
+index 507c25a..f53d66b 100644
+--- a/arch/arm/plat-omap/include/dspbridge/strm.h
++++ b/arch/arm/plat-omap/include/dspbridge/strm.h
+@@ -260,7 +260,7 @@ extern dsp_status strm_issue(struct strm_object *hStrm, IN u8 * pbuf,
+  *      DSP_SOK:        Success.
+  *      -EFAULT:    Invalid hnode.
+  *      DSP_EDIRECTION: Invalid dir.
+- *      DSP_EVALUE:     Invalid index.
++ *      -EINVAL:     Invalid index.
+  *      -EPERM:  hnode is not a task or DAIS socket node.
+  *      DSP_EFAIL:      Unable to open stream.
   *  Requires:
-  *      strm_init(void) called.
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 6937ea6..7186f5d 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -420,7 +420,7 @@ u32 mgrwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt)
- 	u32 size = args->args_mgr_enumnode_info.undb_props_size;
- 
- 	if (size < sizeof(struct dsp_ndbprops))
--		return DSP_ESIZE;
-+		return -EINVAL;
- 
- 	pndb_props = mem_alloc(size, MEM_NONPAGED);
- 	if (pndb_props == NULL)
-@@ -452,7 +452,7 @@ u32 mgrwrap_enum_proc_info(union Trapped_Args *args, void *pr_ctxt)
- 	u32 size = args->args_mgr_enumproc_info.processor_info_size;
- 
- 	if (size < sizeof(struct dsp_processorinfo))
--		return DSP_ESIZE;
-+		return -EINVAL;
- 
- 	processor_info = mem_alloc(size, MEM_NONPAGED);
- 	if (processor_info == NULL)
-@@ -664,7 +664,7 @@ u32 procwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt)
- 	u32 alloc_cnt;
- 
- 	if (!args->args_proc_enumnode_info.node_tab_size)
--		return DSP_ESIZE;
-+		return -EINVAL;
- 
- 	status = proc_enum_nodes(args->args_proc_enumnode_info.hprocessor,
- 				 node_tab,
-@@ -721,7 +721,7 @@ u32 procwrap_enum_resources(union Trapped_Args *args, void *pr_ctxt)
- 
- 	if (args->args_proc_enumresources.resource_info_size <
- 	    sizeof(struct dsp_resourceinfo))
--		return DSP_ESIZE;
-+		return -EINVAL;
- 
- 	status =
- 	    proc_get_resource_info(args->args_proc_enumresources.hprocessor,
-@@ -747,7 +747,7 @@ u32 procwrap_get_state(union Trapped_Args *args, void *pr_ctxt)
- 
- 	if (args->args_proc_getstate.state_info_size <
- 	    sizeof(struct dsp_processorstate))
--		return DSP_ESIZE;
-+		return -EINVAL;
- 
- 	status =
- 	    proc_get_state(args->args_proc_getstate.hprocessor, &proc_state,
-@@ -767,7 +767,7 @@ u32 procwrap_get_trace(union Trapped_Args *args, void *pr_ctxt)
- 	u8 *pbuf;
- 
- 	if (args->args_proc_gettrace.max_size > MAX_TRACEBUFLEN)
--		return DSP_ESIZE;
-+		return -EINVAL;
- 
- 	pbuf = mem_calloc(args->args_proc_gettrace.max_size, MEM_NONPAGED);
- 	if (pbuf != NULL) {
-@@ -909,7 +909,7 @@ u32 procwrap_map(union Trapped_Args *args, void *pr_ctxt)
- 	void *map_addr;
- 
- 	if (!args->args_proc_mapmem.ul_size)
--		return DSP_ESIZE;
-+		return -EINVAL;
- 
- 	status = proc_map(args->args_proc_mapmem.hprocessor,
- 			  args->args_proc_mapmem.pmpu_addr,
-@@ -959,7 +959,7 @@ u32 procwrap_reserve_memory(union Trapped_Args *args, void *pr_ctxt)
- 
- 	if ((args->args_proc_rsvmem.ul_size <= 0) ||
- 	    (args->args_proc_rsvmem.ul_size & (PG_SIZE4K - 1)) != 0)
--		return DSP_ESIZE;
-+		return -EINVAL;
- 
- 	status = proc_reserve_memory(args->args_proc_rsvmem.hprocessor,
- 				     args->args_proc_rsvmem.ul_size, &prsv_addr,
-@@ -1092,7 +1092,7 @@ u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt)
- 	u8 *pbuffer = NULL;
- 
- 	if (!args->args_node_allocmsgbuf.usize)
--		return DSP_ESIZE;
-+		return -EINVAL;
- 
- 	if (args->args_node_allocmsgbuf.pattr) {	/* Optional argument */
- 		CP_FM_USR(&attr, args->args_node_allocmsgbuf.pattr, status, 1);
+@@ -339,7 +339,7 @@ extern dsp_status strm_reclaim(struct strm_object *hStrm,
+  *      DSP_SOK:        Success.
+  *      -EFAULT:    Invalid hStrm.
+  *      -ENOMEM:    Insufficient memory on GPP.
+- *      DSP_EVALUE:     event_mask is invalid.
++ *      -EINVAL:     event_mask is invalid.
+  *      -ENOSYS:   Notification type specified by notify_type is not
+  *                      supported.
+  *  Requires:
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
+index f1ede4e..339acfd 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmd.h
++++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
+@@ -631,7 +631,7 @@ typedef dsp_status(*fxn_chnl_idle) (struct chnl_object *chnl_obj,
+  *  Returns:
+  *      DSP_SOK:        Success.
+  *      -ENOMEM:    Insufficient memory.
+- *      DSP_EVALUE:     event_mask is 0 and hnotification was not
++ *      -EINVAL:     event_mask is 0 and hnotification was not
+  *                      previously registered.
+  *      -EFAULT:    NULL hnotification, hnotification event name
+  *                      too long, or hnotification event name NULL.
 diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 9fa7569..9af0453 100644
+index 72e4c93..b26052c 100644
 --- a/drivers/dsp/bridge/rmgr/node.c
 +++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -1639,7 +1639,7 @@ dsp_status node_enum_nodes(struct node_mgr *hnode_mgr, void **node_tab,
- 		if (hnode_mgr->num_nodes > node_tab_size) {
- 			*pu_allocated = hnode_mgr->num_nodes;
- 			*pu_num_nodes = 0;
--			status = DSP_ESIZE;
+@@ -879,7 +879,7 @@ dsp_status node_connect(struct node_object *hNode1, u32 uStream1,
+ 							  NODE_DEVICE
+ 							  && uStream2 >=
+ 							  MAX_INPUTS(hNode2)))
+-			status = DSP_EVALUE;
 +			status = -EINVAL;
- 		} else {
- 			hnode = (struct node_object *)
- 			    lst_first(hnode_mgr->node_list);
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/*
+@@ -1772,7 +1772,7 @@ dsp_status node_get_channel_id(struct node_object *hnode, u32 dir, u32 index,
+ 			       OUT u32 *pulId)
+ {
+ 	enum node_type node_type;
+-	dsp_status status = DSP_EVALUE;
++	dsp_status status = -EINVAL;
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(dir == DSP_TONODE || dir == DSP_FROMNODE);
+ 	DBC_REQUIRE(pulId != NULL);
+@@ -2224,16 +2224,16 @@ dsp_status node_register_notify(struct node_object *hnode, u32 event_mask,
+ 	} else {
+ 		/* Check if event mask is a valid node related event */
+ 		if (event_mask & ~(DSP_NODESTATECHANGE | DSP_NODEMESSAGEREADY))
+-			status = DSP_EVALUE;
++			status = -EINVAL;
+ 
+ 		/* Check if notify type is valid */
+ 		if (notify_type != DSP_SIGNALEVENT)
+-			status = DSP_EVALUE;
++			status = -EINVAL;
+ 
+ 		/* Only one Notification can be registered at a
+ 		 * time - Limitation */
+ 		if (event_mask == (DSP_NODESTATECHANGE | DSP_NODEMESSAGEREADY))
+-			status = DSP_EVALUE;
++			status = -EINVAL;
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+ 		if (event_mask == DSP_NODESTATECHANGE) {
 diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index af9f2c2..d79971f 100644
+index d79971f..bdd11a1 100644
 --- a/drivers/dsp/bridge/rmgr/proc.c
 +++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -1351,7 +1351,7 @@ dsp_status proc_stop(void *hprocessor)
- 	if (DSP_SUCCEEDED(status) && hnode_mgr) {
- 		status = node_enum_nodes(hnode_mgr, &hnode, node_tab_size,
- 					 &num_nodes, &nodes_allocated);
--		if ((status == DSP_ESIZE) || (nodes_allocated > 0)) {
-+		if ((status == -EINVAL) || (nodes_allocated > 0)) {
- 			pr_err("%s: Can't stop device, active nodes = %d \n",
- 			       __func__, nodes_allocated);
- 			return DSP_EWRONGSTATE;
+@@ -623,7 +623,7 @@ dsp_status proc_get_resource_info(void *hprocessor, u32 resource_type,
+ 					      (struct dsp_memstat *)
+ 					      &(resource_info->result.
+ 						mem_stat)))
+-					status = DSP_EVALUE;
++					status = -EINVAL;
+ 			}
+ 		}
+ 		break;
+@@ -1150,11 +1150,11 @@ dsp_status proc_register_notify(void *hprocessor, u32 event_mask,
+ 	if (event_mask & ~(DSP_PROCESSORSTATECHANGE | DSP_PROCESSORATTACH |
+ 			   DSP_PROCESSORDETACH | DSP_PROCESSORRESTART |
+ 			   DSP_MMUFAULT | DSP_SYSERROR | DSP_PWRERROR))
+-		status = DSP_EVALUE;
++		status = -EINVAL;
+ 
+ 	/* Check if notify type is valid */
+ 	if (notify_type != DSP_SIGNALEVENT)
+-		status = DSP_EVALUE;
++		status = -EINVAL;
+ 
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/* If event mask is not DSP_SYSERROR, DSP_MMUFAULT,
 diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index 13826fc..add68f0 100644
+index 968a172..b78360f 100644
 --- a/drivers/dsp/bridge/rmgr/strm.c
 +++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -121,7 +121,7 @@ dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
- 		 * Allocate from segment specified at time of stream open.
- 		 */
- 		if (usize == 0)
--			status = DSP_ESIZE;
-+			status = -EINVAL;
+@@ -614,7 +614,7 @@ func_cont:
+ 		    MEM_IS_VALID_HANDLE((*phStrm), STRM_SIGNATURE)) ||
+ 		   (*phStrm == NULL && (status == -EFAULT ||
+ 					status == DSP_EDIRECTION
+-					|| status == DSP_EVALUE
++					|| status == -EINVAL
+ 					|| status == DSP_EFAIL)));
  
- 	} else {
+ 	dev_dbg(bridge, "%s: hnode: %p dir: 0x%x index: 0x%x pattr: %p "
+@@ -724,7 +724,7 @@ dsp_status strm_register_notify(struct strm_object *hStrm, u32 event_mask,
  		status = -EFAULT;
-@@ -336,7 +336,7 @@ dsp_status strm_get_info(struct strm_object *hStrm,
+ 	} else if ((event_mask & ~((DSP_STREAMIOCOMPLETION) |
+ 				   DSP_STREAMDONE)) != 0) {
+-		status = DSP_EVALUE;
++		status = -EINVAL;
  	} else {
- 		if (stream_info_size < sizeof(struct stream_info)) {
- 			/* size of users info */
--			status = DSP_ESIZE;
+ 		if (notify_type != DSP_SIGNALEVENT)
+ 			status = -ENOSYS;
+diff --git a/drivers/dsp/bridge/services/ntfy.c b/drivers/dsp/bridge/services/ntfy.c
+index e64928b..a440ae4 100644
+--- a/drivers/dsp/bridge/services/ntfy.c
++++ b/drivers/dsp/bridge/services/ntfy.c
+@@ -242,7 +242,7 @@ dsp_status ntfy_register(struct ntfy_object *ntfy_obj,
+ 	if (notifier_obj == NULL) {
+ 		/* Not registered */
+ 		if (event_mask == 0) {
+-			status = DSP_EVALUE;
 +			status = -EINVAL;
- 		}
- 	}
- 	if (DSP_FAILED(status))
-diff --git a/drivers/dsp/bridge/services/cfg.c b/drivers/dsp/bridge/services/cfg.c
-index 4f99554..36f1a7b 100644
---- a/drivers/dsp/bridge/services/cfg.c
-+++ b/drivers/dsp/bridge/services/cfg.c
-@@ -162,7 +162,7 @@ dsp_status cfg_get_exec_file(struct cfg_devnode *dev_node_obj, u32 ul_buf_size,
- 		if (DSP_FAILED(status))
- 			status = CFG_E_RESOURCENOTAVAIL;
- 		else if (exec_size > ul_buf_size)
--			status = DSP_ESIZE;
-+			status = -EINVAL;
+ 		} else {
+ 			/* Allocate notifier object, add to list */
+ 			notifier_obj = mem_calloc(sizeof(struct notifier),
+diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
+index e78b10c..acfa780 100644
+--- a/drivers/dsp/bridge/wmd/msg_sm.c
++++ b/drivers/dsp/bridge/wmd/msg_sm.c
+@@ -503,7 +503,7 @@ dsp_status bridge_msg_register_notify(struct msg_queue *msg_queue_obj,
+ 	    ntfy_register(msg_queue_obj->ntfy_obj, hnotification, event_mask,
+ 			  notify_type);
  
- 	}
- 	if (DSP_FAILED(status))
+-	if (status == DSP_EVALUE) {
++	if (status == -EINVAL) {
+ 		/*  Not registered. Ok, since we couldn't have known. Node
+ 		 *  notifications are split between node state change handled
+ 		 *  by NODE, and message ready handled by msg_ctrl. */
 -- 
 1.6.0.4
 
