@@ -1,314 +1,273 @@
 From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: [RFC][PATCH v1 10/19] DSPBRIDGE: Cleanup custom error code
- (DSP_EPOINTER -> -EFAULT)
-Date: Sat, 27 Mar 2010 07:58:14 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEE10@dbde02.ent.ti.com>
+Subject: [RFC][PATCH v1 12/19] DSPBRIDGE: Cleanup custom error code
+ (DSP_ESIZE -> -EINVAL)
+Date: Sat, 27 Mar 2010 07:58:31 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEE12@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43039 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752969Ab0C0C2U convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2010 22:28:20 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41927 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752882Ab0C0C2i convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2010 22:28:38 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2R2SHG9007494
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2R2SYSt028818
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 21:28:20 -0500
+	for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 21:28:37 -0500
 Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2R2SHn8026629
-	for <linux-omap@vger.kernel.org>; Sat, 27 Mar 2010 07:58:17 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2R2SYLA026655
+	for <linux-omap@vger.kernel.org>; Sat, 27 Mar 2010 07:58:34 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 169b4262b63ee4cc81a4061d402c53536574dfc9 Mon Sep 17 00:00:00 2001
+>From 992e701bbfcd681cee8af53cfe6fabc32d6d02a3 Mon Sep 17 00:00:00 2001
 From: Shivananda Hebbar <x0hebbar@ti.com>
-Date: Wed, 24 Mar 2010 11:26:00 -0600
-Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_EPOINTER -> -EFAULT)
+Date: Wed, 24 Mar 2010 11:44:03 -0600
+Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_ESIZE -> -EINVAL)
 
-This patch replaces DSP_EPOINTER with -EFAULT
+This patch replaces DSP_ESIZE with -EINVAL.
 
 Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
 ---
  arch/arm/plat-omap/include/dspbridge/errbase.h |    3 ---
- arch/arm/plat-omap/include/dspbridge/wmd.h     |    8 ++++----
- drivers/dsp/bridge/pmgr/cmm.c                  |    2 +-
+ arch/arm/plat-omap/include/dspbridge/node.h    |    6 +++---
+ arch/arm/plat-omap/include/dspbridge/proc.h    |    2 +-
+ arch/arm/plat-omap/include/dspbridge/strm.h    |    4 ++--
  drivers/dsp/bridge/pmgr/wcd.c                  |   18 +++++++++---------
- drivers/dsp/bridge/services/sync.c             |    2 +-
- drivers/dsp/bridge/wmd/chnl_sm.c               |   14 +++++++-------
- drivers/dsp/bridge/wmd/io_sm.c                 |    2 +-
- drivers/dsp/bridge/wmd/msg_sm.c                |    6 +++---
- 8 files changed, 26 insertions(+), 29 deletions(-)
+ drivers/dsp/bridge/rmgr/node.c                 |    2 +-
+ drivers/dsp/bridge/rmgr/proc.c                 |    2 +-
+ drivers/dsp/bridge/rmgr/strm.c                 |    4 ++--
+ drivers/dsp/bridge/services/cfg.c              |    2 +-
+ 9 files changed, 20 insertions(+), 23 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/errbase.h b/arch/arm/plat-omap/include/dspbridge/errbase.h
-index aa848c8..da2900c 100644
+index 1cc0101..87667a6 100644
 --- a/arch/arm/plat-omap/include/dspbridge/errbase.h
 +++ b/arch/arm/plat-omap/include/dspbridge/errbase.h
 @@ -99,9 +99,6 @@
  /* I/O is currently pending. */
  #define DSP_EPENDING                (DSP_EBASE + 0x11)
  
--/* An invalid pointer was specified. */
--#define DSP_EPOINTER                (DSP_EBASE + 0x12)
+-/* An invalid size parameter was specified. */
+-#define DSP_ESIZE                   (DSP_EBASE + 0x14)
 -
- /* A parameter is specified outside its valid range. */
- #define DSP_ERANGE                  (DSP_EBASE + 0x13)
+ /* A stream creation failure occurred on the DSP. */
+ #define DSP_ESTREAM                 (DSP_EBASE + 0x15)
  
-diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
-index 6cc0084..cf2f64c 100644
---- a/arch/arm/plat-omap/include/dspbridge/wmd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
-@@ -451,7 +451,7 @@ typedef dsp_status(*fxn_chnl_close) (struct chnl_object *chnl_obj);
-  *  Returns:
-  *      DSP_SOK:        Success;
-  *      -EFAULT:    Invalid chnl_obj.
-- *      DSP_EPOINTER:   pHostBuf is invalid.
-+ *      -EFAULT:   pHostBuf is invalid.
-  *      CHNL_E_NOEOS:   User cannot mark EOS on an input channel.
-  *      CHNL_E_CANCELLED: I/O has been cancelled on this channel.  No further
-  *                      I/O is allowed.
-@@ -492,7 +492,7 @@ typedef dsp_status(*fxn_chnl_addioreq) (struct chnl_object
+diff --git a/arch/arm/plat-omap/include/dspbridge/node.h b/arch/arm/plat-omap/include/dspbridge/node.h
+index 814065f..7d882f2 100644
+--- a/arch/arm/plat-omap/include/dspbridge/node.h
++++ b/arch/arm/plat-omap/include/dspbridge/node.h
+@@ -79,7 +79,7 @@ extern dsp_status node_allocate(struct proc_object *hprocessor,
+  *      -EFAULT:    Invalid node handle.
+  *      -ENOMEM:    Insufficent memory.
+  *      DSP_EFAIL:      General Failure.
+- *      DSP_ESIZE:      Invalid Size.
++ *      -EINVAL:      Invalid Size.
+  *  Requires:
+  *      node_init(void) called.
+  *      pbuffer != NULL.
+@@ -292,14 +292,14 @@ extern dsp_status node_delete_mgr(struct node_mgr *hnode_mgr);
+  *      pu_allocated:    Location to write total number of allocated nodes.
   *  Returns:
   *      DSP_SOK:        Success.
-  *      -EFAULT:    Invalid chnl_obj.
-- *      DSP_EPOINTER:   pIOC is invalid.
-+ *      -EFAULT:   pIOC is invalid.
-  *      CHNL_E_NOIOC:   CHNL_IOCNOWAIT was specified as the dwTimeOut parameter
-  *                      yet no I/O completions were queued.
+- *      DSP_ESIZE:      node_tab is too small to hold all node handles.
++ *      -EINVAL:      node_tab is too small to hold all node handles.
   *  Requires:
-@@ -556,7 +556,7 @@ typedef dsp_status(*fxn_chnl_flushio) (struct chnl_object *chnl_obj,
-  *  Returns:
-  *      DSP_SOK:        Success;
-  *      -EFAULT:    Invalid chnl_obj.
-- *      DSP_EPOINTER:   pInfo == NULL.
-+ *      -EFAULT:   pInfo == NULL.
-  *  Requires:
+  *      Valid hnode_mgr.
+  *      node_tab != NULL || node_tab_size == 0.
+  *      pu_num_nodes != NULL.
+  *      pu_allocated != NULL.
   *  Ensures:
-  *      DSP_SOK:        pInfo points to a filled in chnl_info struct,
-@@ -576,7 +576,7 @@ typedef dsp_status(*fxn_chnl_getinfo) (struct chnl_object *chnl_obj,
+- *      - (DSP_ESIZE && *pu_num_nodes == 0)
++ *      - (EINVAL && *pu_num_nodes == 0)
+  *      - || (DSP_SOK && *pu_num_nodes <= node_tab_size)  &&
+  *        (*pu_allocated == *pu_num_nodes)
+  */
+diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
+index 5220a1b..64b208c 100644
+--- a/arch/arm/plat-omap/include/dspbridge/proc.h
++++ b/arch/arm/plat-omap/include/dspbridge/proc.h
+@@ -138,7 +138,7 @@ extern dsp_status proc_detach(struct process_context *pr_ctxt);
   *  Returns:
-  *      DSP_SOK:            Success;
-  *      -EFAULT:        Invalid hchnl_mgr.
-- *      DSP_EPOINTER:       pMgrInfo == NULL.
-+ *      -EFAULT:       pMgrInfo == NULL.
-  *      CHNL_E_BADCHANID:   Invalid channel ID.
+  *      DSP_SOK     :   Success.
+  *      -EFAULT :   Invalid processor handle.
+- *      DSP_ESIZE   :   The amount of memory allocated for node_tab is
++ *      -EINVAL   :   The amount of memory allocated for node_tab is
+  *		      insufficent. That is the number of nodes actually
+  *		      allocated on the DSP is greater than the value
+  *		      specified for node_tab_size.
+diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
+index 73902a8..6f86c04 100644
+--- a/arch/arm/plat-omap/include/dspbridge/strm.h
++++ b/arch/arm/plat-omap/include/dspbridge/strm.h
+@@ -38,7 +38,7 @@
+  *      -EFAULT:    Invalid hStrm.
+  *      -ENOMEM:    Insufficient memory.
+  *      DSP_EFAIL:      Failure occurred, unable to allocate buffers.
+- *      DSP_ESIZE:      usize must be > 0 bytes.
++ *      -EINVAL:      usize must be > 0 bytes.
   *  Requires:
-  *  Ensures:
-diff --git a/drivers/dsp/bridge/pmgr/cmm.c b/drivers/dsp/bridge/pmgr/cmm.c
-index b8ba5f2..2894b77 100644
---- a/drivers/dsp/bridge/pmgr/cmm.c
-+++ b/drivers/dsp/bridge/pmgr/cmm.c
-@@ -391,7 +391,7 @@ dsp_status cmm_free_buf(struct cmm_object *hcmm_mgr, void *buf_pa,
- 			u32 ul_seg_id)
- {
- 	struct cmm_object *cmm_mgr_obj = (struct cmm_object *)hcmm_mgr;
--	dsp_status status = DSP_EPOINTER;
-+	dsp_status status = -EFAULT;
- 	struct cmm_mnode *mnode_obj = NULL;
- 	struct cmm_allocator *allocator = NULL;
- 	struct cmm_attrs *pattrs;
+  *      strm_init(void) called.
+  *      ap_buffer != NULL.
+@@ -172,7 +172,7 @@ extern dsp_status strm_get_event_handle(struct strm_object *hStrm,
+  *  Returns:
+  *      DSP_SOK:            Success.
+  *      -EFAULT:        Invalid hStrm.
+- *      DSP_ESIZE:          stream_info_size < sizeof(dsp_streaminfo).
++ *      -EINVAL:          stream_info_size < sizeof(dsp_streaminfo).
+  *      DSP_EFAIL:          Unable to get stream info.
+  *  Requires:
+  *      strm_init(void) called.
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index a7ed6af..6937ea6 100644
+index 6937ea6..7186f5d 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
 +++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -174,12 +174,12 @@ static inline void _cp_fm_usr(void *to, const void __user * from,
- 		return;
+@@ -420,7 +420,7 @@ u32 mgrwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt)
+ 	u32 size = args->args_mgr_enumnode_info.undb_props_size;
  
- 	if (unlikely(!from)) {
--		*err = DSP_EPOINTER;
-+		*err = -EFAULT;
- 		return;
- 	}
+ 	if (size < sizeof(struct dsp_ndbprops))
+-		return DSP_ESIZE;
++		return -EINVAL;
  
- 	if (unlikely(copy_from_user(to, from, bytes)))
--		*err = DSP_EPOINTER;
-+		*err = -EFAULT;
- }
+ 	pndb_props = mem_alloc(size, MEM_NONPAGED);
+ 	if (pndb_props == NULL)
+@@ -452,7 +452,7 @@ u32 mgrwrap_enum_proc_info(union Trapped_Args *args, void *pr_ctxt)
+ 	u32 size = args->args_mgr_enumproc_info.processor_info_size;
  
- #define CP_FM_USR(to, from, err, n)				\
-@@ -192,12 +192,12 @@ static inline void _cp_to_usr(void __user *to, const void *from,
- 		return;
+ 	if (size < sizeof(struct dsp_processorinfo))
+-		return DSP_ESIZE;
++		return -EINVAL;
  
- 	if (unlikely(!to)) {
--		*err = DSP_EPOINTER;
-+		*err = -EFAULT;
- 		return;
- 	}
+ 	processor_info = mem_alloc(size, MEM_NONPAGED);
+ 	if (processor_info == NULL)
+@@ -664,7 +664,7 @@ u32 procwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt)
+ 	u32 alloc_cnt;
  
- 	if (unlikely(copy_to_user(to, from, bytes)))
--		*err = DSP_EPOINTER;
-+		*err = -EFAULT;
- }
+ 	if (!args->args_proc_enumnode_info.node_tab_size)
+-		return DSP_ESIZE;
++		return -EINVAL;
  
- #define CP_TO_USR(to, from, err, n)				\
-@@ -500,7 +500,7 @@ u32 mgrwrap_register_object(union Trapped_Args *args, void *pr_ctxt)
- 				(char *)args->args_mgr_registerobject.
- 				psz_path_name, path_size);
- 	if (!ret) {
--		status = DSP_EPOINTER;
-+		status = -EFAULT;
- 		goto func_end;
- 	}
+ 	status = proc_enum_nodes(args->args_proc_enumnode_info.hprocessor,
+ 				 node_tab,
+@@ -721,7 +721,7 @@ u32 procwrap_enum_resources(union Trapped_Args *args, void *pr_ctxt)
  
-@@ -1071,7 +1071,7 @@ u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt)
- 	if (DSP_SUCCEEDED(status)) {
- 		CP_TO_USR(args->args_node_allocate.ph_node, &hnode, status, 1);
- 		if (DSP_FAILED(status)) {
--			status = DSP_EPOINTER;
-+			status = -EFAULT;
- 			node_delete(hnode, pr_ctxt);
- 		}
- 	}
-@@ -1214,7 +1214,7 @@ u32 nodewrap_free_msg_buf(union Trapped_Args *args, void *pr_ctxt)
- 	}
+ 	if (args->args_proc_enumresources.resource_info_size <
+ 	    sizeof(struct dsp_resourceinfo))
+-		return DSP_ESIZE;
++		return -EINVAL;
  
- 	if (!args->args_node_freemsgbuf.pbuffer)
--		return DSP_EPOINTER;
-+		return -EFAULT;
+ 	status =
+ 	    proc_get_resource_info(args->args_proc_enumresources.hprocessor,
+@@ -747,7 +747,7 @@ u32 procwrap_get_state(union Trapped_Args *args, void *pr_ctxt)
  
- 	if (DSP_SUCCEEDED(status)) {
- 		status = node_free_msg_buf(args->args_node_freemsgbuf.hnode,
-@@ -1388,7 +1388,7 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
- 		CP_TO_USR(args->args_strm_allocatebuffer.ap_buffer, ap_buffer,
- 			  status, num_bufs);
- 		if (DSP_FAILED(status)) {
--			status = DSP_EPOINTER;
-+			status = -EFAULT;
- 			strm_free_buffer(args->args_strm_allocatebuffer.hstream,
- 					 ap_buffer, num_bufs, pr_ctxt);
- 		}
-@@ -1492,7 +1492,7 @@ u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt)
- 	dsp_status status = DSP_SOK;
+ 	if (args->args_proc_getstate.state_info_size <
+ 	    sizeof(struct dsp_processorstate))
+-		return DSP_ESIZE;
++		return -EINVAL;
  
- 	if (!args->args_strm_issue.pbuffer)
--		return DSP_EPOINTER;
-+		return -EFAULT;
+ 	status =
+ 	    proc_get_state(args->args_proc_getstate.hprocessor, &proc_state,
+@@ -767,7 +767,7 @@ u32 procwrap_get_trace(union Trapped_Args *args, void *pr_ctxt)
+ 	u8 *pbuf;
  
- 	/* No need of doing CP_FM_USR for the user buffer (pbuffer)
- 	   as this is done in Bridge internal function bridge_chnl_add_io_req
-diff --git a/drivers/dsp/bridge/services/sync.c b/drivers/dsp/bridge/services/sync.c
-index eeacdc3..a4a0c6e 100644
---- a/drivers/dsp/bridge/services/sync.c
-+++ b/drivers/dsp/bridge/services/sync.c
-@@ -416,7 +416,7 @@ dsp_status sync_initialize_dpccs(OUT struct sync_csobject **phCSObj)
- 		/* return CS object */
- 		*phCSObj = (struct sync_csobject *)pcs_obj;
- 	} else {
--		status = DSP_EPOINTER;
-+		status = -EFAULT;
- 	}
+ 	if (args->args_proc_gettrace.max_size > MAX_TRACEBUFLEN)
+-		return DSP_ESIZE;
++		return -EINVAL;
  
- 	DBC_ASSERT(DSP_FAILED(status) || (pcs_obj));
-diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index ea5c140..ee96f13 100644
---- a/drivers/dsp/bridge/wmd/chnl_sm.c
-+++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -110,7 +110,7 @@ dsp_status bridge_chnl_add_io_req(struct chnl_object *chnl_obj, void *pHostBuf,
+ 	pbuf = mem_calloc(args->args_proc_gettrace.max_size, MEM_NONPAGED);
+ 	if (pbuf != NULL) {
+@@ -909,7 +909,7 @@ u32 procwrap_map(union Trapped_Args *args, void *pr_ctxt)
+ 	void *map_addr;
  
- 	/* Validate args */
- 	if (!pHostBuf) {
--		status = DSP_EPOINTER;
-+		status = -EFAULT;
- 	} else if (!MEM_IS_VALID_HANDLE(pchnl, CHNL_SIGNATURE)) {
- 		status = -EFAULT;
- 	} else if (is_eos && CHNL_IS_INPUT(pchnl->chnl_mode)) {
-@@ -158,7 +158,7 @@ dsp_status bridge_chnl_add_io_req(struct chnl_object *chnl_obj, void *pHostBuf,
- 			if (status) {
- 				kfree(host_sys_buf);
- 				host_sys_buf = NULL;
--				status = DSP_EPOINTER;
-+				status = -EFAULT;
- 				goto func_end;
- 			}
- 		}
-@@ -563,7 +563,7 @@ dsp_status bridge_chnl_get_info(struct chnl_object *chnl_obj,
- 			status = -EFAULT;
- 		}
- 	} else {
--		status = DSP_EPOINTER;
-+		status = -EFAULT;
- 	}
- 	return status;
- }
-@@ -590,7 +590,7 @@ dsp_status bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 dwTimeOut,
+ 	if (!args->args_proc_mapmem.ul_size)
+-		return DSP_ESIZE;
++		return -EINVAL;
  
- 	/* Check args: */
- 	if (pIOC == NULL) {
--		status = DSP_EPOINTER;
-+		status = -EFAULT;
- 	} else if (!MEM_IS_VALID_HANDLE(pchnl, CHNL_SIGNATURE)) {
- 		status = -EFAULT;
- 	} else if (dwTimeOut == CHNL_IOCNOWAIT) {
-@@ -692,7 +692,7 @@ dsp_status bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 dwTimeOut,
+ 	status = proc_map(args->args_proc_mapmem.hprocessor,
+ 			  args->args_proc_mapmem.pmpu_addr,
+@@ -959,7 +959,7 @@ u32 procwrap_reserve_memory(union Trapped_Args *args, void *pr_ctxt)
  
- 		/* If the addr is in user mode, then copy it */
- 		if (!host_sys_buf || !ioc.pbuf) {
--			status = DSP_EPOINTER;
-+			status = -EFAULT;
- 			goto func_cont;
- 		}
- 		if (!CHNL_IS_INPUT(pchnl->chnl_mode))
-@@ -705,7 +705,7 @@ dsp_status bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 dwTimeOut,
- 				status = 0;
- 		}
- 		if (status)
--			status = DSP_EPOINTER;
-+			status = -EFAULT;
- func_cont1:
- 		kfree(host_sys_buf);
- 	}
-@@ -745,7 +745,7 @@ dsp_status bridge_chnl_get_mgr_info(struct chnl_mgr *hchnl_mgr, u32 uChnlID,
- 			status = CHNL_E_BADCHANID;
- 		}
- 	} else {
--		status = DSP_EPOINTER;
-+		status = -EFAULT;
- 	}
+ 	if ((args->args_proc_rsvmem.ul_size <= 0) ||
+ 	    (args->args_proc_rsvmem.ul_size & (PG_SIZE4K - 1)) != 0)
+-		return DSP_ESIZE;
++		return -EINVAL;
  
- 	return status;
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 671a852..58f9129 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -715,7 +715,7 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
- 		ul_shm_base = (u32) MEM_LINEAR_ADDRESS((void *)ul_shm_base,
- 						       ul_mem_length);
- 		if (ul_shm_base == 0) {
--			status = DSP_EPOINTER;
-+			status = -EFAULT;
- 			goto func_end;
- 		}
- 		/* Register SM */
-diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-index 1d44a6f..e78b10c 100644
---- a/drivers/dsp/bridge/wmd/msg_sm.c
-+++ b/drivers/dsp/bridge/wmd/msg_sm.c
-@@ -62,12 +62,12 @@ dsp_status bridge_msg_create(OUT struct msg_mgr **phMsgMgr,
- 	dsp_status status = DSP_SOK;
+ 	status = proc_reserve_memory(args->args_proc_rsvmem.hprocessor,
+ 				     args->args_proc_rsvmem.ul_size, &prsv_addr,
+@@ -1092,7 +1092,7 @@ u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt)
+ 	u8 *pbuffer = NULL;
  
- 	if (!phMsgMgr || !msgCallback || !hdev_obj) {
--		status = DSP_EPOINTER;
-+		status = -EFAULT;
- 		goto func_end;
- 	}
- 	dev_get_io_mgr(hdev_obj, &hio_mgr);
- 	if (!hio_mgr) {
--		status = DSP_EPOINTER;
-+		status = -EFAULT;
- 		goto func_end;
- 	}
- 	*phMsgMgr = NULL;
-@@ -437,7 +437,7 @@ dsp_status bridge_msg_put(struct msg_queue *msg_queue_obj,
- 			status = DSP_EFAIL;
+ 	if (!args->args_node_allocmsgbuf.usize)
+-		return DSP_ESIZE;
++		return -EINVAL;
+ 
+ 	if (args->args_node_allocmsgbuf.pattr) {	/* Optional argument */
+ 		CP_FM_USR(&attr, args->args_node_allocmsgbuf.pattr, status, 1);
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 9fa7569..9af0453 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -1639,7 +1639,7 @@ dsp_status node_enum_nodes(struct node_mgr *hnode_mgr, void **node_tab,
+ 		if (hnode_mgr->num_nodes > node_tab_size) {
+ 			*pu_allocated = hnode_mgr->num_nodes;
+ 			*pu_num_nodes = 0;
+-			status = DSP_ESIZE;
++			status = -EINVAL;
  		} else {
- 			if (LST_IS_EMPTY(hmsg_mgr->msg_free_list)) {
--				status = DSP_EPOINTER;
-+				status = -EFAULT;
- 				goto func_cont;
- 			}
- 			/* Get msg from free list */
+ 			hnode = (struct node_object *)
+ 			    lst_first(hnode_mgr->node_list);
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index af9f2c2..d79971f 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -1351,7 +1351,7 @@ dsp_status proc_stop(void *hprocessor)
+ 	if (DSP_SUCCEEDED(status) && hnode_mgr) {
+ 		status = node_enum_nodes(hnode_mgr, &hnode, node_tab_size,
+ 					 &num_nodes, &nodes_allocated);
+-		if ((status == DSP_ESIZE) || (nodes_allocated > 0)) {
++		if ((status == -EINVAL) || (nodes_allocated > 0)) {
+ 			pr_err("%s: Can't stop device, active nodes = %d \n",
+ 			       __func__, nodes_allocated);
+ 			return DSP_EWRONGSTATE;
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index 13826fc..add68f0 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -121,7 +121,7 @@ dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
+ 		 * Allocate from segment specified at time of stream open.
+ 		 */
+ 		if (usize == 0)
+-			status = DSP_ESIZE;
++			status = -EINVAL;
+ 
+ 	} else {
+ 		status = -EFAULT;
+@@ -336,7 +336,7 @@ dsp_status strm_get_info(struct strm_object *hStrm,
+ 	} else {
+ 		if (stream_info_size < sizeof(struct stream_info)) {
+ 			/* size of users info */
+-			status = DSP_ESIZE;
++			status = -EINVAL;
+ 		}
+ 	}
+ 	if (DSP_FAILED(status))
+diff --git a/drivers/dsp/bridge/services/cfg.c b/drivers/dsp/bridge/services/cfg.c
+index 4f99554..36f1a7b 100644
+--- a/drivers/dsp/bridge/services/cfg.c
++++ b/drivers/dsp/bridge/services/cfg.c
+@@ -162,7 +162,7 @@ dsp_status cfg_get_exec_file(struct cfg_devnode *dev_node_obj, u32 ul_buf_size,
+ 		if (DSP_FAILED(status))
+ 			status = CFG_E_RESOURCENOTAVAIL;
+ 		else if (exec_size > ul_buf_size)
+-			status = DSP_ESIZE;
++			status = -EINVAL;
+ 
+ 	}
+ 	if (DSP_FAILED(status))
 -- 
 1.6.0.4
 
