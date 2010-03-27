@@ -1,232 +1,86 @@
 From: "Hebbar, Shivananda" <x0hebbar@ti.com>
-Subject: [RFC][PATCH v1 7/19] DSPBRIDGE: Cleanup custom error code
- (DSP_ENODETYPE -> -EPERM)
-Date: Sat, 27 Mar 2010 07:57:48 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEE0D@dbde02.ent.ti.com>
+Subject: [RFC][PATCH v1 9/19] DSPBRIDGE: Cleanup custom error code
+ (DSP_EFOPEN ->- EBADF)
+Date: Sat, 27 Mar 2010 07:58:10 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEE0F@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52109 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52116 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752629Ab0C0C1y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2010 22:27:54 -0400
+	id S1752946Ab0C0C2P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Mar 2010 22:28:15 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2R2RofK011885
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2R2SCsP011897
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 21:27:53 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2R2Ro8O026588
-	for <linux-omap@vger.kernel.org>; Sat, 27 Mar 2010 07:57:50 +0530 (IST)
+	for <linux-omap@vger.kernel.org>; Fri, 26 Mar 2010 21:28:15 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2R2SCH6026619
+	for <linux-omap@vger.kernel.org>; Sat, 27 Mar 2010 07:58:12 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 78f772ea5115714c15740482079c8b8c04920fcc Mon Sep 17 00:00:00 2001
+>From 3bf9c85d6d0794e790491334dca1dde8d0ada863 Mon Sep 17 00:00:00 2001
 From: Shivananda Hebbar <x0hebbar@ti.com>
-Date: Tue, 23 Mar 2010 12:02:46 -0600
-Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_ENODETYPE -> -EPERM)
+Date: Tue, 23 Mar 2010 13:24:31 -0600
+Subject: [PATCH] DSPBRIDGE: Cleanup custom error code (DSP_EFOPEN ->- EBADF)
 
-This patch replaces DSP_ENODETYPE with -EPERM
+This patch replaces DSP_EFOPEN with -EBADF
 
 Signed-off-by: Shivananda Hebbar <x0hebbar@ti.com>
 ---
+ arch/arm/plat-omap/include/dspbridge/dblldefs.h |    2 +-
  arch/arm/plat-omap/include/dspbridge/errbase.h  |    3 ---
- arch/arm/plat-omap/include/dspbridge/node.h     |   12 ++++++------
- arch/arm/plat-omap/include/dspbridge/nodepriv.h |    2 +-
- arch/arm/plat-omap/include/dspbridge/strm.h     |    2 +-
- drivers/dsp/bridge/rmgr/node.c                  |   16 ++++++++--------
- drivers/dsp/bridge/wmd/msg_sm.c                 |    2 +-
- 6 files changed, 17 insertions(+), 20 deletions(-)
+ drivers/dsp/bridge/pmgr/dbll.c                  |    4 ++--
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/dspbridge/dblldefs.h b/arch/arm/plat-omap/include/dspbridge/dblldefs.h
+index fce35ab..527d47e 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dblldefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/dblldefs.h
+@@ -385,7 +385,7 @@ typedef dsp_status(*dbll_load_sect_fxn) (struct dbll_library_obj *lib,
+  *  Returns:
+  *      DSP_SOK:            Success.
+  *      -ENOMEM:        Memory allocation failure.
+- *      DSP_EFOPEN:         File open failure.
++ *      -EBADF:         File open failure.
+  *      DSP_EFREAD:         File read failure.
+  *      DSP_ECORRUPTFILE:   Unable to determine target type.
+  *  Requires:
 diff --git a/arch/arm/plat-omap/include/dspbridge/errbase.h b/arch/arm/plat-omap/include/dspbridge/errbase.h
-index 2ba76d4..5b8d9e5 100644
+index 09ae0c6..aa848c8 100644
 --- a/arch/arm/plat-omap/include/dspbridge/errbase.h
 +++ b/arch/arm/plat-omap/include/dspbridge/errbase.h
-@@ -90,9 +90,6 @@
- /* A general failure occurred */
- #define DSP_EFAIL                   (DSP_EBASE + 8)
+@@ -192,9 +192,6 @@
+ /* Unable to find a named section in DSP executable */
+ #define DSP_ENOSECT                 (DSP_EBASE + 0x32)
  
--/* The requested operation is invalid for this node type. */
--#define DSP_ENODETYPE               (DSP_EBASE + 0xd)
+-/* Unable to open file */
+-#define DSP_EFOPEN                  (DSP_EBASE + 0x33)
 -
- /* No error text was found for the specified error code. */
- #define DSP_ENOERRTEXT              (DSP_EBASE + 0xe)
+ /* Unable to read file */
+ #define DSP_EFREAD                  (DSP_EBASE + 0x34)
  
-diff --git a/arch/arm/plat-omap/include/dspbridge/node.h b/arch/arm/plat-omap/include/dspbridge/node.h
-index 7364564..66afafe 100644
---- a/arch/arm/plat-omap/include/dspbridge/node.h
-+++ b/arch/arm/plat-omap/include/dspbridge/node.h
-@@ -100,7 +100,7 @@ extern dsp_status node_alloc_msg_buf(struct node_object *hnode,
-  *      DSP_SOK:            Success.
-  *      -EFAULT:        Invalid hnode.
-  *      DSP_ERANGE:         prio is out of range.
-- *      DSP_ENODETYPE:      The specified node is not a task node.
-+ *      -EPERM:      The specified node is not a task node.
-  *      DSP_EWRONGSTATE:    Node is not in the NODE_ALLOCATED, NODE_PAUSED,
-  *                          or NODE_RUNNING state.
-  *      DSP_ETIMEOUT:       A timeout occurred before the DSP responded.
-@@ -382,7 +382,7 @@ extern dsp_status node_get_attr(struct node_object *hnode,
-  *  Returns:
-  *      DSP_SOK:        Success.
-  *      -EFAULT:    Invalid hnode.
-- *      DSP_ENODETYPE:  Cannot retrieve messages from this type of node.
-+ *      -EPERM:  Cannot retrieve messages from this type of node.
-  *      DSP_ETIMEOUT:   Timeout occurred and no message is available.
-  *      DSP_EFAIL:      Error occurred while trying to retrieve a message.
-  *  Requires:
-@@ -443,7 +443,7 @@ void node_on_exit(struct node_object *hnode, s32 nStatus);
-  *  Returns:
-  *      DSP_SOK:            Success.
-  *      -EFAULT:        Invalid hnode.
-- *      DSP_ENODETYPE:      Node is not a task or socket node.
-+ *      -EPERM:      Node is not a task or socket node.
-  *      DSP_ETIMEOUT:       A timeout occurred before the DSP responded.
-  *      DSP_EWRONGSTSATE:   Node is not in NODE_RUNNING state.
-  *      DSP_EFAIL:          Failed to pause node.
-@@ -467,7 +467,7 @@ extern dsp_status node_pause(struct node_object *hnode);
-  *  Returns:
-  *      DSP_SOK:            Success.
-  *      -EFAULT:        Invalid hnode.
-- *      DSP_ENODETYPE:      Messages can't be sent to this type of node.
-+ *      -EPERM:      Messages can't be sent to this type of node.
-  *      DSP_ETIMEOUT:       Timeout occurred before message could be set.
-  *      DSP_EWRONGSTATE:    Node is in invalid state for sending messages.
-  *      DSP_EFAIL:          Unable to send message.
-@@ -517,7 +517,7 @@ extern dsp_status node_register_notify(struct node_object *hnode,
-  *  Returns:
-  *      DSP_SOK:            Success.
-  *      -EFAULT:        Invalid hnode.
-- *      DSP_ENODETYPE:      hnode doesn't represent a message, task or dais
-+ *      -EPERM:      hnode doesn't represent a message, task or dais
-  *                          socket node.
-  *      DSP_ETIMEOUT:       A timeout occurred before the DSP responded.
-  *      DSP_EWRONGSTSATE:   Node is not in NODE_PAUSED or NODE_CREATED state.
-@@ -543,7 +543,7 @@ extern dsp_status node_run(struct node_object *hnode);
-  *      DSP_SOK:            Success.
-  *      -EFAULT:        Invalid hnode.
-  *      DSP_ETIMEOUT:       A timeout occurred before the DSP responded.
-- *      DSP_ENODETYPE:      Type of node specified cannot be terminated.
-+ *      -EPERM:      Type of node specified cannot be terminated.
-  *      DSP_EWRONGSTATE:    Operation not valid for the current node state.
-  *      DSP_EFAIL:          Unable to terminate the node.
-  *  Requires:
-diff --git a/arch/arm/plat-omap/include/dspbridge/nodepriv.h b/arch/arm/plat-omap/include/dspbridge/nodepriv.h
-index 0658981..05118bf 100644
---- a/arch/arm/plat-omap/include/dspbridge/nodepriv.h
-+++ b/arch/arm/plat-omap/include/dspbridge/nodepriv.h
-@@ -92,7 +92,7 @@ struct node_createargs {
-  *  Returns:
-  *      DSP_SOK:        Success.
-  *      -EFAULT:    Invalid hnode.
-- *      DSP_ENODETYPE:  Not a task or DAIS socket node.
-+ *      -EPERM:  Not a task or DAIS socket node.
-  *      DSP_EVALUE:     The node's stream corresponding to index and dir
-  *                      is not a stream to or from the host.
-  *  Requires:
-diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
-index 15d3e65..33b2676 100644
---- a/arch/arm/plat-omap/include/dspbridge/strm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/strm.h
-@@ -261,7 +261,7 @@ extern dsp_status strm_issue(struct strm_object *hStrm, IN u8 * pbuf,
-  *      -EFAULT:    Invalid hnode.
-  *      DSP_EDIRECTION: Invalid dir.
-  *      DSP_EVALUE:     Invalid index.
-- *      DSP_ENODETYPE:  hnode is not a task or DAIS socket node.
-+ *      -EPERM:  hnode is not a task or DAIS socket node.
-  *      DSP_EFAIL:      Unable to open stream.
-  *  Requires:
-  *      strm_init(void) called.
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 1ebccc9..159d227 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -697,7 +697,7 @@ DBAPI node_alloc_msg_buf(struct node_object *hnode, u32 usize,
- 	if (!MEM_IS_VALID_HANDLE(pnode, NODE_SIGNATURE))
- 		status = -EFAULT;
- 	else if (node_get_type(pnode) == NODE_DEVICE)
--		status = DSP_ENODETYPE;
-+		status = -EPERM;
- 
- 	if (DSP_FAILED(status))
- 		goto func_end;
-@@ -783,7 +783,7 @@ dsp_status node_change_priority(struct node_object *hnode, s32 prio)
- 		hnode_mgr = hnode->hnode_mgr;
- 		node_type = node_get_type(hnode);
- 		if (node_type != NODE_TASK && node_type != NODE_DAISSOCKET)
--			status = DSP_ENODETYPE;
-+			status = -EPERM;
- 		else if (prio < hnode_mgr->min_pri || prio > hnode_mgr->max_pri)
- 			status = DSP_ERANGE;
- 	}
-@@ -1783,7 +1783,7 @@ dsp_status node_get_channel_id(struct node_object *hnode, u32 dir, u32 index,
- 	}
- 	node_type = node_get_type(hnode);
- 	if (node_type != NODE_TASK && node_type != NODE_DAISSOCKET) {
--		status = DSP_ENODETYPE;
-+		status = -EPERM;
- 		return status;
- 	}
- 	if (dir == DSP_TONODE) {
-@@ -1843,7 +1843,7 @@ dsp_status node_get_message(struct node_object *hnode,
- 	node_type = node_get_type(hnode);
- 	if (node_type != NODE_MESSAGE && node_type != NODE_TASK &&
- 	    node_type != NODE_DAISSOCKET) {
--		status = DSP_ENODETYPE;
-+		status = -EPERM;
- 		goto func_end;
- 	}
- 	/*  This function will block unless a message is available. Since
-@@ -2038,7 +2038,7 @@ dsp_status node_pause(struct node_object *hnode)
+diff --git a/drivers/dsp/bridge/pmgr/dbll.c b/drivers/dsp/bridge/pmgr/dbll.c
+index 8d6f9ea..5544029 100644
+--- a/drivers/dsp/bridge/pmgr/dbll.c
++++ b/drivers/dsp/bridge/pmgr/dbll.c
+@@ -915,10 +915,10 @@ static dsp_status dof_open(struct dbll_library_obj *zl_lib)
+ 		if (zl_lib->desc == NULL) {
+ 			(zl_lib->target_obj->attrs.fclose) (zl_lib->fp);
+ 			zl_lib->fp = NULL;
+-			status = DSP_EFOPEN;
++			status = -EBADF;
+ 		}
  	} else {
- 		node_type = node_get_type(hnode);
- 		if (node_type != NODE_TASK && node_type != NODE_DAISSOCKET)
--			status = DSP_ENODETYPE;
-+			status = -EPERM;
- 	}
- 	if (DSP_FAILED(status))
- 		goto func_end;
-@@ -2144,7 +2144,7 @@ dsp_status node_put_message(struct node_object *hnode,
- 	node_type = node_get_type(hnode);
- 	if (node_type != NODE_MESSAGE && node_type != NODE_TASK &&
- 	    node_type != NODE_DAISSOCKET)
--		status = DSP_ENODETYPE;
-+		status = -EPERM;
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		/*  Check node state. Can't send messages to a node after
-@@ -2295,7 +2295,7 @@ dsp_status node_run(struct node_object *hnode)
- 	}
- 	node_type = node_get_type(hnode);
- 	if (node_type == NODE_DEVICE)
--		status = DSP_ENODETYPE;
-+		status = -EPERM;
- 	if (DSP_FAILED(status))
- 		goto func_end;
- 
-@@ -2416,7 +2416,7 @@ dsp_status node_terminate(struct node_object *hnode, OUT dsp_status *pstatus)
- 		hnode_mgr = hnode->hnode_mgr;
- 		node_type = node_get_type(hnode);
- 		if (node_type != NODE_TASK && node_type != NODE_DAISSOCKET)
--			status = DSP_ENODETYPE;
-+			status = -EPERM;
- 	}
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Check node state */
-diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-index be740bb..1d44a6f 100644
---- a/drivers/dsp/bridge/wmd/msg_sm.c
-+++ b/drivers/dsp/bridge/wmd/msg_sm.c
-@@ -490,7 +490,7 @@ dsp_status bridge_msg_register_notify(struct msg_queue *msg_queue_obj,
+-		status = DSP_EFOPEN;
++		status = -EBADF;
  	}
  
- 	if (!(event_mask == DSP_NODEMESSAGEREADY || event_mask == 0)) {
--		status = DSP_ENODETYPE;
-+		status = -EPERM;
- 		goto func_end;
- 	}
- 
+ 	return status;
 -- 
 1.6.0.4
 
