@@ -1,95 +1,107 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
-Date: Mon, 29 Mar 2010 09:40:17 +0300 (EEST)
-Message-ID: <20100329.094017.112623699.Hiroshi.DOYU@nokia.com>
-References: <496565EC904933469F292DDA3F1663E602CADC372D@dlee06.ent.ti.com>
+From: "Agarwal, Preshit" <preshit.agarwal@ti.com>
+Subject: [PATCH v2 1/1] omap: Registering sgx device and it's platform data
+Date: Mon, 29 Mar 2010 12:16:37 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBEFE3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:43107 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752992Ab0C2Gk3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Mar 2010 02:40:29 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CADC372D@dlee06.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:33842 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751415Ab0C2Gpe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Mar 2010 02:45:34 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: x0095840@ti.com
-Cc: linux-omap@vger.kernel.org, ameya.palande@nokia.com, felipe.contreras@nokia.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pais, Allen" <allen.pais@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-Hi Fernando,
+In this patch SGX powervr_device is registered with it's platform specific
+data to provide information about setting constraint through
+omap_pm_set_min_bus_tput.
+This patch removes the requirement of EXPORT_SYMBOL for the same function.
 
-From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH] OMAP3: mailbox initialization for all omap versions
-Date: Fri, 26 Mar 2010 20:30:34 +0100
+Signed-off-by: Preshit Agarwal <preshit.agarwal@ti.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Allen Pais <allen.pais@ti.com>
+---
+ arch/arm/mach-omap2/devices.c                  |   19 +++++++++++++++++++
+ arch/arm/mach-omap2/include/mach/omap_sgxdef.h |   23 +++++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/omap_sgxdef.h
 
-> From 47783fc3e030d4e49d20ba412661cc1f38d8aec0 Mon Sep 17 00:00:00 2001
-> From: Fernando Guzman Lugo <x0095840@ti.com>
-> Date: Fri, 26 Mar 2010 13:06:32 -0600
-> Subject: [PATCH] OMAP3: mailbox initialization for all omap versions
-> 
-> This removes the check for omap2420, omap3430, omap44xx
-> and initialize mailbox for all versions
-> 
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-
-It seems that I missed one point previously when I commented. I have
-just now found that "multi omap arch support" for mailbox is broken at
-the previous commit:454bf340c986b798cd4c2fd676caffa2c1e61482
-
-Considering to fix the above to keep "multi omap arch support", "omap
-cpu type check" is necessary here. Could this be fixed as something below?
-
-#if defined(CONFIG_ARCH_OMAP2)
-static struct resource omap2_mbox_resources[] = {
-       ...
-};
-#endif
-
-#if defined(CONFIG_ARCH_OMAP3)
-static struct resource omap3_mbox_resources[] = {
-       ...
-};
-#endif
-
-#if defined(CONFIG_ARCH_OMAP4)
-static struct resource omap4_mbox_resources[] = {
-       ...
-};
-#endif
-
-static struct platform_device mbox_device = {
-	.name		= "omap2-mailbox",
-	.id		= -1,
-};
-
-static inline void omap_init_mbox(void)
-{
-#if defined(CONFIG_ARCH_OMAP2)
-	if (cpu_is_omap2420()) {
-		mbox_device.num_resources = ARRAY_SIZE(omap2_mbox_resources);
-		mbox_device.resource = omap2_mbox_resources;
-	}
-#endif
-#if defined(CONFIG_ARCH_OMAP3)
-	if (cpu_is_omap3430()) {
-		mbox_device.num_resources = ARRAY_SIZE(omap3_mbox_resources);
-		mbox_device.resource = omap3_mbox_resources;
-	}
-#endif
-#if defined(CONFIG_ARCH_OMAP4)
-	if (cpu_is_omap44xx()) {
-		mbox_device.num_resources = ARRAY_SIZE(omap4_mbox_resources);
-		mbox_device.resource = omap4_mbox_resources;
-	}
-#endif
-	if (!mbox_device.resource) {
-		pr_err("%s: platform not supported\n", __func__);
-		return;
-	}
-	platform_device_register(&mbox_device);
-}
-
-Then resource registration could be done at runtime. I'm not so sure
-if the above cpu types are correct from h/w perspective, which should
-be fixed appropriately.
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 23e4d77..a67ff0b 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -27,6 +27,7 @@
+ #include <mach/gpio.h>
+ #include <plat/mmc.h>
+ 
++#include <mach/omap_sgxdef.h>
+ #include "mux.h"
+ 
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+@@ -786,6 +787,23 @@ static inline void omap_hdq_init(void)
+ static inline void omap_hdq_init(void) {}
+ #endif
+ 
++struct sgx_platform_data omap_sgx_data = {
++	.set_min_bus_tput = omap_sgx_pm_constraints,
++};
++
++static struct platform_device powervr_device = {
++	.name		= "pvrsrvkm",
++	.id		= -1,
++	.dev		= {
++		.platform_data = &omap_sgx_data,
++	},
++};
++
++static void omap_init_sgx(void)
++{
++	(void) platform_device_register(&powervr_device);
++}
++
+ /*-------------------------------------------------------------------------*/
+ 
+ static int __init omap2_init_devices(void)
+@@ -800,6 +818,7 @@ static int __init omap2_init_devices(void)
+ 	omap_hdq_init();
+ 	omap_init_sti();
+ 	omap_init_sha1_md5();
++	omap_init_sgx();
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/include/mach/omap_sgxdef.h b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
+new file mode 100644
+index 0000000..a8e065b
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
+@@ -0,0 +1,23 @@
++#ifndef OMAP_SGXDEF_H
++#define OMAP_SGXDEF_H
++
++#include <plat/omap-pm.h>
++
++#ifdef CONFIG_PM
++struct sgx_platform_data {
++	void (*set_min_bus_tput)(struct device *dev, u8 agent_id,
++						unsigned long r);
++};
++
++static void omap_sgx_pm_constraints(struct device *dev, u8 agent_id,
++						unsigned long r)
++{
++	omap_pm_set_min_bus_tput(dev, agent_id, r);
++}
++#else
++static void omap_sgx_pm_contraints(struct device *dev, u8 agent_id,
++						unsigned long r)
++{
++}
++#endif
++#endif
+-- 
+1.5.4.3
