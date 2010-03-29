@@ -1,59 +1,113 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC][PATCH] ASoC: OMAP: Fix capture pointer handling for
- OMAP1510 to work correctly with recent ALSA PCM code
-Date: Mon, 29 Mar 2010 11:54:59 +0300
-Message-ID: <20100329115459.b44f0d1c.jhnikula@gmail.com>
-References: <201003282229.32922.jkrzyszt@tis.icnet.pl>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+Date: Mon, 29 Mar 2010 12:08:56 +0300 (EEST)
+Message-ID: <20100329.120856.59654379.Hiroshi.DOYU@nokia.com>
+References: <496565EC904933469F292DDA3F1663E602CADC372D@dlee06.ent.ti.com>
+	<20100329.094017.112623699.Hiroshi.DOYU@nokia.com>
+	<20100329070145.GF28825@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f222.google.com ([209.85.219.222]:50538 "EHLO
-	mail-ew0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754789Ab0C2Iw1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Mar 2010 04:52:27 -0400
-Received: by ewy22 with SMTP id 22so1740437ewy.37
-        for <linux-omap@vger.kernel.org>; Mon, 29 Mar 2010 01:52:25 -0700 (PDT)
-In-Reply-To: <201003282229.32922.jkrzyszt@tis.icnet.pl>
+Received: from smtp.nokia.com ([192.100.122.233]:34376 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752636Ab0C2JJX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Mar 2010 05:09:23 -0400
+In-Reply-To: <20100329070145.GF28825@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: felipe.balbi@nokia.com, tony@atomide.com
+Cc: x0095840@ti.com, linux-omap@vger.kernel.org, ameya.palande@nokia.com, felipe.contreras@nokia.com
 
-On Sun, 28 Mar 2010 22:29:29 +0200
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+From: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+Date: Mon, 29 Mar 2010 09:01:45 +0200
 
-> With recent (2.6.34) chnages in PCM handling, capture stopped working on my 
-> OMAP1510 based Amstrad Delta videophone.
+> hi,
 > 
-> Using 2.6.34-rc2, I was able to correct the problem in 3 different ways:
+> On Mon, Mar 29, 2010 at 08:40:17AM +0200, Doyu Hiroshi (Nokia-D/Helsinki) wrote:
+>>> From 47783fc3e030d4e49d20ba412661cc1f38d8aec0 Mon Sep 17 00:00:00 2001
+>>> From: Fernando Guzman Lugo <x0095840@ti.com>
+>>> Date: Fri, 26 Mar 2010 13:06:32 -0600
+>>> Subject: [PATCH] OMAP3: mailbox initialization for all omap versions
+>>>
+>>> This removes the check for omap2420, omap3430, omap44xx
+>>> and initialize mailbox for all versions
+>>>
+>>> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+>>
+>>It seems that I missed one point previously when I commented. I have
+>>just now found that "multi omap arch support" for mailbox is broken at
+>>the previous commit:454bf340c986b798cd4c2fd676caffa2c1e61482
+>>
+>>Considering to fix the above to keep "multi omap arch support", "omap
+>>cpu type check" is necessary here. Could this be fixed as something below?
+>>
+>>#if defined(CONFIG_ARCH_OMAP2)
+>>static struct resource omap2_mbox_resources[] = {
+>>       ...
+>>};
+>>#endif
+>>
+>>#if defined(CONFIG_ARCH_OMAP3)
+>>static struct resource omap3_mbox_resources[] = {
+>>       ...
+>>};
+>>#endif
+>>
+>>#if defined(CONFIG_ARCH_OMAP4)
+>>static struct resource omap4_mbox_resources[] = {
+>>       ...
+>>};
+>>#endif
+>>
+>>static struct platform_device mbox_device = {
+>>	.name		= "omap2-mailbox",
+>>	.id		= -1,
+>>};
+>>
+>>static inline void omap_init_mbox(void)
+>>{
+>>#if defined(CONFIG_ARCH_OMAP2)
+>>	if (cpu_is_omap2420()) {
+>>		mbox_device.num_resources = ARRAY_SIZE(omap2_mbox_resources);
+>>		mbox_device.resource = omap2_mbox_resources;
+>>	}
+>>#endif
+>>#if defined(CONFIG_ARCH_OMAP3)
+>>	if (cpu_is_omap3430()) {
+>>		mbox_device.num_resources = ARRAY_SIZE(omap3_mbox_resources);
+>>		mbox_device.resource = omap3_mbox_resources;
+>>	}
+>>#endif
+>>#if defined(CONFIG_ARCH_OMAP4)
+>>	if (cpu_is_omap44xx()) {
+>>		mbox_device.num_resources = ARRAY_SIZE(omap4_mbox_resources);
+>>		mbox_device.resource = omap4_mbox_resources;
+>>	}
+>>#endif
+>>	if (!mbox_device.resource) {
+>>		pr_err("%s: platform not supported\n", __func__);
+>>		return;
+>>	}
+>>	platform_device_register(&mbox_device);
+>>}
 > 
-> 1. reverting commit 7b3a177b0d4f92b3431b8dca777313a07533a710,
-> 2. enabling additional jiffies check with
-> 	echo 4 >/proc/asound/card0/pcm0c0/xrun_debug
-> 3. applying the patch below.
+> in that case, wouldn't it be better to split that into 
+> arch/arm/omap1/mbox.c arch/arm/omap2/mbox24xx.c 
+> arch/arm/omap2/mbox34xx.c arch/arm/omap2/mbox44xx.c ??
 > 
-> Since I wasn't able to reproduce the problem on my i686 PC, I guess the 
-> problem is probably machine specific.
-> 
-> The patch reuses the method for software emulation of missing hardware 
-> pointer, already implemented for playback on OMAP1510. It's possible that 
-> event if a hardware pointer is available for capture on this machine, its 
-> behaviour may be not compatible with what upper layer expects.
-> 
-> If you think the problem may be more general and should be solved differently, 
-> on a higher level, I can try to work more on it if you give me a hint.
-> 
-I don't have anything against this patch as it makes the
-playback/capture code uniform on 1510 but I don't understand why the
-capture broke now if it was working before.
+> that way we don't need ifdefs on the code and we will only compile what 
+> we really need.
 
-What I was thinking if there has been always some overruns which were
-not detected on 2.6.34-rc anymore and that caused somehow the capture
-not working on 1510. Could you try does a patch below have any effect?
+This is feasible.
+But I'm not so sure whether adding 4 new files with around only 10
+lines code is acceptable or not.
 
-http://mailman.alsa-project.org/pipermail/alsa-devel/2010-March/026487.html
+Tony, any comment on the above?
 
-
--- 
-Jarkko
+Basically there could be the case we need all resources if we want to
+support omap1, 2, 3 and 4 at the same time, and the appropriate one
+will be chosen at run time by CPUID. I'm not sure how mature "omap
+multi arch" support is practically, but it's better to keep it as much
+as possbile.
