@@ -1,45 +1,43 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [RFC][PATCH v2 5/5] omap1: Amstrad Delta: modify defconfig for external keyboard support
-Date: Mon, 29 Mar 2010 16:32:31 +0200
-Message-ID: <201003291632.33077.jkrzyszt@tis.icnet.pl>
-References: <201003291619.25878.jkrzyszt@tis.icnet.pl>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: USB on omap2430
+Date: Mon, 29 Mar 2010 23:34:10 +0300
+Message-ID: <20100329203410.GA31402@nokia.com>
+References: <70376CA23424B34D86F1C7DE6B997343017F5D5BE1@VSHINMSMBX01.vshodc.lntinfotech.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB032221A9F3@dbde02.ent.ti.com>
+ <70376CA23424B34D86F1C7DE6B997343017F5D5BE3@VSHINMSMBX01.vshodc.lntinfotech.com>
+ <70376CA23424B34D86F1C7DE6B997343017F5D5BE7@VSHINMSMBX01.vshodc.lntinfotech.com>
+ <3821c76c47d164935b857a29de6bb797@secure211.sgcpanel.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <201003291619.25878.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:37357 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752231Ab0C2Uev (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Mar 2010 16:34:51 -0400
 Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, e3-hacking@earth.li
+In-Reply-To: <3821c76c47d164935b857a29de6bb797@secure211.sgcpanel.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Felipe Balbi <me@felipebalbi.com>
+Cc: Viral Mehta <Viral.Mehta@lntinfotech.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The patch adds a CONFIG directive required for supporting the Amstrad Delta
-connected external keyboard by default.
+Hi,
 
-Works on top of patch 4/5:
-	input: serio: add support for Amstrad Delta serial keyboard port
+On Fri, Mar 26, 2010 at 06:44:16PM +0100, ext Felipe Balbi wrote:
+>to me it sounds like you don't have a transceiver. Can you do the
+>following:
+>
+>1. arm-linux-gdb vmlinux (with the same kernel image you reproduce the
+>crash)
+>2. (gdb) l *(musb_platform_suspend + 0x20)
+>
+>it should show you the source code and the line number from
+>where the NULL pointer comes
+>
+>ps: please read http://elinux.org/Netiquette
 
-Created and tested against linux-2.6.34-rc2.
+any news on this ?
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
-v2 changes:
-- no functional changes,
-- refreshed against linux-2.6.34-rc2.
-
- arch/arm/configs/ams_delta_defconfig |    1 +
- 1 file changed, 1 insertion(+)
-
-diff -uprN git.orig/arch/arm/configs/ams_delta_defconfig git/arch/arm/configs/ams_delta_defconfig
---- git.orig/arch/arm/configs/ams_delta_defconfig	2010-03-28 23:43:07.000000000 +0200
-+++ git/arch/arm/configs/ams_delta_defconfig	2010-03-28 23:46:29.000000000 +0200
-@@ -700,6 +700,7 @@ CONFIG_SERIO=y
- CONFIG_SERIO_SERPORT=y
- CONFIG_SERIO_LIBPS2=y
- # CONFIG_SERIO_RAW is not set
-+CONFIG_SERIO_AMS_DELTA=y
- # CONFIG_GAMEPORT is not set
- 
- #
+-- 
+balbi
