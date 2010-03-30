@@ -1,66 +1,26 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH]omap hsmmc: fix incorrect capability reporting
-Date: Tue, 30 Mar 2010 10:47:19 -0500
-Message-ID: <002a01cad020$47be5fb0$544ff780@am.dhcp.ti.com>
-References: <618f0c911003300737w5562c18as1bfcb21671919718@mail.gmail.com>
+From: Peter Barada <peter.barada@gmail.com>
+Subject: Where did the twl4030 battery charging code go?
+Date: Tue, 30 Mar 2010 11:59:30 -0400
+Message-ID: <738b3f7e1003300859t633ace94h5945e9974109e176@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <618f0c911003300737w5562c18as1bfcb21671919718@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: 'Venkatraman S' <svenkatr@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, kishore.kadiyala@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yw0-f172.google.com ([209.85.211.172]:61271 "EHLO
+	mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751822Ab0C3P7c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Mar 2010 11:59:32 -0400
+Received: by ywh2 with SMTP id 2so5783878ywh.33
+        for <linux-omap@vger.kernel.org>; Tue, 30 Mar 2010 08:59:30 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
+I'm looking in linux-2.6.33-rc3 to turn on the battery backup charger
+to get the RTC working on a Logic SOM, and I don't see
+drivers/mfd/twl4030_bci_battery.c anymore.
 
+Digging through Tony's trees I find it was removed way back at::
 
-> -----Original Message-----
-> From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of
-> Venkatraman S
-> Sent: Tuesday, March 30, 2010 9:37 AM
-> To: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org;
-> kishore.kadiyala@ti.com
-> Cc: Madhusudhan Chikkature
-> Subject: [PATCH]omap hsmmc: fix incorrect capability reporting
-> 
-> MMC slots that support 8 bit mode also support 4 bit mode.
-> The capability flag has to reflect this, otherwise SDHC cards operate
-> in 1 bit mode.
-> 
-> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 83f0aff..dbf83a6 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2093,7 +2093,7 @@ static int __init omap_hsmmc_probe(struct
-> platform_device *pdev)
-> 
->  	if (mmc_slot(host).wires >= 8)
->  		mmc->caps |= MMC_CAP_8_BIT_DATA;
-> -	else if (mmc_slot(host).wires >= 4)
-> +	if (mmc_slot(host).wires >= 4)
->  		mmc->caps |= MMC_CAP_4_BIT_DATA;
-> 
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=b122a4b8a18ebbb0b5de90baeb54650a53cd9d7d
 
-Since 8-bit is the max how about:
-
-  	if (mmc_slot(host).wires == 8)
-  		mmc->caps |= MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA;
-	if (mmc_slot(host).wires == 4)
-  		mmc->caps |= MMC_CAP_4_BIT_DATA;
-
-This would be little easy to read the code.
-
-Regards,
-Madhu
-
->  	if (mmc_slot(host).nonremovable)
-> --
-> 1.6.3.3
-
+Did this code resurface anywhere in the new kernels?
