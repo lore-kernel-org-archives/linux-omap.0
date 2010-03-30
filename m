@@ -1,46 +1,102 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/4] OMAP clock/hwmod fixes for 2.6.34-rc
-Date: Tue, 30 Mar 2010 01:56:38 -0600
-Message-ID: <20100330074801.11629.61888.stgit@localhost.localdomain>
+Subject: [PATCH 3/4] OMAP4: prcm: Use logical OR instead of bitwise OR
+Date: Tue, 30 Mar 2010 01:56:51 -0600
+Message-ID: <20100330075649.11629.70713.stgit@localhost.localdomain>
+References: <20100330074801.11629.61888.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41371 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:41379 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764Ab0C3H64 (ORCPT
+	with ESMTP id S1754186Ab0C3H64 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Mar 2010 03:58:56 -0400
+In-Reply-To: <20100330074801.11629.61888.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Abhijit Pagare <abhijitpagare@ti.com>
 
-Hi,
+From: Rajendra Nayak <rnayak@ti.com>
 
-here are some OMAP clock and hwmod fix patches that we're planning to
-send upstream soon; comments welcome.
+This patch fixes usage of bitwise OR in if conditions, and instead
+uses logical OR.
 
-
-- Paul
-
-
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Abhijit Pagare <abhijitpagare@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/clockdomain.c |    6 +++---
+ arch/arm/mach-omap2/powerdomain.c |    2 +-
+ arch/arm/mach-omap2/prcm.c        |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-Rajendra Nayak (1):
-      OMAP4: prcm: Use logical OR instead of bitwise OR
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index b87ad66..6e568ec 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -240,7 +240,7 @@ static void _omap2_clkdm_set_hwsup(struct clockdomain *clkdm, int enable)
+ 			bits = OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
+ 		else
+ 			bits = OMAP24XX_CLKSTCTRL_DISABLE_AUTO;
+-	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
++	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		if (enable)
+ 			bits = OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
+ 		else
+@@ -812,7 +812,7 @@ int omap2_clkdm_sleep(struct clockdomain *clkdm)
+ 		cm_set_mod_reg_bits(OMAP24XX_FORCESTATE,
+ 			    clkdm->pwrdm.ptr->prcm_offs, OMAP2_PM_PWSTCTRL);
+ 
+-	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
++	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 
+ 		u32 bits = (OMAP34XX_CLKSTCTRL_FORCE_SLEEP <<
+ 			 __ffs(clkdm->clktrctrl_mask));
+@@ -856,7 +856,7 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+ 		cm_clear_mod_reg_bits(OMAP24XX_FORCESTATE,
+ 			      clkdm->pwrdm.ptr->prcm_offs, OMAP2_PM_PWSTCTRL);
+ 
+-	} else if (cpu_is_omap34xx() | cpu_is_omap44xx()) {
++	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 
+ 		u32 bits = (OMAP34XX_CLKSTCTRL_FORCE_WAKEUP <<
+ 			 __ffs(clkdm->clktrctrl_mask));
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 9a0fb38..ebfce7d 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -222,7 +222,7 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+ {
+ 	struct powerdomain **p = NULL;
+ 
+-	if (cpu_is_omap24xx() | cpu_is_omap34xx()) {
++	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+ 		pwrstctrl_reg_offs = OMAP2_PM_PWSTCTRL;
+ 		pwrstst_reg_offs = OMAP2_PM_PWSTST;
+ 	} else if (cpu_is_omap44xx()) {
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 81872aa..fc3fd38 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -123,7 +123,7 @@ struct omap3_prcm_regs prcm_context;
+ u32 omap_prcm_get_reset_sources(void)
+ {
+ 	/* XXX This presumably needs modification for 34XX */
+-	if (cpu_is_omap24xx() | cpu_is_omap34xx())
++	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+ 		return prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTST) & 0x7f;
+ 	if (cpu_is_omap44xx())
+ 		return prm_read_mod_reg(WKUP_MOD, OMAP4_RM_RSTST) & 0x7f;
+@@ -157,7 +157,7 @@ void omap_prcm_arch_reset(char mode)
+ 	else
+ 		WARN_ON(1);
+ 
+-	if (cpu_is_omap24xx() | cpu_is_omap34xx())
++	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+ 		prm_set_mod_reg_bits(OMAP_RST_DPLL3, prcm_offs,
+ 						 OMAP2_RM_RSTCTRL);
+ 	if (cpu_is_omap44xx())
 
-Ranjith Lohithakshan (1):
-      OMAP3: clock: fix enable bit used for dpll4_m4x2 clock
-
-Thara Gopinath (2):
-      OMAP: HWMOD: Adding clockdomain check
-      OMAP: HWMOD: Bug fixes in hwmod structure definitions
-
-
- arch/arm/mach-omap2/clock3xxx_data.c         |    2 +-
- arch/arm/mach-omap2/clockdomain.c            |    6 +++---
- arch/arm/mach-omap2/omap_hwmod.c             |    3 +++
- arch/arm/mach-omap2/powerdomain.c            |    2 +-
- arch/arm/mach-omap2/prcm.c                   |    4 ++--
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +-
- 6 files changed, 11 insertions(+), 8 deletions(-)
 
