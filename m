@@ -1,58 +1,44 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: USB on omap2430
-Date: Mon, 29 Mar 2010 23:41:59 +0300
-Message-ID: <20100329204159.GC31402@nokia.com>
-References: <70376CA23424B34D86F1C7DE6B997343017F5D5BE1@VSHINMSMBX01.vshodc.lntinfotech.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB032221A9F3@dbde02.ent.ti.com>
- <70376CA23424B34D86F1C7DE6B997343017F5D5BE3@VSHINMSMBX01.vshodc.lntinfotech.com>
+From: Viral Mehta <Viral.Mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
+Subject: RE: USB on omap2430
+Date: Tue, 30 Mar 2010 10:07:30 +0530
+Message-ID: <70376CA23424B34D86F1C7DE6B997343023C4E1FE6@VSHINMSMBX01.vshodc.lntinfotech.com>
+References: <70376CA23424B34D86F1C7DE6B997343017F5D5BE1@VSHINMSMBX01.vshodc.lntinfotech.com>,<5A47E75E594F054BAF48C5E4FC4B92AB032221A9F3@dbde02.ent.ti.com>,<70376CA23424B34D86F1C7DE6B997343017F5D5BE3@VSHINMSMBX01.vshodc.lntinfotech.com>
  <70376CA23424B34D86F1C7DE6B997343017F5D5BE7@VSHINMSMBX01.vshodc.lntinfotech.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+ <3821c76c47d164935b857a29de6bb797@secure211.sgcpanel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <70376CA23424B34D86F1C7DE6B997343017F5D5BE7-fVvhrSDAkVjuuPCCJ6VnObSn4PsL5ZDKvpI+GvaZM4lBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <3821c76c47d164935b857a29de6bb797-WEDJutINlwSqfKURHDCIgFDQ4js95KgL@public.gmane.org>
+Content-Language: en-US
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Viral Mehta <Viral.Mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
+To: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
 Cc: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi again,
+Cj4KPiB0byBtZSBpdCBzb3VuZHMgbGlrZSB5b3UgZG9uJ3QgaGF2ZSBhIHRyYW5zY2VpdmVyLiBD
+YW4geW91IGRvIHRoZQo+IGZvbGxvd2luZzoKCkkgdGhvdWdodCB3aGVuIHlvdSBzYWlkIHRyYW5z
+Y2VpdmVyIGlzIG5vdCBwcmVzZW50LCB5b3UgbWVhbnQgdGhhdCB0cmFuc2NlaXZlciBhcwpIVyAo
+b3IgY2hpcCkgaXMgbm90IHByZXNlbnQuIFNvIGFnYWluIEkgdG9vayAyLjYuMTQtVjMga2VybmVs
+IGNvZGUgZnJvbSBodHRwOi8vbGludXgub21hcC5jb20KYW5kIHRlc3RlZCB0aGF0LiBXaXRoIHRo
+YXQga2VybmVsIHZlcnNpb24gVVNCIHdvcmtzIGZpbmUgYW5kIHRodXMgdHJhbnNjZWl2ZXIgaXMg
+cHJlc2VudC4KCj4KPiAxLiBhcm0tbGludXgtZ2RiIHZtbGludXggKHdpdGggdGhlIHNhbWUga2Vy
+bmVsIGltYWdlIHlvdSByZXByb2R1Y2UgdGhlCj4gY3Jhc2gpCj4gMi4gKGdkYikgbCAqKG11c2Jf
+cGxhdGZvcm1fc3VzcGVuZCArIDB4MjApCj4KPiBpdCBzaG91bGQgc2hvdyB5b3UgdGhlIHNvdXJj
+ZSBjb2RlIGFuZCB0aGUgbGluZSBudW1iZXIgZnJvbQo+IHdoZXJlIHRoZSBOVUxMIHBvaW50ZXIg
+Y29tZXMKCkkgZGlkIHRoYXQgYnV0IHVJbWFnZSBoYWQgbm90IHN5bWJvbCBpbmZvcm1hdGlvbiBh
+bmQgdGh1cyBpdCBkaWQgbm90IGdpdmUgZXhhY3QgaW5mb3JtYXRpb24uCkJ1dCwgSSB3YXMgc3Vy
+ZSB0aGF0ICJvdGdfZ2V0X3RyYW5zY2VpdmVyKCkiIHdhcyBmYWlsZWQgYW5kIGhhZCByZXR1cm5l
+ZCBOVUxMLgpBbmQgSSB3YXMgZGVidWdnaW5nIGZ1cnRoZXIgaW4gdGhhdCBsaW5lLgoKPgo+IHBz
+OiBwbGVhc2UgcmVhZCBodHRwOi8vZWxpbnV4Lm9yZy9OZXRpcXVldHRlCj4KPiAtLQo+IGJhbGJp
+Cj4KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCgpUaGlzIEVtYWlsIG1heSBjb250YWluIGNvbmZpZGVudGlhbCBv
+ciBwcml2aWxlZ2VkIGluZm9ybWF0aW9uIGZvciB0aGUgaW50ZW5kZWQgcmVjaXBpZW50IChzKSBJ
+ZiB5b3UgYXJlIG5vdCB0aGUgaW50ZW5kZWQgcmVjaXBpZW50LCBwbGVhc2UgZG8gbm90IHVzZSBv
+ciBkaXNzZW1pbmF0ZSB0aGUgaW5mb3JtYXRpb24sIG5vdGlmeSB0aGUgc2VuZGVyIGFuZCBkZWxl
+dGUgaXQgZnJvbSB5b3VyIHN5c3RlbS4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
 
-On Fri, Mar 26, 2010 at 12:08:11PM +0100, ext Viral Mehta wrote:
->I enabled "earlyprintk" and I have copy+pasted crashdump at the end of the email.
->
->It is not able to get "otg_get_transceiver()" since transceiver was never set.
->OMAP2430 uses ISP1301 (grepped from SDP manual).
->It is on I2C1 bus and address 0x2D if I read the manual correctly.
-
-isp1301 ?? there's a driver for that on drivers/usb/otg/isp1301_omap.c
-
-enable that and check if it works. You should add something like the 
-following to your board file:
-
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 01d113f..910234d 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -172,6 +172,11 @@ static struct i2c_board_info __initdata sdp2430_i2c_boardinfo[] = {
-  		.irq = INT_24XX_SYS_NIRQ,
-  		.platform_data = &sdp2430_twldata,
-  	},
-+	{
-+		I2C_BOARD_INFO("isp1301-omap", 0x2d),
-+		.flags = I2C_CLIENT_WAKE,
-+		.irq = /* irq line here */,
-+	},
-  };
-  
-  static int __init omap2430_i2c_init(void)
-
-I didn't even compile tested... you will probably need the schematics to 
-figure out to which i2c bus isp1301 is connected.
-
--- 
-balbi
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
