@@ -1,66 +1,82 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH]omap hsmmc: fix incorrect capability reporting
-Date: Wed, 31 Mar 2010 00:12:55 +0530
-Message-ID: <618f0c911003301142w660f77afk3ced01187792fecc@mail.gmail.com>
-References: <618f0c911003300737w5562c18as1bfcb21671919718@mail.gmail.com>
-	 <002a01cad020$47be5fb0$544ff780@am.dhcp.ti.com>
-	 <618f0c911003301111r3781661asa444dd35042772c3@mail.gmail.com>
-	 <4BB2430A.80701@ti.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
+Date: Tue, 30 Mar 2010 18:35:19 -0500
+Message-ID: <005401cad061$a8db7440$544ff780@am.dhcp.ti.com>
+References: <20100322212025.GW11448@atomide.com> <E0D41E29EB0DAC4E9F3FF173962E9E94026F127117@dbde02.ent.ti.com> <20100323152709.GD11448@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:61896 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753360Ab0C3Sm5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Mar 2010 14:42:57 -0400
-In-Reply-To: <4BB2430A.80701@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37401 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753938Ab0C3Xfa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Mar 2010 19:35:30 -0400
+In-Reply-To: <20100323152709.GD11448@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+To: 'Tony Lindgren' <tony@atomide.com>, "'Pais, Allen'" <allen.pais@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "'Pandita, Vikram'" <vikram.pandita@ti.com>
 
-Nishanth Menon <nm@ti.com> wrote:
-> S, Venkatraman had written, on 03/30/2010 01:11 PM, the following:
-> [..]
->>>>
->>>> diff --git a/drivers/mmc/host/omap_hsmmc.c
->>>> b/drivers/mmc/host/omap_hsmmc.c
->>>> index 83f0aff..dbf83a6 100644
->>>> --- a/drivers/mmc/host/omap_hsmmc.c
->>>> +++ b/drivers/mmc/host/omap_hsmmc.c
->>>> @@ -2093,7 +2093,7 @@ static int __init omap_hsmmc_probe(struct
->>>> platform_device *pdev)
->>>>
->>>> =A0 =A0 =A0if (mmc_slot(host).wires >=3D 8)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_8_BIT_DATA;
->>>> - =A0 =A0 else if (mmc_slot(host).wires >=3D 4)
->>>> + =A0 =A0 if (mmc_slot(host).wires >=3D 4)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_4_BIT_DATA;
->>>>
->>> Since 8-bit is the max how about:
->>>
->>> =A0 =A0 =A0 if (mmc_slot(host).wires =3D=3D 8)
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D MMC_CAP_8_BIT_DATA | MMC=
-_CAP_4_BIT_DATA;
->>> =A0 =A0 =A0 if (mmc_slot(host).wires =3D=3D 4)
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D MMC_CAP_4_BIT_DATA;
->>>
->>> This would be little easy to read the code.
->>
->> Sure. Works for me.
->
-> nitpicky comment: might be better off using a switch(mmc_slot(host).w=
-ires)
-> statement instead of using =3D=3D if that is the intention here..
 
-Too verbose for just 2 cases, with the 'case's and 'default's adding
-nothing to readability. YMMV.
 
-Thanks,
-Venkat.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Tuesday, March 23, 2010 10:27 AM
+> To: Pais, Allen
+> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org;
+> Pandita, Vikram
+> Subject: Re: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
+> 
+> * Pais, Allen <allen.pais@ti.com> [100322 22:42]:
+> > > >
+> > > >  With this patch[DEBUG_LL + earlyprintk],
+> > > >  I still haven't been able to boot the kernel.
+> > > >  Is it working on your side.
+> > > >
+> > > >  The commit am using is : a842b5f9ce70e1b738eabb4d719860070180ed1c
+> > >
+> > > I think you will also need the 3630 serial fixes series posted
+> > > recently.
+> > >
+> > > I just merged those into omap-fixes-for-linus (and master)
+> > > branch(es). Maybe give it a try with at commit
+> > > b3c7740a120c8a7775cb63b4d094466da5c01692 + this patch?
+> >
+> >   Thanks, I'll pull in those fixes.
+> >  I believe the mux errors are fixed. Have a look at
+> >  http://dev.omapzoom.org/?p=manju/kernel-omap3-
+> dev.git;a=commit;h=3499f5023ee90dc6ee3868a3147b87fe22a1d9b7
+> >
+> >  Patch must have been missed some how.
+> 
+> OK, we really should get fixes like that to mainline kernel ASAP
+> to avoid duplicating the effort.
+> 
+> Then at least one issue remains for zoom3 to be usable..
+> I'm getting tons of MMC errors trying to mount root on it:
+> 
+> mmcblk1: error -110 transferring data, sector 2097024, nr 8, card status
+> 0x900
+> end_request: I/O error, dev mmcblk1, sector 2097024
+> ...
+> 
+> Any ideas if that's fixed somewhere also?
+> 
+Tony,
+
+What is the branch on which the kernel is built? I tried the master branch
+and the omap-fixes-for-linus both does not seem to boot Zoom3.
+
+Regards,
+Madhu
+
+> Regards,
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
