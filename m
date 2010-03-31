@@ -1,104 +1,111 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [RFC/PATCHv2 3/4] arm: omap: switch over to gpio_set_debounce
-Date: Wed, 31 Mar 2010 18:35:11 +0300
-Message-ID: <1270049712-28272-4-git-send-email-felipe.balbi@nokia.com>
+Subject: [RFC/PATCHv2 4/4] arm: omap: remove the unused omap_gpio_set_debounce methods
+Date: Wed, 31 Mar 2010 18:35:12 +0300
+Message-ID: <1270049712-28272-5-git-send-email-felipe.balbi@nokia.com>
 References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27202 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:27210 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756937Ab0CaPf7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 11:35:59 -0400
+	with ESMTP id S1756965Ab0CaPgA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 11:36:00 -0400
 In-Reply-To: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
 Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-stop using the omap-specific implementations for gpio
-debouncing now that gpiolib provides its own support.
+nobody uses that anymore, so remove and expect drivers
+to use the gpiolib implementation.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c        |    4 +---
- arch/arm/mach-omap2/board-ldp.c            |    3 +--
- arch/arm/mach-omap2/board-omap3evm.c       |    4 +---
- arch/arm/mach-omap2/board-omap3pandora.c   |    4 ++--
- arch/arm/mach-omap2/board-omap3touchbook.c |    3 +--
- 5 files changed, 6 insertions(+), 12 deletions(-)
+ arch/arm/plat-omap/gpio.c |   73 ---------------------------------------------
+ 1 files changed, 0 insertions(+), 73 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 5822bcf..8678b19 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -137,9 +137,7 @@ static void ads7846_dev_init(void)
- 	}
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 345ed2c..74d5062 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -665,79 +665,6 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
+ 	__raw_writel(val, reg);
+ }
  
- 	gpio_direction_input(ts_gpio);
+-void omap_set_gpio_debounce(int gpio, int enable)
+-{
+-	struct gpio_bank *bank;
+-	void __iomem *reg;
+-	unsigned long flags;
+-	u32 val, l = 1 << get_gpio_index(gpio);
 -
--	omap_set_gpio_debounce(ts_gpio, 1);
--	omap_set_gpio_debounce_time(ts_gpio, 0xa);
-+	gpio_set_debounce(ts_gpio, 310);
- }
- 
- static int ads7846_get_pendown_state(void)
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 5fcb52e..fefd7e6 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -209,8 +209,7 @@ static void ads7846_dev_init(void)
- 	}
- 
- 	gpio_direction_input(ts_gpio);
--	omap_set_gpio_debounce(ts_gpio, 1);
--	omap_set_gpio_debounce_time(ts_gpio, 0xa);
-+	gpio_set_debounce(ts_gpio, 310);
- }
- 
- static int ads7846_get_pendown_state(void)
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 017bb2f..e80f9da 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -579,9 +579,7 @@ static void ads7846_dev_init(void)
- 		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
- 
- 	gpio_direction_input(OMAP3_EVM_TS_GPIO);
+-	if (cpu_class_is_omap1())
+-		return;
 -
--	omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1);
--	omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa);
-+	gpio_set_debounce(OMAP3_EVM_TS_GPIO, 310);
- }
- 
- static int ads7846_get_pendown_state(void)
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 395d049..db06dc9 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -130,8 +130,8 @@ static struct platform_device pandora_keys_gpio = {
- static void __init pandora_keys_gpio_init(void)
- {
- 	/* set debounce time for GPIO banks 4 and 6 */
--	omap_set_gpio_debounce_time(32 * 3, GPIO_DEBOUNCE_TIME);
--	omap_set_gpio_debounce_time(32 * 5, GPIO_DEBOUNCE_TIME);
-+	gpio_set_debounce(32 * 3, GPIO_DEBOUNCE_TIME);
-+	gpio_set_debounce(32 * 5, GPIO_DEBOUNCE_TIME);
- }
- 
- static int board_keymap[] = {
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 2504d41..2f5f823 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -328,8 +328,7 @@ static void __init omap3_ads7846_init(void)
- 	}
- 
- 	gpio_direction_input(OMAP3_TS_GPIO);
--	omap_set_gpio_debounce(OMAP3_TS_GPIO, 1);
--	omap_set_gpio_debounce_time(OMAP3_TS_GPIO, 0xa);
-+	gpio_set_debounce(OMAP3_TS_GPIO, 310);
- }
- 
- static struct ads7846_platform_data ads7846_config = {
+-	bank = get_gpio_bank(gpio);
+-	reg = bank->base;
+-
+-	if (cpu_is_omap44xx())
+-		reg += OMAP4_GPIO_DEBOUNCENABLE;
+-	else
+-		reg += OMAP24XX_GPIO_DEBOUNCE_EN;
+-
+-	if (!(bank->mod_usage & l)) {
+-		printk(KERN_ERR "GPIO %d not requested\n", gpio);
+-		return;
+-	}
+-
+-	spin_lock_irqsave(&bank->lock, flags);
+-	val = __raw_readl(reg);
+-
+-	if (enable && !(val & l))
+-		val |= l;
+-	else if (!enable && (val & l))
+-		val &= ~l;
+-	else
+-		goto done;
+-
+-	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+-		if (enable)
+-			clk_enable(bank->dbck);
+-		else
+-			clk_disable(bank->dbck);
+-	}
+-
+-	__raw_writel(val, reg);
+-done:
+-	spin_unlock_irqrestore(&bank->lock, flags);
+-}
+-EXPORT_SYMBOL(omap_set_gpio_debounce);
+-
+-void omap_set_gpio_debounce_time(int gpio, int enc_time)
+-{
+-	struct gpio_bank *bank;
+-	void __iomem *reg;
+-
+-	if (cpu_class_is_omap1())
+-		return;
+-
+-	bank = get_gpio_bank(gpio);
+-	reg = bank->base;
+-
+-	if (!bank->mod_usage) {
+-		printk(KERN_ERR "GPIO not requested\n");
+-		return;
+-	}
+-
+-	enc_time &= 0xff;
+-
+-	if (cpu_is_omap44xx())
+-		reg += OMAP4_GPIO_DEBOUNCINGTIME;
+-	else
+-		reg += OMAP24XX_GPIO_DEBOUNCE_VAL;
+-
+-	__raw_writel(enc_time, reg);
+-}
+-EXPORT_SYMBOL(omap_set_gpio_debounce_time);
+-
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ 						int trigger)
 -- 
 1.7.0.rc0.33.g7c3932
 
