@@ -1,186 +1,72 @@
-From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH] [PATCH v4 5/5] omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP board
-Date: Wed, 31 Mar 2010 15:51:23 +0530
-Message-ID: <1270030883-2155-1-git-send-email-leslyam@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] i2c: omap: fix OOPS in omap_i2c_unidle() during probe
+Date: Wed, 31 Mar 2010 04:27:41 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1003310427180.14436@utopia.booyaka.com>
+References: <1269339176-17479-1-git-send-email-ext-mika.1.westerberg@nokia.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46222 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933073Ab0CaJ7H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Mar 2010 05:59:07 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:46170 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757563Ab0CaK1l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 06:27:41 -0400
+In-Reply-To: <1269339176-17479-1-git-send-email-ext-mika.1.westerberg@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
 
-Adding the power script data for zoom board to TWL4030 platform data.
-Updating the sleep/wakeup/warm_rest sequence & voltsetup_time
-from generic script file.
+Hi Mika, Ben,
 
-Signed-off-by: Lesly A M <x0080970@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: David Derrick <dderrick@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
----
- arch/arm/mach-omap2/Makefile                 |    9 ++++--
- arch/arm/mach-omap2/board-3630sdp.c          |    2 +
- arch/arm/mach-omap2/board-zoom-peripherals.c |   36 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-zoom2.c            |    2 +
- arch/arm/mach-omap2/board-zoom3.c            |    2 +
- 5 files changed, 48 insertions(+), 3 deletions(-)
+On Tue, 23 Mar 2010, Mika Westerberg wrote:
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 1461628..32eedde 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -130,14 +130,17 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
- 					   board-zoom-peripherals.o \
- 					   hsmmc.o \
--					   board-zoom-debugboard.o
-+					   board-zoom-debugboard.o \
-+					   twl4030-script.o
- obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
- 					   board-zoom-peripherals.o \
- 					   hsmmc.o \
--					   board-zoom-debugboard.o
-+					   board-zoom-debugboard.o \
-+					   twl4030-script.o
- obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
- 					   board-zoom-peripherals.o \
--					   hsmmc.o
-+					   hsmmc.o \
-+					   twl4030-script.o
- obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index d04987d..7c21af4 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -26,6 +26,7 @@
- #include "mux.h"
- #include "sdram-hynix-h8mbx00u0mer-0em.h"
- #include "voltage.h"
-+#include "twl4030-script.h"
- 
- /* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
- static struct prm_setup_vc omap3_setuptime = {
-@@ -109,6 +110,7 @@ static struct omap_board_mux board_mux[] __initdata = {
- 
- static void __init omap_sdp_init(void)
- {
-+	twl4030_get_vc_timings(&omap3_setuptime);
- 	omap_voltage_init_vc(&omap3_setuptime);
- 
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index ca95d8d..d22be4d 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -26,6 +26,7 @@
- 
- #include "mux.h"
- #include "hsmmc.h"
-+#include "twl4030-script.h"
- 
- /* Zoom2 has Qwerty keyboard*/
- static int board_keymap[] = {
-@@ -94,6 +95,38 @@ static struct twl4030_keypad_data zoom_kp_twl4030_data = {
- 	.rep		= 1,
- };
- 
-+static struct twl4030_resconfig twl4030_rconfig[] = {
-+	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1, .type = 3,
-+		.type2 = 1, .remap_sleep = RES_STATE_OFF },
-+	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_ALL, .type = 1,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_ALL, .type = 0,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_ALL, .type = 1,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VIO, .devgroup = DEV_GRP_ALL, .type = 2,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1,
-+		.type = 4, .type2 = 1, .remap_sleep = RES_STATE_OFF },
-+	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1,
-+		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
-+	{ .resource = RES_REGEN, .devgroup = DEV_GRP_ALL, .type = 2,
-+		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_ALL, .type = 0,
-+		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_ALL, .type = 3,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_ALL, .type = 6,
-+		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3,
-+		.type = 0, .type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ 0, 0},
-+};
-+
-+static struct twl4030_power_data zoom_t2scripts_data __initdata = {
-+	.resource_config = twl4030_rconfig,
-+};
-+
- static struct regulator_consumer_supply zoom_vmmc1_supply = {
- 	.supply		= "vmmc",
- };
-@@ -239,6 +272,7 @@ static struct twl4030_platform_data zoom_twldata = {
- 	.usb		= &zoom_usb_data,
- 	.gpio		= &zoom_gpio_data,
- 	.keypad		= &zoom_kp_twl4030_data,
-+	.power		= &zoom_t2scripts_data,
- 	.codec		= &zoom_codec_data,
- 	.vmmc1          = &zoom_vmmc1,
- 	.vmmc2          = &zoom_vmmc2,
-@@ -279,6 +313,8 @@ static void enable_board_wakeup_source(void)
- 
- void __init zoom_peripherals_init(void)
- {
-+	twl4030_get_scripts(&zoom_t2scripts_data);
-+
- 	omap_i2c_init();
- 	omap_serial_init();
- 	usb_musb_init(&musb_board_data);
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 37f43dd..652fd8f 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -27,6 +27,7 @@
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "omap3-opp.h"
- #include "voltage.h"
-+#include "twl4030-script.h"
- 
- /* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
- static struct prm_setup_vc omap3_setuptime = {
-@@ -94,6 +95,7 @@ static struct omap_board_mux board_mux[] __initdata = {
- 
- static void __init omap_zoom2_init(void)
- {
-+	twl4030_get_vc_timings(&omap3_setuptime);
- 	omap_voltage_init_vc(&omap3_setuptime);
- 
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index 76858d5..22d985d 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -25,6 +25,7 @@
- #include "mux.h"
- #include "sdram-hynix-h8mbx00u0mer-0em.h"
- #include "voltage.h"
-+#include "twl4030-script.h"
- 
- /* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
- static struct prm_setup_vc omap3_setuptime = {
-@@ -78,6 +79,7 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 
- static void __init omap_zoom_init(void)
- {
-+	twl4030_get_vc_timings(&omap3_setuptime);
- 	omap_voltage_init_vc(&omap3_setuptime);
- 
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
--- 
-1.6.0.4
+> Commit d84d3ea317ce0db89ce0903b4037f800c5d4c477 added register shift to allow
+> also 16-bit register access. However, omap_i2c_unidle() is called before these
+> are set which causes the following OOPS:
+> 
+>     Unhandled fault: alignment exception (0x801) at 0xfa070009
+>     Internal error: : 801 [#1]
+>     last sysfs file:
+>     Modules linked in:
+>     CPU: 0    Not tainted  (2.6.34-rc2-00052-gae6be51 #3)
+>     PC is at omap_i2c_unidle+0x44/0x138
+>     LR is at trace_hardirqs_on_caller+0x158/0x18c
+>     pc : [<c01cd2c4>]    lr : [<c00743f8>]    psr: 20000013
+>     sp : cfc2bf10  ip : 00000009  fp : 00000000
+>     r10: 00000000  r9 : 00000000  r8 : c0378560
+>     r7 : c0378b88  r6 : c0378558  r5 : cfcadc00  r4 : cfcadc00
+>     r3 : 00000009  r2 : fa070000  r1 : 00000000  r0 : 00000000
+>     Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+>     Control: 10c5387f  Table: 80004019  DAC: 00000017
+>     Process swapper (pid: 1, stack limit = 0xcfc2a2e8)
+>     Stack: (0xcfc2bf10 to 0xcfc2c000)
+>     bf00:                                     c0372cf8 c027225c 00000000 c0a69678
+>     bf20: cfc3e508 c0500898 c0378560 c0378560 c0500898 cfcac8c0 c04fc280 c017d4f4
+>     bf40: c0378560 c017c63c c0378560 c0378594 c0500898 cfcac8c0 c04fc280 c017c754
+>     bf60: 00000000 c017c6f4 c0500898 c017beac cfc16a5c cfc3fd94 c0023448 c0500898
+>     bf80: c0500898 c017b7d4 c032dc7f 00000093 cfc28d40 c0023448 00000000 c0500898
+>     bfa0: 00000000 00000000 00000000 c017ca48 c0023448 00000000 c001d274 00000000
+>     bfc0: 00000000 c002b344 00000031 00000000 00000000 00000192 00000000 c0023448
+>     bfe0: 00000000 00000000 00000000 c0008578 00000000 c002c304 ffdfffff ffffffff
+>     [<c01cd2c4>] (omap_i2c_unidle+0x44/0x138) from [<c027225c>] (omap_i2c_probe+0x1a4/0x398)
+>     [<c027225c>] (omap_i2c_probe+0x1a4/0x398) from [<c017d4f4>] (platform_drv_probe+0x18/0x1c)
+>     [<c017d4f4>] (platform_drv_probe+0x18/0x1c) from [<c017c63c>] (driver_probe_device+0xc0/0x178)
+>     [<c017c63c>] (driver_probe_device+0xc0/0x178) from [<c017c754>] (__driver_attach+0x60/0x84)
+>     [<c017c754>] (__driver_attach+0x60/0x84) from [<c017beac>] (bus_for_each_dev+0x44/0x74)
+>     [<c017beac>] (bus_for_each_dev+0x44/0x74) from [<c017b7d4>] (bus_add_driver+0x9c/0x218)
+>     [<c017b7d4>] (bus_add_driver+0x9c/0x218) from [<c017ca48>] (driver_register+0xa8/0x130)
+>     [<c017ca48>] (driver_register+0xa8/0x130) from [<c002b344>] (do_one_initcall+0x5c/0x1b8)
+>     [<c002b344>] (do_one_initcall+0x5c/0x1b8) from [<c0008578>] (kernel_init+0x90/0x144)
+>     [<c0008578>] (kernel_init+0x90/0x144) from [<c002c304>] (kernel_thread_exit+0x0/0x8)
+>     Code: e5942004 e3a0c009 e1a0331c e3a01000 (e18210b3)
+>     ---[ end trace 1b75b31a2719ed1c ]---
+> 
+> This patch moves register shift setting before any register accesses are done.
+> 
+> Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
+> Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
+Tested-by: Paul Walmsley <paul@pwsan.com>
+
+
+- Paul
