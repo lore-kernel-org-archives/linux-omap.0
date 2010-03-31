@@ -1,501 +1,518 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: [PATCH] omap1: Add board support and LCD for HTC Oxygen
-Date: Wed, 31 Mar 2010 11:57:09 +0200
-Message-ID: <w2he7c6a05e1003310257y9f5bfa8en6c668e9019141d20@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Lesly A M <leslyam@ti.com>
+Subject: [PATCH] [PATCH v4 2/5] omap3: pm: Using separate clk/volt setup_time for RET and OFF states
+Date: Wed, 31 Mar 2010 15:50:40 +0530
+Message-ID: <1270030840-2056-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:52095 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933051Ab0CaJ5M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 05:57:12 -0400
-Received: by wwb17 with SMTP id 17so274013wwb.19
-        for <linux-omap@vger.kernel.org>; Wed, 31 Mar 2010 02:57:10 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:39298 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933051Ab0CaJ6X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Mar 2010 05:58:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-    This patch introduces support for the HTC Herald (S310, etc.)
-    series of smart phones -- board support
-    and LCD panel settings.
+This patch will use separate clk/volt setup_time for RET and OFF state,
+also create separate copies of vc parameters for each Si in voltage.c.
 
-Signed-off-by: Marek Belisko <marek.belisko@gmail.com>
+Updates the clksetup time from board file, since clksetup time depends on
+the OSC/XTAL used on the board. Re-programing the setup time according
+to the target state of CORE power domain.
+The voltsetup2 is used only when the device exits sys_off mode
+(with PRM_VOLTCTRL[3]SEL_OFF set to 1).
+
+Changed vdd0_/vdd1_ to vdd1_/vdd2_ in prcm vc setuptime structure.
+
+Signed-off-by: Lesly A M <x0080970@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: David Derrick <dderrick@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/mach-omap1/Kconfig           |    6 +
- arch/arm/mach-omap1/Makefile          |    1 +
- arch/arm/mach-omap1/board-htcoxygen.c |  282 +++++++++++++++++++++++++++++++++
- drivers/video/omap/Makefile           |    1 +
- drivers/video/omap/lcd_htcoxygen.c    |  129 +++++++++++++++
- 5 files changed, 419 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap1/board-htcoxygen.c
- create mode 100644 drivers/video/omap/lcd_htcoxygen.c
+ arch/arm/mach-omap2/board-3430sdp.c |   28 +++----
+ arch/arm/mach-omap2/board-3630sdp.c |   15 ++++
+ arch/arm/mach-omap2/board-zoom2.c   |   15 ++++
+ arch/arm/mach-omap2/board-zoom3.c   |   15 ++++
+ arch/arm/mach-omap2/pm.h            |   17 ----
+ arch/arm/mach-omap2/pm34xx.c        |   14 +++-
+ arch/arm/mach-omap2/voltage.c       |  150 ++++++++++++++++++++++++++---------
+ arch/arm/mach-omap2/voltage.h       |   30 +++++++
+ 8 files changed, 209 insertions(+), 75 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-index 27f4897..dc4e5df 100644
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -161,6 +161,12 @@ config MACH_OMAP_GENERIC
-           custom OMAP boards. Say Y here if you have a custom
-           board.
-
-+config MACH_HTCOXYGEN
-+	bool "HTC Oxygen"
-+	depends on ARCH_OMAP850
-+	help
-+	  HTC Oxygen smartphone support (AKA HTC S310, ...)
-+	
- comment "OMAP CPU Speed"
- 	depends on ARCH_OMAP1
-
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index b6a537c..10ce723 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -39,6 +39,7 @@ obj-$(CONFIG_MACH_NOKIA770)		+= board-nokia770.o
- obj-$(CONFIG_MACH_AMS_DELTA)		+= board-ams-delta.o
- obj-$(CONFIG_MACH_SX1)			+= board-sx1.o board-sx1-mmc.o
- obj-$(CONFIG_MACH_HERALD)		+= board-htcherald.o
-+obj-$(CONFIG_MACH_HTCOXYGEN)		+= board-htcoxygen.o
-
- ifeq ($(CONFIG_ARCH_OMAP15XX),y)
- # Innovator-1510 FPGA
-diff --git a/arch/arm/mach-omap1/board-htcoxygen.c
-b/arch/arm/mach-omap1/board-htcoxygen.c
-new file mode 100644
-index 0000000..c0ffa59
---- /dev/null
-+++ b/arch/arm/mach-omap1/board-htcoxygen.c
-@@ -0,0 +1,282 @@
-+/*
-+ * HTC Oxygen board configuration
-+ * Copyright (C) 2010 Marek Belisko <marek.belisko@gmail.com>
-+ *
-+ * Based on board-herald.c file from wing-linux project:
-+ * Copyright (C) 2009 Cory Maccarrone <darkstar6262@gmail.com>
-+ * Copyright (C) 2009 Wing Linux
-+ *
-+ * This  program is  free  software; you  can  redistribute it  and/or
-+ * modify  it under the  terms of  the GNU  General Public  License as
-+ * published by the Free Software  Foundation; either version 2 of the
-+ * License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT  ANY  WARRANTY;  without   even  the  implied  warranty  of
-+ * MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have  received a copy of the  GNU General Public License
-+ * along  with  this program;  if  not,  write  to the  Free  Software
-+ * Foundation,  Inc.,  51 Franklin  Street,  Fifth  Floor, Boston,  MA
-+ * 02110-1301, USA.
-+ *
-+ */
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 6ee9f20..4439813 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -77,21 +77,16 @@ static struct cpuidle_params omap3_cpuidle_params_table[] = {
+ 	{1, 10000, 30000, 300000},
+ };
+ 
+-/* FIXME: These are not the optimal setup values to be used on 3430sdp*/
+-static struct prm_setup_vc omap3_setuptime_table = {
+-	.clksetup = 0xff,
+-	.voltsetup_time1 = 0xfff,
+-	.voltsetup_time2 = 0xfff,
+-	.voltoffset = 0xff,
+-	.voltsetup2 = 0xff,
+-	.vdd0_on = 0x30,
+-	.vdd0_onlp = 0x20,
+-	.vdd0_ret = 0x1e,
+-	.vdd0_off = 0x00,
+-	.vdd1_on = 0x2c,
+-	.vdd1_onlp = 0x20,
+-	.vdd1_ret = 0x1e,
+-	.vdd1_off = 0x00,
++/* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
++static struct prm_setup_vc omap3_setuptime = {
++	/* CLK SETUPTIME for RET */
++	.ret = {
++		.clksetup = 0x1,
++	},
++	/* CLK SETUPTIME for OFF */
++	.off = {
++		.clksetup = 0x14A,
++	},
+ };
+ 
+ static int board_keymap[] = {
+@@ -345,7 +340,6 @@ static void __init omap_3430sdp_init_irq(void)
+ 	omap_board_config = sdp3430_config;
+ 	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
+ 	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
+-	omap_voltage_init_vc(&omap3_setuptime_table);
+ 	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL, omap3_mpu_rate_table,
+ 			     omap3_dsp_rate_table, omap3_l3_rate_table);
+ 	omap_init_irq();
+@@ -895,6 +889,8 @@ static struct omap_musb_board_data musb_board_data = {
+ 
+ static void __init omap_3430sdp_init(void)
+ {
++	omap_voltage_init_vc(&omap3_setuptime);
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/input.h>
-+#include <linux/bootmem.h>
-+#include <linux/io.h>
-+#include <linux/gpio.h>
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3430_i2c_init();
+ 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index 3937a47..d04987d 100644
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -25,6 +25,19 @@
+ 
+ #include "mux.h"
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
++#include "voltage.h"
 +
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+
-+#include <plat/omap7xx.h>
-+#include <plat/common.h>
-+#include <plat/board.h>
-+#include <plat/keypad.h>
-+#include <plat/usb.h>
-+
-+#include <mach/irqs.h>
-+
-+#include <linux/delay.h>
-+
-+/* LCD register definition */
-+#define       OMAP_LCDC_CONTROL               (0xfffec000 + 0x00)
-+#define       OMAP_LCDC_STATUS                (0xfffec000 + 0x10)
-+#define       OMAP_DMA_LCD_CCR                (0xfffee300 + 0xc2)
-+#define       OMAP_DMA_LCD_CTRL               (0xfffee300 + 0xc4)
-+#define       OMAP_LCDC_CTRL_LCD_EN           (1 << 0)
-+#define       OMAP_LCDC_STAT_DONE             (1 << 0)
-+
-+static struct omap_lcd_config htcoxygen_lcd_config __initdata = {
-+	.ctrl_name	= "internal",
-+};
-+
-+static struct omap_board_config_kernel htcoxygen_config[] __initdata = {
-+	{ OMAP_TAG_LCD, &htcoxygen_lcd_config },
-+};
-+
-+/* Keyboard definition */
-+
-+static int htc_oxygen_keymap[] = {
-+	KEY(1,3,KEY_ENTER),
-+	KEY(3,3,KEY_MENU),
-+	KEY(2,3,KEY_BACKSPACE),
-+	KEY(4,3,KEY_BACKSPACE),
-+	KEY(3,5,KEY_LEFTALT),
-+	KEY(4,5,KEY_RIGHTALT),
-+	KEY(1,0,KEY_KP1),
-+	KEY(2,0,KEY_KP2),
-+	KEY(3,0,KEY_KP3),
-+	KEY(4,0,KEY_KP4),
-+	KEY(1,1,KEY_KP5),
-+	KEY(2,1,KEY_KP6),
-+	KEY(3,1,KEY_KP7),
-+	KEY(4,1,KEY_KP8),
-+	KEY(1,2,KEY_KP9),
-+	KEY(3,2,KEY_KPASTERISK),
-+	KEY(2,2,KEY_KP0),
-+	KEY(4,2,KEY_KPSLASH),
-+	KEY(0,1,KEY_VOLUMEUP),
-+	KEY(0,3,KEY_VOLUMEDOWN),
-+	KEY(0,2,KEY_CAMERA),
-+	0
-+};
-+
-+struct omap_kp_platform_data htcoxygen_kp_data = {
-+	.rows	= 7,
-+	.cols	= 7,
-+	.delay = 20,
-+	.rep = 1,
-+	.keymap = htc_oxygen_keymap,
-+};
-+
-+static struct resource kp_resources[] = {
-+	[0] = {
-+		.start	= INT_7XX_MPUIO_KEYPAD,
-+		.end	= INT_7XX_MPUIO_KEYPAD,
-+		.flags	= IORESOURCE_IRQ,
++/* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
++static struct prm_setup_vc omap3_setuptime = {
++	/* CLK SETUPTIME for RET */
++	.ret = {
++		.clksetup = 0x1,
++	},
++	/* CLK SETUPTIME for OFF */
++	.off = {
++		.clksetup = 0x14A,
 +	},
 +};
+ 
+ #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
+ 
+@@ -96,6 +109,8 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 
+ static void __init omap_sdp_init(void)
+ {
++	omap_voltage_init_vc(&omap3_setuptime);
 +
-+static struct platform_device kp_device = {
-+	.name		= "omap-keypad",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data = &htcoxygen_kp_data,
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 	zoom_peripherals_init();
+ 	board_smc91x_init();
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index a2cdfdd..37f43dd 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -26,6 +26,19 @@
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "omap3-opp.h"
++#include "voltage.h"
++
++/* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
++static struct prm_setup_vc omap3_setuptime = {
++	/* CLK SETUPTIME for RET */
++	.ret = {
++		.clksetup = 0x1,
 +	},
-+	.num_resources	= ARRAY_SIZE(kp_resources),
-+	.resource	= kp_resources,
++	/* CLK SETUPTIME for OFF */
++	.off = {
++		.clksetup = 0x14A,
++	},
 +};
+ 
+ static void __init omap_zoom2_init_irq(void)
+ {
+@@ -81,6 +94,8 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 
+ static void __init omap_zoom2_init(void)
+ {
++	omap_voltage_init_vc(&omap3_setuptime);
 +
-+/* USB Device */
-+static struct omap_usb_config htcoxygen_usb_config __initdata = {
-+	.otg = 0,
-+	.register_host = 0,
-+	.register_dev  = 1,
-+	.hmc_mode = 4,
-+	.pins[0] = 2,
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	zoom_peripherals_init();
+ 	zoom_debugboard_init();
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index 9a4b2aa..76858d5 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -24,6 +24,19 @@
+ 
+ #include "mux.h"
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
++#include "voltage.h"
++
++/* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
++static struct prm_setup_vc omap3_setuptime = {
++	/* CLK SETUPTIME for RET */
++	.ret = {
++		.clksetup = 0x1,
++	},
++	/* CLK SETUPTIME for OFF */
++	.off = {
++		.clksetup = 0x14A,
++	},
 +};
+ 
+ static void __init omap_zoom_map_io(void)
+ {
+@@ -65,6 +78,8 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 
+ static void __init omap_zoom_init(void)
+ {
++	omap_voltage_init_vc(&omap3_setuptime);
 +
-+/* LCD Device resources */
-+static struct platform_device lcd_device = {
-+	.name           = "lcd_htcoxygen",
-+	.id             = -1,
-+};
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 	zoom_peripherals_init();
+ 	zoom_debugboard_init();
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 26dc5c8..7e3726d 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -40,23 +40,6 @@ inline void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
+ }
+ #endif
+ 
+-struct prm_setup_vc {
+-	u16 clksetup;
+-	u16 voltsetup_time1;
+-	u16 voltsetup_time2;
+-	u16 voltoffset;
+-	u16 voltsetup2;
+-/* PRM_VC_CMD_VAL_0 specific bits */
+-	u16 vdd0_on;
+-	u16 vdd0_onlp;
+-	u16 vdd0_ret;
+-	u16 vdd0_off;
+-/* PRM_VC_CMD_VAL_1 specific bits */
+-	u16 vdd1_on;
+-	u16 vdd1_onlp;
+-	u16 vdd1_ret;
+-	u16 vdd1_off;
+-};
+ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+ 
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 81f78d3..a62a505 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -359,6 +359,7 @@ void omap_sram_idle(void)
+ 	int core_prev_state, per_prev_state;
+ 	u32 sdrc_pwr = 0;
+ 	int per_state_modified = 0;
++	u32 voltctrl = 0;
+ 
+ 	if (!_omap_sram_idle)
+ 		return;
+@@ -423,20 +424,25 @@ void omap_sram_idle(void)
+ 		omap_uart_prepare_idle(0);
+ 		omap_uart_prepare_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+-			u32 voltctrl = OMAP3430_AUTO_OFF;
++			voltctrl = OMAP3430_AUTO_OFF;
+ 
+ 			if (voltage_off_while_idle)
+ 				voltctrl |= OMAP3430_SEL_OFF;
+ 			prm_set_mod_reg_bits(voltctrl,
+ 					     OMAP3430_GR_MOD,
+ 					     OMAP3_PRM_VOLTCTRL_OFFSET);
+-			omap3_core_save_context();
+-			omap3_prcm_save_context();
+ 		} else if (core_next_state == PWRDM_POWER_RET) {
+ 			prm_set_mod_reg_bits(OMAP3430_AUTO_RET,
+ 						OMAP3430_GR_MOD,
+ 						OMAP3_PRM_VOLTCTRL_OFFSET);
+ 		}
++		/* Update the voltsetup time for RET/OFF */
++		update_voltsetup_time(core_next_state);
 +
-+static struct platform_device *devices[] __initdata = {
-+	&kp_device,
-+	&lcd_device,
-+};
-+
-+/*
-+ * Init functions from here on
-+ */
-+
-+static void __init htcoxygen_lcd_init(void)
-+{
-+	u32 reg;
-+	unsigned int tries = 200;
-+
-+	/* disable controller if active */
-+	reg = omap_readl(OMAP_LCDC_CONTROL);
-+	if (reg & OMAP_LCDC_CTRL_LCD_EN) {
-+		reg &= ~OMAP_LCDC_CTRL_LCD_EN;
-+		omap_writel(reg, OMAP_LCDC_CONTROL);
-+
-+		/* wait for end of frame */
-+		while (!(omap_readl(OMAP_LCDC_STATUS) & OMAP_LCDC_STAT_DONE)) {
-+			tries--;
-+			if (!tries)
-+				break;
++		if (core_next_state == PWRDM_POWER_OFF) {
++			omap3_core_save_context();
++			omap3_prcm_save_context();
 +		}
-+		if (!tries)
-+			printk(KERN_WARNING "Timeout waiting for end of frame "
-+			       "-- LCD may not be available\n");
-+
-+		/* turn off DMA */
-+		reg = omap_readw(OMAP_DMA_LCD_CCR);
-+		reg &= ~(1 << 7);
-+		omap_writew(reg, OMAP_DMA_LCD_CCR);
-+
-+		reg = omap_readw(OMAP_DMA_LCD_CTRL);
-+		reg &= ~(1 << 8);
-+		omap_writew(reg, OMAP_DMA_LCD_CTRL);
-+	}
-+}
-+
-+static void __init htcoxygen_map_io(void)
-+{
-+	omap1_map_common_io();
-+
-+	/*
-+	 * The LCD panel must be disabled and DMA turned off here, as doing
-+	 * it later causes the LCD never to reinitialize.
-+	 */
-+	htcoxygen_lcd_init();
-+
-+	printk(KERN_INFO "htcoxygen_map_io done.\n");
-+}
-+
-+static void __init htcoxygen_disable_watchdog(void)
-+{
-+	/* Disable watchdog if running */
-+	if (omap_readl(OMAP_WDT_TIMER_MODE) & 0x8000) {
-+		/*
-+		 * disable a potentially running watchdog timer before
-+		 * it kills us.
-+		 */
-+		printk(KERN_WARNING "OMAP850 Watchdog seems to be activated,
-disabling it for now.\n");
-+		omap_writel(0xF5, OMAP_WDT_TIMER_MODE);
-+		omap_writel(0xA0, OMAP_WDT_TIMER_MODE);
-+	}
-+}
-+
-+#define HTCOXYGEN_GPIO_USB_EN1 33
-+#define HTCOXYGEN_GPIO_USB_EN2 73
-+#define HTCOXYGEN_GPIO_USB_DM  35
-+#define HTCOXYGEN_GPIO_USB_DP  36
-+
-+static void __init htcoxygen_usb_enable(void)
-+{
-+	unsigned int tries = 20;
-+	unsigned int value = 0;
-+
-+	/* Request the GPIOs we need to control here */
-+	if (gpio_request(HTCOXYGEN_GPIO_USB_EN1, "oxygen_usb") < 0)
-+		goto err1;
-+
-+	if (gpio_request(HTCOXYGEN_GPIO_USB_EN2, "oxygen_usb") < 0)
-+		goto err2;
-+
-+	if (gpio_request(HTCOXYGEN_GPIO_USB_DM, "oxygen_usb") < 0)
-+		goto err3;
-+
-+	if (gpio_request(HTCOXYGEN_GPIO_USB_DP, "oxygen_usb") < 0)
-+		goto err4;
-+
-+	/* force USB_EN GPIO to 0 */
-+	do {
-+		/* output low */
-+		gpio_direction_output(HTCOXYGEN_GPIO_USB_EN1, 0);
-+	} while ((value = gpio_get_value(HTCOXYGEN_GPIO_USB_EN1)) == 1 &&
-+			--tries);
-+
-+	if (value == 1)
-+		printk(KERN_WARNING "Unable to reset USB, trying to continue\n");
-+
-+	gpio_direction_output(HTCOXYGEN_GPIO_USB_EN2, 0); /* output low */
-+	gpio_direction_input(HTCOXYGEN_GPIO_USB_DM); /* input */
-+	gpio_direction_input(HTCOXYGEN_GPIO_USB_DP); /* input */
-+
-+	goto done;
-+
-+err4:
-+	gpio_free(HTCOXYGEN_GPIO_USB_DM);
-+err3:
-+	gpio_free(HTCOXYGEN_GPIO_USB_EN2);
-+err2:
-+	gpio_free(HTCOXYGEN_GPIO_USB_EN1);
-+err1:
-+	printk(KERN_ERR "Unabled to request GPIO for USB\n");
-+done:
-+	printk(KERN_INFO "USB setup complete.\n");
-+}
-+
-+static void __init htcoxygen_init(void)
-+{
-+	printk(KERN_INFO "HTC Oxygen init.\n");
-+
-+	omap_gpio_init();
-+
-+	omap_board_config = htcoxygen_config;
-+	omap_board_config_size = ARRAY_SIZE(htcoxygen_config);
-+	platform_add_devices(devices, ARRAY_SIZE(devices));
-+
-+	htcoxygen_disable_watchdog();
-+
-+	htcoxygen_usb_enable();
-+	omap_usb_init(&htcoxygen_usb_config);
-+}
-+
-+static void __init htcoxygen_init_irq(void)
-+{
-+	printk(KERN_INFO "htcoxygen_init_irq.\n");
-+	omap1_init_common_hw();
-+	omap_init_irq();
-+}
-+
-+MACHINE_START(HTCOXYGEN, "HTC Oxygen")
-+	/* Maintainer: Marek Belisko <marek.belisko@gmail.com> */
-+	.phys_io        = 0xfff00000,
-+	.io_pg_offst    = ((0xfef00000) >> 18) & 0xfffc,
-+	.boot_params    = 0x10000100,
-+	.map_io         = htcoxygen_map_io,
-+	.init_irq       = htcoxygen_init_irq,
-+	.init_machine   = htcoxygen_init,
-+	.timer          = &omap_timer,
-+MACHINE_END
-diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-index 49226a1..1f72e3f 100644
---- a/drivers/video/omap/Makefile
-+++ b/drivers/video/omap/Makefile
-@@ -36,6 +36,7 @@ objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
- objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
- objs-y$(CONFIG_MACH_OVERO) += lcd_overo.o
- objs-y$(CONFIG_MACH_HERALD) += lcd_htcherald.o
-+objs-y$(CONFIG_MACH_HTCOXYGEN) += lcd_htcoxygen.o
-
- omapfb-objs := $(objs-yy)
-
-diff --git a/drivers/video/omap/lcd_htcoxygen.c
-b/drivers/video/omap/lcd_htcoxygen.c
-new file mode 100644
-index 0000000..3f472d3
---- /dev/null
-+++ b/drivers/video/omap/lcd_htcoxygen.c
-@@ -0,0 +1,129 @@
+ 		/* Enable IO-PAD and IO-CHAIN wakeups */
+ 		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
+ 		omap3_enable_io_chain();
+@@ -496,7 +502,7 @@ void omap_sram_idle(void)
+ 		omap_uart_resume_idle(0);
+ 		omap_uart_resume_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+-			u32 voltctrl = OMAP3430_AUTO_OFF;
++			voltctrl = OMAP3430_AUTO_OFF;
+ 
+ 			if (voltage_off_while_idle)
+ 				voltctrl |= OMAP3430_SEL_OFF;
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 89a1ab1..b588ace 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -69,25 +69,70 @@ struct vc_reg_info {
+ 	void __iomem *vc_bypass_val_reg;
+ } vc_reg;
+ 
+-/**
+- * Default voltage controller settings for OMAP3
 +/*
-+ * File: drivers/video/omap/lcd-oxygen.c
-+ *
-+ * LCD panel support for the HTC Oxygen.
-+ *
-+ * Copyright (C) 2010 Marek Belisko <marek.belisko@gmail.com>
-+ *
-+ * Based on the lcd_htcwizard.c file from the linwizard project:
-+ * Copyright (C) linwizard.sourceforge.net
-+ * Author: Angelo Arrifano <miknix@gmail.com>
-+ * Based on lcd_h4 by Imre Deak <imre.deak@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+
-+#include "omapfb.h"
-+
-+static int htcoxygen_panel_init(struct lcd_panel *panel,
-+					struct omapfb_device *fbdev)
-+{
-+	return 0;
-+}
-+
-+static void htcoxygen_panel_cleanup(struct lcd_panel *panel)
-+{
-+}
-+
-+static int htcoxygen_panel_enable(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
-+
-+static void htcoxygen_panel_disable(struct lcd_panel *panel)
-+{
-+}
-+
-+static unsigned long htcoxygen_panel_get_caps(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
-+
-+struct lcd_panel htcoxygen_panel = {
-+	.name           = "lcd_oxygen",
-+	.config         = OMAP_LCDC_PANEL_TFT |
-+	                  OMAP_LCDC_INV_VSYNC |
-+			  OMAP_LCDC_INV_HSYNC |
-+			  OMAP_LCDC_HSVS_OPPOSITE,
-+	.bpp            = 16,
-+	.data_lines     = 16,
-+	.x_res          = 176,
-+	.y_res          = 220,
-+	.pixel_clock    = 3362,
-+	.hsw            = 10,
-+	.hfp            = 45,
-+	.hbp            = 9,
-+	.vsw            = 3,
-+	.vfp            = 3,
-+	.vbp            = 3,
-+	.pcd            = 0,
-+
-+	.init           = htcoxygen_panel_init,
-+	.cleanup        = htcoxygen_panel_cleanup,
-+	.enable         = htcoxygen_panel_enable,
-+	.disable        = htcoxygen_panel_disable,
-+	.get_caps       = htcoxygen_panel_get_caps,
-+};
-+
-+
-+static int htcoxygen_panel_probe(struct platform_device *pdev)
-+{
-+	omapfb_register_panel(&htcoxygen_panel);
-+	return 0;
-+}
-+
-+static int htcoxygen_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int htcoxygen_panel_suspend(struct platform_device *pdev,
-+						pm_message_t mesg)
-+{
-+	return 0;
-+}
-+
-+static int htcoxygen_panel_resume(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+struct platform_driver htcoxygen_panel_driver = {
-+	.probe		= htcoxygen_panel_probe,
-+	.remove		= htcoxygen_panel_remove,
-+	.suspend	= htcoxygen_panel_suspend,
-+	.resume		= htcoxygen_panel_resume,
-+	.driver		= {
-+		.name	= "lcd_htcoxygen",
-+		.owner	= THIS_MODULE,
++ * Default voltage controller settings for OMAP3430
+  */
+-static struct prm_setup_vc vc_config = {
+-	.clksetup = 0xff,
+-	.voltsetup_time1 = 0xfff,
+-	.voltsetup_time2 = 0xfff,
+-	.voltoffset = 0xff,
+-	.voltsetup2 = 0xff,
+-	.vdd0_on = 0x30,        /* 1.2v */
+-	.vdd0_onlp = 0x20,      /* 1.0v */
+-	.vdd0_ret = 0x1e,       /* 0.975v */
+-	.vdd0_off = 0x00,       /* 0.6v */
+-	.vdd1_on = 0x2c,        /* 1.15v */
++struct __initdata prm_setup_vc omap3430_vc_config = {
++	/* CLK & VOLT SETUPTIME for RET */
++	.ret = {
++		.clksetup = 0x1,
++		.voltsetup1_vdd1 = 0x005B,
++		.voltsetup1_vdd2 = 0x0055,
++		.voltsetup2 = 0x0,
++		.voltoffset = 0x0,
 +	},
++	/* CLK & VOLT SETUPTIME for OFF */
++	.off = {
++		.clksetup = 0x14A,
++		.voltsetup1_vdd1 = 0x00B3,
++		.voltsetup1_vdd2 = 0x00A0,
++		.voltsetup2 = 0x118,
++		.voltoffset = 0x32,
++	},
++	/* VC COMMAND VALUES for VDD1/VDD2 */
++	.vdd1_on = 0x30,        /* 1.2v */
+ 	.vdd1_onlp = 0x20,      /* 1.0v */
+-	.vdd1_ret = 0x1e,       /* .975v */
++	.vdd1_ret = 0x1e,       /* 0.975v */
+ 	.vdd1_off = 0x00,       /* 0.6v */
++	.vdd2_on = 0x2c,        /* 1.15v */
++	.vdd2_onlp = 0x20,      /* 1.0v */
++	.vdd2_ret = 0x1e,       /* 0.975v */
++	.vdd2_off = 0x00,       /* 0.6v */
 +};
 +
-+static int __init htcoxygen_panel_drv_init(void)
-+{
-+	return platform_driver_register(&htcoxygen_panel_driver);
++/*
++ * Default voltage controller settings for OMAP3630
++ */
++struct __initdata prm_setup_vc omap3630_vc_config = {
++	/* CLK & VOLT SETUPTIME for RET */
++	.ret = {
++		.clksetup = 0x1,
++		.voltsetup1_vdd1 = 0x005B,
++		.voltsetup1_vdd2 = 0x0055,
++		.voltsetup2 = 0x0,
++		.voltoffset = 0x0,
++	},
++	/* CLK & VOLT SETUPTIME for OFF */
++	.off = {
++		.clksetup = 0x14A,
++		.voltsetup1_vdd1 = 0x00B3,
++		.voltsetup1_vdd2 = 0x00A0,
++		.voltsetup2 = 0x118,
++		.voltoffset = 0x32,
++	},
++	/* VC COMMAND VALUES for VDD1/VDD2 */
++	.vdd1_on = 0x28,	/* 1.1v */
++	.vdd1_onlp = 0x20,	/* 1.0v */
++	.vdd1_ret = 0x13,	/* 0.83v */
++	.vdd1_off = 0x00,	/* 0.6v */
++	.vdd2_on = 0x2B,	/* 1.1375v */
++	.vdd2_onlp = 0x20,	/* 1.0v */
++	.vdd2_ret = 0x13,	/* 0.83v */
++	.vdd2_off = 0x00,	/* 0.6v */
+ };
+ 
++static struct prm_setup_vc vc_config;
++
+ static inline u32 voltage_read_reg(void __iomem *offset)
+ {
+ 	return __raw_readl(offset);
+@@ -149,28 +194,28 @@ static void __init init_voltagecontroller(void)
+ 			VC_VOLRA0_SHIFT));
+ 
+ 	voltage_write_reg(vc_reg.vc_cmdval0_reg,
+-			(vc_config.vdd0_on << VC_CMD_ON_SHIFT) |
+-			(vc_config.vdd0_onlp << VC_CMD_ONLP_SHIFT) |
+-			(vc_config.vdd0_ret << VC_CMD_RET_SHIFT) |
+-			(vc_config.vdd0_off << VC_CMD_OFF_SHIFT));
+-
+-	voltage_write_reg(vc_reg.vc_cmdval1_reg,
+ 			(vc_config.vdd1_on << VC_CMD_ON_SHIFT) |
+ 			(vc_config.vdd1_onlp << VC_CMD_ONLP_SHIFT) |
+ 			(vc_config.vdd1_ret << VC_CMD_RET_SHIFT) |
+ 			(vc_config.vdd1_off << VC_CMD_OFF_SHIFT));
+ 
++	voltage_write_reg(vc_reg.vc_cmdval1_reg,
++			(vc_config.vdd2_on << VC_CMD_ON_SHIFT) |
++			(vc_config.vdd2_onlp << VC_CMD_ONLP_SHIFT) |
++			(vc_config.vdd2_ret << VC_CMD_RET_SHIFT) |
++			(vc_config.vdd2_off << VC_CMD_OFF_SHIFT));
++
+ 	voltage_write_reg(vc_ch_conf_reg, VC_CMD1 | VC_RAV1);
+ 
+ 	voltage_write_reg(vc_i2c_cfg_reg, VC_MCODE_SHIFT | VC_HSEN);
+ 
+ 	/* Write setup times */
+-	voltage_write_reg(prm_clksetup_reg, vc_config.clksetup);
++	voltage_write_reg(prm_clksetup_reg, vc_config.ret.clksetup);
+ 	voltage_write_reg(prm_voltsetup1_reg,
+-			(vc_config.voltsetup_time2 << VC_SETUP_TIME2_SHIFT) |
+-			(vc_config.voltsetup_time1 << VC_SETUP_TIME1_SHIFT));
+-	voltage_write_reg(prm_voltoffset_reg, vc_config.voltoffset);
+-	voltage_write_reg(prm_voltsetup2_reg, vc_config.voltsetup2);
++		(vc_config.ret.voltsetup1_vdd2 << VC_SETUP_TIME2_SHIFT) |
++		(vc_config.ret.voltsetup1_vdd1 << VC_SETUP_TIME1_SHIFT));
++	voltage_write_reg(prm_voltoffset_reg, vc_config.ret.voltoffset);
++	voltage_write_reg(prm_voltsetup2_reg, vc_config.ret.voltsetup2);
+ 
+ 	pm_dbg_regset_init(1);
+ 	pm_dbg_regset_init(2);
+@@ -497,19 +542,48 @@ void __init omap_voltage_init_vc(struct prm_setup_vc *setup_vc)
+ 	if (!setup_vc)
+ 		return;
+ 
+-	vc_config.clksetup = setup_vc->clksetup;
+-	vc_config.voltsetup_time1 = setup_vc->voltsetup_time1;
+-	vc_config.voltsetup_time2 = setup_vc->voltsetup_time2;
+-	vc_config.voltoffset = setup_vc->voltoffset;
+-	vc_config.voltsetup2 = setup_vc->voltsetup2;
+-	vc_config.vdd0_on = setup_vc->vdd0_on;
+-	vc_config.vdd0_onlp = setup_vc->vdd0_onlp;
+-	vc_config.vdd0_ret = setup_vc->vdd0_ret;
+-	vc_config.vdd0_off = setup_vc->vdd0_off;
+-	vc_config.vdd1_on = setup_vc->vdd1_on;
+-	vc_config.vdd1_onlp = setup_vc->vdd1_onlp;
+-	vc_config.vdd1_ret = setup_vc->vdd1_ret;
+-	vc_config.vdd1_off = setup_vc->vdd1_off;
++	if (cpu_is_omap3430())
++		memcpy(&vc_config, &omap3430_vc_config,
++				sizeof(struct prm_setup_vc));
++	else if (cpu_is_omap3630())
++		memcpy(&vc_config, &omap3630_vc_config,
++				sizeof(struct prm_setup_vc));
++
++	/* CLK SETUPTIME for RET & OFF */
++	vc_config.ret.clksetup = setup_vc->ret.clksetup;
++	vc_config.off.clksetup = setup_vc->off.clksetup;
 +}
 +
-+static void __exit htcoxygen_panel_drv_cleanup(void)
++void update_voltsetup_time(int core_next_state)
 +{
-+	platform_driver_unregister(&htcoxygen_panel_driver);
-+}
++	/* update voltsetup time */
++	if (core_next_state == PWRDM_POWER_OFF) {
++		prm_write_mod_reg(vc_config.off.clksetup, OMAP3430_GR_MOD,
++				OMAP3_PRM_CLKSETUP_OFFSET);
++		prm_write_mod_reg((vc_config.off.voltsetup1_vdd2 <<
++				OMAP3430_SETUP_TIME2_SHIFT) |
++				(vc_config.off.voltsetup1_vdd1 <<
++				OMAP3430_SETUP_TIME1_SHIFT),
++				OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
 +
-+module_init(htcoxygen_panel_drv_init);
-+module_exit(htcoxygen_panel_drv_cleanup);
++		if (voltage_off_while_idle)
++			prm_write_mod_reg(vc_config.off.voltsetup2,
++					OMAP3430_GR_MOD,
++					OMAP3_PRM_VOLTSETUP2_OFFSET);
 +
++	} else if (core_next_state == PWRDM_POWER_RET) {
++		prm_write_mod_reg(vc_config.ret.clksetup, OMAP3430_GR_MOD,
++				OMAP3_PRM_CLKSETUP_OFFSET);
++		prm_write_mod_reg((vc_config.ret.voltsetup1_vdd2 <<
++				OMAP3430_SETUP_TIME2_SHIFT) |
++				(vc_config.ret.voltsetup1_vdd1 <<
++				OMAP3430_SETUP_TIME1_SHIFT),
++				OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
++
++		/* clear voltsetup2_reg if sys_off not enabled */
++		prm_write_mod_reg(vc_config.ret.voltsetup2, OMAP3430_GR_MOD,
++				OMAP3_PRM_VOLTSETUP2_OFFSET);
++	}
+ }
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index be67dbe..c8bbea3 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -8,12 +8,40 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#ifndef __ARCH_ARM_MACH_OMAP3_VOLTAGE_H
++#define __ARCH_ARM_MACH_OMAP3_VOLTAGE_H
++
+ #include "pm.h"
+ 
+ /* SMART REFLEX I2C slave address */
+ #define VP1	1
+ #define VP2	2
+ 
++struct setuptime_vc{
++	u16 clksetup;
++	u16 voltsetup1_vdd1;
++	u16 voltsetup1_vdd2;
++	u16 voltsetup2;
++	u16 voltoffset;
++};
++
++struct prm_setup_vc {
++/* CLK & VOLT SETUPTIME for RET */
++	struct setuptime_vc ret;
++/* CLK & VOLT SETUPTIME for OFF */
++	struct setuptime_vc off;
++/* PRM_VC_CMD_VAL_0 specific bits */
++	u16 vdd1_on;
++	u16 vdd1_onlp;
++	u16 vdd1_ret;
++	u16 vdd1_off;
++/* PRM_VC_CMD_VAL_1 specific bits */
++	u16 vdd2_on;
++	u16 vdd2_onlp;
++	u16 vdd2_ret;
++	u16 vdd2_off;
++};
++
+ /* Number of scalable voltage domains that has an independent Voltage processor
+  * Can change for OMAP4
+  */
+@@ -73,6 +101,8 @@ extern int get_vdd2_opp(void);
+ void omap_voltageprocessor_enable(int vp_id);
+ void omap_voltageprocessor_disable(int vp_id);
+ void omap_voltage_init_vc(struct prm_setup_vc *setup_vc);
++void update_voltsetup_time(int core_next_state);
+ void omap_voltage_init(void);
+ int omap_voltage_scale(int vdd, u8 target_vsel, u8 current_vsel);
+ void omap_reset_voltage(int vdd);
++#endif
 -- 
-1.6.4.2
+1.6.0.4
+
