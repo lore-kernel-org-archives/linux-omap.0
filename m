@@ -1,45 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 1/1] Registering sgx device and it's platform data
-Date: Wed, 31 Mar 2010 03:39:39 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1003310330470.14436@utopia.booyaka.com>
-References: <19F8576C6E063C45BE387C64729E7394044DEBF372@dbde02.ent.ti.com> <alpine.DEB.2.00.1003300218100.14474@utopia.booyaka.com> <20100330094902.GG30597@nokia.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Lesly A M <leslyam@ti.com>
+Subject: [PATCH v4 0/5] omap3: pm: Update TRITON power scripts and making it generic
+Date: Wed, 31 Mar 2010 15:49:12 +0530
+Message-ID: <1270030752-1900-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44252 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933110Ab0CaJjk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 05:39:40 -0400
-In-Reply-To: <20100330094902.GG30597@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34684 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755755Ab0CaJ4v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 05:56:51 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2V9uljq020855
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 31 Mar 2010 04:56:50 -0500
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id o2V9ukwc007546
+	for <linux-omap@vger.kernel.org>; Wed, 31 Mar 2010 15:26:47 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: "Agarwal, Preshit" <preshit.agarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pais, Allen" <allen.pais@ti.com>
+To: linux-omap@vger.kernel.org
 
-Hi Felipe,
+This series of patch implements a updated TRITON power scripts.
+Also moving the sleep, wakeup & warm_reset sequence to a generic script file,
+which can be used by different OMAP3 board with the power companion chip TWL4030.
 
-On Tue, 30 Mar 2010, Felipe Balbi wrote:
+This patch series is based off Kevin's tree origin/pm branch.
 
-> On Tue, Mar 30, 2010 at 10:49:19AM +0200, ext Paul Walmsley wrote:
-> > I would suggest that you name this function be named something more
-> > specific, such as omap_sgx_set_bus_tput(), since the SGX driver may also
-> > need to set other PM constraints later, such as wakeup latency
-> > constraints.
-> 
-> then it could just add the contraints to the same function instead of passing
-> another pointer to driver ??
+This changes are tested on OMAP3430 SDP board with:
+	enable_off_mode
+	voltage_off_while_idle
+	sleep_while_idle (VDD1/VDD2 voltage scaling to 0v) enabled in cpuidle and suspned path.
 
-It's hard to say without looking at the driver.  
+Also tested for reboot and dvfs.
 
-Bus throughput constraints are only needed when the device is actively 
-transferring data to/from the rest of the system.
+Changes to fix Kevins & Nishanths comments.
 
-Wakeup latency constraints are only needed when the device can go idle and 
-enter some low-power state, but also needs to be ready in some limited 
-amount of time to service an interrupt or a wakeup.
+Lesly A M (5):
+  omap3: pm: fix for twl4030 script load
+  omap3: pm: Using separate clk/volt setup_time for RET and OFF states
+  omap3: pm: Generic TRITON power scripts for OMAP3 based boards
+  omap3: pm: Use generic TRITON power scripts for 3430SDP board
+  omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP
+    board
 
-So, often it would make sense to set the two parameters at different 
-points in the driver code.
+ arch/arm/mach-omap2/Makefile                 |   12 ++-
+ arch/arm/mach-omap2/board-3430sdp.c          |  137 +++++++----------------
+ arch/arm/mach-omap2/board-3630sdp.c          |   17 +++
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   36 ++++++
+ arch/arm/mach-omap2/board-zoom2.c            |   17 +++
+ arch/arm/mach-omap2/board-zoom3.c            |   17 +++
+ arch/arm/mach-omap2/pm.h                     |   17 ---
+ arch/arm/mach-omap2/pm34xx.c                 |   14 ++-
+ arch/arm/mach-omap2/twl4030-script.c         |  154 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/twl4030-script.h         |   15 +++
+ arch/arm/mach-omap2/voltage.c                |  149 ++++++++++++++++++-------
+ arch/arm/mach-omap2/voltage.h                |   30 +++++
+ drivers/mfd/twl4030-power.c                  |    6 -
+ include/linux/i2c/twl.h                      |    4 +
+ 14 files changed, 458 insertions(+), 167 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl4030-script.c
+ create mode 100644 arch/arm/mach-omap2/twl4030-script.h
 
-
-- Paul
