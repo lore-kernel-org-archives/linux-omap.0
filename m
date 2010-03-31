@@ -1,72 +1,540 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] i2c: omap: fix OOPS in omap_i2c_unidle() during probe
-Date: Wed, 31 Mar 2010 04:27:41 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1003310427180.14436@utopia.booyaka.com>
-References: <1269339176-17479-1-git-send-email-ext-mika.1.westerberg@nokia.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [PATCHv2 3/3] OMAP3: PM: Adding OMAP3630 support in smartreflex
+ driver
+Date: Wed, 31 Mar 2010 06:05:46 -0500
+Message-ID: <4BB32C8A.1050208@gmail.com>
+References: <1270017014-27704-1-git-send-email-thara@ti.com> <1270017014-27704-2-git-send-email-thara@ti.com> <1270017014-27704-3-git-send-email-thara@ti.com> <1270017014-27704-4-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46170 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757563Ab0CaK1l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 06:27:41 -0400
-In-Reply-To: <1269339176-17479-1-git-send-email-ext-mika.1.westerberg@nokia.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:57396 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756861Ab0CaLFw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 07:05:52 -0400
+Received: by gwaa18 with SMTP id a18so5315569gwa.19
+        for <linux-omap@vger.kernel.org>; Wed, 31 Mar 2010 04:05:51 -0700 (PDT)
+In-Reply-To: <1270017014-27704-4-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
 
-Hi Mika, Ben,
+Thara Gopinath said the following on 03/31/2010 01:30 AM:
+> This patch adapts smartreflex driver to support OMAP3630 also.
+> Changes involve:
+> 1. Separate hwmod structures for OMAP3630 distinguished from
+>    3430 structures using omap_chip attribute.
+> 2. Introducing new test nvalues for OMAP3630.
+> 3. OMAP3630 specific changes for srconfig err_minlimit field,
+>    vpx_config errorgain field and vpx_vlimitto vddmax and vddmin
+>    fields.
+>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   47 +++++++++++++-
+>  arch/arm/mach-omap2/smartreflex.c          |   38 ++++++++---
+>  arch/arm/mach-omap2/smartreflex.h          |    5 +-
+>  arch/arm/mach-omap2/sr_device.c            |   94 +++++++++++++++++++++++++++-
+>  arch/arm/mach-omap2/voltage.c              |   47 ++++++++++++--
+>  arch/arm/mach-omap2/voltage.h              |   32 ++++++++--
+>  arch/arm/plat-omap/include/plat/control.h  |    8 +++
+>  7 files changed, 244 insertions(+), 27 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 9c0c9e3..c78f128 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -222,6 +222,25 @@ static struct omap_hwmod_class omap34xx_smartreflex_hwmod_class = {
+>  	.rev  = 1,
+>  };
+>  
+> +static struct omap_hwmod_sysc_fields omap36xx_sr_sysc_fields = {
+> +	.sidle_shift	= 24,
+> +	.enwkup_shift	= 26
+> +};
+> +
+> +static struct omap_hwmod_class_sysconfig omap36xx_sr_sysc = {
+> +	.sysc_offs	= 0x38,
+> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_ENAWAKEUP |
+> +			SYSC_NO_CACHE),
+> +	.sysc_fields	= &omap36xx_sr_sysc_fields,
+> +};
+> +
+> +static struct omap_hwmod_class omap36xx_smartreflex_hwmod_class = {
+> +	.name = "smartreflex",
+> +	.sysc = &omap36xx_sr_sysc,
+> +	.rev  = 2,
+> +};
+> +
+>  /* SR1 */
+>  static struct omap_hwmod_ocp_if *omap34xx_sr1_slaves[] = {
+>  	&omap3_l4_core__sr1,
+> @@ -235,10 +254,21 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
+>  	.main_clk	= "sr1_fck",
+>  	.slaves		= omap34xx_sr1_slaves,
+>  	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr1_slaves),
+> -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
+> +					CHIP_IS_OMAP3430ES3_0 |
+> +					CHIP_IS_OMAP3430ES3_1),
+>  	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+>  };
+>  
+> +static struct omap_hwmod omap36xx_sr1_hwmod = {
+> +	.name		= "sr1_hwmod",
+> +	.class		= &omap36xx_smartreflex_hwmod_class,
+> +	.main_clk	= "sr1_fck",
+> +	.slaves		= omap34xx_sr1_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr1_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
+> +};
+> +
+>  /* SR2 */
+>  static struct omap_hwmod_ocp_if *omap34xx_sr2_slaves[] = {
+>  	&omap3_l4_core__sr2,
+> @@ -252,10 +282,21 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
+>  	.main_clk	= "sr2_fck",
+>  	.slaves		= omap34xx_sr2_slaves,
+>  	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr2_slaves),
+> -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
+> +					CHIP_IS_OMAP3430ES3_0 |
+> +					CHIP_IS_OMAP3430ES3_1),
+>  	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+>  };
+>  
+> +static struct omap_hwmod omap36xx_sr2_hwmod = {
+> +	.name		= "sr2_hwmod",
+> +	.class		= &omap36xx_smartreflex_hwmod_class,
+> +	.main_clk	= "sr2_fck",
+> +	.slaves		= omap34xx_sr2_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr2_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
+> +};
+> +
+>  static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+>  	&omap3xxx_l3_hwmod,
+>  	&omap3xxx_l4_core_hwmod,
+> @@ -264,6 +305,8 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+>  	&omap3xxx_mpu_hwmod,
+>  	&omap34xx_sr1_hwmod,
+>  	&omap34xx_sr2_hwmod,
+> +	&omap36xx_sr1_hwmod,
+> +	&omap36xx_sr2_hwmod,
+>  	NULL,
+>  };
+>  
+> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+> index 0e5c052..9ff306c 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -246,7 +246,7 @@ static void sr_set_regfields(struct omap_sr *sr)
+>  	 * file or pmic specific data structure. In that case these structure
+>  	 * fields will have to be populated using the pdata or pmic structure.
+>  	 */
+> -	if (cpu_is_omap343x()) {
+> +	if (cpu_is_omap34xx()) {
+>   
+I dont see any change here.
+>  		struct omap_smartreflex_data *pdata =
+>  					sr->pdev->dev.platform_data;
+>  		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
+> @@ -255,28 +255,46 @@ static void sr_set_regfields(struct omap_sr *sr)
+>  		if (sr->srid == SR1) {
+>  			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
+>  			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
+> -			pdata->sr_volt_data[0].sr_errminlimit =
+> +			if (cpu_is_omap3630()) {
+> +				pdata->sr_volt_data[0].sr_errminlimit =
+>  					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
+> -			pdata->sr_volt_data[1].sr_errminlimit =
+> +				pdata->sr_volt_data[1].sr_errminlimit =
+> +					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
+> +				pdata->sr_volt_data[2].sr_errminlimit =
+> +					OMAP3630_SR_ERRMINLIMIT_OPPTB;
+> +				pdata->sr_volt_data[3].sr_errminlimit =
+> +					OMAP3630_SR_ERRMINLIMIT_OPPTB;
+> +			} else {
+> +				pdata->sr_volt_data[0].sr_errminlimit =
+> +					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
+> +				pdata->sr_volt_data[1].sr_errminlimit =
+>  					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
+> -			pdata->sr_volt_data[2].sr_errminlimit =
+> +				pdata->sr_volt_data[2].sr_errminlimit =
+>  					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
+> -			pdata->sr_volt_data[3].sr_errminlimit =
+> +				pdata->sr_volt_data[3].sr_errminlimit =
+>  					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
+> -			pdata->sr_volt_data[4].sr_errminlimit =
+> +				pdata->sr_volt_data[4].sr_errminlimit =
+>  					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
+> +			}
+>  		} else {
+>  			sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
+>  			sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
+> -			pdata->sr_volt_data[0].sr_errminlimit =
+> +			if (cpu_is_omap3630()) {
+> +				pdata->sr_volt_data[0].sr_errminlimit =
+> +					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
+> +				pdata->sr_volt_data[1].sr_errminlimit =
+> +					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
+> +			} else {
+> +				pdata->sr_volt_data[0].sr_errminlimit =
+>  					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
+> -			pdata->sr_volt_data[1].sr_errminlimit =
+> +				pdata->sr_volt_data[1].sr_errminlimit =
+>  					OMAP3430_SR_ERRMINLIMIT_LOWOPP;
+> -			pdata->sr_volt_data[2].sr_errminlimit =
+> +				pdata->sr_volt_data[2].sr_errminlimit =
+>  					OMAP3430_SR_ERRMINLIMIT_HIGHOPP;
+> +			}
+>  		}
+>  	}
+> -	/* TODO: 3630 and Omap4 specific bit field values */
+> +	/* TODO: Omap4 specific bit field values */
+>   
+if there was an intent to use OMAP4 with similar code, I wonder if we 
+should already add a if condition for that too
+>  }
+>   
+http://marc.info/?l=linux-omap&m=126937469121771&w=2
+Again - NAK on hardcoded indexing :(
+>  
+>  static void sr_configure(struct omap_sr *sr)
+> diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+> index 66c3770..a126362 100644
+> --- a/arch/arm/mach-omap2/smartreflex.h
+> +++ b/arch/arm/mach-omap2/smartreflex.h
+> @@ -146,7 +146,10 @@ extern struct dentry *pm_dbg_main_dir;
+>  #define OMAP3430_SR_ERRMINLIMIT_HIGHOPP	0xF9
+>  #define OMAP3430_SR_ERRMINLIMIT_LOWOPP	0xF4
+>  
+> -/* TODO:3630/OMAP4 values if it has to come from this file */
+> +/* OMAP3630 specific values */
+> +#define OMAP3630_SR_ERRMINLIMIT_OPPTB   0xFA
+> +
+> +/* TODO:OMAP4 specific values */
+>  
+>  /* Info for enabling SR in T2/gaia. ToDo: Move it to twl4030_power.c */
+>  #define PHY_TO_OFF_PM_RECIEVER(p)	(p - 0x5b)
+> diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+> index 209909c..2dcd1ba 100644
+> --- a/arch/arm/mach-omap2/sr_device.c
+> +++ b/arch/arm/mach-omap2/sr_device.c
+> @@ -107,16 +107,82 @@ static void __init omap34xx_sr_set_testing_nvalues(
+>  	}
+>  }
+>  
+> +static void __init omap3630_sr_read_efuse(
+> +			struct omap_smartreflex_data *sr_data, int sr_id)
+> +{
+> +	if (WARN_ON(!sr_data->sr_volt_data))
+> +		return;
+> +
+> +	if (sr_id == SR1) {
+> +		sr_data->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+> +					OMAP343X_SR1_SENNENABLE_MASK) >>
+> +					OMAP343X_SR1_SENNENABLE_SHIFT;
+> +		sr_data->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+> +					OMAP343X_SR1_SENPENABLE_MASK) >>
+> +					OMAP343X_SR1_SENPENABLE_SHIFT;
+> +		sr_data->sr_volt_data[3].sr_nvalue = omap_ctrl_readl(
+> +					OMAP3630_CONTROL_FUSE_OPPTM_VDD1);
+> +		sr_data->sr_volt_data[2].sr_nvalue = omap_ctrl_readl(
+> +					OMAP3630_CONTROL_FUSE_OPP120_VDD1);
+> +		sr_data->sr_volt_data[1].sr_nvalue = omap_ctrl_readl(
+> +					OMAP3630_CONTROL_FUSE_OPP100_VDD1);
+> +		sr_data->sr_volt_data[0].sr_nvalue = omap_ctrl_readl(
+> +					OMAP3630_CONTROL_FUSE_OPP50_VDD1);
+> +	} else if (sr_id == SR2) {
+> +
+> +		sr_data->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+> +					OMAP343X_SR2_SENNENABLE_MASK) >>
+> +					OMAP343X_SR2_SENNENABLE_SHIFT;
+> +		sr_data->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+> +					OMAP343X_SR2_SENPENABLE_MASK) >>
+> +					OMAP343X_SR2_SENPENABLE_SHIFT;
+> +		sr_data->sr_volt_data[1].sr_nvalue = omap_ctrl_readl(
+> +					OMAP3630_CONTROL_FUSE_OPP100_VDD2);
+> +		sr_data->sr_volt_data[0].sr_nvalue = omap_ctrl_readl(
+> +					OMAP3630_CONTROL_FUSE_OPP50_VDD2);
+> +	}
+> +}
+>   
+sorry NAK again. we seem to replicate the logic in the same style of old 
+code - if register offsets changed, keep them as variables in some 
+struct initialized and please dont duplicate code all over again - it 
+helps the code to be modular and be IP specific instead of silicon 
+specific - helps portability etc. NAK.
 
-On Tue, 23 Mar 2010, Mika Westerberg wrote:
+> +
+> +/* OMAP3630 Hard coded nvalues for testing purposes.*/
+> +static void __init omap3630_sr_set_testing_nvalues(
+> +			struct omap_smartreflex_data *sr_data, int srid)
+> +{
+> +	if (WARN_ON(!sr_data->sr_volt_data))
+> +		return;
+> +
+> +	if (srid == SR1) {
+> +		sr_data->senp_mod = 0x1;
+> +		sr_data->senn_mod = 0x1;
+> +		/* OMAP3630 nvalues for each VDD1 opp */
+> +		sr_data->sr_volt_data[3].sr_nvalue = 0xaab197;
+> +		sr_data->sr_volt_data[2].sr_nvalue = 0xaac5a8;
+> +		sr_data->sr_volt_data[1].sr_nvalue = 0x999b83;
+> +		sr_data->sr_volt_data[0].sr_nvalue = 0x898beb;
+> +	} else if (srid == SR2) {
+> +		sr_data->senp_mod = 0x1;
+> +		sr_data->senn_mod = 0x1;
+> +		/* OMAP3630 nvalues for each VDD2 opp */
+> +		sr_data->sr_volt_data[1].sr_nvalue = 0x9a8cee;
+> +		sr_data->sr_volt_data[0].sr_nvalue = 0x898beb;
+> +	}
+> +}
+>   
+NAK - I have seen value if the nvalues are programmed from userspace - 
+debugfs- esp given that these recommendations vary per silicon (in this 
+case it is being hardcoded) and no means to check/dump on a board 
+reported to be faulty.
+> +
+>  static void __init sr_set_nvalues(struct omap_smartreflex_data *sr_data,
+>  						int srid)
+>  {
+> -	if (cpu_is_omap34xx()) {
+> +	if (cpu_is_omap3630()) {
+> +		if (SR_TESTING_NVALUES)
+> +			omap3630_sr_set_testing_nvalues(sr_data, srid);
+> +		else
+> +			omap3630_sr_read_efuse(sr_data, srid);
+> +	} else if (cpu_is_omap34xx()) {
+>  		if (SR_TESTING_NVALUES)
+>  			omap34xx_sr_set_testing_nvalues(sr_data, srid);
+>  		else
+>  			omap34xx_sr_read_efuse(sr_data, srid);
+>  	}
+>   
+aah - this highlights my crib about this codebase and it's tendency to 
+ctrl+c, ctrl+v when things could be done much cleaner! NAK.
+>  }
+> +
+>   
+>  static void __init omap34xx_sr_volt_details(struct omap_smartreflex_data
+>  						*sr_data, int srid)
+>  {
+> @@ -141,6 +207,28 @@ static void __init omap34xx_sr_volt_details(struct omap_smartreflex_data
+>  	}
+>  }
+>  
+> +static void __init omap3630_sr_volt_details(struct omap_smartreflex_data
+> +						*sr_data, int srid)
+> +{
+> +	if (srid == SR1) {
+> +		sr_data->no_opp = 4;
+> +		sr_data->sr_volt_data = kzalloc(sizeof(sr_data->sr_volt_data) *
+> +				sr_data->no_opp , GFP_KERNEL);
+> +		WARN_ON(!sr_data->sr_volt_data);
+> +		sr_data->sr_volt_data[0].voltage = 930000;
+> +		sr_data->sr_volt_data[1].voltage = 1100000;
+> +		sr_data->sr_volt_data[2].voltage = 1260000;
+> +		sr_data->sr_volt_data[3].voltage = 1310000;
+>   
+this voltage is wrong.. :(
+> +	} else if (srid == SR2) {
+> +		sr_data->no_opp = 2;
+> +		sr_data->sr_volt_data = kzalloc(sizeof(sr_data->sr_volt_data) *
+> +				sr_data->no_opp , GFP_KERNEL);
+> +		WARN_ON(!sr_data->sr_volt_data);
+> +		sr_data->sr_volt_data[0].voltage = 930000;
+> +		sr_data->sr_volt_data[1].voltage = 1137500;
+> +	}
+> +}
+>   
+NAK NAK - please do not duplicate cpufreq_34xx.c - always have one place 
+where this information is stored.
 
-> Commit d84d3ea317ce0db89ce0903b4037f800c5d4c477 added register shift to allow
-> also 16-bit register access. However, omap_i2c_unidle() is called before these
-> are set which causes the following OOPS:
-> 
->     Unhandled fault: alignment exception (0x801) at 0xfa070009
->     Internal error: : 801 [#1]
->     last sysfs file:
->     Modules linked in:
->     CPU: 0    Not tainted  (2.6.34-rc2-00052-gae6be51 #3)
->     PC is at omap_i2c_unidle+0x44/0x138
->     LR is at trace_hardirqs_on_caller+0x158/0x18c
->     pc : [<c01cd2c4>]    lr : [<c00743f8>]    psr: 20000013
->     sp : cfc2bf10  ip : 00000009  fp : 00000000
->     r10: 00000000  r9 : 00000000  r8 : c0378560
->     r7 : c0378b88  r6 : c0378558  r5 : cfcadc00  r4 : cfcadc00
->     r3 : 00000009  r2 : fa070000  r1 : 00000000  r0 : 00000000
->     Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
->     Control: 10c5387f  Table: 80004019  DAC: 00000017
->     Process swapper (pid: 1, stack limit = 0xcfc2a2e8)
->     Stack: (0xcfc2bf10 to 0xcfc2c000)
->     bf00:                                     c0372cf8 c027225c 00000000 c0a69678
->     bf20: cfc3e508 c0500898 c0378560 c0378560 c0500898 cfcac8c0 c04fc280 c017d4f4
->     bf40: c0378560 c017c63c c0378560 c0378594 c0500898 cfcac8c0 c04fc280 c017c754
->     bf60: 00000000 c017c6f4 c0500898 c017beac cfc16a5c cfc3fd94 c0023448 c0500898
->     bf80: c0500898 c017b7d4 c032dc7f 00000093 cfc28d40 c0023448 00000000 c0500898
->     bfa0: 00000000 00000000 00000000 c017ca48 c0023448 00000000 c001d274 00000000
->     bfc0: 00000000 c002b344 00000031 00000000 00000000 00000192 00000000 c0023448
->     bfe0: 00000000 00000000 00000000 c0008578 00000000 c002c304 ffdfffff ffffffff
->     [<c01cd2c4>] (omap_i2c_unidle+0x44/0x138) from [<c027225c>] (omap_i2c_probe+0x1a4/0x398)
->     [<c027225c>] (omap_i2c_probe+0x1a4/0x398) from [<c017d4f4>] (platform_drv_probe+0x18/0x1c)
->     [<c017d4f4>] (platform_drv_probe+0x18/0x1c) from [<c017c63c>] (driver_probe_device+0xc0/0x178)
->     [<c017c63c>] (driver_probe_device+0xc0/0x178) from [<c017c754>] (__driver_attach+0x60/0x84)
->     [<c017c754>] (__driver_attach+0x60/0x84) from [<c017beac>] (bus_for_each_dev+0x44/0x74)
->     [<c017beac>] (bus_for_each_dev+0x44/0x74) from [<c017b7d4>] (bus_add_driver+0x9c/0x218)
->     [<c017b7d4>] (bus_add_driver+0x9c/0x218) from [<c017ca48>] (driver_register+0xa8/0x130)
->     [<c017ca48>] (driver_register+0xa8/0x130) from [<c002b344>] (do_one_initcall+0x5c/0x1b8)
->     [<c002b344>] (do_one_initcall+0x5c/0x1b8) from [<c0008578>] (kernel_init+0x90/0x144)
->     [<c0008578>] (kernel_init+0x90/0x144) from [<c002c304>] (kernel_thread_exit+0x0/0x8)
->     Code: e5942004 e3a0c009 e1a0331c e3a01000 (e18210b3)
->     ---[ end trace 1b75b31a2719ed1c ]---
-> 
-> This patch moves register shift setting before any register accesses are done.
-> 
-> Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-> Cc: Cory Maccarrone <darkstar6262@gmail.com>
+> +
+>  static int __init omap_devinit_smartreflex(void)
+>  {
+>  	int i = 0;
+> @@ -180,7 +268,9 @@ static int __init omap_devinit_smartreflex(void)
+>  		sr_data->device_enable = omap_device_enable;
+>  		sr_data->device_shutdown = omap_device_shutdown;
+>  		sr_data->device_idle = omap_device_idle;
+> -		if (cpu_is_omap34xx())
+> +		if (cpu_is_omap3630())
+> +			omap3630_sr_volt_details(sr_data, i + 1);
+> +		else if (cpu_is_omap34xx())
+>  			omap34xx_sr_volt_details(sr_data, i + 1);
+>   
+NAK on code duplication again.
+>  		sr_set_nvalues(sr_data, i + 1);
+>  		od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index 8fd1949..9690b8d 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -224,6 +224,23 @@ static u8 omap3_get_vp_errorgain(int vp_id, unsigned long volt)
+>  {
+>  	unsigned long lowopp_volt;
+>  
+> +	if (cpu_is_omap3630()) {
+> +		switch (volt) {
+> +		case 930000:
+> +			return OMAP3630_VP_CONFIG_ERRORGAIN_OPP50;
+> +		case 1100000:
+> +		case 1137500:
+> +			return OMAP3630_VP_CONFIG_ERRORGAIN_OPP100;
+> +		case 1260000:
+> +			return OMAP3630_VP_CONFIG_ERRORGAIN_OPPTB;
+> +		case 1310000:
+>   
+this voltage is wrong :(
+> +			return OMAP3630_VP_CONFIG_ERRORGAIN_OPP1G;
+>   
+a) why not part of volt_data? if this is a variant, for 3430, we could 
+have it constant value in the struct.
+b) hardcoded indexed off voltage? i am already having maintenance 
+nightmare if i had to change OPP voltage somwhere..
 
-Tested-by: Paul Walmsley <paul@pwsan.com>
+> +		default:
+> +			pr_warning("Wrong voltage. Unable to retrieve \
+> +				error gain for VP %d", vp_id + 1);
+> +			return 0;
+> +		}
+> +	}
+>  	if (vp_id == VP1)
+>  		lowopp_volt = VDD1_LOWOPP_VOLT;
+>  	else if (vp_id == VP2)
+> @@ -232,8 +249,8 @@ static u8 omap3_get_vp_errorgain(int vp_id, unsigned long volt)
+>  		pr_warning("Voltage processor%d does not exisit", vp_id);
+>  		return 0;
+>  	}
+> -	return ((volt > lowopp_volt) ? (OMAP3_VP_CONFIG_ERRORGAIN_HIGHOPP) :
+> -		(OMAP3_VP_CONFIG_ERRORGAIN_LOWOPP));
+> +	return ((volt > lowopp_volt) ? (OMAP3430_VP_CONFIG_ERRORGAIN_HIGHOPP) :
+> +		(OMAP3430_VP_CONFIG_ERRORGAIN_LOWOPP));
+>   
+why am i applying 3430 error gain for 3630?
 
+>  }
+>  static void vp_latch_vsel(int vp_id)
+>  {
+> @@ -311,18 +328,36 @@ static void __init vp_reg_configure(int vp_id)
+>  
+>  		vp_reg[vp_id].vp_offs = omap3_vp_offs[vp_id];
+>  		if (vp_id == VP1) {
+> +			u8 vlimitto_vddmin, vlimitto_vddmax;
+> +
+>  			curr_volt = get_curr_vdd1_voltage();
+> -			vp_reg[vp_id].vp_vddmin = (OMAP3_VP1_VLIMITTO_VDDMIN <<
+> +			if (cpu_is_omap3630()) {
+> +				vlimitto_vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
+> +				vlimitto_vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
+> +			} else {
+> +				vlimitto_vddmin = OMAP3430_VP1_VLIMITTO_VDDMIN;
+> +				vlimitto_vddmax = OMAP3430_VP1_VLIMITTO_VDDMAX;
+> +			}
+>   
+NAK for reasons of code duplication.
+> +			vp_reg[vp_id].vp_vddmin = (vlimitto_vddmin <<
+>  					OMAP3430_VDDMIN_SHIFT);
+> -			vp_reg[vp_id].vp_vddmax = (OMAP3_VP1_VLIMITTO_VDDMAX <<
+> +			vp_reg[vp_id].vp_vddmax = (vlimitto_vddmax <<
+>  					OMAP3430_VDDMAX_SHIFT);
+>  			vp_reg[vp_id].vp_tranxdone_status =
+>  					OMAP3430_VP1_TRANXDONE_ST;
+>  		} else if (vp_id == VP2) {
+> +			u8 vlimitto_vddmin, vlimitto_vddmax;
+> +
+>  			curr_volt = get_curr_vdd2_voltage();
+> -			vp_reg[vp_id].vp_vddmin = (OMAP3_VP2_VLIMITTO_VDDMIN <<
+> +			if (cpu_is_omap3630()) {
+> +				vlimitto_vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
+> +				vlimitto_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
+> +			} else {
+> +				vlimitto_vddmin = OMAP3430_VP2_VLIMITTO_VDDMIN;
+> +				vlimitto_vddmax = OMAP3430_VP2_VLIMITTO_VDDMAX;
+> +			}
+>   
+> +			vp_reg[vp_id].vp_vddmin = (vlimitto_vddmin <<
+>  					OMAP3430_VDDMIN_SHIFT);
+> -			vp_reg[vp_id].vp_vddmax = (OMAP3_VP2_VLIMITTO_VDDMAX <<
+> +			vp_reg[vp_id].vp_vddmax = (vlimitto_vddmax <<
+>  					OMAP3430_VDDMAX_SHIFT);
+>  			vp_reg[vp_id].vp_tranxdone_status =
+>  					OMAP3430_VP2_TRANXDONE_ST;
+> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> index a350444..61b3220 100644
+> --- a/arch/arm/mach-omap2/voltage.h
+> +++ b/arch/arm/mach-omap2/voltage.h
+> @@ -54,19 +54,39 @@
+>   * board file or PMIC data structure
+>   */
+>  #define OMAP3_VP_CONFIG_ERROROFFSET		0x00
+> -#define OMAP3_VP_CONFIG_ERRORGAIN_LOWOPP	0x0C
+> -#define OMAP3_VP_CONFIG_ERRORGAIN_HIGHOPP	0x18
+>  #define OMAP3_VP_VSTEPMIN_SMPSWAITTIMEMIN	0x3C
+>  #define OMAP3_VP_VSTEPMIN_VSTEPMIN		0x1
+>  #define OMAP3_VP_VSTEPMAX_SMPSWAITTIMEMAX	0x3C
+>  #define OMAP3_VP_VSTEPMAX_VSTEPMAX		0x04
+> -#define OMAP3_VP1_VLIMITTO_VDDMIN		0x14
+> -#define OMAP3_VP1_VLIMITTO_VDDMAX		0x42
+> -#define OMAP3_VP2_VLIMITTO_VDDMAX		0x2C
+> -#define OMAP3_VP2_VLIMITTO_VDDMIN		0x18
+>  #define OMAP3_VP_VLIMITTO_TIMEOUT_US		0x200
+>  
+>  #define VOLTAGE_MOD	OMAP3430_GR_MOD
+> +
+> +/*
+> + * Omap3430 specific VP register values. Maybe these need to come from
+> + * board file or PMIC data structure
+> + */
+> +#define OMAP3430_VP_CONFIG_ERRORGAIN_LOWOPP	0x0C
+> +#define OMAP3430_VP_CONFIG_ERRORGAIN_HIGHOPP	0x18
+> +#define OMAP3430_VP1_VLIMITTO_VDDMIN		0x14
+> +#define OMAP3430_VP1_VLIMITTO_VDDMAX		0x42
+> +#define OMAP3430_VP2_VLIMITTO_VDDMAX		0x2C
+> +#define OMAP3430_VP2_VLIMITTO_VDDMIN		0x18
+> +
+> +/*
+> + * Omap3630 specific VP register values. Maybe these need to come from
+> + * board file or PMIC data structure
+> + */
+> +#define OMAP3630_VP_CONFIG_ERRORGAIN_OPP50	0x0C
+> +#define OMAP3630_VP_CONFIG_ERRORGAIN_OPP100	0x16
+> +#define OMAP3630_VP_CONFIG_ERRORGAIN_OPPTB	0x23
+> +#define OMAP3630_VP_CONFIG_ERRORGAIN_OPP1G	0x27
+> +#define OMAP3630_VP1_VLIMITTO_VDDMIN		0x18
+> +#define OMAP3630_VP1_VLIMITTO_VDDMAX		0x3C
+> +#define OMAP3630_VP2_VLIMITTO_VDDMIN		0x18
+> +#define OMAP3630_VP2_VLIMITTO_VDDMAX		0x30
+> +
+> +
+>  /* TODO OMAP4 VP register values if the same file is used for OMAP4*/
+>  
+>  void omap_voltageprocessor_enable(int vp_id);
+> diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+> index d540ae8..7a94feb 100644
+> --- a/arch/arm/plat-omap/include/plat/control.h
+> +++ b/arch/arm/plat-omap/include/plat/control.h
+> @@ -169,6 +169,14 @@
+>  #define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
+>  #define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
+>  
+> +/* OMAP3630 only CONTROL_GENERAL register offsets */
+> +#define OMAP3630_CONTROL_FUSE_OPP50_VDD1	(OMAP2_CONTROL_GENERAL + 0x0114)
+> +#define OMAP3630_CONTROL_FUSE_OPP100_VDD1	(OMAP2_CONTROL_GENERAL + 0x0118)
+> +#define OMAP3630_CONTROL_FUSE_OPP120_VDD1	(OMAP2_CONTROL_GENERAL + 0x011C)
+> +#define OMAP3630_CONTROL_FUSE_OPPTM_VDD1	(OMAP2_CONTROL_GENERAL + 0x0120)
+> +#define OMAP3630_CONTROL_FUSE_OPP50_VDD2	(OMAP2_CONTROL_GENERAL + 0x0128)
+> +#define OMAP3630_CONTROL_FUSE_OPP100_VDD2	(OMAP2_CONTROL_GENERAL + 0x012C)
+> +
+>  /* AM35XX only CONTROL_GENERAL register offsets */
+>  #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
+>  #define AM35XX_CONTROL_DEVCONF2         (OMAP2_CONTROL_GENERAL + 0x0310)
+>   
 
-- Paul
+-- 
+Regards, Nishanth Menon
