@@ -1,151 +1,56 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
-Date: Wed, 31 Mar 2010 11:41:27 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F32346C@dbde02.ent.ti.com>
-References: <20100322212025.GW11448@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026F127117@dbde02.ent.ti.com>
- <20100323152709.GD11448@atomide.com>
- <005401cad061$a8db7440$544ff780@am.dhcp.ti.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH-V2] OMAP: Fix for bus width which improves SD card's
+	peformance.
+Date: Wed, 31 Mar 2010 11:57:20 +0530
+Message-ID: <v2yce9ab5791003302327hc67deb3akc7d18146534038f9@mail.gmail.com>
+References: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com>
+	<004701caab40$68b576e0$544ff780@am.dhcp.ti.com> <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53036 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756637Ab0CaGLh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 02:11:37 -0400
-In-Reply-To: <005401cad061$a8db7440$544ff780@am.dhcp.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Cc: Madhusudhan <madhu.cr@ti.com>, tony@atomide.com, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.lavinen@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, 'Tony Lindgren' <tony@atomide.com>, "Pais, Allen" <allen.pais@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-Master branch will work fine for omap_zoom3_defconfig. Pls make sure to 
-use ttyS0 in bootargs.
+> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A02 +-
+> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index 83f0aff..8c97c22 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2092,7 +2092,7 @@ static int __init omap_hsmmc_probe(struct
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MMC_CAP_WAIT_WHILE_BUSY;
+>
+> =A0 =A0 =A0if (mmc_slot(host).wires >=3D 8)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D MMC_CAP_8_BIT_DATA;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D (MMC_CAP_8_BIT_DATA | MM=
+C_CAP_4_BIT_DATA);
+> =A0 =A0 =A0else if (mmc_slot(host).wires >=3D 4)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_4_BIT_DATA;
+>
+Your mailer has some issue, 'tabs' got replaced by 'spaces' in this
+patch. Please fix it and repost.
 
-OMAP36XX ZOOM3 # boot
-LAN9x18 (0x92210000) detected.
-Read mac address: 00:08:EE:03:7D:EE
-start Auto negotiation... (take ~2sec)
-Auto negotiation complete, 100BaseTX, full duplex
-TFTP from server 172.24.136.151; our IP address is 172.24.190.192; sending through gateway 172.24.188.1
-Filename 'uImage_zoom3'.
-Load address: 0x80300000
-Loading: #################################################################
-         #################################################################
-         #################################################################
-         #################################################################
-         #################################################################
-         ##########################################################
-done
-Bytes transferred = 1959780 (1de764 hex)
-## Booting image at 80300000 ...
-   Image Name:   Linux-2.6.34-rc2-07865-g2e51807
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    1959716 Bytes =  1.9 MB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-OK
+Also take care off deleting below unrelated content.
 
-Starting kernel ...
-
-Uncompressing Linux... done, booting the kernel.
-Linux version 2.6.34-rc2-07865-g2e51807 (manju@u-host) (gcc version 4.3.3 (Sourcery G++ Lite 2009q1-203) ) #5 Wed Mar 31 11:51:19 IST 2010
-CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7f
-CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-Machine: OMAP Zoom3 board
-Memory policy: ECC disabled, Data cache writeback
-OMAP3630 ES1.0 (l2cache iva sgx neon isp 192mhz_clk )
-SRAM: Mapped pa 0x40200000 to va 0xfe400000 size: 0x100000
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
-Kernel command line: console=ttyS0,115200n8 root=/dev/nfs rw nfsroot=172.24.136.151:/home/manju/fs/alsa-fs target,nolock,tcp,rsize=1024,wsize=1024 mem=128M ip=dhcp
-
+-
 Regards,
-Manjunath 
- 
+Vimal
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Chikkature Rajashekar, Madhusudhan
-> Sent: Wednesday, March 31, 2010 5:05 AM
-> To: 'Tony Lindgren'; Pais, Allen
-> Cc: linux-arm-kernel@lists.infradead.org; 
-> linux-omap@vger.kernel.org; Pandita, Vikram
-> Subject: RE: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> > Sent: Tuesday, March 23, 2010 10:27 AM
-> > To: Pais, Allen
-> > Cc: linux-arm-kernel@lists.infradead.org; 
-> linux-omap@vger.kernel.org;
-> > Pandita, Vikram
-> > Subject: Re: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
-> > 
-> > * Pais, Allen <allen.pais@ti.com> [100322 22:42]:
-> > > > >
-> > > > >  With this patch[DEBUG_LL + earlyprintk],
-> > > > >  I still haven't been able to boot the kernel.
-> > > > >  Is it working on your side.
-> > > > >
-> > > > >  The commit am using is : 
-> a842b5f9ce70e1b738eabb4d719860070180ed1c
-> > > >
-> > > > I think you will also need the 3630 serial fixes series posted
-> > > > recently.
-> > > >
-> > > > I just merged those into omap-fixes-for-linus (and master)
-> > > > branch(es). Maybe give it a try with at commit
-> > > > b3c7740a120c8a7775cb63b4d094466da5c01692 + this patch?
-> > >
-> > >   Thanks, I'll pull in those fixes.
-> > >  I believe the mux errors are fixed. Have a look at
-> > >  http://dev.omapzoom.org/?p=manju/kernel-omap3-
-> > dev.git;a=commit;h=3499f5023ee90dc6ee3868a3147b87fe22a1d9b7
-> > >
-> > >  Patch must have been missed some how.
-> > 
-> > OK, we really should get fixes like that to mainline kernel ASAP
-> > to avoid duplicating the effort.
-> > 
-> > Then at least one issue remains for zoom3 to be usable..
-> > I'm getting tons of MMC errors trying to mount root on it:
-> > 
-> > mmcblk1: error -110 transferring data, sector 2097024, nr 
-> 8, card status
-> > 0x900
-> > end_request: I/O error, dev mmcblk1, sector 2097024
-> > ...
-> > 
-> > Any ideas if that's fixed somewhere also?
-> > 
-> Tony,
-> 
-> What is the branch on which the kernel is built? I tried the 
-> master branch
-> and the omap-fixes-for-linus both does not seem to boot Zoom3.
-> 
-> Regards,
-> Madhu
-> 
-> > Regards,
-> > 
-> > Tony
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
+> On Thu, Feb 11, 2010 at 11:04 PM, Madhusudhan <madhu.cr@ti.com> wrote=
+:
+>>
+>>
+>>> -----Original Message-----
+>>> From: kishore kadiyala [mailto:kishore.kadiyala@ti.com]
+>>> Sent: Thursday, February 11, 2010 8:20 AM
+>>> To: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org
+>>> Cc: jarkko.lavinen@nokia.com; madhu.cr@ti.com
+>>> Subject: [PATCH] OMAP: Fix for bus width which improves SD card's
+>>> peformance.
