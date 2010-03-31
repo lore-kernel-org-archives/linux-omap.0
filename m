@@ -1,126 +1,45 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCHv2 1/3] OMAP3: PM: Fix crash when enabling SmartReflex on non-supported OMAPs.
-Date: Wed, 31 Mar 2010 12:00:12 +0530
-Message-ID: <1270017014-27704-2-git-send-email-thara@ti.com>
-References: <1270017014-27704-1-git-send-email-thara@ti.com>
+Subject: [PATCHv2 0/3] OMAP3: PM: OMAP3630 support for smartreflex driver
+Date: Wed, 31 Mar 2010 12:00:11 +0530
+Message-ID: <1270017014-27704-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53811 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932761Ab0CaGac (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 02:30:32 -0400
-In-Reply-To: <1270017014-27704-1-git-send-email-thara@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38178 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932751Ab0CaGaa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Mar 2010 02:30:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch sets and unsets is_sr_reset is appropriate places so that
-trying to enable smart reflex in a non-supported OMAP chip does not
-lead to unnecessary crash. Basically today if sr_enable fails,
-sr_disable will crash due to accessing sr registers when sr clocks
-are not turned on. By checking on is_sr_reset flag and setting and
-unsetting this flag appropriately this crash is fixed in this
-patch.
+This patch series adds support for the updated 45nm smrtrelfex IP
+supported in OMAP3630 and OMAP4 in the smartreflex driver and
+adds support to enable smartreflex autocompensation for OMAP3630
+using test nvalues.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
- arch/arm/mach-omap2/smartreflex.c |   31 +++++++++++++++++++++----------
- 1 files changed, 21 insertions(+), 10 deletions(-)
+This patch series is based on the V2 version of Smartreflex and
+voltage revamp patch series, link to which is the following.
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 1d7d2e6..3f4b47b 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -115,9 +115,14 @@ static int sr_clk_enable(struct omap_sr *sr)
- {
- 	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
- 
-+	if (!sr->is_sr_reset)
-+		return 0;
-+
- 	if (pdata->device_enable)
- 		pdata->device_enable(sr->pdev);
- 
-+	sr->is_sr_reset = 0;
-+
- 	return 0;
- }
- 
-@@ -125,6 +130,9 @@ static void sr_clk_disable(struct omap_sr *sr)
- {
- 	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
- 
-+	if (sr->is_sr_reset)
-+		return;
-+
- 	if (pdata->device_idle)
- 		pdata->device_idle(sr->pdev);
- 
-@@ -308,7 +316,6 @@ static void sr_configure(struct omap_sr *sr)
- 			 ERRCONFIG_MCUVALIDINTEN | ERRCONFIG_MCUVALIDINTST |
- 			 ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_MCUBOUNDINTST));
- 	}
--	sr->is_sr_reset = 0;
- }
- 
- static void sr_start_vddautocomp(int srid)
-@@ -329,8 +336,7 @@ static void sr_start_vddautocomp(int srid)
- 	sr->is_autocomp_active = 1;
- 	if (!sr_class->enable(srid)) {
- 		sr->is_autocomp_active = 0;
--		if (sr->is_sr_reset == 1)
--			sr_clk_disable(sr);
-+		sr_clk_disable(sr);
- 	}
- }
- 
-@@ -350,8 +356,10 @@ static void  sr_stop_vddautocomp(int srid)
- 	}
- 
- 	if (sr->is_autocomp_active == 1) {
--		sr_class->disable(srid);
--		sr_clk_disable(sr);
-+		if (!sr->is_sr_reset) {
-+			sr_class->disable(srid);
-+			sr_clk_disable(sr);
-+		}
- 		sr->is_autocomp_active = 0;
- 	}
- }
-@@ -431,6 +439,11 @@ int sr_enable(int srid, unsigned long volt)
- 
- 	/* Enable the clocks and configure SR */
- 	sr_clk_enable(sr);
-+
-+	/* Check if SR is already enabled. If yes do nothing */
-+	if (sr_read_reg(sr, SRCONFIG) & SRCONFIG_SRENABLE)
-+		return true;
-+
- 	sr_configure(sr);
- 
- 	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
-@@ -518,10 +531,8 @@ void omap_smartreflex_enable(int srid)
- 	}
- 
- 	if (sr->is_autocomp_active == 1) {
--		if (sr->is_sr_reset == 1) {
--			if (!sr_class->enable(srid))
--				sr_clk_disable(sr);
--		}
-+		if (!sr_class->enable(srid))
-+			sr_clk_disable(sr);
- 	}
- }
- 
-@@ -550,7 +561,7 @@ void omap_smartreflex_disable(int srid)
- 	}
- 
- 	if (sr->is_autocomp_active == 1) {
--		if (sr->is_sr_reset == 0) {
-+		if (!sr->is_sr_reset) {
- 			sr_class->disable(srid);
- 			/* Disable SR clk */
- 			sr_clk_disable(sr);
--- 
-1.7.0.rc1.33.g07cf0f
+	http://marc.info/?l=linux-omap&m=126890378014626&w=2
+
+This patch series has been tested on OMAP3630 SDP board with
+CONFIG_OMAP_SMARTREFLEX_TESTING option enabled in the menuconfig.
+
+This patch series has been based on Kevin's PM tree
+origin/pm-wip-opp branch.
+
+Thara Gopinath (3):
+  OMAP3: PM: Fix crash when enabling SmartReflex on non-supported
+    OMAPs.
+  OMAP3: PM: Smartreflex IP update changes for OMAP3630
+  OMAP3: PM: Adding OMAP3630 support in smartreflex driver
+
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   47 +++++-
+ arch/arm/mach-omap2/smartreflex.c          |  280 +++++++++++++++++++++-------
+ arch/arm/mach-omap2/smartreflex.h          |   50 ++++-
+ arch/arm/mach-omap2/sr_device.c            |   94 +++++++++-
+ arch/arm/mach-omap2/voltage.c              |   47 ++++-
+ arch/arm/mach-omap2/voltage.h              |   32 +++-
+ arch/arm/plat-omap/include/plat/control.h  |    8 +
+ 7 files changed, 464 insertions(+), 94 deletions(-)
 
