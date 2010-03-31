@@ -1,145 +1,95 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH] [PATCH v4 4/5] omap3: pm: Use generic TRITON power scripts for 3430SDP board
-Date: Wed, 31 Mar 2010 15:51:09 +0530
-Message-ID: <1270030869-2122-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH] [PATCH v4 5/5] omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP board
+Date: Wed, 31 Mar 2010 15:51:23 +0530
+Message-ID: <1270030883-2155-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34750 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933073Ab0CaJ6v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 05:58:51 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46222 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933073Ab0CaJ7H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Mar 2010 05:59:07 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-This patch will removed the sleep/wakeup/warm_rest sequence from the
-3430SDP board file and use the generic script.
-
-Modified the resource config structure in the board file for using
-generic script. Updating the sleep/wakeup/warm_rest sequence & voltsetup_time
-in the board file from generic script file.
+Adding the power script data for zoom board to TWL4030 platform data.
+Updating the sleep/wakeup/warm_rest sequence & voltsetup_time
+from generic script file.
 
 Signed-off-by: Lesly A M <x0080970@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/mach-omap2/Makefile        |    3 +-
- arch/arm/mach-omap2/board-3430sdp.c |  109 +++++++++--------------------------
- include/linux/i2c/twl.h             |    4 +
- 3 files changed, 33 insertions(+), 83 deletions(-)
+ arch/arm/mach-omap2/Makefile                 |    9 ++++--
+ arch/arm/mach-omap2/board-3630sdp.c          |    2 +
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   36 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom2.c            |    2 +
+ arch/arm/mach-omap2/board-zoom3.c            |    2 +
+ 5 files changed, 48 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 179e576..1461628 100644
+index 1461628..32eedde 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -120,7 +120,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+@@ -130,14 +130,17 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+ 					   board-zoom-peripherals.o \
  					   hsmmc.o \
--					   board-sdp-flash.o
-+					   board-sdp-flash.o \
+-					   board-zoom-debugboard.o
++					   board-zoom-debugboard.o \
 +					   twl4030-script.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-sdram.o \
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 4439813..c14b89c 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -49,6 +49,7 @@
- #include "sdram-qimonda-hyb18m512160af-6.h"
- #include "hsmmc.h"
+ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+ 					   board-zoom-peripherals.o \
+ 					   hsmmc.o \
+-					   board-zoom-debugboard.o
++					   board-zoom-debugboard.o \
++					   twl4030-script.o
+ obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
+ 					   board-zoom-peripherals.o \
+-					   hsmmc.o
++					   hsmmc.o \
++					   twl4030-script.o
+ obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index d04987d..7c21af4 100644
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -26,6 +26,7 @@
+ #include "mux.h"
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
  #include "voltage.h"
 +#include "twl4030-script.h"
- #include "omap3-opp.h"
  
- #define SDP3430_TS_GPIO_IRQ_SDPV1	3
-@@ -436,93 +437,35 @@ static struct twl4030_madc_platform_data sdp3430_madc_data = {
- 	.irq_line	= 1,
+ /* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
+ static struct prm_setup_vc omap3_setuptime = {
+@@ -109,6 +110,7 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 
+ static void __init omap_sdp_init(void)
+ {
++	twl4030_get_vc_timings(&omap3_setuptime);
+ 	omap_voltage_init_vc(&omap3_setuptime);
+ 
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index ca95d8d..d22be4d 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -26,6 +26,7 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "twl4030-script.h"
+ 
+ /* Zoom2 has Qwerty keyboard*/
+ static int board_keymap[] = {
+@@ -94,6 +95,38 @@ static struct twl4030_keypad_data zoom_kp_twl4030_data = {
+ 	.rep		= 1,
  };
  
--
--static struct twl4030_ins __initdata sleep_on_seq[] = {
--	/* Turn off HFCLKOUT */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_OFF), 2},
--	/* Turn OFF VDD1 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 2},
--	/* Turn OFF VDD2 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
--	/* Turn OFF VPLL1 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 2},
--};
--
--static struct twl4030_script sleep_on_script __initdata = {
--	.script	= sleep_on_seq,
--	.size	= ARRAY_SIZE(sleep_on_seq),
--	.flags	= TWL4030_SLEEP_SCRIPT,
--};
--
--static struct twl4030_ins wakeup_p12_seq[] __initdata = {
--	/* Turn on HFCLKOUT */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
--	/* Turn ON VDD1 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 2},
--	/* Turn ON VDD2 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 2},
--	/* Turn ON VPLL1 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 2},
--};
--
--static struct twl4030_script wakeup_p12_script __initdata = {
--	.script	= wakeup_p12_seq,
--	.size	= ARRAY_SIZE(wakeup_p12_seq),
--	.flags	= TWL4030_WAKEUP12_SCRIPT,
--};
--
--static struct twl4030_ins wakeup_p3_seq[] __initdata = {
--	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
--};
--
--static struct twl4030_script wakeup_p3_script __initdata = {
--	.script = wakeup_p3_seq,
--	.size   = ARRAY_SIZE(wakeup_p3_seq),
--	.flags  = TWL4030_WAKEUP3_SCRIPT,
--};
--
--static struct twl4030_ins wrst_seq[] __initdata = {
--/*
-- * Reset twl4030.
-- * Reset VDD1 regulator.
-- * Reset VDD2 regulator.
-- * Reset VPLL1 regulator.
-- * Enable sysclk output.
-- * Reenable twl4030.
-- */
--	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
--	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
--	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
--	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
--	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
--	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
--};
--static struct twl4030_script wrst_script __initdata = {
--	.script = wrst_seq,
--	.size   = ARRAY_SIZE(wrst_seq),
--	.flags  = TWL4030_WRST_SCRIPT,
--};
--
--static struct twl4030_script *twl4030_scripts[] __initdata = {
--	&sleep_on_script,
--	&wakeup_p12_script,
--	&wakeup_p3_script,
--	&wrst_script,
--};
--
- static struct twl4030_resconfig twl4030_rconfig[] = {
--	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
--		.type2 = -1 },
--	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
--		.type2 = -1 },
--	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
--		.type2 = -1 },
++static struct twl4030_resconfig twl4030_rconfig[] = {
 +	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1, .type = 3,
 +		.type2 = 1, .remap_sleep = RES_STATE_OFF },
 +	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_ALL, .type = 1,
@@ -164,47 +114,73 @@ index 4439813..c14b89c 100644
 +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
 +	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3,
 +		.type = 0, .type2 = 2, .remap_sleep = RES_STATE_SLEEP },
- 	{ 0, 0},
++	{ 0, 0},
++};
++
++static struct twl4030_power_data zoom_t2scripts_data __initdata = {
++	.resource_config = twl4030_rconfig,
++};
++
+ static struct regulator_consumer_supply zoom_vmmc1_supply = {
+ 	.supply		= "vmmc",
  };
+@@ -239,6 +272,7 @@ static struct twl4030_platform_data zoom_twldata = {
+ 	.usb		= &zoom_usb_data,
+ 	.gpio		= &zoom_gpio_data,
+ 	.keypad		= &zoom_kp_twl4030_data,
++	.power		= &zoom_t2scripts_data,
+ 	.codec		= &zoom_codec_data,
+ 	.vmmc1          = &zoom_vmmc1,
+ 	.vmmc2          = &zoom_vmmc2,
+@@ -279,6 +313,8 @@ static void enable_board_wakeup_source(void)
  
- static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
--	.scripts	= twl4030_scripts,
--	.num		= ARRAY_SIZE(twl4030_scripts),
- 	.resource_config = twl4030_rconfig,
- };
- 
-@@ -889,6 +832,8 @@ static struct omap_musb_board_data musb_board_data = {
- 
- static void __init omap_3430sdp_init(void)
+ void __init zoom_peripherals_init(void)
  {
-+	twl4030_get_scripts(&sdp3430_t2scripts_data);
++	twl4030_get_scripts(&zoom_t2scripts_data);
++
+ 	omap_i2c_init();
+ 	omap_serial_init();
+ 	usb_musb_init(&musb_board_data);
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 37f43dd..652fd8f 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -27,6 +27,7 @@
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "omap3-opp.h"
+ #include "voltage.h"
++#include "twl4030-script.h"
+ 
+ /* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
+ static struct prm_setup_vc omap3_setuptime = {
+@@ -94,6 +95,7 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 
+ static void __init omap_zoom2_init(void)
+ {
 +	twl4030_get_vc_timings(&omap3_setuptime);
  	omap_voltage_init_vc(&omap3_setuptime);
  
  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index fb6784e..2e00e83 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -371,6 +371,7 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
- #define DEV_GRP_P1		0x1	/* P1: all OMAP devices */
- #define DEV_GRP_P2		0x2	/* P2: all Modem devices */
- #define DEV_GRP_P3		0x4	/* P3: all peripheral devices */
-+#define DEV_GRP_ALL		0x7	/* P1/P2/P3: all devices */
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index 76858d5..22d985d 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -25,6 +25,7 @@
+ #include "mux.h"
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
+ #include "voltage.h"
++#include "twl4030-script.h"
  
- /* Resource groups */
- #define RES_GRP_RES		0x0	/* Reserved */
-@@ -383,7 +384,10 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
- #define RES_GRP_ALL		0x7	/* All resource groups */
+ /* CLKSETUP TIME which depends on the OSC/XTAL used on the board */
+ static struct prm_setup_vc omap3_setuptime = {
+@@ -78,6 +79,7 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
  
- #define RES_TYPE2_R0		0x0
-+#define RES_TYPE2_R1		0x1
-+#define RES_TYPE2_R2		0x2
+ static void __init omap_zoom_init(void)
+ {
++	twl4030_get_vc_timings(&omap3_setuptime);
+ 	omap_voltage_init_vc(&omap3_setuptime);
  
-+#define RES_TYPE_R0		0x0
- #define RES_TYPE_ALL		0x7
- 
- /* Resource states */
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
 -- 
 1.6.0.4
 
