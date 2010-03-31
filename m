@@ -1,56 +1,126 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH-V2] OMAP: Fix for bus width which improves SD card's
-	peformance.
-Date: Wed, 31 Mar 2010 11:57:20 +0530
-Message-ID: <v2yce9ab5791003302327hc67deb3akc7d18146534038f9@mail.gmail.com>
-References: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com>
-	<004701caab40$68b576e0$544ff780@am.dhcp.ti.com> <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Cc: Madhusudhan <madhu.cr@ti.com>, tony@atomide.com, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.lavinen@nokia.com
+From: Thara Gopinath <thara@ti.com>
+Subject: [PATCHv2 1/3] OMAP3: PM: Fix crash when enabling SmartReflex on non-supported OMAPs.
+Date: Wed, 31 Mar 2010 12:00:12 +0530
+Message-ID: <1270017014-27704-2-git-send-email-thara@ti.com>
+References: <1270017014-27704-1-git-send-email-thara@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53811 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932761Ab0CaGac (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 02:30:32 -0400
+In-Reply-To: <1270017014-27704-1-git-send-email-thara@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A02 +-
-> =A01 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
-mmc.c
-> index 83f0aff..8c97c22 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2092,7 +2092,7 @@ static int __init omap_hsmmc_probe(struct
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MMC_CAP_WAIT_WHILE_BUSY;
->
-> =A0 =A0 =A0if (mmc_slot(host).wires >=3D 8)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D MMC_CAP_8_BIT_DATA;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D (MMC_CAP_8_BIT_DATA | MM=
-C_CAP_4_BIT_DATA);
-> =A0 =A0 =A0else if (mmc_slot(host).wires >=3D 4)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_4_BIT_DATA;
->
-Your mailer has some issue, 'tabs' got replaced by 'spaces' in this
-patch. Please fix it and repost.
+This patch sets and unsets is_sr_reset is appropriate places so that
+trying to enable smart reflex in a non-supported OMAP chip does not
+lead to unnecessary crash. Basically today if sr_enable fails,
+sr_disable will crash due to accessing sr registers when sr clocks
+are not turned on. By checking on is_sr_reset flag and setting and
+unsetting this flag appropriately this crash is fixed in this
+patch.
 
-Also take care off deleting below unrelated content.
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |   31 +++++++++++++++++++++----------
+ 1 files changed, 21 insertions(+), 10 deletions(-)
 
--
-Regards,
-Vimal
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 1d7d2e6..3f4b47b 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -115,9 +115,14 @@ static int sr_clk_enable(struct omap_sr *sr)
+ {
+ 	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
+ 
++	if (!sr->is_sr_reset)
++		return 0;
++
+ 	if (pdata->device_enable)
+ 		pdata->device_enable(sr->pdev);
+ 
++	sr->is_sr_reset = 0;
++
+ 	return 0;
+ }
+ 
+@@ -125,6 +130,9 @@ static void sr_clk_disable(struct omap_sr *sr)
+ {
+ 	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
+ 
++	if (sr->is_sr_reset)
++		return;
++
+ 	if (pdata->device_idle)
+ 		pdata->device_idle(sr->pdev);
+ 
+@@ -308,7 +316,6 @@ static void sr_configure(struct omap_sr *sr)
+ 			 ERRCONFIG_MCUVALIDINTEN | ERRCONFIG_MCUVALIDINTST |
+ 			 ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_MCUBOUNDINTST));
+ 	}
+-	sr->is_sr_reset = 0;
+ }
+ 
+ static void sr_start_vddautocomp(int srid)
+@@ -329,8 +336,7 @@ static void sr_start_vddautocomp(int srid)
+ 	sr->is_autocomp_active = 1;
+ 	if (!sr_class->enable(srid)) {
+ 		sr->is_autocomp_active = 0;
+-		if (sr->is_sr_reset == 1)
+-			sr_clk_disable(sr);
++		sr_clk_disable(sr);
+ 	}
+ }
+ 
+@@ -350,8 +356,10 @@ static void  sr_stop_vddautocomp(int srid)
+ 	}
+ 
+ 	if (sr->is_autocomp_active == 1) {
+-		sr_class->disable(srid);
+-		sr_clk_disable(sr);
++		if (!sr->is_sr_reset) {
++			sr_class->disable(srid);
++			sr_clk_disable(sr);
++		}
+ 		sr->is_autocomp_active = 0;
+ 	}
+ }
+@@ -431,6 +439,11 @@ int sr_enable(int srid, unsigned long volt)
+ 
+ 	/* Enable the clocks and configure SR */
+ 	sr_clk_enable(sr);
++
++	/* Check if SR is already enabled. If yes do nothing */
++	if (sr_read_reg(sr, SRCONFIG) & SRCONFIG_SRENABLE)
++		return true;
++
+ 	sr_configure(sr);
+ 
+ 	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
+@@ -518,10 +531,8 @@ void omap_smartreflex_enable(int srid)
+ 	}
+ 
+ 	if (sr->is_autocomp_active == 1) {
+-		if (sr->is_sr_reset == 1) {
+-			if (!sr_class->enable(srid))
+-				sr_clk_disable(sr);
+-		}
++		if (!sr_class->enable(srid))
++			sr_clk_disable(sr);
+ 	}
+ }
+ 
+@@ -550,7 +561,7 @@ void omap_smartreflex_disable(int srid)
+ 	}
+ 
+ 	if (sr->is_autocomp_active == 1) {
+-		if (sr->is_sr_reset == 0) {
++		if (!sr->is_sr_reset) {
+ 			sr_class->disable(srid);
+ 			/* Disable SR clk */
+ 			sr_clk_disable(sr);
+-- 
+1.7.0.rc1.33.g07cf0f
 
->
-> On Thu, Feb 11, 2010 at 11:04 PM, Madhusudhan <madhu.cr@ti.com> wrote=
-:
->>
->>
->>> -----Original Message-----
->>> From: kishore kadiyala [mailto:kishore.kadiyala@ti.com]
->>> Sent: Thursday, February 11, 2010 8:20 AM
->>> To: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org
->>> Cc: jarkko.lavinen@nokia.com; madhu.cr@ti.com
->>> Subject: [PATCH] OMAP: Fix for bus width which improves SD card's
->>> peformance.
