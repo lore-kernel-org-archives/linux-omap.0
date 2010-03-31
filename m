@@ -1,109 +1,46 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [RFC/PATCH 1/3] omap: fix clocksource_32k to start from zero
-Date: Wed, 31 Mar 2010 14:13:13 +0300
-Message-ID: <1270033995-12516-2-git-send-email-felipe.balbi@nokia.com>
-References: <1270033995-12516-1-git-send-email-felipe.balbi@nokia.com>
+Subject: [RFC/PATCH 0/3] 32k timer patches
+Date: Wed, 31 Mar 2010 14:13:12 +0300
+Message-ID: <1270033995-12516-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:23525 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756873Ab0CaLNv (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:46221 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756880Ab0CaLNv (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 07:13:51 -0400
-In-Reply-To: <1270033995-12516-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
+The following patches convert 32k-sync timer into a platform_driver
+and also remove dead code from timer32k.c
 
-When the 32k sync timer is used for sched_clock(), it should count
-time from the kernel boot (clocksource init) instead of the last HW
-reset. Otherwise printk.time values will jump suddenly during the boot:
+If anyone has a good idea on how to fix-up timer-gp.c, I'll be
+glad to hear. Currently I can't move it to platform_driver
+because it's used the system timer during machine start so I can't
+find a proper location to register the platform_device. If we don't
+register a system timer, we will loop forever trying to calibrate
+the delay loop.
 
-	[    0.000000] calling  omap2_clk_arch_init+0x0/0x138 @ 1
-	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned -22 after 0 usecs
-	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned with error code -22
-	[    0.000000] calling  omap_init_clocksource_32k+0x0/0x98 @ 1
-	[  508.697937] initcall omap_init_clocksource_32k+0x0/0x98 returned 0 after 0 usecs
-	[  508.697967] calling  omap_init_devices+0x0/0x38 @ 1
-	[  508.698425] initcall omap_init_devices+0x0/0x38 returned 0 after 0 usecs
+The patches were boot tested on rx51 and compile tested with
+omap_h2_1610_defconfig.
 
-This will confuse tools such as scripts/bootgraph.pl.
+Aaro Koskinen (1):
+  omap: fix clocksource_32k to start from zero
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/plat-omap/common.c |   19 ++++++++++++++-----
- 1 files changed, 14 insertions(+), 5 deletions(-)
+Felipe Balbi (2):
+  arm: omap1: remove dead code from timer32k.c
+  arm: omap1/2/3/4: convert clocksource to a platform_driver
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 088c1a0..01cbb48 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -100,10 +100,17 @@ EXPORT_SYMBOL(omap_get_var_config);
- 
- #include <linux/clocksource.h>
- 
-+/*
-+ * offset_32k holds the init time counter value. It is then subtracted
-+ * from every counter read to achieve a counter that counts time from the
-+ * kernel boot (needed for sched_clock()).
-+ */
-+static u32 offset_32k __read_mostly;
-+
- #ifdef CONFIG_ARCH_OMAP16XX
- static cycle_t omap16xx_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP16XX_TIMER_32K_SYNCHRONIZED);
-+	return omap_readl(OMAP16XX_TIMER_32K_SYNCHRONIZED) - offset_32k;
- }
- #else
- #define omap16xx_32k_read	NULL
-@@ -112,7 +119,7 @@ static cycle_t omap16xx_32k_read(struct clocksource *cs)
- #ifdef CONFIG_ARCH_OMAP2420
- static cycle_t omap2420_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP2420_32KSYNCT_BASE + 0x10);
-+	return omap_readl(OMAP2420_32KSYNCT_BASE + 0x10) - offset_32k;
- }
- #else
- #define omap2420_32k_read	NULL
-@@ -121,7 +128,7 @@ static cycle_t omap2420_32k_read(struct clocksource *cs)
- #ifdef CONFIG_ARCH_OMAP2430
- static cycle_t omap2430_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP2430_32KSYNCT_BASE + 0x10);
-+	return omap_readl(OMAP2430_32KSYNCT_BASE + 0x10) - offset_32k;
- }
- #else
- #define omap2430_32k_read	NULL
-@@ -130,7 +137,7 @@ static cycle_t omap2430_32k_read(struct clocksource *cs)
- #ifdef CONFIG_ARCH_OMAP3
- static cycle_t omap34xx_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP3430_32KSYNCT_BASE + 0x10);
-+	return omap_readl(OMAP3430_32KSYNCT_BASE + 0x10) - offset_32k;
- }
- #else
- #define omap34xx_32k_read	NULL
-@@ -139,7 +146,7 @@ static cycle_t omap34xx_32k_read(struct clocksource *cs)
- #ifdef CONFIG_ARCH_OMAP4
- static cycle_t omap44xx_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP4430_32KSYNCT_BASE + 0x10);
-+	return omap_readl(OMAP4430_32KSYNCT_BASE + 0x10) - offset_32k;
- }
- #else
- #define omap44xx_32k_read	NULL
-@@ -227,6 +234,8 @@ static int __init omap_init_clocksource_32k(void)
- 		clocksource_32k.mult = clocksource_hz2mult(32768,
- 					    clocksource_32k.shift);
- 
-+		offset_32k = clocksource_32k.read(&clocksource_32k);
-+
- 		if (clocksource_register(&clocksource_32k))
- 			printk(err, clocksource_32k.name);
- 	}
--- 
-1.7.0.rc0.33.g7c3932
+ arch/arm/mach-omap1/devices.c        |   24 ++++
+ arch/arm/mach-omap1/timer32k.c       |   15 --
+ arch/arm/mach-omap2/clock2420_data.c |    2 +-
+ arch/arm/mach-omap2/clock2430_data.c |    2 +-
+ arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
+ arch/arm/mach-omap2/devices.c        |   38 +++++
+ arch/arm/plat-omap/Makefile          |    4 +-
+ arch/arm/plat-omap/common.c          |  149 --------------------
+ arch/arm/plat-omap/timer-32k-sync.c  |  250 ++++++++++++++++++++++++++++++++++
+ 9 files changed, 317 insertions(+), 169 deletions(-)
+ create mode 100644 arch/arm/plat-omap/timer-32k-sync.c
 
