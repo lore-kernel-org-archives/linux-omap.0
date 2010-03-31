@@ -1,67 +1,232 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH] [PATCH v4 1/5] omap3: pm: fix for twl4030 script load
-Date: Wed, 31 Mar 2010 15:50:28 +0530
-Message-ID: <1270030828-2032-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH] [PATCH v4 3/5] omap3: pm: Generic TRITON power scripts for OMAP3 based boards
+Date: Wed, 31 Mar 2010 15:50:57 +0530
+Message-ID: <1270030857-2089-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34725 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:34747 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933051Ab0CaJ6L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 05:58:11 -0400
+	with ESMTP id S933127Ab0CaJ6j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 05:58:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-This patch will fix the TRITON sleep/wakeup sequence.
+This pacth will create the generic TRITON power scripts which can be used
+by different OMAP3 boards with the same power companion chip (TWL4030 series).
 
-Since the function to populate the sleep script is getting called always
-irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
-is getting over written by the sleep script.
-
-Also removing the order checking while loading the scripts,
-since the order doesn't matter. Only the values configured
-in the register, which is pointing to the starting address
-of each sequence should be correct.
+Added the api(twl4030_get_scripts/twl4030_get_vc_timings) to update
+the sleep/wakeup/warm_rest sequence & voltsetup_time in the board file.
 
 Signed-off-by: Lesly A M <x0080970@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- drivers/mfd/twl4030-power.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/twl4030-script.c |  154 ++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/twl4030-script.h |   15 ++++
+ arch/arm/mach-omap2/voltage.c        |    5 +-
+ 3 files changed, 171 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl4030-script.c
+ create mode 100644 arch/arm/mach-omap2/twl4030-script.h
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 7efa878..bd98733 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -423,7 +423,6 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
- 	       u8 address)
- {
- 	int err;
--	static int order;
+diff --git a/arch/arm/mach-omap2/twl4030-script.c b/arch/arm/mach-omap2/twl4030-script.c
+new file mode 100644
+index 0000000..b3088c3
+--- /dev/null
++++ b/arch/arm/mach-omap2/twl4030-script.c
+@@ -0,0 +1,154 @@
++/*
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Lesly A M <x0080970@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifdef CONFIG_TWL4030_POWER
++
++#include "twl4030-script.h"
++
++static struct prm_setup_vc twl4030_voltsetup_time = {
++	/* VOLT SETUPTIME for RET */
++	.ret = {
++		.voltsetup1_vdd1 = 0x005B,
++		.voltsetup1_vdd2 = 0x0055,
++		.voltsetup2 = 0x0,
++		.voltoffset = 0x0,
++	},
++	/* VOLT SETUPTIME for OFF */
++	.off = {
++		.voltsetup1_vdd1 = 0x00B3,
++		.voltsetup1_vdd2 = 0x00A0,
++		.voltsetup2 = 0x118,
++		.voltoffset = 0x32,
++	},
++};
++
++/*
++ * Sequence to control the TRITON Power resources,
++ * when the system goes into sleep.
++ * Executed upon P1_P2/P3 transition for sleep.
++ */
++static struct twl4030_ins __initdata sleep_on_seq[] = {
++	/* Broadcast message to put res to sleep */
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
++							RES_STATE_SLEEP), 2},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
++							RES_STATE_SLEEP), 2},
++};
++
++static struct twl4030_script sleep_on_script __initdata = {
++	.script	= sleep_on_seq,
++	.size	= ARRAY_SIZE(sleep_on_seq),
++	.flags	= TWL4030_SLEEP_SCRIPT,
++};
++
++/*
++ * Sequence to control the TRITON Power resources,
++ * when the system wakeup from sleep.
++ * Executed upon P1_P2 transition for wakeup.
++ */
++static struct twl4030_ins wakeup_p12_seq[] __initdata = {
++	/* Broadcast message to put res to active */
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
++							RES_STATE_ACTIVE), 2},
++};
++
++static struct twl4030_script wakeup_p12_script __initdata = {
++	.script	= wakeup_p12_seq,
++	.size	= ARRAY_SIZE(wakeup_p12_seq),
++	.flags	= TWL4030_WAKEUP12_SCRIPT,
++};
++
++/*
++ * Sequence to control the TRITON Power resources,
++ * when the system wakeup from sleep.
++ * Executed upon P3 transition for wakeup.
++ */
++static struct twl4030_ins wakeup_p3_seq[] __initdata = {
++	/* Broadcast message to put res to active */
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
++							RES_STATE_ACTIVE), 2},
++};
++
++static struct twl4030_script wakeup_p3_script __initdata = {
++	.script = wakeup_p3_seq,
++	.size   = ARRAY_SIZE(wakeup_p3_seq),
++	.flags  = TWL4030_WAKEUP3_SCRIPT,
++};
++
++/*
++ * Sequence to reset the TRITON Power resources,
++ * when the system gets warm reset.
++ * Executed upon warm reset signal.
++ */
++static struct twl4030_ins wrst_seq[] __initdata = {
++/*
++ * Reset twl4030.
++ * Reset Main_Ref.
++ * Reset All type2_group2.
++ * Reset VUSB_3v1.
++ * Reset All type2_group1.
++ * Reset RC.
++ * Reenable twl4030.
++ */
++	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
++	{MSG_SINGULAR(DEV_GRP_NULL, RES_Main_Ref, RES_STATE_WRST), 2},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
++							RES_STATE_WRST), 2},
++	{MSG_SINGULAR(DEV_GRP_NULL, RES_VUSB_3V1, RES_STATE_WRST), 2},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
++							RES_STATE_WRST), 2},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
++							RES_STATE_WRST), 2},
++	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
++};
++
++static struct twl4030_script wrst_script __initdata = {
++	.script = wrst_seq,
++	.size   = ARRAY_SIZE(wrst_seq),
++	.flags  = TWL4030_WRST_SCRIPT,
++};
++
++/* TRITON script for sleep, wakeup & warm_reset */
++static struct twl4030_script *twl4030_scripts[] __initdata = {
++	&sleep_on_script,
++	&wakeup_p12_script,
++	&wakeup_p3_script,
++	&wrst_script,
++};
++
++static struct twl4030_power_data twl4030_generic_script __initdata = {
++	.scripts	= twl4030_scripts,
++	.num		= ARRAY_SIZE(twl4030_scripts),
++};
++
++void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data)
++{
++	t2scripts_data->scripts = twl4030_generic_script.scripts;
++	t2scripts_data->num = twl4030_generic_script.num;
++}
++
++void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc)
++{
++	/* copies new voltsetup time for RERT */
++	setup_vc->ret.voltsetup1_vdd1 =
++				twl4030_voltsetup_time.ret.voltsetup1_vdd1;
++	setup_vc->ret.voltsetup1_vdd2 =
++				twl4030_voltsetup_time.ret.voltsetup1_vdd2;
++	setup_vc->ret.voltsetup2 = twl4030_voltsetup_time.ret.voltsetup2;
++	setup_vc->ret.voltoffset = twl4030_voltsetup_time.ret.voltoffset;
++
++	/* copies new voltsetup time for OFF */
++	setup_vc->off.voltsetup1_vdd1 =
++				twl4030_voltsetup_time.off.voltsetup1_vdd1;
++	setup_vc->off.voltsetup1_vdd2 =
++				twl4030_voltsetup_time.off.voltsetup1_vdd2;
++	setup_vc->off.voltsetup2 = twl4030_voltsetup_time.off.voltsetup2;
++	setup_vc->off.voltoffset = twl4030_voltsetup_time.off.voltoffset;
++}
++#endif
+diff --git a/arch/arm/mach-omap2/twl4030-script.h b/arch/arm/mach-omap2/twl4030-script.h
+new file mode 100644
+index 0000000..3a7da2d
+--- /dev/null
++++ b/arch/arm/mach-omap2/twl4030-script.h
+@@ -0,0 +1,15 @@
++#ifndef __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
++#define __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
++
++#include <linux/i2c/twl.h>
++#include "voltage.h"
++
++#ifdef CONFIG_TWL4030_POWER
++extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data);
++extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc);
++#else
++extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data) {}
++extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc) {}
++#endif
++
++#endif
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index b588ace..90a307e 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -549,9 +549,8 @@ void __init omap_voltage_init_vc(struct prm_setup_vc *setup_vc)
+ 		memcpy(&vc_config, &omap3630_vc_config,
+ 				sizeof(struct prm_setup_vc));
  
- 	/* Make sure the script isn't going beyond last valid address (0x3f) */
- 	if ((address + tscript->size) > END_OF_SCRIPT) {
-@@ -444,7 +443,6 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
- 		err = twl4030_config_wakeup12_sequence(address);
- 		if (err)
- 			goto out;
--		order = 1;
- 	}
- 	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
- 		err = twl4030_config_wakeup3_sequence(address);
-@@ -452,10 +450,6 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
- 			goto out;
- 	}
- 	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
--		if (order)
--			pr_warning("TWL4030: Bad order of scripts (sleep "\
--					"script before wakeup) Leads to boot"\
--					"failure on some boards\n");
- 		err = twl4030_config_sleep_sequence(address);
- out:
- 	return err;
+-	/* CLK SETUPTIME for RET & OFF */
+-	vc_config.ret.clksetup = setup_vc->ret.clksetup;
+-	vc_config.off.clksetup = setup_vc->off.clksetup;
++	/* CLK & VOLT SETUPTIME for RET & OFF */
++	memcpy(&vc_config, setup_vc, 2 * sizeof(struct setuptime_vc));
+ }
+ 
+ void update_voltsetup_time(int core_next_state)
 -- 
 1.6.0.4
 
