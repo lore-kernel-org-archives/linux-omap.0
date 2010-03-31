@@ -1,98 +1,119 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [RFC/PATCH 2/4] arm: omap: gpio: implement set_debounce method
-Date: Wed, 31 Mar 2010 15:27:13 +0300
-Message-ID: <1270038435-28106-3-git-send-email-felipe.balbi@nokia.com>
+Subject: [RFC/PATCH 1/4] gpiolib: introduce set_debounce method
+Date: Wed, 31 Mar 2010 15:27:12 +0300
+Message-ID: <1270038435-28106-2-git-send-email-felipe.balbi@nokia.com>
 References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:31632 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932492Ab0CaM2B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 08:28:01 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:43310 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932764Ab0CaM2D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Mar 2010 08:28:03 -0400
 In-Reply-To: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
 Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-OMAP support debouncing of gpio lines, implement
-the method using gpiolib.
+Few architectures, like OMAP, allow you to set
+a debouncing time for the gpio before generating
+the IRQ. Teach gpiolib about that.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- arch/arm/plat-omap/gpio.c |   46 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 46 insertions(+), 0 deletions(-)
+ drivers/gpio/gpiolib.c     |   39 +++++++++++++++++++++++++++++++++++++++
+ include/asm-generic/gpio.h |    5 +++++
+ include/linux/gpio.h       |    5 +++++
+ 3 files changed, 49 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 76a347b..f9cd64c 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -612,6 +612,38 @@ do {	\
- 	__raw_writel(l, base + reg); \
- } while(0)
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 6d1b866..27f4034 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1445,6 +1445,45 @@ fail:
+ }
+ EXPORT_SYMBOL_GPL(gpio_direction_output);
  
-+static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio, int value)
++int gpio_set_debounce(unsigned gpio, int value)
 +{
-+	void __iomem		*reg = bank->base;
-+	u32			val;
-+	u32			l;
++	unsigned long		flags;
++	struct gpio_chip	*chip;
++	struct gpio_desc	*desc = &gpio_desc[gpio];
++	int			status = -EINVAL;
 +
-+	value &= 0xff;
-+	l = 1 << get_gpio_index(gpio);
++	spin_lock_irqsave(&gpio_lock, flags);
 +
-+	if (cpu_is_omap44xx())
-+		reg += OMAP4_GPIO_DEBOUNCINGTIME;
-+	else
-+		reg += OMAP24XX_GPIO_DEBOUNCE_VAL;
++	if (!gpio_is_valid(gpio))
++		goto fail;
++	chip = desc->chip;
++	if (!chip || !chip->set || !chip->set_debounce)
++		goto fail;
++	gpio -= chip->base;
++	if (gpio >= chip->ngpio)
++		goto fail;
++	status = gpio_ensure_requested(desc, gpio);
++	if (status < 0)
++		goto fail;
 +
-+	__raw_writel(value, reg);
++	/* now we know the gpio is valid and chip won't vanish */
 +
-+	reg = bank->base;
-+	if (cpu_is_omap44xx())
-+		reg += OMAP4_GPIO_DEBOUNCENABLE;
-+	else
-+		reg += OMAP24XX_GPIO_DEBOUNCE_EN;
++	spin_unlock_irqrestore(&gpio_lock, flags);
 +
-+	val = __raw_readl(reg);
++	might_sleep_if(extra_checks && chip->can_sleep);
 +
-+	if (value)
-+		val |= l;
-+	else
-+		val &= ~l;
++	return chip->set_debounce(chip, gpio, value);
 +
-+	__raw_writel(val, reg);
++fail:
++	spin_unlock_irqrestore(&gpio_lock, flags);
++	if (status)
++		pr_debug("%s: gpio-%d status %d\n",
++			__func__, gpio, status);
++
++	return status;
 +}
++EXPORT_SYMBOL_GPL(gpio_set_debounce);
 +
- void omap_set_gpio_debounce(int gpio, int enable)
- {
- 	struct gpio_bank *bank;
-@@ -1608,6 +1640,19 @@ static int gpio_output(struct gpio_chip *chip, unsigned offset, int value)
- 	return 0;
+ 
+ /* I/O calls are only valid after configuration completed; the relevant
+  * "is this a valid GPIO" error checks should already have been done.
+diff --git a/include/asm-generic/gpio.h b/include/asm-generic/gpio.h
+index 979c6a5..0c39a79 100644
+--- a/include/asm-generic/gpio.h
++++ b/include/asm-generic/gpio.h
+@@ -88,6 +88,9 @@ struct gpio_chip {
+ 						unsigned offset);
+ 	int			(*direction_output)(struct gpio_chip *chip,
+ 						unsigned offset, int value);
++	int			(*set_debounce)(struct gpio_chip *chip,
++						unsigned offset, int value);
++
+ 	void			(*set)(struct gpio_chip *chip,
+ 						unsigned offset, int value);
+ 
+@@ -121,6 +124,8 @@ extern void gpio_free(unsigned gpio);
+ extern int gpio_direction_input(unsigned gpio);
+ extern int gpio_direction_output(unsigned gpio, int value);
+ 
++extern int gpio_set_debounce(unsigned gpio, int value);
++
+ extern int gpio_get_value_cansleep(unsigned gpio);
+ extern void gpio_set_value_cansleep(unsigned gpio, int value);
+ 
+diff --git a/include/linux/gpio.h b/include/linux/gpio.h
+index 4e949a5..03f616b 100644
+--- a/include/linux/gpio.h
++++ b/include/linux/gpio.h
+@@ -51,6 +51,11 @@ static inline int gpio_direction_output(unsigned gpio, int value)
+ 	return -ENOSYS;
  }
  
-+static int gpio_debounce(struct gpio_chip *chip, unsigned offset, int value)
++static inline int gpio_set_debounce(unsigned gpio, unsigned debounce)
 +{
-+	struct gpio_bank *bank;
-+	unsigned long flags;
-+
-+	bank = container_of(chip, struct gpio_bank, chip);
-+	spin_lock_irqsave(&bank->lock, flags);
-+	_set_gpio_debounce(bank, offset, value);
-+	spin_unlock_irqrestore(&bank->lock, flags);
-+
-+	return 0;
++	return -ENOSYS;
 +}
 +
- static void gpio_set(struct gpio_chip *chip, unsigned offset, int value)
+ static inline int gpio_get_value(unsigned gpio)
  {
- 	struct gpio_bank *bank;
-@@ -1860,6 +1905,7 @@ static int __init _omap_gpio_init(void)
- 		bank->chip.direction_input = gpio_input;
- 		bank->chip.get = gpio_get;
- 		bank->chip.direction_output = gpio_output;
-+		bank->chip.set_debounce = gpio_debounce;
- 		bank->chip.set = gpio_set;
- 		bank->chip.to_irq = gpio_2irq;
- 		if (bank_is_mpuio(bank)) {
+ 	/* GPIO can never have been requested or set as {in,out}put */
 -- 
 1.7.0.rc0.33.g7c3932
 
