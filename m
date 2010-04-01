@@ -1,33 +1,167 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [RFC/PATCHv2 2/4] arm: omap: gpio: implement =?UTF-8?Q?set=5Fdebounce?=
- =?UTF-8?Q?=20method?=
-Date: Thu, 01 Apr 2010 13:19:31 -0500
-Message-ID: <72b63a30604df16edc5c4e959966a708@secure211.sgcpanel.com>
-References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com> <1270049712-28272-3-git-send-email-felipe.balbi@nokia.com> <y2o6ed0b2681004010229r367aa72fv33746375541cd9da@mail.gmail.com> <20100401093239.GH16297@nokia.com> <o2x359ed6811004010611x718d76b2l8a5f2ea54b377c0e@mail.gmail.com> <20100401164249.GA3814@gandalf> <20100401181508.GA26650@opensource.wolfsonmicro.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH] Disable the non working eMMC on Zoom2/3
+Date: Fri, 2 Apr 2010 00:04:16 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030D32D372@dbde02.ent.ti.com>
+References: <37310.192.168.10.89.1270081542.squirrel@dbdmail.itg.ti.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030D32CEE8@dbde02.ent.ti.com>
+ <008601cad1bd$6d0022b0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:54268 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754773Ab0DAST2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 14:19:28 -0400
-In-Reply-To: <20100401181508.GA26650@opensource.wolfsonmicro.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <008601cad1bd$6d0022b0$544ff780@am.dhcp.ti.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jani Nikula <ext-jani.1.nikula@nokia.com>, felipe.balbi@nokia.com, ext Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Thu, 1 Apr 2010 19:15:08 +0100, Mark Brown 
-> I tend to agree here, especially for GPIOs on slow buses like I2C or
-> which may be used as wake sources.  I guess ideally we want something
-> like the LEDs do with blinking where we use the hardware feature if
-> present and suitable but fall back on software emulation transparently
-> if it's not available or can't be configured appropriately.
+Madhusudhan,
 
-yes, and that's a matter of just putting together a little more code
-on the default implementation of gpio_set_debounce() instead of
-simply returning -ENOSYS.
+> -----Original Message-----
+> From: Chikkature Rajashekar, Madhusudhan
+> Sent: 2010-04-01 22:35
+> To: Ghorai, Sukumar; tony@atomide.com
+> Cc: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org
+> Subject: RE: [PATCH] Disable the non working eMMC on Zoom2/3
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Ghorai, Sukumar [mailto:s-ghorai@ti.com]
+> > Sent: Wednesday, March 31, 2010 11:03 PM
+> > To: Chikkature Rajashekar, Madhusudhan; tony@atomide.com
+> > Cc: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org
+> > Subject: RE: [PATCH] Disable the non working eMMC on Zoom2/3
+> >
+> > Madhu,
+> >
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > owner@vger.kernel.org] On Behalf Of Chikkature Rajashekar, Madhusudhan
+> > > Sent: 2010-04-01 05:56
+> > > To: tony@atomide.com
+> > > Cc: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org
+> > > Subject: [PATCH] Disable the non working eMMC on Zoom2/3
+> > >
+> > > From: Madhusudhan Chikkature <madhu.cr@ti.com>
+> > > Date: Wed, 31 Mar 2010 12:29:19 -0400
+> > > Subject: [PATCH] Zoom2/3: Disable MMC
+> > >
+> > > The eMMC on Zoom2/3 seems to have a lower EXT_CSD Rev.This causes the
+> > > writes to fail since the card size is not detected correctly by the
+> MMC
+> > > core. Disable the MMC2 support for Zoom2/3.
+> >
+> >
+> > [Ghorai] Please let us know the EXT_CSD Rev you see in zoom3 and the
+> exact
+> > problem. Because we never face any issue for eMMC in ZOOM3. Because we
+> > have the same eMMC device in 3630-SDP and could have the same problem.
+> >
+> 
+> On Zoom3 the EXT_CSD Rev reported by eMMC is zero. See the log attached.
+> 
+> Hence the failures which are reported by people on the list. I had already
+> bought this problem up on the list previously and was discussed, right?
+> From the log you can also see that a 16GB device is detected as a 1GB.
 
--- 
-balbi
+[Ghorai] I feel it's an issue with eMMC in pilot-board. And production-board is working fine. And I feel outside TI people having production board only. And 16GB eMMC device is a very good size to work with different things. Otherwise we are talking about MMC#2 boot, eMMC boot, 16GB eMMC device in zoom,.. all these information in different page/ link looks very misleading information, if really having such problem.
+I the mean time I will check this in Pilot board too and think you checked in pilot board only.
+ 
+> 
+> Regards,
+> Madhu
+> 
+> > >
+> > > Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap2/board-zoom-peripherals.c |   30 -----------------
+> --
+> > --
+> > > -----
+> > >  1 files changed, 0 insertions(+), 30 deletions(-)
+> > >
+> > > diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> > > b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> > > index 6b39849..ac791d2 100644
+> > > --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> > > +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> > > @@ -102,10 +102,6 @@ static struct regulator_consumer_supply
+> > > zoom_vsim_supply = {
+> > >  	.supply		= "vmmc_aux",
+> > >  };
+> > >
+> > > -static struct regulator_consumer_supply zoom_vmmc2_supply = {
+> > > -	.supply		= "vmmc",
+> > > -};
+> > > -
+> > >  /* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
+> > >  static struct regulator_init_data zoom_vmmc1 = {
+> > >  	.constraints = {
+> > > @@ -121,21 +117,6 @@ static struct regulator_init_data zoom_vmmc1 = {
+> > >  	.consumer_supplies      = &zoom_vmmc1_supply,
+> > >  };
+> > >
+> > > -/* VMMC2 for MMC2 card */
+> > > -static struct regulator_init_data zoom_vmmc2 = {
+> > > -	.constraints = {
+> > > -		.min_uV			= 1850000,
+> > > -		.max_uV			= 1850000,
+> > > -		.apply_uV		= true,
+> > > -		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> > > -					| REGULATOR_MODE_STANDBY,
+> > > -		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> > > -					| REGULATOR_CHANGE_STATUS,
+> > > -	},
+> > > -	.num_consumer_supplies  = 1,
+> > > -	.consumer_supplies      = &zoom_vmmc2_supply,
+> > > -};
+> > > -
+> > >  /* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
+> > >  static struct regulator_init_data zoom_vsim = {
+> > >  	.constraints = {
+> > > @@ -159,15 +140,6 @@ static struct omap2_hsmmc_info mmc[] __initdata =
+> {
+> > >  		.gpio_wp	= -EINVAL,
+> > >  		.power_saving	= true,
+> > >  	},
+> > > -	{
+> > > -		.name		= "internal",
+> > > -		.mmc		= 2,
+> > > -		.wires		= 8,
+> > > -		.gpio_cd	= -EINVAL,
+> > > -		.gpio_wp	= -EINVAL,
+> > > -		.nonremovable	= true,
+> > > -		.power_saving	= true,
+> > > -	},
+> > >  	{}      /* Terminator */
+> > >  };
+> > >
+> > > @@ -183,7 +155,6 @@ static int zoom_twl_gpio_setup(struct device *dev,
+> > >  	*/
+> > >  	zoom_vmmc1_supply.dev = mmc[0].dev;
+> > >  	zoom_vsim_supply.dev = mmc[0].dev;
+> > > -	zoom_vmmc2_supply.dev = mmc[1].dev;
+> > >
+> > >  	return 0;
+> > >  }
+> > > @@ -241,7 +212,6 @@ static struct twl4030_platform_data zoom_twldata =
+> {
+> > >  	.keypad		= &zoom_kp_twl4030_data,
+> > >  	.codec		= &zoom_codec_data,
+> > >  	.vmmc1          = &zoom_vmmc1,
+> > > -	.vmmc2          = &zoom_vmmc2,
+> > >  	.vsim           = &zoom_vsim,
+> > >
+> > >  };
+> > > --
+> > > 1.6.3.3
+> > >
+> > >
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
