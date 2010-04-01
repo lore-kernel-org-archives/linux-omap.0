@@ -1,55 +1,82 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-Date: Thu, 01 Apr 2010 16:42:00 +0300
-Message-ID: <1270129320.2704.114.camel@tubuntu.research.nokia.com>
-References: <hvaibhav@ti.com>
-	 <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP3: I2C: Errata i207: Clear wrong RDR interrupt
+Date: Thu, 1 Apr 2010 08:53:04 -0500
+Message-ID: <4BB4A540.9080000@ti.com>
+References: <1270124427-11208-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="iso-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:54845 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753253Ab0DANmy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 09:42:54 -0400
-In-Reply-To: <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1270124427-11208-1-git-send-email-manjugk-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
+Cc: "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "ext hvaibhav@ti.com" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2010-03-22 at 14:09 +0100, ext hvaibhav@ti.com wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
+G, Manjunath Kondaiah had written, on 04/01/2010 07:20 AM, the following:
+> Under certain rare conditions, I2C_STAT[13].RDR bit may be set
+> and the corresponding interrupt fire, even there is no data in
+> the receive FIFO, or the I2C data transfer is still ongoing.
+> These spurious RDR events must be ignored by the software.
 > 
-> In case of 720P with 90/270 degree rotation, the system reports
-> GFX_FIFO_UNDERFLOW error which usually happens if DSS DMA is not able to fill
-> the FIFO as per requirement.
+> This patch handles and ignores RDR spurious interrupts.
 > 
-> In TRM (section 11.2.6.1.3), where is has been clearly mentioned that,
+> Reviewed-by: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
+> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+> Cc: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |   13 +++++++++++++
+>  1 files changed, 13 insertions(+), 0 deletions(-)
 > 
-> "To improve the performance on 90 degree rotation, split the data access on
-> write side and not read side."
-> 
-> That means, read should always happen on 0 degree and write should go to
-> respective rotation view.
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index f2019d2..acf4076 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -796,6 +796,19 @@ complete:
+>  		}
+>  		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+>  			u8 num_bytes = 1;
+> +
+> +			/*
+> +			 * OMAP3 I2C Errata ID: i207
+> +			 * Under certain rare conditions, RDR could be set again
+> +			 * when the bus is busy, then clear and ignore the interrupt
+> +			 */
+> +			if (!(stat & OMAP_I2C_STAT_RRDY) && (stat &
+> +						OMAP_I2C_STAT_BB)) {
+> +				/* clear RDR */
+> +				omap_i2c_ack_stat(dev, stat & OMAP_I2C_STAT_RDR);
+> +				dev_err(dev->dev, "I2C: RDR when bus is busy.\n");
+> +				return IRQ_HANDLED;
+> +			}
+couple of comments after reading thru the errata:
+a) the sequence in the errata doc is:
+if (stat & OMAP_I2C_STAT_RDR) { /* This is cleaner that using an obtuse 
+check using !(stat & OMAP_I2C_STAT_RRDY) */
+	omap_i2c_ack_stat(dev, stat & OMAP_I2C_STAT_RDR); /* dummy read - i 
+think this needs clarification as to why */
+	if (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG) & OMAP_I2C_STAT_BB) /* 
+reason for the i2c_read_reg is because errata mentions a dummy stat read 
+  which might mean something for BB -> I am not sure may need to be 
+checked with H/w team. */
+		continue; /* recheck - faster response compared to return and re 
+generate interrupt */
+}
 
-I haven't had time to look at this patch yet. I'll try to do it next
-week.
 
-However, I knew that TRM text when I was writing the code. The reason I
-chose to use 0 degree view for omapfb and change the view from DSS side
-was that it was difficult to handle mmapped areas in this case, if I
-recall right. I have to say I don't exactly remember what the problems
-were, so I need to read the code and think about this again.
+b) does this apply to  OMAP2 and OMAP4?
 
-Hmm, perhaps it was so that if you choose to change omapfb's VRFB view,
-you can only do that if nothing is mmapped. Which means that either you
-can only use one rotation angle defined at boot time, or you need
-carefully to remove all mmappings, including fb console, then change the
-view and recreate the mapping. And one requirement was that the rotation
-should be changeable at runtime, which made the select the current
-approach.
-
- Tomi
+(unrelated sidenote: my usual crib: we probably need an errata 
+management system soon considering the erratas that are getting 
+workedaround  in code.. :( )..
+>  			if (dev->fifo_size) {
+>  				if (stat & OMAP_I2C_STAT_RRDY)
+>  					num_bytes = dev->fifo_size;
 
 
+-- 
+Regards,
+Nishanth Menon
