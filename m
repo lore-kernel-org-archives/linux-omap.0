@@ -1,119 +1,169 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH-V2] OMAP: Fix for bus width which improves SD card's
-	peformance.
-Date: Thu, 1 Apr 2010 12:01:49 +0530
-Message-ID: <g2s7f9d1ffb1003312331o149df218g651c3e4349ac9a77@mail.gmail.com>
-References: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com>
-	 <004701caab40$68b576e0$544ff780@am.dhcp.ti.com>
-	 <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com>
-	 <v2yce9ab5791003302327hc67deb3akc7d18146534038f9@mail.gmail.com>
-	 <h2p7f9d1ffb1003310003z508e21dbqe37b6e1cad425866@mail.gmail.com>
-	 <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/8] OMAP:GPIO:Move architecture specific macros to
+ specific header
+Date: Thu, 1 Apr 2010 10:17:13 +0300
+Message-ID: <20100401071713.GC16297@nokia.com>
+References: <1270038239-1090-1-git-send-email-charu@ti.com>
+ <1270038239-1090-2-git-send-email-charu@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:57103 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753486Ab0DAGbw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 02:31:52 -0400
-In-Reply-To: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:21523 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752514Ab0DAHRv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 03:17:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1270038239-1090-2-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: Vimal Singh <vimal.newwork@gmail.com>, tony@atomide.com, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.lavinen@nokia.com
+To: ext Charulatha V <charu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rnayak@ti.com" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Wed, Mar 31, 2010 at 10:07 PM, Madhusudhan <madhu.cr@ti.com> wrote:
->
->
->> -----Original Message-----
->> From: kishore kadiyala [mailto:kishorek.kadiyala@gmail.com]
->> Sent: Wednesday, March 31, 2010 2:03 AM
->> To: Vimal Singh
->> Cc: Madhusudhan; tony@atomide.com; svenkatr@ti.com; linux-
->> omap@vger.kernel.org; linux-kernel@vger.kernel.org;
->> jarkko.lavinen@nokia.com
->> Subject: Re: [PATCH-V2] OMAP: Fix for bus width which improves SD ca=
-rd's
->> peformance.
->>
->> Sorry for that and here's the Updated one.
->>
->> From: Kishore Kadiyala <kishore.kadiyala@ti.com>
->>
->> This patch improves low speeds for SD cards.
->> OMAP-MMC controller's can support maximum bus width of '8'.
->> when bus width is mentioned as "8" in controller data,the SD
->> stack will check whether bus width is "4" and if not it will
->> set bus width to "1" and there by degrading performance.
->> This patch fixes the issue and improves the performance of
->> SD cards.
->>
->> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
->> Signed-off-by: Venkatraman S <svenkatr@ti.com>
->> Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
->>
->> ---
->> In V2 : Appended Signed-off by Venkat and Ack by Madhu
->>
->> =A0Here are my experiment numbers, on a Class 6 SDHC card:
->> =A0Read peformance is increased by 220%
->> =A0Write Performance is increased by 52%
->>
->> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A02 +-
->> =A01 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
-smmc.c
->> index 83f0aff..8c97c22 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -2092,7 +2092,7 @@ static int __init omap_hsmmc_probe(struct
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MMC_CAP_WAIT_WHILE_BUSY;
->>
->> =A0 =A0 =A0 if (mmc_slot(host).wires >=3D 8)
->> - =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D MMC_CAP_8_BIT_DATA;
->> + =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D (MMC_CAP_8_BIT_DATA | MMC_C=
-AP_4_BIT_DATA);
->> =A0 =A0 =A0 else if (mmc_slot(host).wires >=3D 4)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D MMC_CAP_4_BIT_DATA;
->>
-> Kishore,
->
-> Since this patch is not yet pushed it makes sense to fix the readabil=
-ity
-> issue.
->
-> Since 8-bit is the max how about:
->
-> =A0=A0 =A0 =A0 =A0if (mmc_slot(host).wires =3D=3D 8)
-> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_8_BIT_DATA |=
- MMC_CAP_4_BIT_DATA;
-> =A0=A0 =A0 =A0 =A0if (mmc_slot(host).wires =3D=3D 4)
-> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_4_BIT_DATA;
->
-Madhu,
+Hi,
 
-In the above snippet, it checks whether wires are 8 or  4 and if not
-neither set's  capability  to "1".
-Does it make sense to check whether the  wires are 8,4,1 and if not
-any[8,4,1] throw error and come out.
+On Wed, Mar 31, 2010 at 02:23:52PM +0200, ext Charulatha V wrote:
+>diff --git a/arch/arm/mach-omap1/include/mach/gpio.h b/arch/arm/mach-omap1/include/mach/gpio.h
+>index e737706..c4945d7 100644
+>--- a/arch/arm/mach-omap1/include/mach/gpio.h
+>+++ b/arch/arm/mach-omap1/include/mach/gpio.h
+>@@ -3,3 +3,91 @@
+>  */
+>
+> #include <plat/gpio.h>
+>+
+>+/*
+>+ * OMAP1510 GPIO registers
+>+ */
+>+#define OMAP1510_GPIO_BASE             0xfffce000
+>+#define OMAP1510_GPIO_DATA_INPUT       0x00
+>+#define OMAP1510_GPIO_DATA_OUTPUT      0x04
+>+#define OMAP1510_GPIO_DIR_CONTROL      0x08
+>+#define OMAP1510_GPIO_INT_CONTROL      0x0c
+>+#define OMAP1510_GPIO_INT_MASK         0x10
+>+#define OMAP1510_GPIO_INT_STATUS       0x14
+>+#define OMAP1510_GPIO_PIN_CONTROL      0x18
+>+
+>+#define OMAP1510_IH_GPIO_BASE          64
+>+
+>+/*
+>+ * OMAP1610 specific GPIO registers
+>+ */
+>+#define OMAP1610_GPIO1_BASE            0xfffbe400
+>+#define OMAP1610_GPIO2_BASE            0xfffbec00
+>+#define OMAP1610_GPIO3_BASE            0xfffbb400
+>+#define OMAP1610_GPIO4_BASE            0xfffbbc00
+>+#define OMAP1610_GPIO_REVISION         0x0000
+>+#define OMAP1610_GPIO_SYSCONFIG                0x0010
+>+#define OMAP1610_GPIO_SYSSTATUS                0x0014
+>+#define OMAP1610_GPIO_IRQSTATUS1       0x0018
+>+#define OMAP1610_GPIO_IRQENABLE1       0x001c
+>+#define OMAP1610_GPIO_WAKEUPENABLE     0x0028
+>+#define OMAP1610_GPIO_DATAIN           0x002c
+>+#define OMAP1610_GPIO_DATAOUT          0x0030
+>+#define OMAP1610_GPIO_DIRECTION                0x0034
+>+#define OMAP1610_GPIO_EDGE_CTRL1       0x0038
+>+#define OMAP1610_GPIO_EDGE_CTRL2       0x003c
+>+#define OMAP1610_GPIO_CLEAR_IRQENABLE1 0x009c
+>+#define OMAP1610_GPIO_CLEAR_WAKEUPENA  0x00a8
+>+#define OMAP1610_GPIO_CLEAR_DATAOUT    0x00b0
+>+#define OMAP1610_GPIO_SET_IRQENABLE1   0x00dc
+>+#define OMAP1610_GPIO_SET_WAKEUPENA    0x00e8
+>+#define OMAP1610_GPIO_SET_DATAOUT      0x00f0
+>+
+>+/*
+>+ * OMAP7XX specific GPIO registers
+>+ */
+>+#define OMAP7XX_GPIO1_BASE             0xfffbc000
+>+#define OMAP7XX_GPIO2_BASE             0xfffbc800
+>+#define OMAP7XX_GPIO3_BASE             0xfffbd000
+>+#define OMAP7XX_GPIO4_BASE             0xfffbd800
+>+#define OMAP7XX_GPIO5_BASE             0xfffbe000
+>+#define OMAP7XX_GPIO6_BASE             0xfffbe800
+>+#define OMAP7XX_GPIO_DATA_INPUT                0x00
+>+#define OMAP7XX_GPIO_DATA_OUTPUT       0x04
+>+#define OMAP7XX_GPIO_DIR_CONTROL       0x08
+>+#define OMAP7XX_GPIO_INT_CONTROL       0x0c
+>+#define OMAP7XX_GPIO_INT_MASK          0x10
+>+#define OMAP7XX_GPIO_INT_STATUS                0x14
+>+
+>+#define OMAP1_MPUIO_VBASE              OMAP1_MPUIO_BASE
+>+#define OMAP1_MPUIO_BASE               0xfffb5000
+>+
+>+#if (defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850))
+>+#define OMAP_MPUIO_INPUT_LATCH         0x00
+>+#define OMAP_MPUIO_OUTPUT              0x02
+>+#define OMAP_MPUIO_IO_CNTL             0x04
+>+#define OMAP_MPUIO_KBR_LATCH           0x08
+>+#define OMAP_MPUIO_KBC                 0x0a
+>+#define OMAP_MPUIO_GPIO_EVENT_MODE     0x0c
+>+#define OMAP_MPUIO_GPIO_INT_EDGE       0x0e
+>+#define OMAP_MPUIO_KBD_INT             0x10
+>+#define OMAP_MPUIO_GPIO_INT            0x12
+>+#define OMAP_MPUIO_KBD_MASKIT          0x14
+>+#define OMAP_MPUIO_GPIO_MASKIT         0x16
+>+#define OMAP_MPUIO_GPIO_DEBOUNCING     0x18
+>+#define OMAP_MPUIO_LATCH               0x1a
+>+#else
+>+#define OMAP_MPUIO_INPUT_LATCH         0x00
+>+#define OMAP_MPUIO_OUTPUT              0x04
+>+#define OMAP_MPUIO_IO_CNTL             0x08
+>+#define OMAP_MPUIO_KBR_LATCH           0x10
+>+#define OMAP_MPUIO_KBC                 0x14
+>+#define OMAP_MPUIO_GPIO_EVENT_MODE     0x18
+>+#define OMAP_MPUIO_GPIO_INT_EDGE       0x1c
+>+#define OMAP_MPUIO_KBD_INT             0x20
+>+#define OMAP_MPUIO_GPIO_INT            0x24
+>+#define OMAP_MPUIO_KBD_MASKIT          0x28
+>+#define OMAP_MPUIO_GPIO_MASKIT         0x2c
+>+#define OMAP_MPUIO_GPIO_DEBOUNCING     0x30
+>+#define OMAP_MPUIO_LATCH               0x34
+>+#endif
 
-Regards,
-Kishore
-> This would be little easy to read the code.
+Add prefixes to these defines and remove the ifdefs.
+This breaks multi-omap builds.
+
+>-struct gpio_bank {
+>-       unsigned long pbase;
+>-       void __iomem *base;
+>-       u16 irq;
+>-       u16 virtual_irq_start;
+>-       int method;
+>-#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+>-       u32 suspend_wakeup;
+>-       u32 saved_wakeup;
+>-#endif
+>-#ifdef CONFIG_ARCH_OMAP2PLUS
+>-       u32 non_wakeup_gpios;
+>-       u32 enabled_non_wakeup_gpios;
+>-
+>-       u32 saved_datain;
+>-       u32 saved_fallingdetect;
+>-       u32 saved_risingdetect;
+>-#endif
+>-       u32 level_mask;
+>-       u32 toggle_mask;
+>-       spinlock_t lock;
+>-       struct gpio_chip chip;
+>-       struct clk *dbck;
+>-       u32 mod_usage;
+>-};
+
+defines are fine, but this structure belongs to this driver. Nobody else 
+should need to poke on it. Keep it here.
+
+>@@ -625,10 +421,12 @@ void omap_set_gpio_debounce(int gpio, int enable)
+>        bank = get_gpio_bank(gpio);
+>        reg = bank->base;
 >
-> Can you please repost the patch??
->
-> Regards,
-> Madhu
->
->> --
->> 1.6.3.3
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>+#ifdef CONFIG_ARCH_OMAP2PLUS
+>        if (cpu_is_omap44xx())
+>                reg += OMAP4_GPIO_DEBOUNCENABLE;
+>        else
+>                reg += OMAP24XX_GPIO_DEBOUNCE_EN;
+>+#endif
+
+you should try to remove ifdefs not add more.
+
+-- 
+balbi
