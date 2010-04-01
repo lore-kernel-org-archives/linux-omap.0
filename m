@@ -1,78 +1,56 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH 2/8] OMAP3:GPIO:Add support for early platform gpio
- device
-Date: Thu, 1 Apr 2010 14:49:47 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C4B8F2C6@dbde02.ent.ti.com>
-References: <20100401091200.GD31200@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHV3 1/2] OMAP3: Set MPU and IVA bypass Clock Divider
+Date: Thu, 1 Apr 2010 03:26:37 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1004010245420.27004@utopia.booyaka.com>
+References: <> <1270117939-10730-1-git-send-email-vishwanath.bs@ti.com> <1270117939-10730-2-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48860 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751090Ab0DAJT5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:19:57 -0400
-In-Reply-To: <20100401091200.GD31200@atomide.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:51786 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752510Ab0DAJ0k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:26:40 -0400
+In-Reply-To: <1270117939-10730-2-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org
 
+On Thu, 1 Apr 2010, Vishwanath BS wrote:
 
-
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, April 01, 2010 2:42 PM
-> To: Varadarajan, Charulatha
-> Cc: felipe.balbi@nokia.com; linux-omap@vger.kernel.org; Nayak, Rajendra;
-> paul@pwsan.com
-> Subject: Re: [PATCH 2/8] OMAP3:GPIO:Add support for early platform gpio device
+> DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM
+> UCs running DSP codec was earlier restricted as DSP crashed.
+> The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and OPP2.
+> The solution is to make sure DPLL1/DPLL2 bypass clock is always less
+> than maximum supported frequency for the specific OPP.
 > 
-> * Varadarajan, Charulatha <charu@ti.com> [100401 01:54]:
-> >
-> >
-> > > -----Original Message-----
-> > > From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
-> > > Sent: Thursday, April 01, 2010 12:53 PM
-> > > To: Varadarajan, Charulatha
-> > > Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com;
-> tony@atomide.com
-> > > Subject: Re: [PATCH 2/8] OMAP3:GPIO:Add support for early platform gpio device
-> > >
-> > > On Wed, Mar 31, 2010 at 02:23:53PM +0200, ext Charulatha V wrote:
-> > > >This patch adds support for implementing OMAP3 GPIO as an
-> > > >early platform device and adds gpio_init specific to OMAP3
-> > > >
-> > > >This patch adds device structures for each GPIO device in
-> > > >OMAP3 architecture. These strutures are not created in a
-> > > >separate *_data.c file because these structures would be
-> > > >removed once the driver gets adapted to HWMOD way.
-> > > >
-> > > >Signed-off-by: Charulatha V <charu@ti.com>
-> > > >---
-> > > > arch/arm/mach-omap2/gpio3xxx.c          |  351
-> +++++++++++++++++++++++++++++++
-> > > > arch/arm/mach-omap2/include/mach/gpio.h |   13 +-
-> > > > 2 files changed, 363 insertions(+), 1 deletions(-)
-> > > > create mode 100644 arch/arm/mach-omap2/gpio3xxx.c
-> > > >
-> > > >--- /dev/null
-> > > >+++ b/arch/arm/mach-omap2/gpio3xxx.c
-> > > >+
-> > > >+static struct __initdata omap_gpio_platform_data omap3_gpio1_config = {
-> > > >+	.ick_name = "gpio1_ick",
-> > > >+	.dbck_name = "gpio1_dbck",
-> > >
-> > > do not pass clock names. Update the clkdev entries clk*_data.c
-> >
-> > Agreed. These patches are in preparation for HWMOD. Once GPIO driver gets
-> > adapted to HWMOD, this would be removed.
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock3xxx_data.c |   12 ++++++++++++
+>  1 files changed, 12 insertions(+), 0 deletions(-)
 > 
-> Still need to change it before hwmod. No passing of clock names has been
-> needed for quite a while now.
-> 
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index d5153b6..d8e57a6
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
 
-Okay.
+...
 
-> Tony
+> @@ -3597,5 +3601,13 @@ int __init omap3xxx_clk_init(void)
+>  	sdrc_ick_p = clk_get(NULL, "sdrc_ick");
+>  	arm_fck_p = clk_get(NULL, "arm_fck");
+>  
+> +	/* Set the bypass clock dividers for DPLL1 and DPLL2 */
+> +	if (cpu_is_omap3630()) {
+> +		clk_set_rate(&dpll1_fck, 400000000/2);
+> +		clk_set_rate(&dpll2_fck, 400000000/2);
+> +	} else {
+> +		clk_set_rate(&dpll1_fck, 332000000/4);
+> +		clk_set_rate(&dpll2_fck, 332000000/4);
+> +	}
+
+This code is highly OPP-specific.  Why is this code needed here?  
+Shouldn't the code in resource34xx.c be sufficient?
+
+
+- Paul
