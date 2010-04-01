@@ -1,75 +1,46 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
-Date: Thu, 01 Apr 2010 16:06:32 +0300 (EEST)
-Message-ID: <20100401.160632.71094457.Hiroshi.DOYU@nokia.com>
-References: <20100401.132336.193692763.Hiroshi.DOYU@nokia.com>
-	<20100401.142629.226796472.Hiroshi.DOYU@nokia.com>
-	<alpine.DEB.2.00.1004010629380.27004@utopia.booyaka.com>
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: Re: [RFC/PATCHv2 2/4] arm: omap: gpio: implement set_debounce method
+Date: Thu, 1 Apr 2010 16:11:27 +0300
+Message-ID: <o2x359ed6811004010611x718d76b2l8a5f2ea54b377c0e@mail.gmail.com>
+References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
+	 <1270049712-28272-3-git-send-email-felipe.balbi@nokia.com>
+	 <y2o6ed0b2681004010229r367aa72fv33746375541cd9da@mail.gmail.com>
+	 <20100401093239.GH16297@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51398 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990Ab0DANHA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 09:07:00 -0400
-In-Reply-To: <alpine.DEB.2.00.1004010629380.27004@utopia.booyaka.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:35310 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753938Ab0DANL3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 09:11:29 -0400
+Received: by wyb39 with SMTP id 39so504684wyb.19
+        for <linux-omap@vger.kernel.org>; Thu, 01 Apr 2010 06:11:27 -0700 (PDT)
+In-Reply-To: <20100401093239.GH16297@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: tony@atomide.com, khilman@deeprootsystems.com, felipe.balbi@nokia.com, x0095840@ti.com, linux-omap@vger.kernel.org, ameya.palande@nokia.com, felipe.contreras@nokia.com
+To: felipe.balbi@nokia.com
+Cc: ext Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-From: ext Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
-Date: Thu, 1 Apr 2010 14:33:22 +0200
+On Thu, Apr 1, 2010 at 12:32, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+> On Thu, Apr 01, 2010 at 11:29:16AM +0200, ext Grazvydas Ignotas wrote:
+>>
+>> There is also an issue if somebody calls _set_gpio_debounce(bank, 1,
+>> 310) and _set_gpio_debounce(bank, 2, 620), the second call will
+>> override debounce setting of GPIO1 (as it's shared by the whole bank).
+>> This might be not what the user intended, would be useful to detect
+>> this and warn the user.
+>
+> good point. As this is RFC, I'll wait until everybody comments.
 
-> Hi Hiroshi,
-> 
-> On Thu, 1 Apr 2010, Hiroshi DOYU wrote:
-> 
->> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->> Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
->> Date: Thu, 01 Apr 2010 13:23:36 +0300 (EEST)
->> 
->> > From: ext Tony Lindgren <tony@atomide.com>
->> > Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
->> > Date: Thu, 1 Apr 2010 11:52:04 +0200
->> > 
->> >> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100329 02:05]:
->> >>> From: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
->> >>> Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
->> >>> Date: Mon, 29 Mar 2010 09:01:45 +0200
->> >>> > 
->> >>> > in that case, wouldn't it be better to split that into 
->> >>> > arch/arm/omap1/mbox.c arch/arm/omap2/mbox24xx.c 
->> >>> > arch/arm/omap2/mbox34xx.c arch/arm/omap2/mbox44xx.c ??
->> >>> > 
->> >>> > that way we don't need ifdefs on the code and we will only compile what 
->> >>> > we really need.
->> >>> 
->> >>> This is feasible.
->> >>> But I'm not so sure whether adding 4 new files with around only 10
->> >>> lines code is acceptable or not.
->> >>> 
->> >>> Tony, any comment on the above?
->> >>> 
->> >>> Basically there could be the case we need all resources if we want to
->> >>> support omap1, 2, 3 and 4 at the same time, and the appropriate one
->> >>> will be chosen at run time by CPUID. I'm not sure how mature "omap
->> >>> multi arch" support is practically, but it's better to keep it as much
->> >>> as possbile.
->> >> 
->> >> I like Felipe's suggestion of adding devices2420.c, devices34xx.c,
->> >> devices44xx.c or similar. Then do the device init from those with
->> >> a arch_initcall that returns immediately if not running on the right
->> >> soc.
->> > 
->> > Ok, let's procced with this. I'll post something later.
->> > 
->> 
->> Something like the following?
-> 
-> Is it possible to try a hwmod conversion of this?  Similar to the UART, 
-> HSMMC, etc. work that Kevin has queued in his pm-wip/hwmods branch:
+Hi Felipe -
 
-I haven't followed this, but this looks more decriptive. I'll try.
+You might want to have a look at [1] on irq debouncing. The hardware
+support for debouncing varies (bank/gpio restrictions, debounce
+timeouts, no support at all, what else?) so how can the users of this
+interface rely on debouncing? What are the guarantees? AFAICS e.g.
+gpio-keys would have to do software debouncing anyway.
+
+[1] http://lkml.org/lkml/2008/9/24/325
+
+BR,
+Jani.
