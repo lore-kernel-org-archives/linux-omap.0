@@ -1,134 +1,36 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 2/8] OMAP3:GPIO:Add support for early platform gpio
+Subject: Re: [PATCH 3/8] OMAP2:GPIO:Add support for early platform gpio
  device
-Date: Thu, 1 Apr 2010 10:23:24 +0300
-Message-ID: <20100401072324.GD16297@nokia.com>
+Date: Thu, 1 Apr 2010 10:26:18 +0300
+Message-ID: <20100401072618.GE16297@nokia.com>
 References: <1270038239-1090-1-git-send-email-charu@ti.com>
  <1270038239-1090-2-git-send-email-charu@ti.com>
  <1270038239-1090-3-git-send-email-charu@ti.com>
+ <1270038239-1090-4-git-send-email-charu@ti.com>
 Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:44307 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753778Ab0DAHYM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 03:24:12 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:24398 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835Ab0DAH1H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 03:27:07 -0400
 Content-Disposition: inline
-In-Reply-To: <1270038239-1090-3-git-send-email-charu@ti.com>
+In-Reply-To: <1270038239-1090-4-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Charulatha V <charu@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rnayak@ti.com" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Wed, Mar 31, 2010 at 02:23:53PM +0200, ext Charulatha V wrote:
->This patch adds support for implementing OMAP3 GPIO as an
->early platform device and adds gpio_init specific to OMAP3
->
->This patch adds device structures for each GPIO device in
->OMAP3 architecture. These strutures are not created in a
->separate *_data.c file because these structures would be
->removed once the driver gets adapted to HWMOD way.
->
->Signed-off-by: Charulatha V <charu@ti.com>
->---
-> arch/arm/mach-omap2/gpio3xxx.c          |  351 +++++++++++++++++++++++++++++++
-> arch/arm/mach-omap2/include/mach/gpio.h |   13 +-
-> 2 files changed, 363 insertions(+), 1 deletions(-)
-> create mode 100644 arch/arm/mach-omap2/gpio3xxx.c
->
->diff --git a/arch/arm/mach-omap2/gpio3xxx.c b/arch/arm/mach-omap2/gpio3xxx.c
->new file mode 100644
->index 0000000..8f404e7
->--- /dev/null
->+++ b/arch/arm/mach-omap2/gpio3xxx.c
->@@ -0,0 +1,351 @@
->+/*
->+ * gpio3xxx.c - OMAP3-specific gpio code
->+ *
->+ * Copyright (C) 2010 Texas Instruments, Inc.
->+ *
->+ * Author:
->+ *	Charulatha V <charu@ti.com>
->+ *
->+ * This program is free software; you can redistribute it and/or modify
->+ * it under the terms of the GNU General Public License version 2 as
->+ * published by the Free Software Foundation.
->+ */
->+
->+#include <plat/gpio.h>
->+
->+/*
->+ * OMAP3 GPIO reg offsets
->+ */
->+static struct gpio_reg_offset omap3_gpio_reg = {
->+	.data_in	= OMAP24XX_GPIO_DATAIN,
->+	.data_out	= OMAP24XX_GPIO_DATAOUT,
->+	.data_out_set	= OMAP24XX_GPIO_SETDATAOUT,
->+	.data_out_clear	= OMAP24XX_GPIO_CLEARDATAOUT,
->+	.dir_ctrl	= OMAP24XX_GPIO_OE,
->+	.irq_status0	= OMAP24XX_GPIO_IRQSTATUS1,
->+	.irq_status1	= OMAP24XX_GPIO_IRQSTATUS2,
->+	.irq_mask	= OMAP24XX_GPIO_IRQENABLE1,
->+	.irq_set	= OMAP24XX_GPIO_SETIRQENABLE1,
->+	.irq_clear	= OMAP24XX_GPIO_CLEARIRQENABLE1,
->+	.irq_mask_bits	= 0xffffffff,
->+	.irq_inv	= 0,
->+	.wkup_enable	= OMAP24XX_GPIO_WAKE_EN,
->+	.wkup_clear	= OMAP24XX_GPIO_CLEARWKUENA,
->+	.wkup_set	= OMAP24XX_GPIO_SETWKUENA,
->+	.debounce_ena	= OMAP24XX_GPIO_DEBOUNCE_EN,
->+	.debounce_val	= OMAP24XX_GPIO_DEBOUNCE_VAL,
->+	.ctrl		= OMAP24XX_GPIO_CTRL,
->+	.syscfg		= OMAP24XX_GPIO_SYSCONFIG,
->+	.leveldetect0	= OMAP24XX_GPIO_LEVELDETECT0,
->+	.leveldetect1	= OMAP24XX_GPIO_LEVELDETECT1,
->+	.rise_detect	= OMAP24XX_GPIO_RISINGDETECT,
->+	.fall_detect	= OMAP24XX_GPIO_FALLINGDETECT,
->+	.rev_reg	= OMAP24XX_GPIO_REVISION,
->+};
->+
->+/*
->+ * OMAP3 GPIO1 interface data
->+ */
->+static struct __initdata resource omap3_gpio1_resources[] = {
->+	{
->+		.start	= OMAP34XX_GPIO1_BASE,
->+		.end	= OMAP34XX_GPIO1_BASE + OMAP3_GPIO_AS_LEN - 1,
-
-OMAP34XX_GPIO1_BASE + SZ_4K - 1
-
->+		.flags	= IORESOURCE_MEM,
->+	},
->+	{
->+		.start	= INT_34XX_GPIO_BANK1,
->+		.flags	= IORESOURCE_IRQ,
->+	},
->+};
->+
->+static struct __initdata omap_gpio_platform_data omap3_gpio1_config = {
->+	.ick_name = "gpio1_ick",
->+	.dbck_name = "gpio1_dbck",
-
-do not pass clock names. Update the clkdev entries clk*_data.c
-
->+int __init omap3_early_init_gpio(struct platform_device ***pdev)
-
-I don't see the point in passing ***pdev.
-
->+int __init omap3_gpio_dev_reg(void)
+On Wed, Mar 31, 2010 at 02:23:54PM +0200, ext Charulatha V wrote:
+>+static inline struct gpio_bank *omap2_get_gpio_bank(int gpio,
+>+                                       struct gpio_bank *gpio_bank)
 >+{
->+	if (cpu_is_omap34xx()) {
->+		platform_device_register(&omap3_gpio1);
->+		platform_device_register(&omap3_gpio2);
->+		platform_device_register(&omap3_gpio3);
->+		platform_device_register(&omap3_gpio4);
->+		platform_device_register(&omap3_gpio5);
->+		platform_device_register(&omap3_gpio6);
->+	}
+>+       if (cpu_is_omap24xx())
+>+               return &gpio_bank[gpio >> 5];
+>+       BUG();
 
-platform_add_devices(omap3_gpio_early_dev,
-		ARRAY_SIZE(omap3_gpio_early_dev);
+so if we build support omap 2420 and 3430 we will have a BUG() ??
 
 -- 
 balbi
