@@ -1,180 +1,119 @@
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Subject: Re: [PATCHv2 1/2] crypto: updates omap sham device related platform
- code
-Date: Thu, 01 Apr 2010 09:16:34 +0300
-Message-ID: <4BB43A42.9060703@nokia.com>
-References: <cover.1269524804.git.dmitry.kasatkin@nokia.com> <9e97cb8f5ee608a70bb9c04bc2c22f0d6b749d98.1269524804.git.dmitry.kasatkin@nokia.com> <alpine.DEB.2.00.1003300334110.14474@utopia.booyaka.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH-V2] OMAP: Fix for bus width which improves SD card's
+	peformance.
+Date: Thu, 1 Apr 2010 12:01:49 +0530
+Message-ID: <g2s7f9d1ffb1003312331o149df218g651c3e4349ac9a77@mail.gmail.com>
+References: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com>
+	 <004701caab40$68b576e0$544ff780@am.dhcp.ti.com>
+	 <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com>
+	 <v2yce9ab5791003302327hc67deb3akc7d18146534038f9@mail.gmail.com>
+	 <h2p7f9d1ffb1003310003z508e21dbqe37b6e1cad425866@mail.gmail.com>
+	 <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1003300334110.14474@utopia.booyaka.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: ext Paul Walmsley <paul@pwsan.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:57103 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753486Ab0DAGbw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 02:31:52 -0400
+In-Reply-To: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: Vimal Singh <vimal.newwork@gmail.com>, tony@atomide.com, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.lavinen@nokia.com
 
-
-
-On 30/03/10 12:41, ext Paul Walmsley wrote:
-> Hi Dmitry,
+On Wed, Mar 31, 2010 at 10:07 PM, Madhusudhan <madhu.cr@ti.com> wrote:
 >
-> a few comments:
 >
-> On Thu, 25 Mar 2010, Dmitry Kasatkin wrote:
->
->    
->> - registration
->> - clocks
+>> -----Original Message-----
+>> From: kishore kadiyala [mailto:kishorek.kadiyala@gmail.com]
+>> Sent: Wednesday, March 31, 2010 2:03 AM
+>> To: Vimal Singh
+>> Cc: Madhusudhan; tony@atomide.com; svenkatr@ti.com; linux-
+>> omap@vger.kernel.org; linux-kernel@vger.kernel.org;
+>> jarkko.lavinen@nokia.com
+>> Subject: Re: [PATCH-V2] OMAP: Fix for bus width which improves SD ca=
+rd's
+>> peformance.
 >>
->> Signed-off-by: Dmitry Kasatkin<dmitry.kasatkin@nokia.com>
+>> Sorry for that and here's the Updated one.
+>>
+>> From: Kishore Kadiyala <kishore.kadiyala@ti.com>
+>>
+>> This patch improves low speeds for SD cards.
+>> OMAP-MMC controller's can support maximum bus width of '8'.
+>> when bus width is mentioned as "8" in controller data,the SD
+>> stack will check whether bus width is "4" and if not it will
+>> set bus width to "1" and there by degrading performance.
+>> This patch fixes the issue and improves the performance of
+>> SD cards.
+>>
+>> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+>> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+>> Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+>>
 >> ---
->>   arch/arm/mach-omap2/clock2420_data.c       |    2 +-
->>   arch/arm/mach-omap2/clock2430_data.c       |    2 +-
->>   arch/arm/mach-omap2/clock3xxx_data.c       |    2 +-
->>   arch/arm/mach-omap2/devices.c              |   26 ++++++++++++++++++++++++--
->>   arch/arm/plat-omap/include/plat/omap34xx.h |    5 +++++
->>   5 files changed, 32 insertions(+), 5 deletions(-)
+>> In V2 : Appended Signed-off by Venkat and Ack by Madhu
 >>
->> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
->> index d932b14..1820a55 100644
->> --- a/arch/arm/mach-omap2/clock2420_data.c
->> +++ b/arch/arm/mach-omap2/clock2420_data.c
->> @@ -1836,7 +1836,7 @@ static struct omap_clk omap2420_clks[] = {
->>   	CLK(NULL,	"vlynq_ick",	&vlynq_ick,	CK_242X),
->>   	CLK(NULL,	"vlynq_fck",	&vlynq_fck,	CK_242X),
->>   	CLK(NULL,	"des_ick",	&des_ick,	CK_242X),
->> -	CLK(NULL,	"sha_ick",	&sha_ick,	CK_242X),
->> +	CLK("omap-sham",	"ick",	&sha_ick,	CK_242X),
->>   	CLK("omap_rng",	"ick",		&rng_ick,	CK_242X),
->>   	CLK(NULL,	"aes_ick",	&aes_ick,	CK_242X),
->>   	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
->> diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
->> index 0438b6e..5884ac6 100644
->> --- a/arch/arm/mach-omap2/clock2430_data.c
->> +++ b/arch/arm/mach-omap2/clock2430_data.c
->> @@ -1924,7 +1924,7 @@ static struct omap_clk omap2430_clks[] = {
->>   	CLK(NULL,	"sdma_ick",	&sdma_ick,	CK_243X),
->>   	CLK(NULL,	"sdrc_ick",	&sdrc_ick,	CK_243X),
->>   	CLK(NULL,	"des_ick",	&des_ick,	CK_243X),
->> -	CLK(NULL,	"sha_ick",	&sha_ick,	CK_243X),
->> +	CLK("omap-sham",	"ick",	&sha_ick,	CK_243X),
->>   	CLK("omap_rng",	"ick",		&rng_ick,	CK_243X),
->>   	CLK(NULL,	"aes_ick",	&aes_ick,	CK_243X),
->>   	CLK(NULL,	"pka_ick",	&pka_ick,	CK_243X),
->> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
->> index d5153b6..5a974dc 100644
->> --- a/arch/arm/mach-omap2/clock3xxx_data.c
->> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
->> @@ -3360,7 +3360,7 @@ static struct omap_clk omap3xxx_clks[] = {
->>   	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2 | CK_AM35XX),
->>   	CLK(NULL,	"icr_ick",	&icr_ick,	CK_343X),
->>   	CLK(NULL,	"aes2_ick",	&aes2_ick,	CK_343X),
->> -	CLK(NULL,	"sha12_ick",	&sha12_ick,	CK_343X),
->> +	CLK("omap-sham",	"ick",	&sha12_ick,	CK_343X),
->>   	CLK(NULL,	"des2_ick",	&des2_ick,	CK_343X),
->>   	CLK("mmci-omap-hs.1",	"ick",	&mmchs2_ick,	CK_3XXX),
->>   	CLK("mmci-omap-hs.0",	"ick",	&mmchs1_ick,	CK_3XXX),
->>      
-> The above changes are all
+>> =A0Here are my experiment numbers, on a Class 6 SDHC card:
+>> =A0Read peformance is increased by 220%
+>> =A0Write Performance is increased by 52%
+>>
+>> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A02 +-
+>> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
+smmc.c
+>> index 83f0aff..8c97c22 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -2092,7 +2092,7 @@ static int __init omap_hsmmc_probe(struct
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MMC_CAP_WAIT_WHILE_BUSY;
+>>
+>> =A0 =A0 =A0 if (mmc_slot(host).wires >=3D 8)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D MMC_CAP_8_BIT_DATA;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D (MMC_CAP_8_BIT_DATA | MMC_C=
+AP_4_BIT_DATA);
+>> =A0 =A0 =A0 else if (mmc_slot(host).wires >=3D 4)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->caps |=3D MMC_CAP_4_BIT_DATA;
+>>
+> Kishore,
 >
-> Acked-by: Paul Walmsley<paul@pwsan.com>
+> Since this patch is not yet pushed it makes sense to fix the readabil=
+ity
+> issue.
 >
-> ... but ...
+> Since 8-bit is the max how about:
 >
->    
->> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
->> index 23e4d77..3e20b9c 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -26,6 +26,7 @@
->>   #include<plat/mux.h>
->>   #include<mach/gpio.h>
->>   #include<plat/mmc.h>
->> +#include<plat/dma.h>
->>
->>   #include "mux.h"
->>
->> @@ -453,7 +454,9 @@ static void omap_init_mcspi(void)
->>   static inline void omap_init_mcspi(void) {}
->>   #endif
->>
->> -#ifdef CONFIG_OMAP_SHA1_MD5
->> +#if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
->> +
->> +#ifdef CONFIG_ARCH_OMAP2
->>   static struct resource sha1_md5_resources[] = {
->>   	{
->>   		.start	= OMAP24XX_SEC_SHA1MD5_BASE,
->> @@ -465,9 +468,28 @@ static struct resource sha1_md5_resources[] = {
->>   		.flags	= IORESOURCE_IRQ,
->>   	}
->>   };
->> +#endif
->> +
->> +#ifdef CONFIG_ARCH_OMAP3
->> +static struct resource sha1_md5_resources[] = {
->> +	{
->> +		.start	= OMAP34XX_SEC_SHA1MD5_BASE,
->> +		.end	= OMAP34XX_SEC_SHA1MD5_BASE + 0x64,
->> +		.flags	= IORESOURCE_MEM,
->> +	},
->> +	{
->> +		.start	= INT_34XX_SHA1MD52_IRQ,
->> +		.flags	= IORESOURCE_IRQ,
->> +	},
->> +	{
->> +		.start	= OMAP34XX_DMA_SHA1MD5_RX,
->> +		.flags	= IORESOURCE_DMA,
->> +	}
->> +};
->> +#endif
->>      
-> The above will break multi-OMAP2 kernels.  Please change the above to make
-> the variable names unique on a per-SoC basis (e.g.,
-> omap3_sha1_md5_resources) and modify the SHA1/MD5 device registration code
-> to use the appropriate struct resource array at runtime.  For an example,
-> see mach-omap2/devices.c:omap_init_mbox().
+> =A0=A0 =A0 =A0 =A0if (mmc_slot(host).wires =3D=3D 8)
+> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_8_BIT_DATA |=
+ MMC_CAP_4_BIT_DATA;
+> =A0=A0 =A0 =A0 =A0if (mmc_slot(host).wires =3D=3D 4)
+> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_4_BIT_DATA;
 >
->    
->>
->>   static struct platform_device sha1_md5_device = {
->> -	.name		= "OMAP SHA1/MD5",
->> +	.name		= "omap-sham",
->>   	.id		= -1,
->>   	.num_resources	= ARRAY_SIZE(sha1_md5_resources),
->>   	.resource	= sha1_md5_resources,
->> diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
->> index 2845fdc..98fc8b4 100644
->> --- a/arch/arm/plat-omap/include/plat/omap34xx.h
->> +++ b/arch/arm/plat-omap/include/plat/omap34xx.h
->> @@ -82,5 +82,10 @@
->>
->>   #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
->>
->> +/* Security */
->> +#define OMAP34XX_SEC_BASE	(L4_34XX_BASE + 0xA0000)
->> +#define OMAP34XX_SEC_SHA1MD5_BASE	(OMAP34XX_SEC_BASE + 0x23000)
->> +#define OMAP34XX_SEC_AES_BASE	(OMAP34XX_SEC_BASE + 0x25000)
->> +
->>   #endif /* __ASM_ARCH_OMAP3_H */
->>
->> -- 
->> 1.6.3.3
->>
+Madhu,
+
+In the above snippet, it checks whether wires are 8 or  4 and if not
+neither set's  capability  to "1".
+Does it make sense to check whether the  wires are 8,4,1 and if not
+any[8,4,1] throw error and come out.
+
+Regards,
+Kishore
+> This would be little easy to read the code.
+>
+> Can you please repost the patch??
+>
+> Regards,
+> Madhu
+>
 >> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>      
+>> 1.6.3.3
 >
-> - Paul
->    
-Hi,
-
-Ok.. I got it.
-
-Thanks,
-Dmitry
-
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
