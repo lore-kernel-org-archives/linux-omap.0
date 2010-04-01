@@ -1,37 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Where did the twl4030 battery charging code go?
-Date: Thu, 1 Apr 2010 03:16:20 -0700
-Message-ID: <20100401101620.GM31200@atomide.com>
-References: <738b3f7e1003300859t633ace94h5945e9974109e176@mail.gmail.com>
+Subject: Re: [PATCH 1/2] OMAP3EVM: Made backlight GPIO default state to off
+Date: Thu, 1 Apr 2010 03:23:21 -0700
+Message-ID: <20100401102321.GN31200@atomide.com>
+References: <hvaibhav@ti.com>
+ <1269263470-13814-1-git-send-email-hvaibhav@ti.com>
+ <19F8576C6E063C45BE387C64729E7394044DEBF3A5@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63398 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52876 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179Ab0DAKO2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 06:14:28 -0400
+	with ESMTP id S1754847Ab0DAKVb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 06:21:31 -0400
 Content-Disposition: inline
-In-Reply-To: <738b3f7e1003300859t633ace94h5945e9974109e176@mail.gmail.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DEBF3A5@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peter.barada@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
 
-* Peter Barada <peter.barada@gmail.com> [100330 08:55]:
-> I'm looking in linux-2.6.33-rc3 to turn on the battery backup charger
-> to get the RTC working on a Logic SOM, and I don't see
-> drivers/mfd/twl4030_bci_battery.c anymore.
+* Hiremath, Vaibhav <hvaibhav@ti.com> [100330 01:07]:
 > 
-> Digging through Tony's trees I find it was removed way back at::
+> > -----Original Message-----
+> > From: Hiremath, Vaibhav
+> > Sent: Monday, March 22, 2010 6:41 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: tomi.valkeinen@nokia.com; tony@atomide.com; Hiremath, Vaibhav
+> > Subject: [PATCH 1/2] OMAP3EVM: Made backlight GPIO default state to off
+> > 
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > 
+> > If you choose default output to DVI, the LCD backlight still
+> > gets powered, since panel->disable function never gets called for LCD.
+> > 
+> > So, during init put backlight GPIO to off state and the driverr
+> > code will decide which output to enable explicitly.
+> > 
+> [Hiremath, Vaibhav] Tony,
 > 
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=b122a4b8a18ebbb0b5de90baeb54650a53cd9d7d
-> 
-> Did this code resurface anywhere in the new kernels?
+> Do you see any issues with this patch? I think we can merge this patch series.
 
-If it's not in mainline, we don't have it queued anywhere else.
-The missing pieces should be sent via the MFD list after the
-necessary cleanups.
-
-Regards,
+Looks like a valid fix to me.
 
 Tony
+ 
+> Thanks,
+> Vaibhav
+> 
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-omap3evm.c |    5 ++++-
+> >  1 files changed, 4 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> > omap2/board-omap3evm.c
+> > index 74bbdcb..f2a52c3 100644
+> > --- a/arch/arm/mach-omap2/board-omap3evm.c
+> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> > @@ -420,7 +420,10 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
+> > 
+> >  	/* TWL4030_GPIO_MAX + 0 == ledA, LCD Backlight control */
+> >  	gpio_request(gpio + TWL4030_GPIO_MAX, "EN_LCD_BKL");
+> > -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+> > +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
+> > +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
+> > +	else
+> > +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+> > 
+> >  	/* gpio + 7 == DVI Enable */
+> >  	gpio_request(gpio + 7, "EN_DVI");
+> > --
+> > 1.6.2.4
+> 
