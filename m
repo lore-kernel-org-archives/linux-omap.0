@@ -1,93 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/8] OMAP3:GPIO:Add support for early platform gpio
- device
-Date: Thu, 1 Apr 2010 02:13:57 -0700
-Message-ID: <20100401091357.GE31200@atomide.com>
-References: <1270038239-1090-1-git-send-email-charu@ti.com>
- <1270038239-1090-2-git-send-email-charu@ti.com>
- <1270038239-1090-3-git-send-email-charu@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHV3 0/2] MPU/IVA bypass clock configuration
+Date: Thu, 1 Apr 2010 03:15:51 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1004010315000.27004@utopia.booyaka.com>
+References: <> <1270117939-10730-1-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56686 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754603Ab0DAJMG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:12:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1270038239-1090-3-git-send-email-charu@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:56166 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754145Ab0DAJPw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:15:52 -0400
+In-Reply-To: <1270117939-10730-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charulatha V <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, paul@pwsan.com
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Charulatha V <charu@ti.com> [100331 05:15]:
-> This patch adds support for implementing OMAP3 GPIO as an
-> early platform device and adds gpio_init specific to OMAP3
-> 
-> This patch adds device structures for each GPIO device in
-> OMAP3 architecture. These strutures are not created in a
-> separate *_data.c file because these structures would be
-> removed once the driver gets adapted to HWMOD way.
-> 
-> Signed-off-by: Charulatha V <charu@ti.com>
-> ---
->  arch/arm/mach-omap2/gpio3xxx.c          |  351 +++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/include/mach/gpio.h |   13 +-
->  2 files changed, 363 insertions(+), 1 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/gpio3xxx.c
-> 
-> diff --git a/arch/arm/mach-omap2/gpio3xxx.c b/arch/arm/mach-omap2/gpio3xxx.c
-> new file mode 100644
-> index 0000000..8f404e7
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/gpio3xxx.c
-> @@ -0,0 +1,351 @@
-> +/*
-> + * gpio3xxx.c - OMAP3-specific gpio code
-> + *
-> + * Copyright (C) 2010 Texas Instruments, Inc.
-> + *
-> + * Author:
-> + *	Charulatha V <charu@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <plat/gpio.h>
-> +
-> +/*
-> + * OMAP3 GPIO reg offsets
-> + */
-> +static struct gpio_reg_offset omap3_gpio_reg = {
-> +	.data_in	= OMAP24XX_GPIO_DATAIN,
-> +	.data_out	= OMAP24XX_GPIO_DATAOUT,
-> +	.data_out_set	= OMAP24XX_GPIO_SETDATAOUT,
-> +	.data_out_clear	= OMAP24XX_GPIO_CLEARDATAOUT,
-> +	.dir_ctrl	= OMAP24XX_GPIO_OE,
-> +	.irq_status0	= OMAP24XX_GPIO_IRQSTATUS1,
-> +	.irq_status1	= OMAP24XX_GPIO_IRQSTATUS2,
-> +	.irq_mask	= OMAP24XX_GPIO_IRQENABLE1,
-> +	.irq_set	= OMAP24XX_GPIO_SETIRQENABLE1,
-> +	.irq_clear	= OMAP24XX_GPIO_CLEARIRQENABLE1,
-> +	.irq_mask_bits	= 0xffffffff,
-> +	.irq_inv	= 0,
-> +	.wkup_enable	= OMAP24XX_GPIO_WAKE_EN,
-> +	.wkup_clear	= OMAP24XX_GPIO_CLEARWKUENA,
-> +	.wkup_set	= OMAP24XX_GPIO_SETWKUENA,
-> +	.debounce_ena	= OMAP24XX_GPIO_DEBOUNCE_EN,
-> +	.debounce_val	= OMAP24XX_GPIO_DEBOUNCE_VAL,
-> +	.ctrl		= OMAP24XX_GPIO_CTRL,
-> +	.syscfg		= OMAP24XX_GPIO_SYSCONFIG,
-> +	.leveldetect0	= OMAP24XX_GPIO_LEVELDETECT0,
-> +	.leveldetect1	= OMAP24XX_GPIO_LEVELDETECT1,
-> +	.rise_detect	= OMAP24XX_GPIO_RISINGDETECT,
-> +	.fall_detect	= OMAP24XX_GPIO_FALLINGDETECT,
-> +	.rev_reg	= OMAP24XX_GPIO_REVISION,
-> +};
+Hi Vishwanath,
 
-Can we use just a omap specific shift here? Or is the register
-ordering different too?
+On Thu, 1 Apr 2010, Vishwanath BS wrote:
 
-Tony
+> DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM
+> UCs running DSP codec was earlier restricted as DSP crashed.
+> The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and OPP2.
+> The solution is to make sure DPLL1/DPLL2 bypass clock is always less
+> than maximum supported frequency for the specific OPP.
+> Typically these settings are to be done in bootloaders.
+> 
+> All the patches have been tested on OMAP3630 ZOOM3  platform.
+> Comments adressed in V3:
+> 1. Used clk_set_rate API instead of directly writing to registers
+> 2. Split the patch into 2 patches.
+> 
+> Vishwanath BS (4):
+> 	OMAP3: Set MPU and IVA bypass Clock Divider
+> 	OMAP3 PM: Set MPU and IVA bypass clock dividers in DVFS
+
+On what tree do these patches apply?
+
+
+- Paul
