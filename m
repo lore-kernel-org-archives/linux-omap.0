@@ -1,30 +1,74 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC][PATCH] ASoC: OMAP: Fix capture pointer handling for
- OMAP1510 to work correctly with recent ALSA PCM code
-Date: Thu, 1 Apr 2010 13:25:21 +0100
-Message-ID: <20100401122520.GF32025@rakim.wolfsonmicro.main>
-References: <201003282229.32922.jkrzyszt@tis.icnet.pl>
- <20100329115459.b44f0d1c.jhnikula@gmail.com>
- <201003291414.53726.jkrzyszt@tis.icnet.pl>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+Date: Thu, 1 Apr 2010 06:33:22 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1004010629380.27004@utopia.booyaka.com>
+References: <20100329.120856.59654379.Hiroshi.DOYU@nokia.com> <20100401095203.GL31200@atomide.com> <20100401.132336.193692763.Hiroshi.DOYU@nokia.com> <20100401.142629.226796472.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:55508 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755783Ab0DAMZX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 08:25:23 -0400
-Content-Disposition: inline
-In-Reply-To: <201003291414.53726.jkrzyszt@tis.icnet.pl>
+Received: from utopia.booyaka.com ([72.9.107.138]:38308 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752572Ab0DAMdX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 08:33:23 -0400
+In-Reply-To: <20100401.142629.226796472.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jaroslav Kysela <perex@perex.cz>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: tony@atomide.com, khilman@deeprootsystems.com, felipe.balbi@nokia.com, x0095840@ti.com, linux-omap@vger.kernel.org, ameya.palande@nokia.com, felipe.contreras@nokia.com
 
-On Mon, Mar 29, 2010 at 02:14:51PM +0200, Janusz Krzysztofik wrote:
+Hi Hiroshi,
 
-> I should have mention that I was already aware of your patch; applied alone, 
-> it didn't solve the problem for me. However, when configuring ALSA with 
-> debugging turned off, I have to use both patches, yours and mine, in order to 
-> get things working.
+On Thu, 1 Apr 2010, Hiroshi DOYU wrote:
 
-Any updates on this one?
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+> Date: Thu, 01 Apr 2010 13:23:36 +0300 (EEST)
+> 
+> > From: ext Tony Lindgren <tony@atomide.com>
+> > Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+> > Date: Thu, 1 Apr 2010 11:52:04 +0200
+> > 
+> >> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100329 02:05]:
+> >>> From: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+> >>> Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+> >>> Date: Mon, 29 Mar 2010 09:01:45 +0200
+> >>> > 
+> >>> > in that case, wouldn't it be better to split that into 
+> >>> > arch/arm/omap1/mbox.c arch/arm/omap2/mbox24xx.c 
+> >>> > arch/arm/omap2/mbox34xx.c arch/arm/omap2/mbox44xx.c ??
+> >>> > 
+> >>> > that way we don't need ifdefs on the code and we will only compile what 
+> >>> > we really need.
+> >>> 
+> >>> This is feasible.
+> >>> But I'm not so sure whether adding 4 new files with around only 10
+> >>> lines code is acceptable or not.
+> >>> 
+> >>> Tony, any comment on the above?
+> >>> 
+> >>> Basically there could be the case we need all resources if we want to
+> >>> support omap1, 2, 3 and 4 at the same time, and the appropriate one
+> >>> will be chosen at run time by CPUID. I'm not sure how mature "omap
+> >>> multi arch" support is practically, but it's better to keep it as much
+> >>> as possbile.
+> >> 
+> >> I like Felipe's suggestion of adding devices2420.c, devices34xx.c,
+> >> devices44xx.c or similar. Then do the device init from those with
+> >> a arch_initcall that returns immediately if not running on the right
+> >> soc.
+> > 
+> > Ok, let's procced with this. I'll post something later.
+> > 
+> 
+> Something like the following?
+
+Is it possible to try a hwmod conversion of this?  Similar to the UART, 
+HSMMC, etc. work that Kevin has queued in his pm-wip/hwmods branch:
+
+http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=shortlog;h=refs/heads/pm-wip/hwmods
+
+Otherwise this will all have to be redone when the mailbox is converted to 
+use hwmod.
+
+
+- Paul
