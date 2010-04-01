@@ -1,56 +1,93 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
-Date: Thu, 01 Apr 2010 13:23:36 +0300 (EEST)
-Message-ID: <20100401.132336.193692763.Hiroshi.DOYU@nokia.com>
-References: <20100329070145.GF28825@nokia.com>
-	<20100329.120856.59654379.Hiroshi.DOYU@nokia.com>
-	<20100401095203.GL31200@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Fix omap 1-wire driver compilation
+Date: Thu, 1 Apr 2010 03:38:30 -0700
+Message-ID: <20100401103829.GO31200@atomide.com>
+References: <20100322124011.GD8553@matterhorn.verdurent.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35928 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754954Ab0DAKYF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 06:24:05 -0400
-In-Reply-To: <20100401095203.GL31200@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60518 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755034Ab0DAKgi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 06:36:38 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1NxHlN-000JDw-Ib
+	for linux-omap@vger.kernel.org; Thu, 01 Apr 2010 10:36:37 +0000
+Content-Disposition: inline
+In-Reply-To: <20100322124011.GD8553@matterhorn.verdurent.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: felipe.balbi@nokia.com, x0095840@ti.com, linux-omap@vger.kernel.org, ameya.palande@nokia.com, felipe.contreras@nokia.com
+To: List Linux Omap <linux-omap@vger.kernel.org>
 
-From: ext Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
-Date: Thu, 1 Apr 2010 11:52:04 +0200
+Hi,
 
-> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100329 02:05]:
->> From: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
->> Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
->> Date: Mon, 29 Mar 2010 09:01:45 +0200
->> > 
->> > in that case, wouldn't it be better to split that into 
->> > arch/arm/omap1/mbox.c arch/arm/omap2/mbox24xx.c 
->> > arch/arm/omap2/mbox34xx.c arch/arm/omap2/mbox44xx.c ??
->> > 
->> > that way we don't need ifdefs on the code and we will only compile what 
->> > we really need.
->> 
->> This is feasible.
->> But I'm not so sure whether adding 4 new files with around only 10
->> lines code is acceptable or not.
->> 
->> Tony, any comment on the above?
->> 
->> Basically there could be the case we need all resources if we want to
->> support omap1, 2, 3 and 4 at the same time, and the appropriate one
->> will be chosen at run time by CPUID. I'm not sure how mature "omap
->> multi arch" support is practically, but it's better to keep it as much
->> as possbile.
+* Amit Kucheria <amit.kucheria@verdurent.com> [100322 05:37]:
+> Patch from the Ubuntu omap tree[1] follows.
+
+Thanks, can you please resend it to Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+for merging.
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+> Regards,
+> Amit
 > 
-> I like Felipe's suggestion of adding devices2420.c, devices34xx.c,
-> devices44xx.c or similar. Then do the device init from those with
-> a arch_initcall that returns immediately if not running on the right
-> soc.
-
-Ok, let's procced with this. I'll post something later.
-
+> [1].
+> http://kernel.ubuntu.com/git?p=ubuntu/ubuntu-lucid.git;a=shortlog;h=refs/heads/ti-omap
+> 
+> From 2f101ae458745c1787869cf6907d459c3bc9425e Mon Sep 17 00:00:00 2001
+> Message-Id: <2f101ae458745c1787869cf6907d459c3bc9425e.1269261108.git.amit.kucheria@verdurent.com>
+> From: Amit Kucheria <amit.kucheria@canonical.com>
+> Date: Wed, 10 Mar 2010 14:10:54 +0200
+> Subject: [PATCH] UBUNTU: [Upstream] Fix omap 1-wire driver compilation
+> 
+> This fixes the following error message:
+> 
+> drivers/w1/masters/omap_hdq.c: In function 'hdq_wait_for_flag':
+> drivers/w1/masters/omap_hdq.c:137: error: implicit declaration of function
+> 'schedule_timeout_uninterruptible'
+> drivers/w1/masters/omap_hdq.c: In function 'hdq_write_byte':
+> drivers/w1/masters/omap_hdq.c:177: error: 'TASK_UNINTERRUPTIBLE' undeclared
+> (first use in this function)
+> drivers/w1/masters/omap_hdq.c:177: error: (Each undeclared identifier is
+> reported only once
+> drivers/w1/masters/omap_hdq.c:177: error: for each function it appears in.)
+> drivers/w1/masters/omap_hdq.c:177: error: implicit declaration of function
+> 'schedule_timeout'
+> drivers/w1/masters/omap_hdq.c: In function 'hdq_isr':
+> drivers/w1/masters/omap_hdq.c:221: error: 'TASK_NORMAL' undeclared (first use
+> in this function)
+> drivers/w1/masters/omap_hdq.c: In function 'omap_hdq_break':
+> drivers/w1/masters/omap_hdq.c:316: error: 'TASK_UNINTERRUPTIBLE' undeclared
+> (first use in this function)
+> 
+> Signed-off-by: Amit Kucheria <amit.kucheria@canonical.com>
+> ---
+>  drivers/w1/masters/omap_hdq.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
+> index 0d92969..2c2bd35 100644
+> --- a/drivers/w1/masters/omap_hdq.c
+> +++ b/drivers/w1/masters/omap_hdq.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/err.h>
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+> +#include <linux/sched.h>
+>  
+>  #include <asm/irq.h>
+>  #include <mach/hardware.h>
+> -- 
+> 1.6.3.3
+> 
+> -- 
+> -------------------------------------------------------------------------
+> Amit Kucheria,				 Kernel Developer, Verdurent
+> -------------------------------------------------------------------------
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
