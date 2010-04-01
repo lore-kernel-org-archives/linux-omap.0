@@ -1,282 +1,40 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] OMAP2: DSS: Add Innolux 7" display for DEVKIT8000
-Date: Thu, 1 Apr 2010 09:37:38 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DF7ED7F@dbde02.ent.ti.com>
-References: <1270023938-22213-1-git-send-email-swirl@gmx.li>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCHV3 0/2] MPU/IVA bypass clock configuration
+Date: Thu,  1 Apr 2010 18:32:17 +0800
+Message-ID: <1270117939-10730-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38895 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750867Ab0DAEII convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 00:08:08 -0400
-In-Reply-To: <1270023938-22213-1-git-send-email-swirl@gmx.li>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:34523 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752483Ab0DAEy6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 00:54:58 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o314stnm001371
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 31 Mar 2010 23:54:57 -0500
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "swirl@gmx.li" <swirl@gmx.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Thomas Weber <weber@corscience.de>
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath BS <vishwanath.bs@ti.com>
 
+DSP usage at VDD1 OPP1 and OPP2 with Smartreflex enabled and any MM
+UCs running DSP codec was earlier restricted as DSP crashed.
+The root cause is wrong DPLL1/DPLL2 Bypass clock at VDD1 OPP1 and OPP2.
+The solution is to make sure DPLL1/DPLL2 bypass clock is always less
+than maximum supported frequency for the specific OPP.
+Typically these settings are to be done in bootloaders.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of swirl@gmx.li
-> Sent: Wednesday, March 31, 2010 1:56 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Thomas Weber; Thomas Weber
-> Subject: [PATCH] OMAP2: DSS: Add Innolux 7" display for DEVKIT8000
-> 
-> From: Thomas Weber <swirl@gmx.li>
-> 
-> This patch adds the Innolux AT070TN83 display.
-> The Devkit8000 has a lcd connector and
-> you can order your Devkit8000 with this display.
-> 
-> Signed-off-by: Thomas Weber <weber@corscience.de>
-> ---
->  drivers/video/omap2/displays/Kconfig               |    8 +-
->  drivers/video/omap2/displays/Makefile              |    1 +
->  .../video/omap2/displays/panel-innolux-at070tn83.c |  154
-> ++++++++++++++++++++
->  3 files changed, 162 insertions(+), 1 deletions(-)
->  create mode 100644 drivers/video/omap2/displays/panel-innolux-at070tn83.c
-> 
-> diff --git a/drivers/video/omap2/displays/Kconfig
-> b/drivers/video/omap2/displays/Kconfig
-> index dfb57ee..a750662 100644
-> --- a/drivers/video/omap2/displays/Kconfig
-> +++ b/drivers/video/omap2/displays/Kconfig
-> @@ -5,7 +5,7 @@ config PANEL_GENERIC
->          tristate "Generic Panel"
->          help
->  	  Generic panel driver.
-> -	  Used for DVI output for Beagle and OMAP3 SDP.
-> +	  Used for DVI output for Beagle, Devkit8000 and OMAP3 SDP.
-[Hiremath, Vaibhav] I think we should get rid of EMV's here, since as we are mentioning here it is Generic output and also this is being used on OMAP3EVM, AM3517EVM and many others.
+All the patches have been tested on OMAP3630 ZOOM3  platform.
+Comments adressed in V3:
+1. Used clk_set_rate API instead of directly writing to registers
+2. Split the patch into 2 patches.
 
-I would suggest to mention only "Used for OMAP3 DVI output"
+Vishwanath BS (4):
+	OMAP3: Set MPU and IVA bypass Clock Divider
+	OMAP3 PM: Set MPU and IVA bypass clock dividers in DVFS
 
-> 
->  config PANEL_SHARP_LS037V7DW01
->          tristate "Sharp LS037V7DW01 LCD Panel"
-> @@ -19,6 +19,12 @@ config PANEL_SHARP_LQ043T1DG01
->          help
->            LCD Panel used in TI's OMAP3517 EVM boards
-> 
-> +config PANEL_INNOLUX_AT070TN83
-> +	tristate "Innolux AT070TN83 LCD Panel"
-> +	depends on OMAP2_DSS
-> +	help
-> +	 LCD Panel used in TimLL's Devkit8000
-> +
->  config PANEL_TAAL
->          tristate "Taal DSI Panel"
->          depends on OMAP2_DSS_DSI
-> diff --git a/drivers/video/omap2/displays/Makefile
-> b/drivers/video/omap2/displays/Makefile
-> index e2bb321..fe3ae8d 100644
-> --- a/drivers/video/omap2/displays/Makefile
-> +++ b/drivers/video/omap2/displays/Makefile
-> @@ -5,3 +5,4 @@ obj-$(CONFIG_PANEL_SHARP_LQ043T1DG01) += panel-sharp-
-> lq043t1dg01.o
->  obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
->  obj-$(CONFIG_PANEL_TOPPOLY_TDO35S) += panel-toppoly-tdo35s.o
->  obj-$(CONFIG_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
-> +obj-$(CONFIG_PANEL_INNOLUX_AT070TN83) += panel-innolux-at070tn83.o
-> diff --git a/drivers/video/omap2/displays/panel-innolux-at070tn83.c
-> b/drivers/video/omap2/displays/panel-innolux-at070tn83.c
-> new file mode 100644
-> index 0000000..1ef14cd
-> --- /dev/null
-> +++ b/drivers/video/omap2/displays/panel-innolux-at070tn83.c
-> @@ -0,0 +1,154 @@
-> +/*
-> + * LCD panel driver for Innolux AT70TN83
-> + *
-> + * Copyright (C) 2010 Thomas Weber <weber@corscience.de>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published
-> by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-> for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along
-> with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/delay.h>
-> +#include <linux/device.h>
-> +#include <linux/regulator/consumer.h>
-[Hiremath, Vaibhav] You can remove this.
+ 2 files changed, 12 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c |   12 ++++++++++++
+ arch/arm/mach-omap2/resource34xx.c |   18 ++++++++++++++++--
 
-> +#include <linux/err.h>
-> +
-> +#include <plat/display.h>
-> +
-> +static struct omap_video_timings innolux_at_timings = {
-> +	.x_res		= 800,
-> +	.y_res		= 480,
-> +
-> +	.pixel_clock	= 40000,
-> +
-> +	.hsw		= 48,
-> +	.hfp		= 1,
-> +	.hbp		= 1,
-> +
-> +	.vsw		= 3,
-> +	.vfp		= 12,
-> +	.vbp		= 25,
-> +};
-> +
-> +static int innolux_at_panel_power_on(struct omap_dss_device *dssdev)
-> +{
-> +	int r;
-> +
-> +	r = omapdss_dpi_display_enable(dssdev);
-> +	if (r)
-> +		goto err0;
-[Hiremath, Vaibhav] You can directly return from here. Just do
-
-if (r)
-	Return r;
-
-> +
-> +	if (dssdev->platform_enable) {
-> +		r = dssdev->platform_enable(dssdev);
-> +		if (r)
-> +			goto err1;
-> +	}
-> +
-[Hiremath, Vaibhav] Here also you can implement something,
-
-
-	if (dssdev->platform_enable) {
-		r = dssdev->platform_enable(dssdev);
-		if (r) {
-			omapdss_dpi_display_disable(dssdev);
-		}
-	}
-
-	return r;
-
-You can get rid of goto's completely.
-
-Thanks,
-Vaibhav
-
-> +	return 0;
-> +err1:
-> +	omapdss_dpi_display_disable(dssdev);
-> +err0:
-> +	return r;
-> +}
-> +
-> +static void innolux_at_panel_power_off(struct omap_dss_device *dssdev)
-> +{
-> +	if (dssdev->platform_disable)
-> +		dssdev->platform_disable(dssdev);
-> +
-> +	omapdss_dpi_display_disable(dssdev);
-> +
-> +}
-> +
-> +static int innolux_at_panel_probe(struct omap_dss_device *dssdev)
-> +{
-> +	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-> +		OMAP_DSS_LCD_IHS;
-> +	dssdev->panel.acb = 0x28;
-> +	dssdev->panel.timings = innolux_at_timings;
-> +
-> +	return 0;
-> +}
-> +
-> +static void innolux_at_panel_remove(struct omap_dss_device *dssdev)
-> +{
-> +}
-> +
-> +static int innolux_at_panel_enable(struct omap_dss_device *dssdev)
-> +{
-> +	int r = 0;
-> +
-> +	r = innolux_at_panel_power_on(dssdev);
-> +	if (r)
-> +		return r;
-> +
-> +	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-> +
-> +	return 0;
-> +}
-> +
-> +static void innolux_at_panel_disable(struct omap_dss_device *dssdev)
-> +{
-> +	innolux_at_panel_power_off(dssdev);
-> +
-> +	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-> +}
-> +
-> +static int innolux_at_panel_suspend(struct omap_dss_device *dssdev)
-> +{
-> +	innolux_at_panel_power_off(dssdev);
-> +	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
-> +	return 0;
-> +}
-> +
-> +static int innolux_at_panel_resume(struct omap_dss_device *dssdev)
-> +{
-> +	int r = 0;
-> +
-> +	r = innolux_at_panel_power_on(dssdev);
-> +
-> +	if (r)
-> +		return r;
-> +
-> +	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-> +
-> +	return 0;
-> +}
-> +
-> +static struct omap_dss_driver innolux_at_driver = {
-> +	.probe		= innolux_at_panel_probe,
-> +	.remove		= innolux_at_panel_remove,
-> +
-> +	.enable		= innolux_at_panel_enable,
-> +	.disable	= innolux_at_panel_disable,
-> +	.suspend	= innolux_at_panel_suspend,
-> +	.resume		= innolux_at_panel_resume,
-> +
-> +	.driver         = {
-> +		.name   = "innolux_at_panel",
-> +		.owner  = THIS_MODULE,
-> +	},
-> +};
-> +
-> +static int __init innolux_at_panel_drv_init(void)
-> +{
-> +	return omap_dss_register_driver(&innolux_at_driver);
-> +}
-> +
-> +static void __exit innolux_at_panel_drv_exit(void)
-> +{
-> +	omap_dss_unregister_driver(&innolux_at_driver);
-> +}
-> +
-> +module_init(innolux_at_panel_drv_init);
-> +module_exit(innolux_at_panel_drv_exit);
-> +MODULE_LICENSE("GPL");
-> --
-> 1.6.4.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
