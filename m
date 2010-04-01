@@ -1,189 +1,180 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [RFC/PATCHv2 2/4] arm: omap: gpio: implement set_debounce
- method
-Date: Thu, 1 Apr 2010 08:39:03 +0300
-Message-ID: <20100401053903.GB16297@nokia.com>
-References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
- <1270049712-28272-3-git-send-email-felipe.balbi@nokia.com>
- <20100331162158.GB32025@rakim.wolfsonmicro.main>
- <20100331162909.GA23490@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+Subject: Re: [PATCHv2 1/2] crypto: updates omap sham device related platform
+ code
+Date: Thu, 01 Apr 2010 09:16:34 +0300
+Message-ID: <4BB43A42.9060703@nokia.com>
+References: <cover.1269524804.git.dmitry.kasatkin@nokia.com> <9e97cb8f5ee608a70bb9c04bc2c22f0d6b749d98.1269524804.git.dmitry.kasatkin@nokia.com> <alpine.DEB.2.00.1003300334110.14474@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="IrhDeMKUP4DT/M7F"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:57246 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753041Ab0DAFjo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 01:39:44 -0400
-Content-Disposition: inline
-In-Reply-To: <20100331162909.GA23490@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1003300334110.14474@utopia.booyaka.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: ext Paul Walmsley <paul@pwsan.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
-Cc: ext Mark Brown <broonie@opensource.wolfsonmicro.com>, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
 
---IrhDeMKUP4DT/M7F
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
 
+On 30/03/10 12:41, ext Paul Walmsley wrote:
+> Hi Dmitry,
+>
+> a few comments:
+>
+> On Thu, 25 Mar 2010, Dmitry Kasatkin wrote:
+>
+>    
+>> - registration
+>> - clocks
+>>
+>> Signed-off-by: Dmitry Kasatkin<dmitry.kasatkin@nokia.com>
+>> ---
+>>   arch/arm/mach-omap2/clock2420_data.c       |    2 +-
+>>   arch/arm/mach-omap2/clock2430_data.c       |    2 +-
+>>   arch/arm/mach-omap2/clock3xxx_data.c       |    2 +-
+>>   arch/arm/mach-omap2/devices.c              |   26 ++++++++++++++++++++++++--
+>>   arch/arm/plat-omap/include/plat/omap34xx.h |    5 +++++
+>>   5 files changed, 32 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+>> index d932b14..1820a55 100644
+>> --- a/arch/arm/mach-omap2/clock2420_data.c
+>> +++ b/arch/arm/mach-omap2/clock2420_data.c
+>> @@ -1836,7 +1836,7 @@ static struct omap_clk omap2420_clks[] = {
+>>   	CLK(NULL,	"vlynq_ick",	&vlynq_ick,	CK_242X),
+>>   	CLK(NULL,	"vlynq_fck",	&vlynq_fck,	CK_242X),
+>>   	CLK(NULL,	"des_ick",	&des_ick,	CK_242X),
+>> -	CLK(NULL,	"sha_ick",	&sha_ick,	CK_242X),
+>> +	CLK("omap-sham",	"ick",	&sha_ick,	CK_242X),
+>>   	CLK("omap_rng",	"ick",		&rng_ick,	CK_242X),
+>>   	CLK(NULL,	"aes_ick",	&aes_ick,	CK_242X),
+>>   	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
+>> diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+>> index 0438b6e..5884ac6 100644
+>> --- a/arch/arm/mach-omap2/clock2430_data.c
+>> +++ b/arch/arm/mach-omap2/clock2430_data.c
+>> @@ -1924,7 +1924,7 @@ static struct omap_clk omap2430_clks[] = {
+>>   	CLK(NULL,	"sdma_ick",	&sdma_ick,	CK_243X),
+>>   	CLK(NULL,	"sdrc_ick",	&sdrc_ick,	CK_243X),
+>>   	CLK(NULL,	"des_ick",	&des_ick,	CK_243X),
+>> -	CLK(NULL,	"sha_ick",	&sha_ick,	CK_243X),
+>> +	CLK("omap-sham",	"ick",	&sha_ick,	CK_243X),
+>>   	CLK("omap_rng",	"ick",		&rng_ick,	CK_243X),
+>>   	CLK(NULL,	"aes_ick",	&aes_ick,	CK_243X),
+>>   	CLK(NULL,	"pka_ick",	&pka_ick,	CK_243X),
+>> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+>> index d5153b6..5a974dc 100644
+>> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+>> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+>> @@ -3360,7 +3360,7 @@ static struct omap_clk omap3xxx_clks[] = {
+>>   	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2 | CK_AM35XX),
+>>   	CLK(NULL,	"icr_ick",	&icr_ick,	CK_343X),
+>>   	CLK(NULL,	"aes2_ick",	&aes2_ick,	CK_343X),
+>> -	CLK(NULL,	"sha12_ick",	&sha12_ick,	CK_343X),
+>> +	CLK("omap-sham",	"ick",	&sha12_ick,	CK_343X),
+>>   	CLK(NULL,	"des2_ick",	&des2_ick,	CK_343X),
+>>   	CLK("mmci-omap-hs.1",	"ick",	&mmchs2_ick,	CK_3XXX),
+>>   	CLK("mmci-omap-hs.0",	"ick",	&mmchs1_ick,	CK_3XXX),
+>>      
+> The above changes are all
+>
+> Acked-by: Paul Walmsley<paul@pwsan.com>
+>
+> ... but ...
+>
+>    
+>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+>> index 23e4d77..3e20b9c 100644
+>> --- a/arch/arm/mach-omap2/devices.c
+>> +++ b/arch/arm/mach-omap2/devices.c
+>> @@ -26,6 +26,7 @@
+>>   #include<plat/mux.h>
+>>   #include<mach/gpio.h>
+>>   #include<plat/mmc.h>
+>> +#include<plat/dma.h>
+>>
+>>   #include "mux.h"
+>>
+>> @@ -453,7 +454,9 @@ static void omap_init_mcspi(void)
+>>   static inline void omap_init_mcspi(void) {}
+>>   #endif
+>>
+>> -#ifdef CONFIG_OMAP_SHA1_MD5
+>> +#if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
+>> +
+>> +#ifdef CONFIG_ARCH_OMAP2
+>>   static struct resource sha1_md5_resources[] = {
+>>   	{
+>>   		.start	= OMAP24XX_SEC_SHA1MD5_BASE,
+>> @@ -465,9 +468,28 @@ static struct resource sha1_md5_resources[] = {
+>>   		.flags	= IORESOURCE_IRQ,
+>>   	}
+>>   };
+>> +#endif
+>> +
+>> +#ifdef CONFIG_ARCH_OMAP3
+>> +static struct resource sha1_md5_resources[] = {
+>> +	{
+>> +		.start	= OMAP34XX_SEC_SHA1MD5_BASE,
+>> +		.end	= OMAP34XX_SEC_SHA1MD5_BASE + 0x64,
+>> +		.flags	= IORESOURCE_MEM,
+>> +	},
+>> +	{
+>> +		.start	= INT_34XX_SHA1MD52_IRQ,
+>> +		.flags	= IORESOURCE_IRQ,
+>> +	},
+>> +	{
+>> +		.start	= OMAP34XX_DMA_SHA1MD5_RX,
+>> +		.flags	= IORESOURCE_DMA,
+>> +	}
+>> +};
+>> +#endif
+>>      
+> The above will break multi-OMAP2 kernels.  Please change the above to make
+> the variable names unique on a per-SoC basis (e.g.,
+> omap3_sha1_md5_resources) and modify the SHA1/MD5 device registration code
+> to use the appropriate struct resource array at runtime.  For an example,
+> see mach-omap2/devices.c:omap_init_mbox().
+>
+>    
+>>
+>>   static struct platform_device sha1_md5_device = {
+>> -	.name		= "OMAP SHA1/MD5",
+>> +	.name		= "omap-sham",
+>>   	.id		= -1,
+>>   	.num_resources	= ARRAY_SIZE(sha1_md5_resources),
+>>   	.resource	= sha1_md5_resources,
+>> diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
+>> index 2845fdc..98fc8b4 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap34xx.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap34xx.h
+>> @@ -82,5 +82,10 @@
+>>
+>>   #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
+>>
+>> +/* Security */
+>> +#define OMAP34XX_SEC_BASE	(L4_34XX_BASE + 0xA0000)
+>> +#define OMAP34XX_SEC_SHA1MD5_BASE	(OMAP34XX_SEC_BASE + 0x23000)
+>> +#define OMAP34XX_SEC_AES_BASE	(OMAP34XX_SEC_BASE + 0x25000)
+>> +
+>>   #endif /* __ASM_ARCH_OMAP3_H */
+>>
+>> -- 
+>> 1.6.3.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>      
+>
+> - Paul
+>    
 Hi,
 
-On Wed, Mar 31, 2010 at 06:29:09PM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
->On Wed, Mar 31, 2010 at 06:21:58PM +0200, ext Mark Brown wrote:
->>On Wed, Mar 31, 2010 at 06:35:10PM +0300, Felipe Balbi wrote:
->>> +	if (debounce) {
->>> +		val |= l;
->>> +		if (cpu_is_omap34xx() || cpu_is_omap44xx())
->>> +			clk_enable(bank->dbck);
->>> +	} else {
->>> +		val &= ~l;
->>> +		if (cpu_is_omap34xx() || cpu_is_omap44xx())
->>> +			clk_disable(bank->dbck);
->>> +	}
->>
->>Will these do the right thing with the clocks for noop transitions or
->>tweaks to the debounce time?  I'm not familiar with the OMAP clock
->>framework, it could handle this.
->
->good catch. We need to be a bit smarter here. I'll leave that for
->tomorrow. already 19:30 :-p
+Ok.. I got it.
 
-attached is a new version of this patch.
+Thanks,
+Dmitry
 
--- 
-balbi
-
---IrhDeMKUP4DT/M7F
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-arm-omap-gpio-implement-set_debounce-method.diff"
-
->From 23b09f437d8bacebab676deaf52631b7eb0e8f15 Mon Sep 17 00:00:00 2001
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Date: Wed, 31 Mar 2010 15:17:29 +0300
-Subject: [PATCHv3] arm: omap: gpio: implement set_debounce method
-
-OMAP support debouncing of gpio lines, implement
-the method using gpiolib.
-
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
-
-Changes since v2:
-	- enable/disable debounce clock only once
-
- arch/arm/plat-omap/gpio.c |   75 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 75 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 76a347b..163d88b 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -194,6 +194,7 @@ struct gpio_bank {
- 	spinlock_t lock;
- 	struct gpio_chip chip;
- 	struct clk *dbck;
-+	unsigned dbck_enabled:1;
- 	u32 mod_usage;
- };
- 
-@@ -612,6 +613,65 @@ do {	\
- 	__raw_writel(l, base + reg); \
- } while(0)
- 
-+/**
-+ * _set_gpio_debounce - low level gpio debounce time
-+ * @bank: the gpio bank we're acting upon
-+ * @gpio: the gpio number on this @gpio
-+ * @debounce: debounce time to use
-+ *
-+ * OMAP's debounce time is in 31us steps so we need
-+ * to convert and round up to the closest unit.
-+ */
-+static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
-+		unsigned debounce)
-+{
-+	void __iomem		*reg = bank->base;
-+	u32			val;
-+	u32			l;
-+
-+	if (debounce < 32)
-+		debounce = 0x01;
-+	else if (debounce > 7936)
-+		debounce = 0xff;
-+	else
-+		debounce = (debounce / 0x1f) - 1;
-+
-+	l = 1 << get_gpio_index(gpio);
-+
-+	if (cpu_is_omap44xx())
-+		reg += OMAP4_GPIO_DEBOUNCINGTIME;
-+	else
-+		reg += OMAP24XX_GPIO_DEBOUNCE_VAL;
-+
-+	__raw_writel(debounce, reg);
-+
-+	reg = bank->base;
-+	if (cpu_is_omap44xx())
-+		reg += OMAP4_GPIO_DEBOUNCENABLE;
-+	else
-+		reg += OMAP24XX_GPIO_DEBOUNCE_EN;
-+
-+	val = __raw_readl(reg);
-+
-+	if (debounce) {
-+		val |= l;
-+		if (!bank->dbck_enabled &&
-+				(cpu_is_omap34xx() || cpu_is_omap44xx())) {
-+			clk_enable(bank->dbck);
-+			bank->dbck_enabled = true;
-+		}
-+	} else {
-+		val &= ~l;
-+		if (bank->dbck_enabled &&
-+				(cpu_is_omap34xx() || cpu_is_omap44xx())) {
-+			clk_disable(bank->dbck);
-+			bank->dbck_enabled = false;
-+		}
-+	}
-+
-+	__raw_writel(val, reg);
-+}
-+
- void omap_set_gpio_debounce(int gpio, int enable)
- {
- 	struct gpio_bank *bank;
-@@ -1608,6 +1668,20 @@ static int gpio_output(struct gpio_chip *chip, unsigned offset, int value)
- 	return 0;
- }
- 
-+static int gpio_debounce(struct gpio_chip *chip, unsigned offset,
-+		unsigned debounce)
-+{
-+	struct gpio_bank *bank;
-+	unsigned long flags;
-+
-+	bank = container_of(chip, struct gpio_bank, chip);
-+	spin_lock_irqsave(&bank->lock, flags);
-+	_set_gpio_debounce(bank, offset, debounce);
-+	spin_unlock_irqrestore(&bank->lock, flags);
-+
-+	return 0;
-+}
-+
- static void gpio_set(struct gpio_chip *chip, unsigned offset, int value)
- {
- 	struct gpio_bank *bank;
-@@ -1860,6 +1934,7 @@ static int __init _omap_gpio_init(void)
- 		bank->chip.direction_input = gpio_input;
- 		bank->chip.get = gpio_get;
- 		bank->chip.direction_output = gpio_output;
-+		bank->chip.set_debounce = gpio_debounce;
- 		bank->chip.set = gpio_set;
- 		bank->chip.to_irq = gpio_2irq;
- 		if (bank_is_mpuio(bank)) {
--- 
-1.7.0.rc0.33.g7c3932
-
-
---IrhDeMKUP4DT/M7F--
