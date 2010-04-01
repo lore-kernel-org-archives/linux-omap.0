@@ -1,179 +1,63 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 1/8] OMAP:GPIO:Move architecture specific macros to
- specific header
-Date: Thu, 1 Apr 2010 12:00:37 +0300
-Message-ID: <20100401090037.GG16297@nokia.com>
-References: <20100401071713.GC16297@nokia.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C4B8F28D@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/8] OMAP3:GPIO:Add support for early platform gpio
+ device
+Date: Thu, 1 Apr 2010 02:12:00 -0700
+Message-ID: <20100401091200.GD31200@atomide.com>
+References: <20100401072324.GD16297@nokia.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C4B8F29C@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27470 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754349Ab0DAJBV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:01:21 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55045 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754145Ab0DAJKM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:10:12 -0400
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C4B8F28D@dbde02.ent.ti.com>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C4B8F29C@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Varadarajan, Charulatha" <charu@ti.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Thu, Apr 01, 2010 at 10:52:42AM +0200, ext Varadarajan, Charulatha wrote:
->
->
->> -----Original Message-----
->> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
->> Sent: Thursday, April 01, 2010 12:47 PM
->> To: Varadarajan, Charulatha
->> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com; tony@atomide.com
->> Subject: Re: [PATCH 1/8] OMAP:GPIO:Move architecture specific macros to specific
->> header
->>
->> Hi,
->>
->> On Wed, Mar 31, 2010 at 02:23:52PM +0200, ext Charulatha V wrote:
->> >diff --git a/arch/arm/mach-omap1/include/mach/gpio.h b/arch/arm/mach-
->> omap1/include/mach/gpio.h
->> >index e737706..c4945d7 100644
->> >--- a/arch/arm/mach-omap1/include/mach/gpio.h
->> >+++ b/arch/arm/mach-omap1/include/mach/gpio.h
->> >@@ -3,3 +3,91 @@
->> >  */
->> >
->> > #include <plat/gpio.h>
->> >+
->> >+/*
->> >+ * OMAP1510 GPIO registers
->> >+ */
->> >+#define OMAP1510_GPIO_BASE             0xfffce000
->> >+#define OMAP1510_GPIO_DATA_INPUT       0x00
->> >+#define OMAP1510_GPIO_DATA_OUTPUT      0x04
->> >+#define OMAP1510_GPIO_DIR_CONTROL      0x08
->> >+#define OMAP1510_GPIO_INT_CONTROL      0x0c
->> >+#define OMAP1510_GPIO_INT_MASK         0x10
->> >+#define OMAP1510_GPIO_INT_STATUS       0x14
->> >+#define OMAP1510_GPIO_PIN_CONTROL      0x18
->> >+
->> >+#define OMAP1510_IH_GPIO_BASE          64
->> >+
->> >+/*
->> >+ * OMAP1610 specific GPIO registers
->> >+ */
->> >+#define OMAP1610_GPIO1_BASE            0xfffbe400
->> >+#define OMAP1610_GPIO2_BASE            0xfffbec00
->> >+#define OMAP1610_GPIO3_BASE            0xfffbb400
->> >+#define OMAP1610_GPIO4_BASE            0xfffbbc00
->> >+#define OMAP1610_GPIO_REVISION         0x0000
->> >+#define OMAP1610_GPIO_SYSCONFIG                0x0010
->> >+#define OMAP1610_GPIO_SYSSTATUS                0x0014
->> >+#define OMAP1610_GPIO_IRQSTATUS1       0x0018
->> >+#define OMAP1610_GPIO_IRQENABLE1       0x001c
->> >+#define OMAP1610_GPIO_WAKEUPENABLE     0x0028
->> >+#define OMAP1610_GPIO_DATAIN           0x002c
->> >+#define OMAP1610_GPIO_DATAOUT          0x0030
->> >+#define OMAP1610_GPIO_DIRECTION                0x0034
->> >+#define OMAP1610_GPIO_EDGE_CTRL1       0x0038
->> >+#define OMAP1610_GPIO_EDGE_CTRL2       0x003c
->> >+#define OMAP1610_GPIO_CLEAR_IRQENABLE1 0x009c
->> >+#define OMAP1610_GPIO_CLEAR_WAKEUPENA  0x00a8
->> >+#define OMAP1610_GPIO_CLEAR_DATAOUT    0x00b0
->> >+#define OMAP1610_GPIO_SET_IRQENABLE1   0x00dc
->> >+#define OMAP1610_GPIO_SET_WAKEUPENA    0x00e8
->> >+#define OMAP1610_GPIO_SET_DATAOUT      0x00f0
->> >+
->> >+/*
->> >+ * OMAP7XX specific GPIO registers
->> >+ */
->> >+#define OMAP7XX_GPIO1_BASE             0xfffbc000
->> >+#define OMAP7XX_GPIO2_BASE             0xfffbc800
->> >+#define OMAP7XX_GPIO3_BASE             0xfffbd000
->> >+#define OMAP7XX_GPIO4_BASE             0xfffbd800
->> >+#define OMAP7XX_GPIO5_BASE             0xfffbe000
->> >+#define OMAP7XX_GPIO6_BASE             0xfffbe800
->> >+#define OMAP7XX_GPIO_DATA_INPUT                0x00
->> >+#define OMAP7XX_GPIO_DATA_OUTPUT       0x04
->> >+#define OMAP7XX_GPIO_DIR_CONTROL       0x08
->> >+#define OMAP7XX_GPIO_INT_CONTROL       0x0c
->> >+#define OMAP7XX_GPIO_INT_MASK          0x10
->> >+#define OMAP7XX_GPIO_INT_STATUS                0x14
->> >+
->> >+#define OMAP1_MPUIO_VBASE              OMAP1_MPUIO_BASE
->> >+#define OMAP1_MPUIO_BASE               0xfffb5000
->> >+
->> >+#if (defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850))
->> >+#define OMAP_MPUIO_INPUT_LATCH         0x00
->> >+#define OMAP_MPUIO_OUTPUT              0x02
->> >+#define OMAP_MPUIO_IO_CNTL             0x04
->> >+#define OMAP_MPUIO_KBR_LATCH           0x08
->> >+#define OMAP_MPUIO_KBC                 0x0a
->> >+#define OMAP_MPUIO_GPIO_EVENT_MODE     0x0c
->> >+#define OMAP_MPUIO_GPIO_INT_EDGE       0x0e
->> >+#define OMAP_MPUIO_KBD_INT             0x10
->> >+#define OMAP_MPUIO_GPIO_INT            0x12
->> >+#define OMAP_MPUIO_KBD_MASKIT          0x14
->> >+#define OMAP_MPUIO_GPIO_MASKIT         0x16
->> >+#define OMAP_MPUIO_GPIO_DEBOUNCING     0x18
->> >+#define OMAP_MPUIO_LATCH               0x1a
->> >+#else
->> >+#define OMAP_MPUIO_INPUT_LATCH         0x00
->> >+#define OMAP_MPUIO_OUTPUT              0x04
->> >+#define OMAP_MPUIO_IO_CNTL             0x08
->> >+#define OMAP_MPUIO_KBR_LATCH           0x10
->> >+#define OMAP_MPUIO_KBC                 0x14
->> >+#define OMAP_MPUIO_GPIO_EVENT_MODE     0x18
->> >+#define OMAP_MPUIO_GPIO_INT_EDGE       0x1c
->> >+#define OMAP_MPUIO_KBD_INT             0x20
->> >+#define OMAP_MPUIO_GPIO_INT            0x24
->> >+#define OMAP_MPUIO_KBD_MASKIT          0x28
->> >+#define OMAP_MPUIO_GPIO_MASKIT         0x2c
->> >+#define OMAP_MPUIO_GPIO_DEBOUNCING     0x30
->> >+#define OMAP_MPUIO_LATCH               0x34
->> >+#endif
->>
->> Add prefixes to these defines and remove the ifdefs.
->> This breaks multi-omap builds.
->
->AFAIK multi-omap build not applicable for OMAP1
+* Varadarajan, Charulatha <charu@ti.com> [100401 01:54]:
+> 
+> 
+> > -----Original Message-----
+> > From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+> > Sent: Thursday, April 01, 2010 12:53 PM
+> > To: Varadarajan, Charulatha
+> > Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com; tony@atomide.com
+> > Subject: Re: [PATCH 2/8] OMAP3:GPIO:Add support for early platform gpio device
+> > 
+> > On Wed, Mar 31, 2010 at 02:23:53PM +0200, ext Charulatha V wrote:
+> > >This patch adds support for implementing OMAP3 GPIO as an
+> > >early platform device and adds gpio_init specific to OMAP3
+> > >
+> > >This patch adds device structures for each GPIO device in
+> > >OMAP3 architecture. These strutures are not created in a
+> > >separate *_data.c file because these structures would be
+> > >removed once the driver gets adapted to HWMOD way.
+> > >
+> > >Signed-off-by: Charulatha V <charu@ti.com>
+> > >---
+> > > arch/arm/mach-omap2/gpio3xxx.c          |  351 +++++++++++++++++++++++++++++++
+> > > arch/arm/mach-omap2/include/mach/gpio.h |   13 +-
+> > > 2 files changed, 363 insertions(+), 1 deletions(-)
+> > > create mode 100644 arch/arm/mach-omap2/gpio3xxx.c
+> > >
+> > >--- /dev/null
+> > >+++ b/arch/arm/mach-omap2/gpio3xxx.c
+> > >+
+> > >+static struct __initdata omap_gpio_platform_data omap3_gpio1_config = {
+> > >+	.ick_name = "gpio1_ick",
+> > >+	.dbck_name = "gpio1_dbck",
+> > 
+> > do not pass clock names. Update the clkdev entries clk*_data.c
+> 
+> Agreed. These patches are in preparation for HWMOD. Once GPIO driver gets
+> adapted to HWMOD, this would be removed.
 
-yes, and we should try to fix that.
+Still need to change it before hwmod. No passing of clock names has been
+needed for quite a while now.
 
->> >-struct gpio_bank {
->> >-       unsigned long pbase;
->> >-       void __iomem *base;
->> >-       u16 irq;
->> >-       u16 virtual_irq_start;
->> >-       int method;
->> >-#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
->> >-       u32 suspend_wakeup;
->> >-       u32 saved_wakeup;
->> >-#endif
->> >-#ifdef CONFIG_ARCH_OMAP2PLUS
->> >-       u32 non_wakeup_gpios;
->> >-       u32 enabled_non_wakeup_gpios;
->> >-
->> >-       u32 saved_datain;
->> >-       u32 saved_fallingdetect;
->> >-       u32 saved_risingdetect;
->> >-#endif
->> >-       u32 level_mask;
->> >-       u32 toggle_mask;
->> >-       spinlock_t lock;
->> >-       struct gpio_chip chip;
->> >-       struct clk *dbck;
->> >-       u32 mod_usage;
->> >-};
->>
->> defines are fine, but this structure belongs to this driver. Nobody else
->> should need to poke on it. Keep it here.
->
->This would get used in mach-omap layers in the later patches.
->Hence moving it to gpio.h
-
-it shouldn't need to be there. The gpio driver should be only one. from 
-mach-omap1/2 directories should come enough data to allow the driver to 
-work correctly on any omap processor.
-
--- 
-balbi
+Tony
