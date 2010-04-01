@@ -1,30 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] Initial attempt to make ARM use LMB
-Date: Thu, 1 Apr 2010 02:47:56 -0700
-Message-ID: <20100401094755.GK31200@atomide.com>
-References: <20100325233248.GM24984@n2100.arm.linux.org.uk>
- <201003311443.13568.jeremy.kerr@canonical.com>
+Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+Date: Thu, 1 Apr 2010 02:52:04 -0700
+Message-ID: <20100401095203.GL31200@atomide.com>
+References: <496565EC904933469F292DDA3F1663E602CADC372D@dlee06.ent.ti.com>
+ <20100329.094017.112623699.Hiroshi.DOYU@nokia.com>
+ <20100329070145.GF28825@nokia.com>
+ <20100329.120856.59654379.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53725 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753495Ab0DAJqS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:46:18 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63395 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754792Ab0DAJuS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:50:18 -0400
 Content-Disposition: inline
-In-Reply-To: <201003311443.13568.jeremy.kerr@canonical.com>
+In-Reply-To: <20100329.120856.59654379.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jeremy Kerr <jeremy.kerr@canonical.com>
-Cc: linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: felipe.balbi@nokia.com, x0095840@ti.com, linux-omap@vger.kernel.org, ameya.palande@nokia.com, felipe.contreras@nokia.com
 
-* Jeremy Kerr <jeremy.kerr@canonical.com> [100330 23:39]:
-> Hi Russell,
+* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100329 02:05]:
+> From: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+> Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+> Date: Mon, 29 Mar 2010 09:01:45 +0200
+> > 
+> > in that case, wouldn't it be better to split that into 
+> > arch/arm/omap1/mbox.c arch/arm/omap2/mbox24xx.c 
+> > arch/arm/omap2/mbox34xx.c arch/arm/omap2/mbox44xx.c ??
+> > 
+> > that way we don't need ifdefs on the code and we will only compile what 
+> > we really need.
 > 
-> > LMB... logical memory blocks.
+> This is feasible.
+> But I'm not so sure whether adding 4 new files with around only 10
+> lines code is acceptable or not.
 > 
-> Nice, will be good for the DT work too.
+> Tony, any comment on the above?
+> 
+> Basically there could be the case we need all resources if we want to
+> support omap1, 2, 3 and 4 at the same time, and the appropriate one
+> will be chosen at run time by CPUID. I'm not sure how mature "omap
+> multi arch" support is practically, but it's better to keep it as much
+> as possbile.
 
-Great, very nice clean up!
+I like Felipe's suggestion of adding devices2420.c, devices34xx.c,
+devices44xx.c or similar. Then do the device init from those with
+a arch_initcall that returns immediately if not running on the right
+soc.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Tony
