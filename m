@@ -1,39 +1,53 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 1/2] OMAP3EVM: Made backlight GPIO default state to off
-Date: Thu, 01 Apr 2010 14:54:46 +0300
-Message-ID: <1270122886.2704.100.camel@tubuntu.research.nokia.com>
-References: <hvaibhav@ti.com>
-	 <1269263470-13814-1-git-send-email-hvaibhav@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:44990 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755653Ab0DALzA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 07:55:00 -0400
-In-Reply-To: <1269263470-13814-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] OMAP3: I2C: Errata i207: Clear wrong RDR interrupt
+Date: Thu,  1 Apr 2010 17:50:27 +0530
+Message-ID: <1270124427-11208-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "ext hvaibhav@ti.com" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-Hi,
+Under certain rare conditions, I2C_STAT[13].RDR bit may be set
+and the corresponding interrupt fire, even there is no data in
+the receive FIFO, or the I2C data transfer is still ongoing.
+These spurious RDR events must be ignored by the software.
 
-On Mon, 2010-03-22 at 14:11 +0100, ext hvaibhav@ti.com wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> If you choose default output to DVI, the LCD backlight still
-> gets powered, since panel->disable function never gets called for LCD.
-> 
-> So, during init put backlight GPIO to off state and the driverr
-> code will decide which output to enable explicitly.
+This patch handles and ignores RDR spurious interrupts.
 
-I'm not sure I understand this patch. You talk about choosing default
-output (via kernel boot args, I presume), but the code checks for EVM
-revision. What is the connection between EVM revision and selecting
-display output?
+Reviewed-by: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
- Tomi
-
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index f2019d2..acf4076 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -796,6 +796,19 @@ complete:
+ 		}
+ 		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+ 			u8 num_bytes = 1;
++
++			/*
++			 * OMAP3 I2C Errata ID: i207
++			 * Under certain rare conditions, RDR could be set again
++			 * when the bus is busy, then clear and ignore the interrupt
++			 */
++			if (!(stat & OMAP_I2C_STAT_RRDY) && (stat &
++						OMAP_I2C_STAT_BB)) {
++				/* clear RDR */
++				omap_i2c_ack_stat(dev, stat & OMAP_I2C_STAT_RDR);
++				dev_err(dev->dev, "I2C: RDR when bus is busy.\n");
++				return IRQ_HANDLED;
++			}
+ 			if (dev->fifo_size) {
+ 				if (stat & OMAP_I2C_STAT_RRDY)
+ 					num_bytes = dev->fifo_size;
+-- 
+1.6.0.4
