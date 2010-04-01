@@ -1,74 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] OMAP3EVM: Made backlight GPIO default state to off
-Date: Thu, 1 Apr 2010 03:23:21 -0700
-Message-ID: <20100401102321.GN31200@atomide.com>
-References: <hvaibhav@ti.com>
- <1269263470-13814-1-git-send-email-hvaibhav@ti.com>
- <19F8576C6E063C45BE387C64729E7394044DEBF3A5@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+Date: Thu, 01 Apr 2010 13:23:36 +0300 (EEST)
+Message-ID: <20100401.132336.193692763.Hiroshi.DOYU@nokia.com>
+References: <20100329070145.GF28825@nokia.com>
+	<20100329.120856.59654379.Hiroshi.DOYU@nokia.com>
+	<20100401095203.GL31200@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52876 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754847Ab0DAKVb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 06:21:31 -0400
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DEBF3A5@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:35928 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754954Ab0DAKYF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 06:24:05 -0400
+In-Reply-To: <20100401095203.GL31200@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+To: tony@atomide.com
+Cc: felipe.balbi@nokia.com, x0095840@ti.com, linux-omap@vger.kernel.org, ameya.palande@nokia.com, felipe.contreras@nokia.com
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [100330 01:07]:
-> 
-> > -----Original Message-----
-> > From: Hiremath, Vaibhav
-> > Sent: Monday, March 22, 2010 6:41 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: tomi.valkeinen@nokia.com; tony@atomide.com; Hiremath, Vaibhav
-> > Subject: [PATCH 1/2] OMAP3EVM: Made backlight GPIO default state to off
-> > 
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > 
-> > If you choose default output to DVI, the LCD backlight still
-> > gets powered, since panel->disable function never gets called for LCD.
-> > 
-> > So, during init put backlight GPIO to off state and the driverr
-> > code will decide which output to enable explicitly.
-> > 
-> [Hiremath, Vaibhav] Tony,
-> 
-> Do you see any issues with this patch? I think we can merge this patch series.
+From: ext Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+Date: Thu, 1 Apr 2010 11:52:04 +0200
 
-Looks like a valid fix to me.
+> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100329 02:05]:
+>> From: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+>> Subject: Re: [PATCH] OMAP3: mailbox initialization for all omap versions
+>> Date: Mon, 29 Mar 2010 09:01:45 +0200
+>> > 
+>> > in that case, wouldn't it be better to split that into 
+>> > arch/arm/omap1/mbox.c arch/arm/omap2/mbox24xx.c 
+>> > arch/arm/omap2/mbox34xx.c arch/arm/omap2/mbox44xx.c ??
+>> > 
+>> > that way we don't need ifdefs on the code and we will only compile what 
+>> > we really need.
+>> 
+>> This is feasible.
+>> But I'm not so sure whether adding 4 new files with around only 10
+>> lines code is acceptable or not.
+>> 
+>> Tony, any comment on the above?
+>> 
+>> Basically there could be the case we need all resources if we want to
+>> support omap1, 2, 3 and 4 at the same time, and the appropriate one
+>> will be chosen at run time by CPUID. I'm not sure how mature "omap
+>> multi arch" support is practically, but it's better to keep it as much
+>> as possbile.
+> 
+> I like Felipe's suggestion of adding devices2420.c, devices34xx.c,
+> devices44xx.c or similar. Then do the device init from those with
+> a arch_initcall that returns immediately if not running on the right
+> soc.
 
-Tony
- 
-> Thanks,
-> Vaibhav
-> 
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/board-omap3evm.c |    5 ++++-
-> >  1 files changed, 4 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> > omap2/board-omap3evm.c
-> > index 74bbdcb..f2a52c3 100644
-> > --- a/arch/arm/mach-omap2/board-omap3evm.c
-> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> > @@ -420,7 +420,10 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
-> > 
-> >  	/* TWL4030_GPIO_MAX + 0 == ledA, LCD Backlight control */
-> >  	gpio_request(gpio + TWL4030_GPIO_MAX, "EN_LCD_BKL");
-> > -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
-> > +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-> > +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
-> > +	else
-> > +		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
-> > 
-> >  	/* gpio + 7 == DVI Enable */
-> >  	gpio_request(gpio + 7, "EN_DVI");
-> > --
-> > 1.6.2.4
-> 
+Ok, let's procced with this. I'll post something later.
+
