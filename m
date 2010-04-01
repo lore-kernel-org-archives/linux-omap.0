@@ -1,85 +1,189 @@
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCHV3 2/2] Set MPU and IVA bypass clock dividers in DVFS
-Date: Thu,  1 Apr 2010 18:32:19 +0800
-Message-ID: <1270117939-10730-3-git-send-email-vishwanath.bs@ti.com>
-References: <>
- <1270117939-10730-1-git-send-email-vishwanath.bs@ti.com>
- <1270117939-10730-2-git-send-email-vishwanath.bs@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [RFC/PATCHv2 2/4] arm: omap: gpio: implement set_debounce
+ method
+Date: Thu, 1 Apr 2010 08:39:03 +0300
+Message-ID: <20100401053903.GB16297@nokia.com>
+References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
+ <1270049712-28272-3-git-send-email-felipe.balbi@nokia.com>
+ <20100331162158.GB32025@rakim.wolfsonmicro.main>
+ <20100331162909.GA23490@nokia.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="IrhDeMKUP4DT/M7F"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40189 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752648Ab0DAEy7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Apr 2010 00:54:59 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o314stjW005409
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 31 Mar 2010 23:54:58 -0500
-In-Reply-To: <1270117939-10730-2-git-send-email-vishwanath.bs@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:57246 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041Ab0DAFjo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 01:39:44 -0400
+Content-Disposition: inline
+In-Reply-To: <20100331162909.GA23490@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vishwanath BS <vishwanath.bs@ti.com>
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Cc: ext Mark Brown <broonie@opensource.wolfsonmicro.com>, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Whenever VDD1 OPP is changed, MPU and Bypass clock dividers should be
-adjusted such that MPU/IVA is never overclocked when DPLL1/DPLL2 is in
-bypass mode
 
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
----
- arch/arm/mach-omap2/resource34xx.c |   18 ++++++++++++++++--
- 1 files changed, 16 insertions(+), 2 deletions(-)
+--IrhDeMKUP4DT/M7F
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
 
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index c6cce8b..068021c
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -154,6 +154,7 @@ static struct device vdd2_dev;
- static int vdd1_lock;
- static int vdd2_lock;
- static struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk;
-+static  struct clk *dpll1_fck, *dpll2_fck;
- static int curr_vdd1_opp;
- static int curr_vdd2_opp;
- static DEFINE_MUTEX(dvfs_mutex);
-@@ -228,6 +229,8 @@ void init_opp(struct shared_resource *resp)
- 		ret = freq_to_opp(&opp_id, OPP_MPU, dpll1_clk->rate);
- 		BUG_ON(ret); /* TBD Cleanup handling */
- 		curr_vdd1_opp = opp_id;
-+		dpll1_fck = clk_get(NULL, "dpll1_fck");
-+		dpll2_fck = clk_get(NULL, "dpll2_fck");
- 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
- 		vdd2_resp = resp;
- 		dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
-@@ -276,9 +279,9 @@ static unsigned long compute_lpj(unsigned long ref, u_int div, u_int mult)
- 
- static int program_opp_freq(int res, int target_level, int current_level)
- {
--	int ret = 0, l3_div;
-+	int ret = 0, l3_div, mpu_div, iva2_div;
- 	int *curr_opp;
--	unsigned long mpu_freq, dsp_freq, l3_freq;
-+	unsigned long mpu_freq, dsp_freq, l3_freq, max_core_clk;
- #ifndef CONFIG_CPU_FREQ
- 	unsigned long mpu_cur_freq;
- #endif
-@@ -299,6 +302,17 @@ static int program_opp_freq(int res, int target_level, int current_level)
- 
- 	lock_scratchpad_sem();
- 	if (res == VDD1_OPP) {
-+		/* adjust bypass clock diviers */
-+		max_core_clk = ULONG_MAX;
-+		opp_find_freq_floor(OPP_L3, &max_core_clk);
-+		l3_div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
-+				OMAP3430_CLKSEL_L3_MASK;
-+		max_core_clk *= l3_div;
-+		mpu_div = 1 << (max_core_clk / mpu_freq);
-+		iva2_div = 1 << (max_core_clk / dsp_freq);
-+		clk_set_rate(dpll1_fck, max_core_clk/mpu_div);
-+		clk_set_rate(dpll2_fck, max_core_clk/iva2_div);
-+
- 		curr_opp = &curr_vdd1_opp;
- 		clk_set_rate(dpll1_clk, mpu_freq);
- 		clk_set_rate(dpll2_clk, dsp_freq);
+Hi,
+
+On Wed, Mar 31, 2010 at 06:29:09PM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
+>On Wed, Mar 31, 2010 at 06:21:58PM +0200, ext Mark Brown wrote:
+>>On Wed, Mar 31, 2010 at 06:35:10PM +0300, Felipe Balbi wrote:
+>>> +	if (debounce) {
+>>> +		val |= l;
+>>> +		if (cpu_is_omap34xx() || cpu_is_omap44xx())
+>>> +			clk_enable(bank->dbck);
+>>> +	} else {
+>>> +		val &= ~l;
+>>> +		if (cpu_is_omap34xx() || cpu_is_omap44xx())
+>>> +			clk_disable(bank->dbck);
+>>> +	}
+>>
+>>Will these do the right thing with the clocks for noop transitions or
+>>tweaks to the debounce time?  I'm not familiar with the OMAP clock
+>>framework, it could handle this.
+>
+>good catch. We need to be a bit smarter here. I'll leave that for
+>tomorrow. already 19:30 :-p
+
+attached is a new version of this patch.
+
 -- 
-1.5.4.3
+balbi
 
+--IrhDeMKUP4DT/M7F
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-arm-omap-gpio-implement-set_debounce-method.diff"
+
+>From 23b09f437d8bacebab676deaf52631b7eb0e8f15 Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Date: Wed, 31 Mar 2010 15:17:29 +0300
+Subject: [PATCHv3] arm: omap: gpio: implement set_debounce method
+
+OMAP support debouncing of gpio lines, implement
+the method using gpiolib.
+
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+
+Changes since v2:
+	- enable/disable debounce clock only once
+
+ arch/arm/plat-omap/gpio.c |   75 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 75 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 76a347b..163d88b 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -194,6 +194,7 @@ struct gpio_bank {
+ 	spinlock_t lock;
+ 	struct gpio_chip chip;
+ 	struct clk *dbck;
++	unsigned dbck_enabled:1;
+ 	u32 mod_usage;
+ };
+ 
+@@ -612,6 +613,65 @@ do {	\
+ 	__raw_writel(l, base + reg); \
+ } while(0)
+ 
++/**
++ * _set_gpio_debounce - low level gpio debounce time
++ * @bank: the gpio bank we're acting upon
++ * @gpio: the gpio number on this @gpio
++ * @debounce: debounce time to use
++ *
++ * OMAP's debounce time is in 31us steps so we need
++ * to convert and round up to the closest unit.
++ */
++static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
++		unsigned debounce)
++{
++	void __iomem		*reg = bank->base;
++	u32			val;
++	u32			l;
++
++	if (debounce < 32)
++		debounce = 0x01;
++	else if (debounce > 7936)
++		debounce = 0xff;
++	else
++		debounce = (debounce / 0x1f) - 1;
++
++	l = 1 << get_gpio_index(gpio);
++
++	if (cpu_is_omap44xx())
++		reg += OMAP4_GPIO_DEBOUNCINGTIME;
++	else
++		reg += OMAP24XX_GPIO_DEBOUNCE_VAL;
++
++	__raw_writel(debounce, reg);
++
++	reg = bank->base;
++	if (cpu_is_omap44xx())
++		reg += OMAP4_GPIO_DEBOUNCENABLE;
++	else
++		reg += OMAP24XX_GPIO_DEBOUNCE_EN;
++
++	val = __raw_readl(reg);
++
++	if (debounce) {
++		val |= l;
++		if (!bank->dbck_enabled &&
++				(cpu_is_omap34xx() || cpu_is_omap44xx())) {
++			clk_enable(bank->dbck);
++			bank->dbck_enabled = true;
++		}
++	} else {
++		val &= ~l;
++		if (bank->dbck_enabled &&
++				(cpu_is_omap34xx() || cpu_is_omap44xx())) {
++			clk_disable(bank->dbck);
++			bank->dbck_enabled = false;
++		}
++	}
++
++	__raw_writel(val, reg);
++}
++
+ void omap_set_gpio_debounce(int gpio, int enable)
+ {
+ 	struct gpio_bank *bank;
+@@ -1608,6 +1668,20 @@ static int gpio_output(struct gpio_chip *chip, unsigned offset, int value)
+ 	return 0;
+ }
+ 
++static int gpio_debounce(struct gpio_chip *chip, unsigned offset,
++		unsigned debounce)
++{
++	struct gpio_bank *bank;
++	unsigned long flags;
++
++	bank = container_of(chip, struct gpio_bank, chip);
++	spin_lock_irqsave(&bank->lock, flags);
++	_set_gpio_debounce(bank, offset, debounce);
++	spin_unlock_irqrestore(&bank->lock, flags);
++
++	return 0;
++}
++
+ static void gpio_set(struct gpio_chip *chip, unsigned offset, int value)
+ {
+ 	struct gpio_bank *bank;
+@@ -1860,6 +1934,7 @@ static int __init _omap_gpio_init(void)
+ 		bank->chip.direction_input = gpio_input;
+ 		bank->chip.get = gpio_get;
+ 		bank->chip.direction_output = gpio_output;
++		bank->chip.set_debounce = gpio_debounce;
+ 		bank->chip.set = gpio_set;
+ 		bank->chip.to_irq = gpio_2irq;
+ 		if (bank_is_mpuio(bank)) {
+-- 
+1.7.0.rc0.33.g7c3932
+
+
+--IrhDeMKUP4DT/M7F--
