@@ -1,63 +1,54 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH 1/2] OMAP3EVM: Made backlight GPIO default state to off
-Date: Thu, 01 Apr 2010 16:32:34 +0300
-Message-ID: <1270128754.2704.107.camel@tubuntu.research.nokia.com>
+Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
+Date: Thu, 01 Apr 2010 16:42:00 +0300
+Message-ID: <1270129320.2704.114.camel@tubuntu.research.nokia.com>
 References: <hvaibhav@ti.com>
-	 <1269263470-13814-1-git-send-email-hvaibhav@ti.com>
-	 <1270122886.2704.100.camel@tubuntu.research.nokia.com>
-	 <19F8576C6E063C45BE387C64729E7394044DF7EF68@dbde02.ent.ti.com>
+	 <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:29402 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751744Ab0DANcw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 09:32:52 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DF7EF68@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:54845 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753253Ab0DANmy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 09:42:54 -0400
+In-Reply-To: <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: "ext hvaibhav@ti.com" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 2010-04-01 at 14:11 +0200, ext Hiremath, Vaibhav wrote:
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Thursday, April 01, 2010 5:25 PM
-> > To: Hiremath, Vaibhav
-> > Cc: linux-omap@vger.kernel.org; tony@atomide.com
-> > Subject: Re: [PATCH 1/2] OMAP3EVM: Made backlight GPIO default state to off
-> > 
-> > Hi,
-> > 
-> > On Mon, 2010-03-22 at 14:11 +0100, ext hvaibhav@ti.com wrote:
-> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > > If you choose default output to DVI, the LCD backlight still
-> > > gets powered, since panel->disable function never gets called for LCD.
-> > >
-> > > So, during init put backlight GPIO to off state and the driverr
-> > > code will decide which output to enable explicitly.
-> > 
-> > I'm not sure I understand this patch. You talk about choosing default
-> > output (via kernel boot args, I presume),
-> [Hiremath, Vaibhav] yes you are correct. I am talking about default output selection using bootargs.
+On Mon, 2010-03-22 at 14:09 +0100, ext hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
 > 
-> > but the code checks for EVM
-> > revision. What is the connection between EVM revision and selecting
-> > display output?
-> [Hiremath, Vaibhav] Ohh ok, I think you are not aware that we do have 2 version of EVM's. EVM-1 with positive (backlight gpio) polarity and EVM-2 with negative (backlight gpio) polarity. 
+> In case of 720P with 90/270 degree rotation, the system reports
+> GFX_FIFO_UNDERFLOW error which usually happens if DSS DMA is not able to fill
+> the FIFO as per requirement.
 > 
-> The code is doing exactly same.
+> In TRM (section 11.2.6.1.3), where is has been clearly mentioned that,
+> 
+> "To improve the performance on 90 degree rotation, split the data access on
+> write side and not read side."
+> 
+> That means, read should always happen on 0 degree and write should go to
+> respective rotation view.
 
-Ok. But I still don't understand the relation with the patch comment,
-and the code. Shouldn't you anyway initialize the backlight gpio
-properly depending on the EVM revision, no matter if DVI is the default
-output or not?
+I haven't had time to look at this patch yet. I'll try to do it next
+week.
 
-Perhaps the comment could be clarified. But the code looks fine:
+However, I knew that TRM text when I was writing the code. The reason I
+chose to use 0 degree view for omapfb and change the view from DSS side
+was that it was difficult to handle mmapped areas in this case, if I
+recall right. I have to say I don't exactly remember what the problems
+were, so I need to read the code and think about this again.
 
-Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Hmm, perhaps it was so that if you choose to change omapfb's VRFB view,
+you can only do that if nothing is mmapped. Which means that either you
+can only use one rotation angle defined at boot time, or you need
+carefully to remove all mmappings, including fb console, then change the
+view and recreate the mapping. And one requirement was that the rotation
+should be changeable at runtime, which made the select the current
+approach.
 
  Tomi
 
