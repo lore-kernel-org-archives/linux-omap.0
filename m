@@ -1,156 +1,84 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] OMAP: LCD LS037V7DW01: Add Backlight driver support
-Date: Thu, 1 Apr 2010 17:42:55 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DF7EF6A@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	 <1269263515-13912-1-git-send-email-hvaibhav@ti.com>
- <1270123215.2704.103.camel@tubuntu.research.nokia.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v2] OMAP: DMA: Init CDAC to zero
+Date: Thu, 1 Apr 2010 17:51:20 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F323D4F@dbde02.ent.ti.com>
+References: <1267667139-17599-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53212 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755781Ab0DAMNS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 08:13:18 -0400
-In-Reply-To: <1270123215.2704.103.camel@tubuntu.research.nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39087 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755962Ab0DAMV3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 08:21:29 -0400
+In-Reply-To: <1267667139-17599-1-git-send-email-manjugk@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
+Hi Tony,
+If there are no further comments on below patches, can you please
+push the patches
+
+https://patchwork.kernel.org/patch/83540/
+https://patchwork.kernel.org/patch/83541/
+
+-Manjunath 
 
 > -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Thursday, April 01, 2010 5:30 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] OMAP: LCD LS037V7DW01: Add Backlight driver support
+> From: G, Manjunath Kondaiah 
+> Sent: Thursday, March 04, 2010 7:46 AM
+> To: linux-omap@vger.kernel.org
+> Cc: G, Manjunath Kondaiah; Tony Lindgren; Shilimkar, Santosh; 
+> Raja, Govindraj; Kevin Hilman
+> Subject: [PATCH v2] OMAP: DMA: Init CDAC to zero
 > 
-> Hi,
+> The register DMA4_CDAC needs to be initialized to zero
+> before starting DMA transfer.
 > 
-> Two comments below
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Govindraj R <govindraj.raja@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Reported-by:S, Venkatraman <svenkatr@ti.com>
+> Signed-off-by: Manjunatha GK <manjugk@ti.com>
+> ---
+> It was aligned to reset CDAC to zero in omap_start_dma(int lch)
+> instead of creating new API for accessing CDAC register.
 > 
-> On Mon, 2010-03-22 at 14:11 +0100, ext hvaibhav@ti.com wrote:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > Tested on OMAP3EVM for OMAP3530 and AM/DM 3730.
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/board-omap3evm.c               |   32 ++++++++
-> >  .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   75
-> ++++++++++++++++++++
-> >  2 files changed, 107 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> omap2/board-omap3evm.c
-> > index f2a52c3..ad74340 100644
-> > --- a/arch/arm/mach-omap2/board-omap3evm.c
-> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> > @@ -253,6 +253,36 @@ static void omap3_evm_disable_lcd(struct
-> omap_dss_device *dssdev)
-> >  	lcd_enabled = 0;
-> >  }
-> >
-> > +/*
-> > + * PWMA/B register offsets (TWL4030_MODULE_PWMA)
-> > + */
-> > +#define TWL_LED_EN	0x0
-> > +#define TWL_LED_PWMON	0x0
-> > +#define TWL_LED_PWMOFF	0x1
-> > +
-> > +static void omap3evm_set_bl_intensity(struct omap_dss_device *dssdev, int
-> level)
-> > +{
-> > +	unsigned char c;
-> > +
-> > +	if (level > 100)
-> > +		return;
-> > +	/*
-> > +	 * Enable LEDA for backlight
-> > +	 */
-> > +	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_EN);
-> > +
-> > +	c = ((125 * (100 - level)) / 100);
-> > +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
-> > +		c += 1;
-> > +		twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x7F, TWL_LED_PWMOFF);
-> > +		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_LED_PWMON);
-> > +	} else {
-> > +		c += 2;
-> > +		twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x1, TWL_LED_PWMON);
-> > +		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_LED_PWMOFF);
-> > +	}
-> > +}
-> > +
-> >  static struct omap_dss_device omap3_evm_lcd_device = {
-> >  	.name			= "lcd",
-> >  	.driver_name		= "sharp_ls_panel",
-> > @@ -260,6 +290,8 @@ static struct omap_dss_device omap3_evm_lcd_device = {
-> >  	.phy.dpi.data_lines	= 18,
-> >  	.platform_enable	= omap3_evm_enable_lcd,
-> >  	.platform_disable	= omap3_evm_disable_lcd,
-> > +	.max_backlight_level	= 100,
-> > +	.set_backlight		= omap3evm_set_bl_intensity,
-> >  };
-> >
-> >  static int omap3_evm_enable_tv(struct omap_dss_device *dssdev)
-> > diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-> b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-> > index 8d51a5e..d4fcd69 100644
-> > --- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-> > +++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-> > @@ -20,10 +20,16 @@
-> >  #include <linux/module.h>
-> >  #include <linux/delay.h>
-> >  #include <linux/device.h>
-> > +#include <linux/backlight.h>
-> > +#include <linux/fb.h>
-> >  #include <linux/err.h>
-> >
-> >  #include <plat/display.h>
-> >
-> > +struct sharp_data {
-> > +	struct backlight_device *bl;
-> > +};
-> > +
-> >  static struct omap_video_timings sharp_ls_timings = {
-> >  	.x_res = 480,
-> >  	.y_res = 640,
-> > @@ -39,18 +45,87 @@ static struct omap_video_timings sharp_ls_timings = {
-> >  	.vbp		= 1,
-> >  };
-> >
-> > +static int sharp_ls_bl_update_status(struct backlight_device *bl)
-> > +{
-> > +	struct omap_dss_device *dssdev = dev_get_drvdata(&bl->dev);
-> > +	int level;
-> > +
-> > +	if (!dssdev->set_backlight)
-> > +		return -EINVAL;
-> > +
-> > +	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
-> > +			bl->props.power == FB_BLANK_UNBLANK)
-> > +		level = bl->props.brightness;
-> > +	else
-> > +		level = 0;
-> > +
-> > +	return dssdev->set_backlight(dssdev, level);
+> Discussion thread is at:
+> http://patchwork.kernel.org/patch/83176/
+> http://patchwork.kernel.org/patch/82948/
 > 
-> I think you should check if dssdev->set_backlight is NULL. Some boards
-> may not have set_backlight.
+> v2 changes:
+> Fixed multiline comments as per CodingStyle
 > 
-> Also, you could divide this to board file patch and panel patch. That
-> way I can queue up the panel patch, and the board patch may go through
-> Tony.
-[Hiremath, Vaibhav] Thanks and I will submit reworked patch soon.
-
-Thanks,
-Vaibhav
-
+>  arch/arm/plat-omap/dma.c |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
 > 
->  Tomi
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 2ab224c..f6c9bdc 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -936,6 +936,15 @@ void omap_start_dma(int lch)
+>  {
+>  	u32 l;
+>  
+> +	/*
+> +	 * The CPC/CDAC register needs to be initialized to zero
+> +	 * before starting dma transfer.
+> +	 */
+> +	if (cpu_is_omap15xx())
+> +		dma_write(0, CPC(lch));
+> +	else
+> +		dma_write(0, CDAC(lch));
+> +
+>  	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
+>  		int next_lch, cur_lch;
+>  		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
+> -- 
+> 1.6.3.3
 > 
-
+> 
