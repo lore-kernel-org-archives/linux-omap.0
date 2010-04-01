@@ -1,48 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 8/8] OMAP:GPIO:Common platform code for all OMAPs
-Date: Thu, 1 Apr 2010 02:34:26 -0700
-Message-ID: <20100401093425.GI31200@atomide.com>
-References: <1270038239-1090-1-git-send-email-charu@ti.com>
- <1270038239-1090-2-git-send-email-charu@ti.com>
- <1270038239-1090-3-git-send-email-charu@ti.com>
- <1270038239-1090-4-git-send-email-charu@ti.com>
- <1270038239-1090-5-git-send-email-charu@ti.com>
- <1270038239-1090-6-git-send-email-charu@ti.com>
- <1270038239-1090-7-git-send-email-charu@ti.com>
- <1270038239-1090-8-git-send-email-charu@ti.com>
- <1270038239-1090-9-git-send-email-charu@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [RFC/PATCHv2 2/4] arm: omap: gpio: implement set_debounce
+ method
+Date: Thu, 1 Apr 2010 12:32:39 +0300
+Message-ID: <20100401093239.GH16297@nokia.com>
+References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
+ <1270049712-28272-3-git-send-email-felipe.balbi@nokia.com>
+ <y2o6ed0b2681004010229r367aa72fv33746375541cd9da@mail.gmail.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57895 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179Ab0DAJcd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:32:33 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:57510 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753179Ab0DAJdb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 05:33:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1270038239-1090-9-git-send-email-charu@ti.com>
+In-Reply-To: <y2o6ed0b2681004010229r367aa72fv33746375541cd9da@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charulatha V <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, paul@pwsan.com
+To: ext Grazvydas Ignotas <notasas@gmail.com>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Charulatha V <charu@ti.com> [100331 05:15]:
-> This patch adds support for common GPIO code in plat-omap layer
-> to perform most common operations for all OMAPs. This is handled
-> by getting function pointers and register offsets from
-> architecture specific files in mach-omap layer.
-> 
-> The common APIs are handled by plat-omap/gpio.c file. Specific function,
-> eg., get_gpio_bank, set_gpio_triggering, etc., are handled differently
-> in different architectures. Hence they are handled in mach-omap layer.
-> 
-> This patch also adds support for passing platform_data for OMAP2PLUS.
-> For OMAP1, it still supports the old way of doing omap_gpio_init which
-> would be handled in mach-omap1 layer.
-> 
-> This patch is in prepartion for HWMOD FW adaptation for GPIO module.
+On Thu, Apr 01, 2010 at 11:29:16AM +0200, ext Grazvydas Ignotas wrote:
+>Hmh, dbck is shared by the whole GPIO bank, so what happens if someone
+>calls _set_gpio_debounce(bank, 1, 310) and then
+>_set_gpio_debounce(bank, 2, 0)? This should leave debounce enabled for
+>GPIO1, but you'll disable dbck on second call. GPIOs 0-31 share the
+>same bank.
 
-Sounds like this needs to be broken down into smaller patches. Let's first
-get initializing things with platform data working, only then start patching
-the functional code.
+but why would you call _set_gpio_debounce(bank, 2 0); without setting a 
+real debounce value before ?
 
-Tony
+>There is also an issue if somebody calls _set_gpio_debounce(bank, 1,
+>310) and _set_gpio_debounce(bank, 2, 620), the second call will
+>override debounce setting of GPIO1 (as it's shared by the whole bank).
+>This might be not what the user intended, would be useful to detect
+>this and warn the user.
+
+good point. As this is RFC, I'll wait until everybody comments.
+
+-- 
+balbi
