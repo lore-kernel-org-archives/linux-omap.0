@@ -1,122 +1,280 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH] Disable the non working eMMC on Zoom2/3
-Date: Thu, 1 Apr 2010 09:33:02 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030D32CEE8@dbde02.ent.ti.com>
-References: <37310.192.168.10.89.1270081542.squirrel@dbdmail.itg.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] OMAP2: DSS: Add Innolux 7" display for DEVKIT8000
+Date: Thu, 1 Apr 2010 09:37:38 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DF7ED7F@dbde02.ent.ti.com>
+References: <1270023938-22213-1-git-send-email-swirl@gmx.li>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <37310.192.168.10.89.1270081542.squirrel@dbdmail.itg.ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38895 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750867Ab0DAEII convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Apr 2010 00:08:08 -0400
+In-Reply-To: <1270023938-22213-1-git-send-email-swirl@gmx.li>
 Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "swirl@gmx.li" <swirl@gmx.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Thomas Weber <weber@corscience.de>
 
-Madhu,
 
 > -----Original Message-----
 > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Chikkature Rajashekar, Madhusudhan
-> Sent: 2010-04-01 05:56
-> To: tony@atomide.com
-> Cc: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org
-> Subject: [PATCH] Disable the non working eMMC on Zoom2/3
+> owner@vger.kernel.org] On Behalf Of swirl@gmx.li
+> Sent: Wednesday, March 31, 2010 1:56 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Thomas Weber; Thomas Weber
+> Subject: [PATCH] OMAP2: DSS: Add Innolux 7" display for DEVKIT8000
 > 
-> From: Madhusudhan Chikkature <madhu.cr@ti.com>
-> Date: Wed, 31 Mar 2010 12:29:19 -0400
-> Subject: [PATCH] Zoom2/3: Disable MMC
+> From: Thomas Weber <swirl@gmx.li>
 > 
-> The eMMC on Zoom2/3 seems to have a lower EXT_CSD Rev.This causes the
-> writes to fail since the card size is not detected correctly by the MMC
-> core. Disable the MMC2 support for Zoom2/3.
-
-
-[Ghorai] Please let us know the EXT_CSD Rev you see in zoom3 and the exact problem. Because we never face any issue for eMMC in ZOOM3. Because we have the same eMMC device in 3630-SDP and could have the same problem.
-
+> This patch adds the Innolux AT070TN83 display.
+> The Devkit8000 has a lcd connector and
+> you can order your Devkit8000 with this display.
 > 
-> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> Signed-off-by: Thomas Weber <weber@corscience.de>
 > ---
->  arch/arm/mach-omap2/board-zoom-peripherals.c |   30 ---------------------
-> -----
->  1 files changed, 0 insertions(+), 30 deletions(-)
+>  drivers/video/omap2/displays/Kconfig               |    8 +-
+>  drivers/video/omap2/displays/Makefile              |    1 +
+>  .../video/omap2/displays/panel-innolux-at070tn83.c |  154
+> ++++++++++++++++++++
+>  3 files changed, 162 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/video/omap2/displays/panel-innolux-at070tn83.c
 > 
-> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> index 6b39849..ac791d2 100644
-> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> @@ -102,10 +102,6 @@ static struct regulator_consumer_supply
-> zoom_vsim_supply = {
->  	.supply		= "vmmc_aux",
->  };
+> diff --git a/drivers/video/omap2/displays/Kconfig
+> b/drivers/video/omap2/displays/Kconfig
+> index dfb57ee..a750662 100644
+> --- a/drivers/video/omap2/displays/Kconfig
+> +++ b/drivers/video/omap2/displays/Kconfig
+> @@ -5,7 +5,7 @@ config PANEL_GENERIC
+>          tristate "Generic Panel"
+>          help
+>  	  Generic panel driver.
+> -	  Used for DVI output for Beagle and OMAP3 SDP.
+> +	  Used for DVI output for Beagle, Devkit8000 and OMAP3 SDP.
+[Hiremath, Vaibhav] I think we should get rid of EMV's here, since as we are mentioning here it is Generic output and also this is being used on OMAP3EVM, AM3517EVM and many others.
+
+I would suggest to mention only "Used for OMAP3 DVI output"
+
 > 
-> -static struct regulator_consumer_supply zoom_vmmc2_supply = {
-> -	.supply		= "vmmc",
-> -};
-> -
->  /* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
->  static struct regulator_init_data zoom_vmmc1 = {
->  	.constraints = {
-> @@ -121,21 +117,6 @@ static struct regulator_init_data zoom_vmmc1 = {
->  	.consumer_supplies      = &zoom_vmmc1_supply,
->  };
+>  config PANEL_SHARP_LS037V7DW01
+>          tristate "Sharp LS037V7DW01 LCD Panel"
+> @@ -19,6 +19,12 @@ config PANEL_SHARP_LQ043T1DG01
+>          help
+>            LCD Panel used in TI's OMAP3517 EVM boards
 > 
-> -/* VMMC2 for MMC2 card */
-> -static struct regulator_init_data zoom_vmmc2 = {
-> -	.constraints = {
-> -		.min_uV			= 1850000,
-> -		.max_uV			= 1850000,
-> -		.apply_uV		= true,
-> -		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-> -					| REGULATOR_MODE_STANDBY,
-> -		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-> -					| REGULATOR_CHANGE_STATUS,
-> -	},
-> -	.num_consumer_supplies  = 1,
-> -	.consumer_supplies      = &zoom_vmmc2_supply,
-> -};
-> -
->  /* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
->  static struct regulator_init_data zoom_vsim = {
->  	.constraints = {
-> @@ -159,15 +140,6 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
->  		.gpio_wp	= -EINVAL,
->  		.power_saving	= true,
->  	},
-> -	{
-> -		.name		= "internal",
-> -		.mmc		= 2,
-> -		.wires		= 8,
-> -		.gpio_cd	= -EINVAL,
-> -		.gpio_wp	= -EINVAL,
-> -		.nonremovable	= true,
-> -		.power_saving	= true,
-> -	},
->  	{}      /* Terminator */
->  };
-> 
-> @@ -183,7 +155,6 @@ static int zoom_twl_gpio_setup(struct device *dev,
->  	*/
->  	zoom_vmmc1_supply.dev = mmc[0].dev;
->  	zoom_vsim_supply.dev = mmc[0].dev;
-> -	zoom_vmmc2_supply.dev = mmc[1].dev;
-> 
->  	return 0;
->  }
-> @@ -241,7 +212,6 @@ static struct twl4030_platform_data zoom_twldata = {
->  	.keypad		= &zoom_kp_twl4030_data,
->  	.codec		= &zoom_codec_data,
->  	.vmmc1          = &zoom_vmmc1,
-> -	.vmmc2          = &zoom_vmmc2,
->  	.vsim           = &zoom_vsim,
-> 
->  };
+> +config PANEL_INNOLUX_AT070TN83
+> +	tristate "Innolux AT070TN83 LCD Panel"
+> +	depends on OMAP2_DSS
+> +	help
+> +	 LCD Panel used in TimLL's Devkit8000
+> +
+>  config PANEL_TAAL
+>          tristate "Taal DSI Panel"
+>          depends on OMAP2_DSS_DSI
+> diff --git a/drivers/video/omap2/displays/Makefile
+> b/drivers/video/omap2/displays/Makefile
+> index e2bb321..fe3ae8d 100644
+> --- a/drivers/video/omap2/displays/Makefile
+> +++ b/drivers/video/omap2/displays/Makefile
+> @@ -5,3 +5,4 @@ obj-$(CONFIG_PANEL_SHARP_LQ043T1DG01) += panel-sharp-
+> lq043t1dg01.o
+>  obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
+>  obj-$(CONFIG_PANEL_TOPPOLY_TDO35S) += panel-toppoly-tdo35s.o
+>  obj-$(CONFIG_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
+> +obj-$(CONFIG_PANEL_INNOLUX_AT070TN83) += panel-innolux-at070tn83.o
+> diff --git a/drivers/video/omap2/displays/panel-innolux-at070tn83.c
+> b/drivers/video/omap2/displays/panel-innolux-at070tn83.c
+> new file mode 100644
+> index 0000000..1ef14cd
+> --- /dev/null
+> +++ b/drivers/video/omap2/displays/panel-innolux-at070tn83.c
+> @@ -0,0 +1,154 @@
+> +/*
+> + * LCD panel driver for Innolux AT70TN83
+> + *
+> + * Copyright (C) 2010 Thomas Weber <weber@corscience.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published
+> by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+> for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/delay.h>
+> +#include <linux/device.h>
+> +#include <linux/regulator/consumer.h>
+[Hiremath, Vaibhav] You can remove this.
+
+> +#include <linux/err.h>
+> +
+> +#include <plat/display.h>
+> +
+> +static struct omap_video_timings innolux_at_timings = {
+> +	.x_res		= 800,
+> +	.y_res		= 480,
+> +
+> +	.pixel_clock	= 40000,
+> +
+> +	.hsw		= 48,
+> +	.hfp		= 1,
+> +	.hbp		= 1,
+> +
+> +	.vsw		= 3,
+> +	.vfp		= 12,
+> +	.vbp		= 25,
+> +};
+> +
+> +static int innolux_at_panel_power_on(struct omap_dss_device *dssdev)
+> +{
+> +	int r;
+> +
+> +	r = omapdss_dpi_display_enable(dssdev);
+> +	if (r)
+> +		goto err0;
+[Hiremath, Vaibhav] You can directly return from here. Just do
+
+if (r)
+	Return r;
+
+> +
+> +	if (dssdev->platform_enable) {
+> +		r = dssdev->platform_enable(dssdev);
+> +		if (r)
+> +			goto err1;
+> +	}
+> +
+[Hiremath, Vaibhav] Here also you can implement something,
+
+
+	if (dssdev->platform_enable) {
+		r = dssdev->platform_enable(dssdev);
+		if (r) {
+			omapdss_dpi_display_disable(dssdev);
+		}
+	}
+
+	return r;
+
+You can get rid of goto's completely.
+
+Thanks,
+Vaibhav
+
+> +	return 0;
+> +err1:
+> +	omapdss_dpi_display_disable(dssdev);
+> +err0:
+> +	return r;
+> +}
+> +
+> +static void innolux_at_panel_power_off(struct omap_dss_device *dssdev)
+> +{
+> +	if (dssdev->platform_disable)
+> +		dssdev->platform_disable(dssdev);
+> +
+> +	omapdss_dpi_display_disable(dssdev);
+> +
+> +}
+> +
+> +static int innolux_at_panel_probe(struct omap_dss_device *dssdev)
+> +{
+> +	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+> +		OMAP_DSS_LCD_IHS;
+> +	dssdev->panel.acb = 0x28;
+> +	dssdev->panel.timings = innolux_at_timings;
+> +
+> +	return 0;
+> +}
+> +
+> +static void innolux_at_panel_remove(struct omap_dss_device *dssdev)
+> +{
+> +}
+> +
+> +static int innolux_at_panel_enable(struct omap_dss_device *dssdev)
+> +{
+> +	int r = 0;
+> +
+> +	r = innolux_at_panel_power_on(dssdev);
+> +	if (r)
+> +		return r;
+> +
+> +	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+> +
+> +	return 0;
+> +}
+> +
+> +static void innolux_at_panel_disable(struct omap_dss_device *dssdev)
+> +{
+> +	innolux_at_panel_power_off(dssdev);
+> +
+> +	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+> +}
+> +
+> +static int innolux_at_panel_suspend(struct omap_dss_device *dssdev)
+> +{
+> +	innolux_at_panel_power_off(dssdev);
+> +	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
+> +	return 0;
+> +}
+> +
+> +static int innolux_at_panel_resume(struct omap_dss_device *dssdev)
+> +{
+> +	int r = 0;
+> +
+> +	r = innolux_at_panel_power_on(dssdev);
+> +
+> +	if (r)
+> +		return r;
+> +
+> +	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct omap_dss_driver innolux_at_driver = {
+> +	.probe		= innolux_at_panel_probe,
+> +	.remove		= innolux_at_panel_remove,
+> +
+> +	.enable		= innolux_at_panel_enable,
+> +	.disable	= innolux_at_panel_disable,
+> +	.suspend	= innolux_at_panel_suspend,
+> +	.resume		= innolux_at_panel_resume,
+> +
+> +	.driver         = {
+> +		.name   = "innolux_at_panel",
+> +		.owner  = THIS_MODULE,
+> +	},
+> +};
+> +
+> +static int __init innolux_at_panel_drv_init(void)
+> +{
+> +	return omap_dss_register_driver(&innolux_at_driver);
+> +}
+> +
+> +static void __exit innolux_at_panel_drv_exit(void)
+> +{
+> +	omap_dss_unregister_driver(&innolux_at_driver);
+> +}
+> +
+> +module_init(innolux_at_panel_drv_init);
+> +module_exit(innolux_at_panel_drv_exit);
+> +MODULE_LICENSE("GPL");
 > --
-> 1.6.3.3
-> 
-> 
+> 1.6.4.4
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
