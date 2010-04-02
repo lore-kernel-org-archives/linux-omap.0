@@ -1,46 +1,73 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC][PATCH] ASoC: OMAP: Fix capture pointer handling for OMAP1510 to work correctly with recent ALSA PCM code
-Date: Fri, 2 Apr 2010 12:51:44 +0200
-Message-ID: <201004021251.47488.jkrzyszt@tis.icnet.pl>
-References: <201003282229.32922.jkrzyszt@tis.icnet.pl> <20100402111036.3de0e6c7.jhnikula@gmail.com> <20100402093655.GA11134@rakim.wolfsonmicro.main>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: [PATCH] dma: fix scope of errata i88 upto 3430ES1.0
+Date: Fri, 2 Apr 2010 17:05:15 +0530
+Message-ID: <w2g618f0c911004020435qd281c5deoc3e0ade84cc2d0b1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:34361 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752909Ab0DBKwr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Apr 2010 06:52:47 -0400
-In-Reply-To: <20100402093655.GA11134@rakim.wolfsonmicro.main>
-Content-Disposition: inline
+Received: from mail-iw0-f199.google.com ([209.85.223.199]:60116 "EHLO
+	mail-iw0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932393Ab0DBLfR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Apr 2010 07:35:17 -0400
+Received: by iwn37 with SMTP id 37so1444863iwn.15
+        for <linux-omap@vger.kernel.org>; Fri, 02 Apr 2010 04:35:16 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jaroslav Kysela <perex@perex.cz>
+To: linux-omap@vger.kernel.org
+Cc: thara@ti.com, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-=46riday 02 April 2010 11:36:56 Mark Brown napisa=C5=82(a):
-> On Fri, Apr 02, 2010 at 11:10:36AM +0300, Jarkko Nikula wrote:
-> > Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
-> > > However, I still don't understand what happened to capture stream
-> > > handling that it stopped working for me.
-> >
-> > While I either don't understand the broke I think there's something=
- in
-> > the capture DMA pointer which shows up only now. So I'm fine if you
-> > Janusz like to get your patch in and can have my ack. Or do you wan=
-t to
-> > debug it further?
-> >
-> > Acked-by: Jarkko Nikula <jhnikula@gmail.com>
->
-> Personally I don't mind as long as you guys are happy - Janusz?
+DMA errata for special end of block programming is applicable
+only for OMAP2430 & OMAP3430 ES1.0.
+This patch does the necessary checks before the workaround
+is applied. Tested on 3430 SDP
 
-I don't mind either :), please apply.
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Venkatraman S <svenkatr@ti.com>
+---
+ arch/arm/plat-omap/dma.c |   22 ++++++++++++++--------
+ 1 files changed, 14 insertions(+), 8 deletions(-)
 
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 2ab224c..ef965ac 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -1663,14 +1663,18 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ 	channels = dma_linked_lch[chain_id].linked_dmach_q;
+
+ 	/*
+-	 * DMA Errata:
+-	 * Special programming model needed to disable DMA before end of block
++	 * DMA Errata: i88
++	 * Special programming model needed
++	 * to disable DMA before end of block
+ 	 */
+ 	sys_cf = dma_read(OCP_SYSCONFIG);
+-	l = sys_cf;
+-	/* Middle mode reg set no Standby */
+-	l &= ~((1 << 12)|(1 << 13));
+-	dma_write(l, OCP_SYSCONFIG);
++	if (cpu_is_omap2430() || (cpu_is_omap3430() &&
++			omap_rev() == OMAP3430_REV_ES1_0)) {
++		l = sys_cf;
++		/* Middle mode reg set no Standby */
++		l &= ~((1 << 12)|(1 << 13));
++		dma_write(l, OCP_SYSCONFIG);
++	}
+
+ 	for (i = 0; i < dma_linked_lch[chain_id].no_of_lchs_linked; i++) {
+
+@@ -1689,8 +1693,10 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ 	/* Reset the Queue pointers */
+ 	OMAP_DMA_CHAIN_QINIT(chain_id);
+
+-	/* Errata - put in the old value */
+-	dma_write(sys_cf, OCP_SYSCONFIG);
++	/* Errata: put back the old value */
++	if (cpu_is_omap2430() || (cpu_is_omap3430() &&
++			omap_rev() == OMAP3430_REV_ES1_0))
++		dma_write(sys_cf, OCP_SYSCONFIG);
+
+ 	return 0;
+ }
+-- 
+1.6.3.3
