@@ -1,29 +1,52 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC/PATCHv2 1/4] gpiolib: introduce set_debounce method
-Date: Fri, 2 Apr 2010 13:34:54 +0100
-Message-ID: <20100402123454.GD27613@sirena.org.uk>
-References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com> <1270049712-28272-2-git-send-email-felipe.balbi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:51604 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752811Ab0DBMfA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Apr 2010 08:35:00 -0400
-Content-Disposition: inline
-In-Reply-To: <1270049712-28272-2-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH RFC 5/5] omap: 3630sdp: add ohci platform init
+Date: Fri,  2 Apr 2010 20:34:12 +0530
+Message-ID: <1270220652-29127-6-git-send-email-gadiyar@ti.com>
+References: <1270220652-29127-1-git-send-email-gadiyar@ti.com>
+ <1270220652-29127-2-git-send-email-gadiyar@ti.com>
+ <1270220652-29127-3-git-send-email-gadiyar@ti.com>
+ <1270220652-29127-4-git-send-email-gadiyar@ti.com>
+ <1270220652-29127-5-git-send-email-gadiyar@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1270220652-29127-5-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Gregory Clement <gclement00-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, Sergio Aguirre <saaguirre-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: David Brownell <david-b@pacbell.net>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Wed, Mar 31, 2010 at 06:35:09PM +0300, Felipe Balbi wrote:
-> Few architectures, like OMAP, allow you to set
-> a debouncing time for the gpio before generating
-> the IRQ. Teach gpiolib about that.
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Add platform initialization code for OHCI on the 3630SDP.
 
-This looks useful - for what it's worth
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/board-3630sdp.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Index: linux-2.6/arch/arm/mach-omap2/board-3630sdp.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-omap2/board-3630sdp.c
++++ linux-2.6/arch/arm/mach-omap2/board-3630sdp.c
+@@ -66,6 +66,12 @@ static const struct ehci_hcd_omap_platfo
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
++static const struct ohci_hcd_omap_platform_data ohci_pdata __initconst = {
++	.port_mode[0] = OMAP_OHCI_PORT_MODE_UNUSED,
++	.port_mode[1] = OMAP_OHCI_PORT_MODE_UNUSED,
++	.port_mode[2] = OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0,
++};
++
+ static void __init omap_sdp_map_io(void)
+ {
+ 	omap2_set_globals_36xx();
+@@ -100,6 +106,7 @@ static void __init omap_sdp_init(void)
+ 	board_smc91x_init();
+ 	enable_board_wakeup_source();
+ 	usb_ehci_init(&ehci_pdata);
++	usb_ohci_init(&ohci_pdata);
+ }
+ 
+ MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
