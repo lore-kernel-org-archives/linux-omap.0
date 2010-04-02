@@ -1,131 +1,51 @@
 From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH RFC 3/5] usb: ohci: Add Kconfig entries for ohci-omap3
-Date: Fri,  2 Apr 2010 20:34:10 +0530
-Message-ID: <1270220652-29127-4-git-send-email-gadiyar@ti.com>
+Subject: [PATCH RFC 4/5] omap: 3430sdp: add ohci platform init
+Date: Fri,  2 Apr 2010 20:34:11 +0530
+Message-ID: <1270220652-29127-5-git-send-email-gadiyar@ti.com>
 References: <1270220652-29127-1-git-send-email-gadiyar@ti.com>
  <1270220652-29127-2-git-send-email-gadiyar@ti.com>
  <1270220652-29127-3-git-send-email-gadiyar@ti.com>
+ <1270220652-29127-4-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48839 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48841 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751443Ab0DBPEj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Apr 2010 11:04:39 -0400
-In-Reply-To: <1270220652-29127-3-git-send-email-gadiyar@ti.com>
+	id S1754135Ab0DBPEk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Apr 2010 11:04:40 -0400
+In-Reply-To: <1270220652-29127-4-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: David Brownell <dbrownell@users.sourceforge.net>, Gregory Clement <gclement00@gmail.com>, Felipe Balbi <me@felipebalbi.com>, Sergio Aguirre <saaguirre@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-On OMAP systems, we have two different of OHCI controllers. The legacy
-one is present in OMAP1/2 chips, and the newer one comes bundled as
-a companion to the EHCI controller on OMAP3 and newer chips.
-
-We may have multi-omap configurations where OMAP2 and OMAP3
-support may be enabled in the same kernel, and need a mechanism
-to keep both drivers around.
-
-This patch adds a Kconfig entry for each of these drivers.
+Add platform initialization code for OHCI on the 3430SDP.
 
 Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
-I've only tested the omap3_defconfig on omap3 boards, and
-don't have any old omap1/omap2 boards around.
+ arch/arm/mach-omap2/board-3430sdp.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-I'd like feedback on the approach used here, as I'm not sure
-if this scales well - maybe we need to revisit the way we do
-this platform glue code in *-hcd.c.
-
- drivers/usb/host/Kconfig    |   15 +++++++++++++++
- drivers/usb/host/ohci-hcd.c |   31 +++++++++++++++++++++++++++++--
- 2 files changed, 44 insertions(+), 2 deletions(-)
-
-Index: linux-2.6/drivers/usb/host/ohci-hcd.c
+Index: linux-2.6/arch/arm/mach-omap2/board-3430sdp.c
 ===================================================================
---- linux-2.6.orig/drivers/usb/host/ohci-hcd.c
-+++ linux-2.6/drivers/usb/host/ohci-hcd.c
-@@ -1006,9 +1006,14 @@ MODULE_LICENSE ("GPL");
- #define PLATFORM_DRIVER		ohci_hcd_s3c2410_driver
- #endif
+--- linux-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c
++++ linux-2.6/arch/arm/mach-omap2/board-3430sdp.c
+@@ -675,6 +675,12 @@ static const struct ehci_hcd_omap_platfo
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
  
--#ifdef CONFIG_ARCH_OMAP
-+#ifdef CONFIG_USB_OHCI_HCD_OMAP1
- #include "ohci-omap.c"
--#define PLATFORM_DRIVER		ohci_hcd_omap_driver
-+#define OMAP1_PLATFORM_DRIVER	ohci_hcd_omap_driver
-+#endif
++static const struct ohci_hcd_omap_platform_data ohci_pdata __initconst = {
++	.port_mode[0] = OMAP_OHCI_PORT_MODE_UNUSED,
++	.port_mode[1] = OMAP_OHCI_PORT_MODE_UNUSED,
++	.port_mode[2] = OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0,
++};
 +
-+#ifdef CONFIG_USB_OHCI_HCD_OMAP3
-+#include "ohci-omap3.c"
-+#define OMAP3_PLATFORM_DRIVER	ohci_hcd_omap3_driver
- #endif
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+@@ -817,6 +823,7 @@ static void __init omap_3430sdp_init(voi
+ 	sdp3430_display_init();
+ 	enable_board_wakeup_source();
+ 	usb_ehci_init(&ehci_pdata);
++	usb_ohci_init(&ohci_pdata);
+ }
  
- #ifdef CONFIG_ARCH_LH7A404
-@@ -1092,6 +1097,8 @@ MODULE_LICENSE ("GPL");
- 
- #if	!defined(PCI_DRIVER) &&		\
- 	!defined(PLATFORM_DRIVER) &&	\
-+	!defined(OMAP1_PLATFORM_DRIVER) &&	\
-+	!defined(OMAP3_PLATFORM_DRIVER) &&	\
- 	!defined(OF_PLATFORM_DRIVER) &&	\
- 	!defined(SA1111_DRIVER) &&	\
- 	!defined(PS3_SYSTEM_BUS_DRIVER) && \
-@@ -1133,6 +1140,18 @@ static int __init ohci_hcd_mod_init(void
- 		goto error_platform;
- #endif
- 
-+#ifdef OMAP1_PLATFORM_DRIVER
-+	retval = platform_driver_register(&OMAP1_PLATFORM_DRIVER);
-+	if (retval < 0)
-+		goto error_omap1_platform;
-+#endif
-+
-+#ifdef OMAP3_PLATFORM_DRIVER
-+	retval = platform_driver_register(&OMAP3_PLATFORM_DRIVER);
-+	if (retval < 0)
-+		goto error_omap3_platform;
-+#endif
-+
- #ifdef OF_PLATFORM_DRIVER
- 	retval = of_register_platform_driver(&OF_PLATFORM_DRIVER);
- 	if (retval < 0)
-@@ -1200,6 +1219,14 @@ static int __init ohci_hcd_mod_init(void
- 	platform_driver_unregister(&PLATFORM_DRIVER);
-  error_platform:
- #endif
-+#ifdef OMAP1_PLATFORM_DRIVER
-+	platform_driver_unregister(&OMAP1_PLATFORM_DRIVER);
-+ error_omap1_platform:
-+#endif
-+#ifdef OMAP3_PLATFORM_DRIVER
-+	platform_driver_unregister(&OMAP3_PLATFORM_DRIVER);
-+ error_omap3_platform:
-+#endif
- #ifdef PS3_SYSTEM_BUS_DRIVER
- 	ps3_ohci_driver_unregister(&PS3_SYSTEM_BUS_DRIVER);
-  error_ps3:
-Index: linux-2.6/drivers/usb/host/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/usb/host/Kconfig
-+++ linux-2.6/drivers/usb/host/Kconfig
-@@ -207,6 +207,21 @@ config USB_OHCI_HCD
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ohci-hcd.
- 
-+config USB_OHCI_HCD_OMAP1
-+	bool "OHCI support for OMAP1/2 chips"
-+	depends on USB_OHCI_HCD && (ARCH_OMAP1 || ARCH_OMAP2)
-+	default y
-+	---help---
-+	  Enables support for the OHCI controller on OMAP1/2 chips.
-+
-+config USB_OHCI_HCD_OMAP3
-+	bool "OHCI support for OMAP3 and later chips"
-+	depends on USB_OHCI_HCD && (ARCH_OMAP3 || ARCH_OMAP4)
-+	default y
-+	---help---
-+	  Enables support for the on-chip OHCI controller on
-+	  OMAP3 and later chips.
-+
- config USB_OHCI_HCD_PPC_SOC
- 	bool "OHCI support for on-chip PPC USB controller"
- 	depends on USB_OHCI_HCD && (STB03xxx || PPC_MPC52xx)
+ static void __init omap_3430sdp_map_io(void)
