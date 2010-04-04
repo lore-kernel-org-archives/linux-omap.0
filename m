@@ -1,16 +1,18 @@
 From: Tar Gz <bsdraisefromhell@gmail.com>
-Subject: OMAP 3430 LDP Trouble
-Date: Sun, 4 Apr 2010 00:33:05 +0700
-Message-ID: <h2vd9ca78711004031033ved1c64az135e06fc43ca72de@mail.gmail.com>
+Subject: [ASK] OMAP 3430 LDP Trouble
+Date: Sun, 4 Apr 2010 12:43:00 +0700
+Message-ID: <w2yd9ca78711004032243y332ad5la6152f9b5def34b9@mail.gmail.com>
+References: <h2vd9ca78711004031033ved1c64az135e06fc43ca72de@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:53444 "EHLO
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:49812 "EHLO
 	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752948Ab0DCRdI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Apr 2010 13:33:08 -0400
-Received: by vws13 with SMTP id 13so892415vws.19
-        for <linux-omap@vger.kernel.org>; Sat, 03 Apr 2010 10:33:05 -0700 (PDT)
+	with ESMTP id S1750988Ab0DDFnD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Apr 2010 01:43:03 -0400
+Received: by vws13 with SMTP id 13so1003769vws.19
+        for <linux-omap@vger.kernel.org>; Sat, 03 Apr 2010 22:43:00 -0700 (PDT)
+In-Reply-To: <h2vd9ca78711004031033ved1c64az135e06fc43ca72de@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
