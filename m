@@ -1,84 +1,58 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR stall
- in SDRC after a Warm-reset
-Date: Mon, 5 Apr 2010 17:05:48 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703049B66A2@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB031E1D798A@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1001131051210.20437@utopia.booyaka.com>
- <alpine.DEB.2.00.1001131355210.20437@utopia.booyaka.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB031E3F145D@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1001252234130.18597@utopia.booyaka.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] omap: gpio: fix incorrect matching of IRQ_TYPE_EDGE_BOTH
+Date: Mon, 5 Apr 2010 13:38:06 +0200
+Message-ID: <201004051338.07160.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60131 "EHLO comal.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:44725 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753715Ab0DELgA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Apr 2010 07:36:00 -0400
-In-Reply-To: <alpine.DEB.2.00.1001252234130.18597@utopia.booyaka.com>
-Content-Language: en-US
+	id S1752487Ab0DELm5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Apr 2010 07:42:57 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Reddy, Teerth" <teerth@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <greg@kroah.com>
 
-Paul,
-Sorry for late response. Here is the answer for some of the queries that you had posted.
+Since IRQ_TYPE_EDGE_BOTH is defined as (IRQ_TYPE_EDGE_FALLING | 
+IRQ_TYPE_EDGE_RISING), testing against it with a bitwise AND also matches 
+both single-edge cases in addition to the intended both edges case. Fix it, 
+replacing with a more accurate expression.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> Sent: Tuesday, January 26, 2010 11:13 AM
-> To: Reddy, Teerth
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com; Kevin Hilman
-> Subject: RE: [PATCH] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR stall in
-> SDRC after a Warm-reset
-> 
-> Hello Teerth,
-> 
-> On Mon, 25 Jan 2010, Reddy, Teerth wrote:
-> 
-> > > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > >
-> > > I wonder if this also needs to make sure that all the other system
-> > > initiators are mute before continuing, for the same reason cited in commit
-> > > 18862cbe47e37beba98f22c088fbe6fe029df889 ?  I suppose that, for example,
-> > > if an interrupt occurs on the IVA2.2 or the DMA controller tries to access
-> > > the SDRC, it would hopefully only wedge those initiators and not the whole
-> > > chip?
-> >  Do you think we need to take care of the system initiators if we are
-> > disabling all the interrupts before going for a warm reset?
-> 
-> Are you disabling _all_ the interrupts, or just the MPU's interrupts?
-> Even if you did disable all of the system interrupts, couldn't DMA be
-> ongoing from/to another system initiator, independently of interrupts?
-We should disable all MPU interrupts. 
-Yes there can be another initiator active in the system parallelly. However all the system initiators will recover from reset once warm reset is triggered.
-> 
-> > I think this doesn't seem to hold good here.
-> 
-> You may be right, but I'd like you to describe your reasoning on this
-> point.
-> 
-> > Please let me know if you understanding is wrong.
-> 
-> My concerns here are twofold:
-> 
-> 1. If other system initiators are interacting with the SDRC during this
-> process, is there a danger that the interconnect could enter a state that
-> would prevent the warm reset from occurring, thus wedging the system?
-This should not happen since bottle neck would be L4, only initiators accessing L4 are expected to be MPU and DMA (and maybe DSP) and L4 has 4 threads. We cannot think of a blocking scenario.
-> 
-> 2. When the warm-reset occurs, will it also completely reset other
-> initiators that may be wedged waiting for some SDRC access to complete?
-Yes
+Created and tested againts linux-2.6.34-rc3.
+Applicable to 2.6.33-stable as well.
 
-Vishwa
-> 
-> 
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+--- git/arch/arm/plat-omap/gpio.c.orig	2010-04-01 17:54:17.000000000 +0200
++++ git/arch/arm/plat-omap/gpio.c	2010-04-04 02:34:44.000000000 +0200
+@@ -798,7 +798,7 @@ static int _set_gpio_triggering(struct g
+ 	case METHOD_MPUIO:
+ 		reg += OMAP_MPUIO_GPIO_INT_EDGE;
+ 		l = __raw_readl(reg);
+-		if (trigger & IRQ_TYPE_EDGE_BOTH)
++		if ((trigger & IRQ_TYPE_SENSE_MASK) == IRQ_TYPE_EDGE_BOTH)
+ 			bank->toggle_mask |= 1 << gpio;
+ 		if (trigger & IRQ_TYPE_EDGE_RISING)
+ 			l |= 1 << gpio;
+@@ -812,7 +812,7 @@ static int _set_gpio_triggering(struct g
+ 	case METHOD_GPIO_1510:
+ 		reg += OMAP1510_GPIO_INT_CONTROL;
+ 		l = __raw_readl(reg);
+-		if (trigger & IRQ_TYPE_EDGE_BOTH)
++		if ((trigger & IRQ_TYPE_SENSE_MASK) == IRQ_TYPE_EDGE_BOTH)
+ 			bank->toggle_mask |= 1 << gpio;
+ 		if (trigger & IRQ_TYPE_EDGE_RISING)
+ 			l |= 1 << gpio;
+@@ -846,7 +846,7 @@ static int _set_gpio_triggering(struct g
+ 	case METHOD_GPIO_7XX:
+ 		reg += OMAP7XX_GPIO_INT_CONTROL;
+ 		l = __raw_readl(reg);
+-		if (trigger & IRQ_TYPE_EDGE_BOTH)
++		if ((trigger & IRQ_TYPE_SENSE_MASK) == IRQ_TYPE_EDGE_BOTH)
+ 			bank->toggle_mask |= 1 << gpio;
+ 		if (trigger & IRQ_TYPE_EDGE_RISING)
+ 			l |= 1 << gpio;
