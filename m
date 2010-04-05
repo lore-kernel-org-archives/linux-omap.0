@@ -1,64 +1,96 @@
 From: "Madhusudhan" <madhu.cr@ti.com>
 Subject: RE: [PATCH v3] OMAP: Fix for bus width which improves SD card's peformance.
-Date: Mon, 5 Apr 2010 12:19:29 -0500
-Message-ID: <007c01cad4e4$26c5a700$544ff780@am.dhcp.ti.com>
-References: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com> <004701caab40$68b576e0$544ff780@am.dhcp.ti.com> <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com> <v2yce9ab5791003302327hc67deb3akc7d18146534038f9@mail.gmail.com> <h2p7f9d1ffb1003310003z508e21dbqe37b6e1cad425866@mail.gmail.com> <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com> <g2s7f9d1ffb1003312331o149df218g651c3e4349ac9a77@mail.gmail.com> <003c01cad1b1$da2cdbf0$544ff780@am.dhcp.ti.com> <m2n7f9d1ffb1004050556o1ed2eec8ief66d60fc85f96de@mail.gmail.com> <20100405164839.GB17388@gandalf>
+Date: Mon, 5 Apr 2010 12:43:11 -0500
+Message-ID: <007d01cad4e7$76076350$544ff780@am.dhcp.ti.com>
+References: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com> <004701caab40$68b576e0$544ff780@am.dhcp.ti.com> <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com> <v2yce9ab5791003302327hc67deb3akc7d18146534038f9@mail.gmail.com> <h2p7f9d1ffb1003310003z508e21dbqe37b6e1cad425866@mail.gmail.com> <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com> <g2s7f9d1ffb1003312331o149df218g651c3e4349ac9a77@mail.gmail.com> <003c01cad1b1$da2cdbf0$544ff780@am.dhcp.ti.com> <m2n7f9d1ffb1004050556o1ed2eec8ief66d60fc85f96de@mail.gmail.com> <20100405164839.GB17388@gandalf> <007c01cad4e4$26c5a700$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51117 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52360 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755213Ab0DERTq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Apr 2010 13:19:46 -0400
-In-Reply-To: <20100405164839.GB17388@gandalf>
+	id S1754736Ab0DERne (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Apr 2010 13:43:34 -0400
+In-Reply-To: <007c01cad4e4$26c5a700$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>
+To: 'Madhusudhan' <madhu.cr@ti.com>, me@felipebalbi.com, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>
 Cc: 'Vimal Singh' <vimal.newwork@gmail.com>, tony@atomide.com, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.lavinen@nokia.com
 
 
 
 > -----Original Message-----
-> From: Felipe Balbi [mailto:me@felipebalbi.com]
-> Sent: Monday, April 05, 2010 11:49 AM
-> To: kishore kadiyala
-> Cc: Madhusudhan; Vimal Singh; tony@atomide.com; svenkatr@ti.com; linux-
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Madhusudhan
+> Sent: Monday, April 05, 2010 12:19 PM
+> To: me@felipebalbi.com; 'kishore kadiyala'
+> Cc: 'Vimal Singh'; tony@atomide.com; svenkatr@ti.com; linux-
 > omap@vger.kernel.org; linux-kernel@vger.kernel.org;
 > jarkko.lavinen@nokia.com
-> Subject: Re: [PATCH v3] OMAP: Fix for bus width which improves SD card's
+> Subject: RE: [PATCH v3] OMAP: Fix for bus width which improves SD card's
 > peformance.
 > 
-> Hi,
 > 
-> On Mon, Apr 05, 2010 at 06:26:16PM +0530, kishore kadiyala wrote:
-> > @@ -2091,9 +2091,9 @@ static int __init omap_hsmmc_probe(struct
-> >  	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
-> >  		     MMC_CAP_WAIT_WHILE_BUSY;
+> 
+> > -----Original Message-----
+> > From: Felipe Balbi [mailto:me@felipebalbi.com]
+> > Sent: Monday, April 05, 2010 11:49 AM
+> > To: kishore kadiyala
+> > Cc: Madhusudhan; Vimal Singh; tony@atomide.com; svenkatr@ti.com; linux-
+> > omap@vger.kernel.org; linux-kernel@vger.kernel.org;
+> > jarkko.lavinen@nokia.com
+> > Subject: Re: [PATCH v3] OMAP: Fix for bus width which improves SD card's
+> > peformance.
 > >
-> > -	if (mmc_slot(host).wires >= 8)
-> > -		mmc->caps |= MMC_CAP_8_BIT_DATA;
-> > -	else if (mmc_slot(host).wires >= 4)
-> > +	if (mmc_slot(host).wires == 8)
-> > +		mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
-> > +	else if (mmc_slot(host).wires == 4)
-> >  		mmc->caps |= MMC_CAP_4_BIT_DATA;
+> > Hi,
+> >
+> > On Mon, Apr 05, 2010 at 06:26:16PM +0530, kishore kadiyala wrote:
+> > > @@ -2091,9 +2091,9 @@ static int __init omap_hsmmc_probe(struct
+> > >  	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+> > >  		     MMC_CAP_WAIT_WHILE_BUSY;
+> > >
+> > > -	if (mmc_slot(host).wires >= 8)
+> > > -		mmc->caps |= MMC_CAP_8_BIT_DATA;
+> > > -	else if (mmc_slot(host).wires >= 4)
+> > > +	if (mmc_slot(host).wires == 8)
+> > > +		mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
+> > > +	else if (mmc_slot(host).wires == 4)
+> > >  		mmc->caps |= MMC_CAP_4_BIT_DATA;
+> >
+> > I believe it would be enough to just remove the 'else', so the code
+> > would look like:
+> >
+> > if (mmc_slot(host).wires >= 8)
+> > 	mmc->caps |= MMC_CAP_8_BIT_DATA;
+> > if (mmc_slot(host).wires >= 4)
 > 
-> I believe it would be enough to just remove the 'else', so the code
-> would look like:
+> Since the first if command already checks for the 8-bit the second check
+> like >= 4 is definitely not readable in my opinion.
 > 
-> if (mmc_slot(host).wires >= 8)
-> 	mmc->caps |= MMC_CAP_8_BIT_DATA;
-> if (mmc_slot(host).wires >= 4)
+> Functionally do you see anything wrong with this patch??
+> 
 
-Since the first if command already checks for the 8-bit the second check
-like >= 4 is definitely not readable in my opinion.
+Just to clarify my earlier comment on the patch was to resubmit like below:
 
-Functionally do you see anything wrong with this patch??
+if (mmc_slot(host).wires == 8)
+	mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
+if (mmc_slot(host).wires == 4)
+  		mmc->caps |= MMC_CAP_4_BIT_DATA;
 
-> 	mmc->caps |= MMC_CAP_4_BIT_DATA;
+IMHO, this should be good enough.
+
+Regards,
+Madhu
+
+
+> > 	mmc->caps |= MMC_CAP_4_BIT_DATA;
+> >
+> > --
+> > balbi
 > 
 > --
-> balbi
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
