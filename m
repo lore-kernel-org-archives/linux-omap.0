@@ -1,110 +1,84 @@
-From: Abraham Arce <abraham.arce.moreno@gmail.com>
-Subject: Re: [PATCHv3 1/3] TCA6416 keypad : Implement keypad driver for keys
-	interfaced to TCA6416
-Date: Sun, 4 Apr 2010 13:29:08 -0500
-Message-ID: <s2wcb8016981004041129y8db79t8bbd941411a179ba@mail.gmail.com>
-References: <1269357035-19754-1-git-send-email-srk@ti.com>
-	 <1269357035-19754-2-git-send-email-srk@ti.com>
+From: Tar Gz <bsdraisefromhell@gmail.com>
+Subject: Re: [ASK] OMAP 3430 LDP Trouble
+Date: Mon, 5 Apr 2010 11:06:34 +0700
+Message-ID: <o2vd9ca78711004042106seceb181co2e2accd3be27a65a@mail.gmail.com>
+References: <h2vd9ca78711004031033ved1c64az135e06fc43ca72de@mail.gmail.com>
+	 <w2yd9ca78711004032243y332ad5la6152f9b5def34b9@mail.gmail.com>
+	 <2A3DCF3DA181AD40BDE86A3150B27B6B030D3C8B3F@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:60144 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752131Ab0DDS3K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Apr 2010 14:29:10 -0400
-In-Reply-To: <1269357035-19754-2-git-send-email-srk@ti.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:58086 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708Ab0DEEGf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Apr 2010 00:06:35 -0400
+Received: by vws13 with SMTP id 13so1233745vws.19
+        for <linux-omap@vger.kernel.org>; Sun, 04 Apr 2010 21:06:34 -0700 (PDT)
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030D3C8B3F@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sriramakrishnan <srk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Sriramakrishnan,
+On 4/4/10, Ghorai, Sukumar <s-ghorai@ti.com> wrote:
+> Aldyth,
+> 1. Do you mean that NAND boot is not working?
+> 2. Does MMC/SD boot working? If yes, boot the platform from MMC/SD using the
+> latest x-loade/ u-boot and flush the same binaries to NAND using the
+> following commands.
+> mmcinit 0
+> nand unlock 80000 80000
+> nand erase 80000 80000
+> fatload mmc 0 80000000 u-boot.bin
+> nand write.i 80000000 80000 ${filesize}
+>
+> nand unlock 0 80000
+> nand erase 0 80000
+> fatload mmc 0 80000000 MLO
+> nand write.i 80000000 0 ${filesize}
+>
+> Regards,
+> Ghorai
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Tar Gz
+>> Sent: 2010-04-04 11:13
+>> To: linux-omap
+>> Subject: [ASK] OMAP 3430 LDP Trouble
+>>
+>> Hi all,
+>> i'm sorry if my english too bad
+>>
+>> I try to porting linux to omap 3430 LDP..but my board have trouble
+>> after i running this command:
+>>
+>> nand ecc sw
+>> nand unlock 80000 80000
+>> nand erase 80000 80000
+>>
+>> nand ecc hw
+>> nand unlock 0 80000
+>> nand erase 0 80000
+>>
+>> and if i try to turn on my board, BT led [blue led] always on and my
+>> minicom can't show anything...and i forget to setting the enviroment
+>> variable mmcinit..
+>>
+>> my question is, how to make my board can run normally like before?
+>>
+>> best regards,
+>> Aldyth M
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-=46ind minor changes proposals...
+but i can't enter prompt, my minincom can't show anything when i'm
+turn on my board. I'm using latest u-boot and x-loader / MLO but still
+can't booting and BT led [blue colour] always on. How solve my
+problem?
 
-> +
-> + =A0 =A0 =A0 =A0 Say Y here if your device has keys connected to
-> + =A0 =A0 =A0 =A0 TCA6416 IO expander. Your board-specific setup logi=
-c
-> + =A0 =A0 =A0 =A0 must also provide pin-mask details(of which TCA6416=
- pins
-> + =A0 =A0 =A0 =A0 are used for keypad).
-
-space in " details ( "
-
-<snip>
-
-> + =A0 =A0 =A0 if (chip->use_polling)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 schedule_delayed_work(&chip->dwork, mse=
-cs_to_jiffies(100));
-> + =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 enable_irq(chip->irqnum);
-> +
-> +}
-> +
-> +
-
-remove one blank line
-
-> +
-> + =A0 =A0 =A0 /* initialize cached registers from their original valu=
-es.
-> + =A0 =A0 =A0 =A0* we can't share this chip with another i2c master.
-> + =A0 =A0 =A0 =A0*/
-
-should we start our comment section as below?
-
-/*
- * initialize...
-
-<snip>
-
-> +
-> + =A0 =A0 =A0 ret =3D tca6416_read_reg(chip, TCA6416_INPUT, &chip->re=
-g_input);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto fail1;
-> +
-> + =A0 =A0 =A0 i2c_set_clientdata(client, chip);
-> +
-> +
-
-remove one blank line
-
-<snip>
-
-> +
-> + =A0 =A0 =A0 if (!chip->use_polling) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pdata->irq_is_gpio)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 chip->irqnum =3D gpio_t=
-o_irq(client->irq);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 chip->irqnum =3D client=
-->irq;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D request_irq(chip->irqnum, tca64=
-16_keys_isr,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 IRQF_SH=
-ARED | IRQF_TRIGGER_FALLING ,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "tca641=
-6-keypad", chip);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(&client->dev,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Unable=
- to claim irq %d; error %d\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 chip->i=
-rqnum, ret);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto fail3;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 disable_irq(chip->irqnum);
-
-why not using threaded irq?
-
-Best Regards
-Abraham
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+best regards,
+Aldyth M
