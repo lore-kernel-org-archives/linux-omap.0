@@ -1,72 +1,121 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: [PATCH v3] OMAP: Fix for bus width which improves SD card's
-	peformance.
-Date: Mon, 5 Apr 2010 18:26:16 +0530
-Message-ID: <m2n7f9d1ffb1004050556o1ed2eec8ief66d60fc85f96de@mail.gmail.com>
-References: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com>
-	 <004701caab40$68b576e0$544ff780@am.dhcp.ti.com>
-	 <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com>
-	 <v2yce9ab5791003302327hc67deb3akc7d18146534038f9@mail.gmail.com>
-	 <h2p7f9d1ffb1003310003z508e21dbqe37b6e1cad425866@mail.gmail.com>
-	 <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
-	 <g2s7f9d1ffb1003312331o149df218g651c3e4349ac9a77@mail.gmail.com>
-	 <003c01cad1b1$da2cdbf0$544ff780@am.dhcp.ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCHV3 1/2] OMAP3: Set MPU and IVA bypass Clock Divider
+Date: Mon, 5 Apr 2010 18:39:11 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E66994C0@dbde02.ent.ti.com>
+References: <> <1270117939-10730-1-git-send-email-vishwanath.bs@ti.com>
+ <1270117939-10730-2-git-send-email-vishwanath.bs@ti.com>
+ <alpine.DEB.2.00.1004010245420.27004@utopia.booyaka.com>
+ <FCCFB4CDC6E5564B9182F639FC35608703049B666B@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1004050507520.14339@utopia.booyaka.com>
+ <FCCFB4CDC6E5564B9182F639FC35608703049B66BC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:38493 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754571Ab0DEM4S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Apr 2010 08:56:18 -0400
-In-Reply-To: <003c01cad1b1$da2cdbf0$544ff780@am.dhcp.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:36159 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754465Ab0DENJS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Apr 2010 09:09:18 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703049B66BC@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: Vimal Singh <vimal.newwork@gmail.com>, tony@atomide.com, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.lavinen@nokia.com
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Sripathy, Vishwanath
+> Sent: Monday, April 05, 2010 5:23 PM
+> To: Paul Walmsley
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCHV3 1/2] OMAP3: Set MPU and IVA bypass Clock Divider
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Monday, April 05, 2010 4:44 PM
+> > To: Sripathy, Vishwanath
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: RE: [PATCHV3 1/2] OMAP3: Set MPU and IVA bypass 
+> Clock Divider
+> > 
+> > On Mon, 5 Apr 2010, Sripathy, Vishwanath wrote:
+> > 
+> > > > -----Original Message-----
+> > > > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > > >
+> > > > On Thu, 1 Apr 2010, Vishwanath BS wrote:
+> > > >
+> > > > > diff --git a/arch/arm/mach-omap2/clock3xxx_data.c 
+> b/arch/arm/mach-
+> > > > omap2/clock3xxx_data.c
+> > > > > index d5153b6..d8e57a6
+> > > > > --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> > > > > +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> > > > > @@ -3597,5 +3601,13 @@ int __init omap3xxx_clk_init(void)
+> > > > >  	sdrc_ick_p = clk_get(NULL, "sdrc_ick");
+> > > > >  	arm_fck_p = clk_get(NULL, "arm_fck");
+> > > > >
+> > > > > +	/* Set the bypass clock dividers for DPLL1 and DPLL2 */
+> > > > > +	if (cpu_is_omap3630()) {
+> > > > > +		clk_set_rate(&dpll1_fck, 400000000/2);
+> > > > > +		clk_set_rate(&dpll2_fck, 400000000/2);
+> > > > > +	} else {
+> > > > > +		clk_set_rate(&dpll1_fck, 332000000/4);
+> > > > > +		clk_set_rate(&dpll2_fck, 332000000/4);
+> > > > > +	}
+> > > >
+> > > > This code is highly OPP-specific.  Why is this code needed here?
+> > > > Shouldn't the code in resource34xx.c be sufficient?
+> > >
+> > > Code in resource34xx.c will be executed only when DVFS is 
+> executed.
+> > > However above code makes sure that initial values of Bypass clock
+> > > dividers are good. This will ensure that even if DVFS is disabled,
+> > > IVA/MPU are never overclocked when they enter bypass mode.
+> > 
+> > My point is that you don't know how the bootloader has 
+> configured the
+> > system at the point when this code executes.  You don't 
+> know what voltage
+> > level VDD1 and VDD2 are at; you don't know what state the 
+> clock tree is
+> > in.  You only know this when you change OPPs.  And the 
+> selection of the
+> > OPP at startup is use-case dependent.
+> > 
+> May be I can move this code to init_opp?
 
-This patch improves low speeds for SD cards.
-OMAP-MMC controller's can support maximum bus width of '8'.
-when bus width is mentioned as "8" in controller data,the SD
-stack will check whether bus width is "4" and if not it will
-set bus width to "1" and there by degrading performance.
-This patch fixes the issue and improves the performance of
-SD cards.
+I have been trying to find a good place for the same myself. Though,
+my reason is different. The default kernel boots with the OPP3 for
+OMAP34xx; but when mpurate is used to set 720; I feel sometimes the
+boot may fail if the voltage isn't right.
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
-Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
----
-In V3 : Updated  with Madhu's comments  and appended Tested by Nikula
-In V2 : Appended Signed-off by Venkat and Ack by Madhu
+The voltage does stabilize when smartrelex reflex is initialized.
 
- Here are my experiment numbers, on a Class 6 SDHC card:
- Read peformance is increased by 220%
- Write Performance is increased by 52%
+I was trying to move smartreflex above in the init sequence; after
+i2c has been initialized.
 
- drivers/mmc/host/omap_hsmmc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
- drivers/mmc/host/omap_hsmmc.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+Comments/ thoughts?
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 83f0aff..44e79f7 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2091,9 +2091,9 @@ static int __init omap_hsmmc_probe(struct
- 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
- 		     MMC_CAP_WAIT_WHILE_BUSY;
+Best regards,
+Sanjeev
 
--	if (mmc_slot(host).wires >= 8)
--		mmc->caps |= MMC_CAP_8_BIT_DATA;
--	else if (mmc_slot(host).wires >= 4)
-+	if (mmc_slot(host).wires == 8)
-+		mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
-+	else if (mmc_slot(host).wires == 4)
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
-
- 	if (mmc_slot(host).nonremovable)
--- 
-1.6.3.3
+>  
+> > So as far as I can tell, this code shouldn't be there.  If 
+> you want to do
+> > something like this, then you should add some generic way 
+> (e.g., a kernel
+> > command line parameter) to set the VDD1 and VDD2 OPPs at boot.
+> > 
+> > 
+> > - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
