@@ -1,45 +1,60 @@
-From: Viral Mehta <Viral.Mehta@lntinfotech.com>
+From: Viral Mehta <Viral.Mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
 Subject: RE: USB on omap2430
-Date: Mon, 5 Apr 2010 19:31:37 +0530
-Message-ID: <70376CA23424B34D86F1C7DE6B9973430254343A35@VSHINMSMBX01.vshodc.lntinfotech.com>
+Date: Mon, 5 Apr 2010 19:32:06 +0530
+Message-ID: <70376CA23424B34D86F1C7DE6B9973430254343A36@VSHINMSMBX01.vshodc.lntinfotech.com>
 References: <70376CA23424B34D86F1C7DE6B997343017F5D5BE1@VSHINMSMBX01.vshodc.lntinfotech.com>
  <5A47E75E594F054BAF48C5E4FC4B92AB032221A9F3@dbde02.ent.ti.com>
  <70376CA23424B34D86F1C7DE6B997343017F5D5BE3@VSHINMSMBX01.vshodc.lntinfotech.com>
- <70376CA23424B34D86F1C7DE6B997343017F5D5BE7@VSHINMSMBX01.vshodc.lntinfotech.com>,<20100329204159.GC31402@nokia.com>
+ <70376CA23424B34D86F1C7DE6B997343017F5D5BE7@VSHINMSMBX01.vshodc.lntinfotech.com>
+ <20100329204159.GC31402@nokia.com>
+ <70376CA23424B34D86F1C7DE6B997343023C4E201B@VSHINMSMBX01.vshodc.lntinfotech.com>,<3bd3371a3ea8aa8fb53b62dbe99169e0@secure211.sgcpanel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail142.messagelabs.com ([216.82.249.99]:16323 "EHLO
-	mail142.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab0DEOBx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Apr 2010 10:01:53 -0400
-In-Reply-To: <20100329204159.GC31402@nokia.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3bd3371a3ea8aa8fb53b62dbe99169e0-WEDJutINlwSqfKURHDCIgFDQ4js95KgL@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Cc: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hi,
 
-
->On Fri, Mar 26, 2010 at 12:08:11PM +0100, ext Viral Mehta wrote:
->>I enabled "earlyprintk" and I have copy+pasted crashdump at the end of the email.
+>>  static void __exit isp_exit(void)
+>>  {
 >>
->>It is not able to get "otg_get_transceiver()" since transceiver was never set.
->>OMAP2430 uses ISP1301 (grepped from SDP manual).
->>It is on I2C1 bus and address 0x2D if I read the manual correctly.
+>>
+>>
+>> After adding the above code, isp1301's probe is called but that fails
+>> before it does otg_set_transceiver()
+>> And I am debugging further on that path.
 
->isp1301 ?? there's a driver for that on drivers/usb/otg/isp1301_omap.c
+>ok, cool. When you get that done, please send a cleaned up
+>diff with your signed-off-by line so it can be integrated.
 
-Again I think I should be clear on that,
-On OMAP2430, isp1301 transceiver is used for FS USB (or OHCI) only.
-For HS USB (or musb) the transceiver used is Triton T2.
+I continued debugging further. It fails during USB initialisation.
+More specifically, in omap_otg_init() function in arch/arm/plat-omap/usb.c
+It gives a crash dump on the first line itself
+syscon = omap_readl(OTG_SYSCON_1) & 0xffff;
 
-And currently I am debugging FS USB only. Sorry if earlier mail created confusion.
+I feel like I need to make some board (OMAP2430) specific changes to this file.
+I am not able to progress further. Any pointers will be appreciated.
+
+Apart from that, can I submit the 3 patches that we discussed earlier ?
+(http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg25932.html)
+These will not make FS USB functional on OMAP2430 but these changes are anyway necessary.
+
 --
 Viral
+
+
+http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg25932.html
 
 This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
 
 ______________________________________________________________________
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
