@@ -1,96 +1,79 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH v3] OMAP: Fix for bus width which improves SD card's peformance.
-Date: Mon, 5 Apr 2010 12:43:11 -0500
-Message-ID: <007d01cad4e7$76076350$544ff780@am.dhcp.ti.com>
-References: <35697.192.168.10.89.1265898023.squirrel@dbdmail.itg.ti.com> <004701caab40$68b576e0$544ff780@am.dhcp.ti.com> <x2q7f9d1ffb1003302307nb8e91be0o55da59c3375f1720@mail.gmail.com> <v2yce9ab5791003302327hc67deb3akc7d18146534038f9@mail.gmail.com> <h2p7f9d1ffb1003310003z508e21dbqe37b6e1cad425866@mail.gmail.com> <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com> <g2s7f9d1ffb1003312331o149df218g651c3e4349ac9a77@mail.gmail.com> <003c01cad1b1$da2cdbf0$544ff780@am.dhcp.ti.com> <m2n7f9d1ffb1004050556o1ed2eec8ief66d60fc85f96de@mail.gmail.com> <20100405164839.GB17388@gandalf> <007c01cad4e4$26c5a700$544ff780@am.dhcp.ti.com>
+From: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Subject: Re: [PATCH] OMAP3: I2C: Errata i207: Clear wrong RDR interrupt
+Date: Mon, 5 Apr 2010 23:45:24 +0100
+Message-ID: <20100405224524.GB32401@fluff.org.uk>
+References: <1270124427-11208-1-git-send-email-manjugk@ti.com>
+ <4BB4A540.9080000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52360 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754736Ab0DERne (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Apr 2010 13:43:34 -0400
-In-Reply-To: <007c01cad4e4$26c5a700$544ff780@am.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4BB4A540.9080000-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: 'Madhusudhan' <madhu.cr@ti.com>, me@felipebalbi.com, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>
-Cc: 'Vimal Singh' <vimal.newwork@gmail.com>, tony@atomide.com, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.lavinen@nokia.com
 
-
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Madhusudhan
-> Sent: Monday, April 05, 2010 12:19 PM
-> To: me@felipebalbi.com; 'kishore kadiyala'
-> Cc: 'Vimal Singh'; tony@atomide.com; svenkatr@ti.com; linux-
-> omap@vger.kernel.org; linux-kernel@vger.kernel.org;
-> jarkko.lavinen@nokia.com
-> Subject: RE: [PATCH v3] OMAP: Fix for bus width which improves SD card's
-> peformance.
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Felipe Balbi [mailto:me@felipebalbi.com]
-> > Sent: Monday, April 05, 2010 11:49 AM
-> > To: kishore kadiyala
-> > Cc: Madhusudhan; Vimal Singh; tony@atomide.com; svenkatr@ti.com; linux-
-> > omap@vger.kernel.org; linux-kernel@vger.kernel.org;
-> > jarkko.lavinen@nokia.com
-> > Subject: Re: [PATCH v3] OMAP: Fix for bus width which improves SD card's
-> > peformance.
+On Thu, Apr 01, 2010 at 08:53:04AM -0500, Nishanth Menon wrote:
+> G, Manjunath Kondaiah had written, on 04/01/2010 07:20 AM, the following:
+> >Under certain rare conditions, I2C_STAT[13].RDR bit may be set
+> >and the corresponding interrupt fire, even there is no data in
+> >the receive FIFO, or the I2C data transfer is still ongoing.
+> >These spurious RDR events must be ignored by the software.
 > >
-> > Hi,
+> >This patch handles and ignores RDR spurious interrupts.
 > >
-> > On Mon, Apr 05, 2010 at 06:26:16PM +0530, kishore kadiyala wrote:
-> > > @@ -2091,9 +2091,9 @@ static int __init omap_hsmmc_probe(struct
-> > >  	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
-> > >  		     MMC_CAP_WAIT_WHILE_BUSY;
-> > >
-> > > -	if (mmc_slot(host).wires >= 8)
-> > > -		mmc->caps |= MMC_CAP_8_BIT_DATA;
-> > > -	else if (mmc_slot(host).wires >= 4)
-> > > +	if (mmc_slot(host).wires == 8)
-> > > +		mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
-> > > +	else if (mmc_slot(host).wires == 4)
-> > >  		mmc->caps |= MMC_CAP_4_BIT_DATA;
+> >Reviewed-by: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+> >Signed-off-by: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
+> >Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+> >Cc: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+> >---
+> > drivers/i2c/busses/i2c-omap.c |   13 +++++++++++++
+> > 1 files changed, 13 insertions(+), 0 deletions(-)
 > >
-> > I believe it would be enough to just remove the 'else', so the code
-> > would look like:
-> >
-> > if (mmc_slot(host).wires >= 8)
-> > 	mmc->caps |= MMC_CAP_8_BIT_DATA;
-> > if (mmc_slot(host).wires >= 4)
+> >diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> >index f2019d2..acf4076 100644
+> >--- a/drivers/i2c/busses/i2c-omap.c
+> >+++ b/drivers/i2c/busses/i2c-omap.c
+> >@@ -796,6 +796,19 @@ complete:
+> > 		}
+> > 		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+> > 			u8 num_bytes = 1;
+> >+
+> >+			/*
+> >+			 * OMAP3 I2C Errata ID: i207
+> >+			 * Under certain rare conditions, RDR could be set again
+> >+			 * when the bus is busy, then clear and ignore the interrupt
+> >+			 */
+> >+			if (!(stat & OMAP_I2C_STAT_RRDY) && (stat &
+> >+						OMAP_I2C_STAT_BB)) {
+> >+				/* clear RDR */
+> >+				omap_i2c_ack_stat(dev, stat & OMAP_I2C_STAT_RDR);
+> >+				dev_err(dev->dev, "I2C: RDR when bus is busy.\n");
+> >+				return IRQ_HANDLED;
+> >+			}
+> couple of comments after reading thru the errata:
+> a) the sequence in the errata doc is:
+> if (stat & OMAP_I2C_STAT_RDR) { /* This is cleaner that using an
+> obtuse check using !(stat & OMAP_I2C_STAT_RRDY) */
+> 	omap_i2c_ack_stat(dev, stat & OMAP_I2C_STAT_RDR); /* dummy read - i
+> think this needs clarification as to why */
+> 	if (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG) & OMAP_I2C_STAT_BB)
+> /* reason for the i2c_read_reg is because errata mentions a dummy
+> stat read  which might mean something for BB -> I am not sure may
+> need to be checked with H/w team. */
+> 		continue; /* recheck - faster response compared to return and re
+> generate interrupt */
+> }
 > 
-> Since the first if command already checks for the 8-bit the second check
-> like >= 4 is definitely not readable in my opinion.
 > 
-> Functionally do you see anything wrong with this patch??
-> 
+> b) does this apply to  OMAP2 and OMAP4?
 
-Just to clarify my earlier comment on the patch was to resubmit like below:
+Ok, should this be held for further discussion?
 
-if (mmc_slot(host).wires == 8)
-	mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
-if (mmc_slot(host).wires == 4)
-  		mmc->caps |= MMC_CAP_4_BIT_DATA;
+-- 
+Ben (ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/)
 
-IMHO, this should be good enough.
-
-Regards,
-Madhu
-
-
-> > 	mmc->caps |= MMC_CAP_4_BIT_DATA;
-> >
-> > --
-> > balbi
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+  'a smiley only costs 4 bytes'
