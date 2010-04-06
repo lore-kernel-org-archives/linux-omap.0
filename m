@@ -1,54 +1,58 @@
 From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] omap: Add I2C bus 1 initialisation for OMAP2430
-Date: Tue, 6 Apr 2010 09:48:11 +0300
-Message-ID: <20100406064811.GQ16297@nokia.com>
-References: <70376CA23424B34D86F1C7DE6B9973430254343A3A@VSHINMSMBX01.vshodc.lntinfotech.com>
+Subject: Re: [PATCH] omap: Add OHCI USB platform init for OMAP2430
+Date: Tue, 6 Apr 2010 09:48:27 +0300
+Message-ID: <20100406064827.GR16297@nokia.com>
+References: <70376CA23424B34D86F1C7DE6B9973430254343A3B@VSHINMSMBX01.vshodc.lntinfotech.com>
 Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <70376CA23424B34D86F1C7DE6B9973430254343A3A-fVvhrSDAkVjuuPCCJ6VnObSn4PsL5ZDKvpI+GvaZM4lBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <70376CA23424B34D86F1C7DE6B9973430254343A3B-fVvhrSDAkVjuuPCCJ6VnObSn4PsL5ZDKvpI+GvaZM4lBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: ext Viral Mehta <Viral.Mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
-Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 06, 2010 at 08:23:33AM +0200, ext Viral Mehta wrote:
->Initialize isp1301 FS USB transceiver and
->add I2C bus1 initialization code for OMAP2430
+On Tue, Apr 06, 2010 at 08:25:25AM +0200, ext Viral Mehta wrote:
+>Add platform init code for OHCI USB on OMAP2430
 >
 >Signed-off-by: Viral Mehta <viral.mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
 
-this should go through linux-omap
+this one too
 
 >---
-> arch/arm/mach-omap2/board-2430sdp.c |   10 +++++++++-
-> 1 files changed, 9 insertions(+), 1 deletions(-)
+> arch/arm/mach-omap2/board-2430sdp.c |   10 ++++++++++
+> 1 files changed, 10 insertions(+), 0 deletions(-)
 >
 >diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
->index 01d113f..346e1d2 100644
+>index 346e1d2..047d5ae 100644
 >--- a/arch/arm/mach-omap2/board-2430sdp.c
 >+++ b/arch/arm/mach-omap2/board-2430sdp.c
->@@ -174,9 +174,17 @@ static struct i2c_board_info __initdata sdp2430_i2c_boardinfo[] = {
->        },
+>@@ -206,6 +206,15 @@ static struct omap_musb_board_data musb_board_data = {
+>        .mode                   = MUSB_OTG,
+>        .power                  = 100,
 > };
->
->+static struct i2c_board_info __initdata sdp2430_i2c1_boardinfo[] = {
->+       {
->+               I2C_BOARD_INFO("isp1301_omap", 0x2D),
->+               .flags = I2C_CLIENT_WAKE,
->+               .irq = OMAP_GPIO_IRQ(78),
->+       },
+>+static struct omap_usb_config sdp2430_usb_config __initdata = {
+>+       .otg            = 1,
+>+#ifdef  CONFIG_USB_GADGET_OMAP
+>+       .hmc_mode       = 0x0,
+>+#elif   defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
+>+       .hmc_mode       = 0x1,
+>+#endif
+>+       .pins[0]        = 3,
 >+}
-> static int __init omap2430_i2c_init(void)
+>
+> static void __init omap_2430sdp_init(void)
 > {
->-       omap_register_i2c_bus(1, 400, NULL, 0);
->+       omap_register_i2c_bus(1, 100, sdp2430_i2c1_boardinfo,
->+                       ARRAY_SIZE(sdp2430_i2c1_boardinfo));
->        omap_register_i2c_bus(2, 2600, sdp2430_i2c_boardinfo,
->                        ARRAY_SIZE(sdp2430_i2c_boardinfo));
->        return 0;
+>@@ -216,6 +225,7 @@ static void __init omap_2430sdp_init(void)
+>        platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
+>        omap_serial_init();
+>        omap2_hsmmc_init(mmc);
+>+       omap_usb_init(&sdp2430_usb_config);
+>        usb_musb_init(&musb_board_data);
+>        board_smc91x_init();
+>
 >--
 >1.6.6
 >
@@ -62,3 +66,7 @@ this should go through linux-omap
 
 -- 
 balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
