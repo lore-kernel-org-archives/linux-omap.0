@@ -1,60 +1,107 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PM-WIP-OPP][PATCH] OMAP3630 PM: Update for OPP 1GHz
-Date: Tue, 06 Apr 2010 11:39:59 -0700
-Message-ID: <871vespgqo.fsf@deeprootsystems.com>
-References: <1270577169-8831-1-git-send-email-vishwanath.bs@ti.com>
-	<4BBB5A18.4090406@ti.com>
+From: Tar Gz <bsdraisefromhell@gmail.com>
+Subject: Re: [ASK] OMAP 3430 LDP Trouble
+Date: Wed, 7 Apr 2010 02:41:17 +0700
+Message-ID: <o2nd9ca78711004061241w5fe76cfcp79ca3670beff758@mail.gmail.com>
+References: <h2vd9ca78711004031033ved1c64az135e06fc43ca72de@mail.gmail.com>
+	 <w2yd9ca78711004032243y332ad5la6152f9b5def34b9@mail.gmail.com>
+	 <2A3DCF3DA181AD40BDE86A3150B27B6B030D3C8B3F@dbde02.ent.ti.com>
+	 <r2tce9ab5791004042118t81d5e892r46773f48c4da0ac0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f193.google.com ([209.85.222.193]:41562 "EHLO
-	mail-pz0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756104Ab0DFSkD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 14:40:03 -0400
-Received: by pzk31 with SMTP id 31so221509pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 06 Apr 2010 11:40:02 -0700 (PDT)
-In-Reply-To: <4BBB5A18.4090406@ti.com> (Nishanth Menon's message of "Tue\, 6 Apr 2010 10\:58\:16 -0500")
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:50090 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754649Ab0DFTlS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 15:41:18 -0400
+Received: by vws13 with SMTP id 13so109724vws.19
+        for <linux-omap@vger.kernel.org>; Tue, 06 Apr 2010 12:41:17 -0700 (PDT)
+In-Reply-To: <r2tce9ab5791004042118t81d5e892r46773f48c4da0ac0@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Nishanth Menon <nm@ti.com> writes:
+if NAND support is currently missing for OMAP3430 LDP,,how i boot my
+ldp again like before?...any idea?
 
-> Sripathy, Vishwanath had written, on 04/06/2010 01:06 PM, the following:
->> It is found that system is not very stable with current 1GHz OPP
->> configuration (ARM@1G, IVA@880M, VDD1@1.31V) and it has been
->> recommended to use below configuration for stable 1GHz OPP. (ARM@1G,
->> IVA@800M, VDD1@1.35V).
+best regards,
+Aldyth M
+
+On 4/5/10, Vimal Singh <vimal.newwork@gmail.com> wrote:
+> AFAIK, NAND support is currently missing for OMAP3430 LDP boards in L=
+O.
+>
+> -Vimal
+>
+> On Sun, Apr 4, 2010 at 9:34 PM, Ghorai, Sukumar <s-ghorai@ti.com> wro=
+te:
+>> Aldyth,
+>> 1. Do you mean that NAND boot is not working?
+>> 2. Does MMC/SD boot working? If yes, boot the platform from MMC/SD u=
+sing
+>> the latest x-loade/ u-boot and flush the same binaries to NAND using=
+ the
+>> following commands.
+>> mmcinit 0
+>> nand unlock 80000 80000
+>> nand erase 80000 80000
+>> fatload mmc 0 80000000 u-boot.bin
+>> nand write.i 80000000 80000 ${filesize}
 >>
->> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
->> ---
->> diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
->> index c453ec5..189c42e
->> --- a/arch/arm/mach-omap2/cpufreq34xx.c
->> +++ b/arch/arm/mach-omap2/cpufreq34xx.c
->> @@ -82,7 +82,7 @@ static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
->>  	/* OPP3 - OPP-Turbo */
->>  	OMAP_OPP_DEF(false, 800000000, 1260000),
->>  	/* OPP4 - OPP-SB */
->> -	OMAP_OPP_DEF(false, 1000000000, 1310000),
->> +	OMAP_OPP_DEF(false, 1000000000, 1350000),
->>  	/* Terminator */
->>  	OMAP_OPP_DEF(0, 0, 0)
->>  };
->> @@ -104,7 +104,7 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
->>  	/* OPP3 - OPP-Turbo */
->>  	OMAP_OPP_DEF(false, 660000000, 1260000),
->>  	/* OPP4 - OPP-SB */
->> -	OMAP_OPP_DEF(false, 875000000, 1310000),
->> +	OMAP_OPP_DEF(false, 800000000, 1350000),
->>  	/* Terminator */
->>  	OMAP_OPP_DEF(0, 0, 0)
->>  };
+>> nand unlock 0 80000
+>> nand erase 0 80000
+>> fatload mmc 0 80000000 MLO
+>> nand write.i 80000000 0 ${filesize}
+>>
+>> Regards,
+>> Ghorai
+>>
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>>> owner@vger.kernel.org] On Behalf Of Tar Gz
+>>> Sent: 2010-04-04 11:13
+>>> To: linux-omap
+>>> Subject: [ASK] OMAP 3430 LDP Trouble
+>>>
+>>> Hi all,
+>>> i'm sorry if my english too bad
+>>>
+>>> I try to porting linux to omap 3430 LDP..but my board have trouble
+>>> after i running this command:
+>>>
+>>> nand ecc sw
+>>> nand unlock 80000 80000
+>>> nand erase 80000 80000
+>>>
+>>> nand ecc hw
+>>> nand unlock 0 80000
+>>> nand erase 0 80000
+>>>
+>>> and if i try to turn on my board, BT led [blue led] always on and m=
+y
+>>> minicom can't show anything...and i forget to setting the enviromen=
+t
+>>> variable mmcinit..
+>>>
+>>> my question is, how to make my board can run normally like before?
+>>>
+>>> best regards,
+>>> Aldyth M
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
-> Acked-by: Nishanth Menon <nm@ti.com>
->
-
-Thanks, pushed to pm-wip-opp
-
-Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
