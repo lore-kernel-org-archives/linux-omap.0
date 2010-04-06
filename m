@@ -1,65 +1,51 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PM-WIP-OPP][PATCH] OMAP3630 PM: Update for OPP 1GHz
-Date: Tue, 6 Apr 2010 10:58:16 -0500
-Message-ID: <4BBB5A18.4090406@ti.com>
-References: <> <1270577169-8831-1-git-send-email-vishwanath.bs@ti.com>
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: Re: [PATCHv2 0/3] OMAP: DSS2: Allow us to use SDI
+Date: Tue, 06 Apr 2010 19:03:20 +0300
+Message-ID: <4BBB5B48.4060804@nokia.com>
+References: <1268829321-29769-1-git-send-email-roger.quadros@nokia.com> <1268835050.2417.277.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42158 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752218Ab0DFP6R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Apr 2010 11:58:17 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o36FwGSp022784
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 6 Apr 2010 10:58:17 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id o36FwGCW002515
-	for <linux-omap@vger.kernel.org>; Tue, 6 Apr 2010 10:58:16 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o36FwGdG022688
-	for <linux-omap@vger.kernel.org>; Tue, 6 Apr 2010 10:58:16 -0500 (CDT)
-In-Reply-To: <1270577169-8831-1-git-send-email-vishwanath.bs@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:51292 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752579Ab0DFQD2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 12:03:28 -0400
+In-Reply-To: <1268835050.2417.277.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Sripathy, Vishwanath had written, on 04/06/2010 01:06 PM, the following:
-> It is found that system is not very stable with current 1GHz OPP configuration 
-> (ARM@1G, IVA@880M, VDD1@1.31V) and it has been recommended to 
-> use below configuration for stable 1GHz OPP. 
-> (ARM@1G, IVA@800M, VDD1@1.35V).
+hi Tomi,
+
+Valkeinen Tomi (Nokia-D/Helsinki) wrote:
+> Hi,
 > 
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> ---
-> diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
-> index c453ec5..189c42e
-> --- a/arch/arm/mach-omap2/cpufreq34xx.c
-> +++ b/arch/arm/mach-omap2/cpufreq34xx.c
-> @@ -82,7 +82,7 @@ static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
->  	/* OPP3 - OPP-Turbo */
->  	OMAP_OPP_DEF(false, 800000000, 1260000),
->  	/* OPP4 - OPP-SB */
-> -	OMAP_OPP_DEF(false, 1000000000, 1310000),
-> +	OMAP_OPP_DEF(false, 1000000000, 1350000),
->  	/* Terminator */
->  	OMAP_OPP_DEF(0, 0, 0)
->  };
-> @@ -104,7 +104,7 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
->  	/* OPP3 - OPP-Turbo */
->  	OMAP_OPP_DEF(false, 660000000, 1260000),
->  	/* OPP4 - OPP-SB */
-> -	OMAP_OPP_DEF(false, 875000000, 1310000),
-> +	OMAP_OPP_DEF(false, 800000000, 1350000),
->  	/* Terminator */
->  	OMAP_OPP_DEF(0, 0, 0)
->  };
+> On Wed, 2010-03-17 at 13:35 +0100, Quadros Roger (Nokia-D/Helsinki)
+> wrote:
+>> SDI now makes use of vdds_sdi regulator supply.
+>> DPI can now be disabled on systems that don't have it
+>>
+>> changes since v1:
+>> - Incorporated review comments
+>> - no more omap3xx checks for regulator enable/disable in SDI
+>> - Added Kconfig option to enable/disable DPI
+>>
+>> Roger Quadros (3):
+>>   OMAP: DSS2: Add Kconfig option for DPI display type
+>>   OMAP: DSS2: Remove redundant enable/disable calls from SDI
+>>   OMAP: DSS2: Use vdds_sdi regulator supply in SDI
+> 
+> I think this patch set looks ok. Thanks!
+> 
+>  Tomi
+> 
+> Ps. I took the liberty of removing an extra #include <plat/cpu.h>
+> 
+> 
+What is the status of this patch set?
+Is it supposed to go into your tree or Tony's tree?
 
-Acked-by: Nishanth Menon <nm@ti.com>
-
--- 
-Regards,
-Nishanth Menon
+cheers
+-roger
