@@ -1,50 +1,44 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 0/3] DSPBRIDGE: simplify ntfy module
-Date: Mon, 5 Apr 2010 21:49:12 -0500
-Message-ID: <4BBAA128.6070208@ti.com>
-References: <496565EC904933469F292DDA3F1663E602CADC2FF1@dlee06.ent.ti.com>
+Subject: Re: [PATCH 0/2] DSPBRIDGE: 128 bytes alignment check
+Date: Mon, 5 Apr 2010 21:49:33 -0500
+Message-ID: <4BBAA13D.1060806@ti.com>
+References: <1269637348-20608-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35535 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55717 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757169Ab0DFCtO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Apr 2010 22:49:14 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CADC2FF1@dlee06.ent.ti.com>
+	id S1757169Ab0DFCte (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Apr 2010 22:49:34 -0400
+In-Reply-To: <1269637348-20608-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-On 3/24/2010 10:52 PM, Guzman Lugo, Fernando wrote:
->  From 87f5751e8838fae3b3eed189eaa9a94a6d8e1ebd Mon Sep 17 00:00:00 2001
-> From: Fernando Guzman Lugo<x0095840@ti.com>
-> Date: Wed, 24 Mar 2010 21:53:02 -0600
-> Subject: [PATCH] DSPBRIDGE: simplify ntfy module
+On 3/26/2010 4:02 PM, Ramirez Luna, Omar wrote:
+> Technical info:
+> https://omapzoom.org/gf/download/docmanfileversion/52/985/DSP_cache.pdf
 >
-> This set of patches simplifies the ntfy and also use kernel functions
-> for notifications. Always keeping the same behavior that it had before
-> the changes. That is the reason the code could no be simplified a little
-> more.
+> This set of patches introduces the 128 byte alignment check,
+> needed to avoid corruption if the dsp is meant to write to
+> boundary portions of an unaligned chunk of memory.
 >
-> Fernando Guzman Lugo (3):
->    DSPBRIDGE: remove ntfy_init/exit functions
->    DSPBRIDGE: allocation of ntfy object take out of ntfy module.
->    DSPBRIDGE: simplify and make more use of kernel function in notify
->      module
+> The second patch uses a field composed of 2 bits to distinguish
+> if the mapped chunk is readable/writeable, so the check can be
+> performed on w/rw chunks of memory.
 >
->   arch/arm/plat-omap/include/dspbridge/ntfy.h |  275 +++++++++++++++++---------
->   drivers/dsp/bridge/rmgr/node.c              |   22 ++-
->   drivers/dsp/bridge/rmgr/proc.c              |   16 ++-
->   drivers/dsp/bridge/services/ntfy.c          |  282 +--------------------------
->   drivers/dsp/bridge/services/services.c      |    6 +-
->   drivers/dsp/bridge/wmd/chnl_sm.c            |   19 ++-
->   drivers/dsp/bridge/wmd/msg_sm.c             |   23 ++-
->   drivers/dsp/bridge/wmd/ue_deh.c             |   19 ++-
->   8 files changed, 270 insertions(+), 392 deletions(-)
+> Omar Ramirez Luna (2):
+>    DSPBRIDGE: add checking 128 byte alignment for dsp cache line size
+>    DSPBRIDGE: Distinguish between read or write buffers
 >
-> --
+>   arch/arm/plat-omap/include/dspbridge/dbdefs.h |    7 ++++++-
+>   drivers/dsp/bridge/Kconfig                    |   14 ++++++++++++++
+>   drivers/dsp/bridge/rmgr/proc.c                |   19 +++++++++++++++++++
+>   drivers/dsp/bridge/wmd/tiomap3430.c           |    4 ++--
+>   4 files changed, 41 insertions(+), 3 deletions(-)
+>
 
 Pushed to dspbridge.
 
