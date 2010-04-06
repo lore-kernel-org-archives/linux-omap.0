@@ -1,89 +1,78 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
-Date: Tue, 6 Apr 2010 11:51:35 -0500
-Message-ID: <A24693684029E5489D1D202277BE894454886427@dlee02.ent.ti.com>
-References: <20100322212025.GW11448@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026F127117@dbde02.ent.ti.com>
- <20100323152709.GD11448@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v3] OMAP: Fix for bus width which improves SD card's peformance.
+Date: Tue, 6 Apr 2010 11:55:03 -0500
+Message-ID: <4BBB6767.7010202@ti.com>
+References: <v2yce9ab5791003302327hc67deb3akc7d18146534038f9@mail.gmail.com> <h2p7f9d1ffb1003310003z508e21dbqe37b6e1cad425866@mail.gmail.com> <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com> <g2s7f9d1ffb1003312331o149df218g651c3e4349ac9a77@mail.gmail.com> <003c01cad1b1$da2cdbf0$544ff780@am.dhcp.ti.com> <m2n7f9d1ffb1004050556o1ed2eec8ief66d60fc85f96de@mail.gmail.com> <20100405164839.GB17388@gandalf> <007c01cad4e4$26c5a700$544ff780@am.dhcp.ti.com> <20100406050035.GA32537@gandalf> <003901cad5a4$730264d0$544ff780@am.dhcp.ti.com> <20100406163211.GA29117@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45438 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755041Ab0DFQvm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 12:51:42 -0400
-In-Reply-To: <20100323152709.GD11448@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100406163211.GA29117@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "me@felipebalbi.com" <me@felipebalbi.com>, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>, 'Vimal Singh' <vimal.newwork@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "S, Venkatraman" <svenkatr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Pais, Allen" <allen.pais@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Tuesday, March 23, 2010 10:27 AM
-> To: Pais, Allen
-> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org;
-> Pandita, Vikram
-> Subject: Re: [PATCH] arm: Fix DEBUG_LL for omap zoom2/3
+Felipe Balbi had written, on 04/06/2010 11:32 AM, the following:
+> On Tue, Apr 06, 2010 at 06:16:01PM +0200, ext Madhusudhan wrote:
+>>
+>>> -----Original Message-----
+>>> From: Felipe Balbi [mailto:me@felipebalbi.com]
+>>> Sent: Tuesday, April 06, 2010 12:01 AM
+>>> To: Madhusudhan
+>>> Cc: me@felipebalbi.com; 'kishore kadiyala'; 'Vimal Singh';
+>>> tony@atomide.com; svenkatr@ti.com; linux-omap@vger.kernel.org; linux-
+>>> kernel@vger.kernel.org; jarkko.lavinen@nokia.com
+>>> Subject: Re: [PATCH v3] OMAP: Fix for bus width which improves SD card's
+>>> peformance.
+>>>
+>>> Hi,
+>>>
+>>> On Mon, Apr 05, 2010 at 12:19:29PM -0500, Madhusudhan wrote:
+>>>> Since the first if command already checks for the 8-bit the second check
+>>>> like >= 4 is definitely not readable in my opinion.
+>>> how come ???
+>>>
+>>>> Functionally do you see anything wrong with this patch??
+>>> functionally no, but (hypothetical situation) and if on
+>>> omap4/5/6/whatever, omap controller supports a bigger bus width then
+>>> you'll have to add a line like:
+>>>
+>>> +	if (mmc_slot(host).wires == 16)
+>>> +		mmc->caps |= (MMC_CAP_16_BIT_DATA | MMC_CAP_8_BIT_DATA |
+>>> +				MMC_CAP_4_BIT_DATA);
+>>> -	if (mmc_slot(host).wires == 8)
+>>> +	else if (mmc_slot(host).wires == 8)
+>>>
+>>> do you see the problem ?? In my opinion it doesn't scale well.
+>>>
+>> The point we should note here is that MMC spec supports a max bus width of
+>> 8-bit. So anything beyond 8-bit is not in the picture as of today.
 > 
-> * Pais, Allen <allen.pais@ti.com> [100322 22:42]:
-> > > >
-> > > >  With this patch[DEBUG_LL + earlyprintk],
-> > > >  I still haven't been able to boot the kernel.
-> > > >  Is it working on your side.
-> > > >
-> > > >  The commit am using is : a842b5f9ce70e1b738eabb4d719860070180ed1c
-> > >
-> > > I think you will also need the 3630 serial fixes series posted
-> > > recently.
-> > >
-> > > I just merged those into omap-fixes-for-linus (and master)
-> > > branch(es). Maybe give it a try with at commit
-> > > b3c7740a120c8a7775cb63b4d094466da5c01692 + this patch?
-> >
-> >   Thanks, I'll pull in those fixes.
-> >  I believe the mux errors are fixed. Have a look at
-> >  http://dev.omapzoom.org/?p=manju/kernel-omap3-
-> dev.git;a=commit;h=3499f5023ee90dc6ee3868a3147b87fe22a1d9b7
-> >
-> >  Patch must have been missed some how.
+> in that case, the code could be:
 > 
-> OK, we really should get fixes like that to mainline kernel ASAP
-> to avoid duplicating the effort.
+> WARN_ON(mmc_slot(host).wires > 8);
+> 
+> if (mmc_slot(host).wires == 8)
+> 	mmc->caps |= MMC_CAP_8_BIT_DATA;
+> if (mmc_slot(host).wires >= 4)
+> 	mmc->caps |= MMC_CAP_4_BIT_DATA;
+>
+some reasons why i love switch statements ;) since I dont expect other 
+than precisely 4 and 8 (do we expect 5,6,7 - i might be wrong).. but if 
+it is so, wont the following be better?
 
-Hi,
-
-Without doing cherry-pick of above patch url (that Allen mentioned),
-there's an error when trying to get uart4_[i,f]ck clocks during
-bootup.
-
-Is this patch being pushed anywhere already? IMHO, at least it should be on omap-testing, but ideally on omap-fixes-for-linus branch.
-
-What do you think?
-
+switch (mmc_slot(host).wires)
+{
+case 8:
+	mmc->caps |= MMC_CAP_8_BIT_DATA;
+	/* fall thru*/
+case 4:
+	mmc->caps |= MMC_CAP_4_BIT_DATA;
+		break;
+default:
+	WARN("bad width");
+}	
+-- 
 Regards,
-Sergio
-
-> 
-> Then at least one issue remains for zoom3 to be usable..
-> I'm getting tons of MMC errors trying to mount root on it:
-> 
-> mmcblk1: error -110 transferring data, sector 2097024, nr 8, card status
-> 0x900
-> end_request: I/O error, dev mmcblk1, sector 2097024
-> ...
-> 
-> Any ideas if that's fixed somewhere also?
-> 
-> Regards,
-> 
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Nishanth Menon
