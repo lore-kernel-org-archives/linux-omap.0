@@ -1,82 +1,65 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP: GPIO: Fix OMAP4 GPIO reg access issues
-Date: Tue, 06 Apr 2010 15:51:27 -0700
-Message-ID: <87mxxgi49c.fsf@deeprootsystems.com>
-References: <1269268704-31347-1-git-send-email-charu@ti.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH v3] OMAP: Fix for bus width which improves SD card's peformance.
+Date: Tue, 6 Apr 2010 18:23:06 -0500
+Message-ID: <00b401cad5e0$1d1868d0$544ff780@am.dhcp.ti.com>
+References: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com> <g2s7f9d1ffb1003312331o149df218g651c3e4349ac9a77@mail.gmail.com> <003c01cad1b1$da2cdbf0$544ff780@am.dhcp.ti.com> <m2n7f9d1ffb1004050556o1ed2eec8ief66d60fc85f96de@mail.gmail.com> <20100405164839.GB17388@gandalf> <007c01cad4e4$26c5a700$544ff780@am.dhcp.ti.com> <20100406050035.GA32537@gandalf> <003901cad5a4$730264d0$544ff780@am.dhcp.ti.com> <20100406163211.GA29117@nokia.com> <4BBB6767.7010202@ti.com> <20100406165720.GA17916@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f217.google.com ([209.85.217.217]:62432 "EHLO
-	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757512Ab0DFWvh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 18:51:37 -0400
-Received: by gxk9 with SMTP id 9so231595gxk.8
-        for <linux-omap@vger.kernel.org>; Tue, 06 Apr 2010 15:51:36 -0700 (PDT)
-In-Reply-To: <1269268704-31347-1-git-send-email-charu@ti.com> (Charulatha V.'s message of "Mon\, 22 Mar 2010 20\:08\:24 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:39117 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757628Ab0DFXXT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Apr 2010 19:23:19 -0400
+In-Reply-To: <20100406165720.GA17916@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charulatha V <charu@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: felipe.balbi@nokia.com, 'ext Nishanth Menon' <nm@ti.com>
+Cc: me@felipebalbi.com, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>, 'Vimal Singh' <vimal.newwork@gmail.com>, tony@atomide.com, "'S, Venkatraman'" <svenkatr@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "'Lavinen Jarkko (Nokia-D/Helsinki)'" <jarkko.lavinen@nokia.com>
 
-Charulatha V <charu@ti.com> writes:
 
-> Access to some of the OMAP4 GPIO registers are not properly handled.
-> This patch fixes it.
->
 
-Tested on... ?
+> -----Original Message-----
+> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+> Sent: Tuesday, April 06, 2010 11:57 AM
+> To: ext Nishanth Menon
+> Cc: Balbi Felipe (Nokia-D/Helsinki); Chikkature Rajashekar, Madhusudhan;
+> me@felipebalbi.com; 'kishore kadiyala'; 'Vimal Singh'; tony@atomide.com;
+> S, Venkatraman; linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
+> Lavinen Jarkko (Nokia-D/Helsinki)
+> Subject: Re: [PATCH v3] OMAP: Fix for bus width which improves SD card's
+> peformance.
+> 
+> On Tue, Apr 06, 2010 at 06:55:03PM +0200, ext Nishanth Menon wrote:
+> >some reasons why i love switch statements ;) since I dont expect other
+> >than precisely 4 and 8 (do we expect 5,6,7 - i might be wrong).. but if
+> >it is so, wont the following be better?
+> >
+> >switch (mmc_slot(host).wires)
+> >{
+> >case 8:
+> >	mmc->caps |= MMC_CAP_8_BIT_DATA;
+> >	/* fall thru*/
+> >case 4:
+> >	mmc->caps |= MMC_CAP_4_BIT_DATA;
+> >		break;
+> >default:
+> >	WARN("bad width");
+> >}
+> 
+> I like that, but I remember Madhu (or someone else) saying he thinks
+> it's less readable this way. Go figure...
+> 
+Well, I did not comment on the usage of switch here. Note we only need to
+handle 8-bit and 4-bit.The board files need not setup 8-bit or 4-bit if the
+configuration of that board is 1-bit. The driver will still work in 1-bit
+mode which would mean there is nothing to do in default case and should not
+err out.
 
-> Signed-off-by: Charulatha V <charu@ti.com>
-> ---
->  arch/arm/plat-omap/gpio.c |   61 +++++++++++++++++++++++++++++++++++---------
->  1 files changed, 55 insertions(+), 12 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 76a347b..3a9891c 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -137,7 +137,11 @@
->  #define OMAP4_GPIO_IRQSTATUSCLR1	0x0040
->  #define OMAP4_GPIO_IRQWAKEN0		0x0044
->  #define OMAP4_GPIO_IRQWAKEN1		0x0048
-> -#define OMAP4_GPIO_SYSSTATUS		0x0104
-> +#define OMAP4_GPIO_SYSSTATUS		0x0114
-> +#define OMAP4_GPIO_IRQENABLE1		0x011c
-> +#define OMAP4_GPIO_WAKE_EN		0x0120
-> +#define OMAP4_GPIO_IRQSTATUS2		0x0128
-> +#define OMAP4_GPIO_IRQENABLE2		0x012c
->  #define OMAP4_GPIO_CTRL			0x0130
->  #define OMAP4_GPIO_OE			0x0134
->  #define OMAP4_GPIO_DATAIN		0x0138
-> @@ -148,6 +152,10 @@
->  #define OMAP4_GPIO_FALLINGDETECT	0x014c
->  #define OMAP4_GPIO_DEBOUNCENABLE	0x0150
->  #define OMAP4_GPIO_DEBOUNCINGTIME	0x0154
-> +#define OMAP4_GPIO_CLEARIRQENABLE1	0x0160
-> +#define OMAP4_GPIO_SETIRQENABLE1	0x0164
-> +#define OMAP4_GPIO_CLEARWKUENA		0x0180
-> +#define OMAP4_GPIO_SETWKUENA		0x0184
->  #define OMAP4_GPIO_CLEARDATAOUT		0x0190
+Regards,
+Madhu
 
-[...]
-
-> @@ -1570,9 +1603,14 @@ static int gpio_is_input(struct gpio_bank *bank, int mask)
->  		reg += OMAP7XX_GPIO_DIR_CONTROL;
->  		break;
->  	case METHOD_GPIO_24XX:
-> -	case METHOD_GPIO_44XX:
->  		reg += OMAP24XX_GPIO_OE;
->  		break;
-> +	case METHOD_GPIO_44XX:
-> +		reg += OMAP4_GPIO_OE;
-> +		break;
-> +	default:
-> +		WARN_ON(1);
-> +		return -EINVAL;
-
-If you add a WARN, please add a helpful string.
-
-Otherwise, this looks OK to me.
-
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> --
+> balbi
 
