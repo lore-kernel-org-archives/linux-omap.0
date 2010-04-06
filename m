@@ -1,71 +1,77 @@
-From: arno@natisbad.org (Arnaud Ebalard)
-Subject: Re: [PATCH 0/5] OMAP: RX51: Add LCD Panel Support for N900
-Date: Tue, 06 Apr 2010 22:41:55 +0200
-Message-ID: <87iq84cnzg.fsf@small.ssi.corp>
-References: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com>
-	<87pr2datft.fsf@small.ssi.corp> <4BBB03F2.5050706@nokia.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: [ASK] OMAP 3430 LDP Trouble
+Date: Tue, 06 Apr 2010 14:44:53 -0600
+Message-ID: <4BBB9D45.20907@mlbassoc.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0322418AC7@dbde02.ent.ti.com>	 <o2kd9ca78711004061327ibd323aa5yfbdf1f6a8e194200@mail.gmail.com>	 <4BBB99A8.6060308@mlbassoc.com> <v2hd9ca78711004061340v705e23adj22adce1945b6b81@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from copper.chdir.org ([88.191.97.87]:38656 "EHLO copper.chdir.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752927Ab0DFUlf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Apr 2010 16:41:35 -0400
-In-Reply-To: <4BBB03F2.5050706@nokia.com> (Roger Quadros's message of "Tue, 06
-	Apr 2010 12:50:42 +0300")
+Received: from hermes.mlbassoc.com ([76.76.67.137]:33743 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752927Ab0DFUpD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 16:45:03 -0400
+In-Reply-To: <v2hd9ca78711004061340v705e23adj22adce1945b6b81@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <roger.quadros@nokia.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Tar Gz <bsdraisefromhell@gmail.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, Vimal Singh <vimal.newwork@gmail.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
+On 04/06/2010 02:40 PM, Tar Gz wrote:
+> i don't know, i'm forget to setting up my environment variable mmcinit
+> or my sd card can't booting / bootable....but if i'm boot from nadn
+> and can enter prompt, my ldp board can read my sd card...can load
+> kernel from my sd card
 
->> Roger Quadros <roger.quadros@nokia.com> writes:
+You'll be much better off figuring out how to boot from the SD card.
+There are many "how to" documents on this for the OMAP - just follow
+the cookbook.  Then you'll have the pieces you need to repair your
+NAND copy and move on.
+
+> On 4/7/10, Gary Thomas<gary@mlbassoc.com>  wrote:
+>> On 04/06/2010 02:27 PM, Tar Gz wrote:
+>>> yes, i can't boot from nand because i erase it and i can't boot from
+>>> my sd card..
 >>
->>> These patches get the N900 LCD panel working.
->>> Apply's cleanly on 2.6.34-rc2
+>> Why can't you boot from the SD card?
+>>
+>>> okey i will try boot from serial..hope this help
 >>>
->>> Pre-requisites:
->>> https://patchwork.kernel.org/patch/86318/
->>> https://patchwork.kernel.org/patch/86319/
->>> https://patchwork.kernel.org/patch/86320/
+>>> best regards,
+>>> Aldyth M
+>>>
+>>> On 4/7/10, Gadiyar, Anand<gadiyar@ti.com>   wrote:
+>>>> Gadiyar, Anand wrote:
+>>>>> Tar Gz wrote:
+>>>>>> if NAND support is currently missing for OMAP3430 LDP,,how i boot my
+>>>>>> ldp again like before?...any idea?
+>>>>>>
+>>>>>
+>>>>> <snip>
+>>>>>
+>>>>> If I understand you correctly, you now have a non-booting
+>>>>> LDP, and want
+>>>>> to get a bootloader flashed on it?
+>>>>>
+>>>>> You may need to do a serial boot.
+>>>>>
+>>>>> Maybe this (old, and no longer maintained) page will help?
+>>>>>
+>>>>> <https://gforge.ti.com/gf/project/omapzoom/wiki/?pagename=BootingAndFlashing>
 >>
->> First, thanks for pushing the missing bits for N900 hardware support
->> upstream! I wanted to give your patches a try and test a l-o kernel on
->> my N900 (I know I won't have full hardware support ... at the moment).
+>> --
+>> ------------------------------------------------------------
+>> Gary Thomas                 |  Consulting for the
+>> MLB Associates              |    Embedded world
+>> ------------------------------------------------------------
 >>
->> Using current l-o tree with your 5 panel patches and the 3 you link on
->> patchwork, I initially ended up with a kernel panic in
->> omap3_onenand_write_bufferram() (i.e. unrelated to your patches).
->>
->> With http://patchwork.ozlabs.org/patch/48337/ (mtd: OneNAND: OMAP3:
->> unmap correct DMA buffer), I am able to get the official Nokia
->> /sbin/preinit called: then, getbootstate reports a malfunction but
->> AFAICT, the panel is working ok.
->>
-> The getbootstate malfunction is expected as there is no support for it
-> yet in mainline. But you should get to shell without that.
->
-> You could hack the startup script to spawn a getty on ttyS2. This
-> should get you to shell.
->
-> so in /sbin/preinit, in start_shell()
->
-> -/sbin/getty 115200 ttyS0 -n -l /bin/sh
-> +/sbin/getty 115200 ttyS2 -n -l /bin/sh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-For the records, just in case someone wants to do the same, I had to
-use: 
-
-   /sbin/getty 115200 tty0 -n -l /bin/sh
-
-I also had to set CONFIG_KEYBOARD_TWL4030 to get the keyboard
-working. Any reason for that option not be enabled by default in
-rx51_defconfig?
-
-Additionally, after something like 25 seconds, the screen goes black and
-the device stops. Any clue? Can be panel realted?
-
-Cheers,
-
-a+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
