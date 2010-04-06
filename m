@@ -1,14 +1,16 @@
 From: Laine Walker-Avina <lwalkera@ieee.org>
-Subject: [PATCH 1/5] OMAP: Add in helper macros for the SDRAM timings
-Date: Tue,  6 Apr 2010 09:51:04 -0700
-Message-ID: <1270572668-2336-2-git-send-email-lwalkera@ieee.org>
+Subject: [PATCH 3/5] OMAP: Add SDRAM timings for Micron mt46h16m32lf-6
+Date: Tue,  6 Apr 2010 09:51:06 -0700
+Message-ID: <1270572668-2336-4-git-send-email-lwalkera@ieee.org>
 References: <1270572668-2336-1-git-send-email-lwalkera@ieee.org>
+ <1270572668-2336-2-git-send-email-lwalkera@ieee.org>
+ <1270572668-2336-3-git-send-email-lwalkera@ieee.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exprod7og119.obsmtp.com ([64.18.2.16]:44472 "HELO
-	exprod7og119.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757089Ab0DFRBw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 13:01:52 -0400
-In-Reply-To: <1270572668-2336-1-git-send-email-lwalkera@ieee.org>
+Received: from exprod7og117.obsmtp.com ([64.18.2.6]:35294 "HELO
+	exprod7og117.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757089Ab0DFRB4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 13:01:56 -0400
+In-Reply-To: <1270572668-2336-3-git-send-email-lwalkera@ieee.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -17,43 +19,83 @@ Cc: Laine Walker-Avina <lwalkera@ieee.org>
 
 Signed-off-by: Laine Walker-Avina <lwalkera@ieee.org>
 ---
- arch/arm/plat-omap/include/plat/sdrc.h |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/sdram-micron-mt46h16m32lf-6.h |   67 +++++++++++++++++++++
+ 1 files changed, 67 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h16m32lf-6.h
 
-diff --git a/arch/arm/plat-omap/include/plat/sdrc.h b/arch/arm/plat-omap/include/plat/sdrc.h
-index 7b76f50..c74d1e7 100644
---- a/arch/arm/plat-omap/include/plat/sdrc.h
-+++ b/arch/arm/plat-omap/include/plat/sdrc.h
-@@ -124,6 +124,29 @@ struct omap_sdrc_params {
- 	u32 mr;
- };
- 
-+/* Helper macros and defines for the omap_sdrc_params registers */
-+#define ACTIM_TRFC(a)		(((a) & 0x1f)<<27)
-+#define ACTIM_TRC(a)		(((a) & 0x1f)<<22)
-+#define ACTIM_TRAS(a)		(((a) & 0xf)<<18)
-+#define ACTIM_TRP(a)		(((a) & 0x3)<<15)
-+#define ACTIM_TRCD(a)		(((a) & 0x3)<<12)
-+#define ACTIM_TRRD(a)		(((a) & 0x3)<<9)
-+#define ACTIM_TDPL(a)		(((a) & 0x3)<<6)
-+#define ACTIM_TDAL(a)		(((a) & 0x1f)<<0)
+diff --git a/arch/arm/mach-omap2/sdram-micron-mt46h16m32lf-6.h b/arch/arm/mach-omap2/sdram-micron-mt46h16m32lf-6.h
+new file mode 100644
+index 0000000..5e7c3e8
+--- /dev/null
++++ b/arch/arm/mach-omap2/sdram-micron-mt46h16m32lf-6.h
+@@ -0,0 +1,67 @@
++/*
++ * SDRC register values for the Micron MT46H16M32LF-6
++ *
++ * Copyright (C) 2010 PASCO scientifc
++ *
++ * Laine Walker-Avina
++ *
++ * Based on the file for the Micron MT46H32M32LF-6 by Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+#define ACTIM_TWTR(a)		(((a) & 0x3)<<16)
-+#define ACTIM_TCKE(a)		(((a) & 0x7)<<12)
-+#define ACTIM_TXP(a)		(((a) & 0x7)<<8)
-+#define ACTIM_TXSR(a)		(((a) & 0xff)<<0)
++#ifndef ARCH_ARM_MACH_OMAP2_SDRAM_MICRON_MT46H16M32LF
++#define ARCH_ARM_MACH_OMAP2_SDRAM_MICRON_MT46H16M32LF
 +
-+#define RFR_CTRL_ARCV(a)	(((a) & 0xffff)<<8)
-+#define RFR_CTRL_ARE(a)		(((a) & 0x3)<<0)
++#include <plat/sdrc.h>
 +
-+#define MR_WBST(a)			(((a) & 0x1)<<9)
-+#define MR_CASL(a)			(((a) & 0x7)<<4)
-+#define MR_BL(a)			(((a) & 0x7)<<0)
++/* Micron MT46H16M32LF-6 */
++static struct omap_sdrc_params mt46h16m32lf6_sdrc_params[] = {
++	[0] = {
++		.rate	     = 166000000,
++		.actim_ctrla = ACTIM_TRFC(17) | ACTIM_TRC(10) | ACTIM_TRAS(7) |
++			ACTIM_TRP(3) | ACTIM_TRCD(3) | ACTIM_TRRD(2) | ACTIM_TDPL(3) |
++			ACTIM_TDAL(6),
++		.actim_ctrlb = ACTIM_TWTR(2) | ACTIM_TCKE(1) | ACTIM_TXP(1) |
++			ACTIM_TXSR(20),
++		.rfr_ctrl    = RFR_CTRL_ARCV(1244) | RFR_CTRL_ARE(1),
++		.mr	         = MR_WBST(0) | MR_CASL(3) | MR_BL(2),
++	},
++	[1] = {
++		.rate	     = 165941176,
++		.actim_ctrla = ACTIM_TRFC(17) | ACTIM_TRC(10) | ACTIM_TRAS(7) |
++			ACTIM_TRP(3)   | ACTIM_TRCD(3) | ACTIM_TRRD(2) | ACTIM_TDPL(3) |
++			ACTIM_TDAL(6),
++		.actim_ctrlb = ACTIM_TWTR(2)  | ACTIM_TCKE(1) | ACTIM_TXP(1) |
++			ACTIM_TXSR(20),
++		.rfr_ctrl    = RFR_CTRL_ARCV(1244) | RFR_CTRL_ARE(1),
++		.mr	         = MR_WBST(0) | MR_CASL(3) | MR_BL(2),
++	},
++	[2] = {
++		.rate	     = 83000000,
++		.actim_ctrla = ACTIM_TRFC(9) | ACTIM_TRC(5) | ACTIM_TRAS(4) |
++			ACTIM_TRP(2) | ACTIM_TRCD(2) | ACTIM_TRRD(1) | ACTIM_TDPL(2) |
++			ACTIM_TDAL(3),
++		.actim_ctrlb = ACTIM_TWTR(1) | ACTIM_TCKE(1) | ACTIM_TXP(1) |
++			ACTIM_TXSR(10),
++		.rfr_ctrl    = RFR_CTRL_ARCV(597) | RFR_CTRL_ARE(1),
++		.mr	         = MR_WBST(0) | MR_CASL(3) | MR_BL(2),
++	},
++	[3] = {
++		.rate	     = 82970588,
++		.actim_ctrla = ACTIM_TRFC(10) | ACTIM_TRC(5) | ACTIM_TRAS(4) |
++			ACTIM_TRP(2) | ACTIM_TRCD(2) | ACTIM_TRRD(1) | ACTIM_TDPL(2) |
++			ACTIM_TDAL(3),
++		.actim_ctrlb = ACTIM_TWTR(1) | ACTIM_TCKE(1) | ACTIM_TXP(2) |
++			ACTIM_TXSR(12),
++		.rfr_ctrl    = RFR_CTRL_ARCV(597) | RFR_CTRL_ARE(1),
++		.mr	         = MR_WBST(0) | MR_CASL(3) | MR_BL(2),
++	},
++	[4] = {
++		.rate	     = 0
++	},
++};
 +
-+
- void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- 			    struct omap_sdrc_params *sdrc_cs1);
- int omap2_sdrc_get_params(unsigned long r,
++#endif
 -- 
 1.6.3.3
 
