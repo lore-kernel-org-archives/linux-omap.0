@@ -1,1921 +1,1252 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH 3/3] DSPBRIDGE: remove hw_prcm module and related functions
-Date: Tue, 6 Apr 2010 12:54:32 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CAF98C66@dlee06.ent.ti.com>
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: RE: [PATCH 1/2] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver
+ on 	top of DSS2
+Date: Tue, 6 Apr 2010 13:25:56 -0500
+Message-ID: <A69FA2915331DC488A831521EAE36FE4016A92D8CF@dlee06.ent.ti.com>
+References: <hvaibhav@ti.com>
+	 <1270115880-21404-2-git-send-email-hvaibhav@ti.com>
+ <z2j55a3e0ce1004021303rdf3092f7r87b119cd97687f9b@mail.gmail.com>
+ <19F8576C6E063C45BE387C64729E7394044DF7F789@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50010 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757274Ab0DFRyl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 13:54:41 -0400
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DF7F789@dbde02.ent.ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Muralidharan Karicheri <mkaricheri@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
->From 4fb9fc015cea65dcd47172a8b180f380fe86be46 Mon Sep 17 00:00:00 2001
-From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Tue, 30 Mar 2010 21:37:21 -0600
-Subject: [PATCH] DSPBRIDGE: remove hw_prcm module and related functions
 
-This patches removes TI hw_prcm module and related functions
-and replace them with kernel functions. As kernel functions
-are exported, pointer function are used to build without
-problem in case of building dspbridge as a module.
+Vaibhav,
 
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
----
- arch/arm/mach-omap2/dspbridge.c                |    9 +-
- arch/arm/plat-omap/include/dspbridge/cfgdefs.h |    2 -
- arch/arm/plat-omap/include/dspbridge/host_os.h |    8 +
- drivers/dsp/bridge/Makefile                    |    2 +-
- drivers/dsp/bridge/hw/PRCMAccInt.h             |  303 ------------
- drivers/dsp/bridge/hw/PRCMRegAcM.h             |  615 ------------------------
- drivers/dsp/bridge/hw/hw_prcm.c                |  161 ------
- drivers/dsp/bridge/hw/hw_prcm.h                |  156 ------
- drivers/dsp/bridge/rmgr/drv.c                  |   14 -
- drivers/dsp/bridge/wmd/_tiomap.h               |    4 +
- drivers/dsp/bridge/wmd/tiomap3430.c            |  149 ++----
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c        |   56 +--
- drivers/dsp/bridge/wmd/tiomap_io.c             |   15 +-
- 13 files changed, 102 insertions(+), 1392 deletions(-)
- delete mode 100644 drivers/dsp/bridge/hw/PRCMAccInt.h
- delete mode 100644 drivers/dsp/bridge/hw/PRCMRegAcM.h
- delete mode 100644 drivers/dsp/bridge/hw/hw_prcm.c
- delete mode 100644 drivers/dsp/bridge/hw/hw_prcm.h
+>>
+>[Hiremath, Vaibhav] Thanks Murali, I really appreciate your comments here.
+>Please find response below -
 
-diff --git a/arch/arm/mach-omap2/dspbridge.c b/arch/arm/mach-omap2/dspbridge.c
-index 4150896..8d6c122 100644
---- a/arch/arm/mach-omap2/dspbridge.c
-+++ b/arch/arm/mach-omap2/dspbridge.c
-@@ -12,7 +12,8 @@
-  */
+You had responded only to some comments. Can I assume that you are taking care of the other comments as well? I have also asked Hans to provide
+his comments since this is a new driver that he might have to approve. Did he review the code in the past?
 
- #include <linux/platform_device.h>
--
-+#include "prm.h"
-+#include "cm.h"
- #ifdef CONFIG_BRIDGE_DVFS
- #include <plat/omap-pm.h>
- #endif
-@@ -28,6 +29,12 @@ static struct dspbridge_platform_data dspbridge_pdata __initdata = {
-        .cpu_set_freq    = omap_pm_cpu_set_freq,
-        .cpu_get_freq    = omap_pm_cpu_get_freq,
- #endif
-+       .dsp_prm_read   = prm_read_mod_reg,
-+       .dsp_prm_write  = prm_write_mod_reg,
-+       .dsp_prm_rmw_bits = prm_rmw_mod_reg_bits,
-+       .dsp_cm_read    = cm_read_mod_reg,
-+       .dsp_cm_write   = cm_write_mod_reg,
-+       .dsp_cm_rmw_bits = cm_rmw_mod_reg_bits,
- };
-
- static int __init dspbridge_init(void)
-diff --git a/arch/arm/plat-omap/include/dspbridge/cfgdefs.h b/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-index a71fc7b..8695fd3 100644
---- a/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-@@ -65,8 +65,6 @@ struct cfg_hostres {
-        u32 dw_chnl_offset;
-        u32 dw_chnl_buf_size;
-        u32 dw_num_chnls;
--       void __iomem *dw_prm_base;
--       void __iomem *dw_cm_base;
-        void __iomem *dw_per_base;
-        u32 dw_per_pm_base;
-        u32 dw_core_pm_base;
-diff --git a/arch/arm/plat-omap/include/dspbridge/host_os.h b/arch/arm/plat-omap/include/dspbridge/host_os.h
-index a5d8caf..2834304 100644
---- a/arch/arm/plat-omap/include/dspbridge/host_os.h
-+++ b/arch/arm/plat-omap/include/dspbridge/host_os.h
-@@ -60,6 +60,14 @@ struct dspbridge_platform_data {
-        unsigned long (*cpu_get_freq) (void);
-        unsigned long mpu_speed[6];
-
-+       /* functions to write and read PRCM registers */
-+       void (*dsp_prm_write)(u32, s16 , u16);
-+       u32 (*dsp_prm_read)(s16 , u16);
-+       u32 (*dsp_prm_rmw_bits)(u32, u32, s16, s16);
-+       void (*dsp_cm_write)(u32, s16 , u16);
-+       u32 (*dsp_cm_read)(s16 , u16);
-+       u32 (*dsp_cm_rmw_bits)(u32, u32, s16, s16);
-+
-        u32 phys_mempool_base;
-        u32 phys_mempool_size;
- };
-diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
-index 1350362..5a28374 100644
---- a/drivers/dsp/bridge/Makefile
-+++ b/drivers/dsp/bridge/Makefile
-@@ -15,7 +15,7 @@ librmgr = rmgr/dbdcd.o rmgr/disp.o rmgr/drv.o rmgr/mgr.o rmgr/node.o \
-                rmgr/nldr.o rmgr/drv_interface.o
- libdload = dynload/cload.o dynload/getsection.o dynload/reloc.o \
-                 dynload/tramp.o
--libhw = hw/hw_prcm.o hw/hw_mmu.o
-+libhw = hw/hw_mmu.o
-
- bridgedriver-objs = $(libgen) $(libservices) $(libwmd) $(libpmgr) $(librmgr) \
-                        $(libdload) $(libhw)
-diff --git a/drivers/dsp/bridge/hw/PRCMAccInt.h b/drivers/dsp/bridge/hw/PRCMAccInt.h
-deleted file mode 100644
-index 7a513b0..0000000
---- a/drivers/dsp/bridge/hw/PRCMAccInt.h
-+++ /dev/null
-@@ -1,303 +0,0 @@
--/*
-- * PRCMAccInt.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Copyright (C) 2007 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef _PRCM_ACC_INT_H
--#define _PRCM_ACC_INT_H
--
--/* Mappings of level 1 EASI function numbers to function names */
--
--#define EASIL1_PRCMPRCM_CLKCFG_CTRL_VALID_CONFIG_WRITE_CLK_VALID32  \
--                                               (PRCM_BASE_EASIL1 + 349)
--#define EASIL1_PRCMCM_FCLKEN1_CORE_READ_REGISTER32     (PRCM_BASE_EASIL1 + 743)
--#define EASIL1_PRCMCM_FCLKEN1_COREEN_GPT8_WRITE32      (PRCM_BASE_EASIL1 + 951)
--#define EASIL1_PRCMCM_FCLKEN1_COREEN_GPT7_WRITE32      (PRCM_BASE_EASIL1 + 961)
--#define EASIL1_PRCMCM_ICLKEN1_CORE_READ_REGISTER32     \
--                                               (PRCM_BASE_EASIL1 + 1087)
--#define EASIL1_PRCMCM_ICLKEN1_COREEN_MAILBOXES_WRITE32 \
--                                               (PRCM_BASE_EASIL1 + 1105)
--#define EASIL1_PRCMCM_ICLKEN1_COREEN_GPT8_WRITE32      \
--                                               (PRCM_BASE_EASIL1 + 1305)
--#define EASIL1_PRCMCM_ICLKEN1_COREEN_GPT7_WRITE32      \
--                                               (PRCM_BASE_EASIL1 + 1315)
--#define EASIL1_PRCMCM_CLKSEL1_CORECLKSEL_L3_READ_ISSEL132      \
--                                               (PRCM_BASE_EASIL1 + 2261)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT8_WRITE32K32       \
--                                               (PRCM_BASE_EASIL1 + 2364)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT8_WRITE_SYS32      \
--                                               (PRCM_BASE_EASIL1 + 2365)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT8_WRITE_EXT32      \
--                                               (PRCM_BASE_EASIL1 + 2366)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT7_WRITE32K32       \
--                                               (PRCM_BASE_EASIL1 + 2380)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT7_WRITE_SYS32      \
--                                               (PRCM_BASE_EASIL1 + 2381)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT7_WRITE_EXT32      \
--                                               (PRCM_BASE_EASIL1 + 2382)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT6_WRITE_SYS32      \
--                                               (PRCM_BASE_EASIL1 + 2397)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT6_WRITE_EXT32      \
--                                               (PRCM_BASE_EASIL1 + 2398)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT5_WRITE_SYS32      \
--                                               (PRCM_BASE_EASIL1 + 2413)
--#define EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT5_WRITE_EXT32      \
--                                               (PRCM_BASE_EASIL1 + 2414)
--#define EASIL1_PRCMCM_CLKSEL1_PLLAPL_LS_CLKIN_READ32   \
--                                               (PRCM_BASE_EASIL1 + 3747)
--#define EASIL1_PRCMCM_FCLKEN_DSPEN_DSP_WRITE32 (PRCM_BASE_EASIL1 + 3834)
--#define EASIL1_PRCMCM_ICLKEN_DSPEN_DSP_IPI_WRITE32     \
--                                               (PRCM_BASE_EASIL1 + 3846)
--#define EASIL1_PRCMCM_IDLEST_DSP_READ_REGISTER32       \
--                                               (PRCM_BASE_EASIL1 + 3850)
--#define EASIL1_PRCMCM_IDLEST_DSPST_IPI_READ32  (PRCM_BASE_EASIL1 + 3857)
--#define EASIL1_PRCMCM_IDLEST_DSPST_DSP_READ32  (PRCM_BASE_EASIL1 + 3863)
--#define EASIL1_PRCMCM_AUTOIDLE_DSPAUTO_DSP_IPI_WRITE32 \
--                                               (PRCM_BASE_EASIL1 + 3877)
--#define EASIL1_PRCMCM_CLKSEL_DSPSYNC_DSP_WRITE32       \
--                                               (PRCM_BASE_EASIL1 + 3927)
--#define EASIL1_PRCMCM_CLKSEL_DSPCLKSEL_DSP_IF_WRITE32  \
--                                               (PRCM_BASE_EASIL1 + 3941)
--#define EASIL1_PRCMCM_CLKSEL_DSPCLKSEL_DSP_WRITE32     \
--                                               (PRCM_BASE_EASIL1 + 3965)
--#define EASIL1_PRCMCM_CLKSTCTRL_DSP_AUTOSTATE_DSP_READ32       \
--                                               (PRCM_BASE_EASIL1 + 3987)
--#define EASIL1_PRCMCM_CLKSTCTRL_DSP_AUTOSTATE_DSP_WRITE32      \
--                                               (PRCM_BASE_EASIL1 + 3993)
--#define EASIL1_PRCMRM_RSTCTRL_DSP_READ_REGISTER32      \
--                                               (PRCM_BASE_EASIL1 + 3997)
--#define EASIL1_PRCMRM_RSTCTRL_DSPRST1_DSP_WRITE32      \
--                                               (PRCM_BASE_EASIL1 + 4025)
--#define EASIL1_PRCMRM_RSTST_DSP_READ_REGISTER32        (PRCM_BASE_EASIL1 + 4029)
--#define EASIL1_PRCMRM_RSTST_DSP_WRITE_REGISTER32       \
--                                               (PRCM_BASE_EASIL1 + 4030)
--#define EASIL1_PRCMPM_PWSTCTRL_DSP_FORCE_STATE_WRITE32 \
--                                               (PRCM_BASE_EASIL1 + 4165)
--#define EASIL1_PRCMPM_PWSTCTRL_DSP_POWER_STATE_WRITE_RET32     \
--                                               (PRCM_BASE_EASIL1 + 4193)
--#define EASIL1_PRCMPM_PWSTST_DSP_READ_REGISTER32       \
--                                               (PRCM_BASE_EASIL1 + 4197)
--#define EASIL1_PRCMPM_PWSTST_DSP_IN_TRANSITION_READ32  \
--                                               (PRCM_BASE_EASIL1 + 4198)
--#define EASIL1_PRCMPM_PWSTST_DSP_POWER_STATE_ST_GET32  \
--                                               (PRCM_BASE_EASIL1 + 4235)
--#define EASIL1_CM_FCLKEN_PER_GPT5_WRITE_REGISTER32     \
--                                               (PRCM_BASE_EASIL1 + 4368)
--#define EASIL1_CM_ICLKEN_PER_GPT5_WRITE_REGISTER32     \
--                                               (PRCM_BASE_EASIL1 + 4370)
--#define EASIL1_CM_CLKSEL_PER_GPT5_WRITE32K32   (PRCM_BASE_EASIL1 + 4372)
--#define EASIL1_CM_CLKSEL_PER_GPT6_WRITE32K32   (PRCM_BASE_EASIL1 + 4373)
--#define EASIL1_PRCMCM_CLKSTCTRL_IVA2_WRITE_REGISTER32  \
--                                               (PRCM_BASE_EASIL1 + 4374)
--#define EASIL1_PRCMPM_PWSTCTRL_IVA2_POWER_STATE_WRITE_ON32     \
--                                               (PRCM_BASE_EASIL1 + 4375)
--#define EASIL1_PRCMPM_PWSTCTRL_IVA2_POWER_STATE_WRITE_OFF32    \
--                                               (PRCM_BASE_EASIL1 + 4376)
--#define EASIL1_PRCMPM_PWSTST_IVA2_IN_TRANSITION_READ32 \
--                                               (PRCM_BASE_EASIL1 + 4377)
--#define EASIL1_PRCMPM_PWSTST_IVA2_POWER_STATE_ST_GET32 \
--                                               (PRCM_BASE_EASIL1 + 4378)
--#define EASIL1_PRCMPM_PWSTST_IVA2_READ_REGISTER32      \
--                                               (PRCM_BASE_EASIL1 + 4379)
--
--/* Register offset address definitions */
--
--#define PRCM_PRCM_CLKCFG_CTRL_OFFSET        (u32)(0x80)
--#define PRCM_CM_FCLKEN1_CORE_OFFSET          (u32)(0x200)
--#define PRCM_CM_ICLKEN1_CORE_OFFSET          (u32)(0x210)
--#define PRCM_CM_CLKSEL2_CORE_OFFSET          (u32)(0x244)
--#define PRCM_CM_CLKSEL1_PLL_OFFSET           (u32)(0x540)
--#define PRCM_CM_ICLKEN_DSP_OFFSET            (u32)(0x810)
--#define PRCM_CM_IDLEST_DSP_OFFSET            (u32)(0x820)
--#define PRCM_CM_AUTOIDLE_DSP_OFFSET          (u32)(0x830)
--#define PRCM_CM_CLKSEL_DSP_OFFSET            (u32)(0x840)
--#define PRCM_CM_CLKSTCTRL_DSP_OFFSET         (u32)(0x848)
--#define PRCM_RM_RSTCTRL_DSP_OFFSET           (u32)(0x050)
--#define PRCM_RM_RSTST_DSP_OFFSET             (u32)(0x058)
--#define PRCM_PM_PWSTCTRL_DSP_OFFSET          (u32)(0x8e0)
--#define PRCM_PM_PWSTST_DSP_OFFSET            (u32)(0x8e4)
--#define PRCM_PM_PWSTST_IVA2_OFFSET            (u32)(0xE4)
--#define PRCM_PM_PWSTCTRL_IVA2_OFFSET          (u32)(0xE0)
--#define PRCM_CM_CLKSTCTRL_IVA2_OFFSET         (u32)(0x48)
--#define CM_CLKSEL_PER_OFFSET                            (u32)(0x40)
--
--/* Bitfield mask and offset declarations */
--
--#define PRCM_PRCM_CLKCFG_CTRL_VALID_CONFIG_MASK         (u32)(0x1)
--#define PRCM_PRCM_CLKCFG_CTRL_VALID_CONFIG_OFFSET       (u32)(0)
--
--#define PRCM_CM_FCLKEN1_CORE_EN_GPT8_MASK               (u32)(0x400)
--#define PRCM_CM_FCLKEN1_CORE_EN_GPT8_OFFSET             (u32)(10)
--
--#define PRCM_CM_FCLKEN1_CORE_EN_GPT7_MASK               (u32)(0x200)
--#define PRCM_CM_FCLKEN1_CORE_EN_GPT7_OFFSET             (u32)(9)
--
--#define PRCM_CM_ICLKEN1_CORE_EN_GPT8_MASK               (u32)(0x400)
--#define PRCM_CM_ICLKEN1_CORE_EN_GPT8_OFFSET             (u32)(10)
--
--#define PRCM_CM_ICLKEN1_CORE_EN_GPT7_MASK               (u32)(0x200)
--#define PRCM_CM_ICLKEN1_CORE_EN_GPT7_OFFSET             (u32)(9)
--
--#define PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT8_MASK           (u32)(0xc000)
--#define PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT8_OFFSET         (u32)(14)
--
--#define PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT7_MASK           (u32)(0x3000)
--#define PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT7_OFFSET         (u32)(12)
--
--#define PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT6_MASK           (u32)(0xc00)
--#define PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT6_OFFSET         (u32)(10)
--
--#define PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT5_MASK           (u32)(0x300)
--#define PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT5_OFFSET         (u32)(8)
--
--#define PRCM_CM_CLKSEL1_PLL_APL_LS_CLKIN_MASK            (u32)(0x3800000)
--#define PRCM_CM_CLKSEL1_PLL_APL_LS_CLKIN_OFFSET          (u32)(23)
--
--#define PRCM_CM_ICLKEN_DSP_EN_DSP_IPI_MASK              (u32)(0x2)
--#define PRCM_CM_ICLKEN_DSP_EN_DSP_IPI_OFFSET            (u32)(1)
--
--#define PRCM_CM_IDLEST_DSP_ST_IPI_MASK                  (u32)(0x2)
--#define PRCM_CM_IDLEST_DSP_ST_IPI_OFFSET                (u32)(1)
--
--#define PRCM_CM_AUTOIDLE_DSP_AUTO_DSP_IPI_MASK          (u32)(0x2)
--#define PRCM_CM_AUTOIDLE_DSP_AUTO_DSP_IPI_OFFSET        (u32)(1)
--
--#define PRCM_CM_CLKSEL_DSP_SYNC_DSP_MASK                (u32)(0x80)
--#define PRCM_CM_CLKSEL_DSP_SYNC_DSP_OFFSET              (u32)(7)
--
--#define PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_IF_MASK           (u32)(0x60)
--#define PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_IF_OFFSET         (u32)(5)
--
--#define PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_MASK              (u32)(0x1f)
--#define PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_OFFSET            (u32)(0)
--
--#define PRCM_CM_CLKSTCTRL_DSP_AUTOSTATE_DSP_MASK        (u32)(0x1)
--#define PRCM_CM_CLKSTCTRL_DSP_AUTOSTATE_DSP_OFFSET      (u32)(0)
--
--#define PRCM_PM_PWSTCTRL_DSP_FORCE_STATE_MASK            (u32)(0x40000)
--#define PRCM_PM_PWSTCTRL_DSP_FORCE_STATE_OFFSET          (u32)(18)
--
--#define PRCM_PM_PWSTCTRL_DSP_POWER_STATE_MASK            (u32)(0x3)
--#define PRCM_PM_PWSTCTRL_DSP_POWER_STATE_OFFSET          (u32)(0)
--
--#define PRCM_PM_PWSTCTRL_IVA2_POWER_STATE_MASK            (u32)(0x3)
--#define PRCM_PM_PWSTCTRL_IVA2_POWER_STATE_OFFSET          (u32)(0)
--
--#define PRCM_PM_PWSTST_DSP_IN_TRANSITION_MASK            (u32)(0x100000)
--#define PRCM_PM_PWSTST_DSP_IN_TRANSITION_OFFSET          (u32)(20)
--
--#define PRCM_PM_PWSTST_IVA2_IN_TRANSITION_MASK            (u32)(0x100000)
--#define PRCM_PM_PWSTST_IVA2_IN_TRANSITION_OFFSET          (u32)(20)
--
--#define PRCM_PM_PWSTST_DSP_POWER_STATE_ST_MASK            (u32)(0x3)
--#define PRCM_PM_PWSTST_DSP_POWER_STATE_ST_OFFSET          (u32)(0)
--
--#define PRCM_PM_PWSTST_IVA2_POWER_STATE_ST_MASK            (u32)(0x3)
--#define PRCM_PM_PWSTST_IVA2_POWER_STATE_ST_OFFSET          (u32)(0)
--
--#define CM_FCLKEN_PER_OFFSET           (u32)(0x0)
--#define CM_FCLKEN_PER_GPT5_OFFSET         (u32)(6)
--#define CM_FCLKEN_PER_GPT5_MASK     (u32)(0x40)
--
--#define CM_FCLKEN_PER_GPT6_OFFSET   (u32)(7)
--#define CM_FCLKEN_PER_GPT6_MASK      (u32)(0x80)
--
--#define CM_ICLKEN_PER_OFFSET           (u32)(0x10)
--#define CM_ICLKEN_PER_GPT5_OFFSET  (u32)(6)
--#define CM_ICLKEN_PER_GPT5_MASK     (u32)(0x40)
--
--#define CM_ICLKEN_PER_GPT6_OFFSET  (u32)(7)
--#define CM_ICLKEN_PER_GPT6_MASK     (u32)(0x80)
--
--#define CM_CLKSEL_PER_GPT5_OFFSET   (u32)(3)
--#define CM_CLKSEL_PER_GPT5_MASK      (u32)(0x8)
--
--#define CM_CLKSEL_PER_GPT6_OFFSET   (u32)(4)
--#define CM_CLKSEL_PER_GPT6_MASK       (u32)(0x10)
--
--#define CM_FCLKEN_IVA2_OFFSET          (u32)(0x0)
--#define CM_FCLKEN_IVA2_EN_MASK (u32)(0x1)
--#define CM_FCLKEN_IVA2_EN_OFFSET       (u32)(0x0)
--
--#define CM_IDLEST_IVA2_OFFSET          (u32)(0x20)
--#define CM_IDLEST_IVA2_ST_IVA2_MASK (u32) (0x01)
--#define CM_IDLEST_IVA2_ST_IVA2_OFFSET (u32) (0x00)
--
--#define CM_FCLKEN1_CORE_OFFSET         (u32)(0xA00)
--
--#define CM_ICLKEN1_CORE_OFFSET         (u32)(0xA10)
--#define CM_ICLKEN1_CORE_EN_MAILBOXES_MASK  (u32)(0x00000080)   /* bit 7 */
--#define CM_ICLKEN1_CORE_EN_MAILBOXES_OFFSET    (u32)(7)
--
--#define CM_CLKSTCTRL_IVA2_OFFSET (u32)(0x0)
--#define CM_CLKSTCTRL_IVA2_MASK    (u32)(0x3)
--
--#define PRM_RSTCTRL_IVA2_OFFSET        (u32)(0x50)
--#define PRM_RSTCTRL_IVA2_RST1_MASK     (u32)(0x1)
--#define PRM_RSTCTRL_IVA2_RST1_OFFSET   (u32)(0x0)
--#define PRM_RSTCTRL_IVA2_RST2_MASK     (u32)(0x2)
--#define PRM_RSTCTRL_IVA2_RST2_OFFSET   (u32)(0x1)
--#define PRM_RSTCTRL_IVA2_RST3_MASK     (u32)(0x4)
--#define PRM_RSTCTRL_IVA2_RST3_OFFSET   (u32)(0x2)
--
--/* The following represent the enumerated values for each bitfield */
--
--enum prcmprcm_clkcfg_ctrl_valid_config_e {
--       PRCMPRCM_CLKCFG_CTRL_VALID_CONFIG_UPDATED = 0x0000,
--       PRCMPRCM_CLKCFG_CTRL_VALID_CONFIG_CLK_VALID = 0x0001
--};
--
--enum prcmcm_clksel2_coreclksel_gpt8e {
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT832K = 0x0000,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT8_SYS = 0x0001,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT8_EXT = 0x0002,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT8_RESERVED = 0x0003
--};
--
--enum prcmcm_clksel2_coreclksel_gpt7e {
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT732K = 0x0000,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT7_SYS = 0x0001,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT7_EXT = 0x0002,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT7_RESERVED = 0x0003
--};
--
--enum prcmcm_clksel2_coreclksel_gpt6e {
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT632K = 0x0000,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT6_SYS = 0x0001,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT6_EXT = 0x0002,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT6_RESERVED = 0x0003
--};
--
--enum prcmcm_clksel2_coreclksel_gpt5e {
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT532K = 0x0000,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT5_SYS = 0x0001,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT5_EXT = 0x0002,
--       PRCMCM_CLKSEL2_CORECLKSEL_GPT5_RESERVED = 0x0003
--};
--
--enum prcmpm_pwstctrl_dsp_power_state_e {
--       PRCMPM_PWSTCTRL_DSP_POWER_STATE_ON = 0x0000,
--       PRCMPM_PWSTCTRL_DSP_POWER_STATE_RET = 0x0001,
--       PRCMPM_PWSTCTRL_DSP_POWER_STATE_RESERVED = 0x0002,
--       PRCMPM_PWSTCTRL_DSP_POWER_STATE_OFF = 0x0003
--};
--
--enum prcmpm_pwstctrl_iva2_power_state_e {
--       PRCMPM_PWSTCTRL_IVA2_POWER_STATE_ON = 0x0003,
--       PRCMPM_PWSTCTRL_IVA2_POWER_STATE_RET = 0x0001,
--       PRCMPM_PWSTCTRL_IVA2_POWER_STATE_RESERVED = 0x0002,
--       PRCMPM_PWSTCTRL_IVA2_POWER_STATE_OFF = 0x0000
--};
--
--#endif /* _PRCM_ACC_INT_H */
-diff --git a/drivers/dsp/bridge/hw/PRCMRegAcM.h b/drivers/dsp/bridge/hw/PRCMRegAcM.h
-deleted file mode 100644
-index b941925..0000000
---- a/drivers/dsp/bridge/hw/PRCMRegAcM.h
-+++ /dev/null
-@@ -1,615 +0,0 @@
--/*
-- * PRCMRegAcM.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Copyright (C) 2007 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef _PRCM_REG_ACM_H
--#define _PRCM_REG_ACM_H
--
--#include <GlobalTypes.h>
--#include <linux/io.h>
--
--#include <EasiGlobal.h>
--
--#include "PRCMAccInt.h"
--
--#if defined(USE_LEVEL_1_MACROS)
--
--#define PRCMPRCM_CLKCFG_CTRL_VALID_CONFIG_WRITE_CLK_VALID32(baseAddress)\
--{\
--    const u32 offset = PRCM_PRCM_CLKCFG_CTRL_OFFSET;\
--    const u32 newValue = \
--       (u32)PRCMPRCM_CLKCFG_CTRL_VALID_CONFIG_CLK_VALID <<\
--      PRCM_PRCM_CLKCFG_CTRL_VALID_CONFIG_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(\
--      EASIL1_PRCMPRCM_CLKCFG_CTRL_VALID_CONFIG_WRITE_CLK_VALID32);\
--    data &= ~(PRCM_PRCM_CLKCFG_CTRL_VALID_CONFIG_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define CM_FCLKEN_PER_READ_REGISTER32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_FCLKEN1_CORE_READ_REGISTER32),\
--      __raw_readl(((u32)(baseAddress))+CM_FCLKEN_PER_OFFSET))
--
--#define CM_ICLKEN_PER_READ_REGISTER32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_FCLKEN1_CORE_READ_REGISTER32),\
--      __raw_readl(((u32)(baseAddress))+CM_ICLKEN_PER_OFFSET))
--
--#define CM_FCLKEN_PER_GPT5_WRITE_REGISTER32(baseAddress, value)\
--{\
--    const u32 offset = CM_FCLKEN_PER_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_CM_FCLKEN_PER_GPT5_WRITE_REGISTER32);\
--   data &= ~(CM_FCLKEN_PER_GPT5_MASK);\
--   newValue <<= CM_FCLKEN_PER_GPT5_OFFSET;\
--   newValue &= CM_FCLKEN_PER_GPT5_MASK;\
--   newValue |= data;\
--    __raw_writel(newValue, ((u32)(baseAddress))+offset);\
--}
--
--#define CM_FCLKEN_PER_GPT6_WRITE_REGISTER32(baseAddress, value)\
--{\
--    const u32 offset = CM_FCLKEN_PER_OFFSET;\
--    register u32 data =\
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_CM_FCLKEN_PER_GPT5_WRITE_REGISTER32);\
--   data &= ~(CM_FCLKEN_PER_GPT6_MASK);\
--   newValue <<= CM_FCLKEN_PER_GPT6_OFFSET;\
--   newValue &= CM_FCLKEN_PER_GPT6_MASK;\
--   newValue |= data;\
--    __raw_writel(newValue, ((u32)(baseAddress))+offset);\
--}
--
--#define CM_ICLKEN_PER_GPT5_WRITE_REGISTER32(baseAddress, value)\
--{\
--    const u32 offset = CM_ICLKEN_PER_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_CM_ICLKEN_PER_GPT5_WRITE_REGISTER32);\
--   data &= ~(CM_ICLKEN_PER_GPT5_MASK);\
--   newValue <<= CM_ICLKEN_PER_GPT5_OFFSET;\
--   newValue &= CM_ICLKEN_PER_GPT5_MASK;\
--   newValue |= data;\
--    __raw_writel(newValue, ((u32)(baseAddress))+offset);\
--}
--
--#define CM_ICLKEN_PER_GPT6_WRITE_REGISTER32(baseAddress, value)\
--{\
--    const u32 offset = CM_ICLKEN_PER_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_CM_ICLKEN_PER_GPT5_WRITE_REGISTER32);\
--   data &= ~(CM_ICLKEN_PER_GPT6_MASK);\
--   newValue <<= CM_ICLKEN_PER_GPT6_OFFSET;\
--   newValue &= CM_ICLKEN_PER_GPT6_MASK;\
--   newValue |= data;\
--    __raw_writel(newValue, ((u32)(baseAddress))+offset);\
--}
--
--#define CM_FCLKEN1_CORE_READ_REGISTER32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_FCLKEN1_CORE_READ_REGISTER32),\
--      __raw_readl(((u32)(baseAddress))+CM_FCLKEN1_CORE_OFFSET))
--
--#define PRCMCM_FCLKEN1_COREEN_GPT8_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_FCLKEN1_CORE_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_FCLKEN1_COREEN_GPT8_WRITE32);\
--    data &= ~(PRCM_CM_FCLKEN1_CORE_EN_GPT8_MASK);\
--    newValue <<= PRCM_CM_FCLKEN1_CORE_EN_GPT8_OFFSET;\
--    newValue &= PRCM_CM_FCLKEN1_CORE_EN_GPT8_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_FCLKEN1_COREEN_GPT7_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_FCLKEN1_CORE_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_FCLKEN1_COREEN_GPT7_WRITE32);\
--    data &= ~(PRCM_CM_FCLKEN1_CORE_EN_GPT7_MASK);\
--    newValue <<= PRCM_CM_FCLKEN1_CORE_EN_GPT7_OFFSET;\
--    newValue &= PRCM_CM_FCLKEN1_CORE_EN_GPT7_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define CM_ICLKEN1_CORE_READ_REGISTER32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_ICLKEN1_CORE_READ_REGISTER32),\
--      __raw_readl(((u32)(baseAddress))+CM_ICLKEN1_CORE_OFFSET))
--
--#define  CM_ICLKEN1_COREEN_MAILBOXES_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = CM_ICLKEN1_CORE_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_ICLKEN1_COREEN_MAILBOXES_WRITE32);\
--    data &= ~(CM_ICLKEN1_CORE_EN_MAILBOXES_MASK);\
--    newValue <<= CM_ICLKEN1_CORE_EN_MAILBOXES_OFFSET;\
--    newValue &= CM_ICLKEN1_CORE_EN_MAILBOXES_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_ICLKEN1_COREEN_GPT8_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_ICLKEN1_CORE_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_ICLKEN1_COREEN_GPT8_WRITE32);\
--    data &= ~(PRCM_CM_ICLKEN1_CORE_EN_GPT8_MASK);\
--    newValue <<= PRCM_CM_ICLKEN1_CORE_EN_GPT8_OFFSET;\
--    newValue &= PRCM_CM_ICLKEN1_CORE_EN_GPT8_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_ICLKEN1_COREEN_GPT7_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_ICLKEN1_CORE_OFFSET;\
--    register u32 data =\
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_ICLKEN1_COREEN_GPT7_WRITE32);\
--    data &= ~(PRCM_CM_ICLKEN1_CORE_EN_GPT7_MASK);\
--    newValue <<= PRCM_CM_ICLKEN1_CORE_EN_GPT7_OFFSET;\
--    newValue &= PRCM_CM_ICLKEN1_CORE_EN_GPT7_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT8_WRITE32K32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT832K <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT8_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT8_WRITE32K32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT8_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT8_WRITE_SYS32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT8_SYS <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT8_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT8_WRITE_SYS32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT8_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT8_WRITE_EXT32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT8_EXT <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT8_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT8_WRITE_EXT32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT8_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT7_WRITE32K32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT732K <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT7_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT7_WRITE32K32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT7_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT7_WRITE_SYS32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT7_SYS <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT7_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT7_WRITE_SYS32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT7_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT7_WRITE_EXT32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT7_EXT <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT7_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT7_WRITE_EXT32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT7_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT6_WRITE_SYS32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT6_SYS <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT6_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT6_WRITE_SYS32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT6_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT6_WRITE_EXT32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT6_EXT <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT6_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT6_WRITE_EXT32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT6_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define CM_CLKSEL_PER_GPT5_WRITE32K32(baseAddress)\
--{\
--    const u32 offset = CM_CLKSEL_PER_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT532K <<\
--      CM_CLKSEL_PER_GPT5_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_CM_CLKSEL_PER_GPT5_WRITE32K32);\
--    data &= ~(CM_CLKSEL_PER_GPT5_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define CM_CLKSEL_PER_GPT6_WRITE32K32(baseAddress)\
--{\
--    const u32 offset = CM_CLKSEL_PER_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT532K <<\
--      CM_CLKSEL_PER_GPT6_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_CM_CLKSEL_PER_GPT6_WRITE32K32);\
--    data &= ~(CM_CLKSEL_PER_GPT6_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT5_WRITE_SYS32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT5_SYS <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT5_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT5_WRITE_SYS32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT5_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL2_CORECLKSEL_GPT5_WRITE_EXT32(baseAddress)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL2_CORE_OFFSET;\
--    const u32 newValue = (u32)PRCMCM_CLKSEL2_CORECLKSEL_GPT5_EXT <<\
--      PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT5_OFFSET;\
--    register u32 data = __raw_readl((u32)(baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL2_CORECLKSEL_GPT5_WRITE_EXT32);\
--    data &= ~(PRCM_CM_CLKSEL2_CORE_CLKSEL_GPT5_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL1_PLLAPL_LS_CLKIN_READ32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL1_PLLAPL_LS_CLKIN_READ32),\
--      (((__raw_readl((((u32)(baseAddress))+\
--       (PRCM_CM_CLKSEL1_PLL_OFFSET)))) &\
--      PRCM_CM_CLKSEL1_PLL_APL_LS_CLKIN_MASK) >>\
--      PRCM_CM_CLKSEL1_PLL_APL_LS_CLKIN_OFFSET))
--
--#define CM_FCLKEN_IVA2EN_DSP_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = CM_FCLKEN_IVA2_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_FCLKEN_DSPEN_DSP_WRITE32);\
--    data &= ~(CM_FCLKEN_IVA2_EN_MASK);\
--    newValue <<= CM_FCLKEN_IVA2_EN_OFFSET;\
--    newValue &= CM_FCLKEN_IVA2_EN_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_ICLKEN_DSPEN_DSP_IPI_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_ICLKEN_DSP_OFFSET;\
--    register u32 data = \
--      __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_ICLKEN_DSPEN_DSP_IPI_WRITE32);\
--    data &= ~(PRCM_CM_ICLKEN_DSP_EN_DSP_IPI_MASK);\
--    newValue <<= PRCM_CM_ICLKEN_DSP_EN_DSP_IPI_OFFSET;\
--    newValue &= PRCM_CM_ICLKEN_DSP_EN_DSP_IPI_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_IDLEST_DSP_READ_REGISTER32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_IDLEST_DSP_READ_REGISTER32),\
--      __raw_readl(((u32)(baseAddress))+PRCM_CM_IDLEST_DSP_OFFSET))
--
--#define PRCMCM_IDLEST_DSPST_IPI_READ32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_IDLEST_DSPST_IPI_READ32),\
--      (((__raw_readl((((u32)(baseAddress))+\
--       (PRCM_CM_IDLEST_DSP_OFFSET)))) &\
--      PRCM_CM_IDLEST_DSP_ST_IPI_MASK) >>\
--      PRCM_CM_IDLEST_DSP_ST_IPI_OFFSET))
--
--#define PRM_IDLEST_IVA2ST_IVA2_READ32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_IDLEST_DSPST_DSP_READ32),\
--      (((__raw_readl((((u32)(baseAddress))+\
--         (CM_IDLEST_IVA2_OFFSET)))) &\
--      CM_IDLEST_IVA2_ST_IVA2_MASK) >>\
--      CM_IDLEST_IVA2_ST_IVA2_OFFSET))
--
--#define PRCMCM_AUTOIDLE_DSPAUTO_DSP_IPI_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_AUTOIDLE_DSP_OFFSET;\
--    register u32 data =\
--      __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_AUTOIDLE_DSPAUTO_DSP_IPI_WRITE32);\
--    data &= ~(PRCM_CM_AUTOIDLE_DSP_AUTO_DSP_IPI_MASK);\
--    newValue <<= PRCM_CM_AUTOIDLE_DSP_AUTO_DSP_IPI_OFFSET;\
--    newValue &= PRCM_CM_AUTOIDLE_DSP_AUTO_DSP_IPI_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL_DSPSYNC_DSP_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL_DSP_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL_DSPSYNC_DSP_WRITE32);\
--    data &= ~(PRCM_CM_CLKSEL_DSP_SYNC_DSP_MASK);\
--    newValue <<= PRCM_CM_CLKSEL_DSP_SYNC_DSP_OFFSET;\
--    newValue &= PRCM_CM_CLKSEL_DSP_SYNC_DSP_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL_DSPCLKSEL_DSP_IF_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL_DSP_OFFSET;\
--    register u32 data = \
--      __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL_DSPCLKSEL_DSP_IF_WRITE32);\
--    data &= ~(PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_IF_MASK);\
--    newValue <<= PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_IF_OFFSET;\
--    newValue &= PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_IF_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSEL_DSPCLKSEL_DSP_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_CLKSEL_DSP_OFFSET;\
--    register u32 data = \
--      __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSEL_DSPCLKSEL_DSP_WRITE32);\
--    data &= ~(PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_MASK);\
--    newValue <<= PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_OFFSET;\
--    newValue &= PRCM_CM_CLKSEL_DSP_CLKSEL_DSP_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSTCTRL_IVA2_WRITE_REGISTER32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_CLKSTCTRL_IVA2_OFFSET;\
--    register u32 data = \
--      __raw_readl(((baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSTCTRL_IVA2_WRITE_REGISTER32);\
--    data &= ~(CM_CLKSTCTRL_IVA2_MASK);\
--    newValue <<= CM_CLKSTCTRL_IVA2_OFFSET;\
--    newValue &= CM_CLKSTCTRL_IVA2_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (baseAddress)+offset);\
--}
--
--#define PRCMCM_CLKSTCTRL_DSP_AUTOSTATE_DSP_READ32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSTCTRL_DSP_AUTOSTATE_DSP_READ32),\
--      (((__raw_readl((((u32)(baseAddress))+\
--       (PRCM_CM_CLKSTCTRL_DSP_OFFSET)))) &\
--      PRCM_CM_CLKSTCTRL_DSP_AUTOSTATE_DSP_MASK) >>\
--      PRCM_CM_CLKSTCTRL_DSP_AUTOSTATE_DSP_OFFSET))
--
--#define PRCMCM_CLKSTCTRL_DSP_AUTOSTATE_DSP_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_CM_CLKSTCTRL_DSP_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMCM_CLKSTCTRL_DSP_AUTOSTATE_DSP_WRITE32);\
--    data &= ~(PRCM_CM_CLKSTCTRL_DSP_AUTOSTATE_DSP_MASK);\
--    newValue <<= PRCM_CM_CLKSTCTRL_DSP_AUTOSTATE_DSP_OFFSET;\
--    newValue &= PRCM_CM_CLKSTCTRL_DSP_AUTOSTATE_DSP_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMRM_RSTCTRL_DSP_READ_REGISTER32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMRM_RSTCTRL_DSP_READ_REGISTER32),\
--      __raw_readl(((baseAddress))+PRCM_RM_RSTCTRL_DSP_OFFSET))
--
--#define PRM_RSTCTRL_IVA2RST1_DSP_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRM_RSTCTRL_IVA2_OFFSET;\
--    register u32 data =\
--    __raw_readl(((baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMRM_RSTCTRL_DSPRST1_DSP_WRITE32);\
--    data &= ~(PRM_RSTCTRL_IVA2_RST1_MASK);\
--    newValue <<= PRM_RSTCTRL_IVA2_RST1_OFFSET;\
--    newValue &= PRM_RSTCTRL_IVA2_RST1_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (baseAddress)+offset);\
--}
--
--#define PRM_RSTCTRL_IVA2RST2_DSP_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRM_RSTCTRL_IVA2_OFFSET;\
--    register u32 data =\
--       __raw_readl(((baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMRM_RSTCTRL_DSPRST1_DSP_WRITE32);\
--    data &= ~(PRM_RSTCTRL_IVA2_RST2_MASK);\
--    newValue <<= PRM_RSTCTRL_IVA2_RST2_OFFSET;\
--    newValue &= PRM_RSTCTRL_IVA2_RST2_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (baseAddress)+offset);\
--}
--
--#define PRM_RSTCTRL_IVA2RST3_DSP_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRM_RSTCTRL_IVA2_OFFSET;\
--    register u32 data =\
--      __raw_readl(((baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMRM_RSTCTRL_DSPRST1_DSP_WRITE32);\
--    data &= ~(PRM_RSTCTRL_IVA2_RST3_MASK);\
--    newValue <<= PRM_RSTCTRL_IVA2_RST3_OFFSET;\
--    newValue &= PRM_RSTCTRL_IVA2_RST3_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (baseAddress)+offset);\
--}
--
--#define PRCMRM_RSTST_DSP_READ_REGISTER32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMRM_RSTST_DSP_READ_REGISTER32),\
--      __raw_readl(((baseAddress))+PRCM_RM_RSTST_DSP_OFFSET))
--
--#define PRCMRM_RSTST_DSP_WRITE_REGISTER32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_RM_RSTST_DSP_OFFSET;\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMRM_RSTST_DSP_WRITE_REGISTER32);\
--    __raw_writel(newValue, ((u32)(baseAddress))+offset);\
--}
--
--#define PRCMPM_PWSTCTRL_DSP_FORCE_STATE_WRITE32(baseAddress, value)\
--{\
--    const u32 offset = PRCM_PM_PWSTCTRL_DSP_OFFSET;\
--    register u32 data = \
--       __raw_readl(((u32)(baseAddress))+offset);\
--    register u32 newValue = ((u32)(value));\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTCTRL_DSP_FORCE_STATE_WRITE32);\
--    data &= ~(PRCM_PM_PWSTCTRL_DSP_FORCE_STATE_MASK);\
--    newValue <<= PRCM_PM_PWSTCTRL_DSP_FORCE_STATE_OFFSET;\
--    newValue &= PRCM_PM_PWSTCTRL_DSP_FORCE_STATE_MASK;\
--    newValue |= data;\
--    __raw_writel(newValue, (u32)(baseAddress)+offset);\
--}
--
--#define PRCMPM_PWSTCTRL_IVA2_POWER_STATE_WRITE_ON32(baseAddress)\
--{\
--    const u32 offset = PRCM_PM_PWSTCTRL_IVA2_OFFSET;\
--    const u32 newValue = (u32)PRCMPM_PWSTCTRL_IVA2_POWER_STATE_ON <<\
--      PRCM_PM_PWSTCTRL_IVA2_POWER_STATE_OFFSET;\
--    register u32 data = __raw_readl((baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTCTRL_IVA2_POWER_STATE_WRITE_ON32);\
--    data &= ~(PRCM_PM_PWSTCTRL_IVA2_POWER_STATE_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (baseAddress)+offset);\
--}
--
--#define PRCMPM_PWSTCTRL_IVA2_POWER_STATE_WRITE_OFF32(baseAddress)\
--{\
--    const u32 offset = PRCM_PM_PWSTCTRL_IVA2_OFFSET;\
--    const u32 newValue = (u32)PRCMPM_PWSTCTRL_IVA2_POWER_STATE_OFF <<\
--      PRCM_PM_PWSTCTRL_IVA2_POWER_STATE_OFFSET;\
--    register u32 data = __raw_readl((baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTCTRL_IVA2_POWER_STATE_WRITE_OFF32);\
--    data &= ~(PRCM_PM_PWSTCTRL_IVA2_POWER_STATE_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (baseAddress)+offset);\
--}
--
--#define PRCMPM_PWSTCTRL_DSP_POWER_STATE_WRITE_RET32(baseAddress)\
--{\
--    const u32 offset = PRCM_PM_PWSTCTRL_DSP_OFFSET;\
--    const u32 newValue = (u32)PRCMPM_PWSTCTRL_DSP_POWER_STATE_RET <<\
--      PRCM_PM_PWSTCTRL_DSP_POWER_STATE_OFFSET;\
--    register u32 data = __raw_readl((baseAddress)+offset);\
--    _DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTCTRL_DSP_POWER_STATE_WRITE_RET32);\
--    data &= ~(PRCM_PM_PWSTCTRL_DSP_POWER_STATE_MASK);\
--    data |= newValue;\
--    __raw_writel(data, (baseAddress)+offset);\
--}
--
--#define PRCMPM_PWSTST_DSP_READ_REGISTER32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTST_DSP_READ_REGISTER32),\
--      __raw_readl(((u32)(baseAddress))+PRCM_PM_PWSTST_DSP_OFFSET))
--
--#define PRCMPM_PWSTST_IVA2_READ_REGISTER32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTST_IVA2_READ_REGISTER32),\
--      __raw_readl((baseAddress) + PRCM_PM_PWSTST_IVA2_OFFSET))
--
--#define PRCMPM_PWSTST_DSP_IN_TRANSITION_READ32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTST_DSP_IN_TRANSITION_READ32),\
--      (((__raw_readl((((u32)(baseAddress))+\
--       (PRCM_PM_PWSTST_DSP_OFFSET)))) &\
--      PRCM_PM_PWSTST_DSP_IN_TRANSITION_MASK) >>\
--      PRCM_PM_PWSTST_DSP_IN_TRANSITION_OFFSET))
--
--#define PRCMPM_PWSTST_IVA2_IN_TRANSITION_READ32(baseAddress)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTST_IVA2_IN_TRANSITION_READ32),\
--      (((__raw_readl((((baseAddress))+\
--       (PRCM_PM_PWSTST_IVA2_OFFSET)))) &\
--      PRCM_PM_PWSTST_IVA2_IN_TRANSITION_MASK) >>\
--      PRCM_PM_PWSTST_IVA2_IN_TRANSITION_OFFSET))
--
--#define PRCMPM_PWSTST_DSP_POWER_STATE_ST_GET32(var)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTST_DSP_POWER_STATE_ST_GET32),\
--      (u32)((((u32)(var)) & PRCM_PM_PWSTST_DSP_POWER_STATE_ST_MASK) >>\
--       PRCM_PM_PWSTST_DSP_POWER_STATE_ST_OFFSET))
--
--#define PRCMPM_PWSTST_IVA2_POWER_STATE_ST_GET32(var)\
--    (_DEBUG_LEVEL1_EASI(EASIL1_PRCMPM_PWSTST_IVA2_POWER_STATE_ST_GET32),\
--      (u32)((((u32)(var)) & PRCM_PM_PWSTST_IVA2_POWER_STATE_ST_MASK) >>\
--      PRCM_PM_PWSTST_IVA2_POWER_STATE_ST_OFFSET))
--
--#endif /* USE_LEVEL_1_MACROS */
--
--#endif /* _PRCM_REG_ACM_H */
-diff --git a/drivers/dsp/bridge/hw/hw_prcm.c b/drivers/dsp/bridge/hw/hw_prcm.c
-deleted file mode 100644
-index 8c95dac..0000000
---- a/drivers/dsp/bridge/hw/hw_prcm.c
-+++ /dev/null
-@@ -1,161 +0,0 @@
--/*
-- * hw_prcm.c
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * API definitions to configure PRCM (Power, Reset & Clocks Manager)
-- *
-- * Copyright (C) 2007 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#include <GlobalTypes.h>
--#include "PRCMRegAcM.h"
--#include <hw_defs.h>
--#include <hw_prcm.h>
--
--static hw_status hw_rst_write_val(const void __iomem *baseAddress,
--                                 enum hw_rst_module_t r, s8 val);
--
--hw_status hw_rst_reset(const void __iomem *baseAddress, enum hw_rst_module_t r)
--{
--       return hw_rst_write_val(baseAddress, r, HW_SET);
--}
--
--hw_status hw_rst_un_reset(const void __iomem *baseAddress,
--                         enum hw_rst_module_t r)
--{
--       return hw_rst_write_val(baseAddress, r, HW_CLEAR);
--}
--
--static hw_status hw_rst_write_val(const void __iomem *baseAddress,
--                                 enum hw_rst_module_t r, s8 val)
--{
--       hw_status status = RET_OK;
--
--       switch (r) {
--       case HW_RST1_IVA2:
--               PRM_RSTCTRL_IVA2RST1_DSP_WRITE32(baseAddress, val);
--               break;
--       case HW_RST2_IVA2:
--               PRM_RSTCTRL_IVA2RST2_DSP_WRITE32(baseAddress, val);
--               break;
--       case HW_RST3_IVA2:
--               PRM_RSTCTRL_IVA2RST3_DSP_WRITE32(baseAddress, val);
--               break;
--       default:
--               status = RET_FAIL;
--               break;
--       }
--       return status;
--}
--
--hw_status hw_pwr_iva2_state_get(const void __iomem *baseAddress,
--                               enum hw_pwr_module_t p,
--                               enum hw_pwr_state_t *value)
--{
--       hw_status status = RET_OK;
--       u32 temp;
--
--       switch (p) {
--       case HW_PWR_DOMAIN_DSP:
--               /* wait until Transition is complete */
--               do {
--                       /* mdelay(1); */
--                       temp = PRCMPM_PWSTST_IVA2_IN_TRANSITION_READ32
--                           (baseAddress);
--
--               } while (temp);
--
--               temp = PRCMPM_PWSTST_IVA2_READ_REGISTER32(baseAddress);
--               *value = PRCMPM_PWSTST_IVA2_POWER_STATE_ST_GET32(temp);
--               break;
--
--       default:
--               status = RET_FAIL;
--               break;
--       }
--       return status;
--}
--
--hw_status hw_pwrst_iva2_reg_get(const void __iomem *baseAddress, u32 *value)
--{
--       hw_status status = RET_OK;
--
--       *value = PRCMPM_PWSTST_IVA2_READ_REGISTER32(baseAddress);
--
--       return status;
--}
--
--hw_status hw_pwr_iva2_power_state_set(const void __iomem *baseAddress,
--                                     enum hw_pwr_module_t p,
--                                     enum hw_pwr_state_t value)
--{
--       hw_status status = RET_OK;
--
--       switch (p) {
--       case HW_PWR_DOMAIN_DSP:
--               switch (value) {
--               case HW_PWR_STATE_ON:
--                       PRCMPM_PWSTCTRL_IVA2_POWER_STATE_WRITE_ON32
--                           (baseAddress);
--                       break;
--               case HW_PWR_STATE_RET:
--                       PRCMPM_PWSTCTRL_DSP_POWER_STATE_WRITE_RET32
--                           (baseAddress);
--                       break;
--               case HW_PWR_STATE_OFF:
--                       PRCMPM_PWSTCTRL_IVA2_POWER_STATE_WRITE_OFF32
--                           (baseAddress);
--                       break;
--               default:
--                       status = RET_FAIL;
--                       break;
--               }
--               break;
--
--       default:
--               status = RET_FAIL;
--               break;
--       }
--
--       return status;
--}
--
--hw_status hw_pwr_clkctrl_iva2_reg_set(const void __iomem *baseAddress,
--                                     enum hw_transition_state_t val)
--{
--       hw_status status = RET_OK;
--
--       PRCMCM_CLKSTCTRL_IVA2_WRITE_REGISTER32(baseAddress, val);
--
--       return status;
--
--}
--
--hw_status hw_rstst_reg_get(const void __iomem *baseAddress,
--                          enum hw_rst_module_t m, u32 *value)
--{
--       hw_status status = RET_OK;
--
--       *value = PRCMRM_RSTST_DSP_READ_REGISTER32(baseAddress);
--
--       return status;
--}
--
--hw_status hw_rstctrl_reg_get(const void __iomem *baseAddress,
--                            enum hw_rst_module_t m, u32 *value)
--{
--       hw_status status = RET_OK;
--
--       *value = PRCMRM_RSTCTRL_DSP_READ_REGISTER32(baseAddress);
--
--       return status;
--}
-diff --git a/drivers/dsp/bridge/hw/hw_prcm.h b/drivers/dsp/bridge/hw/hw_prcm.h
-deleted file mode 100644
-index fd07f32..0000000
---- a/drivers/dsp/bridge/hw/hw_prcm.h
-+++ /dev/null
-@@ -1,156 +0,0 @@
--/*
-- * hw_prcm.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * PRCM types and API declarations
-- *
-- * Copyright (C) 2007 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef _HW_PRCM_H
--#define _HW_PRCM_H
--
--/* HW_ClkModule:  Enumerated Type used to specify the clock domain */
--
--enum hw_clk_module_t {
--/* DSP Domain */
--       HW_CLK_DSP_CPU,
--       HW_CLK_DSP_IPI_MMU,
--       HW_CLK_IVA_ARM,
--       HW_CLK_IVA_COP,         /* IVA Coprocessor */
--
--/* Core Domain */
--       HW_CLK_FN_WDT4,         /* Functional Clock */
--       HW_CLK_FN_WDT3,
--       HW_CLK_FN_UART2,
--       HW_CLK_FN_UART1,
--       HW_CLK_GPT5,
--       HW_CLK_GPT6,
--       HW_CLK_GPT7,
--       HW_CLK_GPT8,
--
--       HW_CLK_IF_WDT4,         /* Interface Clock */
--       HW_CLK_IF_WDT3,
--       HW_CLK_IF_UART2,
--       HW_CLK_IF_UART1,
--       HW_CLK_IF_MBOX
--};
--
--enum hw_clk_subsys_t {
--       HW_CLK_DSPSS,
--       HW_CLK_IVASS
--};
--
--/* HW_GPtimers:  General purpose timers */
--enum hw_g_ptimer_t {
--       HW_GPT5 = 5,
--       HW_GPT6 = 6,
--       HW_GPT7 = 7,
--       HW_GPT8 = 8
--};
--
--/* GP timers Input clock type:  General purpose timers */
--enum hw_clocktype_t {
--       HW_CLK32K_HZ = 0,
--       HW_CLK_SYS = 1,
--       HW_CLK_EXT = 2
--};
--
--/* HW_ClkDiv:  Clock divisors */
--enum hw_clk_div_t {
--       HW_CLK_DIV1 = 0x1,
--       HW_CLK_DIV2 = 0x2,
--       HW_CLK_DIV3 = 0x3,
--       HW_CLK_DIV4 = 0x4,
--       HW_CLK_DIV6 = 0x6,
--       HW_CLK_DIV8 = 0x8,
--       HW_CLK_DIV12 = 0xC
--};
--
--/* HW_RstModule:  Enumerated Type used to specify the module to be reset */
--enum hw_rst_module_t {
--       HW_RST1_IVA2,           /* Reset the DSP */
--       HW_RST2_IVA2,           /* Reset MMU and LEON HWa */
--       HW_RST3_IVA2            /* Reset LEON sequencer */
--};
--
--/* HW_PwrModule:  Enumerated Type used to specify the power domain */
--enum hw_pwr_module_t {
--/* Domains */
--       HW_PWR_DOMAIN_CORE,
--       HW_PWR_DOMAIN_MPU,
--       HW_PWR_DOMAIN_WAKEUP,
--       HW_PWR_DOMAIN_DSP,
--
--/* Sub-domains */
--       HW_PWR_DSP_IPI,         /* IPI = Intrusive Port Interface */
--       HW_PWR_IVA_ISP          /* ISP = Intrusive Slave Port */
--};
--
--enum hw_pwr_state_t {
--       HW_PWR_STATE_OFF,
--       HW_PWR_STATE_RET,
--       HW_PWR_STATE_INACT,
--       HW_PWR_STATE_ON = 3
--};
--
--enum hw_force_state_t {
--       HW_FORCE_OFF,
--       HW_FORCE_ON
--};
--
--enum hw_idle_state_t {
--       HW_ACTIVE,
--       HW_STANDBY
--};
--
--enum hw_transition_state_t {
--       HW_AUTOTRANS_DIS,
--       HW_SW_SUP_SLEEP,
--       HW_SW_SUP_WAKEUP,
--       HW_AUTOTRANS_EN
--};
--
--extern hw_status hw_rst_reset(const void __iomem *baseAddress,
--                             enum hw_rst_module_t r);
--
--extern hw_status hw_rst_un_reset(const void __iomem *baseAddress,
--                                enum hw_rst_module_t r);
--
--extern hw_status hw_rstctrl_reg_get(const void __iomem *baseAddress,
--                                   enum hw_rst_module_t p, u32 *value);
--extern hw_status hw_rstst_reg_get(const void __iomem *baseAddress,
--                                 enum hw_rst_module_t p, u32 *value);
--
--extern hw_status hw_pwr_power_state_set(const u32 baseAddress,
--                                       enum hw_pwr_module_t p,
--                                       enum hw_pwr_state_t value);
--
--extern hw_status hw_clk_set_input_clock(const u32 baseAddress,
--                                       enum hw_g_ptimer_t gpt,
--                                       enum hw_clocktype_t c);
--
--extern hw_status hw_pwr_iva2_state_get(const void __iomem *baseAddress,
--                                      enum hw_pwr_module_t p,
--                                      enum hw_pwr_state_t *value);
--
--extern hw_status hw_pwrst_iva2_reg_get(const void __iomem *baseAddress,
--                                      u32 *value);
--
--extern hw_status hw_pwr_iva2_power_state_set(const void __iomem *baseAddress,
--                                            enum hw_pwr_module_t p,
--                                            enum hw_pwr_state_t value);
--
--extern hw_status hw_pwr_clkctrl_iva2_reg_set(const void __iomem *baseAddress,
--                                            enum hw_transition_state_t val);
--
--#endif /* _HW_PRCM_H */
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index fe9ae06..3ab2e3c 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -892,10 +892,6 @@ static dsp_status request_bridge_resources(u32 dw_context, s32 bRequest)
-                        host_res->dw_mem_base[1] = 0;
-                        host_res->dw_mem_phys[1] = 0;
-
--                       if (host_res->dw_prm_base)
--                               iounmap(host_res->dw_prm_base);
--                       if (host_res->dw_cm_base)
--                               iounmap(host_res->dw_cm_base);
-                        if (host_res->dw_mem_base[0])
-                                iounmap((void *)host_res->dw_mem_base[0]);
-                        if (host_res->dw_mem_base[2])
-@@ -915,8 +911,6 @@ static dsp_status request_bridge_resources(u32 dw_context, s32 bRequest)
-                        if (host_res->dw_sys_ctrl_base)
-                                iounmap(host_res->dw_sys_ctrl_base);
-
--                       host_res->dw_prm_base = NULL;
--                       host_res->dw_cm_base = NULL;
-                        host_res->dw_mem_base[0] = (u32) NULL;
-                        host_res->dw_mem_base[2] = (u32) NULL;
-                        host_res->dw_mem_base[3] = (u32) NULL;
-@@ -941,18 +935,12 @@ static dsp_status request_bridge_resources(u32 dw_context, s32 bRequest)
-                host_res->num_mem_windows = 2;
-                /* First window is for DSP internal memory */
-
--               host_res->dw_prm_base = ioremap(OMAP_IVA2_PRM_BASE,
--                                               OMAP_IVA2_PRM_SIZE);
--               host_res->dw_cm_base = ioremap(OMAP_IVA2_CM_BASE,
--                                              OMAP_IVA2_CM_SIZE);
-                host_res->dw_sys_ctrl_base = ioremap(OMAP_SYSC_BASE,
-                                                     OMAP_SYSC_SIZE);
-                dev_dbg(bridge, "dw_mem_base[0] 0x%x\n",
-                        host_res->dw_mem_base[0]);
-                dev_dbg(bridge, "dw_mem_base[3] 0x%x\n",
-                        host_res->dw_mem_base[3]);
--               dev_dbg(bridge, "dw_prm_base %p\n", host_res->dw_prm_base);
--               dev_dbg(bridge, "dw_cm_base %p\n", host_res->dw_cm_base);
-                dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
-
-                /* for 24xx base port is not mapping the mamory for DSP
-@@ -1038,8 +1026,6 @@ static dsp_status request_bridge_resources_dsp(u32 dw_context, s32 bRequest)
-                        host_res->dw_mem_base[3]);
-                dev_dbg(bridge, "dw_mem_base[4] 0x%x\n",
-                        host_res->dw_mem_base[4]);
--               dev_dbg(bridge, "dw_prm_base %p\n", host_res->dw_prm_base);
--               dev_dbg(bridge, "dw_cm_base %p\n", host_res->dw_cm_base);
-                dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
-                dw_buff_size = sizeof(shm_size);
-                status =
-diff --git a/drivers/dsp/bridge/wmd/_tiomap.h b/drivers/dsp/bridge/wmd/_tiomap.h
-index 71ef731..a23c373 100644
---- a/drivers/dsp/bridge/wmd/_tiomap.h
-+++ b/drivers/dsp/bridge/wmd/_tiomap.h
-@@ -19,6 +19,10 @@
- #ifndef _TIOMAP_
- #define _TIOMAP_
-
-+#include <plat/powerdomain.h>
-+#include <plat/clockdomain.h>
-+#include <mach-omap2/prm-regbits-34xx.h>
-+#include <mach-omap2/cm-regbits-34xx.h>
- #include <dspbridge/devdefs.h>
- #include <hw_defs.h>
- #include <dspbridge/wmdioctl.h>        /* for wmdioctl_extproc defn */
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index ff47edb..9f3575f 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -20,10 +20,6 @@
- #include <dspbridge/host_os.h>
- #include <linux/mm.h>
- #include <linux/mmzone.h>
--#include <mach-omap2/prm.h>
--#include <mach-omap2/cm.h>
--#include <mach-omap2/prm-regbits-34xx.h>
--#include <mach-omap2/cm-regbits-34xx.h>
- #include <plat/control.h>
-
- /*  ----------------------------------- DSP/BIOS Bridge */
-@@ -43,7 +39,6 @@
-
- /* ------------------------------------ Hardware Abstraction Layer */
- #include <hw_defs.h>
--#include <hw_prcm.h>
- #include <hw_mmu.h>
-
- /*  ----------------------------------- Link Driver */
-@@ -129,37 +124,6 @@ static dsp_status mem_map_vmalloc(struct wmd_dev_context *hDevContext,
-                                  u32 ul_num_bytes,
-                                  struct hw_mmu_map_attrs_t *hw_attrs);
-
--#ifdef CONFIG_BRIDGE_DEBUG
--static void get_hw_regs(void __iomem *prm_base, void __iomem *cm_base)
--{
--       u32 temp;
--       temp = __raw_readl((cm_base) + 0x00);
--       dev_dbg(bridge, "CM_FCLKEN_IVA2 = 0x%x\n", temp);
--       temp = __raw_readl((cm_base) + 0x10);
--       dev_dbg(bridge, "CM_ICLKEN1_IVA2 = 0x%x \n", temp);
--       temp = __raw_readl((cm_base) + 0x20);
--       dev_dbg(bridge, "CM_IDLEST_IVA2 = 0x%x \n", temp);
--       temp = __raw_readl((cm_base) + 0x48);
--       dev_dbg(bridge, "CM_CLKSTCTRL_IVA2 = 0x%x \n", temp);
--       temp = __raw_readl((cm_base) + 0x4c);
--       dev_dbg(bridge, "CM_CLKSTST_IVA2 = 0x%x \n", temp);
--       temp = __raw_readl((prm_base) + 0x50);
--       dev_dbg(bridge, "RM_RSTCTRL_IVA2 = 0x%x \n", temp);
--       temp = __raw_readl((prm_base) + 0x58);
--       dev_dbg(bridge, "RM_RSTST_IVA2 = 0x%x \n", temp);
--       temp = __raw_readl((prm_base) + 0xE0);
--       dev_dbg(bridge, "PM_PWSTCTRL_IVA2 = 0x%x \n", temp);
--       temp = __raw_readl((prm_base) + 0xE4);
--       dev_dbg(bridge, "PM_PWSTST_IVA2 = 0x%x \n", temp);
--       temp = __raw_readl((cm_base) + 0xA10);
--       dev_dbg(bridge, "CM_ICLKEN1_CORE = 0x%x \n", temp);
--}
--#else
--static inline void get_hw_regs(void __iomem *prm_base, void __iomem *cm_base)
--{
--}
--#endif
--
- /*  ----------------------------------- Globals */
-
- /* Attributes of L2 page tables for DSP MMU */
-@@ -319,44 +283,37 @@ static dsp_status bridge_brd_monitor(struct wmd_dev_context *hDevContext)
- {
-        dsp_status status = DSP_SOK;
-        struct wmd_dev_context *dev_context = hDevContext;
--       struct cfg_hostres resources;
-        u32 temp;
--       enum hw_pwr_state_t pwr_state;
-+       struct dspbridge_platform_data *pdata =
-+                                   omap_dspbridge_dev->dev.platform_data;
-
--       status = cfg_get_host_resources((struct cfg_devnode *)
--                                       drv_get_first_dev_extension(),
--                                       &resources);
--       if (DSP_FAILED(status))
--               goto error_return;
--
--       get_hw_regs(resources.dw_prm_base, resources.dw_cm_base);
--       hw_pwrst_iva2_reg_get(resources.dw_prm_base, &temp);
--       if ((temp & 0x03) != 0x03 || (temp & 0x03) != 0x02) {
-+       temp = (*pdata->dsp_prm_read)(OMAP3430_IVA2_MOD, PM_PWSTST) &
-+                                       OMAP_POWERSTATEST_MASK;
-+       if (!(temp & 0x02)) {
-                /* IVA2 is not in ON state */
-                /* Read and set PM_PWSTCTRL_IVA2  to ON */
--               hw_pwr_iva2_power_state_set(resources.dw_prm_base,
--                                           HW_PWR_DOMAIN_DSP, HW_PWR_STATE_ON);
-+               (*pdata->dsp_prm_rmw_bits)(OMAP_POWERSTATEST_MASK,
-+                       PWRDM_POWER_ON, OMAP3430_IVA2_MOD, PM_PWSTCTRL);
-                /* Set the SW supervised state transition */
--               hw_pwr_clkctrl_iva2_reg_set(resources.dw_cm_base,
--                                           HW_SW_SUP_WAKEUP);
-+               (*pdata->dsp_cm_write)(OMAP34XX_CLKSTCTRL_FORCE_WAKEUP,
-+                                       OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
-+
-                /* Wait until the state has moved to ON */
--               hw_pwr_iva2_state_get(resources.dw_prm_base, HW_PWR_DOMAIN_DSP,
--                                     &pwr_state);
-+               while ((*pdata->dsp_prm_read)(OMAP3430_IVA2_MOD, PM_PWSTST) &
-+                                               OMAP_INTRANSITION)
-+                       ;
-                /* Disable Automatic transition */
--               hw_pwr_clkctrl_iva2_reg_set(resources.dw_cm_base,
--                                           HW_AUTOTRANS_DIS);
-+               (*pdata->dsp_cm_write)(OMAP34XX_CLKSTCTRL_DISABLE_AUTO,
-+                                       OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
-        }
--
--       get_hw_regs(resources.dw_prm_base, resources.dw_cm_base);
--       hw_rst_un_reset(resources.dw_prm_base, HW_RST2_IVA2);
-+       (*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2, 0,
-+                                       OMAP3430_IVA2_MOD, RM_RSTCTRL);
-        services_clk_enable(SERVICESCLK_IVA2_CK);
-
-        if (DSP_SUCCEEDED(status)) {
-                /* set the device state to IDLE */
-                dev_context->dw_brd_state = BRD_IDLE;
-        }
--error_return:
--       get_hw_regs(resources.dw_prm_base, resources.dw_cm_base);
-        return status;
- }
-
-@@ -441,6 +398,8 @@ static dsp_status bridge_brd_start(struct wmd_dev_context *hDevContext,
-        u32 ext_clk_id = 0;
-        u32 tmp_index;
-        u32 clk_id_index = MBX_PM_MAX_RESOURCES;
-+       struct dspbridge_platform_data *pdata =
-+                               omap_dspbridge_dev->dev.platform_data;
-
-        /* The device context contains all the mmu setup info from when the
-         * last dsp base image was loaded. The first entry is always
-@@ -474,9 +433,10 @@ static dsp_status bridge_brd_start(struct wmd_dev_context *hDevContext,
-                                                drv_get_first_dev_extension(),
-                                                &resources);
-                /* Assert RST1 i.e only the RST only for DSP megacell */
--               /* hw_rst_reset(resources.dwPrcmBase, HW_RST1_IVA2); */
-                if (DSP_SUCCEEDED(status)) {
--                       hw_rst_reset(resources.dw_prm_base, HW_RST1_IVA2);
-+                       (*pdata->dsp_prm_rmw_bits)(OMAP3430_RST1_IVA2,
-+                                       OMAP3430_RST1_IVA2, OMAP3430_IVA2_MOD,
-+                                       RM_RSTCTRL);
-                        /* Mask address with 1K for compatibility */
-                        __raw_writel(dwDSPAddr & OMAP3_IVA2_BOOTADDR_MASK,
-                                        OMAP343X_CTRL_REGADDR(
-@@ -492,12 +452,13 @@ static dsp_status bridge_brd_start(struct wmd_dev_context *hDevContext,
-        if (DSP_SUCCEEDED(status)) {
-                /* Reset and Unreset the RST2, so that BOOTADDR is copied to
-                 * IVA2 SYSC register */
--               hw_rst_reset(resources.dw_prm_base, HW_RST2_IVA2);
-+               (*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2,
-+                       OMAP3430_RST1_IVA2, OMAP3430_IVA2_MOD, RM_RSTCTRL);
-                udelay(100);
--               hw_rst_un_reset(resources.dw_prm_base, HW_RST2_IVA2);
-+               (*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2, 0,
-+                                       OMAP3430_IVA2_MOD, RM_RSTCTRL);
-                udelay(100);
-
--               get_hw_regs(resources.dw_prm_base, resources.dw_cm_base);
-                /* Disbale the DSP MMU */
-                hw_mmu_disable(resources.dw_dmmu_base);
-                /* Disable TWL */
-@@ -643,11 +604,9 @@ static dsp_status bridge_brd_start(struct wmd_dev_context *hDevContext,
-                (void)dev_get_symbol(dev_context->hdev_obj,
-                                     "_BRIDGEINIT_DSP_FREQ", &ul_dsp_clk_addr);
-                /*Set Autoidle Mode for IVA2 PLL */
--               temp = (u32) *((reg_uword32 *)
--                               ((u32) (resources.dw_cm_base) + 0x34));
--               temp = (temp & 0xFFFFFFFE) | 0x1;
--               *((reg_uword32 *) ((u32) (resources.dw_cm_base) + 0x34)) =
--                   (u32) temp;
-+               (*pdata->dsp_cm_write)(1 << OMAP3430_AUTO_IVA2_DPLL_SHIFT,
-+                               OMAP3430_IVA2_MOD, OMAP3430_CM_AUTOIDLE_PLL);
-+
-                if ((unsigned int *)ul_dsp_clk_addr != NULL) {
-                        /* Get the clock rate */
-                        status = services_clk_get_rate(SERVICESCLK_IVA2_CK,
-@@ -695,11 +654,8 @@ static dsp_status bridge_brd_start(struct wmd_dev_context *hDevContext,
-                    (u32) temp;
-
- /*CM_CLKSTCTRL_IVA2 = 0x00000003 -To Allow automatic transitions */
--               temp = (u32) *((reg_uword32 *)
--                               ((u32) (resources.dw_cm_base) + 0x48));
--               temp = (temp & 0xFFFFFFFC) | 0x03;
--               *((reg_uword32 *) ((u32) (resources.dw_cm_base) + 0x48)) =
--                   (u32) temp;
-+               (*pdata->dsp_cm_write)(OMAP34XX_CLKSTCTRL_ENABLE_AUTO,
-+                                       OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
-
-                /* Let DSP go */
-                dev_dbg(bridge, "%s Unreset\n", __func__);
-@@ -707,7 +663,8 @@ static dsp_status bridge_brd_start(struct wmd_dev_context *hDevContext,
-                hw_mmu_event_enable(resources.dw_dmmu_base,
-                                    HW_MMU_ALL_INTERRUPTS);
-                /* release the RST1, DSP starts executing now .. */
--               hw_rst_un_reset(resources.dw_prm_base, HW_RST1_IVA2);
-+               (*pdata->dsp_prm_rmw_bits)(OMAP3430_RST1_IVA2, 0,
-+                                       OMAP3430_IVA2_MOD, RM_RSTCTRL);
-
-                dev_dbg(bridge, "Waiting for Sync @ 0x%x\n", dw_sync_addr);
-                dev_dbg(bridge, "DSP c_int00 Address =  0x%x\n", dwDSPAddr);
-@@ -754,10 +711,11 @@ static dsp_status bridge_brd_stop(struct wmd_dev_context *hDevContext)
- {
-        dsp_status status = DSP_SOK;
-        struct wmd_dev_context *dev_context = hDevContext;
--       struct cfg_hostres resources;
-        struct pg_table_attrs *pt_attrs;
-        u32 dsp_pwr_state;
-        dsp_status clk_status;
-+       struct dspbridge_platform_data *pdata =
-+                               omap_dspbridge_dev->dev.platform_data;
-
-        if (dev_context->dw_brd_state == BRD_STOPPED)
-                return status;
-@@ -765,29 +723,22 @@ static dsp_status bridge_brd_stop(struct wmd_dev_context *hDevContext)
-        /* as per TRM, it is advised to first drive the IVA2 to 'Standby' mode,
-         * before turning off the clocks.. This is to ensure that there are no
-         * pending L3 or other transactons from IVA2 */
--       status = cfg_get_host_resources((struct cfg_devnode *)
--                                       drv_get_first_dev_extension(),
--                                       &resources);
--       if (DSP_FAILED(status))
--               return DSP_EFAIL;
-
--       hw_pwrst_iva2_reg_get(resources.dw_prm_base, &dsp_pwr_state);
--       if (dsp_pwr_state != HW_PWR_STATE_OFF && dev_context->mbox) {
-+       dsp_pwr_state = (*pdata->dsp_prm_read)(OMAP3430_IVA2_MOD, PM_PWSTST) &
-+                                       OMAP_POWERSTATEST_MASK;
-+       if (dsp_pwr_state != PWRDM_POWER_OFF) {
-                sm_interrupt_dsp(dev_context, MBX_PM_DSPIDLE);
-                mdelay(10);
--               get_hw_regs(resources.dw_prm_base, resources.dw_cm_base);
--               udelay(50);
-
-                clk_status = services_clk_disable(SERVICESCLK_IVA2_CK);
-
-                /* IVA2 is not in OFF state */
-                /* Set PM_PWSTCTRL_IVA2  to OFF */
--               hw_pwr_iva2_power_state_set(resources.dw_prm_base,
--                                           HW_PWR_DOMAIN_DSP,
--                                           HW_PWR_STATE_OFF);
-+               (*pdata->dsp_prm_rmw_bits)(OMAP_POWERSTATEST_MASK,
-+                       PWRDM_POWER_OFF, OMAP3430_IVA2_MOD, PM_PWSTCTRL);
-                /* Set the SW supervised state transition for Sleep */
--               hw_pwr_clkctrl_iva2_reg_set(resources.dw_cm_base,
--                                           HW_SW_SUP_SLEEP);
-+               (*pdata->dsp_cm_write)(OMAP34XX_CLKSTCTRL_FORCE_SLEEP,
-+                                       OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
-        } else {
-                clk_status = services_clk_disable(SERVICESCLK_IVA2_CK);
-        }
-@@ -815,10 +766,9 @@ static dsp_status bridge_brd_stop(struct wmd_dev_context *hDevContext)
-                omap_mbox_put(dev_context->mbox);
-                dev_context->mbox = NULL;
-        }
--
--       hw_rst_reset(resources.dw_prm_base, HW_RST1_IVA2);
--       hw_rst_reset(resources.dw_prm_base, HW_RST2_IVA2);
--       hw_rst_reset(resources.dw_prm_base, HW_RST3_IVA2);
-+       /* Reset IVA2 clocks*/
-+       (*pdata->dsp_prm_write)(OMAP3430_RST1_IVA2 | OMAP3430_RST2_IVA2 |
-+                       OMAP3430_RST3_IVA2, OMAP3430_IVA2_MOD, RM_RSTCTRL);
-
-        return status;
- }
-@@ -838,6 +788,8 @@ static dsp_status wmd_brd_delete(struct wmd_dev_context *hDevContext)
-        struct cfg_hostres resources;
-        struct pg_table_attrs *pt_attrs;
-        dsp_status clk_status;
-+       struct dspbridge_platform_data *pdata =
-+                               omap_dspbridge_dev->dev.platform_data;
-
-        if (dev_context->dw_brd_state == BRD_STOPPED)
-                return status;
-@@ -876,10 +828,9 @@ static dsp_status wmd_brd_delete(struct wmd_dev_context *hDevContext)
-                omap_mbox_put(dev_context->mbox);
-                dev_context->mbox = NULL;
-        }
--
--       hw_rst_reset(resources.dw_prm_base, HW_RST1_IVA2);
--       hw_rst_reset(resources.dw_prm_base, HW_RST2_IVA2);
--       hw_rst_reset(resources.dw_prm_base, HW_RST3_IVA2);
-+       /* Reset IVA2 clocks*/
-+       (*pdata->dsp_prm_write)(OMAP3430_RST1_IVA2 | OMAP3430_RST2_IVA2 |
-+                       OMAP3430_RST3_IVA2, OMAP3430_IVA2_MOD, RM_RSTCTRL);
-
-        return status;
- }
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 56b9a38..c15f0c9 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -33,7 +33,6 @@
-
- /* ------------------------------------ Hardware Abstraction Layer */
- #include <hw_defs.h>
--#include <hw_prcm.h>
- #include <hw_mmu.h>
-
- #include <dspbridge/pwr_sh.h>
-@@ -87,31 +86,24 @@ dsp_status handle_hibernation_from_dsp(struct wmd_dev_context *dev_context)
-        dsp_status status = DSP_SOK;
- #ifdef CONFIG_PM
-        u16 timeout = PWRSTST_TIMEOUT / 10;
--       struct cfg_hostres resources;
--       enum hw_pwr_state_t pwr_state;
-+       u32 pwr_state;
- #ifdef CONFIG_BRIDGE_DVFS
-        u32 opplevel;
-        struct io_mgr *hio_mgr;
--       struct dspbridge_platform_data *pdata =
--           omap_dspbridge_dev->dev.platform_data;
- #endif
-+       struct dspbridge_platform_data *pdata =
-+                               omap_dspbridge_dev->dev.platform_data;
-
--       status = cfg_get_host_resources((struct cfg_devnode *)
--                                       drv_get_first_dev_extension(),
--                                       &resources);
--       if (DSP_FAILED(status))
--               return status;
--
--       hw_pwr_iva2_state_get(resources.dw_prm_base, HW_PWR_DOMAIN_DSP,
--                             &pwr_state);
-+       pwr_state = (*pdata->dsp_prm_read)(OMAP3430_IVA2_MOD, PM_PWSTST) &
-+                                               OMAP_POWERSTATEST_MASK;
-        /* Wait for DSP to move into OFF state */
--       while ((pwr_state != HW_PWR_STATE_OFF) && --timeout) {
-+       while ((pwr_state != PWRDM_POWER_OFF) && --timeout) {
-                if (msleep_interruptible(10)) {
-                        pr_err("Waiting for DSP OFF mode interrupted\n");
-                        return DSP_EFAIL;
-                }
--               hw_pwr_iva2_state_get(resources.dw_prm_base, HW_PWR_DOMAIN_DSP,
--                                     &pwr_state);
-+               pwr_state = (*pdata->dsp_prm_read)(OMAP3430_IVA2_MOD,
-+                                       PM_PWSTST) & OMAP_POWERSTATEST_MASK;
-        }
-        if (timeout == 0) {
-                pr_err("%s: Timed out waiting for DSP off mode\n", __func__);
-@@ -161,41 +153,37 @@ dsp_status sleep_dsp(struct wmd_dev_context *dev_context, IN u32 dw_cmd,
- {
-        dsp_status status = DSP_SOK;
- #ifdef CONFIG_PM
--       struct cfg_hostres resources;
- #ifdef CONFIG_BRIDGE_NTFY_PWRERR
-        struct deh_mgr *hdeh_mgr;
- #endif /* CONFIG_BRIDGE_NTFY_PWRERR */
-        u16 timeout = PWRSTST_TIMEOUT / 10;
--       enum hw_pwr_state_t pwr_state, target_pwr_state;
-+       u32 pwr_state, target_pwr_state;
-+       struct dspbridge_platform_data *pdata =
-+                               omap_dspbridge_dev->dev.platform_data;
-
-        /* Check if sleep code is valid */
-        if ((dw_cmd != PWR_DEEPSLEEP) && (dw_cmd != PWR_EMERGENCYDEEPSLEEP))
-                return DSP_EINVALIDARG;
-
--       status = cfg_get_host_resources((struct cfg_devnode *)
--                                       drv_get_first_dev_extension(),
--                                       &resources);
--       if (DSP_FAILED(status))
--               return status;
-
-        switch (dev_context->dw_brd_state) {
-        case BRD_RUNNING:
-                omap_mbox_save_ctx(dev_context->mbox);
--               if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
-+               if (dsp_test_sleepstate == PWRDM_POWER_OFF) {
-                        sm_interrupt_dsp(dev_context, MBX_PM_DSPHIBERNATE);
-                        dev_dbg(bridge, "PM: %s - sent hibernate cmd to DSP\n",
-                                __func__);
--                       target_pwr_state = HW_PWR_STATE_OFF;
-+                       target_pwr_state = PWRDM_POWER_OFF;
-                } else {
-                        sm_interrupt_dsp(dev_context, MBX_PM_DSPRETENTION);
--                       target_pwr_state = HW_PWR_STATE_RET;
-+                       target_pwr_state = PWRDM_POWER_RET;
-                }
-                break;
-        case BRD_RETENTION:
-                omap_mbox_save_ctx(dev_context->mbox);
--               if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
-+               if (dsp_test_sleepstate == PWRDM_POWER_OFF) {
-                        sm_interrupt_dsp(dev_context, MBX_PM_DSPHIBERNATE);
--                       target_pwr_state = HW_PWR_STATE_OFF;
-+                       target_pwr_state = PWRDM_POWER_OFF;
-                } else
-                        return DSP_SOK;
-                break;
-@@ -214,8 +202,8 @@ dsp_status sleep_dsp(struct wmd_dev_context *dev_context, IN u32 dw_cmd,
-        }
-
-        /* Get the PRCM DSP power domain status */
--       hw_pwr_iva2_state_get(resources.dw_prm_base, HW_PWR_DOMAIN_DSP,
--                             &pwr_state);
-+       pwr_state = (*pdata->dsp_prm_read)(OMAP3430_IVA2_MOD, PM_PWSTST) &
-+                                               OMAP_POWERSTATEST_MASK;
-
-        /* Wait for DSP to move into target power state */
-        while ((pwr_state != target_pwr_state) && --timeout) {
-@@ -223,8 +211,8 @@ dsp_status sleep_dsp(struct wmd_dev_context *dev_context, IN u32 dw_cmd,
-                        pr_err("Waiting for DSP to Suspend interrupted\n");
-                        return DSP_EFAIL;
-                }
--               hw_pwr_iva2_state_get(resources.dw_prm_base, HW_PWR_DOMAIN_DSP,
--                                     &pwr_state);
-+               pwr_state = (*pdata->dsp_prm_read)(OMAP3430_IVA2_MOD,
-+                                       PM_PWSTST) & OMAP_POWERSTATEST_MASK;
-        }
-
-        if (!timeout) {
-@@ -237,7 +225,7 @@ dsp_status sleep_dsp(struct wmd_dev_context *dev_context, IN u32 dw_cmd,
-                return WMD_E_TIMEOUT;
-        } else {
-                /* Update the Bridger Driver state */
--               if (dsp_test_sleepstate == HW_PWR_STATE_OFF)
-+               if (dsp_test_sleepstate == PWRDM_POWER_OFF)
-                        dev_context->dw_brd_state = BRD_HIBERNATION;
-                else
-                        dev_context->dw_brd_state = BRD_RETENTION;
-@@ -251,7 +239,7 @@ dsp_status sleep_dsp(struct wmd_dev_context *dev_context, IN u32 dw_cmd,
-                        return status;
-                }
- #ifdef CONFIG_BRIDGE_DVFS
--               else if (target_pwr_state == HW_PWR_STATE_OFF) {
-+               else if (target_pwr_state == PWRDM_POWER_OFF) {
-                        struct dspbridge_platform_data *pdata =
-                            omap_dspbridge_dev->dev.platform_data;
-                        /*
-diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/wmd/tiomap_io.c
-index 728db33..0755ca7 100644
---- a/drivers/dsp/bridge/wmd/tiomap_io.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_io.c
-@@ -398,10 +398,10 @@ dsp_status write_ext_dsp_data(struct wmd_dev_context *dev_context,
- dsp_status sm_interrupt_dsp(struct wmd_dev_context *dev_context, u16 mb_val)
- {
- #ifdef CONFIG_BRIDGE_DVFS
--       struct dspbridge_platform_data *pdata =
--               omap_dspbridge_dev->dev.platform_data;
-        u32 opplevel = 0;
- #endif
-+       struct dspbridge_platform_data *pdata =
-+               omap_dspbridge_dev->dev.platform_data;
-        struct cfg_hostres resources;
-        dsp_status status = DSP_SOK;
-        u32 temp;
-@@ -433,16 +433,19 @@ dsp_status sm_interrupt_dsp(struct wmd_dev_context *dev_context, u16 mb_val)
-                 * 2:0 AUTO_IVA2_DPLL - Enabling IVA2 DPLL auto control
-                 *     in CM_AUTOIDLE_PLL_IVA2 register
-                 */
--               *(reg_uword32 *) (resources.dw_cm_base + 0x34) = 0x1;
-+               (*pdata->dsp_cm_write)(1 << OMAP3430_AUTO_IVA2_DPLL_SHIFT,
-+                               OMAP3430_IVA2_MOD, OMAP3430_CM_AUTOIDLE_PLL);
-
-                /*
-                 * 7:4 IVA2_DPLL_FREQSEL - IVA2 internal frq set to
-                 *     0.75 MHz - 1.0 MHz
-                 * 2:0 EN_IVA2_DPLL - Enable IVA2 DPLL in lock mode
-                 */
--               temp = *(reg_uword32 *) (resources.dw_cm_base + 0x4);
--               temp = (temp & 0xFFFFFF08) | 0x37;
--               *(reg_uword32 *) (resources.dw_cm_base + 0x4) = temp;
-+               (*pdata->dsp_cm_rmw_bits)(OMAP3430_IVA2_DPLL_FREQSEL_MASK |
-+                               OMAP3430_EN_IVA2_DPLL_MASK,
-+                               0x3 << OMAP3430_IVA2_DPLL_FREQSEL_SHIFT |
-+                               0x7 << OMAP3430_EN_IVA2_DPLL_SHIFT,
-+                               OMAP3430_IVA2_MOD, OMAP3430_CM_CLKEN_PLL);
-
-                /* Restore mailbox settings */
-                omap_mbox_restore_ctx(dev_context->mbox);
---
-1.6.0.4
-
+-Murali
+>
+>> > +
+>> > +#include <asm/processor.h>
+>>
+>> Add a line here??
+>>
+>> > +#include <plat/dma.h>
+>> > +#include <plat/vram.h>
+>> > +#include <plat/vrfb.h>
+>> > +#include <plat/display.h>
+>> > +
+>> > +#include "omap_voutlib.h"
+>> > +#include "omap_voutdef.h"
+>> > +
+>> > +MODULE_AUTHOR("Texas Instruments");
+>> > +MODULE_DESCRIPTION("OMAP Video for Linux Video out driver");
+>> > +MODULE_LICENSE("GPL");
+>> > +
+>> > +
+>> > +/* Driver Configuration macros */
+>> > +#define VOUT_NAME              "omap_vout"
+>> > +
+>> > +enum omap_vout_channels {
+>> > +       OMAP_VIDEO1 = 0,
+>> Why do we have to initialize this to 0. It always start with a value 0
+>> by default.
+>>
+>> > +       OMAP_VIDEO2,
+>> > +};
+>> > +
+>> > +enum dma_channel_state {
+>> > +       DMA_CHAN_NOT_ALLOTED = 0,
+>>
+>> Ditto.
+>>
+>> > +       DMA_CHAN_ALLOTED,
+>> > +};
+>> > +
+>> > +#define QQVGA_WIDTH            160
+>> > +#define QQVGA_HEIGHT           120
+>> > +
+>> > +/* Max Resolution supported by the driver */
+>> > +#define VID_MAX_WIDTH          1280    /* Largest width */
+>> > +#define VID_MAX_HEIGHT         720     /* Largest height */
+>> > +
+>>
+>> -------------------------------------
+>>
+>> > +
+>> > +module_param(debug, bool, S_IRUGO);
+>> > +MODULE_PARM_DESC(debug, "Debug level (0-1)");
+>> > +
+>> > +/* Local Helper functions */
+>> > +static void omap_vout_isr(void *arg, unsigned int irqstatus);
+>> > +static void omap_vout_cleanup_device(struct omap_vout_device *vout);
+>> > +
+>>
+>> Is there a reason why you need these prototypes? I think we could
+>> remove these prototypes and move the function ahead in the file before
+>> it is called.
+>>
+>[Hiremath, Vaibhav] Do you see any harm with this? I think its only
+>implementation part. But still I will incorporate in next version.
+>
+>> > +/* list of image formats supported by OMAP2 video pipelines */
+>> > +const static struct v4l2_fmtdesc omap_formats[] = {
+>> > +       {
+>> > +               /* Note:  V4L2 defines RGB565 as:
+>> > +                *
+>> > +                *      Byte 0                    Byte 1
+>> > +                *      g2 g1 g0 r4 r3 r2 r1 r0   b4 b3 b2 b1 b0 g5 g4
+>g3
+>> > +                *
+>> > +                * We interpret RGB565 as:
+>> > +                *
+>> > +                *      Byte 0                    Byte 1
+>> > +                *      g2 g1 g0 b4 b3 b2 b1 b0   r4 r3 r2 r1 r0 g5 g4
+>g3
+>> > +                */
+>> > +               .description = "RGB565, le",
+>> > +               .pixelformat = V4L2_PIX_FMT_RGB565,
+>> > +       },
+>> > +       {
+>> > +               /* Note:  V4L2 defines RGB32 as: RGB-8-8-8-8  we use
+>> > +                *  this for RGB24 unpack mode, the last 8 bits are
+>> ignored
+>> > +                * */
+>> > +               .description = "RGB32, le",
+>> > +               .pixelformat = V4L2_PIX_FMT_RGB32,
+>> > +       },
+>> > +       {
+>> > +               /* Note:  V4L2 defines RGB24 as: RGB-8-8-8  we use
+>> > +                *        this for RGB24 packed mode
+>> > +                *
+>> > +                */
+>> > +               .description = "RGB24, le",
+>> > +               .pixelformat = V4L2_PIX_FMT_RGB24,
+>> > +       },
+>> > +       {
+>> > +               .description = "YUYV (YUV 4:2:2), packed",
+>> > +               .pixelformat = V4L2_PIX_FMT_YUYV,
+>> > +       },
+>> > +       {
+>> > +               .description = "UYVY, packed",
+>> > +               .pixelformat = V4L2_PIX_FMT_UYVY,
+>> > +       },
+>> > +};
+>> > +
+>> > +#define NUM_OUTPUT_FORMATS (ARRAY_SIZE(omap_formats))
+>> > +
+>> > +/*
+>> > + * Allocate buffers
+>> > + */
+>>
+>> ----------------------------------
+>>
+>> > +
+>> > +/*
+>> > + * omap_vout_uservirt_to_phys: This inline function is used to convert
+>> user
+>> > + * space virtual address to physical address.
+>> > + */
+>> > +static u32 omap_vout_uservirt_to_phys(u32 virtp)
+>> > +{
+>> > +       unsigned long physp = 0;
+>> > +       struct vm_area_struct *vma;
+>> > +       struct mm_struct *mm = current->mm;
+>> > +
+>> > +       vma = find_vma(mm, virtp);
+>> > +       /* For kernel direct-mapped memory, take the easy way */
+>> > +       if (virtp >= PAGE_OFFSET) {
+>> > +               physp = virt_to_phys((void *) virtp);
+>> > +       } else if (vma && (vma->vm_flags & VM_IO)
+>> > +                       && vma->vm_pgoff) {
+>> > +               /* this will catch, kernel-allocated,
+>> > +                  mmaped-to-usermode addresses */
+>> > +               physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma-
+>> >vm_start);
+>> > +       } else {
+>> > +               /* otherwise, use get_user_pages() for general userland
+>> pages */
+>> > +               int res, nr_pages = 1;
+>> > +               struct page *pages;
+>> > +               down_read(&current->mm->mmap_sem);
+>> > +
+>> > +               res = get_user_pages(current, current->mm, virtp,
+>> nr_pages,
+>> > +                               1, 0, &pages, NULL);
+>> > +               up_read(&current->mm->mmap_sem);
+>> > +
+>> > +               if (res == nr_pages) {
+>> > +                       physp =  __pa(page_address(&pages[0]) +
+>> > +                                       (virtp & ~PAGE_MASK));
+>> > +               } else {
+>> > +                       printk(KERN_WARNING VOUT_NAME
+>> > +                                       "get_user_pages failed\n");
+>> > +                       return 0;
+>> > +               }
+>> > +       }
+>> > +
+>> > +       return physp;
+>> > +}
+>>
+>> Shouldn't we remove omap_vout_uservirt_to_phys() and use
+>videobuf_iolock()
+>> instead as we have done in vpfe_capture.c?
+>>
+>[Hiremath, Vaibhav] This change is in my TODO list, and since this patch
+>series has been in queue since long time and has been tested for multiple
+>releases I thought of adding this change in sub-sequent merges.
+>
+>(Same approach which you followed for VPFE.)
+>
+>> -------------------------------------------------
+>>
+>>
+>> > +
+>> > +/*
+>> > + * Convert V4L2 rotation to DSS rotation
+>> > + *     V4L2 understand 0, 90, 180, 270.
+>> > + *     Convert to 0, 1, 2 and 3 repsectively for DSS
+>> > + */
+>> > +static int v4l2_rot_to_dss_rot(int v4l2_rotation, enum dss_rotation
+>> *rotation,
+>> > +               bool mirror)
+>> > +{
+>> Suggest adding a variable int ret = 0;
+>> and return ret at the end of the function instead of return at each case.
+>>
+>[Hiremath, Vaibhav] Agreed and will incorporate in next version.
+>
+>> > +       switch (v4l2_rotation) {
+>> > +       case 90:
+>> > +               *rotation = dss_rotation_90_degree;
+>> > +               return 0;
+>> use break instead of return here
+>> > +       case 180:
+>> > +               *rotation = dss_rotation_180_degree;
+>> > +               return 0;
+>> Ditto
+>> > +       case 270:
+>> > +               *rotation = dss_rotation_270_degree;
+>> > +               return 0;
+>> Ditto
+>> > +       case 0:
+>> > +               *rotation = dss_rotation_0_degree;
+>> > +               return 0;
+>> Ditto
+>> > +       default:
+>> > +               return -EINVAL;
+>>
+>> ret = -EINVAL;
+>>
+>> > +       }
+>>
+>> return ret;
+>> > +
+>> > +}
+>>
+>> ------------------------------------------------------------
+>>
+>>
+>>
+>> > +/*
+>> > + * Convert V4L2 pixel format to DSS pixel format
+>> > + */
+>> > +static enum omap_color_mode video_mode_to_dss_mode(struct
+>> omap_vout_device
+>> > +                       *vout)
+>> > +{
+>> > +       struct omap_overlay *ovl;
+>> > +       struct omapvideo_info *ovid;
+>> > +       struct v4l2_pix_format *pix = &vout->pix;
+>> > +
+>> > +       ovid = &vout->vid_info;
+>> > +       ovl = ovid->overlays[0];
+>> > +
+>> > +       switch (pix->pixelformat) {
+>> > +       case 0:
+>> > +               break;
+>> > +       case V4L2_PIX_FMT_YUYV:
+>> > +               return OMAP_DSS_COLOR_YUV2;
+>> > +
+>> > +       case V4L2_PIX_FMT_UYVY:
+>> > +               return OMAP_DSS_COLOR_UYVY;
+>> > +
+>> > +       case V4L2_PIX_FMT_RGB565:
+>> > +               return OMAP_DSS_COLOR_RGB16;
+>> > +
+>> > +       case V4L2_PIX_FMT_RGB24:
+>> > +               return OMAP_DSS_COLOR_RGB24P;
+>> > +
+>> > +       case V4L2_PIX_FMT_RGB32:
+>> > +               return (ovl->id == OMAP_DSS_VIDEO1) ?
+>> > +                       OMAP_DSS_COLOR_RGB24U : OMAP_DSS_COLOR_ARGB32;
+>> > +       case V4L2_PIX_FMT_BGR32:
+>> > +               return OMAP_DSS_COLOR_RGBX32;
+>> > +
+>> > +       default:
+>> > +               return -EINVAL;
+>> > +       }
+>> > +       return -EINVAL;
+>>
+>> Also return type is eum and you are returning a negative number here ???
+>>
+>[Hiremath, Vaibhav] good catch, will fix in next version.
+>
+>> > +}
+>>
+>> Similar comment for this function as well. return at the end of the
+>> function.
+>>
+>> > +
+>> > +/*
+>> > + * Setup the overlay
+>> > + */
+>> > +int omapvid_setup_overlay(struct omap_vout_device *vout,
+>> > +               struct omap_overlay *ovl, int posx, int posy, int outw,
+>> > +               int outh, u32 addr)
+>>
+>> -----------------------------------------------------------------
+>>
+>>
+>>
+>> > +
+>> > +static int vidioc_try_fmt_vid_out(struct file *file, void *fh,
+>> > +                       struct v4l2_format *f)
+>> > +{
+>> > +       struct omap_overlay *ovl;
+>> > +       struct omapvideo_info *ovid;
+>> > +       struct omap_video_timings *timing;
+>> > +       struct omap_vout_device *vout = fh;
+>> > +
+>> > +       if (vout->streaming)
+>> > +               return -EBUSY;
+>>
+>> When application calls a TRY_FMT, I think as per v4l spec, driver
+>> shouldn't change the state. So why should we return -EBUSY here?
+>>
+>> > +
+>> > +       ovid = &vout->vid_info;
+>> > +       ovl = ovid->overlays[0];
+>> > +
+>> > +       if (!ovl->manager || !ovl->manager->device)
+>> > +               return -EINVAL;
+>> > +       /* get the display device attached to the overlay */
+>> > +       timing = &ovl->manager->device->panel.timings;
+>> > +
+>> > +       vout->fbuf.fmt.height = timing->y_res;
+>> > +       vout->fbuf.fmt.width = timing->x_res;
+>> > +
+>> > +       omap_vout_try_format(&f->fmt.pix);
+>> > +       return 0;
+>> > +}
+>> > +
+>>
+>> ---------------------------------------------------------------------
+>>
+>>
+>> > +
+>> > +static int vidioc_g_ctrl(struct file *file, void *fh, struct
+>v4l2_control
+>> *ctrl)
+>> > +{
+>> > +       struct omap_vout_device *vout = fh;
+>> > +
+>> > +       switch (ctrl->id) {
+>> > +       case V4L2_CID_ROTATE:
+>> > +               ctrl->value = vout->control[0].value;
+>> > +               return 0;
+>> > +       case V4L2_CID_BG_COLOR:
+>> > +       {
+>> > +               struct omap_overlay_manager_info info;
+>> > +               struct omap_overlay *ovl;
+>> > +               ovl = vout->vid_info.overlays[0];
+>> > +
+>> > +               if (!ovl->manager || !ovl->manager->get_manager_info)
+>> > +                       return -EINVAL;
+>> > +
+>> > +               ovl->manager->get_manager_info(ovl->manager, &info);
+>> > +               ctrl->value = info.default_color;
+>> > +               return 0;
+>> > +       }
+>> > +       case V4L2_CID_VFLIP:
+>> > +               ctrl->value = vout->control[2].value;
+>> > +               return 0;
+>> > +       default:
+>> > +               return -EINVAL;
+>> > +       }
+>> > +}
+>>
+>> Return at the end and use break for each case.
+>>
+>[Hiremath, Vaibhav] Agreed and will incorporate in next version.
+>
+>> > +
+>> > +static int vidioc_s_ctrl(struct file *file, void *fh, struct
+>v4l2_control
+>> *a)
+>> > +{
+>> > +       struct omap_vout_device *vout = fh;
+>> > +
+>> > +       switch (a->id) {
+>> > +       case V4L2_CID_ROTATE:
+>> > +       {
+>> > +               int rotation = a->value;
+>> > +
+>> > +               mutex_lock(&vout->lock);
+>> > +
+>> > +               if (rotation &&
+>> > +                       vout->pix.pixelformat == V4L2_PIX_FMT_RGB24) {
+>> > +                       mutex_unlock(&vout->lock);
+>> > +                       return -EINVAL;
+>> > +               }
+>> > +
+>> > +               if ((v4l2_rot_to_dss_rot(rotation, &vout->rotation,
+>> > +                               vout->mirror))) {
+>> > +                       mutex_unlock(&vout->lock);
+>> > +                       return -EINVAL;
+>> > +               }
+>> > +
+>> > +               vout->control[0].value = rotation;
+>> > +               mutex_unlock(&vout->lock);
+>> > +               return 0;
+>> > +       }
+>> > +       case V4L2_CID_BG_COLOR:
+>> > +       {
+>> > +               struct omap_overlay *ovl;
+>> > +               unsigned int  color = a->value;
+>> > +               struct omap_overlay_manager_info info;
+>> > +
+>> > +               ovl = vout->vid_info.overlays[0];
+>> > +
+>> > +               mutex_lock(&vout->lock);
+>> > +               if (!ovl->manager || !ovl->manager->get_manager_info) {
+>> > +                       mutex_unlock(&vout->lock);
+>> > +                       return -EINVAL;
+>> > +               }
+>> > +
+>> > +               ovl->manager->get_manager_info(ovl->manager, &info);
+>> > +               info.default_color = color;
+>> > +               if (ovl->manager->set_manager_info(ovl->manager,
+>&info)) {
+>> > +                       mutex_unlock(&vout->lock);
+>> > +                       return -EINVAL;
+>> > +               }
+>> > +
+>> > +               vout->control[1].value = color;
+>> > +               mutex_unlock(&vout->lock);
+>> > +               return 0;
+>> > +       }
+>> > +       case V4L2_CID_VFLIP:
+>> > +       {
+>> > +               struct omap_overlay *ovl;
+>> > +               struct omapvideo_info *ovid;
+>> > +               unsigned int  mirror = a->value;
+>> > +
+>> > +               ovid = &vout->vid_info;
+>> > +               ovl = ovid->overlays[0];
+>> > +
+>> > +               mutex_lock(&vout->lock);
+>> > +
+>> > +               if (mirror  && vout->pix.pixelformat ==
+>> V4L2_PIX_FMT_RGB24) {
+>> > +                       mutex_unlock(&vout->lock);
+>> > +                       return -EINVAL;
+>> > +               }
+>> > +               vout->mirror = mirror;
+>> > +               vout->control[2].value = mirror;
+>> > +               mutex_unlock(&vout->lock);
+>> > +               return 0;
+>> > +       }
+>> > +
+>> > +       default:
+>> > +               return -EINVAL;
+>> > +       }
+>> > +
+>>
+>> Ditto,
+>>
+>> --------------------------------------------------------------
+>>
+>>
+>>
+>> > +
+>> > +static int vidioc_streamon(struct file *file, void *fh,
+>> > +                       enum v4l2_buf_type i)
+>> > +{
+>> > +       int ret = 0, j;
+>> > +       u32 addr = 0, mask = 0;
+>> > +       struct omap_vout_device *vout = fh;
+>> > +       struct videobuf_queue *q = &vout->vbq;
+>> > +       struct omapvideo_info *ovid = &vout->vid_info;
+>> > +
+>> > +       mutex_lock(&vout->lock);
+>> > +
+>> > +       if (vout->streaming) {
+>> > +               ret = -EBUSY;
+>> > +               goto streamon_err;
+>> > +       }
+>> > +
+>> > +       ret = videobuf_streamon(q);
+>> > +       if (ret < 0)
+>> > +               goto streamon_err;
+>> > +
+>> > +       if (list_empty(&vout->dma_queue)) {
+>> > +               ret = -EIO;
+>> > +               goto streamon_err;
+>> > +       }
+>> > +       /* Get the next frame from the buffer queue */
+>> > +       vout->next_frm = vout->cur_frm = list_entry(vout-
+>>dma_queue.next,
+>> > +                       struct videobuf_buffer, queue);
+>> > +       /* Remove buffer from the buffer queue */
+>> > +       list_del(&vout->cur_frm->queue);
+>> > +       /* Mark state of the current frame to active */
+>> > +       vout->cur_frm->state = VIDEOBUF_ACTIVE;
+>> > +       /* Initialize field_id and started member */
+>> > +       vout->field_id = 0;
+>> > +
+>> > +       /* set flag here. Next QBUF will start DMA */
+>> > +       vout->streaming = 1;
+>> > +
+>> > +       vout->first_int = 1;
+>> > +
+>> > +       if (omap_vout_calculate_offset(vout)) {
+>> > +               ret = -EINVAL;
+>> > +               goto streamon_err;
+>> > +       }
+>> > +       addr = (unsigned long) vout->queued_buf_addr[vout->cur_frm->i]
+>> > +               + vout->cropped_offset;
+>> > +
+>> > +       mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
+>> > +               DISPC_IRQ_EVSYNC_ODD;
+>> > +
+>> > +       omap_dispc_register_isr(omap_vout_isr, vout, mask);
+>> > +
+>> > +       for (j = 0; j < ovid->num_overlays; j++) {
+>> > +               struct omap_overlay *ovl = ovid->overlays[j];
+>> > +               if (ovl->manager && ovl->manager->device) {
+>> > +                       struct omap_overlay_info info;
+>> > +                       ovl->get_overlay_info(ovl, &info);
+>> > +                       info.enabled = 1;
+>> > +                       info.paddr = addr;
+>> > +                       if (ovl->set_overlay_info(ovl, &info)) {
+>> > +                               ret = -EINVAL;
+>> > +                               goto streamon_err;
+>> > +                       }
+>> > +               }
+>> > +       }
+>> > +
+>> > +       /* First save the configuration in ovelray structure */
+>> > +       ret = omapvid_init(vout, addr);
+>> > +       if (ret)
+>> > +               v4l2_err(&vout->vid_dev->v4l2_dev,
+>> > +                               "failed to set overlay info\n");
+>> > +       /* Enable the pipeline and set the Go bit */
+>> > +       ret = omapvid_apply_changes(vout);
+>> > +       if (ret)
+>> > +               v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change
+>> mode\n");
+>> > +
+>> > +       ret = 0;
+>> > +
+>> > +streamon_err:
+>>
+>> In some error cases,  the videobuf_streamon() is already called. So
+>> you have to call videobuf_streamoff() before return
+>>
+>[Hiremath, Vaibhav] Agreed and will incorporate in next version.
+>
+>> > +       mutex_unlock(&vout->lock);
+>> > +       return ret;
+>> > +}
+>> > +
+>> > +static int vidioc_streamoff(struct file *file, void *fh,
+>> > +                       enum v4l2_buf_type i)
+>> > +{
+>> > +       u32 mask = 0;
+>> > +       int ret = 0, j;
+>> > +       struct omap_vout_device *vout = fh;
+>> > +       struct omapvideo_info *ovid = &vout->vid_info;
+>> > +
+>> > +       if (!vout->streaming)
+>> > +               return -EINVAL;
+>> > +
+>> > +       vout->streaming = 0;
+>> > +       mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_EVEN |
+>> > +               DISPC_IRQ_EVSYNC_ODD;
+>> > +
+>> > +       omap_dispc_unregister_isr(omap_vout_isr, vout, mask);
+>> > +
+>> > +       for (j = 0; j < ovid->num_overlays; j++) {
+>> > +               struct omap_overlay *ovl = ovid->overlays[j];
+>> > +               if (ovl->manager && ovl->manager->device) {
+>> > +                       struct omap_overlay_info info;
+>> > +
+>> > +                       ovl->get_overlay_info(ovl, &info);
+>> > +                       info.enabled = 0;
+>> > +                       ret = ovl->set_overlay_info(ovl, &info);
+>> > +                       if (ret) {
+>> > +                               v4l2_err(&vout->vid_dev->v4l2_dev,
+>> > +                                       "failed to update overlay
+>> info\n");
+>> > +                               return ret;
+>>
+>> This is a failure.  In that case shouldn't we call videobuf_streamoff,
+>> videobuf_queue_cancel etc as done below?
+>>
+>> > +                       }
+>> > +               }
+>> > +       }
+>> > +
+>> > +       /* Turn of the pipeline */
+>> > +       ret = omapvid_apply_changes(vout);
+>> > +       if (ret) {
+>> > +               v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change
+>> mode\n");
+>> > +               return ret;
+>> > +       }
+>>
+>> Ditto,
+>>
+>> > +       INIT_LIST_HEAD(&vout->dma_queue);
+>> > +       videobuf_streamoff(&vout->vbq);
+>> > +       videobuf_queue_cancel(&vout->vbq);
+>> > +
+>> > +       return 0;
+>> > +}
+>> > +
+>>
+>>
+>> -----------------------------------------
+>>
+>>
+>>
+>> > +
+>> > +/* Init functions used during driver intitalization */
+>> > +/* Initial setup of video_data */
+>> > +static int __init omap_vout_setup_video_data(struct omap_vout_device
+>> *vout)
+>> > +{
+>> > +       struct video_device *vfd;
+>> > +       struct v4l2_pix_format *pix;
+>> > +       struct v4l2_control *control;
+>> > +       struct omap_dss_device *display =
+>> > +               vout->vid_info.overlays[0]->manager->device;
+>> > +
+>> > +       /* set the default pix */
+>> > +       pix = &vout->pix;
+>> > +
+>> > +       /* Set the default picture of QVGA  */
+>> > +       pix->width = QQVGA_WIDTH;
+>> > +       pix->height = QQVGA_HEIGHT;
+>> > +
+>> > +       /* Default pixel format is RGB 5-6-5 */
+>> > +       pix->pixelformat = V4L2_PIX_FMT_RGB565;
+>> > +       pix->field = V4L2_FIELD_ANY;
+>> > +       pix->bytesperline = pix->width * 2;
+>> > +       pix->sizeimage = pix->bytesperline * pix->height;
+>> > +       pix->priv = 0;
+>> > +       pix->colorspace = V4L2_COLORSPACE_JPEG;
+>> > +
+>> > +       vout->bpp = RGB565_BPP;
+>> > +       vout->fbuf.fmt.width  =  display->panel.timings.x_res;
+>> > +       vout->fbuf.fmt.height =  display->panel.timings.y_res;
+>> > +
+>> > +       /* Set the data structures for the overlay parameters*/
+>> > +       vout->win.global_alpha = 255;
+>> > +       vout->fbuf.flags = 0;
+>> > +       vout->fbuf.capability = V4L2_FBUF_CAP_LOCAL_ALPHA |
+>> > +               V4L2_FBUF_CAP_SRC_CHROMAKEY | V4L2_FBUF_CAP_CHROMAKEY;
+>> > +       vout->win.chromakey = 0;
+>> > +
+>> > +       omap_vout_new_format(pix, &vout->fbuf, &vout->crop, &vout-
+>>win);
+>> > +
+>> > +       /*Initialize the control variables for
+>> > +         rotation, flipping and background color. */
+>> > +       control = vout->control;
+>> > +       control[0].id = V4L2_CID_ROTATE;
+>> > +       control[0].value = 0;
+>> > +       vout->rotation = 0;
+>> > +       vout->mirror = 0;
+>> > +       vout->control[2].id = V4L2_CID_HFLIP;
+>> > +       vout->control[2].value = 0;
+>> > +       vout->vrfb_bpp = 2;
+>> > +
+>> > +       control[1].id = V4L2_CID_BG_COLOR;
+>> > +       control[1].value = 0;
+>> > +
+>> > +       /* initialize the video_device struct */
+>> > +       vfd = vout->vfd = video_device_alloc();
+>> > +
+>> > +       if (!vfd) {
+>> > +               printk(KERN_ERR VOUT_NAME ": could not allocate"
+>> > +                               " video device struct\n");
+>> > +               return -ENOMEM;
+>> > +       }
+>> > +       vfd->release = video_device_release;
+>> > +       vfd->ioctl_ops = &vout_ioctl_ops;
+>> > +
+>> > +       strlcpy(vfd->name, VOUT_NAME, sizeof(vfd->name));
+>> > +       vfd->vfl_type = VFL_TYPE_GRABBER;
+>> > +
+>> > +       /* need to register for a VID_HARDWARE_* ID in videodev.h */
+>> > +       vfd->fops = &omap_vout_fops;
+>> > +       mutex_init(&vout->lock);
+>> > +
+>> > +       vfd->minor = -1;
+>> > +       return 0;
+>> > +
+>> > +}
+>> > +
+>> > +/* Setup video buffers */
+>> > +static int __init omap_vout_setup_video_bufs(struct platform_device
+>> *pdev,
+>> > +               int vid_num)
+>> > +{
+>> > +       u32 numbuffers;
+>> > +       int ret = 0, i, j;
+>> > +       int image_width, image_height;
+>> > +       struct video_device *vfd;
+>> > +       struct omap_vout_device *vout;
+>> > +       int static_vrfb_allocation = 0, vrfb_num_bufs = 4;
+>> > +       struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+>> > +       struct omap2video_device *vid_dev =
+>> > +               container_of(v4l2_dev, struct omap2video_device,
+>> v4l2_dev);
+>> > +
+>> > +       vout = vid_dev->vouts[vid_num];
+>> > +       vfd = vout->vfd;
+>> > +
+>> > +       numbuffers = (vid_num == 0) ? video1_numbuffers :
+>> video2_numbuffers;
+>> > +       vout->buffer_size = (vid_num == 0) ? video1_bufsize :
+>> video2_bufsize;
+>> > +       dev_info(&pdev->dev, "Buffer Size = %d\n", vout->buffer_size);
+>> > +
+>> > +       for (i = 0; i < numbuffers; i++) {
+>> > +               vout->buf_virt_addr[i] =
+>> > +                       omap_vout_alloc_buffer(vout->buffer_size,
+>> > +                                       (u32 *) &vout-
+>>buf_phy_addr[i]);
+>> > +               if (!vout->buf_virt_addr[i]) {
+>> > +                       numbuffers = i;
+>> > +                       ret = -ENOMEM;
+>> > +                       goto free_buffers;
+>> > +               }
+>> > +       }
+>> > +
+>> > +       for (i = 0; i < 4; i++) {
+>>
+>> Can we replace magic number 4 with a #define? I see this number at
+>> several places in the code.
+>>
+>[Hiremath, Vaibhav] Agreed and will incorporate in next version.
+>
+>>
+>> > +               if (omap_vrfb_request_ctx(&vout->vrfb_context[i])) {
+>> > +                       dev_info(&pdev->dev, ": VRFB allocation
+>> failed\n");
+>> > +                       for (j = 0; j < i; j++)
+>> > +                               omap_vrfb_release_ctx(&vout-
+>> >vrfb_context[j]);
+>> > +                       ret = -ENOMEM;
+>> > +                       goto free_buffers;
+>> > +               }
+>> > +       }
+>> > +       vout->cropped_offset = 0;
+>> > +
+>> > +       /* Calculate VRFB memory size */
+>> > +       /* allocate for worst case size */
+>> > +       image_width = VID_MAX_WIDTH / TILE_SIZE;
+>> > +       if (VID_MAX_WIDTH % TILE_SIZE)
+>> > +               image_width++;
+>> > +
+>> > +       image_width = image_width * TILE_SIZE;
+>> > +       image_height = VID_MAX_HEIGHT / TILE_SIZE;
+>> > +
+>> > +       if (VID_MAX_HEIGHT % TILE_SIZE)
+>> > +               image_height++;
+>> > +
+>> > +       image_height = image_height * TILE_SIZE;
+>> > +       vout->smsshado_size = PAGE_ALIGN(image_width * image_height * 2
+>*
+>> 2);
+>> > +
+>> > +       /*
+>> > +        * Request and Initialize DMA, for DMA based VRFB transfer
+>> > +        */
+>> > +       vout->vrfb_dma_tx.dev_id = OMAP_DMA_NO_DEVICE;
+>> > +       vout->vrfb_dma_tx.dma_ch = -1;
+>> > +       vout->vrfb_dma_tx.req_status = DMA_CHAN_ALLOTED;
+>> > +       ret = omap_request_dma(vout->vrfb_dma_tx.dev_id, "VRFB DMA TX",
+>> > +                       omap_vout_vrfb_dma_tx_callback,
+>> > +                       (void *) &vout->vrfb_dma_tx, &vout-
+>> >vrfb_dma_tx.dma_ch);
+>> > +       if (ret < 0) {
+>> > +               vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
+>> > +               dev_info(&pdev->dev, ": failed to allocate DMA Channel
+>> for"
+>> > +                               " video%d\n", vfd->minor);
+>> > +       }
+>> > +       init_waitqueue_head(&vout->vrfb_dma_tx.wait);
+>> > +
+>> > +       /* Allocate VRFB buffers if selected through bootargs */
+>> > +       static_vrfb_allocation = (vid_num == 0) ?
+>> > +               vid1_static_vrfb_alloc : vid2_static_vrfb_alloc;
+>> > +
+>> > +       /* statically allocated the VRFB buffer is done through
+>> > +          commands line aruments */
+>> > +       if (static_vrfb_allocation) {
+>> > +               if (omap_vout_allocate_vrfb_buffers(vout,
+>&vrfb_num_bufs,
+>> -1)) {
+>> > +                       ret =  -ENOMEM;
+>> > +                       goto release_vrfb_ctx;;
+>> > +               }
+>> > +               vout->vrfb_static_allocation = 1;
+>> > +       }
+>> > +       return 0;
+>> > +
+>> > +release_vrfb_ctx:
+>> > +       for (j = 0; j < 4; j++)
+>> > +               omap_vrfb_release_ctx(&vout->vrfb_context[j]);
+>> > +
+>> > +free_buffers:
+>> > +       for (i = 0; i < numbuffers; i++) {
+>> > +               omap_vout_free_buffer(vout->buf_virt_addr[i],
+>> > +                                               vout->buffer_size);
+>> > +               vout->buf_virt_addr[i] = 0;
+>> > +               vout->buf_phy_addr[i] = 0;
+>> > +       }
+>> > +       return ret;
+>> > +
+>> > +}
+>> > +
+>> > +/* Create video out devices */
+>> > +static int __init omap_vout_create_video_devices(struct
+>platform_device
+>> *pdev)
+>> > +{
+>> > +       int ret = 0, k;
+>> > +       struct omap_vout_device *vout;
+>> > +       struct video_device *vfd = NULL;
+>> > +       struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+>> > +
+>> > +       struct omap2video_device *vid_dev = container_of(v4l2_dev,
+>> > +                       struct omap2video_device, v4l2_dev);
+>> > +
+>> > +       for (k = 0; k < pdev->num_resources; k++) {
+>> > +
+>> > +               vout = kmalloc(sizeof(struct omap_vout_device),
+>> GFP_KERNEL);
+>> > +               if (!vout) {
+>> > +                       dev_err(&pdev->dev, ": could not allocate
+>> memory\n");
+>> > +                       return -ENOMEM;
+>> > +               }
+>> > +               memset(vout, 0, sizeof(struct omap_vout_device));
+>> > +
+>> > +               vout->vid = k;
+>> > +               vid_dev->vouts[k] = vout;
+>> > +               vout->vid_dev = vid_dev;
+>> > +               /* Select video2 if only 1 overlay is controlled by
+>V4L2
+>> */
+>> > +               if (pdev->num_resources == 1)
+>> > +                       vout->vid_info.overlays[0] = vid_dev-
+>>overlays[k +
+>> 2];
+>> > +               else
+>> > +                       /* Else select video1 and video2 one by one. */
+>> > +                       vout->vid_info.overlays[0] = vid_dev-
+>>overlays[k +
+>> 1];
+>> > +               vout->vid_info.num_overlays = 1;
+>> > +               vout->vid_info.id = k + 1;
+>> > +               vid_dev->num_videos++;
+>> > +
+>> > +               /* Setup the default configuration for the video
+>devices
+>> > +                */
+>> > +               if (omap_vout_setup_video_data(vout) != 0) {
+>> > +                       ret = -ENOMEM;
+>> > +                       goto error;
+>> > +               }
+>> > +
+>> > +               /* Allocate default number of buffers for the video
+>> streaming
+>> > +                * and reserve the VRFB space for rotation
+>> > +                */
+>> > +               if (omap_vout_setup_video_bufs(pdev, k) != 0) {
+>> > +                       ret = -ENOMEM;
+>> > +                       goto error1;
+>> > +               }
+>> > +
+>> > +               /* Register the Video device with V4L2
+>> > +                */
+>> > +               vfd = vout->vfd;
+>> > +               if (video_register_device(vfd, VFL_TYPE_GRABBER, k + 1)
+><
+>> 0) {
+>> > +                       dev_err(&pdev->dev, ": Could not register "
+>> > +                                       "Video for Linux device\n");
+>> > +                       vfd->minor = -1;
+>> > +                       ret = -ENODEV;
+>> > +                       goto error2;
+>> > +               }
+>> > +               video_set_drvdata(vfd, vout);
+>> > +
+>> > +               /* Configure the overlay structure */
+>> > +               ret = omapvid_init(vid_dev->vouts[k], 0);
+>> > +               if (!ret)
+>> > +                       goto success;
+>> > +
+>> > +error2:
+>> > +               omap_vout_release_vrfb(vout);
+>> > +               omap_vout_free_buffers(vout);
+>> > +error1:
+>> > +               video_device_release(vfd);
+>> > +error:
+>> > +               kfree(vout);
+>> > +               return ret;
+>> > +
+>> > +success:
+>> > +               dev_info(&pdev->dev, ": registered and initialized"
+>> > +                               " video device %d\n", vfd->minor);
+>> > +               if (k == (pdev->num_resources - 1))
+>> > +                       return 0;
+>> > +       }
+>> > +
+>> > +       return -ENODEV;
+>> > +}
+>> > +/* Driver functions */
+>> > +static int omap_vout_remove(struct platform_device *pdev)
+>> > +{
+>> > +       int k;
+>> > +       struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+>> > +       struct omap2video_device *vid_dev = container_of(v4l2_dev,
+>struct
+>> > +                       omap2video_device, v4l2_dev);
+>> > +
+>> > +       v4l2_device_unregister(v4l2_dev);
+>> > +       for (k = 0; k < pdev->num_resources; k++)
+>> > +               omap_vout_cleanup_device(vid_dev->vouts[k]);
+>> > +
+>> > +       for (k = 0; k < vid_dev->num_displays; k++) {
+>> > +               if (vid_dev->displays[k]->state !=
+>> OMAP_DSS_DISPLAY_DISABLED)
+>> > +                       vid_dev->displays[k]->disable(vid_dev-
+>> >displays[k]);
+>> > +
+>> > +               omap_dss_put_device(vid_dev->displays[k]);
+>> > +       }
+>> > +       kfree(vid_dev);
+>> > +       return 0;
+>> > +}
+>> > +
+>> > +static int __init omap_vout_probe(struct platform_device *pdev)
+>> > +{
+>> > +       int ret = 0, i;
+>> > +       struct omap_overlay *ovl;
+>> > +       struct omap_dss_device *dssdev = NULL;
+>> > +       struct omap_dss_device *def_display;
+>> > +       struct omap2video_device *vid_dev = NULL;
+>> > +
+>> > +       if (pdev->num_resources == 0) {
+>> > +               dev_err(&pdev->dev, "probed for an unknown device\n");
+>> > +               return -ENODEV;
+>> > +       }
+>> > +
+>> > +       vid_dev = kzalloc(sizeof(struct omap2video_device),
+>GFP_KERNEL);
+>> > +       if (vid_dev == NULL)
+>> > +               return -ENOMEM;
+>> > +
+>> > +       vid_dev->num_displays = 0;
+>> > +       for_each_dss_dev(dssdev) {
+>> > +               omap_dss_get_device(dssdev);
+>> > +               vid_dev->displays[vid_dev->num_displays++] = dssdev;
+>> > +       }
+>> > +
+>> > +       if (vid_dev->num_displays == 0) {
+>> > +               dev_err(&pdev->dev, "no displays\n");
+>> > +               ret = -EINVAL;
+>> > +               goto probe_err0;
+>> > +       }
+>> > +
+>> > +       vid_dev->num_overlays = omap_dss_get_num_overlays();
+>> > +       for (i = 0; i < vid_dev->num_overlays; i++)
+>> > +               vid_dev->overlays[i] = omap_dss_get_overlay(i);
+>> > +
+>> > +       vid_dev->num_managers = omap_dss_get_num_overlay_managers();
+>> > +       for (i = 0; i < vid_dev->num_managers; i++)
+>> > +               vid_dev->managers[i] = omap_dss_get_overlay_manager(i);
+>> > +
+>> > +       /* Get the Video1 overlay and video2 overlay.
+>> > +        * Setup the Display attached to that overlays
+>> > +        */
+>> > +       for (i = 1; i < 3; i++) {
+>>
+>> Can we replace magic number 3 with a #define ?
+>>
+>> > +               ovl = omap_dss_get_overlay(i);
+>> > +               if (ovl->manager && ovl->manager->device) {
+>> > +                       def_display = ovl->manager->device;
+>> > +               } else {
+>> > +                       dev_warn(&pdev->dev, "cannot find display\n");
+>> > +                       def_display = NULL;
+>> > +               }
+>> > +               if (def_display) {
+>> > +                       ret = def_display->enable(def_display);
+>> > +                       if (ret) {
+>> > +                               /* Here we are not considering a error
+>> > +                                *  as display may be enabled by frame
+>> > +                                *  buffer driver
+>> > +                                */
+>> > +                               dev_warn(&pdev->dev,
+>> > +                                       "'%s' Display already
+>enabled\n",
+>> > +                                       def_display->name);
+>> > +                       }
+>> > +                       /* set the update mode */
+>> > +                       if (def_display->caps &
+>> > +
+>> OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
+>> > +#ifdef CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE
+>> > +                               if (def_display->enable_te)
+>> > +                                       def_display-
+>> >enable_te(def_display, 1);
+>> > +                               if (def_display->set_update_mode)
+>> > +                                       def_display-
+>> >set_update_mode(def_display,
+>> > +
+>> OMAP_DSS_UPDATE_AUTO);
+>> > +#else  /* MANUAL_UPDATE */
+>> > +                               if (def_display->enable_te)
+>> > +                                       def_display-
+>> >enable_te(def_display, 0);
+>> > +                               if (def_display->set_update_mode)
+>> > +                                       def_display-
+>> >set_update_mode(def_display,
+>> > +
+>> OMAP_DSS_UPDATE_MANUAL);
+>> > +#endif
+>> > +                       } else {
+>> > +                               if (def_display->set_update_mode)
+>> > +                                       def_display-
+>> >set_update_mode(def_display,
+>> > +
+>> OMAP_DSS_UPDATE_AUTO);
+>> > +                       }
+>> > +               }
+>> > +       }
+>> > +
+>> > +       if (v4l2_device_register(&pdev->dev, &vid_dev->v4l2_dev) < 0) {
+>> > +               dev_err(&pdev->dev, "v4l2_device_register failed\n");
+>> > +               ret = -ENODEV;
+>> > +               goto probe_err1;
+>> > +       }
+>> > +
+>> > +       ret = omap_vout_create_video_devices(pdev);
+>> > +       if (ret)
+>> > +               goto probe_err2;
+>> > +
+>> > +       for (i = 0; i < vid_dev->num_displays; i++) {
+>> > +               struct omap_dss_device *display = vid_dev->displays[i];
+>> > +
+>> > +               if (display->update)
+>> > +                       display->update(display, 0, 0,
+>> > +                                       display->panel.timings.x_res,
+>> > +                                       display->panel.timings.y_res);
+>> > +       }
+>> > +       return 0;
+>> > +
+>> > +probe_err2:
+>> > +       v4l2_device_unregister(&vid_dev->v4l2_dev);
+>> > +probe_err1:
+>> > +       for (i = 1; i < 3; i++) {
+>>
+>> replace magic number 3 with #define constant.
+>>
+>> > +               def_display = NULL;
+>> > +               ovl = omap_dss_get_overlay(i);
+>> > +               if (ovl->manager && ovl->manager->device)
+>> > +                       def_display = ovl->manager->device;
+>> > +
+>> > +               if (def_display)
+>> > +                       def_display->disable(def_display);
+>> > +       }
+>> > +probe_err0:
+>> > +       kfree(vid_dev);
+>> > +       return ret;
+>> > +}
+>> > +
+>> > +static struct platform_driver omap_vout_driver = {
+>> > +       .driver = {
+>> > +               .name = VOUT_NAME,
+>> > +       },
+>> > +       .probe = omap_vout_probe,
+>> > +       .remove = omap_vout_remove,
+>> > +};
+>> > +
+>> > +void omap_vout_isr(void *arg, unsigned int irqstatus)
+>> > +{
+>> > +       int ret;
+>> > +       u32 addr, fid;
+>> > +       struct omap_overlay *ovl;
+>> > +       struct timeval timevalue;
+>> > +       struct omapvideo_info *ovid;
+>> > +       struct omap_dss_device *cur_display;
+>> > +       struct omap_vout_device *vout = (struct omap_vout_device *)arg;
+>> > +
+>> > +       if (!vout->streaming)
+>> > +               return;
+>> > +
+>> > +       ovid = &vout->vid_info;
+>> > +       ovl = ovid->overlays[0];
+>> > +       /* get the display device attached to the overlay */
+>> > +       if (!ovl->manager || !ovl->manager->device)
+>> > +               return;
+>> > +       cur_display = ovl->manager->device;
+>> > +
+>> > +       spin_lock(&vout->vbq_lock);
+>> > +       do_gettimeofday(&timevalue);
+>> > +       if (cur_display->type == OMAP_DISPLAY_TYPE_DPI) {
+>> > +               if (!(irqstatus & DISPC_IRQ_VSYNC))
+>> > +                       goto vout_isr_err;
+>> > +
+>> > +               if (!vout->first_int && (vout->cur_frm != vout-
+>>next_frm))
+>> {
+>> > +                       vout->cur_frm->ts = timevalue;
+>> > +                       vout->cur_frm->state = VIDEOBUF_DONE;
+>> > +                       wake_up_interruptible(&vout->cur_frm->done);
+>> > +                       vout->cur_frm = vout->next_frm;
+>> > +               }
+>> > +               vout->first_int = 0;
+>> > +               if (list_empty(&vout->dma_queue))
+>> > +                       goto vout_isr_err;
+>> > +
+>> > +               vout->next_frm = list_entry(vout->dma_queue.next,
+>> > +                               struct videobuf_buffer, queue);
+>> > +               list_del(&vout->next_frm->queue);
+>> > +
+>> > +               vout->next_frm->state = VIDEOBUF_ACTIVE;
+>> > +
+>> > +               addr = (unsigned long) vout->queued_buf_addr[vout-
+>> >next_frm->i]
+>> > +                       + vout->cropped_offset;
+>> > +
+>> > +               /* First save the configuration in ovelray structure */
+>> > +               ret = omapvid_init(vout, addr);
+>> > +               if (ret)
+>> > +                       printk(KERN_ERR VOUT_NAME
+>> > +                                       "failed to set overlay
+>info\n");
+>> > +               /* Enable the pipeline and set the Go bit */
+>> > +               ret = omapvid_apply_changes(vout);
+>> > +               if (ret)
+>> > +                       printk(KERN_ERR VOUT_NAME "failed to change
+>> mode\n");
+>> > +       } else {
+>> > +
+>> > +               if (vout->first_int) {
+>> > +                       vout->first_int = 0;
+>> > +                       goto vout_isr_err;
+>> > +               }
+>> > +               if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
+>> > +                       fid = 1;
+>> > +               else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
+>> > +                       fid = 0;
+>> > +               else
+>> > +                       goto vout_isr_err;
+>> > +
+>> > +               vout->field_id ^= 1;
+>> > +               if (fid != vout->field_id) {
+>> > +                       if (0 == fid)
+>> > +                               vout->field_id = fid;
+>> > +
+>> > +                       goto vout_isr_err;
+>> > +               }
+>> > +               if (0 == fid) {
+>> > +                       if (vout->cur_frm == vout->next_frm)
+>> > +                               goto vout_isr_err;
+>> > +
+>> > +                       vout->cur_frm->ts = timevalue;
+>> > +                       vout->cur_frm->state = VIDEOBUF_DONE;
+>> > +                       wake_up_interruptible(&vout->cur_frm->done);
+>> > +                       vout->cur_frm = vout->next_frm;
+>> > +               } else if (1 == fid) {
+>> > +                       if (list_empty(&vout->dma_queue) ||
+>> > +                                       (vout->cur_frm != vout-
+>>next_frm))
+>> > +                               goto vout_isr_err;
+>> > +
+>> > +                       vout->next_frm = list_entry(vout-
+>>dma_queue.next,
+>> > +                                       struct videobuf_buffer, queue);
+>> > +                       list_del(&vout->next_frm->queue);
+>> > +
+>> > +                       vout->next_frm->state = VIDEOBUF_ACTIVE;
+>> > +                       addr = (unsigned long)
+>> > +                               vout->queued_buf_addr[vout->next_frm-
+>>i] +
+>> > +                               vout->cropped_offset;
+>> > +                       /* First save the configuration in ovelray
+>> structure */
+>> > +                       ret = omapvid_init(vout, addr);
+>> > +                       if (ret)
+>> > +                               printk(KERN_ERR VOUT_NAME
+>> > +                                               "failed to set overlay
+>> info\n");
+>> > +                       /* Enable the pipeline and set the Go bit */
+>> > +                       ret = omapvid_apply_changes(vout);
+>> > +                       if (ret)
+>> > +                               printk(KERN_ERR VOUT_NAME
+>> > +                                               "failed to change
+>> mode\n");
+>> > +               }
+>> > +
+>> > +       }
+>> > +
+>> > +vout_isr_err:
+>> > +       spin_unlock(&vout->vbq_lock);
+>> > +}
+>> > +
+>> > +static void omap_vout_cleanup_device(struct omap_vout_device *vout)
+>> > +{
+>> > +       struct video_device *vfd;
+>> > +
+>> > +       if (!vout)
+>> > +               return;
+>>
+>> Is this possible to happen since device is already initialized and
+>> this would have been checked already?
+>>
+>[Hiremath, Vaibhav] No. it has been checked before.
+>
+>
+>> > +
+>> > +       vfd = vout->vfd;
+>> > +       if (vfd) {
+>> > +               if (vfd->minor == -1) {
+>> > +                       /*
+>> > +                        * The device was never registered, so release
+>the
+>> > +                        * video_device struct directly.
+>> > +                        */
+>> > +                       video_device_release(vfd);
+>>
+>> I think there is an v4l2 api to check if the device is registered
+>> instead of checking the minor number. video_is_registered() can be
+>> used here.
+>>
+>[Hiremath, Vaibhav] Agreed and will incorporate in next version.
+>
+>Thanks,
+>Vaibhav
