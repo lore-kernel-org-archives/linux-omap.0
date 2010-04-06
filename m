@@ -1,49 +1,121 @@
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PM-WIP-OPP][PATCH] OMAP3630 PM: Update for OPP 1GHz
-Date: Wed,  7 Apr 2010 02:06:09 +0800
-Message-ID: <1270577169-8831-1-git-send-email-vishwanath.bs@ti.com>
+From: Sukumar Ghorai <s-ghorai@ti.com>
+Subject: [PATCH 2/2] OMAP3630SDP: enable Flash device support
+Date: Tue,  6 Apr 2010 17:59:10 +0530
+Message-ID: <1270556950-32336-3-git-send-email-s-ghorai@ti.com>
+References: <Sukumar Ghorai <s-ghorai@ti.com>
+ <1270556950-32336-1-git-send-email-s-ghorai@ti.com>
+ <1270556950-32336-2-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39884 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:39916 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753332Ab0DFM22 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 08:28:28 -0400
+	with ESMTP id S1754261Ab0DFM3O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 08:29:14 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o36CSOFU008873
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o36CTBWn008952
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 6 Apr 2010 07:28:27 -0500
-In-Reply-To: <>
-References: <>
+	for <linux-omap@vger.kernel.org>; Tue, 6 Apr 2010 07:29:13 -0500
+In-Reply-To: <1270556950-32336-2-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: Sukumar Ghorai <s-ghorai@ti.com>
 
-It is found that system is not very stable with current 1GHz OPP configuration 
-(ARM@1G, IVA@880M, VDD1@1.31V) and it has been recommended to 
-use below configuration for stable 1GHz OPP. 
-(ARM@1G, IVA@800M, VDD1@1.35V).
+update config file to support for NAND, OneNAND, NOR on OMAP 3630-sdp board.
 
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
 ---
-diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
-index c453ec5..189c42e
---- a/arch/arm/mach-omap2/cpufreq34xx.c
-+++ b/arch/arm/mach-omap2/cpufreq34xx.c
-@@ -82,7 +82,7 @@ static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
- 	/* OPP3 - OPP-Turbo */
- 	OMAP_OPP_DEF(false, 800000000, 1260000),
- 	/* OPP4 - OPP-SB */
--	OMAP_OPP_DEF(false, 1000000000, 1310000),
-+	OMAP_OPP_DEF(false, 1000000000, 1350000),
- 	/* Terminator */
- 	OMAP_OPP_DEF(0, 0, 0)
- };
-@@ -104,7 +104,7 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
- 	/* OPP3 - OPP-Turbo */
- 	OMAP_OPP_DEF(false, 660000000, 1260000),
- 	/* OPP4 - OPP-SB */
--	OMAP_OPP_DEF(false, 875000000, 1310000),
-+	OMAP_OPP_DEF(false, 800000000, 1350000),
- 	/* Terminator */
- 	OMAP_OPP_DEF(0, 0, 0)
- };
+---
+ arch/arm/configs/omap_3630sdp_defconfig |   77 ++++++++++++++++++++++++++++++-
+ 1 files changed, 76 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/configs/omap_3630sdp_defconfig b/arch/arm/configs/omap_3630sdp_defconfig
+index 609f348..a623927 100644
+--- a/arch/arm/configs/omap_3630sdp_defconfig
++++ b/arch/arm/configs/omap_3630sdp_defconfig
+@@ -461,7 +461,82 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=y
+ CONFIG_PROC_EVENTS=y
+-# CONFIG_MTD is not set
++CONFIG_MTD=y
++# CONFIG_MTD_DEBUG is not set
++# CONFIG_MTD_TESTS is not set
++CONFIG_MTD_CONCAT=y
++CONFIG_MTD_PARTITIONS=y
++# CONFIG_MTD_REDBOOT_PARTS is not set
++CONFIG_MTD_CMDLINE_PARTS=y
++# CONFIG_MTD_AFS_PARTS is not set
++# CONFIG_MTD_AR7_PARTS is not set
++#
++# User Modules And Translation Layers
++#
++CONFIG_MTD_CHAR=y
++CONFIG_MTD_BLKDEVS=y
++CONFIG_MTD_BLOCK=y
++# CONFIG_FTL is not set
++# CONFIG_NFTL is not set
++# CONFIG_INFTL is not set
++# CONFIG_RFD_FTL is not set
++# CONFIG_SSFDC is not set
++# CONFIG_MTD_OOPS is not set
++
++#
++# RAM/ROM/Flash chip drivers
++#
++CONFIG_MTD_CFI=y
++# CONFIG_MTD_JEDECPROBE is not set
++CONFIG_MTD_GEN_PROBE=y
++# CONFIG_MTD_CFI_ADV_OPTIONS is not set
++CONFIG_MTD_MAP_BANK_WIDTH_1=y
++CONFIG_MTD_MAP_BANK_WIDTH_2=y
++CONFIG_MTD_MAP_BANK_WIDTH_4=y
++# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
++CONFIG_MTD_CFI_I1=y
++CONFIG_MTD_CFI_I2=y
++# CONFIG_MTD_CFI_I4 is not set
++# CONFIG_MTD_CFI_I8 is not set
++CONFIG_MTD_CFI_INTELEXT=y
++# CONFIG_MTD_CFI_AMDSTD is not set
++# CONFIG_MTD_CFI_STAA is not set
++CONFIG_MTD_CFI_UTIL=y
++# CONFIG_MTD_RAM is not set
++# CONFIG_MTD_ROM is not set
++# CONFIG_MTD_ABSENT is not set
++
++#
++# Mapping drivers for chip access
++#
++# CONFIG_MTD_COMPLEX_MAPPINGS is not set
++CONFIG_MTD_PHYSMAP=y
++# CONFIG_MTD_PHYSMAP_COMPAT is not set
++# CONFIG_MTD_ARM_INTEGRATOR is not set
++# CONFIG_MTD_PLATRAM is not set
++
++CONFIG_MTD_NAND=y
++# CONFIG_MTD_NAND_VERIFY_WRITE is not set
++# CONFIG_MTD_NAND_ECC_SMC is not set
++# CONFIG_MTD_NAND_MUSEUM_IDS is not set
++# CONFIG_MTD_NAND_GPIO is not set
++CONFIG_MTD_NAND_OMAP2=y
++CONFIG_MTD_NAND_OMAP_PREFETCH=y
++# CONFIG_MTD_NAND_OMAP_PREFETCH_DMA is not set
++CONFIG_MTD_NAND_IDS=y
++# CONFIG_MTD_NAND_DISKONCHIP is not set
++# CONFIG_MTD_NAND_NANDSIM is not set
++# CONFIG_MTD_NAND_PLATFORM is not set
++# CONFIG_MTD_ALAUDA is not set
++CONFIG_MTD_ONENAND=y
++# CONFIG_MTD_ONENAND_VERIFY_WRITE is not set
++# CONFIG_MTD_ONENAND_GENERIC is not set
++CONFIG_MTD_ONENAND_OMAP2=y
++# CONFIG_MTD_ONENAND_OTP is not set
++# CONFIG_MTD_ONENAND_2X_PROGRAM is not set
++# CONFIG_MTD_ONENAND_SIM is not set
+ # CONFIG_PARPORT is not set
+ CONFIG_BLK_DEV=y
+ # CONFIG_BLK_DEV_COW_COMMON is not set
+-- 
+1.5.4.7
+
