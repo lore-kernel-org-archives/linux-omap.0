@@ -1,51 +1,46 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCHv2 0/3] OMAP: DSS2: Allow us to use SDI
-Date: Tue, 06 Apr 2010 19:03:20 +0300
-Message-ID: <4BBB5B48.4060804@nokia.com>
-References: <1268829321-29769-1-git-send-email-roger.quadros@nokia.com> <1268835050.2417.277.camel@tubuntu.research.nokia.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PM-WIP-OPP][PATCH] OMAP3 PM: Fix issue with opp_find_freq_floor
+Date: Tue, 6 Apr 2010 11:14:20 -0500
+Message-ID: <4BBB5DDC.3050000@ti.com>
+References: <> <1270576596-8761-1-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:51292 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752579Ab0DFQD2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 12:03:28 -0400
-In-Reply-To: <1268835050.2417.277.camel@tubuntu.research.nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38234 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755528Ab0DFQOY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Apr 2010 12:14:24 -0400
+In-Reply-To: <1270576596-8761-1-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-hi Tomi,
+Sripathy, Vishwanath had written, on 04/06/2010 12:56 PM, the following:
+> opp_find_freq_floor should return the lower "enabled* OPP from a starting freq
+> from a start opp list. But current code returns next lower opp. This patch fixes
+> this issue.
+> 
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> ---
+> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+> index bb8120e..13da451
+> --- a/arch/arm/plat-omap/opp.c
+> +++ b/arch/arm/plat-omap/opp.c
+> @@ -208,7 +208,7 @@ struct omap_opp *opp_find_freq_floor(enum opp_t opp_type, unsigned long *freq)
+>  
+>  	*freq = prev_opp->rate;
+>  
+> -	return oppl;
+> +	return prev_opp;
+>  }
+>  
+Thanks. yep. since we return *freq with the right rate, we should point 
+also to the right opp.
 
-Valkeinen Tomi (Nokia-D/Helsinki) wrote:
-> Hi,
-> 
-> On Wed, 2010-03-17 at 13:35 +0100, Quadros Roger (Nokia-D/Helsinki)
-> wrote:
->> SDI now makes use of vdds_sdi regulator supply.
->> DPI can now be disabled on systems that don't have it
->>
->> changes since v1:
->> - Incorporated review comments
->> - no more omap3xx checks for regulator enable/disable in SDI
->> - Added Kconfig option to enable/disable DPI
->>
->> Roger Quadros (3):
->>   OMAP: DSS2: Add Kconfig option for DPI display type
->>   OMAP: DSS2: Remove redundant enable/disable calls from SDI
->>   OMAP: DSS2: Use vdds_sdi regulator supply in SDI
-> 
-> I think this patch set looks ok. Thanks!
-> 
->  Tomi
-> 
-> Ps. I took the liberty of removing an extra #include <plat/cpu.h>
-> 
-> 
-What is the status of this patch set?
-Is it supposed to go into your tree or Tony's tree?
+Acked-by: Nishanth Menon <nm@ti.com>
 
-cheers
--roger
+-- 
+Regards,
+Nishanth Menon
