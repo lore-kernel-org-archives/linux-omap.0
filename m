@@ -1,69 +1,60 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: USB on omap2430
-Date: Tue, 6 Apr 2010 14:05:15 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032241880F@dbde02.ent.ti.com>
-References: <70376CA23424B34D86F1C7DE6B997343017F5D5BE1@VSHINMSMBX01.vshodc.lntinfotech.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB032221A9F3@dbde02.ent.ti.com>
- <70376CA23424B34D86F1C7DE6B997343017F5D5BE3@VSHINMSMBX01.vshodc.lntinfotech.com>
- <70376CA23424B34D86F1C7DE6B997343017F5D5BE7@VSHINMSMBX01.vshodc.lntinfotech.com>
- <20100329204159.GC31402@nokia.com>
- <70376CA23424B34D86F1C7DE6B997343023C4E201B@VSHINMSMBX01.vshodc.lntinfotech.com>
- <3bd3371a3ea8aa8fb53b62dbe99169e0@secure211.sgcpanel.com>
- <70376CA23424B34D86F1C7DE6B9973430254343A36@VSHINMSMBX01.vshodc.lntinfotech.com>
- <20100405164125.GA17388@gandalf>
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: Re: [PATCH 0/5] OMAP: RX51: Add LCD Panel Support for N900
+Date: Tue, 06 Apr 2010 12:50:42 +0300
+Message-ID: <4BBB03F2.5050706@nokia.com>
+References: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com> <87pr2datft.fsf@small.ssi.corp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48926 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751460Ab0DFIf1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 04:35:27 -0400
-In-Reply-To: <20100405164125.GA17388@gandalf>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:29247 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752556Ab0DFJvv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 05:51:51 -0400
+In-Reply-To: <87pr2datft.fsf@small.ssi.corp>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>, Viral Mehta <Viral.Mehta@lntinfotech.com>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Arnaud Ebalard <arno@natisbad.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-Felipe Balbi wrote:
-> On Mon, Apr 05, 2010 at 07:32:06PM +0530, Viral Mehta wrote:
-> > >> After adding the above code, isp1301's probe is called but that fails
-> > >> before it does otg_set_transceiver()
-> > >> And I am debugging further on that path.
-> > 
-> > >ok, cool. When you get that done, please send a cleaned up
-> > >diff with your signed-off-by line so it can be integrated.
-> > 
-> > I continued debugging further. It fails during USB initialisation.
-> > More specifically, in omap_otg_init() function in arch/arm/plat-omap/usb.c
-> > It gives a crash dump on the first line itself
-> > syscon = omap_readl(OTG_SYSCON_1) & 0xffff;
+Hi,
+
+ext Arnaud Ebalard wrote:
+> Hi Roger,
 > 
-> without the crash itself, it's pretty difficult to help. It could even
-> be just a missing clk_enable(). Although I believe that code shouldn't
-> be running for 2430, only for 2420.
+> Roger Quadros <roger.quadros@nokia.com> writes:
 > 
-> Can you try the patch below:
+>> These patches get the N900 LCD panel working.
+>> Apply's cleanly on 2.6.34-rc2
+>>
+>> Pre-requisites:
+>> https://patchwork.kernel.org/patch/86318/
+>> https://patchwork.kernel.org/patch/86319/
+>> https://patchwork.kernel.org/patch/86320/
 > 
-> > Apart from that, can I submit the 3 patches that we discussed earlier ?
-> > 
-> (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg25932.html)
-> > These will not make FS USB functional on OMAP2430 but these changes are anyway necessary.
+> First, thanks for pushing the missing bits for N900 hardware support
+> upstream! I wanted to give your patches a try and test a l-o kernel on
+> my N900 (I know I won't have full hardware support ... at the moment).
 > 
-> clean those patches first. And I'd like someone else with the 2430sdp
-> board to test it before I add my SOB.
+> Using current l-o tree with your 5 panel patches and the 3 you link on
+> patchwork, I initially ended up with a kernel panic in
+> omap3_onenand_write_bufferram() (i.e. unrelated to your patches).
+> 
+> With http://patchwork.ozlabs.org/patch/48337/ (mtd: OneNAND: OMAP3:
+> unmap correct DMA buffer), I am able to get the official Nokia
+> /sbin/preinit called: then, getbootstate reports a malfunction but
+> AFAICT, the panel is working ok.
+> 
+The getbootstate malfunction is expected as there is no support for it yet in 
+mainline. But you should get to shell without that.
 
-I dug up a 2430 board (VG5.0.1 - a later version than Viral's) , but
-these patches don't work for me.
+You could hack the startup script to spawn a getty on ttyS2. This should get you 
+to shell.
 
-I also found the board schematics. Looks like there are different
-versions of the 2430 SDP, each with different layouts and components
-for the USBtransceivers. I believe there's no one-size fits all.
+so in /sbin/preinit, in start_shell()
 
-I think the best bet is to go with Viral's patch series, as long as they
-work for him - don't think anyone else is using the 2430SDP these days.
+-/sbin/getty 115200 ttyS0 -n -l /bin/sh
++/sbin/getty 115200 ttyS2 -n -l /bin/sh
 
-We can fix up as and when required.
-
-- Anand
+cheers,
+-roger
