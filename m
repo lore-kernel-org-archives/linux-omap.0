@@ -1,60 +1,64 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] arm: omap1/2/3/4: convert clocksource to a
- platform_driver
-Date: Tue, 6 Apr 2010 09:38:28 +0300
-Message-ID: <20100406063828.GP16297@nokia.com>
-References: <20100324065442.GB7534@nokia.com>
- <1269588117-17024-1-git-send-email-felipe.balbi@nokia.com>
- <87aathse2b.fsf@deeprootsystems.com>
-Reply-To: felipe.balbi@nokia.com
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] omap: Add I2C bus 1 initialisation for OMAP2430
+Date: Tue, 6 Apr 2010 09:48:11 +0300
+Message-ID: <20100406064811.GQ16297@nokia.com>
+References: <70376CA23424B34D86F1C7DE6B9973430254343A3A@VSHINMSMBX01.vshodc.lntinfotech.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58384 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753688Ab0DFGjd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 02:39:33 -0400
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <87aathse2b.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <70376CA23424B34D86F1C7DE6B9973430254343A3A-fVvhrSDAkVjuuPCCJ6VnObSn4PsL5ZDKvpI+GvaZM4lBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Viral Mehta <Viral.Mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
+Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi,
+On Tue, Apr 06, 2010 at 08:23:33AM +0200, ext Viral Mehta wrote:
+>Initialize isp1301 FS USB transceiver and
+>add I2C bus1 initialization code for OMAP2430
+>
+>Signed-off-by: Viral Mehta <viral.mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
 
-On Tue, Apr 06, 2010 at 12:57:16AM +0200, ext Kevin Hilman wrote:
->What' you've created is not a generic clocksource driver but one that
->can only work with the 32k sync timer.
+this should go through linux-omap
 
-so I achieved my goal, which was to convert *32k-sync timer* into a 
-platform_driver.
-
->If you're going to create a generic driver, it should be generic
->enough to work with any timer source: 32k, timer GP, off-chip RTC,
->etc.  To do this, it would need a generic read function passed in with
->the platform_device.
-
-yeah, I don't really see what you're trying to do. IMO we should just 
-register all clocksources to the kernel but it doesn't mean they have to 
-all come from the same platform_driver. The driver I wrote is for the 
-32k-sync timer, gp timers, mpu-timer they all would have to be 
-converted.
-
-I really don't see the point in having all clocksources as one unique 
-driver since the kernel is (or should be) smart enough to choose the 
-best one for us at runtime.
-
-If you really want one driver that would cope with all clocksources, be 
-my guest, but IMO, that's not the way to go.
-
->It would also need a more generic way of handling clock names and
->frequencies.  Currently the clock rate is hard-coded to 32kHz.
->clk_get_rate() should be used in a generic driver.
-
-but that's what 32k-sync timer uses, right ?
-
-for anything else, then it would need more thinking.
+>---
+> arch/arm/mach-omap2/board-2430sdp.c |   10 +++++++++-
+> 1 files changed, 9 insertions(+), 1 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+>index 01d113f..346e1d2 100644
+>--- a/arch/arm/mach-omap2/board-2430sdp.c
+>+++ b/arch/arm/mach-omap2/board-2430sdp.c
+>@@ -174,9 +174,17 @@ static struct i2c_board_info __initdata sdp2430_i2c_boardinfo[] = {
+>        },
+> };
+>
+>+static struct i2c_board_info __initdata sdp2430_i2c1_boardinfo[] = {
+>+       {
+>+               I2C_BOARD_INFO("isp1301_omap", 0x2D),
+>+               .flags = I2C_CLIENT_WAKE,
+>+               .irq = OMAP_GPIO_IRQ(78),
+>+       },
+>+}
+> static int __init omap2430_i2c_init(void)
+> {
+>-       omap_register_i2c_bus(1, 400, NULL, 0);
+>+       omap_register_i2c_bus(1, 100, sdp2430_i2c1_boardinfo,
+>+                       ARRAY_SIZE(sdp2430_i2c1_boardinfo));
+>        omap_register_i2c_bus(2, 2600, sdp2430_i2c_boardinfo,
+>                        ARRAY_SIZE(sdp2430_i2c_boardinfo));
+>        return 0;
+>--
+>1.6.6
+>
+>This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
+>
+>______________________________________________________________________
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 balbi
