@@ -1,48 +1,59 @@
 From: Laine Walker-Avina <lwalkera@ieee.org>
-Subject: [PATCH 0/5] Initial change for merge of new board
-Date: Tue,  6 Apr 2010 09:51:03 -0700
-Message-ID: <1270572668-2336-1-git-send-email-lwalkera@ieee.org>
+Subject: [PATCH 1/5] OMAP: Add in helper macros for the SDRAM timings
+Date: Tue,  6 Apr 2010 09:51:04 -0700
+Message-ID: <1270572668-2336-2-git-send-email-lwalkera@ieee.org>
+References: <1270572668-2336-1-git-send-email-lwalkera@ieee.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exprod7og120.obsmtp.com ([64.18.2.18]:56270 "HELO
-	exprod7og120.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757084Ab0DFRBw (ORCPT
+Received: from exprod7og119.obsmtp.com ([64.18.2.16]:44472 "HELO
+	exprod7og119.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757089Ab0DFRBw (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 13:01:52 -0400
+In-Reply-To: <1270572668-2336-1-git-send-email-lwalkera@ieee.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Laine Walker-Avina <lwalkera@ieee.org>
 
-Hi all,
 
-I'm beginning to merge some of the changes for my new board. These include:
-   * Adding macros to compute the ACTIM values for the SDRAM timings, eliminating magic numbers. The original authors may want to verify their timings were converted correctly.
-   * Adding the ability to use the clock API to select the divider for sys_clkout2
-   * Making the GPRC timing API aware of the time-granularity flag
+Signed-off-by: Laine Walker-Avina <lwalkera@ieee.org>
+---
+ arch/arm/plat-omap/include/plat/sdrc.h |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
-Let me know if there are any comments or questions.
-
-Cheers,
-Laine Walker-Avina
-PASCO scientific
-
-----
-
-Laine Walker-Avina (5):
-  OMAP: Add in helper macros for the SDRAM timings
-  OMAP: Convert the sdram-*.h timings to use the SDRAM timing macros
-  OMAP: Add SDRAM timings for Micron mt46h16m32lf-6
-  OMAP: Add support for setting the divider for sys_clkout2 using
-    clk_set_rate
-  OMAP: Make set_gpmc_timing_reg aware of the TIMEPARAGRANULARITY flag
-
- arch/arm/mach-omap2/clock3xxx_data.c               |    1 +
- arch/arm/mach-omap2/gpmc.c                         |   14 +++-
- arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h |   44 ++++++++-----
- arch/arm/mach-omap2/sdram-micron-mt46h16m32lf-6.h  |   67 ++++++++++++++++++++
- arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |   44 ++++++++-----
- arch/arm/mach-omap2/sdram-numonyx-m65kxxxxam.h     |   52 +++++++++------
- .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   50 +++++++++------
- arch/arm/plat-omap/include/plat/sdrc.h             |   23 +++++++
- 8 files changed, 220 insertions(+), 75 deletions(-)
- create mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h16m32lf-6.h
+diff --git a/arch/arm/plat-omap/include/plat/sdrc.h b/arch/arm/plat-omap/include/plat/sdrc.h
+index 7b76f50..c74d1e7 100644
+--- a/arch/arm/plat-omap/include/plat/sdrc.h
++++ b/arch/arm/plat-omap/include/plat/sdrc.h
+@@ -124,6 +124,29 @@ struct omap_sdrc_params {
+ 	u32 mr;
+ };
+ 
++/* Helper macros and defines for the omap_sdrc_params registers */
++#define ACTIM_TRFC(a)		(((a) & 0x1f)<<27)
++#define ACTIM_TRC(a)		(((a) & 0x1f)<<22)
++#define ACTIM_TRAS(a)		(((a) & 0xf)<<18)
++#define ACTIM_TRP(a)		(((a) & 0x3)<<15)
++#define ACTIM_TRCD(a)		(((a) & 0x3)<<12)
++#define ACTIM_TRRD(a)		(((a) & 0x3)<<9)
++#define ACTIM_TDPL(a)		(((a) & 0x3)<<6)
++#define ACTIM_TDAL(a)		(((a) & 0x1f)<<0)
++
++#define ACTIM_TWTR(a)		(((a) & 0x3)<<16)
++#define ACTIM_TCKE(a)		(((a) & 0x7)<<12)
++#define ACTIM_TXP(a)		(((a) & 0x7)<<8)
++#define ACTIM_TXSR(a)		(((a) & 0xff)<<0)
++
++#define RFR_CTRL_ARCV(a)	(((a) & 0xffff)<<8)
++#define RFR_CTRL_ARE(a)		(((a) & 0x3)<<0)
++
++#define MR_WBST(a)			(((a) & 0x1)<<9)
++#define MR_CASL(a)			(((a) & 0x7)<<4)
++#define MR_BL(a)			(((a) & 0x7)<<0)
++
++
+ void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 			    struct omap_sdrc_params *sdrc_cs1);
+ int omap2_sdrc_get_params(unsigned long r,
+-- 
+1.6.3.3
 
