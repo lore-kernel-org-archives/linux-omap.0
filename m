@@ -1,84 +1,281 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH 1/3] DSPBRIDGE: remove unused module parameters
-Date: Tue, 6 Apr 2010 12:52:47 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CAF98C63@dlee06.ent.ti.com>
+Subject: [PATCH 2/3] DSPBRIDGE: remove HW_DSPSS_BootModeSet function
+Date: Tue, 6 Apr 2010 12:53:47 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CAF98C64@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44670 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48815 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755868Ab0DFRwx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 13:52:53 -0400
+	id S1753041Ab0DFRxw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 13:53:52 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
->From 0923c8f7c0cca3a2d308d673092adcc4de74088b Mon Sep 17 00:00:00 2001
+>From 4cc1e01fbd78fcf8084b75566a750a3c88fc5dc6 Mon Sep 17 00:00:00 2001
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Sat, 27 Mar 2010 02:01:20 -0600
-Subject: [PATCH] DSPBRIDGE: remove unused module parameters
+Date: Sat, 27 Mar 2010 21:22:29 -0600
+Subject: [PATCH] DSPBRIDGE: remove HW_DSPSS_BootModeSet function
 
-This patch removes unused module parameters:
--phys_mempool_base
--phys_mempool_base
+This patch removes HW_DSPSS_BootModeSet function and uses
+kernel functions instead, also remove all the files related.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- drivers/dsp/bridge/rmgr/drv_interface.c |   24 +++---------------------
- 1 files changed, 3 insertions(+), 21 deletions(-)
+ drivers/dsp/bridge/Makefile             |    2 +-
+ drivers/dsp/bridge/hw/IPIAccInt.h       |   26 -----------------
+ drivers/dsp/bridge/hw/IVA2RegAcM.h      |   26 -----------------
+ drivers/dsp/bridge/hw/hw_dspssC64P.c    |   47 -------------------------------
+ drivers/dsp/bridge/hw/hw_dspssC64P.h    |   37 ------------------------
+ drivers/dsp/bridge/wmd/tiomap3430.c     |   27 +++++++----------
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c |    1 -
+ 7 files changed, 12 insertions(+), 154 deletions(-)
+ delete mode 100644 drivers/dsp/bridge/hw/IPIAccInt.h
+ delete mode 100644 drivers/dsp/bridge/hw/IVA2RegAcM.h
+ delete mode 100644 drivers/dsp/bridge/hw/hw_dspssC64P.c
+ delete mode 100644 drivers/dsp/bridge/hw/hw_dspssC64P.h
 
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 5f01ab9..3d22f8c 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -88,8 +88,6 @@ static s32 driver_major;
- static char *base_img;
- char *iva_img;
- static s32 shm_size = 0x500000;	/* 5 MB */
--static u32 phys_mempool_base;
--static u32 phys_mempool_size;
- static int tc_wordswapon;	/* Default value is always false */
- #ifdef CONFIG_BRIDGE_RECOVERY
- #define REC_TIMEOUT 5000	/*recovery timeout in msecs */
-@@ -133,13 +131,6 @@ MODULE_PARM_DESC(base_img, "DSP base image, default = NULL");
- module_param(shm_size, int, 0);
- MODULE_PARM_DESC(shm_size, "shm size, default = 4 MB, minimum = 64 KB");
+diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
+index ce85ba6..1350362 100644
+--- a/drivers/dsp/bridge/Makefile
++++ b/drivers/dsp/bridge/Makefile
+@@ -15,7 +15,7 @@ librmgr = rmgr/dbdcd.o rmgr/disp.o rmgr/drv.o rmgr/mgr.o rmgr/node.o \
+ 		rmgr/nldr.o rmgr/drv_interface.o
+ libdload = dynload/cload.o dynload/getsection.o dynload/reloc.o \
+ 		 dynload/tramp.o
+-libhw = hw/hw_prcm.o hw/hw_dspssC64P.o hw/hw_mmu.o
++libhw = hw/hw_prcm.o hw/hw_mmu.o
  
--module_param(phys_mempool_base, uint, 0);
--MODULE_PARM_DESC(phys_mempool_base,
--		 "Physical memory pool base passed to driver");
+ bridgedriver-objs = $(libgen) $(libservices) $(libwmd) $(libpmgr) $(librmgr) \
+ 			$(libdload) $(libhw)
+diff --git a/drivers/dsp/bridge/hw/IPIAccInt.h b/drivers/dsp/bridge/hw/IPIAccInt.h
+deleted file mode 100644
+index 644fd0d..0000000
+--- a/drivers/dsp/bridge/hw/IPIAccInt.h
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/*
+- * IPIAccInt.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
 -
--module_param(phys_mempool_size, uint, 0);
--MODULE_PARM_DESC(phys_mempool_size,
--		 "Physical memory pool size passed to driver");
- module_param(tc_wordswapon, int, 0);
- MODULE_PARM_DESC(tc_wordswapon, "TC Word Swap Option. default = 0");
+-#ifndef _IPI_ACC_INT_H
+-#define _IPI_ACC_INT_H
+-
+-/* Bitfield mask and offset declarations */
+-#define SYSC_IVA2BOOTMOD_OFFSET                   0x404
+-#define SYSC_IVA2BOOTADDR_OFFSET                0x400
+-#define SYSC_IVA2BOOTADDR_MASK                 0xfffffc00
+-
+-#endif /* _IPI_ACC_INT_H */
+-/* EOF */
+diff --git a/drivers/dsp/bridge/hw/IVA2RegAcM.h b/drivers/dsp/bridge/hw/IVA2RegAcM.h
+deleted file mode 100644
+index 181374f..0000000
+--- a/drivers/dsp/bridge/hw/IVA2RegAcM.h
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/*
+- * IVA1RegAcM.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef _IVA2_REG_ACM_H
+-#define _IVA2_REG_ACM_H
+-
+-#include <GlobalTypes.h>
+-#include <EasiGlobal.h>
+-
+-#define SYSC_IVA2BOOTMOD_OFFSET	    0x404
+-#define SYSC_IVA2BOOTADDR_OFFSET	    0x400
+-
+-#endif
+diff --git a/drivers/dsp/bridge/hw/hw_dspssC64P.c b/drivers/dsp/bridge/hw/hw_dspssC64P.c
+deleted file mode 100644
+index 89e9316..0000000
+--- a/drivers/dsp/bridge/hw/hw_dspssC64P.c
++++ /dev/null
+@@ -1,47 +0,0 @@
+-/*
+- * hw_dspss64P.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * API definitions to configure DSP Subsystem modules like IPI
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-/* PROJECT SPECIFIC INCLUDE FILES */
+-#include <GlobalTypes.h>
+-#include <linux/io.h>
+-#include <hw_defs.h>
+-#include <hw_dspssC64P.h>
+-#include <IVA2RegAcM.h>
+-#include <IPIAccInt.h>
+-
+-/* HW FUNCTIONS */
+-hw_status hw_dspss_boot_mode_set(const void __iomem *baseAddress,
+-				 enum hw_dspsysc_boot_mode_t bootMode,
+-				 const u32 bootAddress)
+-{
+-	hw_status status = RET_OK;
+-	u32 offset = SYSC_IVA2BOOTMOD_OFFSET;
+-	u32 aligned_boot_addr;
+-
+-	/* if Boot mode it DIRECT BOOT, check that the bootAddress is
+-	 * aligned to atleast 1K :: TODO */
+-	__raw_writel(bootMode, (baseAddress) + offset);
+-
+-	offset = SYSC_IVA2BOOTADDR_OFFSET;
+-
+-	aligned_boot_addr = bootAddress & SYSC_IVA2BOOTADDR_MASK;
+-
+-	__raw_writel(aligned_boot_addr, (baseAddress) + offset);
+-
+-	return status;
+-}
+diff --git a/drivers/dsp/bridge/hw/hw_dspssC64P.h b/drivers/dsp/bridge/hw/hw_dspssC64P.h
+deleted file mode 100644
+index af0c38b..0000000
+--- a/drivers/dsp/bridge/hw/hw_dspssC64P.h
++++ /dev/null
+@@ -1,37 +0,0 @@
+-/*
+- * hw_dspssC64P.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * DSP Subsystem API declarations
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef _HW_DSPSS_H
+-#define _HW_DSPSS_H
+-#include <linux/types.h>
+-
+-enum hw_dspsysc_boot_mode_t {
+-	HW_DSPSYSC_DIRECTBOOT = 0x0,
+-	HW_DSPSYSC_IDLEBOOT = 0x1,
+-	HW_DSPSYSC_SELFLOOPBOOT = 0x2,
+-	HW_DSPSYSC_USRBOOTSTRAP = 0x3,
+-	HW_DSPSYSC_DEFAULTRESTORE = 0x4
+-};
+-
+-#define HW_DSP_IDLEBOOT_ADDR   0x007E0000
+-
+-extern hw_status hw_dspss_boot_mode_set(const void __iomem *baseAddress,
+-					enum hw_dspsysc_boot_mode_t bootMode,
+-					const u32 bootAddress);
+-
+-#endif /* _HW_DSPSS_H */
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 7a1093c..ff47edb 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -43,7 +43,6 @@
  
-@@ -316,18 +307,9 @@ static int __devinit omap34_xx_bridge_probe(struct platform_device *pdev)
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+-#include <hw_dspssC64P.h>
+ #include <hw_prcm.h>
+ #include <hw_mmu.h>
+ 
+@@ -78,6 +77,7 @@
+ #define MMU_SSECTION_ADDR_MASK   0xFF000000
+ #define MMU_LARGE_PAGE_MASK      0xFFFF0000
+ #define MMU_SMALL_PAGE_MASK      0xFFFFF000
++#define OMAP3_IVA2_BOOTADDR_MASK 0xFFFFFC00
+ #define PAGES_II_LVL_TABLE   512
+ #define PHYS_TO_PAGE(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
+ 
+@@ -477,21 +477,16 @@ static dsp_status bridge_brd_start(struct wmd_dev_context *hDevContext,
+ 		/* hw_rst_reset(resources.dwPrcmBase, HW_RST1_IVA2); */
+ 		if (DSP_SUCCEEDED(status)) {
+ 			hw_rst_reset(resources.dw_prm_base, HW_RST1_IVA2);
+-			if (dsp_debug) {
+-				/* Set the bootmode to self loop */
+-				dev_dbg(bridge, "Set boot mode to self loop"
+-					" for IVA2 Device\n");
+-				hw_dspss_boot_mode_set
+-				    (resources.dw_sys_ctrl_base,
+-				     HW_DSPSYSC_SELFLOOPBOOT, dwDSPAddr);
+-			} else {
+-				/* Set the bootmode to '0' - direct boot */
+-				dev_dbg(bridge, "Set boot mode to direct boot"
+-					" for IVA2 Device\n");
+-				hw_dspss_boot_mode_set
+-				    (resources.dw_sys_ctrl_base,
+-				     HW_DSPSYSC_DIRECTBOOT, dwDSPAddr);
+-			}
++			/* Mask address with 1K for compatibility */
++			__raw_writel(dwDSPAddr & OMAP3_IVA2_BOOTADDR_MASK,
++					OMAP343X_CTRL_REGADDR(
++					OMAP343X_CONTROL_IVA2_BOOTADDR));
++			/*
++			 * Set bootmode to self loop if dsp_debug flag is true
++			 */
++			__raw_writel((dsp_debug) ? OMAP3_IVA2_BOOTMOD_IDLE : 0,
++					OMAP343X_CTRL_REGADDR(
++					OMAP343X_CONTROL_IVA2_BOOTMOD));
+ 		}
  	}
- 	dev_dbg(bridge, "%s: requested shm_size = 0x%x\n", __func__, shm_size);
+ 	if (DSP_SUCCEEDED(status)) {
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+index f21be4b..56b9a38 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+@@ -33,7 +33,6 @@
  
--	if (pdata->phys_mempool_base && pdata->phys_mempool_size) {
--		phys_mempool_base = pdata->phys_mempool_base;
--		phys_mempool_size = pdata->phys_mempool_size;
--	}
--
--	dev_dbg(bridge, "%s: phys_mempool_base = 0x%x \n", __func__,
--		phys_mempool_base);
--
--	dev_dbg(bridge, "%s: phys_mempool_size = 0x%x\n", __func__,
--		phys_mempool_base);
--	if ((phys_mempool_base > 0x0) && (phys_mempool_size > 0x0))
--		mem_ext_phys_pool_init(phys_mempool_base, phys_mempool_size);
-+	if ((pdata->phys_mempool_base > 0) && (pdata->phys_mempool_size > 0))
-+		mem_ext_phys_pool_init(pdata->phys_mempool_base,
-+						pdata->phys_mempool_size);
- 	if (tc_wordswapon) {
- 		dev_dbg(bridge, "%s: TC Word Swap is enabled\n", __func__);
- 		reg_set_value(TCWORDSWAP, (u8 *) &tc_wordswapon,
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+-#include <hw_dspssC64P.h>
+ #include <hw_prcm.h>
+ #include <hw_mmu.h>
+ 
 -- 
 1.6.0.4
 
