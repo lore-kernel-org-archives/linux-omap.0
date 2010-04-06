@@ -1,58 +1,58 @@
-From: Laine Walker-Avina <lwalkera@ieee.org>
-Subject: [PATCH v2 1/5] OMAP: Add in helper macros for the SDRAM timings
-Date: Tue,  6 Apr 2010 10:31:12 -0700
-Message-ID: <1270575072-3768-1-git-send-email-lwalkera@ieee.org>
-References: <20100406171713.GA24981@nokia.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [PATCH 0/3] DSPBRIDGE: Cleanup hw directory and module parameter
+Date: Tue, 6 Apr 2010 12:52:01 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CAF98C62@dlee06.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exprod7og115.obsmtp.com ([64.18.2.217]:44384 "HELO
-	exprod7og115.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756620Ab0DFRfu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 13:35:50 -0400
-In-Reply-To: <20100406171713.GA24981@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60452 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753146Ab0DFRwI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Apr 2010 13:52:08 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Laine Walker-Avina <lwalkera@ieee.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-Signed-off-by: Laine Walker-Avina <lwalkera@ieee.org>
----
- arch/arm/plat-omap/include/plat/sdrc.h |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
+>From 4fb9fc015cea65dcd47172a8b180f380fe86be46 Mon Sep 17 00:00:00 2001
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Tue, 30 Mar 2010 22:03:27 -0600
+Subject: [PATCH] DSPBRIDGE: Cleanup hw directory and module parameter
 
-diff --git a/arch/arm/plat-omap/include/plat/sdrc.h b/arch/arm/plat-omap/include/plat/sdrc.h
-index 7b76f50..c74d1e7 100644
---- a/arch/arm/plat-omap/include/plat/sdrc.h
-+++ b/arch/arm/plat-omap/include/plat/sdrc.h
-@@ -124,6 +124,29 @@ struct omap_sdrc_params {
- 	u32 mr;
- };
- 
-+/* Helper macros and defines for the omap_sdrc_params registers */
-+#define ACTIM_TRFC(a)		(((a) & 0x1f) << 27)
-+#define ACTIM_TRC(a)		(((a) & 0x1f) << 22)
-+#define ACTIM_TRAS(a)		(((a) & 0xf) << 18)
-+#define ACTIM_TRP(a)		(((a) & 0x3) << 15)
-+#define ACTIM_TRCD(a)		(((a) & 0x3) << 12)
-+#define ACTIM_TRRD(a)		(((a) & 0x3) << 9)
-+#define ACTIM_TDPL(a)		(((a) & 0x3) << 6)
-+#define ACTIM_TDAL(a)		(((a) & 0x1f) << 0)
-+
-+#define ACTIM_TWTR(a)		(((a) & 0x3) << 16)
-+#define ACTIM_TCKE(a)		(((a) & 0x7) << 12)
-+#define ACTIM_TXP(a)		(((a) & 0x7) << 8)
-+#define ACTIM_TXSR(a)		(((a) & 0xff) << 0)
-+
-+#define RFR_CTRL_ARCV(a)	(((a) & 0xffff) << 8)
-+#define RFR_CTRL_ARE(a)	(((a) & 0x3) << 0)
-+
-+#define MR_WBST(a)		(((a) & 0x1) << 9)
-+#define MR_CASL(a)		(((a) & 0x7) << 4)
-+#define MR_BL(a)		(((a) & 0x7) << 0)
-+
-+
- void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- 			    struct omap_sdrc_params *sdrc_cs1);
- int omap2_sdrc_get_params(unsigned long r,
--- 
-1.6.3.3
+This patches does a clenaup of unused module paremeters and
+also a clenaup in hw directory.
 
+Fernando Guzman Lugo (3):
+  DSPBRIDGE: remove unused module parameters
+  DSPBRIDGE: remove HW_DSPSS_BootModeSet function
+  DSPBRIDGE: remove hw_prcm module and related functions
+
+ arch/arm/mach-omap2/dspbridge.c                |    9 +-
+ arch/arm/plat-omap/include/dspbridge/cfgdefs.h |    2 -
+ arch/arm/plat-omap/include/dspbridge/host_os.h |    8 +
+ drivers/dsp/bridge/Makefile                    |    2 +-
+ drivers/dsp/bridge/hw/IPIAccInt.h              |   26 -
+ drivers/dsp/bridge/hw/IVA2RegAcM.h             |   26 -
+ drivers/dsp/bridge/hw/PRCMAccInt.h             |  303 ------------
+ drivers/dsp/bridge/hw/PRCMRegAcM.h             |  615 ------------------------
+ drivers/dsp/bridge/hw/hw_dspssC64P.c           |   47 --
+ drivers/dsp/bridge/hw/hw_dspssC64P.h           |   37 --
+ drivers/dsp/bridge/hw/hw_prcm.c                |  161 ------
+ drivers/dsp/bridge/hw/hw_prcm.h                |  156 ------
+ drivers/dsp/bridge/rmgr/drv.c                  |   14 -
+ drivers/dsp/bridge/rmgr/drv_interface.c        |   24 +-
+ drivers/dsp/bridge/wmd/_tiomap.h               |    4 +
+ drivers/dsp/bridge/wmd/tiomap3430.c            |  176 +++-----
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c        |   57 +--
+ drivers/dsp/bridge/wmd/tiomap_io.c             |   15 +-
+ 18 files changed, 116 insertions(+), 1566 deletions(-)
+ delete mode 100644 drivers/dsp/bridge/hw/IPIAccInt.h
+ delete mode 100644 drivers/dsp/bridge/hw/IVA2RegAcM.h
+ delete mode 100644 drivers/dsp/bridge/hw/PRCMAccInt.h
+ delete mode 100644 drivers/dsp/bridge/hw/PRCMRegAcM.h
+ delete mode 100644 drivers/dsp/bridge/hw/hw_dspssC64P.c
+ delete mode 100644 drivers/dsp/bridge/hw/hw_dspssC64P.h
+ delete mode 100644 drivers/dsp/bridge/hw/hw_prcm.c
+ delete mode 100644 drivers/dsp/bridge/hw/hw_prcm.h
