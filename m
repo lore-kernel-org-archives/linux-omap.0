@@ -1,48 +1,115 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] [PATCH v4 1/5] omap3: pm: fix for twl4030 script load
-Date: Wed, 7 Apr 2010 06:42:11 -0700
-Message-ID: <20100407134211.GJ7153@atomide.com>
-References: <1270030828-2032-1-git-send-email-leslyam@ti.com>
- <20100402102240.GE8010@sortiz.org>
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: RE: [PATCH 1/2] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver
+ on 	top of DSS2
+Date: Wed, 7 Apr 2010 08:56:02 -0500
+Message-ID: <A69FA2915331DC488A831521EAE36FE4016A9D283C@dlee06.ent.ti.com>
+References: <hvaibhav@ti.com>
+	 <1270115880-21404-2-git-send-email-hvaibhav@ti.com>
+ <z2j55a3e0ce1004021303rdf3092f7r87b119cd97687f9b@mail.gmail.com>
+ <19F8576C6E063C45BE387C64729E7394044DF7F789@dbde02.ent.ti.com>
+ <A69FA2915331DC488A831521EAE36FE4016A92D8CF@dlee06.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E7394044DF7F9CC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53066 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756943Ab0DGNmM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 09:42:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20100402102240.GE8010@sortiz.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42778 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932556Ab0DGN4V convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 09:56:21 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DF7F9CC@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Lesly A M <leslyam@ti.com>, linux-omap@vger.kernel.org, Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Muralidharan Karicheri <mkaricheri@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-* Samuel Ortiz <sameo@linux.intel.com> [100402 03:18]:
+Vaibhav,
+>[Murali] Shouldn't we remove omap_vout_uservirt_to_phys() and use
+>videobuf_iolock() instead as we have done in vpfe_capture.c?
+>
+>As mentioned before, in my opinion we can address this in sub-sequent =
+patch
+>series, and should not block this patch in getting to main-line.
+>
+>> +/*
+>> + * Convert V4L2 pixel format to DSS pixel format
+>> + */
+>> +static enum omap_color_mode video_mode_to_dss_mode(struct
+>omap_vout_device
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *vout)
+>> +{
+>> + =A0 =A0 =A0 struct omap_overlay *ovl;
+>> + =A0 =A0 =A0 struct omapvideo_info *ovid;
+>> + =A0 =A0 =A0 struct v4l2_pix_format *pix =3D &vout->pix;
+>> +
+>> + =A0 =A0 =A0 ovid =3D &vout->vid_info;
+>> + =A0 =A0 =A0 ovl =3D ovid->overlays[0];
+>> +
+>> + =A0 =A0 =A0 switch (pix->pixelformat) {
+>> + =A0 =A0 =A0 case 0:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 =A0 case V4L2_PIX_FMT_YUYV:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_YUV2;
+>> +
+>> + =A0 =A0 =A0 case V4L2_PIX_FMT_UYVY:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_UYVY;
+>> +
+>> + =A0 =A0 =A0 case V4L2_PIX_FMT_RGB565:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_RGB16;
+>> +
+>> + =A0 =A0 =A0 case V4L2_PIX_FMT_RGB24:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_RGB24P;
+>> +
+>> + =A0 =A0 =A0 case V4L2_PIX_FMT_RGB32:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return (ovl->id =3D=3D OMAP_DSS_VIDEO1=
+) ?
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_DSS_COLOR_RGB24U =
+: OMAP_DSS_COLOR_ARGB32;
+>> + =A0 =A0 =A0 case V4L2_PIX_FMT_BGR32:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_RGBX32;
+>> +
+>> + =A0 =A0 =A0 default:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 return -EINVAL;
+>
+>[Murali] Also return type is enum and you are returning a negative num=
+ber
+>here ???
+>
+>I think yes it is acceptable, since ultimately enum is of type integer
+>constant. You can return the value which fits into this size.
+>
 
-<snip>
+[MK] I did some research into this and this code can behave differently
+with different compilers. So if compiler treats the enum as int, it wou=
+ld
+work fine, but not otherwise. IMO, we shouldn't write code that are dep=
+endant on the tool chain (rather write portable code). So suggest you
+change the return type to int instead of enum. Doesn't this code give
+you a warning?=20
 
-> Tony, I think it would make sense for this patchset to go through the
-> linux-omap tree.
-> If you agree, please add my:
-> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-> 
-> to the patch below.
+>
+>> I have also asked Hans to provide
+>> his comments since this is a new driver that he might have to approv=
+e.
+>Did
+>> he review the code in the past?
+>>
+>[Hiremath, Vaibhav] Yes he reviewed it some time back; anyway he has
+>already provided few more comments now which I have already fixed. The
+>patch is following this reply.
+>
+>Thanks,
+>Vaibhav
+>
+>> -Murali
+>> >
+><snip>
 
-I'm pretty much overwhelmed already with all the patches already,
-so I'd rather stay out of the drivers/* path for now thanks.
-
-How about if somebody familiar with the twl hardware and driver
-sets up the drivers/mfd/twl* patches to some git tree? Then we
-keep merging that into linux-omap master branch for testing. And
-then Samuel pulls it as needed and sends them to Linus.
-
-Maybe Peter p2 De Schrijver could do it? Peter knows a lot about
-this driver and hardware, deals with it on regular basis, and
-wrote a lot of the code that Amit later got merged upstream.
-
-Comments?
-
-Regards,
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
