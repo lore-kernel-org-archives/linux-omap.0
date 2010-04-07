@@ -1,115 +1,72 @@
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: RE: [PATCH 1/2] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver
- on 	top of DSS2
-Date: Wed, 7 Apr 2010 08:56:02 -0500
-Message-ID: <A69FA2915331DC488A831521EAE36FE4016A9D283C@dlee06.ent.ti.com>
-References: <hvaibhav@ti.com>
-	 <1270115880-21404-2-git-send-email-hvaibhav@ti.com>
- <z2j55a3e0ce1004021303rdf3092f7r87b119cd97687f9b@mail.gmail.com>
- <19F8576C6E063C45BE387C64729E7394044DF7F789@dbde02.ent.ti.com>
- <A69FA2915331DC488A831521EAE36FE4016A92D8CF@dlee06.ent.ti.com>
- <19F8576C6E063C45BE387C64729E7394044DF7F9CC@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: GPIO: Fix OMAP4 GPIO reg access issues
+Date: Wed, 07 Apr 2010 08:09:30 -0700
+Message-ID: <87ljczguz9.fsf@deeprootsystems.com>
+References: <1269268704-31347-1-git-send-email-charu@ti.com>
+	<87mxxgi49c.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02C43ADE81@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42778 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932556Ab0DGN4V convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 09:56:21 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DF7F9CC@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:60835 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932581Ab0DGPJd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 11:09:33 -0400
+Received: by pwj9 with SMTP id 9so1026340pwj.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Apr 2010 08:09:33 -0700 (PDT)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C43ADE81@dbde02.ent.ti.com> (Charulatha Varadarajan's message of "Wed\, 7 Apr 2010 08\:02\:03 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Muralidharan Karicheri <mkaricheri@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Vaibhav,
->[Murali] Shouldn't we remove omap_vout_uservirt_to_phys() and use
->videobuf_iolock() instead as we have done in vpfe_capture.c?
->
->As mentioned before, in my opinion we can address this in sub-sequent =
-patch
->series, and should not block this patch in getting to main-line.
->
->> +/*
->> + * Convert V4L2 pixel format to DSS pixel format
->> + */
->> +static enum omap_color_mode video_mode_to_dss_mode(struct
->omap_vout_device
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *vout)
->> +{
->> + =A0 =A0 =A0 struct omap_overlay *ovl;
->> + =A0 =A0 =A0 struct omapvideo_info *ovid;
->> + =A0 =A0 =A0 struct v4l2_pix_format *pix =3D &vout->pix;
->> +
->> + =A0 =A0 =A0 ovid =3D &vout->vid_info;
->> + =A0 =A0 =A0 ovl =3D ovid->overlays[0];
->> +
->> + =A0 =A0 =A0 switch (pix->pixelformat) {
->> + =A0 =A0 =A0 case 0:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 =A0 case V4L2_PIX_FMT_YUYV:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_YUV2;
->> +
->> + =A0 =A0 =A0 case V4L2_PIX_FMT_UYVY:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_UYVY;
->> +
->> + =A0 =A0 =A0 case V4L2_PIX_FMT_RGB565:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_RGB16;
->> +
->> + =A0 =A0 =A0 case V4L2_PIX_FMT_RGB24:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_RGB24P;
->> +
->> + =A0 =A0 =A0 case V4L2_PIX_FMT_RGB32:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return (ovl->id =3D=3D OMAP_DSS_VIDEO1=
-) ?
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_DSS_COLOR_RGB24U =
-: OMAP_DSS_COLOR_ARGB32;
->> + =A0 =A0 =A0 case V4L2_PIX_FMT_BGR32:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return OMAP_DSS_COLOR_RGBX32;
->> +
->> + =A0 =A0 =A0 default:
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 return -EINVAL;
->
->[Murali] Also return type is enum and you are returning a negative num=
-ber
->here ???
->
->I think yes it is acceptable, since ultimately enum is of type integer
->constant. You can return the value which fits into this size.
->
+"Varadarajan, Charulatha" <charu@ti.com> writes:
 
-[MK] I did some research into this and this code can behave differently
-with different compilers. So if compiler treats the enum as int, it wou=
-ld
-work fine, but not otherwise. IMO, we shouldn't write code that are dep=
-endant on the tool chain (rather write portable code). So suggest you
-change the return type to int instead of enum. Doesn't this code give
-you a warning?=20
-
->
->> I have also asked Hans to provide
->> his comments since this is a new driver that he might have to approv=
-e.
->Did
->> he review the code in the past?
->>
->[Hiremath, Vaibhav] Yes he reviewed it some time back; anyway he has
->already provided few more comments now which I have already fixed. The
->patch is following this reply.
->
->Thanks,
->Vaibhav
->
->> -Murali
+> ________________________________________
+>> From: Kevin Hilman [khilman@deeprootsystems.com]
+>> Sent: Wednesday, April 07, 2010 4:21 AM
+>> To: Varadarajan, Charulatha
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH] OMAP: GPIO: Fix OMAP4 GPIO reg access issues
+>> 
+>> Charulatha V <charu@ti.com> writes:
+>> 
+>> > Access to some of the OMAP4 GPIO registers are not properly handled.
+>> > This patch fixes it.
 >> >
-><snip>
+>> 
+>> Tested on... ?
+>
+> Tested on 3430SDP and 4430SDP.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please update changelog accordingly.
+
+>> > Signed-off-by: Charulatha V <charu@ti.com>
+>> ---
+>
+> [...]
+>
+>> > @@ -1570,9 +1603,14 @@ static int gpio_is_input(struct gpio_bank *bank, int mask)
+>> >               reg += OMAP7XX_GPIO_DIR_CONTROL;
+>> >               break;
+>> >       case METHOD_GPIO_24XX:
+>> > -     case METHOD_GPIO_44XX:
+>> >               reg += OMAP24XX_GPIO_OE;
+>> >               break;
+>> > +     case METHOD_GPIO_44XX:
+>> > +             reg += OMAP4_GPIO_OE;
+>> > +             break;
+>> > +     default:
+>> > +             WARN_ON(1);
+>> > +             return -EINVAL;
+>> 
+>> If you add a WARN, please add a helpful string.
+>
+> Added this WARN in the same way as in other functions 
+> of the same file.
+
+That still doesn't make it helpful.
+
+Repeating an error does not make it correct.
+
+Kevin
