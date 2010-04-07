@@ -1,42 +1,227 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: ARM: OMAP: Overo: use new gpmc nand infrastructure
-Date: Wed, 7 Apr 2010 12:08:17 -0700
-Message-ID: <u2t5e088bd91004071208o10ac1cf3seecb89b4e29c9ac4@mail.gmail.com>
-References: <h2p5e088bd91004071035pdae7ad0fk4add0731455d921c@mail.gmail.com>
-	 <87wrwjcg98.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: swirl@gmx.li
+Subject: [PATCHv2] OMAP2: DSS: Add Innolux 7" display for DEVKIT8000
+Date: Wed,  7 Apr 2010 20:33:32 +0200
+Message-ID: <1270665212-24061-1-git-send-email-swirl@gmx.li>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f179.google.com ([209.85.221.179]:41404 "EHLO
-	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752002Ab0DGTIS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 15:08:18 -0400
-Received: by qyk9 with SMTP id 9so1543784qyk.1
-        for <linux-omap@vger.kernel.org>; Wed, 07 Apr 2010 12:08:17 -0700 (PDT)
-In-Reply-To: <87wrwjcg98.fsf@deeprootsystems.com>
+Received: from mail.gmx.net ([213.165.64.20]:55650 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751027Ab0DGTcc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Apr 2010 15:32:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Thomas Weber <swirl@gmx.li>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-fbdev@vger.kernel.org, Thomas Weber <weber@corscience.de>
 
-On Wed, Apr 7, 2010 at 10:41 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Steve Sakoman <steve@sakoman.com> writes:
->
->> From: Steve Sakoman <steve@sakoman.com>
->>
->> Signed-off-by: Steve Sakoman <steve@sakoman.com>
->
-> -ENOCHANGELOG
->
-> Please add descriptive changelog.  Otherwise, looks like a good
-> cleanup.
+From: Thomas Weber <swirl@gmx.li>
 
-I assume you looking for something like:
+This patch adds the 7 inch display for the DEVKIT8000.
 
-Restores nand functionality after changes in commit
-2f70a1e93657bea0baa7d449aa49e44a08582dc8
+Thanks to Vaibhav Hiremath for comments.
 
-If so I'll add it after waiting a bit for any other comments.  I
-assume you are also OK with the similar patch for Beagleboard?
+Change log:
+	v2 
+	Kconfig option description changed.
+	Remove unneeded header file inclusion.
+	Remove gotos.
 
-Steve
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+
+ drivers/video/omap2/displays/Kconfig               |    8 +-
+ drivers/video/omap2/displays/Makefile              |    1 +
+ .../video/omap2/displays/panel-innolux-at070tn83.c |  148 ++++++++++++++++++++
+ 3 files changed, 156 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-innolux-at070tn83.c
+
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index dfb57ee..9d9742e 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -5,7 +5,7 @@ config PANEL_GENERIC
+         tristate "Generic Panel"
+         help
+ 	  Generic panel driver.
+-	  Used for DVI output for Beagle and OMAP3 SDP.
++	  Used for OMAP3 DVI output.
+ 
+ config PANEL_SHARP_LS037V7DW01
+         tristate "Sharp LS037V7DW01 LCD Panel"
+@@ -19,6 +19,12 @@ config PANEL_SHARP_LQ043T1DG01
+         help
+           LCD Panel used in TI's OMAP3517 EVM boards
+ 
++config PANEL_INNOLUX_AT070TN83
++	tristate "Innolux AT070TN83 LCD Panel"
++	depends on OMAP2_DSS
++	help
++	 LCD Panel used in TimLL's Devkit8000
++
+ config PANEL_TAAL
+         tristate "Taal DSI Panel"
+         depends on OMAP2_DSS_DSI
+diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
+index e2bb321..fe3ae8d 100644
+--- a/drivers/video/omap2/displays/Makefile
++++ b/drivers/video/omap2/displays/Makefile
+@@ -5,3 +5,4 @@ obj-$(CONFIG_PANEL_SHARP_LQ043T1DG01) += panel-sharp-lq043t1dg01.o
+ obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
+ obj-$(CONFIG_PANEL_TOPPOLY_TDO35S) += panel-toppoly-tdo35s.o
+ obj-$(CONFIG_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
++obj-$(CONFIG_PANEL_INNOLUX_AT070TN83) += panel-innolux-at070tn83.o
+diff --git a/drivers/video/omap2/displays/panel-innolux-at070tn83.c b/drivers/video/omap2/displays/panel-innolux-at070tn83.c
+new file mode 100644
+index 0000000..2005653
+--- /dev/null
++++ b/drivers/video/omap2/displays/panel-innolux-at070tn83.c
+@@ -0,0 +1,148 @@
++/*
++ * LCD panel driver for Innolux AT70TN83
++ *
++ * Copyright (C) 2010 Thomas Weber <weber@corscience.de>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/err.h>
++
++#include <plat/display.h>
++
++static struct omap_video_timings innolux_at_timings = {
++	.x_res		= 800,
++	.y_res		= 480,
++
++	.pixel_clock	= 40000,
++
++	.hsw		= 48,
++	.hfp		= 1,
++	.hbp		= 1,
++
++	.vsw		= 3,
++	.vfp		= 12,
++	.vbp		= 25,
++};
++
++static int innolux_at_panel_power_on(struct omap_dss_device *dssdev)
++{
++	int r;
++
++	r = omapdss_dpi_display_enable(dssdev);
++	if (r)
++		return r;
++
++	if (dssdev->platform_enable) {
++		r = dssdev->platform_enable(dssdev);
++		if (r)
++			omapdss_dpi_display_disable(dssdev);
++	}
++	return r;
++}
++
++static void innolux_at_panel_power_off(struct omap_dss_device *dssdev)
++{
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	omapdss_dpi_display_disable(dssdev);
++
++}
++
++static int innolux_at_panel_probe(struct omap_dss_device *dssdev)
++{
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++		OMAP_DSS_LCD_IHS;
++	dssdev->panel.acb = 0x28;
++	dssdev->panel.timings = innolux_at_timings;
++
++	return 0;
++}
++
++static void innolux_at_panel_remove(struct omap_dss_device *dssdev)
++{
++}
++
++static int innolux_at_panel_enable(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	r = innolux_at_panel_power_on(dssdev);
++	if (r)
++		return r;
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++}
++
++static void innolux_at_panel_disable(struct omap_dss_device *dssdev)
++{
++	innolux_at_panel_power_off(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++}
++
++static int innolux_at_panel_suspend(struct omap_dss_device *dssdev)
++{
++	innolux_at_panel_power_off(dssdev);
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++	return 0;
++}
++
++static int innolux_at_panel_resume(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	r = innolux_at_panel_power_on(dssdev);
++
++	if (r)
++		return r;
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++}
++
++static struct omap_dss_driver innolux_at_driver = {
++	.probe		= innolux_at_panel_probe,
++	.remove		= innolux_at_panel_remove,
++
++	.enable		= innolux_at_panel_enable,
++	.disable	= innolux_at_panel_disable,
++	.suspend	= innolux_at_panel_suspend,
++	.resume		= innolux_at_panel_resume,
++
++	.driver         = {
++		.name   = "innolux_at_panel",
++		.owner  = THIS_MODULE,
++	},
++};
++
++static int __init innolux_at_panel_drv_init(void)
++{
++	return omap_dss_register_driver(&innolux_at_driver);
++}
++
++static void __exit innolux_at_panel_drv_exit(void)
++{
++	omap_dss_unregister_driver(&innolux_at_driver);
++}
++
++module_init(innolux_at_panel_drv_init);
++module_exit(innolux_at_panel_drv_exit);
++MODULE_LICENSE("GPL");
+-- 
+1.6.4.4
+
