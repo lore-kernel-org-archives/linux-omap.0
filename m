@@ -1,99 +1,44 @@
-From: Kan-Ru Chen <kanru@0xlab.org>
-Subject: [PATCH 1/2] Enable DVI-D output for Devkit8000
-Date: Wed,  7 Apr 2010 16:34:26 +0800
-Message-ID: <1270629267-27068-1-git-send-email-kanru@0xlab.org>
+From: arno@natisbad.org (Arnaud Ebalard)
+Subject: Re: [PATCH 0/5] OMAP: RX51: Add LCD Panel Support for N900
+Date: Wed, 07 Apr 2010 10:45:23 +0200
+Message-ID: <87iq83zm58.fsf@small.ssi.corp>
+References: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com>
+	<87pr2datft.fsf@small.ssi.corp> <4BBB03F2.5050706@nokia.com>
+	<87iq84cnzg.fsf@small.ssi.corp>
+	<1270618692.2447.39.camel@tubuntu.research.nokia.com>
+	<87r5mrzpe4.fsf@small.ssi.corp> <4BBC3691.3030505@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cp20.secserverpros.com ([67.220.217.187]:57413 "EHLO
-	cp20.secserverpros.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315Ab0DGIeM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 04:34:12 -0400
-Received: from 61-30-10-70.static.tfn.net.tw ([61.30.10.70] helo=kanru.info)
-	by cp20.secserverpros.com with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <kanru@kanru.info>)
-	id 1NzQi7-0005Ii-Tw
-	for linux-omap@vger.kernel.org; Wed, 07 Apr 2010 08:34:11 +0000
+Received: from copper.chdir.org ([88.191.97.87]:59381 "EHLO copper.chdir.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750943Ab0DGIpB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Apr 2010 04:45:01 -0400
+In-Reply-To: <4BBC3691.3030505@nokia.com> (Roger Quadros's message of "Wed, 07
+	Apr 2010 10:38:57 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kan-Ru Chen <kanru@0xlab.org>, Thomas Weber <weber@corscience.de>
+To: Roger Quadros <roger.quadros@nokia.com>
+Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-This patch corrects the DVI-D output setup of Devkit8000
+Hi Roger,
 
-Devkit8000 has different DVI reset pin with the BeagleBoard. On Devkit8000
-the TWL4030 GPIO_7 is assigned to do the job.
+Roger Quadros <roger.quadros@nokia.com> writes:
 
-Signed-off-by: Kan-Ru Chen <kanru@0xlab.org>
----
- arch/arm/mach-omap2/board-devkit8000.c |   20 +++++++++++++-------
- 1 files changed, 13 insertions(+), 7 deletions(-)
+>> I also suspected a HW watchdog but 25 seconds did not sound like it. I
+>> built a kernel without HW watchdog: same result.
+>>
+>> Any idea regarding how I could debug that?
+>>
+> You can try disabling the hw watchdogs via flasher.
+>
+> sudo flasher --set-rd-flags=no-omap-wd,no-ext-wd,no-lifeguard-reset
+>
+> This should prevent any watchdog resets.
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 5bfc13b..fd4454a 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -141,13 +141,18 @@ static int devkit8000_panel_enable_lcd(struct omap_dss_device *dssdev)
- static void devkit8000_panel_disable_lcd(struct omap_dss_device *dssdev)
- {
- }
-+
- static int devkit8000_panel_enable_dvi(struct omap_dss_device *dssdev)
- {
-+	if (dssdev->reset_gpio != -EINVAL)
-+		gpio_set_value(dssdev->reset_gpio, 1);
- 	return 0;
- }
- 
- static void devkit8000_panel_disable_dvi(struct omap_dss_device *dssdev)
- {
-+	if (dssdev->reset_gpio != -EINVAL)
-+		gpio_set_value(dssdev->reset_gpio, 0);
- }
- 
- static int devkit8000_panel_enable_tv(struct omap_dss_device *dssdev)
-@@ -183,6 +188,7 @@ static struct omap_dss_device devkit8000_dvi_device = {
- 	.driver_name            = "generic_panel",
- 	.type                   = OMAP_DISPLAY_TYPE_DPI,
- 	.phy.dpi.data_lines     = 24,
-+	.reset_gpio             = -EINVAL, /* will be replaced */
- 	.platform_enable        = devkit8000_panel_enable_dvi,
- 	.platform_disable       = devkit8000_panel_disable_dvi,
- };
-@@ -283,6 +289,12 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
- 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
- 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
- 
-+	/* gpio + 7 is "DVI_PD" (out, active low) */
-+	devkit8000_dvi_device.reset_gpio = gpio + 7;
-+	gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
-+	/* Disable until needed */
-+	gpio_direction_output(devkit8000_dvi_device.reset_gpio, 0);
-+
- 	return 0;
- }
- 
-@@ -303,7 +315,7 @@ static struct regulator_consumer_supply devkit8000_vpll2_supplies[] = {
- 	.dev		= &devkit8000_lcd_device.dev,
- 	},
- 	{
--	.supply		= "vdss_dsi",
-+	.supply		= "vdds_dsi",
- 	.dev		= &devkit8000_dss_device.dev,
- 	}
- };
-@@ -665,12 +677,6 @@ static void __init devkit8000_init(void)
- 
- 	devkit8000_ads7846_init();
- 
--	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
--
--	gpio_request(170, "DVI_nPD");
--	/* REVISIT leave DVI powered down until it's needed ... */
--	gpio_direction_output(170, true);
--
- 	usb_musb_init(&musb_board_data);
- 	usb_ehci_init(&ehci_pdata);
- 	devkit8000_flash_init();
--- 
-1.7.0.4
+It does the job! Thanks for the tip. Now that I have a working console,
+I will try and make some progress.
 
+Cheers,
+
+a+
