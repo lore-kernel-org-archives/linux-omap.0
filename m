@@ -1,488 +1,629 @@
-From: felipe.balbi@nokia.com
-Subject: [RFC PATCH 34/37] cbus: retu-rtc: switch to rtc class device
-Date: Wed,  7 Apr 2010 19:04:25 +0300
-Message-ID: <1270656268-7034-35-git-send-email-felipe.balbi@nokia.com>
-References: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 3/3] arm: omap1/2/3/4: convert 32k-sync driver to a platform_driver
+Date: Wed, 07 Apr 2010 09:08:13 -0700
+Message-ID: <87bpdvfdoy.fsf@deeprootsystems.com>
+References: <20100407072102.GU16297@nokia.com>
+	<1270634244-22741-3-git-send-email-felipe.balbi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62426 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932908Ab0DGQGz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 12:06:55 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o37G5Pt7007673
-	for <linux-omap@vger.kernel.org>; Wed, 7 Apr 2010 11:06:54 -0500
-In-Reply-To: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:35782 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932430Ab0DGQIR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 12:08:17 -0400
+Received: by pwj9 with SMTP id 9so1093501pwj.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Apr 2010 09:08:17 -0700 (PDT)
+In-Reply-To: <1270634244-22741-3-git-send-email-felipe.balbi@nokia.com> (felipe balbi's message of "Wed\,  7 Apr 2010 12\:57\:24 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: felipe.balbi@nokia.com
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+felipe.balbi@nokia.com writes:
 
-remove the old syfs interface and move to rtc class
-device registration.
+> From: Felipe Balbi <felipe.balbi@nokia.com>
+>
+> Convert the omap32k clocksource driver into a platform_driver
+> and while at that, also remove the ifdeferry around the code.
+>
+> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/cbus/Kconfig    |    2 +-
- drivers/cbus/retu-rtc.c |  382 ++++++++++++++++-------------------------------
- 2 files changed, 130 insertions(+), 254 deletions(-)
+I'm OK with this for now.  Ideally, this would be further converted to
+use hwmod + omap_device to automatcially created the platform_devices
+for you.
 
-diff --git a/drivers/cbus/Kconfig b/drivers/cbus/Kconfig
-index c344a99..c6b39fb 100644
---- a/drivers/cbus/Kconfig
-+++ b/drivers/cbus/Kconfig
-@@ -65,7 +65,7 @@ config CBUS_RETU_POWERBUTTON
- 	  If you want support for the Retu power button, you should say Y here.
- 
- config CBUS_RETU_RTC
--	depends on CBUS_RETU && SYSFS
-+	depends on CBUS_RETU && RTC_CLASS
- 	tristate "Support for Retu pseudo-RTC"
- 	---help---
- 	  Say Y here if you want support for the device that alleges to be an
-diff --git a/drivers/cbus/retu-rtc.c b/drivers/cbus/retu-rtc.c
-index 1fe2b51..b0a0f3d 100644
---- a/drivers/cbus/retu-rtc.c
-+++ b/drivers/cbus/retu-rtc.c
-@@ -40,6 +40,7 @@
- #include <linux/completion.h>
- #include <linux/platform_device.h>
- #include <linux/mutex.h>
-+#include <linux/rtc.h>
- #include <linux/workqueue.h>
- 
- #include "cbus.h"
-@@ -51,6 +52,7 @@ struct retu_rtc {
- 	struct completion	sync;
- 	struct work_struct	work;
- 	struct device		*dev;
-+	struct rtc_device	*rtc;
- 
- 	u16			alarm_expired;
- 	u16			reset_occurred;
-@@ -68,92 +70,6 @@ static void retu_rtc_barrier(struct retu_rtc *rtc)
- 	retu_disable_irq(RETU_INT_RTCS);
- }
- 
--static ssize_t retu_rtc_time_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--	u16			dsr, hmr, dsr2;
--
--	mutex_lock(&rtc->mutex);
--
--	do {
--		u16 dummy;
--
--		/*
--		 * Not being in_interrupt() for a retu rtc IRQ, we need to
--		 * read twice for consistency..
--		 */
--		dummy	= retu_read_reg(RETU_REG_RTCDSR);
--		dsr	= retu_read_reg(RETU_REG_RTCDSR);
--
--		dummy	= retu_read_reg(RETU_REG_RTCHMR);
--		hmr	= retu_read_reg(RETU_REG_RTCHMR);
--
--		dummy	= retu_read_reg(RETU_REG_RTCDSR);
--		dsr2	= retu_read_reg(RETU_REG_RTCDSR);
--	} while ((dsr != dsr2));
--
--	mutex_unlock(&rtc->mutex);
--
--	/*
--	 * Format a 32-bit date-string for userspace
--	 *
--	 * days | hours | minutes | seconds
--	 *
--	 * 8 bits for each.
--	 *
--	 * This mostly sucks because days and seconds are tracked in RTCDSR
--	 * while hours and minutes are tracked in RTCHMR. And yes, there
--	 * really are no words that can describe an 8 bit day register (or
--	 * rather, none that will be reprinted here).
--	 */
--	return sprintf(buf, "0x%08x\n", (((dsr >> 8) & 0xff) << 24) |
--			(((hmr >> 8) & 0x1f) << 16) |
--			((hmr & 0x3f) << 8) | (dsr & 0x3f));
--}
--
--static ssize_t retu_rtc_time_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--
--	mutex_lock(&rtc->mutex);
--	/*
--	 * Writing anything to the day counter forces it to 0
--	 * The seconds counter would be cleared by resetting the minutes
--	 * counter, however this won't happen, since we are using the
--	 * hh:mm counters as a set of free running counters and the
--	 * day counter as a multiple overflow holder.
--	 */
--
--	/* Reset day counter, but keep Temperature Shutdown state */
--	retu_write_reg(RETU_REG_RTCDSR,
--		       retu_read_reg(RETU_REG_RTCDSR) & (1 << 6));
--
--	mutex_unlock(&rtc->mutex);
--
--	return count;
--}
--static DEVICE_ATTR(time, S_IRUGO | S_IWUSR, retu_rtc_time_show,
--		   retu_rtc_time_store);
--
--static ssize_t retu_rtc_reset_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--
--	/*
--	 * Returns the status of the rtc
--	 *
--	 * 0: no reset has occurred or the status has been cleared
--	 * 1: a reset has occurred
--	 *
--	 * RTC needs to be reset only when both main battery
--	 * _AND_ backup battery are discharged
--	 */
--	return sprintf(buf, "%u\n", rtc->reset_occurred);
--}
--
- static void retu_rtc_do_reset(struct retu_rtc *rtc)
- {
- 	u16 ccr1;
-@@ -174,167 +90,6 @@ static void retu_rtc_do_reset(struct retu_rtc *rtc)
- 	rtc->reset_occurred = 1;
- }
- 
--static ssize_t retu_rtc_reset_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--	unsigned		choice;
--
--	if (sscanf(buf, "%u", &choice) != 1)
--		return count;
--	mutex_lock(&rtc->mutex);
--	if (choice == 0)
--		rtc->reset_occurred = 0;
--	else if (choice == 1)
--		retu_rtc_do_reset(rtc);
--	mutex_unlock(&rtc->mutex);
--	return count;
--}
--static DEVICE_ATTR(reset, S_IRUGO | S_IWUSR, retu_rtc_reset_show,
--		   retu_rtc_reset_store);
--
--static ssize_t retu_rtc_alarm_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--	ssize_t			retval;
--	u16			chmar;
--
--	mutex_lock(&rtc->mutex);
--	/*
--	 * Format a 16-bit date-string for userspace
--	 *
--	 * hours | minutes
--	 * 8 bits for each.
--	 */
--	chmar = retu_read_reg(RETU_REG_RTCHMAR);
--	/* No shifting needed, only masking unrelated bits */
--	retval = sprintf(buf, "0x%04x\n", chmar & 0x1f3f);
--	mutex_unlock(&rtc->mutex);
--
--	return retval;
--}
--
--static ssize_t retu_rtc_alarm_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--
--	unsigned		minutes;
--	unsigned		hours;
--	unsigned		alrm;
--
--	u16			chmar;
--
--	mutex_lock(&rtc->mutex);
--
--	if (sscanf(buf, "%x", &alrm) != 1)
--		return count;
--	hours = (alrm >> 8) & 0x001f;
--	minutes = (alrm >> 0) & 0x003f;
--	if ((hours < 24 && minutes < 60) || (hours == 24 && minutes == 60)) {
--		/*
--		 * OK, the time format for the alarm is valid (including the
--		 * disabling values)
--		 */
--		/* Keeps the RTC watchdog status */
--		chmar = retu_read_reg(RETU_REG_RTCHMAR) & 0x6000;
--		chmar |= alrm & 0x1f3f;	/* Stores the requested alarm */
--		retu_rtc_barrier(rtc);
--		retu_write_reg(RETU_REG_RTCHMAR, chmar);
--		/* If the alarm is being disabled */
--		if (hours == 24 && minutes == 60) {
--			/* disable the interrupt */
--			retu_disable_irq(RETU_INT_RTCA);
--			rtc->alarm_expired = 0;
--		} else
--			/* enable the interrupt */
--			retu_enable_irq(RETU_INT_RTCA);
--	}
--	mutex_unlock(&rtc->mutex);
--
--	return count;
--}
--static DEVICE_ATTR(alarm, S_IRUGO | S_IWUSR, retu_rtc_alarm_show,
--		   retu_rtc_alarm_store);
--
--static ssize_t retu_rtc_alarm_expired_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--	ssize_t			retval;
--
--	retval = sprintf(buf, "%u\n", rtc->alarm_expired);
--
--	return retval;
--}
--
--static ssize_t retu_rtc_alarm_expired_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--
--	rtc->alarm_expired = 0;
--
--	return count;
--}
--static DEVICE_ATTR(alarm_expired, S_IRUGO | S_IWUSR,
--		retu_rtc_alarm_expired_show, retu_rtc_alarm_expired_store);
--
--
--static ssize_t retu_rtc_cal_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--	u16			rtccalr1;
--
--	mutex_lock(&rtc->mutex);
--	rtccalr1 = retu_read_reg(RETU_REG_RTCCALR);
--	mutex_unlock(&rtc->mutex);
--
--	/*
--	 * Shows the status of the Calibration Register.
--	 *
--	 * Default, after power loss: 0x0000
--	 * Default, for R&D: 0x00C0
--	 * Default, for factory: 0x00??
--	 *
--	 */
--	return sprintf(buf, "0x%04x\n", rtccalr1 & 0x00ff);
--}
--
--static ssize_t retu_rtc_cal_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t count)
--{
--	struct retu_rtc		*rtc = dev_get_drvdata(dev);
--	unsigned		calibration_value;
--
--	if (sscanf(buf, "%x", &calibration_value) != 1)
--		return count;
--
--	mutex_lock(&rtc->mutex);
--	retu_rtc_barrier(rtc);
--	retu_write_reg(RETU_REG_RTCCALR, calibration_value & 0x00ff);
--	mutex_unlock(&rtc->mutex);
--
--	return count;
--}
--static DEVICE_ATTR(cal, S_IRUGO | S_IWUSR, retu_rtc_cal_show,
--		   retu_rtc_cal_store);
--
--static struct attribute *retu_rtc_attrs[] = {
--	&dev_attr_cal.attr,
--	&dev_attr_alarm_expired.attr,
--	&dev_attr_alarm.attr,
--	&dev_attr_reset.attr,
--	&dev_attr_time.attr,
--	NULL,
--};
--
--static const struct attribute_group retu_rtc_group = {
--	.attrs = retu_rtc_attrs,
--};
--
- static void retu_rtca_disable(struct retu_rtc *rtc)
- {
- 	retu_disable_irq(RETU_INT_RTCA);
-@@ -348,8 +103,6 @@ static void retu_rtca_expired(struct work_struct *work)
- 	struct retu_rtc		*rtc = work_to_rtc(work);
- 
- 	retu_rtca_disable(rtc);
--
--	sysfs_notify(&rtc->dev->kobj, NULL, "alarm_expired");
- }
- 
- /*
-@@ -397,6 +150,127 @@ static int retu_rtc_init_irq(struct retu_rtc *rtc)
- 	return 0;
- }
- 
-+static int retu_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	struct retu_rtc		*rtc = dev_get_drvdata(dev);
-+	u16			chmar;
-+
-+	mutex_lock(&rtc->mutex);
-+
-+	chmar = ((alm->time.tm_hour & 0x1f) << 8) | (alm->time.tm_min & 0x3f);
-+	retu_write_reg(RETU_REG_RTCHMAR, chmar);
-+
-+	mutex_unlock(&rtc->mutex);
-+
-+	return 0;
-+}
-+
-+static int retu_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	struct retu_rtc		*rtc = dev_get_drvdata(dev);
-+	u16			chmar;
-+
-+	mutex_lock(&rtc->mutex);
-+
-+	chmar = retu_read_reg(RETU_REG_RTCHMAR);
-+
-+	alm->time.tm_hour	= (chmar >> 8) & 0x1f;
-+	alm->time.tm_min	= chmar & 0x3f;
-+	alm->enabled		= !!rtc->alarm_expired;
-+
-+	mutex_unlock(&rtc->mutex);
-+
-+	return 0;
-+}
-+
-+static int retu_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct retu_rtc		*rtc = dev_get_drvdata(dev);
-+	u16			dsr;
-+	u16			hmr;
-+
-+	dsr = ((tm->tm_mday & 0xff) << 8) | (tm->tm_hour & 0xff);
-+	hmr = ((tm->tm_min & 0xff) << 8) | (tm->tm_sec & 0xff);
-+
-+	mutex_lock(&rtc->mutex);
-+
-+	retu_write_reg(RETU_REG_RTCDSR, dsr);
-+	retu_write_reg(RETU_REG_RTCHMR, hmr);
-+
-+	mutex_unlock(&rtc->mutex);
-+
-+	return 0;
-+}
-+
-+static int retu_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct retu_rtc		*rtc = dev_get_drvdata(dev);
-+	u16			dsr;
-+	u16			hmr;
-+
-+	/*
-+	 * DSR holds days and hours
-+	 * HMR hols minutes and seconds
-+	 *
-+	 * both are 16 bit registers with 8-bit for each field.
-+	 */
-+
-+	mutex_lock(&rtc->mutex);
-+
-+	dsr	= retu_read_reg(RETU_REG_RTCDSR);
-+	hmr	= retu_read_reg(RETU_REG_RTCHMR);
-+
-+	tm->tm_sec	= hmr & 0xff;
-+	tm->tm_min	= hmr >> 8;
-+	tm->tm_hour	= dsr & 0xff;
-+	tm->tm_mday	= dsr >> 8;
-+
-+	mutex_unlock(&rtc->mutex);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_RTC_INTF_DEV
-+
-+static int retu_rtc_ioctl(struct device *dev, unsigned int cmd,
-+		unsigned long arg)
-+{
-+	struct retu_rtc		*rtc = dev_get_drvdata(dev);
-+
-+	mutex_lock(&rtc->mutex);
-+
-+	switch (cmd) {
-+	case RTC_AIE_OFF:
-+		retu_disable_irq(RETU_INT_RTCA);
-+		break;
-+	case RTC_AIE_ON:
-+		retu_enable_irq(RETU_INT_RTCA);
-+		break;
-+	case RTC_UIE_OFF:
-+		retu_disable_irq(RETU_INT_RTCS);
-+		break;
-+	case RTC_UIE_ON:
-+		retu_enable_irq(RETU_INT_RTCS);
-+		break;
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+
-+	mutex_unlock(&rtc->mutex);
-+
-+	return 0;
-+}
-+#else
-+#define retu_rtc_ioctl	NULL
-+#endif
-+
-+static struct rtc_class_ops retu_rtc_ops = {
-+	.ioctl			= retu_rtc_ioctl,
-+	.read_time		= retu_rtc_read_time,
-+	.set_time		= retu_rtc_set_time,
-+	.read_alarm		= retu_rtc_read_alarm,
-+	.set_alarm		= retu_rtc_set_alarm,
-+};
- 
- static int __devinit retu_rtc_probe(struct platform_device *pdev)
- {
-@@ -437,9 +311,11 @@ static int __devinit retu_rtc_probe(struct platform_device *pdev)
- 	else
- 		retu_rtc_do_reset(rtc);
- 
--	r = sysfs_create_group(&pdev->dev.kobj, &retu_rtc_group);
--	if (r) {
--		dev_err(&pdev->dev, "couldn't create sysfs interface\n");
-+
-+	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev, &
-+			retu_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc->rtc)) {
-+		dev_err(&pdev->dev, "can't register RTC device\n");
- 		goto err2;
- 	}
- 
-@@ -466,7 +342,7 @@ static int __devexit retu_rtc_remove(struct platform_device *pdev)
- 	retu_disable_irq(RETU_INT_RTCA);
- 	retu_free_irq(RETU_INT_RTCS);
- 	retu_free_irq(RETU_INT_RTCA);
--	sysfs_remove_group(&pdev->dev.kobj, &retu_rtc_group);
-+	rtc_device_unregister(rtc->rtc);
- 	kfree(rtc);
- 
- 	return 0;
--- 
-1.7.0.rc0.33.g7c3932
+Kevin
 
+> ---
+>  arch/arm/mach-omap1/devices.c        |   24 ++++
+>  arch/arm/mach-omap2/clock2420_data.c |    2 +-
+>  arch/arm/mach-omap2/clock2430_data.c |    2 +-
+>  arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
+>  arch/arm/mach-omap2/devices.c        |   35 +++++
+>  arch/arm/plat-omap/Makefile          |    4 +-
+>  arch/arm/plat-omap/common.c          |  158 ---------------------
+>  arch/arm/plat-omap/counter-32k.c     |  250 ++++++++++++++++++++++++++++++++++
+>  8 files changed, 314 insertions(+), 163 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/counter-32k.c
+>
+> diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+> index 379100c..4393b45 100644
+> --- a/arch/arm/mach-omap1/devices.c
+> +++ b/arch/arm/mach-omap1/devices.c
+> @@ -28,6 +28,29 @@
+>  
+>  /*-------------------------------------------------------------------------*/
+>  
+> +#define OMAP16XX_TIMER_32K_BASE		0xfffbc400
+> +
+> +static struct resource omap_32k_resources[] = {
+> +	{
+> +		.start		= OMAP16XX_TIMER_32K_BASE,
+> +		.end		= SZ_4K,
+> +		.flags		= IORESOURCE_MEM,
+> +	},
+> +};
+> +
+> +static struct platform_device omap_32k_device = {
+> +	.name			= "omap-counter-32k",
+> +	.id			= -1,
+> +	.num_resources		= ARRAY_SIZE(omap_32k_resources),
+> +	.resource		= omap_32k_resources,
+> +};
+> +
+> +static void omap_init_32k(void)
+> +{
+> +       if (cpu_is_omap16xx())
+> +	       (void) platform_device_register(&omap_32k_device);
+> +};
+> +
+>  #if defined(CONFIG_RTC_DRV_OMAP) || defined(CONFIG_RTC_DRV_OMAP_MODULE)
+>  
+>  #define	OMAP_RTC_BASE		0xfffb4800
+> @@ -295,6 +318,7 @@ static int __init omap1_init_devices(void)
+>  	 * in alphabetical order so they're easier to sort through.
+>  	 */
+>  
+> +	omap_init_32k();
+>  	omap_init_mbox();
+>  	omap_init_rtc();
+>  	omap_init_spi100k();
+> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+> index d932b14..a4747ad 100644
+> --- a/arch/arm/mach-omap2/clock2420_data.c
+> +++ b/arch/arm/mach-omap2/clock2420_data.c
+> @@ -1806,7 +1806,7 @@ static struct omap_clk omap2420_clks[] = {
+>  	CLK(NULL,	"gpios_fck",	&gpios_fck,	CK_242X),
+>  	CLK("omap_wdt",	"ick",		&mpu_wdt_ick,	CK_242X),
+>  	CLK("omap_wdt",	"fck",		&mpu_wdt_fck,	CK_242X),
+> -	CLK(NULL,	"sync_32k_ick",	&sync_32k_ick,	CK_242X),
+> +	CLK("omap-counter-32k",	"ick",	&sync_32k_ick,	CK_242X),
+>  	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_242X),
+>  	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_242X),
+>  	CLK("omap24xxcam", "fck",	&cam_fck,	CK_242X),
+> diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+> index 0438b6e..479ab53 100644
+> --- a/arch/arm/mach-omap2/clock2430_data.c
+> +++ b/arch/arm/mach-omap2/clock2430_data.c
+> @@ -1900,7 +1900,7 @@ static struct omap_clk omap2430_clks[] = {
+>  	CLK(NULL,	"gpios_fck",	&gpios_fck,	CK_243X),
+>  	CLK("omap_wdt",	"ick",		&mpu_wdt_ick,	CK_243X),
+>  	CLK("omap_wdt",	"fck",		&mpu_wdt_fck,	CK_243X),
+> -	CLK(NULL,	"sync_32k_ick",	&sync_32k_ick,	CK_243X),
+> +	CLK("omap-counter-32k",	"ick",	&sync_32k_ick,	CK_243X),
+>  	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_243X),
+>  	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_243X),
+>  	CLK(NULL,	"icr_ick",	&icr_ick,	CK_243X),
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index d5153b6..5d6f00d 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -3414,7 +3414,7 @@ static struct omap_clk omap3xxx_clks[] = {
+>  	CLK("omap_wdt",	"ick",		&wdt2_ick,	CK_3XXX),
+>  	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_3XXX),
+>  	CLK(NULL,	"gpio1_ick",	&gpio1_ick,	CK_3XXX),
+> -	CLK(NULL,	"omap_32ksync_ick", &omap_32ksync_ick, CK_3XXX),
+> +	CLK("omap-counter-32k",	"ick", &omap_32ksync_ick, CK_3XXX),
+>  	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_3XXX),
+>  	CLK(NULL,	"gpt1_ick",	&gpt1_ick,	CK_3XXX),
+>  	CLK(NULL,	"per_96m_fck",	&per_96m_fck,	CK_3XXX),
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 23e4d77..a403041 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -29,6 +29,40 @@
+>  
+>  #include "mux.h"
+>  
+> +static struct resource omap_32k_resources[] = {
+> +	{
+> +		.flags		= IORESOURCE_MEM,
+> +	},
+> +};
+> +
+> +static struct platform_device omap_32k_device = {
+> +	.name			= "omap-counter-32k",
+> +	.id			= -1,
+> +	.num_resources		= ARRAY_SIZE(omap_32k_resources),
+> +	.resource		= omap_32k_resources,
+> +};
+> +
+> +static void omap_init_32k(void)
+> +{
+> +	if (cpu_is_omap2420()) {
+> +		omap_32k_resources[0].start = OMAP2420_32KSYNCT_BASE;
+> +		omap_32k_resources[0].end = OMAP2420_32KSYNCT_BASE + SZ_4K;
+> +	} else if (cpu_is_omap2430()) {
+> +		omap_32k_resources[0].start = OMAP2430_32KSYNCT_BASE;
+> +		omap_32k_resources[0].end = OMAP2430_32KSYNCT_BASE + SZ_4K;
+> +	} else if (cpu_is_omap34xx()) {
+> +		omap_32k_resources[0].start = OMAP3430_32KSYNCT_BASE;
+> +		omap_32k_resources[0].end = OMAP3430_32KSYNCT_BASE + SZ_4K;
+> +	} else if (cpu_is_omap44xx()) {
+> +		omap_32k_resources[0].start = OMAP4430_32KSYNCT_BASE;
+> +		omap_32k_resources[0].end = OMAP4430_32KSYNCT_BASE + SZ_4K;
+> +	} else {	/* not supported */
+> +		return;
+> +	}
+> +
+> +	(void) platform_device_register(&omap_32k_device);
+> +};
+> +
+>  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+>  
+>  static struct resource cam_resources[] = {
+> @@ -794,6 +828,7 @@ static int __init omap2_init_devices(void)
+>  	 * in alphabetical order so they're easier to sort through.
+>  	 */
+>  	omap_hsmmc_reset();
+> +	omap_init_32k();
+>  	omap_init_camera();
+>  	omap_init_mbox();
+>  	omap_init_mcspi();
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 98f0191..11dfcf0 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -4,7 +4,7 @@
+>  
+>  # Common support
+>  obj-y := common.o sram.o clock.o devices.o dma.o mux.o gpio.o \
+> -	 usb.o fb.o io.o
+> +	 usb.o fb.o io.o counter-32k.o
+>  obj-m :=
+>  obj-n :=
+>  obj-  :=
+> @@ -30,4 +30,4 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
+>  # OMAP mailbox framework
+>  obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+>  
+> -obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
+> \ No newline at end of file
+> +obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> index 01cbb48..4be635a 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -87,164 +87,6 @@ const void *omap_get_var_config(u16 tag, size_t *len)
+>  }
+>  EXPORT_SYMBOL(omap_get_var_config);
+>  
+> -/*
+> - * 32KHz clocksource ... always available, on pretty most chips except
+> - * OMAP 730 and 1510.  Other timers could be used as clocksources, with
+> - * higher resolution in free-running counter modes (e.g. 12 MHz xtal),
+> - * but systems won't necessarily want to spend resources that way.
+> - */
+> -
+> -#define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
+> -
+> -#if !(defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP15XX))
+> -
+> -#include <linux/clocksource.h>
+> -
+> -/*
+> - * offset_32k holds the init time counter value. It is then subtracted
+> - * from every counter read to achieve a counter that counts time from the
+> - * kernel boot (needed for sched_clock()).
+> - */
+> -static u32 offset_32k __read_mostly;
+> -
+> -#ifdef CONFIG_ARCH_OMAP16XX
+> -static cycle_t omap16xx_32k_read(struct clocksource *cs)
+> -{
+> -	return omap_readl(OMAP16XX_TIMER_32K_SYNCHRONIZED) - offset_32k;
+> -}
+> -#else
+> -#define omap16xx_32k_read	NULL
+> -#endif
+> -
+> -#ifdef CONFIG_ARCH_OMAP2420
+> -static cycle_t omap2420_32k_read(struct clocksource *cs)
+> -{
+> -	return omap_readl(OMAP2420_32KSYNCT_BASE + 0x10) - offset_32k;
+> -}
+> -#else
+> -#define omap2420_32k_read	NULL
+> -#endif
+> -
+> -#ifdef CONFIG_ARCH_OMAP2430
+> -static cycle_t omap2430_32k_read(struct clocksource *cs)
+> -{
+> -	return omap_readl(OMAP2430_32KSYNCT_BASE + 0x10) - offset_32k;
+> -}
+> -#else
+> -#define omap2430_32k_read	NULL
+> -#endif
+> -
+> -#ifdef CONFIG_ARCH_OMAP3
+> -static cycle_t omap34xx_32k_read(struct clocksource *cs)
+> -{
+> -	return omap_readl(OMAP3430_32KSYNCT_BASE + 0x10) - offset_32k;
+> -}
+> -#else
+> -#define omap34xx_32k_read	NULL
+> -#endif
+> -
+> -#ifdef CONFIG_ARCH_OMAP4
+> -static cycle_t omap44xx_32k_read(struct clocksource *cs)
+> -{
+> -	return omap_readl(OMAP4430_32KSYNCT_BASE + 0x10) - offset_32k;
+> -}
+> -#else
+> -#define omap44xx_32k_read	NULL
+> -#endif
+> -
+> -/*
+> - * Kernel assumes that sched_clock can be called early but may not have
+> - * things ready yet.
+> - */
+> -static cycle_t omap_32k_read_dummy(struct clocksource *cs)
+> -{
+> -	return 0;
+> -}
+> -
+> -static struct clocksource clocksource_32k = {
+> -	.name		= "32k_counter",
+> -	.rating		= 250,
+> -	.read		= omap_32k_read_dummy,
+> -	.mask		= CLOCKSOURCE_MASK(32),
+> -	.shift		= 10,
+> -	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+> -};
+> -
+> -/*
+> - * Returns current time from boot in nsecs. It's OK for this to wrap
+> - * around for now, as it's just a relative time stamp.
+> - */
+> -unsigned long long sched_clock(void)
+> -{
+> -	return clocksource_cyc2ns(clocksource_32k.read(&clocksource_32k),
+> -				  clocksource_32k.mult, clocksource_32k.shift);
+> -}
+> -
+> -/**
+> - * read_persistent_clock -  Return time from a persistent clock.
+> - *
+> - * Reads the time from a source which isn't disabled during PM, the
+> - * 32k sync timer.  Convert the cycles elapsed since last read into
+> - * nsecs and adds to a monotonically increasing timespec.
+> - */
+> -static struct timespec persistent_ts;
+> -static cycles_t cycles, last_cycles;
+> -void read_persistent_clock(struct timespec *ts)
+> -{
+> -	unsigned long long nsecs;
+> -	cycles_t delta;
+> -	struct timespec *tsp = &persistent_ts;
+> -
+> -	last_cycles = cycles;
+> -	cycles = clocksource_32k.read(&clocksource_32k);
+> -	delta = cycles - last_cycles;
+> -
+> -	nsecs = clocksource_cyc2ns(delta,
+> -				   clocksource_32k.mult, clocksource_32k.shift);
+> -
+> -	timespec_add_ns(tsp, nsecs);
+> -	*ts = *tsp;
+> -}
+> -
+> -static int __init omap_init_clocksource_32k(void)
+> -{
+> -	static char err[] __initdata = KERN_ERR
+> -			"%s: can't register clocksource!\n";
+> -
+> -	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
+> -		struct clk *sync_32k_ick;
+> -
+> -		if (cpu_is_omap16xx())
+> -			clocksource_32k.read = omap16xx_32k_read;
+> -		else if (cpu_is_omap2420())
+> -			clocksource_32k.read = omap2420_32k_read;
+> -		else if (cpu_is_omap2430())
+> -			clocksource_32k.read = omap2430_32k_read;
+> -		else if (cpu_is_omap34xx())
+> -			clocksource_32k.read = omap34xx_32k_read;
+> -		else if (cpu_is_omap44xx())
+> -			clocksource_32k.read = omap44xx_32k_read;
+> -		else
+> -			return -ENODEV;
+> -
+> -		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
+> -		if (sync_32k_ick)
+> -			clk_enable(sync_32k_ick);
+> -
+> -		clocksource_32k.mult = clocksource_hz2mult(32768,
+> -					    clocksource_32k.shift);
+> -
+> -		offset_32k = clocksource_32k.read(&clocksource_32k);
+> -
+> -		if (clocksource_register(&clocksource_32k))
+> -			printk(err, clocksource_32k.name);
+> -	}
+> -	return 0;
+> -}
+> -arch_initcall(omap_init_clocksource_32k);
+> -
+> -#endif	/* !(defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP15XX)) */
+> -
+>  /* Global address base setup code */
+>  
+>  #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> diff --git a/arch/arm/plat-omap/counter-32k.c b/arch/arm/plat-omap/counter-32k.c
+> new file mode 100644
+> index 0000000..fdb8a85
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/counter-32k.c
+> @@ -0,0 +1,250 @@
+> +/*
+> + * counter-32k.c -- OMAP 32k Sync Timer Clocksource Driver
+> + *
+> + * Copyright (C) 2005-2010 Tony Lindgren <tony@atomide.com>
+> + * Copyright (C) 2010 Nokia Corporation
+> + * Copyright (C) 2010 Felipe Balbi <me@felipebalbi.com>
+> + * Copyright (C) 2009 Texas Instruments
+> + * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/time.h>
+> +#include <linux/clocksource.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/clk.h>
+> +#include <linux/err.h>
+> +
+> +struct omap_counter_32k_device {
+> +	struct timespec		persistent_ts;
+> +	struct clocksource	cs;
+> +	cycles_t		cycles;
+> +	cycles_t		last_cycles;
+> +
+> +	struct device		*dev;
+> +	struct clk		*ick;
+> +	void __iomem		*base;
+> +
+> +	/*
+> +	 * offset_32k holds the init time counter value. It is then subtracted
+> +	 * from every counter read to achieve a counter that counts time from the
+> +	 * kernel boot (needed for sched_clock()).
+> +	 */
+> +	u32			offset_32k __read_mostly;
+> +};
+> +
+> +#define to_omap_32k(cs)	(container_of(cs, struct omap_counter_32k_device, cs))
+> +
+> +static struct omap_counter_32k_device	*thecs;
+> +
+> +static inline u32 omap_counter_32k_readl(const void __iomem *base, unsigned offset)
+> +{
+> +	return __raw_readl(base + offset);
+> +}
+> +
+> +static cycle_t omap_counter_32k_32k_read(struct clocksource *cs)
+> +{
+> +	struct omap_counter_32k_device	*omap = to_omap_32k(cs);
+> +
+> +	return omap_counter_32k_readl(omap->base, 0x10) - omap->offset_32k;
+> +}
+> +
+> +/*
+> + * Returns current time from boot in nsecs. It's OK for this to wrap
+> + * around for now, as it's just a relative time stamp.
+> + */
+> +unsigned long long sched_clock(void)
+> +{
+> +	struct omap_counter_32k_device	*omap = thecs;
+> +
+> +	if (!omap)
+> +		return 0;
+> +
+> +	return clocksource_cyc2ns(omap->cs.read(&omap->cs),
+> +			omap->cs.mult, omap->cs.shift);
+> +}
+> +
+> +/**
+> + * read_persistent_clock -  Return time from a persistent clock.
+> + *
+> + * Reads the time from a source which isn't disabled during PM, the
+> + * 32k sync timer.  Convert the cycles elapsed since last read into
+> + * nsecs and adds to a monotonically increasing timespec.
+> + */
+> +void read_persistent_clock(struct timespec *ts)
+> +{
+> +	struct omap_counter_32k_device	*omap = thecs;
+> +	unsigned long long	nsecs;
+> +	cycles_t		delta;
+> +	struct timespec		*tsp;
+> +
+> +	if (!omap) {
+> +		ts->tv_sec = 0;
+> +		ts->tv_nsec = 0;
+> +		return;
+> +	}
+> +
+> +	tsp = &omap->persistent_ts;
+> +
+> +	omap->last_cycles = omap->cycles;
+> +	omap->cycles = omap->cs.read(&omap->cs);
+> +	delta = omap->cycles - omap->last_cycles;
+> +
+> +	nsecs = clocksource_cyc2ns(delta,
+> +			omap->cs.mult, omap->cs.shift);
+> +
+> +	timespec_add_ns(tsp, nsecs);
+> +	*ts = *tsp;
+> +}
+> +
+> +static int __init omap_counter_32k_probe(struct platform_device *pdev)
+> +{
+> +	struct omap_counter_32k_device		*omap;
+> +	struct resource			*res;
+> +	struct clk			*ick;
+> +
+> +	int				ret;
+> +
+> +	void __iomem			*base;
+> +
+> +	omap = kzalloc(sizeof(*omap), GFP_KERNEL);
+> +	if (!omap) {
+> +		dev_dbg(&pdev->dev, "unable to allocate memory\n");
+> +		ret = -ENOMEM;
+> +		goto err0;
+> +	}
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!res) {
+> +		dev_dbg(&pdev->dev, "couldn't get resource\n");
+> +		ret = -ENODEV;
+> +		goto err1;
+> +	}
+> +
+> +	base = ioremap(res->start, resource_size(res));
+> +	if (!base) {
+> +		dev_dbg(&pdev->dev, "ioremap failed\n");
+> +		ret = -ENOMEM;
+> +		goto err2;
+> +	}
+> +
+> +	ick = clk_get(&pdev->dev, "ick");
+> +	if (IS_ERR(ick)) {
+> +		dev_dbg(&pdev->dev, "couldn't get clock\n");
+> +		ret = PTR_ERR(ick);
+> +		goto err3;
+> +	}
+> +
+> +	ret = clk_enable(ick);
+> +	if (ret) {
+> +		dev_dbg(&pdev->dev, "couldn't enable clock\n");
+> +		goto err4;
+> +	}
+> +
+> +	omap->base	= base;
+> +	omap->dev	= &pdev->dev;
+> +	omap->ick	= ick;
+> +
+> +	omap->cs.name	= "counter-32k";
+> +	omap->cs.rating	= 250;
+> +	omap->cs.read	= omap_counter_32k_32k_read;
+> +	omap->cs.mask	= CLOCKSOURCE_MASK(32);
+> +	omap->cs.shift	= 10;
+> +	omap->cs.flags	= CLOCK_SOURCE_IS_CONTINUOUS;
+> +	omap->cs.mult	= clocksource_hz2mult(32768, omap->cs.shift);
+> +
+> +	platform_set_drvdata(pdev, omap);
+> +
+> +	ret = clocksource_register(&omap->cs);
+> +	if (ret) {
+> +		dev_dbg(&pdev->dev, "failed to register clocksource\n");
+> +		goto err5;
+> +	}
+> +
+> +	/* initialize our offset */
+> +	omap->offset_32k	=  omap_counter_32k_32k_read(&omap->cs);
+> +
+> +	/*
+> +	 * REVISIT for now we need to keep a global static pointer
+> +	 * to this clocksource instance. Would it make any sense
+> +	 * to provide a get_clocksource() to fetch the clocksource
+> +	 * we just registered ?
+> +	 */
+> +	thecs = omap;
+> +
+> +	return 0;
+> +
+> +err5:
+> +	clk_disable(ick);
+> +
+> +err4:
+> +	clk_put(ick);
+> +
+> +err3:
+> +	iounmap(base);
+> +
+> +err2:
+> +err1:
+> +	kfree(omap);
+> +
+> +err0:
+> +	return ret;
+> +}
+> +
+> +static int __exit omap_counter_32k_remove(struct platform_device *pdev)
+> +{
+> +	struct omap_counter_32k_device	*omap = platform_get_drvdata(pdev);
+> +
+> +	clocksource_unregister(&omap->cs);
+> +	clk_disable(omap->ick);
+> +	clk_put(omap->ick);
+> +	iounmap(omap->base);
+> +	kfree(omap);
+> +	platform_set_drvdata(pdev, NULL);
+> +
+> +	return 0;
+> +}
+> +
+> +static void omap_counter_32k_shutdown(struct platform_device *pdev)
+> +{
+> +	struct omap_counter_32k_device	*omap = platform_get_drvdata(pdev);
+> +
+> +	clk_disable(omap->ick);
+> +}
+> +
+> +static struct platform_driver omap_counter_32k_driver = {
+> +	.remove		= __exit_p(omap_counter_32k_remove),
+> +	.shutdown	= omap_counter_32k_shutdown,
+> +	.driver		= {
+> +		.name	= "omap-counter-32k",
+> +	},
+> +};
+> +
+> +static int __init omap_counter_32k_init(void)
+> +{
+> +	return platform_driver_probe(&omap_counter_32k_driver, omap_counter_32k_probe);
+> +}
+> +arch_initcall(omap_counter_32k_init);
+> +
+> +static void __exit omap_counter_32k_exit(void)
+> +{
+> +	platform_driver_unregister(&omap_counter_32k_driver);
+> +}
+> +module_exit(omap_counter_32k_exit);
+> +
+> +MODULE_AUTHOR("Felipe Balbi <me@felipebalbi.com>");
+> +MODULE_LICENSE("GPL v2");
+> -- 
+> 1.7.0.rc0.33.g7c3932
