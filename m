@@ -1,53 +1,60 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 1/3] omap: fix clocksource_32k to start from zero
-Date: Wed, 7 Apr 2010 13:02:31 +0300
-Message-ID: <20100407100231.GY16297@nokia.com>
-References: <20100407072102.GU16297@nokia.com>
- <1270634244-22741-1-git-send-email-felipe.balbi@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
+Date: Wed, 7 Apr 2010 04:49:39 -0700
+Message-ID: <20100407114938.GF7153@atomide.com>
+References: <37310.192.168.10.89.1270081542.squirrel@dbdmail.itg.ti.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030D32CEE8@dbde02.ent.ti.com>
+ <008601cad1bd$6d0022b0$544ff780@am.dhcp.ti.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030D32D372@dbde02.ent.ti.com>
+ <4BB51740.2060802@ti.com>
+ <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:30961 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756143Ab0DGKDR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 06:03:17 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1270634244-22741-1-git-send-email-felipe.balbi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Nishanth Menon' <nm@ti.com>, "'Ghorai, Sukumar'" <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Koskinen Aaro (Nokia-D/Helsinki)" <aaro.koskinen@nokia.com>
 
-Hi,
+* Madhusudhan <madhu.cr@ti.com> [100401 15:54]:
 
-On Wed, Apr 07, 2010 at 11:57:22AM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
->From: Aaro Koskinen <aaro.koskinen@nokia.com>
->
->When the 32k sync timer is used for sched_clock(), it should count
->time from the kernel boot (clocksource init) instead of the last HW
->reset. Otherwise printk.time values will jump suddenly during the boot:
->
->	[    0.000000] calling  omap2_clk_arch_init+0x0/0x138 @ 1
->	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned -22 after 0 usecs
->	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned with error code -22
->	[    0.000000] calling  omap_init_clocksource_32k+0x0/0x98 @ 1
->	[  508.697937] initcall omap_init_clocksource_32k+0x0/0x98 returned 0 after 0 usecs
->	[  508.697967] calling  omap_init_devices+0x0/0x38 @ 1
->	[  508.698425] initcall omap_init_devices+0x0/0x38 returned 0 after 0 usecs
->
->This will confuse tools such as scripts/bootgraph.pl.
->
->Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
->Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+<snip>
 
-these 3 patches are also available at:
+> > Ref [1] I believe tony has the brand new zoom board - I think your
+> > assumption here might be flawed..
+> > 
+> 
+> Wait, I just looked up the serial number on the board. The one I was using
+> is a pilot version where this problem exists.
+> 
+> I happen to get an other board which is production unit with ser # 1013089
+> Rev B. The eMMC on this board has no issue. It reports the EXT_CSD Rev 2
+> which is correct and works fine.
+> 
+> http://omappedia.org/wiki/Zoom_Resources
+> 
+> There is a table here which could help.
+> 
+> Tony, do you care to just look up the serial number of your board?
 
-http://gitorious.org/usb/usb/commits/clksource
+Sorry for the delay in replying, I've been travelling for a few weeks
+and been in meetings quite a bit. Anyways, it's a 1013037 REV A board,
+which seems to be production in the table above.
+ 
+> But again there are several boards out there which could have this
+> non-working eMMC. So what do we do?? It does not make sense to keep
+> something enabled which does not work.
 
-to pull in the patches use:
+There's arm kernel parameter for ATAG_REVISION that can be passed from
+bootloader and then the board-*.c code can initialize things accordingly
+based on the board revision.
 
-git pull git://gitorious.org/usb/usb.git clksource
+Regards,
 
--- 
-balbi
+Tony
+
+
+> > [1] http://marc.info/?l=linux-omap&m=126938456103707&w=2
+> 
