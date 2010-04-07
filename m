@@ -1,60 +1,73 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: ARM: OMAP: Overo: use new gpmc nand infrastructure
-Date: Wed, 07 Apr 2010 13:33:53 -0700
-Message-ID: <87k4sjatou.fsf@deeprootsystems.com>
-References: <h2p5e088bd91004071035pdae7ad0fk4add0731455d921c@mail.gmail.com>
-	<87wrwjcg98.fsf@deeprootsystems.com>
-	<u2t5e088bd91004071208o10ac1cf3seecb89b4e29c9ac4@mail.gmail.com>
+Subject: Re: linux-omap-pm troubles on Gumstix Overo
+Date: Wed, 07 Apr 2010 15:01:50 -0700
+Message-ID: <87ochuapm9.fsf@deeprootsystems.com>
+References: <4BBBF808.80000@gmail.com> <87tyrnfe8c.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:54123 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751683Ab0DGUeB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 16:34:01 -0400
-Received: by bwz1 with SMTP id 1so1219084bwz.21
-        for <linux-omap@vger.kernel.org>; Wed, 07 Apr 2010 13:33:59 -0700 (PDT)
-In-Reply-To: <u2t5e088bd91004071208o10ac1cf3seecb89b4e29c9ac4@mail.gmail.com> (Steve Sakoman's message of "Wed\, 7 Apr 2010 12\:08\:17 -0700")
+Received: from mail-pz0-f193.google.com ([209.85.222.193]:59472 "EHLO
+	mail-pz0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755960Ab0DGWBy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 18:01:54 -0400
+Received: by pzk31 with SMTP id 31so1655494pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 07 Apr 2010 15:01:53 -0700 (PDT)
+In-Reply-To: <87tyrnfe8c.fsf@deeprootsystems.com> (Kevin Hilman's message of "Wed\, 07 Apr 2010 08\:56\:35 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
+To: Peter Tseng <tsenpet09@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-Steve Sakoman <sakoman@gmail.com> writes:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> On Wed, Apr 7, 2010 at 10:41 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> Steve Sakoman <steve@sakoman.com> writes:
->>
->>> From: Steve Sakoman <steve@sakoman.com>
->>>
->>> Signed-off-by: Steve Sakoman <steve@sakoman.com>
->>
->> -ENOCHANGELOG
->>
->> Please add descriptive changelog.  Otherwise, looks like a good
->> cleanup.
+> Peter Tseng <tsenpet09@gmail.com> writes:
 >
-> I assume you looking for something like:
+>> Hey there,
+>>
+>> My name's Peter and I'm working with the linux-omap-pm kernel on the
+>> Gumstix Overo board for an academic project.
+>>
+>> Back when the linux-omap-pm branch was still on 2.6.33-rc8, I could
+>> compile and run the kernel on the Overo without any problems. Suspend to
+>> memory (via mem > /sys/power/state) worked just fine. Unfortunately,
+>> ever since 2.6.34-rcX releases started coming out, I have been running
+>> into problems:
+>>
+
+[...]
+
+>>
+>> I have no idea if it simply hangs here, or it is working and simply not
+>> printing anything to the serial console. (If it helps at all, the
+>> processor *seems* warm, but I cannot be sure of this).
 >
-> Restores nand functionality after changes in commit
-> 2f70a1e93657bea0baa7d449aa49e44a08582dc8
+> What's your commandline?
+>
+> Can you try enabling CONFIG_DEBUG_LL=y and and CONFIG_EARLY_PRINTK=y
+> and append 'earlyprintk' on the kernel command line.
+>
+> This will hopefully give more detailed reasons for the dump.
+>
+> I seem to have corrupted the flash on my overo so it's not booting
+> currently, but the current PM branch kernel does boot fine on my
+> beagle C3.
 
-Personally, I'd rather see a text summary of the commit (plus commit
-ID) so I don't have to follow a commit ID unless I really want the
-details.  Something like:
+OK, after some more digging, the Overo was hitting the same boot
+problem I've been trying to track on Zoom3.  I have now fixed this and
+the PM branch omap3_pm_defconfig should boot again for Overo and
+Zoom3.
 
-"A new GPMC NAND infrastructure was added by commit foo.  This patch
-updates Overo NAND functionally to work with those changes."
+I've updated the PM branch now which includes a fix for a problem
+introduced in in 2.6.34 due to early enabling of interrupts (see
+details on LKML[1]).  Interstingly, this was seen on PM branch where I
+use the SLUB allocator by default, and not on l-o master where the
+SLAB allocator is still used by default.
 
-or similar.  Since the changelogs become permanent git history, it's
-important that they be descriptive and useful long after the initial
-commits are done and we've all forgotten about the details.
+Please pull a fresh PM branch and see if you get it booting on Overo.
 
-> If so I'll add it after waiting a bit for any other comments.  I
-> assume you are also OK with the similar patch for Beagleboard?
+Thanks,
 
-Yes, with a good changelog.  ;)
+Kevin
 
 
--- Kevin (changelog cop) Hilman
+[1] http://lkml.org/lkml/2010/4/7/301
