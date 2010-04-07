@@ -1,51 +1,73 @@
 From: felipe.balbi@nokia.com
-Subject: [RFC PATCH 16/37] cbus: retu: split one MODULE_AUTHOR into several
-Date: Wed,  7 Apr 2010 19:04:07 +0300
-Message-ID: <1270656268-7034-17-git-send-email-felipe.balbi@nokia.com>
+Subject: [RFC PATCH 03/37] cbus: checkpatch.pl fix on cbus.c
+Date: Wed,  7 Apr 2010 19:03:54 +0300
+Message-ID: <1270656268-7034-4-git-send-email-felipe.balbi@nokia.com>
 References: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:58426 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:58469 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932570Ab0DGQFE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 12:05:04 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o37G4kc2004699
-	for <linux-omap@vger.kernel.org>; Wed, 7 Apr 2010 19:05:01 +0300
+	with ESMTP id S932570Ab0DGQFO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 12:05:14 -0400
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o37G58ee004996
+	for <linux-omap@vger.kernel.org>; Wed, 7 Apr 2010 19:05:12 +0300
 In-Reply-To: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-=46rom: Felipe Balbi <felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-it's easier to read anyways.
+make checkpatch.pl (almost) happy.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/cbus/retu.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/cbus/cbus.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index 7f7a31b..ae2e691 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
-@@ -478,4 +478,6 @@ module_exit(retu_exit);
-=20
- MODULE_DESCRIPTION("Retu ASIC control");
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Juha Yrj=F6l=E4, David Weinehall, and Mikko Ylinen");
-+MODULE_AUTHOR("Juha Yrj=F6l=E4");
-+MODULE_AUTHOR("David Weinehall");
-+MODULE_AUTHOR("Mikko Ylinen");
---=20
+diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
+index f454e77..e1be8c7 100644
+--- a/drivers/cbus/cbus.c
++++ b/drivers/cbus/cbus.c
+@@ -136,7 +136,7 @@ static u8 _cbus_receive_bit(struct cbus_host *host)
+ 	return ret;
+ }
+ 
+-#define cbus_send_bit(host, base, bit, set_to_input) _cbus_send_bit(host, bit, set_to_input)
++#define cbus_send_bit(h, b, bit, i) _cbus_send_bit(h, bit, i)
+ #define cbus_receive_bit(host, base) _cbus_receive_bit(host)
+ 
+ #endif
+@@ -232,7 +232,7 @@ static int __init cbus_bus_probe(struct platform_device *pdev)
+ 	struct cbus_host_platform_data *pdata = pdev->dev.platform_data;
+ 	int ret;
+ 
+-	chost = kzalloc(sizeof (*chost), GFP_KERNEL);
++	chost = kzalloc(sizeof(*chost), GFP_KERNEL);
+ 	if (chost == NULL)
+ 		return -ENOMEM;
+ 
+@@ -242,13 +242,16 @@ static int __init cbus_bus_probe(struct platform_device *pdev)
+ 	chost->dat_gpio = pdata->dat_gpio;
+ 	chost->sel_gpio = pdata->sel_gpio;
+ 
+-	if ((ret = gpio_request(chost->clk_gpio, "CBUS clk")) < 0)
++	ret = gpio_request(chost->clk_gpio, "CBUS clk");
++	if (ret < 0)
+ 		goto exit1;
+ 
+-	if ((ret = gpio_request(chost->dat_gpio, "CBUS data")) < 0)
++	ret = gpio_request(chost->dat_gpio, "CBUS data");
++	if (ret < 0)
+ 		goto exit2;
+ 
+-	if ((ret = gpio_request(chost->sel_gpio, "CBUS sel")) < 0)
++	ret = gpio_request(chost->sel_gpio, "CBUS sel");
++	if (ret < 0)
+ 		goto exit3;
+ 
+ 	gpio_direction_output(chost->clk_gpio, 0);
+-- 
 1.7.0.rc0.33.g7c3932
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
