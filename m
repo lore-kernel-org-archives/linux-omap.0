@@ -1,73 +1,63 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: linux-omap-pm troubles on Gumstix Overo
-Date: Wed, 07 Apr 2010 15:01:50 -0700
-Message-ID: <87ochuapm9.fsf@deeprootsystems.com>
-References: <4BBBF808.80000@gmail.com> <87tyrnfe8c.fsf@deeprootsystems.com>
+From: Tar Gz <bsdraisefromhell@gmail.com>
+Subject: Re: [ASK] OMAP 3430 LDP Trouble
+Date: Thu, 8 Apr 2010 06:13:22 +0700
+Message-ID: <k2wd9ca78711004071613pc6f9a3b9v24d05d19d0d8d513@mail.gmail.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0322418AC7@dbde02.ent.ti.com>
+	 <m2hce9ab5791004062218w5af7ea03rd9ec33ad7c0c72c9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f193.google.com ([209.85.222.193]:59472 "EHLO
-	mail-pz0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755960Ab0DGWBy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 18:01:54 -0400
-Received: by pzk31 with SMTP id 31so1655494pzk.33
-        for <linux-omap@vger.kernel.org>; Wed, 07 Apr 2010 15:01:53 -0700 (PDT)
-In-Reply-To: <87tyrnfe8c.fsf@deeprootsystems.com> (Kevin Hilman's message of "Wed\, 07 Apr 2010 08\:56\:35 -0700")
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:50353 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757004Ab0DGXNX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 19:13:23 -0400
+Received: by vws13 with SMTP id 13so780979vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Apr 2010 16:13:22 -0700 (PDT)
+In-Reply-To: <m2hce9ab5791004062218w5af7ea03rd9ec33ad7c0c72c9@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Tseng <tsenpet09@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+i don't know where i'm missing that,,can i'm using serial boot via
+hyperterminal windows?.. because i'm looking from many tutorial always
+serial boot from minicom linux
 
-> Peter Tseng <tsenpet09@gmail.com> writes:
+best regards,
+Aldyth M
+
+On 4/7/10, Vimal Singh <vimal.newwork@gmail.com> wrote:
+> On Wed, Apr 7, 2010 at 1:19 AM, Gadiyar, Anand <gadiyar@ti.com> wrote:
+>> Gadiyar, Anand wrote:
+>>> Tar Gz wrote:
+>>> > if NAND support is currently missing for OMAP3430 LDP,,how i boot my
+>>> > ldp again like before?...any idea?
 >
->> Hey there,
+> You can still have x-loader and u-boot on NAND (flash them from u-boot
+> prompt, once you get booted up by any other method. for example serial
+> boot as mentioned by Anand) and use NFS filesystem to work with.
+>
+> NAND driver support is missing in kernel, so, you will not be able to
+> see/mount NAND partitions from kernel.
+>
+> --
+> Regards,
+> Vimal Singh
+>
+>
+>>> <snip>
+>>>
+>>> If I understand you correctly, you now have a non-booting
+>>> LDP, and want
+>>> to get a bootloader flashed on it?
+>>>
+>>> You may need to do a serial boot.
+>>>
+>>> Maybe this (old, and no longer maintained) page will help?
+>>>
+>>> <https://gforge.ti.com/gf/project/omapzoom/wiki/?pagename=BootingAndFlashing>
+>>>
 >>
->> My name's Peter and I'm working with the linux-omap-pm kernel on the
->> Gumstix Overo board for an academic project.
->>
->> Back when the linux-omap-pm branch was still on 2.6.33-rc8, I could
->> compile and run the kernel on the Overo without any problems. Suspend to
->> memory (via mem > /sys/power/state) worked just fine. Unfortunately,
->> ever since 2.6.34-rcX releases started coming out, I have been running
->> into problems:
->>
-
-[...]
-
->>
->> I have no idea if it simply hangs here, or it is working and simply not
->> printing anything to the serial console. (If it helps at all, the
->> processor *seems* warm, but I cannot be sure of this).
+>> Or this one:
+>> <http://omappedia.org/wiki/Zoom_Flashing#Serial_Boot_Procedure>
 >
-> What's your commandline?
->
-> Can you try enabling CONFIG_DEBUG_LL=y and and CONFIG_EARLY_PRINTK=y
-> and append 'earlyprintk' on the kernel command line.
->
-> This will hopefully give more detailed reasons for the dump.
->
-> I seem to have corrupted the flash on my overo so it's not booting
-> currently, but the current PM branch kernel does boot fine on my
-> beagle C3.
-
-OK, after some more digging, the Overo was hitting the same boot
-problem I've been trying to track on Zoom3.  I have now fixed this and
-the PM branch omap3_pm_defconfig should boot again for Overo and
-Zoom3.
-
-I've updated the PM branch now which includes a fix for a problem
-introduced in in 2.6.34 due to early enabling of interrupts (see
-details on LKML[1]).  Interstingly, this was seen on PM branch where I
-use the SLUB allocator by default, and not on l-o master where the
-SLAB allocator is still used by default.
-
-Please pull a fresh PM branch and see if you get it booting on Overo.
-
-Thanks,
-
-Kevin
-
-
-[1] http://lkml.org/lkml/2010/4/7/301
