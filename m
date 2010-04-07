@@ -1,67 +1,48 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCH 0/5] OMAP: RX51: Add LCD Panel Support for N900
-Date: Wed, 07 Apr 2010 10:38:57 +0300
-Message-ID: <4BBC3691.3030505@nokia.com>
-References: <1269338191-10734-1-git-send-email-roger.quadros@nokia.com>	<87pr2datft.fsf@small.ssi.corp> <4BBB03F2.5050706@nokia.com>	<87iq84cnzg.fsf@small.ssi.corp>	<1270618692.2447.39.camel@tubuntu.research.nokia.com> <87r5mrzpe4.fsf@small.ssi.corp>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/6] omap4 i2c board support and fixes
+Date: Wed,  7 Apr 2010 13:17:20 +0530
+Message-ID: <1270626446-10841-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:65291 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013Ab0DGHjg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 03:39:36 -0400
-In-Reply-To: <87r5mrzpe4.fsf@small.ssi.corp>
+Received: from bear.ext.ti.com ([192.94.94.41]:58942 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751033Ab0DGHrc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Apr 2010 03:47:32 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o377lS35028864
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 7 Apr 2010 02:47:31 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Arnaud Ebalard <arno@natisbad.org>
-Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi,
+This series mainly adds I2C board data for OMAP4430 SDP and few
+needed fixes. I have made this into one series just for simplcity
+otherwise couple patches are independent. The intent is to get it merged
+in linux-omap master for testing. The needed I2C driver support is 
+already merged in l-o master
 
-ext Arnaud Ebalard wrote:
-> Hi Tomi,
-> 
-> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
-> 
->> On Tue, 2010-04-06 at 22:41 +0200, ext Arnaud Ebalard wrote:
->>
->>> For the records, just in case someone wants to do the same, I had to
->>> use: 
->>>
->>>    /sbin/getty 115200 tty0 -n -l /bin/sh
->>>
->>> I also had to set CONFIG_KEYBOARD_TWL4030 to get the keyboard
->>> working. Any reason for that option not be enabled by default in
->>> rx51_defconfig?
->>>
->>> Additionally, after something like 25 seconds, the screen goes black and
->>> the device stops. Any clue? Can be panel realted?
->> I'm guessing here, but it could be the HW watchdog kicking in if by
->> "device stops" you mean that serial etc also stops. Although it should
->> reboot, not stop...
-> 
-> Well, it's a stock N900, not a development board so I don't have a
-> serial; only the screen and the led in the left corner below the
-> screen. By "device stops" I mean that the screen and the led (which was
-> previously on) get dark and stay as is.
-> 
-> I also suspected a HW watchdog but 25 seconds did not sound like it. I
-> built a kernel without HW watchdog: same result.
-> 
-> Any idea regarding how I could debug that?
-> 
-You can try disabling the hw watchdogs via flasher.
+It's generated against latest linux-omap master and tested with
+omap4430 and omap3430 sdps with regular and multi-omap defconfig
 
-sudo flasher --set-rd-flags=no-omap-wd,no-ext-wd,no-lifeguard-reset
+Balaji T K (2):
+  omap4: add i2c1 peripherals data
+  omap4: Enable RTC and regulator support
 
-This should prevent any watchdog resets.
+Richard Woodruff (1):
+  omap4: Fix build break when used with gcc-4.4.1 (2009-q3)
 
+Santosh Shilimkar (3):
+  omap4: Fix WDT Kconfig
+  omap4: Fix McBSP4 base address
+  omap4: Add i2c board support on omap4430 sdp platform
 
-To restore to factory settings do
+ arch/arm/configs/omap_4430sdp_defconfig |   39 ++++++-
+ arch/arm/mach-omap2/board-4430sdp.c     |  187 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap-headsmp.S      |    6 +-
+ arch/arm/mach-omap2/omap44xx-smc.S      |    2 +-
+ arch/arm/plat-omap/i2c.c                |   21 +++-
+ arch/arm/plat-omap/include/plat/mcbsp.h |    2 +-
+ drivers/watchdog/Kconfig                |    6 +-
+ 7 files changed, 249 insertions(+), 14 deletions(-)
 
-sudo flasher --disable-rd-mode
-
-
-cheers,
--roger
