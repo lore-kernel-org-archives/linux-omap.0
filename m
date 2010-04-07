@@ -1,16 +1,16 @@
 From: felipe.balbi@nokia.com
-Subject: [RFC PATCH 12/37] cbus: introduce cbus_send/receive_data wrappers
-Date: Wed,  7 Apr 2010 19:04:03 +0300
-Message-ID: <1270656268-7034-13-git-send-email-felipe.balbi@nokia.com>
+Subject: [RFC PATCH 37/37] cbus: retu-wdt: misc cleanup on retu-wdt driver
+Date: Wed,  7 Apr 2010 19:04:28 +0300
+Message-ID: <1270656268-7034-38-git-send-email-felipe.balbi@nokia.com>
 References: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62328 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932823Ab0DGQFR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 12:05:17 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o37G56Aw007315
-	for <linux-omap@vger.kernel.org>; Wed, 7 Apr 2010 11:05:17 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:42778 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932693Ab0DGQFm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 12:05:42 -0400
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o37G5XCD030894
+	for <linux-omap@vger.kernel.org>; Wed, 7 Apr 2010 19:05:40 +0300
 In-Reply-To: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,170 +19,89 @@ Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
 From: Felipe Balbi <felipe.balbi@nokia.com>
 
-encapsulate the for loop on those wrappers and
-make the code easier to follow.
+a trivial cleanup on the driver. No functional changes.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/cbus/cbus.c |   96 +++++++++++++++++++++++++++++++--------------------
- 1 files changed, 58 insertions(+), 38 deletions(-)
+ drivers/cbus/retu-wdt.c |   25 +++++++++++--------------
+ 1 files changed, 11 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
-index 0791251..bae7b3e 100644
---- a/drivers/cbus/cbus.c
-+++ b/drivers/cbus/cbus.c
-@@ -58,7 +58,8 @@ struct cbus_host {
- 
- static struct cbus_host *cbus_host;
- 
--static int cbus_send_bit(struct cbus_host *host, int bit, int set_to_input)
-+static int cbus_send_bit(struct cbus_host *host, unsigned bit,
-+		unsigned input)
- {
- 	int ret = 0;
- 
-@@ -66,7 +67,7 @@ static int cbus_send_bit(struct cbus_host *host, int bit, int set_to_input)
- 	gpio_set_value(host->clk_gpio, 1);
- 
- 	/* The data bit is read on the rising edge of CLK */
--	if (set_to_input)
-+	if (input)
- 		ret = gpio_direction_input(host->dat_gpio);
- 
- 	gpio_set_value(host->clk_gpio, 0);
-@@ -74,6 +75,23 @@ static int cbus_send_bit(struct cbus_host *host, int bit, int set_to_input)
- 	return ret;
+diff --git a/drivers/cbus/retu-wdt.c b/drivers/cbus/retu-wdt.c
+index 53bec32..1014165 100644
+--- a/drivers/cbus/retu-wdt.c
++++ b/drivers/cbus/retu-wdt.c
+@@ -225,7 +225,7 @@ static int retu_wdt_ioctl(struct inode *inode, struct file *file,
  }
  
-+static int cbus_send_data(struct cbus_host *host, unsigned data, unsigned len,
-+		unsigned input)
-+{
-+	int ret = 0;
-+	int i;
-+
-+	for (i = len; i > 0; i--) {
-+		ret = cbus_send_bit(host, data & (1 << (i - 1)),
-+				input && (i == 1));
-+		if (ret < 0)
-+			goto out;
-+	}
-+
-+out:
-+	return ret;
-+}
-+
- static int cbus_receive_bit(struct cbus_host *host)
+ /* Start kicking retu watchdog until user space starts doing the kicking */
+-static int __init retu_wdt_ping(void)
++static int __devinit retu_wdt_ping(void)
  {
- 	int ret;
-@@ -88,12 +106,31 @@ out:
- 	return ret;
+ 	int r;
+ 
+@@ -243,11 +243,11 @@ static int __init retu_wdt_ping(void)
  }
  
-+static int cbus_receive_data(struct cbus_host *host, unsigned len)
-+{
-+	int ret = 0;
-+	int i;
-+
-+	for (i = 16; i > 0; i--) {
-+		int bit = cbus_receive_bit(host);
-+
-+		if (bit < 0)
-+			goto out;
-+
-+		if (bit)
-+			ret |= 1 << (i - 1);
-+	}
-+
-+out:
-+	return ret;
-+}
-+
- static int cbus_transfer(struct cbus_host *host, unsigned rw, unsigned dev,
- 		unsigned reg, unsigned data)
- {
- 	unsigned long flags;
-+	int input = 0;
- 	int ret = 0;
--	int i;
+ static const struct file_operations retu_wdt_fops = {
+-	.owner = THIS_MODULE,
+-	.write = retu_wdt_write,
+-	.ioctl = retu_wdt_ioctl,
+-	.open = retu_wdt_open,
+-	.release = retu_wdt_release,
++	.owner		= THIS_MODULE,
++	.write		= retu_wdt_write,
++	.ioctl		= retu_wdt_ioctl,
++	.open		= retu_wdt_open,
++	.release	= retu_wdt_release,
+ };
  
- 	/* We don't want interrupts disturbing our transfer */
- 	spin_lock_irqsave(&host->lock, flags);
-@@ -105,12 +142,10 @@ static int cbus_transfer(struct cbus_host *host, unsigned rw, unsigned dev,
- 	gpio_direction_output(host->dat_gpio, 1);
+ /*----------------------------------------------------------------------------*/
+@@ -269,15 +269,13 @@ static int __devinit retu_wdt_probe(struct platform_device *pdev)
  
- 	/* Send the device address */
--	for (i = 3; i > 0; i--) {
--		ret = cbus_send_bit(host, dev & (1 << (i - 1)), 0);
--		if (ret < 0) {
--			dev_dbg(host->dev, "failed sending device addr\n");
--			goto out;
--		}
-+	ret = cbus_send_data(host, dev, 3, 0);
-+	if (ret < 0) {
-+		dev_dbg(host->dev, "failed sending device addr\n");
-+		goto out;
+ 	ret = device_create_file(&pdev->dev, &dev_attr_period);
+ 	if (ret) {
+-		printk(KERN_ERR "retu_wdt_probe: Error creating "
+-					"sys device file: period\n");
++		dev_err(&pdev->dev, "Error creating sysfs period\n");
+ 		goto free1;
  	}
  
- 	/* Send the rw flag */
-@@ -121,44 +156,29 @@ static int cbus_transfer(struct cbus_host *host, unsigned rw, unsigned dev,
+ 	ret = device_create_file(&pdev->dev, &dev_attr_counter);
+ 	if (ret) {
+-		printk(KERN_ERR "retu_wdt_probe: Error creating "
+-					"sys device file: counter\n");
++		dev_err(&pdev->dev, "Error creating sysfs counter\n");
+ 		goto free2;
  	}
  
- 	/* Send the register address */
--	for (i = 5; i > 0; i--) {
--		int set_to_input = 0;
--
--		if (rw && i == 1)
--			set_to_input = 1;
-+	if (rw)
-+		input = true;
- 
--		ret = cbus_send_bit(host, reg & (1 << (i - 1)), set_to_input);
--		if (ret < 0) {
--			dev_dbg(host->dev, "failed sending register addr\n");
--			goto out;
--		}
-+	ret = cbus_send_data(host, reg, 5, input);
-+	if (ret < 0) {
-+		dev_dbg(host->dev, "failed sending register addr\n");
-+		goto out;
+@@ -298,8 +296,7 @@ static int __devinit retu_wdt_probe(struct platform_device *pdev)
+ 	ret = retu_modify_counter(counter_param);
+ 	if (ret == -EINVAL) {
+ 		ret = retu_modify_counter(RETU_WDT_DEFAULT_TIMER);
+-		printk(KERN_INFO
+-		       "retu_wdt_init: Intializing to default value\n");
++		dev_dbg(&pdev->dev, "Initializing to default value\n");
  	}
  
- 	if (!rw) {
--		for (i = 16; i > 0; i--) {
--			ret = cbus_send_bit(host, data & (1 << (i - 1)), 0);
--			if (ret < 0) {
--				dev_dbg(host->dev, "failed sending data\n");
--				goto out;
--			}
-+		ret = cbus_send_data(host, data, 16, 0);
-+		if (ret < 0) {
-+			dev_dbg(host->dev, "failed sending data\n");
-+			goto out;
- 		}
- 	} else {
- 		gpio_set_value(host->clk_gpio, 1);
+ 	/* Kick the watchdog for kernel booting to finish */
+@@ -307,7 +304,7 @@ static int __devinit retu_wdt_probe(struct platform_device *pdev)
  
--		for (i = 16; i > 0; i--) {
--			u8 bit = cbus_receive_bit(host);
--
--			if (bit < 0) {
--				dev_dbg(host->dev, "failed receiving data\n");
--				goto out;
--			}
--
--			if (bit)
--				data |= 1 << (i - 1);
-+		ret = cbus_receive_data(host, 16);
-+		if (ret < 0) {
-+			dev_dbg(host->dev, "failed receiving data\n");
-+			goto out;
- 		}
--
--		/* return the data received */
--		ret = data;
+ 	ret = retu_wdt_ping();
+ 	if (ret < 0) {
+-		printk(KERN_INFO "retu_wdt_init: Failed to ping\n");
++		dev_err(&pdev->dev, "Failed to ping\n");
+ 		goto free4;
  	}
  
- 	/* Indicate end of transfer, SEL goes up until next transfer */
+@@ -333,7 +330,7 @@ static int __devexit retu_wdt_remove(struct platform_device *pdev)
+ 	struct retu_wdt_dev *wdev;
+ 
+ 	wdev = platform_get_drvdata(pdev);
+-	misc_deregister(&(wdev->retu_wdt_miscdev));
++	misc_deregister(&wdev->retu_wdt_miscdev);
+ 	device_remove_file(&pdev->dev, &dev_attr_period);
+ 	device_remove_file(&pdev->dev, &dev_attr_counter);
+ 	kfree(wdev);
 -- 
 1.7.0.rc0.33.g7c3932
 
