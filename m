@@ -1,16 +1,16 @@
 From: felipe.balbi@nokia.com
-Subject: [RFC PATCH 35/37] cbus: retu-wdt: remove the platform_device
-Date: Wed,  7 Apr 2010 19:04:26 +0300
-Message-ID: <1270656268-7034-36-git-send-email-felipe.balbi@nokia.com>
+Subject: [RFC PATCH 25/37] cbus: retu: allocate platform_device for Retu's children
+Date: Wed,  7 Apr 2010 19:04:16 +0300
+Message-ID: <1270656268-7034-26-git-send-email-felipe.balbi@nokia.com>
 References: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:58508 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932860Ab0DGQF2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 12:05:28 -0400
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o37G58f2004996
-	for <linux-omap@vger.kernel.org>; Wed, 7 Apr 2010 19:05:26 +0300
+Received: from smtp.nokia.com ([192.100.105.134]:62354 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932570Ab0DGQFe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 12:05:34 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o37G5Psp007673
+	for <linux-omap@vger.kernel.org>; Wed, 7 Apr 2010 11:05:33 -0500
 In-Reply-To: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,97 +19,106 @@ Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
 From: Felipe Balbi <felipe.balbi@nokia.com>
 
-it now comes from retu.c, so use that.
+after this patch, Retu's children can start moving to
+platform_driver infrastructure.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/cbus/retu-wdt.c |   34 +---------------------------------
- 1 files changed, 1 insertions(+), 33 deletions(-)
+ drivers/cbus/retu.c |   74 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 74 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/cbus/retu-wdt.c b/drivers/cbus/retu-wdt.c
-index 380fae6..763b34f 100644
---- a/drivers/cbus/retu-wdt.c
-+++ b/drivers/cbus/retu-wdt.c
-@@ -32,7 +32,6 @@
- #include <linux/completion.h>
- #include <linux/errno.h>
- #include <linux/moduleparam.h>
--#include <linux/platform_device.h>
- #include <linux/miscdevice.h>
- #include <linux/watchdog.h>
+diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
+index ea09c17..bc81a9b 100644
+--- a/drivers/cbus/retu.c
++++ b/drivers/cbus/retu.c
+@@ -330,6 +330,67 @@ static void retu_power_off(void)
+ }
  
-@@ -48,7 +47,6 @@
- #define RETU_WDT_DEFAULT_TIMER 32
- #define RETU_WDT_MAX_TIMER 63
+ /**
++ * retu_allocate_child - Allocates one Retu child
++ * @name: name of new child
++ * @parent: parent device for this child
++ */
++static struct device *retu_allocate_child(char *name, struct device *parent)
++{
++	struct platform_device		*pdev;
++	int				status;
++
++	pdev = platform_device_alloc(name, -1);
++	if (!pdev) {
++		dev_dbg(parent, "can't allocate %s\n", name);
++		goto err;
++	}
++
++	pdev->dev.parent = parent;
++
++	status = platform_device_add(pdev);
++	if (status < 0) {
++		dev_dbg(parent, "can't add %s\n", name);
++		goto err;
++	}
++
++	return &pdev->dev;
++
++err:
++	platform_device_put(pdev);
++	return NULL;
++}
++
++/**
++ * retu_allocate_children - Allocates Retu's children
++ */
++static int retu_allocate_children(struct device *parent)
++{
++	struct device	*child;
++
++	child = retu_allocate_child("retu-pwrbutton", parent);
++	if (!child)
++		return -ENOMEM;
++
++	child = retu_allocate_child("retu-headset", parent);
++	if (!child)
++		return -ENOMEM;
++
++	child = retu_allocate_child("retu-rtc", parent);
++	if (!child)
++		return -ENOMEM;
++
++	child = retu_allocate_child("retu-user", parent);
++	if (!child)
++		return -ENOMEM;
++
++	child = retu_allocate_child("retu-wdt", parent);
++	if (!child)
++		return -ENOMEM;
++
++	return 0;
++}
++
++/**
+  * retu_probe - Probe for Retu ASIC
+  * @dev: the Retu device
+  *
+@@ -400,6 +461,19 @@ static int __devinit retu_probe(struct platform_device *pdev)
+ 	}
+ #endif
  
--static struct completion retu_wdt_completion;
- static DEFINE_MUTEX(retu_wdt_mutex);
- 
- /* Current period of watchdog */
-@@ -321,21 +319,8 @@ static int __devexit retu_wdt_remove(struct device *dev)
++	ret = retu_allocate_children(&pdev->dev);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Unable to allocate Retu children\n");
++#ifdef CONFIG_CBUS_RETU_USER
++		retu_user_cleanup();
++#endif
++		retu_write_reg(RETU_REG_IMR, 0xffff);
++		free_irq(gpio_to_irq(retu_irq_pin), 0);
++		gpio_free(retu_irq_pin);
++		tasklet_kill(&retu_tasklet);
++		return ret;
++	}
++
  	return 0;
  }
  
--static void retu_wdt_device_release(struct device *dev)
--{
--	complete(&retu_wdt_completion);
--}
--
--static struct platform_device retu_wdt_device = {
--	.name = "retu-watchdog",
--	.id = -1,
--	.dev = {
--		.release = retu_wdt_device_release,
--	},
--};
--
- static struct device_driver retu_wdt_driver = {
--	.name = "retu-watchdog",
-+	.name = "retu-wdt",
- 	.bus = &platform_bus_type,
- 	.probe = retu_wdt_probe,
- 	.remove = __devexit_p(retu_wdt_remove),
-@@ -349,16 +334,10 @@ static int __init retu_wdt_init(void)
- 	if (!ret)
- 		return -ENODEV;
- 
--	init_completion(&retu_wdt_completion);
--
- 	ret = driver_register(&retu_wdt_driver);
- 	if (ret)
- 		return ret;
- 
--	ret = platform_device_register(&retu_wdt_device);
--	if (ret)
--		goto exit1;
--
- 	/* passed as module parameter? */
- 	ret = retu_modify_counter(counter_param);
- 	if (ret == -EINVAL) {
-@@ -367,23 +346,12 @@ static int __init retu_wdt_init(void)
- 		       "retu_wdt_init: Intializing to default value\n");
- 	}
- 
--	printk(KERN_INFO "Retu watchdog driver initialized\n");
--
- 	return retu_wdt_ping();
--
--exit1:
--	driver_unregister(&retu_wdt_driver);
--	wait_for_completion(&retu_wdt_completion);
--
--	return ret;
- }
- 
- static void __exit retu_wdt_exit(void)
- {
--	platform_device_unregister(&retu_wdt_device);
- 	driver_unregister(&retu_wdt_driver);
--
--	wait_for_completion(&retu_wdt_completion);
- }
- 
- module_init(retu_wdt_init);
 -- 
 1.7.0.rc0.33.g7c3932
 
