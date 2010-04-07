@@ -1,44 +1,53 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/2] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver
- on top of DSS2
-Date: Wed, 7 Apr 2010 15:30:44 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DF7F9CD@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1270115880-21404-2-git-send-email-hvaibhav@ti.com>
- <201004062028.54365.hverkuil@xs4all.nl>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/3] omap: fix clocksource_32k to start from zero
+Date: Wed, 7 Apr 2010 13:02:31 +0300
+Message-ID: <20100407100231.GY16297@nokia.com>
+References: <20100407072102.GU16297@nokia.com>
+ <1270634244-22741-1-git-send-email-felipe.balbi@nokia.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60847 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757463Ab0DGKBP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 06:01:15 -0400
-In-Reply-To: <201004062028.54365.hverkuil@xs4all.nl>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:30961 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756143Ab0DGKDR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 06:03:17 -0400
+Content-Disposition: inline
+In-Reply-To: <1270634244-22741-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Karicheri, Muralidharan" <m-karicheri2@ti.com>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Koskinen Aaro (Nokia-D/Helsinki)" <aaro.koskinen@nokia.com>
 
+Hi,
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, April 06, 2010 11:59 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; Karicheri, Muralidharan;
-> mchehab@redhat.com; linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: Re: [PATCH 1/2] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver
-> on top of DSS2
-> 
-> Hi Vaibhav,
-> 
-> Here is my review. I've tried to avoid repeating the points Murali made.
+On Wed, Apr 07, 2010 at 11:57:22AM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
+>From: Aaro Koskinen <aaro.koskinen@nokia.com>
+>
+>When the 32k sync timer is used for sched_clock(), it should count
+>time from the kernel boot (clocksource init) instead of the last HW
+>reset. Otherwise printk.time values will jump suddenly during the boot:
+>
+>	[    0.000000] calling  omap2_clk_arch_init+0x0/0x138 @ 1
+>	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned -22 after 0 usecs
+>	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned with error code -22
+>	[    0.000000] calling  omap_init_clocksource_32k+0x0/0x98 @ 1
+>	[  508.697937] initcall omap_init_clocksource_32k+0x0/0x98 returned 0 after 0 usecs
+>	[  508.697967] calling  omap_init_devices+0x0/0x38 @ 1
+>	[  508.698425] initcall omap_init_devices+0x0/0x38 returned 0 after 0 usecs
+>
+>This will confuse tools such as scripts/bootgraph.pl.
+>
+>Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+>Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 
+these 3 patches are also available at:
 
-[Hiremath, Vaibhav] Thanks Hans, I do agree with all of them. I have already incorporated all of the changes mentioned by you and Murali and posted it to list.
+http://gitorious.org/usb/usb/commits/clksource
 
-Thanks,
-Vaibhav
+to pull in the patches use:
 
-<snip>
+git pull git://gitorious.org/usb/usb.git clksource
+
+-- 
+balbi
