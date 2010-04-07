@@ -1,60 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
-Date: Wed, 7 Apr 2010 04:49:39 -0700
-Message-ID: <20100407114938.GF7153@atomide.com>
-References: <37310.192.168.10.89.1270081542.squirrel@dbdmail.itg.ti.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B030D32CEE8@dbde02.ent.ti.com>
- <008601cad1bd$6d0022b0$544ff780@am.dhcp.ti.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B030D32D372@dbde02.ent.ti.com>
- <4BB51740.2060802@ti.com>
- <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
+Subject: Re: [PATCH] [PATCH v4 1/5] omap3: pm: fix for twl4030 script load
+Date: Wed, 7 Apr 2010 06:42:11 -0700
+Message-ID: <20100407134211.GJ7153@atomide.com>
+References: <1270030828-2032-1-git-send-email-leslyam@ti.com>
+ <20100402102240.GE8010@sortiz.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53066 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756943Ab0DGNmM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Apr 2010 09:42:12 -0400
 Content-Disposition: inline
-In-Reply-To: <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Nishanth Menon' <nm@ti.com>, "'Ghorai, Sukumar'" <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+In-Reply-To: <20100402102240.GE8010@sortiz.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Lesly A M <leslyam@ti.com>, linux-omap@vger.kernel.org, Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-* Madhusudhan <madhu.cr@ti.com> [100401 15:54]:
+* Samuel Ortiz <sameo@linux.intel.com> [100402 03:18]:
 
 <snip>
 
-> > Ref [1] I believe tony has the brand new zoom board - I think your
-> > assumption here might be flawed..
-> > 
+> Tony, I think it would make sense for this patchset to go through the
+> linux-omap tree.
+> If you agree, please add my:
+> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 > 
-> Wait, I just looked up the serial number on the board. The one I was using
-> is a pilot version where this problem exists.
-> 
-> I happen to get an other board which is production unit with ser # 1013089
-> Rev B. The eMMC on this board has no issue. It reports the EXT_CSD Rev 2
-> which is correct and works fine.
-> 
-> http://omappedia.org/wiki/Zoom_Resources
-> 
-> There is a table here which could help.
-> 
-> Tony, do you care to just look up the serial number of your board?
+> to the patch below.
 
-Sorry for the delay in replying, I've been travelling for a few weeks
-and been in meetings quite a bit. Anyways, it's a 1013037 REV A board,
-which seems to be production in the table above.
- 
-> But again there are several boards out there which could have this
-> non-working eMMC. So what do we do?? It does not make sense to keep
-> something enabled which does not work.
+I'm pretty much overwhelmed already with all the patches already,
+so I'd rather stay out of the drivers/* path for now thanks.
 
-There's arm kernel parameter for ATAG_REVISION that can be passed from
-bootloader and then the board-*.c code can initialize things accordingly
-based on the board revision.
+How about if somebody familiar with the twl hardware and driver
+sets up the drivers/mfd/twl* patches to some git tree? Then we
+keep merging that into linux-omap master branch for testing. And
+then Samuel pulls it as needed and sends them to Linus.
+
+Maybe Peter p2 De Schrijver could do it? Peter knows a lot about
+this driver and hardware, deals with it on regular basis, and
+wrote a lot of the code that Amit later got merged upstream.
+
+Comments?
 
 Regards,
 
 Tony
-
-
-> > [1] http://marc.info/?l=linux-omap&m=126938456103707&w=2
-> 
