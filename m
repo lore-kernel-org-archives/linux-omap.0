@@ -1,40 +1,95 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PM][PATCH 0/4] OMAP3: Serial Misc fixes
-Date: Thu,  8 Apr 2010 12:54:05 -0500
-Message-ID: <1270749249-14041-1-git-send-email-nm@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] rwsem generic spinlock: use IRQ save/restore spinlocks
+Date: Thu,  8 Apr 2010 10:55:50 -0700
+Message-ID: <1270749350-25152-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45735 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932978Ab0DHRy0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Apr 2010 13:54:26 -0400
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:48459 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755949Ab0DHR4A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 13:56:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Deepak K <deepak.k@ti.com>, Govindraj R <govindraj.raja@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Rabin Vincent <rabin@rab.in>, "H. Peter Anvin" <hpa@zytor.com>
 
-Hi All,
+rwsems can be used with IRQs disabled, particularily in early boot
+before IRQs are enabled.  Currently the spin_unlock_irq() usage in the
+slow-path will unconditionally enable interrupts and cause problems
+early in boot where interrupts are not yet initialized or enabled.
 
-Starting off from Android kernel, found a few fixes whic have
-been backported to l-o pm branch and a basic sanity tests run
-against SDP3430/SDP3630.
+This patch uses save/restore versions of IRQ spinlocks in the slowpath
+to ensure interrupts are not unintentionally enabled in the case where
+the rwsem is used with IRQs disabled.
 
-Deepak K (1):
-  OMAP3: Serial: Errata i202: fix for MDR1 access
+Idea for this fix suggested by H. Peter Anvin.
 
-Govindraj R (1):
-  OMAP3: Serial: Add context save and restore for mcr
+Tested on TI OMAP3-based platform (ARM Cortex-A8)
 
-Nishanth Menon (2):
-  OMAP3: Serial: remove initialization sparse warnings
-  OMAP3: Serial: kill dev_attr_sleep_timeout sparse warn
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Rabin Vincent <rabin@rab.in>
+Cc: H. Peter Anvin <hpa@zytor.com>
+LKML-Reference: <alpine.LFD.2.00.1004010904540.3707@i5.linux-foundation.org>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+---
+ lib/rwsem-spinlock.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
- arch/arm/mach-omap2/serial.c |   31 +++++++++++++++++++++++++++----
- 1 files changed, 27 insertions(+), 4 deletions(-)
+diff --git a/lib/rwsem-spinlock.c b/lib/rwsem-spinlock.c
+index ccf95bf..ffc9fc7 100644
+--- a/lib/rwsem-spinlock.c
++++ b/lib/rwsem-spinlock.c
+@@ -143,13 +143,14 @@ void __sched __down_read(struct rw_semaphore *sem)
+ {
+ 	struct rwsem_waiter waiter;
+ 	struct task_struct *tsk;
++	unsigned long flags;
+ 
+-	spin_lock_irq(&sem->wait_lock);
++	spin_lock_irqsave(&sem->wait_lock, flags);
+ 
+ 	if (sem->activity >= 0 && list_empty(&sem->wait_list)) {
+ 		/* granted */
+ 		sem->activity++;
+-		spin_unlock_irq(&sem->wait_lock);
++		spin_unlock_irqrestore(&sem->wait_lock, flags);
+ 		goto out;
+ 	}
+ 
+@@ -164,7 +165,7 @@ void __sched __down_read(struct rw_semaphore *sem)
+ 	list_add_tail(&waiter.list, &sem->wait_list);
+ 
+ 	/* we don't need to touch the semaphore struct anymore */
+-	spin_unlock_irq(&sem->wait_lock);
++	spin_unlock_irqrestore(&sem->wait_lock, flags);
+ 
+ 	/* wait to be given the lock */
+ 	for (;;) {
+@@ -209,13 +210,14 @@ void __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
+ {
+ 	struct rwsem_waiter waiter;
+ 	struct task_struct *tsk;
++	unsigned long flags;
+ 
+-	spin_lock_irq(&sem->wait_lock);
++	spin_lock_irqsave(&sem->wait_lock, flags);
+ 
+ 	if (sem->activity == 0 && list_empty(&sem->wait_list)) {
+ 		/* granted */
+ 		sem->activity = -1;
+-		spin_unlock_irq(&sem->wait_lock);
++		spin_unlock_irqrestore(&sem->wait_lock, flags);
+ 		goto out;
+ 	}
+ 
+@@ -230,7 +232,7 @@ void __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
+ 	list_add_tail(&waiter.list, &sem->wait_list);
+ 
+ 	/* we don't need to touch the semaphore struct anymore */
+-	spin_unlock_irq(&sem->wait_lock);
++	spin_unlock_irqrestore(&sem->wait_lock, flags);
+ 
+ 	/* wait to be given the lock */
+ 	for (;;) {
+-- 
+1.7.0.2
 
-Regards,
-Nishanth Menon
-
-Cc: Deepak K <deepak.k@ti.com>
-Cc: Govindraj R <govindraj.raja@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tero Kristo <tero.kristo@nokia.com>
