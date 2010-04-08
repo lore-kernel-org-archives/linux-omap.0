@@ -1,7 +1,7 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 13/19] DSPBRIDGE: remove wdt3 from dsp control
-Date: Thu,  8 Apr 2010 18:16:02 -0500
-Message-ID: <1270768568-10712-14-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 17/19] DSPBRIDGE: Balance the number of enable/disable
+Date: Thu,  8 Apr 2010 18:16:06 -0500
+Message-ID: <1270768568-10712-18-git-send-email-omar.ramirez@ti.com>
 References: <1270768568-10712-1-git-send-email-omar.ramirez@ti.com>
  <1270768568-10712-2-git-send-email-omar.ramirez@ti.com>
  <1270768568-10712-3-git-send-email-omar.ramirez@ti.com>
@@ -15,57 +15,108 @@ References: <1270768568-10712-1-git-send-email-omar.ramirez@ti.com>
  <1270768568-10712-11-git-send-email-omar.ramirez@ti.com>
  <1270768568-10712-12-git-send-email-omar.ramirez@ti.com>
  <1270768568-10712-13-git-send-email-omar.ramirez@ti.com>
+ <1270768568-10712-14-git-send-email-omar.ramirez@ti.com>
+ <1270768568-10712-15-git-send-email-omar.ramirez@ti.com>
+ <1270768568-10712-16-git-send-email-omar.ramirez@ti.com>
+ <1270768568-10712-17-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59845 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59843 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933762Ab0DHW7h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Apr 2010 18:59:37 -0400
-In-Reply-To: <1270768568-10712-13-git-send-email-omar.ramirez@ti.com>
+	id S933768Ab0DHW7g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Apr 2010 18:59:36 -0400
+In-Reply-To: <1270768568-10712-17-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, Guzman Lugo Fernando <x0095840@ti.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-WDT3 is used as a way to detect dsp hangs, as of now its
-control is left to arm side driver, so, no requests should
-be received by the dsp to enable/disable this clock.
+This patch ensure a balanced number of enable/disable
+calls is made.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/services/clk.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/dsp/bridge/services/clk.c |   37 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
-index ae46e47..a7d82bd 100644
+index 711bae4..8f539fd 100644
 --- a/drivers/dsp/bridge/services/clk.c
 +++ b/drivers/dsp/bridge/services/clk.c
-@@ -66,8 +66,6 @@ struct dsp_clk_t {
- static struct omap_dm_timer *timer[4];
+@@ -69,6 +69,23 @@ struct dsp_ssi {
  
- static struct dsp_clk_t dsp_clks[] = {
--	{NULL, "wdt_fck", 3},
--	{NULL, "wdt_ick", 3},
- 	{NULL, "ssi_ssr_sst_fck", -1},
- 	{NULL, "ssi_ick", -1},
- };
-@@ -165,6 +163,8 @@ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
- 		omap_mcbsp_request(MCBSP_ID(clk_id));
- 		break;
- 	case WDT_CLK:
-+		dev_err(bridge, "ERROR: DSP requested to enable WDT3 clk\n");
-+		break;
- 	case SSI_CLK:
- 		clk_handle = dsp_clks[clk_id].clk_handle;
- 		if (clk_enable(clk_handle)) {
-@@ -212,6 +212,8 @@ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
- 		omap_mcbsp_free(MCBSP_ID(clk_id));
- 		break;
- 	case WDT_CLK:
-+		dev_err(bridge, "ERROR: DSP requested to disable WDT3 clk\n");
-+		break;
- 	case SSI_CLK:
- 		clk_handle = dsp_clks[clk_id].clk_handle;
+ static struct dsp_ssi ssi;
  
++static u32 dsp_clocks;
++
++static inline u32 is_dsp_clk_active(u32 clk, u8 id)
++{
++	return clk & (1 << id);
++}
++
++static inline void set_dsp_clk_active(u32 *clk, u8 id)
++{
++	*clk |= (1 << id);
++}
++
++static inline void set_dsp_clk_inactive(u32 *clk, u8 id)
++{
++	*clk &= ~(1 << id);
++}
++
+ static s8 get_clk_type(u8 id)
+ {
+ 	s8 type;
+@@ -182,6 +199,11 @@ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
+ {
+ 	dsp_status status = DSP_SOK;
+ 
++	if (is_dsp_clk_active(dsp_clocks, clk_id)) {
++		dev_err(bridge, "WARN: clock id %d already enabled\n", clk_id);
++		goto out;
++	}
++
+ 	switch (get_clk_type(clk_id)) {
+ 	case GPT_CLK:
+ 		timer[clk_id] = omap_dm_timer_request_specific(DMT_ID(clk_id));
+@@ -210,8 +232,13 @@ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
+ 		break;
+ 	default:
+ 		dev_err(bridge, "Invalid clock id for enable\n");
++		status = DSP_EFAIL;
+ 	}
+ 
++	if (DSP_SUCCEEDED(status))
++		set_dsp_clk_active(&dsp_clocks, clk_id);
++
++out:
+ 	return status;
+ }
+ 
+@@ -227,6 +254,11 @@ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
+ 
+ 	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
+ 
++	if (!is_dsp_clk_active(dsp_clocks, clk_id)) {
++		dev_err(bridge, "ERR: clock id %d already disabled\n", clk_id);
++		goto out;
++	}
++
+ 	switch (get_clk_type(clk_id)) {
+ 	case GPT_CLK:
+ 		omap_dm_timer_free(timer[clk_id]);
+@@ -246,7 +278,12 @@ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
+ 		break;
+ 	default:
+ 		dev_err(bridge, "Invalid clock id for disable\n");
++		status = DSP_EFAIL;
+ 	}
+ 
++	if (DSP_SUCCEEDED(status))
++		set_dsp_clk_inactive(&dsp_clocks, clk_id);
++
++out:
+ 	return status;
+ }
 -- 
 1.6.2.4
 
