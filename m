@@ -1,249 +1,582 @@
 From: "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
-Subject: [PATCH 02/13] DSPBRIDGE: Replace mem_alloc() by kmalloc()
-Date: Thu, 8 Apr 2010 18:44:58 -0500
-Message-ID: <818EF96F5A7CC84789DD014773DB09548F6481CD@dlee01.ent.ti.com>
+Subject: [PATCH 03/13] DSPBRIDGE: Moving functions from mem.c to drv.c
+Date: Thu, 8 Apr 2010 18:47:13 -0500
+Message-ID: <818EF96F5A7CC84789DD014773DB09548F6481CF@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43321 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933983Ab0DHXpE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 19:45:04 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:33494 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934020Ab0DHXrR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 19:47:17 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
->From 5256a37e6f27df70f8333a02dd87ef9a202ed2b4 Mon Sep 17 00:00:00 2001
+>From 879cddcdad95964e7893bd30e14c815d80e29c08 Mon Sep 17 00:00:00 2001
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Date: Fri, 19 Mar 2010 18:19:55 -0600
-Subject: [PATCH 02/13] DSPBRIDGE: Replace mem_alloc() by kmalloc()
+Date: Tue, 23 Mar 2010 18:30:09 -0600
+Subject: [PATCH 03/13] DSPBRIDGE: Moving functions from mem.c to drv.c
 
-This is needed because the file drivers/dsp/bridge/services/mem.c
-is going to be deleted. The changes should be as follows:
+Since the mem.c file is going to be deleted, and as the drv.c file
+is used for DSP/BIOS Bridge resource allocation, then the following
+functions can be placed here and their prototypes in drv.h:
 
-mem_alloc(x, MEM_PAGED) ==> kmalloc(x, GFP_KERNEL)
-mem_alloc(x, MEM_NONPAGED) ==> kmalloc(x, GFP_KERNEL)
-mem_alloc(x, MEM_MEM_LARGEVIRTMEM) ==> vmalloc(x)
+mem_ext_phys_pool_init
+mem_ext_phys_pool_release
+mem_ext_phys_mem_alloc
+mem_alloc_phys_mem
+mem_flush_cache
+mem_free_phys_mem
 
-If running in atomic context, then the GFP_KERNEL argument
-is changed to GFP_ATOMIC.
+Also, as mem_alloc_phys_mem is never called in atomic context, then
+the in_atomic function is removed.
 
 Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- drivers/dsp/bridge/pmgr/wcd.c        |   26 +++++++++++++-------------
- drivers/dsp/bridge/rmgr/drv.c        |    4 ++--
- drivers/dsp/bridge/rmgr/strm.c       |    4 ++--
- drivers/dsp/bridge/services/regsup.c |    4 ++--
- drivers/dsp/bridge/wmd/chnl_sm.c     |    2 +-
- drivers/dsp/bridge/wmd/io_sm.c       |    6 +++---
- 6 files changed, 23 insertions(+), 23 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/drv.h |   78 ++++++++++++++
+ arch/arm/plat-omap/include/dspbridge/mem.h |   78 --------------
+ drivers/dsp/bridge/rmgr/drv.c              |  153 ++++++++++++++++++++++++++++
+ drivers/dsp/bridge/services/mem.c          |  151 ---------------------------
+ 4 files changed, 231 insertions(+), 229 deletions(-)
 
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 1b9c76f..5b2c1f5 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -420,7 +420,7 @@ u32 mgrwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt)
- 	if (size < sizeof(struct dsp_ndbprops))
- 		return DSP_ESIZE;
- 
--	pndb_props = mem_alloc(size, MEM_NONPAGED);
-+	pndb_props = kmalloc(size, GFP_KERNEL);
- 	if (pndb_props == NULL)
- 		status = DSP_EMEMORY;
- 
-@@ -452,7 +452,7 @@ u32 mgrwrap_enum_proc_info(union Trapped_Args *args, void *pr_ctxt)
- 	if (size < sizeof(struct dsp_processorinfo))
- 		return DSP_ESIZE;
- 
--	processor_info = mem_alloc(size, MEM_NONPAGED);
-+	processor_info = kmalloc(size, GFP_KERNEL);
- 	if (processor_info == NULL)
- 		status = DSP_EMEMORY;
- 
-@@ -491,7 +491,7 @@ u32 mgrwrap_register_object(union Trapped_Args *args, void *pr_ctxt)
- 	path_size = strlen_user((char *)
- 				args->args_mgr_registerobject.psz_path_name) +
- 	    1;
--	psz_path_name = mem_alloc(path_size, MEM_NONPAGED);
-+	psz_path_name = kmalloc(path_size, GFP_KERNEL);
- 	if (!psz_path_name)
- 		goto func_end;
- 	ret = strncpy_from_user(psz_path_name,
-@@ -620,7 +620,7 @@ u32 procwrap_ctrl(union Trapped_Args *args, void *pr_ctxt)
- 			goto func_end;
- 		}
- 		cb_data_size += sizeof(u32);
--		pargs = mem_alloc(cb_data_size, MEM_NONPAGED);
-+		pargs = kmalloc(cb_data_size, GFP_KERNEL);
- 		if (pargs == NULL) {
- 			status = DSP_EMEMORY;
- 			goto func_end;
-@@ -798,7 +798,7 @@ u32 procwrap_load(union Trapped_Args *args, void *pr_ctxt)
- 		goto func_cont;
- 	}
- 
--	argv = mem_alloc(count * sizeof(u8 *), MEM_NONPAGED);
-+	argv = kmalloc(count * sizeof(u8 *), GFP_KERNEL);
- 	if (!argv) {
- 		status = DSP_EMEMORY;
- 		goto func_cont;
-@@ -818,7 +818,7 @@ u32 procwrap_load(union Trapped_Args *args, void *pr_ctxt)
- 			/* len is increased by 1 to accommodate NULL */
- 			len = strlen_user((char *)temp) + 1;
- 			/* Kernel space pointer to argument */
--			argv[i] = mem_alloc(len, MEM_NONPAGED);
-+			argv[i] = kmalloc(len, GFP_KERNEL);
- 			if (argv[i]) {
- 				CP_FM_USR(argv[i], temp, status, len);
- 				if (DSP_FAILED(status)) {
-@@ -840,7 +840,7 @@ u32 procwrap_load(union Trapped_Args *args, void *pr_ctxt)
- 			get_user(temp, args->args_proc_load.user_envp + count);
- 			count++;
- 		} while (temp);
--		envp = mem_alloc(count * sizeof(u8 *), MEM_NONPAGED);
-+		envp = kmalloc(count * sizeof(u8 *), GFP_KERNEL);
- 		if (!envp) {
- 			status = DSP_EMEMORY;
- 			goto func_cont;
-@@ -858,7 +858,7 @@ u32 procwrap_load(union Trapped_Args *args, void *pr_ctxt)
- 			/* len is increased by 1 to accommodate NULL */
- 			len = strlen_user((char *)temp) + 1;
- 			/* Kernel space pointer to argument */
--			envp[i] = mem_alloc(len, MEM_NONPAGED);
-+			envp[i] = kmalloc(len, GFP_KERNEL);
- 			if (envp[i]) {
- 				CP_FM_USR(envp[i], temp, status, len);
- 				if (DSP_FAILED(status)) {
-@@ -1040,7 +1040,7 @@ u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt)
- 
- 		cb_data_size += sizeof(u32);
- 		if (DSP_SUCCEEDED(status)) {
--			pargs = mem_alloc(cb_data_size, MEM_NONPAGED);
-+			pargs = kmalloc(cb_data_size, GFP_KERNEL);
- 			if (pargs == NULL)
- 				status = DSP_EMEMORY;
- 
-@@ -1141,7 +1141,7 @@ u32 nodewrap_connect(union Trapped_Args *args, void *pr_ctxt)
- 
- 		cb_data_size += sizeof(u32);
- 		if (DSP_SUCCEEDED(status)) {
--			pargs = mem_alloc(cb_data_size, MEM_NONPAGED);
-+			pargs = kmalloc(cb_data_size, GFP_KERNEL);
- 			if (pargs == NULL) {
- 				status = DSP_EMEMORY;
- 				goto func_cont;
-@@ -1351,7 +1351,7 @@ u32 nodewrap_get_uuid_props(union Trapped_Args *args, void *pr_ctxt)
- 		  1);
- 	if (DSP_FAILED(status))
- 		goto func_cont;
--	pnode_props = mem_alloc(sizeof(struct dsp_ndbprops), MEM_NONPAGED);
-+	pnode_props = kmalloc(sizeof(struct dsp_ndbprops), GFP_KERNEL);
- 	if (pnode_props != NULL) {
- 		status =
- 		    node_get_uuid_props(args->args_node_getuuidprops.hprocessor,
-@@ -1377,7 +1377,7 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
- 	if (num_bufs > MAX_BUFS)
- 		return DSP_EINVALIDARG;
- 
--	ap_buffer = mem_alloc((num_bufs * sizeof(u8 *)), MEM_NONPAGED);
-+	ap_buffer = kmalloc((num_bufs * sizeof(u8 *)), GFP_KERNEL);
- 
- 	status = strm_allocate_buffer(args->args_strm_allocatebuffer.hstream,
- 				      args->args_strm_allocatebuffer.usize,
-@@ -1416,7 +1416,7 @@ u32 strmwrap_free_buffer(union Trapped_Args *args, void *pr_ctxt)
- 	if (num_bufs > MAX_BUFS)
- 		return DSP_EINVALIDARG;
- 
--	ap_buffer = mem_alloc((num_bufs * sizeof(u8 *)), MEM_NONPAGED);
-+	ap_buffer = kmalloc((num_bufs * sizeof(u8 *)), GFP_KERNEL);
- 
- 	CP_FM_USR(ap_buffer, args->args_strm_freebuffer.ap_buffer, status,
- 		  num_bufs);
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index 947cbdd..eeb5e23 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -390,4 +390,82 @@ extern dsp_status drv_release_resources(IN u32 dw_context,
+ void bridge_recover_schedule(void);
+ #endif
+
++/*
++ *  ======== mem_ext_phys_pool_init ========
++ *  Purpose:
++ *      Uses the physical memory chunk passed for internal consitent memory
++ *      allocations.
++ *      physical address based on the page frame address.
++ *  Parameters:
++ *      poolPhysBase  starting address of the physical memory pool.
++ *      poolSize      size of the physical memory pool.
++ *  Returns:
++ *      none.
++ *  Requires:
++ *      - MEM initialized.
++ *      - valid physical address for the base and size > 0
++ */
++extern void mem_ext_phys_pool_init(IN u32 poolPhysBase, IN u32 poolSize);
++
++/*
++ *  ======== mem_ext_phys_pool_release ========
++ */
++extern void mem_ext_phys_pool_release(void);
++
++/*  ======== mem_alloc_phys_mem ========
++ *  Purpose:
++ *      Allocate physically contiguous, uncached memory
++ *  Parameters:
++ *      byte_size:     Number of bytes to allocate.
++ *      ulAlign:    Alignment Mask.
++ *      pPhysicalAddress: Physical address of allocated memory.
++ *  Returns:
++ *      Pointer to a block of memory;
++ *      NULL if memory couldn't be allocated, or if byte_size == 0.
++ *  Requires:
++ *      MEM initialized.
++ *  Ensures:
++ *      The returned pointer, if not NULL, points to a valid memory block of
++ *      the size requested.  Returned physical address refers to physical
++ *      location of memory.
++ */
++extern void *mem_alloc_phys_mem(IN u32 byte_size,
++                               IN u32 ulAlign, OUT u32 *pPhysicalAddress);
++
++/*
++ *  ======== mem_flush_cache ========
++ *  Purpose:
++ *      Performs system cache sync with discard
++ *  Parameters:
++ *      pMemBuf:    Pointer to memory region to be flushed.
++ *      pMemBuf:    Size of the memory region to be flushed.
++ *  Returns:
++ *  Requires:
++ *      MEM is initialized.
++ *  Ensures:
++ *      Cache is synchronized
++ */
++extern void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType);
++
++/*
++ *  ======== mem_free_phys_mem ========
++ *  Purpose:
++ *      Free the given block of physically contiguous memory.
++ *  Parameters:
++ *      pVirtualAddress:  Pointer to virtual memory region allocated
++ *      by mem_alloc_phys_mem().
++ *      pPhysicalAddress:  Pointer to physical memory region  allocated
++ *      by mem_alloc_phys_mem().
++ *      byte_size:  Size of the memory region allocated by mem_alloc_phys_mem().
++ *  Returns:
++ *  Requires:
++ *      MEM initialized.
++ *      pVirtualAddress is a valid memory address returned by
++ *          mem_alloc_phys_mem()
++ *  Ensures:
++ *      pVirtualAddress is no longer a valid pointer to memory.
++ */
++extern void mem_free_phys_mem(void *pVirtualAddress,
++                             u32 pPhysicalAddress, u32 byte_size);
++
+ #endif /* DRV_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
+index 47f32dd..374b971 100644
+--- a/arch/arm/plat-omap/include/dspbridge/mem.h
++++ b/arch/arm/plat-omap/include/dspbridge/mem.h
+@@ -68,26 +68,6 @@ extern void *mem_alloc(IN u32 byte_size, IN enum mem_poolattrs type);
+     }                                                   \
+ }
+
+-/*  ======== mem_alloc_phys_mem ========
+- *  Purpose:
+- *      Allocate physically contiguous, uncached memory
+- *  Parameters:
+- *      byte_size:     Number of bytes to allocate.
+- *      ulAlign:    Alignment Mask.
+- *      pPhysicalAddress: Physical address of allocated memory.
+- *  Returns:
+- *      Pointer to a block of memory;
+- *      NULL if memory couldn't be allocated, or if byte_size == 0.
+- *  Requires:
+- *      MEM initialized.
+- *  Ensures:
+- *      The returned pointer, if not NULL, points to a valid memory block of
+- *      the size requested.  Returned physical address refers to physical
+- *      location of memory.
+- */
+-extern void *mem_alloc_phys_mem(IN u32 byte_size,
+-                               IN u32 ulAlign, OUT u32 *pPhysicalAddress);
+-
+ /*
+  *  ======== mem_calloc ========
+  *  Purpose:
+@@ -124,42 +104,6 @@ extern void *mem_calloc(IN u32 byte_size, IN enum mem_poolattrs type);
+ extern void mem_exit(void);
+
+ /*
+- *  ======== mem_flush_cache ========
+- *  Purpose:
+- *      Performs system cache sync with discard
+- *  Parameters:
+- *      pMemBuf:    Pointer to memory region to be flushed.
+- *      pMemBuf:    Size of the memory region to be flushed.
+- *  Returns:
+- *  Requires:
+- *      MEM is initialized.
+- *  Ensures:
+- *      Cache is synchronized
+- */
+-extern void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType);
+-
+-/*
+- *  ======== mem_free_phys_mem ========
+- *  Purpose:
+- *      Free the given block of physically contiguous memory.
+- *  Parameters:
+- *      pVirtualAddress:  Pointer to virtual memory region allocated
+- *      by mem_alloc_phys_mem().
+- *      pPhysicalAddress:  Pointer to physical memory region  allocated
+- *      by mem_alloc_phys_mem().
+- *      byte_size:  Size of the memory region allocated by mem_alloc_phys_mem().
+- *  Returns:
+- *  Requires:
+- *      MEM initialized.
+- *      pVirtualAddress is a valid memory address returned by
+- *          mem_alloc_phys_mem()
+- *  Ensures:
+- *      pVirtualAddress is no longer a valid pointer to memory.
+- */
+-extern void mem_free_phys_mem(void *pVirtualAddress,
+-                             u32 pPhysicalAddress, u32 byte_size);
+-
+-/*
+  *  ======== MEM_FREE_OBJECT ========
+  *  Purpose:
+  *      Utility macro to invalidate an object's signature, and deallocate it.
+@@ -255,26 +199,4 @@ extern bool services_mem_init(void);
+  */
+ #define MEM_UNMAP_LINEAR_ADDRESS(pBaseAddr) {}
+
+-/*
+- *  ======== mem_ext_phys_pool_init ========
+- *  Purpose:
+- *      Uses the physical memory chunk passed for internal consitent memory
+- *      allocations.
+- *      physical address based on the page frame address.
+- *  Parameters:
+- *      poolPhysBase  starting address of the physical memory pool.
+- *      poolSize      size of the physical memory pool.
+- *  Returns:
+- *      none.
+- *  Requires:
+- *      - MEM initialized.
+- *      - valid physical address for the base and size > 0
+- */
+-extern void mem_ext_phys_pool_init(IN u32 poolPhysBase, IN u32 poolSize);
+-
+-/*
+- *  ======== mem_ext_phys_pool_release ========
+- */
+-extern void mem_ext_phys_pool_release(void);
+-
+ #endif /* MEM_ */
 diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 6070944..77b54d8 100644
+index 77b54d8..04c7133 100644
 --- a/drivers/dsp/bridge/rmgr/drv.c
 +++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -357,8 +357,8 @@ dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
- 		strm_res = strm_tmp;
- 		strm_tmp = strm_tmp->next;
- 		if (strm_res->num_bufs) {
--			ap_buffer = mem_alloc((strm_res->num_bufs *
--					       sizeof(u8 *)), MEM_NONPAGED);
-+			ap_buffer = kmalloc((strm_res->num_bufs *
-+					sizeof(u8 *)), GFP_KERNEL);
- 			if (ap_buffer) {
- 				status = strm_free_buffer(strm_res->hstream,
- 							  ap_buffer,
-diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index 699f2dc..1c59db1 100644
---- a/drivers/dsp/bridge/rmgr/strm.c
-+++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -788,8 +788,8 @@ dsp_status strm_select(IN struct strm_object **strm_tab, u32 nStrms,
- 	}
- 	if (DSP_SUCCEEDED(status) && utimeout > 0 && *pmask == 0) {
- 		/* Non-zero timeout */
--		sync_events = (struct sync_object **)mem_alloc(nStrms *
--			      sizeof(struct sync_object *), MEM_PAGED);
-+		sync_events = kmalloc(nStrms * sizeof(struct sync_object *),
-+								GFP_KERNEL);
- 
- 		if (sync_events == NULL) {
- 			status = DSP_EMEMORY;
-diff --git a/drivers/dsp/bridge/services/regsup.c b/drivers/dsp/bridge/services/regsup.c
-index 542ce62..49b6fb9 100644
---- a/drivers/dsp/bridge/services/regsup.c
-+++ b/drivers/dsp/bridge/services/regsup.c
-@@ -123,7 +123,7 @@ dsp_status regsup_set_value(char *valName, void *pbuf, u32 data_size)
- 			if (data_size != rv->data_size) {
- 				/*  The caller needs a different data size! */
- 				kfree(rv->pdata);
--				rv->pdata = mem_alloc(data_size, MEM_NONPAGED);
-+				rv->pdata = kmalloc(data_size, GFP_KERNEL);
- 				if (rv->pdata == NULL)
- 					break;
- 			}
-@@ -149,7 +149,7 @@ dsp_status regsup_set_value(char *valName, void *pbuf, u32 data_size)
- 							GFP_KERNEL);
- 
- 		strncat(new->name, valName, MAXREGPATHLENGTH - 1);
--		new->pdata = mem_alloc(data_size, MEM_NONPAGED);
-+		new->pdata = kmalloc(data_size, GFP_KERNEL);
- 		if (new->pdata != NULL) {
- 			memcpy(new->pdata, pbuf, data_size);
- 			new->data_size = data_size;
-diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index b6a1a22..7b24022 100644
---- a/drivers/dsp/bridge/wmd/chnl_sm.c
-+++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -147,7 +147,7 @@ dsp_status bridge_chnl_add_io_req(struct chnl_object *chnl_obj, void *pHostBuf,
- 			goto func_cont;
- 		}
- 		/* if addr in user mode, then copy to kernel space */
--		host_sys_buf = mem_alloc(buf_size, MEM_NONPAGED);
-+		host_sys_buf = kmalloc(buf_size, GFP_KERNEL);
- 		if (host_sys_buf == NULL) {
- 			status = DSP_EMEMORY;
- 			goto func_end;
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 7516e7e..2bdfc2a 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -787,9 +787,9 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
- 	    (hio_mgr->ul_trace_buffer_current - ul_dsp_va);
- 	/* Calculate the size of trace buffer */
- 	kfree(hio_mgr->pmsg);
--	hio_mgr->pmsg = mem_alloc(((hio_mgr->ul_trace_buffer_end -
--				    hio_mgr->ul_trace_buffer_begin) *
--				   hio_mgr->word_size) + 2, MEM_NONPAGED);
-+	hio_mgr->pmsg = kmalloc(((hio_mgr->ul_trace_buffer_end -
-+				hio_mgr->ul_trace_buffer_begin) *
-+				hio_mgr->word_size) + 2, GFP_KERNEL);
- 	if (!hio_mgr->pmsg)
- 		status = DSP_EMEMORY;
- 
--- 
+@@ -64,6 +64,14 @@ struct drv_ext {
+
+ /*  ----------------------------------- Globals */
+ static s32 refs;
++static bool ext_phys_mem_pool_enabled;
++struct ext_phys_mem_pool {
++       u32 phys_mem_base;
++       u32 phys_mem_size;
++       u32 virt_mem_base;
++       u32 next_phys_alloc_ptr;
++};
++static struct ext_phys_mem_pool ext_mem_pool;
+
+ /*  ----------------------------------- Function Prototypes */
+ static dsp_status request_bridge_resources(u32 dw_context, s32 fRequest);
+@@ -1068,3 +1076,148 @@ static dsp_status request_bridge_resources_dsp(u32 dw_context, s32 bRequest)
+        /* End Mem alloc */
+        return status;
+ }
++
++void mem_ext_phys_pool_init(u32 poolPhysBase, u32 poolSize)
++{
++       u32 pool_virt_base;
++
++       /* get the virtual address for the physical memory pool passed */
++       pool_virt_base = (u32) ioremap(poolPhysBase, poolSize);
++
++       if ((void **)pool_virt_base == NULL) {
++               pr_err("%s: external physical memory map failed\n", __func__);
++               ext_phys_mem_pool_enabled = false;
++       } else {
++               ext_mem_pool.phys_mem_base = poolPhysBase;
++               ext_mem_pool.phys_mem_size = poolSize;
++               ext_mem_pool.virt_mem_base = pool_virt_base;
++               ext_mem_pool.next_phys_alloc_ptr = poolPhysBase;
++               ext_phys_mem_pool_enabled = true;
++       }
++}
++
++void mem_ext_phys_pool_release(void)
++{
++       if (ext_phys_mem_pool_enabled) {
++               iounmap((void *)(ext_mem_pool.virt_mem_base));
++               ext_phys_mem_pool_enabled = false;
++       }
++}
++
++/*
++ *  ======== mem_ext_phys_mem_alloc ========
++ *  Purpose:
++ *     Allocate physically contiguous, uncached memory from external memory pool
++ */
++
++static void *mem_ext_phys_mem_alloc(u32 bytes, u32 align, OUT u32 * pPhysAddr)
++{
++       u32 new_alloc_ptr;
++       u32 offset;
++       u32 virt_addr;
++
++       if (align == 0)
++               align = 1;
++
++       if (bytes > ((ext_mem_pool.phys_mem_base + ext_mem_pool.phys_mem_size)
++                    - ext_mem_pool.next_phys_alloc_ptr)) {
++               pPhysAddr = NULL;
++               return NULL;
++       } else {
++               offset = (ext_mem_pool.next_phys_alloc_ptr & (align - 1));
++               if (offset == 0)
++                       new_alloc_ptr = ext_mem_pool.next_phys_alloc_ptr;
++               else
++                       new_alloc_ptr = (ext_mem_pool.next_phys_alloc_ptr) +
++                           (align - offset);
++               if ((new_alloc_ptr + bytes) <=
++                   (ext_mem_pool.phys_mem_base + ext_mem_pool.phys_mem_size)) {
++                       /* we can allocate */
++                       *pPhysAddr = new_alloc_ptr;
++                       ext_mem_pool.next_phys_alloc_ptr =
++                           new_alloc_ptr + bytes;
++                       virt_addr =
++                           ext_mem_pool.virt_mem_base + (new_alloc_ptr -
++                                                         ext_mem_pool.
++                                                         phys_mem_base);
++                       return (void *)virt_addr;
++               } else {
++                       *pPhysAddr = 0;
++                       return NULL;
++               }
++       }
++}
++
++/*
++ *  ======== mem_alloc_phys_mem ========
++ *  Purpose:
++ *      Allocate physically contiguous, uncached memory
++ */
++void *mem_alloc_phys_mem(u32 byte_size, u32 ulAlign, OUT u32 * pPhysicalAddress)
++{
++       void *va_mem = NULL;
++       dma_addr_t pa_mem;
++
++       if (byte_size > 0) {
++               if (ext_phys_mem_pool_enabled) {
++                       va_mem = mem_ext_phys_mem_alloc(byte_size, ulAlign,
++                                                       (u32 *) &pa_mem);
++               } else
++                       va_mem = dma_alloc_coherent(NULL, byte_size, &pa_mem,
++                                                               GFP_KERNEL);
++               if (va_mem == NULL)
++                       *pPhysicalAddress = 0;
++               else
++                       *pPhysicalAddress = pa_mem;
++       }
++       return va_mem;
++}
++
++/*
++ *  ======== mem_flush_cache ========
++ *  Purpose:
++ *      Flush cache
++ */
++void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType)
++{
++       if (!pMemBuf)
++               return;
++
++       switch (FlushType) {
++               /* invalidate only */
++       case PROC_INVALIDATE_MEM:
++               dmac_inv_range(pMemBuf, pMemBuf + byte_size);
++               outer_inv_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
++                                                         byte_size));
++               break;
++               /* writeback only */
++       case PROC_WRITEBACK_MEM:
++               dmac_clean_range(pMemBuf, pMemBuf + byte_size);
++               outer_clean_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
++                                                           byte_size));
++               break;
++               /* writeback and invalidate */
++       case PROC_WRITEBACK_INVALIDATE_MEM:
++               dmac_flush_range(pMemBuf, pMemBuf + byte_size);
++               outer_flush_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
++                                                           byte_size));
++               break;
++       }
++
++}
++
++/*
++ *  ======== mem_free_phys_mem ========
++ *  Purpose:
++ *      Free the given block of physically contiguous memory.
++ */
++void mem_free_phys_mem(void *pVirtualAddress, u32 pPhysicalAddress,
++                      u32 byte_size)
++{
++       DBC_REQUIRE(pVirtualAddress != NULL);
++
++       if (!ext_phys_mem_pool_enabled)
++               dma_free_coherent(NULL, byte_size, pVirtualAddress,
++                                 pPhysicalAddress);
++}
++
+diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
+index 916a49f..6e8834a 100644
+--- a/drivers/dsp/bridge/services/mem.c
++++ b/drivers/dsp/bridge/services/mem.c
+@@ -35,87 +35,7 @@
+ #define MEM512MB   0x1fffffff
+
+ /*  ----------------------------------- Globals */
+-static bool ext_phys_mem_pool_enabled;
+
+-struct ext_phys_mem_pool {
+-       u32 phys_mem_base;
+-       u32 phys_mem_size;
+-       u32 virt_mem_base;
+-       u32 next_phys_alloc_ptr;
+-};
+-
+-static struct ext_phys_mem_pool ext_mem_pool;
+-
+-void mem_ext_phys_pool_init(u32 poolPhysBase, u32 poolSize)
+-{
+-       u32 pool_virt_base;
+-
+-       /* get the virtual address for the physical memory pool passed */
+-       pool_virt_base = (u32) ioremap(poolPhysBase, poolSize);
+-
+-       if ((void **)pool_virt_base == NULL) {
+-               pr_err("%s: external physical memory map failed\n", __func__);
+-               ext_phys_mem_pool_enabled = false;
+-       } else {
+-               ext_mem_pool.phys_mem_base = poolPhysBase;
+-               ext_mem_pool.phys_mem_size = poolSize;
+-               ext_mem_pool.virt_mem_base = pool_virt_base;
+-               ext_mem_pool.next_phys_alloc_ptr = poolPhysBase;
+-               ext_phys_mem_pool_enabled = true;
+-       }
+-}
+-
+-void mem_ext_phys_pool_release(void)
+-{
+-       if (ext_phys_mem_pool_enabled) {
+-               iounmap((void *)(ext_mem_pool.virt_mem_base));
+-               ext_phys_mem_pool_enabled = false;
+-       }
+-}
+-
+-/*
+- *  ======== mem_ext_phys_mem_alloc ========
+- *  Purpose:
+- *     Allocate physically contiguous, uncached memory from external memory pool
+- */
+-
+-static void *mem_ext_phys_mem_alloc(u32 bytes, u32 align, OUT u32 * pPhysAddr)
+-{
+-       u32 new_alloc_ptr;
+-       u32 offset;
+-       u32 virt_addr;
+-
+-       if (align == 0)
+-               align = 1;
+-
+-       if (bytes > ((ext_mem_pool.phys_mem_base + ext_mem_pool.phys_mem_size)
+-                    - ext_mem_pool.next_phys_alloc_ptr)) {
+-               pPhysAddr = NULL;
+-               return NULL;
+-       } else {
+-               offset = (ext_mem_pool.next_phys_alloc_ptr & (align - 1));
+-               if (offset == 0)
+-                       new_alloc_ptr = ext_mem_pool.next_phys_alloc_ptr;
+-               else
+-                       new_alloc_ptr = (ext_mem_pool.next_phys_alloc_ptr) +
+-                           (align - offset);
+-               if ((new_alloc_ptr + bytes) <=
+-                   (ext_mem_pool.phys_mem_base + ext_mem_pool.phys_mem_size)) {
+-                       /* we can allocate */
+-                       *pPhysAddr = new_alloc_ptr;
+-                       ext_mem_pool.next_phys_alloc_ptr =
+-                           new_alloc_ptr + bytes;
+-                       virt_addr =
+-                           ext_mem_pool.virt_mem_base + (new_alloc_ptr -
+-                                                         ext_mem_pool.
+-                                                         phys_mem_base);
+-                       return (void *)virt_addr;
+-               } else {
+-                       *pPhysAddr = 0;
+-                       return NULL;
+-               }
+-       }
+-}
+
+ /*
+  *  ======== mem_alloc ========
+@@ -146,31 +66,6 @@ void *mem_alloc(u32 byte_size, enum mem_poolattrs type)
+        return mem;
+ }
+
+-/*
+- *  ======== mem_alloc_phys_mem ========
+- *  Purpose:
+- *      Allocate physically contiguous, uncached memory
+- */
+-void *mem_alloc_phys_mem(u32 byte_size, u32 ulAlign, OUT u32 * pPhysicalAddress)
+-{
+-       void *va_mem = NULL;
+-       dma_addr_t pa_mem;
+-
+-       if (byte_size > 0) {
+-               if (ext_phys_mem_pool_enabled) {
+-                       va_mem = mem_ext_phys_mem_alloc(byte_size, ulAlign,
+-                                                       (u32 *) &pa_mem);
+-               } else
+-                       va_mem = dma_alloc_coherent(NULL, byte_size, &pa_mem,
+-                                                   (in_atomic()) ? GFP_ATOMIC :
+-                                                   GFP_KERNEL);
+-               if (va_mem == NULL)
+-                       *pPhysicalAddress = 0;
+-               else
+-                       *pPhysicalAddress = pa_mem;
+-       }
+-       return va_mem;
+-}
+
+ /*
+  *  ======== mem_calloc ========
+@@ -211,53 +106,7 @@ void mem_exit(void)
+ {
+ }
+
+-/*
+- *  ======== mem_flush_cache ========
+- *  Purpose:
+- *      Flush cache
+- */
+-void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType)
+-{
+-       if (!pMemBuf)
+-               return;
+-
+-       switch (FlushType) {
+-               /* invalidate only */
+-       case PROC_INVALIDATE_MEM:
+-               dmac_inv_range(pMemBuf, pMemBuf + byte_size);
+-               outer_inv_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
+-                                                         byte_size));
+-               break;
+-               /* writeback only */
+-       case PROC_WRITEBACK_MEM:
+-               dmac_clean_range(pMemBuf, pMemBuf + byte_size);
+-               outer_clean_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
+-                                                           byte_size));
+-               break;
+-               /* writeback and invalidate */
+-       case PROC_WRITEBACK_INVALIDATE_MEM:
+-               dmac_flush_range(pMemBuf, pMemBuf + byte_size);
+-               outer_flush_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
+-                                                           byte_size));
+-               break;
+-       }
+-
+-}
+-
+-/*
+- *  ======== mem_free_phys_mem ========
+- *  Purpose:
+- *      Free the given block of physically contiguous memory.
+- */
+-void mem_free_phys_mem(void *pVirtualAddress, u32 pPhysicalAddress,
+-                      u32 byte_size)
+-{
+-       DBC_REQUIRE(pVirtualAddress != NULL);
+
+-       if (!ext_phys_mem_pool_enabled)
+-               dma_free_coherent(NULL, byte_size, pVirtualAddress,
+-                                 pPhysicalAddress);
+-}
+
+ /*
+  *  ======== services_mem_init ========
+--
 1.7.0.3
 
