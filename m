@@ -1,63 +1,186 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: [PATCHv2 2/5] OMAP: RX51: Add "vdds_sdi" supply voltage for SDI
-Date: Thu,  8 Apr 2010 15:21:04 +0300
-Message-ID: <1270729267-27553-3-git-send-email-roger.quadros@nokia.com>
-References: <1270729267-27553-1-git-send-email-roger.quadros@nokia.com>
- <1270729267-27553-2-git-send-email-roger.quadros@nokia.com>
+From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+Subject: Re: [PATCHv2 1/2] crypto: updates omap sham device related platform
+ code
+Date: Thu, 08 Apr 2010 15:49:03 +0300
+Message-ID: <4BBDD0BF.6050307@nokia.com>
+References: <cover.1269524804.git.dmitry.kasatkin@nokia.com> <9e97cb8f5ee608a70bb9c04bc2c22f0d6b749d98.1269524804.git.dmitry.kasatkin@nokia.com> <alpine.DEB.2.00.1003300334110.14474@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27566 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758569Ab0DHMWB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 08:22:01 -0400
-In-Reply-To: <1270729267-27553-2-git-send-email-roger.quadros@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:38384 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755717Ab0DHMtx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 08:49:53 -0400
+In-Reply-To: <alpine.DEB.2.00.1003300334110.14474@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi.Valkeinen@nokia.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: ext Paul Walmsley <paul@pwsan.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "herbert@gondor.apana.org.au" <herbert@gondor.hengli.com.au>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Roger Quadros <roger.quadros@nokia.com>
+Hi,
 
-The SDI Display subsystem needs access to the vdds_sdi supply
-regulator. This is TWL4030's VAUX1 supply on RX-51.
+BTW..
 
-Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+How will it work if those resource structures anyway conditionally 
+compiled for OMAP2 or 3 or 4?
+only one structure will be compiled at once.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index f404537..3ef805e 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -300,6 +300,19 @@ static struct regulator_consumer_supply rx51_vsim_supply = {
- 	.dev_name = "mmci-omap-hs.1",
- };
- 
-+#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-+extern struct platform_device rx51_display_device;
-+#endif
-+
-+static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
-+#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-+	{
-+		.supply	= "vdds_sdi",
-+		.dev	= &rx51_display_device.dev,
-+	},
-+#endif
-+};
-+
- static struct regulator_init_data rx51_vaux1 = {
- 	.constraints = {
- 		.name			= "V28",
-@@ -310,6 +323,8 @@ static struct regulator_init_data rx51_vaux1 = {
- 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
-+	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux1_consumers),
-+	.consumer_supplies	= rx51_vaux1_consumers,
- };
- 
- static struct regulator_init_data rx51_vaux2 = {
--- 
-1.6.0.4
+- Dmitry
 
+
+On 30/03/10 12:41, ext Paul Walmsley wrote:
+> Hi Dmitry,
+>
+> a few comments:
+>
+> On Thu, 25 Mar 2010, Dmitry Kasatkin wrote:
+>
+>    
+>> - registration
+>> - clocks
+>>
+>> Signed-off-by: Dmitry Kasatkin<dmitry.kasatkin@nokia.com>
+>> ---
+>>   arch/arm/mach-omap2/clock2420_data.c       |    2 +-
+>>   arch/arm/mach-omap2/clock2430_data.c       |    2 +-
+>>   arch/arm/mach-omap2/clock3xxx_data.c       |    2 +-
+>>   arch/arm/mach-omap2/devices.c              |   26 ++++++++++++++++++++++++--
+>>   arch/arm/plat-omap/include/plat/omap34xx.h |    5 +++++
+>>   5 files changed, 32 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+>> index d932b14..1820a55 100644
+>> --- a/arch/arm/mach-omap2/clock2420_data.c
+>> +++ b/arch/arm/mach-omap2/clock2420_data.c
+>> @@ -1836,7 +1836,7 @@ static struct omap_clk omap2420_clks[] = {
+>>   	CLK(NULL,	"vlynq_ick",	&vlynq_ick,	CK_242X),
+>>   	CLK(NULL,	"vlynq_fck",	&vlynq_fck,	CK_242X),
+>>   	CLK(NULL,	"des_ick",	&des_ick,	CK_242X),
+>> -	CLK(NULL,	"sha_ick",	&sha_ick,	CK_242X),
+>> +	CLK("omap-sham",	"ick",	&sha_ick,	CK_242X),
+>>   	CLK("omap_rng",	"ick",		&rng_ick,	CK_242X),
+>>   	CLK(NULL,	"aes_ick",	&aes_ick,	CK_242X),
+>>   	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
+>> diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+>> index 0438b6e..5884ac6 100644
+>> --- a/arch/arm/mach-omap2/clock2430_data.c
+>> +++ b/arch/arm/mach-omap2/clock2430_data.c
+>> @@ -1924,7 +1924,7 @@ static struct omap_clk omap2430_clks[] = {
+>>   	CLK(NULL,	"sdma_ick",	&sdma_ick,	CK_243X),
+>>   	CLK(NULL,	"sdrc_ick",	&sdrc_ick,	CK_243X),
+>>   	CLK(NULL,	"des_ick",	&des_ick,	CK_243X),
+>> -	CLK(NULL,	"sha_ick",	&sha_ick,	CK_243X),
+>> +	CLK("omap-sham",	"ick",	&sha_ick,	CK_243X),
+>>   	CLK("omap_rng",	"ick",		&rng_ick,	CK_243X),
+>>   	CLK(NULL,	"aes_ick",	&aes_ick,	CK_243X),
+>>   	CLK(NULL,	"pka_ick",	&pka_ick,	CK_243X),
+>> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+>> index d5153b6..5a974dc 100644
+>> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+>> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+>> @@ -3360,7 +3360,7 @@ static struct omap_clk omap3xxx_clks[] = {
+>>   	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2 | CK_AM35XX),
+>>   	CLK(NULL,	"icr_ick",	&icr_ick,	CK_343X),
+>>   	CLK(NULL,	"aes2_ick",	&aes2_ick,	CK_343X),
+>> -	CLK(NULL,	"sha12_ick",	&sha12_ick,	CK_343X),
+>> +	CLK("omap-sham",	"ick",	&sha12_ick,	CK_343X),
+>>   	CLK(NULL,	"des2_ick",	&des2_ick,	CK_343X),
+>>   	CLK("mmci-omap-hs.1",	"ick",	&mmchs2_ick,	CK_3XXX),
+>>   	CLK("mmci-omap-hs.0",	"ick",	&mmchs1_ick,	CK_3XXX),
+>>      
+> The above changes are all
+>
+> Acked-by: Paul Walmsley<paul@pwsan.com>
+>
+> ... but ...
+>
+>    
+>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+>> index 23e4d77..3e20b9c 100644
+>> --- a/arch/arm/mach-omap2/devices.c
+>> +++ b/arch/arm/mach-omap2/devices.c
+>> @@ -26,6 +26,7 @@
+>>   #include<plat/mux.h>
+>>   #include<mach/gpio.h>
+>>   #include<plat/mmc.h>
+>> +#include<plat/dma.h>
+>>
+>>   #include "mux.h"
+>>
+>> @@ -453,7 +454,9 @@ static void omap_init_mcspi(void)
+>>   static inline void omap_init_mcspi(void) {}
+>>   #endif
+>>
+>> -#ifdef CONFIG_OMAP_SHA1_MD5
+>> +#if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
+>> +
+>> +#ifdef CONFIG_ARCH_OMAP2
+>>   static struct resource sha1_md5_resources[] = {
+>>   	{
+>>   		.start	= OMAP24XX_SEC_SHA1MD5_BASE,
+>> @@ -465,9 +468,28 @@ static struct resource sha1_md5_resources[] = {
+>>   		.flags	= IORESOURCE_IRQ,
+>>   	}
+>>   };
+>> +#endif
+>> +
+>> +#ifdef CONFIG_ARCH_OMAP3
+>> +static struct resource sha1_md5_resources[] = {
+>> +	{
+>> +		.start	= OMAP34XX_SEC_SHA1MD5_BASE,
+>> +		.end	= OMAP34XX_SEC_SHA1MD5_BASE + 0x64,
+>> +		.flags	= IORESOURCE_MEM,
+>> +	},
+>> +	{
+>> +		.start	= INT_34XX_SHA1MD52_IRQ,
+>> +		.flags	= IORESOURCE_IRQ,
+>> +	},
+>> +	{
+>> +		.start	= OMAP34XX_DMA_SHA1MD5_RX,
+>> +		.flags	= IORESOURCE_DMA,
+>> +	}
+>> +};
+>> +#endif
+>>      
+> The above will break multi-OMAP2 kernels.  Please change the above to make
+> the variable names unique on a per-SoC basis (e.g.,
+> omap3_sha1_md5_resources) and modify the SHA1/MD5 device registration code
+> to use the appropriate struct resource array at runtime.  For an example,
+> see mach-omap2/devices.c:omap_init_mbox().
+>
+>    
+>>
+>>   static struct platform_device sha1_md5_device = {
+>> -	.name		= "OMAP SHA1/MD5",
+>> +	.name		= "omap-sham",
+>>   	.id		= -1,
+>>   	.num_resources	= ARRAY_SIZE(sha1_md5_resources),
+>>   	.resource	= sha1_md5_resources,
+>> diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
+>> index 2845fdc..98fc8b4 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap34xx.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap34xx.h
+>> @@ -82,5 +82,10 @@
+>>
+>>   #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
+>>
+>> +/* Security */
+>> +#define OMAP34XX_SEC_BASE	(L4_34XX_BASE + 0xA0000)
+>> +#define OMAP34XX_SEC_SHA1MD5_BASE	(OMAP34XX_SEC_BASE + 0x23000)
+>> +#define OMAP34XX_SEC_AES_BASE	(OMAP34XX_SEC_BASE + 0x25000)
+>> +
+>>   #endif /* __ASM_ARCH_OMAP3_H */
+>>
+>> -- 
+>> 1.6.3.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>      
+>
+> - Paul
+>    
