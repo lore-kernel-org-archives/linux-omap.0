@@ -1,40 +1,47 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: [PATCH] ARM: OMAP: Beagle: make u-boot nand partition writable
-Date: Thu, 8 Apr 2010 07:22:10 -0700
-Message-ID: <t2m5e088bd91004080722k3b5dfb60i26e9925d16cadba8@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: OMAP4 keypad driver
+Date: Thu, 08 Apr 2010 08:21:35 -0700
+Message-ID: <87zl1e55s0.fsf@deeprootsystems.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043CB21399@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:31700 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751755Ab0DHOWL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 10:22:11 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so807692qwh.37
-        for <linux-omap@vger.kernel.org>; Thu, 08 Apr 2010 07:22:11 -0700 (PDT)
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:47941 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758732Ab0DHPVz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 11:21:55 -0400
+Received: by gwb19 with SMTP id 19so1220719gwb.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Apr 2010 08:21:54 -0700 (PDT)
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53043CB21399@dlee03.ent.ti.com> (Abraham Arce's message of "Wed\, 7 Apr 2010 20\:16\:08 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Arce, Abraham" <x0066660@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Steve Sakoman <steve@sakoman.com>
+"Arce, Abraham" <x0066660@ti.com> writes:
 
-Many Beagle users prefer to update their NAND using linux tools rather
-than u-boot.  This patch makes the u-boot partition writable so that
-updates are possible.
+> Hi,
+>
+> I need some help to figure out the best way to incorporate omap4 keypad in linux omap.
+>
+> First approach, I have a patch that creates a new file, omap4-keypad.c with the following implementations:
+>
+>  - Based on matrix keypac logic
+>  - Using hwmod framework
+>  - Using threaded irq
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
-------
+This approach sounds good to me.  New drivers should use threaded IRQs
+wherever possible.
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
-b/arch/arm/mach-omap2/board-omap3beagle.c
-index 0aaab60..4e77097 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -108,7 +108,6 @@ static struct mtd_partition
-omap3beagle_nand_partitions[] = {
- 		.name		= "U-Boot",
- 		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
- 		.size		= 15 * NAND_BLOCK_SIZE,
--		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
- 	},
- 	{
- 		.name		= "U-Boot Env",
+Kevin
+
+> Second approach, to change existing omap-keypad.c to matrix keypad
+>
+> Not clear on the path to follow... Thanks for your comments.
+>
+> Best Regards
+> Abraham
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
