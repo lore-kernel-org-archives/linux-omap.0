@@ -1,95 +1,47 @@
-From: Rabin Vincent <rabin@rab.in>
-Subject: Re: [RFC] Initial attempt to make ARM use LMB
-Date: Thu, 8 Apr 2010 21:02:56 +0530
-Message-ID: <20100408153111.GA2598@debian>
-References: <20100325233248.GM24984@n2100.arm.linux.org.uk>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH 0/3][NAND][OMAP]: fixing omap nand driver issues
+Date: Thu, 8 Apr 2010 08:58:00 -0700
+Message-ID: <l2v5e088bd91004080858ub5dd068ci711a5399098ba0ee@mail.gmail.com>
+References: <ce9ab5791001060558u362f17baj5ee90e9b4adb72a7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20100325233248.GM24984@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.24]:29848 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757214Ab0DHP6B convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 11:58:01 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so846316qwh.37
+        for <linux-omap@vger.kernel.org>; Thu, 08 Apr 2010 08:58:00 -0700 (PDT)
+In-Reply-To: <ce9ab5791001060558u362f17baj5ee90e9b4adb72a7@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: Linux MTD <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org
 
-On Thu, Mar 25, 2010 at 11:32:48PM +0000, Russell King - ARM Linux wrote:
-> The patch below is the combined patch; individual patches can be found
-> in the arm:lmb patches on the website or the lmb branch of my git tree;
-> this should be considered unstable.
+On Wed, Jan 6, 2010 at 5:58 AM, Vimal Singh <vimal.newwork@gmail.com> w=
+rote:
+> From 3700088e8da8c890d9e4c6eb626e18287d149b97 Mon Sep 17 00:00:00 200=
+1
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Tue, 5 Jan 2010 16:43:08 +0530
+> Subject: [PATCH] fixing omap nand driver issues
+>
+> fixing omap nand driver issues.
+>
+> Vimal Singh (3):
+> =A0Fixing compilation warning for 'nand/omap2.c'
+> =A0NAND: OMAP: correct 'info' pointer in 'omap_nand_remove'
+> =A0NAND: OMAP: Fixing issue in oamp nand driver in prefetch mode read
 
-Something like the following is needed to make initrds work after this
-patch:
+What is the status of this patch series?
 
-diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
-index 8b2853a..8c12214 100644
---- a/arch/arm/mm/init.c
-+++ b/arch/arm/mm/init.c
-@@ -11,6 +11,7 @@
- #include <linux/errno.h>
- #include <linux/swap.h>
- #include <linux/init.h>
-+#include <linux/initrd.h>
- #include <linux/bootmem.h>
- #include <linux/mman.h>
- #include <linux/nodemask.h>
-@@ -32,9 +33,6 @@
- 
- #include "mm.h"
- 
--static unsigned long phys_initrd_start __initdata = 0;
--static unsigned long phys_initrd_size __initdata = 0;
--
- static int __init early_initrd(char *p)
- {
- 	unsigned long start, size;
-@@ -44,8 +42,8 @@ static int __init early_initrd(char *p)
- 	if (*endp == ',') {
- 		size = memparse(endp + 1, NULL);
- 
--		phys_initrd_start = start;
--		phys_initrd_size = size;
-+		initrd_start = __phys_to_virt(start);
-+		initrd_end = initrd_start + size;
- 	}
- 	return 0;
- }
-@@ -55,8 +53,8 @@ static int __init parse_tag_initrd(const struct tag *tag)
- {
- 	printk(KERN_WARNING "ATAG_INITRD is deprecated; "
- 		"please update your bootloader.\n");
--	phys_initrd_start = __virt_to_phys(tag->u.initrd.start);
--	phys_initrd_size = tag->u.initrd.size;
-+	initrd_start = tag->u.initrd.start;
-+	initrd_end = initrd_start + tag->u.initrd.size;
- 	return 0;
- }
- 
-@@ -64,8 +62,8 @@ __tagtable(ATAG_INITRD, parse_tag_initrd);
- 
- static int __init parse_tag_initrd2(const struct tag *tag)
- {
--	phys_initrd_start = tag->u.initrd.start;
--	phys_initrd_size = tag->u.initrd.size;
-+	initrd_start = __phys_to_virt(tag->u.initrd.start);
-+	initrd_end = initrd_start + tag->u.initrd.size;
- 	return 0;
- }
- 
-@@ -284,7 +282,7 @@ void __init arm_lmb_reserve(void)
- #else
- 	lmb_reserve(__pa(_stext), _end - _stext);
- #endif
--	lmb_reserve(phys_initrd_start, phys_initrd_size);
-+	lmb_reserve(__pa(initrd_start), initrd_end - initrd_start);
- 	arm_mm_lmb_reserve();
- }
+I've been testing them on Overo and Beagle and they do indeed solve
+the prefetch issue.  So if they are queued waiting an ack:
+
+Acked-by: Steve Sakoman <steve@sakoman.com>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
