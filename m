@@ -1,38 +1,168 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv2 1/2] crypto: updates omap sham device related platform
- code
-Date: Thu, 8 Apr 2010 07:11:47 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1004080700300.14871@utopia.booyaka.com>
-References: <cover.1269524804.git.dmitry.kasatkin@nokia.com> <9e97cb8f5ee608a70bb9c04bc2c22f0d6b749d98.1269524804.git.dmitry.kasatkin@nokia.com> <alpine.DEB.2.00.1003300334110.14474@utopia.booyaka.com> <4BBDD0BF.6050307@nokia.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: [PATCHv2] ARM: OMAP: Overo: use new gpmc nand infrastructure
+Date: Thu, 8 Apr 2010 06:42:12 -0700
+Message-ID: <u2x5e088bd91004080642ha9df5efcgc12b6bc8e8483925@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <4BBDD0BF.6050307@nokia.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "herbert@gondor.apana.org.au" <herbert@gondor.hengli.com.au>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f179.google.com ([209.85.221.179]:40137 "EHLO
+	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758468Ab0DHNmO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 09:42:14 -0400
+Received: by qyk9 with SMTP id 9so104409qyk.1
+        for <linux-omap@vger.kernel.org>; Thu, 08 Apr 2010 06:42:13 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Thu, 8 Apr 2010, Dmitry Kasatkin wrote:
+From: Steve Sakoman <steve@sakoman.com>
 
-> Hi,
-> 
-> BTW..
-> 
-> How will it work if those resource structures anyway conditionally compiled
-> for OMAP2 or 3 or 4?
-> only one structure will be compiled at once.
+A new GPMC NAND infrastructure was added by commit
+2f70a1e93657bea0baa7d449aa49e44a08582dc8.  This patch updates Overo
+NAND functionally to work with those changes.
 
-Hi Dmitry,
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+diff --git a/arch/arm/mach-omap2/board-overo.c
+b/arch/arm/mach-omap2/board-overo.c
+index 8848c7c..ae23633 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -184,6 +184,11 @@ static inline void __init overo_init_smsc911x(void)
+ static inline void __init overo_init_smsc911x(void) { return; }
+ #endif
 
-it is possible to build a kernel that will run on both OMAP2 and OMAP3 
-(for example).  We call these kernels 'multi-OMAP' kernels.  In such a 
-case, there will be multiple CONFIG_ARCH_OMAP* symbols defined, so 
-multiple structure records will be included in the kernel image.  Also 
-when this happens, the 'cpu_is_omap*' macros will be defined to something 
-that is evaluated at kernel run-time, rather than compile-time (as would 
-be the case with single-OMAP kernels). So then the appropriate structure 
-can be passed at run-time to some device registration code.
++struct flash_partitions {
++	struct mtd_partition *parts;
++	int nr_parts;
++};
++
+ static struct mtd_partition overo_nand_partitions[] = {
+ 	{
+ 		.name           = "xloader",
+@@ -213,34 +218,80 @@ static struct mtd_partition overo_nand_partitions[] = {
+ 	},
+ };
 
+-static struct omap_nand_platform_data overo_nand_data = {
+-	.parts = overo_nand_partitions,
+-	.nr_parts = ARRAY_SIZE(overo_nand_partitions),
+-	.dma_channel = -1,	/* disable DMA in OMAP NAND driver */
++static struct flash_partitions overo_flash_partitions[] = {
++	{
++		/* NOR flash */
++	},
++	{
++		/* OneNAND */
++	},
++	{
++		/* NAND */
++		.parts = overo_nand_partitions,
++		.nr_parts = ARRAY_SIZE(overo_nand_partitions),
++	},
+ };
 
-- Paul
+-static struct resource overo_nand_resource = {
+-	.flags		= IORESOURCE_MEM,
++#if defined(CONFIG_MTD_NAND_OMAP2) || \
++       defined(CONFIG_MTD_NAND_OMAP2_MODULE)
++
++/* Note that all values in this struct are in nanoseconds */
++static struct gpmc_timings nand_timings = {
++
++	.sync_clk		= 0,
++
++	.cs_on			= 0,
++	.cs_rd_off		= 36,
++	.cs_wr_off		= 36,
++
++	.adv_on			= 6,
++	.adv_rd_off		= 24,
++	.adv_wr_off		= 36,
++
++	.we_off			= 30,
++	.oe_off			= 48,
++
++	.access			= 54,
++	.rd_cycle		= 72,
++	.wr_cycle		= 72,
++
++	.wr_access		= 30,
++	.wr_data_mux_bus	= 0,
+ };
+
+-static struct platform_device overo_nand_device = {
+-	.name		= "omap2-nand",
+-	.id		= -1,
+-	.dev		= {
+-		.platform_data	= &overo_nand_data,
+-	},
+-	.num_resources	= 1,
+-	.resource	= &overo_nand_resource,
++static struct omap_nand_platform_data overo_nand_data = {
++	.nand_setup	= NULL,
++	.gpmc_t		= &nand_timings,
++	.dma_channel	= -1,	/* disable DMA in OMAP NAND driver */
++	.dev_ready	= NULL,
++	.devsize	= 1,	/* '0' for 8-bit, '1' for 16-bit device */
+ };
+
++static void
++__init board_nand_init(struct flash_partitions overo_nand_parts, u8 cs)
++{
++	overo_nand_data.cs		= cs;
++	overo_nand_data.parts		= overo_nand_parts.parts;
++	overo_nand_data.nr_parts	= overo_nand_parts.nr_parts;
++	overo_nand_data.gpmc_baseaddr	= (void *) (OMAP34XX_GPMC_VIRT);
++
++	overo_nand_data.gpmc_cs_baseaddr = (void *)(OMAP34XX_GPMC_VIRT +
++				GPMC_CS0_BASE + cs * GPMC_CS_SIZE);
+
+-static void __init overo_flash_init(void)
++	gpmc_nand_init(&overo_nand_data);
++}
++#else
++static void
++__init board_nand_init(struct flash_partitions overo_nand_parts, u8 cs)
+ {
++}
++#endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
++
++static void
++__init overo_flash_init(struct flash_partitions partition_info[]) {
+ 	u8 cs = 0;
+ 	u8 nandcs = GPMC_CS_NUM + 1;
+
+-	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
+-
+ 	/* find out the chip-select on which NAND exists */
+ 	while (cs < GPMC_CS_NUM) {
+ 		u32 ret = 0;
+@@ -260,16 +311,8 @@ static void __init overo_flash_init(void)
+ 		return;
+ 	}
+
+-	if (nandcs < GPMC_CS_NUM) {
+-		overo_nand_data.cs = nandcs;
+-		overo_nand_data.gpmc_cs_baseaddr = (void *)
+-			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
+-		overo_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
+-
+-		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
+-		if (platform_device_register(&overo_nand_device) < 0)
+-			printk(KERN_ERR "Unable to register NAND device\n");
+-	}
++	if (nandcs < GPMC_CS_NUM)
++		board_nand_init(partition_info[2], nandcs);
+ }
+
+ static struct omap2_hsmmc_info mmc[] = {
+@@ -425,7 +468,7 @@ static void __init overo_init(void)
+ 	overo_i2c_init();
+ 	platform_add_devices(overo_devices, ARRAY_SIZE(overo_devices));
+ 	omap_serial_init();
+-	overo_flash_init();
++	overo_flash_init(overo_flash_partitions);
+ 	usb_musb_init(&musb_board_data);
+ 	usb_ehci_init(&ehci_pdata);
+ 	overo_ads7846_init();
