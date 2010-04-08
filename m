@@ -1,35 +1,124 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 0/2] crypto: omap-sha1-md5: OMAP3 SHA1 & MD5 driver
-Date: Thu, 8 Apr 2010 22:04:21 +0800
-Message-ID: <20100408140421.GA25093@gondor.apana.org.au>
-References: <cover.1268830685.git.dmitry.kasatkin@nokia.com> <20100323113239.GA29837@gondor.apana.org.au>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: [PATCH] ARM: OMAP: Overo: Add support for second ethernet port
+Date: Thu, 8 Apr 2010 07:13:38 -0700
+Message-ID: <g2i5e088bd91004080713y88ecc9aav8a2ff2686548233@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ringil.hengli.com.au ([216.59.3.182]:57993 "EHLO
-	arnor.apana.org.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752230Ab0DHOEX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 10:04:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20100323113239.GA29837@gondor.apana.org.au>
+Received: from mail-qy0-f179.google.com ([209.85.221.179]:40059 "EHLO
+	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750768Ab0DHONj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 10:13:39 -0400
+Received: by qyk9 with SMTP id 9so143492qyk.1
+        for <linux-omap@vger.kernel.org>; Thu, 08 Apr 2010 07:13:38 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Tue, Mar 23, 2010 at 07:32:39PM +0800, Herbert Xu wrote:
->
-> My only question is what's your plan with respect to HMAC? If
-> you're going to do it in hardware then it's fine as it is.
-> 
-> Otherwise you need to implement export/import and we also need
-> to add ahash support to hmac.c.
+From: Steve Sakoman <steve@sakoman.com>
 
-Dmitry, did you answer this before or did it get lost in the mail :)
+Some Overo add-on boards include a second ethernet port.  This patch
+adds support for that second port.
 
-Thanks,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+
+diff --git a/arch/arm/mach-omap2/board-overo.c
+b/arch/arm/mach-omap2/board-overo.c
+index 8848c7c..4ceeb56 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -63,6 +63,8 @@
+
+ #define OVERO_SMSC911X_CS      5
+ #define OVERO_SMSC911X_GPIO    176
++#define OVERO_SMSC911X2_CS     4
++#define OVERO_SMSC911X2_GPIO   65
+
+ #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+ 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
+@@ -137,6 +139,16 @@ static struct resource overo_smsc911x_resources[] = {
+ 	},
+ };
+
++static struct resource overo_smsc911x2_resources[] = {
++	{
++		.name	= "smsc911x2-memory",
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
++	},
++};
++
+ static struct smsc911x_platform_config overo_smsc911x_config = {
+ 	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
+ 	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
+@@ -146,7 +158,7 @@ static struct smsc911x_platform_config
+overo_smsc911x_config = {
+
+ static struct platform_device overo_smsc911x_device = {
+ 	.name		= "smsc911x",
+-	.id		= -1,
++	.id		= 0,
+ 	.num_resources	= ARRAY_SIZE(overo_smsc911x_resources),
+ 	.resource	= overo_smsc911x_resources,
+ 	.dev		= {
+@@ -154,9 +166,26 @@ static struct platform_device overo_smsc911x_device = {
+ 	},
+ };
+
++static struct platform_device overo_smsc911x2_device = {
++	.name		= "smsc911x",
++	.id		= 1,
++	.num_resources	= ARRAY_SIZE(overo_smsc911x2_resources),
++	.resource	= overo_smsc911x2_resources,
++	.dev		= {
++		.platform_data = &overo_smsc911x_config,
++	},
++};
++
++static struct platform_device *smsc911x_devices[] = {
++	&overo_smsc911x_device,
++	&overo_smsc911x2_device,
++};
++
+ static inline void __init overo_init_smsc911x(void)
+ {
+-	unsigned long cs_mem_base;
++	unsigned long cs_mem_base, cs_mem_base2;
++
++	/* set up first smsc911x chip */
+
+ 	if (gpmc_cs_request(OVERO_SMSC911X_CS, SZ_16M, &cs_mem_base) < 0) {
+ 		printk(KERN_ERR "Failed request for GPMC mem for smsc911x\n");
+@@ -177,7 +206,28 @@ static inline void __init overo_init_smsc911x(void)
+ 	overo_smsc911x_resources[1].start = OMAP_GPIO_IRQ(OVERO_SMSC911X_GPIO);
+ 	overo_smsc911x_resources[1].end	  = 0;
+
+-	platform_device_register(&overo_smsc911x_device);
++	/* set up second smsc911x chip */
++
++	if (gpmc_cs_request(OVERO_SMSC911X2_CS, SZ_16M, &cs_mem_base2) < 0) {
++		printk(KERN_ERR "Failed request for GPMC mem for smsc911x2\n");
++		return;
++	}
++
++	overo_smsc911x2_resources[0].start = cs_mem_base2 + 0x0;
++	overo_smsc911x2_resources[0].end   = cs_mem_base2 + 0xff;
++
++	if ((gpio_request(OVERO_SMSC911X2_GPIO, "SMSC911X2 IRQ") == 0) &&
++	    (gpio_direction_input(OVERO_SMSC911X2_GPIO) == 0)) {
++		gpio_export(OVERO_SMSC911X2_GPIO, 0);
++	} else {
++		printk(KERN_ERR "could not obtain gpio for SMSC911X2 IRQ\n");
++		return;
++	}
++
++	overo_smsc911x2_resources[1].start = OMAP_GPIO_IRQ(OVERO_SMSC911X2_GPIO);
++	overo_smsc911x2_resources[1].end   = 0;
++
++	platform_add_devices(smsc911x_devices, ARRAY_SIZE(smsc911x_devices));
+ }
+
+ #else
