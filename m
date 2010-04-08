@@ -1,18 +1,14 @@
 From: Roger Quadros <roger.quadros@nokia.com>
-Subject: [PATCHv2 5/5] OMAP: RX51: Update board defconfig
-Date: Thu,  8 Apr 2010 15:21:07 +0300
-Message-ID: <1270729267-27553-6-git-send-email-roger.quadros@nokia.com>
+Subject: [PATCHv2 1/5] OMAP: RX51: Add LCD Panel support
+Date: Thu,  8 Apr 2010 15:21:03 +0300
+Message-ID: <1270729267-27553-2-git-send-email-roger.quadros@nokia.com>
 References: <1270729267-27553-1-git-send-email-roger.quadros@nokia.com>
- <1270729267-27553-2-git-send-email-roger.quadros@nokia.com>
- <1270729267-27553-3-git-send-email-roger.quadros@nokia.com>
- <1270729267-27553-4-git-send-email-roger.quadros@nokia.com>
- <1270729267-27553-5-git-send-email-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27574 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758639Ab0DHMWD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 08:22:03 -0400
-In-Reply-To: <1270729267-27553-5-git-send-email-roger.quadros@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:35597 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758569Ab0DHMV7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 08:21:59 -0400
+In-Reply-To: <1270729267-27553-1-git-send-email-roger.quadros@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi.Valkeinen@nokia.com
@@ -20,85 +16,167 @@ Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
 From: Roger Quadros <roger.quadros@nokia.com>
 
-Add LCD, Boot-up logo, framebuffer console, Keypad
-and Power button support
+Adds basic support for LCD Panel on Nokia N900
 
 Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
 ---
- arch/arm/configs/rx51_defconfig |   39 ++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 38 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/Makefile                 |    1 +
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   13 ++++
+ arch/arm/mach-omap2/board-rx51-video.c       |   95 ++++++++++++++++++++++++++
+ 3 files changed, 109 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-rx51-video.c
 
-diff --git a/arch/arm/configs/rx51_defconfig b/arch/arm/configs/rx51_defconfig
-index 45135ff..c9fc50c 100644
---- a/arch/arm/configs/rx51_defconfig
-+++ b/arch/arm/configs/rx51_defconfig
-@@ -787,6 +787,7 @@ CONFIG_INPUT_KEYBOARD=y
- # CONFIG_KEYBOARD_NEWTON is not set
- # CONFIG_KEYBOARD_STOWAWAY is not set
- CONFIG_KEYBOARD_GPIO=m
-+CONFIG_KEYBOARD_TWL4030=y
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
- # CONFIG_INPUT_TABLET is not set
-@@ -812,6 +813,7 @@ CONFIG_INPUT_MISC=y
- # CONFIG_INPUT_POWERMATE is not set
- # CONFIG_INPUT_YEALINK is not set
- # CONFIG_INPUT_CM109 is not set
-+CONFIG_INPUT_TWL4030_PWRBUTTON=y
- CONFIG_INPUT_UINPUT=m
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 4b9fc57..b03cbb4 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -122,6 +122,7 @@ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ 					   board-rx51-sdram.o \
+ 					   board-rx51-peripherals.o \
++					   board-rx51-video.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+ 					   board-zoom-peripherals.o \
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 4377a4c..f404537 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -45,6 +45,7 @@
+ /* list all spi devices here */
+ enum {
+ 	RX51_SPI_WL1251,
++	RX51_SPI_MIPID,		/* LCD panel */
+ };
  
- #
-@@ -1113,7 +1115,40 @@ CONFIG_RADIO_ADAPTERS=y
- #
- # CONFIG_VGASTATE is not set
- # CONFIG_VIDEO_OUTPUT_CONTROL is not set
--# CONFIG_FB is not set
-+CONFIG_FB=y
-+CONFIG_FB_CFB_FILLRECT=y
-+CONFIG_FB_CFB_COPYAREA=y
-+CONFIG_FB_CFB_IMAGEBLIT=y
-+
-+# Frame buffer hardware drivers
-+#
-+CONFIG_OMAP2_VRAM=y
-+CONFIG_OMAP2_VRFB=y
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=2
-+CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
-+# CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS is not set
-+# CONFIG_OMAP2_DSS_DPI is not set
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+# CONFIG_OMAP2_DSS_VENC is not set
-+CONFIG_OMAP2_DSS_SDI=y
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
-+CONFIG_FB_OMAP2=y
-+CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
-+CONFIG_FB_OMAP2_NUM_FBS=3
-+
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+# CONFIG_PANEL_GENERIC is not set
-+# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-+# CONFIG_PANEL_SHARP_LQ043T1DG01 is not set
-+# CONFIG_PANEL_TOPPOLY_TDO35S is not set
-+# CONFIG_PANEL_TPO_TD043MTEA1 is not set
-+CONFIG_PANEL_ACX565AKM=y
-+
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+ static struct wl12xx_platform_data wl1251_pdata;
+@@ -54,6 +55,11 @@ static struct omap2_mcspi_device_config wl1251_mcspi_config = {
+ 	.single_channel	= 1,
+ };
  
- #
-@@ -1130,6 +1165,8 @@ CONFIG_DISPLAY_SUPPORT=y
- #
- # CONFIG_VGA_CONSOLE is not set
- CONFIG_DUMMY_CONSOLE=y
-+CONFIG_FRAMEBUFFER_CONSOLE=y
-+CONFIG_LOGO=y
- CONFIG_SOUND=y
- # CONFIG_SOUND_OSS_CORE is not set
- CONFIG_SND=y
++static struct omap2_mcspi_device_config mipid_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,
++};
++
+ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 	[RX51_SPI_WL1251] = {
+ 		.modalias		= "wl1251",
+@@ -64,6 +70,13 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 		.controller_data	= &wl1251_mcspi_config,
+ 		.platform_data		= &wl1251_pdata,
+ 	},
++	[RX51_SPI_MIPID] = {
++		.modalias		= "acx565akm",
++		.bus_num		= 1,
++		.chip_select		= 2,
++		.max_speed_hz		= 6000000,
++		.controller_data	= &mipid_mcspi_config,
++	},
+ };
+ 
+ #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
+diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
+new file mode 100644
+index 0000000..9ba4e61
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-rx51-video.c
+@@ -0,0 +1,95 @@
++/*
++ * linux/arch/arm/mach-omap2/board-rx51-video.c
++ *
++ * Copyright (C) 2010 Nokia
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/gpio.h>
++#include <linux/spi/spi.h>
++
++#include <asm/mach-types.h>
++#include <plat/mux.h>
++#include <plat/display.h>
++#include <plat/mcspi.h>
++
++#include "mux.h"
++
++#define RX51_LCD_RESET_GPIO	90
++
++#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++
++static int rx51_lcd_enable(struct omap_dss_device *dssdev)
++{
++	gpio_set_value(dssdev->reset_gpio, 1);
++	return 0;
++}
++
++static void rx51_lcd_disable(struct omap_dss_device *dssdev)
++{
++	gpio_set_value(dssdev->reset_gpio, 0);
++}
++
++static struct omap_dss_device rx51_lcd_device = {
++	.name			= "lcd",
++	.driver_name		= "panel-acx565akm",
++	.type			= OMAP_DISPLAY_TYPE_SDI,
++	.phy.sdi.datapairs	= 2,
++	.reset_gpio		= RX51_LCD_RESET_GPIO,
++	.platform_enable	= rx51_lcd_enable,
++	.platform_disable	= rx51_lcd_disable,
++};
++
++static struct omap_dss_device *rx51_dss_devices[] = {
++	&rx51_lcd_device,
++};
++
++static struct omap_dss_board_info rx51_dss_board_info = {
++	.num_devices	= ARRAY_SIZE(rx51_dss_devices),
++	.devices	= rx51_dss_devices,
++	.default_device	= &rx51_lcd_device,
++};
++
++struct platform_device rx51_display_device = {
++	.name	= "omapdss",
++	.id	= -1,
++	.dev	= {
++		.platform_data = &rx51_dss_board_info,
++	},
++};
++
++static struct platform_device *rx51_video_devices[] __initdata = {
++	&rx51_display_device,
++};
++
++static int __init rx51_video_init(void)
++{
++	if (!machine_is_nokia_rx51())
++		return 0;
++
++	if (omap_mux_init_gpio(RX51_LCD_RESET_GPIO, OMAP_PIN_OUTPUT)) {
++		pr_err("%s cannot configure MUX for LCD RESET\n", __func__);
++		return 0;
++	}
++
++	if (gpio_request(RX51_LCD_RESET_GPIO, "LCD ACX565AKM reset")) {
++		pr_err("%s failed to get LCD Reset GPIO\n", __func__);
++		return 0;
++	}
++
++	gpio_direction_output(RX51_LCD_RESET_GPIO, 1);
++
++	platform_add_devices(rx51_video_devices,
++				ARRAY_SIZE(rx51_video_devices));
++	return 0;
++}
++
++subsys_initcall(rx51_video_init);
++
++#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
 -- 
 1.6.0.4
 
