@@ -1,49 +1,80 @@
 From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH v3] OMAP: Fix for bus width which improves SD card's peformance.
-Date: Thu, 8 Apr 2010 11:57:39 -0500
-Message-ID: <003601cad73c$98c3aa50$544ff780@am.dhcp.ti.com>
-References: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com> <g2s7f9d1ffb1003312331o149df218g651c3e4349ac9a77@mail.gmail.com> <003c01cad1b1$da2cdbf0$544ff780@am.dhcp.ti.com> <m2n7f9d1ffb1004050556o1ed2eec8ief66d60fc85f96de@mail.gmail.com> <20100405164839.GB17388@gandalf> <007c01cad4e4$26c5a700$544ff780@am.dhcp.ti.com> <20100406050035.GA32537@gandalf> <003901cad5a4$730264d0$544ff780@am.dhcp.ti.com> <20100406163211.GA29117@nokia.com> <4BBB6767.7010202@ti.com> <20100406165720.GA17916@nokia.com> <00b401cad5e0$1d1868d0$544ff780@am.dhcp.ti.com> <4BBBC628.9030207@ti.com> <00c901cad5e7$9de54350$544ff780@am.dhcp.ti.com> <4BBBD87C.1040307@ti.com>
+Subject: RE: [PATCH] Disable the non working eMMC on Zoom2/3
+Date: Thu, 8 Apr 2010 12:11:27 -0500
+Message-ID: <003801cad73e$86841df0$544ff780@am.dhcp.ti.com>
+References: <37310.192.168.10.89.1270081542.squirrel@dbdmail.itg.ti.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030D32CEE8@dbde02.ent.ti.com> <008601cad1bd$6d0022b0$544ff780@am.dhcp.ti.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030D32D372@dbde02.ent.ti.com> <4BB51740.2060802@ti.com> <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com> <20100407114938.GF7153@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4BBBD87C.1040307@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Nishanth Menon' <nm@ti.com>
-Cc: felipe.balbi@nokia.com, me@felipebalbi.com, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>, 'Vimal Singh' <vimal.newwork@gmail.com>, tony@atomide.com, "'S, Venkatraman'" <svenkatr@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "'Lavinen Jarkko (Nokia-D/Helsinki)'" <jarkko.lavinen@nokia.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100407114938.GF7153@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: 'Tony Lindgren' <tony@atomide.com>
+Cc: 'Nishanth Menon' <nm@ti.com>, "'Ghorai, Sukumar'" <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-<snip>
-> Point noted. try n++:
-> switch(mmc_slot(host).wires) {
-> case 8:
->          mmc->caps |= MMC_CAP_8_BIT_DATA;
->          /* Fall through */
-> case 4:
->          mmc->caps |= MMC_CAP_4_BIT_DATA;
->          break;
-> case 0:
->          /* assuming nothing was given by board, use 1 */
-> case 1:
->          /* nothing to crib here */
->          break;
-> default:
->          /* Completely unexpected.. try 1 bit instead  */
->          dev_crit(mmc_dev(host->mmc), "Invalid width %d"
->                          " used! using 1 instead\n",
->                          mmc_slot(host).wires);
-> }
+
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Wednesday, April 07, 2010 6:50 AM
+> To: Madhusudhan
+> Cc: 'Nishanth Menon'; 'Ghorai, Sukumar'; linux-omap@vger.kernel.org;
+> linux-mmc@vger.kernel.org
+> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
 > 
-> note: we should crib if the board file made a mistake here.. say it gave
-> 10 wire or so.. I agree that we can recover by stepping back to 1 bit
-> mode.. but we gotta tell the log that something aint right..
+> * Madhusudhan <madhu.cr@ti.com> [100401 15:54]:
+> 
+> <snip>
+> 
+> > > Ref [1] I believe tony has the brand new zoom board - I think your
+> > > assumption here might be flawed..
+> > >
+> >
+> > Wait, I just looked up the serial number on the board. The one I was
+> using
+> > is a pilot version where this problem exists.
+> >
+> > I happen to get an other board which is production unit with ser #
+> 1013089
+> > Rev B. The eMMC on this board has no issue. It reports the EXT_CSD Rev 2
+> > which is correct and works fine.
+> >
+> > http://omappedia.org/wiki/Zoom_Resources
+> >
+> > There is a table here which could help.
+> >
+> > Tony, do you care to just look up the serial number of your board?
+> 
+> Sorry for the delay in replying, I've been travelling for a few weeks
+> and been in meetings quite a bit. Anyways, it's a 1013037 REV A board,
+> which seems to be production in the table above.
 > 
 
-Sure. It looks fine to me now.
+That means we can not assume all production units have a working eMMC.
+Would you mind sharing your bootup log? When this device is detected 
+something like below is a clear issue.
+
+mmcblk1: mmc1:0001 STM16G 1.00 GiB 
+mmcblk1: p1 p2
 
 Regards,
 Madhu
-> --
+
+> > But again there are several boards out there which could have this
+> > non-working eMMC. So what do we do?? It does not make sense to keep
+> > something enabled which does not work.
+> 
+> There's arm kernel parameter for ATAG_REVISION that can be passed from
+> bootloader and then the board-*.c code can initialize things accordingly
+> based on the board revision.
+> 
 > Regards,
-> Nishanth Menon
+> 
+> Tony
+> 
+> 
+> > > [1] http://marc.info/?l=linux-omap&m=126938456103707&w=2
+> >
+
