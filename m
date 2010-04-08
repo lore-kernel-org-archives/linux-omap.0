@@ -1,75 +1,127 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 01/19] DSPBRIDGE: rename generic clk_handle for iva2_clk
-Date: Thu,  8 Apr 2010 18:15:50 -0500
-Message-ID: <1270768568-10712-2-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 03/19] DSPBRIDGE: fail if clk handle is NULL
+Date: Thu,  8 Apr 2010 18:15:52 -0500
+Message-ID: <1270768568-10712-4-git-send-email-omar.ramirez@ti.com>
 References: <1270768568-10712-1-git-send-email-omar.ramirez@ti.com>
+ <1270768568-10712-2-git-send-email-omar.ramirez@ti.com>
+ <1270768568-10712-3-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57271 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933799Ab0DHW71 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Apr 2010 18:59:27 -0400
-In-Reply-To: <1270768568-10712-1-git-send-email-omar.ramirez@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41608 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933813Ab0DHW7c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 18:59:32 -0400
+In-Reply-To: <1270768568-10712-3-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, Guzman Lugo Fernando <x0095840@ti.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-In the contexts is being used clk_handle refers to iva2_clk
-handle only.
+If we fail if a clk handle is NULL during initialization
+then there is no need to keep checking every time if the
+handle is NULL for enable/disable/set_32k/get_use_cnt.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/rmgr/drv_interface.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/dsp/bridge/services/clk.c |   54 +++++++++++--------------------------
+ 1 files changed, 16 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index d592181..862e01b 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -150,7 +150,7 @@ static struct file_operations bridge_fops = {
- #ifdef CONFIG_PM
- static u32 time_out = 1000;
- #ifdef CONFIG_BRIDGE_DVFS
--static struct clk *clk_handle;
-+static struct clk *iva2_clk;
- s32 dsp_max_opps = VDD1_OPP5;
- #endif
+diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
+index 5ed6bb5..57cf6e3 100644
+--- a/drivers/dsp/bridge/services/clk.c
++++ b/drivers/dsp/bridge/services/clk.c
+@@ -132,7 +132,7 @@ bool services_clk_init(void)
+ 			pr_err("%s: failed to get clk handle %s, dev id = %d\n",
+ 			       __func__, services_clks[i].clk_name,
+ 			       services_clks[i].id);
+-			/* should we fail here?? */
++			return false;
+ 		}
+ 		services_clks[i].clk_handle = clk_handle;
+ 		i++;
+@@ -155,17 +155,11 @@ dsp_status services_clk_enable(IN enum services_clk_id clk_id)
+ 	DBC_REQUIRE(clk_id < SERVICESCLK_NOT_DEFINED);
  
-@@ -306,11 +306,11 @@ static int __devinit omap34_xx_bridge_probe(struct platform_device *pdev)
- 		for (i = 0; i < 6; i++)
- 			pdata->mpu_speed[i] = vdd1_rate_table_bridge[i].rate;
- 
--		clk_handle = clk_get(NULL, "iva2_ck");
--		if (!clk_handle)
-+		iva2_clk = clk_get(NULL, "iva2_ck");
-+		if (!iva2_clk)
- 			pr_err("%s: clk_get failed to get iva2_ck\n", __func__);
- 
--		if (clk_notifier_register(clk_handle, &iva_clk_notifier))
-+		if (clk_notifier_register(iva2_clk, &iva_clk_notifier))
- 			pr_err("%s: clk_notifier_register failed for iva2_ck\n",
- 			       __func__);
- #endif
-@@ -346,7 +346,7 @@ static int __devexit omap34_xx_bridge_remove(struct platform_device *pdev)
- 		goto func_cont;
- 
- #ifdef CONFIG_BRIDGE_DVFS
--	if (clk_notifier_unregister(clk_handle, &iva_clk_notifier))
-+	if (clk_notifier_unregister(iva2_clk, &iva_clk_notifier))
- 		pr_err("%s: clk_notifier_unregister failed for iva2_ck\n",
- 		       __func__);
- #endif /* #ifdef CONFIG_BRIDGE_DVFS */
-@@ -358,8 +358,8 @@ static int __devexit omap34_xx_bridge_remove(struct platform_device *pdev)
- 		DBC_ASSERT(ret == true);
+ 	clk_handle = services_clks[clk_id].clk_handle;
+-	if (clk_handle) {
+-		if (clk_enable(clk_handle)) {
+-			pr_err("services_clk_enable: failed to Enable CLK %s, "
+-			       "CLK dev id = %d\n",
+-			       services_clks[clk_id].clk_name,
+-			       services_clks[clk_id].id);
+-			status = DSP_EFAIL;
+-		}
+-	} else {
+-		pr_err("%s: failed to get CLK %s, CLK dev id = %d\n", __func__,
+-		     services_clks[clk_id].clk_name, services_clks[clk_id].id);
++	if (clk_enable(clk_handle)) {
++		pr_err("services_clk_enable: failed to Enable CLK %s, "
++		       "CLK dev id = %d\n",
++		       services_clks[clk_id].clk_name,
++		       services_clks[clk_id].id);
+ 		status = DSP_EFAIL;
  	}
- #ifdef CONFIG_BRIDGE_DVFS
--	clk_put(clk_handle);
--	clk_handle = NULL;
-+	clk_put(iva2_clk);
-+	iva2_clk = NULL;
- #endif /* #ifdef CONFIG_BRIDGE_DVFS */
+ 	/* The SSI module need to configured not to have the Forced idle for
+@@ -195,13 +189,11 @@ dsp_status clk_set32k_hz(IN enum services_clk_id clk_id)
+ 	DBC_REQUIRE(clk_id < SERVICESCLK_NOT_DEFINED);
  
- func_cont:
+ 	clk_handle = services_clks[clk_id].clk_handle;
+-	if (clk_handle) {
+-		if (!(clk_set_parent(clk_handle, clk_parent) == 0x0)) {
+-			pr_err("%s: failed for %s, dev id = %d\n", __func__,
+-			       services_clks[clk_id].clk_name,
+-			       services_clks[clk_id].id);
+-			status = DSP_EFAIL;
+-		}
++	if (!(clk_set_parent(clk_handle, clk_parent) == 0x0)) {
++		pr_err("%s: failed for %s, dev id = %d\n", __func__,
++		       services_clks[clk_id].clk_name,
++		       services_clks[clk_id].id);
++		status = DSP_EFAIL;
+ 	}
+ 	return status;
+ }
+@@ -233,36 +225,22 @@ dsp_status services_clk_disable(IN enum services_clk_id clk_id)
+ 	if (clk_id == SERVICESCLK_SSI_ICK)
+ 		ssi_clk_prepare(false);
+ 
+-	if (clk_handle) {
+-		clk_disable(clk_handle);
+-	} else {
+-		pr_err("services_clk_disable: failed to get CLK %s,"
+-		       "CLK dev id = %d\n",
+-		       services_clks[clk_id].clk_name,
+-		       services_clks[clk_id].id);
+-		status = DSP_EFAIL;
+-	}
++	clk_disable(clk_handle);
++
+ 	return status;
+ }
+ 
+ s32 clk_get_use_cnt(IN enum services_clk_id clk_id)
+ {
+-	dsp_status status = DSP_SOK;
+ 	struct clk *clk_handle;
+ 	s32 use_count = -1;
+ 	DBC_REQUIRE(clk_id < SERVICESCLK_NOT_DEFINED);
+ 
+ 	clk_handle = services_clks[clk_id].clk_handle;
+ 
+-	if (clk_handle) {
+-		/* FIXME: usecount shouldn't be used */
+-		use_count = clk_handle->usecount;
+-	} else {
+-		pr_err("%s: failed to get %s, dev Id = %d\n", __func__,
+-		       services_clks[clk_id].clk_name,
+-		       services_clks[clk_id].id);
+-		status = DSP_EFAIL;
+-	}
++	/* FIXME: usecount shouldn't be used */
++	use_count = clk_handle->usecount;
++
+ 	return use_count;
+ }
+ 
 -- 
 1.6.2.4
 
