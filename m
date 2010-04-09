@@ -1,93 +1,64 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: Re: [PATCH 2/2] Setup LCD reset for Devkit8000
-Date: Fri, 09 Apr 2010 13:13:32 +0000
-Message-ID: <4BBF27FC.2020507@corscience.de>
-References: <1270629267-27068-1-git-send-email-kanru@0xlab.org> <1270629267-27068-2-git-send-email-kanru@0xlab.org>
+From: "Jerry Johns" <Jerry.Johns@nuvation.com>
+Subject: OMAP35xx Boot failure
+Date: Fri, 9 Apr 2010 08:33:20 -0700
+Message-ID: <274F7B50569A1B4C9D7BCAB17A9C7BE102216BC8@mailguy3.skynet.nuvation.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:54562 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977Ab0DIMNt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Apr 2010 08:13:49 -0400
-In-Reply-To: <1270629267-27068-2-git-send-email-kanru@0xlab.org>
+Received: from mail.nuvation.com ([68.65.78.147]:21393 "EHLO
+	mailguy3.skynet.nuvation.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754140Ab0DIPdV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Apr 2010 11:33:21 -0400
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kan-Ru Chen <kanru@0xlab.org>
-Cc: linux-omap@vger.kernel.org, Thomas Weber <weber@corscience.de>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
-Hello Kan-Ru,
+Hello all,=20
+        =A0=A0=A0 I've got a custom OMAP3503 board with 256Mbytes of LP=
+DDR memory (single die, x32-bit) that i've got working with x-loader an=
+d u-
+boot. However, when i load the Linux kernel (2.6.32 git), it randomly p=
+roduces the=A0following errors:=A0
 
-On 04/07/10 08:34, Kan-Ru Chen wrote:
-> This patch corrects the LCD reset pin config
-> 
-> Original code from early devkit8000 patch sets the TWL4030 GPIO_1
-> to EHCI_nOC and TWL4030_GPIO_MAX+1 to ledA. Indeed these two pins
-> are both LCD_PWREN. Setup the lcd reset_gpio properly so it can be
-> disabled when other display is turned on.
-> 
-> Signed-off-by: Kan-Ru Chen <kanru@0xlab.org>
-> ---
->  arch/arm/mach-omap2/board-devkit8000.c |   22 +++++++++++-----------
->  1 files changed, 11 insertions(+), 11 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-> index fd4454a..e38a669 100644
-> --- a/arch/arm/mach-omap2/board-devkit8000.c
-> +++ b/arch/arm/mach-omap2/board-devkit8000.c
-> @@ -135,11 +135,15 @@ static int devkit8000_panel_enable_lcd(struct omap_dss_device *dssdev)
->  	twl_i2c_write_u8(TWL4030_MODULE_GPIO, 0x80, REG_GPIODATADIR1);
->  	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x0, 0x0);
->  
-> +	if (dssdev->reset_gpio != -EINVAL)
-> +		gpio_set_value(dssdev->reset_gpio, 1);
->  	return 0;
->  }
->  
->  static void devkit8000_panel_disable_lcd(struct omap_dss_device *dssdev)
->  {
-> +	if (dssdev->reset_gpio != -EINVAL)
-> +		gpio_set_value(dssdev->reset_gpio, 0);
->  }
->  
->  static int devkit8000_panel_enable_dvi(struct omap_dss_device *dssdev)
-> @@ -180,6 +184,7 @@ static struct omap_dss_device devkit8000_lcd_device = {
->  	.driver_name            = "innolux_at_panel",
->  	.type                   = OMAP_DISPLAY_TYPE_DPI,
->  	.phy.dpi.data_lines     = 24,
-> +	.reset_gpio             = -EINVAL, /* will be replaced */
->  	.platform_enable        = devkit8000_panel_enable_lcd,
->  	.platform_disable       = devkit8000_panel_disable_lcd,
->  };
-> @@ -275,20 +280,15 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
->  	devkit8000_vmmc1_supply.dev = mmc[0].dev;
->  	devkit8000_vsim_supply.dev = mmc[0].dev;
->  
-> -	/* REVISIT: need ehci-omap hooks for external VBUS
-> -	 * power switch and overcurrent detect
-> -	 */
-> -
-> -	gpio_request(gpio + 1, "EHCI_nOC");
-> -	gpio_direction_input(gpio + 1);
-> -
-> -	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
-> -	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
-> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
-> -
-This is already fixed in
-http://marc.info/?l=linux-omap&m=126943519124317&w=2
->  	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
->  	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
->  
-> +        /* gpio + 1 is "LCD_PWREN" (out, active high) */
-> +	devkit8000_lcd_device.reset_gpio = gpio + 1;
-> +	gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
-> +	/* Disable until needed */
-> +	gpio_direction_output(devkit8000_lcd_device.reset_gpio, 0);
-> +
->  	/* gpio + 7 is "DVI_PD" (out, active low) */
->  	devkit8000_dvi_device.reset_gpio = gpio + 7;
->  	gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
+1) Hangs midway through the "Uncompressing Linux ...." stage, and this=A0=
+is arbitrary and random on different attempts=A0
+2) If it ever does go through, it sometimes displays "invalid=A0compres=
+sed format (err =3D 2)" or "crc error", "incomplete literal tree" and s=
+ays "System halted"=A0
+3) If i disable caching in the kernel (in arch/arm/boot/compressed.S,=A0=
+line 233 "bl cache_on"), it at least completes the Uncompressing stage=A0=
+fine and proceeds to print "....... done, booting the kernel.", at=A0wh=
+ich point it does not boot (most likely since i disabled the=A0caching)=
+=A0
+4) If i reset the board (not power-cycle) after the board hang above,=A0=
+and do a crc32 check on the kernel image in DDR memory (this is=A0
+possible since DDR2 memory contents do not get changed after a soft-=A0=
+reset), it matches the CRC32 that i have calculated manually on the=A0
+kernel image. This shows that the main kernel image (from which it is u=
+ncompressed) is still intact.=A0
 
-Thomas
+I've run my own DDR2 tester using the ROM bootloader, and done address/=
+bus stuck-at testing as well as complete psuedo-random data testing on=A0=
+the full 256MByte memory. They all check out fine. The only difference=A0=
+i have from the BeagleBoard is that i'm using the CUS 0.65mm packaged=A0=
+version of the OMAP3503 as well as a non-POP LPDDR memory with single=A0=
+die (not dual die in the Beagle Board) - hence, i had to modify the=A0D=
+DR MCFG register for 14-bit RAS width and 256MByte CS space to get=A0th=
+is to work properly.=A0
+I've also verified (using CRC checks) that the page tables are intact a=
+nd correct before/after the errors happen (full 0x4000 sized page table=
+)
+
+If you guys have any ideas, please do help as i'm at my wits end!=A0
+
+Thank you kindly,=A0
+Jerry=A0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
