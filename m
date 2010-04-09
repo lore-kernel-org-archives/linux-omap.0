@@ -1,64 +1,94 @@
-From: "Jerry Johns" <Jerry.Johns@nuvation.com>
-Subject: OMAP35xx Boot failure
-Date: Fri, 9 Apr 2010 08:33:20 -0700
-Message-ID: <274F7B50569A1B4C9D7BCAB17A9C7BE102216BC8@mailguy3.skynet.nuvation.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PM][PATCH 2/4] OMAP3: Serial: Errata i202: fix for MDR1 access
+Date: Fri, 9 Apr 2010 12:00:04 -0500
+Message-ID: <4BBF5D14.1040803@ti.com>
+References: <1270749249-14041-1-git-send-email-nm@ti.com> <1270749249-14041-2-git-send-email-nm@ti.com> <1270749249-14041-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.nuvation.com ([68.65.78.147]:21393 "EHLO
-	mailguy3.skynet.nuvation.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754140Ab0DIPdV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Apr 2010 11:33:21 -0400
-Content-class: urn:content-classes:message
+Received: from comal.ext.ti.com ([198.47.26.152]:44022 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754617Ab0DIRAM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Apr 2010 13:00:12 -0400
+In-Reply-To: <1270749249-14041-3-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: "Kattungal, Deepak" <deepak.k@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>
 
-Hello all,=20
-        =A0=A0=A0 I've got a custom OMAP3503 board with 256Mbytes of LP=
-DDR memory (single die, x32-bit) that i've got working with x-loader an=
-d u-
-boot. However, when i load the Linux kernel (2.6.32 git), it randomly p=
-roduces the=A0following errors:=A0
+Menon, Nishanth had written, on 04/08/2010 12:54 PM, the following:
+> From: Deepak K <deepak.k@ti.com>
+[...]
+> 
+> Cc: Govindraj R <govindraj.raja@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tero Kristo <tero.kristo@nokia.com>
+> 
+> Signed-off-by: Deepak K <deepak.k@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> Note: original patch was done for android kernel, ported and sanity
+> tested
+> 
+>  arch/arm/mach-omap2/serial.c |   18 +++++++++++++++++-
+>  1 files changed, 17 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 86d3b47..144033f 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -223,6 +223,19 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
+>  	uart->context_valid = 0;
+>  
+>  	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
+> +	/*
+> +	 * Work Around for Errata i202 (3430 - 1.12, 3630 - 1.6)
+> +	 * The access to uart register after MDR1 Access
+> +	 * causes UART to corrupt data.
+> +	 *
+> +	 * Need a delay =
+> +	 * 5 L4 clock cycles + 5 UART functional clock cycle (@48MHz = ~0.2uS)
+> +	 * give 10 times as much
+> +	 */
+> +	udelay(2);
+> +	/* TX and RX FIFO Clear; FIFO dis */
+> +	serial_write_reg(p, UART_FCR, 0xA6);
+NAK
+Late realization: should be checking if FIFO clear actually occurred 
+before proceeding (FIFO clear bits will be cleared by h/w once it is 
+complete,
+so need to add a
+/* wait till  TX and RX fifos are cleard by h/w */
+while(serial_read_reg(p, UART_FCR) & 0x06)
+	;
+> +
+>  	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+>  	efr = serial_read_reg(p, UART_EFR);
+>  	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
+> @@ -235,7 +248,6 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
+>  	serial_write_reg(p, UART_IER, uart->ier);
+>  	serial_write_reg(p, UART_LCR, 0x80);
+>  	serial_write_reg(p, UART_MCR, uart->mcr);
+> -	serial_write_reg(p, UART_FCR, 0xA1);
+>  	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+>  	serial_write_reg(p, UART_EFR, efr);
+>  	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
+> @@ -243,6 +255,10 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
+>  	serial_write_reg(p, UART_OMAP_WER, uart->wer);
+>  	serial_write_reg(p, UART_OMAP_SYSC, uart->sysc);
+>  	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
+> +	/* Errata: i202 */
+> +	udelay(2);
+> +	/* TX and RX FIFO Clear; FIFO en */
+> +	serial_write_reg(p, UART_FCR, 0xA7);
+NAK
+same reason
+>  }
+>  #else
+>  static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
 
-1) Hangs midway through the "Uncompressing Linux ...." stage, and this=A0=
-is arbitrary and random on different attempts=A0
-2) If it ever does go through, it sometimes displays "invalid=A0compres=
-sed format (err =3D 2)" or "crc error", "incomplete literal tree" and s=
-ays "System halted"=A0
-3) If i disable caching in the kernel (in arch/arm/boot/compressed.S,=A0=
-line 233 "bl cache_on"), it at least completes the Uncompressing stage=A0=
-fine and proceeds to print "....... done, booting the kernel.", at=A0wh=
-ich point it does not boot (most likely since i disabled the=A0caching)=
-=A0
-4) If i reset the board (not power-cycle) after the board hang above,=A0=
-and do a crc32 check on the kernel image in DDR memory (this is=A0
-possible since DDR2 memory contents do not get changed after a soft-=A0=
-reset), it matches the CRC32 that i have calculated manually on the=A0
-kernel image. This shows that the main kernel image (from which it is u=
-ncompressed) is still intact.=A0
-
-I've run my own DDR2 tester using the ROM bootloader, and done address/=
-bus stuck-at testing as well as complete psuedo-random data testing on=A0=
-the full 256MByte memory. They all check out fine. The only difference=A0=
-i have from the BeagleBoard is that i'm using the CUS 0.65mm packaged=A0=
-version of the OMAP3503 as well as a non-POP LPDDR memory with single=A0=
-die (not dual die in the Beagle Board) - hence, i had to modify the=A0D=
-DR MCFG register for 14-bit RAS width and 256MByte CS space to get=A0th=
-is to work properly.=A0
-I've also verified (using CRC checks) that the page tables are intact a=
-nd correct before/after the errors happen (full 0x4000 sized page table=
-)
-
-If you guys have any ideas, please do help as i'm at my wits end!=A0
-
-Thank you kindly,=A0
-Jerry=A0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I will post a v2 patch in a few mins..
+-- 
+Regards,
+Nishanth Menon
