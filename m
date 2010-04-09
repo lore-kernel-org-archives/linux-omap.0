@@ -1,21 +1,38 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PM][PATCH 2/4] OMAP3: Serial: Errata i202: fix for MDR1 access
-Date: Fri, 9 Apr 2010 12:00:04 -0500
-Message-ID: <4BBF5D14.1040803@ti.com>
-References: <1270749249-14041-1-git-send-email-nm@ti.com> <1270749249-14041-2-git-send-email-nm@ti.com> <1270749249-14041-3-git-send-email-nm@ti.com>
+From: "Kattungal, Deepak" <deepak.k@ti.com>
+Subject: RE: [PM][PATCH 2/4] OMAP3: Serial: Errata i202: fix for MDR1 access
+Date: Fri, 9 Apr 2010 22:36:42 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304A6595E@dbde02.ent.ti.com>
+References: <1270749249-14041-1-git-send-email-nm@ti.com>
+ <1270749249-14041-2-git-send-email-nm@ti.com>
+ <1270749249-14041-3-git-send-email-nm@ti.com> <4BBF5D14.1040803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44022 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60210 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754617Ab0DIRAM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Apr 2010 13:00:12 -0400
-In-Reply-To: <1270749249-14041-3-git-send-email-nm@ti.com>
+	id S1751487Ab0DIRGx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Apr 2010 13:06:53 -0400
+In-Reply-To: <4BBF5D14.1040803@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: "Kattungal, Deepak" <deepak.k@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>
+To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>
+
+Hi Nishanth
+
+My comments below.
+
+Regards
+Deepak
+
+-----Original Message-----
+From: Menon, Nishanth 
+Sent: Friday, April 09, 2010 12:00 PM
+To: linux-omap
+Cc: Kattungal, Deepak; Raja, Govindraj; Kevin Hilman; Tero Kristo
+Subject: Re: [PM][PATCH 2/4] OMAP3: Serial: Errata i202: fix for MDR1 access
 
 Menon, Nishanth had written, on 04/08/2010 12:54 PM, the following:
 > From: Deepak K <deepak.k@ti.com>
@@ -62,6 +79,9 @@ so need to add a
 /* wait till  TX and RX fifos are cleard by h/w */
 while(serial_read_reg(p, UART_FCR) & 0x06)
 	;
+
+Deepak : The FCR is a Write-Only Register, the read to it wont return the correct value. If at all we need to add a check, the LSR should be read for the status of the FIFO. The same follows for the below section also.
+
 > +
 >  	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
 >  	efr = serial_read_reg(p, UART_EFR);
