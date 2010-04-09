@@ -1,399 +1,397 @@
 From: "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
-Subject: [PATCH 11/13] DSPBRIDGE: Remove IS_VALID_HANDLE function and macro
-Date: Thu, 8 Apr 2010 19:11:49 -0500
-Message-ID: <818EF96F5A7CC84789DD014773DB09548E64D156@dlee01.ent.ti.com>
+Subject: [PATCH 12/13] DSPBRIDGE: Remove dw_signature field from structures
+Date: Thu, 8 Apr 2010 19:12:29 -0500
+Message-ID: <818EF96F5A7CC84789DD014773DB09548E64D157@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44129 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343Ab0DIAMM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 20:12:12 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50988 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758653Ab0DIAMp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Apr 2010 20:12:45 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: "Ameya.Palande@nokia.com" <Ameya.Palande@nokia.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
->From 6d9b054e76f52b4ae0adff17b4e875793b54a6b1 Mon Sep 17 00:00:00 2001
+>From a6e48d27dcc2f71f1948b4f882f212a964382474 Mon Sep 17 00:00:00 2001
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Date: Mon, 29 Mar 2010 18:16:42 -0600
-Subject: [PATCH 11/13] DSPBRIDGE: Remove IS_VALID_HANDLE function and macro
+Date: Mon, 29 Mar 2010 19:03:32 -0600
+Subject: [PATCH 12/13] DSPBRIDGE: Remove dw_signature field from structures
 
-The patch "DSPBRIDGE: Replace MEM_ALLOC_OBJECT macro by kzalloc function"
-do not set the dw_signature, then all the signature checking will be
-removed.
+dw_signature is not needed for object validation. It does not improve
+a simple pointer check. So this field is removed from structures.
 
-IS_VALID_HANDLE can be replaced by a simple pointer check.
+This patch depends on the fommowing patches:
+
+DSPBRIDGE: Replace MEM_ALLOC_OBJECT macro by kzalloc function
+DSPBRIDGE: Replace MEM_FREE_OBJECT macro by kfree function
+DSPBRIDGE: Check pointer instead of using MEM_IS_VALID_HANDLE macro
+DSPBRIDGE: Remove CHNL_IS_VALID_MGR and CHNL_IS_VALID_CHNL
+DSPBRIDGE: Remove IS_VALID_HANDLE function and macro
 
 Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/wmd.h |    2 +-
- drivers/dsp/bridge/pmgr/dev.c              |   72 ++++++++++------------------
- drivers/dsp/bridge/rmgr/dbdcd.c            |   20 ++++----
- 3 files changed, 35 insertions(+), 59 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/_chnl_sm.h |    2 --
+ drivers/dsp/bridge/pmgr/chnlobj.h               |    2 --
+ drivers/dsp/bridge/pmgr/cmm.c                   |    3 ---
+ drivers/dsp/bridge/pmgr/dbll.c                  |    2 --
+ drivers/dsp/bridge/pmgr/dev.c                   |    1 -
+ drivers/dsp/bridge/pmgr/dmm.c                   |    1 -
+ drivers/dsp/bridge/pmgr/ioobj.h                 |    1 -
+ drivers/dsp/bridge/pmgr/msgobj.h                |    3 +--
+ drivers/dsp/bridge/rmgr/dbdcd.c                 |    1 -
+ drivers/dsp/bridge/rmgr/disp.c                  |    1 -
+ drivers/dsp/bridge/rmgr/drv.c                   |    1 -
+ drivers/dsp/bridge/rmgr/mgr.c                   |    1 -
+ drivers/dsp/bridge/rmgr/nldr.c                  |    2 --
+ drivers/dsp/bridge/rmgr/node.c                  |    2 --
+ drivers/dsp/bridge/rmgr/proc.c                  |    1 -
+ drivers/dsp/bridge/rmgr/rmm.c                   |    1 -
+ drivers/dsp/bridge/rmgr/strm.c                  |    2 --
+ drivers/dsp/bridge/wmd/_deh.h                   |    1 -
+ drivers/dsp/bridge/wmd/_msg_sm.h                |    4 +---
+ drivers/dsp/bridge/wmd/chnl_sm.c                |    2 --
+ drivers/dsp/bridge/wmd/io_sm.c                  |    1 -
+ 21 files changed, 2 insertions(+), 33 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
-index f9883db..6a41975 100644
---- a/arch/arm/plat-omap/include/dspbridge/wmd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
-@@ -318,7 +318,7 @@ typedef dsp_status(*fxn_brd_write) (struct wmd_dev_context *hDevContext,
-  *          0 < max_channels <= CHNL_MAXCHANNELS.
-  *          birq <= 15.
-  *          word_size > 0.
-- *      IS_VALID_HANDLE(hdev_obj)
-+ *      hdev_obj != NULL
-  *      No channel manager exists for this board.
-  *  Ensures:
+diff --git a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
+index f8bdc93..8bba33f 100644
+--- a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
++++ b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
+@@ -112,7 +112,6 @@ struct shm {
+
+        /* Channel Manager: only one created per board: */
+ struct chnl_mgr {
+-       u32 dw_signature;       /* Used for object validation */
+        /* Function interface to WMD */
+        struct bridge_drv_interface *intf_fxns;
+        struct io_mgr *hio_mgr; /* IO manager */
+@@ -138,7 +137,6 @@ struct chnl_mgr {
+  *     up to CHNL_MAXCHANNELS + CHNL_MAXDDMACHNLS per board.
   */
+ struct chnl_object {
+-       u32 dw_signature;       /* Used for object validation */
+        /* Pointer back to channel manager */
+        struct chnl_mgr *chnl_mgr_obj;
+        u32 chnl_id;            /* Channel id */
+diff --git a/drivers/dsp/bridge/pmgr/chnlobj.h b/drivers/dsp/bridge/pmgr/chnlobj.h
+index 6750273..2cc7c22 100644
+--- a/drivers/dsp/bridge/pmgr/chnlobj.h
++++ b/drivers/dsp/bridge/pmgr/chnlobj.h
+@@ -30,7 +30,6 @@
+  */
+ struct chnl_mgr_ {
+        /* These must be the first fields in a chnl_mgr struct: */
+-       u32 dw_signature;       /* Used for object validation. */
+        struct bridge_drv_interface *intf_fxns; /* Function interface to WMD. */
+ };
+
+@@ -41,7 +40,6 @@ struct chnl_mgr_ {
+  */
+ struct chnl_object_ {
+        /* These must be the first fields in a chnl_object struct: */
+-       u32 dw_signature;       /* Used for object validation. */
+        struct chnl_mgr_ *chnl_mgr_obj; /* Pointer back to channel manager. */
+ };
+
+diff --git a/drivers/dsp/bridge/pmgr/cmm.c b/drivers/dsp/bridge/pmgr/cmm.c
+index e1fcc38..e86294a 100644
+--- a/drivers/dsp/bridge/pmgr/cmm.c
++++ b/drivers/dsp/bridge/pmgr/cmm.c
+@@ -70,7 +70,6 @@
+  *      vma - virtual memory allocator.(not used).
+  */
+ struct cmm_allocator {         /* sma */
+-       u32 dw_signature;       /* SMA allocator signature SMEMSIGNATURE */
+        unsigned int shm_base;  /* Start of physical SM block */
+        u32 ul_sm_size;         /* Size of SM block in bytes */
+        unsigned int dw_vm_base;        /* Start of VM block. (Dev driver
+@@ -88,7 +87,6 @@ struct cmm_allocator {                /* sma */
+ };
+
+ struct cmm_xlator {            /* Pa<->Va translator object */
+-       u32 dw_signature;       /* "CMMX" */
+        /* CMM object this translator associated */
+        struct cmm_object *hcmm_mgr;
+        /*
+@@ -103,7 +101,6 @@ struct cmm_xlator {         /* Pa<->Va translator object */
+
+ /* CMM Mgr */
+ struct cmm_object {
+-       u32 dw_signature;       /* Used for object validation */
+        /*
+         * Cmm Lock is used to serialize access mem manager for multi-threads.
+         */
+diff --git a/drivers/dsp/bridge/pmgr/dbll.c b/drivers/dsp/bridge/pmgr/dbll.c
+index 18bc662..f10715a 100644
+--- a/drivers/dsp/bridge/pmgr/dbll.c
++++ b/drivers/dsp/bridge/pmgr/dbll.c
+@@ -60,7 +60,6 @@
+  *  ======== dbll_tar_obj ========
+  */
+ struct dbll_tar_obj {
+-       u32 dw_signature;       /* For object validation */
+        struct dbll_attrs attrs;
+        struct dbll_library_obj *head;  /* List of all opened libraries */
+ };
+@@ -113,7 +112,6 @@ struct dbll_init_obj {
+  *  ======== dbll_library_obj ========
+  */
+ struct dbll_library_obj {
+-       u32 dw_signature;       /* For object validation */
+        struct dbll_library_obj *next;  /* Next library in target's list */
+        struct dbll_library_obj *prev;  /* Previous in the list */
+        struct dbll_tar_obj *target_obj;        /* target for this library */
 diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
-index aafdbaa..09884ca 100644
+index 09884ca..bc42520 100644
 --- a/drivers/dsp/bridge/pmgr/dev.c
 +++ b/drivers/dsp/bridge/pmgr/dev.c
-@@ -90,7 +90,6 @@ static u32 refs;		/* Module reference count */
- /*  ----------------------------------- Function Prototypes */
- static dsp_status fxn_not_implemented(int arg, ...);
- static dsp_status init_cod_mgr(struct dev_object *dev_obj);
--static bool IS_VALID_HANDLE(struct dev_object *hObj);
- static void store_interface_fxns(struct bridge_drv_interface *drv_fxns,
- 				 OUT struct bridge_drv_interface *intf_fxns);
- /*
-@@ -109,7 +108,7 @@ u32 dev_brd_write_fxn(void *pArb, u32 ulDspAddr, void *pHostBuf,
- 
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(pHostBuf != NULL);	/* Required of BrdWrite(). */
--	if (IS_VALID_HANDLE(dev_obj)) {
-+	if (dev_obj) {
- 		/* Require of BrdWrite() */
- 		DBC_ASSERT(dev_obj->hwmd_context != NULL);
- 		status =
-@@ -271,7 +270,7 @@ dsp_status dev_create_device(OUT struct dev_object **phDevObject,
- 		*phDevObject = NULL;
- 	}
- 
--	DBC_ENSURE((DSP_SUCCEEDED(status) && IS_VALID_HANDLE(*phDevObject)) ||
-+	DBC_ENSURE((DSP_SUCCEEDED(status) && *phDevObject) ||
- 		   (DSP_FAILED(status) && !*phDevObject));
- 	return status;
- }
-@@ -289,7 +288,7 @@ dsp_status dev_create2(struct dev_object *hdev_obj)
- 	struct dev_object *dev_obj = hdev_obj;
- 
- 	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(IS_VALID_HANDLE(hdev_obj));
-+	DBC_REQUIRE(hdev_obj);
- 
- 	/* There can be only one Node Manager per DEV object */
- 	DBC_ASSERT(!dev_obj->hnode_mgr);
-@@ -313,7 +312,7 @@ dsp_status dev_destroy2(struct dev_object *hdev_obj)
- 	struct dev_object *dev_obj = hdev_obj;
- 
- 	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(IS_VALID_HANDLE(hdev_obj));
-+	DBC_REQUIRE(hdev_obj);
- 
- 	if (dev_obj->hnode_mgr) {
- 		if (DSP_FAILED(node_delete_mgr(dev_obj->hnode_mgr)))
-@@ -341,7 +340,7 @@ dsp_status dev_destroy_device(struct dev_object *hdev_obj)
- 
- 	DBC_REQUIRE(refs > 0);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		if (dev_obj->cod_mgr) {
- 			cod_delete(dev_obj->cod_mgr);
- 			dev_obj->cod_mgr = NULL;
-@@ -424,7 +423,7 @@ dsp_status dev_get_chnl_mgr(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(phMgr != NULL);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*phMgr = dev_obj->hchnl_mgr;
- 	} else {
- 		*phMgr = NULL;
-@@ -451,7 +450,7 @@ dsp_status dev_get_cmm_mgr(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(phMgr != NULL);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*phMgr = dev_obj->hcmm_mgr;
- 	} else {
- 		*phMgr = NULL;
-@@ -478,7 +477,7 @@ dsp_status dev_get_dmm_mgr(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(phMgr != NULL);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*phMgr = dev_obj->dmm_mgr;
- 	} else {
- 		*phMgr = NULL;
-@@ -504,7 +503,7 @@ dsp_status dev_get_cod_mgr(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(phCodMgr != NULL);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*phCodMgr = dev_obj->cod_mgr;
- 	} else {
- 		*phCodMgr = NULL;
-@@ -527,7 +526,7 @@ dsp_status dev_get_deh_mgr(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(phDehMgr != NULL);
- 	DBC_REQUIRE(hdev_obj);
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*phDehMgr = hdev_obj->hdeh_mgr;
- 	} else {
- 		*phDehMgr = NULL;
-@@ -550,7 +549,7 @@ dsp_status dev_get_dev_node(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(phDevNode != NULL);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*phDevNode = dev_obj->dev_node_obj;
- 	} else {
- 		*phDevNode = NULL;
-@@ -574,7 +573,7 @@ struct dev_object *dev_get_first(void)
- 
- 	dev_obj = (struct dev_object *)drv_get_first_dev_object();
- 
--	DBC_ENSURE((dev_obj == NULL) || IS_VALID_HANDLE(dev_obj));
-+	DBC_ENSURE((dev_obj == NULL) || dev_obj);
- 
- 	return dev_obj;
- }
-@@ -594,7 +593,7 @@ dsp_status dev_get_intf_fxns(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(ppIntfFxns != NULL);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*ppIntfFxns = &dev_obj->wmd_interface;
- 	} else {
- 		*ppIntfFxns = NULL;
-@@ -618,7 +617,7 @@ dsp_status dev_get_io_mgr(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(phIOMgr != NULL);
- 	DBC_REQUIRE(hdev_obj);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*phIOMgr = hdev_obj->hio_mgr;
- 	} else {
- 		*phIOMgr = NULL;
-@@ -639,12 +638,12 @@ struct dev_object *dev_get_next(struct dev_object *hdev_obj)
- {
- 	struct dev_object *next_dev_object = NULL;
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		next_dev_object = (struct dev_object *)
- 		    drv_get_next_dev_object((u32) hdev_obj);
- 	}
--	DBC_ENSURE((next_dev_object == NULL)
--		   || IS_VALID_HANDLE(next_dev_object));
-+	DBC_ENSURE((next_dev_object == NULL) || next_dev_object);
-+
- 	return next_dev_object;
- }
- 
-@@ -674,7 +673,7 @@ dsp_status dev_get_node_manager(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(phNodeMgr != NULL);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*phNodeMgr = dev_obj->hnode_mgr;
- 	} else {
- 		*phNodeMgr = NULL;
-@@ -698,7 +697,7 @@ dsp_status dev_get_symbol(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(pstrSym != NULL && pul_value != NULL);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		status = dev_get_cod_mgr(hdev_obj, &cod_mgr);
- 		if (DSP_SUCCEEDED(status)) {
- 			DBC_ASSERT(cod_mgr != NULL);
-@@ -726,7 +725,7 @@ dsp_status dev_get_wmd_context(struct dev_object *hdev_obj,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(phWmdContext != NULL);
- 
--	if (IS_VALID_HANDLE(hdev_obj)) {
-+	if (hdev_obj) {
- 		*phWmdContext = dev_obj->hwmd_context;
- 	} else {
- 		*phWmdContext = NULL;
-@@ -849,7 +848,7 @@ dsp_status dev_set_chnl_mgr(struct dev_object *hdev_obj,
- 
- 	DBC_REQUIRE(refs > 0);
- 
--	if (IS_VALID_HANDLE(hdev_obj))
-+	if (hdev_obj)
- 		dev_obj->hchnl_mgr = hmgr;
- 	else
- 		status = DSP_EHANDLE;
-@@ -866,7 +865,7 @@ dsp_status dev_set_chnl_mgr(struct dev_object *hdev_obj,
- void dev_set_msg_mgr(struct dev_object *hdev_obj, struct msg_mgr *hmgr)
- {
- 	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(IS_VALID_HANDLE(hdev_obj));
-+	DBC_REQUIRE(hdev_obj);
- 
- 	hdev_obj->hmsg_mgr = hmgr;
- }
-@@ -939,27 +938,6 @@ static dsp_status fxn_not_implemented(int arg, ...)
- }
- 
- /*
-- *  ======== IS_VALID_HANDLE ========
-- *  Purpose:
-- *      Validate the device object handle.
-- *  Parameters:
-- *      hdev_obj:     Handle to device object created with
-- *                      dev_create_device().
-- *  Returns:
-- *      true if handle is valid; false otherwise.
-- *  Requires:
-- *  Ensures:
-- */
--static bool IS_VALID_HANDLE(struct dev_object *hObj)
--{
--	bool ret;
--
--	ret = (hObj != NULL) && (hObj->dw_signature == SIGNATURE);
--
--	return ret;
--}
--
--/*
-  *  ======== init_cod_mgr ========
-  *  Purpose:
-  *      Create a COD manager for this device.
-@@ -979,7 +957,7 @@ static dsp_status init_cod_mgr(struct dev_object *dev_obj)
- 	char *sz_dummy_file = "dummy";
- 
- 	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(!IS_VALID_HANDLE(dev_obj) || (dev_obj->cod_mgr == NULL));
-+	DBC_REQUIRE(!dev_obj || (dev_obj->cod_mgr == NULL));
- 
- 	status = cod_create(&dev_obj->cod_mgr, sz_dummy_file, NULL);
- 
-@@ -1012,7 +990,7 @@ dsp_status dev_insert_proc_object(struct dev_object *hdev_obj,
- 	struct dev_object *dev_obj = (struct dev_object *)hdev_obj;
- 
- 	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(IS_VALID_HANDLE(dev_obj));
-+	DBC_REQUIRE(dev_obj);
- 	DBC_REQUIRE(proc_obj != 0);
- 	DBC_REQUIRE(dev_obj->proc_list != NULL);
- 	DBC_REQUIRE(pbAlreadyAttached != NULL);
-@@ -1051,7 +1029,7 @@ dsp_status dev_remove_proc_object(struct dev_object *hdev_obj, u32 proc_obj)
- 	struct list_head *cur_elem;
- 	struct dev_object *dev_obj = (struct dev_object *)hdev_obj;
- 
--	DBC_REQUIRE(IS_VALID_HANDLE(dev_obj));
-+	DBC_REQUIRE(dev_obj);
- 	DBC_REQUIRE(proc_obj != 0);
- 	DBC_REQUIRE(dev_obj->proc_list != NULL);
- 	DBC_REQUIRE(!LST_IS_EMPTY(dev_obj->proc_list));
+@@ -64,7 +64,6 @@ struct dev_object {
+        /* LST requires "link" to be first field! */
+        struct list_head link;  /* Link to next dev_object. */
+        u32 dev_type;           /* Device Type */
+-       u32 dw_signature;       /* Used for object validation. */
+        struct cfg_devnode *dev_node_obj;       /* Platform specific dev id */
+        struct wmd_dev_context *hwmd_context;   /* WMD Context Handle */
+        struct bridge_drv_interface wmd_interface;      /* Function interface to WMD. */
+diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
+index e2e47f2..c6965b5 100644
+--- a/drivers/dsp/bridge/pmgr/dmm.c
++++ b/drivers/dsp/bridge/pmgr/dmm.c
+@@ -53,7 +53,6 @@
+
+ /* DMM Mgr */
+ struct dmm_object {
+-       u32 dw_signature;       /* Used for object validation */
+        /* Dmm Lock is used to serialize access mem manager for
+         * multi-threads. */
+        spinlock_t dmm_lock;    /* Lock to access dmm mgr */
+diff --git a/drivers/dsp/bridge/pmgr/ioobj.h b/drivers/dsp/bridge/pmgr/ioobj.h
+index 298d1a2..f481765 100644
+--- a/drivers/dsp/bridge/pmgr/ioobj.h
++++ b/drivers/dsp/bridge/pmgr/ioobj.h
+@@ -30,7 +30,6 @@
+  */
+ struct io_mgr_ {
+        /* These must be the first fields in a io_mgr struct: */
+-       u32 dw_signature;       /* Used for object validation. */
+        struct wmd_dev_context *hwmd_context;   /* WMD device context. */
+        struct bridge_drv_interface *intf_fxns; /* Function interface to WMD. */
+        struct dev_object *hdev_obj;    /* Device this board represents. */
+diff --git a/drivers/dsp/bridge/pmgr/msgobj.h b/drivers/dsp/bridge/pmgr/msgobj.h
+index 420ba00..3eb1098 100644
+--- a/drivers/dsp/bridge/pmgr/msgobj.h
++++ b/drivers/dsp/bridge/pmgr/msgobj.h
+@@ -30,8 +30,7 @@
+  *  follow this structure in memory.
+  */
+ struct msg_mgr_ {
+-       /* The first two fields must match those in msgobj.h */
+-       u32 dw_signature;
++       /* The first field must match that in _msg_sm.h */
+        struct bridge_drv_interface *intf_fxns; /* Function interface to WMD. */
+ };
+
 diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
-index 8895b93..5c7fed0 100644
+index 5c7fed0..05bd46e 100644
 --- a/drivers/dsp/bridge/rmgr/dbdcd.c
 +++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -48,8 +48,6 @@
- /*  ----------------------------------- Global defines. */
- #define SIGNATURE       0x5f444344	/* "DCD_" (in reverse). */
- 
--#define IS_VALID_HANDLE(h) (((h) != NULL) && (h->dw_signature == SIGNATURE))
--
- #define MAX_INT2CHAR_LENGTH     16	/* Max int2char len of 32 bit int */
- 
- /* Name of section containing dependent libraries */
-@@ -92,7 +90,7 @@ dsp_status dcd_auto_register(IN struct dcd_manager *hdcd_mgr,
- 
- 	DBC_REQUIRE(refs > 0);
- 
--	if (IS_VALID_HANDLE(hdcd_mgr))
-+	if (hdcd_mgr)
- 		status = dcd_get_objects(hdcd_mgr, pszCoffPath,
- 					 (dcd_registerfxn) dcd_register_object,
- 					 (void *)pszCoffPath);
-@@ -114,7 +112,7 @@ dsp_status dcd_auto_unregister(IN struct dcd_manager *hdcd_mgr,
- 
- 	DBC_REQUIRE(refs > 0);
- 
--	if (IS_VALID_HANDLE(hdcd_mgr))
-+	if (hdcd_mgr)
- 		status = dcd_get_objects(hdcd_mgr, pszCoffPath,
- 					 (dcd_registerfxn) dcd_register_object,
- 					 NULL);
-@@ -181,7 +179,7 @@ dsp_status dcd_destroy_manager(IN struct dcd_manager *hdcd_mgr)
- 
- 	DBC_REQUIRE(refs >= 0);
- 
--	if (IS_VALID_HANDLE(hdcd_mgr)) {
-+	if (hdcd_mgr) {
- 		/* Delete the COD manager. */
- 		cod_delete(dcd_mgr_obj->cod_mgr);
- 
-@@ -323,7 +321,7 @@ dsp_status dcd_get_dep_libs(IN struct dcd_manager *hdcd_mgr,
- 	dsp_status status = DSP_SOK;
- 
- 	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(IS_VALID_HANDLE(hdcd_mgr));
-+	DBC_REQUIRE(hdcd_mgr);
- 	DBC_REQUIRE(uuid_obj != NULL);
- 	DBC_REQUIRE(pDepLibUuids != NULL);
- 	DBC_REQUIRE(pPersistentDepLibs != NULL);
-@@ -346,7 +344,7 @@ dsp_status dcd_get_num_dep_libs(IN struct dcd_manager *hdcd_mgr,
- 	dsp_status status = DSP_SOK;
- 
- 	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(IS_VALID_HANDLE(hdcd_mgr));
-+	DBC_REQUIRE(hdcd_mgr);
- 	DBC_REQUIRE(pNumLibs != NULL);
- 	DBC_REQUIRE(pNumPersLibs != NULL);
- 	DBC_REQUIRE(uuid_obj != NULL);
-@@ -392,7 +390,7 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
- 		goto func_end;
- 	}
- 
--	if (!IS_VALID_HANDLE(hdcd_mgr)) {
-+	if (!hdcd_mgr) {
- 		status = DSP_EHANDLE;
- 		goto func_end;
- 	}
-@@ -532,7 +530,7 @@ dsp_status dcd_get_objects(IN struct dcd_manager *hdcd_mgr,
- 	s32 object_type;
- 
- 	DBC_REQUIRE(refs > 0);
--	if (!IS_VALID_HANDLE(hdcd_mgr)) {
-+	if (!hdcd_mgr) {
- 		status = DSP_EHANDLE;
- 		goto func_end;
- 	}
-@@ -638,7 +636,7 @@ dsp_status dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
- 	DBC_REQUIRE(uuid_obj != NULL);
- 	DBC_REQUIRE(pstrLibName != NULL);
- 	DBC_REQUIRE(pdwSize != NULL);
--	DBC_REQUIRE(IS_VALID_HANDLE(hdcd_mgr));
-+	DBC_REQUIRE(hdcd_mgr);
- 
- 	dev_dbg(bridge, "%s: hdcd_mgr %p, uuid_obj %p, pstrLibName %p, pdwSize "
- 		"%p\n", __func__, hdcd_mgr, uuid_obj, pstrLibName, pdwSize);
-@@ -1307,7 +1305,7 @@ static dsp_status get_dep_lib_info(IN struct dcd_manager *hdcd_mgr,
- 
- 	DBC_REQUIRE(refs > 0);
- 
--	DBC_REQUIRE(IS_VALID_HANDLE(hdcd_mgr));
-+	DBC_REQUIRE(hdcd_mgr);
- 	DBC_REQUIRE(pNumLibs != NULL);
- 	DBC_REQUIRE(uuid_obj != NULL);
- 
--- 
+@@ -55,7 +55,6 @@
+
+ /* DCD specific structures. */
+ struct dcd_manager {
+-       u32 dw_signature;       /* Used for object validation. */
+        struct cod_manager *cod_mgr;    /* Handle to COD manager object. */
+ };
+
+diff --git a/drivers/dsp/bridge/rmgr/disp.c b/drivers/dsp/bridge/rmgr/disp.c
+index b7ddc4e..05ce538 100644
+--- a/drivers/dsp/bridge/rmgr/disp.c
++++ b/drivers/dsp/bridge/rmgr/disp.c
+@@ -63,7 +63,6 @@
+  *  ======== disp_object ========
+  */
+ struct disp_object {
+-       u32 dw_signature;       /* Used for object validation */
+        struct dev_object *hdev_obj;    /* Device for this processor */
+        struct bridge_drv_interface *intf_fxns; /* Function interface to WMD */
+        struct chnl_mgr *hchnl_mgr;     /* Channel manager */
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 2c01c4a..eedf5fa 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -47,7 +47,6 @@
+ #define SIGNATURE   0x5f52474d /* "DRV_" (in reverse) */
+
+ struct drv_object {
+-       u32 dw_signature;
+        struct lst_list *dev_list;
+        struct lst_list *dev_node_string;
+ };
+diff --git a/drivers/dsp/bridge/rmgr/mgr.c b/drivers/dsp/bridge/rmgr/mgr.c
+index e8a9a33..70522b4 100644
+--- a/drivers/dsp/bridge/rmgr/mgr.c
++++ b/drivers/dsp/bridge/rmgr/mgr.c
+@@ -43,7 +43,6 @@
+ #define SIGNATURE               0x5f52474d     /* "MGR_" (in reverse) */
+
+ struct mgr_object {
+-       u32 dw_signature;
+        struct dcd_manager *hdcd_mgr;   /* Proc/Node data manager */
+ };
+
+diff --git a/drivers/dsp/bridge/rmgr/nldr.c b/drivers/dsp/bridge/rmgr/nldr.c
+index ed6d08b..c12f089 100644
+--- a/drivers/dsp/bridge/rmgr/nldr.c
++++ b/drivers/dsp/bridge/rmgr/nldr.c
+@@ -207,7 +207,6 @@ struct ovly_node {
+  *  Overlay loader object.
+  */
+ struct nldr_object {
+-       u32 dw_signature;       /* For object validation */
+        struct dev_object *hdev_obj;    /* Device object */
+        struct dcd_manager *hdcd_mgr;   /* Proc/Node data manager */
+        struct dbll_tar_obj *dbll;      /* The DBL loader */
+@@ -233,7 +232,6 @@ struct nldr_object {
+  *  Dynamic node object. This object is created when a node is allocated.
+  */
+ struct nldr_nodeobject {
+-       u32 dw_signature;       /* For object validation */
+        struct nldr_object *nldr_obj;   /* Dynamic loader handle */
+        void *priv_ref;         /* Handle to pass to dbl_write_fxn */
+        struct dsp_uuid uuid;   /* Node's UUID */
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index d918e24..4da3ead 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -125,7 +125,6 @@
+  *  ======== node_mgr ========
+  */
+ struct node_mgr {
+-       u32 dw_signature;       /* For object validation */
+        struct dev_object *hdev_obj;    /* Device object */
+        struct bridge_drv_interface *intf_fxns; /* Function interface to WMD */
+        struct dcd_manager *hdcd_mgr;   /* Proc/Node data manager */
+@@ -186,7 +185,6 @@ struct stream_chnl {
+  */
+ struct node_object {
+        struct list_head list_elem;
+-       u32 dw_signature;       /* For object validation */
+        struct node_mgr *hnode_mgr;     /* The manager of this node */
+        struct proc_object *hprocessor; /* Back pointer to processor */
+        struct dsp_uuid node_uuid;      /* Node's ID */
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index b85a90f..9d71fea 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -83,7 +83,6 @@ extern char *iva_img;
+ /* The proc_object structure. */
+ struct proc_object {
+        struct list_head link;  /* Link to next proc_object */
+-       u32 dw_signature;       /* Used for object validation */
+        struct dev_object *hdev_obj;    /* Device this PROC represents */
+        u32 process;            /* Process owning this Processor */
+        struct mgr_object *hmgr_obj;    /* Manager Object Handle */
+diff --git a/drivers/dsp/bridge/rmgr/rmm.c b/drivers/dsp/bridge/rmgr/rmm.c
+index ac721da..d1699e4 100644
+--- a/drivers/dsp/bridge/rmgr/rmm.c
++++ b/drivers/dsp/bridge/rmgr/rmm.c
+@@ -78,7 +78,6 @@ struct rmm_ovly_sect {
+  *  ======== rmm_target_obj ========
+  */
+ struct rmm_target_obj {
+-       u32 dw_signature;
+        struct rmm_segment *seg_tab;
+        struct rmm_header **free_list;
+        u32 num_segs;
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index d6f2012..b02ca45 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -58,7 +58,6 @@
+  *  channels of a stream.
+  */
+ struct strm_mgr {
+-       u32 dw_signature;
+        struct dev_object *dev_obj;     /* Device for this processor */
+        struct chnl_mgr *hchnl_mgr;     /* Channel manager */
+        struct bridge_drv_interface *intf_fxns; /* Function interface to WMD */
+@@ -69,7 +68,6 @@ struct strm_mgr {
+  *  This object is allocated in strm_open().
+  */
+ struct strm_object {
+-       u32 dw_signature;
+        struct strm_mgr *strm_mgr_obj;
+        struct chnl_object *chnl_obj;
+        u32 dir;                /* DSP_TONODE or DSP_FROMNODE */
+diff --git a/drivers/dsp/bridge/wmd/_deh.h b/drivers/dsp/bridge/wmd/_deh.h
+index 214ac7d..bfe26fc 100644
+--- a/drivers/dsp/bridge/wmd/_deh.h
++++ b/drivers/dsp/bridge/wmd/_deh.h
+@@ -26,7 +26,6 @@
+
+ /* DEH Manager: only one created per board: */
+ struct deh_mgr {
+-       u32 dw_signature;       /* Used for object validation. */
+        struct wmd_dev_context *hwmd_context;   /* WMD device context. */
+        struct ntfy_object *ntfy_obj;   /* NTFY object */
+        struct dsp_errorinfo err_info;  /* DSP exception info. */
+diff --git a/drivers/dsp/bridge/wmd/_msg_sm.h b/drivers/dsp/bridge/wmd/_msg_sm.h
+index bb28d4f..e2233e2 100644
+--- a/drivers/dsp/bridge/wmd/_msg_sm.h
++++ b/drivers/dsp/bridge/wmd/_msg_sm.h
+@@ -80,8 +80,7 @@ struct msg_ctrl {
+  *  ready to go to the DSP.
+  */
+ struct msg_mgr {
+-       /* The first two fields must match those in msgobj.h */
+-       u32 dw_signature;
++       /* The first field must match that in msgobj.h */
+        struct bridge_drv_interface *intf_fxns; /* Function interface to WMD. */
+
+        struct io_mgr *hio_mgr; /* IO manager */
+@@ -107,7 +106,6 @@ struct msg_mgr {
+  */
+ struct msg_queue {
+        struct list_head list_elem;
+-       u32 dw_signature;
+        struct msg_mgr *hmsg_mgr;
+        u32 max_msgs;           /* Node message depth */
+        u32 msgq_id;            /* Node environment pointer */
+diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
+index 1a5d84d..600710d 100644
+--- a/drivers/dsp/bridge/wmd/chnl_sm.c
++++ b/drivers/dsp/bridge/wmd/chnl_sm.c
+@@ -338,7 +338,6 @@ func_cont:
+                DBC_ASSERT((pchnl->dw_state & CHNL_STATECANCEL));
+                /* Invalidate channel object: Protects from
+                 * CHNL_GetIOCompletion(). */
+-               pchnl->dw_signature = 0x0000;
+                /* Free the slot in the channel manager: */
+                pchnl->chnl_mgr_obj->ap_channel[pchnl->chnl_id] = NULL;
+                spin_lock_bh(&pchnl->chnl_mgr_obj->chnl_mgr_lock);
+@@ -898,7 +897,6 @@ dsp_status bridge_chnl_open(OUT struct chnl_object **phChnl,
+                chnl_mgr_obj->open_channels++;
+                spin_unlock_bh(&chnl_mgr_obj->chnl_mgr_lock);
+                /* Return result... */
+-               pchnl->dw_signature = CHNL_SIGNATURE;
+                pchnl->dw_state = CHNL_STATEREADY;
+                *phChnl = pchnl;
+        }
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index 885e25c..5744b03 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -83,7 +83,6 @@
+ /* IO Manager: only one created per board */
+ struct io_mgr {
+        /* These four fields must be the first fields in a io_mgr_ struct */
+-       u32 dw_signature;       /* Used for object validation */
+        struct wmd_dev_context *hwmd_context;   /* WMD device context */
+        struct bridge_drv_interface *intf_fxns; /* Function interface to WMD */
+        struct dev_object *hdev_obj;    /* Device this board represents */
+--
 1.7.0.3
