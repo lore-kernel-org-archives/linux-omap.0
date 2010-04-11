@@ -1,35 +1,49 @@
-From: Viral Mehta <Viral.Mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
-Subject: RE: [PATCH] omap: Add I2C bus 1 initialisation for OMAP2430
-Date: Sun, 11 Apr 2010 09:48:16 +0530
-Message-ID: <70376CA23424B34D86F1C7DE6B9973430254343A62@VSHINMSMBX01.vshodc.lntinfotech.com>
-References: <70376CA23424B34D86F1C7DE6B9973430254343A3A@VSHINMSMBX01.vshodc.lntinfotech.com>,<20100406064811.GQ16297@nokia.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH 01/13] DSPBRIDGE: Replace mem_calloc() by kzalloc() or
+ __vmalloc()
+Date: Sun, 11 Apr 2010 18:00:11 +0300
+Message-ID: <1270998011.2532.3.camel@localhost.localdomain>
+References: <818EF96F5A7CC84789DD014773DB09548F6481CB@dlee01.ent.ti.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100406064811.GQ16297-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.153]:30093 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812Ab0DKPAR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Apr 2010 11:00:17 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so929032fgg.1
+        for <linux-omap@vger.kernel.org>; Sun, 11 Apr 2010 08:00:14 -0700 (PDT)
+In-Reply-To: <818EF96F5A7CC84789DD014773DB09548F6481CB@dlee01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
+On Thu, 2010-04-08 at 18:43 -0500, Gomez Castellanos, Ivan wrote:
+> From 0306e1ff7c9160dbc5eb9fffcd789a40bea0debb Mon Sep 17 00:00:00 200=
+1
+> From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
+> Date: Fri, 19 Mar 2010 16:43:26 -0600
+> Subject: [PATCH 01/13] DSPBRIDGE: Replace mem_calloc() by kzalloc() o=
+r __vmalloc()
+>=20
+> This is needed because the file drivers/dsp/bridge/services/mem.c
+> is going to be deleted. The changes should be as follows:
+>=20
+> mem_calloc(x, MEM_PAGED) =3D=3D> kzalloc(x, GFP_KERNEL)
 
->On Tue, Apr 06, 2010 at 08:23:33AM +0200, ext Viral Mehta wrote:
->>Initialize isp1301 FS USB transceiver and
->>add I2C bus1 initialization code for OMAP2430
->>
->>Signed-off-by: Viral Mehta <viral.mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
+Hi, I guess you noticed by now that you should not assume kzalloc
+returns "paged" memory?
 
->this should go through linux-omap
-
-should be resent to linux-omap in that case ?
-If so, I will do that.
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
 --
-Viral
-
-
-This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
-
-______________________________________________________________________
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
