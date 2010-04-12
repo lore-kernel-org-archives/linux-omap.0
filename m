@@ -1,139 +1,60 @@
-From: hvaibhav@ti.com
-Subject: [PATCH-V2 1/2] OMAP: LCD LS037V7DW01: Add Backlight driver support
-Date: Mon, 12 Apr 2010 17:20:26 +0530
-Message-ID: <1271073027-2628-1-git-send-email-hvaibhav@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
+Date: Mon, 12 Apr 2010 15:02:29 +0300
+Message-ID: <1271073749.2690.52.camel@tubuntu.research.nokia.com>
 References: <hvaibhav@ti.com>
+	 <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
+	 <1270129320.2704.114.camel@tubuntu.research.nokia.com>
+	 <19F8576C6E063C45BE387C64729E7394044E053D83@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51987 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753541Ab0DLLui (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Apr 2010 07:50:38 -0400
-In-Reply-To: <hvaibhav@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:25870 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753255Ab0DLMCj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Apr 2010 08:02:39 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E053D83@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@nokia.com, tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Mon, 2010-04-12 at 13:47 +0200, ext Hiremath, Vaibhav wrote:
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > Sent: Thursday, April 01, 2010 7:12 PM
+> > To: Hiremath, Vaibhav
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
+> > 
+> > On Mon, 2010-03-22 at 14:09 +0100, ext hvaibhav@ti.com wrote:
+> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > >
+> > > In case of 720P with 90/270 degree rotation, the system reports
+> > > GFX_FIFO_UNDERFLOW error which usually happens if DSS DMA is not able to
+> > fill
+> > > the FIFO as per requirement.
+> > >
+> > > In TRM (section 11.2.6.1.3), where is has been clearly mentioned that,
+> > >
+> > > "To improve the performance on 90 degree rotation, split the data access
+> > on
+> > > write side and not read side."
+> > >
+> > > That means, read should always happen on 0 degree and write should go to
+> > > respective rotation view.
+> > 
+> > I haven't had time to look at this patch yet. I'll try to do it next
+> > week.
+> [Hiremath, Vaibhav] Tomi,
+> 
+> Have you had a chance to look at this patch/issue?
 
-Tested on OMAP3EVM for OMAP3530 and AM/DM 3730.
+Sorry, no I haven't. It's on my list. But did you consider my
+explanation? Does your implementation support changing the rotation
+dynamically?
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   77 ++++++++++++++++++++
- 1 files changed, 77 insertions(+), 0 deletions(-)
+ Tomi
 
-diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-index 8d51a5e..d84feb0 100644
---- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-+++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-@@ -20,10 +20,16 @@
- #include <linux/module.h>
- #include <linux/delay.h>
- #include <linux/device.h>
-+#include <linux/backlight.h>
-+#include <linux/fb.h>
- #include <linux/err.h>
-
- #include <plat/display.h>
-
-+struct sharp_data {
-+	struct backlight_device *bl;
-+};
-+
- static struct omap_video_timings sharp_ls_timings = {
- 	.x_res = 480,
- 	.y_res = 640,
-@@ -39,18 +45,89 @@ static struct omap_video_timings sharp_ls_timings = {
- 	.vbp		= 1,
- };
-
-+static int sharp_ls_bl_update_status(struct backlight_device *bl)
-+{
-+	struct omap_dss_device *dssdev = dev_get_drvdata(&bl->dev);
-+	int level;
-+
-+	if (!dssdev->set_backlight)
-+		return -EINVAL;
-+
-+	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
-+			bl->props.power == FB_BLANK_UNBLANK)
-+		level = bl->props.brightness;
-+	else
-+		level = 0;
-+
-+	return dssdev->set_backlight(dssdev, level);
-+}
-+
-+static int sharp_ls_bl_get_brightness(struct backlight_device *bl)
-+{
-+	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
-+			bl->props.power == FB_BLANK_UNBLANK)
-+		return bl->props.brightness;
-+
-+	return 0;
-+}
-+
-+static const struct backlight_ops sharp_ls_bl_ops = {
-+	.get_brightness = sharp_ls_bl_get_brightness,
-+	.update_status  = sharp_ls_bl_update_status,
-+};
-+
-+
-+
- static int sharp_ls_panel_probe(struct omap_dss_device *dssdev)
- {
-+	struct backlight_properties props;
-+	struct backlight_device *bl;
-+	struct sharp_data *sd;
-+	int r;
-+
- 	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
- 		OMAP_DSS_LCD_IHS;
- 	dssdev->panel.acb = 0x28;
- 	dssdev->panel.timings = sharp_ls_timings;
-
-+	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
-+	if (!sd)
-+		return -ENOMEM;
-+
-+	dev_set_drvdata(&dssdev->dev, sd);
-+
-+	memset(&props, 0, sizeof(struct backlight_properties));
-+	props.max_brightness = dssdev->max_backlight_level;
-+
-+	bl = backlight_device_register("sharp-ls", &dssdev->dev, dssdev,
-+			&sharp_ls_bl_ops, &props);
-+	if (IS_ERR(bl)) {
-+		r = PTR_ERR(bl);
-+		kfree(sd);
-+		return r;
-+	}
-+	sd->bl = bl;
-+
-+	bl->props.fb_blank = FB_BLANK_UNBLANK;
-+	bl->props.power = FB_BLANK_UNBLANK;
-+	bl->props.brightness = dssdev->max_backlight_level;
-+	r = sharp_ls_bl_update_status(bl);
-+	if (r < 0)
-+		dev_err(&dssdev->dev, "failed to set lcd brightness\n");
-+
- 	return 0;
- }
-
- static void sharp_ls_panel_remove(struct omap_dss_device *dssdev)
- {
-+	struct sharp_data *sd = dev_get_drvdata(&dssdev->dev);
-+	struct backlight_device *bl = sd->bl;
-+
-+	bl->props.power = FB_BLANK_POWERDOWN;
-+	sharp_ls_bl_update_status(bl);
-+	backlight_device_unregister(bl);
-+
-+	kfree(sd);
- }
-
- static int sharp_ls_power_on(struct omap_dss_device *dssdev)
---
-1.6.2.4
 
