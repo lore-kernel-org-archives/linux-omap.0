@@ -1,274 +1,280 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 3/3] Serial: Add omap-serial platform data support.
-Date: Mon, 12 Apr 2010 16:12:36 +0530 (IST)
-Message-ID: <33735.192.168.10.89.1271068956.squirrel@dbdmail.itg.ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] board-omap3-beagle: add DSS2 support
+Date: Mon, 12 Apr 2010 14:15:51 +0300
+Message-ID: <h2r6ed0b2681004120415m118f3e7cy2b884cafed1cf737@mail.gmail.com>
+References: <1271063990-12819-1-git-send-email-koen@dominion.thruhere.net>
+	 <1271068631.2690.40.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43022 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753658Ab0DLKmi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Apr 2010 06:42:38 -0400
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:42133 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752295Ab0DLLVU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Apr 2010 07:21:20 -0400
+Received: by bwz19 with SMTP id 19so4438bwz.21
+        for <linux-omap@vger.kernel.org>; Mon, 12 Apr 2010 04:21:18 -0700 (PDT)
+In-Reply-To: <1271068631.2690.40.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Koen Kooi <koen.kooi@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>
 
-This patch adds platform data support for omap-serial
-driver, when omap-serial driver is enabled from menuconfig
-the omap uarts will be handled using the omap-serial driver.
-All 8250 platform support is binded with dependency on
-omap-serial driver which is done inorder to support multi
-omap buids.
-Boards like zoom2/3 need both 8250(to handle QUART
-on debug board)and omap-serial(to support omap uarts)
-to be enabled. Thus when omap-serial is disabled
-omap uarts will be handled with 8250 and if omap-serial
-support is enabled it will handled with omap-serial driver.
+On Mon, Apr 12, 2010 at 1:37 PM, Tomi Valkeinen
+<tomi.valkeinen@nokia.com> wrote:
+>
+> On Mon, 2010-04-12 at 11:19 +0200, ext Koen Kooi wrote:
+>> This patch adds DSS2 support to the beagleboard boardfile. DVI and T=
+V-out are supported.
+>>
+>> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+>
+> Fiddling with TWL directly in tv enable/disable functions is a bit ug=
+ly,
+> but I'm not sure if there's a better way for that. Otherwise:
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/serial.c |  139 +++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 132 insertions(+), 7 deletions(-)
+It's only toggling VDAC supply, don't we already do that in DSS2 core?
+I think beagle_panel_enable_tv and beagle_panel_disable_tv can be
+simply removed.
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 14ed9fb..4f9354f 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -30,6 +30,9 @@
- #include <plat/clock.h>
- #include <plat/control.h>
+> Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-+#include <plat/dma.h>
-+#include <plat/omap-serial.h>
-+
- #include "prm.h"
- #include "pm.h"
- #include "prm-regbits-34xx.h"
-@@ -60,11 +63,13 @@ struct omap_uart_state {
- 	struct clk *fck;
- 	int clocked;
+A bit premature?
 
-+	int dma_enabled;
- 	int irq;
- 	int regshift;
- 	int irqflags;
- 	void __iomem *membase;
- 	resource_size_t mapbase;
-+
- 	struct list_head node;
- 	struct platform_device pdev;
+>
+> =A0Tomi
+>
+>> ---
+>> =A0arch/arm/mach-omap2/board-omap3beagle.c | =A0130 ++++++++++++++++=
+++++++++-------
+>> =A01 files changed, 103 insertions(+), 27 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach=
+-omap2/board-omap3beagle.c
+>> index 962d377..534316c 100644
+>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>> @@ -39,6 +39,7 @@
+>>
+>> =A0#include <plat/board.h>
+>> =A0#include <plat/common.h>
+>> +#include <plat/display.h>
+>> =A0#include <plat/gpmc.h>
+>> =A0#include <plat/nand.h>
+>> =A0#include <plat/usb.h>
+>> @@ -106,6 +107,105 @@ static struct platform_device omap3beagle_nand=
+_device =3D {
+>> =A0 =A0 =A0 .resource =A0 =A0 =A0 =3D &omap3beagle_nand_resource,
+>> =A0};
+>>
+>> +/* DSS */
+>> +
+>> +static int beagle_enable_dvi(struct omap_dss_device *dssdev)
+>> +{
+>> + =A0 =A0 if (dssdev->reset_gpio !=3D -1)
 
-@@ -83,6 +88,7 @@ struct omap_uart_state {
+gpio_is_valid()?
 
- static LIST_HEAD(uart_list);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(dssdev->reset_gpio, 1);
+>> +
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> +static void beagle_disable_dvi(struct omap_dss_device *dssdev)
+>> +{
+>> + =A0 =A0 if (dssdev->reset_gpio !=3D -1)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(dssdev->reset_gpio, 0);
+>> +}
+>> +
+>> +static struct omap_dss_device beagle_dvi_device =3D {
+>> + =A0 =A0 .type =3D OMAP_DISPLAY_TYPE_DPI,
+>> + =A0 =A0 .name =3D "dvi",
+>> + =A0 =A0 .driver_name =3D "generic_panel",
+>> + =A0 =A0 .phy.dpi.data_lines =3D 24,
+>> + =A0 =A0 .reset_gpio =3D 170,
+>> + =A0 =A0 .platform_enable =3D beagle_enable_dvi,
+>> + =A0 =A0 .platform_disable =3D beagle_disable_dvi,
+>> +};
+>> +
+>> +static int beagle_panel_enable_tv(struct omap_dss_device *dssdev)
+>> +{
+>> +#define ENABLE_VDAC_DEDICATED =A0 =A0 =A0 =A0 =A0 0x03
+>> +#define ENABLE_VDAC_DEV_GRP =A0 =A0 =A0 =A0 =A0 =A0 0x20
+>> +
+>> + =A0 =A0 twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ENABLE_VDAC_DEDICATED,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 TWL4030_VDAC_DEDICATED);
+>> + =A0 =A0 twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ENABLE_VDAC_DEV_GRP, TWL40=
+30_VDAC_DEV_GRP);
+>> +
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> +static void beagle_panel_disable_tv(struct omap_dss_device *dssdev)
+>> +{
+>> + =A0 =A0 twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 TWL4030_VDAC_DEDICATED);
+>> + =A0 =A0 twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 TWL4030_VDAC_DEV_GRP);
+>> +}
+>> +
+>> +static struct omap_dss_device beagle_tv_device =3D {
+>> + =A0 =A0 .name =3D "tv",
+>> + =A0 =A0 .driver_name =3D "venc",
+>> + =A0 =A0 .type =3D OMAP_DISPLAY_TYPE_VENC,
+>> + =A0 =A0 .phy.venc.type =3D OMAP_DSS_VENC_TYPE_SVIDEO,
+>> + =A0 =A0 .platform_enable =3D beagle_panel_enable_tv,
+>> + =A0 =A0 .platform_disable =3D beagle_panel_disable_tv,
+>> +};
+>> +
+>> +static struct omap_dss_device *beagle_dss_devices[] =3D {
+>> + =A0 =A0 &beagle_dvi_device,
+>> + =A0 =A0 &beagle_tv_device,
+>> +};
+>> +
+>> +static struct omap_dss_board_info beagle_dss_data =3D {
+>> + =A0 =A0 .num_devices =3D ARRAY_SIZE(beagle_dss_devices),
+>> + =A0 =A0 .devices =3D beagle_dss_devices,
+>> + =A0 =A0 .default_device =3D &beagle_dvi_device,
+>> +};
+>> +
+>> +static struct platform_device beagle_dss_device =3D {
+>> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0=3D "omapdss",
+>> + =A0 =A0 .id =A0 =A0 =A0 =A0 =A0 =A0=3D -1,
+>> + =A0 =A0 .dev =A0 =A0 =A0 =A0 =A0 =A0=3D {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .platform_data =3D &beagle_dss_data,
+>> + =A0 =A0 },
+>> +};
+>> +
+>> +static struct regulator_consumer_supply beagle_vdac_supply =3D {
+>> + =A0 =A0 .supply =A0 =A0 =A0 =A0 =3D "vdda_dac",
+>> + =A0 =A0 .dev =A0 =A0 =A0 =A0 =A0 =A0=3D &beagle_dss_device.dev,
+>> +};
+>> +
+>> +static struct regulator_consumer_supply beagle_vdvi_supply =3D {
+>> + =A0 =A0 .supply =A0 =A0 =A0 =A0 =3D "vdds_dsi",
+>> + =A0 =A0 .dev =A0 =A0 =A0 =A0 =A0 =A0=3D &beagle_dss_device.dev,
+>> +};
 
-+#ifndef CONFIG_SERIAL_OMAP
- static struct plat_serial8250_port serial_platform_data0[] = {
- 	{
- 		.irq		= 72,
-@@ -169,7 +175,107 @@ static struct omap_uart_state omap_uart[] = {
- 	},
- #endif
- };
-+#else
-+static struct omap_uart_port_info uart1_port_info = {
-+		.dma_enabled	= 0,
-+};
-+
-+static struct omap_uart_port_info uart2_port_info = {
-+		.dma_enabled	= 1,
-+};
-+
-+static struct omap_uart_port_info uart3_port_info = {
-+		.dma_enabled	= 0,
-+};
-+
-+static struct resource omap_uart1_resources[] = {
-+	{
-+		.start          = OMAP2_UART1_BASE,
-+		.end            = OMAP2_UART1_BASE + 0x3ff,
-+		.flags          = IORESOURCE_MEM,
-+	}, {
-+		/* UART1 IRQ - 72*/
-+		.start          = INT_24XX_UART1_IRQ,
-+		.flags          = IORESOURCE_IRQ,
-+	}, {
-+		/* UART1 RX DMA CHANNEL -S_DMA_49- */
-+		.start		= OMAP24XX_DMA_UART1_RX,
-+		.flags		= IORESOURCE_DMA,
-+	}, {
-+		/* UART1 TX DMA CHANNEL -S_DMA_48- */
-+		.start		= OMAP24XX_DMA_UART1_TX,
-+		.flags		= IORESOURCE_DMA,
-+	}
-+};
-+
-+static struct resource omap_uart2_resources[] = {
-+	{
-+		.start          = OMAP2_UART2_BASE,
-+		.end            = OMAP2_UART2_BASE + 0x3ff,
-+		.flags          = IORESOURCE_MEM,
-+	}, {
-+		/* UART2 IRQ - 73*/
-+		.start          = INT_24XX_UART2_IRQ,
-+		.flags          = IORESOURCE_IRQ,
-+	}, {
-+		/* UART2 RX DMA CHANNEL -S_DMA_51- */
-+		.start		= OMAP24XX_DMA_UART2_RX,
-+		.flags		= IORESOURCE_DMA,
-+	}, {
-+		/* UART2 TX DMA CHANNEL -S_DMA_50- */
-+		.start		= OMAP24XX_DMA_UART2_TX,
-+		.flags		= IORESOURCE_DMA,
-+	}
-+};
-+
-+static struct resource omap_uart3_resources[] = {
-+	{
-+		.start          = OMAP2_UART3_BASE,
-+		.end            = OMAP2_UART3_BASE + 0x3ff,
-+		.flags          = IORESOURCE_MEM,
-+	}, {
-+		/* UART3 IRQ - 74*/
-+		.start          = INT_24XX_UART3_IRQ,
-+		.flags          = IORESOURCE_IRQ,
-+	}, {
-+		/* UART3 RX DMA CHANNEL -S_DMA_53- */
-+		.start		= OMAP24XX_DMA_UART3_RX,
-+		.flags		= IORESOURCE_DMA,
-+	}, {
-+		/* UART3 TX DMA CHANNEL -S_DMA_52- */
-+		.start		= OMAP24XX_DMA_UART3_TX,
-+		.flags		= IORESOURCE_DMA,
-+	}
-+};
+Regulator framework recommends using device names instead of dev pointe=
+r:
 
-+static struct omap_uart_state omap_uart[OMAP_MAX_HSUART_PORTS] = {
-+	{
-+		.pdev = {
-+			.num_resources	= ARRAY_SIZE(omap_uart1_resources),
-+			.resource	= omap_uart1_resources,
-+			.dev		= {
-+				.platform_data  = &uart1_port_info
-+			},
-+		}
-+	}, {
-+		.pdev = {
-+			.num_resources	= ARRAY_SIZE(omap_uart2_resources),
-+			.resource	= omap_uart2_resources,
-+			.dev		= {
-+				.platform_data  = &uart2_port_info,
-+			},
-+		}
-+	}, {
-+		.pdev = {
-+			.num_resources	= ARRAY_SIZE(omap_uart3_resources),
-+			.resource	= omap_uart3_resources,
-+			.dev		= {
-+				.platform_data  = &uart3_port_info,
-+			},
-+		}
-+	}
-+};
-+#endif
+static struct regulator_consumer_supply beagle_vdac_supply =3D
+        REGULATOR_SUPPLY("vdda_dac", "omapdss");
 
- void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
+static struct regulator_consumer_supply beagle_vdvi_supply =3D
+        REGULATOR_SUPPLY("vdds_dsi", "omapdss");
+
+>> +
+>> +static void __init beagle_display_init(void)
+>> +{
+>> + =A0 =A0 int r;
+>> +
+>> + =A0 =A0 r =3D gpio_request(beagle_dvi_device.reset_gpio, "DVI rese=
+t");
+>> + =A0 =A0 if (r < 0) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "Unable to get DVI reset G=
+PIO\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
+>> +}
+>> +
+>> =A0#include "sdram-micron-mt46h32m32lf-6.h"
+>>
+>> =A0static struct omap2_hsmmc_info mmc[] =3D {
+>> @@ -117,15 +217,6 @@ static struct omap2_hsmmc_info mmc[] =3D {
+>> =A0 =A0 =A0 {} =A0 =A0 =A0/* Terminator */
+>> =A0};
+>>
+>> -static struct platform_device omap3_beagle_lcd_device =3D {
+>> - =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "omap3beagle_lcd",
+>> - =A0 =A0 .id =A0 =A0 =A0 =A0 =A0 =A0 =3D -1,
+>> -};
+>> -
+>> -static struct omap_lcd_config omap3_beagle_lcd_config __initdata =3D=
  {
-@@ -613,6 +719,8 @@ DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show, sleep_timeout_store);
- static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
- #define DEV_CREATE_FILE(dev, attr)
- #endif /* CONFIG_PM */
-+
-+#ifndef CONFIG_SERIAL_OMAP
- /*
-  * Override the default 8250 read handler: mem_serial_in()
-  * Empty RX fifo read causes an abort on omap3630 and omap4
-@@ -645,6 +753,7 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
- 	}
- 	__serial_write_reg(up, offset, value);
- }
-+#endif
-
- void __init omap_serial_early_init(void)
- {
-@@ -666,7 +775,6 @@ void __init omap_serial_early_init(void)
- 		struct omap_uart_state *uart = &omap_uart[i];
- 		struct platform_device *pdev = &uart->pdev;
- 		struct device *dev = &pdev->dev;
--		struct plat_serial8250_port *p = dev->platform_data;
-
- 		uart->num = i;
- 		/*
-@@ -713,10 +821,6 @@ void __init omap_serial_early_init(void)
- 				continue;
- 		}
-
--		p->private_data = uart;
--		p->membase = uart->membase;
--		p->mapbase = uart->mapbase;
--
- 		if (cpu_is_omap44xx())
- 			uart->irq += 32;
- 	}
-@@ -738,7 +842,12 @@ void __init omap_serial_init_port(int port)
- 	struct omap_uart_state *uart;
- 	struct platform_device *pdev;
- 	struct device *dev;
-+#ifndef CONFIG_SERIAL_OMAP
- 	struct plat_serial8250_port *p;
-+#else
-+	struct omap_uart_port_info *omap_up;
-+#endif
-+
- 	BUG_ON(port < 0);
- 	BUG_ON(port >= ARRAY_SIZE(omap_uart));
-
-@@ -746,6 +855,22 @@ void __init omap_serial_init_port(int port)
- 	pdev = &uart->pdev;
- 	dev = &pdev->dev;
-
-+#ifndef CONFIG_SERIAL_OMAP
-+	p = dev->platform_data;
-+	p->private_data = uart;
-+	p->membase = uart->membase;
-+	p->mapbase = uart->mapbase;
-+#else
-+	omap_up = dev->platform_data;
-+	uart->dma_enabled = omap_up->dma_enabled;
-+	omap_up->uartclk = OMAP24XX_BASE_BAUD * 16;
-+	omap_up->membase = uart->membase;
-+	omap_up->mapbase = uart->mapbase;
-+	omap_up->irqflags |= IRQF_SHARED;
-+	omap_up->flags = UPF_BOOT_AUTOCONF | UPF_SHARE_IRQ;
-+	pdev->name = DRIVER_NAME;
-+	pdev->id = port;
-+#endif
- 	/* Don't proceed if there's no clocks available */
- 	if (unlikely(!uart->ick || !uart->fck)) {
- 		WARN(1, "%s: can't init uart%d, no clocks available\n",
-@@ -758,7 +883,7 @@ void __init omap_serial_init_port(int port)
- 	omap_uart_reset(uart);
- 	omap_uart_idle_init(uart);
-
--	p = dev->platform_data;
-+#ifndef CONFIG_SERIAL_OMAP
- 	/*
- 	 * omap44xx: Never read empty UART fifo
- 	 * omap3xxx: Never read empty UART fifo on UARTs
-@@ -772,7 +897,7 @@ void __init omap_serial_init_port(int port)
- 		p->serial_in = serial_in_override;
- 		p->serial_out = serial_out_override;
- 	}
--
-+#endif
- 	list_add_tail(&uart->node, &uart_list);
-
- 	if (WARN_ON(platform_device_register(pdev)))
--- 
-1.6.3.3
-
-
+>> - =A0 =A0 .ctrl_name =A0 =A0 =A0=3D "internal",
+>> -};
+>> -
+>> =A0static struct regulator_consumer_supply beagle_vmmc1_supply =3D {
+>> =A0 =A0 =A0 .supply =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D "vmmc",
+>> =A0};
+>> @@ -181,16 +272,6 @@ static struct twl4030_gpio_platform_data beagle=
+_gpio_data =3D {
+>> =A0 =A0 =A0 .setup =A0 =A0 =A0 =A0 =A0=3D beagle_twl_gpio_setup,
+>> =A0};
+>>
+>> -static struct regulator_consumer_supply beagle_vdac_supply =3D {
+>> - =A0 =A0 .supply =A0 =A0 =A0 =A0 =3D "vdac",
+>> - =A0 =A0 .dev =A0 =A0 =A0 =A0 =A0 =A0=3D &omap3_beagle_lcd_device.d=
+ev,
+>> -};
+>> -
+>> -static struct regulator_consumer_supply beagle_vdvi_supply =3D {
+>> - =A0 =A0 .supply =A0 =A0 =A0 =A0 =3D "vdvi",
+>> - =A0 =A0 .dev =A0 =A0 =A0 =A0 =A0 =A0=3D &omap3_beagle_lcd_device.d=
+ev,
+>> -};
+>> -
+>> =A0/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card =3D=
+=3D max 220 mA) */
+>> =A0static struct regulator_init_data beagle_vmmc1 =3D {
+>> =A0 =A0 =A0 .constraints =3D {
+>> @@ -349,14 +430,8 @@ static struct platform_device keys_gpio =3D {
+>> =A0 =A0 =A0 },
+>> =A0};
+>>
+>> -static struct omap_board_config_kernel omap3_beagle_config[] __init=
+data =3D {
+>> - =A0 =A0 { OMAP_TAG_LCD, =A0 =A0 =A0 =A0 &omap3_beagle_lcd_config }=
+,
+>> -};
+>> -
+>> =A0static void __init omap3_beagle_init_irq(void)
+>> =A0{
+>> - =A0 =A0 omap_board_config =3D omap3_beagle_config;
+>> - =A0 =A0 omap_board_config_size =3D ARRAY_SIZE(omap3_beagle_config)=
+;
+>> =A0 =A0 =A0 omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mt46h32m32lf6=
+_sdrc_params);
+>> =A0 =A0 =A0 omap_init_irq();
+>> @@ -367,9 +442,9 @@ static void __init omap3_beagle_init_irq(void)
+>> =A0}
+>>
+>> =A0static struct platform_device *omap3_beagle_devices[] __initdata =
+=3D {
+>> - =A0 =A0 &omap3_beagle_lcd_device,
+>> =A0 =A0 =A0 &leds_gpio,
+>> =A0 =A0 =A0 &keys_gpio,
+>> + =A0 =A0 &beagle_dss_device,
+>> =A0};
+>>
+>> =A0static void __init omap3beagle_flash_init(void)
+>> @@ -456,8 +531,9 @@ static void __init omap3_beagle_init(void)
+>> =A0 =A0 =A0 /* Ensure SDRC pins are mux'd for self-refresh */
+>> =A0 =A0 =A0 omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+>> =A0 =A0 =A0 omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+>> -}
+>>
+>> + =A0 =A0 beagle_display_init();
+>> +}
+>> =A0static void __init omap3_beagle_map_io(void)
+>> =A0{
+>> =A0 =A0 =A0 omap2_set_globals_343x();
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
