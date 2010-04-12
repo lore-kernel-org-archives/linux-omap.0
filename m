@@ -1,74 +1,79 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-Date: Mon, 12 Apr 2010 17:17:46 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E053D83@dbde02.ent.ti.com>
+From: hvaibhav@ti.com
+Subject: [PATCH-V2 2/2] OMAP: OMAP3EVM: Add LCD Backlight brightness hookup function
+Date: Mon, 12 Apr 2010 17:20:27 +0530
+Message-ID: <1271073027-2628-2-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
-	 <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
- <1270129320.2704.114.camel@tubuntu.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41512 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753030Ab0DLLr7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Apr 2010 07:47:59 -0400
-In-Reply-To: <1270129320.2704.114.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:51986 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753414Ab0DLLui (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Apr 2010 07:50:38 -0400
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@nokia.com, tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
+
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Thursday, April 01, 2010 7:12 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-> 
-> On Mon, 2010-03-22 at 14:09 +0100, ext hvaibhav@ti.com wrote:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > In case of 720P with 90/270 degree rotation, the system reports
-> > GFX_FIFO_UNDERFLOW error which usually happens if DSS DMA is not able to
-> fill
-> > the FIFO as per requirement.
-> >
-> > In TRM (section 11.2.6.1.3), where is has been clearly mentioned that,
-> >
-> > "To improve the performance on 90 degree rotation, split the data access
-> on
-> > write side and not read side."
-> >
-> > That means, read should always happen on 0 degree and write should go to
-> > respective rotation view.
-> 
-> I haven't had time to look at this patch yet. I'll try to do it next
-> week.
-[Hiremath, Vaibhav] Tomi,
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
 
-Have you had a chance to look at this patch/issue?
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index f2a52c3..1d1956f 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -253,6 +253,38 @@ static void omap3_evm_disable_lcd(struct omap_dss_device *dssdev)
+ 	lcd_enabled = 0;
+ }
 
-Thanks,
-Vaibhav
++/*
++ * PWMA/B register offsets (TWL4030_MODULE_PWMA)
++ */
++#define TWL_LED_EN	0x0
++#define TWL_LED_PWMON	0x0
++#define TWL_LED_PWMOFF	0x1
++
++static int omap3evm_set_bl_intensity(struct omap_dss_device *dssdev, int level)
++{
++	unsigned char c;
++
++	if (level > 100)
++		return -EINVAL;
++	/*
++	 * Enable LEDA for backlight
++	 */
++	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_EN);
++
++	c = ((125 * (100 - level)) / 100);
++	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
++		c += 1;
++		twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x7F, TWL_LED_PWMOFF);
++		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_LED_PWMON);
++	} else {
++		c += 2;
++		twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x1, TWL_LED_PWMON);
++		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_LED_PWMOFF);
++	}
++
++	return 0;
++}
++
+ static struct omap_dss_device omap3_evm_lcd_device = {
+ 	.name			= "lcd",
+ 	.driver_name		= "sharp_ls_panel",
+@@ -260,6 +292,8 @@ static struct omap_dss_device omap3_evm_lcd_device = {
+ 	.phy.dpi.data_lines	= 18,
+ 	.platform_enable	= omap3_evm_enable_lcd,
+ 	.platform_disable	= omap3_evm_disable_lcd,
++	.max_backlight_level	= 100,
++	.set_backlight		= omap3evm_set_bl_intensity,
+ };
 
-> 
-> However, I knew that TRM text when I was writing the code. The reason I
-> chose to use 0 degree view for omapfb and change the view from DSS side
-> was that it was difficult to handle mmapped areas in this case, if I
-> recall right. I have to say I don't exactly remember what the problems
-> were, so I need to read the code and think about this again.
-> 
-> Hmm, perhaps it was so that if you choose to change omapfb's VRFB view,
-> you can only do that if nothing is mmapped. Which means that either you
-> can only use one rotation angle defined at boot time, or you need
-> carefully to remove all mmappings, including fb console, then change the
-> view and recreate the mapping. And one requirement was that the rotation
-> should be changeable at runtime, which made the select the current
-> approach.
-> 
->  Tomi
-> 
+ static int omap3_evm_enable_tv(struct omap_dss_device *dssdev)
+--
+1.6.2.4
 
