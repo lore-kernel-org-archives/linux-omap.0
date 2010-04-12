@@ -1,42 +1,56 @@
-From: Viral Mehta <Viral.Mehta@lntinfotech.com>
-Subject: RE: [PATCH] omap: Add I2C bus 1 initialisation for OMAP2430
-Date: Mon, 12 Apr 2010 09:33:28 +0530
-Message-ID: <70376CA23424B34D86F1C7DE6B9973430254343A63@VSHINMSMBX01.vshodc.lntinfotech.com>
-References: <70376CA23424B34D86F1C7DE6B9973430254343A3A@VSHINMSMBX01.vshodc.lntinfotech.com>,<20100406064811.GQ16297@nokia.com>
- <70376CA23424B34D86F1C7DE6B9973430254343A62@VSHINMSMBX01.vshodc.lntinfotech.com>,<4BC1C60C.3090807@gmail.com>
+From: <viral.mehta@lntinfotech.com>
+Subject: [PATCH] omap: Add I2C bus 1 initialisation
+Date: Mon, 12 Apr 2010 10:01:44 +0530
+Message-ID: <1271046704-10444-1-git-send-email-viral.mehta@lntinfotech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail96.messagelabs.com ([216.82.254.19]:58825 "EHLO
-	mail96.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906Ab0DLEGI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Apr 2010 00:06:08 -0400
-In-Reply-To: <4BC1C60C.3090807@gmail.com>
-Content-Language: en-US
+Received: from mail142.messagelabs.com ([216.82.249.99]:41578 "EHLO
+	mail142.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750846Ab0DLEbg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Apr 2010 00:31:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <menon.nishanth@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, Viral Mehta <viral.mehta@lntinfotech.com>
 
+From: Viral Mehta <viral.mehta@lntinfotech.com>
 
-________________________________________
->From: Nishanth Menon [menon.nishanth@gmail.com]
->Sent: Sunday, April 11, 2010 6:22 PM
->To: Viral Mehta
->Subject: Re: [PATCH] omap: Add I2C bus 1 initialisation for OMAP2430
+Initialize isp1301 FS USB transceiver and
+add I2C bus1 initialization code for OMAP2430 SDP
 
->On 04/10/2010 11:18 PM, Viral Mehta wrote:
->> should be resent to linux-omap in that case ? If so, I will do that.
->>
->yes. please do that.
+Signed-off-by: Viral Mehta <viral.mehta@lntinfotech.com>
+---
+ arch/arm/mach-omap2/board-2430sdp.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
-alright. thanks.
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 01d113f..346e1d2 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -174,9 +174,17 @@ static struct i2c_board_info __initdata sdp2430_i2c_boardinfo[] = {
+        },
+ };
 
-Regards,
-Nishanth Menon
++static struct i2c_board_info __initdata sdp2430_i2c1_boardinfo[] = {
++       {
++               I2C_BOARD_INFO("isp1301_omap", 0x2D),
++               .flags = I2C_CLIENT_WAKE,
++               .irq = OMAP_GPIO_IRQ(78),
++       },
++}
+ static int __init omap2430_i2c_init(void)
+ {
+-       omap_register_i2c_bus(1, 400, NULL, 0);
++       omap_register_i2c_bus(1, 100, sdp2430_i2c1_boardinfo,
++                       ARRAY_SIZE(sdp2430_i2c1_boardinfo));
+        omap_register_i2c_bus(2, 2600, sdp2430_i2c_boardinfo,
+                        ARRAY_SIZE(sdp2430_i2c_boardinfo));
+        return 0;
+--
+1.6.6
 
-______________________________________________________________________
 
 This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
 
