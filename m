@@ -1,46 +1,31 @@
-From: <viral.mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
-Subject: [PATCH] select ARCH_OMAP_OTG for OMAP2430 SDP
-Date: Mon, 12 Apr 2010 10:01:59 +0530
-Message-ID: <1271046719-10506-1-git-send-email-viral.mehta@lntinfotech.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] omap: Add I2C bus 1 initialisation
+Date: Mon, 12 Apr 2010 07:55:12 +0300
+Message-ID: <20100412045512.GA27459@nokia.com>
+References: <1271046704-10444-1-git-send-email-viral.mehta@lntinfotech.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Viral Mehta <viral.mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:32551 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751082Ab0DLEzq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Apr 2010 00:55:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1271046704-10444-1-git-send-email-viral.mehta@lntinfotech.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext viral.mehta@lntinfotech.com" <viral.mehta@lntinfotech.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
-From: Viral Mehta <viral.mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
+On Mon, Apr 12, 2010 at 06:31:44AM +0200, ext viral.mehta@lntinfotech.com wrote:
+> static int __init omap2430_i2c_init(void)
+> {
+>-       omap_register_i2c_bus(1, 400, NULL, 0);
+>+       omap_register_i2c_bus(1, 100, sdp2430_i2c1_boardinfo,
+>+                       ARRAY_SIZE(sdp2430_i2c1_boardinfo));
 
-Configuration for OMAP2430 should select ARCH_OMAP_OTG just like
-it is done for OMAP2420
+why do you decrease bus frequency ?
 
-Signed-off-by: Viral Mehta <viral.mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
----
- arch/arm/mach-omap2/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index a8a3d1e..8f9d9c9 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -10,6 +10,7 @@ config ARCH_OMAP2420
- config ARCH_OMAP2430
-        bool "OMAP2430 support"
-        depends on ARCH_OMAP2
-+       select ARCH_OMAP_OTG
-
- config ARCH_OMAP3430
-        bool "OMAP3430 support"
---
-1.6.6
-
-
-This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
-
-______________________________________________________________________
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
