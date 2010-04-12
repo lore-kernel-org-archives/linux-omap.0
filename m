@@ -1,60 +1,49 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-Date: Mon, 12 Apr 2010 15:02:29 +0300
-Message-ID: <1271073749.2690.52.camel@tubuntu.research.nokia.com>
-References: <hvaibhav@ti.com>
-	 <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
-	 <1270129320.2704.114.camel@tubuntu.research.nokia.com>
-	 <19F8576C6E063C45BE387C64729E7394044E053D83@dbde02.ent.ti.com>
+From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH] Add OHCI USB platform init
+Date: Mon, 12 Apr 2010 17:41:50 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032252AC98@dbde02.ent.ti.com>
+References: <1271046713-10475-1-git-send-email-viral.mehta@lntinfotech.com>,<000101cada01$ae89f660$808918ac@apr.dhcp.ti.com>
+ <70376CA23424B34D86F1C7DE6B9973430254343A69@VSHINMSMBX01.vshodc.lntinfotech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:25870 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753255Ab0DLMCj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Apr 2010 08:02:39 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E053D83@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <70376CA23424B34D86F1C7DE6B9973430254343A69-fVvhrSDAkVjuuPCCJ6VnObSn4PsL5ZDKvpI+GvaZM4lBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Viral Mehta <Viral.Mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>, "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2010-04-12 at 13:47 +0200, ext Hiremath, Vaibhav wrote:
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Thursday, April 01, 2010 7:12 PM
-> > To: Hiremath, Vaibhav
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-> > 
-> > On Mon, 2010-03-22 at 14:09 +0100, ext hvaibhav@ti.com wrote:
-> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > > In case of 720P with 90/270 degree rotation, the system reports
-> > > GFX_FIFO_UNDERFLOW error which usually happens if DSS DMA is not able to
-> > fill
-> > > the FIFO as per requirement.
-> > >
-> > > In TRM (section 11.2.6.1.3), where is has been clearly mentioned that,
-> > >
-> > > "To improve the performance on 90 degree rotation, split the data access
-> > on
-> > > write side and not read side."
-> > >
-> > > That means, read should always happen on 0 degree and write should go to
-> > > respective rotation view.
-> > 
-> > I haven't had time to look at this patch yet. I'll try to do it next
-> > week.
-> [Hiremath, Vaibhav] Tomi,
+Viral Mehta wrote:
+> >Use tabs instead of spaces.
 > 
-> Have you had a chance to look at this patch/issue?
+> 
+> tabs only used. even checkpatch says no warning/error.
+> 
+> [root@viral my_git]# 
+> /home/omap2430/mod.linux-2.6.33.1/scripts/checkpatch.pl 
+> 0002-Add-I2C-bus-1-initialisation.patch
+> total: 0 errors, 0 warnings, 18 lines checked
+> 
+> 0002-Add-I2C-bus-1-initialisation.patch has no obvious style 
+> problems and is ready for submission.
+> 
+> I assume its your mailer that mangled the things. Sent 
+> through git-send-email and so that should not cause a 
+> problem, too. If some one else also points out, will try to resend.
+> 
 
-Sorry, no I haven't. It's on my list. But did you consider my
-explanation? Does your implementation support changing the rotation
-dynamically?
+We can see the tab-damage when viewing this in the archives.
 
- Tomi
+See [1] for your patch, and see [2] for a patch that is not tab-damaged.
 
+- Anand
 
+[1] <http://marc.info/?l=linux-usb&m=127104671809949&w=2>
+[2] <http://marc.info/?l=linux-usb&m=127106719931759&w=2>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
