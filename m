@@ -1,54 +1,96 @@
-From: Deepak Chitriki <deepak.chitriki@ti.com>
-Subject: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after DSP_MMUFAULT
-Date: Tue, 13 Apr 2010 11:46:40 -0500
-Message-ID: <1271177200-1054-1-git-send-email-deepak.chitriki@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44341 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753467Ab0DMQqp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Apr 2010 12:46:45 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o3DGkjeh025010
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 13 Apr 2010 11:46:45 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] OMAP3: I2C: Errata ID i207: Clear wrong RDR interrupt
+Date: Tue, 13 Apr 2010 09:48:09 -0700
+Message-ID: <4BC4A049.1090702@ti.com>
+References: <1271167302-17776-1-git-send-email-manjugk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1271167302-17776-1-git-send-email-manjugk-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
+Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Deepak Chitriki <deepak.chitriki@ti.com>
 
-kmalloc() does not guarantee page aligned memory always,hence
-resulting in virtual addresses not getting aligned to page boundary.
-This patch replaces kmalloc() with __get_free_pages() which
-allocates kernel memory in terms of PAGES fixing the Kernel
-memory corruption after DSP_MMUFAULT.
+On 04/13/2010 07:01 AM, G, Manjunath Kondaiah wrote:
+> Under certain rare conditions, I2C_STAT[13].RDR bit may be set
+> and the corresponding interrupt fire, even there is no data in
+> the receive FIFO, or the I2C data transfer is still ongoing.
+> These spurious RDR events must be ignored by the software.
+>
+> This patch handles and ignores RDR spurious interrupts.
+>
+> Patch tested on OMAP zoom3 board.
+>
+> Signed-off-by: Manjunatha GK<manjugk-l0cyMroinI0@public.gmane.org>
+> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+> Cc: Kalliguddi, Hema<hemahk-l0cyMroinI0@public.gmane.org>
+> Cc: Nishanth Menon<nm-l0cyMroinI0@public.gmane.org>
+> ---
+> Review comments for earlier post can be found at:
+> https://patchwork.kernel.org/patch/90122/
+Overall, the comments have not been implemented, so my NAK continues 
+unfortunately. please review the comments again.
 
-Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
----
- drivers/dsp/bridge/wmd/ue_deh.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+>
+>   drivers/i2c/busses/i2c-omap.c |   32 +++++++++++++++++++++++++++++++-
+>   1 files changed, 31 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index ae6f5c1..d4ec886 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -733,10 +733,40 @@ complete:
+>   		}
+>   		if (stat&  (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+>   			u8 num_bytes = 1;
+> +
+> +			/*
+> +			 * I2C Errata(Errata Nos. OMAP2: 1.67, OMAP3: 1.8)
+> +			 * Not applicable for OMAP4.
+> +			 * Under certain rare conditions, RDR could be set again
+> +			 * when the bus is busy, then ignore the interrupt and
+> +			 * clear the interrupt.
+> +			 */
+> +			if ((stat&  OMAP_I2C_STAT_RDR)&&  !cpu_is_omap44xx()) {
+> +				/* Step 1: If RDR is set, clear it */
+> +				omap_i2c_ack_stat(dev, stat&  OMAP_I2C_STAT_RDR);
+> +
+> +				/* Step 2: */
+> +				if(!(omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG)
+> +							&  OMAP_I2C_STAT_BB)) {
+> +					/* Step 3: */
+> +					while(omap_i2c_read_reg(dev,
+> +						OMAP_I2C_STAT_REG)
+> +							&  OMAP_I2C_STAT_RDR) {
+> +						omap_i2c_ack_stat(dev, stat
+> +							&  OMAP_I2C_STAT_RDR);
+> +						dev_err(dev->dev,
+> +						"I2C : RDR when the bus is busy.\n");
+> +						continue;
+continue in the inner while loop? NAK. should have been an if condition 
+here.
 
-diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index 14dd8ae..7ed5f60 100644
---- a/drivers/dsp/bridge/wmd/ue_deh.c
-+++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -239,7 +239,8 @@ void bridge_deh_notify(struct deh_mgr *hdeh_mgr, u32 ulEventMask, u32 dwErrInfo)
- 			       "bridge_deh_notify: DSP_MMUFAULT, fault "
- 			       "address = 0x%x\n", (unsigned int)fault_addr);
- 			dummy_va_addr =
--			    (u32) mem_calloc(sizeof(char) * 0x1000, MEM_PAGED);
-+			    (void *)__get_free_pages(GFP_ATOMIC | __GFP_ZERO,
-+						     0);
- 			mem_physical =
- 			    VIRT_TO_PHYS(PG_ALIGN_LOW
- 					 ((u32) dummy_va_addr, PG_SIZE4K));
-@@ -338,6 +339,6 @@ dsp_status bridge_deh_get_info(struct deh_mgr *hdeh_mgr,
-  */
- void bridge_deh_release_dummy_mem(void)
- {
--	kfree((void *)dummy_va_addr);
-+	free_pages((void *)dummy_va_addr, 0);
- 	dummy_va_addr = 0;
- }
--- 
-1.6.3.3
+> +					}
+> +
+> +				}
+> +				else
+> +					return IRQ_HANDLED;
+using a continue is better as commented for patch v1.
 
+> +			}
+>   			if (dev->fifo_size) {
+>   				if (stat&  OMAP_I2C_STAT_RRDY)
+>   					num_bytes = dev->fifo_size;
+> -				else    /* read RXSTAT on RDR interrupt */
+> +				else  /* Step4: read RXSTAT on RDR interrupt */
+dont really need this..
+>   					num_bytes = (omap_i2c_read_reg(dev,
+>   							OMAP_I2C_BUFSTAT_REG)
+>   							>>  8)&  0x3F;
+
+Regards,
+Nishanth Menon
