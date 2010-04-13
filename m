@@ -1,142 +1,43 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 06/11] AM3517: Add nand platform data for am3517evm
-Date: Tue, 13 Apr 2010 17:31:56 +0800
-Message-ID: <1271151118-12999-7-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 07/11] AM3517: initialize i2c subsystem after mux subsystem
+Date: Tue, 13 Apr 2010 17:31:57 +0800
+Message-ID: <1271151118-12999-8-git-send-email-stanley.miao@windriver.com>
 References: <1271151118-12999-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:51255 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:51258 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752583Ab0DMJXl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 05:23:41 -0400
+	with ESMTP id S1752596Ab0DMJXm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 05:23:42 -0400
 In-Reply-To: <1271151118-12999-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com
 
-Add nand flash init code for am3517evm.
+The initialize of i2c subsystem will set pinmux, so it should be done
+after the initialize of mux subsystem initialization.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |   84 +++++++++++++++++++++++++++++++++
- 1 files changed, 84 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 879c13f..a76ff11 100644
+index a76ff11..6a82ac3 100644
 --- a/arch/arm/mach-omap2/board-am3517evm.c
 +++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -23,6 +23,9 @@
- #include <linux/davinci_emac.h>
- #include <linux/i2c/pca953x.h>
- #include <linux/regulator/machine.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/partitions.h>
-+#include <linux/mtd/nand.h>
+@@ -615,9 +615,9 @@ static struct omap_board_mux board_mux[] __initdata = {
  
- #include <mach/hardware.h>
- #include <mach/am35xx.h>
-@@ -35,6 +38,8 @@
- #include <plat/control.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/nand.h>
-+#include <plat/gpmc.h>
- 
- #include "mux.h"
- 
-@@ -42,6 +47,84 @@
- #define LCD_PANEL_BKLIGHT_PWR	182
- #define LCD_PANEL_PWM		181
- 
-+#define GPMC_CS0_BASE  0x60
-+#define GPMC_CS_SIZE   0x30
+ static void __init am3517_evm_init(void)
+ {
+-	am3517_evm_i2c_init();
+-
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
 +
-+#define NAND_BLOCK_SIZE        SZ_128K
-+
-+static struct mtd_partition am3517evm_nand_partitions[] = {
-+	/* All the partition sizes are listed in terms of NAND block size */
-+	{
-+		.name           = "xloader",
-+		.offset         = 0,
-+		.size           = 4 * (SZ_128K),
-+		.mask_flags     = MTD_WRITEABLE
-+	},
-+	{
-+		.name           = "uboot",
-+		.offset         = MTDPART_OFS_APPEND,
-+		.size           = 14 * (SZ_128K),
-+		.mask_flags     = MTD_WRITEABLE
-+	},
-+	{
-+		.name           = "uboot-params",
-+		.offset         = MTDPART_OFS_APPEND,
-+		.size           = 2 * (SZ_128K)
-+	},
-+	{
-+		.name           = "linux-kernel",
-+		.offset         = MTDPART_OFS_APPEND,
-+		.size           = 40 * (SZ_128K)
-+	},
-+	{
-+		.name           = "rootfs",
-+		.size           = MTDPART_SIZ_FULL,
-+		.offset         = MTDPART_OFS_APPEND,
-+	},
-+};
-+
-+static struct omap_nand_platform_data am3517evm_nand_data = {
-+	.parts          = am3517evm_nand_partitions,
-+	.nr_parts       = ARRAY_SIZE(am3517evm_nand_partitions),
-+	.nand_setup     = NULL,
-+	.dma_channel    = -1,           /* disable DMA in OMAP NAND driver */
-+	.devsize        = 1,
-+	.dev_ready      = NULL,
-+};
-+
-+void __init am3517evm_flash_init(void)
-+{
-+	u8 cs = 0;
-+	u8 nandcs = GPMC_CS_NUM + 1;
-+	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
-+
-+	while (cs < GPMC_CS_NUM) {
-+		u32 ret = 0;
-+		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-+
-+		if ((ret & 0xC00) == 0x800) {
-+			/* Found it!! */
-+			if (nandcs > GPMC_CS_NUM)
-+				nandcs = cs;
-+		}
-+		cs++;
-+	}
-+	if (nandcs > GPMC_CS_NUM) {
-+		printk(KERN_INFO "NAND: Unable to find configuration "
-+				" in GPMC\n ");
-+		return;
-+	}
-+
-+	if (nandcs < GPMC_CS_NUM) {
-+		am3517evm_nand_data.cs   = nandcs;
-+		am3517evm_nand_data.gpmc_cs_baseaddr = (void *)(gpmc_base_add +
-+				GPMC_CS0_BASE + nandcs*GPMC_CS_SIZE);
-+		am3517evm_nand_data.gpmc_baseaddr   = (void *) (gpmc_base_add);
-+		gpmc_nand_init(&am3517evm_nand_data);
-+	}
-+}
-+
-+
- #define AM35XX_EVM_PHY_MASK          (0xF)
- #define AM35XX_EVM_MDIO_FREQUENCY    (1000000) /*PHY bus frequency */
- 
-@@ -539,6 +622,7 @@ static void __init am3517_evm_init(void)
++	am3517_evm_i2c_init();
+ 	platform_add_devices(am3517_evm_devices,
  				ARRAY_SIZE(am3517_evm_devices));
  
- 	omap_serial_init();
-+	am3517evm_flash_init();
- 
- 	/* Configure GPIO for EHCI port */
- 	omap_mux_init_gpio(57, OMAP_PIN_OUTPUT);
 -- 
 1.5.4.3
 
