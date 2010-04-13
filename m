@@ -1,43 +1,46 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 07/11] AM3517: initialize i2c subsystem after mux subsystem
-Date: Tue, 13 Apr 2010 17:31:57 +0800
-Message-ID: <1271151118-12999-8-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 09/11] omap: init the gpio pinmux for mmc
+Date: Tue, 13 Apr 2010 17:34:28 +0800
+Message-ID: <1271151270-13038-1-git-send-email-stanley.miao@windriver.com>
 References: <1271151118-12999-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:51258 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:51513 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752596Ab0DMJXm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 05:23:42 -0400
+	with ESMTP id S1751112Ab0DMJZ5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 05:25:57 -0400
 In-Reply-To: <1271151118-12999-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com
+Cc: tony@atomide.com, madhu.cr@ti.com
 
-The initialize of i2c subsystem will set pinmux, so it should be done
-after the initialize of mux subsystem initialization.
+There is two gpio for mmc use, one is for card detecting, another is
+used for checking write protect. Intialize its pinmux in case the bootloader
+doesn't set it.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/devices.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index a76ff11..6a82ac3 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -615,9 +615,9 @@ static struct omap_board_mux board_mux[] __initdata = {
- 
- static void __init am3517_evm_init(void)
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 23e4d77..df9c62a 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -591,6 +591,13 @@ static inline void omap_hsmmc_reset(void) {}
+ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			int controller_nr)
  {
--	am3517_evm_i2c_init();
--
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++	if (mmc_controller->slots[0].switch_pin > 0)
++		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
++					OMAP_PIN_INPUT_PULLUP);
++	if (mmc_controller->slots[0].gpio_wp > 0)
++		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
++					OMAP_PIN_INPUT_PULLUP);
 +
-+	am3517_evm_i2c_init();
- 	platform_add_devices(am3517_evm_devices,
- 				ARRAY_SIZE(am3517_evm_devices));
- 
+ 	if (cpu_is_omap2420() && controller_nr == 0) {
+ 		omap_cfg_reg(H18_24XX_MMC_CMD);
+ 		omap_cfg_reg(H15_24XX_MMC_CLKI);
 -- 
 1.5.4.3
 
