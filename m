@@ -1,64 +1,53 @@
 From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v2 6/8] omap3: add support for NAND on LDP board
-Date: Tue, 13 Apr 2010 23:07:18 +0530
-Message-ID: <1271180246-31779-7-git-send-email-s-ghorai@ti.com>
+Subject: [PATCH v3 3/8] omap3: add support for NAND on zoom3 board
+Date: Tue, 13 Apr 2010 23:07:15 +0530
+Message-ID: <1271180246-31779-4-git-send-email-s-ghorai@ti.com>
 References: <Sukumar Ghorai <s-ghorai@ti.com>
  <1271180246-31779-1-git-send-email-s-ghorai@ti.com>
  <1271180246-31779-2-git-send-email-s-ghorai@ti.com>
  <1271180246-31779-3-git-send-email-s-ghorai@ti.com>
- <1271180246-31779-4-git-send-email-s-ghorai@ti.com>
- <1271180246-31779-5-git-send-email-s-ghorai@ti.com>
- <1271180246-31779-6-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46820 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751996Ab0DMRhd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Apr 2010 13:37:33 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:56855 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694Ab0DMRhc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 13:37:32 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o3DHbUrR030508
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o3DHbTwu011046
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 13 Apr 2010 12:37:32 -0500
-In-Reply-To: <1271180246-31779-6-git-send-email-s-ghorai@ti.com>
+	for <linux-omap@vger.kernel.org>; Tue, 13 Apr 2010 12:37:31 -0500
+In-Reply-To: <1271180246-31779-3-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
 
-patch adds NAND support to LDP board.
+patch adds NAND support to zoom3 board.
 
+Signed-off-by: SUkumar Ghorai <s-ghorai@ti.com>
 Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
 ---
- arch/arm/mach-omap2/Makefile    |    1 +
- arch/arm/mach-omap2/board-ldp.c |   41 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 42 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Makefile      |    1 +
+ arch/arm/mach-omap2/board-zoom3.c |   48 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 0cf463c..7556e72
+index f8d9a42..57f418b 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -108,6 +108,7 @@ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
- obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o \
-                                            hsmmc.o
- obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+@@ -129,6 +129,7 @@ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+ 					   hsmmc.o \
+ 					   board-zoom-debugboard.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
 +					   board-zoom-flash.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
- 					   hsmmc.o
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 5fcb52e..0976bd9 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -38,6 +38,7 @@
- #include <plat/board.h>
- #include <plat/common.h>
- #include <plat/gpmc.h>
-+#include <mach/board-zoom.h>
- 
- #include <asm/delay.h>
- #include <plat/control.h>
-@@ -389,6 +390,45 @@ static struct omap_musb_board_data musb_board_data = {
- 	.power			= 100,
+ 					   board-zoom-peripherals.o \
+ 					   hsmmc.o \
+ 					   board-zoom-debugboard.o
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index cd3e40c..8a9811e 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -34,6 +34,53 @@ static void __init omap_zoom_map_io(void)
+ static struct omap_board_config_kernel zoom_config[] __initdata = {
  };
  
 +static struct mtd_partition zoom_nand_partitions[] = {
@@ -86,11 +75,20 @@ index 5fcb52e..0976bd9 100644
 +		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
 +	},
 +	{
-+		.name		= "File System - NAND",
++		.name		= "system",
 +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
-+		.size		= MTDPART_SIZ_FULL,	/* 96MB, 0x6000000 */
++		.size           = 3328 * (64 * 2048),	/* 416M, 0x1A000000 */
 +	},
-+
++	{
++		.name		= "userdata",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1C000000*/
++		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
++	},
++	{
++		.name		= "cache",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1E000000*/
++		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
++	},
 +};
 +
 +static struct flash_partitions zoom_flash_partitions[] = {
@@ -99,18 +97,14 @@ index 5fcb52e..0976bd9 100644
 +		.nr_parts = ARRAY_SIZE(zoom_nand_partitions),
 +	},
 +};
-+
- static void __init omap_ldp_init(void)
+ static void __init omap_zoom_init_irq(void)
  {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-@@ -401,6 +441,7 @@ static void __init omap_ldp_init(void)
- 	ads7846_dev_init();
- 	omap_serial_init();
- 	usb_musb_init(&musb_board_data);
+ 	omap_board_config = zoom_config;
+@@ -66,6 +113,7 @@ static void __init omap_zoom_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 	zoom_peripherals_init();
 +	zoom_flash_init(zoom_flash_partitions, ZOOM_NAND_CS);
+ 	zoom_debugboard_init();
  
- 	omap2_hsmmc_init(mmc);
- 	/* link regulators to MMC adapters */
--- 
-1.5.4.7
-
+ 	omap_mux_init_gpio(64, OMAP_PIN_OUTPUT);
