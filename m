@@ -1,41 +1,140 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH 10/11] omap hsmmc: fix the hsmmc driver for am3517.
-Date: Tue, 13 Apr 2010 16:06:02 +0300
-Message-ID: <4BC46C3A.2010708@nokia.com>
-References: <1271151118-12999-1-git-send-email-stanley.miao@windriver.com> <1271151270-13038-2-git-send-email-stanley.miao@windriver.com> <4BC46B9B.3070207@nokia.com>
+Subject: Re: [PATCH 11/11] AM3517: Add mmc platform data for am3517evm
+Date: Tue, 13 Apr 2010 16:08:32 +0300
+Message-ID: <4BC46CD0.6060601@nokia.com>
+References: <1271151118-12999-1-git-send-email-stanley.miao@windriver.com> <1271151270-13038-3-git-send-email-stanley.miao@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:61508 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:62554 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280Ab0DMNGS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 09:06:18 -0400
-In-Reply-To: <4BC46B9B.3070207@nokia.com>
+	with ESMTP id S1752811Ab0DMNIj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 09:08:39 -0400
+In-Reply-To: <1271151270-13038-3-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Stanley.Miao" <stanley.miao@windriver.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>
 
-Adrian Hunter wrote:
-> Stanley.Miao wrote:
->> am3517 don't have the register OMAP343X_CONTROL_PBIAS_LITE and the regulators
->> like "vmmc", so we don't need set "set_power" function for it.
+Stanley.Miao wrote:
+> Add mmc platform data. Besides, the mmc slot on UI board has a pin conflict
+> with LCD, so add macros to resolve it.
+> 
+> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+> ---
+>  arch/arm/mach-omap2/Makefile          |    3 +-
+>  arch/arm/mach-omap2/board-am3517evm.c |   45 +++++++++++++++++++++++++++++++++
+>  2 files changed, 47 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 4b9fc57..e94afdd 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -142,7 +142,8 @@ obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK)	+= board-omap3touchbook.o \
+>  					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
+>  
+> -obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
+> +obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
+> +					   hsmmc.o
+>  
+>  # Platform specific device init code
+>  obj-y					+= usb-musb.o
+> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+> index 6a82ac3..8054994 100644
+> --- a/arch/arm/mach-omap2/board-am3517evm.c
+> +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/mtd/mtd.h>
+>  #include <linux/mtd/partitions.h>
+>  #include <linux/mtd/nand.h>
+> +#include <linux/mmc/host.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <mach/am35xx.h>
+> @@ -40,7 +41,9 @@
+>  #include <plat/display.h>
+>  #include <plat/nand.h>
+>  #include <plat/gpmc.h>
+> +#include <plat/mmc.h>
+>  
+> +#include "hsmmc.h"
+>  #include "mux.h"
+>  
+>  #define LCD_PANEL_PWR		176
+> @@ -440,6 +443,8 @@ static int __init am3517_evm_i2c_init(void)
+>  static int lcd_enabled;
+>  static int dvi_enabled;
+>  
+> +#if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
+> +	                defined(CONFIG_PANEL_SHARP_LQ043T1DG01_MODULE)
+>  static void __init am3517_evm_display_init(void)
+>  {
+>  	int r;
+> @@ -501,6 +506,20 @@ static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
+>  	gpio_set_value(LCD_PANEL_PWR, 0);
+>  	lcd_enabled = 0;
+>  }
+> +#else
+> +static inline void __init am3517_evm_display_init(void)
+> +{
+> +}
+> +
+> +static inline int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static inline void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +}
+> +#endif
+>  
+>  static struct omap_dss_device am3517_evm_lcd_device = {
+>  	.type			= OMAP_DISPLAY_TYPE_DPI,
+> @@ -613,6 +632,30 @@ static struct omap_board_mux board_mux[] __initdata = {
+>  #define board_mux	NULL
+>  #endif
+>  
+> +static struct omap2_hsmmc_info mmc[] = {
+> +	{
+> +		.mmc            = 1,
+> +		.wires          = 4,
+> +		.gpio_cd        = 127,
+> +		.gpio_wp        = 126,
+> +		.ocr_mask       = MMC_VDD_165_195 |
+> +				MMC_VDD_26_27 | MMC_VDD_27_28 |
+> +				MMC_VDD_29_30 |
+> +				MMC_VDD_30_31 | MMC_VDD_31_32,
 
-<snip>
+How can you support 1.8V and 3V cards without controlling power
+to the card?
 
->> @@ -216,6 +216,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
->>  		 */
->>  		mmc->slots[0].ocr_mask = c->ocr_mask;
->>  
->> +#ifndef CONFIG_MACH_OMAP3517EVM
-> 
-> ifdef CONFIG_MACH_OMAP3517EVM
-> 
-> 
-> 
-> 
-
-That "ifdef CONFIG_MACH_OMAP3517EVM" was an accident, sorry.  Please ignore.
-
+> +	},
+> +#if !defined(CONFIG_PANEL_SHARP_LQ043T1DG01) && \
+> +	                !defined(CONFIG_PANEL_SHARP_LQ043T1DG01_MODULE)
+> +	{
+> +		.mmc            = 2,
+> +		.wires          = 4,
+> +		.gpio_cd        = 175,
+> +		.gpio_wp        = 176,
+> +		.ocr_mask       = MMC_VDD_165_195,
+> +	},
+> +#endif
+> +	{}      /* Terminator */
+> +};
+> +
+>  static void __init am3517_evm_init(void)
+>  {
+>  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> @@ -636,6 +679,8 @@ static void __init am3517_evm_init(void)
+>  
+>  	i2c_register_board_info(1, am3517evm_i2c1_boardinfo,
+>  				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
+> +	/* MMC init function */
+> +	omap2_hsmmc_init(mmc);
+>  }
+>  
+>  static void __init am3517_evm_map_io(void)
 
