@@ -1,94 +1,173 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 03/11] AM3517: rename the i2c boardinfo to make it more readable
-Date: Tue, 13 Apr 2010 17:31:53 +0800
-Message-ID: <1271151118-12999-4-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 04/11] AM3517: Add platform init code for regulator driver
+Date: Tue, 13 Apr 2010 17:31:54 +0800
+Message-ID: <1271151118-12999-5-git-send-email-stanley.miao@windriver.com>
 References: <1271151118-12999-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:51211 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:51220 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752082Ab0DMJX1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 05:23:27 -0400
+	with ESMTP id S1752363Ab0DMJX3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 05:23:29 -0400
 In-Reply-To: <1271151118-12999-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com
 
-There are three i3c buses on am3517, now rename these three boardinfo
-structure name to am3517evm_i2c1_boardinfo, am3517evm_i2c2_boardinfo,
-and am3517evm_i2c3_boardinfo, to make it more readable.
+Add platform init code for regulator driver.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c |  122 +++++++++++++++++++++++++++++++++
+ 1 files changed, 122 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index db542b2..5abf333 100644
+index 5abf333..2d7fd08 100644
 --- a/arch/arm/mach-omap2/board-am3517evm.c
 +++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -152,7 +152,7 @@ void am3517_evm_ethernet_init(struct emac_platform_data *pdata)
- 	return ;
-  }
+@@ -22,6 +22,7 @@
+ #include <linux/gpio.h>
+ #include <linux/davinci_emac.h>
+ #include <linux/i2c/pca953x.h>
++#include <linux/regulator/machine.h>
  
--static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
-+static struct i2c_board_info __initdata am3517evm_i2c1_boardinfo[] = {
- 	{
- 		I2C_BOARD_INFO("s35390a", 0x30),
- 		.type		= "s35390a",
-@@ -182,7 +182,7 @@ static void __init am3517_evm_rtc_init(void)
- 		gpio_free(GPIO_RTCS35390A_IRQ);
- 		return;
- 	}
--	am3517evm_i2c_boardinfo[0].irq = gpio_to_irq(GPIO_RTCS35390A_IRQ);
-+	am3517evm_i2c1_boardinfo[0].irq = gpio_to_irq(GPIO_RTCS35390A_IRQ);
- }
+ #include <mach/hardware.h>
+ #include <mach/am35xx.h>
+@@ -159,6 +160,122 @@ static struct i2c_board_info __initdata am3517evm_i2c1_boardinfo[] = {
+ 	},
+ };
  
++/* TPS65023 specific initialization */
++/* VDCDC1 -> VDD_CORE */
++static struct regulator_consumer_supply am3517_evm_vdcdc1_supplies[] = {
++	{
++		.supply = "vdd_core",
++	},
++};
++
++/* VDCDC2 -> VDDSHV */
++static struct regulator_consumer_supply am3517_evm_vdcdc2_supplies[] = {
++	{
++		.supply = "vddshv",
++	},
++};
++
++/* VDCDC2 |-> VDDS
++	   |-> VDDS_SRAM_CORE_BG
++	   |-> VDDS_SRAM_MPU */
++static struct regulator_consumer_supply am3517_evm_vdcdc3_supplies[] = {
++	{
++		.supply = "vdds",
++	},
++	{
++		.supply = "vdds_sram_core_bg",
++	},
++	{
++		.supply = "vdds_sram_mpu",
++	},
++};
++
++/* LDO1 |-> VDDA1P8V_USBPHY
++	 |-> VDDA_DAC */
++static struct regulator_consumer_supply am3517_evm_ldo1_supplies[] = {
++	{
++		.supply = "vdda1p8v_usbphy",
++	},
++	{
++		.supply = "vdda_dac",
++	},
++};
++
++/* LDO2 -> VDDA3P3V_USBPHY */
++static struct regulator_consumer_supply am3517_evm_ldo2_supplies[] = {
++	{
++		.supply = "vdda3p3v_usbphy",
++	},
++};
++
++static struct regulator_init_data am3517_evm_regulator_data[] = {
++	/* DCDC1 */
++	{
++		.constraints = {
++			.min_uV = 1200000,
++			.max_uV = 1200000,
++			.valid_modes_mask = REGULATOR_MODE_NORMAL,
++			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++			.always_on = true,
++			.apply_uV = false,
++		},
++		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_vdcdc1_supplies),
++		.consumer_supplies = am3517_evm_vdcdc1_supplies,
++	},
++	/* DCDC2 */
++	{
++		.constraints = {
++			.min_uV = 3300000,
++			.max_uV = 3300000,
++			.valid_modes_mask = REGULATOR_MODE_NORMAL,
++			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++			.always_on = true,
++			.apply_uV = false,
++		},
++		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_vdcdc2_supplies),
++		.consumer_supplies = am3517_evm_vdcdc2_supplies,
++	},
++	/* DCDC3 */
++	{
++		.constraints = {
++			.min_uV = 1800000,
++			.max_uV = 1800000,
++			.valid_modes_mask = REGULATOR_MODE_NORMAL,
++			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++			.always_on = true,
++			.apply_uV = false,
++		},
++		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_vdcdc3_supplies),
++		.consumer_supplies = am3517_evm_vdcdc3_supplies,
++	},
++	/* LDO1 */
++	{
++		.constraints = {
++			.min_uV = 1800000,
++			.max_uV = 1800000,
++			.valid_modes_mask = REGULATOR_MODE_NORMAL,
++			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++			.always_on = false,
++			.apply_uV = false,
++		},
++		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_ldo1_supplies),
++		.consumer_supplies = am3517_evm_ldo1_supplies,
++	},
++	/* LDO2 */
++	{
++		.constraints = {
++			.min_uV = 3300000,
++			.max_uV = 3300000,
++			.valid_modes_mask = REGULATOR_MODE_NORMAL,
++			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++			.always_on = false,
++			.apply_uV = false,
++		},
++		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_ldo2_supplies),
++		.consumer_supplies = am3517_evm_ldo2_supplies,
++	},
++};
++
  /*
-@@ -193,7 +193,7 @@ static void __init am3517_evm_rtc_init(void)
- static struct pca953x_platform_data am3517evm_gpio_expander_info_0 = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- };
--static struct i2c_board_info __initdata am3517evm_tca6416_info_0[] = {
-+static struct i2c_board_info __initdata am3517evm_i2c2_boardinfo[] = {
- 	{
+  * RTC - S35390A
+  */
+@@ -216,6 +333,11 @@ static struct i2c_board_info __initdata am3517evm_i2c3_boardinfo[] = {
  		I2C_BOARD_INFO("tca6416", 0x21),
- 		.platform_data = &am3517evm_gpio_expander_info_0,
-@@ -207,7 +207,7 @@ static struct pca953x_platform_data am3517evm_ui_gpio_expander_info_1 = {
- static struct pca953x_platform_data am3517evm_ui_gpio_expander_info_2 = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES + 32,
+ 		.platform_data = &am3517evm_ui_gpio_expander_info_2,
+ 	},
++	{
++		I2C_BOARD_INFO("tps65023", 0x48),
++		.flags = I2C_CLIENT_WAKE,
++		.platform_data = &am3517_evm_regulator_data[0],
++	},
  };
--static struct i2c_board_info __initdata am3517evm_ui_tca6416_info[] = {
-+static struct i2c_board_info __initdata am3517evm_i2c3_boardinfo[] = {
- 	{
- 		I2C_BOARD_INFO("tca6416", 0x20),
- 		.platform_data = &am3517evm_ui_gpio_expander_info_1,
-@@ -221,10 +221,10 @@ static struct i2c_board_info __initdata am3517evm_ui_tca6416_info[] = {
+ 
  static int __init am3517_evm_i2c_init(void)
- {
- 	omap_register_i2c_bus(1, 400, NULL, 0);
--	omap_register_i2c_bus(2, 400, am3517evm_tca6416_info_0,
--			ARRAY_SIZE(am3517evm_tca6416_info_0));
--	omap_register_i2c_bus(3, 400, am3517evm_ui_tca6416_info,
--			ARRAY_SIZE(am3517evm_ui_tca6416_info));
-+	omap_register_i2c_bus(2, 400, am3517evm_i2c2_boardinfo,
-+			ARRAY_SIZE(am3517evm_i2c2_boardinfo));
-+	omap_register_i2c_bus(3, 400, am3517evm_i2c3_boardinfo,
-+			ARRAY_SIZE(am3517evm_i2c3_boardinfo));
- 
- 	return 0;
- }
-@@ -425,8 +425,8 @@ static void __init am3517_evm_init(void)
- 	/* RTC - S35390A */
- 	am3517_evm_rtc_init();
- 
--	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
--				ARRAY_SIZE(am3517evm_i2c_boardinfo));
-+	i2c_register_board_info(1, am3517evm_i2c1_boardinfo,
-+				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
- }
- 
- static void __init am3517_evm_map_io(void)
 -- 
 1.5.4.3
 
