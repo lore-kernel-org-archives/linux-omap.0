@@ -1,56 +1,47 @@
-From: Deepak Chitriki <deepak.chitriki@ti.com>
-Subject: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after DSP_MMUFAULT
-Date: Tue, 13 Apr 2010 11:55:20 -0500
-Message-ID: <1271177720-1299-1-git-send-email-deepak.chitriki@ti.com>
+From: Sukumar Ghorai <s-ghorai@ti.com>
+Subject: [PATCH] nand support on omap3 boards
+Date: Tue, 13 Apr 2010 23:07:12 +0530
+Message-ID: <1271180246-31779-1-git-send-email-s-ghorai@ti.com>
+References: <Sukumar Ghorai <s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54582 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:56851 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753364Ab0DMQz0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 12:55:26 -0400
+	with ESMTP id S1751158Ab0DMRhb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Apr 2010 13:37:31 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o3DHbSNi011043
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 13 Apr 2010 12:37:30 -0500
+In-Reply-To: <Sukumar Ghorai <s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Deepak Chitriki <deepak.chitriki@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Nishanth Menon <nm@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Sukumar Ghorai <s-ghorai@ti.com>
 
-kmalloc() does not guarantee page aligned memory always,hence
-resulting in virtual addresses not getting aligned to page boundary.
-This patch replaces kmalloc() with __get_free_pages() which
-allocates kernel memory in terms of PAGES fixing the Kernel
-memory corruption after DSP_MMUFAULT.
+   The following set of patches applies on top of the Tony's master branch.
+   And these are the patches required to enable nand (nor and onenand for sdp
+   only) for different platform.
 
-Cc: Ameya Palande <ameya.palande@nokia.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
+Sukumar Ghorai (3):
+  OMAP: ZOOM: Introducing 'board-zoom-flash.c'
+  omap3: add support for NAND on zoom2 board
+  omap3: add support for NAND on zoom3 board
+  omap-3630-sdp : Add support for Flash
+  omap-3630-sdp: enable Flash device support
+  omap3: add support for NAND on LDP board
+  zoom2: enable NAND support
+  zoom3: enable NAND support
 
-Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
----
- drivers/dsp/bridge/wmd/ue_deh.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index 14dd8ae..7ed5f60 100644
---- a/drivers/dsp/bridge/wmd/ue_deh.c
-+++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -239,7 +239,8 @@ void bridge_deh_notify(struct deh_mgr *hdeh_mgr, u32 ulEventMask, u32 dwErrInfo)
- 			       "bridge_deh_notify: DSP_MMUFAULT, fault "
- 			       "address = 0x%x\n", (unsigned int)fault_addr);
- 			dummy_va_addr =
--			    (u32) mem_calloc(sizeof(char) * 0x1000, MEM_PAGED);
-+			    (void *)__get_free_pages(GFP_ATOMIC | __GFP_ZERO,
-+						     0);
- 			mem_physical =
- 			    VIRT_TO_PHYS(PG_ALIGN_LOW
- 					 ((u32) dummy_va_addr, PG_SIZE4K));
-@@ -338,6 +339,6 @@ dsp_status bridge_deh_get_info(struct deh_mgr *hdeh_mgr,
-  */
- void bridge_deh_release_dummy_mem(void)
- {
--	kfree((void *)dummy_va_addr);
-+	free_pages((void *)dummy_va_addr, 0);
- 	dummy_va_addr = 0;
- }
--- 
-1.6.3.3
+ arch/arm/configs/omap_3630sdp_defconfig       |   77 +++++++++++++++++-
+ arch/arm/configs/omap_zoom2_defconfig         |   90 ++++++++++++++++++++-
+ arch/arm/configs/omap_zoom3_defconfig         |   90 ++++++++++++++++++++-
+ arch/arm/mach-omap2/Makefile                  |    4 +
+ arch/arm/mach-omap2/board-3630sdp.c           |  110 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-ldp.c               |   41 +++++++++
+ arch/arm/mach-omap2/board-sdp-flash.c         |    2 +
+ arch/arm/mach-omap2/board-zoom-flash.c        |   82 ++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom2.c             |   49 +++++++++++
+ arch/arm/mach-omap2/board-zoom3.c             |   48 +++++++++++
+ arch/arm/mach-omap2/include/mach/board-zoom.h |   11 +++
+ 11 files changed, 601 insertions(+), 3 deletions(-) create mode 100644 arch/arm/mach-omap2/board-zoom-flash.c
 
