@@ -1,169 +1,59 @@
-From: Trilok Soni <soni.trilok@gmail.com>
-Subject: Re: [RFC] [PATCH 1/3] OMAP4: Keyboard Controller Support
-Date: Wed, 14 Apr 2010 13:04:40 +0530
-Message-ID: <i2x5d5443651004140034mdd11969cg72d4306c77f2bd0f@mail.gmail.com>
-References: <27F9C60D11D683428E133F85D2BB4A53043D9EE7F5@dlee03.ent.ti.com>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: [RFC] Initial attempt to make ARM use LMB
+Date: Wed, 14 Apr 2010 17:34:22 +1000
+Message-ID: <1271230462.13059.142.camel@pasglop>
+References: <20100325233248.GM24984@n2100.arm.linux.org.uk>
+	 <20100408153111.GA2598@debian>
+	 <20100408182715.GF31407@n2100.arm.linux.org.uk>
+	 <20100409111105.GA2804@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53043D9EE7F5@dlee03.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Arce, Abraham" <x0066660@ti.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gate.crashing.org ([63.228.1.57]:32777 "EHLO gate.crashing.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752886Ab0DNHgq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Apr 2010 03:36:46 -0400
+In-Reply-To: <20100409111105.GA2804@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Rabin Vincent <rabin@rab.in>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Abraham,
+On Fri, 2010-04-09 at 12:11 +0100, Russell King - ARM Linux wrote:
+> On Thu, Apr 08, 2010 at 07:27:15PM +0100, Russell King - ARM Linux wrote:
+> > On Thu, Apr 08, 2010 at 09:02:56PM +0530, Rabin Vincent wrote:
+> > > On Thu, Mar 25, 2010 at 11:32:48PM +0000, Russell King - ARM Linux wrote:
+> > > > The patch below is the combined patch; individual patches can be found
+> > > > in the arm:lmb patches on the website or the lmb branch of my git tree;
+> > > > this should be considered unstable.
+> > > 
+> > > Something like the following is needed to make initrds work after this
+> > > patch:
+> > 
+> > This to me looks like a very large patch for what is a small problem -
+> > that is the assignment of initrd_start/initrd_size got lost along the
+> > way.
+> > 
+> > I'd much rather have the smaller patch; keep the initrd parameters in
+> > the physical address space for as long as possible, and only convert
+> > them to the virtual address space once we've finished mm initialisation.
+> 
+> Here's a revised version which should resolve the initrd problem.
 
-On Wed, Apr 14, 2010 at 6:40 AM, Arce, Abraham <x0066660@ti.com> wrote:
-> Keyboard controller for OMAP4 with built-in scanning algorithm.
-> The following implementations are used:
->
-> =A0- matrix_keypac.c logic
-> =A0- hwmod framework
+BTW. I'm doing some cleanup of lmb, you can take a peek at my WIP in
+git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc.git branch
+"lmb".
 
-Do we have hwmod framework mainlined in the kernel?
+It shouldn't break your stuff, though you will probably need to add a
+call to lmb_set_current_limit() in the right place instead of setting
+LMB_REAL_LIMIT to lowmem_end_addr.
 
->
-> +config KEYBOARD_OMAP4
-> + =A0 =A0 =A0 =A0tristate "TI OMAP4 keypad support"
-> + =A0 =A0 =A0 =A0depends on (ARCH_OMAP4)
+Anyway, it's still WIP, but feel free to comment, and if there's
+something else you want me to do, cleanup or change in the core LMB, let
+me know.
 
-No need of brackets.
-
-Could you please provide "default y/n" option too?
-
-> + * linux/drivers/input/keyboard/omap4-keypad.c
-
-Better not to include file paths.
-
-> +
-> +struct omap_device_pm_latency omap_keyboard_latency[] =3D {
-
-static?
-
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .deactivate_func =3D omap_device_idle_h=
-wmods,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .activate_func =A0 =3D omap_device_enab=
-le_hwmods,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =3D OMAP_DEVICE_LATENCY_AUTO_ADJ=
-UST,
-> + =A0 =A0 =A0 },
-> +};
-> +static irqreturn_t omap_keypad_threaded(int irq, void *dev_id)
-> +{
-> + =A0 =A0 =A0 struct omap_keypad *keypad_data =3D dev_id;
-> + =A0 =A0 =A0 struct input_dev *input =3D keypad_data->input;
-> + =A0 =A0 =A0 unsigned char key_state[8];
-> + =A0 =A0 =A0 int col, row, code;
-> + =A0 =A0 =A0 u32 *new_state =3D (u32 *) key_state;
-> +
-> + =A0 =A0 =A0 *new_state =A0 =A0 =A0 =3D __raw_readl(keypad_data->bas=
-e +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_KBD_FULLCODE31_0)=
-;
-> + =A0 =A0 =A0 *(new_state + 1) =3D __raw_readl(keypad_data->base +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_KBD_FULLCODE63_32=
-);
-> +
-> + =A0 =A0 =A0 for (col =3D 0; col < keypad_data->cols; col++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (row =3D 0; row < keypad_data->rows=
-; row++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 code =3D MATRIX_SCAN_CO=
-DE(row, col,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 keypad_data->row_shift);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (code < 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(=
-KERN_INFO "Spurious key %d-%d\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 col, row);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continu=
-e;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 input_report_key(input,=
- keypad_data->keycodes[code],
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 key_state[col] & (1 << row));
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 }
-
-where is input_sync(..)?
-
-> +
-> + =A0 =A0 =A0 pdata =3D kzalloc(sizeof(struct matrix_keypad_platform_=
-data),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 GFP_KER=
-NEL);
-
-Please check error return here, because kzalloc can fail.
-
-> +
-> + =A0 =A0 =A0 od =3D omap_device_build(name, id, oh, pdata,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sizeof(=
-struct matrix_keypad_platform_data),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_ke=
-yboard_latency,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ARRAY_S=
-IZE(omap_keyboard_latency), 1);
-> + =A0 =A0 =A0 WARN(IS_ERR(od), "Could not build omap_device for %s %s=
-\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 name, oh_name);
-> +
-> + =A0 =A0 =A0 /* platform data */
-> + =A0 =A0 =A0 pdata =3D pdev->dev.platform_data;
-> + =A0 =A0 =A0 if (!pdata) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "no platform data d=
-efined\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(pdata);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 /* keymap data */
-> + =A0 =A0 =A0 keymap_data =3D pdata->keymap_data;
-> + =A0 =A0 =A0 if (!keymap_data) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "no keymap data def=
-ined\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(keymap_data);
-
-not freeing kfree(pdata)? Please check error return path again in this =
-driver.
-
-> +
-> + =A0 =A0 =A0 __set_bit(EV_REP, input_dev->evbit);
-> + =A0 =A0 =A0 __set_bit(KEY_OK, input_dev->keybit);
-> + =A0 =A0 =A0 __set_bit(EV_KEY, input_dev->evbit);
-
-> +
-> + =A0 =A0 =A0 input_set_capability(input_dev, EV_MSC, MSC_SCAN);
-> + =A0 =A0 =A0 input_set_drvdata(input_dev, keypad_data);
-> +
-> + =A0 =A0 =A0 status =3D input_register_device(keypad_data->input);
-> + =A0 =A0 =A0 if (status < 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "failed to register=
- input device\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto failed_free_device;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 omap_keypad_config(keypad_data);
-> +
-> + =A0 =A0 =A0 platform_set_drvdata(pdev, keypad_data);
-> +
-> + =A0 =A0 =A0 return 0;
-> +
-> +failed_free_device:
-> + =A0 =A0 =A0 input_unregister_device(keypad_data->input);
-
-add keypad_data->input =3D NULL.
+Cheers,
+Ben.
 
 
---=20
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
