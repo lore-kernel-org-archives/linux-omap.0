@@ -1,43 +1,39 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: [INFO] Serial "no clocks available" warning for 3630 SDP
-Date: Wed, 14 Apr 2010 13:42:01 +0530
-Message-ID: <q2m618f0c911004140112u14ee6e3fh3756ae2fb387a1a6@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: [PATCH 01/12] omap: remove one of the define of INT_34XX_BENCH_MPU_EMUL
+Date: Wed, 14 Apr 2010 16:30:14 +0800
+Message-ID: <1271233822-27286-2-git-send-email-stanley.miao@windriver.com>
+References: <1271233822-27286-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f197.google.com ([209.85.223.197]:56381 "EHLO
-	mail-iw0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753914Ab0DNIMC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 04:12:02 -0400
-Received: by iwn35 with SMTP id 35so2577844iwn.21
-        for <linux-omap@vger.kernel.org>; Wed, 14 Apr 2010 01:12:02 -0700 (PDT)
+Received: from mail.windriver.com ([147.11.1.11]:34877 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753208Ab0DNIVp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 04:21:45 -0400
+In-Reply-To: <1271233822-27286-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, "Raja, Govindraj" <govindraj.raja@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com
 
-On the master branch -rc3 version eba0147, I get this warning when
-booting it up on 3630 SDP.
-I don't have a fix for this, just curious if someone else has noticed..
-------------[ cut here ]------------
-WARNING: at arch/arm/mach-omap2/serial.c:727 omap_serial_init_port+0x5c/0x2e8()
-(null): can't init uart3, no clocks available
-Modules linked in:
-[<c0031034>] (unwind_backtrace+0x0/0xec) from [<c0053fbc>]
-(warn_slowpath_common+0x48/0x60)
-[<c0053fbc>] (warn_slowpath_common+0x48/0x60) from [<c005400c>]
-(warn_slowpath_fmt+0x24/0x30)
-[<c005400c>] (warn_slowpath_fmt+0x24/0x30) from [<c000e5d8>]
-(omap_serial_init_port+0x5c/0x2e8)
-[<c000e5d8>] (omap_serial_init_port+0x5c/0x2e8) from [<c000e88c>]
-(omap_serial_init+0x28/0x34)
-[<c000e88c>] (omap_serial_init+0x28/0x34) from [<c000fdd0>]
-(omap_sdp_init+0x14/0x54)
-[<c000fdd0>] (omap_sdp_init+0x14/0x54) from [<c000b3a0>]
-(customize_machine+0x18/0x24)
-[<c000b3a0>] (customize_machine+0x18/0x24) from [<c002b33c>]
-(do_one_initcall+0x5c/0x1b4)
-[<c002b33c>] (do_one_initcall+0x5c/0x1b4) from [<c0008578>]
-(kernel_init+0x90/0x144)
-[<c0008578>] (kernel_init+0x90/0x144) from [<c002cd7c>]
-(kernel_thread_exit+0x0/0x8)
----[ end trace 1b75b31a2719ed1c ]---
+INT_34XX_BENCH_MPU_EMUL was defined twice, another is at Line 312.
+
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+---
+ arch/arm/plat-omap/include/plat/irqs.h |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index b65088a..4017019 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -345,8 +345,6 @@
+ #define INT_34XX_MMC3_IRQ	94
+ #define INT_34XX_GPT12_IRQ	95
+ 
+-#define	INT_34XX_BENCH_MPU_EMUL	3
+-
+ #define INT_35XX_HECC0_IRQ		24
+ #define INT_35XX_HECC1_IRQ		28
+ #define INT_35XX_EMAC_C0_RXTHRESH_IRQ	67
+-- 
+1.5.4.3
+
