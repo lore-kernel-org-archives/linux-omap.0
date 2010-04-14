@@ -1,94 +1,53 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 03/12] AM3517: rename the i2c boardinfo to make it more readable
-Date: Wed, 14 Apr 2010 16:30:16 +0800
-Message-ID: <1271233822-27286-4-git-send-email-stanley.miao@windriver.com>
-References: <1271233822-27286-1-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 0/11] Some am3517 related patches [V2]
+Date: Wed, 14 Apr 2010 16:30:13 +0800
+Message-ID: <1271233822-27286-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:34885 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:34854 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753950Ab0DNIVs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 04:21:48 -0400
-In-Reply-To: <1271233822-27286-1-git-send-email-stanley.miao@windriver.com>
+	with ESMTP id S1752433Ab0DNIVo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 04:21:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com
 
-There are three i2c buses on am3517, now rename these three boardinfo
-structure name to am3517evm_i2c1_boardinfo, am3517evm_i2c2_boardinfo,
-and am3517evm_i2c3_boardinfo, to make it more readable.
+Changes from V1:
+1, modify the mmc set_power part according to Adrian.Hunter.
+2, Updated the config file.
 
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
----
- arch/arm/mach-omap2/board-am3517evm.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+Some am3517 related patches. The detaild changelog is below:
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index db542b2..5abf333 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -152,7 +152,7 @@ void am3517_evm_ethernet_init(struct emac_platform_data *pdata)
- 	return ;
-  }
- 
--static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
-+static struct i2c_board_info __initdata am3517evm_i2c1_boardinfo[] = {
- 	{
- 		I2C_BOARD_INFO("s35390a", 0x30),
- 		.type		= "s35390a",
-@@ -182,7 +182,7 @@ static void __init am3517_evm_rtc_init(void)
- 		gpio_free(GPIO_RTCS35390A_IRQ);
- 		return;
- 	}
--	am3517evm_i2c_boardinfo[0].irq = gpio_to_irq(GPIO_RTCS35390A_IRQ);
-+	am3517evm_i2c1_boardinfo[0].irq = gpio_to_irq(GPIO_RTCS35390A_IRQ);
- }
- 
- /*
-@@ -193,7 +193,7 @@ static void __init am3517_evm_rtc_init(void)
- static struct pca953x_platform_data am3517evm_gpio_expander_info_0 = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- };
--static struct i2c_board_info __initdata am3517evm_tca6416_info_0[] = {
-+static struct i2c_board_info __initdata am3517evm_i2c2_boardinfo[] = {
- 	{
- 		I2C_BOARD_INFO("tca6416", 0x21),
- 		.platform_data = &am3517evm_gpio_expander_info_0,
-@@ -207,7 +207,7 @@ static struct pca953x_platform_data am3517evm_ui_gpio_expander_info_1 = {
- static struct pca953x_platform_data am3517evm_ui_gpio_expander_info_2 = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES + 32,
- };
--static struct i2c_board_info __initdata am3517evm_ui_tca6416_info[] = {
-+static struct i2c_board_info __initdata am3517evm_i2c3_boardinfo[] = {
- 	{
- 		I2C_BOARD_INFO("tca6416", 0x20),
- 		.platform_data = &am3517evm_ui_gpio_expander_info_1,
-@@ -221,10 +221,10 @@ static struct i2c_board_info __initdata am3517evm_ui_tca6416_info[] = {
- static int __init am3517_evm_i2c_init(void)
- {
- 	omap_register_i2c_bus(1, 400, NULL, 0);
--	omap_register_i2c_bus(2, 400, am3517evm_tca6416_info_0,
--			ARRAY_SIZE(am3517evm_tca6416_info_0));
--	omap_register_i2c_bus(3, 400, am3517evm_ui_tca6416_info,
--			ARRAY_SIZE(am3517evm_ui_tca6416_info));
-+	omap_register_i2c_bus(2, 400, am3517evm_i2c2_boardinfo,
-+			ARRAY_SIZE(am3517evm_i2c2_boardinfo));
-+	omap_register_i2c_bus(3, 400, am3517evm_i2c3_boardinfo,
-+			ARRAY_SIZE(am3517evm_i2c3_boardinfo));
- 
- 	return 0;
- }
-@@ -425,8 +425,8 @@ static void __init am3517_evm_init(void)
- 	/* RTC - S35390A */
- 	am3517_evm_rtc_init();
- 
--	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
--				ARRAY_SIZE(am3517evm_i2c_boardinfo));
-+	i2c_register_board_info(1, am3517evm_i2c1_boardinfo,
-+				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
- }
- 
- static void __init am3517_evm_map_io(void)
--- 
-1.5.4.3
+
+The following changes since commit eba014745cc806d625b6a553d1af6efd14e16321:
+  Tony Lindgren (1):
+        Linux-omap rebuilt: Updated to -rc3
+
+are available in the git repository at:
+
+  . devel
+
+Stanley.Miao (12):
+      omap: remove one of the define of INT_34XX_BENCH_MPU_EMUL
+      AM3517: Add platform init code for EMAC driver
+      AM3517: rename the i2c boardinfo to make it more readable
+      AM3517: Add platform init code for regulator driver
+      AM3517: Add audio codec platform data
+      AM3517: Add nand platform data for am3517evm
+      AM3517: initialize i2c subsystem after mux subsystem
+      OMAP: fix a gpmc nand problem
+      AM3517: Update the config file of am3517evm
+      omap: init the gpio pinmux for mmc
+      omap hsmmc: fix the hsmmc driver for am3517.
+      AM3517: Add mmc platform data for am3517evm
+
+ arch/arm/configs/am3517_evm_defconfig     |  599 ++++++++++++++++++++++++----
+ arch/arm/mach-omap2/Makefile              |    3 +-
+ arch/arm/mach-omap2/board-am3517evm.c     |  392 ++++++++++++++++++-
+ arch/arm/mach-omap2/devices.c             |    7 +
+ arch/arm/mach-omap2/gpmc-nand.c           |    3 +
+ arch/arm/mach-omap2/hsmmc.c               |   32 ++-
+ arch/arm/mach-omap2/include/mach/am35xx.h |    9 +
+ arch/arm/plat-omap/include/plat/irqs.h    |    2 -
+ 8 files changed, 938 insertions(+), 109 deletions(-)
 
