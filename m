@@ -1,108 +1,112 @@
-From: "Govindarajan, Sriramakrishnan" <srk@ti.com>
-Subject: RE: [PATCH 06/12] AM3517: Add nand platform data for am3517evm
-Date: Wed, 14 Apr 2010 18:46:19 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304B3E658@dbde02.ent.ti.com>
-References: <1271233822-27286-1-git-send-email-stanley.miao@windriver.com>
- <1271233822-27286-7-git-send-email-stanley.miao@windriver.com>
+From: Thomas Weber <weber@corscience.de>
+Subject: Re: [PATCH v4] board-omap3-beagle: add DSS2 support
+Date: Wed, 14 Apr 2010 14:16:09 +0000
+Message-ID: <4BC5CE29.5030409@corscience.de>
+References: <1271248380-24370-1-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52488 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753195Ab0DNNQ0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 09:16:26 -0400
-In-Reply-To: <1271233822-27286-7-git-send-email-stanley.miao@windriver.com>
-Content-Language: en-US
+Received: from moutng.kundenserver.de ([212.227.126.171]:49279 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754582Ab0DNNQx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 09:16:53 -0400
+In-Reply-To: <1271248380-24370-1-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Stanley.Miao" <stanley.miao@windriver.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>
+To: Koen Kooi <koen.kooi@gmail.com>
+Cc: tomi.valkeinen@nokia.com, tony@atomide.com, linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Stanley.Miao
-> Sent: Wednesday, April 14, 2010 2:00 PM
-> To: linux-omap@vger.kernel.org
-> Cc: tony@atomide.com
-> Subject: [PATCH 06/12] AM3517: Add nand platform data for am3517evm
+On 04/14/10 12:33, Koen Kooi wrote:
+> This patch adds DSS2 support to the beagleboard boardfile. DVI and TV-out are supported.
 > 
-> Add nand flash init code for am3517evm.
-> 
-> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 > ---
->  arch/arm/mach-omap2/board-am3517evm.c |   84
-> +++++++++++++++++++++++++++++++++
->  1 files changed, 84 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
-> omap2/board-am3517evm.c
-> index 879c13f..a76ff11 100644
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@ -23,6 +23,9 @@
->  #include <linux/davinci_emac.h>
->  #include <linux/i2c/pca953x.h>
->  #include <linux/regulator/machine.h>
-> +#include <linux/mtd/mtd.h>
-> +#include <linux/mtd/partitions.h>
-> +#include <linux/mtd/nand.h>
+> Changes since v1:
+>         * removed beagle_panel_enable_tv() and beagle_panel_disable_tv()
+> Changes since v2:
+>         * changed to REGULATOR_SUPPLY(_name, _dev_name) for dss regulators
+> Changes since v3:
+>         * really remove beagle_panel_enable_tv() and beagle_panel_disable_tv()
+>         * moved comments to this section
 > 
->  #include <mach/hardware.h>
->  #include <mach/am35xx.h>
-> @@ -35,6 +38,8 @@
->  #include <plat/control.h>
+>  arch/arm/mach-omap2/board-omap3beagle.c |  102 ++++++++++++++++++++++--------
+>  1 files changed, 75 insertions(+), 27 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 962d377..96999a3 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -39,6 +39,7 @@
+>  
+>  #include <plat/board.h>
+>  #include <plat/common.h>
+> +#include <plat/display.h>
+>  #include <plat/gpmc.h>
+>  #include <plat/nand.h>
 >  #include <plat/usb.h>
->  #include <plat/display.h>
-> +#include <plat/nand.h>
-> +#include <plat/gpmc.h>
-> 
->  #include "mux.h"
-> 
-> @@ -42,6 +47,84 @@
->  #define LCD_PANEL_BKLIGHT_PWR	182
->  #define LCD_PANEL_PWM		181
-> 
-> +#define GPMC_CS0_BASE  0x60
-> +#define GPMC_CS_SIZE   0x30
+> @@ -106,6 +107,77 @@ static struct platform_device omap3beagle_nand_device = {
+>  	.resource	= &omap3beagle_nand_resource,
+>  };
+>  
+> +/* DSS */
 > +
-> +#define NAND_BLOCK_SIZE        SZ_128K
+> +static int beagle_enable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	if (dssdev->reset_gpio != -1)
+> +		gpio_set_value(dssdev->reset_gpio, 1);
 > +
-> +static struct mtd_partition am3517evm_nand_partitions[] = {
-> +	/* All the partition sizes are listed in terms of NAND block size */
-> +	{
-> +		.name           = "xloader",
-> +		.offset         = 0,
-> +		.size           = 4 * (SZ_128K),
-> +		.mask_flags     = MTD_WRITEABLE
-> +	},
-> +	{
-> +		.name           = "uboot",
-> +		.offset         = MTDPART_OFS_APPEND,
-> +		.size           = 14 * (SZ_128K),
-> +		.mask_flags     = MTD_WRITEABLE
-> +	},
-> +	{
-> +		.name           = "uboot-params",
-> +		.offset         = MTDPART_OFS_APPEND,
-> +		.size           = 2 * (SZ_128K)
-> +	},
-> +	{
-> +		.name           = "linux-kernel",
-> +		.offset         = MTDPART_OFS_APPEND,
-> +		.size           = 40 * (SZ_128K)
-> +	},
-> +	{
-> +		.name           = "rootfs",
-> +		.size           = MTDPART_SIZ_FULL,
-> +		.offset         = MTDPART_OFS_APPEND,
+> +	return 0;
+> +}
+> +
+> +static void beagle_disable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	if (dssdev->reset_gpio != -1)
+> +		gpio_set_value(dssdev->reset_gpio, 0);
+> +}
+> +
+> +static struct omap_dss_device beagle_dvi_device = {
+> +	.type = OMAP_DISPLAY_TYPE_DPI,
+> +	.name = "dvi",
+> +	.driver_name = "generic_panel",
+> +	.phy.dpi.data_lines = 24,
+> +	.reset_gpio = 170,
+> +	.platform_enable = beagle_enable_dvi,
+> +	.platform_disable = beagle_disable_dvi,
+> +};
+> +
+> +static struct omap_dss_device beagle_tv_device = {
+> +	.name = "tv",
+> +	.driver_name = "venc",
+> +	.type = OMAP_DISPLAY_TYPE_VENC,
+> +	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
+> +};
+> +
+> +static struct omap_dss_device *beagle_dss_devices[] = {
+> +	&beagle_dvi_device,
+> +	&beagle_tv_device,
+> +};
+> +
+> +static struct omap_dss_board_info beagle_dss_data = {
+> +	.num_devices = ARRAY_SIZE(beagle_dss_devices),
+> +	.devices = beagle_dss_devices,
+> +	.default_device = &beagle_dvi_device,
+> +};
+> +
+> +static struct platform_device beagle_dss_device = {
+> +	.name          = "omapdss",
+> +	.id            = -1,
+> +	.dev            = {
+> +		.platform_data = &beagle_dss_data,
 > +	},
 > +};
---- snip ---
-[Sriram] Similar patch was posted earlier - pending re-work (see Tony's comments)
-https://patchwork.kernel.org/patch/56485/
+> +
+> +static struct regulator_consumer_supply beagle_vdac_supply = 
+Trailing whitespace
+> +	REGULATOR_SUPPLY("vdda_dac", "omapdss");
+> +
+> +static struct regulator_consumer_supply beagle_vdvi_supply = 
+Here too.
 
-If you deriving your work from existing implementation, attribute the original author in your submissions 
-
-Regards
-Sriram
+Thomas
