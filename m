@@ -1,39 +1,191 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 01/12] omap: remove one of the define of INT_34XX_BENCH_MPU_EMUL
-Date: Wed, 14 Apr 2010 16:30:14 +0800
-Message-ID: <1271233822-27286-2-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 02/12] AM3517: Add platform init code for EMAC driver
+Date: Wed, 14 Apr 2010 16:30:15 +0800
+Message-ID: <1271233822-27286-3-git-send-email-stanley.miao@windriver.com>
 References: <1271233822-27286-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:34877 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:34882 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208Ab0DNIVp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 04:21:45 -0400
+	with ESMTP id S1752433Ab0DNIVq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 04:21:46 -0400
 In-Reply-To: <1271233822-27286-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com
 
-INT_34XX_BENCH_MPU_EMUL was defined twice, another is at Line 312.
+Add platform init code for EMAC driver.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/plat-omap/include/plat/irqs.h |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c     |  114 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/include/mach/am35xx.h |    9 ++
+ 2 files changed, 123 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index b65088a..4017019 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -345,8 +345,6 @@
- #define INT_34XX_MMC3_IRQ	94
- #define INT_34XX_GPT12_IRQ	95
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 6ae8805..db542b2 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -20,6 +20,7 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/gpio.h>
++#include <linux/davinci_emac.h>
+ #include <linux/i2c/pca953x.h>
  
--#define	INT_34XX_BENCH_MPU_EMUL	3
--
- #define INT_35XX_HECC0_IRQ		24
- #define INT_35XX_HECC1_IRQ		28
- #define INT_35XX_EMAC_C0_RXTHRESH_IRQ	67
+ #include <mach/hardware.h>
+@@ -30,6 +31,7 @@
+ 
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/control.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
+ 
+@@ -39,6 +41,117 @@
+ #define LCD_PANEL_BKLIGHT_PWR	182
+ #define LCD_PANEL_PWM		181
+ 
++#define AM35XX_EVM_PHY_MASK          (0xF)
++#define AM35XX_EVM_MDIO_FREQUENCY    (1000000) /*PHY bus frequency */
++
++static struct emac_platform_data am3517_evm_emac_pdata = {
++	.phy_mask       = AM35XX_EVM_PHY_MASK,
++	.mdio_max_freq  = AM35XX_EVM_MDIO_FREQUENCY,
++	.rmii_en        = 1,
++};
++
++static int __init eth_addr_setup(char *str)
++{
++	int i;
++	long res;
++
++	if (str == NULL)
++		return 0;
++	for (i = 0; i <  ETH_ALEN; i++) {
++		if (!strict_strtol(&str[i * 3], 16, &res))
++			am3517_evm_emac_pdata.mac_addr[i] = res;
++		else
++			return -EINVAL;
++	}
++	return 1;
++}
++
++/* Get MAC address from kernel boot parameter eth=AA:BB:CC:DD:EE:FF */
++__setup("eth=", eth_addr_setup);
++
++static struct resource am3517_emac_resources[] = {
++	{
++		.start  = AM35XX_IPSS_EMAC_BASE,
++		.end    = AM35XX_IPSS_EMAC_BASE + 0x3FFFF,
++		.flags  = IORESOURCE_MEM,
++	},
++	{
++		.start  = INT_35XX_EMAC_C0_RXTHRESH_IRQ,
++		.end    = INT_35XX_EMAC_C0_RXTHRESH_IRQ,
++		.flags  = IORESOURCE_IRQ,
++	},
++	{
++		.start  = INT_35XX_EMAC_C0_RX_PULSE_IRQ,
++		.end    = INT_35XX_EMAC_C0_RX_PULSE_IRQ,
++		.flags  = IORESOURCE_IRQ,
++	},
++	{
++		.start  = INT_35XX_EMAC_C0_TX_PULSE_IRQ,
++		.end    = INT_35XX_EMAC_C0_TX_PULSE_IRQ,
++		.flags  = IORESOURCE_IRQ,
++	},
++	{
++		.start  = INT_35XX_EMAC_C0_MISC_PULSE_IRQ,
++		.end    = INT_35XX_EMAC_C0_MISC_PULSE_IRQ,
++		.flags  = IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device am3517_emac_device = {
++	.name           = "davinci_emac",
++	.id             = -1,
++	.num_resources  = ARRAY_SIZE(am3517_emac_resources),
++	.resource       = am3517_emac_resources,
++};
++
++static void am3517_enable_ethernet_int(void)
++{
++	u32 regval;
++
++	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++	regval = (regval | AM35XX_CPGMAC_C0_RX_PULSE_CLR |
++			AM35XX_CPGMAC_C0_TX_PULSE_CLR |
++			AM35XX_CPGMAC_C0_MISC_PULSE_CLR |
++			AM35XX_CPGMAC_C0_RX_THRESH_CLR);
++	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
++	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++}
++
++static void am3517_disable_ethernet_int(void)
++{
++	u32 regval;
++
++	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++	regval = (regval | AM35XX_CPGMAC_C0_RX_PULSE_CLR |
++			AM35XX_CPGMAC_C0_TX_PULSE_CLR);
++	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
++	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++}
++
++void am3517_evm_ethernet_init(struct emac_platform_data *pdata)
++{
++	u32 regval;
++
++	pdata->ctrl_reg_offset          = AM35XX_EMAC_CNTRL_OFFSET;
++	pdata->ctrl_mod_reg_offset      = AM35XX_EMAC_CNTRL_MOD_OFFSET;
++	pdata->ctrl_ram_offset          = AM35XX_EMAC_CNTRL_RAM_OFFSET;
++	pdata->mdio_reg_offset          = AM35XX_EMAC_MDIO_OFFSET;
++	pdata->ctrl_ram_size            = AM35XX_EMAC_CNTRL_RAM_SIZE;
++	pdata->version                  = EMAC_VERSION_2;
++	pdata->hw_ram_addr              = AM35XX_EMAC_HW_RAM_ADDR;
++	pdata->interrupt_enable	        = am3517_enable_ethernet_int;
++	pdata->interrupt_disable        = am3517_disable_ethernet_int;
++	am3517_emac_device.dev.platform_data     = pdata;
++	platform_device_register(&am3517_emac_device);
++
++	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
++	regval = regval & (~(AM35XX_CPGMACSS_SW_RST));
++	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
++	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
++
++	return ;
++ }
++
+ static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
+ 	{
+ 		I2C_BOARD_INFO("s35390a", 0x30),
+@@ -308,6 +421,7 @@ static void __init am3517_evm_init(void)
+ 	/* DSS */
+ 	am3517_evm_display_init();
+ 
++	am3517_evm_ethernet_init(&am3517_evm_emac_pdata);
+ 	/* RTC - S35390A */
+ 	am3517_evm_rtc_init();
+ 
+diff --git a/arch/arm/mach-omap2/include/mach/am35xx.h b/arch/arm/mach-omap2/include/mach/am35xx.h
+index a705f94..12a85ec 100644
+--- a/arch/arm/mach-omap2/include/mach/am35xx.h
++++ b/arch/arm/mach-omap2/include/mach/am35xx.h
+@@ -23,4 +23,13 @@
+ #define AM35XX_IPSS_HECC_BASE		0x5C050000
+ #define AM35XX_IPSS_VPFE_BASE		0x5C060000
+ 
++#define AM35XX_EMAC_CNTRL_OFFSET        (0x10000)
++#define AM35XX_EMAC_CNTRL_MOD_OFFSET    (0x0)
++#define AM35XX_EMAC_CNTRL_RAM_OFFSET    (0x20000)
++#define AM35XX_EMAC_MDIO_OFFSET         (0x30000)
++#define AM35XX_EMAC_CNTRL_RAM_SIZE      (0x2000)
++#define AM35XX_EMAC_RAM_ADDR            (AM35XX_IPSS_EMAC_BASE + \
++						AM35XX_EMAC_CNTRL_RAM_OFFSET)
++#define AM35XX_EMAC_HW_RAM_ADDR         (0x01E20000)
++
+ #endif /*  __ASM_ARCH_AM35XX_H */
 -- 
 1.5.4.3
 
