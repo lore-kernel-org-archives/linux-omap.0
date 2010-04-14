@@ -1,48 +1,38 @@
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: [PATCHv3 2/2] crypto: omap-sham - omap sha1 & md5 driver
-Date: Wed, 14 Apr 2010 09:41:28 +0300
-Message-ID: <4BC56398.40500@nokia.com>
-References: <20100414062052.GA20395@gondor.apana.org.au>
+Date: Wed, 14 Apr 2010 14:45:12 +0800
+Message-ID: <20100414064512.GB20555@gondor.apana.org.au>
+References: <20100414062052.GA20395@gondor.apana.org.au> <4BC56398.40500@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:52532 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365Ab0DNGlg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 02:41:36 -0400
-In-Reply-To: <20100414062052.GA20395@gondor.apana.org.au>
+Received: from ringil.hengli.com.au ([216.59.3.182]:48571 "EHLO
+	arnor.apana.org.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754634Ab0DNGpO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Apr 2010 02:45:14 -0400
+Content-Disposition: inline
+In-Reply-To: <4BC56398.40500@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Herbert Xu <herbert@gondor.hengli.com.au>
+To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
 Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-
-On 14/04/10 09:20, ext Herbert Xu wrote:
-> Dmitry Kasatkin<dmitry.kasatkin@nokia.com>  wrote:
->    
->> Earlier kernel contained omap sha1 and md5 driver, which was not maintained,
->> was not ported to new crypto APIs and removed from the source tree.
->>
->> - implements async and sync crypto API using dma and cpu.
->> - supports multiple sham instances if available
->>
->> Signed-off-by: Dmitry Kasatkin<dmitry.kasatkin@nokia.com>
->>      
-> You have not addressed my objections raised earlier.
+On Wed, Apr 14, 2010 at 09:41:28AM +0300, Dmitry Kasatkin wrote:
 >
-> Also, why are you exporting a shash object? You cannot sleep during
-> shash operations (except for setkey).
+> what do you mean "exporting shash object"?
 >
->    
-what do you mean "exporting shash object"?
+> Providing shash alg?
+>
+> I was not sure if it is needed if ahash is available.
+>
+> Should I remove shash alg at all?
 
-Providing shash alg?
+In that case please remove the shash object.  ahash by itself
+is enough.
 
-I was not sure if it is needed if ahash is available.
-
-Should I remove shash alg at all?
-
-> Cheers,
->    
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
