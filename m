@@ -1,83 +1,57 @@
-From: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3] OMAP2/3: I2C: Errata ID i207: Clear wrong RDR interrupt
-Date: Thu, 15 Apr 2010 16:44:47 +0530
-Message-ID: <1271330087-26084-1-git-send-email-manjugk@ti.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 1/2 V4] OMAP: DSS: Add display board file for zoom
+ boards
+Date: Thu, 15 Apr 2010 13:56:21 +0300
+Message-ID: <1271328981.2690.240.camel@tubuntu.research.nokia.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E94026EE415C2@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:24809 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752038Ab0DOK47 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 06:56:59 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026EE415C2@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Y, Kishore" <kishore.y@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Under certain rare conditions, I2C_STAT[13].RDR bit may be set
-and the corresponding interrupt fire, even there is no data in
-the receive FIFO, or the I2C data transfer is still ongoing.
-These spurious RDR events must be ignored by the software.
+Hi,
 
-This patch handles and ignores RDR spurious interrupts.
+On Sat, 2010-03-06 at 15:26 +0100, ext Y, Kishore wrote:
+> From: Kishore Y <kishore.y@ti.com>
+> 
+> board-zoom-display.c added as a common file for display fucntionality
+> on boards zoom2, zoom3 and 3630sdp
+> 
+> Signed-off-by: Mukund Mittal <mmittal@ti.com>
+> Signed-off-by: Kishore Y <kishore.y@ti.com>
+> Reviewed-by: Gadiyar, Anand <gadiyar@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile                  |    3 +
+>  arch/arm/mach-omap2/board-zoom-display.c      |  158 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-zoom-peripherals.c  |   50 ++++++++-
+>  arch/arm/mach-omap2/include/mach/board-zoom.h |    3 +
+>  4 files changed, 213 insertions(+), 1 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-zoom-display.c
 
-The below sequence is required in interrupt handler for
-handling this errata:
-1. If RDR is set to 1, clear RDR
-2. Read I2C status register and check for BusBusy bit. If BusBusy
-bit is set, skip remaining steps.
-3. If BusBusy bit is not set, perform read operation on I2C status
-register.
-4. If RDR is set, clear the same. Check RDR again and clear if it sets
-RDR bit again.
-5. Perform I2C Data Read operation N number of times(where N is value
-read from the register BUFSTAT-RXSTAT bit fields).
+<snip>
 
-Note : This errata is applicable for OMAP2 and OMAP3 platforms only.
-It is not applicable for OMAP4.
+>  
+> +static struct regulator_consumer_supply zoom_vpll2_supply = {
+> +	.supply         = "vdds_dsi",
+> +};
+> +
+> +static struct regulator_consumer_supply zoom_vdda_dac_supply = {
+> +	.supply         = "vdda_dac",
+> +};
 
-Signed-off-by: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
-Cc: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+I think the same comments about regulators apply here as in this thread:
 
----
- drivers/i2c/busses/i2c-omap.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+http://marc.info/?l=linux-omap&m=127107128203856&w=2
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index ae6f5c1..d1648da 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -733,6 +733,34 @@ complete:
- 		}
- 		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
- 			u8 num_bytes = 1;
-+
-+			/*
-+			 * I2C Errata(Errata Nos. OMAP2: 1.67, OMAP3: 1.8)
-+			 * Not applicable for OMAP4.
-+			 * Under certain rare conditions, RDR could be set again
-+			 * when the bus is busy, then ignore the interrupt and
-+			 * clear the interrupt.
-+			 */
-+			if ((stat & OMAP_I2C_STAT_RDR) && !cpu_is_omap44xx()) {
-+				/* Step 1: If RDR is set, clear it */
-+				omap_i2c_ack_stat(dev, stat & OMAP_I2C_STAT_RDR);
-+
-+				/* Step 2: */
-+				if(!(omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG)
-+							& OMAP_I2C_STAT_BB)) {
-+					/* Step 3: */
-+					if(omap_i2c_read_reg(dev,
-+						OMAP_I2C_STAT_REG)
-+							& OMAP_I2C_STAT_RDR) {
-+						omap_i2c_ack_stat(dev, stat
-+							& OMAP_I2C_STAT_RDR);
-+						dev_err(dev->dev,
-+						"I2C : RDR when the bus is busy.\n");
-+						continue;
-+					}
-+
-+				}
-+			}
- 			if (dev->fifo_size) {
- 				if (stat & OMAP_I2C_STAT_RRDY)
- 					num_bytes = dev->fifo_size;
--- 
-1.6.0.4
+ Tomi
+
+
