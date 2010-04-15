@@ -1,81 +1,154 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V2 2/2] OMAP: OMAP3EVM: Add LCD Backlight brightness
- hookup function
-Date: Thu, 15 Apr 2010 19:37:45 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E136F3A@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH-RESEND 1/2] OMAP: LCD LS037V7DW01: Add Backlight driver
+ support
+Date: Thu, 15 Apr 2010 17:12:41 +0300
+Message-ID: <1271340761.2690.260.camel@tubuntu.research.nokia.com>
 References: <hvaibhav@ti.com>
-	 <1271073027-2628-2-git-send-email-hvaibhav@ti.com>
-	 <1271339276.2690.248.camel@tubuntu.research.nokia.com>
-	 <19F8576C6E063C45BE387C64729E7394044E136F2C@dbde02.ent.ti.com>
- <1271339978.2690.255.camel@tubuntu.research.nokia.com>
+	 <1271340001-19831-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56183 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032Ab0DOOHz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 10:07:55 -0400
-In-Reply-To: <1271339978.2690.255.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:42589 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753142Ab0DOOMx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 10:12:53 -0400
+In-Reply-To: <1271340001-19831-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: "ext hvaibhav@ti.com" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hi,
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Thursday, April 15, 2010 7:30 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: RE: [PATCH-V2 2/2] OMAP: OMAP3EVM: Add LCD Backlight brightness
-> hookup function
+On Thu, 2010-04-15 at 16:00 +0200, ext hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
 > 
-> On Thu, 2010-04-15 at 15:52 +0200, ext Hiremath, Vaibhav wrote:
-> > > -----Original Message-----
-> > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > > Sent: Thursday, April 15, 2010 7:18 PM
-> > > To: Hiremath, Vaibhav
-> > > Cc: linux-omap@vger.kernel.org; tony@atomide.com
-> > > Subject: Re: [PATCH-V2 2/2] OMAP: OMAP3EVM: Add LCD Backlight brightness
-> > > hookup function
-> > >
-> > > Hi,
-> > >
-> > > On Mon, 2010-04-12 at 13:50 +0200, ext hvaibhav@ti.com wrote:
-> > > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > >
-> > > >
-> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > > What tree is this patch based on? It doesn't apply:
-> > >
-> > > Applying: OMAP: OMAP3EVM: Add LCD Backlight brightness hookup function
-> > > fatal: sha1 information is lacking or useless (arch/arm/mach-
-> omap2/board-
-> > > omap3evm.c).
-> > > Repository lacks necessary blobs to fall back on 3-way merge.
-> > > Cannot fall back to three-way merge.
-> > >
-> > [Hiremath, Vaibhav] I am really not sure why this error is coming up,
-> actually I using same patch and rebasing it with latest linux-omap/master
-> without any issue.
-> >
+> Tested on OMAP3EVM for OMAP3530 and AM/DM 3730.
 > 
-> I think this happens when you have some extra patches on your tree, and
-> these two patches are on top of them. Then you email me only these two
-> patches, and when I try to apply them, git will complain as the
-> underlying patches are missing from my tree.
-> 
-> So you should always rebase the patches you will send on top of a clean
-> public tree, preferably my dss2 tree or main linux tree.
-[Hiremath, Vaibhav] I just send the 2 patches to you, and also verified it applies to linux-omap/dss2 branch cleanly.
 
-Thanks,
-Vaibhav
+This looks ok to me, I'll add it to my queue.
 
+ Tomi
+
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   77 ++++++++++++++++++++
+>  1 files changed, 77 insertions(+), 0 deletions(-)
 > 
->  Tomi
+> diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+> index 8d51a5e..d84feb0 100644
+> --- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+> +++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+> @@ -20,10 +20,16 @@
+>  #include <linux/module.h>
+>  #include <linux/delay.h>
+>  #include <linux/device.h>
+> +#include <linux/backlight.h>
+> +#include <linux/fb.h>
+>  #include <linux/err.h>
 > 
+>  #include <plat/display.h>
+> 
+> +struct sharp_data {
+> +	struct backlight_device *bl;
+> +};
+> +
+>  static struct omap_video_timings sharp_ls_timings = {
+>  	.x_res = 480,
+>  	.y_res = 640,
+> @@ -39,18 +45,89 @@ static struct omap_video_timings sharp_ls_timings = {
+>  	.vbp		= 1,
+>  };
+> 
+> +static int sharp_ls_bl_update_status(struct backlight_device *bl)
+> +{
+> +	struct omap_dss_device *dssdev = dev_get_drvdata(&bl->dev);
+> +	int level;
+> +
+> +	if (!dssdev->set_backlight)
+> +		return -EINVAL;
+> +
+> +	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
+> +			bl->props.power == FB_BLANK_UNBLANK)
+> +		level = bl->props.brightness;
+> +	else
+> +		level = 0;
+> +
+> +	return dssdev->set_backlight(dssdev, level);
+> +}
+> +
+> +static int sharp_ls_bl_get_brightness(struct backlight_device *bl)
+> +{
+> +	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
+> +			bl->props.power == FB_BLANK_UNBLANK)
+> +		return bl->props.brightness;
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct backlight_ops sharp_ls_bl_ops = {
+> +	.get_brightness = sharp_ls_bl_get_brightness,
+> +	.update_status  = sharp_ls_bl_update_status,
+> +};
+> +
+> +
+> +
+>  static int sharp_ls_panel_probe(struct omap_dss_device *dssdev)
+>  {
+> +	struct backlight_properties props;
+> +	struct backlight_device *bl;
+> +	struct sharp_data *sd;
+> +	int r;
+> +
+>  	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+>  		OMAP_DSS_LCD_IHS;
+>  	dssdev->panel.acb = 0x28;
+>  	dssdev->panel.timings = sharp_ls_timings;
+> 
+> +	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
+> +	if (!sd)
+> +		return -ENOMEM;
+> +
+> +	dev_set_drvdata(&dssdev->dev, sd);
+> +
+> +	memset(&props, 0, sizeof(struct backlight_properties));
+> +	props.max_brightness = dssdev->max_backlight_level;
+> +
+> +	bl = backlight_device_register("sharp-ls", &dssdev->dev, dssdev,
+> +			&sharp_ls_bl_ops, &props);
+> +	if (IS_ERR(bl)) {
+> +		r = PTR_ERR(bl);
+> +		kfree(sd);
+> +		return r;
+> +	}
+> +	sd->bl = bl;
+> +
+> +	bl->props.fb_blank = FB_BLANK_UNBLANK;
+> +	bl->props.power = FB_BLANK_UNBLANK;
+> +	bl->props.brightness = dssdev->max_backlight_level;
+> +	r = sharp_ls_bl_update_status(bl);
+> +	if (r < 0)
+> +		dev_err(&dssdev->dev, "failed to set lcd brightness\n");
+> +
+>  	return 0;
+>  }
+> 
+>  static void sharp_ls_panel_remove(struct omap_dss_device *dssdev)
+>  {
+> +	struct sharp_data *sd = dev_get_drvdata(&dssdev->dev);
+> +	struct backlight_device *bl = sd->bl;
+> +
+> +	bl->props.power = FB_BLANK_POWERDOWN;
+> +	sharp_ls_bl_update_status(bl);
+> +	backlight_device_unregister(bl);
+> +
+> +	kfree(sd);
+>  }
+> 
+>  static int sharp_ls_power_on(struct omap_dss_device *dssdev)
+> --
+> 1.6.2.4
+> 
+
 
