@@ -1,62 +1,99 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 00/10] dsp-bridge: deh: general cleanups
-Date: Thu, 15 Apr 2010 15:12:33 +0300
-Message-ID: <i2x94a0d4531004150512qf66c7c42u160707e3a89ec39a@mail.gmail.com>
-References: <1269379542-11892-1-git-send-email-felipe.contreras@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH-V2 2/2] OMAP: OMAP3EVM: Add LCD Backlight brightness
+ hookup function
+Date: Thu, 15 Apr 2010 16:47:56 +0300
+Message-ID: <1271339276.2690.248.camel@tubuntu.research.nokia.com>
+References: <hvaibhav@ti.com>
+	 <1271073027-2628-2-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f225.google.com ([209.85.218.225]:61493 "EHLO
-	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753512Ab0DOMMh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 08:12:37 -0400
-Received: by bwz25 with SMTP id 25so1484669bwz.28
-        for <linux-omap@vger.kernel.org>; Thu, 15 Apr 2010 05:12:35 -0700 (PDT)
-In-Reply-To: <1269379542-11892-1-git-send-email-felipe.contreras@gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:30069 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753714Ab0DONsK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 09:48:10 -0400
+In-Reply-To: <1271073027-2628-2-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
+To: "ext hvaibhav@ti.com" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On Wed, Mar 24, 2010 at 12:25 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> While trying to fix the recovery feature I stumbled many areas of imp=
-rovments
-> in 'deh' (whatever that means).
->
-> I quickly tested tesed these changes in Nokia hw, there should be ess=
-entially
-> no functional changes.
->
-> Cheers.
->
-> Felipe Contreras (10):
-> =C2=A0dsp-bridge: deh: remove obvious comments
-> =C2=A0dsp-bridge: deh: trivial cleanups
-> =C2=A0dsp-bridge: deh: remove unnecessary casts
-> =C2=A0dsp-bridge: deh: improve logging stuff
-> =C2=A0dsp-bridge: deh: report mmu faults as errors
-> =C2=A0dsp-bridge: deh: decrease nesting levels
-> =C2=A0dsp-bridge: deh: fix obvious return codes
-> =C2=A0dsp-bridge: deh: reorganize create()
-> =C2=A0dsp-bridge: deh: fix hdeh_mgr silliness
-> =C2=A0dsp-bridge: deh: fix dummy_va_addr
->
-> =C2=A0arch/arm/plat-omap/include/dspbridge/wmddeh.h | =C2=A0 24 +-
-> =C2=A0drivers/dsp/bridge/wmd/ue_deh.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 | =C2=A0392 +++++++++++--------------
-> =C2=A02 files changed, 191 insertions(+), 225 deletions(-)
+Hi,
 
-I guess these patches don't apply any more. Shall I rebase them? If so.=
-=2E. where?
+On Mon, 2010-04-12 at 13:50 +0200, ext hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Cheers.
+What tree is this patch based on? It doesn't apply:
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applying: OMAP: OMAP3EVM: Add LCD Backlight brightness hookup function
+fatal: sha1 information is lacking or useless (arch/arm/mach-omap2/board-omap3evm.c).
+Repository lacks necessary blobs to fall back on 3-way merge.
+Cannot fall back to three-way merge.
+
+ Tomi
+
+> ---
+>  arch/arm/mach-omap2/board-omap3evm.c |   34 ++++++++++++++++++++++++++++++++++
+>  1 files changed, 34 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+> index f2a52c3..1d1956f 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -253,6 +253,38 @@ static void omap3_evm_disable_lcd(struct omap_dss_device *dssdev)
+>  	lcd_enabled = 0;
+>  }
+> 
+> +/*
+> + * PWMA/B register offsets (TWL4030_MODULE_PWMA)
+> + */
+> +#define TWL_LED_EN	0x0
+> +#define TWL_LED_PWMON	0x0
+> +#define TWL_LED_PWMOFF	0x1
+> +
+> +static int omap3evm_set_bl_intensity(struct omap_dss_device *dssdev, int level)
+> +{
+> +	unsigned char c;
+> +
+> +	if (level > 100)
+> +		return -EINVAL;
+> +	/*
+> +	 * Enable LEDA for backlight
+> +	 */
+> +	twl_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_EN);
+> +
+> +	c = ((125 * (100 - level)) / 100);
+> +	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
+> +		c += 1;
+> +		twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x7F, TWL_LED_PWMOFF);
+> +		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_LED_PWMON);
+> +	} else {
+> +		c += 2;
+> +		twl_i2c_write_u8(TWL4030_MODULE_PWMA, 0x1, TWL_LED_PWMON);
+> +		twl_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_LED_PWMOFF);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static struct omap_dss_device omap3_evm_lcd_device = {
+>  	.name			= "lcd",
+>  	.driver_name		= "sharp_ls_panel",
+> @@ -260,6 +292,8 @@ static struct omap_dss_device omap3_evm_lcd_device = {
+>  	.phy.dpi.data_lines	= 18,
+>  	.platform_enable	= omap3_evm_enable_lcd,
+>  	.platform_disable	= omap3_evm_disable_lcd,
+> +	.max_backlight_level	= 100,
+> +	.set_backlight		= omap3evm_set_bl_intensity,
+>  };
+> 
+>  static int omap3_evm_enable_tv(struct omap_dss_device *dssdev)
+> --
+> 1.6.2.4
+> 
+
+
