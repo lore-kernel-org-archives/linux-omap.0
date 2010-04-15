@@ -1,139 +1,105 @@
-From: hvaibhav@ti.com
-Subject: [PATCH-RESEND 1/2] OMAP: LCD LS037V7DW01: Add Backlight driver support
-Date: Thu, 15 Apr 2010 19:30:00 +0530
-Message-ID: <1271340001-19831-1-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCHv3 0/5] OMAP: RX51: Add LCD Panel Support for N900
+Date: Thu, 15 Apr 2010 17:00:31 +0300
+Message-ID: <q2g6ed0b2681004150700td93683uf0944408ef2b7bc4@mail.gmail.com>
+References: <1271333181-23609-1-git-send-email-roger.quadros@nokia.com>
+	 <4BC701D1.5080108@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46434 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753785Ab0DOOAP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Apr 2010 10:00:15 -0400
-In-Reply-To: <hvaibhav@ti.com>
+Received: from mail-bw0-f225.google.com ([209.85.218.225]:50242 "EHLO
+	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753785Ab0DOOAe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 10:00:34 -0400
+In-Reply-To: <4BC701D1.5080108@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Roger Quadros <roger.quadros@nokia.com>
+Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Something's strange with Tomi's mail path I guess, I always send
+patches with git send-email and he still received some of them (but
+not all) mangled.
 
-Tested on OMAP3EVM for OMAP3530 and AM/DM 3730.
-
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   77 ++++++++++++++++++++
- 1 files changed, 77 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-index 8d51a5e..d84feb0 100644
---- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-+++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-@@ -20,10 +20,16 @@
- #include <linux/module.h>
- #include <linux/delay.h>
- #include <linux/device.h>
-+#include <linux/backlight.h>
-+#include <linux/fb.h>
- #include <linux/err.h>
-
- #include <plat/display.h>
-
-+struct sharp_data {
-+	struct backlight_device *bl;
-+};
-+
- static struct omap_video_timings sharp_ls_timings = {
- 	.x_res = 480,
- 	.y_res = 640,
-@@ -39,18 +45,89 @@ static struct omap_video_timings sharp_ls_timings = {
- 	.vbp		= 1,
- };
-
-+static int sharp_ls_bl_update_status(struct backlight_device *bl)
-+{
-+	struct omap_dss_device *dssdev = dev_get_drvdata(&bl->dev);
-+	int level;
-+
-+	if (!dssdev->set_backlight)
-+		return -EINVAL;
-+
-+	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
-+			bl->props.power == FB_BLANK_UNBLANK)
-+		level = bl->props.brightness;
-+	else
-+		level = 0;
-+
-+	return dssdev->set_backlight(dssdev, level);
-+}
-+
-+static int sharp_ls_bl_get_brightness(struct backlight_device *bl)
-+{
-+	if (bl->props.fb_blank == FB_BLANK_UNBLANK &&
-+			bl->props.power == FB_BLANK_UNBLANK)
-+		return bl->props.brightness;
-+
-+	return 0;
-+}
-+
-+static const struct backlight_ops sharp_ls_bl_ops = {
-+	.get_brightness = sharp_ls_bl_get_brightness,
-+	.update_status  = sharp_ls_bl_update_status,
-+};
-+
-+
-+
- static int sharp_ls_panel_probe(struct omap_dss_device *dssdev)
- {
-+	struct backlight_properties props;
-+	struct backlight_device *bl;
-+	struct sharp_data *sd;
-+	int r;
-+
- 	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
- 		OMAP_DSS_LCD_IHS;
- 	dssdev->panel.acb = 0x28;
- 	dssdev->panel.timings = sharp_ls_timings;
-
-+	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
-+	if (!sd)
-+		return -ENOMEM;
-+
-+	dev_set_drvdata(&dssdev->dev, sd);
-+
-+	memset(&props, 0, sizeof(struct backlight_properties));
-+	props.max_brightness = dssdev->max_backlight_level;
-+
-+	bl = backlight_device_register("sharp-ls", &dssdev->dev, dssdev,
-+			&sharp_ls_bl_ops, &props);
-+	if (IS_ERR(bl)) {
-+		r = PTR_ERR(bl);
-+		kfree(sd);
-+		return r;
-+	}
-+	sd->bl = bl;
-+
-+	bl->props.fb_blank = FB_BLANK_UNBLANK;
-+	bl->props.power = FB_BLANK_UNBLANK;
-+	bl->props.brightness = dssdev->max_backlight_level;
-+	r = sharp_ls_bl_update_status(bl);
-+	if (r < 0)
-+		dev_err(&dssdev->dev, "failed to set lcd brightness\n");
-+
- 	return 0;
- }
-
- static void sharp_ls_panel_remove(struct omap_dss_device *dssdev)
- {
-+	struct sharp_data *sd = dev_get_drvdata(&dssdev->dev);
-+	struct backlight_device *bl = sd->bl;
-+
-+	bl->props.power = FB_BLANK_POWERDOWN;
-+	sharp_ls_bl_update_status(bl);
-+	backlight_device_unregister(bl);
-+
-+	kfree(sd);
- }
-
- static int sharp_ls_power_on(struct omap_dss_device *dssdev)
+On Thu, Apr 15, 2010 at 3:08 PM, Roger Quadros <roger.quadros@nokia.com=
+> wrote:
+> Tarball attached in case checkpatch complains.
+>
+> -roger
+>
+> Quadros Roger (Nokia-D/Helsinki) wrote:
+>>
+>> Tomi,
+>>
+>> Resending the patchset.
+>>
+>> Checkpatch was not complaining at my end. Probably the mail server i=
+s
+>> mangling the patches. I will send a tarball separately.
+>>
+>> The only change in this version is that i've put the Video memory
+>> initialization code in the board file.
+>>
+>> The TSC2005 stuff is still thereas without it panel is not detected.
+>> The merge conflict with TSC2005 patches if happens is very trivial t=
+o
+>> resolve.
+>>
+>>
+>> regards,
+>> -roger
+>>
+>> These patches get the N900 LCD panel working.
+>> Applys cleanly on 2.6.34-rc3
+>>
+>> Changes since v2:
+>> -Added Video mem init in board file
+>> Changes since v1:
+>> -Added Backlight control
+>>
+>> Pre-requisites:
+>> https://patchwork.kernel.org/patch/86318/
+>> https://patchwork.kernel.org/patch/86319/
+>> https://patchwork.kernel.org/patch/86320/
+>>
+>> ---
+>> Roger Quadros (5):
+>> =A0OMAP: RX51: Add LCD Panel support
+>> =A0OMAP: RX51: Add "vdds_sdi" supply voltage for SDI
+>> =A0OMAP: RX51: Add Touch Controller in SPI board info
+>> =A0OMAP: DSS2: Add ACX565AKM Panel Driver
+>> =A0OMAP: RX51: Update board defconfig
+>>
+>> =A0arch/arm/configs/rx51_defconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 39 ++-
+>> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+| =A0 =A01 +
+>> =A0arch/arm/mach-omap2/board-rx51-peripherals.c =A0 | =A0 43 ++
+>> =A0arch/arm/mach-omap2/board-rx51-video.c =A0 =A0 =A0 =A0 | =A0107 +=
+++
+>> =A0arch/arm/mach-omap2/board-rx51.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ =A02 +
+>> =A0drivers/video/omap2/displays/Kconfig =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
+6 +
+>> =A0drivers/video/omap2/displays/Makefile =A0 =A0 =A0 =A0 =A0| =A0 =A0=
+1 +
+>> =A0drivers/video/omap2/displays/panel-acx565akm.c | =A0819
+>> ++++++++++++++++++++++++
+>> =A08 files changed, 1017 insertions(+), 1 deletions(-)
+>> =A0create mode 100644 arch/arm/mach-omap2/board-rx51-video.c
+>> =A0create mode 100644 drivers/video/omap2/displays/panel-acx565akm.c
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-fbde=
+v" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
 --
-1.6.2.4
-
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
