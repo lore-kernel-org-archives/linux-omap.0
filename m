@@ -1,83 +1,45 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCHv2 0/5] OMAP: RX51: Add LCD Panel Support for N900
-Date: Thu, 15 Apr 2010 13:04:01 +0300
-Message-ID: <4BC6E491.2020308@nokia.com>
-References: <1270729267-27553-1-git-send-email-roger.quadros@nokia.com> <1271325104.2690.232.camel@tubuntu.research.nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: DSS2 RFBI
+Date: Thu, 15 Apr 2010 13:12:50 +0300
+Message-ID: <1271326370.2690.237.camel@tubuntu.research.nokia.com>
+References: <p2q48239d391004150300m2466b6aek7ea56635a106b5d2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:48788 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959Ab0DOKE2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 06:04:28 -0400
-In-Reply-To: <1271325104.2690.232.camel@tubuntu.research.nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:33156 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751759Ab0DOKND (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 06:13:03 -0400
+In-Reply-To: <p2q48239d391004150300m2466b6aek7ea56635a106b5d2@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: ext Sergey Lapin <slapinid@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi,
 
-Valkeinen Tomi (Nokia-D/Helsinki) wrote:
-> Hi,
+On Thu, 2010-04-15 at 12:00 +0200, ext Sergey Lapin wrote:
+> Dear Tomi,
 > 
-> On Thu, 2010-04-08 at 14:21 +0200, Quadros Roger (Nokia-D/Helsinki)
-> wrote:
->> Tomi,
->>
->> Please take these in your DSS branch if they are OK.
->> Tony is fine if you take the board stuff too.
-> 
-> checkpatch complained about using spaces for indenting. Can you check
-> the patches?
+> If you remember, some time ago you mentioned you have some hacky
+> examples on usage of RFBI driver
+> in DSS2 subsystem. Since I'm going to have major rework for my driver,
+> I'd like to port it to DSS2 and
+> eventually submit for merge. So, could you provide these patches for
+> everyone's sake?
 
-I did check before sending. Anyways I will recheck and resend.
+No, I don't remember =). But I was probably talking about the hack to
+get N800's display working. Unfortunately I don't have those hacks
+anywhere around, and they wouldn't even compile anymore.
 
-I also have some more fixes to the patchset
-1) setting default_bpp in panel driver to 16. with SDI it takes it as 24 by default.
-2) Add video memory allocation at board init.
+I did post the hacks long time ago, you can try googling them. Here's at
+least one:
 
-There seems to be a TSC2005 driver floating around. So I will remove the patch 
-which introduces TSC2005 SPI info in board-file from my patchset to avoid 
-possible merge conflicts in future.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg08394.html
 
-I will include these fixes in v3.
+However, I'm not sure how usable that is with the latest DSS2.
 
-cheers,
--roger
+ Tomi
 
->>
->> These patches get the N900 LCD panel working.
->> Apply's cleanly on 2.6.34-rc3
->>
->> Pre-requisites:
->> https://patchwork.kernel.org/patch/86318/
->> https://patchwork.kernel.org/patch/86319/
->> https://patchwork.kernel.org/patch/86320/
->>
->> Changes since v1:
->> -Added Backlight control
->>
->> ---
->> Roger Quadros (5):
->>   OMAP: RX51: Add LCD Panel support
->>   OMAP: RX51: Add "vdds_sdi" supply voltage for SDI
->>   OMAP: RX51: Add Touch Controller in SPI board info
->>   OMAP: DSS2: Add ACX565AKM Panel Driver
->>   OMAP: RX51: Update board defconfig
->>
->>  arch/arm/configs/rx51_defconfig                |   39 ++-
->>  arch/arm/mach-omap2/Makefile                   |    1 +
->>  arch/arm/mach-omap2/board-rx51-peripherals.c   |   43 ++
->>  arch/arm/mach-omap2/board-rx51-video.c         |   95 +++
->>  drivers/video/omap2/displays/Kconfig           |    6 +
->>  drivers/video/omap2/displays/Makefile          |    1 +
->>  drivers/video/omap2/displays/panel-acx565akm.c |  819 ++++++++++++++++++++++++
->>  7 files changed, 1003 insertions(+), 1 deletions(-)
->>  create mode 100644 arch/arm/mach-omap2/board-rx51-video.c
->>  create mode 100644 drivers/video/omap2/displays/panel-acx565akm.c
->>
-> 
-> 
 
