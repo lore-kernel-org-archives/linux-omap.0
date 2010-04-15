@@ -1,37 +1,50 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] OMAP: DSS2: TPO-TD03MTEA1: fix Kconfig dependency
-Date: Thu, 15 Apr 2010 17:59:03 +0300
-Message-ID: <1271343543-14348-1-git-send-email-notasas@gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 4/5(7)] input: serio: add support for Amstrad Delta
+ serial keyboard port
+Date: Thu, 15 Apr 2010 09:14:51 -0700
+Message-ID: <20100415161451.GA13966@core.coreip.homeip.net>
+References: <201004150419.05038.jkrzyszt@tis.icnet.pl>
+ <201004150431.06719.jkrzyszt@tis.icnet.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f225.google.com ([209.85.218.225]:37683 "EHLO
+Received: from mail-bw0-f225.google.com ([209.85.218.225]:40227 "EHLO
 	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753426Ab0DOO7E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 10:59:04 -0400
+	with ESMTP id S1752494Ab0DOQPB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Apr 2010 12:15:01 -0400
+Content-Disposition: inline
+In-Reply-To: <201004150431.06719.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, e3-hacking@earth.li
 
-This panel depends on SPI, not I2C.
+Hi Janusz,
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- drivers/video/omap2/displays/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Thu, Apr 15, 2010 at 04:31:03AM +0200, Janusz Krzysztofik wrote:
+> +
+> +config SERIO_AMS_DELTA
+> +	tristate "Amstrad Delta (E3) mailboard support"
+> +	depends on MACH_AMS_DELTA
+> +	default y
+> +	select AMS_DELTA_FIQ
+> +	select KEYBOARD_ATKBD
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index dfb57ee..a2faf8a 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -33,7 +33,7 @@ config PANEL_TOPPOLY_TDO35S
- 
- config PANEL_TPO_TD043MTEA1
-         tristate "TPO TD043MTEA1 LCD Panel"
--        depends on OMAP2_DSS && I2C
-+        depends on OMAP2_DSS && SPI
-         help
-           LCD Panel used in OMAP3 Pandora
- 
+I'd rather not select atkbd here since it is not required for this
+driver to work but simply adjust your defconfig.
+
+> +
+> +	if (!(machine_is_ams_delta()))
+> +		return -ENODEV;
+
+Extra parens.
+
+Otherwise:
+
+	Acked-by: Dmitry Torokhov <dtor@mail.ru>
+
+I assume it is going to be merged with the rest of your patches through
+a tree other than linux-input.
+
 -- 
-1.6.3.3
-
+Dmitry
