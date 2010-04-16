@@ -1,7 +1,7 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCHv3 07/22] OMAP3: PM: Smartreflex class related changes for smartreflex.c
-Date: Fri, 16 Apr 2010 14:33:02 +0530
-Message-ID: <1271408597-3066-8-git-send-email-thara@ti.com>
+Subject: [PATCHv3 08/22] OMAP3: PM: Adding smartreflex class 3 driver.
+Date: Fri, 16 Apr 2010 14:33:03 +0530
+Message-ID: <1271408597-3066-9-git-send-email-thara@ti.com>
 References: <1271408597-3066-1-git-send-email-thara@ti.com>
  <1271408597-3066-2-git-send-email-thara@ti.com>
  <1271408597-3066-3-git-send-email-thara@ti.com>
@@ -9,464 +9,172 @@ References: <1271408597-3066-1-git-send-email-thara@ti.com>
  <1271408597-3066-5-git-send-email-thara@ti.com>
  <1271408597-3066-6-git-send-email-thara@ti.com>
  <1271408597-3066-7-git-send-email-thara@ti.com>
+ <1271408597-3066-8-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36073 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55662 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756480Ab0DPJDa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756924Ab0DPJDa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 16 Apr 2010 05:03:30 -0400
-In-Reply-To: <1271408597-3066-7-git-send-email-thara@ti.com>
+In-Reply-To: <1271408597-3066-8-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-OMAP3 smartreflex modules are capable of two different classes
-of implementaion -
-	Class-2: Continuous Software Calibration
-	Class-3: Continuous Hardware Calibration.
-OMAP3 along with T2/Gaia supports the Class 3 implementaion.
-With a different PMIC it can support Class 2 implementaion also.
-
-The idea behind this patch is that smartreflex.c should be able
-to support both the classes of Smartreflex and the class specific
-details for smartreflex should stay out of this file in a separate
-class file.
-This patch introduces smartreflex class specific hooks in
-smartreflex.c. This patch only takes care of smartreflex enable
-disable hooks which differ between Class 2 and Class 3. There
-are some register setting changes between both the classes which
-will be taken care of in a later patch.
-This will form the base for adding class specific
-drivers in later patches.
+This patch adds smartreflex class 3 driver. This driver hooks
+up with the generic smartreflex driver smartreflex.c to abstract
+out class specific implementations out of the generic driver.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |  259 ++++++++++++++++++++----------------
- arch/arm/mach-omap2/smartreflex.h |   44 ++++++-
- 2 files changed, 181 insertions(+), 122 deletions(-)
+ arch/arm/mach-omap2/Makefile             |    1 +
+ arch/arm/mach-omap2/board-3430sdp.c      |    2 +
+ arch/arm/mach-omap2/smartreflex-class3.c |   48 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/smartreflex-class3.h |   18 +++++++++++
+ arch/arm/plat-omap/Kconfig               |   11 ++++++-
+ 5 files changed, 79 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class3.h
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 359f7ec..e307c8c 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -56,6 +56,7 @@ struct omap_sr {
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 62accd2..0f8c406 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -49,6 +49,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX)		+= sr_device.o smartreflex.o
++obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
  
- /* sr_list contains all the instances of smartreflex module */
- static LIST_HEAD(sr_list);
-+static struct omap_smartreflex_class_data *sr_class;
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+ AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index cda9eae..6221a45 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -50,6 +50,7 @@
+ #include "hsmmc.h"
+ #include "pm.h"
+ #include "omap3-opp.h"
++#include "smartreflex-class3.h"
  
- static inline void sr_write_reg(struct omap_sr *sr, unsigned offset, u32 value)
- {
-@@ -430,12 +431,84 @@ static int sr_reset_voltage(int srid)
- 	return 0;
+ #define SDP3430_TS_GPIO_IRQ_SDPV1	3
+ #define SDP3430_TS_GPIO_IRQ_SDPV2	2
+@@ -913,6 +914,7 @@ static void __init omap_3430sdp_init(void)
+ 	sdp3430_display_init();
+ 	enable_board_wakeup_source();
+ 	usb_ehci_init(&ehci_pdata);
++	sr_class3_init();
  }
  
--static int sr_enable(struct omap_sr *sr, unsigned long volt)
-+static void sr_start_vddautocomp(int srid)
-+{
-+	struct omap_sr *sr = _sr_lookup(srid);
-+
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
-+		return;
-+	}
-+
-+	if (!sr_class || !(sr_class->enable)) {
-+		pr_warning("smartreflex class driver not registered\n");
-+		return;
-+	}
-+
-+	if (sr->is_sr_reset == 1) {
-+		sr_clk_enable(sr);
-+		sr_configure(sr);
-+	}
-+
-+	sr->is_autocomp_active = 1;
-+	if (!sr_class->enable(srid)) {
-+		sr->is_autocomp_active = 0;
-+		if (sr->is_sr_reset == 1)
-+			sr_clk_disable(sr);
-+	}
-+}
-+
-+static void  sr_stop_vddautocomp(int srid)
-+{
-+	struct omap_sr *sr = _sr_lookup(srid);
-+
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
-+		return;
-+	}
-+
-+	if (!sr_class || !(sr_class->disable)) {
-+		pr_warning("smartreflex class driver not registered\n");
-+		return;
-+	}
-+
-+	if (sr->is_autocomp_active == 1) {
-+		sr_class->disable(srid);
-+		sr_clk_disable(sr);
-+		sr->is_autocomp_active = 0;
-+		/* Reset the volatage for current OPP */
-+		sr_reset_voltage(srid);
-+	}
-+}
-+
-+/* Public Functions */
-+
-+/**
-+ * sr_enable : Enables the smartreflex module.
-+ * @srid - The id of the sr module to be enabled.
-+ * @volt - The voltage at which the Voltage domain associated with
-+ * the smartreflex module is operating at. This is required only to program
-+ * the correct Ntarget value.
+ static void __init omap_3430sdp_map_io(void)
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+new file mode 100644
+index 0000000..1ac39bf
+--- /dev/null
++++ b/arch/arm/mach-omap2/smartreflex-class3.c
+@@ -0,0 +1,48 @@
++/*
++ * Smart reflex Class 3 specific implementations
 + *
-+ * This API is to be called from the smartreflex class driver to
-+ * enable a smartreflex module. Returns true on success.Returns false if the
-+ * target opp id passed is wrong or if ntarget value is wrong.
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Thara Gopinath <thara@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+int sr_enable(int srid, unsigned long volt)
- {
- 	u32 nvalue_reciprocal, v;
- 	struct omap_volt_data volt_data;
-+	struct omap_sr *sr = _sr_lookup(srid);
- 	char vsel;
- 
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
++
++#include "smartreflex.h"
++#include "smartreflex-class3.h"
++
++static int sr_class3_enable(int id)
++{
++	unsigned long volt = 0;
++
++	if (id == SR1)
++		volt = get_curr_vdd1_voltage();
++	else if (id == SR2)
++		volt = get_curr_vdd2_voltage();
++	if (!volt) {
++		pr_warning("Current voltage unknown.Cannot enable SR%d\n", id);
 +		return false;
 +	}
 +
- 	if (!sr_match_volt(sr, volt, &volt_data))
- 		return false;
- 
-@@ -498,10 +571,24 @@ static int sr_enable(struct omap_sr *sr, unsigned long volt)
- 	return true;
- }
- 
--static void sr_disable(struct omap_sr *sr)
-+/**
-+ * sr_disable : Disables the smartreflex module.
-+ * @srid - The id of the sr module to be disabled.
-+ *
-+ * This API is to be called from the smartreflex class driver to
-+ * disable a smartreflex module.
-+ */
-+void sr_disable(int srid)
- {
-+	struct omap_sr *sr = _sr_lookup(srid);
- 	u32 i = 0;
- 
-+	if (!sr) {
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+								srid);
-+		return;
-+	}
-+
- 	sr->is_sr_reset = 1;
- 
- 	/* SRCONFIG - disable SR */
-@@ -539,8 +626,17 @@ static void sr_disable(struct omap_sr *sr)
- 	}
- }
- 
--
--void sr_start_vddautocomp(int srid, unsigned long volt)
-+/**
-+ * omap_smartreflex_enable : API to enable SR clocks and to call into the
-+ * registered smartreflex class enable API.
-+ * @srid - The id of the sr module to be enabled.
-+ *
-+ * This API is to be called from the kernel in order to enable
-+ * a particular smartreflex module. This API will do the initial
-+ * configurations to turn on the smartreflex module and in turn call
-+ * into the registered smartreflex class enable API.
-+ */
-+void omap_smartreflex_enable(int srid)
- {
- 	struct omap_sr *sr = _sr_lookup(srid);
- 
-@@ -550,51 +646,8 @@ void sr_start_vddautocomp(int srid, unsigned long volt)
- 		return;
- 	}
- 
--	if (sr->is_sr_reset == 1) {
--		sr_clk_enable(sr);
--		sr_configure(sr);
--	}
--
--	sr->is_autocomp_active = 1;
--	if (!sr_enable(sr, volt)) {
--		sr->is_autocomp_active = 0;
--		if (sr->is_sr_reset == 1)
--			sr_clk_disable(sr);
--	}
--}
--EXPORT_SYMBOL(sr_start_vddautocomp);
--
--int sr_stop_vddautocomp(int srid)
--{
--	struct omap_sr *sr = _sr_lookup(srid);
--
--	if (!sr) {
--		pr_warning("omap_sr struct corresponding to SR%d not found\n",
--								srid);
--		return false;
--	}
--
--	if (sr->is_autocomp_active == 1) {
--		sr_disable(sr);
--		sr_clk_disable(sr);
--		sr->is_autocomp_active = 0;
--		/* Reset the volatage for current OPP */
--		sr_reset_voltage(srid);
--		return true;
--	} else
--		return false;
--
--}
--EXPORT_SYMBOL(sr_stop_vddautocomp);
--
--void omap_smartreflex_enable(int srid)
--{
--	unsigned long curr_volt = 0;
--	struct omap_sr *sr = _sr_lookup(srid);
--
--	if (!sr) {
--		pr_warning("omap_sr struct corresponding to SR%d not found\n",
--								srid);
-+	if (!sr_class || !(sr_class->enable)) {
-+		pr_warning("smartreflex class driver not registered\n");
- 		return;
- 	}
- 
-@@ -602,28 +655,24 @@ void omap_smartreflex_enable(int srid)
- 		if (sr->is_sr_reset == 1) {
- 			/* Enable SR clks */
- 			sr_clk_enable(sr);
--
--			if (srid == SR1)
--				curr_volt = get_curr_vdd1_voltage();
--			else if (srid == SR2)
--				curr_volt = get_curr_vdd2_voltage();
--
--			if (!curr_volt) {
--				pr_info("Current voltage unknown \
--						 Cannot configure SR\n");
--			}
--
- 			sr_configure(sr);
--
--			if (!sr_enable(sr, curr_volt))
-+			if (!sr_class->enable(srid))
- 				sr_clk_disable(sr);
- 		}
- 	}
- }
- 
-+/**
-+ * omap_smartreflex_disable : API to disable SR clocks and to call into the
-+ * registered smartreflex class disable API.
-+ * @srid - The id of the sr module to be disabled.
-+ *
-+ * This API is to be called from the kernel in order to disable
-+ * a particular smartreflex module. This API will in turn call
-+ * into the registered smartreflex class disable API.
-+ */
- void omap_smartreflex_disable(int srid)
- {
--	u32 i = 0;
- 	struct omap_sr *sr = _sr_lookup(srid);
- 
- 	if (!sr) {
-@@ -632,53 +681,43 @@ void omap_smartreflex_disable(int srid)
- 		return;
- 	}
- 
-+	if (!sr_class || !(sr_class->disable)) {
-+		pr_warning("smartreflex class driver not registered\n");
-+		return;
-+	}
-+
- 	if (sr->is_autocomp_active == 1) {
- 		if (sr->is_sr_reset == 0) {
--
--			sr->is_sr_reset = 1;
--			/* SRCONFIG - disable SR */
--			sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE,
--							~SRCONFIG_SRENABLE);
--
-+			sr_class->disable(srid);
- 			/* Disable SR clk */
- 			sr_clk_disable(sr);
--			if (sr->srid == SR1) {
--				/* Wait for VP idle before disabling VP */
--				while ((!prm_read_mod_reg(OMAP3430_GR_MOD,
--						OMAP3_PRM_VP1_STATUS_OFFSET))
--						&& i++ < MAX_TRIES)
--					udelay(1);
--
--				if (i >= MAX_TRIES)
--					pr_warning("VP1 not idle, still going \
--						ahead with VP1 disable\n");
--
--				/* Disable VP1 */
--				prm_clear_mod_reg_bits(PRM_VP1_CONFIG_VPENABLE,
--						OMAP3430_GR_MOD,
--						OMAP3_PRM_VP1_CONFIG_OFFSET);
--			} else if (sr->srid == SR2) {
--				/* Wait for VP idle before disabling VP */
--				while ((!prm_read_mod_reg(OMAP3430_GR_MOD,
--						OMAP3_PRM_VP2_STATUS_OFFSET))
--						&& i++ < MAX_TRIES)
--					udelay(1);
--
--				if (i >= MAX_TRIES)
--					pr_warning("VP2 not idle, still going \
--						 ahead with VP2 disable\n");
--
--				/* Disable VP2 */
--				prm_clear_mod_reg_bits(PRM_VP2_CONFIG_VPENABLE,
--						OMAP3430_GR_MOD,
--						OMAP3_PRM_VP2_CONFIG_OFFSET);
--			}
- 			/* Reset the volatage for current OPP */
- 			sr_reset_voltage(srid);
- 		}
- 	}
- }
- 
-+/**
-+ * omap_sr_register_class : API to register a smartreflex class parameters.
-+ * @class_data - The structure containing various sr class specific data.
-+ *
-+ * This API is to be called by the smartreflex class driver to register itself
-+ * with the smartreflex driver during init.
-+ */
-+void omap_sr_register_class(struct omap_smartreflex_class_data *class_data)
-+{
-+	if (!class_data) {
-+		pr_warning("Smartreflex class data passed is NULL\n");
-+		return;
-+	}
-+
-+	if (sr_class) {
-+		pr_warning("Smartreflex class driver already registered\n");
-+		return;
-+	}
-+	sr_class = class_data;
++	return sr_enable(id, volt);
 +}
 +
- /* Voltage Scaling using SR VCBYPASS */
- int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
- 					u8 target_vsel, u8 current_vsel)
-@@ -750,13 +789,10 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
- 	udelay(t2_smps_delay);
- 
- 	if (sr_status) {
--		unsigned long volt;
--
--		volt = (target_vsel * 12500) + 600000;
- 		if (vdd == VDD1_OPP)
--			sr_start_vddautocomp(SR1, volt);
-+			sr_start_vddautocomp(SR1);
- 		else if (vdd == VDD2_OPP)
--			sr_start_vddautocomp(SR2, volt);
-+			sr_start_vddautocomp(SR2);
- 	}
- 
- 	return 0;
-@@ -786,17 +822,10 @@ static int omap_sr_autocomp_store(void *data, u64 val)
- 							sr_info->srid);
- 		return 0;
- 	}
--	if (val == 0) {
-+	if (val == 0)
- 		sr_stop_vddautocomp(sr_info->srid);
--	} else {
--		unsigned long curr_volt;
--
--		if (sr_info->srid == SR1)
--			curr_volt = get_curr_vdd1_voltage();
--		else
--			curr_volt = get_curr_vdd2_voltage();
--		sr_start_vddautocomp(sr_info->srid, curr_volt);
--	}
-+	else
-+		sr_start_vddautocomp(sr_info->srid);
- 	return 0;
- }
- 
-diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 12c7ce0..8863c3b 100644
---- a/arch/arm/mach-omap2/smartreflex.h
-+++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -285,13 +285,28 @@ struct omap_smartreflex_dev_data {
- 	u32 *test_nvalues;
- };
- 
--/*
-- * Smartreflex module enable/disable interface.
-- * NOTE: if smartreflex is not enabled from sysfs, these functions will not
-- * do anything.
-- */
- #ifdef CONFIG_OMAP_SMARTREFLEX
- /**
-+ * omap_smartreflex_class_data : Structure to be populated by
-+ * Smartreflex class driver with corresponding class enable disable API's
-+ *
-+ * @enable - API to enable a particular class smaartreflex.
-+ * @disable - API to disable a particular class smartreflex.
-+ * @notify - API to notify the class driver about an event in SR. Not needed
-+ *		for class3.
-+ * @notify_flags - specify the events to be notified to the class driver
-+ * @class_type - specify which smartreflex class. Can be used by the SR driver
-+ *		to take any class based decisions.
-+ */
-+struct omap_smartreflex_class_data {
-+	int (*enable)(int sr_id);
-+	int (*disable)(int sr_id);
-+	int (*notify)(int sr_id, u32 status);
-+	u8 notify_flags;
-+	u8 class_type;
++static int sr_class3_disable(int id)
++{
++	sr_disable(id);
++
++	return true;
++}
++
++/* SR class3 structure */
++struct omap_smartreflex_class_data class3_data = {
++	.enable = sr_class3_enable,
++	.disable = sr_class3_disable,
 +};
 +
-+/**
-  * omap_smartreflex_data - Smartreflex platform data
-  *
-  * @senp_mod		: SENPENABLE value for the sr
-@@ -315,11 +330,26 @@ struct omap_smartreflex_data {
- 	int (*device_idle)(struct platform_device *pdev);
- };
++int __init sr_class3_init(void)
++{
++	omap_sr_register_class(&class3_data);
++	return 0;
++}
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.h b/arch/arm/mach-omap2/smartreflex-class3.h
+new file mode 100644
+index 0000000..6cd4d11
+--- /dev/null
++++ b/arch/arm/mach-omap2/smartreflex-class3.h
+@@ -0,0 +1,18 @@
++/*
++ * Smartreflex Class 3 Routines
++ *
++ * Author: Thara Gopinath      <thara@ti.com>
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Thara Gopinath <thara@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifdef CONFIG_OMAP_SMARTREFLEX_CLASS3
++int sr_class3_init(void);
++#else
++static int sr_class3_init(void) {}
++#endif
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 232fd9e..785b7e6 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -55,7 +55,7 @@ config OMAP_DEBUG_LEDS
  
-+/*
-+ * Smartreflex module enable/disable interface.
-+ * NOTE: if smartreflex is not enabled from sysfs, these functions will not
-+ * do anything.
-+ */
- void omap_smartreflex_enable(int srid);
- void omap_smartreflex_disable(int srid);
+ config OMAP_SMARTREFLEX
+ 	bool "SmartReflex support"
+-	depends on ARCH_OMAP3 && TWL4030_CORE && PM
++	depends on ARCH_OMAP3 && PM
+ 	help
+ 	  Say Y if you want to enable SmartReflex.
+ 
+@@ -70,6 +70,15 @@ config OMAP_SMARTREFLEX
+ 	  compensation for VDD1 and VDD2, user must write 1 to
+ 	  /sys/power/sr_vddX_autocomp, where X is 1 or 2.
+ 
++config OMAP_SMARTREFLEX_CLASS3
++	bool "Class 3 mode of Smartreflex Implementation"
++	depends on OMAP_SMARTREFLEX && TWL4030_CORE
++	help
++	  Say Y to enable Class 3 implementation of Smartreflex
 +
-+/*
-+ * Smartreflex driver hooks to be called from Smartreflex class driver
-+ */
-+int sr_enable(int srid, unsigned long volt);
-+void sr_disable(int srid);
++	  Class 3 implementation of Smartreflex employs continuous hardware
++	  voltage caliberation.
 +
-+/*
-+ * API to register the smartreflex class driver with the smartreflex driver
-+ */
-+void omap_sr_register_class(struct omap_smartreflex_class_data *class_data);
-+
- int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8 c_vsel);
--void sr_start_vddautocomp(int srid, unsigned long volt);
--int sr_stop_vddautocomp(int srid);
- #else
- static inline void omap_smartreflex_enable(int srid) {}
- static inline void omap_smartreflex_disable(int srid) {}
+ config OMAP_SMARTREFLEX_TESTING
+ 	bool "Smartreflex testing support"
+ 	depends on OMAP_SMARTREFLEX
 -- 
 1.7.0.rc1.33.g07cf0f
 
