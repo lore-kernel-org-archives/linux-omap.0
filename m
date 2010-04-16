@@ -1,38 +1,43 @@
-From: "Andrew Tverdohlebov" <fat031c@gmail.com>
-Subject: Re: gpio irq on Beagleboard
-Date: Fri, 16 Apr 2010 15:59:19 +1100
-Message-ID: <8A909C07C62544C9924984F81D5F4FBA@rhonda.vtc.ru>
-References: <38B49E6266DD4380903FF7A5E6162A5D@rhonda.vtc.ru>
+From: Viral Mehta <viral.vkm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] Switch to subsys_initcall
+Date: Fri, 16 Apr 2010 10:31:04 +0530
+Message-ID: <z2g94efb1e51004152201i9b85a41awe00188b8731e855e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="koi8-r";
-	reply-type=response
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:56878 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899Ab0DPE7Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 00:59:24 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so66399fga.1
-        for <linux-omap@vger.kernel.org>; Thu, 15 Apr 2010 21:59:23 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Dear linux-omap community,
+From: Viral Mehta <viral.mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
 
-I am writing a simple driver for BeagleBoard
-and trying to get an understanding of how interrupts work.
- 
-Could you please answer a small question. What is a difference between irq 
- and virtual_irq_start in structure gpio_bank in file 
- arch/arm/plat-omap/gpio.c
- As far as I understood irq corresponds to real hardware interrupts while 
- virtual_irq_start is completely obscure for me.
- I didn't find a clue in the documentation.
- 
- 
- Any tiny help will be hugely appreciated.
-Andrew 
- 
+isp1301 transceiver driver init should be done before we do ohci omap init
+
+Signed-off-by: Viral Mehta <viral.mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
+---
+V2: no change but sending again as v2 to be in sync with
+other 3 patches sent as v2 for omap2430 fsusb fixes.
+
+ drivers/usb/otg/isp1301_omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/otg/isp1301_omap.c b/drivers/usb/otg/isp1301_omap.c
+index 78a2097..4569694 100644
+--- a/drivers/usb/otg/isp1301_omap.c
++++ b/drivers/usb/otg/isp1301_omap.c
+@@ -1654,7 +1654,7 @@ static int __init isp_init(void)
+ {
+ 	return i2c_add_driver(&isp1301_driver);
+ }
+-module_init(isp_init);
++subsys_initcall(isp_init);
+
+ static void __exit isp_exit(void)
+ {
+-- 
+1.6.6
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
