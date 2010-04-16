@@ -1,262 +1,50 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-Date: Fri, 16 Apr 2010 16:27:54 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E1371C6@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	 <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
- <1271410679.2690.290.camel@tubuntu.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sukumar Ghorai <s-ghorai@ti.com>
+Subject: [PATCH 0/6] nand prefetch-irq support and ecc layout chanage
+Date: Fri, 16 Apr 2010 17:02:28 +0530
+Message-ID: <1271417548-4346-1-git-send-email-s-ghorai@ti.com>
+References: <Sukumar Ghorai <s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45309 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757219Ab0DPK6C convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 06:58:02 -0400
-In-Reply-To: <1271410679.2690.290.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:33678 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756720Ab0DPLcp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Apr 2010 07:32:45 -0400
+In-Reply-To: <Sukumar Ghorai <s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-mtd@lists.infradead.org
+Cc: sbranden@broadcom.com, leochen@broadcom.com, David.Woodhouse@intel.com, linux-omap@vger.kernel.org, tony@atomide.com, vimal.newwork@gmail.com, Sukumar Ghorai <s-ghorai@ti.com>
 
+   The main motivations behind this patch series are -
+	1. support NAND I/O in irq mode.
+	2. support of different ECC schema. 
+	3. also to make ecc layout as like in romcode ecc layout
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Friday, April 16, 2010 3:08 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-> 
-> On Mon, 2010-03-22 at 14:09 +0100, ext hvaibhav@ti.com wrote:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > In case of 720P with 90/270 degree rotation, the system reports
-> > GFX_FIFO_UNDERFLOW error which usually happens if DSS DMA is not able to
-> fill
-> > the FIFO as per requirement.
-> >
-> > In TRM (section 11.2.6.1.3), where is has been clearly mentioned that,
-> >
-> > "To improve the performance on 90 degree rotation, split the data access
-> on
-> > write side and not read side."
-> >
-> > That means, read should always happen on 0 degree and write should go to
-> > respective rotation view.
-> >
-> 
-> With this patch my db test app (from
-> git://gitorious.org/linux-omap-dss2/omapfb-tests.git) shows a lot of
-> tearing when rotation != 0. I tested this on 3430SDP using the LCD.
-> 
-[Hiremath, Vaibhav] I had tested it with the sample application which draws color bars to the frame-buffer, let me once again check with your (omapfb-test) application.
+   The following set of patches applies on top of the master branch. And
+   is dependent on the following patches not yet applied onto this branch.
+	https://patchwork.kernel.org/patch/92220/
+	https://patchwork.kernel.org/patch/92232/
+	https://patchwork.kernel.org/patch/92221/
+	https://patchwork.kernel.org/patch/92230/
+	https://patchwork.kernel.org/patch/92224/
+	https://patchwork.kernel.org/patch/92222/
+	https://patchwork.kernel.org/patch/92223/
+	https://patchwork.kernel.org/patch/92229/
 
-Tomi,
-I am going out of station so will be able to do this on Tuesday. 
+Sukumar Ghorai (6):
+	omap: NAND: Making ecc layout as compatible with romcode ecc 
+	omap: NAND: ecc layout select from board file 
+	omap-3630 NAND: enable NAND io in prefetch-irq mode 
+	OMAP NAND: configurable fifo threshold to gain the throughput
+	omap3: NAND Prefetch in IRQ mode support
+	omap3: GPMC register definition at common location
 
-Thanks,
-Vaibhav
-
->  Tomi
-> 
-> 
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  drivers/video/omap2/omapfb/omapfb-main.c |   85 +++++++++++++++++++------
-> ----
-> >  1 files changed, 56 insertions(+), 29 deletions(-)
-> >
-> > diff --git a/drivers/video/omap2/omapfb/omapfb-main.c
-> b/drivers/video/omap2/omapfb/omapfb-main.c
-> > index 4a76917..fea6b08 100644
-> > --- a/drivers/video/omap2/omapfb/omapfb-main.c
-> > +++ b/drivers/video/omap2/omapfb/omapfb-main.c
-> > @@ -184,6 +184,11 @@ static unsigned omapfb_get_vrfb_offset(const struct
-> omapfb_info *ofbi, int rot)
-> >  static u32 omapfb_get_region_rot_paddr(const struct omapfb_info *ofbi,
-> int rot)
-> >  {
-> >  	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB) {
-> > +		if (rot == FB_ROTATE_CW)
-> > +			rot = FB_ROTATE_CCW;
-> > +		else if (rot == FB_ROTATE_CCW)
-> > +			rot = FB_ROTATE_CW;
-> > +
-> >  		return ofbi->region.vrfb.paddr[rot]
-> >  			+ omapfb_get_vrfb_offset(ofbi, rot);
-> >  	} else {
-> > @@ -191,20 +196,32 @@ static u32 omapfb_get_region_rot_paddr(const struct
-> omapfb_info *ofbi, int rot)
-> >  	}
-> >  }
-> >
-> > -static u32 omapfb_get_region_paddr(const struct omapfb_info *ofbi)
-> > +static u32 omapfb_get_region_paddr(struct omapfb_info *ofbi, int rot)
-> >  {
-> > -	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
-> > -		return ofbi->region.vrfb.paddr[0];
-> > -	else
-> > +	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB) {
-> > +		if (rot == FB_ROTATE_CW)
-> > +			rot = FB_ROTATE_CCW;
-> > +		else if (rot == FB_ROTATE_CCW)
-> > +			rot = FB_ROTATE_CW;
-> > +
-> > +		return ofbi->region.vrfb.paddr[rot];
-> > +	} else {
-> >  		return ofbi->region.paddr;
-> > +	}
-> >  }
-> >
-> > -static void __iomem *omapfb_get_region_vaddr(const struct omapfb_info
-> *ofbi)
-> > +static void __iomem *omapfb_get_region_vaddr(struct omapfb_info *ofbi,
-> int rot)
-> >  {
-> > -	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
-> > -		return ofbi->region.vrfb.vaddr[0];
-> > -	else
-> > +	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB) {
-> > +		if (rot == FB_ROTATE_CW)
-> > +			rot = FB_ROTATE_CCW;
-> > +		else if (rot == FB_ROTATE_CCW)
-> > +			rot = FB_ROTATE_CW;
-> > +
-> > +		return ofbi->region.vrfb.vaddr[rot];
-> > +	} else {
-> >  		return ofbi->region.vaddr;
-> > +	}
-> >  }
-> >
-> >  static struct omapfb_colormode omapfb_colormodes[] = {
-> > @@ -503,7 +520,7 @@ static int setup_vrfb_rotation(struct fb_info *fbi)
-> >  	unsigned bytespp;
-> >  	bool yuv_mode;
-> >  	enum omap_color_mode mode;
-> > -	int r;
-> > +	int r, rotation = var->rotate;
-> >  	bool reconf;
-> >
-> >  	if (!rg->size || ofbi->rotation_type != OMAP_DSS_ROT_VRFB)
-> > @@ -511,6 +528,11 @@ static int setup_vrfb_rotation(struct fb_info *fbi)
-> >
-> >  	DBG("setup_vrfb_rotation\n");
-> >
-> > +	if (rotation == FB_ROTATE_CW)
-> > +		rotation = FB_ROTATE_CCW;
-> > +	else if (rotation == FB_ROTATE_CCW)
-> > +		rotation = FB_ROTATE_CW;
-> > +
-> >  	r = fb_mode_to_dss_mode(var, &mode);
-> >  	if (r)
-> >  		return r;
-> > @@ -534,32 +556,35 @@ static int setup_vrfb_rotation(struct fb_info *fbi)
-> >  			vrfb->yres != var->yres_virtual)
-> >  		reconf = true;
-> >
-> > -	if (vrfb->vaddr[0] && reconf) {
-> > +	if (vrfb->vaddr[rotation] && reconf) {
-> >  		fbi->screen_base = NULL;
-> >  		fix->smem_start = 0;
-> >  		fix->smem_len = 0;
-> > -		iounmap(vrfb->vaddr[0]);
-> > -		vrfb->vaddr[0] = NULL;
-> > +		iounmap(vrfb->vaddr[rotation]);
-> > +		vrfb->vaddr[rotation] = NULL;
-> >  		DBG("setup_vrfb_rotation: reset fb\n");
-> >  	}
-> >
-> > -	if (vrfb->vaddr[0])
-> > +	if (vrfb->vaddr[rotation])
-> >  		return 0;
-> >
-> > -	omap_vrfb_setup(&rg->vrfb, rg->paddr,
-> > -			var->xres_virtual,
-> > -			var->yres_virtual,
-> > -			bytespp, yuv_mode);
-> > +	if (rotation == FB_ROTATE_CW || rotation == FB_ROTATE_CCW)
-> > +		omap_vrfb_setup(&rg->vrfb, rg->paddr,
-> > +				var->yres_virtual, var->xres_virtual,
-> > +				bytespp, yuv_mode);
-> > +	else
-> > +		omap_vrfb_setup(&rg->vrfb, rg->paddr,
-> > +				var->xres_virtual, var->yres_virtual,
-> > +				bytespp, yuv_mode);
-> >
-> > -	/* Now one can ioremap the 0 angle view */
-> > -	r = omap_vrfb_map_angle(vrfb, var->yres_virtual, 0);
-> > +	/* Now one can ioremap the rotation angle view */
-> > +	r = omap_vrfb_map_angle(vrfb, var->yres_virtual, rotation);
-> >  	if (r)
-> >  		return r;
-> > -
-> >  	/* used by open/write in fbmem.c */
-> > -	fbi->screen_base = ofbi->region.vrfb.vaddr[0];
-> > +	fbi->screen_base = ofbi->region.vrfb.vaddr[rotation];
-> >
-> > -	fix->smem_start = ofbi->region.vrfb.paddr[0];
-> > +	fix->smem_start = ofbi->region.vrfb.paddr[rotation];
-> >
-> >  	switch (var->nonstd) {
-> >  	case OMAPFB_COLOR_YUV422:
-> > @@ -603,7 +628,8 @@ void set_fb_fix(struct fb_info *fbi)
-> >  	DBG("set_fb_fix\n");
-> >
-> >  	/* used by open/write in fbmem.c */
-> > -	fbi->screen_base = (char __iomem *)omapfb_get_region_vaddr(ofbi);
-> > +	fbi->screen_base = (char __iomem *)omapfb_get_region_vaddr(ofbi,
-> > +			var->rotate);
-> >
-> >  	/* used by mmap in fbmem.c */
-> >  	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB) {
-> > @@ -626,7 +652,7 @@ void set_fb_fix(struct fb_info *fbi)
-> >  		fix->smem_len = rg->size;
-> >  	}
-> >
-> > -	fix->smem_start = omapfb_get_region_paddr(ofbi);
-> > +	fix->smem_start = omapfb_get_region_paddr(ofbi, var->rotate);
-> >
-> >  	fix->type = FB_TYPE_PACKED_PIXELS;
-> >
-> > @@ -862,15 +888,15 @@ static int omapfb_setup_overlay(struct fb_info *fbi,
-> struct omap_overlay *ovl,
-> >
-> >
-> >  	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB) {
-> > -		data_start_p = omapfb_get_region_rot_paddr(ofbi, rotation);
-> > +		data_start_p = omapfb_get_region_rot_paddr(ofbi, 0);
-> >  		data_start_v = NULL;
-> >  	} else {
-> > -		data_start_p = omapfb_get_region_paddr(ofbi);
-> > -		data_start_v = omapfb_get_region_vaddr(ofbi);
-> > +		data_start_p = omapfb_get_region_paddr(ofbi, 0);
-> > +		data_start_v = omapfb_get_region_vaddr(ofbi, 0);
-> >  	}
-> >
-> >  	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
-> > -		offset = calc_rotation_offset_vrfb(var, fix, rotation);
-> > +		offset = calc_rotation_offset_vrfb(var, fix, 0);
-> >  	else
-> >  		offset = calc_rotation_offset_dma(var, fix, rotation);
-> >
-> > @@ -1078,6 +1104,7 @@ static struct vm_operations_struct mmap_user_ops = {
-> >  static int omapfb_mmap(struct fb_info *fbi, struct vm_area_struct *vma)
-> >  {
-> >  	struct omapfb_info *ofbi = FB2OFB(fbi);
-> > +	struct fb_var_screeninfo *var = &fbi->var;
-> >  	struct fb_fix_screeninfo *fix = &fbi->fix;
-> >  	unsigned long off;
-> >  	unsigned long start;
-> > @@ -1089,7 +1116,7 @@ static int omapfb_mmap(struct fb_info *fbi, struct
-> vm_area_struct *vma)
-> >  		return -EINVAL;
-> >  	off = vma->vm_pgoff << PAGE_SHIFT;
-> >
-> > -	start = omapfb_get_region_paddr(ofbi);
-> > +	start = omapfb_get_region_paddr(ofbi, var->rotate);
-> >  	len = fix->smem_len;
-> >  	if (off >= len)
-> >  		return -EINVAL;
-> 
-
+ arch/arm/configs/omap_3630sdp_defconfig |    1 +
+ arch/arm/configs/omap_zoom3_defconfig   |    1 +
+ arch/arm/mach-omap2/board-sdp-flash.c   |    2 +
+ arch/arm/mach-omap2/board-zoom-flash.c  |    2 +
+ arch/arm/mach-omap2/gpmc.c              |   47 +-----
+ arch/arm/plat-omap/include/plat/gpmc.h  |   41 ++++-
+ arch/arm/plat-omap/include/plat/nand.h  |    5 +
+ drivers/mtd/nand/Kconfig                |   14 ++-
+ drivers/mtd/nand/omap2.c                |  275 +++++++++++++++++++++++++++----
+ 9 files changed, 309 insertions(+), 79 deletions(-)
