@@ -1,248 +1,252 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCHv3 04/22] OMAP3: PM: Move smartreflex autocompensation enable disable hooks to PM debugfs.
-Date: Fri, 16 Apr 2010 14:32:59 +0530
-Message-ID: <1271408597-3066-5-git-send-email-thara@ti.com>
+Subject: [PATCHv3 01/22] OMAP3: PM: Adding hwmod data for Smartreflex
+Date: Fri, 16 Apr 2010 14:32:56 +0530
+Message-ID: <1271408597-3066-2-git-send-email-thara@ti.com>
 References: <1271408597-3066-1-git-send-email-thara@ti.com>
- <1271408597-3066-2-git-send-email-thara@ti.com>
- <1271408597-3066-3-git-send-email-thara@ti.com>
- <1271408597-3066-4-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55664 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55666 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756762Ab0DPJDa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756804Ab0DPJDa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 16 Apr 2010 05:03:30 -0400
-In-Reply-To: <1271408597-3066-4-git-send-email-thara@ti.com>
+In-Reply-To: <1271408597-3066-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch moves the hooks to enable disable smartreflex
-autocompensation to pm debugfs from the /sys/power/.
-
-To enable autocompensation for smartreflex SR<n> do
-        echo 1 > <path>/pm_debug/sr<n>_autocomp
-To disable autocompensation for smartreflex SR<n> do
-        echo 0 > <path>/pm_debug/sr<n>_autocomp
+This patch adds the hwmod strucutres and other hwmod data for
+OMAP3 Smartreflex IP's.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/pm-debug.c    |    4 +-
- arch/arm/mach-omap2/smartreflex.c |  114 ++++++++++--------------------------
- arch/arm/mach-omap2/smartreflex.h |    2 +
- 3 files changed, 36 insertions(+), 84 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  135 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/smartreflex.h          |   33 +++++++
+ 2 files changed, 168 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 8aafd71..ce46059 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -162,7 +162,7 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index ed60840..049e4e2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -17,10 +17,12 @@
+ #include <mach/irqs.h>
+ #include <plat/cpu.h>
+ #include <plat/dma.h>
++#include <plat/control.h>
  
- static void pm_dbg_regset_store(u32 *ptr);
+ #include "omap_hwmod_common_data.h"
  
--struct dentry *pm_dbg_dir;
-+struct dentry *pm_dbg_dir, *pm_dbg_main_dir;
- 
- static int pm_dbg_init_done;
- 
-@@ -613,7 +613,7 @@ static int __init pm_dbg_init(void)
- 					   S_IRUGO | S_IWUGO, d,
- 					   &voltage_off_while_idle,
- 					   &pm_dbg_option_fops);
--
-+	pm_dbg_main_dir = d;
- 	pm_dbg_init_done = 1;
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index b4e98e5..2f89d79 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -24,11 +24,11 @@
- #include <linux/delay.h>
- #include <linux/err.h>
- #include <linux/clk.h>
--#include <linux/sysfs.h>
- #include <linux/kobject.h>
- #include <linux/i2c/twl.h>
- #include <linux/io.h>
- #include <linux/list.h>
-+#include <linux/debugfs.h>
- 
- #include <plat/omap34xx.h>
- #include <plat/clock.h>
-@@ -42,6 +42,7 @@
  #include "prm-regbits-34xx.h"
++#include "smartreflex.h"
  
- #define MAX_TRIES 100
-+#define SMARTREFLEX_NAME_LEN	16
+ /*
+  * OMAP3xxx hardware module integration data
+@@ -35,6 +37,8 @@ static struct omap_hwmod omap3xxx_mpu_hwmod;
+ static struct omap_hwmod omap3xxx_l3_hwmod;
+ static struct omap_hwmod omap3xxx_l4_core_hwmod;
+ static struct omap_hwmod omap3xxx_l4_per_hwmod;
++static struct omap_hwmod omap34xx_sr1_hwmod;
++static struct omap_hwmod omap34xx_sr2_hwmod;
  
- struct omap_sr {
- 	int			srid;
-@@ -796,103 +797,53 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
- 	return 0;
- }
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3__l4_core = {
+@@ -88,9 +92,47 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
+ 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
+ };
  
--/* Sysfs interface to select SR VDD1 auto compensation */
--static ssize_t omap_sr_vdd1_autocomp_show(struct kobject *kobj,
--					struct kobj_attribute *attr, char *buf)
-+/* PM Debug Fs enteries to enable disable smartreflex.*/
++/* L4 CORE -> SR1 interface */
++static struct omap_hwmod_addr_space omap34xx_sr1_addr_space[] = {
++	{
++		.pa_start	= OMAP34XX_SR1_BASE,
++		.pa_end		= OMAP34XX_SR1_BASE + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++};
 +
-+static int omap_sr_autocomp_show(void *data, u64 *val)
- {
--	struct omap_sr *sr_info = _sr_lookup(SR1);
-+	struct omap_sr *sr_info = (struct omap_sr *) data;
- 
- 	if (!sr_info) {
--		pr_warning("omap_sr struct corresponding to SR1 not found\n");
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+							sr_info->srid);
- 		return 0;
- 	}
--	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
-+	*val = sr_info->is_autocomp_active;
-+	return 0;
- }
- 
--static ssize_t omap_sr_vdd1_autocomp_store(struct kobject *kobj,
--					struct kobj_attribute *attr,
--					const char *buf, size_t n)
-+static int omap_sr_autocomp_store(void *data, u64 val)
- {
--	unsigned short value;
--
--	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
--		pr_err("sr_vdd1_autocomp: Invalid value\n");
--		return -EINVAL;
--	}
--
--	if (value == 0) {
--		sr_stop_vddautocomap(SR1);
--	} else {
--		u32 current_vdd1opp_no = get_vdd1_opp();
--		if (!current_vdd1opp_no) {
--			pr_err("sr_vdd1_autocomp: Current VDD1 opp unknown\n");
--			return -EINVAL;
--		}
--		sr_start_vddautocomap(SR1, current_vdd1opp_no);
--	}
--	return n;
--}
--
--static struct kobj_attribute sr_vdd1_autocomp = {
--	.attr = {
--	.name = __stringify(sr_vdd1_autocomp),
--	.mode = 0644,
--	},
--	.show = omap_sr_vdd1_autocomp_show,
--	.store = omap_sr_vdd1_autocomp_store,
--};
--
--/* Sysfs interface to select SR VDD2 auto compensation */
--static ssize_t omap_sr_vdd2_autocomp_show(struct kobject *kobj,
--					struct kobj_attribute *attr, char *buf)
--{
--	struct omap_sr *sr_info = _sr_lookup(SR2);
-+	struct omap_sr *sr_info = (struct omap_sr *) data;
- 
- 	if (!sr_info) {
--		pr_warning("omap_sr struct corresponding to SR2 not found\n");
-+		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-+							sr_info->srid);
- 		return 0;
- 	}
--	return sprintf(buf, "%d\n", sr_info->is_autocomp_active);
--}
--
--static ssize_t omap_sr_vdd2_autocomp_store(struct kobject *kobj,
--					struct kobj_attribute *attr,
--					const char *buf, size_t n)
--{
--	unsigned short value;
--
--	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
--		pr_err("sr_vdd2_autocomp: Invalid value\n");
--		return -EINVAL;
--	}
--
--	if (value == 0) {
--		sr_stop_vddautocomap(SR2);
-+	if (val == 0) {
-+		sr_stop_vddautocomap(sr_info->srid);
- 	} else {
--		u32 current_vdd2opp_no = get_vdd2_opp();
--		if (!current_vdd2opp_no) {
--			pr_err("sr_vdd2_autocomp: Current VDD2 opp unknown\n");
--			return -EINVAL;
--		}
--		sr_start_vddautocomap(SR2, current_vdd2opp_no);
-+		u32 current_opp;
++static struct omap_hwmod_ocp_if omap3_l4_core__sr1 = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_sr1_hwmod,
++	.clk		= "sr_l4_ick",
++	.addr		= omap34xx_sr1_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap34xx_sr1_addr_space),
++	.user		= OCP_USER_MPU,
++};
 +
-+		if (sr_info->srid == SR1)
-+			current_opp = get_vdd1_opp();
-+		else
-+			current_opp = get_vdd2_opp();
-+		sr_start_vddautocomap(sr_info->srid, current_opp);
- 	}
--	return n;
-+	return 0;
- }
- 
--static struct kobj_attribute sr_vdd2_autocomp = {
--	.attr = {
--	.name = __stringify(sr_vdd2_autocomp),
--	.mode = 0644,
--	},
--	.show = omap_sr_vdd2_autocomp_show,
--	.store = omap_sr_vdd2_autocomp_store,
--};
-+DEFINE_SIMPLE_ATTRIBUTE(pm_sr_fops, omap_sr_autocomp_show,
-+		omap_sr_autocomp_store, "%llu\n");
- 
- static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
- {
- 	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
- 	struct omap_device *odev = to_omap_device(pdev);
- 	int ret = 0;
-+	char name[SMARTREFLEX_NAME_LEN + 1];
- 
- 	if (WARN_ON(!sr_info))
- 		return -ENOMEM;
-@@ -907,16 +858,15 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
- 
- 	if (sr_info->srid == SR1) {
- 		sr_info->vdd_opp_clk = clk_get(NULL, "dpll1_ck");
--		ret = sysfs_create_file(power_kobj, &sr_vdd1_autocomp.attr);
--		if (ret)
--			pr_err("sysfs_create_file failed: %d\n", ret);
- 	} else {
- 		sr_info->vdd_opp_clk = clk_get(NULL, "l3_ick");
--		ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
--		if (ret)
--			pr_err("sysfs_create_file failed: %d\n", ret);
- 	}
- 
-+	/* Create the debug fs enteries */
-+	sprintf(name, "sr%d_autocomp", sr_info->srid);
-+	(void) debugfs_create_file(name, S_IRUGO | S_IWUGO, pm_dbg_main_dir,
-+				(void *)sr_info, &pm_sr_fops);
++/* L4 CORE -> SR1 interface */
++static struct omap_hwmod_addr_space omap34xx_sr2_addr_space[] = {
++	{
++		.pa_start	= OMAP34XX_SR2_BASE,
++		.pa_end		= OMAP34XX_SR2_BASE + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++};
 +
- 	/* Call the VPConfig */
- 	sr_configure_vp(sr_info->srid);
- 	list_add(&sr_info->node, &sr_list);
++static struct omap_hwmod_ocp_if omap3_l4_core__sr2 = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_sr2_hwmod,
++	.clk		= "sr_l4_ick",
++	.addr		= omap34xx_sr2_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap34xx_sr2_addr_space),
++	.user		= OCP_USER_MPU,
++};
++
+ /* Slave interfaces on the L4_CORE interconnect */
+ static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
+ 	&omap3xxx_l3__l4_core,
++	&omap3_l4_core__sr1,
++	&omap3_l4_core__sr2,
+ };
+ 
+ /* Master interfaces on the L4_CORE interconnect */
+@@ -164,12 +206,105 @@ static struct omap_hwmod omap3xxx_mpu_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+ 
++/* SR common */
++static struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
++	.clkact_shift	= 20,
++};
++
++static struct omap_hwmod_class_sysconfig omap34xx_sr_sysc = {
++	.sysc_offs	= 0x24,
++	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_NO_CACHE),
++	.clockact	= CLOCKACT_TEST_ICLK,
++	.sysc_fields	= &omap34xx_sr_sysc_fields,
++};
++
++static struct omap_hwmod_class omap34xx_smartreflex_hwmod_class = {
++	.name = "smartreflex",
++	.sysc = &omap34xx_sr_sysc,
++	.rev  = 1,
++};
++
++/* SR1 */
++static struct omap_hwmod_ocp_if *omap34xx_sr1_slaves[] = {
++	&omap3_l4_core__sr1,
++};
++
++static u32 omap34xx_sr1_efuse_offs[] = {
++	OMAP343X_CONTROL_FUSE_OPP1_VDD1, OMAP343X_CONTROL_FUSE_OPP2_VDD1,
++	OMAP343X_CONTROL_FUSE_OPP3_VDD1, OMAP343X_CONTROL_FUSE_OPP4_VDD1,
++	OMAP343X_CONTROL_FUSE_OPP5_VDD1,
++};
++
++static u32 omap34xx_sr1_test_nvalues[] = {
++	0x9A90E6, 0xAABE9A, 0xBBF5C5, 0xBBB292, 0xBBF5C5,
++};
++
++static struct omap_smartreflex_dev_data omap34xx_sr1_dev_attr = {
++	.volts_supported	= 5,
++	.efuse_sr_control	= OMAP343X_CONTROL_FUSE_SR,
++	.sennenable_shift	= OMAP343X_SR1_SENNENABLE_SHIFT,
++	.senpenable_shift	= OMAP343X_SR1_SENPENABLE_SHIFT,
++	.efuse_nvalues_offs	= omap34xx_sr1_efuse_offs,
++	.test_sennenable	= 0x3,
++	.test_senpenable	= 0x3,
++	.test_nvalues		= omap34xx_sr1_test_nvalues
++};
++
++static struct omap_hwmod omap34xx_sr1_hwmod = {
++	.name		= "sr1_hwmod",
++	.class		= &omap34xx_smartreflex_hwmod_class,
++	.main_clk	= "sr1_fck",
++	.slaves		= omap34xx_sr1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr1_slaves),
++	.dev_attr	= &omap34xx_sr1_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
++};
++
++/* SR2 */
++static struct omap_hwmod_ocp_if *omap34xx_sr2_slaves[] = {
++	&omap3_l4_core__sr2,
++};
++
++static u32 omap34xx_sr2_efuse_offs[] = {
++	OMAP343X_CONTROL_FUSE_OPP1_VDD2, OMAP343X_CONTROL_FUSE_OPP2_VDD2,
++	OMAP343X_CONTROL_FUSE_OPP3_VDD2,
++};
++
++static u32 omap34xx_sr2_test_nvalues[] = {
++	0x0, 0xAAC098, 0xAB89D9
++};
++
++static struct omap_smartreflex_dev_data omap34xx_sr2_dev_attr = {
++	.volts_supported	= 3,
++	.efuse_sr_control	= OMAP343X_CONTROL_FUSE_SR,
++	.sennenable_shift	= OMAP343X_SR2_SENNENABLE_SHIFT,
++	.senpenable_shift	= OMAP343X_SR2_SENPENABLE_SHIFT,
++	.efuse_nvalues_offs	= omap34xx_sr2_efuse_offs,
++	.test_sennenable	= 0x3,
++	.test_senpenable	= 0x3,
++	.test_nvalues		= omap34xx_sr2_test_nvalues
++};
++
++static struct omap_hwmod omap34xx_sr2_hwmod = {
++	.name		= "sr2_hwmod",
++	.class		= &omap34xx_smartreflex_hwmod_class,
++	.main_clk	= "sr2_fck",
++	.slaves		= omap34xx_sr2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr2_slaves),
++	.dev_attr	= &omap34xx_sr2_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+ 	&omap3xxx_l4_per_hwmod,
+ 	&omap3xxx_l4_wkup_hwmod,
+ 	&omap3xxx_mpu_hwmod,
++	&omap34xx_sr1_hwmod,
++	&omap34xx_sr2_hwmod,
+ 	NULL,
+ };
+ 
 diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 5eb8846..ea0ddd3 100644
+index 2a0e823..d239eb2 100644
 --- a/arch/arm/mach-omap2/smartreflex.h
 +++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -16,6 +16,8 @@
+@@ -237,6 +237,39 @@ extern u32 current_vdd2_opp;
+ #define SR_TESTING_NVALUES 	0
+ #endif
  
- #include <linux/platform_device.h>
- 
-+extern struct dentry *pm_dbg_main_dir;
++/**
++ * omap_smartreflex_dev_data - Smartreflex device specific data
++ *
++ * @volts_supported	: Number of distinct voltages possible for the VDD
++ *			  associated with this smartreflex module.
++ * @efuse_sr_control	: The regisrter offset of control_fuse_sr efuse
++ *			  register from which sennenable and senpenable values
++ *			  are obtained.
++ * @sennenable_shift	: The shift in the control_fuse_sr register for
++ *			  obtaining the sennenable value for this smartreflex
++ *			  module.
++ * @senpenable_shift	: The shift in the control_fuse_sr register for
++ *			  obtaining the senpenable value for this smartreflex
++ *			  module.
++ * @efuse_nvalues_offs	: Array of efuse offsets from which ntarget values can
++ *			  be retrieved. Number of efuse offsets in this arrray
++ *			  is equal to the volts_supported value ie one efuse
++ *			  register per supported voltage.
++ * @test_sennenable	: SENNENABLE test value
++ * @test_senpenable	: SENPENABLE test value.
++ * @test_nvalues	: Array of test ntarget values.
++ */
++struct omap_smartreflex_dev_data {
++	int volts_supported;
++	u32 efuse_sr_control;
++	u32 sennenable_shift;
++	u32 senpenable_shift;
++	u32 *efuse_nvalues_offs;
++	u32 test_sennenable;
++	u32 test_senpenable;
++	u32 *test_nvalues;
++};
 +
- #define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
- #define PHY_TO_OFF_PM_RECIEVER(p)	(p - 0x5b)
- #define PHY_TO_OFF_PM_INT(p)		(p - 0x2e)
+ /*
+  * Smartreflex module enable/disable interface.
+  * NOTE: if smartreflex is not enabled from sysfs, these functions will not
 -- 
 1.7.0.rc1.33.g07cf0f
 
