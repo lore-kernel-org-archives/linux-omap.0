@@ -1,51 +1,36 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: OMAP 3430SDP i2c boot crash
-Date: Fri, 16 Apr 2010 22:31:23 +0300
-Message-ID: <z2g6ed0b2681004161231gc1dede07uaba95d5f6cf415c0@mail.gmail.com>
-References: <1271406087.2690.286.camel@tubuntu.research.nokia.com>
-	 <loom.20100416T130220-732@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Mike Turquette <mturquette@gmail.com>
+Subject: [PATCH 0/4] OMAP: PM: introduce Adaptive Body-Bias LDO
+Date: Fri, 16 Apr 2010 16:33:20 -0500
+Message-ID: <1271453603-21929-1-git-send-email-mturquette@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f225.google.com ([209.85.218.225]:41990 "EHLO
-	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757978Ab0DPTbZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 15:31:25 -0400
-Received: by bwz25 with SMTP id 25so3543980bwz.28
-        for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 12:31:23 -0700 (PDT)
-In-Reply-To: <loom.20100416T130220-732@post.gmane.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:41890 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932480Ab0DPVeD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 17:34:03 -0400
+Received: by gwaa18 with SMTP id a18so1558486gwa.19
+        for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 14:34:01 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nahamo <w.mohanrao@gmail.com>
-Cc: linux-omap@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>, Shweta Gulati <shweta.gulati@ti.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Fri, Apr 16, 2010 at 2:07 PM, Nahamo <w.mohanrao@gmail.com> wrote:
-> Tomi Valkeinen <tomi.valkeinen <at> nokia.com> writes:
->
->>
->> Hi,
->>
->> I haven't been able to boot my OMAP 3430SDP board with mainstream ke=
-rnel
->> for a while, with the omap_3430sdp_defconfig. Anyone else having
->> problems? I don't get anything on the console after "Uncompressing
->> Linux... done, booting the kernel.", and Trace32 shows the log below=
-=2E
->>
->> =A0Tomi
-<snip>
->
-> Hi Tomi,
-> i am also getting exactly the same error.
-> Thanks
+This patch series introduces Forward Body-Bias (FBB), which is one
+technique possible using the Adaptive Body-Bias (ABB) LDO.  FBB boosts
+voltage on VDD1 PMOS back gates which helps cold devices with weak
+silicon characteristics sustain voltage at high OPPs.
 
-You need this patch:
-https://patchwork.kernel.org/patch/87590/
+All OMAP devices built on the 45nm process have ABB as a part of
+SmartReflex2.  This patchset introduces it for OMAP 3630 and OMAP 4 will
+make use of ABB in the future.
 
-it's still not reached mainline for some reason..
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Patch series is based on pm-wip-sr and tested on Zoom3.  Please note
+that the final patch in the series is a total hack and only meant for
+those wishing to test this new feature.
+
+ arch/arm/mach-omap2/cpufreq34xx.c         |    8 +-
+ arch/arm/mach-omap2/prm-regbits-34xx.h    |   22 +++++
+ arch/arm/mach-omap2/prm.h                 |    6 ++
+ arch/arm/mach-omap2/voltage.c             |  130 ++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/control.h |    4 +
+ 5 files changed, 163 insertions(+), 7 deletions(-)
+
