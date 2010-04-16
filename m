@@ -1,118 +1,116 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH 6/6] omap: NAND: Making ecc layout as compatible with romcode ecc
-Date: Fri, 16 Apr 2010 17:05:42 +0530
-Message-ID: <1271417742-4469-1-git-send-email-s-ghorai@ti.com>
-References: <Sukumar Ghorai <s-ghorai@ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 03/13] DSPBRIDGE: Moving functions from mem.c to drv.c
+Date: Fri, 16 Apr 2010 06:46:19 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B21669A@dlee03.ent.ti.com>
+References: <818EF96F5A7CC84789DD014773DB09548F6481CF@dlee01.ent.ti.com>
+ <20100416103658.GA18995@lit.local.igalia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33800 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757804Ab0DPLfw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Apr 2010 07:35:52 -0400
-In-Reply-To: <Sukumar Ghorai <s-ghorai@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47196 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932096Ab0DPLqq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 07:46:46 -0400
+In-Reply-To: <20100416103658.GA18995@lit.local.igalia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mtd@lists.infradead.org
-Cc: sbranden@broadcom.com, leochen@broadcom.com, David.Woodhouse@intel.com, linux-omap@vger.kernel.org, tony@atomide.com, vimal.newwork@gmail.com, Sukumar Ghorai <s-ghorai@ti.com>
+To: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-    This patch overrides nand ecc layout and bad block descriptor (for 8-bit
-    device) to support hw ecc in romcode layout. So as to have in sync with ecc
-    layout throughout; i.e. x-laod, u-boot and kernel.
+Ivan,
 
-    This patch also enables to use romcode ecc for spd and zoom, by default.
+> In the commit 702b94bff3c50542a6e4ab9a4f4cef093262fe65 (2.6.34) the
+> functions
+> dmac_inv_range and dmac_clean_range were removed.
+>=20
+> I'm wondering how to fix this in order to rebase to 2.6.34.
+>=20
+> Thanks
 
-    This enables to flash x-load, u-boot, kernel, FS images from kernel itself
-    and compatiable with other tools.
+2 options:
 
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
----
- arch/arm/mach-omap2/board-sdp-flash.c  |    2 +-
- arch/arm/mach-omap2/board-zoom-flash.c |    2 +-
- drivers/mtd/nand/omap2.c               |   42 ++++++++++++++++++++++++++++++++
- 3 files changed, 44 insertions(+), 2 deletions(-)
+1. Replace dmac_inv_range and dmac_clean_range functions with the new d=
+ma map and unmap functions. These are supposed to be the new functions =
+to do the same functionality, but in our limited testing some time ago,=
+ the dma_unmap function wasn't invalidating the cache. You can check th=
+is at your end.
 
-diff --git a/arch/arm/mach-omap2/board-sdp-flash.c b/arch/arm/mach-omap2/board-sdp-flash.c
-index 437a1a4..ac891ea
---- a/arch/arm/mach-omap2/board-sdp-flash.c
-+++ b/arch/arm/mach-omap2/board-sdp-flash.c
-@@ -162,7 +162,7 @@ __init board_nand_init(struct flash_partitions sdp_nand_parts, u8 cs)
- 	sdp_nand_data.cs		= cs;
- 	sdp_nand_data.parts		= sdp_nand_parts.parts;
- 	sdp_nand_data.nr_parts		= sdp_nand_parts.nr_parts;
--	sdp_nand_data.ecc_opt		= 0x1; /* HW ECC in default layout */
-+	sdp_nand_data.ecc_opt		= 0x2; /* HW ECC layout as in ROMCODE */
- 	if (cpu_is_omap3630())
- 		sdp_nand_data.devsize = 1; /* 0: 8-bit, 1: 16-bit device */
- 
-diff --git a/arch/arm/mach-omap2/board-zoom-flash.c b/arch/arm/mach-omap2/board-zoom-flash.c
-index 1547bdb..53eeaa6
---- a/arch/arm/mach-omap2/board-zoom-flash.c
-+++ b/arch/arm/mach-omap2/board-zoom-flash.c
-@@ -71,7 +71,7 @@ void __init zoom_flash_init(struct flash_partitions zoom_nand_parts[], int cs)
- 	zoom_nand_data.cs		= cs;
- 	zoom_nand_data.parts		= zoom_nand_parts[0].parts;
- 	zoom_nand_data.nr_parts		= zoom_nand_parts[0].nr_parts;
--	zoom_nand_data.ecc_opt		= 0x1; /* HW ECC in default layout */
-+	zoom_nand_data.ecc_opt		= 0x2; /* HW ECC in romcode layout */
- 	zoom_nand_data.gpmc_baseaddr	= (void *)(gpmc_base_add);
- 	zoom_nand_data.gpmc_cs_baseaddr	= (void *)(gpmc_base_add +
- 					GPMC_CS0_BASE +	cs * GPMC_CS_SIZE);
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 207fb3c..f5d2c53
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -152,6 +152,39 @@ struct omap_nand_info {
- 	u_char				*buf;
- };
- 
-+static struct nand_ecclayout hw_x8_romcode_oob_64 = {
-+	.eccbytes = 12,
-+	.eccpos = {
-+		    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-+		  },
-+	.oobfree = {
-+			{.offset = 13,
-+			 .length = 51}
-+		   }
-+};
-+
-+/* Define some generic bad / good block scan pattern which are used
-+ * while scanning a device for factory marked good / bad blocks
-+ */
-+static uint8_t scan_ff_pattern[] = { 0xff };
-+static struct nand_bbt_descr bb_descrip_flashbased = {
-+	.options = NAND_BBT_SCANEMPTY | NAND_BBT_SCANALLPAGES,
-+	.offs = 0,
-+	.len = 1,
-+	.pattern = scan_ff_pattern,
-+};
-+
-+static struct nand_ecclayout hw_x16_romcode_oob_64 = {
-+	.eccbytes = 12,
-+	.eccpos = {
-+		    2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
-+		  },
-+	.oobfree = {
-+			{.offset = 14,
-+			 .length = 50}
-+		   }
-+};
-+
- /**
-  * omap_nand_wp - This function enable or disable the Write Protect feature
-  * @mtd: MTD device structure
-@@ -1136,6 +1169,15 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	info->nand.verify_buf = omap_verify_buf;
- 
- 	if (pdata->ecc_opt & 0x3) {
-+		if (pdata->ecc_opt == 0x2) {
-+			if (info->nand.options & NAND_BUSWIDTH_16) {
-+				info->nand.ecc.layout = &hw_x16_romcode_oob_64;
-+			} else {
-+				info->nand.ecc.layout = &hw_x8_romcode_oob_64;
-+				info->nand.badblock_pattern =
-+							&bb_descrip_flashbased;
-+			}
-+		}
- 		info->nand.ecc.bytes		= 3;
- 		info->nand.ecc.size		= 512;
- 		info->nand.ecc.calculate	= omap_calculate_ecc;
+2. Revert the patch that deprecated these APIs to unblock you temporari=
+ly.
+
+Thank you,
+Best regards,
+Hari
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of V=EDctor M. J=E1quez L.
+> Sent: Friday, April 16, 2010 5:37 AM
+> To: Gomez Castellanos, Ivan
+> Cc: linux-omap@vger.kernel.org; Hiroshi DOYU; Felipe Contreras; Ameya
+> Palande; Menon, Nishanth
+> Subject: Re: [PATCH 03/13] DSPBRIDGE: Moving functions from mem.c to =
+drv.c
+>=20
+> On Thu, Apr 08, 2010 at 06:47:13PM -0500, Gomez Castellanos, Ivan wro=
+te:
+>=20
+> > +/*
+> > + *  =3D=3D=3D=3D=3D=3D=3D=3D mem_flush_cache =3D=3D=3D=3D=3D=3D=3D
+> > + *  Purpose:
+> > + *      Flush cache
+> > + */
+> > +void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType)
+> > +{
+> > +       if (!pMemBuf)
+> > +               return;
+> > +
+> > +       switch (FlushType) {
+> > +               /* invalidate only */
+> > +       case PROC_INVALIDATE_MEM:
+> > +               dmac_inv_range(pMemBuf, pMemBuf + byte_size);
+> > +               outer_inv_range(__pa((u32) pMemBuf), __pa((u32) pMe=
+mBuf
+> +
+> > +                                                         byte_size=
+));
+> > +               break;
+> > +               /* writeback only */
+> > +       case PROC_WRITEBACK_MEM:
+> > +               dmac_clean_range(pMemBuf, pMemBuf + byte_size);
+> > +               outer_clean_range(__pa((u32) pMemBuf), __pa((u32)
+> pMemBuf +
+> > +                                                           byte_si=
+ze));
+> > +               break;
+> > +               /* writeback and invalidate */
+> > +       case PROC_WRITEBACK_INVALIDATE_MEM:
+> > +               dmac_flush_range(pMemBuf, pMemBuf + byte_size);
+> > +               outer_flush_range(__pa((u32) pMemBuf), __pa((u32)
+> pMemBuf +
+> > +                                                           byte_si=
+ze));
+> > +               break;
+> > +       }
+>=20
+> In the commit 702b94bff3c50542a6e4ab9a4f4cef093262fe65 (2.6.34) the
+> functions
+> dmac_inv_range and dmac_clean_range were removed.
+>=20
+> I'm wondering how to fix this in order to rebase to 2.6.34.
+>=20
+> Thanks
+>=20
+> vmjl
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
