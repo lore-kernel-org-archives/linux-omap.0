@@ -1,446 +1,335 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCHv3 1/2] OMAP3: PM: Smartreflex IP update changes for OMAP3630
-Date: Fri, 16 Apr 2010 15:49:55 +0530
-Message-ID: <1271413196-6087-2-git-send-email-thara@ti.com>
+Subject: [PATCHv3 2/2] OMAP3: PM: Adding OMAP3630 support in smartreflex driver
+Date: Fri, 16 Apr 2010 15:49:56 +0530
+Message-ID: <1271413196-6087-3-git-send-email-thara@ti.com>
 References: <1271413196-6087-1-git-send-email-thara@ti.com>
+ <1271413196-6087-2-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39063 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54623 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753696Ab0DPKUG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Apr 2010 06:20:06 -0400
-In-Reply-To: <1271413196-6087-1-git-send-email-thara@ti.com>
+	id S1753696Ab0DPKUL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Apr 2010 06:20:11 -0400
+In-Reply-To: <1271413196-6087-2-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-OMAP3430 uses the 65nm version of the smartreflex IP where as
-OMAP3630 and OMAP4430 uses the 45nm updated IP.
-
-This patch adds support for the updated smartreflex IP used
-in OMAP3630 and OMAP4 in the smartreflex driver.
-
-Major changes between the two versions of IP involve:
-1. Change in offset position for ERRCONFIG and SENERROR registers
-2. Change in bit positions for VP bound interrupt enable and status
-   in ERRCONFIG register.
-3. Change in bit positions and width of SENNENABLE and SENPENABLE
-   bits in SRCONFIG registers.
-4. Introduction of separate irq registers for MCU bound interrupts.
-5. Removal of clockactivity bits in ERRCONFIG and introduction of
-  idlemode and wakeupenable bits in ERRCONFIG.
+This patch adapts smartreflex driver to support OMAP3630 also.
+Changes involve:
+1. Separate hwmod structures for OMAP3630 distinguished from
+   3430 structures using omap_chip attribute.
+2. Introducing new test nvalues for OMAP3630.
+3. OMAP3630 specific changes for srconfig err_minlimit field,
+   vpx_config errorgain field and vpx_vlimitto vddmax and vddmin
+   fields.
+4. Adding 3630 voltage tables in voltage.c
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |  215 +++++++++++++++++++++++++++----------
- arch/arm/mach-omap2/smartreflex.h |   44 +++++++--
- 2 files changed, 194 insertions(+), 65 deletions(-)
+ arch/arm/mach-omap2/board-3630sdp.c        |    2 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   86 +++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/smartreflex.c          |    2 +-
+ arch/arm/mach-omap2/voltage.c              |   45 +++++++++++++-
+ arch/arm/mach-omap2/voltage.h              |   22 ++++++-
+ arch/arm/plat-omap/include/plat/control.h  |    8 +++
+ 6 files changed, 154 insertions(+), 11 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index 2fc1d0b..b06f59a 100644
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -27,6 +27,7 @@
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
+ #include "pm.h"
+ #include "omap3-opp.h"
++#include "smartreflex-class3.h"
+ 
+ #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
+ 
+@@ -107,6 +108,7 @@ static void __init omap_sdp_init(void)
+ 	board_smc91x_init();
+ 	enable_board_wakeup_source();
+ 	usb_ehci_init(&ehci_pdata);
++	sr_class3_init();
+ }
+ 
+ MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 1f41310..994d65f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -225,6 +225,25 @@ static struct omap_hwmod_class omap34xx_smartreflex_hwmod_class = {
+ 	.rev  = 1,
+ };
+ 
++static struct omap_hwmod_sysc_fields omap36xx_sr_sysc_fields = {
++	.sidle_shift	= 24,
++	.enwkup_shift	= 26
++};
++
++static struct omap_hwmod_class_sysconfig omap36xx_sr_sysc = {
++	.sysc_offs	= 0x38,
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_ENAWAKEUP |
++			SYSC_NO_CACHE),
++	.sysc_fields	= &omap36xx_sr_sysc_fields,
++};
++
++static struct omap_hwmod_class omap36xx_smartreflex_hwmod_class = {
++	.name = "smartreflex",
++	.sysc = &omap36xx_sr_sysc,
++	.rev  = 2,
++};
++
+ /* SR1 */
+ static struct omap_hwmod_ocp_if *omap34xx_sr1_slaves[] = {
+ 	&omap3_l4_core__sr1,
+@@ -257,10 +276,41 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
+ 	.slaves		= omap34xx_sr1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr1_slaves),
+ 	.dev_attr	= &omap34xx_sr1_dev_attr,
+-	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
++					CHIP_IS_OMAP3430ES3_0 |
++					CHIP_IS_OMAP3430ES3_1),
+ 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
++static u32 omap36xx_sr1_efuse_offs[] = {
++	OMAP3630_CONTROL_FUSE_OPP50_VDD1, OMAP3630_CONTROL_FUSE_OPP100_VDD1,
++	OMAP3630_CONTROL_FUSE_OPP120_VDD1, OMAP3630_CONTROL_FUSE_OPPTM_VDD1,
++};
++
++static u32 omap36xx_sr1_test_nvalues[] = {
++	0x898beb, 0x999b83, 0xaac5a8, 0xaab197,
++};
++
++static struct omap_smartreflex_dev_data omap36xx_sr1_dev_attr = {
++	.efuse_sr_control	= OMAP343X_CONTROL_FUSE_SR,
++	.sennenable_shift	= OMAP343X_SR1_SENNENABLE_SHIFT,
++	.senpenable_shift	= OMAP343X_SR1_SENPENABLE_SHIFT,
++	.efuse_nvalues_offs	= omap36xx_sr1_efuse_offs,
++	.test_sennenable	= 0x1,
++	.test_senpenable	= 0x1,
++	.test_nvalues		= omap36xx_sr1_test_nvalues,
++};
++
++static struct omap_hwmod omap36xx_sr1_hwmod = {
++	.name		= "sr1_hwmod",
++	.class		= &omap36xx_smartreflex_hwmod_class,
++	.main_clk	= "sr1_fck",
++	.slaves		= omap34xx_sr1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr1_slaves),
++	.dev_attr	= &omap36xx_sr1_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
++};
++
+ /* SR2 */
+ static struct omap_hwmod_ocp_if *omap34xx_sr2_slaves[] = {
+ 	&omap3_l4_core__sr2,
+@@ -292,10 +342,40 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
+ 	.slaves		= omap34xx_sr2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr2_slaves),
+ 	.dev_attr	= &omap34xx_sr2_dev_attr,
+-	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
++					CHIP_IS_OMAP3430ES3_0 |
++					CHIP_IS_OMAP3430ES3_1),
+ 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
++static u32 omap36xx_sr2_efuse_offs[] = {
++	OMAP3630_CONTROL_FUSE_OPP50_VDD2, OMAP3630_CONTROL_FUSE_OPP100_VDD2,
++};
++
++static u32 omap36xx_sr2_test_nvalues[] = {
++	0x898beb, 0x9a8cee,
++};
++
++static struct omap_smartreflex_dev_data omap36xx_sr2_dev_attr = {
++	.efuse_sr_control	= OMAP343X_CONTROL_FUSE_SR,
++	.sennenable_shift	= OMAP343X_SR2_SENNENABLE_SHIFT,
++	.senpenable_shift	= OMAP343X_SR2_SENPENABLE_SHIFT,
++	.efuse_nvalues_offs	= omap36xx_sr2_efuse_offs,
++	.test_sennenable	= 0x1,
++	.test_senpenable	= 0x1,
++	.test_nvalues		= omap36xx_sr2_test_nvalues,
++};
++
++static struct omap_hwmod omap36xx_sr2_hwmod = {
++	.name		= "sr2_hwmod",
++	.class		= &omap36xx_smartreflex_hwmod_class,
++	.main_clk	= "sr2_fck",
++	.slaves		= omap34xx_sr2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_sr2_slaves),
++	.dev_attr	= &omap36xx_sr2_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -304,6 +384,8 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_mpu_hwmod,
+ 	&omap34xx_sr1_hwmod,
+ 	&omap34xx_sr2_hwmod,
++	&omap36xx_sr1_hwmod,
++	&omap36xx_sr2_hwmod,
+ 	NULL,
+ };
+ 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 4dccfd1..b81f9f3 100644
+index b81f9f3..a6a29d1 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -43,6 +43,7 @@ struct omap_sr {
- 	int			srid;
- 	int			is_sr_enable;
- 	int			is_autocomp_active;
-+	int			sr_ip_type;
- 	u32			clk_length;
- 	u32			err_weight;
- 	u32			err_minlimit;
-@@ -71,6 +72,7 @@ static inline void sr_modify_reg(struct omap_sr *sr, unsigned offset, u32 mask,
- {
- 	struct omap_device *odev = to_omap_device(sr->pdev);
- 	u32 reg_val;
-+	u32 errconfig_offs, errconfig_mask;
- 
- 	reg_val = omap_hwmod_readl(odev->hwmods[0], offset);
- 	reg_val &= ~mask;
-@@ -82,8 +84,15 @@ static inline void sr_modify_reg(struct omap_sr *sr, unsigned offset, u32 mask,
- 	 * value. Now if there is an actual reguest to write to these bits
- 	 * they will be set in the nex step.
+@@ -183,7 +183,7 @@ static void sr_set_regfields(struct omap_sr *sr)
+ 	 * file or pmic specific data structure. In that case these structure
+ 	 * fields will have to be populated using the pdata or pmic structure.
  	 */
--	if (offset == ERRCONFIG)
--		reg_val &= ~ERRCONFIG_STATUS_MASK;
-+	if (sr->sr_ip_type == SR_TYPE_V1) {
-+		errconfig_offs = ERRCONFIG_V1;
-+		errconfig_mask = ERRCONFIG_STATUS_V1_MASK;
-+	} else if (sr->sr_ip_type == SR_TYPE_V2) {
-+		errconfig_offs = ERRCONFIG_V2;
-+		errconfig_mask = ERRCONFIG_VPBOUNDINTST_V2;
-+	}
-+	if (offset == errconfig_offs)
-+		reg_val &= ~errconfig_mask;
+-	if (cpu_is_omap343x()) {
++	if (cpu_is_omap34xx()) {
+ 		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
+ 		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
+ 		sr->accum_data = OMAP3430_SR_ACCUMDATA;
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 554f137..c5e9c42 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -161,6 +161,13 @@ static struct omap_volt_data omap34xx_vdd1_volt_data[] = {
+ 	{1350000, 0, 0xF9, 0x18},
+ };
  
- 	reg_val |= value;
++static struct omap_volt_data omap36xx_vdd1_volt_data[] = {
++	{930000, 0, 0xF4, 0x0C},
++	{1100000, 0, 0xF9, 0x16},
++	{1260000, 0, 0xFA, 0x23},
++	{1350000, 0, 0xFA, 0x27},
++};
++
+ /* VDD2 */
+ static struct omap_volt_data omap34xx_vdd2_volt_data[] = {
+ 	{975000, 0, 0xF4, 0x0C},
+@@ -168,6 +175,12 @@ static struct omap_volt_data omap34xx_vdd2_volt_data[] = {
+ 	{1150000, 0, 0xF9, 0x18},
+ };
  
-@@ -114,13 +123,19 @@ static struct omap_sr *_sr_lookup(int srid)
- static irqreturn_t sr_omap_isr(int irq, void *data)
- {
- 	struct omap_sr *sr_info = (struct omap_sr *)data;
--	u32 status;
--
--	/* Read the status bits */
--	status = sr_read_reg(sr_info, ERRCONFIG);
--
--	/* Clear them by writing back */
--	sr_write_reg(sr_info, ERRCONFIG, status);
-+	u32 status = 0;
++static struct omap_volt_data omap36xx_vdd2_volt_data[] = {
++	{930000, 0, 0xF4, 0x0C},
++	{1137500, 0, 0xF9, 0x16},
++};
 +
-+	if (sr_info->sr_ip_type == SR_TYPE_V1) {
-+		/* Read the status bits */
-+		status = sr_read_reg(sr_info, ERRCONFIG_V1);
-+		/* Clear them by writing back */
-+		sr_write_reg(sr_info, ERRCONFIG_V1, status);
-+	} else if (sr_info->sr_ip_type == SR_TYPE_V2) {
-+		/* Read the status bits */
-+		sr_read_reg(sr_info, IRQSTATUS);
-+		/* Clear them by writing back */
-+		sr_write_reg(sr_info, IRQSTATUS, status);
-+	}
++
+ /* By default VPFORCEUPDATE is the chosen method of voltage scaling */
+ static bool voltscale_vpforceupdate = true;
  
- 	/* Call the class driver notify function if registered*/
- 	if (sr_class->class_type == SR_CLASS2 && sr_class->notify)
-@@ -243,6 +258,77 @@ static int sr_late_init(struct omap_sr *sr_info)
- 	return ret;
- }
+@@ -322,24 +335,48 @@ static void __init vp_data_configure(int vp_id)
  
-+static void sr_v1_disable(struct omap_sr *sr)
-+{
-+	int timeout = 0;
+ 		vp_reg[vp_id].vp_offs = omap3_vp_offs[vp_id];
+ 		if (vp_id == VDD1) {
++			u8 vlimitto_vddmin, vlimitto_vddmax;
 +
-+	/* Enable MCUDisableAcknowledge interrupt */
-+	sr_modify_reg(sr, ERRCONFIG_V1,
-+			ERRCONFIG_MCUDISACKINTEN, ERRCONFIG_MCUDISACKINTEN);
++			if (cpu_is_omap3630()) {
++				vlimitto_vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
++				vlimitto_vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
++			vp_reg[vp_id].volt_data = omap36xx_vdd1_volt_data;
++			vp_reg[vp_id].volt_data_count =
++					ARRAY_SIZE(omap36xx_vdd1_volt_data);
++			} else {
++				vlimitto_vddmin = OMAP3430_VP1_VLIMITTO_VDDMIN;
++				vlimitto_vddmax = OMAP3430_VP1_VLIMITTO_VDDMAX;
+ 			vp_reg[vp_id].volt_data = omap34xx_vdd1_volt_data;
+ 			vp_reg[vp_id].volt_data_count =
+ 					ARRAY_SIZE(omap34xx_vdd1_volt_data);
++			}
+ 			curr_volt = get_curr_vdd1_voltage();
+-			vp_reg[vp_id].vp_vddmin = (OMAP3_VP1_VLIMITTO_VDDMIN <<
++			vp_reg[vp_id].vp_vddmin = (vlimitto_vddmin <<
+ 					OMAP3430_VDDMIN_SHIFT);
+-			vp_reg[vp_id].vp_vddmax = (OMAP3_VP1_VLIMITTO_VDDMAX <<
++			vp_reg[vp_id].vp_vddmax = (vlimitto_vddmax <<
+ 					OMAP3430_VDDMAX_SHIFT);
+ 			vp_reg[vp_id].vp_tranxdone_status =
+ 					OMAP3430_VP1_TRANXDONE_ST;
+ 		} else if (vp_id == VDD2) {
++			u8 vlimitto_vddmin, vlimitto_vddmax;
 +
-+	/* SRCONFIG - disable SR */
-+	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
-+
-+	/* Disable all other SR interrupts and clear the status */
-+	sr_modify_reg(sr, ERRCONFIG_V1,
-+			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
-+			ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_VPBOUNDINTEN_V1),
-+			(ERRCONFIG_MCUACCUMINTST | ERRCONFIG_MCUVALIDINTST |
-+			ERRCONFIG_MCUBOUNDINTST |
-+			ERRCONFIG_VPBOUNDINTST_V1));
-+
-+	/*
-+	 * Wait for SR to be disabled.
-+	 * wait until ERRCONFIG.MCUDISACKINTST = 1. Typical latency is 1us.
-+	 */
-+	omap_test_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
-+			ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
-+			timeout);
-+
-+	if (timeout >= SR_DISABLE_TIMEOUT)
-+		pr_warning("SR%d disable timedout\n", sr->srid);
-+
-+	/* Disable MCUDisableAcknowledge interrupt & clear pending interrupt */
-+	sr_modify_reg(sr, ERRCONFIG_V1, ERRCONFIG_MCUDISACKINTEN,
-+			ERRCONFIG_MCUDISACKINTST);
-+}
-+
-+static void sr_v2_disable(struct omap_sr *sr)
-+{
-+	int timeout = 0;
-+
-+	/* Enable MCUDisableAcknowledge interrupt */
-+	sr_write_reg(sr, IRQENABLE_SET, IRQENABLE_MCUDISABLEACKINT);
-+
-+	/* SRCONFIG - disable SR */
-+	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
-+
-+	/* Disable all other SR interrupts and clear the status */
-+	sr_modify_reg(sr, ERRCONFIG_V2, ERRCONFIG_VPBOUNDINTEN_V2,
-+			ERRCONFIG_VPBOUNDINTST_V2);
-+	sr_write_reg(sr, IRQENABLE_CLR, (IRQENABLE_MCUACCUMINT |
-+			IRQENABLE_MCUVALIDINT |
-+			IRQENABLE_MCUBOUNDSINT));
-+	sr_write_reg(sr, IRQSTATUS, (IRQSTATUS_MCUACCUMINT |
-+			IRQSTATUS_MCVALIDINT |
-+			IRQSTATUS_MCBOUNDSINT));
-+
-+	/*
-+	 * Wait for SR to be disabled.
-+	 * wait until IRQSTATUS.MCUDISACKINTST = 1. Typical latency is 1us.
-+	 */
-+	omap_test_timeout((sr_read_reg(sr, IRQSTATUS) &
-+			IRQSTATUS_MCUDISABLEACKINT), SR_DISABLE_TIMEOUT,
-+			timeout);
-+
-+	if (timeout >= SR_DISABLE_TIMEOUT)
-+		pr_warning("SR%d disable timedout\n", sr->srid);
-+
-+	/* Disable MCUDisableAcknowledge interrupt & clear pending interrupt */
-+	sr_write_reg(sr, IRQENABLE_CLR, IRQENABLE_MCUDISABLEACKINT);
-+	sr_write_reg(sr, IRQSTATUS, IRQSTATUS_MCUDISABLEACKINT);
-+}
-+
- /* Public Functions */
- 
- /**
-@@ -259,8 +345,9 @@ static int sr_late_init(struct omap_sr *sr_info)
-  */
- void sr_configure_errgen(int srid)
- {
--	u32 sr_config, sr_errconfig;
--	u32 senp_en , senn_en;
-+	u32 sr_config, sr_errconfig, errconfig_offs, vpboundint_en;
-+	u32 vpboundint_st, senp_en , senn_en;
-+	u8 senp_shift, senn_shift;
- 	struct omap_sr *sr = _sr_lookup(srid);
- 	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
- 
-@@ -276,20 +363,36 @@ void sr_configure_errgen(int srid)
- 	senp_en = pdata->senp_mod;
- 	senn_en = pdata->senn_mod;
- 	sr_config = (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
--		SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
--		(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
--		(senp_en << SRCONFIG_SENPENABLE_SHIFT) | SRCONFIG_DELAYCTRL;
-+		SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN;
-+	if (sr->sr_ip_type == SR_TYPE_V1) {
-+		sr_config |= SRCONFIG_DELAYCTRL;
-+		senn_shift = SRCONFIG_SENNENABLE_V1_SHIFT;
-+		senp_shift = SRCONFIG_SENPENABLE_V1_SHIFT;
-+		errconfig_offs = ERRCONFIG_V1;
-+		vpboundint_en = ERRCONFIG_VPBOUNDINTEN_V1;
-+		vpboundint_st = ERRCONFIG_VPBOUNDINTST_V1;
-+	} else if (sr->sr_ip_type == SR_TYPE_V2) {
-+		senn_shift = SRCONFIG_SENNENABLE_V2_SHIFT;
-+		senp_shift = SRCONFIG_SENPENABLE_V2_SHIFT;
-+		errconfig_offs = ERRCONFIG_V2;
-+		vpboundint_en = ERRCONFIG_VPBOUNDINTEN_V2;
-+		vpboundint_st = ERRCONFIG_VPBOUNDINTST_V2;
-+	} else {
-+		pr_err("Trying to Configure smartreflex module without \
-+				specifying the ip\n");
-+		return;
-+	}
-+	sr_config |= ((senn_en << senn_shift) | (senp_en << senp_shift));
- 	sr_write_reg(sr, SRCONFIG, sr_config);
- 	sr_errconfig = (sr->err_weight << ERRCONFIG_ERRWEIGHT_SHIFT) |
- 		(sr->err_maxlimit << ERRCONFIG_ERRMAXLIMIT_SHIFT) |
- 		(sr->err_minlimit <<  ERRCONFIG_ERRMINLIMIT_SHIFT);
--	sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
-+	sr_modify_reg(sr, errconfig_offs, (SR_ERRWEIGHT_MASK |
- 		SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
- 		sr_errconfig);
- 	/* Enabling the interrupts if the ERROR module is used */
--	sr_modify_reg(sr, ERRCONFIG,
--		(ERRCONFIG_VPBOUNDINTEN),
--		(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST));
-+	sr_modify_reg(sr, errconfig_offs,
-+		vpboundint_en, (vpboundint_en | vpboundint_st));
- }
- 
- /**
-@@ -308,6 +411,7 @@ void sr_configure_minmax(int srid)
- {
- 	u32 sr_config, sr_avgwt;
- 	u32 senp_en , senn_en;
-+	u8 senp_shift, senn_shift;
- 	struct omap_sr *sr = _sr_lookup(srid);
- 	struct omap_smartreflex_data *pdata = sr->pdev->dev.platform_data;
- 
-@@ -323,10 +427,21 @@ void sr_configure_minmax(int srid)
- 	senp_en = pdata->senp_mod;
- 	senn_en = pdata->senn_mod;
- 	sr_config = (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
--		SRCONFIG_SENENABLE | (senn_en << SRCONFIG_SENNENABLE_SHIFT) |
--		(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
--		(sr->accum_data << SRCONFIG_ACCUMDATA_SHIFT) |
--		SRCONFIG_DELAYCTRL;
-+		SRCONFIG_SENENABLE |
-+		(sr->accum_data << SRCONFIG_ACCUMDATA_SHIFT);
-+	if (sr->sr_ip_type == SR_TYPE_V1) {
-+		sr_config |= SRCONFIG_DELAYCTRL;
-+		senn_shift = SRCONFIG_SENNENABLE_V1_SHIFT;
-+		senp_shift = SRCONFIG_SENPENABLE_V1_SHIFT;
-+	} else if (sr->sr_ip_type == SR_TYPE_V2) {
-+		senn_shift = SRCONFIG_SENNENABLE_V2_SHIFT;
-+		senp_shift = SRCONFIG_SENPENABLE_V2_SHIFT;
-+	} else {
-+		pr_err("Trying to Configure smartreflex module without \
-+				specifying the ip\n");
-+		return;
-+	}
-+	sr_config |= ((senn_en << senn_shift) | (senp_en << senp_shift));
- 	sr_write_reg(sr, SRCONFIG, sr_config);
- 	sr_avgwt = (sr->senp_avgweight << AVGWEIGHT_SENPAVGWEIGHT_SHIFT) |
- 		(sr->senn_avgweight << AVGWEIGHT_SENNAVGWEIGHT_SHIFT);
-@@ -335,12 +450,21 @@ void sr_configure_minmax(int srid)
- 	 * Enabling the interrupts if MINMAXAVG module is used.
- 	 * TODO: check if all the interrupts are mandatory
- 	 */
--	sr_modify_reg(sr, ERRCONFIG,
--		(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
--		ERRCONFIG_MCUBOUNDINTEN),
--		(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUACCUMINTST |
--		 ERRCONFIG_MCUVALIDINTEN | ERRCONFIG_MCUVALIDINTST |
--		 ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_MCUBOUNDINTST));
-+	if (sr->sr_ip_type == SR_TYPE_V1) {
-+		sr_modify_reg(sr, ERRCONFIG_V1,
-+			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
-+			ERRCONFIG_MCUBOUNDINTEN),
-+			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUACCUMINTST |
-+			 ERRCONFIG_MCUVALIDINTEN | ERRCONFIG_MCUVALIDINTST |
-+			 ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_MCUBOUNDINTST));
-+	} else if (sr->sr_ip_type == SR_TYPE_V2) {
-+		sr_write_reg(sr, IRQSTATUS,
-+			IRQSTATUS_MCUACCUMINT | IRQSTATUS_MCVALIDINT |
-+			IRQSTATUS_MCBOUNDSINT | IRQSTATUS_MCUDISABLEACKINT);
-+		sr_write_reg(sr, IRQENABLE_SET,
-+			IRQENABLE_MCUACCUMINT | IRQENABLE_MCUVALIDINT |
-+			IRQENABLE_MCUBOUNDSINT | IRQENABLE_MCUDISABLEACKINT);
-+	}
- }
- 
- /**
-@@ -418,7 +542,6 @@ void sr_disable(int srid)
- {
- 	struct omap_sr *sr = _sr_lookup(srid);
- 	struct omap_smartreflex_data *pdata;
--	int timeout = 0;
- 
- 	if (!sr) {
- 		pr_warning("omap_sr struct corresponding to SR%d not found\n",
-@@ -434,35 +557,10 @@ void sr_disable(int srid)
- 	if (!(sr_read_reg(sr, SRCONFIG) & SRCONFIG_SRENABLE))
- 		goto disable_clocks;
- 
--	/* Enable MCUDisableAcknowledge interrupt */
--	sr_modify_reg(sr, ERRCONFIG,
--			ERRCONFIG_MCUDISACKINTEN, ERRCONFIG_MCUDISACKINTEN);
--
--	/* SRCONFIG - disable SR */
--	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
--
--	/* Disable all other SR interrupts and clear the status */
--	sr_modify_reg(sr, ERRCONFIG,
--			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
--			ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_VPBOUNDINTEN),
--			(ERRCONFIG_MCUACCUMINTST | ERRCONFIG_MCUVALIDINTST |
--			ERRCONFIG_MCUBOUNDINTST | ERRCONFIG_VPBOUNDINTST));
--
--	/* Wait for SR to be disabled.
--	 * wait until ERRCONFIG.MCUDISACKINTST = 1. Typical latency is 1us.
--	 */
--	omap_test_timeout((sr_read_reg(sr, ERRCONFIG) &
--			ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
--			timeout);
--
--	if (timeout >= SR_DISABLE_TIMEOUT)
--		pr_warning("SR%d disable timedout\n", srid);
--
--	/* Disable MCUDisableAcknowledge interrupt & clear pending interrupt
--	 * Also enable VPBOUND interrrupt
--	 */
--	sr_modify_reg(sr, ERRCONFIG, ERRCONFIG_MCUDISACKINTEN,
--			ERRCONFIG_MCUDISACKINTST);
-+	if (sr->sr_ip_type == SR_TYPE_V1)
-+		sr_v1_disable(sr);
-+	else if (sr->sr_ip_type == SR_TYPE_V2)
-+		sr_v2_disable(sr);
- 
- disable_clocks:
- 	pdata = sr->pdev->dev.platform_data;
-@@ -619,6 +717,7 @@ static int __devinit omap_smartreflex_probe(struct platform_device *pdev)
- 	sr_info->srid = pdev->id;
- 	sr_info->is_autocomp_active = 0;
- 	sr_info->clk_length = 0;
-+	sr_info->sr_ip_type = odev->hwmods[0]->class->rev;
- 	if (odev->hwmods[0]->mpu_irqs)
- 		sr_info->irq = odev->hwmods[0]->mpu_irqs[0].irq;
- 	sr_set_clk_length(sr_info);
-diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 476a3b6..d12c093 100644
---- a/arch/arm/mach-omap2/smartreflex.h
-+++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -18,6 +18,14 @@
- 
- extern struct dentry *pm_dbg_main_dir;
++			if (cpu_is_omap3630()) {
++				vlimitto_vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
++				vlimitto_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
++			vp_reg[vp_id].volt_data = omap36xx_vdd2_volt_data;
++			vp_reg[vp_id].volt_data_count =
++					ARRAY_SIZE(omap36xx_vdd2_volt_data);
++			} else {
++				vlimitto_vddmin = OMAP3430_VP2_VLIMITTO_VDDMIN;
++				vlimitto_vddmax = OMAP3430_VP2_VLIMITTO_VDDMAX;
+ 			vp_reg[vp_id].volt_data = omap34xx_vdd2_volt_data;
+ 			vp_reg[vp_id].volt_data_count =
+ 					ARRAY_SIZE(omap34xx_vdd2_volt_data);
++			}
+ 			curr_volt = get_curr_vdd2_voltage();
+-			vp_reg[vp_id].vp_vddmin = (OMAP3_VP2_VLIMITTO_VDDMIN <<
++			vp_reg[vp_id].vp_vddmin = (vlimitto_vddmin <<
+ 					OMAP3430_VDDMIN_SHIFT);
+-			vp_reg[vp_id].vp_vddmax = (OMAP3_VP2_VLIMITTO_VDDMAX <<
++			vp_reg[vp_id].vp_vddmax = (vlimitto_vddmax <<
+ 					OMAP3430_VDDMAX_SHIFT);
+ 			vp_reg[vp_id].vp_tranxdone_status =
+ 					OMAP3430_VP2_TRANXDONE_ST;
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 473a953..c6445c5 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -58,12 +58,26 @@
+ #define OMAP3_VP_VSTEPMIN_VSTEPMIN		0x1
+ #define OMAP3_VP_VSTEPMAX_SMPSWAITTIMEMAX	0x3C
+ #define OMAP3_VP_VSTEPMAX_VSTEPMAX		0x04
+-#define OMAP3_VP1_VLIMITTO_VDDMIN		0x14
+-#define OMAP3_VP1_VLIMITTO_VDDMAX		0x42
+-#define OMAP3_VP2_VLIMITTO_VDDMAX		0x2C
+-#define OMAP3_VP2_VLIMITTO_VDDMIN		0x18
+ #define OMAP3_VP_VLIMITTO_TIMEOUT_US		0x200
  
 +/*
-+ * Different Smartreflex IPs version. The v1 is the 65nm version used in
-+ * OMAP3430. The v2 is the update for the 45nm version of the IP
-+ * used in OMAP3630 and OMAP4430
++ * Omap3430 specific VP register values. Maybe these need to come from
++ * board file or PMIC data structure
 + */
-+#define SR_TYPE_V1	1
-+#define SR_TYPE_V2	2
++#define OMAP3430_VP1_VLIMITTO_VDDMIN		0x14
++#define OMAP3430_VP1_VLIMITTO_VDDMAX		0x42
++#define OMAP3430_VP2_VLIMITTO_VDDMAX		0x2C
++#define OMAP3430_VP2_VLIMITTO_VDDMIN		0x18
 +
- /* SMART REFLEX REG ADDRESS OFFSET */
- #define SRCONFIG		0x00
- #define SRSTATUS		0x04
-@@ -27,16 +35,25 @@ extern struct dentry *pm_dbg_main_dir;
- #define SENAVG			0x14
- #define AVGWEIGHT		0x18
- #define NVALUERECIPROCAL	0x1C
--#define SENERROR		0x20
--#define ERRCONFIG		0x24
-+#define SENERROR_V1		0x20
-+#define ERRCONFIG_V1		0x24
-+#define IRQ_EOI			0x20
-+#define IRQSTATUS_RAW		0x24
-+#define IRQSTATUS		0x28
-+#define IRQENABLE_SET		0x2C
-+#define IRQENABLE_CLR		0x30
-+#define SENERROR_V2		0x34
-+#define ERRCONFIG_V2		0x38
- 
- /* Bit/Shift Positions */
- 
- /* SRCONFIG */
- #define SRCONFIG_ACCUMDATA_SHIFT	22
- #define SRCONFIG_SRCLKLENGTH_SHIFT	12
--#define SRCONFIG_SENNENABLE_SHIFT	5
--#define SRCONFIG_SENPENABLE_SHIFT	3
-+#define SRCONFIG_SENNENABLE_V1_SHIFT	5
-+#define SRCONFIG_SENPENABLE_V1_SHIFT	3
-+#define SRCONFIG_SENNENABLE_V2_SHIFT	1
-+#define SRCONFIG_SENPENABLE_V2_SHIFT	0
- #define SRCONFIG_CLKCTRL_SHIFT		0
- 
- #define SRCONFIG_ACCUMDATA_MASK		(0x3FF << 22)
-@@ -66,8 +83,8 @@ extern struct dentry *pm_dbg_main_dir;
- #define SR_ERRMAXLIMIT_MASK		(0xFF << 8)
- #define SR_ERRMINLIMIT_MASK		(0xFF << 0)
- 
--#define ERRCONFIG_VPBOUNDINTEN		BIT(31)
--#define ERRCONFIG_VPBOUNDINTST		BIT(30)
-+#define ERRCONFIG_VPBOUNDINTEN_V1	BIT(31)
-+#define ERRCONFIG_VPBOUNDINTST_V1	BIT(30)
- #define	ERRCONFIG_MCUACCUMINTEN		BIT(29)
- #define ERRCONFIG_MCUACCUMINTST		BIT(28)
- #define	ERRCONFIG_MCUVALIDINTEN		BIT(27)
-@@ -75,13 +92,26 @@ extern struct dentry *pm_dbg_main_dir;
- #define ERRCONFIG_MCUBOUNDINTEN		BIT(25)
- #define	ERRCONFIG_MCUBOUNDINTST		BIT(24)
- #define	ERRCONFIG_MCUDISACKINTEN	BIT(23)
-+#define ERRCONFIG_VPBOUNDINTST_V2	BIT(23)
- #define ERRCONFIG_MCUDISACKINTST	BIT(22)
-+#define ERRCONFIG_VPBOUNDINTEN_V2	BIT(22)
- 
--#define ERRCONFIG_STATUS_MASK		(ERRCONFIG_VPBOUNDINTST | \
-+#define ERRCONFIG_STATUS_V1_MASK	(ERRCONFIG_VPBOUNDINTST_V1 | \
- 					ERRCONFIG_MCUACCUMINTST | \
- 					ERRCONFIG_MCUVALIDINTST | \
- 					ERRCONFIG_MCUBOUNDINTST | \
- 					ERRCONFIG_MCUDISACKINTST)
-+/* IRQSTATUS */
-+#define IRQSTATUS_MCUACCUMINT		BIT(3)
-+#define IRQSTATUS_MCVALIDINT		BIT(2)
-+#define IRQSTATUS_MCBOUNDSINT		BIT(1)
-+#define IRQSTATUS_MCUDISABLEACKINT	BIT(0)
++/*
++ * Omap3630 specific VP register values. Maybe these need to come from
++ * board file or PMIC data structure
++ */
++#define OMAP3630_VP1_VLIMITTO_VDDMIN		0x18
++#define OMAP3630_VP1_VLIMITTO_VDDMAX		0x3C
++#define OMAP3630_VP2_VLIMITTO_VDDMIN		0x18
++#define OMAP3630_VP2_VLIMITTO_VDDMAX		0x30
 +
-+/* IRQENABLE_SET and IRQENABLE_CLEAR */
-+#define IRQENABLE_MCUACCUMINT		BIT(3)
-+#define IRQENABLE_MCUVALIDINT		BIT(2)
-+#define IRQENABLE_MCUBOUNDSINT		BIT(1)
-+#define IRQENABLE_MCUDISABLEACKINT	BIT(0)
+ /* TODO OMAP4 VP register values if the same file is used for OMAP4*/
  
- /* Common Bit values */
+ /**
+diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+index d540ae8..7a94feb 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -169,6 +169,14 @@
+ #define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
+ #define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
  
++/* OMAP3630 only CONTROL_GENERAL register offsets */
++#define OMAP3630_CONTROL_FUSE_OPP50_VDD1	(OMAP2_CONTROL_GENERAL + 0x0114)
++#define OMAP3630_CONTROL_FUSE_OPP100_VDD1	(OMAP2_CONTROL_GENERAL + 0x0118)
++#define OMAP3630_CONTROL_FUSE_OPP120_VDD1	(OMAP2_CONTROL_GENERAL + 0x011C)
++#define OMAP3630_CONTROL_FUSE_OPPTM_VDD1	(OMAP2_CONTROL_GENERAL + 0x0120)
++#define OMAP3630_CONTROL_FUSE_OPP50_VDD2	(OMAP2_CONTROL_GENERAL + 0x0128)
++#define OMAP3630_CONTROL_FUSE_OPP100_VDD2	(OMAP2_CONTROL_GENERAL + 0x012C)
++
+ /* AM35XX only CONTROL_GENERAL register offsets */
+ #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
+ #define AM35XX_CONTROL_DEVCONF2         (OMAP2_CONTROL_GENERAL + 0x0310)
 -- 
 1.7.0.rc1.33.g07cf0f
 
