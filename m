@@ -1,60 +1,63 @@
-From: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>
-Subject: Re: [PATCH 03/13] DSPBRIDGE: Moving functions from mem.c to drv.c
-Date: Fri, 16 Apr 2010 12:36:58 +0200
-Message-ID: <20100416103658.GA18995@lit.local.igalia.com>
-References: <818EF96F5A7CC84789DD014773DB09548F6481CF@dlee01.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] OMAP: LCD LS037V7DW01: By default select backlight
+ driver in Kconfig
+Date: Fri, 16 Apr 2010 16:19:11 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E1371BA@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1271414188-20492-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.mundo-r.com ([212.51.32.191]:41461 "EHLO
-	smtp3.mundo-r.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756331Ab0DPKrR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 06:47:17 -0400
-Content-Disposition: inline
-In-Reply-To: <818EF96F5A7CC84789DD014773DB09548F6481CF@dlee01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45015 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756331Ab0DPKtT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 06:49:19 -0400
+In-Reply-To: <1271414188-20492-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Apr 08, 2010 at 06:47:13PM -0500, Gomez Castellanos, Ivan wrote:
 
-> +/*
-> + *  ======== mem_flush_cache ========
-> + *  Purpose:
-> + *      Flush cache
-> + */
-> +void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType)
-> +{
-> +       if (!pMemBuf)
-> +               return;
-> +
-> +       switch (FlushType) {
-> +               /* invalidate only */
-> +       case PROC_INVALIDATE_MEM:
-> +               dmac_inv_range(pMemBuf, pMemBuf + byte_size);
-> +               outer_inv_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
-> +                                                         byte_size));
-> +               break;
-> +               /* writeback only */
-> +       case PROC_WRITEBACK_MEM:
-> +               dmac_clean_range(pMemBuf, pMemBuf + byte_size);
-> +               outer_clean_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
-> +                                                           byte_size));
-> +               break;
-> +               /* writeback and invalidate */
-> +       case PROC_WRITEBACK_INVALIDATE_MEM:
-> +               dmac_flush_range(pMemBuf, pMemBuf + byte_size);
-> +               outer_flush_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
-> +                                                           byte_size));
-> +               break;
-> +       }
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Friday, April 16, 2010 4:06 PM
+> To: tomi.valkeinen@nokia.com
+> Cc: linux-omap@vger.kernel.org; Hiremath, Vaibhav
+> Subject: [PATCH] OMAP: LCD LS037V7DW01: By default select backlight driver
+> in Kconfig
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  drivers/video/omap2/displays/Kconfig |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/displays/Kconfig
+> b/drivers/video/omap2/displays/Kconfig
+> index dfb57ee..44a6d63 100644
+> --- a/drivers/video/omap2/displays/Kconfig
+> +++ b/drivers/video/omap2/displays/Kconfig
+> @@ -10,6 +10,8 @@ config PANEL_GENERIC
+>  config PANEL_SHARP_LS037V7DW01
+>          tristate "Sharp LS037V7DW01 LCD Panel"
+>          depends on OMAP2_DSS
+> +	select BACKLIGHT_LCD_SUPPORT
+> +	select BACKLIGHT_CLASS_DEVICE
+>          help
+>            LCD Panel used in TI's SDP3430 and EVM boards
+> 
+[Hiremath, Vaibhav] Tomi,
 
-In the commit 702b94bff3c50542a6e4ab9a4f4cef093262fe65 (2.6.34) the functions
-dmac_inv_range and dmac_clean_range were removed.
+Here is the patch which fixes the issue, I have tested it on OMAP3EVM.
 
-I'm wondering how to fix this in order to rebase to 2.6.34.
+Thanks,
+Vaibhav
 
-Thanks
+> --
+> 1.6.2.4
 
-vmjl
