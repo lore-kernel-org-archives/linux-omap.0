@@ -1,98 +1,82 @@
-From: Kan-Ru Chen <kanru@0xlab.org>
-Subject: [RFC] [PATCH] Devkit8000: Use generic panel driver instead of new driver for every panel
-Date: Fri, 16 Apr 2010 16:12:21 +0800
-Message-ID: <1271405541-7048-1-git-send-email-kanru@0xlab.org>
-References: <1271329417.2690.243.camel@tubuntu.research.nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: OMAP 3430SDP i2c boot crash
+Date: Fri, 16 Apr 2010 11:21:27 +0300
+Message-ID: <1271406087.2690.286.camel@tubuntu.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cp20.secserverpros.com ([67.220.217.187]:55615 "EHLO
-	cp20.secserverpros.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757109Ab0DPIOM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 04:14:12 -0400
-Received: from 61-30-10-70.static.tfn.net.tw ([61.30.10.70] helo=kanru.info)
-	by cp20.secserverpros.com with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <kanru@kanru.info>)
-	id 1O2ggZ-0002XE-Ue
-	for linux-omap@vger.kernel.org; Fri, 16 Apr 2010 08:14:08 +0000
-In-Reply-To: <1271329417.2690.243.camel@tubuntu.research.nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:56966 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757109Ab0DPIVp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 04:21:45 -0400
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o3G8LUL8014151
+	for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 11:21:42 +0300
+Received: from [172.21.40.177] (esdhcp040177.research.nokia.com [172.21.40.177])
+	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o3G8LS5w017351
+	for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 11:21:29 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Kan-Ru Chen <kanru@0xlab.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vaibhav Hiremath <hvaibhav@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Thomas Weber <weber@corscience.de>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Instead of use special driver for every new panel, we can use the
-generic driver and modedb database to specify the timing
-information. Now supports 4.3, 5.6 and 7 inch panel.
+Hi,
 
-Signed-off-by: Kan-Ru Chen <kanru@0xlab.org>
----
+I haven't been able to boot my OMAP 3430SDP board with mainstream kernel
+for a while, with the omap_3430sdp_defconfig. Anyone else having
+problems? I don't get anything on the console after "Uncompressing
+Linux... done, booting the kernel.", and Trace32 shows the log below.
 
- Hi!
+ Tomi
 
- Some time ago there was a discussion about implementing a common
- driver for dummy LCDs. I tried the generic-panel and found it can
- cover most panels, by adding new entries to modedb.
 
- I've discussed with Thomas and he think this approach might be
- cleaner. I'd like to know others opinions.
+___address________|0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+ SD:0000:C0424B00 |hsusb2_clk 0x1700 -> 0x0003.<7>mux: Setting signal etk_d12.hsusb2_dir 0x1700 -> 0x010b.<7>mux: Setting signal etk_d13.hsusb2_nxt
+ SD:0000:C0424B80 | 0x1700 -> 0x010b.<7>mux: Setting signal etk_d14.hsusb2_data0 0x1700 -> 0x010b.<7>mux: Setting signal etk_d15.hsusb2_data1 0x170
+ SD:0000:C0424C00 |0 -> 0x010b.<7>mux: Setting signal mcspi1_cs3.hsusb2_data2 0x1708 -> 0x010b.<7>mux: Setting signal mcspi2_cs1.hsusb2_data3 0x170
+ SD:0000:C0424C80 |8 -> 0x010b.<7>mux: Setting signal mcspi2_simo.hsusb2_data4 0x1700 -> 0x010b.<7>mux: Setting signal mcspi2_somi.hsusb2_data5 0x1
+ SD:0000:C0424D00 |700 -> 0x010b.<7>mux: Setting signal mcspi2_cs0.hsusb2_data6 0x1708 -> 0x010b.<7>mux: Setting signal mcspi2_clk.hsusb2_data7 0x1
+ SD:0000:C0424D80 |700 -> 0x010b.<6>OMAP DMA hardware revision 4.0.<4>bio: create slab <bio-0> at 0.<5>SCSI subsystem initialized.<6>usbcore: regis
+ SD:0000:C0424E00 |tered new interface driver usbfs.<6>usbcore: registered new interface driver hub.<6>usbcore: registered new device driver usb.<1
+ SD:0000:C0424E80 |>Unhandled fault: alignment exception (0x801) at 0xfa070009.<0>Internal error: : 801 [#1].<0>last sysfs file: .<4>Modules linked
+ SD:0000:C0424F00 | in:.<4>CPU: 0    Not tainted  (2.6.34-rc4-00014-g7591eef #937).<4>PC is at omap_i2c_unidle+0x4c/0x140.<4>LR is at omap2_dflt_cl
+ SD:0000:C0424F80 |k_enable+0xd8/0xe8.<4>pc : [<c024b8e8>]    lr : [<c0041ca4>]    psr: 60000013.<4>sp : c7c19e60  ip : 00000009  fp : c7c19e74.<4>
+ SD:0000:C0425000 |r10: 00000000  r9 : 00000000  r8 : c03fa908.<4>r7 : c03fac48  r6 : c03fa900  r5 : c7ca0e00  r4 : c7ca0e00.<4>r3 : 00000009  r2 :
+ SD:0000:C0425080 | fa070000  r1 : 00000000  r0 : 00000000.<4>Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel.<4>Control: 10c53
+ SD:0000:C0425100 |87f  Table: 80004019  DAC: 00000017.<0>Process swapper (pid: 1, stack limit = 0xc7c182e8).<0>Stack: (0xc7c19e60 to 0xc7c1a000).<
+ SD:0000:C0425180 |0>9e60: c03f521c c7ca0e00 c7c19eac c7c19e78 c02f7e9c c024b8a8 00000000 c0416110.<0>9e80: c7c19e9c c7c19e90 c00fe430 c03fa908 c03
+ SD:0000:C0425200 |fa908 c041bac0 c7ca3cc0 c0416110.<0>9ea0: c7c19ebc c7c19eb0 c01e8d60 c02f7cf8 c7c19edc c7c19ec0 c01e7d38 c01e8d4c.<0>9ec0: c03fa
+ SD:0000:C0425280 |908 c03fa93c c041bac0 c7ca3cc0 c7c19efc c7c19ee0 c01e7e58 c01e7c7c.<0>9ee0: 00000000 c01e7df0 c041bac0 c7ca3cc0 c7c19f24 c7c19f0
+ SD:0000:C0425300 |0 c01e7514 c01e7dfc.<0>9f00: c7c04af8 c7c445f0 c0194238 c0026ba4 c041bac0 c041bac0 c7c19f34 c7c19f28.<0>9f20: c01e7b84 c01e74d0
+ SD:0000:C0425380 |c7c19f64 c7c19f38 c01e6df4 c01e7b70 c03c051a 00000000.<0>9f40: c0026ba4 00000000 c041bac0 00000000 00000000 00000000 c7c19f8c c7
+ SD:0000:C0425400 |c19f68.<0>9f60: c01e8194 c01e6d58 c0026ba4 00000000 c0020018 00000000 00000000 00000000.<0>9f80: c7c19f9c c7c19f90 c01e9204 c01e
+ SD:0000:C0425480 |80f0 c7c19fac c7c19fa0 c002002c c01e91c4.<0>9fa0: c7c19fdc c7c19fb0 c0031374 c0020024 00000000 00000000 c7c19fdc c7c19fc8.<0>9fc
+ SD:0000:C0425500 |0: c0026ba4 00000000 00000000 00000000 c7c19ff4 c7c19fe0 c00085f4 c003131c.<0>9fe0: 00000000 00000000 00000000 c7c19ff8 c0060304
+ SD:0000:C0425580 | c0008568 28050809 01004804.<4>Backtrace: .<4>[<c024b89c>] (omap_i2c_unidle+0x0/0x140) from [<c02f7e9c>] (omap_i2c_probe+0x1b0/0
+ SD:0000:C0425600 |x3a4).<4> r5:c7ca0e00 r4:c03f521c.<4>[<c02f7cec>] (omap_i2c_probe+0x0/0x3a4) from [<c01e8d60>] (platform_drv_probe+0x20/0x24).<4
+ SD:0000:C0425680 |> r8:c0416110 r7:c7ca3cc0 r6:c041bac0 r5:c03fa908 r4:c03fa908.<4>[<c01e8d40>] (platform_drv_probe+0x0/0x24) from [<c01e7d38>] (d
+ SD:0000:C0425700 |river_probe_device+0xc8/0x180).<4>[<c01e7c70>] (driver_probe_device+0x0/0x180) from [<c01e7e58>] (__driver_attach+0x68/0x8c).<4>
+ SD:0000:C0425780 | r7:c7ca3cc0 r6:c041bac0 r5:c03fa93c r4:c03fa908.<4>[<c01e7df0>] (__driver_attach+0x0/0x8c) from [<c01e7514>] (bus_for_each_dev+
+ SD:0000:C0425800 |0x50/0x84).<4> r7:c7ca3cc0 r6:c041bac0 r5:c01e7df0 r4:00000000.<4>[<c01e74c4>] (bus_for_each_dev+0x0/0x84) from [<c01e7b84>] (dr
+ SD:0000:C0425880 |iver_attach+0x20/0x28).<4> r6:c041bac0 r5:c041bac0 r4:c0026ba4.<4>[<c01e7b64>] (driver_attach+0x0/0x28) from [<c01e6df4>] (bus_a
+ SD:0000:C0425900 |dd_driver+0xa8/0x230).<4>[<c01e6d4c>] (bus_add_driver+0x0/0x230) from [<c01e8194>] (driver_register+0xb0/0x138).<4>[<c01e80e4>]
+ SD:0000:C0425980 |(driver_register+0x0/0x138) from [<c01e9204>] (platform_driver_register+0x4c/0x60).<4> r9:00000000 r8:00000000 r7:00000000 r6:c0
+ SD:0000:C0425A00 |020018 r5:00000000.<4>r4:c0026ba4.<4>[<c01e91b8>] (platform_driver_register+0x0/0x60) from [<c002002c>] (omap_i2c_init_driver+0x
+ SD:0000:C0425A80 |14/0x1c).<4>[<c0020018>] (omap_i2c_init_driver+0x0/0x1c) from [<c0031374>] (do_one_initcall+0x64/0x1bc).<4>[<c0031310>] (do_one_
+ SD:0000:C0425B00 |initcall+0x0/0x1bc) from [<c00085f4>] (kernel_init+0x98/0x14c).<4> r7:00000000 r6:00000000 r5:00000000 r4:c0026ba4.<4>[<c000855c
+ SD:0000:C0425B80 |>] (kernel_init+0x0/0x14c) from [<c0060304>] (do_exit+0x0/0x59c).<4> r5:00000000 r4:00000000.<0>Code: e5942004 e3a0c009 e1a0331c
+ SD:0000:C0425C00 | e3a01000 (e18210b3) .<4>---[ end trace 1b75b31a2719ed1c ]---.<0>Kernel panic - not syncing: Attempted to kill init!............
+ SD:0000:C0425C80 |................................................................................................................................
+ SD:0000:C0425D00 |................................................................................................................................
+ SD:0000:C0425D80 |................................................................................................................................
+ SD:0000:C0425E00 |................................................................................................................................
+ SD:0000:C0425E80 |................................................................................................................................
+ SD:0000:C0425F00 |................................................................................................................................
+ SD:0000:C0425F80 |................................................................................................................................
+ SD:0000:C0426000 |................................................................................................................................
+ SD:0000:C0426080 |................................................................................................................................
+ SD:0000:C0426100 |................................................................................................................................
+ SD:0000:C0426180 |................................................................................................................................
+ SD:0000:C0426200 |................................................................................................................................
 
- arch/arm/mach-omap2/board-devkit8000.c       |    3 ++-
- drivers/video/modedb.c                       |   12 ++++++++++++
- drivers/video/omap2/displays/panel-generic.c |    3 ++-
- 3 files changed, 16 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 5bfc13b..4f52dfd 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -172,8 +172,9 @@ static struct regulator_consumer_supply devkit8000_vsim_supply = {
- 
- static struct omap_dss_device devkit8000_lcd_device = {
- 	.name                   = "lcd",
--	.driver_name            = "innolux_at_panel",
-+	.driver_name            = "generic_panel",
- 	.type                   = OMAP_DISPLAY_TYPE_DPI,
-+	.panel.config           = OMAP_DSS_LCD_TFT|OMAP_DSS_LCD_IVS|OMAP_DSS_LCD_IHS,
- 	.phy.dpi.data_lines     = 24,
- 	.platform_enable        = devkit8000_panel_enable_lcd,
- 	.platform_disable       = devkit8000_panel_disable_lcd,
-diff --git a/drivers/video/modedb.c b/drivers/video/modedb.c
-index b895aae..89bb3e5 100644
---- a/drivers/video/modedb.c
-+++ b/drivers/video/modedb.c
-@@ -273,6 +273,18 @@ static const struct fb_videomode modedb[] = {
-        /* 800x520i @ 50 Hz, 15.625 kHz hsync (PAL RGB) */
-        NULL, 50, 800, 520, 58823, 144, 64, 72, 28, 80, 5,
-        0, FB_VMODE_INTERLACED
-+    }, {
-+       /* 480x272 @ 60 Hz, Devkit8000 4.3 inch LCD */
-+       NULL, 60, 480, 272, 111000, 2, 2, 2, 2, 41, 10,
-+       0, FB_VMODE_NONINTERLACED
-+    }, {
-+       /* 640x480 @ 60 Hz, Devkit8000 5.6 inch LCD */
-+       NULL, 60, 640, 480, 39682, 16, 143, 32, 12, 1, 1,
-+       0, FB_VMODE_NONINTERLACED
-+    }, {
-+       /* 800x480 @ 60 Hz, Devkit8000 7 inch LCD */
-+       NULL, 60, 800, 480, 24855, 210, 45, 132, 22, 1, 1,
-+       0, FB_VMODE_NONINTERLACED
-     },
- };
- 
-diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/video/omap2/displays/panel-generic.c
-index 300eff5..b0a5599 100644
---- a/drivers/video/omap2/displays/panel-generic.c
-+++ b/drivers/video/omap2/displays/panel-generic.c
-@@ -66,7 +66,8 @@ static void generic_panel_power_off(struct omap_dss_device *dssdev)
- 
- static int generic_panel_probe(struct omap_dss_device *dssdev)
- {
--	dssdev->panel.config = OMAP_DSS_LCD_TFT;
-+	if (dssdev->panel.config == 0)
-+		dssdev->panel.config = OMAP_DSS_LCD_TFT;
- 	dssdev->panel.timings = generic_panel_timings;
- 
- 	return 0;
--- 
-1.7.0.4
 
