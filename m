@@ -1,120 +1,209 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC] [PATCH] Devkit8000: Use generic panel driver instead of
- new driver for every panel
-Date: Fri, 16 Apr 2010 13:58:07 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E137135@dbde02.ent.ti.com>
-References: <1271329417.2690.243.camel@tubuntu.research.nokia.com>
- <1271405541-7048-1-git-send-email-kanru@0xlab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH v6] board-omap3-beagle: add DSS2 support
+Date: Fri, 16 Apr 2010 10:38:22 +0200
+Message-ID: <35BE594D-A567-4C77-A78C-58D20511533C@dominion.thruhere.net>
+References: <1271321551-28634-1-git-send-email-koen@dominion.thruhere.net>
+Mime-Version: 1.0 (Apple Message framework v1078)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54031 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756204Ab0DPI2R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 04:28:17 -0400
-In-Reply-To: <1271405541-7048-1-git-send-email-kanru@0xlab.org>
-Content-Language: en-US
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:56980 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753696Ab0DPIig convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 04:38:36 -0400
+Received: by wyb39 with SMTP id 39so991932wyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 01:38:33 -0700 (PDT)
+In-Reply-To: <1271321551-28634-1-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kan-Ru Chen <kanru@0xlab.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Thomas Weber <weber@corscience.de>
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>
 
+No more comments on this one? Can it go into Tony's tree now?
 
-> -----Original Message-----
-> From: Kan-Ru Chen [mailto:kanru@0xlab.org]
-> Sent: Friday, April 16, 2010 1:42 PM
-> To: Tomi Valkeinen
-> Cc: Kan-Ru Chen; linux-omap@vger.kernel.org; Hiremath, Vaibhav; linux-
-> fbdev@vger.kernel.org; Thomas Weber
-> Subject: [RFC] [PATCH] Devkit8000: Use generic panel driver instead of new
-> driver for every panel
+Op 15 apr 2010, om 10:52 heeft Koen Kooi het volgende geschreven:
+
+> This patch adds DSS2 support to the beagleboard boardfile. DVI and TV-out are supported.
 > 
-> Instead of use special driver for every new panel, we can use the
-> generic driver and modedb database to specify the timing
-> information. Now supports 4.3, 5.6 and 7 inch panel.
-[Hiremath, Vaibhav] Yes we are using modedb with generic panel, infact with our all internal releases we are supporting 480P and 720P DVI output using generic driver.
-
-> 
-> Signed-off-by: Kan-Ru Chen <kanru@0xlab.org>
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 > ---
 > 
->  Hi!
+> Changes since v1:
+>        * removed beagle_panel_enable_tv() and beagle_panel_disable_tv()
+> Changes since v2:
+>        * changed to REGULATOR_SUPPLY(_name, _dev_name) for dss regulators
+> Changes since v3:
+>        * really remove beagle_panel_enable_tv() and beagle_panel_disable_tv()
+>        * moved comments to this section
+> Changes since v4:
+>        * remove trailing whitespace
+> Changes since v5:
+>        * fix semicolon typo
 > 
->  Some time ago there was a discussion about implementing a common
->  driver for dummy LCDs. I tried the generic-panel and found it can
->  cover most panels, by adding new entries to modedb.
+> arch/arm/mach-omap2/board-omap3beagle.c |  102 ++++++++++++++++++++++--------
+> 1 files changed, 75 insertions(+), 27 deletions(-)
 > 
->  I've discussed with Thomas and he think this approach might be
->  cleaner. I'd like to know others opinions.
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 962d377..43d3e7d 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -39,6 +39,7 @@
 > 
->  arch/arm/mach-omap2/board-devkit8000.c       |    3 ++-
->  drivers/video/modedb.c                       |   12 ++++++++++++
->  drivers/video/omap2/displays/panel-generic.c |    3 ++-
->  3 files changed, 16 insertions(+), 2 deletions(-)
+> #include <plat/board.h>
+> #include <plat/common.h>
+> +#include <plat/display.h>
+> #include <plat/gpmc.h>
+> #include <plat/nand.h>
+> #include <plat/usb.h>
+> @@ -106,6 +107,77 @@ static struct platform_device omap3beagle_nand_device = {
+> 	.resource	= &omap3beagle_nand_resource,
+> };
 > 
-> diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-
-> omap2/board-devkit8000.c
-> index 5bfc13b..4f52dfd 100644
-> --- a/arch/arm/mach-omap2/board-devkit8000.c
-> +++ b/arch/arm/mach-omap2/board-devkit8000.c
-> @@ -172,8 +172,9 @@ static struct regulator_consumer_supply
-> devkit8000_vsim_supply = {
+> +/* DSS */
+> +
+> +static int beagle_enable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	if (dssdev->reset_gpio != -1)
+> +		gpio_set_value(dssdev->reset_gpio, 1);
+> +
+> +	return 0;
+> +}
+> +
+> +static void beagle_disable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	if (dssdev->reset_gpio != -1)
+> +		gpio_set_value(dssdev->reset_gpio, 0);
+> +}
+> +
+> +static struct omap_dss_device beagle_dvi_device = {
+> +	.type = OMAP_DISPLAY_TYPE_DPI,
+> +	.name = "dvi",
+> +	.driver_name = "generic_panel",
+> +	.phy.dpi.data_lines = 24,
+> +	.reset_gpio = 170,
+> +	.platform_enable = beagle_enable_dvi,
+> +	.platform_disable = beagle_disable_dvi,
+> +};
+> +
+> +static struct omap_dss_device beagle_tv_device = {
+> +	.name = "tv",
+> +	.driver_name = "venc",
+> +	.type = OMAP_DISPLAY_TYPE_VENC,
+> +	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
+> +};
+> +
+> +static struct omap_dss_device *beagle_dss_devices[] = {
+> +	&beagle_dvi_device,
+> +	&beagle_tv_device,
+> +};
+> +
+> +static struct omap_dss_board_info beagle_dss_data = {
+> +	.num_devices = ARRAY_SIZE(beagle_dss_devices),
+> +	.devices = beagle_dss_devices,
+> +	.default_device = &beagle_dvi_device,
+> +};
+> +
+> +static struct platform_device beagle_dss_device = {
+> +	.name          = "omapdss",
+> +	.id            = -1,
+> +	.dev            = {
+> +		.platform_data = &beagle_dss_data,
+> +	},
+> +};
+> +
+> +static struct regulator_consumer_supply beagle_vdac_supply =
+> +	REGULATOR_SUPPLY("vdda_dac", "omapdss");
+> +
+> +static struct regulator_consumer_supply beagle_vdvi_supply =
+> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
+> +
+> +static void __init beagle_display_init(void)
+> +{
+> +	int r;
+> +
+> +	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
+> +	if (r < 0) {
+> +		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
+> +		return;
+> +	}
+> +
+> +	gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
+> +}
+> +
+> #include "sdram-micron-mt46h32m32lf-6.h"
 > 
->  static struct omap_dss_device devkit8000_lcd_device = {
->  	.name                   = "lcd",
-> -	.driver_name            = "innolux_at_panel",
-> +	.driver_name            = "generic_panel",
->  	.type                   = OMAP_DISPLAY_TYPE_DPI,
-> +	.panel.config           =
-> OMAP_DSS_LCD_TFT|OMAP_DSS_LCD_IVS|OMAP_DSS_LCD_IHS,
->  	.phy.dpi.data_lines     = 24,
->  	.platform_enable        = devkit8000_panel_enable_lcd,
->  	.platform_disable       = devkit8000_panel_disable_lcd,
-> diff --git a/drivers/video/modedb.c b/drivers/video/modedb.c
-> index b895aae..89bb3e5 100644
-> --- a/drivers/video/modedb.c
-> +++ b/drivers/video/modedb.c
-> @@ -273,6 +273,18 @@ static const struct fb_videomode modedb[] = {
->         /* 800x520i @ 50 Hz, 15.625 kHz hsync (PAL RGB) */
->         NULL, 50, 800, 520, 58823, 144, 64, 72, 28, 80, 5,
->         0, FB_VMODE_INTERLACED
-> +    }, {
-> +       /* 480x272 @ 60 Hz, Devkit8000 4.3 inch LCD */
-> +       NULL, 60, 480, 272, 111000, 2, 2, 2, 2, 41, 10,
-> +       0, FB_VMODE_NONINTERLACED
-> +    }, {
-> +       /* 640x480 @ 60 Hz, Devkit8000 5.6 inch LCD */
-> +       NULL, 60, 640, 480, 39682, 16, 143, 32, 12, 1, 1,
-> +       0, FB_VMODE_NONINTERLACED
-> +    }, {
-> +       /* 800x480 @ 60 Hz, Devkit8000 7 inch LCD */
-> +       NULL, 60, 800, 480, 24855, 210, 45, 132, 22, 1, 1,
-> +       0, FB_VMODE_NONINTERLACED
->      },
-[Hiremath, Vaibhav] I would suggest not to specify board name here instead you can specify LCD name here.
-
-Thanks,
-Vaibhav
-
->  };
+> static struct omap2_hsmmc_info mmc[] = {
+> @@ -117,15 +189,6 @@ static struct omap2_hsmmc_info mmc[] = {
+> 	{}	/* Terminator */
+> };
 > 
-> diff --git a/drivers/video/omap2/displays/panel-generic.c
-> b/drivers/video/omap2/displays/panel-generic.c
-> index 300eff5..b0a5599 100644
-> --- a/drivers/video/omap2/displays/panel-generic.c
-> +++ b/drivers/video/omap2/displays/panel-generic.c
-> @@ -66,7 +66,8 @@ static void generic_panel_power_off(struct omap_dss_device
-> *dssdev)
+> -static struct platform_device omap3_beagle_lcd_device = {
+> -	.name		= "omap3beagle_lcd",
+> -	.id		= -1,
+> -};
+> -
+> -static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
+> -	.ctrl_name	= "internal",
+> -};
+> -
+> static struct regulator_consumer_supply beagle_vmmc1_supply = {
+> 	.supply			= "vmmc",
+> };
+> @@ -181,16 +244,6 @@ static struct twl4030_gpio_platform_data beagle_gpio_data = {
+> 	.setup		= beagle_twl_gpio_setup,
+> };
 > 
->  static int generic_panel_probe(struct omap_dss_device *dssdev)
->  {
-> -	dssdev->panel.config = OMAP_DSS_LCD_TFT;
-> +	if (dssdev->panel.config == 0)
-> +		dssdev->panel.config = OMAP_DSS_LCD_TFT;
->  	dssdev->panel.timings = generic_panel_timings;
+> -static struct regulator_consumer_supply beagle_vdac_supply = {
+> -	.supply		= "vdac",
+> -	.dev		= &omap3_beagle_lcd_device.dev,
+> -};
+> -
+> -static struct regulator_consumer_supply beagle_vdvi_supply = {
+> -	.supply		= "vdvi",
+> -	.dev		= &omap3_beagle_lcd_device.dev,
+> -};
+> -
+> /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+> static struct regulator_init_data beagle_vmmc1 = {
+> 	.constraints = {
+> @@ -349,14 +402,8 @@ static struct platform_device keys_gpio = {
+> 	},
+> };
 > 
->  	return 0;
-> --
-> 1.7.0.4
+> -static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+> -	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
+> -};
+> -
+> static void __init omap3_beagle_init_irq(void)
+> {
+> -	omap_board_config = omap3_beagle_config;
+> -	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+> 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+> 			     mt46h32m32lf6_sdrc_params);
+> 	omap_init_irq();
+> @@ -367,9 +414,9 @@ static void __init omap3_beagle_init_irq(void)
+> }
+> 
+> static struct platform_device *omap3_beagle_devices[] __initdata = {
+> -	&omap3_beagle_lcd_device,
+> 	&leds_gpio,
+> 	&keys_gpio,
+> +	&beagle_dss_device,
+> };
+> 
+> static void __init omap3beagle_flash_init(void)
+> @@ -456,8 +503,9 @@ static void __init omap3_beagle_init(void)
+> 	/* Ensure SDRC pins are mux'd for self-refresh */
+> 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+> 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+> -}
+> 
+> +	beagle_display_init();
+> +}
+> static void __init omap3_beagle_map_io(void)
+> {
+> 	omap2_set_globals_343x();
+> -- 
+> 1.6.6.1
+> 
 
