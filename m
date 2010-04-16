@@ -1,77 +1,39 @@
-From: Mike Turquette <mturquette@gmail.com>
-Subject: [PATCH 3/3] HACK: OMAP3630: PM: allow testing of DVFS & FBB
-Date: Fri, 16 Apr 2010 16:33:23 -0500
-Message-ID: <1271453603-21929-4-git-send-email-mturquette@ti.com>
-References: <1271453603-21929-1-git-send-email-mturquette@ti.com>
+From: kshen <kshen@cisco.com>
+Subject: OMAP camera port connected to Davinci VPIF port
+Date: Fri, 16 Apr 2010 15:00:36 -0700
+Message-ID: <C7EE2C14.2B621%kshen@cisco.com>
+References: <4BC8BA17.5060200@mlbassoc.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f199.google.com ([209.85.210.199]:62370 "EHLO
-	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932525Ab0DPVeH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 17:34:07 -0400
-Received: by yxe37 with SMTP id 37so1682877yxe.21
-        for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 14:34:06 -0700 (PDT)
-In-Reply-To: <1271453603-21929-1-git-send-email-mturquette@ti.com>
+Received: from sj-iport-6.cisco.com ([171.71.176.117]:39227 "EHLO
+	sj-iport-6.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757854Ab0DPWAh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 18:00:37 -0400
+Received: from xbh-sjc-211.amer.cisco.com (xbh-sjc-211.cisco.com [171.70.151.144])
+	by sj-core-5.cisco.com (8.13.8/8.14.3) with ESMTP id o3GM0ae0024970
+	for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 22:00:37 GMT
+In-Reply-To: <4BC8BA17.5060200@mlbassoc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>, Shweta Gulati <shweta.gulati@ti.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@ti.com>
+To: OMAP Linux discussion <linux-omap@vger.kernel.org>
 
-This hack should not be applied to any git trees.
+Hi,
 
-Enables 800MHz and 1GHz OPPs on VDD1 for 36XX silicon and bypasses an
-error condition in vp_forceupdate_scale_voltage to allow for voltage
-scaling to happen in the absence of complete SmartReflex support.
+On a board I'm working on, it has the OMAP 3530's camera port connected to
+the Davinci DM6467's VPIF port. The Davince is supposed to send BT656 stream
+over this link to OMAP. How to get the OMAP camera driver to work in this
+situation?
 
-These changes are needed to allow DVFS transitions via cpufreq on top of
-pm-wip-sr and to test the FBB transitions that only happen @ 1GHz on
-3630.
+In kernel config, I set the CONFIG_VIDEO_OMAP3_CAM=yes option. I saw that
+omap34xxcam.c got compiled and the omap34xxcam device got probed during boot
+up. But I don't get a /dev/video0 node.
 
-Not-Signed-Off-By: Mike Turquette <mturquette@ti.com>
----
- arch/arm/mach-omap2/cpufreq34xx.c |    8 ++++----
- arch/arm/mach-omap2/voltage.c     |    1 -
- 2 files changed, 4 insertions(+), 5 deletions(-)
+Do I need to write a specific driver for the Davinci VPIF interface? What
+else do I need to do?
 
-diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
-index 189c42e..47913dc 100644
---- a/arch/arm/mach-omap2/cpufreq34xx.c
-+++ b/arch/arm/mach-omap2/cpufreq34xx.c
-@@ -80,9 +80,9 @@ static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
- 	/* OPP2 - OPP100 */
- 	OMAP_OPP_DEF(true,  600000000, 1100000),
- 	/* OPP3 - OPP-Turbo */
--	OMAP_OPP_DEF(false, 800000000, 1260000),
-+	OMAP_OPP_DEF(true, 800000000, 1260000),
- 	/* OPP4 - OPP-SB */
--	OMAP_OPP_DEF(false, 1000000000, 1350000),
-+	OMAP_OPP_DEF(true, 1000000000, 1350000),
- 	/* Terminator */
- 	OMAP_OPP_DEF(0, 0, 0)
- };
-@@ -102,9 +102,9 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
- 	/* OPP2 - OPP100 */
- 	OMAP_OPP_DEF(true,  520000000, 1100000),
- 	/* OPP3 - OPP-Turbo */
--	OMAP_OPP_DEF(false, 660000000, 1260000),
-+	OMAP_OPP_DEF(true, 660000000, 1260000),
- 	/* OPP4 - OPP-SB */
--	OMAP_OPP_DEF(false, 800000000, 1350000),
-+	OMAP_OPP_DEF(true, 800000000, 1350000),
- 	/* Terminator */
- 	OMAP_OPP_DEF(0, 0, 0)
- };
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 98d8bb3..bec8c18 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -571,7 +571,6 @@ static int vp_forceupdate_scale_voltage(u32 vdd, unsigned long target_volt,
- 			pr_warning("Unable to get voltage table for VDD%d \
- 				during voltage scaling. Some really Wrong!",
- 				vdd + 1);
--			return false;
- 		}
- 		vp_reg[vdd].vp_errorgain = (volt_data.vp_errorgain <<
- 				OMAP3430_ERRORGAIN_SHIFT);
--- 
-1.6.3.2
+Thanks,
+Ke
 
