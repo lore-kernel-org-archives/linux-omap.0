@@ -1,199 +1,122 @@
 From: Mike Turquette <mturquette@gmail.com>
-Subject: [PATCH 2/3] OMAP3630: PM: implement Foward Body-Bias for OPP1G
-Date: Fri, 16 Apr 2010 16:33:22 -0500
-Message-ID: <1271453603-21929-3-git-send-email-mturquette@ti.com>
+Subject: [PATCH 1/3] OMAP: PM: update PRM registers for ABB
+Date: Fri, 16 Apr 2010 16:33:21 -0500
+Message-ID: <1271453603-21929-2-git-send-email-mturquette@ti.com>
 References: <1271453603-21929-1-git-send-email-mturquette@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:45575 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932521Ab0DPVeE (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:55072 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932503Ab0DPVeE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 17:34:04 -0400
-Received: by pwj9 with SMTP id 9so2363388pwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 14:34:04 -0700 (PDT)
+Received: by gyg13 with SMTP id 13so1563039gyg.19
+        for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 14:34:02 -0700 (PDT)
 In-Reply-To: <1271453603-21929-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>, Shweta Gulati <shweta.gulati@ti.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@ti.com>
 
-Introduces voltscale_adaptive_body_bias function to voltage.c.
-voltscale_adaptive_body_bias is called by omap_voltage_scale after a
-voltage transition has occured.  Currently voltscale_adaptive_body_bias
-only implements Forward Body-Bias (FBB) for OMAP3630 when MPU runs at
-1GHz or higher.  In the future Reverse Body-Bias might be included.
+PRCM on OMAP devices using the 45nm process support Adaptive Body Bias
+ldo as well as some new MPU interrupts related to voltage control.
+These devices currently include OMAP 3630 and 4430.  This patch adds
+these bitfields to the appropriate headers.
 
-FBB is an Adaptive Body-Bias technique to boost performance for weak
-process devices at high OPPs. This results in voltage boost on the VDD1
-PMOS back gates when running at maximum OPP.  Current recommendations
-are to enable FBB on all 3630 regardless of silicon characteristics and
-EFUSE values.
+Also adds register offset for OMAP36XX_CONTROL_VBBLDO_EFUSE_CTRL.
+Though currently unused it might be used in the future to enable other
+ABB features such as active RBB and sleep RBB based on silicon
+characteristics.
 
-ABB applies to all OMAP silicon based on 45nm process, which includes
-OMAP4.  OMAP4 recommendations for ABB are not complete and will be added
-to voltscale_adaptive_body_bias in the future.
+OMAP3630_VC_BYPASS_ACK_EN, OMAP3630_VC_VP1_ACK_EN &
+OMAP3630_ABB_LDO_TRANXDONE_EN have been added for completeness sake, but
+these interrupts do not have to be enabled to poll on their
+corresponding status bits.
 
 Signed-off-by: Mike Turquette <mturquette@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c |  129 ++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 127 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/prm-regbits-34xx.h    |   22 ++++++++++++++++++++++
+ arch/arm/mach-omap2/prm.h                 |    6 ++++++
+ arch/arm/plat-omap/include/plat/control.h |    4 ++++
+ 3 files changed, 32 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index c2c8192..98d8bb3 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -37,6 +37,11 @@
- #define VP_IDLE_TIMEOUT		200
- #define VP_TRANXDONE_TIMEOUT	300
+diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+index 0066693..58c9765 100644
+--- a/arch/arm/mach-omap2/prm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+@@ -212,6 +212,9 @@
+ /* PRM_SYSCONFIG specific bits */
  
-+#define ABB_MAX_SETTLING_TIME	30
-+#define ABB_FAST_OPP		1
-+#define ABB_NOMINAL_OPP		2
-+#define ABB_SLOW_OPP		3
-+
- /**
-  * OMAP3 Voltage controller SR parameters. TODO: Pass this info as part of
-  * board data or PMIC data
-@@ -635,6 +640,118 @@ static int vp_forceupdate_scale_voltage(u32 vdd, unsigned long target_volt,
- }
+ /* PRM_IRQSTATUS_MPU specific bits */
++#define OMAP3630_VC_BYPASS_ACK_ST			(1 << 28)
++#define OMAP3630_VC_VP1_ACK_ST				(1 << 27)
++#define OMAP3630_ABB_LDO_TRANXDONE_ST			(1 << 26)
+ #define OMAP3430ES2_SND_PERIPH_DPLL_ST_SHIFT		25
+ #define OMAP3430ES2_SND_PERIPH_DPLL_ST			(1 << 25)
+ #define OMAP3430_VC_TIMEOUTERR_ST			(1 << 24)
+@@ -244,6 +247,9 @@
+ #define OMAP3430_FS_USB_WKUP_ST				(1 << 1)
  
- /**
-+ * voltscale_adaptive_body_bias - controls ABB ldo during voltage scaling
-+ * @target_volt: target voltage determines if ABB ldo is active or bypassed
-+ *
-+ * Adaptive Body-Bias is a technique in all OMAP silicon that uses the 45nm
-+ * process.  ABB can boost voltage in high OPPs for silicon with weak
-+ * characteristics (forward Body-Bias) as well as lower voltage in low OPPs
-+ * for silicon with strong characteristics (Reverse Body-Bias).
-+ *
-+ * Only Foward Body-Bias for operating at high OPPs is implemented below, per
-+ * recommendations from silicon team.
-+ * Reverse Body-Bias for saving power in active cases and sleep cases is not
-+ * yet implemented.
-+ * OMAP4 hardward also supports ABB ldo, but no recommendations have been made
-+ * to implement it yet.
-+ */
-+int voltscale_adaptive_body_bias(unsigned long target_volt)
-+{
-+	u32 sr2en_enabled;
-+	int timeout;
-+	int sr2_wtcnt_value;
-+
-+	/* calculate SR2_WTCNT_VALUE settling time */
-+	sr2_wtcnt_value = (ABB_MAX_SETTLING_TIME *
-+			(clk_get_rate("sys_ck") / 1000000) / 8);
-+
-+	/* has SR2EN been enabled previously? */
-+	sr2en_enabled = (prm_read_mod_reg(OMAP3430_GR_MOD,
-+				OMAP3_PRM_LDO_ABB_CTRL_OFFSET) &
-+			OMAP3630_SR2EN);
-+
-+	/* select fast, nominal or slow OPP for ABB ldo */
-+	/* FIXME: include OMAP4 once recommendations are complete */
-+	if (cpu_is_omap3630() && (target_volt >= 1350000)) {
-+		/* program for fast opp - enable FBB */
-+		prm_rmw_mod_reg_bits(OMAP3630_OPP_SEL_MASK,
-+				(ABB_FAST_OPP << OMAP3630_OPP_SEL_SHIFT),
-+				OMAP3430_GR_MOD,
-+				OMAP3_PRM_LDO_ABB_SETUP_OFFSET);
-+
-+		/* enable the ABB ldo if not done already */
-+		if (!sr2en_enabled)
-+			prm_set_mod_reg_bits(OMAP3630_SR2EN,
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_LDO_ABB_CTRL_OFFSET);
-+	} else if (sr2en_enabled) {
-+		/* program for nominal opp - bypass ABB ldo */
-+		prm_rmw_mod_reg_bits(OMAP3630_OPP_SEL_MASK,
-+				(ABB_NOMINAL_OPP << OMAP3630_OPP_SEL_SHIFT),
-+				OMAP3430_GR_MOD,
-+				OMAP3_PRM_LDO_ABB_SETUP_OFFSET);
-+	} else {
-+		/* nothing to do here yet... might enable RBB here someday */
-+		return 0;
-+	}
-+
-+	/* set ACTIVE_FBB_SEL for all 45nm silicon */
-+	prm_set_mod_reg_bits(OMAP3630_ACTIVE_FBB_SEL,
-+			OMAP3430_GR_MOD,
-+			OMAP3_PRM_LDO_ABB_CTRL_OFFSET);
-+
-+	/* program settling time of 30us for ABB ldo transition */
-+	prm_rmw_mod_reg_bits(OMAP3630_SR2_WTCNT_VALUE_MASK,
-+			(sr2_wtcnt_value << OMAP3630_SR2_WTCNT_VALUE_SHIFT),
-+			OMAP3430_GR_MOD,
-+			OMAP3_PRM_LDO_ABB_CTRL_OFFSET);
-+
-+	/* clear ABB ldo interrupt status */
-+	prm_write_mod_reg(OMAP3630_ABB_LDO_TRANXDONE_ST,
-+			OCP_MOD,
-+			OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
-+
-+	/* enable ABB LDO OPP change */
-+	prm_set_mod_reg_bits(OMAP3630_OPP_CHANGE,
-+			OMAP3430_GR_MOD,
-+			OMAP3_PRM_LDO_ABB_SETUP_OFFSET);
-+
-+	timeout = 0;
-+
-+	/* wait until OPP change completes */
-+	while ((timeout < ABB_MAX_SETTLING_TIME ) &&
-+			(!(prm_read_mod_reg(OCP_MOD,
-+					    OMAP2_PRCM_IRQSTATUS_MPU_OFFSET) &
-+			   OMAP3630_ABB_LDO_TRANXDONE_ST))) {
-+		udelay(1);
-+		timeout++;
-+	}
-+
-+	if (timeout == ABB_MAX_SETTLING_TIME)
-+		pr_debug("ABB: TRANXDONE timed out waiting for OPP change\n");
-+
-+	timeout = 0;
-+
-+	/* Clear all pending TRANXDONE interrupts/status */
-+	while (timeout < ABB_MAX_SETTLING_TIME) {
-+		prm_write_mod_reg(OMAP3630_ABB_LDO_TRANXDONE_ST,
-+				OCP_MOD,
-+				OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
-+		if (!(prm_read_mod_reg(OCP_MOD,
-+						OMAP2_PRCM_IRQSTATUS_MPU_OFFSET)
-+					& OMAP3630_ABB_LDO_TRANXDONE_ST))
-+			break;
-+
-+		udelay(1);
-+		timeout++;
-+	}
-+	if (timeout == ABB_MAX_SETTLING_TIME)
-+		pr_debug("ABB: TRANXDONE timed out trying to clear status\n");
-+
-+	return 0;
-+}
-+
-+/**
-  * get_curr_vdd1_voltage : Gets the current non-auto-compensated vdd1 voltage
-  *
-  * This is a temporary placeholder for this API. This should ideally belong
-@@ -758,11 +875,19 @@ void omap_voltageprocessor_disable(int vp_id)
- int omap_voltage_scale(int vdd, unsigned long target_volt,
- 					unsigned long current_volt)
- {
-+	int ret;
-+
- 	if (voltscale_vpforceupdate)
--		return vp_forceupdate_scale_voltage(vdd, target_volt,
-+		ret = vp_forceupdate_scale_voltage(vdd, target_volt,
- 								current_volt);
- 	else
--		return vc_bypass_scale_voltage(vdd, target_volt, current_volt);
-+		ret = vc_bypass_scale_voltage(vdd, target_volt, current_volt);
-+
-+	/* FIXME OMAP4 needs ABB too; recommendations not yet complete */
-+	if (ret && (cpu_is_omap3630() && vdd == VDD1))
-+		ret = voltscale_adaptive_body_bias(target_volt);
-+
-+	return ret;
- }
+ /* PRM_IRQENABLE_MPU specific bits */
++#define OMAP3630_VC_BYPASS_ACK_EN				(1 << 28)
++#define OMAP3630_VC_VP1_ACK_EN					(1 << 27)
++#define OMAP3630_ABB_LDO_TRANXDONE_EN				(1 << 26)
+ #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_SHIFT		25
+ #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN			(1 << 25)
+ #define OMAP3430_VC_TIMEOUTERR_EN				(1 << 24)
+@@ -581,6 +587,22 @@
  
- /**
+ /* PRM_VP2_STATUS specific bits */
+ 
++/* PRM_LDO_ABB_SETUP specific bits */
++#define OMAP3630_SR2_IN_TRANSITION			(1 << 6)
++#define OMAP3630_SR2_STATUS_SHIFT			3
++#define OMAP3630_SR2_STATUS_MASK			(3 << 3)
++#define OMAP3630_OPP_CHANGE				(1 << 2)
++#define OMAP3630_OPP_SEL_SHIFT				0
++#define OMAP3630_OPP_SEL_MASK				(3 << 0)
++
++/* PRM_LDO_ABB_CTRL specific bits */
++#define OMAP3630_SR2_WTCNT_VALUE_SHIFT			8
++#define OMAP3630_SR2_WTCNT_VALUE_MASK			(0xff << 8)
++#define OMAP3630_SLEEP_RBB_SEL				(1 << 3)
++#define OMAP3630_ACTIVE_FBB_SEL				(1 << 2)
++#define OMAP3630_ACTIVE_RBB_SEL				(1 << 1)
++#define OMAP3630_SR2EN					(1 << 0)
++
+ /* RM_RSTST_NEON specific bits */
+ 
+ /* PM_WKDEP_NEON specific bits */
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 5fba2aa..2a58847 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -160,6 +160,12 @@
+ #define OMAP3430_PRM_VP2_VOLTAGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
+ #define OMAP3_PRM_VP2_STATUS_OFFSET	0x00e4
+ #define OMAP3430_PRM_VP2_STATUS		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
++#define OMAP3_PRM_LDO_ABB_SETUP_OFFSET	0X00f0
++#define OMAP3630_PRM_LDO_ABB_SETUP	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, \
++								0X00f0)
++#define OMAP3_PRM_LDO_ABB_CTRL_OFFSET	0X00f4
++#define OMAP3630_PRM_LDO_ABB_CTRL	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, \
++								0X00f4)
+ 
+ #define OMAP3_PRM_CLKSEL_OFFSET	0x0040
+ #define OMAP3430_PRM_CLKSEL		OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0040)
+diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+index d540ae8..120d0c1 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -209,6 +209,10 @@
+ #define OMAP343X_CONTROL_WKUP_DEBOBS3 (OMAP343X_CONTROL_GENERAL_WKUP + 0x014)
+ #define OMAP343X_CONTROL_WKUP_DEBOBS4 (OMAP343X_CONTROL_GENERAL_WKUP + 0x018)
+ 
++/* 36xx GENERAL_WKUP register offsets */
++#define OMAP36XX_CONTROL_VBBLDO_EFUSE_CTRL (OMAP343X_CONTROL_GENERAL_WKUP + \
++						0X02C)
++
+ /* 34xx D2D idle-related pins, handled by PM core */
+ #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
+ #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
 -- 
 1.6.3.2
 
