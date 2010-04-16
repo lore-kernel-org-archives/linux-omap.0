@@ -1,94 +1,123 @@
-From: Bharathi Subramanian <bharathi.list@gmail.com>
-Subject: DevKit8K: DSS TV-Out Issue
-Date: Fri, 16 Apr 2010 17:28:26 +0530
-Message-ID: <s2i2b3771721004160458s403439bbsfa083c9d232cca0a@mail.gmail.com>
-References: <g2o2b3771721004160447qb9e9bab4jcd77d1ac65e3f69b@mail.gmail.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH 3/6] OMAP NAND: configurable fifo threshold to gain the
+	throughput
+Date: Fri, 16 Apr 2010 18:15:01 +0530
+Message-ID: <p2tce9ab5791004160545ye1d56355r506e0e9573c27d99@mail.gmail.com>
+References: <s-ghorai@ti.com> <1271417714-4408-1-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:35116 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758167Ab0DPL61 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 07:58:27 -0400
-Received: by pva18 with SMTP id 18so1565968pva.19
-        for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 04:58:26 -0700 (PDT)
-In-Reply-To: <g2o2b3771721004160447qb9e9bab4jcd77d1ac65e3f69b@mail.gmail.com>
+Received: from mail-yw0-f194.google.com ([209.85.211.194]:40962 "EHLO
+	mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753120Ab0DPMpW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 08:45:22 -0400
+Received: by ywh32 with SMTP id 32so1317518ywh.33
+        for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 05:45:21 -0700 (PDT)
+In-Reply-To: <1271417714-4408-1-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-mtd@lists.infradead.org, sbranden@broadcom.com, leochen@broadcom.com, David.Woodhouse@intel.com, linux-omap@vger.kernel.org, tony@atomide.com, Vimal Singh <vimalsingh@ti.com>
 
-I am trying to load the kernel (Linux
-2.6.34-rc3-07875-geba0147-dirty) in the DevKit8K board. My default
-output device is TV. Initially, none of the DSS devices got detected.
-After merging the "Koen Kooi" patch, DSS devices are getting
-detected and still getting below error:
+Hi Ghorai,
 
-[   97.250915] OMAPFB: omapfb_init
-[ =A0 97.251007] OMAPFB: omapfb_probe
-[ =A0 97.251037] OMAP_DSS_GET_NEXT_DEV
-[ =A0 97.254486] DSS DEV 0
-[ =A0 97.256774] OMAP_DSS_GET_NEXT_DEV
-[ =A0 97.260101] DSS DEV 1
-[ =A0 97.262420] OMAP_DSS_GET_NEXT_DEV
-[ =A0 97.265777] TV:NTSC
-[ =A0 97.267883] omapdss VENC: venc_check_timings
-[ =A0 97.267883] omapdss VENC: venc_set_timings
-[ =A0 97.267913] OMAPFB: create 2 framebuffers
-[ =A0 97.267944] OMAPFB: fb_infos allocated
-[ =A0 97.267974] Overlay 0
-[ =A0 97.272674] OMAPFB: allocating 1388544 bytes for fb 0
-[ =A0 97.283447] OMAPFB: allocated VRAM paddr 805b5000, vaddr c8a00000
-[ =A0 97.283447] Overlay 0
-[ =A0 97.288146] OMAPFB: allocating 4194304 bytes for fb 1
-[ =A0 97.320404] OMAPFB: allocated VRAM paddr 80708000, vaddr c9000000
-[ =A0 97.320434] OMAPFB: region0 phys 805b5000 virt c8a00000 size=3D138=
-8544
-[ =A0 97.320465] OMAPFB: region1 phys 80708000 virt c9000000 size=3D419=
-4304
-[ =A0 97.320465] OMAPFB: fbmems allocated
-[ =A0 97.320495] Overlay 0
-[ =A0 97.325714] RESL H 482 W 720 Mode 0
-[ =A0 97.333984] omapfb omapfb: illegal display bpp 0
-[ =A0 97.338653] omapfb omapfb: failed to setup fb_info
-[ =A0 97.343475] OMAPFB: free_resources
-[ =A0 97.343505] OMAPFB: free all fbmem
-[ =A0 97.343536] omapfb omapfb: failed to setup omapfb
-[ =A0 97.348297] omapfb: probe of omapfb failed with error -22
-[ =A0 97.354309] regulator_init_complete: incomplete constraints, leavi=
-ng VDVI on
-[ =A0 97.361511] regulator_init_complete: incomplete constraints, leavi=
-ng VDAC on
-[ =A0 97.369323] twl_rtc twl_rtc: setting system clock to 2000-01-01
+On Fri, Apr 16, 2010 at 5:05 PM, Sukumar Ghorai <s-ghorai@ti.com> wrote:
+[...]
+> -       ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
+> +       ret = gpmc_prefetch_enable(info->gpmc_cs, 0x40, 0x0, len, 0x0);
 
-Here is my understanding:
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-omapfp-main.c: omapfb_get_recommended_bpp(fbdev, display))
-=A0\--> fbdev->bpp_overrides[i].bpp --> bpp value is 0
+Use macros here too then.
 
-This fbdev->bpp_overrides[i].bpp value is initialised by
-omapfp-main.c: omapfb_set_def_mode()
+>        if (ret) {
+>                /* PFPW engine is busy, use cpu copy method */
+>                if (info->nand.options & NAND_BUSWIDTH_16)
+> @@ -354,7 +354,7 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+>        }
+>
+>        /*  configure and start prefetch transfer */
+> -       ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x1);
+> +       ret = gpmc_prefetch_enable(info->gpmc_cs, 0x40, 0x0, len, 0x1);
 
-=A0\--> omapfb_mode_to_timings(mode_str, &timings, &bpp)
+here too
 
-fbdev->bpp_overrides[fbdev->num_bpp_overrides].bpp =3D bpp; (Value is 0=
-)
+>        if (ret) {
+>                /* PFPW engine is busy, use cpu copy method */
+>                if (info->nand.options & NAND_BUSWIDTH_16)
+> @@ -405,10 +405,11 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+>        dma_addr_t dma_addr;
+>        int ret;
+>
+> -       /* The fifo depth is 64 bytes. We have a sync at each frame and frame
+> -        * length is 64 bytes.
+> +       /* The fifo depth is 64 bytes max.
+> +        * But configure the FIFO-threahold to 32 to get a sync at each frame
+> +        * and frame length is 32 bytes.
+>         */
+> -       int buf_len = len >> 6;
+> +       int buf_len = len >> 5;
+>
+>        if (addr >= high_memory) {
+>                struct page *p1;
+> @@ -447,7 +448,7 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+>                                        OMAP24XX_DMA_GPMC, OMAP_DMA_SRC_SYNC);
+>        }
+>        /*  configure and start prefetch transfer */
+> -       ret = gpmc_prefetch_enable(info->gpmc_cs, 0x1, len, is_write);
+> +       ret = gpmc_prefetch_enable(info->gpmc_cs, 0x20, 0x1, len, is_write);
+>        if (ret)
+>                /* PFPW engine is busy, use cpu copy methode */
+>                goto out_copy;
+> @@ -524,6 +525,7 @@ static void omap_write_buf_dma_pref(struct mtd_info *mtd,
+>  static irqreturn_t omap_nand_irq(int this_irq, void *dev)
+>  {
+>        struct omap_nand_info *info = (struct omap_nand_info *) dev;
+> +       u32 *p = (u32 *) info->buf;
+>        u32 irq_enb = 0, pref_status = 0, bytes = 0;
+>        u32 irq_stats = __raw_readl(info->gpmc_baseaddr + GPMC_IRQSTATUS);
+>        u32 pref_config = __raw_readl(info->gpmc_baseaddr +
+> @@ -533,14 +535,11 @@ static irqreturn_t omap_nand_irq(int this_irq, void *dev)
+>                if (irq_stats & 0x2)
+>                        goto done;
+>
+> -               u32 *p = (u32 *) info->buf;
+> -               pref_status = gpmc_prefetch_status();
+> -               bytes = ((pref_status >> 24) & 0x7F);
+> +               bytes = PREFETCH_FIFOTHRESHOLD_WRITE;
 
-If the FOR loop in omapfp_get_recommended_bpp() is commented out, then
-it gets the bpp value from the below function,
+By this, you are not really keeping prefetch the busyest.
+you are filling only 'PREFETCH_FIFOTHRESHOLD_WRITE' bytes, while there
+could be more free spaces.
+Previous way of doing it was more efficent.
 
-=A0dss/display.c: omapdss_default_get_recommended_bpp() --> Return bpp =
-24
+>                iowrite32_rep(info->nand_pref_fifo_add, p, bytes >> 2);
+>                info->buf = info->buf + bytes;
+>
+>        } else {
+> -               u32 *p = (u32 *) info->buf;
+>                pref_status = gpmc_prefetch_status();
+>                bytes = ((pref_status >> 24) & 0x7F);
+>                ioread32_rep(info->nand_pref_fifo_add, p, bytes >> 2);
+> @@ -586,7 +585,8 @@ static void omap_read_buf_irq_pref(struct mtd_info *mtd, u_char *buf, int len)
+>        init_completion(&info->comp);
+>
+>        /*  configure and start prefetch transfer */
+> -       ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x0);
+> +       ret = gpmc_prefetch_enable(info->gpmc_cs,
+> +                               PREFETCH_FIFOTHRESHOLD_READ, 0x0, len, 0x0);
+>        if (ret)
+>                /* PFPW engine is busy, use cpu copy methode */
+>                goto out_copy;
+> @@ -630,7 +630,8 @@ static void omap_write_buf_irq_pref(struct mtd_info *mtd,
+>        init_completion(&info->comp);
+>
+>        /*  configure and start prefetch transfer */
+> -       ret = gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, 0x1);
+> +       ret = gpmc_prefetch_enable(info->gpmc_cs,
+> +                               PREFETCH_FIFOTHRESHOLD_WRITE, 0x0, len, 0x1);
 
-But after this modification, kernel panic is happening.
-http://bharathi.pastebin.com/G7ZdmjQt
+In case of write, in my experiments, fifo thresholed '24' was the best
+compromise for throughput and cpu load.
 
-Any clue to overcome this TV-Out issue?
 
---
-Thanks
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Vimal
