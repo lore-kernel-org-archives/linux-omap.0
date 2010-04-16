@@ -1,114 +1,92 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 03/13] DSPBRIDGE: Moving functions from mem.c to drv.c
-Date: Fri, 16 Apr 2010 06:46:19 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B21669A@dlee03.ent.ti.com>
-References: <818EF96F5A7CC84789DD014773DB09548F6481CF@dlee01.ent.ti.com>
- <20100416103658.GA18995@lit.local.igalia.com>
+From: Bharathi Subramanian <bharathi.list@gmail.com>
+Subject: DevKit8K: DSS TV-Out Issue
+Date: Fri, 16 Apr 2010 17:28:26 +0530
+Message-ID: <s2i2b3771721004160458s403439bbsfa083c9d232cca0a@mail.gmail.com>
+References: <g2o2b3771721004160447qb9e9bab4jcd77d1ac65e3f69b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47196 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932096Ab0DPLqq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 07:46:46 -0400
-In-Reply-To: <20100416103658.GA18995@lit.local.igalia.com>
-Content-Language: en-US
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:35116 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758167Ab0DPL61 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 07:58:27 -0400
+Received: by pva18 with SMTP id 18so1565968pva.19
+        for <linux-omap@vger.kernel.org>; Fri, 16 Apr 2010 04:58:26 -0700 (PDT)
+In-Reply-To: <g2o2b3771721004160447qb9e9bab4jcd77d1ac65e3f69b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Ivan,
+I am trying to load the kernel (Linux
+2.6.34-rc3-07875-geba0147-dirty) in the DevKit8K board. My default
+output device is TV. Initially, none of the DSS devices got detected.
+After merging the "Koen Kooi" patch, DSS devices are getting
+detected and still getting below error:
 
-> In the commit 702b94bff3c50542a6e4ab9a4f4cef093262fe65 (2.6.34) the
-> functions
-> dmac_inv_range and dmac_clean_range were removed.
->=20
-> I'm wondering how to fix this in order to rebase to 2.6.34.
->=20
-> Thanks
+[   97.250915] OMAPFB: omapfb_init
+[ =A0 97.251007] OMAPFB: omapfb_probe
+[ =A0 97.251037] OMAP_DSS_GET_NEXT_DEV
+[ =A0 97.254486] DSS DEV 0
+[ =A0 97.256774] OMAP_DSS_GET_NEXT_DEV
+[ =A0 97.260101] DSS DEV 1
+[ =A0 97.262420] OMAP_DSS_GET_NEXT_DEV
+[ =A0 97.265777] TV:NTSC
+[ =A0 97.267883] omapdss VENC: venc_check_timings
+[ =A0 97.267883] omapdss VENC: venc_set_timings
+[ =A0 97.267913] OMAPFB: create 2 framebuffers
+[ =A0 97.267944] OMAPFB: fb_infos allocated
+[ =A0 97.267974] Overlay 0
+[ =A0 97.272674] OMAPFB: allocating 1388544 bytes for fb 0
+[ =A0 97.283447] OMAPFB: allocated VRAM paddr 805b5000, vaddr c8a00000
+[ =A0 97.283447] Overlay 0
+[ =A0 97.288146] OMAPFB: allocating 4194304 bytes for fb 1
+[ =A0 97.320404] OMAPFB: allocated VRAM paddr 80708000, vaddr c9000000
+[ =A0 97.320434] OMAPFB: region0 phys 805b5000 virt c8a00000 size=3D138=
+8544
+[ =A0 97.320465] OMAPFB: region1 phys 80708000 virt c9000000 size=3D419=
+4304
+[ =A0 97.320465] OMAPFB: fbmems allocated
+[ =A0 97.320495] Overlay 0
+[ =A0 97.325714] RESL H 482 W 720 Mode 0
+[ =A0 97.333984] omapfb omapfb: illegal display bpp 0
+[ =A0 97.338653] omapfb omapfb: failed to setup fb_info
+[ =A0 97.343475] OMAPFB: free_resources
+[ =A0 97.343505] OMAPFB: free all fbmem
+[ =A0 97.343536] omapfb omapfb: failed to setup omapfb
+[ =A0 97.348297] omapfb: probe of omapfb failed with error -22
+[ =A0 97.354309] regulator_init_complete: incomplete constraints, leavi=
+ng VDVI on
+[ =A0 97.361511] regulator_init_complete: incomplete constraints, leavi=
+ng VDAC on
+[ =A0 97.369323] twl_rtc twl_rtc: setting system clock to 2000-01-01
 
-2 options:
+Here is my understanding:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+omapfp-main.c: omapfb_get_recommended_bpp(fbdev, display))
+=A0\--> fbdev->bpp_overrides[i].bpp --> bpp value is 0
 
-1. Replace dmac_inv_range and dmac_clean_range functions with the new d=
-ma map and unmap functions. These are supposed to be the new functions =
-to do the same functionality, but in our limited testing some time ago,=
- the dma_unmap function wasn't invalidating the cache. You can check th=
-is at your end.
+This fbdev->bpp_overrides[i].bpp value is initialised by
+omapfp-main.c: omapfb_set_def_mode()
 
-2. Revert the patch that deprecated these APIs to unblock you temporari=
-ly.
+=A0\--> omapfb_mode_to_timings(mode_str, &timings, &bpp)
 
-Thank you,
-Best regards,
-Hari
+fbdev->bpp_overrides[fbdev->num_bpp_overrides].bpp =3D bpp; (Value is 0=
+)
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of V=EDctor M. J=E1quez L.
-> Sent: Friday, April 16, 2010 5:37 AM
-> To: Gomez Castellanos, Ivan
-> Cc: linux-omap@vger.kernel.org; Hiroshi DOYU; Felipe Contreras; Ameya
-> Palande; Menon, Nishanth
-> Subject: Re: [PATCH 03/13] DSPBRIDGE: Moving functions from mem.c to =
-drv.c
->=20
-> On Thu, Apr 08, 2010 at 06:47:13PM -0500, Gomez Castellanos, Ivan wro=
-te:
->=20
-> > +/*
-> > + *  =3D=3D=3D=3D=3D=3D=3D=3D mem_flush_cache =3D=3D=3D=3D=3D=3D=3D
-> > + *  Purpose:
-> > + *      Flush cache
-> > + */
-> > +void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType)
-> > +{
-> > +       if (!pMemBuf)
-> > +               return;
-> > +
-> > +       switch (FlushType) {
-> > +               /* invalidate only */
-> > +       case PROC_INVALIDATE_MEM:
-> > +               dmac_inv_range(pMemBuf, pMemBuf + byte_size);
-> > +               outer_inv_range(__pa((u32) pMemBuf), __pa((u32) pMe=
-mBuf
-> +
-> > +                                                         byte_size=
-));
-> > +               break;
-> > +               /* writeback only */
-> > +       case PROC_WRITEBACK_MEM:
-> > +               dmac_clean_range(pMemBuf, pMemBuf + byte_size);
-> > +               outer_clean_range(__pa((u32) pMemBuf), __pa((u32)
-> pMemBuf +
-> > +                                                           byte_si=
-ze));
-> > +               break;
-> > +               /* writeback and invalidate */
-> > +       case PROC_WRITEBACK_INVALIDATE_MEM:
-> > +               dmac_flush_range(pMemBuf, pMemBuf + byte_size);
-> > +               outer_flush_range(__pa((u32) pMemBuf), __pa((u32)
-> pMemBuf +
-> > +                                                           byte_si=
-ze));
-> > +               break;
-> > +       }
->=20
-> In the commit 702b94bff3c50542a6e4ab9a4f4cef093262fe65 (2.6.34) the
-> functions
-> dmac_inv_range and dmac_clean_range were removed.
->=20
-> I'm wondering how to fix this in order to rebase to 2.6.34.
->=20
-> Thanks
->=20
-> vmjl
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If the FOR loop in omapfp_get_recommended_bpp() is commented out, then
+it gets the bpp value from the below function,
+
+=A0dss/display.c: omapdss_default_get_recommended_bpp() --> Return bpp =
+24
+
+But after this modification, kernel panic is happening.
+http://bharathi.pastebin.com/G7ZdmjQt
+
+Any clue to overcome this TV-Out issue?
+
+--
+Thanks
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
