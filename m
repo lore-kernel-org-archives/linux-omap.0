@@ -1,136 +1,796 @@
-From: "Uribe de Leon, Armando" <x0095078@ti.com>
-Subject: [PATCH 1/5] DSPBRIDGE: Remove checkpatch errors regarding braces
-Date: Fri, 16 Apr 2010 21:10:15 -0500
-Message-ID: <67059DBF19D7214F9C66BB0EA91BA90EC2622733@dlee04.ent.ti.com>
+From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: [PATCH 4/5] DSPBRIDGE: Use stream id instead of kernel address
+Date: Fri, 16 Apr 2010 22:27:35 -0500
+Message-ID: <B852767254C5C94EBB1040EE0EFA060092D76403@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46023 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758054Ab0DQCKU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 22:10:20 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:33804 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758713Ab0DQD1n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 23:27:43 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "hiroshi.DOYU@nokia.com" <hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
 
->From 451e9733672b7fd3879ec109f3c6b2ac55c21cf5 Mon Sep 17 00:00:00 2001
-From: Armando Uribe De Leon <x0095078@ti.com>
-Date: Thu, 8 Apr 2010 17:14:38 -0500
-Subject: [PATCH 1/5] DSPBRIDGE: Remove checkpatch errors regarding braces
+>From 555549cfb8a2ef77480ea5f622da9b80694387be Mon Sep 17 00:00:00 2001
+From: Ernesto Ramos <ernesto@ti.com>
+Date: Fri, 16 Apr 2010 18:39:28 -0500
+Subject: [PATCH 4/5] DSPBRIDGE: Use stream id instead of kernel address
 
-This patch removes checkpatch errors due to misleading braces
+Send stream ids to the user instead of handles, then when
+the id is coming from user dspbridge can retrive the handle
+using id and avoid using invalid handles.
 
-Signed-off-by: Armando Uribe De Leon <x0095078@ti.com>
+Signed-off-by: Ernesto Ramos <ernesto@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/mem.h |    8 ++++----
- drivers/dsp/bridge/dynload/cload.c         |    4 ++--
- drivers/dsp/bridge/pmgr/cmm.c              |    5 ++---
- drivers/dsp/bridge/pmgr/dbll.c             |    3 +--
- drivers/dsp/bridge/wmd/io_sm.c             |    3 +--
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c    |    6 ++----
- 6 files changed, 12 insertions(+), 17 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/drv.h         |    5 +-
+ .../plat-omap/include/dspbridge/resourcecleanup.h  |    6 -
+ arch/arm/plat-omap/include/dspbridge/strm.h        |    8 +-
+ drivers/dsp/bridge/pmgr/wcd.c                      |  103 +++++++++++--
+ drivers/dsp/bridge/rmgr/drv.c                      |  155 +++++++-------------
+ drivers/dsp/bridge/rmgr/drv_interface.c            |   13 ++-
+ drivers/dsp/bridge/rmgr/strm.c                     |   77 +++++-----
+ 7 files changed, 194 insertions(+), 173 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
-index 087f69f..effba29 100644
---- a/arch/arm/plat-omap/include/dspbridge/mem.h
-+++ b/arch/arm/plat-omap/include/dspbridge/mem.h
-@@ -172,10 +172,10 @@ extern void mem_free_phys_mem(void *pVirtualAddress,
-  *      A subsequent call to MEM_IS_VALID_HANDLE() will fail for this object.
-  */
- #define MEM_FREE_OBJECT(pObj)    \
--{                               \
--    pObj->dw_signature = 0x00;   \
--    kfree(pObj);                \
--}
-+do {                               \
-+	pObj->dw_signature = 0x00;   \
-+	kfree(pObj);                \
-+} while (0)
- 
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index 02f93f5..9307001 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -114,7 +114,7 @@ struct strm_res_object {
+        void *hstream;
+        u32 num_bufs;
+        u32 dir;
+-       struct strm_res_object *next;
++       int id;
+ };
+
+ /* Overall Bridge process resource usage state */
+@@ -146,8 +146,7 @@ struct process_context {
+        struct dspheap_res_object *pdspheap_list;
+
+        /* Stream resources */
+-       struct strm_res_object *pstrm_list;
+-       struct mutex strm_mutex;
++       struct idr *strm_idp;
+ };
+
  /*
-  *  ======== mem_get_num_pages ======== diff --git a/drivers/dsp/bridge/dynload/cload.c b/drivers/dsp/bridge/dynload/cload.c
-index d0de525..7f3c3bd 100644
---- a/drivers/dsp/bridge/dynload/cload.c
-+++ b/drivers/dsp/bridge/dynload/cload.c
-@@ -48,8 +48,8 @@ static const char loader_dllview_root[] = { "?DLModules?" };
+diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
+index 00d5148..4e93446 100644
+--- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
++++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
+@@ -47,12 +47,6 @@ extern dsp_status drv_proc_insert_strm_res_element(bhandle hStrm,
+                                                   bhandle strm_res,
+                                                   bhandle pPctxt);
+
+-extern dsp_status drv_get_strm_res_element(bhandle hStrm, bhandle strm_res,
+-                                          bhandle ctxt);
+-
+-extern dsp_status drv_proc_remove_strm_res_element(bhandle strm_res,
+-                                                  bhandle ctxt);
+-
+ extern dsp_status drv_remove_all_strm_res_elements(bhandle ctxt);
+
+ extern enum node_state node_get_state(bhandle hnode);
+diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
+index 51a897f..4f12989 100644
+--- a/arch/arm/plat-omap/include/dspbridge/strm.h
++++ b/arch/arm/plat-omap/include/dspbridge/strm.h
+@@ -44,7 +44,7 @@
+  *      ap_buffer != NULL.
+  *  Ensures:
   */
- static const char readstrm[] = { "Error reading %s from input stream" };  static const char err_alloc[] = { "Syms->dload_allocate( %d ) failed" }; -static const char tgtalloc[] =
--    { "Target memory allocate failed, section %s size " FMT_UI32 };
-+static const char tgtalloc[] = {
-+	"Target memory allocate failed, section %s size " FMT_UI32 };
- static const char initfail[] = { "%s to target address " FMT_UI32 " failed" };  static const char dlvwrite[] = { "Write to DLLview list failed" };  static const char iconnect[] = { "Connect call to init interface failed" }; diff --git a/drivers/dsp/bridge/pmgr/cmm.c b/drivers/dsp/bridge/pmgr/cmm.c index 7523361..8c770da 100644
---- a/drivers/dsp/bridge/pmgr/cmm.c
-+++ b/drivers/dsp/bridge/pmgr/cmm.c
-@@ -1010,11 +1010,10 @@ dsp_status cmm_xlator_delete(struct cmm_xlatorobject *xlator, bool bForce)
- 
- 	DBC_REQUIRE(refs > 0);
- 
--	if (MEM_IS_VALID_HANDLE(xlator_obj, CMMXLATESIGNATURE)) {
-+	if (MEM_IS_VALID_HANDLE(xlator_obj, CMMXLATESIGNATURE))
- 		MEM_FREE_OBJECT(xlator_obj);
--	} else {
-+	else
- 		status = DSP_EHANDLE;
--	}
- 
- 	return status;
+-extern dsp_status strm_allocate_buffer(struct strm_object *hStrm,
++extern dsp_status strm_allocate_buffer(struct strm_res_object *strmres,
+                                       u32 usize,
+                                       OUT u8 **ap_buffer,
+                                       u32 num_bufs,
+@@ -66,7 +66,7 @@ extern dsp_status strm_allocate_buffer(struct strm_object *hStrm,
+  *      strm_init(void) called.
+  *  Ensures:
+  */
+-extern dsp_status strm_close(struct strm_object *hStrm,
++extern dsp_status strm_close(struct strm_res_object *strmres,
+                             struct process_context *pr_ctxt);
+
+ /*
+@@ -137,7 +137,7 @@ extern void strm_exit(void);
+  *      ap_buffer != NULL.
+  *  Ensures:
+  */
+-extern dsp_status strm_free_buffer(struct strm_object *hStrm,
++extern dsp_status strm_free_buffer(struct strm_res_object *strmres,
+                                   u8 **ap_buffer, u32 num_bufs,
+                                   struct process_context *pr_ctxt);
+
+@@ -273,7 +273,7 @@ extern dsp_status strm_issue(struct strm_object *hStrm, IN u8 * pbuf,
+  */
+ extern dsp_status strm_open(struct node_object *hnode, u32 dir,
+                            u32 index, IN struct strm_attr *pattr,
+-                           OUT struct strm_object **phStrm,
++                           OUT struct strm_res_object **strmres,
+                            struct process_context *pr_ctxt);
+
+ /*
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index 61a4ab9..9d63b1f 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -1491,6 +1491,19 @@ func_cont:
  }
-diff --git a/drivers/dsp/bridge/pmgr/dbll.c b/drivers/dsp/bridge/pmgr/dbll.c index 0e7c4a4..c983d6d 100644
---- a/drivers/dsp/bridge/pmgr/dbll.c
-+++ b/drivers/dsp/bridge/pmgr/dbll.c
-@@ -848,9 +848,8 @@ void dbll_unload(struct dbll_library_obj *lib, struct dbll_attrs *attrs)
- 					    &zl_lib->symbol.dl_symbol,
- 					    &zl_lib->allocate.dl_alloc,
- 					    &zl_lib->init.dl_init);
--		if (err != 0) {
-+		if (err != 0)
- 			dev_dbg(bridge, "%s: failed: 0x%x\n", __func__, err);
--		}
- 	}
- 	/* remove symbols from symbol table */
- 	if (zl_lib->sym_tab != NULL) {
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c index 1b5d977..0517f1a 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -578,9 +578,8 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
- 					ae_proc[ndx].ul_gpp_va,
- 					ae_proc[ndx].ul_dsp_va *
- 					hio_mgr->word_size, page_size[i]);
--				if (DSP_FAILED(status)) {
-+				if (DSP_FAILED(status))
- 					goto func_end;
--				}
- 			}
- 			pa_curr += page_size[i];
- 			va_curr += page_size[i];
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 0b5d2f2..938d86d 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -228,9 +228,8 @@ dsp_status sleep_dsp(struct wmd_dev_context *dev_context, IN u32 dw_cmd,
- 
- 		/* Turn off DSP Peripheral clocks */
- 		status = dsp_peripheral_clocks_disable(dev_context, NULL);
--		if (DSP_FAILED(status)) {
-+		if (DSP_FAILED(status))
- 			return status;
--		}
- #ifdef CONFIG_BRIDGE_DVFS
- 		else if (target_pwr_state == PWRDM_POWER_OFF) {
- 			struct dspbridge_platform_data *pdata = @@ -357,9 +356,8 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
- 			__raw_writel(value, resources.dw_sys_ctrl_base + 0x274);
- 		}
- 		dsp_clk_wakeup_event_ctrl(bpwr_clks[clk_id_index].clk_id, true);
--		if ((DSP_SUCCEEDED(status)) && (DSP_SUCCEEDED(status1))) {
-+		if ((DSP_SUCCEEDED(status)) && (DSP_SUCCEEDED(status1)))
- 			(dev_context->dsp_per_clks) |= (1 << clk_id_index);
--		}
- 		break;
- 	default:
- 		dev_dbg(bridge, "%s: Unsupported CMD\n", __func__);
+
+ /*
++ * ======== find_strm_handle =========
++ */
++inline void find_strm_handle(struct strm_res_object **strmres,
++                               void *pr_ctxt, void *hstream)
++{
++       rcu_read_lock();
++       *strmres = idr_find(((struct process_context *)pr_ctxt)->strm_idp,
++                                                       (int)hstream);
++       rcu_read_unlock();
++       return;
++}
++
++/*
+  * ======== strmwrap_allocate_buffer ========
+  */
+ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
+@@ -1498,13 +1511,20 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
+        dsp_status status;
+        u8 **ap_buffer = NULL;
+        u32 num_bufs = args->args_strm_allocatebuffer.num_bufs;
++       struct strm_res_object *strm_res;
++
++       find_strm_handle(&strm_res, pr_ctxt,
++               args->args_strm_allocatebuffer.hstream);
++
++       if (!strm_res)
++               return DSP_EHANDLE;
+
+        if (num_bufs > MAX_BUFS)
+                return DSP_EINVALIDARG;
+
+        ap_buffer = mem_alloc((num_bufs * sizeof(u8 *)), MEM_NONPAGED);
+
+-       status = strm_allocate_buffer(args->args_strm_allocatebuffer.hstream,
++       status = strm_allocate_buffer(strm_res,
+                                      args->args_strm_allocatebuffer.usize,
+                                      ap_buffer, num_bufs, pr_ctxt);
+        if (DSP_SUCCEEDED(status)) {
+@@ -1512,7 +1532,7 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
+                          status, num_bufs);
+                if (DSP_FAILED(status)) {
+                        status = DSP_EPOINTER;
+-                       strm_free_buffer(args->args_strm_allocatebuffer.hstream,
++                       strm_free_buffer(strm_res,
+                                         ap_buffer, num_bufs, pr_ctxt);
+                }
+        }
+@@ -1526,7 +1546,14 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
+  */
+ u32 strmwrap_close(union Trapped_Args *args, void *pr_ctxt)
+ {
+-       return strm_close(args->args_strm_close.hstream, pr_ctxt);
++       struct strm_res_object *strm_res;
++
++       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_close.hstream);
++
++       if (!strm_res)
++               return DSP_EHANDLE;
++
++       return strm_close(strm_res, pr_ctxt);
+ }
+
+ /*
+@@ -1537,6 +1564,13 @@ u32 strmwrap_free_buffer(union Trapped_Args *args, void *pr_ctxt)
+        dsp_status status = DSP_SOK;
+        u8 **ap_buffer = NULL;
+        u32 num_bufs = args->args_strm_freebuffer.num_bufs;
++       struct strm_res_object *strm_res;
++
++       find_strm_handle(&strm_res, pr_ctxt,
++                       args->args_strm_freebuffer.hstream);
++
++       if (!strm_res)
++               return DSP_EHANDLE;
+
+        if (num_bufs > MAX_BUFS)
+                return DSP_EINVALIDARG;
+@@ -1546,10 +1580,10 @@ u32 strmwrap_free_buffer(union Trapped_Args *args, void *pr_ctxt)
+        CP_FM_USR(ap_buffer, args->args_strm_freebuffer.ap_buffer, status,
+                  num_bufs);
+
+-       if (DSP_SUCCEEDED(status)) {
+-               status = strm_free_buffer(args->args_strm_freebuffer.hstream,
++       if (DSP_SUCCEEDED(status))
++               status = strm_free_buffer(strm_res,
+                                          ap_buffer, num_bufs, pr_ctxt);
+-       }
++
+        CP_TO_USR(args->args_strm_freebuffer.ap_buffer, ap_buffer, status,
+                  num_bufs);
+        kfree(ap_buffer);
+@@ -1576,6 +1610,13 @@ u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt)
+        struct stream_info strm_info;
+        struct dsp_streaminfo user;
+        struct dsp_streaminfo *temp;
++       struct strm_res_object *strm_res;
++
++       find_strm_handle(&strm_res, pr_ctxt,
++                       args->args_strm_getinfo.hstream);
++
++       if (!strm_res)
++               return DSP_EHANDLE;
+
+        CP_FM_USR(&strm_info, args->args_strm_getinfo.stream_info, status, 1);
+        temp = strm_info.user_strm;
+@@ -1583,7 +1624,7 @@ u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt)
+        strm_info.user_strm = &user;
+
+        if (DSP_SUCCEEDED(status)) {
+-               status = strm_get_info(args->args_strm_getinfo.hstream,
++               status = strm_get_info(strm_res->hstream,
+                                       &strm_info,
+                                       args->args_strm_getinfo.
+                                       stream_info_size);
+@@ -1600,9 +1641,14 @@ u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt)
+ u32 strmwrap_idle(union Trapped_Args *args, void *pr_ctxt)
+ {
+        u32 ret;
++       struct strm_res_object *strm_res;
++
++       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_idle.hstream);
+
+-       ret = strm_idle(args->args_strm_idle.hstream,
+-                       args->args_strm_idle.flush_flag);
++       if (!strm_res)
++               return DSP_EHANDLE;
++
++       ret = strm_idle(strm_res->hstream, args->args_strm_idle.flush_flag);
+
+        return ret;
+ }
+@@ -1613,6 +1659,12 @@ u32 strmwrap_idle(union Trapped_Args *args, void *pr_ctxt)
+ u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt)
+ {
+        dsp_status status = DSP_SOK;
++       struct strm_res_object *strm_res;
++
++       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_issue.hstream);
++
++       if (!strm_res)
++               return DSP_EHANDLE;
+
+        if (!args->args_strm_issue.pbuffer)
+                return DSP_EPOINTER;
+@@ -1620,7 +1672,7 @@ u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt)
+        /* No need of doing CP_FM_USR for the user buffer (pbuffer)
+           as this is done in Bridge internal function bridge_chnl_add_io_req
+           in chnl_sm.c */
+-       status = strm_issue(args->args_strm_issue.hstream,
++       status = strm_issue(strm_res->hstream,
+                            args->args_strm_issue.pbuffer,
+                            args->args_strm_issue.dw_bytes,
+                            args->args_strm_issue.dw_buf_size,
+@@ -1636,7 +1688,7 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
+ {
+        dsp_status status = DSP_SOK;
+        struct strm_attr attr;
+-       struct strm_object *strm_obj;
++       struct strm_res_object *strm_res_obj;
+        struct dsp_streamattrin strm_attr_in;
+        struct node_res_object *node_res;
+
+@@ -1658,9 +1710,9 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
+        }
+        status = strm_open(node_res->hnode,
+                           args->args_strm_open.direction,
+-                          args->args_strm_open.index, &attr, &strm_obj,
++                          args->args_strm_open.index, &attr, &strm_res_obj,
+                           pr_ctxt);
+-       CP_TO_USR(args->args_strm_open.ph_stream, &strm_obj, status, 1);
++       CP_TO_USR(args->args_strm_open.ph_stream, &strm_res_obj->id, status, 1);
+        return status;
+ }
+
+@@ -1674,8 +1726,14 @@ u32 strmwrap_reclaim(union Trapped_Args *args, void *pr_ctxt)
+        u32 ul_bytes;
+        u32 dw_arg;
+        u32 ul_buf_size;
++       struct strm_res_object *strm_res;
+
+-       status = strm_reclaim(args->args_strm_reclaim.hstream, &buf_ptr,
++       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_reclaim.hstream);
++
++       if (!strm_res)
++               return DSP_EHANDLE;
++
++       status = strm_reclaim(strm_res->hstream, &buf_ptr,
+                              &ul_bytes, &ul_buf_size, &dw_arg);
+        CP_TO_USR(args->args_strm_reclaim.buf_ptr, &buf_ptr, status, 1);
+        CP_TO_USR(args->args_strm_reclaim.bytes, &ul_bytes, status, 1);
+@@ -1696,12 +1754,19 @@ u32 strmwrap_register_notify(union Trapped_Args *args, void *pr_ctxt)
+ {
+        dsp_status status = DSP_SOK;
+        struct dsp_notification notification;
++       struct strm_res_object *strm_res;
++
++       find_strm_handle(&strm_res, pr_ctxt,
++                       args->args_strm_registernotify.hstream);
++
++       if (!strm_res)
++               return DSP_EHANDLE;
+
+        /* Initialize the notification data structure */
+        notification.ps_name = NULL;
+        notification.handle = NULL;
+
+-       status = strm_register_notify(args->args_strm_registernotify.hstream,
++       status = strm_register_notify(strm_res->hstream,
+                                      args->args_strm_registernotify.event_mask,
+                                      args->args_strm_registernotify.
+                                      notify_type, &notification);
+@@ -1719,11 +1784,17 @@ u32 strmwrap_select(union Trapped_Args *args, void *pr_ctxt)
+        u32 mask;
+        struct strm_object *strm_tab[MAX_STREAMS];
+        dsp_status status = DSP_SOK;
++       struct strm_res_object *strm_res;
++
++       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_select.stream_tab);
++
++       if (!strm_res)
++               return DSP_EHANDLE;
+
+        if (args->args_strm_select.strm_num > MAX_STREAMS)
+                return DSP_EINVALIDARG;
+
+-       CP_FM_USR(strm_tab, args->args_strm_select.stream_tab, status,
++       CP_FM_USR(strm_tab, strm_res->hstream, status,
+                  args->args_strm_select.strm_num);
+        if (DSP_SUCCEEDED(status)) {
+                status = strm_select(strm_tab, args->args_strm_select.strm_num,
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 35cd1cb..2d04a14 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -211,75 +211,48 @@ dsp_status drv_remove_all_node_res_elements(bhandle hPCtxt)
+ dsp_status drv_proc_insert_strm_res_element(bhandle hStreamHandle,
+                                            bhandle hstrm_res, bhandle hPCtxt)
+ {
+-       struct strm_res_object **pstrm_res =
+-           (struct strm_res_object **)hstrm_res;
+-       struct process_context *ctxt = (struct process_context *)hPCtxt;
++       struct strm_res_object **pstrm_res = hstrm_res;
++       struct process_context *ctxt = hPCtxt;
+        dsp_status status = DSP_SOK;
+-       struct strm_res_object *temp_strm_res = NULL;
++       int retval;
+
+        *pstrm_res = (struct strm_res_object *)
+            mem_calloc(1 * sizeof(struct strm_res_object), MEM_PAGED);
+-       if (*pstrm_res == NULL)
++       if (*pstrm_res == NULL) {
+                status = DSP_EHANDLE;
++               goto func_end;
++       }
+
+-       if (DSP_SUCCEEDED(status)) {
+-               if (mutex_lock_interruptible(&ctxt->strm_mutex)) {
+-                       kfree(*pstrm_res);
+-                       return DSP_EFAIL;
++       (*pstrm_res)->hstream = hStreamHandle;
++       spin_lock(&ctxt->strm_idp->lock);
++       retval = idr_get_new(ctxt->strm_idp, *pstrm_res,
++                                               &(*pstrm_res)->id);
++       spin_unlock(&ctxt->strm_idp->lock);
++       if (retval == -EAGAIN) {
++               if (!idr_pre_get(ctxt->strm_idp, GFP_KERNEL)) {
++                       pr_err("%s: OUT OF MEMORY\n", __func__);
++                       status = DSP_EMEMORY;
++                       goto func_end;
+                }
+-               (*pstrm_res)->hstream = hStreamHandle;
+-               if (ctxt->pstrm_list != NULL) {
+-                       temp_strm_res = ctxt->pstrm_list;
+-                       while (temp_strm_res->next != NULL)
+-                               temp_strm_res = temp_strm_res->next;
+
+-                       temp_strm_res->next = *pstrm_res;
+-               } else {
+-                       ctxt->pstrm_list = *pstrm_res;
+-               }
+-               mutex_unlock(&ctxt->strm_mutex);
++               spin_lock(&ctxt->strm_idp->lock);
++               retval = idr_get_new(ctxt->strm_idp, *pstrm_res,
++                                               &(*pstrm_res)->id);
++               spin_unlock(&ctxt->strm_idp->lock);
+        }
+-       return status;
+-}
+-
+-/* Release Stream resource element context
+-* This function called after the actual resource is freed
+- */
+-dsp_status drv_proc_remove_strm_res_element(bhandle hstrm_res, bhandle hPCtxt)
+-{
+-       struct strm_res_object *pstrm_res = (struct strm_res_object *)hstrm_res;
+-       struct process_context *ctxt = (struct process_context *)hPCtxt;
+-       struct strm_res_object *temp_strm_res;
+-       dsp_status status = DSP_SOK;
+-
+-       if (mutex_lock_interruptible(&ctxt->strm_mutex))
+-               return DSP_EFAIL;
+-       temp_strm_res = ctxt->pstrm_list;
+-
+-       if (ctxt->pstrm_list == pstrm_res) {
+-               ctxt->pstrm_list = pstrm_res->next;
+-       } else {
+-               while (temp_strm_res && temp_strm_res->next != pstrm_res)
+-                       temp_strm_res = temp_strm_res->next;
+-               if (temp_strm_res == NULL)
+-                       status = DSP_ENOTFOUND;
+-               else
+-                       temp_strm_res->next = pstrm_res->next;
++       if (retval) {
++               pr_err("%s: FAILED, IDR is FULL\n", __func__);
++               status = DSP_EFAIL;
+        }
+-       mutex_unlock(&ctxt->strm_mutex);
+-       kfree(pstrm_res);
++
++func_end:
+        return status;
+ }
+
+-/* Release all Stream resources and its context
+-* This is called from .bridge_release.
+- */
+-dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
++static int drv_proc_free_strm_res(int id, void *p, void *data)
+ {
+-       struct process_context *ctxt = (struct process_context *)hPCtxt;
+-       dsp_status status = DSP_SOK;
+-       struct strm_res_object *strm_res = NULL;
+-       struct strm_res_object *strm_tmp = NULL;
++       struct process_context *ctxt = data;
++       struct strm_res_object *strm_res = p;
+        struct stream_info strm_info;
+        struct dsp_streaminfo user;
+        u8 **ap_buffer = NULL;
+@@ -288,60 +261,38 @@ dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
+        u32 dw_arg;
+        s32 ul_buf_size;
+
+-       strm_tmp = ctxt->pstrm_list;
+-       while (strm_tmp) {
+-               strm_res = strm_tmp;
+-               strm_tmp = strm_tmp->next;
+-               if (strm_res->num_bufs) {
+-                       ap_buffer = mem_alloc((strm_res->num_bufs *
+-                                              sizeof(u8 *)), MEM_NONPAGED);
+-                       if (ap_buffer) {
+-                               status = strm_free_buffer(strm_res->hstream,
+-                                                         ap_buffer,
+-                                                         strm_res->num_bufs,
+-                                                         ctxt);
+-                               kfree(ap_buffer);
+-                       }
++       if (strm_res->num_bufs) {
++               ap_buffer = mem_alloc((strm_res->num_bufs *
++                                      sizeof(u8 *)), MEM_NONPAGED);
++               if (ap_buffer) {
++                       strm_free_buffer(strm_res,
++                                                 ap_buffer,
++                                                 strm_res->num_bufs,
++                                                 ctxt);
++                       kfree(ap_buffer);
+                }
+-               strm_info.user_strm = &user;
+-               user.number_bufs_in_stream = 0;
+-               strm_get_info(strm_res->hstream, &strm_info, sizeof(strm_info));
+-               while (user.number_bufs_in_stream--)
+-                       strm_reclaim(strm_res->hstream, &buf_ptr, &ul_bytes,
+-                                    (u32 *) &ul_buf_size, &dw_arg);
+-               status = strm_close(strm_res->hstream, ctxt);
+        }
+-       return status;
++       strm_info.user_strm = &user;
++       user.number_bufs_in_stream = 0;
++       strm_get_info(strm_res->hstream, &strm_info, sizeof(strm_info));
++       while (user.number_bufs_in_stream--)
++               strm_reclaim(strm_res->hstream, &buf_ptr, &ul_bytes,
++                            (u32 *) &ul_buf_size, &dw_arg);
++       strm_close(strm_res, ctxt);
++       return 0;
+ }
+
+-/* Getting the stream resource element */
+-dsp_status drv_get_strm_res_element(bhandle hStrm, bhandle hstrm_res,
+-                                   bhandle hPCtxt)
++/* Release all Stream resources and its context
++* This is called from .bridge_release.
++ */
++dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
+ {
+-       struct strm_res_object **strm_res =
+-           (struct strm_res_object **)hstrm_res;
+        struct process_context *ctxt = (struct process_context *)hPCtxt;
+-       dsp_status status = DSP_SOK;
+-       struct strm_res_object *temp_strm2 = NULL;
+-       struct strm_res_object *temp_strm;
+
+-       if (mutex_lock_interruptible(&ctxt->strm_mutex))
+-               return DSP_EFAIL;
++       idr_for_each(ctxt->strm_idp, drv_proc_free_strm_res, ctxt);
++       idr_destroy(ctxt->strm_idp);
+
+-       temp_strm = ctxt->pstrm_list;
+-       while ((temp_strm != NULL) && (temp_strm->hstream != hStrm)) {
+-               temp_strm2 = temp_strm;
+-               temp_strm = temp_strm->next;
+-       }
+-
+-       mutex_unlock(&ctxt->strm_mutex);
+-
+-       if (temp_strm != NULL)
+-               *strm_res = temp_strm;
+-       else
+-               status = DSP_ENOTFOUND;
+-
+-       return status;
++       return DSP_SOK;
+ }
+
+ /* Updating the stream resource element */
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index cfd30eb..06b3803 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -506,7 +506,6 @@ static int bridge_open(struct inode *ip, struct file *filp)
+                INIT_LIST_HEAD(&pr_ctxt->dmm_map_list);
+                spin_lock_init(&pr_ctxt->dmm_rsv_lock);
+                INIT_LIST_HEAD(&pr_ctxt->dmm_rsv_list);
+-               mutex_init(&pr_ctxt->strm_mutex);
+
+                pr_ctxt->node_idp = mem_calloc(sizeof(struct idr), MEM_PAGED);
+                if (pr_ctxt->node_idp) {
+@@ -514,11 +513,21 @@ static int bridge_open(struct inode *ip, struct file *filp)
+                        spin_lock_init(&pr_ctxt->node_idp->lock);
+                } else {
+                        status = -ENOMEM;
++                       goto err;
+                }
++
++               pr_ctxt->strm_idp = mem_calloc(sizeof(struct idr), MEM_PAGED);
++               if (pr_ctxt->strm_idp) {
++                       idr_init(pr_ctxt->strm_idp);
++                       spin_lock_init(&pr_ctxt->strm_idp->lock);
++               } else {
++                       status = -ENOMEM;
++               }
++
+        } else {
+                status = -ENOMEM;
+        }
+-
++err:
+        filp->private_data = pr_ctxt;
+ #ifdef CONFIG_BRIDGE_RECOVERY
+        if (!status)
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index 699f2dc..a342c17 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -102,20 +102,19 @@ static void delete_strm_mgr(struct strm_mgr *strm_mgr_obj);
+  *  Purpose:
+  *      Allocates buffers for a stream.
+  */
+-dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
++dsp_status strm_allocate_buffer(struct strm_res_object *strmres, u32 usize,
+                                OUT u8 **ap_buffer, u32 num_bufs,
+                                struct process_context *pr_ctxt)
+ {
+        dsp_status status = DSP_SOK;
+        u32 alloc_cnt = 0;
+        u32 i;
+-
+-       bhandle hstrm_res;
++       struct strm_object *hstrm = strmres->hstream;
+
+        DBC_REQUIRE(refs > 0);
+        DBC_REQUIRE(ap_buffer != NULL);
+
+-       if (MEM_IS_VALID_HANDLE(hStrm, STRM_SIGNATURE)) {
++       if (MEM_IS_VALID_HANDLE(hstrm, STRM_SIGNATURE)) {
+                /*
+                 * Allocate from segment specified at time of stream open.
+                 */
+@@ -130,8 +129,8 @@ dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
+                goto func_end;
+
+        for (i = 0; i < num_bufs; i++) {
+-               DBC_ASSERT(hStrm->xlator != NULL);
+-               (void)cmm_xlator_alloc_buf(hStrm->xlator, &ap_buffer[i], usize);
++               DBC_ASSERT(hstrm->xlator != NULL);
++               (void)cmm_xlator_alloc_buf(hstrm->xlator, &ap_buffer[i], usize);
+                if (ap_buffer[i] == NULL) {
+                        status = DSP_EMEMORY;
+                        alloc_cnt = i;
+@@ -139,14 +138,12 @@ dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
+                }
+        }
+        if (DSP_FAILED(status))
+-               strm_free_buffer(hStrm, ap_buffer, alloc_cnt, pr_ctxt);
++               strm_free_buffer(strmres, ap_buffer, alloc_cnt, pr_ctxt);
+
+        if (DSP_FAILED(status))
+                goto func_end;
+
+-       if (drv_get_strm_res_element(hStrm, &hstrm_res, pr_ctxt) !=
+-           DSP_ENOTFOUND)
+-               drv_proc_update_strm_res(num_bufs, hstrm_res);
++       drv_proc_update_strm_res(num_bufs, strmres);
+
+ func_end:
+        return status;
+@@ -157,46 +154,45 @@ func_end:
+  *  Purpose:
+  *      Close a stream opened with strm_open().
+  */
+-dsp_status strm_close(struct strm_object *hStrm,
++dsp_status strm_close(struct strm_res_object *strmres,
+                      struct process_context *pr_ctxt)
+ {
+        struct bridge_drv_interface *intf_fxns;
+        struct chnl_info chnl_info_obj;
+        dsp_status status = DSP_SOK;
+-
+-       bhandle hstrm_res;
++       struct strm_object *hstrm = strmres->hstream;
+
+        DBC_REQUIRE(refs > 0);
+
+-       if (!MEM_IS_VALID_HANDLE(hStrm, STRM_SIGNATURE)) {
++       if (!MEM_IS_VALID_HANDLE(hstrm, STRM_SIGNATURE)) {
+                status = DSP_EHANDLE;
+        } else {
+                /* Have all buffers been reclaimed? If not, return
+                 * DSP_EPENDING */
+-               intf_fxns = hStrm->strm_mgr_obj->intf_fxns;
++               intf_fxns = hstrm->strm_mgr_obj->intf_fxns;
+                status =
+-                   (*intf_fxns->pfn_chnl_get_info) (hStrm->chnl_obj,
++                   (*intf_fxns->pfn_chnl_get_info) (hstrm->chnl_obj,
+                                                     &chnl_info_obj);
+                DBC_ASSERT(DSP_SUCCEEDED(status));
+
+                if (chnl_info_obj.cio_cs > 0 || chnl_info_obj.cio_reqs > 0)
+                        status = DSP_EPENDING;
+                else
+-                       status = delete_strm(hStrm);
++                       status = delete_strm(hstrm);
+        }
+
+        if (DSP_FAILED(status))
+                goto func_end;
+
+-       if (drv_get_strm_res_element(hStrm, &hstrm_res, pr_ctxt) !=
+-           DSP_ENOTFOUND)
+-               drv_proc_remove_strm_res_element(hstrm_res, pr_ctxt);
++       spin_lock(&pr_ctxt->strm_idp->lock);
++       idr_remove(pr_ctxt->strm_idp, strmres->id);
++       spin_unlock(&pr_ctxt->strm_idp->lock);
+ func_end:
+        DBC_ENSURE(status == DSP_SOK || status == DSP_EHANDLE ||
+                   status == DSP_EPENDING || status == DSP_EFAIL);
+
+-       dev_dbg(bridge, "%s: hStrm: %p, status 0x%x\n", __func__,
+-               hStrm, status);
++       dev_dbg(bridge, "%s: hstrm: %p, status 0x%x\n", __func__,
++               hstrm, status);
+        return status;
+ }
+
+@@ -279,33 +275,30 @@ void strm_exit(void)
+  *  Purpose:
+  *      Frees the buffers allocated for a stream.
+  */
+-dsp_status strm_free_buffer(struct strm_object *hStrm, u8 ** ap_buffer,
++dsp_status strm_free_buffer(struct strm_res_object *strmres, u8 ** ap_buffer,
+                            u32 num_bufs, struct process_context *pr_ctxt)
+ {
+        dsp_status status = DSP_SOK;
+        u32 i = 0;
+-
+-       bhandle hstrm_res = NULL;
++       struct strm_object *hstrm = strmres->hstream;
+
+        DBC_REQUIRE(refs > 0);
+        DBC_REQUIRE(ap_buffer != NULL);
+
+-       if (!MEM_IS_VALID_HANDLE(hStrm, STRM_SIGNATURE))
++       if (!MEM_IS_VALID_HANDLE(hstrm, STRM_SIGNATURE))
+                status = DSP_EHANDLE;
+
+        if (DSP_SUCCEEDED(status)) {
+                for (i = 0; i < num_bufs; i++) {
+-                       DBC_ASSERT(hStrm->xlator != NULL);
++                       DBC_ASSERT(hstrm->xlator != NULL);
+                        status =
+-                           cmm_xlator_free_buf(hStrm->xlator, ap_buffer[i]);
++                           cmm_xlator_free_buf(hstrm->xlator, ap_buffer[i]);
+                        if (DSP_FAILED(status))
+                                break;
+                        ap_buffer[i] = NULL;
+                }
+        }
+-       if (drv_get_strm_res_element(hStrm, hstrm_res, pr_ctxt) !=
+-           DSP_ENOTFOUND)
+-               drv_proc_update_strm_res(num_bufs - i, hstrm_res);
++       drv_proc_update_strm_res(num_bufs - i, strmres);
+
+        return status;
+ }
+@@ -473,7 +466,7 @@ dsp_status strm_issue(struct strm_object *hStrm, IN u8 *pbuf, u32 ul_bytes,
+  */
+ dsp_status strm_open(struct node_object *hnode, u32 dir, u32 index,
+                     IN struct strm_attr *pattr,
+-                    OUT struct strm_object **phStrm,
++                    OUT struct strm_res_object **strmres,
+                     struct process_context *pr_ctxt)
+ {
+        struct strm_mgr *strm_mgr_obj;
+@@ -488,9 +481,9 @@ dsp_status strm_open(struct node_object *hnode, u32 dir, u32 index,
+        bhandle hstrm_res;
+
+        DBC_REQUIRE(refs > 0);
+-       DBC_REQUIRE(phStrm != NULL);
++       DBC_REQUIRE(strmres != NULL);
+        DBC_REQUIRE(pattr != NULL);
+-       *phStrm = NULL;
++       *strmres = NULL;
+        if (dir != DSP_TONODE && dir != DSP_FROMNODE) {
+                status = DSP_EDIRECTION;
+        } else {
+@@ -600,23 +593,27 @@ func_cont:
+                }
+        }
+        if (DSP_SUCCEEDED(status)) {
+-               *phStrm = strm_obj;
+-               drv_proc_insert_strm_res_element(*phStrm, &hstrm_res, pr_ctxt);
++               status = drv_proc_insert_strm_res_element(strm_obj,
++                                                       &hstrm_res, pr_ctxt);
++               if (DSP_FAILED(status))
++                       delete_strm(strm_obj);
++               else
++                       *strmres = (struct strm_res_object *)hstrm_res;
+        } else {
+                (void)delete_strm(strm_obj);
+        }
+
+        /* ensure we return a documented error code */
+        DBC_ENSURE((DSP_SUCCEEDED(status) &&
+-                   MEM_IS_VALID_HANDLE((*phStrm), STRM_SIGNATURE)) ||
+-                  (*phStrm == NULL && (status == DSP_EHANDLE ||
++                   MEM_IS_VALID_HANDLE(strm_obj, STRM_SIGNATURE)) ||
++                  (*strmres == NULL && (status == DSP_EHANDLE ||
+                                        status == DSP_EDIRECTION
+                                        || status == DSP_EVALUE
+                                        || status == DSP_EFAIL)));
+
+        dev_dbg(bridge, "%s: hnode: %p dir: 0x%x index: 0x%x pattr: %p "
+-               "phStrm: %p status: 0x%x\n", __func__,
+-               hnode, dir, index, pattr, phStrm, status);
++               "strmres: %p status: 0x%x\n", __func__,
++               hnode, dir, index, pattr, strmres, status);
+        return status;
+ }
+
 --
-1.6.0.4
+1.5.4.5
 
