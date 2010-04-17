@@ -1,172 +1,1297 @@
 From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
-Subject: [PATCH 4/5] DSPBRIDGE: Remove handles from registry
-Date: Fri, 16 Apr 2010 22:34:08 -0500
-Message-ID: <B852767254C5C94EBB1040EE0EFA060092D76409@dlee01.ent.ti.com>
+Subject: [PATCH 5/5] DSPBRIDGE: Remove Reg module
+Date: Fri, 16 Apr 2010 22:35:20 -0500
+Message-ID: <B852767254C5C94EBB1040EE0EFA060092D7640A@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51803 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47667 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758713Ab0DQDeM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 23:34:12 -0400
+	id S1758727Ab0DQDfZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Apr 2010 23:35:25 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
 
->From 874bc262b47319b311d14ca32a7c1afb9eb388e8 Mon Sep 17 00:00:00 2001
+>From 1046e5fabff98074f706ed257c040ca3dd0decdb Mon Sep 17 00:00:00 2001
 From: Ernesto Ramos <ernesto@ti.com>
-Date: Thu, 1 Apr 2010 00:17:24 -0600
-Subject: [PATCH 4/5] DSPBRIDGE: Remove handles from registry
+Date: Fri, 16 Apr 2010 21:46:50 -0500
+Subject: [PATCH 5/5] DSPBRIDGE: Remove Reg module
 
-Remove handles from registry.
+Remove Reg module from services.
 
 Signed-off-by: Ernesto Ramos <ernesto@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/drv.h |    3 +
- drivers/dsp/bridge/services/cfg.c          |   59 +++++++++++++++++----------
- 2 files changed, 40 insertions(+), 22 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/dbdcddef.h |    8 +
+ arch/arm/plat-omap/include/dspbridge/reg.h      |  150 --------------
+ drivers/dsp/bridge/Makefile                     |    4 +-
+ drivers/dsp/bridge/rmgr/dbdcd.c                 |  220 +++++++++++++++-----
+ drivers/dsp/bridge/rmgr/drv.c                   |    1 -
+ drivers/dsp/bridge/rmgr/drv_interface.c         |    1 -
+ drivers/dsp/bridge/rmgr/dspdrv.c                |    1 -
+ drivers/dsp/bridge/rmgr/proc.c                  |    1 -
+ drivers/dsp/bridge/services/cfg.c               |    1 -
+ drivers/dsp/bridge/services/reg.c               |  142 -------------
+ drivers/dsp/bridge/services/regsup.c            |  245 -----------------------
+ drivers/dsp/bridge/services/regsup.h            |   48 -----
+ drivers/dsp/bridge/services/services.c          |   10 +-
+ drivers/dsp/bridge/wmd/io_sm.c                  |    1 -
+ drivers/dsp/bridge/wmd/tiomap3430.c             |    1 -
+ 15 files changed, 178 insertions(+), 656 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/dspbridge/reg.h
+ delete mode 100644 drivers/dsp/bridge/services/reg.c
+ delete mode 100644 drivers/dsp/bridge/services/regsup.c
+ delete mode 100644 drivers/dsp/bridge/services/regsup.h
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-index 210ca68..f505b21 100644
---- a/arch/arm/plat-omap/include/dspbridge/drv.h
-+++ b/arch/arm/plat-omap/include/dspbridge/drv.h
-@@ -128,6 +128,9 @@ struct drv_data {
- 	char *base_img;
- 	s32 shm_size;
- 	int tc_wordswapon;
-+	void *drv_object;
-+	void *dev_object;
-+	void *mgr_object;
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbdcddef.h b/arch/arm/plat-omap/include/dspbridge/dbdcddef.h
+index 7f59bb7..492c93c 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbdcddef.h
++++ b/arch/arm/plat-omap/include/dspbridge/dbdcddef.h
+@@ -32,9 +32,17 @@
+ #define DCD_REGKEY              "Software\\TexasInstruments\\DspBridge\\DCD"
+ #define DCD_REGISTER_SECTION    ".dcd_register"
+
++#define DCD_MAXPATHLENGTH    255
++
+ /* DCD Manager Object */
+ struct dcd_manager;
+
++struct dcd_key_elem {
++       struct list_head link;  /* Make it linked to a list */
++       char name[DCD_MAXPATHLENGTH];   /*  Name of a given value entry */
++       char *path;             /*  Pointer to the actual data */
++};
++
+ /* DCD Node Properties */
+ struct dcd_nodeprops {
+        struct dsp_ndbprops ndb_props;
+diff --git a/arch/arm/plat-omap/include/dspbridge/reg.h b/arch/arm/plat-omap/include/dspbridge/reg.h
+deleted file mode 100644
+index 8f32157..0000000
+--- a/arch/arm/plat-omap/include/dspbridge/reg.h
++++ /dev/null
+@@ -1,150 +0,0 @@
+-/*
+- * reg.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Provides registry functions.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef _REG_H
+-#define _REG_H
+-
+-#include <linux/types.h>
+-
+-#define REG_MAXREGPATHLENGTH    255
+-
+-/*
+- *  ======== reg_delete_value ========
+- *  Purpose:
+- *      Deletes a registry entry. NOTE: A registry entry is not the same as
+- *      a registry key.
+- *  Parameters:
+- *      pstrValue:  Name of entry to delete.
+- *  Returns:
+- *      DSP_SOK:    Success.
+- *      DSP_EFAIL:  General failure.
+- *  Requires:
+- *      - REG initialized.
+- *      - pstrValue is non-NULL value.
+- *      - length of pstrValue < REG_MAXREGPATHLENGTH.
+- *  Ensures:
+- *  Details:
+- */
+-extern dsp_status reg_delete_value(IN CONST char *pstrValue);
+-
+-/*
+- *  ======== reg_enum_value ========
+- *  Purpose:
+- *      Enumerates values of a specified key. Retrieves each value name and
+- *      the data associated with the value.
+- *  Parameters:
+- *      dw_index:        Specifies the index of the value to retrieve.
+- *      pstrKey:        The name of the registry key to be enumerated.
+- *      pstrValue:      Pointer to buffer that receives the name of the value.
+- *      pdwValueSize:   Specifies bytes of memory pstrValue points to on input,
+- *                      On output, specifies actual memory bytes written into.
+- *                      If there is no value, pdwValueSize returns NULL
+- *      pstrData:       Pointer to buffer that receives the data of a value.
+- *      pdwDataSize:    Specifies bytes of memory in pstrData on input and
+- *                      bytes of memory written into pstrData on output.
+- *                      If there is no data, pdwDataSize returns NULL.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EFAIL:      General failure.
+- *  Requires:
+- *      REG initialized.
+- *      pstrKey is a non-NULL value.
+- *      pstrValue, pstrData, pdwValueSize and pdwDataSize are valid pointers.
+- *      Length of pstrKey is less than REG_MAXREGPATHLENGTH.
+- *  Ensures:
+- */
+-extern dsp_status reg_enum_value(IN u32 dw_index, IN CONST char *pstrKey,
+-                                IN OUT char *pstrValue,
+-                                IN OUT u32 *pdwValueSize,
+-                                IN OUT char *pstrData,
+-                                IN OUT u32 *pdwDataSize);
+-
+-/*
+- *  ======== reg_exit ========
+- *  Purpose:
+- *      Discontinue usage of module; free resources when reference count
+- *      reaches 0.
+- *  Parameters:
+- *  Returns:
+- *  Requires:
+- *      REG initialized.
+- *  Ensures:
+- *      Resources used by module are freed when cRef reaches zero.
+- */
+-extern void reg_exit(void);
+-
+-/*
+- *  ======== reg_get_value ========
+- *  Purpose:
+- *      Retrieve a value from the registry.
+- *  Parameters:
+- *      pstrEntry:      Name of entry to retrieve.
+- *      pbValue:        Upon return, points to retrieved value.
+- *      pdwValueSize:   Specifies bytes of memory pbValue points to on input,
+- *                      on output, specifies actual memory bytes written into.
+- *                      If pbValue is NULL, pdwValueSize reports the size of
+- *                      the entry in pstrEntry.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EFAIL:      General failure.
+- *  Requires:
+- *      - REG initialized.
+- *      - pstrEntry is non-NULL value.
+- *      - pbValue is a valid pointer.
+- *      - length of pstrEntry < REG_MAXREGPATHLENGTH.
+- *  Ensures:
+- */
+-extern dsp_status reg_get_value(IN CONST char *pstrEntry, OUT u8 * pbValue,
+-                               IN OUT u32 *pdwValueSize);
+-
+-/*
+- *  ======== reg_init ========
+- *  Purpose:
+- *      Initializes private state of REG module.
+- *  Parameters:
+- *  Returns:
+- *      TRUE if initialized; FALSE if error occured.
+- *  Requires:
+- *  Ensures:
+- *      REG initialized.
+- */
+-extern bool reg_init(void);
+-
+-/*
+- *  ======== reg_set_value ========
+- *  Purpose:
+- *      Set a value in the registry.
+- *  Parameters:
+- *      pstrEntry:      Name of entry to set.
+- *      pbValue:        Points to buffer containing new data.
+- *      dw_value_size:    Specifies bytes of memory bValue points to.
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      DSP_EFAIL:      General failure.
+- *  Requires:
+- *      - REG initialized.
+- *      - pstrEntry is non-NULL value.
+- *      - pbValue is a valid pointer.
+- *      - dwValuSize > 0.
+- *      - length of pstrEntry < REG_MAXREGPATHLENGTH.
+- *  Ensures:
+- */
+-extern dsp_status reg_set_value(IN CONST char *pstrEntry, IN u8 * pbValue,
+-                               IN u32 dw_value_size);
+-
+-#endif /* _REG_H */
+diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
+index 3d9603b..234ec2d 100644
+--- a/drivers/dsp/bridge/Makefile
++++ b/drivers/dsp/bridge/Makefile
+@@ -2,8 +2,8 @@ obj-$(CONFIG_MPU_BRIDGE)        += bridgedriver.o
+
+ libgen = gen/gb.o gen/gs.o gen/gh.o gen/uuidutil.o
+ libservices = services/mem.o services/sync.o \
+-               services/clk.o services/cfg.o services/reg.o \
+-               services/regsup.o services/ntfy.o \
++               services/clk.o services/cfg.o \
++               services/ntfy.o \
+                services/services.o
+ libwmd = wmd/chnl_sm.o wmd/msg_sm.o wmd/io_sm.o wmd/tiomap3430.o \
+                wmd/tiomap3430_pwr.o wmd/tiomap_io.o \
+diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
+index fd90c99..8a8a802 100644
+--- a/drivers/dsp/bridge/rmgr/dbdcd.c
++++ b/drivers/dsp/bridge/rmgr/dbdcd.c
+@@ -35,7 +35,6 @@
+
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/mem.h>
+-#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/cod.h>
+@@ -62,6 +61,10 @@ struct dcd_manager {
+        struct cod_manager *cod_mgr;    /* Handle to COD manager object. */
  };
- 
- /* Process Context */
+
++/*  Pointer to the registry support key */
++static struct list_head reg_key_list;
++static DEFINE_SPINLOCK(dbdcd_lock);
++
+ /* Global reference variables. */
+ static u32 refs;
+ static u32 enum_refs;
+@@ -204,14 +207,13 @@ dsp_status dcd_enumerate_object(IN s32 cIndex, IN enum dsp_dcdobjtype obj_type,
+                                OUT struct dsp_uuid *uuid_obj)
+ {
+        dsp_status status = DSP_SOK;
+-       char sz_reg_key[REG_MAXREGPATHLENGTH];
+-       char sz_value[REG_MAXREGPATHLENGTH];
+-       char sz_data[REG_MAXREGPATHLENGTH];
+-       u32 dw_value_size;
+-       u32 dw_data_size;
++       char sz_reg_key[DCD_MAXPATHLENGTH];
++       char sz_value[DCD_MAXPATHLENGTH];
+        struct dsp_uuid dsp_uuid_obj;
+        char sz_obj_type[MAX_INT2CHAR_LENGTH];  /* str. rep. of obj_type. */
+        u32 dw_key_len = 0;
++       struct dcd_key_elem *dcd_key;
++       int len;
+
+        DBC_REQUIRE(refs >= 0);
+        DBC_REQUIRE(cIndex >= 0);
+@@ -225,22 +227,18 @@ dsp_status dcd_enumerate_object(IN s32 cIndex, IN enum dsp_dcdobjtype obj_type,
+                 */
+                status = DSP_ECHANGEDURINGENUM;
+        } else {
+-               /* Enumerate a specific key in the registry by index. */
+-               dw_value_size = REG_MAXREGPATHLENGTH;
+-               dw_data_size = REG_MAXREGPATHLENGTH;
+-
+                /*
+                 * Pre-determine final key length. It's length of DCD_REGKEY +
+                 *  "_\0" + length of sz_obj_type string + terminating NULL.
+                 */
+                dw_key_len = strlen(DCD_REGKEY) + 1 + sizeof(sz_obj_type) + 1;
+-               DBC_ASSERT(dw_key_len < REG_MAXREGPATHLENGTH);
++               DBC_ASSERT(dw_key_len < DCD_MAXPATHLENGTH);
+
+                /* Create proper REG key; concatenate DCD_REGKEY with
+                 * obj_type. */
+                strncpy(sz_reg_key, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
+                if ((strlen(sz_reg_key) + strlen("_\0")) <
+-                   REG_MAXREGPATHLENGTH) {
++                   DCD_MAXPATHLENGTH) {
+                        strncat(sz_reg_key, "_\0", 2);
+                } else {
+                        status = DSP_EFAIL;
+@@ -256,7 +254,7 @@ dsp_status dcd_enumerate_object(IN s32 cIndex, IN enum dsp_dcdobjtype obj_type,
+                } else {
+                        status = DSP_SOK;
+                        if ((strlen(sz_reg_key) + strlen(sz_obj_type)) <
+-                           REG_MAXREGPATHLENGTH) {
++                           DCD_MAXPATHLENGTH) {
+                                strncat(sz_reg_key, sz_obj_type,
+                                        strlen(sz_obj_type) + 1);
+                        } else {
+@@ -265,9 +263,20 @@ dsp_status dcd_enumerate_object(IN s32 cIndex, IN enum dsp_dcdobjtype obj_type,
+                }
+
+                if (DSP_SUCCEEDED(status)) {
+-                       status = reg_enum_value(cIndex, sz_reg_key, sz_value,
+-                                               &dw_value_size, sz_data,
+-                                               &dw_data_size);
++                       len = strlen(sz_reg_key);
++                       spin_lock(&dbdcd_lock);
++                       list_for_each_entry(dcd_key, &reg_key_list, link) {
++                               if (!strncmp(dcd_key->name, sz_reg_key, len)
++                                               && !cIndex--) {
++                                       strncpy(sz_value, &dcd_key->name[len],
++                                              strlen(&dcd_key->name[len]) + 1);
++                                               break;
++                               }
++                       }
++                       spin_unlock(&dbdcd_lock);
++
++                       if (&dcd_key->link == &reg_key_list)
++                               status = REG_E_NOMOREITEMS;
+                }
+
+                if (DSP_SUCCEEDED(status)) {
+@@ -303,11 +312,18 @@ dsp_status dcd_enumerate_object(IN s32 cIndex, IN enum dsp_dcdobjtype obj_type,
+  */
+ void dcd_exit(void)
+ {
++       struct dcd_key_elem *rv, *rv_tmp;
+        DBC_REQUIRE(refs > 0);
+
+        refs--;
+-       if (refs == 0)
++       if (refs == 0) {
+                cod_exit();
++               list_for_each_entry_safe(rv, rv_tmp, &reg_key_list, link) {
++                       list_del(&rv->link);
++                       kfree(rv->path);
++                       kfree(rv);
++               }
++       }
+
+        DBC_ENSURE(refs >= 0);
+ }
+@@ -375,9 +391,9 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+        u32 ul_addr = 0;        /* Used by cod_get_section */
+        u32 ul_len = 0;         /* Used by cod_get_section */
+        u32 dw_buf_size;        /* Used by REG functions */
+-       char sz_reg_key[REG_MAXREGPATHLENGTH];
++       char sz_reg_key[DCD_MAXPATHLENGTH];
+        char *sz_uuid;          /*[MAXUUIDLEN]; */
+-       char sz_reg_data[REG_MAXREGPATHLENGTH];
++       struct dcd_key_elem *dcd_key = NULL;
+        char sz_sect_name[MAXUUIDLEN + 2];      /* ".[UUID]\0" */
+        char *psz_coff_buf;
+        u32 dw_key_len;         /* Len of REG key. */
+@@ -401,12 +417,12 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+        /* Pre-determine final key length. It's length of DCD_REGKEY +
+         *  "_\0" + length of sz_obj_type string + terminating NULL */
+        dw_key_len = strlen(DCD_REGKEY) + 1 + sizeof(sz_obj_type) + 1;
+-       DBC_ASSERT(dw_key_len < REG_MAXREGPATHLENGTH);
++       DBC_ASSERT(dw_key_len < DCD_MAXPATHLENGTH);
+
+        /* Create proper REG key; concatenate DCD_REGKEY with obj_type. */
+        strncpy(sz_reg_key, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
+
+-       if ((strlen(sz_reg_key) + strlen("_\0")) < REG_MAXREGPATHLENGTH)
++       if ((strlen(sz_reg_key) + strlen("_\0")) < DCD_MAXPATHLENGTH)
+                strncat(sz_reg_key, "_\0", 2);
+        else
+                status = DSP_EFAIL;
+@@ -418,7 +434,7 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+                status = DSP_SOK;
+
+                if ((strlen(sz_reg_key) + strlen(sz_obj_type)) <
+-                   REG_MAXREGPATHLENGTH) {
++                   DCD_MAXPATHLENGTH) {
+                        strncat(sz_reg_key, sz_obj_type,
+                                strlen(sz_obj_type) + 1);
+                } else {
+@@ -428,25 +444,32 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+                /* Create UUID value to set in registry. */
+                uuid_uuid_to_string(pObjUuid, sz_uuid, MAXUUIDLEN);
+
+-               if ((strlen(sz_reg_key) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
++               if ((strlen(sz_reg_key) + MAXUUIDLEN) < DCD_MAXPATHLENGTH)
+                        strncat(sz_reg_key, sz_uuid, MAXUUIDLEN);
+                else
+                        status = DSP_EFAIL;
+
+                /* Retrieve paths from the registry based on struct dsp_uuid */
+-               dw_buf_size = REG_MAXREGPATHLENGTH;
++               dw_buf_size = DCD_MAXPATHLENGTH;
+        }
+-       if (DSP_SUCCEEDED(status))
+-               status =
+-                   reg_get_value(sz_reg_key, (u8 *) sz_reg_data, &dw_buf_size);
+-
+-       if (DSP_FAILED(status)) {
+-               status = DSP_EUUID;
+-               goto func_end;
++       if (DSP_SUCCEEDED(status)) {
++               spin_lock(&dbdcd_lock);
++               list_for_each_entry(dcd_key, &reg_key_list, link) {
++                       if (!strncmp(dcd_key->name, sz_reg_key,
++                                               strlen(sz_reg_key) + 1))
++                               break;
++               }
++               spin_unlock(&dbdcd_lock);
++               if (&dcd_key->link == &reg_key_list) {
++                       status = DSP_EUUID;
++                       goto func_end;
++               }
+        }
+
++
+        /* Open COFF file. */
+-       status = cod_open(dcd_mgr_obj->cod_mgr, sz_reg_data, COD_NOLOAD, &lib);
++       status = cod_open(dcd_mgr_obj->cod_mgr, dcd_key->path,
++                                                       COD_NOLOAD, &lib);
+        if (DSP_FAILED(status)) {
+                status = DSP_EDCDLOADBASE;
+                goto func_end;
+@@ -471,7 +494,7 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+        /* Allocate zeroed buffer. */
+        psz_coff_buf = mem_calloc(ul_len + 4, MEM_PAGED);
+ #ifdef _DB_TIOMAP
+-       if (strstr(sz_reg_data, "iva") == NULL) {
++       if (strstr(dcd_key->path, "iva") == NULL) {
+                /* Locate section by objectID and read its content. */
+                status =
+                    cod_read_section(lib, sz_sect_name, psz_coff_buf, ul_len);
+@@ -485,7 +508,7 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+ #endif
+        if (DSP_SUCCEEDED(status)) {
+                /* Compres DSP buffer to conform to PC format. */
+-               if (strstr(sz_reg_data, "iva") == NULL) {
++               if (strstr(dcd_key->path, "iva") == NULL) {
+                        compress_buf(psz_coff_buf, ul_len, DSPWORDSIZE);
+                } else {
+                        compress_buf(psz_coff_buf, ul_len, 1);
+@@ -630,11 +653,12 @@ dsp_status dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
+                                IN OUT char *pstrLibName, IN OUT u32 * pdwSize,
+                                enum nldr_phase phase, OUT bool *phase_split)
+ {
+-       char sz_reg_key[REG_MAXREGPATHLENGTH];
++       char sz_reg_key[DCD_MAXPATHLENGTH];
+        char sz_uuid[MAXUUIDLEN];
+        u32 dw_key_len;         /* Len of REG key. */
+        char sz_obj_type[MAX_INT2CHAR_LENGTH];  /* str. rep. of obj_type. */
+        dsp_status status = DSP_SOK;
++       struct dcd_key_elem *dcd_key = NULL;
+
+        DBC_REQUIRE(uuid_obj != NULL);
+        DBC_REQUIRE(pstrLibName != NULL);
+@@ -649,11 +673,11 @@ dsp_status dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
+         *  "_\0" + length of sz_obj_type string + terminating NULL.
+         */
+        dw_key_len = strlen(DCD_REGKEY) + 1 + sizeof(sz_obj_type) + 1;
+-       DBC_ASSERT(dw_key_len < REG_MAXREGPATHLENGTH);
++       DBC_ASSERT(dw_key_len < DCD_MAXPATHLENGTH);
+
+        /* Create proper REG key; concatenate DCD_REGKEY with obj_type. */
+        strncpy(sz_reg_key, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
+-       if ((strlen(sz_reg_key) + strlen("_\0")) < REG_MAXREGPATHLENGTH)
++       if ((strlen(sz_reg_key) + strlen("_\0")) < DCD_MAXPATHLENGTH)
+                strncat(sz_reg_key, "_\0", 2);
+        else
+                status = DSP_EFAIL;
+@@ -681,7 +705,7 @@ dsp_status dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
+        }
+        if (DSP_SUCCEEDED(status)) {
+                if ((strlen(sz_reg_key) + strlen(sz_obj_type)) <
+-                   REG_MAXREGPATHLENGTH) {
++                   DCD_MAXPATHLENGTH) {
+                        strncat(sz_reg_key, sz_obj_type,
+                                strlen(sz_obj_type) + 1);
+                } else {
+@@ -689,16 +713,26 @@ dsp_status dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
+                }
+                /* Create UUID value to find match in registry. */
+                uuid_uuid_to_string(uuid_obj, sz_uuid, MAXUUIDLEN);
+-               if ((strlen(sz_reg_key) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
++               if ((strlen(sz_reg_key) + MAXUUIDLEN) < DCD_MAXPATHLENGTH)
+                        strncat(sz_reg_key, sz_uuid, MAXUUIDLEN);
+                else
+                        status = DSP_EFAIL;
+        }
+        if (DSP_SUCCEEDED(status)) {
+                /* Retrieve path from the registry based on dsp_uuid */
+-               status = reg_get_value(sz_reg_key, (u8 *) pstrLibName, pdwSize);
++               spin_lock(&dbdcd_lock);
++               list_for_each_entry(dcd_key, &reg_key_list, link) {
++                       /*  See if the name matches. */
++                       if (!strncmp(dcd_key->name, sz_reg_key,
++                                               strlen(sz_reg_key) + 1))
++                               break;
++               }
++               spin_unlock(&dbdcd_lock);
+        }
+
++       if (&dcd_key->link == &reg_key_list)
++               status = DSP_EUUID;
++
+        /* If can't find, phases might be registered as generic LIBRARYTYPE */
+        if (DSP_FAILED(status) && phase != NLDR_NOPHASE) {
+                if (phase_split)
+@@ -706,28 +740,40 @@ dsp_status dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
+
+                strncpy(sz_reg_key, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
+                if ((strlen(sz_reg_key) + strlen("_\0")) <
+-                   REG_MAXREGPATHLENGTH) {
++                   DCD_MAXPATHLENGTH) {
+                        strncat(sz_reg_key, "_\0", 2);
+                } else {
+                        status = DSP_EFAIL;
+                }
+                sprintf(sz_obj_type, "%d", DSP_DCDLIBRARYTYPE);
+                if ((strlen(sz_reg_key) + strlen(sz_obj_type))
+-                   < REG_MAXREGPATHLENGTH) {
++                   < DCD_MAXPATHLENGTH) {
+                        strncat(sz_reg_key, sz_obj_type,
+                                strlen(sz_obj_type) + 1);
+                } else {
+                        status = DSP_EFAIL;
+                }
+                uuid_uuid_to_string(uuid_obj, sz_uuid, MAXUUIDLEN);
+-               if ((strlen(sz_reg_key) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
++               if ((strlen(sz_reg_key) + MAXUUIDLEN) < DCD_MAXPATHLENGTH)
+                        strncat(sz_reg_key, sz_uuid, MAXUUIDLEN);
+                else
+                        status = DSP_EFAIL;
+
+-               status = reg_get_value(sz_reg_key, (u8 *) pstrLibName, pdwSize);
++               spin_lock(&dbdcd_lock);
++               list_for_each_entry(dcd_key, &reg_key_list, link) {
++                       /*  See if the name matches. */
++                       if (!strncmp(dcd_key->name, sz_reg_key,
++                                               strlen(sz_reg_key) + 1))
++                               break;
++               }
++               spin_unlock(&dbdcd_lock);
++
++               status = (&dcd_key->link != &reg_key_list) ?
++                                               DSP_SOK : DSP_EUUID;
+        }
+
++       if (DSP_SUCCEEDED(status))
++               memcpy(pstrLibName, dcd_key->path, strlen(dcd_key->path) + 1);
+        return status;
+ }
+
+@@ -753,6 +799,8 @@ bool dcd_init(void)
+                        if (init_cod)
+                                cod_exit();
+                }
++
++               INIT_LIST_HEAD(&reg_key_list);
+        }
+
+        if (ret)
+@@ -774,11 +822,12 @@ dsp_status dcd_register_object(IN struct dsp_uuid *uuid_obj,
+                               IN char *psz_path_name)
+ {
+        dsp_status status = DSP_SOK;
+-       char sz_reg_key[REG_MAXREGPATHLENGTH];
++       char sz_reg_key[DCD_MAXPATHLENGTH];
+        char sz_uuid[MAXUUIDLEN + 1];
+        u32 dw_path_size = 0;
+        u32 dw_key_len;         /* Len of REG key. */
+        char sz_obj_type[MAX_INT2CHAR_LENGTH];  /* str. rep. of obj_type. */
++       struct dcd_key_elem *dcd_key = NULL;
+
+        DBC_REQUIRE(refs > 0);
+        DBC_REQUIRE(uuid_obj != NULL);
+@@ -797,11 +846,11 @@ dsp_status dcd_register_object(IN struct dsp_uuid *uuid_obj,
+         *  "_\0" + length of sz_obj_type string + terminating NULL.
+         */
+        dw_key_len = strlen(DCD_REGKEY) + 1 + sizeof(sz_obj_type) + 1;
+-       DBC_ASSERT(dw_key_len < REG_MAXREGPATHLENGTH);
++       DBC_ASSERT(dw_key_len < DCD_MAXPATHLENGTH);
+
+        /* Create proper REG key; concatenate DCD_REGKEY with obj_type. */
+        strncpy(sz_reg_key, DCD_REGKEY, strlen(DCD_REGKEY) + 1);
+-       if ((strlen(sz_reg_key) + strlen("_\0")) < REG_MAXREGPATHLENGTH)
++       if ((strlen(sz_reg_key) + strlen("_\0")) < DCD_MAXPATHLENGTH)
+                strncat(sz_reg_key, "_\0", 2);
+        else {
+                status = DSP_EFAIL;
+@@ -814,7 +863,7 @@ dsp_status dcd_register_object(IN struct dsp_uuid *uuid_obj,
+        } else {
+                status = DSP_SOK;
+                if ((strlen(sz_reg_key) + strlen(sz_obj_type)) <
+-                   REG_MAXREGPATHLENGTH) {
++                   DCD_MAXPATHLENGTH) {
+                        strncat(sz_reg_key, sz_obj_type,
+                                strlen(sz_obj_type) + 1);
+                } else
+@@ -822,7 +871,7 @@ dsp_status dcd_register_object(IN struct dsp_uuid *uuid_obj,
+
+                /* Create UUID value to set in registry. */
+                uuid_uuid_to_string(uuid_obj, sz_uuid, MAXUUIDLEN);
+-               if ((strlen(sz_reg_key) + MAXUUIDLEN) < REG_MAXREGPATHLENGTH)
++               if ((strlen(sz_reg_key) + MAXUUIDLEN) < DCD_MAXPATHLENGTH)
+                        strncat(sz_reg_key, sz_uuid, MAXUUIDLEN);
+                else
+                        status = DSP_EFAIL;
+@@ -835,17 +884,80 @@ dsp_status dcd_register_object(IN struct dsp_uuid *uuid_obj,
+         * If psz_path_name != NULL, perform registration, otherwise,
+         * perform unregistration.
+         */
++
+        if (psz_path_name) {
+-               /* Add new reg value (UUID+obj_type) with COFF path info */
+                dw_path_size = strlen(psz_path_name) + 1;
+-               status =
+-                   reg_set_value(sz_reg_key, (u8 *) psz_path_name,
+-                                 dw_path_size);
++               spin_lock(&dbdcd_lock);
++               list_for_each_entry(dcd_key, &reg_key_list, link) {
++                       /*  See if the name matches. */
++                       if (!strncmp(dcd_key->name, sz_reg_key,
++                                               strlen(sz_reg_key) + 1))
++                               break;
++               }
++               spin_unlock(&dbdcd_lock);
++               if (&dcd_key->link == &reg_key_list) {
++                       /*
++                        * Add new reg value (UUID+obj_type)
++                        * with COFF path info
++                        */
++
++                       dcd_key = kmalloc(sizeof(struct dcd_key_elem),
++                                                               GFP_KERNEL);
++                       if (!dcd_key) {
++                               status = DSP_EMEMORY;
++                               goto func_end;
++                       }
++
++                       dcd_key->path = kmalloc(strlen(sz_reg_key) + 1,
++                                                               GFP_KERNEL);
++
++                       if (!dcd_key->path) {
++                               kfree(dcd_key);
++                               status = DSP_EMEMORY;
++                               goto func_end;
++                       }
++
++                       strncpy(dcd_key->name, sz_reg_key,
++                                               strlen(sz_reg_key) + 1);
++                       strncpy(dcd_key->path, psz_path_name ,
++                                               dw_path_size);
++                       spin_lock(&dbdcd_lock);
++                       list_add_tail(&dcd_key->link, &reg_key_list);
++                       spin_unlock(&dbdcd_lock);
++               } else {
++                       /*  Make sure the new data is the same. */
++                       if (strncmp(dcd_key->path, psz_path_name,
++                                                       dw_path_size)) {
++                               /*  The caller needs a different data size! */
++                               kfree(dcd_key->path);
++                               dcd_key->path = kmalloc(dw_path_size,
++                                                               GFP_KERNEL);
++                               if (dcd_key->path == NULL) {
++                                       status = DSP_EMEMORY;
++                                       goto func_end;
++                               }
++                       }
++
++                       /*  We have a match!  Copy out the data. */
++                       memcpy(dcd_key->path, psz_path_name, dw_path_size);
++               }
+                dev_dbg(bridge, "%s: psz_path_name=%s, dw_path_size=%d\n",
+                        __func__, psz_path_name, dw_path_size);
+        } else {
++               status = DSP_ENOTFOUND;
+                /* Deregister an existing object */
+-               status = reg_delete_value(sz_reg_key);
++               spin_lock(&dbdcd_lock);
++               list_for_each_entry(dcd_key, &reg_key_list, link) {
++                       if (!strncmp(dcd_key->name, sz_reg_key,
++                                               strlen(sz_reg_key) + 1)) {
++                               list_del(&dcd_key->link);
++                               kfree(dcd_key->path);
++                               kfree(dcd_key);
++                               status = DSP_SOK;
++                               break;
++                       }
++               }
++               spin_unlock(&dbdcd_lock);
+        }
+
+        if (DSP_SUCCEEDED(status)) {
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 21b6098..fce1a3f 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -31,7 +31,6 @@
+ #include <dspbridge/cfg.h>
+ #include <dspbridge/list.h>
+ #include <dspbridge/mem.h>
+-#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- This */
+ #include <dspbridge/drv.h>
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index d9dcd14..5ee2c10 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -42,7 +42,6 @@
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/services.h>
+ #include <dspbridge/sync.h>
+-#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/wcdioctl.h>
+diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
+index f8ceeba..958de28 100644
+--- a/drivers/dsp/bridge/rmgr/dspdrv.c
++++ b/drivers/dsp/bridge/rmgr/dspdrv.c
+@@ -30,7 +30,6 @@
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/cfg.h>
+ #include <dspbridge/mem.h>
+-#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/drv.h>
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index c821be4..3254d0c 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -53,7 +53,6 @@
+ #include <dspbridge/msg.h>
+ #include <dspbridge/wmdioctl.h>
+ #include <dspbridge/drv.h>
+-#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- This */
+ #include <dspbridge/proc.h>
 diff --git a/drivers/dsp/bridge/services/cfg.c b/drivers/dsp/bridge/services/cfg.c
-index 8f9f84c..8e2d614 100644
+index 8e2d614..1541ca6 100644
 --- a/drivers/dsp/bridge/services/cfg.c
 +++ b/drivers/dsp/bridge/services/cfg.c
-@@ -82,6 +82,10 @@ dsp_status cfg_get_dev_object(struct cfg_devnode *dev_node_obj,
+@@ -25,7 +25,6 @@
+ #include <dspbridge/dbc.h>
+
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/reg.h>
+
+ /*  ----------------------------------- This */
+ #include <dspbridge/cfg.h>
+diff --git a/drivers/dsp/bridge/services/reg.c b/drivers/dsp/bridge/services/reg.c
+deleted file mode 100644
+index e7f15cf..0000000
+--- a/drivers/dsp/bridge/services/reg.c
++++ /dev/null
+@@ -1,142 +0,0 @@
+-/*
+- * reg.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Provide registry functions.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-/*  ----------------------------------- Host OS */
+-#include <dspbridge/host_os.h>
+-
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dspbridge/std.h>
+-#include <dspbridge/dbdefs.h>
+-#include <dspbridge/errbase.h>
+-
+-/*  ----------------------------------- Trace & Debug */
+-#include <dspbridge/dbc.h>
+-
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/mem.h>
+-
+-/*  ----------------------------------- This */
+-#include <dspbridge/reg.h>
+-#include <regsup.h>
+-
+-/*
+- *  ======== reg_delete_value ========
+- *  Deletes a registry entry value.  NOTE:  A registry entry value is not the
+- *  same as *  a registry key.
+- */
+-dsp_status reg_delete_value(IN CONST char *pstrValue)
+-{
+-       dsp_status status;
+-       DBC_REQUIRE(strlen(pstrValue) < REG_MAXREGPATHLENGTH);
+-
+-       status = regsup_delete_value(pstrValue);
+-
+-       return status;
+-}
+-
+-/*
+- *  ======== reg_enum_value ========
+- *  Enumerates a registry key and retrieve values stored under the key.
+- *  We will assume the input pdwValueSize is smaller than
+- *  REG_MAXREGPATHLENGTH for implementation purposes.
+- */
+-dsp_status reg_enum_value(IN u32 dw_index,
+-                         IN CONST char *pstrKey, IN OUT char *pstrValue,
+-                         IN OUT u32 *pdwValueSize, IN OUT char *pstrData,
+-                         IN OUT u32 *pdwDataSize)
+-{
+-       dsp_status status;
+-
+-       DBC_REQUIRE(pstrKey && pstrValue && pdwValueSize && pstrData &&
+-                   pdwDataSize);
+-       DBC_REQUIRE(*pdwValueSize <= REG_MAXREGPATHLENGTH);
+-       DBC_REQUIRE(strlen(pstrKey) < REG_MAXREGPATHLENGTH);
+-
+-       status = regsup_enum_value(dw_index, pstrKey, pstrValue, pdwValueSize,
+-                                  pstrData, pdwDataSize);
+-
+-       return status;
+-}
+-
+-/*
+- *  ======== reg_exit ========
+- *  Discontinue usage of the REG module.
+- */
+-void reg_exit(void)
+-{
+-       regsup_exit();
+-}
+-
+-/*
+- *  ======== reg_get_value ========
+- *  Retrieve a value from the registry.
+- */
+-dsp_status reg_get_value(IN CONST char *pstrValue, OUT u8 * pbData,
+-                        IN OUT u32 *pdwDataSize)
+-{
+-       dsp_status status;
+-
+-       DBC_REQUIRE(pstrValue && pbData);
+-       DBC_REQUIRE(strlen(pstrValue) < REG_MAXREGPATHLENGTH);
+-
+-       /*  We need to use regsup calls... */
+-       /*  ...for now we don't need the key handle or */
+-       /*  the subkey, all we need is the value to lookup. */
+-       if (regsup_get_value((char *)pstrValue, pbData, pdwDataSize) == DSP_SOK)
+-               status = DSP_SOK;
+-       else
+-               status = DSP_EFAIL;
+-
+-       return status;
+-}
+-
+-/*
+- *  ======== reg_init ========
+- *  Initialize the REG module's private state.
+- */
+-bool reg_init(void)
+-{
+-       bool ret;
+-
+-       ret = regsup_init();
+-
+-       return ret;
+-}
+-
+-/*
+- *  ======== reg_set_value ========
+- *  Set a value in the registry.
+- */
+-dsp_status reg_set_value(IN CONST char *pstrValue, IN u8 * pbData,
+-                        IN u32 dw_data_size)
+-{
+-       dsp_status status;
+-
+-       DBC_REQUIRE(pstrValue && pbData);
+-       DBC_REQUIRE(dw_data_size > 0);
+-       DBC_REQUIRE(strlen(pstrValue) < REG_MAXREGPATHLENGTH);
+-
+-       /*
+-        * We need to use regsup calls
+-        * for now we don't need the key handle or
+-        * the subkey, all we need is the value to lookup.
+-        */
+-       status = regsup_set_value((char *)pstrValue, pbData, dw_data_size);
+-
+-       return status;
+-}
+diff --git a/drivers/dsp/bridge/services/regsup.c b/drivers/dsp/bridge/services/regsup.c
+deleted file mode 100644
+index 275d91c..0000000
+--- a/drivers/dsp/bridge/services/regsup.c
++++ /dev/null
+@@ -1,245 +0,0 @@
+-/*
+- * regsup.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Provide registry support functions.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-/*  ----------------------------------- Host OS */
+-#include <dspbridge/host_os.h>
+-
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dspbridge/std.h>
+-#include <dspbridge/dbdefs.h>
+-#include <dspbridge/errbase.h>
+-
+-/*  ----------------------------------- Trace & Debug */
+-#include <dspbridge/dbc.h>
+-
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/mem.h>
+-#include <dspbridge/list.h>
+-
+-/*  ----------------------------------- This */
+-#include <regsup.h>
+-
+-struct reg_value {
+-       struct list_head link;  /* Make it linked to a list */
+-       char name[MAXREGPATHLENGTH];    /*  Name of a given value entry */
+-       u32 data_size;          /*  Size of the data */
+-       void *pdata;            /*  Pointer to the actual data */
+-};
+-
+-/*  Pointer to the registry support key */
+-static struct lst_list reg_key, *reg_key_list = &reg_key;
+-
+-/*
+- *  ======== regsup_init ========
+- *  Purpose:
+- *      Initialize the Registry Support module's private state.
+- */
+-bool regsup_init(void)
+-{
+-       INIT_LIST_HEAD(&reg_key_list->head);
+-       return true;
+-}
+-
+-/*
+- *  ======== regsup_exit ========
+- *  Purpose:
+- *      Release all registry support allocations.
+- */
+-void regsup_exit(void)
+-{
+-       struct reg_value *rv;
+-       /*  Now go through each entry and free all resources. */
+-       while (!LST_IS_EMPTY(reg_key_list)) {
+-               rv = (struct reg_value *)lst_get_head(reg_key_list);
+-
+-               kfree(rv->pdata);
+-               kfree(rv);
+-       }
+-}
+-
+-/*
+- *  ======== regsup_get_value ========
+- *  Purpose:
+- *      Get the value of the entry having the given name.
+- */
+-dsp_status regsup_get_value(char *valName, void *pbuf, u32 * data_size)
+-{
+-       dsp_status ret = DSP_EFAIL;
+-       struct reg_value *rv = (struct reg_value *)lst_first(reg_key_list);
+-
+-       /*  Need to search through the entries looking for the right one. */
+-       while (rv) {
+-               /*  See if the name matches. */
+-               if (strncmp(rv->name, valName, MAXREGPATHLENGTH) == 0) {
+-                       /*  We have a match!  Copy out the data. */
+-                       memcpy(pbuf, rv->pdata, rv->data_size);
+-
+-                       /*  Get the size for the caller. */
+-                       *data_size = rv->data_size;
+-
+-                       /*  Set our status to good and exit. */
+-                       ret = DSP_SOK;
+-                       break;
+-               }
+-               rv = (struct reg_value *)lst_next(reg_key_list,
+-                                                 (struct list_head *)rv);
+-       }
+-
+-       dev_dbg(bridge, "REG: get %s, status = 0x%x\n", valName, ret);
+-
+-       return ret;
+-}
+-
+-/*
+- *  ======== regsup_set_value ========
+- *  Purpose:
+- *      Sets the value of the entry having the given name.
+- */
+-dsp_status regsup_set_value(char *valName, void *pbuf, u32 data_size)
+-{
+-       dsp_status ret = DSP_EFAIL;
+-       struct reg_value *rv = (struct reg_value *)lst_first(reg_key_list);
+-
+-       /*  Need to search through the entries looking for the right one. */
+-       while (rv) {
+-               /*  See if the name matches. */
+-               if (strncmp(rv->name, valName, MAXREGPATHLENGTH) == 0) {
+-                       /*  Make sure the new data size is the same. */
+-                       if (data_size != rv->data_size) {
+-                               /*  The caller needs a different data size! */
+-                               kfree(rv->pdata);
+-                               rv->pdata = mem_alloc(data_size, MEM_NONPAGED);
+-                               if (rv->pdata == NULL)
+-                                       break;
+-                       }
+-
+-                       /*  We have a match!  Copy out the data. */
+-                       memcpy(rv->pdata, pbuf, data_size);
+-
+-                       /* Reset datasize - overwrite if new or same */
+-                       rv->data_size = data_size;
+-
+-                       /*  Set our status to good and exit. */
+-                       ret = DSP_SOK;
+-                       break;
+-               }
+-               rv = (struct reg_value *)lst_next(reg_key_list,
+-                                                 (struct list_head *)rv);
+-       }
+-
+-       /*  See if we found a match or if this is a new entry */
+-       if (!rv) {
+-               /*  No match, need to make a new entry */
+-               struct reg_value *new = mem_calloc(sizeof(struct reg_value),
+-                                                  MEM_NONPAGED);
+-
+-               strncat(new->name, valName, MAXREGPATHLENGTH - 1);
+-               new->pdata = mem_alloc(data_size, MEM_NONPAGED);
+-               if (new->pdata != NULL) {
+-                       memcpy(new->pdata, pbuf, data_size);
+-                       new->data_size = data_size;
+-                       lst_put_tail(reg_key_list, (struct list_head *)new);
+-                       ret = DSP_SOK;
+-               }
+-       }
+-
+-       dev_dbg(bridge, "REG: set %s, status = 0x%x", valName, ret);
+-
+-       return ret;
+-}
+-
+-/*
+- *  ======== regsup_enum_value ========
+- *  Purpose:
+- *      Returns registry "values" and their "data" under a (sub)key.
+- */
+-dsp_status regsup_enum_value(IN u32 dw_index, IN CONST char *pstrKey,
+-                            IN OUT char *pstrValue, IN OUT u32 * pdwValueSize,
+-                            IN OUT char *pstrData, IN OUT u32 * pdwDataSize)
+-{
+-       dsp_status ret = REG_E_INVALIDSUBKEY;
+-       struct reg_value *rv = (struct reg_value *)lst_first(reg_key_list);
+-       u32 dw_key_len;
+-       u32 count = 0;
+-
+-       DBC_REQUIRE(pstrKey);
+-       dw_key_len = strlen(pstrKey);
+-
+-       /*  Need to search through the entries looking for the right one. */
+-       while (rv) {
+-               /*  See if the name matches. */
+-               if (strncmp(rv->name, pstrKey, dw_key_len) == 0 &&
+-                   count++ == dw_index) {
+-                       /*  We have a match!  Copy out the data. */
+-                       memcpy(pstrData, rv->pdata, rv->data_size);
+-                       /*  Get the size for the caller. */
+-                       *pdwDataSize = rv->data_size;
+-                       *pdwValueSize = strlen(&(rv->name[dw_key_len]));
+-                       strncpy(pstrValue, &(rv->name[dw_key_len]),
+-                               *pdwValueSize + 1);
+-                       /*  Set our status to good and exit. */
+-                       ret = DSP_SOK;
+-                       break;
+-               }
+-               rv = (struct reg_value *)lst_next(reg_key_list,
+-                                                 (struct list_head *)rv);
+-       }
+-
+-       if (count && DSP_FAILED(ret))
+-               ret = REG_E_NOMOREITEMS;
+-
+-       dev_dbg(bridge, "REG: enum Key %s, Value %s, status = 0x%x",
+-               pstrKey, pstrValue, ret);
+-
+-       return ret;
+-}
+-
+-/*
+- *  ======== regsup_delete_value ========
+- */
+-dsp_status regsup_delete_value(IN CONST char *pstrValue)
+-{
+-       dsp_status ret = DSP_EFAIL;
+-       struct reg_value *rv = (struct reg_value *)lst_first(reg_key_list);
+-
+-       while (rv) {
+-               /*  See if the name matches. */
+-               if (strncmp(rv->name, pstrValue, MAXREGPATHLENGTH) == 0) {
+-                       /* We have a match!  Delete this key.  To delete a
+-                        * key, we free all resources associated with this
+-                        * key and, if we're not already the last entry in
+-                        * the array, we copy that entry into this deleted
+-                        * key.
+-                        */
+-                       lst_remove_elem(reg_key_list, (struct list_head *)rv);
+-                       kfree(rv->pdata);
+-                       kfree(rv);
+-
+-                       /*  Set our status to good and exit... */
+-                       ret = DSP_SOK;
+-                       break;
+-               }
+-               rv = (struct reg_value *)lst_next(reg_key_list,
+-                                                 (struct list_head *)rv);
+-       }
+-
+-       dev_dbg(bridge, "REG: del %s, status = 0x%x", pstrValue, ret);
+-
+-       return ret;
+-
+-}
+diff --git a/drivers/dsp/bridge/services/regsup.h b/drivers/dsp/bridge/services/regsup.h
+deleted file mode 100644
+index 3577c0b..0000000
+--- a/drivers/dsp/bridge/services/regsup.h
++++ /dev/null
+@@ -1,48 +0,0 @@
+-/*
+- * regsup.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef _REGSUP_H_
+-#define _REGSUP_H_
+-
+-/*  Init function. MUST be called BEFORE any calls are */
+-/*  made into this psuedo-registry!!!  Returns TRUE/FALSE for SUCCESS/ERROR */
+-extern bool regsup_init(void);
+-
+-/*  Release all registry support allocations. */
+-extern void regsup_exit(void);
+-
+-/*
+- *  ======== regsup_delete_value ========
+- */
+-extern dsp_status regsup_delete_value(IN CONST char *pstrValue);
+-
+-/*  Get the value of the entry having the given name.  Returns DSP_SOK */
+-/*  if an entry was found and the value retrieved.  Returns DSP_EFAIL
+- *  otherwise. */
+-extern dsp_status regsup_get_value(char *valName, void *pbuf, u32 * data_size);
+-
+-/*  Sets the value of the entry having the given name.  Returns DSP_SOK */
+-/*  if an entry was found and the value set.  Returns DSP_EFAIL otherwise. */
+-extern dsp_status regsup_set_value(char *valName, void *pbuf, u32 data_size);
+-
+-/*  Returns registry "values" and their "data" under a (sub)key. */
+-extern dsp_status regsup_enum_value(IN u32 dw_index, IN CONST char *pstrKey,
+-                                   IN OUT char *pstrValue,
+-                                   IN OUT u32 *pdwValueSize,
+-                                   IN OUT char *pstrData,
+-                                   IN OUT u32 *pdwDataSize);
+-
+-#endif
+diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
+index df3de5f..72cbd8d 100644
+--- a/drivers/dsp/bridge/services/services.c
++++ b/drivers/dsp/bridge/services/services.c
+@@ -29,7 +29,6 @@
+ #include <dspbridge/cfg.h>
+ #include <dspbridge/mem.h>
+ #include <dspbridge/ntfy.h>
+-#include <dspbridge/reg.h>
+ #include <dspbridge/sync.h>
+ #include <dspbridge/clk.h>
+
+@@ -46,7 +45,6 @@ void services_exit(void)
  {
- 	dsp_status status = DSP_SOK;
- 	u32 dw_buf_size;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
-+
-+	if (!drv_datap)
-+		status = DSP_EFAIL;
- 
- 	if (!dev_node_obj)
- 		status = CFG_E_INVALIDHDEVNODE;
-@@ -92,14 +96,12 @@ dsp_status cfg_get_dev_object(struct cfg_devnode *dev_node_obj,
- 	dw_buf_size = sizeof(pdwValue);
- 	if (DSP_SUCCEEDED(status)) {
- 
--		/* check the device string and then call the reg_set_value */
-+		/* check the device string and then store dev object */
- 		if (!
- 		    (strcmp
- 		     ((char *)((struct drv_ext *)dev_node_obj)->sz_string,
- 		      "TIOMAP1510")))
--			status =
--			    reg_get_value("DEVICE_DSP", (u8 *) pdwValue,
--					  &dw_buf_size);
-+			*pdwValue = (u32)drv_datap->dev_object;
- 	}
- 	if (DSP_FAILED(status))
- 		pr_err("%s: Failed, status 0x%x\n", __func__, status);
-@@ -144,23 +146,31 @@ dsp_status cfg_get_exec_file(struct cfg_devnode *dev_node_obj, u32 ul_buf_size,
- dsp_status cfg_get_object(OUT u32 *pdwValue, u32 dw_type)
+        /* Uninitialize all SERVICES modules here */
+        clk_exit();
+-       reg_exit();
+        cfg_exit();
+        mem_exit();
+ }
+@@ -60,24 +58,20 @@ bool services_init(void)
  {
- 	dsp_status status = DSP_EINVALIDARG;
--	u32 dw_buf_size;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
-+
- 	DBC_REQUIRE(pdwValue != NULL);
- 
--	dw_buf_size = sizeof(pdwValue);
-+	if (!drv_datap)
-+		return DSP_EFAIL;
-+
- 	switch (dw_type) {
- 	case (REG_DRV_OBJECT):
--		status =
--		    reg_get_value(DRVOBJECT, (u8 *) pdwValue, &dw_buf_size);
--		if (DSP_FAILED(status))
-+		if (drv_datap->drv_object) {
-+			*pdwValue = (u32)drv_datap->drv_object;
-+			status = DSP_SOK;
-+		} else {
- 			status = CFG_E_RESOURCENOTAVAIL;
-+		}
- 		break;
- 	case (REG_MGR_OBJECT):
--		status =
--		    reg_get_value(MGROBJECT, (u8 *) pdwValue, &dw_buf_size);
--		if (DSP_FAILED(status))
-+		if (drv_datap->mgr_object) {
-+			*pdwValue = (u32)drv_datap->mgr_object;
-+			status = DSP_SOK;
-+		} else {
- 			status = CFG_E_RESOURCENOTAVAIL;
-+		}
- 		break;
-+
- 	default:
- 		break;
- 	}
-@@ -191,18 +201,21 @@ bool cfg_init(void)
- dsp_status cfg_set_dev_object(struct cfg_devnode *dev_node_obj, u32 dwValue)
- {
- 	dsp_status status = DSP_SOK;
--	u32 dw_buff_size;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
-+
-+	if (!drv_datap) {
-+		pr_err("%s: Failed, status 0x%x\n", __func__, status);
-+		return DSP_EFAIL;
-+	}
- 
- 	if (!dev_node_obj)
- 		status = CFG_E_INVALIDHDEVNODE;
- 
--	dw_buff_size = sizeof(dwValue);
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Store the WCD device object in the Registry */
- 
- 		if (!(strcmp((char *)dev_node_obj, "TIOMAP1510"))) {
--			status = reg_set_value("DEVICE_DSP", (u8 *) &dwValue,
--					       dw_buff_size);
-+			drv_datap->dev_object = (void *) dwValue;
- 		}
- 	}
- 	if (DSP_FAILED(status))
-@@ -219,17 +232,19 @@ dsp_status cfg_set_dev_object(struct cfg_devnode *dev_node_obj, u32 dwValue)
- dsp_status cfg_set_object(u32 dwValue, u32 dw_type)
- {
- 	dsp_status status = DSP_EINVALIDARG;
--	u32 dw_buff_size;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
-+
-+	if (!drv_datap)
-+		return DSP_EFAIL;
- 
--	dw_buff_size = sizeof(dwValue);
- 	switch (dw_type) {
- 	case (REG_DRV_OBJECT):
--		status =
--		    reg_set_value(DRVOBJECT, (u8 *) &dwValue, dw_buff_size);
-+		drv_datap->drv_object = (void *)dwValue;
-+		status = DSP_SOK;
- 		break;
- 	case (REG_MGR_OBJECT):
--		status =
--		    reg_set_value(MGROBJECT, (u8 *) &dwValue, dw_buff_size);
-+		drv_datap->mgr_object = (void *)dwValue;
-+		status = DSP_SOK;
- 		break;
- 	default:
- 		break;
--- 
+        bool ret = true;
+        bool fcfg, fmem;
+-       bool freg, fclk;
++       bool fclk;
+
+        /* Perform required initialization of SERVICES modules. */
+        fmem = services_mem_init();
+-       freg = reg_init();
+        fcfg = cfg_init();
+        fclk = services_clk_init();
+
+-       ret = fcfg && fmem && freg && fclk;
++       ret = fcfg && fmem && fclk;
+
+        if (!ret) {
+
+                if (fclk)
+                        clk_exit();
+
+-               if (freg)
+-                       reg_exit();
+-
+                if (fcfg)
+                        cfg_exit();
+
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index b320bb0..8607cbc 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -41,7 +41,6 @@
+ #include <dspbridge/mem.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/sync.h>
+-#include <dspbridge/reg.h>
+
+ /* Hardware Abstraction Layer */
+ #include <hw_defs.h>
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 87830ec..211e061 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -36,7 +36,6 @@
+
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/mem.h>
+-#include <dspbridge/reg.h>
+ #include <dspbridge/cfg.h>
+ #include <dspbridge/drv.h>
+ #include <dspbridge/sync.h>
+--
 1.5.4.5
 
