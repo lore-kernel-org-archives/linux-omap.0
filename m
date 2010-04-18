@@ -1,127 +1,97 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/5] DSPBRIDGE: Remove checkpatch errors: 80 char lines
-Date: Sat, 17 Apr 2010 22:09:53 +0300
-Message-ID: <r2l94a0d4531004171209me646fe2i1d3868a92401ae09@mail.gmail.com>
-References: <67059DBF19D7214F9C66BB0EA91BA90EC26227EE@dlee04.ent.ti.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: Re: [PATCH] mmc: fix race condition between dma and omap_hsmmc
+	callback
+Date: Sun, 18 Apr 2010 19:07:00 +0530
+Message-ID: <x2s618f0c911004180637gde02aecn57c650cc19d142f0@mail.gmail.com>
+References: <618f0c911003240600m1a38935av68f31a232ed8b8ad@mail.gmail.com>
+	 <4BC43D99.6030809@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f225.google.com ([209.85.218.225]:61963 "EHLO
-	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753712Ab0DQTJz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Apr 2010 15:09:55 -0400
-Received: by bwz25 with SMTP id 25so4184455bwz.28
-        for <linux-omap@vger.kernel.org>; Sat, 17 Apr 2010 12:09:53 -0700 (PDT)
-In-Reply-To: <67059DBF19D7214F9C66BB0EA91BA90EC26227EE@dlee04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4BC43D99.6030809@nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Madhusudhan Chikkature <madhu.cr@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Uribe de Leon, Armando" <x0095078@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hiroshi.DOYU@nokia.com" <hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-T24gU2F0LCBBcHIgMTcsIDIwMTAgYXQgOTo0NCBQTSwgVXJpYmUgZGUgTGVvbiwgQXJtYW5kbyA8
-eDAwOTUwNzhAdGkuY29tPiB3cm90ZToKPiBGcm9tIDI3MTQ1Y2IyZjBhYTAwNGE5YzQxNTlhZDA5
-NGMwYWU2MGY3NWEzYjMgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxCj4gRnJvbTogQXJtYW5kbyBV
-cmliZSBEZSBMZW9uIDx4MDA5NTA3OEB0aS5jb20+Cj4gRGF0ZTogVGh1LCA4IEFwciAyMDEwIDE1
-OjIwOjA5IC0wNTAwCj4gU3ViamVjdDogW1BBVENIIDIvNV0gRFNQQlJJREdFOiBSZW1vdmUgY2hl
-Y2twYXRjaCBlcnJvcnM6IDgwIGNoYXIgbGluZXMKPgo+IFRoaXMgcGF0Y2ggcmVtb3ZlcyBjaGVj
-a3B0YWNoIGVycm9ycyByZWdhcmRpbmcgd2l0aCBsaW5lcyBleGNlZWRlZCA4MCBjaGF0YWN0ZXJz
-LgoKVGhvc2UgYXJlIHdhcm5pbmdzLCBub3QgZXJyb3JzLCBhbmQgSSBiZWxpZXZlIHRoaXMgODAg
-Y2hhciBsaW5lcwpndWlkZWxpbmUgaGFzIGJlZW4gcmVtb3ZlZC4KCj4gLSDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAoRFNQX0ZBSUxFRChzdGF0dXMpKSB7Cj4gLSDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAoc3RhdHVzID09IERTUF9F
-VElNRU9VVCkgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgc3RhdHVzID0gKCppbnRmX2Z4bnMtPnBmbl9tc2dfcHV0KQo+IC0gwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgKGhub2RlLT5tc2dfcXVldWVfb2JqLCAma2lsbG1zZywKPiAtIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgaG5vZGUtPnV0
-aW1lb3V0KTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIGlmIChEU1BfU1VDQ0VFREVEKHN0YXR1cykpIHsKPiAtIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IHN0YXR1cyA9IHN5bmNfd2FpdF9vbl9ldmVudAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgKGhub2Rl
-LT5zeW5jX2RvbmUsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGtpbGxfdGltZV9vdXQgLyAyKTsK
-PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIGlmIChEU1BfRkFJTEVEKHN0YXR1cykpIHsKPiAtIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIC8qIEhlcmUgaXQgZ29lcyB0aGUgcGFydAo+IC0gwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAqIG9mIHRoZSBzaW11bGF0aW9uIG9mCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCogdGhlIERTUCBleGNlcHRpb24gKi8KPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IGRldl9nZXRfZGVoX21ncgo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAoaG5vZGVf
-bWdyLT5oZGV2X29iaiwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgICZoZGVoX21n
-cik7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAoaGRlaF9tZ3IpIHsKPiAtIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgICgqaW50Zl9meG5zLT4KPiAtIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHBmbl9kZWhfbm90aWZ5KQo+IC0gwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAoaGRlaF9tZ3IsCj4gLSDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBEU1BfU1lTRVJST1IsCj4gLSDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBEU1BfRVhDRVBUSU9OQUJPUlQpOwo+IC0gwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3RhdHVzID0KPiAtIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIERTUF9FRkFJTDsKPiAtIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIH0KPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0gZWxzZQo+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgc3RhdHVzID0gRFNQX1NPSzsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0KPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0gZWxzZQo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3RhdHVzID0gRFNQX0VGQUlMOwo+IC0g
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfSBlbHNlIMKgLyogQ29udmVydCBTWU5D
-IHN0YXR1cyB0byBEU1Agc3RhdHVzICovCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCBzdGF0dXMgPSBEU1BfU09LOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgaWYgKHN0YXR1cyA9PSBEU1BfRVRJTUVPVVQpIHsKPiArIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHN0YXR1cyA9ICgqaW50Zl9meG5z
-LT5wZm5fbXNnX3B1dCkKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgKGhub2RlLT5tc2dfcXVldWVfb2JqLCAma2lsbG1zZywKPiArIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGhub2RlLT51
-dGltZW91dCk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCBpZiAoRFNQX1NVQ0NFRURFRChzdGF0dXMpKSB7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzdGF0dXMgPSBzeW5jX3dhaXRfb25f
-ZXZlbnQKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgKGhub2RlLT5zeW5jX2RvbmUsCj4gKyDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGtpbGxf
-dGltZV9vdXQgLyAyKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIGlmIChEU1BfRkFJTEVEKHN0YXR1cykpIHsKPiArIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIC8qIEhlcmUgaXQgZ29lcyB0aGUgcGFydAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAqIG9mIHRoZSBz
-aW11bGF0aW9uIG9mCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCogdGhlIERTUCBleGNlcHRpb24gKi8KPiAr
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIGRldl9nZXRfZGVoX21ncgo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAoaG5vZGVf
-bWdyLT5oZGV2X29iaiwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgICZoZGVoX21ncik7Cj4gKyDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCBpZiAoaGRlaF9tZ3IpIHsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgICgqaW50
-Zl9meG5zLT4KPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHBmbl9kZWhfbm90aWZ5KQo+ICsg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAoaGRlaF9tZ3IsCj4gKyDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCBEU1BfU1lTRVJST1IsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBE
-U1BfRVhDRVBUSU9OQUJPUlQpOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3RhdHVzID0g
-RFNQX0VGQUlMOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfSBlbHNlCj4gKyDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBz
-dGF0dXMgPSBEU1BfU09LOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgfQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQoKVGhpcyBs
-b29rcyB2ZXJ5IHVnbHkuCgpXb3VsZG4ndCBpdCBtYWtlIHNlbnNlIHRvIHNwbGl0IHRoZSBmdW5j
-dGlvbiB0byBhdm9pZCB0aGlzIGh1Z2UgaW5kZW50aW5nPwoKLS0gCkZlbGlwZSBDb250cmVyYXMK
+On Tue, Apr 13, 2010 at 3:17 PM, Adrian Hunter <adrian.hunter@nokia.com=
+> wrote:
+> Venkatraman S wrote:
+>>
+>> This patch addresses the possible race condition between the dma
+>> callback and hsmmc callback.
+>
+> Can you explain the problem in more detail? =A0If the final DMA inter=
+rupt
+> comes before TC then all should be well.
+   Actually it isn't, with descriptor loading. If the DMA callback arri=
+ves
+"too early", the MMC TC is missed sometimes. The last transfer in the l=
+og
+below is actually stalled waiting for TC. This happens more often when =
+the
+transfer is large (> 300 blocks)
+
+>If it comes after, then we need
+> to be sure that the DMA has finished - particularly in the "read" cas=
+e.
+> Neither the existing code nor this patch seems to address that issue.
+>
+   With this patch the assumption is that MMC TC correctly signals the
+end of read / write as requested. I don't know if there are any specifi=
+c reasons
+to believe otherwise.
+
+> Also, how can we be sure the final DMA interrupt doesn't race with th=
+e
+> start of the next request?
+>
+Till the time omap_hsmmc_xfer_done is called, the next request is not
+expected to arrive.
+The requests are implicitly serialised by host->sem, which is released
+only on the DMA callback.
+The code releases the semaphore only after freeing the DMA channel.
+-----------------------------------------------------------------------=
+----------------------
+
+mmc0: starting CMD17 arg 00000066 flags 000000b5
+mmc0:     blksz 512 blocks 1 flags 00000200 tsac 100 ms nsac 0
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD17, argument 0x00000066
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 1
+mmci-omap-hs mmci-omap-hs.0: final dma callback
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 2
+mmc0: req done (CMD17): 0: 00000900 00000000 00000000 00000000
+mmc0:     512 bytes transferred: 0
+mmc0: starting CMD18 arg 000025df flags 000000b5
+mmc0:     blksz 512 blocks 32 flags 00000200 tsac 100 ms nsac 0
+mmc0:     CMD12 arg 00000000 flags 0000049d
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD18, argument 0x000025df
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 1
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 2
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD12, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: final dma callback
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 3
+mmc0: req done (CMD18): 0: 00000900 00000000 00000000 00000000
+mmc0:     16384 bytes transferred: 0
+mmc0:     (CMD12): 0: 00000b00 00000000 00000000 00000000
+mmc0: starting CMD18 arg 000025ff flags 000000b5
+mmc0:     blksz 512 blocks 192 flags 00000200 tsac 100 ms nsac 0
+mmc0:     CMD12 arg 00000000 flags 0000049d
+mmci-omap-hs mmci-omap-hs.0: new sglist 9fd00000 len =3D23
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD18, argument 0x000025ff
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 1
+mmci-omap-hs mmci-omap-hs.0: final dma callback
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 2
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD12, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 3
+mmc0: req done (CMD18): 0: 00000900 00000000 00000000 00000000
+mmc0:     98304 bytes transferred: 0
+mmc0:     (CMD12): 0: 00000b00 00000000 00000000 00000000
+mmc0: starting CMD18 arg 000026bf flags 000000b5
+mmc0:     blksz 512 blocks 512 flags 00000200 tsac 100 ms nsac 0
+mmc0:     CMD12 arg 00000000 flags 0000049d
+mmci-omap-hs mmci-omap-hs.0: new sglist 9fd00000 len =3D26
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD18, argument 0x000026bf
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 1
+mmci-omap-hs mmci-omap-hs.0: final dma callback
