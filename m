@@ -1,37 +1,33 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: Upstream linux-omap kernel on Nokia N900?
-Date: Mon, 19 Apr 2010 15:29:14 +0300
-Message-ID: <20100419122914.GJ3544@nokia.com>
-References: <87iq7nslvo.fsf@small.ssi.corp>
- <20100419115855.GG3544@nokia.com>
- <878w8jr5pw.fsf@small.ssi.corp>
-Reply-To: felipe.balbi@nokia.com
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: DSS2 & V4L2
+Date: Mon, 19 Apr 2010 06:29:36 -0600
+Message-ID: <4BCC4CB0.7090607@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19297 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754528Ab0DSM3e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 08:29:34 -0400
-Content-Disposition: inline
-In-Reply-To: <878w8jr5pw.fsf@small.ssi.corp>
+Received: from hermes.mlbassoc.com ([76.76.67.137]:34017 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754528Ab0DSM3h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 08:29:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Arnaud Ebalard <arno@natisbad.org>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Leukkunen Lauri (Nokia-D/Helsinki)" <lauri.leukkunen@nokia.com>, "Quadros Roger (Nokia-D/Helsinki)" <roger.quadros@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, hvaibhav@ti.com
 
-Hi,
+I'm trying to get the DVSDK (3.01.00.03) working.  It uses
+2.6.32 + DSS2 + V4L2.
 
-On Mon, Apr 19, 2010 at 02:23:39PM +0200, ext Arnaud Ebalard wrote:
->The other main obstacle was the code to interface with the phone stack
->(SSI MacSAAB, CMT stuff). Felipe, do you know if someone @nokia has some
->more recent version available which could be shared if there is good
->news from TI on SGX aspect.
+What I'm having trouble with is how to configure/create/setup
+a video overlay such that I get V4L2 device for the display.
+In particular, what magic is required to create /dev/video1?
 
-personally I really dislike the way the whole SSI were written but 
-that's only my opinion. And I don't whether anyone would have other 
-version of that. Maybe you can contact the original author which should 
-be listed in the files' header.
+Note: I'd be glad to send this question to a more targeted list,
+but the only one mentioned in the DVSDK documentation does not
+really exist :-(
 
 -- 
-balbi
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
