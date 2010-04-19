@@ -1,73 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Upstream linux-omap kernel on Nokia N900?
-Date: Mon, 19 Apr 2010 12:51:56 -0700
-Message-ID: <20100419195156.GT5514@atomide.com>
-References: <87iq7nslvo.fsf@small.ssi.corp>
- <20100419115855.GG3544@nokia.com>
- <4BCC4801.5010005@nokia.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH 00/10] dsp-bridge: deh: general cleanups
+Date: Mon, 19 Apr 2010 15:37:28 -0500
+Message-ID: <4BCCBF08.6030909@ti.com>
+References: <1269379542-11892-1-git-send-email-felipe.contreras@gmail.com> <i2x94a0d4531004150512qf66c7c42u160707e3a89ec39a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51219 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752428Ab0DSTwF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 15:52:05 -0400
-Content-Disposition: inline
-In-Reply-To: <4BCC4801.5010005@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:44180 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750939Ab0DSUhj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Apr 2010 16:37:39 -0400
+In-Reply-To: <i2x94a0d4531004150512qf66c7c42u160707e3a89ec39a@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <roger.quadros@nokia.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, ext Arnaud Ebalard <arno@natisbad.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Leukkunen Lauri (Nokia-D/Helsinki)" <lauri.leukkunen@nokia.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>
 
-* Roger Quadros <roger.quadros@nokia.com> [100419 05:06]:
-> Balbi Felipe (Nokia-D/Helsinki) wrote:
-> >Hi,
-> >
-> >On Mon, Apr 19, 2010 at 01:49:15PM +0200, ext Arnaud Ebalard wrote:
-> >>Nokia N900 is shipped to users with a 2.6.28 omap kernel. Many patches
-> >>for the hardware and various features have been pushed upstream by Nokia
-> >>developers and possibly others. Those are now available in current l-o
-> >>tree.
-> >>
-> >>Nonetheless, many drivers and various features are still missing
-> >>upstream. Simply put, one cannot expect to run a current l-o kernel on
-> >>the device (and expect to get a GUI and/or make call with the device).
-> >
-> >tell me about it :-p
-> >
-> >Thing is that it doesn't really depend only on Nokia to get those
-> >parts done. Well, we can get the kernel part done by just cleaning
-> >up and porting the 2.6.28 drivers to current mainline, but in case
-> >of e.g. SGX we still miss the xorg driver and I don't think
-> >that'll be released any time soon.
-> >
-> >Another problem is that the bootloader believes it can pass all
-> >the obsoleted OMAP TAGs to kernel and the 2.6.28 kernel depends on
-> >those, maybe that can be worked around. I don't know whether
-> >kernel simply drops invalid TAGs or not...
-> 
-> Yes kernel simply drops unrecognized TAGs and just prints a warning message.
+On 4/15/2010 7:12 AM, Felipe Contreras wrote:
+> On Wed, Mar 24, 2010 at 12:25 AM, Felipe Contreras
+> <felipe.contreras@gmail.com>  wrote:
+>> While trying to fix the recovery feature I stumbled many areas of improvments
+>> in 'deh' (whatever that means).
+>>
+>> I quickly tested tesed these changes in Nokia hw, there should be essentially
+>> no functional changes.
+>>
+>> Cheers.
+>>
+>> Felipe Contreras (10):
+>>   dsp-bridge: deh: remove obvious comments
+>>   dsp-bridge: deh: trivial cleanups
+>>   dsp-bridge: deh: remove unnecessary casts
+>>   dsp-bridge: deh: improve logging stuff
+>>   dsp-bridge: deh: report mmu faults as errors
+>>   dsp-bridge: deh: decrease nesting levels
+>>   dsp-bridge: deh: fix obvious return codes
+>>   dsp-bridge: deh: reorganize create()
+>>   dsp-bridge: deh: fix hdeh_mgr silliness
+>>   dsp-bridge: deh: fix dummy_va_addr
+>>
+>>   arch/arm/plat-omap/include/dspbridge/wmddeh.h |   24 +-
+>>   drivers/dsp/bridge/wmd/ue_deh.c               |  392 +++++++++++--------------
+>>   2 files changed, 191 insertions(+), 225 deletions(-)
+>
+> I guess these patches don't apply any more. Shall I rebase them? If so... where?
 
-All the the custom tags should be replaced with platform_data.
+As noted in a private mail, your patches were rebased and now pushed to 
+dspbridge.
 
-If something is needed for revision detection of the board,
-there is arm-linux common ATAG_REVISION.
+Only this patch was dropped "dsp-bridge: deh: trivial cleanups"[1]
 
-However, also Maemo userspace depends on some things set by the
-custom tags. As this is non-standard, we should not spend much
-effort on that. Instead we should concentrate on making N900
-work with any distro the standard Linux way.
+I removed the trivial checkpatch warnings (80 char limit and space after 
+comma) from 2 of them.
 
-So I recommend using kexec patched Maemo kernel, then boot the
-new mainline kernel from Maemo kernel and mount root directly
-on the eMMC.
+Omar
 
-As Maemo user space has some dependencies to the partition
-layout, you need to keep the existing partition layout too.
-In any case, I ended up resizing the eMMC partitions and using
-/dev/mmcblk0p2 (mounted as /home in Maemo) as the new root
-partition.
-
-Cheers,
-
-Tony
+---
+[1] http://marc.info/?l=linux-omap&m=126938906708916&w=2
