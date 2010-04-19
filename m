@@ -1,173 +1,46 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 4/9] AM3517: Add platform init code for regulator driver
-Date: Mon, 19 Apr 2010 18:20:42 +0800
-Message-ID: <1271672447-3639-5-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 8/9] omap: init the gpio pinmux for mmc
+Date: Mon, 19 Apr 2010 18:20:46 +0800
+Message-ID: <1271672447-3639-9-git-send-email-stanley.miao@windriver.com>
 References: <1271672447-3639-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:51723 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:51752 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632Ab0DSKMB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 06:12:01 -0400
+	with ESMTP id S1753899Ab0DSKMJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 06:12:09 -0400
 In-Reply-To: <1271672447-3639-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, hvaibhav@ti.com, srk@ti.com
 
-Add platform init code for regulator driver.
+There is two gpio for mmc use, one is for card detecting, another is
+used for checking write protect. Intialize its pinmux in case the bootloader
+doesn't set it.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |  122 +++++++++++++++++++++++++++++++++
- 1 files changed, 122 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 3acfcae..41f766c 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -21,6 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
- #include <linux/i2c/pca953x.h>
-+#include <linux/regulator/machine.h>
- 
- #include <mach/hardware.h>
- #include <mach/am35xx.h>
-@@ -46,6 +47,122 @@ static struct i2c_board_info __initdata am3517evm_i2c1_boardinfo[] = {
- 	},
- };
- 
-+/* TPS65023 specific initialization */
-+/* VDCDC1 -> VDD_CORE */
-+static struct regulator_consumer_supply am3517_evm_vdcdc1_supplies[] = {
-+	{
-+		.supply = "vdd_core",
-+	},
-+};
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 23e4d77..df9c62a 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -591,6 +591,13 @@ static inline void omap_hsmmc_reset(void) {}
+ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			int controller_nr)
+ {
++	if (mmc_controller->slots[0].switch_pin > 0)
++		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
++					OMAP_PIN_INPUT_PULLUP);
++	if (mmc_controller->slots[0].gpio_wp > 0)
++		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
++					OMAP_PIN_INPUT_PULLUP);
 +
-+/* VDCDC2 -> VDDSHV */
-+static struct regulator_consumer_supply am3517_evm_vdcdc2_supplies[] = {
-+	{
-+		.supply = "vddshv",
-+	},
-+};
-+
-+/* VDCDC2 |-> VDDS
-+	   |-> VDDS_SRAM_CORE_BG
-+	   |-> VDDS_SRAM_MPU */
-+static struct regulator_consumer_supply am3517_evm_vdcdc3_supplies[] = {
-+	{
-+		.supply = "vdds",
-+	},
-+	{
-+		.supply = "vdds_sram_core_bg",
-+	},
-+	{
-+		.supply = "vdds_sram_mpu",
-+	},
-+};
-+
-+/* LDO1 |-> VDDA1P8V_USBPHY
-+	 |-> VDDA_DAC */
-+static struct regulator_consumer_supply am3517_evm_ldo1_supplies[] = {
-+	{
-+		.supply = "vdda1p8v_usbphy",
-+	},
-+	{
-+		.supply = "vdda_dac",
-+	},
-+};
-+
-+/* LDO2 -> VDDA3P3V_USBPHY */
-+static struct regulator_consumer_supply am3517_evm_ldo2_supplies[] = {
-+	{
-+		.supply = "vdda3p3v_usbphy",
-+	},
-+};
-+
-+static struct regulator_init_data am3517_evm_regulator_data[] = {
-+	/* DCDC1 */
-+	{
-+		.constraints = {
-+			.min_uV = 1200000,
-+			.max_uV = 1200000,
-+			.valid_modes_mask = REGULATOR_MODE_NORMAL,
-+			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+			.always_on = true,
-+			.apply_uV = false,
-+		},
-+		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_vdcdc1_supplies),
-+		.consumer_supplies = am3517_evm_vdcdc1_supplies,
-+	},
-+	/* DCDC2 */
-+	{
-+		.constraints = {
-+			.min_uV = 3300000,
-+			.max_uV = 3300000,
-+			.valid_modes_mask = REGULATOR_MODE_NORMAL,
-+			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+			.always_on = true,
-+			.apply_uV = false,
-+		},
-+		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_vdcdc2_supplies),
-+		.consumer_supplies = am3517_evm_vdcdc2_supplies,
-+	},
-+	/* DCDC3 */
-+	{
-+		.constraints = {
-+			.min_uV = 1800000,
-+			.max_uV = 1800000,
-+			.valid_modes_mask = REGULATOR_MODE_NORMAL,
-+			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+			.always_on = true,
-+			.apply_uV = false,
-+		},
-+		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_vdcdc3_supplies),
-+		.consumer_supplies = am3517_evm_vdcdc3_supplies,
-+	},
-+	/* LDO1 */
-+	{
-+		.constraints = {
-+			.min_uV = 1800000,
-+			.max_uV = 1800000,
-+			.valid_modes_mask = REGULATOR_MODE_NORMAL,
-+			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+			.always_on = false,
-+			.apply_uV = false,
-+		},
-+		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_ldo1_supplies),
-+		.consumer_supplies = am3517_evm_ldo1_supplies,
-+	},
-+	/* LDO2 */
-+	{
-+		.constraints = {
-+			.min_uV = 3300000,
-+			.max_uV = 3300000,
-+			.valid_modes_mask = REGULATOR_MODE_NORMAL,
-+			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+			.always_on = false,
-+			.apply_uV = false,
-+		},
-+		.num_consumer_supplies = ARRAY_SIZE(am3517_evm_ldo2_supplies),
-+		.consumer_supplies = am3517_evm_ldo2_supplies,
-+	},
-+};
-+
- /*
-  * RTC - S35390A
-  */
-@@ -103,6 +220,11 @@ static struct i2c_board_info __initdata am3517evm_i2c3_boardinfo[] = {
- 		I2C_BOARD_INFO("tca6416", 0x21),
- 		.platform_data = &am3517evm_ui_gpio_expander_info_2,
- 	},
-+	{
-+		I2C_BOARD_INFO("tps65023", 0x48),
-+		.flags = I2C_CLIENT_WAKE,
-+		.platform_data = &am3517_evm_regulator_data[0],
-+	},
- };
- 
- static int __init am3517_evm_i2c_init(void)
+ 	if (cpu_is_omap2420() && controller_nr == 0) {
+ 		omap_cfg_reg(H18_24XX_MMC_CMD);
+ 		omap_cfg_reg(H15_24XX_MMC_CLKI);
 -- 
 1.5.4.3
 
