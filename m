@@ -1,37 +1,33 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCH] Drivers: w1: omap_hdq: Fix missing include sched.h
-Date: Mon, 19 Apr 2010 16:10:36 +0000
-Message-ID: <1271693436-14950-1-git-send-email-weber@corscience.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org, johnpol@2ka.mipt.ru
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/2] omap: rx51_defconfig: Remove duplicate phonet
+Date: Mon, 19 Apr 2010 17:22:46 +0300
+Message-ID: <20100419142246.GA32035@nokia.com>
+References: <1271685130-19118-1-git-send-email-jhnikula@gmail.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:48754 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754492Ab0DSOXD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 10:23:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1271685130-19118-1-git-send-email-jhnikula@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-In commit f6a570333e554b48ad589e7137c77c57809eee81 #include <sched.h> was
-removed from module.h and not added in omap_hdq.c .
+On Mon, Apr 19, 2010 at 03:52:09PM +0200, ext Jarkko Nikula wrote:
+>Phonet is enabled by the commit bce54fed941e03695ab557100a4bd1e457abca42
+>and this duplicate gives a warning when doing make rx51_defconfig.
+>
+>Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+>Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-The definition for TASK_UNINTERRUPTIBLE and
-schedule_timeout_uninterruptible are missing.
-This patch fixes the missing definition.
+FWIW
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
----
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
- drivers/w1/masters/omap_hdq.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
-index ef36fca..3a7e9ff 100644
---- a/drivers/w1/masters/omap_hdq.c
-+++ b/drivers/w1/masters/omap_hdq.c
-@@ -16,6 +16,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/sched.h>
- 
- #include <asm/irq.h>
- #include <mach/hardware.h>
 -- 
-1.6.4.4
+balbi
