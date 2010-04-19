@@ -1,49 +1,36 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: 32-bit transfers broken in OMAP SPI driver?
-Date: Mon, 19 Apr 2010 06:42:29 -0600
-Message-ID: <t2yfa686aa41004190542s2e1596abs11e0762e60ef73d@mail.gmail.com>
-References: <Pine.LNX.4.64.1004190950380.4080@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: DSS2 & V4L2
+Date: Mon, 19 Apr 2010 14:58:59 +0200
+Message-ID: <7FBB6B9E-A996-46E8-945D-0DC04F06CF24@student.utwente.nl>
+References: <4BCC4CB0.7090607@mlbassoc.com>
+Mime-Version: 1.0 (Apple Message framework v1078)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f217.google.com ([209.85.217.217]:50243 "EHLO
-	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754165Ab0DSMne (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 08:43:34 -0400
-Received: by gxk9 with SMTP id 9so3075883gxk.8
-        for <linux-omap@vger.kernel.org>; Mon, 19 Apr 2010 05:43:32 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.64.1004190950380.4080@axis700.grange>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:47265 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754916Ab0DSM7F convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 08:59:05 -0400
+Received: by wwb24 with SMTP id 24so2494013wwb.19
+        for <linux-omap@vger.kernel.org>; Mon, 19 Apr 2010 05:59:04 -0700 (PDT)
+In-Reply-To: <4BCC4CB0.7090607@mlbassoc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: spi-devel-general@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Cory, can you please take a look at this?
-
-Thanks,
-g.
-
-On Mon, Apr 19, 2010 at 1:58 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Ran across drivers/spi/omap_spi_100k.c and its handling of > 16-bit
-> transfers seems buggy to me. Firstly, addresses do not get incremented in
-> omap1_spi100k_txrx_pio() (word_len <= 32) case, a fix for which seems to
-> be obvious, secondly, spi100k_write_data() and spi100k_read_data() only
-> write / read 16-bit data blocks, for which I'm not adventurous enough to
-> propose a patch without even touching the hardware;) Am I right? Maybe
-> just disable > 16-bit transfers altogether, since they are broken, and
-> thus, obviously, unused.
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, hvaibhav@ti.com
 
 
+Op 19 apr 2010, om 14:29 heeft Gary Thomas het volgende geschreven:
 
--- 
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+> I'm trying to get the DVSDK (3.01.00.03) working.  It uses
+> 2.6.32 + DSS2 + V4L2.
+> 
+> What I'm having trouble with is how to configure/create/setup
+> a video overlay such that I get V4L2 device for the display.
+> In particular, what magic is required to create /dev/video1?
+
+The trick is usually "do not create >2 framebuffers". My understanding is that an overlay can either be a framebuffer or a v4l device, but not both.
+
+regards,
+
+Koen
