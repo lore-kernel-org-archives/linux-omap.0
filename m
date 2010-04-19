@@ -1,79 +1,117 @@
-From: Deepak Chitriki <deepak.chitriki@ti.com>
-Subject: Re: [PATCH] DSPBRIDGE: Fix declaration and initialization of sync
- objects.
-Date: Mon, 19 Apr 2010 17:58:53 -0500
-Message-ID: <4BCCE02D.6080407@ti.com>
-References: <496565EC904933469F292DDA3F1663E602CB215E41@dlee06.ent.ti.com>
+From: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Subject: Re: [PATCH v3] OMAP2/3: I2C: Errata ID i207: Clear wrong RDR
+ interrupt
+Date: Tue, 20 Apr 2010 00:53:42 +0100
+Message-ID: <20100419235342.GH32401@fluff.org.uk>
+References: <1271330087-26084-1-git-send-email-manjugk@ti.com>
+ <4BC701B0.6060309@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44197 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753046Ab0DSW67 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 18:58:59 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CB215E41@dlee06.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4BC701B0.6060309-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: ext Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Guzman Lugo, Fernando wrote:
-> From 2edd80839e6d3bbe6e92914c3097a6dedca23784 Mon Sep 17 00:00:00 2001
-> From: Fernando Guzman Lugo <x0095840@ti.com>
-> Date: Sun, 18 Apr 2010 00:32:01 -0500
-> Subject: [PATCH] DSPBRIDGE: Fix declaration and initialization of sync objects.
->
-> This patch fixes declaration of completions for sync in
-> drv_interface and also initialize sync->done object in
-> msg_sm.c
->
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> ---
->  drivers/dsp/bridge/rmgr/drv_interface.c |    4 ++--
->  drivers/dsp/bridge/wmd/msg_sm.c         |    6 +++---
->  2 files changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-> index d62e508..1dd635e 100644
-> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
-> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-> @@ -98,8 +98,8 @@ static int tc_wordswapon;	/* Default value is always false */
->  static atomic_t bridge_cref;	/* number of bridge open handles */
->  static struct workqueue_struct *bridge_rec_queue;
->  static struct work_struct bridge_recovery_work;
-> -static DECLARE_COMPLETION_ONSTACK(bridge_comp);
-> -static DECLARE_COMPLETION_ONSTACK(bridge_open_comp);
-> +static DECLARE_COMPLETION(bridge_comp);
-> +static DECLARE_COMPLETION(bridge_open_comp);
->  static bool recover;
->  #endif
->  
-> diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-> index 19e3cee..6f00071 100644
-> --- a/drivers/dsp/bridge/wmd/msg_sm.c
-> +++ b/drivers/dsp/bridge/wmd/msg_sm.c
-> @@ -185,8 +185,8 @@ dsp_status bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
->  	if (DSP_SUCCEEDED(status)) {
->  		msg_q->sync_done = kzalloc(sizeof(struct sync_object),
->  							GFP_KERNEL);
-> -		if (msg_q->sync_event)
-> -			sync_init_event(msg_q->sync_event);
-> +		if (msg_q->sync_done)
-> +			sync_init_event(msg_q->sync_done);
->  		else
->  			status = DSP_EMEMORY;
->  	}
-> @@ -194,7 +194,7 @@ dsp_status bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
->  	if (DSP_SUCCEEDED(status)) {
->  		msg_q->sync_done_ack = kzalloc(sizeof(struct sync_object),
->  							GFP_KERNEL);
-> -		if (msg_q->sync_event)
-> +		if (msg_q->sync_done_ack)
->  			sync_init_event(msg_q->sync_done_ack);
->  		else
->  			status = DSP_EMEMORY;
->   
-Acked-by: Deepak Chitriki <deepak.chitriki@ti.com>
+On Thu, Apr 15, 2010 at 03:08:16PM +0300, Aaro Koskinen wrote:
+> Hi,
+> 
+> Manjunatha GK wrote:
+> > Under certain rare conditions, I2C_STAT[13].RDR bit may be set
+> > and the corresponding interrupt fire, even there is no data in
+> > the receive FIFO, or the I2C data transfer is still ongoing.
+> > These spurious RDR events must be ignored by the software.
+> > 
+> > This patch handles and ignores RDR spurious interrupts.
+> > 
+> > The below sequence is required in interrupt handler for
+> > handling this errata:
+> > 1. If RDR is set to 1, clear RDR
+> > 2. Read I2C status register and check for BusBusy bit. If BusBusy
+> > bit is set, skip remaining steps.
+> > 3. If BusBusy bit is not set, perform read operation on I2C status
+> > register.
+> > 4. If RDR is set, clear the same. Check RDR again and clear if it sets
+> > RDR bit again.
+> > 5. Perform I2C Data Read operation N number of times(where N is value
+> > read from the register BUFSTAT-RXSTAT bit fields).
+> > 
+> > Note : This errata is applicable for OMAP2 and OMAP3 platforms only.
+> > It is not applicable for OMAP4.
+> > 
+> > Signed-off-by: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
+> > Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+> > Cc: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+> > Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> > 
+> > ---
+> >  drivers/i2c/busses/i2c-omap.c |   28 ++++++++++++++++++++++++++++
+> >  1 files changed, 28 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index ae6f5c1..d1648da 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -733,6 +733,34 @@ complete:
+> >  		}
+> >  		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+> >  			u8 num_bytes = 1;
+> > +
+> > +			/*
+> > +			 * I2C Errata(Errata Nos. OMAP2: 1.67, OMAP3: 1.8)
+> > +			 * Not applicable for OMAP4.
+> > +			 * Under certain rare conditions, RDR could be set again
+> > +			 * when the bus is busy, then ignore the interrupt and
+> > +			 * clear the interrupt.
+> > +			 */
+> > +			if ((stat & OMAP_I2C_STAT_RDR) && !cpu_is_omap44xx()) {
+> > +				/* Step 1: If RDR is set, clear it */
+> > +				omap_i2c_ack_stat(dev, stat & OMAP_I2C_STAT_RDR);
+> 
+> You know the bit is set, so just: omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
+> 
+> > +
+> > +				/* Step 2: */
+> > +				if(!(omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG)
+> > +							& OMAP_I2C_STAT_BB)) {
+> > +					/* Step 3: */
+> > +					if(omap_i2c_read_reg(dev,
+> > +						OMAP_I2C_STAT_REG)
+> > +							& OMAP_I2C_STAT_RDR) {
+> > +						omap_i2c_ack_stat(dev, stat
+> > +							& OMAP_I2C_STAT_RDR);
+> 
+> Same here.
+> 
+> > +						dev_err(dev->dev,
+> > +						"I2C : RDR when the bus is busy.\n");
+> 
+> Remove the "I2C : " from the log, it's redundant.
 
-Deepak
+I'd agree, we're already prefixing this with the device name and
+driver name from the dev_err() call. No need to add any more.
+
+If it is in use elsewhere in the file, I'd prefer to see it removed
+from the other points.
+ 
+> > +						continue;
+> > +					}
+> > +
+> > +				}
+> > +			}
+> >  			if (dev->fifo_size) {
+> >  				if (stat & OMAP_I2C_STAT_RRDY)
+> >  					num_bytes = dev->fifo_size;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Ben (ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/)
+
+  'a smiley only costs 4 bytes'
