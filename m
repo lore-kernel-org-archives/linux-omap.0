@@ -1,93 +1,41 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 9/9] omap hsmmc: fix the hsmmc driver for am3517.
-Date: Mon, 19 Apr 2010 18:20:47 +0800
-Message-ID: <1271672447-3639-10-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 7/9] OMAP: fix a gpmc nand problem
+Date: Mon, 19 Apr 2010 18:20:45 +0800
+Message-ID: <1271672447-3639-8-git-send-email-stanley.miao@windriver.com>
 References: <1271672447-3639-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:51757 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:51748 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632Ab0DSKML (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 06:12:11 -0400
+	with ESMTP id S1753858Ab0DSKMH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 06:12:07 -0400
 In-Reply-To: <1271672447-3639-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, hvaibhav@ti.com, srk@ti.com
 
-AM3517 don't have the register OMAP343X_CONTROL_PBIAS_LITE and the regulators
-like "vmmc", so we set a noop "set_power" function for it.
+If gpmc_t isn't given, we don't need to set timing for gpmc, or it will cause
+a Oops.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/hsmmc.c |   32 ++++++++++++++++++++++++--------
- 1 files changed, 24 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/gpmc-nand.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index 9ad2295..5f46797 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -139,6 +139,12 @@ static void hsmmc23_before_set_reg(struct device *dev, int slot,
- 	}
- }
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 64d74f0..e57fb29 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -39,6 +39,9 @@ static int omap2_nand_gpmc_retime(void)
+ 	struct gpmc_timings t;
+ 	int err;
  
-+static int am3517_mmc_set_power(struct device *dev, int slot, int power_on,
-+								int vdd)
-+{
-+	return 0;
-+}
++	if (!gpmc_nand_data->gpmc_t)
++		return 0;
 +
- static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC] __initdata;
- 
- void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
-@@ -150,7 +156,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 	if (cpu_is_omap2430()) {
- 		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
- 		control_devconf1_offset = OMAP243X_CONTROL_DEVCONF1;
--	} else {
-+	} else if (!cpu_is_omap3517() && !cpu_is_omap3505()) {
- 		control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
- 		control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
- 	}
-@@ -216,12 +222,25 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 		 */
- 		mmc->slots[0].ocr_mask = c->ocr_mask;
- 
-+		if (!cpu_is_omap3517() && !cpu_is_omap3505()) {
-+			switch (c->mmc) {
-+			case 1:
-+				/* on-chip level shifting via PBIAS0/PBIAS1 */
-+				mmc->slots[0].before_set_reg = hsmmc1_before_set_reg;
-+				mmc->slots[0].after_set_reg = hsmmc1_after_set_reg;
-+				break;
-+			case 2:
-+			case 3:
-+				/* off-chip level shifting, or none */
-+				mmc->slots[0].before_set_reg = hsmmc23_before_set_reg;
-+				mmc->slots[0].after_set_reg = NULL;
-+				break;
-+			}
-+		} else /* cpu_is_omap3517() || cpu_is_omap3505() */
-+			mmc->slots[0].set_power = am3517_mmc_set_power;
-+
- 		switch (c->mmc) {
- 		case 1:
--			/* on-chip level shifting via PBIAS0/PBIAS1 */
--			mmc->slots[0].before_set_reg = hsmmc1_before_set_reg;
--			mmc->slots[0].after_set_reg = hsmmc1_after_set_reg;
--
- 			/* Omap3630 HSMMC1 supports only 4-bit */
- 			if (cpu_is_omap3630() && c->wires > 4) {
- 				c->wires = 4;
-@@ -235,9 +254,6 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 				c->wires = 4;
- 			/* FALLTHROUGH */
- 		case 3:
--			/* off-chip level shifting, or none */
--			mmc->slots[0].before_set_reg = hsmmc23_before_set_reg;
--			mmc->slots[0].after_set_reg = NULL;
- 			break;
- 		default:
- 			pr_err("MMC%d configuration not supported!\n", c->mmc);
+ 	memset(&t, 0, sizeof(t));
+ 	t.sync_clk = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->sync_clk);
+ 	t.cs_on = gpmc_round_ns_to_ticks(gpmc_nand_data->gpmc_t->cs_on);
 -- 
 1.5.4.3
 
