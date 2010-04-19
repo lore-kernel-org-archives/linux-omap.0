@@ -1,787 +1,355 @@
-From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
-Subject: [PATCH 4/5v2] DSPBRIDGE: Use stream id instead of kernel address
-Date: Mon, 19 Apr 2010 12:23:15 -0500
-Message-ID: <B852767254C5C94EBB1040EE0EFA060092E1CDAE@dlee01.ent.ti.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
+ DSP_MMUFAULT
+Date: Mon, 19 Apr 2010 13:25:04 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CB215CB2@dlee06.ent.ti.com>
+References: <1271177720-1299-1-git-send-email-deepak.chitriki@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59954 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34213 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754331Ab0DSRXU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 13:23:20 -0400
+	id S1752173Ab0DSSZO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 14:25:14 -0400
+In-Reply-To: <1271177720-1299-1-git-send-email-deepak.chitriki@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
+To: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
->From 04280fc2f09e509c83bd6d290365d3881e378ef8 Mon Sep 17 00:00:00 2001
-From: Ernesto Ramos <ernesto@ti.com>
-Date: Mon, 19 Apr 2010 12:13:49 -0500
-Subject: [PATCH 4/5] DSPBRIDGE: Use stream id instead of kernel address
 
-Send stream ids to the user instead of handles, then when
-the id is coming from user dspbridge can retrive the handle
-using id and avoid using invalid handles.
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
----
- arch/arm/plat-omap/include/dspbridge/drv.h         |    5 +-
- .../plat-omap/include/dspbridge/resourcecleanup.h  |    6 -
- arch/arm/plat-omap/include/dspbridge/strm.h        |    8 +-
- drivers/dsp/bridge/pmgr/wcd.c                      |  103 +++++++++++--
- drivers/dsp/bridge/rmgr/drv.c                      |  151 +++++++-------------
- drivers/dsp/bridge/rmgr/drv_interface.c            |   13 ++-
- drivers/dsp/bridge/rmgr/strm.c                     |   75 +++++-----
- 7 files changed, 187 insertions(+), 174 deletions(-)
+Hi all,
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-index 02f93f5..9307001 100644
---- a/arch/arm/plat-omap/include/dspbridge/drv.h
-+++ b/arch/arm/plat-omap/include/dspbridge/drv.h
-@@ -114,7 +114,7 @@ struct strm_res_object {
-        void *hstream;
-        u32 num_bufs;
-        u32 dir;
--       struct strm_res_object *next;
-+       int id;
- };
+	I have found the really issue here:
 
- /* Overall Bridge process resource usage state */
-@@ -146,8 +146,7 @@ struct process_context {
-        struct dspheap_res_object *pdspheap_list;
 
-        /* Stream resources */
--       struct strm_res_object *pstrm_list;
--       struct mutex strm_mutex;
-+       struct idr *strm_idp;
- };
+The problem here is that after MMUFault the DSP is allowed to continue =
+executing until here revices the message informing about the MMUFault a=
+nd this problem since the patches for mailbox migration.
 
- /*
-diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-index 00d5148..4e93446 100644
---- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-+++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-@@ -47,12 +47,6 @@ extern dsp_status drv_proc_insert_strm_res_element(bhandle hStrm,
-                                                   bhandle strm_res,
-                                                   bhandle pPctxt);
 
--extern dsp_status drv_get_strm_res_element(bhandle hStrm, bhandle strm_res,
--                                          bhandle ctxt);
--
--extern dsp_status drv_proc_remove_strm_res_element(bhandle strm_res,
--                                                  bhandle ctxt);
--
- extern dsp_status drv_remove_all_strm_res_elements(bhandle ctxt);
+Previous code:
 
- extern enum node_state node_get_state(bhandle hnode);
-diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
-index 51a897f..4f12989 100644
---- a/arch/arm/plat-omap/include/dspbridge/strm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/strm.h
-@@ -44,7 +44,7 @@
-  *      ap_buffer != NULL.
-  *  Ensures:
-  */
--extern dsp_status strm_allocate_buffer(struct strm_object *hStrm,
-+extern dsp_status strm_allocate_buffer(struct strm_res_object *strmres,
-                                       u32 usize,
-                                       OUT u8 **ap_buffer,
-                                       u32 num_bufs,
-@@ -66,7 +66,7 @@ extern dsp_status strm_allocate_buffer(struct strm_object *hStrm,
-  *      strm_init(void) called.
-  *  Ensures:
-  */
--extern dsp_status strm_close(struct strm_object *hStrm,
-+extern dsp_status strm_close(struct strm_res_object *strmres,
-                             struct process_context *pr_ctxt);
+			if (DSP_SUCCEEDED(status)) {
+				hwStatus =3D HW_MMU_TLBAdd(resources.dwDmmuBase,
+					memPhysical, faultAddr,
+					HW_PAGE_SIZE_4KB, 1, &mapAttrs,
+					HW_SET, HW_SET);
 
- /*
-@@ -137,7 +137,7 @@ extern void strm_exit(void);
-  *      ap_buffer != NULL.
-  *  Ensures:
-  */
--extern dsp_status strm_free_buffer(struct strm_object *hStrm,
-+extern dsp_status strm_free_buffer(struct strm_res_object *strmres,
-                                   u8 **ap_buffer, u32 num_bufs,
-                                   struct process_context *pr_ctxt);
+<<<we add the dummy entry in the TBL, so that MMU module can translate =
+the address, we always map pages so it does not matter if we pass the c=
+omplete addrees (page + offset) or only the page aligned addres (page) =
+we will write only the page.>>>
 
-@@ -273,7 +273,7 @@ extern dsp_status strm_issue(struct strm_object *hStrm, IN u8 * pbuf,
-  */
- extern dsp_status strm_open(struct node_object *hnode, u32 dir,
-                            u32 index, IN struct strm_attr *pattr,
--                           OUT struct strm_object **phStrm,
-+                           OUT struct strm_res_object **strmres,
-                            struct process_context *pr_ctxt);
+			}
+			/* send an interrupt to DSP */
+			HW_MBOX_MsgWrite(resources.dwMboxBase, MBOX_ARM2DSP,
+					 MBX_DEH_CLASS | MBX_DEH_EMMU);
 
- /*
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 61a4ab9..9d63b1f 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -1491,6 +1491,19 @@ func_cont:
- }
+<<<we send a mailbox message to the DSP to inform it about MMUFault, th=
+is function write the message into mailbox and trigger mailbox interrup=
+t in the DSP side.>>>
+			/* Clear MMU interrupt */
+			HW_MMU_EventAck(resources.dwDmmuBase,
+					 HW_MMU_TRANSLATION_FAULT);
 
- /*
-+ * ======== find_strm_handle =========
-+ */
-+inline void find_strm_handle(struct strm_res_object **strmres,
-+                               void *pr_ctxt, void *hstream)
-+{
-+       rcu_read_lock();
-+       *strmres = idr_find(((struct process_context *)pr_ctxt)->strm_idp,
-+                                                       (int)hstream);
-+       rcu_read_unlock();
-+       return;
-+}
-+
-+/*
-  * ======== strmwrap_allocate_buffer ========
-  */
- u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
-@@ -1498,13 +1511,20 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
-        dsp_status status;
-        u8 **ap_buffer = NULL;
-        u32 num_bufs = args->args_strm_allocatebuffer.num_bufs;
-+       struct strm_res_object *strm_res;
-+
-+       find_strm_handle(&strm_res, pr_ctxt,
-+               args->args_strm_allocatebuffer.hstream);
-+
-+       if (!strm_res)
-+               return DSP_EHANDLE;
+<<<we acked the MMU faul interrupt (transition fault interrupt). After =
+MMUFault MMU module stops DSP execution until the MMUfault flag is acke=
+d and it can find the physical address of the virtual address requested=
+ by the DSP. So in this moment the DSP continue executing again but bef=
+ore it can use the address translated it had to attend mailbox interrup=
+t (hardware interrupt) so it change context to mailbox ISR and the DSP =
+is stuck in infinite while loop.>>>
 
-        if (num_bufs > MAX_BUFS)
-                return DSP_EINVALIDARG;
 
-        ap_buffer = mem_alloc((num_bufs * sizeof(u8 *)), MEM_NONPAGED);
 
--       status = strm_allocate_buffer(args->args_strm_allocatebuffer.hstream,
-+       status = strm_allocate_buffer(strm_res,
-                                      args->args_strm_allocatebuffer.usize,
-                                      ap_buffer, num_bufs, pr_ctxt);
-        if (DSP_SUCCEEDED(status)) {
-@@ -1512,7 +1532,7 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
-                          status, num_bufs);
-                if (DSP_FAILED(status)) {
-                        status = DSP_EPOINTER;
--                       strm_free_buffer(args->args_strm_allocatebuffer.hstream,
-+                       strm_free_buffer(strm_res,
-                                         ap_buffer, num_bufs, pr_ctxt);
-                }
-        }
-@@ -1526,7 +1546,14 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
-  */
- u32 strmwrap_close(union Trapped_Args *args, void *pr_ctxt)
- {
--       return strm_close(args->args_strm_close.hstream, pr_ctxt);
-+       struct strm_res_object *strm_res;
-+
-+       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_close.hstream);
-+
-+       if (!strm_res)
-+               return DSP_EHANDLE;
-+
-+       return strm_close(strm_res, pr_ctxt);
- }
+However after mailbox migration patches the code looks like:
 
- /*
-@@ -1537,6 +1564,13 @@ u32 strmwrap_free_buffer(union Trapped_Args *args, void *pr_ctxt)
-        dsp_status status = DSP_SOK;
-        u8 **ap_buffer = NULL;
-        u32 num_bufs = args->args_strm_freebuffer.num_bufs;
-+       struct strm_res_object *strm_res;
-+
-+       find_strm_handle(&strm_res, pr_ctxt,
-+                       args->args_strm_freebuffer.hstream);
-+
-+       if (!strm_res)
-+               return DSP_EHANDLE;
+			if (DSP_SUCCEEDED(status)) {
+				hw_status_obj =3D
+				    hw_mmu_tlb_add(resources.dw_dmmu_base,
+						   mem_physical, fault_addr,
+						   HW_PAGE_SIZE4KB, 1,
+						   &map_attrs, HW_SET, HW_SET);
+			}
+			/* send an interrupt to DSP */
+			omap_mbox_msg_send(dev_context->mbox,
+						MBX_DEH_CLASS | MBX_DEH_EMMU);
 
-        if (num_bufs > MAX_BUFS)
-                return DSP_EINVALIDARG;
-@@ -1546,10 +1580,10 @@ u32 strmwrap_free_buffer(union Trapped_Args *args, void *pr_ctxt)
-        CP_FM_USR(ap_buffer, args->args_strm_freebuffer.ap_buffer, status,
-                  num_bufs);
+<<<the code looks pretty similar, however there is a difference inside =
+ omap_mbox_msg_send function, this function does not write directly the=
+ mailbox register to put the new messages, instead of schedule a workqu=
+eue that will the in charge of doing that job>>>
 
--       if (DSP_SUCCEEDED(status)) {
--               status = strm_free_buffer(args->args_strm_freebuffer.hstream,
-+       if (DSP_SUCCEEDED(status))
-+               status = strm_free_buffer(strm_res,
-                                          ap_buffer, num_bufs, pr_ctxt);
--       }
-+
-        CP_TO_USR(args->args_strm_freebuffer.ap_buffer, ap_buffer, status,
-                  num_bufs);
-        kfree(ap_buffer);
-@@ -1576,6 +1610,13 @@ u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt)
-        struct stream_info strm_info;
-        struct dsp_streaminfo user;
-        struct dsp_streaminfo *temp;
-+       struct strm_res_object *strm_res;
-+
-+       find_strm_handle(&strm_res, pr_ctxt,
-+                       args->args_strm_getinfo.hstream);
-+
-+       if (!strm_res)
-+               return DSP_EHANDLE;
+			/* Clear MMU interrupt */
+			hw_mmu_event_ack(resources.dw_dmmu_base,
+					 HW_MMU_TRANSLATION_FAULT);
 
-        CP_FM_USR(&strm_info, args->args_strm_getinfo.stream_info, status, 1);
-        temp = strm_info.user_strm;
-@@ -1583,7 +1624,7 @@ u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt)
-        strm_info.user_strm = &user;
+<<<So after we ack the MMU fault event the MMU lets DSP to continue exe=
+cuting, like the mailbox interrupt was not trigger in this moment (beca=
+use of the latency of the workque) and if the fault address was being u=
+sed in the DSP to write, it can corrupt memory.>>>
 
-        if (DSP_SUCCEEDED(status)) {
--               status = strm_get_info(args->args_strm_getinfo.hstream,
-+               status = strm_get_info(strm_res->hstream,
-                                       &strm_info,
-                                       args->args_strm_getinfo.
-                                       stream_info_size);
-@@ -1600,9 +1641,14 @@ u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt)
- u32 strmwrap_idle(union Trapped_Args *args, void *pr_ctxt)
- {
-        u32 ret;
-+       struct strm_res_object *strm_res;
-+
-+       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_idle.hstream);
 
--       ret = strm_idle(args->args_strm_idle.hstream,
--                       args->args_strm_idle.flush_flag);
-+       if (!strm_res)
-+               return DSP_EHANDLE;
-+
-+       ret = strm_idle(strm_res->hstream, args->args_strm_idle.flush_flag);
+The patch send to linux-omap list (DSPBRIDGE:Fix Kernel memory poison o=
+verwritten after DSP_MMUFAULT) is just hidden the problem. Because in c=
+ase the MPU had a lot of work the workqueue execution will be delay eve=
+n more and the DSP side could reach the limit of the dummy page allocat=
+ed and corrupt memory, or write memory in a downward way and corrupt pr=
+eview memory maybe already map but not allowed to DSP write the entry p=
+age.
 
-        return ret;
- }
-@@ -1613,6 +1659,12 @@ u32 strmwrap_idle(union Trapped_Args *args, void *pr_ctxt)
- u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt)
- {
-        dsp_status status = DSP_SOK;
-+       struct strm_res_object *strm_res;
-+
-+       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_issue.hstream);
-+
-+       if (!strm_res)
-+               return DSP_EHANDLE;
 
-        if (!args->args_strm_issue.pbuffer)
-                return DSP_EPOINTER;
-@@ -1620,7 +1672,7 @@ u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt)
-        /* No need of doing CP_FM_USR for the user buffer (pbuffer)
-           as this is done in Bridge internal function bridge_chnl_add_io_req
-           in chnl_sm.c */
--       status = strm_issue(args->args_strm_issue.hstream,
-+       status = strm_issue(strm_res->hstream,
-                            args->args_strm_issue.pbuffer,
-                            args->args_strm_issue.dw_bytes,
-                            args->args_strm_issue.dw_buf_size,
-@@ -1636,7 +1688,7 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
- {
-        dsp_status status = DSP_SOK;
-        struct strm_attr attr;
--       struct strm_object *strm_obj;
-+       struct strm_res_object *strm_res_obj;
-        struct dsp_streamattrin strm_attr_in;
-        struct node_res_object *node_res;
+Also the way we are using the dummymemory to allow DSP write/read from =
+that is not correct. Because the offset of the dummymemory and the offs=
+et of the DSP fault address should be match.
 
-@@ -1658,9 +1710,9 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
-        }
-        status = strm_open(node_res->hnode,
-                           args->args_strm_open.direction,
--                          args->args_strm_open.index, &attr, &strm_obj,
-+                          args->args_strm_open.index, &attr, &strm_res_obj,
-                           pr_ctxt);
--       CP_TO_USR(args->args_strm_open.ph_stream, &strm_obj, status, 1);
-+       CP_TO_USR(args->args_strm_open.ph_stream, &strm_res_obj->id, status, 1);
-        return status;
- }
+These values are taken from nokia logs:
 
-@@ -1674,8 +1726,14 @@ u32 strmwrap_reclaim(union Trapped_Args *args, void *pr_ctxt)
-        u32 ul_bytes;
-        u32 dw_arg;
-        u32 ul_buf_size;
-+       struct strm_res_object *strm_res;
+=46ault address: 0x21fa0040
+dmm_va_addr: 0xdf16d140
+mem_physical: 0x9f16d000
 
--       status = strm_reclaim(args->args_strm_reclaim.hstream, &buf_ptr,
-+       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_reclaim.hstream);
-+
-+       if (!strm_res)
-+               return DSP_EHANDLE;
-+
-+       status = strm_reclaim(strm_res->hstream, &buf_ptr,
-                              &ul_bytes, &ul_buf_size, &dw_arg);
-        CP_TO_USR(args->args_strm_reclaim.buf_ptr, &buf_ptr, status, 1);
-        CP_TO_USR(args->args_strm_reclaim.bytes, &ul_bytes, status, 1);
-@@ -1696,12 +1754,19 @@ u32 strmwrap_register_notify(union Trapped_Args *args, void *pr_ctxt)
- {
-        dsp_status status = DSP_SOK;
-        struct dsp_notification notification;
-+       struct strm_res_object *strm_res;
-+
-+       find_strm_handle(&strm_res, pr_ctxt,
-+                       args->args_strm_registernotify.hstream);
-+
-+       if (!strm_res)
-+               return DSP_EHANDLE;
+The address returned by kmalloc is 0xccbd2080, so we can write I this b=
+uffer from 0xdf16d140 until the end of the page and in physical memory =
+from 0x9f16d140 until the end of the page. And in the DSP we map 0x9f16=
+d000 <=3D> 0x21fa0000 and when it tries to write into 0x21fa0040 it is =
+actually writing to 0x9f16d040 corrupting the memory. But in the previo=
+us code we did not allowed to the DSP do anything more after the MMU fa=
+ult, that why we did not see that problem before.
 
-        /* Initialize the notification data structure */
-        notification.ps_name = NULL;
-        notification.handle = NULL;
+The patch "DSPBRIDGE: MMU-Fault debugging enhancements" already sent to=
+ linux-omap list fix this problem indirectly. Now the way to inform abo=
+ut the MMUFault is not using a mailbox message, instead of we the GTP8 =
+overflow interrupt.
 
--       status = strm_register_notify(args->args_strm_registernotify.hstream,
-+       status = strm_register_notify(strm_res->hstream,
-                                      args->args_strm_registernotify.event_mask,
-                                      args->args_strm_registernotify.
-                                      notify_type, &notification);
-@@ -1719,11 +1784,17 @@ u32 strmwrap_select(union Trapped_Args *args, void *pr_ctxt)
-        u32 mask;
-        struct strm_object *strm_tab[MAX_STREAMS];
-        dsp_status status = DSP_SOK;
-+       struct strm_res_object *strm_res;
-+
-+       find_strm_handle(&strm_res, pr_ctxt, args->args_strm_select.stream_tab);
-+
-+       if (!strm_res)
-+               return DSP_EHANDLE;
 
-        if (args->args_strm_select.strm_num > MAX_STREAMS)
-                return DSP_EINVALIDARG;
+				omap_dm_timer_set_load_start(timer, 0,
+								0xfffffffe);
+			<<<we set timer counter almost to overflue >>>
 
--       CP_FM_USR(strm_tab, args->args_strm_select.stream_tab, status,
-+       CP_FM_USR(strm_tab, strm_res->hstream, status,
-                  args->args_strm_select.strm_num);
-        if (DSP_SUCCEEDED(status)) {
-                status = strm_select(strm_tab, args->args_strm_select.strm_num,
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index b41c753..ad0391f 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -207,75 +207,44 @@ dsp_status drv_remove_all_node_res_elements(bhandle hPCtxt)
- dsp_status drv_proc_insert_strm_res_element(bhandle hStreamHandle,
-                                            bhandle hstrm_res, bhandle hPCtxt)
- {
--       struct strm_res_object **pstrm_res =
--           (struct strm_res_object **)hstrm_res;
--       struct process_context *ctxt = (struct process_context *)hPCtxt;
-+       struct strm_res_object **pstrm_res = hstrm_res;
-+       struct process_context *ctxt = hPCtxt;
-        dsp_status status = DSP_SOK;
--       struct strm_res_object *temp_strm_res = NULL;
-+       int retval;
 
-        *pstrm_res = (struct strm_res_object *)
-            mem_calloc(1 * sizeof(struct strm_res_object), MEM_PAGED);
--       if (*pstrm_res == NULL)
-+       if (*pstrm_res == NULL) {
-                status = DSP_EHANDLE;
-+               goto func_end;
-+       }
+				/* Wait 80us for timer to overflow */
+				udelay(80);
 
--       if (DSP_SUCCEEDED(status)) {
--               if (mutex_lock_interruptible(&ctxt->strm_mutex)) {
--                       kfree(*pstrm_res);
--                       return DSP_EFAIL;
-+       (*pstrm_res)->hstream = hStreamHandle;
-+       retval = idr_get_new(ctxt->strm_idp, *pstrm_res,
-+                                               &(*pstrm_res)->id);
-+       if (retval == -EAGAIN) {
-+               if (!idr_pre_get(ctxt->strm_idp, GFP_KERNEL)) {
-+                       pr_err("%s: OUT OF MEMORY\n", __func__);
-+                       status = DSP_EMEMORY;
-+                       goto func_end;
-                }
--               (*pstrm_res)->hstream = hStreamHandle;
--               if (ctxt->pstrm_list != NULL) {
--                       temp_strm_res = ctxt->pstrm_list;
--                       while (temp_strm_res->next != NULL)
--                               temp_strm_res = temp_strm_res->next;
+				/*
+				 * Check interrupt status and
+				 * wait for interrupt
+				 */
+				cnt =3D 0;
+				while (!(omap_dm_timer_read_status(timer) &
+					GPTIMER_IRQ_OVERFLOW)) {
+					if (cnt++ >=3D
+						GPTIMER_IRQ_WAIT_MAX_CNT) {
+						pr_err("%s: GPTimer interrupt"
+							" failed\n", __func__);
+						break;
+					}
+				}
+		<<<we wait until interrupt is trigger>>>>
 
--                       temp_strm_res->next = *pstrm_res;
--               } else {
--                       ctxt->pstrm_list = *pstrm_res;
--               }
--               mutex_unlock(&ctxt->strm_mutex);
-+               retval = idr_get_new(ctxt->strm_idp, *pstrm_res,
-+                                               &(*pstrm_res)->id);
-        }
--       return status;
--}
--
--/* Release Stream resource element context
--* This function called after the actual resource is freed
-- */
--dsp_status drv_proc_remove_strm_res_element(bhandle hstrm_res, bhandle hPCtxt)
--{
--       struct strm_res_object *pstrm_res = (struct strm_res_object *)hstrm_res;
--       struct process_context *ctxt = (struct process_context *)hPCtxt;
--       struct strm_res_object *temp_strm_res;
--       dsp_status status = DSP_SOK;
--
--       if (mutex_lock_interruptible(&ctxt->strm_mutex))
--               return DSP_EFAIL;
--       temp_strm_res = ctxt->pstrm_list;
--
--       if (ctxt->pstrm_list == pstrm_res) {
--               ctxt->pstrm_list = pstrm_res->next;
--       } else {
--               while (temp_strm_res && temp_strm_res->next != pstrm_res)
--                       temp_strm_res = temp_strm_res->next;
--               if (temp_strm_res == NULL)
--                       status = DSP_ENOTFOUND;
--               else
--                       temp_strm_res->next = pstrm_res->next;
-+       if (retval) {
-+               pr_err("%s: FAILED, IDR is FULL\n", __func__);
-+               status = DSP_EFAIL;
-        }
--       mutex_unlock(&ctxt->strm_mutex);
--       kfree(pstrm_res);
-+
-+func_end:
-        return status;
- }
+			}
+			hw_mmu_event_ack(resources->dw_dmmu_base,
+					 HW_MMU_TRANSLATION_FAULT);
+<<<DSP can continue in this point, but how the GTP8 interrupt was alrea=
+dy trigger it change the context to the GTP8 ISR and it dumps DSP stack=
+ and then stuck in the infinite while loop>>>
 
--/* Release all Stream resources and its context
--* This is called from .bridge_release.
-- */
--dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
-+static int drv_proc_free_strm_res(int id, void *p, void *data)
- {
--       struct process_context *ctxt = (struct process_context *)hPCtxt;
--       dsp_status status = DSP_SOK;
--       struct strm_res_object *strm_res = NULL;
--       struct strm_res_object *strm_tmp = NULL;
-+       struct process_context *ctxt = data;
-+       struct strm_res_object *strm_res = p;
-        struct stream_info strm_info;
-        struct dsp_streaminfo user;
-        u8 **ap_buffer = NULL;
-@@ -284,60 +253,38 @@ dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
-        u32 dw_arg;
-        s32 ul_buf_size;
+			dump_dsp_stack(deh_mgr_obj->hwmd_context);
+			omap_dm_timer_disable(timer);
 
--       strm_tmp = ctxt->pstrm_list;
--       while (strm_tmp) {
--               strm_res = strm_tmp;
--               strm_tmp = strm_tmp->next;
--               if (strm_res->num_bufs) {
--                       ap_buffer = mem_alloc((strm_res->num_bufs *
--                                              sizeof(u8 *)), MEM_NONPAGED);
--                       if (ap_buffer) {
--                               status = strm_free_buffer(strm_res->hstream,
--                                                         ap_buffer,
--                                                         strm_res->num_bufs,
--                                                         ctxt);
--                               kfree(ap_buffer);
--                       }
-+       if (strm_res->num_bufs) {
-+               ap_buffer = mem_alloc((strm_res->num_bufs *
-+                                      sizeof(u8 *)), MEM_NONPAGED);
-+               if (ap_buffer) {
-+                       strm_free_buffer(strm_res,
-+                                                 ap_buffer,
-+                                                 strm_res->num_bufs,
-+                                                 ctxt);
-+                       kfree(ap_buffer);
-                }
--               strm_info.user_strm = &user;
--               user.number_bufs_in_stream = 0;
--               strm_get_info(strm_res->hstream, &strm_info, sizeof(strm_info));
--               while (user.number_bufs_in_stream--)
--                       strm_reclaim(strm_res->hstream, &buf_ptr, &ul_bytes,
--                                    (u32 *) &ul_buf_size, &dw_arg);
--               status = strm_close(strm_res->hstream, ctxt);
-        }
--       return status;
-+       strm_info.user_strm = &user;
-+       user.number_bufs_in_stream = 0;
-+       strm_get_info(strm_res->hstream, &strm_info, sizeof(strm_info));
-+       while (user.number_bufs_in_stream--)
-+               strm_reclaim(strm_res->hstream, &buf_ptr, &ul_bytes,
-+                            (u32 *) &ul_buf_size, &dw_arg);
-+       strm_close(strm_res, ctxt);
-+       return 0;
- }
 
--/* Getting the stream resource element */
--dsp_status drv_get_strm_res_element(bhandle hStrm, bhandle hstrm_res,
--                                   bhandle hPCtxt)
-+/* Release all Stream resources and its context
-+* This is called from .bridge_release.
-+ */
-+dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
- {
--       struct strm_res_object **strm_res =
--           (struct strm_res_object **)hstrm_res;
-        struct process_context *ctxt = (struct process_context *)hPCtxt;
--       dsp_status status = DSP_SOK;
--       struct strm_res_object *temp_strm2 = NULL;
--       struct strm_res_object *temp_strm;
 
--       if (mutex_lock_interruptible(&ctxt->strm_mutex))
--               return DSP_EFAIL;
-+       idr_for_each(ctxt->strm_idp, drv_proc_free_strm_res, ctxt);
-+       idr_destroy(ctxt->strm_idp);
+I could reproduce the issue doing some change in the top of "DSPBRIDGE:=
+ MMU-Fault debugging enhancements":
 
--       temp_strm = ctxt->pstrm_list;
--       while ((temp_strm != NULL) && (temp_strm->hstream != hStrm)) {
--               temp_strm2 = temp_strm;
--               temp_strm = temp_strm->next;
--       }
--
--       mutex_unlock(&ctxt->strm_mutex);
--
--       if (temp_strm != NULL)
--               *strm_res = temp_strm;
--       else
--               status = DSP_ENOTFOUND;
--
--       return status;
-+       return DSP_SOK;
- }
+			temp1 =3D kmalloc(0x100000, GFP_ATOMIC);
+			temp2 =3D kmalloc(0x1000, GFP_ATOMIC);
+			kfree(temp1);
+			kfree(temp2);
+	<<<doing some allocations and frees to fill slap with poison and redzo=
+ne pattern>>>
+			dummy_va_addr =3D (u32) kmalloc(0x1000, GFP_ATOMIC);
 
- /* Updating the stream resource element */
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index be5efb7..77d63fc 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -506,17 +506,24 @@ static int bridge_open(struct inode *ip, struct file *filp)
-                INIT_LIST_HEAD(&pr_ctxt->dmm_map_list);
-                spin_lock_init(&pr_ctxt->dmm_rsv_lock);
-                INIT_LIST_HEAD(&pr_ctxt->dmm_rsv_list);
--               mutex_init(&pr_ctxt->strm_mutex);
+=2E..
+			/* Clear MMU interrupt */
+			hw_mmu_event_ack(resources->dw_dmmu_base,
+					 HW_MMU_TRANSLATION_FAULT);
+	<<<Acked MMU fault flag, so that DSP can continue executing, before ge=
+nerate GTP8 interrupt>>>
+			/*
+			 * Send a GP Timer interrupt to DSP
+			 * The DSP expects a GP timer interrupt after an
+			 * MMU-Fault Request GPTimer
+			 */
+			if (timer) {
 
-                pr_ctxt->node_idp = mem_calloc(sizeof(struct idr), MEM_PAGED);
--               if (pr_ctxt->node_idp)
-+               if (pr_ctxt->node_idp) {
-                        idr_init(pr_ctxt->node_idp);
-+               } else {
-+                       status = -ENOMEM;
-+                       goto err;
-+               }
-+
-+               pr_ctxt->strm_idp = mem_calloc(sizeof(struct idr), MEM_PAGED);
-+               if (pr_ctxt->strm_idp)
-+                       idr_init(pr_ctxt->strm_idp);
-                else
-                        status = -ENOMEM;
-        } else {
-                status = -ENOMEM;
-        }
--
-+err:
-        filp->private_data = pr_ctxt;
- #ifdef CONFIG_BRIDGE_RECOVERY
-        if (!status)
-diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index 699f2dc..ddfb1f6 100644
---- a/drivers/dsp/bridge/rmgr/strm.c
-+++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -102,20 +102,19 @@ static void delete_strm_mgr(struct strm_mgr *strm_mgr_obj);
-  *  Purpose:
-  *      Allocates buffers for a stream.
-  */
--dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
-+dsp_status strm_allocate_buffer(struct strm_res_object *strmres, u32 usize,
-                                OUT u8 **ap_buffer, u32 num_bufs,
-                                struct process_context *pr_ctxt)
- {
-        dsp_status status = DSP_SOK;
-        u32 alloc_cnt = 0;
-        u32 i;
--
--       bhandle hstrm_res;
-+       struct strm_object *hstrm = strmres->hstream;
 
-        DBC_REQUIRE(refs > 0);
-        DBC_REQUIRE(ap_buffer != NULL);
+And this is what I get:
 
--       if (MEM_IS_VALID_HANDLE(hStrm, STRM_SIGNATURE)) {
-+       if (MEM_IS_VALID_HANDLE(hstrm, STRM_SIGNATURE)) {
-                /*
-                 * Allocate from segment specified at time of stream open.
-                 */
-@@ -130,8 +129,8 @@ dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
-                goto func_end;
+BUG kmalloc-64: Redzone overwritten
+-----------------------------------------------------------------------=
+------
 
-        for (i = 0; i < num_bufs; i++) {
--               DBC_ASSERT(hStrm->xlator != NULL);
--               (void)cmm_xlator_alloc_buf(hStrm->xlator, &ap_buffer[i], usize);
-+               DBC_ASSERT(hstrm->xlator != NULL);
-+               (void)cmm_xlator_alloc_buf(hstrm->xlator, &ap_buffer[i], usize);
-                if (ap_buffer[i] == NULL) {
-                        status = DSP_EMEMORY;
-                        alloc_cnt = i;
-@@ -139,14 +138,12 @@ dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
-                }
-        }
-        if (DSP_FAILED(status))
--               strm_free_buffer(hStrm, ap_buffer, alloc_cnt, pr_ctxt);
-+               strm_free_buffer(strmres, ap_buffer, alloc_cnt, pr_ctxt);
+INFO: 0xccbeea40-0xccbeea43. First byte 0x0 instead of 0xbb
+INFO: Allocated in 0xe3510001 age=3D3858725493 cpu=3D2583691266 pid=3D-=
+481230846
+INFO: Freed in 0xea000007 age=3D473713215 cpu=3D3785367565 pid=3D-47380=
+9537
+INFO: Slab 0xc0706d78 objects=3D32 used=3D31 fp=3D0xccbeea00 flags=3D0x=
+00c2
+INFO: Object 0xccbeea00 @offset=3D2560 fp=3D0x0a00000d
 
-        if (DSP_FAILED(status))
-                goto func_end;
+Bytes b4 0xccbee9f0:  0b 00 00 ea 00 00 a0 e3 0d 00 00 ea 0d 20 a0 e1 .=
+=2E.=EA...=E3..
+=2E=EA...=E1
+  Object 0xccbeea00:  7f 3d c2 e3 3f 30 c3 e3 0c 10 a0 e1 04 20 8d e2 .=
+=3D=C2=E3?0=C3=E3..
+=2E=E1...=E2
+  Object 0xccbeea10:  04 30 93 e5 01 c1 d3 e3 20 30 a0 13 d0 30 a0 03 .=
+0.=E5.=C1=D3=E3.0 ..=D00..
+  Object 0xccbeea20:  fe ff ff eb 00 00 50 e3 04 30 9d 15 00 30 86 15 =FE=
+=FF=FF=EB..P=E3.0 ...0..
+  Object 0xccbeea30:  00 00 00 1a 00 00 86 e5 7c 80 bd e8 08 00 00 00 .=
+=2E.....=E5|.
+=BD=E8....
+ Redzone 0xccbeea40:  00 00 50 e3                                     .=
+=2EP=E3
 
--       if (drv_get_strm_res_element(hStrm, &hstrm_res, pr_ctxt) !=
--           DSP_ENOTFOUND)
--               drv_proc_update_strm_res(num_bufs, hstrm_res);
-+       drv_proc_update_strm_res(num_bufs, strmres);
+ Padding 0xccbeea68:  04 30 93 e5 01 21 d3 e3 20 10 a0 13 d0 10 a0 03 .=
+0.=E5.!=D3=E3..
+=2E.=D0...
+ Padding 0xccbeea78:  fe ff ff ea fe ff ff ea
 
- func_end:
-        return status;
-@@ -157,46 +154,43 @@ func_end:
-  *  Purpose:
-  *      Close a stream opened with strm_open().
-  */
--dsp_status strm_close(struct strm_object *hStrm,
-+dsp_status strm_close(struct strm_res_object *strmres,
-                      struct process_context *pr_ctxt)
- {
-        struct bridge_drv_interface *intf_fxns;
-        struct chnl_info chnl_info_obj;
-        dsp_status status = DSP_SOK;
--
--       bhandle hstrm_res;
-+       struct strm_object *hstrm = strmres->hstream;
+I am getting the Redzone overwritten instead of Poison overwritten beca=
+use was the start of the slab which was corrupted.
 
-        DBC_REQUIRE(refs > 0);
 
--       if (!MEM_IS_VALID_HANDLE(hStrm, STRM_SIGNATURE)) {
-+       if (!MEM_IS_VALID_HANDLE(hstrm, STRM_SIGNATURE)) {
-                status = DSP_EHANDLE;
-        } else {
-                /* Have all buffers been reclaimed? If not, return
-                 * DSP_EPENDING */
--               intf_fxns = hStrm->strm_mgr_obj->intf_fxns;
-+               intf_fxns = hstrm->strm_mgr_obj->intf_fxns;
-                status =
--                   (*intf_fxns->pfn_chnl_get_info) (hStrm->chnl_obj,
-+                   (*intf_fxns->pfn_chnl_get_info) (hstrm->chnl_obj,
-                                                     &chnl_info_obj);
-                DBC_ASSERT(DSP_SUCCEEDED(status));
+Keeping the code as before just changing the MMU fault ack after genera=
+ting GTP8 interrupt is trigger the issue is not seen.
 
-                if (chnl_info_obj.cio_cs > 0 || chnl_info_obj.cio_reqs > 0)
-                        status = DSP_EPENDING;
-                else
--                       status = delete_strm(hStrm);
-+                       status = delete_strm(hstrm);
-        }
+				while (!(omap_dm_timer_read_status(timer) &
+					GPTIMER_IRQ_OVERFLOW)) {
+					if (cnt++ >=3D
+						GPTIMER_IRQ_WAIT_MAX_CNT) {
+						pr_err("%s: GPTimer interrupt"
+							" failed\n", __func__);
+						break;
+					}
+				}
+		<<< wait until GTP8 interrupt is generated>>>
+			}
+			hw_mmu_event_ack(resources->dw_dmmu_base,
+					 HW_MMU_TRANSLATION_FAULT);
 
-        if (DSP_FAILED(status))
-                goto func_end;
 
--       if (drv_get_strm_res_element(hStrm, &hstrm_res, pr_ctxt) !=
--           DSP_ENOTFOUND)
--               drv_proc_remove_strm_res_element(hstrm_res, pr_ctxt);
-+       idr_remove(pr_ctxt->strm_idp, strmres->id);
- func_end:
-        DBC_ENSURE(status == DSP_SOK || status == DSP_EHANDLE ||
-                   status == DSP_EPENDING || status == DSP_EFAIL);
+Even if I pass an address already freed to the tlb just to make sure th=
+at the DSP is not able to write to that address after MMUFault the issu=
+e is not seen:
 
--       dev_dbg(bridge, "%s: hStrm: %p, status 0x%x\n", __func__,
--               hStrm, status);
-+       dev_dbg(bridge, "%s: hstrm: %p, status 0x%x\n", __func__,
-+               hstrm, status);
-        return status;
- }
+			temp1 =3D kmalloc(0x100000, GFP_ATOMIC);
+			temp2 =3D kmalloc(0x1000, GFP_ATOMIC);
+			kfree(temp1);
+			kfree(temp2);
+=2E..
+				    hw_mmu_tlb_add(resources->dw_dmmu_base,
+						   temp2, fault_addr,
+			<<<using temp2 address, which is already free>>>
 
-@@ -279,33 +273,30 @@ void strm_exit(void)
-  *  Purpose:
-  *      Frees the buffers allocated for a stream.
-  */
--dsp_status strm_free_buffer(struct strm_object *hStrm, u8 ** ap_buffer,
-+dsp_status strm_free_buffer(struct strm_res_object *strmres, u8 ** ap_buffer,
-                            u32 num_bufs, struct process_context *pr_ctxt)
- {
-        dsp_status status = DSP_SOK;
-        u32 i = 0;
--
--       bhandle hstrm_res = NULL;
-+       struct strm_object *hstrm = strmres->hstream;
+						   HW_PAGE_SIZE4KB, 1,
+						   &map_attrs, HW_SET, HW_SET);
 
-        DBC_REQUIRE(refs > 0);
-        DBC_REQUIRE(ap_buffer != NULL);
+The issue is not even seen, the conclusion of this test is: we can pass=
+ a really "dummy" address (any address) to fill up the TLB, DSP is actu=
+ally not using that, therefore we don't need even allocate memory for d=
+ummy_va_addr, I can even used NULL and there is not problem.
 
--       if (!MEM_IS_VALID_HANDLE(hStrm, STRM_SIGNATURE))
-+       if (!MEM_IS_VALID_HANDLE(hstrm, STRM_SIGNATURE))
-                status = DSP_EHANDLE;
 
-        if (DSP_SUCCEEDED(status)) {
-                for (i = 0; i < num_bufs; i++) {
--                       DBC_ASSERT(hStrm->xlator != NULL);
-+                       DBC_ASSERT(hstrm->xlator != NULL);
-                        status =
--                           cmm_xlator_free_buf(hStrm->xlator, ap_buffer[i]);
-+                           cmm_xlator_free_buf(hstrm->xlator, ap_buffer[i]);
-                        if (DSP_FAILED(status))
-                                break;
-                        ap_buffer[i] = NULL;
-                }
-        }
--       if (drv_get_strm_res_element(hStrm, hstrm_res, pr_ctxt) !=
--           DSP_ENOTFOUND)
--               drv_proc_update_strm_res(num_bufs - i, hstrm_res);
-+       drv_proc_update_strm_res(num_bufs - i, strmres);
 
-        return status;
- }
-@@ -473,7 +464,7 @@ dsp_status strm_issue(struct strm_object *hStrm, IN u8 *pbuf, u32 ul_bytes,
-  */
- dsp_status strm_open(struct node_object *hnode, u32 dir, u32 index,
-                     IN struct strm_attr *pattr,
--                    OUT struct strm_object **phStrm,
-+                    OUT struct strm_res_object **strmres,
-                     struct process_context *pr_ctxt)
- {
-        struct strm_mgr *strm_mgr_obj;
-@@ -488,9 +479,9 @@ dsp_status strm_open(struct node_object *hnode, u32 dir, u32 index,
-        bhandle hstrm_res;
+To sum up:
 
-        DBC_REQUIRE(refs > 0);
--       DBC_REQUIRE(phStrm != NULL);
-+       DBC_REQUIRE(strmres != NULL);
-        DBC_REQUIRE(pattr != NULL);
--       *phStrm = NULL;
-+       *strmres = NULL;
-        if (dir != DSP_TONODE && dir != DSP_FROMNODE) {
-                status = DSP_EDIRECTION;
-        } else {
-@@ -600,23 +591,27 @@ func_cont:
-                }
-        }
-        if (DSP_SUCCEEDED(status)) {
--               *phStrm = strm_obj;
--               drv_proc_insert_strm_res_element(*phStrm, &hstrm_res, pr_ctxt);
-+               status = drv_proc_insert_strm_res_element(strm_obj,
-+                                                       &hstrm_res, pr_ctxt);
-+               if (DSP_FAILED(status))
-+                       delete_strm(strm_obj);
-+               else
-+                       *strmres = (struct strm_res_object *)hstrm_res;
-        } else {
-                (void)delete_strm(strm_obj);
-        }
+- "DSPBRIDGE:Fix Kernel memory poison overwritten after DSP_MMUFAULT" i=
+s only hidden the problem, we don't need aligned memory in this point, =
+that patch should be removed if it is already apply.
 
-        /* ensure we return a documented error code */
-        DBC_ENSURE((DSP_SUCCEEDED(status) &&
--                   MEM_IS_VALID_HANDLE((*phStrm), STRM_SIGNATURE)) ||
--                  (*phStrm == NULL && (status == DSP_EHANDLE ||
-+                   MEM_IS_VALID_HANDLE(strm_obj, STRM_SIGNATURE)) ||
-+                  (*strmres == NULL && (status == DSP_EHANDLE ||
-                                        status == DSP_EDIRECTION
-                                        || status == DSP_EVALUE
-                                        || status == DSP_EFAIL)));
+- There is no need to create a patch for the issue because it is alread=
+y indirectly fix with "DSPBRIDGE: MMU-Fault debugging enhancements".
 
-        dev_dbg(bridge, "%s: hnode: %p dir: 0x%x index: 0x%x pattr: %p "
--               "phStrm: %p status: 0x%x\n", __func__,
--               hnode, dir, index, pattr, phStrm, status);
-+               "strmres: %p status: 0x%x\n", __func__,
-+               hnode, dir, index, pattr, strmres, status);
-        return status;
- }
+- we don't need allocate memory for dummy_va_addr, if some patch should=
+ be created should be the patch to remove dummy_va_addr allocation and =
+deletion.
 
+Regards,
+=46ernando.
+
+
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>owner@vger.kernel.org] On Behalf Of Chitriki Rudramuni, Deepak
+>Sent: Tuesday, April 13, 2010 11:55 AM
+>To: linux-omap
+>Cc: Chitriki Rudramuni, Deepak; Ameya Palande; Felipe Contreras; Hiros=
+hi
+>Doyu; Ramirez Luna, Omar; Menon, Nishanth
+>Subject: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
+>DSP_MMUFAULT
+>
+>kmalloc() does not guarantee page aligned memory always,hence
+>resulting in virtual addresses not getting aligned to page boundary.
+>This patch replaces kmalloc() with __get_free_pages() which
+>allocates kernel memory in terms of PAGES fixing the Kernel
+>memory corruption after DSP_MMUFAULT.
+>
+>Cc: Ameya Palande <ameya.palande@nokia.com>
+>Cc: Felipe Contreras <felipe.contreras@nokia.com>
+>Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
+>Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+>Cc: Nishanth Menon <nm@ti.com>
+>
+>Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
+>---
+> drivers/dsp/bridge/wmd/ue_deh.c |    5 +++--
+> 1 files changed, 3 insertions(+), 2 deletions(-)
+>
+>diff --git a/drivers/dsp/bridge/wmd/ue_deh.c
+>b/drivers/dsp/bridge/wmd/ue_deh.c
+>index 14dd8ae..7ed5f60 100644
+>--- a/drivers/dsp/bridge/wmd/ue_deh.c
+>+++ b/drivers/dsp/bridge/wmd/ue_deh.c
+>@@ -239,7 +239,8 @@ void bridge_deh_notify(struct deh_mgr *hdeh_mgr, u=
+32
+>ulEventMask, u32 dwErrInfo)
+> 			       "bridge_deh_notify: DSP_MMUFAULT, fault "
+> 			       "address =3D 0x%x\n", (unsigned int)fault_addr);
+> 			dummy_va_addr =3D
+>-			    (u32) mem_calloc(sizeof(char) * 0x1000, MEM_PAGED);
+>+			    (void *)__get_free_pages(GFP_ATOMIC | __GFP_ZERO,
+>+						     0);
+> 			mem_physical =3D
+> 			    VIRT_TO_PHYS(PG_ALIGN_LOW
+> 					 ((u32) dummy_va_addr, PG_SIZE4K));
+>@@ -338,6 +339,6 @@ dsp_status bridge_deh_get_info(struct deh_mgr
+>*hdeh_mgr,
+>  */
+> void bridge_deh_release_dummy_mem(void)
+> {
+>-	kfree((void *)dummy_va_addr);
+>+	free_pages((void *)dummy_va_addr, 0);
+> 	dummy_va_addr =3D 0;
+> }
+>--
+>1.6.3.3
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" =
+in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-1.5.4.5
-
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
