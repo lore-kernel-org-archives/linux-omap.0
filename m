@@ -1,100 +1,51 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH] mmc: fix race condition between dma and omap_hsmmc
-	callback
-Date: Mon, 19 Apr 2010 15:06:24 +0530
-Message-ID: <h2y618f0c911004190236wd64b071dkee00026da2077d05@mail.gmail.com>
-References: <618f0c911003240600m1a38935av68f31a232ed8b8ad@mail.gmail.com>
-	 <4BC43D99.6030809@nokia.com>
-	 <x2s618f0c911004180637gde02aecn57c650cc19d142f0@mail.gmail.com>
-	 <4BCC0F32.6020409@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: [PATCH] OMAP: fix gpmc nand setup when no timings supplied
+Date: Mon, 19 Apr 2010 12:50:18 +0300
+Message-ID: <1271670618-5671-1-git-send-email-mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:51593 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751350Ab0DSJgY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 05:36:24 -0400
-In-Reply-To: <4BCC0F32.6020409@nokia.com>
+Received: from compulab.co.il ([67.18.134.219]:52429 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752650Ab0DSJvU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Apr 2010 05:51:20 -0400
+Received: from [62.90.235.247] (helo=zimbra-mta.compulab.co.il)
+	by compulab.site5.com with esmtp (Exim 4.69)
+	(envelope-from <mike@compulab.co.il>)
+	id 1O3ndO-0001iu-SW
+	for linux-omap@vger.kernel.org; Mon, 19 Apr 2010 04:51:19 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id C6C3D9A028A
+	for <linux-omap@vger.kernel.org>; Mon, 19 Apr 2010 12:51:17 +0300 (IDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Mike Rapoport <mike@compulab.co.il>
 
-Adrian Hunter <adrian.hunter@nokia.com> wrote:
-> Venkatraman S wrote:
->>
->> On Tue, Apr 13, 2010 at 3:17 PM, Adrian Hunter <adrian.hunter@nokia.=
-com>
->> wrote:
->>>
->>> Venkatraman S wrote:
->>>>
->>>> This patch addresses the possible race condition between the dma
->>>> callback and hsmmc callback.
->>>
->>> Can you explain the problem in more detail? =A0If the final DMA int=
-errupt
->>> comes before TC then all should be well.
->>
->> =A0 Actually it isn't, with descriptor loading. If the DMA callback =
-arrives
->> "too early", the MMC TC is missed sometimes. The last transfer in th=
-e log
->> below is actually stalled waiting for TC. This happens more often wh=
-en the
->> transfer is large (> 300 blocks)
->
-> You seem to be saying that, in the case of descriptor loading, the DM=
-A
-> callback
-> does not indicate that the DMA is complete. =A0Isn't that a problem w=
-ith
-> descriptor
-> loading?
->
-  My understanding from the existing code
-<snip>
-        /*
-         * If for some reason the DMA transfer is still active,
-         * we wait for timeout period and free the dma
-         */
-        if (host->dma_ch !=3D -1) {
-                set_current_state(TASK_UNINTERRUPTIBLE);
-</snip>
- is that it's rare, but not impossible, for the DMA to be active even
-when the TC has been received.
-  At the same time, I found one issue in descriptor loading
-after I sent the email yesterday, which could fix the problem I am seei=
-ng.
+The gpmc nand infrastructure crashes when there no timing structure
+supplied in the omap_nand_platform_data. Adding check for
+gpmc_nand_data->gpmc_t pointer validity resolves the crash and allows to
+continue nand initialization without modifying gpmc timings.
 
->>
->>> If it comes after, then we need
->>> to be sure that the DMA has finished - particularly in the "read" c=
-ase.
->>> Neither the existing code nor this patch seems to address that issu=
-e.
->>>
->> =A0 With this patch the assumption is that MMC TC correctly signals =
-the
->> end of read / write as requested. I don't know if there are any spec=
-ific
->> reasons
->> to believe otherwise.
->
-> It would be nice if there were a way to check that the DMA is complet=
-e. i.e.
-> if TC is received but DMA is not complete then set an error by callin=
-g
-> omap_hsmmc_dma_cleanup() instead of omap_hsmmc_xfer_done()
->
-  Yes, I was testing such a mechanism as well.  Is it better to abort t=
-he
-transfer by setting an error, or do the omap_hsmmc_xfer_done() at the
-callback of whichever
-interrupt comes last ?
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+---
+ arch/arm/mach-omap2/gpmc-nand.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 64d74f0..3629da3 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -83,6 +83,11 @@ static int gpmc_nand_setup(void)
+ {
+ 	struct device *dev = &gpmc_nand_device.dev;
+ 
++	if (!gpmc_nand_data->gpmc_t) {
++		dev_info(dev, "Keeping gpmc timings\n");
++		return 0;
++	}
++
+ 	/* Set timings in GPMC */
+ 	if (omap2_nand_gpmc_retime() < 0) {
+ 		dev_err(dev, "Unable to set gpmc timings\n");
+-- 
+1.6.6.2
+
