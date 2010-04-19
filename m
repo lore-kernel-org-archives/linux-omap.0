@@ -1,39 +1,43 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: DSS2 & V4L2
-Date: Mon, 19 Apr 2010 07:18:41 -0600
-Message-ID: <4BCC5831.4080909@mlbassoc.com>
-References: <4BCC4CB0.7090607@mlbassoc.com> <7FBB6B9E-A996-46E8-945D-0DC04F06CF24@student.utwente.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH 2/2] omap: rx51_defconfig: Remove CONFIG_SYSFS_DEPRECATED*=y options
+Date: Mon, 19 Apr 2010 16:52:10 +0300
+Message-ID: <1271685130-19118-2-git-send-email-jhnikula@gmail.com>
+References: <1271685130-19118-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:48774 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754146Ab0DSNSm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 09:18:42 -0400
-In-Reply-To: <7FBB6B9E-A996-46E8-945D-0DC04F06CF24@student.utwente.nl>
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:62745 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753273Ab0DSNvy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 09:51:54 -0400
+Received: by mail-ew0-f220.google.com with SMTP id 20so1449912ewy.1
+        for <linux-omap@vger.kernel.org>; Mon, 19 Apr 2010 06:51:53 -0700 (PDT)
+In-Reply-To: <1271685130-19118-1-git-send-email-jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, hvaibhav@ti.com
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-On 04/19/2010 06:58 AM, Koen Kooi wrote:
->
-> Op 19 apr 2010, om 14:29 heeft Gary Thomas het volgende geschreven:
->
->> I'm trying to get the DVSDK (3.01.00.03) working.  It uses
->> 2.6.32 + DSS2 + V4L2.
->>
->> What I'm having trouble with is how to configure/create/setup
->> a video overlay such that I get V4L2 device for the display.
->> In particular, what magic is required to create /dev/video1?
->
-> The trick is usually "do not create>2 framebuffers". My understanding is that an overlay can either be a framebuffer or a v4l device, but not both.
+Modern udev will not work with the CONFIG_SYSFS_DEPRECATED*=y options and
+it seems also that the Maemo release works without when testing with the
+Maemo 2.6.28 kernel.
 
-That was it, thanks!
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+ arch/arm/configs/rx51_defconfig |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm/configs/rx51_defconfig b/arch/arm/configs/rx51_defconfig
+index cc6a32a..473f9e1 100644
+--- a/arch/arm/configs/rx51_defconfig
++++ b/arch/arm/configs/rx51_defconfig
+@@ -59,8 +59,6 @@ CONFIG_FAIR_GROUP_SCHED=y
+ CONFIG_USER_SCHED=y
+ # CONFIG_CGROUP_SCHED is not set
+ # CONFIG_CGROUPS is not set
+-CONFIG_SYSFS_DEPRECATED=y
+-CONFIG_SYSFS_DEPRECATED_V2=y
+ # CONFIG_RELAY is not set
+ # CONFIG_NAMESPACES is not set
+ CONFIG_BLK_DEV_INITRD=y
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+1.7.0
+
