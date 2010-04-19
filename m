@@ -1,94 +1,56 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: [PATCH v4] OMAP: Fix for bus width which improves SD card's
-	peformance.
-Date: Mon, 19 Apr 2010 21:21:53 +0530
-Message-ID: <h2h7f9d1ffb1004190851gf08897awf198d3c8e5f9dbce@mail.gmail.com>
-References: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
-	 <20100406163211.GA29117@nokia.com> <4BBB6767.7010202@ti.com>
-	 <20100406165720.GA17916@nokia.com>
-	 <00b401cad5e0$1d1868d0$544ff780@am.dhcp.ti.com>
-	 <4BBBC628.9030207@ti.com>
-	 <00c901cad5e7$9de54350$544ff780@am.dhcp.ti.com>
-	 <4BBBD87C.1040307@ti.com>
-	 <003601cad73c$98c3aa50$544ff780@am.dhcp.ti.com>
-	 <s2l7f9d1ffb1004190836l9ba703c5lab13638d968a5c55@mail.gmail.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: RE: [PATCH 5/9] AM3517: Add audio codec platform data
+Date: Mon, 19 Apr 2010 21:38:19 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03228A2700@dbde02.ent.ti.com>
+References: <1271672447-3639-1-git-send-email-stanley.miao@windriver.com>
+ <1271672447-3639-6-git-send-email-stanley.miao@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:47578 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729Ab0DSPwP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 11:52:15 -0400
-In-Reply-To: <s2l7f9d1ffb1004190836l9ba703c5lab13638d968a5c55@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:55233 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753852Ab0DSQI0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 12:08:26 -0400
+In-Reply-To: <1271672447-3639-6-git-send-email-stanley.miao@windriver.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, felipe.balbi@nokia.com, me@felipebalbi.com, Vimal Singh <vimal.newwork@gmail.com>, tony@atomide.com, "S, Venkatraman" <svenkatr@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
+To: "Stanley.Miao" <stanley.miao@windriver.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Govindarajan, Sriramakrishnan" <srk@ti.com>
 
-The previous patch was Line wrapped , resending
-correct patch.
-NM, Sorry I miss spelled your name correcting this time.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Stanley.Miao
+> Sent: Monday, April 19, 2010 3:51 PM
+> To: linux-omap@vger.kernel.org
+> Cc: tony@atomide.com; Hiremath, Vaibhav; Govindarajan, Sriramakrishnan
+> Subject: [PATCH 5/9] AM3517: Add audio codec platform data
+> 
+> Codec tlv320aic23 is on the second i2c bus. Add the tlv320aic23 info in
+> i2c2 board_info.
+> 
+> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+> ---
+>  arch/arm/mach-omap2/board-am3517evm.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
+> omap2/board-am3517evm.c
+> index 41f766c..f24e367 100644
+> --- a/arch/arm/mach-omap2/board-am3517evm.c
+> +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> @@ -199,6 +199,9 @@ static struct pca953x_platform_data
+> am3517evm_gpio_expander_info_0 = {
+>  };
+>  static struct i2c_board_info __initdata am3517evm_i2c2_boardinfo[] = {
+>  	{
+> +		I2C_BOARD_INFO("tlv320aic23", 0x1A),
+> +	},
+> +	{
+>  		I2C_BOARD_INFO("tca6416", 0x21),
+>  		.platform_data = &am3517evm_gpio_expander_info_0,
+>  	},
+[Aggarwal, Anuj] Similar patch exists at:
 
-Regards,
-Kishore
-
-From: Kishore Kadiyala <kishore.kadiyala@ti.com>
-
-This patch improves low speeds for SD cards.
-OMAP-MMC controller's can support maximum bus width of '8'.
-when bus width is mentioned as "8" in controller data,the SD
-stack will check whether bus width is "4" and if not it will
-set bus width to "1" and there by degrading performance.
-This patch fixes the issue and improves the performance of
-SD cards.
-
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
----
-In V4 : Updated with Nishant's comments and appened his Signed-off
-In V3 : Updated  with Madhu's comments  and appended Tested by Nikula
-In V2 : Appended Signed-off by Venkat and Ack by Madhu
-
- Here are my experiment numbers, on a Class 6 SDHC card:
- Read peformance is increased by 220%
- Write Performance is increased by 52%
-
- drivers/mmc/host/omap_hsmmc.c |   19 ++++++++++++++++---
- 1 files changed, 16 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 8c97c22..9c1a60e 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2091,10 +2091,23 @@ static int __init omap_hsmmc_probe(struct
-	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
- 		     MMC_CAP_WAIT_WHILE_BUSY;
-
--	if (mmc_slot(host).wires >= 8)
--		mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
--	else if (mmc_slot(host).wires >= 4)
-+	switch (mmc_slot(host).wires) {
-+	case 8:
-+		mmc->caps |= MMC_CAP_8_BIT_DATA;
-+		/* Fall through */
-+	case 4:
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
-+		break;
-+	case 1:
-+		/* Nothing to crib here */
-+	case 0:
-+		/* Assuming nothing was given by board, Core use's 1-Bit */
-+		 break;
-+	default:
-+		/* Completely unexpected.. Core goes with 1-Bit Width */
-+		dev_crit(mmc_dev(host->mmc), "Invalid width %d\n used!"
-+			"using 1 instead\n", mmc_slot(host).wires);
-+	}
-
- 	if (mmc_slot(host).nonremovable)
- 		mmc->caps |= MMC_CAP_NONREMOVABLE;
--- 
-1.6.3.3
+http://marc.info/?l=linux-omap&m=125684238323749&w=2 
