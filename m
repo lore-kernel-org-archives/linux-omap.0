@@ -1,232 +1,209 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v5 3/5] omap3: pm: Generic TRITON power scripts for OMAP3 based boards
-Date: Mon, 19 Apr 2010 17:13:28 +0530
-Message-ID: <1271677408-2143-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH v5 4/5] omap3: pm: Use generic TRITON power scripts for 3430SDP board
+Date: Mon, 19 Apr 2010 17:13:37 +0530
+Message-ID: <1271677417-2167-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39809 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754522Ab0DSLWc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Apr 2010 07:22:32 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:32836 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754522Ab0DSLWl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 07:22:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-This pacth will create the generic TRITON power scripts which can be used
-by different OMAP3 boards with the same power companion chip (TWL4030 series).
+This patch will removed the sleep/wakeup/warm_rest sequence from the
+3430SDP board file and use the generic script.
 
-Added the api(twl4030_get_scripts/twl4030_get_vc_timings) to update
-the sleep/wakeup/warm_rest sequence & voltsetup_time in the board file.
+Modified the resource config structure in the board file for using
+generic script. Updating the sleep/wakeup/warm_rest sequence & voltsetup_time
+in the board file from generic script file.
 
 Signed-off-by: Lesly A M <x0080970@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/mach-omap2/twl4030.c |  154 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/twl4030.h |   15 ++++
- arch/arm/mach-omap2/voltage.c |    5 +-
- 3 files changed, 171 insertions(+), 3 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030.c
- create mode 100644 arch/arm/mach-omap2/twl4030.h
+ arch/arm/mach-omap2/Makefile        |    3 +-
+ arch/arm/mach-omap2/board-3430sdp.c |  108 ++++++++--------------------------
+ include/linux/i2c/twl.h             |    4 +
+ 3 files changed, 32 insertions(+), 83 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/twl4030.c b/arch/arm/mach-omap2/twl4030.c
-new file mode 100644
-index 0000000..6647156
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030.c
-@@ -0,0 +1,154 @@
-+/*
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Lesly A M <x0080970@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifdef CONFIG_TWL4030_POWER
-+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 184badd..f60dca3 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -127,7 +127,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+ 					   hsmmc.o \
+-					   board-sdp-flash.o
++					   board-sdp-flash.o \
++					   twl4030.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ 					   board-rx51-sdram.o \
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 9cc8569..5c3f74d 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -49,6 +49,7 @@
+ #include "sdram-qimonda-hyb18m512160af-6.h"
+ #include "hsmmc.h"
+ #include "voltage.h"
 +#include "twl4030.h"
-+
-+static struct prm_setup_vc twl4030_voltsetup_time = {
-+	/* VOLT SETUPTIME for RET */
-+	.ret = {
-+		.voltsetup1_vdd1 = 0x005B,
-+		.voltsetup1_vdd2 = 0x0055,
-+		.voltsetup2 = 0x0,
-+		.voltoffset = 0x0,
-+	},
-+	/* VOLT SETUPTIME for OFF */
-+	.off = {
-+		.voltsetup1_vdd1 = 0x00B3,
-+		.voltsetup1_vdd2 = 0x00A0,
-+		.voltsetup2 = 0x118,
-+		.voltoffset = 0x32,
-+	},
-+};
-+
-+/*
-+ * Sequence to control the TRITON Power resources,
-+ * when the system goes into sleep.
-+ * Executed upon P1_P2/P3 transition for sleep.
-+ */
-+static struct twl4030_ins __initdata sleep_on_seq[] = {
-+	/* Broadcast message to put res to sleep */
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-+							RES_STATE_SLEEP), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-+							RES_STATE_SLEEP), 2},
-+};
-+
-+static struct twl4030_script sleep_on_script __initdata = {
-+	.script	= sleep_on_seq,
-+	.size	= ARRAY_SIZE(sleep_on_seq),
-+	.flags	= TWL4030_SLEEP_SCRIPT,
-+};
-+
-+/*
-+ * Sequence to control the TRITON Power resources,
-+ * when the system wakeup from sleep.
-+ * Executed upon P1_P2 transition for wakeup.
-+ */
-+static struct twl4030_ins wakeup_p12_seq[] __initdata = {
-+	/* Broadcast message to put res to active */
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-+							RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wakeup_p12_script __initdata = {
-+	.script	= wakeup_p12_seq,
-+	.size	= ARRAY_SIZE(wakeup_p12_seq),
-+	.flags	= TWL4030_WAKEUP12_SCRIPT,
-+};
-+
-+/*
-+ * Sequence to control the TRITON Power resources,
-+ * when the system wakeup from sleep.
-+ * Executed upon P3 transition for wakeup.
-+ */
-+static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-+	/* Broadcast message to put res to active */
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-+							RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wakeup_p3_script __initdata = {
-+	.script = wakeup_p3_seq,
-+	.size   = ARRAY_SIZE(wakeup_p3_seq),
-+	.flags  = TWL4030_WAKEUP3_SCRIPT,
-+};
-+
-+/*
-+ * Sequence to reset the TRITON Power resources,
-+ * when the system gets warm reset.
-+ * Executed upon warm reset signal.
-+ */
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+/*
-+ * Reset twl4030.
-+ * Reset Main_Ref.
-+ * Reset All type2_group2.
-+ * Reset VUSB_3v1.
-+ * Reset All type2_group1.
-+ * Reset RC.
-+ * Reenable twl4030.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_Main_Ref, RES_STATE_WRST), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-+							RES_STATE_WRST), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VUSB_3V1, RES_STATE_WRST), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-+							RES_STATE_WRST), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
-+							RES_STATE_WRST), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size   = ARRAY_SIZE(wrst_seq),
-+	.flags  = TWL4030_WRST_SCRIPT,
-+};
-+
-+/* TRITON script for sleep, wakeup & warm_reset */
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	&sleep_on_script,
-+	&wakeup_p12_script,
-+	&wakeup_p3_script,
-+	&wrst_script,
-+};
-+
-+static struct twl4030_power_data twl4030_generic_script __initdata = {
-+	.scripts	= twl4030_scripts,
-+	.num		= ARRAY_SIZE(twl4030_scripts),
-+};
-+
-+void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data)
-+{
-+	t2scripts_data->scripts = twl4030_generic_script.scripts;
-+	t2scripts_data->num = twl4030_generic_script.num;
-+}
-+
-+void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc)
-+{
-+	/* copies new voltsetup time for RERT */
-+	setup_vc->ret.voltsetup1_vdd1 =
-+				twl4030_voltsetup_time.ret.voltsetup1_vdd1;
-+	setup_vc->ret.voltsetup1_vdd2 =
-+				twl4030_voltsetup_time.ret.voltsetup1_vdd2;
-+	setup_vc->ret.voltsetup2 = twl4030_voltsetup_time.ret.voltsetup2;
-+	setup_vc->ret.voltoffset = twl4030_voltsetup_time.ret.voltoffset;
-+
-+	/* copies new voltsetup time for OFF */
-+	setup_vc->off.voltsetup1_vdd1 =
-+				twl4030_voltsetup_time.off.voltsetup1_vdd1;
-+	setup_vc->off.voltsetup1_vdd2 =
-+				twl4030_voltsetup_time.off.voltsetup1_vdd2;
-+	setup_vc->off.voltsetup2 = twl4030_voltsetup_time.off.voltsetup2;
-+	setup_vc->off.voltoffset = twl4030_voltsetup_time.off.voltoffset;
-+}
-+#endif
-diff --git a/arch/arm/mach-omap2/twl4030.h b/arch/arm/mach-omap2/twl4030.h
-new file mode 100644
-index 0000000..3a7da2d
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030.h
-@@ -0,0 +1,15 @@
-+#ifndef __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
-+#define __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
-+
-+#include <linux/i2c/twl.h>
-+#include "voltage.h"
-+
-+#ifdef CONFIG_TWL4030_POWER
-+extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data);
-+extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc);
-+#else
-+extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data) {}
-+extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc) {}
-+#endif
-+
-+#endif
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index bb80631..fba7007 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -888,9 +888,8 @@ void __init omap_voltage_init_vc(struct prm_setup_vc *setup_vc)
- 	if (!setup_vc)
- 		return;
+ #include "omap3-opp.h"
+ #include "smartreflex-class3.h"
  
--	/* CLK SETUPTIME for RET & OFF */
--	vc_config.ret.clksetup = setup_vc->ret.clksetup;
--	vc_config.off.clksetup = setup_vc->off.clksetup;
-+	/* CLK & VOLT SETUPTIME for RET & OFF */
-+	memcpy(&vc_config, setup_vc, 2 * sizeof(struct setuptime_vc));
- }
+@@ -425,93 +426,35 @@ static struct twl4030_madc_platform_data sdp3430_madc_data = {
+ 	.irq_line	= 1,
+ };
  
- void omap_voltage_vc_update(int core_next_state)
+-
+-static struct twl4030_ins __initdata sleep_on_seq[] = {
+-	/* Turn off HFCLKOUT */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_OFF), 2},
+-	/* Turn OFF VDD1 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 2},
+-	/* Turn OFF VDD2 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
+-	/* Turn OFF VPLL1 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 2},
+-};
+-
+-static struct twl4030_script sleep_on_script __initdata = {
+-	.script	= sleep_on_seq,
+-	.size	= ARRAY_SIZE(sleep_on_seq),
+-	.flags	= TWL4030_SLEEP_SCRIPT,
+-};
+-
+-static struct twl4030_ins wakeup_p12_seq[] __initdata = {
+-	/* Turn on HFCLKOUT */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
+-	/* Turn ON VDD1 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 2},
+-	/* Turn ON VDD2 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 2},
+-	/* Turn ON VPLL1 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 2},
+-};
+-
+-static struct twl4030_script wakeup_p12_script __initdata = {
+-	.script	= wakeup_p12_seq,
+-	.size	= ARRAY_SIZE(wakeup_p12_seq),
+-	.flags	= TWL4030_WAKEUP12_SCRIPT,
+-};
+-
+-static struct twl4030_ins wakeup_p3_seq[] __initdata = {
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
+-};
+-
+-static struct twl4030_script wakeup_p3_script __initdata = {
+-	.script = wakeup_p3_seq,
+-	.size   = ARRAY_SIZE(wakeup_p3_seq),
+-	.flags  = TWL4030_WAKEUP3_SCRIPT,
+-};
+-
+-static struct twl4030_ins wrst_seq[] __initdata = {
+-/*
+- * Reset twl4030.
+- * Reset VDD1 regulator.
+- * Reset VDD2 regulator.
+- * Reset VPLL1 regulator.
+- * Enable sysclk output.
+- * Reenable twl4030.
+- */
+-	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
+-	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
+-	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
+-};
+-static struct twl4030_script wrst_script __initdata = {
+-	.script = wrst_seq,
+-	.size   = ARRAY_SIZE(wrst_seq),
+-	.flags  = TWL4030_WRST_SCRIPT,
+-};
+-
+-static struct twl4030_script *twl4030_scripts[] __initdata = {
+-	&sleep_on_script,
+-	&wakeup_p12_script,
+-	&wakeup_p3_script,
+-	&wrst_script,
+-};
+-
+ static struct twl4030_resconfig twl4030_rconfig[] = {
+-	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
+-		.type2 = -1 },
+-	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
+-		.type2 = -1 },
+-	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
+-		.type2 = -1 },
++	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1, .type = 3,
++		.type2 = 1, .remap_sleep = RES_STATE_OFF },
++	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_ALL, .type = 1,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_ALL, .type = 0,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_ALL, .type = 1,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_VIO, .devgroup = DEV_GRP_ALL, .type = 2,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1,
++		.type = 4, .type2 = 1, .remap_sleep = RES_STATE_OFF },
++	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1,
++		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
++	{ .resource = RES_REGEN, .devgroup = DEV_GRP_ALL, .type = 2,
++		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_ALL, .type = 0,
++		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_ALL, .type = 3,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_ALL, .type = 6,
++		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3,
++		.type = 0, .type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+ 	{ 0, 0},
+ };
+ 
+ static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
+-	.scripts	= twl4030_scripts,
+-	.num		= ARRAY_SIZE(twl4030_scripts),
+ 	.resource_config = twl4030_rconfig,
+ };
+ 
+@@ -878,6 +821,7 @@ static struct omap_musb_board_data musb_board_data = {
+ 
+ static void __init omap_3430sdp_init(void)
+ {
++	twl4030_get_scripts(&sdp3430_t2scripts_data);
+ 	omap_voltage_init_vc(NULL);
+ 
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index fb6784e..2e00e83 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -371,6 +371,7 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+ #define DEV_GRP_P1		0x1	/* P1: all OMAP devices */
+ #define DEV_GRP_P2		0x2	/* P2: all Modem devices */
+ #define DEV_GRP_P3		0x4	/* P3: all peripheral devices */
++#define DEV_GRP_ALL		0x7	/* P1/P2/P3: all devices */
+ 
+ /* Resource groups */
+ #define RES_GRP_RES		0x0	/* Reserved */
+@@ -383,7 +384,10 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+ #define RES_GRP_ALL		0x7	/* All resource groups */
+ 
+ #define RES_TYPE2_R0		0x0
++#define RES_TYPE2_R1		0x1
++#define RES_TYPE2_R2		0x2
+ 
++#define RES_TYPE_R0		0x0
+ #define RES_TYPE_ALL		0x7
+ 
+ /* Resource states */
 -- 
 1.6.0.4
 
