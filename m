@@ -1,60 +1,167 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 00/10] dsp-bridge: deh: general cleanups
-Date: Mon, 19 Apr 2010 15:37:28 -0500
-Message-ID: <4BCCBF08.6030909@ti.com>
-References: <1269379542-11892-1-git-send-email-felipe.contreras@gmail.com> <i2x94a0d4531004150512qf66c7c42u160707e3a89ec39a@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] OMAP: PM: update PRM registers for ABB
+Date: Mon, 19 Apr 2010 15:23:26 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1004191510050.703@utopia.booyaka.com>
+References: <1271453603-21929-1-git-send-email-mturquette@ti.com> <1271453603-21929-2-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44180 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750939Ab0DSUhj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Apr 2010 16:37:39 -0400
-In-Reply-To: <i2x94a0d4531004150512qf66c7c42u160707e3a89ec39a@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:33352 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752387Ab0DSVX1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 17:23:27 -0400
+In-Reply-To: <1271453603-21929-2-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>
+To: Mike Turquette <mturquette@gmail.com>
+Cc: linux-omap@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>, Shweta Gulati <shweta.gulati@ti.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@ti.com>
 
-On 4/15/2010 7:12 AM, Felipe Contreras wrote:
-> On Wed, Mar 24, 2010 at 12:25 AM, Felipe Contreras
-> <felipe.contreras@gmail.com>  wrote:
->> While trying to fix the recovery feature I stumbled many areas of improvments
->> in 'deh' (whatever that means).
->>
->> I quickly tested tesed these changes in Nokia hw, there should be essentially
->> no functional changes.
->>
->> Cheers.
->>
->> Felipe Contreras (10):
->>   dsp-bridge: deh: remove obvious comments
->>   dsp-bridge: deh: trivial cleanups
->>   dsp-bridge: deh: remove unnecessary casts
->>   dsp-bridge: deh: improve logging stuff
->>   dsp-bridge: deh: report mmu faults as errors
->>   dsp-bridge: deh: decrease nesting levels
->>   dsp-bridge: deh: fix obvious return codes
->>   dsp-bridge: deh: reorganize create()
->>   dsp-bridge: deh: fix hdeh_mgr silliness
->>   dsp-bridge: deh: fix dummy_va_addr
->>
->>   arch/arm/plat-omap/include/dspbridge/wmddeh.h |   24 +-
->>   drivers/dsp/bridge/wmd/ue_deh.c               |  392 +++++++++++--------------
->>   2 files changed, 191 insertions(+), 225 deletions(-)
->
-> I guess these patches don't apply any more. Shall I rebase them? If so... where?
+Hello Mike
 
-As noted in a private mail, your patches were rebased and now pushed to 
-dspbridge.
+The functional content of these macros looks fine to me (based on the 
+OMAP3630 TRM Rev C) but please make a few minor style changes:
 
-Only this patch was dropped "dsp-bridge: deh: trivial cleanups"[1]
+On Fri, 16 Apr 2010, Mike Turquette wrote:
 
-I removed the trivial checkpatch warnings (80 char limit and space after 
-comma) from 2 of them.
+> PRCM on OMAP devices using the 45nm process support Adaptive Body Bias
+> ldo as well as some new MPU interrupts related to voltage control.
+> These devices currently include OMAP 3630 and 4430.  This patch adds
+> these bitfields to the appropriate headers.
+> 
+> Also adds register offset for OMAP36XX_CONTROL_VBBLDO_EFUSE_CTRL.
+> Though currently unused it might be used in the future to enable other
+> ABB features such as active RBB and sleep RBB based on silicon
+> characteristics.
+> 
+> OMAP3630_VC_BYPASS_ACK_EN, OMAP3630_VC_VP1_ACK_EN &
+> OMAP3630_ABB_LDO_TRANXDONE_EN have been added for completeness sake, but
+> these interrupts do not have to be enabled to poll on their
+> corresponding status bits.
+> 
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
+> ---
+>  arch/arm/mach-omap2/prm-regbits-34xx.h    |   22 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/prm.h                 |    6 ++++++
+>  arch/arm/plat-omap/include/plat/control.h |    4 ++++
+>  3 files changed, 32 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> index 0066693..58c9765 100644
+> --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
+> +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> @@ -212,6 +212,9 @@
+>  /* PRM_SYSCONFIG specific bits */
+>  
+>  /* PRM_IRQSTATUS_MPU specific bits */
+> +#define OMAP3630_VC_BYPASS_ACK_ST			(1 << 28)
+> +#define OMAP3630_VC_VP1_ACK_ST				(1 << 27)
+> +#define OMAP3630_ABB_LDO_TRANXDONE_ST			(1 << 26)
 
-Omar
+Please append _MASK to the names of all register bitfield macros.  This is 
+not consistent in the current macro include files, but will be soon.
 
----
-[1] http://marc.info/?l=linux-omap&m=126938906708916&w=2
+>  #define OMAP3430ES2_SND_PERIPH_DPLL_ST_SHIFT		25
+>  #define OMAP3430ES2_SND_PERIPH_DPLL_ST			(1 << 25)
+>  #define OMAP3430_VC_TIMEOUTERR_ST			(1 << 24)
+> @@ -244,6 +247,9 @@
+>  #define OMAP3430_FS_USB_WKUP_ST				(1 << 1)
+>  
+>  /* PRM_IRQENABLE_MPU specific bits */
+> +#define OMAP3630_VC_BYPASS_ACK_EN				(1 << 28)
+> +#define OMAP3630_VC_VP1_ACK_EN					(1 << 27)
+> +#define OMAP3630_ABB_LDO_TRANXDONE_EN				(1 << 26)
+
+as above
+
+>  #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_SHIFT		25
+>  #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN			(1 << 25)
+>  #define OMAP3430_VC_TIMEOUTERR_EN				(1 << 24)
+> @@ -581,6 +587,22 @@
+>  
+>  /* PRM_VP2_STATUS specific bits */
+>  
+> +/* PRM_LDO_ABB_SETUP specific bits */
+> +#define OMAP3630_SR2_IN_TRANSITION			(1 << 6)
+
+as above
+
+> +#define OMAP3630_SR2_STATUS_SHIFT			3
+> +#define OMAP3630_SR2_STATUS_MASK			(3 << 3)
+> +#define OMAP3630_OPP_CHANGE				(1 << 2)
+
+as above
+
+> +#define OMAP3630_OPP_SEL_SHIFT				0
+> +#define OMAP3630_OPP_SEL_MASK				(3 << 0)
+> +
+> +/* PRM_LDO_ABB_CTRL specific bits */
+> +#define OMAP3630_SR2_WTCNT_VALUE_SHIFT			8
+> +#define OMAP3630_SR2_WTCNT_VALUE_MASK			(0xff << 8)
+> +#define OMAP3630_SLEEP_RBB_SEL				(1 << 3)
+> +#define OMAP3630_ACTIVE_FBB_SEL				(1 << 2)
+> +#define OMAP3630_ACTIVE_RBB_SEL				(1 << 1)
+> +#define OMAP3630_SR2EN					(1 << 0)
+
+as above
+
+
+> +
+>  /* RM_RSTST_NEON specific bits */
+>  
+>  /* PM_WKDEP_NEON specific bits */
+> diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+> index 5fba2aa..2a58847 100644
+> --- a/arch/arm/mach-omap2/prm.h
+> +++ b/arch/arm/mach-omap2/prm.h
+> @@ -160,6 +160,12 @@
+>  #define OMAP3430_PRM_VP2_VOLTAGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
+>  #define OMAP3_PRM_VP2_STATUS_OFFSET	0x00e4
+>  #define OMAP3430_PRM_VP2_STATUS		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
+> +#define OMAP3_PRM_LDO_ABB_SETUP_OFFSET	0X00f0
+
+Please use a lowercase 'x' in the macro value, as per the style of the 
+rest of this file.  Also, if this register was only introduced with 3630, 
+then the name of the macro should be 'OMAP3630_PRM_LDO_ABB_SETUP_OFFSET' 
+to indicate this.  (Only macro names for registers that are available on 
+all OMAP3-family chips should start with "OMAP3_".)
+
+> +#define OMAP3630_PRM_LDO_ABB_SETUP	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, \
+> +								0X00f0)
+> +#define OMAP3_PRM_LDO_ABB_CTRL_OFFSET	0X00f4
+> +#define OMAP3630_PRM_LDO_ABB_CTRL	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, \
+> +								0X00f4)
+
+as above
+
+>  
+>  #define OMAP3_PRM_CLKSEL_OFFSET	0x0040
+>  #define OMAP3430_PRM_CLKSEL		OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0040)
+> diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+> index d540ae8..120d0c1 100644
+> --- a/arch/arm/plat-omap/include/plat/control.h
+> +++ b/arch/arm/plat-omap/include/plat/control.h
+> @@ -209,6 +209,10 @@
+>  #define OMAP343X_CONTROL_WKUP_DEBOBS3 (OMAP343X_CONTROL_GENERAL_WKUP + 0x014)
+>  #define OMAP343X_CONTROL_WKUP_DEBOBS4 (OMAP343X_CONTROL_GENERAL_WKUP + 0x018)
+>  
+> +/* 36xx GENERAL_WKUP register offsets */
+> +#define OMAP36XX_CONTROL_VBBLDO_EFUSE_CTRL (OMAP343X_CONTROL_GENERAL_WKUP + \
+> +						0X02C)
+
+as above
+
+> +
+>  /* 34xx D2D idle-related pins, handled by PM core */
+>  #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
+>  #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
+> -- 
+> 1.6.3.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
