@@ -1,10 +1,9 @@
 From: kishore kadiyala <kishorek.kadiyala@gmail.com>
 Subject: [PATCH v4] OMAP: Fix for bus width which improves SD card's
 	peformance.
-Date: Mon, 19 Apr 2010 21:06:36 +0530
-Message-ID: <s2l7f9d1ffb1004190836l9ba703c5lab13638d968a5c55@mail.gmail.com>
+Date: Mon, 19 Apr 2010 21:21:53 +0530
+Message-ID: <h2h7f9d1ffb1004190851gf08897awf198d3c8e5f9dbce@mail.gmail.com>
 References: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
-	 <003901cad5a4$730264d0$544ff780@am.dhcp.ti.com>
 	 <20100406163211.GA29117@nokia.com> <4BBB6767.7010202@ti.com>
 	 <20100406165720.GA17916@nokia.com>
 	 <00b401cad5e0$1d1868d0$544ff780@am.dhcp.ti.com>
@@ -12,14 +11,26 @@ References: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
 	 <00c901cad5e7$9de54350$544ff780@am.dhcp.ti.com>
 	 <4BBBD87C.1040307@ti.com>
 	 <003601cad73c$98c3aa50$544ff780@am.dhcp.ti.com>
+	 <s2l7f9d1ffb1004190836l9ba703c5lab13638d968a5c55@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <003601cad73c$98c3aa50$544ff780@am.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.156]:47578 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751729Ab0DSPwP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 11:52:15 -0400
+In-Reply-To: <s2l7f9d1ffb1004190836l9ba703c5lab13638d968a5c55@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Madhusudhan <madhu.cr@ti.com>
 Cc: Nishanth Menon <nm@ti.com>, felipe.balbi@nokia.com, me@felipebalbi.com, Vimal Singh <vimal.newwork@gmail.com>, tony@atomide.com, "S, Venkatraman" <svenkatr@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
-List-Id: linux-omap@vger.kernel.org
+
+The previous patch was Line wrapped , resending
+correct patch.
+NM, Sorry I miss spelled your name correcting this time.
+
+Regards,
+Kishore
 
 From: Kishore Kadiyala <kishore.kadiyala@ti.com>
 
@@ -33,7 +44,7 @@ SD cards.
 
 Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
 Signed-off-by: Venkatraman S <svenkatr@ti.com>
-Signed-off-by: Nishant Menon <nm@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 Tested-by: Jarkko Nikula <jhnikula@gmail.com>
 ---
@@ -53,8 +64,7 @@ index 8c97c22..9c1a60e 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
 @@ -2091,10 +2091,23 @@ static int __init omap_hsmmc_probe(struct
-platform_device *pdev)
- 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
  		     MMC_CAP_WAIT_WHILE_BUSY;
 
 -	if (mmc_slot(host).wires >= 8)
