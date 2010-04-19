@@ -1,41 +1,43 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 5/9] AM3517: Add audio codec platform data
-Date: Mon, 19 Apr 2010 18:20:43 +0800
-Message-ID: <1271672447-3639-6-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 6/9] AM3517: initialize i2c subsystem after mux subsystem
+Date: Mon, 19 Apr 2010 18:20:44 +0800
+Message-ID: <1271672447-3639-7-git-send-email-stanley.miao@windriver.com>
 References: <1271672447-3639-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:51728 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:51738 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753858Ab0DSKME (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 06:12:04 -0400
+	with ESMTP id S1752632Ab0DSKMF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 06:12:05 -0400
 In-Reply-To: <1271672447-3639-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, hvaibhav@ti.com, srk@ti.com
 
-Codec tlv320aic23 is on the second i2c bus. Add the tlv320aic23 info in
-i2c2 board_info.
+The initialize of i2c subsystem will set pinmux, so it should be done
+after the initialize of mux subsystem initialization.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 41f766c..f24e367 100644
+index f24e367..f8f99b8 100644
 --- a/arch/arm/mach-omap2/board-am3517evm.c
 +++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -199,6 +199,9 @@ static struct pca953x_platform_data am3517evm_gpio_expander_info_0 = {
- };
- static struct i2c_board_info __initdata am3517evm_i2c2_boardinfo[] = {
- 	{
-+		I2C_BOARD_INFO("tlv320aic23", 0x1A),
-+	},
-+	{
- 		I2C_BOARD_INFO("tca6416", 0x21),
- 		.platform_data = &am3517evm_gpio_expander_info_0,
- 	},
+@@ -419,9 +419,9 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 
+ static void __init am3517_evm_init(void)
+ {
+-	am3517_evm_i2c_init();
+-
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++
++	am3517_evm_i2c_init();
+ 	platform_add_devices(am3517_evm_devices,
+ 				ARRAY_SIZE(am3517_evm_devices));
+ 
 -- 
 1.5.4.3
 
