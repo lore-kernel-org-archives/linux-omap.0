@@ -1,33 +1,76 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 2/5v2] DSPBRIDGE: Remove checkpatch warnings: 80 char
- lines
-Date: Mon, 19 Apr 2010 17:46:09 -0500
-Message-ID: <4BCCDD31.7010101@ti.com>
-References: <67059DBF19D7214F9C66BB0EA91BA90EC26C7E43@dlee04.ent.ti.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [PATCH] DSPBRIDGE: Fix declaration and initialization of sync
+ objects.
+Date: Mon, 19 Apr 2010 17:51:49 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CB215E41@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47890 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50977 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751731Ab0DSWqQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Apr 2010 18:46:16 -0400
-In-Reply-To: <67059DBF19D7214F9C66BB0EA91BA90EC26C7E43@dlee04.ent.ti.com>
+	id S1752402Ab0DSWvz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Apr 2010 18:51:55 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Uribe de Leon, Armando" <x0095078@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hiroshi.DOYU@nokia.com" <hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-On 4/19/2010 5:26 PM, Uribe de Leon, Armando wrote:
-[...]
-> --- a/drivers/dsp/bridge/rmgr/node.c
-> +++ b/drivers/dsp/bridge/rmgr/node.c
-> @@ -2450,45 +2450,34 @@ dsp_status node_terminate(struct node_object *hnode, OUT dsp_status *pstatus)
->   		status = (*intf_fxns->pfn_msg_put) (hnode->msg_queue_obj,&msg,
->   						    hnode->utimeout);
->   		/* FIXME */
+>From 2edd80839e6d3bbe6e92914c3097a6dedca23784 Mon Sep 17 00:00:00 2001
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Sun, 18 Apr 2010 00:32:01 -0500
+Subject: [PATCH] DSPBRIDGE: Fix declaration and initialization of sync objects.
 
-If you don't mind I'll remove my ambiguous FIXME comment if this patch 
-is pushed... this was placed to fix the indentation.
+This patch fixes declaration of completions for sync in
+drv_interface and also initialize sync->done object in
+msg_sm.c
 
-- omar
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ drivers/dsp/bridge/rmgr/drv_interface.c |    4 ++--
+ drivers/dsp/bridge/wmd/msg_sm.c         |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index d62e508..1dd635e 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -98,8 +98,8 @@ static int tc_wordswapon;	/* Default value is always false */
+ static atomic_t bridge_cref;	/* number of bridge open handles */
+ static struct workqueue_struct *bridge_rec_queue;
+ static struct work_struct bridge_recovery_work;
+-static DECLARE_COMPLETION_ONSTACK(bridge_comp);
+-static DECLARE_COMPLETION_ONSTACK(bridge_open_comp);
++static DECLARE_COMPLETION(bridge_comp);
++static DECLARE_COMPLETION(bridge_open_comp);
+ static bool recover;
+ #endif
+ 
+diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
+index 19e3cee..6f00071 100644
+--- a/drivers/dsp/bridge/wmd/msg_sm.c
++++ b/drivers/dsp/bridge/wmd/msg_sm.c
+@@ -185,8 +185,8 @@ dsp_status bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
+ 	if (DSP_SUCCEEDED(status)) {
+ 		msg_q->sync_done = kzalloc(sizeof(struct sync_object),
+ 							GFP_KERNEL);
+-		if (msg_q->sync_event)
+-			sync_init_event(msg_q->sync_event);
++		if (msg_q->sync_done)
++			sync_init_event(msg_q->sync_done);
+ 		else
+ 			status = DSP_EMEMORY;
+ 	}
+@@ -194,7 +194,7 @@ dsp_status bridge_msg_create_queue(struct msg_mgr *hmsg_mgr,
+ 	if (DSP_SUCCEEDED(status)) {
+ 		msg_q->sync_done_ack = kzalloc(sizeof(struct sync_object),
+ 							GFP_KERNEL);
+-		if (msg_q->sync_event)
++		if (msg_q->sync_done_ack)
+ 			sync_init_event(msg_q->sync_done_ack);
+ 		else
+ 			status = DSP_EMEMORY;
+-- 
+1.6.0.4
+
