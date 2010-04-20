@@ -1,81 +1,57 @@
-From: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-Subject: Re: Upstream linux-omap kernel on Nokia N900?
-Date: Tue, 20 Apr 2010 12:20:01 +0300
-Message-ID: <20100420092001.GD2594@zero.research.nokia.com>
-References: <87iq7nslvo.fsf@small.ssi.corp>
- <20100419115855.GG3544@nokia.com>
- <4BCC4801.5010005@nokia.com>
- <20100419195156.GT5514@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: hvaibhav@ti.com
+Subject: [PATCH] OMAP:ls037v7dw01: Included slab.h file required for kzalloc
+Date: Tue, 20 Apr 2010 15:14:59 +0530
+Message-ID: <1271756699-3161-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62825 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754136Ab0DTJUl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 05:20:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20100419195156.GT5514@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:50391 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754253Ab0DTJpJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Apr 2010 05:45:09 -0400
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "Quadros Roger (Nokia-D/Helsinki)" <roger.quadros@nokia.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, ext Arnaud Ebalard <arno@natisbad.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On 19/04/10 21:51 +0200, ext Tony Lindgren wrote:
-> * Roger Quadros <roger.quadros@nokia.com> [100419 05:06]:
-> > Balbi Felipe (Nokia-D/Helsinki) wrote:
-> > >Hi,
-> > >
-> > >On Mon, Apr 19, 2010 at 01:49:15PM +0200, ext Arnaud Ebalard wrote:
-> > >>Nokia N900 is shipped to users with a 2.6.28 omap kernel. Many patches
-> > >>for the hardware and various features have been pushed upstream by Nokia
-> > >>developers and possibly others. Those are now available in current l-o
-> > >>tree.
-> > >>
-> > >>Nonetheless, many drivers and various features are still missing
-> > >>upstream. Simply put, one cannot expect to run a current l-o kernel on
-> > >>the device (and expect to get a GUI and/or make call with the device).
-> > >
-> > >tell me about it :-p
-> > >
-> > >Thing is that it doesn't really depend only on Nokia to get those
-> > >parts done. Well, we can get the kernel part done by just cleaning
-> > >up and porting the 2.6.28 drivers to current mainline, but in case
-> > >of e.g. SGX we still miss the xorg driver and I don't think
-> > >that'll be released any time soon.
-> > >
-> > >Another problem is that the bootloader believes it can pass all
-> > >the obsoleted OMAP TAGs to kernel and the 2.6.28 kernel depends on
-> > >those, maybe that can be worked around. I don't know whether
-> > >kernel simply drops invalid TAGs or not...
-> > 
-> > Yes kernel simply drops unrecognized TAGs and just prints a warning message.
-> 
-> All the the custom tags should be replaced with platform_data.
-> 
-> If something is needed for revision detection of the board,
-> there is arm-linux common ATAG_REVISION.
-> 
-> However, also Maemo userspace depends on some things set by the
-> custom tags. As this is non-standard, we should not spend much
-> effort on that. Instead we should concentrate on making N900
-> work with any distro the standard Linux way.
-> 
-> So I recommend using kexec patched Maemo kernel, then boot the
-> new mainline kernel from Maemo kernel and mount root directly
-> on the eMMC.
-> 
-> As Maemo user space has some dependencies to the partition
-> layout, you need to keep the existing partition layout too.
-> In any case, I ended up resizing the eMMC partitions and using
-> /dev/mmcblk0p2 (mounted as /home in Maemo) as the new root
-> partition.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Yup, I agree with Tony. I would much prefer to see real debian running on the
-device over a somewhat patched-up Maemo with a newer kernel. The X.org server
-can work without the SGX driver just fine, only the OMAP DSS needs to
-function in order to get stuff on screen. What you might miss is the task
-switcher, but as one prolific person has said, having to have a task
-manager indicates failure ;P
+With recent kernel changes, without inclusion of slab.h
+kernel build fails with,
 
-/lauri
+  CC      drivers/video/omap2/displays/panel-sharp-ls037v7dw01.o
+  drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c: In function
+  'sharp_ls_panel_probe':
+  drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c:93: error: implicit
+  declaration of function 'kzalloc'
+  drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c:93: warning:
+  assignment makes pointer from integer without a cast
+  drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c:106: error: implicit
+  declaration of function 'kfree'
+  make[4]: *** [drivers/video/omap2/displays/panel-sharp-ls037v7dw01.o] Error 1
+  make[3]: *** [drivers/video/omap2/displays] Error 2
+  make[2]: *** [drivers/video/omap2] Error 2
+  make[1]: *** [drivers/video] Error 2
+  make: *** [drivers] Error 2
+
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+index d84feb0..7d9eb2b 100644
+--- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
++++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+@@ -23,6 +23,7 @@
+ #include <linux/backlight.h>
+ #include <linux/fb.h>
+ #include <linux/err.h>
++#include <linux/slab.h>
+
+ #include <plat/display.h>
+
+--
+1.6.2.4
 
