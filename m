@@ -1,48 +1,48 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH v2] Input: ads7846: add regulator support
-Date: Tue, 20 Apr 2010 22:21:57 +0300
-Message-ID: <j2p6ed0b2681004201221y6ae69bedp649845f94de64896@mail.gmail.com>
-References: <1266078714-18155-1-git-send-email-notasas@gmail.com>
-	 <p2j5e088bd91004200931ucbf1eedvc710bebf8236dc1a@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Nishanth Menon <nm@ti.com>
+Subject: [PM-WIP-OPP][PATCH 0/2 v2] opp layer cleanups
+Date: Tue, 20 Apr 2010 14:49:52 -0500
+Message-ID: <1271792994-31816-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f225.google.com ([209.85.218.225]:61384 "EHLO
-	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753169Ab0DTTWA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 15:22:00 -0400
-Received: by bwz25 with SMTP id 25so7181555bwz.28
-        for <linux-omap@vger.kernel.org>; Tue, 20 Apr 2010 12:21:58 -0700 (PDT)
-In-Reply-To: <p2j5e088bd91004200931ucbf1eedvc710bebf8236dc1a@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47480 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754919Ab0DTTuJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 15:50:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Ambresh K <ambresh@ti.com>, Benoit Cousson <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, Sanjeev Premi <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, Thara Gopinath <thara@ti.com>
 
-On Tue, Apr 20, 2010 at 7:31 PM, Steve Sakoman <sakoman@gmail.com> wrote:
-> On Sat, Feb 13, 2010 at 9:31 AM, Grazvydas Ignotas <notasas@gmail.com> wrote:
->> The ADS7846/TSC2046 touchscreen controllers can (and usually are)
->> connected to various regulators for power, so add regulator support.
->>
->> Valid regulator will now be required, so boards without complete
->> regulator setup should either disable regulator framework or enable
->> CONFIG_REGULATOR_DUMMY.
->
-> I'd prefer not to completely disable the regulator framework and my
-> 2.6.33 kernel tree doesn't seem to have the CONFIG_REGULATOR_DUMMY
-> option.
+Opp layer cleanup series - tries the following:
+a) Remove the BUG_ON being used on functional statements
+	(included comments from https://patchwork.kernel.org/patch/86793/)
+b) Improve the voltage conversion routine a bit (unchanged)
 
-Then how did this patch reach your tree? I don't see this in mainline 2.6.33.
+Nishanth Menon (1):
+  omap3: pm: cpufreq: BUG_ON cleanup
 
-> Is there a simple way to handle the case (as exists with the Gumstix
-> Overo) where the ADS7846 is supplied by a fixed regulator with no
-> software controls?
+Phil Carmody (1):
+  omap: pm: opp: twl: use DIV_ROUND_UP
 
-Not without patching I guess. Otherwise you can set up
-reg-fixed-voltage platform device in board file (see
-arch/arm/mach-pxa/raumfeld.c for an example), add dummy regulator
-patches from mainline of just revert this patch.
+ arch/arm/mach-omap2/cpufreq34xx.c |   36 ++++++++++++++++++++++++++++++++----
+ arch/arm/mach-omap2/omap3-opp.h   |    5 +++--
+ arch/arm/plat-omap/opp_twl_tps.c  |    2 +-
+ 3 files changed, 36 insertions(+), 7 deletions(-)
 
->
-> Steve
->
+Note:
+I have dropped ability to store data per opp and srf hardcoded opp
+depedency from this series to help the opp layer cleanups for mainline
+
+Patches Tested on:
+	SDP3430 and SDP3630
+
+Cc: Ambresh K <ambresh@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>
+Cc: Thara Gopinath <thara@ti.com>
+
+Regards,
+Nishanth Menon
