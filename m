@@ -1,46 +1,93 @@
 From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH 6/7] omap: init the gpio pinmux for mmc
-Date: Tue, 20 Apr 2010 14:33:31 +0800
-Message-ID: <1271745212-4474-7-git-send-email-stanley.miao@windriver.com>
+Subject: [PATCH 7/7] omap hsmmc: fix the hsmmc driver for am3517.
+Date: Tue, 20 Apr 2010 14:33:32 +0800
+Message-ID: <1271745212-4474-8-git-send-email-stanley.miao@windriver.com>
 References: <1271745212-4474-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:55761 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:55764 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753592Ab0DTGYw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 02:24:52 -0400
+	with ESMTP id S1753610Ab0DTGYy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 02:24:54 -0400
 In-Reply-To: <1271745212-4474-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, hvaibhav@ti.com, srk@ti.com, anuj.aggarwal@ti.com
 
-There is two gpio for mmc use, one is for card detecting, another is
-used for checking write protect. Intialize its pinmux in case the bootloader
-doesn't set it.
+AM3517 don't have the register OMAP343X_CONTROL_PBIAS_LITE and the regulators
+like "vmmc", so we set a noop "set_power" function for it.
 
 Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/devices.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/hsmmc.c |   32 ++++++++++++++++++++++++--------
+ 1 files changed, 24 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 23e4d77..df9c62a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -591,6 +591,13 @@ static inline void omap_hsmmc_reset(void) {}
- static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
- 			int controller_nr)
- {
-+	if (mmc_controller->slots[0].switch_pin > 0)
-+		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
-+					OMAP_PIN_INPUT_PULLUP);
-+	if (mmc_controller->slots[0].gpio_wp > 0)
-+		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
-+					OMAP_PIN_INPUT_PULLUP);
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index 9ad2295..5f46797 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -139,6 +139,12 @@ static void hsmmc23_before_set_reg(struct device *dev, int slot,
+ 	}
+ }
+ 
++static int am3517_mmc_set_power(struct device *dev, int slot, int power_on,
++								int vdd)
++{
++	return 0;
++}
 +
- 	if (cpu_is_omap2420() && controller_nr == 0) {
- 		omap_cfg_reg(H18_24XX_MMC_CMD);
- 		omap_cfg_reg(H15_24XX_MMC_CLKI);
+ static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC] __initdata;
+ 
+ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+@@ -150,7 +156,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 	if (cpu_is_omap2430()) {
+ 		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
+ 		control_devconf1_offset = OMAP243X_CONTROL_DEVCONF1;
+-	} else {
++	} else if (!cpu_is_omap3517() && !cpu_is_omap3505()) {
+ 		control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
+ 		control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
+ 	}
+@@ -216,12 +222,25 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 		 */
+ 		mmc->slots[0].ocr_mask = c->ocr_mask;
+ 
++		if (!cpu_is_omap3517() && !cpu_is_omap3505()) {
++			switch (c->mmc) {
++			case 1:
++				/* on-chip level shifting via PBIAS0/PBIAS1 */
++				mmc->slots[0].before_set_reg = hsmmc1_before_set_reg;
++				mmc->slots[0].after_set_reg = hsmmc1_after_set_reg;
++				break;
++			case 2:
++			case 3:
++				/* off-chip level shifting, or none */
++				mmc->slots[0].before_set_reg = hsmmc23_before_set_reg;
++				mmc->slots[0].after_set_reg = NULL;
++				break;
++			}
++		} else /* cpu_is_omap3517() || cpu_is_omap3505() */
++			mmc->slots[0].set_power = am3517_mmc_set_power;
++
+ 		switch (c->mmc) {
+ 		case 1:
+-			/* on-chip level shifting via PBIAS0/PBIAS1 */
+-			mmc->slots[0].before_set_reg = hsmmc1_before_set_reg;
+-			mmc->slots[0].after_set_reg = hsmmc1_after_set_reg;
+-
+ 			/* Omap3630 HSMMC1 supports only 4-bit */
+ 			if (cpu_is_omap3630() && c->wires > 4) {
+ 				c->wires = 4;
+@@ -235,9 +254,6 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 				c->wires = 4;
+ 			/* FALLTHROUGH */
+ 		case 3:
+-			/* off-chip level shifting, or none */
+-			mmc->slots[0].before_set_reg = hsmmc23_before_set_reg;
+-			mmc->slots[0].after_set_reg = NULL;
+ 			break;
+ 		default:
+ 			pr_err("MMC%d configuration not supported!\n", c->mmc);
 -- 
 1.5.4.3
 
