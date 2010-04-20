@@ -1,132 +1,185 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PM-WIP-OPP][PATCH 1/2 v2] omap3: pm: cpufreq: BUG_ON cleanup
-Date: Tue, 20 Apr 2010 14:49:53 -0500
-Message-ID: <1271792994-31816-2-git-send-email-nm@ti.com>
-References: <1271792994-31816-1-git-send-email-nm@ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH] ARM: OMAP add TLB preservation support to IOMMU
+Date: Tue, 20 Apr 2010 15:58:10 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B344556@dlee03.ent.ti.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E4B216AFA@dlee03.ent.ti.com>
+ <20100419.113221.226801631.Hiroshi.DOYU@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54121 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57914 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755020Ab0DTTuO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Apr 2010 15:50:14 -0400
-In-Reply-To: <1271792994-31816-1-git-send-email-nm@ti.com>
+	id S1755276Ab0DTU6S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 16:58:18 -0400
+In-Reply-To: <20100419.113221.226801631.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Ambresh K <ambresh@ti.com>, Benoit Cousson <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, Sanjeev Premi <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, Thara Gopinath <thara@ti.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-BUG_ON should not ideally contain a functional code.
-Ref: http://marc.info/?l=linux-kernel&m=109391212925546&w=2
+Hi Hiroshi,
 
-To do this, we change the return of omap3_pm_init_opp from
-void to int and return back error value for caller to adequately
-handle further decisions. to reduce code duplication, the
-registration and error handling are done in loop now.
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Monday, April 19, 2010 3:32 AM
+> To: Kanigeri, Hari
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com; Shilimkar, Santosh
+> Subject: Re: [PATCH] ARM: OMAP add TLB preservation support to IOMMU
+> 
+> Hi Hari,
+> 
+> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> Subject: [PATCH] ARM: OMAP add TLB preservation support to IOMMU
+> Date: Fri, 16 Apr 2010 18:18:59 +0200
+> 
+> > From bcdd232666a163d2661d704f9c21d055bacfd178 Mon Sep 17 00:00:00 2001
+> > From: Hari Kanigeri <h-kanigeri2@ti.com>
+> > Date: Mon, 8 Mar 2010 18:00:36 -0600
+> > Subject: [PATCH] ARM: OMAP add TLB preservation support to IOMMU
+> >
+> > This patch adds TLB preservation support to IOMMU module
+> >
+> > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/iommu2.c |    7 +++++--
+> >  arch/arm/plat-omap/iommu.c   |   16 +++++++++-------
+> >  2 files changed, 14 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+> > index 6f4b7cc..2735bd7 100644
+> > --- a/arch/arm/mach-omap2/iommu2.c
+> > +++ b/arch/arm/mach-omap2/iommu2.c
+> > @@ -146,6 +146,8 @@ static u32 omap2_iommu_fault_isr(struct iommu *obj,
+> u32 *ra)
+> >  	printk("\n");
+> >
+> >  	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
+> > +	/* Disable MMU to stop continuous generation of MMU faults */
+> > +	omap2_iommu_disable(obj);
+> 
+> The above comment may look a bit redundant.
 
-Cc: Ambresh K <ambresh@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Sanjeev Premi <premi@ti.com>
-Cc: Tero Kristo <tero.kristo@nokia.com>
-Cc: Thara Gopinath <thara@ti.com>
+-- I will fix this.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Ref:
-v1: https://patchwork.kernel.org/patch/86793/
-v2 changes:
-	removed BUG_ON entirely. instead have introduced int
-	return value allowing for board files which call to
-	handle the return results intelligently.
+> 
+> >  	return stat;
+> >  }
+> >
+> > @@ -183,7 +185,7 @@ static struct cr_regs *omap2_alloc_cr(struct iommu
+> *obj, struct iotlb_entry *e)
+> >  	if (!cr)
+> >  		return ERR_PTR(-ENOMEM);
+> >
+> > -	cr->cam = (e->da & MMU_CAM_VATAG_MASK) | e->prsvd | e->pgsz;
+> > +	cr->cam = (e->da & MMU_CAM_VATAG_MASK) | e->prsvd | e->pgsz | e-
+> >valid;
+> >  	cr->ram = e->pa | e->endian | e->elsz | e->mixed;
+> 
+> Good finding. This can be a separate patch.
 
- arch/arm/mach-omap2/cpufreq34xx.c |   36 ++++++++++++++++++++++++++++++++----
- arch/arm/mach-omap2/omap3-opp.h   |    5 +++--
- 2 files changed, 35 insertions(+), 6 deletions(-)
+-- I will send this as a separate patch.
+> 
+> >  	return cr;
+> > @@ -211,7 +213,8 @@ static ssize_t omap2_dump_cr(struct iommu *obj,
+> struct cr_regs *cr, char *buf)
+> >  	char *p = buf;
+> >
+> >  	/* FIXME: Need more detail analysis of cam/ram */
+> > -	p += sprintf(p, "%08x %08x\n", cr->cam, cr->ram);
+> > +	p += sprintf(p, "%08x %08x %01x\n", cr->cam, cr->ram,
+> > +					(cr->cam & MMU_CAM_P) ? 1 : 0);
+> 
+> This is ok for now.
+> 
+> As described in FIXME comment, this cam/ram whole anaylysis can be
+> improved/implemented in order to display all items/bits in the end.
+> 
+> >  	return p - buf;
+> >  }
+> > diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> > index 5186728..64d676e 100644
+> > --- a/arch/arm/plat-omap/iommu.c
+> > +++ b/arch/arm/plat-omap/iommu.c
+> > @@ -171,15 +171,12 @@ static void iotlb_lock_get(struct iommu *obj,
+> struct iotlb_lock *l)
+> >  	l->base = MMU_LOCK_BASE(val);
+> >  	l->vict = MMU_LOCK_VICT(val);
+> >
+> > -	BUG_ON(l->base != 0); /* Currently no preservation is used */
+> >  }
+> >
+> >  static void iotlb_lock_set(struct iommu *obj, struct iotlb_lock *l)
+> >  {
+> >  	u32 val;
+> >
+> > -	BUG_ON(l->base != 0); /* Currently no preservation is used */
+> > -
+> >  	val = (l->base << MMU_LOCK_BASE_SHIFT);
+> >  	val |= (l->vict << MMU_LOCK_VICT_SHIFT);
+> >
+> > @@ -241,7 +238,7 @@ int load_iotlb_entry(struct iommu *obj, struct
+> iotlb_entry *e)
+> >  			break;
+> >  	}
+> >
+> > -	if (i == obj->nr_tlb_entries) {
+> > +	if (i == obj->nr_tlb_entries || (l.base == obj->nr_tlb_entries)) {
+> 
+> The above should be dealt separately, since no vacant entry is normal,
+> but no room to be replaced because of preservation should be warned,
+> at least.
 
-diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
-index 189c42e..01cf98f 100644
---- a/arch/arm/mach-omap2/cpufreq34xx.c
-+++ b/arch/arm/mach-omap2/cpufreq34xx.c
-@@ -25,6 +25,7 @@
- 
- #include <plat/opp.h>
- #include <plat/cpu.h>
-+#include "omap3-opp.h"
- 
- static struct omap_opp_def __initdata omap34xx_mpu_rate_table[] = {
- 	/* OPP1 */
-@@ -109,8 +110,9 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
- 	OMAP_OPP_DEF(0, 0, 0)
- };
- 
--void __init omap3_pm_init_opp_table(void)
-+int __init omap3_pm_init_opp_table(void)
- {
-+	int i, r;
- 	struct omap_opp_def **omap3_opp_def_list;
- 	struct omap_opp_def *omap34xx_opp_def_list[] = {
- 		omap34xx_mpu_rate_table,
-@@ -122,12 +124,38 @@ void __init omap3_pm_init_opp_table(void)
- 		omap36xx_l3_rate_table,
- 		omap36xx_dsp_rate_table
- 	};
-+	enum opp_t omap3_opps[] = {
-+		OPP_MPU,
-+		OPP_L3,
-+		OPP_DSP
-+	};
- 
- 	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
- 				omap34xx_opp_def_list;
- 
--	BUG_ON(opp_init_list(OPP_MPU, omap3_opp_def_list[0]));
--	BUG_ON(opp_init_list(OPP_L3, omap3_opp_def_list[1]));
--	BUG_ON(opp_init_list(OPP_DSP, omap3_opp_def_list[2]));
-+	for (i = 0; i < ARRAY_SIZE(omap3_opps); i++) {
-+		r = opp_init_list(omap3_opps[i], omap3_opp_def_list[i]);
-+		if (r)
-+			break;
-+	}
-+	if (!r)
-+		return 0;
-+
-+	/* Cascading error handling - disable all enabled OPPs */
-+	pr_err("%s: Failed to register %d OPP type\n", __func__,
-+		omap3_opps[i]);
-+	i--;
-+	while (i != -1) {
-+		struct omap_opp *opp;
-+		unsigned long freq = 0;
-+		while (!IS_ERR(opp = opp_find_freq_ceil(omap3_opps[i],
-+							&freq))) {
-+			opp_disable(opp);
-+			freq++;
-+		}
-+		i--;
-+	}
-+
-+	return r;
- }
- 
-diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
-index 1ba85fc..3e88d8c 100644
---- a/arch/arm/mach-omap2/omap3-opp.h
-+++ b/arch/arm/mach-omap2/omap3-opp.h
-@@ -9,10 +9,11 @@
-  * table after the basic initialization
-  */
- #ifdef CONFIG_CPU_FREQ
--extern void omap3_pm_init_opp_table(void);
-+extern int omap3_pm_init_opp_table(void);
- #else
--static inline void omap3_pm_init_opp_table(void)
-+static inline int omap3_pm_init_opp_table(void)
- {
-+	return 0;
- }
- #endif
- 
--- 
-1.6.3.3
+-- I will fix this.
 
+> 
+> >  		dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
+> >  		err = -EBUSY;
+> >  		goto out;
+> > @@ -252,13 +249,18 @@ int load_iotlb_entry(struct iommu *obj, struct
+> iotlb_entry *e)
+> >  		clk_disable(obj->clk);
+> >  		return PTR_ERR(cr);
+> >  	}
+> > -
+> >  	iotlb_load_cr(obj, cr);
+> >  	kfree(cr);
+> >
+> > +	/* Increment base number if preservation is set */
+> > +	if (e->prsvd)
+> > +		l.base++;
+> 
+> redundant comment? It tells what the code does.
+
+-- I will fix this.
+
+> 
+> >  	/* increment victim for next tlb load */
+> 
+> Although the above is my comment, this looks redundant now too.
+> 
+> > -	if (++l.vict == obj->nr_tlb_entries)
+> > -		l.vict = 0;
+> > +	if (++l.vict == obj->nr_tlb_entries) {
+> > +		l.vict = l.base;
+> > +		goto out;
+> > +	}
+> 
+> Does the above work?
+
+-- Good catch. This should just wrap back to l.base and there is no need of goto out statement.
+
+> 
+> > +
+> >  	iotlb_lock_set(obj, &l);
+> >  out:
+> >  	clk_disable(obj->clk);
+> > --
+> > 1.7.0
+> >
+> >
+> > Thank you,
+> > Best regards,
+> > Hari
+> >
