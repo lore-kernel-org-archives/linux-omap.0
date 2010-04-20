@@ -1,57 +1,39 @@
-From: hvaibhav@ti.com
-Subject: [PATCH] OMAP:ls037v7dw01: Included slab.h file required for kzalloc
-Date: Tue, 20 Apr 2010 15:14:59 +0530
-Message-ID: <1271756699-3161-1-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/5] DSPBRIDGE: Remove checkpatch errors: 80 char lines
+Date: Tue, 20 Apr 2010 13:58:09 +0300
+Message-ID: <y2m94a0d4531004200358l49ac14b5oec385c1da599717d@mail.gmail.com>
+References: <67059DBF19D7214F9C66BB0EA91BA90EC26227EE@dlee04.ent.ti.com>
+	 <r2l94a0d4531004171209me646fe2i1d3868a92401ae09@mail.gmail.com>
+	 <67059DBF19D7214F9C66BB0EA91BA90EC26C7E37@dlee04.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50391 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754253Ab0DTJpJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Apr 2010 05:45:09 -0400
-In-Reply-To: <hvaibhav@ti.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:41415 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753944Ab0DTK6L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 06:58:11 -0400
+Received: by bwz19 with SMTP id 19so11517bwz.21
+        for <linux-omap@vger.kernel.org>; Tue, 20 Apr 2010 03:58:10 -0700 (PDT)
+In-Reply-To: <67059DBF19D7214F9C66BB0EA91BA90EC26C7E37@dlee04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
+To: "Uribe de Leon, Armando" <x0095078@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hiroshi.DOYU@nokia.com" <hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Tue, Apr 20, 2010 at 1:20 AM, Uribe de Leon, Armando <x0095078@ti.com> wrote:
+>
+> Please let me know the mail thread mentioning this rule has been removed. I still see it under CodingStyle as the preferred approach.
 
-With recent kernel changes, without inclusion of slab.h
-kernel build fails with,
+*preferred*, not mandatory, and the exception is clearly explained.
 
-  CC      drivers/video/omap2/displays/panel-sharp-ls037v7dw01.o
-  drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c: In function
-  'sharp_ls_panel_probe':
-  drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c:93: error: implicit
-  declaration of function 'kzalloc'
-  drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c:93: warning:
-  assignment makes pointer from integer without a cast
-  drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c:106: error: implicit
-  declaration of function 'kfree'
-  make[4]: *** [drivers/video/omap2/displays/panel-sharp-ls037v7dw01.o] Error 1
-  make[3]: *** [drivers/video/omap2/displays] Error 2
-  make[2]: *** [drivers/video/omap2] Error 2
-  make[1]: *** [drivers/video] Error 2
-  make: *** [drivers] Error 2
+See this:
+http://thread.gmane.org/gmane.linux.kernel.device-mapper.devel/10784
 
+In that thread clearly nobody says it's a must.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- .../video/omap2/displays/panel-sharp-ls037v7dw01.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+> Anyway, I have am sending a second version of this patch removing this ugly indenting.
 
-diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-index d84feb0..7d9eb2b 100644
---- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-+++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
-@@ -23,6 +23,7 @@
- #include <linux/backlight.h>
- #include <linux/fb.h>
- #include <linux/err.h>
-+#include <linux/slab.h>
+Thanks.
 
- #include <plat/display.h>
-
---
-1.6.2.4
-
+-- 
+Felipe Contreras
