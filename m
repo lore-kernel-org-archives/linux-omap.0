@@ -1,907 +1,634 @@
-From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH 1/5v3] DSPBRIDGE: Use node id instead of kernel address
-Date: Tue, 20 Apr 2010 18:02:56 -0500
-Message-ID: <1271804580-17072-1-git-send-email-ernesto@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] MFD: TWL4030: changes for TRITON glitch fix
+Date: Tue, 20 Apr 2010 16:05:37 -0700
+Message-ID: <877ho1d8se.fsf@deeprootsystems.com>
+References: <1270809191-17007-1-git-send-email-leslyam@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35623 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752118Ab0DTXCL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Apr 2010 19:02:11 -0400
+Received: from mail-pz0-f204.google.com ([209.85.222.204]:56100 "EHLO
+	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142Ab0DTXFl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 19:05:41 -0400
+Received: by pzk42 with SMTP id 42so4569309pzk.4
+        for <linux-omap@vger.kernel.org>; Tue, 20 Apr 2010 16:05:40 -0700 (PDT)
+In-Reply-To: <1270809191-17007-1-git-send-email-leslyam@ti.com> (Lesly A. M.'s message of "Fri\,  9 Apr 2010 16\:03\:11 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, hiroshi.doyu@nokia.com, Ernesto Ramos <ernesto@ti.com>
+To: Lesly A M <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Use idr kernel library to send/receive node ids to the
-user instead of kernel address.
-This id will be use to access the node handles at the
-kernel side, if id does not match to any handle
-DSP error DSP_EHANDlE is returned.
+Lesly A M <leslyam@ti.com> writes:
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
----
- arch/arm/plat-omap/include/dspbridge/drv.h         |    6 +-
- arch/arm/plat-omap/include/dspbridge/node.h        |    4 +-
- .../plat-omap/include/dspbridge/resourcecleanup.h  |    5 -
- drivers/dsp/bridge/pmgr/wcd.c                      |  158 +++++++++++++++++---
- drivers/dsp/bridge/rmgr/drv.c                      |  150 ++++++-------------
- drivers/dsp/bridge/rmgr/drv_interface.c            |    7 +-
- drivers/dsp/bridge/rmgr/node.c                     |  100 +++++++------
- 7 files changed, 246 insertions(+), 184 deletions(-)
+> Fix for TWL5030 Silicon Errata 27 & 28:
+> 	27 - VDD1, VDD2, may have glitches when their output value is updated.
+> 	28 - VDD1 and / or VDD2 DCDC clock may stop working when internal clock
+> 	     is switched from internal to external.
+>
+> Workaround requires the TWL DCDCs to use HFCLKIN instead of internal oscillator.
+>
+> There is a chance for VDD1/VDD2 to collapse to 0 Volt,
+> if we switch the TWL DCDCs to internal oscillator form HFCLKIN
+> while VDD1/VDD2 is active. So during first time when we switch TWLDCDC to
+> HFCLKIN, TWL watchdog timer is used to recover if the VDD1/VDD2 stop working.
+>
+> Using HFCLKIN for TWL DCDCs uncovers another issue when going in and
+> out of OFF mode, if HFCLK is disabled in OFFMODE. So the sleep/wakeup
+> sequence and setuptimes are modified to make sure the switching will
+> happen only when HFCLKIN is stable.
+>
+> This fix is required for TWL5030 Silicon version less than or equal to ES1.1
+> Since the IDCODE register on TWL5030 Si is not updated correctly,
+> version check may not be correct. So if someone want to disable the
+> glitch fix changes during menuconfig, the changes are done under the macro
+> CONFIG_TWL5030_GLITCH_FIX.
+>
+> Changes taken from Nishanth Menons gaia glitch fix patch.
+>
+> Signed-off-by: Lesly A M <leslyam@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: David Derrick <dderrick@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> ---
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-index 947cbdd..02f93f5 100644
---- a/arch/arm/plat-omap/include/dspbridge/drv.h
-+++ b/arch/arm/plat-omap/include/dspbridge/drv.h
-@@ -24,6 +24,7 @@
- #include <dspbridge/devdefs.h>
- 
- #include <dspbridge/drvdefs.h>
-+#include <linux/idr.h>
- 
- #define DRV_ASSIGN     1
- #define DRV_RELEASE    0
-@@ -81,7 +82,7 @@ struct node_res_object {
- 	s32 node_allocated;	/* Node status */
- 	s32 heap_allocated;	/* Heap status */
- 	s32 streams_allocated;	/* Streams status */
--	struct node_res_object *next;
-+	int id;
- };
- 
- /* Used for DMM mapped memory accounting */
-@@ -131,8 +132,7 @@ struct process_context {
- 	void *hprocessor;
- 
- 	/* DSP Node resources */
--	struct node_res_object *node_list;
--	struct mutex node_mutex;
-+	struct idr *node_idp;
- 
- 	/* DMM mapped memory resources */
- 	struct list_head dmm_map_list;
-diff --git a/arch/arm/plat-omap/include/dspbridge/node.h b/arch/arm/plat-omap/include/dspbridge/node.h
-index ec0dcf3..f2375a2 100644
---- a/arch/arm/plat-omap/include/dspbridge/node.h
-+++ b/arch/arm/plat-omap/include/dspbridge/node.h
-@@ -60,7 +60,7 @@ extern dsp_status node_allocate(struct proc_object *hprocessor,
- 				OPTIONAL IN CONST struct dsp_cbdata
- 				*pargs, OPTIONAL IN CONST struct dsp_nodeattrin
- 				*attr_in,
--				OUT struct node_object **ph_node,
-+				OUT struct node_res_object **noderes,
- 				struct process_context *pr_ctxt);
- 
- /*
-@@ -261,7 +261,7 @@ extern dsp_status node_create_mgr(OUT struct node_mgr **phNodeMgr,
-  *  Ensures:
-  *      DSP_SOK:            hnode is invalid.
-  */
--extern dsp_status node_delete(struct node_object *hnode,
-+extern dsp_status node_delete(struct node_res_object *hnoderes,
- 			      struct process_context *pr_ctxt);
- 
- /*
-diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-index ef18477..00d5148 100644
---- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-+++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-@@ -34,16 +34,11 @@ extern dsp_status drv_remove_all_resources(bhandle pPctxt);
- extern dsp_status drv_remove_proc_context(struct drv_object *hDRVObject,
- 					  bhandle pr_ctxt);
- 
--extern dsp_status drv_get_node_res_element(bhandle hnode, bhandle node_res,
--					   bhandle ctxt);
--
- extern dsp_status drv_insert_node_res_element(bhandle hnode, bhandle node_res,
- 					      bhandle ctxt);
- 
- extern void drv_proc_node_update_heap_status(bhandle hNodeRes, s32 status);
- 
--extern dsp_status drv_remove_node_res_element(bhandle node_res, bhandle status);
--
- extern void drv_proc_node_update_status(bhandle hNodeRes, s32 status);
- 
- extern dsp_status drv_proc_update_strm_res(u32 num_bufs, bhandle strm_res);
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 15a05a6..20e02f1 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -1021,6 +1021,20 @@ u32 procwrap_stop(union Trapped_Args *args, void *pr_ctxt)
- }
- 
- /*
-+ * ======== find_handle =========
-+ */
-+inline void find_node_handle(struct node_res_object **noderes,
-+				void *pr_ctxt, void *hnode)
-+{
-+	rcu_read_lock();
-+	*noderes = idr_find(((struct process_context *)pr_ctxt)->node_idp,
-+								(int)hnode);
-+	rcu_read_unlock();
-+	return;
-+}
-+
-+
-+/*
-  * ======== nodewrap_allocate ========
-  */
- u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt)
-@@ -1031,7 +1045,7 @@ u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt)
- 	u32 __user *psize = (u32 __user *) args->args_node_allocate.pargs;
- 	u8 *pargs = NULL;
- 	struct dsp_nodeattrin proc_attr_in, *attr_in = NULL;
--	struct node_object *hnode;
-+	struct node_res_object *node_res;
- 
- 	/* Optional argument */
- 	if (psize) {
-@@ -1064,13 +1078,14 @@ u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt)
- 	if (DSP_SUCCEEDED(status)) {
- 		status = node_allocate(args->args_node_allocate.hprocessor,
- 				       &node_uuid, (struct dsp_cbdata *)pargs,
--				       attr_in, &hnode, pr_ctxt);
-+				       attr_in, &node_res, pr_ctxt);
- 	}
- 	if (DSP_SUCCEEDED(status)) {
--		CP_TO_USR(args->args_node_allocate.ph_node, &hnode, status, 1);
-+		CP_TO_USR(args->args_node_allocate.ph_node, &node_res->id,
-+			status, 1);
- 		if (DSP_FAILED(status)) {
- 			status = DSP_EPOINTER;
--			node_delete(hnode, pr_ctxt);
-+			node_delete(node_res, pr_ctxt);
- 		}
- 	}
- func_cont:
-@@ -1088,6 +1103,13 @@ u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt)
- 	struct dsp_bufferattr *pattr = NULL;
- 	struct dsp_bufferattr attr;
- 	u8 *pbuffer = NULL;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res,  pr_ctxt,
-+				args->args_node_allocmsgbuf.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
- 
- 	if (!args->args_node_allocmsgbuf.usize)
- 		return DSP_ESIZE;
-@@ -1101,7 +1123,7 @@ u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt)
- 	/* IN OUT argument */
- 	CP_FM_USR(&pbuffer, args->args_node_allocmsgbuf.pbuffer, status, 1);
- 	if (DSP_SUCCEEDED(status)) {
--		status = node_alloc_msg_buf(args->args_node_allocmsgbuf.hnode,
-+		status = node_alloc_msg_buf(node_res->hnode,
- 					    args->args_node_allocmsgbuf.usize,
- 					    pattr, &pbuffer);
- 	}
-@@ -1115,8 +1137,15 @@ u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt)
- u32 nodewrap_change_priority(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 ret;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt,
-+				args->args_node_changepriority.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
- 
--	ret = node_change_priority(args->args_node_changepriority.hnode,
-+	ret = node_change_priority(node_res->hnode,
- 				   args->args_node_changepriority.prio);
- 
- 	return ret;
-@@ -1133,6 +1162,29 @@ u32 nodewrap_connect(union Trapped_Args *args, void *pr_ctxt)
- 	u32 cb_data_size;
- 	u32 __user *psize = (u32 __user *) args->args_node_connect.conn_param;
- 	u8 *pargs = NULL;
-+	struct node_res_object *node_res1, *node_res2;
-+	struct node_object *node1 = NULL, *node2 = NULL;
-+
-+	if ((int)args->args_node_connect.hnode != DSP_HGPPNODE) {
-+		find_node_handle(&node_res1, pr_ctxt,
-+				args->args_node_connect.hnode);
-+		if (node_res1)
-+			node1 = node_res1->hnode;
-+	} else {
-+		node1 = args->args_node_connect.hnode;
-+	}
-+
-+	if ((int)args->args_node_connect.other_node != DSP_HGPPNODE) {
-+		find_node_handle(&node_res2, pr_ctxt,
-+				args->args_node_connect.other_node);
-+		if (node_res2)
-+			node2 = node_res2->hnode;
-+	} else {
-+		node2 = args->args_node_connect.other_node;
-+	}
-+
-+	if (!node1 || !node2)
-+		return DSP_EHANDLE;
- 
- 	/* Optional argument */
- 	if (psize) {
-@@ -1160,9 +1212,9 @@ u32 nodewrap_connect(union Trapped_Args *args, void *pr_ctxt)
- 
- 	}
- 	if (DSP_SUCCEEDED(status)) {
--		status = node_connect(args->args_node_connect.hnode,
-+		status = node_connect(node1,
- 				      args->args_node_connect.stream_id,
--				      args->args_node_connect.other_node,
-+				      node2,
- 				      args->args_node_connect.other_stream,
- 				      pattrs, (struct dsp_cbdata *)pargs);
- 	}
-@@ -1178,8 +1230,14 @@ func_cont:
- u32 nodewrap_create(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 ret;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt, args->args_node_create.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
- 
--	ret = node_create(args->args_node_create.hnode);
-+	ret = node_create(node_res->hnode);
- 
- 	return ret;
- }
-@@ -1190,8 +1248,14 @@ u32 nodewrap_create(union Trapped_Args *args, void *pr_ctxt)
- u32 nodewrap_delete(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 ret;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt, args->args_node_delete.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
- 
--	ret = node_delete(args->args_node_delete.hnode, pr_ctxt);
-+	ret = node_delete(node_res, pr_ctxt);
- 
- 	return ret;
- }
-@@ -1204,6 +1268,13 @@ u32 nodewrap_free_msg_buf(union Trapped_Args *args, void *pr_ctxt)
- 	dsp_status status = DSP_SOK;
- 	struct dsp_bufferattr *pattr = NULL;
- 	struct dsp_bufferattr attr;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt, args->args_node_freemsgbuf.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
-+
- 	if (args->args_node_freemsgbuf.pattr) {	/* Optional argument */
- 		CP_FM_USR(&attr, args->args_node_freemsgbuf.pattr, status, 1);
- 		if (DSP_SUCCEEDED(status))
-@@ -1215,7 +1286,7 @@ u32 nodewrap_free_msg_buf(union Trapped_Args *args, void *pr_ctxt)
- 		return DSP_EPOINTER;
- 
- 	if (DSP_SUCCEEDED(status)) {
--		status = node_free_msg_buf(args->args_node_freemsgbuf.hnode,
-+		status = node_free_msg_buf(node_res->hnode,
- 					   args->args_node_freemsgbuf.pbuffer,
- 					   pattr);
- 	}
-@@ -1230,8 +1301,14 @@ u32 nodewrap_get_attr(union Trapped_Args *args, void *pr_ctxt)
- {
- 	dsp_status status = DSP_SOK;
- 	struct dsp_nodeattr attr;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt, args->args_node_getattr.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
- 
--	status = node_get_attr(args->args_node_getattr.hnode, &attr,
-+	status = node_get_attr(node_res->hnode, &attr,
- 			       args->args_node_getattr.attr_size);
- 	CP_TO_USR(args->args_node_getattr.pattr, &attr, status, 1);
- 
-@@ -1245,8 +1322,14 @@ u32 nodewrap_get_message(union Trapped_Args *args, void *pr_ctxt)
- {
- 	dsp_status status;
- 	struct dsp_msg msg;
-+	struct node_res_object *node_res;
- 
--	status = node_get_message(args->args_node_getmessage.hnode, &msg,
-+	find_node_handle(&node_res, pr_ctxt, args->args_node_getmessage.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
-+
-+	status = node_get_message(node_res->hnode, &msg,
- 				  args->args_node_getmessage.utimeout);
- 
- 	CP_TO_USR(args->args_node_getmessage.message, &msg, status, 1);
-@@ -1260,8 +1343,14 @@ u32 nodewrap_get_message(union Trapped_Args *args, void *pr_ctxt)
- u32 nodewrap_pause(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 ret;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt, args->args_node_pause.hnode);
- 
--	ret = node_pause(args->args_node_pause.hnode);
-+	if (!node_res)
-+		return DSP_EHANDLE;
-+
-+	ret = node_pause(node_res->hnode);
- 
- 	return ret;
- }
-@@ -1273,12 +1362,18 @@ u32 nodewrap_put_message(union Trapped_Args *args, void *pr_ctxt)
- {
- 	dsp_status status = DSP_SOK;
- 	struct dsp_msg msg;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt, args->args_node_putmessage.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
- 
- 	CP_FM_USR(&msg, args->args_node_putmessage.message, status, 1);
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		status =
--		    node_put_message(args->args_node_putmessage.hnode, &msg,
-+		    node_put_message(node_res->hnode, &msg,
- 				     args->args_node_putmessage.utimeout);
- 	}
- 
-@@ -1292,6 +1387,13 @@ u32 nodewrap_register_notify(union Trapped_Args *args, void *pr_ctxt)
- {
- 	dsp_status status = DSP_SOK;
- 	struct dsp_notification notification;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt,
-+			args->args_node_registernotify.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
- 
- 	/* Initialize the notification data structure */
- 	notification.ps_name = NULL;
-@@ -1302,7 +1404,7 @@ u32 nodewrap_register_notify(union Trapped_Args *args, void *pr_ctxt)
- 			  args->args_proc_register_notify.hnotification,
- 			  status, 1);
- 
--	status = node_register_notify(args->args_node_registernotify.hnode,
-+	status = node_register_notify(node_res->hnode,
- 				      args->args_node_registernotify.event_mask,
- 				      args->args_node_registernotify.
- 				      notify_type, &notification);
-@@ -1317,8 +1419,14 @@ u32 nodewrap_register_notify(union Trapped_Args *args, void *pr_ctxt)
- u32 nodewrap_run(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 ret;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt, args->args_node_run.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
- 
--	ret = node_run(args->args_node_run.hnode);
-+	ret = node_run(node_res->hnode);
- 
- 	return ret;
- }
-@@ -1330,8 +1438,14 @@ u32 nodewrap_terminate(union Trapped_Args *args, void *pr_ctxt)
- {
- 	dsp_status status;
- 	dsp_status tempstatus;
-+	struct node_res_object *node_res;
- 
--	status = node_terminate(args->args_node_terminate.hnode, &tempstatus);
-+	find_node_handle(&node_res, pr_ctxt, args->args_node_terminate.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
-+
-+	status = node_terminate(node_res->hnode, &tempstatus);
- 
- 	CP_TO_USR(args->args_node_terminate.pstatus, &tempstatus, status, 1);
- 
-@@ -1513,6 +1627,12 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
- 	struct strm_attr attr;
- 	struct strm_object *strm_obj;
- 	struct dsp_streamattrin strm_attr_in;
-+	struct node_res_object *node_res;
-+
-+	find_node_handle(&node_res, pr_ctxt, args->args_strm_open.hnode);
-+
-+	if (!node_res)
-+		return DSP_EHANDLE;
- 
- 	CP_FM_USR(&attr, args->args_strm_open.attr_in, status, 1);
- 
-@@ -1525,7 +1645,7 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
- 		}
- 
- 	}
--	status = strm_open(args->args_strm_open.hnode,
-+	status = strm_open(node_res->hnode,
- 			   args->args_strm_open.direction,
- 			   args->args_strm_open.index, &attr, &strm_obj,
- 			   pr_ctxt);
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 75b9b9f..b41c753 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -71,7 +71,7 @@ static dsp_status request_bridge_resources_dsp(u32 dw_context, s32 fRequest);
- 
- /* GPP PROCESS CLEANUP CODE */
- 
--static dsp_status drv_proc_free_node_res(bhandle hPCtxt);
-+static int drv_proc_free_node_res(int id, void *p, void *data);
- extern enum node_state node_get_state(bhandle hnode);
- 
- /* Allocate and add a node resource element
-@@ -83,89 +83,62 @@ dsp_status drv_insert_node_res_element(bhandle hnode, bhandle hNodeRes,
- 	    (struct node_res_object **)hNodeRes;
- 	struct process_context *ctxt = (struct process_context *)hPCtxt;
- 	dsp_status status = DSP_SOK;
--	struct node_res_object *temp_node_res = NULL;
-+	int retval;
- 
- 	*node_res_obj = (struct node_res_object *)mem_calloc
- 	    (1 * sizeof(struct node_res_object), MEM_PAGED);
--	if (*node_res_obj == NULL)
--		status = DSP_EHANDLE;
-+	if (!*node_res_obj) {
-+		status = DSP_EMEMORY;
-+		goto func_end;
-+	}
- 
--	if (DSP_SUCCEEDED(status)) {
--		if (mutex_lock_interruptible(&ctxt->node_mutex)) {
--			kfree(*node_res_obj);
--			return DSP_EFAIL;
-+	(*node_res_obj)->hnode = hnode;
-+	retval = idr_get_new(ctxt->node_idp, *node_res_obj,
-+						&(*node_res_obj)->id);
-+	if (retval == -EAGAIN) {
-+		if (!idr_pre_get(ctxt->node_idp, GFP_KERNEL)) {
-+			pr_err("%s: OUT OF MEMORY\n", __func__);
-+			status = DSP_EMEMORY;
-+			goto func_end;
- 		}
--		(*node_res_obj)->hnode = hnode;
--		if (ctxt->node_list != NULL) {
--			temp_node_res = ctxt->node_list;
--			while (temp_node_res->next != NULL)
--				temp_node_res = temp_node_res->next;
- 
--			temp_node_res->next = *node_res_obj;
--		} else {
--			ctxt->node_list = *node_res_obj;
--		}
--		mutex_unlock(&ctxt->node_mutex);
-+		retval = idr_get_new(ctxt->node_idp, *node_res_obj,
-+						&(*node_res_obj)->id);
-+	}
-+	if (retval) {
-+		pr_err("%s: FAILED, IDR is FULL\n", __func__);
-+		status = DSP_EFAIL;
- 	}
-+func_end:
-+	if (DSP_FAILED(status))
-+		kfree(*node_res_obj);
- 
- 	return status;
- }
- 
- /* Release all Node resources and its context
--* This is called from .Node_Delete. */
--dsp_status drv_remove_node_res_element(bhandle hNodeRes, bhandle hPCtxt)
--{
--	struct node_res_object *node_res_obj =
--	    (struct node_res_object *)hNodeRes;
--	struct process_context *ctxt = (struct process_context *)hPCtxt;
--	struct node_res_object *temp_node;
--	dsp_status status = DSP_SOK;
--
--	if (mutex_lock_interruptible(&ctxt->node_mutex))
--		return DSP_EFAIL;
--	temp_node = ctxt->node_list;
--	if (temp_node == node_res_obj) {
--		ctxt->node_list = node_res_obj->next;
--	} else {
--		while (temp_node && temp_node->next != node_res_obj)
--			temp_node = temp_node->next;
--		if (!temp_node)
--			status = DSP_ENOTFOUND;
--		else
--			temp_node->next = node_res_obj->next;
--	}
--	mutex_unlock(&ctxt->node_mutex);
--	kfree(node_res_obj);
--	return status;
--}
--
--/* Actual Node De-Allocation */
--static dsp_status drv_proc_free_node_res(bhandle hPCtxt)
-+ * Actual Node De-Allocation */
-+static int drv_proc_free_node_res(int id, void *p, void *data)
- {
--	struct process_context *ctxt = (struct process_context *)hPCtxt;
--	dsp_status status = DSP_SOK;
--	struct node_res_object *node_list = NULL;
--	struct node_res_object *node_res_obj = NULL;
-+	struct process_context *ctxt = data;
-+	dsp_status status;
-+	struct node_res_object *node_res_obj = p;
- 	u32 node_state;
- 
--	node_list = ctxt->node_list;
--	while (node_list != NULL) {
--		node_res_obj = node_list;
--		node_list = node_list->next;
--		if (node_res_obj->node_allocated) {
--			node_state = node_get_state(node_res_obj->hnode);
--			if (node_state <= NODE_DELETING) {
--				if ((node_state == NODE_RUNNING) ||
--				    (node_state == NODE_PAUSED) ||
--				    (node_state == NODE_TERMINATING))
--					status = node_terminate
--					    (node_res_obj->hnode, &status);
--
--				status = node_delete(node_res_obj->hnode, ctxt);
--			}
-+	if (node_res_obj->node_allocated) {
-+		node_state = node_get_state(node_res_obj->hnode);
-+		if (node_state <= NODE_DELETING) {
-+			if ((node_state == NODE_RUNNING) ||
-+			    (node_state == NODE_PAUSED) ||
-+			    (node_state == NODE_TERMINATING))
-+				node_terminate
-+				    (node_res_obj->hnode, &status);
-+
-+			node_delete(node_res_obj, ctxt);
- 		}
- 	}
--	return status;
-+
-+	return 0;
- }
- 
- /* Release all Mapped and Reserved DMM resources */
-@@ -220,49 +193,12 @@ void drv_proc_node_update_heap_status(bhandle hNodeRes, s32 status)
-  */
- dsp_status drv_remove_all_node_res_elements(bhandle hPCtxt)
- {
--	struct process_context *ctxt = (struct process_context *)hPCtxt;
--	dsp_status status = DSP_SOK;
--	struct node_res_object *temp_node2 = NULL;
--	struct node_res_object *temp_node = NULL;
--
--	drv_proc_free_node_res(ctxt);
--	temp_node = ctxt->node_list;
--	while (temp_node != NULL) {
--		temp_node2 = temp_node;
--		temp_node = temp_node->next;
--		kfree(temp_node2);
--	}
--	ctxt->node_list = NULL;
--	return status;
--}
--
--/* Getting the node resource element */
--dsp_status drv_get_node_res_element(bhandle hnode, bhandle hNodeRes,
--				    bhandle hPCtxt)
--{
--	struct node_res_object **node_res = (struct node_res_object **)hNodeRes;
--	struct process_context *ctxt = (struct process_context *)hPCtxt;
--	dsp_status status = DSP_SOK;
--	struct node_res_object *temp_node2 = NULL;
--	struct node_res_object *temp_node = NULL;
--
--	if (mutex_lock_interruptible(&ctxt->node_mutex))
--		return DSP_EFAIL;
-+	struct process_context *ctxt = hPCtxt;
- 
--	temp_node = ctxt->node_list;
--	while ((temp_node != NULL) && (temp_node->hnode != hnode)) {
--		temp_node2 = temp_node;
--		temp_node = temp_node->next;
--	}
--
--	mutex_unlock(&ctxt->node_mutex);
--
--	if (temp_node != NULL)
--		*node_res = temp_node;
--	else
--		status = DSP_ENOTFOUND;
-+	idr_for_each(ctxt->node_idp, drv_proc_free_node_res, ctxt);
-+	idr_destroy(ctxt->node_idp);
- 
--	return status;
-+	return DSP_SOK;
- }
- 
- /* Allocate the STRM resource element
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index bd693cd..be5efb7 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -506,8 +506,13 @@ static int bridge_open(struct inode *ip, struct file *filp)
- 		INIT_LIST_HEAD(&pr_ctxt->dmm_map_list);
- 		spin_lock_init(&pr_ctxt->dmm_rsv_lock);
- 		INIT_LIST_HEAD(&pr_ctxt->dmm_rsv_list);
--		mutex_init(&pr_ctxt->node_mutex);
- 		mutex_init(&pr_ctxt->strm_mutex);
-+
-+		pr_ctxt->node_idp = mem_calloc(sizeof(struct idr), MEM_PAGED);
-+		if (pr_ctxt->node_idp)
-+			idr_init(pr_ctxt->node_idp);
-+		else
-+			status = -ENOMEM;
- 	} else {
- 		status = -ENOMEM;
- 	}
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 32df890..236c8f6 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -299,7 +299,7 @@ dsp_status node_allocate(struct proc_object *hprocessor,
- 			 IN CONST struct dsp_uuid *pNodeId,
- 			 OPTIONAL IN CONST struct dsp_cbdata *pargs,
- 			 OPTIONAL IN CONST struct dsp_nodeattrin *attr_in,
--			 OUT struct node_object **ph_node,
-+			 OUT struct node_res_object **noderes,
- 			 struct process_context *pr_ctxt)
- {
- 	struct node_mgr *hnode_mgr;
-@@ -331,10 +331,10 @@ dsp_status node_allocate(struct proc_object *hprocessor,
- 
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(hprocessor != NULL);
--	DBC_REQUIRE(ph_node != NULL);
-+	DBC_REQUIRE(noderes != NULL);
- 	DBC_REQUIRE(pNodeId != NULL);
- 
--	*ph_node = NULL;
-+	*noderes = NULL;
- 
- 	status = proc_get_processor_id(hprocessor, &proc_id);
- 
-@@ -653,9 +653,6 @@ func_cont:
- 		 * (for overlay and dll) */
- 		pnode->phase_split = true;
- 
--		if (DSP_SUCCEEDED(status))
--			*ph_node = pnode;
--
- 		/* Notify all clients registered for DSP_NODESTATECHANGE. */
- 		proc_notify_all_clients(hprocessor, DSP_NODESTATECHANGE);
- 	} else {
-@@ -666,17 +663,23 @@ func_cont:
- 	}
- 
- 	if (DSP_SUCCEEDED(status)) {
--		drv_insert_node_res_element(*ph_node, &node_res, pr_ctxt);
-+		status = drv_insert_node_res_element(pnode, &node_res, pr_ctxt);
-+		if (DSP_FAILED(status)) {
-+			delete_node(pnode, pr_ctxt);
-+			goto func_end;
-+		}
-+
-+		*noderes = (struct node_res_object *)node_res;
- 		drv_proc_node_update_heap_status(node_res, true);
- 		drv_proc_node_update_status(node_res, true);
- 	}
--	DBC_ENSURE((DSP_FAILED(status) && (*ph_node == NULL)) ||
-+	DBC_ENSURE((DSP_FAILED(status) && (*noderes == NULL)) ||
- 		   (DSP_SUCCEEDED(status)
--		    && MEM_IS_VALID_HANDLE((*ph_node), NODE_SIGNATURE)));
-+		    && MEM_IS_VALID_HANDLE(pnode, NODE_SIGNATURE)));
- func_end:
- 	dev_dbg(bridge, "%s: hprocessor: %p pNodeId: %p pargs: %p attr_in: %p "
--		"ph_node: %p status: 0x%x\n", __func__, hprocessor,
--		pNodeId, pargs, attr_in, ph_node, status);
-+		"node_res: %p status: 0x%x\n", __func__, hprocessor,
-+		pNodeId, pargs, attr_in, noderes, status);
- 	return status;
- }
- 
-@@ -1439,10 +1442,10 @@ dsp_status node_create_mgr(OUT struct node_mgr **phNodeMgr,
-  *      Loads the node's delete function if necessary. Free GPP side resources
-  *      after node's delete function returns.
-  */
--dsp_status node_delete(struct node_object *hnode,
-+dsp_status node_delete(struct node_res_object *hnoderes,
- 		       struct process_context *pr_ctxt)
- {
--	struct node_object *pnode = (struct node_object *)hnode;
-+	struct node_object *pnode = hnoderes->hnode;
- 	struct node_mgr *hnode_mgr;
- 	struct proc_object *hprocessor;
- 	struct disp_object *disp_obj;
-@@ -1455,32 +1458,32 @@ dsp_status node_delete(struct node_object *hnode,
- 	u32 proc_id;
- 	struct bridge_drv_interface *intf_fxns;
- 
--	bhandle node_res;
-+	bhandle node_res = hnoderes;
- 
- 	struct dsp_processorstate proc_state;
- 	DBC_REQUIRE(refs > 0);
- 
--	if (!MEM_IS_VALID_HANDLE(hnode, NODE_SIGNATURE)) {
-+	if (!MEM_IS_VALID_HANDLE(pnode, NODE_SIGNATURE)) {
- 		status = DSP_EHANDLE;
- 		goto func_end;
- 	}
- 	/* create struct dsp_cbdata struct for PWR call */
- 	cb_data.cb_data = PWR_TIMEOUT;
--	hnode_mgr = hnode->hnode_mgr;
--	hprocessor = hnode->hprocessor;
-+	hnode_mgr = pnode->hnode_mgr;
-+	hprocessor = pnode->hprocessor;
- 	disp_obj = hnode_mgr->disp_obj;
--	node_type = node_get_type(hnode);
-+	node_type = node_get_type(pnode);
- 	intf_fxns = hnode_mgr->intf_fxns;
- 	/* Enter critical section */
- 	mutex_lock(&hnode_mgr->node_mgr_lock);
- 
--	state = node_get_state(hnode);
-+	state = node_get_state(pnode);
- 	/*  Execute delete phase code for non-device node in all cases
- 	 *  except when the node was only allocated. Delete phase must be
- 	 *  executed even if create phase was executed, but failed.
- 	 *  If the node environment pointer is non-NULL, the delete phase
- 	 *  code must be  executed. */
--	if (!(state == NODE_ALLOCATED && hnode->node_env == (u32) NULL) &&
-+	if (!(state == NODE_ALLOCATED && pnode->node_env == (u32) NULL) &&
- 	    node_type != NODE_DEVICE) {
- 		status = proc_get_processor_id(pnode->hprocessor, &proc_id);
- 		if (DSP_FAILED(status))
-@@ -1493,26 +1496,26 @@ dsp_status node_delete(struct node_object *hnode,
- 			 *  is now ok to unload it. If the node is running, we
- 			 *  will unload the execute phase only after deleting
- 			 *  the node. */
--			if (state == NODE_PAUSED && hnode->loaded &&
--			    hnode->phase_split) {
-+			if (state == NODE_PAUSED && pnode->loaded &&
-+			    pnode->phase_split) {
- 				/* Ok to unload execute code as long as node
- 				 * is not * running */
- 				status1 =
- 				    hnode_mgr->nldr_fxns.
--				    pfn_unload(hnode->nldr_node_obj,
-+				    pfn_unload(pnode->nldr_node_obj,
- 					       NLDR_EXECUTE);
--				hnode->loaded = false;
--				NODE_SET_STATE(hnode, NODE_DONE);
-+				pnode->loaded = false;
-+				NODE_SET_STATE(pnode, NODE_DONE);
- 			}
- 			/* Load delete phase code if not loaded or if haven't
- 			 * * unloaded EXECUTE phase */
--			if ((!(hnode->loaded) || (state == NODE_RUNNING)) &&
--			    hnode->phase_split) {
-+			if ((!(pnode->loaded) || (state == NODE_RUNNING)) &&
-+			    pnode->phase_split) {
- 				status =
- 				    hnode_mgr->nldr_fxns.
--				    pfn_load(hnode->nldr_node_obj, NLDR_DELETE);
-+				    pfn_load(pnode->nldr_node_obj, NLDR_DELETE);
- 				if (DSP_SUCCEEDED(status))
--					hnode->loaded = true;
-+					pnode->loaded = true;
- 				else
- 					pr_err("%s: fail - load delete code:"
- 					       " 0x%x\n", __func__, status);
-@@ -1521,14 +1524,14 @@ dsp_status node_delete(struct node_object *hnode,
- func_cont1:
- 		if (DSP_SUCCEEDED(status)) {
- 			/* Unblock a thread trying to terminate the node */
--			(void)sync_set_event(hnode->sync_done);
-+			(void)sync_set_event(pnode->sync_done);
- 			if (proc_id == DSP_UNIT) {
- 				/* ul_delete_fxn = address of node's delete
- 				 * function */
--				status = get_fxn_address(hnode, &ul_delete_fxn,
-+				status = get_fxn_address(pnode, &ul_delete_fxn,
- 							 DELETEPHASE);
- 			} else if (proc_id == IVA_UNIT)
--				ul_delete_fxn = (u32) hnode->node_env;
-+				ul_delete_fxn = (u32) pnode->node_env;
- 			if (DSP_SUCCEEDED(status)) {
- 				status = proc_get_state(hprocessor,
- 						&proc_state,
-@@ -1536,22 +1539,22 @@ func_cont1:
- 						       dsp_processorstate));
- 				if (proc_state.proc_state != PROC_ERROR) {
- 					status =
--					    disp_node_delete(disp_obj, hnode,
-+					    disp_node_delete(disp_obj, pnode,
- 							     hnode_mgr->
- 							     ul_fxn_addrs
- 							     [RMSDELETENODE],
- 							     ul_delete_fxn,
--							     hnode->node_env);
-+							     pnode->node_env);
- 				} else
--					NODE_SET_STATE(hnode, NODE_DONE);
-+					NODE_SET_STATE(pnode, NODE_DONE);
- 
- 				/* Unload execute, if not unloaded, and delete
- 				 * function */
- 				if (state == NODE_RUNNING &&
--				    hnode->phase_split) {
-+				    pnode->phase_split) {
- 					status1 =
- 					    hnode_mgr->nldr_fxns.
--					    pfn_unload(hnode->nldr_node_obj,
-+					    pfn_unload(pnode->nldr_node_obj,
- 						       NLDR_EXECUTE);
- 				}
- 				if (DSP_FAILED(status1))
-@@ -1559,10 +1562,10 @@ func_cont1:
- 					       " 0x%x\n", __func__, status1);
- 
- 				status1 =
--				    hnode_mgr->nldr_fxns.pfn_unload(hnode->
-+				    hnode_mgr->nldr_fxns.pfn_unload(pnode->
- 							    nldr_node_obj,
- 							    NLDR_DELETE);
--				hnode->loaded = false;
-+				pnode->loaded = false;
- 				if (DSP_FAILED(status1))
- 					pr_err("%s: fail - unload delete code: "
- 					       "0x%x\n", __func__, status1);
-@@ -1571,25 +1574,28 @@ func_cont1:
- 	}
- 	/* Free host side resources even if a failure occurred */
- 	/* Remove node from hnode_mgr->node_list */
--	lst_remove_elem(hnode_mgr->node_list, (struct list_head *)hnode);
-+	lst_remove_elem(hnode_mgr->node_list, (struct list_head *)pnode);
- 	hnode_mgr->num_nodes--;
- 	/* Decrement count of nodes created on DSP */
- 	if ((state != NODE_ALLOCATED) || ((state == NODE_ALLOCATED) &&
--					  (hnode->node_env != (u32) NULL)))
-+					  (pnode->node_env != (u32) NULL)))
- 		hnode_mgr->num_created--;
- 	/*  Free host-side resources allocated by node_create()
- 	 *  delete_node() fails if SM buffers not freed by client! */
--	if (drv_get_node_res_element(hnode, &node_res, pr_ctxt) !=
--	    DSP_ENOTFOUND)
--		drv_proc_node_update_status(node_res, false);
--	delete_node(hnode, pr_ctxt);
-+	drv_proc_node_update_status(node_res, false);
-+	delete_node(pnode, pr_ctxt);
-+
-+	/*
-+	 * Release all Node resources and its context
-+	 */
-+	idr_remove(pr_ctxt->node_idp, ((struct node_res_object *)node_res)->id);
-+	kfree(node_res);
- 
--	drv_remove_node_res_element(node_res, pr_ctxt);
- 	/* Exit critical section */
- 	mutex_unlock(&hnode_mgr->node_mgr_lock);
- 	proc_notify_clients(hprocessor, DSP_NODESTATECHANGE);
- func_end:
--	dev_dbg(bridge, "%s: hnode: %p status 0x%x\n", __func__, hnode, status);
-+	dev_dbg(bridge, "%s: pnode: %p status 0x%x\n", __func__, pnode, status);
- 	return status;
- }
- 
--- 
-1.5.4.5
+Thanks for the much improved changelog.  
 
+Also, this is better called an errata workaround instead of a glitch
+fix.  I'd rather see "glitch" here replaced by the errata numbers.
+Down the road we'll be asking "which glitch?"
+
+As in the first review, I don't like the Kconfig option.  This errata
+workaround should be in common code and enabled by an optional
+flag in board code.  More on this below...
+
+>
+> This patch series is based off Kevin's tree origin/pm branch.
+>
+> This patch has dependency on:
+> 	SmartReflex patch series from Thara.
+> 	Update TRITON power scripts from Lesly.
+>
+> This changes are tested on OMAP3430 SDP board with:
+> 	enable_off_mode
+> 	voltage_off_while_idle
+> 	sleep_while_idle (VDD1/VDD2 voltage scaling to 0v) enabled in cpuidle and suspned path.
+>
+> Also tested for reboot and dvfs.
+>
+>  arch/arm/mach-omap2/board-3430sdp.c          |   51 +++++++++++++
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |   51 +++++++++++++
+>  arch/arm/mach-omap2/twl4030-script.c         |   87 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/twl4030-script.h         |    9 ++
+>  arch/arm/mach-omap2/voltage.c                |   10 +++
+>  arch/arm/mach-omap2/voltage.h                |   10 +++
+>  arch/arm/plat-omap/Kconfig                   |   12 +++
+>  drivers/mfd/twl-core.c                       |    4 +
+>  drivers/mfd/twl4030-power.c                  |  103 ++++++++++++++++++++++++++
+>  include/linux/i2c/twl.h                      |    9 ++
+>  10 files changed, 346 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+> index c14b89c..f440627 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -465,6 +465,41 @@ static struct twl4030_resconfig twl4030_rconfig[] = {
+>  	{ 0, 0},
+>  };
+>  
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +/* VDD1/VDD2/VPLL are assigned to P1 and P3, to have better control
+> + * during OFFMODE. HFCLKOUT is assigned to P1 and P3 (*p2) to trun off
+> + * only during OFFMODE.
+> + * (*P2 is included if the platform uses it for modem/some other processor)
+> + */
+> +static struct twl4030_resconfig twl4030_rconfig_glitchfix[] = {
+> +	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
+> +		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
+> +	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_ALL, .type = 1,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_ALL, .type = 0,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_ALL, .type = 1,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_VIO, .devgroup = DEV_GRP_ALL, .type = 2,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
+> +		.type = 4, .type2 = 1, .remap_sleep = RES_STATE_OFF },
+> +	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
+> +		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
+> +	{ .resource = RES_REGEN, .devgroup = DEV_GRP_ALL, .type = 2,
+> +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_ALL, .type = 0,
+> +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_ALL, .type = 3,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_ALL, .type = 6,
+> +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
+> +		.type = 0, .type2 = 1, .remap_sleep = RES_STATE_SLEEP },
+> +	{ 0, 0},
+> +};
+> +#endif
+> +
+>  static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
+>  	.resource_config = twl4030_rconfig,
+>  };
+> @@ -618,6 +653,19 @@ static struct twl4030_codec_data sdp3430_codec = {
+>  	.audio = &sdp3430_audio,
+>  };
+>  
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +/* Updating the TWL resource configuration, script and vc setuptime to
+> + * avoid VDD collapse when TWL DCDCs switches between HFCLKIN and
+> + * internal oscillator.
+> + */
+> +void sdp3430_twl5030_glitchfix(void)
+> +{
+> +	sdp3430_t2scripts_data.resource_config = twl4030_rconfig_glitchfix;
+> +	use_twl4030_script_glitchfix(&sdp3430_t2scripts_data);
+> +	omap_voltage_vcsetup_glitchfix();
+> +}
+> +#endif
+> +
+
+As I asked in my original review, what is board-specific about this
+fix?  On first glance, it looks like the identical code is added to
+SDP and zoom board files.   This suggests the fix should actually
+be in common twl4030 code and enabled via an optional board flag
+in twl4030_platform_data.
+
+>  static struct twl4030_platform_data sdp3430_twldata = {
+>  	.irq_base	= TWL4030_IRQ_BASE,
+>  	.irq_end	= TWL4030_IRQ_END,
+> @@ -628,6 +676,9 @@ static struct twl4030_platform_data sdp3430_twldata = {
+>  	.madc		= &sdp3430_madc_data,
+>  	.keypad		= &sdp3430_kp_data,
+>  	.power		= &sdp3430_t2scripts_data,
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +	.twl5030_glitchfix	= sdp3430_twl5030_glitchfix,
+> +#endif
+>  	.usb		= &sdp3430_usb_data,
+>  	.codec		= &sdp3430_codec,
+>  
+> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> index 5c7bef7..967c74f 100644
+> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> @@ -123,6 +123,41 @@ static struct twl4030_resconfig twl4030_rconfig[] = {
+>  	{ 0, 0},
+>  };
+>  
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +/* VDD1/VDD2/VPLL are assigned to P1 and P3, to have better control
+> + * during OFFMODE. HFCLKOUT is assigned to P1 and P3 (*p2) to trun off
+> + * only during OFFMODE.
+> + * (*P2 is included if the platform uses it for modem/some other processor)
+> + */
+> +static struct twl4030_resconfig twl4030_rconfig_glitchfix[] = {
+> +	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
+> +		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
+> +	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_ALL, .type = 1,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_ALL, .type = 0,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_ALL, .type = 1,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_VIO, .devgroup = DEV_GRP_ALL, .type = 2,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
+> +		.type = 4, .type2 = 1, .remap_sleep = RES_STATE_OFF },
+> +	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
+> +		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
+> +	{ .resource = RES_REGEN, .devgroup = DEV_GRP_ALL, .type = 2,
+> +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_ALL, .type = 0,
+> +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_ALL, .type = 3,
+> +		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_ALL, .type = 6,
+> +		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
+> +	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
+> +		.type = 0, .type2 = 1, .remap_sleep = RES_STATE_SLEEP },
+> +	{ 0, 0},
+> +};
+> +#endif
+> +
+>  static struct twl4030_power_data zoom_t2scripts_data __initdata = {
+>  	.resource_config = twl4030_rconfig,
+>  };
+> @@ -262,6 +297,19 @@ static struct twl4030_codec_data zoom_codec_data = {
+>  	.audio = &zoom_audio_data,
+>  };
+>  
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +/* Updating the TWL resource configuration, script and vc setuptime to
+> + * avoid VDD collapse when TWL DCDCs switches between HFCLKIN and
+> + * internal oscillator.
+> + */
+> +void zoom_twl5030_glitchfix(void)
+> +{
+> +	zoom_t2scripts_data.resource_config = twl4030_rconfig_glitchfix;
+> +	use_twl4030_script_glitchfix(&zoom_t2scripts_data);
+> +	omap_voltage_vcsetup_glitchfix();
+> +}
+> +#endif
+> +
+>  static struct twl4030_platform_data zoom_twldata = {
+>  	.irq_base	= TWL4030_IRQ_BASE,
+>  	.irq_end	= TWL4030_IRQ_END,
+> @@ -273,6 +321,9 @@ static struct twl4030_platform_data zoom_twldata = {
+>  	.gpio		= &zoom_gpio_data,
+>  	.keypad		= &zoom_kp_twl4030_data,
+>  	.power		= &zoom_t2scripts_data,
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +	.twl5030_glitchfix	= zoom_twl5030_glitchfix,
+> +#endif
+>  	.codec		= &zoom_codec_data,
+>  	.vmmc1          = &zoom_vmmc1,
+>  	.vmmc2          = &zoom_vmmc2,
+> diff --git a/arch/arm/mach-omap2/twl4030-script.c b/arch/arm/mach-omap2/twl4030-script.c
+> index b3088c3..228e705 100644
+> --- a/arch/arm/mach-omap2/twl4030-script.c
+> +++ b/arch/arm/mach-omap2/twl4030-script.c
+> @@ -81,6 +81,71 @@ static struct twl4030_script wakeup_p3_script __initdata = {
+>  	.flags  = TWL4030_WAKEUP3_SCRIPT,
+>  };
+>  
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +/*
+> + * Active to Sleep sequence, which is executed upon P1/P2/P3
+> + * transition for sleep.
+> + *
+> + * The sleep sequence is adjusted to do the switching of VDD1/VDD2/VIO OSC from
+> + * HFCLKIN to internal oscillator when the HFCLKIN is stable.
+> + */
+> +static struct twl4030_ins __initdata sleep_on_seq_glitchfix[] = {
+> +	/* Singular message to disable HCLKOUT.
+> +	 * Wait for ~488.32 uS to do the switching of VDD1/VDD2/VIO OSC from
+> +	 * HFCLKIN to internal oscillator before disabling HFCLKIN.
+> +	 */
+> +	{MSG_SINGULAR(DEV_GRP_NULL, RES_HFCLKOUT, RES_STATE_SLEEP), 20},
+> +	/* Broadcast message to put res(TYPE2 = 1) to sleep */
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
+> +							RES_STATE_SLEEP), 2},
+> +	/* Broadcast message to put res(TYPE2 = 2) to sleep, disable HFCLKIN */
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
+> +							RES_STATE_SLEEP), 2},
+> +};
+> +
+> +static struct twl4030_script sleep_on_script_glitchfix __initdata = {
+> +	.script	= sleep_on_seq_glitchfix,
+> +	.size	= ARRAY_SIZE(sleep_on_seq_glitchfix),
+> +	.flags	= TWL4030_SLEEP_SCRIPT,
+> +};
+> +
+> +/*
+> + * Sleep to Active sequence, which is executed upon P1/P2/P3
+> + * transition for wakeup.
+> + *
+> + * The wakeup sequence is adjusted to do the VDD1/VDD2 voltage rampup
+> + * only after HFCLKIN is stabilized and the HFCLKOUT is enabled.
+> + */
+> +static struct twl4030_ins wakeup_seq_glitchfix[] __initdata = {
+> +	/* Broadcast message to put res(TYPE2 = 2) to active.
+> +	 * Wait for ~10 mS (rampup time for OSC on the board)
+> +	 * after HFCLKIN is enabled
+> +	 */
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
+> +							RES_STATE_ACTIVE), 55},
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
+> +							RES_STATE_ACTIVE), 55},
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
+> +							RES_STATE_ACTIVE), 54},
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
+> +							RES_STATE_ACTIVE), 1},
+> +	/* Singular message to enable HCLKOUT after HFCLKIN is stabilized */
+> +	{MSG_SINGULAR(DEV_GRP_NULL, RES_HFCLKOUT, RES_STATE_ACTIVE), 1},
+> +	/* Broadcast message to put res(TYPE2 = 1) to active.
+> +	 * VDD1/VDD2 rampup after HFCLKIN is stable and HFCLKOUT is enabled.
+> +	 */
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
+> +							RES_STATE_ACTIVE), 2},
+> +};
+> +
+> +static struct twl4030_script wakeup_script_glitchfix __initdata = {
+> +	.script	= wakeup_seq_glitchfix,
+> +	.size	= ARRAY_SIZE(wakeup_seq_glitchfix),
+> +	.flags	= TWL4030_WAKEUP12_SCRIPT | TWL4030_WAKEUP3_SCRIPT,
+> +};
+> +
+> +#endif
+> +
+>  /*
+>   * Sequence to reset the TRITON Power resources,
+>   * when the system gets warm reset.
+> @@ -151,4 +216,26 @@ void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc)
+>  	setup_vc->off.voltsetup2 = twl4030_voltsetup_time.off.voltsetup2;
+>  	setup_vc->off.voltoffset = twl4030_voltsetup_time.off.voltoffset;
+>  }
+> +
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +/* TRITON script for sleep, wakeup & warm_reset */
+> +static struct twl4030_script *twl4030_scripts_glitchfix[] __initdata = {
+> +	&sleep_on_script_glitchfix,
+> +	&wakeup_script_glitchfix,
+> +	&wrst_script,
+> +};
+> +
+> +struct twl4030_power_data twl4030_script_glitchfix __initdata = {
+> +	.scripts	= twl4030_scripts_glitchfix,
+> +	.num		= ARRAY_SIZE(twl4030_scripts_glitchfix),
+> +};
+> +
+> +void use_twl4030_script_glitchfix(
+> +		struct twl4030_power_data *t2scripts_data)
+> +{
+> +	t2scripts_data->scripts = twl4030_script_glitchfix.scripts;
+> +	t2scripts_data->num = twl4030_script_glitchfix.num;
+> +}
+> +#endif
+> +
+>  #endif
+> diff --git a/arch/arm/mach-omap2/twl4030-script.h b/arch/arm/mach-omap2/twl4030-script.h
+> index 3a7da2d..aafbe76 100644
+> --- a/arch/arm/mach-omap2/twl4030-script.h
+> +++ b/arch/arm/mach-omap2/twl4030-script.h
+> @@ -7,9 +7,18 @@
+>  #ifdef CONFIG_TWL4030_POWER
+>  extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data);
+>  extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc);
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +void use_twl4030_script_glitchfix(
+> +		struct twl4030_power_data *t2scripts_data);
+> +#endif
+> +
+>  #else
+>  extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data) {}
+>  extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc) {}
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +void use_twl4030_script_glitchfix(
+> +		struct twl4030_power_data *t2scripts_data) {}
+> +#endif
+>  #endif
+>  
+>  #endif
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index 90a307e..864bb7b 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -553,6 +553,16 @@ void __init omap_voltage_init_vc(struct prm_setup_vc *setup_vc)
+>  	memcpy(&vc_config, setup_vc, 2 * sizeof(struct setuptime_vc));
+>  }
+>  
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +void omap_voltage_vcsetup_glitchfix(void)
+> +{
+> +	vc_config.off.clksetup = CLKSETUP_GLITCHFIX;
+> +
+> +	vc_config.off.voltoffset = VOLTOFFSET_GLITCHFIX;
+> +	vc_config.off.voltsetup2 = VOLTSETUP2_GLITCHFIX;
+> +}
+> +#endif
+> +
+
+Should not have a new function for this.  In your previous series,
+you've added ways for platform code to override these values.  Use or
+extend those instead.
+
+>  void update_voltsetup_time(int core_next_state)
+>  {
+>  	/* update voltsetup time */
+> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> index c8bbea3..eb05c5f 100644
+> --- a/arch/arm/mach-omap2/voltage.h
+> +++ b/arch/arm/mach-omap2/voltage.h
+> @@ -102,6 +102,16 @@ void omap_voltageprocessor_enable(int vp_id);
+>  void omap_voltageprocessor_disable(int vp_id);
+>  void omap_voltage_init_vc(struct prm_setup_vc *setup_vc);
+>  void update_voltsetup_time(int core_next_state);
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +/* The clk/volt setuptime is adjusted to do the VDD1/VDD2 voltage rampup
+> + * only after HFCLKIN is stabilized and the HFCLKOUT is enabled
+> + */
+> +#define CLKSETUP_GLITCHFIX 0x17B
+> +#define VOLTOFFSET_GLITCHFIX 0x10
+> +#define VOLTSETUP2_GLITCHFIX 0x16B
+> +void omap_voltage_vcsetup_glitchfix(void);
+> +#endif
+> +
+>  void omap_voltage_init(void);
+>  int omap_voltage_scale(int vdd, u8 target_vsel, u8 current_vsel);
+>  void omap_reset_voltage(int vdd);
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index 232fd9e..3ab24e6 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -84,6 +84,18 @@ config OMAP_SMARTREFLEX_TESTING
+>  
+>  	  WARNING: Enabling this option may cause your device to hang!
+>  
+> +config TWL5030_GLITCH_FIX
+> +	bool "TWL5030 glitch fix"
+> +	depends on TWL4030_CORE
+> +	default n
+> +	help
+> +	  Say Y if you want to enable TWL5030 glitch fix.
+> +
+> +	  Fix for TWL5030 Silicon Errata 27 & 28:
+> +		27 - VDD1, VDD2, may have glitches when their output value is updated.
+> +		28 - VDD1 and / or VDD2 DCDC clock may stop working when internal clock
+> +		     is switched from internal to external.
+> +
+>  config OMAP_RESET_CLOCKS
+>  	bool "Reset unused clocks during boot"
+>  	depends on ARCH_OMAP
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 562cd49..0f6aa9a 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -1010,7 +1010,11 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  
+>  	/* load power event scripts */
+>  	if (twl_has_power() && pdata->power)
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +		twl4030_power_init(pdata->power, pdata->twl5030_glitchfix);
+> +#else
+>  		twl4030_power_init(pdata->power);
+> +#endif
+>  
+>  	/* Maybe init the T2 Interrupt subsystem */
+>  	if (client->irq
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index bd98733..8778534 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -32,6 +32,9 @@
+>  #include <asm/mach-types.h>
+>  
+>  static u8 twl4030_start_script_address = 0x2b;
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +static u32 twl4030_rev;
+> +#endif
+>  
+>  #define PWR_P1_SW_EVENTS	0x10
+>  #define PWR_DEVOFF	(1<<0)
+> @@ -67,6 +70,23 @@ static u8 twl4030_start_script_address = 0x2b;
+>  #define R_KEY_1			0xC0
+>  #define R_KEY_2			0x0C
+>  
+> +#define R_VDD1_OSC		0x5C
+> +#define R_VDD2_OSC		0x6A
+> +#define R_VIO_OSC		0x52
+> +#define EXT_FS_CLK_EN		(0x1 << 6)
+> +
+> +#define R_WDT_CFG		0x03
+> +#define WDT_WRK_TIMEOUT		0x03
+> +
+> +#define R_UNLOCK_TEST_REG	0x12
+> +#define TWL_EEPROM_R_UNLOCK	0x49
+> +
+> +#define TWL_SIL_TYPE(rev)	((rev) & 0x00FFFFFF)
+> +#define TWL_SIL_REV(rev)	((rev) >> 24)
+> +#define TWL_SIL_5030		0x09002F
+> +#define TWL_REV_1_0		0x00
+> +#define TWL_REV_1_1		0x10
+> +
+>  /* resource configuration registers
+>     <RESOURCE>_DEV_GRP   at address 'n+0'
+>     <RESOURCE>_TYPE      at address 'n+1'
+> @@ -505,7 +525,80 @@ int twl4030_remove_script(u8 flags)
+>  	return err;
+>  }
+>  
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +/**
+> + * @brief twl_workaround - Fix for TWL5030 Silicon Errata 27 & 28:
+> + * 27 - VDD1, VDD2, may have glitches when their output value is updated.
+> + * 28 - VDD1 and / or VDD2 DCDC clock may stop working when internal clock is
+> + * switched from internal to external.
+> + *
+> + * Workaround requires the TWL DCDCs to use HFCLK instead of
+> + * internal oscillator. Also enable TWL watchdog before switching the osc
+> + * to recover if the VDD1/VDD2 stop working.
+> + */
+> +static void __init twl_workaround(void)
+> +{
+> +	u8 val;
+> +	u8 smps_osc_reg[] = {R_VDD1_OSC, R_VDD2_OSC, R_VIO_OSC};
+> +	u8 wdt_counter_val = 0;
+> +	int i;
+> +	int err;
+> +
+> +	/* Setup the twl wdt to take care of borderline failure case */
+> +	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &wdt_counter_val,
+> +			R_WDT_CFG);
+> +	err |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, WDT_WRK_TIMEOUT,
+> +			R_WDT_CFG);
+> +
+> +	for (i = 0; i < sizeof(smps_osc_reg); i++) {
+> +		err |= twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &val,
+> +							smps_osc_reg[i]);
+> +		val |= EXT_FS_CLK_EN;
+> +		err |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, val,
+> +							smps_osc_reg[i]);
+> +	}
+> +
+> +	/* restore the original value */
+> +	err |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, wdt_counter_val,
+> +			R_WDT_CFG);
+> +	if (err)
+> +		pr_warning("TWL4030: workaround setup failed!\n");
+> +}
+> +
+> +bool is_twl5030_glitchfix_required(void)
+> +{
+> +	int err = 0;
+> +
+> +	if (twl4030_rev == 0) {
+> +		err = twl_i2c_write_u8(TWL4030_MODULE_INTBR,
+> +				TWL_EEPROM_R_UNLOCK, R_UNLOCK_TEST_REG);
+> +		if (err)
+> +			pr_err("TWL4030 Unable to unlock IDCODE registers\n");
+> +
+> +		err = twl_i2c_read(TWL4030_MODULE_INTBR, (u8 *)(&twl4030_rev),
+> +				0x0, 4);
+> +		if (err)
+> +			pr_err("TWL4030: unable to read IDCODE-%d\n", err);
+> +
+> +		err = twl_i2c_write_u8(TWL4030_MODULE_INTBR, 0x0,
+> +				R_UNLOCK_TEST_REG);
+> +		if (err)
+> +			pr_err("TWL4030 Unable to relock IDCODE registers\n");
+> +	}
+> +
+> +	if ((TWL_SIL_TYPE(twl4030_rev) == TWL_SIL_5030) &&
+> +		(TWL_SIL_REV(twl4030_rev) <= TWL_REV_1_1))
+> +		return true;
+> +	else
+> +		return false;
+> +
+> +}
+> +
+> +void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts,
+> +					void (*twl5030_glitchfix)(void))
+> +#else
+>  void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
+> +#endif
+
+Yuck.  This is a good reason why I don't like handling these issues
+using compile-time options.  This simply is not scalable.  What
+happens if there is another errata?
+
+>  {
+>  	int err = 0;
+>  	int i;
+> @@ -522,6 +615,16 @@ void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
+>  	if (err)
+>  		goto unlock;
+>  
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +	/* Applying TWL5030 glitch fix based on Si revision */
+> +	if (is_twl5030_glitchfix_required()) {
+> +		pr_err("TWL5030: Enabling workaround for rev 0x%04X\n",
+> +				twl4030_rev);
+> +		twl_workaround();
+> +		twl5030_glitchfix();
+> +	}
+> +#endif
+> +
+>  	for (i = 0; i < twl4030_scripts->num; i++) {
+>  		err = load_twl4030_script(twl4030_scripts->scripts[i], address);
+>  		if (err)
+> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> index 2e00e83..1f56200 100644
+> --- a/include/linux/i2c/twl.h
+> +++ b/include/linux/i2c/twl.h
+> @@ -553,7 +553,13 @@ struct twl4030_power_data {
+>  #define TWL4030_RESCONFIG_UNDEF	((u8)-1)
+>  };
+>  
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts,
+> +					void (*twl5030_glitchfix)(void));
+> +#else
+>  extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
+> +#endif
+> +
+>  extern int twl4030_remove_script(u8 flags);
+>  
+>  struct twl4030_codec_audio_data {
+> @@ -587,6 +593,9 @@ struct twl4030_platform_data {
+>  	struct twl4030_keypad_data		*keypad;
+>  	struct twl4030_usb_data			*usb;
+>  	struct twl4030_power_data		*power;
+> +#ifdef CONFIG_TWL5030_GLITCH_FIX
+> +	void (*twl5030_glitchfix)(void);
+> +#endif
+>  	struct twl4030_codec_data		*codec;
+>  
+>  	/* Common LDO regulators for TWL4030/TWL6030 */
+> -- 
+> 1.6.0.4
+>
+
+Kevin
