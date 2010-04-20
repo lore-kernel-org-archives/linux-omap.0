@@ -1,791 +1,904 @@
 From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH 4/5v3] DSPBRIDGE: Use stream id instead of kernel address.
-Date: Tue, 20 Apr 2010 18:02:59 -0500
-Message-ID: <1271804580-17072-4-git-send-email-ernesto@ti.com>
-References: <1271804580-17072-1-git-send-email-ernesto@ti.com>
- <1271804580-17072-2-git-send-email-ernesto@ti.com>
- <1271804580-17072-3-git-send-email-ernesto@ti.com>
+Subject: [PATCH 1/5v3] DSPBRIDGE: Use node id instead of kernel address
+Date: Tue, 20 Apr 2010 18:02:56 -0500
+Message-ID: <1271804580-17072-1-git-send-email-ernesto@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36104 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35623 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751767Ab0DTXCF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Apr 2010 19:02:05 -0400
-In-Reply-To: <1271804580-17072-3-git-send-email-ernesto@ti.com>
+	id S1752118Ab0DTXCL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Apr 2010 19:02:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, hiroshi.doyu@nokia.com, Ernesto Ramos <ernesto@ti.com>
 
-Send stream ids to the user instead of handles, then when
-the id is coming from user dspbridge can retrive the handle
-using id and avoid using invalid handles.
+Use idr kernel library to send/receive node ids to the
+user instead of kernel address.
+This id will be use to access the node handles at the
+kernel side, if id does not match to any handle
+DSP error DSP_EHANDlE is returned.
 
 Signed-off-by: Ernesto Ramos <ernesto@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/drv.h         |    5 +-
- .../plat-omap/include/dspbridge/resourcecleanup.h  |    6 -
- arch/arm/plat-omap/include/dspbridge/strm.h        |    8 +-
- drivers/dsp/bridge/pmgr/wcd.c                      |  115 +++++++++++++---
- drivers/dsp/bridge/rmgr/drv.c                      |  151 +++++++-------------
- drivers/dsp/bridge/rmgr/drv_interface.c            |   13 ++-
- drivers/dsp/bridge/rmgr/strm.c                     |   75 +++++-----
- 7 files changed, 198 insertions(+), 175 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/drv.h         |    6 +-
+ arch/arm/plat-omap/include/dspbridge/node.h        |    4 +-
+ .../plat-omap/include/dspbridge/resourcecleanup.h  |    5 -
+ drivers/dsp/bridge/pmgr/wcd.c                      |  158 +++++++++++++++++---
+ drivers/dsp/bridge/rmgr/drv.c                      |  150 ++++++-------------
+ drivers/dsp/bridge/rmgr/drv_interface.c            |    7 +-
+ drivers/dsp/bridge/rmgr/node.c                     |  100 +++++++------
+ 7 files changed, 246 insertions(+), 184 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-index 02f93f5..9307001 100644
+index 947cbdd..02f93f5 100644
 --- a/arch/arm/plat-omap/include/dspbridge/drv.h
 +++ b/arch/arm/plat-omap/include/dspbridge/drv.h
-@@ -114,7 +114,7 @@ struct strm_res_object {
- 	void *hstream;
- 	u32 num_bufs;
- 	u32 dir;
--	struct strm_res_object *next;
+@@ -24,6 +24,7 @@
+ #include <dspbridge/devdefs.h>
+ 
+ #include <dspbridge/drvdefs.h>
++#include <linux/idr.h>
+ 
+ #define DRV_ASSIGN     1
+ #define DRV_RELEASE    0
+@@ -81,7 +82,7 @@ struct node_res_object {
+ 	s32 node_allocated;	/* Node status */
+ 	s32 heap_allocated;	/* Heap status */
+ 	s32 streams_allocated;	/* Streams status */
+-	struct node_res_object *next;
 +	int id;
  };
  
- /* Overall Bridge process resource usage state */
-@@ -146,8 +146,7 @@ struct process_context {
- 	struct dspheap_res_object *pdspheap_list;
+ /* Used for DMM mapped memory accounting */
+@@ -131,8 +132,7 @@ struct process_context {
+ 	void *hprocessor;
  
- 	/* Stream resources */
--	struct strm_res_object *pstrm_list;
--	struct mutex strm_mutex;
-+	struct idr *strm_idp;
- };
+ 	/* DSP Node resources */
+-	struct node_res_object *node_list;
+-	struct mutex node_mutex;
++	struct idr *node_idp;
+ 
+ 	/* DMM mapped memory resources */
+ 	struct list_head dmm_map_list;
+diff --git a/arch/arm/plat-omap/include/dspbridge/node.h b/arch/arm/plat-omap/include/dspbridge/node.h
+index ec0dcf3..f2375a2 100644
+--- a/arch/arm/plat-omap/include/dspbridge/node.h
++++ b/arch/arm/plat-omap/include/dspbridge/node.h
+@@ -60,7 +60,7 @@ extern dsp_status node_allocate(struct proc_object *hprocessor,
+ 				OPTIONAL IN CONST struct dsp_cbdata
+ 				*pargs, OPTIONAL IN CONST struct dsp_nodeattrin
+ 				*attr_in,
+-				OUT struct node_object **ph_node,
++				OUT struct node_res_object **noderes,
+ 				struct process_context *pr_ctxt);
+ 
+ /*
+@@ -261,7 +261,7 @@ extern dsp_status node_create_mgr(OUT struct node_mgr **phNodeMgr,
+  *  Ensures:
+  *      DSP_SOK:            hnode is invalid.
+  */
+-extern dsp_status node_delete(struct node_object *hnode,
++extern dsp_status node_delete(struct node_res_object *hnoderes,
+ 			      struct process_context *pr_ctxt);
  
  /*
 diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-index 00d5148..4e93446 100644
+index ef18477..00d5148 100644
 --- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
 +++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-@@ -47,12 +47,6 @@ extern dsp_status drv_proc_insert_strm_res_element(bhandle hStrm,
- 						   bhandle strm_res,
- 						   bhandle pPctxt);
+@@ -34,16 +34,11 @@ extern dsp_status drv_remove_all_resources(bhandle pPctxt);
+ extern dsp_status drv_remove_proc_context(struct drv_object *hDRVObject,
+ 					  bhandle pr_ctxt);
  
--extern dsp_status drv_get_strm_res_element(bhandle hStrm, bhandle strm_res,
+-extern dsp_status drv_get_node_res_element(bhandle hnode, bhandle node_res,
 -					   bhandle ctxt);
 -
--extern dsp_status drv_proc_remove_strm_res_element(bhandle strm_res,
--						   bhandle ctxt);
+ extern dsp_status drv_insert_node_res_element(bhandle hnode, bhandle node_res,
+ 					      bhandle ctxt);
+ 
+ extern void drv_proc_node_update_heap_status(bhandle hNodeRes, s32 status);
+ 
+-extern dsp_status drv_remove_node_res_element(bhandle node_res, bhandle status);
 -
- extern dsp_status drv_remove_all_strm_res_elements(bhandle ctxt);
+ extern void drv_proc_node_update_status(bhandle hNodeRes, s32 status);
  
- extern enum node_state node_get_state(bhandle hnode);
-diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
-index 51a897f..4f12989 100644
---- a/arch/arm/plat-omap/include/dspbridge/strm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/strm.h
-@@ -44,7 +44,7 @@
-  *      ap_buffer != NULL.
-  *  Ensures:
-  */
--extern dsp_status strm_allocate_buffer(struct strm_object *hStrm,
-+extern dsp_status strm_allocate_buffer(struct strm_res_object *strmres,
- 				       u32 usize,
- 				       OUT u8 **ap_buffer,
- 				       u32 num_bufs,
-@@ -66,7 +66,7 @@ extern dsp_status strm_allocate_buffer(struct strm_object *hStrm,
-  *      strm_init(void) called.
-  *  Ensures:
-  */
--extern dsp_status strm_close(struct strm_object *hStrm,
-+extern dsp_status strm_close(struct strm_res_object *strmres,
- 			     struct process_context *pr_ctxt);
- 
- /*
-@@ -137,7 +137,7 @@ extern void strm_exit(void);
-  *      ap_buffer != NULL.
-  *  Ensures:
-  */
--extern dsp_status strm_free_buffer(struct strm_object *hStrm,
-+extern dsp_status strm_free_buffer(struct strm_res_object *strmres,
- 				   u8 **ap_buffer, u32 num_bufs,
- 				   struct process_context *pr_ctxt);
- 
-@@ -273,7 +273,7 @@ extern dsp_status strm_issue(struct strm_object *hStrm, IN u8 * pbuf,
-  */
- extern dsp_status strm_open(struct node_object *hnode, u32 dir,
- 			    u32 index, IN struct strm_attr *pattr,
--			    OUT struct strm_object **phStrm,
-+			    OUT struct strm_res_object **strmres,
- 			    struct process_context *pr_ctxt);
- 
- /*
+ extern dsp_status drv_proc_update_strm_res(u32 num_bufs, bhandle strm_res);
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index e6e193d..7c52c6b 100644
+index 15a05a6..20e02f1 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
 +++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -1491,6 +1491,19 @@ func_cont:
+@@ -1021,6 +1021,20 @@ u32 procwrap_stop(union Trapped_Args *args, void *pr_ctxt)
  }
  
  /*
-+ * ======== find_strm_handle =========
++ * ======== find_handle =========
 + */
-+inline void find_strm_handle(struct strm_res_object **strmres,
-+				void *pr_ctxt, void *hstream)
++inline void find_node_handle(struct node_res_object **noderes,
++				void *pr_ctxt, void *hnode)
 +{
 +	rcu_read_lock();
-+	*strmres = idr_find(((struct process_context *)pr_ctxt)->strm_idp,
-+							(int)hstream);
++	*noderes = idr_find(((struct process_context *)pr_ctxt)->node_idp,
++								(int)hnode);
 +	rcu_read_unlock();
 +	return;
 +}
 +
++
 +/*
-  * ======== strmwrap_allocate_buffer ========
+  * ======== nodewrap_allocate ========
   */
- u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
-@@ -1498,13 +1511,20 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
- 	dsp_status status;
- 	u8 **ap_buffer = NULL;
- 	u32 num_bufs = args->args_strm_allocatebuffer.num_bufs;
-+	struct strm_res_object *strm_res;
-+
-+	find_strm_handle(&strm_res, pr_ctxt,
-+		args->args_strm_allocatebuffer.hstream);
-+
-+	if (!strm_res)
-+		return DSP_EHANDLE;
+ u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt)
+@@ -1031,7 +1045,7 @@ u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt)
+ 	u32 __user *psize = (u32 __user *) args->args_node_allocate.pargs;
+ 	u8 *pargs = NULL;
+ 	struct dsp_nodeattrin proc_attr_in, *attr_in = NULL;
+-	struct node_object *hnode;
++	struct node_res_object *node_res;
  
- 	if (num_bufs > MAX_BUFS)
- 		return DSP_EINVALIDARG;
- 
- 	ap_buffer = mem_alloc((num_bufs * sizeof(u8 *)), MEM_NONPAGED);
- 
--	status = strm_allocate_buffer(args->args_strm_allocatebuffer.hstream,
-+	status = strm_allocate_buffer(strm_res,
- 				      args->args_strm_allocatebuffer.usize,
- 				      ap_buffer, num_bufs, pr_ctxt);
+ 	/* Optional argument */
+ 	if (psize) {
+@@ -1064,13 +1078,14 @@ u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt)
  	if (DSP_SUCCEEDED(status)) {
-@@ -1512,7 +1532,7 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
- 			  status, num_bufs);
+ 		status = node_allocate(args->args_node_allocate.hprocessor,
+ 				       &node_uuid, (struct dsp_cbdata *)pargs,
+-				       attr_in, &hnode, pr_ctxt);
++				       attr_in, &node_res, pr_ctxt);
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+-		CP_TO_USR(args->args_node_allocate.ph_node, &hnode, status, 1);
++		CP_TO_USR(args->args_node_allocate.ph_node, &node_res->id,
++			status, 1);
  		if (DSP_FAILED(status)) {
  			status = DSP_EPOINTER;
--			strm_free_buffer(args->args_strm_allocatebuffer.hstream,
-+			strm_free_buffer(strm_res,
- 					 ap_buffer, num_bufs, pr_ctxt);
+-			node_delete(hnode, pr_ctxt);
++			node_delete(node_res, pr_ctxt);
  		}
  	}
-@@ -1526,7 +1546,14 @@ u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt)
-  */
- u32 strmwrap_close(union Trapped_Args *args, void *pr_ctxt)
- {
--	return strm_close(args->args_strm_close.hstream, pr_ctxt);
-+	struct strm_res_object *strm_res;
+ func_cont:
+@@ -1088,6 +1103,13 @@ u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt)
+ 	struct dsp_bufferattr *pattr = NULL;
+ 	struct dsp_bufferattr attr;
+ 	u8 *pbuffer = NULL;
++	struct node_res_object *node_res;
 +
-+	find_strm_handle(&strm_res, pr_ctxt, args->args_strm_close.hstream);
++	find_node_handle(&node_res,  pr_ctxt,
++				args->args_node_allocmsgbuf.hnode);
 +
-+	if (!strm_res)
-+		return DSP_EHANDLE;
-+
-+	return strm_close(strm_res, pr_ctxt);
- }
- 
- /*
-@@ -1537,6 +1564,13 @@ u32 strmwrap_free_buffer(union Trapped_Args *args, void *pr_ctxt)
- 	dsp_status status = DSP_SOK;
- 	u8 **ap_buffer = NULL;
- 	u32 num_bufs = args->args_strm_freebuffer.num_bufs;
-+	struct strm_res_object *strm_res;
-+
-+	find_strm_handle(&strm_res, pr_ctxt,
-+			args->args_strm_freebuffer.hstream);
-+
-+	if (!strm_res)
++	if (!node_res)
 +		return DSP_EHANDLE;
  
- 	if (num_bufs > MAX_BUFS)
- 		return DSP_EINVALIDARG;
-@@ -1546,10 +1580,10 @@ u32 strmwrap_free_buffer(union Trapped_Args *args, void *pr_ctxt)
- 	CP_FM_USR(ap_buffer, args->args_strm_freebuffer.ap_buffer, status,
- 		  num_bufs);
- 
--	if (DSP_SUCCEEDED(status)) {
--		status = strm_free_buffer(args->args_strm_freebuffer.hstream,
-+	if (DSP_SUCCEEDED(status))
-+		status = strm_free_buffer(strm_res,
- 					  ap_buffer, num_bufs, pr_ctxt);
--	}
-+
- 	CP_TO_USR(args->args_strm_freebuffer.ap_buffer, ap_buffer, status,
- 		  num_bufs);
- 	kfree(ap_buffer);
-@@ -1576,6 +1610,13 @@ u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt)
- 	struct stream_info strm_info;
- 	struct dsp_streaminfo user;
- 	struct dsp_streaminfo *temp;
-+	struct strm_res_object *strm_res;
-+
-+	find_strm_handle(&strm_res, pr_ctxt,
-+			args->args_strm_getinfo.hstream);
-+
-+	if (!strm_res)
-+		return DSP_EHANDLE;
- 
- 	CP_FM_USR(&strm_info, args->args_strm_getinfo.stream_info, status, 1);
- 	temp = strm_info.user_strm;
-@@ -1583,7 +1624,7 @@ u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt)
- 	strm_info.user_strm = &user;
- 
+ 	if (!args->args_node_allocmsgbuf.usize)
+ 		return DSP_ESIZE;
+@@ -1101,7 +1123,7 @@ u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt)
+ 	/* IN OUT argument */
+ 	CP_FM_USR(&pbuffer, args->args_node_allocmsgbuf.pbuffer, status, 1);
  	if (DSP_SUCCEEDED(status)) {
--		status = strm_get_info(args->args_strm_getinfo.hstream,
-+		status = strm_get_info(strm_res->hstream,
- 				       &strm_info,
- 				       args->args_strm_getinfo.
- 				       stream_info_size);
-@@ -1600,9 +1641,14 @@ u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt)
- u32 strmwrap_idle(union Trapped_Args *args, void *pr_ctxt)
+-		status = node_alloc_msg_buf(args->args_node_allocmsgbuf.hnode,
++		status = node_alloc_msg_buf(node_res->hnode,
+ 					    args->args_node_allocmsgbuf.usize,
+ 					    pattr, &pbuffer);
+ 	}
+@@ -1115,8 +1137,15 @@ u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt)
+ u32 nodewrap_change_priority(union Trapped_Args *args, void *pr_ctxt)
  {
  	u32 ret;
-+	struct strm_res_object *strm_res;
++	struct node_res_object *node_res;
 +
-+	find_strm_handle(&strm_res, pr_ctxt, args->args_strm_idle.hstream);
- 
--	ret = strm_idle(args->args_strm_idle.hstream,
--			args->args_strm_idle.flush_flag);
-+	if (!strm_res)
++	find_node_handle(&node_res, pr_ctxt,
++				args->args_node_changepriority.hnode);
++
++	if (!node_res)
 +		return DSP_EHANDLE;
+ 
+-	ret = node_change_priority(args->args_node_changepriority.hnode,
++	ret = node_change_priority(node_res->hnode,
+ 				   args->args_node_changepriority.prio);
+ 
+ 	return ret;
+@@ -1133,6 +1162,29 @@ u32 nodewrap_connect(union Trapped_Args *args, void *pr_ctxt)
+ 	u32 cb_data_size;
+ 	u32 __user *psize = (u32 __user *) args->args_node_connect.conn_param;
+ 	u8 *pargs = NULL;
++	struct node_res_object *node_res1, *node_res2;
++	struct node_object *node1 = NULL, *node2 = NULL;
 +
-+	ret = strm_idle(strm_res->hstream, args->args_strm_idle.flush_flag);
++	if ((int)args->args_node_connect.hnode != DSP_HGPPNODE) {
++		find_node_handle(&node_res1, pr_ctxt,
++				args->args_node_connect.hnode);
++		if (node_res1)
++			node1 = node_res1->hnode;
++	} else {
++		node1 = args->args_node_connect.hnode;
++	}
++
++	if ((int)args->args_node_connect.other_node != DSP_HGPPNODE) {
++		find_node_handle(&node_res2, pr_ctxt,
++				args->args_node_connect.other_node);
++		if (node_res2)
++			node2 = node_res2->hnode;
++	} else {
++		node2 = args->args_node_connect.other_node;
++	}
++
++	if (!node1 || !node2)
++		return DSP_EHANDLE;
+ 
+ 	/* Optional argument */
+ 	if (psize) {
+@@ -1160,9 +1212,9 @@ u32 nodewrap_connect(union Trapped_Args *args, void *pr_ctxt)
+ 
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+-		status = node_connect(args->args_node_connect.hnode,
++		status = node_connect(node1,
+ 				      args->args_node_connect.stream_id,
+-				      args->args_node_connect.other_node,
++				      node2,
+ 				      args->args_node_connect.other_stream,
+ 				      pattrs, (struct dsp_cbdata *)pargs);
+ 	}
+@@ -1178,8 +1230,14 @@ func_cont:
+ u32 nodewrap_create(union Trapped_Args *args, void *pr_ctxt)
+ {
+ 	u32 ret;
++	struct node_res_object *node_res;
++
++	find_node_handle(&node_res, pr_ctxt, args->args_node_create.hnode);
++
++	if (!node_res)
++		return DSP_EHANDLE;
+ 
+-	ret = node_create(args->args_node_create.hnode);
++	ret = node_create(node_res->hnode);
  
  	return ret;
  }
-@@ -1613,6 +1659,12 @@ u32 strmwrap_idle(union Trapped_Args *args, void *pr_ctxt)
- u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt)
+@@ -1190,8 +1248,14 @@ u32 nodewrap_create(union Trapped_Args *args, void *pr_ctxt)
+ u32 nodewrap_delete(union Trapped_Args *args, void *pr_ctxt)
  {
- 	dsp_status status = DSP_SOK;
-+	struct strm_res_object *strm_res;
+ 	u32 ret;
++	struct node_res_object *node_res;
 +
-+	find_strm_handle(&strm_res, pr_ctxt, args->args_strm_issue.hstream);
++	find_node_handle(&node_res, pr_ctxt, args->args_node_delete.hnode);
 +
-+	if (!strm_res)
++	if (!node_res)
 +		return DSP_EHANDLE;
  
- 	if (!args->args_strm_issue.pbuffer)
- 		return DSP_EPOINTER;
-@@ -1620,7 +1672,7 @@ u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt)
- 	/* No need of doing CP_FM_USR for the user buffer (pbuffer)
- 	   as this is done in Bridge internal function bridge_chnl_add_io_req
- 	   in chnl_sm.c */
--	status = strm_issue(args->args_strm_issue.hstream,
-+	status = strm_issue(strm_res->hstream,
- 			    args->args_strm_issue.pbuffer,
- 			    args->args_strm_issue.dw_bytes,
- 			    args->args_strm_issue.dw_buf_size,
-@@ -1636,7 +1688,7 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
- {
- 	dsp_status status = DSP_SOK;
- 	struct strm_attr attr;
--	struct strm_object *strm_obj;
-+	struct strm_res_object *strm_res_obj;
- 	struct dsp_streamattrin strm_attr_in;
- 	struct node_res_object *node_res;
+-	ret = node_delete(args->args_node_delete.hnode, pr_ctxt);
++	ret = node_delete(node_res, pr_ctxt);
  
-@@ -1658,9 +1710,9 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
- 	}
- 	status = strm_open(node_res->hnode,
- 			   args->args_strm_open.direction,
--			   args->args_strm_open.index, &attr, &strm_obj,
-+			   args->args_strm_open.index, &attr, &strm_res_obj,
- 			   pr_ctxt);
--	CP_TO_USR(args->args_strm_open.ph_stream, &strm_obj, status, 1);
-+	CP_TO_USR(args->args_strm_open.ph_stream, &strm_res_obj->id, status, 1);
- 	return status;
+ 	return ret;
  }
+@@ -1204,6 +1268,13 @@ u32 nodewrap_free_msg_buf(union Trapped_Args *args, void *pr_ctxt)
+ 	dsp_status status = DSP_SOK;
+ 	struct dsp_bufferattr *pattr = NULL;
+ 	struct dsp_bufferattr attr;
++	struct node_res_object *node_res;
++
++	find_node_handle(&node_res, pr_ctxt, args->args_node_freemsgbuf.hnode);
++
++	if (!node_res)
++		return DSP_EHANDLE;
++
+ 	if (args->args_node_freemsgbuf.pattr) {	/* Optional argument */
+ 		CP_FM_USR(&attr, args->args_node_freemsgbuf.pattr, status, 1);
+ 		if (DSP_SUCCEEDED(status))
+@@ -1215,7 +1286,7 @@ u32 nodewrap_free_msg_buf(union Trapped_Args *args, void *pr_ctxt)
+ 		return DSP_EPOINTER;
  
-@@ -1674,8 +1726,14 @@ u32 strmwrap_reclaim(union Trapped_Args *args, void *pr_ctxt)
- 	u32 ul_bytes;
- 	u32 dw_arg;
- 	u32 ul_buf_size;
-+	struct strm_res_object *strm_res;
+ 	if (DSP_SUCCEEDED(status)) {
+-		status = node_free_msg_buf(args->args_node_freemsgbuf.hnode,
++		status = node_free_msg_buf(node_res->hnode,
+ 					   args->args_node_freemsgbuf.pbuffer,
+ 					   pattr);
+ 	}
+@@ -1230,8 +1301,14 @@ u32 nodewrap_get_attr(union Trapped_Args *args, void *pr_ctxt)
+ {
+ 	dsp_status status = DSP_SOK;
+ 	struct dsp_nodeattr attr;
++	struct node_res_object *node_res;
 +
-+	find_strm_handle(&strm_res, pr_ctxt, args->args_strm_reclaim.hstream);
++	find_node_handle(&node_res, pr_ctxt, args->args_node_getattr.hnode);
 +
-+	if (!strm_res)
++	if (!node_res)
 +		return DSP_EHANDLE;
  
--	status = strm_reclaim(args->args_strm_reclaim.hstream, &buf_ptr,
-+	status = strm_reclaim(strm_res->hstream, &buf_ptr,
- 			      &ul_bytes, &ul_buf_size, &dw_arg);
- 	CP_TO_USR(args->args_strm_reclaim.buf_ptr, &buf_ptr, status, 1);
- 	CP_TO_USR(args->args_strm_reclaim.bytes, &ul_bytes, status, 1);
-@@ -1696,12 +1754,19 @@ u32 strmwrap_register_notify(union Trapped_Args *args, void *pr_ctxt)
+-	status = node_get_attr(args->args_node_getattr.hnode, &attr,
++	status = node_get_attr(node_res->hnode, &attr,
+ 			       args->args_node_getattr.attr_size);
+ 	CP_TO_USR(args->args_node_getattr.pattr, &attr, status, 1);
+ 
+@@ -1245,8 +1322,14 @@ u32 nodewrap_get_message(union Trapped_Args *args, void *pr_ctxt)
+ {
+ 	dsp_status status;
+ 	struct dsp_msg msg;
++	struct node_res_object *node_res;
+ 
+-	status = node_get_message(args->args_node_getmessage.hnode, &msg,
++	find_node_handle(&node_res, pr_ctxt, args->args_node_getmessage.hnode);
++
++	if (!node_res)
++		return DSP_EHANDLE;
++
++	status = node_get_message(node_res->hnode, &msg,
+ 				  args->args_node_getmessage.utimeout);
+ 
+ 	CP_TO_USR(args->args_node_getmessage.message, &msg, status, 1);
+@@ -1260,8 +1343,14 @@ u32 nodewrap_get_message(union Trapped_Args *args, void *pr_ctxt)
+ u32 nodewrap_pause(union Trapped_Args *args, void *pr_ctxt)
+ {
+ 	u32 ret;
++	struct node_res_object *node_res;
++
++	find_node_handle(&node_res, pr_ctxt, args->args_node_pause.hnode);
+ 
+-	ret = node_pause(args->args_node_pause.hnode);
++	if (!node_res)
++		return DSP_EHANDLE;
++
++	ret = node_pause(node_res->hnode);
+ 
+ 	return ret;
+ }
+@@ -1273,12 +1362,18 @@ u32 nodewrap_put_message(union Trapped_Args *args, void *pr_ctxt)
+ {
+ 	dsp_status status = DSP_SOK;
+ 	struct dsp_msg msg;
++	struct node_res_object *node_res;
++
++	find_node_handle(&node_res, pr_ctxt, args->args_node_putmessage.hnode);
++
++	if (!node_res)
++		return DSP_EHANDLE;
+ 
+ 	CP_FM_USR(&msg, args->args_node_putmessage.message, status, 1);
+ 
+ 	if (DSP_SUCCEEDED(status)) {
+ 		status =
+-		    node_put_message(args->args_node_putmessage.hnode, &msg,
++		    node_put_message(node_res->hnode, &msg,
+ 				     args->args_node_putmessage.utimeout);
+ 	}
+ 
+@@ -1292,6 +1387,13 @@ u32 nodewrap_register_notify(union Trapped_Args *args, void *pr_ctxt)
  {
  	dsp_status status = DSP_SOK;
  	struct dsp_notification notification;
-+	struct strm_res_object *strm_res;
++	struct node_res_object *node_res;
 +
-+	find_strm_handle(&strm_res, pr_ctxt,
-+			args->args_strm_registernotify.hstream);
++	find_node_handle(&node_res, pr_ctxt,
++			args->args_node_registernotify.hnode);
 +
-+	if (!strm_res)
++	if (!node_res)
 +		return DSP_EHANDLE;
  
  	/* Initialize the notification data structure */
  	notification.ps_name = NULL;
- 	notification.handle = NULL;
+@@ -1302,7 +1404,7 @@ u32 nodewrap_register_notify(union Trapped_Args *args, void *pr_ctxt)
+ 			  args->args_proc_register_notify.hnotification,
+ 			  status, 1);
  
--	status = strm_register_notify(args->args_strm_registernotify.hstream,
-+	status = strm_register_notify(strm_res->hstream,
- 				      args->args_strm_registernotify.event_mask,
- 				      args->args_strm_registernotify.
+-	status = node_register_notify(args->args_node_registernotify.hnode,
++	status = node_register_notify(node_res->hnode,
+ 				      args->args_node_registernotify.event_mask,
+ 				      args->args_node_registernotify.
  				      notify_type, &notification);
-@@ -1719,12 +1784,28 @@ u32 strmwrap_select(union Trapped_Args *args, void *pr_ctxt)
- 	u32 mask;
- 	struct strm_object *strm_tab[MAX_STREAMS];
- 	dsp_status status = DSP_SOK;
-+	struct strm_res_object *strm_res;
-+	int *ids[MAX_STREAMS];
-+	int i;
+@@ -1317,8 +1419,14 @@ u32 nodewrap_register_notify(union Trapped_Args *args, void *pr_ctxt)
+ u32 nodewrap_run(union Trapped_Args *args, void *pr_ctxt)
+ {
+ 	u32 ret;
++	struct node_res_object *node_res;
++
++	find_node_handle(&node_res, pr_ctxt, args->args_node_run.hnode);
++
++	if (!node_res)
++		return DSP_EHANDLE;
  
- 	if (args->args_strm_select.strm_num > MAX_STREAMS)
- 		return DSP_EINVALIDARG;
+-	ret = node_run(args->args_node_run.hnode);
++	ret = node_run(node_res->hnode);
  
--	CP_FM_USR(strm_tab, args->args_strm_select.stream_tab, status,
--		  args->args_strm_select.strm_num);
-+	CP_FM_USR(ids, args->args_strm_select.stream_tab, status,
-+		args->args_strm_select.strm_num);
+ 	return ret;
+ }
+@@ -1330,8 +1438,14 @@ u32 nodewrap_terminate(union Trapped_Args *args, void *pr_ctxt)
+ {
+ 	dsp_status status;
+ 	dsp_status tempstatus;
++	struct node_res_object *node_res;
+ 
+-	status = node_terminate(args->args_node_terminate.hnode, &tempstatus);
++	find_node_handle(&node_res, pr_ctxt, args->args_node_terminate.hnode);
 +
-+	if (DSP_FAILED(status))
-+		return status;
++	if (!node_res)
++		return DSP_EHANDLE;
 +
-+	for (i = 0; i < args->args_strm_select.strm_num; i++) {
-+		find_strm_handle(&strm_res, pr_ctxt, ids[i]);
++	status = node_terminate(node_res->hnode, &tempstatus);
+ 
+ 	CP_TO_USR(args->args_node_terminate.pstatus, &tempstatus, status, 1);
+ 
+@@ -1513,6 +1627,12 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
+ 	struct strm_attr attr;
+ 	struct strm_object *strm_obj;
+ 	struct dsp_streamattrin strm_attr_in;
++	struct node_res_object *node_res;
 +
-+		if (!strm_res)
-+			return DSP_EHANDLE;
++	find_node_handle(&node_res, pr_ctxt, args->args_strm_open.hnode);
 +
-+		strm_tab[i] = strm_res->hstream;
-+	}
-+
- 	if (DSP_SUCCEEDED(status)) {
- 		status = strm_select(strm_tab, args->args_strm_select.strm_num,
- 				     &mask, args->args_strm_select.utimeout);
++	if (!node_res)
++		return DSP_EHANDLE;
+ 
+ 	CP_FM_USR(&attr, args->args_strm_open.attr_in, status, 1);
+ 
+@@ -1525,7 +1645,7 @@ u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt)
+ 		}
+ 
+ 	}
+-	status = strm_open(args->args_strm_open.hnode,
++	status = strm_open(node_res->hnode,
+ 			   args->args_strm_open.direction,
+ 			   args->args_strm_open.index, &attr, &strm_obj,
+ 			   pr_ctxt);
 diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index b41c753..ad0391f 100644
+index 75b9b9f..b41c753 100644
 --- a/drivers/dsp/bridge/rmgr/drv.c
 +++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -207,75 +207,44 @@ dsp_status drv_remove_all_node_res_elements(bhandle hPCtxt)
- dsp_status drv_proc_insert_strm_res_element(bhandle hStreamHandle,
- 					    bhandle hstrm_res, bhandle hPCtxt)
- {
--	struct strm_res_object **pstrm_res =
--	    (struct strm_res_object **)hstrm_res;
--	struct process_context *ctxt = (struct process_context *)hPCtxt;
-+	struct strm_res_object **pstrm_res = hstrm_res;
-+	struct process_context *ctxt = hPCtxt;
+@@ -71,7 +71,7 @@ static dsp_status request_bridge_resources_dsp(u32 dw_context, s32 fRequest);
+ 
+ /* GPP PROCESS CLEANUP CODE */
+ 
+-static dsp_status drv_proc_free_node_res(bhandle hPCtxt);
++static int drv_proc_free_node_res(int id, void *p, void *data);
+ extern enum node_state node_get_state(bhandle hnode);
+ 
+ /* Allocate and add a node resource element
+@@ -83,89 +83,62 @@ dsp_status drv_insert_node_res_element(bhandle hnode, bhandle hNodeRes,
+ 	    (struct node_res_object **)hNodeRes;
+ 	struct process_context *ctxt = (struct process_context *)hPCtxt;
  	dsp_status status = DSP_SOK;
--	struct strm_res_object *temp_strm_res = NULL;
+-	struct node_res_object *temp_node_res = NULL;
 +	int retval;
  
- 	*pstrm_res = (struct strm_res_object *)
- 	    mem_calloc(1 * sizeof(struct strm_res_object), MEM_PAGED);
--	if (*pstrm_res == NULL)
-+	if (*pstrm_res == NULL) {
- 		status = DSP_EHANDLE;
+ 	*node_res_obj = (struct node_res_object *)mem_calloc
+ 	    (1 * sizeof(struct node_res_object), MEM_PAGED);
+-	if (*node_res_obj == NULL)
+-		status = DSP_EHANDLE;
++	if (!*node_res_obj) {
++		status = DSP_EMEMORY;
 +		goto func_end;
 +	}
  
 -	if (DSP_SUCCEEDED(status)) {
--		if (mutex_lock_interruptible(&ctxt->strm_mutex)) {
--			kfree(*pstrm_res);
+-		if (mutex_lock_interruptible(&ctxt->node_mutex)) {
+-			kfree(*node_res_obj);
 -			return DSP_EFAIL;
-+	(*pstrm_res)->hstream = hStreamHandle;
-+	retval = idr_get_new(ctxt->strm_idp, *pstrm_res,
-+						&(*pstrm_res)->id);
++	(*node_res_obj)->hnode = hnode;
++	retval = idr_get_new(ctxt->node_idp, *node_res_obj,
++						&(*node_res_obj)->id);
 +	if (retval == -EAGAIN) {
-+		if (!idr_pre_get(ctxt->strm_idp, GFP_KERNEL)) {
++		if (!idr_pre_get(ctxt->node_idp, GFP_KERNEL)) {
 +			pr_err("%s: OUT OF MEMORY\n", __func__);
 +			status = DSP_EMEMORY;
 +			goto func_end;
  		}
--		(*pstrm_res)->hstream = hStreamHandle;
--		if (ctxt->pstrm_list != NULL) {
--			temp_strm_res = ctxt->pstrm_list;
--			while (temp_strm_res->next != NULL)
--				temp_strm_res = temp_strm_res->next;
+-		(*node_res_obj)->hnode = hnode;
+-		if (ctxt->node_list != NULL) {
+-			temp_node_res = ctxt->node_list;
+-			while (temp_node_res->next != NULL)
+-				temp_node_res = temp_node_res->next;
  
--			temp_strm_res->next = *pstrm_res;
+-			temp_node_res->next = *node_res_obj;
 -		} else {
--			ctxt->pstrm_list = *pstrm_res;
+-			ctxt->node_list = *node_res_obj;
 -		}
--		mutex_unlock(&ctxt->strm_mutex);
-+		retval = idr_get_new(ctxt->strm_idp, *pstrm_res,
-+						&(*pstrm_res)->id);
- 	}
--	return status;
--}
--
--/* Release Stream resource element context
--* This function called after the actual resource is freed
-- */
--dsp_status drv_proc_remove_strm_res_element(bhandle hstrm_res, bhandle hPCtxt)
--{
--	struct strm_res_object *pstrm_res = (struct strm_res_object *)hstrm_res;
--	struct process_context *ctxt = (struct process_context *)hPCtxt;
--	struct strm_res_object *temp_strm_res;
--	dsp_status status = DSP_SOK;
--
--	if (mutex_lock_interruptible(&ctxt->strm_mutex))
--		return DSP_EFAIL;
--	temp_strm_res = ctxt->pstrm_list;
--
--	if (ctxt->pstrm_list == pstrm_res) {
--		ctxt->pstrm_list = pstrm_res->next;
--	} else {
--		while (temp_strm_res && temp_strm_res->next != pstrm_res)
--			temp_strm_res = temp_strm_res->next;
--		if (temp_strm_res == NULL)
--			status = DSP_ENOTFOUND;
--		else
--			temp_strm_res->next = pstrm_res->next;
+-		mutex_unlock(&ctxt->node_mutex);
++		retval = idr_get_new(ctxt->node_idp, *node_res_obj,
++						&(*node_res_obj)->id);
++	}
 +	if (retval) {
 +		pr_err("%s: FAILED, IDR is FULL\n", __func__);
 +		status = DSP_EFAIL;
  	}
--	mutex_unlock(&ctxt->strm_mutex);
--	kfree(pstrm_res);
-+
 +func_end:
++	if (DSP_FAILED(status))
++		kfree(*node_res_obj);
+ 
  	return status;
  }
  
--/* Release all Stream resources and its context
--* This is called from .bridge_release.
-- */
--dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
-+static int drv_proc_free_strm_res(int id, void *p, void *data)
+ /* Release all Node resources and its context
+-* This is called from .Node_Delete. */
+-dsp_status drv_remove_node_res_element(bhandle hNodeRes, bhandle hPCtxt)
+-{
+-	struct node_res_object *node_res_obj =
+-	    (struct node_res_object *)hNodeRes;
+-	struct process_context *ctxt = (struct process_context *)hPCtxt;
+-	struct node_res_object *temp_node;
+-	dsp_status status = DSP_SOK;
+-
+-	if (mutex_lock_interruptible(&ctxt->node_mutex))
+-		return DSP_EFAIL;
+-	temp_node = ctxt->node_list;
+-	if (temp_node == node_res_obj) {
+-		ctxt->node_list = node_res_obj->next;
+-	} else {
+-		while (temp_node && temp_node->next != node_res_obj)
+-			temp_node = temp_node->next;
+-		if (!temp_node)
+-			status = DSP_ENOTFOUND;
+-		else
+-			temp_node->next = node_res_obj->next;
+-	}
+-	mutex_unlock(&ctxt->node_mutex);
+-	kfree(node_res_obj);
+-	return status;
+-}
+-
+-/* Actual Node De-Allocation */
+-static dsp_status drv_proc_free_node_res(bhandle hPCtxt)
++ * Actual Node De-Allocation */
++static int drv_proc_free_node_res(int id, void *p, void *data)
  {
 -	struct process_context *ctxt = (struct process_context *)hPCtxt;
 -	dsp_status status = DSP_SOK;
--	struct strm_res_object *strm_res = NULL;
--	struct strm_res_object *strm_tmp = NULL;
+-	struct node_res_object *node_list = NULL;
+-	struct node_res_object *node_res_obj = NULL;
 +	struct process_context *ctxt = data;
-+	struct strm_res_object *strm_res = p;
- 	struct stream_info strm_info;
- 	struct dsp_streaminfo user;
- 	u8 **ap_buffer = NULL;
-@@ -284,60 +253,38 @@ dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
- 	u32 dw_arg;
- 	s32 ul_buf_size;
++	dsp_status status;
++	struct node_res_object *node_res_obj = p;
+ 	u32 node_state;
  
--	strm_tmp = ctxt->pstrm_list;
--	while (strm_tmp) {
--		strm_res = strm_tmp;
--		strm_tmp = strm_tmp->next;
--		if (strm_res->num_bufs) {
--			ap_buffer = mem_alloc((strm_res->num_bufs *
--					       sizeof(u8 *)), MEM_NONPAGED);
--			if (ap_buffer) {
--				status = strm_free_buffer(strm_res->hstream,
--							  ap_buffer,
--							  strm_res->num_bufs,
--							  ctxt);
--				kfree(ap_buffer);
+-	node_list = ctxt->node_list;
+-	while (node_list != NULL) {
+-		node_res_obj = node_list;
+-		node_list = node_list->next;
+-		if (node_res_obj->node_allocated) {
+-			node_state = node_get_state(node_res_obj->hnode);
+-			if (node_state <= NODE_DELETING) {
+-				if ((node_state == NODE_RUNNING) ||
+-				    (node_state == NODE_PAUSED) ||
+-				    (node_state == NODE_TERMINATING))
+-					status = node_terminate
+-					    (node_res_obj->hnode, &status);
+-
+-				status = node_delete(node_res_obj->hnode, ctxt);
 -			}
-+	if (strm_res->num_bufs) {
-+		ap_buffer = mem_alloc((strm_res->num_bufs *
-+				       sizeof(u8 *)), MEM_NONPAGED);
-+		if (ap_buffer) {
-+			strm_free_buffer(strm_res,
-+						  ap_buffer,
-+						  strm_res->num_bufs,
-+						  ctxt);
-+			kfree(ap_buffer);
++	if (node_res_obj->node_allocated) {
++		node_state = node_get_state(node_res_obj->hnode);
++		if (node_state <= NODE_DELETING) {
++			if ((node_state == NODE_RUNNING) ||
++			    (node_state == NODE_PAUSED) ||
++			    (node_state == NODE_TERMINATING))
++				node_terminate
++				    (node_res_obj->hnode, &status);
++
++			node_delete(node_res_obj, ctxt);
  		}
--		strm_info.user_strm = &user;
--		user.number_bufs_in_stream = 0;
--		strm_get_info(strm_res->hstream, &strm_info, sizeof(strm_info));
--		while (user.number_bufs_in_stream--)
--			strm_reclaim(strm_res->hstream, &buf_ptr, &ul_bytes,
--				     (u32 *) &ul_buf_size, &dw_arg);
--		status = strm_close(strm_res->hstream, ctxt);
  	}
 -	return status;
-+	strm_info.user_strm = &user;
-+	user.number_bufs_in_stream = 0;
-+	strm_get_info(strm_res->hstream, &strm_info, sizeof(strm_info));
-+	while (user.number_bufs_in_stream--)
-+		strm_reclaim(strm_res->hstream, &buf_ptr, &ul_bytes,
-+			     (u32 *) &ul_buf_size, &dw_arg);
-+	strm_close(strm_res, ctxt);
++
 +	return 0;
  }
  
--/* Getting the stream resource element */
--dsp_status drv_get_strm_res_element(bhandle hStrm, bhandle hstrm_res,
--				    bhandle hPCtxt)
-+/* Release all Stream resources and its context
-+* This is called from .bridge_release.
-+ */
-+dsp_status drv_remove_all_strm_res_elements(bhandle hPCtxt)
+ /* Release all Mapped and Reserved DMM resources */
+@@ -220,49 +193,12 @@ void drv_proc_node_update_heap_status(bhandle hNodeRes, s32 status)
+  */
+ dsp_status drv_remove_all_node_res_elements(bhandle hPCtxt)
  {
--	struct strm_res_object **strm_res =
--	    (struct strm_res_object **)hstrm_res;
- 	struct process_context *ctxt = (struct process_context *)hPCtxt;
+-	struct process_context *ctxt = (struct process_context *)hPCtxt;
 -	dsp_status status = DSP_SOK;
--	struct strm_res_object *temp_strm2 = NULL;
--	struct strm_res_object *temp_strm;
- 
--	if (mutex_lock_interruptible(&ctxt->strm_mutex))
+-	struct node_res_object *temp_node2 = NULL;
+-	struct node_res_object *temp_node = NULL;
+-
+-	drv_proc_free_node_res(ctxt);
+-	temp_node = ctxt->node_list;
+-	while (temp_node != NULL) {
+-		temp_node2 = temp_node;
+-		temp_node = temp_node->next;
+-		kfree(temp_node2);
+-	}
+-	ctxt->node_list = NULL;
+-	return status;
+-}
+-
+-/* Getting the node resource element */
+-dsp_status drv_get_node_res_element(bhandle hnode, bhandle hNodeRes,
+-				    bhandle hPCtxt)
+-{
+-	struct node_res_object **node_res = (struct node_res_object **)hNodeRes;
+-	struct process_context *ctxt = (struct process_context *)hPCtxt;
+-	dsp_status status = DSP_SOK;
+-	struct node_res_object *temp_node2 = NULL;
+-	struct node_res_object *temp_node = NULL;
+-
+-	if (mutex_lock_interruptible(&ctxt->node_mutex))
 -		return DSP_EFAIL;
-+	idr_for_each(ctxt->strm_idp, drv_proc_free_strm_res, ctxt);
-+	idr_destroy(ctxt->strm_idp);
++	struct process_context *ctxt = hPCtxt;
  
--	temp_strm = ctxt->pstrm_list;
--	while ((temp_strm != NULL) && (temp_strm->hstream != hStrm)) {
--		temp_strm2 = temp_strm;
--		temp_strm = temp_strm->next;
+-	temp_node = ctxt->node_list;
+-	while ((temp_node != NULL) && (temp_node->hnode != hnode)) {
+-		temp_node2 = temp_node;
+-		temp_node = temp_node->next;
 -	}
 -
--	mutex_unlock(&ctxt->strm_mutex);
+-	mutex_unlock(&ctxt->node_mutex);
 -
--	if (temp_strm != NULL)
--		*strm_res = temp_strm;
+-	if (temp_node != NULL)
+-		*node_res = temp_node;
 -	else
 -		status = DSP_ENOTFOUND;
--
++	idr_for_each(ctxt->node_idp, drv_proc_free_node_res, ctxt);
++	idr_destroy(ctxt->node_idp);
+ 
 -	return status;
 +	return DSP_SOK;
  }
  
- /* Updating the stream resource element */
+ /* Allocate the STRM resource element
 diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index be5efb7..77d63fc 100644
+index bd693cd..be5efb7 100644
 --- a/drivers/dsp/bridge/rmgr/drv_interface.c
 +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -506,17 +506,24 @@ static int bridge_open(struct inode *ip, struct file *filp)
+@@ -506,8 +506,13 @@ static int bridge_open(struct inode *ip, struct file *filp)
  		INIT_LIST_HEAD(&pr_ctxt->dmm_map_list);
  		spin_lock_init(&pr_ctxt->dmm_rsv_lock);
  		INIT_LIST_HEAD(&pr_ctxt->dmm_rsv_list);
--		mutex_init(&pr_ctxt->strm_mutex);
- 
- 		pr_ctxt->node_idp = mem_calloc(sizeof(struct idr), MEM_PAGED);
--		if (pr_ctxt->node_idp)
-+		if (pr_ctxt->node_idp) {
- 			idr_init(pr_ctxt->node_idp);
-+		} else {
-+			status = -ENOMEM;
-+			goto err;
-+		}
+-		mutex_init(&pr_ctxt->node_mutex);
+ 		mutex_init(&pr_ctxt->strm_mutex);
 +
-+		pr_ctxt->strm_idp = mem_calloc(sizeof(struct idr), MEM_PAGED);
-+		if (pr_ctxt->strm_idp)
-+			idr_init(pr_ctxt->strm_idp);
- 		else
- 			status = -ENOMEM;
++		pr_ctxt->node_idp = mem_calloc(sizeof(struct idr), MEM_PAGED);
++		if (pr_ctxt->node_idp)
++			idr_init(pr_ctxt->node_idp);
++		else
++			status = -ENOMEM;
  	} else {
  		status = -ENOMEM;
  	}
--
-+err:
- 	filp->private_data = pr_ctxt;
- #ifdef CONFIG_BRIDGE_RECOVERY
- 	if (!status)
-diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index 699f2dc..ddfb1f6 100644
---- a/drivers/dsp/bridge/rmgr/strm.c
-+++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -102,20 +102,19 @@ static void delete_strm_mgr(struct strm_mgr *strm_mgr_obj);
-  *  Purpose:
-  *      Allocates buffers for a stream.
-  */
--dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
-+dsp_status strm_allocate_buffer(struct strm_res_object *strmres, u32 usize,
- 				OUT u8 **ap_buffer, u32 num_bufs,
- 				struct process_context *pr_ctxt)
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 32df890..236c8f6 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -299,7 +299,7 @@ dsp_status node_allocate(struct proc_object *hprocessor,
+ 			 IN CONST struct dsp_uuid *pNodeId,
+ 			 OPTIONAL IN CONST struct dsp_cbdata *pargs,
+ 			 OPTIONAL IN CONST struct dsp_nodeattrin *attr_in,
+-			 OUT struct node_object **ph_node,
++			 OUT struct node_res_object **noderes,
+ 			 struct process_context *pr_ctxt)
  {
- 	dsp_status status = DSP_SOK;
- 	u32 alloc_cnt = 0;
- 	u32 i;
--
--	bhandle hstrm_res;
-+	struct strm_object *hstrm = strmres->hstream;
+ 	struct node_mgr *hnode_mgr;
+@@ -331,10 +331,10 @@ dsp_status node_allocate(struct proc_object *hprocessor,
  
  	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(ap_buffer != NULL);
+ 	DBC_REQUIRE(hprocessor != NULL);
+-	DBC_REQUIRE(ph_node != NULL);
++	DBC_REQUIRE(noderes != NULL);
+ 	DBC_REQUIRE(pNodeId != NULL);
  
--	if (MEM_IS_VALID_HANDLE(hStrm, STRM_SIGNATURE)) {
-+	if (MEM_IS_VALID_HANDLE(hstrm, STRM_SIGNATURE)) {
- 		/*
- 		 * Allocate from segment specified at time of stream open.
- 		 */
-@@ -130,8 +129,8 @@ dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
- 		goto func_end;
+-	*ph_node = NULL;
++	*noderes = NULL;
  
- 	for (i = 0; i < num_bufs; i++) {
--		DBC_ASSERT(hStrm->xlator != NULL);
--		(void)cmm_xlator_alloc_buf(hStrm->xlator, &ap_buffer[i], usize);
-+		DBC_ASSERT(hstrm->xlator != NULL);
-+		(void)cmm_xlator_alloc_buf(hstrm->xlator, &ap_buffer[i], usize);
- 		if (ap_buffer[i] == NULL) {
- 			status = DSP_EMEMORY;
- 			alloc_cnt = i;
-@@ -139,14 +138,12 @@ dsp_status strm_allocate_buffer(struct strm_object *hStrm, u32 usize,
- 		}
+ 	status = proc_get_processor_id(hprocessor, &proc_id);
+ 
+@@ -653,9 +653,6 @@ func_cont:
+ 		 * (for overlay and dll) */
+ 		pnode->phase_split = true;
+ 
+-		if (DSP_SUCCEEDED(status))
+-			*ph_node = pnode;
+-
+ 		/* Notify all clients registered for DSP_NODESTATECHANGE. */
+ 		proc_notify_all_clients(hprocessor, DSP_NODESTATECHANGE);
+ 	} else {
+@@ -666,17 +663,23 @@ func_cont:
  	}
- 	if (DSP_FAILED(status))
--		strm_free_buffer(hStrm, ap_buffer, alloc_cnt, pr_ctxt);
-+		strm_free_buffer(strmres, ap_buffer, alloc_cnt, pr_ctxt);
  
- 	if (DSP_FAILED(status))
- 		goto func_end;
- 
--	if (drv_get_strm_res_element(hStrm, &hstrm_res, pr_ctxt) !=
--	    DSP_ENOTFOUND)
--		drv_proc_update_strm_res(num_bufs, hstrm_res);
-+	drv_proc_update_strm_res(num_bufs, strmres);
- 
+ 	if (DSP_SUCCEEDED(status)) {
+-		drv_insert_node_res_element(*ph_node, &node_res, pr_ctxt);
++		status = drv_insert_node_res_element(pnode, &node_res, pr_ctxt);
++		if (DSP_FAILED(status)) {
++			delete_node(pnode, pr_ctxt);
++			goto func_end;
++		}
++
++		*noderes = (struct node_res_object *)node_res;
+ 		drv_proc_node_update_heap_status(node_res, true);
+ 		drv_proc_node_update_status(node_res, true);
+ 	}
+-	DBC_ENSURE((DSP_FAILED(status) && (*ph_node == NULL)) ||
++	DBC_ENSURE((DSP_FAILED(status) && (*noderes == NULL)) ||
+ 		   (DSP_SUCCEEDED(status)
+-		    && MEM_IS_VALID_HANDLE((*ph_node), NODE_SIGNATURE)));
++		    && MEM_IS_VALID_HANDLE(pnode, NODE_SIGNATURE)));
  func_end:
+ 	dev_dbg(bridge, "%s: hprocessor: %p pNodeId: %p pargs: %p attr_in: %p "
+-		"ph_node: %p status: 0x%x\n", __func__, hprocessor,
+-		pNodeId, pargs, attr_in, ph_node, status);
++		"node_res: %p status: 0x%x\n", __func__, hprocessor,
++		pNodeId, pargs, attr_in, noderes, status);
  	return status;
-@@ -157,46 +154,43 @@ func_end:
-  *  Purpose:
-  *      Close a stream opened with strm_open().
+ }
+ 
+@@ -1439,10 +1442,10 @@ dsp_status node_create_mgr(OUT struct node_mgr **phNodeMgr,
+  *      Loads the node's delete function if necessary. Free GPP side resources
+  *      after node's delete function returns.
   */
--dsp_status strm_close(struct strm_object *hStrm,
-+dsp_status strm_close(struct strm_res_object *strmres,
- 		      struct process_context *pr_ctxt)
+-dsp_status node_delete(struct node_object *hnode,
++dsp_status node_delete(struct node_res_object *hnoderes,
+ 		       struct process_context *pr_ctxt)
  {
+-	struct node_object *pnode = (struct node_object *)hnode;
++	struct node_object *pnode = hnoderes->hnode;
+ 	struct node_mgr *hnode_mgr;
+ 	struct proc_object *hprocessor;
+ 	struct disp_object *disp_obj;
+@@ -1455,32 +1458,32 @@ dsp_status node_delete(struct node_object *hnode,
+ 	u32 proc_id;
  	struct bridge_drv_interface *intf_fxns;
- 	struct chnl_info chnl_info_obj;
- 	dsp_status status = DSP_SOK;
--
--	bhandle hstrm_res;
-+	struct strm_object *hstrm = strmres->hstream;
  
+-	bhandle node_res;
++	bhandle node_res = hnoderes;
+ 
+ 	struct dsp_processorstate proc_state;
  	DBC_REQUIRE(refs > 0);
  
--	if (!MEM_IS_VALID_HANDLE(hStrm, STRM_SIGNATURE)) {
-+	if (!MEM_IS_VALID_HANDLE(hstrm, STRM_SIGNATURE)) {
+-	if (!MEM_IS_VALID_HANDLE(hnode, NODE_SIGNATURE)) {
++	if (!MEM_IS_VALID_HANDLE(pnode, NODE_SIGNATURE)) {
  		status = DSP_EHANDLE;
- 	} else {
- 		/* Have all buffers been reclaimed? If not, return
- 		 * DSP_EPENDING */
--		intf_fxns = hStrm->strm_mgr_obj->intf_fxns;
-+		intf_fxns = hstrm->strm_mgr_obj->intf_fxns;
- 		status =
--		    (*intf_fxns->pfn_chnl_get_info) (hStrm->chnl_obj,
-+		    (*intf_fxns->pfn_chnl_get_info) (hstrm->chnl_obj,
- 						     &chnl_info_obj);
- 		DBC_ASSERT(DSP_SUCCEEDED(status));
- 
- 		if (chnl_info_obj.cio_cs > 0 || chnl_info_obj.cio_reqs > 0)
- 			status = DSP_EPENDING;
- 		else
--			status = delete_strm(hStrm);
-+			status = delete_strm(hstrm);
- 	}
- 
- 	if (DSP_FAILED(status))
  		goto func_end;
+ 	}
+ 	/* create struct dsp_cbdata struct for PWR call */
+ 	cb_data.cb_data = PWR_TIMEOUT;
+-	hnode_mgr = hnode->hnode_mgr;
+-	hprocessor = hnode->hprocessor;
++	hnode_mgr = pnode->hnode_mgr;
++	hprocessor = pnode->hprocessor;
+ 	disp_obj = hnode_mgr->disp_obj;
+-	node_type = node_get_type(hnode);
++	node_type = node_get_type(pnode);
+ 	intf_fxns = hnode_mgr->intf_fxns;
+ 	/* Enter critical section */
+ 	mutex_lock(&hnode_mgr->node_mgr_lock);
  
--	if (drv_get_strm_res_element(hStrm, &hstrm_res, pr_ctxt) !=
+-	state = node_get_state(hnode);
++	state = node_get_state(pnode);
+ 	/*  Execute delete phase code for non-device node in all cases
+ 	 *  except when the node was only allocated. Delete phase must be
+ 	 *  executed even if create phase was executed, but failed.
+ 	 *  If the node environment pointer is non-NULL, the delete phase
+ 	 *  code must be  executed. */
+-	if (!(state == NODE_ALLOCATED && hnode->node_env == (u32) NULL) &&
++	if (!(state == NODE_ALLOCATED && pnode->node_env == (u32) NULL) &&
+ 	    node_type != NODE_DEVICE) {
+ 		status = proc_get_processor_id(pnode->hprocessor, &proc_id);
+ 		if (DSP_FAILED(status))
+@@ -1493,26 +1496,26 @@ dsp_status node_delete(struct node_object *hnode,
+ 			 *  is now ok to unload it. If the node is running, we
+ 			 *  will unload the execute phase only after deleting
+ 			 *  the node. */
+-			if (state == NODE_PAUSED && hnode->loaded &&
+-			    hnode->phase_split) {
++			if (state == NODE_PAUSED && pnode->loaded &&
++			    pnode->phase_split) {
+ 				/* Ok to unload execute code as long as node
+ 				 * is not * running */
+ 				status1 =
+ 				    hnode_mgr->nldr_fxns.
+-				    pfn_unload(hnode->nldr_node_obj,
++				    pfn_unload(pnode->nldr_node_obj,
+ 					       NLDR_EXECUTE);
+-				hnode->loaded = false;
+-				NODE_SET_STATE(hnode, NODE_DONE);
++				pnode->loaded = false;
++				NODE_SET_STATE(pnode, NODE_DONE);
+ 			}
+ 			/* Load delete phase code if not loaded or if haven't
+ 			 * * unloaded EXECUTE phase */
+-			if ((!(hnode->loaded) || (state == NODE_RUNNING)) &&
+-			    hnode->phase_split) {
++			if ((!(pnode->loaded) || (state == NODE_RUNNING)) &&
++			    pnode->phase_split) {
+ 				status =
+ 				    hnode_mgr->nldr_fxns.
+-				    pfn_load(hnode->nldr_node_obj, NLDR_DELETE);
++				    pfn_load(pnode->nldr_node_obj, NLDR_DELETE);
+ 				if (DSP_SUCCEEDED(status))
+-					hnode->loaded = true;
++					pnode->loaded = true;
+ 				else
+ 					pr_err("%s: fail - load delete code:"
+ 					       " 0x%x\n", __func__, status);
+@@ -1521,14 +1524,14 @@ dsp_status node_delete(struct node_object *hnode,
+ func_cont1:
+ 		if (DSP_SUCCEEDED(status)) {
+ 			/* Unblock a thread trying to terminate the node */
+-			(void)sync_set_event(hnode->sync_done);
++			(void)sync_set_event(pnode->sync_done);
+ 			if (proc_id == DSP_UNIT) {
+ 				/* ul_delete_fxn = address of node's delete
+ 				 * function */
+-				status = get_fxn_address(hnode, &ul_delete_fxn,
++				status = get_fxn_address(pnode, &ul_delete_fxn,
+ 							 DELETEPHASE);
+ 			} else if (proc_id == IVA_UNIT)
+-				ul_delete_fxn = (u32) hnode->node_env;
++				ul_delete_fxn = (u32) pnode->node_env;
+ 			if (DSP_SUCCEEDED(status)) {
+ 				status = proc_get_state(hprocessor,
+ 						&proc_state,
+@@ -1536,22 +1539,22 @@ func_cont1:
+ 						       dsp_processorstate));
+ 				if (proc_state.proc_state != PROC_ERROR) {
+ 					status =
+-					    disp_node_delete(disp_obj, hnode,
++					    disp_node_delete(disp_obj, pnode,
+ 							     hnode_mgr->
+ 							     ul_fxn_addrs
+ 							     [RMSDELETENODE],
+ 							     ul_delete_fxn,
+-							     hnode->node_env);
++							     pnode->node_env);
+ 				} else
+-					NODE_SET_STATE(hnode, NODE_DONE);
++					NODE_SET_STATE(pnode, NODE_DONE);
+ 
+ 				/* Unload execute, if not unloaded, and delete
+ 				 * function */
+ 				if (state == NODE_RUNNING &&
+-				    hnode->phase_split) {
++				    pnode->phase_split) {
+ 					status1 =
+ 					    hnode_mgr->nldr_fxns.
+-					    pfn_unload(hnode->nldr_node_obj,
++					    pfn_unload(pnode->nldr_node_obj,
+ 						       NLDR_EXECUTE);
+ 				}
+ 				if (DSP_FAILED(status1))
+@@ -1559,10 +1562,10 @@ func_cont1:
+ 					       " 0x%x\n", __func__, status1);
+ 
+ 				status1 =
+-				    hnode_mgr->nldr_fxns.pfn_unload(hnode->
++				    hnode_mgr->nldr_fxns.pfn_unload(pnode->
+ 							    nldr_node_obj,
+ 							    NLDR_DELETE);
+-				hnode->loaded = false;
++				pnode->loaded = false;
+ 				if (DSP_FAILED(status1))
+ 					pr_err("%s: fail - unload delete code: "
+ 					       "0x%x\n", __func__, status1);
+@@ -1571,25 +1574,28 @@ func_cont1:
+ 	}
+ 	/* Free host side resources even if a failure occurred */
+ 	/* Remove node from hnode_mgr->node_list */
+-	lst_remove_elem(hnode_mgr->node_list, (struct list_head *)hnode);
++	lst_remove_elem(hnode_mgr->node_list, (struct list_head *)pnode);
+ 	hnode_mgr->num_nodes--;
+ 	/* Decrement count of nodes created on DSP */
+ 	if ((state != NODE_ALLOCATED) || ((state == NODE_ALLOCATED) &&
+-					  (hnode->node_env != (u32) NULL)))
++					  (pnode->node_env != (u32) NULL)))
+ 		hnode_mgr->num_created--;
+ 	/*  Free host-side resources allocated by node_create()
+ 	 *  delete_node() fails if SM buffers not freed by client! */
+-	if (drv_get_node_res_element(hnode, &node_res, pr_ctxt) !=
 -	    DSP_ENOTFOUND)
--		drv_proc_remove_strm_res_element(hstrm_res, pr_ctxt);
-+	idr_remove(pr_ctxt->strm_idp, strmres->id);
+-		drv_proc_node_update_status(node_res, false);
+-	delete_node(hnode, pr_ctxt);
++	drv_proc_node_update_status(node_res, false);
++	delete_node(pnode, pr_ctxt);
++
++	/*
++	 * Release all Node resources and its context
++	 */
++	idr_remove(pr_ctxt->node_idp, ((struct node_res_object *)node_res)->id);
++	kfree(node_res);
+ 
+-	drv_remove_node_res_element(node_res, pr_ctxt);
+ 	/* Exit critical section */
+ 	mutex_unlock(&hnode_mgr->node_mgr_lock);
+ 	proc_notify_clients(hprocessor, DSP_NODESTATECHANGE);
  func_end:
- 	DBC_ENSURE(status == DSP_SOK || status == DSP_EHANDLE ||
- 		   status == DSP_EPENDING || status == DSP_EFAIL);
- 
--	dev_dbg(bridge, "%s: hStrm: %p, status 0x%x\n", __func__,
--		hStrm, status);
-+	dev_dbg(bridge, "%s: hstrm: %p, status 0x%x\n", __func__,
-+		hstrm, status);
- 	return status;
- }
- 
-@@ -279,33 +273,30 @@ void strm_exit(void)
-  *  Purpose:
-  *      Frees the buffers allocated for a stream.
-  */
--dsp_status strm_free_buffer(struct strm_object *hStrm, u8 ** ap_buffer,
-+dsp_status strm_free_buffer(struct strm_res_object *strmres, u8 ** ap_buffer,
- 			    u32 num_bufs, struct process_context *pr_ctxt)
- {
- 	dsp_status status = DSP_SOK;
- 	u32 i = 0;
--
--	bhandle hstrm_res = NULL;
-+	struct strm_object *hstrm = strmres->hstream;
- 
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(ap_buffer != NULL);
- 
--	if (!MEM_IS_VALID_HANDLE(hStrm, STRM_SIGNATURE))
-+	if (!MEM_IS_VALID_HANDLE(hstrm, STRM_SIGNATURE))
- 		status = DSP_EHANDLE;
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		for (i = 0; i < num_bufs; i++) {
--			DBC_ASSERT(hStrm->xlator != NULL);
-+			DBC_ASSERT(hstrm->xlator != NULL);
- 			status =
--			    cmm_xlator_free_buf(hStrm->xlator, ap_buffer[i]);
-+			    cmm_xlator_free_buf(hstrm->xlator, ap_buffer[i]);
- 			if (DSP_FAILED(status))
- 				break;
- 			ap_buffer[i] = NULL;
- 		}
- 	}
--	if (drv_get_strm_res_element(hStrm, hstrm_res, pr_ctxt) !=
--	    DSP_ENOTFOUND)
--		drv_proc_update_strm_res(num_bufs - i, hstrm_res);
-+	drv_proc_update_strm_res(num_bufs - i, strmres);
- 
- 	return status;
- }
-@@ -473,7 +464,7 @@ dsp_status strm_issue(struct strm_object *hStrm, IN u8 *pbuf, u32 ul_bytes,
-  */
- dsp_status strm_open(struct node_object *hnode, u32 dir, u32 index,
- 		     IN struct strm_attr *pattr,
--		     OUT struct strm_object **phStrm,
-+		     OUT struct strm_res_object **strmres,
- 		     struct process_context *pr_ctxt)
- {
- 	struct strm_mgr *strm_mgr_obj;
-@@ -488,9 +479,9 @@ dsp_status strm_open(struct node_object *hnode, u32 dir, u32 index,
- 	bhandle hstrm_res;
- 
- 	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(phStrm != NULL);
-+	DBC_REQUIRE(strmres != NULL);
- 	DBC_REQUIRE(pattr != NULL);
--	*phStrm = NULL;
-+	*strmres = NULL;
- 	if (dir != DSP_TONODE && dir != DSP_FROMNODE) {
- 		status = DSP_EDIRECTION;
- 	} else {
-@@ -600,23 +591,27 @@ func_cont:
- 		}
- 	}
- 	if (DSP_SUCCEEDED(status)) {
--		*phStrm = strm_obj;
--		drv_proc_insert_strm_res_element(*phStrm, &hstrm_res, pr_ctxt);
-+		status = drv_proc_insert_strm_res_element(strm_obj,
-+							&hstrm_res, pr_ctxt);
-+		if (DSP_FAILED(status))
-+			delete_strm(strm_obj);
-+		else
-+			*strmres = (struct strm_res_object *)hstrm_res;
- 	} else {
- 		(void)delete_strm(strm_obj);
- 	}
- 
- 	/* ensure we return a documented error code */
- 	DBC_ENSURE((DSP_SUCCEEDED(status) &&
--		    MEM_IS_VALID_HANDLE((*phStrm), STRM_SIGNATURE)) ||
--		   (*phStrm == NULL && (status == DSP_EHANDLE ||
-+		    MEM_IS_VALID_HANDLE(strm_obj, STRM_SIGNATURE)) ||
-+		   (*strmres == NULL && (status == DSP_EHANDLE ||
- 					status == DSP_EDIRECTION
- 					|| status == DSP_EVALUE
- 					|| status == DSP_EFAIL)));
- 
- 	dev_dbg(bridge, "%s: hnode: %p dir: 0x%x index: 0x%x pattr: %p "
--		"phStrm: %p status: 0x%x\n", __func__,
--		hnode, dir, index, pattr, phStrm, status);
-+		"strmres: %p status: 0x%x\n", __func__,
-+		hnode, dir, index, pattr, strmres, status);
+-	dev_dbg(bridge, "%s: hnode: %p status 0x%x\n", __func__, hnode, status);
++	dev_dbg(bridge, "%s: pnode: %p status 0x%x\n", __func__, pnode, status);
  	return status;
  }
  
