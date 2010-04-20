@@ -1,50 +1,73 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCHv3 0/5] OMAP: RX51: Add LCD Panel Support for N900
-Date: Tue, 20 Apr 2010 17:40:08 +0300
-Message-ID: <1271774408.2433.25.camel@tubuntu.research.nokia.com>
-References: <1271333181-23609-1-git-send-email-roger.quadros@nokia.com>
-	 <4BCDA3DF.5010906@nokia.com>
+Subject: Re: [PATCH] OMAP:ls037v7dw01: Included slab.h file required for
+ kzalloc
+Date: Tue, 20 Apr 2010 17:41:06 +0300
+Message-ID: <1271774466.2433.26.camel@tubuntu.research.nokia.com>
+References: <hvaibhav@ti.com>
+	 <1271756699-3161-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:56244 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754790Ab0DTOkd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 10:40:33 -0400
-In-Reply-To: <4BCDA3DF.5010906@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:47610 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754918Ab0DTOlU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 10:41:20 -0400
+In-Reply-To: <1271756699-3161-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Quadros Roger (Nokia-D/Helsinki)" <roger.quadros@nokia.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: "ext hvaibhav@ti.com" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 2010-04-20 at 14:53 +0200, Quadros Roger (Nokia-D/Helsinki)
-wrote:
-> Hi Tomi,
+Hi,
+
+On Tue, 2010-04-20 at 11:44 +0200, ext hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
 > 
-> Quadros Roger (Nokia-D/Helsinki) wrote:
-> > Tomi,
-> > 
-> > Resending the patchset.
-> > 
-> > Checkpatch was not complaining at my end. Probably the mail server is
-> > mangling the patches. I will send a tarball separately.
-> > 
-> > The only change in this version is that i've put the Video memory
-> > initialization code in the board file.
-> > 
-> > The TSC2005 stuff is still thereas without it panel is not detected.
-> > The merge conflict with TSC2005 patches if happens is very trivial to resolve.
-> > 
+> With recent kernel changes, without inclusion of slab.h
+> kernel build fails with,
 > 
-> I don't see his patches in your git tree yet.
-> When do you plan to have this in?
+>   CC      drivers/video/omap2/displays/panel-sharp-ls037v7dw01.o
+>   drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c: In function
+>   'sharp_ls_panel_probe':
+>   drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c:93: error: implicit
+>   declaration of function 'kzalloc'
+>   drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c:93: warning:
+>   assignment makes pointer from integer without a cast
+>   drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c:106: error: implicit
+>   declaration of function 'kfree'
+>   make[4]: *** [drivers/video/omap2/displays/panel-sharp-ls037v7dw01.o] Error 1
+>   make[3]: *** [drivers/video/omap2/displays] Error 2
+>   make[2]: *** [drivers/video/omap2] Error 2
+>   make[1]: *** [drivers/video] Error 2
+>   make: *** [drivers] Error 2
+> 
+> 
 
-I pushed them to master branch.
-
-I need to find some time to go through them a bit better before moving
-them to for-next branch.
+I already added this include into the backlight patch you sent
+previously.
 
  Tomi
+
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  .../video/omap2/displays/panel-sharp-ls037v7dw01.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+> index d84feb0..7d9eb2b 100644
+> --- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+> +++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/backlight.h>
+>  #include <linux/fb.h>
+>  #include <linux/err.h>
+> +#include <linux/slab.h>
+> 
+>  #include <plat/display.h>
+> 
+> --
+> 1.6.2.4
+> 
 
 
