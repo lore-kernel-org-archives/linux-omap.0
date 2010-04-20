@@ -1,72 +1,152 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Serial: Avoid enabling clocks when clock node is null.
-Date: Tue, 20 Apr 2010 16:30:29 -0700
-Message-ID: <87mxwxbt2i.fsf@deeprootsystems.com>
-References: <40436.192.168.10.89.1271750521.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [PM-WIP-OPP][PATCH 1/2 v2] omap3: pm: cpufreq: BUG_ON cleanup
+Date: Tue, 20 Apr 2010 16:41:18 -0700
+Message-ID: <87d3xtbskh.fsf@deeprootsystems.com>
+References: <1271792994-31816-1-git-send-email-nm@ti.com>
+	<1271792994-31816-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:33872 "EHLO
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:62354 "EHLO
 	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753425Ab0DTXab (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 19:30:31 -0400
-Received: by pwj9 with SMTP id 9so4717782pwj.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Apr 2010 16:30:31 -0700 (PDT)
-In-Reply-To: <40436.192.168.10.89.1271750521.squirrel@dbdmail.itg.ti.com> (Govindraj R.'s message of "Tue\, 20 Apr 2010 13\:32\:01 +0530 \(IST\)")
+	with ESMTP id S1752320Ab0DTXlV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 19:41:21 -0400
+Received: by pwj9 with SMTP id 9so4721656pwj.19
+        for <linux-omap@vger.kernel.org>; Tue, 20 Apr 2010 16:41:21 -0700 (PDT)
+In-Reply-To: <1271792994-31816-2-git-send-email-nm@ti.com> (Nishanth Menon's message of "Tue\, 20 Apr 2010 14\:49\:53 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Venkatraman S <svenkatr@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ambresh K <ambresh@ti.com>, Benoit Cousson <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, Sanjeev Premi <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, Thara Gopinath <thara@ti.com>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> This patch ensures that if a particular uart clock node
-> was not acquired then do not proceed with enabling clock
-> and device registration for that uart.
+> BUG_ON should not ideally contain a functional code.
+> Ref: http://marc.info/?l=linux-kernel&m=109391212925546&w=2
 >
-> Without this patch if uart_ick/fck value was null
-> then it throw oops as below and boot will halt.
+> To do this, we change the return of omap3_pm_init_opp from
+> void to int and return back error value for caller to adequately
+> handle further decisions. to reduce code duplication, the
+> registration and error handling are done in loop now.
 >
-> <1>Unable to handle kernel NULL pointer dereference at virtual address 0000001c
-> <1>pgd = c0004000
-> <1>[0000001c] *pgd=00000000
-> <0>Internal error: Oops: 5 [#1]
-> <0>last sysfs file:
-> <d>Modules linked in:
-> CPU: 0    Not tainted  (2.6.34-rc3-00006-g7da06f1-dirty #15)
-> PC is at omap_serial_init_port+0x64/0x3a0
-> LR is at 0x8
-> pc : [<c000f51c>]    lr : [<00000008>]    psr: 60000013
-> sp : dfc2bf80  ip : 00000000  fp : 00000000
-> r10: 000007c8  r9 : c05c65f8  r8 : 00000000
-> r7 : c05c6dc0  r6 : c000b44c  r5 : 00000000  r4 : 00000004
-> r3 : 00000007  r2 : c05c6538  r1 : fb020000  r0 : c05c6dc0
-> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 10c5387f  Table: 80004019  DAC: 00000017
-> <0>Process swapper (pid: 1, stack limit = 0xdfc2a2f0)
-> <0>Stack: (0xdfc2bf80 to 0xdfc2c000)
-> <0>bf80: 00000003 fb020000 00000004 00000000 c000b44c 00000000 00000000 00000000
-> <0>bfa0: 00000000 c000f880 c002e288 c00135e0 c002e288 c00137f4 c002e288 c000b464
-> <0>bfc0: c002e288 c003e34c 00000031 00000000 00000000 00000192 00000000 c002e288
-> <0>bfe0: 00000000 00000000 00000000 c0008578 00000000 c003f970 ffffffff ffffffff
-> [<c000f51c>] (omap_serial_init_port+0x64/0x3a0) from [<c000f880>] (omap_serial_init+0x28/0x3c)
-> [<c000f880>] (omap_serial_init+0x28/0x3c) from [<c00135e0>] (zoom_peripherals_init+0x44/0x6c)
-> [<c00135e0>] (zoom_peripherals_init+0x44/0x6c) from [<c00137f4>] (omap_sdp_init+0x14/0x54)
-> [<c00137f4>] (omap_sdp_init+0x14/0x54) from [<c000b464>] (customize_machine+0x18/0x24)
-> [<c000b464>] (customize_machine+0x18/0x24) from [<c003e34c>] (do_one_initcall+0x5c/0x1b8)
-> [<c003e34c>] (do_one_initcall+0x5c/0x1b8) from [<c0008578>] (kernel_init+0x90/0x144)
-> [<c0008578>] (kernel_init+0x90/0x144) from [<c003f970>] (kernel_thread_exit+0x0/0x8)
-> <0>Code: eb00ef8f e597c06c e3a0e008 e3a03007 (e5dc201c)
-> <4>---[ end trace 1b75b31a2719ed1c ]---
-> <0>Kernel panic - not syncing: Attempted to kill init!
->
-> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Ambresh K <ambresh@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
 > Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Reported-by: Venkatraman S <svenkatr@ti.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+> Cc: Sanjeev Premi <premi@ti.com>
+> Cc: Tero Kristo <tero.kristo@nokia.com>
+> Cc: Thara Gopinath <thara@ti.com>
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> Ref:
+> v1: https://patchwork.kernel.org/patch/86793/
+> v2 changes:
+> 	removed BUG_ON entirely. instead have introduced int
+> 	return value allowing for board files which call to
+> 	handle the return results intelligently.
 
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Thanks, I like this better.
 
-Should be queued for -fixes.
+>  arch/arm/mach-omap2/cpufreq34xx.c |   36 ++++++++++++++++++++++++++++++++----
+>  arch/arm/mach-omap2/omap3-opp.h   |    5 +++--
+>  2 files changed, 35 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
+> index 189c42e..01cf98f 100644
+> --- a/arch/arm/mach-omap2/cpufreq34xx.c
+> +++ b/arch/arm/mach-omap2/cpufreq34xx.c
+> @@ -25,6 +25,7 @@
+>  
+>  #include <plat/opp.h>
+>  #include <plat/cpu.h>
+> +#include "omap3-opp.h"
+>  
+>  static struct omap_opp_def __initdata omap34xx_mpu_rate_table[] = {
+>  	/* OPP1 */
+> @@ -109,8 +110,9 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
+>  	OMAP_OPP_DEF(0, 0, 0)
+>  };
+>  
+> -void __init omap3_pm_init_opp_table(void)
+> +int __init omap3_pm_init_opp_table(void)
+>  {
+> +	int i, r;
+>  	struct omap_opp_def **omap3_opp_def_list;
+>  	struct omap_opp_def *omap34xx_opp_def_list[] = {
+>  		omap34xx_mpu_rate_table,
+> @@ -122,12 +124,38 @@ void __init omap3_pm_init_opp_table(void)
+>  		omap36xx_l3_rate_table,
+>  		omap36xx_dsp_rate_table
+>  	};
+> +	enum opp_t omap3_opps[] = {
+> +		OPP_MPU,
+> +		OPP_L3,
+> +		OPP_DSP
+> +	};
+
+Aren't these already defined in <plat/opp.h> ?
+
+>  
+>  	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
+>  				omap34xx_opp_def_list;
+>  
+> -	BUG_ON(opp_init_list(OPP_MPU, omap3_opp_def_list[0]));
+> -	BUG_ON(opp_init_list(OPP_L3, omap3_opp_def_list[1]));
+> -	BUG_ON(opp_init_list(OPP_DSP, omap3_opp_def_list[2]));
+> +	for (i = 0; i < ARRAY_SIZE(omap3_opps); i++) {
+> +		r = opp_init_list(omap3_opps[i], omap3_opp_def_list[i]);
+> +		if (r)
+> +			break;
+> +	}
+> +	if (!r)
+> +		return 0;
+> +
+> +	/* Cascading error handling - disable all enabled OPPs */
+> +	pr_err("%s: Failed to register %d OPP type\n", __func__,
+> +		omap3_opps[i]);
+> +	i--;
+> +	while (i != -1) {
+> +		struct omap_opp *opp;
+> +		unsigned long freq = 0;
+
+insert blank line
+
+> +		while (!IS_ERR(opp = opp_find_freq_ceil(omap3_opps[i],
+> +							&freq))) {
+
+for redability, would rather see the line-wrap avoided. 
+Just put the IS_ERR() on a separate line.
+
+> +			opp_disable(opp);
+> +			freq++;
+> +		}
+> +		i--;
+> +	}
+> +
+> +	return r;
+>  }
+>  
+> diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
+> index 1ba85fc..3e88d8c 100644
+> --- a/arch/arm/mach-omap2/omap3-opp.h
+> +++ b/arch/arm/mach-omap2/omap3-opp.h
+> @@ -9,10 +9,11 @@
+>   * table after the basic initialization
+>   */
+>  #ifdef CONFIG_CPU_FREQ
+> -extern void omap3_pm_init_opp_table(void);
+> +extern int omap3_pm_init_opp_table(void);
+>  #else
+> -static inline void omap3_pm_init_opp_table(void)
+> +static inline int omap3_pm_init_opp_table(void)
+>  {
+> +	return 0;
+>  }
+>  #endif
+>  
+> -- 
+> 1.6.3.3
 
 Kevin
