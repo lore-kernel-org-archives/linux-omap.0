@@ -1,17 +1,17 @@
 From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
 Subject: RE: [PATCH 1/3][v2] OMAP:iommu support for OMAP4
-Date: Tue, 20 Apr 2010 17:07:27 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B3BF8B8@dlee03.ent.ti.com>
+Date: Tue, 20 Apr 2010 17:23:54 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B3BF8F7@dlee03.ent.ti.com>
 References: <8F7AF80515AF0D4D93307E594F3CB40E4B3445E5@dlee03.ent.ti.com>
  <w2h94a0d4531004201448s1ad276f5ncf7c0de273481fe2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54957 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:55811 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752118Ab0DTWHc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 18:07:32 -0400
+	with ESMTP id S1752826Ab0DTWYH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 18:24:07 -0400
 In-Reply-To: <w2h94a0d4531004201448s1ad276f5ncf7c0de273481fe2@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
@@ -43,17 +43,13 @@ Felipe,
 > This smells like two patches: one that moves omap3-iommu to
 > omap-iommu, and another one that adds omap4 support.
 > 
+
+-- I agree. I will resend the patches.
+
 > But unfortunately this would break multi-omap support. I think both
 > omap3 and omap4 devices should be there, and selected at run-time.
 > 
-
--- I am not sure as why this would break multi-omap support. We would select either OMAP3 or OMAP4 specific structures at compile time based on the platform selected, and rest of the code is same for both OMAP3/4.
-
 > Cheers.
 > 
 > --
 > Felipe Contreras
-
-Thank you,
-Best regards,
-Hari
