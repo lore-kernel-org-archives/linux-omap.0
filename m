@@ -1,201 +1,54 @@
-From: Koen Kooi <koen.kooi@gmail.com>
-Subject: [PATCH v7] board-omap3-beagle: add DSS2 support
-Date: Wed, 21 Apr 2010 12:02:15 +0200
-Message-ID: <1271844135-15810-1-git-send-email-koen@dominion.thruhere.net>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v7] board-omap3-beagle: add DSS2 support
+Date: Wed, 21 Apr 2010 13:06:36 +0300
+Message-ID: <r2g94a0d4531004210306t11fee422i858f4854dd65d653@mail.gmail.com>
+References: <1271844135-15810-1-git-send-email-koen@dominion.thruhere.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f220.google.com ([209.85.219.220]:56018 "EHLO
-	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332Ab0DUKC2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Apr 2010 06:02:28 -0400
-Received: by ewy20 with SMTP id 20so2346501ewy.1
-        for <linux-omap@vger.kernel.org>; Wed, 21 Apr 2010 03:02:26 -0700 (PDT)
+Received: from mail-bw0-f225.google.com ([209.85.218.225]:60184 "EHLO
+	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752564Ab0DUKGi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Apr 2010 06:06:38 -0400
+Received: by bwz25 with SMTP id 25so7879767bwz.28
+        for <linux-omap@vger.kernel.org>; Wed, 21 Apr 2010 03:06:37 -0700 (PDT)
+In-Reply-To: <1271844135-15810-1-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>
+To: Koen Kooi <koen.kooi@gmail.com>
+Cc: tomi.valkeinen@nokia.com, tony@atomide.com, linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>
 
-This patch adds DSS2 support to the beagleboard boardfile. DVI and TV-out are supported.
+On Wed, Apr 21, 2010 at 1:02 PM, Koen Kooi <koen.kooi@gmail.com> wrote:
+> This patch adds DSS2 support to the beagleboard boardfile. DVI and TV=
+-out are supported.
+>
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+> ---
 
-Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
----
+> @@ -456,8 +503,9 @@ static void __init omap3_beagle_init(void)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Ensure SDRC pins are mux'd for self-ref=
+resh */
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_mux_init_signal("sdrc_cke0", OMAP_PIN=
+_OUTPUT);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_mux_init_signal("sdrc_cke1", OMAP_PIN=
+_OUTPUT);
+> -}
+>
+> + =C2=A0 =C2=A0 =C2=A0 beagle_display_init();
+> +}
 
-Changes since v1:
-    * removed beagle_panel_enable_tv() and beagle_panel_disable_tv()
-Changes since v2:
-    * changed to REGULATOR_SUPPLY(_name, _dev_name) for dss regulators
-Changes since v3:
-    * really remove beagle_panel_enable_tv() and beagle_panel_disable_tv()
-    * moved comments to this section
-Changes since v4:
-    * remove trailing whitespace
-Changes since v5:
-    * fix semicolon typo
-Changes since v6:
-    * use gpio_is_valid(dssdev->reset_gpio)
+Missing space here.
 
- arch/arm/mach-omap2/board-omap3beagle.c |  102 ++++++++++++++++++++++--------
- 1 files changed, 75 insertions(+), 27 deletions(-)
+> =C2=A0static void __init omap3_beagle_map_io(void)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0omap2_set_globals_343x();
+> --
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 962d377..e20fc76 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -39,6 +39,7 @@
- 
- #include <plat/board.h>
- #include <plat/common.h>
-+#include <plat/display.h>
- #include <plat/gpmc.h>
- #include <plat/nand.h>
- #include <plat/usb.h>
-@@ -106,6 +107,77 @@ static struct platform_device omap3beagle_nand_device = {
- 	.resource	= &omap3beagle_nand_resource,
- };
- 
-+/* DSS */
-+
-+static int beagle_enable_dvi(struct omap_dss_device *dssdev)
-+{
-+	if (gpio_is_valid(dssdev->reset_gpio))
-+		gpio_set_value(dssdev->reset_gpio, 1);
-+
-+	return 0;
-+}
-+
-+static void beagle_disable_dvi(struct omap_dss_device *dssdev)
-+{
-+	if (gpio_is_valid(dssdev->reset_gpio))
-+		gpio_set_value(dssdev->reset_gpio, 0);
-+}
-+
-+static struct omap_dss_device beagle_dvi_device = {
-+	.type = OMAP_DISPLAY_TYPE_DPI,
-+	.name = "dvi",
-+	.driver_name = "generic_panel",
-+	.phy.dpi.data_lines = 24,
-+	.reset_gpio = 170,
-+	.platform_enable = beagle_enable_dvi,
-+	.platform_disable = beagle_disable_dvi,
-+};
-+
-+static struct omap_dss_device beagle_tv_device = {
-+	.name = "tv",
-+	.driver_name = "venc",
-+	.type = OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
-+};
-+
-+static struct omap_dss_device *beagle_dss_devices[] = {
-+	&beagle_dvi_device,
-+	&beagle_tv_device,
-+};
-+
-+static struct omap_dss_board_info beagle_dss_data = {
-+	.num_devices = ARRAY_SIZE(beagle_dss_devices),
-+	.devices = beagle_dss_devices,
-+	.default_device = &beagle_dvi_device,
-+};
-+
-+static struct platform_device beagle_dss_device = {
-+	.name          = "omapdss",
-+	.id            = -1,
-+	.dev            = {
-+		.platform_data = &beagle_dss_data,
-+	},
-+};
-+
-+static struct regulator_consumer_supply beagle_vdac_supply =
-+	REGULATOR_SUPPLY("vdda_dac", "omapdss");
-+
-+static struct regulator_consumer_supply beagle_vdvi_supply =
-+	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
-+
-+static void __init beagle_display_init(void)
-+{
-+	int r;
-+
-+	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
-+	if (r < 0) {
-+		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
-+		return;
-+	}
-+
-+	gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
-+}
-+
- #include "sdram-micron-mt46h32m32lf-6.h"
- 
- static struct omap2_hsmmc_info mmc[] = {
-@@ -117,15 +189,6 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{}	/* Terminator */
- };
- 
--static struct platform_device omap3_beagle_lcd_device = {
--	.name		= "omap3beagle_lcd",
--	.id		= -1,
--};
--
--static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
--	.ctrl_name	= "internal",
--};
--
- static struct regulator_consumer_supply beagle_vmmc1_supply = {
- 	.supply			= "vmmc",
- };
-@@ -181,16 +244,6 @@ static struct twl4030_gpio_platform_data beagle_gpio_data = {
- 	.setup		= beagle_twl_gpio_setup,
- };
- 
--static struct regulator_consumer_supply beagle_vdac_supply = {
--	.supply		= "vdac",
--	.dev		= &omap3_beagle_lcd_device.dev,
--};
--
--static struct regulator_consumer_supply beagle_vdvi_supply = {
--	.supply		= "vdvi",
--	.dev		= &omap3_beagle_lcd_device.dev,
--};
--
- /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
- static struct regulator_init_data beagle_vmmc1 = {
- 	.constraints = {
-@@ -349,14 +402,8 @@ static struct platform_device keys_gpio = {
- 	},
- };
- 
--static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
--};
--
- static void __init omap3_beagle_init_irq(void)
- {
--	omap_board_config = omap3_beagle_config;
--	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
- 			     mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
-@@ -367,9 +414,9 @@ static void __init omap3_beagle_init_irq(void)
- }
- 
- static struct platform_device *omap3_beagle_devices[] __initdata = {
--	&omap3_beagle_lcd_device,
- 	&leds_gpio,
- 	&keys_gpio,
-+	&beagle_dss_device,
- };
- 
- static void __init omap3beagle_flash_init(void)
-@@ -456,8 +503,9 @@ static void __init omap3_beagle_init(void)
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
- 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
--}
- 
-+	beagle_display_init();
-+}
- static void __init omap3_beagle_map_io(void)
- {
- 	omap2_set_globals_343x();
--- 
-1.6.6.1
-
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
