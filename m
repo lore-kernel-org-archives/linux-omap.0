@@ -1,161 +1,120 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/7] OMAP4-HSMMC: Addind MMC-TWL regulator changes
-Date: Wed, 21 Apr 2010 14:00:24 -0700
-Message-ID: <20100421210023.GI18272@atomide.com>
-References: <63579.10.24.255.18.1271874048.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [PATCH v2] dma: fix scope of errata i88 upto 3430ES1.0
+Date: Wed, 21 Apr 2010 14:14:13 -0700
+Message-ID: <20100421211413.GJ18272@atomide.com>
+References: <w2g618f0c911004020435qd281c5deoc3e0ade84cc2d0b1@mail.gmail.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C4C33347@dbde02.ent.ti.com>
+ <p2i618f0c911004050819u9af37b57ob399a52006f40017@mail.gmail.com>
+ <o2h618f0c911004050836ge9222b05i6520c8c7de9336ed@mail.gmail.com>
+ <v2g618f0c911004190351h438b8d14o83a57d631eef3a2c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50396 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755156Ab0DUVOQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Apr 2010 17:14:16 -0400
 Content-Disposition: inline
-In-Reply-To: <63579.10.24.255.18.1271874048.squirrel@dbdmail.itg.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: kishore kadiyala <kishore.kadiyala@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk+lkml@arm.linux.org.uk, santosh.shilimkar@ti.com
+In-Reply-To: <v2g618f0c911004190351h438b8d14o83a57d631eef3a2c@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
 
-* kishore kadiyala <kishore.kadiyala@ti.com> [100421 11:16]:
-> This patch adds PBIAS Configuration during POWER ON and OFF.
-> Also it adds MMC1 Card detect configuration on Phoenix
-> 
-> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> ---
->  arch/arm/mach-omap2/hsmmc.c               |  145 +++++++++++++++++++++++------
->  arch/arm/plat-omap/include/plat/control.h |   17 ++++
->  2 files changed, 134 insertions(+), 28 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index ca3d4c9..7653434 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -26,11 +26,18 @@
-> 
->  static u16 control_pbias_offset;
->  static u16 control_devconf1_offset;
-> +static u16 control_mmc1;
-> 
->  #define HSMMC_NAME_LEN	9
-> 
->  /* Phoenix Registers */
-> -#define TWL6030_MMCCTRL	0xEE
-> +#define TWL6030_MMCCTRL		0xEE
-> +#define VMMC_AUTO_OFF		(0x1 << 3)
-> +#define SW_FC			(0x1 << 2)
-> +
-> +#define TWL6030_CFG_INPUT_PUPD3	0xF2
-> +#define MMC_PU			(0x1 << 3)
-> +#define MMC_PD			(0x1 << 2)
+* Venkatraman S <svenkatr@ti.com> [100419 03:47]:
+> Hi Tony,
+> > Venkatraman S <svenkatr@ti.com> wrote:
+> > From 2799506180649cbb61d24cf2b4171425b2e1fa80 Mon Sep 17 00:00:00 2=
+001
+> > From: Venkatraman S <svenkatr@ti.com>
+> > Date: Mon, 5 Apr 2010 20:56:27 +0530
+> > Subject: [PATCH] dma: fix scope of errata i88 upto 3430ES1.0
+> >
+> > DMA errata for special end of block programming is applicable
+> > only for OMAP2430 & OMAP3430 ES1.0.
+> > This patch does the necessary checks before the workaround
+> > is applied. Tested on 3430 SDP
+> >
+> > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> > Reviewed-by: Shilimkar Santosh <santosh.shilimkar@ti.com>
+> > ---
+> > From v1, removed the redundant omap3430() check
+> >
+> > =C2=A0arch/arm/plat-omap/dma.c | =C2=A0 20 ++++++++++++--------
+> > =C2=A01 files changed, 12 insertions(+), 8 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> > index 2ab224c..a9b480a 100644
+> > --- a/arch/arm/plat-omap/dma.c
+> > +++ b/arch/arm/plat-omap/dma.c
+> > @@ -1663,14 +1663,17 @@ int omap_stop_dma_chain_transfers(int chain=
+_id)
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0channels =3D dma_linked_lch[chain_id].li=
+nked_dmach_q;
+> >
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0/*
+> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0* DMA Errata:
+> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0* Special programming model needed to =
+disable DMA before end of block
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0* DMA Errata: i88
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0* Special programming model needed
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0* to disable DMA before end of block
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 */
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0sys_cf =3D dma_read(OCP_SYSCONFIG);
+> > - =C2=A0 =C2=A0 =C2=A0 l =3D sys_cf;
+> > - =C2=A0 =C2=A0 =C2=A0 /* Middle mode reg set no Standby */
+> > - =C2=A0 =C2=A0 =C2=A0 l &=3D ~((1 << 12)|(1 << 13));
+> > - =C2=A0 =C2=A0 =C2=A0 dma_write(l, OCP_SYSCONFIG);
+> > + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap2430() || (omap_rev() =3D=3D =
+OMAP3430_REV_ES1_0)) {
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 l =3D sys_cf;
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Middle mode r=
+eg set no Standby */
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 l &=3D ~((1 << 1=
+2)|(1 << 13));
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dma_write(l, OCP=
+_SYSCONFIG);
+> > + =C2=A0 =C2=A0 =C2=A0 }
+> >
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 0; i < dma_linked_lch[chain_i=
+d].no_of_lchs_linked; i++) {
+> >
 
-These defines need to go to twl code.
- 
->  static struct hsmmc_controller {
->  	struct omap_mmc_platform_data   *mmc;
-> @@ -120,27 +127,38 @@ static void hsmmc1_before_set_reg(struct device *dev, int slot,
->  				reg &= ~OMAP243X_MMC1_ACTIVE_OVERWRITE;
->  			omap_ctrl_writel(reg, OMAP243X_CONTROL_DEVCONF1);
->  		}
-> +		if (!cpu_is_omap44xx()) {
-> +			if (mmc->slots[0].internal_clock) {
-> +				reg = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
-> +				reg |= OMAP2_MMCSDIO1ADPCLKISEL;
-> +				omap_ctrl_writel(reg, OMAP2_CONTROL_DEVCONF0);
-> +			}
-> 
-> -		if (mmc->slots[0].internal_clock) {
-> -			reg = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
-> -			reg |= OMAP2_MMCSDIO1ADPCLKISEL;
-> -			omap_ctrl_writel(reg, OMAP2_CONTROL_DEVCONF0);
-> -		}
-> -
-> -		reg = omap_ctrl_readl(control_pbias_offset);
-> -		if (cpu_is_omap3630()) {
-> -			/* Set MMC I/O to 52Mhz */
-> -			prog_io = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
-> -			prog_io |= OMAP3630_PRG_SDMMC1_SPEEDCTRL;
-> -			omap_ctrl_writel(prog_io, OMAP343X_CONTROL_PROG_IO1);
-> +			reg = omap_ctrl_readl(control_pbias_offset);
-> +			if (cpu_is_omap3630()) {
-> +				/* Set MMC I/O to 52Mhz */
-> +				prog_io =
-> +				omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
-> +				prog_io |= OMAP3630_PRG_SDMMC1_SPEEDCTRL;
-> +				omap_ctrl_writel(prog_io,
-> +						OMAP343X_CONTROL_PROG_IO1);
-> +			} else {
-> +				reg |= OMAP2_PBIASSPEEDCTRL0;
-> +			}
-> +			reg &= ~OMAP2_PBIASLITEPWRDNZ0;
->  		} else {
-> -			reg |= OMAP2_PBIASSPEEDCTRL0;
-> +			reg = omap_ctrl_readl(control_pbias_offset);
-> +			reg &= ~(OMAP4_MMC1_PBIASLITE_PWRDNZ |
-> +						OMAP4_MMC1_PWRDNZ);
->  		}
-> -		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
->  		omap_ctrl_writel(reg, control_pbias_offset);
->  	} else {
->  		reg = omap_ctrl_readl(control_pbias_offset);
-> -		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
-> +		if (!cpu_is_omap44xx())
-> +			reg &= ~OMAP2_PBIASLITEPWRDNZ0;
-> +		else
-> +			reg &= ~(OMAP4_MMC1_PBIASLITE_PWRDNZ |
-> +					OMAP4_MMC1_PWRDNZ);
->  		omap_ctrl_writel(reg, control_pbias_offset);
->  	}
->  }
-> @@ -155,16 +173,36 @@ static void hsmmc1_after_set_reg(struct device *dev, int slot,
-> 
->  	if (power_on) {
->  		reg = omap_ctrl_readl(control_pbias_offset);
-> -		reg |= (OMAP2_PBIASLITEPWRDNZ0 | OMAP2_PBIASSPEEDCTRL0);
-> -		if ((1 << vdd) <= MMC_VDD_165_195)
-> -			reg &= ~OMAP2_PBIASLITEVMODE0;
-> +		if (!cpu_is_omap44xx())
-> +			reg |= (OMAP2_PBIASLITEPWRDNZ0 | OMAP2_PBIASSPEEDCTRL0);
->  		else
-> -			reg |= OMAP2_PBIASLITEVMODE0;
-> +			reg |= OMAP4_MMC1_PBIASLITE_PWRDNZ;
-> +		if ((1 << vdd) <= MMC_VDD_165_195) {
-> +			if (!cpu_is_omap44xx()) {
-> +				reg &= ~OMAP2_PBIASLITEVMODE0;
-> +			} else {
-> +				reg &= ~OMAP4_MMC1_PBIASLITE_VMODE;
-> +				reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ |
-> +						OMAP4_MMC1_PWRDNZ);
-> +			}
-> +		} else {
-> +			if (!cpu_is_omap44xx())
-> +				reg |= OMAP2_PBIASLITEVMODE0;
-> +			else
-> +				reg |= (OMAP4_MMC1_PBIASLITE_VMODE |
-> +				OMAP4_MMC1_PBIASLITE_PWRDNZ |
-> +					OMAP4_MMC1_PWRDNZ);
-> +		}
->  		omap_ctrl_writel(reg, control_pbias_offset);
->  	} else {
->  		reg = omap_ctrl_readl(control_pbias_offset);
-> -		reg |= (OMAP2_PBIASSPEEDCTRL0 | OMAP2_PBIASLITEPWRDNZ0 |
-> -			OMAP2_PBIASLITEVMODE0);
-> +		if (!cpu_is_omap44xx())
-> +			reg |= (OMAP2_PBIASSPEEDCTRL0 |
-> +				OMAP2_PBIASLITEPWRDNZ0 | OMAP2_PBIASLITEVMODE0);
-> +		else
-> +			 reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ |
-> +				OMAP4_MMC1_PBIASLITE_VMODE |
-> +				OMAP4_MMC1_PWRDNZ);
->  		omap_ctrl_writel(reg, control_pbias_offset);
->  	}
->  }
-
-This all should be set once during init. Please don't sprinkle
-cpu_is_omapxxxx() tests all over the code. That makes the code
-hard to maintain.
-
-Instead, please just register the omap4 specific functions
-once during init. If something cannot be currently defined
-that way, making that change should be a separate patch
-before adding the omap4 code.
-
-Regards,
+What about other omaps? It seems that we're currently doing the workaro=
+und
+for all omaps. Seems like "Tested on 3430 SDP" is not quite safe enough
+for making change that might affect other omaps.
 
 Tony
+
+
+> > @@ -1689,8 +1692,9 @@ int omap_stop_dma_chain_transfers(int chain_i=
+d)
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Reset the Queue pointers */
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP_DMA_CHAIN_QINIT(chain_id);
+> >
+> > - =C2=A0 =C2=A0 =C2=A0 /* Errata - put in the old value */
+> > - =C2=A0 =C2=A0 =C2=A0 dma_write(sys_cf, OCP_SYSCONFIG);
+> > + =C2=A0 =C2=A0 =C2=A0 /* Errata: put back the old value */
+> > + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap2430() || (omap_rev() =3D=3D =
+OMAP3430_REV_ES1_0))
+> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dma_write(sys_cf=
+, OCP_SYSCONFIG);
+> >
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
+> > =C2=A0}
+> > --
+> > 1.6.3.3
+> >
+>=20
+> If there are no other concerns about this patch, can you please inclu=
+de it ?
+> Many thanks,
+> Venkat.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
