@@ -1,257 +1,125 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: Re: [PATCH 2/3] OMAP3630: PM: implement Foward Body-Bias for OPP1G
-Date: Wed, 21 Apr 2010 16:21:51 -0500
-Message-ID: <4BCF6C6F.3030406@ti.com>
-References: <1271453603-21929-1-git-send-email-mturquette@ti.com> <1271453603-21929-3-git-send-email-mturquette@ti.com> <20100419074636.GC5325@besouro.research.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] OMAP3: I2C: Errata ID i207: Clear wrong RDR
+ interrupt
+Date: Wed, 21 Apr 2010 14:42:53 -0700
+Message-ID: <20100421214252.GM18272@atomide.com>
+References: <1271167302-17776-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35937 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753074Ab0DUVWA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Apr 2010 17:22:00 -0400
-In-Reply-To: <20100419074636.GC5325@besouro.research.nokia.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64414 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755232Ab0DUVmz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Apr 2010 17:42:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1271167302-17776-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>
-Cc: ext Mike Turquette <mturquette@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Gopinath, Thara" <thara@ti.com>, "Gulati, Shweta" <shweta.gulati@ti.com>, "Menon, Nishanth" <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Manjunatha GK <manjugk@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, ben-linux@fluff.org, "Kalliguddi, Hema" <hemahk@ti.com>, Nishanth Menon <nm@ti.com>
 
-Eduardo Valentin wrote:
-> Hello Mike,
+* Manjunatha GK <manjugk@ti.com> [100413 06:32]:
+> Under certain rare conditions, I2C_STAT[13].RDR bit may be set
+> and the corresponding interrupt fire, even there is no data in
+> the receive FIFO, or the I2C data transfer is still ongoing.
+> These spurious RDR events must be ignored by the software.
 > 
-> On Fri, Apr 16, 2010 at 11:33:22PM +0200, ext Mike Turquette wrote:
->> Introduces voltscale_adaptive_body_bias function to voltage.c.
->> voltscale_adaptive_body_bias is called by omap_voltage_scale after a
->> voltage transition has occured.  Currently voltscale_adaptive_body_bias
->> only implements Forward Body-Bias (FBB) for OMAP3630 when MPU runs at
->> 1GHz or higher.  In the future Reverse Body-Bias might be included.
->>
->> FBB is an Adaptive Body-Bias technique to boost performance for weak
->> process devices at high OPPs. This results in voltage boost on the VDD1
->> PMOS back gates when running at maximum OPP.  Current recommendations
->> are to enable FBB on all 3630 regardless of silicon characteristics and
->> EFUSE values.
->>
->> ABB applies to all OMAP silicon based on 45nm process, which includes
->> OMAP4.  OMAP4 recommendations for ABB are not complete and will be added
->> to voltscale_adaptive_body_bias in the future.
+> This patch handles and ignores RDR spurious interrupts.
 > 
-> Nice !
+> Patch tested on OMAP zoom3 board.
 > 
->> Signed-off-by: Mike Turquette <mturquette@ti.com>
->> ---
->>  arch/arm/mach-omap2/voltage.c |  129 ++++++++++++++++++++++++++++++++++++++++-
->>  1 files changed, 127 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
->> index c2c8192..98d8bb3 100644
->> --- a/arch/arm/mach-omap2/voltage.c
->> +++ b/arch/arm/mach-omap2/voltage.c
->> @@ -37,6 +37,11 @@
->>  #define VP_IDLE_TIMEOUT		200
->>  #define VP_TRANXDONE_TIMEOUT	300
->>  
->> +#define ABB_MAX_SETTLING_TIME	30
->> +#define ABB_FAST_OPP		1
->> +#define ABB_NOMINAL_OPP		2
->> +#define ABB_SLOW_OPP		3
->> +
->>  /**
->>   * OMAP3 Voltage controller SR parameters. TODO: Pass this info as part of
->>   * board data or PMIC data
->> @@ -635,6 +640,118 @@ static int vp_forceupdate_scale_voltage(u32 vdd, unsigned long target_volt,
->>  }
->>  
->>  /**
->> + * voltscale_adaptive_body_bias - controls ABB ldo during voltage scaling
->> + * @target_volt: target voltage determines if ABB ldo is active or bypassed
->> + *
->> + * Adaptive Body-Bias is a technique in all OMAP silicon that uses the 45nm
->> + * process.  ABB can boost voltage in high OPPs for silicon with weak
->> + * characteristics (forward Body-Bias) as well as lower voltage in low OPPs
->> + * for silicon with strong characteristics (Reverse Body-Bias).
->> + *
->> + * Only Foward Body-Bias for operating at high OPPs is implemented below, per
->> + * recommendations from silicon team.
->> + * Reverse Body-Bias for saving power in active cases and sleep cases is not
->> + * yet implemented.
->> + * OMAP4 hardward also supports ABB ldo, but no recommendations have been made
->> + * to implement it yet.
->> + */
->> +int voltscale_adaptive_body_bias(unsigned long target_volt)
->> +{
->> +	u32 sr2en_enabled;
->> +	int timeout;
->> +	int sr2_wtcnt_value;
->> +
->> +	/* calculate SR2_WTCNT_VALUE settling time */
->> +	sr2_wtcnt_value = (ABB_MAX_SETTLING_TIME *
->> +			(clk_get_rate("sys_ck") / 1000000) / 8);
->> +
->> +	/* has SR2EN been enabled previously? */
->> +	sr2en_enabled = (prm_read_mod_reg(OMAP3430_GR_MOD,
->> +				OMAP3_PRM_LDO_ABB_CTRL_OFFSET) &
->> +			OMAP3630_SR2EN);
->> +
->> +	/* select fast, nominal or slow OPP for ABB ldo */
->> +	/* FIXME: include OMAP4 once recommendations are complete */
->> +	if (cpu_is_omap3630() && (target_volt >= 1350000)) {
+> Signed-off-by: Manjunatha GK <manjugk@ti.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-i2c@vger.kernel.org
+> Cc: ben-linux@fluff.org
+> Cc: Kalliguddi, Hema <hemahk@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> ---
+> Review comments for earlier post can be found at:
+> https://patchwork.kernel.org/patch/90122/
 > 
-> You are creating two steps to decide if you apply or not FBB.
-> Here and also bellow (omap voltage scale). Would it make sense to bind it
-> per opp? I mean just a flag on opp dat then you apply or not based on that flag.
-> Same for RBB.
-
-Eduardo,
-
-Thanks for reviewing.
-
-There has been some offline discussion about the best way to handle the 
-the relationship between FBB enable flags and OPPs:
-
-1) extend OPP table
-2) piggyback on Thara's SR hwmod structures
-	This probably won't work given Paul's review comments
-3) other wacky stuff
-
-After some discussion about the best way to do this I will definitely 
-lose the duplicate checks and replace with some nice table look-up.
-
-Extending the OPP table is gross for OMAP2 and OMAP3430.  Piggybacking 
-on SR stuff is just a hack and there is no real relationship between ABB 
-ldo and SR.  The crux of the issue is how to relate FBB enable flags to 
-OPP table.  hwmod?  Ideas on this are very welcome.
-
->> +		/* program for fast opp - enable FBB */
->> +		prm_rmw_mod_reg_bits(OMAP3630_OPP_SEL_MASK,
->> +				(ABB_FAST_OPP << OMAP3630_OPP_SEL_SHIFT),
->> +				OMAP3430_GR_MOD,
->> +				OMAP3_PRM_LDO_ABB_SETUP_OFFSET);
->> +
->> +		/* enable the ABB ldo if not done already */
->> +		if (!sr2en_enabled)
->> +			prm_set_mod_reg_bits(OMAP3630_SR2EN,
->> +					OMAP3430_GR_MOD,
->> +					OMAP3_PRM_LDO_ABB_CTRL_OFFSET);
->> +	} else if (sr2en_enabled) {
->> +		/* program for nominal opp - bypass ABB ldo */
->> +		prm_rmw_mod_reg_bits(OMAP3630_OPP_SEL_MASK,
->> +				(ABB_NOMINAL_OPP << OMAP3630_OPP_SEL_SHIFT),
->> +				OMAP3430_GR_MOD,
->> +				OMAP3_PRM_LDO_ABB_SETUP_OFFSET);
->> +	} else {
->> +		/* nothing to do here yet... might enable RBB here someday */
->> +		return 0;
->> +	}
->> +
->> +	/* set ACTIVE_FBB_SEL for all 45nm silicon */
->> +	prm_set_mod_reg_bits(OMAP3630_ACTIVE_FBB_SEL,
->> +			OMAP3430_GR_MOD,
->> +			OMAP3_PRM_LDO_ABB_CTRL_OFFSET);
->> +
->> +	/* program settling time of 30us for ABB ldo transition */
->> +	prm_rmw_mod_reg_bits(OMAP3630_SR2_WTCNT_VALUE_MASK,
->> +			(sr2_wtcnt_value << OMAP3630_SR2_WTCNT_VALUE_SHIFT),
->> +			OMAP3430_GR_MOD,
->> +			OMAP3_PRM_LDO_ABB_CTRL_OFFSET);
->> +
->> +	/* clear ABB ldo interrupt status */
->> +	prm_write_mod_reg(OMAP3630_ABB_LDO_TRANXDONE_ST,
->> +			OCP_MOD,
->> +			OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
->> +
->> +	/* enable ABB LDO OPP change */
->> +	prm_set_mod_reg_bits(OMAP3630_OPP_CHANGE,
->> +			OMAP3430_GR_MOD,
->> +			OMAP3_PRM_LDO_ABB_SETUP_OFFSET);
->> +
->> +	timeout = 0;
->> +
->> +	/* wait until OPP change completes */
->> +	while ((timeout < ABB_MAX_SETTLING_TIME ) &&
->> +			(!(prm_read_mod_reg(OCP_MOD,
->> +					    OMAP2_PRCM_IRQSTATUS_MPU_OFFSET) &
->> +			   OMAP3630_ABB_LDO_TRANXDONE_ST))) {
->> +		udelay(1);
->> +		timeout++;
->> +	}
->> +
->> +	if (timeout == ABB_MAX_SETTLING_TIME)
->> +		pr_debug("ABB: TRANXDONE timed out waiting for OPP change\n");
->> +
->> +	timeout = 0;
->> +
->> +	/* Clear all pending TRANXDONE interrupts/status */
->> +	while (timeout < ABB_MAX_SETTLING_TIME) {
->> +		prm_write_mod_reg(OMAP3630_ABB_LDO_TRANXDONE_ST,
->> +				OCP_MOD,
->> +				OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
->> +		if (!(prm_read_mod_reg(OCP_MOD,
->> +						OMAP2_PRCM_IRQSTATUS_MPU_OFFSET)
->> +					& OMAP3630_ABB_LDO_TRANXDONE_ST))
->> +			break;
->> +
->> +		udelay(1);
->> +		timeout++;
->> +	}
+>  drivers/i2c/busses/i2c-omap.c |   32 +++++++++++++++++++++++++++++++-
+>  1 files changed, 31 insertions(+), 1 deletions(-)
 > 
-> Is there any other way of implementing the above instead of busy loop / udelay?
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index ae6f5c1..d4ec886 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -733,10 +733,40 @@ complete:
+>  		}
+>  		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+>  			u8 num_bytes = 1;
+> +
+> +			/*
+> +			 * I2C Errata(Errata Nos. OMAP2: 1.67, OMAP3: 1.8)
+> +			 * Not applicable for OMAP4.
+> +			 * Under certain rare conditions, RDR could be set again
+> +			 * when the bus is busy, then ignore the interrupt and
+> +			 * clear the interrupt.
+> +			 */
+> +			if ((stat & OMAP_I2C_STAT_RDR) && !cpu_is_omap44xx()) {
+> +				/* Step 1: If RDR is set, clear it */
+> +				omap_i2c_ack_stat(dev, stat & OMAP_I2C_STAT_RDR);
+> +
+> +				/* Step 2: */
+> +				if(!(omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG)
+> +							& OMAP_I2C_STAT_BB)) {
+> +					/* Step 3: */
+> +					while(omap_i2c_read_reg(dev,
+> +						OMAP_I2C_STAT_REG)
+> +							& OMAP_I2C_STAT_RDR) {
+> +						omap_i2c_ack_stat(dev, stat
+> +							& OMAP_I2C_STAT_RDR);
+> +						dev_err(dev->dev,
+> +						"I2C : RDR when the bus is busy.\n");
+> +						continue;
+> +					}
+> +
+> +				}
+> +				else
+> +					return IRQ_HANDLED;
+> +			}
 
-I can defer the work for 30us if that is what you mean.  Not sure we 
-want to always wait for the length of the timeout to continue though. 
-Any time spent at 1GHz on 3630 should be "protected" by running FBB.
+Please move these hacks into a separate inline function that you initialize
+during the init. Then in the function you do it if OMAP_I2C_QUIRK_1234 flag
+has been set.
 
-Or did you have something else in mind besides a workqueue on a timer?
+In general, it seems that a lot of TI omap4 patches just do:
 
-> 
->> +	if (timeout == ABB_MAX_SETTLING_TIME)
->> +		pr_debug("ABB: TRANXDONE timed out trying to clear status\n");
->> +
->> +	return 0;
->> +}
->> +
->> +/**
->>   * get_curr_vdd1_voltage : Gets the current non-auto-compensated vdd1 voltage
->>   *
->>   * This is a temporary placeholder for this API. This should ideally belong
->> @@ -758,11 +875,19 @@ void omap_voltageprocessor_disable(int vp_id)
->>  int omap_voltage_scale(int vdd, unsigned long target_volt,
->>  					unsigned long current_volt)
->>  {
->> +	int ret;
->> +
->>  	if (voltscale_vpforceupdate)
->> -		return vp_forceupdate_scale_voltage(vdd, target_volt,
->> +		ret = vp_forceupdate_scale_voltage(vdd, target_volt,
->>  								current_volt);
->>  	else
->> -		return vc_bypass_scale_voltage(vdd, target_volt, current_volt);
->> +		ret = vc_bypass_scale_voltage(vdd, target_volt, current_volt);
->> +
->> +	/* FIXME OMAP4 needs ABB too; recommendations not yet complete */
->> +	if (ret && (cpu_is_omap3630() && vdd == VDD1))
-> 
-> I meant here. I guess would be better to have just one place to check if you apply or not.
+if (!cpu_is_omap4430()) {
+	indent_old_code_even_more
+	...
+} else {
+	add_hacks_for_omap4
+	...
+}
 
-I think I will keep the cpu_is_* check here, and then 
-voltscale_adaptive_body_bias can use a nice table look-up instead of 
-rechecking as I mentioned above.
+And sprinkle that all over the place.
 
-Thanks much,
-Mike
+This is not a maintainable way of doing things. Please do something
+like this instead:
 
->> +		ret = voltscale_adaptive_body_bias(target_volt);
->> +
->> +	return ret;
->>  }
->>  
->>  /**
->> -- 
->> 1.6.3.2
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+#ifdef CONFIG_ARCH_OMAP4
+static inline void omap_i2c_quirk_1234(struct device *dev)
+{
+	/* Do hacks here */	
+}
+#else
+static inline void omap_i2c_quirk_1234(struct device *dev)
+{
+}
+#endif
 
+int omap_i2_some_function(struct device *dev)
+{
+	...
+	if (dev->quirks & OMAP_I2C_QUIRK_1234)
+		omap_i2c_quirk_1234(dev);
+	...
+}
+
+And then in the driver init just set the quirks you need.
+
+Regards,
+
+Tony
