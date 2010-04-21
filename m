@@ -1,37 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED]
-Date: Wed, 21 Apr 2010 18:41:41 -0400
-Message-ID: <notify-1271889700@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] cbus: fix comilation breakage
+Date: Wed, 21 Apr 2010 17:56:46 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1004211755550.24256@utopia.booyaka.com>
+References: <1271859967-12914-1-git-send-email-ash@koowaldah.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64302 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754673Ab0DUWll (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Apr 2010 18:41:41 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1O4ic0-000IFD-W9
-	for linux-omap@vger.kernel.org; Wed, 21 Apr 2010 22:41:41 +0000
+Received: from utopia.booyaka.com ([72.9.107.138]:50554 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754731Ab0DUX4r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Apr 2010 19:56:47 -0400
+In-Reply-To: <1271859967-12914-1-git-send-email-ash@koowaldah.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Alexander Shishkin <ash@koowaldah.org>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Perl Net::SMTP
+On Wed, 21 Apr 2010, Alexander Shishkin wrote:
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+> Just tried to build n8x0_defconfig on the current master and
+> got cbus failing to compile due to implicit kzalloc() (and
+> others from slab.h) references. I'm not sure that including
+> slab.h directly is the right thing to do here, though.
+> 
+> Signed-off-by: Alexander Shishkin <ash@koowaldah.org>
 
-Branch in linux-omap: omap-fixes
-
-Initial commit ID (Likely to change): 3e0cc1576378a8ba974bcfcd9cdc5647e493f91f
-
-PatchWorks
-http://patchwork.kernel.org/patch/93918/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=3e0cc1576378a8ba974bcfcd9cdc5647e493f91f
+Yep, hit the same problem here, this patch fixes the build.
 
 
+- Paul
