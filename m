@@ -1,40 +1,133 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv3 0/2] OMAP3: PM: OMAP3630 support for smartreflex driver
-Date: Tue, 20 Apr 2010 16:50:17 -0700
-Message-ID: <87wrw1adl2.fsf@deeprootsystems.com>
-References: <1271413196-6087-1-git-send-email-thara@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PM-WIP-OPP][PATCH 1/2 v3] omap3: pm: cpufreq: BUG_ON cleanup
+Date: Tue, 20 Apr 2010 20:23:07 -0500
+Message-ID: <1271812987-14505-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:38475 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752638Ab0DTXuU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Apr 2010 19:50:20 -0400
-Received: by pvg13 with SMTP id 13so411295pvg.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Apr 2010 16:50:20 -0700 (PDT)
-In-Reply-To: <1271413196-6087-1-git-send-email-thara@ti.com> (Thara Gopinath's message of "Fri\, 16 Apr 2010 15\:49\:54 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:40865 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754250Ab0DUBXS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Apr 2010 21:23:18 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Ambresh K <ambresh@ti.com>, Benoit Cousson <b-cousson@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, Sanjeev Premi <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, Thara Gopinath <thara@ti.com>
 
-Thara Gopinath <thara@ti.com> writes:
+BUG_ON should not ideally contain a functional code.
+Ref: http://marc.info/?l=linux-kernel&m=109391212925546&w=2
 
-> This patch series adds support for the updated 45nm smrtrelfex IP
-> supported in OMAP3630 and OMAP4 in the smartreflex driver and
-> adds support to enable smartreflex autocompensation for OMAP3630
-> using test nvalues.
->
-> This patch series is based on the V3 version of Smartreflex and
-> voltage revamp  patch series.
->
-> This patch series has been tested on OMAP3630 SDP board with
-> CONFIG_OMAP_SMARTREFLEX_TESTING option enabled in the menuconfig.
->
-> This patch series has been based on Kevin's PM tree
-> origin/pm-wip-opp branch.
+To do this, we change the return of omap3_pm_init_opp from
+void to int and return back error value for caller to adequately
+handle further decisions. to reduce code duplication, the
+registration and error handling are done in loop now.
 
-Will get to reviewing this later this week, but in the mean time, added
-this series to pm-wip-sr branch.
+Cc: Ambresh K <ambresh@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>
+Cc: Thara Gopinath <thara@ti.com>
 
-Kevin
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Ref:
+v1: https://patchwork.kernel.org/patch/86793/
+v2: https://patchwork.kernel.org/patch/93701/
+v3: cosmetic changes including cleaning up the while loop for
+recovery path, also fix omap3_pm_init_opp_table when CPU_FREQ
+is not present in the line of rest of opp apis
+
+ arch/arm/mach-omap2/cpufreq34xx.c |   39 +++++++++++++++++++++++++++++++++---
+ arch/arm/mach-omap2/omap3-opp.h   |    5 ++-
+ 2 files changed, 38 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
+index 189c42e..8747dd6 100644
+--- a/arch/arm/mach-omap2/cpufreq34xx.c
++++ b/arch/arm/mach-omap2/cpufreq34xx.c
+@@ -25,6 +25,7 @@
+ 
+ #include <plat/opp.h>
+ #include <plat/cpu.h>
++#include "omap3-opp.h"
+ 
+ static struct omap_opp_def __initdata omap34xx_mpu_rate_table[] = {
+ 	/* OPP1 */
+@@ -109,8 +110,9 @@ static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
+ 	OMAP_OPP_DEF(0, 0, 0)
+ };
+ 
+-void __init omap3_pm_init_opp_table(void)
++int __init omap3_pm_init_opp_table(void)
+ {
++	int i, r;
+ 	struct omap_opp_def **omap3_opp_def_list;
+ 	struct omap_opp_def *omap34xx_opp_def_list[] = {
+ 		omap34xx_mpu_rate_table,
+@@ -122,12 +124,41 @@ void __init omap3_pm_init_opp_table(void)
+ 		omap36xx_l3_rate_table,
+ 		omap36xx_dsp_rate_table
+ 	};
++	enum opp_t omap3_opps[] = {
++		OPP_MPU,
++		OPP_L3,
++		OPP_DSP
++	};
+ 
+ 	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
+ 				omap34xx_opp_def_list;
+ 
+-	BUG_ON(opp_init_list(OPP_MPU, omap3_opp_def_list[0]));
+-	BUG_ON(opp_init_list(OPP_L3, omap3_opp_def_list[1]));
+-	BUG_ON(opp_init_list(OPP_DSP, omap3_opp_def_list[2]));
++	for (i = 0; i < ARRAY_SIZE(omap3_opps); i++) {
++		r = opp_init_list(omap3_opps[i], omap3_opp_def_list[i]);
++		if (r)
++			break;
++	}
++	if (!r)
++		return 0;
++
++	/* Cascading error handling - disable all enabled OPPs */
++	pr_err("%s: Failed to register %d OPP type\n", __func__,
++		omap3_opps[i]);
++	i--;
++	while (i != -1) {
++		struct omap_opp *opp;
++		unsigned long freq = 0;
++
++		do {
++			opp = opp_find_freq_ceil(omap3_opps[i], &freq);
++			if (IS_ERR(opp))
++				break;
++			opp_disable(opp);
++			freq++;
++		} while (1);
++		i--;
++	}
++
++	return r;
+ }
+ 
+diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
+index 1ba85fc..3e88d8c 100644
+--- a/arch/arm/mach-omap2/omap3-opp.h
++++ b/arch/arm/mach-omap2/omap3-opp.h
+@@ -9,10 +9,11 @@
+  * table after the basic initialization
+  */
+ #ifdef CONFIG_CPU_FREQ
+-extern void omap3_pm_init_opp_table(void);
++extern int omap3_pm_init_opp_table(void);
+ #else
+-static inline void omap3_pm_init_opp_table(void)
++static inline int omap3_pm_init_opp_table(void)
+ {
++	return -EINVAL;
+ }
+ #endif
+ 
+-- 
+1.6.3.3
+
