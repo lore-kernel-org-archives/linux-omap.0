@@ -1,121 +1,128 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 1/4][v4] OMAP:iommu renamed omap3-iommu to omap-iommu
-Date: Thu, 22 Apr 2010 18:26:08 -0500
-Message-ID: <1271978771-26889-2-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH 4/4][v4] OMAP:iommu- add TLB preservation support
+Date: Thu, 22 Apr 2010 18:26:11 -0500
+Message-ID: <1271978771-26889-5-git-send-email-h-kanigeri2@ti.com>
 References: <1271978771-26889-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35270 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56187 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753774Ab0DVXIV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Apr 2010 19:08:21 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o3MN8KoW017185
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 22 Apr 2010 18:08:20 -0500
+	id S1753825Ab0DVXIZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Apr 2010 19:08:25 -0400
 In-Reply-To: <1271978771-26889-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap <linux-omap@vger.kernel.org> Tony Lindgren
-	<tony@atomide.com> Hiroshi Doyu" <Hiroshi.DOYU@nokia.com>
-Cc: Hari Kanigeri <h-kanigeri2@ti.com>
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-This patch includes changes to omap3-iommu.c file to make it generic
-for all OMAPs. Renamed omap3-iommu.c to omap-iommu.c
+This patch adds TLB preservation support to IOMMU module
 
 Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+Signed-off-by: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/mach-omap2/Makefile                       |    4 +--
- .../arm/mach-omap2/{omap3-iommu.c => omap-iommu.c} |   23 +++++++++++--------
- 2 files changed, 14 insertions(+), 13 deletions(-)
- rename arch/arm/mach-omap2/{omap3-iommu.c => omap-iommu.c} (79%)
+ arch/arm/mach-omap2/iommu2.c |    4 ++-
+ arch/arm/plat-omap/iommu.c   |   43 +++++++++++++++++++++++++----------------
+ 2 files changed, 29 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index dac3e56..0f616cb 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -88,9 +88,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= remoteproc24xx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= remoteproc3xxx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= remoteproc44xx.o
- endif
--iommu-y					+= iommu2.o
--iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
+diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+index f01f985..5ce76e4 100644
+--- a/arch/arm/mach-omap2/iommu2.c
++++ b/arch/arm/mach-omap2/iommu2.c
+@@ -146,6 +146,7 @@ static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
+ 	printk("\n");
+ 
+ 	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
++	omap2_iommu_disable(obj);
+ 	return stat;
+ }
+ 
+@@ -211,7 +212,8 @@ static ssize_t omap2_dump_cr(struct iommu *obj, struct cr_regs *cr, char *buf)
+ 	char *p = buf;
+ 
+ 	/* FIXME: Need more detail analysis of cam/ram */
+-	p += sprintf(p, "%08x %08x\n", cr->cam, cr->ram);
++	p += sprintf(p, "%08x %08x %01x\n", cr->cam, cr->ram,
++					(cr->cam & MMU_CAM_P) ? 1 : 0);
+ 
+ 	return p - buf;
+ }
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index 463d638..38658e3 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -171,15 +171,12 @@ static void iotlb_lock_get(struct iommu *obj, struct iotlb_lock *l)
+ 	l->base = MMU_LOCK_BASE(val);
+ 	l->vict = MMU_LOCK_VICT(val);
+ 
+-	BUG_ON(l->base != 0); /* Currently no preservation is used */
+ }
+ 
+ static void iotlb_lock_set(struct iommu *obj, struct iotlb_lock *l)
+ {
+ 	u32 val;
+ 
+-	BUG_ON(l->base != 0); /* Currently no preservation is used */
 -
-+iommu-y					+= iommu2.o omap-iommu.o
- obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
+ 	val = (l->base << MMU_LOCK_BASE_SHIFT);
+ 	val |= (l->vict << MMU_LOCK_VICT_SHIFT);
  
- i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
-diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-similarity index 79%
-rename from arch/arm/mach-omap2/omap3-iommu.c
-rename to arch/arm/mach-omap2/omap-iommu.c
-index fbbcb5c..416a65d 100644
---- a/arch/arm/mach-omap2/omap3-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -1,5 +1,5 @@
- /*
-- * omap iommu: omap3 device registration
-+ * omap iommu: omap device registration
-  *
-  * Copyright (C) 2008-2009 Nokia Corporation
-  *
-@@ -21,6 +21,7 @@ struct iommu_device {
- 	struct resource res[2];
- };
+@@ -230,22 +227,32 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
  
-+#ifdef CONFIG_ARCH_OMAP3
- static struct iommu_device devices[] = {
- 	{
- 		.base = 0x480bd400,
-@@ -43,11 +44,13 @@ static struct iommu_device devices[] = {
- 	},
- #endif
- };
-+#endif
-+
- #define NR_IOMMU_DEVICES ARRAY_SIZE(devices)
+ 	clk_enable(obj->clk);
  
--static struct platform_device *omap3_iommu_pdev[NR_IOMMU_DEVICES];
-+static struct platform_device *omap_iommu_pdev[NR_IOMMU_DEVICES];
- 
--static int __init omap3_iommu_init(void)
-+static int __init omap_iommu_init(void)
- {
- 	int i, err;
- 	struct resource res[] = {
-@@ -80,26 +83,26 @@ static int __init omap3_iommu_init(void)
- 		err = platform_device_add(pdev);
- 		if (err)
- 			goto err_out;
--		omap3_iommu_pdev[i] = pdev;
-+		omap_iommu_pdev[i] = pdev;
+-	for (i = 0; i < obj->nr_tlb_entries; i++) {
+-		struct cr_regs tmp;
+-
+-		iotlb_lock_get(obj, &l);
+-		l.vict = i;
+-		iotlb_lock_set(obj, &l);
+-		iotlb_read_cr(obj, &tmp);
+-		if (!iotlb_cr_valid(&tmp))
+-			break;
+-	}
+-
+-	if (i == obj->nr_tlb_entries) {
+-		dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
++	iotlb_lock_get(obj, &l);
++	if (l.base == obj->nr_tlb_entries) {
++		dev_warn(obj->dev, "%s: preserve entries full\n", __func__);
+ 		err = -EBUSY;
+ 		goto out;
  	}
- 	return 0;
++	if (!e->prsvd) {
++		for (i = l.base; i < obj->nr_tlb_entries; i++) {
++			struct cr_regs tmp;
++
++			iotlb_lock_get(obj, &l);
++			l.vict = i;
++			iotlb_lock_set(obj, &l);
++			iotlb_read_cr(obj, &tmp);
++			if (!iotlb_cr_valid(&tmp))
++				break;
++		}
++		if (i == obj->nr_tlb_entries) {
++			dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
++			err = -EBUSY;
++			goto out;
++		}
++	} else {
++		l.vict = l.base;
++		iotlb_lock_set(obj, &l);
++	}
  
- err_out:
- 	while (i--)
--		platform_device_put(omap3_iommu_pdev[i]);
-+		platform_device_put(omap_iommu_pdev[i]);
- 	return err;
- }
--module_init(omap3_iommu_init);
-+module_init(omap_iommu_init);
+ 	cr = iotlb_alloc_cr(obj, e);
+ 	if (IS_ERR(cr)) {
+@@ -256,9 +263,11 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+ 	iotlb_load_cr(obj, cr);
+ 	kfree(cr);
  
--static void __exit omap3_iommu_exit(void)
-+static void __exit omap_iommu_exit(void)
- {
- 	int i;
- 
- 	for (i = 0; i < NR_IOMMU_DEVICES; i++)
--		platform_device_unregister(omap3_iommu_pdev[i]);
-+		platform_device_unregister(omap_iommu_pdev[i]);
- }
--module_exit(omap3_iommu_exit);
-+module_exit(omap_iommu_exit);
- 
- MODULE_AUTHOR("Hiroshi DOYU");
--MODULE_DESCRIPTION("omap iommu: omap3 device registration");
-+MODULE_DESCRIPTION("omap iommu: omap device registration");
- MODULE_LICENSE("GPL v2");
++	if (e->prsvd)
++		l.base++;
+ 	/* increment victim for next tlb load */
+ 	if (++l.vict == obj->nr_tlb_entries)
+-		l.vict = 0;
++		l.vict = l.base;
+ 	iotlb_lock_set(obj, &l);
+ out:
+ 	clk_disable(obj->clk);
 -- 
 1.7.0
 
