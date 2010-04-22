@@ -1,94 +1,53 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH 5/7] OMAP4-HSMMC: Adds Dummy Interface clock's for MMC
-	controllers
-Date: Thu, 22 Apr 2010 09:41:54 +0530
-Message-ID: <m2j7f9d1ffb1004212111pc6fbe8d7p36d81f06cc6c8dea@mail.gmail.com>
-References: <63593.10.24.255.18.1271874056.squirrel@dbdmail.itg.ti.com>
-	 <alpine.DEB.2.00.1004211912540.24256@utopia.booyaka.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH] OMAP: fix gpmc nand setup when no timings supplied
+Date: Thu, 22 Apr 2010 08:19:43 +0300
+Message-ID: <4BCFDC6F.6010801@compulab.co.il>
+References: <1271670618-5671-1-git-send-email-mike@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1004211912540.24256@utopia.booyaka.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: kishore kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, jarkko.lavinen@nokia.com, tony@atomide.com, rmk+lkml@arm.linux.org.uk, santosh.shilimkar@ti.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from compulab.co.il ([67.18.134.219]:48914 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750720Ab0DVFUr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Apr 2010 01:20:47 -0400
+In-Reply-To: <1271670618-5671-1-git-send-email-mike@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Mike Rapoport <mike@compulab.co.il>
 
-On Thu, Apr 22, 2010 at 6:44 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Kishore,
->
-> On Wed, 21 Apr 2010, kishore kadiyala wrote:
->
->> This patch adds dummy Interface clocks for MMC controllers
->
-> Um, your patch removes the existing dummy interface clocks and adds t=
-hem
-> back again. =A0Or is there some other point?
+Any comments on this?
 
-My bad , will repost in New series.
+Mike Rapoport wrote:
+> The gpmc nand infrastructure crashes when there no timing structure
+> supplied in the omap_nand_platform_data. Adding check for
+> gpmc_nand_data->gpmc_t pointer validity resolves the crash and allows to
+> continue nand initialization without modifying gpmc timings.
+> 
+> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+> ---
+>  arch/arm/mach-omap2/gpmc-nand.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+> index 64d74f0..3629da3 100644
+> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> @@ -83,6 +83,11 @@ static int gpmc_nand_setup(void)
+>  {
+>  	struct device *dev = &gpmc_nand_device.dev;
+>  
+> +	if (!gpmc_nand_data->gpmc_t) {
+> +		dev_info(dev, "Keeping gpmc timings\n");
+> +		return 0;
+> +	}
+> +
+>  	/* Set timings in GPMC */
+>  	if (omap2_nand_gpmc_retime() < 0) {
+>  		dev_err(dev, "Unable to set gpmc timings\n");
 
-Regards,
-Kishore
->
->> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 10 +++++-----
->> =A01 files changed, 5 insertions(+), 5 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-om=
-ap2/clock44xx_data.c
->> index 1dd7dc8..6177a89 100644
->> --- a/arch/arm/mach-omap2/clock44xx_data.c
->> +++ b/arch/arm/mach-omap2/clock44xx_data.c
->> @@ -2675,11 +2675,11 @@ static struct omap_clk omap44xx_clks[] =3D {
->> =A0 =A0 =A0 CLK("omap-mcspi.2", =A0 =A0 "ick", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> =A0 =A0 =A0 CLK("omap-mcspi.3", =A0 =A0 "ick", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> =A0 =A0 =A0 CLK("omap-mcspi.4", =A0 =A0 "ick", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> - =A0 =A0 CLK("mmci-omap-hs.0", =A0 "ick", =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> - =A0 =A0 CLK("mmci-omap-hs.1", =A0 "ick", =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> - =A0 =A0 CLK("mmci-omap-hs.2", =A0 "ick", =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> - =A0 =A0 CLK("mmci-omap-hs.3", =A0 "ick", =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> - =A0 =A0 CLK("mmci-omap-hs.4", =A0 "ick", =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> + =A0 =A0 CLK("mmci-omap-hs.0", =A0 "ick", =A0 =A0 =A0 =A0 =A0&dummy=
-_ck, =A0 =A0 =A0CK_443X),
->> + =A0 =A0 CLK("mmci-omap-hs.1", =A0 "ick", =A0 =A0 =A0 =A0 =A0&dummy=
-_ck, =A0 =A0 =A0CK_443X),
->> + =A0 =A0 CLK("mmci-omap-hs.2", =A0 "ick", =A0 =A0 =A0 =A0 =A0&dummy=
-_ck, =A0 =A0 =A0CK_443X),
->> + =A0 =A0 CLK("mmci-omap-hs.3", =A0 "ick", =A0 =A0 =A0 =A0 =A0&dummy=
-_ck, =A0 =A0 =A0CK_443X),
->> + =A0 =A0 CLK("mmci-omap-hs.4", =A0 "ick", =A0 =A0 =A0 =A0 =A0&dummy=
-_ck, =A0 =A0 =A0CK_443X),
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "uart1_ick", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "uart2_ick", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> =A0 =A0 =A0 CLK(NULL, =A0 =A0 =A0 "uart3_ick", =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0&dummy_ck, =A0 =A0 =A0CK_443X),
->> --
->> 1.6.3.3
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
->
->
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+
+-- 
+Sincerely yours,
+Mike.
