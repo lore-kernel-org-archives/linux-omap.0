@@ -1,121 +1,104 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 4/4][v3] OMAP:iommu- add TLB preservation support
-Date: Wed, 21 Apr 2010 19:19:35 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B3C078F@dlee03.ent.ti.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E4B3BF953@dlee03.ent.ti.com>
- <20100421.090227.189716355.Hiroshi.DOYU@nokia.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH v4] OMAP: Fix for bus width which improves SD card's peformance.
+Date: Wed, 21 Apr 2010 19:26:00 -0500
+Message-ID: <008f01cae1b2$6262c970$544ff780@am.dhcp.ti.com>
+References: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com> <20100406163211.GA29117@nokia.com> <4BBB6767.7010202@ti.com> <20100406165720.GA17916@nokia.com> <00b401cad5e0$1d1868d0$544ff780@am.dhcp.ti.com> <4BBBC628.9030207@ti.com> <00c901cad5e7$9de54350$544ff780@am.dhcp.ti.com> <4BBBD87C.1040307@ti.com> <003601cad73c$98c3aa50$544ff780@am.dhcp.ti.com> <s2l7f9d1ffb1004190836l9ba703c5lab13638d968a5c55@mail.gmail.com> <h2h7f9d1ffb1004190851gf08897awf198d3c8e5f9dbce@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34673 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756866Ab0DVATp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Apr 2010 20:19:45 -0400
-In-Reply-To: <20100421.090227.189716355.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <h2h7f9d1ffb1004190851gf08897awf198d3c8e5f9dbce@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'kishore kadiyala' <kishorek.kadiyala@gmail.com>
+Cc: 'Nishanth Menon' <nm@ti.com>, felipe.balbi@nokia.com, me@felipebalbi.com, 'Vimal Singh' <vimal.newwork@gmail.com>, tony@atomide.com, "'S, Venkatraman'" <svenkatr@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "'Lavinen Jarkko (Nokia-D/Helsinki)'" <jarkko.lavinen@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hi Hiroshi,
 
-> > @@ -241,6 +238,11 @@ int load_iotlb_entry(struct iommu *obj, struct
-> iotlb_entry *e)
-> >  			break;
-> >  	}
-> >
-> > +	if (l.base == obj->nr_tlb_entries) {
-> > +		dev_dbg(obj->dev, "%s: preserve entries full\n", __func__);
-> > +		err = -EBUSY;
+
+> -----Original Message-----
+> From: kishore kadiyala [mailto:kishorek.kadiyala@gmail.com]
+> Sent: Monday, April 19, 2010 10:52 AM
+> To: Madhusudhan
+> Cc: Nishanth Menon; felipe.balbi@nokia.com; me@felipebalbi.com; Vimal
+> Singh; tony@atomide.com; S, Venkatraman; linux-omap@vger.kernel.org;
+> linux-kernel@vger.kernel.org; Lavinen Jarkko (Nokia-D/Helsinki)
+> Subject: [PATCH v4] OMAP: Fix for bus width which improves SD card's
+> peformance.
 > 
-> I am afraid that this doesn't work. There are two cases where TLB
-> entries are set/updated:
+> The previous patch was Line wrapped , resending
+> correct patch.
+> NM, Sorry I miss spelled your name correcting this time.
 > 
-> 1) H/W TWL always updates TLB entries automatically, IOW, increments
->    "vict" implicitly.
-> 2) A client module adds preservation TLB entry with explictly calling
->    "load_iotlb_entry()". IOW, increments both  "vict" and "base"
->    intentionally.
-> 
-> Because of 1), "vict" gets full soon and this is normal, but even if
-> this "vict" is full, a preservation entry "base" should be able to be
-> set by a client module unless "base" itself rearches full. IOW, Even
-> if all TLB entries are valid, a new preservation TLB entry should be
-> set by replacing one of the existing normal entry.
-> 
-> In the case of "e" with perservation bit , "load_iotlb_entry()"
-> doesn't usually fail because it replaces the exisiting normal entry,
-> but it would fail only if all TLB entries are preserved.
+> Regards,
+> Kishore
 > 
 
--- I agree with your comments. My implementation was under the assumption that the User locks the TLB entries only at startup time, but as you mentioned this would not work during run time as the entries would already be having valid entries. DSPBridge and the OMAP4 IPCs both locks the entries at init time.
+Tony,
 
-The following changes in load_tlb_entry function should handle the run time case too. This change would lock an entry irrespective of existing entry is valid or not.
-Please let me know if you agree.
+I don't see any further comments on this patch. Can you please push this
+patch?
 
-@@ -230,22 +227,32 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+Regards,
+Madhu
 
-        clk_enable(obj->clk);
-
--       for (i = 0; i < obj->nr_tlb_entries; i++) {
--               struct cr_regs tmp;
--
--               iotlb_lock_get(obj, &l);
--               l.vict = i;
--               iotlb_lock_set(obj, &l);
--               iotlb_read_cr(obj, &tmp);
--               if (!iotlb_cr_valid(&tmp))
--                       break;
--       }
--
--       if (i == obj->nr_tlb_entries) {
--               dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
-+       iotlb_lock_get(obj, &l);
-+       if (l.base == obj->nr_tlb_entries) {
-+               dev_dbg(obj->dev, "%s: preserve entries full\n", __func__);
-                err = -EBUSY;
-                goto out;
-        }
-+       if (!e->prsvd) {
-+               for (i = l.base; i < obj->nr_tlb_entries; i++) {
-+                       struct cr_regs tmp;
-+
-+                       iotlb_lock_get(obj, &l);
-+                       l.vict = i;
-+                       iotlb_lock_set(obj, &l);
-+                       iotlb_read_cr(obj, &tmp);
-+                       if (!iotlb_cr_valid(&tmp))
-+                               break;
-+               }
-+               if (i == obj->nr_tlb_entries) {
-+                       dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
-+                       err = -EBUSY;
-+                       goto out;
-+               }
-+       } else {
-+               l.vict = l.base;
-+               iotlb_lock_set(obj, &l);
-+       }
-
-        cr = iotlb_alloc_cr(obj, e);
-        if (IS_ERR(cr)) {
-@@ -256,9 +263,11 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
-        iotlb_load_cr(obj, cr);
-        kfree(cr);
-
-+       if (e->prsvd)
-+               l.base++;
-        /* increment victim for next tlb load */
-        if (++l.vict == obj->nr_tlb_entries)
--               l.vict = 0;
-+               l.vict = l.base;
-        iotlb_lock_set(obj, &l);
- out:
-        clk_disable(obj->clk);
---
-
-Thank you,
-Best regards,
-Hari
+> From: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> 
+> This patch improves low speeds for SD cards.
+> OMAP-MMC controller's can support maximum bus width of '8'.
+> when bus width is mentioned as "8" in controller data,the SD
+> stack will check whether bus width is "4" and if not it will
+> set bus width to "1" and there by degrading performance.
+> This patch fixes the issue and improves the performance of
+> SD cards.
+> 
+> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> Tested-by: Jarkko Nikula <jhnikula@gmail.com>
+> ---
+> In V4 : Updated with Nishant's comments and appened his Signed-off
+> In V3 : Updated  with Madhu's comments  and appended Tested by Nikula
+> In V2 : Appended Signed-off by Venkat and Ack by Madhu
+> 
+>  Here are my experiment numbers, on a Class 6 SDHC card:
+>  Read peformance is increased by 220%
+>  Write Performance is increased by 52%
+> 
+>  drivers/mmc/host/omap_hsmmc.c |   19 ++++++++++++++++---
+>  1 files changed, 16 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 8c97c22..9c1a60e 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2091,10 +2091,23 @@ static int __init omap_hsmmc_probe(struct
+> 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+>  		     MMC_CAP_WAIT_WHILE_BUSY;
+> 
+> -	if (mmc_slot(host).wires >= 8)
+> -		mmc->caps |= (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA);
+> -	else if (mmc_slot(host).wires >= 4)
+> +	switch (mmc_slot(host).wires) {
+> +	case 8:
+> +		mmc->caps |= MMC_CAP_8_BIT_DATA;
+> +		/* Fall through */
+> +	case 4:
+>  		mmc->caps |= MMC_CAP_4_BIT_DATA;
+> +		break;
+> +	case 1:
+> +		/* Nothing to crib here */
+> +	case 0:
+> +		/* Assuming nothing was given by board, Core use's 1-Bit */
+> +		 break;
+> +	default:
+> +		/* Completely unexpected.. Core goes with 1-Bit Width */
+> +		dev_crit(mmc_dev(host->mmc), "Invalid width %d\n used!"
+> +			"using 1 instead\n", mmc_slot(host).wires);
+> +	}
+> 
+>  	if (mmc_slot(host).nonremovable)
+>  		mmc->caps |= MMC_CAP_NONREMOVABLE;
+> --
+> 1.6.3.3
