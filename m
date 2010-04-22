@@ -1,93 +1,44 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/3] OMAP3630: PM: implement Foward Body-Bias for OPP1G
-Date: Thu, 22 Apr 2010 08:56:53 -0500
-Message-ID: <4BD055A5.1050206@ti.com>
-References: <1271453603-21929-1-git-send-email-mturquette@ti.com> <1271453603-21929-3-git-send-email-mturquette@ti.com> <20100419074636.GC5325@besouro.research.nokia.com> <4BCF6C6F.3030406@ti.com>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: [PATCH 0/4] OMAP4 Ethernet Controller Support
+Date: Thu, 22 Apr 2010 09:42:03 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DC15EB1@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52816 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754926Ab0DVN5B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Apr 2010 09:57:01 -0400
-In-Reply-To: <4BCF6C6F.3030406@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49985 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754964Ab0DVOmU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Apr 2010 10:42:20 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Turquette, Mike" <mturquette@ti.com>
-Cc: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, ext Mike Turquette <mturquette@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Gopinath, Thara" <thara@ti.com>, "Gulati, Shweta" <shweta.gulati@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-Turquette, Mike had written, on 04/21/2010 04:21 PM, the following:
-[...]
 
->>>  
->>>  /**
->>> + * voltscale_adaptive_body_bias - controls ABB ldo during voltage scaling
->>> + * @target_volt: target voltage determines if ABB ldo is active or bypassed
->>> + *
->>> + * Adaptive Body-Bias is a technique in all OMAP silicon that uses the 45nm
->>> + * process.  ABB can boost voltage in high OPPs for silicon with weak
->>> + * characteristics (forward Body-Bias) as well as lower voltage in low OPPs
->>> + * for silicon with strong characteristics (Reverse Body-Bias).
->>> + *
->>> + * Only Foward Body-Bias for operating at high OPPs is implemented below, per
->>> + * recommendations from silicon team.
->>> + * Reverse Body-Bias for saving power in active cases and sleep cases is not
->>> + * yet implemented.
->>> + * OMAP4 hardward also supports ABB ldo, but no recommendations have been made
->>> + * to implement it yet.
->>> + */
->>> +int voltscale_adaptive_body_bias(unsigned long target_volt)
->>> +{
->>> +	u32 sr2en_enabled;
->>> +	int timeout;
->>> +	int sr2_wtcnt_value;
->>> +
->>> +	/* calculate SR2_WTCNT_VALUE settling time */
->>> +	sr2_wtcnt_value = (ABB_MAX_SETTLING_TIME *
->>> +			(clk_get_rate("sys_ck") / 1000000) / 8);
->>> +
->>> +	/* has SR2EN been enabled previously? */
->>> +	sr2en_enabled = (prm_read_mod_reg(OMAP3430_GR_MOD,
->>> +				OMAP3_PRM_LDO_ABB_CTRL_OFFSET) &
->>> +			OMAP3630_SR2EN);
->>> +
->>> +	/* select fast, nominal or slow OPP for ABB ldo */
->>> +	/* FIXME: include OMAP4 once recommendations are complete */
->>> +	if (cpu_is_omap3630() && (target_volt >= 1350000)) {
->> You are creating two steps to decide if you apply or not FBB.
->> Here and also bellow (omap voltage scale). Would it make sense to bind it
->> per opp? I mean just a flag on opp dat then you apply or not based on that flag.
->> Same for RBB.
-> 
-> Eduardo,
-> 
-> Thanks for reviewing.
-> 
-> There has been some offline discussion about the best way to handle the 
-> the relationship between FBB enable flags and OPPs:
-> 
-> 1) extend OPP table
-> 2) piggyback on Thara's SR hwmod structures
-> 	This probably won't work given Paul's review comments
-> 3) other wacky stuff
-> 
-> After some discussion about the best way to do this I will definitely 
-> lose the duplicate checks and replace with some nice table look-up.
-> 
-> Extending the OPP table is gross for OMAP2 and OMAP3430.  Piggybacking 
-> on SR stuff is just a hack and there is no real relationship between ABB 
-> ldo and SR.  The crux of the issue is how to relate FBB enable flags to 
-> OPP table.  hwmod?  Ideas on this are very welcome.
-> 
-might be a good idea for using
-I vote for 2) omap_volt_data in voltage.c and using the flag there.
+Enable network chip Micrel KS8851 for OMAP4430 SDP
 
-1) is a bad idea as ABB is not present in older silicon and opp table 
-should ideally be independent of silicon and contain only common data..
+- Based on mainline version 2.6.34 rc5
+- Tested in OMAP4430 SDP
+- One dependency
+  http://patchwork.ozlabs.org/patch/50363/
 
-[...]
+Throughput measurements using nuttcp application:
+  11.9375 MB /  10.07 sec =    9.9441 Mbps 95 %TX 0 %RX 0 retrans 7.90 msRTT
 
--- 
-Regards,
-Nishanth Menon
+Patches
+
+ 0001-OMAP4-Clocks-Change-SPI-Instance-Names.patch
+ 0002-OMAP4-SPI-Fix-Driver-Kconfig.patch
+ 0003-OMAP4-Ethernet-KS8851-Board-Support.patch
+ 0004-OMAP4-Networking-Defconfig-Support.patch
+
+---
+
+ arch/arm/configs/omap_4430sdp_defconfig |   57 ++++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/board-4430sdp.c     |   30 ++++++++++++++++
+ arch/arm/mach-omap2/clock44xx_data.c    |    8 ++--
+ drivers/spi/Kconfig                     |    6 +--
+ 4 files changed, 92 insertions(+), 9 deletions(-)
+
