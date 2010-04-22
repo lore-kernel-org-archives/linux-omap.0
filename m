@@ -1,128 +1,89 @@
-From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 4/4][v4] OMAP:iommu- add TLB preservation support
-Date: Thu, 22 Apr 2010 18:26:11 -0500
-Message-ID: <1271978771-26889-5-git-send-email-h-kanigeri2@ti.com>
-References: <1271978771-26889-1-git-send-email-h-kanigeri2@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 4/5(7)] input: serio: add support for Amstrad Delta
+ serial keyboard port
+Date: Thu, 22 Apr 2010 16:14:53 -0700
+Message-ID: <20100422231452.GT18272@atomide.com>
+References: <201004150419.05038.jkrzyszt@tis.icnet.pl>
+ <201004150431.06719.jkrzyszt@tis.icnet.pl>
+ <20100415161451.GA13966@core.coreip.homeip.net>
+ <201004152016.10035.jkrzyszt@tis.icnet.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56187 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753825Ab0DVXIZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Apr 2010 19:08:25 -0400
-In-Reply-To: <1271978771-26889-1-git-send-email-h-kanigeri2@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52871 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751561Ab0DVXO5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Apr 2010 19:14:57 -0400
+Content-Disposition: inline
+In-Reply-To: <201004152016.10035.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, e3-hacking@earth.li
 
-This patch adds TLB preservation support to IOMMU module
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100415 11:14]:
+> Thursday 15 April 2010 18:14:51 Dmitry Torokhov napisa=C5=82(a):
+> > Hi Janusz,
+>=20
+> Hi Dmitry,
+>=20
+> > On Thu, Apr 15, 2010 at 04:31:03AM +0200, Janusz Krzysztofik wrote:
+> > > +
+> > > +config SERIO_AMS_DELTA
+> > > +	tristate "Amstrad Delta (E3) mailboard support"
+> > > +	depends on MACH_AMS_DELTA
+> > > +	default y
+> > > +	select AMS_DELTA_FIQ
+> > > +	select KEYBOARD_ATKBD
+> >
+> > I'd rather not select atkbd here since it is not required for this
+> > driver to work but simply adjust your defconfig.
+>=20
+> I was just trying to address possible future support questions, as yo=
+u can=20
+> already find them in the e3-hacking 2006 archives :).
+>=20
+> OK, I'll drop it then and move the config back inside the "if SERIO".=
+=2E."endif"=20
+> block.
+>=20
+> > > +
+> > > +	if (!(machine_is_ams_delta()))
+> > > +		return -ENODEV;
+> >
+> > Extra parens.
+>=20
+> Yes, it looks like I'm too much wary. I'll drop them.
+>=20
+> > Otherwise:
+> >
+> > 	Acked-by: Dmitry Torokhov <dtor@mail.ru>
+>=20
+> Thanks.
+>=20
+> > I assume it is going to be merged with the rest of your patches thr=
+ough
+> > a tree other than linux-input.
+>=20
+> Probably yes, since it depends on most of them. Let's see first what =
+Tony=20
+> says.
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-Signed-off-by: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
----
- arch/arm/mach-omap2/iommu2.c |    4 ++-
- arch/arm/plat-omap/iommu.c   |   43 +++++++++++++++++++++++++----------------
- 2 files changed, 29 insertions(+), 18 deletions(-)
+Sorry for the delay, quite a few patches to read through right now..
 
-diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
-index f01f985..5ce76e4 100644
---- a/arch/arm/mach-omap2/iommu2.c
-+++ b/arch/arm/mach-omap2/iommu2.c
-@@ -146,6 +146,7 @@ static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
- 	printk("\n");
- 
- 	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
-+	omap2_iommu_disable(obj);
- 	return stat;
- }
- 
-@@ -211,7 +212,8 @@ static ssize_t omap2_dump_cr(struct iommu *obj, struct cr_regs *cr, char *buf)
- 	char *p = buf;
- 
- 	/* FIXME: Need more detail analysis of cam/ram */
--	p += sprintf(p, "%08x %08x\n", cr->cam, cr->ram);
-+	p += sprintf(p, "%08x %08x %01x\n", cr->cam, cr->ram,
-+					(cr->cam & MMU_CAM_P) ? 1 : 0);
- 
- 	return p - buf;
- }
-diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-index 463d638..38658e3 100644
---- a/arch/arm/plat-omap/iommu.c
-+++ b/arch/arm/plat-omap/iommu.c
-@@ -171,15 +171,12 @@ static void iotlb_lock_get(struct iommu *obj, struct iotlb_lock *l)
- 	l->base = MMU_LOCK_BASE(val);
- 	l->vict = MMU_LOCK_VICT(val);
- 
--	BUG_ON(l->base != 0); /* Currently no preservation is used */
- }
- 
- static void iotlb_lock_set(struct iommu *obj, struct iotlb_lock *l)
- {
- 	u32 val;
- 
--	BUG_ON(l->base != 0); /* Currently no preservation is used */
--
- 	val = (l->base << MMU_LOCK_BASE_SHIFT);
- 	val |= (l->vict << MMU_LOCK_VICT_SHIFT);
- 
-@@ -230,22 +227,32 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
- 
- 	clk_enable(obj->clk);
- 
--	for (i = 0; i < obj->nr_tlb_entries; i++) {
--		struct cr_regs tmp;
--
--		iotlb_lock_get(obj, &l);
--		l.vict = i;
--		iotlb_lock_set(obj, &l);
--		iotlb_read_cr(obj, &tmp);
--		if (!iotlb_cr_valid(&tmp))
--			break;
--	}
--
--	if (i == obj->nr_tlb_entries) {
--		dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
-+	iotlb_lock_get(obj, &l);
-+	if (l.base == obj->nr_tlb_entries) {
-+		dev_warn(obj->dev, "%s: preserve entries full\n", __func__);
- 		err = -EBUSY;
- 		goto out;
- 	}
-+	if (!e->prsvd) {
-+		for (i = l.base; i < obj->nr_tlb_entries; i++) {
-+			struct cr_regs tmp;
-+
-+			iotlb_lock_get(obj, &l);
-+			l.vict = i;
-+			iotlb_lock_set(obj, &l);
-+			iotlb_read_cr(obj, &tmp);
-+			if (!iotlb_cr_valid(&tmp))
-+				break;
-+		}
-+		if (i == obj->nr_tlb_entries) {
-+			dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
-+			err = -EBUSY;
-+			goto out;
-+		}
-+	} else {
-+		l.vict = l.base;
-+		iotlb_lock_set(obj, &l);
-+	}
- 
- 	cr = iotlb_alloc_cr(obj, e);
- 	if (IS_ERR(cr)) {
-@@ -256,9 +263,11 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
- 	iotlb_load_cr(obj, cr);
- 	kfree(cr);
- 
-+	if (e->prsvd)
-+		l.base++;
- 	/* increment victim for next tlb load */
- 	if (++l.vict == obj->nr_tlb_entries)
--		l.vict = 0;
-+		l.vict = l.base;
- 	iotlb_lock_set(obj, &l);
- out:
- 	clk_disable(obj->clk);
--- 
-1.7.0
+Looks pretty good to me, I have one comment on the FIQ though.
 
+After the remaining fixes, could you please repost the whole series
+one more time now with linux-arm-kernel also cc'd?
+
+Then if no more comments there, I'll add add it to omap for-next.
+
+Cheers,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
