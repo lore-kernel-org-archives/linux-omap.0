@@ -1,88 +1,200 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv3 01/11] mfd: twl4030-power: Rename DEVGROUP to DEV_GRP
-Date: Thu, 22 Apr 2010 11:19:32 +0300
-Message-ID: <20100422081932.GE16011@besouro.research.nokia.com>
-References: <1271923663-23668-1-git-send-email-eduardo.valentin@nokia.com>
- <1271923663-23668-2-git-send-email-eduardo.valentin@nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <koen.kooi@gmail.com>
+Subject: [PATCH v9] board-omap3-beagle: add DSS2 support
+Date: Thu, 22 Apr 2010 10:23:42 +0200
+Message-ID: <1271924622-21043-1-git-send-email-koen@dominion.thruhere.net>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:16758 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240Ab0DVIUu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Apr 2010 04:20:50 -0400
-Content-Disposition: inline
-In-Reply-To: <1271923663-23668-2-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:50232 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575Ab0DVIXz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Apr 2010 04:23:55 -0400
+Received: by wwb24 with SMTP id 24so4608439wwb.19
+        for <linux-omap@vger.kernel.org>; Thu, 22 Apr 2010 01:23:53 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-Cc: Core-Review <core-review@ok.research.nokia.com>, Amit Kucheria <amit.kucheria@verdurent.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>
+To: tomi.valkeinen@nokia.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>
 
-Hello guys,
+This patch adds DSS2 support to the beagleboard boardfile. DVI and TV-out are supported.
 
-sorry for this spamming, I've missed the suppress cc list while sending these patches.
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+Changes since v1:
+    * removed beagle_panel_enable_tv() and beagle_panel_disable_tv()
+Changes since v2:
+    * changed to REGULATOR_SUPPLY(_name, _dev_name) for dss regulators
+Changes since v3:
+    * really remove beagle_panel_enable_tv() and beagle_panel_disable_tv()
+    * moved comments to this section
+Changes since v4:
+    * remove trailing whitespace
+Changes since v5:
+    * fix semicolon typo
+Changes since v6:
+    * use gpio_is_valid(dssdev->reset_gpio)
+Changes since v8:
+    * fix missing whitespace before __init omap3_beagle_map_io(){}
 
-On Thu, Apr 22, 2010 at 10:07:33AM +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
-> From: Amit Kucheria <amit.kucheria@verdurent.com>
-> 
-> Stick to the names used in the reference manual
-> 
-> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
-> ---
->  drivers/mfd/twl4030-power.c |   16 ++++++++--------
->  1 files changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-> index 6b716ef..8f82e22 100644
-> --- a/drivers/mfd/twl4030-power.c
-> +++ b/drivers/mfd/twl4030-power.c
-> @@ -74,12 +74,12 @@ static u8 twl4030_start_script_address = 0x2b;
->  
->  /* resource configuration registers */
->  
-> -#define DEVGROUP_OFFSET		0
-> +#define DEV_GRP_OFFSET		0
->  #define TYPE_OFFSET		1
->  
-> -/* Bit positions */
-> -#define DEVGROUP_SHIFT		5
-> -#define DEVGROUP_MASK		(7 << DEVGROUP_SHIFT)
-> +/* Bit positions in the registers */
-> +#define DEV_GRP_SHIFT		5
-> +#define DEV_GRP_MASK		(7 << DEV_GRP_SHIFT)
->  #define TYPE_SHIFT		0
->  #define TYPE_MASK		(7 << TYPE_SHIFT)
->  #define TYPE2_SHIFT		3
-> @@ -333,7 +333,7 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
->  
->  	/* Set resource group */
->  	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &grp,
-> -				rconfig_addr + DEVGROUP_OFFSET);
-> +				rconfig_addr + DEV_GRP_OFFSET);
->  	if (err) {
->  		pr_err("TWL4030 Resource %d group could not be read\n",
->  			rconfig->resource);
-> @@ -341,10 +341,10 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
->  	}
->  
->  	if (rconfig->devgroup >= 0) {
-> -		grp &= ~DEVGROUP_MASK;
-> -		grp |= rconfig->devgroup << DEVGROUP_SHIFT;
-> +		grp &= ~DEV_GRP_MASK;
-> +		grp |= rconfig->devgroup << DEV_GRP_SHIFT;
->  		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> -					grp, rconfig_addr + DEVGROUP_OFFSET);
-> +					grp, rconfig_addr + DEV_GRP_OFFSET);
->  		if (err < 0) {
->  			pr_err("TWL4030 failed to program devgroup\n");
->  			return err;
-> -- 
-> 1.7.0.4.361.g8b5fe.dirty
-> 
-> _______________________________________________
-> Core-review mailing list
-> Core-review@ok.research.nokia.com
-> http://ok.research.nokia.com/cgi-bin/mailman/listinfo/core-review
+ arch/arm/mach-omap2/board-omap3beagle.c |  101 +++++++++++++++++++++++--------
+ 1 files changed, 75 insertions(+), 26 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 962d377..69b154c 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -39,6 +39,7 @@
+ 
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/display.h>
+ #include <plat/gpmc.h>
+ #include <plat/nand.h>
+ #include <plat/usb.h>
+@@ -106,6 +107,77 @@ static struct platform_device omap3beagle_nand_device = {
+ 	.resource	= &omap3beagle_nand_resource,
+ };
+ 
++/* DSS */
++
++static int beagle_enable_dvi(struct omap_dss_device *dssdev)
++{
++	if (gpio_is_valid(dssdev->reset_gpio))
++		gpio_set_value(dssdev->reset_gpio, 1);
++
++	return 0;
++}
++
++static void beagle_disable_dvi(struct omap_dss_device *dssdev)
++{
++	if (gpio_is_valid(dssdev->reset_gpio))
++		gpio_set_value(dssdev->reset_gpio, 0);
++}
++
++static struct omap_dss_device beagle_dvi_device = {
++	.type = OMAP_DISPLAY_TYPE_DPI,
++	.name = "dvi",
++	.driver_name = "generic_panel",
++	.phy.dpi.data_lines = 24,
++	.reset_gpio = 170,
++	.platform_enable = beagle_enable_dvi,
++	.platform_disable = beagle_disable_dvi,
++};
++
++static struct omap_dss_device beagle_tv_device = {
++	.name = "tv",
++	.driver_name = "venc",
++	.type = OMAP_DISPLAY_TYPE_VENC,
++	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
++};
++
++static struct omap_dss_device *beagle_dss_devices[] = {
++	&beagle_dvi_device,
++	&beagle_tv_device,
++};
++
++static struct omap_dss_board_info beagle_dss_data = {
++	.num_devices = ARRAY_SIZE(beagle_dss_devices),
++	.devices = beagle_dss_devices,
++	.default_device = &beagle_dvi_device,
++};
++
++static struct platform_device beagle_dss_device = {
++	.name          = "omapdss",
++	.id            = -1,
++	.dev            = {
++		.platform_data = &beagle_dss_data,
++	},
++};
++
++static struct regulator_consumer_supply beagle_vdac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omapdss");
++
++static struct regulator_consumer_supply beagle_vdvi_supply =
++	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
++
++static void __init beagle_display_init(void)
++{
++	int r;
++
++	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
++	if (r < 0) {
++		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
++		return;
++	}
++
++	gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
++}
++
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ 
+ static struct omap2_hsmmc_info mmc[] = {
+@@ -117,15 +189,6 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}	/* Terminator */
+ };
+ 
+-static struct platform_device omap3_beagle_lcd_device = {
+-	.name		= "omap3beagle_lcd",
+-	.id		= -1,
+-};
+-
+-static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
+-};
+-
+ static struct regulator_consumer_supply beagle_vmmc1_supply = {
+ 	.supply			= "vmmc",
+ };
+@@ -181,16 +244,6 @@ static struct twl4030_gpio_platform_data beagle_gpio_data = {
+ 	.setup		= beagle_twl_gpio_setup,
+ };
+ 
+-static struct regulator_consumer_supply beagle_vdac_supply = {
+-	.supply		= "vdac",
+-	.dev		= &omap3_beagle_lcd_device.dev,
+-};
+-
+-static struct regulator_consumer_supply beagle_vdvi_supply = {
+-	.supply		= "vdvi",
+-	.dev		= &omap3_beagle_lcd_device.dev,
+-};
+-
+ /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+ static struct regulator_init_data beagle_vmmc1 = {
+ 	.constraints = {
+@@ -349,14 +402,8 @@ static struct platform_device keys_gpio = {
+ 	},
+ };
+ 
+-static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+-	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
+-};
+-
+ static void __init omap3_beagle_init_irq(void)
+ {
+-	omap_board_config = omap3_beagle_config;
+-	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+ 			     mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+@@ -367,9 +414,9 @@ static void __init omap3_beagle_init_irq(void)
+ }
+ 
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+-	&omap3_beagle_lcd_device,
+ 	&leds_gpio,
+ 	&keys_gpio,
++	&beagle_dss_device,
+ };
+ 
+ static void __init omap3beagle_flash_init(void)
+@@ -456,6 +503,8 @@ static void __init omap3_beagle_init(void)
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+ 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
++
++	beagle_display_init();
+ }
+ 
+ static void __init omap3_beagle_map_io(void)
+-- 
+1.6.6.1
+
