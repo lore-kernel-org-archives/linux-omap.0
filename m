@@ -1,137 +1,34 @@
-From: Charulatha V <charu@ti.com>
-Subject: [PATCH 2/9] OMAP:GPIO: Introduce support for OMAP15xx chip specific GPIO
-Date: Thu, 22 Apr 2010 21:25:13 +0530
-Message-ID: <1271951720-21714-3-git-send-email-charu@ti.com>
-References: <1271951720-21714-1-git-send-email-charu@ti.com>
- <1271951720-21714-2-git-send-email-charu@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34459 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755322Ab0DVPzD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Apr 2010 11:55:03 -0400
-In-Reply-To: <1271951720-21714-2-git-send-email-charu@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 1/2] omap: pm34xx: Enable IO / IO-CHAIN wakeups for PER
+Date: Thu, 22 Apr 2010 12:57:51 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE896716203BABB8733@dlee02.ent.ti.com>
+References: <1271295665-26187-1-git-send-email-mike@android.com>
+ <87aasw5oyx.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87aasw5oyx.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, Mike Chan <mike@android.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: rnayak@ti.com, paul@pwsan.com, tony@atomide.com, khilman@deeprootsystems.com, Charulatha V <charu@ti.com>
 
-This patch adds support for handling OMAP15xx specific gpio_init
-by providing platform device data and doing device registration.
 
-Signed-off-by: Charulatha V <charu@ti.com>
----
- arch/arm/mach-omap1/gpio15xx.c |  102 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 102 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap1/gpio15xx.c
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Kevin Hilman
 
-diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
-new file mode 100644
-index 0000000..99c4017
---- /dev/null
-+++ b/arch/arm/mach-omap1/gpio15xx.c
-@@ -0,0 +1,102 @@
-+/*
-+ * gpio15xx.c - OMAP15XX-specific gpio code
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ *
-+ * Author:
-+ *	Charulatha V <charu@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/gpio.h>
-+
-+/*
-+ * OMAP15XX GPIO1 interface data
-+ */
-+static struct __initdata resource omap15xx_mpu_gpio_resources[] = {
-+	{
-+		.start	= OMAP1_MPUIO_VBASE,
-+		.end	= OMAP1_MPUIO_VBASE + SZ_2K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= INT_MPUIO,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct __initdata omap_gpio_platform_data omap15xx_mpu_gpio_config = {
-+	.virtual_irq_start = IH_MPUIO_BASE,
-+	.method	= METHOD_MPUIO,
-+};
-+
-+static struct __initdata platform_device omap15xx_mpu_gpio = {
-+	.name           = "omap-gpio",
-+	.id             = 0,
-+	.dev            = {
-+		.platform_data = &omap15xx_mpu_gpio_config,
-+	},
-+	.num_resources = ARRAY_SIZE(omap15xx_mpu_gpio_resources),
-+	.resource = omap15xx_mpu_gpio_resources,
-+};
-+
-+/*
-+ * OMAP15XX GPIO2 interface data
-+ */
-+static struct __initdata resource omap15xx_gpio_resources[] = {
-+	{
-+		.start	= OMAP1510_GPIO_BASE,
-+		.end	= OMAP1510_GPIO_BASE + SZ_2K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= INT_GPIO_BANK1,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct __initdata omap_gpio_platform_data omap15xx_gpio_config = {
-+	.virtual_irq_start = IH_GPIO_BASE,
-+	.method	= METHOD_GPIO_1510,
-+};
-+
-+static struct __initdata platform_device omap15xx_gpio = {
-+	.name           = "omap-gpio",
-+	.id             = 1,
-+	.dev            = {
-+		.platform_data = &omap15xx_gpio_config,
-+	},
-+	.num_resources = ARRAY_SIZE(omap15xx_gpio_resources),
-+	.resource = omap15xx_gpio_resources,
-+};
-+
-+static struct __initdata platform_device * omap15xx_gpio_dev[] = {
-+	&omap15xx_mpu_gpio,
-+	&omap15xx_gpio,
-+};
-+
-+int __init omap15xx_gpio_init(void)
-+{
-+	if (cpu_is_omap15xx()) {
-+		early_platform_add_devices(omap15xx_gpio_dev,
-+						sizeof(omap15xx_gpio_dev));
-+		early_platform_driver_register_all("earlygpio");
-+		early_platform_driver_probe("earlygpio",
-+						sizeof(omap15xx_gpio_dev), 0);
-+	}
-+	return 0;
-+}
-+
-+int __init omap15xx_gpio_dev_reg(void)
-+{
-+	if (cpu_is_omap15xx()) {
-+		platform_device_register(&omap15xx_mpu_gpio);
-+		platform_device_register(&omap15xx_gpio);
-+	}
-+
-+	return 0;
-+}
-+arch_initcall(omap15xx_gpio_dev_reg);
--- 
-1.6.3.3
+> I'm a little puzzled on this one.  My understanding is that the IO pad
+> is only armed when CORE is in RET or OFF.
 
+For ES3 and before the io ring wake was 'armed' when ever core went to idle.  When core power state changed accounting was done for state.
+
+This scheme created a small time window where per wake events could be lost in handoff from gpio to io daisy chain when targeting chip off.
+
+In ES3.1 the EN_IO_CHAIN bit was added as a way to cover this hole.  It allows enabling the wake up daisy chain in software prior to idling core.  The trm does detail the exact steps.
+
+The 3.1 bug fix covered the transition window observed going to chip states but probably can cover here.  I'm not sure about the patch as applied with studying.
+
+Regards,
+Richard W.
