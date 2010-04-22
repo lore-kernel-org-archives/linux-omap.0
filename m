@@ -1,37 +1,37 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE: MMU-Fault debugging enhancements
-Date: Thu, 22 Apr 2010 16:45:50 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DC1649A@dlee03.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602CB04896F@dlee06.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] cbus: fix comilation breakage
+Date: Thu, 22 Apr 2010 18:11:29 -0400
+Message-ID: <notify-1271974288@atomide.com>
+References: <1271859967-12914-1-git-send-email-ash@koowaldah.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45776 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751671Ab0DVVp5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Apr 2010 17:45:57 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CB04896F@dlee06.ent.ti.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50882 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419Ab0DVWL3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Apr 2010 18:11:29 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1O54cK-0000Vl-Ht
+	for linux-omap@vger.kernel.org; Thu, 22 Apr 2010 22:11:28 +0000
+In-Reply-To: <1271859967-12914-1-git-send-email-ash@koowaldah.org>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: linux-omap@vger.kernel.org
 
->
->From db3d76a2e89a1c227322a2732ddf7ebf5cd4b4cf Mon Sep 17 00:00:00 2001
->From: Ernesto Ramos <ernesto@ti.com>
->Date: Wed, 24 Mar 2010 11:12:05 -0600
->Subject: [PATCH] DSPBRIDGE: MMU-Fault debugging enhancements
->
->These changes allow for DSP task information to be printed
->by the MPU dspbridge when DSP MMU fault ocurrs.
->
->Signed-off-by: Cris Jansson <cjansson@ti.com>
->[change to open source coding style]
->Signed-off-by: Ernesto Ramos <ernesto@ti.com>
->---
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Pushed to dspbridge.
+Branch in linux-omap: cbus
 
-- omar
+Initial commit ID (Likely to change): 79b8b733f926a38ef8dc2f62a5aa5e9708f5deef
+
+PatchWorks
+http://patchwork.kernel.org/patch/93871/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=79b8b733f926a38ef8dc2f62a5aa5e9708f5deef
+
+
