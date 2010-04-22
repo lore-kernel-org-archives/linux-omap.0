@@ -1,21 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH 1/3] omap: fix clocksource_32k to start from zero
-Date: Thu, 22 Apr 2010 19:49:10 -0400
-Message-ID: <notify-1271980150@atomide.com>
-References: <1270634244-22741-1-git-send-email-felipe.balbi@nokia.com>
+Subject: [APPLIED] [PATCH 2/3] arm: omap1: remove dead code from timer32k.c
+Date: Thu, 22 Apr 2010 19:49:24 -0400
+Message-ID: <notify-1271980163@atomide.com>
+References: <1270634244-22741-2-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60282 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753914Ab0DVXtK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Apr 2010 19:49:10 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55293 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754043Ab0DVXtY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Apr 2010 19:49:24 -0400
 Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
 	(envelope-from <tony@atomide.com>)
-	id 1O568r-000Etg-Rh
-	for linux-omap@vger.kernel.org; Thu, 22 Apr 2010 23:49:10 +0000
-In-Reply-To: <1270634244-22741-1-git-send-email-felipe.balbi@nokia.com>
+	id 1O5695-000Ncv-Sl
+	for linux-omap@vger.kernel.org; Thu, 22 Apr 2010 23:49:24 +0000
+In-Reply-To: <1270634244-22741-2-git-send-email-felipe.balbi@nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -26,12 +26,12 @@ by youw fwiendly patch wobot.
 
 Branch in linux-omap: omap-fixes
 
-Initial commit ID (Likely to change): 135a57fa43f4f345eb281157d0d4e107b3c74d16
+Initial commit ID (Likely to change): cb7085ea28c95bd7b55e5c37a7e6d3017dcdcc90
 
 PatchWorks
-http://patchwork.kernel.org/patch/90994/
+http://patchwork.kernel.org/patch/90993/
 
 Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=135a57fa43f4f345eb281157d0d4e107b3c74d16
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=cb7085ea28c95bd7b55e5c37a7e6d3017dcdcc90
 
 
