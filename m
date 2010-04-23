@@ -1,43 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 21/28] n8x0_defconfig: remove CONFIG_NILFS2_FS override
-Date: Fri, 23 Apr 2010 16:11:53 -0700
-Message-ID: <20100423231153.31953.61218.stgit@baageli.muru.com>
+Subject: [PATCH 22/28] omap: Devkit8000: Fix typo in supplies
+Date: Fri, 23 Apr 2010 16:11:56 -0700
+Message-ID: <20100423231156.31953.21428.stgit@baageli.muru.com>
 References: <20100423230829.31953.17334.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62035 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755127Ab0DWXLx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 19:11:53 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57155 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755127Ab0DWXLz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 19:11:55 -0400
 In-Reply-To: <20100423230829.31953.17334.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Francisco Alecrim <francisco.alecrim@openbossa.org>
+Cc: Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org
 
-From: Francisco Alecrim <francisco.alecrim@openbossa.org>
+From: Thomas Weber <weber@corscience.de>
 
-arch/arm/configs/n8x0_defconfig:1061:warning: override: reassigning to
-symbol NILFS2_FS
+Replace wrong vdss_dsi with vdds_dsi.
 
-Signed-off-by: Francisco Alecrim <francisco.alecrim@openbossa.org>
+Signed-off-by: Thomas Weber <weber@corscience.de>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/n8x0_defconfig |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-devkit8000.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/configs/n8x0_defconfig b/arch/arm/configs/n8x0_defconfig
-index 216ad00..9405e32 100644
---- a/arch/arm/configs/n8x0_defconfig
-+++ b/arch/arm/configs/n8x0_defconfig
-@@ -1058,7 +1058,6 @@ CONFIG_JFFS2_CMODE_PRIORITY=y
- # CONFIG_ROMFS_FS is not set
- # CONFIG_SYSV_FS is not set
- # CONFIG_UFS_FS is not set
--# CONFIG_NILFS2_FS is not set
- CONFIG_NETWORK_FILESYSTEMS=y
- # CONFIG_NFS_FS is not set
- # CONFIG_NFSD is not set
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index db4c093..b82e438 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -303,7 +303,7 @@ static struct regulator_consumer_supply devkit8000_vpll2_supplies[] = {
+ 	.dev		= &devkit8000_lcd_device.dev,
+ 	},
+ 	{
+-	.supply		= "vdss_dsi",
++	.supply		= "vdds_dsi",
+ 	.dev		= &devkit8000_dss_device.dev,
+ 	}
+ };
 
