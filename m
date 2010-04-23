@@ -1,66 +1,77 @@
 From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [RFC PATCH 0/5] HSI framework and drivers
-Date: Fri, 23 Apr 2010 18:15:23 +0300
-Message-ID: <1272035728-6933-1-git-send-email-carlos.chinea@nokia.com>
+Subject: [RFC PATCH 5/5] HSI CHAR: Add HSI char device kernel configuration
+Date: Fri, 23 Apr 2010 18:15:28 +0300
+Message-ID: <1272035728-6933-6-git-send-email-carlos.chinea@nokia.com>
+References: <1272035728-6933-1-git-send-email-carlos.chinea@nokia.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1272035728-6933-1-git-send-email-carlos.chinea@nokia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Andras Domokos <andras.domokos@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi !
+From: Andras Domokos <andras.domokos@nokia.com>
 
-I have been working on a new proposal to support HSI/SSI drivers
-in the kernel. I would be very glad to get your feedback about
-this proposal.
+Add HSI character device kernel configuration
 
-This patch series introduces the HSI framework, an SSI driver
-for OMAP and a generic character device for HSI/SSI devices.
-
-SSI, which is a legacy version of HSI, is used to connect the application
-engine with the cellular modem on the Nokia N900.
-
-This patch set is based on 2.6.34-rc3
-
-Br,
-Carlos Chinea
-
-Andras Domokos (2):
-  HSI CHAR: Add HSI char device driver
-  HSI CHAR: Add HSI char device kernel configuration
-
-Carlos Chinea (3):
-  HSI: Introducing HSI framework
-  OMAP SSI: Introducing OMAP SSI driver
-  OMAP SSI: Add OMAP SSI to the kernel configuration
-
- arch/arm/mach-omap2/Makefile          |    3 +
- arch/arm/mach-omap2/ssi.c             |  139 +++
- arch/arm/plat-omap/include/plat/ssi.h |  196 ++++
- drivers/Kconfig                       |    2 +
- drivers/Makefile                      |    1 +
- drivers/hsi/Kconfig                   |   16 +
- drivers/hsi/Makefile                  |    5 +
- drivers/hsi/clients/Kconfig           |   11 +
- drivers/hsi/clients/Makefile          |    5 +
- drivers/hsi/clients/hsi_char.c        | 1078 +++++++++++++++++++++
- drivers/hsi/controllers/Kconfig       |   11 +
- drivers/hsi/controllers/Makefile      |    5 +
- drivers/hsi/controllers/omap_ssi.c    | 1691 +++++++++++++++++++++++++++++++++
- drivers/hsi/hsi.c                     |  487 ++++++++++
- include/linux/hsi/hsi.h               |  365 +++++++
- include/linux/hsi/hsi_char.h          |   79 ++
- 16 files changed, 4094 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/ssi.c
- create mode 100644 arch/arm/plat-omap/include/plat/ssi.h
- create mode 100644 drivers/hsi/Kconfig
- create mode 100644 drivers/hsi/Makefile
+Signed-off-by: Andras Domokos <andras.domokos@nokia.com>
+---
+ drivers/hsi/Kconfig          |    1 +
+ drivers/hsi/Makefile         |    2 +-
+ drivers/hsi/clients/Kconfig  |   11 +++++++++++
+ drivers/hsi/clients/Makefile |    5 +++++
+ 4 files changed, 18 insertions(+), 1 deletions(-)
  create mode 100644 drivers/hsi/clients/Kconfig
  create mode 100644 drivers/hsi/clients/Makefile
- create mode 100644 drivers/hsi/clients/hsi_char.c
- create mode 100644 drivers/hsi/controllers/Kconfig
- create mode 100644 drivers/hsi/controllers/Makefile
- create mode 100644 drivers/hsi/controllers/omap_ssi.c
- create mode 100644 drivers/hsi/hsi.c
- create mode 100644 include/linux/hsi/hsi.h
- create mode 100644 include/linux/hsi/hsi_char.h
+
+diff --git a/drivers/hsi/Kconfig b/drivers/hsi/Kconfig
+index 0398e23..87d87a1 100644
+--- a/drivers/hsi/Kconfig
++++ b/drivers/hsi/Kconfig
+@@ -11,5 +11,6 @@ menuconfig HSI
+ if HSI
+ 
+ source "drivers/hsi/controllers/Kconfig"
++source "drivers/hsi/clients/Kconfig"
+ 
+ endif # HSI
+diff --git a/drivers/hsi/Makefile b/drivers/hsi/Makefile
+index d020ae1..ebc91b3 100644
+--- a/drivers/hsi/Makefile
++++ b/drivers/hsi/Makefile
+@@ -2,4 +2,4 @@
+ # Makefile for HSI
+ #
+ obj-$(CONFIG_HSI)	+= hsi.o
+-obj-y			+= controllers/
++obj-y			+= controllers/ clients/
+diff --git a/drivers/hsi/clients/Kconfig b/drivers/hsi/clients/Kconfig
+new file mode 100644
+index 0000000..2145591
+--- /dev/null
++++ b/drivers/hsi/clients/Kconfig
+@@ -0,0 +1,11 @@
++#
++# HSI clients configuration
++#
++
++config HSI_CHAR
++	tristate "HSI/SSI character driver"
++	depends on HSI && OMAP_SSI
++	---help---
++	  If you say Y here, you will enable the HSI/SSI character driver.
++	  This driver provides a simple character device interface for
++	  serial communication with the cellular modem over HSI/SSI bus.
+diff --git a/drivers/hsi/clients/Makefile b/drivers/hsi/clients/Makefile
+new file mode 100644
+index 0000000..327c0e2
+--- /dev/null
++++ b/drivers/hsi/clients/Makefile
+@@ -0,0 +1,5 @@
++#
++# Makefile for HSI clients
++#
++
++obj-$(CONFIG_HSI_CHAR)	+= hsi_char.o
+-- 
+1.5.6.5
