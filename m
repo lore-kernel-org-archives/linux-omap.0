@@ -1,61 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 20/28] omap: board-sdp-flash.c: Fix typos in debug output
-Date: Fri, 23 Apr 2010 16:11:51 -0700
-Message-ID: <20100423231151.31953.84675.stgit@baageli.muru.com>
+Subject: [PATCH 21/28] n8x0_defconfig: remove CONFIG_NILFS2_FS override
+Date: Fri, 23 Apr 2010 16:11:53 -0700
+Message-ID: <20100423231153.31953.61218.stgit@baageli.muru.com>
 References: <20100423230829.31953.17334.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57096 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755127Ab0DWXLv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 19:11:51 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62035 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755127Ab0DWXLx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 19:11:53 -0400
 In-Reply-To: <20100423230829.31953.17334.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Francisco Alecrim <francisco.alecrim@openbossa.org>
 
-From: Thomas Weber <swirl@gmx.li>
+From: Francisco Alecrim <francisco.alecrim@openbossa.org>
 
-Corrected type of flash in output (OneNAND => NOR).
-Removed whitespace after newline in output.
-Removed double whitespace in output.
+arch/arm/configs/n8x0_defconfig:1061:warning: override: reassigning to
+symbol NILFS2_FS
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
+Signed-off-by: Francisco Alecrim <francisco.alecrim@openbossa.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-sdp-flash.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/configs/n8x0_defconfig |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-sdp-flash.c b/arch/arm/mach-omap2/board-sdp-flash.c
-index b1b88de..2d02632 100644
---- a/arch/arm/mach-omap2/board-sdp-flash.c
-+++ b/arch/arm/mach-omap2/board-sdp-flash.c
-@@ -253,20 +253,20 @@ void __init sdp_flash_init(struct flash_partitions sdp_partition_info[])
- 	}
- 
- 	if (norcs > GPMC_CS_NUM)
--		printk(KERN_INFO "OneNAND: Unable to find configuration "
--				" in GPMC\n ");
-+		printk(KERN_INFO "NOR: Unable to find configuration "
-+				"in GPMC\n");
- 	else
- 		board_nor_init(sdp_partition_info[0], norcs);
- 
- 	if (onenandcs > GPMC_CS_NUM)
- 		printk(KERN_INFO "OneNAND: Unable to find configuration "
--				" in GPMC\n ");
-+				"in GPMC\n");
- 	else
- 		board_onenand_init(sdp_partition_info[1], onenandcs);
- 
- 	if (nandcs > GPMC_CS_NUM)
- 		printk(KERN_INFO "NAND: Unable to find configuration "
--				" in GPMC\n ");
-+				"in GPMC\n");
- 	else
- 		board_nand_init(sdp_partition_info[2], nandcs);
- }
+diff --git a/arch/arm/configs/n8x0_defconfig b/arch/arm/configs/n8x0_defconfig
+index 216ad00..9405e32 100644
+--- a/arch/arm/configs/n8x0_defconfig
++++ b/arch/arm/configs/n8x0_defconfig
+@@ -1058,7 +1058,6 @@ CONFIG_JFFS2_CMODE_PRIORITY=y
+ # CONFIG_ROMFS_FS is not set
+ # CONFIG_SYSV_FS is not set
+ # CONFIG_UFS_FS is not set
+-# CONFIG_NILFS2_FS is not set
+ CONFIG_NETWORK_FILESYSTEMS=y
+ # CONFIG_NFS_FS is not set
+ # CONFIG_NFSD is not set
 
