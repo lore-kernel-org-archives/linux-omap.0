@@ -1,280 +1,49 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [RFC PATCH 1/5] HSI: Introducing HSI framework
-Date: Fri, 23 Apr 2010 10:36:20 -0700
-Message-ID: <20100423103620.e14ba593.randy.dunlap@oracle.com>
+From: <Kai.Vehmanen@nokia.com>
+Subject: RE: [RFC PATCH 0/5] HSI framework and drivers
+Date: Fri, 23 Apr 2010 21:44:16 +0200
+Message-ID: <725063E4C37388418CDDC5A2C287906A16B778D24E@NOK-EUMSG-03.mgdnok.nokia.com>
 References: <1272035728-6933-1-git-send-email-carlos.chinea@nokia.com>
-	<1272035728-6933-2-git-send-email-carlos.chinea@nokia.com>
+ <alpine.DEB.2.00.1004231001190.29720@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1272035728-6933-2-git-send-email-carlos.chinea@nokia.com>
+In-Reply-To: <alpine.DEB.2.00.1004231001190.29720@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: paul@pwsan.com, Carlos.Chinea@nokia.com
+Cc: linux-kernel@vger.kernel.org, s-jan@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 23 Apr 2010 18:15:24 +0300 Carlos Chinea wrote:
+Hi Paul and others,
 
-> Adds HSI framework in to the linux kernel.
-> 
-> High Speed Synchronous Serial Interface (HSI) is a
-             ^^^^^^^^^^^
-             yes, correct spelling
+On 23 April 2010, Paul Walmsley wrote:
+>> SSI, which is a legacy version of HSI, is used to connect the applic=
+ation
+>> engine with the cellular modem on the Nokia N900.
+>>
+>> This patch set is based on 2.6.34-rc3
+>
+>Have you looked at S=E9bastien's HSI driver code:
+>
+>http://www.mail-archive.com/linux-omap@vger.kernel.org/msg18506.html
 
-> serial interface mainly used for connecting application
-> engines (APE) with cellular modem engines (CMT) in cellular
-> handsets.
-> 
-> HSI provides multiplexing for up to 16 logical channels,
-> low-latency and full duplex communication.
-> 
-> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
-> ---
->  drivers/Kconfig         |    2 +
->  drivers/Makefile        |    1 +
->  drivers/hsi/Kconfig     |   13 ++
->  drivers/hsi/Makefile    |    4 +
->  drivers/hsi/hsi.c       |  487 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/hsi/hsi.h |  365 +++++++++++++++++++++++++++++++++++
->  6 files changed, 872 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/hsi/Kconfig
->  create mode 100644 drivers/hsi/Makefile
->  create mode 100644 drivers/hsi/hsi.c
->  create mode 100644 include/linux/hsi/hsi.h
-> 
+I think the history of the patches is already shared. I've been=20
+looking at this from the sidelines and I think the story so=20
+far is:
 
-> diff --git a/drivers/hsi/Kconfig b/drivers/hsi/Kconfig
-> new file mode 100644
-> index 0000000..e122584
-> --- /dev/null
-> +++ b/drivers/hsi/Kconfig
-> @@ -0,0 +1,13 @@
-> +#
-> +# HSI driver configuration
-> +#
-> +menuconfig HSI
-> +	bool "HSI support"
-> +	---help---
-> +	  The "High speed syncrhonous Serial Interface" is
-                          ~~~~~~~~~~~
+2008: Carlos sent the original SSI patchset (and got comments)
+   -> http://lkml.org/lkml/2008/10/3/116
+2009: S=E9bastien sent an updated patchset (and got comments)
+   -> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg18506.h=
+tml
 
-> +	  synchrnous serial interface used mainly to connect
-	  ~~~~~~~~~~
+=2E. and now this latest one from Carlos is a completely new
+design that attempts to address the design comments that have
+been raised, hopefully pushing HSI/SSI a step closer to=20
+getting accepted. I'll leave it to Carlos and S=E9bastien to=20
+correct me if I got the above wrong...
 
-Fix spelling mistakes (or typos).
-
-> +	  application engines and celluar modems.
-> +
-> +if HSI
-> +
-> +endif # HSI
-
-> diff --git a/drivers/hsi/hsi.c b/drivers/hsi/hsi.c
-> new file mode 100644
-> index 0000000..f6fd777
-> --- /dev/null
-> +++ b/drivers/hsi/hsi.c
-> @@ -0,0 +1,487 @@
-> +/*
-> + * hsi.c
-> + *
-> + * HSI core.
-> + *
-> + * Copyright (C) 2010 Nokia Corporation. All rights reserved.
-> + *
-> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-> + */
-> +#include <linux/hsi/hsi.h>
-> +#include <linux/rwsem.h>
-
-Need
-#include <linux/list.h>
-for LIST_HEAD().
-
-> +
-> +struct hsi_cl_info {
-> +	struct list_head	list;
-> +	struct hsi_board_info	info;
-> +};
-> +
-> +static LIST_HEAD(hsi_board_list);
-> +
-
-
-> +
-> +static int hsi_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
-
-#include <linux/kobject.h>
-
-
-> +{
-> +	add_uevent_var(env, "MODALIAS=hsi:%s", dev_name(dev));
-> +
-> +	return 0;
-> +}
-> +
-> +static int hsi_bus_match(struct device *dev, struct device_driver *driver)
-> +{
-> +	return strcmp(dev_name(dev), driver->name) == 0;
-
-string.h
-
-> +}
-> +
-> +struct bus_type hsi_bus_type = {
-> +	.name		= "hsi",
-> +	.dev_attrs	= hsi_bus_dev_attrs,
-> +	.match		= hsi_bus_match,
-> +	.uevent		= hsi_bus_uevent,
-> +};
-> +
-> +static void hsi_client_release(struct device *dev)
-> +{
-> +	kfree(to_hsi_client(dev));
-
-slab.h
-
-> +}
-> +
-> +static void hsi_new_client(struct hsi_port *port, struct hsi_board_info *info)
-> +{
-> +	struct hsi_client *cl;
-> +
-> +	cl = kzalloc(sizeof(*cl), GFP_KERNEL);
-
-slab.h
-
-> +	if (!cl)
-> +		return;
-> +	cl->device.type = &hsi_cl;
-> +	cl->tx_cfg = info->tx_cfg;
-> +	cl->rx_cfg = info->rx_cfg;
-> +	cl->device.bus = &hsi_bus_type;
-> +	cl->device.parent = &port->device;
-> +	cl->device.release = hsi_client_release;
-> +	dev_set_name(&cl->device, info->name);
-> +	cl->device.platform_data = info->platform_data;
-> +	if (info->archdata)
-> +		cl->device.archdata = *info->archdata;
-> +	if (device_register(&cl->device) < 0) {
-> +		pr_err("hsi: failed to register client: %s\n", info->name);
-> +		kfree(cl);
-> +	}
-> +}
-
-...
-
-
-
-> +/**
-> + * hsi_alloc_msg - Allocate an HSI message
-> + * @nents: Number of memory entries
-> + * @flags: Kernel allocation flags
-> + *
-> + * NOTE: nents can be 0. This mainly makes sense for read transfer.
-> + * In that case, HSI drivers will call the complete callback when
-> + * there is data to be read without cosuming it.
-
-                                       consuming
-
-> + *
-> + * Return NULL on failure or a pointer to an hsi_msg on success.
-> + */
-> +struct hsi_msg *hsi_alloc_msg(unsigned int nents, gfp_t flags)
-> +{
-...
-> +}
-> +EXPORT_SYMBOL_GPL(hsi_alloc_msg);
-
-...
-
-
-> +/**
-> + * hsi_event -Notifies clients about port events
-> + * @port: Port where the event occurred
-> + * @event: The event type:
-> + *		- HSI_EVENT_START_RX: Incoming wake line high
-> + *		- HSI_EVENT_STOP_RX: Incoming wake line down
-> + *
-> + * Note: Clients should not be concerned about wake line behavior. But due
-> + * to a race condition in HSI HW protocol when the wake lines are in used,
-
-                                                                 are in use,
-
-> + * they need to be notified about wake line changes, so they can implement
-> + * a workaround for it.
-> + */
-> +void hsi_event(struct hsi_port *port, unsigned int event)
-> +{
-...
-> +}
-
-> diff --git a/include/linux/hsi/hsi.h b/include/linux/hsi/hsi.h
-> new file mode 100644
-> index 0000000..b272f23
-> --- /dev/null
-> +++ b/include/linux/hsi/hsi.h
-> @@ -0,0 +1,365 @@
-> +/*
-> + * hsi.h
-> + *
-> + * HSI core header file.
-> + *
-> + * Copyright (C) 2010 Nokia Corporation. All rights reserved.
-> + *
-> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-> + */
-> +
-> +#ifndef __LINUX_HSI_H__
-> +#define __LINUX_HSI_H__
-> +
-> +#include <linux/device.h>
-> +#include <linux/mutex.h>
-> +#include <linux/scatterlist.h>
-> +
-> +/* HSI message ttype */
-> +#define HSI_MSG_READ	0
-> +#define HSI_MSG_WRITE	1
-> +
-> +/* HSI configuration values */
-> +#define HSI_MODE_STREAM	1
-> +#define HSI_MODE_FRAME	2
-> +#define HSI_FLOW_SYNC	0	/* Synchronized flow */
-> +#define HSI_FLOW_PIPE	1	/* Pipelined flow */
-> +#define HSI_ARB_RR	0	/* Round-robin arbitration */
-> +#define HSI_ARB_PRIO	1	/* Channel priority arbitration */
-> +
-> +#define HSI_MAX_CHANNELS	16
-
-> +/**
-> + * struct hsi_client - HSI client attached to an HSI port
-> + * @device: Driver model representation of the device
-> + * @tx_cfg: HSI TX configuration
-> + * @rx_cfg: HSI RX configuration
-> + * @hsi_start_rx: Called after incoming wake line goes high
-> + * @hsi_stop_rx: Called after incoming wake line goes low
-> + * @pclaimed: Set when successfully claimed a port. Internal, do not touch.
-> + */
-> +struct hsi_client {
-> +	struct device		device;
-> +	struct hsi_config	tx_cfg;
-> +	struct hsi_config	rx_cfg;
-> +	void			(*hsi_start_rx)(struct hsi_client *cl);
-> +	void			(*hsi_stop_rx)(struct hsi_client *cl);
-
-You can put:
-	/* private: */
-here and that struct field won't show up in the generated kernel-doc output...
-
-> +	unsigned int		pclaimed:1; /* Private, do not touch */
-> +};
-> +
-> +#define to_hsi_client(dev) container_of(dev, struct hsi_client, device)
-> +
-
-
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Br,
+--=20
+Kai Vehmanen
