@@ -1,67 +1,280 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH v4 1/1] Registering sgx device and it's platform data
-Date: Fri, 23 Apr 2010 21:46:07 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304D9C665@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E7394044E1EB744@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1004230943370.29720@utopia.booyaka.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [RFC PATCH 1/5] HSI: Introducing HSI framework
+Date: Fri, 23 Apr 2010 10:36:20 -0700
+Message-ID: <20100423103620.e14ba593.randy.dunlap@oracle.com>
+References: <1272035728-6933-1-git-send-email-carlos.chinea@nokia.com>
+	<1272035728-6933-2-git-send-email-carlos.chinea@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40629 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755805Ab0DWQQS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 12:16:18 -0400
-In-Reply-To: <alpine.DEB.2.00.1004230943370.29720@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1272035728-6933-2-git-send-email-carlos.chinea@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Agarwal, Preshit" <preshit.agarwal@ti.com>, "Azizoglu, Cemil" <c-azizoglu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "Pais, Allen" <allen.pais@ti.com>, "Gunn, Kevin" <kgunn@ti.com>
+
+On Fri, 23 Apr 2010 18:15:24 +0300 Carlos Chinea wrote:
+
+> Adds HSI framework in to the linux kernel.
+> 
+> High Speed Synchronous Serial Interface (HSI) is a
+             ^^^^^^^^^^^
+             yes, correct spelling
+
+> serial interface mainly used for connecting application
+> engines (APE) with cellular modem engines (CMT) in cellular
+> handsets.
+> 
+> HSI provides multiplexing for up to 16 logical channels,
+> low-latency and full duplex communication.
+> 
+> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+> ---
+>  drivers/Kconfig         |    2 +
+>  drivers/Makefile        |    1 +
+>  drivers/hsi/Kconfig     |   13 ++
+>  drivers/hsi/Makefile    |    4 +
+>  drivers/hsi/hsi.c       |  487 +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/hsi/hsi.h |  365 +++++++++++++++++++++++++++++++++++
+>  6 files changed, 872 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/hsi/Kconfig
+>  create mode 100644 drivers/hsi/Makefile
+>  create mode 100644 drivers/hsi/hsi.c
+>  create mode 100644 include/linux/hsi/hsi.h
+> 
+
+> diff --git a/drivers/hsi/Kconfig b/drivers/hsi/Kconfig
+> new file mode 100644
+> index 0000000..e122584
+> --- /dev/null
+> +++ b/drivers/hsi/Kconfig
+> @@ -0,0 +1,13 @@
+> +#
+> +# HSI driver configuration
+> +#
+> +menuconfig HSI
+> +	bool "HSI support"
+> +	---help---
+> +	  The "High speed syncrhonous Serial Interface" is
+                          ~~~~~~~~~~~
+
+> +	  synchrnous serial interface used mainly to connect
+	  ~~~~~~~~~~
+
+Fix spelling mistakes (or typos).
+
+> +	  application engines and celluar modems.
+> +
+> +if HSI
+> +
+> +endif # HSI
+
+> diff --git a/drivers/hsi/hsi.c b/drivers/hsi/hsi.c
+> new file mode 100644
+> index 0000000..f6fd777
+> --- /dev/null
+> +++ b/drivers/hsi/hsi.c
+> @@ -0,0 +1,487 @@
+> +/*
+> + * hsi.c
+> + *
+> + * HSI core.
+> + *
+> + * Copyright (C) 2010 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> + */
+> +#include <linux/hsi/hsi.h>
+> +#include <linux/rwsem.h>
+
+Need
+#include <linux/list.h>
+for LIST_HEAD().
+
+> +
+> +struct hsi_cl_info {
+> +	struct list_head	list;
+> +	struct hsi_board_info	info;
+> +};
+> +
+> +static LIST_HEAD(hsi_board_list);
+> +
+
+
+> +
+> +static int hsi_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
+
+#include <linux/kobject.h>
+
+
+> +{
+> +	add_uevent_var(env, "MODALIAS=hsi:%s", dev_name(dev));
+> +
+> +	return 0;
+> +}
+> +
+> +static int hsi_bus_match(struct device *dev, struct device_driver *driver)
+> +{
+> +	return strcmp(dev_name(dev), driver->name) == 0;
+
+string.h
+
+> +}
+> +
+> +struct bus_type hsi_bus_type = {
+> +	.name		= "hsi",
+> +	.dev_attrs	= hsi_bus_dev_attrs,
+> +	.match		= hsi_bus_match,
+> +	.uevent		= hsi_bus_uevent,
+> +};
+> +
+> +static void hsi_client_release(struct device *dev)
+> +{
+> +	kfree(to_hsi_client(dev));
+
+slab.h
+
+> +}
+> +
+> +static void hsi_new_client(struct hsi_port *port, struct hsi_board_info *info)
+> +{
+> +	struct hsi_client *cl;
+> +
+> +	cl = kzalloc(sizeof(*cl), GFP_KERNEL);
+
+slab.h
+
+> +	if (!cl)
+> +		return;
+> +	cl->device.type = &hsi_cl;
+> +	cl->tx_cfg = info->tx_cfg;
+> +	cl->rx_cfg = info->rx_cfg;
+> +	cl->device.bus = &hsi_bus_type;
+> +	cl->device.parent = &port->device;
+> +	cl->device.release = hsi_client_release;
+> +	dev_set_name(&cl->device, info->name);
+> +	cl->device.platform_data = info->platform_data;
+> +	if (info->archdata)
+> +		cl->device.archdata = *info->archdata;
+> +	if (device_register(&cl->device) < 0) {
+> +		pr_err("hsi: failed to register client: %s\n", info->name);
+> +		kfree(cl);
+> +	}
+> +}
+
+...
 
 
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Paul Walmsley
->Sent: Friday, April 23, 2010 10:45 AM
->To: Agarwal, Preshit
->Cc: linux-omap@vger.kernel.org; felipe.balbi@nokia.com; Pais, Allen
->Subject: Re: [PATCH v4 1/1] Registering sgx device and it's platform data
->
->On Thu, 22 Apr 2010, Agarwal, Preshit wrote:
->
->> In this patch SGX powervr_device is registered with it's platform
->specific
->> data to provide information about setting constraint through
->> omap_pm_set_min_bus_tput.
->> This patch removes the requirement of EXPORT_SYMBOL for the same
->function.
->>
->> Signed-off-by: Preshit Agarwal <preshit.agarwal@ti.com>
->
->Reviewed-by: Paul Walmsley <paul@pwsan.com>
->
->That's the right way to pass these function pointers.
+> +/**
+> + * hsi_alloc_msg - Allocate an HSI message
+> + * @nents: Number of memory entries
+> + * @flags: Kernel allocation flags
+> + *
+> + * NOTE: nents can be 0. This mainly makes sense for read transfer.
+> + * In that case, HSI drivers will call the complete callback when
+> + * there is data to be read without cosuming it.
 
-Just to keep you posted, effort is happening on TI android kernel(.32) on integrating the sgx driver parts [1].
+                                       consuming
 
-With user space still being non-GPL, not clear on the amount of functionality that can be enabled in upstream kernel.
+> + *
+> + * Return NULL on failure or a pointer to an hsi_msg on success.
+> + */
+> +struct hsi_msg *hsi_alloc_msg(unsigned int nents, gfp_t flags)
+> +{
+...
+> +}
+> +EXPORT_SYMBOL_GPL(hsi_alloc_msg);
 
-But a good start though to converge on the out-of-tree gaps !!
+...
 
-Regards,
-Vikram
 
-[1] Internal tree references for sgx driver:
-http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=f33345b97ad528e8093cc4f865570a17024bbf85
-http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=d9a3d7884c05fb310ff3d937e846202843c7c437
-http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=bf6accefac104660ea9b8fc5e1a782a97793692e
+> +/**
+> + * hsi_event -Notifies clients about port events
+> + * @port: Port where the event occurred
+> + * @event: The event type:
+> + *		- HSI_EVENT_START_RX: Incoming wake line high
+> + *		- HSI_EVENT_STOP_RX: Incoming wake line down
+> + *
+> + * Note: Clients should not be concerned about wake line behavior. But due
+> + * to a race condition in HSI HW protocol when the wake lines are in used,
 
->
->
->- Paul
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+                                                                 are in use,
+
+> + * they need to be notified about wake line changes, so they can implement
+> + * a workaround for it.
+> + */
+> +void hsi_event(struct hsi_port *port, unsigned int event)
+> +{
+...
+> +}
+
+> diff --git a/include/linux/hsi/hsi.h b/include/linux/hsi/hsi.h
+> new file mode 100644
+> index 0000000..b272f23
+> --- /dev/null
+> +++ b/include/linux/hsi/hsi.h
+> @@ -0,0 +1,365 @@
+> +/*
+> + * hsi.h
+> + *
+> + * HSI core header file.
+> + *
+> + * Copyright (C) 2010 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> + */
+> +
+> +#ifndef __LINUX_HSI_H__
+> +#define __LINUX_HSI_H__
+> +
+> +#include <linux/device.h>
+> +#include <linux/mutex.h>
+> +#include <linux/scatterlist.h>
+> +
+> +/* HSI message ttype */
+> +#define HSI_MSG_READ	0
+> +#define HSI_MSG_WRITE	1
+> +
+> +/* HSI configuration values */
+> +#define HSI_MODE_STREAM	1
+> +#define HSI_MODE_FRAME	2
+> +#define HSI_FLOW_SYNC	0	/* Synchronized flow */
+> +#define HSI_FLOW_PIPE	1	/* Pipelined flow */
+> +#define HSI_ARB_RR	0	/* Round-robin arbitration */
+> +#define HSI_ARB_PRIO	1	/* Channel priority arbitration */
+> +
+> +#define HSI_MAX_CHANNELS	16
+
+> +/**
+> + * struct hsi_client - HSI client attached to an HSI port
+> + * @device: Driver model representation of the device
+> + * @tx_cfg: HSI TX configuration
+> + * @rx_cfg: HSI RX configuration
+> + * @hsi_start_rx: Called after incoming wake line goes high
+> + * @hsi_stop_rx: Called after incoming wake line goes low
+> + * @pclaimed: Set when successfully claimed a port. Internal, do not touch.
+> + */
+> +struct hsi_client {
+> +	struct device		device;
+> +	struct hsi_config	tx_cfg;
+> +	struct hsi_config	rx_cfg;
+> +	void			(*hsi_start_rx)(struct hsi_client *cl);
+> +	void			(*hsi_stop_rx)(struct hsi_client *cl);
+
+You can put:
+	/* private: */
+here and that struct field won't show up in the generated kernel-doc output...
+
+> +	unsigned int		pclaimed:1; /* Private, do not touch */
+> +};
+> +
+> +#define to_hsi_client(dev) container_of(dev, struct hsi_client, device)
+> +
+
+
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
