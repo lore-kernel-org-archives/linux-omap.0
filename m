@@ -1,111 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/28] omap: fix clocksource_32k to start from zero
-Date: Fri, 23 Apr 2010 16:11:00 -0700
-Message-ID: <20100423231100.31953.40329.stgit@baageli.muru.com>
+Subject: [PATCH 04/28] omap: DMA: Init CDAC to zero
+Date: Fri, 23 Apr 2010 16:11:12 -0700
+Message-ID: <20100423231112.31953.32544.stgit@baageli.muru.com>
 References: <20100423230829.31953.17334.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61160 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61367 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754477Ab0DWXLE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 19:11:04 -0400
+	with ESMTP id S1754477Ab0DWXLN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 19:11:13 -0400
 In-Reply-To: <20100423230829.31953.17334.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Govindraj R <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Manjunatha GK <manjugk@ti.com>
 
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
+From: manjugk manjugk <manjugk@ti.com>
 
-When the 32k sync timer is used for sched_clock(), it should count
-time from the kernel boot (clocksource init) instead of the last HW
-reset. Otherwise printk.time values will jump suddenly during the boot:
+The register DMA4_CDAC needs to be initialized to zero
+before starting DMA transfer.
 
-	[    0.000000] calling  omap2_clk_arch_init+0x0/0x138 @ 1
-	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned -22 after 0 usecs
-	[    0.000000] initcall omap2_clk_arch_init+0x0/0x138 returned with error code -22
-	[    0.000000] calling  omap_init_clocksource_32k+0x0/0x98 @ 1
-	[  508.697937] initcall omap_init_clocksource_32k+0x0/0x98 returned 0 after 0 usecs
-	[  508.697967] calling  omap_init_devices+0x0/0x38 @ 1
-	[  508.698425] initcall omap_init_devices+0x0/0x38 returned 0 after 0 usecs
-
-This will confuse tools such as scripts/bootgraph.pl.
-
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Govindraj R <govindraj.raja@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Reported-by:S, Venkatraman <svenkatr@ti.com>
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/common.c |   19 ++++++++++++++-----
- 1 files changed, 14 insertions(+), 5 deletions(-)
+ arch/arm/plat-omap/dma.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 088c1a0..01cbb48 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -100,10 +100,17 @@ EXPORT_SYMBOL(omap_get_var_config);
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 2ab224c..f6c9bdc 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -936,6 +936,15 @@ void omap_start_dma(int lch)
+ {
+ 	u32 l;
  
- #include <linux/clocksource.h>
- 
-+/*
-+ * offset_32k holds the init time counter value. It is then subtracted
-+ * from every counter read to achieve a counter that counts time from the
-+ * kernel boot (needed for sched_clock()).
-+ */
-+static u32 offset_32k __read_mostly;
++	/*
++	 * The CPC/CDAC register needs to be initialized to zero
++	 * before starting dma transfer.
++	 */
++	if (cpu_is_omap15xx())
++		dma_write(0, CPC(lch));
++	else
++		dma_write(0, CDAC(lch));
 +
- #ifdef CONFIG_ARCH_OMAP16XX
- static cycle_t omap16xx_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP16XX_TIMER_32K_SYNCHRONIZED);
-+	return omap_readl(OMAP16XX_TIMER_32K_SYNCHRONIZED) - offset_32k;
- }
- #else
- #define omap16xx_32k_read	NULL
-@@ -112,7 +119,7 @@ static cycle_t omap16xx_32k_read(struct clocksource *cs)
- #ifdef CONFIG_ARCH_OMAP2420
- static cycle_t omap2420_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP2420_32KSYNCT_BASE + 0x10);
-+	return omap_readl(OMAP2420_32KSYNCT_BASE + 0x10) - offset_32k;
- }
- #else
- #define omap2420_32k_read	NULL
-@@ -121,7 +128,7 @@ static cycle_t omap2420_32k_read(struct clocksource *cs)
- #ifdef CONFIG_ARCH_OMAP2430
- static cycle_t omap2430_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP2430_32KSYNCT_BASE + 0x10);
-+	return omap_readl(OMAP2430_32KSYNCT_BASE + 0x10) - offset_32k;
- }
- #else
- #define omap2430_32k_read	NULL
-@@ -130,7 +137,7 @@ static cycle_t omap2430_32k_read(struct clocksource *cs)
- #ifdef CONFIG_ARCH_OMAP3
- static cycle_t omap34xx_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP3430_32KSYNCT_BASE + 0x10);
-+	return omap_readl(OMAP3430_32KSYNCT_BASE + 0x10) - offset_32k;
- }
- #else
- #define omap34xx_32k_read	NULL
-@@ -139,7 +146,7 @@ static cycle_t omap34xx_32k_read(struct clocksource *cs)
- #ifdef CONFIG_ARCH_OMAP4
- static cycle_t omap44xx_32k_read(struct clocksource *cs)
- {
--	return omap_readl(OMAP4430_32KSYNCT_BASE + 0x10);
-+	return omap_readl(OMAP4430_32KSYNCT_BASE + 0x10) - offset_32k;
- }
- #else
- #define omap44xx_32k_read	NULL
-@@ -227,6 +234,8 @@ static int __init omap_init_clocksource_32k(void)
- 		clocksource_32k.mult = clocksource_hz2mult(32768,
- 					    clocksource_32k.shift);
- 
-+		offset_32k = clocksource_32k.read(&clocksource_32k);
-+
- 		if (clocksource_register(&clocksource_32k))
- 			printk(err, clocksource_32k.name);
- 	}
+ 	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
+ 		int next_lch, cur_lch;
+ 		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
 
