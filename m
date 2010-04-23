@@ -1,106 +1,143 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 2/3] OMAP3630: PM: implement Foward Body-Bias for OPP1G
-Date: Fri, 23 Apr 2010 10:03:16 +0300
-Message-ID: <20100423070316.GI16011@besouro.research.nokia.com>
-References: <1271453603-21929-1-git-send-email-mturquette@ti.com>
- <1271453603-21929-3-git-send-email-mturquette@ti.com>
- <20100419074636.GC5325@besouro.research.nokia.com>
- <4BCF6C6F.3030406@ti.com>
- <4BD055A5.1050206@ti.com>
-Reply-To: eduardo.valentin@nokia.com
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v2] OMAP3: I2C: Errata ID i207: Clear wrong RDR interrupt
+Date: Fri, 23 Apr 2010 16:11:33 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F6E2897@dbde02.ent.ti.com>
+References: <1271167302-17776-1-git-send-email-manjugk@ti.com>
+ <20100421214252.GM18272@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:61227 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756092Ab0DWHD4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 03:03:56 -0400
-Content-Disposition: inline
-In-Reply-To: <4BD055A5.1050206@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46048 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989Ab0DWKls convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 06:41:48 -0400
+In-Reply-To: <20100421214252.GM18272@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Nishanth Menon <nm@ti.com>
-Cc: "Turquette, Mike" <mturquette@ti.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Mike Turquette <mturquette@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Gopinath, Thara" <thara@ti.com>, "Gulati, Shweta" <shweta.gulati@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
-On Thu, Apr 22, 2010 at 03:56:53PM +0200, ext Nishanth Menon wrote:
-> Turquette, Mike had written, on 04/21/2010 04:21 PM, the following:
-> [...]
+
+Tony, 
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Thursday, April 22, 2010 3:13 AM
+> To: G, Manjunath Kondaiah
+> Cc: linux-i2c@vger.kernel.org; linux-omap@vger.kernel.org; 
+> ben-linux@fluff.org; Kalliguddi, Hema; Menon, Nishanth
+> Subject: Re: [PATCH v2] OMAP3: I2C: Errata ID i207: Clear 
+> wrong RDR interrupt
 > 
-> >>>  
-> >>>  /**
-> >>> + * voltscale_adaptive_body_bias - controls ABB ldo during voltage scaling
-> >>> + * @target_volt: target voltage determines if ABB ldo is active or bypassed
-> >>> + *
-> >>> + * Adaptive Body-Bias is a technique in all OMAP silicon that uses the 45nm
-> >>> + * process.  ABB can boost voltage in high OPPs for silicon with weak
-> >>> + * characteristics (forward Body-Bias) as well as lower voltage in low OPPs
-> >>> + * for silicon with strong characteristics (Reverse Body-Bias).
-> >>> + *
-> >>> + * Only Foward Body-Bias for operating at high OPPs is implemented below, per
-> >>> + * recommendations from silicon team.
-> >>> + * Reverse Body-Bias for saving power in active cases and sleep cases is not
-> >>> + * yet implemented.
-> >>> + * OMAP4 hardward also supports ABB ldo, but no recommendations have been made
-> >>> + * to implement it yet.
-> >>> + */
-> >>> +int voltscale_adaptive_body_bias(unsigned long target_volt)
-> >>> +{
-> >>> +	u32 sr2en_enabled;
-> >>> +	int timeout;
-> >>> +	int sr2_wtcnt_value;
-> >>> +
-> >>> +	/* calculate SR2_WTCNT_VALUE settling time */
-> >>> +	sr2_wtcnt_value = (ABB_MAX_SETTLING_TIME *
-> >>> +			(clk_get_rate("sys_ck") / 1000000) / 8);
-> >>> +
-> >>> +	/* has SR2EN been enabled previously? */
-> >>> +	sr2en_enabled = (prm_read_mod_reg(OMAP3430_GR_MOD,
-> >>> +				OMAP3_PRM_LDO_ABB_CTRL_OFFSET) &
-> >>> +			OMAP3630_SR2EN);
-> >>> +
-> >>> +	/* select fast, nominal or slow OPP for ABB ldo */
-> >>> +	/* FIXME: include OMAP4 once recommendations are complete */
-> >>> +	if (cpu_is_omap3630() && (target_volt >= 1350000)) {
-> >> You are creating two steps to decide if you apply or not FBB.
-> >> Here and also bellow (omap voltage scale). Would it make sense to bind it
-> >> per opp? I mean just a flag on opp dat then you apply or not based on that flag.
-> >> Same for RBB.
+> * Manjunatha GK <manjugk@ti.com> [100413 06:32]:
+> > Under certain rare conditions, I2C_STAT[13].RDR bit may be set
+> > and the corresponding interrupt fire, even there is no data in
+> > the receive FIFO, or the I2C data transfer is still ongoing.
+> > These spurious RDR events must be ignored by the software.
 > > 
-> > Eduardo,
+> > This patch handles and ignores RDR spurious interrupts.
 > > 
-> > Thanks for reviewing.
+> > Patch tested on OMAP zoom3 board.
 > > 
-> > There has been some offline discussion about the best way to handle the 
-> > the relationship between FBB enable flags and OPPs:
+> > Signed-off-by: Manjunatha GK <manjugk@ti.com>
+> > Cc: linux-omap@vger.kernel.org
+> > Cc: linux-i2c@vger.kernel.org
+> > Cc: ben-linux@fluff.org
+> > Cc: Kalliguddi, Hema <hemahk@ti.com>
+> > Cc: Nishanth Menon <nm@ti.com>
+> > ---
+> > Review comments for earlier post can be found at:
+> > https://patchwork.kernel.org/patch/90122/
 > > 
-> > 1) extend OPP table
-> > 2) piggyback on Thara's SR hwmod structures
-> > 	This probably won't work given Paul's review comments
-> > 3) other wacky stuff
+> >  drivers/i2c/busses/i2c-omap.c |   32 
+> +++++++++++++++++++++++++++++++-
+> >  1 files changed, 31 insertions(+), 1 deletions(-)
 > > 
-> > After some discussion about the best way to do this I will definitely 
-> > lose the duplicate checks and replace with some nice table look-up.
-> > 
-> > Extending the OPP table is gross for OMAP2 and OMAP3430.  Piggybacking 
-> > on SR stuff is just a hack and there is no real relationship between ABB 
-> > ldo and SR.  The crux of the issue is how to relate FBB enable flags to 
-> > OPP table.  hwmod?  Ideas on this are very welcome.
-> > 
-> might be a good idea for using
-> I vote for 2) omap_volt_data in voltage.c and using the flag there.
-
-This was actually what I was also thinking. if you stick your flag on omap_volt_data
-should be enough.
-
+> > diff --git a/drivers/i2c/busses/i2c-omap.c 
+> b/drivers/i2c/busses/i2c-omap.c
+> > index ae6f5c1..d4ec886 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -733,10 +733,40 @@ complete:
+> >  		}
+> >  		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+> >  			u8 num_bytes = 1;
+> > +
+> > +			/*
+> > +			 * I2C Errata(Errata Nos. OMAP2: 1.67, 
+> OMAP3: 1.8)
+> > +			 * Not applicable for OMAP4.
+> > +			 * Under certain rare conditions, RDR 
+> could be set again
+> > +			 * when the bus is busy, then ignore 
+> the interrupt and
+> > +			 * clear the interrupt.
+> > +			 */
+> > +			if ((stat & OMAP_I2C_STAT_RDR) && 
+> !cpu_is_omap44xx()) {
+> > +				/* Step 1: If RDR is set, clear it */
+> > +				omap_i2c_ack_stat(dev, stat & 
+> OMAP_I2C_STAT_RDR);
+> > +
+> > +				/* Step 2: */
+> > +				if(!(omap_i2c_read_reg(dev, 
+> OMAP_I2C_STAT_REG)
+> > +							& 
+> OMAP_I2C_STAT_BB)) {
+> > +					/* Step 3: */
+> > +					while(omap_i2c_read_reg(dev,
+> > +						OMAP_I2C_STAT_REG)
+> > +							& 
+> OMAP_I2C_STAT_RDR) {
+> > +						
+> omap_i2c_ack_stat(dev, stat
+> > +							& 
+> OMAP_I2C_STAT_RDR);
+> > +						dev_err(dev->dev,
+> > +						"I2C : RDR when 
+> the bus is busy.\n");
+> > +						continue;
+> > +					}
+> > +
+> > +				}
+> > +				else
+> > +					return IRQ_HANDLED;
+> > +			}
 > 
-> 1) is a bad idea as ABB is not present in older silicon and opp table 
-> should ideally be independent of silicon and contain only common data..
-
-indeed.
-
+> Please move these hacks into a separate inline function that 
+> you initialize
+> during the init. Then in the function you do it if 
+> OMAP_I2C_QUIRK_1234 flag
+> has been set.
 > 
-> [...]
+> In general, it seems that a lot of TI omap4 patches just do:
 > 
-> -- 
-> Regards,
-> Nishanth Menon
+> if (!cpu_is_omap4430()) {
+> 	indent_old_code_even_more
+> 	...
+> } else {
+> 	add_hacks_for_omap4
+> 	...
+> }
+> 
+> And sprinkle that all over the place.
+> 
+> This is not a maintainable way of doing things. Please do something
+> like this instead:
+> 
+> #ifdef CONFIG_ARCH_OMAP4
+> static inline void omap_i2c_quirk_1234(struct device *dev)
+> {
+> 	/* Do hacks here */	
+> }
+> #else
+> static inline void omap_i2c_quirk_1234(struct device *dev)
+> {
+> }
+> #endif
+
+This might create issue for multi omap build?
+
+-Manjunath
