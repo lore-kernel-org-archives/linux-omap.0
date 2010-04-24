@@ -1,62 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 00/37] cbus patches
-Date: Fri, 23 Apr 2010 17:45:53 -0700
-Message-ID: <20100424004552.GB18272@atomide.com>
-References: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
- <20100408092310.GB14005@atomide.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 4/4][v4] OMAP:iommu- add TLB preservation support
+Date: Sat, 24 Apr 2010 09:44:33 +0300 (EEST)
+Message-ID: <20100424.094433.258130456.Hiroshi.DOYU@nokia.com>
+References: <1271978196-26792-5-git-send-email-h-kanigeri2@ti.com>
+	<20100423.153411.116357255.Hiroshi.DOYU@nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4B4C368D@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57329 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754435Ab0DXApx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Apr 2010 20:45:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20100408092310.GB14005@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:64379 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646Ab0DXGor (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Apr 2010 02:44:47 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4B4C368D@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: h-kanigeri2@ti.com
+Cc: grgupta@ti.com, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [100408 02:19]:
-> * felipe.balbi@nokia.com <felipe.balbi@nokia.com> [100407 09:05]:
-> > From: Felipe Balbi <felipe.balbi@nokia.com>
-> > 
-> > Hi all,
-> > 
-> > I still have to test these patches, but I fell like it's
-> > time to get some comments.
-> > 
-> > There's still a big TODO for the whole cbus drivers:
-> > 
-> > . cleanup all tahvo drivers
-> > . instantiate platform_device on board-files
-> > . pass platform_data to retu/tahvo and their children from board-files
-> > . move retu-headset to jack abstraction layer (??)
-> > . move retu-user.c to platform_driver
-> > . move tahvo and retu to generic-irq
-> > . move tahvo and retu to mfd
-> > . move tahvo and retu to threaded irq (??)
-> > . move all children drivers to proper locations
-> > . move cbus.c to a common location (drivers/misc ??)
-> > . allow any arch to use cbus.c by passing correct gpio numbers
-> > . get it all into mainline.
-> > 
-> > anyways, these patches were lightly boot tested on n810 and
-> > compile tested with n770_defconfig.
-> > 
-> > patches also available on cbus branch of git://gitorious.org/usb/usb.git
+From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 4/4][v4] OMAP:iommu- add TLB preservation support
+Date: Sat, 24 Apr 2010 01:43:19 +0200
+
+> Hi Hiroshi,
 > 
-> Great, let's make sure these work for 770 and N8x0 and then
-> merge. One step closer to getting rid of the last remaining
-> legacy branch..
+>> 
+>> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+>> index 1e83fac..d09a0a1 100644
+>> --- a/arch/arm/plat-omap/iommu.c
+>> +++ b/arch/arm/plat-omap/iommu.c
+>> @@ -25,6 +25,9 @@
+>> 
+>>  #include "iopgtable.h"
+>> 
+>> +#define for_each_iotlb_cr(obj, n, i, cr)				\
+>> +	for (i = 0; (i < n) && (cr = get_iotlb_cr(obj, i)); i++)
+>> +
+> -- This code is giving compilation error. 
 
-Well 770 does not stay up, but at least boots to root. Meaning
-the watchdog is not getting kicked. Seems to just hang without
-these patches. Will try to look further at some point.
+Should be like:
 
-N800 boots fine and stays up, so the watchdog is getting kicked.
-
-So I've pulled this into the cbus branch.
-
-Tony
++#define for_each_iotlb_cr(obj, n, __i, cr)				\
++	for (__i = 0;							\
++	     (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
++	     __i++)
++
