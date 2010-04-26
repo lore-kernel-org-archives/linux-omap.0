@@ -1,13 +1,13 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH 4/4] OMAP3: PM: export chip IDCODE, Production ID and Die ID
-Date: Mon, 26 Apr 2010 11:24:53 +0300
-Message-ID: <1272270293-18568-5-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCH 2/4] mach-omap2: Add SoC info data for OMAP2,3,4 into /proc/cpuinfo
+Date: Mon, 26 Apr 2010 11:24:51 +0300
+Message-ID: <1272270293-18568-3-git-send-email-eduardo.valentin@nokia.com>
 References: <1272270293-18568-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34064 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:34104 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750716Ab0DZIZ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 04:25:28 -0400
+	with ESMTP id S1750716Ab0DZIZk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 04:25:40 -0400
 In-Reply-To: <1272270293-18568-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,65 +16,60 @@ Cc: "\\\"De-Schrijver Peter (Nokia-D/Helsinki)\\\"" <Peter.De-Schrijver@nokia.co
 
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-This patch exports the OMAP3 IDCODE, Production ID and Die ID to userspace
-via /proc/cpuinfo using the system_soc_info.
-
-This can be used to track down silicon specific issues. The info is
-exported via /proc/cpuinfo because then it can be possible to include this
-in corematic dumps.
-
-This is based on Peter De Schrijver patch, which export same info via sysfs.
+Report OMAP2,3,4 data into system_soc_info. Now we get omap
+information under /proc/cpuinfo.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/mach-omap2/id.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/id.c |   21 +++++++++++++++------
+ 1 files changed, 15 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 75e36a5..887787d 100644
+index 37b8a1a..75e36a5 100644
 --- a/arch/arm/mach-omap2/id.c
 +++ b/arch/arm/mach-omap2/id.c
-@@ -76,6 +76,10 @@ EXPORT_SYMBOL(omap_type);
- /*----------------------------------------------------------------------------*/
+@@ -152,10 +152,15 @@ void __init omap24xx_check_revision(void)
+ 		j = i;
+ 	}
  
- #define OMAP_TAP_IDCODE		0x0204
-+#define OMAP_TAP_PROD_ID_0      0x0208
-+#define OMAP_TAP_PROD_ID_1      0x020c
-+#define OMAP_TAP_PROD_ID_2      0x0210
-+#define OMAP_TAP_PROD_ID_3      0x0214
- #define OMAP_TAP_DIE_ID_0	0x0218
- #define OMAP_TAP_DIE_ID_1	0x021C
- #define OMAP_TAP_DIE_ID_2	0x0220
-@@ -306,6 +310,7 @@ void __init omap4_check_revision(void)
- 
- void __init omap3_cpuinfo(void)
- {
-+	int sz;
- 	u8 rev = GET_OMAP_REVISION();
- 	char cpu_name[16], cpu_rev[16];
- 
-@@ -375,6 +380,21 @@ void __init omap3_cpuinfo(void)
- 	OMAP3_SHOW_FEATURE(192mhz_clk);
- 
- 	printk(")\n");
+-	pr_info("OMAP%04x", omap_rev() >> 16);
+-	if ((omap_rev() >> 8) & 0x0f)
+-		pr_info("ES%x", (omap_rev() >> 12) & 0xf);
+-	pr_info("\n");
++	snprintf(system_soc_info, SYSTEM_SOC_INFO_SIZE, "OMAP%04x",
++							omap_rev() >> 16);
++	if ((omap_rev() >> 8) & 0x0f) {
++		int sz = strlen(system_soc_info);
 +
-+	/* Append OMAP3 IDCODE, Production ID and Die ID to system_soc_info */
-+	sz = strlen(system_soc_info);
-+	snprintf(system_soc_info + sz, SYSTEM_SOC_INFO_SIZE - sz,
-+			"\n\tIDCODE\t: %08x\n\tPr. ID\t: %08x %08x %08x %08x\n"
-+			"\tDie ID\t: %08x %08x %08x %08x\n",
-+			read_tap_reg(OMAP_TAP_IDCODE),
-+			read_tap_reg(OMAP_TAP_PROD_ID_0),
-+			read_tap_reg(OMAP_TAP_PROD_ID_1),
-+			read_tap_reg(OMAP_TAP_PROD_ID_2),
-+			read_tap_reg(OMAP_TAP_PROD_ID_3),
-+			read_tap_reg(OMAP_TAP_DIE_ID_0),
-+			read_tap_reg(OMAP_TAP_DIE_ID_1),
-+			read_tap_reg(OMAP_TAP_DIE_ID_2),
-+			read_tap_reg(OMAP_TAP_DIE_ID_3));
++		snprintf(system_soc_info + sz, SYSTEM_SOC_INFO_SIZE - sz,
++				"ES%x",	(omap_rev() >> 12) & 0xf);
++	}
++	pr_info("%s\n", system_soc_info);
  }
  
- /*
+ #define OMAP3_CHECK_FEATURE(status,feat)				\
+@@ -286,7 +291,9 @@ void __init omap4_check_revision(void)
+ 	if ((hawkeye == 0xb852) && (rev == 0x0)) {
+ 		omap_revision = OMAP4430_REV_ES1_0;
+ 		omap_chip.oc |= CHIP_IS_OMAP4430ES1;
+-		pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
++		snprintf(system_soc_info, SYSTEM_SOC_INFO_SIZE, "OMAP%04x %s\n",
++				omap_rev() >> 16, rev_name);
++		pr_info("%s\n", system_soc_info);
+ 		return;
+ 	}
+ 
+@@ -356,7 +363,9 @@ void __init omap3_cpuinfo(void)
+ 	}
+ 
+ 	/* Print verbose information */
+-	pr_info("%s ES%s (", cpu_name, cpu_rev);
++	snprintf(system_soc_info, SYSTEM_SOC_INFO_SIZE, "%s ES%s", cpu_name,
++			cpu_rev);
++	pr_info("%s (", system_soc_info);
+ 
+ 	OMAP3_SHOW_FEATURE(l2cache);
+ 	OMAP3_SHOW_FEATURE(iva);
 -- 
 1.7.0.4.361.g8b5fe.dirty
 
