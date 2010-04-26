@@ -1,310 +1,102 @@
 From: "Y, Kishore" <kishore.y@ti.com>
-Subject: RE: [PATCH 2/2 V6] OMAP: DSS: Enable display on ZOOM2/3 & 3630SDP
-Date: Mon, 26 Apr 2010 19:01:39 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F6E3076@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E7394044E1EBEB2@dbde02.ent.ti.com>
+Subject: [PATCH V2] OMAP3630:DSS2: Updating MAX divider value
+Date: Mon, 26 Apr 2010 19:13:52 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F6E308A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51457 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751521Ab0DZNa0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 09:30:26 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E1EBEB2@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47123 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750876Ab0DZNmi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 09:42:38 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Monday, April 26, 2010 6:57 PM
-> To: Y, Kishore; Tomi Valkeinen
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH 2/2 V6] OMAP: DSS: Enable display on ZOOM2/3 & 3630SDP
-> 
-> 
-> > -----Original Message-----
-> > From: Y, Kishore
-> > Sent: Monday, April 26, 2010 6:36 PM
-> > To: Tomi Valkeinen; Hiremath, Vaibhav
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: [PATCH 2/2 V6] OMAP: DSS: Enable display on ZOOM2/3 & 3630SDP
-> >
-> >
-> > Enable dss and framebuffer on zoom2, zoom3 and 3630sdp boards.
-> >
-> > Signed-off-by: Mukund Mittal <mmittal@ti.com>
-> > Signed-off-by: Kishore Y <kishore.y@ti.com>
-> > Reviewed-by: Gadiyar, Anand <gadiyar@ti.com>
-> > ---
-> >  arch/arm/configs/omap_3630sdp_defconfig |   60
-> > ++++++++++++++++++++++++++++++-
-> >  arch/arm/configs/omap_zoom2_defconfig   |   60
-> > ++++++++++++++++++++++++++++++-
-> >  arch/arm/configs/omap_zoom3_defconfig   |   60
-> > ++++++++++++++++++++++++++++++-
-> >  3 files changed, 177 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/arch/arm/configs/omap_3630sdp_defconfig
-> > b/arch/arm/configs/omap_3630sdp_defconfig
-> > index 609f348..57c1c4f 100644
-> > --- a/arch/arm/configs/omap_3630sdp_defconfig
-> > +++ b/arch/arm/configs/omap_3630sdp_defconfig
-> > @@ -886,7 +886,57 @@ CONFIG_REGULATOR_TWL4030=y
-> >  #
-> >  # CONFIG_VGASTATE is not set
-> >  CONFIG_VIDEO_OUTPUT_CONTROL=m
-> > -# CONFIG_FB is not set
-> > +CONFIG_FB=y
-> > +# CONFIG_FIRMWARE_EDID is not set
-> > +# CONFIG_FB_DDC is not set
-> > +# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-> > +CONFIG_FB_CFB_FILLRECT=y
-> > +CONFIG_FB_CFB_COPYAREA=y
-> > +CONFIG_FB_CFB_IMAGEBLIT=y
-> > +# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-> > +# CONFIG_FB_SYS_FILLRECT is not set
-> > +# CONFIG_FB_SYS_COPYAREA is not set
-> > +# CONFIG_FB_SYS_IMAGEBLIT is not set
-> > +# CONFIG_FB_FOREIGN_ENDIAN is not set
-> > +# CONFIG_FB_SYS_FOPS is not set
-> > +# CONFIG_FB_SVGALIB is not set
-> > +# CONFIG_FB_MACMODES is not set
-> > +# CONFIG_FB_BACKLIGHT is not set
-> > +# CONFIG_FB_MODE_HELPERS is not set
-> > +# CONFIG_FB_TILEBLITTING is not set
-> > +
-> > +#
-> > +# Frame buffer hardware drivers
-> > +#
-> > +# CONFIG_FB_UVESA is not set
-> > +# CONFIG_FB_S1D13XXX is not set
-> > +# CONFIG_FB_VIRTUAL is not set
-> > +# CONFIG_FB_METRONOME is not set
-> > +# CONFIG_FB_MB862XX is not set
-> > +# CONFIG_FB_BROADSHEET is not set
-> > +# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-> > +CONFIG_OMAP2_VRAM=y
-> > +CONFIG_OMAP2_VRFB=y
-> > +CONFIG_OMAP2_DSS=y
-> > +CONFIG_OMAP2_VRAM_SIZE=4
-> > +# CONFIG_OMAP2_DSS_DEBUG_SUPPORT is not set
-> > +# CONFIG_OMAP2_DSS_RFBI is not set
-> > +CONFIG_OMAP2_DSS_VENC=y
-> > +# CONFIG_OMAP2_DSS_SDI is not set
-> > +# CONFIG_OMAP2_DSS_DSI is not set
-> > +# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-> > +CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
-> > +CONFIG_FB_OMAP2=y
-> > +# CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
-> > +# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-> > +CONFIG_FB_OMAP2_NUM_FBS=3
-> > +
-> > +#
-> > +# OMAP2/3 Display Device Drivers
-> > +#
-> > +# CONFIG_PANEL_GENERIC is not set
-> > +# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-> > +CONFIG_PANEL_NEC_NL8048HL11_01B=y
-> >  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-> >
-> >  #
-> > @@ -899,6 +949,14 @@ CONFIG_VIDEO_OUTPUT_CONTROL=m
-> >  #
-> >  # CONFIG_VGA_CONSOLE is not set
-> >  CONFIG_DUMMY_CONSOLE=y
-> > +CONFIG_FRAMEBUFFER_CONSOLE=y
-> [Hiremath, Vaibhav] Are you sure you want FRAMEBUFFER_CONSOLE option to be
-> enabled here? This actually brings a dark cursor on display which is
-> annoying. Atleast I have seen multiple request in the past to remove this
-> option from field.
+>From 5f2a14ec8dd5ddb80532f898be3575379008ea56 Mon Sep 17 00:00:00 2001
+From: Kishore Y <kishore.y@ti.com>
+Date: Sun, 25 Apr 2010 16:27:19 +0530
+Subject: [PATCH] OMAP3630:DSS2: Updating MAX divider value
 
-This was intentional. This has been enabled to see penguin during bootup.
-Regards
-KK
+In DPLL4 M3, M4, M5 and M6 field width has been increased by 1 bit in 3630.
+So the max divider value that can be achived will be 32 and not 16.
+In 3630 the functional clock is x1 of DPLL4 and not x2 .Hence multiplier 2
+is removed.
 
-> 
-> If yes, then
-> 
-> Acked/Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> Thanks,
-> Vaibhav
-> 
-> > +# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
-> > +# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
-> > +# CONFIG_FONTS is not set
-> > +CONFIG_LOGO=y
-> > +CONFIG_LOGO_LINUX_MONO=y
-> > +CONFIG_LOGO_LINUX_VGA16=y
-> > +CONFIG_LOGO_LINUX_CLUT224=y
-> >  CONFIG_SOUND=y
-> >  # CONFIG_SOUND_OSS_CORE is not set
-> >  CONFIG_SND=y
-> > diff --git a/arch/arm/configs/omap_zoom2_defconfig
-> > b/arch/arm/configs/omap_zoom2_defconfig
-> > index 881faea..c47002a 100644
-> > --- a/arch/arm/configs/omap_zoom2_defconfig
-> > +++ b/arch/arm/configs/omap_zoom2_defconfig
-> > @@ -860,7 +860,57 @@ CONFIG_DAB=y
-> >  #
-> >  # CONFIG_VGASTATE is not set
-> >  CONFIG_VIDEO_OUTPUT_CONTROL=m
-> > -# CONFIG_FB is not set
-> > +CONFIG_FB=y
-> > +# CONFIG_FIRMWARE_EDID is not set
-> > +# CONFIG_FB_DDC is not set
-> > +# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-> > +CONFIG_FB_CFB_FILLRECT=y
-> > +CONFIG_FB_CFB_COPYAREA=y
-> > +CONFIG_FB_CFB_IMAGEBLIT=y
-> > +# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-> > +# CONFIG_FB_SYS_FILLRECT is not set
-> > +# CONFIG_FB_SYS_COPYAREA is not set
-> > +# CONFIG_FB_SYS_IMAGEBLIT is not set
-> > +# CONFIG_FB_FOREIGN_ENDIAN is not set
-> > +# CONFIG_FB_SYS_FOPS is not set
-> > +# CONFIG_FB_SVGALIB is not set
-> > +# CONFIG_FB_MACMODES is not set
-> > +# CONFIG_FB_BACKLIGHT is not set
-> > +# CONFIG_FB_MODE_HELPERS is not set
-> > +# CONFIG_FB_TILEBLITTING is not set
-> > +
-> > +#
-> > +# Frame buffer hardware drivers
-> > +#
-> > +# CONFIG_FB_UVESA is not set
-> > +# CONFIG_FB_S1D13XXX is not set
-> > +# CONFIG_FB_VIRTUAL is not set
-> > +# CONFIG_FB_METRONOME is not set
-> > +# CONFIG_FB_MB862XX is not set
-> > +# CONFIG_FB_BROADSHEET is not set
-> > +# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-> > +CONFIG_OMAP2_VRAM=y
-> > +CONFIG_OMAP2_VRFB=y
-> > +CONFIG_OMAP2_DSS=y
-> > +CONFIG_OMAP2_VRAM_SIZE=4
-> > +# CONFIG_OMAP2_DSS_DEBUG_SUPPORT is not set
-> > +# CONFIG_OMAP2_DSS_RFBI is not set
-> > +CONFIG_OMAP2_DSS_VENC=y
-> > +# CONFIG_OMAP2_DSS_SDI is not set
-> > +# CONFIG_OMAP2_DSS_DSI is not set
-> > +# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-> > +CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
-> > +CONFIG_FB_OMAP2=y
-> > +# CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
-> > +# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-> > +CONFIG_FB_OMAP2_NUM_FBS=3
-> > +
-> > +#
-> > +# OMAP2/3 Display Device Drivers
-> > +#
-> > +# CONFIG_PANEL_GENERIC is not set
-> > +# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-> > +CONFIG_PANEL_NEC_NL8048HL11_01B=y
-> >  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-> >
-> >  #
-> > @@ -873,6 +923,14 @@ CONFIG_VIDEO_OUTPUT_CONTROL=m
-> >  #
-> >  # CONFIG_VGA_CONSOLE is not set
-> >  CONFIG_DUMMY_CONSOLE=y
-> > +CONFIG_FRAMEBUFFER_CONSOLE=y
-> > +# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
-> > +# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
-> > +# CONFIG_FONTS is not set
-> > +CONFIG_LOGO=y
-> > +CONFIG_LOGO_LINUX_MONO=y
-> > +CONFIG_LOGO_LINUX_VGA16=y
-> > +CONFIG_LOGO_LINUX_CLUT224=y
-> >  CONFIG_SOUND=y
-> >  # CONFIG_SOUND_OSS_CORE is not set
-> >  CONFIG_SND=y
-> > diff --git a/arch/arm/configs/omap_zoom3_defconfig
-> > b/arch/arm/configs/omap_zoom3_defconfig
-> > index 5e55b55..7137843 100644
-> > --- a/arch/arm/configs/omap_zoom3_defconfig
-> > +++ b/arch/arm/configs/omap_zoom3_defconfig
-> > @@ -887,7 +887,57 @@ CONFIG_REGULATOR_TWL4030=y
-> >  #
-> >  # CONFIG_VGASTATE is not set
-> >  CONFIG_VIDEO_OUTPUT_CONTROL=m
-> > -# CONFIG_FB is not set
-> > +CONFIG_FB=y
-> > +# CONFIG_FIRMWARE_EDID is not set
-> > +# CONFIG_FB_DDC is not set
-> > +# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-> > +CONFIG_FB_CFB_FILLRECT=y
-> > +CONFIG_FB_CFB_COPYAREA=y
-> > +CONFIG_FB_CFB_IMAGEBLIT=y
-> > +# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-> > +# CONFIG_FB_SYS_FILLRECT is not set
-> > +# CONFIG_FB_SYS_COPYAREA is not set
-> > +# CONFIG_FB_SYS_IMAGEBLIT is not set
-> > +# CONFIG_FB_FOREIGN_ENDIAN is not set
-> > +# CONFIG_FB_SYS_FOPS is not set
-> > +# CONFIG_FB_SVGALIB is not set
-> > +# CONFIG_FB_MACMODES is not set
-> > +# CONFIG_FB_BACKLIGHT is not set
-> > +# CONFIG_FB_MODE_HELPERS is not set
-> > +# CONFIG_FB_TILEBLITTING is not set
-> > +
-> > +#
-> > +# Frame buffer hardware drivers
-> > +#
-> > +# CONFIG_FB_UVESA is not set
-> > +# CONFIG_FB_S1D13XXX is not set
-> > +# CONFIG_FB_VIRTUAL is not set
-> > +# CONFIG_FB_METRONOME is not set
-> > +# CONFIG_FB_MB862XX is not set
-> > +# CONFIG_FB_BROADSHEET is not set
-> > +# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-> > +CONFIG_OMAP2_VRAM=y
-> > +CONFIG_OMAP2_VRFB=y
-> > +CONFIG_OMAP2_DSS=y
-> > +CONFIG_OMAP2_VRAM_SIZE=4
-> > +# CONFIG_OMAP2_DSS_DEBUG_SUPPORT is not set
-> > +# CONFIG_OMAP2_DSS_RFBI is not set
-> > +CONFIG_OMAP2_DSS_VENC=y
-> > +# CONFIG_OMAP2_DSS_SDI is not set
-> > +# CONFIG_OMAP2_DSS_DSI is not set
-> > +# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-> > +CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
-> > +CONFIG_FB_OMAP2=y
-> > +# CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
-> > +# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-> > +CONFIG_FB_OMAP2_NUM_FBS=3
-> > +
-> > +#
-> > +# OMAP2/3 Display Device Drivers
-> > +#
-> > +# CONFIG_PANEL_GENERIC is not set
-> > +# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-> > +CONFIG_PANEL_NEC_NL8048HL11_01B=y
-> >  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-> >
-> >  #
-> > @@ -900,6 +950,14 @@ CONFIG_VIDEO_OUTPUT_CONTROL=m
-> >  #
-> >  # CONFIG_VGA_CONSOLE is not set
-> >  CONFIG_DUMMY_CONSOLE=y
-> > +CONFIG_FRAMEBUFFER_CONSOLE=y
-> > +# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
-> > +# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
-> > +# CONFIG_FONTS is not set
-> > +CONFIG_LOGO=y
-> > +CONFIG_LOGO_LINUX_MONO=y
-> > +CONFIG_LOGO_LINUX_VGA16=y
-> > +CONFIG_LOGO_LINUX_CLUT224=y
-> >  CONFIG_SOUND=y
-> >  # CONFIG_SOUND_OSS_CORE is not set
-> >  CONFIG_SND=y
-> > --
-> > 1.5.6.3
-> >
-> >
-> > Regards,
-> > Kishore Y
+Signed-off-by: Sudeep Basavaraj <sudeep.basavaraj@ti.com>
+Signed-off-by: Mukund Mittal <mmittal@ti.com>
+Signed-off-by: Kishore Y <kishore.y@ti.com>
+---
+Changes compared to version 1:
+   -divider check is based on cpu type instead of board type
+
+ drivers/video/omap2/dss/dss.c |   24 +++++++++++++++++++-----
+ 1 files changed, 19 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 5434418..24b1825 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -223,7 +223,13 @@ void dss_dump_clocks(struct seq_file *s)
+ 
+ 	seq_printf(s, "dpll4_ck %lu\n", dpll4_ck_rate);
+ 
+-	seq_printf(s, "dss1_alwon_fclk = %lu / %lu * 2 = %lu\n",
++	if (cpu_is_omap3630())
++		seq_printf(s, "dss1_alwon_fclk = %lu / %lu  = %lu\n",
++			dpll4_ck_rate,
++			dpll4_ck_rate / dpll4_m4_ck_rate,
++			dss_clk_get_rate(DSS_CLK_FCK1));
++	else
++		seq_printf(s, "dss1_alwon_fclk = %lu / %lu * 2 = %lu\n",
+ 			dpll4_ck_rate,
+ 			dpll4_ck_rate / dpll4_m4_ck_rate,
+ 			dss_clk_get_rate(DSS_CLK_FCK1));
+@@ -293,7 +299,8 @@ int dss_calc_clock_rates(struct dss_clock_info *cinfo)
+ {
+ 	unsigned long prate;
+ 
+-	if (cinfo->fck_div > 16 || cinfo->fck_div == 0)
++	if (cinfo->fck_div > (cpu_is_omap3630() ? 32 : 16) ||
++						cinfo->fck_div == 0)
+ 		return -EINVAL;
+ 
+ 	prate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
+@@ -329,7 +336,10 @@ int dss_get_clock_div(struct dss_clock_info *cinfo)
+ 	if (cpu_is_omap34xx()) {
+ 		unsigned long prate;
+ 		prate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
+-		cinfo->fck_div = prate / (cinfo->fck / 2);
++		if (cpu_is_omap3630())
++			cinfo->fck_div = prate / (cinfo->fck);
++		else
++			cinfo->fck_div = prate / (cinfo->fck / 2);
+ 	} else {
+ 		cinfo->fck_div = 0;
+ 	}
+@@ -402,10 +412,14 @@ retry:
+ 
+ 		goto found;
+ 	} else if (cpu_is_omap34xx()) {
+-		for (fck_div = 16; fck_div > 0; --fck_div) {
++		for (fck_div = (cpu_is_omap3630() ? 32 : 16);
++					fck_div > 0; --fck_div) {
+ 			struct dispc_clock_info cur_dispc;
+ 
+-			fck = prate / fck_div * 2;
++			if (cpu_is_omap3630())
++				fck = prate / fck_div;
++			else
++				fck = prate / fck_div * 2;
+ 
+ 			if (fck > DISPC_MAX_FCK)
+ 				continue;
+-- 
+1.5.6.3
+
+
+Regards,
+Kishore Y
