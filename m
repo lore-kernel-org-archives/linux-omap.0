@@ -1,111 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] omap_hsmmc: improve interrupt synchronisation
-Date: Mon, 26 Apr 2010 14:17:41 -0700
-Message-ID: <20100426211741.GO7225@atomide.com>
-References: <4BD19BBB.40701@nokia.com>
- <p2r618f0c911004260200vb501a429m8ad243826c05d367@mail.gmail.com>
- <002801cae554$09ac97c0$544ff780@am.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <002801cae554$09ac97c0$544ff780@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Venkatraman S' <svenkatr@ti.com>, 'Adrian Hunter' <adrian.hunter@nokia.com>, 'linux-mmc Mailing List' <linux-mmc@vger.kernel.org>, 'linux-omap Mailing List' <linux-omap@vger.kernel.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP3: PRCM interrupt: only check for enabled PRCM IRQs
+Date: Mon, 26 Apr 2010 15:23:04 -0700
+Message-ID: <1272320584-14244-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:36549 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754509Ab0DZWXJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 18:23:09 -0400
+Received: by vws13 with SMTP id 13so285013vws.19
+        for <linux-omap@vger.kernel.org>; Mon, 26 Apr 2010 15:23:08 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Madhusudhan <madhu.cr@ti.com> [100426 08:17]:
->=20
->=20
-> > -----Original Message-----
-> > From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of
-> > Venkatraman S
-> > Sent: Monday, April 26, 2010 4:01 AM
-> > To: Adrian Hunter
-> > Cc: Madhusudhan Chikkature; linux-mmc Mailing List; linux-omap Mail=
-ing
-> > List
-> > Subject: Re: [PATCH v2] omap_hsmmc: improve interrupt synchronisati=
-on
-> >=20
-> > Adrian Hunter <adrian.hunter@nokia.com> wrote:
-> > > From ad2e1cd024ccf9144b6620cfe808893719db738f Mon Sep 17 00:00:00=
- 2001
-> > > From: Adrian Hunter <adrian.hunter@nokia.com>
-> > > Date: Wed, 14 Apr 2010 16:26:45 +0300
-> > > Subject: [PATCH] omap_hsmmc: improve interrupt synchronisation
-> > >
-> > > The following changes were needed:
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- do not use in_interrupt() because it=
- will not work
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0with threaded interrupts
-> > >
-> > > In addition, the following improvements were made:
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- ensure DMA is unmapped only after th=
-e final DMA interrupt
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- ensure a request is completed only a=
-fter the final DMA
-> > interrupt
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- disable controller interrupts when a=
- request is not in progress
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- remove the spin-lock protecting the =
-start of a new request from
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0an unexpected interrupt because the lo=
-cking was complicated and
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0a 'req_in_progress' flag suffices (sin=
-ce the spin-lock only
-> > defers
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0the unexpected interrupts anyway)
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- instead use the spin-lock to protect=
- the MMC interrupt handler
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0from the DMA interrupt handler
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- remove the semaphore preventing DMA =
-from being started while
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0the previous DMA is still in progress =
-- the other changes make
-> > that
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0impossible, so it is now a BUG_ON cond=
-ition
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- ensure the controller interrupt stat=
-us is clear before exiting
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0the interrrupt handler
-> > >
-> > > In general, these changes make the code safer but do not fix any
-> > specific
-> > > bugs so backporting is not necessary.
-> > >
-> > > Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> > > ---
-> > >
-> > >
-> > > Changes from version 1:
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- use a spin-lock to protect the MMC i=
-nterrupt handler
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0from the DMA interrupt handler
-> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0- use do {} while loop instead of goto=
- in omap_hsmmc_irq
-> > >
-> > > S Venkatraman's request to use omap_hsmmc_dma_cleanup(host, 0) in
-> > > omap_hsmmc_dma_cb() was not done because the code was not
-> > > sufficiently the same.
->=20
-> <snip>
->=20
-> > This looks good and I don't have any other comments.
-> >      I have tested, on MMC and SD cards which I have,
-> > a) Basic file read / write
-> > b) boot with filesystem on ext3 partition on SD card
-> >  on OMAP3 and OMAP4 SDP.
-> >=20
-> > So you can add,
-> > Tested-by: Venkatraman S <svenkatr@ti.com>
->=20
-> I reviewed the V2 patch. I don=C2=92t have any comments too.
->=20
-> Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+While handling PRCM IRQs, mask out interrupts that are not enabled in
+PRM_IRQENABLE_MPU.  If these are not masked out,  non-enabled
+interrupts are caught and a WARN() is dumped.
 
-Nice work Adrian!
+This was noticed using SmartReflex transitions which cause the VPx_*
+interrupts to be handled since they are set in PRM_IRQSTATUS_MPU even
+but not enabled in PRM_IRQENABLE_MPU.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+For review here, will be queued with other PM updates for 2.6.35.
+
+ arch/arm/mach-omap2/pm34xx.c |   15 ++++++++++-----
+ 1 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index fee2efb..63d1843 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -266,13 +266,15 @@ static int _prcm_int_handle_wakeup(void)
+  */
+ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+ {
+-	u32 irqstatus_mpu;
++	u32 irqenable_mpu, irqstatus_mpu;
+ 	int c = 0;
+ 
+-	do {
+-		irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
+-					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
++	irqenable_mpu = prm_read_mod_reg(OCP_MOD,
++					 OMAP3_PRM_IRQENABLE_MPU_OFFSET);
++	irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
++					 OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+ 
++	do {
+ 		if (irqstatus_mpu & (OMAP3430_WKUP_ST | OMAP3430_IO_ST)) {
+ 			c = _prcm_int_handle_wakeup();
+ 
+@@ -291,7 +293,10 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+ 		prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
+ 					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+ 
+-	} while (prm_read_mod_reg(OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET));
++		irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
++					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
++		
++	} while (irqstatus_mpu & irqenable_mpu);
+ 
+ 	return IRQ_HANDLED;
+ }
+-- 
+1.7.0.2
+
