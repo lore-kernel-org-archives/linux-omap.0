@@ -1,76 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/10] OMAP1 clock: fix section mismatch on clk_init
-Date: Mon, 26 Apr 2010 11:11:57 -0700
-Message-ID: <20100426181157.GF7225@atomide.com>
-References: <20100426070217.9743.92728.stgit@localhost.localdomain>
- <20100426070420.9743.33754.stgit@localhost.localdomain>
+Subject: Re: [PATCH] OMAP: fix gpmc nand setup when no timings supplied
+Date: Mon, 26 Apr 2010 11:14:49 -0700
+Message-ID: <20100426181448.GG7225@atomide.com>
+References: <1271670618-5671-1-git-send-email-mike@compulab.co.il>
+ <4BCFDC6F.6010801@compulab.co.il>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7ADD@dbde02.ent.ti.com>
+ <4BCFF3C1.5070005@compulab.co.il>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7B5A@dbde02.ent.ti.com>
+ <4BD00C9A.8050601@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53550 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753078Ab0DZSL7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 14:11:59 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50094 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752635Ab0DZSOv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 14:14:51 -0400
 Content-Disposition: inline
-In-Reply-To: <20100426070420.9743.33754.stgit@localhost.localdomain>
+In-Reply-To: <4BD00C9A.8050601@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <felipe.balbi@nokia.com>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [100426 00:03]:
-> From: Felipe Balbi <felipe.balbi@nokia.com>
+* Mike Rapoport <mike@compulab.co.il> [100422 01:41]:
+> Ghorai, Sukumar wrote:
 > 
-> remove the section annotation from omap1_clk_disable_unused()
-> to kill the section mismatch warning.
+> CM-T35, for instance can be assembled with different NAND flash
+> chips. Besides, boards that use NAND as primary boot device, we
+> anyway depend on proper GPMC configuration in the bootloader chain.
+> Having ability to define GPMC timings in the kernel and keep the
+> settings made by the bootloader adds flexibility level for board
+> designers.
 
-In the long term this should be fixed properly.
-
-The disable_unused is only called once with a late_initcall.
-I'd rather not waste that memory keeping an __init function
-around.
-
-Regards,
+Not implementing the retime function for GPMC will cause issues
+with PM as you cannot scale the L3 frequency without breaking
+your GPMC timings.
 
 Tony
-
-
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap1/clock.c |    2 +-
->  arch/arm/mach-omap1/clock.h |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-> index e0aec10..6bbb1b8 100644
-> --- a/arch/arm/mach-omap1/clock.c
-> +++ b/arch/arm/mach-omap1/clock.c
-> @@ -578,7 +578,7 @@ int omap1_clk_set_rate(struct clk *clk, unsigned long rate)
->  
->  #ifdef CONFIG_OMAP_RESET_CLOCKS
->  
-> -void __init omap1_clk_disable_unused(struct clk *clk)
-> +void omap1_clk_disable_unused(struct clk *clk)
->  {
->  	__u32 regval32;
->  
-> diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-> index a4190af..75d0d7d 100644
-> --- a/arch/arm/mach-omap1/clock.h
-> +++ b/arch/arm/mach-omap1/clock.h
-> @@ -39,7 +39,7 @@ extern long omap1_clk_round_rate_ckctl_arm(struct clk *clk, unsigned long rate);
->  extern unsigned long omap1_watchdog_recalc(struct clk *clk);
->  
->  #ifdef CONFIG_OMAP_RESET_CLOCKS
-> -extern void __init omap1_clk_disable_unused(struct clk *clk);
-> +extern void omap1_clk_disable_unused(struct clk *clk);
->  #else
->  #define omap1_clk_disable_unused	NULL
->  #endif
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
