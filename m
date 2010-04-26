@@ -1,60 +1,66 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: Fix tusb6010 for DMA API (Re: [patch-2.6.34-rc2+
- 00/11] musb patches (v2))
-Date: Mon, 26 Apr 2010 12:10:51 -0700
-Message-ID: <20100426191051.GK7225@atomide.com>
-References: <1269515673-27980-1-git-send-email-felipe.balbi@nokia.com>
- <20100423210854.GA13366@kroah.com>
- <20100423212307.GY18272@atomide.com>
- <20100423220853.GA16165@kroah.com>
- <20100425133531.GB2219@gandalf>
- <20100426175324.GE7225@atomide.com>
- <20100426190246.GA8772@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100426190246.GA8772-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP: DSS: ensure clocks are disabled on failed init
+Date: Mon, 26 Apr 2010 12:12:46 -0700
+Message-ID: <1272309166-698-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:49816 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753167Ab0DZTMt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 15:12:49 -0400
+Received: by pvg2 with SMTP id 2so589875pvg.19
+        for <linux-omap@vger.kernel.org>; Mon, 26 Apr 2010 12:12:48 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> [100426 12:00]:
-> On Mon, Apr 26, 2010 at 10:53:24AM -0700, Tony Lindgren wrote:
-> > * Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org> [100425 06:30]:
-> > > On Fri, Apr 23, 2010 at 03:08:53PM -0700, Greg KH wrote:
-> > > > On Fri, Apr 23, 2010 at 02:23:08PM -0700, Tony Lindgren wrote:
-> > > > > * Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> [100423 14:05]:
-> > > > > > On Thu, Mar 25, 2010 at 01:14:22PM +0200, Felipe Balbi wrote:
-> > > > > > > Hi Greg,
-> > > > > > > 
-> > > > > > > sorry for the last time. There was a bug in my script
-> > > > > > > which caused it to rebased against the wrong branch.
-> > > > > > 
-> > > > > > All queued up, thanks
-> > > > > 
-> > > > > This compile fix still needs to be queued too. Can also
-> > > > > merge via omap tree if you guys ack.
-> > > > 
-> > > > That's up to Felipe.  I have no objection to it, it's his call.
-> > > 
-> > > please Greg take it. I seem to have missed from my queue.
-> > > 
-> > > fwiw:
-> > > 
-> > > Acked-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> > 
-> > Greg, here's the patch for you one more time with updated comments
-> > as suggested by Anand regarding the dummy musb_platform_save and
-> > restore functions. Also added Felipe's Ack there.
-> 
-> Now queued up.
+Currently, if init fails for whatever reason, various DSS related
+clocks will be left enabled and prevent the chip from hitting
+retention or off-mode.
 
-OK, thanks!
+This patch ensures the clocks are disabled on a failed init.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For this to work, a check had to be added to dispc_save_context()
+to not save context if it has not yet been initialized.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+Patch against v2.6.34-rc5.
+
+Discovered when testing n900 with current PM branch + Roger's 
+series for the LCC panel.  DPI init fails since it can't find
+VDDS_DSI regulator, and as a result init fails out and leaves
+clocks enabled.
+
+ drivers/video/omap2/dss/core.c  |    1 +
+ drivers/video/omap2/dss/dispc.c |    3 +++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 7ebe50b..62f7ee2 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -584,6 +584,7 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 
+ 	/* XXX fail correctly */
+ fail0:
++	dss_clk_disable_all();
+ 	return r;
+ }
+ 
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index e777e35..4cc54ef 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -195,6 +195,9 @@ void dispc_save_context(void)
+ 	if (cpu_is_omap24xx())
+ 		return;
+ 
++	if (!dispc.base)
++		return;
++
+ 	SR(SYSCONFIG);
+ 	SR(IRQENABLE);
+ 	SR(CONTROL);
+-- 
+1.7.0.2
+
