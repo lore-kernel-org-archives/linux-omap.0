@@ -1,13 +1,13 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH 1/4] ARM: Introduce SoC Info into /proc/cpuinfo
-Date: Mon, 26 Apr 2010 11:24:50 +0300
-Message-ID: <1272270293-18568-2-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCH 4/4] OMAP3: PM: export chip IDCODE, Production ID and Die ID
+Date: Mon, 26 Apr 2010 11:24:53 +0300
+Message-ID: <1272270293-18568-5-git-send-email-eduardo.valentin@nokia.com>
 References: <1272270293-18568-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34059 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:34064 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750716Ab0DZIZ1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 04:25:27 -0400
+	with ESMTP id S1750716Ab0DZIZ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 04:25:28 -0400
 In-Reply-To: <1272270293-18568-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,54 +16,65 @@ Cc: "\\\"De-Schrijver Peter (Nokia-D/Helsinki)\\\"" <Peter.De-Schrijver@nokia.co
 
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-This patch extends the ARM /proc/cpuinfo to include soc info data.
-It is implemented via the same way which is done for
-system_rev, system_serial_low and system_serial_high.
-Then, now we have system_soc_info, which is printed only
-if there is something useful there.
+This patch exports the OMAP3 IDCODE, Production ID and Die ID to userspace
+via /proc/cpuinfo using the system_soc_info.
+
+This can be used to track down silicon specific issues. The info is
+exported via /proc/cpuinfo because then it can be possible to include this
+in corematic dumps.
+
+This is based on Peter De Schrijver patch, which export same info via sysfs.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/include/asm/system.h |    2 ++
- arch/arm/kernel/setup.c       |    5 +++++
- 2 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/id.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
-index 4ace45e..53a9645 100644
---- a/arch/arm/include/asm/system.h
-+++ b/arch/arm/include/asm/system.h
-@@ -71,6 +71,8 @@ struct task_struct;
- extern unsigned int system_rev;
- extern unsigned int system_serial_low;
- extern unsigned int system_serial_high;
-+#define SYSTEM_SOC_INFO_SIZE			128
-+extern char system_soc_info[SYSTEM_SOC_INFO_SIZE];
- extern unsigned int mem_fclk_21285;
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 75e36a5..887787d 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -76,6 +76,10 @@ EXPORT_SYMBOL(omap_type);
+ /*----------------------------------------------------------------------------*/
  
- struct pt_regs;
-diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
-index c91c77b..025d795 100644
---- a/arch/arm/kernel/setup.c
-+++ b/arch/arm/kernel/setup.c
-@@ -85,6 +85,9 @@ EXPORT_SYMBOL(system_serial_low);
- unsigned int system_serial_high;
- EXPORT_SYMBOL(system_serial_high);
+ #define OMAP_TAP_IDCODE		0x0204
++#define OMAP_TAP_PROD_ID_0      0x0208
++#define OMAP_TAP_PROD_ID_1      0x020c
++#define OMAP_TAP_PROD_ID_2      0x0210
++#define OMAP_TAP_PROD_ID_3      0x0214
+ #define OMAP_TAP_DIE_ID_0	0x0218
+ #define OMAP_TAP_DIE_ID_1	0x021C
+ #define OMAP_TAP_DIE_ID_2	0x0220
+@@ -306,6 +310,7 @@ void __init omap4_check_revision(void)
  
-+char system_soc_info[SYSTEM_SOC_INFO_SIZE];
-+EXPORT_SYMBOL(system_soc_info);
+ void __init omap3_cpuinfo(void)
+ {
++	int sz;
+ 	u8 rev = GET_OMAP_REVISION();
+ 	char cpu_name[16], cpu_rev[16];
+ 
+@@ -375,6 +380,21 @@ void __init omap3_cpuinfo(void)
+ 	OMAP3_SHOW_FEATURE(192mhz_clk);
+ 
+ 	printk(")\n");
 +
- unsigned int elf_hwcap;
- EXPORT_SYMBOL(elf_hwcap);
- 
-@@ -847,6 +850,8 @@ static int c_show(struct seq_file *m, void *v)
- 	seq_printf(m, "Revision\t: %04x\n", system_rev);
- 	seq_printf(m, "Serial\t\t: %08x%08x\n",
- 		   system_serial_high, system_serial_low);
-+	if (strlen(system_soc_info))
-+		seq_printf(m, "SoC Info\t: %s\n",  system_soc_info);
- 
- 	return 0;
++	/* Append OMAP3 IDCODE, Production ID and Die ID to system_soc_info */
++	sz = strlen(system_soc_info);
++	snprintf(system_soc_info + sz, SYSTEM_SOC_INFO_SIZE - sz,
++			"\n\tIDCODE\t: %08x\n\tPr. ID\t: %08x %08x %08x %08x\n"
++			"\tDie ID\t: %08x %08x %08x %08x\n",
++			read_tap_reg(OMAP_TAP_IDCODE),
++			read_tap_reg(OMAP_TAP_PROD_ID_0),
++			read_tap_reg(OMAP_TAP_PROD_ID_1),
++			read_tap_reg(OMAP_TAP_PROD_ID_2),
++			read_tap_reg(OMAP_TAP_PROD_ID_3),
++			read_tap_reg(OMAP_TAP_DIE_ID_0),
++			read_tap_reg(OMAP_TAP_DIE_ID_1),
++			read_tap_reg(OMAP_TAP_DIE_ID_2),
++			read_tap_reg(OMAP_TAP_DIE_ID_3));
  }
+ 
+ /*
 -- 
 1.7.0.4.361.g8b5fe.dirty
 
