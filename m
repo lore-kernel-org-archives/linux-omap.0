@@ -1,163 +1,107 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][PATCH] [I2C]pass scll, sclh through board file for
- Errata i585
-Date: Mon, 26 Apr 2010 15:43:14 -0700
-Message-ID: <20100426224314.GP7225@atomide.com>
-References: <1271689408-2397-1-git-send-email-balajitk@ti.com>
+Subject: Re: [PATCH 1/1] i2c-omap: add mpu wake up latency constraint in i2c
+Date: Mon, 26 Apr 2010 15:58:51 -0700
+Message-ID: <20100426225851.GR7225@atomide.com>
+References: <1271876654-13613-1-git-send-email-khilman@deeprootsystems.com>
+ <1271876654-13613-2-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51871 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755432Ab0DZWnP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 18:43:15 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49521 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751471Ab0DZW6x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 18:58:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1271689408-2397-1-git-send-email-balajitk@ti.com>
+In-Reply-To: <1271876654-13613-2-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balajitk@ti.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: linux-omap@vger.kernel.org
 
-* balajitk@ti.com <balajitk@ti.com> [100419 07:59]:
-> From: Balaji T K <balajitk@ti.com>
+* Kevin Hilman <khilman@deeprootsystems.com> [100421 11:59]:
+> From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 > 
-> Errata ID: i535 - I2C1 to 3 SCL low period is shorter in FS mode
-> Due to IO cell influence, I2C1 to 3 SCL low period can be shorter than expected. 
-> As a result, I2C AC timing (SCL minimum low period) in FS mode may not meet 
-> the timing configured by software.
+> While waiting for completion of the i2c transfer, the
+> MPU could hit OFF mode and cause several msecs of
+> delay that made i2c transfers fail more often. The
+> extra delays and subsequent re-trys cause i2c clocks
+> to be active more often. This has also an negative
+> effect on power consumption.
 > 
-> I2C1 to 3, SCL low period is programmable and proper adjustments
-> to the SCLL/HSSCLL values can avoid the issue.
+> Created a mechanism for passing and using the
+> constraint setting function in driver code. The used
+> mpu wake up latency constraints are now set individually
+> per bus, and they are calculated based on clock rate
+> and fifo size.
 > 
-> This patch provides flexibility to control tLOW, tHIGH for different boards.
-> scll, sclh values are to be provide in board data
-> for differents modes (standard, fast and high speed mode)
-> as the scl rate (I2C bus speed) can be changed by bootargs.
-> 
-> If scll, sclh values are not provided, scll and sclh values will be computed 
-> for duty cycle tHIGH:tLOW of 1:2 (for HS, FS) and 1:1 for Standard as before
+> Thanks to Jarkko Nikula, Moiz Sonasath, Paul Walmsley,
+> and Nishanth Menon for tuning out the details of
+> this patch.
 
 <snip>
 
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -594,6 +594,26 @@ static struct twl4030_platform_data sdp3430_twldata = {
->  	.vpll2		= &sdp3430_vpll2,
->  };
+> +#ifdef CONFIG_ARCH_OMAP3
+> +/*
+> + * omap_i2c_set_wfc_mpu_wkup_lat - sets mpu wake up constraint
+> + * @dev:	i2c bus device pointer
+> + * @val:	latency constraint to set, -1 to disable constraint
+> + *
+> + * When waiting for completion of a i2c transfer, we need to set a wake up
+> + * latency constraint for the MPU. This is to ensure quick enough wakeup from
+> + * idle, when transfer completes.
+> + */
+> +static void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int val)
+> +{
+> +	omap_pm_set_max_mpu_wakeup_lat(dev, val);
+> +}
+> +#endif
+> +
+> +static void __init omap_set_i2c_constraint_func(
+> +				struct omap_i2c_bus_platform_data *pd)
+> +{
+> +	if (cpu_is_omap34xx())
+> +		pd->set_mpu_wkup_lat = omap_i2c_set_wfc_mpu_wkup_lat;
+> +	else
+> +		pd->set_mpu_wkup_lat = NULL;
+> +}
+> +
+>  static int __init omap_i2c_nr_ports(void)
+>  {
+>  	int ports = 0;
+
+<snip>
+
+> @@ -161,9 +189,10 @@ static int __init omap_register_i2c_bus_cmdline(void)
+>  {
+>  	int i, err = 0;
 >  
-> +static struct omap_i2c_scl_data __initdata sdp3430_i2c1_scl_data = {
-> +	.rate	= 2600,
-> +	.standard_scll	= 20,	/* For 100Khz */
-> +	.standard_sclh	= 20,	/* For 100Khz */
-> +	.fast_mode_scll	= 16,	/* For 400Khz */
-> +	.fast_mode_sclh	= 8,	/* For 400Khz */
-> +	.hs_phase1_scll	= 32,	/* For 2600Khz */
-> +	.hs_phase1_sclh	= 16,	/* For 2600Khz */
-> +	.hs_phase2_scll	= 24,	/* For 2600Khz */
-> +	.hs_phase2_sclh	= 12,	/* For 2600Khz */
-> +};
-
-Can you please describe how you get these values for each board-*.c file?
-
-> --- a/arch/arm/plat-omap/i2c.c
-> +++ b/arch/arm/plat-omap/i2c.c
-> @@ -70,14 +70,14 @@ static struct resource i2c_resources[][2] = {
->  		},					\
+> -	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
+> -		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
+> -			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
+> +	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
+> +		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
+> +			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+> +			omap_set_i2c_constraint_func(&i2c_pdata[i]);
+>  			err = omap_i2c_add_bus(i + 1);
+>  			if (err)
+>  				goto out;
+> @@ -197,9 +226,11 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+>  			return err;
 >  	}
 >  
-> -static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
-> +static struct omap_i2c_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
->  static struct platform_device omap_i2c_devices[] = {
-> -	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
-> +	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
->  #if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-> -	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
-> +	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
->  #endif
->  #if	defined(CONFIG_ARCH_OMAP3)
-> -	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
-> +	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
->  #endif
->  };
+> -	if (!i2c_rate[bus_id - 1])
+> -		i2c_rate[bus_id - 1] = clkrate;
+> -	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
+> +	if (!i2c_pdata[bus_id - 1].clkrate)
+> +		i2c_pdata[bus_id - 1].clkrate = clkrate;
+> +
+> +	omap_set_i2c_constraint_func(&i2c_pdata[bus_id - 1]);
+> +	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
 >  
-> @@ -146,8 +146,8 @@ static int __init omap_i2c_bus_setup(char *str)
->  	get_options(str, 3, ints);
->  	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
->  		return 0;
-> -	i2c_rate[ints[1] - 1] = ints[2];
-> -	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
-> +	i2c_pdata[ints[1] - 1].rate = ints[2];
-> +	i2c_pdata[ints[1] - 1].rate |= OMAP_I2C_CMDLINE_SETUP;
->  
->  	return 1;
+>  	return omap_i2c_add_bus(bus_id);
 >  }
 
-FYI, the change from i2c_rate to i2c_pdata is needed also for
-"i2c-omap: add mpu wake up latency constraint in i2c" as that
-blocks some PM changes from going upstream. So once that's sorted
-out some minor rebasing of that patch is needed.
-
-> @@ -446,24 +453,47 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  
->  			/* For first phase of HS mode */
->  			scl = internal_clk / 400;
-> -			fsscll = scl - (scl / 3) - 7;
-> -			fssclh = (scl / 3) - 5;
-> +			if ((pdata->hs_phase1.scll > 7) &&
-> +					(pdata->hs_phase1.sclh > 5)) {
-> +				fsscll = pdata->hs_phase1.scll - 7;
-> +				fssclh = pdata->hs_phase1.sclh - 5;
-> +			} else {
-> +				fsscll = scl - (scl / 3) - 7;
-> +				fssclh = (scl / 3) - 5;
-> +			}
->  
->  			/* For second phase of HS mode */
->  			scl = fclk_rate / dev->speed;
-> -			hsscll = scl - (scl / 3) - 7;
-> -			hssclh = (scl / 3) - 5;
-> +			if ((pdata->hs_phase2.scll > 7) &&
-> +					(pdata->hs_phase2.sclh > 5)) {
-> +				hsscll = pdata->hs_phase2.scll - 7;
-> +				hssclh = pdata->hs_phase2.sclh - 5;
-> +			} else {
-> +				hsscll = scl - (scl / 3) - 7;
-> +				hssclh = (scl / 3) - 5;
-> +			}
->  		} else if (dev->speed > 100) {
->  			unsigned long scl;
->  
->  			/* Fast mode */
->  			scl = internal_clk / dev->speed;
-> -			fsscll = scl - (scl / 3) - 7;
-> -			fssclh = (scl / 3) - 5;
-> +			if ((pdata->fast.scll > 7) && (pdata->fast.sclh > 5)) {
-> +				fsscll = pdata->fast.scll - 7;
-> +				fssclh = pdata->fast.sclh - 5;
-> +			} else {
-> +				fsscll = scl - (scl / 3) - 7;
-> +				fssclh = (scl / 3) - 5;
-> +			}
->  		} else {
->  			/* Standard mode */
-> -			fsscll = internal_clk / (dev->speed * 2) - 7;
-> -			fssclh = internal_clk / (dev->speed * 2) - 5;
-> +			if ((pdata->standard.scll > 7) &&
-> +					(pdata->standard.sclh > 5)) {
-> +				fsscll = pdata->standard.scll - 7;
-> +				fssclh = pdata->standard.sclh - 5;
-> +			} else {
-> +				fsscll = internal_clk / (dev->speed * 2) - 7;
-> +				fssclh = internal_clk / (dev->speed * 2) - 5;
-> +			}
->  		}
->  		scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
->  		sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
-
-To me it looks like you should not ignore the scl for these calculations
-as it can be different depending on the omap.
-
-Also, this should be also posted to the i2c mailing list for review.
+Looks like this all could be done in omap_i2c_add_bus a bit simpler.
 
 Regards,
 
