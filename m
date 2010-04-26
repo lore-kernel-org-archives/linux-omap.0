@@ -1,65 +1,91 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: CLK: FIX: warning SR fclk clk domain not found
-Date: Mon, 26 Apr 2010 11:25:17 -0700
-Message-ID: <87y6gat6k2.fsf@deeprootsystems.com>
-References: <1272001288-6981-1-git-send-email-ambresh@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] OMAP3: PM: export chip IDCODE, Production ID and
+ Die ID
+Date: Mon, 26 Apr 2010 11:28:12 -0700
+Message-ID: <20100426182811.GI7225@atomide.com>
+References: <1272270293-18568-1-git-send-email-eduardo.valentin@nokia.com>
+ <1272270293-18568-5-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f204.google.com ([209.85.222.204]:44035 "EHLO
-	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752160Ab0DZSZW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 14:25:22 -0400
-Received: by pzk42 with SMTP id 42so8168999pzk.4
-        for <linux-omap@vger.kernel.org>; Mon, 26 Apr 2010 11:25:21 -0700 (PDT)
-In-Reply-To: <1272001288-6981-1-git-send-email-ambresh@ti.com> (Ambresh K.'s message of "Fri\, 23 Apr 2010 11\:11\:28 +0530")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52849 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753849Ab0DZS2O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 14:28:14 -0400
+Content-Disposition: inline
+In-Reply-To: <1272270293-18568-5-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ambresh K <ambresh@ti.com>
-Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-Ambresh K <ambresh@ti.com> writes:
-
-> Added clock domain name to sr[1,2] clk structure to fix warning
-> while initialising sr hwmod during boot-up.
->
-> Signed-off-by: Ambresh K <ambresh@ti.com>
-
-Please add a better subject and changelog.  Something that would be
-more useful when looking at this in git history down the road.
-Something like "add SR clocks to WKUP clockdomain" for the suject is
-more helpful.
-
-Also, for the changelog, explain more about SmartReflex having its own
-powerdomain but no clockdomain, thus why it's clocks are in the WKUP
-clockdomain.
-
-Kevin
-
-
+* Eduardo Valentin <eduardo.valentin@nokia.com> [100426 01:20]:
+> From: Eduardo Valentin <eduardo.valentin@nokia.com>
+> 
+> This patch exports the OMAP3 IDCODE, Production ID and Die ID to userspace
+> via /proc/cpuinfo using the system_soc_info.
+> 
+> This can be used to track down silicon specific issues. The info is
+> exported via /proc/cpuinfo because then it can be possible to include this
+> in corematic dumps.
+> 
+> This is based on Peter De Schrijver patch, which export same info via sysfs.
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 > ---
->  arch/arm/mach-omap2/clock3xxx_data.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-> index d5153b6..8a49d8a 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -3100,6 +3100,7 @@ static struct clk sr1_fck = {
->  	.parent		= &sys_ck,
->  	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
->  	.enable_bit	= OMAP3430_EN_SR1_SHIFT,
-> +	.clkdm_name	= "wkup_clkdm",
->  	.recalc		= &followparent_recalc,
->  };
+>  arch/arm/mach-omap2/id.c |   20 ++++++++++++++++++++
+>  1 files changed, 20 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 75e36a5..887787d 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -76,6 +76,10 @@ EXPORT_SYMBOL(omap_type);
+>  /*----------------------------------------------------------------------------*/
 >  
-> @@ -3110,6 +3111,7 @@ static struct clk sr2_fck = {
->  	.parent		= &sys_ck,
->  	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
->  	.enable_bit	= OMAP3430_EN_SR2_SHIFT,
-> +	.clkdm_name	= "wkup_clkdm",
->  	.recalc		= &followparent_recalc,
->  };
+>  #define OMAP_TAP_IDCODE		0x0204
+> +#define OMAP_TAP_PROD_ID_0      0x0208
+> +#define OMAP_TAP_PROD_ID_1      0x020c
+> +#define OMAP_TAP_PROD_ID_2      0x0210
+> +#define OMAP_TAP_PROD_ID_3      0x0214
+>  #define OMAP_TAP_DIE_ID_0	0x0218
+>  #define OMAP_TAP_DIE_ID_1	0x021C
+>  #define OMAP_TAP_DIE_ID_2	0x0220
+> @@ -306,6 +310,7 @@ void __init omap4_check_revision(void)
 >  
-> -- 
-> 1.6.0.4
+>  void __init omap3_cpuinfo(void)
+>  {
+> +	int sz;
+>  	u8 rev = GET_OMAP_REVISION();
+>  	char cpu_name[16], cpu_rev[16];
+>  
+> @@ -375,6 +380,21 @@ void __init omap3_cpuinfo(void)
+>  	OMAP3_SHOW_FEATURE(192mhz_clk);
+>  
+>  	printk(")\n");
+> +
+> +	/* Append OMAP3 IDCODE, Production ID and Die ID to system_soc_info */
+> +	sz = strlen(system_soc_info);
+> +	snprintf(system_soc_info + sz, SYSTEM_SOC_INFO_SIZE - sz,
+> +			"\n\tIDCODE\t: %08x\n\tPr. ID\t: %08x %08x %08x %08x\n"
+> +			"\tDie ID\t: %08x %08x %08x %08x\n",
+> +			read_tap_reg(OMAP_TAP_IDCODE),
+> +			read_tap_reg(OMAP_TAP_PROD_ID_0),
+> +			read_tap_reg(OMAP_TAP_PROD_ID_1),
+> +			read_tap_reg(OMAP_TAP_PROD_ID_2),
+> +			read_tap_reg(OMAP_TAP_PROD_ID_3),
+> +			read_tap_reg(OMAP_TAP_DIE_ID_0),
+> +			read_tap_reg(OMAP_TAP_DIE_ID_1),
+> +			read_tap_reg(OMAP_TAP_DIE_ID_2),
+> +			read_tap_reg(OMAP_TAP_DIE_ID_3));
+>  }
+>  
+>  /*
+
+We should not expose the Die ID info unless specifically compiled in
+with some Kconfig option. Please search for "pentium serial number privacy"
+or similar.
+
+Also, this whole series should be discussed on linux-arm-kernel.
+
+Tony
