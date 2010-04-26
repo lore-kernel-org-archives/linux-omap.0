@@ -1,91 +1,148 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] OMAP3: PM: export chip IDCODE, Production ID and
- Die ID
-Date: Mon, 26 Apr 2010 11:28:12 -0700
-Message-ID: <20100426182811.GI7225@atomide.com>
-References: <1272270293-18568-1-git-send-email-eduardo.valentin@nokia.com>
- <1272270293-18568-5-git-send-email-eduardo.valentin@nokia.com>
+Subject: [GIT PULL] omap fixes for v2.6.34-rc5
+Date: Mon, 26 Apr 2010 12:00:06 -0700
+Message-ID: <20100426190005.GJ7225@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52849 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49585 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753849Ab0DZS2O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 14:28:14 -0400
+	with ESMTP id S1752172Ab0DZTAI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 15:00:08 -0400
 Content-Disposition: inline
-In-Reply-To: <1272270293-18568-5-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Eduardo Valentin <eduardo.valentin@nokia.com> [100426 01:20]:
-> From: Eduardo Valentin <eduardo.valentin@nokia.com>
-> 
-> This patch exports the OMAP3 IDCODE, Production ID and Die ID to userspace
-> via /proc/cpuinfo using the system_soc_info.
-> 
-> This can be used to track down silicon specific issues. The info is
-> exported via /proc/cpuinfo because then it can be possible to include this
-> in corematic dumps.
-> 
-> This is based on Peter De Schrijver patch, which export same info via sysfs.
-> 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> ---
->  arch/arm/mach-omap2/id.c |   20 ++++++++++++++++++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 75e36a5..887787d 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -76,6 +76,10 @@ EXPORT_SYMBOL(omap_type);
->  /*----------------------------------------------------------------------------*/
->  
->  #define OMAP_TAP_IDCODE		0x0204
-> +#define OMAP_TAP_PROD_ID_0      0x0208
-> +#define OMAP_TAP_PROD_ID_1      0x020c
-> +#define OMAP_TAP_PROD_ID_2      0x0210
-> +#define OMAP_TAP_PROD_ID_3      0x0214
->  #define OMAP_TAP_DIE_ID_0	0x0218
->  #define OMAP_TAP_DIE_ID_1	0x021C
->  #define OMAP_TAP_DIE_ID_2	0x0220
-> @@ -306,6 +310,7 @@ void __init omap4_check_revision(void)
->  
->  void __init omap3_cpuinfo(void)
->  {
-> +	int sz;
->  	u8 rev = GET_OMAP_REVISION();
->  	char cpu_name[16], cpu_rev[16];
->  
-> @@ -375,6 +380,21 @@ void __init omap3_cpuinfo(void)
->  	OMAP3_SHOW_FEATURE(192mhz_clk);
->  
->  	printk(")\n");
-> +
-> +	/* Append OMAP3 IDCODE, Production ID and Die ID to system_soc_info */
-> +	sz = strlen(system_soc_info);
-> +	snprintf(system_soc_info + sz, SYSTEM_SOC_INFO_SIZE - sz,
-> +			"\n\tIDCODE\t: %08x\n\tPr. ID\t: %08x %08x %08x %08x\n"
-> +			"\tDie ID\t: %08x %08x %08x %08x\n",
-> +			read_tap_reg(OMAP_TAP_IDCODE),
-> +			read_tap_reg(OMAP_TAP_PROD_ID_0),
-> +			read_tap_reg(OMAP_TAP_PROD_ID_1),
-> +			read_tap_reg(OMAP_TAP_PROD_ID_2),
-> +			read_tap_reg(OMAP_TAP_PROD_ID_3),
-> +			read_tap_reg(OMAP_TAP_DIE_ID_0),
-> +			read_tap_reg(OMAP_TAP_DIE_ID_1),
-> +			read_tap_reg(OMAP_TAP_DIE_ID_2),
-> +			read_tap_reg(OMAP_TAP_DIE_ID_3));
->  }
->  
->  /*
+Hi Linus,
 
-We should not expose the Die ID info unless specifically compiled in
-with some Kconfig option. Please search for "pentium serial number privacy"
-or similar.
+Please pull omap fixes from:
 
-Also, this whole series should be discussed on linux-arm-kernel.
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Regards,
 
 Tony
+
+
+The following changes since commit b91ce4d14a21fc04d165be30319541e0f9204f15:
+  Linus Torvalds (1):
+        Merge git://git.kernel.org/.../davem/net-2.6
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Aaro Koskinen (2):
+      omap: fix clocksource_32k to start from zero
+      omap: delete unused bootloader tag variables
+
+Abraham Arce (1):
+      OMAP4: Clocks: Change SPI Instance Names
+
+Enric Balletbo i Serra (1):
+      omap3: Fix EHCI port for IGEP v2 board
+
+Felipe Balbi (1):
+      arm: omap1: remove dead code from timer32k.c
+
+Francisco Alecrim (1):
+      n8x0_defconfig: remove CONFIG_NILFS2_FS override
+
+Janusz Krzysztofik (1):
+      omap: gpio: fix incorrect matching of IRQ_TYPE_EDGE_BOTH
+
+Jarkko Nikula (2):
+      omap: rx51_defconfig: Remove duplicate phonet
+      omap: rx51_defconfig: Remove CONFIG_SYSFS_DEPRECATED*=y options
+
+Rajendra Nayak (1):
+      OMAP4: prcm: Use logical OR instead of bitwise OR
+
+Ranjith Lohithakshan (1):
+      OMAP3: clock: fix enable bit used for dpll4_m4x2 clock
+
+Richard Woodruff (1):
+      omap4: Fix build break when used with gcc-4.4.1 (2009-q3)
+
+Santosh Shilimkar (2):
+      OMAP4: Fix for CONTROL register Base
+      omap4: Fix McBSP4 base address
+
+Sergio Aguirre (7):
+      OMAP3: serial: Check for zero-based physical addr
+      OMAP3: serial: Use dev_* macros instead of printk
+      omap2/3/4: serial: Remove condition for getting uart4_phys
+      omap3: zoom2/3 / 3630sdp: Don't init always all uarts
+      omap3: 3630sdp: Explicitly enable all UARTs
+      omap3: zoom 2/3: Change debugboard serial port id
+      omap3: zoom2/3: Register only 1 8250 port
+
+Thara Gopinath (2):
+      OMAP: HWMOD: Adding clockdomain check
+      OMAP: HWMOD: Bug fixes in hwmod structure definitions
+
+Thomas Weber (8):
+      omap: Devkit8000: Fix wrong usb port on Devkit8000
+      omap: board-sdp-flash.c: Fix typos in debug output
+      omap: Devkit8000: Fix typo in supplies
+      omap: Devkit8000: Add missing package selection
+      omap: Devkit8000: Fix typo in pin name
+      omap: Devkit8000: Remove unnecessary include file
+      omap: Devkit8000: Change position of init calls
+      omap: Devkit8000: Remove unused pins
+
+Tony Lindgren (4):
+      Merge branch 'omap-fixes-for-tony' of git://dev.omapzoom.org/pub/scm/saaguirre/linux-omap-camera into omap-fixes-for-linus
+      Merge branch 'for_2.6.34rc_a' of git://git.pwsan.com/linux-2.6 into omap-fixes-for-linus
+      omap2: Fix ARM processor check for 24xx
+      omap: Fix n8x0 mmc_mmc_init compile warnings and typos
+
+kishore kadiyala (1):
+      OMAP4-HSMMC: FIX for MMC5 Controller IRQ Base
+
+manjugk manjugk (1):
+      omap: DMA: Init CDAC to zero
+
+stanley.miao (4):
+      omap: fix the compile error if CONFIG_MTD_NAND_OMAP2 is notenabled
+      omap: remove one of the define of INT_34XX_BENCH_MPU_EMUL
+      AM3517: initialize i2c subsystem after mux subsystem
+      omap: fix a gpmc nand problem
+
+ arch/arm/configs/n8x0_defconfig                |    1 -
+ arch/arm/configs/omap_zoom2_defconfig          |    2 +-
+ arch/arm/configs/omap_zoom3_defconfig          |    2 +-
+ arch/arm/configs/rx51_defconfig                |    3 --
+ arch/arm/mach-omap1/timer32k.c                 |   15 ---------
+ arch/arm/mach-omap2/Kconfig                    |    6 ++-
+ arch/arm/mach-omap2/board-3630sdp.c            |    1 +
+ arch/arm/mach-omap2/board-am3517evm.c          |    4 +-
+ arch/arm/mach-omap2/board-devkit8000.c         |   39 +++++------------------
+ arch/arm/mach-omap2/board-igep0020.c           |    8 ++--
+ arch/arm/mach-omap2/board-n8x0.c               |   18 +++++-----
+ arch/arm/mach-omap2/board-sdp-flash.c          |    8 ++--
+ arch/arm/mach-omap2/board-zoom-debugboard.c    |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c   |    1 -
+ arch/arm/mach-omap2/clock3xxx_data.c           |    2 +-
+ arch/arm/mach-omap2/clock44xx_data.c           |    8 ++--
+ arch/arm/mach-omap2/clockdomain.c              |    6 ++--
+ arch/arm/mach-omap2/devices.c                  |    2 +-
+ arch/arm/mach-omap2/gpmc-nand.c                |    3 ++
+ arch/arm/mach-omap2/include/mach/entry-macro.S |    2 +-
+ arch/arm/mach-omap2/omap-headsmp.S             |    6 ++--
+ arch/arm/mach-omap2/omap44xx-smc.S             |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c               |    3 ++
+ arch/arm/mach-omap2/powerdomain.c              |    2 +-
+ arch/arm/mach-omap2/prcm.c                     |    4 +-
+ arch/arm/mach-omap2/serial.c                   |   35 +++++++++++----------
+ arch/arm/plat-omap/common.c                    |   22 ++++++++-----
+ arch/arm/plat-omap/dma.c                       |    9 +++++
+ arch/arm/plat-omap/gpio.c                      |    6 ++--
+ arch/arm/plat-omap/include/plat/irqs.h         |    2 -
+ arch/arm/plat-omap/include/plat/mcbsp.h        |    2 +-
+ arch/arm/plat-omap/include/plat/nand.h         |    7 ++++
+ arch/arm/plat-omap/include/plat/omap44xx.h     |    2 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h   |    2 +-
+ 34 files changed, 113 insertions(+), 124 deletions(-)
