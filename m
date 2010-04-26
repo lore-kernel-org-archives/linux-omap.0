@@ -1,101 +1,102 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH v2] omap_hsmmc: improve interrupt synchronisation
-Date: Mon, 26 Apr 2010 10:20:43 -0500
-Message-ID: <002801cae554$09ac97c0$544ff780@am.dhcp.ti.com>
-References: <4BD19BBB.40701@nokia.com> <p2r618f0c911004260200vb501a429m8ad243826c05d367@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: new PM branch: OPP layer included
+Date: Mon, 26 Apr 2010 09:51:33 -0700
+Message-ID: <87iq7eupgq.fsf@deeprootsystems.com>
+References: <87hbn1u50w.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E94026F6E303D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <p2r618f0c911004260200vb501a429m8ad243826c05d367@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: 'Venkatraman S' <svenkatr@ti.com>, 'Adrian Hunter' <adrian.hunter@nokia.com>
-Cc: 'linux-mmc Mailing List' <linux-mmc@vger.kernel.org>, 'linux-omap Mailing List' <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:55100 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753253Ab0DZQvk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 12:51:40 -0400
+Received: by pwj9 with SMTP id 9so8518744pwj.19
+        for <linux-omap@vger.kernel.org>; Mon, 26 Apr 2010 09:51:39 -0700 (PDT)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026F6E303D@dbde02.ent.ti.com> (Manjunath Kondaiah G.'s message of "Mon\, 26 Apr 2010 18\:27\:42 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+
+> Kevin,
+> This merge has broken omap zoom3 build. 
+>
+> Error log:
+> In file included from arch/arm/plat-omap/include/plat/omap-pm.h:21,
+>                  from arch/arm/mach-omap2/hsmmc.c:19:
+> arch/arm/plat-omap/include/plat/opp.h: In function 'opp_find_freq_exact':
+> arch/arm/plat-omap/include/plat/opp.h:255: error: implicit declaration of function 'ERR_PTR'
+>
+
+Thanks for the report.  Looks like zoom3_defconfig doesn't have
+CPUFreq enabled which is why I didn't see this with
+omap3_pm_defconfig.
+
+Disabling CPUfreq led to a couple other compile warnings which I've
+fixed up in the original patches in the pm-opp branch.
+
+Pushed a new PM branch with these fixes.
+
+Kevin
 
 
-
-> -----Original Message-----
-> From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of
-> Venkatraman S
-> Sent: Monday, April 26, 2010 4:01 AM
-> To: Adrian Hunter
-> Cc: Madhusudhan Chikkature; linux-mmc Mailing List; linux-omap Mailin=
-g
-> List
-> Subject: Re: [PATCH v2] omap_hsmmc: improve interrupt synchronisation
->=20
-> Adrian Hunter <adrian.hunter@nokia.com> wrote:
-> > From ad2e1cd024ccf9144b6620cfe808893719db738f Mon Sep 17 00:00:00 2=
-001
-> > From: Adrian Hunter <adrian.hunter@nokia.com>
-> > Date: Wed, 14 Apr 2010 16:26:45 +0300
-> > Subject: [PATCH] omap_hsmmc: improve interrupt synchronisation
-> >
-> > The following changes were needed:
-> > =A0 =A0 =A0 =A0- do not use in_interrupt() because it will not work
-> > =A0 =A0 =A0 =A0with threaded interrupts
-> >
-> > In addition, the following improvements were made:
-> > =A0 =A0 =A0 =A0- ensure DMA is unmapped only after the final DMA in=
-terrupt
-> > =A0 =A0 =A0 =A0- ensure a request is completed only after the final=
- DMA
-> interrupt
-> > =A0 =A0 =A0 =A0- disable controller interrupts when a request is no=
-t in progress
-> > =A0 =A0 =A0 =A0- remove the spin-lock protecting the start of a new=
- request from
-> > =A0 =A0 =A0 =A0an unexpected interrupt because the locking was comp=
-licated and
-> > =A0 =A0 =A0 =A0a 'req_in_progress' flag suffices (since the spin-lo=
-ck only
-> defers
-> > =A0 =A0 =A0 =A0the unexpected interrupts anyway)
-> > =A0 =A0 =A0 =A0- instead use the spin-lock to protect the MMC inter=
-rupt handler
-> > =A0 =A0 =A0 =A0from the DMA interrupt handler
-> > =A0 =A0 =A0 =A0- remove the semaphore preventing DMA from being sta=
-rted while
-> > =A0 =A0 =A0 =A0the previous DMA is still in progress - the other ch=
-anges make
-> that
-> > =A0 =A0 =A0 =A0impossible, so it is now a BUG_ON condition
-> > =A0 =A0 =A0 =A0- ensure the controller interrupt status is clear be=
-fore exiting
-> > =A0 =A0 =A0 =A0the interrrupt handler
-> >
-> > In general, these changes make the code safer but do not fix any
-> specific
-> > bugs so backporting is not necessary.
-> >
-> > Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> > ---
-> >
-> >
-> > Changes from version 1:
-> > =A0 =A0 =A0 =A0- use a spin-lock to protect the MMC interrupt handl=
-er
-> > =A0 =A0 =A0 =A0from the DMA interrupt handler
-> > =A0 =A0 =A0 =A0- use do {} while loop instead of goto in omap_hsmmc=
-_irq
-> >
-> > S Venkatraman's request to use omap_hsmmc_dma_cleanup(host, 0) in
-> > omap_hsmmc_dma_cb() was not done because the code was not
-> > sufficiently the same.
-
-<snip>
-
-> This looks good and I don't have any other comments.
->      I have tested, on MMC and SD cards which I have,
-> a) Basic file read / write
-> b) boot with filesystem on ext3 partition on SD card
->  on OMAP3 and OMAP4 SDP.
->=20
-> So you can add,
-> Tested-by: Venkatraman S <svenkatr@ti.com>
-
-I reviewed the V2 patch. I don=92t have any comments too.
-
-Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>> Sent: Saturday, April 24, 2010 4:54 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: new PM branch: OPP layer included
+>> 
+>> Hello,
+>> 
+>> I just pushed a new PM branch.  I did a bunch of reordering and
+>> restructuring of branches to include the OPP layer (more on this
+>> below.)
+>> 
+>> 
+>> OPP layer: 
+>> 
+>> pm-wip-opp branch gone, merged into PM branch
+>> 
+>> What was in pm-wip-opp has now been broken up into a set of patches
+>> that can be combined and queued for upstream (pm-opp branch) as well
+>> as sets of patches for SR and SRF which are now on their respective
+>> branches (pm-sr, pm-srf)
+>> 
+>> Next step is to combine the patches in pm-opp branch into a sensible
+>> series that can be submitted for the next merge window.
+>> 
+>> 
+>> Smart Reflex:
+>> 
+>> Thara's v3 series available as pm-wip-sr.  This is now based directly
+>> on the new PM branch instead of on pm-wip-opp.
+>> 
+>> NOTE: the hwmod patches are now merged into l-o (omap-fixes branch)
+>>       so they are no longer in pm-wip-sr.
+>> 
+>> I didn't get to reviewing this series yet, but did test it out a bit
+>> on top of thenew PM branch.  I gave this some basic testing on n900
+>> and Zoom3 (required a u-boot update first) but basic OPP changes from
+>> userspace governor worked on both.
+>> 
+>>   
+>> SRF:
+>> 
+>> This is still included in the PM branch (pm-srf branch), but will be
+>> removed from the official PM branch.  It will be maintained as a
+>> separate branch for a short time (1 month max) and then dropped.
+>> Anyone else who wants to continue maintenance of SRF is free to do so.
+>> 
+>> 
+>> Kevin
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
