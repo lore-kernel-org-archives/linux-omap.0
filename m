@@ -1,102 +1,34 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: new PM branch: OPP layer included
-Date: Mon, 26 Apr 2010 09:51:33 -0700
-Message-ID: <87iq7eupgq.fsf@deeprootsystems.com>
-References: <87hbn1u50w.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94026F6E303D@dbde02.ent.ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 2/2 V6] OMAP: DSS: Enable display on ZOOM2/3 & 3630SDP
+Date: Mon, 26 Apr 2010 22:25:20 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322986E24@dbde02.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E7394044E1EBEED@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:55100 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753253Ab0DZQvk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 12:51:40 -0400
-Received: by pwj9 with SMTP id 9so8518744pwj.19
-        for <linux-omap@vger.kernel.org>; Mon, 26 Apr 2010 09:51:39 -0700 (PDT)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026F6E303D@dbde02.ent.ti.com> (Manjunath Kondaiah G.'s message of "Mon\, 26 Apr 2010 18\:27\:42 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:36477 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753834Ab0DZQzd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 12:55:33 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E1EBEED@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Koen Kooi <koen@dominion.thruhere.net>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+Hiremath, Vaibhav wrote:
+> Koen Kooi wrote:
+> > And please trim your replies, it is getting annoying to pinpoint
+> > replies between a gazillion unrelated lines of patch.
+> [Hiremath, Vaibhav] Opps, actually I have set my outlook to trim it
+> automatically for 78 characters, not sure how that happened.
 
-> Kevin,
-> This merge has broken omap zoom3 build. 
->
-> Error log:
-> In file included from arch/arm/plat-omap/include/plat/omap-pm.h:21,
->                  from arch/arm/mach-omap2/hsmmc.c:19:
-> arch/arm/plat-omap/include/plat/opp.h: In function 'opp_find_freq_exact':
-> arch/arm/plat-omap/include/plat/opp.h:255: error: implicit declaration of function 'ERR_PTR'
->
+It's not line-wrapping he talks about. It's quoting only the text
+you wish to quote and stripping out the rest of the lines.
 
-Thanks for the report.  Looks like zoom3_defconfig doesn't have
-CPUFreq enabled which is why I didn't see this with
-omap3_pm_defconfig.
+Scrolling through a long mail to hunt for a few lines of reply
+is very annoying indeed.
 
-Disabling CPUfreq led to a couple other compile warnings which I've
-fixed up in the original patches in the pm-opp branch.
-
-Pushed a new PM branch with these fixes.
-
-Kevin
-
-
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org 
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
->> Sent: Saturday, April 24, 2010 4:54 AM
->> To: linux-omap@vger.kernel.org
->> Subject: new PM branch: OPP layer included
->> 
->> Hello,
->> 
->> I just pushed a new PM branch.  I did a bunch of reordering and
->> restructuring of branches to include the OPP layer (more on this
->> below.)
->> 
->> 
->> OPP layer: 
->> 
->> pm-wip-opp branch gone, merged into PM branch
->> 
->> What was in pm-wip-opp has now been broken up into a set of patches
->> that can be combined and queued for upstream (pm-opp branch) as well
->> as sets of patches for SR and SRF which are now on their respective
->> branches (pm-sr, pm-srf)
->> 
->> Next step is to combine the patches in pm-opp branch into a sensible
->> series that can be submitted for the next merge window.
->> 
->> 
->> Smart Reflex:
->> 
->> Thara's v3 series available as pm-wip-sr.  This is now based directly
->> on the new PM branch instead of on pm-wip-opp.
->> 
->> NOTE: the hwmod patches are now merged into l-o (omap-fixes branch)
->>       so they are no longer in pm-wip-sr.
->> 
->> I didn't get to reviewing this series yet, but did test it out a bit
->> on top of thenew PM branch.  I gave this some basic testing on n900
->> and Zoom3 (required a u-boot update first) but basic OPP changes from
->> userspace governor worked on both.
->> 
->>   
->> SRF:
->> 
->> This is still included in the PM branch (pm-srf branch), but will be
->> removed from the official PM branch.  It will be maintained as a
->> separate branch for a short time (1 month max) and then dropped.
->> Anyone else who wants to continue maintenance of SRF is free to do so.
->> 
->> 
->> Kevin
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
+- Anand
