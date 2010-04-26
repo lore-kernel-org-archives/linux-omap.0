@@ -1,553 +1,207 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 08/10] OMAP3 clock: rename RATE_IN_343X,
-	RATE_IN_3430ES2 to match reality
-Date: Mon, 26 Apr 2010 01:04:34 -0600
-Message-ID: <20100426070432.9743.2866.stgit@localhost.localdomain>
-References: <20100426070217.9743.92728.stgit@localhost.localdomain>
+Subject: Re: [PATCH] OMAP: omap_device: add omap_device_has_lost_context()
+Date: Mon, 26 Apr 2010 01:58:50 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1004260129320.1546@utopia.booyaka.com>
+References: <1270588214-27790-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52248 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55533 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754510Ab0DZHHf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 03:07:35 -0400
-In-Reply-To: <20100426070217.9743.92728.stgit@localhost.localdomain>
+	with ESMTP id S1750793Ab0DZH6v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 03:58:51 -0400
+In-Reply-To: <1270588214-27790-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Richard Woodruff <r-woodruff2@ti.com>, Rajendra Nayak <rnayak@ti.com>, Ranjith Lohithakshan <ranjithl@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-Rename the RATE_IN_343X clksel_rate.rate flag to be RATE_IN_3XXX, to reflect
-that these rates are valid on all OMAP3 platforms, not just 343X.
+Hi Kevin,
 
-Also rename the RATE_IN_OMAP3430ES2 clksel_rate.rate flag to be
-RATE_IN_OMAP3430ES2PLUS, to reflect that these flags are valid on all
-OMAP3 platforms after 3430ES2.
+a few comments:
 
-This patch should not result in any functional changes.
+On Tue, 6 Apr 2010, Kevin Hilman wrote:
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Ranjith Lohithakshan <ranjithl@ti.com>
----
- arch/arm/mach-omap2/clock3xxx_data.c    |  237 ++++++++++++++++---------------
- arch/arm/mach-omap2/clock_common_data.c |   12 +-
- arch/arm/plat-omap/include/plat/clock.h |    3 
- 3 files changed, 127 insertions(+), 125 deletions(-)
+> Add new function omap_device_has_lost_context() as a simple check
+> to be used after omap_device_enable() to determine if device has
+> lost context (and thus needs context restore.)
+> 
+> Motivation: Currently, each driver needs to read the context-loss
+> count before suspend, and again upon resume to determine if
+> device context needs to be restored.  Rather than duplicating
+> this process across all drivers, move it into omap_device.  After
+> omap_device_enable(), omap_device_has_lost_context() can be called
+> to determine if context was lost.
+> 
+> The hard work is done inside the powerdomain layer where a simple flag
+> is checked.  The flag is cleared in the pre-transition call back,
+> and conditionally set post-transition based on either an off-mode
+> transition or a memory or logic off transition.
+> 
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 56bd0d8..68aae9f 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -110,32 +110,32 @@ static struct clk virt_38_4m_ck = {
- };
- 
- static const struct clksel_rate osc_sys_12m_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 0, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate osc_sys_13m_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate osc_sys_16_8m_rates[] = {
--	{ .div = 1, .val = 5, .flags = RATE_IN_3430ES2 },
-+	{ .div = 1, .val = 5, .flags = RATE_IN_3430ES2PLUS },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate osc_sys_19_2m_rates[] = {
--	{ .div = 1, .val = 2, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 2, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate osc_sys_26m_rates[] = {
--	{ .div = 1, .val = 3, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 3, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate osc_sys_38_4m_rates[] = {
--	{ .div = 1, .val = 4, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 4, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -163,8 +163,8 @@ static struct clk osc_sys_ck = {
- };
- 
- static const struct clksel_rate div2_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
--	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -213,22 +213,22 @@ static struct clk sys_clkout1 = {
- /* CM CLOCKS */
- 
- static const struct clksel_rate div16_dpll_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
--	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
--	{ .div = 3, .val = 3, .flags = RATE_IN_343X },
--	{ .div = 4, .val = 4, .flags = RATE_IN_343X },
--	{ .div = 5, .val = 5, .flags = RATE_IN_343X },
--	{ .div = 6, .val = 6, .flags = RATE_IN_343X },
--	{ .div = 7, .val = 7, .flags = RATE_IN_343X },
--	{ .div = 8, .val = 8, .flags = RATE_IN_343X },
--	{ .div = 9, .val = 9, .flags = RATE_IN_343X },
--	{ .div = 10, .val = 10, .flags = RATE_IN_343X },
--	{ .div = 11, .val = 11, .flags = RATE_IN_343X },
--	{ .div = 12, .val = 12, .flags = RATE_IN_343X },
--	{ .div = 13, .val = 13, .flags = RATE_IN_343X },
--	{ .div = 14, .val = 14, .flags = RATE_IN_343X },
--	{ .div = 15, .val = 15, .flags = RATE_IN_343X },
--	{ .div = 16, .val = 16, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
-+	{ .div = 3, .val = 3, .flags = RATE_IN_3XXX },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_3XXX },
-+	{ .div = 5, .val = 5, .flags = RATE_IN_3XXX },
-+	{ .div = 6, .val = 6, .flags = RATE_IN_3XXX },
-+	{ .div = 7, .val = 7, .flags = RATE_IN_3XXX },
-+	{ .div = 8, .val = 8, .flags = RATE_IN_3XXX },
-+	{ .div = 9, .val = 9, .flags = RATE_IN_3XXX },
-+	{ .div = 10, .val = 10, .flags = RATE_IN_3XXX },
-+	{ .div = 11, .val = 11, .flags = RATE_IN_3XXX },
-+	{ .div = 12, .val = 12, .flags = RATE_IN_3XXX },
-+	{ .div = 13, .val = 13, .flags = RATE_IN_3XXX },
-+	{ .div = 14, .val = 14, .flags = RATE_IN_3XXX },
-+	{ .div = 15, .val = 15, .flags = RATE_IN_3XXX },
-+	{ .div = 16, .val = 16, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -450,37 +450,37 @@ static struct clk dpll3_x2_ck = {
- };
- 
- static const struct clksel_rate div31_dpll3_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
--	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
--	{ .div = 3, .val = 3, .flags = RATE_IN_3430ES2 },
--	{ .div = 4, .val = 4, .flags = RATE_IN_3430ES2 },
--	{ .div = 5, .val = 5, .flags = RATE_IN_3430ES2 },
--	{ .div = 6, .val = 6, .flags = RATE_IN_3430ES2 },
--	{ .div = 7, .val = 7, .flags = RATE_IN_3430ES2 },
--	{ .div = 8, .val = 8, .flags = RATE_IN_3430ES2 },
--	{ .div = 9, .val = 9, .flags = RATE_IN_3430ES2 },
--	{ .div = 10, .val = 10, .flags = RATE_IN_3430ES2 },
--	{ .div = 11, .val = 11, .flags = RATE_IN_3430ES2 },
--	{ .div = 12, .val = 12, .flags = RATE_IN_3430ES2 },
--	{ .div = 13, .val = 13, .flags = RATE_IN_3430ES2 },
--	{ .div = 14, .val = 14, .flags = RATE_IN_3430ES2 },
--	{ .div = 15, .val = 15, .flags = RATE_IN_3430ES2 },
--	{ .div = 16, .val = 16, .flags = RATE_IN_3430ES2 },
--	{ .div = 17, .val = 17, .flags = RATE_IN_3430ES2 },
--	{ .div = 18, .val = 18, .flags = RATE_IN_3430ES2 },
--	{ .div = 19, .val = 19, .flags = RATE_IN_3430ES2 },
--	{ .div = 20, .val = 20, .flags = RATE_IN_3430ES2 },
--	{ .div = 21, .val = 21, .flags = RATE_IN_3430ES2 },
--	{ .div = 22, .val = 22, .flags = RATE_IN_3430ES2 },
--	{ .div = 23, .val = 23, .flags = RATE_IN_3430ES2 },
--	{ .div = 24, .val = 24, .flags = RATE_IN_3430ES2 },
--	{ .div = 25, .val = 25, .flags = RATE_IN_3430ES2 },
--	{ .div = 26, .val = 26, .flags = RATE_IN_3430ES2 },
--	{ .div = 27, .val = 27, .flags = RATE_IN_3430ES2 },
--	{ .div = 28, .val = 28, .flags = RATE_IN_3430ES2 },
--	{ .div = 29, .val = 29, .flags = RATE_IN_3430ES2 },
--	{ .div = 30, .val = 30, .flags = RATE_IN_3430ES2 },
--	{ .div = 31, .val = 31, .flags = RATE_IN_3430ES2 },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
-+	{ .div = 3, .val = 3, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 5, .val = 5, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 6, .val = 6, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 7, .val = 7, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 8, .val = 8, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 9, .val = 9, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 10, .val = 10, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 11, .val = 11, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 12, .val = 12, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 13, .val = 13, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 14, .val = 14, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 15, .val = 15, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 16, .val = 16, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 17, .val = 17, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 18, .val = 18, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 19, .val = 19, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 20, .val = 20, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 21, .val = 21, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 22, .val = 22, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 23, .val = 23, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 24, .val = 24, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 25, .val = 25, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 26, .val = 26, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 27, .val = 27, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 28, .val = 28, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 29, .val = 29, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 30, .val = 30, .flags = RATE_IN_3430ES2PLUS },
-+	{ .div = 31, .val = 31, .flags = RATE_IN_3430ES2PLUS },
- 	{ .div = 0 },
- };
- 
-@@ -708,12 +708,12 @@ static const struct clksel omap_96m_alwon_fck_clksel[] = {
- };
- 
- static const struct clksel_rate omap_96m_dpll_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 0, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate omap_96m_sys_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -799,12 +799,12 @@ static struct clk dpll4_m3x2_ck = {
- };
- 
- static const struct clksel_rate omap_54m_d4m3x2_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 0, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate omap_54m_alt_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -825,12 +825,12 @@ static struct clk omap_54m_fck = {
- };
- 
- static const struct clksel_rate omap_48m_cm96m_rates[] = {
--	{ .div = 2, .val = 0, .flags = RATE_IN_343X },
-+	{ .div = 2, .val = 0, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate omap_48m_alt_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -1049,22 +1049,22 @@ static struct clk dpll5_m2_ck = {
- /* CM EXTERNAL CLOCK OUTPUTS */
- 
- static const struct clksel_rate clkout2_src_core_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 0, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate clkout2_src_sys_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate clkout2_src_96m_rates[] = {
--	{ .div = 1, .val = 2, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 2, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate clkout2_src_54m_rates[] = {
--	{ .div = 1, .val = 3, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 3, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -1090,11 +1090,11 @@ static struct clk clkout2_src_ck = {
- };
- 
- static const struct clksel_rate sys_clkout2_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_343X },
--	{ .div = 2, .val = 1, .flags = RATE_IN_343X },
--	{ .div = 4, .val = 2, .flags = RATE_IN_343X },
--	{ .div = 8, .val = 3, .flags = RATE_IN_343X },
--	{ .div = 16, .val = 4, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 0, .flags = RATE_IN_3XXX },
-+	{ .div = 2, .val = 1, .flags = RATE_IN_3XXX },
-+	{ .div = 4, .val = 2, .flags = RATE_IN_3XXX },
-+	{ .div = 8, .val = 3, .flags = RATE_IN_3XXX },
-+	{ .div = 16, .val = 4, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
-@@ -1125,9 +1125,9 @@ static struct clk corex2_fck = {
- /* DPLL power domain clock controls */
- 
- static const struct clksel_rate div4_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
--	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
--	{ .div = 4, .val = 4, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -1161,8 +1161,8 @@ static struct clk mpu_ck = {
- 
- /* arm_fck is divided by two when DPLL1 locked; otherwise, passthrough mpu_ck */
- static const struct clksel_rate arm_fck_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_343X },
--	{ .div = 2, .val = 1, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 0, .flags = RATE_IN_3XXX },
-+	{ .div = 2, .val = 1, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
-@@ -1333,9 +1333,9 @@ static struct clk gfx_cg2_ck = {
- 
- static const struct clksel_rate sgx_core_rates[] = {
- 	{ .div = 2, .val = 5, .flags = RATE_IN_36XX },
--	{ .div = 3, .val = 0, .flags = RATE_IN_343X },
--	{ .div = 4, .val = 1, .flags = RATE_IN_343X },
--	{ .div = 6, .val = 2, .flags = RATE_IN_343X },
-+	{ .div = 3, .val = 0, .flags = RATE_IN_3XXX },
-+	{ .div = 4, .val = 1, .flags = RATE_IN_3XXX },
-+	{ .div = 6, .val = 2, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
-@@ -1351,7 +1351,7 @@ static const struct clksel_rate sgx_corex2_rates[] = {
- };
- 
- static const struct clksel_rate sgx_96m_rates[] = {
--	{ .div = 1,  .val = 3, .flags = RATE_IN_343X },
-+	{ .div = 1,  .val = 3, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
-@@ -1576,12 +1576,12 @@ static struct clk i2c1_fck = {
-  * MCBSP 2, 3, 4 get their 96MHz clock from per_96m_fck.
-  */
- static const struct clksel_rate common_mcbsp_96m_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 0, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
- static const struct clksel_rate common_mcbsp_mcbsp_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -1714,12 +1714,12 @@ static struct clk hdq_fck = {
- /* DPLL3-derived clock */
- 
- static const struct clksel_rate ssi_ssr_corex2_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
--	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
--	{ .div = 3, .val = 3, .flags = RATE_IN_343X },
--	{ .div = 4, .val = 4, .flags = RATE_IN_343X },
--	{ .div = 6, .val = 6, .flags = RATE_IN_343X },
--	{ .div = 8, .val = 8, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
-+	{ .div = 3, .val = 3, .flags = RATE_IN_3XXX },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_3XXX },
-+	{ .div = 6, .val = 6, .flags = RATE_IN_3XXX },
-+	{ .div = 8, .val = 8, .flags = RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-@@ -2353,18 +2353,18 @@ static struct clk usbhost_ick = {
- /* WKUP */
- 
- static const struct clksel_rate usim_96m_rates[] = {
--	{ .div = 2,  .val = 3, .flags = RATE_IN_343X },
--	{ .div = 4,  .val = 4, .flags = RATE_IN_343X },
--	{ .div = 8,  .val = 5, .flags = RATE_IN_343X },
--	{ .div = 10, .val = 6, .flags = RATE_IN_343X },
-+	{ .div = 2,  .val = 3, .flags = RATE_IN_3XXX },
-+	{ .div = 4,  .val = 4, .flags = RATE_IN_3XXX },
-+	{ .div = 8,  .val = 5, .flags = RATE_IN_3XXX },
-+	{ .div = 10, .val = 6, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
- static const struct clksel_rate usim_120m_rates[] = {
--	{ .div = 4,  .val = 7,	.flags = RATE_IN_343X },
--	{ .div = 8,  .val = 8,	.flags = RATE_IN_343X },
--	{ .div = 16, .val = 9,	.flags = RATE_IN_343X },
--	{ .div = 20, .val = 10, .flags = RATE_IN_343X },
-+	{ .div = 4,  .val = 7,	.flags = RATE_IN_3XXX },
-+	{ .div = 8,  .val = 8,	.flags = RATE_IN_3XXX },
-+	{ .div = 16, .val = 9,	.flags = RATE_IN_3XXX },
-+	{ .div = 20, .val = 10, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
-@@ -2951,22 +2951,22 @@ static struct clk mcbsp4_fck = {
- /* More information: ARM Cortex-A8 Technical Reference Manual, sect 10.1 */
- 
- static const struct clksel_rate emu_src_sys_rates[] = {
--	{ .div = 1, .val = 0, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 0, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
- static const struct clksel_rate emu_src_core_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
- static const struct clksel_rate emu_src_per_rates[] = {
--	{ .div = 1, .val = 2, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 2, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
- static const struct clksel_rate emu_src_mpu_rates[] = {
--	{ .div = 1, .val = 3, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 3, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
-@@ -2995,10 +2995,10 @@ static struct clk emu_src_ck = {
- };
- 
- static const struct clksel_rate pclk_emu_rates[] = {
--	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
--	{ .div = 3, .val = 3, .flags = RATE_IN_343X },
--	{ .div = 4, .val = 4, .flags = RATE_IN_343X },
--	{ .div = 6, .val = 6, .flags = RATE_IN_343X },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
-+	{ .div = 3, .val = 3, .flags = RATE_IN_3XXX },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_3XXX },
-+	{ .div = 6, .val = 6, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
-@@ -3019,9 +3019,9 @@ static struct clk pclk_fck = {
- };
- 
- static const struct clksel_rate pclkx2_emu_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
--	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
--	{ .div = 3, .val = 3, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
-+	{ .div = 3, .val = 3, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
-@@ -3069,9 +3069,9 @@ static struct clk traceclk_src_fck = {
- };
- 
- static const struct clksel_rate traceclk_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_343X },
--	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
--	{ .div = 4, .val = 4, .flags = RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_3XXX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_3XXX },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_3XXX },
- 	{ .div = 0 },
- };
- 
-@@ -3488,14 +3488,8 @@ int __init omap3xxx_clk_init(void)
- 	struct omap_clk *c;
- 	u32 cpu_clkflg = CK_3XXX;
- 
--	if (cpu_is_omap3517()) {
--		cpu_mask = RATE_IN_343X | RATE_IN_3430ES2;
--		cpu_clkflg |= CK_3517;
--	} else if (cpu_is_omap3505()) {
--		cpu_mask = RATE_IN_343X | RATE_IN_3430ES2;
--		cpu_clkflg |= CK_3505;
--	} else if (cpu_is_omap34xx()) {
--		cpu_mask = RATE_IN_343X;
-+	if (cpu_is_omap34xx()) {
-+		cpu_mask = RATE_IN_3XXX;
- 		cpu_clkflg |= CK_343X;
- 
- 		/*
-@@ -3506,10 +3500,17 @@ int __init omap3xxx_clk_init(void)
- 			/* No 3430ES1-only rates exist, so no RATE_IN_3430ES1 */
- 			cpu_clkflg |= CK_3430ES1;
- 		} else {
--			cpu_mask |= RATE_IN_3430ES2;
-+			cpu_mask |= RATE_IN_3430ES2PLUS;
- 			cpu_clkflg |= CK_3430ES2;
- 		}
-+	} else if (cpu_is_omap3517()) {
-+		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
-+		cpu_clkflg |= CK_3517;
-+	} else if (cpu_is_omap3505()) {
-+		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
-+		cpu_clkflg |= CK_3505;
- 	}
-+
- 	if (omap3_has_192mhz_clk())
- 		omap_96m_alwon_fck = omap_96m_alwon_fck_3630;
- 
-diff --git a/arch/arm/mach-omap2/clock_common_data.c b/arch/arm/mach-omap2/clock_common_data.c
-index 6f96dc4..1cf8131 100644
---- a/arch/arm/mach-omap2/clock_common_data.c
-+++ b/arch/arm/mach-omap2/clock_common_data.c
-@@ -20,20 +20,20 @@
- 
- /* clksel_rate data common to 24xx/343x */
- const struct clksel_rate gpt_32k_rates[] = {
--	 { .div = 1, .val = 0, .flags = RATE_IN_24XX | RATE_IN_343X },
-+	 { .div = 1, .val = 0, .flags = RATE_IN_24XX | RATE_IN_3XXX },
- 	 { .div = 0 }
- };
- 
- const struct clksel_rate gpt_sys_rates[] = {
--	 { .div = 1, .val = 1, .flags = RATE_IN_24XX | RATE_IN_343X },
-+	 { .div = 1, .val = 1, .flags = RATE_IN_24XX | RATE_IN_3XXX },
- 	 { .div = 0 }
- };
- 
- const struct clksel_rate gfx_l3_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_24XX | RATE_IN_343X },
--	{ .div = 2, .val = 2, .flags = RATE_IN_24XX | RATE_IN_343X },
--	{ .div = 3, .val = 3, .flags = RATE_IN_243X | RATE_IN_343X },
--	{ .div = 4, .val = 4, .flags = RATE_IN_243X | RATE_IN_343X },
-+	{ .div = 1, .val = 1, .flags = RATE_IN_24XX | RATE_IN_3XXX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_24XX | RATE_IN_3XXX },
-+	{ .div = 3, .val = 3, .flags = RATE_IN_243X | RATE_IN_3XXX },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_243X | RATE_IN_3XXX },
- 	{ .div = 0 }
- };
- 
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 9c551d6..dfc472c 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -198,12 +198,13 @@ extern struct clk dummy_ck;
- /* Clksel_rate flags */
- #define RATE_IN_242X		(1 << 0)
- #define RATE_IN_243X		(1 << 1)
--#define RATE_IN_343X		(1 << 2)	/* rates common to all 343X */
-+#define RATE_IN_3XXX		(1 << 2)	/* rates common to all OMAP3 */
- #define RATE_IN_3430ES2		(1 << 3)	/* 3430ES2 rates only */
- #define RATE_IN_36XX		(1 << 4)
- #define RATE_IN_4430		(1 << 5)
- 
- #define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
- 
-+#define RATE_IN_3430ES2PLUS	(RATE_IN_3430ES2 | RATE_IN_36XX)
- 
- #endif
+Wouldn't this need to be set/cleared on a per-device basis?  Certainly the 
+process of setting the flag to true is most efficiently done on a 
+per-powerdomain basis, but clearing the flag to false can only be done 
+after the driver reloads the device context.  The powerdomain layer won't 
+know about that.
+
+Similarly, based on a quick glance, it looks like this code could miss a 
+situation where a powerdomain goes off, loses context, then comes back on 
+and does another transition from ON to CSWR or something similar that 
+causes pwrdm->lost_context to be set to false.  If a driver calls 
+omap_device_has_lost_context(), wouldn't it return false, even though the 
+device context may still be lost?
+
+Thinking about the problem naively, I'd guess that it would be best to 
+iterate over all the struct omap_devices in that powerdomain when the 
+system notices that the device context has been lost and set a per-device 
+context loss flag to true.  Then the driver's context-restore code would 
+also need to call into another function after the restore is complete, 
+something like omap_device_context_restored(), which would set the 
+per-device flag to true.  There might need to be an exception flag set in 
+some hwmods that would indicate that the hardware restores some contexts 
+by itself, such as SDRC, etc.
+
+Also, is it possible for a completely idle powerdomain with clockdomains 
+in hardware-supervised idle and with a next-power-state of OSWR or OFF to 
+lose its context at any point, e.g., even if the MPU hasn't hit WFI?  If 
+so, then this context-loss flag would pretty much need to be set the 
+moment that the last functional clock goes off in that powerdomain 
+(assuming that there are no modules in no-idle).  I guess we could also 
+check the powerdomain's previous power state flag when the first clock is 
+switched back on in the powerdomain.
+
+> ---
+>  arch/arm/mach-omap2/powerdomain.c             |   11 +++++++-
+>  arch/arm/plat-omap/include/plat/omap_device.h |    1 +
+>  arch/arm/plat-omap/include/plat/powerdomain.h |    2 +-
+>  arch/arm/plat-omap/omap_device.c              |   29 +++++++++++++++++++++++++
+>  4 files changed, 40 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 9a0fb38..ac54607 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -145,15 +145,19 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
+>  
+>  	prev_logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
+>  	if ((pwrdm->pwrsts_logic_ret == PWRSTS_OFF_RET) &&
+> -	    (prev_logic_pwrst == PWRDM_POWER_OFF))
+> +	    (prev_logic_pwrst == PWRDM_POWER_OFF)) {
+>  		pwrdm->ret_logic_off_counter++;
+> +		pwrdm->lost_context = true;
+> +	}
+>  
+>  	for (i = 0; i < pwrdm->banks; i++) {
+>  		prev_mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
+>  
+>  		if ((pwrdm->pwrsts_mem_ret[i] == PWRSTS_OFF_RET) &&
+> -		    (prev_mem_pwrst == PWRDM_POWER_OFF))
+> +		    (prev_mem_pwrst == PWRDM_POWER_OFF)) {
+>  			pwrdm->ret_mem_off_counter[i]++;
+> +			pwrdm->lost_context = true;
+> +		}
+>  	}
+>  }
+>  
+> @@ -176,6 +180,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>  		prev = pwrdm_read_prev_pwrst(pwrdm);
+>  		if (pwrdm->state != prev)
+>  			pwrdm->state_counter[prev]++;
+> +		if (prev == PWRDM_POWER_OFF)
+> +			pwrdm->lost_context = true;
+>  		if (prev == PWRDM_POWER_RET)
+>  			_update_logic_membank_counters(pwrdm);
+>  		break;
+> @@ -197,6 +203,7 @@ static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm, void *unused)
+>  {
+>  	pwrdm_clear_all_prev_pwrst(pwrdm);
+>  	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
+> +	pwrdm->lost_context = false;
+>  	return 0;
+>  }
+>  
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index 3694b62..b6ef94c 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -79,6 +79,7 @@ struct omap_device {
+>  int omap_device_enable(struct platform_device *pdev);
+>  int omap_device_idle(struct platform_device *pdev);
+>  int omap_device_shutdown(struct platform_device *pdev);
+> +bool omap_device_has_lost_context(struct platform_device *pdev);
+>  
+>  /* Core code interface */
+>  
+> diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+> index d82b2c0..bd5ab48 100644
+> --- a/arch/arm/plat-omap/include/plat/powerdomain.h
+> +++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+> @@ -102,7 +102,7 @@ struct powerdomain {
+>  	unsigned state_counter[PWRDM_MAX_PWRSTS];
+>  	unsigned ret_logic_off_counter;
+>  	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
+> -
+> +	bool     lost_context;
+>  #ifdef CONFIG_PM_DEBUG
+>  	s64 timer;
+>  	s64 state_timer[PWRDM_MAX_PWRSTS];
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 5904358..0340b40 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -84,6 +84,7 @@
+>  
+>  #include <plat/omap_device.h>
+>  #include <plat/omap_hwmod.h>
+> +#include <plat/powerdomain.h>
+>  
+>  /* These parameters are passed to _omap_device_{de,}activate() */
+>  #define USE_WAKEUP_LAT			0
+> @@ -579,6 +580,34 @@ int omap_device_shutdown(struct platform_device *pdev)
+>  }
+>  
+>  /**
+> + * omap_device_has_lost_context() - check if omap_device has lost context
+> + * @od: struct omap_device *
+> + *
+> + * When an omap_device has been deactivated via omap_device_idle() or
+> + * omap_device_shutdown() and then (re)activated using omap_device_enable()
+> + * This function should be used to determine if the omap_device has
+> + * lost context (due to an off-mode transistion)
+> + */
+> +bool omap_device_has_lost_context(struct platform_device *pdev)
+> +{
+> +	struct omap_device *od;
+> +	struct powerdomain *pwrdm;
+> +
+> +	od = _find_by_pdev(pdev);
+> +
+> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
+> +		WARN(1, "omap_device: %s.%d: has_lost_context() called "
+> +		     "from invalid state\n", od->pdev.name, od->pdev.id);
+> +		return -EINVAL;
+> +	}
+> +	pwrdm = omap_device_get_pwrdm(od);
+> +	if (pwrdm)
+> +		return pwrdm->lost_context;
+> +
+> +	return false;
+> +}
+> +
+> +/**
+>   * omap_device_align_pm_lat - activate/deactivate device to match wakeup lat lim
+>   * @od: struct omap_device *
+>   *
+> -- 
+> 1.7.0.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
+- Paul
