@@ -1,86 +1,48 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: new PM branch: OPP layer included
-Date: Mon, 26 Apr 2010 18:27:42 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F6E303D@dbde02.ent.ti.com>
-References: <87hbn1u50w.fsf@deeprootsystems.com>
+From: "Y, Kishore" <kishore.y@ti.com>
+Subject: [PATCH 0/2 V6] Enable DSS on zoom2/3 and 3630 sdp boards
+Date: Mon, 26 Apr 2010 18:36:06 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F6E3049@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49575 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752989Ab0DZM5t convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 08:57:49 -0400
-In-Reply-To: <87hbn1u50w.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45031 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753710Ab0DZNEu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 09:04:50 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin,
-This merge has broken omap zoom3 build. 
+From: Kishore Y <kishore.y@ti.com>
 
-Error log:
-In file included from arch/arm/plat-omap/include/plat/omap-pm.h:21,
-                 from arch/arm/mach-omap2/hsmmc.c:19:
-arch/arm/plat-omap/include/plat/opp.h: In function 'opp_find_freq_exact':
-arch/arm/plat-omap/include/plat/opp.h:255: error: implicit declaration of function 'ERR_PTR'
+This patch series enables DSS and FB in zoom2, zoom3 and 3630sdp.
 
--Manjunath 
+Changes from version 5:
+  - incorporated changes suggested by Vaibhav
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Saturday, April 24, 2010 4:54 AM
-> To: linux-omap@vger.kernel.org
-> Subject: new PM branch: OPP layer included
-> 
-> Hello,
-> 
-> I just pushed a new PM branch.  I did a bunch of reordering and
-> restructuring of branches to include the OPP layer (more on this
-> below.)
-> 
-> 
-> OPP layer: 
-> 
-> pm-wip-opp branch gone, merged into PM branch
-> 
-> What was in pm-wip-opp has now been broken up into a set of patches
-> that can be combined and queued for upstream (pm-opp branch) as well
-> as sets of patches for SR and SRF which are now on their respective
-> branches (pm-sr, pm-srf)
-> 
-> Next step is to combine the patches in pm-opp branch into a sensible
-> series that can be submitted for the next merge window.
-> 
-> 
-> Smart Reflex:
-> 
-> Thara's v3 series available as pm-wip-sr.  This is now based directly
-> on the new PM branch instead of on pm-wip-opp.
-> 
-> NOTE: the hwmod patches are now merged into l-o (omap-fixes branch)
->       so they are no longer in pm-wip-sr.
-> 
-> I didn't get to reviewing this series yet, but did test it out a bit
-> on top of thenew PM branch.  I gave this some basic testing on n900
-> and Zoom3 (required a u-boot update first) but basic OPP changes from
-> userspace governor worked on both.
-> 
->   
-> SRF:
-> 
-> This is still included in the PM branch (pm-srf branch), but will be
-> removed from the official PM branch.  It will be maintained as a
-> separate branch for a short time (1 month max) and then dropped.
-> Anyone else who wants to continue maintenance of SRF is free to do so.
-> 
-> 
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+OMAP: DSS: Enable display on ZOOM2/3 & 3630SDP
+	- Included display in boards and enabled in defconfig
+OMAP: DSS: Add display board file for zoom boards
+	- Display board file added common for all boards
+
+ arch/arm/configs/omap_3630sdp_defconfig       |   60 +++++++++-
+ arch/arm/configs/omap_zoom2_defconfig         |   60 +++++++++-
+ arch/arm/configs/omap_zoom3_defconfig         |   60 +++++++++-
+ arch/arm/mach-omap2/Makefile                  |    3 +
+ arch/arm/mach-omap2/board-3630sdp.c           |    1 +
+ arch/arm/mach-omap2/board-zoom-display.c      |  158 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |   48 ++++++++-
+ arch/arm/mach-omap2/board-zoom2.c             |    1 +
+ arch/arm/mach-omap2/board-zoom3.c             |    1 +
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    3 +
+ 10 files changed, 391 insertions(+), 4 deletions(-)
+
+Tested on top of LO kernel on master branch
+commit id: 7df1702e6cc94c3b3a3ebb69b6462bfaad9050da
+Linux-omap rebuilt: Merged in updated omap-fixes
+
+Regards,
+Kishore Y
