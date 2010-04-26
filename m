@@ -1,66 +1,66 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP: DSS: ensure clocks are disabled on failed init
-Date: Mon, 26 Apr 2010 12:12:46 -0700
-Message-ID: <1272309166-698-1-git-send-email-khilman@deeprootsystems.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 4/4][v4] OMAP:iommu- add TLB preservation support
+Date: Mon, 26 Apr 2010 15:20:44 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B571F42@dlee03.ent.ti.com>
+References: <1271978196-26792-5-git-send-email-h-kanigeri2@ti.com>
+	<20100423.153411.116357255.Hiroshi.DOYU@nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4B4C368D@dlee03.ent.ti.com>
+ <20100424.094433.258130456.Hiroshi.DOYU@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:49816 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167Ab0DZTMt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 15:12:49 -0400
-Received: by pvg2 with SMTP id 2so589875pvg.19
-        for <linux-omap@vger.kernel.org>; Mon, 26 Apr 2010 12:12:48 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:43622 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754603Ab0DZUUu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 16:20:50 -0400
+In-Reply-To: <20100424.094433.258130456.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Currently, if init fails for whatever reason, various DSS related
-clocks will be left enabled and prevent the chip from hitting
-retention or off-mode.
+Hi Hiroshi,
 
-This patch ensures the clocks are disabled on a failed init.
 
-For this to work, a check had to be added to dispc_save_context()
-to not save context if it has not yet been initialized.
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Saturday, April 24, 2010 1:45 AM
+> To: Kanigeri, Hari
+> Cc: Gupta, Ramesh; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 4/4][v4] OMAP:iommu- add TLB preservation support
+> 
+> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> Subject: RE: [PATCH 4/4][v4] OMAP:iommu- add TLB preservation support
+> Date: Sat, 24 Apr 2010 01:43:19 +0200
+> 
+> > Hi Hiroshi,
+> >
+> >>
+> >> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> >> index 1e83fac..d09a0a1 100644
+> >> --- a/arch/arm/plat-omap/iommu.c
+> >> +++ b/arch/arm/plat-omap/iommu.c
+> >> @@ -25,6 +25,9 @@
+> >>
+> >>  #include "iopgtable.h"
+> >>
+> >> +#define for_each_iotlb_cr(obj, n, i, cr)				\
+> >> +	for (i = 0; (i < n) && (cr = get_iotlb_cr(obj, i)); i++)
+> >> +
+> > -- This code is giving compilation error.
+> 
+> Should be like:
+> 
+> +#define for_each_iotlb_cr(obj, n, __i, cr)				\
+> +	for (__i = 0;							\
+> +	     (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
+> +	     __i++)
+> +
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Patch against v2.6.34-rc5.
+-- The change looks good to me.
 
-Discovered when testing n900 with current PM branch + Roger's 
-series for the LCC panel.  DPI init fails since it can't find
-VDDS_DSI regulator, and as a result init fails out and leaves
-clocks enabled.
-
- drivers/video/omap2/dss/core.c  |    1 +
- drivers/video/omap2/dss/dispc.c |    3 +++
- 2 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 7ebe50b..62f7ee2 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -584,6 +584,7 @@ static int omap_dss_probe(struct platform_device *pdev)
- 
- 	/* XXX fail correctly */
- fail0:
-+	dss_clk_disable_all();
- 	return r;
- }
- 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index e777e35..4cc54ef 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -195,6 +195,9 @@ void dispc_save_context(void)
- 	if (cpu_is_omap24xx())
- 		return;
- 
-+	if (!dispc.base)
-+		return;
-+
- 	SR(SYSCONFIG);
- 	SR(IRQENABLE);
- 	SR(CONTROL);
--- 
-1.7.0.2
-
+Thank you,
+Best regards,
+Hari
