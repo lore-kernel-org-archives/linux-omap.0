@@ -1,126 +1,318 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: OMAP3: Linux Without a Boot Loader?
-Date: Mon, 26 Apr 2010 18:19:25 -0500
-Message-ID: <4BD61F7D.3060208@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/1] i2c-omap: add mpu wake up latency constraint in i2c
+Date: Mon, 26 Apr 2010 16:31:27 -0700
+Message-ID: <87sk6hssds.fsf@deeprootsystems.com>
+References: <1271876654-13613-1-git-send-email-khilman@deeprootsystems.com>
+	<1271876654-13613-2-git-send-email-khilman@deeprootsystems.com>
+	<20100426225851.GR7225@atomide.com>
+	<8739yhu8b5.fsf@deeprootsystems.com>
+	<20100426231219.GS7225@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55482 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751622Ab0DZXT3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Apr 2010 19:19:29 -0400
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:59471 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752774Ab0DZXbc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 19:31:32 -0400
+Received: by pwj9 with SMTP id 9so8882641pwj.19
+        for <linux-omap@vger.kernel.org>; Mon, 26 Apr 2010 16:31:32 -0700 (PDT)
+In-Reply-To: <20100426231219.GS7225@atomide.com> (Tony Lindgren's message of "Mon\, 26 Apr 2010 16\:12\:19 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Greg Ungerer <gerg@snapgear.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
-Before I start, a Disclaimer:
-	This is more of a "can it be done" project, Don't do this to a 
-production device and flame me.. at least not yet, IMHO ;)
+Tony Lindgren <tony@atomide.com> writes:
 
-In ELC2010(SFO), Greg Ungerer showed how to do a boot of kernel without 
-the need for a bootloader.
-	http://elinux.org/ELC_2010_Presentations
-	http://elinux.org/images/7/7b/LinuxWithoutABootLoader.pdf
+> * Kevin Hilman <khilman@deeprootsystems.com> [100426 15:57]:
+>> Tony Lindgren <tony@atomide.com> writes:
+>>  
+>> +#ifdef CONFIG_ARCH_OMAP3
+>> +/*
+>> + * omap_i2c_set_wfc_mpu_wkup_lat - sets mpu wake up constraint
+>> + * @dev:	i2c bus device pointer
+>> + * @val:	latency constraint to set, -1 to disable constraint
+>> + *
+>> + * When waiting for completion of a i2c transfer, we need to set a wake up
+>> + * latency constraint for the MPU. This is to ensure quick enough wakeup from
+>> + * idle, when transfer completes.
+>> + */
+>> +static void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int val)
+>> +{
+>> +	omap_pm_set_max_mpu_wakeup_lat(dev, val);
+>> +}
+>> +#endif
+>> +
+>
+> Can't you leave out the above too?
+>
+>> +	struct omap_i2c_bus_platform_data *pd;
+>>  	struct resource *res;
+>>  	resource_size_t base, irq;
+>>  
+>>  	pdev = &omap_i2c_devices[bus_id - 1];
+>> +	pd = pdev->dev.platform_data;
+>>  	if (bus_id == 1) {
+>>  		res = pdev->resource;
+>>  		if (cpu_class_is_omap1()) {
+>> @@ -122,6 +143,8 @@ static int __init omap_i2c_add_bus(int bus_id)
+>>  		omap1_i2c_mux_pins(bus_id);
+>>  	if (cpu_class_is_omap2())
+>>  		omap2_i2c_mux_pins(bus_id);
+>> +	if (cpu_is_omap34xx())
+>> +		pd->set_mpu_wkup_lat = omap_i2c_set_wfc_mpu_wkup_lat;
+>
+> And then just set
+> 		pd->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat;
+>
+> Here instead?
 
-How does this help?
-a) Use kernel as a bootloader in itself:
-	http://elinux.org/images/2/2f/ELC-2010-Damm-Kexec.pdf
-b) One more way to shift to using Device trees to describe connectivity 
-and peripherals (Grant Likely's work)
-	http://elinux.org/images/b/b6/ARM_Device_Tree_Status_Report.pdf
-c) Today some features are assumed(wrongly) to be already set in the 
-bootloader (such as pin muxing etc..). as a community whose code is used 
-in many products, we all know the variant bootloaders folks use (some 
-properitary and some community). kernel assumptions are sometimes proven 
-wrong when someone tries the kernel on thier own inhouse bootloader.
-d) Reduce dependency on numerous u-boot, x-loader versions.
-e) many bootloaders dont have advanced support such as filesystem, usb 
-host etc.. kinda a pain when you have to do things twice - do it once in 
-kernel, then again for a bootloader..
+Sure.
 
-Few more things I can think about, but I was interested in seeing if I 
-could get it running on OMAP3..
+> BTW, in your version looks like compile will break if CONFIG_ARCH_OMAP3
+> is not set.
 
-What was done:
-As a proof of concept for OMAP3 (SDP3630 with OMAP3630), I formatted a 
-standard kernel build (bzImage) as I describe below and flashed it to 
-nand partition 0 using mmc boot. Then switched to nand boot and I have 
-kernel booting off the flash without x-loader.
+it shouldn't since if !CONFIG_ARCH_OMAP3, cpu_is_omap34xx() is zero
+and that code will not be compiled.
 
-Configuration header allows any image to boot off a I/O device such as 
-MMC/NAND device straight into SDRAM and proceed execution. ARM kernel 
-has a few additional requirements that CH is unable to cater to, 
-including disabling Caches/interrupts, setting up ATAGs, r0,r1,r2 
-settings with mach-id etc..
+Anyways, here's updated version which gets rid of both problems.
 
-So I wrote a small code, which I called sty which setups the environment 
-for the kernel piggy to start off on.. sty is something you'd put in the 
-arch/arm/boot/head-xyz.S except I have kept it away from the kernel to 
-allow for independent development given multiple boards out there..
+Kevin
 
-to describe the board, omap-uboot-utils has a configuration file in 
-configs/ which describes the machine ID, bootargs, sdrc config, dpll 
-settings etc.. things like sdrc_config, mach_id etc could potentially 
-change for platforms, but is mostly a copy paste from existing file..
+>From 4dadd7a580c347d6d93ca3cdb7fbf6bd1bab9440 Mon Sep 17 00:00:00 2001
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Date: Wed, 21 Oct 2009 14:51:21 +0300
+Subject: [PATCH] i2c-omap: add mpu wake up latency constraint in i2c
 
-The final image looks as follows:
-	+---------------------+
-	| Configuration       |
-	| Header              |
-	+---------------------+
-	| "Sty"               |
-	+---------------------+
-	| kernel piggy        |
-	| bzImage             |
-	+---------------------+
+While waiting for completion of the i2c transfer, the
+MPU could hit OFF mode and cause several msecs of
+delay that made i2c transfers fail more often. The
+extra delays and subsequent re-trys cause i2c clocks
+to be active more often. This has also an negative
+effect on power consumption.
 
-Image creation steps:
-make bzImage, copy the arch/arm/boot/zImage to required location,
-./tagger -c configs/sample-3630.cfg -f zImage
-./gpsign -c configs/sample-3630.cfg -f zImage.tag
+Created a mechanism for passing and using the
+constraint setting function in driver code. The used
+mpu wake up latency constraints are now set individually
+per bus, and they are calculated based on clock rate
+and fifo size.
 
-I need to probably add some decent documentation around it, but please 
-feel free to poke around - it is pretty simple code..
+Thanks to Jarkko Nikula, Moiz Sonasath, Paul Walmsley,
+and Nishanth Menon for tuning out the details of
+this patch.
 
-Risks:
-* Nand flash is pretty notorious for generating bad blocks run time.. 
-since the image written is pretty big, flash blocks in that area could 
-effectively kill you boot till u reflash again..
+Updates by Kevin as requested by Tony:
 
+- Remove omap_set_i2c_constraint_func() in favor of conditionally
+  adding the flag in omap_i2c_add_bus() in order to keep all the OMAP
+  conditional checking in a single location.
+- Update set_mpu_wkup_lat prototypes to match OMAP PM layer so
+  OMAP PM function can be used directly in pdata.
 
-Future work:
-[3] shows how to boot from an MMC card with u-boot (and no MLO). I 
-expect this to work with kernel as well..
-* maybe more.. left to everyone's imagination ofcourse ;)
+Cc: Moiz Sonasath <m-sonasath@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Nishanth Menon <nm@ti.com>
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/plat-omap/i2c.c      |   39 +++++++++++++++++++++++++++------------
+ drivers/i2c/busses/i2c-omap.c |   24 ++++++++++++++++++++----
+ include/linux/i2c-omap.h      |    9 +++++++++
+ 3 files changed, 56 insertions(+), 16 deletions(-)
+ create mode 100644 include/linux/i2c-omap.h
 
-References:
------------
-Arm booting requirements: 
-http://www.arm.linux.org.uk/developer/booting.php (or you can use the 
-google's cached version while Russel gets his network back)
-
-Logs:
-[1] Flashing Steps: http://pastebin.mozilla.org/718671
-[2] Power on in NAND boot log: http://pastebin.mozilla.org/718674
-
-Kernel used: 	
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git 
-(pm branch)
-	Commit: 5914a1c9bd8083c65dcdaccae2c458e254573afb
-
-Omap-uboot-utils used:
-	git://github.com/nmenon/omap-u-boot-utils.git (wip-taggersty branch)
-	Commit: 76a4328253fd53dbebea517f2339a7389d8242e1
-	(the utlity tagger is mostly a collection of code snippets from 
-u-boot.. so the licensing remains the same.. in case you are wondering.. 
-;) )..
-
-MMC boot without x-loader:
-[3] 
-http://omapedia.org/wiki/E-MMC_boot#You_can_boot_omap3630_without_x-loader
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 624e262..7b7b12d 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -26,9 +26,12 @@
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
++#include <linux/i2c-omap.h>
++
+ #include <mach/irqs.h>
+ #include <plat/mux.h>
+ #include <plat/i2c.h>
++#include <plat/omap-pm.h>
+ 
+ #define OMAP_I2C_SIZE		0x3f
+ #define OMAP1_I2C_BASE		0xfffb3800
+@@ -70,14 +73,14 @@ static struct resource i2c_resources[][2] = {
+ 		},					\
+ 	}
+ 
+-static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
++static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
+ static struct platform_device omap_i2c_devices[] = {
+-	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
++	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
+ #if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+-	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
++	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
+ #endif
+ #if	defined(CONFIG_ARCH_OMAP3)
+-	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
++	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
+ #endif
+ };
+ 
+@@ -100,10 +103,12 @@ static int __init omap_i2c_nr_ports(void)
+ static int __init omap_i2c_add_bus(int bus_id)
+ {
+ 	struct platform_device *pdev;
++	struct omap_i2c_bus_platform_data *pd;
+ 	struct resource *res;
+ 	resource_size_t base, irq;
+ 
+ 	pdev = &omap_i2c_devices[bus_id - 1];
++	pd = pdev->dev.platform_data;
+ 	if (bus_id == 1) {
+ 		res = pdev->resource;
+ 		if (cpu_class_is_omap1()) {
+@@ -122,6 +127,15 @@ static int __init omap_i2c_add_bus(int bus_id)
+ 		omap1_i2c_mux_pins(bus_id);
+ 	if (cpu_class_is_omap2())
+ 		omap2_i2c_mux_pins(bus_id);
++	
++	/*
++	 * When waiting for completion of a i2c transfer, we need to
++	 * set a wake up latency constraint for the MPU. This is to
++	 * ensure quick enough wakeup from idle, when transfer
++	 * completes.
++	 */
++	if (cpu_is_omap34xx())
++		pd->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat;
+ 
+ 	return platform_device_register(pdev);
+ }
+@@ -146,8 +160,8 @@ static int __init omap_i2c_bus_setup(char *str)
+ 	get_options(str, 3, ints);
+ 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
+ 		return 0;
+-	i2c_rate[ints[1] - 1] = ints[2];
+-	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
++	i2c_pdata[ints[1] - 1].clkrate = ints[2];
++	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
+ 
+ 	return 1;
+ }
+@@ -161,9 +175,9 @@ static int __init omap_register_i2c_bus_cmdline(void)
+ {
+ 	int i, err = 0;
+ 
+-	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
+-		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
+-			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
++	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
++		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
++			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+ 			err = omap_i2c_add_bus(i + 1);
+ 			if (err)
+ 				goto out;
+@@ -197,9 +211,10 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 			return err;
+ 	}
+ 
+-	if (!i2c_rate[bus_id - 1])
+-		i2c_rate[bus_id - 1] = clkrate;
+-	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
++	if (!i2c_pdata[bus_id - 1].clkrate)
++		i2c_pdata[bus_id - 1].clkrate = clkrate;
++
++	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+ 
+ 	return omap_i2c_add_bus(bus_id);
+ }
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index b81484d..a866e4e 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -38,6 +38,7 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
++#include <linux/i2c-omap.h>
+ 
+ /* I2C controller revisions */
+ #define OMAP_I2C_REV_2			0x20
+@@ -175,6 +176,9 @@ struct omap_i2c_dev {
+ 	struct clk		*fclk;		/* Functional clock */
+ 	struct completion	cmd_complete;
+ 	struct resource		*ioarea;
++	u32			latency;	/* maximum mpu wkup latency */
++	void			(*set_mpu_wkup_lat)(struct device *dev,
++						    long latency);
+ 	u32			speed;		/* Speed of bus in Khz */
+ 	u16			cmd_err;
+ 	u8			*buf;
+@@ -603,8 +607,12 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	 * REVISIT: We should abort the transfer on signals, but the bus goes
+ 	 * into arbitration and we're currently unable to recover from it.
+ 	 */
++	if (dev->set_mpu_wkup_lat != NULL)
++		dev->set_mpu_wkup_lat(dev->dev, dev->latency);
+ 	r = wait_for_completion_timeout(&dev->cmd_complete,
+ 					OMAP_I2C_TIMEOUT);
++	if (dev->set_mpu_wkup_lat != NULL)
++		dev->set_mpu_wkup_lat(dev->dev, -1);
+ 	dev->buf_len = 0;
+ 	if (r < 0)
+ 		return r;
+@@ -927,6 +935,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	struct omap_i2c_dev	*dev;
+ 	struct i2c_adapter	*adap;
+ 	struct resource		*mem, *irq, *ioarea;
++	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+ 	irq_handler_t isr;
+ 	int r;
+ 	u32 speed = 0;
+@@ -956,10 +965,13 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		goto err_release_region;
+ 	}
+ 
+-	if (pdev->dev.platform_data != NULL)
+-		speed = *(u32 *)pdev->dev.platform_data;
+-	else
+-		speed = 100;	/* Defualt speed */
++	if (pdata != NULL) {
++		speed = pdata->clkrate;
++		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
++	} else {
++		speed = 100;	/* Default speed */
++		dev->set_mpu_wkup_lat = NULL;
++	}
+ 
+ 	dev->speed = speed;
+ 	dev->idle = 1;
+@@ -1012,6 +1024,10 @@ omap_i2c_probe(struct platform_device *pdev)
+ 			dev->fifo_size = (dev->fifo_size / 2);
+ 			dev->b_hw = 1; /* Enable hardware fixes */
+ 		}
++		/* calculate wakeup latency constraint for MPU */
++		if (dev->set_mpu_wkup_lat != NULL)
++			dev->latency = (1000000 * dev->fifo_size) /
++				       (1000 * speed / 8);
+ 	}
+ 
+ 	/* reset ASAP, clearing any IRQs */
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+new file mode 100644
+index 0000000..78ebf50
+--- /dev/null
++++ b/include/linux/i2c-omap.h
+@@ -0,0 +1,9 @@
++#ifndef __I2C_OMAP_H__
++#define __I2C_OMAP_H__
++
++struct omap_i2c_bus_platform_data {
++	u32		clkrate;
++	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
++};
++
++#endif
 -- 
-Regards,
-Nishanth Menon
+1.7.0.2
+
+
