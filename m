@@ -1,37 +1,68 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [RFC PATCH 00/37] cbus patches
-Date: Mon, 26 Apr 2010 08:25:38 +0300
-Message-ID: <20100426052538.GA16497@nokia.com>
-References: <1270656268-7034-1-git-send-email-felipe.balbi@nokia.com>
- <20100408092310.GB14005@atomide.com>
- <20100424004552.GB18272@atomide.com>
-Reply-To: felipe.balbi@nokia.com
+From: Gregory CLEMENT <gclement00-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 0/3] usb: ohci: introduce ohci-hcd driver for omap3
+Date: Mon, 26 Apr 2010 07:57:20 +0200
+Message-ID: <j2l305035a41004252257t189738cfj5fac86059b0b6192@mail.gmail.com>
+References: <1272256489-3389-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:63982 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171Ab0DZF0l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 01:26:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20100424004552.GB18272@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1272256489-3389-1-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Sat, Apr 24, 2010 at 02:45:53AM +0200, ext Tony Lindgren wrote:
->Well 770 does not stay up, but at least boots to root. Meaning
->the watchdog is not getting kicked. Seems to just hang without
->these patches. Will try to look further at some point.
+2010/4/26 Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 >
->N800 boots fine and stays up, so the watchdog is getting kicked.
+> Hi all,
 >
->So I've pulled this into the cbus branch.
+> This patch series adds the bus glue layer for the OHCI controller
+> on OMAP3 and later chips. This controller is a companion
+> to the EHCI controller on that chip, and some code is common
+> between the two drivers. The driver has been sitting in internal
+> trees for ages, and I've finally found time to clean it up
+> and submit it.
+>
+> The older OMAP1 and OMAP2 chips had a different OHCI controller,
+> which already has driver support in mainline. I don't have access
+> to any boards with this old controller and haven't tested the old
+> driver on those boards - not sure if it still works.
+> (Also, I made some updates to Kconfig, and have not yet
+> updated the defconfigs for those omap1/2 boards. I'll update them
+> if the Kconfig changes are okay)
+>
+> This controller supports multiple interface modes. Only 2 of them
+> (3-pin DAT/SE0 and 4-pin DP/DM PHY modes) have been tested with this
+> driver. (However the only change for the other modes is one register
+> setting for selecting the mode, and the padconf setting for the omap
+> pads, so I expect it to work correctly).
+> (Someone did offer to test the 6-pin mode. Still awaiting results...)
 
-great, I'll try to get back to these this or next week.
+[sending it again with no html inside]
 
--- 
-balbi
+Hi,
+I am the one who offer to test 6-pin mode. Unfortunally, I still have
+some problem.
+The current version of our kernel is 2.6.33 so first I try to back
+port your patch for our version, and so kernel crashes during access
+to USB controller.
+Then I try to port our kernel to the last version of Linux, but now I
+can't see any traces on serial port after "Uncompressing Linux...
+done, booting the kernel..".
+I am still stuck to these problems which are not really related to your=
+ patches.
 
-DefectiveByDesign.org
+--
+Gregory CLEMENT
+Responsable Technique Linux embarqu=E9 - Europe
+Embedded Linux Development Lead - EMEA
+
+Adeneo Embedded - Adetel Group
+2, chemin du Ruisseau
+69134 ECULLY - FRANCE
+T=E9l. : +33 (0)4 72 18 08 40 - Fax : +33 (0)4 72 18 08 41
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
