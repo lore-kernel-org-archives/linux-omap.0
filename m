@@ -1,69 +1,43 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv2 1/4] ARM: Introduce SoC Info into /proc/cpuinfo
-Date: Tue, 27 Apr 2010 16:14:12 +0300
-Message-ID: <1272374055-9656-2-git-send-email-eduardo.valentin@nokia.com>
-References: <1272374055-9656-1-git-send-email-eduardo.valentin@nokia.com>
+From: "Douglass, Woody" <Woodrow.Douglass@QinetiQ-NA.com>
+Subject: Msleep doesn't return!
+Date: Tue, 27 Apr 2010 09:01:55 -0400
+Message-ID: <D110E3281F2BF547AA3350B5D27DC101013F6011@stafqnaomail.qnao.net>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43521 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055Ab0D0NP3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 09:15:29 -0400
-In-Reply-To: <1272374055-9656-1-git-send-email-eduardo.valentin@nokia.com>
+Received: from 65-125-11-136.dia.static.qwest.net ([65.125.11.136]:45381 "EHLO
+	mailgateway02.qinetiq-na.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753012Ab0D0NWg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Apr 2010 09:22:36 -0400
+Received: from stafqnaomail2.qnao.net (localhost [127.0.0.1])
+	by mailgateway02.qinetiq-na.com (Spam & Virus Firewall) with ESMTP id F2CA2531D87
+	for <linux-omap@vger.kernel.org>; Tue, 27 Apr 2010 13:06:07 +0000 (GMT)
+Received: from stafqnaomail2.qnao.net ([10.18.123.31]) by mailgateway02.qinetiq-na.com with ESMTP id WJfh8zcH249bt95S for <linux-omap@vger.kernel.org>; Tue, 27 Apr 2010 13:06:07 +0000 (GMT)
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>
-Cc: ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "\\\"De-Schrijver Peter (Nokia-D/Helsinki)\\\"" <Peter.De-Schrijver@nokia.com>, santosh.shilimkar@ti.com, Eduardo Valentin <eduardo.valentin@nokia.com>
+To: linux-omap@vger.kernel.org
 
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Hello all,
 
-This patch extends the ARM /proc/cpuinfo to include soc info data.
-It is implemented via the same way which is done for
-system_rev, system_serial_low and system_serial_high.
-Then, now we have system_soc_info, which is printed only
-if there is something useful there.
+Not sure if this is the right place to ask this, but I have a bit of a
+problem with the omap kernel.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- arch/arm/include/asm/system.h |    2 ++
- arch/arm/kernel/setup.c       |    5 +++++
- 2 files changed, 7 insertions(+), 0 deletions(-)
+I've added some patches to the 2.6.32-omap1 tag of the omap git tree to
+support a custom board. When I try to boot, about 30% of the time, it
+gets all the way to the prepare_namespace call (in init/do_mounts.c) and
+then the msleep call there doesn't return. I've confirmed this by adding
+printk statements before and after the msleep call, as well as with a
+BDI3000 jtag probe.
 
-diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
-index 4ace45e..53a9645 100644
---- a/arch/arm/include/asm/system.h
-+++ b/arch/arm/include/asm/system.h
-@@ -71,6 +71,8 @@ struct task_struct;
- extern unsigned int system_rev;
- extern unsigned int system_serial_low;
- extern unsigned int system_serial_high;
-+#define SYSTEM_SOC_INFO_SIZE			128
-+extern char system_soc_info[SYSTEM_SOC_INFO_SIZE];
- extern unsigned int mem_fclk_21285;
- 
- struct pt_regs;
-diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
-index c91c77b..025d795 100644
---- a/arch/arm/kernel/setup.c
-+++ b/arch/arm/kernel/setup.c
-@@ -85,6 +85,9 @@ EXPORT_SYMBOL(system_serial_low);
- unsigned int system_serial_high;
- EXPORT_SYMBOL(system_serial_high);
- 
-+char system_soc_info[SYSTEM_SOC_INFO_SIZE];
-+EXPORT_SYMBOL(system_soc_info);
-+
- unsigned int elf_hwcap;
- EXPORT_SYMBOL(elf_hwcap);
- 
-@@ -847,6 +850,8 @@ static int c_show(struct seq_file *m, void *v)
- 	seq_printf(m, "Revision\t: %04x\n", system_rev);
- 	seq_printf(m, "Serial\t\t: %08x%08x\n",
- 		   system_serial_high, system_serial_low);
-+	if (strlen(system_soc_info))
-+		seq_printf(m, "SoC Info\t: %s\n",  system_soc_info);
- 
- 	return 0;
- }
--- 
-1.7.0.4.361.g8b5fe.dirty
+Have any of you seen this issue? Do you have any suggestions of how I
+can debug this further?
 
+Thanks,
+Woody
+
+
+Confidentiality Note: The information contained in this message, and any attachments, may contain proprietary and/or privileged material. It is intended solely for the person or entity to which it is addressed. Any review, retransmission, dissemination, or taking of any action in reliance upon this information by persons or entities other than the intended recipient is prohibited. If you received this in error, please contact the sender and delete the material from any computer. 
