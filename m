@@ -1,52 +1,54 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 2/4] omap: mailbox cleanup: split MODULE_AUTHOR line
-Date: Tue, 27 Apr 2010 20:56:20 +0300
-Message-ID: <1272390982-14882-3-git-send-email-ohad@wizery.com>
-References: <1272390982-14882-1-git-send-email-ohad@wizery.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
+Date: Tue, 27 Apr 2010 11:21:11 -0700
+Message-ID: <20100427182111.GE7225@atomide.com>
+References: <37310.192.168.10.89.1270081542.squirrel@dbdmail.itg.ti.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030D32CEE8@dbde02.ent.ti.com>
+ <008601cad1bd$6d0022b0$544ff780@am.dhcp.ti.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030D32D372@dbde02.ent.ti.com>
+ <4BB51740.2060802@ti.com>
+ <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
+ <20100407114938.GF7153@atomide.com>
+ <003801cad73e$86841df0$544ff780@am.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:4458 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756385Ab0D0R6l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 13:58:41 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so2795216fgg.1
-        for <linux-omap@vger.kernel.org>; Tue, 27 Apr 2010 10:58:40 -0700 (PDT)
-In-Reply-To: <1272390982-14882-1-git-send-email-ohad@wizery.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49974 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751093Ab0D0SVL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 14:21:11 -0400
+Content-Disposition: inline
+In-Reply-To: <003801cad73e$86841df0$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kanigeri Hari <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Nishanth Menon' <nm@ti.com>, "'Ghorai, Sukumar'" <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 
-use multiple MODULE_AUTHOR lines for multiple authors
+* Madhusudhan <madhu.cr@ti.com> [100408 10:07]:
+> > >
+> > > Tony, do you care to just look up the serial number of your board?
+> > 
+> > Sorry for the delay in replying, I've been travelling for a few weeks
+> > and been in meetings quite a bit. Anyways, it's a 1013037 REV A board,
+> > which seems to be production in the table above.
+> > 
+> 
+> That means we can not assume all production units have a working eMMC.
+> Would you mind sharing your bootup log? When this device is detected 
+> something like below is a clear issue.
+> 
+> mmcblk1: mmc1:0001 STM16G 1.00 GiB 
+> mmcblk1: p1 p2
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
- arch/arm/mach-omap2/mailbox.c |    3 ++-
- arch/arm/plat-omap/mailbox.c  |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+Hmm, finally got around looking into this again. Looks like the mmc
+is now working on my zoom3 with the current Linus' tree at commit 
+7c6bd2010fced38444c9fd658f4c6ce61bd185bf. So I guess something that
+we had in omap-fixes fixed this. Or maybe some fix for drivers/mmc?
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 318f363..763272c 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -486,5 +486,6 @@ module_exit(omap2_mbox_exit);
- 
- MODULE_LICENSE("GPL v2");
- MODULE_DESCRIPTION("omap mailbox: omap2/3/4 architecture specific functions");
--MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Paul Mundt");
-+MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>");
-+MODULE_AUTHOR("Paul Mundt");
- MODULE_ALIAS("platform:"DRV_NAME);
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index d73d51a..8abf0e8 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -419,4 +419,5 @@ module_exit(omap_mbox_exit);
- 
- MODULE_LICENSE("GPL v2");
- MODULE_DESCRIPTION("omap mailbox: interrupt driven messaging");
--MODULE_AUTHOR("Toshihiro Kobayashi and Hiroshi DOYU");
-+MODULE_AUTHOR("Toshihiro Kobayashi");
-+MODULE_AUTHOR("Hiroshi DOYU");
--- 
-1.6.3.3
+This is with the debug_ll patch applied:
 
+https://patchwork.kernel.org/patch/87532/
+
+Regards,
+
+Tony
