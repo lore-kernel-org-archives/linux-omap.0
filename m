@@ -1,90 +1,114 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] OMAP: DSS: ensure clocks are disabled on failed init
-Date: Tue, 27 Apr 2010 12:14:19 +0300
-Message-ID: <p2x6ed0b2681004270214yc64459e4g2e0d15dcac84bd2@mail.gmail.com>
-References: <1272309166-698-1-git-send-email-khilman@deeprootsystems.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 4/4] OMAP3: PM: export chip IDCODE, Production ID and
+ Die ID
+Date: Tue, 27 Apr 2010 13:13:21 +0300
+Message-ID: <20100427101321.GC332@besouro.research.nokia.com>
+References: <1272270293-18568-1-git-send-email-eduardo.valentin@nokia.com>
+ <1272270293-18568-5-git-send-email-eduardo.valentin@nokia.com>
+ <20100426182811.GI7225@atomide.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:53667 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291Ab0D0JOV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 05:14:21 -0400
-Received: by bwz19 with SMTP id 19so14277bwz.21
-        for <linux-omap@vger.kernel.org>; Tue, 27 Apr 2010 02:14:19 -0700 (PDT)
-In-Reply-To: <1272309166-698-1-git-send-email-khilman@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.230]:44450 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154Ab0D0KNb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 06:13:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20100426182811.GI7225@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-CC Tomi in case he missed this.
+Hello Tony,
 
-On Mon, Apr 26, 2010 at 10:12 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Currently, if init fails for whatever reason, various DSS related
-> clocks will be left enabled and prevent the chip from hitting
-> retention or off-mode.
->
-> This patch ensures the clocks are disabled on a failed init.
->
-> For this to work, a check had to be added to dispc_save_context()
-> to not save context if it has not yet been initialized.
->
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-> Patch against v2.6.34-rc5.
->
-> Discovered when testing n900 with current PM branch + Roger's
-> series for the LCC panel. =A0DPI init fails since it can't find
-> VDDS_DSI regulator, and as a result init fails out and leaves
-> clocks enabled.
->
-> =A0drivers/video/omap2/dss/core.c =A0| =A0 =A01 +
-> =A0drivers/video/omap2/dss/dispc.c | =A0 =A03 +++
-> =A02 files changed, 4 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss=
-/core.c
-> index 7ebe50b..62f7ee2 100644
-> --- a/drivers/video/omap2/dss/core.c
-> +++ b/drivers/video/omap2/dss/core.c
-> @@ -584,6 +584,7 @@ static int omap_dss_probe(struct platform_device =
-*pdev)
->
-> =A0 =A0 =A0 =A0/* XXX fail correctly */
-> =A0fail0:
-> + =A0 =A0 =A0 dss_clk_disable_all();
-> =A0 =A0 =A0 =A0return r;
-> =A0}
->
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/ds=
-s/dispc.c
-> index e777e35..4cc54ef 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -195,6 +195,9 @@ void dispc_save_context(void)
-> =A0 =A0 =A0 =A0if (cpu_is_omap24xx())
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
->
-> + =A0 =A0 =A0 if (!dispc.base)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> +
-> =A0 =A0 =A0 =A0SR(SYSCONFIG);
-> =A0 =A0 =A0 =A0SR(IRQENABLE);
-> =A0 =A0 =A0 =A0SR(CONTROL);
-> --
-> 1.7.0.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Apr 26, 2010 at 08:28:12PM +0200, ext Tony Lindgren wrote:
+> * Eduardo Valentin <eduardo.valentin@nokia.com> [100426 01:20]:
+> > From: Eduardo Valentin <eduardo.valentin@nokia.com>
+> > 
+> > This patch exports the OMAP3 IDCODE, Production ID and Die ID to userspace
+> > via /proc/cpuinfo using the system_soc_info.
+> > 
+> > This can be used to track down silicon specific issues. The info is
+> > exported via /proc/cpuinfo because then it can be possible to include this
+> > in corematic dumps.
+> > 
+> > This is based on Peter De Schrijver patch, which export same info via sysfs.
+> > 
+> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> > ---
+> >  arch/arm/mach-omap2/id.c |   20 ++++++++++++++++++++
+> >  1 files changed, 20 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 75e36a5..887787d 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -76,6 +76,10 @@ EXPORT_SYMBOL(omap_type);
+> >  /*----------------------------------------------------------------------------*/
+> >  
+> >  #define OMAP_TAP_IDCODE		0x0204
+> > +#define OMAP_TAP_PROD_ID_0      0x0208
+> > +#define OMAP_TAP_PROD_ID_1      0x020c
+> > +#define OMAP_TAP_PROD_ID_2      0x0210
+> > +#define OMAP_TAP_PROD_ID_3      0x0214
+> >  #define OMAP_TAP_DIE_ID_0	0x0218
+> >  #define OMAP_TAP_DIE_ID_1	0x021C
+> >  #define OMAP_TAP_DIE_ID_2	0x0220
+> > @@ -306,6 +310,7 @@ void __init omap4_check_revision(void)
+> >  
+> >  void __init omap3_cpuinfo(void)
+> >  {
+> > +	int sz;
+> >  	u8 rev = GET_OMAP_REVISION();
+> >  	char cpu_name[16], cpu_rev[16];
+> >  
+> > @@ -375,6 +380,21 @@ void __init omap3_cpuinfo(void)
+> >  	OMAP3_SHOW_FEATURE(192mhz_clk);
+> >  
+> >  	printk(")\n");
+> > +
+> > +	/* Append OMAP3 IDCODE, Production ID and Die ID to system_soc_info */
+> > +	sz = strlen(system_soc_info);
+> > +	snprintf(system_soc_info + sz, SYSTEM_SOC_INFO_SIZE - sz,
+> > +			"\n\tIDCODE\t: %08x\n\tPr. ID\t: %08x %08x %08x %08x\n"
+> > +			"\tDie ID\t: %08x %08x %08x %08x\n",
+> > +			read_tap_reg(OMAP_TAP_IDCODE),
+> > +			read_tap_reg(OMAP_TAP_PROD_ID_0),
+> > +			read_tap_reg(OMAP_TAP_PROD_ID_1),
+> > +			read_tap_reg(OMAP_TAP_PROD_ID_2),
+> > +			read_tap_reg(OMAP_TAP_PROD_ID_3),
+> > +			read_tap_reg(OMAP_TAP_DIE_ID_0),
+> > +			read_tap_reg(OMAP_TAP_DIE_ID_1),
+> > +			read_tap_reg(OMAP_TAP_DIE_ID_2),
+> > +			read_tap_reg(OMAP_TAP_DIE_ID_3));
+> >  }
+> >  
+> >  /*
+> 
+> We should not expose the Die ID info unless specifically compiled in
+> with some Kconfig option. Please search for "pentium serial number privacy"
+> or similar.
+
+Yeah, I remember now that you actually have already asked to do it. I'll
+repost this series again with this change. It will couple with the same
+protection mechanism there is for x86 pn. it is not a compilation config,
+but a kernel parameter:
+
+
+static int __init x86_serial_nr_setup(char *s)
+{
+	disable_x86_serial_nr = 0;
+	return 1;
+}
+__setup("serialnumber", x86_serial_nr_setup);
+
+
+> 
+> Also, this whole series should be discussed on linux-arm-kernel.
+
+Yeah, will post v2 there as well,
+
+> 
+> Tony
