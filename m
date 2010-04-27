@@ -1,214 +1,90 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH v9] board-omap3-beagle: add DSS2 support
-Date: Tue, 27 Apr 2010 09:58:19 +0200
-Message-ID: <0BA15D46-D494-4402-9EC8-574AD5D7BAE8@dominion.thruhere.net>
-References: <1271924622-21043-1-git-send-email-koen@dominion.thruhere.net>
-Mime-Version: 1.0 (Apple Message framework v1078)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] OMAP: DSS: ensure clocks are disabled on failed init
+Date: Tue, 27 Apr 2010 12:14:19 +0300
+Message-ID: <p2x6ed0b2681004270214yc64459e4g2e0d15dcac84bd2@mail.gmail.com>
+References: <1272309166-698-1-git-send-email-khilman@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:31526 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753302Ab0D0H60 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 03:58:26 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so1146383eyd.19
-        for <linux-omap@vger.kernel.org>; Tue, 27 Apr 2010 00:58:24 -0700 (PDT)
-In-Reply-To: <1271924622-21043-1-git-send-email-koen@dominion.thruhere.net>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:53667 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753291Ab0D0JOV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 05:14:21 -0400
+Received: by bwz19 with SMTP id 19so14277bwz.21
+        for <linux-omap@vger.kernel.org>; Tue, 27 Apr 2010 02:14:19 -0700 (PDT)
+In-Reply-To: <1272309166-698-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-No more comments? Can it go in?
+CC Tomi in case he missed this.
 
-Op 22 apr 2010, om 10:23 heeft Koen Kooi het volgende geschreven:
-
-> This patch adds DSS2 support to the beagleboard boardfile. DVI and TV-out are supported.
-> 
-> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+On Mon, Apr 26, 2010 at 10:12 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Currently, if init fails for whatever reason, various DSS related
+> clocks will be left enabled and prevent the chip from hitting
+> retention or off-mode.
+>
+> This patch ensures the clocks are disabled on a failed init.
+>
+> For this to work, a check had to be added to dispc_save_context()
+> to not save context if it has not yet been initialized.
+>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 > ---
-> Changes since v1:
->    * removed beagle_panel_enable_tv() and beagle_panel_disable_tv()
-> Changes since v2:
->    * changed to REGULATOR_SUPPLY(_name, _dev_name) for dss regulators
-> Changes since v3:
->    * really remove beagle_panel_enable_tv() and beagle_panel_disable_tv()
->    * moved comments to this section
-> Changes since v4:
->    * remove trailing whitespace
-> Changes since v5:
->    * fix semicolon typo
-> Changes since v6:
->    * use gpio_is_valid(dssdev->reset_gpio)
-> Changes since v8:
->    * fix missing whitespace before __init omap3_beagle_map_io(){}
-> 
-> arch/arm/mach-omap2/board-omap3beagle.c |  101 +++++++++++++++++++++++--------
-> 1 files changed, 75 insertions(+), 26 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 962d377..69b154c 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -39,6 +39,7 @@
-> 
-> #include <plat/board.h>
-> #include <plat/common.h>
-> +#include <plat/display.h>
-> #include <plat/gpmc.h>
-> #include <plat/nand.h>
-> #include <plat/usb.h>
-> @@ -106,6 +107,77 @@ static struct platform_device omap3beagle_nand_device = {
-> 	.resource	= &omap3beagle_nand_resource,
-> };
-> 
-> +/* DSS */
+> Patch against v2.6.34-rc5.
+>
+> Discovered when testing n900 with current PM branch + Roger's
+> series for the LCC panel. =A0DPI init fails since it can't find
+> VDDS_DSI regulator, and as a result init fails out and leaves
+> clocks enabled.
+>
+> =A0drivers/video/omap2/dss/core.c =A0| =A0 =A01 +
+> =A0drivers/video/omap2/dss/dispc.c | =A0 =A03 +++
+> =A02 files changed, 4 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss=
+/core.c
+> index 7ebe50b..62f7ee2 100644
+> --- a/drivers/video/omap2/dss/core.c
+> +++ b/drivers/video/omap2/dss/core.c
+> @@ -584,6 +584,7 @@ static int omap_dss_probe(struct platform_device =
+*pdev)
+>
+> =A0 =A0 =A0 =A0/* XXX fail correctly */
+> =A0fail0:
+> + =A0 =A0 =A0 dss_clk_disable_all();
+> =A0 =A0 =A0 =A0return r;
+> =A0}
+>
+> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/ds=
+s/dispc.c
+> index e777e35..4cc54ef 100644
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -195,6 +195,9 @@ void dispc_save_context(void)
+> =A0 =A0 =A0 =A0if (cpu_is_omap24xx())
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+>
+> + =A0 =A0 =A0 if (!dispc.base)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
 > +
-> +static int beagle_enable_dvi(struct omap_dss_device *dssdev)
-> +{
-> +	if (gpio_is_valid(dssdev->reset_gpio))
-> +		gpio_set_value(dssdev->reset_gpio, 1);
-> +
-> +	return 0;
-> +}
-> +
-> +static void beagle_disable_dvi(struct omap_dss_device *dssdev)
-> +{
-> +	if (gpio_is_valid(dssdev->reset_gpio))
-> +		gpio_set_value(dssdev->reset_gpio, 0);
-> +}
-> +
-> +static struct omap_dss_device beagle_dvi_device = {
-> +	.type = OMAP_DISPLAY_TYPE_DPI,
-> +	.name = "dvi",
-> +	.driver_name = "generic_panel",
-> +	.phy.dpi.data_lines = 24,
-> +	.reset_gpio = 170,
-> +	.platform_enable = beagle_enable_dvi,
-> +	.platform_disable = beagle_disable_dvi,
-> +};
-> +
-> +static struct omap_dss_device beagle_tv_device = {
-> +	.name = "tv",
-> +	.driver_name = "venc",
-> +	.type = OMAP_DISPLAY_TYPE_VENC,
-> +	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
-> +};
-> +
-> +static struct omap_dss_device *beagle_dss_devices[] = {
-> +	&beagle_dvi_device,
-> +	&beagle_tv_device,
-> +};
-> +
-> +static struct omap_dss_board_info beagle_dss_data = {
-> +	.num_devices = ARRAY_SIZE(beagle_dss_devices),
-> +	.devices = beagle_dss_devices,
-> +	.default_device = &beagle_dvi_device,
-> +};
-> +
-> +static struct platform_device beagle_dss_device = {
-> +	.name          = "omapdss",
-> +	.id            = -1,
-> +	.dev            = {
-> +		.platform_data = &beagle_dss_data,
-> +	},
-> +};
-> +
-> +static struct regulator_consumer_supply beagle_vdac_supply =
-> +	REGULATOR_SUPPLY("vdda_dac", "omapdss");
-> +
-> +static struct regulator_consumer_supply beagle_vdvi_supply =
-> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
-> +
-> +static void __init beagle_display_init(void)
-> +{
-> +	int r;
-> +
-> +	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
-> +	if (r < 0) {
-> +		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
-> +		return;
-> +	}
-> +
-> +	gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
-> +}
-> +
-> #include "sdram-micron-mt46h32m32lf-6.h"
-> 
-> static struct omap2_hsmmc_info mmc[] = {
-> @@ -117,15 +189,6 @@ static struct omap2_hsmmc_info mmc[] = {
-> 	{}	/* Terminator */
-> };
-> 
-> -static struct platform_device omap3_beagle_lcd_device = {
-> -	.name		= "omap3beagle_lcd",
-> -	.id		= -1,
-> -};
-> -
-> -static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
-> -	.ctrl_name	= "internal",
-> -};
-> -
-> static struct regulator_consumer_supply beagle_vmmc1_supply = {
-> 	.supply			= "vmmc",
-> };
-> @@ -181,16 +244,6 @@ static struct twl4030_gpio_platform_data beagle_gpio_data = {
-> 	.setup		= beagle_twl_gpio_setup,
-> };
-> 
-> -static struct regulator_consumer_supply beagle_vdac_supply = {
-> -	.supply		= "vdac",
-> -	.dev		= &omap3_beagle_lcd_device.dev,
-> -};
-> -
-> -static struct regulator_consumer_supply beagle_vdvi_supply = {
-> -	.supply		= "vdvi",
-> -	.dev		= &omap3_beagle_lcd_device.dev,
-> -};
-> -
-> /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
-> static struct regulator_init_data beagle_vmmc1 = {
-> 	.constraints = {
-> @@ -349,14 +402,8 @@ static struct platform_device keys_gpio = {
-> 	},
-> };
-> 
-> -static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
-> -	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
-> -};
-> -
-> static void __init omap3_beagle_init_irq(void)
-> {
-> -	omap_board_config = omap3_beagle_config;
-> -	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
-> 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-> 			     mt46h32m32lf6_sdrc_params);
-> 	omap_init_irq();
-> @@ -367,9 +414,9 @@ static void __init omap3_beagle_init_irq(void)
-> }
-> 
-> static struct platform_device *omap3_beagle_devices[] __initdata = {
-> -	&omap3_beagle_lcd_device,
-> 	&leds_gpio,
-> 	&keys_gpio,
-> +	&beagle_dss_device,
-> };
-> 
-> static void __init omap3beagle_flash_init(void)
-> @@ -456,6 +503,8 @@ static void __init omap3_beagle_init(void)
-> 	/* Ensure SDRC pins are mux'd for self-refresh */
-> 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-> 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
-> +
-> +	beagle_display_init();
-> }
-> 
-> static void __init omap3_beagle_map_io(void)
-> -- 
-> 1.6.6.1
-> 
+> =A0 =A0 =A0 =A0SR(SYSCONFIG);
+> =A0 =A0 =A0 =A0SR(IRQENABLE);
+> =A0 =A0 =A0 =A0SR(CONTROL);
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> 1.7.0.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
