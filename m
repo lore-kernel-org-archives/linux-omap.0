@@ -1,43 +1,45 @@
-From: "Douglass, Woody" <Woodrow.Douglass@QinetiQ-NA.com>
-Subject: Msleep doesn't return!
-Date: Tue, 27 Apr 2010 09:01:55 -0400
-Message-ID: <D110E3281F2BF547AA3350B5D27DC101013F6011@stafqnaomail.qnao.net>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PM][PATCH v3 2/4] OMAP3: Serial: Errata i202: fix for MDR1
+ access
+Date: Tue, 27 Apr 2010 09:04:50 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C01324E4457@dlee02.ent.ti.com>
+References: <[PM][PATCH v2 2/4] OMAP3: Serial: Errata i202: fix for MDR1
+ access> <1271097933-22981-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 65-125-11-136.dia.static.qwest.net ([65.125.11.136]:45381 "EHLO
-	mailgateway02.qinetiq-na.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753012Ab0D0NWg convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Apr 2010 09:22:36 -0400
-Received: from stafqnaomail2.qnao.net (localhost [127.0.0.1])
-	by mailgateway02.qinetiq-na.com (Spam & Virus Firewall) with ESMTP id F2CA2531D87
-	for <linux-omap@vger.kernel.org>; Tue, 27 Apr 2010 13:06:07 +0000 (GMT)
-Received: from stafqnaomail2.qnao.net ([10.18.123.31]) by mailgateway02.qinetiq-na.com with ESMTP id WJfh8zcH249bt95S for <linux-omap@vger.kernel.org>; Tue, 27 Apr 2010 13:06:07 +0000 (GMT)
-Content-class: urn:content-classes:message
+Received: from bear.ext.ti.com ([192.94.94.41]:38461 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752630Ab0D0OE7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 10:04:59 -0400
+In-Reply-To: <1271097933-22981-1-git-send-email-nm@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Kattungal, Deepak" <deepak.k@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, Tero Kristo <tero.kristo@nokia.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hello all,
+Kevin,
+> From: Menon, Nishanth 
+> Sent: Monday, April 12, 2010 1:46 PM
+> To: linux-omap
+> Cc: Kattungal, Deepak; Raja, Govindraj; Kevin Hilman; Tero 
+> Kristo; Menon, Nishanth
 
-Not sure if this is the right place to ask this, but I have a bit of a
-problem with the omap kernel.
+> 
+> From: Deepak K <deepak.k@ti.com>
+> 
+> Original patch:
+> http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=42d4
+> a342c009bd9727c100abc8a4bc3063c22f0c
+A gentle ping on my series, if there are no further comments, could you pull them in?
 
-I've added some patches to the 2.6.32-omap1 tag of the omap git tree to
-support a custom board. When I try to boot, about 30% of the time, it
-gets all the way to the prepare_namespace call (in init/do_mounts.c) and
-then the msleep call there doesn't return. I've confirmed this by adding
-printk statements before and after the msleep call, as well as with a
-BDI3000 jtag probe.
+1/4: https://patchwork.kernel.org/patch/91333/
+2/4 (V3): https://patchwork.kernel.org/patch/92068/
+3/4: https://patchwork.kernel.org/patch/91335/
+4/4: https://patchwork.kernel.org/patch/91334/
 
-Have any of you seen this issue? Do you have any suggestions of how I
-can debug this further?
+Regards,
+Nishanth Menon
 
-Thanks,
-Woody
-
-
-Confidentiality Note: The information contained in this message, and any attachments, may contain proprietary and/or privileged material. It is intended solely for the person or entity to which it is addressed. Any review, retransmission, dissemination, or taking of any action in reliance upon this information by persons or entities other than the intended recipient is prohibited. If you received this in error, please contact the sender and delete the material from any computer. 
