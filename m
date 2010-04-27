@@ -1,24 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5] OMAP2/3: I2C: Errata ID i207: Clear wrong RDR
- interrupt
-Date: Tue, 27 Apr 2010 08:00:34 -0700
-Message-ID: <20100427150034.GZ7225@atomide.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5] OMAP2/3: I2C: Errata ID i207: Clear wrong RDR interrupt
+Date: Tue, 27 Apr 2010 10:01:38 -0500
+Message-ID: <4BD6FC52.5000502@ti.com>
 References: <1272379645-20523-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56287 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756163Ab0D0PAf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 11:00:35 -0400
-Content-Disposition: inline
-In-Reply-To: <1272379645-20523-1-git-send-email-manjugk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1272379645-20523-1-git-send-email-manjugk-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, Aaro Koskinen <Aaro.Koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Manjunatha GK <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, ben-linux@fluff.org, "Kalliguddi, Hema" <hemahk@ti.com>, Nishanth Menon <nm@ti.com>, Aaro Koskinen <Aaro.Koskinen@nokia.com>
 
-* Manjunatha GK <manjugk@ti.com> [100427 07:21]:
+G, Manjunath Kondaiah had written, on 04/27/2010 09:47 AM, the following:
+> Under certain rare conditions, I2C_STAT[13].RDR bit may be set
+> and the corresponding interrupt fire, even there is no data in
+> the receive FIFO, or the I2C data transfer is still ongoing.
+> These spurious RDR events must be ignored by the software.
+> 
+> This patch handles and ignores RDR spurious interrupts.
+> 
+> The below sequence is required in interrupt handler for
+> handling this errata:
+> 1. If RDR is set to 1, clear RDR
+> 2. Read I2C status register and check for BusBusy bit. If BusBusy
+> bit is set, skip remaining steps.
+> 3. If BusBusy bit is not set, perform read operation on I2C status
+> register.
+> 4. If RDR is set, clear the same. Check RDR again and clear if it sets
+> RDR bit again.
+> 5. Perform I2C Data Read operation N number of times(where N is value
+> read from the register BUFSTAT-RXSTAT bit fields).
+> 
+> Note : This errata is applicable for OMAP2 and OMAP3 platforms only.
+> It is not applicable for OMAP4.
+> 
+> Signed-off-by: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
+> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+> Cc: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+> Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> Cc: Aaro Koskinen <Aaro.Koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |   39 +++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 39 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index ef73483..f232f96 100644
 > --- a/drivers/i2c/busses/i2c-omap.c
 > +++ b/drivers/i2c/busses/i2c-omap.c
 > @@ -199,6 +199,7 @@ struct omap_i2c_dev {
@@ -26,23 +56,19 @@ Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, ben-linux@fluff.org, 
 >  	u16			syscstate;
 >  	u16			westate;
 > +	bool			errata_i207;
+Just my 2cents:
+
+Could we use a u32 quirk? this will allow multiple similar quirks 
+(already existing in the driver to use this mechanism)
+
+and
+#define OMAP_I2C_QUIRK_i207	0x1
+/* we can add more quirks here and cleanup the i2c driver quiet a bit */
+
+#define IS_OMAP_I2C_QUIRK(d,q) ((d)->q & quirk)
+
 >  };
-
-Thanks for updating this.
-
-One more comment though to make this more generic for handling
-the other errata for i2c-omap.
-
-Can you please make errata_i207 to be just:
-
-	u16			errata;
-
-And then we can use it for handing all the i2c-omap errata.
-
-You also need something like
-
-#define I2C_OMAP_ERRATA_I207	(1 << 0)
-  
+>  
 >  const static u8 reg_map[] = {
 > @@ -498,6 +499,12 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
 >  	/* Take the I2C module out of reset: */
@@ -53,19 +79,11 @@ You also need something like
 > +	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
 > +		dev->errata_i207 = true;
 > +	}
+oneliner with {}? did you run checkpatch.pl?
 > +
 >  	/* Enable interrupts */
 >  	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
 >  			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
-
-Then update this for for the bitmask too
-
-	dev->errata = 0;
-
-	if (cpu_is_omap2430() || cpu_is_omap34xx())
-		dev->errata |= I2C_OMAP_ERRATA_I207;
-
-
 > @@ -695,6 +702,34 @@ omap_i2c_ack_stat(struct omap_i2c_dev *dev, u16 stat)
 >  	omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
 >  }
@@ -85,9 +103,6 @@ Then update this for for the bitmask too
 > +
 > +		/* Step 2: */
 > +		if(!(omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG)
-
-Here you should have a space after if (
-
 > +						& OMAP_I2C_STAT_BB)) {
 > +
 > +			/* Step 3: */
@@ -115,10 +130,8 @@ Here you should have a space after if (
 >  			if (dev->fifo_size) {
 >  				if (stat & OMAP_I2C_STAT_RRDY)
 >  					num_bytes = dev->fifo_size;
-> -- 
+looks good overall.. thanks..
 
-And here you would need to test for the bitmask instead.
-
+-- 
 Regards,
-
-Tony
+Nishanth Menon
