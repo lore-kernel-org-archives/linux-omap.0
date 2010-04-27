@@ -1,16 +1,16 @@
 From: Greg Ungerer <gerg@snapgear.com>
 Subject: Re: OMAP3: Linux Without a Boot Loader?
-Date: Tue, 27 Apr 2010 13:53:25 +1000
-Message-ID: <4BD65FB5.1030102@snapgear.com>
+Date: Tue, 27 Apr 2010 13:53:41 +1000
+Message-ID: <4BD65FC5.7060205@snapgear.com>
 References: <4BD61F7D.3060208@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rex.securecomputing.com ([203.24.151.4]:41014 "EHLO
+Received: from rex.securecomputing.com ([203.24.151.4]:41062 "EHLO
 	cyberguard.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753289Ab0D0DxQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 23:53:16 -0400
+	with ESMTP id S1753592Ab0D0Dx1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Apr 2010 23:53:27 -0400
 In-Reply-To: <4BD61F7D.3060208@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -93,7 +93,7 @@ Nishanth Menon wrote:
 
 Nicely done :-)
 
-Have you put up the "Sty" code anywhere for use to look at?
+Have you put up the "Sty" code anywhere for us to look at?
 
 Regards
 Greg
