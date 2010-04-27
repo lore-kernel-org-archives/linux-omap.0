@@ -1,46 +1,166 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH] OMAP: fix gpmc nand setup when no timings supplied
-Date: Tue, 27 Apr 2010 10:37:10 +0530
-Message-ID: <u2sce9ab5791004262207k84f108abi47793bf90449aca0@mail.gmail.com>
-References: <1271670618-5671-1-git-send-email-mike@compulab.co.il>
-	<4BCFDC6F.6010801@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7ADD@dbde02.ent.ti.com>
-	<4BCFF3C1.5070005@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7B5A@dbde02.ent.ti.com>
-	<4BD00C9A.8050601@compulab.co.il> <20100426181448.GG7225@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/1] omap iommu: introduce iteration macro for iotlb entry scan
+Date: Tue, 27 Apr 2010 08:37:12 +0300
+Message-ID: <1272346632-30435-1-git-send-email-Hiroshi.DOYU@nokia.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E4B571F42@dlee03.ent.ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f179.google.com ([209.85.221.179]:44317 "EHLO
-	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292Ab0D0FHb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 01:07:31 -0400
-Received: by qyk9 with SMTP id 9so18738676qyk.1
-        for <linux-omap@vger.kernel.org>; Mon, 26 Apr 2010 22:07:30 -0700 (PDT)
-In-Reply-To: <20100426181448.GG7225@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:19348 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750735Ab0D0Fiy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 01:38:54 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4B571F42@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mike Rapoport <mike@compulab.co.il>, "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: grgupta@ti.com, h-kanigeri2@ti.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-On Mon, Apr 26, 2010 at 11:44 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Mike Rapoport <mike@compulab.co.il> [100422 01:41]:
->> Ghorai, Sukumar wrote:
->>
->> CM-T35, for instance can be assembled with different NAND flash
->> chips. Besides, boards that use NAND as primary boot device, we
->> anyway depend on proper GPMC configuration in the bootloader chain.
->> Having ability to define GPMC timings in the kernel and keep the
->> settings made by the bootloader adds flexibility level for board
->> designers.
->
-> Not implementing the retime function for GPMC will cause issues
-> with PM as you cannot scale the L3 frequency without breaking
-> your GPMC timings.
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-BTW, there is a patch from Stanley.Miao already in LO:
-https://patchwork.kernel.org/patch/93613/
+There are some places to scan iotlb entries. This iteration macro
+could make these code a bit simpler with proceeding iotlb entries
+transparently.
 
-But it is still advisable to implement the retime function as stated by Tony.
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Tested-by: Hari Kanigeri <h-kanigeri2@ti.com>
+---
+ arch/arm/plat-omap/iommu.c |   58 +++++++++++++++++++++++--------------------
+ 1 files changed, 31 insertions(+), 27 deletions(-)
 
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index 532b849..dc29b77 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -24,6 +24,11 @@
+ 
+ #include "iopgtable.h"
+ 
++#define for_each_iotlb_cr(obj, n, __i, cr)				\
++	for (__i = 0;							\
++	     (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
++	     __i++)
++
+ /* accommodate the difference between omap1 and omap2/3 */
+ static const struct iommu_functions *arch_iommu;
+ 
+@@ -210,6 +215,20 @@ static inline ssize_t iotlb_dump_cr(struct iommu *obj, struct cr_regs *cr,
+ 	return arch_iommu->dump_cr(obj, cr, buf);
+ }
+ 
++/* only used in iotlb iteration for-loop */
++static struct cr_regs __iotlb_read_cr(struct iommu *obj, int n)
++{
++	struct cr_regs cr;
++	struct iotlb_lock l;
++
++	iotlb_lock_get(obj, &l);
++	l.vict = n;
++	iotlb_lock_set(obj, &l);
++	iotlb_read_cr(obj, &cr);
++
++	return cr;
++}
++
+ /**
+  * load_iotlb_entry - Set an iommu tlb entry
+  * @obj:	target iommu
+@@ -217,7 +236,6 @@ static inline ssize_t iotlb_dump_cr(struct iommu *obj, struct cr_regs *cr,
+  **/
+ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+ {
+-	int i;
+ 	int err = 0;
+ 	struct iotlb_lock l;
+ 	struct cr_regs *cr;
+@@ -234,21 +252,20 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
+ 		goto out;
+ 	}
+ 	if (!e->prsvd) {
+-		for (i = l.base; i < obj->nr_tlb_entries; i++) {
+-			struct cr_regs tmp;
++		int i;
++		struct cr_regs tmp;
+ 
+-			iotlb_lock_get(obj, &l);
+-			l.vict = i;
+-			iotlb_lock_set(obj, &l);
+-			iotlb_read_cr(obj, &tmp);
++		for_each_iotlb_cr(obj, obj->nr_tlb_entries, i, tmp)
+ 			if (!iotlb_cr_valid(&tmp))
+ 				break;
+-		}
++
+ 		if (i == obj->nr_tlb_entries) {
+ 			dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
+ 			err = -EBUSY;
+ 			goto out;
+ 		}
++
++		iotlb_lock_get(obj, &l);
+ 	} else {
+ 		l.vict = l.base;
+ 		iotlb_lock_set(obj, &l);
+@@ -284,20 +301,15 @@ EXPORT_SYMBOL_GPL(load_iotlb_entry);
+  **/
+ void flush_iotlb_page(struct iommu *obj, u32 da)
+ {
+-	struct iotlb_lock l;
+ 	int i;
++	struct cr_regs cr;
+ 
+ 	clk_enable(obj->clk);
+ 
+-	for (i = 0; i < obj->nr_tlb_entries; i++) {
+-		struct cr_regs cr;
++	for_each_iotlb_cr(obj, obj->nr_tlb_entries, i, cr) {
+ 		u32 start;
+ 		size_t bytes;
+ 
+-		iotlb_lock_get(obj, &l);
+-		l.vict = i;
+-		iotlb_lock_set(obj, &l);
+-		iotlb_read_cr(obj, &cr);
+ 		if (!iotlb_cr_valid(&cr))
+ 			continue;
+ 
+@@ -307,7 +319,6 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
+ 		if ((start <= da) && (da < start + bytes)) {
+ 			dev_dbg(obj->dev, "%s: %08x<=%08x(%x)\n",
+ 				__func__, start, da, bytes);
+-			iotlb_load_cr(obj, &cr);
+ 			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
+ 		}
+ 	}
+@@ -378,26 +389,19 @@ EXPORT_SYMBOL_GPL(iommu_dump_ctx);
+ static int __dump_tlb_entries(struct iommu *obj, struct cr_regs *crs, int num)
+ {
+ 	int i;
+-	struct iotlb_lock saved, l;
++	struct iotlb_lock saved;
++	struct cr_regs tmp;
+ 	struct cr_regs *p = crs;
+ 
+ 	clk_enable(obj->clk);
+-
+ 	iotlb_lock_get(obj, &saved);
+-	memcpy(&l, &saved, sizeof(saved));
+ 
+-	for (i = 0; i < num; i++) {
+-		struct cr_regs tmp;
+-
+-		iotlb_lock_get(obj, &l);
+-		l.vict = i;
+-		iotlb_lock_set(obj, &l);
+-		iotlb_read_cr(obj, &tmp);
++	for_each_iotlb_cr(obj, num, i, tmp) {
+ 		if (!iotlb_cr_valid(&tmp))
+ 			continue;
+-
+ 		*p++ = tmp;
+ 	}
++
+ 	iotlb_lock_set(obj, &saved);
+ 	clk_disable(obj->clk);
+ 
 -- 
-Regards,
-Vimal Singh
+1.7.1.rc1
+
