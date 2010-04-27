@@ -1,61 +1,57 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH] ARM:iommu support for OMAP4
-Date: Tue, 27 Apr 2010 07:50:28 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B572408@dlee03.ent.ti.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E4B216AE2@dlee03.ent.ti.com>
- <20100419.095028.193685755.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv2 0/4] Adding soc related info into /proc/cpuinfo
+Date: Tue, 27 Apr 2010 16:14:11 +0300
+Message-ID: <1272374055-9656-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34798 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752146Ab0D0Muh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 08:50:37 -0400
-In-Reply-To: <20100419.095028.193685755.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:17660 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752230Ab0D0NPP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 09:15:15 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>
+Cc: ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "\\\"De-Schrijver Peter (Nokia-D/Helsinki)\\\"" <Peter.De-Schrijver@nokia.com>, santosh.shilimkar@ti.com, Eduardo Valentin <eduardo.valentin@nokia.com>
 
+Hello all,
 
-Hi,
+Here is the version 2 of this series. Now die id is protected using
+same x86 protection mechanism to hide x86 product number. Besides,
+a compilation Kconfig option has been added for DIE ID as well.
 
-> -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> Sent: Monday, April 19, 2010 1:50 AM
-> To: Kanigeri, Hari; paul@pwsan.com; khilman@deeprootsystems.com
-> Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh; tony@atomide.com
-> Subject: Re: [PATCH] ARM:iommu support for OMAP4
-> 
-> Hi Hari,
-> 
-> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> Subject: [PATCH] ARM:iommu support for OMAP4
-> Date: Fri, 16 Apr 2010 18:17:09 +0200
-> 
-> > From 708914e1a82a608d423b050cb31b4deb46eb8411 Mon Sep 17 00:00:00 2001
-> > From: Hari Kanigeri <h-kanigeri2@ti.com>
-> > Date: Mon, 8 Mar 2010 17:55:21 -0600
-> > Subject: [PATCH] ARM:iommu support for OMAP4
-> >
-> > This patch provides the iommu support for OMAP4 co-processors.
-> 
-> This looks ok for now mostly. some minor fix are pointed out by
-> Santosh, though.
-> 
-> In the long run, I guess that, this should be converted to "hwmod"?
-> 
-> ref: http://marc.info/?l=linux-omap&m=127012520411256&w=2 
+Here is previous PATCH 0/4 message:
 
-Looks like for OMAP4 we currently don't have the mechanism to manage the 3 resets to Ducati (MMU, M3_0, M3_1) independently and they are all tied to one hwmod (ducati). I didn't check the OMAP3 implementation but hopefully the reset lines for MMU and IVA are not tied to one hwmod.
+This series is to continue what has been discussed several weeks ago
+wrt IDCODE patch. Original patch was made by Peter and discussion is here:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17553.html
 
-We would need independent control over these reset pins as RST3 (MMU) will be needed for programming MMU prior to bringing cores out of reset, RST_1 will be needed to control just M3_0 core, and RST_2 will be needed for M3_1.
+So, the conclusion was that IDCODE info is useful even in production systems,
+and for that debugfs is not a good choice to export it. One suggestion was to
+add it under /proc/cpuinfo. However this entry nowadays exports only ARM related
+information.
 
-I think until this change is done it will be difficult to migrate to hwmod for iommu.
+So this series does the trick by extending the ARM /proc/cpuinfo to include
+soc info data. There are a few ways to add a hook for soc specific data. But
+I've decided to implement it via the simplest way I found. Basically it is
+same thing which is done for system_rev, system_serial_low and system_serial_high.
+Then, now we have system_soc_info, which is printed only if there is something
+useful there.
 
-Thank you,
-Best regards,
-Hari
+As usual, comments are welcome.
+
+BR,
+
+--
+Eduardo Valentin (4):
+  ARM: Introduce SoC Info into /proc/cpuinfo
+  mach-omap2: Add SoC info data for OMAP2,3,4 into /proc/cpuinfo
+  mach-omap1: Add SoC info data for OMAP1 into /proc/cpuinfo
+  OMAP3: PM: export chip IDCODE, Production ID and Die ID
+
+ Documentation/kernel-parameters.txt |    2 +
+ arch/arm/include/asm/system.h       |    2 +
+ arch/arm/kernel/setup.c             |    5 +++
+ arch/arm/mach-omap1/id.c            |   18 +++++++----
+ arch/arm/mach-omap2/Kconfig         |   10 ++++++
+ arch/arm/mach-omap2/id.c            |   55 +++++++++++++++++++++++++++++++----
+ 6 files changed, 80 insertions(+), 12 deletions(-)
 
