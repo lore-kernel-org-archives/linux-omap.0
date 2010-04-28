@@ -1,63 +1,153 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Subject: Re: [PATCH 4/4] omap: mailbox: convert block api to kfifo
-Date: Wed, 28 Apr 2010 14:02:45 +0300
-Message-ID: <h2hda15981b1004280402vbd5f9433g7e51d2b039de5936@mail.gmail.com>
-References: <1272390982-14882-1-git-send-email-ohad@wizery.com>
-	<1272390982-14882-5-git-send-email-ohad@wizery.com> <20100428.085624.183054155.Hiroshi.DOYU@nokia.com>
+Date: Wed, 28 Apr 2010 14:16:20 +0300 (EEST)
+Message-ID: <20100428.141620.59684829.Hiroshi.DOYU@nokia.com>
+References: <1272390982-14882-5-git-send-email-ohad@wizery.com>
+	<20100428.085254.112592556.Hiroshi.DOYU@nokia.com>
+	<t2rda15981b1004280402rc7ce3cc7g622620086439ff90@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f217.google.com ([209.85.217.217]:34937 "EHLO
-	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342Ab0D1LDH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 07:03:07 -0400
-Received: by gxk9 with SMTP id 9so1759448gxk.8
-        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 04:03:05 -0700 (PDT)
-In-Reply-To: <20100428.085624.183054155.Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:28370 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750762Ab0D1LQd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 07:16:33 -0400
+In-Reply-To: <t2rda15981b1004280402rc7ce3cc7g622620086439ff90@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: ohad@wizery.com
 Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
 
-On Wed, Apr 28, 2010 at 8:56 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> =
-wrote:
-> From: ext Ohad Ben-Cohen <ohad@wizery.com>
-> Subject: [PATCH 4/4] omap: mailbox: convert block api to kfifo
-> Date: Tue, 27 Apr 2010 19:56:22 +0200
->
->> The underlying buffering implementation of mailbox
->> is converted from block API to kfifo due to the simplicity
->> and speed of kfifo.
+=46rom: ext Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 4/4] omap: mailbox: convert block api to kfifo
+Date: Wed, 28 Apr 2010 13:02:06 +0200
+
+>>> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mail=
+box.c
+>>> index 72b17ad..b1324f3 100644
+>>> --- a/arch/arm/plat-omap/mailbox.c
+>>> +++ b/arch/arm/plat-omap/mailbox.c
+>>> @@ -26,6 +26,7 @@
+>>> =A0#include <linux/device.h>
+>>> =A0#include <linux/delay.h>
+>>> =A0#include <linux/slab.h>
+>>> +#include <linux/kfifo.h>
+>>>
+>>> =A0#include <plat/mailbox.h>
+>>>
+>>> @@ -67,7 +68,7 @@ static inline int is_mbox_irq(struct omap_mbox *m=
+box, omap_mbox_irq_t irq)
+>>> =A0/*
+>>> =A0 * message sender
+>>> =A0 */
+>>> -static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+>>> +static int __mbox_poll_for_space(struct omap_mbox *mbox)
+>>> =A0{
+>>> =A0 =A0 =A0 int ret =3D 0, i =3D 1000;
+>>>
+>>> @@ -78,49 +79,54 @@ static int __mbox_msg_send(struct omap_mbox *mb=
+ox, mbox_msg_t msg)
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -1;
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 udelay(1);
+>>> =A0 =A0 =A0 }
+>>> - =A0 =A0 mbox_fifo_write(mbox, msg);
+>>> =A0 =A0 =A0 return ret;
+>>> =A0}
+>>>
+>>> -
+>>> =A0int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+>>> =A0{
+>>> + =A0 =A0 struct omap_mbox_queue *mq =3D mbox->txq;
+>>> + =A0 =A0 int ret =3D 0, len;
+>>>
+>>> - =A0 =A0 struct request *rq;
+>>> - =A0 =A0 struct request_queue *q =3D mbox->txq->queue;
+>>> + =A0 =A0 spin_lock(&mq->lock);
+>>>
+>>> - =A0 =A0 rq =3D blk_get_request(q, WRITE, GFP_ATOMIC);
+>>> - =A0 =A0 if (unlikely(!rq))
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+>>> + =A0 =A0 if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 goto out;
+>>> + =A0 =A0 }
+>>> +
+>>> + =A0 =A0 len =3D kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof=
+(msg));
+>>> + =A0 =A0 if (unlikely(len !=3D sizeof(msg))) {
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: kfifo_in anomaly\n", __func__=
+);
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
+>>> + =A0 =A0 }
+>>>
+>>> - =A0 =A0 blk_insert_request(q, rq, 0, (void *) msg);
+>>> =A0 =A0 =A0 tasklet_schedule(&mbox->txq->tasklet);
+>>>
+>>> - =A0 =A0 return 0;
+>>> +out:
+>>> + =A0 =A0 spin_unlock(&mq->lock);
+>>> + =A0 =A0 return ret;
+>>> =A0}
+>>> =A0EXPORT_SYMBOL(omap_mbox_msg_send);
+>>>
+>>> =A0static void mbox_tx_tasklet(unsigned long tx_data)
+>>> =A0{
+>>> - =A0 =A0 int ret;
+>>> - =A0 =A0 struct request *rq;
+>>> =A0 =A0 =A0 struct omap_mbox *mbox =3D (struct omap_mbox *)tx_data;
+>>> - =A0 =A0 struct request_queue *q =3D mbox->txq->queue;
+>>> -
+>>> - =A0 =A0 while (1) {
+>>> -
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 rq =3D blk_fetch_request(q);
+>>> -
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!rq)
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>>> + =A0 =A0 struct omap_mbox_queue *mq =3D mbox->txq;
+>>> + =A0 =A0 mbox_msg_t msg;
+>>> + =A0 =A0 int ret;
+>>>
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 ret =3D __mbox_msg_send(mbox, (mbox_msg_t=
+)rq->special);
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
+>>> + =A0 =A0 while (kfifo_len(&mq->fifo)) {
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 if (__mbox_poll_for_space(mbox)) {
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_mbox_enable_irq(mb=
+ox, IRQ_TX);
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 blk_requeue_request(q, rq=
+);
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 blk_end_request_all(rq, 0);
+>>> +
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D kfifo_out(&mq->fifo, (unsigned ch=
+ar *)&msg,
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sizeof(msg));
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 if (unlikely(ret !=3D sizeof(msg)))
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: kfifo_out ano=
+maly\n", __func__);
 >>
->> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
->> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
->> ---
->> =A0arch/arm/plat-omap/include/plat/mailbox.h | =A0 =A05 +-
->> =A0arch/arm/plat-omap/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0108 =
-+++++++++++++----------------
->> =A02 files changed, 52 insertions(+), 61 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/pl=
-at-omap/include/plat/mailbox.h
->> index 729166b..014cc58 100644
->> --- a/arch/arm/plat-omap/include/plat/mailbox.h
->> +++ b/arch/arm/plat-omap/include/plat/mailbox.h
->> @@ -7,6 +7,7 @@
->> =A0#include <linux/workqueue.h>
->> =A0#include <linux/blkdev.h>
->
-> Also the above is not necessary?
+>> No error recovery? same for other anomalies.
+>=20
+> I thought about it too, but eventually I think it doesn't really make
+> a lot of sense:
+> The only reason that kfifo_out/kfifo_in can fail here is if there's
+> not enough data/space (respectively).
+> Since we are checking for the availability of data/space before calli=
+ng
+> kfifo_out/kfifo_in, it cannot really fail.
+> If it does fail, that's a critical bug that we cannot really recover =
+from.
+> Only reasonable explanation can be a bug in the code (either ours or =
+kfifo's),
+> and with such a bug it really feels futile to put some recovery.
+> So maybe we should really make this a WARN_ON.
+> What do you think ?
 
-Good point. It will be removed.
-
-Thanks,
-Ohad.
-
->
->> =A0#include <linux/interrupt.h>
->> +#include <linux/kfifo.h>
->
+Makes sense. What about BUG_ON if it shouldn't happen theoretically?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
