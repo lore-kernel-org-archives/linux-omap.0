@@ -1,7 +1,7 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2 19/19] DSPBRIDGE: reorganize the code to handle peripheral clocks
-Date: Wed, 28 Apr 2010 10:29:57 -0500
-Message-ID: <1272468597-6748-20-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v2 18/19] DSPBRIDGE: move clk to dsp-clock
+Date: Wed, 28 Apr 2010 10:29:56 -0500
+Message-ID: <1272468597-6748-19-git-send-email-omar.ramirez@ti.com>
 References: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-2-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-3-git-send-email-omar.ramirez@ti.com>
@@ -20,286 +20,769 @@ References: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-16-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-17-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-18-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-19-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53602 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55481 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755011Ab0D1PZA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755026Ab0D1PZA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 28 Apr 2010 11:25:00 -0400
-In-Reply-To: <1272468597-6748-19-git-send-email-omar.ramirez@ti.com>
+In-Reply-To: <1272468597-6748-18-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Omar Ramirez Luna <omar.ramirez@hotmail.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-This patch moves and simplifies the code used to enable/disable
-all the requested peripheral clocks.
+Rename file and move it outside services layer.
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@hotmail.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/clk.h |    4 ++
- drivers/dsp/bridge/rmgr/drv_interface.c    |    1 +
- drivers/dsp/bridge/wmd/_tiomap_pwr.h       |   17 ----------
- drivers/dsp/bridge/wmd/dsp-clock.c         |   43 +++++++++++++++++++++++++
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c    |   47 +++-------------------------
- drivers/dsp/bridge/wmd/tiomap_io.c         |    4 +-
- drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
- 7 files changed, 56 insertions(+), 62 deletions(-)
+ drivers/dsp/bridge/Makefile             |    4 +-
+ drivers/dsp/bridge/rmgr/drv_interface.c |    2 +
+ drivers/dsp/bridge/services/clk.c       |  334 -------------------------------
+ drivers/dsp/bridge/services/services.c  |    3 -
+ drivers/dsp/bridge/wmd/dsp-clock.c      |  334 +++++++++++++++++++++++++++++++
+ 5 files changed, 338 insertions(+), 339 deletions(-)
+ delete mode 100644 drivers/dsp/bridge/services/clk.c
+ create mode 100644 drivers/dsp/bridge/wmd/dsp-clock.c
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/clk.h b/arch/arm/plat-omap/include/dspbridge/clk.h
-index e6b09c7..439fc2d 100644
---- a/arch/arm/plat-omap/include/dspbridge/clk.h
-+++ b/arch/arm/plat-omap/include/dspbridge/clk.h
-@@ -75,6 +75,8 @@ extern void dsp_clk_init(void);
-  */
- extern dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id);
+diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
+index e243670..8b9a681 100644
+--- a/drivers/dsp/bridge/Makefile
++++ b/drivers/dsp/bridge/Makefile
+@@ -1,11 +1,11 @@
+ obj-$(CONFIG_MPU_BRIDGE)	+= bridgedriver.o
  
-+u32 dsp_clock_enable_all(u32 dsp_per_clocks);
-+
- /*
-  *  ======== dsp_clk_disable ========
-  *  Purpose:
-@@ -90,6 +92,8 @@ extern dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id);
- 
- extern u32 dsp_clk_get_iva2_rate(void);
- 
-+u32 dsp_clock_disable_all(u32 dsp_per_clocks);
-+
- extern void ssi_clk_prepare(bool FLAG);
- 
- #endif /* _SYNC_H */
+ libgen = gen/gb.o gen/gs.o gen/gh.o gen/uuidutil.o
+-libservices = services/sync.o services/clk.o services/cfg.o \
++libservices = services/sync.o services/cfg.o \
+ 		services/ntfy.o services/services.o
+ libwmd = wmd/chnl_sm.o wmd/msg_sm.o wmd/io_sm.o wmd/tiomap3430.o \
+ 		wmd/tiomap3430_pwr.o wmd/tiomap_io.o \
+-		wmd/mmu_fault.o wmd/ue_deh.o wmd/wdt.o
++		wmd/mmu_fault.o wmd/ue_deh.o wmd/wdt.o wmd/dsp-clock.o
+ libpmgr = pmgr/chnl.o pmgr/io.o pmgr/msg.o pmgr/cod.o pmgr/dev.o pmgr/wcd.o \
+ 		pmgr/dmm.o pmgr/cmm.o pmgr/dbll.o
+ librmgr = rmgr/dbdcd.o rmgr/disp.o rmgr/drv.o rmgr/mgr.o rmgr/node.o \
 diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index db1c746..04b17be 100644
+index ea2a5f3..db1c746 100644
 --- a/drivers/dsp/bridge/rmgr/drv_interface.c
 +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -41,6 +41,7 @@
+@@ -285,6 +285,7 @@ static int __devinit omap34_xx_bridge_probe(struct platform_device *pdev)
+ 	}
+ #endif
  
- /*  ----------------------------------- OS Adaptation Layer */
- #include <dspbridge/services.h>
-+#include <dspbridge/clk.h>
- #include <dspbridge/sync.h>
++	dsp_clk_init();
+ 	services_init();
  
- /*  ----------------------------------- Platform Manager */
-diff --git a/drivers/dsp/bridge/wmd/_tiomap_pwr.h b/drivers/dsp/bridge/wmd/_tiomap_pwr.h
-index a7a4fc2..1948e83 100644
---- a/drivers/dsp/bridge/wmd/_tiomap_pwr.h
-+++ b/drivers/dsp/bridge/wmd/_tiomap_pwr.h
-@@ -64,23 +64,6 @@ dsp_status pre_scale_dsp(struct wmd_dev_context *dev_context, IN void *pargs);
-  */
- dsp_status handle_constraints_set(struct wmd_dev_context *dev_context,
- 				  IN void *pargs);
+ 	/*  Autostart flag.  This should be set to true if the DSP image should
+@@ -382,6 +383,7 @@ static int __devexit omap34_xx_bridge_remove(struct platform_device *pdev)
+ func_cont:
+ 	mem_ext_phys_pool_release();
+ 
++	dsp_clk_exit();
+ 	services_exit();
+ 
+ 	devno = MKDEV(driver_major, 0);
+diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
+deleted file mode 100644
+index c4f0874..0000000
+--- a/drivers/dsp/bridge/services/clk.c
++++ /dev/null
+@@ -1,334 +0,0 @@
 -/*
-- *  ======== dsp_peripheral_clocks_disable ========
-- *  	This function disables all the peripheral clocks that
-- *	were enabled by DSP. Call this function only when
-- *	DSP is entering Hibernation or when DSP is in
-- *	Error state
+- * clk.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Clock and Timer services.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 - */
--dsp_status dsp_peripheral_clocks_disable(struct wmd_dev_context *dev_context,
--					 IN void *pargs);
 -
--/*
-- *  ======== dsp_peripheral_clocks_enable ========
-- *  	This function enables all the peripheral clocks that
-- *	were requested by DSP.
-- */
--dsp_status dsp_peripheral_clocks_enable(struct wmd_dev_context *dev_context,
--					IN void *pargs);
- 
- /*
-  *  ======== dsp_clk_wakeup_event_ctrl ========
-diff --git a/drivers/dsp/bridge/wmd/dsp-clock.c b/drivers/dsp/bridge/wmd/dsp-clock.c
-index c4f0874..608ff03 100644
---- a/drivers/dsp/bridge/wmd/dsp-clock.c
-+++ b/drivers/dsp/bridge/wmd/dsp-clock.c
-@@ -115,6 +115,8 @@ static s8 get_clk_type(u8 id)
-  */
- void dsp_clk_exit(void)
- {
-+	dsp_clock_disable_all(dsp_clocks);
-+
- 	clk_put(iva2_clk);
- 	clk_put(ssi.sst_fck);
- 	clk_put(ssi.ssr_fck);
-@@ -247,6 +249,25 @@ out:
- 	return status;
- }
- 
-+/**
-+ * dsp_clock_enable_all - Enable clocks used by the DSP
-+ * @dev_context		Driver's device context strucure
-+ *
-+ * This function enables all the peripheral clocks that were requested by DSP.
-+ */
-+u32 dsp_clock_enable_all(u32 dsp_per_clocks)
-+{
-+	u32 clk_id;
-+	u32 status = -EPERM;
-+
-+	for (clk_id = 0; clk_id < DSP_CLK_NOT_DEFINED; clk_id++) {
-+		if (is_dsp_clk_active(dsp_per_clocks, clk_id))
-+			status = dsp_clk_enable(clk_id);
-+	}
-+
-+	return status;
-+}
-+
- /*
-  *  ======== dsp_clk_disable ========
-  *  Purpose:
-@@ -295,6 +316,27 @@ out:
- 	return status;
- }
- 
-+/**
-+ * dsp_clock_disable_all - Disable all active clocks
-+ * @dev_context		Driver's device context structure
-+ *
-+ * This function disables all the peripheral clocks that were enabled by DSP.
-+ * It is meant to be called only when DSP is entering hibernation or when DSP
-+ * is in error state.
-+ */
-+u32 dsp_clock_disable_all(u32 dsp_per_clocks)
-+{
-+	u32 clk_id;
-+	u32 status = -EPERM;
-+
-+	for (clk_id = 0; clk_id < DSP_CLK_NOT_DEFINED; clk_id++) {
-+		if (is_dsp_clk_active(dsp_per_clocks, clk_id))
-+			status = dsp_clk_disable(clk_id);
-+	}
-+
-+	return status;
-+}
-+
- u32 dsp_clk_get_iva2_rate(void)
- {
- 	u32 clk_speed_khz;
-@@ -332,3 +374,4 @@ void ssi_clk_prepare(bool FLAG)
- 	__raw_writel(value, ssi_base + OMAP_SSI_SYSCONFIG_OFFSET);
- 	iounmap(ssi_base);
- }
-+
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 6d1d557..906c2c5 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -112,7 +112,7 @@ dsp_status handle_hibernation_from_dsp(struct wmd_dev_context *dev_context)
- 		omap_mbox_save_ctx(dev_context->mbox);
- 
- 		/* Turn off DSP Peripheral clocks and DSP Load monitor timer */
--		status = dsp_peripheral_clocks_disable(dev_context, NULL);
-+		status = dsp_clock_disable_all(dev_context->dsp_per_clks);
- 
- 		/* Disable wdt on hibernation. */
- 		dsp_wdt_enable(false);
-@@ -230,7 +230,7 @@ dsp_status sleep_dsp(struct wmd_dev_context *dev_context, IN u32 dw_cmd,
- 		dsp_wdt_enable(false);
- 
- 		/* Turn off DSP Peripheral clocks */
--		status = dsp_peripheral_clocks_disable(dev_context, NULL);
-+		status = dsp_clock_disable_all(dev_context->dsp_per_clks);
- 		if (DSP_FAILED(status)) {
- 			return status;
- 		}
-@@ -316,14 +316,15 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
- 					  false);
- 		if (DSP_SUCCEEDED(status)) {
- 			(dev_context->dsp_per_clks) &=
--			    (~((u32) (1 << clk_id_index)));
-+				(~((u32) (1 << bpwr_clks[clk_id_index].clk)));
- 		}
- 		break;
- 	case BPWR_ENABLE_CLOCK:
- 		status = dsp_clk_enable(bpwr_clks[clk_id_index].clk);
- 		dsp_clk_wakeup_event_ctrl(bpwr_clks[clk_id_index].clk_id, true);
- 		if (DSP_SUCCEEDED(status))
--			(dev_context->dsp_per_clks) |= (1 << clk_id_index);
-+			(dev_context->dsp_per_clks) |=
-+				(1 << bpwr_clks[clk_id_index].clk);
- 		break;
- 	default:
- 		dev_dbg(bridge, "%s: Unsupported CMD\n", __func__);
-@@ -409,44 +410,6 @@ dsp_status post_scale_dsp(struct wmd_dev_context *dev_context, IN void *pargs)
- 	return status;
- }
- 
--/*
-- *  ========dsp_peripheral_clocks_disable========
-- *  Disables all the peripheral clocks that were requested by DSP
-- */
--dsp_status dsp_peripheral_clocks_disable(struct wmd_dev_context *dev_context,
--					 IN void *pargs)
+-/*  ----------------------------------- Host OS */
+-#include <dspbridge/host_os.h>
+-#include <plat/dmtimer.h>
+-#include <plat/mcbsp.h>
+-
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dspbridge/std.h>
+-#include <dspbridge/dbdefs.h>
+-#include <dspbridge/errbase.h>
+-#include <dspbridge/cfg.h>
+-#include <dspbridge/drv.h>
+-#include <dspbridge/dev.h>
+-#include "_tiomap.h"
+-
+-/*  ----------------------------------- Trace & Debug */
+-#include <dspbridge/dbc.h>
+-
+-/*  ----------------------------------- This */
+-#include <dspbridge/clk.h>
+-
+-/*  ----------------------------------- Defines, Data Structures, Typedefs */
+-
+-#define OMAP_SSI_OFFSET			0x58000
+-#define OMAP_SSI_SIZE			0x1000
+-#define OMAP_SSI_SYSCONFIG_OFFSET	0x10
+-
+-#define SSI_AUTOIDLE			(1 << 0)
+-#define SSI_SIDLE_SMARTIDLE		(2 << 3)
+-#define SSI_MIDLE_NOIDLE		(1 << 12)
+-
+-/* Clk types requested by the dsp */
+-#define IVA2_CLK	0
+-#define GPT_CLK		1
+-#define WDT_CLK		2
+-#define MCBSP_CLK	3
+-#define SSI_CLK		4
+-
+-/* Bridge GPT id (1 - 4), DM Timer id (5 - 8) */
+-#define DMT_ID(id) ((id) + 4)
+-
+-/* Bridge MCBSP id (6 - 10), OMAP Mcbsp id (0 - 4) */
+-#define MCBSP_ID(id) ((id) - 6)
+-
+-static struct omap_dm_timer *timer[4];
+-
+-struct clk *iva2_clk;
+-
+-struct dsp_ssi {
+-	struct clk *sst_fck;
+-	struct clk *ssr_fck;
+-	struct clk *ick;
+-};
+-
+-static struct dsp_ssi ssi;
+-
+-static u32 dsp_clocks;
+-
+-static inline u32 is_dsp_clk_active(u32 clk, u8 id)
 -{
--	u32 clk_idx;
--	dsp_status status = DSP_SOK;
+-	return clk & (1 << id);
+-}
 -
--	for (clk_idx = 0; clk_idx < MBX_PM_MAX_RESOURCES; clk_idx++) {
--		if (((dev_context->dsp_per_clks) >> clk_idx) & 0x01) {
--			/* Disables the clocks of the peripheral */
--			status = dsp_clk_disable(bpwr_clks[clk_idx].clk);
+-static inline void set_dsp_clk_active(u32 *clk, u8 id)
+-{
+-	*clk |= (1 << id);
+-}
+-
+-static inline void set_dsp_clk_inactive(u32 *clk, u8 id)
+-{
+-	*clk &= ~(1 << id);
+-}
+-
+-static s8 get_clk_type(u8 id)
+-{
+-	s8 type;
+-
+-	if (id == DSP_CLK_IVA2)
+-		type = IVA2_CLK;
+-	else if (id <= DSP_CLK_GPT8)
+-		type = GPT_CLK;
+-	else if (id == DSP_CLK_WDT3)
+-		type = WDT_CLK;
+-	else if (id <= DSP_CLK_MCBSP5)
+-		type = MCBSP_CLK;
+-	else if (id == DSP_CLK_SSI)
+-		type = SSI_CLK;
+-	else
+-		type = -1;
+-
+-	return type;
+-}
+-
+-/*
+- *  ======== dsp_clk_exit ========
+- *  Purpose:
+- *      Cleanup CLK module.
+- */
+-void dsp_clk_exit(void)
+-{
+-	clk_put(iva2_clk);
+-	clk_put(ssi.sst_fck);
+-	clk_put(ssi.ssr_fck);
+-	clk_put(ssi.ick);
+-}
+-
+-/*
+- *  ======== dsp_clk_init ========
+- *  Purpose:
+- *      Initialize CLK module.
+- */
+-void dsp_clk_init(void)
+-{
+-	static struct platform_device dspbridge_device;
+-
+-	dspbridge_device.dev.bus = &platform_bus_type;
+-
+-	iva2_clk = clk_get(&dspbridge_device.dev, "iva2_ck");
+-	if (IS_ERR(iva2_clk))
+-		dev_err(bridge, "failed to get iva2 clock %p\n", iva2_clk);
+-
+-	ssi.sst_fck = clk_get(&dspbridge_device.dev, "ssi_sst_fck");
+-	ssi.ssr_fck = clk_get(&dspbridge_device.dev, "ssi_ssr_fck");
+-	ssi.ick = clk_get(&dspbridge_device.dev, "ssi_ick");
+-
+-	if (IS_ERR(ssi.sst_fck) || IS_ERR(ssi.ssr_fck) || IS_ERR(ssi.ick))
+-		dev_err(bridge, "failed to get ssi: sst %p, ssr %p, ick %p\n",
+-					ssi.sst_fck, ssi.ssr_fck, ssi.ick);
+-}
+-
+-static void mcbsp_clk_prepare(bool flag, u8 id)
+-{
+-	struct cfg_hostres *resources;
+-	struct dev_object *hdev_object = NULL;
+-	struct wmd_dev_context *wmd_context = NULL;
+-	u32 val;
+-
+-	hdev_object = (struct dev_object *)drv_get_first_dev_object();
+-	if (!hdev_object)
+-		return;
+-
+-	dev_get_wmd_context(hdev_object, &wmd_context);
+-	if (!wmd_context)
+-		return;
+-
+-	resources = wmd_context->resources;
+-	if (!resources)
+-		return;
+-
+-	if (flag) {
+-		if (id == DSP_CLK_MCBSP1) {
+-			/* set MCBSP1_CLKS, on McBSP1 ON */
+-			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
+-			val |= 1 << 2;
+-			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
+-		} else if (id == DSP_CLK_MCBSP2) {
+-			/* set MCBSP2_CLKS, on McBSP2 ON */
+-			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
+-			val |= 1 << 6;
+-			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
+-		}
+-	} else {
+-		if (id == DSP_CLK_MCBSP1) {
+-			/* clear MCBSP1_CLKS, on McBSP1 OFF */
+-			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
+-			val &= ~(1 << 2);
+-			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
+-		} else if (id == DSP_CLK_MCBSP2) {
+-			/* clear MCBSP2_CLKS, on McBSP2 OFF */
+-			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
+-			val &= ~(1 << 6);
+-			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
 -		}
 -	}
+-}
+-
+-/*
+- *  ======== dsp_clk_enable ========
+- *  Purpose:
+- *      Enable Clock .
+- *
+- */
+-dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
+-{
+-	dsp_status status = DSP_SOK;
+-
+-	if (is_dsp_clk_active(dsp_clocks, clk_id)) {
+-		dev_err(bridge, "WARN: clock id %d already enabled\n", clk_id);
+-		goto out;
+-	}
+-
+-	switch (get_clk_type(clk_id)) {
+-	case IVA2_CLK:
+-		clk_enable(iva2_clk);
+-		break;
+-	case GPT_CLK:
+-		timer[clk_id] = omap_dm_timer_request_specific(DMT_ID(clk_id));
+-		break;
+-	case MCBSP_CLK:
+-		mcbsp_clk_prepare(true, clk_id);
+-		omap_mcbsp_set_io_type(MCBSP_ID(clk_id), OMAP_MCBSP_POLL_IO);
+-		omap_mcbsp_request(MCBSP_ID(clk_id));
+-		break;
+-	case WDT_CLK:
+-		dev_err(bridge, "ERROR: DSP requested to enable WDT3 clk\n");
+-		break;
+-	case SSI_CLK:
+-		clk_enable(ssi.sst_fck);
+-		clk_enable(ssi.ssr_fck);
+-		clk_enable(ssi.ick);
+-
+-		/*
+-		 * The SSI module need to configured not to have the Forced
+-		 * idle for master interface. If it is set to forced idle,
+-		 * the SSI module is transitioning to standby thereby causing
+-		 * the client in the DSP hang waiting for the SSI module to
+-		 * be active after enabling the clocks
+-		 */
+-		ssi_clk_prepare(true);
+-		break;
+-	default:
+-		dev_err(bridge, "Invalid clock id for enable\n");
+-		status = -EPERM;
+-	}
+-
+-	if (DSP_SUCCEEDED(status))
+-		set_dsp_clk_active(&dsp_clocks, clk_id);
+-
+-out:
 -	return status;
 -}
 -
 -/*
-- *  ========dsp_peripheral_clocks_enable========
-- *  Enables all the peripheral clocks that were requested by DSP
+- *  ======== dsp_clk_disable ========
+- *  Purpose:
+- *      Disable the clock.
+- *
 - */
--dsp_status dsp_peripheral_clocks_enable(struct wmd_dev_context *dev_context,
--					IN void *pargs)
+-dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
 -{
--	u32 clk_idx;
--	dsp_status clk_status = -EPERM;
+-	dsp_status status = DSP_SOK;
 -
--	for (clk_idx = 0; clk_idx < MBX_PM_MAX_RESOURCES; clk_idx++) {
--		if (((dev_context->dsp_per_clks) >> clk_idx) & 0x01) {
--			/* Enable the clocks of the peripheral */
--			clk_status = dsp_clk_enable(bpwr_clks[clk_idx].clk);
--		}
+-	if (!is_dsp_clk_active(dsp_clocks, clk_id)) {
+-		dev_err(bridge, "ERR: clock id %d already disabled\n", clk_id);
+-		goto out;
 -	}
--	return clk_status;
+-
+-	switch (get_clk_type(clk_id)) {
+-	case IVA2_CLK:
+-		clk_disable(iva2_clk);
+-		break;
+-	case GPT_CLK:
+-		omap_dm_timer_free(timer[clk_id]);
+-		break;
+-	case MCBSP_CLK:
+-		mcbsp_clk_prepare(false, clk_id);
+-		omap_mcbsp_free(MCBSP_ID(clk_id));
+-		break;
+-	case WDT_CLK:
+-		dev_err(bridge, "ERROR: DSP requested to disable WDT3 clk\n");
+-		break;
+-	case SSI_CLK:
+-		ssi_clk_prepare(false);
+-		ssi_clk_prepare(false);
+-		clk_disable(ssi.sst_fck);
+-		clk_disable(ssi.ssr_fck);
+-		clk_disable(ssi.ick);
+-		break;
+-	default:
+-		dev_err(bridge, "Invalid clock id for disable\n");
+-		status = -EPERM;
+-	}
+-
+-	if (DSP_SUCCEEDED(status))
+-		set_dsp_clk_inactive(&dsp_clocks, clk_id);
+-
+-out:
+-	return status;
 -}
 -
- void dsp_clk_wakeup_event_ctrl(u32 ClkId, bool enable)
+-u32 dsp_clk_get_iva2_rate(void)
+-{
+-	u32 clk_speed_khz;
+-
+-	clk_speed_khz = clk_get_rate(iva2_clk);
+-	clk_speed_khz /= 1000;
+-	dev_dbg(bridge, "%s: clk speed Khz = %d\n", __func__, clk_speed_khz);
+-
+-	return clk_speed_khz;
+-}
+-
+-void ssi_clk_prepare(bool FLAG)
+-{
+-	void __iomem *ssi_base;
+-	unsigned int value;
+-
+-	ssi_base = ioremap(L4_34XX_BASE + OMAP_SSI_OFFSET, OMAP_SSI_SIZE);
+-	if (!ssi_base) {
+-		pr_err("%s: error, SSI not configured\n", __func__);
+-		return;
+-	}
+-
+-	if (FLAG) {
+-		/* Set Autoidle, SIDLEMode to smart idle, and MIDLEmode to
+-		 * no idle
+-		 */
+-		value = SSI_AUTOIDLE | SSI_SIDLE_SMARTIDLE | SSI_MIDLE_NOIDLE;
+-	} else {
+-		/* Set Autoidle, SIDLEMode to forced idle, and MIDLEmode to
+-		 * forced idle
+-		 */
+-		value = SSI_AUTOIDLE;
+-	}
+-
+-	__raw_writel(value, ssi_base + OMAP_SSI_SYSCONFIG_OFFSET);
+-	iounmap(ssi_base);
+-}
+diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
+index cc2e89d..23be95c 100644
+--- a/drivers/dsp/bridge/services/services.c
++++ b/drivers/dsp/bridge/services/services.c
+@@ -42,8 +42,6 @@
+  */
+ void services_exit(void)
  {
- 	struct cfg_hostres *resources;
-diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/wmd/tiomap_io.c
-index 5880428..2ab7b7d 100644
---- a/drivers/dsp/bridge/wmd/tiomap_io.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_io.c
-@@ -415,7 +415,7 @@ dsp_status sm_interrupt_dsp(struct wmd_dev_context *dev_context, u16 mb_val)
- 		}
- #endif
- 		/* Restart the peripheral clocks */
--		dsp_peripheral_clocks_enable(dev_context, NULL);
-+		dsp_clock_enable_all(dev_context->dsp_per_clks);
- 		dsp_wdt_enable(true);
+-	/* Uninitialize all SERVICES modules here */
+-	dsp_clk_exit();
+ 	cfg_exit();
+ }
  
- 		/*
-@@ -445,7 +445,7 @@ dsp_status sm_interrupt_dsp(struct wmd_dev_context *dev_context, u16 mb_val)
- 		dev_context->dw_brd_state = BRD_RUNNING;
- 	} else if (dev_context->dw_brd_state == BRD_RETENTION) {
- 		/* Restart the peripheral clocks */
--		dsp_peripheral_clocks_enable(dev_context, NULL);
-+		dsp_clock_enable_all(dev_context->dsp_per_clks);
- 	}
+@@ -59,7 +57,6 @@ bool services_init(void)
  
- 	status = omap_mbox_msg_send(dev_context->mbox, mb_val);
-diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index 03b29b6..55a6790 100644
---- a/drivers/dsp/bridge/wmd/ue_deh.c
-+++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -328,7 +328,7 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
- 	/* Set the Board state as ERROR */
- 	dev_context->dw_brd_state = BRD_ERROR;
- 	/* Disable all the clocks that were enabled by DSP */
--	dsp_peripheral_clocks_disable(dev_context, NULL);
-+	dsp_clock_disable_all(dev_context->dsp_per_clks);
- 	/*
- 	 * Avoid the subsequent WDT if it happens once,
- 	 * also if fatal error occurs.
+ 	/* Perform required initialization of SERVICES modules. */
+ 	fcfg = cfg_init();
+-	dsp_clk_init();
+ 
+ 	ret = fcfg;
+ 
+diff --git a/drivers/dsp/bridge/wmd/dsp-clock.c b/drivers/dsp/bridge/wmd/dsp-clock.c
+new file mode 100644
+index 0000000..c4f0874
+--- /dev/null
++++ b/drivers/dsp/bridge/wmd/dsp-clock.c
+@@ -0,0 +1,334 @@
++/*
++ * clk.c
++ *
++ * DSP-BIOS Bridge driver support functions for TI OMAP processors.
++ *
++ * Clock and Timer services.
++ *
++ * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++/*  ----------------------------------- Host OS */
++#include <dspbridge/host_os.h>
++#include <plat/dmtimer.h>
++#include <plat/mcbsp.h>
++
++/*  ----------------------------------- DSP/BIOS Bridge */
++#include <dspbridge/std.h>
++#include <dspbridge/dbdefs.h>
++#include <dspbridge/errbase.h>
++#include <dspbridge/cfg.h>
++#include <dspbridge/drv.h>
++#include <dspbridge/dev.h>
++#include "_tiomap.h"
++
++/*  ----------------------------------- Trace & Debug */
++#include <dspbridge/dbc.h>
++
++/*  ----------------------------------- This */
++#include <dspbridge/clk.h>
++
++/*  ----------------------------------- Defines, Data Structures, Typedefs */
++
++#define OMAP_SSI_OFFSET			0x58000
++#define OMAP_SSI_SIZE			0x1000
++#define OMAP_SSI_SYSCONFIG_OFFSET	0x10
++
++#define SSI_AUTOIDLE			(1 << 0)
++#define SSI_SIDLE_SMARTIDLE		(2 << 3)
++#define SSI_MIDLE_NOIDLE		(1 << 12)
++
++/* Clk types requested by the dsp */
++#define IVA2_CLK	0
++#define GPT_CLK		1
++#define WDT_CLK		2
++#define MCBSP_CLK	3
++#define SSI_CLK		4
++
++/* Bridge GPT id (1 - 4), DM Timer id (5 - 8) */
++#define DMT_ID(id) ((id) + 4)
++
++/* Bridge MCBSP id (6 - 10), OMAP Mcbsp id (0 - 4) */
++#define MCBSP_ID(id) ((id) - 6)
++
++static struct omap_dm_timer *timer[4];
++
++struct clk *iva2_clk;
++
++struct dsp_ssi {
++	struct clk *sst_fck;
++	struct clk *ssr_fck;
++	struct clk *ick;
++};
++
++static struct dsp_ssi ssi;
++
++static u32 dsp_clocks;
++
++static inline u32 is_dsp_clk_active(u32 clk, u8 id)
++{
++	return clk & (1 << id);
++}
++
++static inline void set_dsp_clk_active(u32 *clk, u8 id)
++{
++	*clk |= (1 << id);
++}
++
++static inline void set_dsp_clk_inactive(u32 *clk, u8 id)
++{
++	*clk &= ~(1 << id);
++}
++
++static s8 get_clk_type(u8 id)
++{
++	s8 type;
++
++	if (id == DSP_CLK_IVA2)
++		type = IVA2_CLK;
++	else if (id <= DSP_CLK_GPT8)
++		type = GPT_CLK;
++	else if (id == DSP_CLK_WDT3)
++		type = WDT_CLK;
++	else if (id <= DSP_CLK_MCBSP5)
++		type = MCBSP_CLK;
++	else if (id == DSP_CLK_SSI)
++		type = SSI_CLK;
++	else
++		type = -1;
++
++	return type;
++}
++
++/*
++ *  ======== dsp_clk_exit ========
++ *  Purpose:
++ *      Cleanup CLK module.
++ */
++void dsp_clk_exit(void)
++{
++	clk_put(iva2_clk);
++	clk_put(ssi.sst_fck);
++	clk_put(ssi.ssr_fck);
++	clk_put(ssi.ick);
++}
++
++/*
++ *  ======== dsp_clk_init ========
++ *  Purpose:
++ *      Initialize CLK module.
++ */
++void dsp_clk_init(void)
++{
++	static struct platform_device dspbridge_device;
++
++	dspbridge_device.dev.bus = &platform_bus_type;
++
++	iva2_clk = clk_get(&dspbridge_device.dev, "iva2_ck");
++	if (IS_ERR(iva2_clk))
++		dev_err(bridge, "failed to get iva2 clock %p\n", iva2_clk);
++
++	ssi.sst_fck = clk_get(&dspbridge_device.dev, "ssi_sst_fck");
++	ssi.ssr_fck = clk_get(&dspbridge_device.dev, "ssi_ssr_fck");
++	ssi.ick = clk_get(&dspbridge_device.dev, "ssi_ick");
++
++	if (IS_ERR(ssi.sst_fck) || IS_ERR(ssi.ssr_fck) || IS_ERR(ssi.ick))
++		dev_err(bridge, "failed to get ssi: sst %p, ssr %p, ick %p\n",
++					ssi.sst_fck, ssi.ssr_fck, ssi.ick);
++}
++
++static void mcbsp_clk_prepare(bool flag, u8 id)
++{
++	struct cfg_hostres *resources;
++	struct dev_object *hdev_object = NULL;
++	struct wmd_dev_context *wmd_context = NULL;
++	u32 val;
++
++	hdev_object = (struct dev_object *)drv_get_first_dev_object();
++	if (!hdev_object)
++		return;
++
++	dev_get_wmd_context(hdev_object, &wmd_context);
++	if (!wmd_context)
++		return;
++
++	resources = wmd_context->resources;
++	if (!resources)
++		return;
++
++	if (flag) {
++		if (id == DSP_CLK_MCBSP1) {
++			/* set MCBSP1_CLKS, on McBSP1 ON */
++			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
++			val |= 1 << 2;
++			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
++		} else if (id == DSP_CLK_MCBSP2) {
++			/* set MCBSP2_CLKS, on McBSP2 ON */
++			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
++			val |= 1 << 6;
++			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
++		}
++	} else {
++		if (id == DSP_CLK_MCBSP1) {
++			/* clear MCBSP1_CLKS, on McBSP1 OFF */
++			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
++			val &= ~(1 << 2);
++			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
++		} else if (id == DSP_CLK_MCBSP2) {
++			/* clear MCBSP2_CLKS, on McBSP2 OFF */
++			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
++			val &= ~(1 << 6);
++			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
++		}
++	}
++}
++
++/*
++ *  ======== dsp_clk_enable ========
++ *  Purpose:
++ *      Enable Clock .
++ *
++ */
++dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
++{
++	dsp_status status = DSP_SOK;
++
++	if (is_dsp_clk_active(dsp_clocks, clk_id)) {
++		dev_err(bridge, "WARN: clock id %d already enabled\n", clk_id);
++		goto out;
++	}
++
++	switch (get_clk_type(clk_id)) {
++	case IVA2_CLK:
++		clk_enable(iva2_clk);
++		break;
++	case GPT_CLK:
++		timer[clk_id] = omap_dm_timer_request_specific(DMT_ID(clk_id));
++		break;
++	case MCBSP_CLK:
++		mcbsp_clk_prepare(true, clk_id);
++		omap_mcbsp_set_io_type(MCBSP_ID(clk_id), OMAP_MCBSP_POLL_IO);
++		omap_mcbsp_request(MCBSP_ID(clk_id));
++		break;
++	case WDT_CLK:
++		dev_err(bridge, "ERROR: DSP requested to enable WDT3 clk\n");
++		break;
++	case SSI_CLK:
++		clk_enable(ssi.sst_fck);
++		clk_enable(ssi.ssr_fck);
++		clk_enable(ssi.ick);
++
++		/*
++		 * The SSI module need to configured not to have the Forced
++		 * idle for master interface. If it is set to forced idle,
++		 * the SSI module is transitioning to standby thereby causing
++		 * the client in the DSP hang waiting for the SSI module to
++		 * be active after enabling the clocks
++		 */
++		ssi_clk_prepare(true);
++		break;
++	default:
++		dev_err(bridge, "Invalid clock id for enable\n");
++		status = -EPERM;
++	}
++
++	if (DSP_SUCCEEDED(status))
++		set_dsp_clk_active(&dsp_clocks, clk_id);
++
++out:
++	return status;
++}
++
++/*
++ *  ======== dsp_clk_disable ========
++ *  Purpose:
++ *      Disable the clock.
++ *
++ */
++dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
++{
++	dsp_status status = DSP_SOK;
++
++	if (!is_dsp_clk_active(dsp_clocks, clk_id)) {
++		dev_err(bridge, "ERR: clock id %d already disabled\n", clk_id);
++		goto out;
++	}
++
++	switch (get_clk_type(clk_id)) {
++	case IVA2_CLK:
++		clk_disable(iva2_clk);
++		break;
++	case GPT_CLK:
++		omap_dm_timer_free(timer[clk_id]);
++		break;
++	case MCBSP_CLK:
++		mcbsp_clk_prepare(false, clk_id);
++		omap_mcbsp_free(MCBSP_ID(clk_id));
++		break;
++	case WDT_CLK:
++		dev_err(bridge, "ERROR: DSP requested to disable WDT3 clk\n");
++		break;
++	case SSI_CLK:
++		ssi_clk_prepare(false);
++		ssi_clk_prepare(false);
++		clk_disable(ssi.sst_fck);
++		clk_disable(ssi.ssr_fck);
++		clk_disable(ssi.ick);
++		break;
++	default:
++		dev_err(bridge, "Invalid clock id for disable\n");
++		status = -EPERM;
++	}
++
++	if (DSP_SUCCEEDED(status))
++		set_dsp_clk_inactive(&dsp_clocks, clk_id);
++
++out:
++	return status;
++}
++
++u32 dsp_clk_get_iva2_rate(void)
++{
++	u32 clk_speed_khz;
++
++	clk_speed_khz = clk_get_rate(iva2_clk);
++	clk_speed_khz /= 1000;
++	dev_dbg(bridge, "%s: clk speed Khz = %d\n", __func__, clk_speed_khz);
++
++	return clk_speed_khz;
++}
++
++void ssi_clk_prepare(bool FLAG)
++{
++	void __iomem *ssi_base;
++	unsigned int value;
++
++	ssi_base = ioremap(L4_34XX_BASE + OMAP_SSI_OFFSET, OMAP_SSI_SIZE);
++	if (!ssi_base) {
++		pr_err("%s: error, SSI not configured\n", __func__);
++		return;
++	}
++
++	if (FLAG) {
++		/* Set Autoidle, SIDLEMode to smart idle, and MIDLEmode to
++		 * no idle
++		 */
++		value = SSI_AUTOIDLE | SSI_SIDLE_SMARTIDLE | SSI_MIDLE_NOIDLE;
++	} else {
++		/* Set Autoidle, SIDLEMode to forced idle, and MIDLEmode to
++		 * forced idle
++		 */
++		value = SSI_AUTOIDLE;
++	}
++
++	__raw_writel(value, ssi_base + OMAP_SSI_SYSCONFIG_OFFSET);
++	iounmap(ssi_base);
++}
 -- 
 1.6.2.4
 
