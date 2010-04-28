@@ -1,60 +1,246 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2 01/19] DSPBRIDGE: remove clk_handle from drv interface
-Date: Wed, 28 Apr 2010 10:29:39 -0500
-Message-ID: <1272468597-6748-2-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v2 10/19] DSPBRIDGE: iva2 clock handling
+Date: Wed, 28 Apr 2010 10:29:48 -0500
+Message-ID: <1272468597-6748-11-git-send-email-omar.ramirez@ti.com>
 References: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-2-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-3-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-4-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-5-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-6-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-7-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-8-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-9-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-10-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50193 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754977Ab0D1PY5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 11:24:57 -0400
-In-Reply-To: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:55477 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755009Ab0D1PY7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Apr 2010 11:24:59 -0400
+In-Reply-To: <1272468597-6748-10-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Since it is not used, remove.
+Change the way iva2 clock is handled and since the rate is needed
+for this clock only, make the function get_rate to be specific for
+iva clock.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/rmgr/drv_interface.c |    9 ---------
- 1 files changed, 0 insertions(+), 9 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/clk.h |   16 +------
+ drivers/dsp/bridge/services/clk.c          |   71 +++++++---------------------
+ drivers/dsp/bridge/services/services.c     |    9 +---
+ drivers/dsp/bridge/wmd/tiomap3430.c        |    3 +-
+ 4 files changed, 22 insertions(+), 77 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 2f92278..ea2a5f3 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -149,7 +149,6 @@ static struct file_operations bridge_fops = {
- #ifdef CONFIG_PM
- static u32 time_out = 1000;
- #ifdef CONFIG_BRIDGE_DVFS
--static struct clk *clk_handle;
- s32 dsp_max_opps = VDD1_OPP5;
- #endif
+diff --git a/arch/arm/plat-omap/include/dspbridge/clk.h b/arch/arm/plat-omap/include/dspbridge/clk.h
+index f19d024..2602d9f 100644
+--- a/arch/arm/plat-omap/include/dspbridge/clk.h
++++ b/arch/arm/plat-omap/include/dspbridge/clk.h
+@@ -71,7 +71,7 @@ extern void dsp_clk_exit(void);
+  *  Ensures:
+  *      CLK initialized.
+  */
+-extern bool dsp_clk_init(void);
++extern void dsp_clk_init(void);
  
-@@ -324,10 +323,6 @@ static int __devinit omap34_xx_bridge_probe(struct platform_device *pdev)
- 		for (i = 0; i < 6; i++)
- 			pdata->mpu_speed[i] = vdd1_rate_table_bridge[i].rate;
+ /*
+  *  ======== dsp_clk_enable ========
+@@ -99,19 +99,7 @@ extern dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id);
+  */
+ extern dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id);
  
--		clk_handle = clk_get(NULL, "iva2_ck");
--		if (!clk_handle)
--			pr_err("%s: clk_get failed to get iva2_ck\n", __func__);
+-/*
+- *  ======== dsp_clk_get_rate ========
+- *  Purpose:
+- *      Get the clock rate of requested clock.
+- *  Parameters:
+- *  Returns:
+- *      DSP_SOK:        Success.
+- *      -EPERM:      Error occured while Getting the clock rate.
+- *  Requires:
+- *  Ensures:
+- */
+-extern dsp_status dsp_clk_get_rate(IN enum dsp_clk_id clk_id,
+-					u32 *speedMhz);
++extern u32 dsp_clk_get_iva2_rate(void);
+ 
+ extern void ssi_clk_prepare(bool FLAG);
+ 
+diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
+index d5c3d4e..9c994d3 100644
+--- a/drivers/dsp/bridge/services/clk.c
++++ b/drivers/dsp/bridge/services/clk.c
+@@ -57,7 +57,6 @@ struct dsp_clk_t {
+  * 'dsp_clk_id' provided in the header file.. any changes in the
+  * enumerations needs to be fixed in the array as well */
+ static struct dsp_clk_t dsp_clks[] = {
+-	{NULL, "iva2_ck", -1},
+ 	{NULL, "gpt5_fck", -1},
+ 	{NULL, "gpt5_ick", -1},
+ 	{NULL, "gpt6_fck", -1},
+@@ -83,6 +82,8 @@ static struct dsp_clk_t dsp_clks[] = {
+ 	{NULL, ""}
+ };
+ 
++struct clk *iva2_clk;
++
+ static s8 get_clk_type(u8 id)
+ {
+ 	s8 type;
+@@ -110,17 +111,7 @@ static s8 get_clk_type(u8 id)
+  */
+ void dsp_clk_exit(void)
+ {
+-	int i = 0;
 -
- 		if (!cpufreq_register_notifier(&iva_clk_notifier,
- 						CPUFREQ_TRANSITION_NOTIFIER))
- 			pr_err("%s: clk_notifier_register failed for iva2_ck\n",
-@@ -383,10 +378,6 @@ static int __devexit omap34_xx_bridge_remove(struct platform_device *pdev)
- 		driver_context = 0;
- 		DBC_ASSERT(ret == true);
- 	}
--#ifdef CONFIG_BRIDGE_DVFS
--	clk_put(clk_handle);
--	clk_handle = NULL;
--#endif /* #ifdef CONFIG_BRIDGE_DVFS */
+-	/* Relinquish the clock handles */
+-	while (i < DSP_CLK_NOT_DEFINED) {
+-		if (dsp_clks[i].clk_handle)
+-			clk_put(dsp_clks[i].clk_handle);
+-
+-		dsp_clks[i].clk_handle = NULL;
+-		i++;
+-	}
+-
++	clk_put(iva2_clk);
+ }
  
- func_cont:
- 	mem_ext_phys_pool_release();
+ /*
+@@ -128,33 +119,15 @@ void dsp_clk_exit(void)
+  *  Purpose:
+  *      Initialize CLK module.
+  */
+-bool dsp_clk_init(void)
++void dsp_clk_init(void)
+ {
+ 	static struct platform_device dspbridge_device;
+-	struct clk *clk_handle;
+-	int i = 0;
+ 
+ 	dspbridge_device.dev.bus = &platform_bus_type;
+ 
+-	/* Get the clock handles from base port and store locally */
+-	while (i < DSP_CLK_NOT_DEFINED) {
+-		/* get the handle from BP */
+-		dspbridge_device.id = dsp_clks[i].id;
+-
+-		clk_handle = clk_get(&dspbridge_device.dev,
+-				     dsp_clks[i].clk_name);
+-
+-		if (IS_ERR(clk_handle)) {
+-			pr_err("%s: failed to get clk handle %s, dev id = %d\n",
+-			       __func__, dsp_clks[i].clk_name,
+-			       dsp_clks[i].id);
+-			return false;
+-		}
+-		dsp_clks[i].clk_handle = clk_handle;
+-		i++;
+-	}
+-
+-	return true;
++	iva2_clk = clk_get(&dspbridge_device.dev, "iva2_ck");
++	if (IS_ERR(iva2_clk))
++		dev_err(bridge, "failed to get iva2 clock %p\n", iva2_clk);
+ }
+ 
+ /*
+@@ -170,6 +143,8 @@ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
+ 
+ 	switch (get_clk_type(clk_id)) {
+ 	case IVA2_CLK:
++		clk_enable(iva2_clk);
++		break;
+ 	case GPT_CLK:
+ 	case MCBSP_CLK:
+ 	case WDT_CLK:
+@@ -214,6 +189,8 @@ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
+ 
+ 	switch (get_clk_type(clk_id)) {
+ 	case IVA2_CLK:
++		clk_disable(iva2_clk);
++		break;
+ 	case GPT_CLK:
+ 	case MCBSP_CLK:
+ 	case WDT_CLK:
+@@ -232,29 +209,15 @@ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
+ 	return status;
+ }
+ 
+-/*
+- *  ======== dsp_clk_get_rate ========
+- *  Purpose:
+- *      GetClock Speed.
+- *
+- */
+-
+-dsp_status dsp_clk_get_rate(IN enum dsp_clk_id clk_id, u32 *speedKhz)
++u32 dsp_clk_get_iva2_rate(void)
+ {
+-	dsp_status status = DSP_SOK;
+-	struct clk *clk_handle;
+-	u32 clk_speed_hz;
++	u32 clk_speed_khz;
+ 
+-	DBC_REQUIRE(clk_id < SERVICESCLK_NOT_DEFINED);
+-	*speedKhz = 0x0;
++	clk_speed_khz = clk_get_rate(iva2_clk);
++	clk_speed_khz /= 1000;
++	dev_dbg(bridge, "%s: clk speed Khz = %d\n", __func__, clk_speed_khz);
+ 
+-	clk_handle = dsp_clks[clk_id].clk_handle;
+-	clk_speed_hz = clk_get_rate(clk_handle);
+-	*speedKhz = clk_speed_hz / 1000;
+-	dev_dbg(bridge, "%s: clk_speed_hz = %d, speedinKhz = %d\n",
+-			__func__, clk_speed_hz, *speedKhz);
+-
+-	return status;
++	return clk_speed_khz;
+ }
+ 
+ void ssi_clk_prepare(bool FLAG)
+diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
+index afb01be..cc2e89d 100644
+--- a/drivers/dsp/bridge/services/services.c
++++ b/drivers/dsp/bridge/services/services.c
+@@ -56,19 +56,14 @@ bool services_init(void)
+ {
+ 	bool ret = true;
+ 	bool fcfg;
+-	bool fclk;
+ 
+ 	/* Perform required initialization of SERVICES modules. */
+ 	fcfg = cfg_init();
+-	fclk = dsp_clk_init();
++	dsp_clk_init();
+ 
+-	ret = fcfg && fclk;
++	ret = fcfg;
+ 
+ 	if (!ret) {
+-
+-		if (fclk)
+-			dsp_clk_exit();
+-
+ 		if (fcfg)
+ 			cfg_exit();
+ 	}
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 52ec3bc..bb78df2 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -592,8 +592,7 @@ static dsp_status bridge_brd_start(struct wmd_dev_context *hDevContext,
+ 
+ 		if ((unsigned int *)ul_dsp_clk_addr != NULL) {
+ 			/* Get the clock rate */
+-			status = dsp_clk_get_rate(DSP_CLK_IVA2_CK,
+-						       &ul_dsp_clk_rate);
++			ul_dsp_clk_rate = dsp_clk_get_iva2_rate();
+ 			dev_dbg(bridge, "%s: DSP clock rate (KHZ): 0x%x \n",
+ 				__func__, ul_dsp_clk_rate);
+ 			(void)bridge_brd_write(dev_context,
 -- 
 1.6.2.4
 
