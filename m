@@ -1,7 +1,7 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2 16/19] DSPBRIDGE: Move MCBSP_CLOCKS code to a common place
-Date: Wed, 28 Apr 2010 10:29:54 -0500
-Message-ID: <1272468597-6748-17-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v2 14/19] DSPBRIDGE: dsp interface to enable ssi clocks
+Date: Wed, 28 Apr 2010 10:29:52 -0500
+Message-ID: <1272468597-6748-15-git-send-email-omar.ramirez@ti.com>
 References: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-2-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-3-git-send-email-omar.ramirez@ti.com>
@@ -16,246 +16,147 @@ References: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-12-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-13-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-14-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-15-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-16-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50197 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50196 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755016Ab0D1PZA (ORCPT
+	with ESMTP id S1755015Ab0D1PZA (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 11:25:00 -0400
-In-Reply-To: <1272468597-6748-16-git-send-email-omar.ramirez@ti.com>
+In-Reply-To: <1272468597-6748-14-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Given that:
-"Bridge should enable McBSP_CLKS (using T2 clock) so that DPLL4
- can be gated. Once McBSP2 clock is released, it should disable
- McBSP_CLKS as it prevents PER and CORE domain transitions when
- OFF is set to target power state."
-
-It seems this code was duplicated, now it has been moved to be
-called only when dsp is requesting a MCBSP clock.
+This patch fixes the wrong name for ssi clock,
+now it has been split into ssr and sst for fck. It
+handle ick/ssr_fck/sst_fck clocks with one call to
+disable/enable.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/services/clk.c       |   52 +++++++++++++++++++++
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   77 -------------------------------
- 2 files changed, 52 insertions(+), 77 deletions(-)
+ drivers/dsp/bridge/services/clk.c |   56 ++++++++++++++++++-------------------
+ 1 files changed, 27 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
-index 9a439c7..763a599 100644
+index ee85905..c72f574 100644
 --- a/drivers/dsp/bridge/services/clk.c
 +++ b/drivers/dsp/bridge/services/clk.c
-@@ -25,6 +25,10 @@
- #include <dspbridge/std.h>
- #include <dspbridge/dbdefs.h>
- #include <dspbridge/errbase.h>
-+#include <dspbridge/cfg.h>
-+#include <dspbridge/drv.h>
-+#include <dspbridge/dev.h>
-+#include "_tiomap.h"
+@@ -55,20 +55,17 @@
+ /* Bridge MCBSP id (6 - 10), OMAP Mcbsp id (1 - 5) */
+ #define MCBSP_ID(id) ((id) - 13)
  
- /*  ----------------------------------- Trace & Debug */
- #include <dspbridge/dbc.h>
-@@ -124,6 +128,52 @@ void dsp_clk_init(void)
- 					ssi.sst_fck, ssi.ssr_fck, ssi.ick);
+-struct dsp_clk_t {
+-	struct clk *clk_handle;
+-	const char *clk_name;
+-	int id;
+-};
+-
+ static struct omap_dm_timer *timer[4];
+ 
+-static struct dsp_clk_t dsp_clks[] = {
+-	{NULL, "ssi_ssr_sst_fck", -1},
+-	{NULL, "ssi_ick", -1},
++struct clk *iva2_clk;
++
++struct dsp_ssi {
++	struct clk *sst_fck;
++	struct clk *ssr_fck;
++	struct clk *ick;
+ };
+ 
+-struct clk *iva2_clk;
++static struct dsp_ssi ssi;
+ 
+ static s8 get_clk_type(u8 id)
+ {
+@@ -98,6 +95,9 @@ static s8 get_clk_type(u8 id)
+ void dsp_clk_exit(void)
+ {
+ 	clk_put(iva2_clk);
++	clk_put(ssi.sst_fck);
++	clk_put(ssi.ssr_fck);
++	clk_put(ssi.ick);
  }
  
-+static void mcbsp_clk_prepare(bool flag, u8 id)
-+{
-+	struct cfg_hostres *resources;
-+	struct dev_object *hdev_object = NULL;
-+	struct wmd_dev_context *wmd_context = NULL;
-+	u32 val;
-+
-+	hdev_object = (struct dev_object *)drv_get_first_dev_object();
-+	if (!hdev_object)
-+		return;
-+
-+	dev_get_wmd_context(hdev_object, &wmd_context);
-+	if (!wmd_context)
-+		return;
-+
-+	resources = wmd_context->resources;
-+	if (!resources)
-+		return;
-+
-+	if (flag) {
-+		if (id == DSP_CLK_MCBSP1) {
-+			/* set MCBSP1_CLKS, on McBSP1 ON */
-+			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
-+			val |= 1 << 2;
-+			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
-+		} else if (id == DSP_CLK_MCBSP2) {
-+			/* set MCBSP2_CLKS, on McBSP2 ON */
-+			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
-+			val |= 1 << 6;
-+			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
-+		}
-+	} else {
-+		if (id == DSP_CLK_MCBSP1) {
-+			/* clear MCBSP1_CLKS, on McBSP1 OFF */
-+			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
-+			val &= ~(1 << 2);
-+			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
-+		} else if (id == DSP_CLK_MCBSP2) {
-+			/* clear MCBSP2_CLKS, on McBSP2 OFF */
-+			val = __raw_readl(resources->dw_sys_ctrl_base + 0x274);
-+			val &= ~(1 << 6);
-+			__raw_writel(val, resources->dw_sys_ctrl_base + 0x274);
-+		}
-+	}
-+}
-+
  /*
-  *  ======== dsp_clk_enable ========
-  *  Purpose:
-@@ -142,6 +192,7 @@ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
- 		timer[clk_id] = omap_dm_timer_request_specific(DMT_ID(clk_id));
- 		break;
- 	case MCBSP_CLK:
-+		mcbsp_clk_prepare(true, clk_id);
- 		omap_mcbsp_set_io_type(MCBSP_ID(clk_id), OMAP_MCBSP_POLL_IO);
- 		omap_mcbsp_request(MCBSP_ID(clk_id));
- 		break;
-@@ -187,6 +238,7 @@ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
- 		omap_dm_timer_free(timer[clk_id]);
- 		break;
- 	case MCBSP_CLK:
-+		mcbsp_clk_prepare(false, clk_id);
- 		omap_mcbsp_free(MCBSP_ID(clk_id));
- 		break;
- 	case WDT_CLK:
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 879f99e..6d1d557 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -288,16 +288,10 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
- 	u32 tmp_index;
- 	u32 dsp_per_clks_before;
- 	dsp_status status = DSP_SOK;
--	struct cfg_hostres *resources = dev_context->resources;
--	u32 value;
+@@ -114,6 +114,14 @@ void dsp_clk_init(void)
+ 	iva2_clk = clk_get(&dspbridge_device.dev, "iva2_ck");
+ 	if (IS_ERR(iva2_clk))
+ 		dev_err(bridge, "failed to get iva2 clock %p\n", iva2_clk);
++
++	ssi.sst_fck = clk_get(&dspbridge_device.dev, "ssi_sst_fck");
++	ssi.ssr_fck = clk_get(&dspbridge_device.dev, "ssi_ssr_fck");
++	ssi.ick = clk_get(&dspbridge_device.dev, "ssi_ick");
++
++	if (IS_ERR(ssi.sst_fck) || IS_ERR(ssi.ssr_fck) || IS_ERR(ssi.ick))
++		dev_err(bridge, "failed to get ssi: sst %p, ssr %p, ick %p\n",
++					ssi.sst_fck, ssi.ssr_fck, ssi.ick);
+ }
  
- 	dsp_per_clks_before = dev_context->dsp_per_clks;
- 
- 	ext_clk = (u32) *((u32 *) pargs);
--
--	if (!resources)
--		return -EPERM;
--
- 	ext_clk_id = ext_clk & MBX_PM_CLK_IDMASK;
- 
- 	/* process the power message -- TODO, keep it in a separate function */
-@@ -317,21 +311,6 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
- 	ext_clk_cmd = (ext_clk >> MBX_PM_CLK_CMDSHIFT) & MBX_PM_CLK_CMDMASK;
- 	switch (ext_clk_cmd) {
- 	case BPWR_DISABLE_CLOCK:
--		if (bpwr_clkid[clk_id_index] == BPWR_MCBSP1) {
--			/* clear MCBSP1_CLKS, on McBSP1 OFF */
--			value = __raw_readl(
--				resources->dw_sys_ctrl_base + 0x274);
--			value &= ~(1 << 2);
--			__raw_writel(value,
--				resources->dw_sys_ctrl_base + 0x274);
--		} else if (bpwr_clkid[clk_id_index] == BPWR_MCBSP2) {
--			/* clear MCBSP2_CLKS, on McBSP2 OFF */
--			value = __raw_readl(
--				resources->dw_sys_ctrl_base + 0x274);
--			value &= ~(1 << 6);
--			__raw_writel(value,
--				resources->dw_sys_ctrl_base + 0x274);
--		}
- 		status = dsp_clk_disable(bpwr_clks[clk_id_index].clk);
- 		dsp_clk_wakeup_event_ctrl(bpwr_clks[clk_id_index].clk_id,
- 					  false);
-@@ -342,21 +321,6 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
- 		break;
- 	case BPWR_ENABLE_CLOCK:
- 		status = dsp_clk_enable(bpwr_clks[clk_id_index].clk);
--		if (bpwr_clkid[clk_id_index] == BPWR_MCBSP1) {
--			/* set MCBSP1_CLKS, on McBSP1 ON */
--			value = __raw_readl(
--				resources->dw_sys_ctrl_base + 0x274);
--			value |= 1 << 2;
--			__raw_writel(value,
--				resources->dw_sys_ctrl_base + 0x274);
--		} else if (bpwr_clkid[clk_id_index] == BPWR_MCBSP2) {
--			/* set MCBSP2_CLKS, on McBSP2 ON */
--			value = __raw_readl(
--				resources->dw_sys_ctrl_base + 0x274);
--			value |= 1 << 6;
--			__raw_writel(value,
--				resources->dw_sys_ctrl_base + 0x274);
--		}
- 		dsp_clk_wakeup_event_ctrl(bpwr_clks[clk_id_index].clk_id, true);
- 		if (DSP_SUCCEEDED(status))
- 			(dev_context->dsp_per_clks) |= (1 << clk_id_index);
-@@ -454,30 +418,9 @@ dsp_status dsp_peripheral_clocks_disable(struct wmd_dev_context *dev_context,
+ /*
+@@ -125,7 +133,6 @@ void dsp_clk_init(void)
+ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
  {
- 	u32 clk_idx;
  	dsp_status status = DSP_SOK;
--	struct cfg_hostres *resources = dev_context->resources;
--	u32 value;
--
--	if (!resources)
--		return -EPERM;
+-	struct clk *clk_handle;
  
- 	for (clk_idx = 0; clk_idx < MBX_PM_MAX_RESOURCES; clk_idx++) {
- 		if (((dev_context->dsp_per_clks) >> clk_idx) & 0x01) {
--			if (bpwr_clkid[clk_idx] == BPWR_MCBSP1) {
--				/* clear MCBSP1_CLKS, on McBSP1 OFF */
--				value = __raw_readl(resources->dw_sys_ctrl_base
--						    + 0x274);
--				value &= ~(1 << 2);
--				__raw_writel(value, resources->dw_sys_ctrl_base
--					     + 0x274);
--			} else if (bpwr_clkid[clk_idx] == BPWR_MCBSP2) {
--				/* clear MCBSP2_CLKS, on McBSP2 OFF */
--				value = __raw_readl(resources->dw_sys_ctrl_base
--						    + 0x274);
--				value &= ~(1 << 6);
--				__raw_writel(value, resources->dw_sys_ctrl_base
--					     + 0x274);
--			}
--
- 			/* Disables the clocks of the peripheral */
- 			status = dsp_clk_disable(bpwr_clks[clk_idx].clk);
- 		}
-@@ -494,31 +437,11 @@ dsp_status dsp_peripheral_clocks_enable(struct wmd_dev_context *dev_context,
+ 	switch (get_clk_type(clk_id)) {
+ 	case IVA2_CLK:
+@@ -142,13 +149,9 @@ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
+ 		dev_err(bridge, "ERROR: DSP requested to enable WDT3 clk\n");
+ 		break;
+ 	case SSI_CLK:
+-		clk_handle = dsp_clks[clk_id].clk_handle;
+-		if (clk_enable(clk_handle)) {
+-			pr_err("dsp_clk_enable: failed to Enable CLK %s, "
+-				"CLK dev id = %d\n", dsp_clks[clk_id].clk_name,
+-				dsp_clks[clk_id].id);
+-			status = -EPERM;
+-		}
++		clk_enable(ssi.sst_fck);
++		clk_enable(ssi.ssr_fck);
++		clk_enable(ssi.ick);
+ 
+ 		/*
+ 		 * The SSI module need to configured not to have the Forced
+@@ -157,8 +160,7 @@ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
+ 		 * the client in the DSP hang waiting for the SSI module to
+ 		 * be active after enabling the clocks
+ 		 */
+-		if (clk_id == DSP_CLK_SSI_ICK)
+-			ssi_clk_prepare(true);
++		ssi_clk_prepare(true);
+ 		break;
+ 	default:
+ 		dev_err(bridge, "Invalid clock id for enable\n");
+@@ -176,9 +178,6 @@ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
+ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
  {
- 	u32 clk_idx;
- 	dsp_status clk_status = -EPERM;
--	struct cfg_hostres *resources = dev_context->resources;
--	u32 value;
+ 	dsp_status status = DSP_SOK;
+-	struct clk *clk_handle;
 -
--	if (!resources)
--		return -EPERM;
+-	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
  
- 	for (clk_idx = 0; clk_idx < MBX_PM_MAX_RESOURCES; clk_idx++) {
- 		if (((dev_context->dsp_per_clks) >> clk_idx) & 0x01) {
- 			/* Enable the clocks of the peripheral */
- 			clk_status = dsp_clk_enable(bpwr_clks[clk_idx].clk);
--			if (bpwr_clkid[clk_idx] == BPWR_MCBSP1) {
--				/* set MCBSP1_CLKS, on McBSP1 ON */
--				value = __raw_readl(resources->dw_sys_ctrl_base
--						    + 0x274);
--				value |= 1 << 2;
--				__raw_writel(value, resources->dw_sys_ctrl_base
--					     + 0x274);
--			} else if (bpwr_clkid[clk_idx] == BPWR_MCBSP2) {
--				/* set MCBSP2_CLKS, on McBSP2 ON */
--				value = __raw_readl(resources->dw_sys_ctrl_base
--						    + 0x274);
--				value |= 1 << 6;
--				__raw_writel(value, resources->dw_sys_ctrl_base
--					     + 0x274);
--			}
- 		}
- 	}
- 	return clk_status;
+ 	switch (get_clk_type(clk_id)) {
+ 	case IVA2_CLK:
+@@ -194,12 +193,11 @@ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
+ 		dev_err(bridge, "ERROR: DSP requested to disable WDT3 clk\n");
+ 		break;
+ 	case SSI_CLK:
+-		clk_handle = dsp_clks[clk_id].clk_handle;
+-
+-		if (clk_id == DSP_CLK_SSI_ICK)
+-			ssi_clk_prepare(false);
+-
+-		clk_disable(clk_handle);
++		ssi_clk_prepare(false);
++		ssi_clk_prepare(false);
++		clk_disable(ssi.sst_fck);
++		clk_disable(ssi.ssr_fck);
++		clk_disable(ssi.ick);
+ 		break;
+ 	default:
+ 		dev_err(bridge, "Invalid clock id for disable\n");
 -- 
 1.6.2.4
 
