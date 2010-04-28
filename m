@@ -1,46 +1,35 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Unable to build for omap3_evm_defconfig using latest
- kernel-omap3 git
-Date: Wed, 28 Apr 2010 21:23:07 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322A8A0A6@dbde02.ent.ti.com>
-References: <4B8557E2E5753944B2BB2E52F7C2A30C02C0C7E0@MAIL.AES.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: [PATCH 0/2] omap: gpmc-nand: add ability to keep timings defined by the bootloader
+Date: Wed, 28 Apr 2010 19:06:03 +0300
+Message-ID: <cover.1272470212.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51929 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754218Ab0D1PxY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 11:53:24 -0400
-In-Reply-To: <4B8557E2E5753944B2BB2E52F7C2A30C02C0C7E0@MAIL.AES.local>
-Content-Language: en-US
+Received: from compulab.co.il ([67.18.134.219]:48290 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754821Ab0D1QHh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Apr 2010 12:07:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rick Ball <rball@AESAustin.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com
+Cc: s-ghorai@ti.com, linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
 
-Rick Ball wrote:
-> I get the following error when attempting to build a kernel 
-> for the default config of the OMAP3 EVM board with the latest 
-> 'git' from:
-> 
-> git://dev.omapzoom.org/pub/scm/integration/kernel-omap3.git
-> 
+These patches add ability to keep GPMC timings configured by the
+bootloader. The platforms have to either define NAND GPMC timinings
+explicitly via gpmc_t field of omap_nand_platform_data or set
+keep_timings flag to allow detection of current timing configuration
+and its subsequent use in omap2_nand_gpmc_retime.
 
-...
+The following changes since commit 104a77440f05430f29f9d3f4ecb88c1536819585:
+  Tony Lindgren (1):
+          Linux-omap rebuilt: Merged in i2c-omap-for-ben branch and cleaned up cbus branch
 
-> 
-> Am I doing something wrong here?  Am I mistaken in thinking 
-> that compiling for this board should work?
+Mike Rapoport (2):
+  omap: gpmc: add gpmc_cs_get_timings
+  omap: gpmc-nand: add ability to keep timings defined by the
+    bootloader
 
-Yes, you're using the wrong kernel.
+ arch/arm/mach-omap2/gpmc-nand.c        |   19 +++++++-
+ arch/arm/mach-omap2/gpmc.c             |   79 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/gpmc.h |    1 +
+ arch/arm/plat-omap/include/plat/nand.h |    1 +
+ 4 files changed, 99 insertions(+), 1 deletions(-)
 
-Use the linux-omap kernel:
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-
-Or Linus' tree directly:
-git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-
-The one you're using is an internal development tree on
-which the OMAP3 EVM board is not well supported.
-
-- Anand
