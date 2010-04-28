@@ -1,92 +1,78 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v5] OMAP2/3: I2C: Errata ID i207: Clear wrong RDR
- interrupt
-Date: Wed, 28 Apr 2010 10:41:04 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F789D4D@dbde02.ent.ti.com>
-References: <1272379645-20523-1-git-send-email-manjugk@ti.com>
- <20100427150034.GZ7225@atomide.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv2 2/4] mach-omap2: Add SoC info data for OMAP2,3,4 into
+ /proc/cpuinfo
+Date: Wed, 28 Apr 2010 08:43:34 +0300
+Message-ID: <20100428054334.GD332@besouro.research.nokia.com>
+References: <1272374055-9656-1-git-send-email-eduardo.valentin@nokia.com>
+ <1272374055-9656-3-git-send-email-eduardo.valentin@nokia.com>
+ <20100427150129.GA8600@nokia.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54080 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751005Ab0D1FLa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 01:11:30 -0400
-In-Reply-To: <20100427150034.GZ7225@atomide.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:40336 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752549Ab0D1FnP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 01:43:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20100427150129.GA8600@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Menon, Nishanth" <nm@ti.com>, Aaro Koskinen <Aaro.Koskinen@nokia.com>
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>
 
+On Tue, Apr 27, 2010 at 05:01:30PM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
+> On Tue, Apr 27, 2010 at 03:14:13PM +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
+> >From: Eduardo Valentin <eduardo.valentin@nokia.com>
+> >
+> >Report OMAP2,3,4 data into system_soc_info. Now we get omap
+> >information under /proc/cpuinfo.
+> >
+> >Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> >---
+> > arch/arm/mach-omap2/id.c |   21 +++++++++++++++------
+> > 1 files changed, 15 insertions(+), 6 deletions(-)
+> >
+> >diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> >index 37b8a1a..75e36a5 100644
+> >--- a/arch/arm/mach-omap2/id.c
+> >+++ b/arch/arm/mach-omap2/id.c
+> >@@ -152,10 +152,15 @@ void __init omap24xx_check_revision(void)
+> > 		j = i;
+> > 	}
+> >
+> >-	pr_info("OMAP%04x", omap_rev() >> 16);
+> >-	if ((omap_rev() >> 8) & 0x0f)
+> >-		pr_info("ES%x", (omap_rev() >> 12) & 0xf);
+> >-	pr_info("\n");
+> >+	snprintf(system_soc_info, SYSTEM_SOC_INFO_SIZE, "OMAP%04x",
+> >+							omap_rev() >> 16);
+> >+	if ((omap_rev() >> 8) & 0x0f) {
+> >+		int sz = strlen(system_soc_info);
+> 
+> how about you use the return of the first snprintf instead of asking 
+> strlen() here ? I mean:
 
-Tony,
-Thanks for the inputs and suggestions for handling i2c-omap errata's in
-generic way.
+Yeah,
 
+> 
+> int sz = snprintf(system_soc_info, SYSTEM_SOC_INFO_SIZE, "OMAP%04x",
+> 		omap_rev() >> 16);
+> 
+> if ((omap_rev() >> 8) & 0x0f)
+> 	snprintf(system_soc_info + sz, SYSTEM_SOC_INFO_SIZE - sz,
+> 			"ES%x", (omap_rev() >> 12) & 0x0f);
+> 
+> would that work ???
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Tuesday, April 27, 2010 8:31 PM
-> To: G, Manjunath Kondaiah
-> Cc: linux-omap@vger.kernel.org; linux-i2c@vger.kernel.org; 
-> ben-linux@fluff.org; Kalliguddi, Hema; Menon, Nishanth; Aaro Koskinen
-> Subject: Re: [PATCH v5] OMAP2/3: I2C: Errata ID i207: Clear 
-> wrong RDR interrupt
-> 
-> * Manjunatha GK <manjugk@ti.com> [100427 07:21]:
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -199,6 +199,7 @@ struct omap_i2c_dev {
-> >  	u16			bufstate;
-> >  	u16			syscstate;
-> >  	u16			westate;
-> > +	bool			errata_i207;
-> >  };
-> 
-> Thanks for updating this.
-> 
-> One more comment though to make this more generic for handling
-> the other errata for i2c-omap.
-> 
-> Can you please make errata_i207 to be just:
-> 
-> 	u16			errata;
-> 
-> And then we can use it for handing all the i2c-omap errata.
-> 
-> You also need something like
-> 
-> #define I2C_OMAP_ERRATA_I207	(1 << 0)
+I think so, yeah. No need to recompute the string length twice. Will resend soon.
 
-Agreed. 
-
->   
-> >  const static u8 reg_map[] = {
-> > @@ -498,6 +499,12 @@ static int omap_i2c_init(struct 
-> omap_i2c_dev *dev)
-> >  	/* Take the I2C module out of reset: */
-> >  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-> >  
-> > +	dev->errata_i207 = false;
-> > +
-> > +	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> > +		dev->errata_i207 = true;
-> > +	}
-> > +
-> >  	/* Enable interrupts */
-> >  	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
-> >  			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
 > 
-> Then update this for for the bitmask too
+> -- 
+> balbi
 > 
-> 	dev->errata = 0;
-> 
-> 	if (cpu_is_omap2430() || cpu_is_omap34xx())
-> 		dev->errata |= I2C_OMAP_ERRATA_I207;
-> 
-Ok. I will incorporate these changes in next version.
-
--Manjunath
-
+> DefectiveByDesign.org
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
