@@ -1,601 +1,318 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2 04/19] DSPBRIDGE: Rename services_clk_* to dsp_clk_*
-Date: Wed, 28 Apr 2010 10:29:42 -0500
-Message-ID: <1272468597-6748-5-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v2 15/19] DSPBRIDGE: use one call for both ick and fck clocks
+Date: Wed, 28 Apr 2010 10:29:53 -0500
+Message-ID: <1272468597-6748-16-git-send-email-omar.ramirez@ti.com>
 References: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-2-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-3-git-send-email-omar.ramirez@ti.com>
  <1272468597-6748-4-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-5-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-6-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-7-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-8-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-9-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-10-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-11-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-12-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-13-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-14-git-send-email-omar.ramirez@ti.com>
+ <1272468597-6748-15-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53596 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53597 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754981Ab0D1PY6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754984Ab0D1PY6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 28 Apr 2010 11:24:58 -0400
-In-Reply-To: <1272468597-6748-4-git-send-email-omar.ramirez@ti.com>
+In-Reply-To: <1272468597-6748-15-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Rename services_clk_* to dsp_clk_*
+Instead of two calls to enable/disable for ick and fck use
+one call to enable/disable both.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/clk.h |   78 ++++++++++++------------
- drivers/dsp/bridge/services/clk.c          |   88 ++++++++++++++--------------
- drivers/dsp/bridge/services/services.c     |    6 +-
- drivers/dsp/bridge/wmd/_tiomap.h           |   26 ++++----
- drivers/dsp/bridge/wmd/tiomap3430.c        |   10 ++--
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c    |   16 +++---
- 6 files changed, 112 insertions(+), 112 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/clk.h |   35 +++++++++------------------
+ drivers/dsp/bridge/services/clk.c          |   14 +++++-----
+ drivers/dsp/bridge/wmd/_tiomap.h           |   25 +++++++++----------
+ drivers/dsp/bridge/wmd/tiomap3430.c        |    8 +++---
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c    |   35 ++++++++--------------------
+ 5 files changed, 45 insertions(+), 72 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/clk.h b/arch/arm/plat-omap/include/dspbridge/clk.h
-index c36b634..a547225 100644
+index 2602d9f..e6b09c7 100644
 --- a/arch/arm/plat-omap/include/dspbridge/clk.h
 +++ b/arch/arm/plat-omap/include/dspbridge/clk.h
-@@ -21,37 +21,37 @@
+@@ -20,29 +20,18 @@
+ #define _CLK_H
  
- 	/* Generic TIMER object: */
- struct timer_object;
--enum services_clk_id {
--	SERVICESCLK_IVA2_CK = 0,
--	SERVICESCLK_GPT5_FCK,
--	SERVICESCLK_GPT5_ICK,
--	SERVICESCLK_GPT6_FCK,
--	SERVICESCLK_GPT6_ICK,
--	SERVICESCLK_GPT7_FCK,
--	SERVICESCLK_GPT7_ICK,
--	SERVICESCLK_GPT8_FCK,
--	SERVICESCLK_GPT8_ICK,
--	SERVICESCLK_WDT3_FCK,
--	SERVICESCLK_WDT3_ICK,
--	SERVICESCLK_MCBSP1_FCK,
--	SERVICESCLK_MCBSP1_ICK,
--	SERVICESCLK_MCBSP2_FCK,
--	SERVICESCLK_MCBSP2_ICK,
--	SERVICESCLK_MCBSP3_FCK,
--	SERVICESCLK_MCBSP3_ICK,
--	SERVICESCLK_MCBSP4_FCK,
--	SERVICESCLK_MCBSP4_ICK,
--	SERVICESCLK_MCBSP5_FCK,
--	SERVICESCLK_MCBSP5_ICK,
--	SERVICESCLK_SSI_FCK,
--	SERVICESCLK_SSI_ICK,
--	SERVICESCLK_SYS32K_CK,
--	SERVICESCLK_SYS_CK,
--	SERVICESCLK_NOT_DEFINED
-+enum dsp_clk_id {
-+	DSP_CLK_IVA2_CK = 0,
-+	DSP_CLK_GPT5_FCK,
-+	DSP_CLK_GPT5_ICK,
-+	DSP_CLK_GPT6_FCK,
-+	DSP_CLK_GPT6_ICK,
-+	DSP_CLK_GPT7_FCK,
-+	DSP_CLK_GPT7_ICK,
-+	DSP_CLK_GPT8_FCK,
-+	DSP_CLK_GPT8_ICK,
-+	DSP_CLK_WDT3_FCK,
-+	DSP_CLK_WDT3_ICK,
-+	DSP_CLK_MCBSP1_FCK,
-+	DSP_CLK_MCBSP1_ICK,
-+	DSP_CLK_MCBSP2_FCK,
-+	DSP_CLK_MCBSP2_ICK,
-+	DSP_CLK_MCBSP3_FCK,
-+	DSP_CLK_MCBSP3_ICK,
-+	DSP_CLK_MCBSP4_FCK,
-+	DSP_CLK_MCBSP4_ICK,
-+	DSP_CLK_MCBSP5_FCK,
-+	DSP_CLK_MCBSP5_ICK,
-+	DSP_CLK_SSI_FCK,
-+	DSP_CLK_SSI_ICK,
-+	DSP_CLK_SYS32K_CK,
-+	DSP_CLK_SYS_CK,
-+	DSP_CLK_NOT_DEFINED
+ enum dsp_clk_id {
+-	DSP_CLK_IVA2_CK = 0,
+-	DSP_CLK_GPT5_FCK,
+-	DSP_CLK_GPT5_ICK,
+-	DSP_CLK_GPT6_FCK,
+-	DSP_CLK_GPT6_ICK,
+-	DSP_CLK_GPT7_FCK,
+-	DSP_CLK_GPT7_ICK,
+-	DSP_CLK_GPT8_FCK,
+-	DSP_CLK_GPT8_ICK,
+-	DSP_CLK_WDT3_FCK,
+-	DSP_CLK_WDT3_ICK,
+-	DSP_CLK_MCBSP1_FCK,
+-	DSP_CLK_MCBSP1_ICK,
+-	DSP_CLK_MCBSP2_FCK,
+-	DSP_CLK_MCBSP2_ICK,
+-	DSP_CLK_MCBSP3_FCK,
+-	DSP_CLK_MCBSP3_ICK,
+-	DSP_CLK_MCBSP4_FCK,
+-	DSP_CLK_MCBSP4_ICK,
+-	DSP_CLK_MCBSP5_FCK,
+-	DSP_CLK_MCBSP5_ICK,
+-	DSP_CLK_SSI_FCK,
+-	DSP_CLK_SSI_ICK,
++	DSP_CLK_IVA2 = 0,
++	DSP_CLK_GPT5,
++	DSP_CLK_GPT6,
++	DSP_CLK_GPT7,
++	DSP_CLK_GPT8,
++	DSP_CLK_WDT3,
++	DSP_CLK_MCBSP1,
++	DSP_CLK_MCBSP2,
++	DSP_CLK_MCBSP3,
++	DSP_CLK_MCBSP4,
++	DSP_CLK_MCBSP5,
++	DSP_CLK_SSI,
+ 	DSP_CLK_NOT_DEFINED
  };
  
- /*
-- *  ======== clk_exit ========
-+ *  ======== dsp_clk_exit ========
-  *  Purpose:
-  *      Discontinue usage of module; free resources when reference count
-  *      reaches 0.
-@@ -62,10 +62,10 @@ enum services_clk_id {
-  *  Ensures:
-  *      Resources used by module are freed when cRef reaches zero.
-  */
--extern void clk_exit(void);
-+extern void dsp_clk_exit(void);
- 
- /*
-- *  ======== services_clk_init ========
-+ *  ======== dsp_clk_init ========
-  *  Purpose:
-  *      Initializes private state of CLK module.
-  *  Parameters:
-@@ -75,10 +75,10 @@ extern void clk_exit(void);
-  *  Ensures:
-  *      CLK initialized.
-  */
--extern bool services_clk_init(void);
-+extern bool dsp_clk_init(void);
- 
- /*
-- *  ======== services_clk_enable ========
-+ *  ======== dsp_clk_enable ========
-  *  Purpose:
-  *      Enables the clock requested.
-  *  Parameters:
-@@ -88,10 +88,10 @@ extern bool services_clk_init(void);
-  *  Requires:
-  *  Ensures:
-  */
--extern dsp_status services_clk_enable(IN enum services_clk_id clk_id);
-+extern dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id);
- 
- /*
-- *  ======== services_clk_disable ========
-+ *  ======== dsp_clk_disable ========
-  *  Purpose:
-  *      Disables the clock requested.
-  *  Parameters:
-@@ -101,10 +101,10 @@ extern dsp_status services_clk_enable(IN enum services_clk_id clk_id);
-  *  Requires:
-  *  Ensures:
-  */
--extern dsp_status services_clk_disable(IN enum services_clk_id clk_id);
-+extern dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id);
- 
- /*
-- *  ======== services_clk_get_rate ========
-+ *  ======== dsp_clk_get_rate ========
-  *  Purpose:
-  *      Get the clock rate of requested clock.
-  *  Parameters:
-@@ -114,7 +114,7 @@ extern dsp_status services_clk_disable(IN enum services_clk_id clk_id);
-  *  Requires:
-  *  Ensures:
-  */
--extern dsp_status services_clk_get_rate(IN enum services_clk_id clk_id,
-+extern dsp_status dsp_clk_get_rate(IN enum dsp_clk_id clk_id,
- 					u32 *speedMhz);
- /*
-  *  ======== clk_set32k_hz ========
-@@ -127,7 +127,7 @@ extern dsp_status services_clk_get_rate(IN enum services_clk_id clk_id,
-  *  Requires:
-  *  Ensures:
-  */
--extern dsp_status clk_set32k_hz(IN enum services_clk_id clk_id);
-+extern dsp_status clk_set32k_hz(IN enum dsp_clk_id clk_id);
- extern void ssi_clk_prepare(bool FLAG);
- 
- /*
-@@ -141,6 +141,6 @@ extern void ssi_clk_prepare(bool FLAG);
-  *  Requires:
-  *  Ensures:
-  */
--extern s32 clk_get_use_cnt(IN enum services_clk_id clk_id);
-+extern s32 clk_get_use_cnt(IN enum dsp_clk_id clk_id);
- 
- #endif /* _SYNC_H */
 diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
-index b9fb9ef..4101c38 100644
+index c72f574..9a439c7 100644
 --- a/drivers/dsp/bridge/services/clk.c
 +++ b/drivers/dsp/bridge/services/clk.c
-@@ -42,16 +42,16 @@ typedef volatile unsigned long reg_uword32;
- #define SSI_SIDLE_SMARTIDLE		(2 << 3)
- #define SSI_MIDLE_NOIDLE		(1 << 12)
+@@ -52,8 +52,8 @@
+ /* Bridge GPT id (1 - 4), DM Timer id (5 - 8) */
+ #define DMT_ID(id) ((id) + 4)
  
--struct services_clk_t {
-+struct dsp_clk_t {
- 	struct clk *clk_handle;
- 	const char *clk_name;
- 	int id;
- };
+-/* Bridge MCBSP id (6 - 10), OMAP Mcbsp id (1 - 5) */
+-#define MCBSP_ID(id) ((id) - 13)
++/* Bridge MCBSP id (6 - 10), OMAP Mcbsp id (0 - 4) */
++#define MCBSP_ID(id) ((id) - 6)
  
- /* The row order of the below array needs to match with the clock enumerations
-- * 'services_clk_id' provided in the header file.. any changes in the
-+ * 'dsp_clk_id' provided in the header file.. any changes in the
-  * enumerations needs to be fixed in the array as well */
--static struct services_clk_t services_clks[] = {
-+static struct dsp_clk_t dsp_clks[] = {
- 	{NULL, "iva2_ck", -1},
- 	{NULL, "gpt5_fck", -1},
- 	{NULL, "gpt5_ick", -1},
-@@ -86,31 +86,31 @@ struct timer_object {
- };
+ static struct omap_dm_timer *timer[4];
  
- /*
-- *  ======== clk_exit ========
-+ *  ======== dsp_clk_exit ========
-  *  Purpose:
-  *      Cleanup CLK module.
-  */
--void clk_exit(void)
-+void dsp_clk_exit(void)
+@@ -71,15 +71,15 @@ static s8 get_clk_type(u8 id)
  {
- 	int i = 0;
+ 	s8 type;
  
- 	/* Relinquish the clock handles */
--	while (i < SERVICESCLK_NOT_DEFINED) {
--		if (services_clks[i].clk_handle)
--			clk_put(services_clks[i].clk_handle);
-+	while (i < DSP_CLK_NOT_DEFINED) {
-+		if (dsp_clks[i].clk_handle)
-+			clk_put(dsp_clks[i].clk_handle);
- 
--		services_clks[i].clk_handle = NULL;
-+		dsp_clks[i].clk_handle = NULL;
- 		i++;
- 	}
- 
- }
- 
- /*
-- *  ======== services_clk_init ========
-+ *  ======== dsp_clk_init ========
-  *  Purpose:
-  *      Initialize CLK module.
-  */
--bool services_clk_init(void)
-+bool dsp_clk_init(void)
- {
- 	static struct platform_device dspbridge_device;
- 	struct clk *clk_handle;
-@@ -119,20 +119,20 @@ bool services_clk_init(void)
- 	dspbridge_device.dev.bus = &platform_bus_type;
- 
- 	/* Get the clock handles from base port and store locally */
--	while (i < SERVICESCLK_NOT_DEFINED) {
-+	while (i < DSP_CLK_NOT_DEFINED) {
- 		/* get the handle from BP */
--		dspbridge_device.id = services_clks[i].id;
-+		dspbridge_device.id = dsp_clks[i].id;
- 
- 		clk_handle = clk_get(&dspbridge_device.dev,
--				     services_clks[i].clk_name);
-+				     dsp_clks[i].clk_name);
- 
- 		if (IS_ERR(clk_handle)) {
- 			pr_err("%s: failed to get clk handle %s, dev id = %d\n",
--			       __func__, services_clks[i].clk_name,
--			       services_clks[i].id);
-+			       __func__, dsp_clks[i].clk_name,
-+			       dsp_clks[i].id);
- 			return false;
- 		}
--		services_clks[i].clk_handle = clk_handle;
-+		dsp_clks[i].clk_handle = clk_handle;
- 		i++;
- 	}
- 
-@@ -140,24 +140,24 @@ bool services_clk_init(void)
- }
- 
- /*
-- *  ======== services_clk_enable ========
-+ *  ======== dsp_clk_enable ========
-  *  Purpose:
-  *      Enable Clock .
-  *
-  */
--dsp_status services_clk_enable(IN enum services_clk_id clk_id)
-+dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
- {
- 	dsp_status status = DSP_SOK;
- 	struct clk *clk_handle;
- 
--	DBC_REQUIRE(clk_id < SERVICESCLK_NOT_DEFINED);
-+	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
- 
--	clk_handle = services_clks[clk_id].clk_handle;
-+	clk_handle = dsp_clks[clk_id].clk_handle;
- 	if (clk_enable(clk_handle)) {
--		pr_err("services_clk_enable: failed to Enable CLK %s, "
-+		pr_err("dsp_clk_enable: failed to Enable CLK %s, "
- 		       "CLK dev id = %d\n",
--		       services_clks[clk_id].clk_name,
--		       services_clks[clk_id].id);
-+		       dsp_clks[clk_id].clk_name,
-+		       dsp_clks[clk_id].id);
- 		status = -EPERM;
- 	}
- 	/* The SSI module need to configured not to have the Forced idle for
-@@ -165,7 +165,7 @@ dsp_status services_clk_enable(IN enum services_clk_id clk_id)
- 	 * transitioning to standby thereby causing the client in the DSP hang
- 	 * waiting for the SSI module to be active after enabling the clocks
- 	 */
--	if (clk_id == SERVICESCLK_SSI_FCK)
-+	if (clk_id == DSP_CLK_SSI_FCK)
- 		ssi_clk_prepare(true);
- 
- 	return status;
-@@ -177,50 +177,50 @@ dsp_status services_clk_enable(IN enum services_clk_id clk_id)
-  *      To Set parent of a clock to 32KHz.
-  */
- 
--dsp_status clk_set32k_hz(IN enum services_clk_id clk_id)
-+dsp_status clk_set32k_hz(IN enum dsp_clk_id clk_id)
- {
- 	dsp_status status = DSP_SOK;
- 	struct clk *clk_handle;
- 	struct clk *clk_parent;
--	clk_parent = services_clks[SERVICESCLK_SYS32K_CK].clk_handle;
-+	clk_parent = dsp_clks[DSP_CLK_SYS32K_CK].clk_handle;
- 
--	DBC_REQUIRE(clk_id < SERVICESCLK_NOT_DEFINED);
-+	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
- 
--	clk_handle = services_clks[clk_id].clk_handle;
-+	clk_handle = dsp_clks[clk_id].clk_handle;
- 	if (!(clk_set_parent(clk_handle, clk_parent) == 0x0)) {
- 		pr_err("%s: failed for %s, dev id = %d\n", __func__,
--		       services_clks[clk_id].clk_name,
--		       services_clks[clk_id].id);
-+		       dsp_clks[clk_id].clk_name,
-+		       dsp_clks[clk_id].id);
- 		status = -EPERM;
- 	}
- 	return status;
- }
- 
- /*
-- *  ======== services_clk_disable ========
-+ *  ======== dsp_clk_disable ========
-  *  Purpose:
-  *      Disable the clock.
-  *
-  */
--dsp_status services_clk_disable(IN enum services_clk_id clk_id)
-+dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
- {
- 	dsp_status status = DSP_SOK;
- 	struct clk *clk_handle;
- 	s32 clk_use_cnt;
- 
--	DBC_REQUIRE(clk_id < SERVICESCLK_NOT_DEFINED);
-+	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
- 
--	clk_handle = services_clks[clk_id].clk_handle;
-+	clk_handle = dsp_clks[clk_id].clk_handle;
- 
- 	clk_use_cnt = clk_get_use_cnt(clk_id);
- 	if (clk_use_cnt == -1) {
- 		pr_err("%s: failed to get CLK Use count for CLK %s, CLK dev id"
--		       " = %d\n", __func__, services_clks[clk_id].clk_name,
--		       services_clks[clk_id].id);
-+		       " = %d\n", __func__, dsp_clks[clk_id].clk_name,
-+		       dsp_clks[clk_id].id);
- 	} else if (clk_use_cnt == 0) {
- 		return status;
- 	}
--	if (clk_id == SERVICESCLK_SSI_ICK)
-+	if (clk_id == DSP_CLK_SSI_ICK)
- 		ssi_clk_prepare(false);
- 
- 	clk_disable(clk_handle);
-@@ -229,13 +229,13 @@ dsp_status services_clk_disable(IN enum services_clk_id clk_id)
- }
- 
- /*
-- *  ======== services_clk_get_rate ========
-+ *  ======== dsp_clk_get_rate ========
-  *  Purpose:
-  *      GetClock Speed.
-  *
-  */
- 
--dsp_status services_clk_get_rate(IN enum services_clk_id clk_id, u32 *speedKhz)
-+dsp_status dsp_clk_get_rate(IN enum dsp_clk_id clk_id, u32 *speedKhz)
- {
- 	dsp_status status = DSP_SOK;
- 	struct clk *clk_handle;
-@@ -244,7 +244,7 @@ dsp_status services_clk_get_rate(IN enum services_clk_id clk_id, u32 *speedKhz)
- 	DBC_REQUIRE(clk_id < SERVICESCLK_NOT_DEFINED);
- 	*speedKhz = 0x0;
- 
--	clk_handle = services_clks[clk_id].clk_handle;
-+	clk_handle = dsp_clks[clk_id].clk_handle;
- 	clk_speed_hz = clk_get_rate(clk_handle);
- 	*speedKhz = clk_speed_hz / 1000;
- 	dev_dbg(bridge, "%s: clk_speed_hz = %d, speedinKhz = %d\n",
-@@ -253,13 +253,13 @@ dsp_status services_clk_get_rate(IN enum services_clk_id clk_id, u32 *speedKhz)
- 	return status;
- }
- 
--s32 clk_get_use_cnt(IN enum services_clk_id clk_id)
-+s32 clk_get_use_cnt(IN enum dsp_clk_id clk_id)
- {
- 	struct clk *clk_handle;
- 	s32 use_count = -1;
--	DBC_REQUIRE(clk_id < SERVICESCLK_NOT_DEFINED);
-+	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
- 
--	clk_handle = services_clks[clk_id].clk_handle;
-+	clk_handle = dsp_clks[clk_id].clk_handle;
- 
- 	/* FIXME: usecount shouldn't be used */
- 	use_count = clk_handle->usecount;
-diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
-index 19ab4d0..afb01be 100644
---- a/drivers/dsp/bridge/services/services.c
-+++ b/drivers/dsp/bridge/services/services.c
-@@ -43,7 +43,7 @@
- void services_exit(void)
- {
- 	/* Uninitialize all SERVICES modules here */
--	clk_exit();
-+	dsp_clk_exit();
- 	cfg_exit();
- }
- 
-@@ -60,14 +60,14 @@ bool services_init(void)
- 
- 	/* Perform required initialization of SERVICES modules. */
- 	fcfg = cfg_init();
--	fclk = services_clk_init();
-+	fclk = dsp_clk_init();
- 
- 	ret = fcfg && fclk;
- 
- 	if (!ret) {
- 
- 		if (fclk)
--			clk_exit();
-+			dsp_clk_exit();
- 
- 		if (fcfg)
- 			cfg_exit();
+-	if (id == DSP_CLK_IVA2_CK)
++	if (id == DSP_CLK_IVA2)
+ 		type = IVA2_CLK;
+-	else if (id <= DSP_CLK_GPT8_ICK)
++	else if (id <= DSP_CLK_GPT8)
+ 		type = GPT_CLK;
+-	else if (id <= DSP_CLK_WDT3_ICK)
++	else if (id == DSP_CLK_WDT3)
+ 		type = WDT_CLK;
+-	else if (id <= DSP_CLK_MCBSP5_ICK)
++	else if (id <= DSP_CLK_MCBSP5)
+ 		type = MCBSP_CLK;
+-	else if (id < DSP_CLK_SSI_ICK)
++	else if (id == DSP_CLK_SSI)
+ 		type = SSI_CLK;
+ 	else
+ 		type = -1;
 diff --git a/drivers/dsp/bridge/wmd/_tiomap.h b/drivers/dsp/bridge/wmd/_tiomap.h
-index bf3b849..887232b 100644
+index 887232b..56efb84 100644
 --- a/drivers/dsp/bridge/wmd/_tiomap.h
 +++ b/drivers/dsp/bridge/wmd/_tiomap.h
-@@ -246,22 +246,22 @@ static const u32 bpwr_clkid[] = {
+@@ -246,22 +246,21 @@ static const u32 bpwr_clkid[] = {
  
  struct bpwr_clk_t {
  	u32 clk_id;
--	enum services_clk_id fun_clk;
--	enum services_clk_id int_clk;
-+	enum dsp_clk_id fun_clk;
-+	enum dsp_clk_id int_clk;
+-	enum dsp_clk_id fun_clk;
+-	enum dsp_clk_id int_clk;
++	enum dsp_clk_id clk;
  };
  
  static const struct bpwr_clk_t bpwr_clks[] = {
--	{(u32) BPWR_GP_TIMER5, SERVICESCLK_GPT5_FCK, SERVICESCLK_GPT5_ICK},
--	{(u32) BPWR_GP_TIMER6, SERVICESCLK_GPT6_FCK, SERVICESCLK_GPT6_ICK},
--	{(u32) BPWR_GP_TIMER7, SERVICESCLK_GPT7_FCK, SERVICESCLK_GPT7_ICK},
--	{(u32) BPWR_GP_TIMER8, SERVICESCLK_GPT8_FCK, SERVICESCLK_GPT8_ICK},
--	{(u32) BPWR_WD_TIMER3, SERVICESCLK_WDT3_FCK, SERVICESCLK_WDT3_ICK},
--	{(u32) BPWR_MCBSP1, SERVICESCLK_MCBSP1_FCK, SERVICESCLK_MCBSP1_ICK},
--	{(u32) BPWR_MCBSP2, SERVICESCLK_MCBSP2_FCK, SERVICESCLK_MCBSP2_ICK},
--	{(u32) BPWR_MCBSP3, SERVICESCLK_MCBSP3_FCK, SERVICESCLK_MCBSP3_ICK},
--	{(u32) BPWR_MCBSP4, SERVICESCLK_MCBSP4_FCK, SERVICESCLK_MCBSP4_ICK},
--	{(u32) BPWR_MCBSP5, SERVICESCLK_MCBSP5_FCK, SERVICESCLK_MCBSP5_ICK},
--	{(u32) BPWR_SSI, SERVICESCLK_SSI_FCK, SERVICESCLK_SSI_ICK}
-+	{(u32) BPWR_GP_TIMER5, DSP_CLK_GPT5_FCK, DSP_CLK_GPT5_ICK},
-+	{(u32) BPWR_GP_TIMER6, DSP_CLK_GPT6_FCK, DSP_CLK_GPT6_ICK},
-+	{(u32) BPWR_GP_TIMER7, DSP_CLK_GPT7_FCK, DSP_CLK_GPT7_ICK},
-+	{(u32) BPWR_GP_TIMER8, DSP_CLK_GPT8_FCK, DSP_CLK_GPT8_ICK},
-+	{(u32) BPWR_WD_TIMER3, DSP_CLK_WDT3_FCK, DSP_CLK_WDT3_ICK},
-+	{(u32) BPWR_MCBSP1, DSP_CLK_MCBSP1_FCK, DSP_CLK_MCBSP1_ICK},
-+	{(u32) BPWR_MCBSP2, DSP_CLK_MCBSP2_FCK, DSP_CLK_MCBSP2_ICK},
-+	{(u32) BPWR_MCBSP3, DSP_CLK_MCBSP3_FCK, DSP_CLK_MCBSP3_ICK},
-+	{(u32) BPWR_MCBSP4, DSP_CLK_MCBSP4_FCK, DSP_CLK_MCBSP4_ICK},
-+	{(u32) BPWR_MCBSP5, DSP_CLK_MCBSP5_FCK, DSP_CLK_MCBSP5_ICK},
-+	{(u32) BPWR_SSI, DSP_CLK_SSI_FCK, DSP_CLK_SSI_ICK}
+-	{(u32) BPWR_GP_TIMER5, DSP_CLK_GPT5_FCK, DSP_CLK_GPT5_ICK},
+-	{(u32) BPWR_GP_TIMER6, DSP_CLK_GPT6_FCK, DSP_CLK_GPT6_ICK},
+-	{(u32) BPWR_GP_TIMER7, DSP_CLK_GPT7_FCK, DSP_CLK_GPT7_ICK},
+-	{(u32) BPWR_GP_TIMER8, DSP_CLK_GPT8_FCK, DSP_CLK_GPT8_ICK},
+-	{(u32) BPWR_WD_TIMER3, DSP_CLK_WDT3_FCK, DSP_CLK_WDT3_ICK},
+-	{(u32) BPWR_MCBSP1, DSP_CLK_MCBSP1_FCK, DSP_CLK_MCBSP1_ICK},
+-	{(u32) BPWR_MCBSP2, DSP_CLK_MCBSP2_FCK, DSP_CLK_MCBSP2_ICK},
+-	{(u32) BPWR_MCBSP3, DSP_CLK_MCBSP3_FCK, DSP_CLK_MCBSP3_ICK},
+-	{(u32) BPWR_MCBSP4, DSP_CLK_MCBSP4_FCK, DSP_CLK_MCBSP4_ICK},
+-	{(u32) BPWR_MCBSP5, DSP_CLK_MCBSP5_FCK, DSP_CLK_MCBSP5_ICK},
+-	{(u32) BPWR_SSI, DSP_CLK_SSI_FCK, DSP_CLK_SSI_ICK}
++	{(u32) BPWR_GP_TIMER5, DSP_CLK_GPT5},
++	{(u32) BPWR_GP_TIMER6, DSP_CLK_GPT6},
++	{(u32) BPWR_GP_TIMER7, DSP_CLK_GPT7},
++	{(u32) BPWR_GP_TIMER8, DSP_CLK_GPT8},
++	{(u32) BPWR_WD_TIMER3, DSP_CLK_WDT3},
++	{(u32) BPWR_MCBSP1, DSP_CLK_MCBSP1},
++	{(u32) BPWR_MCBSP2, DSP_CLK_MCBSP2},
++	{(u32) BPWR_MCBSP3, DSP_CLK_MCBSP3},
++	{(u32) BPWR_MCBSP4, DSP_CLK_MCBSP4},
++	{(u32) BPWR_MCBSP5, DSP_CLK_MCBSP5},
++	{(u32) BPWR_SSI, DSP_CLK_SSI}
  };
  
  /* Interrupt Register Offsets */
 diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index a69f663..896941c 100644
+index 38338d1..4ac53ea 100644
 --- a/drivers/dsp/bridge/wmd/tiomap3430.c
 +++ b/drivers/dsp/bridge/wmd/tiomap3430.c
 @@ -305,7 +305,7 @@ static dsp_status bridge_brd_monitor(struct wmd_dev_context *hDevContext)
  	}
  	(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2, 0,
  					OMAP3430_IVA2_MOD, RM_RSTCTRL);
--	services_clk_enable(SERVICESCLK_IVA2_CK);
-+	dsp_clk_enable(DSP_CLK_IVA2_CK);
+-	dsp_clk_enable(DSP_CLK_IVA2_CK);
++	dsp_clk_enable(DSP_CLK_IVA2);
  
  	if (DSP_SUCCEEDED(status)) {
  		/* set the device state to IDLE */
-@@ -607,7 +607,7 @@ static dsp_status bridge_brd_start(struct wmd_dev_context *hDevContext,
- 
- 		if ((unsigned int *)ul_dsp_clk_addr != NULL) {
- 			/* Get the clock rate */
--			status = services_clk_get_rate(SERVICESCLK_IVA2_CK,
-+			status = dsp_clk_get_rate(DSP_CLK_IVA2_CK,
- 						       &ul_dsp_clk_rate);
- 			dev_dbg(bridge, "%s: DSP clock rate (KHZ): 0x%x \n",
- 				__func__, ul_dsp_clk_rate);
-@@ -727,7 +727,7 @@ static dsp_status bridge_brd_stop(struct wmd_dev_context *hDevContext)
+@@ -675,7 +675,7 @@ static dsp_status bridge_brd_stop(struct wmd_dev_context *hDevContext)
  		sm_interrupt_dsp(dev_context, MBX_PM_DSPIDLE);
  		mdelay(10);
  
--		clk_status = services_clk_disable(SERVICESCLK_IVA2_CK);
-+		clk_status = dsp_clk_disable(DSP_CLK_IVA2_CK);
+-		clk_status = dsp_clk_disable(DSP_CLK_IVA2_CK);
++		clk_status = dsp_clk_disable(DSP_CLK_IVA2);
  
  		/* IVA2 is not in OFF state */
  		/* Set PM_PWSTCTRL_IVA2  to OFF */
-@@ -737,7 +737,7 @@ static dsp_status bridge_brd_stop(struct wmd_dev_context *hDevContext)
+@@ -685,7 +685,7 @@ static dsp_status bridge_brd_stop(struct wmd_dev_context *hDevContext)
  		(*pdata->dsp_cm_write)(OMAP34XX_CLKSTCTRL_FORCE_SLEEP,
  					OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
  	} else {
--		clk_status = services_clk_disable(SERVICESCLK_IVA2_CK);
-+		clk_status = dsp_clk_disable(DSP_CLK_IVA2_CK);
+-		clk_status = dsp_clk_disable(DSP_CLK_IVA2_CK);
++		clk_status = dsp_clk_disable(DSP_CLK_IVA2);
  	}
  	udelay(10);
  	/* Release the Ext Base virtual Address as the next DSP Program
-@@ -795,7 +795,7 @@ static dsp_status wmd_brd_delete(struct wmd_dev_context *hDevContext)
+@@ -743,7 +743,7 @@ static dsp_status wmd_brd_delete(struct wmd_dev_context *hDevContext)
  	 * to ensure that there are no pending L3 or other transactons from
  	 * IVA2 */
  	status = sleep_dsp(dev_context, PWR_EMERGENCYDEEPSLEEP, NULL);
--	clk_status = services_clk_disable(SERVICESCLK_IVA2_CK);
-+	clk_status = dsp_clk_disable(DSP_CLK_IVA2_CK);
+-	clk_status = dsp_clk_disable(DSP_CLK_IVA2_CK);
++	clk_status = dsp_clk_disable(DSP_CLK_IVA2);
  
  	/* Release the Ext Base virtual Address as the next DSP Program
  	 * may have a different load address */
 diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 87ec8d2..2e08746 100644
+index 2e08746..879f99e 100644
 --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
 +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -319,8 +319,8 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
+@@ -288,7 +288,6 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
+ 	u32 tmp_index;
+ 	u32 dsp_per_clks_before;
+ 	dsp_status status = DSP_SOK;
+-	dsp_status status1 = DSP_SOK;
+ 	struct cfg_hostres *resources = dev_context->resources;
+ 	u32 value;
+ 
+@@ -318,9 +317,6 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
+ 	ext_clk_cmd = (ext_clk >> MBX_PM_CLK_CMDSHIFT) & MBX_PM_CLK_CMDMASK;
  	switch (ext_clk_cmd) {
  	case BPWR_DISABLE_CLOCK:
- 		/* Call BP to disable the needed clock */
--		status1 = services_clk_disable(bpwr_clks[clk_id_index].int_clk);
--		status = services_clk_disable(bpwr_clks[clk_id_index].fun_clk);
-+		status1 = dsp_clk_disable(bpwr_clks[clk_id_index].int_clk);
-+		status = dsp_clk_disable(bpwr_clks[clk_id_index].fun_clk);
+-		/* Call BP to disable the needed clock */
+-		status1 = dsp_clk_disable(bpwr_clks[clk_id_index].int_clk);
+-		status = dsp_clk_disable(bpwr_clks[clk_id_index].fun_clk);
  		if (bpwr_clkid[clk_id_index] == BPWR_MCBSP1) {
  			/* clear MCBSP1_CLKS, on McBSP1 OFF */
  			value = __raw_readl(
-@@ -344,8 +344,8 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
+@@ -336,16 +332,16 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
+ 			__raw_writel(value,
+ 				resources->dw_sys_ctrl_base + 0x274);
+ 		}
++		status = dsp_clk_disable(bpwr_clks[clk_id_index].clk);
+ 		dsp_clk_wakeup_event_ctrl(bpwr_clks[clk_id_index].clk_id,
+ 					  false);
+-		if ((DSP_SUCCEEDED(status)) && (DSP_SUCCEEDED(status1))) {
++		if (DSP_SUCCEEDED(status)) {
+ 			(dev_context->dsp_per_clks) &=
+ 			    (~((u32) (1 << clk_id_index)));
  		}
  		break;
  	case BPWR_ENABLE_CLOCK:
--		status1 = services_clk_enable(bpwr_clks[clk_id_index].int_clk);
--		status = services_clk_enable(bpwr_clks[clk_id_index].fun_clk);
-+		status1 = dsp_clk_enable(bpwr_clks[clk_id_index].int_clk);
-+		status = dsp_clk_enable(bpwr_clks[clk_id_index].fun_clk);
+-		status1 = dsp_clk_enable(bpwr_clks[clk_id_index].int_clk);
+-		status = dsp_clk_enable(bpwr_clks[clk_id_index].fun_clk);
++		status = dsp_clk_enable(bpwr_clks[clk_id_index].clk);
  		if (bpwr_clkid[clk_id_index] == BPWR_MCBSP1) {
  			/* set MCBSP1_CLKS, on McBSP1 ON */
  			value = __raw_readl(
-@@ -469,7 +469,7 @@ dsp_status dsp_peripheral_clocks_disable(struct wmd_dev_context *dev_context,
+@@ -362,9 +358,8 @@ dsp_status dsp_peripheral_clk_ctrl(struct wmd_dev_context *dev_context,
+ 				resources->dw_sys_ctrl_base + 0x274);
+ 		}
+ 		dsp_clk_wakeup_event_ctrl(bpwr_clks[clk_id_index].clk_id, true);
+-		if ((DSP_SUCCEEDED(status)) && (DSP_SUCCEEDED(status1))) {
++		if (DSP_SUCCEEDED(status))
+ 			(dev_context->dsp_per_clks) |= (1 << clk_id_index);
+-		}
+ 		break;
+ 	default:
+ 		dev_dbg(bridge, "%s: Unsupported CMD\n", __func__);
+@@ -467,9 +462,6 @@ dsp_status dsp_peripheral_clocks_disable(struct wmd_dev_context *dev_context,
+ 
+ 	for (clk_idx = 0; clk_idx < MBX_PM_MAX_RESOURCES; clk_idx++) {
  		if (((dev_context->dsp_per_clks) >> clk_idx) & 0x01) {
- 			/* Disables the interface clock of the peripheral */
- 			status =
--			    services_clk_disable(bpwr_clks[clk_idx].int_clk);
-+			    dsp_clk_disable(bpwr_clks[clk_idx].int_clk);
+-			/* Disables the interface clock of the peripheral */
+-			status =
+-			    dsp_clk_disable(bpwr_clks[clk_idx].int_clk);
  			if (bpwr_clkid[clk_idx] == BPWR_MCBSP1) {
  				/* clear MCBSP1_CLKS, on McBSP1 OFF */
  				value = __raw_readl(resources->dw_sys_ctrl_base
-@@ -488,7 +488,7 @@ dsp_status dsp_peripheral_clocks_disable(struct wmd_dev_context *dev_context,
+@@ -486,9 +478,8 @@ dsp_status dsp_peripheral_clocks_disable(struct wmd_dev_context *dev_context,
+ 					     + 0x274);
+ 			}
  
- 			/* Disables the functional clock of the periphearl */
- 			status =
--			    services_clk_disable(bpwr_clks[clk_idx].fun_clk);
-+			    dsp_clk_disable(bpwr_clks[clk_idx].fun_clk);
+-			/* Disables the functional clock of the periphearl */
+-			status =
+-			    dsp_clk_disable(bpwr_clks[clk_idx].fun_clk);
++			/* Disables the clocks of the peripheral */
++			status = dsp_clk_disable(bpwr_clks[clk_idx].clk);
  		}
  	}
  	return status;
-@@ -513,7 +513,7 @@ dsp_status dsp_peripheral_clocks_enable(struct wmd_dev_context *dev_context,
+@@ -502,7 +493,7 @@ dsp_status dsp_peripheral_clocks_enable(struct wmd_dev_context *dev_context,
+ 					IN void *pargs)
+ {
+ 	u32 clk_idx;
+-	dsp_status int_clk_status = -EPERM, fun_clk_status = -EPERM;
++	dsp_status clk_status = -EPERM;
+ 	struct cfg_hostres *resources = dev_context->resources;
+ 	u32 value;
+ 
+@@ -511,9 +502,8 @@ dsp_status dsp_peripheral_clocks_enable(struct wmd_dev_context *dev_context,
+ 
+ 	for (clk_idx = 0; clk_idx < MBX_PM_MAX_RESOURCES; clk_idx++) {
  		if (((dev_context->dsp_per_clks) >> clk_idx) & 0x01) {
- 			/* Enable the interface clock of the peripheral */
- 			int_clk_status =
--			    services_clk_enable(bpwr_clks[clk_idx].int_clk);
-+			    dsp_clk_enable(bpwr_clks[clk_idx].int_clk);
+-			/* Enable the interface clock of the peripheral */
+-			int_clk_status =
+-			    dsp_clk_enable(bpwr_clks[clk_idx].int_clk);
++			/* Enable the clocks of the peripheral */
++			clk_status = dsp_clk_enable(bpwr_clks[clk_idx].clk);
  			if (bpwr_clkid[clk_idx] == BPWR_MCBSP1) {
  				/* set MCBSP1_CLKS, on McBSP1 ON */
  				value = __raw_readl(resources->dw_sys_ctrl_base
-@@ -531,7 +531,7 @@ dsp_status dsp_peripheral_clocks_enable(struct wmd_dev_context *dev_context,
+@@ -529,14 +519,9 @@ dsp_status dsp_peripheral_clocks_enable(struct wmd_dev_context *dev_context,
+ 				__raw_writel(value, resources->dw_sys_ctrl_base
+ 					     + 0x274);
  			}
- 			/* Enable the functional clock of the periphearl */
- 			fun_clk_status =
--			    services_clk_enable(bpwr_clks[clk_idx].fun_clk);
-+			    dsp_clk_enable(bpwr_clks[clk_idx].fun_clk);
+-			/* Enable the functional clock of the periphearl */
+-			fun_clk_status =
+-			    dsp_clk_enable(bpwr_clks[clk_idx].fun_clk);
  		}
  	}
- 	if ((int_clk_status | fun_clk_status) != DSP_SOK)
+-	if ((int_clk_status | fun_clk_status) != DSP_SOK)
+-		return -EPERM;
+-	return DSP_SOK;
++	return clk_status;
+ }
+ 
+ void dsp_clk_wakeup_event_ctrl(u32 ClkId, bool enable)
 -- 
 1.6.2.4
 
