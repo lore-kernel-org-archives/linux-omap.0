@@ -1,206 +1,218 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 4/4] omap: mailbox: convert block api to kfifo
-Date: Wed, 28 Apr 2010 15:03:56 +0300
-Message-ID: <l2oda15981b1004280503m1e6ecb88u9667e1fe6364eef9@mail.gmail.com>
-References: <t2rda15981b1004280402rc7ce3cc7g622620086439ff90@mail.gmail.com>
-	<20100428.141620.59684829.Hiroshi.DOYU@nokia.com> <g2wda15981b1004280425nd095bccelc5ca7d695d9e19b1@mail.gmail.com>
-	<20100428.145244.115939340.Hiroshi.DOYU@nokia.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: RE: [RFC][PATCH] [I2C]pass scll, sclh through board file for Errata
+ i585
+Date: Wed, 28 Apr 2010 18:04:28 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E2A5B66@dbde02.ent.ti.com>
+References: <1271689408-2397-1-git-send-email-balajitk@ti.com>
+ <20100426224314.GP7225@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:32946 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751624Ab0D1MES convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 08:04:18 -0400
-Received: by gyg13 with SMTP id 13so7208290gyg.19
-        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 05:04:17 -0700 (PDT)
-In-Reply-To: <20100428.145244.115939340.Hiroshi.DOYU@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:44954 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751821Ab0D1Meg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 08:34:36 -0400
+In-Reply-To: <20100426224314.GP7225@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Apr 28, 2010 at 2:52 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> =
-wrote:
-> From: ext Ohad Ben-Cohen <ohad@wizery.com>
-> Subject: Re: [PATCH 4/4] omap: mailbox: convert block api to kfifo
-> Date: Wed, 28 Apr 2010 13:25:41 +0200
->
->> On Wed, Apr 28, 2010 at 2:16 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.co=
-m> wrote:
->>> From: ext Ohad Ben-Cohen <ohad@wizery.com>
->>> Subject: Re: [PATCH 4/4] omap: mailbox: convert block api to kfifo
->>> Date: Wed, 28 Apr 2010 13:02:06 +0200
->>>
->>>>>> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/m=
-ailbox.c
->>>>>> index 72b17ad..b1324f3 100644
->>>>>> --- a/arch/arm/plat-omap/mailbox.c
->>>>>> +++ b/arch/arm/plat-omap/mailbox.c
->>>>>> @@ -26,6 +26,7 @@
->>>>>> =A0#include <linux/device.h>
->>>>>> =A0#include <linux/delay.h>
->>>>>> =A0#include <linux/slab.h>
->>>>>> +#include <linux/kfifo.h>
->>>>>>
->>>>>> =A0#include <plat/mailbox.h>
->>>>>>
->>>>>> @@ -67,7 +68,7 @@ static inline int is_mbox_irq(struct omap_mbox=
- *mbox, omap_mbox_irq_t irq)
->>>>>> =A0/*
->>>>>> =A0 * message sender
->>>>>> =A0 */
->>>>>> -static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t m=
-sg)
->>>>>> +static int __mbox_poll_for_space(struct omap_mbox *mbox)
->>>>>> =A0{
->>>>>> =A0 =A0 =A0 int ret =3D 0, i =3D 1000;
->>>>>>
->>>>>> @@ -78,49 +79,54 @@ static int __mbox_msg_send(struct omap_mbox =
-*mbox, mbox_msg_t msg)
->>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -1;
->>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 udelay(1);
->>>>>> =A0 =A0 =A0 }
->>>>>> - =A0 =A0 mbox_fifo_write(mbox, msg);
->>>>>> =A0 =A0 =A0 return ret;
->>>>>> =A0}
->>>>>>
->>>>>> -
->>>>>> =A0int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg=
-)
->>>>>> =A0{
->>>>>> + =A0 =A0 struct omap_mbox_queue *mq =3D mbox->txq;
->>>>>> + =A0 =A0 int ret =3D 0, len;
->>>>>>
->>>>>> - =A0 =A0 struct request *rq;
->>>>>> - =A0 =A0 struct request_queue *q =3D mbox->txq->queue;
->>>>>> + =A0 =A0 spin_lock(&mq->lock);
->>>>>>
->>>>>> - =A0 =A0 rq =3D blk_get_request(q, WRITE, GFP_ATOMIC);
->>>>>> - =A0 =A0 if (unlikely(!rq))
->>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
->>>>>> + =A0 =A0 if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 goto out;
->>>>>> + =A0 =A0 }
->>>>>> +
->>>>>> + =A0 =A0 len =3D kfifo_in(&mq->fifo, (unsigned char *)&msg, siz=
-eof(msg));
->>>>>> + =A0 =A0 if (unlikely(len !=3D sizeof(msg))) {
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: kfifo_in anomaly\n", __fun=
-c__);
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
->>>>>> + =A0 =A0 }
->>>>>>
->>>>>> - =A0 =A0 blk_insert_request(q, rq, 0, (void *) msg);
->>>>>> =A0 =A0 =A0 tasklet_schedule(&mbox->txq->tasklet);
->>>>>>
->>>>>> - =A0 =A0 return 0;
->>>>>> +out:
->>>>>> + =A0 =A0 spin_unlock(&mq->lock);
->>>>>> + =A0 =A0 return ret;
->>>>>> =A0}
->>>>>> =A0EXPORT_SYMBOL(omap_mbox_msg_send);
->>>>>>
->>>>>> =A0static void mbox_tx_tasklet(unsigned long tx_data)
->>>>>> =A0{
->>>>>> - =A0 =A0 int ret;
->>>>>> - =A0 =A0 struct request *rq;
->>>>>> =A0 =A0 =A0 struct omap_mbox *mbox =3D (struct omap_mbox *)tx_da=
-ta;
->>>>>> - =A0 =A0 struct request_queue *q =3D mbox->txq->queue;
->>>>>> -
->>>>>> - =A0 =A0 while (1) {
->>>>>> -
->>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 rq =3D blk_fetch_request(q);
->>>>>> -
->>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!rq)
->>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->>>>>> + =A0 =A0 struct omap_mbox_queue *mq =3D mbox->txq;
->>>>>> + =A0 =A0 mbox_msg_t msg;
->>>>>> + =A0 =A0 int ret;
->>>>>>
->>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 ret =3D __mbox_msg_send(mbox, (mbox_ms=
-g_t)rq->special);
->>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 if (ret) {
->>>>>> + =A0 =A0 while (kfifo_len(&mq->fifo)) {
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 if (__mbox_poll_for_space(mbox)) {
->>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_mbox_enable_irq=
-(mbox, IRQ_TX);
->>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 blk_requeue_request(q,=
- rq);
->>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 blk_end_request_all(rq, 0);
->>>>>> +
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D kfifo_out(&mq->fifo, (unsigned=
- char *)&msg,
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sizeof(msg));
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 if (unlikely(ret !=3D sizeof(msg)))
->>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: kfifo_out =
-anomaly\n", __func__);
->>>>>
->>>>> No error recovery? same for other anomalies.
->>>>
->>>> I thought about it too, but eventually I think it doesn't really m=
-ake
->>>> a lot of sense:
->>>> The only reason that kfifo_out/kfifo_in can fail here is if there'=
-s
->>>> not enough data/space (respectively).
->>>> Since we are checking for the availability of data/space before ca=
-lling
->>>> kfifo_out/kfifo_in, it cannot really fail.
->>>> If it does fail, that's a critical bug that we cannot really recov=
-er from.
->>>> Only reasonable explanation can be a bug in the code (either ours =
-or kfifo's),
->>>> and with such a bug it really feels futile to put some recovery.
->>>> So maybe we should really make this a WARN_ON.
->>>> What do you think ?
->>>
->>> Makes sense. What about BUG_ON if it shouldn't happen theoretically=
-?
->>
->> I'm not sure this bug is critical enough to panic and enforce the us=
-er
->> to reboot immediately - he can probably still do a clean shutdown he=
-re.
->
-> I agree that WARN_ON would be enough for this case. I just thought of
-> the rareness of this triggering.
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> * balajitk@ti.com <balajitk@ti.com> [100419 07:59]:
+> > From: Balaji T K <balajitk@ti.com>
+> >
+> > Errata ID: i535 - I2C1 to 3 SCL low period is shorter in FS mode
+> > Due to IO cell influence, I2C1 to 3 SCL low period can be shorter than
+> expected.
+> > As a result, I2C AC timing (SCL minimum low period) in FS mode may not meet
+> > the timing configured by software.
+> >
+> > I2C1 to 3, SCL low period is programmable and proper adjustments
+> > to the SCLL/HSSCLL values can avoid the issue.
+> >
+> > This patch provides flexibility to control tLOW, tHIGH for different boards.
+> > scll, sclh values are to be provide in board data
+> > for differents modes (standard, fast and high speed mode)
+> > as the scl rate (I2C bus speed) can be changed by bootargs.
+> >
+> > If scll, sclh values are not provided, scll and sclh values will be computed
+> > for duty cycle tHIGH:tLOW of 1:2 (for HS, FS) and 1:1 for Standard as before
+> 
+> <snip>
+> 
+> > --- a/arch/arm/mach-omap2/board-3430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> > @@ -594,6 +594,26 @@ static struct twl4030_platform_data sdp3430_twldata = {
+> >  	.vpll2		= &sdp3430_vpll2,
+> >  };
+> >
+> > +static struct omap_i2c_scl_data __initdata sdp3430_i2c1_scl_data = {
+> > +	.rate	= 2600,
+> > +	.standard_scll	= 20,	/* For 100Khz */
+> > +	.standard_sclh	= 20,	/* For 100Khz */
 
-Yeah, I was thinking exactly the same, and wanted to put BUG_ON too ini=
-tially,
-but the combination of its calling panic and its header comment
-convinced me otherwise:
+Scll and sclh calculation for other than omap1 and omap2420
+from the given formula
+				fsscll = internal_clk / (dev->speed * 2);
+				fssclh = internal_clk / (dev->speed * 2);
+where internal_clk is 4000KHz, dev-speed is 100Khz
+and the assumption is 1:1 duty cycle, 50%tHIGH, 50%tLOW
 
-/*
- * Don't use BUG() or BUG_ON() unless there's really no way out; one
- * example might be detecting data structure corruption in the middle
- * of an operation that can't be backed out of.  If the (sub)system
- * can somehow continue operating, perhaps with reduced functionality,
- * it's probably not BUG-worthy.
- *
- * If you're tempted to BUG(), think again:  is completely giving up
- * really the *only* solution?  There are usually better options, where
- * users don't need to reboot ASAP and can mostly shut down cleanly.
- */
+> > +	.fast_mode_scll	= 16,	/* For 400Khz */
+> > +	.fast_mode_sclh	= 8,	/* For 400Khz */
 
+			scl = internal_clk / dev->speed;
+				fsscll = scl - (scl / 3);
+				fssclh = (scl / 3);
+internal_clk is 9600, dev->speed =400
+and the assumption is 1:2 duty cycle, 33%tHIGH, 66%tLOW
 
+> > +	.hs_phase1_scll	= 32,	/* For 2600Khz */
+> > +	.hs_phase1_sclh	= 16,	/* For 2600Khz */
 
+				fsscll = scl - (scl / 3);
+				fssclh = (scl / 3);
+internal_clk is 19200, dev->speed =400
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > +	.hs_phase2_scll	= 24,	/* For 2600Khz */
+> > +	.hs_phase2_sclh	= 12,	/* For 2600Khz */
+
+			scl = fclk_rate / dev->speed;
+				hsscll = scl - (scl / 3);
+				hssclh = (scl / 3);
+fclk_rate is 96000, dev->speed is 2600
+and the assumption is 1:2 duty cycle, 33%tHIGH, 66%tLOW
+
+> > +};
+> 
+> Can you please describe how you get these values for each board-*.c file?
+
+Internal_clk is initialized to predefined value of 4000Khz, 9600, 19200
+depending on i2c bus speed of 100, 400, or >400.
+However fclk_rate varies between omap and needs to be determined by debug printk
+
+> 
+> > --- a/arch/arm/plat-omap/i2c.c
+> > +++ b/arch/arm/plat-omap/i2c.c
+> > @@ -70,14 +70,14 @@ static struct resource i2c_resources[][2] = {
+> >  		},					\
+> >  	}
+> >
+> > -static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
+> > +static struct omap_i2c_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
+> >  static struct platform_device omap_i2c_devices[] = {
+> > -	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
+> > +	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
+> >  #if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> > -	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
+> > +	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
+> >  #endif
+> >  #if	defined(CONFIG_ARCH_OMAP3)
+> > -	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
+> > +	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
+> >  #endif
+> >  };
+> >
+> > @@ -146,8 +146,8 @@ static int __init omap_i2c_bus_setup(char *str)
+> >  	get_options(str, 3, ints);
+> >  	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
+> >  		return 0;
+> > -	i2c_rate[ints[1] - 1] = ints[2];
+> > -	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
+> > +	i2c_pdata[ints[1] - 1].rate = ints[2];
+> > +	i2c_pdata[ints[1] - 1].rate |= OMAP_I2C_CMDLINE_SETUP;
+> >
+> >  	return 1;
+> >  }
+> 
+> FYI, the change from i2c_rate to i2c_pdata is needed also for
+> "i2c-omap: add mpu wake up latency constraint in i2c" as that
+> blocks some PM changes from going upstream. So once that's sorted
+> out some minor rebasing of that patch is needed.
+
+OK
+
+> 
+> > @@ -446,24 +453,47 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> >
+> >  			/* For first phase of HS mode */
+> >  			scl = internal_clk / 400;
+> > -			fsscll = scl - (scl / 3) - 7;
+> > -			fssclh = (scl / 3) - 5;
+> > +			if ((pdata->hs_phase1.scll > 7) &&
+> > +					(pdata->hs_phase1.sclh > 5)) {
+> > +				fsscll = pdata->hs_phase1.scll - 7;
+> > +				fssclh = pdata->hs_phase1.sclh - 5;
+> > +			} else {
+> > +				fsscll = scl - (scl / 3) - 7;
+> > +				fssclh = (scl / 3) - 5;
+> > +			}
+> >
+> >  			/* For second phase of HS mode */
+> >  			scl = fclk_rate / dev->speed;
+> > -			hsscll = scl - (scl / 3) - 7;
+> > -			hssclh = (scl / 3) - 5;
+> > +			if ((pdata->hs_phase2.scll > 7) &&
+> > +					(pdata->hs_phase2.sclh > 5)) {
+> > +				hsscll = pdata->hs_phase2.scll - 7;
+> > +				hssclh = pdata->hs_phase2.sclh - 5;
+> > +			} else {
+> > +				hsscll = scl - (scl / 3) - 7;
+> > +				hssclh = (scl / 3) - 5;
+> > +			}
+> >  		} else if (dev->speed > 100) {
+> >  			unsigned long scl;
+> >
+> >  			/* Fast mode */
+> >  			scl = internal_clk / dev->speed;
+> > -			fsscll = scl - (scl / 3) - 7;
+> > -			fssclh = (scl / 3) - 5;
+> > +			if ((pdata->fast.scll > 7) && (pdata->fast.sclh > 5)) {
+> > +				fsscll = pdata->fast.scll - 7;
+> > +				fssclh = pdata->fast.sclh - 5;
+> > +			} else {
+> > +				fsscll = scl - (scl / 3) - 7;
+> > +				fssclh = (scl / 3) - 5;
+> > +			}
+> >  		} else {
+> >  			/* Standard mode */
+> > -			fsscll = internal_clk / (dev->speed * 2) - 7;
+> > -			fssclh = internal_clk / (dev->speed * 2) - 5;
+> > +			if ((pdata->standard.scll > 7) &&
+> > +					(pdata->standard.sclh > 5)) {
+> > +				fsscll = pdata->standard.scll - 7;
+> > +				fssclh = pdata->standard.sclh - 5;
+> > +			} else {
+> > +				fsscll = internal_clk / (dev->speed * 2) - 7;
+> > +				fssclh = internal_clk / (dev->speed * 2) - 5;
+> > +			}
+> >  		}
+> >  		scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
+> >  		sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
+> 
+> To me it looks like you should not ignore the scl for these calculations
+> as it can be different depending on the omap.
+
+scl dependency is taken care when scll / sclh value is calculated for each board 
+file.
+For now, fine tuning through board data is only for omap2430+
+And not for omap1 and omap2420, it can be add if needed.
+
+In that case Should I split omap_register_i2c_bus as is for omap1 and 
+Omap2_register_i2c_bus for omap2+ to pass board data?
+Like:
+int __init omap_plat_register_i2c_bus(int bus_id, u32 clkrate, ...
+
+int __init omap2_register_i2c_bus(int bus_id, struct omap_i2c_scl_data *pdata, ...
+
+> 
+> Also, this should be also posted to the i2c mailing list for review.
+
+Sure
+
+> 
+> Regards,
+> 
+> Tony
