@@ -1,56 +1,39 @@
-From: Rick Ball <rball@AESAustin.com>
-Subject: Unable to build for omap3_evm_defconfig using latest kernel-omap3
- git
-Date: Wed, 28 Apr 2010 15:31:10 +0000
-Message-ID: <4B8557E2E5753944B2BB2E52F7C2A30C02C0C7E0@MAIL.AES.local>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: Bug in omap2_nand_gpmc_retime?
+Date: Wed, 28 Apr 2010 18:40:18 +0300
+Message-ID: <4BD856E2.7070507@compulab.co.il>
+References: <1271670618-5671-1-git-send-email-mike@compulab.co.il> 	<4BCFDC6F.6010801@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7ADD@dbde02.ent.ti.com> 	<4BCFF3C1.5070005@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7B5A@dbde02.ent.ti.com> 	<4BD00C9A.8050601@compulab.co.il> <20100426181448.GG7225@atomide.com> 	<4BD695BC.3080109@compulab.co.il> <20100427144734.GX7225@atomide.com> 	<4BD84EAF.7010104@compulab.co.il> <s2hce9ab5791004280826y69ec56d1od0950eadf7cd60e6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.ascendant-es.com ([209.12.206.138]:37933 "EHLO
-	mail.aesasutin.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754040Ab0D1PbM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 11:31:12 -0400
-Content-Language: en-US
+Received: from compulab.co.il ([67.18.134.219]:48043 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755404Ab0D1Plg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Apr 2010 11:41:36 -0400
+In-Reply-To: <s2hce9ab5791004280826y69ec56d1od0950eadf7cd60e6@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I get the following error when attempting to build a kernel for the default config of the OMAP3 EVM board with the latest 'git' from:
+Vimal Singh wrote:
+> On Wed, Apr 28, 2010 at 8:35 PM, Mike Rapoport <mike@compulab.co.il> wrote:
 
-git://dev.omapzoom.org/pub/scm/integration/kernel-omap3.git
+>> While working on implementation of gpmc_nand_detect_timings I've seen that
+>> omap2_nand_gpmc_retime converts the timings supplied by the platform to
+>> ticks and passes it to gpmc_cs_set_timings which in turn converts the
+>> timings to ticks. Is it a bug or am I missing something?
+> 
+> No, 'omap2_nand_gpmc_retime' does not convert timings supplied by the
+> platform to tick. Rather it rounds the timings passed by the platform
+> to timings in units of 'tick' period.
 
-I'm compiling with CodeSourcery 2009q3, using the 'arm-none-linux-gnueabi-' cross-compile prefix, arch=arm:
+Thanks for the clarification. I still wonder why is this necessary. 
+Anyway gpmc_set_cs_timings will do the conversion?
 
-  LD      .tmp_vmlinux1
-arch/arm/mach-omap2/built-in.o: In function `omap_reset_voltage':
-arch/arm/mach-omap2/voltage.c:699: undefined reference to `get_vdd1_opp'
-arch/arm/mach-omap2/voltage.c:711: undefined reference to `get_vdd2_opp'
-arch/arm/mach-omap2/built-in.o: In function `vp_forceupdate_scale_voltage':
-arch/arm/mach-omap2/voltage.c:391: undefined reference to `get_vdd1_opp'
-arch/arm/mach-omap2/voltage.c:402: undefined reference to `get_vdd2_opp'
-arch/arm/mach-omap2/built-in.o: In function `vp_reg_offs_configure':
-arch/arm/mach-omap2/voltage.c:296: undefined reference to `get_vdd1_opp'
-arch/arm/mach-omap2/built-in.o: In function `vp_latch_vsel':
-arch/arm/mach-omap2/voltage.c:203: undefined reference to `get_vdd1_opp'
-make[1]: *** [.tmp_vmlinux1] Error 1
-make: *** [sub-make] Error 2
 
-Earlier, I got the following warnings while compiling 'voltage.c':
 
-  CC      arch/arm/mach-omap2/voltage.o
-
-arch/arm/mach-omap2/voltage.c: In function 'vp_latch_vsel':
-arch/arm/mach-omap2/voltage.c:220: warning: passing argument 1 of 'opp_find_by_opp_id' makes pointer from integer without a cast
-arch/arm/plat-omap/include/plat/opp.h:293: note: expected 'struct omap_opp *' but argument is of type 'int'
-arch/arm/mach-omap2/voltage.c: In function 'omap_reset_voltage':
-arch/arm/mach-omap2/voltage.c:716: warning: passing argument 1 of 'opp_find_by_opp_id' makes pointer from integer without a cast
-arch/arm/plat-omap/include/plat/opp.h:293: note: expected 'struct omap_opp *' but argument is of type 'int'
-
-It looks like the Makefile for the mach-omap2 folder doesn't include the file that defines 'get_vdd1_opp' (resource34xx.c), since CONFIG_OMAP_PM_SRF isn't set by the config.  But if I modify the config so it will also compile this file, it just opens a different can of worms.
-
-Am I doing something wrong here?  Am I mistaken in thinking that compiling for this board should work?
-
-Thanks,
-
-Rick Ball (rball@aesaustin.com)
+-- 
+Sincerely yours,
+Mike.
