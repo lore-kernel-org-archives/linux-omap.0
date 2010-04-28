@@ -1,60 +1,65 @@
-From: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] OMAP3: I2C: Clean up Errata 1p153 handling
-Date: Wed, 28 Apr 2010 20:28:59 +0530
-Message-ID: <1272466739-2847-1-git-send-email-manjugk@ti.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Bug in omap2_nand_gpmc_retime? (was: Re: [PATCH] OMAP: fix gpmc nand
+ setup when no timings supplied)
+Date: Wed, 28 Apr 2010 18:05:19 +0300
+Message-ID: <4BD84EAF.7010104@compulab.co.il>
+References: <1271670618-5671-1-git-send-email-mike@compulab.co.il> <4BCFDC6F.6010801@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7ADD@dbde02.ent.ti.com> <4BCFF3C1.5070005@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7B5A@dbde02.ent.ti.com> <4BD00C9A.8050601@compulab.co.il> <20100426181448.GG7225@atomide.com> <4BD695BC.3080109@compulab.co.il> <20100427144734.GX7225@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from compulab.co.il ([67.18.134.219]:47682 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751539Ab0D1PGf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Apr 2010 11:06:35 -0400
+In-Reply-To: <20100427144734.GX7225@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Clean up existing Errata 1p153 handling to use generic
-errata handling mechanism through dev flag.
+Tony Lindgren wrote:
+> * Mike Rapoport <mike@compulab.co.il> [100427 00:40]:
+>> Tony Lindgren wrote:
+>>> * Mike Rapoport <mike@compulab.co.il> [100422 01:41]:
+>>>> Ghorai, Sukumar wrote:
+>>>>
+>>>> CM-T35, for instance can be assembled with different NAND flash
+>>>> chips. Besides, boards that use NAND as primary boot device, we
+>>>> anyway depend on proper GPMC configuration in the bootloader chain.
+>>>> Having ability to define GPMC timings in the kernel and keep the
+>>>> settings made by the bootloader adds flexibility level for board
+>>>> designers.
+>>> Not implementing the retime function for GPMC will cause issues
+>>> with PM as you cannot scale the L3 frequency without breaking
+>>> your GPMC timings.
+>> I agree that without retime function scaling the frequency will
+>> break the GPMC timings. But my point was that there should be an
+>> _option_ to keep the timings defined by the bootloader rather than
+>> enforce board files to specify timings.
+> 
+> Sure. Can you please check one more time your patch and what is
+> still missing after Stanley's fix? That's now in omap-fixes and master
+> branches as commit 11e1ef2d105900a302b7ca92bcaf96a96d0274a1.
+> 
+>> Since skipping the retime function will break gpmc timings in
+>> PM-enabled  kernel, we need to implement this option in smarter way.
+>> E.g. something like:
+> 
+> Yeah we should print some warning if the retime function is not
+> implemented as it can cause mysterious bugs later on. I guess
+> implementing a dummy retime function would be best as then the
+> warning would be related to the actual L3 rate change.
 
-Signed-off-by: Manjunatha GK <manjugk-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Alexander Shishkin <virtuoso-0lOfPCoBze7YtjvyW6yDsg@public.gmane.org>
----
- PS : This patch has dependency on the patch:
- https://patchwork.kernel.org/patch/95616/
+While working on implementation of gpmc_nand_detect_timings I've seen 
+that omap2_nand_gpmc_retime converts the timings supplied by the 
+platform to ticks and passes it to gpmc_cs_set_timings which in turn 
+converts the timings to ticks. Is it a bug or am I missing something?
 
- drivers/i2c/busses/i2c-omap.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 5f5207e..0caa8fe 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -168,6 +168,7 @@ enum {
- 
- /* Errata definitions */
- #define I2C_OMAP_ERRATA_I207		(1 << 0)
-+#define I2C_OMAP3_1P153			(1 << 1)
- 
- struct omap_i2c_dev {
- 	struct device		*dev;
-@@ -946,7 +947,7 @@ complete:
- 					break;
- 				}
- 
--				if ((dev->rev <= OMAP_I2C_REV_ON_3430) &&
-+				if ((dev->errata & I2C_OMAP3_1P153) &&
- 				    errata_omap3_1p153(dev, &stat, &err))
- 					goto complete;
- 
-@@ -1049,6 +1050,9 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
- 
-+	if (dev->rev <= OMAP_I2C_REV_ON_3430)
-+		dev->errata |= I2C_OMAP3_1P153;
-+
- 	if (!(cpu_class_is_omap1() || cpu_is_omap2420())) {
- 		u16 s;
- 
+> Regards,
+> 
+> Tony
+>  
 -- 
-1.6.0.4
+Sincerely yours,
+Mike.
