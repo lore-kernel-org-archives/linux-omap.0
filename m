@@ -1,60 +1,53 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [PATCH v2] generic clk module removal
-Date: Tue, 27 Apr 2010 20:34:57 -0500
-Message-ID: <4BD790C1.6030406@gmail.com>
-References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [RESUBMIT] [PATCH v4 0.1/5(7)] OMAP: add missing FIQ_START definition required for arch/arm/kernel/fiq.c compilation
+Date: Wed, 28 Apr 2010 04:15:51 +0200
+Message-ID: <201004280415.53609.jkrzyszt@tis.icnet.pl>
+References: <201004280252.58420.jkrzyszt@tis.icnet.pl> <201004280258.27281.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.211.194]:45561 "EHLO
-	mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753673Ab0D1BfD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 21:35:03 -0400
-Received: by ywh32 with SMTP id 32so8146186ywh.33
-        for <linux-omap@vger.kernel.org>; Tue, 27 Apr 2010 18:35:01 -0700 (PDT)
-In-Reply-To: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>
+Received: from d1.icnet.pl ([212.160.220.21]:50593 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751539Ab0D1CTb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Apr 2010 22:19:31 -0400
+In-Reply-To: <201004280258.27281.jkrzyszt@tis.icnet.pl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, e3-hacking@earth.li
 
-On 04/27/2010 08:29 PM, Omar Ramirez Luna wrote:
-> This set of patches remove clk module from the services layer.
->
-> Now:
-> - GPT 5-8 are controlled through DM Timer framework.
-> - MCBSP clocks are enabled by requesting the proper mcbsp device.
-> - WDT is left for bridge driver to control rather than on request from dsp.
-> - SSI is controlled by enabling/disabling its sst, ssr and ick clocks.
->
-> v2:
-> - rebased
-> - keep iva2 handling as it is advised to turn off the clocks for iva reset
->    sources.
-> - release all the clocks (disable&  free) if driver is uninstalled.
->
->
-> Omar Ramirez Luna (5):
->    DSPBRIDGE: iva2 clock handling
->    DSPBRIDGE: dsp interface to enable ssi clocks
->    DSPBRIDGE: Balance the number of enable/disable
->    DSPBRIDGE: move clk to dsp-clock
->    DSPBRIDGE: reorganize the code to handle peripheral clocks
->    DSPBRIDGE: remove clk_handle from drv interface
->    DSPBRIDGE: fail if clk handle is NULL
->    DSPBRIDGE: Now actually fail if a clk handle is wrong
->    DSPBRIDGE: Rename services_clk_* to dsp_clk_*
->    DSPBRIDGE: remove unused clock sys_ck
->    DSPBRIDGE: remove function clk_set32k_hz
->    DSPBRIDGE: remove clk_get_use_cnt
->    DSPBRIDGE: trivial clock cleanup for unused code
->    DSPBRIDGE: function to get the type of clock requested by dsp
->    DSPBRIDGE: use dm timer framework for gpt timers
->    DSPBRIDGE: use omap mcbsp to enable mcbsp clocks
->    DSPBRIDGE: remove wdt3 from dsp control
->    DSPBRIDGE: use one call for both ick and fck clocks
->    DSPBRIDGE: Move MCBSP_CLOCKS code to a common place
-is there a series numbering for this patchset?
-Regards,
-Nishanth Menon
+Several ARM platforms/machines that use FIQ define their value of FIQ_START. 
+Since FIQ is not implemented for OMAP yet, this definition is missing from 
+OMAP header files.
+
+Put an arbitrary value for FIQ_START into plat/irqs.h for OMAP. Even if not 
+used by the FIQ handler for Amstrad Delta, this is required for successfull 
+compilation of arch/arm/kernel/fiq.c that provides several usefull functions.
+
+Created and tested against linux-omap master, 
+commit 104a77440f05430f29f9d3f4ecb88c1536819585 dated 2010-04-27.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+Affected file name was still wrong in the changelog text, sorry.
+
+Provided as a separate patch since v3 of the patch set.
+v4 changes: none (refreshed)
+
+ arch/arm/plat-omap/include/plat/irqs.h |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- git.orig/arch/arm/plat-omap/include/plat/irqs.h	2010-04-27 21:40:24.000000000 +0200
++++ git/arch/arm/plat-omap/include/plat/irqs.h	2010-04-27 22:20:18.000000000 +0200
+@@ -428,4 +428,8 @@ void omap3_intc_resume_idle(void);
+ 
+ #include <mach/hardware.h>
+ 
++#ifdef CONFIG_FIQ
++#define FIQ_START		1024
++#endif
++
+ #endif
