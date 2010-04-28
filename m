@@ -1,80 +1,180 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2] DSPBRIDGE: use dm timer framework for gpt timers
-Date: Wed, 28 Apr 2010 10:59:32 -0700
-Message-ID: <87zl0nfofv.fsf@deeprootsystems.com>
-References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-4-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-5-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-6-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-7-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-8-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-9-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-10-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-11-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-12-git-send-email-omar.ramirez@ti.com>
-	<t2j94a0d4531004280046g49d9a0f9j60a6147b86a1854f@mail.gmail.com>
-	<4BD8430B.80909@ti.com> <87bpd3h774.fsf@deeprootsystems.com>
-	<4BD863FE.80804@ti.com> <4BD869A1.8070808@ti.com>
+Subject: Re: [PATCH] OMAP3EVM: Update pad configuration for wakeup enabled pads
+Date: Wed, 28 Apr 2010 11:23:09 -0700
+Message-ID: <87y6g7e8s2.fsf@deeprootsystems.com>
+References: <1272369361-25147-1-git-send-email-ranjithl@ti.com>
+	<87fx2hq61m.fsf@deeprootsystems.com> <4BD7FF39.8080607@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:39590 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756185Ab0D1R7i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 13:59:38 -0400
-Received: by pxi17 with SMTP id 17so2818525pxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 10:59:37 -0700 (PDT)
-In-Reply-To: <4BD869A1.8070808@ti.com> (Omar Ramirez Luna's message of "Wed\, 28 Apr 2010 12\:00\:17 -0500")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:64765 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754882Ab0D1SXN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 14:23:13 -0400
+Received: by pvg2 with SMTP id 2so397277pvg.19
+        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 11:23:13 -0700 (PDT)
+In-Reply-To: <4BD7FF39.8080607@ti.com> (Ranjith Lohithakshan's message of "Wed\, 28 Apr 2010 14\:56\:17 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Omar Ramirez Luna <omar.ramirez@hotmail.com>
+To: Ranjith Lohithakshan <ranjithl@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-Omar Ramirez Luna <omar.ramirez@ti.com> writes:
+Ranjith Lohithakshan <ranjithl@ti.com> writes:
 
-> On 4/28/2010 11:36 AM, Menon, Nishanth wrote:
->> Kevin Hilman had written, on 04/28/2010 11:29 AM, the following:
->>> Omar Ramirez Luna<omar.ramirez@ti.com>  writes:
->>>
->>>> On 4/28/2010 2:46 AM, Felipe Contreras wrote:
->>>>> On Wed, Apr 28, 2010 at 4:29 AM, Omar Ramirez Luna<omar.ramirez@ti.com>   wrote:
->>>>>> This patch switches to use DM timer framework instead of
->>>>>> a custom one for GPT timers, currently dsp can make use of
->>>>>> gpt 5, 6, 7 or 8.
->>>>> I heard someone that was using gpt 8 for something else. Is it
->>>>> possible to configure dsp-bridge to not use it?
->>>>>
->>>> There are two scenarios:
->>>>
->>>> 1. The request comes from the DSP side (afaik for video use case), the
->>>> change should be in the DSP side binaries to request some other gpt
->>>> instead. I don't know how possible is to get this changed.
->>>>
->>>> 2. bridge driver also requests gpt8 whenever a mmu fault is triggered,
->>>> this to set a timer to interrupt the dsp after the mmu fault dump has
->>>> been finished, I think this can be easily replaced in bridge to use
->>>> some other gpt, but "1" is still there. (besides a new patch is needed
->>>> to remove direct access to dm timer inside ue_deh and make it to go
->>>> through dsp-clock)
->>>
->>> Why does Bridge care at all which specific timers it requests?  They
->>> are all the same, with the exception of GPT1 which is in the WKUP
->>> powerdomain and already used as the kernel clocksource.
->>>
->>> Bridge should just use the generic _request() instead of
->>> _request_specific()
->>>
->> trouble I believe is that DSP BIOS uses a specific timer.
->>
+> Kevin,
 >
-> yes, dsp side wants:
-> bios --> GPT5 (only used during boot up -> baseimage load)
-> load monitoring --> GPT 6 (used while the dsp is awake)
-> AV Sync --> GPT 8 (based on use case)
+> On Tue, 27-Apr-10 8:46 PM +0530, Kevin Hilman wrote:
+>> Ranjith Lohithakshan <ranjithl@ti.com> writes:
+>> 
+>>> OMAP3530 TRM section 7.4.4.4.2 requires OFFOUTENABLE to be set (active low)
+>>> if wakeup capabilities are enabled on a pad. During OFF mode testing
+>>> on OMAP3530 EVM, it was observed that the device was not residing in
+>>> the OFF state. The device enters into the OFF state and immediately exits
+>>> from that state as if an IO wakeup event has occured. The issue was traced
+>>> down to the pad configuration of wkaeup enabled pad's.
+>> 
+>> Nice.
+>> 
+>>> Also, the pad configuration is included only if the respective drivers are
+>>> enabled in the defconfig.
+>> 
+>> Hmm, do you really want this?  If you don't have the driver enabled,
+>> you have to rely on the bootloader settings of these pads which may
+>> also be wrong and trigger an IO wakeup as well.
 >
-> to generate the interrupt for mmu fault case it needs one connected to
-> the dsp interrupt line and only 5, 6, 7 or 8 apply.
+> The thought process was that, for example, if keypad is not enabled
+> in a system configuration you probably don't want to see a wakeup
+> occurring if someone presses a key stroke. I understand the concern
+> that you have raised regarding bootloader mis-configurations. My
+> impression was that the bootloaders typically set the mux modes and
+> pull up's/downs and dont really program or enable the wakeup
+> capability.  But we cannot depend on that thumb rule.
 
-Then DSP bios is broken by hard-coding *general purpose* timers.
+Unfortunately, Bootloaders don't "typically" do anything.  They are
+routinely hacked/patched and cannot be trusted at all.
+
+> What is your recommendation?
+
+First, I suggest you fix the OFFOUTENABLE bug in a single patch
+without introducing the #ifdefs.  Then, address the enable/disable of
+the wakeups in a separate patch.
+
+Next, ideally wakeups should not be configured a this level of board
+code.  There are APIs for that: enable_irq_wake()/disable_irq_wake()
+
+For GPIOs (like the touchscreen), you really need to enable wakeups
+using existing APIs, either in the driver or in board init code and be
+sure there is an interrupt handler.  Please see the 'Known Problems'
+section of the OMAP PM wiki[2] where it talks about GPIO wakeups.
+Below[2] is an test patch I've used.
+
+For MPU IRQs, the IRQ wake APIs don't quite work as expected.  You
+can look at board-3430sdp.c to see how wakeups are enabled there.  
+If you want to make that conditional on the T2 driver being installed,
+it could be part of the T2 init process.
 
 Kevin
+
+[1] http://elinux.org/OMAP_Power_Management#Known_Problems
+
+[2]
+commit a12a1b43c75795fa106d1222730591354209c037
+Author: Kevin Hilman <khilman@deeprootsystems.com>
+Date:   Wed Sep 9 11:58:20 2009 -0700
+
+    OMAP3: PM: Enable touchscreen GPIO wakeups on SDP and omap3evm
+    
+    For the GPIO wakeup to work, the GPIO IRQ must be configured as a
+    wakeup IRQ.
+    
+    In addition, a corresponding interrupt handler must be used and enabled
+    so that after coming out of idle/suspend the interrupt will be cleared.
+    Otherwise, a pending GPIO IRQ will prevent future idle request. (c.f.
+    GPIO 'Interrupt and Wakeup' section of the TRM, specifically the
+    subsection 'Involved Configuration Registers'.)
+    
+    Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index c1742d0..96f921e 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -24,6 +24,8 @@
+ #include <linux/regulator/machine.h>
+ #include <linux/io.h>
+ #include <linux/gpio.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -140,6 +142,11 @@ static struct twl4030_keypad_data sdp3430_kp_data = {
+ 
+ static int ts_gpio;	/* Needed for ads7846_get_pendown_state */
+ 
++static irqreturn_t dummy_interrupt_handler (int irq, void *dev_id)
++{
++	return IRQ_HANDLED;
++}
++
+ /**
+  * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
+  *
+@@ -147,6 +154,8 @@ static int ts_gpio;	/* Needed for ads7846_get_pendown_state */
+  */
+ static void ads7846_dev_init(void)
+ {
++	int ret;
++
+ 	if (gpio_request(ts_gpio, "ADS7846 pendown") < 0) {
+ 		printk(KERN_ERR "can't get ads746 pen down GPIO\n");
+ 		return;
+@@ -156,6 +165,12 @@ static void ads7846_dev_init(void)
+ 
+ 	omap_set_gpio_debounce(ts_gpio, 1);
+ 	omap_set_gpio_debounce_time(ts_gpio, 0xa);
++
++	ret = request_irq(gpio_to_irq(ts_gpio),
++			  (irq_handler_t)dummy_interrupt_handler,
++			  IRQF_TRIGGER_FALLING,
++			  "ads7846-dummy", NULL);
++	enable_irq_wake(gpio_to_irq(ts_gpio));
+ }
+ 
+ static int ads7846_get_pendown_state(void)
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 9ac1eb2..1647440 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -574,8 +574,15 @@ static int __init omap3_evm_i2c_init(void)
+ 	return 0;
+ }
+ 
++static irqreturn_t dummy_interrupt_handler (int irq, void *dev_id)
++{
++	return IRQ_HANDLED;
++}
++
+ static void ads7846_dev_init(void)
+ {
++	int ret;
++
+ 	if (gpio_request(OMAP3_EVM_TS_GPIO, "ADS7846 pendown") < 0)
+ 		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
+ 
+@@ -583,6 +590,12 @@ static void ads7846_dev_init(void)
+ 
+ 	omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1);
+ 	omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa);
++
++	ret = request_irq(gpio_to_irq(OMAP3_EVM_TS_GPIO),
++			  (irq_handler_t)dummy_interrupt_handler,
++			  IRQF_TRIGGER_FALLING,
++			  "ads7846-dummy", NULL);
++	enable_irq_wake(gpio_to_irq(OMAP3_EVM_TS_GPIO));
+ }
+ 
+ static int ads7846_get_pendown_state(void)
+
+
+
