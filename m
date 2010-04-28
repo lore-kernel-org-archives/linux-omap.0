@@ -1,39 +1,46 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: Bug in omap2_nand_gpmc_retime?
-Date: Wed, 28 Apr 2010 18:40:18 +0300
-Message-ID: <4BD856E2.7070507@compulab.co.il>
-References: <1271670618-5671-1-git-send-email-mike@compulab.co.il> 	<4BCFDC6F.6010801@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7ADD@dbde02.ent.ti.com> 	<4BCFF3C1.5070005@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7B5A@dbde02.ent.ti.com> 	<4BD00C9A.8050601@compulab.co.il> <20100426181448.GG7225@atomide.com> 	<4BD695BC.3080109@compulab.co.il> <20100427144734.GX7225@atomide.com> 	<4BD84EAF.7010104@compulab.co.il> <s2hce9ab5791004280826y69ec56d1od0950eadf7cd60e6@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: Unable to build for omap3_evm_defconfig using latest
+ kernel-omap3 git
+Date: Wed, 28 Apr 2010 21:23:07 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322A8A0A6@dbde02.ent.ti.com>
+References: <4B8557E2E5753944B2BB2E52F7C2A30C02C0C7E0@MAIL.AES.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:48043 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755404Ab0D1Plg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Apr 2010 11:41:36 -0400
-In-Reply-To: <s2hce9ab5791004280826y69ec56d1od0950eadf7cd60e6@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51929 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754218Ab0D1PxY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 11:53:24 -0400
+In-Reply-To: <4B8557E2E5753944B2BB2E52F7C2A30C02C0C7E0@MAIL.AES.local>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Rick Ball <rball@AESAustin.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Vimal Singh wrote:
-> On Wed, Apr 28, 2010 at 8:35 PM, Mike Rapoport <mike@compulab.co.il> wrote:
-
->> While working on implementation of gpmc_nand_detect_timings I've seen that
->> omap2_nand_gpmc_retime converts the timings supplied by the platform to
->> ticks and passes it to gpmc_cs_set_timings which in turn converts the
->> timings to ticks. Is it a bug or am I missing something?
+Rick Ball wrote:
+> I get the following error when attempting to build a kernel 
+> for the default config of the OMAP3 EVM board with the latest 
+> 'git' from:
 > 
-> No, 'omap2_nand_gpmc_retime' does not convert timings supplied by the
-> platform to tick. Rather it rounds the timings passed by the platform
-> to timings in units of 'tick' period.
+> git://dev.omapzoom.org/pub/scm/integration/kernel-omap3.git
+> 
 
-Thanks for the clarification. I still wonder why is this necessary. 
-Anyway gpmc_set_cs_timings will do the conversion?
+...
 
+> 
+> Am I doing something wrong here?  Am I mistaken in thinking 
+> that compiling for this board should work?
 
+Yes, you're using the wrong kernel.
 
--- 
-Sincerely yours,
-Mike.
+Use the linux-omap kernel:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+
+Or Linus' tree directly:
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+
+The one you're using is an internal development tree on
+which the OMAP3 EVM board is not well supported.
+
+- Anand
