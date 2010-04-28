@@ -1,101 +1,99 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
-Date: Wed, 28 Apr 2010 12:45:53 -0700
-Message-ID: <20100428194553.GH7225@atomide.com>
-References: <2A3DCF3DA181AD40BDE86A3150B27B6B030D32CEE8@dbde02.ent.ti.com>
- <008601cad1bd$6d0022b0$544ff780@am.dhcp.ti.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B030D32D372@dbde02.ent.ti.com>
- <4BB51740.2060802@ti.com>
- <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
- <20100407114938.GF7153@atomide.com>
- <003801cad73e$86841df0$544ff780@am.dhcp.ti.com>
- <20100427182111.GE7225@atomide.com>
- <20100428192322.GG7225@atomide.com>
- <006801cae709$e136fe40$544ff780@am.dhcp.ti.com>
+From: Vladimir Pantelic <pan@nt.tu-darmstadt.de>
+Subject: Re: [PATCH v2] DSPBRIDGE: use dm timer framework for gpt timers
+Date: Wed, 28 Apr 2010 21:52:24 +0200
+Message-ID: <4BD891F8.7000609@nt.tu-darmstadt.de>
+References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-4-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-5-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-6-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-7-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-8-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-9-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-10-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-11-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-12-git-send-email-omar.ramirez@ti.com>	<t2j94a0d4531004280046g49d9a0f9j60a6147b86a1854f@mail.gmail.com>	<4BD8430B.80909@ti.com> <87bpd3h774.fsf@deeprootsystems.com>	<4BD863FE.80804@ti.com> <4BD869A1.8070808@ti.com> <87zl0nfofv.fsf@deeprootsystems.com> <4BD884D9.80
+ 10204@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56992 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932079Ab0D1Tpw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 15:45:52 -0400
-Content-Disposition: inline
-In-Reply-To: <006801cae709$e136fe40$544ff780@am.dhcp.ti.com>
+Received: from mo-p05-ob.rzone.de ([81.169.146.180]:50811 "EHLO
+	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753862Ab0D1Twc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 15:52:32 -0400
+In-Reply-To: <4BD884D9.8010204@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Nishanth Menon' <nm@ti.com>, "'Ghorai, Sukumar'" <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Omar Ramirez Luna <omar.ramirez@hotmail.com>
 
-* Madhusudhan <madhu.cr@ti.com> [100428 12:30]:
+Nishanth Menon wrote:
+> Kevin Hilman had written, on 04/28/2010 12:59 PM, the following:
+>> Omar Ramirez Luna <omar.ramirez@ti.com> writes:
+>>
+>>> On 4/28/2010 11:36 AM, Menon, Nishanth wrote:
+>>>> Kevin Hilman had written, on 04/28/2010 11:29 AM, the following:
+>>>>> Omar Ramirez Luna<omar.ramirez@ti.com>  writes:
+>>>>>
+>>>>>> On 4/28/2010 2:46 AM, Felipe Contreras wrote:
+>>>>>>> On Wed, Apr 28, 2010 at 4:29 AM, Omar Ramirez
+>>>>>>> Luna<omar.ramirez@ti.com>   wrote:
+>>>>>>>> This patch switches to use DM timer framework instead of
+>>>>>>>> a custom one for GPT timers, currently dsp can make use of
+>>>>>>>> gpt 5, 6, 7 or 8.
+>>>>>>> I heard someone that was using gpt 8 for something else. Is it
+>>>>>>> possible to configure dsp-bridge to not use it?
+>>>>>>>
+>>>>>> There are two scenarios:
+>>>>>>
+>>>>>> 1. The request comes from the DSP side (afaik for video use case),
+>>>>>> the
+>>>>>> change should be in the DSP side binaries to request some other gpt
+>>>>>> instead. I don't know how possible is to get this changed.
+>>>>>>
+>>>>>> 2. bridge driver also requests gpt8 whenever a mmu fault is
+>>>>>> triggered,
+>>>>>> this to set a timer to interrupt the dsp after the mmu fault dump has
+>>>>>> been finished, I think this can be easily replaced in bridge to use
+>>>>>> some other gpt, but "1" is still there. (besides a new patch is
+>>>>>> needed
+>>>>>> to remove direct access to dm timer inside ue_deh and make it to go
+>>>>>> through dsp-clock)
+>>>>> Why does Bridge care at all which specific timers it requests?  They
+>>>>> are all the same, with the exception of GPT1 which is in the WKUP
+>>>>> powerdomain and already used as the kernel clocksource.
+>>>>>
+>>>>> Bridge should just use the generic _request() instead of
+>>>>> _request_specific()
+>>>>>
+>>>> trouble I believe is that DSP BIOS uses a specific timer.
+>>>>
+>>> yes, dsp side wants:
+>>> bios --> GPT5 (only used during boot up -> baseimage load)
+>>> load monitoring --> GPT 6 (used while the dsp is awake)
+>>> AV Sync --> GPT 8 (based on use case)
+>>>
+>>> to generate the interrupt for mmu fault case it needs one connected to
+>>> the dsp interrupt line and only 5, 6, 7 or 8 apply.
+>>
+>> Then DSP bios is broken by hard-coding *general purpose* timers.
+>  /me just eats my own words.
+> Not really.. I just got educated internally that DSP does not get
+> interrupts from all GPTs.
+> Ref: http://focus.ti.com/pdfs/wtbu/SWPU114Q_PrelimFinal_EPDF_03_05_2009.pdf
+> page 1753 -> only mentioned these timers can generate interrupts for
+> DSP, and hence for BIOS's usage. Added to this, the fact that GPT PWM is
+> usable on 9,10,11 as well, makes me believe this is something to
+> consider as part of board design based on which peripherals one uses and
+> their constraints. BIOS is not at fault here to use the resources it
+> requires, but is part of system design to look at options, constraints
+> and select the ones appropriately..
 > 
-> 
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Wednesday, April 28, 2010 2:23 PM
-> > To: Madhusudhan
-> > Cc: 'Nishanth Menon'; 'Ghorai, Sukumar'; linux-omap@vger.kernel.org;
-> > linux-mmc@vger.kernel.org
-> > Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
-> > 
-> > * Tony Lindgren <tony@atomide.com> [100427 11:16]:
-> > > * Madhusudhan <madhu.cr@ti.com> [100408 10:07]:
-> > > > > >
-> > > > > > Tony, do you care to just look up the serial number of your board?
-> > > > >
-> > > > > Sorry for the delay in replying, I've been travelling for a few
-> > weeks
-> > > > > and been in meetings quite a bit. Anyways, it's a 1013037 REV A
-> > board,
-> > > > > which seems to be production in the table above.
-> > > > >
-> > > >
-> > > > That means we can not assume all production units have a working eMMC.
-> > > > Would you mind sharing your bootup log? When this device is detected
-> > > > something like below is a clear issue.
-> > > >
-> > > > mmcblk1: mmc1:0001 STM16G 1.00 GiB
-> > > > mmcblk1: p1 p2
-> > 
-> > For the eMMC I seem to have that:
-> > 
-> > [    0.978363] mmc1: new high speed MMC card at address 0001
-> > [    0.984344] mmcblk1: mmc1:0001 STM16G 1.00 GiB
-> > [    0.989105]  mmcblk1: unknown partition table
-> > ...
-> > 
-> > zoom:~# fdisk -l /dev/mmcblk1
-> > [  120.306396] mmcblk1: retrying using single block read
-> > [  120.503692] mmcblk1: retrying using single block read
-> > [  120.683593] mmcblk1: error -110 transferring data, sector 2097144, nr
-> > 8, card status 0x900
-> > [  120.691894] end_request: I/O error, dev mmcblk1, sector 2097144
-> > [  120.872680] mmcblk1: error -110 transferring data, sector 2097145, nr
-> > 7, card status 0x900
-> > ...
-> > 
-> > > Hmm, finally got around looking into this again. Looks like the mmc
-> > > is now working on my zoom3 with the current Linus' tree at commit
-> > > 7c6bd2010fced38444c9fd658f4c6ce61bd185bf. So I guess something that
-> > > we had in omap-fixes fixed this. Or maybe some fix for drivers/mmc?
-> > >
-> > > This is with the debug_ll patch applied:
-> > >
-> > > https://patchwork.kernel.org/patch/87532/
-> > 
-> > For the microSD card, turns out the card I used was flakey. So
-> > that should explain some of the problems. I'm almost certain
-> > I tried with two different cards earlier though. In any case,
-> > let's assume the problem is only the eMMC.
-> > 
-> Sorry, I did not get a complete picture. Your earlier email said that with
-> Linus tree eMMC on your Zoom3 is working. Is that correct?
+> A similar example is mux pins, you have options to plug to one of many
+> options, but if you plug in both a interrupt and a data line to the same
+> pin which could run in two different modes, there is a problem there
+> right? Alright, that is too obvious i suppose....
 
-Nope, now the microSD is working, eMMC is not working.
- 
-> IMHO, an omap level fix can not solve the problem with eMMC because as I can
-> see from the log you provided above that a 16G device is detected as 1G.
-> This is certainly due to the issue I mentioned earlier. 
+Yes, just that pin mux issues are pretty obvious reading the TRM and DM,
+but the fact that bridge blocks GPT5,6 and 8 is not.
 
-OK
+You are telling me that using all 4 GPTs for PWM or input event capture
+is not possible when using dspbridge? As I understand, bridge mostly
+uses 2 of the GPTs (6 for load monitoring, 8 for sync/mmu fault), so
+I think moving GPT8 to 7 should make both sides happy, no?
 
-Tony
+Regards,
+
+Vladimir
+
