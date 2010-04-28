@@ -1,90 +1,46 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2] DSPBRIDGE: use dm timer framework for gpt timers
-Date: Wed, 28 Apr 2010 13:50:29 -0700
-Message-ID: <87zl0ncne2.fsf@deeprootsystems.com>
-References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-4-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-5-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-6-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-7-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-8-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-9-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-10-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-11-git-send-email-omar.ramirez@ti.com>
-	<1272418167-12630-12-git-send-email-omar.ramirez@ti.com>
-	<t2j94a0d4531004280046g49d9a0f9j60a6147b86a1854f@mail.gmail.com>
-	<4BD8430B.80909@ti.com> <87bpd3h774.fsf@deeprootsystems.com>
-	<4BD863FE.80804@ti.com> <4BD869A1.8070808@ti.com>
-	<87zl0nfofv.fsf@deeprootsystems.com> <4BD884D9.8010204@ti.com>
+Subject: Re: [PATCH] OMAP3: PM: Fix compilation error observed when cpufreq is disabled
+Date: Wed, 28 Apr 2010 14:30:48 -0700
+Message-ID: <87bpd3cliv.fsf@deeprootsystems.com>
+References: <1268995606-32018-1-git-send-email-ranjithl@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f204.google.com ([209.85.222.204]:40061 "EHLO
-	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755141Ab0D1Uuf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 16:50:35 -0400
-Received: by pzk42 with SMTP id 42so9895850pzk.4
-        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 13:50:35 -0700 (PDT)
-In-Reply-To: <4BD884D9.8010204@ti.com> (Nishanth Menon's message of "Wed\, 28 Apr 2010 13\:56\:25 -0500")
+Received: from mail-iw0-f182.google.com ([209.85.223.182]:60480 "EHLO
+	mail-iw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756000Ab0D1Vax (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 17:30:53 -0400
+Received: by iwn12 with SMTP id 12so4538922iwn.15
+        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 14:30:52 -0700 (PDT)
+In-Reply-To: <1268995606-32018-1-git-send-email-ranjithl@ti.com> (Ranjith Lohithakshan's message of "Fri\, 19 Mar 2010 16\:16\:46 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Omar Ramirez Luna <omar.ramirez@hotmail.com>
+To: Ranjith Lohithakshan <ranjithl@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+Ranjith Lohithakshan <ranjithl@ti.com> writes:
 
-> Kevin Hilman had written, on 04/28/2010 12:59 PM, the following:
->> Omar Ramirez Luna <omar.ramirez@ti.com> writes:
->>
->>> On 4/28/2010 11:36 AM, Menon, Nishanth wrote:
->>>> Kevin Hilman had written, on 04/28/2010 11:29 AM, the following:
->>>>> Omar Ramirez Luna<omar.ramirez@ti.com>  writes:
->>>>>
->>>>>> On 4/28/2010 2:46 AM, Felipe Contreras wrote:
->>>>>>> On Wed, Apr 28, 2010 at 4:29 AM, Omar Ramirez Luna<omar.ramirez@ti.com>   wrote:
->>>>>>>> This patch switches to use DM timer framework instead of
->>>>>>>> a custom one for GPT timers, currently dsp can make use of
->>>>>>>> gpt 5, 6, 7 or 8.
->>>>>>> I heard someone that was using gpt 8 for something else. Is it
->>>>>>> possible to configure dsp-bridge to not use it?
->>>>>>>
->>>>>> There are two scenarios:
->>>>>>
->>>>>> 1. The request comes from the DSP side (afaik for video use case), the
->>>>>> change should be in the DSP side binaries to request some other gpt
->>>>>> instead. I don't know how possible is to get this changed.
->>>>>>
->>>>>> 2. bridge driver also requests gpt8 whenever a mmu fault is triggered,
->>>>>> this to set a timer to interrupt the dsp after the mmu fault dump has
->>>>>> been finished, I think this can be easily replaced in bridge to use
->>>>>> some other gpt, but "1" is still there. (besides a new patch is needed
->>>>>> to remove direct access to dm timer inside ue_deh and make it to go
->>>>>> through dsp-clock)
->>>>> Why does Bridge care at all which specific timers it requests?  They
->>>>> are all the same, with the exception of GPT1 which is in the WKUP
->>>>> powerdomain and already used as the kernel clocksource.
->>>>>
->>>>> Bridge should just use the generic _request() instead of
->>>>> _request_specific()
->>>>>
->>>> trouble I believe is that DSP BIOS uses a specific timer.
->>>>
->>> yes, dsp side wants:
->>> bios --> GPT5 (only used during boot up -> baseimage load)
->>> load monitoring --> GPT 6 (used while the dsp is awake)
->>> AV Sync --> GPT 8 (based on use case)
->>>
->>> to generate the interrupt for mmu fault case it needs one connected to
->>> the dsp interrupt line and only 5, 6, 7 or 8 apply.
->>
->> Then DSP bios is broken by hard-coding *general purpose* timers.
->  /me just eats my own words.
-> Not really.. I just got educated internally that DSP does not get
-> interrupts from all GPTs.
-> Ref: http://focus.ti.com/pdfs/wtbu/SWPU114Q_PrelimFinal_EPDF_03_05_2009.pdf
-> page 1753 -> only mentioned these timers can generate interrupts for
-> DSP, and hence for BIOS's usage. 
+> Currently on PM branch, compilation fails when cpufreq is disabled
+>
+> arch/arm/mach-omap2/clock3xxx_data.c: In function 'omap3xxx_clk_init':
+> arch/arm/mach-omap2/clock3xxx_data.c:3563: error: 'struct clk_functions'
+> has no member named 'clk_init_cpufreq_table'
+> arch/arm/mach-omap2/clock3xxx_data.c:3564: error:
+> 'omap3_clk_init_cpufreq_table' undeclared (first use
+> in this function)
+> arch/arm/mach-omap2/clock3xxx_data.c:3564: error: (Each undeclared
+> identifier is reported only once
+> arch/arm/mach-omap2/clock3xxx_data.c:3564: error: for each function it
+> appears in.)
+> make[1]: *** [arch/arm/mach-omap2/clock3xxx_data.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
+>
+> This patch fixes the issue by avoiding runtime init of
+> clk_init_cpufreq_table in omap3xxx_clk_init and instead doing it when
+> omap2_clk_functions are defined.
+>
+> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
 
-OK, now that part makes sense.
+Do you still have this problem?  I'm unable to reproduce on current PM branch.
 
 Kevin
