@@ -1,55 +1,37 @@
-From: Rick Ball <rball@AESAustin.com>
-Subject: RE: Unable to build for omap3_evm_defconfig using latest
- kernel-omap3 git
-Date: Wed, 28 Apr 2010 18:26:55 +0000
-Message-ID: <4B8557E2E5753944B2BB2E52F7C2A30C02C0C858@MAIL.AES.local>
-References: <4B8557E2E5753944B2BB2E52F7C2A30C02C0C7E0@MAIL.AES.local>
- <5A47E75E594F054BAF48C5E4FC4B92AB0322A8A0A6@dbde02.ent.ti.com>
+From: Peter Tseng <tsenpet09@gmail.com>
+Subject: ARM suspend to disk?
+Date: Wed, 28 Apr 2010 14:42:47 -0400
+Message-ID: <4BD881A7.2020402@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.ascendant-es.com ([209.12.206.138]:13750 "EHLO
-	mail.aesasutin.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755920Ab0D1S07 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 14:26:59 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322A8A0A6@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41645 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755188Ab0D1Smr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 14:42:47 -0400
+Received: by wye20 with SMTP id 20so1019311wye.19
+        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 11:42:46 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-OK, thanks - I thought that the 'integration' kernel for OMAP3 would be my best choice, based on the statement "TI integration tree is in general the most up-to-date version of the kernel for a TI platform since all necessary sub systems have been pre-integrated." from the OMAPedia wiki at http://omappedia.org/wiki/Linux_Kernel_Int_Trees. 
+Hey there,
 
-Rick
+I last posted a few weeks ago; I'm Peter Tseng, using the Gumstix Overo
+for a project. I'm interested in power management and a few related
+things. A few of the things I am interested in are suspend to disk and
+snapshot boot.
 
------Original Message-----
-From: Gadiyar, Anand [mailto:gadiyar@ti.com] 
-Sent: Wednesday, April 28, 2010 10:53 AM
-To: Rick Ball; linux-omap@vger.kernel.org
-Subject: RE: Unable to build for omap3_evm_defconfig using latest kernel-omap3 git
+I found a page on elinux.org with a few notes on the issue for ARM.
+However, it looks to be a bit outdated:
+http://elinux.org/Suspend_To_Disk_For_ARM
 
-Rick Ball wrote:
-> I get the following error when attempting to build a kernel for the 
-> default config of the OMAP3 EVM board with the latest 'git' from:
-> 
-> git://dev.omapzoom.org/pub/scm/integration/kernel-omap3.git
-> 
+I am wondering how applicable anything on this page is to the current
+omap-pm developments. Or, if not, any pointers on how it might be done -
+for example, if I felt like I should do some hacking to try to get this
+working and contribute these back, a general outline of what I might
+have to do)
 
-...
-
-> 
-> Am I doing something wrong here?  Am I mistaken in thinking that 
-> compiling for this board should work?
-
-Yes, you're using the wrong kernel.
-
-Use the linux-omap kernel:
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-
-Or Linus' tree directly:
-git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-
-The one you're using is an internal development tree on which the OMAP3 EVM board is not well supported.
-
-- Anand
+Thanks for your time,
+Peter Tseng
