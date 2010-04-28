@@ -1,13 +1,13 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv3 3/4] mach-omap1: Add SoC info data for OMAP1 into /proc/cpuinfo
-Date: Wed, 28 Apr 2010 08:51:42 +0300
-Message-ID: <1272433903-24003-4-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv3 1/4] ARM: Introduce SoC Info into /proc/cpuinfo
+Date: Wed, 28 Apr 2010 08:51:40 +0300
+Message-ID: <1272433903-24003-2-git-send-email-eduardo.valentin@nokia.com>
 References: <1272433903-24003-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:20106 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753623Ab0D1Fvh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 01:51:37 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:59743 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753451Ab0D1Fvc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 01:51:32 -0400
 In-Reply-To: <1272433903-24003-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,47 +16,54 @@ Cc: ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsyst
 
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Report OMAP data into system_soc_info. Now we get omap
-information under /proc/cpuinfo.
+This patch extends the ARM /proc/cpuinfo to include soc info data.
+It is implemented via the same way which is done for
+system_rev, system_serial_low and system_serial_high.
+Then, now we have system_soc_info, which is printed only
+if there is something useful there.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/mach-omap1/id.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+ arch/arm/include/asm/system.h |    2 ++
+ arch/arm/kernel/setup.c       |    5 +++++
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/id.c b/arch/arm/mach-omap1/id.c
-index a0e3560..9a84347 100644
---- a/arch/arm/mach-omap1/id.c
-+++ b/arch/arm/mach-omap1/id.c
-@@ -120,7 +120,7 @@ static u8 __init omap_get_die_rev(void)
+diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
+index 4ace45e..53a9645 100644
+--- a/arch/arm/include/asm/system.h
++++ b/arch/arm/include/asm/system.h
+@@ -71,6 +71,8 @@ struct task_struct;
+ extern unsigned int system_rev;
+ extern unsigned int system_serial_low;
+ extern unsigned int system_serial_high;
++#define SYSTEM_SOC_INFO_SIZE			128
++extern char system_soc_info[SYSTEM_SOC_INFO_SIZE];
+ extern unsigned int mem_fclk_21285;
  
- void __init omap_check_revision(void)
- {
--	int i;
-+	int i, sz;
- 	u16 jtag_id;
- 	u8 die_rev;
- 	u32 omap_id;
-@@ -194,11 +194,14 @@ void __init omap_check_revision(void)
- 		printk(KERN_INFO "Unknown OMAP cpu type: 0x%02x\n", cpu_type);
- 	}
+ struct pt_regs;
+diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+index c91c77b..025d795 100644
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -85,6 +85,9 @@ EXPORT_SYMBOL(system_serial_low);
+ unsigned int system_serial_high;
+ EXPORT_SYMBOL(system_serial_high);
  
--	printk(KERN_INFO "OMAP%04x", omap_revision >> 16);
-+	sz = snprintf(system_soc_info, SYSTEM_SOC_INFO_SIZE, "OMAP%04x",
-+							 omap_revision >> 16);
- 	if ((omap_revision >> 8) & 0xff)
--		printk(KERN_INFO "%x", (omap_revision >> 8) & 0xff);
--	printk(KERN_INFO " revision %i handled as %02xxx id: %08x%08x\n",
--	       die_rev, omap_revision & 0xff, system_serial_low,
--	       system_serial_high);
-+		snprintf(system_soc_info + sz, SYSTEM_SOC_INFO_SIZE - sz,
-+				"%x", (omap_revision >> 8) & 0xff);
-+	pr_info("%s revision %i handled as %02xxx id: %08x%08x\n",
-+		system_soc_info, die_rev, omap_revision & 0xff,
-+		system_serial_low, system_serial_high);
++char system_soc_info[SYSTEM_SOC_INFO_SIZE];
++EXPORT_SYMBOL(system_soc_info);
 +
- }
+ unsigned int elf_hwcap;
+ EXPORT_SYMBOL(elf_hwcap);
  
+@@ -847,6 +850,8 @@ static int c_show(struct seq_file *m, void *v)
+ 	seq_printf(m, "Revision\t: %04x\n", system_rev);
+ 	seq_printf(m, "Serial\t\t: %08x%08x\n",
+ 		   system_serial_high, system_serial_low);
++	if (strlen(system_soc_info))
++		seq_printf(m, "SoC Info\t: %s\n",  system_soc_info);
+ 
+ 	return 0;
+ }
 -- 
 1.7.0.4.361.g8b5fe.dirty
 
