@@ -1,37 +1,49 @@
-From: Peter Tseng <tsenpet09@gmail.com>
-Subject: ARM suspend to disk?
-Date: Wed, 28 Apr 2010 14:42:47 -0400
-Message-ID: <4BD881A7.2020402@gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] OMAP3: PM: Add milliseconds interface to suspend wakeup timer
+Date: Wed, 28 Apr 2010 11:51:18 -0700
+Message-ID: <87d3xje7h5.fsf@deeprootsystems.com>
+References: <1269245454-24254-1-git-send-email-Ext-Ari.Kauppi@nokia.com>
+	<1269327899-22541-1-git-send-email-Ext-Ari.Kauppi@nokia.com>
+	<20100323083248.GA18857@pcarmody-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:41645 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755188Ab0D1Smr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 14:42:47 -0400
-Received: by wye20 with SMTP id 20so1019311wye.19
-        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 11:42:46 -0700 (PDT)
+Received: from mail-px0-f174.google.com ([209.85.212.174]:45573 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753362Ab0D1SvW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 14:51:22 -0400
+Received: by pxi17 with SMTP id 17so2848920pxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 11:51:21 -0700 (PDT)
+In-Reply-To: <20100323083248.GA18857@pcarmody-desktop> (Phil Carmody's message of "Tue\, 23 Mar 2010 10\:32\:49 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: "Kauppi Ari (EXT-Ixonos/Oulu)" <ext-ari.kauppi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kristo Tero (Nokia-D/Tampere)" <Tero.Kristo@nokia.com>
 
-Hey there,
+Phil Carmody <ext-phil.2.carmody@nokia.com> writes:
 
-I last posted a few weeks ago; I'm Peter Tseng, using the Gumstix Overo
-for a project. I'm interested in power management and a few related
-things. A few of the things I am interested in are suspend to disk and
-snapshot boot.
+> On 23/03/10 08:04 +0100, Kauppi Ari (EXT-Ixonos/Oulu) wrote:
+>> Millisecond resolution is possible and there are use cases for it
+>> (automatic testing).
+>> 
+>> Seconds-based interface is preserved for compatibility.
+>> 
+>> Signed-off-by: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
+>>
+>> ---
+>> v2: Keep seconds and milliseconds interfaces strictly separate:
+>>  - Consistent interface, setting/getting seconds and milliseconds
+>>    is always accurate
+>>  - Fixes potential overflow issues in omap2_pm_wakeup_on_timer
+>>  - Cleaner patch
+>
+> Nice one. Just what we need, nothing more, nothing less.
+>
+> Reviewed-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+>
 
-I found a page on elinux.org with a few notes on the issue for ARM.
-However, it looks to be a bit outdated:
-http://elinux.org/Suspend_To_Disk_For_ARM
+Thanks, tested on omap3evm.
 
-I am wondering how applicable anything on this page is to the current
-omap-pm developments. Or, if not, any pointers on how it might be done -
-for example, if I felt like I should do some hacking to try to get this
-working and contribute these back, a general outline of what I might
-have to do)
+Pulling into PM branch queueing for 2.6.35.
 
-Thanks for your time,
-Peter Tseng
+Kevin
