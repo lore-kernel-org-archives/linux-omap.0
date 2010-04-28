@@ -1,159 +1,90 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2 09/19] DSPBRIDGE: function to get the type of clock requested by dsp
-Date: Wed, 28 Apr 2010 10:29:47 -0500
-Message-ID: <1272468597-6748-10-git-send-email-omar.ramirez@ti.com>
-References: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-2-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-3-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-4-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-5-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-6-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-7-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-8-git-send-email-omar.ramirez@ti.com>
- <1272468597-6748-9-git-send-email-omar.ramirez@ti.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: Bug in omap2_nand_gpmc_retime? (was: Re: [PATCH] OMAP: fix gpmc
+	nand setup when no timings supplied)
+Date: Wed, 28 Apr 2010 20:56:25 +0530
+Message-ID: <s2hce9ab5791004280826y69ec56d1od0950eadf7cd60e6@mail.gmail.com>
+References: <1271670618-5671-1-git-send-email-mike@compulab.co.il>
+	<4BCFDC6F.6010801@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7ADD@dbde02.ent.ti.com>
+	<4BCFF3C1.5070005@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7B5A@dbde02.ent.ti.com>
+	<4BD00C9A.8050601@compulab.co.il> <20100426181448.GG7225@atomide.com>
+	<4BD695BC.3080109@compulab.co.il> <20100427144734.GX7225@atomide.com>
+	<4BD84EAF.7010104@compulab.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55476 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755004Ab0D1PY7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Apr 2010 11:24:59 -0400
-In-Reply-To: <1272468597-6748-9-git-send-email-omar.ramirez@ti.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:49006 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754706Ab0D1P0u convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 11:26:50 -0400
+Received: by vws19 with SMTP id 19so351646vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 08:26:49 -0700 (PDT)
+In-Reply-To: <4BD84EAF.7010104@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-DSP can request between 5 types of clocks: IVA2, GPT (5-8), WDT (3),
-MCBSP (1-5) or SSI clock. This function will be useful in case
-a specific clock framework is associated with the clock.
+On Wed, Apr 28, 2010 at 8:35 PM, Mike Rapoport <mike@compulab.co.il> wr=
+ote:
+> Tony Lindgren wrote:
+>>
+>> * Mike Rapoport <mike@compulab.co.il> [100427 00:40]:
+>>>
+>>> Tony Lindgren wrote:
+>>>>
+>>>> * Mike Rapoport <mike@compulab.co.il> [100422 01:41]:
+>>>>>
+>>>>> Ghorai, Sukumar wrote:
+>>>>>
+>>>>> CM-T35, for instance can be assembled with different NAND flash
+>>>>> chips. Besides, boards that use NAND as primary boot device, we
+>>>>> anyway depend on proper GPMC configuration in the bootloader chai=
+n.
+>>>>> Having ability to define GPMC timings in the kernel and keep the
+>>>>> settings made by the bootloader adds flexibility level for board
+>>>>> designers.
+>>>>
+>>>> Not implementing the retime function for GPMC will cause issues
+>>>> with PM as you cannot scale the L3 frequency without breaking
+>>>> your GPMC timings.
+>>>
+>>> I agree that without retime function scaling the frequency will
+>>> break the GPMC timings. But my point was that there should be an
+>>> _option_ to keep the timings defined by the bootloader rather than
+>>> enforce board files to specify timings.
+>>
+>> Sure. Can you please check one more time your patch and what is
+>> still missing after Stanley's fix? That's now in omap-fixes and mast=
+er
+>> branches as commit 11e1ef2d105900a302b7ca92bcaf96a96d0274a1.
+>>
+>>> Since skipping the retime function will break gpmc timings in
+>>> PM-enabled =A0kernel, we need to implement this option in smarter w=
+ay.
+>>> E.g. something like:
+>>
+>> Yeah we should print some warning if the retime function is not
+>> implemented as it can cause mysterious bugs later on. I guess
+>> implementing a dummy retime function would be best as then the
+>> warning would be related to the actual L3 rate change.
+>
+> While working on implementation of gpmc_nand_detect_timings I've seen=
+ that
+> omap2_nand_gpmc_retime converts the timings supplied by the platform =
+to
+> ticks and passes it to gpmc_cs_set_timings which in turn converts the
+> timings to ticks. Is it a bug or am I missing something?
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- drivers/dsp/bridge/services/clk.c |   89 ++++++++++++++++++++++++++++---------
- 1 files changed, 68 insertions(+), 21 deletions(-)
+No, 'omap2_nand_gpmc_retime' does not convert timings supplied by the
+platform to tick. Rather it rounds the timings passed by the platform
+to timings in units of 'tick' period.
 
-diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
-index e35b929..d5c3d4e 100644
---- a/drivers/dsp/bridge/services/clk.c
-+++ b/drivers/dsp/bridge/services/clk.c
-@@ -40,6 +40,13 @@
- #define SSI_SIDLE_SMARTIDLE		(2 << 3)
- #define SSI_MIDLE_NOIDLE		(1 << 12)
- 
-+/* Clk types requested by the dsp */
-+#define IVA2_CLK	0
-+#define GPT_CLK		1
-+#define WDT_CLK		2
-+#define MCBSP_CLK	3
-+#define SSI_CLK		4
-+
- struct dsp_clk_t {
- 	struct clk *clk_handle;
- 	const char *clk_name;
-@@ -76,6 +83,26 @@ static struct dsp_clk_t dsp_clks[] = {
- 	{NULL, ""}
- };
- 
-+static s8 get_clk_type(u8 id)
-+{
-+	s8 type;
-+
-+	if (id == DSP_CLK_IVA2_CK)
-+		type = IVA2_CLK;
-+	else if (id <= DSP_CLK_GPT8_ICK)
-+		type = GPT_CLK;
-+	else if (id <= DSP_CLK_WDT3_ICK)
-+		type = WDT_CLK;
-+	else if (id <= DSP_CLK_MCBSP5_ICK)
-+		type = MCBSP_CLK;
-+	else if (id < DSP_CLK_SSI_ICK)
-+		type = SSI_CLK;
-+	else
-+		type = -1;
-+
-+	return type;
-+}
-+
- /*
-  *  ======== dsp_clk_exit ========
-  *  Purpose:
-@@ -141,23 +168,33 @@ dsp_status dsp_clk_enable(IN enum dsp_clk_id clk_id)
- 	dsp_status status = DSP_SOK;
- 	struct clk *clk_handle;
- 
--	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
-+	switch (get_clk_type(clk_id)) {
-+	case IVA2_CLK:
-+	case GPT_CLK:
-+	case MCBSP_CLK:
-+	case WDT_CLK:
-+	case SSI_CLK:
-+		clk_handle = dsp_clks[clk_id].clk_handle;
-+		if (clk_enable(clk_handle)) {
-+			pr_err("dsp_clk_enable: failed to Enable CLK %s, "
-+				"CLK dev id = %d\n", dsp_clks[clk_id].clk_name,
-+				dsp_clks[clk_id].id);
-+			status = -EPERM;
-+		}
- 
--	clk_handle = dsp_clks[clk_id].clk_handle;
--	if (clk_enable(clk_handle)) {
--		pr_err("dsp_clk_enable: failed to Enable CLK %s, "
--		       "CLK dev id = %d\n",
--		       dsp_clks[clk_id].clk_name,
--		       dsp_clks[clk_id].id);
--		status = -EPERM;
-+		/*
-+		 * The SSI module need to configured not to have the Forced
-+		 * idle for master interface. If it is set to forced idle,
-+		 * the SSI module is transitioning to standby thereby causing
-+		 * the client in the DSP hang waiting for the SSI module to
-+		 * be active after enabling the clocks
-+		 */
-+		if (clk_id == DSP_CLK_SSI_ICK)
-+			ssi_clk_prepare(true);
-+		break;
-+	default:
-+		dev_err(bridge, "Invalid clock id for enable\n");
- 	}
--	/* The SSI module need to configured not to have the Forced idle for
--	 * master interface. If it is set to forced idle, the SSI module is
--	 * transitioning to standby thereby causing the client in the DSP hang
--	 * waiting for the SSI module to be active after enabling the clocks
--	 */
--	if (clk_id == DSP_CLK_SSI_FCK)
--		ssi_clk_prepare(true);
- 
- 	return status;
- }
-@@ -175,12 +212,22 @@ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
- 
- 	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
- 
--	clk_handle = dsp_clks[clk_id].clk_handle;
--
--	if (clk_id == DSP_CLK_SSI_ICK)
--		ssi_clk_prepare(false);
--
--	clk_disable(clk_handle);
-+	switch (get_clk_type(clk_id)) {
-+	case IVA2_CLK:
-+	case GPT_CLK:
-+	case MCBSP_CLK:
-+	case WDT_CLK:
-+	case SSI_CLK:
-+		clk_handle = dsp_clks[clk_id].clk_handle;
-+
-+		if (clk_id == DSP_CLK_SSI_ICK)
-+			ssi_clk_prepare(false);
-+
-+		clk_disable(clk_handle);
-+		break;
-+	default:
-+		dev_err(bridge, "Invalid clock id for disable\n");
-+	}
- 
- 	return status;
- }
--- 
-1.6.2.4
-
+--=20
+Regards,
+Vimal Singh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
