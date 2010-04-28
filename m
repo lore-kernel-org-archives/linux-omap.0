@@ -1,7 +1,7 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2] DSPBRIDGE: trivial clock cleanup for unused code
-Date: Tue, 27 Apr 2010 20:29:16 -0500
-Message-ID: <1272418167-12630-9-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v2] DSPBRIDGE: remove clk_get_use_cnt
+Date: Tue, 27 Apr 2010 20:29:15 -0500
+Message-ID: <1272418167-12630-8-git-send-email-omar.ramirez@ti.com>
 References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>
  <1272418167-12630-2-git-send-email-omar.ramirez@ti.com>
  <1272418167-12630-3-git-send-email-omar.ramirez@ti.com>
@@ -9,64 +9,94 @@ References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>
  <1272418167-12630-5-git-send-email-omar.ramirez@ti.com>
  <1272418167-12630-6-git-send-email-omar.ramirez@ti.com>
  <1272418167-12630-7-git-send-email-omar.ramirez@ti.com>
- <1272418167-12630-8-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41685 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:41681 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754108Ab0D1BYc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 21:24:32 -0400
-In-Reply-To: <1272418167-12630-8-git-send-email-omar.ramirez@ti.com>
+	with ESMTP id S1753982Ab0D1BYb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Apr 2010 21:24:31 -0400
+In-Reply-To: <1272418167-12630-7-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Remove unusued struct and typedef.
+Instead of querying the use count, balanced number of
+enable/disable should be enforced across the system.
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/clk.h |    2 --
- drivers/dsp/bridge/services/clk.c          |    7 -------
- 2 files changed, 0 insertions(+), 9 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/clk.h |   13 -------------
+ drivers/dsp/bridge/services/clk.c          |   23 -----------------------
+ 2 files changed, 0 insertions(+), 36 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/clk.h b/arch/arm/plat-omap/include/dspbridge/clk.h
-index 621d08f..f19d024 100644
+index 5f7a925..621d08f 100644
 --- a/arch/arm/plat-omap/include/dspbridge/clk.h
 +++ b/arch/arm/plat-omap/include/dspbridge/clk.h
-@@ -19,8 +19,6 @@
- #ifndef _CLK_H
- #define _CLK_H
+@@ -117,17 +117,4 @@ extern dsp_status dsp_clk_get_rate(IN enum dsp_clk_id clk_id,
  
--	/* Generic TIMER object: */
--struct timer_object;
- enum dsp_clk_id {
- 	DSP_CLK_IVA2_CK = 0,
- 	DSP_CLK_GPT5_FCK,
+ extern void ssi_clk_prepare(bool FLAG);
+ 
+-/*
+- *  ======== CLK_Get_RefCnt ========
+- *  Purpose:
+- *      get the reference count for the clock.
+- *  Parameters:
+- *  Returns:
+- *      s32:        Reference Count for the clock.
+- *      -EPERM:  Error occured while getting the reference count of a clock.
+- *  Requires:
+- *  Ensures:
+- */
+-extern s32 clk_get_use_cnt(IN enum dsp_clk_id clk_id);
+-
+ #endif /* _SYNC_H */
 diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
-index e447d54..e35b929 100644
+index b4f5709..e447d54 100644
 --- a/drivers/dsp/bridge/services/clk.c
 +++ b/drivers/dsp/bridge/services/clk.c
-@@ -32,8 +32,6 @@
+@@ -179,20 +179,11 @@ dsp_status dsp_clk_disable(IN enum dsp_clk_id clk_id)
+ {
+ 	dsp_status status = DSP_SOK;
+ 	struct clk *clk_handle;
+-	s32 clk_use_cnt;
  
- /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ 	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
  
--typedef volatile unsigned long reg_uword32;
+ 	clk_handle = dsp_clks[clk_id].clk_handle;
+ 
+-	clk_use_cnt = clk_get_use_cnt(clk_id);
+-	if (clk_use_cnt == -1) {
+-		pr_err("%s: failed to get CLK Use count for CLK %s, CLK dev id"
+-		       " = %d\n", __func__, dsp_clks[clk_id].clk_name,
+-		       dsp_clks[clk_id].id);
+-	} else if (clk_use_cnt == 0) {
+-		return status;
+-	}
+ 	if (clk_id == DSP_CLK_SSI_ICK)
+ 		ssi_clk_prepare(false);
+ 
+@@ -226,20 +217,6 @@ dsp_status dsp_clk_get_rate(IN enum dsp_clk_id clk_id, u32 *speedKhz)
+ 	return status;
+ }
+ 
+-s32 clk_get_use_cnt(IN enum dsp_clk_id clk_id)
+-{
+-	struct clk *clk_handle;
+-	s32 use_count = -1;
+-	DBC_REQUIRE(clk_id < DSP_CLK_NOT_DEFINED);
 -
- #define OMAP_SSI_OFFSET			0x58000
- #define OMAP_SSI_SIZE			0x1000
- #define OMAP_SSI_SYSCONFIG_OFFSET	0x10
-@@ -78,11 +76,6 @@ static struct dsp_clk_t dsp_clks[] = {
- 	{NULL, ""}
- };
- 
--/* Generic TIMER object: */
--struct timer_object {
--	struct timer_list timer;
--};
+-	clk_handle = dsp_clks[clk_id].clk_handle;
 -
- /*
-  *  ======== dsp_clk_exit ========
-  *  Purpose:
+-	/* FIXME: usecount shouldn't be used */
+-	use_count = clk_handle->usecount;
+-
+-	return use_count;
+-}
+-
+ void ssi_clk_prepare(bool FLAG)
+ {
+ 	void __iomem *ssi_base;
 -- 
 1.6.0.4
 
