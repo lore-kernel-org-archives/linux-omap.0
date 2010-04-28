@@ -1,90 +1,56 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: Bug in omap2_nand_gpmc_retime? (was: Re: [PATCH] OMAP: fix gpmc
-	nand setup when no timings supplied)
-Date: Wed, 28 Apr 2010 20:56:25 +0530
-Message-ID: <s2hce9ab5791004280826y69ec56d1od0950eadf7cd60e6@mail.gmail.com>
-References: <1271670618-5671-1-git-send-email-mike@compulab.co.il>
-	<4BCFDC6F.6010801@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7ADD@dbde02.ent.ti.com>
-	<4BCFF3C1.5070005@compulab.co.il> <2A3DCF3DA181AD40BDE86A3150B27B6B030D5D7B5A@dbde02.ent.ti.com>
-	<4BD00C9A.8050601@compulab.co.il> <20100426181448.GG7225@atomide.com>
-	<4BD695BC.3080109@compulab.co.il> <20100427144734.GX7225@atomide.com>
-	<4BD84EAF.7010104@compulab.co.il>
+From: Rick Ball <rball@AESAustin.com>
+Subject: Unable to build for omap3_evm_defconfig using latest kernel-omap3
+ git
+Date: Wed, 28 Apr 2010 15:31:10 +0000
+Message-ID: <4B8557E2E5753944B2BB2E52F7C2A30C02C0C7E0@MAIL.AES.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:49006 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754706Ab0D1P0u convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 11:26:50 -0400
-Received: by vws19 with SMTP id 19so351646vws.19
-        for <linux-omap@vger.kernel.org>; Wed, 28 Apr 2010 08:26:49 -0700 (PDT)
-In-Reply-To: <4BD84EAF.7010104@compulab.co.il>
+Received: from mail.ascendant-es.com ([209.12.206.138]:37933 "EHLO
+	mail.aesasutin.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754040Ab0D1PbM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 11:31:12 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Apr 28, 2010 at 8:35 PM, Mike Rapoport <mike@compulab.co.il> wr=
-ote:
-> Tony Lindgren wrote:
->>
->> * Mike Rapoport <mike@compulab.co.il> [100427 00:40]:
->>>
->>> Tony Lindgren wrote:
->>>>
->>>> * Mike Rapoport <mike@compulab.co.il> [100422 01:41]:
->>>>>
->>>>> Ghorai, Sukumar wrote:
->>>>>
->>>>> CM-T35, for instance can be assembled with different NAND flash
->>>>> chips. Besides, boards that use NAND as primary boot device, we
->>>>> anyway depend on proper GPMC configuration in the bootloader chai=
-n.
->>>>> Having ability to define GPMC timings in the kernel and keep the
->>>>> settings made by the bootloader adds flexibility level for board
->>>>> designers.
->>>>
->>>> Not implementing the retime function for GPMC will cause issues
->>>> with PM as you cannot scale the L3 frequency without breaking
->>>> your GPMC timings.
->>>
->>> I agree that without retime function scaling the frequency will
->>> break the GPMC timings. But my point was that there should be an
->>> _option_ to keep the timings defined by the bootloader rather than
->>> enforce board files to specify timings.
->>
->> Sure. Can you please check one more time your patch and what is
->> still missing after Stanley's fix? That's now in omap-fixes and mast=
-er
->> branches as commit 11e1ef2d105900a302b7ca92bcaf96a96d0274a1.
->>
->>> Since skipping the retime function will break gpmc timings in
->>> PM-enabled =A0kernel, we need to implement this option in smarter w=
-ay.
->>> E.g. something like:
->>
->> Yeah we should print some warning if the retime function is not
->> implemented as it can cause mysterious bugs later on. I guess
->> implementing a dummy retime function would be best as then the
->> warning would be related to the actual L3 rate change.
->
-> While working on implementation of gpmc_nand_detect_timings I've seen=
- that
-> omap2_nand_gpmc_retime converts the timings supplied by the platform =
-to
-> ticks and passes it to gpmc_cs_set_timings which in turn converts the
-> timings to ticks. Is it a bug or am I missing something?
+I get the following error when attempting to build a kernel for the default config of the OMAP3 EVM board with the latest 'git' from:
 
-No, 'omap2_nand_gpmc_retime' does not convert timings supplied by the
-platform to tick. Rather it rounds the timings passed by the platform
-to timings in units of 'tick' period.
+git://dev.omapzoom.org/pub/scm/integration/kernel-omap3.git
 
---=20
-Regards,
-Vimal Singh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm compiling with CodeSourcery 2009q3, using the 'arm-none-linux-gnueabi-' cross-compile prefix, arch=arm:
+
+  LD      .tmp_vmlinux1
+arch/arm/mach-omap2/built-in.o: In function `omap_reset_voltage':
+arch/arm/mach-omap2/voltage.c:699: undefined reference to `get_vdd1_opp'
+arch/arm/mach-omap2/voltage.c:711: undefined reference to `get_vdd2_opp'
+arch/arm/mach-omap2/built-in.o: In function `vp_forceupdate_scale_voltage':
+arch/arm/mach-omap2/voltage.c:391: undefined reference to `get_vdd1_opp'
+arch/arm/mach-omap2/voltage.c:402: undefined reference to `get_vdd2_opp'
+arch/arm/mach-omap2/built-in.o: In function `vp_reg_offs_configure':
+arch/arm/mach-omap2/voltage.c:296: undefined reference to `get_vdd1_opp'
+arch/arm/mach-omap2/built-in.o: In function `vp_latch_vsel':
+arch/arm/mach-omap2/voltage.c:203: undefined reference to `get_vdd1_opp'
+make[1]: *** [.tmp_vmlinux1] Error 1
+make: *** [sub-make] Error 2
+
+Earlier, I got the following warnings while compiling 'voltage.c':
+
+  CC      arch/arm/mach-omap2/voltage.o
+
+arch/arm/mach-omap2/voltage.c: In function 'vp_latch_vsel':
+arch/arm/mach-omap2/voltage.c:220: warning: passing argument 1 of 'opp_find_by_opp_id' makes pointer from integer without a cast
+arch/arm/plat-omap/include/plat/opp.h:293: note: expected 'struct omap_opp *' but argument is of type 'int'
+arch/arm/mach-omap2/voltage.c: In function 'omap_reset_voltage':
+arch/arm/mach-omap2/voltage.c:716: warning: passing argument 1 of 'opp_find_by_opp_id' makes pointer from integer without a cast
+arch/arm/plat-omap/include/plat/opp.h:293: note: expected 'struct omap_opp *' but argument is of type 'int'
+
+It looks like the Makefile for the mach-omap2 folder doesn't include the file that defines 'get_vdd1_opp' (resource34xx.c), since CONFIG_OMAP_PM_SRF isn't set by the config.  But if I modify the config so it will also compile this file, it just opens a different can of worms.
+
+Am I doing something wrong here?  Am I mistaken in thinking that compiling for this board should work?
+
+Thanks,
+
+Rick Ball (rball@aesaustin.com)
