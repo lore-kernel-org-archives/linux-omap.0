@@ -1,59 +1,60 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH v4 5/5(7)] OMAP1: Amstrad Delta: modify
-	defconfig for external keyboard support
-Date: Wed, 28 Apr 2010 03:14:27 +0200
-Message-ID: <201004280314.28994.jkrzyszt@tis.icnet.pl>
-References: <201004280252.58420.jkrzyszt@tis.icnet.pl>
-Reply-To: Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <e3-hacking-bounces@earth.li>
-In-Reply-To: <201004280252.58420.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
-List-Unsubscribe: <http://www.earth.li/cgi-bin/mailman/options/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=unsubscribe>
-List-Archive: <http://www.earth.li/pipermail/e3-hacking>
-List-Post: <mailto:e3-hacking@earth.li>
-List-Help: <mailto:e3-hacking-request@earth.li?subject=help>
-List-Subscribe: <http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=subscribe>
-Sender: e3-hacking-bounces@earth.li
-Errors-To: e3-hacking-bounces@earth.li
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, e3-hacking@earth.li, linux-arm-kernel@lists.infradead.org
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH v2] DSPBRIDGE: remove clk_handle from drv interface
+Date: Tue, 27 Apr 2010 20:29:09 -0500
+Message-ID: <1272418167-12630-2-git-send-email-omar.ramirez@ti.com>
+References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44919 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750883Ab0D1BY1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Apr 2010 21:24:27 -0400
+In-Reply-To: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-The patch adds a CONFIG directive required for supporting the Amstrad Delta
-connected external keyboard by default.
+Since it is not used, remove.
 
-Created and tested against linux-omap master, 
-commit 104a77440f05430f29f9d3f4ecb88c1536819585 dated 2010-04-27.
-
-Works on top of PATCH v4 4/5(7), "input: serio: add support for Amstrad Delta 
-serial keyboard port".
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
-v2 changes:
-- no functional changes,
-- refreshed against linux-2.6.34-rc2.
-v3 changes:
-- since CONFIG_KEYBOARD_ATKBD and CONFIG_AMS_DELTA_FIQ are now selected 
-  automatically, limit defconfig changes to CONFIG_SERIO_AMS_DELTA selection.
-v4 changes: none (CONFIG_KEYBOARD_ATKBD=y already present in defconfig).
+ drivers/dsp/bridge/rmgr/drv_interface.c |    9 ---------
+ 1 files changed, 0 insertions(+), 9 deletions(-)
 
- arch/arm/configs/ams_delta_defconfig |    1 +
- 1 file changed, 1 insertion(+)
-
---- git.orig/arch/arm/configs/ams_delta_defconfig	2010-04-27 21:40:18.000000000 +0200
-+++ git/arch/arm/configs/ams_delta_defconfig	2010-04-27 22:50:58.000000000 +0200
-@@ -699,6 +699,7 @@ CONFIG_SERIO=y
- CONFIG_SERIO_SERPORT=y
- CONFIG_SERIO_LIBPS2=y
- # CONFIG_SERIO_RAW is not set
-+CONFIG_SERIO_AMS_DELTA=y
- # CONFIG_GAMEPORT is not set
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 2f92278..ea2a5f3 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -149,7 +149,6 @@ static struct file_operations bridge_fops = {
+ #ifdef CONFIG_PM
+ static u32 time_out = 1000;
+ #ifdef CONFIG_BRIDGE_DVFS
+-static struct clk *clk_handle;
+ s32 dsp_max_opps = VDD1_OPP5;
+ #endif
  
- #
+@@ -324,10 +323,6 @@ static int __devinit omap34_xx_bridge_probe(struct platform_device *pdev)
+ 		for (i = 0; i < 6; i++)
+ 			pdata->mpu_speed[i] = vdd1_rate_table_bridge[i].rate;
+ 
+-		clk_handle = clk_get(NULL, "iva2_ck");
+-		if (!clk_handle)
+-			pr_err("%s: clk_get failed to get iva2_ck\n", __func__);
+-
+ 		if (!cpufreq_register_notifier(&iva_clk_notifier,
+ 						CPUFREQ_TRANSITION_NOTIFIER))
+ 			pr_err("%s: clk_notifier_register failed for iva2_ck\n",
+@@ -383,10 +378,6 @@ static int __devexit omap34_xx_bridge_remove(struct platform_device *pdev)
+ 		driver_context = 0;
+ 		DBC_ASSERT(ret == true);
+ 	}
+-#ifdef CONFIG_BRIDGE_DVFS
+-	clk_put(clk_handle);
+-	clk_handle = NULL;
+-#endif /* #ifdef CONFIG_BRIDGE_DVFS */
+ 
+ func_cont:
+ 	mem_ext_phys_pool_release();
+-- 
+1.6.0.4
+
