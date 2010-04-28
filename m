@@ -1,44 +1,42 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH v2] DSPBRIDGE: use dm timer framework for gpt timers
-Date: Wed, 28 Apr 2010 09:15:39 -0500
-Message-ID: <4BD8430B.80909@ti.com>
-References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>	 <1272418167-12630-4-git-send-email-omar.ramirez@ti.com>	 <1272418167-12630-5-git-send-email-omar.ramirez@ti.com>	 <1272418167-12630-6-git-send-email-omar.ramirez@ti.com>	 <1272418167-12630-7-git-send-email-omar.ramirez@ti.com>	 <1272418167-12630-8-git-send-email-omar.ramirez@ti.com>	 <1272418167-12630-9-git-send-email-omar.ramirez@ti.com>	 <1272418167-12630-10-git-send-email-omar.ramirez@ti.com>	 <1272418167-12630-11-git-send-email-omar.ramirez@ti.com>	 <1272418167-12630-12-git-send-email-omar.ramirez@ti.com> <t2j94a0d4531004280046g49d9a0f9j60a6147b86a1854f@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v6] OMAP2/3: I2C: Errata ID i207: Clear wrong RDR interrupt
+Date: Wed, 28 Apr 2010 07:17:48 -0700
+Message-ID: <87wrvrhd9v.fsf@deeprootsystems.com>
+References: <1272433677-28658-1-git-send-email-manjugk@ti.com>
+	<4BD80867.7020801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48785 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751690Ab0D1OPp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Apr 2010 10:15:45 -0400
-In-Reply-To: <t2j94a0d4531004280046g49d9a0f9j60a6147b86a1854f@mail.gmail.com>
+Received: from mail-iw0-f202.google.com ([209.85.223.202]:40606 "EHLO
+	mail-iw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752259Ab0D1OSB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Apr 2010 10:18:01 -0400
+In-Reply-To: <4BD80867.7020801@ti.com> (Nishanth Menon's message of "Wed\, 28 Apr 2010 05\:05\:27 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>, Omar Ramirez Luna <omar.ramirez@hotmail.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "Kalliguddi, Hema" <hemahk@ti.com>, Aaro Koskinen <Aaro.Koskinen@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-On 4/28/2010 2:46 AM, Felipe Contreras wrote:
-> On Wed, Apr 28, 2010 at 4:29 AM, Omar Ramirez Luna<omar.ramirez@ti.com>  wrote:
->> This patch switches to use DM timer framework instead of
->> a custom one for GPT timers, currently dsp can make use of
->> gpt 5, 6, 7 or 8.
->
-> I heard someone that was using gpt 8 for something else. Is it
-> possible to configure dsp-bridge to not use it?
->
+Nishanth Menon <nm@ti.com> writes:
 
-There are two scenarios:
+> very minor comments below:
+> On 04/28/2010 12:47 AM, G, Manjunath Kondaiah wrote:
 
-1. The request comes from the DSP side (afaik for video use case), the 
-change should be in the DSP side binaries to request some other gpt 
-instead. I don't know how possible is to get this changed.
+[...]
 
-2. bridge driver also requests gpt8 whenever a mmu fault is triggered, 
-this to set a timer to interrupt the dsp after the mmu fault dump has 
-been finished, I think this can be easily replaced in bridge to use some 
-other gpt, but "1" is still there. (besides a new patch is needed to 
-remove direct access to dm timer inside ue_deh and make it to go through 
-dsp-clock)
+>>   struct omap_i2c_dev {
+>>   	struct device		*dev;
+>> @@ -199,6 +201,7 @@ struct omap_i2c_dev {
+>>   	u16			bufstate;
+>>   	u16			syscstate;
+>>   	u16			westate;
+>> +	u16			errata;
+> overall I'd prefer the term quirk over errata - quirk is more of a
+> standard linux term used accross network, usb and other drivers, will
+> allow the code to be a little more familiar with the upstream
+> maintainers/reviewers.. but i leave it to tony and others to comment
+> more.. maybe it is just me being an ass again ;)
 
-Regards,
-omar
+I prefer the term errata since it is also the term used by TI docs.
+
+Kevin
