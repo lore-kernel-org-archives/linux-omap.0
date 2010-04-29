@@ -1,140 +1,97 @@
-From: "Govindarajan, Sriramakrishnan" <srk@ti.com>
-Subject: RE: [PATCHv3 1/3] TCA6416 keypad : Implement keypad driver for keys
- interfaced to TCA6416
-Date: Fri, 30 Apr 2010 19:49:20 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304E80EDC@dbde02.ent.ti.com>
-References: <1269357035-19754-1-git-send-email-srk@ti.com>
- <1269357035-19754-2-git-send-email-srk@ti.com>
- <20100416052500.GA1078@core.coreip.homeip.net>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v2] DSPBRIDGE: use dm timer framework for gpt timers
+Date: Thu, 29 Apr 2010 15:40:07 +0200
+Message-ID: <4BD98C37.3030806@ti.com>
+References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-4-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-5-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-6-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-7-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-8-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-9-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-10-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-11-git-send-email-omar.ramirez@ti.com>	<1272418167-12630-12-git-send-email-omar.ramirez@ti.com>	<t2j94a0d4531004280046g49d9a0f9j60a6147b86a1854f@mail.gmail.com>	<4BD8430B.80909@ti.com> <87bpd3h774.fsf@deeprootsystems.com>	<4BD863FE.80804@ti.com> <4BD869A1.8070808@ti.com>	<87zl0nfofv.fsf@deeprootsystems.com> <4BD884D9.80
+ 10204@ti.com> <87zl0ncne2.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57962 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757122Ab0D3QuB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 12:50:01 -0400
-In-Reply-To: <20100416052500.GA1078@core.coreip.homeip.net>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:38806 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932111Ab0D3Qyf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Apr 2010 12:54:35 -0400
+In-Reply-To: <87zl0ncne2.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Omar Ramirez Luna <omar.ramirez@hotmail.com>
 
-> -----Original Message-----
-> From: Dmitry Torokhov [mailto:dmitry.torokhov@gmail.com]
-> Sent: Friday, April 16, 2010 10:55 AM
-> To: Govindarajan, Sriramakrishnan
-> Cc: linux-omap@vger.kernel.org; linux-input@vger.kernel.org
-> Subject: Re: [PATCHv3 1/3] TCA6416 keypad : Implement keypad driver for
-> keys interfaced to TCA6416
-> 
-> On Tue, Mar 23, 2010 at 08:40:33PM +0530, Sriramakrishnan wrote:
-> > This patch implements a simple Keypad driver that functions
-> > as an I2C client. It handles key press events for keys
-> > connected to TCA6416 I2C based IO expander.
-> >
-> > Signed-off-by: Sriramakrishnan <srk@ti.com>
-> > ---
-> >  drivers/input/keyboard/Kconfig          |   16 ++
-> >  drivers/input/keyboard/Makefile         |    1 +
-> >  drivers/input/keyboard/tca6416-keypad.c |  354
-> +++++++++++++++++++++++++++++++
-> >  include/linux/tca6416_keypad.h          |   34 +++
-> >  4 files changed, 405 insertions(+), 0 deletions(-)
-> >  create mode 100644 drivers/input/keyboard/tca6416-keypad.c
-> >  create mode 100644 include/linux/tca6416_keypad.h
-----snip----
-Does the driver still work if you aplly the patch below on top?
-[Sriram] Dmitry, I was able to test with the patch below(again scope restricted to Polling mode) and it works but with following minor changes. Please review.
-> 
-> Thanks.
-> 
-> --
-> Dmitry
-> 
-> Input: tca6416 - misc fixes
-> 
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> ---
-> 
->  drivers/input/keyboard/tca6416-keypad.c |  327 +++++++++++++++-----------
-> -----
->  1 files changed, 160 insertions(+), 167 deletions(-)
-> 
-> 
-> diff --git a/drivers/input/keyboard/tca6416-keypad.c
-> b/drivers/input/keyboard/tca6416-keypad.c
-> index 17df832..0943af3 100644
-> --- a/drivers/input/keyboard/tca6416-keypad.c
-> +++ b/drivers/input/keyboard/tca6416-keypad.c
-> @@ -10,16 +10,17 @@
->   * published by the Free Software Foundation.
->   */
----snip---
+On 4/28/2010 10:50 PM, Kevin Hilman wrote:
+> Nishanth Menon<nm@ti.com>  writes:
+>
+>> Kevin Hilman had written, on 04/28/2010 12:59 PM, the following:
+>>> Omar Ramirez Luna<omar.ramirez@ti.com>  writes:
+>>>
+>>>> On 4/28/2010 11:36 AM, Menon, Nishanth wrote:
+>>>>> Kevin Hilman had written, on 04/28/2010 11:29 AM, the following:
+>>>>>> Omar Ramirez Luna<omar.ramirez@ti.com>   writes:
+>>>>>>
+>>>>>>> On 4/28/2010 2:46 AM, Felipe Contreras wrote:
+>>>>>>>> On Wed, Apr 28, 2010 at 4:29 AM, Omar Ramirez Luna<omar.ramirez@ti.com>    wrote:
+>>>>>>>>> This patch switches to use DM timer framework instead of
+>>>>>>>>> a custom one for GPT timers, currently dsp can make use of
+>>>>>>>>> gpt 5, 6, 7 or 8.
+>>>>>>>> I heard someone that was using gpt 8 for something else. Is it
+>>>>>>>> possible to configure dsp-bridge to not use it?
+>>>>>>>>
+>>>>>>> There are two scenarios:
+>>>>>>>
+>>>>>>> 1. The request comes from the DSP side (afaik for video use case), the
+>>>>>>> change should be in the DSP side binaries to request some other gpt
+>>>>>>> instead. I don't know how possible is to get this changed.
+>>>>>>>
+>>>>>>> 2. bridge driver also requests gpt8 whenever a mmu fault is triggered,
+>>>>>>> this to set a timer to interrupt the dsp after the mmu fault dump has
+>>>>>>> been finished, I think this can be easily replaced in bridge to use
+>>>>>>> some other gpt, but "1" is still there. (besides a new patch is needed
+>>>>>>> to remove direct access to dm timer inside ue_deh and make it to go
+>>>>>>> through dsp-clock)
+>>>>>> Why does Bridge care at all which specific timers it requests?  They
+>>>>>> are all the same, with the exception of GPT1 which is in the WKUP
+>>>>>> powerdomain and already used as the kernel clocksource.
+>>>>>>
+>>>>>> Bridge should just use the generic _request() instead of
+>>>>>> _request_specific()
+>>>>>>
+>>>>> trouble I believe is that DSP BIOS uses a specific timer.
+>>>>>
+>>>> yes, dsp side wants:
+>>>> bios -->  GPT5 (only used during boot up ->  baseimage load)
+>>>> load monitoring -->  GPT 6 (used while the dsp is awake)
+>>>> AV Sync -->  GPT 8 (based on use case)
+>>>>
+>>>> to generate the interrupt for mmu fault case it needs one connected to
+>>>> the dsp interrupt line and only 5, 6, 7 or 8 apply.
+>>>
+>>> Then DSP bios is broken by hard-coding *general purpose* timers.
+>>   /me just eats my own words.
+>> Not really.. I just got educated internally that DSP does not get
+>> interrupts from all GPTs.
+>> Ref: http://focus.ti.com/pdfs/wtbu/SWPU114Q_PrelimFinal_EPDF_03_05_2009.pdf
+>> page 1753 ->  only mentioned these timers can generate interrupts for
+>> DSP, and hence for BIOS's usage.
+>
+> OK, now that part makes sense.
 
-> +static int tca6416_keys_open(struct input_dev *dev)
-> +{
-> +	struct tca6416_keypad_chip *chip = input_get_drvdata(dev);
-> +
-> +	/* Get initial device state in case it has switches */
-> +	tca6416_keys_scan(chip);
-> 
->  	if (chip->use_polling)
->  		schedule_delayed_work(&chip->dwork, msecs_to_jiffies(100));
->  	else
->  		enable_irq(chip->irqnum);
-> 
-> +	return 0;
-> +}
-> +
-> +static void tca6416_keys_close(struct input_dev *dev)
-> +{
-> +	struct tca6416_keypad_chip *chip = input_get_drvdata(dev);
-> +
-> +	if (chip->use_polling)
-> +		cancel_delayed_work_sync(&chip->dwork);
-> +	else
-> +		free_irq(chip->irqnum, chip);
-[Sriram] replaced free_irq() with disable_irq() instead. This should take care of multiple (concurrent) opens.
+This issue will be even worse on OMAP4 with the CortexM3 (aka Ducati), 
+because several IPs like GPIO or GPTIMER will have different IRQ / 
+functionality / power partitioning depending of the instance.
+One of the proposed solution we considered, at least for the GPTIMERs, 
+was to add an extra API that can allow to request a timer based on the 
+needed capabilities and not based on index.
 
->  }
-> 
-> +static int __devinit tca6416_setup_registers(struct tca6416_keypad_chip
-> *chip)
-> +{
-> +	int error;
-> +
-> +	error = tca6416_read_reg(chip, TCA6416_OUTPUT, &chip->reg_output);
-> +	if (error)
-> +		return error;
-> +
-> +	error = tca6416_read_reg(chip, TCA6416_DIRECTION, &chip-
-> >reg_direction);
-> +	if (error)
-> +		return error;
-> +
-> +	/* ensure that keypad pins are set to input */
-> +	error = tca6416_write_reg(chip, TCA6416_DIRECTION,
-> +				  chip->reg_direction | chip->pinmask);
-> +	if (error)
-> +		return error;
-> +
-> +	error = tca6416_read_reg(chip, TCA6416_DIRECTION, &chip-
-> >reg_direction);
-> +	if (error)
-> +		return error;
-> +
-> +	error = tca6416_read_reg(chip, TCA6416_INPUT, &chip->reg_input);
-> +	if (error)
-> +		return error;
+We can easily encode in each GPTIMER HWMOD the specificity of an 
+instance like (HAS_DSP_IRQ, HAS_IPU_IRQ, HAS_PWM, IN_WKUP_DOMAIN, 
+IN_AUDIO_DOMAIN...).
+Driver can then use a request_timer_per_functionalies(HAS_DSP_IRQ | 
+HAS_IPU_IRQ...).
+It will allow driver to be much more independent of the current IP 
+implementation for an OMAP version.
 
-[Sriram] reg_input cached value needs to be masked with pinmask - otherwise on device open the driver reports continuous stream of key_down(repeat) events until a key is pressed.
+Any thoughts?
 
-> +	return 0;
-> +}
-> 
-[Sriram] Dmitry, once you have reviewed the changes, should I re-post the patch series with your patch added to the series?
+Regards,
+Benoit
 
-Regards
-Sriram
