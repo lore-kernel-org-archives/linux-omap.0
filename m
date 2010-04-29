@@ -1,39 +1,34 @@
-From: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
-Subject: OMAP 3530 LV-SOM support (was: Re: Patch format for submission?)
-Date: Thu, 29 Apr 2010 13:18:35 -0400
-Message-ID: <20100429171835.GB5644@gibbs.hungrycats.org>
-References: <1250695463.10817.4.camel@blitz>
- <200908201802.07169.linz@li-pro.net>
+From: "Fish . Clarice"
+	<lisastevens@static-71-252-116-175.washdc.east.verizon.net>
+Subject: Real Estate Agents - 1 million records with emails
+Date: Thu, 29 Apr 2010 12:53:14 -0400
+Message-ID: <55fc3c37-eaa3-4cf1-ad00-4d42d22764cb@CAPS01.caps-domain.local>
+Reply-To: <lisastevens@static-71-252-116-175.washdc.east.verizon.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ip-70-38-54-39.static.privatedns.com ([70.38.54.39]:39808 "EHLO
-	ginevra.hungrycats.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933165Ab0D3TCM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 15:02:12 -0400
-Content-Disposition: inline
-In-Reply-To: <200908201802.07169.linz@li-pro.net>
+Received: from static-71-252-116-175.washdc.east.verizon.net ([71.252.116.175]:40994
+	"EHLO mail.costandperformance.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932536Ab0D3RDY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Apr 2010 13:03:24 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephan Linz <linz@li-pro.net>
-Cc: Peter Barada <peterb@logicpd.com>, linux-omap <linux-omap@vger.kernel.org>
+To: tammy.pembleton@collegiate.school.nz, info@dinterfineart.com, maria.evaldsson@direktmedia.se, geist@kochbank.de, linux-omap@vger.kernel.org
 
-On Thu, Aug 20, 2009 at 06:02:06PM +0200, Stephan Linz wrote:
-> Am Mittwoch, 19. August 2009 schrieb Peter Barada:
-> > 1) Does anyone have a URL of the format patches should be in that are
-> > submitted to the linux-omap list?
-> >
-> > I've got some patches to add base support for the Logic OMAP 35x SOM and
-> > Torpedo boards and I'd like to submit them in the right format for
-> > inclusion and push into mainline.
-> 
-> Hi Peter,
-> 
-> nice to see your announcement here at linux-omap. Today I've finished my own 
-> port for the Logic OMAP 35x SOM based on 2.6.31-rc1. We should share our 
-> results befor submitting any patches to the list, or not?
+We have many package deals on sale this week, here is one:
 
-That's the last message I can find from either of you on this topic.
-I'm in the process of rolling yet another patch set for 2.6.32.  Was any
-further work done on this, or anything posted anywhere?
+Physicians (34 specialties) - 788k records, 17k emails, 200k fax numbers
+Hospitals - 23,747 Hospital Administrators in over 7,145 Hospitals (full contact info no emails)
+Dentists - 164k records, 45k emails, 77k fax numbers
+Chiropractors - 108,421 total records * 3,414 emails * 6,553 fax numbers
+Pharmaceutical Companies - Email only list 47,000 emails of pharma company employees
 
+All complete lists above: $395
+
+There are more packages and not just for healthcare contact me here for more info or to get samples: Ilene.Olsen@goodlists.co.cc
+
+  
+
+
+To invoke no further correspondence status please send an email to disappear@goodlists.co.cc
