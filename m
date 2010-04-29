@@ -1,56 +1,100 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/11] omap2/3/4: Disable CONFIG_FB_OMAP in omap3_defconfig
-Date: Fri, 30 Apr 2010 13:34:11 -0700
-Message-ID: <20100430203411.25812.30019.stgit@baageli.muru.com>
-References: <20100430202603.25812.41834.stgit@baageli.muru.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH 2/2] omap: gpmc-nand: add ability to keep timings defined
+	by the bootloader
+Date: Thu, 29 Apr 2010 09:57:24 +0530
+Message-ID: <z2hce9ab5791004282127u817d6604oa65b8bf3b9957bda@mail.gmail.com>
+References: <cover.1272470212.git.mike@compulab.co.il> <d97635d8d65238f8801db6bcf4e89e2fb1b44b17.1272470212.git.mike@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65497 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933390Ab0D3UeN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 16:34:13 -0400
-In-Reply-To: <20100430202603.25812.41834.stgit@baageli.muru.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:55237 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933609Ab0D3UeZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 16:34:25 -0400
+Received: by vws19 with SMTP id 19so546071vws.19
+        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 13:34:24 -0700 (PDT)
+In-Reply-To: <d97635d8d65238f8801db6bcf4e89e2fb1b44b17.1272470212.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: tony@atomide.com, s-ghorai@ti.com, linux-omap@vger.kernel.org
 
-Looks like CONFIG_FB_OMAP prevents somehow mounting root on MMC
-at least on zoom3 for multi-omap. Disable CONFIG_FB until the
-omap FB code is fixed.
+On Wed, Apr 28, 2010 at 9:36 PM, Mike Rapoport <mike@compulab.co.il> wr=
+ote:
+> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+> ---
+> =A0arch/arm/mach-omap2/gpmc-nand.c =A0 =A0 =A0 =A0| =A0 19 ++++++++++=
+++++++++-
+> =A0arch/arm/plat-omap/include/plat/nand.h | =A0 =A01 +
+> =A02 files changed, 19 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gp=
+mc-nand.c
+> index e57fb29..7c6c027 100644
+> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> @@ -22,6 +22,7 @@
+> =A0#define WR_RD_PIN_MONITORING =A0 0x00600000
+>
+> =A0static struct omap_nand_platform_data *gpmc_nand_data;
+> +static struct gpmc_timings gpmc_default_timings;
+>
+> =A0static struct resource gpmc_nand_resource =3D {
+> =A0 =A0 =A0 =A0.flags =A0 =A0 =A0 =A0 =A0=3D IORESOURCE_MEM,
+> @@ -34,13 +35,24 @@ static struct platform_device gpmc_nand_device =3D=
+ {
+> =A0 =A0 =A0 =A0.resource =A0 =A0 =A0 =3D &gpmc_nand_resource,
+> =A0};
+>
+> +static void gpmc_nand_detect_timings(void)
+> +{
+> + =A0 =A0 =A0 struct gpmc_timings t;
+> +
+> + =A0 =A0 =A0 memset(&t, 0, sizeof(t));
+> + =A0 =A0 =A0 gpmc_cs_get_timings(gpmc_nand_data->cs, &gpmc_default_t=
+imings);
+> +}
+> +
+> =A0static int omap2_nand_gpmc_retime(void)
+> =A0{
+> + =A0 =A0 =A0 struct device *dev =3D &gpmc_nand_device.dev;
+> =A0 =A0 =A0 =A0struct gpmc_timings t;
+> =A0 =A0 =A0 =A0int err;
+>
+> - =A0 =A0 =A0 if (!gpmc_nand_data->gpmc_t)
+> + =A0 =A0 =A0 if (!gpmc_nand_data->gpmc_t) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_warn(dev, "No timings provided, ski=
+pping retime\n");
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
+> + =A0 =A0 =A0 }
+>
+> =A0 =A0 =A0 =A0memset(&t, 0, sizeof(t));
+> =A0 =A0 =A0 =A0t.sync_clk =3D gpmc_round_ns_to_ticks(gpmc_nand_data->=
+gpmc_t->sync_clk);
+> @@ -112,6 +124,11 @@ int __init gpmc_nand_init(struct omap_nand_platf=
+orm_data *_nand_data)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return err;
+> =A0 =A0 =A0 =A0}
+>
+> + =A0 =A0 =A0 if (gpmc_nand_data->keep_timings) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_nand_detect_timings();
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_nand_data->gpmc_t =3D &gpmc_defaul=
+t_timings;
+> + =A0 =A0 =A0 }
+> +
 
-This allows booting omap3_defconfig on various omaps. Tested on
-2420-n8x0, 3430-n900, 3630-zoom3 and 4430-blaze. Note that n8x0
-still has issues with starting user space because of TLS and
-VFP.
+I guess moving this part to omap2_nand_gpmc_retime will be a good idea.
+As there, once we get old/default timings we can simply skip the
+rounding part and directly jump to setting the timings.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap3_defconfig |   10 +---------
- 1 files changed, 1 insertions(+), 9 deletions(-)
+Rest looks fine to me.
 
-diff --git a/arch/arm/configs/omap3_defconfig b/arch/arm/configs/omap3_defconfig
-index 7855edb..1efb833 100644
---- a/arch/arm/configs/omap3_defconfig
-+++ b/arch/arm/configs/omap3_defconfig
-@@ -1359,16 +1359,8 @@ CONFIG_FB_TILEBLITTING=y
- # CONFIG_FB_METRONOME is not set
- # CONFIG_FB_MB862XX is not set
- # CONFIG_FB_BROADSHEET is not set
--CONFIG_FB_OMAP=y
-+# CONFIG_FB_OMAP is not set
- CONFIG_FB_OMAP_LCD_VGA=y
--# CONFIG_FB_OMAP_031M3R is not set
--# CONFIG_FB_OMAP_048M3R is not set
--CONFIG_FB_OMAP_079M3R=y
--# CONFIG_FB_OMAP_092M9R is not set
--# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
--# CONFIG_FB_OMAP_LCD_MIPID is not set
--# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
--CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
- # CONFIG_OMAP2_DSS is not set
- CONFIG_BACKLIGHT_LCD_SUPPORT=y
- CONFIG_LCD_CLASS_DEVICE=y
-
+--=20
+Regards,
+Vimal Singh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
