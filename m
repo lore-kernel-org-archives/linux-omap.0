@@ -1,56 +1,80 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/14] omap: Make uncompress code and DEBUG_LL code
- generic
-Date: Fri, 30 Apr 2010 09:49:53 -0700
-Message-ID: <20100430164953.GD29604@atomide.com>
-References: <20100126200646.15382.52167.stgit@baageli.muru.com>
- <20100126201239.15382.34792.stgit@baageli.muru.com>
- <1272640022.3051.1534.camel@localhost>
- <4BDB0353.5090800@ti.com>
+Subject: Re: [PATCH 00/21] OMAP: DSS2: Taal panel driver updates
+Date: Thu, 29 Apr 2010 08:42:53 -0700
+Message-ID: <20100429154252.GI7225@atomide.com>
+References: <cover.1272457052.git.ext-jani.1.nikula@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56780 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757618Ab0D3Qtz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 12:49:55 -0400
+	with ESMTP id S1757624Ab0D3Qt5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 12:49:57 -0400
 Content-Disposition: inline
-In-Reply-To: <4BDB0353.5090800@ti.com>
+In-Reply-To: <cover.1272457052.git.ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cyril Chemparathy <cyril@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, DaVinci list <Davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Cc: Tomi.Valkeinen@nokia.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-* Cyril Chemparathy <cyril@ti.com> [100430 09:22]:
-> Hi,
+* Jani Nikula <ext-jani.1.nikula@nokia.com> [100429 05:28]:
+> Hi -
 > 
-> [...]
-> > To fix both problems, maybe we should just use a fixed memory location
-> > to pass this temporary data from uncompress to the kernel.  We've had a
-> > similar problem on DaVinci recently and a proposal has been made (and
-> > tested) to use memory just below the page tables[3].)
+> This set of patches, on top of [1], contains assorted fixes and cleanups to the
+> Taal panel driver (01-14), configures board/platform specific things in a new
+> Nokia DSI command mode panel specific struct instead of DSS structs (15-17), and
+> makes it feasible to add support for similar DSI command mode panels in the same
+> driver (18-21).
 > 
-> Essentially both of these approaches (internal scratch register and
-> fixed address) implement a weird back-channel communication scheme
-> between the decompresser and the debug macros.
-> 
-> A more elegant solution may be as follows:
->     - pass machine_arch_type as an argument into addruart.
->     - move the uart base lookup logic to addruart using macros similar
->       to DEBUG_LL_*, except that these expand to assembly code this
->       time.
->     - reuse these debug-macros in uncompress.h and implement putc() and
->       flush() using addruart(), senduart(), etc.
-> 
-> This way, both the decompresser and the kernel debug macros end up using
-> machine_arch_type to get to the right debug uart, without resorting to
-> underhand back-channel tricks.
-> 
-> Any thoughts?
+> Tony, please note that patch 15 touches your turf.
 
-Sounds good to me. There's already the tmp register added to addruart
-that can be used for passing the machine id to addruart.
+Ack, it should be OK to merge just fine through Tomi.
+
+Note that some of your patches are missing descriptions,
+please add those to the missing ones.
 
 Regards,
 
 Tony
+
+ 
+> [1] git://gitorious.org/linux-omap-dss2/linux.git
+> 
+> BR,
+> Jani.
+> 
+> 
+> Jani Nikula (20):
+>   OMAP: DSS2: Taal: Add panel hardware reset
+>   OMAP: DSS2: Taal: Add locks to protect taal data access
+>   OMAP: DSS2: Taal: Cosmetic improvement to backlight properties
+>     initialization
+>   OMAP: DSS2: Taal: Remove platform enable/disable
+>   OMAP: DSS2: Taal: Fix request_irq() error handling
+>   OMAP: DSS2: Taal: Remove ESD work cancel from driver probe error
+>     handling
+>   OMAP: DSS2: Taal: Improve taal_power_on() error handling
+>   OMAP: DSS2: Taal: Bail out from taal_run_test() if panel is not
+>     enabled
+>   OMAP: DSS2: Taal: Change DSI bus locking to avoid deadlock in ESD
+>     work
+>   OMAP: DSS2: Taal: Check taal_power_on() return value in taal_resume()
+>   OMAP: DSS2: Taal: Change ESD work management
+>   OMAP: DSS2: Taal: Change probe error handling labels
+>   OMAP: DSS2: Taal: Add proper external TE support
+>   OMAP: DSS2: Add Nokia DSI command mode panel configuration struct
+>   OMAP: DSS2: Taal: Use Nokia DSI panel data
+>   OMAP: DSS2: Taal: Configure ESD check in DSI panel data
+>   OMAP: DSS2: Taal: Add panel specific configuration structure
+>   OMAP: DSS2: Taal: Print panel name in addition to revision
+>   OMAP: DSS2: Taal: Add regulator configuration support
+>   OMAP: DSS2: Taal: CABC workaround is Taal specific
+> 
+> Valkeinen Tomi (Nokia-D/Helsinki) (1):
+>   OMAP: DSS2: Taal: add locks to taal_bl_update_status
+> 
+>  arch/arm/plat-omap/include/plat/nokia-dsi-panel.h |   31 ++
+>  drivers/video/omap2/displays/panel-taal.c         |  538 ++++++++++++++++-----
+>  2 files changed, 452 insertions(+), 117 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
+> 
