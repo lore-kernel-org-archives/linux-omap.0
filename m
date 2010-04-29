@@ -1,94 +1,145 @@
 From: Mike Rapoport <mike@compulab.co.il>
-Subject: [PATCH v2 3/3] omap: gpmc-nand: add ability to keep timings defined by the bootloader
-Date: Thu, 29 Apr 2010 11:48:12 +0300
-Message-ID: <f20c8d0dc1c81a0cc5a334d03c9c7dc73046293d.1272530653.git.mike@compulab.co.il>
+Subject: [PATCH v2 1/3] omap: gpmc: add gpmc_cs_get_timings
+Date: Thu, 29 Apr 2010 11:48:10 +0300
+Message-ID: <fc5970794b11cccdf3250d71f7269686d527917e.1272530653.git.mike@compulab.co.il>
 References: <cover.1272530653.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from compulab.co.il ([67.18.134.219]:38483 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757260Ab0D3VDA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Apr 2010 17:03:00 -0400
+	id S1754155Ab0D3VDB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Apr 2010 17:03:01 -0400
 In-Reply-To: <cover.1272530653.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, vimal.newwork@gmail.com, s-ghorai@ti.com, Mike Rapoport <mike@compulab.co.il>
 
+Add gpmc_cs_get_timings counterpart of gpmc_cs_set_timings and
+convinience macros to read particular timing configuration fields
+
 Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 ---
- arch/arm/mach-omap2/gpmc-nand.c        |   21 +++++++++++++++++----
- arch/arm/plat-omap/include/plat/nand.h |    1 +
- 2 files changed, 18 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/gpmc.c             |   76 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/gpmc.h |    1 +
+ 2 files changed, 77 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 9434c80..96f0c7f 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -22,6 +22,7 @@
- #define WR_RD_PIN_MONITORING	0x00600000
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 5bc3ca0..527a0da 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -163,6 +163,36 @@ unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns)
+ }
  
- static struct omap_nand_platform_data *gpmc_nand_data;
-+static struct gpmc_timings gpmc_default_timings;
+ #ifdef DEBUG
++static int get_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
++			       const char *name)
++#else
++static int get_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit)
++#endif
++{
++	u32 l;
++	int ticks, mask, nr_bits, time;
++
++	nr_bits = end_bit - st_bit + 1;
++	mask = ((1 << nr_bits) - 1);
++
++	l = gpmc_cs_read_reg(cs, reg);
++	ticks = (l >> st_bit) & mask;
++
++	if (ticks == 0)
++		time = 0;
++	else
++		time = gpmc_ticks_to_ns(ticks);
++
++#ifdef DEBUG
++	printk(KERN_INFO
++		"GPMC CS%d: %-10s: %3d ticks, %3d ns\n",
++	       cs, name, ticks, time);
++#endif
++
++	return time;
++}
++
++#ifdef DEBUG
+ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 			       int time, const char *name)
+ #else
+@@ -206,10 +236,14 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 	if (set_gpmc_timing_reg(cs, (reg), (st), (end),		\
+ 			t->field, #field) < 0)			\
+ 		return -1
++#define GPMC_GET_ONE(reg, st, end, field) \
++	t->field = get_gpmc_timing_reg(cs, (reg), (st), (end), #field)
+ #else
+ #define GPMC_SET_ONE(reg, st, end, field) \
+ 	if (set_gpmc_timing_reg(cs, (reg), (st), (end), t->field) < 0) \
+ 		return -1
++#define GPMC_GET_ONE(reg, st, end, field) \
++	t->field = get_gpmc_timing_reg(cs, (reg), (st), (end))
+ #endif
  
- static struct resource gpmc_nand_resource = {
- 	.flags		= IORESOURCE_MEM,
-@@ -65,21 +66,28 @@ static void omap2_nand_gpmc_round_timings(struct gpmc_timings *src,
+ int gpmc_cs_calc_divider(int cs, unsigned int sync_clk)
+@@ -227,6 +261,48 @@ int gpmc_cs_calc_divider(int cs, unsigned int sync_clk)
+ 	return div;
+ }
  
- static int omap2_nand_gpmc_retime(void)
- {
-+	struct device *dev = &gpmc_nand_device.dev;
-+	struct gpmc_timings *gpmc_t = gpmc_nand_data->gpmc_t;
- 	struct gpmc_timings t;
- 	int err;
- 
--	if (!gpmc_nand_data->gpmc_t)
-+	if (!gpmc_t) {
-+		dev_warn(dev, "No timings provided, skipping retime\n");
- 		return 0;
-+	}
- 
--	memset(&t, 0, sizeof(t));
--	omap2_nand_gpmc_round_timings(gpmc_nand_data->gpmc_t, &t);
-+	if (!gpmc_nand_data->keep_timings) {
-+		memset(&t, 0, sizeof(t));
-+		omap2_nand_gpmc_round_timings(gpmc_nand_data->gpmc_t, &t);
-+		gpmc_t = &t;
-+	}
- 
- 	/* Configure GPMC */
- 	gpmc_cs_write_reg(gpmc_nand_data->cs, GPMC_CS_CONFIG1,
- 			GPMC_CONFIG1_DEVICESIZE(gpmc_nand_data->devsize) |
- 			GPMC_CONFIG1_DEVICETYPE_NAND);
- 
--	err = gpmc_cs_set_timings(gpmc_nand_data->cs, &t);
-+	err = gpmc_cs_set_timings(gpmc_nand_data->cs, gpmc_t);
- 	if (err)
- 		return err;
- 
-@@ -116,6 +124,11 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *_nand_data)
- 		return err;
- 	}
- 
-+	if (gpmc_nand_data->keep_timings) {
-+		gpmc_cs_get_timings(gpmc_nand_data->cs, &gpmc_default_timings);
-+		gpmc_nand_data->gpmc_t = &gpmc_default_timings;
++void gpmc_cs_get_timings(int cs, struct gpmc_timings *t)
++{
++	int div;
++	u32 l;
++
++	GPMC_GET_ONE(GPMC_CS_CONFIG2,  0,  3, cs_on);
++	GPMC_GET_ONE(GPMC_CS_CONFIG2,  8, 12, cs_rd_off);
++	GPMC_GET_ONE(GPMC_CS_CONFIG2, 16, 20, cs_wr_off);
++
++	GPMC_GET_ONE(GPMC_CS_CONFIG3,  0,  3, adv_on);
++	GPMC_GET_ONE(GPMC_CS_CONFIG3,  8, 12, adv_rd_off);
++	GPMC_GET_ONE(GPMC_CS_CONFIG3, 16, 20, adv_wr_off);
++
++	GPMC_GET_ONE(GPMC_CS_CONFIG4,  0,  3, oe_on);
++	GPMC_GET_ONE(GPMC_CS_CONFIG4,  8, 12, oe_off);
++	GPMC_GET_ONE(GPMC_CS_CONFIG4, 16, 19, we_on);
++	GPMC_GET_ONE(GPMC_CS_CONFIG4, 24, 28, we_off);
++
++	GPMC_GET_ONE(GPMC_CS_CONFIG5,  0,  4, rd_cycle);
++	GPMC_GET_ONE(GPMC_CS_CONFIG5,  8, 12, wr_cycle);
++	GPMC_GET_ONE(GPMC_CS_CONFIG5, 16, 20, access);
++
++	GPMC_GET_ONE(GPMC_CS_CONFIG5, 24, 27, page_burst_access);
++
++	if (cpu_is_omap34xx()) {
++		GPMC_GET_ONE(GPMC_CS_CONFIG6, 16, 19, wr_data_mux_bus);
++		GPMC_GET_ONE(GPMC_CS_CONFIG6, 24, 28, wr_access);
 +	}
 +
- 	err = gpmc_nand_setup();
- 	if (err < 0) {
- 		dev_err(dev, "NAND platform setup failed: %d\n", err);
-diff --git a/arch/arm/plat-omap/include/plat/nand.h b/arch/arm/plat-omap/include/plat/nand.h
-index f8efd54..0f727ea 100644
---- a/arch/arm/plat-omap/include/plat/nand.h
-+++ b/arch/arm/plat-omap/include/plat/nand.h
-@@ -24,6 +24,7 @@ struct omap_nand_platform_data {
- 	void __iomem		*gpmc_cs_baseaddr;
- 	void __iomem		*gpmc_baseaddr;
- 	int			devsize;
-+	bool			keep_timings;
- };
- 
- /* size (4 KiB) for IO mapping */
++	l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++	if (l & (GPMC_CONFIG1_READTYPE_SYNC | GPMC_CONFIG1_WRITETYPE_SYNC)) {
++		div = (l & 0x03) + 1;
++#ifdef DEBUG
++		printk(KERN_INFO "GPMC CS%d CLK period is %lu ns (div %d)\n",
++				cs, (div * gpmc_get_fclk_period()) / 1000, div);
++#endif
++		t->sync_clk = (div * gpmc_get_fclk_period()) / 1000;
++	} else {
++		t->sync_clk = 0;
++	}
++}
++
+ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+ {
+ 	int div;
+diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
+index 145838a..5c345f1 100644
+--- a/arch/arm/plat-omap/include/plat/gpmc.h
++++ b/arch/arm/plat-omap/include/plat/gpmc.h
+@@ -102,6 +102,7 @@ extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
+ extern u32 gpmc_cs_read_reg(int cs, int idx);
+ extern int gpmc_cs_calc_divider(int cs, unsigned int sync_clk);
+ extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
++extern void gpmc_cs_get_timings(int cs, struct gpmc_timings *t);
+ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+ extern void gpmc_cs_free(int cs);
+ extern int gpmc_cs_set_reserved(int cs, int reserved);
 -- 
 1.6.6.2
 
