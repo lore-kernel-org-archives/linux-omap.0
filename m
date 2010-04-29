@@ -1,40 +1,41 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: omap-pm: omap3_pm_defconfig no longer booting on Overo
-Date: Fri, 30 Apr 2010 11:54:29 -0700
-Message-ID: <8739yckbyy.fsf@deeprootsystems.com>
-References: <4BD93413.6000409@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap3: Fix 3630 mux errors
+Date: Thu, 29 Apr 2010 14:10:20 -0700
+Message-ID: <20100429211020.GA29604@atomide.com>
+References: <1272526065-29683-1-git-send-email-manjugk@ti.com>
+ <20100429182512.GN7225@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:43121 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932693Ab0D3Syd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 14:54:33 -0400
-Received: by pvg7 with SMTP id 7so323758pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 11:54:32 -0700 (PDT)
-In-Reply-To: <4BD93413.6000409@gmail.com> (Peter Tseng's message of "Thu\, 29 Apr 2010 03\:24\:03 -0400")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51818 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758411Ab0D3RGN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 13:06:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20100429182512.GN7225@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Tseng <tsenpet09@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Manjunatha GK <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, Allen Pais <allen.pais@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Peter Tseng <tsenpet09@gmail.com> writes:
+* Tony Lindgren <tony@atomide.com> [100429 11:20]:
+> * Manjunatha GK <manjugk@ti.com> [100429 00:23]:
+> > From: Allen Pais <allen.pais@ti.com>
+> > 
+> > The omap3630 has more mux signals than 34xx. The additional
+> > pins exist in omap36xx_cbp_subset, but are not initialized
+> > as the superset is missing these offsets. This causes the
+> > following errors during the boot:
+> 
+> I have an earlier version of this queued up, will take a look
+> and see if they're the same:
+> 
+> https://patchwork.kernel.org/patch/87555/
 
-> Since the rc5 tag, omap3_pm_defconfig from the pm branch no longer boots
-> on the Gumstix Overo.
-> I am certain that a build back in the rc3 days worked. Unfortunately, I
-> don't know about rc4, or anything that happenend in the intervening time.
->
-> Any clues on how to fix? If necessary, I'll provide what info I can to
-> help diagnose the issue if told what to do.
+Turns out these are all non-muxable pins. So the right fix
+is to remove them from the 3630 ball table. Will post a patch
+shortly for this along with my other fixes.
 
-First step is to enable CONFIG_LL_DEBUG and CONFIG_EARLYPRINTK in the
-defconfig (I should have these enabled by default in omap3_pm_defconfig)
+Regards,
 
-Then, boot adding 'earlyprintk' to your boot cmdline and post the
-resulting bootlog here.
-
-Thanks,
-
-Kevin
-
+Tony
