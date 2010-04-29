@@ -1,110 +1,51 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv3 00/22] OMAP3: PM: Smartreflex and voltage revamp
-Date: Fri, 30 Apr 2010 07:22:03 -0700
-Message-ID: <87y6g5rpf8.fsf@deeprootsystems.com>
-References: <1271408597-3066-1-git-send-email-thara@ti.com>
-	<87ljc8hfgw.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0322A8A62A@dbde02.ent.ti.com>
+Subject: Re: ARM suspend to disk?
+Date: Thu, 29 Apr 2010 10:58:40 -0700
+Message-ID: <87y6g6w373.fsf@deeprootsystems.com>
+References: <4BD881A7.2020402@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:47519 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933229Ab0D3RXE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 13:23:04 -0400
-Received: by pvg7 with SMTP id 7so269993pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 10:23:04 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322A8A62A@dbde02.ent.ti.com> (Thara Gopinath's message of "Fri\, 30 Apr 2010 11\:39\:15 +0530")
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:62031 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758698Ab0D3SWX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 14:22:23 -0400
+Received: by pwj9 with SMTP id 9so314334pwj.19
+        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 11:22:22 -0700 (PDT)
+In-Reply-To: <4BD881A7.2020402@gmail.com> (Peter Tseng's message of "Wed\, 28 Apr 2010 14\:42\:47 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Peter Tseng <tsenpet09@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-"Gopinath, Thara" <thara@ti.com> writes:
+Peter Tseng <tsenpet09@gmail.com> writes:
 
->>>-----Original Message-----
->>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>Sent: Wednesday, April 28, 2010 12:48 AM
->>>To: Gopinath, Thara
->>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy, Vishwanath; Sawant, Anand
->>>Subject: Re: [PATCHv3 00/22] OMAP3: PM: Smartreflex and voltage revamp
->>>
->>>Thara Gopinath <thara@ti.com> writes:
->>>
->>>> The main motivations behind this patch series are the following
->>>> 1. Making smartreflex a platform driver with omap-device layer.
->>>> 2. Separating voltage specific code from smartreflex.c and other
->>>>    locations and consolidating them into voltage.c and voltage.h.
->>>> 3. Smartreflex module can have Class 1 Class 2 or Class 3 implementations
->>>>    depending on the PMIC in use. Making smartreflex.c capable
->>>>    of handling both the Class 2 and 3  implementaions and separating out
->>>>    class specific code into a separate class driver.
->>>> 4. Remove dependencies on opp id in the smartreflex and
->>>>    voltage drivers
->>>> 5. Implementating  latest TI recommended register settings for
->>>>   Smartreflex and Voltage processor module as well as recommended
->>>>   sequences for enabling and disabling of Smartreflex and Voltage
->>>>   processor modules.
->>>> 6. Implementing VP force update method of voltage scaling which is
->>>>    again TI hardware recommended.
->>>>
->>>> What this patch series does not address are
->>>> 1. Separating PMIC specific portions from smartreflex and voltage code.
->>>> 2. OMAP3630 and OMP4 smartreflex support.
->>>>
->>>> This patch series is based on Kevin's PM tree origin/pm-wip-opp branch
->>>> and is dependent on the following patches not yet applied onto this branch.
->>>>
->>>>         http://patchwork.kernel.org/patch/81504/
->>>>         http://patchwork.kernel.org/patch/81606/
->>>>
->>>> This patch series has been tested on OMAP3430 SDP with basic power
->>>> management tests including the dvfs scripts.
->>>
->>>First some general comments...
->>>
->>>- check multi-line comment style
->>>
->>>- use of dev_err() instead of pr_err() (or dev_* instead of pr_*)
->>>  wherever you have a valid platform_device.  This will print messages
->>>  with the specific SR device name so you get more detailed messages.
->>>  It will also avoid you having to use sr_info->srid since that
->>>  number is already part of the device name.
->>>
->>>And now, IMHO, this is getting close enough, where I think it's
->>>getting mostly ready for submission upstream.  To that end, I think
->>>it's time to start creating this series against mainline, instead of
->>>against the PM branch.
->>>
->>>This is basically a rewrite, so I think it makes sense to breifly
->>>summarize the history in the first patch, but then build from scratch
->>>against mainline (except for SRF changes which will have to be a
->>>separate series based on the PM branch.)
->>>
->>>As it is, the series is getting hard to follow as there are several
->>>things that are cleaned up from the old code and then removed later in
->>>the series etc.  For that reason, I'd now like to see this as a fresh
->>>series against mainline.
->>>
->>>Actually, currnely it will have to be based on my pm-vc branch which
->>>is a small series of VC init/setup patches that I'll be queueing for
->>>2.6.35, but itself is based on mainline.
->>>
->>>The SR series could broken up as follows (only a suggestion)
->>>
->>>- Creation of voltage layer: current pm-vc branch + voltage.c
->>>
->>>- Creation of device/platform init: hwmods, sr_device.c
->>>
->>>- Creation of driver: smartreflex*.[ch], sr_device.c
+> I last posted a few weeks ago; I'm Peter Tseng, using the Gumstix Overo
+> for a project. I'm interested in power management and a few related
+> things. A few of the things I am interested in are suspend to disk and
+> snapshot boot.
 >
-> Kevin,
+> I found a page on elinux.org with a few notes on the issue for ARM.
+> However, it looks to be a bit outdated:
+> http://elinux.org/Suspend_To_Disk_For_ARM
 >
-> I could create this series against mainline but I need OPP layer for voltage layer.. 
->
+> I am wondering how applicable anything on this page is to the current
+> omap-pm developments. Or, if not, any pointers on how it might be done -
+> for example, if I felt like I should do some hacking to try to get this
+> working and contribute these back, a general outline of what I might
+> have to do)
 
-Ah, yes.  Sorry.  Please create against pm-opp, which is based on
-mainline.  I am working on reorganizing pm-opp for upstream.
+Not really and answer to your question since I don't know the answer,
+but just curious about your goals, since there may be an easier way.
+
+What do you expect to gain from suspend-to-disk + snapshot boot that
+you don't already get from suspend-to-RAM using off-mode?
+
+On OMAP, with off-mode enabled, a suspend to RAM puts the entire OMAP
+into full-chip off, and essentially reboots the ARM when waking up
+from suspend (or idle) already.
 
 Kevin
+
+
 
