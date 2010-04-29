@@ -1,227 +1,99 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 1/4] omap: mailbox cleanup: convert rwlocks to spinlock
-Date: Thu, 29 Apr 2010 16:14:05 +0300
-Message-ID: <t2tda15981b1004290614z9cd3cacma0a18c584dbae643@mail.gmail.com>
-References: <1272390982-14882-1-git-send-email-ohad@wizery.com>
-	<1272390982-14882-2-git-send-email-ohad@wizery.com> <8F7AF80515AF0D4D93307E594F3CB40E4B661D06@dlee03.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3EVM: Update pad configuration for wakeup enabled pads
+Date: Thu, 29 Apr 2010 07:11:02 -0700
+Message-ID: <87wrvq5oy1.fsf@deeprootsystems.com>
+References: <1272369361-25147-1-git-send-email-ranjithl@ti.com>
+	<87fx2hq61m.fsf@deeprootsystems.com> <4BD7FF39.8080607@ti.com>
+	<87y6g7e8s2.fsf@deeprootsystems.com> <4BD96998.9090902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:44203 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758439Ab0D3RdH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 13:33:07 -0400
-Received: by gyg13 with SMTP id 13so206610gyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 10:33:05 -0700 (PDT)
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4B661D06@dlee03.ent.ti.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:47841 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758900Ab0D3SJ5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 14:09:57 -0400
+Received: by pxi17 with SMTP id 17so302650pxi.19
+        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 11:09:51 -0700 (PDT)
+In-Reply-To: <4BD96998.9090902@ti.com> (Ranjith Lohithakshan's message of "Thu\, 29 Apr 2010 16\:42\:24 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Ranjith Lohithakshan <ranjithl@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-Hi Hari,
+Ranjith Lohithakshan <ranjithl@ti.com> writes:
 
-On Thu, Apr 29, 2010 at 3:44 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wr=
-ote:
-> Ohad,
+> On Wed, 28-Apr-10 11:53 PM +0530, Kevin Hilman wrote:
+>> Ranjith Lohithakshan <ranjithl@ti.com> writes:
+>> 
+>>> Kevin,
+>>>
+>>> On Tue, 27-Apr-10 8:46 PM +0530, Kevin Hilman wrote:
+>>>> Ranjith Lohithakshan <ranjithl@ti.com> writes:
+>>>>
+>>>>> OMAP3530 TRM section 7.4.4.4.2 requires OFFOUTENABLE to be set (active low)
+>>>>> if wakeup capabilities are enabled on a pad. During OFF mode testing
+>>>>> on OMAP3530 EVM, it was observed that the device was not residing in
+>>>>> the OFF state. The device enters into the OFF state and immediately exits
+>>>>> from that state as if an IO wakeup event has occured. The issue was traced
+>>>>> down to the pad configuration of wkaeup enabled pad's.
+>>>> Nice.
+>>>>
+>>>>> Also, the pad configuration is included only if the respective drivers are
+>>>>> enabled in the defconfig.
+>>>> Hmm, do you really want this?  If you don't have the driver enabled,
+>>>> you have to rely on the bootloader settings of these pads which may
+>>>> also be wrong and trigger an IO wakeup as well.
+>>> The thought process was that, for example, if keypad is not enabled
+>>> in a system configuration you probably don't want to see a wakeup
+>>> occurring if someone presses a key stroke. I understand the concern
+>>> that you have raised regarding bootloader mis-configurations. My
+>>> impression was that the bootloaders typically set the mux modes and
+>>> pull up's/downs and dont really program or enable the wakeup
+>>> capability.  But we cannot depend on that thumb rule.
+>> 
+>> Unfortunately, Bootloaders don't "typically" do anything.  They are
+>> routinely hacked/patched and cannot be trusted at all.
+>> 
+>>> What is your recommendation?
+>> 
+>> First, I suggest you fix the OFFOUTENABLE bug in a single patch
+>> without introducing the #ifdefs.  Then, address the enable/disable of
+>> the wakeups in a separate patch.
 >
-> Looks like the conversion was missed in few places resulting in compi=
-le warnings.
+> I will do that.
+>
+>> Next, ideally wakeups should not be configured a this level of board
+>> code.  There are APIs for that: enable_irq_wake()/disable_irq_wake()
+>> 
+>> For GPIOs (like the touchscreen), you really need to enable wakeups
+>> using existing APIs, either in the driver or in board init code and be
+>> sure there is an interrupt handler.  Please see the 'Known Problems'
+>> section of the OMAP PM wiki[2] where it talks about GPIO wakeups.
+>> Below[2] is an test patch I've used.
+>
+> I have pushed a patch on ads7846 to linux-input some time ago adding
+> wakeup support.
+>
+> fdba2bb : Input: ads7846 - add wakeup support
+>
+> There is now a wakeup flag added to the ads7846 platform data which can
+> enabled at the board level. Once this is set , the driver will do an
+> enable_irq_wake. The patch is now accepted and in mainline. I will
+> remove the wakeup mux configuration from the board file and instead will
+> just set the wakeup flag in the ads7846 platform data.
 
-Thanks for pointing that out - that's really strange, it somehow
-slipped in the rebase.
+Brilliant!  you're several steps ahead of me.  Would you mind
+submitting a patch to l-o to enable that for SDP and omap3evm so I
+can drop my suggested patch?
 
-The interesting part is that because you compile for OMAP4 (SMP),
-you got to see the warnings, while I didn't because I compiled for OMAP=
-3
-(in the UP case there's no real locking and both types of locks are
-actually the same).
+> The keypad uses a pin in the non-gpio mode. Is enable_irq_wake supported
+> for non-gpio mode?
 
->
-> Please see the below fix. Let me know if you agree with the change.
+Not currently, as enable_irq_wake() ends up calling into the
+irq_chip's set_wake() method.  This then calls into the OMAP GPIO
+layer as plat-omap/gpio.c:gpio_wake_enable()
 
-Sure. I'll add that missing part back together with the review comments=
-,
-and submit a v2 patchset.
+For now, the keypad could just use the mux API at runtime like SDP does
+to enable wakeups when needed.
 
-Thanks again,
-Ohad.
-
-
->
-> #########
-> [PATCH] omap: mailbox: rwlocks to spinlock: compilation fix
->
-> fixed the missed =A0rwlocks in few places resultion in following
-> compiler warning.
->
-> arch/arm/plat-omap/mailbox.c: In function 'omap_mbox_startup':
-> arch/arm/plat-omap/mailbox.c:246: warning: passing argument 1 of '_ra=
-w_write_lock' from incompatible pointer type
-> arch/arm/plat-omap/mailbox.c:251: warning: passing argument 1 of '_ra=
-w_write_unlock' from incompatible pointer type
-> arch/arm/plat-omap/mailbox.c:255: warning: passing argument 1 of '_ra=
-w_write_unlock' from incompatible pointer type
-> arch/arm/plat-omap/mailbox.c: In function 'omap_mbox_fini':
-> arch/arm/plat-omap/mailbox.c:301: warning: passing argument 1 of '_ra=
-w_write_lock' from incompatible pointer type
-> arch/arm/plat-omap/mailbox.c:306: warning: passing argument 1 of '_ra=
-w_write_unlock' from incompatible pointer type
->
-> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> ---
-> =A0arch/arm/plat-omap/mailbox.c | =A0 10 +++++-----
-> =A01 files changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbo=
-x.c
-> index 27a8d98..d6a700d 100644
-> --- a/arch/arm/plat-omap/mailbox.c
-> +++ b/arch/arm/plat-omap/mailbox.c
-> @@ -243,16 +243,16 @@ static int omap_mbox_startup(struct omap_mbox *=
-mbox)
-> =A0 =A0 =A0 =A0struct omap_mbox_queue *mq;
->
-> =A0 =A0 =A0 =A0if (likely(mbox->ops->startup)) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 write_lock(&mboxes_lock);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock(&mboxes_lock);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (!mbox_configured)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D mbox->ops->sta=
-rtup(mbox);
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (unlikely(ret)) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 write_unlock(&mboxes_lo=
-ck);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&mboxes_loc=
-k);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ret;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mbox_configured++;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 write_unlock(&mboxes_lock);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&mboxes_lock);
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0ret =3D request_irq(mbox->irq, mbox_interrupt, IRQF_SH=
-ARED,
-> @@ -298,12 +298,12 @@ static void omap_mbox_fini(struct omap_mbox *mb=
-ox)
-> =A0 =A0 =A0 =A0free_irq(mbox->irq, mbox);
->
-> =A0 =A0 =A0 =A0if (likely(mbox->ops->shutdown)) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 write_lock(&mboxes_lock);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock(&mboxes_lock);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (mbox_configured > 0)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mbox_configured--;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (!mbox_configured)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mbox->ops->shutdown(mb=
-ox);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 write_unlock(&mboxes_lock);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&mboxes_lock);
-> =A0 =A0 =A0 =A0}
-> =A0}
->
-> --
->
-> ################
->
->> -----Original Message-----
->> From: Ohad Ben-Cohen [mailto:ohad@wizery.com]
->> Sent: Tuesday, April 27, 2010 12:56 PM
->> To: linux-omap@vger.kernel.org
->> Cc: Kanigeri, Hari; Hiroshi Doyu; Ohad Ben-Cohen
->> Subject: [PATCH 1/4] omap: mailbox cleanup: convert rwlocks
->> to spinlock
->>
->> rwlocks are slower and have potential starvation issues so
->> spinlocks are generally preferred
->>
->> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
->> ---
->> =A0arch/arm/plat-omap/mailbox.c | =A0 20 ++++++++++----------
->> =A01 files changed, 10 insertions(+), 10 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/mailbox.c
->> b/arch/arm/plat-omap/mailbox.c index 08a2df7..d73d51a 100644
->> --- a/arch/arm/plat-omap/mailbox.c
->> +++ b/arch/arm/plat-omap/mailbox.c
->> @@ -31,7 +31,7 @@
->>
->> =A0static struct workqueue_struct *mboxd;
->> =A0static struct omap_mbox *mboxes;
->> -static DEFINE_RWLOCK(mboxes_lock);
->> +static DEFINE_SPINLOCK(mboxes_lock);
->>
->> =A0static int mbox_configured;
->>
->> @@ -330,14 +330,14 @@ struct omap_mbox *omap_mbox_get(const
->> char *name)
->> =A0 =A0 =A0 struct omap_mbox *mbox;
->> =A0 =A0 =A0 int ret;
->>
->> - =A0 =A0 read_lock(&mboxes_lock);
->> + =A0 =A0 spin_lock(&mboxes_lock);
->> =A0 =A0 =A0 mbox =3D *(find_mboxes(name));
->> =A0 =A0 =A0 if (mbox =3D=3D NULL) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 read_unlock(&mboxes_lock);
->> + =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&mboxes_lock);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ERR_PTR(-ENOENT);
->> =A0 =A0 =A0 }
->>
->> - =A0 =A0 read_unlock(&mboxes_lock);
->> + =A0 =A0 spin_unlock(&mboxes_lock);
->>
->> =A0 =A0 =A0 ret =3D omap_mbox_startup(mbox);
->> =A0 =A0 =A0 if (ret)
->> @@ -363,15 +363,15 @@ int omap_mbox_register(struct device
->> *parent, struct omap_mbox *mbox)
->> =A0 =A0 =A0 if (mbox->next)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EBUSY;
->>
->> - =A0 =A0 write_lock(&mboxes_lock);
->> + =A0 =A0 spin_lock(&mboxes_lock);
->> =A0 =A0 =A0 tmp =3D find_mboxes(mbox->name);
->> =A0 =A0 =A0 if (*tmp) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EBUSY;
->> - =A0 =A0 =A0 =A0 =A0 =A0 write_unlock(&mboxes_lock);
->> + =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&mboxes_lock);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_find;
->> =A0 =A0 =A0 }
->> =A0 =A0 =A0 *tmp =3D mbox;
->> - =A0 =A0 write_unlock(&mboxes_lock);
->> + =A0 =A0 spin_unlock(&mboxes_lock);
->>
->> =A0 =A0 =A0 return 0;
->>
->> @@ -384,18 +384,18 @@ int omap_mbox_unregister(struct
->> omap_mbox *mbox) =A0{
->> =A0 =A0 =A0 struct omap_mbox **tmp;
->>
->> - =A0 =A0 write_lock(&mboxes_lock);
->> + =A0 =A0 spin_lock(&mboxes_lock);
->> =A0 =A0 =A0 tmp =3D &mboxes;
->> =A0 =A0 =A0 while (*tmp) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (mbox =3D=3D *tmp) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *tmp =3D mbox->next;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mbox->next =3D NULL;
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 write_unlock(&mboxes_lock)=
-;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&mboxes_lock);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 tmp =3D &(*tmp)->next;
->> =A0 =A0 =A0 }
->> - =A0 =A0 write_unlock(&mboxes_lock);
->> + =A0 =A0 spin_unlock(&mboxes_lock);
->>
->> =A0 =A0 =A0 return -EINVAL;
->> =A0}
->> --
->> 1.6.3.3
->>
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
