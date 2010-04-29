@@ -1,72 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
-Date: Fri, 30 Apr 2010 14:02:17 -0700
-Message-ID: <20100430210216.GI29604@atomide.com>
-References: <20100430202603.25812.41834.stgit@baageli.muru.com>
- <20100430203349.25812.64659.stgit@baageli.muru.com>
- <87sk6cirt0.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: [PATCH v2 0/3] omap: gpmc-nand: add ability to keep timings defined by the bootloader
+Date: Thu, 29 Apr 2010 11:48:09 +0300
+Message-ID: <cover.1272530653.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55629 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155Ab0D3VCX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 17:02:23 -0400
-Content-Disposition: inline
-In-Reply-To: <87sk6cirt0.fsf@deeprootsystems.com>
+Received: from compulab.co.il ([67.18.134.219]:38483 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755702Ab0D3VC7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Apr 2010 17:02:59 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-arm-kernel@lists.infradead.org, Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org, Allen Pais <allen.pais@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, vimal.newwork@gmail.com, s-ghorai@ti.com, Mike Rapoport <mike@compulab.co.il>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100430 13:50]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > Zoom2 and 3 have UARTs only on the external debug board.
-> > GPMC needs to be mapped early to use it for DEBUG_LL.
-> >
-> > Additionally, 0xfb000000 overlaps with other areas, so
-> > use 0xfa400000 for the virtual address instead.
-> >
-> > Note that with the pending serial.c patches you need to
-> > set console=ttyS0,115200n8 as it will be the only UART
-> > mapped. To use DEBUG_LL, you need to pass also earlyprintk
-> > in cmdline.
-> >
-> > Cc: Allen Pais <allen.pais@ti.com>
-> > Cc: Vikram Pandita <vikram.pandita@ti.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  arch/arm/kernel/head.S                         |   10 ++++++++++
-> >  arch/arm/mach-omap2/board-zoom-debugboard.c    |    2 +-
-> >  arch/arm/mach-omap2/include/mach/debug-macro.S |    4 ++--
-> >  arch/arm/mach-omap2/io.c                       |    9 +++++++++
-> >  arch/arm/plat-omap/include/plat/serial.h       |    2 +-
-> >  5 files changed, 23 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
-> > index eb62bf9..fd870e1 100644
-> > --- a/arch/arm/kernel/head.S
-> > +++ b/arch/arm/kernel/head.S
-> > @@ -328,6 +328,16 @@ __create_page_tables:
-> >  	add	r0, r4, #0xd8000000 >> 18
-> >  	str	r3, [r0]
-> >  #endif
-> > +#if defined(CONFIG_MACH_OMAP_ZOOM2) || defined(CONFIG_MACH_OMAP_ZOOM3)
-> > +	/*
-> > +	 * Zoom2 and Zoom3 have UARTs only on the debug board.
-> > +	 * The debug board is connected to the GPMC.
-> > +	 */
-> > +	add	r0, r4, #0xfa000000 >> 18
-> > +	orr	r0, r0, #0x00400000 >> 18	@ ZOOM_UART_VIRT
-> > +	orr	r3, r7, #0x10000000		@ ZOOM_UART_BASE
-> > +	str	r3, [r0]
-> > +#endif
-> 
-> I don't see why this part is needed.  The same mapping is done using
-> the .io_pg_offset in the machine description which is done just before
-> this in head.S
+These patches add ability to keep GPMC timings configured by the
+bootloader. The platforms have to either define NAND GPMC timinings
+explicitly via gpmc_t field of omap_nand_platform_data or set
+keep_timings flag to allow detection of current timing configuration
+and its subsequent use in omap2_nand_gpmc_retime.
 
-That mapping does not cover the GPMC area where this UART is.
+v2 changes:
+   - remove debug leftovers
+   - make timing rounding depend on .keep_timing flag and introduce
+    omap2_nand_gpmc_round_timings to facilitate this change
 
-Tony
+Mike Rapoport (3):
+  omap: gpmc: add gpmc_cs_get_timings
+  omap: gpmc-nand: introduce omap2_nand_gpmc_round_timings helper
+  omap: gpmc-nand: add ability to keep timings defined by the
+    bootloader
+
+ arch/arm/mach-omap2/gpmc-nand.c        |   73 +++++++++++++++++++------------
+ arch/arm/mach-omap2/gpmc.c             |   76 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/gpmc.h |    1 +
+ arch/arm/plat-omap/include/plat/nand.h |    1 +
+ 4 files changed, 123 insertions(+), 28 deletions(-)
+
