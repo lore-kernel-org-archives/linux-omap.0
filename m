@@ -1,51 +1,37 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: ARM suspend to disk?
-Date: Thu, 29 Apr 2010 10:58:40 -0700
-Message-ID: <87y6g6w373.fsf@deeprootsystems.com>
-References: <4BD881A7.2020402@gmail.com>
+Subject: Re: [PATCH] OMAP3: PM: Registering sgx device and it's platform data
+Date: Thu, 29 Apr 2010 07:05:05 -0700
+Message-ID: <87d3xi73se.fsf@deeprootsystems.com>
+References: <1272523585-26759-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:62031 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758698Ab0D3SWX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 14:22:23 -0400
-Received: by pwj9 with SMTP id 9so314334pwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 11:22:22 -0700 (PDT)
-In-Reply-To: <4BD881A7.2020402@gmail.com> (Peter Tseng's message of "Wed\, 28 Apr 2010 14\:42\:47 -0400")
+Received: from mail-qy0-f183.google.com ([209.85.221.183]:38332 "EHLO
+	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933825Ab0D3S25 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 14:28:57 -0400
+Received: by qyk13 with SMTP id 13so617757qyk.1
+        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 11:28:56 -0700 (PDT)
+In-Reply-To: <1272523585-26759-1-git-send-email-manjugk@ti.com> (Manjunatha GK's message of "Thu\, 29 Apr 2010 12\:16\:25 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Tseng <tsenpet09@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Manjunatha GK <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, Preshit Agarwal <preshit.agarwal@ti.com>, Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@ti.com>, Hemanth V <hemanthv@ti.com>
 
-Peter Tseng <tsenpet09@gmail.com> writes:
+Manjunatha GK <manjugk@ti.com> writes:
 
-> I last posted a few weeks ago; I'm Peter Tseng, using the Gumstix Overo
-> for a project. I'm interested in power management and a few related
-> things. A few of the things I am interested in are suspend to disk and
-> snapshot boot.
+> The SGX powervr_device is registered with it's platform specific
+> data to provide information about setting constraint through
+> omap_pm_set_min_bus_tput.
 >
-> I found a page on elinux.org with a few notes on the issue for ARM.
-> However, it looks to be a bit outdated:
-> http://elinux.org/Suspend_To_Disk_For_ARM
->
-> I am wondering how applicable anything on this page is to the current
-> omap-pm developments. Or, if not, any pointers on how it might be done -
-> for example, if I felt like I should do some hacking to try to get this
-> working and contribute these back, a general outline of what I might
-> have to do)
+> Signed-off-by: Preshit Agarwal <preshit.agarwal@ti.com>
+> Signed-off-by: Manjunatha GK <manjugk@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Mike Turquette <mturquette@ti.com>
+> Cc: Hemanth V <hemanthv@ti.com>
 
-Not really and answer to your question since I don't know the answer,
-but just curious about your goals, since there may be an easier way.
-
-What do you expect to gain from suspend-to-disk + snapshot boot that
-you don't already get from suspend-to-RAM using off-mode?
-
-On OMAP, with off-mode enabled, a suspend to RAM puts the entire OMAP
-into full-chip off, and essentially reboots the ARM when waking up
-from suspend (or idle) already.
+Re: $SUBJECT, why the PM: prefix?
 
 Kevin
-
-
 
