@@ -1,67 +1,77 @@
-From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE: MMU-Fault debugging enhancements
-Date: Fri, 30 Apr 2010 14:24:15 -0500
-Message-ID: <C161915E2DD8304FAAE595A13B0A0948024AE50D98@dlee01.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602CB04896F@dlee06.ent.ti.com>
- <x2y94a0d4531004300821v920d3240p5215a967c6c48759@mail.gmail.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH 2/2] omap: gpmc-nand: add ability to keep timings defined
+	by the bootloader
+Date: Thu, 29 Apr 2010 12:41:33 +0530
+Message-ID: <g2qce9ab5791004290011w84f68a4ak3e24acdc74016265@mail.gmail.com>
+References: <cover.1272470212.git.mike@compulab.co.il> <d97635d8d65238f8801db6bcf4e89e2fb1b44b17.1272470212.git.mike@compulab.co.il>
+	<z2hce9ab5791004282127u817d6604oa65b8bf3b9957bda@mail.gmail.com>
+	<4BD92CD2.7010907@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35049 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759367Ab0D3TYX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 15:24:23 -0400
-In-Reply-To: <x2y94a0d4531004300821v920d3240p5215a967c6c48759@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:62296 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757918Ab0D3TfO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 15:35:14 -0400
+Received: by vws19 with SMTP id 19so489421vws.19
+        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 12:35:13 -0700 (PDT)
+In-Reply-To: <4BD92CD2.7010907@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: tony@atomide.com, s-ghorai@ti.com, linux-omap@vger.kernel.org
 
-Hi,
-
->-----Original Message-----
->From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
->Sent: Friday, April 30, 2010 10:21 AM
->To: Guzman Lugo, Fernando; Ramos Falcon, Ernesto
->Cc: linux-omap@vger.kernel.org; Hiroshi DOYU; Ameya Palande;
->felipe.contreras@nokia.com
->Subject: Re: [PATCH] DSPBRIDGE: MMU-Fault debugging enhancements
->
->On Fri, Apr 9, 2010 at 3:15 AM, Guzman Lugo, Fernando <x0095840@ti.com>
->wrote:
->> From db3d76a2e89a1c227322a2732ddf7ebf5cd4b4cf Mon Sep 17 00:00:00 2001
->> From: Ernesto Ramos <ernesto@ti.com>
->> Date: Wed, 24 Mar 2010 11:12:05 -0600
->> Subject: [PATCH] DSPBRIDGE: MMU-Fault debugging enhancements
+On Thu, Apr 29, 2010 at 12:23 PM, Mike Rapoport <mike@compulab.co.il> w=
+rote:
+> Vimal Singh wrote:
 >>
->> These changes allow for DSP task information to be printed
->> by the MPU dspbridge when DSP MMU fault ocurrs.
+>> On Wed, Apr 28, 2010 at 9:36 PM, Mike Rapoport <mike@compulab.co.il>
+>> wrote:
+>>>
+>>> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+>>> + =A0 =A0 =A0 if (gpmc_nand_data->keep_timings) {
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_nand_detect_timings();
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_nand_data->gpmc_t =3D &gpmc_defa=
+ult_timings;
+>>> + =A0 =A0 =A0 }
+>>> +
 >>
->> Signed-off-by: Cris Jansson <cjansson@ti.com>
->> [change to open source coding style]
->> Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+>> I guess moving this part to omap2_nand_gpmc_retime will be a good id=
+ea.
+>> As there, once we get old/default timings we can simply skip the
+>> rounding part and directly jump to setting the timings.
 >
->This patch seems to be doing a lot of things. Couldn't it have been split?
->
->Also, from the commit message it seems to implement a new feature,
->however, I heard it's supposed to fix memory corruption too. Is that
->true? If that's the case the code that fixes that would have to be
->separate.
->
->I understand this patch was already pushed to dspbridge branch, but I
->think such important changes should be properly recorded in the
->history.
->
->Cheers.
->
+> This way it would be the same as to pass 'gpmc_nand_data->gpmc_t =3D
+> NULL'. If I correctly understood the previous comments ([1]), the
+> problem with skipping retime is that when L3 clock changes, the gpmc
+> timings became wrong. So, if we convert old/default timings to
+> nanoseconds early during startup every time retime is called it will =
+use
+> the timing settings in nanoseconds thus yielding proper gpmc register=
+s
+> configuration.
 
-Hi Felipe,
-I agree important changes must be properly recorded but in this case the patch introduces only one new feature and because of the way that it is implemented using gpt8 overflow interrupt instead of mailbox to inform about the MMU Fault, the problem of the memory corruption was fixed indirectly, however these changes are part of the feature design itself and I don't see the need to split this new feature.
+OK. Then I think we can at least put __rounding__ code inside an 'if'
+case, something like:
+if (!gpmc_nand_data->keep_timings) {
+=2E..
+do rounding for supplied timings from board file.
+=2E..
+}
 
-Saludos,
-Ernesto
+> And, if I'm not terribly mistaken retime should be called each time L=
+3
+> frequency changes, though with current kernel it's not yet the case..=
+=2E
 
->--
->Felipe Contreras
+Yes. This is still left.
+
+--=20
+Regards,
+Vimal Singh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
