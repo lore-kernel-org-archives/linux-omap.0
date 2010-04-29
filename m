@@ -1,99 +1,114 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3EVM: Update pad configuration for wakeup enabled pads
-Date: Thu, 29 Apr 2010 07:11:02 -0700
-Message-ID: <87wrvq5oy1.fsf@deeprootsystems.com>
-References: <1272369361-25147-1-git-send-email-ranjithl@ti.com>
-	<87fx2hq61m.fsf@deeprootsystems.com> <4BD7FF39.8080607@ti.com>
-	<87y6g7e8s2.fsf@deeprootsystems.com> <4BD96998.9090902@ti.com>
+Subject: Re: [PATCH v2] DSPBRIDGE: use dm timer framework for gpt timers
+Date: Thu, 29 Apr 2010 07:12:58 -0700
+Message-ID: <87pr1i5out.fsf@deeprootsystems.com>
+References: <1272418167-12630-1-git-send-email-omar.ramirez@ti.com>
+	<1272418167-12630-4-git-send-email-omar.ramirez@ti.com>
+	<1272418167-12630-5-git-send-email-omar.ramirez@ti.com>
+	<1272418167-12630-6-git-send-email-omar.ramirez@ti.com>
+	<1272418167-12630-7-git-send-email-omar.ramirez@ti.com>
+	<1272418167-12630-8-git-send-email-omar.ramirez@ti.com>
+	<1272418167-12630-9-git-send-email-omar.ramirez@ti.com>
+	<1272418167-12630-10-git-send-email-omar.ramirez@ti.com>
+	<1272418167-12630-11-git-send-email-omar.ramirez@ti.com>
+	<1272418167-12630-12-git-send-email-omar.ramirez@ti.com>
+	<t2j94a0d4531004280046g49d9a0f9j60a6147b86a1854f@mail.gmail.com>
+	<4BD8430B.80909@ti.com> <87bpd3h774.fsf@deeprootsystems.com>
+	<4BD863FE.80804@ti.com> <4BD869A1.8070808@ti.com>
+	<87zl0nfofv.fsf@deeprootsystems.com> <4BD884D9.8010204@ti.com>
+	<87zl0ncne2.fsf@deeprootsystems.com> <4BD98C37.3030806@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:47841 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758900Ab0D3SJ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 14:09:57 -0400
-Received: by pxi17 with SMTP id 17so302650pxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 11:09:51 -0700 (PDT)
-In-Reply-To: <4BD96998.9090902@ti.com> (Ranjith Lohithakshan's message of "Thu\, 29 Apr 2010 16\:42\:24 +0530")
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:48792 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933354Ab0D3SJf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 14:09:35 -0400
+Received: by pwj9 with SMTP id 9so306764pwj.19
+        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 11:09:33 -0700 (PDT)
+In-Reply-To: <4BD98C37.3030806@ti.com> (Benoit Cousson's message of "Thu\, 29 Apr 2010 15\:40\:07 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ranjith Lohithakshan <ranjithl@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Omar Ramirez Luna <omar.ramirez@hotmail.com>
 
-Ranjith Lohithakshan <ranjithl@ti.com> writes:
+Benoit Cousson <b-cousson@ti.com> writes:
 
-> On Wed, 28-Apr-10 11:53 PM +0530, Kevin Hilman wrote:
->> Ranjith Lohithakshan <ranjithl@ti.com> writes:
->> 
->>> Kevin,
->>>
->>> On Tue, 27-Apr-10 8:46 PM +0530, Kevin Hilman wrote:
->>>> Ranjith Lohithakshan <ranjithl@ti.com> writes:
+> On 4/28/2010 10:50 PM, Kevin Hilman wrote:
+>> Nishanth Menon<nm@ti.com>  writes:
+>>
+>>> Kevin Hilman had written, on 04/28/2010 12:59 PM, the following:
+>>>> Omar Ramirez Luna<omar.ramirez@ti.com>  writes:
 >>>>
->>>>> OMAP3530 TRM section 7.4.4.4.2 requires OFFOUTENABLE to be set (active low)
->>>>> if wakeup capabilities are enabled on a pad. During OFF mode testing
->>>>> on OMAP3530 EVM, it was observed that the device was not residing in
->>>>> the OFF state. The device enters into the OFF state and immediately exits
->>>>> from that state as if an IO wakeup event has occured. The issue was traced
->>>>> down to the pad configuration of wkaeup enabled pad's.
->>>> Nice.
+>>>>> On 4/28/2010 11:36 AM, Menon, Nishanth wrote:
+>>>>>> Kevin Hilman had written, on 04/28/2010 11:29 AM, the following:
+>>>>>>> Omar Ramirez Luna<omar.ramirez@ti.com>   writes:
+>>>>>>>
+>>>>>>>> On 4/28/2010 2:46 AM, Felipe Contreras wrote:
+>>>>>>>>> On Wed, Apr 28, 2010 at 4:29 AM, Omar Ramirez Luna<omar.ramirez@ti.com>    wrote:
+>>>>>>>>>> This patch switches to use DM timer framework instead of
+>>>>>>>>>> a custom one for GPT timers, currently dsp can make use of
+>>>>>>>>>> gpt 5, 6, 7 or 8.
+>>>>>>>>> I heard someone that was using gpt 8 for something else. Is it
+>>>>>>>>> possible to configure dsp-bridge to not use it?
+>>>>>>>>>
+>>>>>>>> There are two scenarios:
+>>>>>>>>
+>>>>>>>> 1. The request comes from the DSP side (afaik for video use case), the
+>>>>>>>> change should be in the DSP side binaries to request some other gpt
+>>>>>>>> instead. I don't know how possible is to get this changed.
+>>>>>>>>
+>>>>>>>> 2. bridge driver also requests gpt8 whenever a mmu fault is triggered,
+>>>>>>>> this to set a timer to interrupt the dsp after the mmu fault dump has
+>>>>>>>> been finished, I think this can be easily replaced in bridge to use
+>>>>>>>> some other gpt, but "1" is still there. (besides a new patch is needed
+>>>>>>>> to remove direct access to dm timer inside ue_deh and make it to go
+>>>>>>>> through dsp-clock)
+>>>>>>> Why does Bridge care at all which specific timers it requests?  They
+>>>>>>> are all the same, with the exception of GPT1 which is in the WKUP
+>>>>>>> powerdomain and already used as the kernel clocksource.
+>>>>>>>
+>>>>>>> Bridge should just use the generic _request() instead of
+>>>>>>> _request_specific()
+>>>>>>>
+>>>>>> trouble I believe is that DSP BIOS uses a specific timer.
+>>>>>>
+>>>>> yes, dsp side wants:
+>>>>> bios -->  GPT5 (only used during boot up ->  baseimage load)
+>>>>> load monitoring -->  GPT 6 (used while the dsp is awake)
+>>>>> AV Sync -->  GPT 8 (based on use case)
+>>>>>
+>>>>> to generate the interrupt for mmu fault case it needs one connected to
+>>>>> the dsp interrupt line and only 5, 6, 7 or 8 apply.
 >>>>
->>>>> Also, the pad configuration is included only if the respective drivers are
->>>>> enabled in the defconfig.
->>>> Hmm, do you really want this?  If you don't have the driver enabled,
->>>> you have to rely on the bootloader settings of these pads which may
->>>> also be wrong and trigger an IO wakeup as well.
->>> The thought process was that, for example, if keypad is not enabled
->>> in a system configuration you probably don't want to see a wakeup
->>> occurring if someone presses a key stroke. I understand the concern
->>> that you have raised regarding bootloader mis-configurations. My
->>> impression was that the bootloaders typically set the mux modes and
->>> pull up's/downs and dont really program or enable the wakeup
->>> capability.  But we cannot depend on that thumb rule.
->> 
->> Unfortunately, Bootloaders don't "typically" do anything.  They are
->> routinely hacked/patched and cannot be trusted at all.
->> 
->>> What is your recommendation?
->> 
->> First, I suggest you fix the OFFOUTENABLE bug in a single patch
->> without introducing the #ifdefs.  Then, address the enable/disable of
->> the wakeups in a separate patch.
+>>>> Then DSP bios is broken by hard-coding *general purpose* timers.
+>>>   /me just eats my own words.
+>>> Not really.. I just got educated internally that DSP does not get
+>>> interrupts from all GPTs.
+>>> Ref: http://focus.ti.com/pdfs/wtbu/SWPU114Q_PrelimFinal_EPDF_03_05_2009.pdf
+>>> page 1753 ->  only mentioned these timers can generate interrupts for
+>>> DSP, and hence for BIOS's usage.
+>>
+>> OK, now that part makes sense.
 >
-> I will do that.
+> This issue will be even worse on OMAP4 with the CortexM3 (aka Ducati),
+> because several IPs like GPIO or GPTIMER will have different IRQ /
+> functionality / power partitioning depending of the instance.
+> One of the proposed solution we considered, at least for the GPTIMERs,
+> was to add an extra API that can allow to request a timer based on the
+> needed capabilities and not based on index.
 >
->> Next, ideally wakeups should not be configured a this level of board
->> code.  There are APIs for that: enable_irq_wake()/disable_irq_wake()
->> 
->> For GPIOs (like the touchscreen), you really need to enable wakeups
->> using existing APIs, either in the driver or in board init code and be
->> sure there is an interrupt handler.  Please see the 'Known Problems'
->> section of the OMAP PM wiki[2] where it talks about GPIO wakeups.
->> Below[2] is an test patch I've used.
+> We can easily encode in each GPTIMER HWMOD the specificity of an
+> instance like (HAS_DSP_IRQ, HAS_IPU_IRQ, HAS_PWM, IN_WKUP_DOMAIN,
+> IN_AUDIO_DOMAIN...).
+> Driver can then use a request_timer_per_functionalies(HAS_DSP_IRQ |
+> HAS_IPU_IRQ...).
+> It will allow driver to be much more independent of the current IP
+> implementation for an OMAP version.
 >
-> I have pushed a patch on ads7846 to linux-input some time ago adding
-> wakeup support.
->
-> fdba2bb : Input: ads7846 - add wakeup support
->
-> There is now a wakeup flag added to the ads7846 platform data which can
-> enabled at the board level. Once this is set , the driver will do an
-> enable_irq_wake. The patch is now accepted and in mainline. I will
-> remove the wakeup mux configuration from the board file and instead will
-> just set the wakeup flag in the ads7846 platform data.
+> Any thoughts?
 
-Brilliant!  you're several steps ahead of me.  Would you mind
-submitting a patch to l-o to enable that for SDP and omap3evm so I
-can drop my suggested patch?
-
-> The keypad uses a pin in the non-gpio mode. Is enable_irq_wake supported
-> for non-gpio mode?
-
-Not currently, as enable_irq_wake() ends up calling into the
-irq_chip's set_wake() method.  This then calls into the OMAP GPIO
-layer as plat-omap/gpio.c:gpio_wake_enable()
-
-For now, the keypad could just use the mux API at runtime like SDP does
-to enable wakeups when needed.
+Yes, this sounds much better.  It makes a lot more sense than
+hard-coding specific GPT numbers.
 
 Kevin
