@@ -1,63 +1,52 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH 02/14] omap: Make uncompress code and DEBUG_LL code generic
-Date: Thu, 29 Apr 2010 07:44:14 -0700
-Message-ID: <1272552254.3051.121.camel@localhost>
-References: <20100126200646.15382.52167.stgit@baageli.muru.com>
-	<20100126201239.15382.34792.stgit@baageli.muru.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: [PATCH v8 0/2] sDMA descriptor autoloading feature
+Date: Thu, 29 Apr 2010 23:04:34 +0530
+Message-ID: <i2x618f0c911004291034g7f5b377ds5efaf74c901bc036@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20100126201239.15382.34792.stgit-XB442sTQ5VIxQTnqJstS8Q@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: DaVinci list <Davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Adrian Hunter <adrian.hunter@nokia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2010-01-26 at 12:12 -0800, Tony Lindgren wrote:
-> Define arch_decomp_setup() the same way as some other
-> architectures do. Use arch_id to configure the debug uart
-> based on the machine_is by storing it into the uart
-> scratchpad register for DEBUG_LL code to use.
-> 
-> Note that to avoid merge conflicts, this patch is using
-> hardcoded register r1 until tmp register is being passed
-> for all addruart macros.
-> 
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+    This patch series is the introduction of new sDMA feature: descriptor
+autoloading (v8) and it's adoption by the OMAP HSMMC driver.
 
-This has been working well, but has a couple serious limitations:
+   The previous version (v7) was blocked on achieving proper interrupt
+syncronisation
+between the MMC and DMA callback in the HSMMC driver.
+  Thanks to Adrian Hunter's patch, https://patchwork.kernel.org/patch/94670/
+this has been cleaned up.
 
-1. assumes bootloader has enabled UART1 clocks
-2. assumes all SoCs supported have the same UART1 base
+Current version is based on for-next branch + Adrian Hunter's
+interrupt syncronisation patch
+(https://patchwork.kernel.org/patch/94670)
 
-With more platforms using USB-based UARTs, assumption (1) may not be
-safe for very long, as bootloaders for these platforms don't really
-*need* to enable UART1.  Currently, they happen to mainly because of
-copied init code from other platforms. 
+Changes since v7:
+  * Removed the 'fix race condition between DMA and HSMMC callback'
+part of the series
+  * Added memory barries in start and resume sglist transfer for cpu
+buffer syncronization
+  * Cleanup and comments
 
-But more importantly, there are more OMAP derivative parts coming soon,
-and one in particular coming soon[1] breaks assumption 2 by having a
-different UART1 base (yes, it's branded as a DaVinci, but it's an OMAP
-core as far as linux is concerned.  Don't get me started on TI
-branding.)
+This has been tested on OMAP3430, OMAP3630 and OMAP4430 SDP
+for MMC file transfer and as boot file system.
 
-To fix both problems, maybe we should just use a fixed memory location
-to pass this temporary data from uncompress to the kernel.  We've had a
-similar problem on DaVinci recently and a proposal has been made (and
-tested) to use memory just below the page tables[2].)
+Venkatraman S:
+    sDMA: descriptor autoloading feature
+    MMC: omap hsmmc adoption of descriptor autoloading feature
 
-Any comments on this proposal?  or alternative suggestions?
-
-Kevin
-
-[1] http://www.ti.com/ww/en/dsp/davinci-netra/index.shtml
-[2] https://patchwork.kernel.org/patch/94724/
+ arch/arm/plat-omap/dma.c              |  289 ++++++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/dma.h |  170 +++++++++++++++++++
+ drivers/mmc/host/omap_hsmmc.c         |  148 ++++++++++++++---
+ 3 files changed, 583 insertions(+), 24 deletions(-)
