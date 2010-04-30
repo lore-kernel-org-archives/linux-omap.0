@@ -1,77 +1,32 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 02/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
-Date: Sat, 1 May 2010 03:23:41 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304E80F60@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 02/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
+Date: Fri, 30 Apr 2010 15:00:43 -0700
+Message-ID: <87y6g4d2ic.fsf@deeprootsystems.com>
 References: <20100430202603.25812.41834.stgit@baageli.muru.com>
 	<20100430203349.25812.64659.stgit@baageli.muru.com>
-	<87sk6cirt0.fsf@deeprootsystems.com>	<20100430210216.GI29604@atomide.com>
- <87vdb8hc2d.fsf@deeprootsystems.com>
- <FCCFB4CDC6E5564B9182F639FC3560870304E80F5F@dbde02.ent.ti.com>
+	<87sk6cirt0.fsf@deeprootsystems.com>
+	<20100430210216.GI29604@atomide.com>
+	<87vdb8hc2d.fsf@deeprootsystems.com>
+	<FCCFB4CDC6E5564B9182F639FC3560870304E80F5F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43273 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758770Ab0D3Vx5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 17:53:57 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870304E80F5F@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-qy0-f195.google.com ([209.85.221.195]:59083 "EHLO
+	mail-qy0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753233Ab0D3WAt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 18:00:49 -0400
+Received: by qyk33 with SMTP id 33so880283qyk.24
+        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 15:00:48 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870304E80F5F@dbde02.ent.ti.com> (Vikram Pandita's message of "Sat\, 1 May 2010 03\:07\:06 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pais, Allen" <allen.pais@ti.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pais, Allen" <allen.pais@ti.com>
 
+"Pandita, Vikram" <vikram.pandita@ti.com> writes:
 
+[...]
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Pandita, Vikram
->Sent: Friday, April 30, 2010 4:37 PM
->To: Kevin Hilman; Tony Lindgren
->Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org; Pais,
->Allen
->Subject: RE: [PATCH 02/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
->
->
->
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Friday, April 30, 2010 4:21 PM
->>To: Tony Lindgren
->>Cc: linux-arm-kernel@lists.infradead.org; Pandita, Vikram; linux-
->>omap@vger.kernel.org; Pais, Allen
->>Subject: Re: [PATCH 02/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
->>
->>Tony Lindgren <tony@atomide.com> writes:
->>
->>> * Kevin Hilman <khilman@deeprootsystems.com> [100430 13:50]:
->>>> Tony Lindgren <tony@atomide.com> writes:
->>>>
->>>> > Zoom2 and 3 have UARTs only on the external debug board.
->>>> > GPMC needs to be mapped early to use it for DEBUG_LL.
->>>> >
->>>> > Additionally, 0xfb000000 overlaps with other areas, so
->>>> > use 0xfa400000 for the virtual address instead.
->>>> >
->>>> > Note that with the pending serial.c patches you need to
->>>> > set console=ttyS0,115200n8 as it will be the only UART
->>>> > mapped. To use DEBUG_LL, you need to pass also earlyprintk
->>>> > in cmdline.
->>>> >
->>>> > Cc: Allen Pais <allen.pais@ti.com>
->>>> > Cc: Vikram Pandita <vikram.pandita@ti.com>
->>>> > Signed-off-by: Tony Lindgren <tony@atomide.com>
->>>> > ---
->>>> >  arch/arm/kernel/head.S                         |   10 ++++++++++
->>>> >  arch/arm/mach-omap2/board-zoom-debugboard.c    |    2 +-
->>>> >  arch/arm/mach-omap2/include/mach/debug-macro.S |    4 ++--
->>>> >  arch/arm/mach-omap2/io.c                       |    9 +++++++++
->>>> >  arch/arm/plat-omap/include/plat/serial.h       |    2 +-
->>>> >  5 files changed, 23 insertions(+), 4 deletions(-)
->>>> >
->>>> > diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
->>>> > index eb62bf9..fd870e1 100644
 >>>> > --- a/arch/arm/kernel/head.S
 >>>> > +++ b/arch/arm/kernel/head.S
 >>>> > @@ -328,6 +328,16 @@ __create_page_tables:
@@ -100,44 +55,28 @@ Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org
 >>.io_pg_offset fields of the mach_desc to be specifically for mapping
 >>the early UART, and nothing else.
 >
->Here is the problem -
->with current approach we need two mappings to happen and the
->MACHINE_START() code allows for only one via .io_pg_offset and .phys_io
+> Here is the problem - with current approach we need two mappings to
+> happen and the MACHINE_START() code allows for only one via
+> .io_pg_offset and .phys_io
 >
->Why:
->Tony's approach is to pass the information about the debug uart number from
->the UART1 Scratchpad register.
->
->this introduces a dependency that
->UART1 registers also be mapped (virt<->phy).
->
->So for Tony's approach to work, .phys_io/.io_pg_offset continued to have
->0x4800000 based mapping and for external uart zoom3 port, create this extra
->mapping.
->
->So find a better way from compressed.S to pass the uart number to kernel,
->and we can solve the problem.
+> Why:
 
-Reference to that dependency: 
-Commit: 0c8219f0
-<snip/start>
-+/*
-+ * Store the DEBUG_LL uart number into UART1 scratchpad register.
-+ * See also debug-macro.S, and serial.c for related code.
-+ *
-+ * Please note that we currently assume that:
-+ * - UART1 clocks are enabled for register access
-+ * - UART1 scratchpad register can be used
-+ */
-+static void set_uart1_scratchpad(unsigned char port)
-<snip/end>
+> Tony's approach is to pass the information about the debug uart
+> number from the UART1 Scratchpad register.
+>
+> this introduces a dependency that 
+> UART1 registers also be mapped (virt<->phy).
+>
+> So for Tony's approach to work, .phys_io/.io_pg_offset continued to
+> have 0x4800000 based mapping and for external uart zoom3 port,
+> create this extra mapping.
+>
+> So find a better way from compressed.S to pass the uart number to
+> kernel, and we can solve the problem.
 
->
->>
->>Kevin
->>
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ah, yet another reason to use a memory location instead of UART1 SCR
+to pass the UART info (c.f. [1])
+
+Kevin
+
+[1] http://marc.info/?l=linux-omap&m=127266219130713&w=2
