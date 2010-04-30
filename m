@@ -1,18 +1,12 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv3 4/4] OMAP3: PM: export chip IDCODE, Production ID and
-	Die ID
-Date: Fri, 30 Apr 2010 09:07:10 +0300
-Message-ID: <20100430060710.GC25339@besouro.research.nokia.com>
-References: <1272433903-24003-1-git-send-email-eduardo.valentin@nokia.com>
-	<1272433903-24003-5-git-send-email-eduardo.valentin@nokia.com>
-	<87k4rrh7kh.fsf@deeprootsystems.com>
-Reply-To: eduardo.valentin@nokia.com
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [2.6.34-rc6] ARM: build breaks with KPROBES
+Date: Fri, 30 Apr 2010 12:51:49 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C52179C0@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <87k4rrh7kh.fsf@deeprootsystems.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,35 +16,55 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 28, 2010 at 06:21:02PM +0200, ext Kevin Hilman wrote:
-> Eduardo Valentin <eduardo.valentin@nokia.com> writes:
-> 
-> > From: Eduardo Valentin <eduardo.valentin@nokia.com>
-> >
-> > This patch exports the OMAP3 IDCODE and Production ID to userspace
-> > via /proc/cpuinfo using the system_soc_info.
-> >
-> > Die ID is also exported depending on what users pass as kernel
-> > parameter. It is same protection mechanism made for x86 product
-> > number. So, if user passes "omap3_die_id" parameter, it will append
-> > die id code into /proc/cpuinfo as well. A Kconfig option has been
-> > added as well, so it can be configurable during compilation time.
-> >
-> > This can be used to track down silicon specific issues. The info is
-> > exported via /proc/cpuinfo because then it can be possible to include this
-> > in corematic dumps.
-> >
-> > This is based on Peter De Schrijver patch, which export same info via sysfs.
-> >
-> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> 
-> Re: $SUBJECT, why the PM: prefix?
+Russell,
 
-Yes indeed, no need to be PM bound.
+The latest mainline ARM build breaks with KPROBES enabled. Anand
+Gadiyar did git bisect and figured out that below commit breaks the build.
+	commit :4260415f6a3b92c5c986398d96c314df37a4ccbf
 
-> 
-> Kevin
+I tried matching the sections but failed to fix the build error. Below
+is the hack patch to keep build working.
+
+Regards,
+Santosh
+
+*******************************************************
+
+ARM: Build break with KPROBES enabled
+
+With CONFIG_KPROBES enabled two section are getting created which
+leads to below buid break.
+
+LOG:
+ AS      arch/arm/kernel/entry-armv.o
+arch/arm/kernel/entry-armv.S: Assembler messages:
+arch/arm/kernel/entry-armv.S:431: Error: symbol ret_from_exception is in a different section
+arch/arm/kernel/entry-armv.S:490: Error: symbol ret_from_exception is in a different section
+arch/arm/kernel/entry-armv.S:491: Error: symbol __und_usr_unknown is in a different section
+
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reported-by: Anand Gadiyar <gadiyar@ti.com>
+---
+ arch/arm/kernel/entry-armv.S |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
+index e6a0fb0..db4ec05 100644
+--- a/arch/arm/kernel/entry-armv.S
++++ b/arch/arm/kernel/entry-armv.S
+@@ -679,7 +679,7 @@ do_fpe:
+ 	.data
+ ENTRY(fp_enter)
+ 	.word	no_fp
+-	.text
++	.previous
+ 
+ ENTRY(no_fp)
+ 	mov	pc, lr
+-- 
+1.6.0.4
