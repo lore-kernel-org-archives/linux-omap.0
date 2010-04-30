@@ -1,55 +1,44 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH] Disable the non working eMMC on Zoom2/3
-Date: Fri, 30 Apr 2010 11:57:30 -0500
-Message-ID: <006f01cae886$38da6920$544ff780@am.dhcp.ti.com>
-References: <2A3DCF3DA181AD40BDE86A3150B27B6B030D32CEE8@dbde02.ent.ti.com> <008601cad1bd$6d0022b0$544ff780@am.dhcp.ti.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030D32D372@dbde02.ent.ti.com> <4BB51740.2060802@ti.com> <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com> <20100407114938.GF7153@atomide.com> <003801cad73e$86841df0$544ff780@am.dhcp.ti.com> <20100427182111.GE7225@atomide.com> <20100428192322.GG7225@atomide.com> <006801cae709$e136fe40$544ff780@am.dhcp.ti.com> <20100428194553.GH7225@atomide.com>
+From: "Govindarajan, Sriramakrishnan" <srk@ti.com>
+Subject: RE: [PATCH 2/2] can:ti_hecc: board specific hookup on AM3517EVM
+Date: Fri, 30 Apr 2010 20:03:38 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304E80EE8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20100428194553.GH7225@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: 'Tony Lindgren' <tony@atomide.com>
-Cc: 'Nishanth Menon' <nm@ti.com>, "'Ghorai, Sukumar'" <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38440 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755155Ab0D3Qsk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 12:48:40 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-<snip>
-
-> > >
-> > > > Hmm, finally got around looking into this again. Looks like the mmc
-> > > > is now working on my zoom3 with the current Linus' tree at commit
-> > > > 7c6bd2010fced38444c9fd658f4c6ce61bd185bf. So I guess something that
-> > > > we had in omap-fixes fixed this. Or maybe some fix for drivers/mmc?
-> > > >
-> > > > This is with the debug_ll patch applied:
-> > > >
-> > > > https://patchwork.kernel.org/patch/87532/
-> > >
-> > > For the microSD card, turns out the card I used was flakey. So
-> > > that should explain some of the problems. I'm almost certain
-> > > I tried with two different cards earlier though. In any case,
-> > > let's assume the problem is only the eMMC.
-> > >
-> > Sorry, I did not get a complete picture. Your earlier email said that
-> with
-> > Linus tree eMMC on your Zoom3 is working. Is that correct?
+> -----Original Message-----
+> From: Govindarajan, Sriramakrishnan
+> Sent: Tuesday, February 23, 2010 12:08 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Gole, Anant; Govindarajan, Sriramakrishnan
+> Subject: [PATCH 2/2] can:ti_hecc: board specific hookup on AM3517EVM
 > 
-> Nope, now the microSD is working, eMMC is not working.
+> Add board specific hookup for TI HECC driver on
+> AM3517 EVM
 > 
-> > IMHO, an omap level fix can not solve the problem with eMMC because as I
-> can
-> > see from the log you provided above that a 16G device is detected as 1G.
-> > This is certainly due to the issue I mentioned earlier.
+> Signed-off-by: Sriramakrishnan <srk@ti.com>
+> Acked-by: Anant Gole <anantgole@ti.com>
+> ---
+> The driver requires that CAN_STB signal be driven low to enable
+> CAN PHY. Currently this is being managed from U-boot. Will submit a patch
+> for handling this as part of board init sequence.
 > 
-> OK
-
-This means that some production boards still have this issue with eMMC. So
-my patch disables the support for MMC2 on zoom boards. Would you consider
-that?
-
-Regards,
-Madhu
+>  arch/arm/mach-omap2/board-am3517evm.c     |   38
+> +++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/include/mach/am35xx.h |   10 +++++++
+>  2 files changed, 48 insertions(+), 0 deletions(-)
 > 
-> Tony
+[Sriram] Tony, there hasn't been any review comments on this patch for long. Do you any comments on this patch? If not can please apply this patch
 
+Regards
+Sriram
