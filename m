@@ -1,60 +1,65 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: JFFS2 summary support : problem
-Date: Fri, 30 Apr 2010 16:55:25 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030D6E2ACD@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: Re: [PATCH 02/14] omap: Make uncompress code and DEBUG_LL code generic
+Date: Fri, 30 Apr 2010 08:07:02 -0700
+Message-ID: <1272640022.3051.1534.camel@localhost>
+References: <20100126200646.15382.52167.stgit@baageli.muru.com>
+	<20100126201239.15382.34792.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20100126201239.15382.34792.stgit-XB442sTQ5VIxQTnqJstS8Q@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Cyril Chemparathy <cyril-l0cyMroinI0@public.gmane.org>
+Cc: DaVinci list <Davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-I am working on TI OMAP3 platform and was looking to reduce the JFFS2 mount time (NAND). 
+[resend to include RMK]
 
-I have selected CONFIG_JFFS2_SUMMARY, but not working fully, its giving ECC error (at end of this email) after add a new file in JFFS2. 
+On Tue, 2010-01-26 at 12:12 -0800, Tony Lindgren wrote:
+> Define arch_decomp_setup() the same way as some other
+> architectures do. Use arch_id to configure the debug uart
+> based on the machine_is by storing it into the uart
+> scratchpad register for DEBUG_LL code to use.
+> 
+> Note that to avoid merge conflicts, this patch is using
+> hardcoded register r1 until tmp register is being passed
+> for all addruart macros.
 
-Without this option its working fine; but taking long time to mount. Please let me know if I am missing anything -http://dev.omapzoom.org/pub/scm/integration/kernel-omap3.git
+This patch (now in mainline[1]) has been working well, but has a couple
+serious limitations:
 
-[*] JFFS2 summary support (EXPERIMENTAL)
-i.e. CONFIG_JFFS2_SUMMARY=y
-=> I have created and flushed jffs2 image with summary nodes, as-
-sumtool -n -e 0x20000 -p -i rootdir.jffs2 -o rootdir-sum.jffs2
+1. assumes bootloader has enabled UART1 clocks
+2. assumes all OMAPs supported have the same UART1 base
 
+With more platforms using USB-based UARTs, assumption (1) may not be
+safe for very long, as bootloaders for these platforms don't really
+*need* to enable UART1.  Currently, they happen to mainly because of
+copied init code from other platforms. 
 
-# mount -t jffs2 /dev/mtdblock4 /mnt
-JFFS2 notice: (640) jffs2_build_xattr_subsystem: complete building xattr subsystem, 0 of xdatum (0 unchecked, 0 orphan) and 0 of xref (0 dead, 0 orphan) found.
-# umount /mnt
-==> I checked this multiple time and no issue. 
+But more importantly, there are more OMAP derivative parts coming soon,
+and one in particular coming soon[2] breaks assumption 2 by having a
+different UART1 base (yes, it's branded as a DaVinci, but it's an OMAP
+core as far as linux is concerned.  Don't get me started on TI
+branding.)
 
-# 
-# mount -t jffs2 /dev/mtdblock4 /mnt
-JFFS2 notice: (644) jffs2_build_xattr_subsystem: complete building xattr subsystem, 0 of xdatum (0 unchecked, 0 orphan) and 0 of xref (0 dead, 0 orphan) found.
-# vi /mnt/test.c (created a new file)
-# umount /mnt
+To fix both problems, maybe we should just use a fixed memory location
+to pass this temporary data from uncompress to the kernel.  We've had a
+similar problem on DaVinci recently and a proposal has been made (and
+tested) to use memory just below the page tables[3].)
 
-# mount -t jffs2 /dev/mtdblock4 /mnt
-mtd->read(0x1fb04 bytes from 0x8de04fc) returned ECC error
-mtd->read(0x9a74 bytes from 0x8df658c) returned ECC error
-Empty flash at 0x08df6588 ends at 0x08df6800
-JFFS2 notice: (656) jffs2_build_xattr_subsystem: complete building xattr subsystem, 0 of xdatum (0 unchecked, 0 orphan) and 0 of xref (0 dead, 0 orphan) found.
-mtd->read(0x7bc bytes from 0x8df6844) returned ECC error
+Any comments on this proposal?  or alternative suggestions?
 
-Is there another way to fix the problem? Am I missing any patch or missing any configuration?
+Kevin
 
-Thanks & regards,
-Ghorai
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+[1] commit 0c8219f0302d0d27fda52c790d38406801e547ec
+[1] http://www.ti.com/ww/en/dsp/davinci-netra/index.shtml
+[2] https://patchwork.kernel.org/patch/94724/
