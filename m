@@ -1,62 +1,64 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH 2/2] omap: gpmc-nand: add ability to keep timings defined
- 	by the bootloader
-Date: Thu, 29 Apr 2010 10:27:33 +0300
-Message-ID: <4BD934E5.5080904@compulab.co.il>
-References: <cover.1272470212.git.mike@compulab.co.il> <d97635d8d65238f8801db6bcf4e89e2fb1b44b17.1272470212.git.mike@compulab.co.il> 	<z2hce9ab5791004282127u817d6604oa65b8bf3b9957bda@mail.gmail.com> 	<4BD92CD2.7010907@compulab.co.il> <g2qce9ab5791004290011w84f68a4ak3e24acdc74016265@mail.gmail.com>
+From: Cliff Brake <cliff.brake@gmail.com>
+Subject: Re: omap_musb_board_data -- trouble specifying 500mA supply
+Date: Fri, 30 Apr 2010 17:14:10 -0400
+Message-ID: <g2nf96d234e1004301414rb6e36c84la58820a28e1e12b4@mail.gmail.com>
+References: <r2of96d234e1004280710p91c1aa1cg41c1a1f96c7d461e@mail.gmail.com>
+	 <19F8576C6E063C45BE387C64729E7394044E2A5BE4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:38483 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757361Ab0D3VDI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Apr 2010 17:03:08 -0400
-In-Reply-To: <g2qce9ab5791004290011w84f68a4ak3e24acdc74016265@mail.gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:63797 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754191Ab0D3VOM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 17:14:12 -0400
+Received: by wye20 with SMTP id 20so516121wye.19
+        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 14:14:11 -0700 (PDT)
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E2A5BE4@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: tony@atomide.com, s-ghorai@ti.com, linux-omap@vger.kernel.org
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
 
-Vimal Singh wrote:
-> On Thu, Apr 29, 2010 at 12:23 PM, Mike Rapoport <mike@compulab.co.il> wrote:
->> Vimal Singh wrote:
->>> On Wed, Apr 28, 2010 at 9:36 PM, Mike Rapoport <mike@compulab.co.il>
->>> wrote:
->>>> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
->>>> +       if (gpmc_nand_data->keep_timings) {
->>>> +               gpmc_nand_detect_timings();
->>>> +               gpmc_nand_data->gpmc_t = &gpmc_default_timings;
->>>> +       }
->>>> +
->>> I guess moving this part to omap2_nand_gpmc_retime will be a good idea.
->>> As there, once we get old/default timings we can simply skip the
->>> rounding part and directly jump to setting the timings.
->> This way it would be the same as to pass 'gpmc_nand_data->gpmc_t =
->> NULL'. If I correctly understood the previous comments ([1]), the
->> problem with skipping retime is that when L3 clock changes, the gpmc
->> timings became wrong. So, if we convert old/default timings to
->> nanoseconds early during startup every time retime is called it will use
->> the timing settings in nanoseconds thus yielding proper gpmc registers
->> configuration.
-> 
-> OK. Then I think we can at least put __rounding__ code inside an 'if'
-> case, something like:
-> if (!gpmc_nand_data->keep_timings) {
-> ...
-> do rounding for supplied timings from board file.
-> ...
-> }
+On Wed, Apr 28, 2010 at 10:53 AM, Gupta, Ajay Kumar <ajay.gupta@ti.com>=
+ wrote:
+> Hi,
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Cliff Brake
+>> Sent: Wednesday, April 28, 2010 7:40 PM
+>> To: Linux OMAP Users
+>> Subject: omap_musb_board_data -- trouble specifying 500mA supply
+>>
+>> Hello,
+>>
+>> We are designing a custom OMAP board that will have a 500mA supply o=
+n
+>> the OTG port. =A0It looks like the power is set with:
+>>
+>> struct omap_musb_board_data {
+>> =A0 =A0 =A0 u8 =A0 =A0 =A0interface_type;
+>> =A0 =A0 =A0 u8 =A0 =A0 =A0mode;
+>> =A0 =A0 =A0 u8 =A0 =A0 =A0power;
+>> };
+>>
+>> However, with a u8, the max value is 255. =A0Should power be changed=
+ to a
+>> u16?
+>
+> There is already a fix submitted and is available at Greg's queue,
+> http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patch=
+es/usb.current/musb-fix-power-field-to-hold-all-possible-values.patch
 
-Sure, no problem.
+I'm also having trouble figuring out the correct way to convince the
+OTG system not to use the internal phy VBUS power supply.  Are there
+any examples of a board config that does this?  Perhaps the AM35xx,
+etc?
 
->> And, if I'm not terribly mistaken retime should be called each time L3
->> frequency changes, though with current kernel it's not yet the case...
-> 
-> Yes. This is still left.
-> 
-
-
--- 
-Sincerely yours,
-Mike.
+Thanks,
+Cliff
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
