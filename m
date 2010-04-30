@@ -1,77 +1,162 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Fix compilation error observed when cpufreq is disabled
-Date: Thu, 29 Apr 2010 07:02:42 -0700
-Message-ID: <87hbmu73wd.fsf@deeprootsystems.com>
-References: <1268995606-32018-1-git-send-email-ranjithl@ti.com>
-	<87bpd3cliv.fsf@deeprootsystems.com> <4BD9093E.7010600@ti.com>
+Subject: Re: [PATCH 5/9] OMAP:GPIO: Introduce support for OMAP2PLUS chip specific GPIO
+Date: Fri, 30 Apr 2010 16:03:26 -0700
+Message-ID: <87och0bl1d.fsf@deeprootsystems.com>
+References: <1271951720-21714-1-git-send-email-charu@ti.com>
+	<1271951720-21714-2-git-send-email-charu@ti.com>
+	<1271951720-21714-3-git-send-email-charu@ti.com>
+	<1271951720-21714-4-git-send-email-charu@ti.com>
+	<1271951720-21714-5-git-send-email-charu@ti.com>
+	<1271951720-21714-6-git-send-email-charu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f183.google.com ([209.85.221.183]:57552 "EHLO
-	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754774Ab0D3W47 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 18:56:59 -0400
-Received: by qyk13 with SMTP id 13so1009780qyk.1
-        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 15:56:58 -0700 (PDT)
-In-Reply-To: <4BD9093E.7010600@ti.com> (Ranjith Lohithakshan's message of "Thu\, 29 Apr 2010 09\:51\:18 +0530")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:64440 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758329Ab0D3XDb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 19:03:31 -0400
+Received: by pvg7 with SMTP id 7so427720pvg.19
+        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 16:03:30 -0700 (PDT)
+In-Reply-To: <1271951720-21714-6-git-send-email-charu@ti.com> (Charulatha V.'s message of "Thu\, 22 Apr 2010 21\:25\:16 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ranjith Lohithakshan <ranjithl@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Charulatha V <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, rnayak@ti.com, paul@pwsan.com, tony@atomide.com
 
-Ranjith Lohithakshan <ranjithl@ti.com> writes:
+Charulatha V <charu@ti.com> writes:
 
-> On Thu, 29-Apr-10 3:00 AM +0530, Kevin Hilman wrote:
->> Ranjith Lohithakshan <ranjithl@ti.com> writes:
->> 
->>> Currently on PM branch, compilation fails when cpufreq is disabled
->>>
->>> arch/arm/mach-omap2/clock3xxx_data.c: In function 'omap3xxx_clk_init':
->>> arch/arm/mach-omap2/clock3xxx_data.c:3563: error: 'struct clk_functions'
->>> has no member named 'clk_init_cpufreq_table'
->>> arch/arm/mach-omap2/clock3xxx_data.c:3564: error:
->>> 'omap3_clk_init_cpufreq_table' undeclared (first use
->>> in this function)
->>> arch/arm/mach-omap2/clock3xxx_data.c:3564: error: (Each undeclared
->>> identifier is reported only once
->>> arch/arm/mach-omap2/clock3xxx_data.c:3564: error: for each function it
->>> appears in.)
->>> make[1]: *** [arch/arm/mach-omap2/clock3xxx_data.o] Error 1
->>> make: *** [arch/arm/mach-omap2] Error 2
->>>
->>> This patch fixes the issue by avoiding runtime init of
->>> clk_init_cpufreq_table in omap3xxx_clk_init and instead doing it when
->>> omap2_clk_functions are defined.
->>>
->>> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
->> 
->> Do you still have this problem?  I'm unable to reproduce on current PM branch.
+> This patch adds support for handling GPIO as a HWMOD adapted
+> platform device for OMAP2PLUS chips.
 >
-> No, I don't see this now. Might have got fixed in some of the recent
-> changes.
+> Signed-off-by: Charulatha V <charu@ti.com>
+> ---
+>  arch/arm/mach-omap2/gpio.c |  101 ++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 101 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/gpio.c
 >
-> Just FYI, I now see a linkage error with omap3_evm_defconfig
->
-> arch/arm/mach-omap2/built-in.o: In function `sr_configure_vp':
-> /tmp/ranjith/l-o-new/arch/arm/mach-omap2/smartreflex.c:315: undefined
-> reference to `omap_twl_uv_to_vsel'
-> /tmp/ranjith/l-o-new/arch/arm/mach-omap2/smartreflex.c:364: undefined
-> reference to `omap_twl_uv_to_vsel'
-> arch/arm/mach-omap2/built-in.o: In function `sr_enable':
-> /tmp/ranjith/l-o-new/arch/arm/mach-omap2/smartreflex.c:609: undefined
-> reference to `omap_twl_uv_to_vsel'
-> arch/arm/mach-omap2/built-in.o: In function `sr_reset_voltage':
-> /tmp/ranjith/l-o-new/arch/arm/mach-omap2/smartreflex.c:478: undefined
-> reference to `omap_twl_uv_to_vsel'
-> /tmp/ranjith/l-o-new/arch/arm/mach-omap2/smartreflex.c:496: undefined
-> reference to `omap_twl_uv_to_vsel'
-> make: *** [.tmp_vmlinux1] Error 1
->
+> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+> new file mode 100644
+> index 0000000..6424050
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/gpio.c
+> @@ -0,0 +1,101 @@
+> +/*
+> + * gpio.c - OMAP2PLUS-specific gpio code
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + *
+> + * Author:
+> + *	Charulatha V <charu@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/gpio.h>
+> +#include <linux/err.h>
+> +#include <plat/omap_hwmod.h>
+> +#include <plat/omap_device.h>
+> +
+> +static int gpio_bank_count;
+> +
+> +struct omap_device_pm_latency omap_gpio_latency[] = {
+> +	[0] = {
+> +		.deactivate_func = omap_device_idle_hwmods,
+> +		.activate_func   = omap_device_enable_hwmods,
+> +		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> +	},
+> +};
+> +
+> +int __init gpio_init(void)
+> +{
+> +	int i = 0;
+> +	static int is_early_device = true;
+> +
+> +	do {
+> +		struct omap_device *od;
+> +		struct omap_hwmod *oh;
+> +		int hw_mod_name_len = 16;
+> +		int l;
+> +		char oh_name[hw_mod_name_len];
+> +		struct omap_gpio_platform_data *pdata;
+> +		char *name = "omap-gpio";
+> +
+> +		l = snprintf(oh_name, hw_mod_name_len, "gpio%d_hwmod", i + 1);
+> +		WARN(l >= hw_mod_name_len,
+> +			"String buffer overflow in GPIO device setup\n");
+> +
 
-Yes, I saw that too when trying to reproduce your problem.
+Rather than iterating over the name, you should have a hwmod_class for
+GPIOs and use omap_hwmod_for_each_by_class() to iterate over all the
+hwmods in the GPIO class.
 
-SmartReflex currently has a dependency on SRF where these OPP functions
-are defined, and this needs to be fixed.
+> +		oh = omap_hwmod_lookup(oh_name);
+> +		if (!oh) {
+> +			pr_err("Could not look up %s\n", oh_name);
+> +			i++;
+> +			continue;
+> +		}
+> +
+> +		pdata = kzalloc(sizeof(struct omap_gpio_platform_data),
+> +					GFP_KERNEL);
+> +		if (!pdata) {
+> +			pr_err("Memory allocation failed gpio%d\n", i + 1);
+> +			return -ENOMEM;
+> +		}
+> +		pdata->base = oh->_rt_va;
+> +		pdata->irq = oh->mpu_irqs[0].irq;
+
+base address and IRQ should not be part of platform_data.   platform
+driver should be using platform_get_resource() for both.
+
+> +		if (cpu_is_omap24xx() || cpu_is_omap34xx())
+> +			pdata->method = METHOD_GPIO_24XX;
+> +		if (cpu_is_omap44xx())
+> +			pdata->method = METHOD_GPIO_44XX;
+> +		pdata->virtual_irq_start = IH_GPIO_BASE + 32 * i;
+> +		pdata->device_enable = omap_device_enable;
+> +		pdata->device_idle = omap_device_idle;
+> +		pdata->device_shutdown = omap_device_shutdown;
+
+These aren't valid for GPIO1 which is in WKUP.  Maybe we need
+to check if the hwmod is not in wkup_pwrdm before setting these?
+
+> +		od = omap_device_build(name, i, oh, pdata,
+> +					sizeof(*pdata),	omap_gpio_latency,
+> +					ARRAY_SIZE(omap_gpio_latency),
+> +					is_early_device);
+> +		WARN(IS_ERR(od), "Cant build omap_device for %s:%s.\n",
+> +					name, oh->name);
+> +
+> +		i++;
+> +	} while (i < gpio_bank_count);
+> +	is_early_device = false;
+> +
+> +	return 0;
+> +}
+> +arch_initcall(gpio_init);
+> +
+> +int __init omap2_gpio_init(void)
+> +{
+> +	if (cpu_is_omap242x())
+> +		gpio_bank_count = 4;
+> +	else if (cpu_is_omap243x())
+> +		gpio_bank_count = 5;
+> +	else if (cpu_is_omap34xx() || cpu_is_omap44xx())
+> +		gpio_bank_count = OMAP34XX_NR_GPIOS;
+
+The count should be gathered after iterating over the GPIO hwmod class.
+and should not need cpu_is checks.
+
+> +	if (gpio_init())
+> +		return -EINVAL;
+> +
+> +	early_platform_driver_register_all("earlygpio");
+> +	early_platform_driver_probe("earlygpio", gpio_bank_count, 0);
+> +	return 0;
+> +}
+> -- 
+> 1.6.3.3
 
 Kevin
-
