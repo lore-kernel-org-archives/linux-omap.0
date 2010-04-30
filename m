@@ -1,48 +1,52 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] DSPBRIDGE: MMU-Fault debugging enhancements
-Date: Fri, 30 Apr 2010 18:21:11 +0300
-Message-ID: <x2y94a0d4531004300821v920d3240p5215a967c6c48759@mail.gmail.com>
-References: <496565EC904933469F292DDA3F1663E602CB04896F@dlee06.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH] OMAP3: PM: Registering sgx device and it's platform data
+Date: Fri, 30 Apr 2010 11:12:13 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026F78A9F2@dbde02.ent.ti.com>
+References: <1272523585-26759-1-git-send-email-manjugk@ti.com>
+ <87d3xi73se.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:43416 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757823Ab0D3RAL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 13:00:11 -0400
-Received: by mail-bw0-f219.google.com with SMTP id 19so260149bwz.21
-        for <linux-omap@vger.kernel.org>; Fri, 30 Apr 2010 10:00:10 -0700 (PDT)
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CB04896F@dlee06.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58962 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932624Ab0D3REL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 13:04:11 -0400
+In-Reply-To: <87d3xi73se.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Agarwal, Preshit" <preshit.agarwal@ti.com>, Tony Lindgren <tony@atomide.com>, "Turquette, Mike" <mturquette@ti.com>, "V, Hemanth" <hemanthv@ti.com>
 
-On Fri, Apr 9, 2010 at 3:15 AM, Guzman Lugo, Fernando <x0095840@ti.com> wrote:
-> From db3d76a2e89a1c227322a2732ddf7ebf5cd4b4cf Mon Sep 17 00:00:00 2001
-> From: Ernesto Ramos <ernesto@ti.com>
-> Date: Wed, 24 Mar 2010 11:12:05 -0600
-> Subject: [PATCH] DSPBRIDGE: MMU-Fault debugging enhancements
->
-> These changes allow for DSP task information to be printed
-> by the MPU dspbridge when DSP MMU fault ocurrs.
->
-> Signed-off-by: Cris Jansson <cjansson@ti.com>
-> [change to open source coding style]
-> Signed-off-by: Ernesto Ramos <ernesto@ti.com>
 
-This patch seems to be doing a lot of things. Couldn't it have been split?
 
-Also, from the commit message it seems to implement a new feature,
-however, I heard it's supposed to fix memory corruption too. Is that
-true? If that's the case the code that fixes that would have to be
-separate.
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Thursday, April 29, 2010 7:35 PM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; Agarwal, Preshit; Tony 
+> Lindgren; Turquette, Mike; V, Hemanth
+> Subject: Re: [PATCH] OMAP3: PM: Registering sgx device and 
+> it's platform data
+> 
+> Manjunatha GK <manjugk@ti.com> writes:
+> 
+> > The SGX powervr_device is registered with it's platform specific
+> > data to provide information about setting constraint through
+> > omap_pm_set_min_bus_tput.
+> >
+> > Signed-off-by: Preshit Agarwal <preshit.agarwal@ti.com>
+> > Signed-off-by: Manjunatha GK <manjugk@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > Cc: Mike Turquette <mturquette@ti.com>
+> > Cc: Hemanth V <hemanthv@ti.com>
+> 
+> Re: $SUBJECT, why the PM: prefix?
 
-I understand this patch was already pushed to dspbridge branch, but I
-think such important changes should be properly recorded in the
-history.
+Since omap_sgx_data is under CONFIG_PM flag, hence title was 
+prefixed with "PM". I will remove the same in next version of the patch.
 
-Cheers.
+-Manjunath
 
--- 
-Felipe Contreras
