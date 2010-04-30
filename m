@@ -1,72 +1,110 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 02/14] omap: Make uncompress code and DEBUG_LL code generic
-Date: Fri, 30 Apr 2010 18:18:02 +0100
-Message-ID: <20100430171802.GB1639@n2100.arm.linux.org.uk>
-References: <20100126200646.15382.52167.stgit@baageli.muru.com>
-	<20100126201239.15382.34792.stgit@baageli.muru.com>
-	<1272640022.3051.1534.camel@localhost> <4BDB0353.5090800@ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCHv3 00/22] OMAP3: PM: Smartreflex and voltage revamp
+Date: Fri, 30 Apr 2010 11:39:15 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322A8A62A@dbde02.ent.ti.com>
+References: <1271408597-3066-1-git-send-email-thara@ti.com>
+ <87ljc8hfgw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <4BDB0353.5090800@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Cyril Chemparathy <cyril@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, DaVinci list <Davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39705 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933034Ab0D3RSJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 13:18:09 -0400
+In-Reply-To: <87ljc8hfgw.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-On Fri, Apr 30, 2010 at 12:20:35PM -0400, Cyril Chemparathy wrote:
-> Hi,
-> 
-> [...]
-> > To fix both problems, maybe we should just use a fixed memory location
-> > to pass this temporary data from uncompress to the kernel.  We've had a
-> > similar problem on DaVinci recently and a proposal has been made (and
-> > tested) to use memory just below the page tables[3].)
-> 
-> Essentially both of these approaches (internal scratch register and
-> fixed address) implement a weird back-channel communication scheme
-> between the decompresser and the debug macros.
-> 
-> A more elegant solution may be as follows:
->     - pass machine_arch_type as an argument into addruart.
 
-Unfortunately, that breaks addruart.  Firstly, addruart is used from
-assembly code where very limited registers are available (the fewer
-registers it clobbers the less likely debug is going to cause stuff
-to break.)
 
-Secondly, the places that addruart may be called from, the location
-of the machine type number is indeterminent.  Remember that this
-macro can be called when the MMU is on or off, and can be called
-before the machine_arch_type has been initialized.
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Wednesday, April 28, 2010 12:48 AM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy, Vishwanath; Sawant, Anand
+>>Subject: Re: [PATCHv3 00/22] OMAP3: PM: Smartreflex and voltage revamp
+>>
+>>Thara Gopinath <thara@ti.com> writes:
+>>
+>>> The main motivations behind this patch series are the following
+>>> 1. Making smartreflex a platform driver with omap-device layer.
+>>> 2. Separating voltage specific code from smartreflex.c and other
+>>>    locations and consolidating them into voltage.c and voltage.h.
+>>> 3. Smartreflex module can have Class 1 Class 2 or Class 3 implementations
+>>>    depending on the PMIC in use. Making smartreflex.c capable
+>>>    of handling both the Class 2 and 3  implementaions and separating out
+>>>    class specific code into a separate class driver.
+>>> 4. Remove dependencies on opp id in the smartreflex and
+>>>    voltage drivers
+>>> 5. Implementating  latest TI recommended register settings for
+>>>   Smartreflex and Voltage processor module as well as recommended
+>>>   sequences for enabling and disabling of Smartreflex and Voltage
+>>>   processor modules.
+>>> 6. Implementing VP force update method of voltage scaling which is
+>>>    again TI hardware recommended.
+>>>
+>>> What this patch series does not address are
+>>> 1. Separating PMIC specific portions from smartreflex and voltage code.
+>>> 2. OMAP3630 and OMP4 smartreflex support.
+>>>
+>>> This patch series is based on Kevin's PM tree origin/pm-wip-opp branch
+>>> and is dependent on the following patches not yet applied onto this branch.
+>>>
+>>>         http://patchwork.kernel.org/patch/81504/
+>>>         http://patchwork.kernel.org/patch/81606/
+>>>
+>>> This patch series has been tested on OMAP3430 SDP with basic power
+>>> management tests including the dvfs scripts.
+>>
+>>First some general comments...
+>>
+>>- check multi-line comment style
+>>
+>>- use of dev_err() instead of pr_err() (or dev_* instead of pr_*)
+>>  wherever you have a valid platform_device.  This will print messages
+>>  with the specific SR device name so you get more detailed messages.
+>>  It will also avoid you having to use sr_info->srid since that
+>>  number is already part of the device name.
+>>
+>>And now, IMHO, this is getting close enough, where I think it's
+>>getting mostly ready for submission upstream.  To that end, I think
+>>it's time to start creating this series against mainline, instead of
+>>against the PM branch.
+>>
+>>This is basically a rewrite, so I think it makes sense to breifly
+>>summarize the history in the first patch, but then build from scratch
+>>against mainline (except for SRF changes which will have to be a
+>>separate series based on the PM branch.)
+>>
+>>As it is, the series is getting hard to follow as there are several
+>>things that are cleaned up from the old code and then removed later in
+>>the series etc.  For that reason, I'd now like to see this as a fresh
+>>series against mainline.
+>>
+>>Actually, currnely it will have to be based on my pm-vc branch which
+>>is a small series of VC init/setup patches that I'll be queueing for
+>>2.6.35, but itself is based on mainline.
+>>
+>>The SR series could broken up as follows (only a suggestion)
+>>
+>>- Creation of voltage layer: current pm-vc branch + voltage.c
+>>
+>>- Creation of device/platform init: hwmods, sr_device.c
+>>
+>>- Creation of driver: smartreflex*.[ch], sr_device.c
 
->     - move the uart base lookup logic to addruart using macros similar
->       to DEBUG_LL_*, except that these expand to assembly code this
->       time.
->     - reuse these debug-macros in uncompress.h and implement putc() and
->       flush() using addruart(), senduart(), etc.
+Kevin,
 
-Given what I've said above about the debug macros, this is definitely the
-wrong solution.
+I could create this series against mainline but I need OPP layer for voltage layer.. 
 
-Having the decompressor macros work whatever the machine type is
-reasonable, and the machine_is_xxx() macros already work at that point,
-so there shouldn't be much of an issue there.
+Regards,
+Thara
 
-As far as the debug macros go, I think we're at the point where it's
-basically just far easier to leave these macros as a developer debugging
-tool and we'll just have to put up with it being something that an OMAP
-developer has to edit according to his platform to make work.
-
-After all, _NO_ production kernel what so ever should be using this
-debug support.
+>>These should each have a brief summary of history and main
+>>contributors, but you as primary author.
+>>
+>>Kevin
