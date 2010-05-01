@@ -1,93 +1,32 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: Re: [PATCH] save and restore etm state across core OFF modes
-Date: Sat, 1 May 2010 20:24:12 +0300
-Message-ID: <20100501172411.GA27062@shisha.kicks-ass.net>
-References: <1263315891-4440-1-git-send-email-virtuoso@slind.org>
- <4B4CADA9.4020502@ti.com>
- <20100112173022.GG29059@shisha.kicks-ass.net>
- <4B4CB259.2010301@ti.com>
- <20100112210404.GB2986@atomide.com>
- <20100112214654.GH29059@shisha.kicks-ass.net>
- <4B4CF2D7.9000200@ti.com>
- <20100112221510.GC2986@atomide.com>
- <4B4CFD7F.9030407@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: virtuoso@slind.org
+Subject: [RFC] ETM/JTAG components states across OFF modes
+Date: Sat,  1 May 2010 20:38:15 +0300
+Message-ID: <1272735501-2963-1-git-send-email-virtuoso@slind.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:58723 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753577Ab0EAReg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 13:34:36 -0400
-Content-Disposition: inline
-In-Reply-To: <4B4CFD7F.9030407@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:58981 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751501Ab0EARk4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 13:40:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, r-woodruff2@ti.com
 
-On Tue, Jan 12, 2010 at 04:53:51 -0600, Nishanth Menon wrote:
-> Tony Lindgren had written, on 01/12/2010 04:15 PM, the following:
-> >* Nishanth Menon <nm@ti.com> [100112 14:06]:
-> >>Alexander Shishkin had written, on 01/12/2010 03:46 PM, the following:
-> >>>On Tue, Jan 12, 2010 at 01:04:04 -0800, Tony Lindgren wrote:
-> >>>>* Nishanth Menon <nm@ti.com> [100112 09:31]:
-> >>>>>Alexander Shishkin had written, on 01/12/2010 11:30 AM, the following:
-> >>>>>>On Tue, Jan 12, 2010 at 11:13:13 -0600, Nishanth Menon wrote:
-> >>>>>>>Alexander Shishkin had written, on 01/12/2010 11:04 AM, the following:
-> >>>>>>>>diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> >>>>>>>>index 69521be..0a5ec86 100644
-> >>>>>>>>--- a/arch/arm/mach-omap2/sleep34xx.S
-> >>>>>>>>+++ b/arch/arm/mach-omap2/sleep34xx.S
-> >>>>>[...]
-> >>>>>>>>	/* Store current cpsr*/
-> >>>>>>>>	mrs	r2, cpsr
-> >>>>>>>>	stmia	r8!, {r2}
-> >>>>>>>>@@ -520,6 +616,7 @@ clean_caches:
-> >>>>>>>>	cmp	r9, #1 /* Check whether L2 inval is required or not*/
-> >>>>>>>>	bne	skip_l2_inval
-> >>>>>>>>clean_l2:
-> >>>>>>>>+#if 0
-> >>>>>>>my aversion to #if 0 kicks in here :(.. do we have an alternative
-> >>>>>>>like using the CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG or something
-> >>>>>>>else?
-> >>>>>>Fair enough. I could replace it with "#if !defined(...)" as the first
-> >>>>>>thing that comes to mind. This way it will only take disabling the
-> >>>>>>config option to catch any possible regressions in between. Does this
-> >>>>>>sound reasonable?
-> >>>>>sounds ok to me.. unless folks have ideas coz of clean_l2 label..
-> >>>>>more comments might be useful before a rev2 of the patch..
-> >>>>The best solution would be to be able to toggle this via sysfs or
-> >>>>debugfs by swapping the sram code for idle loop when JTAG support
-> >>>>is needed.
-> >>>Well, if you say, compile the ETM driver in, this will be needed most of
-> >>>the time.
-> >>>
-> >>I can think of reasons for an against a sysfs entry (as part of
-> >>discussion -warning lot of self contradictions below- but I think
-> >>might save a bit of back and froth ;)):
-> >>
-> >>for sysfs entry:
-> >>a) save and restore will have additional latency when you save a
-> >>chunk such as EMU domain regs - this will not be needed in
-> >>production phones, disabling it might pop up surprises
-> >
-> >There's no overhead if you're just replacing the function
-> >loaded to SRAM as needed. But for sure it's a debug tool only.
-> 
-> I should probably have been more clear ->I agree function relocation
-> to SRAM is not a major factor here, my concern was the additional
-> latency incurred during scratchpad save and restore logic as seen by
-> the patch:
-> -u32 omap3_arm_context[128];
-> +u32 omap3_arm_context[256];
-> the arm context has doubled albiet 128bytes only.. it still changes
+Hi,
 
-I've tried to address this and other concerns expressed in this thread
-and I'll post a new patchset in a few minutes.
+I've finally got around to doing this. This is a rework of the previously
+posted [1] patch that implements ETM and JTAG context saving. There are
+two major changes since previous version:
+  * coresight OS save/restore mechanism is used for saving the ETM context,
+    so that it actually occupies ~54 words on omap3_arm_context instead of
+    128;
+  * a sysfs file is used to control if the ETM/JTAG context should be saved
+    in OFF mode.
 
-> the latencies involved on the save and restore paths.. few
-> interesting behavior seen with EHCI save and restore comes to mind
-> here - but maybe irrelevant to the discussion..
+When this patchset is ready, it would have to be integrated though RMK (as
+I understand it), but I'd like to first discuss it here.
+
+[1]: https://patchwork.kernel.org/patch/72413/
 
 Regards,
 --
