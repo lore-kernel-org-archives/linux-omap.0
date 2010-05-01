@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 02/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
-Date: Fri, 30 Apr 2010 18:37:51 -0700
-Message-ID: <20100501013751.GL29604@atomide.com>
+Date: Fri, 30 Apr 2010 18:50:50 -0700
+Message-ID: <20100501015050.GM29604@atomide.com>
 References: <20100430202603.25812.41834.stgit@baageli.muru.com>
  <20100430203349.25812.64659.stgit@baageli.muru.com>
  <87sk6cirt0.fsf@deeprootsystems.com>
@@ -11,275 +11,167 @@ References: <20100430202603.25812.41834.stgit@baageli.muru.com>
  <87y6g4d2ic.fsf@deeprootsystems.com>
  <20100430233002.GJ29604@atomide.com>
  <87sk6c8osn.fsf@deeprootsystems.com>
+ <20100501013751.GL29604@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="H8ygTp4AXg6deix2"
+Content-Type: multipart/mixed; boundary="n/aVsWSeQ4JHkrmm"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57978 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756599Ab0EABh7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 21:37:59 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52101 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756570Ab0EABu7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 21:50:59 -0400
 Content-Disposition: inline
-In-Reply-To: <87sk6c8osn.fsf@deeprootsystems.com>
+In-Reply-To: <20100501013751.GL29604@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pais, Allen" <allen.pais@ti.com>
 
 
---H8ygTp4AXg6deix2
+--n/aVsWSeQ4JHkrmm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100430 17:05]:
-> Tony Lindgren <tony@atomide.com> writes:
+* Tony Lindgren <tony@atomide.com> [100430 18:33]:
 > 
-> > * Kevin Hilman <khilman@deeprootsystems.com> [100430 14:56]:
-> >> "Pandita, Vikram" <vikram.pandita@ti.com> writes:
-> >> >
-> >> > So for Tony's approach to work, .phys_io/.io_pg_offset continued to
-> >> > have 0x4800000 based mapping and for external uart zoom3 port,
-> >> > create this extra mapping.
-> >> >
-> >> > So find a better way from compressed.S to pass the uart number to
-> >> > kernel, and we can solve the problem.
-> >> 
-> >> Ah, yet another reason to use a memory location instead of UART1 SCR
-> >> to pass the UART info (c.f. [1])
-> >
-> > That should work if we don't need to access any L4 registers
-> > early on before .map_io.
-> 
-> I'd say if we're accessing L4 regs before .map_io, it's a bug that
-> needs to be fixed, but I don't think we are.  If we were, we'd notice
-> a hang when !CONFIG_DEBUG_LL since the .phys_io and .io_pg_offst are
-> only mapped in when CONFIG_DEBUG_LL=y.
+> So far only tested on n900, will give it a try also on zoom3 after
+> updating the zoom3 related patch.
 
-Yeah the current approach uses both, but only when CONFIG_DEBUG_LL=y
-as you noted.
+And here's the updated zoom debug_ll patch, seems to work.
  
-> I think we've been using .phys_io/.io_pg_offset incorrectly in OMAP as
-> an early mapping of all the IO space, when it is intended just for use
-> as early UART access, indicated by the comments in head.S and the
-> fact that it's only used when CONFIG_DEBUG_LL=y
+> --- a/arch/arm/plat-omap/include/plat/uncompress.h
+> +++ b/arch/arm/plat-omap/include/plat/uncompress.h
+> @@ -20,27 +20,22 @@
+>  #include <linux/types.h>
+>  #include <linux/serial_reg.h>
+>  
+> +#include <asm/memory.h>
+> +#include <asm/io.h>
+>  #include <asm/mach-types.h>
+>  
+>  #include <plat/serial.h>
 
-That's probably just a left over from when we could map L3 and L4 with
-one mapping..
-
-Anyways, here's an experimental patch for using a memory address instead
-of UART1 for storing the debug port configuration in uncompress.h.
-
-So far only tested on n900, will give it a try also on zoom3 after
-updating the zoom3 related patch.
-
-Now the real question is: Is it safe to use the fixed memory address?
-
-#define OMAP_UART_INFO	(PHYS_OFFSET + 0x3ff8)
-
-Also, another thing that needs to be checked is what happens if nothing
-calls printk early and the debug port address configuration is not
-set early.. Needs to be tested by adding printascii call only later
-on.
+BTW, the include of asm/io.h is not needed, I'll remove that.
 
 Regards,
 
 Tony
 
---H8ygTp4AXg6deix2
+--n/aVsWSeQ4JHkrmm
 Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="omap-debug-ll-memory.patch"
+Content-Disposition: inline; filename="zoom-debug-ll.patch"
 
->From c957c9a19fb5b53c2cff4f3bc5c9481f9a4a99aa Mon Sep 17 00:00:00 2001
+>From 0130fa96f1016c25540ded86ea66f5a6198489c7 Mon Sep 17 00:00:00 2001
 From: Tony Lindgren <tony@atomide.com>
-Date: Fri, 30 Apr 2010 17:39:19 -0700
-Subject: [PATCH] omap: Use a memory address for storing the debug port info instead of UART1
+Date: Fri, 30 Apr 2010 12:57:14 -0700
+Subject: [PATCH] omap2/3: Fix DEBUG_LL for omap zoom2/3
 
-This removes the dependency to the UART1 being
-available for storing the debug configuration in
-uncompress.h.
+Zoom2 and 3 have UARTs only on the external debug board.
+GPMC needs to be mapped early to use it for DEBUG_LL.
 
-As suggested by Cyril Chemparathy <cyril@ti.com>,
-Vikram Pandita <vikram.pandita@ti.com> and
-Kevin Hilman <khilman@deeprootsystems.com>.
+Additionally, 0xfb000000 overlaps with other areas, so
+use 0xfa400000 for the virtual address instead.
 
+Note that with the pending serial.c patches you need to
+set console=ttyS0,115200n8 as it will be the only UART
+mapped. To use DEBUG_LL, you need to pass also earlyprintk
+in cmdline.
+
+Cc: Allen Pais <allen.pais@ti.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
-index b6d9584..e8a8cf3 100644
---- a/arch/arm/mach-omap1/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
-@@ -13,6 +13,8 @@
+diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
+index e15d2e8..1d7f827 100644
+--- a/arch/arm/mach-omap2/board-zoom-debugboard.c
++++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
+@@ -82,7 +82,7 @@ static inline void __init zoom_init_smsc911x(void)
  
- #include <linux/serial_reg.h>
- 
-+#include <asm/memory.h>
-+
- #include <plat/serial.h>
- 
- 		.pushsection .data
-@@ -37,23 +39,12 @@ omap_uart_virt:	.word	0x0
- 		cmp	\rx, #0			@ is port configured?
- 		bne	99f			@ already configured
- 
--		/* Check 7XX UART1 scratchpad register for uart to use */
-+		/* Check the debug UART configuration set in uncompress.h */
- 		mrc	p15, 0, \rx, c1, c0
- 		tst	\rx, #1			@ MMU enabled?
--		moveq	\rx, #0xff000000	@ physical base address
--		movne	\rx, #0xfe000000	@ virtual base
--		orr	\rx, \rx, #0x00fb0000	@ OMAP1UART1
--		ldrb	\rx, [\rx, #(UART_SCR << OMAP7XX_PORT_SHIFT)]
--		cmp	\rx, #0			@ anything in 7XX scratchpad?
--		bne	10f			@ found 7XX uart
--
--		/* Check 15xx/16xx UART1 scratchpad register for uart to use */
--		mrc	p15, 0, \rx, c1, c0
--		tst	\rx, #1			@ MMU enabled?
--		moveq	\rx, #0xff000000	@ physical base address
--		movne	\rx, #0xfe000000	@ virtual base
--		orr	\rx, \rx, #0x00fb0000	@ OMAP1UART1
--		ldrb	\rx, [\rx, #(UART_SCR << OMAP_PORT_SHIFT)]
-+		ldreq	\rx, =OMAP_UART_INFO
-+		ldrne	\rx, =__phys_to_virt(OMAP_UART_INFO)
-+		ldr	\rx, [\rx, #0]
- 
- 		/* Select the UART to use based on the UART1 scratchpad value */
- 10:		cmp	\rx, #0			@ no port configured?
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 4a63a2e..4976169 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -13,6 +13,8 @@
- 
- #include <linux/serial_reg.h>
- 
-+#include <asm/memory.h>
-+
- #include <plat/serial.h>
- 
- #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
-@@ -40,13 +42,12 @@ omap_uart_lsr:	.word	0
- 		cmp	\rx, #0			@ is port configured?
- 		bne	99f			@ already configured
- 
--		/* Check UART1 scratchpad register for uart to use */
-+		/* Check the debug UART configuration set in uncompress.h */
- 		mrc	p15, 0, \rx, c1, c0
- 		tst	\rx, #1			@ MMU enabled?
--		moveq	\rx, #0x48000000	@ physical base address
--		movne	\rx, #0xfa000000	@ virtual base
--		orr	\rx, \rx, #0x0006a000	@ uart1 on omap2/3/4
--		ldrb	\rx, [\rx, #(UART_SCR << OMAP_PORT_SHIFT)] @ scratchpad
-+		ldreq	\rx, =OMAP_UART_INFO
-+		ldrne	\rx, =__phys_to_virt(OMAP_UART_INFO)
-+		ldr	\rx, [\rx, #0]
- 
- 		/* Select the UART to use based on the UART1 scratchpad value */
- 		cmp	\rx, #0			@ no port configured?
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index 83dce4c..20c27b9 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -15,6 +15,8 @@
- 
- #include <linux/init.h>
- 
-+#define OMAP_UART_INFO		(PHYS_OFFSET + 0x3ff8)
-+
- /* OMAP1 serial ports */
- #define OMAP1_UART1_BASE	0xfffb0000
- #define OMAP1_UART2_BASE	0xfffb0800
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 81d9ec5..44478f7 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -20,27 +20,22 @@
- #include <linux/types.h>
- #include <linux/serial_reg.h>
- 
-+#include <asm/memory.h>
-+#include <asm/io.h>
- #include <asm/mach-types.h>
- 
- #include <plat/serial.h>
- 
--static volatile u8 *uart1_base;
--static int uart1_shift;
--
- static volatile u8 *uart_base;
- static int uart_shift;
- 
- /*
-- * Store the DEBUG_LL uart number into UART1 scratchpad register.
-+ * Store the DEBUG_LL uart number into memory.
-  * See also debug-macro.S, and serial.c for related code.
-- *
-- * Please note that we currently assume that:
-- * - UART1 clocks are enabled for register access
-- * - UART1 scratchpad register can be used
-  */
--static void set_uart1_scratchpad(unsigned char port)
-+static void set_omap_uart_info(unsigned char port)
- {
--	uart1_base[UART_SCR << uart1_shift] = port;
-+	*(volatile u32 *)OMAP_UART_INFO = port;
+ static struct plat_serial8250_port serial_platform_data[] = {
+ 	{
+-		.mapbase	= 0x10000000,
++		.mapbase	= ZOOM_UART_BASE,
+ 		.irq		= OMAP_GPIO_IRQ(102),
+ 		.flags		= UPF_BOOT_AUTOCONF|UPF_IOREMAP|UPF_SHARE_IRQ,
+ 		.irqflags	= IRQF_SHARED | IRQF_TRIGGER_RISING,
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 9a26f84..803ef14 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -91,8 +91,8 @@ static void __init omap_zoom2_map_io(void)
  }
  
- static void putc(int c)
-@@ -60,42 +55,38 @@ static inline void flush(void)
- /*
-  * Macros to configure UART1 and debug UART
-  */
--#define _DEBUG_LL_ENTRY(mach, uart1_phys, uart1_shft,			\
--			dbg_uart, dbg_shft, dbg_id)			\
-+#define _DEBUG_LL_ENTRY(mach, dbg_uart, dbg_shft, dbg_id)		\
- 	if (machine_is_##mach()) {					\
--		uart1_base = (volatile u8 *)(uart1_phys);		\
--		uart1_shift = (uart1_shft);				\
- 		uart_base = (volatile u8 *)(dbg_uart);			\
- 		uart_shift = (dbg_shft);				\
- 		port = (dbg_id);					\
--		set_uart1_scratchpad(port);				\
-+		set_omap_uart_info(port);				\
- 		break;							\
- 	}
+ MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
+-	.phys_io	= 0x48000000,
+-	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
++	.phys_io	= ZOOM_UART_BASE,
++	.io_pg_offst	= (ZOOM_UART_VIRT >> 18) & 0xfffc,
+ 	.boot_params	= 0x80000100,
+ 	.map_io		= omap_zoom2_map_io,
+ 	.init_irq	= omap_zoom2_init_irq,
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index cd3e40c..3314704 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -73,8 +73,8 @@ static void __init omap_zoom_init(void)
+ }
  
- #define DEBUG_LL_OMAP7XX(p, mach)					\
--	_DEBUG_LL_ENTRY(mach, OMAP1_UART1_BASE, OMAP7XX_PORT_SHIFT,	\
--		OMAP1_UART##p##_BASE, OMAP7XX_PORT_SHIFT, OMAP1UART##p)
-+	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP7XX_PORT_SHIFT,	\
-+		OMAP1UART##p)
+ MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
+-	.phys_io	= 0x48000000,
+-	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
++	.phys_io	= ZOOM_UART_BASE,
++	.io_pg_offst	= (ZOOM_UART_VIRT >> 18) & 0xfffc,
+ 	.boot_params	= 0x80000100,
+ 	.map_io		= omap_zoom_map_io,
+ 	.init_irq	= omap_zoom_init_irq,
+diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
+index 4976169..35b2440 100644
+--- a/arch/arm/mach-omap2/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
+@@ -88,10 +88,10 @@ omap_uart_lsr:	.word	0
+ 		b	98f
+ 44:		mov	\rx, #UART_OFFSET(OMAP4_UART4_BASE)
+ 		b	98f
+-95:		mov	\rx, #ZOOM_UART_BASE
++95:		ldr	\rx, =ZOOM_UART_BASE
+ 		ldr	\tmp, =omap_uart_phys
+ 		str	\rx, [\tmp, #0]
+-		mov	\rx, #ZOOM_UART_VIRT
++		ldr	\rx, =ZOOM_UART_VIRT
+ 		ldr	\tmp, =omap_uart_virt
+ 		str	\rx, [\tmp, #0]
+ 		mov	\rx, #(UART_LSR << ZOOM_PORT_SHIFT)
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 87f676a..3cfb425 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -166,6 +166,15 @@ static struct map_desc omap34xx_io_desc[] __initdata = {
+ 		.length		= L4_EMU_34XX_SIZE,
+ 		.type		= MT_DEVICE
+ 	},
++#if defined(CONFIG_DEBUG_LL) &&							\
++	(defined(CONFIG_MACH_OMAP_ZOOM2) || defined(CONFIG_MACH_OMAP_ZOOM3))
++	{
++		.virtual	= ZOOM_UART_VIRT,
++		.pfn		= __phys_to_pfn(ZOOM_UART_BASE),
++		.length		= SZ_1M,
++		.type		= MT_DEVICE
++	},
++#endif
+ };
+ #endif
+ #ifdef	CONFIG_ARCH_OMAP4
+diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+index 20c27b9..a680715 100644
+--- a/arch/arm/plat-omap/include/plat/serial.h
++++ b/arch/arm/plat-omap/include/plat/serial.h
+@@ -41,7 +41,7 @@
  
- #define DEBUG_LL_OMAP1(p, mach)						\
--	_DEBUG_LL_ENTRY(mach, OMAP1_UART1_BASE, OMAP_PORT_SHIFT,	\
--		OMAP1_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP1UART##p)
-+	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		OMAP1UART##p)
+ /* External port on Zoom2/3 */
+ #define ZOOM_UART_BASE		0x10000000
+-#define ZOOM_UART_VIRT		0xfb000000
++#define ZOOM_UART_VIRT		0xfa400000
  
- #define DEBUG_LL_OMAP2(p, mach)						\
--	_DEBUG_LL_ENTRY(mach, OMAP2_UART1_BASE, OMAP_PORT_SHIFT,	\
--		OMAP2_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP2UART##p)
-+	_DEBUG_LL_ENTRY(mach, OMAP2_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		OMAP2UART##p)
- 
- #define DEBUG_LL_OMAP3(p, mach)						\
--	_DEBUG_LL_ENTRY(mach, OMAP3_UART1_BASE, OMAP_PORT_SHIFT,	\
--		OMAP3_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP3UART##p)
-+	_DEBUG_LL_ENTRY(mach, OMAP3_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		OMAP3UART##p)
- 
- #define DEBUG_LL_OMAP4(p, mach)						\
--	_DEBUG_LL_ENTRY(mach, OMAP4_UART1_BASE, OMAP_PORT_SHIFT,	\
--		OMAP4_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP4UART##p)
-+	_DEBUG_LL_ENTRY(mach, OMAP4_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		OMAP4UART##p)
- 
- /* Zoom2/3 shift is different for UART1 and external port */
- #define DEBUG_LL_ZOOM(mach)						\
--	_DEBUG_LL_ENTRY(mach, OMAP2_UART1_BASE, OMAP_PORT_SHIFT,	\
--		ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
-+	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
- 
- static inline void __arch_decomp_setup(unsigned long arch_id)
- {
+ #define OMAP_PORT_SHIFT		2
+ #define OMAP7XX_PORT_SHIFT	0
 
---H8ygTp4AXg6deix2--
+--n/aVsWSeQ4JHkrmm--
