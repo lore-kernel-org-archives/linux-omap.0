@@ -1,96 +1,94 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: mailbox_mach dependency problem
-Date: Sat, 1 May 2010 20:33:32 +0300
-Message-ID: <20100501173328.GA4706@gandalf>
-References: <h2g94a0d4531005010747n6ef7b7d0r9b4714d289d61032@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: Re: [PATCH] save and restore etm state across core OFF modes
+Date: Sat, 1 May 2010 20:24:12 +0300
+Message-ID: <20100501172411.GA27062@shisha.kicks-ass.net>
+References: <1263315891-4440-1-git-send-email-virtuoso@slind.org>
+ <4B4CADA9.4020502@ti.com>
+ <20100112173022.GG29059@shisha.kicks-ass.net>
+ <4B4CB259.2010301@ti.com>
+ <20100112210404.GB2986@atomide.com>
+ <20100112214654.GH29059@shisha.kicks-ass.net>
+ <4B4CF2D7.9000200@ti.com>
+ <20100112221510.GC2986@atomide.com>
+ <4B4CFD7F.9030407@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:60212 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934Ab0EARdY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 13:33:24 -0400
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:58723 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753577Ab0EAReg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 13:34:36 -0400
 Content-Disposition: inline
-In-Reply-To: <h2g94a0d4531005010747n6ef7b7d0r9b4714d289d61032@mail.gmail.com>
+In-Reply-To: <4B4CFD7F.9030407@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <hiroshi.doyu@gmail.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-Hi,
-
-On Sat, May 01, 2010 at 05:47:57PM +0300, Felipe Contreras wrote:
-> There seems to be a problem with 'mailbox' and 'mailbox_mach' modules.
-> When another module, like bridgedriver, uses mailbox stuff, only the
-> 'mailbox' module is loaded which doesn't register the platform device.
+On Tue, Jan 12, 2010 at 04:53:51 -0600, Nishanth Menon wrote:
+> Tony Lindgren had written, on 01/12/2010 04:15 PM, the following:
+> >* Nishanth Menon <nm@ti.com> [100112 14:06]:
+> >>Alexander Shishkin had written, on 01/12/2010 03:46 PM, the following:
+> >>>On Tue, Jan 12, 2010 at 01:04:04 -0800, Tony Lindgren wrote:
+> >>>>* Nishanth Menon <nm@ti.com> [100112 09:31]:
+> >>>>>Alexander Shishkin had written, on 01/12/2010 11:30 AM, the following:
+> >>>>>>On Tue, Jan 12, 2010 at 11:13:13 -0600, Nishanth Menon wrote:
+> >>>>>>>Alexander Shishkin had written, on 01/12/2010 11:04 AM, the following:
+> >>>>>>>>diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> >>>>>>>>index 69521be..0a5ec86 100644
+> >>>>>>>>--- a/arch/arm/mach-omap2/sleep34xx.S
+> >>>>>>>>+++ b/arch/arm/mach-omap2/sleep34xx.S
+> >>>>>[...]
+> >>>>>>>>	/* Store current cpsr*/
+> >>>>>>>>	mrs	r2, cpsr
+> >>>>>>>>	stmia	r8!, {r2}
+> >>>>>>>>@@ -520,6 +616,7 @@ clean_caches:
+> >>>>>>>>	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+> >>>>>>>>	bne	skip_l2_inval
+> >>>>>>>>clean_l2:
+> >>>>>>>>+#if 0
+> >>>>>>>my aversion to #if 0 kicks in here :(.. do we have an alternative
+> >>>>>>>like using the CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG or something
+> >>>>>>>else?
+> >>>>>>Fair enough. I could replace it with "#if !defined(...)" as the first
+> >>>>>>thing that comes to mind. This way it will only take disabling the
+> >>>>>>config option to catch any possible regressions in between. Does this
+> >>>>>>sound reasonable?
+> >>>>>sounds ok to me.. unless folks have ideas coz of clean_l2 label..
+> >>>>>more comments might be useful before a rev2 of the patch..
+> >>>>The best solution would be to be able to toggle this via sysfs or
+> >>>>debugfs by swapping the sram code for idle loop when JTAG support
+> >>>>is needed.
+> >>>Well, if you say, compile the ETM driver in, this will be needed most of
+> >>>the time.
+> >>>
+> >>I can think of reasons for an against a sysfs entry (as part of
+> >>discussion -warning lot of self contradictions below- but I think
+> >>might save a bit of back and froth ;)):
+> >>
+> >>for sysfs entry:
+> >>a) save and restore will have additional latency when you save a
+> >>chunk such as EMU domain regs - this will not be needed in
+> >>production phones, disabling it might pop up surprises
+> >
+> >There's no overhead if you're just replacing the function
+> >loaded to SRAM as needed. But for sure it's a debug tool only.
 > 
-> The easiest solution would be to make mailbox_mach built-in when
-> mailbox is configured, however, mailbox_mach needs mailbox to be
-> loaded.
-> 
-> I tried to add a poke() function in mailbox_mach so that the module is
-> loaded when mailbox is loaded, but apparently linux doesn't like loop
-> dependencies:
-> WARNING: Loop detected: kernel/arch/arm/mach-omap2/mailbox_mach.ko
-> needs mailbox.ko which needs mailbox_mach.ko again!
-> 
-> Any ideas how to solve this issue?
+> I should probably have been more clear ->I agree function relocation
+> to SRAM is not a major factor here, my concern was the additional
+> latency incurred during scratchpad save and restore logic as seen by
+> the patch:
+> -u32 omap3_arm_context[128];
+> +u32 omap3_arm_context[256];
+> the arm context has doubled albiet 128bytes only.. it still changes
 
-generally platform_device instantiation isn't compiled as a module. The
-patch below should probably help but I didn't test it.
+I've tried to address this and other concerns expressed in this thread
+and I'll post a new patchset in a few minutes.
 
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index b6a537c..39a9e9e 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -15,8 +15,7 @@ obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
- obj-$(CONFIG_PM) += pm.o sleep.o
- 
- # DSP
--obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
--mailbox_mach-objs		:= mailbox.o
-+obj-$(CONFIG_OMAP_MBOX_OMAP1)	+= mailbox.o
- 
- i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
- obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4b9fc57..6813a60 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -86,8 +86,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
- # EMU peripherals
- obj-$(CONFIG_OMAP3_EMU)			+= emu.o
- 
--obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
--mailbox_mach-objs			:= mailbox.o
-+obj-$(CONFIG_OMAP_MBOX_OMAP2)		+= mailbox.o
- 
- iommu-y					+= iommu2.o
- iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 6da796e..1c826c4 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -102,10 +102,18 @@ config OMAP_MCBSP
- config OMAP_MBOX_FWK
- 	tristate "Mailbox framework support"
- 	depends on ARCH_OMAP
-+	select OMAP_MBOX_OMAP2 if ARCH_OMAP2PLUS
-+	select OMAP_MBOX_OMAP1 if ARCH_OMAP1
- 	help
- 	  Say Y here if you want to use OMAP Mailbox framework support for
- 	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
- 
-+config OMAP_MBOX_OMAP1
-+	bool
-+
-+config OMAP_MBOX_OMAP2
-+	bool
-+
- config OMAP_IOMMU
- 	tristate
- 
+> the latencies involved on the save and restore paths.. few
+> interesting behavior seen with EHCI save and restore comes to mind
+> here - but maybe irrelevant to the discussion..
 
--- 
-balbi
+Regards,
+--
+Alex
