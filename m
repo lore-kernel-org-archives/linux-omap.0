@@ -1,188 +1,484 @@
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 10/11] DSPBRIDGE: Remove OS specific comments
-Date: Fri, 30 Apr 2010 19:45:50 -0500
-Message-ID: <1272674751-21557-11-git-send-email-ivan.gomez@ti.com>
+Subject: [PATCH 06/11] DSPBRIDGE: Replace code containing "wcd"
+Date: Fri, 30 Apr 2010 19:45:46 -0500
+Message-ID: <1272674751-21557-7-git-send-email-ivan.gomez@ti.com>
 References: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35607 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35602 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758095Ab0EAAwz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1757374Ab0EAAwz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 30 Apr 2010 20:52:55 -0400
 In-Reply-To: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
 
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
+This patch gets rid of code refering to Windows OS. Since "wcd" means
+"windows class driver", it is changed to a name refering to Bridge API,
+because in Windows the wcd acts as an interface between the different
+layers of its driver model architecture.
 
-As this is generic to Linux, remove obvious references to
-this and other OS.
+The following changes are done:
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+wcd_call_dev_io_ctl ==> api_call_dev_ioctl
+wcd_exit ==> api_exit
+wcd_init ==> api_init
+wcd_init_complete2 ==> api_init_complete2
+wcd_cmd	==> api_cmd
+wcd_c_refs ==> api_c_refs
+dw_wcd_major_version ==> brd_api_major_version
+dw_wcd_minor_version ==> brd_api_minor_version
+WCD_MAJOR_VERSION ==> BRD_API_MAJOR_VERSION
+WCD_MINOR_VERSION ==> BRD_API_MINOR_VERSION
+
+Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/dev.h     |   14 +++++++-------
- arch/arm/plat-omap/include/dspbridge/dspdefs.h |    4 ++--
- arch/arm/plat-omap/include/dspbridge/mgr.h     |    2 +-
- drivers/dsp/bridge/core/chnl_sm.c              |    2 +-
- drivers/dsp/bridge/core/tiomap3430.c           |    6 ++----
- drivers/dsp/bridge/rmgr/drv.c                  |    4 ++--
- 6 files changed, 15 insertions(+), 17 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/_dcd.h |   36 ++++++++--------
+ arch/arm/plat-omap/include/dspbridge/dev.h  |    2 +-
+ arch/arm/plat-omap/include/dspbridge/wcd.h  |    6 +-
+ arch/arm/plat-omap/include/dspbridge/wmd.h  |    4 +-
+ drivers/dsp/bridge/pmgr/dev.c               |   17 ++++----
+ drivers/dsp/bridge/pmgr/wcd.c               |   58 +++++++++++++-------------
+ drivers/dsp/bridge/rmgr/drv_interface.c     |    2 +-
+ drivers/dsp/bridge/rmgr/dspdrv.c            |   14 +++---
+ drivers/dsp/bridge/wmd/tiomap3430.c         |    6 +-
+ 9 files changed, 73 insertions(+), 72 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/dspbridge/_dcd.h b/arch/arm/plat-omap/include/dspbridge/_dcd.h
+index 1350feb..589cd42 100644
+--- a/arch/arm/plat-omap/include/dspbridge/_dcd.h
++++ b/arch/arm/plat-omap/include/dspbridge/_dcd.h
+@@ -23,9 +23,9 @@
+ #include <dspbridge/wcdioctl.h>
+ 
+ /*
+- *  ======== wcd_call_dev_io_ctl ========
++ *  ======== api_call_dev_ioctl ========
+  *  Purpose:
+- *      Call the (wrapper) function for the corresponding WCD IOCTL.
++ *      Call the (wrapper) function for the corresponding API IOCTL.
+  *  Parameters:
+  *      cmd:        IOCTL id, base 0.
+  *      args:       Argument structure.
+@@ -36,28 +36,28 @@
+  *  Requires:
+  *  Ensures:
+  */
+-extern dsp_status wcd_call_dev_io_ctl(unsigned int cmd,
++extern dsp_status api_call_dev_ioctl(unsigned int cmd,
+ 				      union Trapped_Args *args,
+ 				      u32 *pResult, void *pr_ctxt);
+ 
+ /*
+- *  ======== wcd_init ========
++ *  ======== api_init ========
+  *  Purpose:
+- *      Initialize WCD modules, and export WCD services to WMD's.
+- *      This procedure is called when the class driver is loaded.
++ *      Initialize modules used by Bridge API.
++ *      This procedure is called when the driver is loaded.
+  *  Parameters:
+  *  Returns:
+  *      TRUE if success; FALSE otherwise.
+  *  Requires:
+  *  Ensures:
+  */
+-extern bool wcd_init(void);
++extern bool api_init(void);
+ 
+ /*
+- *  ======== wcd_init_complete2 ========
++ *  ======== api_init_complete2 ========
+  *  Purpose:
+- *      Perform any required WCD, and WMD initialization which
+- *      cannot not be performed in wcd_init(void) or dev_start_device() due
++ *      Perform any required bridge initialization which cannot
++ *      be performed in api_init() or dev_start_device() due
+  *      to the fact that some services are not yet
+  *      completely initialized.
+  *  Parameters:
+@@ -65,24 +65,24 @@ extern bool wcd_init(void);
+  *      DSP_SOK:        Allow this device to load
+  *      DSP_EFAIL:      Failure.
+  *  Requires:
+- *      WCD initialized.
++ *      Bridge API initialized.
+  *  Ensures:
+  */
+-extern dsp_status wcd_init_complete2(void);
++extern dsp_status api_init_complete2(void);
+ 
+ /*
+- *  ======== wcd_exit ========
++ *  ======== api_exit ========
+  *  Purpose:
+- *      Exit all modules initialized in wcd_init(void).
+- *      This procedure is called when the class driver is unloaded.
++ *      Exit all modules initialized in api_init(void).
++ *      This procedure is called when the driver is unloaded.
+  *  Parameters:
+  *  Returns:
+  *  Requires:
+- *      wcd_init(void) was previously called.
++ *      api_init(void) was previously called.
+  *  Ensures:
+- *      Resources acquired in wcd_init(void) are freed.
++ *      Resources acquired in api_init(void) are freed.
+  */
+-extern void wcd_exit(void);
++extern void api_exit(void);
+ 
+ /* MGR wrapper functions */
+ extern u32 mgrwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt);
 diff --git a/arch/arm/plat-omap/include/dspbridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
-index ac011cd..70eb55d 100644
+index c26e9d0..3ada31d 100644
 --- a/arch/arm/plat-omap/include/dspbridge/dev.h
 +++ b/arch/arm/plat-omap/include/dspbridge/dev.h
-@@ -72,7 +72,7 @@ extern u32 dev_brd_write_fxn(void *pArb,
-  *                      to the WMD when bridge_dev_create() is called.
-  *      pDspConfig:     DSP resources, to be passed down to the WMD when
-  *                      bridge_dev_create() is called.
-- *      dev_node_obj:       Platform (Windows) specific device node.
-+ *      dev_node_obj:       Platform specific device node.
-  *  Returns:
-  *      DSP_SOK:            Module is loaded, device object has been created
-  *      DSP_EMEMORY:        Insufficient memory to create needed resources.
-@@ -117,7 +117,7 @@ extern dsp_status dev_create_device(OUT struct dev_object
-  *                      to the WMD when bridge_dev_create() is called.
-  *      pDspConfig:     DSP resources, to be passed down to the WMD when
-  *                      bridge_dev_create() is called.
-- *      dev_node_obj:       Platform (Windows) specific device node.
-+ *      dev_node_obj:       Platform specific device node.
-  *  Returns:
-  *      DSP_SOK:            Module is loaded, device object has been created
-  *      DSP_EMEMORY:        Insufficient memory to create needed resources.
-@@ -324,7 +324,7 @@ extern dsp_status dev_get_deh_mgr(struct dev_object *hdev_obj,
-  *                      dev_create_device().
-  *      phDevNode:      Ptr to location to get the device node handle.
-  *  Returns:
-- *      DSP_SOK:        In Win95, returns a DEVNODE in *dev_node_obj; In NT, ???
-+ *      DSP_SOK:        Returns a DEVNODE in *dev_node_obj.
-  *      DSP_EHANDLE:    Invalid hdev_obj.
-  *  Requires:
-  *      phDevNode != NULL.
-@@ -700,10 +700,10 @@ extern void dev_set_msg_mgr(struct dev_object *hdev_obj, struct msg_mgr *hmgr);
+@@ -152,7 +152,7 @@ extern dsp_status dev_create_iva_device(OUT struct dev_object
  /*
-  *  ======== dev_start_device ========
+  *  ======== dev_create2 ========
   *  Purpose:
-- *      Initializes the new device with the WinBRIDGE environment.  This
-- *      involves querying CM for allocated resources, querying the registry
-- *      for necessary dsp resources (requested in the INF file), and using
-- *      this information to create a WinBRIDGE device object.
-+ *      Initializes the new device with bridge environment.  This involves
-+ *      querying CM for allocated resources, querying the registry for
-+ *      necessary dsp resources (requested in the INF file), and using this
-+ *      information to create a bridge device object.
+- *      After successful loading of the image from wcd_init_complete2
++ *      After successful loading of the image from api_init_complete2
+  *      (PROC Auto_Start) or proc_load this fxn is called. This creates
+  *      the Node Manager and updates the DEV Object.
   *  Parameters:
-  *      dev_node_obj:       Device node as it is know to OS.
-  *  Returns:
-diff --git a/arch/arm/plat-omap/include/dspbridge/dspdefs.h b/arch/arm/plat-omap/include/dspbridge/dspdefs.h
-index 8a1d38c..26a9988 100644
---- a/arch/arm/plat-omap/include/dspbridge/dspdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dspdefs.h
-@@ -653,7 +653,7 @@ typedef dsp_status(*fxn_chnl_registernotify)
-  *  Parameters:
-  *      phDevContext:   Ptr to location to store a WMD device context.
-  *      hdev_obj:     Handle to a Device Object, created and managed by WCD.
-- *      pConfig:        Ptr to configuration parameters provided by the Windows
-+ *      pConfig:        Ptr to configuration parameters provided by the
-  *                      Configuration Manager during device loading.
-  *      pDspConfig:     DSP resources, as specified in the registry key for this
-  *                      device.
-@@ -1127,7 +1127,7 @@ struct bridge_drv_interface {
-  *      ppDrvInterface pointer initialized to WMD's function interface.
-  *      No system resources are acquired by this function.
-  *  Details:
-- *      Win95: Called during the Device_Init phase.
-+ *      Called during the Device_Init phase.
-  */
- void bridge_drv_entry(OUT struct bridge_drv_interface **ppDrvInterface,
- 		   IN CONST char *driver_file_name);
-diff --git a/arch/arm/plat-omap/include/dspbridge/mgr.h b/arch/arm/plat-omap/include/dspbridge/mgr.h
-index feb1b61..193e5e0 100644
---- a/arch/arm/plat-omap/include/dspbridge/mgr.h
-+++ b/arch/arm/plat-omap/include/dspbridge/mgr.h
-@@ -50,7 +50,7 @@ dsp_status mgr_wait_for_bridge_events(struct dsp_notification
-  *      There is only one Manager Object in the DSP/BIOS Bridge.
-  *  Parameters:
-  *      phMgrObject:    Location to store created MGR Object handle.
-- *      dev_node_obj:       Device object as known to Windows system.
-+ *      dev_node_obj:       Device object as known to the system.
-  *  Returns:
-  *      DSP_SOK:        Success
-  *      DSP_EMEMORY:    Failed to Create the Object
-diff --git a/drivers/dsp/bridge/core/chnl_sm.c b/drivers/dsp/bridge/core/chnl_sm.c
-index 9befa77..8b7e0a8 100644
---- a/drivers/dsp/bridge/core/chnl_sm.c
-+++ b/drivers/dsp/bridge/core/chnl_sm.c
-@@ -853,7 +853,7 @@ dsp_status bridge_chnl_open(OUT struct chnl_object **phChnl,
- 			pchnl->chnl_mgr_obj = chnl_mgr_obj;
- 			pchnl->chnl_id = uChnlId;
- 			pchnl->chnl_mode = chnl_mode;
--			pchnl->user_event = sync_event;	/* for Linux */
-+			pchnl->user_event = sync_event;
- 			pchnl->sync_event = sync_event;
- 			/* Get the process handle */
- 			pchnl->process = current->tgid;
-diff --git a/drivers/dsp/bridge/core/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
-index 1ccec2d..3555de2 100644
---- a/drivers/dsp/bridge/core/tiomap3430.c
-+++ b/drivers/dsp/bridge/core/tiomap3430.c
-@@ -1019,7 +1019,7 @@ static dsp_status bridge_dev_create(OUT struct bridge_dev_context
- 		dev_context->tc_word_swap_on = tc_word_swap;
- 	}
- 	if (DSP_SUCCEEDED(status)) {
--		/* 24xx-Linux MMU address is obtained from the host
-+		/* MMU address is obtained from the host
- 		 * resources struct */
- 		dev_context->dw_dsp_mmu_base = resources.dw_dmmu_base;
- 	}
-@@ -1413,7 +1413,6 @@ static dsp_status bridge_brd_mem_map(struct bridge_dev_context *hDevContext,
- 	}
- 	up_read(&mm->mmap_sem);
- func_cont:
--	/* Don't propogate Linux or HW status to upper layers */
- 	if (DSP_SUCCEEDED(status)) {
- 		status = DSP_SOK;
- 	} else {
-@@ -1641,7 +1640,7 @@ EXIT_LOOP:
- /*
-  *  ======== user_va2_pa ========
-  *  Purpose:
-- *      This function walks through the Linux page tables to convert a userland
-+ *      This function walks through the page tables to convert a userland
-  *      virtual address to physical address
-  */
- static u32 user_va2_pa(struct mm_struct *mm, u32 address)
-@@ -1874,7 +1873,6 @@ static dsp_status mem_map_vmalloc(struct bridge_dev_context *dev_context,
- 				    hw_attrs);
- 		va_curr += size_curr;
- 	}
--	/* Don't propogate Linux or HW status to upper layers */
- 	if (DSP_SUCCEEDED(status))
- 		status = DSP_SOK;
- 	else
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index c3df5f5..9d3d0c1 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -947,7 +947,7 @@ static dsp_status request_bridge_resources(u32 dw_context, s32 bRequest)
- 		 * internal memory TODO Do a ioremap here */
- 		/* Second window is for DSP external memory shared with MPU */
+diff --git a/arch/arm/plat-omap/include/dspbridge/wcd.h b/arch/arm/plat-omap/include/dspbridge/wcd.h
+index f609627..1a68baa 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wcd.h
++++ b/arch/arm/plat-omap/include/dspbridge/wcd.h
+@@ -29,8 +29,8 @@
+ #ifndef WCD_
+ #define WCD_
  
--		/* For Linux, these are hard-coded values */
-+		/* These are hard-coded values */
- 		host_res->birq_registers = 0;
- 		host_res->birq_attrib = 0;
- 		host_res->dw_offset_for_monitor = 0;
-@@ -1050,7 +1050,7 @@ static dsp_status request_bridge_resources_dsp(u32 dw_context, s32 bRequest)
- 			}
+-/* This WCD Library Version: */
+-#define WCD_MAJOR_VERSION   (u32)8	/* .8x - Alpha, .9x - Beta, 1.x FCS */
+-#define WCD_MINOR_VERSION   (u32)0
++/* This BRD API Library Version: */
++#define BRD_API_MAJOR_VERSION   (u32)8	/* .8x - Alpha, .9x - Beta, 1.x FCS */
++#define BRD_API_MINOR_VERSION   (u32)0
+ 
+ #endif /* WCD_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
+index cebc8c5..d861cdf 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmd.h
++++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
+@@ -1055,8 +1055,8 @@ typedef void (*fxn_msg_setqueueid) (struct msg_queue *msg_queue_obj,
+  *  the WMD_CHNL_* entries must be set to NULL.
+  */
+ struct bridge_drv_interface {
+-	u32 dw_wcd_major_version;	/* Set to WCD_MAJOR_VERSION. */
+-	u32 dw_wcd_minor_version;	/* Set to WCD_MINOR_VERSION. */
++	u32 brd_api_major_version;	/* Set to BRD_API_MAJOR_VERSION. */
++	u32 brd_api_minor_version;	/* Set to BRD_API_MINOR_VERSION. */
+ 	fxn_dev_create pfn_dev_create;	/* Create device context */
+ 	fxn_dev_destroy pfn_dev_destroy;	/* Destroy device context */
+ 	fxn_dev_ctrl pfn_dev_cntrl;	/* Optional vendor interface */
+diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
+index e1ebb5d..f94eebc 100644
+--- a/drivers/dsp/bridge/pmgr/dev.c
++++ b/drivers/dsp/bridge/pmgr/dev.c
+@@ -56,7 +56,8 @@
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ 
+ #define MAKEVERSION(major, minor)   (major * 10 + minor)
+-#define WCDVERSION          MAKEVERSION(WCD_MAJOR_VERSION, WCD_MINOR_VERSION)
++#define BRD_API_VERSION		MAKEVERSION(BRD_API_MAJOR_VERSION,	\
++				BRD_API_MINOR_VERSION)
+ 
+ /* The WMD device object: */
+ struct dev_object {
+@@ -277,7 +278,7 @@ dsp_status dev_create_device(OUT struct dev_object **phDevObject,
+ /*
+  *  ======== dev_create2 ========
+  *  Purpose:
+- *      After successful loading of the image from wcd_init_complete2
++ *      After successful loading of the image from api_init_complete2
+  *      (PROC Auto_Start) or proc_load this fxn is called. This creates
+  *      the Node Manager and updates the DEV Object.
+  */
+@@ -1089,12 +1090,12 @@ static void store_interface_fxns(struct bridge_drv_interface *drv_fxns,
+ 
+ 	DBC_REQUIRE(intf_fxns != NULL);
+ 	DBC_REQUIRE(drv_fxns != NULL);
+-	DBC_REQUIRE(MAKEVERSION(drv_fxns->dw_wcd_major_version,
+-				drv_fxns->dw_wcd_minor_version) <= WCDVERSION);
+-	version = MAKEVERSION(drv_fxns->dw_wcd_major_version,
+-				     drv_fxns->dw_wcd_minor_version);
+-	intf_fxns->dw_wcd_major_version = drv_fxns->dw_wcd_major_version;
+-	intf_fxns->dw_wcd_minor_version = drv_fxns->dw_wcd_minor_version;
++	DBC_REQUIRE(MAKEVERSION(drv_fxns->brd_api_major_version,
++			drv_fxns->brd_api_minor_version) <= BRD_API_VERSION);
++	version = MAKEVERSION(drv_fxns->brd_api_major_version,
++				     drv_fxns->brd_api_minor_version);
++	intf_fxns->brd_api_major_version = drv_fxns->brd_api_major_version;
++	intf_fxns->brd_api_minor_version = drv_fxns->brd_api_minor_version;
+ 	/* Install functions up to WCD version .80 (first alpha): */
+ 	if (version > 0) {
+ 		STORE_FXN(fxn_dev_create, pfn_dev_create);
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index 9f734ab..a63ae8f 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -69,13 +69,13 @@
+ #define DB_GET_IOC_TABLE(cmd)	(DB_GET_MODULE(cmd) >> DB_MODULE_SHIFT)
+ 
+ /* Device IOCtl function pointer */
+-struct wcd_cmd {
++struct api_cmd {
+ 	u32(*fxn) (union Trapped_Args *args, void *pr_ctxt);
+ 	u32 dw_index;
+ };
+ 
+ /*  ----------------------------------- Globals */
+-static u32 wcd_c_refs;
++static u32 api_c_refs;
+ 
+ /*
+  *  Function tables.
+@@ -85,7 +85,7 @@ static u32 wcd_c_refs;
+  */
+ 
+ /* MGR wrapper functions */
+-static struct wcd_cmd mgr_cmd[] = {
++static struct api_cmd mgr_cmd[] = {
+ 	{mgrwrap_enum_node_info},	/* MGR_ENUMNODE_INFO */
+ 	{mgrwrap_enum_proc_info},	/* MGR_ENUMPROC_INFO */
+ 	{mgrwrap_register_object},	/* MGR_REGISTEROBJECT */
+@@ -95,7 +95,7 @@ static struct wcd_cmd mgr_cmd[] = {
+ };
+ 
+ /* PROC wrapper functions */
+-static struct wcd_cmd proc_cmd[] = {
++static struct api_cmd proc_cmd[] = {
+ 	{procwrap_attach},	/* PROC_ATTACH */
+ 	{procwrap_ctrl},	/* PROC_CTRL */
+ 	{procwrap_detach},	/* PROC_DETACH */
+@@ -116,7 +116,7 @@ static struct wcd_cmd proc_cmd[] = {
+ };
+ 
+ /* NODE wrapper functions */
+-static struct wcd_cmd node_cmd[] = {
++static struct api_cmd node_cmd[] = {
+ 	{nodewrap_allocate},	/* NODE_ALLOCATE */
+ 	{nodewrap_alloc_msg_buf},	/* NODE_ALLOCMSGBUF */
+ 	{nodewrap_change_priority},	/* NODE_CHANGEPRIORITY */
+@@ -135,7 +135,7 @@ static struct wcd_cmd node_cmd[] = {
+ };
+ 
+ /* STRM wrapper functions */
+-static struct wcd_cmd strm_cmd[] = {
++static struct api_cmd strm_cmd[] = {
+ 	{strmwrap_allocate_buffer},	/* STRM_ALLOCATEBUFFER */
+ 	{strmwrap_close},	/* STRM_CLOSE */
+ 	{strmwrap_free_buffer},	/* STRM_FREEBUFFER */
+@@ -150,7 +150,7 @@ static struct wcd_cmd strm_cmd[] = {
+ };
+ 
+ /* CMM wrapper functions */
+-static struct wcd_cmd cmm_cmd[] = {
++static struct api_cmd cmm_cmd[] = {
+ 	{cmmwrap_calloc_buf},	/* CMM_ALLOCBUF */
+ 	{cmmwrap_free_buf},	/* CMM_FREEBUF */
+ 	{cmmwrap_get_handle},	/* CMM_GETHANDLE */
+@@ -203,11 +203,11 @@ static inline void _cp_to_usr(void __user *to, const void *from,
+ 	_cp_to_usr(to, from, &(err), (n) * sizeof(*(from)))
+ 
+ /*
+- *  ======== wcd_call_dev_io_ctl ========
++ *  ======== api_call_dev_ioctl ========
+  *  Purpose:
+- *      Call the (wrapper) function for the corresponding WCD IOCTL.
++ *      Call the (wrapper) function for the corresponding API IOCTL.
+  */
+-inline dsp_status wcd_call_dev_io_ctl(u32 cmd, union Trapped_Args *args,
++inline dsp_status api_call_dev_ioctl(u32 cmd, union Trapped_Args *args,
+ 				      u32 *result, void *pr_ctxt)
+ {
+ 	u32(*ioctl_cmd) (union Trapped_Args *args, void *pr_ctxt) = NULL;
+@@ -263,15 +263,15 @@ err:
+ }
+ 
+ /*
+- *  ======== wcd_exit ========
++ *  ======== api_exit ========
+  */
+-void wcd_exit(void)
++void api_exit(void)
+ {
+-	DBC_REQUIRE(wcd_c_refs > 0);
+-	wcd_c_refs--;
++	DBC_REQUIRE(api_c_refs > 0);
++	api_c_refs--;
+ 
+-	if (wcd_c_refs == 0) {
+-		/* Release all WCD modules initialized in wcd_init(). */
++	if (api_c_refs == 0) {
++		/* Release all modules initialized in api_init(). */
+ 		cod_exit();
+ 		dev_exit();
+ 		chnl_exit();
+@@ -285,22 +285,22 @@ void wcd_exit(void)
+ 		rmm_exit();
+ 		drv_exit();
+ 	}
+-	DBC_ENSURE(wcd_c_refs >= 0);
++	DBC_ENSURE(api_c_refs >= 0);
+ }
+ 
+ /*
+- *  ======== wcd_init ========
++ *  ======== api_init ========
+  *  Purpose:
+- *      Module initialization is done by SERVICES Init.
++ *      Module initialization used by Bridge API.
+  */
+-bool wcd_init(void)
++bool api_init(void)
+ {
+ 	bool ret = true;
+ 	bool fdrv, fdev, fcod, fchnl, fmsg, fio;
+ 	bool fmgr, fproc, fnode, fdisp, fstrm, frmm;
+ 
+-	if (wcd_c_refs == 0) {
+-		/* initialize class driver and other modules */
++	if (api_c_refs == 0) {
++		/* initialize driver and other modules */
+ 		fdrv = drv_init();
+ 		fmgr = mgr_init();
+ 		fproc = proc_init();
+@@ -355,16 +355,16 @@ bool wcd_init(void)
  		}
+ 	}
+ 	if (ret)
+-		wcd_c_refs++;
++		api_c_refs++;
+ 
+ 	return ret;
+ }
+ 
+ /*
+- *  ======== wcd_init_complete2 ========
++ *  ======== api_init_complete2 ========
+  *  Purpose:
+- *      Perform any required WCD, and WMD initialization which
+- *      cannot not be performed in wcd_init() or dev_start_device() due
++ *      Perform any required bridge initialization which cannot
++ *      be performed in api_init() or dev_start_device() due
+  *      to the fact that some services are not yet
+  *      completely initialized.
+  *  Parameters:
+@@ -372,17 +372,17 @@ bool wcd_init(void)
+  *      DSP_SOK:	Allow this device to load
+  *      DSP_EFAIL:      Failure.
+  *  Requires:
+- *      WCD initialized.
++ *      Bridge API initialized.
+  *  Ensures:
+  */
+-dsp_status wcd_init_complete2(void)
++dsp_status api_init_complete2(void)
+ {
+ 	dsp_status status = DSP_SOK;
+ 	struct cfg_devnode *dev_node;
+ 	struct dev_object *hdev_obj;
+ 	u32 dev_type, tmp;
+ 
+-	DBC_REQUIRE(wcd_c_refs > 0);
++	DBC_REQUIRE(api_c_refs > 0);
+ 
+ 	/*  Walk the list of DevObjects, get each devnode, and attempting to
+ 	 *  autostart the board. Note that this requires COF loading, which
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index f53e02d..dd2fe8b 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -562,7 +562,7 @@ static long bridge_ioctl(struct file *filp, unsigned int code,
+ 				sizeof(union Trapped_Args));
+ 
+ 	if (!status) {
+-		status = wcd_call_dev_io_ctl(code, &buf_in, &retval,
++		status = api_call_dev_ioctl(code, &buf_in, &retval,
+ 					     filp->private_data);
+ 
  		if (DSP_SUCCEEDED(status)) {
--			/* for Linux, these are hard-coded values */
-+			/* These are hard-coded values */
- 			host_res->birq_registers = 0;
- 			host_res->birq_attrib = 0;
- 			host_res->dw_offset_for_monitor = 0;
+diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
+index 94f7605..175582a 100644
+--- a/drivers/dsp/bridge/rmgr/dspdrv.c
++++ b/drivers/dsp/bridge/rmgr/dspdrv.c
+@@ -54,12 +54,12 @@ u32 dsp_init(OUT u32 *init_status)
+ 	u32 device_node;
+ 	u32 device_node_string;
+ 
+-	if (!wcd_init())
++	if (!api_init())
+ 		goto func_cont;
+ 
+ 	status = drv_create(&drv_obj);
+ 	if (DSP_FAILED(status)) {
+-		wcd_exit();
++		api_exit();
+ 		goto func_cont;
+ 	}
+ 
+@@ -83,7 +83,7 @@ u32 dsp_init(OUT u32 *init_status)
+ 		/* irrespective of the status of dev_remove_device we conitinue
+ 		 * unloading. Get the Driver Object iterate through and remove.
+ 		 * Reset the status to E_FAIL to avoid going through
+-		 * wcd_init_complete2. */
++		 * api_init_complete2. */
+ 		for (device_node = drv_get_first_dev_extension();
+ 		     device_node != 0;
+ 		     device_node = drv_get_next_dev_extension(device_node)) {
+@@ -94,7 +94,7 @@ u32 dsp_init(OUT u32 *init_status)
+ 		/* Remove the Driver Object */
+ 		(void)drv_destroy(drv_obj);
+ 		drv_obj = NULL;
+-		wcd_exit();
++		api_exit();
+ 		dev_dbg(bridge, "%s: Logical device failed init\n", __func__);
+ 	}			/* Unwinding the loaded drivers */
+ func_cont:
+@@ -103,10 +103,10 @@ func_cont:
+ 		/* BRD_AutoStart could fail if the dsp execuetable is not the
+ 		 * correct one. We should not propagate that error
+ 		 * into the device loader. */
+-		(void)wcd_init_complete2();
++		(void)api_init_complete2();
+ 	} else {
+ 		dev_dbg(bridge, "%s: Failed\n", __func__);
+-	}			/* End wcd_init_complete2 */
++	}			/* End api_init_complete2 */
+ 	DBC_ENSURE((DSP_SUCCEEDED(status) && drv_obj != NULL) ||
+ 		   (DSP_FAILED(status) && drv_obj == NULL));
+ 	*init_status = status;
+@@ -138,7 +138,7 @@ bool dsp_deinit(u32 deviceContext)
+ 	if (DSP_SUCCEEDED(cfg_get_object((u32 *) &mgr_obj, REG_MGR_OBJECT)))
+ 		(void)mgr_destroy(mgr_obj);
+ 
+-	wcd_exit();
++	api_exit();
+ 
+ 	return ret;
+ }
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index d01cd63..d2c4691 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -171,9 +171,9 @@ extern s32 dsp_debug;
+  *  This mini driver's function interface table.
+  */
+ static struct bridge_drv_interface drv_interface_fxns = {
+-	/* WCD ver. for which this mini driver is built. */
+-	WCD_MAJOR_VERSION,
+-	WCD_MINOR_VERSION,
++	/* Bridge API ver. for which this bridge driver is built. */
++	BRD_API_MAJOR_VERSION,
++	BRD_API_MINOR_VERSION,
+ 	bridge_dev_create,
+ 	bridge_dev_destroy,
+ 	bridge_dev_ctrl,
 -- 
 1.7.0.3
 
