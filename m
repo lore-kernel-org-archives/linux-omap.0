@@ -1,64 +1,37 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: ARM suspend to disk?
-Date: Sat, 1 May 2010 12:42:34 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5217E11@dbde02.ent.ti.com>
-References: <4BD881A7.2020402@gmail.com>
- <87y6g6w373.fsf@deeprootsystems.com>
-	<p2kf96d234e1004301446l255a8cb4h7287e2502934e9fd@mail.gmail.com>
- <87iq78d295.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: mailbox_mach dependency problem
+Date: Sat, 1 May 2010 17:47:57 +0300
+Message-ID: <h2g94a0d4531005010747n6ef7b7d0r9b4714d289d61032@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57394 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751273Ab0EAHMm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 03:12:42 -0400
-In-Reply-To: <87iq78d295.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:63778 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753823Ab0EAOsA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 10:48:00 -0400
+Received: by bwz19 with SMTP id 19so599647bwz.21
+        for <linux-omap@vger.kernel.org>; Sat, 01 May 2010 07:47:57 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Cliff Brake <cliff.brake@gmail.com>
-Cc: Peter Tseng <tsenpet09@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <hiroshi.doyu@gmail.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
-> Hilman
-> Sent: Saturday, May 01, 2010 3:36 AM
-> To: Cliff Brake
-> Cc: Peter Tseng; linux-omap@vger.kernel.org
-> Subject: Re: ARM suspend to disk?
-> 
-> Cliff Brake <cliff.brake@gmail.com> writes:
-> 
-> > On Thu, Apr 29, 2010 at 1:58 PM, Kevin Hilman
-> > <khilman@deeprootsystems.com> wrote:
-> >
-> >> What do you expect to gain from suspend-to-disk + snapshot boot that
-> >> you don't already get from suspend-to-RAM using off-mode?
-> >>
-> >> On OMAP, with off-mode enabled, a suspend to RAM puts the entire OMAP
-> >> into full-chip off, and essentially reboots the ARM when waking up
-> >> from suspend (or idle) already.
-> >
-> > What does the resume process look like in off mode?  Does the resume
-> > pass through the bootloader?  If so, are the bits that detects resume
-> > from "off" available in U-boot?
-> 
-> No, it does not pass through the boot loader.
-> 
-> In general terms, resume from off-mode is the same to "normal" resume (from
-> retention) except that some additional state has to be restored before
-> continuing where you left off since the ARM core (as well as most the
-> OMAP itself) was turned off.
-> 
-On suspend to disk topic, Raghu under Romit's guidance did a 
-prototype few months back as part of his internship using some of the earlier
-ARM work. The whole system snapshot was stored to the MMC card and one 
-can take that MMC card on another board and continue from where it was suspended.
+Hi,
 
-We should have these patches somewhere.
+There seems to be a problem with 'mailbox' and 'mailbox_mach' modules.
+When another module, like bridgedriver, uses mailbox stuff, only the
+'mailbox' module is loaded which doesn't register the platform device.
 
-Regards,
-Santosh
+The easiest solution would be to make mailbox_mach built-in when
+mailbox is configured, however, mailbox_mach needs mailbox to be
+loaded.
 
+I tried to add a poke() function in mailbox_mach so that the module is
+loaded when mailbox is loaded, but apparently linux doesn't like loop
+dependencies:
+WARNING: Loop detected: kernel/arch/arm/mach-omap2/mailbox_mach.ko
+needs mailbox.ko which needs mailbox_mach.ko again!
+
+Any ideas how to solve this issue?
+
+-- 
+Felipe Contreras
