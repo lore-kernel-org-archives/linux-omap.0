@@ -1,170 +1,404 @@
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 07/11] DSPBRIDGE: Rename "wmd" directory by "core"
-Date: Fri, 30 Apr 2010 19:45:47 -0500
-Message-ID: <1272674751-21557-8-git-send-email-ivan.gomez@ti.com>
+Subject: [PATCH 09/11] DSPBRIDGE: Append the content of _dcd.h into dspapi.h
+Date: Fri, 30 Apr 2010 19:45:49 -0500
+Message-ID: <1272674751-21557-10-git-send-email-ivan.gomez@ti.com>
 References: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56917 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757477Ab0EAAwz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 20:52:55 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49441 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757773Ab0EAAwz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Apr 2010 20:52:55 -0400
 In-Reply-To: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
 
-Since "wmd" (windows mini driver) refers to Windows OS, then this
-directory is renamed by "core"
+The header file _dcd.h contained the function prototypes of dspapi.c,
+so _dcd.h file is removed and its content is placed into dspapi.h.
 
 Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- drivers/dsp/bridge/Makefile                       |   10 +++++-----
- drivers/dsp/bridge/{wmd => core}/_cmm.h           |    0
- drivers/dsp/bridge/{wmd => core}/_deh.h           |    0
- drivers/dsp/bridge/{wmd => core}/_msg_sm.h        |    0
- drivers/dsp/bridge/{wmd => core}/_tiomap.h        |    0
- drivers/dsp/bridge/{wmd => core}/_tiomap_mmu.h    |    0
- drivers/dsp/bridge/{wmd => core}/_tiomap_pwr.h    |    0
- drivers/dsp/bridge/{wmd => core}/_tiomap_util.h   |    0
- drivers/dsp/bridge/{wmd => core}/chnl_sm.c        |    0
- drivers/dsp/bridge/{wmd => core}/io_sm.c          |    0
- drivers/dsp/bridge/{wmd => core}/mmu_fault.c      |    0
- drivers/dsp/bridge/{wmd => core}/mmu_fault.h      |    0
- drivers/dsp/bridge/{wmd => core}/msg_sm.c         |    0
- drivers/dsp/bridge/{wmd => core}/tiomap3430.c     |    0
- drivers/dsp/bridge/{wmd => core}/tiomap3430_pwr.c |    0
- drivers/dsp/bridge/{wmd => core}/tiomap_io.c      |    0
- drivers/dsp/bridge/{wmd => core}/tiomap_io.h      |    0
- drivers/dsp/bridge/{wmd => core}/ue_deh.c         |    0
- drivers/dsp/bridge/{wmd => core}/wdt.c            |    0
- 19 files changed, 5 insertions(+), 5 deletions(-)
- rename drivers/dsp/bridge/{wmd => core}/_cmm.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/_deh.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/_msg_sm.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/_tiomap.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/_tiomap_mmu.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/_tiomap_pwr.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/_tiomap_util.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/chnl_sm.c (100%)
- rename drivers/dsp/bridge/{wmd => core}/io_sm.c (100%)
- rename drivers/dsp/bridge/{wmd => core}/mmu_fault.c (100%)
- rename drivers/dsp/bridge/{wmd => core}/mmu_fault.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/msg_sm.c (100%)
- rename drivers/dsp/bridge/{wmd => core}/tiomap3430.c (100%)
- rename drivers/dsp/bridge/{wmd => core}/tiomap3430_pwr.c (100%)
- rename drivers/dsp/bridge/{wmd => core}/tiomap_io.c (100%)
- rename drivers/dsp/bridge/{wmd => core}/tiomap_io.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/ue_deh.c (100%)
- rename drivers/dsp/bridge/{wmd => core}/wdt.c (100%)
+ arch/arm/plat-omap/include/dspbridge/_dcd.h   |  152 -------------------------
+ arch/arm/plat-omap/include/dspbridge/dspapi.h |  151 +++++++++++++++++++++++--
+ drivers/dsp/bridge/pmgr/dspapi.c              |    2 +-
+ drivers/dsp/bridge/rmgr/drv_interface.c       |    2 +-
+ drivers/dsp/bridge/rmgr/dspdrv.c              |    2 +-
+ 5 files changed, 144 insertions(+), 165 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/dspbridge/_dcd.h
 
-diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
-index c6f2551..97e7ec1 100644
---- a/drivers/dsp/bridge/Makefile
-+++ b/drivers/dsp/bridge/Makefile
-@@ -5,9 +5,9 @@ libservices = services/sync.o \
- 		services/clk.o services/cfg.o services/reg.o \
-                services/regsup.o services/ntfy.o \
- 		services/services.o
--libwmd = wmd/chnl_sm.o wmd/msg_sm.o wmd/io_sm.o wmd/tiomap3430.o \
--		wmd/tiomap3430_pwr.o wmd/tiomap_io.o \
--		wmd/mmu_fault.o wmd/ue_deh.o wmd/wdt.o
-+libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
-+		core/tiomap3430_pwr.o core/tiomap_io.o \
-+		core/mmu_fault.o core/ue_deh.o core/wdt.o
- libpmgr = pmgr/chnl.o pmgr/io.o pmgr/msg.o pmgr/cod.o pmgr/dev.o pmgr/wcd.o \
- 		pmgr/dmm.o pmgr/cmm.o pmgr/dbll.o
- librmgr = rmgr/dbdcd.o rmgr/disp.o rmgr/drv.o rmgr/mgr.o rmgr/node.o \
-@@ -17,7 +17,7 @@ libdload = dynload/cload.o dynload/getsection.o dynload/reloc.o \
- 		 dynload/tramp.o
- libhw = hw/hw_mmu.o
+diff --git a/arch/arm/plat-omap/include/dspbridge/_dcd.h b/arch/arm/plat-omap/include/dspbridge/_dcd.h
+deleted file mode 100644
+index 4c3f701..0000000
+--- a/arch/arm/plat-omap/include/dspbridge/_dcd.h
++++ /dev/null
+@@ -1,152 +0,0 @@
+-/*
+- * _dcd.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Includes the wrapper functions called directly by the
+- * DeviceIOControl interface.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef _WCD_
+-#define _WCD_
+-
+-#include <dspbridge/dspapi-ioctl.h>
+-
+-/*
+- *  ======== api_call_dev_ioctl ========
+- *  Purpose:
+- *      Call the (wrapper) function for the corresponding API IOCTL.
+- *  Parameters:
+- *      cmd:        IOCTL id, base 0.
+- *      args:       Argument structure.
+- *      pResult:
+- *  Returns:
+- *      DSP_SOK if command called; DSP_EINVALIDARG if command not in IOCTL
+- *      table.
+- *  Requires:
+- *  Ensures:
+- */
+-extern dsp_status api_call_dev_ioctl(unsigned int cmd,
+-				      union Trapped_Args *args,
+-				      u32 *pResult, void *pr_ctxt);
+-
+-/*
+- *  ======== api_init ========
+- *  Purpose:
+- *      Initialize modules used by Bridge API.
+- *      This procedure is called when the driver is loaded.
+- *  Parameters:
+- *  Returns:
+- *      TRUE if success; FALSE otherwise.
+- *  Requires:
+- *  Ensures:
+- */
+-extern bool api_init(void);
+-
+-/*
+- *  ======== api_init_complete2 ========
+- *  Purpose:
+- *      Perform any required bridge initialization which cannot
+- *      be performed in api_init() or dev_start_device() due
+- *      to the fact that some services are not yet
+- *      completely initialized.
+- *  Parameters:
+- *  Returns:
+- *      DSP_SOK:        Allow this device to load
+- *      DSP_EFAIL:      Failure.
+- *  Requires:
+- *      Bridge API initialized.
+- *  Ensures:
+- */
+-extern dsp_status api_init_complete2(void);
+-
+-/*
+- *  ======== api_exit ========
+- *  Purpose:
+- *      Exit all modules initialized in api_init(void).
+- *      This procedure is called when the driver is unloaded.
+- *  Parameters:
+- *  Returns:
+- *  Requires:
+- *      api_init(void) was previously called.
+- *  Ensures:
+- *      Resources acquired in api_init(void) are freed.
+- */
+-extern void api_exit(void);
+-
+-/* MGR wrapper functions */
+-extern u32 mgrwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 mgrwrap_enum_proc_info(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 mgrwrap_register_object(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 mgrwrap_unregister_object(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 mgrwrap_wait_for_bridge_events(union Trapped_Args *args,
+-					  void *pr_ctxt);
+-
+-extern u32 mgrwrap_get_process_resources_info(union Trapped_Args *args,
+-					      void *pr_ctxt);
+-
+-/* CPRC (Processor) wrapper Functions */
+-extern u32 procwrap_attach(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_ctrl(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_detach(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_enum_resources(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_get_state(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_get_trace(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_load(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_register_notify(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_start(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_reserve_memory(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_un_reserve_memory(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_map(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_un_map(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_flush_memory(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_stop(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 procwrap_invalidate_memory(union Trapped_Args *args, void *pr_ctxt);
+-
+-/* NODE wrapper functions */
+-extern u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_change_priority(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_connect(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_create(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_delete(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_free_msg_buf(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_get_attr(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_get_message(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_pause(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_put_message(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_register_notify(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_run(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_terminate(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 nodewrap_get_uuid_props(union Trapped_Args *args, void *pr_ctxt);
+-
+-/* STRM wrapper functions */
+-extern u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_close(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_free_buffer(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_get_event_handle(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_idle(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_reclaim(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_register_notify(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 strmwrap_select(union Trapped_Args *args, void *pr_ctxt);
+-
+-extern u32 cmmwrap_calloc_buf(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 cmmwrap_free_buf(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 cmmwrap_get_handle(union Trapped_Args *args, void *pr_ctxt);
+-extern u32 cmmwrap_get_info(union Trapped_Args *args, void *pr_ctxt);
+-
+-#endif /* _WCD_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dspapi.h b/arch/arm/plat-omap/include/dspbridge/dspapi.h
+index 232aab0..9589574 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dspapi.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspapi.h
+@@ -3,17 +3,17 @@
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+- * Bridge class driver library functions, object definitions, and
+- * return error/status codes.  To be included by Bridge mini drivers.
++ * Includes the wrapper functions called directly by the
++ * DeviceIOControl interface.
+  *
+  * Notes:
+- *   Bridge Class Driver services exported to WMD's are initialized by the
+- *   WCD on behalf of the WMD.  WMD's must not call module Init/Exit
++ *   Bridge services exported to Bridge driver are initialized by the DSPAPI on
++ *   behalf of the Bridge driver. Bridge driver must not call module Init/Exit
+  *   functions.
+  *
+- *   To ensure WMD binary compatibility across different platforms,
+- *   for the same processor, a WMD must restrict its usage of system
+- *   services to those exported by the 'Bridge class library.
++ *   To ensure Bridge driver binary compatibility across different platforms,
++ *   for the same processor, a Bridge driver must restrict its usage of system
++ *   services to those exported by the DSPAPI library.
+  *
+  * Copyright (C) 2005-2006 Texas Instruments, Inc.
+  *
+@@ -26,11 +26,142 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
  
--bridgedriver-objs = $(libgen) $(libservices) $(libwmd) $(libpmgr) $(librmgr) \
-+bridgedriver-objs = $(libgen) $(libservices) $(libcore) $(libpmgr) $(librmgr) \
- 			$(libdload) $(libhw)
+-#ifndef WCD_
+-#define WCD_
++#ifndef DSPAPI_
++#define DSPAPI_
++
++#include <dspbridge/dspapi-ioctl.h>
  
- #Machine dependent
-@@ -27,7 +27,7 @@ ccflags-y += -D_TI_ -D_DB_TIOMAP -DTMS32060 \
+ /* This BRD API Library Version: */
+ #define BRD_API_MAJOR_VERSION   (u32)8	/* .8x - Alpha, .9x - Beta, 1.x FCS */
+ #define BRD_API_MINOR_VERSION   (u32)0
  
- #Header files
- ccflags-y += -Idrivers/dsp/bridge/services
--ccflags-y += -Idrivers/dsp/bridge/wmd
-+ccflags-y += -Idrivers/dsp/bridge/core
- ccflags-y += -Idrivers/dsp/bridge/pmgr
- ccflags-y += -Idrivers/dsp/bridge/rmgr
- ccflags-y += -Idrivers/dsp/bridge/hw
-diff --git a/drivers/dsp/bridge/wmd/_cmm.h b/drivers/dsp/bridge/core/_cmm.h
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/_cmm.h
-rename to drivers/dsp/bridge/core/_cmm.h
-diff --git a/drivers/dsp/bridge/wmd/_deh.h b/drivers/dsp/bridge/core/_deh.h
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/_deh.h
-rename to drivers/dsp/bridge/core/_deh.h
-diff --git a/drivers/dsp/bridge/wmd/_msg_sm.h b/drivers/dsp/bridge/core/_msg_sm.h
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/_msg_sm.h
-rename to drivers/dsp/bridge/core/_msg_sm.h
-diff --git a/drivers/dsp/bridge/wmd/_tiomap.h b/drivers/dsp/bridge/core/_tiomap.h
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/_tiomap.h
-rename to drivers/dsp/bridge/core/_tiomap.h
-diff --git a/drivers/dsp/bridge/wmd/_tiomap_mmu.h b/drivers/dsp/bridge/core/_tiomap_mmu.h
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/_tiomap_mmu.h
-rename to drivers/dsp/bridge/core/_tiomap_mmu.h
-diff --git a/drivers/dsp/bridge/wmd/_tiomap_pwr.h b/drivers/dsp/bridge/core/_tiomap_pwr.h
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/_tiomap_pwr.h
-rename to drivers/dsp/bridge/core/_tiomap_pwr.h
-diff --git a/drivers/dsp/bridge/wmd/_tiomap_util.h b/drivers/dsp/bridge/core/_tiomap_util.h
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/_tiomap_util.h
-rename to drivers/dsp/bridge/core/_tiomap_util.h
-diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/core/chnl_sm.c
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/chnl_sm.c
-rename to drivers/dsp/bridge/core/chnl_sm.c
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/core/io_sm.c
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/io_sm.c
-rename to drivers/dsp/bridge/core/io_sm.c
-diff --git a/drivers/dsp/bridge/wmd/mmu_fault.c b/drivers/dsp/bridge/core/mmu_fault.c
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/mmu_fault.c
-rename to drivers/dsp/bridge/core/mmu_fault.c
-diff --git a/drivers/dsp/bridge/wmd/mmu_fault.h b/drivers/dsp/bridge/core/mmu_fault.h
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/mmu_fault.h
-rename to drivers/dsp/bridge/core/mmu_fault.h
-diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/core/msg_sm.c
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/msg_sm.c
-rename to drivers/dsp/bridge/core/msg_sm.c
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/tiomap3430.c
-rename to drivers/dsp/bridge/core/tiomap3430.c
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/core/tiomap3430_pwr.c
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-rename to drivers/dsp/bridge/core/tiomap3430_pwr.c
-diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/core/tiomap_io.c
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/tiomap_io.c
-rename to drivers/dsp/bridge/core/tiomap_io.c
-diff --git a/drivers/dsp/bridge/wmd/tiomap_io.h b/drivers/dsp/bridge/core/tiomap_io.h
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/tiomap_io.h
-rename to drivers/dsp/bridge/core/tiomap_io.h
-diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/core/ue_deh.c
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/ue_deh.c
-rename to drivers/dsp/bridge/core/ue_deh.c
-diff --git a/drivers/dsp/bridge/wmd/wdt.c b/drivers/dsp/bridge/core/wdt.c
-similarity index 100%
-rename from drivers/dsp/bridge/wmd/wdt.c
-rename to drivers/dsp/bridge/core/wdt.c
+-#endif /* WCD_ */
++
++/*
++ *  ======== api_call_dev_ioctl ========
++ *  Purpose:
++ *      Call the (wrapper) function for the corresponding API IOCTL.
++ *  Parameters:
++ *      cmd:        IOCTL id, base 0.
++ *      args:       Argument structure.
++ *      pResult:
++ *  Returns:
++ *      DSP_SOK if command called; DSP_EINVALIDARG if command not in IOCTL
++ *      table.
++ *  Requires:
++ *  Ensures:
++ */
++extern dsp_status api_call_dev_ioctl(unsigned int cmd,
++				      union Trapped_Args *args,
++				      u32 *pResult, void *pr_ctxt);
++
++/*
++ *  ======== api_init ========
++ *  Purpose:
++ *      Initialize modules used by Bridge API.
++ *      This procedure is called when the driver is loaded.
++ *  Parameters:
++ *  Returns:
++ *      TRUE if success; FALSE otherwise.
++ *  Requires:
++ *  Ensures:
++ */
++extern bool api_init(void);
++
++/*
++ *  ======== api_init_complete2 ========
++ *  Purpose:
++ *      Perform any required bridge initialization which cannot
++ *      be performed in api_init() or dev_start_device() due
++ *      to the fact that some services are not yet
++ *      completely initialized.
++ *  Parameters:
++ *  Returns:
++ *      DSP_SOK:        Allow this device to load
++ *      DSP_EFAIL:      Failure.
++ *  Requires:
++ *      Bridge API initialized.
++ *  Ensures:
++ */
++extern dsp_status api_init_complete2(void);
++
++/*
++ *  ======== api_exit ========
++ *  Purpose:
++ *      Exit all modules initialized in api_init(void).
++ *      This procedure is called when the driver is unloaded.
++ *  Parameters:
++ *  Returns:
++ *  Requires:
++ *      api_init(void) was previously called.
++ *  Ensures:
++ *      Resources acquired in api_init(void) are freed.
++ */
++extern void api_exit(void);
++
++/* MGR wrapper functions */
++extern u32 mgrwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt);
++extern u32 mgrwrap_enum_proc_info(union Trapped_Args *args, void *pr_ctxt);
++extern u32 mgrwrap_register_object(union Trapped_Args *args, void *pr_ctxt);
++extern u32 mgrwrap_unregister_object(union Trapped_Args *args, void *pr_ctxt);
++extern u32 mgrwrap_wait_for_bridge_events(union Trapped_Args *args,
++					  void *pr_ctxt);
++
++extern u32 mgrwrap_get_process_resources_info(union Trapped_Args *args,
++					      void *pr_ctxt);
++
++/* CPRC (Processor) wrapper Functions */
++extern u32 procwrap_attach(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_ctrl(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_detach(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_enum_resources(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_get_state(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_get_trace(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_load(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_register_notify(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_start(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_reserve_memory(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_un_reserve_memory(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_map(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_un_map(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_flush_memory(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_stop(union Trapped_Args *args, void *pr_ctxt);
++extern u32 procwrap_invalidate_memory(union Trapped_Args *args, void *pr_ctxt);
++
++/* NODE wrapper functions */
++extern u32 nodewrap_allocate(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_alloc_msg_buf(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_change_priority(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_connect(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_create(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_delete(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_free_msg_buf(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_get_attr(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_get_message(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_pause(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_put_message(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_register_notify(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_run(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_terminate(union Trapped_Args *args, void *pr_ctxt);
++extern u32 nodewrap_get_uuid_props(union Trapped_Args *args, void *pr_ctxt);
++
++/* STRM wrapper functions */
++extern u32 strmwrap_allocate_buffer(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_close(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_free_buffer(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_get_event_handle(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_get_info(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_idle(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_issue(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_open(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_reclaim(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_register_notify(union Trapped_Args *args, void *pr_ctxt);
++extern u32 strmwrap_select(union Trapped_Args *args, void *pr_ctxt);
++
++extern u32 cmmwrap_calloc_buf(union Trapped_Args *args, void *pr_ctxt);
++extern u32 cmmwrap_free_buf(union Trapped_Args *args, void *pr_ctxt);
++extern u32 cmmwrap_get_handle(union Trapped_Args *args, void *pr_ctxt);
++extern u32 cmmwrap_get_info(union Trapped_Args *args, void *pr_ctxt);
++
++
++#endif /* DSPAPI_ */
+diff --git a/drivers/dsp/bridge/pmgr/dspapi.c b/drivers/dsp/bridge/pmgr/dspapi.c
+index 1ac7e78..2274e21 100644
+--- a/drivers/dsp/bridge/pmgr/dspapi.c
++++ b/drivers/dsp/bridge/pmgr/dspapi.c
+@@ -53,7 +53,7 @@
+ #include <dspbridge/io.h>
+ 
+ /*  ----------------------------------- This */
+-#include <dspbridge/_dcd.h>
++#include <dspbridge/dspapi.h>
+ #include <dspbridge/dbdcd.h>
+ 
+ #include <dspbridge/resourcecleanup.h>
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 70e1a3a..bf1e562 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -46,7 +46,7 @@
+ 
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/dspapi-ioctl.h>
+-#include <dspbridge/_dcd.h>
++#include <dspbridge/dspapi.h>
+ #include <dspbridge/dspdrv.h>
+ 
+ /*  ----------------------------------- Resource Manager */
+diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
+index 175582a..cbdfa73 100644
+--- a/drivers/dsp/bridge/rmgr/dspdrv.c
++++ b/drivers/dsp/bridge/rmgr/dspdrv.c
+@@ -34,7 +34,7 @@
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/drv.h>
+ #include <dspbridge/dev.h>
+-#include <dspbridge/_dcd.h>
++#include <dspbridge/dspapi.h>
+ 
+ /*  ----------------------------------- Resource Manager */
+ #include <dspbridge/mgr.h>
 -- 
 1.7.0.3
 
