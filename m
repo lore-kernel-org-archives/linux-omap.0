@@ -1,113 +1,181 @@
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 00/11] DSPBRIDGE: Remove code and comments refering to other OS
-Date: Fri, 30 Apr 2010 19:45:40 -0500
-Message-ID: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
+Subject: [PATCH 11/11] DSPBRIDGE: Rename header file guard macros that cointain WMD or WCD
+Date: Fri, 30 Apr 2010 19:45:51 -0500
+Message-ID: <1272674751-21557-12-git-send-email-ivan.gomez@ti.com>
+References: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56919 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757672Ab0EAAwz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 20:52:55 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:35608 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757980Ab0EAAwz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Apr 2010 20:52:55 -0400
+In-Reply-To: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
 
-As this code is generic to Linux, this patch series replaces code
-and comments thar refers to other OS.
+The patch "DSPBRIDGE: Rename files that refer to Windows OS", renamed
+header files, and this patch renames its include guard macros by the
+corresponding new header names.
 
-Ivan Gomez Castellanos (10):
-  DSPBRIDGE: Rename wmd_dev_context structure by bridge_dev_context
-  DSPBRIDGE: Rename the device context handle variables
-  DSPBRIDGE: Rename variables and structures which contain "wmd"
-  DSPBRIDGE: Rename functions which contain "wmd" and remove unused
-    prototypes
-  DSPBRIDGE: Replace code containing "WMD"
-  DSPBRIDGE: Replace code containing "wcd"
-  DSPBRIDGE: Rename "wmd" directory by "core"
-  DSPBRIDGE: Rename files that refer to Windows OS
-  DSPBRIDGE: Append the content of _dcd.h into dspapi.h
-  DSPBRIDGE: Rename header file guard macros that cointain WMD or WCD
+Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
+---
+ .../arm/plat-omap/include/dspbridge/dspapi-ioctl.h |    6 +++---
+ arch/arm/plat-omap/include/dspbridge/dspchnl.h     |    6 +++---
+ arch/arm/plat-omap/include/dspbridge/dspdefs.h     |    6 +++---
+ arch/arm/plat-omap/include/dspbridge/dspdeh.h      |    6 +++---
+ arch/arm/plat-omap/include/dspbridge/dspio.h       |    6 +++---
+ arch/arm/plat-omap/include/dspbridge/dspioctl.h    |    6 +++---
+ arch/arm/plat-omap/include/dspbridge/dspmsg.h      |    6 +++---
+ 7 files changed, 21 insertions(+), 21 deletions(-)
 
-Omar Ramirez Luna (1):
-  DSPBRIDGE: Remove OS specific comments
-
- arch/arm/plat-omap/include/dspbridge/_chnl_sm.h    |    4 +-
- arch/arm/plat-omap/include/dspbridge/cfg.h         |   23 ---
- arch/arm/plat-omap/include/dspbridge/dev.h         |   49 +++---
- arch/arm/plat-omap/include/dspbridge/devdefs.h     |    2 +-
- arch/arm/plat-omap/include/dspbridge/drvdefs.h     |    2 +-
- .../dspbridge/{wcdioctl.h => dspapi-ioctl.h}       |    8 +-
- .../include/dspbridge/{_dcd.h => dspapi.h}         |   61 ++++---
- .../include/dspbridge/{wmdchnl.h => dspchnl.h}     |   10 +-
- .../include/dspbridge/{wmd.h => dspdefs.h}         |   50 +++---
- .../include/dspbridge/{wmddeh.h => dspdeh.h}       |   10 +-
- .../include/dspbridge/{wmdio.h => dspio.h}         |   10 +-
- .../include/dspbridge/{wmdioctl.h => dspioctl.h}   |   48 +++---
- .../include/dspbridge/{wmdmsg.h => dspmsg.h}       |   10 +-
- arch/arm/plat-omap/include/dspbridge/errbase.h     |   12 +-
- arch/arm/plat-omap/include/dspbridge/io_sm.h       |   16 +-
- arch/arm/plat-omap/include/dspbridge/mgr.h         |    2 +-
- arch/arm/plat-omap/include/dspbridge/wcd.h         |   36 ----
- drivers/dsp/bridge/Makefile                        |   12 +-
- drivers/dsp/bridge/{wmd => core}/_cmm.h            |    0
- drivers/dsp/bridge/{wmd => core}/_deh.h            |    5 +-
- drivers/dsp/bridge/{wmd => core}/_msg_sm.h         |    0
- drivers/dsp/bridge/{wmd => core}/_tiomap.h         |   18 +--
- drivers/dsp/bridge/{wmd => core}/_tiomap_mmu.h     |    2 +-
- drivers/dsp/bridge/{wmd => core}/_tiomap_pwr.h     |   26 ++--
- drivers/dsp/bridge/{wmd => core}/_tiomap_util.h    |    2 +-
- drivers/dsp/bridge/{wmd => core}/chnl_sm.c         |   14 +-
- drivers/dsp/bridge/{wmd => core}/io_sm.c           |  164 +++++++++---------
- drivers/dsp/bridge/{wmd => core}/mmu_fault.c       |   10 +-
- drivers/dsp/bridge/{wmd => core}/mmu_fault.h       |    0
- drivers/dsp/bridge/{wmd => core}/msg_sm.c          |    2 +-
- drivers/dsp/bridge/{wmd => core}/tiomap3430.c      |  185 ++++++++++----------
- drivers/dsp/bridge/{wmd => core}/tiomap3430_pwr.c  |   25 ++--
- drivers/dsp/bridge/{wmd => core}/tiomap_io.c       |   10 +-
- drivers/dsp/bridge/{wmd => core}/tiomap_io.h       |   12 +-
- drivers/dsp/bridge/{wmd => core}/ue_deh.c          |   22 ++--
- drivers/dsp/bridge/{wmd => core}/wdt.c             |    2 +-
- drivers/dsp/bridge/pmgr/chnlobj.h                  |    2 +-
- drivers/dsp/bridge/pmgr/dev.c                      |   90 +++++-----
- drivers/dsp/bridge/pmgr/{wcd.c => dspapi.c}        |   64 ++++----
- drivers/dsp/bridge/pmgr/ioobj.h                    |    5 +-
- drivers/dsp/bridge/pmgr/msg.c                      |    2 +-
- drivers/dsp/bridge/pmgr/msgobj.h                   |    2 +-
- drivers/dsp/bridge/rmgr/disp.c                     |    2 +-
- drivers/dsp/bridge/rmgr/drv.c                      |    6 +-
- drivers/dsp/bridge/rmgr/drv_interface.c            |    6 +-
- drivers/dsp/bridge/rmgr/dspdrv.c                   |   16 +-
- drivers/dsp/bridge/rmgr/node.c                     |   25 ++--
- drivers/dsp/bridge/rmgr/proc.c                     |   50 +++---
- drivers/dsp/bridge/rmgr/pwr.c                      |   36 ++--
- drivers/dsp/bridge/rmgr/strm.c                     |    2 +-
- 50 files changed, 565 insertions(+), 607 deletions(-)
- rename arch/arm/plat-omap/include/dspbridge/{wcdioctl.h => dspapi-ioctl.h} (99%)
- rename arch/arm/plat-omap/include/dspbridge/{_dcd.h => dspapi.h} (78%)
- rename arch/arm/plat-omap/include/dspbridge/{wmdchnl.h => dspchnl.h} (94%)
- rename arch/arm/plat-omap/include/dspbridge/{wmd.h => dspdefs.h} (96%)
- rename arch/arm/plat-omap/include/dspbridge/{wmddeh.h => dspdeh.h} (94%)
- rename arch/arm/plat-omap/include/dspbridge/{wmdio.h => dspio.h} (91%)
- rename arch/arm/plat-omap/include/dspbridge/{wmdioctl.h => dspioctl.h} (54%)
- rename arch/arm/plat-omap/include/dspbridge/{wmdmsg.h => dspmsg.h} (93%)
- delete mode 100644 arch/arm/plat-omap/include/dspbridge/wcd.h
- rename drivers/dsp/bridge/{wmd => core}/_cmm.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/_deh.h (89%)
- rename drivers/dsp/bridge/{wmd => core}/_msg_sm.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/_tiomap.h (95%)
- rename drivers/dsp/bridge/{wmd => core}/_tiomap_mmu.h (94%)
- rename drivers/dsp/bridge/{wmd => core}/_tiomap_pwr.h (70%)
- rename drivers/dsp/bridge/{wmd => core}/_tiomap_util.h (94%)
- rename drivers/dsp/bridge/{wmd => core}/chnl_sm.c (99%)
- rename drivers/dsp/bridge/{wmd => core}/io_sm.c (92%)
- rename drivers/dsp/bridge/{wmd => core}/mmu_fault.c (93%)
- rename drivers/dsp/bridge/{wmd => core}/mmu_fault.h (100%)
- rename drivers/dsp/bridge/{wmd => core}/msg_sm.c (99%)
- rename drivers/dsp/bridge/{wmd => core}/tiomap3430.c (91%)
- rename drivers/dsp/bridge/{wmd => core}/tiomap3430_pwr.c (96%)
- rename drivers/dsp/bridge/{wmd => core}/tiomap_io.c (97%)
- rename drivers/dsp/bridge/{wmd => core}/tiomap_io.h (88%)
- rename drivers/dsp/bridge/{wmd => core}/ue_deh.c (95%)
- rename drivers/dsp/bridge/{wmd => core}/wdt.c (99%)
- rename drivers/dsp/bridge/pmgr/{wcd.c => dspapi.c} (97%)
+diff --git a/arch/arm/plat-omap/include/dspbridge/dspapi-ioctl.h b/arch/arm/plat-omap/include/dspbridge/dspapi-ioctl.h
+index c214ea6..f6a146e 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dspapi-ioctl.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspapi-ioctl.h
+@@ -17,8 +17,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
+-#ifndef WCDIOCTL_
+-#define WCDIOCTL_
++#ifndef DSPAPIIOCTL_
++#define DSPAPIIOCTL_
+ 
+ #include <dspbridge/cmm.h>
+ #include <dspbridge/strmdefs.h>
+@@ -463,4 +463,4 @@ union Trapped_Args {
+ #define CMM_GETHANDLE		_IOR(DB, DB_IOC(DB_CMM, 2), unsigned long)
+ #define CMM_GETINFO		_IOR(DB, DB_IOC(DB_CMM, 3), unsigned long)
+ 
+-#endif /* WCDIOCTL_ */
++#endif /* DSPAPIIOCTL_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dspchnl.h b/arch/arm/plat-omap/include/dspbridge/dspchnl.h
+index 3c6f29d..acb0691 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dspchnl.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspchnl.h
+@@ -21,8 +21,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
+-#ifndef WMDCHNL_
+-#define WMDCHNL_
++#ifndef DSPCHNL_
++#define DSPCHNL_
+ 
+ extern dsp_status bridge_chnl_create(OUT struct chnl_mgr **phChnlMgr,
+ 				     struct dev_object *hdev_obj,
+@@ -69,4 +69,4 @@ extern dsp_status bridge_chnl_register_notify(struct chnl_object *chnl_obj,
+ 					   struct dsp_notification
+ 					   *hnotification);
+ 
+-#endif /* WMDCHNL_ */
++#endif /* DSPCHNL_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dspdefs.h b/arch/arm/plat-omap/include/dspbridge/dspdefs.h
+index 26a9988..b25f4b2 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dspdefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspdefs.h
+@@ -26,8 +26,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
+-#ifndef WMD_
+-#define WMD_
++#ifndef DSPDEFS_
++#define DSPDEFS_
+ 
+ #include <dspbridge/brddefs.h>
+ #include <dspbridge/cfgdefs.h>
+@@ -1132,4 +1132,4 @@ struct bridge_drv_interface {
+ void bridge_drv_entry(OUT struct bridge_drv_interface **ppDrvInterface,
+ 		   IN CONST char *driver_file_name);
+ 
+-#endif /* WMD_ */
++#endif /* DSPDEFS_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dspdeh.h b/arch/arm/plat-omap/include/dspbridge/dspdeh.h
+index f6a747f..81d3459 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dspdeh.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspdeh.h
+@@ -20,8 +20,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
+-#ifndef WMDDEH_
+-#define WMDDEH_
++#ifndef DSPDEH_
++#define DSPDEH_
+ 
+ #include <dspbridge/devdefs.h>
+ 
+@@ -45,4 +45,4 @@ extern void bridge_deh_notify(struct deh_mgr *hdeh_mgr,
+ 			      u32 ulEventMask, u32 dwErrInfo);
+ 
+ extern void bridge_deh_release_dummy_mem(void);
+-#endif /* WMDDEH_ */
++#endif /* DSPDEH_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dspio.h b/arch/arm/plat-omap/include/dspbridge/dspio.h
+index b010d2a..a826d9d 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dspio.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspio.h
+@@ -20,8 +20,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
+-#ifndef WMDIO_
+-#define WMDIO_
++#ifndef DSPIO_
++#define DSPIO_
+ 
+ #include <dspbridge/devdefs.h>
+ #include <dspbridge/iodefs.h>
+@@ -38,4 +38,4 @@ extern dsp_status iva_io_on_loaded(struct io_mgr *hio_mgr);
+ extern dsp_status bridge_io_get_proc_load(IN struct io_mgr *hio_mgr,
+ 				       OUT struct dsp_procloadstat *pProcStat);
+ 
+-#endif /* WMDIO_ */
++#endif /* DSPIO_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dspioctl.h b/arch/arm/plat-omap/include/dspbridge/dspioctl.h
+index 3f7a787..380fff5 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dspioctl.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspioctl.h
+@@ -16,8 +16,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
+-#ifndef WMDIOCTL_
+-#define WMDIOCTL_
++#ifndef DSPIOCTL_
++#define DSPIOCTL_
+ 
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+@@ -70,4 +70,4 @@ struct bridge_ioctl_extproc {
+ 	enum hw_element_size_t elem_size;
+ };
+ 
+-#endif /* WMDIOCTL_ */
++#endif /* DSPIOCTL_ */
+diff --git a/arch/arm/plat-omap/include/dspbridge/dspmsg.h b/arch/arm/plat-omap/include/dspbridge/dspmsg.h
+index 86db728..e1acf90 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dspmsg.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspmsg.h
+@@ -21,8 +21,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
+-#ifndef WMDMSG_
+-#define WMDMSG_
++#ifndef DSPMSG_
++#define DSPMSG_
+ 
+ #include <dspbridge/msgdefs.h>
+ 
+@@ -52,4 +52,4 @@ extern dsp_status bridge_msg_register_notify(struct msg_queue *msg_queue_obj,
+ 
+ extern void bridge_msg_set_queue_id(struct msg_queue *msg_queue_obj, u32 msgq_id);
+ 
+-#endif /* WMDMSG_ */
++#endif /* DSPMSG_ */
+-- 
+1.7.0.3
 
