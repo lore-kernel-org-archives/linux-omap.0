@@ -1,60 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 06/11] omap4: Fix omap_l2_cache_init not to run for
- other omaps
-Date: Sat, 1 May 2010 10:46:56 -0700
-Message-ID: <20100501174656.GN29604@atomide.com>
-References: <20100430202603.25812.41834.stgit@baageli.muru.com>
- <20100430203359.25812.56284.stgit@baageli.muru.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5217DFB@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [CBUS PATCH 1/2] cbus: fix compilation with current mainline
+Date: Sat,  1 May 2010 21:01:09 +0300
+Message-ID: <1272736870-5216-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59493 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751700Ab0EARrF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 13:47:05 -0400
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5217DFB@dbde02.ent.ti.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:44213 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751396Ab0EASA4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 14:00:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <me@felipebalbi.com>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100430 23:13]:
-> Tony,
-> 
-> > -----Original Message-----
-> > From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-arm-kernel-
-> > bounces@lists.infradead.org] On Behalf Of Tony Lindgren
-> > Sent: Saturday, May 01, 2010 2:04 AM
-> > To: linux-arm-kernel@lists.infradead.org
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: [PATCH 06/11] omap4: Fix omap_l2_cache_init not to run for other omaps
-> > 
-> > In multi-omap configuration all the initcalls run. To avoid
-> > bad things from happening with 44xx specific initcalls on
-> > other omaps, we need to check that the booted system is
-> > omap4 before running.
-> > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  arch/arm/mach-omap2/board-4430sdp.c |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> > index b88f28c..e603b00 100644
-> > --- a/arch/arm/mach-omap2/board-4430sdp.c
-> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> > @@ -55,6 +55,9 @@ static int __init omap_l2_cache_init(void)
-> >  	extern void omap_smc1(u32 fn, u32 arg);
-> >  	void __iomem *l2cache_base;
-> > 
-> > +	if (!cpu_is_omap44xx())
-> > +		return -ENODEV;
-> > +
-> 
-> This check is already present just 3 lines below.
+From: Felipe Balbi <me@felipebalbi.com>
 
-Oops. Thanks for pointing that out, dropping this patch.
+commit 5a0e3ad6af8660be21ca98a971cd00f331318c05 broke
+compilation of the retu-pwrbutton driver when it dropped
+implicit inclusion of slab.h and gfp.h.
 
-Tony
+Fix it by including slab.h on retu-pwrbutton.c, while at
+that, also include slab.h on retu-rtc.c to avoid later
+problems with implicit inclusion of that being dropped.
+
+Compile tested with n770_defconfig and n8x0_defconfig
+
+Signed-off-by: Felipe Balbi <me@felipebalbi.com>
+---
+ drivers/cbus/retu-pwrbutton.c |    1 +
+ drivers/cbus/retu-rtc.c       |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/cbus/retu-pwrbutton.c b/drivers/cbus/retu-pwrbutton.c
+index 2d8cf40..f0cd056 100644
+--- a/drivers/cbus/retu-pwrbutton.c
++++ b/drivers/cbus/retu-pwrbutton.c
+@@ -34,6 +34,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/bitops.h>
+ #include <linux/platform_device.h>
++#include <linux/slab.h>
+ 
+ #include "retu.h"
+ 
+diff --git a/drivers/cbus/retu-rtc.c b/drivers/cbus/retu-rtc.c
+index b0a0f3d..b3974e2 100644
+--- a/drivers/cbus/retu-rtc.c
++++ b/drivers/cbus/retu-rtc.c
+@@ -36,6 +36,7 @@
+ #include <linux/device.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
++#include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/completion.h>
+ #include <linux/platform_device.h>
+-- 
+1.7.1.rc2.7.g3e7f1
+
