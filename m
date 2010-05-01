@@ -1,484 +1,170 @@
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 06/11] DSPBRIDGE: Replace code containing "wcd"
-Date: Fri, 30 Apr 2010 19:45:46 -0500
-Message-ID: <1272674751-21557-7-git-send-email-ivan.gomez@ti.com>
+Subject: [PATCH 07/11] DSPBRIDGE: Rename "wmd" directory by "core"
+Date: Fri, 30 Apr 2010 19:45:47 -0500
+Message-ID: <1272674751-21557-8-git-send-email-ivan.gomez@ti.com>
 References: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35602 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757374Ab0EAAwz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Apr 2010 20:52:55 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:56917 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757477Ab0EAAwz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 20:52:55 -0400
 In-Reply-To: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
 
-This patch gets rid of code refering to Windows OS. Since "wcd" means
-"windows class driver", it is changed to a name refering to Bridge API,
-because in Windows the wcd acts as an interface between the different
-layers of its driver model architecture.
-
-The following changes are done:
-
-wcd_call_dev_io_ctl ==> api_call_dev_ioctl
-wcd_exit ==> api_exit
-wcd_init ==> api_init
-wcd_init_complete2 ==> api_init_complete2
-wcd_cmd	==> api_cmd
-wcd_c_refs ==> api_c_refs
-dw_wcd_major_version ==> brd_api_major_version
-dw_wcd_minor_version ==> brd_api_minor_version
-WCD_MAJOR_VERSION ==> BRD_API_MAJOR_VERSION
-WCD_MINOR_VERSION ==> BRD_API_MINOR_VERSION
+Since "wmd" (windows mini driver) refers to Windows OS, then this
+directory is renamed by "core"
 
 Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/_dcd.h |   36 ++++++++--------
- arch/arm/plat-omap/include/dspbridge/dev.h  |    2 +-
- arch/arm/plat-omap/include/dspbridge/wcd.h  |    6 +-
- arch/arm/plat-omap/include/dspbridge/wmd.h  |    4 +-
- drivers/dsp/bridge/pmgr/dev.c               |   17 ++++----
- drivers/dsp/bridge/pmgr/wcd.c               |   58 +++++++++++++-------------
- drivers/dsp/bridge/rmgr/drv_interface.c     |    2 +-
- drivers/dsp/bridge/rmgr/dspdrv.c            |   14 +++---
- drivers/dsp/bridge/wmd/tiomap3430.c         |    6 +-
- 9 files changed, 73 insertions(+), 72 deletions(-)
+ drivers/dsp/bridge/Makefile                       |   10 +++++-----
+ drivers/dsp/bridge/{wmd => core}/_cmm.h           |    0
+ drivers/dsp/bridge/{wmd => core}/_deh.h           |    0
+ drivers/dsp/bridge/{wmd => core}/_msg_sm.h        |    0
+ drivers/dsp/bridge/{wmd => core}/_tiomap.h        |    0
+ drivers/dsp/bridge/{wmd => core}/_tiomap_mmu.h    |    0
+ drivers/dsp/bridge/{wmd => core}/_tiomap_pwr.h    |    0
+ drivers/dsp/bridge/{wmd => core}/_tiomap_util.h   |    0
+ drivers/dsp/bridge/{wmd => core}/chnl_sm.c        |    0
+ drivers/dsp/bridge/{wmd => core}/io_sm.c          |    0
+ drivers/dsp/bridge/{wmd => core}/mmu_fault.c      |    0
+ drivers/dsp/bridge/{wmd => core}/mmu_fault.h      |    0
+ drivers/dsp/bridge/{wmd => core}/msg_sm.c         |    0
+ drivers/dsp/bridge/{wmd => core}/tiomap3430.c     |    0
+ drivers/dsp/bridge/{wmd => core}/tiomap3430_pwr.c |    0
+ drivers/dsp/bridge/{wmd => core}/tiomap_io.c      |    0
+ drivers/dsp/bridge/{wmd => core}/tiomap_io.h      |    0
+ drivers/dsp/bridge/{wmd => core}/ue_deh.c         |    0
+ drivers/dsp/bridge/{wmd => core}/wdt.c            |    0
+ 19 files changed, 5 insertions(+), 5 deletions(-)
+ rename drivers/dsp/bridge/{wmd => core}/_cmm.h (100%)
+ rename drivers/dsp/bridge/{wmd => core}/_deh.h (100%)
+ rename drivers/dsp/bridge/{wmd => core}/_msg_sm.h (100%)
+ rename drivers/dsp/bridge/{wmd => core}/_tiomap.h (100%)
+ rename drivers/dsp/bridge/{wmd => core}/_tiomap_mmu.h (100%)
+ rename drivers/dsp/bridge/{wmd => core}/_tiomap_pwr.h (100%)
+ rename drivers/dsp/bridge/{wmd => core}/_tiomap_util.h (100%)
+ rename drivers/dsp/bridge/{wmd => core}/chnl_sm.c (100%)
+ rename drivers/dsp/bridge/{wmd => core}/io_sm.c (100%)
+ rename drivers/dsp/bridge/{wmd => core}/mmu_fault.c (100%)
+ rename drivers/dsp/bridge/{wmd => core}/mmu_fault.h (100%)
+ rename drivers/dsp/bridge/{wmd => core}/msg_sm.c (100%)
+ rename drivers/dsp/bridge/{wmd => core}/tiomap3430.c (100%)
+ rename drivers/dsp/bridge/{wmd => core}/tiomap3430_pwr.c (100%)
+ rename drivers/dsp/bridge/{wmd => core}/tiomap_io.c (100%)
+ rename drivers/dsp/bridge/{wmd => core}/tiomap_io.h (100%)
+ rename drivers/dsp/bridge/{wmd => core}/ue_deh.c (100%)
+ rename drivers/dsp/bridge/{wmd => core}/wdt.c (100%)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/_dcd.h b/arch/arm/plat-omap/include/dspbridge/_dcd.h
-index 1350feb..589cd42 100644
---- a/arch/arm/plat-omap/include/dspbridge/_dcd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/_dcd.h
-@@ -23,9 +23,9 @@
- #include <dspbridge/wcdioctl.h>
+diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
+index c6f2551..97e7ec1 100644
+--- a/drivers/dsp/bridge/Makefile
++++ b/drivers/dsp/bridge/Makefile
+@@ -5,9 +5,9 @@ libservices = services/sync.o \
+ 		services/clk.o services/cfg.o services/reg.o \
+                services/regsup.o services/ntfy.o \
+ 		services/services.o
+-libwmd = wmd/chnl_sm.o wmd/msg_sm.o wmd/io_sm.o wmd/tiomap3430.o \
+-		wmd/tiomap3430_pwr.o wmd/tiomap_io.o \
+-		wmd/mmu_fault.o wmd/ue_deh.o wmd/wdt.o
++libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
++		core/tiomap3430_pwr.o core/tiomap_io.o \
++		core/mmu_fault.o core/ue_deh.o core/wdt.o
+ libpmgr = pmgr/chnl.o pmgr/io.o pmgr/msg.o pmgr/cod.o pmgr/dev.o pmgr/wcd.o \
+ 		pmgr/dmm.o pmgr/cmm.o pmgr/dbll.o
+ librmgr = rmgr/dbdcd.o rmgr/disp.o rmgr/drv.o rmgr/mgr.o rmgr/node.o \
+@@ -17,7 +17,7 @@ libdload = dynload/cload.o dynload/getsection.o dynload/reloc.o \
+ 		 dynload/tramp.o
+ libhw = hw/hw_mmu.o
  
- /*
-- *  ======== wcd_call_dev_io_ctl ========
-+ *  ======== api_call_dev_ioctl ========
-  *  Purpose:
-- *      Call the (wrapper) function for the corresponding WCD IOCTL.
-+ *      Call the (wrapper) function for the corresponding API IOCTL.
-  *  Parameters:
-  *      cmd:        IOCTL id, base 0.
-  *      args:       Argument structure.
-@@ -36,28 +36,28 @@
-  *  Requires:
-  *  Ensures:
-  */
--extern dsp_status wcd_call_dev_io_ctl(unsigned int cmd,
-+extern dsp_status api_call_dev_ioctl(unsigned int cmd,
- 				      union Trapped_Args *args,
- 				      u32 *pResult, void *pr_ctxt);
+-bridgedriver-objs = $(libgen) $(libservices) $(libwmd) $(libpmgr) $(librmgr) \
++bridgedriver-objs = $(libgen) $(libservices) $(libcore) $(libpmgr) $(librmgr) \
+ 			$(libdload) $(libhw)
  
- /*
-- *  ======== wcd_init ========
-+ *  ======== api_init ========
-  *  Purpose:
-- *      Initialize WCD modules, and export WCD services to WMD's.
-- *      This procedure is called when the class driver is loaded.
-+ *      Initialize modules used by Bridge API.
-+ *      This procedure is called when the driver is loaded.
-  *  Parameters:
-  *  Returns:
-  *      TRUE if success; FALSE otherwise.
-  *  Requires:
-  *  Ensures:
-  */
--extern bool wcd_init(void);
-+extern bool api_init(void);
+ #Machine dependent
+@@ -27,7 +27,7 @@ ccflags-y += -D_TI_ -D_DB_TIOMAP -DTMS32060 \
  
- /*
-- *  ======== wcd_init_complete2 ========
-+ *  ======== api_init_complete2 ========
-  *  Purpose:
-- *      Perform any required WCD, and WMD initialization which
-- *      cannot not be performed in wcd_init(void) or dev_start_device() due
-+ *      Perform any required bridge initialization which cannot
-+ *      be performed in api_init() or dev_start_device() due
-  *      to the fact that some services are not yet
-  *      completely initialized.
-  *  Parameters:
-@@ -65,24 +65,24 @@ extern bool wcd_init(void);
-  *      DSP_SOK:        Allow this device to load
-  *      DSP_EFAIL:      Failure.
-  *  Requires:
-- *      WCD initialized.
-+ *      Bridge API initialized.
-  *  Ensures:
-  */
--extern dsp_status wcd_init_complete2(void);
-+extern dsp_status api_init_complete2(void);
- 
- /*
-- *  ======== wcd_exit ========
-+ *  ======== api_exit ========
-  *  Purpose:
-- *      Exit all modules initialized in wcd_init(void).
-- *      This procedure is called when the class driver is unloaded.
-+ *      Exit all modules initialized in api_init(void).
-+ *      This procedure is called when the driver is unloaded.
-  *  Parameters:
-  *  Returns:
-  *  Requires:
-- *      wcd_init(void) was previously called.
-+ *      api_init(void) was previously called.
-  *  Ensures:
-- *      Resources acquired in wcd_init(void) are freed.
-+ *      Resources acquired in api_init(void) are freed.
-  */
--extern void wcd_exit(void);
-+extern void api_exit(void);
- 
- /* MGR wrapper functions */
- extern u32 mgrwrap_enum_node_info(union Trapped_Args *args, void *pr_ctxt);
-diff --git a/arch/arm/plat-omap/include/dspbridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
-index c26e9d0..3ada31d 100644
---- a/arch/arm/plat-omap/include/dspbridge/dev.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dev.h
-@@ -152,7 +152,7 @@ extern dsp_status dev_create_iva_device(OUT struct dev_object
- /*
-  *  ======== dev_create2 ========
-  *  Purpose:
-- *      After successful loading of the image from wcd_init_complete2
-+ *      After successful loading of the image from api_init_complete2
-  *      (PROC Auto_Start) or proc_load this fxn is called. This creates
-  *      the Node Manager and updates the DEV Object.
-  *  Parameters:
-diff --git a/arch/arm/plat-omap/include/dspbridge/wcd.h b/arch/arm/plat-omap/include/dspbridge/wcd.h
-index f609627..1a68baa 100644
---- a/arch/arm/plat-omap/include/dspbridge/wcd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wcd.h
-@@ -29,8 +29,8 @@
- #ifndef WCD_
- #define WCD_
- 
--/* This WCD Library Version: */
--#define WCD_MAJOR_VERSION   (u32)8	/* .8x - Alpha, .9x - Beta, 1.x FCS */
--#define WCD_MINOR_VERSION   (u32)0
-+/* This BRD API Library Version: */
-+#define BRD_API_MAJOR_VERSION   (u32)8	/* .8x - Alpha, .9x - Beta, 1.x FCS */
-+#define BRD_API_MINOR_VERSION   (u32)0
- 
- #endif /* WCD_ */
-diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
-index cebc8c5..d861cdf 100644
---- a/arch/arm/plat-omap/include/dspbridge/wmd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
-@@ -1055,8 +1055,8 @@ typedef void (*fxn_msg_setqueueid) (struct msg_queue *msg_queue_obj,
-  *  the WMD_CHNL_* entries must be set to NULL.
-  */
- struct bridge_drv_interface {
--	u32 dw_wcd_major_version;	/* Set to WCD_MAJOR_VERSION. */
--	u32 dw_wcd_minor_version;	/* Set to WCD_MINOR_VERSION. */
-+	u32 brd_api_major_version;	/* Set to BRD_API_MAJOR_VERSION. */
-+	u32 brd_api_minor_version;	/* Set to BRD_API_MINOR_VERSION. */
- 	fxn_dev_create pfn_dev_create;	/* Create device context */
- 	fxn_dev_destroy pfn_dev_destroy;	/* Destroy device context */
- 	fxn_dev_ctrl pfn_dev_cntrl;	/* Optional vendor interface */
-diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
-index e1ebb5d..f94eebc 100644
---- a/drivers/dsp/bridge/pmgr/dev.c
-+++ b/drivers/dsp/bridge/pmgr/dev.c
-@@ -56,7 +56,8 @@
- /*  ----------------------------------- Defines, Data Structures, Typedefs */
- 
- #define MAKEVERSION(major, minor)   (major * 10 + minor)
--#define WCDVERSION          MAKEVERSION(WCD_MAJOR_VERSION, WCD_MINOR_VERSION)
-+#define BRD_API_VERSION		MAKEVERSION(BRD_API_MAJOR_VERSION,	\
-+				BRD_API_MINOR_VERSION)
- 
- /* The WMD device object: */
- struct dev_object {
-@@ -277,7 +278,7 @@ dsp_status dev_create_device(OUT struct dev_object **phDevObject,
- /*
-  *  ======== dev_create2 ========
-  *  Purpose:
-- *      After successful loading of the image from wcd_init_complete2
-+ *      After successful loading of the image from api_init_complete2
-  *      (PROC Auto_Start) or proc_load this fxn is called. This creates
-  *      the Node Manager and updates the DEV Object.
-  */
-@@ -1089,12 +1090,12 @@ static void store_interface_fxns(struct bridge_drv_interface *drv_fxns,
- 
- 	DBC_REQUIRE(intf_fxns != NULL);
- 	DBC_REQUIRE(drv_fxns != NULL);
--	DBC_REQUIRE(MAKEVERSION(drv_fxns->dw_wcd_major_version,
--				drv_fxns->dw_wcd_minor_version) <= WCDVERSION);
--	version = MAKEVERSION(drv_fxns->dw_wcd_major_version,
--				     drv_fxns->dw_wcd_minor_version);
--	intf_fxns->dw_wcd_major_version = drv_fxns->dw_wcd_major_version;
--	intf_fxns->dw_wcd_minor_version = drv_fxns->dw_wcd_minor_version;
-+	DBC_REQUIRE(MAKEVERSION(drv_fxns->brd_api_major_version,
-+			drv_fxns->brd_api_minor_version) <= BRD_API_VERSION);
-+	version = MAKEVERSION(drv_fxns->brd_api_major_version,
-+				     drv_fxns->brd_api_minor_version);
-+	intf_fxns->brd_api_major_version = drv_fxns->brd_api_major_version;
-+	intf_fxns->brd_api_minor_version = drv_fxns->brd_api_minor_version;
- 	/* Install functions up to WCD version .80 (first alpha): */
- 	if (version > 0) {
- 		STORE_FXN(fxn_dev_create, pfn_dev_create);
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 9f734ab..a63ae8f 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -69,13 +69,13 @@
- #define DB_GET_IOC_TABLE(cmd)	(DB_GET_MODULE(cmd) >> DB_MODULE_SHIFT)
- 
- /* Device IOCtl function pointer */
--struct wcd_cmd {
-+struct api_cmd {
- 	u32(*fxn) (union Trapped_Args *args, void *pr_ctxt);
- 	u32 dw_index;
- };
- 
- /*  ----------------------------------- Globals */
--static u32 wcd_c_refs;
-+static u32 api_c_refs;
- 
- /*
-  *  Function tables.
-@@ -85,7 +85,7 @@ static u32 wcd_c_refs;
-  */
- 
- /* MGR wrapper functions */
--static struct wcd_cmd mgr_cmd[] = {
-+static struct api_cmd mgr_cmd[] = {
- 	{mgrwrap_enum_node_info},	/* MGR_ENUMNODE_INFO */
- 	{mgrwrap_enum_proc_info},	/* MGR_ENUMPROC_INFO */
- 	{mgrwrap_register_object},	/* MGR_REGISTEROBJECT */
-@@ -95,7 +95,7 @@ static struct wcd_cmd mgr_cmd[] = {
- };
- 
- /* PROC wrapper functions */
--static struct wcd_cmd proc_cmd[] = {
-+static struct api_cmd proc_cmd[] = {
- 	{procwrap_attach},	/* PROC_ATTACH */
- 	{procwrap_ctrl},	/* PROC_CTRL */
- 	{procwrap_detach},	/* PROC_DETACH */
-@@ -116,7 +116,7 @@ static struct wcd_cmd proc_cmd[] = {
- };
- 
- /* NODE wrapper functions */
--static struct wcd_cmd node_cmd[] = {
-+static struct api_cmd node_cmd[] = {
- 	{nodewrap_allocate},	/* NODE_ALLOCATE */
- 	{nodewrap_alloc_msg_buf},	/* NODE_ALLOCMSGBUF */
- 	{nodewrap_change_priority},	/* NODE_CHANGEPRIORITY */
-@@ -135,7 +135,7 @@ static struct wcd_cmd node_cmd[] = {
- };
- 
- /* STRM wrapper functions */
--static struct wcd_cmd strm_cmd[] = {
-+static struct api_cmd strm_cmd[] = {
- 	{strmwrap_allocate_buffer},	/* STRM_ALLOCATEBUFFER */
- 	{strmwrap_close},	/* STRM_CLOSE */
- 	{strmwrap_free_buffer},	/* STRM_FREEBUFFER */
-@@ -150,7 +150,7 @@ static struct wcd_cmd strm_cmd[] = {
- };
- 
- /* CMM wrapper functions */
--static struct wcd_cmd cmm_cmd[] = {
-+static struct api_cmd cmm_cmd[] = {
- 	{cmmwrap_calloc_buf},	/* CMM_ALLOCBUF */
- 	{cmmwrap_free_buf},	/* CMM_FREEBUF */
- 	{cmmwrap_get_handle},	/* CMM_GETHANDLE */
-@@ -203,11 +203,11 @@ static inline void _cp_to_usr(void __user *to, const void *from,
- 	_cp_to_usr(to, from, &(err), (n) * sizeof(*(from)))
- 
- /*
-- *  ======== wcd_call_dev_io_ctl ========
-+ *  ======== api_call_dev_ioctl ========
-  *  Purpose:
-- *      Call the (wrapper) function for the corresponding WCD IOCTL.
-+ *      Call the (wrapper) function for the corresponding API IOCTL.
-  */
--inline dsp_status wcd_call_dev_io_ctl(u32 cmd, union Trapped_Args *args,
-+inline dsp_status api_call_dev_ioctl(u32 cmd, union Trapped_Args *args,
- 				      u32 *result, void *pr_ctxt)
- {
- 	u32(*ioctl_cmd) (union Trapped_Args *args, void *pr_ctxt) = NULL;
-@@ -263,15 +263,15 @@ err:
- }
- 
- /*
-- *  ======== wcd_exit ========
-+ *  ======== api_exit ========
-  */
--void wcd_exit(void)
-+void api_exit(void)
- {
--	DBC_REQUIRE(wcd_c_refs > 0);
--	wcd_c_refs--;
-+	DBC_REQUIRE(api_c_refs > 0);
-+	api_c_refs--;
- 
--	if (wcd_c_refs == 0) {
--		/* Release all WCD modules initialized in wcd_init(). */
-+	if (api_c_refs == 0) {
-+		/* Release all modules initialized in api_init(). */
- 		cod_exit();
- 		dev_exit();
- 		chnl_exit();
-@@ -285,22 +285,22 @@ void wcd_exit(void)
- 		rmm_exit();
- 		drv_exit();
- 	}
--	DBC_ENSURE(wcd_c_refs >= 0);
-+	DBC_ENSURE(api_c_refs >= 0);
- }
- 
- /*
-- *  ======== wcd_init ========
-+ *  ======== api_init ========
-  *  Purpose:
-- *      Module initialization is done by SERVICES Init.
-+ *      Module initialization used by Bridge API.
-  */
--bool wcd_init(void)
-+bool api_init(void)
- {
- 	bool ret = true;
- 	bool fdrv, fdev, fcod, fchnl, fmsg, fio;
- 	bool fmgr, fproc, fnode, fdisp, fstrm, frmm;
- 
--	if (wcd_c_refs == 0) {
--		/* initialize class driver and other modules */
-+	if (api_c_refs == 0) {
-+		/* initialize driver and other modules */
- 		fdrv = drv_init();
- 		fmgr = mgr_init();
- 		fproc = proc_init();
-@@ -355,16 +355,16 @@ bool wcd_init(void)
- 		}
- 	}
- 	if (ret)
--		wcd_c_refs++;
-+		api_c_refs++;
- 
- 	return ret;
- }
- 
- /*
-- *  ======== wcd_init_complete2 ========
-+ *  ======== api_init_complete2 ========
-  *  Purpose:
-- *      Perform any required WCD, and WMD initialization which
-- *      cannot not be performed in wcd_init() or dev_start_device() due
-+ *      Perform any required bridge initialization which cannot
-+ *      be performed in api_init() or dev_start_device() due
-  *      to the fact that some services are not yet
-  *      completely initialized.
-  *  Parameters:
-@@ -372,17 +372,17 @@ bool wcd_init(void)
-  *      DSP_SOK:	Allow this device to load
-  *      DSP_EFAIL:      Failure.
-  *  Requires:
-- *      WCD initialized.
-+ *      Bridge API initialized.
-  *  Ensures:
-  */
--dsp_status wcd_init_complete2(void)
-+dsp_status api_init_complete2(void)
- {
- 	dsp_status status = DSP_SOK;
- 	struct cfg_devnode *dev_node;
- 	struct dev_object *hdev_obj;
- 	u32 dev_type, tmp;
- 
--	DBC_REQUIRE(wcd_c_refs > 0);
-+	DBC_REQUIRE(api_c_refs > 0);
- 
- 	/*  Walk the list of DevObjects, get each devnode, and attempting to
- 	 *  autostart the board. Note that this requires COF loading, which
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index f53e02d..dd2fe8b 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -562,7 +562,7 @@ static long bridge_ioctl(struct file *filp, unsigned int code,
- 				sizeof(union Trapped_Args));
- 
- 	if (!status) {
--		status = wcd_call_dev_io_ctl(code, &buf_in, &retval,
-+		status = api_call_dev_ioctl(code, &buf_in, &retval,
- 					     filp->private_data);
- 
- 		if (DSP_SUCCEEDED(status)) {
-diff --git a/drivers/dsp/bridge/rmgr/dspdrv.c b/drivers/dsp/bridge/rmgr/dspdrv.c
-index 94f7605..175582a 100644
---- a/drivers/dsp/bridge/rmgr/dspdrv.c
-+++ b/drivers/dsp/bridge/rmgr/dspdrv.c
-@@ -54,12 +54,12 @@ u32 dsp_init(OUT u32 *init_status)
- 	u32 device_node;
- 	u32 device_node_string;
- 
--	if (!wcd_init())
-+	if (!api_init())
- 		goto func_cont;
- 
- 	status = drv_create(&drv_obj);
- 	if (DSP_FAILED(status)) {
--		wcd_exit();
-+		api_exit();
- 		goto func_cont;
- 	}
- 
-@@ -83,7 +83,7 @@ u32 dsp_init(OUT u32 *init_status)
- 		/* irrespective of the status of dev_remove_device we conitinue
- 		 * unloading. Get the Driver Object iterate through and remove.
- 		 * Reset the status to E_FAIL to avoid going through
--		 * wcd_init_complete2. */
-+		 * api_init_complete2. */
- 		for (device_node = drv_get_first_dev_extension();
- 		     device_node != 0;
- 		     device_node = drv_get_next_dev_extension(device_node)) {
-@@ -94,7 +94,7 @@ u32 dsp_init(OUT u32 *init_status)
- 		/* Remove the Driver Object */
- 		(void)drv_destroy(drv_obj);
- 		drv_obj = NULL;
--		wcd_exit();
-+		api_exit();
- 		dev_dbg(bridge, "%s: Logical device failed init\n", __func__);
- 	}			/* Unwinding the loaded drivers */
- func_cont:
-@@ -103,10 +103,10 @@ func_cont:
- 		/* BRD_AutoStart could fail if the dsp execuetable is not the
- 		 * correct one. We should not propagate that error
- 		 * into the device loader. */
--		(void)wcd_init_complete2();
-+		(void)api_init_complete2();
- 	} else {
- 		dev_dbg(bridge, "%s: Failed\n", __func__);
--	}			/* End wcd_init_complete2 */
-+	}			/* End api_init_complete2 */
- 	DBC_ENSURE((DSP_SUCCEEDED(status) && drv_obj != NULL) ||
- 		   (DSP_FAILED(status) && drv_obj == NULL));
- 	*init_status = status;
-@@ -138,7 +138,7 @@ bool dsp_deinit(u32 deviceContext)
- 	if (DSP_SUCCEEDED(cfg_get_object((u32 *) &mgr_obj, REG_MGR_OBJECT)))
- 		(void)mgr_destroy(mgr_obj);
- 
--	wcd_exit();
-+	api_exit();
- 
- 	return ret;
- }
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index d01cd63..d2c4691 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -171,9 +171,9 @@ extern s32 dsp_debug;
-  *  This mini driver's function interface table.
-  */
- static struct bridge_drv_interface drv_interface_fxns = {
--	/* WCD ver. for which this mini driver is built. */
--	WCD_MAJOR_VERSION,
--	WCD_MINOR_VERSION,
-+	/* Bridge API ver. for which this bridge driver is built. */
-+	BRD_API_MAJOR_VERSION,
-+	BRD_API_MINOR_VERSION,
- 	bridge_dev_create,
- 	bridge_dev_destroy,
- 	bridge_dev_ctrl,
+ #Header files
+ ccflags-y += -Idrivers/dsp/bridge/services
+-ccflags-y += -Idrivers/dsp/bridge/wmd
++ccflags-y += -Idrivers/dsp/bridge/core
+ ccflags-y += -Idrivers/dsp/bridge/pmgr
+ ccflags-y += -Idrivers/dsp/bridge/rmgr
+ ccflags-y += -Idrivers/dsp/bridge/hw
+diff --git a/drivers/dsp/bridge/wmd/_cmm.h b/drivers/dsp/bridge/core/_cmm.h
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/_cmm.h
+rename to drivers/dsp/bridge/core/_cmm.h
+diff --git a/drivers/dsp/bridge/wmd/_deh.h b/drivers/dsp/bridge/core/_deh.h
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/_deh.h
+rename to drivers/dsp/bridge/core/_deh.h
+diff --git a/drivers/dsp/bridge/wmd/_msg_sm.h b/drivers/dsp/bridge/core/_msg_sm.h
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/_msg_sm.h
+rename to drivers/dsp/bridge/core/_msg_sm.h
+diff --git a/drivers/dsp/bridge/wmd/_tiomap.h b/drivers/dsp/bridge/core/_tiomap.h
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/_tiomap.h
+rename to drivers/dsp/bridge/core/_tiomap.h
+diff --git a/drivers/dsp/bridge/wmd/_tiomap_mmu.h b/drivers/dsp/bridge/core/_tiomap_mmu.h
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/_tiomap_mmu.h
+rename to drivers/dsp/bridge/core/_tiomap_mmu.h
+diff --git a/drivers/dsp/bridge/wmd/_tiomap_pwr.h b/drivers/dsp/bridge/core/_tiomap_pwr.h
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/_tiomap_pwr.h
+rename to drivers/dsp/bridge/core/_tiomap_pwr.h
+diff --git a/drivers/dsp/bridge/wmd/_tiomap_util.h b/drivers/dsp/bridge/core/_tiomap_util.h
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/_tiomap_util.h
+rename to drivers/dsp/bridge/core/_tiomap_util.h
+diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/core/chnl_sm.c
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/chnl_sm.c
+rename to drivers/dsp/bridge/core/chnl_sm.c
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/core/io_sm.c
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/io_sm.c
+rename to drivers/dsp/bridge/core/io_sm.c
+diff --git a/drivers/dsp/bridge/wmd/mmu_fault.c b/drivers/dsp/bridge/core/mmu_fault.c
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/mmu_fault.c
+rename to drivers/dsp/bridge/core/mmu_fault.c
+diff --git a/drivers/dsp/bridge/wmd/mmu_fault.h b/drivers/dsp/bridge/core/mmu_fault.h
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/mmu_fault.h
+rename to drivers/dsp/bridge/core/mmu_fault.h
+diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/core/msg_sm.c
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/msg_sm.c
+rename to drivers/dsp/bridge/core/msg_sm.c
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/tiomap3430.c
+rename to drivers/dsp/bridge/core/tiomap3430.c
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/core/tiomap3430_pwr.c
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+rename to drivers/dsp/bridge/core/tiomap3430_pwr.c
+diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/core/tiomap_io.c
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/tiomap_io.c
+rename to drivers/dsp/bridge/core/tiomap_io.c
+diff --git a/drivers/dsp/bridge/wmd/tiomap_io.h b/drivers/dsp/bridge/core/tiomap_io.h
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/tiomap_io.h
+rename to drivers/dsp/bridge/core/tiomap_io.h
+diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/core/ue_deh.c
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/ue_deh.c
+rename to drivers/dsp/bridge/core/ue_deh.c
+diff --git a/drivers/dsp/bridge/wmd/wdt.c b/drivers/dsp/bridge/core/wdt.c
+similarity index 100%
+rename from drivers/dsp/bridge/wmd/wdt.c
+rename to drivers/dsp/bridge/core/wdt.c
 -- 
 1.7.0.3
 
