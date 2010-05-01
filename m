@@ -1,317 +1,285 @@
-From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 04/11] DSPBRIDGE: Rename functions which contain "wmd" and remove unused prototypes
-Date: Fri, 30 Apr 2010 19:45:44 -0500
-Message-ID: <1272674751-21557-5-git-send-email-ivan.gomez@ti.com>
-References: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
+Date: Fri, 30 Apr 2010 18:37:51 -0700
+Message-ID: <20100501013751.GL29604@atomide.com>
+References: <20100430202603.25812.41834.stgit@baageli.muru.com>
+ <20100430203349.25812.64659.stgit@baageli.muru.com>
+ <87sk6cirt0.fsf@deeprootsystems.com>
+ <20100430210216.GI29604@atomide.com>
+ <87vdb8hc2d.fsf@deeprootsystems.com>
+ <FCCFB4CDC6E5564B9182F639FC3560870304E80F5F@dbde02.ent.ti.com>
+ <87y6g4d2ic.fsf@deeprootsystems.com>
+ <20100430233002.GJ29604@atomide.com>
+ <87sk6c8osn.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="H8ygTp4AXg6deix2"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35606 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757698Ab0EAAwz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Apr 2010 20:52:55 -0400
-In-Reply-To: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57978 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756599Ab0EABh7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Apr 2010 21:37:59 -0400
+Content-Disposition: inline
+In-Reply-To: <87sk6c8osn.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pais, Allen" <allen.pais@ti.com>
 
-Since the "wmd" (windows mini driver) refers to Windows OS, the
-following functions are renamed:
 
-wmd_brd_delete ==> bridge_brd_delete
-dev_get_wmd_context ==> dev_get_bridge_context
+--H8ygTp4AXg6deix2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-And the folowing prototypes are removed because they are not used:
+* Kevin Hilman <khilman@deeprootsystems.com> [100430 17:05]:
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > * Kevin Hilman <khilman@deeprootsystems.com> [100430 14:56]:
+> >> "Pandita, Vikram" <vikram.pandita@ti.com> writes:
+> >> >
+> >> > So for Tony's approach to work, .phys_io/.io_pg_offset continued to
+> >> > have 0x4800000 based mapping and for external uart zoom3 port,
+> >> > create this extra mapping.
+> >> >
+> >> > So find a better way from compressed.S to pass the uart number to
+> >> > kernel, and we can solve the problem.
+> >> 
+> >> Ah, yet another reason to use a memory location instead of UART1 SCR
+> >> to pass the UART info (c.f. [1])
+> >
+> > That should work if we don't need to access any L4 registers
+> > early on before .map_io.
+> 
+> I'd say if we're accessing L4 regs before .map_io, it's a bug that
+> needs to be fixed, but I don't think we are.  If we were, we'd notice
+> a hang when !CONFIG_DEBUG_LL since the .phys_io and .io_pg_offst are
+> only mapped in when CONFIG_DEBUG_LL=y.
 
-cfg_get_wmd_file_name
-wmd_tlb_dsp_va_to_mpu_pa
+Yeah the current approach uses both, but only when CONFIG_DEBUG_LL=y
+as you noted.
+ 
+> I think we've been using .phys_io/.io_pg_offset incorrectly in OMAP as
+> an early mapping of all the IO space, when it is intended just for use
+> as early UART access, indicated by the comments in head.S and the
+> fact that it's only used when CONFIG_DEBUG_LL=y
 
-Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
----
- arch/arm/plat-omap/include/dspbridge/cfg.h |   23 -----------------------
- arch/arm/plat-omap/include/dspbridge/dev.h |    7 ++++---
- drivers/dsp/bridge/pmgr/dev.c              |    7 ++++---
- drivers/dsp/bridge/rmgr/node.c             |    4 ++--
- drivers/dsp/bridge/rmgr/proc.c             |    4 ++--
- drivers/dsp/bridge/rmgr/pwr.c              |    8 ++++----
- drivers/dsp/bridge/wmd/_tiomap.h           |   10 ----------
- drivers/dsp/bridge/wmd/chnl_sm.c           |    4 ++--
- drivers/dsp/bridge/wmd/io_sm.c             |    4 ++--
- drivers/dsp/bridge/wmd/tiomap3430.c        |    6 +++---
- drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
- 11 files changed, 24 insertions(+), 55 deletions(-)
+That's probably just a left over from when we could map L3 and L4 with
+one mapping..
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/cfg.h b/arch/arm/plat-omap/include/dspbridge/cfg.h
-index 80c8fde..e99d4b4 100644
---- a/arch/arm/plat-omap/include/dspbridge/cfg.h
-+++ b/arch/arm/plat-omap/include/dspbridge/cfg.h
-@@ -194,29 +194,6 @@ extern dsp_status cfg_get_object(OUT u32 *pdwValue, u32 dw_type);
- extern void cfg_get_perf_value(OUT bool *pfEnablePerf);
+Anyways, here's an experimental patch for using a memory address instead
+of UART1 for storing the debug port configuration in uncompress.h.
+
+So far only tested on n900, will give it a try also on zoom3 after
+updating the zoom3 related patch.
+
+Now the real question is: Is it safe to use the fixed memory address?
+
+#define OMAP_UART_INFO	(PHYS_OFFSET + 0x3ff8)
+
+Also, another thing that needs to be checked is what happens if nothing
+calls printk early and the debug port address configuration is not
+set early.. Needs to be tested by adding printascii call only later
+on.
+
+Regards,
+
+Tony
+
+--H8ygTp4AXg6deix2
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="omap-debug-ll-memory.patch"
+
+>From c957c9a19fb5b53c2cff4f3bc5c9481f9a4a99aa Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Fri, 30 Apr 2010 17:39:19 -0700
+Subject: [PATCH] omap: Use a memory address for storing the debug port info instead of UART1
+
+This removes the dependency to the UART1 being
+available for storing the debug configuration in
+uncompress.h.
+
+As suggested by Cyril Chemparathy <cyril@ti.com>,
+Vikram Pandita <vikram.pandita@ti.com> and
+Kevin Hilman <khilman@deeprootsystems.com>.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
+index b6d9584..e8a8cf3 100644
+--- a/arch/arm/mach-omap1/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
+@@ -13,6 +13,8 @@
+ 
+ #include <linux/serial_reg.h>
+ 
++#include <asm/memory.h>
++
+ #include <plat/serial.h>
+ 
+ 		.pushsection .data
+@@ -37,23 +39,12 @@ omap_uart_virt:	.word	0x0
+ 		cmp	\rx, #0			@ is port configured?
+ 		bne	99f			@ already configured
+ 
+-		/* Check 7XX UART1 scratchpad register for uart to use */
++		/* Check the debug UART configuration set in uncompress.h */
+ 		mrc	p15, 0, \rx, c1, c0
+ 		tst	\rx, #1			@ MMU enabled?
+-		moveq	\rx, #0xff000000	@ physical base address
+-		movne	\rx, #0xfe000000	@ virtual base
+-		orr	\rx, \rx, #0x00fb0000	@ OMAP1UART1
+-		ldrb	\rx, [\rx, #(UART_SCR << OMAP7XX_PORT_SHIFT)]
+-		cmp	\rx, #0			@ anything in 7XX scratchpad?
+-		bne	10f			@ found 7XX uart
+-
+-		/* Check 15xx/16xx UART1 scratchpad register for uart to use */
+-		mrc	p15, 0, \rx, c1, c0
+-		tst	\rx, #1			@ MMU enabled?
+-		moveq	\rx, #0xff000000	@ physical base address
+-		movne	\rx, #0xfe000000	@ virtual base
+-		orr	\rx, \rx, #0x00fb0000	@ OMAP1UART1
+-		ldrb	\rx, [\rx, #(UART_SCR << OMAP_PORT_SHIFT)]
++		ldreq	\rx, =OMAP_UART_INFO
++		ldrne	\rx, =__phys_to_virt(OMAP_UART_INFO)
++		ldr	\rx, [\rx, #0]
+ 
+ 		/* Select the UART to use based on the UART1 scratchpad value */
+ 10:		cmp	\rx, #0			@ no port configured?
+diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
+index 4a63a2e..4976169 100644
+--- a/arch/arm/mach-omap2/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
+@@ -13,6 +13,8 @@
+ 
+ #include <linux/serial_reg.h>
+ 
++#include <asm/memory.h>
++
+ #include <plat/serial.h>
+ 
+ #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
+@@ -40,13 +42,12 @@ omap_uart_lsr:	.word	0
+ 		cmp	\rx, #0			@ is port configured?
+ 		bne	99f			@ already configured
+ 
+-		/* Check UART1 scratchpad register for uart to use */
++		/* Check the debug UART configuration set in uncompress.h */
+ 		mrc	p15, 0, \rx, c1, c0
+ 		tst	\rx, #1			@ MMU enabled?
+-		moveq	\rx, #0x48000000	@ physical base address
+-		movne	\rx, #0xfa000000	@ virtual base
+-		orr	\rx, \rx, #0x0006a000	@ uart1 on omap2/3/4
+-		ldrb	\rx, [\rx, #(UART_SCR << OMAP_PORT_SHIFT)] @ scratchpad
++		ldreq	\rx, =OMAP_UART_INFO
++		ldrne	\rx, =__phys_to_virt(OMAP_UART_INFO)
++		ldr	\rx, [\rx, #0]
+ 
+ 		/* Select the UART to use based on the UART1 scratchpad value */
+ 		cmp	\rx, #0			@ no port configured?
+diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+index 83dce4c..20c27b9 100644
+--- a/arch/arm/plat-omap/include/plat/serial.h
++++ b/arch/arm/plat-omap/include/plat/serial.h
+@@ -15,6 +15,8 @@
+ 
+ #include <linux/init.h>
+ 
++#define OMAP_UART_INFO		(PHYS_OFFSET + 0x3ff8)
++
+ /* OMAP1 serial ports */
+ #define OMAP1_UART1_BASE	0xfffb0000
+ #define OMAP1_UART2_BASE	0xfffb0800
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index 81d9ec5..44478f7 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -20,27 +20,22 @@
+ #include <linux/types.h>
+ #include <linux/serial_reg.h>
+ 
++#include <asm/memory.h>
++#include <asm/io.h>
+ #include <asm/mach-types.h>
+ 
+ #include <plat/serial.h>
+ 
+-static volatile u8 *uart1_base;
+-static int uart1_shift;
+-
+ static volatile u8 *uart_base;
+ static int uart_shift;
  
  /*
-- *  ======== cfg_get_wmd_file_name ========
-- *  Purpose:
-- *    Get the mini-driver file name for a given device.
-- *  Parameters:
-- *      dev_node_obj:       Handle to the dev_node who's WMD we are querying.
-- *      buf_size:       Size of buffer.
-- *      pWMDFileName:   Ptr to a character buffer to hold the WMD filename.
-- *  Returns:
-- *      DSP_SOK:                On success.
-- *      CFG_E_INVALIDHDEVNODE:  dev_node_obj is invalid.
-- *      CFG_E_RESOURCENOTAVAIL: The filename is not available.
-- *  Requires:
-- *      CFG initialized.
-- *  Ensures:
-- *      DSP_SOK:        Not more than buf_size bytes were copied
-- *                      into pWMDFileName.
+- * Store the DEBUG_LL uart number into UART1 scratchpad register.
++ * Store the DEBUG_LL uart number into memory.
+  * See also debug-macro.S, and serial.c for related code.
 - *
-- */
--extern dsp_status cfg_get_wmd_file_name(IN struct cfg_devnode *dev_node_obj,
--					IN u32 buf_size,
--					OUT char *pWMDFileName);
--
--/*
-  *  ======== cfg_get_zl_file ========
-  *  Purpose:
-  *      Retreive the ZLFile, if any, for this board.
-diff --git a/arch/arm/plat-omap/include/dspbridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
-index d86ecd8..c26e9d0 100644
---- a/arch/arm/plat-omap/include/dspbridge/dev.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dev.h
-@@ -509,9 +509,10 @@ extern dsp_status dev_get_symbol(struct dev_object *hdev_obj,
- 				 IN CONST char *pstrSym, OUT u32 * pul_value);
- 
- /*
-- *  ======== dev_get_wmd_context ========
-+ *  ======== dev_get_bridge_context ========
-  *  Purpose:
-- *      Retrieve the WMD Context handle, as returned by the WMD_Create fxn.
-+ *      Retrieve the Bridge Context handle, as returned by the
-+ *      bridge_dev_create fxn.
-  *  Parameters:
-  *      hdev_obj:     Handle to device object created with dev_create_device()
-  *      *phbridge_context:  Ptr to location to store context handle.
-@@ -525,7 +526,7 @@ extern dsp_status dev_get_symbol(struct dev_object *hdev_obj,
-  *      DSP_SOK:        *phbridge_context contains context handle;
-  *      else:           *phbridge_context is NULL;
+- * Please note that we currently assume that:
+- * - UART1 clocks are enabled for register access
+- * - UART1 scratchpad register can be used
   */
--extern dsp_status dev_get_wmd_context(struct dev_object *hdev_obj,
-+extern dsp_status dev_get_bridge_context(struct dev_object *hdev_obj,
- 				      OUT struct bridge_dev_context
- 				      **phbridge_context);
- 
-diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
-index 14e0b49..e1ebb5d 100644
---- a/drivers/dsp/bridge/pmgr/dev.c
-+++ b/drivers/dsp/bridge/pmgr/dev.c
-@@ -711,11 +711,12 @@ dsp_status dev_get_symbol(struct dev_object *hdev_obj,
+-static void set_uart1_scratchpad(unsigned char port)
++static void set_omap_uart_info(unsigned char port)
+ {
+-	uart1_base[UART_SCR << uart1_shift] = port;
++	*(volatile u32 *)OMAP_UART_INFO = port;
  }
  
+ static void putc(int c)
+@@ -60,42 +55,38 @@ static inline void flush(void)
  /*
-- *  ======== dev_get_wmd_context ========
-+ *  ======== dev_get_bridge_context ========
-  *  Purpose:
-- *      Retrieve the WMD Context handle, as returned by the WMD_Create fxn.
-+ *      Retrieve the Bridge Context handle, as returned by the
-+ *      bridge_dev_create fxn.
+  * Macros to configure UART1 and debug UART
   */
--dsp_status dev_get_wmd_context(struct dev_object *hdev_obj,
-+dsp_status dev_get_bridge_context(struct dev_object *hdev_obj,
- 			       OUT struct bridge_dev_context **phbridge_context)
- {
- 	dsp_status status = DSP_SOK;
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 80a54d4..ddf54df 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -3144,7 +3144,7 @@ static u32 ovly(void *priv_ref, u32 ulDspRunAddr, u32 ulDspLoadAddr,
- 
- 	/* Call new MemCopy function */
- 	intf_fxns = hnode_mgr->intf_fxns;
--	status = dev_get_wmd_context(hnode_mgr->hdev_obj, &hbridge_context);
-+	status = dev_get_bridge_context(hnode_mgr->hdev_obj, &hbridge_context);
- 	if (DSP_SUCCEEDED(status)) {
- 		status = (*intf_fxns->pfn_brd_mem_copy) (hbridge_context,
- 						ulDspRunAddr, ulDspLoadAddr,
-@@ -3186,7 +3186,7 @@ static u32 mem_write(void *priv_ref, u32 ulDspAddr, void *pbuf,
- 
- 	/* Call new MemWrite function */
- 	intf_fxns = hnode_mgr->intf_fxns;
--	status = dev_get_wmd_context(hnode_mgr->hdev_obj, &hbridge_context);
-+	status = dev_get_bridge_context(hnode_mgr->hdev_obj, &hbridge_context);
- 	status = (*intf_fxns->pfn_brd_mem_write) (hbridge_context, pbuf,
- 					ulDspAddr, ul_num_bytes, mem_sect_type);
- 
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index e3b9be0..6e32ad6 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -174,7 +174,7 @@ proc_attach(u32 processor_id,
- 
- 	status = dev_get_intf_fxns(hdev_obj, &p_proc_object->intf_fxns);
- 	if (DSP_SUCCEEDED(status)) {
--		status = dev_get_wmd_context(hdev_obj,
-+		status = dev_get_bridge_context(hdev_obj,
- 					     &p_proc_object->hbridge_context);
- 		if (DSP_FAILED(status))
- 			kfree(p_proc_object);
-@@ -295,7 +295,7 @@ dsp_status proc_auto_start(struct cfg_devnode *dev_node_obj,
- 	p_proc_object->hmgr_obj = hmgr_obj;
- 	status = dev_get_intf_fxns(hdev_obj, &p_proc_object->intf_fxns);
- 	if (DSP_SUCCEEDED(status))
--		status = dev_get_wmd_context(hdev_obj,
-+		status = dev_get_bridge_context(hdev_obj,
- 					     &p_proc_object->hbridge_context);
- 	if (DSP_FAILED(status))
- 		goto func_cont;
-diff --git a/drivers/dsp/bridge/rmgr/pwr.c b/drivers/dsp/bridge/rmgr/pwr.c
-index e70f676..51eeb65 100644
---- a/drivers/dsp/bridge/rmgr/pwr.c
-+++ b/drivers/dsp/bridge/rmgr/pwr.c
-@@ -49,7 +49,7 @@ dsp_status pwr_sleep_dsp(IN CONST u32 sleepCode, IN CONST u32 timeout)
- 	     hdev_obj != NULL;
- 	     hdev_obj =
- 	     (struct dev_object *)drv_get_next_dev_object((u32) hdev_obj)) {
--		if (DSP_FAILED(dev_get_wmd_context(hdev_obj,
-+		if (DSP_FAILED(dev_get_bridge_context(hdev_obj,
- 						(struct bridge_dev_context **)
- 						   &dw_context))) {
- 			continue;
-@@ -91,7 +91,7 @@ dsp_status pwr_wake_dsp(IN CONST u32 timeout)
- 	     hdev_obj != NULL;
- 	     hdev_obj = (struct dev_object *)drv_get_next_dev_object
- 	     ((u32) hdev_obj)) {
--		if (DSP_SUCCEEDED(dev_get_wmd_context(hdev_obj,
-+		if (DSP_SUCCEEDED(dev_get_bridge_context(hdev_obj,
- 						      (struct bridge_dev_context
- 						       **)&dw_context))) {
- 			if (DSP_SUCCEEDED
-@@ -127,7 +127,7 @@ dsp_status pwr_pm_pre_scale(IN u16 voltage_domain, u32 level)
- 	     hdev_obj != NULL;
- 	     hdev_obj = (struct dev_object *)drv_get_next_dev_object
- 	     ((u32) hdev_obj)) {
--		if (DSP_SUCCEEDED(dev_get_wmd_context(hdev_obj,
-+		if (DSP_SUCCEEDED(dev_get_bridge_context(hdev_obj,
- 						      (struct bridge_dev_context
- 						       **)&dw_context))) {
- 			if (DSP_SUCCEEDED
-@@ -163,7 +163,7 @@ dsp_status pwr_pm_post_scale(IN u16 voltage_domain, u32 level)
- 	     hdev_obj != NULL;
- 	     hdev_obj = (struct dev_object *)drv_get_next_dev_object
- 	     ((u32) hdev_obj)) {
--		if (DSP_SUCCEEDED(dev_get_wmd_context(hdev_obj,
-+		if (DSP_SUCCEEDED(dev_get_bridge_context(hdev_obj,
- 						      (struct bridge_dev_context
- 						       **)&dw_context))) {
- 			if (DSP_SUCCEEDED
-diff --git a/drivers/dsp/bridge/wmd/_tiomap.h b/drivers/dsp/bridge/wmd/_tiomap.h
-index 9e27e1c..b670b02 100644
---- a/drivers/dsp/bridge/wmd/_tiomap.h
-+++ b/drivers/dsp/bridge/wmd/_tiomap.h
-@@ -350,16 +350,6 @@ struct bridge_dev_context {
- 	u32 dsp_per_clks;
- };
- 
--	/*
--	 * ======== wmd_tlb_dsp_va_to_mpu_pa ========
--	 *     Given a DSP virtual address, traverse the page table and return
--	 *     a corresponding MPU physical address and size.
--	 */
--extern dsp_status wmd_tlb_dsp_va_to_mpu_pa(struct bridge_dev_context
--						*dev_context, IN u32 ulVirtAddr,
--						OUT u32 *ulPhysAddr,
--						OUT u32 *sizeTlb);
--
- /*
-  *  ======== sm_interrupt_dsp ========
-  *  Purpose:
-diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index 199a33e..51017f1 100644
---- a/drivers/dsp/bridge/wmd/chnl_sm.c
-+++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -133,7 +133,7 @@ dsp_status bridge_chnl_add_io_req(struct chnl_object *chnl_obj, void *pHostBuf,
+-#define _DEBUG_LL_ENTRY(mach, uart1_phys, uart1_shft,			\
+-			dbg_uart, dbg_shft, dbg_id)			\
++#define _DEBUG_LL_ENTRY(mach, dbg_uart, dbg_shft, dbg_id)		\
+ 	if (machine_is_##mach()) {					\
+-		uart1_base = (volatile u8 *)(uart1_phys);		\
+-		uart1_shift = (uart1_shft);				\
+ 		uart_base = (volatile u8 *)(dbg_uart);			\
+ 		uart_shift = (dbg_shft);				\
+ 		port = (dbg_id);					\
+-		set_uart1_scratchpad(port);				\
++		set_omap_uart_info(port);				\
+ 		break;							\
  	}
  
- 	dev_obj = dev_get_first();
--	dev_get_wmd_context(dev_obj, &dev_ctxt);
-+	dev_get_bridge_context(dev_obj, &dev_ctxt);
- 	if (!dev_ctxt)
- 		status = DSP_EHANDLE;
+ #define DEBUG_LL_OMAP7XX(p, mach)					\
+-	_DEBUG_LL_ENTRY(mach, OMAP1_UART1_BASE, OMAP7XX_PORT_SHIFT,	\
+-		OMAP1_UART##p##_BASE, OMAP7XX_PORT_SHIFT, OMAP1UART##p)
++	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP7XX_PORT_SHIFT,	\
++		OMAP1UART##p)
  
-@@ -594,7 +594,7 @@ dsp_status bridge_chnl_get_ioc(struct chnl_object *chnl_obj, u32 dwTimeOut,
- 	}
+ #define DEBUG_LL_OMAP1(p, mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP1_UART1_BASE, OMAP_PORT_SHIFT,	\
+-		OMAP1_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP1UART##p)
++	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		OMAP1UART##p)
  
- 	dev_obj = dev_get_first();
--	dev_get_wmd_context(dev_obj, &dev_ctxt);
-+	dev_get_bridge_context(dev_obj, &dev_ctxt);
- 	if (!dev_ctxt)
- 		status = DSP_EHANDLE;
+ #define DEBUG_LL_OMAP2(p, mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP2_UART1_BASE, OMAP_PORT_SHIFT,	\
+-		OMAP2_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP2UART##p)
++	_DEBUG_LL_ENTRY(mach, OMAP2_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		OMAP2UART##p)
  
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index edb03d1..62624ad 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -193,7 +193,7 @@ dsp_status bridge_io_create(OUT struct io_mgr **phIOMgr,
- 	 * size of message buffer in shared memory is configurable in
- 	 * the base image.
- 	 */
--	dev_get_wmd_context(hdev_obj, &hbridge_context);
-+	dev_get_bridge_context(hdev_obj, &hbridge_context);
- 	if (!hbridge_context) {
- 		status = DSP_EHANDLE;
- 		goto func_end;
-@@ -272,7 +272,7 @@ dsp_status bridge_io_destroy(struct io_mgr *hio_mgr)
- 	dsp_status status = DSP_SOK;
- 	struct bridge_dev_context *hbridge_context;
- 	if (hio_mgr) {
--		status = dev_get_wmd_context(hio_mgr->hdev_obj,
-+		status = dev_get_bridge_context(hio_mgr->hdev_obj,
- 						&hbridge_context);
+ #define DEBUG_LL_OMAP3(p, mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP3_UART1_BASE, OMAP_PORT_SHIFT,	\
+-		OMAP3_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP3UART##p)
++	_DEBUG_LL_ENTRY(mach, OMAP3_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		OMAP3UART##p)
  
- 		/* Free IO DPC object */
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index c9be788..a8a2d02 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -773,14 +773,14 @@ static dsp_status bridge_brd_stop(struct bridge_dev_context *hDevContext)
- }
+ #define DEBUG_LL_OMAP4(p, mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP4_UART1_BASE, OMAP_PORT_SHIFT,	\
+-		OMAP4_UART##p##_BASE, OMAP_PORT_SHIFT, OMAP4UART##p)
++	_DEBUG_LL_ENTRY(mach, OMAP4_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		OMAP4UART##p)
  
- /*
-- *  ======== wmd_brd_delete ========
-+ *  ======== bridge_brd_delete ========
-  *  purpose:
-  *      Puts DSP in Low power mode
-  *
-  *  Preconditions :
-  *  a) None
-  */
--static dsp_status wmd_brd_delete(struct bridge_dev_context *hDevContext)
-+static dsp_status bridge_brd_delete(struct bridge_dev_context *hDevContext)
+ /* Zoom2/3 shift is different for UART1 and external port */
+ #define DEBUG_LL_ZOOM(mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP2_UART1_BASE, OMAP_PORT_SHIFT,	\
+-		ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
++	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
+ 
+ static inline void __arch_decomp_setup(unsigned long arch_id)
  {
- 	dsp_status status = DSP_SOK;
- 	struct bridge_dev_context *dev_context = hDevContext;
-@@ -1125,7 +1125,7 @@ static dsp_status bridge_dev_destroy(struct bridge_dev_context *hDevContext)
- 		return DSP_EHANDLE;
- 
- 	/* first put the device to stop state */
--	wmd_brd_delete(dev_context);
-+	bridge_brd_delete(dev_context);
- 	if (dev_context->pt_attrs) {
- 		pt_attrs = dev_context->pt_attrs;
- 		kfree(pt_attrs->pg_info);
-diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index fa8fc57..2473d3d 100644
---- a/drivers/dsp/bridge/wmd/ue_deh.c
-+++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -77,7 +77,7 @@ dsp_status bridge_deh_create(OUT struct deh_mgr **phDehMgr,
- 	 *  size of message buffer in shared memory is configurable in
- 	 *  the base image. */
- 	/* Get WMD context info. */
--	dev_get_wmd_context(hdev_obj, &hbridge_context);
-+	dev_get_bridge_context(hdev_obj, &hbridge_context);
- 	DBC_ASSERT(hbridge_context);
- 	dummy_va_addr = 0;
- 	/* Allocate IO manager object: */
--- 
-1.7.0.3
 
+--H8ygTp4AXg6deix2--
