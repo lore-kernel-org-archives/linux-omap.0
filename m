@@ -1,240 +1,227 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [RFC/PATCH 4/6] DSPBRIDGE: do not call follow_page
-Date: Sat,  1 May 2010 23:44:29 +0300
-Message-ID: <1272746671-13423-5-git-send-email-ohad@wizery.com>
+Subject: [RFC/PATCH 2/6] DSPBRIDGE: remember mapping and page info in proc_map
+Date: Sat,  1 May 2010 23:44:27 +0300
+Message-ID: <1272746671-13423-3-git-send-email-ohad@wizery.com>
 References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from fg-out-1718.google.com ([72.14.220.155]:19785 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753402Ab0EAUr5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 16:47:57 -0400
+	with ESMTP id S1753402Ab0EAUrv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 May 2010 16:47:51 -0400
 Received: by fg-out-1718.google.com with SMTP id d23so560455fga.1
-        for <linux-omap@vger.kernel.org>; Sat, 01 May 2010 13:47:56 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Sat, 01 May 2010 13:47:50 -0700 (PDT)
 In-Reply-To: <1272746671-13423-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-Eliminate the call to follow_page. Instead, use the page
-information that was kept during the proc_map call.
-This also has the advantage that users can now only
-specify memory areas that were previously mapped.
+Every time the MM application calls proc_map to map
+a memory area, remember the details of that mapping,
+together with the related page structures.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
 If you want, you can also reach me at <  ohadb at ti dot com  >.
 
- drivers/dsp/bridge/rmgr/proc.c |  143 ++++++++++++++++++++++++++--------------
- 1 files changed, 93 insertions(+), 50 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/wmd.h |    3 +-
+ drivers/dsp/bridge/rmgr/proc.c             |   55 ++++++++++++++++++++++++++--
+ drivers/dsp/bridge/wmd/io_sm.c             |   10 +++--
+ drivers/dsp/bridge/wmd/tiomap3430.c        |   11 +++++-
+ 4 files changed, 68 insertions(+), 11 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
+index f9883db..37ee0f3 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmd.h
++++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
+@@ -182,7 +182,8 @@ typedef dsp_status(*fxn_brd_memwrite) (struct wmd_dev_context
+ typedef dsp_status(*fxn_brd_memmap) (struct wmd_dev_context
+ 				     * hDevContext, u32 ul_mpu_addr,
+ 				     u32 ulVirtAddr, u32 ul_num_bytes,
+-				     u32 ulMapAttrs);
++				     u32 ulMapAttrs,
++				     struct page **mapped_pages);
+ 
+ /*
+  *  ======== bridge_brd_mem_un_map ========
 diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index ebb11b1..bbc7e0f 100644
+index 95a194a..b03232f 100644
 --- a/drivers/dsp/bridge/rmgr/proc.c
 +++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -209,6 +209,71 @@ out:
- 	spin_unlock(&pr_obj->maps_lock);
- }
+@@ -130,6 +130,45 @@ static s32 get_envp_count(char **envp);
+ static char **prepend_envp(char **new_envp, char **envp, s32 envp_elems,
+ 			   s32 cnew_envp, char *szVar);
  
-+static int match_containing_map_info(struct memory_map_info *map_info,
-+					u32 mpu_addr, u32 size)
-+{
-+	u32 map_info_end = map_info->mpu_addr + map_info->size;
-+
-+	return mpu_addr >= map_info->mpu_addr &&
-+		mpu_addr + size <= map_info_end;
-+}
-+
-+static struct memory_map_info *find_containing_mapping(
-+				struct proc_object *pr_obj,
-+				u32 mpu_addr, u32 size)
++/* remember mapping information */
++static struct memory_map_info *add_mapping_info(struct proc_object *pr_obj,
++				u32 mpu_addr, u32 dsp_addr, u32 size)
 +{
 +	struct memory_map_info *map_info;
-+	struct list_head *iter;
-+	pr_debug("%s: looking for mpu_addr 0x%x size 0x%x\n", __func__,
-+						mpu_addr, size);
++
++	u32 num_usr_pgs = size / PG_SIZE4K;
++
++	pr_debug("%s: adding map info: mpu_addr 0x%x virt 0x%x size 0x%x\n",
++						__func__, mpu_addr,
++						dsp_addr, size);
++
++	map_info = kzalloc(sizeof(struct memory_map_info), GFP_KERNEL);
++	if (!map_info) {
++		pr_err("%s: kzalloc failed\n", __func__);
++		return NULL;
++	}
++	INIT_LIST_HEAD(&map_info->node);
++
++	map_info->pages = kcalloc(num_usr_pgs, sizeof(struct page *),
++							GFP_KERNEL);
++	if (!map_info->pages) {
++		pr_err("%s: kzalloc failed\n", __func__);
++		kfree(map_info);
++		return NULL;
++	}
++
++	map_info->mpu_addr = mpu_addr;
++	map_info->dsp_addr = dsp_addr;
++	map_info->size = size;
++	map_info->num_usr_pgs = num_usr_pgs;
 +
 +	spin_lock(&pr_obj->maps_lock);
-+	list_for_each(iter, &pr_obj->maps) {
-+		map_info = list_entry(iter, struct memory_map_info, node);
-+		pr_debug("%s: candidate: mpu_addr 0x%x virt 0x%x size 0x%x\n",
-+						__func__,
-+						map_info->mpu_addr,
-+						map_info->dsp_addr,
-+						map_info->size);
-+		if (match_containing_map_info(map_info, mpu_addr, size)) {
-+			pr_debug("%s: match!\n", __func__);
-+			goto out;
-+		}
-+
-+		pr_debug("%s: no match!\n", __func__);
-+	}
-+
-+	map_info = NULL;
-+out:
++	list_add(&map_info->node, &pr_obj->maps);
 +	spin_unlock(&pr_obj->maps_lock);
++
 +	return map_info;
-+}
-+
-+static int find_first_page_in_cache(struct memory_map_info *map_info,
-+					unsigned long mpu_addr)
-+{
-+	u32 mapped_base_page = map_info->mpu_addr >> PAGE_SHIFT;
-+	u32 requested_base_page = mpu_addr >> PAGE_SHIFT;
-+	int pg_index = requested_base_page - mapped_base_page;
-+
-+	if (pg_index < 0 || pg_index >= map_info->num_usr_pgs) {
-+		pr_err("%s: failed (got %d)\n", __func__, pg_index);
-+		return -1;
-+	}
-+
-+	pr_debug("%s: first page is %d\n", __func__, pg_index);
-+	return pg_index;
-+}
-+
-+static inline struct page *get_mapping_page(struct memory_map_info *map_info,
-+								int pg_i)
-+{
-+	if (pg_i < 0 || pg_i >= map_info->num_usr_pgs)
-+		return NULL;
-+
-+	return map_info->pages[pg_i];
 +}
 +
  /*
   *  ======== proc_attach ========
   *  Purpose:
-@@ -561,23 +626,30 @@ dsp_status proc_enum_nodes(void *hprocessor, void **node_tab,
- }
+@@ -185,6 +224,8 @@ proc_attach(u32 processor_id,
+ 	p_proc_object->process = current->tgid;
  
- /* Cache operation against kernel address instead of users */
--static int memory_sync_page(struct vm_area_struct *vma, unsigned long start,
--			    ssize_t len, enum dsp_flushtype ftype)
-+static int memory_sync_page(struct memory_map_info *map_info,
-+		unsigned long start, ssize_t len, enum dsp_flushtype ftype)
- {
- 	struct page *page;
- 	void *kaddr;
- 	unsigned long offset;
- 	ssize_t rest;
-+	int pg_i;
-+
-+	pg_i = find_first_page_in_cache(map_info, start);
-+	if (pg_i < 0) {
-+		pr_err("%s: failed to find first page in cache\n", __func__);
-+		return -EINVAL;
-+	}
+ 	INIT_LIST_HEAD(&p_proc_object->proc_list);
++	INIT_LIST_HEAD(&p_proc_object->maps);
++	spin_lock_init(&p_proc_object->maps_lock);
  
- 	while (len) {
--		page = follow_page(vma, start, FOLL_GET);
-+		page = get_mapping_page(map_info, pg_i);
- 		if (!page) {
- 			pr_err("%s: no page for %08lx\n", __func__, start);
- 			return -EINVAL;
- 		} else if (IS_ERR(page)) {
- 			pr_err("%s: err page for %08lx(%lu)\n", __func__, start,
--			       IS_ERR(page));
--			return IS_ERR(page);
-+			       PTR_ERR(page));
-+			return PTR_ERR(page);
- 		}
- 
- 		offset = start & ~PAGE_MASK;
-@@ -586,59 +658,22 @@ static int memory_sync_page(struct vm_area_struct *vma, unsigned long start,
- 		mem_flush_cache(kaddr, rest, ftype);
- 
- 		kunmap(page);
--		put_page(page);
- 		len -= rest;
- 		start += rest;
-+		pg_i++;
- 	}
- 
- 	return 0;
- }
- 
--/* Check if the given area blongs to process virtul memory address space */
--static int memory_sync_vma(unsigned long start, u32 len,
--			   enum dsp_flushtype ftype)
--{
--	int err = 0;
--	unsigned long end;
--	struct vm_area_struct *vma;
--
--	end = start + len;
--	if (end <= start)
--		return -EINVAL;
--
--	while ((vma = find_vma(current->mm, start)) != NULL) {
--		ssize_t size;
--
--		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
--			return -EINVAL;
--
--		if (vma->vm_start > start)
--			return -EINVAL;
--
--		size = min_t(ssize_t, vma->vm_end - start, len);
--		err = memory_sync_page(vma, start, size, ftype);
--		if (err)
--			break;
--
--		if (end <= vma->vm_end)
--			break;
--
--		start = vma->vm_end;
--	}
--
--	if (!vma)
--		err = -EINVAL;
--
--	return err;
--}
--
- static dsp_status proc_memory_sync(void *hprocessor, void *pmpu_addr,
- 				   u32 ul_size, u32 ul_flags,
--				   enum dsp_flushtype FlushMemType)
-+				   enum dsp_flushtype ftype)
- {
- 	/* Keep STATUS here for future additions to this function */
+ 	if (attr_in)
+ 		p_proc_object->utimeout = attr_in->utimeout;
+@@ -1091,6 +1132,7 @@ dsp_status proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
  	dsp_status status = DSP_SOK;
  	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
+ 	struct dmm_map_object *map_obj;
 +	struct memory_map_info *map_info;
  
- 	DBC_REQUIRE(refs > 0);
+ #ifdef CONFIG_BRIDGE_CACHE_LINE_CHECK
+ 	if ((ul_map_attr & BUFMODE_MASK) != RBUF) {
+@@ -1121,10 +1163,15 @@ dsp_status proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
  
-@@ -647,18 +682,26 @@ static dsp_status proc_memory_sync(void *hprocessor, void *pmpu_addr,
- 		goto err_out;
+ 	/* Add mapping to the page tables. */
+ 	if (DSP_SUCCEEDED(status)) {
+-
+-		status = (*p_proc_object->intf_fxns->pfn_brd_mem_map)
+-		    (p_proc_object->hwmd_context, pa_align, va_align,
+-		     size_align, ul_map_attr);
++		/* cache mapping information */
++		map_info = add_mapping_info(p_proc_object, pa_align, va_align,
++						size_align);
++		if (!map_info)
++			status = DSP_EMEMORY;
++		else
++			status = (*p_proc_object->intf_fxns->pfn_brd_mem_map)
++			    (p_proc_object->hwmd_context, pa_align, va_align,
++			     size_align, ul_map_attr, map_info->pages);
  	}
- 
--	down_read(&current->mm->mmap_sem);
-+	pr_debug("%s: addr 0x%x, size 0x%x, type %d\n", __func__,
-+							(u32)pmpu_addr,
-+							ul_size, ftype);
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/* Mapped address = MSB of VA | LSB of PA */
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index 1b5d977..d8cd9e3 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -505,7 +505,8 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 				    hio_mgr->intf_fxns->
+ 				    pfn_brd_mem_map(hio_mgr->hwmd_context,
+ 						    pa_curr, va_curr,
+-						    page_size[i], map_attrs);
++						    page_size[i], map_attrs,
++						    NULL);
+ 				if (DSP_FAILED(status))
+ 					goto func_end;
+ 				pa_curr += page_size[i];
+@@ -570,7 +571,8 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 				    hio_mgr->intf_fxns->
+ 				    pfn_brd_mem_map(hio_mgr->hwmd_context,
+ 						    pa_curr, va_curr,
+-						    page_size[i], map_attrs);
++						    page_size[i], map_attrs,
++						    NULL);
+ 				dev_dbg(bridge,
+ 					"shm MMU PTE entry PA %x"
+ 					" VA %x DSP_VA %x Size %x\n",
+@@ -639,7 +641,7 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 				     hio_mgr->ext_proc_info.ty_tlb[i].
+ 				     ul_gpp_phys,
+ 				     hio_mgr->ext_proc_info.ty_tlb[i].
+-				     ul_dsp_virt, 0x100000, map_attrs);
++				     ul_dsp_virt, 0x100000, map_attrs, NULL);
+ 			}
+ 		}
+ 		if (DSP_FAILED(status))
+@@ -658,7 +660,7 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 		status = hio_mgr->intf_fxns->pfn_brd_mem_map
+ 		    (hio_mgr->hwmd_context, l4_peripheral_table[i].phys_addr,
+ 		     l4_peripheral_table[i].dsp_virt_addr, HW_PAGE_SIZE4KB,
+-		     map_attrs);
++		     map_attrs, NULL);
+ 		if (DSP_FAILED(status))
+ 			goto func_end;
+ 		i++;
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 0c6cf2f..720c0c0 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -107,7 +107,8 @@ static dsp_status bridge_brd_mem_write(struct wmd_dev_context *dev_context,
+ 				    u32 ul_num_bytes, u32 ulMemType);
+ static dsp_status bridge_brd_mem_map(struct wmd_dev_context *hDevContext,
+ 				  u32 ul_mpu_addr, u32 ulVirtAddr,
+-				  u32 ul_num_bytes, u32 ul_map_attr);
++				  u32 ul_num_bytes, u32 ul_map_attr,
++				  struct page **mapped_pages);
+ static dsp_status bridge_brd_mem_un_map(struct wmd_dev_context *hDevContext,
+ 				     u32 ulVirtAddr, u32 ul_num_bytes);
+ static dsp_status bridge_dev_create(OUT struct wmd_dev_context **ppDevContext,
+@@ -948,6 +949,7 @@ static dsp_status bridge_dev_create(OUT struct wmd_dev_context **ppDevContext,
+ 		status = DSP_EMEMORY;
+ 		goto func_end;
+ 	}
 +
-+	/* find requested memory are in cached mapping information */
-+	map_info = find_containing_mapping(p_proc_object, (u32) pmpu_addr,
-+								ul_size);
-+	if (!map_info) {
-+		pr_err("%s: find_containing_mapping failed\n", __func__);
-+		status = DSP_EHANDLE;
-+		goto err_out;
-+	}
+ 	status = cfg_get_host_resources((struct cfg_devnode *)
+ 					drv_get_first_dev_extension(),
+ 					&resources);
+@@ -1276,7 +1278,8 @@ static dsp_status bridge_brd_mem_write(struct wmd_dev_context *hDevContext,
+  */
+ static dsp_status bridge_brd_mem_map(struct wmd_dev_context *hDevContext,
+ 				  u32 ul_mpu_addr, u32 ulVirtAddr,
+-				  u32 ul_num_bytes, u32 ul_map_attr)
++				  u32 ul_num_bytes, u32 ul_map_attr,
++				  struct page **mapped_pages)
+ {
+ 	u32 attrs;
+ 	dsp_status status = DSP_SOK;
+@@ -1438,12 +1441,16 @@ static dsp_status bridge_brd_mem_map(struct wmd_dev_context *hDevContext,
+ 					bad_page_dump(page_to_phys(mapped_page),
+ 						      mapped_page);
+ 				}
++
+ 				status = pte_set(dev_context->pt_attrs,
+ 						 page_to_phys(mapped_page), va,
+ 						 HW_PAGE_SIZE4KB, &hw_attrs);
+ 				if (DSP_FAILED(status))
+ 					break;
  
--	if (memory_sync_vma((u32) pmpu_addr, ul_size, FlushMemType)) {
-+	if (memory_sync_page(map_info, (u32) pmpu_addr, ul_size, ftype)) {
- 		pr_err("%s: InValid address parameters %p %x\n",
- 		       __func__, pmpu_addr, ul_size);
- 		status = DSP_EHANDLE;
- 	}
- 
--	up_read(&current->mm->mmap_sem);
--
- err_out:
--
- 	return status;
- }
- 
++				if (mapped_pages)
++					mapped_pages[pg_i] = mapped_page;
++
+ 				va += HW_PAGE_SIZE4KB;
+ 				ul_mpu_addr += HW_PAGE_SIZE4KB;
+ 			} else {
 -- 
 1.6.3.3
 
