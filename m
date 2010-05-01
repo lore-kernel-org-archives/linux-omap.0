@@ -1,12 +1,12 @@
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 05/11] DSPBRIDGE: Replace code containing "WMD"
-Date: Fri, 30 Apr 2010 19:45:45 -0500
-Message-ID: <1272674751-21557-6-git-send-email-ivan.gomez@ti.com>
+Subject: [PATCH 08/11] DSPBRIDGE: Rename files that refer to Windows OS
+Date: Fri, 30 Apr 2010 19:45:48 -0500
+Message-ID: <1272674751-21557-9-git-send-email-ivan.gomez@ti.com>
 References: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35605 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49442 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757740Ab0EAAwz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1757843Ab0EAAwz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 30 Apr 2010 20:52:55 -0400
 In-Reply-To: <1272674751-21557-1-git-send-email-ivan.gomez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,413 +14,645 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
 
-This patch removes references to Windows OS, and since "WMD" means
-windows mini driver, then it is replaced by "BRD" which means Bridge.
+Since "wmd" (windows mini driver) and "wcd" (windows class driver)
+refers to Windows OS, the following files are renamed:
+
+wmd.h ==> dspdefs.h
+wmdchnl.h ==> dspchnl.h
+wmddeh.h ==> dspdeh.h
+wmdio.h ==> dspio.h
+wmdioctl.h ==> dspioctl.h
+wmdmsg.h ==> dspmsg.h
+wcd.h ==> dspapi.h
+wcdioctl.h ==> dspapi-ioctl.h
+wcd.c ==> dspapi.c
 
 Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/errbase.h  |   12 +++---
- arch/arm/plat-omap/include/dspbridge/wmd.h      |    2 +-
- arch/arm/plat-omap/include/dspbridge/wmdioctl.h |   38 +++++++++++-----------
- drivers/dsp/bridge/rmgr/node.c                  |    2 +-
- drivers/dsp/bridge/rmgr/proc.c                  |    6 ++--
- drivers/dsp/bridge/rmgr/pwr.c                   |   10 +++---
- drivers/dsp/bridge/wmd/_tiomap.h                |    2 +-
- drivers/dsp/bridge/wmd/io_sm.c                  |   14 ++++----
- drivers/dsp/bridge/wmd/tiomap3430.c             |   32 +++++++++---------
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c         |    4 +-
- 10 files changed, 61 insertions(+), 61 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/_chnl_sm.h    |    4 ++--
+ arch/arm/plat-omap/include/dspbridge/_dcd.h        |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dev.h         |    2 +-
+ arch/arm/plat-omap/include/dspbridge/devdefs.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/drvdefs.h     |    2 +-
+ .../dspbridge/{wcdioctl.h => dspapi-ioctl.h}       |    2 +-
+ .../include/dspbridge/{wcd.h => dspapi.h}          |    2 +-
+ .../include/dspbridge/{wmdchnl.h => dspchnl.h}     |    4 ++--
+ .../include/dspbridge/{wmd.h => dspdefs.h}         |    2 +-
+ .../include/dspbridge/{wmddeh.h => dspdeh.h}       |    4 ++--
+ .../include/dspbridge/{wmdio.h => dspio.h}         |    4 ++--
+ .../include/dspbridge/{wmdioctl.h => dspioctl.h}   |    2 +-
+ .../include/dspbridge/{wmdmsg.h => dspmsg.h}       |    4 ++--
+ drivers/dsp/bridge/Makefile                        |    2 +-
+ drivers/dsp/bridge/core/_deh.h                     |    2 +-
+ drivers/dsp/bridge/core/_tiomap.h                  |    2 +-
+ drivers/dsp/bridge/core/chnl_sm.c                  |    4 ++--
+ drivers/dsp/bridge/core/io_sm.c                    |    6 +++---
+ drivers/dsp/bridge/core/mmu_fault.c                |    2 +-
+ drivers/dsp/bridge/core/msg_sm.c                   |    2 +-
+ drivers/dsp/bridge/core/tiomap3430.c               |   12 ++++++------
+ drivers/dsp/bridge/core/tiomap3430_pwr.c           |    2 +-
+ drivers/dsp/bridge/core/ue_deh.c                   |    4 ++--
+ drivers/dsp/bridge/core/wdt.c                      |    2 +-
+ drivers/dsp/bridge/pmgr/chnlobj.h                  |    2 +-
+ drivers/dsp/bridge/pmgr/dev.c                      |    2 +-
+ drivers/dsp/bridge/pmgr/{wcd.c => dspapi.c}        |    4 ++--
+ drivers/dsp/bridge/pmgr/ioobj.h                    |    2 +-
+ drivers/dsp/bridge/pmgr/msg.c                      |    2 +-
+ drivers/dsp/bridge/pmgr/msgobj.h                   |    2 +-
+ drivers/dsp/bridge/rmgr/disp.c                     |    2 +-
+ drivers/dsp/bridge/rmgr/drv.c                      |    2 +-
+ drivers/dsp/bridge/rmgr/drv_interface.c            |    2 +-
+ drivers/dsp/bridge/rmgr/node.c                     |    4 ++--
+ drivers/dsp/bridge/rmgr/proc.c                     |    6 +++---
+ drivers/dsp/bridge/rmgr/pwr.c                      |    2 +-
+ drivers/dsp/bridge/rmgr/strm.c                     |    2 +-
+ 37 files changed, 55 insertions(+), 55 deletions(-)
+ rename arch/arm/plat-omap/include/dspbridge/{wcdioctl.h => dspapi-ioctl.h} (99%)
+ rename arch/arm/plat-omap/include/dspbridge/{wcd.h => dspapi.h} (99%)
+ rename arch/arm/plat-omap/include/dspbridge/{wmdchnl.h => dspchnl.h} (97%)
+ rename arch/arm/plat-omap/include/dspbridge/{wmd.h => dspdefs.h} (99%)
+ rename arch/arm/plat-omap/include/dspbridge/{wmddeh.h => dspdeh.h} (98%)
+ rename arch/arm/plat-omap/include/dspbridge/{wmdio.h => dspio.h} (95%)
+ rename arch/arm/plat-omap/include/dspbridge/{wmdioctl.h => dspioctl.h} (99%)
+ rename arch/arm/plat-omap/include/dspbridge/{wmdmsg.h => dspmsg.h} (96%)
+ rename drivers/dsp/bridge/pmgr/{wcd.c => dspapi.c} (99%)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/errbase.h b/arch/arm/plat-omap/include/dspbridge/errbase.h
-index d43ff86..ff0c2de 100644
---- a/arch/arm/plat-omap/include/dspbridge/errbase.h
-+++ b/arch/arm/plat-omap/include/dspbridge/errbase.h
-@@ -268,10 +268,10 @@
- #define DEV_EBASE                   (DSP_COMP_EBASE + 0x000)
+diff --git a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
+index 8bba33f..cc998de 100644
+--- a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
++++ b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
+@@ -23,8 +23,8 @@
+ #ifndef _CHNL_SM_
+ #define _CHNL_SM_
  
- /* The mini-driver expected a newer version of the class driver. */
--#define DEV_E_NEWWMD                (DEV_EBASE + 0x00)
-+#define DEV_E_NEWBRD                (DEV_EBASE + 0x00)
+-#include <dspbridge/wcd.h>
+-#include <dspbridge/wmd.h>
++#include <dspbridge/dspapi.h>
++#include <dspbridge/dspdefs.h>
  
- /* bridge_drv_entry function returned a NULL function interface table. */
--#define DEV_E_NULLWMDINTF           (DEV_EBASE + 0x01)
-+#define DEV_E_NULLBRDINTF           (DEV_EBASE + 0x01)
+ #include <dspbridge/list.h>
+ #include <dspbridge/ntfy.h>
+diff --git a/arch/arm/plat-omap/include/dspbridge/_dcd.h b/arch/arm/plat-omap/include/dspbridge/_dcd.h
+index 589cd42..4c3f701 100644
+--- a/arch/arm/plat-omap/include/dspbridge/_dcd.h
++++ b/arch/arm/plat-omap/include/dspbridge/_dcd.h
+@@ -20,7 +20,7 @@
+ #ifndef _WCD_
+ #define _WCD_
  
- /* FAILURE Codes : LDR */
- #define LDR_EBASE                   (DSP_COMP_EBASE + 0x100)
-@@ -417,16 +417,16 @@
- #define SYNC_E_TIMEOUT              (SYNC_EBASE + 0x01)
+-#include <dspbridge/wcdioctl.h>
++#include <dspbridge/dspapi-ioctl.h>
  
- /* FAILURE Codes : WMD */
--#define WMD_EBASE                   (DSP_COMP_EBASE + 0x700)
-+#define BRD_EBASE                   (DSP_COMP_EBASE + 0x700)
+ /*
+  *  ======== api_call_dev_ioctl ========
+diff --git a/arch/arm/plat-omap/include/dspbridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
+index 3ada31d..ac011cd 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dev.h
++++ b/arch/arm/plat-omap/include/dspbridge/dev.h
+@@ -26,7 +26,7 @@
+ #include <dspbridge/dehdefs.h>
+ #include <dspbridge/nodedefs.h>
+ #include <dspbridge/dispdefs.h>
+-#include <dspbridge/wmd.h>
++#include <dspbridge/dspdefs.h>
+ #include <dspbridge/dmm.h>
+ #include <dspbridge/host_os.h>
  
- /* A test of hardware assumptions or integrity failed. */
--#define WMD_E_HARDWARE              (WMD_EBASE + 0x00)
-+#define BRD_E_HARDWARE              (BRD_EBASE + 0x00)
- 
- /* One or more configuration parameters violated WMD hardware assumptions. */
--#define WMD_E_BADCONFIG             (WMD_EBASE + 0x01)
-+#define BRD_E_BADCONFIG             (BRD_EBASE + 0x01)
- 
- /* Timeout occurred waiting for a response from the hardware. */
--#define WMD_E_TIMEOUT               (WMD_EBASE + 0x02)
-+#define BRD_E_TIMEOUT               (BRD_EBASE + 0x02)
- 
- /* FAILURE Codes : REG */
- #define REG_EBASE                   (DSP_COMP_EBASE + 0x800)
-diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/wmd.h
-index 4355590..cebc8c5 100644
+diff --git a/arch/arm/plat-omap/include/dspbridge/devdefs.h b/arch/arm/plat-omap/include/dspbridge/devdefs.h
+index 8c0adc1..600be0e 100644
+--- a/arch/arm/plat-omap/include/dspbridge/devdefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/devdefs.h
+@@ -3,7 +3,7 @@
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+- * Definition of common include typedef between wmd.h and dev.h. Required
++ * Definition of common include typedef between dspdefs.h and dev.h. Required
+  * to break circular dependency between WMD and DEV include files.
+  *
+  * Copyright (C) 2008 Texas Instruments, Inc.
+diff --git a/arch/arm/plat-omap/include/dspbridge/drvdefs.h b/arch/arm/plat-omap/include/dspbridge/drvdefs.h
+index f084207..c0dea57 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drvdefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/drvdefs.h
+@@ -3,7 +3,7 @@
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+- * Definition of common struct between wmd.h and drv.h.
++ * Definition of common struct between dspdefs.h and drv.h.
+  *
+  * Copyright (C) 2005-2006 Texas Instruments, Inc.
+  *
+diff --git a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h b/arch/arm/plat-omap/include/dspbridge/dspapi-ioctl.h
+similarity index 99%
+rename from arch/arm/plat-omap/include/dspbridge/wcdioctl.h
+rename to arch/arm/plat-omap/include/dspbridge/dspapi-ioctl.h
+index 49bec37..c214ea6 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wcdioctl.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspapi-ioctl.h
+@@ -1,5 +1,5 @@
+ /*
+- * wcdioctl.h
++ * dspapi-ioctl.h
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+diff --git a/arch/arm/plat-omap/include/dspbridge/wcd.h b/arch/arm/plat-omap/include/dspbridge/dspapi.h
+similarity index 99%
+rename from arch/arm/plat-omap/include/dspbridge/wcd.h
+rename to arch/arm/plat-omap/include/dspbridge/dspapi.h
+index 1a68baa..232aab0 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wcd.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspapi.h
+@@ -1,5 +1,5 @@
+ /*
+- * wcd.h
++ * dspapi.h
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmdchnl.h b/arch/arm/plat-omap/include/dspbridge/dspchnl.h
+similarity index 97%
+rename from arch/arm/plat-omap/include/dspbridge/wmdchnl.h
+rename to arch/arm/plat-omap/include/dspbridge/dspchnl.h
+index 0d874ab..3c6f29d 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmdchnl.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspchnl.h
+@@ -1,5 +1,5 @@
+ /*
+- * wmdchnl.h
++ * dspchnl.h
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+@@ -8,7 +8,7 @@
+  * by every class of WMD channel library.
+  *
+  * Notes:
+- *   The function comment headers reside in wmd.h.
++ *   The function comment headers reside in dspdefs.h.
+  *
+  * Copyright (C) 2005-2006 Texas Instruments, Inc.
+  *
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmd.h b/arch/arm/plat-omap/include/dspbridge/dspdefs.h
+similarity index 99%
+rename from arch/arm/plat-omap/include/dspbridge/wmd.h
+rename to arch/arm/plat-omap/include/dspbridge/dspdefs.h
+index d861cdf..8a1d38c 100644
 --- a/arch/arm/plat-omap/include/dspbridge/wmd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmd.h
-@@ -41,7 +41,7 @@
-  *  Any IOCTLS at or above this value are reserved for standard WMD
-  *  interfaces.
-  */
--#define WMD_RESERVEDIOCTLBASE   0x8000
-+#define BRD_RESERVEDIOCTLBASE   0x8000
- 
- /* Handle to mini-driver's private device context. */
- struct bridge_dev_context;
-diff --git a/arch/arm/plat-omap/include/dspbridge/wmdioctl.h b/arch/arm/plat-omap/include/dspbridge/wmdioctl.h
-index ba921bc..9fe5543 100644
++++ b/arch/arm/plat-omap/include/dspbridge/dspdefs.h
+@@ -1,5 +1,5 @@
+ /*
+- * wmd.h
++ * dspdefs.h
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmddeh.h b/arch/arm/plat-omap/include/dspbridge/dspdeh.h
+similarity index 98%
+rename from arch/arm/plat-omap/include/dspbridge/wmddeh.h
+rename to arch/arm/plat-omap/include/dspbridge/dspdeh.h
+index 0152c43..f6a747f 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmddeh.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspdeh.h
+@@ -1,5 +1,5 @@
+ /*
+- * wmddeh.h
++ * dspdeh.h
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+@@ -7,7 +7,7 @@
+  * interface tables.
+  *
+  * Notes:
+- *   Function comment headers reside with the function typedefs in wmd.h.
++ *   Function comment headers reside with the function typedefs in dspdefs.h.
+  *
+  * Copyright (C) 2005-2006 Texas Instruments, Inc.
+  *
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmdio.h b/arch/arm/plat-omap/include/dspbridge/dspio.h
+similarity index 95%
+rename from arch/arm/plat-omap/include/dspbridge/wmdio.h
+rename to arch/arm/plat-omap/include/dspbridge/dspio.h
+index c566350..b010d2a 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmdio.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspio.h
+@@ -1,5 +1,5 @@
+ /*
+- * wmdio.h
++ * dspio.h
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+@@ -7,7 +7,7 @@
+  * driver interface tables.
+  *
+  * Notes:
+- *   Function comment headers reside in wmd.h.
++ *   Function comment headers reside in dspdefs.h.
+  *
+  * Copyright (C) 2005-2006 Texas Instruments, Inc.
+  *
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmdioctl.h b/arch/arm/plat-omap/include/dspbridge/dspioctl.h
+similarity index 99%
+rename from arch/arm/plat-omap/include/dspbridge/wmdioctl.h
+rename to arch/arm/plat-omap/include/dspbridge/dspioctl.h
+index 9fe5543..3f7a787 100644
 --- a/arch/arm/plat-omap/include/dspbridge/wmdioctl.h
-+++ b/arch/arm/plat-omap/include/dspbridge/wmdioctl.h
-@@ -27,37 +27,37 @@
-  * Any IOCTLS at or above this value are reserved for standard WMD
-  * interfaces.
++++ b/arch/arm/plat-omap/include/dspbridge/dspioctl.h
+@@ -1,5 +1,5 @@
+ /*
+- * wmdioctl.h
++ * dspioctl.h
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+diff --git a/arch/arm/plat-omap/include/dspbridge/wmdmsg.h b/arch/arm/plat-omap/include/dspbridge/dspmsg.h
+similarity index 96%
+rename from arch/arm/plat-omap/include/dspbridge/wmdmsg.h
+rename to arch/arm/plat-omap/include/dspbridge/dspmsg.h
+index f8005ea..86db728 100644
+--- a/arch/arm/plat-omap/include/dspbridge/wmdmsg.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspmsg.h
+@@ -1,5 +1,5 @@
+ /*
+- * wmdmsg.h
++ * dspmsg.h
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+@@ -8,7 +8,7 @@
+  * implemented by every class of WMD channel library.
+  *
+  * Notes:
+- *   Function comment headers reside in wmd.h.
++ *   Function comment headers reside in dspdefs.h.
+  *
+  * Copyright (C) 2005-2006 Texas Instruments, Inc.
+  *
+diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
+index 97e7ec1..db2027f 100644
+--- a/drivers/dsp/bridge/Makefile
++++ b/drivers/dsp/bridge/Makefile
+@@ -8,7 +8,7 @@ libservices = services/sync.o \
+ libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
+ 		core/tiomap3430_pwr.o core/tiomap_io.o \
+ 		core/mmu_fault.o core/ue_deh.o core/wdt.o
+-libpmgr = pmgr/chnl.o pmgr/io.o pmgr/msg.o pmgr/cod.o pmgr/dev.o pmgr/wcd.o \
++libpmgr = pmgr/chnl.o pmgr/io.o pmgr/msg.o pmgr/cod.o pmgr/dev.o pmgr/dspapi.o \
+ 		pmgr/dmm.o pmgr/cmm.o pmgr/dbll.o
+ librmgr = rmgr/dbdcd.o rmgr/disp.o rmgr/drv.o rmgr/mgr.o rmgr/node.o \
+ 		rmgr/proc.o rmgr/pwr.o rmgr/rmm.o rmgr/strm.o rmgr/dspdrv.o \
+diff --git a/drivers/dsp/bridge/core/_deh.h b/drivers/dsp/bridge/core/_deh.h
+index a7e74b0..631746e 100644
+--- a/drivers/dsp/bridge/core/_deh.h
++++ b/drivers/dsp/bridge/core/_deh.h
+@@ -20,7 +20,7 @@
+ #define _DEH_
+ 
+ #include <dspbridge/ntfy.h>
+-#include <dspbridge/wmd.h>
++#include <dspbridge/dspdefs.h>
+ 
+ /* DEH Manager: only one created per board: */
+ struct deh_mgr {
+diff --git a/drivers/dsp/bridge/core/_tiomap.h b/drivers/dsp/bridge/core/_tiomap.h
+index b539641..c420295 100644
+--- a/drivers/dsp/bridge/core/_tiomap.h
++++ b/drivers/dsp/bridge/core/_tiomap.h
+@@ -25,7 +25,7 @@
+ #include <mach-omap2/cm-regbits-34xx.h>
+ #include <dspbridge/devdefs.h>
+ #include <hw_defs.h>
+-#include <dspbridge/wmdioctl.h>	/* for bridge_ioctl_extproc defn */
++#include <dspbridge/dspioctl.h>	/* for bridge_ioctl_extproc defn */
+ #include <dspbridge/sync.h>
+ #include <dspbridge/clk.h>
+ 
+diff --git a/drivers/dsp/bridge/core/chnl_sm.c b/drivers/dsp/bridge/core/chnl_sm.c
+index 51017f1..9befa77 100644
+--- a/drivers/dsp/bridge/core/chnl_sm.c
++++ b/drivers/dsp/bridge/core/chnl_sm.c
+@@ -58,8 +58,8 @@
+ #include <dspbridge/sync.h>
+ 
+ /*  ----------------------------------- Mini-Driver */
+-#include <dspbridge/wmd.h>
+-#include <dspbridge/wmdchnl.h>
++#include <dspbridge/dspdefs.h>
++#include <dspbridge/dspchnl.h>
+ #include "_tiomap.h"
+ 
+ /*  ----------------------------------- Platform Manager */
+diff --git a/drivers/dsp/bridge/core/io_sm.c b/drivers/dsp/bridge/core/io_sm.c
+index e917c51..35da0b9 100644
+--- a/drivers/dsp/bridge/core/io_sm.c
++++ b/drivers/dsp/bridge/core/io_sm.c
+@@ -47,9 +47,9 @@
+ #include <hw_mmu.h>
+ 
+ /* Mini Driver */
+-#include <dspbridge/wmddeh.h>
+-#include <dspbridge/wmdio.h>
+-#include <dspbridge/wmdioctl.h>
++#include <dspbridge/dspdeh.h>
++#include <dspbridge/dspio.h>
++#include <dspbridge/dspioctl.h>
+ #include <dspbridge/wdt.h>
+ #include <_tiomap.h>
+ #include <tiomap_io.h>
+diff --git a/drivers/dsp/bridge/core/mmu_fault.c b/drivers/dsp/bridge/core/mmu_fault.c
+index 0e6387a..cdd2908 100644
+--- a/drivers/dsp/bridge/core/mmu_fault.c
++++ b/drivers/dsp/bridge/core/mmu_fault.c
+@@ -29,7 +29,7 @@
+ #include <dspbridge/drv.h>
+ 
+ /*  ----------------------------------- Link Driver */
+-#include <dspbridge/wmddeh.h>
++#include <dspbridge/dspdeh.h>
+ 
+ /* ------------------------------------ Hardware Abstraction Layer */
+ #include <hw_defs.h>
+diff --git a/drivers/dsp/bridge/core/msg_sm.c b/drivers/dsp/bridge/core/msg_sm.c
+index e52e56a..e12884b 100644
+--- a/drivers/dsp/bridge/core/msg_sm.c
++++ b/drivers/dsp/bridge/core/msg_sm.c
+@@ -36,7 +36,7 @@
+ 
+ /*  ----------------------------------- This */
+ #include <_msg_sm.h>
+-#include <dspbridge/wmdmsg.h>
++#include <dspbridge/dspmsg.h>
+ 
+ /*  ----------------------------------- Function Prototypes */
+ static dsp_status add_new_msg(struct lst_list *msgList);
+diff --git a/drivers/dsp/bridge/core/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
+index d2c4691..1ccec2d 100644
+--- a/drivers/dsp/bridge/core/tiomap3430.c
++++ b/drivers/dsp/bridge/core/tiomap3430.c
+@@ -41,17 +41,17 @@
+ #include <hw_mmu.h>
+ 
+ /*  ----------------------------------- Link Driver */
+-#include <dspbridge/wmd.h>
+-#include <dspbridge/wmdchnl.h>
+-#include <dspbridge/wmddeh.h>
+-#include <dspbridge/wmdio.h>
+-#include <dspbridge/wmdmsg.h>
++#include <dspbridge/dspdefs.h>
++#include <dspbridge/dspchnl.h>
++#include <dspbridge/dspdeh.h>
++#include <dspbridge/dspio.h>
++#include <dspbridge/dspmsg.h>
+ #include <dspbridge/pwr.h>
+ #include <dspbridge/io_sm.h>
+ 
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/dev.h>
+-#include <dspbridge/wcd.h>
++#include <dspbridge/dspapi.h>
+ #include <dspbridge/dmm.h>
+ #include <dspbridge/wdt.h>
+ 
+diff --git a/drivers/dsp/bridge/core/tiomap3430_pwr.c b/drivers/dsp/bridge/core/tiomap3430_pwr.c
+index 8563dad..73355c6 100644
+--- a/drivers/dsp/bridge/core/tiomap3430_pwr.c
++++ b/drivers/dsp/bridge/core/tiomap3430_pwr.c
+@@ -35,7 +35,7 @@
+ #include <dspbridge/pwr_sh.h>
+ 
+ /*  ----------------------------------- Mini Driver */
+-#include <dspbridge/wmddeh.h>
++#include <dspbridge/dspdeh.h>
+ #include <dspbridge/wdt.h>
+ 
+ /*  ----------------------------------- specific to this file */
+diff --git a/drivers/dsp/bridge/core/ue_deh.c b/drivers/dsp/bridge/core/ue_deh.c
+index 2473d3d..8a13c14 100644
+--- a/drivers/dsp/bridge/core/ue_deh.c
++++ b/drivers/dsp/bridge/core/ue_deh.c
+@@ -33,11 +33,11 @@
+ #include <dspbridge/drv.h>
+ 
+ /*  ----------------------------------- Link Driver */
+-#include <dspbridge/wmddeh.h>
++#include <dspbridge/dspdeh.h>
+ 
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/dev.h>
+-#include <dspbridge/wcd.h>
++#include <dspbridge/dspapi.h>
+ #include <dspbridge/wdt.h>
+ 
+ /* ------------------------------------ Hardware Abstraction Layer */
+diff --git a/drivers/dsp/bridge/core/wdt.c b/drivers/dsp/bridge/core/wdt.c
+index 7a007f2..4637afb 100644
+--- a/drivers/dsp/bridge/core/wdt.c
++++ b/drivers/dsp/bridge/core/wdt.c
+@@ -19,7 +19,7 @@
+ #include <dspbridge/std.h>
+ #include <dspbridge/dbdefs.h>
+ #include <dspbridge/errbase.h>
+-#include <dspbridge/wmddeh.h>
++#include <dspbridge/dspdeh.h>
+ #include <dspbridge/dev.h>
+ #include <dspbridge/_chnl_sm.h>
+ #include <dspbridge/wdt.h>
+diff --git a/drivers/dsp/bridge/pmgr/chnlobj.h b/drivers/dsp/bridge/pmgr/chnlobj.h
+index 2cc7c22..39ce007 100644
+--- a/drivers/dsp/bridge/pmgr/chnlobj.h
++++ b/drivers/dsp/bridge/pmgr/chnlobj.h
+@@ -21,7 +21,7 @@
+ #define CHNLOBJ_
+ 
+ #include <dspbridge/chnldefs.h>
+-#include <dspbridge/wmd.h>
++#include <dspbridge/dspdefs.h>
+ 
+ /*
+  *  This struct is the first field in a chnl_mgr struct, as implemented in
+diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
+index f94eebc..109e343 100644
+--- a/drivers/dsp/bridge/pmgr/dev.c
++++ b/drivers/dsp/bridge/pmgr/dev.c
+@@ -43,7 +43,7 @@
+ #include <dspbridge/node.h>
+ 
+ /*  ----------------------------------- Others */
+-#include <dspbridge/wcd.h>	/* WCD version info. */
++#include <dspbridge/dspapi.h>	/* WCD version info. */
+ 
+ #include <dspbridge/chnl.h>
+ #include <dspbridge/io.h>
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/dspapi.c
+similarity index 99%
+rename from drivers/dsp/bridge/pmgr/wcd.c
+rename to drivers/dsp/bridge/pmgr/dspapi.c
+index a63ae8f..1ac7e78 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/dspapi.c
+@@ -1,5 +1,5 @@
+ /*
+- * wcd.c
++ * dspapi.c
+  *
+  * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+  *
+@@ -80,7 +80,7 @@ static u32 api_c_refs;
+ /*
+  *  Function tables.
+  *  The order of these functions MUST be the same as the order of the command
+- *  numbers defined in wcdioctl.h  This is how an IOCTL number in user mode
++ *  numbers defined in dspapi-ioctl.h  This is how an IOCTL number in user mode
+  *  turns into a function call in kernel mode.
   */
--#define WMDIOCTL_RESERVEDBASE       0x8000
-+#define BRDIOCTL_RESERVEDBASE       0x8000
  
--#define WMDIOCTL_CHNLREAD           (WMDIOCTL_RESERVEDBASE + 0x10)
--#define WMDIOCTL_CHNLWRITE          (WMDIOCTL_RESERVEDBASE + 0x20)
--#define WMDIOCTL_GETINTRCOUNT       (WMDIOCTL_RESERVEDBASE + 0x30)
--#define WMDIOCTL_RESETINTRCOUNT     (WMDIOCTL_RESERVEDBASE + 0x40)
--#define WMDIOCTL_INTERRUPTDSP       (WMDIOCTL_RESERVEDBASE + 0x50)
-+#define BRDIOCTL_CHNLREAD           (BRDIOCTL_RESERVEDBASE + 0x10)
-+#define BRDIOCTL_CHNLWRITE          (BRDIOCTL_RESERVEDBASE + 0x20)
-+#define BRDIOCTL_GETINTRCOUNT       (BRDIOCTL_RESERVEDBASE + 0x30)
-+#define BRDIOCTL_RESETINTRCOUNT     (BRDIOCTL_RESERVEDBASE + 0x40)
-+#define BRDIOCTL_INTERRUPTDSP       (BRDIOCTL_RESERVEDBASE + 0x50)
- /* DMMU */
--#define WMDIOCTL_SETMMUCONFIG       (WMDIOCTL_RESERVEDBASE + 0x60)
-+#define BRDIOCTL_SETMMUCONFIG       (BRDIOCTL_RESERVEDBASE + 0x60)
- /* PWR */
--#define WMDIOCTL_PWRCONTROL         (WMDIOCTL_RESERVEDBASE + 0x70)
-+#define BRDIOCTL_PWRCONTROL         (BRDIOCTL_RESERVEDBASE + 0x70)
+diff --git a/drivers/dsp/bridge/pmgr/ioobj.h b/drivers/dsp/bridge/pmgr/ioobj.h
+index 8717f8a..8f9d871 100644
+--- a/drivers/dsp/bridge/pmgr/ioobj.h
++++ b/drivers/dsp/bridge/pmgr/ioobj.h
+@@ -21,7 +21,7 @@
+ #define IOOBJ_
  
- /* attention, modifiers:
-  * Some of these control enumerations are made visible to user for power
-  * control, so any changes to this list, should also be updated in the user
-  * header file 'dbdefs.h' ***/
- /* These ioctls are reserved for PWR power commands for the DSP */
--#define WMDIOCTL_DEEPSLEEP          (WMDIOCTL_PWRCONTROL + 0x0)
--#define WMDIOCTL_EMERGENCYSLEEP     (WMDIOCTL_PWRCONTROL + 0x1)
--#define WMDIOCTL_WAKEUP             (WMDIOCTL_PWRCONTROL + 0x2)
--#define WMDIOCTL_PWRENABLE          (WMDIOCTL_PWRCONTROL + 0x3)
--#define WMDIOCTL_PWRDISABLE         (WMDIOCTL_PWRCONTROL + 0x4)
--#define WMDIOCTL_CLK_CTRL		    (WMDIOCTL_PWRCONTROL + 0x7)
-+#define BRDIOCTL_DEEPSLEEP          (BRDIOCTL_PWRCONTROL + 0x0)
-+#define BRDIOCTL_EMERGENCYSLEEP     (BRDIOCTL_PWRCONTROL + 0x1)
-+#define BRDIOCTL_WAKEUP             (BRDIOCTL_PWRCONTROL + 0x2)
-+#define BRDIOCTL_PWRENABLE          (BRDIOCTL_PWRCONTROL + 0x3)
-+#define BRDIOCTL_PWRDISABLE         (BRDIOCTL_PWRCONTROL + 0x4)
-+#define BRDIOCTL_CLK_CTRL		    (BRDIOCTL_PWRCONTROL + 0x7)
- /* DSP Initiated Hibernate */
--#define WMDIOCTL_PWR_HIBERNATE	(WMDIOCTL_PWRCONTROL + 0x8)
--#define WMDIOCTL_PRESCALE_NOTIFY (WMDIOCTL_PWRCONTROL + 0x9)
--#define WMDIOCTL_POSTSCALE_NOTIFY (WMDIOCTL_PWRCONTROL + 0xA)
--#define WMDIOCTL_CONSTRAINT_REQUEST (WMDIOCTL_PWRCONTROL + 0xB)
-+#define BRDIOCTL_PWR_HIBERNATE	(BRDIOCTL_PWRCONTROL + 0x8)
-+#define BRDIOCTL_PRESCALE_NOTIFY (BRDIOCTL_PWRCONTROL + 0x9)
-+#define BRDIOCTL_POSTSCALE_NOTIFY (BRDIOCTL_PWRCONTROL + 0xA)
-+#define BRDIOCTL_CONSTRAINT_REQUEST (BRDIOCTL_PWRCONTROL + 0xB)
+ #include <dspbridge/devdefs.h>
+-#include <dspbridge/wmd.h>
++#include <dspbridge/dspdefs.h>
  
- /* Number of actual DSP-MMU TLB entrries */
--#define WMDIOCTL_NUMOFMMUTLB        32
-+#define BRDIOCTL_NUMOFMMUTLB        32
+ /*
+  *  This struct is the first field in a io_mgr struct, as implemented in
+diff --git a/drivers/dsp/bridge/pmgr/msg.c b/drivers/dsp/bridge/pmgr/msg.c
+index 63cadf6..f1e178a 100644
+--- a/drivers/dsp/bridge/pmgr/msg.c
++++ b/drivers/dsp/bridge/pmgr/msg.c
+@@ -28,7 +28,7 @@
+ #include <dspbridge/dbc.h>
  
- struct bridge_ioctl_extproc {
- 	u32 ul_dsp_va;		/* DSP virtual address */
+ /*  ----------------------------------- Mini Driver */
+-#include <dspbridge/wmd.h>
++#include <dspbridge/dspdefs.h>
+ 
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/dev.h>
+diff --git a/drivers/dsp/bridge/pmgr/msgobj.h b/drivers/dsp/bridge/pmgr/msgobj.h
+index 3eb1098..d19e26b 100644
+--- a/drivers/dsp/bridge/pmgr/msgobj.h
++++ b/drivers/dsp/bridge/pmgr/msgobj.h
+@@ -20,7 +20,7 @@
+ #ifndef MSGOBJ_
+ #define MSGOBJ_
+ 
+-#include <dspbridge/wmd.h>
++#include <dspbridge/dspdefs.h>
+ 
+ #include <dspbridge/msgdefs.h>
+ 
+diff --git a/drivers/dsp/bridge/rmgr/disp.c b/drivers/dsp/bridge/rmgr/disp.c
+index 9418f50..bffedef 100644
+--- a/drivers/dsp/bridge/rmgr/disp.c
++++ b/drivers/dsp/bridge/rmgr/disp.c
+@@ -32,7 +32,7 @@
+ #include <dspbridge/sync.h>
+ 
+ /*  ----------------------------------- Link Driver */
+-#include <dspbridge/wmd.h>
++#include <dspbridge/dspdefs.h>
+ 
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/dev.h>
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 3df27d9..c3df5f5 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -40,7 +40,7 @@
+ #include <dspbridge/proc.h>
+ #include <dspbridge/strm.h>
+ #include <dspbridge/nodepriv.h>
+-#include <dspbridge/wmdchnl.h>
++#include <dspbridge/dspchnl.h>
+ #include <dspbridge/resourcecleanup.h>
+ 
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index dd2fe8b..70e1a3a 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -45,7 +45,7 @@
+ #include <dspbridge/reg.h>
+ 
+ /*  ----------------------------------- Platform Manager */
+-#include <dspbridge/wcdioctl.h>
++#include <dspbridge/dspapi-ioctl.h>
+ #include <dspbridge/_dcd.h>
+ #include <dspbridge/dspdrv.h>
+ 
 diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index ddf54df..be641bc 100644
+index be641bc..0b187dc 100644
 --- a/drivers/dsp/bridge/rmgr/node.c
 +++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -3155,7 +3155,7 @@ static u32 ovly(void *priv_ref, u32 ulDspRunAddr, u32 ulDspLoadAddr,
- 			pr_debug("%s: failed to copy brd memory, status 0x%x\n",
- 				 __func__, status);
- 	} else {
--		pr_debug("%s: failed to get WMD context, status 0x%x\n",
-+		pr_debug("%s: failed to get Bridge  context, status 0x%x\n",
- 			 __func__, status);
- 	}
+@@ -48,8 +48,8 @@
+ #include <dspbridge/rms_sh.h>
  
+ /*  ----------------------------------- Link Driver */
+-#include <dspbridge/wmd.h>
+-#include <dspbridge/wmdioctl.h>
++#include <dspbridge/dspdefs.h>
++#include <dspbridge/dspioctl.h>
+ 
+ /*  ----------------------------------- Others */
+ #include <dspbridge/gb.h>
 diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 6e32ad6..0a95355 100644
+index 0a95355..4cdc7e3 100644
 --- a/drivers/dsp/bridge/rmgr/proc.c
 +++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -348,12 +348,12 @@ dsp_status proc_ctrl(void *hprocessor, u32 dw_cmd, IN struct dsp_cbdata * arg)
+@@ -33,8 +33,8 @@
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/sync.h>
+ /*  ----------------------------------- Mini Driver */
+-#include <dspbridge/wmd.h>
+-#include <dspbridge/wmddeh.h>
++#include <dspbridge/dspdefs.h>
++#include <dspbridge/dspdeh.h>
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/cod.h>
+ #include <dspbridge/dev.h>
+@@ -50,7 +50,7 @@
+ /*  ----------------------------------- Others */
+ #include <dspbridge/dbdcd.h>
+ #include <dspbridge/msg.h>
+-#include <dspbridge/wmdioctl.h>
++#include <dspbridge/dspioctl.h>
+ #include <dspbridge/drv.h>
+ #include <dspbridge/reg.h>
  
- 	if (p_proc_object) {
- 		/* intercept PWR deep sleep command */
--		if (dw_cmd == WMDIOCTL_DEEPSLEEP) {
-+		if (dw_cmd == BRDIOCTL_DEEPSLEEP) {
- 			timeout = arg->cb_data;
- 			status = pwr_sleep_dsp(PWR_DEEPSLEEP, timeout);
- 		}
- 		/* intercept PWR emergency sleep command */
--		else if (dw_cmd == WMDIOCTL_EMERGENCYSLEEP) {
-+		else if (dw_cmd == BRDIOCTL_EMERGENCYSLEEP) {
- 			timeout = arg->cb_data;
- 			status = pwr_sleep_dsp(PWR_EMERGENCYDEEPSLEEP, timeout);
- 		} else if (dw_cmd == PWR_DEEPSLEEP) {
-@@ -361,7 +361,7 @@ dsp_status proc_ctrl(void *hprocessor, u32 dw_cmd, IN struct dsp_cbdata * arg)
- 			status = pwr_sleep_dsp(PWR_DEEPSLEEP, timeout);
- 		}
- 		/* intercept PWR wake commands */
--		else if (dw_cmd == WMDIOCTL_WAKEUP) {
-+		else if (dw_cmd == BRDIOCTL_WAKEUP) {
- 			timeout = arg->cb_data;
- 			status = pwr_wake_dsp(timeout);
- 		} else if (dw_cmd == PWR_WAKEUP) {
 diff --git a/drivers/dsp/bridge/rmgr/pwr.c b/drivers/dsp/bridge/rmgr/pwr.c
-index 51eeb65..ff8c0c3 100644
+index ff8c0c3..c479a68 100644
 --- a/drivers/dsp/bridge/rmgr/pwr.c
 +++ b/drivers/dsp/bridge/rmgr/pwr.c
-@@ -60,9 +60,9 @@ dsp_status pwr_sleep_dsp(IN CONST u32 sleepCode, IN CONST u32 timeout)
- 			continue;
- 		}
- 		if (sleepCode == PWR_DEEPSLEEP)
--			ioctlcode = WMDIOCTL_DEEPSLEEP;
-+			ioctlcode = BRDIOCTL_DEEPSLEEP;
- 		else if (sleepCode == PWR_EMERGENCYDEEPSLEEP)
--			ioctlcode = WMDIOCTL_EMERGENCYSLEEP;
-+			ioctlcode = BRDIOCTL_EMERGENCYSLEEP;
- 		else
- 			status = DSP_EINVALIDARG;
+@@ -30,7 +30,7 @@
+ #include <dspbridge/dev.h>
  
-@@ -100,7 +100,7 @@ dsp_status pwr_wake_dsp(IN CONST u32 timeout)
- 			      (struct bridge_drv_interface **)&intf_fxns))) {
- 				status =
- 				    (*intf_fxns->pfn_dev_cntrl) (dw_context,
--							WMDIOCTL_WAKEUP,
-+							BRDIOCTL_WAKEUP,
- 							(void *)&arg);
- 			}
- 		}
-@@ -136,7 +136,7 @@ dsp_status pwr_pm_pre_scale(IN u16 voltage_domain, u32 level)
- 			      (struct bridge_drv_interface **)&intf_fxns))) {
- 				status =
- 				    (*intf_fxns->pfn_dev_cntrl) (dw_context,
--						WMDIOCTL_PRESCALE_NOTIFY,
-+						BRDIOCTL_PRESCALE_NOTIFY,
- 						(void *)&arg);
- 			}
- 		}
-@@ -172,7 +172,7 @@ dsp_status pwr_pm_post_scale(IN u16 voltage_domain, u32 level)
- 			      (struct bridge_drv_interface **)&intf_fxns))) {
- 				status =
- 				    (*intf_fxns->pfn_dev_cntrl) (dw_context,
--						WMDIOCTL_POSTSCALE_NOTIFY,
-+						BRDIOCTL_POSTSCALE_NOTIFY,
- 						(void *)&arg);
- 			}
- 		}
-diff --git a/drivers/dsp/bridge/wmd/_tiomap.h b/drivers/dsp/bridge/wmd/_tiomap.h
-index b670b02..b539641 100644
---- a/drivers/dsp/bridge/wmd/_tiomap.h
-+++ b/drivers/dsp/bridge/wmd/_tiomap.h
-@@ -337,7 +337,7 @@ struct bridge_dev_context {
- 	 * [See WMD_BRD_Ctrl()]  PROC info contains DSP-MMU TLB entries.
- 	 */
- 	/* DMMU TLB entries */
--	struct bridge_ioctl_extproc atlb_entry[WMDIOCTL_NUMOFMMUTLB];
-+	struct bridge_ioctl_extproc atlb_entry[BRDIOCTL_NUMOFMMUTLB];
- 	u32 dw_brd_state;	/* Last known board state. */
- 	u32 ul_int_mask;	/* int mask */
- 	u16 io_base;		/* Board I/O base */
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 62624ad..e917c51 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -322,7 +322,7 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
- 	u32 num_procs = 0;
- 	s32 ndx = 0;
- 	/* DSP MMU setup table */
--	struct bridge_ioctl_extproc ae_proc[WMDIOCTL_NUMOFMMUTLB];
-+	struct bridge_ioctl_extproc ae_proc[BRDIOCTL_NUMOFMMUTLB];
- 	struct cfg_hostres host_res;
- 	u32 map_attrs;
- 	u32 shm0_end;
-@@ -600,7 +600,7 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
- 	 * Copy remaining entries from CDB. All entries are 1 MB and
- 	 * should not conflict with shm entries on MPU or DSP side.
- 	 */
--	for (i = 3; i < 7 && ndx < WMDIOCTL_NUMOFMMUTLB; i++) {
-+	for (i = 3; i < 7 && ndx < BRDIOCTL_NUMOFMMUTLB; i++) {
- 		if (hio_mgr->ext_proc_info.ty_tlb[i].ul_gpp_phys == 0)
- 			continue;
+ /*  ----------------------------------- Link Driver */
+-#include <dspbridge/wmdioctl.h>
++#include <dspbridge/dspioctl.h>
  
-@@ -666,7 +666,7 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
- 		i++;
- 	}
+ /*
+  *  ======== pwr_sleep_dsp ========
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index 76107c9..da26df9 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -31,7 +31,7 @@
+ #include <dspbridge/sync.h>
  
--	for (i = ndx; i < WMDIOCTL_NUMOFMMUTLB; i++) {
-+	for (i = ndx; i < BRDIOCTL_NUMOFMMUTLB; i++) {
- 		ae_proc[i].ul_dsp_va = 0;
- 		ae_proc[i].ul_gpp_pa = 0;
- 		ae_proc[i].ul_gpp_va = 0;
-@@ -704,7 +704,7 @@ dsp_status bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ /*  ----------------------------------- Mini Driver */
+-#include <dspbridge/wmd.h>
++#include <dspbridge/dspdefs.h>
  
- 		status =
- 		    hio_mgr->intf_fxns->pfn_dev_cntrl(hio_mgr->hbridge_context,
--						      WMDIOCTL_SETMMUCONFIG,
-+						      BRDIOCTL_SETMMUCONFIG,
- 						      ae_proc);
- 		if (DSP_FAILED(status))
- 			goto func_end;
-@@ -887,7 +887,7 @@ static void io_dispatch_pm(struct io_mgr *pio_mgr)
- 		dev_dbg(bridge, "PM: Hibernate command\n");
- 		status = pio_mgr->intf_fxns->
- 				pfn_dev_cntrl(pio_mgr->hbridge_context,
--					      WMDIOCTL_PWR_HIBERNATE, parg);
-+					      BRDIOCTL_PWR_HIBERNATE, parg);
- 		if (DSP_FAILED(status))
- 			pr_err("%s: hibernate cmd failed 0x%x\n",
- 				       __func__, status);
-@@ -896,7 +896,7 @@ static void io_dispatch_pm(struct io_mgr *pio_mgr)
- 		dev_dbg(bridge, "PM: Requested OPP = 0x%x\n", parg[1]);
- 		status = pio_mgr->intf_fxns->
- 				pfn_dev_cntrl(pio_mgr->hbridge_context,
--					WMDIOCTL_CONSTRAINT_REQUEST, parg);
-+					BRDIOCTL_CONSTRAINT_REQUEST, parg);
- 		if (DSP_FAILED(status))
- 			dev_dbg(bridge, "PM: Failed to set constraint "
- 				"= 0x%x \n", parg[1]);
-@@ -905,7 +905,7 @@ static void io_dispatch_pm(struct io_mgr *pio_mgr)
- 			parg[0]);
- 		status = pio_mgr->intf_fxns->
- 				pfn_dev_cntrl(pio_mgr->hbridge_context,
--					      WMDIOCTL_CLK_CTRL, parg);
-+					      BRDIOCTL_CLK_CTRL, parg);
- 		if (DSP_FAILED(status))
- 			dev_dbg(bridge, "PM: Failed to ctrl the DSP clk"
- 				"= 0x%x\n", *parg);
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index a8a2d02..d01cd63 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -265,7 +265,7 @@ void bridge_drv_entry(OUT struct bridge_drv_interface **ppDrvInterface,
- 	if (strcmp(driver_file_name, "UMA") == 0)
- 		*ppDrvInterface = &drv_interface_fxns;
- 	else
--		dev_dbg(bridge, "%s Unknown WMD file name", __func__);
-+		dev_dbg(bridge, "%s Unknown Bridge driver file name", __func__);
- 
- }
- 
-@@ -464,7 +464,7 @@ static dsp_status bridge_brd_start(struct bridge_dev_context *hDevContext,
- 		hw_mmu_twl_disable(resources.dw_dmmu_base);
- 
- 		/* Only make TLB entry if both addresses are non-zero */
--		for (entry_ndx = 0; entry_ndx < WMDIOCTL_NUMOFMMUTLB;
-+		for (entry_ndx = 0; entry_ndx < BRDIOCTL_NUMOFMMUTLB;
- 		     entry_ndx++) {
- 			if ((dev_context->atlb_entry[entry_ndx].ul_gpp_pa != 0)
- 			    && (dev_context->atlb_entry[entry_ndx].ul_dsp_va !=
-@@ -674,7 +674,7 @@ static dsp_status bridge_brd_start(struct bridge_dev_context *hDevContext,
- 		/* Wait for DSP to clear word in shared memory */
- 		/* Read the Location */
- 		if (!wait_for_start(dev_context, dw_sync_addr))
--			status = WMD_E_TIMEOUT;
-+			status = BRD_E_TIMEOUT;
- 
- 		/* Start wdt */
- 		dsp_wdt_sm_set((void *)ul_shm_base);
-@@ -914,7 +914,7 @@ static dsp_status bridge_dev_create(OUT struct bridge_dev_context
- 	dev_context->dw_internal_size = OMAP_DSP_SIZE;
- 	/*  Clear dev context MMU table entries.
- 	 *  These get set on WMD_BRD_IOCTL() call after program loaded. */
--	for (entry_ndx = 0; entry_ndx < WMDIOCTL_NUMOFMMUTLB; entry_ndx++) {
-+	for (entry_ndx = 0; entry_ndx < BRDIOCTL_NUMOFMMUTLB; entry_ndx++) {
- 		dev_context->atlb_entry[entry_ndx].ul_gpp_pa =
- 		    dev_context->atlb_entry[entry_ndx].ul_dsp_va = 0;
- 	}
-@@ -1067,39 +1067,39 @@ static dsp_status bridge_dev_ctrl(struct bridge_dev_context *dev_context,
- 	s32 ndx;
- 
- 	switch (dw_cmd) {
--	case WMDIOCTL_CHNLREAD:
-+	case BRDIOCTL_CHNLREAD:
- 		break;
--	case WMDIOCTL_CHNLWRITE:
-+	case BRDIOCTL_CHNLWRITE:
- 		break;
--	case WMDIOCTL_SETMMUCONFIG:
-+	case BRDIOCTL_SETMMUCONFIG:
- 		/* store away dsp-mmu setup values for later use */
--		for (ndx = 0; ndx < WMDIOCTL_NUMOFMMUTLB; ndx++, pa_ext_proc++)
-+		for (ndx = 0; ndx < BRDIOCTL_NUMOFMMUTLB; ndx++, pa_ext_proc++)
- 			dev_context->atlb_entry[ndx] = *pa_ext_proc;
- 		break;
--	case WMDIOCTL_DEEPSLEEP:
--	case WMDIOCTL_EMERGENCYSLEEP:
-+	case BRDIOCTL_DEEPSLEEP:
-+	case BRDIOCTL_EMERGENCYSLEEP:
- 		/* Currently only DSP Idle is supported Need to update for
- 		 * later releases */
- 		status = sleep_dsp(dev_context, PWR_DEEPSLEEP, pargs);
- 		break;
--	case WMDIOCTL_WAKEUP:
-+	case BRDIOCTL_WAKEUP:
- 		status = wake_dsp(dev_context, pargs);
- 		break;
--	case WMDIOCTL_CLK_CTRL:
-+	case BRDIOCTL_CLK_CTRL:
- 		status = DSP_SOK;
- 		/* Looking For Baseport Fix for Clocks */
- 		status = dsp_peripheral_clk_ctrl(dev_context, pargs);
- 		break;
--	case WMDIOCTL_PWR_HIBERNATE:
-+	case BRDIOCTL_PWR_HIBERNATE:
- 		status = handle_hibernation_from_dsp(dev_context);
- 		break;
--	case WMDIOCTL_PRESCALE_NOTIFY:
-+	case BRDIOCTL_PRESCALE_NOTIFY:
- 		status = pre_scale_dsp(dev_context, pargs);
- 		break;
--	case WMDIOCTL_POSTSCALE_NOTIFY:
-+	case BRDIOCTL_POSTSCALE_NOTIFY:
- 		status = post_scale_dsp(dev_context, pargs);
- 		break;
--	case WMDIOCTL_CONSTRAINT_REQUEST:
-+	case BRDIOCTL_CONSTRAINT_REQUEST:
- 		status = handle_constraints_set(dev_context, pargs);
- 		break;
- 	default:
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index d9defcc..8563dad 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -104,7 +104,7 @@ dsp_status handle_hibernation_from_dsp(struct bridge_dev_context *dev_context)
- 	}
- 	if (timeout == 0) {
- 		pr_err("%s: Timed out waiting for DSP off mode\n", __func__);
--		status = WMD_E_TIMEOUT;
-+		status = BRD_E_TIMEOUT;
- 		return status;
- 	} else {
- 
-@@ -219,7 +219,7 @@ dsp_status sleep_dsp(struct bridge_dev_context *dev_context, IN u32 dw_cmd,
- 		dev_get_deh_mgr(dev_context->hdev_obj, &hdeh_mgr);
- 		bridge_deh_notify(hdeh_mgr, DSP_PWRERROR, 0);
- #endif /* CONFIG_BRIDGE_NTFY_PWRERR */
--		return WMD_E_TIMEOUT;
-+		return BRD_E_TIMEOUT;
- 	} else {
- 		/* Update the Bridger Driver state */
- 		if (dsp_test_sleepstate == PWRDM_POWER_OFF)
+ /*  ----------------------------------- Resource Manager */
+ #include <dspbridge/nodepriv.h>
 -- 
 1.7.0.3
 
