@@ -1,73 +1,54 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH] arm: Fix .gitignore for boot/compressed folder
-Date: Sun, 2 May 2010 14:20:49 +0200
-Message-ID: <20100502122049.GA5553@pengutronix.de>
-References: <1267113345-18426-1-git-send-email-saaguirre@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: mailbox_mach dependency problem
+Date: Sun, 2 May 2010 15:57:42 +0300
+Message-ID: <v2k94a0d4531005020557w60b0ca34q3703ddf39d0d82aa@mail.gmail.com>
+References: <h2g94a0d4531005010747n6ef7b7d0r9b4714d289d61032@mail.gmail.com>
+	 <20100501173328.GA4706@gandalf>
+	 <w2y94a0d4531005011608kda24768ep87897ec46b39641e@mail.gmail.com>
+	 <20100502071354.GA2360@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40578 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab0EBMUz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 May 2010 08:20:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1267113345-18426-1-git-send-email-saaguirre@ti.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:34514 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754960Ab0EBM5o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 May 2010 08:57:44 -0400
+Received: by bwz19 with SMTP id 19so856532bwz.21
+        for <linux-omap@vger.kernel.org>; Sun, 02 May 2010 05:57:42 -0700 (PDT)
+In-Reply-To: <20100502071354.GA2360@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergio Aguirre <saaguirre@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Albin Tonnerre <albin.tonnerre@free-electrons.com>, Russell King <rmk@arm.linux.org.uk>
+To: me@felipebalbi.com
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <hiroshi.doyu@gmail.com>
 
-On Thu, Feb 25, 2010 at 09:55:45AM -0600, Sergio Aguirre wrote:
-> This should complements changes done in:
-I think this should read "complement" only, that is, no 's' at the end.
-Other than that,
+On Sun, May 2, 2010 at 10:13 AM, Felipe Balbi <me@felipebalbi.com> wrote:
+> On Sun, May 02, 2010 at 02:08:58AM +0300, Felipe Contreras wrote:
+>> On Sat, May 1, 2010 at 8:33 PM, Felipe Balbi <me@felipebalbi.com> wrote:
+>> > On Sat, May 01, 2010 at 05:47:57PM +0300, Felipe Contreras wrote:
+>> >> The easiest solution would be to make mailbox_mach built-in when
+>> >> mailbox is configured, however, mailbox_mach needs mailbox to be
+>> >> loaded.
+>> >
+>> > generally platform_device instantiation isn't compiled as a module. The
+>> > patch below should probably help but I didn't test it.
+>>
+>> Yeah, but as I said above... that doesn't work:
+>>
+>> arch/arm/mach-omap2/built-in.o: In function `omap2_mbox_probe':
+>> /data/public/dev/omap/linux-omap/arch/arm/mach-omap2/mailbox.c:389:
+>> undefined reference to `omap_mbox_register'
+>> arch/arm/mach-omap2/built-in.o: In function `omap2_mbox_remove':
+>> /data/public/dev/omap/linux-omap/arch/arm/mach-omap2/mailbox.c:439:
+>> undefined reference to `omap_mbox_unregister'
+>
+> now I see the problem. You shouldn't put that kind of stuff on the
+> driver. The driver can be built as a module but the device will probably
+> be built-in. You'll need a more intrusive change to fix that, I guess.
 
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
->=20
->   commit e7db7b4270ed2a606b8c0b5f944a5f92ade0e84c
->   Author: Albin Tonnerre <albin.tonnerre@free-electrons.com>
->   Date:   Fri Jan 8 14:42:43 2010 -0800
->=20
->       arm: add support for LZO-compressed kernels
->=20
-> It missed to do the respective changes in '.gitignore' file.
->=20
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  arch/arm/boot/compressed/.gitignore |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
->=20
-> diff --git a/arch/arm/boot/compressed/.gitignore b/arch/arm/boot/comp=
-ressed/.gitignore
-> index ab204db..bb984af 100644
-> --- a/arch/arm/boot/compressed/.gitignore
-> +++ b/arch/arm/boot/compressed/.gitignore
-> @@ -1,3 +1,5 @@
->  font.c
-> -piggy.gz
-> +piggy.gzip
-> +piggy.lzo
-> +lib1funcs.S
->  vmlinux.lds
-> --=20
-> 1.6.3.3
->=20
->=20
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->=20
+Indeed, that was my understanding, but the mailbox doesn't seem to be
+designed that way. Apparently the driver has an internal linked list
+of mailboxes, and the platform device registers a bunch of them.
+Effectively they need each other.
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Felipe Contreras
