@@ -1,7 +1,7 @@
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Subject: [PATCH v2 20/21] OMAP: DSS2: Taal: Add regulator configuration support
-Date: Mon,  3 May 2010 09:18:40 +0300
-Message-ID: <ca115745068df8138dcc09052fb0e6868986fabe.1272621452.git.ext-jani.1.nikula@nokia.com>
+Subject: [PATCH v2 16/21] OMAP: DSS2: Taal: Use Nokia DSI panel data
+Date: Mon,  3 May 2010 09:18:36 +0300
+Message-ID: <d76f00a4c763b84d7511a9f0c98eb7117e9e6a3e.1272621452.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
  <1ef57e99d69aaf89b8e61074aa8ce2e5f6632d28.1272621452.git.ext-jani.1.nikula@nokia.com>
  <c95257e8042f471c55a38133020d1d63e22161f3.1272621452.git.ext-jani.1.nikula@nokia.com>
@@ -18,16 +18,12 @@ References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
  <b88e1b382ddf14870c7a44e7ca620ad84d883b50.1272621452.git.ext-jani.1.nikula@nokia.com>
  <5a5dc1e253df571477551b8f63560ad9d1a3ab2b.1272621452.git.ext-jani.1.nikula@nokia.com>
  <df2ca92a00d718b95aa6a7875a4199882c86f513.1272621452.git.ext-jani.1.nikula@nokia.com>
- <d76f00a4c763b84d7511a9f0c98eb7117e9e6a3e.1272621452.git.ext-jani.1.nikula@nokia.com>
- <261f7b2c8cf1120e05d9664137e22ed237657c60.1272621452.git.ext-jani.1.nikula@nokia.com>
- <453fa1efec72cc2a4c029b6791c373a4a2e7ad7d.1272621452.git.ext-jani.1.nikula@nokia.com>
- <f2fff5b0fb2c3d2d0968a0c6c73ec2836c4ef0eb.1272621452.git.ext-jani.1.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:30963 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:30960 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755797Ab0ECGS5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 02:18:57 -0400
-In-Reply-To: <f2fff5b0fb2c3d2d0968a0c6c73ec2836c4ef0eb.1272621452.git.ext-jani.1.nikula@nokia.com>
+	with ESMTP id S1751851Ab0ECGS4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 02:18:56 -0400
+In-Reply-To: <df2ca92a00d718b95aa6a7875a4199882c86f513.1272621452.git.ext-jani.1.nikula@nokia.com>
 In-Reply-To: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -37,150 +33,225 @@ Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, ext-jani.1.nikula@n
 
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-Add support for configuring regulators in the panel specific
-configuration data.
+Get board specific information from the Nokia DSI panel data structure
+instead of the DSS.
 
 Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
 ---
- drivers/video/omap2/displays/panel-taal.c |   83 +++++++++++++++++++++++++++++
- 1 files changed, 83 insertions(+), 0 deletions(-)
+ drivers/video/omap2/displays/panel-taal.c |   59 ++++++++++++++++++----------
+ 1 files changed, 38 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index e209713..07832c4 100644
+index c326e51..b68976b 100644
 --- a/drivers/video/omap2/displays/panel-taal.c
 +++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -30,6 +30,7 @@
- #include <linux/gpio.h>
- #include <linux/workqueue.h>
- #include <linux/slab.h>
-+#include <linux/regulator/consumer.h>
+@@ -33,6 +33,7 @@
  #include <linux/mutex.h>
  
  #include <plat/display.h>
-@@ -68,6 +69,73 @@ static irqreturn_t taal_te_isr(int irq, void *data);
- static void taal_te_timeout_work_callback(struct work_struct *work);
- static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable);
++#include <plat/nokia-dsi-panel.h>
  
-+struct panel_regulator {
-+	struct regulator *regulator;
-+	const char *name;
-+	int min_uV;
-+	int max_uV;
-+};
-+
-+static void free_regulators(struct panel_regulator *regulators, int n)
-+{
-+	int i;
-+
-+	for (i = 0; i < n; i++) {
-+		/* disable/put in reverse order */
-+		regulator_disable(regulators[n - i - 1].regulator);
-+		regulator_put(regulators[n - i - 1].regulator);
-+	}
-+}
-+
-+static int init_regulators(struct omap_dss_device *dssdev,
-+			struct panel_regulator *regulators, int n)
-+{
-+	int r, i, v;
-+
-+	for (i = 0; i < n; i++) {
-+		struct regulator *reg;
-+
-+		reg = regulator_get(&dssdev->dev, regulators[i].name);
-+		if (IS_ERR(reg)) {
-+			dev_err(&dssdev->dev, "failed to get regulator %s\n",
-+				regulators[i].name);
-+			r = PTR_ERR(reg);
-+			goto err;
-+		}
-+
-+		/* FIXME: better handling of fixed vs. variable regulators */
-+		v = regulator_get_voltage(reg);
-+		if (v < regulators[i].min_uV || v > regulators[i].max_uV) {
-+			r = regulator_set_voltage(reg, regulators[i].min_uV,
-+						regulators[i].max_uV);
-+			if (r) {
-+				dev_err(&dssdev->dev,
-+					"failed to set regulator %s voltage\n",
-+					regulators[i].name);
-+				regulator_put(reg);
-+				goto err;
-+			}
-+		}
-+
-+		r = regulator_enable(reg);
-+		if (r) {
-+			dev_err(&dssdev->dev, "failed to enable regulator %s\n",
-+				regulators[i].name);
-+			regulator_put(reg);
-+			goto err;
-+		}
-+
-+		regulators[i].regulator = reg;
-+	}
-+
-+	return 0;
-+
-+err:
-+	free_regulators(regulators, i);
-+
-+	return r;
-+}
-+
- /**
-  * struct panel_config - panel configuration
-  * @name: panel name
-@@ -75,6 +143,8 @@ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable);
-  * @timings: panel resolution
-  * @sleep: various panel specific delays, passed to msleep() if non-zero
-  * @reset_sequence: reset sequence timings, passed to udelay() if non-zero
-+ * @regulators: array of panel regulators
-+ * @num_regulators: number of regulators in the array
-  */
- struct panel_config {
- 	const char *name;
-@@ -93,6 +163,9 @@ struct panel_config {
- 		unsigned int high;
- 		unsigned int low;
- 	} reset_sequence;
-+
-+	struct panel_regulator *regulators;
-+	int num_regulators;
+ /* DSI Virtual channel. Hardcoded for now. */
+ #define TCH 0
+@@ -85,7 +86,6 @@ struct taal_data {
+ 	bool mirror;
+ 
+ 	bool te_enabled;
+-	bool use_ext_te;
+ 
+ 	atomic_t do_update;
+ 	struct {
+@@ -107,6 +107,12 @@ struct taal_data {
+ 	struct delayed_work esd_work;
  };
  
- enum {
-@@ -629,6 +702,11 @@ static int taal_probe(struct omap_dss_device *dssdev)
- 
- 	atomic_set(&td->do_update, 0);
- 
-+	r = init_regulators(dssdev, panel_config->regulators,
-+			panel_config->num_regulators);
-+	if (r)
-+		goto err_reg;
++static inline struct nokia_dsi_panel_data
++*get_panel_data(const struct omap_dss_device *dssdev)
++{
++	return (struct nokia_dsi_panel_data *) dssdev->data;
++}
 +
- 	td->esd_wq = create_singlethread_workqueue("taal_esd");
- 	if (td->esd_wq == NULL) {
- 		dev_err(&dssdev->dev, "can't create ESD workqueue\n");
-@@ -715,6 +793,8 @@ err_gpio:
- err_bl:
- 	destroy_workqueue(td->esd_wq);
- err_wq:
-+	free_regulators(panel_config->regulators, panel_config->num_regulators);
-+err_reg:
- 	kfree(td);
- err:
- 	return r;
-@@ -747,6 +827,9 @@ static void taal_remove(struct omap_dss_device *dssdev)
- 	/* reset, to be sure that the panel is in a valid state */
- 	taal_hw_reset(dssdev);
+ static void taal_esd_work(struct work_struct *work);
  
-+	free_regulators(td->panel_config->regulators,
-+			td->panel_config->num_regulators);
+ static void hw_guard_start(struct taal_data *td, int guard_msec)
+@@ -288,6 +294,7 @@ static int taal_bl_update_status(struct backlight_device *dev)
+ {
+ 	struct omap_dss_device *dssdev = dev_get_drvdata(&dev->dev);
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
++	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
+ 	int r;
+ 	int level;
+ 
+@@ -310,10 +317,10 @@ static int taal_bl_update_status(struct backlight_device *dev)
+ 			r = 0;
+ 		}
+ 	} else {
+-		if (!dssdev->set_backlight)
++		if (!panel_data->set_backlight)
+ 			r = -EINVAL;
+ 		else
+-			r = dssdev->set_backlight(dssdev, level);
++			r = panel_data->set_backlight(dssdev, level);
+ 	}
+ 
+ 	mutex_unlock(&td->lock);
+@@ -503,16 +510,18 @@ static struct attribute_group taal_attr_group = {
+ 
+ static void taal_hw_reset(struct omap_dss_device *dssdev)
+ {
+-	if (dssdev->reset_gpio == -1)
++	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
 +
- 	kfree(td);
++	if (panel_data->reset_gpio == -1)
+ 		return;
+ 
+-	gpio_set_value(dssdev->reset_gpio, 1);
++	gpio_set_value(panel_data->reset_gpio, 1);
+ 	udelay(10);
+ 	/* reset the panel */
+-	gpio_set_value(dssdev->reset_gpio, 0);
++	gpio_set_value(panel_data->reset_gpio, 0);
+ 	/* assert reset for at least 10us */
+ 	udelay(10);
+-	gpio_set_value(dssdev->reset_gpio, 1);
++	gpio_set_value(panel_data->reset_gpio, 1);
+ 	/* wait 5ms after releasing reset */
+ 	msleep(5);
  }
+@@ -522,6 +531,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 	struct backlight_properties props;
+ 	struct taal_data *td;
+ 	struct backlight_device *bldev;
++	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
+ 	int r;
  
+ 	const struct omap_video_timings taal_panel_timings = {
+@@ -531,6 +541,11 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 
+ 	dev_dbg(&dssdev->dev, "probe\n");
+ 
++	if (!panel_data || !panel_data->name) {
++		r = -EINVAL;
++		goto err;
++	}
++
+ 	dssdev->panel.config = OMAP_DSS_LCD_TFT;
+ 	dssdev->panel.timings = taal_panel_timings;
+ 	dssdev->ctrl.pixel_size = 24;
+@@ -559,7 +574,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 	/* if no platform set_backlight() defined, presume DSI backlight
+ 	 * control */
+ 	memset(&props, 0, sizeof(props));
+-	if (!dssdev->set_backlight)
++	if (!panel_data->set_backlight)
+ 		td->use_dsi_bl = true;
+ 
+ 	if (td->use_dsi_bl)
+@@ -584,8 +599,8 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 
+ 	taal_bl_update_status(bldev);
+ 
+-	if (dssdev->phy.dsi.ext_te) {
+-		int gpio = dssdev->phy.dsi.ext_te_gpio;
++	if (panel_data->use_ext_te) {
++		int gpio = panel_data->ext_te_gpio;
+ 
+ 		r = gpio_request(gpio, "taal irq");
+ 		if (r) {
+@@ -608,8 +623,6 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 		INIT_DELAYED_WORK_DEFERRABLE(&td->te_timeout_work,
+ 					taal_te_timeout_work_callback);
+ 
+-		td->use_ext_te = true;
+-
+ 		dev_dbg(&dssdev->dev, "Using GPIO TE\n");
+ 	}
+ 
+@@ -624,11 +637,11 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 
+ 	return 0;
+ err_sysfs:
+-	if (td->use_ext_te)
+-		free_irq(gpio_to_irq(dssdev->phy.dsi.ext_te_gpio), dssdev);
++	if (panel_data->use_ext_te)
++		free_irq(gpio_to_irq(panel_data->ext_te_gpio), dssdev);
+ err_irq:
+-	if (td->use_ext_te)
+-		gpio_free(dssdev->phy.dsi.ext_te_gpio);
++	if (panel_data->use_ext_te)
++		gpio_free(panel_data->ext_te_gpio);
+ err_gpio:
+ 	backlight_device_unregister(bldev);
+ err_bl:
+@@ -642,14 +655,15 @@ err:
+ static void taal_remove(struct omap_dss_device *dssdev)
+ {
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
++	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
+ 	struct backlight_device *bldev;
+ 
+ 	dev_dbg(&dssdev->dev, "remove\n");
+ 
+ 	sysfs_remove_group(&dssdev->dev.kobj, &taal_attr_group);
+ 
+-	if (td->use_ext_te) {
+-		int gpio = dssdev->phy.dsi.ext_te_gpio;
++	if (panel_data->use_ext_te) {
++		int gpio = panel_data->ext_te_gpio;
+ 		free_irq(gpio_to_irq(gpio), dssdev);
+ 		gpio_free(gpio);
+ 	}
+@@ -959,6 +973,7 @@ static int taal_update(struct omap_dss_device *dssdev,
+ 				    u16 x, u16 y, u16 w, u16 h)
+ {
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
++	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
+ 	int r;
+ 
+ 	dev_dbg(&dssdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
+@@ -979,7 +994,7 @@ static int taal_update(struct omap_dss_device *dssdev,
+ 	if (r)
+ 		goto err;
+ 
+-	if (td->te_enabled && td->use_ext_te) {
++	if (td->te_enabled && panel_data->use_ext_te) {
+ 		td->update_region.x = x;
+ 		td->update_region.y = y;
+ 		td->update_region.w = w;
+@@ -1023,6 +1038,7 @@ static int taal_sync(struct omap_dss_device *dssdev)
+ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable)
+ {
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
++	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
+ 	int r;
+ 
+ 	td->te_enabled = enable;
+@@ -1032,7 +1048,7 @@ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable)
+ 	else
+ 		r = taal_dcs_write_0(DCS_TEAR_OFF);
+ 
+-	if (!td->use_ext_te)
++	if (!panel_data->use_ext_te)
+ 		omapdss_dsi_enable_te(dssdev, enable);
+ 
+ 	/* XXX for some reason, DSI TE breaks if we don't wait here.
+@@ -1265,6 +1281,7 @@ static void taal_esd_work(struct work_struct *work)
+ 	struct taal_data *td = container_of(work, struct taal_data,
+ 			esd_work.work);
+ 	struct omap_dss_device *dssdev = td->dssdev;
++	struct nokia_dsi_panel_data *panel_data = get_panel_data(dssdev);
+ 	u8 state1, state2;
+ 	int r;
+ 
+@@ -1305,7 +1322,7 @@ static void taal_esd_work(struct work_struct *work)
+ 	}
+ 	/* Self-diagnostics result is also shown on TE GPIO line. We need
+ 	 * to re-enable TE after self diagnostics */
+-	if (td->use_ext_te && td->te_enabled) {
++	if (td->te_enabled && panel_data->use_ext_te) {
+ 		r = taal_dcs_write_1(DCS_TEAR_ON, 0);
+ 		if (r)
+ 			goto err;
 -- 
 1.6.5.2
 
