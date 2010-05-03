@@ -1,84 +1,63 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH] arm: Fix .gitignore for boot/compressed folder
-Date: Mon, 3 May 2010 10:24:07 -0500
-Message-ID: <A24693684029E5489D1D202277BE8944551B8F75@dlee02.ent.ti.com>
-References: <1267113345-18426-1-git-send-email-saaguirre@ti.com>
- <20100502122049.GA5553@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_A24693684029E5489D1D202277BE8944551B8F75dlee02entticom_"
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH 1/3] omap: rx51: Change the TWL4030 VMMC2 voltage constraints and supply name
+Date: Mon,  3 May 2010 18:56:14 +0300
+Message-ID: <1272902176-21033-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36218 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932751Ab0ECPYc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 May 2010 11:24:32 -0400
-In-Reply-To: <20100502122049.GA5553@pengutronix.de>
-Content-Language: en-US
+Received: from ey-out-2122.google.com ([74.125.78.27]:31771 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759658Ab0ECPzR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 11:55:17 -0400
+Received: by ey-out-2122.google.com with SMTP id d26so145739eyd.19
+        for <linux-omap@vger.kernel.org>; Mon, 03 May 2010 08:55:15 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Albin Tonnerre <albin.tonnerre@free-electrons.com>, Russell King <rmk@arm.linux.org.uk>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Adrian Hunter <adrian.hunter@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
---_002_A24693684029E5489D1D202277BE8944551B8F75dlee02entticom_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+I believe the VMMC2 constraints must be the same than with VAUX3. Older
+boards are using TWL4030 VMMC2 supply for internal MMC whereas newer are
+using VAUX3 that has more limited constraints defined in this same file.
 
+More over, the VMMC2 supply is used also for analog audio domain and the
+miminum analog voltage of the TLV320AIC34 codec is 2.7 V.
 
+To combine these two facts, the patch changes supply name to V28_A as the
+newer boards register VMMC2_30 for VAUX3 and uses the same constraints than
+VAUX3 since those constraints are ok for the TLV320AIC34.
 
-From: Uwe Kleine-K=F6nig [mailto:u.kleine-koenig@pengutronix.de]
-Sent: Sunday, May 02, 2010 7:21 AM
-> On Thu, Feb 25, 2010 at 09:55:45AM -0600, Sergio Aguirre wrote:
-> > This should complements changes done in:
-> I think this should read "complement" only, that is, no 's' at the end.
-> Other than that,
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Oops, typo fixed. Thanks for noticing that!
+---
 
-Also... I added arch/arm/boot/compressed/vmlinux to the list, since when I
-build for my OMAP3 board, it shows in the dirty index.
+I was looking these from Maemo kernel sources, earlier patch [1] from
+Eduardo and from commit f52eeee83d360d536cab1c0296eae0ec5f05e4dd.
 
-Is it acceptable to add that aswell? If yes, then attached patch contains
-your ACK + vmlinux added to the list.
+I didn't find are the older boards using VMMC2 for audio but I assumed so.
 
->=20
-> Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+1. http://marc.info/?l=linux-omap&m=125500330932605&w=2
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Thanks!
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 4377a4c..b803f47 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -370,9 +370,9 @@ static struct regulator_init_data rx51_vmmc1 = {
+ 
+ static struct regulator_init_data rx51_vmmc2 = {
+ 	.constraints = {
+-		.name			= "VMMC2_30",
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
++		.name			= "V28_A",
++		.min_uV			= 2800000,
++		.max_uV			= 3000000,
+ 		.apply_uV		= true,
+ 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+ 					| REGULATOR_MODE_STANDBY,
+-- 
+1.7.0
 
-Regards,
-Sergio
-
-<snip>
-
---_002_A24693684029E5489D1D202277BE8944551B8F75dlee02entticom_
-Content-Type: application/octet-stream;
-	name="0001-arm-Fix-.gitignore-for-boot-compressed-folder.patch"
-Content-Description: 0001-arm-Fix-.gitignore-for-boot-compressed-folder.patch
-Content-Disposition: attachment;
-	filename="0001-arm-Fix-.gitignore-for-boot-compressed-folder.patch";
-	size=1131; creation-date="Mon, 03 May 2010 10:26:06 GMT";
-	modification-date="Mon, 03 May 2010 10:26:06 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSA1NGU3NWI1OGE0ODlkMmUyZTEwMTIxYmFmYmU5ZmJmNjFhNmY3OWRiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTZXJnaW8gQWd1aXJyZSA8c2FhZ3VpcnJlQHRpLmNvbT4KRGF0
-ZTogVGh1LCAyNSBGZWIgMjAxMCAwOTo0OTo1MSAtMDYwMApTdWJqZWN0OiBbUEFUQ0hdIGFybTog
-Rml4IC5naXRpZ25vcmUgZm9yIGJvb3QvY29tcHJlc3NlZCBmb2xkZXIKTUlNRS1WZXJzaW9uOiAx
-LjAKQ29udGVudC1UeXBlOiB0ZXh0L3BsYWluOyBjaGFyc2V0PXV0Zi04CkNvbnRlbnQtVHJhbnNm
-ZXItRW5jb2Rpbmc6IDhiaXQKClRoaXMgc2hvdWxkIGNvbXBsZW1lbnQgY2hhbmdlcyBkb25lIGlu
-OgoKICBjb21taXQgZTdkYjdiNDI3MGVkMmE2MDZiOGMwYjVmOTQ0YTVmOTJhZGUwZTg0YwogIEF1
-dGhvcjogQWxiaW4gVG9ubmVycmUgPGFsYmluLnRvbm5lcnJlQGZyZWUtZWxlY3Ryb25zLmNvbT4K
-ICBEYXRlOiAgIEZyaSBKYW4gOCAxNDo0Mjo0MyAyMDEwIC0wODAwCgogICAgICBhcm06IGFkZCBz
-dXBwb3J0IGZvciBMWk8tY29tcHJlc3NlZCBrZXJuZWxzCgpJdCBtaXNzZWQgdG8gZG8gdGhlIHJl
-c3BlY3RpdmUgY2hhbmdlcyBpbiAnLmdpdGlnbm9yZScgZmlsZS4KClNpZ25lZC1vZmYtYnk6IFNl
-cmdpbyBBZ3VpcnJlIDxzYWFndWlycmVAdGkuY29tPgpBY2tlZC1ieTogVXdlIEtsZWluZS1Lw7Zu
-aWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5ndXRyb25peC5kZT4KLS0tCiBhcmNoL2FybS9ib290L2Nv
-bXByZXNzZWQvLmdpdGlnbm9yZSB8ICAgIDUgKysrKy0KIDEgZmlsZXMgY2hhbmdlZCwgNCBpbnNl
-cnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvY29t
-cHJlc3NlZC8uZ2l0aWdub3JlIGIvYXJjaC9hcm0vYm9vdC9jb21wcmVzc2VkLy5naXRpZ25vcmUK
-aW5kZXggYWIyMDRkYi4uM2U3MjhhNiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9jb21wcmVz
-c2VkLy5naXRpZ25vcmUKKysrIGIvYXJjaC9hcm0vYm9vdC9jb21wcmVzc2VkLy5naXRpZ25vcmUK
-QEAgLTEsMyArMSw2IEBACiBmb250LmMKLXBpZ2d5Lmd6CitwaWdneS5nemlwCitwaWdneS5sem8K
-K2xpYjFmdW5jcy5TCiB2bWxpbnV4Lmxkcwordm1saW51eAotLSAKMS42LjMuMwoK
-
---_002_A24693684029E5489D1D202277BE8944551B8F75dlee02entticom_--
