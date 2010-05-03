@@ -1,48 +1,65 @@
-From: Jani Nikula <ext-jani.1.nikula@Nokia.com>
-Subject: [PATCH v2 07/21] OMAP: DSS2: Taal: Remove ESD work cancel from driver probe error handling
-Date: Mon,  3 May 2010 09:18:27 +0300
-Message-ID: <ba3a895d56c242fe4edbcfc4abd3c608da3db77a.1272621452.git.ext-jani.1.nikula@nokia.com>
-References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
- <1ef57e99d69aaf89b8e61074aa8ce2e5f6632d28.1272621452.git.ext-jani.1.nikula@nokia.com>
- <c95257e8042f471c55a38133020d1d63e22161f3.1272621452.git.ext-jani.1.nikula@nokia.com>
- <db2b972d4fa08c2f5b3cd06392ef62415890a188.1272621452.git.ext-jani.1.nikula@nokia.com>
- <b57a3f4ccf68e8c8faf332a25b699b92a5604509.1272621452.git.ext-jani.1.nikula@nokia.com>
- <7a01973540a3afa79701ee08a3d8732db4687d5b.1272621452.git.ext-jani.1.nikula@nokia.com>
- <b88fcf26f978d38a25000c2f472a4ad8f79ac285.1272621452.git.ext-jani.1.nikula@nokia.com>
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: [PATCH v2 00/21] OMAP: DSS2: Taal panel driver updates
+Date: Mon,  3 May 2010 09:18:20 +0300
+Message-ID: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:34452 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:34446 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754511Ab0ECGSx (ORCPT
+	with ESMTP id S1751079Ab0ECGSx (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 02:18:53 -0400
-In-Reply-To: <b88fcf26f978d38a25000c2f472a4ad8f79ac285.1272621452.git.ext-jani.1.nikula@nokia.com>
-In-Reply-To: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
-References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi.Valkeinen@Nokia.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, ext-jani.1.nikula@Nokia.com
+To: Tomi.Valkeinen@nokia.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, ext-jani.1.nikula@nokia.com
 
-From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Hi -
 
-ESD work is never queued in probe, no need to cancel it on probe error.
+This set of patches, on top of [1], contains assorted fixes and cleanups to the
+Taal panel driver (01-14), configures board/platform specific things in a new
+Nokia DSI command mode panel specific struct instead of DSS structs (15-17), and
+makes it feasible to add support for similar DSI command mode panels in the same
+driver (18-21).
 
-Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
----
- drivers/video/omap2/displays/panel-taal.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+v2: No functional changes since v1, just filled in some missing commit messages
+(thanks Tony for your feedback!)
 
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 98f882a..3f4687a 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -627,7 +627,6 @@ err4:
- err3:
- 	backlight_device_unregister(bldev);
- err2:
--	cancel_delayed_work_sync(&td->esd_work);
- 	destroy_workqueue(td->esd_wq);
- err1:
- 	kfree(td);
--- 
-1.6.5.2
+[1] git://gitorious.org/linux-omap-dss2/linux.git
+
+BR,
+Jani.
+
+
+Jani Nikula (20):
+  OMAP: DSS2: Taal: Add panel hardware reset
+  OMAP: DSS2: Taal: Add locks to protect taal data access
+  OMAP: DSS2: Taal: Cosmetic improvement to backlight properties
+    initialization
+  OMAP: DSS2: Taal: Remove platform enable/disable
+  OMAP: DSS2: Taal: Fix request_irq() error handling
+  OMAP: DSS2: Taal: Remove ESD work cancel from driver probe error
+    handling
+  OMAP: DSS2: Taal: Improve taal_power_on() error handling
+  OMAP: DSS2: Taal: Bail out from taal_run_test() if panel is not
+    enabled
+  OMAP: DSS2: Taal: Change DSI bus locking to avoid deadlock in ESD
+    work
+  OMAP: DSS2: Taal: Check taal_power_on() return value in taal_resume()
+  OMAP: DSS2: Taal: Change ESD work management
+  OMAP: DSS2: Taal: Change probe error handling labels
+  OMAP: DSS2: Taal: Add proper external TE support
+  OMAP: DSS2: Add Nokia DSI command mode panel configuration struct
+  OMAP: DSS2: Taal: Use Nokia DSI panel data
+  OMAP: DSS2: Taal: Configure ESD check in DSI panel data
+  OMAP: DSS2: Taal: Add panel specific configuration structure
+  OMAP: DSS2: Taal: Print panel name in addition to revision
+  OMAP: DSS2: Taal: Add regulator configuration support
+  OMAP: DSS2: Taal: CABC workaround is Taal specific
+
+Valkeinen Tomi (Nokia-D/Helsinki) (1):
+  OMAP: DSS2: Taal: add locks to taal_bl_update_status
+
+ arch/arm/plat-omap/include/plat/nokia-dsi-panel.h |   31 ++
+ drivers/video/omap2/displays/panel-taal.c         |  538 ++++++++++++++++-----
+ 2 files changed, 452 insertions(+), 117 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
 
