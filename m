@@ -1,49 +1,101 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [RFC] ETM/JTAG components states across OFF modes
-Date: Mon, 3 May 2010 06:54:57 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203BADA0745@dlee02.ent.ti.com>
-References: <1272735501-2963-1-git-send-email-virtuoso@slind.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
+Subject: [PATCH] OMAP2/3/4: DMA: reset controller during init
+Date: Mon,  3 May 2010 15:55:57 +0300
+Message-ID: <1272891357-27400-1-git-send-email-ext-mika.1.westerberg@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44159 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754491Ab0ECLzF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 07:55:05 -0400
-In-Reply-To: <1272735501-2963-1-git-send-email-virtuoso@slind.org>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:16693 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758771Ab0ECM5K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 08:57:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "virtuoso@slind.org" <virtuoso@slind.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, "\\\"Mika Westerberg\\\"" <ext-mika.1.westerberg@nokia.com>
 
-Hi Alex,
+If we are softbooting another kernel using kexec, DMA controller state is not
+known when we are performing omap_init_dma(). It is possible that some DMA
+channels are already active. For example after kexec we get:
 
-> From: virtuoso@slind.org [mailto:virtuoso@slind.org]
-> Sent: Saturday, May 01, 2010 12:38 PM
+<4>IRQ 0020 for non-allocated DMAchannel 5
+<4>IRQ 0020 for non-allocated DMAchannel 5
+<4>IRQ 0020 for non-allocated DMAchannel 5
+<4>IRQ 0020 for non-allocated DMAchannel 5
+<4>IRQ 0020 for non-allocated DMAchannel 5
 
-Do you have a web viewable git tree where your full patch is applied? Or could you send me on the side files?
+To prevent any weird things happening, we perform soft reset for the controller
+and disable all per channel interrupts.
 
-Main bit I was looking to check was that you have bug fix which came late in my original hack where a failed OFF mode needs to unlock the coresight registers at the fall through of WFI.
+Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
+---
+ arch/arm/plat-omap/dma.c              |   32 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/dma.h |    4 ++++
+ 2 files changed, 36 insertions(+), 0 deletions(-)
 
-> I've finally got around to doing this. This is a rework of the previously
-> posted [1] patch that implements ETM and JTAG context saving. There are
-> two major changes since previous version:
->   * coresight OS save/restore mechanism is used for saving the ETM context,
->     so that it actually occupies ~54 words on omap3_arm_context instead of
->     128;
-
-Seems you found some nice optimization.  I was thinking first patch was doing this in part.  You read from a port address and it gives you internal registers as necessary. You written them back to port for restore.
-
-I came up with context size simply by inspecting # of times loop was necessary and looking at values written to save areas.  I assume you would have done something similar to determine size.
-
->   * a sysfs file is used to control if the ETM/JTAG context should be saved
->     in OFF mode.
-
-Neat.  This is much more friendly then a recompile.
-
-Regards,
-Richard W.
-
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 1d95996..24cbb97 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -2024,6 +2024,31 @@ void omap_dma_global_context_restore(void)
+ 
+ /*----------------------------------------------------------------------------*/
+ 
++/**
++ * omap_dma_reset() - perform software reset for the DMA controller
++ */
++static void omap_dma_reset(void)
++{
++	u32 v;
++
++	if (cpu_class_is_omap1())
++		return;
++
++	v = dma_read(OCP_SYSCONFIG);
++	v |= 0x2; /* software reset */
++	dma_write(v, OCP_SYSCONFIG);
++
++	/* wait until reset is complete */
++	while ((dma_read(SYSSTATUS) & 0x1) == 0)
++		cpu_relax();
++
++	/* disable per channel interrupts */
++	dma_write(0, IRQENABLE_L0);
++	dma_write(0, IRQENABLE_L1);
++	dma_write(0, IRQENABLE_L2);
++	dma_write(0, IRQENABLE_L3);
++}
++
+ static int __init omap_init_dma(void)
+ {
+ 	unsigned long base;
+@@ -2069,6 +2094,13 @@ static int __init omap_init_dma(void)
+ 		}
+ 	}
+ 
++	/*
++	 * Make sure that DMA is in reset state before doing anything else. If
++	 * we are coming from softboot (e.g kexec) DMA is probably configured so
++	 * we explicitly reset it here to get into known state.
++	 */
++	omap_dma_reset();
++
+ 	if (cpu_is_omap15xx()) {
+ 		printk(KERN_INFO "DMA support for OMAP15xx initialized\n");
+ 		dma_chan_count = 9;
+diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+index 02232ca..9a55504 100644
+--- a/arch/arm/plat-omap/include/plat/dma.h
++++ b/arch/arm/plat-omap/include/plat/dma.h
+@@ -134,6 +134,10 @@
+ #define OMAP1_DMA_REVISION		0
+ #define OMAP1_DMA_IRQSTATUS_L0		0
+ #define OMAP1_DMA_IRQENABLE_L0		0
++#define OMAP1_DMA_IRQENABLE_L1		0
++#define OMAP1_DMA_IRQENABLE_L2		0
++#define OMAP1_DMA_IRQENABLE_L3		0
++#define OMAP1_DMA_SYSSTATUS		0
+ #define OMAP1_DMA_OCP_SYSCONFIG		0
+ #define OMAP_DMA4_HW_ID			0
+ #define OMAP_DMA4_CAPS_0_L		0
+-- 
+1.5.6.5
 
