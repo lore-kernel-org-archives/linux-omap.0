@@ -1,115 +1,207 @@
-From: Stephan Linz <linz@li-pro.net>
-Subject: Re: OMAP 3530 LV-SOM support (was: Re: Patch format for submission?)
-Date: Mon, 3 May 2010 16:13:51 +0200
-Message-ID: <201005031613.52509.linz@li-pro.net>
-References: <1250695463.10817.4.camel@blitz> <20100429171835.GB5644@gibbs.hungrycats.org> <j2q1f11a5491004301912xca6177d6y2bfd0b5fb68919df@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v9] board-omap3-beagle: add DSS2 support
+Date: Mon, 03 May 2010 17:15:10 +0300
+Message-ID: <1272896110.1997.0.camel@tubuntu.research.nokia.com>
+References: <1271924622-21043-1-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:18341 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759055Ab0ECOOJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 10:14:09 -0400
-In-Reply-To: <j2q1f11a5491004301912xca6177d6y2bfd0b5fb68919df@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:52204 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759033Ab0ECOP3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 10:15:29 -0400
+In-Reply-To: <1271924622-21043-1-git-send-email-koen@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ashwin Bihari <abihari@gmail.com>, Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>, Peter Barada <peterb@logicpd.com>
+To: ext Koen Kooi <koen.kooi@gmail.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>
 
-Am Samstag, 1. Mai 2010 04:12:19 schrieb Ashwin Bihari:
-> On Thu, Apr 29, 2010 at 1:18 PM, Zygo Blaxell
->
-> <vger-linux-omap-esightcorp@mailtoo.hungrycats.org> wrote:
-> > On Thu, Aug 20, 2009 at 06:02:06PM +0200, Stephan Linz wrote:
-> >> Am Mittwoch, 19. August 2009 schrieb Peter Barada:
-> >> > 1) Does anyone have a URL of the format patches should be in tha=
-t are
-> >> > submitted to the linux-omap list?
-> >> >
-> >> > I've got some patches to add base support for the Logic OMAP 35x=
- SOM
-> >> > and Torpedo boards and I'd like to submit them in the right form=
-at for
-> >> > inclusion and push into mainline.
-> >>
-> >> Hi Peter,
-> >>
-> >> nice to see your announcement here at linux-omap. Today I've finis=
-hed my
-> >> own port for the Logic OMAP 35x SOM based on 2.6.31-rc1. We should=
- share
-> >> our results befor submitting any patches to the list, or not?
-> >
-> > That's the last message I can find from either of you on this topic=
-=2E
-> > I'm in the process of rolling yet another patch set for 2.6.32.  Wa=
-s any
-> > further work done on this, or anything posted anywhere?
->
-> Zygo,
->
-> No, the LogicPD OMAP 35x support didn't quite make it out to the list=
-,
-> we are taking another crack at it shortly and would definitely love t=
-o
-> collaborate to get the changes out. We did create a Gitorious repo[1]=
-,
-> but that's sitting at 2.6.31-rc1 and we've internally got a newer
-> version of the Kernel up to date..
->
-> So we should definitely discuss off-list on how to pool our efforts t=
-o
-> get the support into the L-O tree..
+On Thu, 2010-04-22 at 10:23 +0200, ext Koen Kooi wrote:
+> This patch adds DSS2 support to the beagleboard boardfile. DVI and TV-out are supported.
+> 
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 
-Hi Zygo, Ashwin and Peter,
-
-I was tied up with business and did no further work on my 2.6.31-rc1 fo=
-r more=20
-than six months. Since last week I've been working on a fresh port of m=
-y own=20
-patch set based on latest stable 2.6.32-omap1 (looks good except USB an=
-d NOR=20
-flash access).
-
-Yes of course. We should discuss off-list on how to share our results. =
-Last=20
-summer I did create a new gitorious.org project for LogicPD omap boards=
- too:
-http://gitorious.org/omap3logic (soory there is no content til now ;-))
-
-We can use it as our stage, or not?
-
-@Ashwin: Where is your Gitorious repo you tell about?
+Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
 
-Regards,
-Stephan
+> ---
+> Changes since v1:
+>     * removed beagle_panel_enable_tv() and beagle_panel_disable_tv()
+> Changes since v2:
+>     * changed to REGULATOR_SUPPLY(_name, _dev_name) for dss regulators
+> Changes since v3:
+>     * really remove beagle_panel_enable_tv() and beagle_panel_disable_tv()
+>     * moved comments to this section
+> Changes since v4:
+>     * remove trailing whitespace
+> Changes since v5:
+>     * fix semicolon typo
+> Changes since v6:
+>     * use gpio_is_valid(dssdev->reset_gpio)
+> Changes since v8:
+>     * fix missing whitespace before __init omap3_beagle_map_io(){}
+> 
+>  arch/arm/mach-omap2/board-omap3beagle.c |  101 +++++++++++++++++++++++--------
+>  1 files changed, 75 insertions(+), 26 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 962d377..69b154c 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -39,6 +39,7 @@
+>  
+>  #include <plat/board.h>
+>  #include <plat/common.h>
+> +#include <plat/display.h>
+>  #include <plat/gpmc.h>
+>  #include <plat/nand.h>
+>  #include <plat/usb.h>
+> @@ -106,6 +107,77 @@ static struct platform_device omap3beagle_nand_device = {
+>  	.resource	= &omap3beagle_nand_resource,
+>  };
+>  
+> +/* DSS */
+> +
+> +static int beagle_enable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	if (gpio_is_valid(dssdev->reset_gpio))
+> +		gpio_set_value(dssdev->reset_gpio, 1);
+> +
+> +	return 0;
+> +}
+> +
+> +static void beagle_disable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	if (gpio_is_valid(dssdev->reset_gpio))
+> +		gpio_set_value(dssdev->reset_gpio, 0);
+> +}
+> +
+> +static struct omap_dss_device beagle_dvi_device = {
+> +	.type = OMAP_DISPLAY_TYPE_DPI,
+> +	.name = "dvi",
+> +	.driver_name = "generic_panel",
+> +	.phy.dpi.data_lines = 24,
+> +	.reset_gpio = 170,
+> +	.platform_enable = beagle_enable_dvi,
+> +	.platform_disable = beagle_disable_dvi,
+> +};
+> +
+> +static struct omap_dss_device beagle_tv_device = {
+> +	.name = "tv",
+> +	.driver_name = "venc",
+> +	.type = OMAP_DISPLAY_TYPE_VENC,
+> +	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
+> +};
+> +
+> +static struct omap_dss_device *beagle_dss_devices[] = {
+> +	&beagle_dvi_device,
+> +	&beagle_tv_device,
+> +};
+> +
+> +static struct omap_dss_board_info beagle_dss_data = {
+> +	.num_devices = ARRAY_SIZE(beagle_dss_devices),
+> +	.devices = beagle_dss_devices,
+> +	.default_device = &beagle_dvi_device,
+> +};
+> +
+> +static struct platform_device beagle_dss_device = {
+> +	.name          = "omapdss",
+> +	.id            = -1,
+> +	.dev            = {
+> +		.platform_data = &beagle_dss_data,
+> +	},
+> +};
+> +
+> +static struct regulator_consumer_supply beagle_vdac_supply =
+> +	REGULATOR_SUPPLY("vdda_dac", "omapdss");
+> +
+> +static struct regulator_consumer_supply beagle_vdvi_supply =
+> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
+> +
+> +static void __init beagle_display_init(void)
+> +{
+> +	int r;
+> +
+> +	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
+> +	if (r < 0) {
+> +		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
+> +		return;
+> +	}
+> +
+> +	gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
+> +}
+> +
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+>  
+>  static struct omap2_hsmmc_info mmc[] = {
+> @@ -117,15 +189,6 @@ static struct omap2_hsmmc_info mmc[] = {
+>  	{}	/* Terminator */
+>  };
+>  
+> -static struct platform_device omap3_beagle_lcd_device = {
+> -	.name		= "omap3beagle_lcd",
+> -	.id		= -1,
+> -};
+> -
+> -static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
+> -	.ctrl_name	= "internal",
+> -};
+> -
+>  static struct regulator_consumer_supply beagle_vmmc1_supply = {
+>  	.supply			= "vmmc",
+>  };
+> @@ -181,16 +244,6 @@ static struct twl4030_gpio_platform_data beagle_gpio_data = {
+>  	.setup		= beagle_twl_gpio_setup,
+>  };
+>  
+> -static struct regulator_consumer_supply beagle_vdac_supply = {
+> -	.supply		= "vdac",
+> -	.dev		= &omap3_beagle_lcd_device.dev,
+> -};
+> -
+> -static struct regulator_consumer_supply beagle_vdvi_supply = {
+> -	.supply		= "vdvi",
+> -	.dev		= &omap3_beagle_lcd_device.dev,
+> -};
+> -
+>  /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+>  static struct regulator_init_data beagle_vmmc1 = {
+>  	.constraints = {
+> @@ -349,14 +402,8 @@ static struct platform_device keys_gpio = {
+>  	},
+>  };
+>  
+> -static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+> -	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
+> -};
+> -
+>  static void __init omap3_beagle_init_irq(void)
+>  {
+> -	omap_board_config = omap3_beagle_config;
+> -	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+>  	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+>  			     mt46h32m32lf6_sdrc_params);
+>  	omap_init_irq();
+> @@ -367,9 +414,9 @@ static void __init omap3_beagle_init_irq(void)
+>  }
+>  
+>  static struct platform_device *omap3_beagle_devices[] __initdata = {
+> -	&omap3_beagle_lcd_device,
+>  	&leds_gpio,
+>  	&keys_gpio,
+> +	&beagle_dss_device,
+>  };
+>  
+>  static void __init omap3beagle_flash_init(void)
+> @@ -456,6 +503,8 @@ static void __init omap3_beagle_init(void)
+>  	/* Ensure SDRC pins are mux'd for self-refresh */
+>  	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+>  	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+> +
+> +	beagle_display_init();
+>  }
+>  
+>  static void __init omap3_beagle_map_io(void)
 
 
->
-> Regards
-> -- Ashwin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---=20
-Viele Gr=FC=DFe,
-Stephan Linz
-_______________________________________________________________________=
-_______
-OpenDCC: http://www.li-pro.net/opendcc.phtml
-PC/M: http://www.li-pro.net/pcm.phtml
-CDK4AVR: http://cdk4avr.sourceforge.net/
-CDK4NIOS: http://cdk4nios.sourceforge.net/
-CDK4MSP: http://cdk4msp.sourceforge.net/
-CPM4L: http://download.opensuse.org/repositories/home:/rexut:/CPM4L
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
