@@ -1,101 +1,164 @@
-From: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-Subject: [PATCH] OMAP2/3/4: DMA: reset controller during init
-Date: Mon,  3 May 2010 15:55:57 +0300
-Message-ID: <1272891357-27400-1-git-send-email-ext-mika.1.westerberg@nokia.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [RFC/PATCH 6/8] omap: mailbox: more more stuff to
+ omap2_mbox_init
+Date: Mon, 3 May 2010 08:42:38 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B79179A@dlee03.ent.ti.com>
+References: <1272844798-25330-1-git-send-email-felipe.contreras@gmail.com>
+ <1272844967-25441-2-git-send-email-felipe.contreras@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:16693 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758771Ab0ECM5K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 08:57:10 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:46279 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755978Ab0ECNmo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 09:42:44 -0400
+In-Reply-To: <1272844967-25441-2-git-send-email-felipe.contreras@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, "\\\"Mika Westerberg\\\"" <ext-mika.1.westerberg@nokia.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-If we are softbooting another kernel using kexec, DMA controller state is not
-known when we are performing omap_init_dma(). It is possible that some DMA
-channels are already active. For example after kexec we get:
+Felipe,
 
-<4>IRQ 0020 for non-allocated DMAchannel 5
-<4>IRQ 0020 for non-allocated DMAchannel 5
-<4>IRQ 0020 for non-allocated DMAchannel 5
-<4>IRQ 0020 for non-allocated DMAchannel 5
-<4>IRQ 0020 for non-allocated DMAchannel 5
+Small suggestion...if we are re-organizing can we make it look similar to how iommu is structured? This way we can maintain consistency. 
 
-To prevent any weird things happening, we perform soft reset for the controller
-and disable all per channel interrupts.
 
-Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
----
- arch/arm/plat-omap/dma.c              |   32 ++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/dma.h |    4 ++++
- 2 files changed, 36 insertions(+), 0 deletions(-)
+Thank you,
+Best regards,
+Hari
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 1d95996..24cbb97 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2024,6 +2024,31 @@ void omap_dma_global_context_restore(void)
- 
- /*----------------------------------------------------------------------------*/
- 
-+/**
-+ * omap_dma_reset() - perform software reset for the DMA controller
-+ */
-+static void omap_dma_reset(void)
-+{
-+	u32 v;
-+
-+	if (cpu_class_is_omap1())
-+		return;
-+
-+	v = dma_read(OCP_SYSCONFIG);
-+	v |= 0x2; /* software reset */
-+	dma_write(v, OCP_SYSCONFIG);
-+
-+	/* wait until reset is complete */
-+	while ((dma_read(SYSSTATUS) & 0x1) == 0)
-+		cpu_relax();
-+
-+	/* disable per channel interrupts */
-+	dma_write(0, IRQENABLE_L0);
-+	dma_write(0, IRQENABLE_L1);
-+	dma_write(0, IRQENABLE_L2);
-+	dma_write(0, IRQENABLE_L3);
-+}
-+
- static int __init omap_init_dma(void)
- {
- 	unsigned long base;
-@@ -2069,6 +2094,13 @@ static int __init omap_init_dma(void)
- 		}
- 	}
- 
-+	/*
-+	 * Make sure that DMA is in reset state before doing anything else. If
-+	 * we are coming from softboot (e.g kexec) DMA is probably configured so
-+	 * we explicitly reset it here to get into known state.
-+	 */
-+	omap_dma_reset();
-+
- 	if (cpu_is_omap15xx()) {
- 		printk(KERN_INFO "DMA support for OMAP15xx initialized\n");
- 		dma_chan_count = 9;
-diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-index 02232ca..9a55504 100644
---- a/arch/arm/plat-omap/include/plat/dma.h
-+++ b/arch/arm/plat-omap/include/plat/dma.h
-@@ -134,6 +134,10 @@
- #define OMAP1_DMA_REVISION		0
- #define OMAP1_DMA_IRQSTATUS_L0		0
- #define OMAP1_DMA_IRQENABLE_L0		0
-+#define OMAP1_DMA_IRQENABLE_L1		0
-+#define OMAP1_DMA_IRQENABLE_L2		0
-+#define OMAP1_DMA_IRQENABLE_L3		0
-+#define OMAP1_DMA_SYSSTATUS		0
- #define OMAP1_DMA_OCP_SYSCONFIG		0
- #define OMAP_DMA4_HW_ID			0
- #define OMAP_DMA4_CAPS_0_L		0
--- 
-1.5.6.5
-
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Felipe Contreras
+> Sent: Sunday, May 02, 2010 7:03 PM
+> To: linux-omap
+> Cc: Tony Lindgren; Hiroshi Doyu; Ohad Ben-Cohen; Felipe Contreras
+> Subject: [RFC/PATCH 6/8] omap: mailbox: more more stuff to omap2_mbox_init
+> 
+> Will be needed to split the platform_driver.
+> 
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> ---
+>  arch/arm/mach-omap2/mailbox.c |   49 ++++++++++++++++++------------------
+> ----
+>  1 files changed, 22 insertions(+), 27 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+> index e9a803c..474c1e7 100644
+> --- a/arch/arm/mach-omap2/mailbox.c
+> +++ b/arch/arm/mach-omap2/mailbox.c
+> @@ -418,31 +418,6 @@ static int __devinit omap2_mbox_probe(struct
+> platform_device *pdev)
+> 
+>  	res = pdev->resource;
+> 
+> -	mbox_base = ioremap(res->start, resource_size(res));
+> -	if (!mbox_base)
+> -		return -ENOMEM;
+> -
+> -	if (cpu_is_omap3430()) {
+> -		list.num = ARRAY_SIZE(omap3_mboxes);
+> -		list.mbox = omap3_mboxes;
+> -
+> -		list.mbox[0]->irq = res[1].start;
+> -	}
+> -	else if (cpu_is_omap2420()) {
+> -		list.num = ARRAY_SIZE(omap2_mboxes);
+> -		list.mbox = omap2_mboxes;
+> -
+> -		list.mbox[0]->irq = res[1].start;
+> -		list.mbox[1]->irq = res[2].start;
+> -	}
+> -	else if (cpu_is_omap44xx()) {
+> -		list.num = ARRAY_SIZE(omap4_mboxes);
+> -		list.mbox = omap4_mboxes;
+> -
+> -		list.mbox[0]->irq = res[1].start;
+> -		list.mbox[1]->irq = res[1].start;
+> -	}
+> -
+>  	for (i = 0; i < list.num; i++) {
+>  		struct omap_mbox *mbox = list.mbox[i];
+>  		ret = omap_mbox_register(&pdev->dev, mbox);
+> @@ -454,7 +429,6 @@ static int __devinit omap2_mbox_probe(struct
+> platform_device *pdev)
+>  err_out:
+>  	while (i--)
+>  		omap_mbox_unregister(list.mbox[i]);
+> -	iounmap(mbox_base);
+>  	return ret;
+>  }
+> 
+> @@ -465,7 +439,6 @@ static int __devexit omap2_mbox_remove(struct
+> platform_device *pdev)
+>  	for (i = 0; i < list.num; i++)
+>  		omap_mbox_unregister(list.mbox[i]);
+> 
+> -	iounmap(mbox_base);
+>  	return 0;
+>  }
+> 
+> @@ -483,18 +456,33 @@ static int __init omap2_mbox_init(void)
+>  	struct platform_device *pdev;
+>  	struct resource *res;
+>  	unsigned num;
+> +	struct omap_mbox_list list;
+> 
+>  	if (cpu_is_omap3430()) {
+>  		res = omap3_mbox_resources;
+>  		num = ARRAY_SIZE(omap3_mbox_resources);
+> +		list.num = ARRAY_SIZE(omap3_mboxes);
+> +		list.mbox = omap3_mboxes;
+> +
+> +		list.mbox[0]->irq = res[1].start;
+>  	}
+>  	else if (cpu_is_omap2420()) {
+>  		res = omap2_mbox_resources;
+>  		num = ARRAY_SIZE(omap2_mbox_resources);
+> +		list.num = ARRAY_SIZE(omap2_mboxes);
+> +		list.mbox = omap2_mboxes;
+> +
+> +		list.mbox[0]->irq = res[1].start;
+> +		list.mbox[1]->irq = res[2].start;
+>  	}
+>  	else if (cpu_is_omap44xx()) {
+>  		res = omap4_mbox_resources;
+>  		num = ARRAY_SIZE(omap4_mbox_resources);
+> +		list.num = ARRAY_SIZE(omap4_mboxes);
+> +		list.mbox = omap4_mboxes;
+> +
+> +		list.mbox[0]->irq = res[1].start;
+> +		list.mbox[1]->irq = res[1].start;
+>  	}
+>  	else {
+>  		pr_err("%s: platform not supported\n", __func__);
+> @@ -515,6 +503,12 @@ static int __init omap2_mbox_init(void)
+>  	if (err)
+>  		goto err_out;
+> 
+> +	mbox_base = ioremap(res[0].start, resource_size(&res[0]));
+> +	if (!mbox_base) {
+> +		platform_device_put(pdev);
+> +		return -ENOMEM;
+> +	}
+> +
+>  	return platform_driver_register(&omap2_mbox_driver);
+> 
+>  err_out:
+> @@ -524,6 +518,7 @@ err_out:
+>  static void __exit omap2_mbox_exit(void)
+>  {
+>  	platform_driver_unregister(&omap2_mbox_driver);
+> +	iounmap(mbox_base);
+>  }
+> 
+>  module_init(omap2_mbox_init);
+> --
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
