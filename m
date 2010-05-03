@@ -1,441 +1,97 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: RE: [RFC][PATCH1/2] SFH7741: proximity sensor driver support
-Date: Mon, 3 May 2010 14:37:08 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003B3164BC3@dbde02.ent.ti.com>
-References: <0680EC522D0CC943BC586913CF3768C003B3164B2F@dbde02.ent.ti.com>
- <02ab01caea96$26e07a40$LocalHost@wipblrx0099946>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v2 4/4] omap: mailbox: convert block api to kfifo
+Date: Mon, 3 May 2010 12:41:35 +0300
+Message-ID: <p2sda15981b1005030241va21fd23fx9fcc84c4502a1919@mail.gmail.com>
+References: <1272815071-2827-1-git-send-email-ohad@wizery.com>
+	<1272815071-2827-5-git-send-email-ohad@wizery.com> <20100503.083036.59656495.Hiroshi.DOYU@nokia.com>
+	<20100503.090723.48519047.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42979 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752321Ab0ECJHM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 05:07:12 -0400
-In-Reply-To: <02ab01caea96$26e07a40$LocalHost@wipblrx0099946>
-Content-Language: en-US
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:60629 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750770Ab0ECJl4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 05:41:56 -0400
+Received: by gyg13 with SMTP id 13so1021395gyg.19
+        for <linux-omap@vger.kernel.org>; Mon, 03 May 2010 02:41:55 -0700 (PDT)
+In-Reply-To: <20100503.090723.48519047.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "V, Hemanth" <hemanthv@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
+
+On Mon, May 3, 2010 at 9:07 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> w=
+rote:
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Subject: Re: [PATCH v2 4/4] omap: mailbox: convert block api to kfifo
+> Date: Mon, 03 May 2010 08:30:36 +0300 (EEST)
+>
+>> Hi Ohad,
+>>
+>> From: ext Ohad Ben-Cohen <ohad@wizery.com>
+>> Subject: [PATCH v2 4/4] omap: mailbox: convert block api to kfifo
+>> Date: Sun, 2 May 2010 17:44:31 +0200
+>>
+>>> The underlying buffering implementation of mailbox
+>>> is converted from block API to kfifo due to the simplicity
+>>> and speed of kfifo.
+>>>
+>>> The default size of the kfifo buffer is set to 256 bytes.
+>>> This value is configurable at compile time (via
+>>> CONFIG_OMAP_MBOX_KFIFO_SIZE), and can be changed at
+>>> runtime (via the omap_kfifo_size module parameter).
+>>
+>> mbox_kfifo_size?
+>
+> It may be also nice if there's some checking of 'mbox_kfifo_size % 4 =
+=3D=3D 0' along with 'CONFIG_OMAP_MBOX_KFIFO_SIZE % 4 =3D=3D 0'?
+
+Good point. I'll send a new patch together with this:
+
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.=
+c
+index a500ac4..fb3d452 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -21,6 +21,7 @@
+  *
+  */
+
++#include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+ #include <linux/device.h>
+@@ -394,6 +395,10 @@ static int __init omap_mbox_init(void)
+        if (!mboxd)
+                return -ENOMEM;
+
++       /* kfifo size sanity check: alignment and minimal size */
++       mbox_kfifo_size =3D ALIGN(mbox_kfifo_size, sizeof(mbox_msg_t));
++       mbox_kfifo_size =3D max_t(unsigned int, mbox_kfifo_size,
+sizeof(mbox_msg_t));
++
+        return 0;
+ }
+ module_init(omap_mbox_init);
 
 
-
-> -----Original Message-----
-> From: V, Hemanth
-> Sent: Monday, May 03, 2010 1:27 PM
-> To: Datta, Shubhrajyoti; linux-input@vger.kernel.org; linux-
-> omap@vger.kernel.org
-> Subject: Re: [RFC][PATCH1/2] SFH7741: proximity sensor driver support
-> 
-> ----- Original Message -----
-> From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-> >
-> > From: Datta, Shubhrajyoti
-> > Sent: Monday, May 03, 2010 11:07 AM
-> > To: Datta, Shubhrajyoti
-> > Subject: [RFC][PATCH1/2] SFH7741: proximity sensor driver support
-> >
-> > Driver support for the proximity sensor SFH7741.
-> >
-> > Signed-off-by: Shubhro <a0393217@ti.com>
-> > ---
-> > drivers/input/misc/Kconfig    |    9 ++
-> > drivers/input/misc/Makefile   |    1 +
-> > drivers/input/misc/sfh7741.c  |  308
-> > +++++++++++++++++++++++++++++++++++++++++
-> > include/linux/input/sfh7741.h |   14 ++
-> > 4 files changed, 332 insertions(+), 0 deletions(-)
-> > create mode 100644 drivers/input/misc/sfh7741.c
-> > create mode 100644 include/linux/input/sfh7741.h
-> >
-> > diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-> > index 16ec523..5919358 100644
-> > --- a/drivers/input/misc/Kconfig
-> > +++ b/drivers/input/misc/Kconfig
-> > @@ -319,4 +319,13 @@ config INPUT_PCAP
-> >    To compile this driver as a module, choose M here: the
-> >    module will be called pcap_keys.
-> >
-> > +config SENSORS_SFH7741
-> > + tristate "Proximity sensor"
-> > + default y
-> > + help
-> > +   Say Y here if you want to use proximity sensor sfh7741.
-> > +
-> > +   To compile this driver as a module, choose M here: the
-> > +   module will be called sfh7741.
-> > +
-> > endif
-> > diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-> > index a8b8485..b2cac12 100644
-> > --- a/drivers/input/misc/Makefile
-> > +++ b/drivers/input/misc/Makefile
-> > @@ -30,4 +30,5 @@ obj-$(CONFIG_INPUT_WINBOND_CIR) += winbond-cir.o
-> > obj-$(CONFIG_INPUT_WISTRON_BTNS) += wistron_btns.o
-> > obj-$(CONFIG_INPUT_WM831X_ON) += wm831x-on.o
-> > obj-$(CONFIG_INPUT_YEALINK) += yealink.o
-> > +obj-$(CONFIG_SENSORS_SFH7741) += sfh7741.o
-> >
-> > diff --git a/drivers/input/misc/sfh7741.c b/drivers/input/misc/sfh7741.c
-> > new file mode 100644
-> > index 0000000..b4febfe
-> > --- /dev/null
-> > +++ b/drivers/input/misc/sfh7741.c
-> > @@ -0,0 +1,308 @@
-> > +/*
-> > + * sfh7741.c
-> > + *
-> > + * SFH7741 Proximity Driver
-> > + *
-> > + * Copyright (C) 2010 Texas Instruments
-> > + *
-> > + * Author: Shubhrajyoti Datta <a0393217@ti.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > it
-> > + * under the terms of the GNU General Public License version 2 as
-> > published by
-> > + * the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful,
-> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> > + * GNU General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License
-> > + * along with this program; if not, write to the Free Software
-> > + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-> > USA
-> > + */
-> > +
-> > +#include <linux/interrupt.h>
-> > +#include <linux/pm.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/input.h>
-> > +#include <linux/gpio.h>
-> > +#include <linux/input/sfh7741.h>
-> > +
-> > +struct sfh7741_drvdata {
-> > + struct input_dev *input;
-> > + int proximity_out;
-> > + int gpio_en;
-> > +};
-> > +
-> > +static DEFINE_MUTEX(prox_enable_mutex);
-> 
-> This mutex can be included as part of driver data structure
-> 
-> > +static int prox_enable = 1;
-> 
-> Same comment as above
-Agreed.
-> 
-> > +
-> > +static irqreturn_t sfh7741_isr(int irq, void *dev_id)
-> > +{
-> > + struct sfh7741_drvdata *ddata = dev_id;
-> > +
-> > + int proximity = gpio_get_value(ddata->proximity_out);
-> > + input_report_abs(ddata->input, ABS_DISTANCE, proximity);
-> > + input_sync(ddata->input);
-> > +
-> > + return IRQ_HANDLED;
-> > +}
-> > +
-> > +static int __devinit sfh7741_setup(struct device *dev,
-> > + struct sfh7741_drvdata *ddata
-> > + )
-> > +{
-> > + int  error;
-> > + char *desc = "sfh7741";
-> > +
-> > + error = gpio_request(ddata->proximity_out, desc);
-> > + if (error < 0) {
-> > + dev_err(dev, "failed to request GPIO %d, error %d\n",
-> > + ddata->proximity_out, error);
-> > + return error;
-> > + }
-> > +
-> > + error = gpio_direction_input(ddata->proximity_out);
-> > + if (error < 0) {
-> > + dev_err(dev, "failed to configure direction for GPIO %d,\
-> > + error %d\n", ddata->proximity_out, error);
-> > + goto fail1;
-> > + }
-> > +
-> 
-> General comment about GPIO,
-> It might be better to have GPIO configuration as part of board file,
-> rather than being part of the driver. This is should make the driver
-> more generic.
-I read GPIO in the ISR how can I take care of that? 
-> 
-> > + error = request_threaded_irq(gpio_to_irq(ddata->proximity_out) , NULL
-> ,
-> > + sfh7741_isr,
-> > + IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
-> > + | IRQF_ONESHOT,
-> > + desc, ddata);
-> > + if (error) {
-> > + dev_err(dev, "Unable to claim irq %d; error %d\n",
-> > + gpio_to_irq(ddata->proximity_out), error);
-> > + goto fail1;
-> > + }
-> > +
-> > + error = gpio_request(ddata->gpio_en, desc);
-> > + if (error < 0) {
-> > + dev_err(dev, "failed to request GPIO %d, error %d\n",
-> > + ddata->gpio_en, error);
-> > + goto fail2;
-> > + }
-> > +
-> > + error = gpio_direction_output(ddata->gpio_en , 1);
-> > + if (error < 0) {
-> > + dev_err(dev, "%s: GPIO configuration failed: GPIO %d,\
-> > + error %d\n",__func__, ddata->gpio_en, error);
-> > + goto fail3;
-> > + }
-> > + return 0;
-> > +
-> > +fail3:
-> > + gpio_free(ddata->gpio_en);
-> > +fail2:
-> > + free_irq(gpio_to_irq(ddata->proximity_out), &ddata);
-> > +fail1:
-> > + gpio_free(ddata->proximity_out);
-> > + return error;
-> > +}
-> > +
-> > +static ssize_t set_prox_state(struct device *dev,
-> > + struct device_attribute *attr,
-> > + const char *buf, size_t count)
-> > +{
-> > + int state , error;
-> > + struct platform_device *pdev = to_platform_device(dev);
-> > + struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> > +
-> > + if (sscanf(buf, "%u", &state) != 1)
-> > + return -EINVAL;
-> > +
-> > + if ((state != 1) && (state != 0))
-> > + return -EINVAL;
-> > +
-> > + error = gpio_direction_output(ddata->gpio_en , state);
-> > + if (error < 0) {
-> > + dev_err(dev, "%s: GPIO configuration failed: GPIO %d,\
-> > + error %d\n",__func__, ddata->gpio_en, error);
-> > + }
-> > + mutex_lock(&prox_enable_mutex);
-> > + if (state != prox_enable) {
-> > + if (state)
-> > + enable_irq(gpio_to_irq(ddata->proximity_out));
-> > + else
-> > + disable_irq(gpio_to_irq(ddata->proximity_out));
-> > + prox_enable = state;
-> > + }
-> > + mutex_unlock(&prox_enable_mutex);
-> > + return strnlen(buf, count);
-> > +}
-> > +
-> > +static ssize_t show_prox_state(struct device *dev,
-> > + struct device_attribute *attr,
-> > + char *buf)
-> > +{
-> > + return sprintf(buf, "%u\n", prox_enable);
-> > +}
-> > +static DEVICE_ATTR(state, S_IWUSR | S_IRUGO, show_prox_state,
-> > set_prox_state);
-> > +
-> > +static ssize_t show_proximity(struct device *dev,
-> > + struct device_attribute *attr,
-> > + char *buf)
-> > +{
-> > + int proximity;
-> > + struct platform_device *pdev = to_platform_device(dev);
-> > + struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> > +
-> > + proximity = gpio_get_value(ddata->proximity_out);
-> > + return sprintf(buf, "%u\n", proximity);
-> > +}
-> > +static DEVICE_ATTR(proximity, S_IRUGO, show_proximity, NULL);
-> > +
-> > +static struct attribute *sfh7741_attributes[] = {
-> > + &dev_attr_state.attr,
-> > + &dev_attr_proximity.attr,
-> > + NULL
-> > +};
-> > +
-> > +static const struct attribute_group sfh7741_attr_group = {
-> > + .attrs = sfh7741_attributes,
-> > +};
-> > +
-> > +static int __devinit sfh7741_probe(struct platform_device *pdev)
-> > +{
-> > + struct sfh7741_platform_data *pdata = pdev->dev.platform_data;
-> > + struct sfh7741_drvdata *ddata;
-> > + struct device *dev = &pdev->dev;
-> > + struct input_dev *input;
-> > + int  error;
-> > +
-> > + pr_info("SFH7741: Proximity sensor\n");
-> > +
-> > + ddata = kzalloc(sizeof(struct sfh7741_drvdata),
-> > + GFP_KERNEL);
-> > + input = input_allocate_device();
-> > + if (!ddata || !input) {
-> > + dev_err(dev, "failed to allocate input device\n");
-> > + return -ENOMEM;
-> > + }
-> > +
-> > + input->name = pdev->name;
-> > + input->phys = "sfh7741/input0";
-> > + input->dev.parent = &pdev->dev;
-> > +
-> > + input->id.bustype = BUS_HOST;
-> > + ddata->proximity_out = pdata->gpio_intr;
-> > + ddata->gpio_en = pdata->gpio_en;
-> > +
-> > + ddata->input = input;
-> > + __set_bit(EV_ABS, input->evbit);
-> > +
-> > + input_set_abs_params(input, ABS_DISTANCE, 0, 1, 0, 0);
-> > +
-> > + error = input_register_device(input);
-> > + if (error) {
-> > + dev_err(dev, "Unable to register input device,error: %d\n"
-> > + , error);
-> > + goto fail1;
-> > + }
-> > +
-> > + platform_set_drvdata(pdev, ddata);
-> > + error = sfh7741_setup(dev, ddata);
-> > + if (error)
-> > + goto fail2;
-> > +
-> > + error = sysfs_create_group(&dev->kobj, &sfh7741_attr_group);
-> > + if (error)
-> > + dev_err(dev, "failed to create sysfs entries \n");
-> > +
-> > + return 0;
-> > +
-> > +fail2:
-> > + input_unregister_device(input);
-> > + platform_set_drvdata(pdev, NULL);
-> > +fail1:
-> > + input_free_device(input);
-> > + kfree(ddata);
-> > + return error;
-> > +
-> > +}
-> > +
-> > +static int __devexit sfh7741_remove(struct platform_device *pdev)
-> > +{
-> > + struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> > + int irq ;
-> > + struct device *dev = &pdev->dev;
-> > +
-> > + sysfs_remove_group(&dev->kobj, &sfh7741_attr_group);
-> > + gpio_free(ddata->gpio_en);
-> > +
-> > + irq = gpio_to_irq(ddata->proximity_out);
-> > + free_irq(irq, (void *)ddata);
-> > + gpio_free(ddata->proximity_out);
-> > +
-> > + input_unregister_device(ddata->input);
-> > + kfree(ddata);
-> > + return 0;
-> > +}
-> > +
-> > +#ifdef CONFIG_PM
-> > +static int sfh7741_suspend(struct device *dev)
-> > +{
-> > + struct platform_device *pdev = to_platform_device(dev);
-> > + struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> > +
-> > + error = gpio_direction_output(ddata->gpio_en , 0);
-> > + if (error < 0) {
-> > + dev_err(dev, "%s: GPIO configuration failed: GPIO %d,\
-> > + error %d\n",__func__, ddata->gpio_en, error);
-> > + }
-> > + return 0;
-> > +}
-> > +
-> > +static int sfh7741_resume(struct device *dev)
-> > +{
-> > + struct platform_device *pdev = to_platform_device(dev);
-> > + struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> > +
-> > + error = gpio_direction_output(ddata->gpio_en , 1);
-> > + if (error < 0) {
-> > + dev_err(dev, "%s: GPIO configuration failed: GPIO %d,\
-> > + error %d\n",__func__, ddata->gpio_en, error);
-> > + }
-> > + return 0;
-> > +}
-> > +
-> > +static const struct dev_pm_ops sfh7741_pm_ops = {
-> > + .suspend = sfh7741_suspend,
-> > + .resume = sfh7741_resume,
-> > +};
-> > +#endif
-> > +
-> > +static struct platform_driver sfh7741_device_driver = {
-> > + .probe = sfh7741_probe,
-> > + .remove = __devexit_p(sfh7741_remove),
-> > + .driver = {
-> > + .name = "sfh7741",
-> > + .owner = THIS_MODULE,
-> > +#ifdef CONFIG_PM
-> > + .pm = &sfh7741_pm_ops,
-> > +#endif
-> > + }
-> > +};
-> > +
-> > +static int __init sfh7741_init(void)
-> > +{
-> > + return platform_driver_register(&sfh7741_device_driver);
-> > +}
-> > +
-> > +static void __exit sfh7741_exit(void)
-> > +{
-> > + platform_driver_unregister(&sfh7741_device_driver);
-> > +}
-> > +
-> > +module_init(sfh7741_init);
-> > +module_exit(sfh7741_exit);
-> > +
-> > +MODULE_LICENSE("GPL");
-> > +MODULE_AUTHOR("Texas Instruments");
-> > +MODULE_DESCRIPTION("Proximity driver ");
-> > +MODULE_ALIAS("platform:sfh7741");
-> > +
-> > diff --git a/include/linux/input/sfh7741.h
-> b/include/linux/input/sfh7741.h
-> > new file mode 100644
-> > index 0000000..801c971
-> > --- /dev/null
-> > +++ b/include/linux/input/sfh7741.h
-> > @@ -0,0 +1,14 @@
-> > +/*
-> > + * Configuration and driver data for Proximity driver.
-> > + */
-> > +
-> > +#ifndef __SFH7741_H
-> > +#define __SFH7741_H
-> > +
-> > +struct sfh7741_platform_data {
-> > + int gpio_intr;
-> > + int gpio_en;
-> > +};
-> > +
-> > +#endif
-> > +
-> > --
-> > 1.5.4.7
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-
+>
+>>
+>>> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+>>> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+>>> ---
+>>> If you want, you can also reach me at < ohadb at ti dot com >.
+>>>
+>>> =A0arch/arm/plat-omap/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =
+=A09 +++
+>>> =A0arch/arm/plat-omap/include/plat/mailbox.h | =A0 =A04 +-
+>>> =A0arch/arm/plat-omap/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0107=
+ +++++++++++++----------------
+>>> =A03 files changed, 58 insertions(+), 62 deletions(-)
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
