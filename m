@@ -1,65 +1,46 @@
-From: Peter Tseng <tsenpet09@gmail.com>
-Subject: Re: ARM suspend to disk?
-Date: Mon, 03 May 2010 01:11:25 -0400
-Message-ID: <4BDE5AFD.9070506@gmail.com>
-References: <4BD881A7.2020402@gmail.com> <87y6g6w373.fsf@deeprootsystems.com>	<p2kf96d234e1004301446l255a8cb4h7287e2502934e9fd@mail.gmail.com> <87iq78d295.fsf@deeprootsystems.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5217E11@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH v2 4/4] omap: mailbox: convert block api to kfifo
+Date: Mon, 03 May 2010 08:30:36 +0300 (EEST)
+Message-ID: <20100503.083036.59656495.Hiroshi.DOYU@nokia.com>
+References: <1272815071-2827-1-git-send-email-ohad@wizery.com>
+	<1272815071-2827-5-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:38331 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752491Ab0ECFLP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 01:11:15 -0400
-Received: by vws19 with SMTP id 19so1459533vws.19
-        for <linux-omap@vger.kernel.org>; Sun, 02 May 2010 22:11:14 -0700 (PDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5217E11@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:25955 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752002Ab0ECFap (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 01:30:45 -0400
+In-Reply-To: <1272815071-2827-5-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Cliff Brake <cliff.brake@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ohad@wizery.com
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
 
-On 05/01/2010 03:12 AM, Shilimkar, Santosh wrote:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
->> Hilman
->> Sent: Saturday, May 01, 2010 3:36 AM
->> To: Cliff Brake
->> Cc: Peter Tseng; linux-omap@vger.kernel.org
->> Subject: Re: ARM suspend to disk?
->>
->> Cliff Brake <cliff.brake@gmail.com> writes:
->>
->>> On Thu, Apr 29, 2010 at 1:58 PM, Kevin Hilman
->>> <khilman@deeprootsystems.com> wrote:
->>>
->>>> What do you expect to gain from suspend-to-disk + snapshot boot that
->>>> you don't already get from suspend-to-RAM using off-mode?
->>>>
->>>> On OMAP, with off-mode enabled, a suspend to RAM puts the entire OMAP
->>>> into full-chip off, and essentially reboots the ARM when waking up
->>>> from suspend (or idle) already.
->>>
->>> What does the resume process look like in off mode?  Does the resume
->>> pass through the bootloader?  If so, are the bits that detects resume
->>> from "off" available in U-boot?
->>
->> No, it does not pass through the boot loader.
->>
->> In general terms, resume from off-mode is the same to "normal" resume (from
->> retention) except that some additional state has to be restored before
->> continuing where you left off since the ARM core (as well as most the
->> OMAP itself) was turned off.
->>
-> On suspend to disk topic, Raghu under Romit's guidance did a 
-> prototype few months back as part of his internship using some of the earlier
-> ARM work. The whole system snapshot was stored to the MMC card and one 
-> can take that MMC card on another board and continue from where it was suspended.
+Hi Ohad,
+
+From: ext Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH v2 4/4] omap: mailbox: convert block api to kfifo
+Date: Sun, 2 May 2010 17:44:31 +0200
+
+> The underlying buffering implementation of mailbox
+> is converted from block API to kfifo due to the simplicity
+> and speed of kfifo.
 > 
-> We should have these patches somewhere.
+> The default size of the kfifo buffer is set to 256 bytes.
+> This value is configurable at compile time (via
+> CONFIG_OMAP_MBOX_KFIFO_SIZE), and can be changed at
+> runtime (via the omap_kfifo_size module parameter).
+
+mbox_kfifo_size?
+
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> ---
+> If you want, you can also reach me at < ohadb at ti dot com >.
 > 
-
-It would be interesting to see these. Are you able to find these patches
-somewhere?
-
-Peter
+>  arch/arm/plat-omap/Kconfig                |    9 +++
+>  arch/arm/plat-omap/include/plat/mailbox.h |    4 +-
+>  arch/arm/plat-omap/mailbox.c              |  107 +++++++++++++----------------
+>  3 files changed, 58 insertions(+), 62 deletions(-)
