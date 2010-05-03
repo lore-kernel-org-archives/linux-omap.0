@@ -1,77 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2/3/4: DMA: reset controller during init
-Date: Mon, 3 May 2010 11:33:16 -0700
-Message-ID: <20100503183316.GY29604@atomide.com>
-References: <1272891357-27400-1-git-send-email-ext-mika.1.westerberg@nokia.com>
- <87zl0h6khl.fsf@deeprootsystems.com>
- <20100503163600.GQ29604@atomide.com>
- <87fx285325.fsf@deeprootsystems.com>
- <20100503173405.GS29604@atomide.com>
- <87ljc0zvwx.fsf@deeprootsystems.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH] arm: Fix .gitignore for boot/compressed folder
+Date: Mon, 3 May 2010 20:43:34 +0200
+Message-ID: <20100503184334.GA24866@pengutronix.de>
+References: <1267113345-18426-1-git-send-email-saaguirre@ti.com> <20100502122049.GA5553@pengutronix.de> <A24693684029E5489D1D202277BE8944551B8F75@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63101 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754717Ab0ECSdR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 14:33:17 -0400
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54947 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752218Ab0ECSnj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 14:43:39 -0400
 Content-Disposition: inline
-In-Reply-To: <87ljc0zvwx.fsf@deeprootsystems.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944551B8F75@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Mika Westerberg <ext-mika.1.westerberg@nokia.com>, linux-omap@vger.kernel.org
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Albin Tonnerre <albin.tonnerre@free-electrons.com>, Russell King <rmk@arm.linux.org.uk>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100503 11:19]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > * Kevin Hilman <khilman@deeprootsystems.com> [100503 10:00]:
-> >> Tony Lindgren <tony@atomide.com> writes:
-> >> 
-> >> > * Kevin Hilman <khilman@deeprootsystems.com> [100503 08:58]:
-> >> >> Mika Westerberg <ext-mika.1.westerberg@nokia.com> writes:
-> >> >> 
-> >> >> > If we are softbooting another kernel using kexec, DMA controller state is not
-> >> >> > known when we are performing omap_init_dma(). It is possible that some DMA
-> >> >> > channels are already active. For example after kexec we get:
-> >> >> >
-> >> >> > <4>IRQ 0020 for non-allocated DMAchannel 5
-> >> >> > <4>IRQ 0020 for non-allocated DMAchannel 5
-> >> >> > <4>IRQ 0020 for non-allocated DMAchannel 5
-> >> >> > <4>IRQ 0020 for non-allocated DMAchannel 5
-> >> >> > <4>IRQ 0020 for non-allocated DMAchannel 5
-> >> >> >
-> >> >> > To prevent any weird things happening, we perform soft reset for the controller
-> >> >> > and disable all per channel interrupts.
-> >> >> >
-> >> >> > Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-> >> >> 
-> >> >> This is a good fix, but we get reset of DMA (and all other blocks) for
-> >> >> free when switching to hwmod.  Here's a good reason to convert DMA
-> >> >> to hwmod.
-> >> >
-> >> > Hmm, do we have existing DMA hwmod patches somewhere that work on all omaps?
-> >> 
-> >> No, that's my point. 
-> >> 
-> >> Rather than implement reset here (then remove it with DMA hwmods) I'd
-> >> rather just see a DMA hwmods added, and then we get reset for free.
-> >
-> > Sure. But until we have something available we should get the fix part in.
-> 
-> which will reduce the likelyhood of anyone doing the DMA hwmods until
-> some sucker like me does it since nobody else will. :(
+On Mon, May 03, 2010 at 10:24:07AM -0500, Aguirre, Sergio wrote:
+>=20
+>=20
+> From: Uwe Kleine-K=F6nig [mailto:u.kleine-koenig@pengutronix.de]
+> Sent: Sunday, May 02, 2010 7:21 AM
+> > On Thu, Feb 25, 2010 at 09:55:45AM -0600, Sergio Aguirre wrote:
+> > > This should complements changes done in:
+> > I think this should read "complement" only, that is, no 's' at the =
+end.
+> > Other than that,
+>=20
+> Oops, typo fixed. Thanks for noticing that!
+No problem.
 
-Yeah I feel your pain.
+> Also... I added arch/arm/boot/compressed/vmlinux to the list, since w=
+hen I
+> build for my OMAP3 board, it shows in the dirty index.
+>=20
+> Is it acceptable to add that aswell? If yes, then attached patch cont=
+ains
+> your ACK + vmlinux added to the list.
+This is OK, but IMHO you should note it in the commit log.  (And I thin=
+k
+most people prefer inline patches over attached ones.)
 
-Anyways, doing that hwmod change is too late for this coming merge
-window if we don't have the patches ready. So we still need to fix
-the problem.
- 
-> I'm just looking for more ways to motivate others to help in hwmod
-> conversion.
+Best regards
+Uwe
 
-Yes, and in addition to that at least plat-omap/dma.c, plat-omap/gpio.c
-could use some serious clean-up.. And i2c-omap.c too.
 
-Tony
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
