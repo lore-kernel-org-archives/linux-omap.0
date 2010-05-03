@@ -1,46 +1,49 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: [PATCH v2] OMAP3EVM: Update pad configuration for wakeup enabled pads
-Date: Mon,  3 May 2010 17:07:51 +0530
-Message-ID: <1272886671-21749-1-git-send-email-ranjithl@ti.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [RFC] ETM/JTAG components states across OFF modes
+Date: Mon, 3 May 2010 06:54:57 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE896716203BADA0745@dlee02.ent.ti.com>
+References: <1272735501-2963-1-git-send-email-virtuoso@slind.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43618 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758146Ab0ECLiA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 May 2010 07:38:00 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:44159 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754491Ab0ECLzF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 07:55:05 -0400
+In-Reply-To: <1272735501-2963-1-git-send-email-virtuoso@slind.org>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@deeprootsystems.com, ranjithl@ti.com
+To: "virtuoso@slind.org" <virtuoso@slind.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>
 
-OMAP3530 TRM section 7.4.4.4.2 requires OFFOUTENABLE to be set (active low)
-if wakeup capabilities are enabled on a pad. During OFF mode testing
-on OMAP3530 EVM, it was observed that the device was not residing in
-the OFF state. The device enters into the OFF state and immediately exits
-from that state as if an IO wakeup event has occured. The issue was traced
-down to the pad configuration of wkaeup enabled pad's.
+Hi Alex,
 
-Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> From: virtuoso@slind.org [mailto:virtuoso@slind.org]
+> Sent: Saturday, May 01, 2010 12:38 PM
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 017bb2f..3548fb8 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -651,10 +651,10 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
--				OMAP_PIN_OFF_INPUT_PULLUP |
-+				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
- 	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
--				OMAP_PIN_OFF_INPUT_PULLUP |
-+				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
--- 
-1.6.2.4
+Do you have a web viewable git tree where your full patch is applied? Or could you send me on the side files?
+
+Main bit I was looking to check was that you have bug fix which came late in my original hack where a failed OFF mode needs to unlock the coresight registers at the fall through of WFI.
+
+> I've finally got around to doing this. This is a rework of the previously
+> posted [1] patch that implements ETM and JTAG context saving. There are
+> two major changes since previous version:
+>   * coresight OS save/restore mechanism is used for saving the ETM context,
+>     so that it actually occupies ~54 words on omap3_arm_context instead of
+>     128;
+
+Seems you found some nice optimization.  I was thinking first patch was doing this in part.  You read from a port address and it gives you internal registers as necessary. You written them back to port for restore.
+
+I came up with context size simply by inspecting # of times loop was necessary and looking at values written to save areas.  I assume you would have done something similar to determine size.
+
+>   * a sysfs file is used to control if the ETM/JTAG context should be saved
+>     in OFF mode.
+
+Neat.  This is much more friendly then a recompile.
+
+Regards,
+Richard W.
+
 
