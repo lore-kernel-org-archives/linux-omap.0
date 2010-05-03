@@ -1,60 +1,68 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH] arm: Fix .gitignore for boot/compressed folder
-Date: Mon, 3 May 2010 20:43:34 +0200
-Message-ID: <20100503184334.GA24866@pengutronix.de>
-References: <1267113345-18426-1-git-send-email-saaguirre@ti.com> <20100502122049.GA5553@pengutronix.de> <A24693684029E5489D1D202277BE8944551B8F75@dlee02.ent.ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [RFC/PATCH 6/8] omap: mailbox: more more stuff to
+ omap2_mbox_init
+Date: Mon, 3 May 2010 13:50:39 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B791DED@dlee03.ent.ti.com>
+References: <1272844798-25330-1-git-send-email-felipe.contreras@gmail.com>
+	 <1272844967-25441-2-git-send-email-felipe.contreras@gmail.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E4B79179A@dlee03.ent.ti.com>
+ <r2n94a0d4531005030808sc1f2a0a0q6a97f8a7ed2b8e7f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54947 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752218Ab0ECSnj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 14:43:39 -0400
-Content-Disposition: inline
-In-Reply-To: <A24693684029E5489D1D202277BE8944551B8F75@dlee02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37022 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752218Ab0ECSup convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 14:50:45 -0400
+In-Reply-To: <r2n94a0d4531005030808sc1f2a0a0q6a97f8a7ed2b8e7f@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Albin Tonnerre <albin.tonnerre@free-electrons.com>, Russell King <rmk@arm.linux.org.uk>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-On Mon, May 03, 2010 at 10:24:07AM -0500, Aguirre, Sergio wrote:
->=20
->=20
-> From: Uwe Kleine-K=F6nig [mailto:u.kleine-koenig@pengutronix.de]
-> Sent: Sunday, May 02, 2010 7:21 AM
-> > On Thu, Feb 25, 2010 at 09:55:45AM -0600, Sergio Aguirre wrote:
-> > > This should complements changes done in:
-> > I think this should read "complement" only, that is, no 's' at the =
-end.
-> > Other than that,
->=20
-> Oops, typo fixed. Thanks for noticing that!
-No problem.
+Felipe,
 
-> Also... I added arch/arm/boot/compressed/vmlinux to the list, since w=
-hen I
-> build for my OMAP3 board, it shows in the dirty index.
->=20
-> Is it acceptable to add that aswell? If yes, then attached patch cont=
-ains
-> your ACK + vmlinux added to the list.
-This is OK, but IMHO you should note it in the commit log.  (And I thin=
-k
-most people prefer inline patches over attached ones.)
+> > Small suggestion...if we are re-organizing can we make it look similar
+> to how iommu is structured? This way we can maintain consistency.
+> 
+> I thought I did. What exactly do you have in mind?
 
-Best regards
-Uwe
+	1. What Tony mentioned in another email about using #ifdefs for the platforms. That will be bring close to what is in omap-iommu.c
 
+	2. Compare iommu_get with mailbox_get. iommu_get uses driver_find_device to get the iommu structure. I guess we can apply the same logic to get mailbox structure. This way we can get rid of omap_mbox_register, omap_mbox_unregister, and find_mboxes functions.
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Also, I noticed that since you made omap3-iommu not omap3-specific,
+> perhaps it makes sense to remove the omap prefix and just name it
+> 'iommu'.
+>
+
+-- You are right. It doesn't make sense to add omap prefix any more.
+
+Thank you,
+Best regards,
+Hari
+
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Monday, May 03, 2010 10:09 AM
+> To: Kanigeri, Hari
+> Cc: linux-omap; Tony Lindgren; Hiroshi Doyu; Ohad Ben-Cohen
+> Subject: Re: [RFC/PATCH 6/8] omap: mailbox: more more stuff to
+> omap2_mbox_init
+> 
+> On Mon, May 3, 2010 at 4:42 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
+> > Small suggestion...if we are re-organizing can we make it look similar
+> to how iommu is structured? This way we can maintain consistency.
+> 
+> I thought I did. What exactly do you have in mind?
+> 
+> Also, I noticed that since you made omap3-iommu not omap3-specific,
+> perhaps it makes sense to remove the omap prefix and just name it
+> 'iommu'.
+> 
+> Cheers.
+> 
+> --
+> Felipe Contreras
