@@ -1,164 +1,115 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [RFC/PATCH 6/8] omap: mailbox: more more stuff to
- omap2_mbox_init
-Date: Mon, 3 May 2010 08:42:38 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B79179A@dlee03.ent.ti.com>
-References: <1272844798-25330-1-git-send-email-felipe.contreras@gmail.com>
- <1272844967-25441-2-git-send-email-felipe.contreras@gmail.com>
+From: Stephan Linz <linz@li-pro.net>
+Subject: Re: OMAP 3530 LV-SOM support (was: Re: Patch format for submission?)
+Date: Mon, 3 May 2010 16:13:51 +0200
+Message-ID: <201005031613.52509.linz@li-pro.net>
+References: <1250695463.10817.4.camel@blitz> <20100429171835.GB5644@gibbs.hungrycats.org> <j2q1f11a5491004301912xca6177d6y2bfd0b5fb68919df@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46279 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755978Ab0ECNmo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 09:42:44 -0400
-In-Reply-To: <1272844967-25441-2-git-send-email-felipe.contreras@gmail.com>
-Content-Language: en-US
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:18341 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759055Ab0ECOOJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 10:14:09 -0400
+In-Reply-To: <j2q1f11a5491004301912xca6177d6y2bfd0b5fb68919df@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ashwin Bihari <abihari@gmail.com>, Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>, Peter Barada <peterb@logicpd.com>
 
-Felipe,
+Am Samstag, 1. Mai 2010 04:12:19 schrieb Ashwin Bihari:
+> On Thu, Apr 29, 2010 at 1:18 PM, Zygo Blaxell
+>
+> <vger-linux-omap-esightcorp@mailtoo.hungrycats.org> wrote:
+> > On Thu, Aug 20, 2009 at 06:02:06PM +0200, Stephan Linz wrote:
+> >> Am Mittwoch, 19. August 2009 schrieb Peter Barada:
+> >> > 1) Does anyone have a URL of the format patches should be in tha=
+t are
+> >> > submitted to the linux-omap list?
+> >> >
+> >> > I've got some patches to add base support for the Logic OMAP 35x=
+ SOM
+> >> > and Torpedo boards and I'd like to submit them in the right form=
+at for
+> >> > inclusion and push into mainline.
+> >>
+> >> Hi Peter,
+> >>
+> >> nice to see your announcement here at linux-omap. Today I've finis=
+hed my
+> >> own port for the Logic OMAP 35x SOM based on 2.6.31-rc1. We should=
+ share
+> >> our results befor submitting any patches to the list, or not?
+> >
+> > That's the last message I can find from either of you on this topic=
+=2E
+> > I'm in the process of rolling yet another patch set for 2.6.32.  Wa=
+s any
+> > further work done on this, or anything posted anywhere?
+>
+> Zygo,
+>
+> No, the LogicPD OMAP 35x support didn't quite make it out to the list=
+,
+> we are taking another crack at it shortly and would definitely love t=
+o
+> collaborate to get the changes out. We did create a Gitorious repo[1]=
+,
+> but that's sitting at 2.6.31-rc1 and we've internally got a newer
+> version of the Kernel up to date..
+>
+> So we should definitely discuss off-list on how to pool our efforts t=
+o
+> get the support into the L-O tree..
 
-Small suggestion...if we are re-organizing can we make it look similar to how iommu is structured? This way we can maintain consistency. 
+Hi Zygo, Ashwin and Peter,
+
+I was tied up with business and did no further work on my 2.6.31-rc1 fo=
+r more=20
+than six months. Since last week I've been working on a fresh port of m=
+y own=20
+patch set based on latest stable 2.6.32-omap1 (looks good except USB an=
+d NOR=20
+flash access).
+
+Yes of course. We should discuss off-list on how to share our results. =
+Last=20
+summer I did create a new gitorious.org project for LogicPD omap boards=
+ too:
+http://gitorious.org/omap3logic (soory there is no content til now ;-))
+
+We can use it as our stage, or not?
+
+@Ashwin: Where is your Gitorious repo you tell about?
 
 
-Thank you,
-Best regards,
-Hari
+Regards,
+Stephan
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Felipe Contreras
-> Sent: Sunday, May 02, 2010 7:03 PM
-> To: linux-omap
-> Cc: Tony Lindgren; Hiroshi Doyu; Ohad Ben-Cohen; Felipe Contreras
-> Subject: [RFC/PATCH 6/8] omap: mailbox: more more stuff to omap2_mbox_init
-> 
-> Will be needed to split the platform_driver.
-> 
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> ---
->  arch/arm/mach-omap2/mailbox.c |   49 ++++++++++++++++++------------------
-> ----
->  1 files changed, 22 insertions(+), 27 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-> index e9a803c..474c1e7 100644
-> --- a/arch/arm/mach-omap2/mailbox.c
-> +++ b/arch/arm/mach-omap2/mailbox.c
-> @@ -418,31 +418,6 @@ static int __devinit omap2_mbox_probe(struct
-> platform_device *pdev)
-> 
->  	res = pdev->resource;
-> 
-> -	mbox_base = ioremap(res->start, resource_size(res));
-> -	if (!mbox_base)
-> -		return -ENOMEM;
-> -
-> -	if (cpu_is_omap3430()) {
-> -		list.num = ARRAY_SIZE(omap3_mboxes);
-> -		list.mbox = omap3_mboxes;
-> -
-> -		list.mbox[0]->irq = res[1].start;
-> -	}
-> -	else if (cpu_is_omap2420()) {
-> -		list.num = ARRAY_SIZE(omap2_mboxes);
-> -		list.mbox = omap2_mboxes;
-> -
-> -		list.mbox[0]->irq = res[1].start;
-> -		list.mbox[1]->irq = res[2].start;
-> -	}
-> -	else if (cpu_is_omap44xx()) {
-> -		list.num = ARRAY_SIZE(omap4_mboxes);
-> -		list.mbox = omap4_mboxes;
-> -
-> -		list.mbox[0]->irq = res[1].start;
-> -		list.mbox[1]->irq = res[1].start;
-> -	}
-> -
->  	for (i = 0; i < list.num; i++) {
->  		struct omap_mbox *mbox = list.mbox[i];
->  		ret = omap_mbox_register(&pdev->dev, mbox);
-> @@ -454,7 +429,6 @@ static int __devinit omap2_mbox_probe(struct
-> platform_device *pdev)
->  err_out:
->  	while (i--)
->  		omap_mbox_unregister(list.mbox[i]);
-> -	iounmap(mbox_base);
->  	return ret;
->  }
-> 
-> @@ -465,7 +439,6 @@ static int __devexit omap2_mbox_remove(struct
-> platform_device *pdev)
->  	for (i = 0; i < list.num; i++)
->  		omap_mbox_unregister(list.mbox[i]);
-> 
-> -	iounmap(mbox_base);
->  	return 0;
->  }
-> 
-> @@ -483,18 +456,33 @@ static int __init omap2_mbox_init(void)
->  	struct platform_device *pdev;
->  	struct resource *res;
->  	unsigned num;
-> +	struct omap_mbox_list list;
-> 
->  	if (cpu_is_omap3430()) {
->  		res = omap3_mbox_resources;
->  		num = ARRAY_SIZE(omap3_mbox_resources);
-> +		list.num = ARRAY_SIZE(omap3_mboxes);
-> +		list.mbox = omap3_mboxes;
-> +
-> +		list.mbox[0]->irq = res[1].start;
->  	}
->  	else if (cpu_is_omap2420()) {
->  		res = omap2_mbox_resources;
->  		num = ARRAY_SIZE(omap2_mbox_resources);
-> +		list.num = ARRAY_SIZE(omap2_mboxes);
-> +		list.mbox = omap2_mboxes;
-> +
-> +		list.mbox[0]->irq = res[1].start;
-> +		list.mbox[1]->irq = res[2].start;
->  	}
->  	else if (cpu_is_omap44xx()) {
->  		res = omap4_mbox_resources;
->  		num = ARRAY_SIZE(omap4_mbox_resources);
-> +		list.num = ARRAY_SIZE(omap4_mboxes);
-> +		list.mbox = omap4_mboxes;
-> +
-> +		list.mbox[0]->irq = res[1].start;
-> +		list.mbox[1]->irq = res[1].start;
->  	}
->  	else {
->  		pr_err("%s: platform not supported\n", __func__);
-> @@ -515,6 +503,12 @@ static int __init omap2_mbox_init(void)
->  	if (err)
->  		goto err_out;
-> 
-> +	mbox_base = ioremap(res[0].start, resource_size(&res[0]));
-> +	if (!mbox_base) {
-> +		platform_device_put(pdev);
-> +		return -ENOMEM;
-> +	}
-> +
->  	return platform_driver_register(&omap2_mbox_driver);
-> 
->  err_out:
-> @@ -524,6 +518,7 @@ err_out:
->  static void __exit omap2_mbox_exit(void)
->  {
->  	platform_driver_unregister(&omap2_mbox_driver);
-> +	iounmap(mbox_base);
->  }
-> 
->  module_init(omap2_mbox_init);
+
+>
+> Regards
+> -- Ashwin
 > --
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+Viele Gr=FC=DFe,
+Stephan Linz
+_______________________________________________________________________=
+_______
+OpenDCC: http://www.li-pro.net/opendcc.phtml
+PC/M: http://www.li-pro.net/pcm.phtml
+CDK4AVR: http://cdk4avr.sourceforge.net/
+CDK4NIOS: http://cdk4nios.sourceforge.net/
+CDK4MSP: http://cdk4msp.sourceforge.net/
+CPM4L: http://download.opensuse.org/repositories/home:/rexut:/CPM4L
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
