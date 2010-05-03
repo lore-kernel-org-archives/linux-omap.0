@@ -1,54 +1,74 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v2 4/4] omap: mailbox: convert block api to kfifo
-Date: Mon, 03 May 2010 09:07:23 +0300 (EEST)
-Message-ID: <20100503.090723.48519047.Hiroshi.DOYU@nokia.com>
-References: <1272815071-2827-1-git-send-email-ohad@wizery.com>
-	<1272815071-2827-5-git-send-email-ohad@wizery.com>
-	<20100503.083036.59656495.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: [PATCH v2 02/21] OMAP: DSS2: Taal: add locks to taal_bl_update_status
+Date: Mon,  3 May 2010 09:18:22 +0300
+Message-ID: <c95257e8042f471c55a38133020d1d63e22161f3.1272621452.git.ext-jani.1.nikula@nokia.com>
+References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
+ <1ef57e99d69aaf89b8e61074aa8ce2e5f6632d28.1272621452.git.ext-jani.1.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32521 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754752Ab0ECGHc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 02:07:32 -0400
-In-Reply-To: <20100503.083036.59656495.Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:30946 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635Ab0ECGSv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 02:18:51 -0400
+In-Reply-To: <1ef57e99d69aaf89b8e61074aa8ce2e5f6632d28.1272621452.git.ext-jani.1.nikula@nokia.com>
+In-Reply-To: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
+References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ohad@wizery.com
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
+To: Tomi.Valkeinen@nokia.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, ext-jani.1.nikula@nokia.com
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v2 4/4] omap: mailbox: convert block api to kfifo
-Date: Mon, 03 May 2010 08:30:36 +0300 (EEST)
+From: Valkeinen Tomi (Nokia-D/Helsinki) <Tomi.Valkeinen@nokia.com>
 
-> Hi Ohad,
-> 
-> From: ext Ohad Ben-Cohen <ohad@wizery.com>
-> Subject: [PATCH v2 4/4] omap: mailbox: convert block api to kfifo
-> Date: Sun, 2 May 2010 17:44:31 +0200
-> 
->> The underlying buffering implementation of mailbox
->> is converted from block API to kfifo due to the simplicity
->> and speed of kfifo.
->> 
->> The default size of the kfifo buffer is set to 256 bytes.
->> This value is configurable at compile time (via
->> CONFIG_OMAP_MBOX_KFIFO_SIZE), and can be changed at
->> runtime (via the omap_kfifo_size module parameter).
-> 
-> mbox_kfifo_size?
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-It may be also nice if there's some checking of 'mbox_kfifo_size % 4 == 0' along with 'CONFIG_OMAP_MBOX_KFIFO_SIZE % 4 == 0'?
+taal_bl_update_status was missing locks to protect taal_data. This caused
+a kernel crash randomly, as the code attempted to set the brightness while
+the OMAP's DSI block was actually disabled.
 
-> 
->> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
->> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
->> ---
->> If you want, you can also reach me at < ohadb at ti dot com >.
->> 
->>  arch/arm/plat-omap/Kconfig                |    9 +++
->>  arch/arm/plat-omap/include/plat/mailbox.h |    4 +-
->>  arch/arm/plat-omap/mailbox.c              |  107 +++++++++++++----------------
->>  3 files changed, 58 insertions(+), 62 deletions(-)
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ drivers/video/omap2/displays/panel-taal.c |   18 ++++++++++--------
+ 1 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+index 43fce5f..5f5afba 100644
+--- a/drivers/video/omap2/displays/panel-taal.c
++++ b/drivers/video/omap2/displays/panel-taal.c
+@@ -290,24 +290,26 @@ static int taal_bl_update_status(struct backlight_device *dev)
+ 
+ 	dev_dbg(&dssdev->dev, "update brightness to %d\n", level);
+ 
++	mutex_lock(&td->lock);
++
+ 	if (td->use_dsi_bl) {
+ 		if (td->enabled) {
+ 			dsi_bus_lock();
+ 			r = taal_dcs_write_1(DCS_BRIGHTNESS, level);
+ 			dsi_bus_unlock();
+-			if (r)
+-				return r;
++		} else {
++			r = 0;
+ 		}
+ 	} else {
+ 		if (!dssdev->set_backlight)
+-			return -EINVAL;
+-
+-		r = dssdev->set_backlight(dssdev, level);
+-		if (r)
+-			return r;
++			r = -EINVAL;
++		else
++			r = dssdev->set_backlight(dssdev, level);
+ 	}
+ 
+-	return 0;
++	mutex_unlock(&td->lock);
++
++	return r;
+ }
+ 
+ static int taal_bl_get_intensity(struct backlight_device *dev)
+-- 
+1.6.5.2
+
