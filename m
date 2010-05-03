@@ -1,7 +1,7 @@
-From: Jani Nikula <ext-jani.1.nikula@Nokia.com>
-Subject: [PATCH v2 12/21] OMAP: DSS2: Taal: Change ESD work management
-Date: Mon,  3 May 2010 09:18:32 +0300
-Message-ID: <4004b06a47d3c1d20d6d8a30ddccdf536faeb5a0.1272621452.git.ext-jani.1.nikula@nokia.com>
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: [PATCH v2 13/21] OMAP: DSS2: Taal: Change probe error handling labels
+Date: Mon,  3 May 2010 09:18:33 +0300
+Message-ID: <b88e1b382ddf14870c7a44e7ca620ad84d883b50.1272621452.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
  <1ef57e99d69aaf89b8e61074aa8ce2e5f6632d28.1272621452.git.ext-jani.1.nikula@nokia.com>
  <c95257e8042f471c55a38133020d1d63e22161f3.1272621452.git.ext-jani.1.nikula@nokia.com>
@@ -14,108 +14,111 @@ References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
  <85172e14c23339065e319230f9707353409a901e.1272621452.git.ext-jani.1.nikula@nokia.com>
  <6e9febe4d2179309dcf93b7a8e897890c871f086.1272621452.git.ext-jani.1.nikula@nokia.com>
  <ad1917b1c316a85051c4a908705d403956ca1720.1272621452.git.ext-jani.1.nikula@nokia.com>
+ <4004b06a47d3c1d20d6d8a30ddccdf536faeb5a0.1272621452.git.ext-jani.1.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:34459 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755330Ab0ECGSy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 02:18:54 -0400
-In-Reply-To: <ad1917b1c316a85051c4a908705d403956ca1720.1272621452.git.ext-jani.1.nikula@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:30955 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755493Ab0ECGSz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 02:18:55 -0400
+In-Reply-To: <4004b06a47d3c1d20d6d8a30ddccdf536faeb5a0.1272621452.git.ext-jani.1.nikula@nokia.com>
 In-Reply-To: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1272621452.git.ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi.Valkeinen@Nokia.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, ext-jani.1.nikula@Nokia.com
+To: Tomi.Valkeinen@nokia.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, ext-jani.1.nikula@nokia.com
 
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-Move ESD work queuing and cancelling out of taal_power_on/off() to avoid
-problems related to taal_esd_work() calling the power on/off functions.
+Switch from numbered to named labels to make it easier to add new
+labels for error handling.
 
 Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
 ---
- drivers/video/omap2/displays/panel-taal.c |   25 ++++++++++++++++---------
- 1 files changed, 16 insertions(+), 9 deletions(-)
+ drivers/video/omap2/displays/panel-taal.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 32e94bf..5b6c945 100644
+index 5b6c945..0f62c96 100644
 --- a/drivers/video/omap2/displays/panel-taal.c
 +++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -654,7 +654,7 @@ static void taal_remove(struct omap_dss_device *dssdev)
- 	taal_bl_update_status(bldev);
- 	backlight_device_unregister(bldev);
+@@ -539,7 +539,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 	td = kzalloc(sizeof(*td), GFP_KERNEL);
+ 	if (!td) {
+ 		r = -ENOMEM;
+-		goto err0;
++		goto err;
+ 	}
+ 	td->dssdev = dssdev;
  
--	cancel_delayed_work_sync(&td->esd_work);
-+	cancel_delayed_work(&td->esd_work);
- 	destroy_workqueue(td->esd_wq);
+@@ -549,7 +549,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 	if (td->esd_wq == NULL) {
+ 		dev_err(&dssdev->dev, "can't create ESD workqueue\n");
+ 		r = -ENOMEM;
+-		goto err1;
++		goto err_wq;
+ 	}
+ 	INIT_DELAYED_WORK_DEFERRABLE(&td->esd_work, taal_esd_work);
  
- 	/* reset, to be sure that the panel is in a valid state */
-@@ -725,10 +725,6 @@ static int taal_power_on(struct omap_dss_device *dssdev)
- 	if (r)
- 		goto err;
- 
--#ifdef TAAL_USE_ESD_CHECK
--	queue_delayed_work(td->esd_wq, &td->esd_work, TAAL_ESD_CHECK_PERIOD);
--#endif
--
- 	td->enabled = 1;
- 
- 	if (!td->intro_printed) {
-@@ -758,8 +754,6 @@ static void taal_power_off(struct omap_dss_device *dssdev)
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
- 	int r;
- 
--	cancel_delayed_work(&td->esd_work);
--
- 	r = taal_dcs_write_0(DCS_DISPLAY_OFF);
- 	if (!r) {
- 		r = taal_sleep_in(td);
-@@ -801,6 +795,10 @@ static int taal_enable(struct omap_dss_device *dssdev)
- 	if (r)
- 		goto err;
- 
-+#ifdef TAAL_USE_ESD_CHECK
-+	queue_delayed_work(td->esd_wq, &td->esd_work, TAAL_ESD_CHECK_PERIOD);
-+#endif
-+
- 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
- 
- 	mutex_unlock(&td->lock);
-@@ -820,6 +818,8 @@ static void taal_disable(struct omap_dss_device *dssdev)
- 
- 	mutex_lock(&td->lock);
- 
-+	cancel_delayed_work(&td->esd_work);
-+
- 	dsi_bus_lock();
- 
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-@@ -846,6 +846,8 @@ static int taal_suspend(struct omap_dss_device *dssdev)
- 		goto err;
+@@ -569,7 +569,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 					  &taal_bl_ops, &props);
+ 	if (IS_ERR(bldev)) {
+ 		r = PTR_ERR(bldev);
+-		goto err2;
++		goto err_bl;
  	}
  
-+	cancel_delayed_work(&td->esd_work);
-+
- 	dsi_bus_lock();
+ 	td->bldev = bldev;
+@@ -589,7 +589,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 		r = gpio_request(gpio, "taal irq");
+ 		if (r) {
+ 			dev_err(&dssdev->dev, "GPIO request failed\n");
+-			goto err3;
++			goto err_gpio;
+ 		}
  
- 	taal_power_off(dssdev);
-@@ -882,10 +884,15 @@ static int taal_resume(struct omap_dss_device *dssdev)
+ 		gpio_direction_input(gpio);
+@@ -601,7 +601,7 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 		if (r) {
+ 			dev_err(&dssdev->dev, "IRQ request failed\n");
+ 			gpio_free(gpio);
+-			goto err4;
++			goto err_irq;
+ 		}
  
- 	dsi_bus_unlock();
+ 		init_completion(&td->te_completion);
+@@ -612,25 +612,25 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 	r = sysfs_create_group(&dssdev->dev.kobj, &taal_attr_group);
+ 	if (r) {
+ 		dev_err(&dssdev->dev, "failed to create sysfs files\n");
+-		goto err5;
++		goto err_sysfs;
+ 	}
  
--	if (r)
-+	if (r) {
- 		dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
--	else
-+	} else {
- 		dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+#ifdef TAAL_USE_ESD_CHECK
-+		queue_delayed_work(td->esd_wq, &td->esd_work,
-+				TAAL_ESD_CHECK_PERIOD);
-+#endif
-+	}
+ 	taal_hw_reset(dssdev);
  
- 	mutex_unlock(&td->lock);
+ 	return 0;
+-err5:
++err_sysfs:
+ 	if (td->use_ext_te)
+ 		free_irq(gpio_to_irq(dssdev->phy.dsi.ext_te_gpio), dssdev);
+-err4:
++err_irq:
+ 	if (td->use_ext_te)
+ 		gpio_free(dssdev->phy.dsi.ext_te_gpio);
+-err3:
++err_gpio:
+ 	backlight_device_unregister(bldev);
+-err2:
++err_bl:
+ 	destroy_workqueue(td->esd_wq);
+-err1:
++err_wq:
+ 	kfree(td);
+-err0:
++err:
+ 	return r;
+ }
  
 -- 
 1.6.5.2
