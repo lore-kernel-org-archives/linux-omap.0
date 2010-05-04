@@ -1,41 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH 0/2] 32k-sync timer patches
-Date: Tue, 4 May 2010 15:38:47 -0700
-Message-ID: <20100504223847.GO29604@atomide.com>
-References: <1270033549-26408-1-git-send-email-felipe.balbi@nokia.com>
+Subject: Re: [RFC/PATCHv2 1/4] gpiolib: introduce set_debounce method
+Date: Tue, 4 May 2010 15:40:30 -0700
+Message-ID: <20100504224029.GP29604@atomide.com>
+References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
+ <1270049712-28272-2-git-send-email-felipe.balbi@nokia.com>
+ <20100402123454.GD27613@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52450 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758419Ab0EDWiu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 18:38:50 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51212 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934342Ab0EDWkg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 18:40:36 -0400
 Content-Disposition: inline
-In-Reply-To: <1270033549-26408-1-git-send-email-felipe.balbi@nokia.com>
+In-Reply-To: <20100402123454.GD27613@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <david-b@pacbell.net>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Felipe Balbi <felipe.balbi@nokia.com> [100331 04:02]:
-> The following patches convert 32k-sync timer into a platform_driver
-> and also remove dead code from timer32k.c
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [100402 05:30]:
+> On Wed, Mar 31, 2010 at 06:35:09PM +0300, Felipe Balbi wrote:
+> > Few architectures, like OMAP, allow you to set
+> > a debouncing time for the gpio before generating
+> > the IRQ. Teach gpiolib about that.
+> > 
+> > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 > 
-> If anyone has a good idea on how to fix-up timer-gp.c, I'll be
-> glad to hear. Currently I can't move it to platform_driver
-> because it's used the system timer during machine start so I can't
-> find a proper location to register the platform_device. If we don't
-> register a system timer, we will loop forever trying to calibrate
-> the delay loop.
+> This looks useful - for what it's worth
 > 
-> The patches were boot tested on rx51 and compile tested with
-> omap_h2_1610_defconfig.
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Ping, looks like this series is pretty close to being mergeable?
-
-Marking as RFC and archived in patchwork, please repost to get
-without RFC flags and the acks if you think we're should merge
-these changes.
+Ping, looks like this series is pretty close to being mergeable.
+Felipe, care to repost one more time without RFC and with the
+acks if you think you have updated version that's ready for
+the upcoming merge window.
 
 Regards,
 
