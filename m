@@ -1,37 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH v2 2/2] can:ti_hecc: Enable CAN support on AM3517.
-Date: Tue, 4 May 2010 18:26:12 -0400
-Message-ID: <notify-1273011967@atomide.com>
-References: <1267186035-8146-3-git-send-email-srk@ti.com>
+Subject: Re: [RFC/PATCH 0/2] 32k-sync timer patches
+Date: Tue, 4 May 2010 15:38:47 -0700
+Message-ID: <20100504223847.GO29604@atomide.com>
+References: <1270033549-26408-1-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50396 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757465Ab0EDW0M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 18:26:12 -0400
-Received: from c-69-181-193-102.hsd1.ca.comcast.net ([69.181.193.102] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1O9QZ9-000J9n-HQ
-	for linux-omap@vger.kernel.org; Tue, 04 May 2010 22:26:11 +0000
-In-Reply-To: <1267186035-8146-3-git-send-email-srk@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52450 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758419Ab0EDWiu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 18:38:50 -0400
 Content-Disposition: inline
+In-Reply-To: <1270033549-26408-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Felipe Balbi <felipe.balbi@nokia.com> [100331 04:02]:
+> The following patches convert 32k-sync timer into a platform_driver
+> and also remove dead code from timer32k.c
+> 
+> If anyone has a good idea on how to fix-up timer-gp.c, I'll be
+> glad to hear. Currently I can't move it to platform_driver
+> because it's used the system timer during machine start so I can't
+> find a proper location to register the platform_device. If we don't
+> register a system timer, we will loop forever trying to calibrate
+> the delay loop.
+> 
+> The patches were boot tested on rx51 and compile tested with
+> omap_h2_1610_defconfig.
 
-Branch in linux-omap: for-next
+Ping, looks like this series is pretty close to being mergeable?
 
-Initial commit ID (Likely to change): 7241145120e803b600fc5aa1ef911c80ab68d1d5
+Marking as RFC and archived in patchwork, please repost to get
+without RFC flags and the acks if you think we're should merge
+these changes.
 
-PatchWorks
-http://patchwork.kernel.org/patch/82312/
+Regards,
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=7241145120e803b600fc5aa1ef911c80ab68d1d5
-
-
+Tony
