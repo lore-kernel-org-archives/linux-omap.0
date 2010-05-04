@@ -1,57 +1,66 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: Re: omap_musb_board_data -- trouble specifying 500mA supply
-Date: Tue, 4 May 2010 11:02:57 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E3514C2@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E7394044E3514BC@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [Query][omap iommu] Consulting iommu if a physical region is
+ "mappable" before actually mapping it
+Date: Tue, 04 May 2010 08:58:33 +0300 (EEST)
+Message-ID: <20100504.085833.15255924.Hiroshi.DOYU@nokia.com>
+References: <A24693684029E5489D1D202277BE8944550BB017@dlee02.ent.ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4B791E48@dlee03.ent.ti.com>
+	<A24693684029E5489D1D202277BE8944551B92F7@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36504 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753223Ab0EDFdF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 01:33:05 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E3514BC@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:31185 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750845Ab0EDF6n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 01:58:43 -0400
+In-Reply-To: <A24693684029E5489D1D202277BE8944551B92F7@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Users <linux-omap@vger.kernel.org>
-Cc: Cliff Brake <cliff.brake@gmail.com>
+To: saaguirre@ti.com
+Cc: h-kanigeri2@ti.com, linux-omap@vger.kernel.org
 
-Hi,
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Cliff Brake
-> >> Sent: Wednesday, April 28, 2010 7:40 PM
-> >> To: Linux OMAP Users
-> >> Subject: omap_musb_board_data -- trouble specifying 500mA supply
-> >>
-> >> Hello,
-> >>
-> >> We are designing a custom OMAP board that will have a 500mA supply on
-> >> the OTG port.  It looks like the power is set with:
-> >>
-> >> struct omap_musb_board_data {
-> >>       u8      interface_type;
-> >>       u8      mode;
-> >>       u8      power;
-> >> };
-> >>
-> >> However, with a u8, the max value is 255.  Should power be changed to a
-> >> u16?
-> >
-> > There is already a fix submitted and is available at Greg's queue,
-> > http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-
-> 2.6/patches/usb.current/musb-fix-power-field-to-hold-all-possible-
-> values.patch
-> 
-> I'm also having trouble figuring out the correct way to convince the
-> OTG system not to use the internal phy VBUS power supply.  Are there
-> any examples of a board config that does this?  Perhaps the AM35xx,
-> etc?
-You can refer OMAP3EVM (REV-G) or AM35x.
+From: "ext Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [Query][omap iommu] Consulting iommu if a physical region is "mappable" before actually mapping it
+Date: Mon, 3 May 2010 21:23:46 +0200
 
-Ajay
 > 
-> Thanks,
-> Cliff
+> 
+>> -----Original Message-----
+>> From: Kanigeri, Hari
+>> Sent: Monday, May 03, 2010 2:09 PM
+>> To: Aguirre, Sergio; Hiroshi DOYU
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: RE: [Query][omap iommu] Consulting iommu if a physical region is
+>> "mappable" before actually mapping it
+>> 
+>> Sergio,
+>> 
+>> >
+>> > Can the iommu driver be "consulted" if a certain area (contiguous or
+>> not)
+>> > can be mapped or not, before even trying to do it?
+>> >
+>> 
+>> -- As long as there are physical pages backing the area it should be
+>> mappable right ?
+> 
+> Ok, well.. maybe my question was more about that, if the ISP MMU has
+> some kind of limited translation table size, in which it has a
+> limited of pages to map to device addresses that the ISP can use.
+> 
+> The need for this is that, in camera, there's a Video4Linux2 IOCTL
+> to know if a certain amount of buffers can be handled (and that
+> includes if they could be mapped or not), even before actually doing
+> the whole allocation/mapping.
+> 
+> If there's no limitation in the translation table size, then I guess
+> the only concern is to ensure we have enough free RAM to use. (Which
+> I'll like to think that an userspace resource manager will be able
+> to figure out for the camera application, which is the one
+> allocating the buffers.)
+
+Right, currently a whole 4GB address space is available, so virtually
+no limitation for the translation table size.
+
+
