@@ -1,64 +1,49 @@
 From: Mike Chan <mike@android.com>
-Subject: [PATCH 1/2] [ARM] omap-pm: resource: Lock resource list in update_resource_level
-Date: Mon,  3 May 2010 17:34:30 -0700
-Message-ID: <1272933271-12937-1-git-send-email-mike@android.com>
+Subject: [PATCH 2/2] [ARM] omap-pm: resource: Only update resource level if there is a change
+Date: Mon,  3 May 2010 17:34:31 -0700
+Message-ID: <1272933271-12937-2-git-send-email-mike@android.com>
+References: <1272933271-12937-1-git-send-email-mike@android.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:40755 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:40762 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752875Ab0EDAeg (ORCPT
+	with ESMTP id S1753413Ab0EDAeg (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 20:34:36 -0400
+In-Reply-To: <1272933271-12937-1-git-send-email-mike@android.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Mike Chan <mike@android.com>
 
-Take the resource mutex when iterating over the resource user_list.
-A race can occur if resource_request() adds a first time user to
-the user_list while update_resource_level() is called.
+Previosuly update_resource_level() would always call the change_level()
+function, even if there was no change necessary.
 
 Signed-off-by: Mike Chan <mike@android.com>
 ---
- arch/arm/plat-omap/resource.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/resource.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
-index f769f7c..6d3bba6 100644
+index 6d3bba6..ff5a938 100644
 --- a/arch/arm/plat-omap/resource.c
 +++ b/arch/arm/plat-omap/resource.c
-@@ -106,6 +106,7 @@ static int update_resource_level(struct shared_resource *resp)
+@@ -104,7 +104,7 @@ static int update_resource_level(struct shared_resource *resp)
+ {
+ 	struct users_list *user;
  	unsigned long target_level;
- 	int ret;
+-	int ret;
++	int ret = 0;
  
-+	mutex_lock(&resp->resource_mutex);
+ 	mutex_lock(&resp->resource_mutex);
  	/* Regenerate the target_value for the resource */
- 	if (resp->flags & RES_TYPE_PERFORMANCE) {
- 		target_level = RES_PERFORMANCE_DEFAULTLEVEL;
-@@ -118,9 +119,11 @@ static int update_resource_level(struct shared_resource *resp)
- 			if (user->level < target_level)
- 				target_level = user->level;
- 	} else {
-+		mutex_unlock(&resp->resource_mutex);
- 		pr_debug("SRF: Unknown resource type\n");
- 		return -EINVAL;
+@@ -125,6 +125,9 @@ static int update_resource_level(struct shared_resource *resp)
  	}
-+	mutex_unlock(&resp->resource_mutex);
+ 	mutex_unlock(&resp->resource_mutex);
  
++	if (resp->curr_level == target_level)
++		return ret;
++
  	pr_debug("SRF: Changing Level for resource %s to %ld\n",
  				resp->name, target_level);
-@@ -439,10 +442,12 @@ int resource_release(const char *name, struct device *dev)
- 	list_del(&user->node);
- 	free_user(user);
- 
--	/* Recompute and set the current level for the resource */
--	ret = update_resource_level(resp);
- res_unlock:
- 	mutex_unlock(&resp->resource_mutex);
-+	/* Recompute and set the current level for the resource */
-+	if (!ret)
-+		ret = update_resource_level(resp);
-+
- 	return ret;
- }
- EXPORT_SYMBOL(resource_release);
+ 	ret = resp->ops->change_level(resp, target_level);
 -- 
 1.7.0.1
 
