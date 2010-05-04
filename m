@@ -1,37 +1,115 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] omap1: amsdelta: defconfig updates
-Date: Tue, 4 May 2010 19:23:03 -0400
-Message-ID: <notify-1273015380@atomide.com>
-References: <201004071816.09538.jkrzyszt@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+Subject: [PATCH 1/2] ARM: McBSP: Fix request for irq in OMAP4
+Date: Tue,  4 May 2010 18:37:49 -0500
+Message-ID: <1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
+References: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53286 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934506Ab0EDXXD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 19:23:03 -0400
-Received: from c-69-181-193-102.hsd1.ca.comcast.net ([69.181.193.102] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1O9RSA-0003mC-4e
-	for linux-omap@vger.kernel.org; Tue, 04 May 2010 23:23:02 +0000
-In-Reply-To: <201004071816.09538.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57138 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753156Ab0EDXsf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 May 2010 19:48:35 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o44NmYSB006728
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:35 -0500
+In-Reply-To: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+In OMAP4, there is only one irq line for TX and RX paths. Use
+the correct irq line to avoid errors at runtime.
 
-Branch in linux-omap: for-next
+Also, request irq line only once (instead of requesting for TX
+and RX).
 
-Initial commit ID (Likely to change): a460e7aabb42c8dc6083dde6c21f49dd5806503a
+Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+---
+ arch/arm/mach-omap2/mcbsp.c |   12 ++++--------
+ arch/arm/plat-omap/mcbsp.c  |   20 ++++++++++++--------
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
-PatchWorks
-http://patchwork.kernel.org/patch/91091/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=a460e7aabb42c8dc6083dde6c21f49dd5806503a
-
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 2f3cad6..6b550ec 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -187,32 +187,28 @@ static struct omap_mcbsp_platform_data omap44xx_mcbsp_pdata[] = {
+ 		.phys_base      = OMAP44XX_MCBSP1_BASE,
+ 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP1_RX,
+ 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP1_TX,
+-		.rx_irq         = INT_24XX_MCBSP1_IRQ_RX,
+-		.tx_irq         = INT_24XX_MCBSP1_IRQ_TX,
++		.tx_irq         = INT_44XX_MCBSP1_IRQ,
+ 		.ops            = &omap2_mcbsp_ops,
+ 	},
+ 	{
+ 		.phys_base      = OMAP44XX_MCBSP2_BASE,
+ 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP2_RX,
+ 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP2_TX,
+-		.rx_irq         = INT_24XX_MCBSP2_IRQ_RX,
+-		.tx_irq         = INT_24XX_MCBSP2_IRQ_TX,
++		.tx_irq         = INT_44XX_MCBSP2_IRQ,
+ 		.ops            = &omap2_mcbsp_ops,
+ 	},
+ 	{
+ 		.phys_base      = OMAP44XX_MCBSP3_BASE,
+ 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP3_RX,
+ 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP3_TX,
+-		.rx_irq         = INT_24XX_MCBSP3_IRQ_RX,
+-		.tx_irq         = INT_24XX_MCBSP3_IRQ_TX,
++		.tx_irq         = INT_44XX_MCBSP3_IRQ,
+ 		.ops            = &omap2_mcbsp_ops,
+ 	},
+ 	{
+ 		.phys_base      = OMAP44XX_MCBSP4_BASE,
+ 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP4_RX,
+ 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP4_TX,
+-		.rx_irq         = INT_24XX_MCBSP4_IRQ_RX,
+-		.tx_irq         = INT_24XX_MCBSP4_IRQ_TX,
++		.tx_irq         = INT_44XX_MCBSP4_IRQ,
+ 		.ops            = &omap2_mcbsp_ops,
+ 	},
+ };
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index e1d0440..6e9660d 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -724,14 +724,17 @@ int omap_mcbsp_request(unsigned int id)
+ 			goto err_clk_disable;
+ 		}
+ 
+-		init_completion(&mcbsp->rx_irq_completion);
+-		err = request_irq(mcbsp->rx_irq, omap_mcbsp_rx_irq_handler,
++		if (!cpu_is_omap44xx) {
++			init_completion(&mcbsp->rx_irq_completion);
++			err = request_irq(mcbsp->rx_irq,
++					omap_mcbsp_rx_irq_handler,
+ 					0, "McBSP", (void *)mcbsp);
+-		if (err != 0) {
+-			dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
+-					"for McBSP%d\n", mcbsp->rx_irq,
+-					mcbsp->id);
+-			goto err_free_irq;
++			if (err != 0) {
++				dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
++						"for McBSP%d\n", mcbsp->rx_irq,
++						mcbsp->id);
++				goto err_free_irq;
++			}
+ 		}
+ 	}
+ 
+@@ -781,7 +784,8 @@ void omap_mcbsp_free(unsigned int id)
+ 
+ 	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
+ 		/* Free IRQs */
+-		free_irq(mcbsp->rx_irq, (void *)mcbsp);
++		if (!cpu_is_omap44xx())
++			free_irq(mcbsp->rx_irq, (void *)mcbsp);
+ 		free_irq(mcbsp->tx_irq, (void *)mcbsp);
+ 	}
+ 
+-- 
+1.6.3.3
 
