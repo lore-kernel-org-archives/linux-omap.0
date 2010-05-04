@@ -1,46 +1,56 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 4/5] OMAP4-HSMMC: Adds Dummy Interface clock's for
- MMC controllers
-Date: Tue, 4 May 2010 17:03:14 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1005041702170.20898@utopia.booyaka.com>
-References: <35156.10.24.255.17.1272988905.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02b/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
+Date: Tue, 4 May 2010 16:09:17 -0700
+Message-ID: <20100504230916.GR29604@atomide.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870304E80F5F@dbde02.ent.ti.com>
+ <87y6g4d2ic.fsf@deeprootsystems.com>
+ <20100430233002.GJ29604@atomide.com>
+ <87sk6c8osn.fsf@deeprootsystems.com>
+ <20100501013751.GL29604@atomide.com>
+ <20100501015050.GM29604@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC3560870304F5A672@dbde02.ent.ti.com>
+ <20100504004001.GB29604@atomide.com>
+ <20100504005838.GF29604@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC3560870304F5AC4F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <35156.10.24.255.17.1272988905.squirrel@dbdmail.itg.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: kishore kadiyala <kishore.kadiyala@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49252 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934571Ab0EDXJY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 19:09:24 -0400
+Content-Disposition: inline
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870304F5AC4F@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pais, Allen" <allen.pais@ti.com>
 
-On Tue, 4 May 2010, kishore kadiyala wrote:
-
-> This patch adds dummy Interface clocks for MMC controllers
+* Pandita, Vikram <vikram.pandita@ti.com> [100504 10:29]:
 > 
-> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
-
-> ---
->  arch/arm/mach-omap2/clock44xx_data.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
+> Tony
 > 
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-> index a5c0c9c..0280422 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -2675,6 +2675,11 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK("omap2_mcspi.2",	"ick",			&dummy_ck,	CK_443X),
->  	CLK("omap2_mcspi.3",	"ick",			&dummy_ck,	CK_443X),
->  	CLK("omap2_mcspi.4",	"ick",			&dummy_ck,	CK_443X),
-> +	CLK("mmci-omap-hs.0",	"ick",		&dummy_ck,	CK_443X),
-> +	CLK("mmci-omap-hs.1",	"ick",		&dummy_ck,	CK_443X),
-> +	CLK("mmci-omap-hs.2",	"ick",		&dummy_ck,	CK_443X),
-> +	CLK("mmci-omap-hs.3",	"ick",		&dummy_ck,	CK_443X),
-> +	CLK("mmci-omap-hs.4",	"ick",		&dummy_ck,	CK_443X),
->  	CLK(NULL,	"uart1_ick",			&dummy_ck,	CK_443X),
->  	CLK(NULL,	"uart2_ick",			&dummy_ck,	CK_443X),
->  	CLK(NULL,	"uart3_ick",			&dummy_ck,	CK_443X),
+> >-----Original Message-----
+> >From: Tony Lindgren [mailto:tony@atomide.com]
+> >Sent: Monday, May 03, 2010 7:59 PM
+> >To: Pandita, Vikram
+> >Cc: Kevin Hilman; linux-arm-kernel@lists.infradead.org; linux-
+> >omap@vger.kernel.org; Pais, Allen
+> >Subject: [PATCH 02b/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
+> >
+> >And here's this patch one more time. Both 2a and 2b are needed
+> >for zoom debug uart to work.
+> 
+> Test 1:
+> Tested on Zoom3 with 02a and 02b applied. Enabled DEBUG_LL. 
+> Booted fine.
+> 
+> Test 2:
+> Applied Hack printk.patch (attached)
+> Booted fine and duplicate logs can be seen on console => printascii is working.
+> 
+> Ack-by: Vikram Pandita <vikram.pandita@ti.com>
 
+Good to hear it works for you now, thanks for testing.
 
-- Paul
+Tony
