@@ -1,74 +1,27 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: RE: [RFC][PATCH1/2] SFH7741: proximity sensor driver support
-Date: Tue, 4 May 2010 11:46:09 +0530 (IST)
-Message-ID: <52275.10.24.255.17.1272953769.squirrel@dbdmail.itg.ti.com>
-References: <0680EC522D0CC943BC586913CF3768C003B3164B2F@dbde02.ent.ti.com>
-    <02ab01caea96$26e07a40$LocalHost@wipblrx0099946>
-    <0680EC522D0CC943BC586913CF3768C003B3164BC3@dbde02.ent.ti.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH 5/7] OMAP4-HSMMC: Adds Dummy Interface clock's for MMC
+	controllers
+Date: Tue, 4 May 2010 11:51:13 +0530
+Message-ID: <x2u7f9d1ffb1005032321z7e95f87fq48d4dee7a1fddf91@mail.gmail.com>
+References: <63593.10.24.255.18.1271874056.squirrel@dbdmail.itg.ti.com>
+	 <20100422063947.GB8623@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34733 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754782Ab0EDGQN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 May 2010 02:16:13 -0400
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B3164BC3@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100422063947.GB8623@flint.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King <rmk@arm.linux.org.uk>
+Cc: kishore kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, jarkko.lavinen@nokia.com, tony@atomide.com, santosh.shilimkar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->> ----- Original Message -----
->> From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
->> >
->> > From: Datta, Shubhrajyoti
->> > Sent: Monday, May 03, 2010 11:07 AM
->> > To: Datta, Shubhrajyoti
->> > Subject: [RFC][PATCH1/2] SFH7741: proximity sensor driver support
->> >
->>
->> > +
->> > +static irqreturn_t sfh7741_isr(int irq, void *dev_id)
->> > +{
->> > + struct sfh7741_drvdata *ddata = dev_id;
->> > +
->> > + int proximity = gpio_get_value(ddata->proximity_out);
->> > + input_report_abs(ddata->input, ABS_DISTANCE, proximity);
->> > + input_sync(ddata->input);
->> > +
->> > + return IRQ_HANDLED;
->> > +}
->> > +
->> > +static int __devinit sfh7741_setup(struct device *dev,
->> > + struct sfh7741_drvdata *ddata
->> > + )
->> > +{
->> > + int  error;
->> > + char *desc = "sfh7741";
->> > +
->> > + error = gpio_request(ddata->proximity_out, desc);
->> > + if (error < 0) {
->> > + dev_err(dev, "failed to request GPIO %d, error %d\n",
->> > + ddata->proximity_out, error);
->> > + return error;
->> > + }
->> > +
->> > + error = gpio_direction_input(ddata->proximity_out);
->> > + if (error < 0) {
->> > + dev_err(dev, "failed to configure direction for GPIO %d,\
->> > + error %d\n", ddata->proximity_out, error);
->> > + goto fail1;
->> > + }
->> > +
->>
->> General comment about GPIO,
->> It might be better to have GPIO configuration as part of board file,
->> rather than being part of the driver. This is should make the driver
->> more generic.
-> I read GPIO in the ISR how can I take care of that?
+On Thu, Apr 22, 2010 at 12:09 PM, Russell King <rmk@arm.linux.org.uk> wrote:
+> On Wed, Apr 21, 2010 at 11:50:56PM +0530, kishore kadiyala wrote:
+>> This patch adds dummy Interface clocks for MMC controllers
+>
+> Looks to me as if it changes the formatting; it doesn't seem to be adding
+> anything.
 
-A generic read function pointer could be defined as part
-of platform data, which could be used to retieve gpio value
+I have already asked to drop this patch will be posting next version soon
 
-
+Regards,
+Kishore
