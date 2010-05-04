@@ -1,106 +1,64 @@
 From: Mike Chan <mike@android.com>
-Subject: [PATCH] [ARM] omap-pm: resource: Protect static pool from concurrent get_user() calls
-Date: Mon,  3 May 2010 17:14:45 -0700
-Message-ID: <1272932085-5664-1-git-send-email-mike@android.com>
+Subject: [PATCH 1/2] [ARM] omap-pm: resource: Lock resource list in update_resource_level
+Date: Mon,  3 May 2010 17:34:30 -0700
+Message-ID: <1272933271-12937-1-git-send-email-mike@android.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.35]:45554 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:40755 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932283Ab0EDAOv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 20:14:51 -0400
+	with ESMTP id S1752875Ab0EDAeg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 20:34:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Mike Chan <mike@android.com>
 
-With per-resource mutexes, mulitple threads can call resource_request()
-which can cause get_user() to concurrently allocate from the static pool.
-Take the res_mutex when allocating from the static pool, which is used
-in resouce_request() and resource_release() to guard against this.
+Take the resource mutex when iterating over the resource user_list.
+A race can occur if resource_request() adds a first time user to
+the user_list while update_resource_level() is called.
 
 Signed-off-by: Mike Chan <mike@android.com>
 ---
- arch/arm/plat-omap/resource.c |   55 +++++++++++++++++++++++-----------------
- 1 files changed, 32 insertions(+), 23 deletions(-)
+ arch/arm/plat-omap/resource.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
-index 0a7b79b..f769f7c 100644
+index f769f7c..6d3bba6 100644
 --- a/arch/arm/plat-omap/resource.c
 +++ b/arch/arm/plat-omap/resource.c
-@@ -148,34 +148,39 @@ static struct users_list *get_user(void)
- 	int ind = 0;
- 	struct users_list *user;
+@@ -106,6 +106,7 @@ static int update_resource_level(struct shared_resource *resp)
+ 	unsigned long target_level;
+ 	int ret;
  
-+	/*
-+	 * When allocating from the static pool, we must lock resource mutex,
-+	 * to protect against concurrent get_user() calls.
-+	 */
-+	down(&res_mutex);
- 	/* See if something available in the static pool */
- 	while (ind < MAX_USERS) {
--		if (usr_list[ind].usage == UNUSED)
--			break;
--		else
--			ind++;
-+		if (usr_list[ind].usage == UNUSED) {
-+			/* Pick from the static pool */
-+			user = &usr_list[ind];
-+			user->usage = STATIC_ALLOC;
-+			up(&res_mutex);
-+			return user;
-+		}
-+		ind++;
- 	}
--	if (ind < MAX_USERS) {
--		/* Pick from the static pool */
--		user = &usr_list[ind];
--		user->usage = STATIC_ALLOC;
--	} else {
--		/* By this time we hope slab is initialized */
--		if (slab_is_available()) {
--			user = kmalloc(sizeof(struct  users_list), GFP_KERNEL);
--			if (!user) {
--				printk(KERN_ERR "SRF:FATAL ERROR: kmalloc"
--							"failed\n");
--				return ERR_PTR(-ENOMEM);
--			}
--			user->usage = DYNAMIC_ALLOC;
--		} else {
--			/* Dynamic alloc not available yet */
--			printk(KERN_ERR "SRF: FATAL ERROR: users_list"
--				"initial POOL EMPTY before slab init\n");
-+	up(&res_mutex);
-+	/* By this time we hope slab is initialized */
-+	if (slab_is_available()) {
-+		user = kmalloc(sizeof(struct  users_list), GFP_KERNEL);
-+		if (!user) {
-+			printk(KERN_ERR "SRF:FATAL ERROR: kmalloc"
-+					"failed\n");
- 			return ERR_PTR(-ENOMEM);
- 		}
-+		user->usage = DYNAMIC_ALLOC;
-+	} else {
-+		/* Dynamic alloc not available yet */
-+		printk(KERN_ERR "SRF: FATAL ERROR: users_list"
-+				"initial POOL EMPTY before slab init\n");
-+		return ERR_PTR(-ENOMEM);
- 	}
-+
- 	return user;
- }
- 
-@@ -192,8 +197,12 @@ void free_user(struct users_list *user)
- 	if (user->usage == DYNAMIC_ALLOC) {
- 		kfree(user);
++	mutex_lock(&resp->resource_mutex);
+ 	/* Regenerate the target_value for the resource */
+ 	if (resp->flags & RES_TYPE_PERFORMANCE) {
+ 		target_level = RES_PERFORMANCE_DEFAULTLEVEL;
+@@ -118,9 +119,11 @@ static int update_resource_level(struct shared_resource *resp)
+ 			if (user->level < target_level)
+ 				target_level = user->level;
  	} else {
--		user->usage = UNUSED;
-+		/*
-+		 * It is not necesssary to lock when returning to the
-+		 * static pool.
-+		 */
- 		user->dev = NULL;
-+		user->usage = UNUSED;
++		mutex_unlock(&resp->resource_mutex);
+ 		pr_debug("SRF: Unknown resource type\n");
+ 		return -EINVAL;
  	}
- }
++	mutex_unlock(&resp->resource_mutex);
  
+ 	pr_debug("SRF: Changing Level for resource %s to %ld\n",
+ 				resp->name, target_level);
+@@ -439,10 +442,12 @@ int resource_release(const char *name, struct device *dev)
+ 	list_del(&user->node);
+ 	free_user(user);
+ 
+-	/* Recompute and set the current level for the resource */
+-	ret = update_resource_level(resp);
+ res_unlock:
+ 	mutex_unlock(&resp->resource_mutex);
++	/* Recompute and set the current level for the resource */
++	if (!ret)
++		ret = update_resource_level(resp);
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL(resource_release);
 -- 
 1.7.0.1
 
