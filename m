@@ -1,159 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02b/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
-Date: Mon, 3 May 2010 17:58:38 -0700
-Message-ID: <20100504005838.GF29604@atomide.com>
-References: <20100430210216.GI29604@atomide.com>
- <87vdb8hc2d.fsf@deeprootsystems.com>
- <FCCFB4CDC6E5564B9182F639FC3560870304E80F5F@dbde02.ent.ti.com>
- <87y6g4d2ic.fsf@deeprootsystems.com>
- <20100430233002.GJ29604@atomide.com>
- <87sk6c8osn.fsf@deeprootsystems.com>
- <20100501013751.GL29604@atomide.com>
- <20100501015050.GM29604@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC3560870304F5A672@dbde02.ent.ti.com>
- <20100504004001.GB29604@atomide.com>
+Subject: [APPLIED] [CBUS PATCH 1/2] cbus: fix compilation with current mainline
+Date: Mon, 3 May 2010 21:19:04 -0400
+Message-ID: <notify-1272935944@atomide.com>
+References: <1272736870-5216-1-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="bpVaumkpfGNUagdU"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59020 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758109Ab0EDA6n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 20:58:43 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59786 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751250Ab0EDBTE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 21:19:04 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1O96mt-0009C0-W0
+	for linux-omap@vger.kernel.org; Tue, 04 May 2010 01:19:04 +0000
+In-Reply-To: <1272736870-5216-1-git-send-email-felipe.balbi@nokia.com>
 Content-Disposition: inline
-In-Reply-To: <20100504004001.GB29604@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pais, Allen" <allen.pais@ti.com>
+To: linux-omap@vger.kernel.org
+
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
+
+Branch in linux-omap: cbus
+
+Initial commit ID (Likely to change): f746c048052046009eafd6f71041204967e231a3
+
+PatchWorks
+http://patchwork.kernel.org/patch/96298/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=f746c048052046009eafd6f71041204967e231a3
 
 
---bpVaumkpfGNUagdU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-And here's this patch one more time. Both 2a and 2b are needed
-for zoom debug uart to work.
-
-Regards,
-
-Tony
-
---bpVaumkpfGNUagdU
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="omap3-zoom-debug-ll.patch"
-
->From 1ed9c6a7dc9dea18ab1f5dd07ecec7e89ffa1ec5 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Fri, 30 Apr 2010 12:57:14 -0700
-Subject: [PATCH] omap2/3: Fix DEBUG_LL for omap zoom2/3
-
-Zoom2 and 3 have UARTs only on the external debug board.
-GPMC needs to be mapped early to use it for DEBUG_LL.
-
-Additionally, 0xfb000000 overlaps with other areas, so
-use 0xfa400000 for the virtual address instead.
-
-Note that with the pending serial.c patches you need to
-set console=ttyS0,115200n8 as it will be the only UART
-mapped. To use DEBUG_LL, you need to pass also earlyprintk
-in cmdline.
-
-Cc: Allen Pais <allen.pais@ti.com>
-Cc: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-index e15d2e8..1d7f827 100644
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -82,7 +82,7 @@ static inline void __init zoom_init_smsc911x(void)
- 
- static struct plat_serial8250_port serial_platform_data[] = {
- 	{
--		.mapbase	= 0x10000000,
-+		.mapbase	= ZOOM_UART_BASE,
- 		.irq		= OMAP_GPIO_IRQ(102),
- 		.flags		= UPF_BOOT_AUTOCONF|UPF_IOREMAP|UPF_SHARE_IRQ,
- 		.irqflags	= IRQF_SHARED | IRQF_TRIGGER_RISING,
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 9a26f84..803ef14 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -91,8 +91,8 @@ static void __init omap_zoom2_map_io(void)
- }
- 
- MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
-+	.phys_io	= ZOOM_UART_BASE,
-+	.io_pg_offst	= (ZOOM_UART_VIRT >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_zoom2_map_io,
- 	.init_irq	= omap_zoom2_init_irq,
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index cd3e40c..3314704 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -73,8 +73,8 @@ static void __init omap_zoom_init(void)
- }
- 
- MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
-+	.phys_io	= ZOOM_UART_BASE,
-+	.io_pg_offst	= (ZOOM_UART_VIRT >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_zoom_map_io,
- 	.init_irq	= omap_zoom_init_irq,
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 4976169..35b2440 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -88,10 +88,10 @@ omap_uart_lsr:	.word	0
- 		b	98f
- 44:		mov	\rx, #UART_OFFSET(OMAP4_UART4_BASE)
- 		b	98f
--95:		mov	\rx, #ZOOM_UART_BASE
-+95:		ldr	\rx, =ZOOM_UART_BASE
- 		ldr	\tmp, =omap_uart_phys
- 		str	\rx, [\tmp, #0]
--		mov	\rx, #ZOOM_UART_VIRT
-+		ldr	\rx, =ZOOM_UART_VIRT
- 		ldr	\tmp, =omap_uart_virt
- 		str	\rx, [\tmp, #0]
- 		mov	\rx, #(UART_LSR << ZOOM_PORT_SHIFT)
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 87f676a..3cfb425 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -166,6 +166,15 @@ static struct map_desc omap34xx_io_desc[] __initdata = {
- 		.length		= L4_EMU_34XX_SIZE,
- 		.type		= MT_DEVICE
- 	},
-+#if defined(CONFIG_DEBUG_LL) &&							\
-+	(defined(CONFIG_MACH_OMAP_ZOOM2) || defined(CONFIG_MACH_OMAP_ZOOM3))
-+	{
-+		.virtual	= ZOOM_UART_VIRT,
-+		.pfn		= __phys_to_pfn(ZOOM_UART_BASE),
-+		.length		= SZ_1M,
-+		.type		= MT_DEVICE
-+	},
-+#endif
- };
- #endif
- #ifdef	CONFIG_ARCH_OMAP4
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index 42a6318..19145f5 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -53,7 +53,7 @@
- 
- /* External port on Zoom2/3 */
- #define ZOOM_UART_BASE		0x10000000
--#define ZOOM_UART_VIRT		0xfb000000
-+#define ZOOM_UART_VIRT		0xfa400000
- 
- #define OMAP_PORT_SHIFT		2
- #define OMAP7XX_PORT_SHIFT	0
-
---bpVaumkpfGNUagdU--
