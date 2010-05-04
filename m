@@ -1,49 +1,65 @@
-From: Mike Chan <mike@android.com>
-Subject: [PATCH 2/2] [ARM] omap-pm: resource: Only update resource level if there is a change
-Date: Mon,  3 May 2010 17:34:31 -0700
-Message-ID: <1272933271-12937-2-git-send-email-mike@android.com>
-References: <1272933271-12937-1-git-send-email-mike@android.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
+Date: Mon, 3 May 2010 17:40:01 -0700
+Message-ID: <20100504004001.GB29604@atomide.com>
+References: <87sk6cirt0.fsf@deeprootsystems.com>
+ <20100430210216.GI29604@atomide.com>
+ <87vdb8hc2d.fsf@deeprootsystems.com>
+ <FCCFB4CDC6E5564B9182F639FC3560870304E80F5F@dbde02.ent.ti.com>
+ <87y6g4d2ic.fsf@deeprootsystems.com>
+ <20100430233002.GJ29604@atomide.com>
+ <87sk6c8osn.fsf@deeprootsystems.com>
+ <20100501013751.GL29604@atomide.com>
+ <20100501015050.GM29604@atomide.com>
+ <FCCFB4CDC6E5564B9182F639FC3560870304F5A672@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:40762 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413Ab0EDAeg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 20:34:36 -0400
-In-Reply-To: <1272933271-12937-1-git-send-email-mike@android.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55223 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753458Ab0EDAkG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 May 2010 20:40:06 -0400
+Content-Disposition: inline
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870304F5A672@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Mike Chan <mike@android.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pais, Allen" <allen.pais@ti.com>
 
-Previosuly update_resource_level() would always call the change_level()
-function, even if there was no change necessary.
+* Pandita, Vikram <vikram.pandita@ti.com> [100503 15:06]:
+> 
+> 
+> >-----Original Message-----
+> >From: Tony Lindgren [mailto:tony@atomide.com]
+> >Sent: Friday, April 30, 2010 8:51 PM
+> >To: Kevin Hilman
+> >Cc: Pandita, Vikram; linux-arm-kernel@lists.infradead.org; linux-
+> >omap@vger.kernel.org; Pais, Allen
+> >Subject: Re: [PATCH 02/11] omap2/3: Fix DEBUG_LL for omap zoom2/3
+> >
+> >* Tony Lindgren <tony@atomide.com> [100430 18:33]:
+> >>
+> >> So far only tested on n900, will give it a try also on zoom3 after
+> >> updating the zoom3 related patch.
+> >
+> >And here's the updated zoom debug_ll patch, seems to work.
+> 
+> For testing if I put this printk hack (the good old days patch), 
+> Zoom3 does not boot after applying your patch.
 
-Signed-off-by: Mike Chan <mike@android.com>
----
- arch/arm/plat-omap/resource.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
-index 6d3bba6..ff5a938 100644
---- a/arch/arm/plat-omap/resource.c
-+++ b/arch/arm/plat-omap/resource.c
-@@ -104,7 +104,7 @@ static int update_resource_level(struct shared_resource *resp)
- {
- 	struct users_list *user;
- 	unsigned long target_level;
--	int ret;
-+	int ret = 0;
+You should not need that any longer if you have set
+CONFIG_DEBUG_LL and CONFIG_EARLY_PRINTK and have earlyprintk
+in the kernel cmdline.
  
- 	mutex_lock(&resp->resource_mutex);
- 	/* Regenerate the target_value for the resource */
-@@ -125,6 +125,9 @@ static int update_resource_level(struct shared_resource *resp)
- 	}
- 	mutex_unlock(&resp->resource_mutex);
- 
-+	if (resp->curr_level == target_level)
-+		return ret;
-+
- 	pr_debug("SRF: Changing Level for resource %s to %ld\n",
- 				resp->name, target_level);
- 	ret = resp->ops->change_level(resp, target_level);
--- 
-1.7.0.1
+> So looks like we are still missing something for zoom2/3 to work.
+> Can debug tomorrow.
 
+Hmm works just fine for me. Sounds like you only applied one of
+the two patches needed to make DEBUG_LL work on zoom?
+
+Anyways, I'll repost both patches needed for zoom as a reply to
+this mail.
+
+Regards,
+
+Tony
