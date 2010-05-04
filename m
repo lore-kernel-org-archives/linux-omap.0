@@ -1,85 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 3/3] omap: gpmc-nand: add ability to keep timings
- defined by the bootloader
-Date: Tue, 4 May 2010 14:46:21 -0700
-Message-ID: <20100504214621.GM29604@atomide.com>
-References: <cover.1272530653.git.mike@compulab.co.il>
- <f20c8d0dc1c81a0cc5a334d03c9c7dc73046293d.1272530653.git.mike@compulab.co.il>
- <20100503182426.GX29604@atomide.com>
- <z2mf870da181005031332w8b8fd1d9vc19af82b4b3fccbe@mail.gmail.com>
- <20100503211628.GZ29604@atomide.com>
- <4BE01F92.70302@compulab.co.il>
+Subject: Upcoming merge window and omap NAND patches
+Date: Tue, 4 May 2010 15:08:03 -0700
+Message-ID: <20100504220803.GN29604@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61114 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753520Ab0EDVqZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 17:46:25 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62888 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934232Ab0EDWIO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 18:08:14 -0400
 Content-Disposition: inline
-In-Reply-To: <4BE01F92.70302@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, vimal.newwork@gmail.com, s-ghorai@ti.com
+To: linux-omap@vger.kernel.org
+Cc: linux-mtd@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimal.newwork@gmail.com>, Steve Sakoman <sakoman@gmail.com>, Mike Rapoport <mike@compulab.co.il>, Artem Bityutski <Artem.Bityutskiy@nokia.com>
 
-* Mike Rapoport <mike@compulab.co.il> [100504 06:19]:
-> Tony Lindgren wrote:
-> >* Mike Rapoport <mike.rapoport@gmail.com> [100503 13:28]:
-> 
-> >>So it comes down to what provides better tolerance, the explicit NAND
-> >>timings in nanosecs or (rounded) timings in ticks derived from
-> >>bootloader settings...
-> >
-> >My experience is that you can get the nanosec timings from the device
-> >datasheet(s) and that just should work for any L3 frequency.
-> 
-> And what about boards that can have different NAND flash chips
-> assembled? What datasheet should be used to get the nanosecs? Note,
-> that detecting NAND ID in the bootloader and adjusting timings
-> appropriately is not that big deal, and doing it in the kernel seems
-> to me really impractical.
+Hi all,
 
-Hmm, if there are different variations of the same board, the best way
-is to pass ATAG_REVISION from the bootloader. Then you can set the
-selected NAND platform data based on the revision.
- 
-> >My experience is also that trying to do it the other way around won't work
-> >because of rounding errors. Trying to produce nanosecond values out
-> >of the tick values just is not accurate enough.
-> 
-> I'm still not convinced. Similar approach worked for me with several
-> devices attached to sort of GPMC controllers on different SoC. There
-> always was a way to set timings once in the bootloader and then
-> detect the timings in the kernel and update them during cpu-freq
-> transitions...
+There are several omap NAND patches pending, but some basic things
+should be fixed first.
 
-Not based on my experience with GPMC and L3.. When converting from GPMC
-ticks to nanosecond timings, you're losing accuracy so things won't scale
-the right way if you scale L3 frequency.
+1. The NAND driver needs to stop tinkering with the GPMC registers
 
-> >That's why gpmc-onenand.c and usb-tusb6010.c timings are done the way
-> >they are, and they're known to work at various L3 frequencies.
-> 
-> I'm not really familiar with OneNAND, but looking at gpmc-onenand.c I
-> see hardcoded timings. Moreover, the nanosecs values seem to get
-> adjusted for different L3 frequencies.
+The omap General Purpose Memory Controller (GPMC) registers are omap
+specific, and not driver specific. Tinkering with these registers
+can cause issues with the other devices on the GPMC.
 
-Yeah, you need to look at the L3 frequency to calculate the timings.
+To find out what needs to disappear fomr the NAND driver, just do:
 
-> So, for NAND it would mean that platform would have to supply
-> several timing sets for different L3 freqs?
+$ grep baseaddr drivers/mtd/nand/omap2.c
 
-Not needed if the GPMC tick timings are calculated based on the
-device datasheet nanosecond timings and omap L3 frequency. Then it
-scales for all L3 frequencies.
+Any GPMC register tinkering needs to happen in arch/arm/mach-omap2/gpmc.c.
+If there are not currently GPMC functions to do something in gpmc.c, then
+let's add the necessary support there.
 
-In any case, we still need to also allow using hardcoded bootloader
-timings for people who don't care about the L3 scaling. But there
-are other more serious things badly broken with the whole gpmc-nand
-and drivers/mtd/nand/omap2.c, I'll send another email about that
-shortly.
+2. Passing hardcoded GPMC_CS0_BASE needs to go from the board files
 
-Regards,
+Passing hardcoded GPMC virtual addressess is sure way to mess up
+things. This should all become unnecessary once the NAND drivers
+stops messing with the GPMC registers directly.
+
+So, as a result, I'm not planning on pushing any omap NAND related
+patches until these basic issues are fixed. I'll mark these patches
+as "Changes requested" in patchwork.kernel.org even if these patches
+don't have anything else wrong with them.
+
+Let's fix the basic things for good, and put the other patches on
+hold for a while. Sorry if this causes problems!
+
+Cheers,
 
 Tony
