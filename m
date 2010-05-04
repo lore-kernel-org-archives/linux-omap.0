@@ -1,53 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Upcoming merge window and omap NAND patches
-Date: Tue, 4 May 2010 15:08:03 -0700
-Message-ID: <20100504220803.GN29604@atomide.com>
+Subject: [APPLIED] [PATCH v2 2/2] can:ti_hecc: Enable CAN support on AM3517.
+Date: Tue, 4 May 2010 18:26:12 -0400
+Message-ID: <notify-1273011967@atomide.com>
+References: <1267186035-8146-3-git-send-email-srk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62888 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50396 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934232Ab0EDWIO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 18:08:14 -0400
+	with ESMTP id S1757465Ab0EDW0M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 18:26:12 -0400
+Received: from c-69-181-193-102.hsd1.ca.comcast.net ([69.181.193.102] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1O9QZ9-000J9n-HQ
+	for linux-omap@vger.kernel.org; Tue, 04 May 2010 22:26:11 +0000
+In-Reply-To: <1267186035-8146-3-git-send-email-srk@ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimal.newwork@gmail.com>, Steve Sakoman <sakoman@gmail.com>, Mike Rapoport <mike@compulab.co.il>, Artem Bityutski <Artem.Bityutskiy@nokia.com>
 
-Hi all,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-There are several omap NAND patches pending, but some basic things
-should be fixed first.
+Branch in linux-omap: for-next
 
-1. The NAND driver needs to stop tinkering with the GPMC registers
+Initial commit ID (Likely to change): 7241145120e803b600fc5aa1ef911c80ab68d1d5
 
-The omap General Purpose Memory Controller (GPMC) registers are omap
-specific, and not driver specific. Tinkering with these registers
-can cause issues with the other devices on the GPMC.
+PatchWorks
+http://patchwork.kernel.org/patch/82312/
 
-To find out what needs to disappear fomr the NAND driver, just do:
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=7241145120e803b600fc5aa1ef911c80ab68d1d5
 
-$ grep baseaddr drivers/mtd/nand/omap2.c
 
-Any GPMC register tinkering needs to happen in arch/arm/mach-omap2/gpmc.c.
-If there are not currently GPMC functions to do something in gpmc.c, then
-let's add the necessary support there.
-
-2. Passing hardcoded GPMC_CS0_BASE needs to go from the board files
-
-Passing hardcoded GPMC virtual addressess is sure way to mess up
-things. This should all become unnecessary once the NAND drivers
-stops messing with the GPMC registers directly.
-
-So, as a result, I'm not planning on pushing any omap NAND related
-patches until these basic issues are fixed. I'll mark these patches
-as "Changes requested" in patchwork.kernel.org even if these patches
-don't have anything else wrong with them.
-
-Let's fix the basic things for good, and put the other patches on
-hold for a while. Sorry if this causes problems!
-
-Cheers,
-
-Tony
