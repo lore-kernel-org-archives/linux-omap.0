@@ -1,43 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 4/5(7)] input: serio: add support for Amstrad Delta
- serial keyboard port
-Date: Tue, 4 May 2010 13:40:41 -0700
-Message-ID: <20100504204041.GL29604@atomide.com>
-References: <201004280252.58420.jkrzyszt@tis.icnet.pl>
- <201004280310.52678.jkrzyszt@tis.icnet.pl>
+Subject: [APPLIED] [PATCH 8/9] OMAP: Devkit8000: Add mux initialization
+Date: Tue, 4 May 2010 16:47:36 -0400
+Message-ID: <notify-1273006052@atomide.com>
+References: <1269435138-27192-9-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50550 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61979 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760169Ab0EDUks (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 16:40:48 -0400
+	with ESMTP id S933657Ab0EDUrg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 16:47:36 -0400
+Received: from c-69-181-193-102.hsd1.ca.comcast.net ([69.181.193.102] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1O9P1j-0001FV-4E
+	for linux-omap@vger.kernel.org; Tue, 04 May 2010 20:47:35 +0000
+In-Reply-To: <1269435138-27192-9-git-send-email-weber@corscience.de>
 Content-Disposition: inline
-In-Reply-To: <201004280310.52678.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-omap@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-arm-kernel@lists.infradead.org, e3-hacking@earth.li
+To: linux-omap@vger.kernel.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100427 18:09]:
-> The patch introduces a serio driver that supports a keyboard serial port found
-> on the Amstrad Delta videophone board.
-> 
-> After initializing the hardware, the driver reads its input data from a buffer
-> filled in by the board FIQ (Fast Interrupt Request) handler.
-> 
-> Standard AT keyboard driver (atkbd) will be used on top of the serio layer for 
-> handling the E3 keyboard (called mailboard) connected to the port. Since the 
-> device generated scancodes differ from what the atkbd expects, a custom key 
-> code to scan code table must be loaded from userspace for the keyboard to be 
-> useable.
-> 
-> Compiles and works on top of PATCH v4 3/5(7), "OMAP1: Amstrad Delta: use FIQ 
-> for processing GPIO interrupts".
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-I'll add this series into omap for-next. Will also add Dmitry's ack
-from the earlier series to this patch.
+Branch in linux-omap: for-next
 
-Regards,
+Initial commit ID (Likely to change): 4725af90aa4076cdaed975a5a13b4fc512635265
 
-Tony
+PatchWorks
+http://patchwork.kernel.org/patch/87902/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=4725af90aa4076cdaed975a5a13b4fc512635265
+
+
