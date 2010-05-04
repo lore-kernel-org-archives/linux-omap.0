@@ -1,52 +1,142 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 6/8] omap: mailbox: more more stuff to omap2_mbox_init
-Date: Tue, 4 May 2010 11:42:15 +0300
-Message-ID: <x2w94a0d4531005040142y719ceae9i362341a638ebc976@mail.gmail.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E4B79179A@dlee03.ent.ti.com>
-	 <r2n94a0d4531005030808sc1f2a0a0q6a97f8a7ed2b8e7f@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E4B791DED@dlee03.ent.ti.com>
-	 <20100504.090417.242149613.Hiroshi.DOYU@nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH v5 1/5] omap3: pm: fix for twl4030 script load
+Date: Tue, 4 May 2010 11:47:47 +0300
+Message-ID: <20100504084747.GB24434@besouro.research.nokia.com>
+References: <1271677380-2095-1-git-send-email-leslyam@ti.com>
+ <20100504062701.GA8686@besouro.research.nokia.com>
+ <007201caeb5c$9ca7ed50$518918ac@apr.dhcp.ti.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f217.google.com ([209.85.218.217]:40340 "EHLO
-	mail-bw0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755801Ab0EDImR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 04:42:17 -0400
-Received: by bwz9 with SMTP id 9so1955112bwz.29
-        for <linux-omap@vger.kernel.org>; Tue, 04 May 2010 01:42:16 -0700 (PDT)
-In-Reply-To: <20100504.090417.242149613.Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:26096 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756925Ab0EDIp6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 04:45:58 -0400
+Content-Disposition: inline
+In-Reply-To: <007201caeb5c$9ca7ed50$518918ac@apr.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: h-kanigeri2@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, ohad@wizery.com
+To: ext Lesly Arackal Manuel <leslyam@ti.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>, Amit Kucheria <amit.kucheria@verdurent.com>
 
-On Tue, May 4, 2010 at 9:04 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> w=
-rote:
-> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> Subject: RE: [RFC/PATCH 6/8] omap: mailbox: more more stuff to omap2_=
-mbox_init
-> Date: Mon, 3 May 2010 20:50:39 +0200
->> =C2=A0 =C2=A0 =C2=A0 2. Compare iommu_get with mailbox_get. iommu_ge=
-t uses
->> driver_find_device to get the iommu structure. I guess we can apply
->> the same logic to get mailbox structure. This way we can get rid of
->> omap_mbox_register, omap_mbox_unregister, and find_mboxes functions.
->
-> Right. The same logic could be applied.
+Hello Lesly,
 
-How? In omap2 there are two mailboxes, but the memory is the same. In
-omap4 there are two mailboxes, but the memory region _and_ irqs are
-the same.
+On Tue, May 04, 2010 at 09:37:10AM +0200, ext Lesly Arackal Manuel wrote:
+> > -----Original Message-----
+> > From: Eduardo Valentin [mailto:eduardo.valentin@nokia.com]
+> > Sent: Tuesday, May 04, 2010 11:57 AM
+> > To: ext Lesly A M
+> > Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
+> > Samuel Ortiz
+> > Subject: Re: [PATCH v5 1/5] omap3: pm: fix for twl4030 script load
+> > 
+> > Hello Lesly,
+> > 
+> > On Mon, Apr 19, 2010 at 01:43:00PM +0200, ext Lesly A M wrote:
+> > > This patch will fix the TRITON sleep/wakeup sequence.
+> > 
+> > OK.
+> > 
+> > >
+> > > Since the function to populate the sleep script is getting called always
+> > > irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
+> > > is getting over written by the sleep script.
+> > 
+> > Yes, and that is because of missing curls {}.
+> > 
+> > >
+> > > Also removing the order checking while loading the scripts,
+> > > since the order doesn't matter. Only the values configured
+> > > in the register, which is pointing to the starting address
+> > > of each sequence should be correct.
+> > 
+> > Are sure about that. Please check commig
+> > 75a7456539224c5c5c254130afdb18bd7eb2286f
+> > At least from that description, Amit was very convincing that loading
+> > order matters.
+> > 
+> > Author: Amit Kucheria <amit.kucheria@verdurent.com>
+> > Date:   Mon Aug 17 17:01:56 2009 +0300
+> > 
+> >     mfd: Print warning for twl4030 out-of-order script loading
+> > 
+> >     When the sleep script is loaded before the wakeup script, there is a
+> >     chance that the system might go to sleep before the wakeup script
+> >     loading is completed. This will lead to a system that does not wakeup
+> >     and has been observed to cause non-booting boards.
+> >
+> > >
+> > > Signed-off-by: Lesly A M <x0080970@ti.com>
+> > > Cc: Nishanth Menon <nm@ti.com>
+> > > Cc: David Derrick <dderrick@ti.com>
+> > > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > > ---
+> > >  drivers/mfd/twl4030-power.c |    6 ------
+> > >  1 files changed, 0 insertions(+), 6 deletions(-)
+> > >
+> > > diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> > > index 7efa878..bd98733 100644
+> > > --- a/drivers/mfd/twl4030-power.c
+> > > +++ b/drivers/mfd/twl4030-power.c
+> > > @@ -423,7 +423,6 @@ static int __init load_twl4030_script(struct
+> > twl4030_script *tscript,
+> > >  	       u8 address)
+> > >  {
+> > >  	int err;
+> > > -	static int order;
+> > >
+> > >  	/* Make sure the script isn't going beyond last valid address (0x3f)
+> > */
+> > >  	if ((address + tscript->size) > END_OF_SCRIPT) {
+> > > @@ -444,7 +443,6 @@ static int __init load_twl4030_script(struct
+> > twl4030_script *tscript,
+> > >  		err = twl4030_config_wakeup12_sequence(address);
+> > >  		if (err)
+> > >  			goto out;
+> > > -		order = 1;
+> > >  	}
+> > >  	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
+> > >  		err = twl4030_config_wakeup3_sequence(address);
+> > > @@ -452,10 +450,6 @@ static int __init load_twl4030_script(struct
+> > twl4030_script *tscript,
+> > >  			goto out;
+> > >  	}
+> > >  	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+> > > -		if (order)
+> > > -			pr_warning("TWL4030: Bad order of scripts (sleep "\
+> > > -					"script before wakeup) Leads to
+> boot"\
+> > > -					"failure on some boards\n");
+> > >  		err = twl4030_config_sleep_sequence(address);
+> > 
+> > 
+> > If the problem you are trying to address is the fact that everything goes
+> > to
+> > sleep address, then just embrace the conditional into brackets.
+> > 
+> 
+> 
+> Hi Eduardo,
+> 
+> The load_twl4030_script() is called from twl4030_power_init() which is again
+> called from twl_probe(), and this is getting called before
+> omap3_idle_init().
+> 
+> So the scripts are loaded before the cpuidle is initialized.
+> Then I don't think the system will hit sys_off before loading the scripts.
 
-Platform devices cannot share resources... so all the mailboxes are
-part of a single platform device.
+Yes indeed. At first glance I would expect same thing. But there must be a reason
+for that patch :-). Maybe Amit can comment better on the problem he was addressing.
+I'm ccing him.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> 
+> Regards,
+> Lesly
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
