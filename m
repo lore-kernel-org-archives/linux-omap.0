@@ -1,80 +1,124 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH v2 3/3] omap: gpmc-nand: add ability to keep timings defined
- by the bootloader
-Date: Tue, 04 May 2010 16:22:26 +0300
-Message-ID: <4BE01F92.70302@compulab.co.il>
-References: <cover.1272530653.git.mike@compulab.co.il> <f20c8d0dc1c81a0cc5a334d03c9c7dc73046293d.1272530653.git.mike@compulab.co.il> <20100503182426.GX29604@atomide.com> <z2mf870da181005031332w8b8fd1d9vc19af82b4b3fccbe@mail.gmail.com> <20100503211628.GZ29604@atomide.com>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@nokia.com>
+Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
+Date: Tue, 4 May 2010 16:45:07 +0300
+Message-ID: <20100504134507.GJ8310@nokia.com>
+References: <hvaibhav@ti.com>
+ <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
+ <1271410679.2690.290.camel@tubuntu.research.nokia.com>
+ <19F8576C6E063C45BE387C64729E7394044E1371C6@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E7394044E1EB360@dbde02.ent.ti.com>
+ <1271848174.2433.49.camel@tubuntu.research.nokia.com>
+ <19F8576C6E063C45BE387C64729E7394044E3516FE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:36974 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751432Ab0EDNXw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 May 2010 09:23:52 -0400
-In-Reply-To: <20100503211628.GZ29604@atomide.com>
+Received: from smtp.nokia.com ([192.100.105.134]:21557 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754191Ab0EDNqX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 09:46:23 -0400
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E3516FE@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, vimal.newwork@gmail.com, s-ghorai@ti.com, Mike Rapoport <mike@compulab.co.il>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony Lindgren wrote:
-> * Mike Rapoport <mike.rapoport@gmail.com> [100503 13:28]:
+On Tue, May 04, 2010 at 03:23:10PM +0200, ext Hiremath, Vaibhav wrote:
+>=20
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > Sent: Wednesday, April 21, 2010 4:40 PM
+> > To: Hiremath, Vaibhav
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: RE: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
+> >=20
+> > On Wed, 2010-04-21 at 12:45 +0200, ext Hiremath, Vaibhav wrote:
+> > > > -----Original Message-----
+> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > > owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
+> > > > Sent: Friday, April 16, 2010 4:28 PM
+> > > > To: Tomi Valkeinen
+> > > > Cc: linux-omap@vger.kernel.org
+> > > > Subject: RE: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
+> > > >
+> > > >
+> > > > > -----Original Message-----
+> > > > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > > > > Sent: Friday, April 16, 2010 3:08 PM
+> > > > > To: Hiremath, Vaibhav
+> > > > > Cc: linux-omap@vger.kernel.org
+> > > > > Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fix=
+ed
+> > > > >
+> > > > > On Mon, 2010-03-22 at 14:09 +0100, ext hvaibhav@ti.com wrote:
+> > > > > > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > > >
+> > > > > > In case of 720P with 90/270 degree rotation, the system rep=
+orts
+> > > > > > GFX_FIFO_UNDERFLOW error which usually happens if DSS DMA i=
+s not
+> > able to
+> > > > > fill
+> > > > > > the FIFO as per requirement.
+> > > > > >
+> > > > > > In TRM (section 11.2.6.1.3), where is has been clearly ment=
+ioned
+> > that,
+> > > > > >
+> > > > > > "To improve the performance on 90 degree rotation, split th=
+e data
+> > access
+> > > > > on
+> > > > > > write side and not read side."
+> > > > > >
+> > > > > > That means, read should always happen on 0 degree and write=
+ should
+> > go to
+> > > > > > respective rotation view.
+> > > > > >
+> > > > >
+> > > > > With this patch my db test app (from
+> > > > > git://gitorious.org/linux-omap-dss2/omapfb-tests.git) shows a=
+ lot of
+> > > > > tearing when rotation !=3D 0. I tested this on 3430SDP using =
+the LCD.
+> > > [Hiremath, Vaibhav] Tomi,
+> > >
+> > > Yes, just now I tried your db application and I am also seeing te=
+aring
+> > effect. All other apps (including the one which I used for testing)=
+ works
+> > fine for other rotation angles.
+> > >
+> > > Let me debug further before commenting anything on this, I just t=
+hought of
+> > updating you on this.
+> >=20
+> > "db" app uses double buffering for updating the display, with maxim=
+um
+> > update rate. There's also "pan" app, that does a bit similar thing =
+using
+> > fb offsets.
+> [Hiremath, Vaibhav] Tomi,
+>=20
+> I found the bug which is causing tearing effect, I tested it here wit=
+h both, mine and your applications and for me it is working fine.
+>=20
+> Can you please check at your end?
+> (Sorry for the attachment)
 
->> So it comes down to what provides better tolerance, the explicit NAND
->> timings in nanosecs or (rounded) timings in ticks derived from
->> bootloader settings...
-> 
-> My experience is that you can get the nanosec timings from the device
-> datasheet(s) and that just should work for any L3 frequency.
+You should really avoid that. I can't quote the patch.
 
-And what about boards that can have different NAND flash chips 
-assembled? What datasheet should be used to get the nanosecs? Note, that 
-detecting NAND ID in the bootloader and adjusting timings appropriately 
-is not that big deal, and doing it in the kernel seems to me really 
-impractical.
+What are those CW<->CCW swaps that you do in the patch?
 
-> My experience is also that trying to do it the other way around won't work
-> because of rounding errors. Trying to produce nanosecond values out
-> of the tick values just is not accurate enough.
+Also I think the ioremap stuff is a bit broken since AFAICS it will
+leave the old angle still mapped when you rotate to another angle.
 
-I'm still not convinced. Similar approach worked for me with several 
-devices attached to sort of GPMC controllers on different SoC. There 
-always was a way to set timings once in the bootloader and then detect 
-the timings in the kernel and update them during cpu-freq transitions...
-
-> That's why gpmc-onenand.c and usb-tusb6010.c timings are done the way
-> they are, and they're known to work at various L3 frequencies.
-
-I'm not really familiar with OneNAND, but looking at gpmc-onenand.c I
-see hardcoded timings. Moreover, the nanosecs values seem to get 
-adjusted for different L3 frequencies.
-So, for NAND it would mean that platform would have to supply several 
-timing sets for different L3 freqs?
-
->>> So maybe just not do anything, and print a warning on gpmc L3 changes
->>> if the timings are not set?
->> I don't quite understand where exactly this warning should go. I
->> haven't found any treatment of L3 frequency changes in gpmc related
->> code neither in linux-omap nor in linux-omap-pm...
-> 
-> Ah, right. There's currently nothing doing that.. That would have to
-> be done based on cpufreq notifiers (or clock notifiers). But we don't
-> have any of that at least in the mainline yet. Hmm I don't even think
-> we currently scale the L3 for cpufreq.. Right now the best way to test
-> would be by booting at different L3 frequencies.
-> 
-> Anyways, my point is that setting gpmc_default_timings based on the
-> bootloader after doing the gpmc_cs_get_timings is most likely unsafe
-> for other L3 frequencies.
-> 
-> Regards,
-> 
-> Tony
-
-
--- 
-Sincerely yours,
-Mike.
-
-
+--=20
+Ville Syrj=E4l=E4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
