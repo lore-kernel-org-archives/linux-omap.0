@@ -1,50 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Resubmit: PATCH-V2] AM3517: Add VPFE Capture driver support
-Date: Tue, 4 May 2010 16:18:10 -0700
-Message-ID: <20100504231810.GS29604@atomide.com>
-References: <hvaibhav@ti.com>
- <1268991469-2747-1-git-send-email-hvaibhav@ti.com>
+Subject: [APPLIED] [PATCH 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
+Date: Tue, 4 May 2010 19:21:13 -0400
+Message-ID: <notify-1273015269@atomide.com>
+References: <1270115880-21404-3-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62568 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754433Ab0EDXVN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 19:21:13 -0400
+Received: from c-69-181-193-102.hsd1.ca.comcast.net ([69.181.193.102] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1O9RQO-000Biw-Cg
+	for linux-omap@vger.kernel.org; Tue, 04 May 2010 23:21:12 +0000
+In-Reply-To: <1270115880-21404-3-git-send-email-hvaibhav@ti.com>
 Content-Disposition: inline
-In-Reply-To: <1268991469-2747-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* hvaibhav@ti.com <hvaibhav@ti.com> [100319 02:34]:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> AM3517 and DM644x uses same CCDC IP, so reusing the driver
-> for AM3517.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/mach-omap2/board-am3517evm.c |  160 +++++++++++++++++++++++++++++++++
->  1 files changed, 160 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-> index f04311f..d2d2ced 100644
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@ -30,11 +30,164 @@
-> 
->  #include <plat/board.h>
->  #include <plat/common.h>
-> +#include <plat/control.h>
->  #include <plat/usb.h>
->  #include <plat/display.h>
-> 
-> +#include <media/tvp514x.h>
-> +#include <media/ti-media/vpfe_capture.h>
-> +
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-At least the mainline kernel does not seem to have media/ti-media/,
-so I'm not taking this.
+Branch in linux-omap: for-next
 
-Looks like it should be safe to merge via linux-media from omap
-point of view.
+Initial commit ID (Likely to change): df8a77d5a4b80dbcbd5c401875e7427e0bb37450
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+PatchWorks
+http://patchwork.kernel.org/patch/90106/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=df8a77d5a4b80dbcbd5c401875e7427e0bb37450
+
+
