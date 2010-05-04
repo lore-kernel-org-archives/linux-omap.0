@@ -1,124 +1,143 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@nokia.com>
-Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-Date: Tue, 4 May 2010 16:45:07 +0300
-Message-ID: <20100504134507.GJ8310@nokia.com>
-References: <hvaibhav@ti.com>
- <1269263380-12995-1-git-send-email-hvaibhav@ti.com>
- <1271410679.2690.290.camel@tubuntu.research.nokia.com>
- <19F8576C6E063C45BE387C64729E7394044E1371C6@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E7394044E1EB360@dbde02.ent.ti.com>
- <1271848174.2433.49.camel@tubuntu.research.nokia.com>
- <19F8576C6E063C45BE387C64729E7394044E3516FE@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:21557 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754191Ab0EDNqX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 09:46:23 -0400
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E3516FE@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [RESEND PATCH v4 2/2] omap: rx-51: enable tsc2005
+Date: Tue,  4 May 2010 17:15:51 +0300
+Message-ID: <1272982551-16439-2-git-send-email-aaro.koskinen@nokia.com>
+References: <1272982551-16439-1-git-send-email-aaro.koskinen@nokia.com>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1272982551-16439-1-git-send-email-aaro.koskinen@nokia.com>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, dmitry.torokhov@gmail.com
+Cc: aaro.koskinen@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, May 04, 2010 at 03:23:10PM +0200, ext Hiremath, Vaibhav wrote:
->=20
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Wednesday, April 21, 2010 4:40 PM
-> > To: Hiremath, Vaibhav
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: RE: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-> >=20
-> > On Wed, 2010-04-21 at 12:45 +0200, ext Hiremath, Vaibhav wrote:
-> > > > -----Original Message-----
-> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > > owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
-> > > > Sent: Friday, April 16, 2010 4:28 PM
-> > > > To: Tomi Valkeinen
-> > > > Cc: linux-omap@vger.kernel.org
-> > > > Subject: RE: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fixed
-> > > >
-> > > >
-> > > > > -----Original Message-----
-> > > > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > > > > Sent: Friday, April 16, 2010 3:08 PM
-> > > > > To: Hiremath, Vaibhav
-> > > > > Cc: linux-omap@vger.kernel.org
-> > > > > Subject: Re: [PATCH] OMAP: DSS2: GFX FIFO UNDERFLOW issue fix=
-ed
-> > > > >
-> > > > > On Mon, 2010-03-22 at 14:09 +0100, ext hvaibhav@ti.com wrote:
-> > > > > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > > > >
-> > > > > > In case of 720P with 90/270 degree rotation, the system rep=
-orts
-> > > > > > GFX_FIFO_UNDERFLOW error which usually happens if DSS DMA i=
-s not
-> > able to
-> > > > > fill
-> > > > > > the FIFO as per requirement.
-> > > > > >
-> > > > > > In TRM (section 11.2.6.1.3), where is has been clearly ment=
-ioned
-> > that,
-> > > > > >
-> > > > > > "To improve the performance on 90 degree rotation, split th=
-e data
-> > access
-> > > > > on
-> > > > > > write side and not read side."
-> > > > > >
-> > > > > > That means, read should always happen on 0 degree and write=
- should
-> > go to
-> > > > > > respective rotation view.
-> > > > > >
-> > > > >
-> > > > > With this patch my db test app (from
-> > > > > git://gitorious.org/linux-omap-dss2/omapfb-tests.git) shows a=
- lot of
-> > > > > tearing when rotation !=3D 0. I tested this on 3430SDP using =
-the LCD.
-> > > [Hiremath, Vaibhav] Tomi,
-> > >
-> > > Yes, just now I tried your db application and I am also seeing te=
-aring
-> > effect. All other apps (including the one which I used for testing)=
- works
-> > fine for other rotation angles.
-> > >
-> > > Let me debug further before commenting anything on this, I just t=
-hought of
-> > updating you on this.
-> >=20
-> > "db" app uses double buffering for updating the display, with maxim=
-um
-> > update rate. There's also "pan" app, that does a bit similar thing =
-using
-> > fb offsets.
-> [Hiremath, Vaibhav] Tomi,
->=20
-> I found the bug which is causing tearing effect, I tested it here wit=
-h both, mine and your applications and for me it is working fine.
->=20
-> Can you please check at your end?
-> (Sorry for the attachment)
+Enable TSC2005 touchscreen driver on the RX-51 board.
 
-You should really avoid that. I can't quote the patch.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/configs/rx51_defconfig              |    1 +
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   57 ++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+), 0 deletions(-)
 
-What are those CW<->CCW swaps that you do in the patch?
+diff --git a/arch/arm/configs/rx51_defconfig b/arch/arm/configs/rx51_defconfig
+index 45135ff..2ebfdb9 100644
+--- a/arch/arm/configs/rx51_defconfig
++++ b/arch/arm/configs/rx51_defconfig
+@@ -804,6 +804,7 @@ CONFIG_INPUT_TOUCHSCREEN=y
+ # CONFIG_TOUCHSCREEN_TOUCHWIN is not set
+ # CONFIG_TOUCHSCREEN_USB_COMPOSITE is not set
+ # CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
++CONFIG_TOUCHSCREEN_TSC2005=m
+ # CONFIG_TOUCHSCREEN_TSC2007 is not set
+ CONFIG_INPUT_MISC=y
+ # CONFIG_INPUT_ATI_REMOTE is not set
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 4377a4c..0fafac4 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -14,6 +14,7 @@
+ #include <linux/input.h>
+ #include <linux/input/matrix_keypad.h>
+ #include <linux/spi/spi.h>
++#include <linux/spi/tsc2005.h>
+ #include <linux/spi/wl12xx.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c/twl.h>
+@@ -42,18 +43,28 @@
+ #define RX51_WL1251_POWER_GPIO		87
+ #define RX51_WL1251_IRQ_GPIO		42
+ 
++#define RX51_TSC2005_RESET_GPIO		104
++#define RX51_TSC2005_IRQ_GPIO		100
++
+ /* list all spi devices here */
+ enum {
+ 	RX51_SPI_WL1251,
++	RX51_SPI_TSC2005,
+ };
+ 
+ static struct wl12xx_platform_data wl1251_pdata;
++static struct tsc2005_platform_data tsc2005_pdata;
+ 
+ static struct omap2_mcspi_device_config wl1251_mcspi_config = {
+ 	.turbo_mode	= 0,
+ 	.single_channel	= 1,
+ };
+ 
++static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
++	.turbo_mode     = 0,
++	.single_channel = 1,
++};
++
+ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 	[RX51_SPI_WL1251] = {
+ 		.modalias		= "wl1251",
+@@ -64,6 +75,15 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 		.controller_data	= &wl1251_mcspi_config,
+ 		.platform_data		= &wl1251_pdata,
+ 	},
++	[RX51_SPI_TSC2005] = {
++		.modalias		= "tsc2005",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.irq			= OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),
++		.max_speed_hz		= 6000000,
++		.controller_data	= &tsc2005_mcspi_config,
++		.platform_data		= &tsc2005_pdata,
++	},
+ };
+ 
+ #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
+@@ -703,6 +723,42 @@ static inline void board_onenand_init(void)
+ 
+ #endif
+ 
++static struct tsc2005_platform_data tsc2005_pdata = {
++	.ts_pressure_max   = 2048,
++	.ts_pressure_fudge = 2,
++	.ts_x_max	   = 4096,
++	.ts_x_fudge	   = 4,
++	.ts_y_max	   = 4096,
++	.ts_y_fudge	   = 7,
++	.ts_x_plate_ohm	   = 280,
++	.esd_timeout_ms	   = 8000,
++};
++
++static void rx51_tsc2005_set_reset(bool enable)
++{
++	gpio_set_value(RX51_TSC2005_RESET_GPIO, enable);
++}
++
++static void __init rx51_init_tsc2005(void)
++{
++	int r;
++
++	r = gpio_request(RX51_TSC2005_IRQ_GPIO, "tsc2005 IRQ");
++	if (r >= 0)
++		gpio_direction_input(RX51_TSC2005_IRQ_GPIO);
++	else
++		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 IRQ");
++
++	r = gpio_request(RX51_TSC2005_RESET_GPIO, "tsc2005 reset");
++	if (r >= 0) {
++		gpio_direction_output(RX51_TSC2005_RESET_GPIO, 1);
++		tsc2005_pdata.set_reset = rx51_tsc2005_set_reset;
++	} else {
++		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 reset");
++		tsc2005_pdata.esd_timeout_ms = 0;
++	}
++}
++
+ #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
+ 
+ static struct omap_smc91x_platform_data board_smc91x_data = {
+@@ -787,6 +843,7 @@ void __init rx51_peripherals_init(void)
+ 	board_smc91x_init();
+ 	rx51_add_gpio_keys();
+ 	rx51_init_wl1251();
++	rx51_init_tsc2005();
+ 	spi_register_board_info(rx51_peripherals_spi_board_info,
+ 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+ 	omap2_hsmmc_init(mmc);
+-- 
+1.6.3.3
 
-Also I think the ioremap stuff is a bit broken since AFAICS it will
-leave the old angle still mapped when you rotate to another angle.
-
---=20
-Ville Syrj=E4l=E4
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
