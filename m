@@ -1,115 +1,34 @@
 From: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Subject: [PATCH 1/2] ARM: McBSP: Fix request for irq in OMAP4
-Date: Tue,  4 May 2010 18:37:49 -0500
-Message-ID: <1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
-References: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
+Subject: [PATCH 0/0] McBSP changes for OMAP4 platform
+Date: Tue,  4 May 2010 18:37:48 -0500
+Message-ID: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57138 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34152 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753156Ab0EDXsf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754438Ab0EDXsf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 4 May 2010 19:48:35 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o44NmYSB006728
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o44NmX3w028481
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:35 -0500
-In-Reply-To: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
+	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:33 -0500
+Received: from emcc1.sasken-mty.naucm.ext.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id o44NmWVY012267
+	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:32 -0500 (CDT)
+Received: from localhost.localdomain (x0107209-ubuntu.sasken-mty.naucm.ext.ti.com [10.87.231.217])
+	by emcc1.sasken-mty.naucm.ext.ti.com (8.13.8+Sun/8.13.8) with ESMTP id o44NmVd9018566
+	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:31 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
 
-In OMAP4, there is only one irq line for TX and RX paths. Use
-the correct irq line to avoid errors at runtime.
+The following patches enable McBSP driver to be used along with the
+audio driver in SDP4430 and other OMAP4 based boards.
 
-Also, request irq line only once (instead of requesting for TX
-and RX).
+Jorge Eduardo Candelaria (2):
+      ARM: McBSP: Fix request for irq in OMAP4
+      ARM: OMAP4: Add support for omap4 in McBSP driver
 
-Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
----
  arch/arm/mach-omap2/mcbsp.c |   12 ++++--------
- arch/arm/plat-omap/mcbsp.c  |   20 ++++++++++++--------
- 2 files changed, 16 insertions(+), 16 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 2f3cad6..6b550ec 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -187,32 +187,28 @@ static struct omap_mcbsp_platform_data omap44xx_mcbsp_pdata[] = {
- 		.phys_base      = OMAP44XX_MCBSP1_BASE,
- 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP1_RX,
- 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP1_TX,
--		.rx_irq         = INT_24XX_MCBSP1_IRQ_RX,
--		.tx_irq         = INT_24XX_MCBSP1_IRQ_TX,
-+		.tx_irq         = INT_44XX_MCBSP1_IRQ,
- 		.ops            = &omap2_mcbsp_ops,
- 	},
- 	{
- 		.phys_base      = OMAP44XX_MCBSP2_BASE,
- 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP2_RX,
- 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP2_TX,
--		.rx_irq         = INT_24XX_MCBSP2_IRQ_RX,
--		.tx_irq         = INT_24XX_MCBSP2_IRQ_TX,
-+		.tx_irq         = INT_44XX_MCBSP2_IRQ,
- 		.ops            = &omap2_mcbsp_ops,
- 	},
- 	{
- 		.phys_base      = OMAP44XX_MCBSP3_BASE,
- 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP3_RX,
- 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP3_TX,
--		.rx_irq         = INT_24XX_MCBSP3_IRQ_RX,
--		.tx_irq         = INT_24XX_MCBSP3_IRQ_TX,
-+		.tx_irq         = INT_44XX_MCBSP3_IRQ,
- 		.ops            = &omap2_mcbsp_ops,
- 	},
- 	{
- 		.phys_base      = OMAP44XX_MCBSP4_BASE,
- 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP4_RX,
- 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP4_TX,
--		.rx_irq         = INT_24XX_MCBSP4_IRQ_RX,
--		.tx_irq         = INT_24XX_MCBSP4_IRQ_TX,
-+		.tx_irq         = INT_44XX_MCBSP4_IRQ,
- 		.ops            = &omap2_mcbsp_ops,
- 	},
- };
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index e1d0440..6e9660d 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -724,14 +724,17 @@ int omap_mcbsp_request(unsigned int id)
- 			goto err_clk_disable;
- 		}
- 
--		init_completion(&mcbsp->rx_irq_completion);
--		err = request_irq(mcbsp->rx_irq, omap_mcbsp_rx_irq_handler,
-+		if (!cpu_is_omap44xx) {
-+			init_completion(&mcbsp->rx_irq_completion);
-+			err = request_irq(mcbsp->rx_irq,
-+					omap_mcbsp_rx_irq_handler,
- 					0, "McBSP", (void *)mcbsp);
--		if (err != 0) {
--			dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
--					"for McBSP%d\n", mcbsp->rx_irq,
--					mcbsp->id);
--			goto err_free_irq;
-+			if (err != 0) {
-+				dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
-+						"for McBSP%d\n", mcbsp->rx_irq,
-+						mcbsp->id);
-+				goto err_free_irq;
-+			}
- 		}
- 	}
- 
-@@ -781,7 +784,8 @@ void omap_mcbsp_free(unsigned int id)
- 
- 	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
- 		/* Free IRQs */
--		free_irq(mcbsp->rx_irq, (void *)mcbsp);
-+		if (!cpu_is_omap44xx())
-+			free_irq(mcbsp->rx_irq, (void *)mcbsp);
- 		free_irq(mcbsp->tx_irq, (void *)mcbsp);
- 	}
- 
--- 
-1.6.3.3
+ arch/arm/plat-omap/mcbsp.c  |   34 +++++++++++++++++++---------------
+ 2 files changed, 23 insertions(+), 23 deletions(-)
 
