@@ -1,66 +1,77 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [Query][omap iommu] Consulting iommu if a physical region is
- "mappable" before actually mapping it
-Date: Tue, 04 May 2010 08:58:33 +0300 (EEST)
-Message-ID: <20100504.085833.15255924.Hiroshi.DOYU@nokia.com>
-References: <A24693684029E5489D1D202277BE8944550BB017@dlee02.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4B791E48@dlee03.ent.ti.com>
-	<A24693684029E5489D1D202277BE8944551B92F7@dlee02.ent.ti.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH] nand support on omap3 boards
+Date: Tue, 4 May 2010 11:30:33 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030D758366@dbde02.ent.ti.com>
+References: <Sukumar Ghorai <s-ghorai@ti.com>
+ <1271180246-31779-1-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:31185 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845Ab0EDF6n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 01:58:43 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE8944551B92F7@dlee02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:37882 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752624Ab0EDGAj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 02:00:39 -0400
+In-Reply-To: <1271180246-31779-1-git-send-email-s-ghorai@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: saaguirre@ti.com
-Cc: h-kanigeri2@ti.com, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: "ext Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [Query][omap iommu] Consulting iommu if a physical region is "mappable" before actually mapping it
-Date: Mon, 3 May 2010 21:23:46 +0200
+Tony,
+Would you please check if there are no further comments and could you pull them in?
 
-> 
-> 
->> -----Original Message-----
->> From: Kanigeri, Hari
->> Sent: Monday, May 03, 2010 2:09 PM
->> To: Aguirre, Sergio; Hiroshi DOYU
->> Cc: linux-omap@vger.kernel.org
->> Subject: RE: [Query][omap iommu] Consulting iommu if a physical region is
->> "mappable" before actually mapping it
->> 
->> Sergio,
->> 
->> >
->> > Can the iommu driver be "consulted" if a certain area (contiguous or
->> not)
->> > can be mapped or not, before even trying to do it?
->> >
->> 
->> -- As long as there are physical pages backing the area it should be
->> mappable right ?
-> 
-> Ok, well.. maybe my question was more about that, if the ISP MMU has
-> some kind of limited translation table size, in which it has a
-> limited of pages to map to device addresses that the ISP can use.
-> 
-> The need for this is that, in camera, there's a Video4Linux2 IOCTL
-> to know if a certain amount of buffers can be handled (and that
-> includes if they could be mapped or not), even before actually doing
-> the whole allocation/mapping.
-> 
-> If there's no limitation in the translation table size, then I guess
-> the only concern is to ensure we have enough free RAM to use. (Which
-> I'll like to think that an userspace resource manager will be able
-> to figure out for the camera application, which is the one
-> allocating the buffers.)
+1/8: https://patchwork.kernel.org/patch/92220/
+2/8: https://patchwork.kernel.org/patch/92232/
+3/8: https://patchwork.kernel.org/patch/92221/
+4/8: https://patchwork.kernel.org/patch/92230/
+5/8: https://patchwork.kernel.org/patch/92224/
+6/8: https://patchwork.kernel.org/patch/92222/
+7/8: https://patchwork.kernel.org/patch/92223/
+8/8: https://patchwork.kernel.org/patch/92229/
 
-Right, currently a whole 4GB address space is available, so virtually
-no limitation for the translation table size.
 
+Regards,
+Nishanth Menon
+
+> -----Original Message-----
+> From: Ghorai, Sukumar
+> Sent: 2010-04-13 23:07
+> To: linux-omap@vger.kernel.org
+> Cc: Ghorai, Sukumar
+> Subject: [PATCH] nand support on omap3 boards
+> 
+>    The following set of patches applies on top of the Tony's master
+> branch.
+>    And these are the patches required to enable nand (nor and onenand for
+> sdp
+>    only) for different platform.
+> 
+> Sukumar Ghorai (3):
+>   OMAP: ZOOM: Introducing 'board-zoom-flash.c'
+>   omap3: add support for NAND on zoom2 board
+>   omap3: add support for NAND on zoom3 board
+>   omap-3630-sdp : Add support for Flash
+>   omap-3630-sdp: enable Flash device support
+>   omap3: add support for NAND on LDP board
+>   zoom2: enable NAND support
+>   zoom3: enable NAND support
+> 
+>  arch/arm/configs/omap_3630sdp_defconfig       |   77 +++++++++++++++++-
+>  arch/arm/configs/omap_zoom2_defconfig         |   90
+> ++++++++++++++++++++-
+>  arch/arm/configs/omap_zoom3_defconfig         |   90
+> ++++++++++++++++++++-
+>  arch/arm/mach-omap2/Makefile                  |    4 +
+>  arch/arm/mach-omap2/board-3630sdp.c           |  110
+> +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-ldp.c               |   41 +++++++++
+>  arch/arm/mach-omap2/board-sdp-flash.c         |    2 +
+>  arch/arm/mach-omap2/board-zoom-flash.c        |   82 ++++++++++++++++++
+>  arch/arm/mach-omap2/board-zoom2.c             |   49 +++++++++++
+>  arch/arm/mach-omap2/board-zoom3.c             |   48 +++++++++++
+>  arch/arm/mach-omap2/include/mach/board-zoom.h |   11 +++
+>  11 files changed, 601 insertions(+), 3 deletions(-) create mode 100644
+> arch/arm/mach-omap2/board-zoom-flash.c
 
