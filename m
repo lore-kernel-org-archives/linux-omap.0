@@ -1,142 +1,62 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH v5 1/5] omap3: pm: fix for twl4030 script load
-Date: Tue, 4 May 2010 11:47:47 +0300
-Message-ID: <20100504084747.GB24434@besouro.research.nokia.com>
-References: <1271677380-2095-1-git-send-email-leslyam@ti.com>
- <20100504062701.GA8686@besouro.research.nokia.com>
- <007201caeb5c$9ca7ed50$518918ac@apr.dhcp.ti.com>
-Reply-To: eduardo.valentin@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH] usb: musb: Update FIFO mode_5_cfg to accomodate 4K
+Date: Tue,  4 May 2010 14:32:02 +0530
+Message-ID: <1272963722-8659-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:26096 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756925Ab0EDIp6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 May 2010 04:45:58 -0400
-Content-Disposition: inline
-In-Reply-To: <007201caeb5c$9ca7ed50$518918ac@apr.dhcp.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:51830 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756936Ab0EDJCM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 May 2010 05:02:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Lesly Arackal Manuel <leslyam@ti.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>, Amit Kucheria <amit.kucheria@verdurent.com>
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Hello Lesly,
+FIFO table fifo_5_cfg was added so that it can be used as a
+workaround for OMAP34x/35x errata which limits the FIFO space
+uses to be within first 8K or next 8K.
 
-On Tue, May 04, 2010 at 09:37:10AM +0200, ext Lesly Arackal Manuel wrote:
-> > -----Original Message-----
-> > From: Eduardo Valentin [mailto:eduardo.valentin@nokia.com]
-> > Sent: Tuesday, May 04, 2010 11:57 AM
-> > To: ext Lesly A M
-> > Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
-> > Samuel Ortiz
-> > Subject: Re: [PATCH v5 1/5] omap3: pm: fix for twl4030 script load
-> > 
-> > Hello Lesly,
-> > 
-> > On Mon, Apr 19, 2010 at 01:43:00PM +0200, ext Lesly A M wrote:
-> > > This patch will fix the TRITON sleep/wakeup sequence.
-> > 
-> > OK.
-> > 
-> > >
-> > > Since the function to populate the sleep script is getting called always
-> > > irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
-> > > is getting over written by the sleep script.
-> > 
-> > Yes, and that is because of missing curls {}.
-> > 
-> > >
-> > > Also removing the order checking while loading the scripts,
-> > > since the order doesn't matter. Only the values configured
-> > > in the register, which is pointing to the starting address
-> > > of each sequence should be correct.
-> > 
-> > Are sure about that. Please check commig
-> > 75a7456539224c5c5c254130afdb18bd7eb2286f
-> > At least from that description, Amit was very convincing that loading
-> > order matters.
-> > 
-> > Author: Amit Kucheria <amit.kucheria@verdurent.com>
-> > Date:   Mon Aug 17 17:01:56 2009 +0300
-> > 
-> >     mfd: Print warning for twl4030 out-of-order script loading
-> > 
-> >     When the sleep script is loaded before the wakeup script, there is a
-> >     chance that the system might go to sleep before the wakeup script
-> >     loading is completed. This will lead to a system that does not wakeup
-> >     and has been observed to cause non-booting boards.
-> >
-> > >
-> > > Signed-off-by: Lesly A M <x0080970@ti.com>
-> > > Cc: Nishanth Menon <nm@ti.com>
-> > > Cc: David Derrick <dderrick@ti.com>
-> > > Cc: Samuel Ortiz <sameo@linux.intel.com>
-> > > ---
-> > >  drivers/mfd/twl4030-power.c |    6 ------
-> > >  1 files changed, 0 insertions(+), 6 deletions(-)
-> > >
-> > > diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-> > > index 7efa878..bd98733 100644
-> > > --- a/drivers/mfd/twl4030-power.c
-> > > +++ b/drivers/mfd/twl4030-power.c
-> > > @@ -423,7 +423,6 @@ static int __init load_twl4030_script(struct
-> > twl4030_script *tscript,
-> > >  	       u8 address)
-> > >  {
-> > >  	int err;
-> > > -	static int order;
-> > >
-> > >  	/* Make sure the script isn't going beyond last valid address (0x3f)
-> > */
-> > >  	if ((address + tscript->size) > END_OF_SCRIPT) {
-> > > @@ -444,7 +443,6 @@ static int __init load_twl4030_script(struct
-> > twl4030_script *tscript,
-> > >  		err = twl4030_config_wakeup12_sequence(address);
-> > >  		if (err)
-> > >  			goto out;
-> > > -		order = 1;
-> > >  	}
-> > >  	if (tscript->flags & TWL4030_WAKEUP3_SCRIPT) {
-> > >  		err = twl4030_config_wakeup3_sequence(address);
-> > > @@ -452,10 +450,6 @@ static int __init load_twl4030_script(struct
-> > twl4030_script *tscript,
-> > >  			goto out;
-> > >  	}
-> > >  	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
-> > > -		if (order)
-> > > -			pr_warning("TWL4030: Bad order of scripts (sleep "\
-> > > -					"script before wakeup) Leads to
-> boot"\
-> > > -					"failure on some boards\n");
-> > >  		err = twl4030_config_sleep_sequence(address);
-> > 
-> > 
-> > If the problem you are trying to address is the fact that everything goes
-> > to
-> > sleep address, then just embrace the conditional into brackets.
-> > 
-> 
-> 
-> Hi Eduardo,
-> 
-> The load_twl4030_script() is called from twl4030_power_init() which is again
-> called from twl_probe(), and this is getting called before
-> omap3_idle_init().
-> 
-> So the scripts are loaded before the cpuidle is initialized.
-> Then I don't think the system will hit sys_off before loading the scripts.
+Updating this table to accomodate an endpoint of 4K so that
+the same table can be used for high bandwidth transfers as
+used by some USB cameras.
 
-Yes indeed. At first glance I would expect same thing. But there must be a reason
-for that patch :-). Maybe Amit can comment better on the problem he was addressing.
-I'm ccing him.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musb_core.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 705cc4a..4e327f5 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1089,10 +1089,10 @@ static struct fifo_cfg __initdata mode_5_cfg[] = {
+ { .hw_ep_num =  2, .style = FIFO_RX,   .maxpacket = 512, },
+ { .hw_ep_num =  3, .style = FIFO_TX,   .maxpacket = 512, },
+ { .hw_ep_num =  3, .style = FIFO_RX,   .maxpacket = 512, },
+-{ .hw_ep_num =  4, .style = FIFO_TX,   .maxpacket = 512, },
+-{ .hw_ep_num =  4, .style = FIFO_RX,   .maxpacket = 512, },
+-{ .hw_ep_num =  5, .style = FIFO_TX,   .maxpacket = 512, },
+-{ .hw_ep_num =  5, .style = FIFO_RX,   .maxpacket = 512, },
++{ .hw_ep_num =  4, .style = FIFO_TX,   .maxpacket = 32, },
++{ .hw_ep_num =  4, .style = FIFO_RX,   .maxpacket = 32, },
++{ .hw_ep_num =  5, .style = FIFO_TX,   .maxpacket = 32, },
++{ .hw_ep_num =  5, .style = FIFO_RX,   .maxpacket = 32, },
+ { .hw_ep_num =  6, .style = FIFO_TX,   .maxpacket = 32, },
+ { .hw_ep_num =  6, .style = FIFO_RX,   .maxpacket = 32, },
+ { .hw_ep_num =  7, .style = FIFO_TX,   .maxpacket = 32, },
+@@ -1107,9 +1107,9 @@ static struct fifo_cfg __initdata mode_5_cfg[] = {
+ { .hw_ep_num = 11, .style = FIFO_RX,   .maxpacket = 32, },
+ { .hw_ep_num = 12, .style = FIFO_TX,   .maxpacket = 32, },
+ { .hw_ep_num = 12, .style = FIFO_RX,   .maxpacket = 32, },
+-{ .hw_ep_num = 13, .style = FIFO_RXTX, .maxpacket = 512, },
+-{ .hw_ep_num = 14, .style = FIFO_RXTX, .maxpacket = 1024, },
+-{ .hw_ep_num = 15, .style = FIFO_RXTX, .maxpacket = 1024, },
++{ .hw_ep_num = 13, .style = FIFO_RXTX, .maxpacket = 128, },
++{ .hw_ep_num = 14, .style = FIFO_RXTX, .maxpacket = 256, },
++{ .hw_ep_num = 15, .style = FIFO_RXTX, .maxpacket = 4096, },
+ };
+ 
+ /*
+-- 
+1.6.2.4
 
-> 
-> Regards,
-> Lesly
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
