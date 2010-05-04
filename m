@@ -1,34 +1,100 @@
 From: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Subject: [PATCH 0/0] McBSP changes for OMAP4 platform
-Date: Tue,  4 May 2010 18:37:48 -0500
-Message-ID: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
+Subject: [PATCH 2/2] ARM: OMAP4: Add support for omap4 in McBSP driver
+Date: Tue,  4 May 2010 18:37:50 -0500
+Message-ID: <1273016270-31452-3-git-send-email-jorge.candelaria@ti.com>
+References: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
+ <1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34152 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34153 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754438Ab0EDXsf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 May 2010 19:48:35 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o44NmX3w028481
+	id S1756254Ab0EDXsg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 May 2010 19:48:36 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o44NmZ3Y028484
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:33 -0500
-Received: from emcc1.sasken-mty.naucm.ext.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id o44NmWVY012267
-	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:32 -0500 (CDT)
-Received: from localhost.localdomain (x0107209-ubuntu.sasken-mty.naucm.ext.ti.com [10.87.231.217])
-	by emcc1.sasken-mty.naucm.ext.ti.com (8.13.8+Sun/8.13.8) with ESMTP id o44NmVd9018566
-	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:31 -0500 (CDT)
+	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:35 -0500
+In-Reply-To: <1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>, Margarita Olaya Cabrera <magi.olaya@ti.com>
 
-The following patches enable McBSP driver to be used along with the
-audio driver in SDP4430 and other OMAP4 based boards.
+McBSP module in OMAP4 needs to be able to set its tx/rx threshold
+and enable the transmitter/receiver when starting an audio stream.
 
-Jorge Eduardo Candelaria (2):
-      ARM: McBSP: Fix request for irq in OMAP4
-      ARM: OMAP4: Add support for omap4 in McBSP driver
+Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+Signed-off-by: Margarita Olaya Cabrera <magi.olaya@ti.com>
+---
+ arch/arm/plat-omap/mcbsp.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
- arch/arm/mach-omap2/mcbsp.c |   12 ++++--------
- arch/arm/plat-omap/mcbsp.c  |   34 +++++++++++++++++++---------------
- 2 files changed, 23 insertions(+), 23 deletions(-)
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 6e9660d..ea0c364 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -489,7 +489,7 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
+ {
+ 	struct omap_mcbsp *mcbsp;
+ 
+-	if (!cpu_is_omap34xx())
++	if (!cpu_is_omap34xx() && !cpu_is_omap44xx())
+ 		return;
+ 
+ 	if (!omap_mcbsp_check_valid_id(id)) {
+@@ -511,7 +511,7 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
+ {
+ 	struct omap_mcbsp *mcbsp;
+ 
+-	if (!cpu_is_omap34xx())
++	if (!cpu_is_omap34xx() && !cpu_is_omap44xx())
+ 		return;
+ 
+ 	if (!omap_mcbsp_check_valid_id(id)) {
+@@ -587,7 +587,7 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+ 	 * Enable wakup behavior, smart idle and all wakeups
+ 	 * REVISIT: some wakeups may be unnecessary
+ 	 */
+-	if (cpu_is_omap34xx()) {
++	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		u16 syscon;
+ 
+ 		syscon = MCBSP_READ(mcbsp, SYSCON);
+@@ -610,7 +610,7 @@ static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
+ 	/*
+ 	 * Disable wakup behavior, smart idle and all wakeups
+ 	 */
+-	if (cpu_is_omap34xx()) {
++	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		u16 syscon;
+ 
+ 		syscon = MCBSP_READ(mcbsp, SYSCON);
+@@ -859,7 +859,7 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ 		MCBSP_WRITE(mcbsp, SPCR2, w | (1 << 7));
+ 	}
+ 
+-	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
++	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		/* Release the transmitter and receiver */
+ 		w = MCBSP_READ_CACHE(mcbsp, XCCR);
+ 		w &= ~(tx ? XDISABLE : 0);
+@@ -889,7 +889,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
+ 
+ 	/* Reset transmitter */
+ 	tx &= 1;
+-	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
++	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		w = MCBSP_READ_CACHE(mcbsp, XCCR);
+ 		w |= (tx ? XDISABLE : 0);
+ 		MCBSP_WRITE(mcbsp, XCCR, w);
+@@ -899,7 +899,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
+ 
+ 	/* Reset receiver */
+ 	rx &= 1;
+-	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
++	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx) {
+ 		w = MCBSP_READ_CACHE(mcbsp, RCCR);
+ 		w |= (rx ? RDISABLE : 0);
+ 		MCBSP_WRITE(mcbsp, RCCR, w);
+-- 
+1.6.3.3
 
