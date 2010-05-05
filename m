@@ -1,7 +1,7 @@
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Subject: [PATCH v3 11/21] OMAP: DSS2: Taal: Check taal_power_on() return value in taal_resume()
-Date: Wed,  5 May 2010 17:27:31 +0300
-Message-ID: <4cb510ffbc3216e2a7dac16edaff5fb1980b3315.1273067195.git.ext-jani.1.nikula@nokia.com>
+Subject: [PATCH v3 08/21] OMAP: DSS2: Taal: Improve taal_power_on() error handling
+Date: Wed,  5 May 2010 17:27:28 +0300
+Message-ID: <aa1e310d0d385db39b5d53ba4d3dcf02b7e2f47f.1273067195.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
  <e28a022b7d3a53dbdf3f1329119b1de300d08c6b.1273067195.git.ext-jani.1.nikula@nokia.com>
  <1dfb7728d4d3ba8ceff808563e5a9f4c40aa3e9f.1273067195.git.ext-jani.1.nikula@nokia.com>
@@ -10,15 +10,12 @@ References: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
  <94d9d7bebbf7588bd77b65e6a46044240140a350.1273067195.git.ext-jani.1.nikula@nokia.com>
  <61a89461654fe44174902f6e29b8acded7529b67.1273067195.git.ext-jani.1.nikula@nokia.com>
  <16a98ca1b45ba9b9bb30f23d242449c1d440df07.1273067195.git.ext-jani.1.nikula@nokia.com>
- <aa1e310d0d385db39b5d53ba4d3dcf02b7e2f47f.1273067195.git.ext-jani.1.nikula@nokia.com>
- <0cfff2a3cbb4231b41b382caf8aab7c52f47b0d5.1273067195.git.ext-jani.1.nikula@nokia.com>
- <adb61d94ee2a25284f6bd3f55ec4213501cbe8e3.1273067195.git.ext-jani.1.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34113 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:34102 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934710Ab0EEO2D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 10:28:03 -0400
-In-Reply-To: <adb61d94ee2a25284f6bd3f55ec4213501cbe8e3.1273067195.git.ext-jani.1.nikula@nokia.com>
+	with ESMTP id S932443Ab0EEO2A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 10:28:00 -0400
+In-Reply-To: <16a98ca1b45ba9b9bb30f23d242449c1d440df07.1273067195.git.ext-jani.1.nikula@nokia.com>
 In-Reply-To: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -28,29 +25,57 @@ Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, ext-jani.1.nikula@n
 
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-Change state only if power on was succesful.
+Check return values and bail out on errors.
 
 Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
 ---
- drivers/video/omap2/displays/panel-taal.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/video/omap2/displays/panel-taal.c |   30 ++++++++++++++++++++++------
+ 1 files changed, 23 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index af159c1..7b5f845 100644
+index d0701e2..a093eda 100644
 --- a/drivers/video/omap2/displays/panel-taal.c
 +++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -882,7 +882,10 @@ static int taal_resume(struct omap_dss_device *dssdev)
+@@ -696,16 +696,32 @@ static int taal_power_on(struct omap_dss_device *dssdev)
+ 	if (id2 == 0x00 || id2 == 0xff || id2 == 0x81)
+ 		td->cabc_broken = true;
  
- 	dsi_bus_unlock();
- 
--	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+-	taal_dcs_write_1(DCS_BRIGHTNESS, 0xff);
+-	taal_dcs_write_1(DCS_CTRL_DISPLAY, (1<<2) | (1<<5)); /* BL | BCTRL */
++	r = taal_dcs_write_1(DCS_BRIGHTNESS, 0xff);
 +	if (r)
-+		dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+	else
-+		dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++		goto err;
  
- 	mutex_unlock(&td->lock);
+-	taal_dcs_write_1(DCS_PIXEL_FORMAT, 0x7); /* 24bit/pixel */
++	r = taal_dcs_write_1(DCS_CTRL_DISPLAY,
++			(1<<2) | (1<<5));	/* BL | BCTRL */
++	if (r)
++		goto err;
  
+-	taal_set_addr_mode(td->rotate, td->mirror);
+-	if (!td->cabc_broken)
+-		taal_dcs_write_1(DCS_WRITE_CABC, td->cabc_mode);
++	r = taal_dcs_write_1(DCS_PIXEL_FORMAT, 0x7); /* 24bit/pixel */
++	if (r)
++		goto err;
+ 
+-	taal_dcs_write_0(DCS_DISPLAY_ON);
++	r = taal_set_addr_mode(td->rotate, td->mirror);
++	if (r)
++		goto err;
++
++	if (!td->cabc_broken) {
++		r = taal_dcs_write_1(DCS_WRITE_CABC, td->cabc_mode);
++		if (r)
++			goto err;
++	}
++
++	r = taal_dcs_write_0(DCS_DISPLAY_ON);
++	if (r)
++		goto err;
+ 
+ 	r = _taal_enable_te(dssdev, td->te_enabled);
+ 	if (r)
 -- 
 1.6.5.2
 
