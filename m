@@ -1,150 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 17/18] omap: rx51: Add supplies for the tlv320aic3x codec
-	driver
-Date: Wed, 05 May 2010 12:33:23 -0700
-Message-ID: <20100505193323.21568.32626.stgit@baageli.muru.com>
+Subject: [PATCH 04/18] omap2: Add OHCI USB platform init for 2430 SDP
+Date: Wed, 05 May 2010 12:32:46 -0700
+Message-ID: <20100505193246.21568.16641.stgit@baageli.muru.com>
 References: <20100505192957.21568.19569.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57358 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757981Ab0EETdX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 15:33:23 -0400
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20100505192957.21568.19569.stgit@baageli.muru.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Viral Mehta <viral.mehta@lntinfotech.com>, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-From: Jarkko Nikula <jhnikula@gmail.com>
+From: Viral Mehta <viral.mehta@lntinfotech.com>
 
-Upcoming change to tlv320aic3x codec driver require four supplies.
-Implement this by connecting analogic supplies to TWL4030 VMMC2 and digital
-supplies to TWL4030 VIO.
+Add platform init code for OHCI USB on OMAP2430 SDP
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+Signed-off-by: Viral Mehta <viral.mehta@lntinfotech.com>
+[tony@atomide.com: Updated subject to mention the board name]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c |   60 +++++++++++++++++++++++---
- 1 files changed, 53 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 3addfe6..8179d55 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -277,7 +277,7 @@ static struct regulator_consumer_supply rx51_vmmc1_supply = {
- 	.dev_name = "mmci-omap-hs.0",
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 85f5f33..a11a575 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -207,6 +207,15 @@ static struct omap_musb_board_data musb_board_data = {
+ 	.mode			= MUSB_OTG,
+ 	.power			= 100,
  };
- 
--static struct regulator_consumer_supply rx51_vmmc2_supply = {
-+static struct regulator_consumer_supply rx51_vaux3_supply = {
- 	.supply   = "vmmc",
- 	.dev_name = "mmci-omap-hs.1",
- };
-@@ -287,6 +287,35 @@ static struct regulator_consumer_supply rx51_vsim_supply = {
- 	.dev_name = "mmci-omap-hs.1",
- };
- 
-+static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
-+	/* tlv320aic3x analog supplies */
-+	{
-+		.supply		= "AVDD",
-+		.dev_name	= "2-0018",
-+	},
-+	{
-+		.supply		= "DRVDD",
-+		.dev_name	= "2-0018",
-+	},
-+	/* Keep vmmc as last item. It is not iterated for newer boards */
-+	{
-+		.supply		= "vmmc",
-+		.dev_name	= "mmci-omap-hs.1",
-+	},
++static struct omap_usb_config sdp2430_usb_config __initdata = {
++	.otg		= 1,
++#ifdef  CONFIG_USB_GADGET_OMAP
++	.hmc_mode	= 0x0,
++#elif   defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
++	.hmc_mode	= 0x1,
++#endif
++	.pins[0]	= 3,
 +};
-+
-+static struct regulator_consumer_supply rx51_vio_supplies[] = {
-+	/* tlv320aic3x digital supplies */
-+	{
-+		.supply		= "IOVDD",
-+		.dev_name	= "2-0018"
-+	},
-+	{
-+		.supply		= "DVDD",
-+		.dev_name	= "2-0018"
-+	},
-+};
-+
- static struct regulator_init_data rx51_vaux1 = {
- 	.constraints = {
- 		.name			= "V28",
-@@ -338,7 +367,7 @@ static struct regulator_init_data rx51_vaux3_mmc = {
- 					| REGULATOR_CHANGE_STATUS,
- 	},
- 	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &rx51_vmmc2_supply,
-+	.consumer_supplies	= &rx51_vaux3_supply,
- };
  
- static struct regulator_init_data rx51_vaux4 = {
-@@ -380,8 +409,8 @@ static struct regulator_init_data rx51_vmmc2 = {
- 					| REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &rx51_vmmc2_supply,
-+	.num_consumer_supplies	= ARRAY_SIZE(rx51_vmmc2_supplies),
-+	.consumer_supplies	= rx51_vmmc2_supplies,
- };
- 
- static struct regulator_init_data rx51_vsim = {
-@@ -411,6 +440,20 @@ static struct regulator_init_data rx51_vdac = {
- 	},
- };
- 
-+static struct regulator_init_data rx51_vio = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(rx51_vio_supplies),
-+	.consumer_supplies	= rx51_vio_supplies,
-+};
-+
- static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
+ static void __init omap_2430sdp_init(void)
  {
- 	/* FIXME this gpio setup is just a placeholder for now */
-@@ -618,6 +661,7 @@ static struct twl4030_platform_data rx51_twldata __initdata = {
- 	.vmmc1			= &rx51_vmmc1,
- 	.vsim			= &rx51_vsim,
- 	.vdac			= &rx51_vdac,
-+	.vio			= &rx51_vio,
- };
- 
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_1[] = {
-@@ -638,12 +682,14 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- static int __init rx51_i2c_init(void)
- {
- 	if ((system_rev >= SYSTEM_REV_S_USES_VAUX3 && system_rev < 0x100) ||
--	    system_rev >= SYSTEM_REV_B_USES_VAUX3)
-+	    system_rev >= SYSTEM_REV_B_USES_VAUX3) {
- 		rx51_twldata.vaux3 = &rx51_vaux3_mmc;
--	else {
-+		/* Only older boards use VMMC2 for internal MMC */
-+		rx51_vmmc2.num_consumer_supplies--;
-+	} else {
- 		rx51_twldata.vaux3 = &rx51_vaux3_cam;
--		rx51_twldata.vmmc2 = &rx51_vmmc2;
- 	}
-+	rx51_twldata.vmmc2 = &rx51_vmmc2;
- 	omap_register_i2c_bus(1, 2200, rx51_peripherals_i2c_board_info_1,
- 			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_1));
- 	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
-
+@@ -217,6 +226,7 @@ static void __init omap_2430sdp_init(void)
+ 	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
+ 	omap_serial_init();
+ 	omap2_hsmmc_init(mmc);
++	omap_usb_init(&sdp2430_usb_config);
+ 	usb_musb_init(&musb_board_data);
+ 	board_smc91x_init();
