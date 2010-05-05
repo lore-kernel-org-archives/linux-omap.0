@@ -1,63 +1,64 @@
-From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH] omap: gpio: Fix compilation warnings
-Date: Wed,  5 May 2010 13:47:31 -0500
-Message-ID: <1273085251-6883-1-git-send-email-saaguirre@ti.com>
+From: Sebastien Jan <s-jan@ti.com>
+Subject: [PATCH 1/4 v2] ks8851: Add caching of CCR register
+Date: Wed,  5 May 2010 20:45:52 +0200
+Message-ID: <1273085155-1260-2-git-send-email-s-jan@ti.com>
+References: <1273085155-1260-1-git-send-email-s-jan@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33466 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757524Ab0EESm0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 14:42:26 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42490 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757809Ab0EESpI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 May 2010 14:45:08 -0400
+In-Reply-To: <1273085155-1260-1-git-send-email-s-jan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgreen <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+To: netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Ben Dooks <ben-linux@fluff.org>, Tristram.Ha@micrel.com, Sebastien Jan <s-jan@ti.com>
 
-This patch fixes following compilation warnings:
+CCR register contains information on companion eeprom availability.
 
- In function 'omap2_gpio_resume_after_retention':
-2096: warning: 'l' may be used uninitialized in this function
- In function 'omap2_gpio_prepare_for_retention':
-2039: warning: 'l2' may be used uninitialized in this function
-2039: warning: 'l1' may be used uninitialized in this function
-
-Which got introduced in commit ID:
-
-  commit 3f1686a9bfe74979c6ad538c78039730f665f77e
-  Author: Tony Lindgren <tony@atomide.com>
-  Date:   Mon Feb 15 09:27:25 2010 -0800
-
-      omap: Fix gpio.c for multi-omap for omap4
-
-By making the first value assignation conditional in runtime, and
-making the compiler think they could be used uninitialized.
-
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Signed-off-by: Sebastien Jan <s-jan@ti.com>
 ---
- arch/arm/plat-omap/gpio.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ks8851.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 45a225d..f0d5c2f 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -2036,7 +2036,7 @@ void omap2_gpio_prepare_for_retention(void)
- 	 * IRQs will be generated.  See OMAP2420 Errata item 1.101. */
- 	for (i = 0; i < gpio_bank_count; i++) {
- 		struct gpio_bank *bank = &gpio_bank[i];
--		u32 l1, l2;
-+		u32 l1 = 0, l2 = 0;
+diff --git a/drivers/net/ks8851.c b/drivers/net/ks8851.c
+index 9e9f9b3..a84e500 100644
+--- a/drivers/net/ks8851.c
++++ b/drivers/net/ks8851.c
+@@ -76,7 +76,9 @@ union ks8851_tx_hdr {
+  * @msg_enable: The message flags controlling driver output (see ethtool).
+  * @fid: Incrementing frame id tag.
+  * @rc_ier: Cached copy of KS_IER.
++ * @rc_ccr: Cached copy of KS_CCR.
+  * @rc_rxqcr: Cached copy of KS_RXQCR.
++ * @eeprom_size: Companion eeprom size in Bytes, 0 if no eeprom
+  *
+  * The @lock ensures that the chip is protected when certain operations are
+  * in progress. When the read or write packet transfer is in progress, most
+@@ -107,6 +109,8 @@ struct ks8851_net {
  
- 		if (!(bank->enabled_non_wakeup_gpios))
- 			continue;
-@@ -2093,7 +2093,7 @@ void omap2_gpio_resume_after_retention(void)
- 		return;
- 	for (i = 0; i < gpio_bank_count; i++) {
- 		struct gpio_bank *bank = &gpio_bank[i];
--		u32 l, gen, gen0, gen1;
-+		u32 l = 0, gen, gen0, gen1;
+ 	u16			rc_ier;
+ 	u16			rc_rxqcr;
++	u16			rc_ccr;
++	u16			eeprom_size;
  
- 		if (!(bank->enabled_non_wakeup_gpios))
- 			continue;
+ 	struct mii_if_info	mii;
+ 	struct ks8851_rxctrl	rxctrl;
+@@ -1279,6 +1283,14 @@ static int __devinit ks8851_probe(struct spi_device *spi)
+ 		goto err_id;
+ 	}
+ 
++	/* cache the contents of the CCR register for EEPROM, etc. */
++	ks->rc_ccr = ks8851_rdreg16(ks, KS_CCR);
++
++	if (ks->rc_ccr & CCR_EEPROM)
++		ks->eeprom_size = 128;
++	else
++		ks->eeprom_size = 0;
++
+ 	ks8851_read_selftest(ks);
+ 	ks8851_init_mac(ks);
+ 
 -- 
 1.6.3.3
 
