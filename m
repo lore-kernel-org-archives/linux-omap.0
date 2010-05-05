@@ -1,81 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/18] omap1: amsdelta: defconfig updates
-Date: Wed, 05 May 2010 12:32:39 -0700
-Message-ID: <20100505193239.21568.9650.stgit@baageli.muru.com>
-References: <20100505192957.21568.19569.stgit@baageli.muru.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 12/18] OMAP3 : clock data: Update name string for EMAC
+	clocks
+Date: Wed, 5 May 2010 20:45:56 +0100
+Message-ID: <20100505194556.GB17678@n2100.arm.linux.org.uk>
+References: <20100505192957.21568.19569.stgit@baageli.muru.com> <20100505193308.21568.98880.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20100505192957.21568.19569.stgit@baageli.muru.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40787 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756118Ab0EETqQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 15:46:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20100505193308.21568.98880.stgit@baageli.muru.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Sriramakrishnan <srk@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+On Wed, May 05, 2010 at 12:33:09PM -0700, Tony Lindgren wrote:
+> The emac driver uses generic name for the module and phy
+> clocks. Updated the omap3xxx_clks table to match the names
+> used by the Davinci emac driver.
 
-The patch provides the following ams_delta_defconfig updates:
-- explicitly select preemptable RCU,
-- replace outdated CONFIG_LBD and CONFIG_LSF options with CONFIG_LBDAF,
-- activate support for LCD contrast setting (new in 2.6.34),
-- turn off verbose bug reporting for smaller kernel.
+Patch doesn't match description.  IMHO "ick" and "fck" are generic names,
+whereas "emac_clk" and "phy_clk" are specific names.
 
-Created and tested against linux-2.6.34-rc3.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/ams_delta_defconfig |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/configs/ams_delta_defconfig b/arch/arm/configs/ams_delta_defconfig
-index ecf45fb..6d8a0c8 100644
---- a/arch/arm/configs/ams_delta_defconfig
-+++ b/arch/arm/configs/ams_delta_defconfig
-@@ -47,6 +47,7 @@ CONFIG_SYSVIPC_SYSCTL=y
- # CONFIG_TASKSTATS is not set
- # CONFIG_UTS_NS is not set
- # CONFIG_AUDIT is not set
-+CONFIG_TREE_PREEMPT_RCU=y
- # CONFIG_IKCONFIG is not set
- CONFIG_LOG_BUF_SHIFT=14
- CONFIG_SYSFS_DEPRECATED=y
-@@ -95,9 +96,8 @@ CONFIG_KMOD=y
- # Block layer
- #
- CONFIG_BLOCK=y
--# CONFIG_LBD is not set
-+# CONFIG_LBDAF is not set
- # CONFIG_BLK_DEV_IO_TRACE is not set
--# CONFIG_LSF is not set
- 
- #
- # IO Schedulers
-@@ -836,7 +836,8 @@ CONFIG_DAB=y
- #
- # Graphics support
- #
--# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-+CONFIG_BACKLIGHT_LCD_SUPPORT=y
-+CONFIG_LCD_CLASS_DEVICE=y
- 
- #
- # Display device support
-@@ -1284,7 +1285,7 @@ CONFIG_DEBUG_PREEMPT=y
- # CONFIG_DEBUG_SPINLOCK_SLEEP is not set
- # CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
- # CONFIG_DEBUG_KOBJECT is not set
--CONFIG_DEBUG_BUGVERBOSE=y
-+# CONFIG_DEBUG_BUGVERBOSE is not set
- # CONFIG_DEBUG_INFO is not set
- # CONFIG_DEBUG_VM is not set
- # CONFIG_DEBUG_LIST is not set
+> -	CLK("davinci_emac",	"ick",		&emac_ick,	CK_AM35XX),
+> -	CLK("davinci_emac",	"fck",		&emac_fck,	CK_AM35XX),
+> +	CLK("davinci_emac",	"emac_clk",	&emac_ick,	CK_AM35XX),
+> +	CLK("davinci_emac",	"phy_clk",	&emac_fck,	CK_AM35XX),
