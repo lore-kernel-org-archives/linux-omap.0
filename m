@@ -1,220 +1,444 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH v9] board-omap3-beagle: add DSS2 support
-Date: Wed, 5 May 2010 08:46:59 +0200
-Message-ID: <074F5B48-DE92-46A2-B5DE-B6ECA362D524@dominion.thruhere.net>
-References: <1271924622-21043-1-git-send-email-koen@dominion.thruhere.net> <1272896110.1997.0.camel@tubuntu.research.nokia.com>
-Mime-Version: 1.0 (Apple Message framework v1078)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f222.google.com ([209.85.219.222]:57214 "EHLO
-	mail-ew0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756636Ab0EEGrM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 02:47:12 -0400
-Received: by ewy22 with SMTP id 22so1385378ewy.37
-        for <linux-omap@vger.kernel.org>; Tue, 04 May 2010 23:47:09 -0700 (PDT)
-In-Reply-To: <1272896110.1997.0.camel@tubuntu.research.nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH v2 3/5] OMAP4-HSMMC: Adding MMC-TWL regulator changes
+Date: Wed, 5 May 2010 12:17:08 +0530
+Message-ID: <u2p7f9d1ffb1005042347wa11a98feu95d62a8ca85fb1ef@mail.gmail.com>
+References: <35156.10.24.255.17.1272988897.squirrel@dbdmail.itg.ti.com>
+	 <alpine.DEB.2.00.1005041704390.20898@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1005041704390.20898@utopia.booyaka.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: kishore kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Tony,
-
-Would it be possible to get this applied in the next merge window?
-
-regards,
-
-Koen
-
-Op 3 mei 2010, om 16:15 heeft Tomi Valkeinen het volgende geschreven:
-
-> On Thu, 2010-04-22 at 10:23 +0200, ext Koen Kooi wrote:
->> This patch adds DSS2 support to the beagleboard boardfile. DVI and TV-out are supported.
->> 
->> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
-> 
-> Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> 
-> 
+On Wed, May 5, 2010 at 4:41 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hello,
+>
+> On Tue, 4 May 2010, kishore kadiyala wrote:
+>
+>> This patch adds PBIAS Configuration during POWER ON and OFF.
+>> Also it adds MMC1 Card detect configuration on Phoenix
+>>
+>> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
 >> ---
->> Changes since v1:
->>    * removed beagle_panel_enable_tv() and beagle_panel_disable_tv()
->> Changes since v2:
->>    * changed to REGULATOR_SUPPLY(_name, _dev_name) for dss regulators
->> Changes since v3:
->>    * really remove beagle_panel_enable_tv() and beagle_panel_disable_tv()
->>    * moved comments to this section
->> Changes since v4:
->>    * remove trailing whitespace
->> Changes since v5:
->>    * fix semicolon typo
->> Changes since v6:
->>    * use gpio_is_valid(dssdev->reset_gpio)
->> Changes since v8:
->>    * fix missing whitespace before __init omap3_beagle_map_io(){}
->> 
->> arch/arm/mach-omap2/board-omap3beagle.c |  101 +++++++++++++++++++++++--------
->> 1 files changed, 75 insertions(+), 26 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->> index 962d377..69b154c 100644
->> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->> @@ -39,6 +39,7 @@
->> 
->> #include <plat/board.h>
->> #include <plat/common.h>
->> +#include <plat/display.h>
->> #include <plat/gpmc.h>
->> #include <plat/nand.h>
->> #include <plat/usb.h>
->> @@ -106,6 +107,77 @@ static struct platform_device omap3beagle_nand_device = {
->> 	.resource	= &omap3beagle_nand_resource,
->> };
->> 
->> +/* DSS */
->> +
->> +static int beagle_enable_dvi(struct omap_dss_device *dssdev)
+>> =A0arch/arm/mach-omap2/hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0121 =
+++++++++++++++++++++++++++---
+>> =A0arch/arm/plat-omap/include/plat/control.h | =A0 17 ++++
+>> =A0include/linux/i2c/twl.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 42 +++++++++-
+>> =A03 files changed, 166 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc=
+=2Ec
+>> index f5ca16c..a73f011 100644
+>> --- a/arch/arm/mach-omap2/hsmmc.c
+>> +++ b/arch/arm/mach-omap2/hsmmc.c
+>> @@ -14,6 +14,7 @@
+>> =A0#include <linux/string.h>
+>> =A0#include <linux/delay.h>
+>> =A0#include <linux/i2c/twl.h>
+>> +#include <linux/platform_device.h>
+>> =A0#include <mach/hardware.h>
+>> =A0#include <plat/control.h>
+>> =A0#include <plat/mmc.h>
+>> @@ -25,6 +26,7 @@
+>>
+>> =A0static u16 control_pbias_offset;
+>> =A0static u16 control_devconf1_offset;
+>> +static u16 control_mmc1;
+>>
+>> =A0#define HSMMC_NAME_LEN =A0 =A0 =A0 9
+>>
+>> @@ -43,7 +45,7 @@ static int hsmmc_get_context_loss(struct device *d=
+ev)
+>> =A0#define hsmmc_get_context_loss NULL
+>> =A0#endif
+>>
+>> -static void hsmmc1_before_set_reg(struct device *dev, int slot,
+>> +static void omap_hsmmc1_before_set_reg(struct device *dev, int slot=
+,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int =
+power_on, int vdd)
+>> =A0{
+>> =A0 =A0 =A0 u32 reg, prog_io;
+>> @@ -96,7 +98,7 @@ static void hsmmc1_before_set_reg(struct device *d=
+ev, int slot,
+>> =A0 =A0 =A0 }
+>> =A0}
+>>
+>> -static void hsmmc1_after_set_reg(struct device *dev, int slot,
+>> +static void omap_hsmmc1_after_set_reg(struct device *dev, int slot,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0int p=
+ower_on, int vdd)
+>> =A0{
+>> =A0 =A0 =A0 u32 reg;
+>> @@ -120,6 +122,61 @@ static void hsmmc1_after_set_reg(struct device =
+*dev, int slot,
+>> =A0 =A0 =A0 }
+>> =A0}
+>>
+>> +static void omap4_hsmmc1_before_set_reg(struct device *dev, int slo=
+t,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int po=
+wer_on, int vdd)
 >> +{
->> +	if (gpio_is_valid(dssdev->reset_gpio))
->> +		gpio_set_value(dssdev->reset_gpio, 1);
+>> + =A0 =A0 u32 reg;
 >> +
->> +	return 0;
->> +}
->> +
->> +static void beagle_disable_dvi(struct omap_dss_device *dssdev)
->> +{
->> +	if (gpio_is_valid(dssdev->reset_gpio))
->> +		gpio_set_value(dssdev->reset_gpio, 0);
->> +}
->> +
->> +static struct omap_dss_device beagle_dvi_device = {
->> +	.type = OMAP_DISPLAY_TYPE_DPI,
->> +	.name = "dvi",
->> +	.driver_name = "generic_panel",
->> +	.phy.dpi.data_lines = 24,
->> +	.reset_gpio = 170,
->> +	.platform_enable = beagle_enable_dvi,
->> +	.platform_disable = beagle_disable_dvi,
->> +};
->> +
->> +static struct omap_dss_device beagle_tv_device = {
->> +	.name = "tv",
->> +	.driver_name = "venc",
->> +	.type = OMAP_DISPLAY_TYPE_VENC,
->> +	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
->> +};
->> +
->> +static struct omap_dss_device *beagle_dss_devices[] = {
->> +	&beagle_dvi_device,
->> +	&beagle_tv_device,
->> +};
->> +
->> +static struct omap_dss_board_info beagle_dss_data = {
->> +	.num_devices = ARRAY_SIZE(beagle_dss_devices),
->> +	.devices = beagle_dss_devices,
->> +	.default_device = &beagle_dvi_device,
->> +};
->> +
->> +static struct platform_device beagle_dss_device = {
->> +	.name          = "omapdss",
->> +	.id            = -1,
->> +	.dev            = {
->> +		.platform_data = &beagle_dss_data,
->> +	},
->> +};
->> +
->> +static struct regulator_consumer_supply beagle_vdac_supply =
->> +	REGULATOR_SUPPLY("vdda_dac", "omapdss");
->> +
->> +static struct regulator_consumer_supply beagle_vdvi_supply =
->> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
->> +
->> +static void __init beagle_display_init(void)
->> +{
->> +	int r;
->> +
->> +	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
->> +	if (r < 0) {
->> +		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
->> +		return;
->> +	}
->> +
->> +	gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
->> +}
->> +
->> #include "sdram-micron-mt46h32m32lf-6.h"
->> 
->> static struct omap2_hsmmc_info mmc[] = {
->> @@ -117,15 +189,6 @@ static struct omap2_hsmmc_info mmc[] = {
->> 	{}	/* Terminator */
->> };
->> 
->> -static struct platform_device omap3_beagle_lcd_device = {
->> -	.name		= "omap3beagle_lcd",
->> -	.id		= -1,
->> -};
->> -
->> -static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
->> -	.ctrl_name	= "internal",
->> -};
->> -
->> static struct regulator_consumer_supply beagle_vmmc1_supply = {
->> 	.supply			= "vmmc",
->> };
->> @@ -181,16 +244,6 @@ static struct twl4030_gpio_platform_data beagle_gpio_data = {
->> 	.setup		= beagle_twl_gpio_setup,
->> };
->> 
->> -static struct regulator_consumer_supply beagle_vdac_supply = {
->> -	.supply		= "vdac",
->> -	.dev		= &omap3_beagle_lcd_device.dev,
->> -};
->> -
->> -static struct regulator_consumer_supply beagle_vdvi_supply = {
->> -	.supply		= "vdvi",
->> -	.dev		= &omap3_beagle_lcd_device.dev,
->> -};
->> -
->> /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
->> static struct regulator_init_data beagle_vmmc1 = {
->> 	.constraints = {
->> @@ -349,14 +402,8 @@ static struct platform_device keys_gpio = {
->> 	},
->> };
->> 
->> -static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
->> -	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
->> -};
->> -
->> static void __init omap3_beagle_init_irq(void)
->> {
->> -	omap_board_config = omap3_beagle_config;
->> -	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
->> 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
->> 			     mt46h32m32lf6_sdrc_params);
->> 	omap_init_irq();
->> @@ -367,9 +414,9 @@ static void __init omap3_beagle_init_irq(void)
->> }
->> 
->> static struct platform_device *omap3_beagle_devices[] __initdata = {
->> -	&omap3_beagle_lcd_device,
->> 	&leds_gpio,
->> 	&keys_gpio,
->> +	&beagle_dss_device,
->> };
->> 
->> static void __init omap3beagle_flash_init(void)
->> @@ -456,6 +503,8 @@ static void __init omap3_beagle_init(void)
->> 	/* Ensure SDRC pins are mux'd for self-refresh */
->> 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
->> 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
->> +
->> +	beagle_display_init();
->> }
->> 
->> static void __init omap3_beagle_map_io(void)
-> 
-> 
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0..=
+3) and the
+>> + =A0 =A0 =A0* card with Vcc regulator (from twl4030 or whatever). =A0=
+OMAP has both
+>> + =A0 =A0 =A0* 1.8V and 3.0V modes, controlled by the PBIAS register=
+=2E
+>> + =A0 =A0 =A0*
+>> + =A0 =A0 =A0* In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a sup=
+ply, which
+>> + =A0 =A0 =A0* is most naturally TWL VSIM; those pins also use PBIAS=
+=2E
+>> + =A0 =A0 =A0*
+>> + =A0 =A0 =A0* FIXME handle VMMC1A as needed ...
+>> + =A0 =A0 =A0*/
+>> + =A0 =A0 if (power_on) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg =3D omap_ctrl_readl(control_pbias_offs=
+et);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg &=3D ~(OMAP4_MMC1_PBIASLITE_PWRDNZ | O=
+MAP4_MMC1_PWRDNZ);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_ctrl_writel(reg, control_pbias_offset=
+);
+>> + =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg =3D omap_ctrl_readl(control_pbias_offs=
+et);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg &=3D ~(OMAP4_MMC1_PBIASLITE_PWRDNZ | O=
+MAP4_MMC1_PWRDNZ);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_ctrl_writel(reg, control_pbias_offset=
+);
+>> + =A0 =A0 }
+>
+> If the code in both branches of the conditional is identical, what's =
+the
+> point of keeping the conditional?
 
+Agree and will correct
+>
+>> +}
+>> +
+>> +static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot=
+,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0int pow=
+er_on, int vdd)
+>> +{
+>> + =A0 =A0 u32 reg;
+>> +
+>> + =A0 =A0 /* 100ms delay required for PBIAS configuration */
+>> + =A0 =A0 msleep(100);
+>> +
+>> + =A0 =A0 if (power_on) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg =3D omap_ctrl_readl(control_pbias_offs=
+et);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg |=3D OMAP4_MMC1_PBIASLITE_PWRDNZ;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if ((1 << vdd) <=3D MMC_VDD_165_195) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg &=3D ~OMAP4_MMC1_PBIAS=
+LITE_VMODE;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg |=3D (OMAP4_MMC1_PBIAS=
+LITE_PWRDNZ |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PWRDNZ);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg |=3D (OMAP4_MMC1_PBIAS=
+LITE_VMODE |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1=
+_PBIASLITE_PWRDNZ |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 OMAP4_MMC1_PWRDNZ);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_ctrl_writel(reg, control_pbias_offset=
+);
+>> + =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg =3D omap_ctrl_readl(control_pbias_offs=
+et);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0reg |=3D (OMAP4_MMC1_PBIASLITE_PWRDNZ |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_MMC1_PBIASLITE_VMODE=
+ | OMAP4_MMC1_PWRDNZ);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_ctrl_writel(reg, control_pbias_offset=
+);
+>> + =A0 =A0 }
+>> +}
+>> +
+>> =A0static void hsmmc23_before_set_reg(struct device *dev, int slot,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0i=
+nt power_on, int vdd)
+>> =A0{
+>> @@ -140,6 +197,24 @@ static void hsmmc23_before_set_reg(struct devic=
+e *dev, int slot,
+>> =A0 =A0 =A0 }
+>> =A0}
+>>
+>> +static int mmc_twl_late_init(struct device *dev)
+>> +{
+>> + =A0 =A0 int ret =3D 0;
+>> + =A0 =A0 struct platform_device *pdev =3D container_of(dev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 struct platform_device, dev);
+>> +
+>> + =A0 =A0 if (cpu_is_omap44xx()) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 /* MMC1 Card detect Configuration */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (pdev->id =3D=3D 0) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D omap4_hsmmc1_card_=
+detect_config();
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret < 0)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Un=
+able to configure"
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 "Card detect for MMC1\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 }
+>> + =A0 =A0 return ret;
+>> +}
+>> +
+>> =A0static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC]=
+ __initdata;
+>>
+>> =A0void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers=
+)
+>> @@ -147,13 +222,28 @@ void __init omap2_hsmmc_init(struct omap2_hsmm=
+c_info
+>> =A0 =A0 =A0 struct omap2_hsmmc_info *c;
+>> =A0 =A0 =A0 int nr_hsmmc =3D ARRAY_SIZE(hsmmc_data);
+>> =A0 =A0 =A0 int i;
+>> + =A0 =A0 u32 reg;
+>>
+>> - =A0 =A0 if (cpu_is_omap2430()) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 control_pbias_offset =3D OMAP243X_CONTROL_=
+PBIAS_LITE;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 control_devconf1_offset =3D OMAP243X_CONTR=
+OL_DEVCONF1;
+>> + =A0 =A0 if (!cpu_is_omap44xx()) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap2430()) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 control_pbias_offset =3D O=
+MAP243X_CONTROL_PBIAS_LITE;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 control_devconf1_offset =3D=
+ OMAP243X_CONTROL_DEVCONF1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 control_pbias_offset =3D O=
+MAP343X_CONTROL_PBIAS_LITE;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 control_devconf1_offset =3D=
+ OMAP343X_CONTROL_DEVCONF1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> =A0 =A0 =A0 } else {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 control_pbias_offset =3D OMAP343X_CONTROL_=
+PBIAS_LITE;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 control_devconf1_offset =3D OMAP343X_CONTR=
+OL_DEVCONF1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 control_pbias_offset =3D OMAP44XX_CONTROL_=
+PBIAS_LITE;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 control_mmc1 =3D OMAP44XX_CONTROL_MMC1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg =3D omap_ctrl_readl(control_mmc1);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg |=3D (OMAP4_CONTROL_SDMMC1_PUSTRENGTHG=
+RP0 |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_CONTROL_SDMMC1_PUSTR=
+ENGTHGRP1);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg &=3D ~(OMAP4_CONTROL_SDMMC1_PUSTRENGTH=
+GRP2 |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_CONTROL_SDMMC1_PUSTR=
+ENGTHGRP3);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 reg |=3D (OMAP4_CONTROL_SDMMC1_DR0_SPEEDCT=
+RL |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_CONTROL_SDMMC1_DR1_S=
+PEEDCTRL |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_CONTROL_SDMMC1_DR2_S=
+PEEDCTRL);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_ctrl_writel(reg, control_mmc1);
+>> =A0 =A0 =A0 }
+>>
+>> =A0 =A0 =A0 for (c =3D controllers; c->mmc; c++) {
+>> @@ -186,6 +276,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_=
+info *controllers)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].wires =3D c->wires;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].internal_clock =3D !c->ext=
+_clock;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->dma_mask =3D 0xffffffff;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 mmc->init =3D mmc_twl_late_init;
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->get_context_loss_count =3D hsmmc_ge=
+t_context_loss;
+>>
+>> @@ -220,10 +311,18 @@ void __init omap2_hsmmc_init(struct omap2_hsmm=
+c_info
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 switch (c->mmc) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 case 1:
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* on-chip level shifting =
+via PBIAS0/PBIAS1 */
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].before_set_r=
+eg =3D hsmmc1_before_set_reg;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].after_set_re=
+g =3D hsmmc1_after_set_reg;
+>> -
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap44xx()) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* on-chip=
+ level shifting via PBIAS0/PBIAS1 */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots=
+[0].before_set_reg =3D
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 omap4_hsmmc1_before_set_reg;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots=
+[0].after_set_reg =3D
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 omap4_hsmmc1_after_set_reg;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots=
+[0].before_set_reg =3D
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 omap_hsmmc1_before_set_reg;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots=
+[0].after_set_reg =3D
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 omap_hsmmc1_after_set_reg;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Omap3630 HSMMC1 suppo=
+rts only 4-bit */
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap3630() &&=
+ c->wires > 4) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 c->wires=
+ =3D 4;
+>> diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/pl=
+at-omap/include/plat/control.h
+>> index a56deee..6d17a61 100644
+>> --- a/arch/arm/plat-omap/include/plat/control.h
+>> +++ b/arch/arm/plat-omap/include/plat/control.h
+>> @@ -207,6 +207,9 @@
+>> =A0/* 44xx control status register offset */
+>> =A0#define OMAP44XX_CONTROL_STATUS =A0 =A0 =A0 =A0 =A0 =A0 =A00x2c4
+>>
+>> +/* 44xx-only CONTROL_GENERAL register offsets */
+>> +#define OMAP44XX_CONTROL_MMC1 =A0 =A0 =A0 =A0 =A0 0x628
+>> +#define OMAP44XX_CONTROL_PBIAS_LITE =A0 =A0 0x600
+>> =A0/*
+>> =A0 * REVISIT: This list of registers is not comprehensive - there a=
+re more
+>> =A0 * that should be added.
+>> @@ -252,6 +255,20 @@
+>> =A0#define OMAP2_PBIASLITEPWRDNZ0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (1 << =
+1)
+>> =A0#define OMAP2_PBIASLITEVMODE0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 <=
+< 0)
+>>
+>> +/* CONTROL_PBIAS_LITE bits for OMAP4 */
+>> +#define OMAP4_MMC1_PWRDNZ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1=
+ << 26)
+>> +#define OMAP4_MMC1_PBIASLITE_HIZ_MODE =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+(1 << 25)
+>> +#define OMAP4_MMC1_PBIASLITE_PWRDNZ =A0 =A0 =A0 =A0 =A0(1 << 22)
+>> +#define OMAP4_MMC1_PBIASLITE_VMODE =A0 =A0 =A0 =A0 =A0 (1 << 21)
+>> +
+>> +#define OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP0 =A0(1 << 31)
+>> +#define OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP1 =A0(1 << 30)
+>> +#define OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP2 =A0(1 << 29)
+>> +#define OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP3 =A0(1 << 28)
+>> +#define OMAP4_CONTROL_SDMMC1_DR0_SPEEDCTRL =A0 (1 << 27)
+>> +#define OMAP4_CONTROL_SDMMC1_DR1_SPEEDCTRL =A0 (1 << 26)
+>> +#define OMAP4_CONTROL_SDMMC1_DR2_SPEEDCTRL =A0 (1 << 25)
+>> +
+>> =A0/* CONTROL_PROG_IO1 bits */
+>> =A0#define OMAP3630_PRG_SDMMC1_SPEEDCTRL =A0 =A0 =A0 =A0(1 << 20)
+>>
+>> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+>> index eb198db..423a355 100644
+>> --- a/include/linux/i2c/twl.h
+>> +++ b/include/linux/i2c/twl.h
+>> @@ -142,6 +142,13 @@
+>> =A0#define TWL6030_CHARGER_FAULT_INT_MASK =A0 =A0 =A0 0x60
+>>
+>> =A0#define TWL6030_MMCCTRL =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+0xEE
+>> +#define VMMC_AUTO_OFF =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+(0x1 << 3)
+>> +#define SW_FC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0(0x1 << 2)
+>> +
+>> +#define TWL6030_CFG_INPUT_PUPD3 =A0 =A0 =A0 =A0 =A0 =A0 =A00xF2
+>> +#define MMC_PU =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 (0x1 << 3)
+>> +#define MMC_PD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 (0x1 << 2)
+>> +
+>>
+>> =A0#define TWL4030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 0x4030
+>> =A0#define TWL6030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 0x6030
+>> @@ -174,11 +181,40 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg,=
+ unsigned
+>> =A0int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
+>> =A0int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+>>
+>> -/*
+>> - * MMC1 Controller on OMAP4 uses Phoenix Irq for Card detect.
+>> - */
+>> +/* MMC1 Controller on OMAP4 uses Phoenix Irq for Card detect */
+>> =A0int twl6030_mmc_card_detect(struct device *dev, int slot);
+>>
+>> +/* Configuring Card Detect for MMC1 */
+>> +static inline int omap4_hsmmc1_card_detect_config(void)
+>> +{
+>> + =A0 =A0 int res =3D -1;
+>> + =A0 =A0 u8 reg_val =3D 0;
+>> +
+>> + =A0 =A0 /* Unmasking the Card detect Interrupt line for MMC1 from =
+Phoenix */
+>> + =A0 =A0 if (twl_class_is_6030()) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_MMCDETECT=
+_INT_MASK,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 REG_INT_MSK_LINE_B);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_MMCDETECT=
+_INT_MASK,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 REG_INT_MSK_STS_B);
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* Intially Configuring MMC_CTRL for receving interrupts=
+ &
+>> + =A0 =A0 =A0* Card status on TWL6030 for MMC1
+>> + =A0 =A0 =A0*/
+>> + =A0 =A0 reg_val |=3D (SW_FC & ~VMMC_AUTO_OFF);
+>> + =A0 =A0 twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_MMCC=
+TRL);
+>> + =A0 =A0 res =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 TWL6030_CFG_INPUT_PUPD3);
+>> + =A0 =A0 if (res < 0)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 reg_val =3D 0;
+>> + =A0 =A0 reg_val &=3D ~(MMC_PU | MMC_PD);
+>> + =A0 =A0 twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 TWL6030_CFG_INPUT_PUPD3);
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> =A0/*---------------------------------------------------------------=
+-------*/
+>>
+>> =A0/*
+>> --
+>> 1.6.3.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+> - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
