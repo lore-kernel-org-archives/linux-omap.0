@@ -1,144 +1,43 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH v2 1/5] OMAP4-HSMMC: Adding HSMMC support for OMAP4430
-      Board file
-Date: Wed, 05 May 2010 13:32:37 +0300
-Message-ID: <4BE14945.5040300@nokia.com>
-References: <35156.10.24.255.17.1272988883.squirrel@dbdmail.itg.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH 1/2] ARM: McBSP: Fix request for irq in OMAP4
+Date: Wed, 5 May 2010 13:39:03 +0300
+Message-ID: <20100505133903.cde41896.jhnikula@gmail.com>
+References: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
+	<1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E94026F8C6E56@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:55325 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934369Ab0EEKdY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 06:33:24 -0400
-In-Reply-To: <35156.10.24.255.17.1272988883.squirrel@dbdmail.itg.ti.com>
+Received: from mail-ew0-f222.google.com ([209.85.219.222]:45531 "EHLO
+	mail-ew0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934369Ab0EEKh4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 06:37:56 -0400
+Received: by ewy22 with SMTP id 22so1435778ewy.37
+        for <linux-omap@vger.kernel.org>; Wed, 05 May 2010 03:37:54 -0700 (PDT)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026F8C6E56@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kishore kadiyala <kishore.kadiyala@ti.com>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "paul@pwsan.com" <paul@pwsan.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "Candelaria Villarreal, Jorge" <jorge.candelaria@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-kishore kadiyala wrote:
-> This patch adds MMC1 and MMC2 Controller data for OMAP4430 Board
-> file.
-> 
-> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile        |    3 +-
->  arch/arm/mach-omap2/board-4430sdp.c |   39 ++++++++++++++++++++++++++++------
->  2 files changed, 34 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index ffe600a..65d8d11 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -140,7 +140,8 @@ obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
->  					   hsmmc.o
->  obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK)	+= board-omap3touchbook.o \
->  					   hsmmc.o
-> -obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
-> +obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o \
-> +					   hsmmc.o
-> 
->  obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
-> 
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> index f1b9708..c4e61d5 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -33,6 +33,7 @@
->  #include <plat/control.h>
->  #include <plat/timer-gp.h>
->  #include <plat/usb.h>
-> +#include "hsmmc.h"
-> 
->  #define ETHERNET_KS8851_IRQ		34
->  #define ETHERNET_KS8851_POWER_ENABLE	48
-> @@ -93,16 +94,27 @@ static struct omap_musb_board_data musb_board_data = {
->  	.power			= 100,
->  };
-> 
-> -static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
-> +static struct omap2_hsmmc_info mmc[] = {
->  	{
-> -		.supply = "vmmc",
-> +		.mmc		= 1,
-> +		.wires		= 8,
-> +		/* "mmc0_cd" is not a gpio interrupt
-> +		 * but is a phoenix interrupt
-> +		 */
-> +		.gpio_cd	= TWL6030_IRQ_BASE + MMCDETECT_INTR_OFFSET,
-> +		.gpio_wp	= -EINVAL,
->  	},
->  	{
-> -		.supply = "vmmc",
-> -	},
-> -	{
-> -		.supply = "vmmc",
-> +		.mmc		= 2,
-> +		.wires		= 8,
-> +		.gpio_cd	= -EINVAL,
-> +		.gpio_wp	= -EINVAL,
-> +		.nonremovable   = true,
->  	},
-> +	{}	/* Terminator */
-> +};
-> +
-> +static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
->  	{
->  		.supply = "vmmc",
->  	},
-> @@ -111,6 +123,18 @@ static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
->  	},
->  };
-> 
-> +static int __init sdp4430_mmc_init(void)
-> +{
-> +	omap2_hsmmc_init(mmc);
-> +
-> +	/* link regulators to MMC adapters ... we "know" the
-> +	 * regulators will be set up only *after* we return.
-> +	 */
-> +	sdp4430_vmmc_supply[0].dev = mmc[0].dev;
-> +	sdp4430_vmmc_supply[1].dev = mmc[1].dev;
+On Wed, 5 May 2010 08:32:13 +0530
+"G, Manjunath Kondaiah" <manjugk@ti.com> wrote:
 
-Can do this instead I think:
-
-static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
-	{
-		.supply		= "vmmc",
-		.dev_name	= "mmci-omap-hs.0",
-	},
-	{
-		.supply		= "vmmc",
-		.dev_name	= "mmci-omap-hs.1",
-	},
-};
-
-
-
-
-> +	return 0;
-> +}
-> +
->  static struct regulator_init_data sdp4430_vaux1 = {
->  	.constraints = {
->  		.min_uV			= 1000000,
-> @@ -162,7 +186,7 @@ static struct regulator_init_data sdp4430_vmmc = {
->  					| REGULATOR_CHANGE_MODE
->  					| REGULATOR_CHANGE_STATUS,
->  	},
-> -	.num_consumer_supplies  = 5,
-> +	.num_consumer_supplies  = 2,
->  	.consumer_supplies      = sdp4430_vmmc_supply,
->  };
+> > -		init_completion(&mcbsp->rx_irq_completion);
+> > -		err = request_irq(mcbsp->rx_irq, 
+> > omap_mcbsp_rx_irq_handler,
+> > +		if (!cpu_is_omap44xx) {
+> > +			init_completion(&mcbsp->rx_irq_completion);
+> > +			err = request_irq(mcbsp->rx_irq,
+> > +					omap_mcbsp_rx_irq_handler,
+> >  					0, "McBSP", (void *)mcbsp);
 > 
-> @@ -281,6 +305,7 @@ static void __init omap_4430sdp_init(void)
->  	omap4_i2c_init();
->  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
->  	omap_serial_init();
-> +	sdp4430_mmc_init();
->  	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
->  	usb_nop_xceiv_register();
->  	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
+> How about using request_threaded_irq?
+> Refer to: http://lwn.net/Articles/302043/
+> 
+Threaded irq conversion would be better to handle as a separate patch
+as it does different thing than this patch.
 
+-- 
+Jarkko
