@@ -1,76 +1,66 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCHv3 18/22] OMAP3: PM: Optional reset of voltage during
- Smartreflex disable.
-Date: Wed, 5 May 2010 16:33:18 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322BA9749@dbde02.ent.ti.com>
-References: <1271408597-3066-1-git-send-email-thara@ti.com>
-	<1271408597-3066-2-git-send-email-thara@ti.com>
-	<1271408597-3066-3-git-send-email-thara@ti.com>
-	<1271408597-3066-4-git-send-email-thara@ti.com>
-	<1271408597-3066-5-git-send-email-thara@ti.com>
-	<1271408597-3066-6-git-send-email-thara@ti.com>
-	<1271408597-3066-7-git-send-email-thara@ti.com>
-	<1271408597-3066-8-git-send-email-thara@ti.com>
-	<1271408597-3066-9-git-send-email-thara@ti.com>
-	<1271408597-3066-10-git-send-email-thara@ti.com>
-	<1271408597-3066-11-git-send-email-thara@ti.com>
-	<1271408597-3066-12-git-send-email-thara@ti.com>
-	<1271408597-3066-13-git-send-email-thara@ti.com>
-	<1271408597-3066-14-git-send-email-thara@ti.com>
-	<1271408597-3066-15-git-send-email-thara@ti.com>
-	<1271408597-3066-16-git-send-email-thara@ti.com>
-	<1271408597-3066-17-git-send-email-thara@ti.com>
-	<1271408597-3066-18-git-send-email-thara@ti.com>
-	<1271408597-3066-19-git-send-email-thara@ti.com>
- <87vdbchfmn.fsf@deeprootsystems.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 1/2] ARM: McBSP: Fix request for irq in OMAP4
+Date: Wed, 5 May 2010 16:41:27 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C52D1781@dbde02.ent.ti.com>
+References: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
+	<1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
+ <20100505132951.48eda979.jhnikula@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56438 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753024Ab0EELDW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 07:03:22 -0400
-In-Reply-To: <87vdbchfmn.fsf@deeprootsystems.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46836 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752282Ab0EELLd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 07:11:33 -0400
+In-Reply-To: <20100505132951.48eda979.jhnikula@gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Jarkko Nikula <jhnikula@gmail.com>, "Candelaria Villarreal, Jorge" <jorge.candelaria@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Jarkko
+> Nikula
+> Sent: Wednesday, May 05, 2010 4:00 PM
+> To: Candelaria Villarreal, Jorge
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 1/2] ARM: McBSP: Fix request for irq in OMAP4
+> 
+> On Tue,  4 May 2010 18:37:49 -0500
+> Jorge Eduardo Candelaria <jorge.candelaria@ti.com> wrote:
+> 
+> > In OMAP4, there is only one irq line for TX and RX paths. Use
+> > the correct irq line to avoid errors at runtime.
+> >
+> > Also, request irq line only once (instead of requesting for TX
+> > and RX).
+> >
+> 
+> > Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/mcbsp.c |   12 ++++--------
+> >  arch/arm/plat-omap/mcbsp.c  |   20 ++++++++++++--------
+> >  2 files changed, 16 insertions(+), 16 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+> > index 2f3cad6..6b550ec 100644
+> > --- a/arch/arm/mach-omap2/mcbsp.c
+> > +++ b/arch/arm/mach-omap2/mcbsp.c
+> > @@ -187,32 +187,28 @@ static struct omap_mcbsp_platform_data omap44xx_mcbsp_pdata[] = {
+> >  		.phys_base      = OMAP44XX_MCBSP1_BASE,
+> >  		.dma_rx_sync    = OMAP44XX_DMA_MCBSP1_RX,
+> >  		.dma_tx_sync    = OMAP44XX_DMA_MCBSP1_TX,
+> > -		.rx_irq         = INT_24XX_MCBSP1_IRQ_RX,
+> > -		.tx_irq         = INT_24XX_MCBSP1_IRQ_TX,
+> > +		.tx_irq         = INT_44XX_MCBSP1_IRQ,
+> >  		.ops            = &omap2_mcbsp_ops,
+> >  	},
+> 
+> These INT_44XX_MCBSPx appears to be undefined. Commit
+> 5772ca7d7897722e7ed4c476bafee0b07bd9193e is removing them and I don't
+> find are there somewhere a patch adding them to irqs-44xx.h.
 
-
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Wednesday, April 28, 2010 12:45 AM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy, Vishwanath; Sawant, Anand
->>Subject: Re: [PATCHv3 18/22] OMAP3: PM: Optional reset of voltage during Smartreflex disable.
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>> Currently whenever smartreflex is disabled the voltage for the
->>> particular VDD is reset to the non-smartreflex compensated level.
->>> This step is unnecessary during dvfs because anyways in the next couple
->>> of steps before re-enabling smartreflex , the voltage level is changed.
->>>
->>> This patch adds the flexibility in the smartreflex framework for the user
->>> to specify whether or not a voltage reset is required after disabling
->>> of smartrefelx. The smartreflex driver just passes on this info
->>> to the smartreflex class driver, which ultimately takes the
->>> decision to reset the voltage or not.
->>>
->>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>
->>I don't think this option should be a decision made for each call to
->>omap_smartreflex_[en|dis]able().  Rather it should be an init time
->>option.
-Hello Kevin,
-
-Why do you say this? Anytime we do a disable of smartreflex auto compensation  from user space we need a reset of the voltage is required. During dvfs during smartreflex disable a reset of the voltage is not required. And in both these scenarios it is the same class API that gets called. So the only way for the API to know whether to reset the voltage or not is through this parameter. Also IMHO keeping it parameter based allows more flexibility in the framework for voltage reset. 
-
-Regards
-Thara
-
->>
->>Kevin
+Name isn't right here. Should be "OMAP44XX_IRQ_MCBSP1" defined
+in " arch/arm/plat-omap/include/plat/irqs-44xx.h"
