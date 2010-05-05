@@ -1,100 +1,37 @@
-From: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP4: Add support for omap4 in McBSP driver
-Date: Tue,  4 May 2010 18:37:50 -0500
-Message-ID: <1273016270-31452-3-git-send-email-jorge.candelaria@ti.com>
-References: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
- <1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
+From: "Liu Tai Ling" <liu@live.co.uk>
+Subject: Good Day
+Date: Tue, 4 May 2010 20:27:12 -0500 (CDT)
+Message-ID: <05b4a4ca18daa235c0c32a2ec7a4777d.squirrel@mail.fpunet.com>
+Reply-To: liutai1@yahoo.com.hk
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34153 "EHLO comal.ext.ti.com"
+Received: from mail.fpunet.com ([65.5.48.7]:44901 "EHLO mail.fpunet.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756254Ab0EDXsg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 May 2010 19:48:36 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o44NmZ3Y028484
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 4 May 2010 18:48:35 -0500
-In-Reply-To: <1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
+	id S1756486Ab0EEBeZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 May 2010 21:34:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>, Margarita Olaya Cabrera <magi.olaya@ti.com>
 
-McBSP module in OMAP4 needs to be able to set its tx/rx threshold
-and enable the transmitter/receiver when starting an audio stream.
 
-Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Signed-off-by: Margarita Olaya Cabrera <magi.olaya@ti.com>
----
- arch/arm/plat-omap/mcbsp.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 6e9660d..ea0c364 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -489,7 +489,7 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
- {
- 	struct omap_mcbsp *mcbsp;
- 
--	if (!cpu_is_omap34xx())
-+	if (!cpu_is_omap34xx() && !cpu_is_omap44xx())
- 		return;
- 
- 	if (!omap_mcbsp_check_valid_id(id)) {
-@@ -511,7 +511,7 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
- {
- 	struct omap_mcbsp *mcbsp;
- 
--	if (!cpu_is_omap34xx())
-+	if (!cpu_is_omap34xx() && !cpu_is_omap44xx())
- 		return;
- 
- 	if (!omap_mcbsp_check_valid_id(id)) {
-@@ -587,7 +587,7 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
- 	 * Enable wakup behavior, smart idle and all wakeups
- 	 * REVISIT: some wakeups may be unnecessary
- 	 */
--	if (cpu_is_omap34xx()) {
-+	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
- 		u16 syscon;
- 
- 		syscon = MCBSP_READ(mcbsp, SYSCON);
-@@ -610,7 +610,7 @@ static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
- 	/*
- 	 * Disable wakup behavior, smart idle and all wakeups
- 	 */
--	if (cpu_is_omap34xx()) {
-+	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
- 		u16 syscon;
- 
- 		syscon = MCBSP_READ(mcbsp, SYSCON);
-@@ -859,7 +859,7 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
- 		MCBSP_WRITE(mcbsp, SPCR2, w | (1 << 7));
- 	}
- 
--	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-+	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
- 		/* Release the transmitter and receiver */
- 		w = MCBSP_READ_CACHE(mcbsp, XCCR);
- 		w &= ~(tx ? XDISABLE : 0);
-@@ -889,7 +889,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
- 
- 	/* Reset transmitter */
- 	tx &= 1;
--	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-+	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
- 		w = MCBSP_READ_CACHE(mcbsp, XCCR);
- 		w |= (tx ? XDISABLE : 0);
- 		MCBSP_WRITE(mcbsp, XCCR, w);
-@@ -899,7 +899,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
- 
- 	/* Reset receiver */
- 	rx &= 1;
--	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-+	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx) {
- 		w = MCBSP_READ_CACHE(mcbsp, RCCR);
- 		w |= (rx ? RDISABLE : 0);
- 		MCBSP_WRITE(mcbsp, RCCR, w);
--- 
-1.6.3.3
+
+Good Day,
+
+I have a Business Proposal of $21,300,000.00 for you to handle with me
+from my
+bank. I need to know if you will be able to handle this with me, if you
+agree to work with me please send me the below details via my email
+address: {liutai1@yahoo.com.hk}
+
+1,Full names,
+2,occupation,
+3,private phone number,
+4,current residential address.
+
+Your earliest response to this letter will be appreciated.
+
+Kind Regards,
+Liu Tai Ling
 
