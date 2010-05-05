@@ -1,60 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/3] OMAP4: SPI: Fix Driver Kconfig
-Date: Wed, 5 May 2010 10:21:13 -0700
-Message-ID: <20100505172113.GY29604@atomide.com>
-References: <27F9C60D11D683428E133F85D2BB4A53043DEEB8C0@dlee03.ent.ti.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH v8 2/2] omap hsmmc: adaptation of sdma descriptor autoloading feature
+Date: Wed, 5 May 2010 12:21:09 -0500
+Message-ID: <003901caec77$5a69d8b0$544ff780@am.dhcp.ti.com>
+References: <w2y618f0c911004291035qfec16290re9e236ae1e13a970@mail.gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C52D16D2@dbde02.ent.ti.com> <v2i618f0c911005050919m600f069ex34ba1175315cde5a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63248 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750980Ab0EERVO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 13:21:14 -0400
-Content-Disposition: inline
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53043DEEB8C0@dlee03.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <v2i618f0c911005050919m600f069ex34ba1175315cde5a@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: 'Venkatraman S' <svenkatr@ti.com>, "'Shilimkar, Santosh'" <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, 'Adrian Hunter' <adrian.hunter@nokia.com>, "'Kadiyala, Kishore'" <kishore.kadiyala@ti.com>, 'Tony Lindgren' <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Arce, Abraham" <x0066660@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>
 
-* Arce, Abraham <x0066660@ti.com> [100505 00:05]:
-> From: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> 
-> Add OMAP4 data to allow McSPI driver built
-> 
-> Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> Signed-off-by: Shubhro <a0393217@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh shilimkar@ti.com>
-> Signed-off-by: Abraham Arce <x0066660@ti.com>
-> ---
->  drivers/spi/Kconfig |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
-> index a191fa2..f950b63 100644
-> --- a/drivers/spi/Kconfig
-> +++ b/drivers/spi/Kconfig
-> @@ -180,10 +180,10 @@ config SPI_OMAP_UWIRE
->  	  This hooks up to the MicroWire controller on OMAP1 chips.
->  
->  config SPI_OMAP24XX
-> -	tristate "McSPI driver for OMAP24xx/OMAP34xx"
-> -	depends on ARCH_OMAP2 || ARCH_OMAP3
-> +	tristate "McSPI driver for OMAP"
-> +	depends on ARCH_OMAP2PLUS
->  	help
-> -	  SPI master controller for OMAP24xx/OMAP34xx Multichannel SPI
-> +	  SPI master controller for OMAP24XX and later Multichannel SPI
->  	  (McSPI) modules.
->  
->  config SPI_OMAP_100K
+<snip>
 
-Planning on merging this via omap tree so we get the omap4 Ethernet
-working. That is after the related patch has been updated to check
-the result from gpio_request.
+> >> + =A0 =A0 if (cpu_is_omap44xx() || cpu_is_omap3630()) {
+> > Can we avoid above by passing this part of platform data??
+> > devices.c
+>=20
+> I am not clear about the method. The board files export the
+> omap_mmc_platform_data.
+> Does it imply that all board files have to change and export
+> the capability so that it can be queried ?
+>=20
 
-Anybody from the spi list care to ack this?
+I don=92t see why this capability needs to be passed from the platform =
+data.
+As this feature is dependant on omap it is okay to have a cpu check in =
+the
+driver as the patch is doing it.
 
-Regards,
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 host->dma_ctrl_buf =3D dma_alloc_coheren=
+t(NULL,
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 DMA_CTRL_BUF_SIZE,
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 &host->dma_ctrl_buf_phy,
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 0);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (host->dma_ctrl_buf !=3D NULL)
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 host->dma_caps |=3D DMA_=
+TYPE_SDMA_DLOAD;
+> >> + =A0 =A0 }
+> >> +
+> >> =A0 =A0 =A0 /* Since we do only SG emulation, we can have as many =
+segs
+> >> =A0 =A0 =A0 =A0* as we want. */
+> > Not your patch but above commenting style isn't right
+> OK
 
-Tony
