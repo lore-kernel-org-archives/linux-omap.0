@@ -1,7 +1,7 @@
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Subject: [PATCH v3 15/21] OMAP: DSS2: Add Nokia DSI command mode panel configuration struct
-Date: Wed,  5 May 2010 17:27:35 +0300
-Message-ID: <4f2a95d67d2b8004f4a2055681690920ebeb8e8f.1273067195.git.ext-jani.1.nikula@nokia.com>
+Subject: [PATCH v3 10/21] OMAP: DSS2: Taal: Change DSI bus locking to avoid deadlock in ESD work
+Date: Wed,  5 May 2010 17:27:30 +0300
+Message-ID: <adb61d94ee2a25284f6bd3f55ec4213501cbe8e3.1273067195.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
  <e28a022b7d3a53dbdf3f1329119b1de300d08c6b.1273067195.git.ext-jani.1.nikula@nokia.com>
  <1dfb7728d4d3ba8ceff808563e5a9f4c40aa3e9f.1273067195.git.ext-jani.1.nikula@nokia.com>
@@ -12,17 +12,12 @@ References: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
  <16a98ca1b45ba9b9bb30f23d242449c1d440df07.1273067195.git.ext-jani.1.nikula@nokia.com>
  <aa1e310d0d385db39b5d53ba4d3dcf02b7e2f47f.1273067195.git.ext-jani.1.nikula@nokia.com>
  <0cfff2a3cbb4231b41b382caf8aab7c52f47b0d5.1273067195.git.ext-jani.1.nikula@nokia.com>
- <adb61d94ee2a25284f6bd3f55ec4213501cbe8e3.1273067195.git.ext-jani.1.nikula@nokia.com>
- <4cb510ffbc3216e2a7dac16edaff5fb1980b3315.1273067195.git.ext-jani.1.nikula@nokia.com>
- <8665676eca5bbd3be35b63f7110f629e94a6babe.1273067195.git.ext-jani.1.nikula@nokia.com>
- <a4e7d90e0f036e227a29d94e28b7036c2f9d419b.1273067195.git.ext-jani.1.nikula@nokia.com>
- <ca7ff2e5a165ca8488190520f1f75e6e37642d3b.1273067195.git.ext-jani.1.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34150 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:34117 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932540Ab0EEO2U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 10:28:20 -0400
-In-Reply-To: <ca7ff2e5a165ca8488190520f1f75e6e37642d3b.1273067195.git.ext-jani.1.nikula@nokia.com>
+	with ESMTP id S934716Ab0EEO2D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 10:28:03 -0400
+In-Reply-To: <0cfff2a3cbb4231b41b382caf8aab7c52f47b0d5.1273067195.git.ext-jani.1.nikula@nokia.com>
 In-Reply-To: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -32,53 +27,116 @@ Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, ext-jani.1.nikula@n
 
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-Introduce a configuration struct for platform/board specific information
-of Nokia DSI command mode panels, to be used in addition to struct
-omap_dss_device (passed via the 'void *data' member).
+Move dsi_bus_lock/unlock() out of taal_power_on/off() to avoid deadlock
+in taal_esd_work().
 
 Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
 ---
- arch/arm/plat-omap/include/plat/nokia-dsi-panel.h |   31 +++++++++++++++++++++
- 1 files changed, 31 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
+ drivers/video/omap2/displays/panel-taal.c |   29 +++++++++++++++++++----------
+ 1 files changed, 19 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/nokia-dsi-panel.h b/arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
-new file mode 100644
-index 0000000..01ab657
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
-@@ -0,0 +1,31 @@
-+#ifndef __ARCH_ARM_PLAT_OMAP_NOKIA_DSI_PANEL_H
-+#define __ARCH_ARM_PLAT_OMAP_NOKIA_DSI_PANEL_H
+diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+index 214d3cf..af159c1 100644
+--- a/drivers/video/omap2/displays/panel-taal.c
++++ b/drivers/video/omap2/displays/panel-taal.c
+@@ -672,8 +672,6 @@ static int taal_power_on(struct omap_dss_device *dssdev)
+ 	/* it seems we have to wait a bit until taal is ready */
+ 	msleep(5);
+ 
+-	dsi_bus_lock();
+-
+ 	r = omapdss_dsi_display_enable(dssdev);
+ 	if (r) {
+ 		dev_err(&dssdev->dev, "failed to enable DSI\n");
+@@ -744,8 +742,6 @@ static int taal_power_on(struct omap_dss_device *dssdev)
+ 
+ 	omapdss_dsi_vc_enable_hs(TCH, true);
+ 
+-	dsi_bus_unlock();
+-
+ 	return 0;
+ err:
+ 	dev_err(&dssdev->dev, "error while enabling panel, issuing HW reset\n");
+@@ -754,8 +750,6 @@ err:
+ 
+ 	omapdss_dsi_display_disable(dssdev);
+ err0:
+-	dsi_bus_unlock();
+-
+ 	return r;
+ }
+ 
+@@ -764,8 +758,6 @@ static void taal_power_off(struct omap_dss_device *dssdev)
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+ 	int r;
+ 
+-	dsi_bus_lock();
+-
+ 	cancel_delayed_work(&td->esd_work);
+ 
+ 	r = taal_dcs_write_0(DCS_DISPLAY_OFF);
+@@ -784,8 +776,6 @@ static void taal_power_off(struct omap_dss_device *dssdev)
+ 	omapdss_dsi_display_disable(dssdev);
+ 
+ 	td->enabled = 0;
+-
+-	dsi_bus_unlock();
+ }
+ 
+ static int taal_enable(struct omap_dss_device *dssdev)
+@@ -802,7 +792,12 @@ static int taal_enable(struct omap_dss_device *dssdev)
+ 		goto err;
+ 	}
+ 
++	dsi_bus_lock();
 +
-+#include "display.h"
+ 	r = taal_power_on(dssdev);
 +
-+/**
-+ * struct nokia_dsi_panel_data - Nokia DSI panel driver configuration
-+ * @name: panel name
-+ * @use_ext_te: use external TE
-+ * @ext_te_gpio: external TE GPIO
-+ * @use_esd_check: perform ESD checks
-+ * @max_backlight_level: maximum backlight level
-+ * @set_backlight: pointer to backlight set function
-+ * @get_backlight: pointer to backlight get function
-+ */
-+struct nokia_dsi_panel_data {
-+	const char *name;
++	dsi_bus_unlock();
 +
-+	int reset_gpio;
+ 	if (r)
+ 		goto err;
+ 
+@@ -825,9 +820,13 @@ static void taal_disable(struct omap_dss_device *dssdev)
+ 
+ 	mutex_lock(&td->lock);
+ 
++	dsi_bus_lock();
 +
-+	bool use_ext_te;
-+	int ext_te_gpio;
+ 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
+ 		taal_power_off(dssdev);
+ 
++	dsi_bus_unlock();
 +
-+	bool use_esd_check;
+ 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+ 
+ 	mutex_unlock(&td->lock);
+@@ -847,7 +846,12 @@ static int taal_suspend(struct omap_dss_device *dssdev)
+ 		goto err;
+ 	}
+ 
++	dsi_bus_lock();
 +
-+	int max_backlight_level;
-+	int (*set_backlight)(struct omap_dss_device *dssdev, int level);
-+	int (*get_backlight)(struct omap_dss_device *dssdev);
-+};
+ 	taal_power_off(dssdev);
 +
-+#endif /* __ARCH_ARM_PLAT_OMAP_NOKIA_DSI_PANEL_H */
++	dsi_bus_unlock();
++
+ 	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
+ 
+ 	mutex_unlock(&td->lock);
+@@ -872,7 +876,12 @@ static int taal_resume(struct omap_dss_device *dssdev)
+ 		goto err;
+ 	}
+ 
++	dsi_bus_lock();
++
+ 	r = taal_power_on(dssdev);
++
++	dsi_bus_unlock();
++
+ 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+ 
+ 	mutex_unlock(&td->lock);
 -- 
 1.6.5.2
 
