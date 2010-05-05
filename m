@@ -1,52 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] omap: rx51: Add supplies for the tlv320aic3x codec
- driver
-Date: Wed, 5 May 2010 14:11:41 -0700
-Message-ID: <20100505211140.GF29604@atomide.com>
-References: <1272902176-21033-1-git-send-email-jhnikula@gmail.com>
- <1272902176-21033-3-git-send-email-jhnikula@gmail.com>
- <20100505172011.c57044f0.jhnikula@gmail.com>
- <20100505142513.GA11441@sirena.org.uk>
- <20100505151539.GU29604@atomide.com>
- <20100505214158.0605f710.jhnikula@gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/2] ARM: McBSP: Fix request for irq in OMAP4
+Date: Wed, 05 May 2010 14:16:52 -0700
+Message-ID: <87zl0e3v7f.fsf@deeprootsystems.com>
+References: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
+	<1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52714 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757885Ab0EEVLn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 17:11:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20100505214158.0605f710.jhnikula@gmail.com>
+Received: from mail-pz0-f204.google.com ([209.85.222.204]:43416 "EHLO
+	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755595Ab0EEVQz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 17:16:55 -0400
+Received: by pzk42 with SMTP id 42so1641230pzk.4
+        for <linux-omap@vger.kernel.org>; Wed, 05 May 2010 14:16:55 -0700 (PDT)
+In-Reply-To: <1273016270-31452-2-git-send-email-jorge.candelaria@ti.com> (Jorge Eduardo Candelaria's message of "Tue\,  4 May 2010 18\:37\:49 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Jarkko Nikula <jhnikula@gmail.com> [100505 11:35]:
-> On Wed, 5 May 2010 08:15:39 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > * Mark Brown <broonie@opensource.wolfsonmicro.com> [100505 07:20]:
-> > > Seems sensible to merge this along with the CODEC driver patch it
-> > > depends on if everyone else is happy (assuming no merge issues)?
-> > 
-> > Sounds good to me. I'll take the other ones, if there are merge issues
-> > then we can move some of the other patches into your tree too.
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> I would rather keep the board-rx51-peripherals.c in linux-omap sync
-> than get the N900 audio working as soon as possible :-)
-> 
-> None of these patches are build or boot critical so I can wait & repost
-> the last one when the codec patches hit into mainline.
-> 
-> Only harm from some missing board-rx51-peripherals.c patch is that
-> codec either doesn't probe or is kept in reset but system boots up
-> fine. And trees are clean too!
+Jorge Eduardo Candelaria <jorge.candelaria@ti.com> writes:
 
-OK, fine with me.
+> In OMAP4, there is only one irq line for TX and RX paths. Use
+> the correct irq line to avoid errors at runtime.
+>
+> Also, request irq line only once (instead of requesting for TX
+> and RX).
+>
+> Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+> ---
+>  arch/arm/mach-omap2/mcbsp.c |   12 ++++--------
+>  arch/arm/plat-omap/mcbsp.c  |   20 ++++++++++++--------
+>  2 files changed, 16 insertions(+), 16 deletions(-)
+>
 
-Tony
+[...]
 
+> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+> index e1d0440..6e9660d 100644
+> --- a/arch/arm/plat-omap/mcbsp.c
+> +++ b/arch/arm/plat-omap/mcbsp.c
+> @@ -724,14 +724,17 @@ int omap_mcbsp_request(unsigned int id)
+>  			goto err_clk_disable;
+>  		}
+>  
+> -		init_completion(&mcbsp->rx_irq_completion);
+> -		err = request_irq(mcbsp->rx_irq, omap_mcbsp_rx_irq_handler,
+> +		if (!cpu_is_omap44xx) {
+
+Instead of cpu_is* here, just use 'if (mcbsp->rx_irq)' which will
+be more portable in other cases of no RX IRQ.
+
+> +			init_completion(&mcbsp->rx_irq_completion);
+> +			err = request_irq(mcbsp->rx_irq,
+> +					omap_mcbsp_rx_irq_handler,
+>  					0, "McBSP", (void *)mcbsp);
+> -		if (err != 0) {
+> -			dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
+> -					"for McBSP%d\n", mcbsp->rx_irq,
+> -					mcbsp->id);
+> -			goto err_free_irq;
+> +			if (err != 0) {
+> +				dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
+> +						"for McBSP%d\n", mcbsp->rx_irq,
+> +						mcbsp->id);
+> +				goto err_free_irq;
+> +			}
+>  		}
+>  	}
+>  
+> @@ -781,7 +784,8 @@ void omap_mcbsp_free(unsigned int id)
+>  
+>  	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
+>  		/* Free IRQs */
+> -		free_irq(mcbsp->rx_irq, (void *)mcbsp);
+> +		if (!cpu_is_omap44xx())
+
+here too
+
+> +			free_irq(mcbsp->rx_irq, (void *)mcbsp);
+>  		free_irq(mcbsp->tx_irq, (void *)mcbsp);
+>  	}
+>  
+
+Kevin
