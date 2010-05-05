@@ -1,39 +1,41 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [CBUS PATCH 1/1] CBUS: Fix broken compilation
-Date: Wed, 5 May 2010 21:38:55 +0300
-Message-ID: <20100505183854.GE2274@gandalf>
-References: <1272736870-5216-1-git-send-email-felipe.balbi@nokia.com>
- <1273071929-17708-1-git-send-email-carlos.chinea@nokia.com>
-Reply-To: me@felipebalbi.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv4 0/2] omap-sham: OMAP SHA1/MD5 driver
+Date: Wed, 5 May 2010 11:38:50 -0700
+Message-ID: <20100505183849.GB29604@atomide.com>
+References: <cover.1272464135.git.dmitry.kasatkin@nokia.com>
+ <20100503031139.GA31376@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:58725 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753576Ab0EESiO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 14:38:14 -0400
+Return-path: <linux-crypto-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1273071929-17708-1-git-send-email-carlos.chinea@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20100503031139.GA31376@gondor.apana.org.au>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>, linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: tony@atomide.com, felipe.balbi@nokia.com, linux-omap@vger.kernel.org
 
-On Wed, May 05, 2010 at 06:05:29PM +0300, Carlos Chinea wrote:
-> Include explicitly slab.h in:
-> 	drivers/cbus/cbus.c
-> 	drivers/cbus/retu-headset.c
-> 	drivers/cbus/retu-user.c
-> 	drivers/cbus/retu-wdt.c
-> 	drivers/cbus/tahvo-user.c
+* Herbert Xu <herbert@gondor.apana.org.au> [100502 20:07]:
+> On Wed, Apr 28, 2010 at 05:18:05PM +0300, Dmitry Kasatkin wrote:
+> > Changes to v4:
+> > - concurrent requests support via queue
+> > - hmac
+> > - shash support removed
+> > 
+> > Dmitry Kasatkin (2):
+> >   crypto: updates omap sham device related platform code
+> >   crypto: omap-sham - omap sha1 & md5 driver
 > 
-> Compile tested with n8x0_defconfig
-> 
-> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+> Both patches applied.  Thanks for all your hard work Dmitry!
 
-do you need to update your tree ? tony applied a patch from me already,
-or did I miss something else ? I'm sure I compile with n770_defconf and
-n8x0_defconfig.
+Just noticed that the first patch should be updated:
 
--- 
-balbi
+CONFIG_ARCH_OMAP2 instead of CONFIG_ARCH_OMAP24XX
+CONFIG_ARCH_OMAP3 instead of CONFIG_ARCH_OMAP34XX
+
+BTW, chances are that this part will conflict with other
+omap patches. But if that happens, we can move it to
+the omap for-next.
+
+Regards,
+
+Tony
