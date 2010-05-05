@@ -1,97 +1,55 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [CBUS PATCH 1/1] CBUS: Fix broken compilation
-Date: Wed,  5 May 2010 18:05:29 +0300
-Message-ID: <1273071929-17708-1-git-send-email-carlos.chinea@nokia.com>
-References: <1272736870-5216-1-git-send-email-felipe.balbi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Upcoming merge window and omap NAND patches
+Date: Wed, 5 May 2010 08:11:11 -0700
+Message-ID: <20100505151111.GT29604@atomide.com>
+References: <20100504220803.GN29604@atomide.com>
+ <1273034943.3702.19.camel@localhost>
+ <l2wce9ab5791005042311lf1c1a15fu891457f4e0863d6@mail.gmail.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030D7DEB6B@dbde02.ent.ti.com>
+ <4BE16AB8.7010308@compulab.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:25276 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934437Ab0EEPCw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 11:02:52 -0400
-In-Reply-To: <1272736870-5216-1-git-send-email-felipe.balbi@nokia.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54568 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760403Ab0EEPLV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 11:11:21 -0400
+Content-Disposition: inline
+In-Reply-To: <4BE16AB8.7010308@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, felipe.balbi@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, Vimal Singh <vimal.newwork@gmail.com>, "Artem.Bityutskiy@nokia.com" <Artem.Bityutskiy@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Steve Sakoman <sakoman@gmail.com>
 
-Include explicitly slab.h in:
-	drivers/cbus/cbus.c
-	drivers/cbus/retu-headset.c
-	drivers/cbus/retu-user.c
-	drivers/cbus/retu-wdt.c
-	drivers/cbus/tahvo-user.c
+* Mike Rapoport <mike@compulab.co.il> [100505 05:51]:
+> Ghorai,
+> 
+> Ghorai, Sukumar wrote:
+> >Tony,
+> >I understand your comment/input. And I will work on it.
 
-Compile tested with n8x0_defconfig
+Great, good to hear.
 
-Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
----
- drivers/cbus/cbus.c         |    1 +
- drivers/cbus/retu-headset.c |    1 +
- drivers/cbus/retu-user.c    |    1 +
- drivers/cbus/retu-wdt.c     |    1 +
- drivers/cbus/tahvo-user.c   |    1 +
- 5 files changed, 5 insertions(+), 0 deletions(-)
+> >All existing omap3 boards are using same old fashion. So let me see how many board I can test before post the patch. I will update this next week.
+> 
+> I'd be glad to test the patches on CM-T35 if you'd like to.
 
-diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
-index 00c3c32..2c74d6e 100644
---- a/drivers/cbus/cbus.c
-+++ b/drivers/cbus/cbus.c
-@@ -30,6 +30,7 @@
- #include <linux/spinlock.h>
- #include <linux/gpio.h>
- #include <linux/platform_device.h>
-+#include <linux/slab.h>
- 
- #include <asm/io.h>
- #include <asm/mach-types.h>
-diff --git a/drivers/cbus/retu-headset.c b/drivers/cbus/retu-headset.c
-index e798bc2..645679c 100644
---- a/drivers/cbus/retu-headset.c
-+++ b/drivers/cbus/retu-headset.c
-@@ -25,6 +25,7 @@
- #include <linux/delay.h>
- #include <linux/input.h>
- #include <linux/platform_device.h>
-+#include <linux/slab.h>
- 
- #include "retu.h"
- 
-diff --git a/drivers/cbus/retu-user.c b/drivers/cbus/retu-user.c
-index 0f35dc5..7bc97d4 100644
---- a/drivers/cbus/retu-user.c
-+++ b/drivers/cbus/retu-user.c
-@@ -33,6 +33,7 @@
- #include <linux/spinlock.h>
- #include <linux/sched.h>
- #include <linux/mutex.h>
-+#include <linux/slab.h>
- 
- #include <asm/uaccess.h>
- 
-diff --git a/drivers/cbus/retu-wdt.c b/drivers/cbus/retu-wdt.c
-index 35932dd..fda8b35 100644
---- a/drivers/cbus/retu-wdt.c
-+++ b/drivers/cbus/retu-wdt.c
-@@ -35,6 +35,7 @@
- #include <linux/platform_device.h>
- #include <linux/miscdevice.h>
- #include <linux/watchdog.h>
-+#include <linux/slab.h>
- 
- #include <asm/uaccess.h>
- 
-diff --git a/drivers/cbus/tahvo-user.c b/drivers/cbus/tahvo-user.c
-index c0e8daf..b28b015 100644
---- a/drivers/cbus/tahvo-user.c
-+++ b/drivers/cbus/tahvo-user.c
-@@ -33,6 +33,7 @@
- #include <linux/spinlock.h>
- #include <linux/sched.h>
- #include <linux/mutex.h>
-+#include <linux/slab.h>
- 
- #include <asm/uaccess.h>
- 
--- 
-1.5.6.5
+For this merge window how about just getting rid of OMAP34XX_GPMC_VIRT
+in the board-*.c files and move that to gpmc-nand.c?
 
+This may allow adding more board-*.c NAND files without
+having to patch all of them later on again.
+
+However, if there are more changes needed to all the board-*.c
+files for the NAND platform data, then let's just fix the existing
+ones first before adding new ones.
+
+After that, looks like most of the work is to move some of the
+GPMC functions from omap2.c to gpmc.c.
+
+Or should they rather be in gpmc-nand.c if they are only used
+with NAND connected to GPMC?
+
+Regards,
+
+Tony
