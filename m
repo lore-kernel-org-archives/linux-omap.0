@@ -1,66 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
-Date: Wed, 5 May 2010 11:27:27 -0700
-Message-ID: <20100505182727.GA29604@atomide.com>
-References: <2A3DCF3DA181AD40BDE86A3150B27B6B030D32D372@dbde02.ent.ti.com>
- <4BB51740.2060802@ti.com>
- <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
- <20100407114938.GF7153@atomide.com>
- <003801cad73e$86841df0$544ff780@am.dhcp.ti.com>
- <20100427182111.GE7225@atomide.com>
- <20100428192322.GG7225@atomide.com>
- <006801cae709$e136fe40$544ff780@am.dhcp.ti.com>
- <20100428194553.GH7225@atomide.com>
- <006f01cae886$38da6920$544ff780@am.dhcp.ti.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 2/2] usb: ehci-omap: fix Si version related programming
+Date: Wed, 5 May 2010 21:31:02 +0300
+Message-ID: <20100505183102.GA2274@gandalf>
+References: <1272959123-31362-1-git-send-email-ajay.gupta@ti.com>
+ <1272959123-31362-2-git-send-email-ajay.gupta@ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns1.siteground211.com ([209.62.36.12]:35066 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757852Ab0EESaX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 14:30:23 -0400
 Content-Disposition: inline
-In-Reply-To: <006f01cae886$38da6920$544ff780@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Nishanth Menon' <nm@ti.com>, "'Ghorai, Sukumar'" <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+In-Reply-To: <1272959123-31362-2-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
-* Madhusudhan <madhu.cr@ti.com> [100430 09:52]:
-> <snip>
-> 
-> > > >
-> > > > > Hmm, finally got around looking into this again. Looks like the mmc
-> > > > > is now working on my zoom3 with the current Linus' tree at commit
-> > > > > 7c6bd2010fced38444c9fd658f4c6ce61bd185bf. So I guess something that
-> > > > > we had in omap-fixes fixed this. Or maybe some fix for drivers/mmc?
-> > > > >
-> > > > > This is with the debug_ll patch applied:
-> > > > >
-> > > > > https://patchwork.kernel.org/patch/87532/
-> > > >
-> > > > For the microSD card, turns out the card I used was flakey. So
-> > > > that should explain some of the problems. I'm almost certain
-> > > > I tried with two different cards earlier though. In any case,
-> > > > let's assume the problem is only the eMMC.
-> > > >
-> > > Sorry, I did not get a complete picture. Your earlier email said that
-> > with
-> > > Linus tree eMMC on your Zoom3 is working. Is that correct?
-> > 
-> > Nope, now the microSD is working, eMMC is not working.
-> > 
-> > > IMHO, an omap level fix can not solve the problem with eMMC because as I
-> > can
-> > > see from the log you provided above that a 16G device is detected as 1G.
-> > > This is certainly due to the issue I mentioned earlier.
-> > 
-> > OK
-> 
-> This means that some production boards still have this issue with eMMC. So
-> my patch disables the support for MMC2 on zoom boards. Would you consider
-> that?
+On Tue, May 04, 2010 at 01:15:23PM +0530, Ajay Kumar Gupta wrote:
+> @@ -352,8 +352,8 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+>  		reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
+>  
+>  	/* Bypass the TLL module for PHY mode operation */
+> -	 if (omap_rev() <= OMAP3430_REV_ES2_1) {
+> -		dev_dbg(omap->dev, "OMAP3 ES version <= ES2.1 \n");
+> +	if (cpu_is_omap3430() && (omap_rev() <= OMAP3430_REV_ES2_1)) {
+> +		dev_dbg(omap->dev, "OMAP3 ES version <= ES2.1\n");
 
-But is it also broken on zoom2?
+this shouldn't be here. please pass down a flag through platform_data
+for such checks.
 
-And what about this "Simulate multi mmc card as one big" patch?
-
-Regards,
-
-Tony
+-- 
+balbi
