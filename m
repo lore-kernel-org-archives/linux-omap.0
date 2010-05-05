@@ -1,112 +1,82 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [CBUS PATCH 1/1] CBUS: Fix broken compilation
-Date: Wed, 5 May 2010 22:00:15 +0300
-Message-ID: <20100505190015.GB4960@nokia.com>
-References: <1272736870-5216-1-git-send-email-felipe.balbi@nokia.com>
- <1273071929-17708-1-git-send-email-carlos.chinea@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 00/18] omap platform data and board updates for 2.6.35 merge
+	window
+Date: Wed, 05 May 2010 12:32:25 -0700
+Message-ID: <20100505192957.21568.19569.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51099 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757717Ab0EETBE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 15:01:04 -0400
-Content-Disposition: inline
-In-Reply-To: <1273071929-17708-1-git-send-email-carlos.chinea@nokia.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55784 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758143Ab0EETca (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 15:32:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Chinea Carlos (Nokia-D/Helsinki)" <Carlos.Chinea@nokia.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-hi again,
+Hi all,
+
+Here are some omap patches for review. This series is pretty much
+all platform data and board init updates for omap1/2/3.
+
+The omap4 patches are still coming, but seem to need a bit more work.
+
+Regards,
+
+Tony
+
+---
+
+Ajay Kumar Gupta (1):
+      AM35x: fix UI card EHCI port and LCD dependency
+
+Janusz Krzysztofik (1):
+      omap1: amsdelta: defconfig updates
+
+Jarkko Nikula (3):
+      omap: rx51: Change the TWL4030 VMMC2 voltage constraints andsupply name
+      omap: rx51: Add i2c2 board_info with tlv320aic3x
+      omap: rx51: Add supplies for the tlv320aic3x codec driver
+
+Sriram (6):
+      can:ti_hecc: board specific hookup on AM3517EVM
+      can:ti_hecc: Enable CAN support on AM3517
+      AM35xx EMAC : define submodule offsets
+      AM35xx : Platform specific hookup for EMAC module
+      OMAP3 : clock data: Update name string for EMAC clocks
+      AM3517 defconfig update : enable EMAC support
+
+Steve Sakoman (1):
+      omap: Overo: Add support for second ethernet port
+
+Thomas Weber (2):
+      omap: Devkit8000: Add mux initialization
+      omap: Devkit8000: Update default configuration
+
+Vaibhav Hiremath (1):
+      OMAP2/3: Add V4L2 DSS driver support in device.c
+
+Viral Mehta (3):
+      omap2: Add I2C bus 1 initialisation for 2430sdp
+      omap2: Add OHCI USB platform init for 2430 SDP
+      omap2: select ARCH_OMAP_OTG for OMAP2430 SDP
 
 
-On Wed, May 05, 2010 at 05:05:29PM +0200, Chinea Carlos (Nokia-D/Helsinki) wrote:
->Include explicitly slab.h in:
->	drivers/cbus/cbus.c
->	drivers/cbus/retu-headset.c
->	drivers/cbus/retu-user.c
->	drivers/cbus/retu-wdt.c
->	drivers/cbus/tahvo-user.c
->
->Compile tested with n8x0_defconfig
->
->Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
-
-I see now the problem.
-
->---
-> drivers/cbus/cbus.c         |    1 +
-> drivers/cbus/retu-headset.c |    1 +
-> drivers/cbus/retu-user.c    |    1 +
-> drivers/cbus/retu-wdt.c     |    1 +
-> drivers/cbus/tahvo-user.c   |    1 +
-> 5 files changed, 5 insertions(+), 0 deletions(-)
->
->diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
->index 00c3c32..2c74d6e 100644
->--- a/drivers/cbus/cbus.c
->+++ b/drivers/cbus/cbus.c
->@@ -30,6 +30,7 @@
-> #include <linux/spinlock.h>
-> #include <linux/gpio.h>
-> #include <linux/platform_device.h>
->+#include <linux/slab.h>
-
-this is already included in line 32 of that file.
-
->diff --git a/drivers/cbus/retu-headset.c b/drivers/cbus/retu-headset.c
->index e798bc2..645679c 100644
->--- a/drivers/cbus/retu-headset.c
->+++ b/drivers/cbus/retu-headset.c
->@@ -25,6 +25,7 @@
-> #include <linux/delay.h>
-> #include <linux/input.h>
-> #include <linux/platform_device.h>
->+#include <linux/slab.h>
-
-already on line 25, right above #include <linux/delay.h>
-
->diff --git a/drivers/cbus/retu-user.c b/drivers/cbus/retu-user.c
->index 0f35dc5..7bc97d4 100644
->--- a/drivers/cbus/retu-user.c
->+++ b/drivers/cbus/retu-user.c
->@@ -33,6 +33,7 @@
-> #include <linux/spinlock.h>
-> #include <linux/sched.h>
-> #include <linux/mutex.h>
->+#include <linux/slab.h>
-
-already on line 26
-
->diff --git a/drivers/cbus/retu-wdt.c b/drivers/cbus/retu-wdt.c
->index 35932dd..fda8b35 100644
->--- a/drivers/cbus/retu-wdt.c
->+++ b/drivers/cbus/retu-wdt.c
->@@ -35,6 +35,7 @@
-> #include <linux/platform_device.h>
-> #include <linux/miscdevice.h>
-> #include <linux/watchdog.h>
->+#include <linux/slab.h>
-
-already on line 25
-
->diff --git a/drivers/cbus/tahvo-user.c b/drivers/cbus/tahvo-user.c
->index c0e8daf..b28b015 100644
->--- a/drivers/cbus/tahvo-user.c
->+++ b/drivers/cbus/tahvo-user.c
->@@ -33,6 +33,7 @@
-> #include <linux/spinlock.h>
-> #include <linux/sched.h>
-> #include <linux/mutex.h>
->+#include <linux/slab.h>
-
-already on line 26.
-
-NAK to this patch.
+ arch/arm/configs/am3517_evm_defconfig        |   92 ++++++++++++++-
+ arch/arm/configs/ams_delta_defconfig         |    9 +
+ arch/arm/configs/devkit8000_defconfig        |  157 +++++++++++++++-----------
+ arch/arm/mach-omap2/Kconfig                  |    1 
+ arch/arm/mach-omap2/board-2430sdp.c          |   21 +++
+ arch/arm/mach-omap2/board-am3517evm.c        |  146 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-devkit8000.c       |  155 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-overo.c            |   14 ++
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   77 +++++++++++--
+ arch/arm/mach-omap2/clock3xxx_data.c         |    4 -
+ arch/arm/mach-omap2/devices.c                |   28 +++++
+ arch/arm/mach-omap2/include/mach/am35xx.h    |   20 +++
+ 12 files changed, 632 insertions(+), 92 deletions(-)
 
 -- 
-balbi
-
-DefectiveByDesign.org
+Signature
