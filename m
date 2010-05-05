@@ -1,7 +1,7 @@
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Subject: [PATCH v3 19/21] OMAP: DSS2: Taal: Print panel name in addition to revision
-Date: Wed,  5 May 2010 17:27:39 +0300
-Message-ID: <5e7384699d72bad3865dc9604b18ad05775bfb27.1273067195.git.ext-jani.1.nikula@nokia.com>
+Subject: [PATCH v3 20/21] OMAP: DSS2: Taal: Add regulator configuration support
+Date: Wed,  5 May 2010 17:27:40 +0300
+Message-ID: <1b93af2daf403f2fe822469b71c12ea7eb1cc68a.1273067195.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
  <e28a022b7d3a53dbdf3f1329119b1de300d08c6b.1273067195.git.ext-jani.1.nikula@nokia.com>
  <1dfb7728d4d3ba8ceff808563e5a9f4c40aa3e9f.1273067195.git.ext-jani.1.nikula@nokia.com>
@@ -21,12 +21,13 @@ References: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
  <690ef5c45aee3fb87a40fa03039356f8238925dc.1273067195.git.ext-jani.1.nikula@nokia.com>
  <025c12267d4bd88e1f59d9e13aafec247fe3c730.1273067195.git.ext-jani.1.nikula@nokia.com>
  <e149b5cf7d3dbed1961e06dc82291412e3223101.1273067195.git.ext-jani.1.nikula@nokia.com>
+ <5e7384699d72bad3865dc9604b18ad05775bfb27.1273067195.git.ext-jani.1.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34144 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:34140 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932540Ab0EEO2R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 10:28:17 -0400
-In-Reply-To: <e149b5cf7d3dbed1961e06dc82291412e3223101.1273067195.git.ext-jani.1.nikula@nokia.com>
+	with ESMTP id S934836Ab0EEO2P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 10:28:15 -0400
+In-Reply-To: <5e7384699d72bad3865dc9604b18ad05775bfb27.1273067195.git.ext-jani.1.nikula@nokia.com>
 In-Reply-To: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
 References: <cover.1273067195.git.ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -36,29 +37,150 @@ Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, ext-jani.1.nikula@n
 
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-The driver will support other panels in addition to Taal, print also the
-name.
+Add support for configuring regulators in the panel specific
+configuration data.
 
 Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
 ---
- drivers/video/omap2/displays/panel-taal.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/omap2/displays/panel-taal.c |   83 +++++++++++++++++++++++++++++
+ 1 files changed, 83 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 9f40f32..b73cd12 100644
+index b73cd12..617723b 100644
 --- a/drivers/video/omap2/displays/panel-taal.c
 +++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -811,8 +811,8 @@ static int taal_power_on(struct omap_dss_device *dssdev)
- 	td->enabled = 1;
+@@ -30,6 +30,7 @@
+ #include <linux/gpio.h>
+ #include <linux/workqueue.h>
+ #include <linux/slab.h>
++#include <linux/regulator/consumer.h>
+ #include <linux/mutex.h>
  
- 	if (!td->intro_printed) {
--		dev_info(&dssdev->dev, "revision %02x.%02x.%02x\n",
--				id1, id2, id3);
-+		dev_info(&dssdev->dev, "%s panel revision %02x.%02x.%02x\n",
-+			td->panel_config->name, id1, id2, id3);
- 		if (td->cabc_broken)
- 			dev_info(&dssdev->dev,
- 					"old Taal version, CABC disabled\n");
+ #include <plat/display.h>
+@@ -68,6 +69,73 @@ static irqreturn_t taal_te_isr(int irq, void *data);
+ static void taal_te_timeout_work_callback(struct work_struct *work);
+ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable);
+ 
++struct panel_regulator {
++	struct regulator *regulator;
++	const char *name;
++	int min_uV;
++	int max_uV;
++};
++
++static void free_regulators(struct panel_regulator *regulators, int n)
++{
++	int i;
++
++	for (i = 0; i < n; i++) {
++		/* disable/put in reverse order */
++		regulator_disable(regulators[n - i - 1].regulator);
++		regulator_put(regulators[n - i - 1].regulator);
++	}
++}
++
++static int init_regulators(struct omap_dss_device *dssdev,
++			struct panel_regulator *regulators, int n)
++{
++	int r, i, v;
++
++	for (i = 0; i < n; i++) {
++		struct regulator *reg;
++
++		reg = regulator_get(&dssdev->dev, regulators[i].name);
++		if (IS_ERR(reg)) {
++			dev_err(&dssdev->dev, "failed to get regulator %s\n",
++				regulators[i].name);
++			r = PTR_ERR(reg);
++			goto err;
++		}
++
++		/* FIXME: better handling of fixed vs. variable regulators */
++		v = regulator_get_voltage(reg);
++		if (v < regulators[i].min_uV || v > regulators[i].max_uV) {
++			r = regulator_set_voltage(reg, regulators[i].min_uV,
++						regulators[i].max_uV);
++			if (r) {
++				dev_err(&dssdev->dev,
++					"failed to set regulator %s voltage\n",
++					regulators[i].name);
++				regulator_put(reg);
++				goto err;
++			}
++		}
++
++		r = regulator_enable(reg);
++		if (r) {
++			dev_err(&dssdev->dev, "failed to enable regulator %s\n",
++				regulators[i].name);
++			regulator_put(reg);
++			goto err;
++		}
++
++		regulators[i].regulator = reg;
++	}
++
++	return 0;
++
++err:
++	free_regulators(regulators, i);
++
++	return r;
++}
++
+ /**
+  * struct panel_config - panel configuration
+  * @name: panel name
+@@ -75,6 +143,8 @@ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable);
+  * @timings: panel resolution
+  * @sleep: various panel specific delays, passed to msleep() if non-zero
+  * @reset_sequence: reset sequence timings, passed to udelay() if non-zero
++ * @regulators: array of panel regulators
++ * @num_regulators: number of regulators in the array
+  */
+ struct panel_config {
+ 	const char *name;
+@@ -93,6 +163,9 @@ struct panel_config {
+ 		unsigned int high;
+ 		unsigned int low;
+ 	} reset_sequence;
++
++	struct panel_regulator *regulators;
++	int num_regulators;
+ };
+ 
+ enum {
+@@ -629,6 +702,11 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 
+ 	atomic_set(&td->do_update, 0);
+ 
++	r = init_regulators(dssdev, panel_config->regulators,
++			panel_config->num_regulators);
++	if (r)
++		goto err_reg;
++
+ 	td->esd_wq = create_singlethread_workqueue("taal_esd");
+ 	if (td->esd_wq == NULL) {
+ 		dev_err(&dssdev->dev, "can't create ESD workqueue\n");
+@@ -714,6 +792,8 @@ err_gpio:
+ err_bl:
+ 	destroy_workqueue(td->esd_wq);
+ err_wq:
++	free_regulators(panel_config->regulators, panel_config->num_regulators);
++err_reg:
+ 	kfree(td);
+ err:
+ 	return r;
+@@ -746,6 +826,9 @@ static void taal_remove(struct omap_dss_device *dssdev)
+ 	/* reset, to be sure that the panel is in a valid state */
+ 	taal_hw_reset(dssdev);
+ 
++	free_regulators(td->panel_config->regulators,
++			td->panel_config->num_regulators);
++
+ 	kfree(td);
+ }
+ 
 -- 
 1.6.5.2
 
