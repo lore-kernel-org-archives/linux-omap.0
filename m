@@ -1,40 +1,45 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] usb: musb: Update FIFO mode_5_cfg to accomodate 4K
-Date: Wed, 5 May 2010 21:32:46 +0300
-Message-ID: <20100505183245.GB2274@gandalf>
-References: <1272963722-8659-1-git-send-email-ajay.gupta@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0322BA91B3@dbde02.ent.ti.com>
+Subject: Re: [RFC/PATCHv2 1/4] gpiolib: introduce set_debounce method
+Date: Wed, 5 May 2010 21:37:41 +0300
+Message-ID: <20100505183741.GD2274@gandalf>
+References: <1270038435-28106-1-git-send-email-felipe.balbi@nokia.com>
+ <1270049712-28272-2-git-send-email-felipe.balbi@nokia.com>
+ <20100402123454.GD27613@sirena.org.uk>
+ <20100504224029.GP29604@atomide.com>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:35133 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:39915 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757697Ab0EEScF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 14:32:05 -0400
+	with ESMTP id S1753576Ab0EEShC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 14:37:02 -0400
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322BA91B3@dbde02.ent.ti.com>
+In-Reply-To: <20100504224029.GP29604@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <david-b@pacbell.net>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Tue, May 04, 2010 at 02:40:58PM +0530, Gadiyar, Anand wrote:
-> > FIFO table fifo_5_cfg was added so that it can be used as a
-> > workaround for OMAP34x/35x errata which limits the FIFO space
-> > uses to be within first 8K or next 8K.
+On Tue, May 04, 2010 at 03:40:30PM -0700, Tony Lindgren wrote:
+> * Mark Brown <broonie@opensource.wolfsonmicro.com> [100402 05:30]:
+> > On Wed, Mar 31, 2010 at 06:35:09PM +0300, Felipe Balbi wrote:
+> > > Few architectures, like OMAP, allow you to set
+> > > a debouncing time for the gpio before generating
+> > > the IRQ. Teach gpiolib about that.
+> > > 
+> > > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 > > 
-> > Updating this table to accomodate an endpoint of 4K so that
-> > the same table can be used for high bandwidth transfers as
-> > used by some USB cameras.
+> > This looks useful - for what it's worth
 > > 
+> > Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 > 
-> No issues with this patch as is, but it's probably high time we
-> made this fifo table something that the board files can pass down.
-> 
-> Is anyone already working on this, or should I give it a shot?
+> Ping, looks like this series is pretty close to being mergeable.
+> Felipe, care to repost one more time without RFC and with the
+> acks if you think you have updated version that's ready for
+> the upcoming merge window.
 
-I had sent a version of that to linux-usb@vger, will dig it and resend.
+will do it tomorrow, but it would be good to hear from Dave before.
 
 -- 
 balbi
