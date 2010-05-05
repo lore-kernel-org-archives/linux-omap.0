@@ -1,55 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Upcoming merge window and omap NAND patches
-Date: Wed, 5 May 2010 08:11:11 -0700
-Message-ID: <20100505151111.GT29604@atomide.com>
-References: <20100504220803.GN29604@atomide.com>
- <1273034943.3702.19.camel@localhost>
- <l2wce9ab5791005042311lf1c1a15fu891457f4e0863d6@mail.gmail.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B030D7DEB6B@dbde02.ent.ti.com>
- <4BE16AB8.7010308@compulab.co.il>
+Subject: Re: [PATCH 3/3] omap: rx51: Add supplies for the tlv320aic3x codec
+ driver
+Date: Wed, 5 May 2010 08:15:39 -0700
+Message-ID: <20100505151539.GU29604@atomide.com>
+References: <1272902176-21033-1-git-send-email-jhnikula@gmail.com>
+ <1272902176-21033-3-git-send-email-jhnikula@gmail.com>
+ <20100505172011.c57044f0.jhnikula@gmail.com>
+ <20100505142513.GA11441@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54568 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760403Ab0EEPLV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 11:11:21 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62029 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752555Ab0EEPPm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 11:15:42 -0400
 Content-Disposition: inline
-In-Reply-To: <4BE16AB8.7010308@compulab.co.il>
+In-Reply-To: <20100505142513.GA11441@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, Vimal Singh <vimal.newwork@gmail.com>, "Artem.Bityutskiy@nokia.com" <Artem.Bityutskiy@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Steve Sakoman <sakoman@gmail.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-* Mike Rapoport <mike@compulab.co.il> [100505 05:51]:
-> Ghorai,
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [100505 07:20]:
+> On Wed, May 05, 2010 at 05:20:11PM +0300, Jarkko Nikula wrote:
 > 
-> Ghorai, Sukumar wrote:
-> >Tony,
-> >I understand your comment/input. And I will work on it.
-
-Great, good to hear.
-
-> >All existing omap3 boards are using same old fashion. So let me see how many board I can test before post the patch. I will update this next week.
+> > I have one patch more to this set but it cannot be applied before this
+> > tlv320aic3x patch hits into mainline:
 > 
-> I'd be glad to test the patches on CM-T35 if you'd like to.
+> > http://mailman.alsa-project.org/pipermail/alsa-devel/2010-May/027408.html
+> 
+> Seems sensible to merge this along with the CODEC driver patch it
+> depends on if everyone else is happy (assuming no merge issues)?
 
-For this merge window how about just getting rid of OMAP34XX_GPMC_VIRT
-in the board-*.c files and move that to gpmc-nand.c?
+Sounds good to me. I'll take the other ones, if there are merge issues
+then we can move some of the other patches into your tree too.
 
-This may allow adding more board-*.c NAND files without
-having to patch all of them later on again.
-
-However, if there are more changes needed to all the board-*.c
-files for the NAND platform data, then let's just fix the existing
-ones first before adding new ones.
-
-After that, looks like most of the work is to move some of the
-GPMC functions from omap2.c to gpmc.c.
-
-Or should they rather be in gpmc-nand.c if they are only used
-with NAND connected to GPMC?
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
