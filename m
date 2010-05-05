@@ -1,59 +1,46 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PM][PATCH 4/4] OMAP3: Serial: kill dev_attr_sleep_timeout sparse warn
-Date: Wed, 05 May 2010 16:57:40 -0700
-Message-ID: <8739y5yk97.fsf@deeprootsystems.com>
-References: <1270749249-14041-1-git-send-email-nm@ti.com>
-	<1270749249-14041-2-git-send-email-nm@ti.com>
-	<1270749249-14041-3-git-send-email-nm@ti.com>
-	<1270749249-14041-4-git-send-email-nm@ti.com>
-	<1270749249-14041-5-git-send-email-nm@ti.com>
+Subject: Re: [PATCH] rwsem generic spinlock: use IRQ save/restore spinlocks
+Date: Wed, 05 May 2010 16:59:51 -0700
+Message-ID: <87vdb1x5l4.fsf@deeprootsystems.com>
+References: <1270749350-25152-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f189.google.com ([209.85.221.189]:45128 "EHLO
-	mail-qy0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753408Ab0EEX5q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 19:57:46 -0400
-Received: by qyk27 with SMTP id 27so11208069qyk.23
-        for <linux-omap@vger.kernel.org>; Wed, 05 May 2010 16:57:46 -0700 (PDT)
-In-Reply-To: <1270749249-14041-5-git-send-email-nm@ti.com> (Nishanth Menon's message of "Thu\,  8 Apr 2010 12\:54\:09 -0500")
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:62432 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753286Ab0EEX74 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 19:59:56 -0400
+Received: by vws12 with SMTP id 12so1531213vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 May 2010 16:59:55 -0700 (PDT)
+In-Reply-To: <1270749350-25152-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Thu\,  8 Apr 2010 10\:55\:50 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Govindraj R <govindraj.raja@ti.com>, Tero Kristo <tero.kristo@nokia.com>
+To: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> Remove the following sparse warnings by declaring attr as static:
-> arch/arm/mach-omap2/serial.c:627:1: warning: symbol 'dev_attr_sleep_timeout' was not declared. Should it be static?
+> rwsems can be used with IRQs disabled, particularily in early boot
+> before IRQs are enabled.  Currently the spin_unlock_irq() usage in the
+> slow-path will unconditionally enable interrupts and cause problems
+> early in boot where interrupts are not yet initialized or enabled.
 >
-> Cc: Govindraj R <govindraj.raja@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Tero Kristo <tero.kristo@nokia.com>
+> This patch uses save/restore versions of IRQ spinlocks in the slowpath
+> to ensure interrupts are not unintentionally enabled in the case where
+> the rwsem is used with IRQs disabled.
 >
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Idea for this fix suggested by H. Peter Anvin.
+>
+> Tested on TI OMAP3-based platform (ARM Cortex-A8)
+>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Rabin Vincent <rabin@rab.in>
+> Cc: H. Peter Anvin <hpa@zytor.com>
+> LKML-Reference: <alpine.LFD.2.00.1004010904540.3707@i5.linux-foundation.org>
+> Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
 
-Thanks, adding to pm-next, queing for 2.6.35.
+For the benefit of the l-o archives...
+
+This patch was merged into mainline in .34-rc6 and fixes potential
+deadlocks on boot, seen especially when using the SLUB allocator.
 
 Kevin
-
-> ---
->  arch/arm/mach-omap2/serial.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index c7b2326..cea0a9e 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -624,7 +624,8 @@ static ssize_t sleep_timeout_store(struct device *dev,
->  	return n;
->  }
->  
-> -DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show, sleep_timeout_store);
-> +static DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show,
-> +		sleep_timeout_store);
->  #define DEV_CREATE_FILE(dev, attr) WARN_ON(device_create_file(dev, attr))
->  #else
->  static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
-> -- 
-> 1.6.3.3
