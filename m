@@ -1,62 +1,156 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: Re: [PATCH] DSPBRIDGE: MMU-Fault debugging enhancements
-Date: Wed, 5 May 2010 14:58:02 +0300
-Message-ID: <20100505115802.GE4265@annwn.felipec.org>
-References: <496565EC904933469F292DDA3F1663E602CB04896F@dlee06.ent.ti.com>
- <x2y94a0d4531004300821v920d3240p5215a967c6c48759@mail.gmail.com>
- <C161915E2DD8304FAAE595A13B0A0948024AE50D98@dlee01.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v8 1/2] sDMA: descriptor autoloading feature
+Date: Wed, 5 May 2010 17:31:37 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C52D1806@dbde02.ent.ti.com>
+References: <l2i618f0c911004291035ja334efb0o5016c5cb70c4b5bc@mail.gmail.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02C52D16D1@dbde02.ent.ti.com>
+ <k2l618f0c911005050450t75968621m61e3ff39e90d20ad@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:55349 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752114Ab0EEL6T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 07:58:19 -0400
-Content-Disposition: inline
-In-Reply-To: <C161915E2DD8304FAAE595A13B0A0948024AE50D98@dlee01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59978 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932234Ab0EEMBr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 08:01:47 -0400
+In-Reply-To: <k2l618f0c911005050450t75968621m61e3ff39e90d20ad@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Ramos Falcon, Ernesto" <ernesto@ti.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-Hey Ernesto,
 
-On Fri, Apr 30, 2010 at 09:24:15PM +0200, ext Ramos Falcon, Ernesto wrote:
-> >This patch seems to be doing a lot of things. Couldn't it have been
-> >split?
-> >
-> >Also, from the commit message it seems to implement a new feature,
-> >however, I heard it's supposed to fix memory corruption too. Is that
-> >true? If that's the case the code that fixes that would have to be
-> >separate.
-> >
-> >I understand this patch was already pushed to dspbridge branch, but I
-> >think such important changes should be properly recorded in the
-> >history.
-> 
-> I agree important changes must be properly recorded but in this case
-> the patch introduces only one new feature and because of the way that
-> it is implemented using gpt8 overflow interrupt instead of mailbox to
-> inform about the MMU Fault, the problem of the memory corruption was
-> fixed indirectly, however these changes are part of the feature design
-> itself and I don't see the need to split this new feature.
 
-In general, logically independent changes should end up as separate
-patches. Many times it looks like a patch cannot be split further, but
-with a little bit of creativity it usually can.
-
-I can think of one patch that switches to gpt8 overflow, and another one
-that actually shows the extra information.
-
-Anyway, I ask because we found some issues with the latest commits of
-dspbridge, and I would like to isolate the memory corruption fix just to
-be safe.
-
-Also, from that description it looks like there might be still a problem
-in the mailbox that is hidded by this patch... so it's more like a
-workaround, not really a fix.
-
-Cheers.
-
--- 
-Felipe Contreras
+> -----Original Message-----
+> From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of Ven=
+katraman S
+> Sent: Wednesday, May 05, 2010 5:20 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org; linux-arm-=
+kernel@lists.infradead.org;
+> Chikkature Rajashekar, Madhusudhan; Adrian Hunter; Tony Lindgren
+> Subject: Re: [PATCH v8 1/2] sDMA: descriptor autoloading feature
+>=20
+> [Long sections have been trimmed to the context of the discussion]
+> On Wed, May 5, 2010 at 3:02 PM, Shilimkar, Santosh
+> <santosh.shilimkar@ti.com> wrote:
+> >> -----Original Message-----
+> >> +static int dma_sglist_set_phy_params(struct omap_dma_sglist_node =
+*sghead,
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 dma_addr_t phyaddr, int nelem)
+> >> +{
+> >> + =A0 =A0 struct omap_dma_sglist_node *sgcurr, *sgprev;
+> >> + =A0 =A0 dma_addr_t elem_paddr =3D phyaddr;
+> >> +
+> >> + =A0 =A0 for (sgprev =3D sghead;
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 sgprev < sghead + nelem;
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 sgprev++) {
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 sgcurr =3D sgprev + 1;
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 sgprev->next =3D sgcurr;
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 elem_paddr +=3D (int)sizeof(*sgcurr);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 sgprev->next_desc_add_ptr =3D elem_paddr=
+;
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 switch (sgcurr->desc_type) {
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1:
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dma_list_set_ntype(=
+sgprev, 1);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a:
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* intentional no break */
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b:
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dma_list_set_ntype(=
+sgprev, 2);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a:
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* intentional no break =
+*/
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b:
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dma_list_set_ntype(=
+sgprev, 3);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 default:
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 }
+> > Are we supporting all the descriptor types. I think only type2a is
+> > supported. In that case please add FIXME, or WARN message here.
+>=20
+> From DMA perspective, all are supported - no restrictions. Only I hav=
+e
+> not figured
+> out how to use type 2b and type 3b descriptors. It's not the fault of
+> DMA driver or
+> specification :-) It's actually upto the client to select the right t=
+ype.
+OK. Then the question which I wanted to ask.
+=46or TX, 2b should have been better choice than 2a isn't it?=20
+>=20
+> >> +
+> >> + =A0 =A0 lcfg->sghead =3D sgparams;
+> >> + =A0 =A0 lcfg->num_elem =3D nelem;
+> >> + =A0 =A0 lcfg->sgheadphy =3D padd;
+> >> + =A0 =A0 lcfg->pausenode =3D -1;
+> >> +
+> >> +
+> >> + =A0 =A0 if (NULL =3D=3D chparams)
+> > Minute point really. Better readability "ch_params"
+> OK
+>=20
+> >> + =A0 =A0 dma_write(l, CDP(lch));
+> >> + =A0 =A0 dma_write((lcfg->sgheadphy), CNDP(lch));
+> >> + =A0 =A0 /**
+> >> + =A0 =A0 =A0* Barrier needed as writes to the
+> >> + =A0 =A0 =A0* descriptor memory needs to be flushed
+> >> + =A0 =A0 =A0* before it's used by DMA controller
+> >> + =A0 =A0 =A0*/
+> > Little bit of re-wording if you can.
+> > Also you don't wanted the double **
+> > =A0 =A0 =A0 =A0/*
+> > =A0 =A0 =A0 =A0 * Memory barrier is needed because data may still b=
+e
+> > =A0 =A0 =A0 =A0 * in the write buffer. The barrier drains write buf=
+fers and
+> > =A0 =A0 =A0 =A0 * ensures that DMA sees correct descriptors
+> > =A0 =A0 =A0 =A0 */
+> OK
+>=20
+> >> + =A0 =A0 wmb();
+> >> + =A0 =A0 omap_start_dma(lch);
+> >> +
+> >> + =A0 =A0 /* Maintain the pause state in descriptor */
+> >> + =A0 =A0 omap_set_dma_sglist_pausebit(lcfg, lcfg->pausenode, 0);
+> >> + =A0 =A0 omap_set_dma_sglist_pausebit(lcfg, pauseafter, 1);
+> >> +
+> >> + =A0 =A0 /**
+> >> + =A0 =A0 =A0* Barrier needed as writes to the
+> >> + =A0 =A0 =A0* descriptor memory needs to be flushed
+> >> + =A0 =A0 =A0* before it's used by DMA controller
+> >> + =A0 =A0 =A0*/
+> > Description change if possible
+> OK
+>=20
+> >> + =A0 =A0 wmb();
+> >> +
+> >> + =A0 =A0 /* Errata i557 - pausebit should be cleared in no standb=
+y mode */
+> > This should have been
+>=20
+> I couldn't understand this comment.
+This should have been a separate patch since it's an errata.
+>=20
+> >> + =A0 =A0 sys_cf =3D dma_read(OCP_SYSCONFIG);
+> >> + =A0 =A0 l =3D sys_cf;
+> >> + =A0 =A0 /* Middle mode reg set no Standby */
+> >> + =A0 =A0 l &=3D ~(BIT(12) | BIT(13));
+> >> + =A0 =A0 dma_write(l, OCP_SYSCONFIG);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
