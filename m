@@ -1,78 +1,50 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: Upcoming merge window and omap NAND patches
-Date: Wed, 5 May 2010 11:41:39 +0530
-Message-ID: <l2wce9ab5791005042311lf1c1a15fu891457f4e0863d6@mail.gmail.com>
-References: <20100504220803.GN29604@atomide.com>
-	<1273034943.3702.19.camel@localhost>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: RE: [PATCH 2/4] OMAP4: SPI: Fix Driver Kconfig
+Date: Wed, 5 May 2010 01:24:32 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DEEB8B8@dlee03.ent.ti.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043DC15EBB@dlee03.ent.ti.com>
+ <20100504194833.GJ29604@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <1273034943.3702.19.camel@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Artem.Bityutskiy@nokia.com
-Cc: Tony Lindgren <tony@atomide.com>, Sukumar Ghorai <s-ghorai@ti.com>, Steve Sakoman <sakoman@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37346 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755218Ab0EEGYr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 02:24:47 -0400
+In-Reply-To: <20100504194833.GJ29604@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-On Wed, May 5, 2010 at 10:19 AM, Artem Bityutskiy
-<Artem.Bityutskiy@nokia.com> wrote:
-> On Wed, 2010-05-05 at 00:08 +0200, ext Tony Lindgren wrote:
->> Hi all,
->>
->> There are several omap NAND patches pending, but some basic things
->> should be fixed first.
->>
->> 1. The NAND driver needs to stop tinkering with the GPMC registers
->>
->> The omap General Purpose Memory Controller (GPMC) registers are omap
->> specific, and not driver specific. Tinkering with these registers
->> can cause issues with the other devices on the GPMC.
->>
->> To find out what needs to disappear fomr the NAND driver, just do:
->>
->> $ grep baseaddr drivers/mtd/nand/omap2.c
->>
->> Any GPMC register tinkering needs to happen in arch/arm/mach-omap2/gpmc.c.
->> If there are not currently GPMC functions to do something in gpmc.c, then
->> let's add the necessary support there.
->>
->> 2. Passing hardcoded GPMC_CS0_BASE needs to go from the board files
->>
->> Passing hardcoded GPMC virtual addressess is sure way to mess up
->> things. This should all become unnecessary once the NAND drivers
->> stops messing with the GPMC registers directly.
->>
->> So, as a result, I'm not planning on pushing any omap NAND related
->> patches until these basic issues are fixed. I'll mark these patches
->> as "Changes requested" in patchwork.kernel.org even if these patches
->> don't have anything else wrong with them.
->>
->> Let's fix the basic things for good, and put the other patches on
->> hold for a while. Sorry if this causes problems!
->
-> Hi,
->
-> fair enough. I guess Vimal should address this, as he seems to be the TI
-> mr. NAND, right? :-)
+Hi Tony,
 
-Hi All,
+> >  config SPI_OMAP24XX
+> > -	tristate "McSPI driver for OMAP24xx/OMAP34xx"
+> > -	depends on ARCH_OMAP2 || ARCH_OMAP3
+> > +	tristate "McSPI driver for OMAP24xx/OMAP34xx/OMAP44xx"
+> > +	depends on ARCH_OMAP24XX || ARCH_OMAP34XX || ARCH_OMAP4
+> >  	help
+> > -	  SPI master controller for OMAP24xx/OMAP34xx Multichannel SPI
+> > +	  SPI master controller for OMAP24xx/OMAP34xx/OMAP44xx Multichannel SPI
+> >  	  (McSPI) modules.
+> >
+> >  config SPI_OMAP_100K
+> 
+> You can simplify this and make it more future proof with something like:
+> 
+> config SPI_OMAP24XX
+> 	tristate "McSPI driver for OMAP"
+> 	depends on ARCH_OMAP2PLUS
+> 	help
+> 	  SPI master controller for OMAP24XX and later
 
-Sorry again. I am no more with TI and I don't have any board with me
-too. So, I'm unable to fix these.  :(
-I hope someone else from TI can take care of it.
+Changed as suggested...
 
--- 
-Regards,
-Vimal Singh
+ARCH_OMAP2PLUS
+"Systems based on omap24xx, omap34xx or omap44xx"
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Best Regards
+Abraham
