@@ -1,55 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/18] omap2: Add I2C bus 1 initialisation for 2430sdp
-Date: Wed, 05 May 2010 12:32:43 -0700
-Message-ID: <20100505193243.21568.16796.stgit@baageli.muru.com>
+Subject: [PATCH 01/18] OMAP2/3: Add V4L2 DSS driver support in device.c
+Date: Wed, 05 May 2010 12:32:32 -0700
+Message-ID: <20100505193232.21568.81543.stgit@baageli.muru.com>
 References: <20100505192957.21568.19569.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65513 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65357 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758267Ab0EETcn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 15:32:43 -0400
+	with ESMTP id S1758143Ab0EETch (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 15:32:37 -0400
 In-Reply-To: <20100505192957.21568.19569.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Viral Mehta <viral.mehta@lntinfotech.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-From: Viral Mehta <viral.mehta@lntinfotech.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Initialize isp1301 FS USB transceiver and
-add I2C bus1 initialization code for OMAP2430 SDP
-
-Signed-off-by: Viral Mehta <viral.mehta@lntinfotech.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/devices.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 01d113f..85f5f33 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -174,9 +174,18 @@ static struct i2c_board_info __initdata sdp2430_i2c_boardinfo[] = {
- 	},
- };
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 2271b9b..10f3a3c 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -786,6 +786,33 @@ static inline void omap_hdq_init(void)
+ static inline void omap_hdq_init(void) {}
+ #endif
  
-+static struct i2c_board_info __initdata sdp2430_i2c1_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("isp1301_omap", 0x2D),
-+		.flags = I2C_CLIENT_WAKE,
-+		.irq = OMAP_GPIO_IRQ(78),
-+	},
-+};
++/*---------------------------------------------------------------------------*/
 +
- static int __init omap2430_i2c_init(void)
- {
--	omap_register_i2c_bus(1, 400, NULL, 0);
-+	omap_register_i2c_bus(1, 100, sdp2430_i2c1_boardinfo,
-+			ARRAY_SIZE(sdp2430_i2c1_boardinfo));
- 	omap_register_i2c_bus(2, 2600, sdp2430_i2c_boardinfo,
- 			ARRAY_SIZE(sdp2430_i2c_boardinfo));
++#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
++	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
++#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
++};
++#else
++static struct resource omap_vout_resource[2] = {
++};
++#endif
++
++static struct platform_device omap_vout_device = {
++	.name		= "omap_vout",
++	.num_resources	= ARRAY_SIZE(omap_vout_resource),
++	.resource 	= &omap_vout_resource[0],
++	.id		= -1,
++};
++static void omap_init_vout(void)
++{
++	if (platform_device_register(&omap_vout_device) < 0)
++		printk(KERN_ERR "Unable to register OMAP-VOUT device\n");
++}
++#else
++static inline void omap_init_vout(void) {}
++#endif
++
+ /*-------------------------------------------------------------------------*/
+ 
+ static int __init omap2_init_devices(void)
+@@ -800,6 +827,7 @@ static int __init omap2_init_devices(void)
+ 	omap_hdq_init();
+ 	omap_init_sti();
+ 	omap_init_sha1_md5();
++	omap_init_vout();
+ 
  	return 0;
+ }
 
