@@ -1,188 +1,83 @@
-From: "Arce, Abraham" <x0066660@ti.com>
-Subject: RE: [RFC] [PATCH 1/3] OMAP4: Keyboard Controller Support
-Date: Wed, 5 May 2010 18:17:08 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DEEC0FA@dlee03.ent.ti.com>
-References: <27F9C60D11D683428E133F85D2BB4A53043D9EE7F5@dlee03.ent.ti.com>
- <20100416050648.GA26263@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PM][PATCH 1/4] OMAP3: Serial: Add context save and restore for mcr
+Date: Wed, 05 May 2010 16:49:38 -0700
+Message-ID: <87pr19ykml.fsf@deeprootsystems.com>
+References: <1270749249-14041-1-git-send-email-nm@ti.com>
+	<1270749249-14041-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51346 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754009Ab0EEXRO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 19:17:14 -0400
-In-Reply-To: <20100416050648.GA26263@nokia.com>
-Content-Language: en-US
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:52457 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753133Ab0EEXtn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 19:49:43 -0400
+Received: by vws12 with SMTP id 12so1525644vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 May 2010 16:49:42 -0700 (PDT)
+In-Reply-To: <1270749249-14041-2-git-send-email-nm@ti.com> (Nishanth Menon's message of "Thu\,  8 Apr 2010 12\:54\:06 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Govindraj R <govindraj.raja@ti.com>, Tero Kristo <tero.kristo@nokia.com>
 
-Felipe,
+Nishanth Menon <nm@ti.com> writes:
 
-Thanks for your comments...
+> From: Govindraj R <govindraj.raja@ti.com>
+>
+> Ref:
+> http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=c74952c3077e4b19e649b5b48c785c01f73ab9d4
+>
+> Adds context save/restore for mcr register as state of mcr register
+> is lost after core off.
+>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tero Kristo <tero.kristo@nokia.com>
+>
+> Signed-off-by: Govindraj R <govindraj.raja@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-[..]
+OK, adding to pm-next, and queing (hopefully) for 2.6.35.
 
-> >+#include <plat/omap_hwmod.h>
-> >+#include <plat/omap_device.h>
-> 
-> should the platform_driver know about hwmod and omap_device ? Paul ?
-> Kevin ?
+Kevin
 
-Working on these changes...
-
-> 
-> >+struct omap_keypad {
-> >+
-> 
-> unnecessary blank line.
-
-Removed
-
-> 
-> >+       struct platform_device *pdev;
-> 
-> generaly we save the struct device *.
-> 
-> >+       struct omap_hwmod *oh;
-> >+       const struct matrix_keypad_platform_data *pdata;
-> 
-> you should not save the platform_data here. Generaly you should only use
-> that to initialize fields on your structure. Remember that a
-> platform_data will be declared as __initdata.
-
-Removed
-
-> 
-> >+/* Interrupt thread primary handler, called in hard interrupt context */
-> >+
-> >+static irqreturn_t omap_keypad_interrupt(int irq, void *dev_id)
-> >+{
-> >+       struct omap_keypad *keypad_data = dev_id;
-> >+
-> >+       /* disable interrupts */
-> >+       __raw_writel(OMAP4_DEF_IRQDISABLE, keypad_data->base +
-> >+                               OMAP4_KBD_IRQENABLE);
-> >+
-> >+       /* wake up handler thread */
-> >+       return IRQ_WAKE_THREAD;
-> >+
-> >+}
-> >+
-> >+/* Interrupt thread handler thread */
-> >+
-> >+static irqreturn_t omap_keypad_threaded(int irq, void *dev_id)
-> >+{
-> >+       struct omap_keypad *keypad_data = dev_id;
-> >+       struct input_dev *input = keypad_data->input;
-> >+       unsigned char key_state[8];
-> >+       int col, row, code;
-> >+       u32 *new_state = (u32 *) key_state;
-> >+
-> >+       *new_state       = __raw_readl(keypad_data->base +
-> >+                       OMAP4_KBD_FULLCODE31_0);
-> >+       *(new_state + 1) = __raw_readl(keypad_data->base +
-> >+                       OMAP4_KBD_FULLCODE63_32);
-> >+
-> >+       for (col = 0; col < keypad_data->cols; col++) {
-> >+               for (row = 0; row < keypad_data->rows; row++) {
-> >+                       code = MATRIX_SCAN_CODE(row, col,
-> >+                                       keypad_data->row_shift);
-> >+                       if (code < 0) {
-> >+                               printk(KERN_INFO "Spurious key %d-%d\n",
-> >+                                               col, row);
-> 
-> use dev_dbg()
-
-Added
-
-> 
-> >+                               continue;
-> >+                       }
-> >+                       input_report_key(input, keypad_data->keycodes[code],
-> >+                                       key_state[col] & (1 << row));
-> 
-> missing input_sync()
-
-Added
-
-> 
-> >+static int __devinit omap_keypad_probe(struct platform_device *pdev)
-> >+{
-> 
-> [..]
-> 
-> >+       length = snprintf(oh_name, hw_mod_name_len, "keyboard");
-> >+       WARN(length >= hw_mod_name_len,
-> >+               "String buffer overflow in keyboard device setup\n");
-> 
-> you're using snprintf() this WARN() shouldn't happen even, remove it.
-
-Code now in board file, removed
-
-> 
-> >+
-> >+       oh = omap_hwmod_lookup(oh_name);
-> >+       if (!oh)
-> >+               pr_err("Could not look up %s\n", oh_name);
-> 
-> I think omap_hwmod and omap_device shouldn't be here, but at least use
-> dev_err();
-
-Moving to board file...
-
-> 
-> >+
-> >+       pdata = kzalloc(sizeof(struct matrix_keypad_platform_data),
-> >+                               GFP_KERNEL);
-> 
-> this should come from platform code.
-
-Working on these changes...
-
-
-I'll have a function in 4430sdp board file that will setup hwmod and omap device called
-
-  sdp4430_keypad_init() {
-     ...
-     omap_hwmod_lookup(oh_name);
-     kzalloc(sizeof(struct matrix_keypad_platform_data), GFP_KERNEL);
-     omap_device_build(name, id, oh, pdata,
-     ...
-  }
-
-and then called within
-
-  omap_4430sdp_init()
-
-> 
-> >+
-> >+       od = omap_device_build(name, id, oh, pdata,
-> >+                               sizeof(struct matrix_keypad_platform_data),
-> >+                               omap_keyboard_latency,
-> >+                               ARRAY_SIZE(omap_keyboard_latency), 1);
-> >+       WARN(IS_ERR(od), "Could not build omap_device for %s %s\n",
-> >+               name, oh_name);
-> 
-> this too.
-
-Moving to board file...
-
-> 
-> >+       status = input_register_device(keypad_data->input);
-> >+       if (status < 0) {
-> >+               dev_err(&pdev->dev, "failed to register input device\n");
-> >+               goto failed_free_device;
-> >+       }
-> >+
-> >+       omap_keypad_config(keypad_data);
-> 
-> registering and configuring should be done before requesting the irq.
-
-Changed
-
-
-Best Regards
-Abraham
+> ---
+> Note: Original Patch was done for android kernel, was ported and sanity
+> tested to l-o pm.  A quick check did not reveal any mcr access in
+> arch/arm/mach-omap2/serial.c though drivers/serial/8250.c seems to
+> hit on it a lot, hence posting.
+>
+>  arch/arm/mach-omap2/serial.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index b731556..86d3b47 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -78,6 +78,7 @@ struct omap_uart_state {
+>  	u16 sysc;
+>  	u16 scr;
+>  	u16 wer;
+> +	u16 mcr;
+>  #endif
+>  };
+>  
+> @@ -201,6 +202,9 @@ static void omap_uart_save_context(struct omap_uart_state *uart)
+>  	uart->sysc = serial_read_reg(p, UART_OMAP_SYSC);
+>  	uart->scr = serial_read_reg(p, UART_OMAP_SCR);
+>  	uart->wer = serial_read_reg(p, UART_OMAP_WER);
+> +	serial_write_reg(p, UART_LCR, 0x80);
+> +	uart->mcr = serial_read_reg(p, UART_MCR);
+> +	serial_write_reg(p, UART_LCR, lcr);
+>  
+>  	uart->context_valid = 1;
+>  }
+> @@ -229,6 +233,8 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
+>  	serial_write_reg(p, UART_DLM, uart->dlh);
+>  	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
+>  	serial_write_reg(p, UART_IER, uart->ier);
+> +	serial_write_reg(p, UART_LCR, 0x80);
+> +	serial_write_reg(p, UART_MCR, uart->mcr);
+>  	serial_write_reg(p, UART_FCR, 0xA1);
+>  	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+>  	serial_write_reg(p, UART_EFR, efr);
+> -- 
+> 1.6.3.3
