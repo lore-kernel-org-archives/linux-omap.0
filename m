@@ -1,61 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/18] omap2: Add OHCI USB platform init for 2430 SDP
-Date: Wed, 05 May 2010 12:32:46 -0700
-Message-ID: <20100505193246.21568.16641.stgit@baageli.muru.com>
+Subject: [PATCH 18/18] AM35x: fix UI card EHCI port and LCD dependency
+Date: Wed, 05 May 2010 12:33:25 -0700
+Message-ID: <20100505193325.21568.78883.stgit@baageli.muru.com>
 References: <20100505192957.21568.19569.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57423 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757981Ab0EETdZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 15:33:25 -0400
 In-Reply-To: <20100505192957.21568.19569.stgit@baageli.muru.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Viral Mehta <viral.mehta@lntinfotech.com>, linux-omap@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-omap@vger.kernel.org
 
-From: Viral Mehta <viral.mehta@lntinfotech.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Add platform init code for OHCI USB on OMAP2430 SDP
+EHCI port on UI card and LCD share two pins (GPIO 181 and 182) thus
+they have to be mutually exclusive.
 
-Signed-off-by: Viral Mehta <viral.mehta@lntinfotech.com>
-[tony@atomide.com: Updated subject to mention the board name]
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c |   10 ++++++++++
+ arch/arm/mach-omap2/board-am3517evm.c |   10 ++++++++++
  1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 85f5f33..a11a575 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -207,6 +207,15 @@ static struct omap_musb_board_data musb_board_data = {
- 	.mode			= MUSB_OTG,
- 	.power			= 100,
- };
-+static struct omap_usb_config sdp2430_usb_config __initdata = {
-+	.otg		= 1,
-+#ifdef  CONFIG_USB_GADGET_OMAP
-+	.hmc_mode	= 0x0,
-+#elif   defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
-+	.hmc_mode	= 0x1,
-+#endif
-+	.pins[0]	= 3,
-+};
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 02e2097..19b9e41 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -216,6 +216,8 @@ static int __init am3517_evm_i2c_init(void)
+ static int lcd_enabled;
+ static int dvi_enabled;
  
- static void __init omap_2430sdp_init(void)
++#if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
++		defined(CONFIG_PANEL_SHARP_LQ043T1DG01_MODULE)
+ static void __init am3517_evm_display_init(void)
  {
-@@ -217,6 +226,7 @@ static void __init omap_2430sdp_init(void)
- 	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
- 	omap_serial_init();
- 	omap2_hsmmc_init(mmc);
-+	omap_usb_init(&sdp2430_usb_config);
- 	usb_musb_init(&musb_board_data);
- 	board_smc91x_init();
+ 	int r;
+@@ -259,6 +261,9 @@ err_2:
+ err_1:
+ 	gpio_free(LCD_PANEL_BKLIGHT_PWR);
+ }
++#else
++static void __init am3517_evm_display_init(void) {}
++#endif
+ 
+ static int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
+ {
+@@ -372,7 +377,12 @@ static void __init am3517_evm_init_irq(void)
+ 
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
++#if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
++		defined(CONFIG_PANEL_SHARP_LQ043T1DG01_MODULE)
++	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++#else
+ 	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
++#endif
+ 	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+ 
+ 	.phy_reset  = true,
+
