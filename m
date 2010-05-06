@@ -1,146 +1,91 @@
-From: "Arce, Abraham" <x0066660-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v1 2/3] OMAP4: Ethernet: KS8851
-	Board Support
-Date: Wed, 5 May 2010 23:18:52 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DEEC1CE@dlee03.ent.ti.com>
-References: <27F9C60D11D683428E133F85D2BB4A53043DEEB8C1@dlee03.ent.ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94026F8C7096@dbde02.ent.ti.com>
-	<27F9C60D11D683428E133F85D2BB4A53043DEEB8D1@dlee03.ent.ti.com>
-	<20100505171938.GX29604@atomide.com>
-	<27F9C60D11D683428E133F85D2BB4A53043DEEC153@dlee03.ent.ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94026F8C74CE@dbde02.ent.ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94026F8C74DE@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH v2 3/4] omap: mailbox: fix reverse likeliness
+Date: Thu, 06 May 2010 08:19:54 +0300 (EEST)
+Message-ID: <20100506.081954.209985819.Hiroshi.DOYU@nokia.com>
+References: <20100503180224.GV29604@atomide.com>
+	<s2nda15981b1005040447v335b0d34k1aa812404f478cd4@mail.gmail.com>
+	<20100505152135.GV29604@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026F8C74DE-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: "G, Manjunath Kondaiah" <manjugk-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:37275 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927Ab0EFFUE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 May 2010 01:20:04 -0400
+In-Reply-To: <20100505152135.GV29604@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ohad@wizery.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
 
-Manjunath,
+Hi Tony,
 
-> > > > > > > +
-> > > > > > > +static void omap_ethernet_init(void)
-> > > > > > > +{
-> > > > > > > +	gpio_request(ETHERNET_KS8851_POWER_ENABLE, "ethernet");
-> > > > > > > +	gpio_direction_output(ETHERNET_KS8851_POWER_ENABLE, 1);
-> > > > > > > +	gpio_request(ETHERNET_KS8851_QUART, "quart");
-> > > > > > > +	gpio_direction_output(ETHERNET_KS8851_QUART, 1);
-> > > > > > > +	gpio_request(ETHERNET_KS8851_IRQ, "ks8851");
-> > > > > >
-> > > > > > Any reason for not checking return value of gpio_request()?
-> > > > > >
+=46rom: ext Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 3/4] omap: mailbox: fix reverse likeliness
+Date: Wed, 5 May 2010 17:21:35 +0200
 
-[snip]
+> * Ohad Ben-Cohen <ohad@wizery.com> [100504 04:42]:
+>> On Mon, May 3, 2010 at 9:02 PM, Tony Lindgren <tony@atomide.com> wro=
+te:
+>> > * Ohad Ben-Cohen <ohad@wizery.com> [100502 08:40]:
+>> >> Fix reverse likeliness
+>> >>
+>> >> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+>> >> ---
+>> >> If you want, you can also reach me at < ohadb at ti dot com >.
+>> >>
+>> >> =A0arch/arm/plat-omap/mailbox.c | =A0 =A04 ++--
+>> >> =A01 files changed, 2 insertions(+), 2 deletions(-)
+>> >>
+>> >> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/ma=
+ilbox.c
+>> >> index 5140efc..5309213 100644
+>> >> --- a/arch/arm/plat-omap/mailbox.c
+>> >> +++ b/arch/arm/plat-omap/mailbox.c
+>> >> @@ -290,7 +290,7 @@ static int omap_mbox_startup(struct omap_mbox=
+ *mbox)
+>> >> =A0 fail_alloc_txq:
+>> >> =A0 =A0 =A0 free_irq(mbox->irq, mbox);
+>> >> =A0 fail_request_irq:
+>> >> - =A0 =A0 if (unlikely(mbox->ops->shutdown))
+>> >> + =A0 =A0 if (likely(mbox->ops->shutdown))
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mbox->ops->shutdown(mbox);
+>> >>
+>> >> =A0 =A0 =A0 return ret;
+>> >> @@ -303,7 +303,7 @@ static void omap_mbox_fini(struct omap_mbox *=
+mbox)
+>> >>
+>> >> =A0 =A0 =A0 free_irq(mbox->irq, mbox);
+>> >>
+>> >> - =A0 =A0 if (unlikely(mbox->ops->shutdown)) {
+>> >> + =A0 =A0 if (likely(mbox->ops->shutdown)) {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock(&mboxes_lock);
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (mbox_configured > 0)
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mbox_configured--;
+>> >
+>> > Does this code path need to be optimized? :)
+>> >
+>> > How about just get rid of the (un)likely here?
+>>=20
+>> I like this :)
+>>=20
+>> If we're at it, there are additional cold-path (un)likely macros I
+>> want to target:
+>=20
+> Looks good to me.
+>=20
+> Hiroshi, care to ack/nak all the mailbox and iommu patches you want
+> me to merge? Or if you have them in some git branch against mainline
+> -rc6 that would be cool too.
 
-> Minor changes:
-> if (gpio_request(x))
-> 	return status;
-> if (gpio_request(y))
-> 	goto err1;
-> if (gpio_request(z))
-> 	goto err2;
-> ...
-> 	return 0;
-> 
-> err2:
-> 	free(y);
-> 
-> err1:
-> 	free(x);
-> 	return status;
+=46eel free to add my ACK on them. Looks ok to me too.
 
-How about this patch?
+If there's more patches coming, I can consider to collect patches and
+to provide git branches for mailbox and iommu for next merge.
 
-Note. I am thinking in spi_register_board_info registration:
-
-1. to be done if ethernet fails, other spi dev can be added in future
-2. not to be done if ethernet fails, no other dev in spi bus 1 for now
-
-What is the best approach? Is it to keep #2?
-
----
-
-#define ETH_KS8851_IRQ			34
-#define ETH_KS8851_POWER_ON		48
-#define ETH_KS8851_QUART		138
-
-static struct spi_board_info sdp4430_spi_board_info[] __initdata = {
-	{
-		.modalias               = "ks8851",
-		.bus_num                = 1,
-		.chip_select            = 0,
-		.max_speed_hz           = 24000000,
-		.irq                    = ETH_KS8851_IRQ,
-	},
-};
-
-static int omap_ethernet_init(void)
-{
-	int status;
-
-	status = gpio_request(ETH_KS8851_POWER_ON, "eth_power");
-	if (status < 0) {
-		pr_warning("Cannot request GPIO %d\n", ETH_KS8851_POWER_ON);
-		return status;
-	}
-
-	status = gpio_request(ETH_KS8851_QUART, "quart");
-	if (status < 0) {
-		pr_warning("Cannot request GPIO %d\n", ETH_KS8851_QUART);
-		goto err1;
-	}
-
-	status = gpio_request(ETH_KS8851_IRQ, "eth_irq");
-	if (status < 0) {
-		pr_warning("Cannot request GPIO %d\n", ETH_KS8851_IRQ);
-		goto err2;
-	}
-
-	gpio_direction_output(ETH_KS8851_POWER_ON, 1);
-	gpio_direction_output(ETH_KS8851_QUART, 1);
-	gpio_direction_input(ETH_KS8851_IRQ);
-
-	return status;
-
-err2:
-	gpio_free(ETH_KS8851_QUART);
-err1:
-	gpio_free(ETH_KS8851_POWER_ON);
-	return status;
-
-}
-
-
-[...]
-
-
- 	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
- 	if (!cpu_is_omap44xx())
- 		usb_musb_init(&musb_board_data);
-
-	status = omap_ethernet_init();
-	if (status)
-		pr_warning("Ethernet initialization failed: %d\n", status);
-	else
-		sdp4430_spi_board_info[0].irq = gpio_to_irq(ETH_KS8851_IRQ);
-
-	spi_register_board_info(sdp4430_spi_board_info,
-			ARRAY_SIZE(sdp4430_spi_board_info));
-
-
-Best Regards
-Abraham
-
-------------------------------------------------------------------------------
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
