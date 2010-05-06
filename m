@@ -1,71 +1,44 @@
-From: "Arce, Abraham" <x0066660@ti.com>
-Subject: RE: [PATCH v1 2/3] OMAP4: Ethernet: KS8851 Board Support
-Date: Wed, 5 May 2010 19:47:41 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DEEC153@dlee03.ent.ti.com>
-References: <27F9C60D11D683428E133F85D2BB4A53043DEEB8C1@dlee03.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026F8C7096@dbde02.ent.ti.com>
- <27F9C60D11D683428E133F85D2BB4A53043DEEB8D1@dlee03.ent.ti.com>
- <20100505171938.GX29604@atomide.com>
+From: "Candelaria Villarreal, Jorge" <jorge.candelaria@ti.com>
+Subject: RE: [PATCH 1/2] ARM: McBSP: Fix request for irq in OMAP4
+Date: Wed, 5 May 2010 19:58:17 -0500
+Message-ID: <2256F256009DAA4CBE661E9F41EAC84B910F888E@dlee01.ent.ti.com>
+References: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
+	<1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E94026F8C6E56@dbde02.ent.ti.com>
+ <20100505133903.cde41896.jhnikula@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38211 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58197 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751025Ab0EFArw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 20:47:52 -0400
-In-Reply-To: <20100505171938.GX29604@atomide.com>
+	id S1751025Ab0EFA6U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 20:58:20 -0400
+In-Reply-To: <20100505133903.cde41896.jhnikula@gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>
+To: Jarkko Nikula <jhnikula@gmail.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> > > > +
-> > > > +static void omap_ethernet_init(void)
-> > > > +{
-> > > > +	gpio_request(ETHERNET_KS8851_POWER_ENABLE, "ethernet");
-> > > > +	gpio_direction_output(ETHERNET_KS8851_POWER_ENABLE, 1);
-> > > > +	gpio_request(ETHERNET_KS8851_QUART, "quart");
-> > > > +	gpio_direction_output(ETHERNET_KS8851_QUART, 1);
-> > > > +	gpio_request(ETHERNET_KS8851_IRQ, "ks8851");
-> > >
-> > > Any reason for not checking return value of gpio_request()?
-> > >
-> >
-> > Thought initially about them as dedicated lines for ethernet avoiding
-> > both reasons to check for a gpio's request:
-> >
-> >  1. invalid gpio
-> >  2. already claimed gpio
+Jarkko Nikula wrote:
+> On Wed, 5 May 2010 08:32:13 +0530
+> "G, Manjunath Kondaiah" <manjugk@ti.com> wrote:
 > 
-> You still need to check for the result.
-> 
+>>> -		init_completion(&mcbsp->rx_irq_completion);
+>>> -		err = request_irq(mcbsp->rx_irq,
+>>> omap_mcbsp_rx_irq_handler,
+>>> +		if (!cpu_is_omap44xx) {
+>>> +			init_completion(&mcbsp->rx_irq_completion);
+>>> +			err = request_irq(mcbsp->rx_irq,
+>>> +					omap_mcbsp_rx_irq_handler,
+>>>  					0, "McBSP", (void *)mcbsp);
+>> 
+>> How about using request_threaded_irq?
+>> Refer to: http://lwn.net/Articles/302043/
+>> 
+> Threaded irq conversion would be better to handle as a separate patch
+> as it does different thing than this patch.
 
-Is the below approach ok? Using goto would make it better?
-
-        int status;
-
-        status = gpio_request(ETHERNET_KS8851_POWER_ENABLE, "ethernet");
-        if (status < 0)
-                return status;
-
-        gpio_request(ETHERNET_KS8851_QUART, "quart");
-        if (status < 0) {
-                gpio_free(ETHERNET_KS8851_POWER_ENABLE);
-                return status;
-        }
-
-        gpio_request(ETHERNET_KS8851_IRQ, "ks8851");
-        if (status < 0) {
-                gpio_free(ETHERNET_KS8851_POWER_ENABLE);
-                gpio_free(ETHERNET_KS8851_QUART);
-                return status;
-        }
-
-        gpio_direction_output(ETHERNET_KS8851_POWER_ENABLE, 1);
-        gpio_direction_output(ETHERNET_KS8851_QUART, 1);
-        gpio_direction_input(ETHERNET_KS8851_IRQ);
-
-Best Regards
-Abraham
+I will redo this patch without threaded irq for now, and will do the
+conversion in a later patch then.
