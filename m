@@ -1,44 +1,38 @@
-From: "Candelaria Villarreal, Jorge" <jorge.candelaria@ti.com>
-Subject: RE: [PATCH 1/2] ARM: McBSP: Fix request for irq in OMAP4
-Date: Wed, 5 May 2010 19:58:17 -0500
-Message-ID: <2256F256009DAA4CBE661E9F41EAC84B910F888E@dlee01.ent.ti.com>
-References: <1273016270-31452-1-git-send-email-jorge.candelaria@ti.com>
-	<1273016270-31452-2-git-send-email-jorge.candelaria@ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94026F8C6E56@dbde02.ent.ti.com>
- <20100505133903.cde41896.jhnikula@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+Subject: [PATCH v2 0/0] McBSP changes for OMAP4 platform
+Date: Wed,  5 May 2010 20:15:44 -0500
+Message-ID: <1273108546-2507-1-git-send-email-jorge.candelaria@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58197 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751025Ab0EFA6U convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 20:58:20 -0400
-In-Reply-To: <20100505133903.cde41896.jhnikula@gmail.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:59852 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab0EFB0h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 21:26:37 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o461Qaim028176
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 5 May 2010 20:26:36 -0500
+Received: from emcc1.sasken-mty.naucm.ext.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id o461QZY7026042
+	for <linux-omap@vger.kernel.org>; Wed, 5 May 2010 20:26:36 -0500 (CDT)
+Received: from localhost.localdomain (x0107209-ubuntu.sasken-mty.naucm.ext.ti.com [10.87.231.217])
+	by emcc1.sasken-mty.naucm.ext.ti.com (8.13.8+Sun/8.13.8) with ESMTP id o461QZVX018668
+	for <linux-omap@vger.kernel.org>; Wed, 5 May 2010 20:26:35 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Jarkko Nikula wrote:
-> On Wed, 5 May 2010 08:32:13 +0530
-> "G, Manjunath Kondaiah" <manjugk@ti.com> wrote:
-> 
->>> -		init_completion(&mcbsp->rx_irq_completion);
->>> -		err = request_irq(mcbsp->rx_irq,
->>> omap_mcbsp_rx_irq_handler,
->>> +		if (!cpu_is_omap44xx) {
->>> +			init_completion(&mcbsp->rx_irq_completion);
->>> +			err = request_irq(mcbsp->rx_irq,
->>> +					omap_mcbsp_rx_irq_handler,
->>>  					0, "McBSP", (void *)mcbsp);
->> 
->> How about using request_threaded_irq?
->> Refer to: http://lwn.net/Articles/302043/
->> 
-> Threaded irq conversion would be better to handle as a separate patch
-> as it does different thing than this patch.
+The following patches enable McBSP driver to be used along with the
+audio driver in SDP4430 and other OMAP4 based boards.
 
-I will redo this patch without threaded irq for now, and will do the
-conversion in a later patch then.
+Changes from v1:
+- Changed to correct IRQ lines.
+- Check if rx_irq is defined, instead of checking if cpu is omap4
+
+Jorge Eduardo Candelaria (2):
+      ARM: McBSP: Fix request for irq in OMAP4
+      ARM: OMAP4: Add support for omap4 in McBSP driver
+
+ arch/arm/mach-omap2/mcbsp.c |   12 ++++--------
+ arch/arm/plat-omap/mcbsp.c  |   34 +++++++++++++++++++---------------
+ 2 files changed, 23 insertions(+), 23 deletions(-)
+
