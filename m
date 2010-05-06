@@ -1,52 +1,97 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH v9] board-omap3-beagle: add DSS2 support
-Date: Thu, 6 May 2010 11:53:19 +0200
-Message-ID: <4C3B4B84-D66F-457A-8002-9A77B74DC13D@dominion.thruhere.net>
-References: <1271924622-21043-1-git-send-email-koen@dominion.thruhere.net> <0BA15D46-D494-4402-9EC8-574AD5D7BAE8@dominion.thruhere.net> <l2l94a0d4531005020858l1a79e4f3hf632a7fab4e4ff33@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1078)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PM][PATCH v3 2/4] OMAP3: Serial: Errata i202: fix for MDR1
+	access
+Date: Thu, 6 May 2010 15:24:43 +0530
+Message-ID: <u2id6a0f7aa1005060254v17bb0018seb3ddb90e6221e4a@mail.gmail.com>
+References: <1271097933-22981-1-git-send-email-nm@ti.com>
+	 <87d3x9ykdf.fsf@deeprootsystems.com>
+	 <FCCFB4CDC6E5564B9182F639FC3560870304F5B1AE@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f220.google.com ([209.85.219.220]:34705 "EHLO
-	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757012Ab0EFJxh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 May 2010 05:53:37 -0400
-Received: by ewy20 with SMTP id 20so1613415ewy.1
-        for <linux-omap@vger.kernel.org>; Thu, 06 May 2010 02:53:34 -0700 (PDT)
-In-Reply-To: <l2l94a0d4531005020858l1a79e4f3hf632a7fab4e4ff33@mail.gmail.com>
+Received: from mail-qy0-f189.google.com ([209.85.221.189]:51072 "EHLO
+	mail-qy0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757397Ab0EFJyo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 May 2010 05:54:44 -0400
+Received: by qyk27 with SMTP id 27so12037073qyk.23
+        for <linux-omap@vger.kernel.org>; Thu, 06 May 2010 02:54:43 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870304F5B1AE@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>
+To: "Kattungal, Deepak" <deepak.k@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Raja, Govindraj" <govindraj.raja@ti.com>, Tero Kristo <tero.kristo@nokia.com>
 
+On Thu, May 6, 2010 at 5:49 AM, Kattungal, Deepak <deepak.k@ti.com> wro=
+te:
+> Hi Kevin,
+>
+> My Comments as below.
+>
+> Regards
+> Deepak
+>
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Wednesday, May 05, 2010 6:55 PM
+> To: Menon, Nishanth
+> Cc: linux-omap; Kattungal, Deepak; Raja, Govindraj; Tero Kristo
+> Subject: Re: [PM][PATCH v3 2/4] OMAP3: Serial: Errata i202: fix for M=
+DR1 access
+>
+> Nishanth Menon <nm@ti.com> writes:
+>
+>> From: Deepak K <deepak.k@ti.com>
+>>
+>> Original patch:
+>> http://git.omapzoom.org/?p=3Dkernel/omap.git;a=3Dcommitdiff;h=3D42d4=
+a342c009bd9727c100abc8a4bc3063c22f0c
+>>
+>> Errata i202 (OMAP3430 - 1.12, OMAP3630 - 1.6):
+>
+> This workaround is currently done for all OMAPs.
+>
+> Presumably, this errata will eventually be fixed. =A0So, as with othe=
+r
+> errata fixes, we need some sort of SoC-rev based flag and the errata
+> workaround done based on that flag.
+>
+> Deepak : This would be a good fix, thanks for the suggestion.
+>
+> Also, shouldn't there be a fix for this in the 8250 and omap-serial
+> drivers too?
+>
+>
+> Deepak : The 8250 is not using the MDR Register. This would be needed=
+ only by the omap-serial. The 8250 being a general driver we may not re=
+quire the access to MDR1 register. Hence the fix not required for 8250.
+>
 
-Op 2 mei 2010, om 17:58 heeft Felipe Contreras het volgende geschreven:
-> 
-> I also have these changes in one of my trees backported from Tomi
-> Valkeinen's tree. I'm attaching the diff; some of these are cosmetic,
-> but I think the gpio changes make sense, although I don't know if
-> omap_mux_init_gpio is really needed.
-> 
-> I think the current proposed patch should go in already, I don't know
-> what we are waiting for.
-> 
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> 
-> +#if 0
-> +	/* is this really needed? */
-> +	omap_mux_init_gpio(beagle_dvi_device.reset_gpio, OMAP_PIN_INPUT);
-> +#endif
-> 	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
-> 
-> -	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
-> -	gpio_request(170, "DVI_nPD");
-> -	/* REVISIT leave DVI powered down until it's needed ... */
-> -	gpio_direction_output(170, true);
-> -
+Why do you say this fix is not necessary for 8250?
 
-I have a similar change queued since the new beagle xM moves DVI reset to gpio129, but I'm holding off on sending beagle patches here till the hardware design is finalized.
+Isn't the omap_uart_reset configuring uart for 16x mode?
 
-regards,
+Context save and restore is an common for whether it is 8250 or omap-se=
+rial.c
 
-Koen
+The only difference here wrt to MDR and 8250 is
+-> MDR though not accesed by 8250 currently serial.c sets it to uart16x=
+ mode.
+
+In omap-serial.c we configure MDR based on baudrate as we have an uart1=
+3x mode
+which is ignored in 8250 and thus 8250 may not support 13x baud's corre=
+ctly
+which is taken care in omap-serial.
+
+I think this patch is fine and only concern is to make it applicable
+to appropriate socs as kevin said.
+
+---
+Regards,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
