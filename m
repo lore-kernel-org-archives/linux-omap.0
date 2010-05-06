@@ -1,109 +1,52 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v1 2/3] OMAP4: Ethernet: KS8851 Board Support
-Date: Thu, 6 May 2010 15:13:37 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5387492@dbde02.ent.ti.com>
-References: <27F9C60D11D683428E133F85D2BB4A53043DEEB8C1@dlee03.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026F8C7096@dbde02.ent.ti.com>
- <27F9C60D11D683428E133F85D2BB4A53043DEEB8D1@dlee03.ent.ti.com>
- <20100505171938.GX29604@atomide.com>
- <27F9C60D11D683428E133F85D2BB4A53043DEEC153@dlee03.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026F8C74CE@dbde02.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026F8C74DE@dbde02.ent.ti.com>
- <27F9C60D11D683428E133F85D2BB4A53043DEEC1CE@dlee03.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026F8C77AE@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH v9] board-omap3-beagle: add DSS2 support
+Date: Thu, 6 May 2010 11:53:19 +0200
+Message-ID: <4C3B4B84-D66F-457A-8002-9A77B74DC13D@dominion.thruhere.net>
+References: <1271924622-21043-1-git-send-email-koen@dominion.thruhere.net> <0BA15D46-D494-4402-9EC8-574AD5D7BAE8@dominion.thruhere.net> <l2l94a0d4531005020858l1a79e4f3hf632a7fab4e4ff33@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1078)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55461 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751534Ab0EFJnv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 May 2010 05:43:51 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026F8C77AE@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:34705 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757012Ab0EFJxh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 May 2010 05:53:37 -0400
+Received: by ewy20 with SMTP id 20so1613415ewy.1
+        for <linux-omap@vger.kernel.org>; Thu, 06 May 2010 02:53:34 -0700 (PDT)
+In-Reply-To: <l2l94a0d4531005020858l1a79e4f3hf632a7fab4e4ff33@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "Arce, Abraham" <x0066660@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G,
-> Manjunath Kondaiah
-> Sent: Thursday, May 06, 2010 2:34 PM
-> To: Arce, Abraham; Tony Lindgren
-> Cc: linux-omap@vger.kernel.org; spi-devel-general@lists.sourceforge.net
-> Subject: RE: [PATCH v1 2/3] OMAP4: Ethernet: KS8851 Board Support
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Arce, Abraham
-> > Sent: Thursday, May 06, 2010 9:49 AM
-> > To: G, Manjunath Kondaiah; Tony Lindgren
-> > Cc: linux-omap@vger.kernel.org;
-> > spi-devel-general@lists.sourceforge.net
-> > Subject: RE: [PATCH v1 2/3] OMAP4: Ethernet: KS8851 Board Support
-> >
-> > Manjunath,
-> >
-> > > > > > > > > +
-> > > > > > > > > +static void omap_ethernet_init(void)
-> > > > > > > > > +{
-> > > > > > > > > +
-> > gpio_request(ETHERNET_KS8851_POWER_ENABLE, "ethernet");
-> > > > > > > > > +
-> > gpio_direction_output(ETHERNET_KS8851_POWER_ENABLE, 1);
-> > > > > > > > > +	gpio_request(ETHERNET_KS8851_QUART, "quart");
-> > > > > > > > > +	gpio_direction_output(ETHERNET_KS8851_QUART, 1);
-> > > > > > > > > +	gpio_request(ETHERNET_KS8851_IRQ, "ks8851");
-> > > > > > > >
-> > > > > > > > Any reason for not checking return value of
-> > gpio_request()?
-> > > > > > > >
-> >
-> > [snip]
-> >
-> > > Minor changes:
-> > > if (gpio_request(x))
-> > > 	return status;
-> > > if (gpio_request(y))
-> > > 	goto err1;
-> > > if (gpio_request(z))
-> > > 	goto err2;
-> > > ...
-> > > 	return 0;
-> > >
-> > > err2:
-> > > 	free(y);
-> > >
-> > > err1:
-> > > 	free(x);
-> > > 	return status;
-> >
-> > How about this patch?
-> >
-> > Note. I am thinking in spi_register_board_info registration:
-> >
-> > 1. to be done if ethernet fails, other spi dev can be added in future
-> 
-> No use. Since, for a given board SPI chip select lines are physically
-> connected to external slave devices, you can't register another SPI
-> slave device for same chip select.
-Be careful here Manju. There are 4 channels per SPI controller
-with 4 chip selects. You can add more devices on same controller
 
+Op 2 mei 2010, om 17:58 heeft Felipe Contreras het volgende geschreven:
 > 
-> > 2. not to be done if ethernet fails, no other dev in spi bus 1 for now
-> >
-> > What is the best approach? Is it to keep #2?
+> I also have these changes in one of my trees backported from Tomi
+> Valkeinen's tree. I'm attaching the diff; some of these are cosmetic,
+> but I think the gpio changes make sense, although I don't know if
+> omap_mux_init_gpio is really needed.
 > 
-> Seems to be ok for chip select #0. If we have another device on bus 1 with
-> different chip select number, then registration should succeed. However, this
-> may not be the case with omap4 sdp board since it might have only one spi
-> device on bus1.
-There is a quad-uart on SPI but not being used though.
+> I think the current proposed patch should go in already, I don't know
+> what we are waiting for.
 > 
-> -Manjunath--
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> 
+> +#if 0
+> +	/* is this really needed? */
+> +	omap_mux_init_gpio(beagle_dvi_device.reset_gpio, OMAP_PIN_INPUT);
+> +#endif
+> 	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
+> 
+> -	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
+> -	gpio_request(170, "DVI_nPD");
+> -	/* REVISIT leave DVI powered down until it's needed ... */
+> -	gpio_direction_output(170, true);
+> -
+
+I have a similar change queued since the new beagle xM moves DVI reset to gpio129, but I'm holding off on sending beagle patches here till the hardware design is finalized.
+
+regards,
+
+Koen
