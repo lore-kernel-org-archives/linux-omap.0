@@ -1,41 +1,32 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/2] OMAP: DSS2: Fix omap_dss_probe() error path
-Date: Thu, 06 May 2010 11:54:40 -0700
-Message-ID: <87wrvguahb.fsf@deeprootsystems.com>
-References: <cover.1273146321.git.ext-jani.1.nikula@nokia.com>
-	<bce34ed2a9f7206ddeedb2921807c7602cfcaaaa.1273146322.git.ext-jani.1.nikula@nokia.com>
-	<cover.1273146321.git.ext-jani.1.nikula@nokia.com>
-	<2af519336cb42682d13d46baf0b770edcada3dac.1273146322.git.ext-jani.1.nikula@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "Dana Tanner" <bob@mail.patranusa.com>
+Subject: Optometrists - 63,837 records 2,015 emails
+Date: Fri,  7 May 2010 02:06:23 +0700 (WIT)
+Message-ID: <20100506190623.C6B6B14915C@mail.patranusa.com>
+Reply-To: bob@mail.patranusa.com
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:62845 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752123Ab0EFSyp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 May 2010 14:54:45 -0400
-Received: by vws18 with SMTP id 18so48784vws.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 May 2010 11:54:45 -0700 (PDT)
-In-Reply-To: <2af519336cb42682d13d46baf0b770edcada3dac.1273146322.git.ext-jani.1.nikula@nokia.com> (Jani Nikula's message of "Thu\,  6 May 2010 14\:59\:03 +0300")
+Received: from mail.patranusa.com ([119.252.162.93]:25 "EHLO
+	mail.patranusa.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758645Ab0EFUOE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 May 2010 16:14:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Cc: Tomi.Valkeinen@nokia.com, linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org
+To: advertise@guide2homeloan.com, linux-omap@vger.kernel.org, wartungsarbeiten@twinkle.ch
 
-Jani Nikula <ext-jani.1.nikula@nokia.com> writes:
+Here's a list package on sale this week only:
 
-> From: Jani Nikula <ext-jani.1.nikula@nokia.com>
->
-> Perform graceful cleanup on errors instead of just bailing out.
->
-> Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Business/Consumer List Package
 
-Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-Nice.  Much cleaner than my previous one.
+US New Business Database - 4.8 million records all with emails
+American Consumer Database - 1,300,000 records all with emails.
+American Homeowners - 1 million Full Data Records all with emails
 
-Tested on my n900, and with failed init, clocks are turned off
-and doesn't prevent suspend.
+All complete lists above: $295
 
-Thanks,
 
-Kevin
+There are more packages and not just for business. we also have healthcare, consumers and more. Contact me here for more info or to get samples: Wade.Boggs@realresults.co.cc
+
+  
+
+
+To invoke no further correspondence status please send an email to disappear@realresults.co.cc
