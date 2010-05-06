@@ -1,48 +1,116 @@
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: [PATCH] mmci-omap: Use resource_size
-Date: Thu,  6 May 2010 10:04:19 +0200
-Message-ID: <1273133059-6335-1-git-send-email-tklauser@distanz.ch>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: Re: [CBUS PATCH 1/1] CBUS: Fix broken compilation
+Date: Thu, 06 May 2010 11:25:37 +0300
+Message-ID: <1273134337.7755.5286.camel@localhost>
+References: <1272736870-5216-1-git-send-email-felipe.balbi@nokia.com>
+	 <1273071929-17708-1-git-send-email-carlos.chinea@nokia.com>
+	 <20100505190015.GB4960@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.zhaw.ch ([160.85.104.50]:56907 "EHLO mx1.zhaw.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752255Ab0EFIPo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 May 2010 04:15:44 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:37482 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754768Ab0EFIW4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 May 2010 04:22:56 -0400
+In-Reply-To: <20100505190015.GB4960@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jarkko.lavinen@nokia.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, kernel-janitors@vger.kernel.org, Tobias Klauser <tklauser@distanz.ch>
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Use the resource_size function instead of manually calculating the
-resource size.  This reduces the chance of introducing off-by-one
-errors.
+Ok, sorry for the noise. I missed Alexander Shishkin patch which took
+care of this already.
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
----
- drivers/mmc/host/omap.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 84d2804..a2c8545 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1415,7 +1415,7 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
- 	if (res == NULL || irq < 0)
- 		return -ENXIO;
- 
--	res = request_mem_region(res->start, res->end - res->start + 1,
-+	res = request_mem_region(res->start, resource_size(res),
- 				 pdev->name);
- 	if (res == NULL)
- 		return -EBUSY;
-@@ -1537,7 +1537,7 @@ static int mmc_omap_remove(struct platform_device *pdev)
- 
- 	iounmap(host->virt_base);
- 	release_mem_region(pdev->resource[0].start,
--			   pdev->resource[0].end - pdev->resource[0].start + 1);
-+			   resource_size(&pdev->resource[0]));
- 
- 	kfree(host);
- 
+On Wed, 2010-05-05 at 21:00 +0200, Balbi Felipe (Nokia-D/Helsinki)
+wrote:
+> hi again,
+> 
+> 
+> On Wed, May 05, 2010 at 05:05:29PM +0200, Chinea Carlos (Nokia-D/Helsinki) wrote:
+> >Include explicitly slab.h in:
+> >	drivers/cbus/cbus.c
+> >	drivers/cbus/retu-headset.c
+> >	drivers/cbus/retu-user.c
+> >	drivers/cbus/retu-wdt.c
+> >	drivers/cbus/tahvo-user.c
+> >
+> >Compile tested with n8x0_defconfig
+> >
+> >Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+> 
+> I see now the problem.
+> 
+> >---
+> > drivers/cbus/cbus.c         |    1 +
+> > drivers/cbus/retu-headset.c |    1 +
+> > drivers/cbus/retu-user.c    |    1 +
+> > drivers/cbus/retu-wdt.c     |    1 +
+> > drivers/cbus/tahvo-user.c   |    1 +
+> > 5 files changed, 5 insertions(+), 0 deletions(-)
+> >
+> >diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
+> >index 00c3c32..2c74d6e 100644
+> >--- a/drivers/cbus/cbus.c
+> >+++ b/drivers/cbus/cbus.c
+> >@@ -30,6 +30,7 @@
+> > #include <linux/spinlock.h>
+> > #include <linux/gpio.h>
+> > #include <linux/platform_device.h>
+> >+#include <linux/slab.h>
+> 
+> this is already included in line 32 of that file.
+> 
+> >diff --git a/drivers/cbus/retu-headset.c b/drivers/cbus/retu-headset.c
+> >index e798bc2..645679c 100644
+> >--- a/drivers/cbus/retu-headset.c
+> >+++ b/drivers/cbus/retu-headset.c
+> >@@ -25,6 +25,7 @@
+> > #include <linux/delay.h>
+> > #include <linux/input.h>
+> > #include <linux/platform_device.h>
+> >+#include <linux/slab.h>
+> 
+> already on line 25, right above #include <linux/delay.h>
+> 
+> >diff --git a/drivers/cbus/retu-user.c b/drivers/cbus/retu-user.c
+> >index 0f35dc5..7bc97d4 100644
+> >--- a/drivers/cbus/retu-user.c
+> >+++ b/drivers/cbus/retu-user.c
+> >@@ -33,6 +33,7 @@
+> > #include <linux/spinlock.h>
+> > #include <linux/sched.h>
+> > #include <linux/mutex.h>
+> >+#include <linux/slab.h>
+> 
+> already on line 26
+> 
+> >diff --git a/drivers/cbus/retu-wdt.c b/drivers/cbus/retu-wdt.c
+> >index 35932dd..fda8b35 100644
+> >--- a/drivers/cbus/retu-wdt.c
+> >+++ b/drivers/cbus/retu-wdt.c
+> >@@ -35,6 +35,7 @@
+> > #include <linux/platform_device.h>
+> > #include <linux/miscdevice.h>
+> > #include <linux/watchdog.h>
+> >+#include <linux/slab.h>
+> 
+> already on line 25
+> 
+> >diff --git a/drivers/cbus/tahvo-user.c b/drivers/cbus/tahvo-user.c
+> >index c0e8daf..b28b015 100644
+> >--- a/drivers/cbus/tahvo-user.c
+> >+++ b/drivers/cbus/tahvo-user.c
+> >@@ -33,6 +33,7 @@
+> > #include <linux/spinlock.h>
+> > #include <linux/sched.h>
+> > #include <linux/mutex.h>
+> >+#include <linux/slab.h>
+> 
+> already on line 26.
+> 
+> NAK to this patch.
+> 
 -- 
-1.6.3.3
+Carlos Chinea <carlos.chinea@nokia.com>
 
