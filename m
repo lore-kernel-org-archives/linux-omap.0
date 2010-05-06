@@ -1,46 +1,168 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] rwsem generic spinlock: use IRQ save/restore spinlocks
-Date: Wed, 05 May 2010 16:59:51 -0700
-Message-ID: <87vdb1x5l4.fsf@deeprootsystems.com>
-References: <1270749350-25152-1-git-send-email-khilman@deeprootsystems.com>
+From: "Kattungal, Deepak" <deepak.k@ti.com>
+Subject: RE: [PM][PATCH v3 2/4] OMAP3: Serial: Errata i202: fix for MDR1
+ access
+Date: Thu, 6 May 2010 05:49:52 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304F5B1AE@dbde02.ent.ti.com>
+References: <[PM][PATCH v2 2/4] OMAP3: Serial: Errata i202: fix for MDR1
+	access> <1271097933-22981-1-git-send-email-nm@ti.com>
+ <87d3x9ykdf.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:62432 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753286Ab0EEX74 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 19:59:56 -0400
-Received: by vws12 with SMTP id 12so1531213vws.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 May 2010 16:59:55 -0700 (PDT)
-In-Reply-To: <1270749350-25152-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Thu\,  8 Apr 2010 10\:55\:50 -0700")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36734 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751349Ab0EFAUF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 May 2010 20:20:05 -0400
+In-Reply-To: <87d3x9ykdf.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Raja, Govindraj" <govindraj.raja@ti.com>, Tero Kristo <tero.kristo@nokia.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Hi Kevin,
 
-> rwsems can be used with IRQs disabled, particularily in early boot
-> before IRQs are enabled.  Currently the spin_unlock_irq() usage in the
-> slow-path will unconditionally enable interrupts and cause problems
-> early in boot where interrupts are not yet initialized or enabled.
->
-> This patch uses save/restore versions of IRQ spinlocks in the slowpath
-> to ensure interrupts are not unintentionally enabled in the case where
-> the rwsem is used with IRQs disabled.
->
-> Idea for this fix suggested by H. Peter Anvin.
->
-> Tested on TI OMAP3-based platform (ARM Cortex-A8)
->
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Rabin Vincent <rabin@rab.in>
-> Cc: H. Peter Anvin <hpa@zytor.com>
-> LKML-Reference: <alpine.LFD.2.00.1004010904540.3707@i5.linux-foundation.org>
-> Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+My Comments as below.
 
-For the benefit of the l-o archives...
+Regards
+Deepak
 
-This patch was merged into mainline in .34-rc6 and fixes potential
-deadlocks on boot, seen especially when using the SLUB allocator.
+-----Original Message-----
+From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+Sent: Wednesday, May 05, 2010 6:55 PM
+To: Menon, Nishanth
+Cc: linux-omap; Kattungal, Deepak; Raja, Govindraj; Tero Kristo
+Subject: Re: [PM][PATCH v3 2/4] OMAP3: Serial: Errata i202: fix for MDR1 access
+
+Nishanth Menon <nm@ti.com> writes:
+
+> From: Deepak K <deepak.k@ti.com>
+>
+> Original patch:
+> http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=42d4a342c009bd9727c100abc8a4bc3063c22f0c
+>
+> Errata i202 (OMAP3430 - 1.12, OMAP3630 - 1.6):
+
+This workaround is currently done for all OMAPs.  
+
+Presumably, this errata will eventually be fixed.  So, as with other
+errata fixes, we need some sort of SoC-rev based flag and the errata
+workaround done based on that flag.
+
+Deepak : This would be a good fix, thanks for the suggestion.
+
+Also, shouldn't there be a fix for this in the 8250 and omap-serial
+drivers too?
+
+
+Deepak : The 8250 is not using the MDR Register. This would be needed only by the omap-serial. The 8250 being a general driver we may not require the access to MDR1 register. Hence the fix not required for 8250.
 
 Kevin
+
+> UART module MDR1 register access can cause a dummy underrun
+> condition which could result in a freeze in the case of IrDA
+> communication or if used as UART, corrupted data.
+>
+> Workaround is as follows for everytime MDR1 register is changed:
+> * setup all required UART registers
+> * setup MDR1.MODE_SELECT bit field
+> * Wait 5 L4 clk cycles + 5 UART functional clock cycles
+> * Clear the Tx and RX fifo using FCR register
+>
+> Note: The following step is not done as I am assuming it is not
+> needed due to reconfiguration being done and there is no halted
+> operation perse.
+> * Read if required, the RESUME register to resume halted operation
+>
+> Cc: Govindraj R <govindraj.raja@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tero Kristo <tero.kristo@nokia.com>
+>
+> Signed-off-by: Deepak K <deepak.k@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> Changes from V2:
+>   * Use macros instead of hardcoded values
+>
+> Ref:
+> V2: http://marc.info/?t=127084514600010&r=1&w=2&n=2
+> v1: http://marc.info/?t=127074933100005&r=1&w=2
+>
+>  arch/arm/mach-omap2/serial.c |   41 ++++++++++++++++++++++++++++++++++++++---
+>  1 files changed, 38 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index a7c45b5..6d13183 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -185,6 +185,42 @@ static inline void __init omap_uart_reset(struct omap_uart_state *uart)
+>  
+>  #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
+>  
+> +/*
+> + * Work Around for Errata i202 (3430 - 1.12, 3630 - 1.6)
+> + * The access to uart register after MDR1 Access
+> + * causes UART to corrupt data.
+> + *
+> + * Need a delay =
+> + * 5 L4 clock cycles + 5 UART functional clock cycle (@48MHz = ~0.2uS)
+> + * give 10 times as much
+> + */
+> +static void omap_uart_mdr1_errataset(struct omap_uart_state *uart, u8 mdr1_val,
+> +		u8 fcr_val)
+> +{
+> +	struct plat_serial8250_port *p = uart->p;
+> +	u8 timeout = 255;
+> +
+> +	serial_write_reg(p, UART_OMAP_MDR1, mdr1_val);
+> +	udelay(2);
+> +	serial_write_reg(p, UART_FCR, fcr_val | UART_FCR_CLEAR_XMIT |
+> +			UART_FCR_CLEAR_RCVR);
+> +	/*
+> +	 * Wait for FIFO to empty: when empty, RX_FIFO_E bit is 0 and
+> +	 * TX_FIFO_E bit is 1.
+> +	 */
+> +	while (UART_LSR_THRE != (serial_read_reg(p, UART_LSR) &
+> +				(UART_LSR_THRE | UART_LSR_DR))) {
+> +		timeout--;
+> +		if (!timeout) {
+> +			/* Should *never* happen. we warn and carry on */
+> +			dev_crit(&uart->pdev.dev, "Errata i202: timedout %x\n",
+> +				serial_read_reg(p, UART_LSR));
+> +			break;
+> +		}
+> +		udelay(1);
+> +	}
+> +}
+> +
+>  static void omap_uart_save_context(struct omap_uart_state *uart)
+>  {
+>  	u16 lcr = 0;
+> @@ -222,7 +258,7 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
+>  
+>  	uart->context_valid = 0;
+>  
+> -	serial_write_reg(p, UART_OMAP_MDR1, 0x7);
+> +	omap_uart_mdr1_errataset(uart, 0x07, 0xA0);
+>  	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+>  	efr = serial_read_reg(p, UART_EFR);
+>  	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
+> @@ -235,14 +271,13 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
+>  	serial_write_reg(p, UART_IER, uart->ier);
+>  	serial_write_reg(p, UART_LCR, 0x80);
+>  	serial_write_reg(p, UART_MCR, uart->mcr);
+> -	serial_write_reg(p, UART_FCR, 0xA1);
+>  	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+>  	serial_write_reg(p, UART_EFR, efr);
+>  	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
+>  	serial_write_reg(p, UART_OMAP_SCR, uart->scr);
+>  	serial_write_reg(p, UART_OMAP_WER, uart->wer);
+>  	serial_write_reg(p, UART_OMAP_SYSC, uart->sysc);
+> -	serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
+> +	omap_uart_mdr1_errataset(uart, 0x00, 0xA1);
+>  }
+>  #else
+>  static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
+> -- 
+> 1.6.3.3
