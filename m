@@ -1,54 +1,82 @@
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 2.5/4] ARM: add LCDC and MIPI DSI-Tx clock definitions to
- sh7372
-Date: Fri, 7 May 2010 12:05:25 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1005071200310.4777@axis700.grange>
+Subject: [PATCH 1.5/4] sh: add a YUV422 output data format, that is also
+ supported by LCDC
+Date: Fri, 7 May 2010 12:49:41 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1005071246500.4777@axis700.grange>
 References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48429 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754598Ab0EGKFW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 May 2010 06:05:22 -0400
+Return-path: <linux-sh-owner@vger.kernel.org>
 In-Reply-To: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-sh-owner@vger.kernel.org
 To: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
 Cc: Magnus Damm <magnus.damm@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+List-Id: linux-omap@vger.kernel.org
 
-Define clock objects for switching on and off clocks for LCDC0, LCDC1 and MIPI
-DSI-Tx.
+The LCDC block is allowed to use one of the two output data formats, when used
+with MIPI DSI: RGB24 and YUV422. YUV422 is not currently handled by the LCDC
+driver, but we have to add a define for it for MIPI. Fix indentation while 
+at it.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
 
-Sorry, one more patch to add to the patch-series. In fact nothing breaks 
-if you apply this patch before or after the whole series, so, no 
-regressions, but to get LCD to actually work you also need this one;) And 
-best put it between patches 2 and 3 of the series - that's where 2.5 comes 
-from.
+Hm, this one is actually worse, it actually has to go in before patch 2/4. 
+Sorry again.
 
- arch/arm/mach-shmobile/clock-sh7372.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ include/video/sh_mobile_lcdc.h |   39 +++++++++++++++++++++------------------
+ 1 files changed, 21 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-shmobile/clock-sh7372.c b/arch/arm/mach-shmobile/clock-sh7372.c
-index abbc380..66ee47a 100644
---- a/arch/arm/mach-shmobile/clock-sh7372.c
-+++ b/arch/arm/mach-shmobile/clock-sh7372.c
-@@ -264,8 +264,12 @@ struct clk div6_clks[] = {
+diff --git a/include/video/sh_mobile_lcdc.h b/include/video/sh_mobile_lcdc.h
+index 2cc893f..5eaea78 100644
+--- a/include/video/sh_mobile_lcdc.h
++++ b/include/video/sh_mobile_lcdc.h
+@@ -3,24 +3,27 @@
  
- #define R_CLK (&r_clk)
- #define HP_CLK (&div4_clks[DIV4_HP])
-+#define B_CLK (&div4_clks[DIV4_B])
+ #include <linux/fb.h>
  
- static struct clk mstp_clks[] = {
-+	MSTP("lcdc0", B_CLK, SMSTPCR1, 0, 0),
-+	MSTP("lcdc1", B_CLK, SMSTPCR1, 17, 0),
-+	MSTP("dsitx", B_CLK, SMSTPCR1, 18, 0),
- 	MSTP("sdhi0", HP_CLK, SMSTPCR3, 14, 0),
- 	MSTP("sdhi1", HP_CLK, SMSTPCR3, 13, 0),
- 	MSTP("keysc0", R_CLK, SMSTPCR4, 3, 0),
+-enum { RGB8,   /* 24bpp, 8:8:8 */
+-       RGB9,   /* 18bpp, 9:9 */
+-       RGB12A, /* 24bpp, 12:12 */
+-       RGB12B, /* 12bpp */
+-       RGB16,  /* 16bpp */
+-       RGB18,  /* 18bpp */
+-       RGB24,  /* 24bpp */
+-       SYS8A,  /* 24bpp, 8:8:8 */
+-       SYS8B,  /* 18bpp, 8:8:2 */
+-       SYS8C,  /* 18bpp, 2:8:8 */
+-       SYS8D,  /* 16bpp, 8:8 */
+-       SYS9,   /* 18bpp, 9:9 */
+-       SYS12,  /* 24bpp, 12:12 */
+-       SYS16A, /* 16bpp */
+-       SYS16B, /* 18bpp, 16:2 */
+-       SYS16C, /* 18bpp, 2:16 */
+-       SYS18,  /* 18bpp */
+-       SYS24 };/* 24bpp */
++enum {
++	RGB8,   /* 24bpp, 8:8:8 */
++	RGB9,   /* 18bpp, 9:9 */
++	RGB12A, /* 24bpp, 12:12 */
++	RGB12B, /* 12bpp */
++	RGB16,  /* 16bpp */
++	RGB18,  /* 18bpp */
++	RGB24,  /* 24bpp */
++	YUV422, /* 16bpp */
++	SYS8A,  /* 24bpp, 8:8:8 */
++	SYS8B,  /* 18bpp, 8:8:2 */
++	SYS8C,  /* 18bpp, 2:8:8 */
++	SYS8D,  /* 16bpp, 8:8 */
++	SYS9,   /* 18bpp, 9:9 */
++	SYS12,  /* 24bpp, 12:12 */
++	SYS16A, /* 16bpp */
++	SYS16B, /* 18bpp, 16:2 */
++	SYS16C, /* 18bpp, 2:16 */
++	SYS18,  /* 18bpp */
++	SYS24,  /* 24bpp */
++};
+ 
+ enum { LCDC_CHAN_DISABLED = 0,
+        LCDC_CHAN_MAINLCD,
 -- 
 1.6.2.4
 
