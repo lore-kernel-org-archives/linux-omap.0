@@ -1,77 +1,102 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCHv3 1/5] OMAP: RX51: Add LCD Panel support
-Date: Fri, 07 May 2010 10:03:57 +0300
-Message-ID: <4BE3BB5D.2000105@nokia.com>
-References: <1271333181-23609-1-git-send-email-roger.quadros@nokia.com>	<1271333181-23609-2-git-send-email-roger.quadros@nokia.com> <87hbmkvqb5.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/5] omap iommu: Fix superpage unalignment at allocation
+	of iovm areas
+Date: Fri, 7 May 2010 10:19:33 +0300
+Message-ID: <n2u94a0d4531005070019o7c40e334rde44fcc636bf2a2b@mail.gmail.com>
+References: <1273215364-15098-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	 <1273215364-15098-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:33007 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750929Ab0EGHET (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 03:04:19 -0400
-In-Reply-To: <87hbmkvqb5.fsf@deeprootsystems.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:54642 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754022Ab0EGHTf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 03:19:35 -0400
+Received: by bwz19 with SMTP id 19so400075bwz.21
+        for <linux-omap@vger.kernel.org>; Fri, 07 May 2010 00:19:33 -0700 (PDT)
+In-Reply-To: <1273215364-15098-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, vimarsh.zutshi@nokia.com, Sakari.Ailus@nokia.com, david.cohen@nokia.com
 
-Hi Kevin,
+On Fri, May 7, 2010 at 9:56 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> w=
+rote:
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+>
+> Superpage addresses should be aligned on mapping size of 4KB, 64KB,
+> 1MB and 16MB respectively both for physical and device virtual
+> addresses.
+>
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+> =C2=A0arch/arm/plat-omap/iovmm.c | =C2=A0122 ++++++++++++++++++++++++=
++------------------
+> =C2=A01 files changed, 71 insertions(+), 51 deletions(-)
 
-ext Kevin Hilman wrote:
-> Roger Quadros <roger.quadros@nokia.com> writes:
-> 
->> From: Roger Quadros <roger.quadros@nokia.com>
->>
->> Adds basic support for LCD Panel on Nokia N900
->>
->> Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
-> 
-> Just noticed a compile problem here...
-> 
-> [...]
-> 
->> diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
-> 
-> [...]
-> 
->> +void __init rx51_video_mem_init(void)
->> +{
->> +	/*
->> +	 * GFX 864x480x32bpp
->> +	 * VID1/2 1280x720x32bpp double buffered
->> +	 */
->> +	omap_vram_set_sdram_vram(PAGE_ALIGN(864 * 480 * 4) +
->> +			2 * PAGE_ALIGN(1280 * 720 * 4 * 2), 0);
->> +}
->> +
->> +#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
-> 
-> This function is available conditionally based on the #ifdefs, but...
-> 
->> diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
->> index b155c36..1b86b5b 100644
->> --- a/arch/arm/mach-omap2/board-rx51.c
->> +++ b/arch/arm/mach-omap2/board-rx51.c
->> @@ -36,6 +36,7 @@
->>  #define RX51_GPIO_SLEEP_IND 162
->>  
->>  struct omap_sdrc_params *rx51_get_sdram_timings(void);
->> +extern void rx51_video_mem_init(void);
->>  
->>  static struct gpio_led gpio_leds[] = {
->>  	{
->> @@ -143,6 +144,7 @@ static void __init rx51_init(void)
->>  static void __init rx51_map_io(void)
->>  {
->>  	omap2_set_globals_343x();
->> +	rx51_video_mem_init();
-> 
-> ... here it is always called, giving a compiler error when building
-> without FB support.
+> @@ -127,13 +100,8 @@ static struct sg_table *sgtable_alloc(const size=
+_t bytes, u32 flags)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!IS_ALIGNED(bytes, PAGE_SIZE))
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return ERR_PTR=
+(-EINVAL);
+>
+> - =C2=A0 =C2=A0 =C2=A0 /* FIXME: IOVMF_DA_FIXED should support 'super=
+pages' */
+> - =C2=A0 =C2=A0 =C2=A0 if ((flags & IOVMF_LINEAR) && (flags & IOVMF_D=
+A_ANON)) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 nr_entries =3D sgt=
+able_nents(bytes);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!nr_entries)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 return ERR_PTR(-EINVAL);
+> - =C2=A0 =C2=A0 =C2=A0 } else
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 nr_entries =3D =C2=
+=A0bytes / PAGE_SIZE;
+> + =C2=A0 =C2=A0 =C2=A0 /* FIXME: Maximam number of entries are always=
+ prepared. */
 
-Thanks for pointing this out. will send another revision for this patch.
+Typo: maximum.
 
-cheers,
--roger
+> +static void alloc_area_by_size(u32 start, u32 end, u32 unit,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0struct scatterlist **_sg)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 u32 addr;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 if (unit =3D=3D 0)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 if (start =3D=3D end)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 addr =3D ALIGN(start, unit);
+> + =C2=A0 =C2=A0 =C2=A0 if (addr > end) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* retry with smal=
+ler granularity */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 alloc_area_by_size=
+(start, end, iopgsz_max(unit - 1), _sg);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 /* lower chuck with smaller granularity */
+
+Typo: chunk (I guess).
+
+> + =C2=A0 =C2=A0 =C2=A0 alloc_area_by_size(start, addr, iopgsz_max(uni=
+t - 1), _sg);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 addr =3D __alloc_area_by_size(addr, end, unit,=
+ _sg);
+> + =C2=A0 =C2=A0 =C2=A0 if (addr < end)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* higher chuck wi=
+th smaller granularity */
+
+Another typo?
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
