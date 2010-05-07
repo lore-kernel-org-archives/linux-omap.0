@@ -1,50 +1,44 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH] Disable the non working eMMC on Zoom2/3
-Date: Fri, 7 May 2010 16:25:59 -0500
-Message-ID: <000901caee2b$e30ec1c0$544ff780@am.dhcp.ti.com>
-References: <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com> <20100407114938.GF7153@atomide.com> <003801cad73e$86841df0$544ff780@am.dhcp.ti.com> <20100427182111.GE7225@atomide.com> <20100428192322.GG7225@atomide.com> <006801cae709$e136fe40$544ff780@am.dhcp.ti.com> <20100428194553.GH7225@atomide.com> <006f01cae886$38da6920$544ff780@am.dhcp.ti.com> <20100505182727.GA29604@atomide.com> <00a501caecbc$761ded40$544ff780@am.dhcp.ti.com> <20100506153044.GL29604@atomide.com>
+From: Cliff Brake <cliff.brake@gmail.com>
+Subject: Re: omap-pm: omap3_pm_defconfig no longer booting on Overo
+Date: Fri, 7 May 2010 18:02:40 -0400
+Message-ID: <j2lf96d234e1005071502q5a335634jd493a92ee970995b@mail.gmail.com>
+References: <4BD93413.6000409@gmail.com> <8739yckbyy.fsf@deeprootsystems.com>
+	 <4BDB9C05.5050307@gmail.com> <4BDC4999.4050003@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20100506153044.GL29604@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: 'Tony Lindgren' <tony@atomide.com>
-Cc: 'Nishanth Menon' <nm@ti.com>, "'Ghorai, Sukumar'" <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:61051 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753903Ab0EGWCm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 18:02:42 -0400
+Received: by wwa36 with SMTP id 36so340114wwa.19
+        for <linux-omap@vger.kernel.org>; Fri, 07 May 2010 15:02:41 -0700 (PDT)
+In-Reply-To: <4BDC4999.4050003@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <menon.nishanth@gmail.com>
+Cc: Peter Tseng <tsenpet09@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
+On Sat, May 1, 2010 at 11:32 AM, Nishanth Menon
+<menon.nishanth@gmail.com> wrote:
+> DISCLAIMER: I dont have a overo, so no idea if this would work.. but here
+> you go..
+>
+> Attached is a diff which probably will help you with the specific changes
+> needed for making pm boot on overo. hope it helps..
+>
+> a.diff is the change you would probably need for the overo file to fix it up
+> once for all
+>
+> the patch file is cleaning up the unnecessary BUG() in resource34xx.c which
+> caused the lockup -> elegant fix will potentially need more cleaning up..
+> but lets just leave it at the fact that srf is going to go away in a month
+> or so..
 
+Nishanth,
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, May 06, 2010 10:31 AM
-> To: Madhusudhan
-> Cc: 'Nishanth Menon'; 'Ghorai, Sukumar'; linux-omap@vger.kernel.org;
-> linux-mmc@vger.kernel.org
-> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
-> 
-> * Madhusudhan <madhu.cr@ti.com> [100505 18:31]:
-> >
-> >
-> > > -----Original Message-----
-> > > From: Tony Lindgren [mailto:tony@atomide.com]
-> >
-> > > And what about this "Simulate multi mmc card as one big" patch?
-> > >
-> > Did not get you, what patch are you referring to?
-> 
-> Oops sorry forgot the link:
-> 
-> https://patchwork.kernel.org/patch/87944/
-> 
-This will not help. I don't know the history of the patch but what this is
-intended for is to support multiple MMC cards connected to a single
-controller. But on the Zoom the eMMC we are talking about is connected to
-MMC2.
+These patches get my overo booting with the PM branch -- can they be
+pushed to the pm branch?
 
-Regards,
-Madhu
-
-> Tony
-
+Thanks,
+Cliff
