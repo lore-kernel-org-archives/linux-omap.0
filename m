@@ -1,40 +1,54 @@
-From: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Subject: [PATCH v2 0/2] OMAP: DSS2: Fix DSS core init fail path
-Date: Fri,  7 May 2010 12:58:40 +0300
-Message-ID: <cover.1273222740.git.ext-jani.1.nikula@nokia.com>
-References: <1273219659.1978.144.camel@tubuntu.research.nokia.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 2.5/4] ARM: add LCDC and MIPI DSI-Tx clock definitions to
+ sh7372
+Date: Fri, 7 May 2010 12:05:25 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1005071200310.4777@axis700.grange>
+References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:61928 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755621Ab0EGKAF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 06:00:05 -0400
-In-Reply-To: <1273219659.1978.144.camel@tubuntu.research.nokia.com>
+Received: from mail.gmx.net ([213.165.64.20]:48429 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754598Ab0EGKFW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 May 2010 06:05:22 -0400
+In-Reply-To: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi.Valkeinen@nokia.com, khilman@deeprootsystems.com
-Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, ext-jani.1.nikula@nokia.com
+To: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
+Cc: Magnus Damm <magnus.damm@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Hi -
+Define clock objects for switching on and off clocks for LCDC0, LCDC1 and MIPI
+DSI-Tx.
 
-These patches fix the broken DSS omap_dss_probe() fail path, reported by Kevin
-Hilman [1].
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-v2:
- - rebased against [2]
+Sorry, one more patch to add to the patch-series. In fact nothing breaks 
+if you apply this patch before or after the whole series, so, no 
+regressions, but to get LCD to actually work you also need this one;) And 
+best put it between patches 2 and 3 of the series - that's where 2.5 comes 
+from.
 
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27112.html
-[2] git://gitorious.org/linux-omap-dss2/linux.git
+ arch/arm/mach-shmobile/clock-sh7372.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-
-BR,
-Jani.
-
-
-Jani Nikula (2):
-  OMAP: DSS2: omap_dss_probe() conditional compilation cleanup
-  OMAP: DSS2: Fix omap_dss_probe() error path
-
- drivers/video/omap2/dss/core.c |   89 +++++++++++++++++++++++----------------
- drivers/video/omap2/dss/dss.h  |   50 ++++++++++++++++++++++
- 2 files changed, 102 insertions(+), 37 deletions(-)
+diff --git a/arch/arm/mach-shmobile/clock-sh7372.c b/arch/arm/mach-shmobile/clock-sh7372.c
+index abbc380..66ee47a 100644
+--- a/arch/arm/mach-shmobile/clock-sh7372.c
++++ b/arch/arm/mach-shmobile/clock-sh7372.c
+@@ -264,8 +264,12 @@ struct clk div6_clks[] = {
+ 
+ #define R_CLK (&r_clk)
+ #define HP_CLK (&div4_clks[DIV4_HP])
++#define B_CLK (&div4_clks[DIV4_B])
+ 
+ static struct clk mstp_clks[] = {
++	MSTP("lcdc0", B_CLK, SMSTPCR1, 0, 0),
++	MSTP("lcdc1", B_CLK, SMSTPCR1, 17, 0),
++	MSTP("dsitx", B_CLK, SMSTPCR1, 18, 0),
+ 	MSTP("sdhi0", HP_CLK, SMSTPCR3, 14, 0),
+ 	MSTP("sdhi1", HP_CLK, SMSTPCR3, 13, 0),
+ 	MSTP("keysc0", R_CLK, SMSTPCR4, 3, 0),
+-- 
+1.6.2.4
 
