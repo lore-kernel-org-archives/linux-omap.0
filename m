@@ -1,125 +1,239 @@
-From: Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH]i2c-omap: pass scll, sclh through board file for Errata
- i585
-Date: Fri, 07 May 2010 12:28:22 +0300
-Message-ID: <4BE3DD36.10308@nokia.com>
-References: <1273214105-22894-1-git-send-email-balajitk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1273214105-22894-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ext balajitk-l0cyMroinI0@public.gmane.org" <balajitk-l0cyMroinI0@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "nm-l0cyMroinI0@public.gmane.org" <nm-l0cyMroinI0@public.gmane.org>
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: [PATCH v2 1/2] OMAP: DSS2: omap_dss_probe() conditional compilation cleanup
+Date: Fri,  7 May 2010 12:58:41 +0300
+Message-ID: <a17cc11c19f780bd656ce29b64e60d878e1c6fea.1273222740.git.ext-jani.1.nikula@nokia.com>
+References: <1273219659.1978.144.camel@tubuntu.research.nokia.com>
+ <cover.1273222740.git.ext-jani.1.nikula@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:51455 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929Ab0EGJ7S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 05:59:18 -0400
+In-Reply-To: <cover.1273222740.git.ext-jani.1.nikula@nokia.com>
+In-Reply-To: <cover.1273222740.git.ext-jani.1.nikula@nokia.com>
+References: <cover.1273222740.git.ext-jani.1.nikula@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi.Valkeinen@nokia.com, khilman@deeprootsystems.com
+Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, ext-jani.1.nikula@nokia.com
 
-Hi,
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-balajitk-l0cyMroinI0@public.gmane.org wrote:
-> From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-> 
-> Errata ID: i535 - I2C1 to 3 SCL low period is shorter in FS mode
-> Due to IO cell influence, I2C1 to 3 SCL low period can be shorter than expected.
-> As a result, I2C AC timing (SCL minimum low period) in FS mode may not meet
-> the timing configured by software.
-> 
-> I2C1 to 3, SCL low period is programmable and proper adjustments
-> to the SCLL/HSSCLL values can avoid the issue.
-> 
-> This patch provides flexibility to control tLOW, tHIGH for different boards.
-> scll, sclh values are to be provide in board data
-> for differents modes (standard, fast and high speed mode)
-> as the scl rate (I2C bus speed) can be changed by bootargs.
+Move a number of #ifdefs from code into dss.h and elsewhere, and
+conditionally define no-op static inline functions, cleaning up the
+code. This style is according to Documentation/SubmittingPatches.
 
-This patch is very much needed, because these values are highly board specific.
-At the moment we are forced to patch the i2c bus driver when finetuning the I2C
-timings for a certain board, which is ugly.
+Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
+---
+ drivers/video/omap2/dss/core.c |   35 ++++++++-------------------
+ drivers/video/omap2/dss/dss.h  |   50 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+), 24 deletions(-)
 
-However, I have comment one about the implementation:
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 6d54467..92ee067 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -482,6 +482,14 @@ static void dss_uninitialize_debugfs(void)
+ 	if (dss_debugfs_dir)
+ 		debugfs_remove_recursive(dss_debugfs_dir);
+ }
++#else /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
++static inline int dss_initialize_debugfs(void)
++{
++	return 0;
++}
++static inline void dss_uninitialize_debugfs(void)
++{
++}
+ #endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
+ 
+ /* PLATFORM DEVICE */
+@@ -518,56 +526,47 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 		goto fail0;
+ 	}
+ 
+-#ifdef CONFIG_OMAP2_DSS_RFBI
+ 	r = rfbi_init();
+ 	if (r) {
+ 		DSSERR("Failed to initialize rfbi\n");
+ 		goto fail0;
+ 	}
+-#endif
+ 
+-#ifdef CONFIG_OMAP2_DSS_DPI
+ 	r = dpi_init(pdev);
+ 	if (r) {
+ 		DSSERR("Failed to initialize dpi\n");
+ 		goto fail0;
+ 	}
+-#endif
+ 
+ 	r = dispc_init();
+ 	if (r) {
+ 		DSSERR("Failed to initialize dispc\n");
+ 		goto fail0;
+ 	}
+-#ifdef CONFIG_OMAP2_DSS_VENC
++
+ 	r = venc_init(pdev);
+ 	if (r) {
+ 		DSSERR("Failed to initialize venc\n");
+ 		goto fail0;
+ 	}
+-#endif
++
+ 	if (cpu_is_omap34xx()) {
+-#ifdef CONFIG_OMAP2_DSS_SDI
+ 		r = sdi_init(skip_init);
+ 		if (r) {
+ 			DSSERR("Failed to initialize SDI\n");
+ 			goto fail0;
+ 		}
+-#endif
+-#ifdef CONFIG_OMAP2_DSS_DSI
++
+ 		r = dsi_init(pdev);
+ 		if (r) {
+ 			DSSERR("Failed to initialize DSI\n");
+ 			goto fail0;
+ 		}
+-#endif
+ 	}
+ 
+-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
+ 	r = dss_initialize_debugfs();
+ 	if (r)
+ 		goto fail0;
+-#endif
+ 
+ 	for (i = 0; i < pdata->num_devices; ++i) {
+ 		struct omap_dss_device *dssdev = pdata->devices[i];
+@@ -595,27 +594,15 @@ static int omap_dss_remove(struct platform_device *pdev)
+ 	int i;
+ 	int c;
+ 
+-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
+ 	dss_uninitialize_debugfs();
+-#endif
+ 
+-#ifdef CONFIG_OMAP2_DSS_VENC
+ 	venc_exit();
+-#endif
+ 	dispc_exit();
+-#ifdef CONFIG_OMAP2_DSS_DPI
+ 	dpi_exit();
+-#endif
+-#ifdef CONFIG_OMAP2_DSS_RFBI
+ 	rfbi_exit();
+-#endif
+ 	if (cpu_is_omap34xx()) {
+-#ifdef CONFIG_OMAP2_DSS_DSI
+ 		dsi_exit();
+-#endif
+-#ifdef CONFIG_OMAP2_DSS_SDI
+ 		sdi_exit();
+-#endif
+ 	}
+ 
+ 	dss_exit();
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 24326a5..786f433 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -242,11 +242,22 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
+ 		struct dispc_clock_info *dispc_cinfo);
+ 
+ /* SDI */
++#ifdef CONFIG_OMAP2_DSS_SDI
+ int sdi_init(bool skip_init);
+ void sdi_exit(void);
+ int sdi_init_display(struct omap_dss_device *display);
++#else
++static inline int sdi_init(bool skip_init)
++{
++	return 0;
++}
++static inline void sdi_exit(void)
++{
++}
++#endif
+ 
+ /* DSI */
++#ifdef CONFIG_OMAP2_DSS_DSI
+ int dsi_init(struct platform_device *pdev);
+ void dsi_exit(void);
+ 
+@@ -270,11 +281,30 @@ void dsi_pll_uninit(void);
+ void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
+ 		u32 fifo_size, enum omap_burst_size *burst_size,
+ 		u32 *fifo_low, u32 *fifo_high);
++#else
++static inline int dsi_init(struct platform_device *pdev)
++{
++	return 0;
++}
++static inline void dsi_exit(void)
++{
++}
++#endif
+ 
+ /* DPI */
++#ifdef CONFIG_OMAP2_DSS_DPI
+ int dpi_init(struct platform_device *pdev);
+ void dpi_exit(void);
+ int dpi_init_display(struct omap_dss_device *dssdev);
++#else
++static inline int dpi_init(struct platform_device *pdev)
++{
++	return 0;
++}
++static inline void dpi_exit(void)
++{
++}
++#endif
+ 
+ /* DISPC */
+ int dispc_init(void);
+@@ -362,12 +392,23 @@ int dispc_get_clock_div(struct dispc_clock_info *cinfo);
+ 
+ 
+ /* VENC */
++#ifdef CONFIG_OMAP2_DSS_VENC
+ int venc_init(struct platform_device *pdev);
+ void venc_exit(void);
+ void venc_dump_regs(struct seq_file *s);
+ int venc_init_display(struct omap_dss_device *display);
++#else
++static inline int venc_init(struct platform_device *pdev)
++{
++	return 0;
++}
++static inline void venc_exit(void)
++{
++}
++#endif
+ 
+ /* RFBI */
++#ifdef CONFIG_OMAP2_DSS_RFBI
+ int rfbi_init(void);
+ void rfbi_exit(void);
+ void rfbi_dump_regs(struct seq_file *s);
+@@ -379,6 +420,15 @@ void rfbi_transfer_area(u16 width, u16 height,
+ void rfbi_set_timings(int rfbi_module, struct rfbi_timings *t);
+ unsigned long rfbi_get_max_tx_rate(void);
+ int rfbi_init_display(struct omap_dss_device *display);
++#else
++static inline int rfbi_init(void)
++{
++	return 0;
++}
++static inline void rfbi_exit(void)
++{
++}
++#endif
+ 
+ 
+ #ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
+-- 
+1.6.5.2
 
-> @@ -451,24 +458,47 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-> 
->                         /* For first phase of HS mode */
->                         scl = internal_clk / 400;
-> -                       fsscll = scl - (scl / 3) - 7;
-> -                       fssclh = (scl / 3) - 5;
-> +                       if ((pdata->hs_phase1.scll > 7) &&
-> +                                       (pdata->hs_phase1.sclh > 5)) {
-> +                               fsscll = pdata->hs_phase1.scll - 7;
-> +                               fssclh = pdata->hs_phase1.sclh - 5;
-> +                       } else {
-> +                               fsscll = scl - (scl / 3) - 7;
-> +                               fssclh = (scl / 3) - 5;
-> +                       }
->                         /* For second phase of HS mode */
->                         scl = fclk_rate / dev->speed;
-> -                       hsscll = scl - (scl / 3) - 7;
-> -                       hssclh = (scl / 3) - 5;
-> +                       if ((pdata->hs_phase2.scll > 7) &&
-> +                                       (pdata->hs_phase2.sclh > 5)) {
-> +                               hsscll = pdata->hs_phase2.scll - 7;
-> +                               hssclh = pdata->hs_phase2.sclh - 5;
-> +                       } else {
-> +                               hsscll = scl - (scl / 3) - 7;
-> +                               hssclh = (scl / 3) - 5;
-> +                       }
->                 } else if (dev->speed > 100) {
->                         unsigned long scl;
-> 
->                         /* Fast mode */
->                         scl = internal_clk / dev->speed;
-> -                       fsscll = scl - (scl / 3) - 7;
-> -                       fssclh = (scl / 3) - 5;
-> +                       if ((pdata->fast.scll > 7) && (pdata->fast.sclh > 5)) {
-> +                               fsscll = pdata->fast.scll - 7;
-> +                               fssclh = pdata->fast.sclh - 5;
-> +                       } else {
-> +                               fsscll = scl - (scl / 3) - 7;
-> +                               fssclh = (scl / 3) - 5;
-> +                       }
->                 } else {
->                         /* Standard mode */
-> -                       fsscll = internal_clk / (dev->speed * 2) - 7;
-> -                       fssclh = internal_clk / (dev->speed * 2) - 5;
-> +                       if ((pdata->standard.scll > 7) &&
-> +                                       (pdata->standard.sclh > 5)) {
-> +                               fsscll = pdata->standard.scll - 7;
-> +                               fssclh = pdata->standard.sclh - 5;
-> +                       } else {
-> +                               fsscll = internal_clk / (dev->speed * 2) - 7;
-> +                               fssclh = internal_clk / (dev->speed * 2) - 5;
-> +                       }
-
-I think it would be simpler if we move these calcuations into a function.
-E.g. something like:
-
-	if (dev->speed > 400) {
-		/* HS mode */
-		pdata->set_scl(internal_clk, 400, &fsscll, &fssclh);
-		pdata->set_scl(fclk_rate, dev->speed, &hsscll, &hssclh);
-	} else {
-		/* Fast & standard mode */
-		pdata->set_scl(internal_clk, dev->speed, &fsscll, &fssclh);
-	}
-
-Then the default function would be something like:
-
-static void omap_i2c_default_scl(unsigned clk, unsigned speed, u16 *scll, u16 *sclh)
-{
-	if (speed > 100) {
-		/* Fast & HS modes */
-		unsigned scl = clk / speed;
-
-		*scll = scl - (scl / 3) - 7;
-		*sclh = (scl / 3) - 5;
-	} else {
-		/* Standard mode */
-		*scll = clk / (speed * 2) - 7;
-		*scll = clk / (speed * 2) - 5;
-	}
-}
-
-And the platform data would just provide a board-specific function if needed.
-
-A.
