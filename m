@@ -1,201 +1,125 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 3/4] ARM: add framebuffer support for ap4evb
-Date: Fri, 7 May 2010 11:07:27 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1005071105140.4777@axis700.grange>
-References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
+From: Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH]i2c-omap: pass scll, sclh through board file for Errata
+ i585
+Date: Fri, 07 May 2010 12:28:22 +0300
+Message-ID: <4BE3DD36.10308@nokia.com>
+References: <1273214105-22894-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
-Sender: linux-sh-owner@vger.kernel.org
-To: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
-Cc: Magnus Damm <magnus.damm@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1273214105-22894-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ext balajitk-l0cyMroinI0@public.gmane.org" <balajitk-l0cyMroinI0@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "nm-l0cyMroinI0@public.gmane.org" <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-ap4evb uses an LCD, connected to the SoC over the MIPI bus. This patch adds
-platform data to configure this display and a static clock activation.
+Hi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+balajitk-l0cyMroinI0@public.gmane.org wrote:
+> From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+> 
+> Errata ID: i535 - I2C1 to 3 SCL low period is shorter in FS mode
+> Due to IO cell influence, I2C1 to 3 SCL low period can be shorter than expected.
+> As a result, I2C AC timing (SCL minimum low period) in FS mode may not meet
+> the timing configured by software.
+> 
+> I2C1 to 3, SCL low period is programmable and proper adjustments
+> to the SCLL/HSSCLL values can avoid the issue.
+> 
+> This patch provides flexibility to control tLOW, tHIGH for different boards.
+> scll, sclh values are to be provide in board data
+> for differents modes (standard, fast and high speed mode)
+> as the scl rate (I2C bus speed) can be changed by bootargs.
 
-Nothing OMAP-relevant here, just for completeness.
+This patch is very much needed, because these values are highly board specific.
+At the moment we are forced to patch the i2c bus driver when finetuning the I2C
+timings for a certain board, which is ugly.
 
- arch/arm/mach-shmobile/Kconfig        |    1 +
- arch/arm/mach-shmobile/board-ap4evb.c |  121 +++++++++++++++++++++++++++++++++
- 2 files changed, 122 insertions(+), 0 deletions(-)
+However, I have comment one about the implementation:
 
-diff --git a/arch/arm/mach-shmobile/Kconfig b/arch/arm/mach-shmobile/Kconfig
-index 9003ea9..e216132 100644
---- a/arch/arm/mach-shmobile/Kconfig
-+++ b/arch/arm/mach-shmobile/Kconfig
-@@ -42,6 +42,7 @@ config MACH_AP4EVB
- 	bool "AP4EVB board"
- 	depends on ARCH_SH7372
- 	select ARCH_REQUIRE_GPIOLIB
-+	select SH_LCD_MIPI_DSI
- 
- comment "SH-Mobile System Configuration"
- 
-diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
-index d2bb7b0..e3f5375 100644
---- a/arch/arm/mach-shmobile/board-ap4evb.c
-+++ b/arch/arm/mach-shmobile/board-ap4evb.c
-@@ -17,6 +17,7 @@
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  */
-+#include <linux/clk.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
-@@ -32,8 +33,14 @@
- #include <linux/gpio.h>
- #include <linux/input.h>
- #include <linux/input/sh_keysc.h>
-+
-+#include <video/sh_mobile_lcdc.h>
-+#include <video/sh_mipi_dsi.h>
-+
- #include <mach/common.h>
-+#include <mach/irqs.h>
- #include <mach/sh7372.h>
-+
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -237,11 +244,86 @@ static struct platform_device sdhi0_device = {
- 	},
- };
- 
-+static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
-+	.clock_source = LCDC_CLK_PERIPHERAL, /* One of interface clocks */
-+	.ch[0] = {
-+		.chan = LCDC_CHAN_MAINLCD,
-+		.bpp = 16,
-+		.interface_type = RGB24,
-+		.clock_divider = 1,
-+		.flags = LCDC_FLAGS_DWPOL,
-+		.lcd_cfg = {
-+			.name = "R63302(QHD)",
-+			.xres = 544,
-+			.yres = 961,
-+			.left_margin = 72,
-+			.right_margin = 1080,
-+			.hsync_len = 16,
-+			.upper_margin = 8,
-+			.lower_margin = 8,
-+			.vsync_len = 2,
-+			.sync = FB_SYNC_VERT_HIGH_ACT | FB_SYNC_HOR_HIGH_ACT,
-+		},
-+		.lcd_size_cfg = {
-+			.width = 44,
-+			.height = 79,
-+		},
-+	}
-+};
-+
-+static struct resource lcdc_resources[] = {
-+	[0] = {
-+		.name	= "LCDC",
-+		.start	= 0xfe940000, /* P4-only space */
-+		.end	= 0xfe943fff,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= evt2irq(0x580),
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device lcdc_device = {
-+	.name		= "sh_mobile_lcdc_fb",
-+	.num_resources	= ARRAY_SIZE(lcdc_resources),
-+	.resource	= lcdc_resources,
-+	.dev	= {
-+		.platform_data	= &sh_mobile_lcdc_info,
-+		.coherent_dma_mask = ~0,
-+	},
-+};
-+
-+static struct resource mipidsi0_resources[] = {
-+	[0] = {
-+		.start  = 0xffc60000,
-+		.end    = 0xffc68fff,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+};
-+
-+static struct sh_mipi_dsi_info mipidsi0_info = {
-+	.data_format	= MIPI_RGB888,
-+	.lcd_chan	= &sh_mobile_lcdc_info.ch[0],
-+};
-+
-+static struct platform_device mipidsi0_device = {
-+	.name           = "sh-mipi-dsi",
-+	.num_resources  = ARRAY_SIZE(mipidsi0_resources),
-+	.resource       = mipidsi0_resources,
-+	.id             = 0,
-+	.dev	= {
-+		.platform_data	= &mipidsi0_info,
-+	},
-+};
-+
- static struct platform_device *ap4evb_devices[] __initdata = {
- 	&nor_flash_device,
- 	&smc911x_device,
- 	&keysc_device,
- 	&sdhi0_device,
-+	&lcdc_device,
-+	&mipidsi0_device,
- };
- 
- static struct map_desc ap4evb_io_desc[] __initdata = {
-@@ -265,6 +347,45 @@ static void __init ap4evb_map_io(void)
- 	shmobile_setup_console();
- }
- 
-+/* This function will disappear when we switch to (runtime) PM */
-+static int __init ap4evb_init_display_clk(void)
-+{
-+	struct clk *lcdc_clk;
-+	struct clk *dsitx_clk;
-+	int ret;
-+
-+	lcdc_clk = clk_get(&lcdc_device.dev, "lcdc0");
-+	if (IS_ERR(lcdc_clk))
-+		return PTR_ERR(lcdc_clk);
-+
-+	dsitx_clk = clk_get(&mipidsi0_device.dev, "dsitx");
-+	if (IS_ERR(dsitx_clk)) {
-+		ret = PTR_ERR(dsitx_clk);
-+		goto eclkdsitxget;
-+	}
-+
-+	ret = clk_enable(lcdc_clk);
-+	if (ret < 0)
-+		goto eclklcdcon;
-+
-+	ret = clk_enable(dsitx_clk);
-+	if (ret < 0)
-+		goto eclkdsitxon;
-+
-+	return 0;
-+
-+eclkdsitxon:
-+	clk_disable(lcdc_clk);
-+eclklcdcon:
-+	clk_put(dsitx_clk);
-+eclkdsitxget:
-+	clk_put(lcdc_clk);
-+
-+	return ret;
-+}
-+
-+device_initcall(ap4evb_init_display_clk);
-+
- static void __init ap4evb_init(void)
- {
- 	sh7372_pinmux_init();
--- 
-1.6.2.4
+> @@ -451,24 +458,47 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> 
+>                         /* For first phase of HS mode */
+>                         scl = internal_clk / 400;
+> -                       fsscll = scl - (scl / 3) - 7;
+> -                       fssclh = (scl / 3) - 5;
+> +                       if ((pdata->hs_phase1.scll > 7) &&
+> +                                       (pdata->hs_phase1.sclh > 5)) {
+> +                               fsscll = pdata->hs_phase1.scll - 7;
+> +                               fssclh = pdata->hs_phase1.sclh - 5;
+> +                       } else {
+> +                               fsscll = scl - (scl / 3) - 7;
+> +                               fssclh = (scl / 3) - 5;
+> +                       }
+>                         /* For second phase of HS mode */
+>                         scl = fclk_rate / dev->speed;
+> -                       hsscll = scl - (scl / 3) - 7;
+> -                       hssclh = (scl / 3) - 5;
+> +                       if ((pdata->hs_phase2.scll > 7) &&
+> +                                       (pdata->hs_phase2.sclh > 5)) {
+> +                               hsscll = pdata->hs_phase2.scll - 7;
+> +                               hssclh = pdata->hs_phase2.sclh - 5;
+> +                       } else {
+> +                               hsscll = scl - (scl / 3) - 7;
+> +                               hssclh = (scl / 3) - 5;
+> +                       }
+>                 } else if (dev->speed > 100) {
+>                         unsigned long scl;
+> 
+>                         /* Fast mode */
+>                         scl = internal_clk / dev->speed;
+> -                       fsscll = scl - (scl / 3) - 7;
+> -                       fssclh = (scl / 3) - 5;
+> +                       if ((pdata->fast.scll > 7) && (pdata->fast.sclh > 5)) {
+> +                               fsscll = pdata->fast.scll - 7;
+> +                               fssclh = pdata->fast.sclh - 5;
+> +                       } else {
+> +                               fsscll = scl - (scl / 3) - 7;
+> +                               fssclh = (scl / 3) - 5;
+> +                       }
+>                 } else {
+>                         /* Standard mode */
+> -                       fsscll = internal_clk / (dev->speed * 2) - 7;
+> -                       fssclh = internal_clk / (dev->speed * 2) - 5;
+> +                       if ((pdata->standard.scll > 7) &&
+> +                                       (pdata->standard.sclh > 5)) {
+> +                               fsscll = pdata->standard.scll - 7;
+> +                               fssclh = pdata->standard.sclh - 5;
+> +                       } else {
+> +                               fsscll = internal_clk / (dev->speed * 2) - 7;
+> +                               fssclh = internal_clk / (dev->speed * 2) - 5;
+> +                       }
 
+I think it would be simpler if we move these calcuations into a function.
+E.g. something like:
+
+	if (dev->speed > 400) {
+		/* HS mode */
+		pdata->set_scl(internal_clk, 400, &fsscll, &fssclh);
+		pdata->set_scl(fclk_rate, dev->speed, &hsscll, &hssclh);
+	} else {
+		/* Fast & standard mode */
+		pdata->set_scl(internal_clk, dev->speed, &fsscll, &fssclh);
+	}
+
+Then the default function would be something like:
+
+static void omap_i2c_default_scl(unsigned clk, unsigned speed, u16 *scll, u16 *sclh)
+{
+	if (speed > 100) {
+		/* Fast & HS modes */
+		unsigned scl = clk / speed;
+
+		*scll = scl - (scl / 3) - 7;
+		*sclh = (scl / 3) - 5;
+	} else {
+		/* Standard mode */
+		*scll = clk / (speed * 2) - 7;
+		*scll = clk / (speed * 2) - 5;
+	}
+}
+
+And the platform data would just provide a board-specific function if needed.
+
+A.
