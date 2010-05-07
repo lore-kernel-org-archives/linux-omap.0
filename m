@@ -1,82 +1,32 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 1.5/4] sh: add a YUV422 output data format, that is also
- supported by LCDC
-Date: Fri, 7 May 2010 12:49:41 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1005071246500.4777@axis700.grange>
-References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
+From: Linus Walleij <linus.ml.walleij@gmail.com>
+Subject: Re: [PATCH 3/5] gic: Add set_type callback
+Date: Fri, 7 May 2010 12:56:49 +0200
+Message-ID: <h2z63386a3d1005070356r23cee2c7m5d0ac534ec0182d4@mail.gmail.com>
+References: <1264620749-24527-1-git-send-email-adharmap@codeaurora.org>
+	 <1264620749-24527-4-git-send-email-adharmap@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
-Sender: linux-sh-owner@vger.kernel.org
-To: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
-Cc: Magnus Damm <magnus.damm@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:36575 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755673Ab0EGK4w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 06:56:52 -0400
+In-Reply-To: <1264620749-24527-4-git-send-email-adharmap@codeaurora.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: adharmap@codeaurora.org
+Cc: linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Catalin Marinas <catalin.marinas@arm.com>, Yinghai Lu <yinghai@kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Kalle Valo <kalle.valo@iki.fi>, Jean Pihet <jpihet@mvista.com>, Linus Walleij <linus.walleij@stericsson.com>, Colin Tuckley <colin.tuckley@arm.com>, Philby John <pjohn@in.mvista.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Alessandro Rubini <rubini@unipv.it>, Andrea Gallo <andrea.gallo@stericsson.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Abhijeet Dharmapurikar <adharmap@quicinc.com>, Rabin VINCENT <rabin.vincent@stericsson.com>, Mian.Yousaf.Kaukab@stericsson.com
 
-The LCDC block is allowed to use one of the two output data formats, when used
-with MIPI DSI: RGB24 and YUV422. YUV422 is not currently handled by the LCDC
-driver, but we have to add a define for it for MIPI. Fix indentation while 
-at it.
+2010/1/27  <adharmap@codeaurora.org>:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+> From: Abhijeet Dharmapurikar <adharmap@quicinc.com>
+>
+> Add gic_set_type callback to set an irq as level or edge triggered type
 
-Hm, this one is actually worse, it actually has to go in before patch 2/4. 
-Sorry again.
+Abhijeet, will you pursue this patchset?
 
- include/video/sh_mobile_lcdc.h |   39 +++++++++++++++++++++------------------
- 1 files changed, 21 insertions(+), 18 deletions(-)
+Else we will pick it up and propose our solution for the U8500 needs which
+are similar.
 
-diff --git a/include/video/sh_mobile_lcdc.h b/include/video/sh_mobile_lcdc.h
-index 2cc893f..5eaea78 100644
---- a/include/video/sh_mobile_lcdc.h
-+++ b/include/video/sh_mobile_lcdc.h
-@@ -3,24 +3,27 @@
- 
- #include <linux/fb.h>
- 
--enum { RGB8,   /* 24bpp, 8:8:8 */
--       RGB9,   /* 18bpp, 9:9 */
--       RGB12A, /* 24bpp, 12:12 */
--       RGB12B, /* 12bpp */
--       RGB16,  /* 16bpp */
--       RGB18,  /* 18bpp */
--       RGB24,  /* 24bpp */
--       SYS8A,  /* 24bpp, 8:8:8 */
--       SYS8B,  /* 18bpp, 8:8:2 */
--       SYS8C,  /* 18bpp, 2:8:8 */
--       SYS8D,  /* 16bpp, 8:8 */
--       SYS9,   /* 18bpp, 9:9 */
--       SYS12,  /* 24bpp, 12:12 */
--       SYS16A, /* 16bpp */
--       SYS16B, /* 18bpp, 16:2 */
--       SYS16C, /* 18bpp, 2:16 */
--       SYS18,  /* 18bpp */
--       SYS24 };/* 24bpp */
-+enum {
-+	RGB8,   /* 24bpp, 8:8:8 */
-+	RGB9,   /* 18bpp, 9:9 */
-+	RGB12A, /* 24bpp, 12:12 */
-+	RGB12B, /* 12bpp */
-+	RGB16,  /* 16bpp */
-+	RGB18,  /* 18bpp */
-+	RGB24,  /* 24bpp */
-+	YUV422, /* 16bpp */
-+	SYS8A,  /* 24bpp, 8:8:8 */
-+	SYS8B,  /* 18bpp, 8:8:2 */
-+	SYS8C,  /* 18bpp, 2:8:8 */
-+	SYS8D,  /* 16bpp, 8:8 */
-+	SYS9,   /* 18bpp, 9:9 */
-+	SYS12,  /* 24bpp, 12:12 */
-+	SYS16A, /* 16bpp */
-+	SYS16B, /* 18bpp, 16:2 */
-+	SYS16C, /* 18bpp, 2:16 */
-+	SYS18,  /* 18bpp */
-+	SYS24,  /* 24bpp */
-+};
- 
- enum { LCDC_CHAN_DISABLED = 0,
-        LCDC_CHAN_MAINLCD,
--- 
-1.6.2.4
-
+Yours,
+Linus Walleij
