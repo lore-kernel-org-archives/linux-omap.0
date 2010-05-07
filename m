@@ -1,77 +1,70 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: Re: [RFC PATCHv2 1/7] HSI: Introducing HSI framework
-Date: Fri, 07 May 2010 19:11:53 +0300
-Message-ID: <1273248713.7755.7261.camel@localhost>
-References: <1273245517-30712-1-git-send-email-carlos.chinea@nokia.com>
-	 <1273245517-30712-2-git-send-email-carlos.chinea@nokia.com>
-	 <20100507082629.3bdf0b17.randy.dunlap@oracle.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 3/6] OMAP4: hwmod: Enable omap_device build for OMAP4
+Date: Fri, 07 May 2010 18:10:40 +0200
+Message-ID: <4BE43B80.6030309@ti.com>
+References: <1273248424-15943-1-git-send-email-b-cousson@ti.com> <1273248424-15943-4-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31795 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755083Ab0EGQJ6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 12:09:58 -0400
-In-Reply-To: <20100507082629.3bdf0b17.randy.dunlap@oracle.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:54171 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757044Ab0EGQKr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 May 2010 12:10:47 -0400
+In-Reply-To: <1273248424-15943-4-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
-
-On Fri, 2010-05-07 at 17:26 +0200, ext Randy Dunlap wrote:
-> On Fri,  7 May 2010 18:18:31 +0300 Carlos Chinea wrote:
-> 
---[snip]--
-
-> > diff --git a/drivers/hsi/Kconfig b/drivers/hsi/Kconfig
-> > new file mode 100644
-> > index 0000000..5af62ce
-> > --- /dev/null
-> > +++ b/drivers/hsi/Kconfig
-> > @@ -0,0 +1,13 @@
-> > +#
-> > +# HSI driver configuration
-> > +#
-> > +menuconfig HSI
-> > +	bool "HSI support"
-> 
-> Why is this bool instead of tristate?
-> IOW, why can it not be built as a loadable module?
-> 
-
-Because, I have not implemented it yet. I was planning to do it later
-on. But of course if it has to be there, I can add the module support
-now.
-
-> 
-> > +	---help---
-> > +	  The "High speed synchronous Serial Interface" is
-> > +	  synchronous serial interface used mainly to connect
-> > +	  application engines and cellular modems.
-> > +
-> > +if HSI
-> > +
-> > +endif # HSI
-> > diff --git a/drivers/hsi/Makefile b/drivers/hsi/Makefile
-> > new file mode 100644
-> > index 0000000..b42b6cf
-> > --- /dev/null
-> > +++ b/drivers/hsi/Makefile
-> > @@ -0,0 +1,4 @@
-> > +#
-> > +# Makefile for HSI
-> > +#
-> > +obj-$(CONFIG_HSI)	+= hsi.o
-> 
-> 
+On 5/7/2010 6:07 PM, Cousson, Benoit wrote:
+> From: Rajendra Nayak<rnayak@ti.com>
+>
+> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+> Cc: Paul Walmsley<paul@pwsan.com>
 > ---
-> ~Randy
-> *** Remember to use Documentation/SubmitChecklist when testing your code ***
+>   arch/arm/plat-omap/Makefile      |    1 +
+>   arch/arm/plat-omap/omap_device.c |   12 ++++++++++++
+>   2 files changed, 13 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 98f0191..9405831 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -15,6 +15,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+>   # omap_device support (OMAP2+ only at the moment)
+>   obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
+>   obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
+> +obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
+>
+>   obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+>   obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 0f51974..b6144ff 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -90,6 +90,18 @@
+>   #define USE_WAKEUP_LAT			0
+>   #define IGNORE_WAKEUP_LAT		1
+>
+> +/* XXX this should be moved into a separate file */
+> +#if defined(CONFIG_ARCH_OMAP2420)
+> +# define OMAP_32KSYNCT_BASE		0x48004000
+> +#elif defined(CONFIG_ARCH_OMAP2430)
+> +# define OMAP_32KSYNCT_BASE		0x49020000
+> +#elif defined(CONFIG_ARCH_OMAP3430)
+> +# define OMAP_32KSYNCT_BASE		0x48320000
+> +#elif defined(CONFIG_ARCH_OMAP4)
+> +# define OMAP_32KSYNCT_BASE		0x4a304000
+> +#else
+> +# error Unknown OMAP device
+> +#endif
+>
+>   #define OMAP_DEVICE_MAGIC 0xf00dcafe
+>
 
-Br,
-Carlos
+Oops, I forgot to remove that part. Will send an update in a couple of 
+seconds...
 
-
+Benoit
