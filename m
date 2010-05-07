@@ -1,32 +1,91 @@
-From: Linus Walleij <linus.ml.walleij@gmail.com>
-Subject: Re: [PATCH 3/5] gic: Add set_type callback
-Date: Fri, 7 May 2010 12:56:49 +0200
-Message-ID: <h2z63386a3d1005070356r23cee2c7m5d0ac534ec0182d4@mail.gmail.com>
-References: <1264620749-24527-1-git-send-email-adharmap@codeaurora.org>
-	 <1264620749-24527-4-git-send-email-adharmap@codeaurora.org>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 1/5] omap iommu: Reject unaligned physical address at
+ setting page table entry
+Date: Fri, 7 May 2010 06:45:14 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4B91FCB1@dlee03.ent.ti.com>
+References: <1273215364-15098-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:36575 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755673Ab0EGK4w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 06:56:52 -0400
-In-Reply-To: <1264620749-24527-4-git-send-email-adharmap@codeaurora.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36355 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754736Ab0EGLpV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 07:45:21 -0400
+In-Reply-To: <1273215364-15098-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: adharmap@codeaurora.org
-Cc: linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Catalin Marinas <catalin.marinas@arm.com>, Yinghai Lu <yinghai@kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Kalle Valo <kalle.valo@iki.fi>, Jean Pihet <jpihet@mvista.com>, Linus Walleij <linus.walleij@stericsson.com>, Colin Tuckley <colin.tuckley@arm.com>, Philby John <pjohn@in.mvista.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Alessandro Rubini <rubini@unipv.it>, Andrea Gallo <andrea.gallo@stericsson.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Abhijeet Dharmapurikar <adharmap@quicinc.com>, Rabin VINCENT <rabin.vincent@stericsson.com>, Mian.Yousaf.Kaukab@stericsson.com
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "vimarsh.zutshi@nokia.com" <vimarsh.zutshi@nokia.com>, "Sakari.Ailus@nokia.com" <Sakari.Ailus@nokia.com>, "david.cohen@nokia.com" <david.cohen@nokia.com>
 
-2010/1/27  <adharmap@codeaurora.org>:
+Hiroshi,
+ 
 
-> From: Abhijeet Dharmapurikar <adharmap@quicinc.com>
->
-> Add gic_set_type callback to set an irq as level or edge triggered type
 
-Abhijeet, will you pursue this patchset?
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> 
+> This rejects unaligned physical address at setting page table 
+> entry and informs error to caller. Otherwise, a wrong address 
+> may be used by IO device.
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  arch/arm/plat-omap/iommu.c |   18 ++++++++++++++++++
+>  1 files changed, 18 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/iommu.c 
+> b/arch/arm/plat-omap/iommu.c index 0e13766..b3591ee 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
+> @@ -503,6 +503,12 @@ static int iopgd_alloc_section(struct 
+> iommu *obj, u32 da, u32 pa, u32 prot)  {
+>  	u32 *iopgd = iopgd_offset(obj, da);
+>  
+> +	if (pa & ~IOSECTION_MASK) {
+> +		dev_err(obj->dev, "%s: pa:%08x should aligned 
+> on %08lx\n",
+> +			__func__, pa, IOSECTION_SIZE);
+> +		return -EINVAL;
+> +	}
+> +
 
-Else we will pick it up and propose our solution for the U8500 needs which
-are similar.
+-- I think the alignment check should be present even for da address. Same comment for below checks.
 
-Yours,
-Linus Walleij
+>  	*iopgd = (pa & IOSECTION_MASK) | prot | IOPGD_SECTION;
+>  	flush_iopgd_range(iopgd, iopgd);
+>  	return 0;
+> @@ -513,6 +519,12 @@ static int iopgd_alloc_super(struct 
+> iommu *obj, u32 da, u32 pa, u32 prot)
+>  	u32 *iopgd = iopgd_offset(obj, da);
+>  	int i;
+>  
+> +	if (pa & ~IOSUPER_MASK) {
+> +		dev_err(obj->dev, "%s: pa:%08x should aligned 
+> on %08lx\n",
+> +			__func__, pa, IOSUPER_SIZE);
+> +		return -EINVAL;
+> +	}
+> +
+>  	for (i = 0; i < 16; i++)
+>  		*(iopgd + i) = (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
+>  	flush_iopgd_range(iopgd, iopgd + 15);
+> @@ -542,6 +554,12 @@ static int iopte_alloc_large(struct 
+> iommu *obj, u32 da, u32 pa, u32 prot)
+>  	u32 *iopte = iopte_alloc(obj, iopgd, da);
+>  	int i;
+>  
+> +	if (pa & ~IOLARGE_MASK) {
+> +		dev_err(obj->dev, "%s: pa:%08x should aligned 
+> on %08lx\n",
+> +			__func__, pa, IOLARGE_SIZE);
+> +		return -EINVAL;
+> +	}
+> +
+>  	if (IS_ERR(iopte))
+>  		return PTR_ERR(iopte);
+>  
+> --
+> 1.7.1.rc1
+> 
+> 
