@@ -1,93 +1,81 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v8 2/2] omap hsmmc: adaptation of sdma descriptor
- 	autoloading feature
-Date: Fri, 7 May 2010 10:22:03 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C538792A@dbde02.ent.ti.com>
-References: <w2y618f0c911004291035qfec16290re9e236ae1e13a970@mail.gmail.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C52D16D2@dbde02.ent.ti.com>
- <v2i618f0c911005050919m600f069ex34ba1175315cde5a@mail.gmail.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5387398@dbde02.ent.ti.com>
- <v2n7f9d1ffb1005060202r91efbe3habb936f75227ffa6@mail.gmail.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5387482@dbde02.ent.ti.com>
- <004501caed38$03e7b9f0$544ff780@am.dhcp.ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the omap_dss2 tree with the omap tree
+Date: Fri, 7 May 2010 13:43:34 +1000
+Message-ID: <20100507134334.75808884.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <004501caed38$03e7b9f0$544ff780@am.dhcp.ti.com>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, 'Adrian Hunter' <adrian.hunter@nokia.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>, 'Tony Lindgren' <tony@atomide.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <roger.quadros@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Chikkature Rajashekar, Madhusudhan
-> Sent: Thursday, May 06, 2010 9:50 PM
-> To: Shilimkar, Santosh; 'kishore kadiyala'
-> Cc: S, Venkatraman; linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org; linux-arm-
-> kernel@lists.arm.linux.org.uk; 'Adrian Hunter'; Kadiyala, Kishore; 'Tony Lindgren'
-> Subject: RE: [PATCH v8 2/2] omap hsmmc: adaptation of sdma descriptor autoloading feature
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Shilimkar, Santosh [mailto:santosh.shilimkar@ti.com]
-> > Sent: Thursday, May 06, 2010 4:39 AM
-> > To: kishore kadiyala
-> > Cc: S, Venkatraman; linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org;
-> > linux-arm-kernel@lists.arm.linux.org.uk; Chikkature Rajashekar,
-> > Madhusudhan; Adrian Hunter; Kadiyala, Kishore; Tony Lindgren
-> > Subject: RE: [PATCH v8 2/2] omap hsmmc: adaptation of sdma descriptor
-> > autoloading feature
-> >
-> > > -----Original Message-----
-> > > From: kishore kadiyala [mailto:kishorek.kadiyala@gmail.com]
-> > > Sent: Thursday, May 06, 2010 2:32 PM
-> > > To: Shilimkar, Santosh
-> > > Cc: S, Venkatraman; linux-omap@vger.kernel.org; linux-
-> > mmc@vger.kernel.org; linux-arm-
-> > > kernel@lists.arm.linux.org.uk; Chikkature Rajashekar, Madhusudhan;
-> > Adrian Hunter; Kadiyala, Kishore;
-> > > Tony Lindgren
-> > > Subject: Re: [PATCH v8 2/2] omap hsmmc: adaptation of sdma descriptor
-> > autoloading feature
-> > >
-> > > <<snip>>
-> > >
-> > > >> I am not clear about the method. The board files export the
-> > > >> omap_mmc_platform_data.
-> > > >> Does it imply that all board files have to change and export
-> > > >> the capability so that it can be queried ?
-> > > > No. You don't have to modify the board files. This would need
-> > > > change in devices.c which common for all omap boards.
-> > > >
-> > > > I don't have a strong opinion on this point but just put forth an
-> > > > alternate way to avoid such SOC specific check in drivers.
-> > > > You can take call on this
-> > >
-> > > Agree. How about adding a flag in hsmmc.h & omap_mmc_platform_data,
-> > > that would take care of SDMA & SDMA_DLAOD in the driver instead  going
-> > > with SOC check .
-> >
-> > Good idea Kishore.
-> > Venkat,
-> > Can you do what kishore is suggesting.
-> >
-> omap_mmc_platform_data is MMC specific platform data. Why add a SDMA
-> specific feature capability into it? Even though you add it there, you will
-> still need to have a cpu check before that can be set in a common code.
-> 
+Hi Tomi,
 
-CPU checks are allowed to be in the platform files. That is where such 
-machine/SOC specific differentiation should be done and not in the device
-drivers.
-That way device drivers remains clean and portable.
+Today's linux-next merge of the omap_dss2 tree got a conflict in
+arch/arm/mach-omap2/board-rx51-peripherals.c between commit
+e87da74e34ad151e6ae75ebb7a7bf447f02c0004 ("omap: rx51: Add supplies for
+the tlv320aic3x codec driver") from the omap tree and commit
+a693839eab0292aa234d7a6f48d40389389baebb ("OMAP: RX51: Add "vdds_sdi"
+supply voltage for SDI") from the omap_dss2 tree.
 
-I want to stop this thread here since neither the patch author nor the file
-maintainer thinks that cpu checks in the device drivers is bad idea.
+Just overlapping additions. I fixed it up (see below) and can carry the
+fix as necessary.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-Please decide within yourself and move on.
-
-Regards,
-Santosh
+diff --cc arch/arm/mach-omap2/board-rx51-peripherals.c
+index 8179d55,020f354..0000000
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@@ -287,35 -315,19 +315,48 @@@ static struct regulator_consumer_suppl
+  	.dev_name = "mmci-omap-hs.1",
+  };
+  
+ +static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
+ +	/* tlv320aic3x analog supplies */
+ +	{
+ +		.supply		= "AVDD",
+ +		.dev_name	= "2-0018",
+ +	},
+ +	{
+ +		.supply		= "DRVDD",
+ +		.dev_name	= "2-0018",
+ +	},
+ +	/* Keep vmmc as last item. It is not iterated for newer boards */
+ +	{
+ +		.supply		= "vmmc",
+ +		.dev_name	= "mmci-omap-hs.1",
+ +	},
+ +};
+ +
+ +static struct regulator_consumer_supply rx51_vio_supplies[] = {
+ +	/* tlv320aic3x digital supplies */
+ +	{
+ +		.supply		= "IOVDD",
+ +		.dev_name	= "2-0018"
+ +	},
+ +	{
+ +		.supply		= "DVDD",
+ +		.dev_name	= "2-0018"
+ +	},
+ +};
+ +
++ #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++ extern struct platform_device rx51_display_device;
++ #endif
++ 
++ static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
++ #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++ 	{
++ 		.supply	= "vdds_sdi",
++ 		.dev	= &rx51_display_device.dev,
++ 	},
++ #endif
++ };
++ 
+  static struct regulator_init_data rx51_vaux1 = {
+  	.constraints = {
+  		.name			= "V28",
