@@ -1,53 +1,55 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 00/10] OMAP: HWMOD fixes and cleanup
-Date: Fri,  7 May 2010 17:44:05 +0200
-Message-ID: <1273247055-15165-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 01/10] OMAP4: hwmod: Replace module & device offsets by absolute clkctrl address
+Date: Fri,  7 May 2010 17:44:06 +0200
+Message-ID: <1273247055-15165-2-git-send-email-b-cousson@ti.com>
+References: <1273247055-15165-1-git-send-email-b-cousson@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54192 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755276Ab0EGPoS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 11:44:18 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o47FiIP7022568
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 7 May 2010 10:44:18 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:35492 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756616Ab0EGPoX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 May 2010 11:44:23 -0400
+In-Reply-To: <1273247055-15165-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+Accessing the clkctrl register using offset of module & device is hard
+to do in OMAP4 due to the way the CM1, CM2, PRM and PRCM_MPU are located
+in the address space. There is no common base address anymore for all the
+CM registers.
+The easiest way to handle that on OMAP4 is to provide the absolute address
+of the XXX_CLKCTRL register per hwmod.
 
-Here is the serie based on l-o master that prepare the OMAP4 HWMOD database
-introduction.
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-It was only tested on OMAP4 GP device for the moment using PAB board.
-
-Comments are welcome.
-
-Thanks,
-Benoit
-
-
-Benoit Cousson (10):
-  OMAP4: hwmod: Replace module & device offsets by absolute clkctrl address
-  OMAP: CM: Move MAX_MODULE_READY_TIME to cm.h
-  OMAP4: hwmod & CM: Implement the omap4_cm_wait_module_ready function
-  OMAP4: hwmod: Replace OCPIF_HAS_IDLEST by HWMOD_NO_IDLEST
-  OMAP: hwmod: Fix wrong pointer iteration in oh->slaves
-  OMAP: hwmod: Remove IS_ERR check with omap_clk_get_by_name return value
-  OMAP: hwmod: Replace WARN by pr_warning if clock lookup failed
-  OMAP: hwmod: Do not exit the iteration if one clock init failed
-  OMAP: hwmod: Rename hwmod name for the MPU
-  OMAP: hwmod: Replace WARN by pr_warning for clockdomain check
-
- arch/arm/mach-omap2/cm.c                     |    3 -
- arch/arm/mach-omap2/cm.h                     |   11 +++-
- arch/arm/mach-omap2/cm4xxx.c                 |   54 +++++++------
- arch/arm/mach-omap2/omap_hwmod.c             |  111 ++++++++++++++------------
- arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    2 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |   16 ++--
- 8 files changed, 111 insertions(+), 90 deletions(-)
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 36d6ea5..4965bbe 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -327,14 +327,12 @@ struct omap_hwmod_omap2_prcm {
+ 
+ /**
+  * struct omap_hwmod_omap4_prcm - OMAP4-specific PRCM data
+- * @module_offs: PRCM submodule offset from the start of the PRM/CM1/CM2
+- * @device_offs: device register offset from @module_offs
++ * @clkctrl_reg: PRCM address of the clock control register
+  * @submodule_wkdep_bit: bit shift of the WKDEP range
+  */
+ struct omap_hwmod_omap4_prcm {
+-	u32 module_offs;
+-	u16 device_offs;
+-	u8 submodule_wkdep_bit;
++	void __iomem	*clkctrl_reg;
++	u8		submodule_wkdep_bit;
+ };
+ 
+ 
+-- 
+1.6.1.3
 
