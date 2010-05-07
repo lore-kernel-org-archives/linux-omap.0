@@ -1,106 +1,78 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v8 2/2] omap hsmmc: adaptation of sdma descriptor 	autoloading
- feature
-Date: Fri, 7 May 2010 14:26:07 -0500
-Message-ID: <4BE4694F.3060901@ti.com>
-References: <w2y618f0c911004291035qfec16290re9e236ae1e13a970@mail.gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C52D16D2@dbde02.ent.ti.com> <v2i618f0c911005050919m600f069ex34ba1175315cde5a@mail.gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5387398@dbde02.ent.ti.com> <v2n7f9d1ffb1005060202r91efbe3habb936f75227ffa6@mail.gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5387482@dbde02.ent.ti.com> <004501caed38$03e7b9f0$544ff780@am.dhcp.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C538792A@dbde02.ent.ti.com> <000601caee06$b2c8a9b0$544ff780@am.dhcp.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/6] OMAP4: hwmod: Enable omap_device build for OMAP4
+Date: Fri, 7 May 2010 13:33:08 -0700
+Message-ID: <20100507203308.GO387@atomide.com>
+References: <1273248424-15943-1-git-send-email-b-cousson@ti.com>
+ <1273248424-15943-4-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <000601caee06$b2c8a9b0$544ff780@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>, "S, Venkatraman" <svenkatr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, 'Adrian Hunter' <adrian.hunter@nokia.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>, 'Tony Lindgren' <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64328 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751442Ab0EGUdM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 May 2010 16:33:12 -0400
+Content-Disposition: inline
+In-Reply-To: <1273248424-15943-4-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Chikkature Rajashekar, Madhusudhan had written, on 05/07/2010 11:59 AM, 
-the following:
+* Benoit Cousson <b-cousson@ti.com> [100507 09:03]:
+> From: Rajendra Nayak <rnayak@ti.com>
 > 
->>
->>> -----Original Message-----
->>> From: Chikkature Rajashekar, Madhusudhan
->>> Sent: Thursday, May 06, 2010 9:50 PM
->>> To: Shilimkar, Santosh; 'kishore kadiyala'
->>> Cc: S, Venkatraman; linux-omap@vger.kernel.org; linux-
->> mmc@vger.kernel.org; linux-arm-
->>> kernel@lists.arm.linux.org.uk; 'Adrian Hunter'; Kadiyala, Kishore; 'Tony
->> Lindgren'
->>> Subject: RE: [PATCH v8 2/2] omap hsmmc: adaptation of sdma descriptor
->> autoloading feature
->>>
->>>
->>>> -----Original Message-----
->>>> From: Shilimkar, Santosh [mailto:santosh.shilimkar@ti.com]
->>>> Sent: Thursday, May 06, 2010 4:39 AM
->>>> To: kishore kadiyala
->>>> Cc: S, Venkatraman; linux-omap@vger.kernel.org; linux-
->> mmc@vger.kernel.org;
->>>> linux-arm-kernel@lists.arm.linux.org.uk; Chikkature Rajashekar,
->>>> Madhusudhan; Adrian Hunter; Kadiyala, Kishore; Tony Lindgren
->>>> Subject: RE: [PATCH v8 2/2] omap hsmmc: adaptation of sdma descriptor
->>>> autoloading feature
->>>>
->>>>> -----Original Message-----
->>>>> From: kishore kadiyala [mailto:kishorek.kadiyala@gmail.com]
->>>>> Sent: Thursday, May 06, 2010 2:32 PM
->>>>> To: Shilimkar, Santosh
->>>>> Cc: S, Venkatraman; linux-omap@vger.kernel.org; linux-
->>>> mmc@vger.kernel.org; linux-arm-
->>>>> kernel@lists.arm.linux.org.uk; Chikkature Rajashekar, Madhusudhan;
->>>> Adrian Hunter; Kadiyala, Kishore;
->>>>> Tony Lindgren
->>>>> Subject: Re: [PATCH v8 2/2] omap hsmmc: adaptation of sdma
->> descriptor
->>>> autoloading feature
->>>>> <<snip>>
->>>>>
->>>>>>> I am not clear about the method. The board files export the
->>>>>>> omap_mmc_platform_data.
->>>>>>> Does it imply that all board files have to change and export
->>>>>>> the capability so that it can be queried ?
->>>>>> No. You don't have to modify the board files. This would need
->>>>>> change in devices.c which common for all omap boards.
->>>>>>
->>>>>> I don't have a strong opinion on this point but just put forth an
->>>>>> alternate way to avoid such SOC specific check in drivers.
->>>>>> You can take call on this
->>>>> Agree. How about adding a flag in hsmmc.h & omap_mmc_platform_data,
->>>>> that would take care of SDMA & SDMA_DLAOD in the driver instead
->> going
->>>>> with SOC check .
->>>> Good idea Kishore.
->>>> Venkat,
->>>> Can you do what kishore is suggesting.
->>>>
->>> omap_mmc_platform_data is MMC specific platform data. Why add a SDMA
->>> specific feature capability into it? Even though you add it there, you
->> will
->>> still need to have a cpu check before that can be set in a common code.
->>>
->> CPU checks are allowed to be in the platform files. That is where such
->> machine/SOC specific differentiation should be done and not in the device
->> drivers.
->> That way device drivers remains clean and portable.
->>
->> I want to stop this thread here since neither the patch author nor the
->> file
->> maintainer thinks that cpu checks in the device drivers is bad idea.
->>
->> Please decide within yourself and move on.
->>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/plat-omap/Makefile      |    1 +
+>  arch/arm/plat-omap/omap_device.c |   12 ++++++++++++
+>  2 files changed, 13 insertions(+), 0 deletions(-)
 > 
-> I am not saying that it is wrong. My point here is that adding this
-> particular flag into MMC platform data to differentiate a SDMA specific
-> feature which got introduced post certain SOC may not be needed. But you can
-> always post your comments on the list which will be looked at by a wider
-> audience and finally the right patch will go in. 
-Please see [1] for SOC specific feature handling. any reasons we can't 
-handle it by adding a new feature?
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 98f0191..9405831 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -15,6 +15,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+>  # omap_device support (OMAP2+ only at the moment)
+>  obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
+>  obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
+> +obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
+>  
+>  obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+>  obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 0f51974..b6144ff 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -90,6 +90,18 @@
+>  #define USE_WAKEUP_LAT			0
+>  #define IGNORE_WAKEUP_LAT		1
+>  
+> +/* XXX this should be moved into a separate file */
+> +#if defined(CONFIG_ARCH_OMAP2420)
+> +# define OMAP_32KSYNCT_BASE		0x48004000
+> +#elif defined(CONFIG_ARCH_OMAP2430)
+> +# define OMAP_32KSYNCT_BASE		0x49020000
+> +#elif defined(CONFIG_ARCH_OMAP3430)
+> +# define OMAP_32KSYNCT_BASE		0x48320000
+> +#elif defined(CONFIG_ARCH_OMAP4)
+> +# define OMAP_32KSYNCT_BASE		0x4a304000
+> +#else
+> +# error Unknown OMAP device
+> +#endif
+>  
+>  #define OMAP_DEVICE_MAGIC 0xf00dcafe
 
-[1] 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/plat-omap/include/plat/cpu.h#l439
+This OMAP_32KSYNCT_BASE stuff will break multi-omap as it's defined
+in a different way for for various omaps.
 
--- 
+Also, OMAP_32KSYNCT_BASE define should no longer be needed at all,
+I think all issues like this have been fixed over past year or so.
+
+Can you please check your patches, if you're OMAP_32KSYNCT_BASE
+in your other patches, they should be fixed.
+
 Regards,
-Nishanth Menon
+
+Tony
