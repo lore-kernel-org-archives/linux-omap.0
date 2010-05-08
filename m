@@ -1,63 +1,34 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH v8 2/2] omap hsmmc: adaptation of sdma descriptor 	autoloading feature
-Date: Fri, 7 May 2010 19:43:07 -0500
-Message-ID: <002c01caee47$6d210650$544ff780@am.dhcp.ti.com>
-References: <w2y618f0c911004291035qfec16290re9e236ae1e13a970@mail.gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C52D16D2@dbde02.ent.ti.com> <v2i618f0c911005050919m600f069ex34ba1175315cde5a@mail.gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5387398@dbde02.ent.ti.com> <v2n7f9d1ffb1005060202r91efbe3habb936f75227ffa6@mail.gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5387482@dbde02.ent.ti.com> <004501caed38$03e7b9f0$544ff780@am.dhcp.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C538792A@dbde02.ent.ti.com> <000601caee06$b2c8a9b0$544ff780@am.dhcp.ti.com> <4BE4694F.3060901@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4BE4694F.3060901@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: 'Nishanth Menon' <nm@ti.com>
-Cc: "'Shilimkar, Santosh'" <santosh.shilimkar@ti.com>, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>, "'S, Venkatraman'" <svenkatr@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, 'Adrian Hunter' <adrian.hunter@nokia.com>, "'Kadiyala, Kishore'" <kishore.kadiyala@ti.com>, 'Tony Lindgren' <tony@atomide.com>
+From: Thomas Weber <weber@corscience.de>
+Subject: [PATCH 0/6] Devkit8000: Fixes for power regulator
+Date: Sat,  8 May 2010 06:31:17 +0200
+Message-ID: <1273293083-24063-1-git-send-email-weber@corscience.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-out.m-online.net ([212.18.0.10]:53463 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750756Ab0EHEb1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 May 2010 00:31:27 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Thomas Weber <weber@corscience.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-<snip>
+These patches fixes some errors in the usage of the 
+power regulator.
 
-> >>>>
-> >>> omap_mmc_platform_data is MMC specific platform data. Why add a SDMA
-> >>> specific feature capability into it? Even though you add it there, you
-> >> will
-> >>> still need to have a cpu check before that can be set in a common
-> code.
-> >>>
-> >> CPU checks are allowed to be in the platform files. That is where such
-> >> machine/SOC specific differentiation should be done and not in the
-> device
-> >> drivers.
-> >> That way device drivers remains clean and portable.
-> >>
-> >> I want to stop this thread here since neither the patch author nor the
-> >> file
-> >> maintainer thinks that cpu checks in the device drivers is bad idea.
-> >>
-> >> Please decide within yourself and move on.
-> >>
-> >
-> > I am not saying that it is wrong. My point here is that adding this
-> > particular flag into MMC platform data to differentiate a SDMA specific
-> > feature which got introduced post certain SOC may not be needed. But you
-> can
-> > always post your comments on the list which will be looked at by a wider
-> > audience and finally the right patch will go in.
-> Please see [1] for SOC specific feature handling. any reasons we can't
-> handle it by adding a new feature?
-> 
-> [1]
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
-> 2.6.git;a=blob;f=arch/arm/plat-omap/include/plat/cpu.h#l439
-> 
+The Devkit8000 uses the TPS65930, an reduced version of the TWL4030. 
+So not all power supplies from the TWL4030 are available.
+There were also a wrong comment about the pins supported by the vmmc1. 
+The DSS2 do not need a VDVI any longer so it is removed. 
+The definition of the supplies are changed to use the new REGULATOR_SUPPLY macro.
 
-Yes that makes correct sense. Note that these features will exist on omap4
-also so handle in a common way. Surely this will be better than adding a
-flag which does not belong to MMC platform data.
+Thomas Weber (6):
+  Devkit8000: Fix the power supply for ads7846
+  Devkit8000: Remove unneeded VDVI
+  Devkit8000: Remove nonexisting vsim
+  Devkit8000: Using the REGULATOR_SUPPLY macro
+  Devkit8000: Fix comment
+  Devkit8000: Change twl4030 to tps65930
 
-Regards,
-Madhu
-
-> --
-> Regards,
-> Nishanth Menon
+ arch/arm/mach-omap2/board-devkit8000.c |   73 +++++++++++++-------------------
+ 1 files changed, 30 insertions(+), 43 deletions(-)
 
