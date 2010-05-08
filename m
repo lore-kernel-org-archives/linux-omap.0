@@ -1,81 +1,71 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCH 3/6] Devkit8000: Remove nonexisting vsim
-Date: Sat,  8 May 2010 06:31:20 +0200
-Message-ID: <1273293083-24063-4-git-send-email-weber@corscience.de>
-References: <1273293083-24063-1-git-send-email-weber@corscience.de>
+From: Ranjith Lohithakshan <ranjithl@ti.com>
+Subject: [PATCH] OMAP3: PM: Enable wakeup from ads7846 touchscreen
+Date: Sat,  8 May 2010 12:39:21 +0530
+Message-ID: <1273302561-27539-1-git-send-email-ranjithl@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:46206 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751030Ab0EHEbr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 May 2010 00:31:47 -0400
-In-Reply-To: <1273293083-24063-1-git-send-email-weber@corscience.de>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56039 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751162Ab0EHHJa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 8 May 2010 03:09:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Thomas Weber <weber@corscience.de>
+Cc: khilman@deeprootsystems.com, ranjithl@ti.com
 
-The Devkit8000 uses the cost reduced variant tps65930 of the
-twl4030. The TPS65930 only has vdd1, vdd2, vpll1, vio, vmmc1,
-vdac and vaux2. Vaux2 is not used on Devkit8000 board.
+This  patch enables the wakeup capabilities of ads7846 touchscreen driver.
+ads7846 driver can now wakeup the system from suspend on OMAP3430 EVM
+and SDP boards.
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
+The earlier approach of enabling wakeup on the touchscreen GPIO pin during
+board level mux init is removed. Instead the wakeup flag in
+ads7846_platform_data is enabled. Based on the flag, the ads7846 driver
+will do an enable_irq_wake which will eventually call into the OMAP GPIO
+layer and will enable the wakeup capability on the GPIO pin.
+
+Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |   21 ---------------------
- 1 files changed, 0 insertions(+), 21 deletions(-)
+This patch is tested on OMAP3 EVM and compile tested for OMAP3430 SDP.
+This patch has a dependency with the following patch
+https://patchwork.kernel.org/patch/96461/
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index e557bae..85adf54 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -164,10 +164,6 @@ static struct regulator_consumer_supply devkit8000_vmmc1_supply = {
- 	.supply			= "vmmc",
+ arch/arm/mach-omap2/board-3430sdp.c  |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index c1742d0..343f817 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -166,6 +166,7 @@ static int ads7846_get_pendown_state(void)
+ static struct ads7846_platform_data tsc2046_config __initdata = {
+ 	.get_pendown_state	= ads7846_get_pendown_state,
+ 	.keep_vref_on		= 1,
++	.wakeup				= true,
  };
  
--static struct regulator_consumer_supply devkit8000_vsim_supply = {
--	.supply			= "vmmc_aux",
--};
--
- /* ads7846 on SPI */
- static struct regulator_consumer_supply devkit8000_vio_supplies[] = {
- 	REGULATOR_SUPPLY("vcc", "spi2.0")
-@@ -270,7 +266,6 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
  
- 	/* link regulators to MMC adapters */
- 	devkit8000_vmmc1_supply.dev = mmc[0].dev;
--	devkit8000_vsim_supply.dev = mmc[0].dev;
- 
- 	return 0;
- }
-@@ -308,21 +303,6 @@ static struct regulator_init_data devkit8000_vmmc1 = {
- 	.consumer_supplies	= &devkit8000_vmmc1_supply,
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index a8b1f04..de64815 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -601,6 +601,7 @@ struct ads7846_platform_data ads7846_config = {
+ 	.get_pendown_state	= ads7846_get_pendown_state,
+ 	.keep_vref_on		= 1,
+ 	.settle_delay_usecs	= 150,
++	.wakeup				= true,
  };
  
--/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
--static struct regulator_init_data devkit8000_vsim = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 3000000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &devkit8000_vsim_supply,
--};
--
- /* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
- static struct regulator_init_data devkit8000_vdac = {
- 	.constraints = {
-@@ -388,7 +368,6 @@ static struct twl4030_platform_data devkit8000_twldata = {
- 	.gpio		= &devkit8000_gpio_data,
- 	.codec		= &devkit8000_codec_data,
- 	.vmmc1		= &devkit8000_vmmc1,
--	.vsim		= &devkit8000_vsim,
- 	.vdac		= &devkit8000_vdac,
- 	.vpll1		= &devkit8000_vpll1,
- 	.vio		= &devkit8000_vio,
+ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+@@ -656,8 +657,7 @@ static struct omap_board_mux board_mux[] __initdata = {
+ 				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
+ 				OMAP_PIN_OFF_WAKEUPENABLE),
+ 	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+-				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
+-				OMAP_PIN_OFF_WAKEUPENABLE),
++				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
 -- 
-1.6.4.4
+1.6.2.4
 
