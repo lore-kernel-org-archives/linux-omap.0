@@ -1,71 +1,76 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: [PATCH] OMAP3: PM: Enable wakeup from ads7846 touchscreen
-Date: Sat,  8 May 2010 12:39:21 +0530
-Message-ID: <1273302561-27539-1-git-send-email-ranjithl@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH v2 00/19] DSPBRIDGE: generic clk module removal
+Date: Sat, 8 May 2010 23:25:19 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DFD495F@dlee03.ent.ti.com>
+References: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56039 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38475 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751162Ab0EHHJa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 8 May 2010 03:09:30 -0400
+	id S1750786Ab0EIEZ1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 May 2010 00:25:27 -0400
+In-Reply-To: <1272468597-6748-1-git-send-email-omar.ramirez@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, ranjithl@ti.com
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Menon, Nishanth" <nm@ti.com>
 
-This  patch enables the wakeup capabilities of ads7846 touchscreen driver.
-ads7846 driver can now wakeup the system from suspend on OMAP3430 EVM
-and SDP boards.
+>From: Ramirez Luna, Omar
+>
+>This set of patches remove clk module from the services layer.
+>
+>Now:
+>- GPT 5-8 are controlled through DM Timer framework.
+>- MCBSP clocks are enabled by requesting the proper mcbsp device.
+>- WDT is left for bridge driver to control rather than on request from dsp.
+>- SSI is controlled by enabling/disabling its sst, ssr and ick clocks.
+>
+>v2:
+>- rebased
+>- keep iva2 handling as it is advised to turn off the clocks for iva reset
+>  sources.
+>- release all the clocks (disable & free) if driver is uninstalled.
+>
+>Omar Ramirez Luna (19):
+>  DSPBRIDGE: remove clk_handle from drv interface
+>  DSPBRIDGE: fail if clk handle is NULL
+>  DSPBRIDGE: Now actually fail if a clk handle is wrong
+>  DSPBRIDGE: Rename services_clk_* to dsp_clk_*
+>  DSPBRIDGE: remove unused clock sys_ck
+>  DSPBRIDGE: remove function clk_set32k_hz
+>  DSPBRIDGE: remove clk_get_use_cnt
+>  DSPBRIDGE: trivial clock cleanup for unused code
+>  DSPBRIDGE: function to get the type of clock requested by dsp
+>  DSPBRIDGE: iva2 clock handling
+>  DSPBRIDGE: use dm timer framework for gpt timers
+>  DSPBRIDGE: use omap mcbsp to enable mcbsp clocks
+>  DSPBRIDGE: remove wdt3 from dsp control
+>  DSPBRIDGE: dsp interface to enable ssi clocks
+>  DSPBRIDGE: use one call for both ick and fck clocks
+>  DSPBRIDGE: Move MCBSP_CLOCKS code to a common place
+>  DSPBRIDGE: Balance the number of enable/disable
+>  DSPBRIDGE: move clk to dsp-clock
+>  DSPBRIDGE: reorganize the code to handle peripheral clocks
+>
+> arch/arm/plat-omap/include/dspbridge/clk.h |  103 ++------
+> drivers/dsp/bridge/Makefile                |    4 +-
+> drivers/dsp/bridge/rmgr/drv_interface.c    |   12 +-
+> drivers/dsp/bridge/services/clk.c          |  323 ------------------------
+> drivers/dsp/bridge/services/services.c     |   10 +-
+> drivers/dsp/bridge/wmd/_tiomap.h           |   25 +-
+> drivers/dsp/bridge/wmd/_tiomap_pwr.h       |   17 --
+> drivers/dsp/bridge/wmd/dsp-clock.c         |  377 ++++++++++++++++++++++++++++
+> drivers/dsp/bridge/wmd/tiomap3430.c        |   62 +-----
+> drivers/dsp/bridge/wmd/tiomap3430_pwr.c    |  147 +----------
+> drivers/dsp/bridge/wmd/tiomap_io.c         |    4 +-
+> drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
+> 12 files changed, 440 insertions(+), 646 deletions(-)
+> delete mode 100644 drivers/dsp/bridge/services/clk.c
+> create mode 100644 drivers/dsp/bridge/wmd/dsp-clock.c
 
-The earlier approach of enabling wakeup on the touchscreen GPIO pin during
-board level mux init is removed. Instead the wakeup flag in
-ads7846_platform_data is enabled. Based on the flag, the ads7846 driver
-will do an enable_irq_wake which will eventually call into the OMAP GPIO
-layer and will enable the wakeup capability on the GPIO pin.
+Pushed to dspbridge.
 
-Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
----
-This patch is tested on OMAP3 EVM and compile tested for OMAP3430 SDP.
-This patch has a dependency with the following patch
-https://patchwork.kernel.org/patch/96461/
-
- arch/arm/mach-omap2/board-3430sdp.c  |    1 +
- arch/arm/mach-omap2/board-omap3evm.c |    4 ++--
- 2 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index c1742d0..343f817 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -166,6 +166,7 @@ static int ads7846_get_pendown_state(void)
- static struct ads7846_platform_data tsc2046_config __initdata = {
- 	.get_pendown_state	= ads7846_get_pendown_state,
- 	.keep_vref_on		= 1,
-+	.wakeup				= true,
- };
- 
- 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index a8b1f04..de64815 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -601,6 +601,7 @@ struct ads7846_platform_data ads7846_config = {
- 	.get_pendown_state	= ads7846_get_pendown_state,
- 	.keep_vref_on		= 1,
- 	.settle_delay_usecs	= 150,
-+	.wakeup				= true,
- };
- 
- static struct omap2_mcspi_device_config ads7846_mcspi_config = {
-@@ -656,8 +657,7 @@ static struct omap_board_mux board_mux[] __initdata = {
- 				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
- 	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
--				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
--				OMAP_PIN_OFF_WAKEUPENABLE),
-+				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #else
--- 
-1.6.2.4
-
+- omar
