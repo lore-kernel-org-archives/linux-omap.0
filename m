@@ -1,37 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] OMAP3: I2C: Clean up Errata 1p153 handling
-Date: Mon, 10 May 2010 18:48:43 -0400
-Message-ID: <notify-1273531722@atomide.com>
-References: <1272466739-2847-1-git-send-email-manjugk@ti.com>
+From: Rick Ball <rball@AESAustin.com>
+Subject: Bug in omap3evm.c?
+Date: Mon, 10 May 2010 23:08:59 +0000
+Message-ID: <4B8557E2E5753944B2BB2E52F7C2A30C02C6DA1A@MAIL.AES.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56578 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932079Ab0EJWsn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 18:48:43 -0400
-Received: from c-69-181-193-102.hsd1.ca.comcast.net ([69.181.193.102] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1OBbmF-000CAb-5D
-	for linux-omap@vger.kernel.org; Mon, 10 May 2010 22:48:43 +0000
-In-Reply-To: <1272466739-2847-1-git-send-email-manjugk@ti.com>
-Content-Disposition: inline
+Received: from mail.ascendant-es.com ([209.12.206.138]:29612 "EHLO
+	mail.aesasutin.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932819Ab0EJXJD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 19:09:03 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+I think I've found a small problem in the board-omap3evm.c file under arch/arm/mach-omap2 (support for the TI/Mistral OMAP35x EVM board).
 
-Branch in linux-omap: i2c-omap-for-ben
+What I noticed is that the declaration for the array gpio_leds is initialized with one element (at line 380):
 
-Initial commit ID (Likely to change): f95ba23e386509330595c45052ab4cef453ca262
+static struct gpio_led gpio_leds[] = {
+        {
+                .name                   = "omap3evm::ledb",
+                /* normally not visible (board underside) */
+                .default_trigger        = "default-on",
+                .gpio                   = -EINVAL,      /* gets replaced */
+                .active_low             = true,
+        },
+};
+ 
+But then down at line 430 element 2 is set:
 
-PatchWorks
-http://patchwork.kernel.org/patch/95686/
+        /* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
+        gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=f95ba23e386509330595c45052ab4cef453ca262
+How did the array end up with 3 elements so that 2 would be a valid index?  It looks to me like it wouldn't flag an error, but would corrupt memory.  I'd submit a patch, but I'm not sure what this code was attempting to do...
 
-
+Rick Ball
