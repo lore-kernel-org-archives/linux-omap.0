@@ -1,44 +1,58 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH] DSS2 Include VRFB into omap2-3build only
-Date: Mon, 10 May 2010 09:39:55 +0200
-Message-ID: <1A2F53DA-903A-4667-A27F-492A3499F7ED@student.utwente.nl>
-References: <1273474110-22451-1-git-send-email-svadivu@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1078)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 00/18] omap platform data and board updates for 2.6.35
+ merge window
+Date: Mon, 10 May 2010 10:57:34 +0300
+Message-ID: <1273478254.2305.10.camel@tubuntu.research.nokia.com>
+References: <20100505192957.21568.19569.stgit@baageli.muru.com>
+	 <5555D7E5-3848-4915-A7B0-1CD1732E1C69@student.utwente.nl>
+	 <20100505210926.GE29604@atomide.com>
+	 <1273131758.1978.125.camel@tubuntu.research.nokia.com>
+	 <20100506154430.GM29604@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f220.google.com ([209.85.219.220]:58319 "EHLO
-	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755362Ab0EJHkB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 03:40:01 -0400
-Received: by ewy20 with SMTP id 20so808515ewy.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 May 2010 00:39:59 -0700 (PDT)
-In-Reply-To: <1273474110-22451-1-git-send-email-svadivu@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:18406 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755398Ab0EJH6O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 03:58:14 -0400
+In-Reply-To: <20100506154430.GM29604@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Senthilvadivu Guruswamy <svadivu@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, tony@atomide.com, tomi.valkeinen@nokia.com, v-hiremath@ti.com
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-
-Op 10 mei 2010, om 08:48 heeft Senthilvadivu Guruswamy het volgende geschreven:
-
-> Exclude VRFB from OMAP4 onwards and include only for
-> OMAP2 and OMAP3 builds.  In OMAP4 VRFB HW IP is replaced
-> with a new HW IP "TILER"
+On Thu, 2010-05-06 at 17:44 +0200, ext Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [100506 00:38]:
+> > On Wed, 2010-05-05 at 23:09 +0200, ext Tony Lindgren wrote:
+> > > * Koen Kooi <koen@dominion.thruhere.net> [100505 13:16]:
+> > > > Tony,
+> > > > 
+> > > > Any chance of https://patchwork.kernel.org/patch/94049/ going in as well? Tomi has acked it already.
+> > > 
+> > > That one looks good to me, but I thought Tomi is going to
+> > > queue all the DSS board-*.c patches somewhere.
+> > 
+> > I thought we agreed that board file changes go through linux-omap after
+> > I've acked them, to reduce the possibility of conflicts.
+> > 
+> > But yes, I can add it to my tree. I'll send it back to you if we start
+> > to get conflicts =).
 > 
-> --- a/drivers/video/omap2/Kconfig
-> +++ b/drivers/video/omap2/Kconfig
-> @@ -3,6 +3,10 @@ config OMAP2_VRAM
+> Great. It's best that Tomi queues the DSS board file changes.
 > 
-> config OMAP2_VRFB
-> 	bool
-> +	depends on FB_OMAP2 && (!ARCH_OMAP4)
-> +	default y if (ARCH_OMAP2 || ARCH_OMAP3)
-> +	help
-> +	  OMAP VRFB buffer support is efficient for rotation
+> BTW, I have not picked or marked any of the DSS board file changes
+> in patchwork, I think there are several of them sitting there.
+> 
+> Tomi, if something conflicts, you can do a git branch for me to
+> pull for the DSS board file changes.
+> 
+> Note that the arch/arm/*omap*/ DSS changes still need to be posted
+> to also linux-arm-kernel for review before they can be merged.
 
-How does this work for multi-omap kernels, e.g. building a kernel with beagle and panda support?
+I have been sending the patches to linux-omap and linux-fbdev. Is
+linux-arm-kernel also required in addition to those two lists?
 
-regards,
+ Tomi
 
-Koen
+
