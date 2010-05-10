@@ -1,44 +1,38 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Enable wakeup from ads7846 touchscreen
-Date: Mon, 10 May 2010 09:40:34 -0700
-Message-ID: <87bpcnk8vx.fsf@deeprootsystems.com>
-References: <1273302561-27539-1-git-send-email-ranjithl@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Add support for OMAP3Stalker boards
+Date: Mon, 10 May 2010 09:42:10 -0700
+Message-ID: <20100510164210.GB16460@atomide.com>
+References: <000501cabadc$711651a0$5342f4e0$@com>
+ <20100504225952.GQ29604@atomide.com>
+ <00ce01caecc1$c2431560$46c94020$@com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:42511 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754121Ab0EJQkk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 12:40:40 -0400
-Received: by vws17 with SMTP id 17so237039vws.19
-        for <linux-omap@vger.kernel.org>; Mon, 10 May 2010 09:40:39 -0700 (PDT)
-In-Reply-To: <1273302561-27539-1-git-send-email-ranjithl@ti.com> (Ranjith Lohithakshan's message of "Sat\,  8 May 2010 12\:39\:21 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62036 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752539Ab0EJQmL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 12:42:11 -0400
+Content-Disposition: inline
+In-Reply-To: <00ce01caecc1$c2431560$46c94020$@com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ranjith Lohithakshan <ranjithl@ti.com>
+To: Jason <lzg@ema-tech.com>
 Cc: linux-omap@vger.kernel.org
 
-Ranjith Lohithakshan <ranjithl@ti.com> writes:
+* Jason <lzg@ema-tech.com> [100505 19:09]:
+> 
+> A question about board version. Is it good to do a hardware check to find
+> out hardware version?
+>  Like function static void __init omap3_evm_get_revision(void) in
+> board-omap3evm.c
 
-> This  patch enables the wakeup capabilities of ads7846 touchscreen driver.
-> ads7846 driver can now wakeup the system from suspend on OMAP3430 EVM
-> and SDP boards.
->
-> The earlier approach of enabling wakeup on the touchscreen GPIO pin during
-> board level mux init is removed. Instead the wakeup flag in
-> ads7846_platform_data is enabled. Based on the flag, the ads7846 driver
-> will do an enable_irq_wake which will eventually call into the OMAP GPIO
-> layer and will enable the wakeup capability on the GPIO pin.
->
-> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+Sure, that's the best option.
 
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Some boards are also using the system_rev, which contains the
+ATAG_REVISION passed from the bootloader. But then you depend on
+the bootloader to pass it.. So hardare detection early on is
+the most flexible way of doing this.
 
-> ---
-> This patch is tested on OMAP3 EVM and compile tested for OMAP3430 SDP.
-> This patch has a dependency with the following patch
-> https://patchwork.kernel.org/patch/96461/
+Regards,
 
-Adding both of these to my PM queue for 2.6.35 (pm-next branch.)
-
-Kevin
+Tony
