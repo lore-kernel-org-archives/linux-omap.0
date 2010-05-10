@@ -1,79 +1,63 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH V2]omap: mux.c warning removal
-Date: Mon, 10 May 2010 09:11:55 -0700
-Message-ID: <874oiflos4.fsf@deeprootsystems.com>
-References: <0680EC522D0CC943BC586913CF3768C003B31655C3@dbde02.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: DSS2 on 36xx with 2.6.34-rc6
+Date: Mon, 10 May 2010 21:54:19 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E4049C6@dbde02.ent.ti.com>
+References: <AANLkTiljBOjnB4QZ6Df2IRu3Tw79rIZaGX3pkZ3X91cB@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:49380 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532Ab0EJQMA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 12:12:00 -0400
-Received: by pxi5 with SMTP id 5so1730662pxi.19
-        for <linux-omap@vger.kernel.org>; Mon, 10 May 2010 09:12:00 -0700 (PDT)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B31655C3@dbde02.ent.ti.com> (Keshava Munegowda's message of "Fri\, 7 May 2010 12\:17\:48 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48033 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752599Ab0EJQYd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 12:24:33 -0400
+In-Reply-To: <AANLkTiljBOjnB4QZ6Df2IRu3Tw79rIZaGX3pkZ3X91cB@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
-
-"Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
-
-> From: Keshava Munegowda <a0393220@ti.com>
->
-> This patch removes the below warning 
-> arch/arm/mach-omap2/mux.c:52: warning: 'mux_phys' defined but not used
-> The definition of variable mux_phys should be enclosed in the macro CONFIG_ARCH_OMAP3 
->
-> Signed-off-by: Keshava Munegowda <a0393220@ti.com>
-
-Thanks, this version looks better.
-
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+To: Steve Sakoman <sakoman@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-One silly question though... is your a0....@ti.com address the one you
-want as your From: and Signed-off-by?  Since the mail actually comes
-from a more human readable address, I'm guessing that would be
-preferred?  If so, create a ~/.gitconfig file and add this:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Steve Sakoman
+> Sent: Monday, May 10, 2010 8:54 PM
+> To: linux-omap@vger.kernel.org
+> Subject: DSS2 on 36xx with 2.6.34-rc6
+> 
+> Has anyone had success with DSS2 on a 36xx platform using the current
+> l-o top of tree?
+> 
+> I've been working with a Beagle xM prototype and have applied the
+> "OMAP3630: DSS2: Updating MAX divider value" patch from Tomi's repo as
+> well as Koen's Beagle DSS2 support patch.
+> 
+> The image works as expected on a 35xx based Beagle, but when run on
+> the Beagle xM results in a "HDMI: Out of Range" error from my monitor.
+>  Sadly the monitor won't give me the erroneous timing parameters.
+> 
+[Hiremath, Vaibhav] For me it looks like Timing related issue only. And if I understand correctly I have seen some mail-threads which were talking about successful bring-up on Beagle-XM board.
 
-[user]
-	name = Keshava Munegowda
-	email = keshava_mgowda@ti.com
+> I suspect that there are still issues in clock setup (or perhaps in
+> CPU type/revision detection).
+> 
+> Anyone else working in this area?
+[Hiremath, Vaibhav] Steve,
 
-This way, all your local git commands will use this name/email in your
-git commits, sign-offs etc.
-
-Kevin
-
+The AM/DM3730, which is exactly same as OMAP3630 has been supported with PSP releases. I would suggest you to refer to the Arago repo - 
 
 
+http://arago-project.org/git/people/?p=sriram/ti-psp-omap.git;a=summary
 
+Please note that similar kind of testing/validation has been done on AM/DM3730 platform.
 
+Also please let me know if you have any issues.
 
+Thanks,
+Vaibhav
 
-> Index: linux-2.6/arch/arm/mach-omap2/mux.c
-> ===================================================================
-> --- linux-2.6.orig/arch/arm/mach-omap2/mux.c	2010-05-05 23:59:19.000000000 +0530
-> +++ linux-2.6/arch/arm/mach-omap2/mux.c	2010-05-06 00:00:07.000000000 +0530
-> @@ -49,7 +49,7 @@
->  	struct list_head	node;
->  };
->  
-> -static unsigned long mux_phys;
-> +
->  static void __iomem *mux_base;
->  
->  u16 omap_mux_read(u16 reg)
-> @@ -373,6 +373,7 @@
->  #ifdef CONFIG_ARCH_OMAP3
->  static LIST_HEAD(muxmodes);
->  static DEFINE_MUTEX(muxmode_mutex);
-> +static unsigned long mux_phys;
->  
->  #ifdef CONFIG_OMAP_MUX
->
+> 
+> Steve
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
