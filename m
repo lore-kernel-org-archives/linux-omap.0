@@ -1,34 +1,69 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: GPIO: Replace CONFIG_ARCH_OMAP34XX with CONFIG_ARCH_OMAP3
-Date: Mon, 10 May 2010 09:51:32 -0700
-Message-ID: <87632vk8dn.fsf@deeprootsystems.com>
-References: <1273143736-28784-1-git-send-email-ranjithl@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] omap-sham: OMAP macros corrected
+Date: Mon, 10 May 2010 10:03:29 -0700
+Message-ID: <20100510170328.GD16460@atomide.com>
+References: <948fcc79dd3d31f4930d4b62bb7ca7a19949fd9a.1273493232.git.dmitry.kasatkin@nokia.com>
+ <20100510121416.GA12769@gondor.apana.org.au>
+ <4BE800F3.2070602@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f183.google.com ([209.85.221.183]:59694 "EHLO
-	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754728Ab0EJQvn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 12:51:43 -0400
-Received: by qyk13 with SMTP id 13so6434433qyk.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 May 2010 09:51:42 -0700 (PDT)
-In-Reply-To: <1273143736-28784-1-git-send-email-ranjithl@ti.com> (Ranjith Lohithakshan's message of "Thu\,  6 May 2010 16\:32\:16 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58718 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754618Ab0EJRDd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 13:03:33 -0400
+Content-Disposition: inline
+In-Reply-To: <4BE800F3.2070602@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ranjith Lohithakshan <ranjithl@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+Cc: ext Herbert Xu <herbert@gondor.hengli.com.au>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Ranjith Lohithakshan <ranjithl@ti.com> writes:
+* Dmitry Kasatkin <dmitry.kasatkin@nokia.com> [100510 05:45]:
+> 
+> On 10/05/10 15:14, ext Herbert Xu wrote:
+> > On Mon, May 10, 2010 at 03:07:55PM +0300, Dmitry Kasatkin wrote:
+> >   
+> >> Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+> >> ---
+> >>  arch/arm/mach-omap2/devices.c |    4 ++--
+> >>  1 files changed, 2 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> >> index beac46c..79dbf04 100644
+> >> --- a/arch/arm/mach-omap2/devices.c
+> >> +++ b/arch/arm/mach-omap2/devices.c
+> >> @@ -456,7 +456,7 @@ static inline void omap_init_mcspi(void) {}
+> >>  
+> >>  #if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
+> >>  
+> >> -#ifdef CONFIG_ARCH_OMAP24XX
+> >> +#ifdef CONFIG_ARCH_OMAP2
+> >>  static struct resource omap2_sham_resources[] = {
+> >>  	{
+> >>  		.start	= OMAP24XX_SEC_SHA1MD5_BASE,
+> >> @@ -474,7 +474,7 @@ static int omap2_sham_resources_sz = ARRAY_SIZE(omap2_sham_resources);
+> >>  #define omap2_sham_resources_sz		0
+> >>  #endif
+> >>  
+> >> -#ifdef CONFIG_ARCH_OMAP34XX
+> >> +#ifdef CONFIG_ARCH_OMAP3
+> >>  static struct resource omap3_sham_resources[] = {
+> >>  	{
+> >>  		.start	= OMAP34XX_SEC_SHA1MD5_BASE,
+> >>     
+> > Hi Tony:
+> >
+> > If I add this patch to cryptodev, is this going to cause any
+> > problems for you?
+> >
+> > Thbanks,
+> >   
+> Hi,
+> 
+> I should not be any problem, because it indeed needs to be like that.
 
-> CONFIG_ARCH_OMAP34XX is not defined any more. Replace it with
-> CONFIG_ARCH_OMAP3.
->
-> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
-> ---
->
-> This patch is generated against pm branch.
+Yeah please go ahead and add it. If we run into merge problems with
+devices.c, we move some patches into omap for-next branch.
 
-Thanks, will add to PM-related GPIO patches submitted for 2.6.35.
-
-Kevin
-
+Acked-by: Tony Lindgren <tony@atomide.com>
