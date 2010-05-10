@@ -1,62 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/18] omap platform data and board updates for 2.6.35
- merge window
-Date: Mon, 10 May 2010 15:25:05 -0700
-Message-ID: <20100510222505.GK16460@atomide.com>
-References: <20100505192957.21568.19569.stgit@baageli.muru.com>
- <5555D7E5-3848-4915-A7B0-1CD1732E1C69@student.utwente.nl>
- <20100505210926.GE29604@atomide.com>
- <1273131758.1978.125.camel@tubuntu.research.nokia.com>
- <20100506154430.GM29604@atomide.com>
- <1273478254.2305.10.camel@tubuntu.research.nokia.com>
+Subject: Re: [PATCH V2]omap: mux.c warning removal
+Date: Mon, 10 May 2010 15:30:29 -0700
+Message-ID: <20100510223029.GL16460@atomide.com>
+References: <0680EC522D0CC943BC586913CF3768C003B31655C3@dbde02.ent.ti.com>
+ <874oiflos4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63892 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53074 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379Ab0EJWZI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 18:25:08 -0400
+	with ESMTP id S1756972Ab0EJWaa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 18:30:30 -0400
 Content-Disposition: inline
-In-Reply-To: <1273478254.2305.10.camel@tubuntu.research.nokia.com>
+In-Reply-To: <874oiflos4.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tomi Valkeinen <tomi.valkeinen@nokia.com> [100510 00:53]:
-> On Thu, 2010-05-06 at 17:44 +0200, ext Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@nokia.com> [100506 00:38]:
-> > > On Wed, 2010-05-05 at 23:09 +0200, ext Tony Lindgren wrote:
-> > > > * Koen Kooi <koen@dominion.thruhere.net> [100505 13:16]:
-> > > > > Tony,
-> > > > > 
-> > > > > Any chance of https://patchwork.kernel.org/patch/94049/ going in as well? Tomi has acked it already.
-> > > > 
-> > > > That one looks good to me, but I thought Tomi is going to
-> > > > queue all the DSS board-*.c patches somewhere.
-> > > 
-> > > I thought we agreed that board file changes go through linux-omap after
-> > > I've acked them, to reduce the possibility of conflicts.
-> > > 
-> > > But yes, I can add it to my tree. I'll send it back to you if we start
-> > > to get conflicts =).
-> > 
-> > Great. It's best that Tomi queues the DSS board file changes.
-> > 
-> > BTW, I have not picked or marked any of the DSS board file changes
-> > in patchwork, I think there are several of them sitting there.
-> > 
-> > Tomi, if something conflicts, you can do a git branch for me to
-> > pull for the DSS board file changes.
-> > 
-> > Note that the arch/arm/*omap*/ DSS changes still need to be posted
-> > to also linux-arm-kernel for review before they can be merged.
+* Kevin Hilman <khilman@deeprootsystems.com> [100510 09:07]:
+> "Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
 > 
-> I have been sending the patches to linux-omap and linux-fbdev. Is
-> linux-arm-kernel also required in addition to those two lists?
+> > From: Keshava Munegowda <a0393220@ti.com>
+> >
+> > This patch removes the below warning 
+> > arch/arm/mach-omap2/mux.c:52: warning: 'mux_phys' defined but not used
+> > The definition of variable mux_phys should be enclosed in the macro CONFIG_ARCH_OMAP3 
+> >
+> > Signed-off-by: Keshava Munegowda <a0393220@ti.com>
+> 
+> Thanks, this version looks better.
 
-For the patches touching arch/arm/*omap*/ yes, because there are
-occasional comments on LAKML regarding the clock usage etc.
+Nothing wrong with this patch. But it will need to be reverted
+as soon as omap24xx mux code is updated. And that's going to
+happen as soon as I have a chance.
+
+So let's just keep the warning for now.
 
 Regards,
 
