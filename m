@@ -1,94 +1,52 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [PATCH] DSS2 Include VRFB into omap2-3build only
-Date: Mon, 10 May 2010 06:24:20 -0500
-Message-ID: <4BE7ECE4.5070608@gmail.com>
-References: <1273474110-22451-1-git-send-email-svadivu@ti.com> <1A2F53DA-903A-4667-A27F-492A3499F7ED@student.utwente.nl> <FCCFB4CDC6E5564B9182F639FC356087030428879D@dbde02.ent.ti.com> <73F3CED4-60D5-4351-A921-335110542B6F@dominion.thruhere.net> <FCCFB4CDC6E5564B9182F639FC356087030428879F@dbde02.ent.ti.com>
+From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+Subject: Re: [PATCHv4 0/2] omap-sham: OMAP SHA1/MD5 driver
+Date: Mon, 10 May 2010 14:40:53 +0300
+Message-ID: <4BE7F0C5.6040904@nokia.com>
+References: <cover.1272464135.git.dmitry.kasatkin@nokia.com> <20100503031139.GA31376@gondor.apana.org.au> <20100505183849.GB29604@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:38487 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756836Ab0EJLYb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 07:24:31 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087030428879F@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20100505183849.GB29604@atomide.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-On 05/10/2010 03:26 AM, Guruswamy, Senthilvadivu wrote:
-> Tiler support is not yet in OMAP builds. So multi-omap build will NOT break, but would exclude VRFB feature in the build.
-in which case, is'nt this patch redundant :) ?
+Hi,
 
-joking apart, would'nt a set of function pointers be better - the 
-function pointers could be runtime initialized. the rotational functions 
-for Tiler OR vrfb could be used?
+Hmm.. yes. in my first patch I had OMAP3 and 2
+Should I send updated patch above that?
 
->
->> -----Original Message-----
->> From: Koen Kooi [mailto:koen@dominion.thruhere.net]
->> Sent: Monday, May 10, 2010 1:33 PM
->> To: Guruswamy, Senthilvadivu
->> Cc: linux-omap@vger.kernel.org;
->> linux-fbdev-devel@lists.sourceforge.net; tony@atomide.com;
->> tomi.valkeinen@nokia.com; Hiremath, Vaibhav
->> Subject: Re: [PATCH] DSS2 Include VRFB into omap2-3build only
->>
->>
->> Op 10 mei 2010, om 10:01 heeft Guruswamy, Senthilvadivu het
->> volgende geschreven:
->>
->>> Building a multi-omap kernel is not impacted as long as the
->> display is not choosen in the build.  Usually display is
->> chosen from the board file.
->>
->> So you are saying it *IS* broken when wanting vrfb on omap3
->> and tiler on omap4, right?
->>
->>
->>
+- Dmitry
+
+
+On 05/05/10 21:38, ext Tony Lindgren wrote:
+> * Herbert Xu <herbert@gondor.apana.org.au> [100502 20:07]:
+>   
+>> On Wed, Apr 28, 2010 at 05:18:05PM +0300, Dmitry Kasatkin wrote:
+>>     
+>>> Changes to v4:
+>>> - concurrent requests support via queue
+>>> - hmac
+>>> - shash support removed
 >>>
->>>> -----Original Message-----
->>>> From: Koen Kooi [mailto:koen@dominion.thruhere.net]
->>>> Sent: Monday, May 10, 2010 1:10 PM
->>>> To: Guruswamy, Senthilvadivu
->>>> Cc: linux-omap@vger.kernel.org;
->>>> linux-fbdev-devel@lists.sourceforge.net; tony@atomide.com;
->>>> tomi.valkeinen@nokia.com; Hiremath, Vaibhav
->>>> Subject: Re: [PATCH] DSS2 Include VRFB into omap2-3build only
->>>>
->>>>
->>>> Op 10 mei 2010, om 08:48 heeft Senthilvadivu Guruswamy het
->>>> volgende geschreven:
->>>>
->>>>> Exclude VRFB from OMAP4 onwards and include only for
->>>>> OMAP2 and OMAP3 builds.  In OMAP4 VRFB HW IP is replaced
->>>>> with a new HW IP "TILER"
->>>>>
->>>>> --- a/drivers/video/omap2/Kconfig
->>>>> +++ b/drivers/video/omap2/Kconfig
->>>>> @@ -3,6 +3,10 @@ config OMAP2_VRAM
->>>>>
->>>>> config OMAP2_VRFB
->>>>> 	bool
->>>>> +	depends on FB_OMAP2&&  (!ARCH_OMAP4)
->>>>> +	default y if (ARCH_OMAP2 || ARCH_OMAP3)
->>>>> +	help
->>>>> +	  OMAP VRFB buffer support is efficient for rotation
->>>>
->>>> How does this work for multi-omap kernels, e.g. building a
->>>> kernel with beagle and panda support?
->>>>
->>>> regards,
->>>>
->>>> Koen
->>
->> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> Dmitry Kasatkin (2):
+>>>   crypto: updates omap sham device related platform code
+>>>   crypto: omap-sham - omap sha1 & md5 driver
+>>>       
+>> Both patches applied.  Thanks for all your hard work Dmitry!
+>>     
+> Just noticed that the first patch should be updated:
 >
-
-Regards,
-Nishanth Menon
+> CONFIG_ARCH_OMAP2 instead of CONFIG_ARCH_OMAP24XX
+> CONFIG_ARCH_OMAP3 instead of CONFIG_ARCH_OMAP34XX
+>
+> BTW, chances are that this part will conflict with other
+> omap patches. But if that happens, we can move it to
+> the omap for-next.
+>
+> Regards,
+>
+> Tony
+>   
