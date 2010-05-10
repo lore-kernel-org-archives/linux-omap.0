@@ -1,120 +1,73 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv4 1/4] procfs: Introduce socinfo under /proc
-Date: Mon, 10 May 2010 17:22:48 +0300
-Message-ID: <20100510142248.GD11804@besouro.research.nokia.com>
-References: <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com>
- <1273487857-32281-3-git-send-email-eduardo.valentin@nokia.com>
- <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com>
- <1273487857-32281-2-git-send-email-eduardo.valentin@nokia.com>
- <20100510111259.GA14680@linux-sh.org>
-Reply-To: eduardo.valentin@nokia.com
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: [PATCH v5 3/5] omap3: pm: Generic TRITON power scripts for
+	OMAP3 based boards
+Date: Mon, 10 May 2010 17:30:43 +0300
+Message-ID: <20100510143043.GA4703@codecarver.research.nokia.com>
+References: <1271677408-2143-1-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57722 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843Ab0EJOUX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 10:20:23 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:27810 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750715Ab0EJObz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 10:31:55 -0400
 Content-Disposition: inline
-In-Reply-To: <20100510111259.GA14680@linux-sh.org>
+In-Reply-To: <1271677408-2143-1-git-send-email-leslyam@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Paul Mundt <lethal@linux-sh.org>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Ambresh <a0393775@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+To: ext Lesly A M <leslyam@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Hello again,
-
-On Mon, May 10, 2010 at 01:13:00PM +0200, ext Paul Mundt wrote:
-> On Mon, May 10, 2010 at 01:37:34PM +0300, Eduardo Valentin wrote:
-> > + */
-> > +#include <linux/fs.h>
-> > +#include <linux/init.h>
-> > +#include <linux/proc_fs.h>
-> > +#include <linux/seq_file.h>
-> > +
-> > +extern const struct seq_operations socinfo_op;
+On Mon, Apr 19, 2010 at 01:43:28PM +0200, ext Lesly A M wrote:
+> This pacth will create the generic TRITON power scripts which can be used
+> by different OMAP3 boards with the same power companion chip (TWL4030 series).
 > 
-> This doesn't look promising..
+> Added the api(twl4030_get_scripts/twl4030_get_vc_timings) to update
+> the sleep/wakeup/warm_rest sequence & voltsetup_time in the board file.
 > 
-> > +static int socinfo_open(struct inode *inode, struct file *file)
-> > +{
-> > +	return seq_open(file, &socinfo_op);
-> > +}
-> > +
-> If you use single_open() ..
-> 
-> > +static const struct file_operations proc_socinfo_operations = {
-> > +	.open		= socinfo_open,
-> > +	.read		= seq_read,
-> > +	.llseek		= seq_lseek,
-> > +	.release	= seq_release,
-> > +};
-> > +
-> .. and single_release(), then none of the seq_operations are necessary.
-> 
-> > +static int __init proc_socinfo_init(void)
-> > +{
-> > +	proc_create("socinfo", 0, NULL, &proc_socinfo_operations);
-> > +	return 0;
-> > +}
-> > +module_init(proc_socinfo_init);
-> 
-> proc_create() can fail, so some error handling here would be nice.
-> 
-> On Mon, May 10, 2010 at 01:37:35PM +0300, Eduardo Valentin wrote:
-> > +static int c_show(struct seq_file *m, void *v)
-> > +{
-> > +	seq_printf(m, "SoC\t: %s\n", socinfo);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static void *c_start(struct seq_file *m, loff_t *pos)
-> > +{
-> > +	return *pos < 1 ? (void *)1 : NULL;
-> > +}
-> > +
-> > +static void *c_next(struct seq_file *m, void *v, loff_t *pos)
-> > +{
-> > +	++*pos;
-> > +	return NULL;
-> > +}
-> > +
-> > +static void c_stop(struct seq_file *m, void *v)
-> > +{
-> > +}
-> > +
-> > +const struct seq_operations socinfo_op = {
-> > +	.start	= c_start,
-> > +	.next	= c_next,
-> > +	.stop	= c_stop,
-> > +	.show	= c_show
-> > +};
-> 
-> You'll still need the show function, but all of the rest of this is just
-> duplicating what single_open() already does. If the socinfo string is
-> static you may also want to rework this a bit so you can just stash the
-> string in the proc_dir_entry private data. Combine this with something
-> like kstrdup() and you'll save yourself a bit of stack while you're at
-> it.
 
-While still here, about cleaning this, so, let me see if I got your point.
-Basically, the file under fs/proc/socinfo.c whould do the thing with single_open &
-single_release, as you stated. But then there is the .show and its data.
-One idea would then be to have a function:
+any reason why you use a different type for the messages sent for P3 and P1/P2
+transitions ?
 
-int register_socinfo_show(int (*show)(struct seq_file *, void *), void *data);
+> +/*
+> + * Sequence to control the TRITON Power resources,
+> + * when the system goes into sleep.
+> + * Executed upon P1_P2/P3 transition for sleep.
+> + */
+> +static struct twl4030_ins __initdata sleep_on_seq[] = {
+> +	/* Broadcast message to put res to sleep */
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
+> +							RES_STATE_SLEEP), 2},
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
+> +							RES_STATE_SLEEP), 2},
+> +};
+> +
+> +static struct twl4030_script sleep_on_script __initdata = {
+> +	.script	= sleep_on_seq,
+> +	.size	= ARRAY_SIZE(sleep_on_seq),
+> +	.flags	= TWL4030_SLEEP_SCRIPT,
+> +};
+> +
+> +/*
+> + * Sequence to control the TRITON Power resources,
+> + * when the system wakeup from sleep.
+> + * Executed upon P1_P2 transition for wakeup.
+> + */
+> +static struct twl4030_ins wakeup_p12_seq[] __initdata = {
+> +	/* Broadcast message to put res to active */
+> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
+> +							RES_STATE_ACTIVE), 2},
+> +};
+> +
+> +static struct twl4030_script wakeup_p12_script __initdata = {
+> +	.script	= wakeup_p12_seq,
+> +	.size	= ARRAY_SIZE(wakeup_p12_seq),
+> +	.flags	= TWL4030_WAKEUP12_SCRIPT,
+> +};
 
-Which would be exported to other parts of the kernel (something placed under
-include/linux/socinfo.h for instance). Then the soc core code
-(like arch/arm/mach-omap[1,2]) would then register its local show function and pass its data.
+Cheers,
 
-This way I think we can avoid the exports inside .c files (as in this patch)
-and also pass the static char * needed during the show.
+Peter.
 
-What do you think?
-
-BR,
-
---
-Eduardo Valentin
+-- 
+goa is a state of mind
