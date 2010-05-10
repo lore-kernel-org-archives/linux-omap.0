@@ -1,80 +1,59 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 3/6] OMAP4: hwmod: Enable omap_device build for OMAP4
-Date: Mon, 10 May 2010 12:00:37 +0200
-Message-ID: <4BE7D945.2030602@ti.com>
-References: <1273248424-15943-1-git-send-email-b-cousson@ti.com> <1273248424-15943-4-git-send-email-b-cousson@ti.com> <20100507203308.GO387@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: [PATCH v3] omap i2c: add a timeout to the busy waiting
+Date: Mon, 10 May 2010 13:02:27 +0300
+Message-ID: <1273485747-31533-1-git-send-email-virtuoso@slind.org>
+References: <4BAB7551.6040203@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55149 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985Ab0EJKAo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 May 2010 06:00:44 -0400
-In-Reply-To: <20100507203308.GO387@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.233]:33484 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390Ab0EJKDN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 06:03:13 -0400
+In-Reply-To: <4BAB7551.6040203@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Aaro Koskinen <aaro.koskinen@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: ben-linux@fluff.org, nm@ti.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>
 
-On 5/7/2010 10:33 PM, Tony Lindgren wrote:
-> * Benoit Cousson<b-cousson@ti.com>  [100507 09:03]:
->> From: Rajendra Nayak<rnayak@ti.com>
->>
->> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Paul Walmsley<paul@pwsan.com>
->> ---
->>   arch/arm/plat-omap/Makefile      |    1 +
->>   arch/arm/plat-omap/omap_device.c |   12 ++++++++++++
->>   2 files changed, 13 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
->> index 98f0191..9405831 100644
->> --- a/arch/arm/plat-omap/Makefile
->> +++ b/arch/arm/plat-omap/Makefile
->> @@ -15,6 +15,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
->>   # omap_device support (OMAP2+ only at the moment)
->>   obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
->>   obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
->> +obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
->>
->>   obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
->>   obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
->> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
->> index 0f51974..b6144ff 100644
->> --- a/arch/arm/plat-omap/omap_device.c
->> +++ b/arch/arm/plat-omap/omap_device.c
->> @@ -90,6 +90,18 @@
->>   #define USE_WAKEUP_LAT			0
->>   #define IGNORE_WAKEUP_LAT		1
->>
->> +/* XXX this should be moved into a separate file */
->> +#if defined(CONFIG_ARCH_OMAP2420)
->> +# define OMAP_32KSYNCT_BASE		0x48004000
->> +#elif defined(CONFIG_ARCH_OMAP2430)
->> +# define OMAP_32KSYNCT_BASE		0x49020000
->> +#elif defined(CONFIG_ARCH_OMAP3430)
->> +# define OMAP_32KSYNCT_BASE		0x48320000
->> +#elif defined(CONFIG_ARCH_OMAP4)
->> +# define OMAP_32KSYNCT_BASE		0x4a304000
->> +#else
->> +# error Unknown OMAP device
->> +#endif
->>
->>   #define OMAP_DEVICE_MAGIC 0xf00dcafe
->
-> This OMAP_32KSYNCT_BASE stuff will break multi-omap as it's defined
-> in a different way for for various omaps.
->
-> Also, OMAP_32KSYNCT_BASE define should no longer be needed at all,
-> I think all issues like this have been fixed over past year or so.
->
-> Can you please check your patches, if you're OMAP_32KSYNCT_BASE
-> in your other patches, they should be fixed.
+The errata 1.153 workaround is busy waiting on XUDF bit in interrupt
+context, which may lead to kernel hangs. The problem can be reproduced
+by running the bus with wrong (too high) speed.
 
-My mistake, you're right that should not be there anymore.
-I'll remove that in the next update.
+Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
-Thanks,
-Benoit
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index ef73483..00fd02e 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -763,17 +763,25 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
+  */
+ static int errata_omap3_1p153(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ {
+-	while (!(*stat & OMAP_I2C_STAT_XUDF)) {
++	unsigned long timeout = 10000;
++
++	while (--timeout && !(*stat & OMAP_I2C_STAT_XUDF)) {
+ 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+ 			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
+ 							OMAP_I2C_STAT_XDR));
+ 			*err |= OMAP_I2C_STAT_XUDF;
+ 			return -ETIMEDOUT;
+ 		}
++
+ 		cpu_relax();
+ 		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 	}
+ 
++	if (!timeout) {
++		dev_err(dev->dev, "timeout waiting on XUDF bit\n");
++		return 0;
++	}
++
+ 	return 0;
+ }
+ 
+-- 
+1.7.1.1.g15764
+
