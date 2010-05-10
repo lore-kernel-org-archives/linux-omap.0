@@ -1,58 +1,57 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 00/18] omap platform data and board updates for 2.6.35
- merge window
-Date: Mon, 10 May 2010 10:57:34 +0300
-Message-ID: <1273478254.2305.10.camel@tubuntu.research.nokia.com>
-References: <20100505192957.21568.19569.stgit@baageli.muru.com>
-	 <5555D7E5-3848-4915-A7B0-1CD1732E1C69@student.utwente.nl>
-	 <20100505210926.GE29604@atomide.com>
-	 <1273131758.1978.125.camel@tubuntu.research.nokia.com>
-	 <20100506154430.GM29604@atomide.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: [PATCH] DSS2 Include VRFB into omap2-3build only
+Date: Mon, 10 May 2010 13:31:20 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030428879D@dbde02.ent.ti.com>
+References: <1273474110-22451-1-git-send-email-svadivu@ti.com>
+ <1A2F53DA-903A-4667-A27F-492A3499F7ED@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:18406 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755398Ab0EJH6O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 03:58:14 -0400
-In-Reply-To: <20100506154430.GM29604@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53506 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752551Ab0EJIBc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 04:01:32 -0400
+In-Reply-To: <1A2F53DA-903A-4667-A27F-492A3499F7ED@student.utwente.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "tony@atomide.com" <tony@atomide.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Thu, 2010-05-06 at 17:44 +0200, ext Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [100506 00:38]:
-> > On Wed, 2010-05-05 at 23:09 +0200, ext Tony Lindgren wrote:
-> > > * Koen Kooi <koen@dominion.thruhere.net> [100505 13:16]:
-> > > > Tony,
-> > > > 
-> > > > Any chance of https://patchwork.kernel.org/patch/94049/ going in as well? Tomi has acked it already.
-> > > 
-> > > That one looks good to me, but I thought Tomi is going to
-> > > queue all the DSS board-*.c patches somewhere.
+Building a multi-omap kernel is not impacted as long as the display is not choosen in the build.  Usually display is chosen from the board file.
+
+> -----Original Message-----
+> From: Koen Kooi [mailto:koen@dominion.thruhere.net] 
+> Sent: Monday, May 10, 2010 1:10 PM
+> To: Guruswamy, Senthilvadivu
+> Cc: linux-omap@vger.kernel.org; 
+> linux-fbdev-devel@lists.sourceforge.net; tony@atomide.com; 
+> tomi.valkeinen@nokia.com; Hiremath, Vaibhav
+> Subject: Re: [PATCH] DSS2 Include VRFB into omap2-3build only
+> 
+> 
+> Op 10 mei 2010, om 08:48 heeft Senthilvadivu Guruswamy het 
+> volgende geschreven:
+> 
+> > Exclude VRFB from OMAP4 onwards and include only for
+> > OMAP2 and OMAP3 builds.  In OMAP4 VRFB HW IP is replaced
+> > with a new HW IP "TILER"
 > > 
-> > I thought we agreed that board file changes go through linux-omap after
-> > I've acked them, to reduce the possibility of conflicts.
+> > --- a/drivers/video/omap2/Kconfig
+> > +++ b/drivers/video/omap2/Kconfig
+> > @@ -3,6 +3,10 @@ config OMAP2_VRAM
 > > 
-> > But yes, I can add it to my tree. I'll send it back to you if we start
-> > to get conflicts =).
+> > config OMAP2_VRFB
+> > 	bool
+> > +	depends on FB_OMAP2 && (!ARCH_OMAP4)
+> > +	default y if (ARCH_OMAP2 || ARCH_OMAP3)
+> > +	help
+> > +	  OMAP VRFB buffer support is efficient for rotation
 > 
-> Great. It's best that Tomi queues the DSS board file changes.
+> How does this work for multi-omap kernels, e.g. building a 
+> kernel with beagle and panda support?
 > 
-> BTW, I have not picked or marked any of the DSS board file changes
-> in patchwork, I think there are several of them sitting there.
+> regards,
 > 
-> Tomi, if something conflicts, you can do a git branch for me to
-> pull for the DSS board file changes.
-> 
-> Note that the arch/arm/*omap*/ DSS changes still need to be posted
-> to also linux-arm-kernel for review before they can be merged.
-
-I have been sending the patches to linux-omap and linux-fbdev. Is
-linux-arm-kernel also required in addition to those two lists?
-
- Tomi
-
-
+> Koen
