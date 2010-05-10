@@ -1,131 +1,72 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH] omap iommu: add TLB preservation support
-Date: Mon, 10 May 2010 12:16:07 +0300
-Message-ID: <1273482972-5586-4-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH] omap iommu: Reject unaligned addresses at setting page table entry
+Date: Mon, 10 May 2010 12:16:12 +0300
+Message-ID: <1273482972-5586-9-git-send-email-Hiroshi.DOYU@nokia.com>
 References: <1273482972-5586-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28047 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:28053 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753599Ab0EJJRF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 05:17:05 -0400
+	with ESMTP id S1753844Ab0EJJRH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 05:17:07 -0400
 In-Reply-To: <1273482972-5586-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-From: Kanigeri, Hari <h-kanigeri2@ti.com>
+This rejects unaligned device virtual address('da') and physical
+address('pa') and informs error to caller when a page table entry is
+set. Otherwise, a wrong address can be used by IO device.
 
-This patch adds TLB preservation support to IOMMU module
-
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- arch/arm/mach-omap2/iommu2.c |    4 ++-
- arch/arm/plat-omap/iommu.c   |   43 +++++++++++++++++++++++++----------------
- 2 files changed, 29 insertions(+), 18 deletions(-)
+ arch/arm/plat-omap/iommu.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
-index d29ebff..e82da68 100644
---- a/arch/arm/mach-omap2/iommu2.c
-+++ b/arch/arm/mach-omap2/iommu2.c
-@@ -147,6 +147,7 @@ static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
- 	printk("\n");
- 
- 	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
-+	omap2_iommu_disable(obj);
- 	return stat;
- }
- 
-@@ -212,7 +213,8 @@ static ssize_t omap2_dump_cr(struct iommu *obj, struct cr_regs *cr, char *buf)
- 	char *p = buf;
- 
- 	/* FIXME: Need more detail analysis of cam/ram */
--	p += sprintf(p, "%08x %08x\n", cr->cam, cr->ram);
-+	p += sprintf(p, "%08x %08x %01x\n", cr->cam, cr->ram,
-+					(cr->cam & MMU_CAM_P) ? 1 : 0);
- 
- 	return p - buf;
- }
 diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-index 0e13766..1e83fac 100644
+index 9598d40..bc094db 100644
 --- a/arch/arm/plat-omap/iommu.c
 +++ b/arch/arm/plat-omap/iommu.c
-@@ -172,15 +172,12 @@ static void iotlb_lock_get(struct iommu *obj, struct iotlb_lock *l)
- 	l->base = MMU_LOCK_BASE(val);
- 	l->vict = MMU_LOCK_VICT(val);
- 
--	BUG_ON(l->base != 0); /* Currently no preservation is used */
- }
- 
- static void iotlb_lock_set(struct iommu *obj, struct iotlb_lock *l)
+@@ -516,6 +516,12 @@ static int iopgd_alloc_section(struct iommu *obj, u32 da, u32 pa, u32 prot)
  {
- 	u32 val;
+ 	u32 *iopgd = iopgd_offset(obj, da);
  
--	BUG_ON(l->base != 0); /* Currently no preservation is used */
--
- 	val = (l->base << MMU_LOCK_BASE_SHIFT);
- 	val |= (l->vict << MMU_LOCK_VICT_SHIFT);
- 
-@@ -231,22 +228,32 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
- 
- 	clk_enable(obj->clk);
- 
--	for (i = 0; i < obj->nr_tlb_entries; i++) {
--		struct cr_regs tmp;
--
--		iotlb_lock_get(obj, &l);
--		l.vict = i;
--		iotlb_lock_set(obj, &l);
--		iotlb_read_cr(obj, &tmp);
--		if (!iotlb_cr_valid(&tmp))
--			break;
--	}
--
--	if (i == obj->nr_tlb_entries) {
--		dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
-+	iotlb_lock_get(obj, &l);
-+	if (l.base == obj->nr_tlb_entries) {
-+		dev_warn(obj->dev, "%s: preserve entries full\n", __func__);
- 		err = -EBUSY;
- 		goto out;
- 	}
-+	if (!e->prsvd) {
-+		for (i = l.base; i < obj->nr_tlb_entries; i++) {
-+			struct cr_regs tmp;
-+
-+			iotlb_lock_get(obj, &l);
-+			l.vict = i;
-+			iotlb_lock_set(obj, &l);
-+			iotlb_read_cr(obj, &tmp);
-+			if (!iotlb_cr_valid(&tmp))
-+				break;
-+		}
-+		if (i == obj->nr_tlb_entries) {
-+			dev_dbg(obj->dev, "%s: full: no entry\n", __func__);
-+			err = -EBUSY;
-+			goto out;
-+		}
-+	} else {
-+		l.vict = l.base;
-+		iotlb_lock_set(obj, &l);
++	if ((da | pa) & ~IOSECTION_MASK) {
++		dev_err(obj->dev, "%s: %08x:%08x should aligned on %08lx\n",
++			__func__, da, pa, IOSECTION_SIZE);
++		return -EINVAL;
 +	}
++
+ 	*iopgd = (pa & IOSECTION_MASK) | prot | IOPGD_SECTION;
+ 	flush_iopgd_range(iopgd, iopgd);
+ 	return 0;
+@@ -526,6 +532,12 @@ static int iopgd_alloc_super(struct iommu *obj, u32 da, u32 pa, u32 prot)
+ 	u32 *iopgd = iopgd_offset(obj, da);
+ 	int i;
  
- 	cr = iotlb_alloc_cr(obj, e);
- 	if (IS_ERR(cr)) {
-@@ -257,9 +264,11 @@ int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e)
- 	iotlb_load_cr(obj, cr);
- 	kfree(cr);
++	if ((da | pa) & ~IOSUPER_MASK) {
++		dev_err(obj->dev, "%s: %08x:%08x should aligned on %08lx\n",
++			__func__, da, pa, IOSUPER_SIZE);
++		return -EINVAL;
++	}
++
+ 	for (i = 0; i < 16; i++)
+ 		*(iopgd + i) = (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
+ 	flush_iopgd_range(iopgd, iopgd + 15);
+@@ -555,6 +567,12 @@ static int iopte_alloc_large(struct iommu *obj, u32 da, u32 pa, u32 prot)
+ 	u32 *iopte = iopte_alloc(obj, iopgd, da);
+ 	int i;
  
-+	if (e->prsvd)
-+		l.base++;
- 	/* increment victim for next tlb load */
- 	if (++l.vict == obj->nr_tlb_entries)
--		l.vict = 0;
-+		l.vict = l.base;
- 	iotlb_lock_set(obj, &l);
- out:
- 	clk_disable(obj->clk);
++	if ((da | pa) & ~IOLARGE_MASK) {
++		dev_err(obj->dev, "%s: %08x:%08x should aligned on %08lx\n",
++			__func__, da, pa, IOLARGE_SIZE);
++		return -EINVAL;
++	}
++
+ 	if (IS_ERR(iopte))
+ 		return PTR_ERR(iopte);
+ 
 -- 
 1.7.1.rc1
 
