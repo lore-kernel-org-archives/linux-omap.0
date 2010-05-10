@@ -1,16 +1,18 @@
-From: Suresh Rajashekara <suresh.raj@gmail.com>
+From: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
 Subject: Issue with SCHED_FIFO app
-Date: Sun, 9 May 2010 21:39:05 -0700
-Message-ID: <k2j54a292881005092139u7e120250hf530f8b688abdd22@mail.gmail.com>
+Date: Sun, 9 May 2010 21:42:47 -0700
+Message-ID: <t2s54a292881005092142h58ccae9ch2ecec665d06a7601@mail.gmail.com>
+References: <k2j54a292881005092139u7e120250hf530f8b688abdd22@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:60887 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721Ab0EJEj0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 00:39:26 -0400
-Received: by gwj19 with SMTP id 19so1713390gwj.19
-        for <linux-omap@vger.kernel.org>; Sun, 09 May 2010 21:39:25 -0700 (PDT)
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:36356 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240Ab0EJEnI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 00:43:08 -0400
+Received: by gyg13 with SMTP id 13so1705147gyg.19
+        for <linux-omap@vger.kernel.org>; Sun, 09 May 2010 21:43:07 -0700 (PDT)
+In-Reply-To: <k2j54a292881005092139u7e120250hf530f8b688abdd22@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -23,8 +25,7 @@ differently on 2.6.29.
 
 I will explain my problem briefly.
 
-Application A (my main application) is scheduled with SCHED_FIFO and
-priority 5.
+Application A (my main application) is scheduled with SCHED_FIFO and priority 5.
 Application B (watchdog application) is also scheduled with SCHED_FIFO
 but with priority 54.
 
