@@ -1,67 +1,50 @@
-From: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
-Subject: Issue with SCHED_FIFO app
-Date: Sun, 9 May 2010 21:42:47 -0700
-Message-ID: <t2s54a292881005092142h58ccae9ch2ecec665d06a7601@mail.gmail.com>
-References: <k2j54a292881005092139u7e120250hf530f8b688abdd22@mail.gmail.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 3/4 v2] ARM: add framebuffer support for ap4evb
+Date: Mon, 10 May 2010 08:12:28 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1005100807120.15250@axis700.grange>
+References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
+ <Pine.LNX.4.64.1005071105140.4777@axis700.grange>
+ <Pine.LNX.4.64.1005071641440.4777@axis700.grange> <uvdawbopi.wl%kuninori.morimoto.gx@renesas.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:36356 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240Ab0EJEnI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 00:43:08 -0400
-Received: by gyg13 with SMTP id 13so1705147gyg.19
-        for <linux-omap@vger.kernel.org>; Sun, 09 May 2010 21:43:07 -0700 (PDT)
-In-Reply-To: <k2j54a292881005092139u7e120250hf530f8b688abdd22@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <uvdawbopi.wl%kuninori.morimoto.gx@renesas.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi All,
+Hello Morimoto-san
 
-I had a couple of application (with real time priority SCHED_FIFO)
-which were working fine on 2.6.16. They have started behaving
-differently on 2.6.29.
+On Mon, 10 May 2010, Kuninori Morimoto wrote:
 
-I will explain my problem briefly.
+> > diff --git a/arch/arm/mach-shmobile/Kconfig b/arch/arm/mach-shmobile/Kconfig
+> > index 9003ea9..e216132 100644
+> > --- a/arch/arm/mach-shmobile/Kconfig
+> > +++ b/arch/arm/mach-shmobile/Kconfig
+> > @@ -42,6 +42,7 @@ config MACH_AP4EVB
+> >  	bool "AP4EVB board"
+> >  	depends on ARCH_SH7372
+> >  	select ARCH_REQUIRE_GPIOLIB
+> > +	select SH_LCD_MIPI_DSI
+> 
+> Why is this "select" needed here ?
+> Do you want "force select MIPI DSI" on AP4 ?
 
-Application A (my main application) is scheduled with SCHED_FIFO and priority 5.
-Application B (watchdog application) is also scheduled with SCHED_FIFO
-but with priority 54.
+Not on all AP4 systems, only on ap4evb board, because I thought, that's 
+the display, that it is using.
 
-A keeps putting the OMAP to sleep and wake up every 4 seconds and
-again puts it to sleep.
-B is supposed to be running every 1.25 seconds to kick watchdog, but
-since A keeps OMAP in sleep for 4 seconds, it should run as soon as
-OMAP wakes up.
+> I asked because AP4 board can select other type LCD.
+> (not only MIPI DSI)
 
-Since B is of a higher priority, its supposed to run whenever the OMAP
-wakes up and then A should again put it back to sleep. This happens
-perfectly on 2.6.16
+ap4evb can also have other LCDs attached to it? Then this will have to 
+become a "choice" between various display types, where the MIPI DSI one 
+will select SH_LCD_MIPI_DSI. We can either do this now or later when more 
+LCD types are added.
 
-On 2.6.29, B fails to run when OMAP wakes up and before A puts it back
-to sleep. B only runs if there is atleast 1.5 seconds of delay between
-the awake-sleep cycle.
-
-On searching the internet, I figured out that CFS (completely fair
-scheduler) was introduced in 2.6.23, which makes some changes to the
-RT bandwidth (and many users started facing issues with they
-applications with SCHED_FIFO). Somewhere on the web I found that
-issuing
-
-echo -1 > /proc/sys/kernel/sched_rt_runtime_us
-
-should disable the changes which affects the RT bandwidth. It actually
-did help to an extent in solving some other problem (not described
-above. A's IOCTL call return was getting delayed), but this problem
-still persists.
-
-Any pointers to where I should look for the solution.
-
-Is there a way I can revert back to the scheduler behavior as it was on 2.6.16?
-
-I have disabled CONFIG_GROUP_SCHED and also CONFIG_CGROUPS. I am using
-2.6.29 on an OMAP1 platform.
-
-Thanks in advance,
-Suresh
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
