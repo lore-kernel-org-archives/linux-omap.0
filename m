@@ -1,73 +1,95 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH v5 3/5] omap3: pm: Generic TRITON power scripts for
-	OMAP3 based boards
-Date: Mon, 10 May 2010 17:30:43 +0300
-Message-ID: <20100510143043.GA4703@codecarver.research.nokia.com>
-References: <1271677408-2143-1-git-send-email-leslyam@ti.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: RE: [PATCH]i2c-omap: pass scll, sclh through board file for Errata
+ i585
+Date: Mon, 10 May 2010 20:32:55 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E4049A4@dbde02.ent.ti.com>
+References: <1273214105-22894-1-git-send-email-balajitk@ti.com>
+ <4BE3DD36.10308@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27810 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750715Ab0EJObz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 10:31:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1271677408-2143-1-git-send-email-leslyam@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42977 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750971Ab0EJPDW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 11:03:22 -0400
+In-Reply-To: <4BE3DD36.10308@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Lesly A M <leslyam@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>
 
-On Mon, Apr 19, 2010 at 01:43:28PM +0200, ext Lesly A M wrote:
-> This pacth will create the generic TRITON power scripts which can be used
-> by different OMAP3 boards with the same power companion chip (TWL4030 series).
+
+> -----Original Message-----
+> From: Aaro Koskinen [mailto:aaro.koskinen@nokia.com]
+> Subject: Re: [PATCH]i2c-omap: pass scll, sclh through board file for Errata
+> i585
 > 
-> Added the api(twl4030_get_scripts/twl4030_get_vc_timings) to update
-> the sleep/wakeup/warm_rest sequence & voltsetup_time in the board file.
+> Hi,
+> 
+> balajitk@ti.com wrote:
+> > From: Balaji T K <balajitk@ti.com>
+> >
+> > Errata ID: i535 - I2C1 to 3 SCL low period is shorter in FS mode
+> > Due to IO cell influence, I2C1 to 3 SCL low period can be shorter than
+> expected.
+> > As a result, I2C AC timing (SCL minimum low period) in FS mode may not meet
+> > the timing configured by software.
+> >
+> > I2C1 to 3, SCL low period is programmable and proper adjustments
+> > to the SCLL/HSSCLL values can avoid the issue.
+> >
+> > This patch provides flexibility to control tLOW, tHIGH for different boards.
+> > scll, sclh values are to be provide in board data
+> > for differents modes (standard, fast and high speed mode)
+> > as the scl rate (I2C bus speed) can be changed by bootargs.
+> 
+> This patch is very much needed, because these values are highly board
+> specific.
+> At the moment we are forced to patch the i2c bus driver when finetuning the
+> I2C
+> timings for a certain board, which is ugly.
+> 
+> However, I have comment one about the implementation:
 > 
 
-any reason why you use a different type for the messages sent for P3 and P1/P2
-transitions ?
+<snip>
 
-> +/*
-> + * Sequence to control the TRITON Power resources,
-> + * when the system goes into sleep.
-> + * Executed upon P1_P2/P3 transition for sleep.
-> + */
-> +static struct twl4030_ins __initdata sleep_on_seq[] = {
-> +	/* Broadcast message to put res to sleep */
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-> +							RES_STATE_SLEEP), 2},
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-> +							RES_STATE_SLEEP), 2},
-> +};
-> +
-> +static struct twl4030_script sleep_on_script __initdata = {
-> +	.script	= sleep_on_seq,
-> +	.size	= ARRAY_SIZE(sleep_on_seq),
-> +	.flags	= TWL4030_SLEEP_SCRIPT,
-> +};
-> +
-> +/*
-> + * Sequence to control the TRITON Power resources,
-> + * when the system wakeup from sleep.
-> + * Executed upon P1_P2 transition for wakeup.
-> + */
-> +static struct twl4030_ins wakeup_p12_seq[] __initdata = {
-> +	/* Broadcast message to put res to active */
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-> +							RES_STATE_ACTIVE), 2},
-> +};
-> +
-> +static struct twl4030_script wakeup_p12_script __initdata = {
-> +	.script	= wakeup_p12_seq,
-> +	.size	= ARRAY_SIZE(wakeup_p12_seq),
-> +	.flags	= TWL4030_WAKEUP12_SCRIPT,
-> +};
+> I think it would be simpler if we move these calcuations into a function.
+> E.g. something like:
+> 
+If the custom function is also to fine the scl low and scl high values.
+How about passing the Tlow to T, Thigh to T ratio. T = 1/100Khz , 1/400Khz ,
+1/HS speed to make things simpler.
 
-Cheers,
-
-Peter.
-
--- 
-goa is a state of mind
+> 	if (dev->speed > 400) {
+> 		/* HS mode */
+> 		pdata->set_scl(internal_clk, 400, &fsscll, &fssclh);
+> 		pdata->set_scl(fclk_rate, dev->speed, &hsscll, &hssclh);
+> 	} else {
+> 		/* Fast & standard mode */
+> 		pdata->set_scl(internal_clk, dev->speed, &fsscll, &fssclh);
+> 	}
+> 
+> Then the default function would be something like:
+> 
+> static void omap_i2c_default_scl(unsigned clk, unsigned speed, u16 *scll, u16
+> *sclh)
+> {
+> 	if (speed > 100) {
+> 		/* Fast & HS modes */
+> 		unsigned scl = clk / speed;
+> 
+> 		*scll = scl - (scl / 3) - 7;
+> 		*sclh = (scl / 3) - 5;
+> 	} else {
+> 		/* Standard mode */
+> 		*scll = clk / (speed * 2) - 7;
+> 		*scll = clk / (speed * 2) - 5;
+> 	}
+> }
+> 
+> And the platform data would just provide a board-specific function if needed.
+> 
+> A.
