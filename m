@@ -1,86 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6] OMAP3: GPIO: Only enable WAKEUPEN for edge
- detection GPIOs
-Date: Mon, 10 May 2010 14:11:05 -0700
-Message-ID: <20100510211105.GI16460@atomide.com>
-References: <1272929177-22685-1-git-send-email-khilman@deeprootsystems.com>
- <1272929177-22685-3-git-send-email-khilman@deeprootsystems.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 1/5] DSPBRIDGE: Remove checkpatch errors regarding braces
+Date: Mon, 10 May 2010 16:58:41 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DFD51F7@dlee03.ent.ti.com>
+References: <67059DBF19D7214F9C66BB0EA91BA90EC2622733@dlee04.ent.ti.com>
+	 <27F9C60D11D683428E133F85D2BB4A53043DFD4960@dlee03.ent.ti.com>
+ <AANLkTimJA_ilSR6iTjV2Flxp-aNtk0JRRb2_zYxz6F-2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53924 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932274Ab0EJVLF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 17:11:05 -0400
-Content-Disposition: inline
-In-Reply-To: <1272929177-22685-3-git-send-email-khilman@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37239 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757104Ab0EJV6s convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 17:58:48 -0400
+In-Reply-To: <AANLkTimJA_ilSR6iTjV2Flxp-aNtk0JRRb2_zYxz6F-2@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Chunqiu Wang <cqwang@motorola.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Uribe de Leon, Armando" <x0095078@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hiroshi.DOYU@nokia.com" <hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100503 16:28]:
-> From: Chunqiu Wang <cqwang@motorola.com>
-> 
-> According to the GPIO 'Wakeup and Interrupt' section of the TRM[1],
-> wake-up requests can only be generated on edge transitions.
-> 
-> Also for OMAP3, only edge GPIOs may lose interrupts when PER enters
-> RET/OFF state, this is addressed by gpio prepare|resume idle functions
 
-There's a generic solution to this problem. The solution is to temporarily
-set the level GPIO pins into edge for the duration of idle. Then
-they need to be set back to level after the system is woken up.
+>From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+>
+>On Sun, May 9, 2010 at 7:26 AM, Ramirez Luna, Omar <omar.ramirez@ti.co=
+m> wrote:
+>> >From 451e9733672b7fd3879ec109f3c6b2ac55c21cf5 Mon Sep 17 00:00:00 2=
+001
+>>>From: Armando Uribe De Leon <x0095078@ti.com>
+>>>Date: Thu, 8 Apr 2010 17:14:38 -0500
+>>>Subject: [PATCH 1/5] DSPBRIDGE: Remove checkpatch errors regarding b=
+races
+>>>
+>>>This patch removes checkpatch errors due to misleading braces
+>>>
+>>>Signed-off-by: Armando Uribe De Leon <x0095078@ti.com>
+>>>---
+>>> arch/arm/plat-omap/include/dspbridge/mem.h | =A0 =A08 ++++----
+>>> drivers/dsp/bridge/dynload/cload.c =A0 =A0 =A0 =A0 | =A0 =A04 ++--
+>>> drivers/dsp/bridge/pmgr/cmm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A05=
+ ++---
+>>> drivers/dsp/bridge/pmgr/dbll.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A03 +=
+--
+>>> drivers/dsp/bridge/wmd/io_sm.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A03 +=
+--
+>>> drivers/dsp/bridge/wmd/tiomap3430_pwr.c =A0 =A0| =A0 =A06 ++----
+>>> 6 files changed, 12 insertions(+), 17 deletions(-)
+>>>
+>>
+>> Pushed to dspbridge.
+>
+>What's the point of commenting every patch? Wouldn't commenting on the
+>patch series achieve the same?
+>
 
-Regards,
+Couldn't find the cover-letter...
 
-Tony
+Same for this series http://marc.info/?l=3Dlinux-omap&m=3D1273379414099=
+14&w=3D2
 
- 
-> [1] Section 25.5.3.1 OMAP34xx_ES3.1_TRM_V_Q
-> 
-> Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/plat-omap/gpio.c |   14 ++++++++++++--
->  1 files changed, 12 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 678fd08..4d43cda 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -724,7 +724,11 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
->  							 OMAP4_GPIO_IRQWAKEN0);
->  			}
->  		} else {
-> -			if (trigger != 0)
-> +			/*
-> +			 * GPIO wakeup request can only be generated on edge
-> +			 * transitions
-> +			 */
-> +			if (trigger & IRQ_TYPE_EDGE_BOTH)
->  				__raw_writel(1 << gpio, bank->base
->  					+ OMAP24XX_GPIO_SETWKUENA);
->  			else
-> @@ -734,7 +738,13 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
->  	}
->  	/* This part needs to be executed always for OMAP34xx */
->  	if (cpu_is_omap34xx() || (bank->non_wakeup_gpios & gpio_bit)) {
-> -		if (trigger != 0)
-> +		/*
-> +		 * Log the edge gpio and manually trigger the IRQ
-> +		 * after resume if the input level changes
-> +		 * to avoid irq lost during PER RET/OFF mode
-> +		 * Applies for omap2 non-wakeup gpio and all omap3 gpios
-> +		 */
-> +		if (trigger & IRQ_TYPE_EDGE_BOTH)
->  			bank->enabled_non_wakeup_gpios |= gpio_bit;
->  		else
->  			bank->enabled_non_wakeup_gpios &= ~gpio_bit;
-> -- 
-> 1.7.0.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
