@@ -1,44 +1,38 @@
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Subject: [PATCH 1/1] omap-sham: OMAP macros corrected
-Date: Mon, 10 May 2010 15:07:55 +0300
-Message-ID: <948fcc79dd3d31f4930d4b62bb7ca7a19949fd9a.1273493232.git.dmitry.kasatkin@nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv4 3/4] mach-omap1: export omap1 info under /proc/socinfo
+Date: Mon, 10 May 2010 15:13:05 +0300
+Message-ID: <20100510121305.GB8441@besouro.research.nokia.com>
+References: <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com>
+ <1273487857-32281-4-git-send-email-eduardo.valentin@nokia.com>
+ <20100510105200.GA14337@n2100.arm.linux.org.uk>
+Reply-To: eduardo.valentin@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63708 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:64813 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751554Ab0EJMI3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 08:08:29 -0400
+	with ESMTP id S1751467Ab0EJMK3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 08:10:29 -0400
+Content-Disposition: inline
+In-Reply-To: <20100510105200.GA14337@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: herbert@gondor.hengli.com.au
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Ambresh <a0393775@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
----
- arch/arm/mach-omap2/devices.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+On Mon, May 10, 2010 at 12:52:00PM +0200, Russell King wrote:
+> On Mon, May 10, 2010 at 01:37:36PM +0300, Eduardo Valentin wrote:
+> > From: Eduardo Valentin <eduardo.valentin@nokia.com>
+> > 
+> > Report OMAP name and rev under /proc/socinfo node.
+> 
+> I think this needs to be combined with the previous patch.  The previous
+> patch enables the socinfo file, which means with patch 2 applied but not
+> patch 3, OMAP1 breaks.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index beac46c..79dbf04 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -456,7 +456,7 @@ static inline void omap_init_mcspi(void) {}
- 
- #if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
- 
--#ifdef CONFIG_ARCH_OMAP24XX
-+#ifdef CONFIG_ARCH_OMAP2
- static struct resource omap2_sham_resources[] = {
- 	{
- 		.start	= OMAP24XX_SEC_SHA1MD5_BASE,
-@@ -474,7 +474,7 @@ static int omap2_sham_resources_sz = ARRAY_SIZE(omap2_sham_resources);
- #define omap2_sham_resources_sz		0
- #endif
- 
--#ifdef CONFIG_ARCH_OMAP34XX
-+#ifdef CONFIG_ARCH_OMAP3
- static struct resource omap3_sham_resources[] = {
- 	{
- 		.start	= OMAP34XX_SEC_SHA1MD5_BASE,
--- 
-1.7.0.4
+yes, indeed. I will squash both.
 
+Tks,
+
+--
+Eduardo Valentin
