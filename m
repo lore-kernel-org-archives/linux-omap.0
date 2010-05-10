@@ -1,60 +1,76 @@
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Subject: Re: [PATCH 1/1] omap-sham: OMAP macros corrected
-Date: Mon, 10 May 2010 15:49:55 +0300
-Message-ID: <4BE800F3.2070602@nokia.com>
-References: <948fcc79dd3d31f4930d4b62bb7ca7a19949fd9a.1273493232.git.dmitry.kasatkin@nokia.com> <20100510121416.GA12769@gondor.apana.org.au>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv4 1/4] procfs: Introduce socinfo under /proc
+Date: Mon, 10 May 2010 15:55:49 +0300
+Message-ID: <20100510125548.GB11804@besouro.research.nokia.com>
+References: <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com>
+ <1273487857-32281-3-git-send-email-eduardo.valentin@nokia.com>
+ <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com>
+ <1273487857-32281-2-git-send-email-eduardo.valentin@nokia.com>
+ <20100510111259.GA14680@linux-sh.org>
+ <20100510123514.GA11804@besouro.research.nokia.com>
+ <20100510123902.GA15293@linux-sh.org>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20100510121416.GA12769@gondor.apana.org.au>
-Sender: linux-crypto-owner@vger.kernel.org
-To: ext Herbert Xu <herbert@gondor.hengli.com.au>
-Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:50062 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753668Ab0EJMwx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 08:52:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20100510123902.GA15293@linux-sh.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Paul Mundt <lethal@linux-sh.org>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Ambresh <a0393775@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+
+On Mon, May 10, 2010 at 02:39:02PM +0200, ext Paul Mundt wrote:
+> On Mon, May 10, 2010 at 03:35:14PM +0300, Eduardo Valentin wrote:
+> > On Mon, May 10, 2010 at 01:13:00PM +0200, ext Paul Mundt wrote:
+> > > On Mon, May 10, 2010 at 01:37:34PM +0300, Eduardo Valentin wrote:
+> > > > + */
+> > > > +#include <linux/fs.h>
+> > > > +#include <linux/init.h>
+> > > > +#include <linux/proc_fs.h>
+> > > > +#include <linux/seq_file.h>
+> > > > +
+> > > > +extern const struct seq_operations socinfo_op;
+> > > 
+> > > This doesn't look promising..
+> > 
+> > Right.. as stated in patch description (maybe not that clear), this was
+> > basically same thing which you see under fs/proc/cpuinfo.c
+> > 
+> The cpuinfo case is a bit more complex since you have actual real work to
+> do in the ->start op and you will iterate over the ->show op for each
+> CPU. In your socinfo case you're just following the single_xxx()
+> semantics so using those helpers there simplifies things quite a bit.
+
+Yeah,
+
+> 
+> Architectures that do not support SMP technically employ single_open()
+> semantics, but the fs/proc/cpuinfo.c abstraction requires the
+> architecture to provide seq ops regardless.
+
+OK.
+
+> 
+> Note that in the cpuinfo case there is often special handling for the
+> single (or boot CPU) case, such as printing out a descriptor for the
+> machine type and so on. You might be better off just extending cpuinfo
+> rather than introducing another /proc abstraction, presumably your
+> socinfo string will be fixed regardless of whether it's SMP or not.
+
+Yeah, I wouldn't expect it to change if it SMP or not. It should be fixed.
+Previous version of this change was actually extending ARM cpuinfo. The previous
+thread starts here:
+http://marc.info/?l=linux-omap&m=127304890312365&w=2
+
+But, the point of moving that to specific file was that soc info is not really cpu info.
 
 
-On 10/05/10 15:14, ext Herbert Xu wrote:
-> On Mon, May 10, 2010 at 03:07:55PM +0300, Dmitry Kasatkin wrote:
->   
->> Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
->> ---
->>  arch/arm/mach-omap2/devices.c |    4 ++--
->>  1 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
->> index beac46c..79dbf04 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -456,7 +456,7 @@ static inline void omap_init_mcspi(void) {}
->>  
->>  #if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
->>  
->> -#ifdef CONFIG_ARCH_OMAP24XX
->> +#ifdef CONFIG_ARCH_OMAP2
->>  static struct resource omap2_sham_resources[] = {
->>  	{
->>  		.start	= OMAP24XX_SEC_SHA1MD5_BASE,
->> @@ -474,7 +474,7 @@ static int omap2_sham_resources_sz = ARRAY_SIZE(omap2_sham_resources);
->>  #define omap2_sham_resources_sz		0
->>  #endif
->>  
->> -#ifdef CONFIG_ARCH_OMAP34XX
->> +#ifdef CONFIG_ARCH_OMAP3
->>  static struct resource omap3_sham_resources[] = {
->>  	{
->>  		.start	= OMAP34XX_SEC_SHA1MD5_BASE,
->>     
-> Hi Tony:
->
-> If I add this patch to cryptodev, is this going to cause any
-> problems for you?
->
-> Thbanks,
->   
-Hi,
+BR,
 
-I should not be any problem, because it indeed needs to be like that.
-
-- Dmitry
-
+--
+Eduardo Valentin
