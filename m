@@ -1,42 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2]omap: mux.c warning removal
-Date: Mon, 10 May 2010 15:30:29 -0700
-Message-ID: <20100510223029.GL16460@atomide.com>
-References: <0680EC522D0CC943BC586913CF3768C003B31655C3@dbde02.ent.ti.com>
- <874oiflos4.fsf@deeprootsystems.com>
+Subject: [APPLIED] [PATCH v3] omap i2c: add a timeout to the busy waiting
+Date: Mon, 10 May 2010 18:40:07 -0400
+Message-ID: <notify-1273531208@atomide.com>
+References: <1273485747-31533-1-git-send-email-virtuoso@slind.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53074 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63647 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756972Ab0EJWaa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 18:30:30 -0400
+	with ESMTP id S1757132Ab0EJWkH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 18:40:07 -0400
+Received: from c-69-181-193-102.hsd1.ca.comcast.net ([69.181.193.102] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1OBbdu-0009MQ-R8
+	for linux-omap@vger.kernel.org; Mon, 10 May 2010 22:40:07 +0000
+In-Reply-To: <1273485747-31533-1-git-send-email-virtuoso@slind.org>
 Content-Disposition: inline
-In-Reply-To: <874oiflos4.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100510 09:07]:
-> "Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
-> 
-> > From: Keshava Munegowda <a0393220@ti.com>
-> >
-> > This patch removes the below warning 
-> > arch/arm/mach-omap2/mux.c:52: warning: 'mux_phys' defined but not used
-> > The definition of variable mux_phys should be enclosed in the macro CONFIG_ARCH_OMAP3 
-> >
-> > Signed-off-by: Keshava Munegowda <a0393220@ti.com>
-> 
-> Thanks, this version looks better.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Nothing wrong with this patch. But it will need to be reverted
-as soon as omap24xx mux code is updated. And that's going to
-happen as soon as I have a chance.
+Branch in linux-omap: i2c-omap-for-ben
 
-So let's just keep the warning for now.
+Initial commit ID (Likely to change): 4c156dc0e7cc486feb106348fb7159d4be0c9889
 
-Regards,
+PatchWorks
+http://patchwork.kernel.org/patch/98127/
 
-Tony
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=4c156dc0e7cc486feb106348fb7159d4be0c9889
+
+
