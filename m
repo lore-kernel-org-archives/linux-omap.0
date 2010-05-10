@@ -1,64 +1,32 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: DSS2 on 36xx with 2.6.34-rc6
-Date: Mon, 10 May 2010 21:54:19 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E4049C6@dbde02.ent.ti.com>
-References: <AANLkTiljBOjnB4QZ6Df2IRu3Tw79rIZaGX3pkZ3X91cB@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] OMAP3EVM: Update pad configuration for wakeup enabled pads
+Date: Mon, 10 May 2010 09:39:24 -0700
+Message-ID: <87fx1zk8xv.fsf@deeprootsystems.com>
+References: <1272886671-21749-1-git-send-email-ranjithl@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48033 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752599Ab0EJQYd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 12:24:33 -0400
-In-Reply-To: <AANLkTiljBOjnB4QZ6Df2IRu3Tw79rIZaGX3pkZ3X91cB@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-qy0-f183.google.com ([209.85.221.183]:49216 "EHLO
+	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248Ab0EJQje (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 12:39:34 -0400
+Received: by qyk13 with SMTP id 13so6415180qyk.1
+        for <linux-omap@vger.kernel.org>; Mon, 10 May 2010 09:39:33 -0700 (PDT)
+In-Reply-To: <1272886671-21749-1-git-send-email-ranjithl@ti.com> (Ranjith Lohithakshan's message of "Mon\,  3 May 2010 17\:07\:51 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ranjith Lohithakshan <ranjithl@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com
 
+Ranjith Lohithakshan <ranjithl@ti.com> writes:
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Steve Sakoman
-> Sent: Monday, May 10, 2010 8:54 PM
-> To: linux-omap@vger.kernel.org
-> Subject: DSS2 on 36xx with 2.6.34-rc6
-> 
-> Has anyone had success with DSS2 on a 36xx platform using the current
-> l-o top of tree?
-> 
-> I've been working with a Beagle xM prototype and have applied the
-> "OMAP3630: DSS2: Updating MAX divider value" patch from Tomi's repo as
-> well as Koen's Beagle DSS2 support patch.
-> 
-> The image works as expected on a 35xx based Beagle, but when run on
-> the Beagle xM results in a "HDMI: Out of Range" error from my monitor.
->  Sadly the monitor won't give me the erroneous timing parameters.
-> 
-[Hiremath, Vaibhav] For me it looks like Timing related issue only. And if I understand correctly I have seen some mail-threads which were talking about successful bring-up on Beagle-XM board.
+> OMAP3530 TRM section 7.4.4.4.2 requires OFFOUTENABLE to be set (active low)
+> if wakeup capabilities are enabled on a pad. During OFF mode testing
+> on OMAP3530 EVM, it was observed that the device was not residing in
+> the OFF state. The device enters into the OFF state and immediately exits
+> from that state as if an IO wakeup event has occured. The issue was traced
+> down to the pad configuration of wkaeup enabled pad's.
+>
+> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
 
-> I suspect that there are still issues in clock setup (or perhaps in
-> CPU type/revision detection).
-> 
-> Anyone else working in this area?
-[Hiremath, Vaibhav] Steve,
-
-The AM/DM3730, which is exactly same as OMAP3630 has been supported with PSP releases. I would suggest you to refer to the Arago repo - 
-
-
-http://arago-project.org/git/people/?p=sriram/ti-psp-omap.git;a=summary
-
-Please note that similar kind of testing/validation has been done on AM/DM3730 platform.
-
-Also please let me know if you have any issues.
-
-Thanks,
-Vaibhav
-
-> 
-> Steve
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
