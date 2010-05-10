@@ -1,72 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/09] OMAP:GPIO:Implement GPIO in HWMOD way
-Date: Mon, 10 May 2010 15:22:57 -0700
-Message-ID: <20100510222257.GJ16460@atomide.com>
-References: <1271951720-21714-1-git-send-email-charu@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5387A73@dbde02.ent.ti.com>
- <20100507153204.GB387@atomide.com>
- <87pr13okkk.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 00/18] omap platform data and board updates for 2.6.35
+ merge window
+Date: Mon, 10 May 2010 15:25:05 -0700
+Message-ID: <20100510222505.GK16460@atomide.com>
+References: <20100505192957.21568.19569.stgit@baageli.muru.com>
+ <5555D7E5-3848-4915-A7B0-1CD1732E1C69@student.utwente.nl>
+ <20100505210926.GE29604@atomide.com>
+ <1273131758.1978.125.camel@tubuntu.research.nokia.com>
+ <20100506154430.GM29604@atomide.com>
+ <1273478254.2305.10.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50156 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751196Ab0EJWXA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 18:23:00 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63892 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752379Ab0EJWZI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 18:25:08 -0400
 Content-Disposition: inline
-In-Reply-To: <87pr13okkk.fsf@deeprootsystems.com>
+In-Reply-To: <1273478254.2305.10.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100510 08:09]:
-> Tony Lindgren <tony@atomide.com> writes:
+* Tomi Valkeinen <tomi.valkeinen@nokia.com> [100510 00:53]:
+> On Thu, 2010-05-06 at 17:44 +0200, ext Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@nokia.com> [100506 00:38]:
+> > > On Wed, 2010-05-05 at 23:09 +0200, ext Tony Lindgren wrote:
+> > > > * Koen Kooi <koen@dominion.thruhere.net> [100505 13:16]:
+> > > > > Tony,
+> > > > > 
+> > > > > Any chance of https://patchwork.kernel.org/patch/94049/ going in as well? Tomi has acked it already.
+> > > > 
+> > > > That one looks good to me, but I thought Tomi is going to
+> > > > queue all the DSS board-*.c patches somewhere.
+> > > 
+> > > I thought we agreed that board file changes go through linux-omap after
+> > > I've acked them, to reduce the possibility of conflicts.
+> > > 
+> > > But yes, I can add it to my tree. I'll send it back to you if we start
+> > > to get conflicts =).
+> > 
+> > Great. It's best that Tomi queues the DSS board file changes.
+> > 
+> > BTW, I have not picked or marked any of the DSS board file changes
+> > in patchwork, I think there are several of them sitting there.
+> > 
+> > Tomi, if something conflicts, you can do a git branch for me to
+> > pull for the DSS board file changes.
+> > 
+> > Note that the arch/arm/*omap*/ DSS changes still need to be posted
+> > to also linux-arm-kernel for review before they can be merged.
 > 
-> > * Varadarajan, Charulatha <charu@ti.com> [100506 23:52]:
-> >> Tony/ Kevin,
-> >> 
-> >> > -----Original Message-----
-> >> > From: Varadarajan, Charulatha
-> >> > Sent: Thursday, April 22, 2010 9:25 PM
-> >> > To: linux-omap@vger.kernel.org
-> >> > Cc: Nayak, Rajendra; paul@pwsan.com; tony@atomide.com;
-> >> > khilman@deeprootsystems.com; Varadarajan, Charulatha
-> >> > Subject: [PATCH 00/09] OMAP:GPIO:Implement GPIO in HWMOD way
-> >> > 
-> >> > This patch series implements GPIO as an early platform driver.
-> >> > It makes OMAP2PLUS specific GPIO to get adapted to HWMOD FW.
-> >> > OMAP1 specific GPIO is implemented as early platform device.
-> >> > 
-> >> > This patch series is created on "origin/pm-wip/hwmods". 
-> >> 
-> >> Planning to send few more patches for adapting some other
-> >> drivers to HWMOD FW. 
-> >> Which tree should those patches be created on?
-> >> LO mainline? or hwmods branch? or runtime branch?
-> >
-> > All the patches should be against the most recent tag
-> > in Linus' mainline tree, currently v2.6.34-rc6.
-> >
-> > If there are some dependencies to other patches, we need
-> > to get those upstream immediately.
-> 
-> Please use pm-wip/runtime, which is currently based on v2.6.34-rc6
-> + PM changes already submitted for 2.6.35 (3 patches)
+> I have been sending the patches to linux-omap and linux-fbdev. Is
+> linux-arm-kernel also required in addition to those two lists?
 
-That's for the "few more patches for adapting some other drivers",
-not for the GPIO patches, right?
+For the patches touching arch/arm/*omap*/ yes, because there are
+occasional comments on LAKML regarding the clock usage etc.
 
-AFAIK, the GPIO patches should not have dependencies to the pm-wip.
-
-Kevin, let me know if you got some things ready to go that can
-be pulled into omap-for-linus.
-
-> In addition, this has the in-progress UART + MMC hwmod changes.
-
-Sounds like those are not ready to go yet then. So I guess it's
-currently only your pm-next that's ready to go?
-
-Cheers,
+Regards,
 
 Tony
