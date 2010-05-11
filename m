@@ -1,13 +1,12 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv5 3/3] OMAP3: export chip IDCODE, Production ID and Die ID
-Date: Tue, 11 May 2010 17:15:31 +0300
-Message-ID: <1273587331-24604-4-git-send-email-eduardo.valentin@nokia.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export OMAP
+	data
+Date: Tue, 11 May 2010 17:15:28 +0300
+Message-ID: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,128 +20,100 @@ To: LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, L
 Cc: Russell King <linux@arm.linux.org.uk>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, Ambresh <a0393775@ti.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Paul Mundt <lethal@linux-sh.org>, santosh.shilimkar@ti.com, Andrew Morton <akpm@linux-foundation.org>, felipe.balbi@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Hello all,
 
-This patch exports the OMAP3 IDCODE and Production ID to userspace
-via /proc/socinfo.
+Here is the version 5 of the change to export OMAP data to userspace
+(name, revision, id code, production id and die id).
 
-Die ID is also exported depending on what users pass as kernel
-parameter. It is same protection mechanism made for x86 product
-number. So, if user passes "omap3_die_id" parameter, it will append
-die id code into /proc/socinfo as well. A Kconfig option has been
-added as well, so it can be configurable during compilation time.
+Basically, this version is still attempting to create a new file under /proc.
+It is the /proc/socinfo, which should be used to export bits which are SoC specific
+(not CPU related, nor machine related).
 
-This can be used to track down silicon specific issues. The info is
-exported via /proc/socinfo because then it can be possible to include this
-in corematic dumps.
+So, differences between previous version are:
+- merged patch 02/04 with 03/04 to avoid compilation breakages.
+- simplified the seq_file usage by using the single_open and single_release functions
+- exported a function to register a seq_operation .show callback
+- adapted the changes accordingly
 
-This is based on Peter De Schrijver patch, which export same info via sysfs.
+As usual, comments are welcome.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- Documentation/kernel-parameters.txt |    2 ++
- arch/arm/mach-omap2/Kconfig         |   10 ++++++++++
- arch/arm/mach-omap2/id.c            |   35 ++++++++++++++++++++++++++++++++++-
- 3 files changed, 46 insertions(+), 1 deletions(-)
+BR,
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 839b21b..8010cfb 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -1809,6 +1809,8 @@ and is between 256 and 4096 characters. It is defined in the file
- 			waiting for the ACK, so if this is set too high
- 			interrupts *may* be lost!
- 
-+	omap3_die_id	[OMAP] Append DIE ID info under /proc/socinfo
-+
- 	omap_mux=	[OMAP] Override bootloader pin multiplexing.
- 			Format: <mux_mode0.mode_name=value>...
- 			For example, to override I2C bus2:
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 2455dcc..fb8abed 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -169,3 +169,13 @@ config OMAP3_SDRC_AC_TIMING
- 	  wish to say no.  Selecting yes without understanding what is
- 	  going on could result in system crashes;
- 
-+config OMAP3_EXPORT_DIE_ID
-+	bool "Export DIE ID code under /proc/socinfo"
-+	depends on ARCH_OMAP3
-+	default n
-+	help
-+	  Say Y here if you need DIE ID code to be exported via /proc/socinfo
-+	  in production systems. You will need also to explicitly flag it by
-+	  appending the "omap3_die_id" parameter to your boot command line.
-+
-+
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index b67486b..b4f5630 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -78,6 +78,10 @@ EXPORT_SYMBOL(omap_type);
- /*----------------------------------------------------------------------------*/
- 
- #define OMAP_TAP_IDCODE		0x0204
-+#define OMAP_TAP_PROD_ID_0      0x0208
-+#define OMAP_TAP_PROD_ID_1      0x020c
-+#define OMAP_TAP_PROD_ID_2      0x0210
-+#define OMAP_TAP_PROD_ID_3      0x0214
- #define OMAP_TAP_DIE_ID_0	0x0218
- #define OMAP_TAP_DIE_ID_1	0x021C
- #define OMAP_TAP_DIE_ID_2	0x0220
-@@ -306,6 +310,7 @@ void __init omap4_check_revision(void)
- 
- void __init omap3_cpuinfo(void)
- {
-+	int sz;
- 	u8 rev = GET_OMAP_REVISION();
- 	char cpu_name[16], cpu_rev[16];
- 
-@@ -363,7 +368,7 @@ void __init omap3_cpuinfo(void)
- 	}
- 
- 	/* Print verbose information */
--	snprintf(socinfo, SOCINFO_SZ, "%s ES%s", cpu_name, cpu_rev);
-+	sz = snprintf(socinfo, SOCINFO_SZ, "%s ES%s", cpu_name, cpu_rev);
- 	pr_info("%s (", socinfo);
- 
- 	OMAP3_SHOW_FEATURE(l2cache);
-@@ -374,7 +379,35 @@ void __init omap3_cpuinfo(void)
- 	OMAP3_SHOW_FEATURE(192mhz_clk);
- 
- 	printk(")\n");
-+
-+	/* Append OMAP3 IDCODE and Production ID to /proc/socinfo */
-+	snprintf(socinfo + sz, SOCINFO_SZ - sz,
-+			"\nIDCODE\t: %08x\nPr. ID\t: %08x %08x %08x %08x",
-+			read_tap_reg(OMAP_TAP_IDCODE),
-+			read_tap_reg(OMAP_TAP_PROD_ID_0),
-+			read_tap_reg(OMAP_TAP_PROD_ID_1),
-+			read_tap_reg(OMAP_TAP_PROD_ID_2),
-+			read_tap_reg(OMAP_TAP_PROD_ID_3));
-+
-+}
-+
-+#ifdef CONFIG_OMAP3_EXPORT_DIE_ID
-+static int __init omap3_die_id_setup(char *s)
-+{
-+	int sz;
-+
-+	sz = strlen(socinfo);
-+	snprintf(socinfo + sz, SOCINFO_SZ - sz,
-+			"\nDie ID\t: %08x %08x %08x %08x",
-+			read_tap_reg(OMAP_TAP_DIE_ID_0),
-+			read_tap_reg(OMAP_TAP_DIE_ID_1),
-+			read_tap_reg(OMAP_TAP_DIE_ID_2),
-+			read_tap_reg(OMAP_TAP_DIE_ID_3));
-+
-+	return 1;
- }
-+__setup("omap3_die_id", omap3_die_id_setup);
-+#endif
- 
- static int omap_socinfo_show(struct seq_file *m, void *v)
- {
--- 
-1.7.0.4.361.g8b5fe.dirty
+-------------------------------------------------------------------------------
+v4:
+
+Here is the patch set to export OMAP id code, production id and die id.
+The history of this change is as follows:
+
+1. First attempt tried adding those data under sysfs node. Original patch by
+Peter De Schrijver [1]. Then, it was suggested to move it to debugfs, which was
+rejected as this info is actually needed in production systems.
+
+2. Then it has been moved to /proc/cpuinfo [2]. Then, it was suggested to do
+not add this kind of info there, as it is not really CPU data.
+
+Now, I'm sending this version which will introduce first the /proc/socinfo.
+Then, following patches will add OMAP data into that node. And finally,
+will add OMAP id, production and die id code.
+
+Just for reference, I'm also pasting the previous 0/4 message:
+
+-------------------------------------------------------------------------------
+v3:
+I'm resending this series with minor change in the subject prefix of patch 4/4.
+Removed the PM: prefix. Everything else is same. So, I kept the v3 prefix as well.
+
+And now v3 of this series. Basically a minor change wrt string manipulation.
+No need to use strlen in so many places. Previous log for reference:
+
+-------------------------------------------------------------------------------
+v2:
+
+Here is the version 2 of this series. Now die id is protected using
+same x86 protection mechanism to hide x86 product number. Besides,
+a compilation Kconfig option has been added for DIE ID as well.
+
+Here is previous PATCH 0/4 message:
+
+-------------------------------------------------------------------------------
+v1:
+
+This series is to continue what has been discussed several weeks ago
+wrt IDCODE patch. Original patch was made by Peter and discussion is here:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17553.html
+
+So, the conclusion was that IDCODE info is useful even in production systems,
+and for that debugfs is not a good choice to export it. One suggestion was to
+add it under /proc/cpuinfo. However this entry nowadays exports only ARM related
+information.
+
+So this series does the trick by extending the ARM /proc/cpuinfo to include
+soc info data. There are a few ways to add a hook for soc specific data. But
+I've decided to implement it via the simplest way I found. Basically it is
+same thing which is done for system_rev, system_serial_low and system_serial_high.
+Then, now we have system_soc_info, which is printed only if there is something
+useful there.
+
+As usual, comments are welcome.
+
+-------------------------------------------------------------------------------
+BR,
+
+Eduardo Valentin (3):
+  procfs: Introduce socinfo under /proc
+  OMAP: export OMAP info under /proc/socinfo
+  OMAP3: export chip IDCODE, Production ID and Die ID
+
+ Documentation/filesystems/proc.txt  |    1 +
+ Documentation/kernel-parameters.txt |    2 +
+ arch/arm/Kconfig                    |    1 +
+ arch/arm/mach-omap1/id.c            |   31 ++++++++++---
+ arch/arm/mach-omap2/Kconfig         |   10 ++++
+ arch/arm/mach-omap2/id.c            |   65 +++++++++++++++++++++++++---
+ fs/proc/Kconfig                     |    7 +++
+ fs/proc/Makefile                    |    1 +
+ fs/proc/socinfo.c                   |   80 +++++++++++++++++++++++++++++++++++
+ include/linux/socinfo.h             |   17 +++++++
+ 10 files changed, 202 insertions(+), 13 deletions(-)
+ create mode 100644 fs/proc/socinfo.c
+ create mode 100644 include/linux/socinfo.h
