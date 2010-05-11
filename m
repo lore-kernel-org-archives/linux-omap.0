@@ -1,124 +1,52 @@
-From: "Arce, Abraham" <x0066660@ti.com>
-Subject: [PATCH v3 3/3] OMAP4: Networking: Defconfig Support
-Date: Mon, 10 May 2010 20:43:16 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DFD52D9@dlee03.ent.ti.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCHv4 1/4] procfs: Introduce socinfo under /proc
+Date: Tue, 11 May 2010 12:11:26 +0900
+Message-ID: <20100511031126.GA20453@linux-sh.org>
+References: <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com> <1273487857-32281-3-git-send-email-eduardo.valentin@nokia.com> <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com> <1273487857-32281-2-git-send-email-eduardo.valentin@nokia.com> <20100510111259.GA14680@linux-sh.org> <20100510142248.GD11804@besouro.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46198 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756794Ab0EKBnY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 21:43:24 -0400
-Content-Language: en-US
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:58515 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754438Ab0EKDMN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 23:12:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20100510142248.GD11804@besouro.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Ambresh <a0393775@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-Enable KS8851 SPI support +
-
- Networking Support
-  - Packet Socket
-  - TCP/IP
-
- Network Filesystems
-  - NFS Client
-  - Root Filesystem on NFS
-
-Signed-off-by: Abraham Arce <x0066660@ti.com>
----
- arch/arm/configs/omap_4430sdp_defconfig |   57 +++++++++++++++++++++++++++++-
- 1 files changed, 55 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
-index a96bca2..d87a349 100644
---- a/arch/arm/configs/omap_4430sdp_defconfig
-+++ b/arch/arm/configs/omap_4430sdp_defconfig
-@@ -343,7 +343,34 @@ CONFIG_BINFMT_MISC=y
- #
- # CONFIG_PM is not set
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
--# CONFIG_NET is not set
-+CONFIG_NET=y
-+
-+#
-+# Networking options
-+#
-+CONFIG_PACKET=y
-+CONFIG_XFRM=y
-+CONFIG_INET=y
-+CONFIG_IP_FIB_HASH=y
-+CONFIG_IP_PNP=y
-+CONFIG_IP_PNP_DHCP=y
-+CONFIG_IP_PNP_BOOTP=y
-+CONFIG_IP_PNP_RARP=y
-+CONFIG_INET_XFRM_MODE_TRANSPORT=y
-+CONFIG_INET_XFRM_MODE_TUNNEL=y
-+CONFIG_INET_XFRM_MODE_BEET=y
-+CONFIG_INET_LRO=y
-+CONFIG_INET_DIAG=y
-+CONFIG_INET_TCP_DIAG=y
-+CONFIG_TCP_CONG_CUBIC=y
-+CONFIG_DEFAULT_TCP_CONG="cubic"
-+# CONFIG_IPV6 is not set
-+
-+#
-+# Network testing
-+#
-+# CONFIG_WIRELESS is not set
-+
- 
- #
- # Device Drivers
-@@ -386,6 +413,13 @@ CONFIG_HAVE_IDE=y
- # CONFIG_ATA is not set
- # CONFIG_MD is not set
- # CONFIG_PHONE is not set
-+CONFIG_NETDEVICES=y
-+CONFIG_NET_ETHERNET=y
-+CONFIG_MII=y
-+CONFIG_KS8851=y
-+# CONFIG_NETDEV_1000 is not set
-+# CONFIG_NETDEV_10000 is not set
-+# CONFIG_WLAN is not set
- 
- #
- # Input device support
-@@ -457,7 +491,13 @@ CONFIG_HW_RANDOM=y
- # CONFIG_RAW_DRIVER is not set
- # CONFIG_TCG_TPM is not set
- # CONFIG_I2C is not set
--# CONFIG_SPI is not set
-+CONFIG_SPI=y
-+CONFIG_SPI_MASTER=y
-+
-+#
-+# SPI Master Controller Drivers
-+#
-+CONFIG_SPI_OMAP24XX=y
- 
- #
- # PPS support
-@@ -634,6 +674,19 @@ CONFIG_MISC_FILESYSTEMS=y
- # CONFIG_ROMFS_FS is not set
- # CONFIG_SYSV_FS is not set
- # CONFIG_UFS_FS is not set
-+CONFIG_NETWORK_FILESYSTEMS=y
-+CONFIG_NFS_FS=y
-+CONFIG_NFS_V3=y
-+CONFIG_NFS_V3_ACL=y
-+CONFIG_NFS_V4=y
-+CONFIG_ROOT_NFS=y
-+CONFIG_LOCKD=y
-+CONFIG_LOCKD_V4=y
-+CONFIG_NFS_ACL_SUPPORT=y
-+CONFIG_NFS_COMMON=y
-+CONFIG_SUNRPC=y
-+CONFIG_SUNRPC_GSS=y
-+CONFIG_RPCSEC_GSS_KRB5=y
- 
- #
- # Partition Types
--- 
-1.5.4.3
-
+On Mon, May 10, 2010 at 05:22:48PM +0300, Eduardo Valentin wrote:
+> On Mon, May 10, 2010 at 01:13:00PM +0200, ext Paul Mundt wrote:
+> > You'll still need the show function, but all of the rest of this is just
+> > duplicating what single_open() already does. If the socinfo string is
+> > static you may also want to rework this a bit so you can just stash the
+> > string in the proc_dir_entry private data. Combine this with something
+> > like kstrdup() and you'll save yourself a bit of stack while you're at
+> > it.
+> 
+> While still here, about cleaning this, so, let me see if I got your point.
+> Basically, the file under fs/proc/socinfo.c whould do the thing with single_open &
+> single_release, as you stated. But then there is the .show and its data.
+> One idea would then be to have a function:
+> 
+> int register_socinfo_show(int (*show)(struct seq_file *, void *), void *data);
+> 
+> Which would be exported to other parts of the kernel (something placed under
+> include/linux/socinfo.h for instance). Then the soc core code
+> (like arch/arm/mach-omap[1,2]) would then register its local show function and pass its data.
+> 
+> This way I think we can avoid the exports inside .c files (as in this patch)
+> and also pass the static char * needed during the show.
+> 
+> What do you think?
+> 
+Yes, you'll need something like that. kstrdup() also does an allocation,
+but you're only going to be registering once and are unlikely to ever
+unregister (particular since you have this configured as a bool) so that
+doesn't really matter. On the other hand if the string itself is static
+you can just pass that in with a static initializer, or have some sort of
+opaque socinfo data structure that contains the strings you care about.
+You'll always be able to get back at the pointer through the
+proc_dir_entry private data.
