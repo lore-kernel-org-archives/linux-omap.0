@@ -1,95 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/09] OMAP:GPIO:Implement GPIO in HWMOD way
-Date: Tue, 11 May 2010 08:54:02 -0700
-Message-ID: <20100511155402.GC13600@atomide.com>
-References: <1271951720-21714-1-git-send-email-charu@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5387A73@dbde02.ent.ti.com>
- <20100507153204.GB387@atomide.com>
- <87pr13okkk.fsf@deeprootsystems.com>
- <20100510222257.GJ16460@atomide.com>
- <87r5licvmr.fsf@deeprootsystems.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [RFC] [PATCH 1/3] OMAP4: Keyboard Controller Support
+Date: Tue, 11 May 2010 09:41:37 -0700
+Message-ID: <20100511164136.GA7396@core.coreip.homeip.net>
+References: <27F9C60D11D683428E133F85D2BB4A53043D9EE7F5@dlee03.ent.ti.com>
+ <20100421065550.GL4364@core.coreip.homeip.net>
+ <27F9C60D11D683428E133F85D2BB4A53043DFD5320@dlee03.ent.ti.com>
+ <27F9C60D11D683428E133F85D2BB4A53043DFD5323@dlee03.ent.ti.com>
+ <20100511044156.GA21299@core.coreip.homeip.net>
+ <27F9C60D11D683428E133F85D2BB4A53043DFD532E@dlee03.ent.ti.com>
+ <20100511054552.GA1714@core.coreip.homeip.net>
+ <87sk5yebh8.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58972 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439Ab0EKPyI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 11:54:08 -0400
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87r5licvmr.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <87sk5yebh8.fsf@deeprootsystems.com>
+Sender: linux-input-owner@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Arce, Abraham" <x0066660@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100511 08:16]:
-> Tony Lindgren <tony@atomide.com> writes:
+On Tue, May 11, 2010 at 07:53:23AM -0700, Kevin Hilman wrote:
+> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
 > 
-> > * Kevin Hilman <khilman@deeprootsystems.com> [100510 08:09]:
-> >> Tony Lindgren <tony@atomide.com> writes:
+> > On Tue, May 11, 2010 at 12:03:44AM -0500, Arce, Abraham wrote:
+> >> Hi again Dmitry,
 > >> 
-> >> > * Varadarajan, Charulatha <charu@ti.com> [100506 23:52]:
-> >> >> Tony/ Kevin,
-> >> >> 
-> >> >> > -----Original Message-----
-> >> >> > From: Varadarajan, Charulatha
-> >> >> > Sent: Thursday, April 22, 2010 9:25 PM
-> >> >> > To: linux-omap@vger.kernel.org
-> >> >> > Cc: Nayak, Rajendra; paul@pwsan.com; tony@atomide.com;
-> >> >> > khilman@deeprootsystems.com; Varadarajan, Charulatha
-> >> >> > Subject: [PATCH 00/09] OMAP:GPIO:Implement GPIO in HWMOD way
-> >> >> > 
-> >> >> > This patch series implements GPIO as an early platform driver.
-> >> >> > It makes OMAP2PLUS specific GPIO to get adapted to HWMOD FW.
-> >> >> > OMAP1 specific GPIO is implemented as early platform device.
-> >> >> > 
-> >> >> > This patch series is created on "origin/pm-wip/hwmods". 
-> >> >> 
-> >> >> Planning to send few more patches for adapting some other
-> >> >> drivers to HWMOD FW. 
-> >> >> Which tree should those patches be created on?
-> >> >> LO mainline? or hwmods branch? or runtime branch?
-> >> >
-> >> > All the patches should be against the most recent tag
-> >> > in Linus' mainline tree, currently v2.6.34-rc6.
-> >> >
-> >> > If there are some dependencies to other patches, we need
-> >> > to get those upstream immediately.
+> >> > No worries, although at first I was surprised that Trilok spoke exactly
+> >> > the same words I did ;)
+> >> > 
 > >> 
-> >> Please use pm-wip/runtime, which is currently based on v2.6.34-rc6
-> >> + PM changes already submitted for 2.6.35 (3 patches)
+> >> :)
+> >> 
+> >> > > > > > +
+> >> > > > > > +/* Interrupt thread handler thread */
+> >> > > > > > +
+> >> > > > > > +static irqreturn_t omap_keypad_threaded(int irq, void *dev_id)
+> >> > > > > > +{
+> >> > > > >
+> >> > > > > Why is iti threaded? I fo not see anything that will sleep.
+> >> > >
+> >> > >
+> >> > > It was implemented based on previous comments...
+> >> > >
+> >> > 
+> >> > Would you point me to that comment? Like I said, I do not see anything
+> >> > that would possibly sleep in this routine so you don't need to use
+> >> > threaded interrupt.
+> >> 
+> >> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26352.html
+> >> 
 > >
-> > That's for the "few more patches for adapting some other drivers",
-> > not for the GPIO patches, right?
+> > Thanks.
 > >
-> > AFAIK, the GPIO patches should not have dependencies to the pm-wip.
+> > I think Kevin meant "use theaded IRQ, wherever possible" [if we need
+> > to sleep in interrupt handler].
 > 
-> Basing on pm-wip/runtime is for a couple reasons, but the most
-> important is to avoid conflicts in the hwmod data files.  Since all the
-> hwmods are in the same file, it makes it easy for me to track them
-> if they apply onto existing hwmods.
+> Actually, even interrupts that don't sleep can use threaded IRQs.  I
+> prefer to see threaded IRQs wherever possible.  Especially since we're
+> moving towards a world where all interrupts are run with interrupts
+> disabled, using threaded IRQs minimizes interrupts-off critical
+> sections.
 > 
-> > Kevin, let me know if you got some things ready to go that can
-> > be pulled into omap-for-linus.
-> 
-> Nothing yet for hwmod.  The stuff that's mostly done is UART + MMC,
-> but those both still need validation on OMAP2 and OMAP4.
 
-OK, just trying to cut down dependencies between patches.
- 
-> >> In addition, this has the in-progress UART + MMC hwmod changes.
-> >
-> > Sounds like those are not ready to go yet then. So I guess it's
-> > currently only your pm-next that's ready to go?
-> 
-> I've submitted PM core stuff in pm-next and I've also submitted some
-> GPIO changes for 2.6.35.
-> 
-> I have a few more things to add to pm-next, and I'll be doing that
-> today.
+I think in this case threaded IRQ would just add unnecessary overhead.
+There are no scanning delays, just a few register reads and writes.
+Input core will take some cycles propagating the events but it disables
+interrupts anyway. Setting up a separate thread and scheduling does not
+make much sense here.
 
-OK
+Also I am not sure if arches with large number of interrupts would want
+to move to all threaded interrupts model.
 
-Regards,
-
-Tony
+-- 
+Dmitry
