@@ -1,59 +1,82 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv5 2/3] OMAP: export OMAP info under /proc/socinfo
-Date: Tue, 11 May 2010 09:28:15 -0500
-Message-ID: <4BE9697F.80308@ti.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com> <1273587331-24604-3-git-send-email-eduardo.valentin@nokia.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH 5/9] OMAP:GPIO: Introduce support for OMAP2PLUS chip
+ specific GPIO
+Date: Tue, 11 May 2010 20:13:41 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5455533@dbde02.ent.ti.com>
+References: <87och0bl1d.fsf@deeprootsystems.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C52D12CC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54581 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754148Ab0EKO2m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 10:28:42 -0400
-In-Reply-To: <1273587331-24604-3-git-send-email-eduardo.valentin@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53949 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754991Ab0EKOoE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 10:44:04 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C52D12CC@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "K, Ambresh" <ambresh@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, Paul Mundt <lethal@linux-sh.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
 
-Eduardo Valentin had written, on 05/11/2010 09:15 AM, the following:
-> From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Kevin,
+
+> > -----Original Message-----
+> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> > Sent: Saturday, May 01, 2010 4:33 AM
+> > To: Varadarajan, Charulatha
+> > Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com;
+> tony@atomide.com
+> > Subject: Re: [PATCH 5/9] OMAP:GPIO: Introduce support for OMAP2PLUS chip
+> specific
+> > GPIO
+> >
+> > Charulatha V <charu@ti.com> writes:
+> >
+> > > This patch adds support for handling GPIO as a HWMOD adapted
+> > > platform device for OMAP2PLUS chips.
+> > >
+> > > Signed-off-by: Charulatha V <charu@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap2/gpio.c |  101
+> ++++++++++++++++++++++++++++++++++++++++++++
+> > >  1 files changed, 101 insertions(+), 0 deletions(-)
+> > >  create mode 100644 arch/arm/mach-omap2/gpio.c
+> > >
+> > > diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+> > > new file mode 100644
+> > > index 0000000..6424050
+> > > --- /dev/null
+> > > +++ b/arch/arm/mach-omap2/gpio.c
+> > > @@ -0,0 +1,101 @@
+
+..[snip]..
+
+> > > +		if (cpu_is_omap24xx() || cpu_is_omap34xx())
+> > > +			pdata->method = METHOD_GPIO_24XX;
+> > > +		if (cpu_is_omap44xx())
+> > > +			pdata->method = METHOD_GPIO_44XX;
+> > > +		pdata->virtual_irq_start = IH_GPIO_BASE + 32 * i;
+> > > +		pdata->device_enable = omap_device_enable;
+> > > +		pdata->device_idle = omap_device_idle;
+> > > +		pdata->device_shutdown = omap_device_shutdown;
+> >
+> > These aren't valid for GPIO1 which is in WKUP.  Maybe we need
+> > to check if the hwmod is not in wkup_pwrdm before setting these?
 > 
-> Export OMAP name and rev under /proc/socinfo node.
+> I need to check how to implement this.
 > 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> ---
->  arch/arm/Kconfig         |    1 +
->  arch/arm/mach-omap1/id.c |   31 ++++++++++++++++++++++++-------
->  arch/arm/mach-omap2/id.c |   32 ++++++++++++++++++++++++++------
->  3 files changed, 51 insertions(+), 13 deletions(-)
-> 
-[..]
 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 37b8a1a..b67486b 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-[..]
+There are two ways to implement this:
+1. Use a flag in dev_attr of the device to indicate if the device belongs to
+   WKUP domain
+2. We can add an API in powerdomain FW to provide information if the 
+   device belongs to a "always_on" domain or otherwise, and use 
+   this API for each device.
 
-> @@ -356,7 +363,8 @@ void __init omap3_cpuinfo(void)
->  	}
->  
->  	/* Print verbose information */
-> -	pr_info("%s ES%s (", cpu_name, cpu_rev);
-> +	snprintf(socinfo, SOCINFO_SZ, "%s ES%s", cpu_name, cpu_rev);
-> +	pr_info("%s (", socinfo);
->  
->  	OMAP3_SHOW_FEATURE(l2cache);
->  	OMAP3_SHOW_FEATURE(iva);
-Just a minor comment -> is it a good idea to pushin the features to SOC 
-info as well? currently this is being displayed at bootlog and not 
-beyond.. might be a better approach to move it into socinfo..
+Kindly suggest. 
+
+-V Charulatha
 
 
-[..]
-
--- 
-Regards,
-Nishanth Menon
