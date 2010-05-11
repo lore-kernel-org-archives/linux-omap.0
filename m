@@ -1,56 +1,51 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 6/6] OMAP3: PM: Remove PER wakeup dependency on CORE.
-Date: Tue, 11 May 2010 16:47:11 -0700
-Message-ID: <1273621631-9148-7-git-send-email-khilman@deeprootsystems.com>
-References: <1273621631-9148-1-git-send-email-khilman@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/6] OMAP3: GPIO: Only enable WAKEUPEN for edge
+ detection GPIOs
+Date: Tue, 11 May 2010 16:53:17 -0700
+Message-ID: <20100511235317.GQ13931@atomide.com>
+References: <1272929177-22685-1-git-send-email-khilman@deeprootsystems.com>
+ <1272929177-22685-3-git-send-email-khilman@deeprootsystems.com>
+ <20100510211105.GI16460@atomide.com>
+ <87vdaufr92.fsf@deeprootsystems.com>
+ <20100511225734.GK13931@atomide.com>
+ <87fx1yrpdh.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:38417 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752991Ab0EKXre (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 19:47:34 -0400
-Received: by mail-vw0-f46.google.com with SMTP id 17so1655954vws.19
-        for <linux-omap@vger.kernel.org>; Tue, 11 May 2010 16:47:34 -0700 (PDT)
-In-Reply-To: <1273621631-9148-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61910 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab0EKXxR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 19:53:17 -0400
+Content-Disposition: inline
+In-Reply-To: <87fx1yrpdh.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Mike Chan <mike@android.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Mike Chan <mike@android.com>
+* Kevin Hilman <khilman@deeprootsystems.com> [100511 16:22]:
+> -cqwang address which is bouncing
+> 
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > * Kevin Hilman <khilman@deeprootsystems.com> [100511 07:22]:
+> >
+> > OK, let's plan on merging these then. Want me to pick these,
+> > or pull from some branch?
+> 
+> You can pull from the gpio-2.6.35 branch in my tree.
 
-We can remove this wakeup dependency since now, when
-GPIO2-6 are enabled for IO-pad wakeup, PER domain is gauranteed
-to be awake or be woken up to service.
-
-The previous dependency did not handle all corner cases. Since there
-was no sleep dependency between CORE and PER domains, if PER enters
-RET and CORE is ON, PER will not be active for GPIO handling.
-
-Signed-off-by: Mike Chan <mike@android.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm34xx.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index eec0916..1d71698 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -1096,14 +1096,6 @@ static int __init omap3_pm_init(void)
- 	omap3_idle_init();
+OK
  
- 	clkdm_add_wkdep(neon_clkdm, mpu_clkdm);
--	/*
--	 * REVISIT: This wkdep is only necessary when GPIO2-6 are enabled for
--	 * IO-pad wakeup.  Otherwise it will unnecessarily waste power
--	 * waking up PER with every CORE wakeup - see
--	 * http://marc.info/?l=linux-omap&m=121852150710062&w=2
--	*/
--	clkdm_add_wkdep(per_clkdm, core_clkdm);
--
- 	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
- 		omap3_secure_ram_storage =
- 			kmalloc(0x803F, GFP_KERNEL);
--- 
-1.7.0.2
+> > Looks like they also need to be posted to LAKML too, and we
+> > should get them into linux-omap master for some testing.
+> 
+> Oops, meant to cc l-a-k.  Will repost with l-a-k in Cc.
 
+Will merge them into linux-omap master branch today, then
+will wait a few days for any comments on LAKML, then pull
+them into omap-for-linus.
+
+Regards,
+
+Tony
