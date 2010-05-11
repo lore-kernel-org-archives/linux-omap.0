@@ -1,34 +1,41 @@
-From: Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: fix OOPS in omap_i2c_unidle() during probe
-Date: Tue, 11 May 2010 10:19:09 +0300
-Message-ID: <20100511101909.9ab45b8a.jhnikula@gmail.com>
-References: <1269339176-17479-1-git-send-email-ext-mika.1.westerberg@nokia.com>
-	<alpine.DEB.2.00.1003310427180.14436@utopia.booyaka.com>
-	<20100331152700.17695375.jhnikula@gmail.com>
-	<n2m6ed0b2681004160247o7cddd774sd199ea0eb51c9946@mail.gmail.com>
-	<20100511095407.cb44ef8d.jhnikula@gmail.com>
-	<20100511070122.GE11783@esdhcp04058.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100511070122.GE11783-etG4378wJBqLa08RA6KHbYwBHEhOmDVPtqGf+n4yE6E@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <ext-mika.1.westerberg-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 0/5] OMAP4: power framework fixes
+Date: Tue, 11 May 2010 12:57:05 +0530
+Message-ID: <1273562830-9758-1-git-send-email-rnayak@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59548 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753441Ab0EKH1Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 May 2010 03:27:16 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4B7RDNj006836
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 11 May 2010 02:27:15 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>
 
-On Tue, 11 May 2010 10:01:22 +0300
-Mika Westerberg <ext-mika.1.westerberg-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> wrote:
+Hi,
 
-> I believe this is already in mainline:
-> 
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=7c6bd2010fced38444c9fd658f4c6ce61bd185bf
-> 
-Ah, yeah. I was using the sound-2.6.git tree which is not yet updated
-any newer than 2.6.34-rc4 and that's why I didn't see it. Sorry about
-line noise.
+This is a short series of fixes for OMAP4 in the PM frameworks,
+clock/clockdomain and powerdomain.
 
+regards,
+Rajendra
 
--- 
-Jarkko
+Rajendra Nayak (5):
+  OMAP4 clock: Support clk_set_parent
+  OMAP: timers: Fix clock source names for OMAP4
+  OMAP4 powerdomain: Fix pwrsts flags for ALWAYS ON domains
+  OMAP4 clockdomain: Fix omap2_clkdm_clk_enable/disable api for 44xx
+  OMAP4 powerdomain: Support LOWPOWERSTATECHANGE for powerdomains
+
+ arch/arm/mach-omap2/clockdomain.c             |    6 +++++
+ arch/arm/mach-omap2/powerdomain.c             |   28 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomains44xx.h        |   13 +++++++++-
+ arch/arm/plat-omap/clock.c                    |    3 --
+ arch/arm/plat-omap/dmtimer.c                  |    4 +-
+ arch/arm/plat-omap/include/plat/powerdomain.h |    7 ++++++
+ 6 files changed, 54 insertions(+), 7 deletions(-)
+
