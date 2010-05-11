@@ -1,216 +1,312 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH RESEND] update omap3 features bitmap and API to generic
-	names
-Date: Mon, 10 May 2010 18:32:02 -0500
-Message-ID: <AANLkTimNjnKG3WFK8mdpgHaLh-Xpv54fohFgEYYiVVcg@mail.gmail.com>
-References: <1273521338-2896-1-git-send-email-svenkatr@ti.com>
+From: Ben Dooks <ben-linux@fluff.org>
+Subject: Re: [PATCH 2/4 v2] ks8851: Low level functions for read/write to
+	companion eeprom
+Date: Tue, 11 May 2010 02:16:38 +0100
+Message-ID: <20100511011638.GI2589@trinity.fluff.org>
+References: <1273085155-1260-1-git-send-email-s-jan@ti.com> <1273085155-1260-3-git-send-email-s-jan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:33013 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757938Ab0EJXcF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 19:32:05 -0400
-Received: by pwi5 with SMTP id 5so1916183pwi.19
-        for <linux-omap@vger.kernel.org>; Mon, 10 May 2010 16:32:03 -0700 (PDT)
-In-Reply-To: <1273521338-2896-1-git-send-email-svenkatr@ti.com>
+Received: from trinity.fluff.org ([89.16.178.74]:33126 "EHLO trinity.fluff.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755938Ab0EKBQo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 May 2010 21:16:44 -0400
+Content-Disposition: inline
+In-Reply-To: <1273085155-1260-3-git-send-email-s-jan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
+To: Sebastien Jan <s-jan@ti.com>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Ben Dooks <ben-linux@fluff.org>, Tristram.Ha@micrel.com
 
-On Mon, May 10, 2010 at 2:55 PM, Venkatraman S <svenkatr@ti.com> wrote:
-> =A0 =A0 =A0 =A0OMAP3 features bitmap is used a method to check
-> for SoC specific features. This patch renames the global variables
-> and the accessor functions to use a generic name from omap3_* to
-> omap_*
->
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> CC: Nishant Menon <nm@ti.com>
-Just for the patchworks
-NAK - discussed before - http://marc.info/?l=3Dlinux-omap&m=3D127349696=
-800651&w=3D2
+On Wed, May 05, 2010 at 08:45:53PM +0200, Sebastien Jan wrote:
+> Low-level functions provide 16bits words read and write capability
+> to ks8851 companion eeprom.
 
-> CC: Tony Lindgren <tony@atomide.com>
-> CC: Madhusudhan Chikkature <madhu.cr@ti.com>
+Please use the eeprom interface that was added already
+ 
+> Signed-off-by: Sebastien Jan <s-jan@ti.com>
 > ---
-> =A0* Resent to CC Madhu
->
-> =A0arch/arm/mach-omap2/clock3xxx_data.c =A0| =A0 =A02 +-
-> =A0arch/arm/mach-omap2/id.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 18 +++++=
-+++--------
-> =A0arch/arm/plat-omap/include/plat/cpu.h | =A0 34 ++++++++++++++++---=
--------------
-> =A03 files changed, 27 insertions(+), 27 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-oma=
-p2/clock3xxx_data.c
-> index 9cba556..afa481d 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -3510,7 +3510,7 @@ int __init omap3xxx_clk_init(void)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_clkflg |=3D CK_343=
-0ES2;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0}
-> - =A0 =A0 =A0 if (omap3_has_192mhz_clk())
-> + =A0 =A0 =A0 if (omap_has_192mhz_clk())
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_96m_alwon_fck =3D omap_96m_alwon_=
-fck_3630;
->
-> =A0 =A0 =A0 =A0if (cpu_is_omap3630()) {
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 37b8a1a..a095b87 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -28,7 +28,7 @@
-> =A0static struct omap_chip_id omap_chip;
-> =A0static unsigned int omap_revision;
->
-> -u32 omap3_features;
-> +u32 omap_features;
->
-> =A0unsigned int omap_rev(void)
-> =A0{
-> @@ -161,14 +161,14 @@ void __init omap24xx_check_revision(void)
-> =A0#define OMAP3_CHECK_FEATURE(status,feat) =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
-> =A0 =A0 =A0 =A0if (((status & OMAP3_ ##feat## _MASK) =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0>> OMAP3_ ##feat## _SHIFT) !=3D FEAT_ =
-##feat## _NONE) { =A0 \
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_features |=3D OMAP3_HAS_ ##feat; =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_features |=3D OMAP_HAS_ ##feat; =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
-> =A0 =A0 =A0 =A0}
->
-> =A0void __init omap3_check_features(void)
-> =A0{
-> =A0 =A0 =A0 =A0u32 status;
->
-> - =A0 =A0 =A0 omap3_features =3D 0;
-> + =A0 =A0 =A0 omap_features =3D 0;
->
-> =A0 =A0 =A0 =A0status =3D omap_ctrl_readl(OMAP3_CONTROL_OMAP_STATUS);
->
-> @@ -178,7 +178,7 @@ void __init omap3_check_features(void)
-> =A0 =A0 =A0 =A0OMAP3_CHECK_FEATURE(status, NEON);
-> =A0 =A0 =A0 =A0OMAP3_CHECK_FEATURE(status, ISP);
-> =A0 =A0 =A0 =A0if (cpu_is_omap3630())
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_features |=3D OMAP3_HAS_192MHZ_CL=
-K;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_features |=3D OMAP_HAS_192MHZ_CLK;
->
-> =A0 =A0 =A0 =A0/*
-> =A0 =A0 =A0 =A0 * TODO: Get additional info (where applicable)
-> @@ -294,7 +294,7 @@ void __init omap4_check_revision(void)
-> =A0}
->
-> =A0#define OMAP3_SHOW_FEATURE(feat) =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
-> - =A0 =A0 =A0 if (omap3_has_ ##feat()) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-\
-> + =A0 =A0 =A0 if (omap_has_ ##feat()) =A0 =A0 =A0 =A0 \
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0printk(#feat" ");
->
-> =A0void __init omap3_cpuinfo(void)
-> @@ -314,20 +314,20 @@ void __init omap3_cpuinfo(void)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/*
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * AM35xx devices
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (omap3_has_sgx()) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (omap_has_sgx()) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP=
-3517_REV(rev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "AM35=
-17");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0} else {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Already set in omap=
-3_check_revision() */
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "AM35=
-05");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> - =A0 =A0 =A0 } else if (omap3_has_iva() && omap3_has_sgx()) {
-> + =A0 =A0 =A0 } else if (omap_has_iva() && omap_has_sgx()) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* OMAP3430, OMAP3525, OMAP3515, OMAP3=
-503 devices */
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "OMAP3430/3530");
-> - =A0 =A0 =A0 } else if (omap3_has_iva()) {
-> + =A0 =A0 =A0 } else if (omap_has_iva()) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP3525_REV(rev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "OMAP3525");
-> - =A0 =A0 =A0 } else if (omap3_has_sgx()) {
-> + =A0 =A0 =A0 } else if (omap_has_sgx()) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP3515_REV(rev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "OMAP3515");
-> =A0 =A0 =A0 =A0} else {
-> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-om=
-ap/include/plat/cpu.h
-> index 7514174..80dc8e0 100644
-> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -434,28 +434,28 @@ int omap_chip_is(struct omap_chip_id oci);
-> =A0void omap2_check_revision(void);
->
-> =A0/*
-> - * Runtime detection of OMAP3 features
-> + * Runtime detection of OMAP features
-> =A0*/
-> -extern u32 omap3_features;
-> +extern u32 omap_features;
->
-> -#define OMAP3_HAS_L2CACHE =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(0)
-> -#define OMAP3_HAS_IVA =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(1)
-> -#define OMAP3_HAS_SGX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(2)
-> -#define OMAP3_HAS_NEON =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 BIT(3)
-> -#define OMAP3_HAS_ISP =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(4)
-> -#define OMAP3_HAS_192MHZ_CLK =A0 =A0 =A0 =A0 =A0 BIT(5)
-> +#define OMAP_HAS_L2CACHE =A0 =A0 =A0 =A0 =A0 =A0 =A0 BIT(0)
-> +#define OMAP_HAS_IVA =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 BIT(1)
-> +#define OMAP_HAS_SGX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 BIT(2)
-> +#define OMAP_HAS_NEON =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(3)
-> +#define OMAP_HAS_ISP =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 BIT(4)
-> +#define OMAP_HAS_192MHZ_CLK =A0 =A0 =A0 =A0 =A0 =A0BIT(5)
->
-> -#define OMAP3_HAS_FEATURE(feat,flag) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 \
-> -static inline unsigned int omap3_has_ ##feat(void) =A0 =A0 \
-> +#define OMAP_HAS_FEATURE(feat, flag) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 \
-> +static inline unsigned int omap_has_ ##feat(void) =A0 =A0 =A0\
-> =A0{ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
-> - =A0 =A0 =A0 return (omap3_features & OMAP3_HAS_ ##flag); =A0 =A0\
-> + =A0 =A0 =A0 return (omap_features & OMAP_HAS_ ##flag); =A0 =A0 =A0\
-> =A0} =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
->
-> -OMAP3_HAS_FEATURE(l2cache, L2CACHE)
-> -OMAP3_HAS_FEATURE(sgx, SGX)
-> -OMAP3_HAS_FEATURE(iva, IVA)
-> -OMAP3_HAS_FEATURE(neon, NEON)
-> -OMAP3_HAS_FEATURE(isp, ISP)
-> -OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-> +OMAP_HAS_FEATURE(l2cache, L2CACHE)
-> +OMAP_HAS_FEATURE(sgx, SGX)
-> +OMAP_HAS_FEATURE(iva, IVA)
-> +OMAP_HAS_FEATURE(neon, NEON)
-> +OMAP_HAS_FEATURE(isp, ISP)
-> +OMAP_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
->
-> =A0#endif
-> --
+>  drivers/net/ks8851.c |  228 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/net/ks8851.h |   14 +++-
+>  2 files changed, 241 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/net/ks8851.c b/drivers/net/ks8851.c
+> index a84e500..787f9df 100644
+> --- a/drivers/net/ks8851.c
+> +++ b/drivers/net/ks8851.c
+> @@ -1044,6 +1044,234 @@ static const struct net_device_ops ks8851_netdev_ops = {
+>  	.ndo_validate_addr	= eth_validate_addr,
+>  };
+>  
+> +/* Companion eeprom access */
+> +
+> +enum {	/* EEPROM programming states */
+> +	EEPROM_CONTROL,
+> +	EEPROM_ADDRESS,
+> +	EEPROM_DATA,
+> +	EEPROM_COMPLETE
+> +};
+> +
+> +/**
+> + * ks8851_eeprom_read - read a 16bits word in ks8851 companion EEPROM
+> + * @dev: The network device the PHY is on.
+> + * @addr: EEPROM address to read
+> + *
+> + * eeprom_size: used to define the data coding length. Can be changed
+> + * through debug-fs.
+> + *
+> + * Programs a read on the EEPROM using ks8851 EEPROM SW access feature.
+> + * Warning: The READ feature is not supported on ks8851 revision 0.
+> + *
+> + * Rough programming model:
+> + *  - on period start: set clock high and read value on bus
+> + *  - on period / 2: set clock low and program value on bus
+> + *  - start on period / 2
+> + */
+> +unsigned int ks8851_eeprom_read(struct net_device *dev, unsigned int addr)
+> +{
+> +	struct ks8851_net *ks = netdev_priv(dev);
+> +	int eepcr;
+> +	int ctrl = EEPROM_OP_READ;
+> +	int state = EEPROM_CONTROL;
+> +	int bit_count = EEPROM_OP_LEN - 1;
+> +	unsigned int data = 0;
+> +	int dummy;
+> +	unsigned int addr_len;
+> +
+> +	addr_len = (ks->eeprom_size == 128) ? 6 : 8;
+> +
+> +	/* start transaction: chip select high, authorize write */
+> +	mutex_lock(&ks->lock);
+> +	eepcr = EEPCR_EESA | EEPCR_EESRWA;
+> +	ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +	eepcr |= EEPCR_EECS;
+> +	ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +	mutex_unlock(&ks->lock);
+> +
+> +	while (state != EEPROM_COMPLETE) {
+> +		/* falling clock period starts... */
+> +		/* set EED_IO pin for control and address */
+> +		eepcr &= ~EEPCR_EEDO;
+> +		switch (state) {
+> +		case EEPROM_CONTROL:
+> +			eepcr |= ((ctrl >> bit_count) & 1) << 2;
+> +			if (bit_count-- <= 0) {
+> +				bit_count = addr_len - 1;
+> +				state = EEPROM_ADDRESS;
+> +			}
+> +			break;
+> +		case EEPROM_ADDRESS:
+> +			eepcr |= ((addr >> bit_count) & 1) << 2;
+> +			bit_count--;
+> +			break;
+> +		case EEPROM_DATA:
+> +			/* Change to receive mode */
+> +			eepcr &= ~EEPCR_EESRWA;
+> +			break;
+> +		}
+> +
+> +		/* lower clock  */
+> +		eepcr &= ~EEPCR_EESCK;
+> +
+> +		mutex_lock(&ks->lock);
+> +		ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +		mutex_unlock(&ks->lock);
+> +
+> +		/* waitread period / 2 */
+> +		udelay(EEPROM_SK_PERIOD / 2);
+> +
+> +		/* rising clock period starts... */
+> +
+> +		/* raise clock */
+> +		mutex_lock(&ks->lock);
+> +		eepcr |= EEPCR_EESCK;
+> +		ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +		mutex_unlock(&ks->lock);
+> +
+> +		/* Manage read */
+> +		switch (state) {
+> +		case EEPROM_ADDRESS:
+> +			if (bit_count < 0) {
+> +				bit_count = EEPROM_DATA_LEN - 1;
+> +				state = EEPROM_DATA;
+> +			}
+> +			break;
+> +		case EEPROM_DATA:
+> +			mutex_lock(&ks->lock);
+> +			dummy = ks8851_rdreg16(ks, KS_EEPCR);
+> +			mutex_unlock(&ks->lock);
+> +			data |= ((dummy >> EEPCR_EESB_OFFSET) & 1) << bit_count;
+> +			if (bit_count-- <= 0)
+> +				state = EEPROM_COMPLETE;
+> +			break;
+> +		}
+> +
+> +		/* wait period / 2 */
+> +		udelay(EEPROM_SK_PERIOD / 2);
+> +	}
+> +
+> +	/* close transaction */
+> +	mutex_lock(&ks->lock);
+> +	eepcr &= ~EEPCR_EECS;
+> +	ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +	eepcr = 0;
+> +	ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +	mutex_unlock(&ks->lock);
+> +
+> +	return data;
+> +}
+> +
+> +/**
+> + * ks8851_eeprom_write - write a 16bits word in ks8851 companion EEPROM
+> + * @dev: The network device the PHY is on.
+> + * @op: operand (can be WRITE, EWEN, EWDS)
+> + * @addr: EEPROM address to write
+> + * @data: data to write
+> + *
+> + * eeprom_size: used to define the data coding length. Can be changed
+> + * through debug-fs.
+> + *
+> + * Programs a write on the EEPROM using ks8851 EEPROM SW access feature.
+> + *
+> + * Note that a write enable is required before writing data.
+> + *
+> + * Rough programming model:
+> + *  - on period start: set clock high
+> + *  - on period / 2: set clock low and program value on bus
+> + *  - start on period / 2
+> + */
+> +void ks8851_eeprom_write(struct net_device *dev, unsigned int op,
+> +					unsigned int addr, unsigned int data)
+> +{
+> +	struct ks8851_net *ks = netdev_priv(dev);
+> +	int eepcr;
+> +	int state = EEPROM_CONTROL;
+> +	int bit_count = EEPROM_OP_LEN - 1;
+> +	unsigned int addr_len;
+> +
+> +	addr_len = (ks->eeprom_size == 128) ? 6 : 8;
+> +
+> +	switch (op) {
+> +	case EEPROM_OP_EWEN:
+> +		addr = 0x30;
+> +	break;
+> +	case EEPROM_OP_EWDS:
+> +		addr = 0;
+> +		break;
+> +	}
+> +
+> +	/* start transaction: chip select high, authorize write */
+> +	mutex_lock(&ks->lock);
+> +	eepcr = EEPCR_EESA | EEPCR_EESRWA;
+> +	ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +	eepcr |= EEPCR_EECS;
+> +	ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +	mutex_unlock(&ks->lock);
+> +
+> +	while (state != EEPROM_COMPLETE) {
+> +		/* falling clock period starts... */
+> +		/* set EED_IO pin for control and address */
+> +		eepcr &= ~EEPCR_EEDO;
+> +		switch (state) {
+> +		case EEPROM_CONTROL:
+> +			eepcr |= ((op >> bit_count) & 1) << 2;
+> +			if (bit_count-- <= 0) {
+> +				bit_count = addr_len - 1;
+> +				state = EEPROM_ADDRESS;
+> +			}
+> +			break;
+> +		case EEPROM_ADDRESS:
+> +			eepcr |= ((addr >> bit_count) & 1) << 2;
+> +			if (bit_count-- <= 0) {
+> +				if (op == EEPROM_OP_WRITE) {
+> +					bit_count = EEPROM_DATA_LEN - 1;
+> +					state = EEPROM_DATA;
+> +				} else {
+> +					state = EEPROM_COMPLETE;
+> +				}
+> +			}
+> +			break;
+> +		case EEPROM_DATA:
+> +			eepcr |= ((data >> bit_count) & 1) << 2;
+> +			if (bit_count-- <= 0)
+> +				state = EEPROM_COMPLETE;
+> +			break;
+> +		}
+> +
+> +		/* lower clock  */
+> +		eepcr &= ~EEPCR_EESCK;
+> +
+> +		mutex_lock(&ks->lock);
+> +		ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +		mutex_unlock(&ks->lock);
+> +
+> +		/* wait period / 2 */
+> +		udelay(EEPROM_SK_PERIOD / 2);
+> +
+> +		/* rising clock period starts... */
+> +
+> +		/* raise clock */
+> +		eepcr |= EEPCR_EESCK;
+> +		mutex_lock(&ks->lock);
+> +		ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +		mutex_unlock(&ks->lock);
+> +
+> +		/* wait period / 2 */
+> +		udelay(EEPROM_SK_PERIOD / 2);
+> +	}
+> +
+> +	/* close transaction */
+> +	mutex_lock(&ks->lock);
+> +	eepcr &= ~EEPCR_EECS;
+> +	ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +	eepcr = 0;
+> +	ks8851_wrreg16(ks, KS_EEPCR, eepcr);
+> +	mutex_unlock(&ks->lock);
+> +
+> +}
+> +
+>  /* ethtool support */
+>  
+>  static void ks8851_get_drvinfo(struct net_device *dev,
+> diff --git a/drivers/net/ks8851.h b/drivers/net/ks8851.h
+> index f52c312..537fb06 100644
+> --- a/drivers/net/ks8851.h
+> +++ b/drivers/net/ks8851.h
+> @@ -25,12 +25,24 @@
+>  #define OBCR_ODS_16mA				(1 << 6)
+>  
+>  #define KS_EEPCR				0x22
+> +#define EEPCR_EESRWA				(1 << 5)
+>  #define EEPCR_EESA				(1 << 4)
+> -#define EEPCR_EESB				(1 << 3)
+> +#define EEPCR_EESB_OFFSET			3
+> +#define EEPCR_EESB				(1 << EEPCR_EESB_OFFSET)
+>  #define EEPCR_EEDO				(1 << 2)
+>  #define EEPCR_EESCK				(1 << 1)
+>  #define EEPCR_EECS				(1 << 0)
+>  
+> +#define EEPROM_OP_LEN				3	/* bits:*/
+> +#define EEPROM_OP_READ				0x06
+> +#define EEPROM_OP_EWEN				0x04
+> +#define EEPROM_OP_WRITE				0x05
+> +#define EEPROM_OP_EWDS				0x14
+> +
+> +#define EEPROM_DATA_LEN				16	/* 16 bits EEPROM */
+> +#define EEPROM_WRITE_TIME			4	/* wrt ack time in ms */
+> +#define EEPROM_SK_PERIOD			400	/* in us */
+> +
+>  #define KS_MBIR					0x24
+>  #define MBIR_TXMBF				(1 << 12)
+>  #define MBIR_TXMBFA				(1 << 11)
+> -- 
 > 1.6.3.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+-- 
+-- 
+Ben
+
+Q:      What's a light-year?
+A:      One-third less calories than a regular year.
+
