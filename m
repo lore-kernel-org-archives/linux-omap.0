@@ -1,41 +1,101 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCHv4 1/4] procfs: Introduce socinfo under /proc
-Date: Tue, 11 May 2010 07:21:31 +0100
-Message-ID: <20100511062131.GA24401@n2100.arm.linux.org.uk>
-References: <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com> <1273487857-32281-3-git-send-email-eduardo.valentin@nokia.com> <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com> <1273487857-32281-2-git-send-email-eduardo.valentin@nokia.com> <20100510111259.GA14680@linux-sh.org> <20100510123514.GA11804@besouro.research.nokia.com> <20100510123902.GA15293@linux-sh.org> <20100510125548.GB11804@besouro.research.nokia.com> <20100511031447.GB20453@linux-sh.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100511031447.GB20453@linux-sh.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Mundt <lethal@linux-sh.org>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Ambresh <a0393775@ti.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Manjunatha GK <manjugk@ti.com>
+Subject: [PATCH v3] OMAP3: Registering sgx device and it's platform data
+Date: Tue, 11 May 2010 12:24:59 +0530
+Message-ID: <1273560899-4449-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59822 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933045Ab0EKGyr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 02:54:47 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Preshit Agarwal <preshit.agarwal@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@ti.com>, Hemanth V <hemanthv@ti.com>
 
-On Tue, May 11, 2010 at 12:14:47PM +0900, Paul Mundt wrote:
-> On Mon, May 10, 2010 at 03:55:49PM +0300, Eduardo Valentin wrote:
-> > On Mon, May 10, 2010 at 02:39:02PM +0200, ext Paul Mundt wrote:
-> > > Note that in the cpuinfo case there is often special handling for the
-> > > single (or boot CPU) case, such as printing out a descriptor for the
-> > > machine type and so on. You might be better off just extending cpuinfo
-> > > rather than introducing another /proc abstraction, presumably your
-> > > socinfo string will be fixed regardless of whether it's SMP or not.
-> > 
-> > Yeah, I wouldn't expect it to change if it SMP or not. It should be fixed.
-> > Previous version of this change was actually extending ARM cpuinfo. The previous
-> > thread starts here:
-> > http://marc.info/?l=linux-omap&m=127304890312365&w=2
-> > 
-> > But, the point of moving that to specific file was that soc info is not really cpu info.
-> > 
-> It's up to you of course, but adding an extra file because of SoC/CPU
-> ambiguity seems pretty ugly. Almost all architectures already include
-> machine type descriptors in their cpuinfo output (as ARM does also) and
-> if you can justify that then certainly adding in some SoC-specific bits
-> isn't exactly much of a stretch.
-> 
-> These days you should have a pretty strong justification for adding new
-> procfs files, and this is certainly not one of them.
+The SGX powervr_device is registered with it's platform specific
+data to provide information about setting constraint through
+omap_pm_set_min_bus_tput.
 
-I disagree.
+Signed-off-by: Preshit Agarwal <preshit.agarwal@ti.com>
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Mike Turquette <mturquette@ti.com>
+Cc: Hemanth V <hemanthv@ti.com>
+---
+ arch/arm/mach-omap2/devices.c                  |   26 ++++++++++++++++++++++-
+ arch/arm/mach-omap2/include/mach/omap_sgxdef.h |   11 ++++++++++
+ 2 files changed, 35 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/omap_sgxdef.h
+
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 20fa76e..aabbf7b 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -26,7 +26,7 @@
+ #include <plat/mux.h>
+ #include <mach/gpio.h>
+ #include <plat/mmc.h>
+-
++#include <mach/omap_sgxdef.h>
+ #include "mux.h"
+ 
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+@@ -791,6 +791,28 @@ static inline void omap_hdq_init(void)
+ static inline void omap_hdq_init(void) {}
+ #endif
+ 
++struct sgx_platform_data omap_sgx_data = {
++#ifdef CONFIG_PM
++	.set_min_bus_tput = omap_pm_set_min_bus_tput,
++#else
++	.set_min_bus_tput = NULL,
++#endif
++};
++
++static struct platform_device powervr_device = {
++	.name            = "pvrsrvkm",
++	.id              = -1,
++	.dev            = {
++	.platform_data = &omap_sgx_data,
++       }
++};
++
++static void omap_init_sgx(void)
++{
++       (void) platform_device_register(&powervr_device);
++}
++
++
+ /*-------------------------------------------------------------------------*/
+ 
+ static int __init omap2_init_devices(void)
+@@ -805,7 +827,7 @@ static int __init omap2_init_devices(void)
+ 	omap_hdq_init();
+ 	omap_init_sti();
+ 	omap_init_sha1_md5();
+-
++	omap_init_sgx();
+ 	return 0;
+ }
+ arch_initcall(omap2_init_devices);
+diff --git a/arch/arm/mach-omap2/include/mach/omap_sgxdef.h b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
+new file mode 100644
+index 0000000..5d90a6a
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
+@@ -0,0 +1,11 @@
++#ifndef OMAP_SGXDEF_H
++#define OMAP_SGXDEF_H
++
++#include <plat/omap-pm.h>
++
++struct sgx_platform_data {
++	void(*set_min_bus_tput)(struct device *dev, u8 agent_id,
++							unsigned long r);
++};
++
++#endif
+-- 
+1.6.3.3
+
