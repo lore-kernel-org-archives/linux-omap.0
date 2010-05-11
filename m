@@ -1,52 +1,130 @@
-From: Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCHv4 1/4] procfs: Introduce socinfo under /proc
-Date: Tue, 11 May 2010 12:11:26 +0900
-Message-ID: <20100511031126.GA20453@linux-sh.org>
-References: <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com> <1273487857-32281-3-git-send-email-eduardo.valentin@nokia.com> <1273487857-32281-1-git-send-email-eduardo.valentin@nokia.com> <1273487857-32281-2-git-send-email-eduardo.valentin@nokia.com> <20100510111259.GA14680@linux-sh.org> <20100510142248.GD11804@besouro.research.nokia.com>
+From: ye janboe <janboe.ye@gmail.com>
+Subject: Re: [PATCHv2 1/2] ARM: VFP: Fixed suspend and added context save
+	support
+Date: Tue, 11 May 2010 11:15:13 +0800
+Message-ID: <AANLkTilyji16JTT1Oe8fOT6Oz5tzopQNc-3AIQ3UprCO@mail.gmail.com>
+References: <1259847353-22725-1-git-send-email-tero.kristo@nokia.com>
+	 <1259847353-22725-2-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:58515 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754438Ab0EKDMN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 23:12:13 -0400
-Content-Disposition: inline
-In-Reply-To: <20100510142248.GD11804@besouro.research.nokia.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:51429 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754438Ab0EKDPP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 23:15:15 -0400
+Received: by gwb19 with SMTP id 19so68603gwb.19
+        for <linux-omap@vger.kernel.org>; Mon, 10 May 2010 20:15:14 -0700 (PDT)
+In-Reply-To: <1259847353-22725-2-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Ambresh <a0393775@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <tero.kristo@nokia.com>
 
-On Mon, May 10, 2010 at 05:22:48PM +0300, Eduardo Valentin wrote:
-> On Mon, May 10, 2010 at 01:13:00PM +0200, ext Paul Mundt wrote:
-> > You'll still need the show function, but all of the rest of this is just
-> > duplicating what single_open() already does. If the socinfo string is
-> > static you may also want to rework this a bit so you can just stash the
-> > string in the proc_dir_entry private data. Combine this with something
-> > like kstrdup() and you'll save yourself a bit of stack while you're at
-> > it.
-> 
-> While still here, about cleaning this, so, let me see if I got your point.
-> Basically, the file under fs/proc/socinfo.c whould do the thing with single_open &
-> single_release, as you stated. But then there is the .show and its data.
-> One idea would then be to have a function:
-> 
-> int register_socinfo_show(int (*show)(struct seq_file *, void *), void *data);
-> 
-> Which would be exported to other parts of the kernel (something placed under
-> include/linux/socinfo.h for instance). Then the soc core code
-> (like arch/arm/mach-omap[1,2]) would then register its local show function and pass its data.
-> 
-> This way I think we can avoid the exports inside .c files (as in this patch)
-> and also pass the static char * needed during the show.
-> 
-> What do you think?
-> 
-Yes, you'll need something like that. kstrdup() also does an allocation,
-but you're only going to be registering once and are unlikely to ever
-unregister (particular since you have this configured as a bool) so that
-doesn't really matter. On the other hand if the string itself is static
-you can just pass that in with a static initializer, or have some sort of
-opaque socinfo data structure that contains the strings you care about.
-You'll always be able to get back at the pointer through the
-proc_dir_entry private data.
+hi, Russell, Tony
+
+Is this patch ignored by you? I do not see any ack for this patch.
+
+Thanks
+
+Janboe Ye
+
+2009/12/3 Tero Kristo <tero.kristo@nokia.com>:
+> From: Tero Kristo <tero.kristo@nokia.com>
+>
+> In some ARM architectures, like OMAP3, the VFP context can be lost du=
+ring
+> dynamic sleep cycle. For this purpose, there is now a function
+> vfp_pm_save_context() that should be called before the VFP is assumed=
+ to
+> lose context. Next VFP trap will then restore context automatically.
+>
+> We need to have the last_VFP_context[cpu] cleared after the save in i=
+dle,
+> else the restore would fail to restore when it sees that the last_VFP=
+_context
+> is same as the current threads vfp_state. This happens when the same
+> process/thread traps an exception post idle.
+>
+> This patch also fixes a potential problem with vfp_pm_suspend(), wher=
+e
+> VFP context can be lost if the current process does not have VFP enab=
+led.
+> Fixed by calling vfp_pm_save_context().
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Richard Woodruff <r-woodruff2@ti.com>
+> Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> ---
+> =A0arch/arm/vfp/vfpmodule.c | =A0 28 ++++++++++++++++++++--------
+> =A01 files changed, 20 insertions(+), 8 deletions(-)
+>
+> diff --git a/arch/arm/vfp/vfpmodule.c b/arch/arm/vfp/vfpmodule.c
+> index 2d7423a..920a33b 100644
+> --- a/arch/arm/vfp/vfpmodule.c
+> +++ b/arch/arm/vfp/vfpmodule.c
+> @@ -329,22 +329,34 @@ static void vfp_enable(void *unused)
+> =A0#ifdef CONFIG_PM
+> =A0#include <linux/sysdev.h>
+>
+> -static int vfp_pm_suspend(struct sys_device *dev, pm_message_t state=
+)
+> +void vfp_pm_save_context(void)
+> =A0{
+> - =A0 =A0 =A0 struct thread_info *ti =3D current_thread_info();
+> =A0 =A0 =A0 =A0u32 fpexc =3D fmrx(FPEXC);
+> + =A0 =A0 =A0 unsigned int cpu =3D get_cpu();
+> +
+> + =A0 =A0 =A0 /* Save last_VFP_context if needed */
+> + =A0 =A0 =A0 if (last_VFP_context[cpu]) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Enable vfp to save context */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!(fpexc & FPEXC_EN)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vfp_enable(NULL);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 fmxr(FPEXC, fpexc | FPE=
+XC_EN);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>
+> - =A0 =A0 =A0 /* if vfp is on, then save state for resumption */
+> - =A0 =A0 =A0 if (fpexc & FPEXC_EN) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0printk(KERN_DEBUG "%s: saving vfp stat=
+e\n", __func__);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vfp_save_state(&ti->vfpstate, fpexc);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vfp_save_state(last_VFP_context[cpu], f=
+pexc);
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* disable, just in case */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 fmxr(FPEXC, fmrx(FPEXC) & ~FPEXC_EN);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 fmxr(FPEXC, fpexc & ~FPEXC_EN);
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 last_VFP_context[cpu] =3D NULL;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 /* clear any information we had about last context stat=
+e */
+> - =A0 =A0 =A0 memset(last_VFP_context, 0, sizeof(last_VFP_context));
+> + =A0 =A0 =A0 put_cpu();
+> +}
+> +
+> +static int vfp_pm_suspend(struct sys_device *dev, pm_message_t state=
+)
+> +{
+> + =A0 =A0 =A0 vfp_pm_save_context();
+>
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+> --
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
