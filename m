@@ -1,89 +1,48 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv7] OMAP3: Serial: Improved sleep logic
-Date: Tue, 11 May 2010 16:15:18 -0700
-Message-ID: <87r5lirpx5.fsf@deeprootsystems.com>
-References: <1268408332-15579-1-git-send-email-tero.kristo@nokia.com>
-	<87vdc14zqc.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/7] AM3517: rename the i2c boardinfo to make it more
+ readable
+Date: Tue, 11 May 2010 16:19:05 -0700
+Message-ID: <20100511231904.GN13931@atomide.com>
+References: <1271745212-4474-1-git-send-email-stanley.miao@windriver.com>
+ <1271745212-4474-4-git-send-email-stanley.miao@windriver.com>
+ <19F8576C6E063C45BE387C64729E7394044E13781B@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:37215 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019Ab0EKXPb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 19:15:31 -0400
-Received: by pvh11 with SMTP id 11so93067pvh.19
-        for <linux-omap@vger.kernel.org>; Tue, 11 May 2010 16:15:30 -0700 (PDT)
-In-Reply-To: <87vdc14zqc.fsf@deeprootsystems.com> (Kevin Hilman's message of "Thu\, 08 Apr 2010 10\:32\:11 -0700")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53847 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056Ab0EKXTI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 19:19:08 -0400
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E13781B@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org, Peter Tseng <tsenpet09@gmail.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Govindarajan, Sriramakrishnan" <srk@ti.com>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+* Hiremath, Vaibhav <hvaibhav@ti.com> [100420 00:03]:
+> \
+> 
+> > -----Original Message-----
+> > From: Stanley.Miao [mailto:stanley.miao@windriver.com]
+> > Sent: Tuesday, April 20, 2010 12:03 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: tony@atomide.com; Hiremath, Vaibhav; Govindarajan, Sriramakrishnan;
+> > Aggarwal, Anuj
+> > Subject: [PATCH 3/7] AM3517: rename the i2c boardinfo to make it more
+> > readable
+> > 
+> > There are three i2c buses on am3517, now rename these three boardinfo
+> > structure name to am3517evm_i2c1_boardinfo, am3517evm_i2c2_boardinfo,
+> > and am3517evm_i2c3_boardinfo, to make it more readable.
+> > 
+> [Hiremath, Vaibhav] Since we haven't had any objection/suggestion to follow naming convention based on i2C indexes, I think we can merge this patch.
+> 
+> Acked-By: Vaibhav Hiremath <hvaibhav@ti.com>
 
-> Tero Kristo <tero.kristo@nokia.com> writes:
->
->> From: Tero Kristo <tero.kristo@nokia.com>
->>
->> This patch contains following improvements:
->> - Only RX interrupt will now kick the sleep prevent timer
->> - TX fifo status is checked before disabling clocks, this will prevent
->>   on-going transmission to be cut
->> - Smartidle is now enabled/disabled only while switching clocks, as having
->>   smartidle enabled while RX/TX prevents any wakeups from being received
->>   from UART module
->> - Added workqueue for wakeup checks, as jiffy timer access within the
->>   idle loop results into skewed timers as jiffy timers are stopped
->> - Added garbage_timer for ignoring the first character received during
->>   the first tick after clock enable, this prevents garbage characters to be
->>   received in low sleep states
->> - omap_uart_enable_irqs() changed to use enable_irq / disable_irq instead
->>   of request / free. Using request/free changes the behavior after first
->>   suspend due to reversed interrupt handler ordering
->
-> Hi Tero,
->
-> FYI... I had to make one additional change (diff below) to this patch
-> after discovering a regression pointed out by Peter Tseng.
->
-> If the UART timeouts are disabled (set to zero), which they are by
-> default, and you suspend the system, the UART would not be usable
-> after wakeup.   Simply enabling a timeout was fixing the problem.
->
-> I tracked the problem to the garbage timer being enabled even when
-> the UART timeout was not enabled.  Since the garbage_ignore flag
-> is only ever cleared when a uart->timeout is set, the garbage
-> timer was never being disabled, effectively disabling the UART.
->
-> I've folded this fix below into your patch in the pm-fixes branch
-> and pushed a new PM branch.
+Looks like this needs to be refreshed against the current
+omap-for-linus branch to apply.
 
-OK, I'm dropping this patch from the PM branch.  It has caused me more
-problems that it has solved so far, and I just noticed that
-UART2-based consoles (n900, beagle) stop working all together when I
-enable UART timeouts with this patch.  Seems to be again related to
-the garbage timer.
+Regards,
 
-What I would like to see instead is UART hwmods finished and the
-omap-serial driver merged so that we can start moving this PM logic
-into the omap-serial driver using the runtime PM layer.
-
-Kevin
-
->
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index b731556..b709cf8 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -396,7 +396,8 @@ void omap_uart_prepare_idle(int num)
->  
->  static void serial_wakeup(struct omap_uart_state *uart)
->  {
-> -	uart->garbage_ignore = 1;
-> +	if (uart->timeout)
-> +		uart->garbage_ignore = 1;
->  	schedule_work(&uart->wakeup_work);
->  }
->  
-> k
+Tony
