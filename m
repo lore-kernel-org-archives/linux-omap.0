@@ -1,82 +1,37 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] MMC: OMAP HS-MMC: convert to dev_pm_ops
-Date: Tue, 11 May 2010 14:57:16 -0700
-Message-ID: <1273615036-4516-1-git-send-email-khilman@deeprootsystems.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, Matt Fleming <matt@console-pimps.org>, Tony Lindgren <tony@atomide.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, linux-kernel@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] OMAP2/3/4: DMA: reset controller during init
+Date: Tue, 11 May 2010 18:29:29 -0400
+Message-ID: <notify-1273616969@atomide.com>
+References: <20100504074006.GK12682@esdhcp04058.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54945 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753405Ab0EKW33 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 18:29:29 -0400
+Received: from c-69-181-193-102.hsd1.ca.comcast.net ([69.181.193.102] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1OBxxA-0007QF-FS
+	for linux-omap@vger.kernel.org; Tue, 11 May 2010 22:29:28 +0000
+In-Reply-To: <20100504074006.GK12682@esdhcp04058.research.nokia.com>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Convert PM operations to use dev_pm_ops.  This will facilitate
-the runtime PM coversion which will add to dev_pm_ops hooks.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Note that dev_pm_ops version of the suspend hook no longer takes a
-'state' argument.  However, the MMC core function mmc_suspend_host()
-still takes a 'state' argument, but it is unused, so a dummy
-state variable was created to pass to the MMC core.
+Branch in linux-omap: for-next
 
-In the future, the MMC core should be converted to drop this
-state argument and the rest of the MMC drivers could be easily
-converted to dev_pm_ops as well.
+Initial commit ID (Likely to change): 738e377ff6c45d27695b39a67e3be876d4b5dae5
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies on v2.6.34-rc6
+PatchWorks
+http://patchwork.kernel.org/patch/96684/
 
- drivers/mmc/host/omap_hsmmc.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=738e377ff6c45d27695b39a67e3be876d4b5dae5
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index e9caf69..8112d54 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2258,10 +2258,12 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
- }
- 
- #ifdef CONFIG_PM
--static int omap_hsmmc_suspend(struct platform_device *pdev, pm_message_t state)
-+static int omap_hsmmc_suspend(struct device *dev)
- {
- 	int ret = 0;
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
-+	pm_message_t state = PMSG_SUSPEND; /* unused by MMC core */
- 
- 	if (host && host->suspended)
- 		return 0;
-@@ -2310,9 +2312,10 @@ static int omap_hsmmc_suspend(struct platform_device *pdev, pm_message_t state)
- }
- 
- /* Routine to resume the MMC device */
--static int omap_hsmmc_resume(struct platform_device *pdev)
-+static int omap_hsmmc_resume(struct device *dev)
- {
- 	int ret = 0;
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
- 
- 	if (host && !host->suspended)
-@@ -2363,13 +2366,17 @@ clk_en_err:
- #define omap_hsmmc_resume		NULL
- #endif
- 
--static struct platform_driver omap_hsmmc_driver = {
--	.remove		= omap_hsmmc_remove,
-+static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
- 	.suspend	= omap_hsmmc_suspend,
- 	.resume		= omap_hsmmc_resume,
-+};
-+
-+static struct platform_driver omap_hsmmc_driver = {
-+	.remove		= omap_hsmmc_remove,
- 	.driver		= {
- 		.name = DRIVER_NAME,
- 		.owner = THIS_MODULE,
-+		.pm = &omap_hsmmc_dev_pm_ops,
- 	},
- };
- 
--- 
-1.7.0.2
 
