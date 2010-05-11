@@ -1,100 +1,180 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: How to introduce omap_features (was Re: [PATCH RESEND] update
- 	omap3 features bitmap and API to generic names)
-Date: Tue, 11 May 2010 08:43:32 -0500
-Message-ID: <4BE95F04.5010309@ti.com>
-References: <1273521338-2896-1-git-send-email-svenkatr@ti.com>	 <AANLkTimNjnKG3WFK8mdpgHaLh-Xpv54fohFgEYYiVVcg@mail.gmail.com>	 <0680EC522D0CC943BC586913CF3768C003B3209B23@dbde02.ent.ti.com>	 <4BE9483C.7090308@gmail.com> <AANLkTimHN0XUlBsj3FvhpOkuMhrFHSvPu3MQI9ZtEqvc@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv5 1/3] procfs: Introduce socinfo under /proc
+Date: Tue, 11 May 2010 17:15:29 +0300
+Message-ID: <1273587331-24604-2-git-send-email-eduardo.valentin@nokia.com>
+References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59114 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757186Ab0EKNnh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 May 2010 09:43:37 -0400
-In-Reply-To: <AANLkTimHN0XUlBsj3FvhpOkuMhrFHSvPu3MQI9ZtEqvc@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.233]:50759 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758099Ab0EKOMl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 10:12:41 -0400
+In-Reply-To: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: Nishanth Menon <menon.nishanth@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, santosh.shilimkar@ti.com, Ambresh <a0393775@ti.com>, felipe.balbi@nokia.com, Jouni Hogander <jouni.hogander@nokia.com>, Paul Mundt <lethal@linux-sh.org>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Venkatraman S had written, on 05/11/2010 07:19 AM, the following:
->  Nishanth Menon <menon.nishanth@gmail.com> wrote:
->> -linux-arm
->>
->> On 05/10/2010 10:53 PM, S, Venkatraman wrote:
->>>> -----Original Message-----
->>>> From: menon.nishanth@gmail.com
->>>> [mailto:menon.nishanth@gmail.com] On Behalf Of Menon, Nishanth
->>>> Sent: Tuesday, May 11, 2010 5:02 AM
->>>> To: S, Venkatraman
->>>> Cc: linux-omap@vger.kernel.org;
->>>> linux-arm-kernel@lists.infradead.org; Tony Lindgren;
->>>> Chikkature Rajashekar, Madhusudhan
->>>> Subject: Re: [PATCH RESEND] update omap3 features bitmap and
->>>> API to generic names
->>>>
->>>> On Mon, May 10, 2010 at 2:55 PM, Venkatraman S
->>>> <svenkatr@ti.com>  wrote:
->>>>>        OMAP3 features bitmap is used a method to check for SoC
->>>>> specific features. This patch renames the global variables and the
->>>>> accessor functions to use a generic name from omap3_* to
->>>>> omap_*
->>>>>
->>>>> Signed-off-by: Venkatraman S<svenkatr@ti.com>
->>>>> CC: Nishant Menon<nm@ti.com>
->>>> Just for the patchworks
->>>> NAK - discussed before -
->>>> http://marc.info/?l=linux-omap&m=127349696800651&w=2
->>> This patch doesn't have the descriptor load changes, and just the rename.
->>> Did you take a look at it first?
->> Arrgh - my bad - there was no reference to previous discussions or anything
->> in this patch, please do add references in diffstat section if you are
->> refering to a previous discussed strategy to help the reviewers
->> differentiate and understand you better.
->>
->> overall this still opens up a question for me -> can we blindly replace
->> omap3-features with omap features? how do we think of omap1,2,3,4 are
->> handled consistently with a 32 bit field?
->>
->> I agree on the need to have a omap independent field, but is omap3_features
->> the one we need to modify OR should we be introducing a new field?
->>
->> my vote goes for introducing a new field.
->>
-> 
-> You are confusing the interface with implementation (or rather,
-> worrying about both of them simultaneously).
-> 
-> The interface has to be consistent and SoC independent, to the extent possible.
->   So the macro changes are relevant and readable / extensible.
-> 
-> Regarding the variable name (implementation):-
->    Given the minimal set that we have (5 -6 fields today, so there is
-> room for 25 more 'features" still), I don't think
-> we should over-engineer it now to accomodate all permutations and use
-> cases. It's not even found use
-> beyond 1 or 2 files. YAGNI ?
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-huh? I dont understand you. lets see what we we are doing here:
-a) we are causing an ABI breakage by moving omap3_feature to 
-omap_feature (which by the way should also include changes to the macros 
-as well..)
-b) we have a real need to have a cross OMAP feature distinction to 
-differentiate between generic omap feature and omap3/2/1/4 features.
+This patch introduce the /proc/socinfo node. Its purpose is to
+export System on Chip information and specific bits.
 
-This patch does not address the same in a consistent scalable way. NOTE: 
-we are starting to introduce other OMAP4 features as well, SOC level 
-feature distinction should ideally be handled by FEATURE framework - 
-that is the reason it was introduced in the first place.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ Documentation/filesystems/proc.txt |    1 +
+ fs/proc/Kconfig                    |    7 +++
+ fs/proc/Makefile                   |    1 +
+ fs/proc/socinfo.c                  |   80 ++++++++++++++++++++++++++++++++++++
+ include/linux/socinfo.h            |   17 ++++++++
+ 5 files changed, 106 insertions(+), 0 deletions(-)
+ create mode 100644 fs/proc/socinfo.c
+ create mode 100644 include/linux/socinfo.h
 
-if your feel this is overengineering - well, I believe this is 
-conceptual definition -> Specific OMAP[1234] *family* features Vs OMAP 
-generic features.. two different things in my mind -> it does not matter 
-if I have 32 bits in the original variable OR if I had 64bit.. i dont 
-prefer to reuse a variable and mess up the conceptual distinction.
-
-
+diff --git a/Documentation/filesystems/proc.txt b/Documentation/filesystems/proc.txt
+index a4f30fa..039bcb7 100644
+--- a/Documentation/filesystems/proc.txt
++++ b/Documentation/filesystems/proc.txt
+@@ -415,6 +415,7 @@ Table 1-5: Kernel info in /proc
+  bus         Directory containing bus specific information     
+  cmdline     Kernel command line                               
+  cpuinfo     Info about the CPU                                
++ socinfo     Info about the System on Chip                     
+  devices     Available devices (block and character)           
+  dma         Used DMS channels                                 
+  filesystems Supported filesystems                             
+diff --git a/fs/proc/Kconfig b/fs/proc/Kconfig
+index 50f8f06..e683d62 100644
+--- a/fs/proc/Kconfig
++++ b/fs/proc/Kconfig
+@@ -67,3 +67,10 @@ config PROC_PAGE_MONITOR
+ 	  /proc/pid/smaps, /proc/pid/clear_refs, /proc/pid/pagemap,
+ 	  /proc/kpagecount, and /proc/kpageflags. Disabling these
+           interfaces will reduce the size of the kernel by approximately 4kb.
++
++config PROC_SOCINFO
++ 	default y
++	depends on PROC_FS
++	bool "Enable /proc/socinfo" if EMBEDDED
++ 	help
++	  Say Y here if you need to see information about the your System on Chip.
+diff --git a/fs/proc/Makefile b/fs/proc/Makefile
+index 11a7b5c..7757d44 100644
+--- a/fs/proc/Makefile
++++ b/fs/proc/Makefile
+@@ -26,3 +26,4 @@ proc-$(CONFIG_PROC_VMCORE)	+= vmcore.o
+ proc-$(CONFIG_PROC_DEVICETREE)	+= proc_devtree.o
+ proc-$(CONFIG_PRINTK)	+= kmsg.o
+ proc-$(CONFIG_PROC_PAGE_MONITOR)	+= page.o
++proc-$(CONFIG_PROC_SOCINFO)	+= socinfo.o
+diff --git a/fs/proc/socinfo.c b/fs/proc/socinfo.c
+new file mode 100644
+index 0000000..09a889d
+--- /dev/null
++++ b/fs/proc/socinfo.c
+@@ -0,0 +1,80 @@
++/*
++ *  fs/proc/socinfo.c
++ *
++ *  Copyright (C) 2010 Nokia Corporation
++ *
++ *  Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++ *
++ *  proc socinfo file
++ */
++#include <linux/module.h>
++#include <linux/fs.h>
++#include <linux/init.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++#include <linux/socinfo.h>
++
++/*
++ * Function pointer to soc core code which knows how to grab soc info
++ */
++static int (*socinfo_show)(struct seq_file *, void *);
++static void *socinfo_data;
++static DEFINE_MUTEX(socinfo_mutex);
++
++/**
++ * register_socinfo_show() - register a call back to provide SoC information
++ * @show:	The function callback. It is expected to be in the same format
++ *		as the .show of struct seq_operations.
++ * @data:	A void * which will be passed as argument when show is called.
++ *
++ * This function will store the reference for a function and its data. The show
++ * argument will be called when filling up the seq_file of /proc/socinfo.
++ * Usually, this function should be called just once, while executing the SoC
++ * core initialization code.
++ */
++void register_socinfo_show(int (*show)(struct seq_file *, void *), void *data)
++{
++	mutex_lock(&socinfo_mutex);
++	socinfo_show = show;
++	socinfo_data = data;
++	mutex_unlock(&socinfo_mutex);
++}
++
++static int socinfo_show_local(struct seq_file *sfile, void *data)
++{
++	int r;
++
++	/* Just fall back to those who know how to grab the info */
++	mutex_lock(&socinfo_mutex);
++	if (socinfo_show)
++		r = socinfo_show(sfile, socinfo_data);
++	else
++		r = seq_printf(sfile, "No data\n");
++	mutex_unlock(&socinfo_mutex);
++
++	return r;
++}
++
++static int socinfo_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, socinfo_show_local, NULL);
++}
++
++static const struct file_operations proc_socinfo_operations = {
++	.owner		= THIS_MODULE,
++	.open		= socinfo_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int __init proc_socinfo_init(void)
++{
++	if (!proc_create("socinfo", 0, NULL, &proc_socinfo_operations)) {
++		pr_info("Failed to create /proc/socinfo\n");
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++module_init(proc_socinfo_init);
+diff --git a/include/linux/socinfo.h b/include/linux/socinfo.h
+new file mode 100644
+index 0000000..aa870f1
+--- /dev/null
++++ b/include/linux/socinfo.h
+@@ -0,0 +1,17 @@
++/*
++ *  include/linux/socinfo.h
++ *
++ *  Copyright (C) 2010 Nokia Corporation
++ *
++ *  Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++ *
++ *  proc socinfo file
++ */
++
++#ifndef __SOCINFO_H
++#define __SOCINFO_H
++
++#include <linux/seq_file.h>
++
++void register_socinfo_show(int (*show)(struct seq_file *, void *), void *data);
++#endif
 -- 
-Regards,
-Nishanth Menon
+1.7.0.4.361.g8b5fe.dirty
+
