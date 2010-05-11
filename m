@@ -1,149 +1,158 @@
-From: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-Subject: Re: [PATCH] OMAP2/3/4: DMA: reset controller during init
-Date: Tue, 11 May 2010 12:27:31 +0300
-Message-ID: <20100511092731.GG11783@esdhcp04058.research.nokia.com>
-References: <1272891357-27400-1-git-send-email-ext-mika.1.westerberg@nokia.com> <20100503165817.GR29604@atomide.com> <20100504074006.GK12682@esdhcp04058.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+From: Madhvapathi Sriram <sriram.m@ti.com>
+Subject: [PATCH 1/1] omap-hsmmc.c: re-organize dma line population
+Date: Tue, 11 May 2010 14:02:13 +0530
+Message-ID: <1273566733-22572-1-git-send-email-sriram.m@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:23791 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753454Ab0EKJ3L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 05:29:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20100504074006.GK12682@esdhcp04058.research.nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36816 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754459Ab0EKJbl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 May 2010 05:31:41 -0400
+Received: from dflp53.itg.ti.com ([128.247.5.6])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4B9VePc018186
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 11 May 2010 04:31:40 -0500
+Received: from tidmzi-ftp.india.ext.ti.com (localhost [127.0.0.1])
+	by dflp53.itg.ti.com (8.13.8/8.13.8) with SMTP id o4B9VcE1001848
+	for <linux-omap@vger.kernel.org>; Tue, 11 May 2010 04:31:39 -0500 (CDT)
+Received: from symphonyindia.ti.com (symphony-ftp [192.168.247.11])
+	by tidmzi-ftp.india.ext.ti.com (Postfix) with SMTP id 3D87638872
+	for <linux-omap@vger.kernel.org>; Tue, 11 May 2010 14:58:04 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, khilman@deeprootsystems.com
+To: linux-omap@vger.kernel.org
+Cc: madhu.cr@ti.com, Madhvapathi Sriram <sriram.m@ti.com>
 
-On Tue, May 04, 2010 at 10:40:06AM +0300, Mika Westerberg wrote:
-> On Mon, May 03, 2010 at 06:58:18PM +0200, ext Tony Lindgren wrote:
-> > * Mika Westerberg <ext-mika.1.westerberg@nokia.com> [100503 05:52]:
-> (...)
-> > > +/**
-> > > + * omap_dma_reset() - perform software reset for the DMA controller
-> > > + */
-> > > +static void omap_dma_reset(void)
-> > > +{
-> > > +	u32 v;
-> > > +
-> > > +	if (cpu_class_is_omap1())
-> > > +		return;
-> > > +
-> > > +	v = dma_read(OCP_SYSCONFIG);
-> > > +	v |= 0x2; /* software reset */
-> > > +	dma_write(v, OCP_SYSCONFIG);
-> > > +
-> > > +	/* wait until reset is complete */
-> > > +	while ((dma_read(SYSSTATUS) & 0x1) == 0)
-> > > +		cpu_relax();
-> > 
-> > This reset part seems to be mach-omap2 specific.
-> > 
-> > > +	/* disable per channel interrupts */
-> > > +	dma_write(0, IRQENABLE_L0);
-> > > +	dma_write(0, IRQENABLE_L1);
-> > > +	dma_write(0, IRQENABLE_L2);
-> > > +	dma_write(0, IRQENABLE_L3);
-> > > +}
-> > 
-> > For a minimal fix, how about just disable the interrupt in omap_clear_dma()?
-> > We are already calling that from omap_init_dma().
-> 
-> If we do it in omap_clear_dma() then omap_dma_global_context_restore() will
-> return with interrupts masked which probably breaks things.
-> 
-> How about something like following patch?
+ - This moves the dma line population from omap_hsmmc.c to plat-omap/devices.c
+ - This is done to keep platform specific code inside the platform directory
+   rather than the host driver
+ - This makes the porting work across OMAP platforms easier
 
-Tony, Kevin
+Signed-off-by: Madhvapathi Sriram <sriram.m@ti.com>
+---
+ arch/arm/plat-omap/devices.c  |   49 ++++++++++++++++++++++++++++++++++++++++-
+ drivers/mmc/host/omap_hsmmc.c |   35 +++++++---------------------
+ 2 files changed, 57 insertions(+), 27 deletions(-)
 
-Any comments on this patch?
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 95677d1..a62b148 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -30,6 +30,7 @@
+ #include <plat/mcbsp.h>
+ #include <plat/dsp_common.h>
+ #include <plat/omap44xx.h>
++#include <plat/dma.h>
+ 
+ #if	defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
+ 
+@@ -232,7 +233,7 @@ static inline void omap_init_mcpdm(void) {}
+ #if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
+ 	defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+ 
+-#define OMAP_MMC_NR_RES		2
++#define OMAP_MMC_NR_RES		4
+ 
+ /*
+  * Register MMC devices. Called from mach-omap1 and mach-omap2 device init.
+@@ -255,6 +256,52 @@ int __init omap_mmc_add(const char *name, int id, unsigned long base,
+ 	res[0].flags = IORESOURCE_MEM;
+ 	res[1].start = res[1].end = irq;
+ 	res[1].flags = IORESOURCE_IRQ;
++	/* Populate DMA lines based on the instance used. Rx first,Tx next*/
++	switch (id) {
++	case 0:
++		res[2].start = OMAP24XX_DMA_MMC1_RX;
++		res[2].end = OMAP24XX_DMA_MMC1_RX;
++		res[2].flags = IORESOURCE_DMA;
++		res[3].start = OMAP24XX_DMA_MMC1_TX;
++		res[3].end = OMAP24XX_DMA_MMC1_TX;
++		res[3].flags = IORESOURCE_DMA;
++		break;
++	case 1:
++		res[2].start = OMAP24XX_DMA_MMC2_RX;
++		res[2].end = OMAP24XX_DMA_MMC2_RX;
++		res[2].flags = IORESOURCE_DMA;
++		res[3].start = OMAP24XX_DMA_MMC2_TX;
++		res[3].end = OMAP24XX_DMA_MMC2_TX;
++		res[3].flags = IORESOURCE_DMA;
++		break;
++	case 2:
++		res[2].start = OMAP34XX_DMA_MMC3_RX;
++		res[2].end = OMAP34XX_DMA_MMC3_RX;
++		res[2].flags = IORESOURCE_DMA;
++		res[3].start = OMAP34XX_DMA_MMC3_TX;
++		res[3].end = OMAP34XX_DMA_MMC3_TX;
++		res[3].flags = IORESOURCE_DMA;
++		break;
++	case 3:
++		res[2].start = OMAP44XX_DMA_MMC4_RX;
++		res[2].end = OMAP44XX_DMA_MMC4_RX;
++		res[2].flags = IORESOURCE_DMA;
++		res[3].start = OMAP44XX_DMA_MMC4_TX;
++		res[3].end = OMAP44XX_DMA_MMC4_TX;
++		res[3].flags = IORESOURCE_DMA;
++		break;
++	case 4:
++		res[2].start = OMAP44XX_DMA_MMC5_RX;
++		res[2].end = OMAP44XX_DMA_MMC5_RX;
++		res[2].flags = IORESOURCE_DMA;
++		res[3].start = OMAP44XX_DMA_MMC5_TX;
++		res[3].end = OMAP44XX_DMA_MMC5_TX;
++		res[3].flags = IORESOURCE_DMA;
++		break;
++	default:
++		ret = -ENODEV;
++		goto fail;
++	}
+ 
+ 	ret = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
+ 	if (ret == 0)
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index e9caf69..61d30ab 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2096,32 +2096,15 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 
+ 	omap_hsmmc_conf_bus_power(host);
+ 
+-	/* Select DMA lines */
+-	switch (host->id) {
+-	case OMAP_MMC1_DEVID:
+-		host->dma_line_tx = OMAP24XX_DMA_MMC1_TX;
+-		host->dma_line_rx = OMAP24XX_DMA_MMC1_RX;
+-		break;
+-	case OMAP_MMC2_DEVID:
+-		host->dma_line_tx = OMAP24XX_DMA_MMC2_TX;
+-		host->dma_line_rx = OMAP24XX_DMA_MMC2_RX;
+-		break;
+-	case OMAP_MMC3_DEVID:
+-		host->dma_line_tx = OMAP34XX_DMA_MMC3_TX;
+-		host->dma_line_rx = OMAP34XX_DMA_MMC3_RX;
+-		break;
+-	case OMAP_MMC4_DEVID:
+-		host->dma_line_tx = OMAP44XX_DMA_MMC4_TX;
+-		host->dma_line_rx = OMAP44XX_DMA_MMC4_RX;
+-		break;
+-	case OMAP_MMC5_DEVID:
+-		host->dma_line_tx = OMAP44XX_DMA_MMC5_TX;
+-		host->dma_line_rx = OMAP44XX_DMA_MMC5_RX;
+-		break;
+-	default:
+-		dev_err(mmc_dev(host->mmc), "Invalid MMC id\n");
+-		goto err_irq;
+-	}
++	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
++	if (!res)
++		goto err1;
++	host->dma_line_rx = res->start;
++
++	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
++	if (!res)
++		goto err1;
++	host->dma_line_tx = res->start;
+ 
+ 	/* Request IRQ for MMC operations */
+ 	ret = request_irq(host->irq, omap_hsmmc_irq, IRQF_DISABLED,
+-- 
+1.5.6
 
-Thanks,
-MW
-
-> 
-> (checking cpu_class_is_omap2() below in omap_init_dma() is probably redundant
->  but seems to be consitent with other code).
-> 
-> Thanks,
-> MW
-> 
-> >From 74389ff1de06e5adb84b978bf1d169c6d802db1b Mon Sep 17 00:00:00 2001
-> From: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-> Date: Tue, 4 May 2010 09:32:29 +0300
-> Subject: [PATCH] OMAP2/3/4: DMA: disable channel interrupts in omap_init_dma()
-> 
-> If we are softbooting another kernel using kexec, DMA controller state is not
-> known when we are performing omap_init_dma(). It is possible that some DMA
-> channels are already active. For example after kexec we get:
-> 
-> <4>IRQ 0020 for non-allocated DMAchannel 5
-> <4>IRQ 0020 for non-allocated DMAchannel 5
-> <4>IRQ 0020 for non-allocated DMAchannel 5
-> <4>IRQ 0020 for non-allocated DMAchannel 5
-> <4>IRQ 0020 for non-allocated DMAchannel 5
-> 
-> To prevent any weird things happening, we disable all channel interrupts during
-> init.
-> 
-> Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-> ---
->  arch/arm/plat-omap/dma.c |   27 +++++++++++++++++++--------
->  1 files changed, 19 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 1d95996..ad42ec3 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -709,6 +709,21 @@ static inline void omap2_enable_irq_lch(int lch)
->  	spin_unlock_irqrestore(&dma_chan_lock, flags);
->  }
->  
-> +static inline void omap2_disable_irq_lch(int lch)
-> +{
-> +	u32 val;
-> +	unsigned long flags;
-> +
-> +	if (!cpu_class_is_omap2())
-> +		return;
-> +
-> +	spin_lock_irqsave(&dma_chan_lock, flags);
-> +	val = dma_read(IRQENABLE_L0);
-> +	val &= ~(1 << lch);
-> +	dma_write(val, IRQENABLE_L0);
-> +	spin_unlock_irqrestore(&dma_chan_lock, flags);
-> +}
-> +
->  int omap_request_dma(int dev_id, const char *dev_name,
->  		     void (*callback)(int lch, u16 ch_status, void *data),
->  		     void *data, int *dma_ch_out)
-> @@ -807,14 +822,7 @@ void omap_free_dma(int lch)
->  	}
->  
->  	if (cpu_class_is_omap2()) {
-> -		u32 val;
-> -
-> -		spin_lock_irqsave(&dma_chan_lock, flags);
-> -		/* Disable interrupts */
-> -		val = dma_read(IRQENABLE_L0);
-> -		val &= ~(1 << lch);
-> -		dma_write(val, IRQENABLE_L0);
-> -		spin_unlock_irqrestore(&dma_chan_lock, flags);
-> +		omap2_disable_irq_lch(lch);
->  
->  		/* Clear the CSR register and IRQ status register */
->  		dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(lch));
-> @@ -2107,6 +2115,9 @@ static int __init omap_init_dma(void)
->  
->  	for (ch = 0; ch < dma_chan_count; ch++) {
->  		omap_clear_dma(ch);
-> +		if (cpu_class_is_omap2())
-> +			omap2_disable_irq_lch(ch);
-> +
->  		dma_chan[ch].dev_id = -1;
->  		dma_chan[ch].next_lch = -1;
->  
-> -- 
-> 1.5.6.5
