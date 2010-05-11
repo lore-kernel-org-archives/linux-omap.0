@@ -1,57 +1,45 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [RFC] [PATCH 1/3] OMAP4: Keyboard Controller Support
-Date: Mon, 10 May 2010 22:45:52 -0700
-Message-ID: <20100511054552.GA1714@core.coreip.homeip.net>
-References: <27F9C60D11D683428E133F85D2BB4A53043D9EE7F5@dlee03.ent.ti.com>
- <20100421065550.GL4364@core.coreip.homeip.net>
- <27F9C60D11D683428E133F85D2BB4A53043DFD5320@dlee03.ent.ti.com>
- <27F9C60D11D683428E133F85D2BB4A53043DFD5323@dlee03.ent.ti.com>
- <20100511044156.GA21299@core.coreip.homeip.net>
- <27F9C60D11D683428E133F85D2BB4A53043DFD532E@dlee03.ent.ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 2/4 v2] ks8851: Low level functions for read/write to
+ companion eeprom
+Date: Mon, 10 May 2010 22:59:48 -0700 (PDT)
+Message-ID: <20100510.225948.172605411.davem@davemloft.net>
+References: <1273085155-1260-3-git-send-email-s-jan@ti.com>
+	<20100506.002012.27799102.davem@davemloft.net>
+	<20100511012353.GJ2589@trinity.fluff.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53043DFD532E@dlee03.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Arce, Abraham" <x0066660@ti.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:55610
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755309Ab0EKF7k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 May 2010 01:59:40 -0400
+In-Reply-To: <20100511012353.GJ2589@trinity.fluff.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ben-linux@fluff.org
+Cc: s-jan@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, x0066660@ti.com, Tristram.Ha@micrel.com
 
-On Tue, May 11, 2010 at 12:03:44AM -0500, Arce, Abraham wrote:
-> Hi again Dmitry,
-> 
-> > No worries, although at first I was surprised that Trilok spoke exactly
-> > the same words I did ;)
-> > 
-> 
-> :)
-> 
-> > > > > > +
-> > > > > > +/* Interrupt thread handler thread */
-> > > > > > +
-> > > > > > +static irqreturn_t omap_keypad_threaded(int irq, void *dev_id)
-> > > > > > +{
-> > > > >
-> > > > > Why is iti threaded? I fo not see anything that will sleep.
-> > >
-> > >
-> > > It was implemented based on previous comments...
-> > >
-> > 
-> > Would you point me to that comment? Like I said, I do not see anything
-> > that would possibly sleep in this routine so you don't need to use
-> > threaded interrupt.
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26352.html
-> 
+From: Ben Dooks <ben-linux@fluff.org>
+Date: Tue, 11 May 2010 02:23:54 +0100
 
-Thanks.
+> On Thu, May 06, 2010 at 12:20:12AM -0700, David Miller wrote:
+>> From: Sebastien Jan <s-jan@ti.com>
+>> Date: Wed,  5 May 2010 20:45:53 +0200
+>> 
+>> > Low-level functions provide 16bits words read and write capability
+>> > to ks8851 companion eeprom.
+>> > 
+>> > Signed-off-by: Sebastien Jan <s-jan@ti.com>
+>> 
+>> Applied.
+> 
+> So I take it the patches that used the drivers/misc/eeprom/eeprom_93cx6.c
+> are not going to be merged?
 
-I think Kevin meant "use theaded IRQ, wherever possible" [if we need
-to sleep in interrupt handler].
+What makes you think that?  Feel free to submit such a patch and find
+out for real.
 
-Adding him to CC.
-
--- 
-Dmitry
+If you want things done differently from the start, review patches
+faster :-)
