@@ -1,247 +1,313 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: RE: [PATCH RESEND] update omap3 features bitmap and API to generic
- 	names
-Date: Tue, 11 May 2010 09:23:23 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003B3209B23@dbde02.ent.ti.com>
-References: <1273521338-2896-1-git-send-email-svenkatr@ti.com>
- <AANLkTimNjnKG3WFK8mdpgHaLh-Xpv54fohFgEYYiVVcg@mail.gmail.com>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: RE: [RFC] [PATCH 1/3] OMAP4: Keyboard Controller Support
+Date: Mon, 10 May 2010 23:13:37 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DFD5320@dlee03.ent.ti.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043D9EE7F5@dlee03.ent.ti.com>
+ <20100421065550.GL4364@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52953 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932185Ab0EKDxg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 23:53:36 -0400
-In-Reply-To: <AANLkTimNjnKG3WFK8mdpgHaLh-Xpv54fohFgEYYiVVcg@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20100421065550.GL4364@core.coreip.homeip.net>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
-> -----Original Message-----
-> From: menon.nishanth@gmail.com=20
-> [mailto:menon.nishanth@gmail.com] On Behalf Of Menon, Nishanth
-> Sent: Tuesday, May 11, 2010 5:02 AM
-> To: S, Venkatraman
-> Cc: linux-omap@vger.kernel.org;=20
-> linux-arm-kernel@lists.infradead.org; Tony Lindgren;=20
-> Chikkature Rajashekar, Madhusudhan
-> Subject: Re: [PATCH RESEND] update omap3 features bitmap and=20
-> API to generic names
->=20
-> On Mon, May 10, 2010 at 2:55 PM, Venkatraman S=20
-> <svenkatr@ti.com> wrote:
-> > =A0 =A0 =A0 =A0OMAP3 features bitmap is used a method to check for =
-SoC=20
-> > specific features. This patch renames the global variables and the=20
-> > accessor functions to use a generic name from omap3_* to
-> > omap_*
-> >
-> > Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> > CC: Nishant Menon <nm@ti.com>
-> Just for the patchworks
-> NAK - discussed before -=20
-> http://marc.info/?l=3Dlinux-omap&m=3D127349696800651&w=3D2
+Hi Trilok, 
 
-This patch doesn't have the descriptor load changes, and just the renam=
-e.
-Did you take a look at it first?
-=20
-> > CC: Tony Lindgren <tony@atomide.com>
-> > CC: Madhusudhan Chikkature <madhu.cr@ti.com>
-> > ---
-> > =A0* Resent to CC Madhu
-> >
-> > =A0arch/arm/mach-omap2/clock3xxx_data.c =A0| =A0 =A02 +-
-> > =A0arch/arm/mach-omap2/id.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 18 +++=
-+++++--------
-> > =A0arch/arm/plat-omap/include/plat/cpu.h | =A0 34=20
-> > ++++++++++++++++----------------
-> > =A03 files changed, 27 insertions(+), 27 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/clock3xxx_data.c=20
-> > b/arch/arm/mach-omap2/clock3xxx_data.c
-> > index 9cba556..afa481d 100644
-> > --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> > +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> > @@ -3510,7 +3510,7 @@ int __init omap3xxx_clk_init(void)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_clkflg |=3D CK_3=
-430ES2;
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> > =A0 =A0 =A0 =A0}
-> > - =A0 =A0 =A0 if (omap3_has_192mhz_clk())
-> > + =A0 =A0 =A0 if (omap_has_192mhz_clk())
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_96m_alwon_fck =3D omap_96m_alwo=
-n_fck_3630;
-> >
-> > =A0 =A0 =A0 =A0if (cpu_is_omap3630()) {
-> > diff --git a/arch/arm/mach-omap2/id.c=20
-> b/arch/arm/mach-omap2/id.c index=20
-> > 37b8a1a..a095b87 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -28,7 +28,7 @@
-> > =A0static struct omap_chip_id omap_chip;
-> > =A0static unsigned int omap_revision;
-> >
-> > -u32 omap3_features;
-> > +u32 omap_features;
-> >
-> > =A0unsigned int omap_rev(void)
-> > =A0{
-> > @@ -161,14 +161,14 @@ void __init omap24xx_check_revision(void)
-> > =A0#define OMAP3_CHECK_FEATURE(status,feat) =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0=20
-> =A0 =A0 =A0 =A0 =A0 =A0=20
-> > \
-> > =A0 =A0 =A0 =A0if (((status & OMAP3_ ##feat## _MASK) =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0
->  =A0 =A0 =A0 =A0 =A0=20
-> > \
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0>> OMAP3_ ##feat## _SHIFT) !=3D FEAT=
-_ ##feat##=20
-> _NONE) { =A0=20
-> > \
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_features |=3D OMAP3_HAS_ ##feat=
-; =A0 =A0 =A0 =A0
->  =A0 =A0 =A0 =A0 =A0 =A0
-> > \
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_features |=3D OMAP_HAS_ ##feat; =
-=A0 =A0 =A0 =A0 =A0
->  =A0 =A0 =A0 =A0 =A0 =A0
-> > + \
-> > =A0 =A0 =A0 =A0}
-> >
-> > =A0void __init omap3_check_features(void)
-> > =A0{
-> > =A0 =A0 =A0 =A0u32 status;
-> >
-> > - =A0 =A0 =A0 omap3_features =3D 0;
-> > + =A0 =A0 =A0 omap_features =3D 0;
-> >
-> > =A0 =A0 =A0 =A0status =3D omap_ctrl_readl(OMAP3_CONTROL_OMAP_STATUS=
-);
-> >
-> > @@ -178,7 +178,7 @@ void __init omap3_check_features(void)
-> > =A0 =A0 =A0 =A0OMAP3_CHECK_FEATURE(status, NEON);
-> > =A0 =A0 =A0 =A0OMAP3_CHECK_FEATURE(status, ISP);
-> > =A0 =A0 =A0 =A0if (cpu_is_omap3630())
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_features |=3D OMAP3_HAS_192MHZ_=
-CLK;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_features |=3D OMAP_HAS_192MHZ_CL=
-K;
-> >
-> > =A0 =A0 =A0 =A0/*
-> > =A0 =A0 =A0 =A0 * TODO: Get additional info (where applicable) @@ -=
-294,7=20
-> > +294,7 @@ void __init omap4_check_revision(void)
-> > =A0}
-> >
-> > =A0#define OMAP3_SHOW_FEATURE(feat) =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
-> > - =A0 =A0 =A0 if (omap3_has_ ##feat()) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0\
-> > + =A0 =A0 =A0 if (omap_has_ ##feat()) =A0 =A0 =A0 =A0 \
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0printk(#feat" ");
-> >
-> > =A0void __init omap3_cpuinfo(void)
-> > @@ -314,20 +314,20 @@ void __init omap3_cpuinfo(void)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/*
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * AM35xx devices
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (omap3_has_sgx()) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (omap_has_sgx()) {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OM=
-AP3517_REV(rev);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "AM=
-3517");
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0} else {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Already set in om=
-ap3_check_revision() */
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "AM=
-3505");
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> > - =A0 =A0 =A0 } else if (omap3_has_iva() && omap3_has_sgx()) {
-> > + =A0 =A0 =A0 } else if (omap_has_iva() && omap_has_sgx()) {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* OMAP3430, OMAP3525, OMAP3515, OMA=
-P3503 devices */
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "OMAP3430/3530");
-> > - =A0 =A0 =A0 } else if (omap3_has_iva()) {
-> > + =A0 =A0 =A0 } else if (omap_has_iva()) {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP3525_REV(rev);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "OMAP3525");
-> > - =A0 =A0 =A0 } else if (omap3_has_sgx()) {
-> > + =A0 =A0 =A0 } else if (omap_has_sgx()) {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP3515_REV(rev);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(cpu_name, "OMAP3515");
-> > =A0 =A0 =A0 =A0} else {
-> > diff --git a/arch/arm/plat-omap/include/plat/cpu.h=20
-> > b/arch/arm/plat-omap/include/plat/cpu.h
-> > index 7514174..80dc8e0 100644
-> > --- a/arch/arm/plat-omap/include/plat/cpu.h
-> > +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> > @@ -434,28 +434,28 @@ int omap_chip_is(struct omap_chip_id oci);
-> > =A0void omap2_check_revision(void);
-> >
-> > =A0/*
-> > - * Runtime detection of OMAP3 features
-> > + * Runtime detection of OMAP features
-> > =A0*/
-> > -extern u32 omap3_features;
-> > +extern u32 omap_features;
-> >
-> > -#define OMAP3_HAS_L2CACHE =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(0) -#defi=
-ne=20
-> OMAP3_HAS_IVA =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> > BIT(1) -#define OMAP3_HAS_SGX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BI=
-T(2) -#define=20
-> > OMAP3_HAS_NEON =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 BIT(3) -#define=20
-> OMAP3_HAS_ISP =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> > BIT(4) -#define OMAP3_HAS_192MHZ_CLK =A0 =A0 =A0 =A0 =A0 BIT(5)
-> > +#define OMAP_HAS_L2CACHE =A0 =A0 =A0 =A0 =A0 =A0 =A0 BIT(0) #defin=
-e=20
-> OMAP_HAS_IVA =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-> > +BIT(1) #define OMAP_HAS_SGX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 BI=
-T(2) #define=20
-> > +OMAP_HAS_NEON =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(3) #define OM=
-AP_HAS_ISP=20
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-> > +BIT(4) #define OMAP_HAS_192MHZ_CLK =A0 =A0 =A0 =A0 =A0 =A0BIT(5)
-> >
-> > -#define OMAP3_HAS_FEATURE(feat,flag) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 \ -static=20
-> > inline unsigned int omap3_has_ ##feat(void) =A0 =A0 \
-> > +#define OMAP_HAS_FEATURE(feat, flag) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 \ static=20
-> > +inline unsigned int omap_has_ ##feat(void) =A0 =A0 =A0\
-> > =A0{ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
-> > - =A0 =A0 =A0 return (omap3_features & OMAP3_HAS_ ##flag); =A0 =A0\
-> > + =A0 =A0 =A0 return (omap_features & OMAP_HAS_ ##flag); =A0 =A0 =A0=
-\
-> > =A0} =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
-> >
-> > -OMAP3_HAS_FEATURE(l2cache, L2CACHE)
-> > -OMAP3_HAS_FEATURE(sgx, SGX)
-> > -OMAP3_HAS_FEATURE(iva, IVA)
-> > -OMAP3_HAS_FEATURE(neon, NEON)
-> > -OMAP3_HAS_FEATURE(isp, ISP)
-> > -OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-> > +OMAP_HAS_FEATURE(l2cache, L2CACHE)
-> > +OMAP_HAS_FEATURE(sgx, SGX)
-> > +OMAP_HAS_FEATURE(iva, IVA)
-> > +OMAP_HAS_FEATURE(neon, NEON)
-> > +OMAP_HAS_FEATURE(isp, ISP)
-> > +OMAP_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-> >
-> > =A0#endif
-> > --
-> > 1.6.3.3
-> >
- --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for your comments...
+
+[snip]
+
+> > +
+> > +/* Interrupt thread handler thread */
+> > +
+> > +static irqreturn_t omap_keypad_threaded(int irq, void *dev_id)
+> > +{
+> 
+> Why is iti threaded? I fo not see anything that will sleep.
+
+It was implemented based on previous comments...
+
+> 
+> > +	struct omap_keypad *keypad_data = dev_id;
+> > +	struct input_dev *input = keypad_data->input;
+> > +	unsigned char key_state[8];
+> > +	int col, row, code;
+> > +	u32 *new_state = (u32 *) key_state;
+> > +
+> > +	*new_state	 = __raw_readl(keypad_data->base +
+> > +			OMAP4_KBD_FULLCODE31_0);
+> > +	*(new_state + 1) = __raw_readl(keypad_data->base +
+> > +			OMAP4_KBD_FULLCODE63_32);
+> > +
+> > +	for (col = 0; col < keypad_data->cols; col++) {
+> > +		for (row = 0; row < keypad_data->rows; row++) {
+> > +			code = MATRIX_SCAN_CODE(row, col,
+> > +					keypad_data->row_shift);
+> > +			if (code < 0) {
+> > +				printk(KERN_INFO "Spurious key %d-%d\n",
+> > +						col, row);
+> > +				continue;
+> > +			}
+> 
+> MATRIX_SCAN_CODE() is static data. ISR is wrong place to report
+> incorrect values in keymap...
+
+Removed
+
+> 
+> > +			input_report_key(input, keypad_data->keycodes[code],
+> > +					key_state[col] & (1 << row));
+> > +		}
+> > +	}
+> > +
+> > +	memcpy(keypad_data->key_state, &key_state,
+> > +			sizeof(keypad_data->key_state));
+> > +
+> > +	/* enable interrupts */
+> > +	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
+> > +			keypad_data->base + OMAP4_KBD_IRQENABLE);
+> > +
+> > +	/* clear pending interrupts */
+> > +	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
+> > +			keypad_data->base + OMAP4_KBD_IRQSTATUS);
+> > +
+> > +	/* clear pending interrupts */
+> > +	return IRQ_HANDLED;
+> > +
+> > +}
+> > +
+> > +
+> > +static int __devinit omap_keypad_probe(struct platform_device *pdev)
+> > +{
+> > +	struct omap_device *od;
+> > +	struct omap_hwmod *oh;
+> > +	struct matrix_keypad_platform_data *pdata;
+> > +	struct input_dev *input_dev;
+> > +	const struct matrix_keymap_data *keymap_data;
+> > +	struct omap_keypad *keypad_data;
+> > +
+> > +	unsigned int status = 0, row_shift = 0, error = 0, length = 0, id = 0;
+> > +	unsigned short *keypad_codes;
+> > +
+> > +	int hw_mod_name_len = 16;
+> > +	char oh_name[hw_mod_name_len];
+> > +	char *name = "omap4-keypad";
+> > +
+> > +	length = snprintf(oh_name, hw_mod_name_len, "keyboard");
+> > +	WARN(length >= hw_mod_name_len,
+> > +		"String buffer overflow in keyboard device setup\n");
+> > +
+> > +	oh = omap_hwmod_lookup(oh_name);
+> > +	if (!oh)
+> > +		pr_err("Could not look up %s\n", oh_name);
+> > +
+> > +	pdata = kzalloc(sizeof(struct matrix_keypad_platform_data),
+> > +				GFP_KERNEL);
+> 
+> Why is it allocated?
+
+Moved to board file...
+
+> 
+> > +
+> > +	od = omap_device_build(name, id, oh, pdata,
+> > +				sizeof(struct matrix_keypad_platform_data),
+> > +				omap_keyboard_latency,
+> > +				ARRAY_SIZE(omap_keyboard_latency), 1);
+> > +	WARN(IS_ERR(od), "Could not build omap_device for %s %s\n",
+> > +		name, oh_name);
+> > +
+> > +	/* platform data */
+> > +	pdata = pdev->dev.platform_data;
+> 
+> Umm, here you are overriding pdata pointer... don't you leak memory
+> doing this?
+
+hwmod has been moved to board configuration so we need to get platform data
+
+> 
+> 
+> > +	if (!pdata) {
+> > +		dev_err(&pdev->dev, "no platform data defined\n");
+> > +		kfree(pdata);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	/* keymap data */
+> > +	keymap_data = pdata->keymap_data;
+> > +	if (!keymap_data) {
+> > +		dev_err(&pdev->dev, "no keymap data defined\n");
+> > +		kfree(keymap_data);
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	/* omap keypad data */
+> > +	row_shift = get_count_order(pdata->num_col_gpios);
+> > +	keypad_data = kzalloc(sizeof(struct omap_keypad), GFP_KERNEL);
+> > +	if (!keypad_data) {
+> > +		error = -ENOMEM;
+> > +		goto failed_free_platform;
+> > +	}
+> > +
+> > +	/* omap keypad codes */
+> > +	keypad_codes = kzalloc((pdata->num_row_gpios << row_shift) *
+> > +			sizeof(*keypad_codes), GFP_KERNEL);
+> 
+> Why is it al;loctaed separately? Can it be pickky-backed onto
+> keypad_data?
+
+Not getting the idea here... could you explain?
+
+> 
+> > +	if (!keypad_codes) {
+> > +		error = -ENOMEM;
+> > +		goto failed_free_data;
+> > +	}
+> > +
+> > +	/* input device allocation */
+> > +	input_dev = input_allocate_device();
+> > +	if (!input_dev) {
+> > +		error = -ENOMEM;
+> > +		goto failed_free_codes;
+> > +	}
+> > +
+> > +	/* base resource */
+> > +	keypad_data->base = oh->_rt_va;
+> > +	if (!keypad_data->base) {
+> 
+> 
+> You could probably check this earlier, before allocating stuff.
+
+Early means before input_allocate_device?
+
+> 
+> > +		error = -ENOMEM;
+> > +		goto failed_free_input;
+> > +	}
+> > +
+> > +	/* irq */
+> > +	keypad_data->irq = oh->mpu_irqs[0].irq;
+> > +	if (keypad_data->irq < 0) {
+> 
+> You could probably check this earlier, before allocating stuff.
+
+Early means before input_allocate_device?
+
+> 
+> > +		dev_err(&pdev->dev, "no keyboard irq assigned\n");
+> > +		error = keypad_data->irq;
+> > +		goto failed_free_base;
+> > +	}
+> > +
+> > +	/* threaded irq init */
+> > +	status = request_threaded_irq(keypad_data->irq, omap_keypad_interrupt,
+> > +			omap_keypad_threaded,
+> > +				IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+> > +			"omap4-keypad", keypad_data);
+> > +	if (status) {
+> > +		dev_err(&pdev->dev, "failed to register interrupt\n");
+> > +		error = -ENOMEM;
+> > +		goto failed_free_irq;
+> > +	}
+> > +
+> > +	keypad_data->input = input_dev;
+> > +	keypad_data->row_shift = row_shift;
+> > +	keypad_data->rows = pdata->num_row_gpios;
+> > +	keypad_data->cols = pdata->num_col_gpios;
+> > +	keypad_data->keycodes = keypad_codes;
+> > +
+> > +	input_dev->name = pdev->name;
+> > +	input_dev->id.bustype = BUS_HOST;
+> > +	input_dev->dev.parent = &pdev->dev;
+> > +	input_dev->id.vendor = 0x0001;
+> > +	input_dev->id.product = 0x0001;
+> > +	input_dev->id.version = 0x0100;
+> > +
+> > +	input_dev->keycode	= keypad_codes;
+> > +	input_dev->keycodesize	= sizeof(*keypad_codes);
+> 
+> You also need keycodemax so that keymap can be changed from userpsace.
+
+Added!
+
+> 
+> > +
+> > +	matrix_keypad_build_keymap(keymap_data, row_shift,
+> > +				   input_dev->keycode, input_dev->keybit);
+> > +
+> > +	__set_bit(EV_REP, input_dev->evbit);
+> > +	__set_bit(KEY_OK, input_dev->keybit);
+> 
+> Why KEY_OK is set up separately?
+
+In previous implementation manual set of bit was needed, now removed...
+
+> 
+> > +	__set_bit(EV_KEY, input_dev->evbit);
+> > +
+> > +	input_set_capability(input_dev, EV_MSC, MSC_SCAN);
+> 
+> You forgot to actualy report MSC_SCAN though.
+
+Should I remove it? I think I do need it only when KEY_UNKNOWN keys will be remapped, right?
+
+> 
+> > +	input_set_drvdata(input_dev, keypad_data);
+> > +
+> > +	status = input_register_device(keypad_data->input);
+> > +	if (status < 0) {
+> > +		dev_err(&pdev->dev, "failed to register input device\n");
+> > +		goto failed_free_device;
+> > +	}
+> > +
+> > +	omap_keypad_config(keypad_data);
+> > +
+> > +	platform_set_drvdata(pdev, keypad_data);
+> > +
+> > +	return 0;
+> > +
+> > +failed_free_device:
+> > +	input_unregister_device(keypad_data->input);
+> 
+> 	input_dev = NULL;
+> 
+> or you will try to free it later.
+
+Not getting the idea here... could you explain?
+
+> 
+> > +failed_free_irq:
+> > +	free_irq(keypad_data->irq, pdev);
+> > +failed_free_base:
+> > +	keypad_data->base = NULL;
+> > +failed_free_input:
+> > +	input_free_device(input_dev);
+> > +failed_free_codes:
+> > +	kfree(keypad_codes);
+> > +failed_free_data:
+> > +	kfree(keypad_data);
+> > +failed_free_platform:
+> > +	kfree(keymap_data);
+> > +	kfree(pdata);
+> > +	return error;
+> > +}
+> > +
+> > +static int __devexit omap_keypad_remove(struct platform_device *pdev)
+> > +{
+> > +	struct omap_keypad *keypad_data = platform_get_drvdata(pdev);
+> > +
+> > +	input_unregister_device(keypad_data->input);
+> > +	free_irq(keypad_data->irq, keypad_data);
+> 
+> Thsi should happen before unregistering input device, othersie there is
+> a change IRQ will arrive when input device is freed.
+
+Done!
+
+
+Best Regards
+Abraham
