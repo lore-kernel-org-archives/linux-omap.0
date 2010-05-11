@@ -1,92 +1,93 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: RE: [PATCH V2]omap: mux.c warning removal
-Date: Tue, 11 May 2010 16:00:23 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003B3209CCD@dbde02.ent.ti.com>
-References: <0680EC522D0CC943BC586913CF3768C003B31655C3@dbde02.ent.ti.com>
- <874oiflos4.fsf@deeprootsystems.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 1/1] omap-hsmmc.c: re-organize dma line population
+Date: Tue, 11 May 2010 13:52:34 +0300
+Message-ID: <p2g6ed0b2681005110352i9b05f6a6oc8dace4e61efc3db@mail.gmail.com>
+References: <1273566733-22572-1-git-send-email-sriram.m@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41557 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818Ab0EKKaf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 06:30:35 -0400
-In-Reply-To: <874oiflos4.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.152]:34805 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751545Ab0EKKwi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 06:52:38 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so1237604fgg.1
+        for <linux-omap@vger.kernel.org>; Tue, 11 May 2010 03:52:36 -0700 (PDT)
+In-Reply-To: <1273566733-22572-1-git-send-email-sriram.m@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Madhvapathi Sriram <sriram.m@ti.com>
+Cc: linux-omap@vger.kernel.org, madhu.cr@ti.com
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Monday, May 10, 2010 9:42 PM
-> To: Munegowda, Keshava
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: Re: [PATCH V2]omap: mux.c warning removal
-> 
-> "Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
-> 
-> > From: Keshava Munegowda <a0393220@ti.com>
-> >
-> > This patch removes the below warning
-> > arch/arm/mach-omap2/mux.c:52: warning: 'mux_phys' defined but not used
-> > The definition of variable mux_phys should be enclosed in the macro CONFIG_ARCH_OMAP3
-> >
-> > Signed-off-by: Keshava Munegowda <a0393220@ti.com>
-> 
-> Thanks, this version looks better.
-> 
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> 
-> 
-> One silly question though... is your a0....@ti.com address the one you
-> want as your From: and Signed-off-by?  Since the mail actually comes
-> from a more human readable address, I'm guessing that would be
-> preferred?  If so, create a ~/.gitconfig file and add this:
-> 
-> [user]
-> 	name = Keshava Munegowda
-> 	email = keshava_mgowda@ti.com
-> 
-> This way, all your local git commands will use this name/email in your
-> git commits, sign-offs etc.
-> 
-> 
- Thanks Kevin, I will keep this configuration.
- Keshava Munegowda
+On Tue, May 11, 2010 at 11:32 AM, Madhvapathi Sriram <sriram.m@ti.com> =
+wrote:
+> =A0- This moves the dma line population from omap_hsmmc.c to plat-oma=
+p/devices.c
+> =A0- This is done to keep platform specific code inside the platform =
+directory
+> =A0 rather than the host driver
+> =A0- This makes the porting work across OMAP platforms easier
+>
+> Signed-off-by: Madhvapathi Sriram <sriram.m@ti.com>
+> ---
+> =A0arch/arm/plat-omap/devices.c =A0| =A0 49 +++++++++++++++++++++++++=
++++++++++++++++-
+> =A0drivers/mmc/host/omap_hsmmc.c | =A0 35 +++++++--------------------=
+-
+> =A02 files changed, 57 insertions(+), 27 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/device=
+s.c
+> index 95677d1..a62b148 100644
+> --- a/arch/arm/plat-omap/devices.c
+> +++ b/arch/arm/plat-omap/devices.c
+> @@ -30,6 +30,7 @@
+> =A0#include <plat/mcbsp.h>
+> =A0#include <plat/dsp_common.h>
+> =A0#include <plat/omap44xx.h>
+> +#include <plat/dma.h>
+>
+> =A0#if =A0 =A0defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MOD=
+ULE)
+>
+> @@ -232,7 +233,7 @@ static inline void omap_init_mcpdm(void) {}
+> =A0#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) ||=
+ \
+> =A0 =A0 =A0 =A0defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP=
+_HS_MODULE)
+>
+> -#define OMAP_MMC_NR_RES =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A02
+> +#define OMAP_MMC_NR_RES =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A04
+>
+> =A0/*
+> =A0* Register MMC devices. Called from mach-omap1 and mach-omap2 devi=
+ce init.
+> @@ -255,6 +256,52 @@ int __init omap_mmc_add(const char *name, int id=
+, unsigned long base,
+> =A0 =A0 =A0 =A0res[0].flags =3D IORESOURCE_MEM;
+> =A0 =A0 =A0 =A0res[1].start =3D res[1].end =3D irq;
+> =A0 =A0 =A0 =A0res[1].flags =3D IORESOURCE_IRQ;
 
+You can just set .flags right here, no need to repeat in each switch ca=
+se:
+> +       res[2].flags =3D IORESOURCE_DMA;
+> +       res[3].flags =3D IORESOURCE_DMA;
 
-
-> 
-> 
-> 
-> 
-> 
-> 
-> > Index: linux-2.6/arch/arm/mach-omap2/mux.c
-> > ===================================================================
-> > --- linux-2.6.orig/arch/arm/mach-omap2/mux.c	2010-05-05 23:59:19.000000000 +0530
-> > +++ linux-2.6/arch/arm/mach-omap2/mux.c	2010-05-06 00:00:07.000000000 +0530
-> > @@ -49,7 +49,7 @@
-> >  	struct list_head	node;
-> >  };
-> >
-> > -static unsigned long mux_phys;
-> > +
-> >  static void __iomem *mux_base;
-> >
-> >  u16 omap_mux_read(u16 reg)
-> > @@ -373,6 +373,7 @@
-> >  #ifdef CONFIG_ARCH_OMAP3
-> >  static LIST_HEAD(muxmodes);
-> >  static DEFINE_MUTEX(muxmode_mutex);
-> > +static unsigned long mux_phys;
-> >
-> >  #ifdef CONFIG_OMAP_MUX
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> + =A0 =A0 =A0 /* Populate DMA lines based on the instance used. Rx fi=
+rst,Tx next*/
+> + =A0 =A0 =A0 switch (id) {
+> + =A0 =A0 =A0 case 0:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res[2].start =3D OMAP24XX_DMA_MMC1_RX;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res[2].end =3D OMAP24XX_DMA_MMC1_RX;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res[2].flags =3D IORESOURCE_DMA;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res[3].start =3D OMAP24XX_DMA_MMC1_TX;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res[3].end =3D OMAP24XX_DMA_MMC1_TX;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res[3].flags =3D IORESOURCE_DMA;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 case 1:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 res[2].start =3D OMAP24XX_DMA_MMC2_RX;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
