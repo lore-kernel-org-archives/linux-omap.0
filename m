@@ -1,40 +1,41 @@
-From: Ben Dooks <ben-linux@fluff.org>
-Subject: Re: [PATCH 2/4 v2] ks8851: Low level functions for read/write to
-	companion eeprom
-Date: Tue, 11 May 2010 02:23:54 +0100
-Message-ID: <20100511012353.GJ2589@trinity.fluff.org>
-References: <1273085155-1260-1-git-send-email-s-jan@ti.com> <1273085155-1260-3-git-send-email-s-jan@ti.com> <20100506.002012.27799102.davem@davemloft.net>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: [PATCH v3 0/3] OMAP4 Ethernet Controller Support
+Date: Mon, 10 May 2010 20:41:31 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DFD52D4@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from trinity.fluff.org ([89.16.178.74]:49912 "EHLO trinity.fluff.org"
+Received: from bear.ext.ti.com ([192.94.94.41]:38862 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751844Ab0EKBXz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 May 2010 21:23:55 -0400
-Content-Disposition: inline
-In-Reply-To: <20100506.002012.27799102.davem@davemloft.net>
+	id S1751750Ab0EKBlm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 21:41:42 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: s-jan@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, x0066660@ti.com, ben-linux@fluff.org, Tristram.Ha@micrel.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>
 
-On Thu, May 06, 2010 at 12:20:12AM -0700, David Miller wrote:
-> From: Sebastien Jan <s-jan@ti.com>
-> Date: Wed,  5 May 2010 20:45:53 +0200
-> 
-> > Low-level functions provide 16bits words read and write capability
-> > to ks8851 companion eeprom.
-> > 
-> > Signed-off-by: Sebastien Jan <s-jan@ti.com>
-> 
-> Applied.
 
-So I take it the patches that used the drivers/misc/eeprom/eeprom_93cx6.c
-are not going to be merged?
+Enable network chip Micrel KS8851 for OMAP4430 SDP
 
--- 
-Ben
+- Based on mainline version 2.6.34 rc7
+- Tested in OMAP4430 SDP
 
-Q:      What's a light-year?
-A:      One-third less calories than a regular year.
+Throughput measurements using nuttcp application:
+  11.9375 MB /  10.06 sec =    9.9519 Mbps 92 %TX 0 %RX 0 retrans 7.87 msRTT
+
+--
+
+All patches have been tagged as version 3
+
+[PATCH v3 1/3] OMAP4: SPI: Fix Driver Kconfig 
+[PATCH v3 2/3] OMAP4: Ethernet: KS8851 Board Support
+[PATCH v3 3/3] OMAP4: Networking: Defconfig Support
+
+--
+
+ arch/arm/configs/omap_4430sdp_defconfig |   57 +++++++++++++++++++++-
+ arch/arm/mach-omap2/board-4430sdp.c     |   82 ++++++++++++++++++++++++++++++++
+ drivers/spi/Kconfig                     |    6 +-
+ 3 files changed, 140 insertions(+), 5 deletions(-)
 
