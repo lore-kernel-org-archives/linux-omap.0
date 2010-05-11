@@ -1,57 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6] OMAP3: GPIO: Only enable WAKEUPEN for edge
- detection GPIOs
-Date: Tue, 11 May 2010 15:57:34 -0700
-Message-ID: <20100511225734.GK13931@atomide.com>
-References: <1272929177-22685-1-git-send-email-khilman@deeprootsystems.com>
- <1272929177-22685-3-git-send-email-khilman@deeprootsystems.com>
- <20100510211105.GI16460@atomide.com>
- <87vdaufr92.fsf@deeprootsystems.com>
+From: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Subject: Re: [PATCH 0/6] i2c-omap patches for 2.6.35 merge window
+Date: Wed, 12 May 2010 00:10:47 +0100
+Message-ID: <20100511231047.GB31325@fluff.org.uk>
+References: <20100511182854.15596.56293.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58537 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753357Ab0EKW5c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 18:57:32 -0400
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <87vdaufr92.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20100511182854.15596.56293.stgit-XB442sTQ5VIxQTnqJstS8Q@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Chunqiu Wang <cqwang@motorola.com>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100511 07:22]:
-> Tony Lindgren <tony@atomide.com> writes:
+On Tue, May 11, 2010 at 11:35:01AM -0700, Tony Lindgren wrote:
+> Hi all,
 > 
-> > * Kevin Hilman <khilman@deeprootsystems.com> [100503 16:28]:
-> >> From: Chunqiu Wang <cqwang@motorola.com>
-> >> 
-> >> According to the GPIO 'Wakeup and Interrupt' section of the TRM[1],
-> >> wake-up requests can only be generated on edge transitions.
-> >> 
-> >> Also for OMAP3, only edge GPIOs may lose interrupts when PER enters
-> >> RET/OFF state, this is addressed by gpio prepare|resume idle functions
-> >
-> > There's a generic solution to this problem. The solution is to temporarily
-> > set the level GPIO pins into edge for the duration of idle. Then
-> > they need to be set back to level after the system is woken up.
+> Here are the i2c-omap patches that we'd like to get in for 2.6.35.
 > 
-> Sure, but that doesn't change the need for this patch which is
-> a correctness fix.
+> I believe all of these patches have been posted earlier already
+> to the i2c list. They all have been merged into the linux-omap master
+> branch for testing. 
 > 
-> Adding wakeup support for level GPIOs would be a separate fix.
+> I've removed some duplicate Cc fields from the commit messages
+> for the obvious mailings lists and the people who will be merging
+> them.
+> 
+> Anyways, if no comments over the next few days, I'll reply to
+> this message with a pull request for Ben.
 
-OK, let's plan on merging these then. Want me to pick these,
-or pull from some branch?
+I've applied these to for-2635/i2c-omap to get them into -next
 
-Looks like they also need to be posted to LAKML too, and we
-should get them into linux-omap master for some testing.
+please keep the start of each commit the same, I prefer i2c-omap:
 
-Looks like these should not cause much of merge issues with
-the gpio platform init patches. It would be nice to get those
-merged too if possible.
+thanks.
+ 
+> Regards,
+> 
+> Tony
+> 
+> ---
+> 
+> Alexander Shishkin (2):
+>       omap: i2c: make errata 1.153 workaround a separate function
+>       omap: i2c: add a timeout to the busy waiting
+> 
+> Kalle Jokiniemi (1):
+>       i2c-omap: add mpu wake up latency constraint in i2c
+> 
+> Santosh Shilimkar (1):
+>       omap: i2c: Add i2c support on omap4 platform
+> 
+> manjugk manjugk (2):
+>       OMAP2/3: I2C: Errata ID i207: Clear wrong RDR interrupt
+>       OMAP3: I2C: Clean up Errata 1p153 handling
+> 
+> 
+>  arch/arm/plat-omap/i2c.c      |   39 ++++--
+>  drivers/i2c/busses/i2c-omap.c |  265 ++++++++++++++++++++++++++++++++---------
+>  include/linux/i2c-omap.h      |    9 +
+>  3 files changed, 246 insertions(+), 67 deletions(-)
+>  create mode 100644 include/linux/i2c-omap.h
+> 
+> -- 
+> Signature
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Regards,
+-- 
+Ben (ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/)
 
-Tony
+  'a smiley only costs 4 bytes'
