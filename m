@@ -1,101 +1,37 @@
-From: Manjunatha GK <manjugk@ti.com>
-Subject: [PATCH v3] OMAP3: Registering sgx device and it's platform data
-Date: Tue, 11 May 2010 12:24:59 +0530
-Message-ID: <1273560899-4449-1-git-send-email-manjugk@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59822 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933045Ab0EKGyr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 02:54:47 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: fix OOPS in omap_i2c_unidle() during probe
+Date: Tue, 11 May 2010 09:54:07 +0300
+Message-ID: <20100511095407.cb44ef8d.jhnikula@gmail.com>
+References: <1269339176-17479-1-git-send-email-ext-mika.1.westerberg@nokia.com>
+	<alpine.DEB.2.00.1003310427180.14436@utopia.booyaka.com>
+	<20100331152700.17695375.jhnikula@gmail.com>
+	<n2m6ed0b2681004160247o7cddd774sd199ea0eb51c9946@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <n2m6ed0b2681004160247o7cddd774sd199ea0eb51c9946-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Mika Westerberg <ext-mika.1.westerberg-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Cory Maccarrone <darkstar6262-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Preshit Agarwal <preshit.agarwal@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@ti.com>, Hemanth V <hemanthv@ti.com>
 
-The SGX powervr_device is registered with it's platform specific
-data to provide information about setting constraint through
-omap_pm_set_min_bus_tput.
+On Fri, 16 Apr 2010 12:47:50 +0300
+Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Signed-off-by: Preshit Agarwal <preshit.agarwal@ti.com>
-Signed-off-by: Manjunatha GK <manjugk@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Mike Turquette <mturquette@ti.com>
-Cc: Hemanth V <hemanthv@ti.com>
----
- arch/arm/mach-omap2/devices.c                  |   26 ++++++++++++++++++++++-
- arch/arm/mach-omap2/include/mach/omap_sgxdef.h |   11 ++++++++++
- 2 files changed, 35 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/mach-omap2/include/mach/omap_sgxdef.h
+> >> Tested-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> Uhm why does this patch (or Tony's version) doesn't reach mainline for
+> so long? It's critical for all OMAPs except the very old ones.
+> 
+> If it helps:
+> Tested-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> 
+> > Tested-by: Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 20fa76e..aabbf7b 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -26,7 +26,7 @@
- #include <plat/mux.h>
- #include <mach/gpio.h>
- #include <plat/mmc.h>
--
-+#include <mach/omap_sgxdef.h>
- #include "mux.h"
- 
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-@@ -791,6 +791,28 @@ static inline void omap_hdq_init(void)
- static inline void omap_hdq_init(void) {}
- #endif
- 
-+struct sgx_platform_data omap_sgx_data = {
-+#ifdef CONFIG_PM
-+	.set_min_bus_tput = omap_pm_set_min_bus_tput,
-+#else
-+	.set_min_bus_tput = NULL,
-+#endif
-+};
-+
-+static struct platform_device powervr_device = {
-+	.name            = "pvrsrvkm",
-+	.id              = -1,
-+	.dev            = {
-+	.platform_data = &omap_sgx_data,
-+       }
-+};
-+
-+static void omap_init_sgx(void)
-+{
-+       (void) platform_device_register(&powervr_device);
-+}
-+
-+
- /*-------------------------------------------------------------------------*/
- 
- static int __init omap2_init_devices(void)
-@@ -805,7 +827,7 @@ static int __init omap2_init_devices(void)
- 	omap_hdq_init();
- 	omap_init_sti();
- 	omap_init_sha1_md5();
--
-+	omap_init_sgx();
- 	return 0;
- }
- arch_initcall(omap2_init_devices);
-diff --git a/arch/arm/mach-omap2/include/mach/omap_sgxdef.h b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
-new file mode 100644
-index 0000000..5d90a6a
---- /dev/null
-+++ b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
-@@ -0,0 +1,11 @@
-+#ifndef OMAP_SGXDEF_H
-+#define OMAP_SGXDEF_H
-+
-+#include <plat/omap-pm.h>
-+
-+struct sgx_platform_data {
-+	void(*set_min_bus_tput)(struct device *dev, u8 agent_id,
-+							unsigned long r);
-+};
-+
-+#endif
+Ping? Mike or Tony, can you resend the patch just in case.
+
+Reminder: 2.6.34 doesn't boot on OMAP without this patch.
+
+
 -- 
-1.6.3.3
-
+Jarkko
