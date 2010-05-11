@@ -1,140 +1,124 @@
 From: "Arce, Abraham" <x0066660@ti.com>
-Subject: [PATCH v3 2/3] OMAP4: Ethernet: KS8851 Board Support
-Date: Mon, 10 May 2010 20:42:47 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DFD52D8@dlee03.ent.ti.com>
+Subject: [PATCH v3 3/3] OMAP4: Networking: Defconfig Support
+Date: Mon, 10 May 2010 20:43:16 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043DFD52D9@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47364 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756794Ab0EKBm4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 21:42:56 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46198 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756794Ab0EKBnY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 May 2010 21:43:24 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>
 
-Enable Micrel KS8851 SPI network chip for OMAP4430
+Enable KS8851 SPI support +
+
+ Networking Support
+  - Packet Socket
+  - TCP/IP
+
+ Network Filesystems
+  - NFS Client
+  - Root Filesystem on NFS
 
 Signed-off-by: Abraham Arce <x0066660@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   81 +++++++++++++++++++++++++++++++++++
- 1 files changed, 81 insertions(+), 0 deletions(-)
+ arch/arm/configs/omap_4430sdp_defconfig |   57 +++++++++++++++++++++++++++++-
+ 1 files changed, 55 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index b88f28c..be7a786 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -18,6 +18,7 @@
- #include <linux/io.h>
- #include <linux/gpio.h>
- #include <linux/usb/otg.h>
-+#include <linux/spi/spi.h>
+diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
+index a96bca2..d87a349 100644
+--- a/arch/arm/configs/omap_4430sdp_defconfig
++++ b/arch/arm/configs/omap_4430sdp_defconfig
+@@ -343,7 +343,34 @@ CONFIG_BINFMT_MISC=y
+ #
+ # CONFIG_PM is not set
+ CONFIG_ARCH_SUSPEND_POSSIBLE=y
+-# CONFIG_NET is not set
++CONFIG_NET=y
++
++#
++# Networking options
++#
++CONFIG_PACKET=y
++CONFIG_XFRM=y
++CONFIG_INET=y
++CONFIG_IP_FIB_HASH=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_IP_PNP_RARP=y
++CONFIG_INET_XFRM_MODE_TRANSPORT=y
++CONFIG_INET_XFRM_MODE_TUNNEL=y
++CONFIG_INET_XFRM_MODE_BEET=y
++CONFIG_INET_LRO=y
++CONFIG_INET_DIAG=y
++CONFIG_INET_TCP_DIAG=y
++CONFIG_TCP_CONG_CUBIC=y
++CONFIG_DEFAULT_TCP_CONG="cubic"
++# CONFIG_IPV6 is not set
++
++#
++# Network testing
++#
++# CONFIG_WIRELESS is not set
++
  
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -32,6 +33,75 @@
- #include <asm/hardware/gic.h>
- #include <asm/hardware/cache-l2x0.h>
+ #
+ # Device Drivers
+@@ -386,6 +413,13 @@ CONFIG_HAVE_IDE=y
+ # CONFIG_ATA is not set
+ # CONFIG_MD is not set
+ # CONFIG_PHONE is not set
++CONFIG_NETDEVICES=y
++CONFIG_NET_ETHERNET=y
++CONFIG_MII=y
++CONFIG_KS8851=y
++# CONFIG_NETDEV_1000 is not set
++# CONFIG_NETDEV_10000 is not set
++# CONFIG_WLAN is not set
  
-+#define ETH_KS8851_IRQ			34
-+#define ETH_KS8851_POWER_ON		48
-+#define ETH_KS8851_QUART		138
+ #
+ # Input device support
+@@ -457,7 +491,13 @@ CONFIG_HW_RANDOM=y
+ # CONFIG_RAW_DRIVER is not set
+ # CONFIG_TCG_TPM is not set
+ # CONFIG_I2C is not set
+-# CONFIG_SPI is not set
++CONFIG_SPI=y
++CONFIG_SPI_MASTER=y
 +
-+static struct spi_board_info sdp4430_spi_board_info[] __initdata = {
-+	{
-+		.modalias               = "ks8851",
-+		.bus_num                = 1,
-+		.chip_select            = 0,
-+		.max_speed_hz           = 24000000,
-+		.irq                    = ETH_KS8851_IRQ,
-+	},
-+};
-+
-+static int omap_ethernet_init(void)
-+{
-+	int status;
-+
-+	/* Request of GPIO lines */
-+
-+	status = gpio_request(ETH_KS8851_POWER_ON, "eth_power");
-+	if (status) {
-+		pr_err("Cannot request GPIO %d\n", ETH_KS8851_POWER_ON);
-+		return status;
-+	}
-+
-+	status = gpio_request(ETH_KS8851_QUART, "quart");
-+	if (status) {
-+		pr_err("Cannot request GPIO %d\n", ETH_KS8851_QUART);
-+		goto error1;
-+	}
-+
-+	status = gpio_request(ETH_KS8851_IRQ, "eth_irq");
-+	if (status) {
-+		pr_err("Cannot request GPIO %d\n", ETH_KS8851_IRQ);
-+		goto error2;
-+	}
-+
-+	/* Configuration of requested GPIO lines */
-+
-+	status = gpio_direction_output(ETH_KS8851_POWER_ON, 1);
-+	if (status) {
-+		pr_err("Cannot set output GPIO %d\n", ETH_KS8851_IRQ);
-+		goto error3;
-+	}
-+
-+	status = gpio_direction_output(ETH_KS8851_QUART, 1);
-+	if (status) {
-+		pr_err("Cannot set output GPIO %d\n", ETH_KS8851_QUART);
-+		goto error3;
-+	}
-+
-+	status = gpio_direction_input(ETH_KS8851_IRQ);
-+	if (status) {
-+		pr_err("Cannot set input GPIO %d\n", ETH_KS8851_IRQ);
-+		goto error3;
-+	}
-+
-+	return 0;
-+
-+error3:
-+	gpio_free(ETH_KS8851_IRQ);
-+error2:
-+	gpio_free(ETH_KS8851_QUART);
-+error1:
-+	gpio_free(ETH_KS8851_POWER_ON);
-+	return status;
-+}
-+
- static struct platform_device sdp4430_lcd_device = {
- 	.name		= "sdp4430_lcd",
- 	.id		= -1,
-@@ -113,6 +183,8 @@ static struct omap_musb_board_data musb_board_data = {
++#
++# SPI Master Controller Drivers
++#
++CONFIG_SPI_OMAP24XX=y
  
- static void __init omap_4430sdp_init(void)
- {
-+	int status;
-+
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
- 	omap_serial_init();
- 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
-@@ -120,6 +192,15 @@ static void __init omap_4430sdp_init(void)
- 	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
- 	if (!cpu_is_omap44xx())
- 		usb_musb_init(&musb_board_data);
-+
-+	status = omap_ethernet_init();
-+	if (status) {
-+		pr_err("Ethernet initialization failed: %d\n", status);
-+	} else {
-+		sdp4430_spi_board_info[0].irq = gpio_to_irq(ETH_KS8851_IRQ);
-+		spi_register_board_info(sdp4430_spi_board_info,
-+				ARRAY_SIZE(sdp4430_spi_board_info));
-+	}
- }
+ #
+ # PPS support
+@@ -634,6 +674,19 @@ CONFIG_MISC_FILESYSTEMS=y
+ # CONFIG_ROMFS_FS is not set
+ # CONFIG_SYSV_FS is not set
+ # CONFIG_UFS_FS is not set
++CONFIG_NETWORK_FILESYSTEMS=y
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3=y
++CONFIG_NFS_V3_ACL=y
++CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
++CONFIG_LOCKD=y
++CONFIG_LOCKD_V4=y
++CONFIG_NFS_ACL_SUPPORT=y
++CONFIG_NFS_COMMON=y
++CONFIG_SUNRPC=y
++CONFIG_SUNRPC_GSS=y
++CONFIG_RPCSEC_GSS_KRB5=y
  
- static void __init omap_4430sdp_map_io(void)
+ #
+ # Partition Types
 -- 
 1.5.4.3
 
