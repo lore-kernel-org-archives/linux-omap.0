@@ -1,119 +1,94 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export OMAP
-	data
-Date: Tue, 11 May 2010 17:15:28 +0300
-Message-ID: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/6] OMAP3: GPIO: Only enable WAKEUPEN for edge detection GPIOs
+Date: Tue, 11 May 2010 07:27:21 -0700
+Message-ID: <87vdaufr92.fsf@deeprootsystems.com>
+References: <1272929177-22685-1-git-send-email-khilman@deeprootsystems.com>
+	<1272929177-22685-3-git-send-email-khilman@deeprootsystems.com>
+	<20100510211105.GI16460@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>
-Cc: Russell King <linux@arm.linux.org.uk>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, Ambresh <a0393775@ti.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Paul Mundt <lethal@linux-sh.org>, santosh.shilimkar@ti.com, Andrew Morton <akpm@linux-foundation.org>, felipe.balbi@nokia.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:34679 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754148Ab0EKO1e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 10:27:34 -0400
+Received: by vws17 with SMTP id 17so1096647vws.19
+        for <linux-omap@vger.kernel.org>; Tue, 11 May 2010 07:27:34 -0700 (PDT)
+In-Reply-To: <20100510211105.GI16460@atomide.com> (Tony Lindgren's message of "Mon\, 10 May 2010 14\:11\:05 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Chunqiu Wang <cqwang@motorola.com>
 
-Hello all,
+Tony Lindgren <tony@atomide.com> writes:
 
-Here is the version 5 of the change to export OMAP data to userspace
-(name, revision, id code, production id and die id).
+> * Kevin Hilman <khilman@deeprootsystems.com> [100503 16:28]:
+>> From: Chunqiu Wang <cqwang@motorola.com>
+>> 
+>> According to the GPIO 'Wakeup and Interrupt' section of the TRM[1],
+>> wake-up requests can only be generated on edge transitions.
+>> 
+>> Also for OMAP3, only edge GPIOs may lose interrupts when PER enters
+>> RET/OFF state, this is addressed by gpio prepare|resume idle functions
+>
+> There's a generic solution to this problem. The solution is to temporarily
+> set the level GPIO pins into edge for the duration of idle. Then
+> they need to be set back to level after the system is woken up.
 
-Basically, this version is still attempting to create a new file under /proc.
-It is the /proc/socinfo, which should be used to export bits which are SoC specific
-(not CPU related, nor machine related).
+Sure, but that doesn't change the need for this patch which is
+a correctness fix.
 
-So, differences between previous version are:
-- merged patch 02/04 with 03/04 to avoid compilation breakages.
-- simplified the seq_file usage by using the single_open and single_release functions
-- exported a function to register a seq_operation .show callback
-- adapted the changes accordingly
+Adding wakeup support for level GPIOs would be a separate fix.
 
-As usual, comments are welcome.
+Kevin
 
-BR,
 
--------------------------------------------------------------------------------
-v4:
-
-Here is the patch set to export OMAP id code, production id and die id.
-The history of this change is as follows:
-
-1. First attempt tried adding those data under sysfs node. Original patch by
-Peter De Schrijver [1]. Then, it was suggested to move it to debugfs, which was
-rejected as this info is actually needed in production systems.
-
-2. Then it has been moved to /proc/cpuinfo [2]. Then, it was suggested to do
-not add this kind of info there, as it is not really CPU data.
-
-Now, I'm sending this version which will introduce first the /proc/socinfo.
-Then, following patches will add OMAP data into that node. And finally,
-will add OMAP id, production and die id code.
-
-Just for reference, I'm also pasting the previous 0/4 message:
-
--------------------------------------------------------------------------------
-v3:
-I'm resending this series with minor change in the subject prefix of patch 4/4.
-Removed the PM: prefix. Everything else is same. So, I kept the v3 prefix as well.
-
-And now v3 of this series. Basically a minor change wrt string manipulation.
-No need to use strlen in so many places. Previous log for reference:
-
--------------------------------------------------------------------------------
-v2:
-
-Here is the version 2 of this series. Now die id is protected using
-same x86 protection mechanism to hide x86 product number. Besides,
-a compilation Kconfig option has been added for DIE ID as well.
-
-Here is previous PATCH 0/4 message:
-
--------------------------------------------------------------------------------
-v1:
-
-This series is to continue what has been discussed several weeks ago
-wrt IDCODE patch. Original patch was made by Peter and discussion is here:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17553.html
-
-So, the conclusion was that IDCODE info is useful even in production systems,
-and for that debugfs is not a good choice to export it. One suggestion was to
-add it under /proc/cpuinfo. However this entry nowadays exports only ARM related
-information.
-
-So this series does the trick by extending the ARM /proc/cpuinfo to include
-soc info data. There are a few ways to add a hook for soc specific data. But
-I've decided to implement it via the simplest way I found. Basically it is
-same thing which is done for system_rev, system_serial_low and system_serial_high.
-Then, now we have system_soc_info, which is printed only if there is something
-useful there.
-
-As usual, comments are welcome.
-
--------------------------------------------------------------------------------
-BR,
-
-Eduardo Valentin (3):
-  procfs: Introduce socinfo under /proc
-  OMAP: export OMAP info under /proc/socinfo
-  OMAP3: export chip IDCODE, Production ID and Die ID
-
- Documentation/filesystems/proc.txt  |    1 +
- Documentation/kernel-parameters.txt |    2 +
- arch/arm/Kconfig                    |    1 +
- arch/arm/mach-omap1/id.c            |   31 ++++++++++---
- arch/arm/mach-omap2/Kconfig         |   10 ++++
- arch/arm/mach-omap2/id.c            |   65 +++++++++++++++++++++++++---
- fs/proc/Kconfig                     |    7 +++
- fs/proc/Makefile                    |    1 +
- fs/proc/socinfo.c                   |   80 +++++++++++++++++++++++++++++++++++
- include/linux/socinfo.h             |   17 +++++++
- 10 files changed, 202 insertions(+), 13 deletions(-)
- create mode 100644 fs/proc/socinfo.c
- create mode 100644 include/linux/socinfo.h
+>
+>  
+>> [1] Section 25.5.3.1 OMAP34xx_ES3.1_TRM_V_Q
+>> 
+>> Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
+>> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>> ---
+>>  arch/arm/plat-omap/gpio.c |   14 ++++++++++++--
+>>  1 files changed, 12 insertions(+), 2 deletions(-)
+>> 
+>> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+>> index 678fd08..4d43cda 100644
+>> --- a/arch/arm/plat-omap/gpio.c
+>> +++ b/arch/arm/plat-omap/gpio.c
+>> @@ -724,7 +724,11 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+>>  							 OMAP4_GPIO_IRQWAKEN0);
+>>  			}
+>>  		} else {
+>> -			if (trigger != 0)
+>> +			/*
+>> +			 * GPIO wakeup request can only be generated on edge
+>> +			 * transitions
+>> +			 */
+>> +			if (trigger & IRQ_TYPE_EDGE_BOTH)
+>>  				__raw_writel(1 << gpio, bank->base
+>>  					+ OMAP24XX_GPIO_SETWKUENA);
+>>  			else
+>> @@ -734,7 +738,13 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+>>  	}
+>>  	/* This part needs to be executed always for OMAP34xx */
+>>  	if (cpu_is_omap34xx() || (bank->non_wakeup_gpios & gpio_bit)) {
+>> -		if (trigger != 0)
+>> +		/*
+>> +		 * Log the edge gpio and manually trigger the IRQ
+>> +		 * after resume if the input level changes
+>> +		 * to avoid irq lost during PER RET/OFF mode
+>> +		 * Applies for omap2 non-wakeup gpio and all omap3 gpios
+>> +		 */
+>> +		if (trigger & IRQ_TYPE_EDGE_BOTH)
+>>  			bank->enabled_non_wakeup_gpios |= gpio_bit;
+>>  		else
+>>  			bank->enabled_non_wakeup_gpios &= ~gpio_bit;
+>> -- 
+>> 1.7.0.2
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
