@@ -1,75 +1,55 @@
-From: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH 0/6] i2c-omap patches for 2.6.35 merge window
-Date: Wed, 12 May 2010 00:10:47 +0100
-Message-ID: <20100511231047.GB31325@fluff.org.uk>
-References: <20100511182854.15596.56293.stgit@baageli.muru.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 6/7] omap: init the gpio pinmux for mmc
+Date: Tue, 11 May 2010 16:13:06 -0700
+Message-ID: <20100511231306.GM13931@atomide.com>
+References: <1271745212-4474-1-git-send-email-stanley.miao@windriver.com>
+ <1271745212-4474-7-git-send-email-stanley.miao@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55106 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074Ab0EKXNE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 19:13:04 -0400
 Content-Disposition: inline
-In-Reply-To: <20100511182854.15596.56293.stgit-XB442sTQ5VIxQTnqJstS8Q@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1271745212-4474-7-git-send-email-stanley.miao@windriver.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Stanley.Miao" <stanley.miao@windriver.com>
+Cc: linux-omap@vger.kernel.org, hvaibhav@ti.com, srk@ti.com, anuj.aggarwal@ti.com
 
-On Tue, May 11, 2010 at 11:35:01AM -0700, Tony Lindgren wrote:
-> Hi all,
+* Stanley.Miao <stanley.miao@windriver.com> [100419 23:20]:
+> There is two gpio for mmc use, one is for card detecting, another is
+> used for checking write protect. Intialize its pinmux in case the bootloader
+> doesn't set it.
 > 
-> Here are the i2c-omap patches that we'd like to get in for 2.6.35.
-> 
-> I believe all of these patches have been posted earlier already
-> to the i2c list. They all have been merged into the linux-omap master
-> branch for testing. 
-> 
-> I've removed some duplicate Cc fields from the commit messages
-> for the obvious mailings lists and the people who will be merging
-> them.
-> 
-> Anyways, if no comments over the next few days, I'll reply to
-> this message with a pull request for Ben.
-
-I've applied these to for-2635/i2c-omap to get them into -next
-
-please keep the start of each commit the same, I prefer i2c-omap:
-
-thanks.
- 
-> Regards,
-> 
-> Tony
-> 
+> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 > ---
+>  arch/arm/mach-omap2/devices.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
 > 
-> Alexander Shishkin (2):
->       omap: i2c: make errata 1.153 workaround a separate function
->       omap: i2c: add a timeout to the busy waiting
-> 
-> Kalle Jokiniemi (1):
->       i2c-omap: add mpu wake up latency constraint in i2c
-> 
-> Santosh Shilimkar (1):
->       omap: i2c: Add i2c support on omap4 platform
-> 
-> manjugk manjugk (2):
->       OMAP2/3: I2C: Errata ID i207: Clear wrong RDR interrupt
->       OMAP3: I2C: Clean up Errata 1p153 handling
-> 
-> 
->  arch/arm/plat-omap/i2c.c      |   39 ++++--
->  drivers/i2c/busses/i2c-omap.c |  265 ++++++++++++++++++++++++++++++++---------
->  include/linux/i2c-omap.h      |    9 +
->  3 files changed, 246 insertions(+), 67 deletions(-)
->  create mode 100644 include/linux/i2c-omap.h
-> 
-> -- 
-> Signature
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 23e4d77..df9c62a 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -591,6 +591,13 @@ static inline void omap_hsmmc_reset(void) {}
+>  static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+>  			int controller_nr)
+>  {
+> +	if (mmc_controller->slots[0].switch_pin > 0)
+> +		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
+> +					OMAP_PIN_INPUT_PULLUP);
+> +	if (mmc_controller->slots[0].gpio_wp > 0)
+> +		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
+> +					OMAP_PIN_INPUT_PULLUP);
+> +
+>  	if (cpu_is_omap2420() && controller_nr == 0) {
+>  		omap_cfg_reg(H18_24XX_MMC_CMD);
+>  		omap_cfg_reg(H15_24XX_MMC_CLKI);
 
--- 
-Ben (ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/)
+The problem I see with this patch is that it attempts to mux
+even for the GPIO pins on the companion chips, such as twl4030.
 
-  'a smiley only costs 4 bytes'
+Got any ideas on how to prevent that?
+
+Tony
