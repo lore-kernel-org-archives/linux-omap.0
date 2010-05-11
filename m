@@ -1,102 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/7] omap hsmmc: fix the hsmmc driver for am3517.
-Date: Tue, 11 May 2010 16:26:56 -0700
-Message-ID: <20100511232656.GO13931@atomide.com>
-References: <1271745212-4474-1-git-send-email-stanley.miao@windriver.com>
- <1271745212-4474-8-git-send-email-stanley.miao@windriver.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/6] OMAP3: GPIO: Only enable WAKEUPEN for edge detection GPIOs
+Date: Tue, 11 May 2010 16:27:06 -0700
+Message-ID: <87fx1yrpdh.fsf@deeprootsystems.com>
+References: <1272929177-22685-1-git-send-email-khilman@deeprootsystems.com>
+	<1272929177-22685-3-git-send-email-khilman@deeprootsystems.com>
+	<20100510211105.GI16460@atomide.com>
+	<87vdaufr92.fsf@deeprootsystems.com>
+	<20100511225734.GK13931@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59833 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796Ab0EKX0z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 19:26:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1271745212-4474-8-git-send-email-stanley.miao@windriver.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:46566 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570Ab0EKX1K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 19:27:10 -0400
+Received: by pvh11 with SMTP id 11so98199pvh.19
+        for <linux-omap@vger.kernel.org>; Tue, 11 May 2010 16:27:09 -0700 (PDT)
+In-Reply-To: <20100511225734.GK13931@atomide.com> (Tony Lindgren's message of "Tue\, 11 May 2010 15\:57\:34 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Stanley.Miao" <stanley.miao@windriver.com>
-Cc: linux-omap@vger.kernel.org, hvaibhav@ti.com, srk@ti.com, anuj.aggarwal@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+-cqwang address which is bouncing
 
-Some requests to make this more future proof.
+Tony Lindgren <tony@atomide.com> writes:
 
-* Stanley.Miao <stanley.miao@windriver.com> [100419 23:20]:
-> AM3517 don't have the register OMAP343X_CONTROL_PBIAS_LITE and the regulators
-> like "vmmc", so we set a noop "set_power" function for it.
-> 
-> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
-> ---
->  arch/arm/mach-omap2/hsmmc.c |   32 ++++++++++++++++++++++++--------
->  1 files changed, 24 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index 9ad2295..5f46797 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -139,6 +139,12 @@ static void hsmmc23_before_set_reg(struct device *dev, int slot,
->  	}
->  }
->  
-> +static int am3517_mmc_set_power(struct device *dev, int slot, int power_on,
-> +								int vdd)
-> +{
-> +	return 0;
-> +}
-> +
+> * Kevin Hilman <khilman@deeprootsystems.com> [100511 07:22]:
+>> Tony Lindgren <tony@atomide.com> writes:
+>> 
+>> > * Kevin Hilman <khilman@deeprootsystems.com> [100503 16:28]:
+>> >> From: Chunqiu Wang <cqwang@motorola.com>
+>> >> 
+>> >> According to the GPIO 'Wakeup and Interrupt' section of the TRM[1],
+>> >> wake-up requests can only be generated on edge transitions.
+>> >> 
+>> >> Also for OMAP3, only edge GPIOs may lose interrupts when PER enters
+>> >> RET/OFF state, this is addressed by gpio prepare|resume idle functions
+>> >
+>> > There's a generic solution to this problem. The solution is to temporarily
+>> > set the level GPIO pins into edge for the duration of idle. Then
+>> > they need to be set back to level after the system is woken up.
+>> 
+>> Sure, but that doesn't change the need for this patch which is
+>> a correctness fix.
+>> 
+>> Adding wakeup support for level GPIOs would be a separate fix.
+>
+> OK, let's plan on merging these then. Want me to pick these,
+> or pull from some branch?
 
-Please rename this to nop_mmc_set_power or similar. Other omaps may
-need it too.
+You can pull from the gpio-2.6.35 branch in my tree.
 
->  static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC] __initdata;
->  
->  void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
-> @@ -150,7 +156,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
->  	if (cpu_is_omap2430()) {
->  		control_pbias_offset = OMAP243X_CONTROL_PBIAS_LITE;
->  		control_devconf1_offset = OMAP243X_CONTROL_DEVCONF1;
-> -	} else {
-> +	} else if (!cpu_is_omap3517() && !cpu_is_omap3505()) {
->  		control_pbias_offset = OMAP343X_CONTROL_PBIAS_LITE;
->  		control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
->  	}
+> Looks like they also need to be posted to LAKML too, and we
+> should get them into linux-omap master for some testing.
 
-Let's get rid of multiple cpu_is_omapxxxx tests please. Could you please
-update this along the lines of something like this:
+Oops, meant to cc l-a-k.  Will repost with l-a-k in Cc.
 
-#define HSMMC_HAS_PBIAS		(1 << 0)
-#define HSMMC_HAS_WHATEVER	(1 << 1)
-...
+Kevin
 
-	if (!(cpu_is_omap3517() || cpu_is_omap3505())
-		mmc->slots[i].features |= HSMMC_HAS_PBIAS;
-
-> @@ -216,12 +222,25 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
->  		 */
->  		mmc->slots[0].ocr_mask = c->ocr_mask;
->  
-> +		if (!cpu_is_omap3517() && !cpu_is_omap3505()) {
-> +			switch (c->mmc) {
-> +			case 1:
-> +				/* on-chip level shifting via PBIAS0/PBIAS1 */
-> +				mmc->slots[0].before_set_reg = hsmmc1_before_set_reg;
-> +				mmc->slots[0].after_set_reg = hsmmc1_after_set_reg;
-> +				break;
-> +			case 2:
-> +			case 3:
-> +				/* off-chip level shifting, or none */
-> +				mmc->slots[0].before_set_reg = hsmmc23_before_set_reg;
-> +				mmc->slots[0].after_set_reg = NULL;
-> +				break;
-> +			}
-> +		} else /* cpu_is_omap3517() || cpu_is_omap3505() */
-> +			mmc->slots[0].set_power = am3517_mmc_set_power;
-> +
-
-Then you can test for that flag here too. When new omaps get added, it
-just a question of setting the features flags right.
-
-Regards,
-
-Tony
+> Looks like these should not cause much of merge issues with
+> the gpio platform init patches. It would be nice to get those
+> merged too if possible.
+>
+> Regards,
+>
+> Tony
