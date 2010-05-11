@@ -1,83 +1,82 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC] [PATCH 1/3] OMAP4: Keyboard Controller Support
-Date: Tue, 11 May 2010 14:39:53 -0700
-Message-ID: <87632ut8wm.fsf@deeprootsystems.com>
-References: <27F9C60D11D683428E133F85D2BB4A53043D9EE7F5@dlee03.ent.ti.com>
-	<20100421065550.GL4364@core.coreip.homeip.net>
-	<27F9C60D11D683428E133F85D2BB4A53043DFD5320@dlee03.ent.ti.com>
-	<27F9C60D11D683428E133F85D2BB4A53043DFD5323@dlee03.ent.ti.com>
-	<20100511044156.GA21299@core.coreip.homeip.net>
-	<27F9C60D11D683428E133F85D2BB4A53043DFD532E@dlee03.ent.ti.com>
-	<20100511054552.GA1714@core.coreip.homeip.net>
-	<87sk5yebh8.fsf@deeprootsystems.com>
-	<20100511164136.GA7396@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f204.google.com ([209.85.222.204]:59204 "EHLO
-	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751184Ab0EKVj4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 17:39:56 -0400
-In-Reply-To: <20100511164136.GA7396@core.coreip.homeip.net> (Dmitry Torokhov's message of "Tue\, 11 May 2010 09\:41\:37 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Subject: [PATCH] MMC: OMAP HS-MMC: convert to dev_pm_ops
+Date: Tue, 11 May 2010 14:57:16 -0700
+Message-ID: <1273615036-4516-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, Matt Fleming <matt@console-pimps.org>, Tony Lindgren <tony@atomide.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Arce, Abraham" <x0066660@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+Convert PM operations to use dev_pm_ops.  This will facilitate
+the runtime PM coversion which will add to dev_pm_ops hooks.
 
-> On Tue, May 11, 2010 at 07:53:23AM -0700, Kevin Hilman wrote:
->> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
->> 
->> > On Tue, May 11, 2010 at 12:03:44AM -0500, Arce, Abraham wrote:
->> >> Hi again Dmitry,
->> >> 
->> >> > No worries, although at first I was surprised that Trilok spoke exactly
->> >> > the same words I did ;)
->> >> > 
->> >> 
->> >> :)
->> >> 
->> >> > > > > > +
->> >> > > > > > +/* Interrupt thread handler thread */
->> >> > > > > > +
->> >> > > > > > +static irqreturn_t omap_keypad_threaded(int irq, void *dev_id)
->> >> > > > > > +{
->> >> > > > >
->> >> > > > > Why is iti threaded? I fo not see anything that will sleep.
->> >> > >
->> >> > >
->> >> > > It was implemented based on previous comments...
->> >> > >
->> >> > 
->> >> > Would you point me to that comment? Like I said, I do not see anything
->> >> > that would possibly sleep in this routine so you don't need to use
->> >> > threaded interrupt.
->> >> 
->> >> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26352.html
->> >> 
->> >
->> > Thanks.
->> >
->> > I think Kevin meant "use theaded IRQ, wherever possible" [if we need
->> > to sleep in interrupt handler].
->> 
->> Actually, even interrupts that don't sleep can use threaded IRQs.  I
->> prefer to see threaded IRQs wherever possible.  Especially since we're
->> moving towards a world where all interrupts are run with interrupts
->> disabled, using threaded IRQs minimizes interrupts-off critical
->> sections.
->> 
->
-> I think in this case threaded IRQ would just add unnecessary overhead.
-> There are no scanning delays, just a few register reads and writes.
-> Input core will take some cycles propagating the events but it disables
-> interrupts anyway. Setting up a separate thread and scheduling does not
-> make much sense here.
->
-> Also I am not sure if arches with large number of interrupts would want
-> to move to all threaded interrupts model.
+Note that dev_pm_ops version of the suspend hook no longer takes a
+'state' argument.  However, the MMC core function mmc_suspend_host()
+still takes a 'state' argument, but it is unused, so a dummy
+state variable was created to pass to the MMC core.
 
-OK, it's your call for this subsystem.
+In the future, the MMC core should be converted to drop this
+state argument and the rest of the MMC drivers could be easily
+converted to dev_pm_ops as well.
 
-Kevin
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+Applies on v2.6.34-rc6
+
+ drivers/mmc/host/omap_hsmmc.c |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index e9caf69..8112d54 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2258,10 +2258,12 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
+ }
+ 
+ #ifdef CONFIG_PM
+-static int omap_hsmmc_suspend(struct platform_device *pdev, pm_message_t state)
++static int omap_hsmmc_suspend(struct device *dev)
+ {
+ 	int ret = 0;
++	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
++	pm_message_t state = PMSG_SUSPEND; /* unused by MMC core */
+ 
+ 	if (host && host->suspended)
+ 		return 0;
+@@ -2310,9 +2312,10 @@ static int omap_hsmmc_suspend(struct platform_device *pdev, pm_message_t state)
+ }
+ 
+ /* Routine to resume the MMC device */
+-static int omap_hsmmc_resume(struct platform_device *pdev)
++static int omap_hsmmc_resume(struct device *dev)
+ {
+ 	int ret = 0;
++	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
+ 
+ 	if (host && !host->suspended)
+@@ -2363,13 +2366,17 @@ clk_en_err:
+ #define omap_hsmmc_resume		NULL
+ #endif
+ 
+-static struct platform_driver omap_hsmmc_driver = {
+-	.remove		= omap_hsmmc_remove,
++static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+ 	.suspend	= omap_hsmmc_suspend,
+ 	.resume		= omap_hsmmc_resume,
++};
++
++static struct platform_driver omap_hsmmc_driver = {
++	.remove		= omap_hsmmc_remove,
+ 	.driver		= {
+ 		.name = DRIVER_NAME,
+ 		.owner = THIS_MODULE,
++		.pm = &omap_hsmmc_dev_pm_ops,
+ 	},
+ };
+ 
+-- 
+1.7.0.2
+
