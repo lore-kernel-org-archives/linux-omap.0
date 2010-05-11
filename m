@@ -1,53 +1,83 @@
-From: "Arce, Abraham" <x0066660@ti.com>
-Subject: RE: [PATCH v3 0/3] OMAP4 Ethernet Controller Support
-Date: Tue, 11 May 2010 16:30:12 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E08F5FF@dlee03.ent.ti.com>
-References: <27F9C60D11D683428E133F85D2BB4A53043DFD52D4@dlee03.ent.ti.com>
- <20100511195148.GE13931@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFC] [PATCH 1/3] OMAP4: Keyboard Controller Support
+Date: Tue, 11 May 2010 14:39:53 -0700
+Message-ID: <87632ut8wm.fsf@deeprootsystems.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043D9EE7F5@dlee03.ent.ti.com>
+	<20100421065550.GL4364@core.coreip.homeip.net>
+	<27F9C60D11D683428E133F85D2BB4A53043DFD5320@dlee03.ent.ti.com>
+	<27F9C60D11D683428E133F85D2BB4A53043DFD5323@dlee03.ent.ti.com>
+	<20100511044156.GA21299@core.coreip.homeip.net>
+	<27F9C60D11D683428E133F85D2BB4A53043DFD532E@dlee03.ent.ti.com>
+	<20100511054552.GA1714@core.coreip.homeip.net>
+	<87sk5yebh8.fsf@deeprootsystems.com>
+	<20100511164136.GA7396@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43330 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752406Ab0EKVaV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 17:30:21 -0400
-In-Reply-To: <20100511195148.GE13931@atomide.com>
-Content-Language: en-US
+Received: from mail-pz0-f204.google.com ([209.85.222.204]:59204 "EHLO
+	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184Ab0EKVj4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 May 2010 17:39:56 -0400
+In-Reply-To: <20100511164136.GA7396@core.coreip.homeip.net> (Dmitry Torokhov's message of "Tue\, 11 May 2010 09\:41\:37 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "Arce, Abraham" <x0066660@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony,
+Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
 
-> > Enable network chip Micrel KS8851 for OMAP4430 SDP
-> >
-> > - Based on mainline version 2.6.34 rc7
-> > - Tested in OMAP4430 SDP
-> >
-> > Throughput measurements using nuttcp application:
-> >   11.9375 MB /  10.06 sec =    9.9519 Mbps 92 %TX 0 %RX 0 retrans 7.87 msRTT
-> >
-> > --
-> >
-> > All patches have been tagged as version 3
-> >
-> > [PATCH v3 1/3] OMAP4: SPI: Fix Driver Kconfig
-> > [PATCH v3 2/3] OMAP4: Ethernet: KS8851 Board Support
-> > [PATCH v3 3/3] OMAP4: Networking: Defconfig Support
-> >
-> > --
-> >
-> >  arch/arm/configs/omap_4430sdp_defconfig |   57 +++++++++++++++++++++-
-> >  arch/arm/mach-omap2/board-4430sdp.c     |   82
-> ++++++++++++++++++++++++++++++++
-> >  drivers/spi/Kconfig                     |    6 +-
-> >  3 files changed, 140 insertions(+), 5 deletions(-)
-> 
-> I've applied all three into omap for-next branch.
+> On Tue, May 11, 2010 at 07:53:23AM -0700, Kevin Hilman wrote:
+>> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+>> 
+>> > On Tue, May 11, 2010 at 12:03:44AM -0500, Arce, Abraham wrote:
+>> >> Hi again Dmitry,
+>> >> 
+>> >> > No worries, although at first I was surprised that Trilok spoke exactly
+>> >> > the same words I did ;)
+>> >> > 
+>> >> 
+>> >> :)
+>> >> 
+>> >> > > > > > +
+>> >> > > > > > +/* Interrupt thread handler thread */
+>> >> > > > > > +
+>> >> > > > > > +static irqreturn_t omap_keypad_threaded(int irq, void *dev_id)
+>> >> > > > > > +{
+>> >> > > > >
+>> >> > > > > Why is iti threaded? I fo not see anything that will sleep.
+>> >> > >
+>> >> > >
+>> >> > > It was implemented based on previous comments...
+>> >> > >
+>> >> > 
+>> >> > Would you point me to that comment? Like I said, I do not see anything
+>> >> > that would possibly sleep in this routine so you don't need to use
+>> >> > threaded interrupt.
+>> >> 
+>> >> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26352.html
+>> >> 
+>> >
+>> > Thanks.
+>> >
+>> > I think Kevin meant "use theaded IRQ, wherever possible" [if we need
+>> > to sleep in interrupt handler].
+>> 
+>> Actually, even interrupts that don't sleep can use threaded IRQs.  I
+>> prefer to see threaded IRQs wherever possible.  Especially since we're
+>> moving towards a world where all interrupts are run with interrupts
+>> disabled, using threaded IRQs minimizes interrupts-off critical
+>> sections.
+>> 
+>
+> I think in this case threaded IRQ would just add unnecessary overhead.
+> There are no scanning delays, just a few register reads and writes.
+> Input core will take some cycles propagating the events but it disables
+> interrupts anyway. Setting up a separate thread and scheduling does not
+> make much sense here.
+>
+> Also I am not sure if arches with large number of interrupts would want
+> to move to all threaded interrupts model.
 
-Thanks!
+OK, it's your call for this subsystem.
 
-Best Regards
-Abraham
+Kevin
