@@ -1,53 +1,58 @@
-From: Peter =?iso-8859-1?q?H=FCwe?= <PeterHuewe@gmx.de>
-Subject: Re: Buildfailure for omap3_defconfig due to patch OMAP: RX51: Add LCD Panel support
-Date: Wed, 12 May 2010 23:51:51 +0200
-Message-ID: <201005122351.51244.PeterHuewe@gmx.de>
-References: <201005122331.51347.PeterHuewe@gmx.de>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
+ OMAP data
+Date: Wed, 12 May 2010 15:24:24 -0700
+Message-ID: <20100512152424.803ea807.akpm@linux-foundation.org>
+References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:40488 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755920Ab0ELVvx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 17:51:53 -0400
-In-Reply-To: <201005122331.51347.PeterHuewe@gmx.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, santosh.shilimkar@ti.com, Ambresh <a0393775@ti.com>, felipe.balbi@nokia.com, Jouni Hogander <jouni.hogander@nokia.com>, Paul Mundt <lethal@linux-sh.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, jpihet@mvista.com, kalle.valo@iki.fi, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Unfortunately I can't get through the nokia mailfilter:
-Message_contained_possible_malicious_content_and_will_not_be_accepted._=
-If_you_consider_this_to_be_due_to_an_error_please_inform_the_intended_r=
-ecipients_by_sending_a_simple_e-
-mail_or_through_other_means/
+On Tue, 11 May 2010 17:15:28 +0300
+Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
 
-I get this reply even with a simple "hello your mail filter does not li=
-ke me"=20
-message :/
+> Here is the version 5 of the change to export OMAP data to userspace
+> (name, revision, id code, production id and die id).
+> 
+> Basically, this version is still attempting to create a new file under /proc.
+> It is the /proc/socinfo, which should be used to export bits which are SoC specific
+> (not CPU related, nor machine related).
+> 
+> So, differences between previous version are:
+> - merged patch 02/04 with 03/04 to avoid compilation breakages.
+> - simplified the seq_file usage by using the single_open and single_release functions
+> - exported a function to register a seq_operation .show callback
+> - adapted the changes accordingly
+> 
+> As usual, comments are welcome.
 
-Can somebody else please try to forward the message to Roger and Tomi?
+This changelog would be rather more useful if it was to show us some
+sample output from /proc/socinfo, perhaps accompanied with an
+explanation for people who aren't familar with this area of the kernel.
 
-Thanks,
-Peter
+I'd have thought that sysfs was an appropriate place for this info. 
+Perhaps under /sys/devices/platform?  Or /sys/devices/system?  Peter's
+original patch didn't tell us where in the hierarchy the file was
+placed, nor why it was placed there, not what its contents look like. 
+But crappy changelogs are the norm :(
+
+The objections stated in this email:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17630.html
+appear to still apply to this version of the patches?
+
+Kevin didn't explain why he said "Please export these via debugfs". 
+Tony didn't clearly explain why he said "I don't think we want to
+export unique chip identifiers by default".
 
 
-Am Mittwoch 12 Mai 2010 23:31:51 schrieb Peter H=FCwe:
-> Hi Roger,
->=20
-> I just wanted to inform you that your Patch
-> OMAP: RX51: Add LCD Panel support
->  (b499d77834ae292465f8d06bb0a88f1a647dfa1a) introduces a build failur=
-e for
->  the omap3_defconfig.
->=20
-> You can see the error message here:
-> http://kisskb.ellerman.id.au/kisskb/buildresult/2601981/
->=20
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So apart from having certain opinions regarding communication skills
+and wondering why people cc me on stuff without vaguely providing
+enough info for me to understand what they're thinking, I don't know
+what to make of it all :(
