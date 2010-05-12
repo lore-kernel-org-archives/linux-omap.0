@@ -1,112 +1,44 @@
-From: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Subject: [PATCH v3 1/2] ARM: McBSP: Fix request for irq in OMAP4
-Date: Wed, 12 May 2010 12:18:39 -0500
-Message-ID: <1273684720-16619-2-git-send-email-jorge.candelaria@ti.com>
-References: <1273684720-16619-1-git-send-email-jorge.candelaria@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44862 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756775Ab0ELRa0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 May 2010 13:30:26 -0400
-In-Reply-To: <1273684720-16619-1-git-send-email-jorge.candelaria@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Subject: Re: [PATCH 2/5] musb: use system DMA to fix Inventra DMA issue on
+ RTL-1.4
+Date: Wed, 12 May 2010 20:51:14 +0300
+Message-ID: <20100512175113.GA3285@gandalf>
+References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com>
+ <1273664979-493-2-git-send-email-ajay.gupta@ti.com>
+Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1273664979-493-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
 
-In OMAP4, there is only one irq line for TX and RX paths. Use
-the correct irq line to avoid errors at runtime.
+On Wed, May 12, 2010 at 05:19:36PM +0530, Ajay Kumar Gupta wrote:
+> MUSB RTL version 1.4 has a hardware issue when TX and RX DMA channels are
+> simultaneously enabled which results in DMA lockup.
 
-Also, request irq line only once (instead of requesting for TX
-and RX).
+I've seen it on rtl1.8 also if I remember correctly.
 
-Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
----
- arch/arm/mach-omap2/mcbsp.c |   12 ++++--------
- arch/arm/plat-omap/mcbsp.c  |   20 ++++++++++++--------
- 2 files changed, 16 insertions(+), 16 deletions(-)
+> Use system DMA for all RX channels as a workaround of this issue as this
+> will have minimal throughput overhead based on the fact that Rx transfers
+> are done in DMA mode-0 on OMAP34x/35x platforms.
+> 
+> Another approach to use PIO mode in opposite direction would increase the
+> cpu loading and thus using system DMA is preferred workaround.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 2f3cad6..c293370 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -187,32 +187,28 @@ static struct omap_mcbsp_platform_data omap44xx_mcbsp_pdata[] = {
- 		.phys_base      = OMAP44XX_MCBSP1_BASE,
- 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP1_RX,
- 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP1_TX,
--		.rx_irq         = INT_24XX_MCBSP1_IRQ_RX,
--		.tx_irq         = INT_24XX_MCBSP1_IRQ_TX,
-+		.tx_irq         = OMAP44XX_IRQ_MCBSP1,
- 		.ops            = &omap2_mcbsp_ops,
- 	},
- 	{
- 		.phys_base      = OMAP44XX_MCBSP2_BASE,
- 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP2_RX,
- 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP2_TX,
--		.rx_irq         = INT_24XX_MCBSP2_IRQ_RX,
--		.tx_irq         = INT_24XX_MCBSP2_IRQ_TX,
-+		.tx_irq         = OMAP44XX_IRQ_MCBSP2,
- 		.ops            = &omap2_mcbsp_ops,
- 	},
- 	{
- 		.phys_base      = OMAP44XX_MCBSP3_BASE,
- 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP3_RX,
- 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP3_TX,
--		.rx_irq         = INT_24XX_MCBSP3_IRQ_RX,
--		.tx_irq         = INT_24XX_MCBSP3_IRQ_TX,
-+		.tx_irq         = OMAP44XX_IRQ_MCBSP3,
- 		.ops            = &omap2_mcbsp_ops,
- 	},
- 	{
- 		.phys_base      = OMAP44XX_MCBSP4_BASE,
- 		.dma_rx_sync    = OMAP44XX_DMA_MCBSP4_RX,
- 		.dma_tx_sync    = OMAP44XX_DMA_MCBSP4_TX,
--		.rx_irq         = INT_24XX_MCBSP4_IRQ_RX,
--		.tx_irq         = INT_24XX_MCBSP4_IRQ_TX,
-+		.tx_irq         = OMAP44XX_IRQ_MCBSP4,
- 		.ops            = &omap2_mcbsp_ops,
- 	},
- };
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index e1d0440..6696eb6 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -724,14 +724,17 @@ int omap_mcbsp_request(unsigned int id)
- 			goto err_clk_disable;
- 		}
- 
--		init_completion(&mcbsp->rx_irq_completion);
--		err = request_irq(mcbsp->rx_irq, omap_mcbsp_rx_irq_handler,
-+		if (mcbsp->rx_irq) {
-+			init_completion(&mcbsp->rx_irq_completion);
-+			err = request_irq(mcbsp->rx_irq,
-+					omap_mcbsp_rx_irq_handler,
- 					0, "McBSP", (void *)mcbsp);
--		if (err != 0) {
--			dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
--					"for McBSP%d\n", mcbsp->rx_irq,
--					mcbsp->id);
--			goto err_free_irq;
-+			if (err != 0) {
-+				dev_err(mcbsp->dev, "Unable to request RX IRQ %d "
-+						"for McBSP%d\n", mcbsp->rx_irq,
-+						mcbsp->id);
-+				goto err_free_irq;
-+			}
- 		}
- 	}
- 
-@@ -781,7 +784,8 @@ void omap_mcbsp_free(unsigned int id)
- 
- 	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
- 		/* Free IRQs */
--		free_irq(mcbsp->rx_irq, (void *)mcbsp);
-+		if (mcbsp->rx_irq)
-+			free_irq(mcbsp->rx_irq, (void *)mcbsp);
- 		free_irq(mcbsp->tx_irq, (void *)mcbsp);
- 	}
- 
+I think falling back to pio is better than this patch. It will most
+likely be only one transfer. Another approach is to allocate dma
+channels on a transfer basis. This is way too big of a problem.
+
 -- 
-1.6.3.3
-
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
