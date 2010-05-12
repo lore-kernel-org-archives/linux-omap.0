@@ -1,43 +1,23 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Subject: Re: [RFC][PATCHv3 1/2] SFH7741: proximity sensor driver support
-Date: Wed, 12 May 2010 19:15:22 +0100
-Message-ID: <4BEAF03A.2070308@cam.ac.uk>
+Date: Wed, 12 May 2010 11:25:31 -0700
+Message-ID: <20100512182531.GB29366@core.coreip.homeip.net>
 References: <0680EC522D0CC943BC586913CF3768C003B320A007@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ppsw-43.csi.cam.ac.uk ([131.111.8.143]:36614 "EHLO
-	ppsw-43.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849Ab0ELSNu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 14:13:50 -0400
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:61064 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753856Ab0ELSZm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 14:25:42 -0400
+Content-Disposition: inline
 In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B320A007@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
 Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-
-I was wondering if you could provide a bit more detail on what this
-driver is actually doing?  My appologies if I have missed a
-previous explanation.  If so, please add a Documentation file
-to explain what is going on.
-
-The driver you have here does virtually nothing itself.  It takes
-both its source of interrupt and read function from platform
-data. Given the value is always 0 or 1, I'm guessing you are
-simply reading a gpio pin. That makes this effectively a button
-and doesn't require any specific code.  The fact it is a
-proximity sensor isn't relevant to anything other than perhaps
-the name.
-
-One or two other points inline below.
-
-Jonathan
-
-
-On 05/12/10 16:26, Datta, Shubhrajyoti wrote:
+On Wed, May 12, 2010 at 08:56:19PM +0530, Datta, Shubhrajyoti wrote:
 > 
 > Driver support for the proximity sensor SFH7741.
 > 
@@ -59,11 +39,15 @@ On 05/12/10 16:26, Datta, Shubhrajyoti wrote:
 >  	  To compile this driver as a module, choose M here: the
 >  	  module will be called pcap_keys.
 >  
-Why call the symbol SENSORS?  Guessing this is a left over from
-this being in hwmon at some point?
 > +config SENSORS_SFH7741
 > +	tristate "Proximity sensor"
+
+Better name for the user: "SFH7741 Proximity sensor"
+
 > +	default n
+
+Just drop "default" altogether - it will be the same as "default n"
+
 > +	help
 > +	  Say Y here if you want to use proximity sensor sfh7741.
 > +
@@ -89,6 +73,10 @@ this being in hwmon at some point?
 > @@ -0,0 +1,256 @@
 > +/*
 > + * sfh7741.c
+
+No file names in the sources please - they tend to get renamed and moved
+around.
+
 > + *
 > + * SFH7741 Proximity Driver
 > + *
@@ -177,6 +165,10 @@ this being in hwmon at some point?
 > +}
 > +static DEVICE_ATTR(state, S_IWUSR | S_IRUGO, show_prox_state, set_prox_state);
 > +
+
+Why is this needed in sysfs? Implement open and close methods for input
+device and be done with it.
+
 > +static ssize_t show_proximity(struct device *dev,
 > +			struct device_attribute *attr,
 > +			char *buf)
@@ -188,6 +180,10 @@ this being in hwmon at some point?
 > +	return sprintf(buf, "%u\n", proximity);
 > +}
 > +static DEVICE_ATTR(proximity, S_IRUGO, show_proximity, NULL);
+
+Why is this needed in sysfs? You can read current value via EVIOCGABS
+ioctl.
+
 > +
 > +static struct attribute *sfh7741_attributes[] = {
 > +	&dev_attr_state.attr,
@@ -209,12 +205,19 @@ this being in hwmon at some point?
 > +	char *desc = "sfh7741";
 > +
 > +	pr_info("SFH7741: Proximity sensor\n");
+
+Input core will emit message when input device is registered, that
+should be enough.
+
 > +
 > +	ddata = kzalloc(sizeof(struct sfh7741_drvdata),
 > +			GFP_KERNEL);
 > +	input = input_allocate_device();
 > +	if (!ddata || !input) {
 > +		dev_err(dev, "failed to allocate input device\n");
+
+You are leaking either ddata or input here.
+
 > +		return -ENOMEM;
 > +	}
 > +
@@ -228,6 +231,10 @@ this being in hwmon at some point?
 > +	if (!pdata->activate_func || !pdata->read_prox) {
 > +		dev_err(dev, "The activate and read func not allocated\n");
 > +		kfree(ddata);
+
+Leaging input. Also, why don't you check pdata valididty first, before
+allocating resources.
+
 > +		return -EINVAL;
 > +	}
 > +
@@ -238,13 +245,14 @@ this being in hwmon at some point?
 > +	__set_bit(EV_ABS, input->evbit);
 > +
 > +	input_set_abs_params(input, ABS_DISTANCE, 0, 1, 0, 0);
-If this is an absolute signal, why is it between 0 and 1, that looks
-rather binary to me.
 > +
 > +	error = input_register_device(input);
 > +	if (error) {
 > +		dev_err(dev, "Unable to register input device,error: %d\n"
 > +				, error);
+
+Wierd formatting, comma usually goes on previous line.
+
 > +		goto fail1;
 > +	}
 > +
@@ -254,6 +262,10 @@ rather binary to me.
 > +				sfh7741_isr,
 > +				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
 > +				| IRQF_ONESHOT,
+
+Edge-triggered IRQ in oneshot mode? This is quite wierd. Also, do you
+expect the read_prox() to sleep?
+
 > +				desc, ddata);
 > +	if (error) {
 > +		dev_err(dev, "Unable to claim irq %d; error %d\n",
@@ -268,6 +280,10 @@ rather binary to me.
 > +		mutex_destroy(&ddata->lock);
 > +	}
 > +
+
+I'd rather you dit not add driver specific interfaces, these sysfs
+attributes must go.
+
 > +	return 0;
 > +
 > +fail2:
@@ -275,6 +291,9 @@ rather binary to me.
 > +	platform_set_drvdata(pdev, NULL);
 > +fail1:
 > +	input_free_device(input);
+
+You may not call input_free_device() after input_unregister_device().
+
 > +	kfree(ddata);
 > +	return error;
 > +
@@ -391,3 +410,5 @@ rather binary to me.
 > +#endif
 > +
 
+-- 
+Dmitry
