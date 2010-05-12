@@ -1,100 +1,97 @@
-From: Xianghua Xiao <xiaoxianghua@gmail.com>
-Subject: Re: Issue with SCHED_FIFO app
-Date: Tue, 11 May 2010 21:46:20 -0500
-Message-ID: <AANLkTillkVE9Mmz3CiQyIF5yiZfpp13g18UCyMQSuZ_K@mail.gmail.com>
-References: <k2j54a292881005092139u7e120250hf530f8b688abdd22@mail.gmail.com>
-	 <t2s54a292881005092142h58ccae9ch2ecec665d06a7601@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [RFC] [PATCH 1/3] OMAP4: Keyboard Controller Support
+Date: Wed, 12 May 2010 11:04:08 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C545576B@dbde02.ent.ti.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043D9EE7F5@dlee03.ent.ti.com>
+	<20100421065550.GL4364@core.coreip.homeip.net>
+	<27F9C60D11D683428E133F85D2BB4A53043DFD5320@dlee03.ent.ti.com>
+	<27F9C60D11D683428E133F85D2BB4A53043DFD5323@dlee03.ent.ti.com>
+	<20100511044156.GA21299@core.coreip.homeip.net>
+	<27F9C60D11D683428E133F85D2BB4A53043DFD532E@dlee03.ent.ti.com>
+	<20100511054552.GA1714@core.coreip.homeip.net>
+	<87sk5yebh8.fsf@deeprootsystems.com>
+	<20100511164136.GA7396@core.coreip.homeip.net>
+ <87632ut8wm.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <t2s54a292881005092142h58ccae9ch2ecec665d06a7601@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <87632ut8wm.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "Arce, Abraham" <x0066660@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, May 9, 2010 at 11:42 PM, Suresh Rajashekara
-<suresh.raj+linuxomap@gmail.com> wrote:
-> Hi All,
->
-> I had a couple of application (with real time priority SCHED_FIFO)
-> which were working fine on 2.6.16. They have started behaving
-> differently on 2.6.29.
->
-> I will explain my problem briefly.
->
-> Application A (my main application) is scheduled with SCHED_FIFO and =
-priority 5.
-> Application B (watchdog application) is also scheduled with SCHED_FIF=
-O
-> but with priority 54.
->
-> A keeps putting the OMAP to sleep and wake up every 4 seconds and
-> again puts it to sleep.
-> B is supposed to be running every 1.25 seconds to kick watchdog, but
-> since A keeps OMAP in sleep for 4 seconds, it should run as soon as
-> OMAP wakes up.
->
-> Since B is of a higher priority, its supposed to run whenever the OMA=
-P
-> wakes up and then A should again put it back to sleep. This happens
-> perfectly on 2.6.16
->
-> On 2.6.29, B fails to run when OMAP wakes up and before A puts it bac=
-k
-> to sleep. B only runs if there is atleast 1.5 seconds of delay betwee=
-n
-> the awake-sleep cycle.
->
-> On searching the internet, I figured out that CFS (completely fair
-> scheduler) was introduced in 2.6.23, which makes some changes to the
-> RT bandwidth (and many users started facing issues with they
-> applications with SCHED_FIFO). Somewhere on the web I found that
-> issuing
->
-> echo -1 > /proc/sys/kernel/sched_rt_runtime_us
->
-> should disable the changes which affects the RT bandwidth. It actuall=
-y
-> did help to an extent in solving some other problem (not described
-> above. A's IOCTL call return was getting delayed), but this problem
-> still persists.
->
-> Any pointers to where I should look for the solution.
->
-> Is there a way I can revert back to the scheduler behavior as it was =
-on 2.6.16?
->
-> I have disabled CONFIG_GROUP_SCHED and also CONFIG_CGROUPS. I am usin=
-g
-> 2.6.29 on an OMAP1 platform.
->
-> Thanks in advance,
-> Suresh
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
+> Hilman
+> Sent: Wednesday, May 12, 2010 3:10 AM
+> To: Dmitry Torokhov
+> Cc: Arce, Abraham; linux-input@vger.kernel.org; linux-omap@vger.kernel.org
+> Subject: Re: [RFC] [PATCH 1/3] OMAP4: Keyboard Controller Support
+> 
+> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+> 
+> > On Tue, May 11, 2010 at 07:53:23AM -0700, Kevin Hilman wrote:
+> >> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+> >>
+> >> > On Tue, May 11, 2010 at 12:03:44AM -0500, Arce, Abraham wrote:
+> >> >> Hi again Dmitry,
+> >> >>
+> >> >> > No worries, although at first I was surprised that Trilok spoke exactly
+> >> >> > the same words I did ;)
+> >> >> >
+> >> >>
+> >> >> :)
+> >> >>
+> >> >> > > > > > +
+> >> >> > > > > > +/* Interrupt thread handler thread */
+> >> >> > > > > > +
+> >> >> > > > > > +static irqreturn_t omap_keypad_threaded(int irq, void *dev_id)
+> >> >> > > > > > +{
+> >> >> > > > >
+> >> >> > > > > Why is iti threaded? I fo not see anything that will sleep.
+> >> >> > >
+> >> >> > >
+> >> >> > > It was implemented based on previous comments...
+> >> >> > >
+> >> >> >
+> >> >> > Would you point me to that comment? Like I said, I do not see anything
+> >> >> > that would possibly sleep in this routine so you don't need to use
+> >> >> > threaded interrupt.
+> >> >>
+> >> >> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26352.html
+> >> >>
+> >> >
+> >> > Thanks.
+> >> >
+> >> > I think Kevin meant "use theaded IRQ, wherever possible" [if we need
+> >> > to sleep in interrupt handler].
+> >>
+> >> Actually, even interrupts that don't sleep can use threaded IRQs.  I
+> >> prefer to see threaded IRQs wherever possible.  Especially since we're
+> >> moving towards a world where all interrupts are run with interrupts
+> >> disabled, using threaded IRQs minimizes interrupts-off critical
+> >> sections.
+> >>
+> >
+> > I think in this case threaded IRQ would just add unnecessary overhead.
+> > There are no scanning delays, just a few register reads and writes.
+> > Input core will take some cycles propagating the events but it disables
+> > interrupts anyway. Setting up a separate thread and scheduling does not
+> > make much sense here.
+> >
+> > Also I am not sure if arches with large number of interrupts would want
+> > to move to all threaded interrupts model.
+> 
+> OK, it's your call for this subsystem.
+> 
+Abraham initial driver has top half (ISR) and bottom half (tasklet). With Threaded 
+IRQ, we can get rid-of tasklet and handle the bottom half in thread context.
+IIRC this was on of the intention of this new API.
 
-I have seen similar things while upgrading a 2.6.18 RT kernel to
-2.6.33 RT, actually exactly when CFS was introduced we found
-performance issues, in that, our main application(a multi-thread
-SCHED_FIFO / SCHED_RR mixed) runs with much higher overhead under CFS.
-In 2.6.18RT, the cpu usage is close to 0% and on newer kernel with
-CFS, the cpu usage is 12% when the application runs idle(i.e. sleeping
-and waiting for input, WCHAN shows sched_timeout or futex_wait). When
-the main application runs with real load, cpu usage gets much worse
-with CFS.
+Isn't this not good enough to use the threaded IRQ in this case.
 
-I tried various methods, including the one you described above, and
-made sure no sched_yield is used, etc, still the main application
-spends 6% cpu in user space and 6% in kernel space while at idle. I
-tried BFS schedule and it's actually better, about 8% in user space
-and 0.6% in kernel space while the application runs idle. Again with
-2.6.18 RT it's nearly 0% cpu usage.
-
-Xianghua
+Regards,
+Santosh
