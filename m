@@ -1,80 +1,79 @@
-From: "Aguirre, Sergio" <saaguirre-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH RFC 4/5] omap: 3430sdp: add ohci platform init
-Date: Wed, 12 May 2010 15:14:37 -0500
-Message-ID: <A24693684029E5489D1D202277BE8944555077E0@dlee02.ent.ti.com>
-References: <1270220652-29127-1-git-send-email-gadiyar@ti.com>
- <1270220652-29127-2-git-send-email-gadiyar@ti.com>
- <1270220652-29127-3-git-send-email-gadiyar@ti.com>
- <1270220652-29127-4-git-send-email-gadiyar@ti.com>
- <1270220652-29127-5-git-send-email-gadiyar@ti.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
+ 	DSP_MMUFAULT
+Date: Wed, 12 May 2010 16:09:53 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CB5B99E5@dlee06.ent.ti.com>
+References: <1271177720-1299-1-git-send-email-deepak.chitriki@ti.com>
+	 <496565EC904933469F292DDA3F1663E602CB215CB2@dlee06.ent.ti.com>
+ <AANLkTik46ilQPBGtsgWAMTlWrdWaaYTDC2aCYmf4iUIn@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1270220652-29127-5-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:32857 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756049Ab0ELVKD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 17:10:03 -0400
+In-Reply-To: <AANLkTik46ilQPBGtsgWAMTlWrdWaaYTDC2aCYmf4iUIn@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Gregory Clement <gclement00-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
-Anand,
+
+
+Hi,
 
 > -----Original Message-----
-> From: Gadiyar, Anand
-> Sent: Friday, April 02, 2010 10:04 AM
-> To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: David Brownell; Gregory Clement; Felipe Balbi; Aguirre, Sergio;
-> Gadiyar, Anand
-> Subject: [PATCH RFC 4/5] omap: 3430sdp: add ohci platform init
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Wednesday, May 12, 2010 2:39 PM
+> To: Guzman Lugo, Fernando
+> Cc: Chitriki Rudramuni, Deepak; linux-omap; Ameya Palande; Felipe
+> Contreras; Hiroshi Doyu; Ramirez Luna, Omar; Menon, Nishanth
+> Subject: Re: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
+> DSP_MMUFAULT
 > 
-> Add platform initialization code for OHCI on the 3430SDP.
+> Hi,
 > 
-> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/mach-omap2/board-3430sdp.c |    7 +++++++
->  1 file changed, 7 insertions(+)
+> I didn't touch this issue in the hopes that it would be fixed, but
+> seems it hasn't.
 > 
-> Index: linux-2.6/arch/arm/mach-omap2/board-3430sdp.c
-> ===================================================================
-> --- linux-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c
-> +++ linux-2.6/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -675,6 +675,12 @@ static const struct ehci_hcd_omap_platfo
->  	.reset_gpio_port[2]  = -EINVAL
->  };
+> On Mon, Apr 19, 2010 at 9:25 PM, Guzman Lugo, Fernando <x0095840@ti.com>
+> wrote:
+> > To sum up:
+> >
+> > - "DSPBRIDGE:Fix Kernel memory poison overwritten after DSP_MMUFAULT" is
+> only hidden the problem, we don't need aligned memory in this point, that
+> patch should be removed if it is already apply.
+> >
+> > - There is no need to create a patch for the issue because it is already
+> indirectly fix with "DSPBRIDGE: MMU-Fault debugging enhancements".
 > 
-> +static const struct ohci_hcd_omap_platform_data ohci_pdata __initconst =
-> {
-> +	.port_mode[0] = OMAP_OHCI_PORT_MODE_UNUSED,
-> +	.port_mode[1] = OMAP_OHCI_PORT_MODE_UNUSED,
-> +	.port_mode[2] = OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0,
-> +};
+> If you are referring to this patch:
+> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-
+> 2.6.git;a=commit;h=26ad62f03578a12e942d8bb86d0e52ef1afdee22
 
-I just noticed that this patch broke the 3430sdp build for me.
+Yes, that's the patch. Could you make sure that the GPT8 interrupt is generated before acking MMU fault interrupt?
 
-I see following error:
+> 
+> I tried to backport it to minimize the changes to a reproducible
+> test-case. I guess in the l-o branch the commit would be dd1fd0b.
+> Unfortunately that didn't fix the corruption. So I don't by that GPT8
+> theory.
+> 
+> > - we don't need allocate memory for dummy_va_addr, if some patch should
+> be created should be the patch to remove dummy_va_addr allocation and
+> deletion.
+> 
+> I tried that, and that actually fixes the corruption for me (passing 0
+> to hw_mmu_tlb_add).
 
-arch/arm/mach-omap2/board-3430sdp.c: In function 'omap_3430sdp_init':
-arch/arm/mach-omap2/board-3430sdp.c:840: error: ohci_pdata causes a section type conflict
-
-Removing the "const", to make it similar to ehci struct above it, solves the problem.
+I think first page DSP side memory is never mapped to MPU side, so even if the DSP corrupts that page it does not affect MPU side. However the right solution is the one explained before: avoid DSP continues executing after MMUfault.
 
 Regards,
-Sergio
+Fernando.
 
-> +
->  #ifdef CONFIG_OMAP_MUX
->  static struct omap_board_mux board_mux[] __initdata = {
->  	{ .reg_offset = OMAP_MUX_TERMINATOR },
-> @@ -817,6 +823,7 @@ static void __init omap_3430sdp_init(voi
->  	sdp3430_display_init();
->  	enable_board_wakeup_source();
->  	usb_ehci_init(&ehci_pdata);
-> +	usb_ohci_init(&ohci_pdata);
->  }
 > 
->  static void __init omap_3430sdp_map_io(void)
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> Felipe Contreras
