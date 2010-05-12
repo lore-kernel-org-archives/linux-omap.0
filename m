@@ -1,56 +1,393 @@
-From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/5] musb: use system DMA to fix Inventra DMA issue on
- RTL-1.4
-Date: Wed, 12 May 2010 23:26:15 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03216237DA@dbde02.ent.ti.com>
-References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-2-git-send-email-ajay.gupta@ti.com>,<20100512175113.GA3285@gandalf>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: Re: [RFC][PATCHv3 1/2] SFH7741: proximity sensor driver support
+Date: Wed, 12 May 2010 19:15:22 +0100
+Message-ID: <4BEAF03A.2070308@cam.ac.uk>
+References: <0680EC522D0CC943BC586913CF3768C003B320A007@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100512175113.GA3285@gandalf>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org" <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ppsw-43.csi.cam.ac.uk ([131.111.8.143]:36614 "EHLO
+	ppsw-43.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751849Ab0ELSNu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 14:13:50 -0400
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B320A007@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Felipe Balbi wrote:
-> On Wed, May 12, 2010 at 05:19:36PM +0530, Ajay Kumar Gupta wrote:
-> > MUSB RTL version 1.4 has a hardware issue when TX and RX DMA channels are
-> > simultaneously enabled which results in DMA lockup.
+Hi,
+
+I was wondering if you could provide a bit more detail on what this
+driver is actually doing?  My appologies if I have missed a
+previous explanation.  If so, please add a Documentation file
+to explain what is going on.
+
+The driver you have here does virtually nothing itself.  It takes
+both its source of interrupt and read function from platform
+data. Given the value is always 0 or 1, I'm guessing you are
+simply reading a gpio pin. That makes this effectively a button
+and doesn't require any specific code.  The fact it is a
+proximity sensor isn't relevant to anything other than perhaps
+the name.
+
+One or two other points inline below.
+
+Jonathan
+
+
+On 05/12/10 16:26, Datta, Shubhrajyoti wrote:
 > 
-> I've seen it on rtl1.8 also if I remember correctly.
+> Driver support for the proximity sensor SFH7741.
 > 
-
-I'm fairly certain that this is not the case with RTL1.8, and if it is I'm very
-much interested in getting to the bottom of it. Do you have a test case
-that reproduces the lockup? Or a description of your use-case, or
-a register dump at failure, or any other clues?
-
-> > Use system DMA for all RX channels as a workaround of this issue as this
-> > will have minimal throughput overhead based on the fact that Rx transfers
-> > are done in DMA mode-0 on OMAP34x/35x platforms.
-> >
-> > Another approach to use PIO mode in opposite direction would increase the
-> > cpu loading and thus using system DMA is preferred workaround.
-> >
-> > Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+>  drivers/input/misc/Kconfig    |    9 ++
+>  drivers/input/misc/Makefile   |    1 +
+>  drivers/input/misc/sfh7741.c  |  256 +++++++++++++++++++++++++++++++++++++++++
+>  include/linux/input/sfh7741.h |   39 ++++++
+>  4 files changed, 305 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/input/misc/sfh7741.c
+>  create mode 100644 include/linux/input/sfh7741.h
 > 
-> I think falling back to pio is better than this patch. It will most
-> likely be only one transfer. Another approach is to allocate dma
-> channels on a transfer basis. This is way too big of a problem.
+> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+> index 23140a3..ff30196 100644
+> --- a/drivers/input/misc/Kconfig
+> +++ b/drivers/input/misc/Kconfig
+> @@ -340,4 +340,13 @@ config INPUT_PCAP
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called pcap_keys.
+>  
+Why call the symbol SENSORS?  Guessing this is a left over from
+this being in hwmon at some point?
+> +config SENSORS_SFH7741
+> +	tristate "Proximity sensor"
+> +	default n
+> +	help
+> +	  Say Y here if you want to use proximity sensor sfh7741.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called sfh7741.
+> +
+>  endif
+> diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+> index 7e95a5d..5fea200 100644
+> --- a/drivers/input/misc/Makefile
+> +++ b/drivers/input/misc/Makefile
+> @@ -32,4 +32,5 @@ obj-$(CONFIG_INPUT_WINBOND_CIR)		+= winbond-cir.o
+>  obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
+>  obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
+>  obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
+> +obj-$(CONFIG_SENSORS_SFH7741)		+= sfh7741.o
+>  
+> diff --git a/drivers/input/misc/sfh7741.c b/drivers/input/misc/sfh7741.c
+> new file mode 100644
+> index 0000000..3f54e98
+> --- /dev/null
+> +++ b/drivers/input/misc/sfh7741.c
+> @@ -0,0 +1,256 @@
+> +/*
+> + * sfh7741.c
+> + *
+> + * SFH7741 Proximity Driver
+> + *
+> + * Copyright (C) 2010 Texas Instruments
+> + *
+> + * Author: Shubhrajyoti Datta <shubhrajyoti@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+> + */
+> +
+> +#include <linux/interrupt.h>
+> +#include <linux/pm.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/input.h>
+> +#include <linux/input/sfh7741.h>
+> +#include <linux/slab.h>
+> +
+> +struct sfh7741_drvdata {
+> +	struct input_dev *input;
+> +	int irq;
+> +	int prox_enable;
+> +	/* mutex for sysfs operations */
+> +	struct mutex lock;
+> +	void (*activate_func)(int state);
+> +	int (*read_prox)(void);
+> +};
+> +
+> +static irqreturn_t sfh7741_isr(int irq, void *dev_id)
+> +{
+> +	struct sfh7741_drvdata *ddata = dev_id;
+> +	int proximity;
+> +
+> +	proximity = ddata->read_prox();
+> +	input_report_abs(ddata->input, ABS_DISTANCE, proximity);
+> +	input_sync(ddata->input);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static ssize_t set_prox_state(struct device *dev,
+> +				struct device_attribute *attr,
+> +				const char *buf, size_t count)
+> +{
+> +	int state;
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +
+> +	if (sscanf(buf, "%u", &state) != 1)
+> +		return -EINVAL;
+> +
+> +	if ((state != 1) && (state != 0))
+> +		return -EINVAL;
+> +
+> +	ddata->activate_func(state);
+> +
+> +	mutex_lock(&ddata->lock);
+> +	if (state != ddata->prox_enable) {
+> +		if (state)
+> +			enable_irq(ddata->irq);
+> +		else
+> +			disable_irq(ddata->irq);
+> +		ddata->prox_enable = state;
+> +	}
+> +	mutex_unlock(&ddata->lock);
+> +	return strnlen(buf, count);
+> +}
+> +
+> +static ssize_t show_prox_state(struct device *dev,
+> +			struct device_attribute *attr,
+> +			char *buf)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	return sprintf(buf, "%u\n", ddata->prox_enable);
+> +}
+> +static DEVICE_ATTR(state, S_IWUSR | S_IRUGO, show_prox_state, set_prox_state);
+> +
+> +static ssize_t show_proximity(struct device *dev,
+> +			struct device_attribute *attr,
+> +			char *buf)
+> +{
+> +	int proximity;
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	proximity = ddata->read_prox();
+> +	return sprintf(buf, "%u\n", proximity);
+> +}
+> +static DEVICE_ATTR(proximity, S_IRUGO, show_proximity, NULL);
+> +
+> +static struct attribute *sfh7741_attributes[] = {
+> +	&dev_attr_state.attr,
+> +	&dev_attr_proximity.attr,
+> +	NULL
+> +};
+> +
+> +static const struct attribute_group sfh7741_attr_group = {
+> +	.attrs = sfh7741_attributes,
+> +};
+> +
+> +static int __devinit sfh7741_probe(struct platform_device *pdev)
+> +{
+> +	struct sfh7741_platform_data *pdata = pdev->dev.platform_data;
+> +	struct sfh7741_drvdata *ddata;
+> +	struct device *dev = &pdev->dev;
+> +	struct input_dev *input;
+> +	int  error;
+> +	char *desc = "sfh7741";
+> +
+> +	pr_info("SFH7741: Proximity sensor\n");
+> +
+> +	ddata = kzalloc(sizeof(struct sfh7741_drvdata),
+> +			GFP_KERNEL);
+> +	input = input_allocate_device();
+> +	if (!ddata || !input) {
+> +		dev_err(dev, "failed to allocate input device\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	input->name = pdev->name;
+> +	input->phys = "sfh7741/input0";
+> +	input->dev.parent = &pdev->dev;
+> +
+> +	input->id.bustype = BUS_HOST;
+> +	ddata->irq = pdata->irq;
+> +	ddata->prox_enable = pdata->prox_enable;
+> +	if (!pdata->activate_func || !pdata->read_prox) {
+> +		dev_err(dev, "The activate and read func not allocated\n");
+> +		kfree(ddata);
+> +		return -EINVAL;
+> +	}
+> +
+> +	ddata->activate_func = pdata->activate_func;
+> +	ddata->read_prox =  pdata->read_prox;
+> +
+> +	ddata->input = input;
+> +	__set_bit(EV_ABS, input->evbit);
+> +
+> +	input_set_abs_params(input, ABS_DISTANCE, 0, 1, 0, 0);
+If this is an absolute signal, why is it between 0 and 1, that looks
+rather binary to me.
+> +
+> +	error = input_register_device(input);
+> +	if (error) {
+> +		dev_err(dev, "Unable to register input device,error: %d\n"
+> +				, error);
+> +		goto fail1;
+> +	}
+> +
+> +	platform_set_drvdata(pdev, ddata);
+> +
+> +	error = request_threaded_irq(pdata->irq , NULL ,
+> +				sfh7741_isr,
+> +				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
+> +				| IRQF_ONESHOT,
+> +				desc, ddata);
+> +	if (error) {
+> +		dev_err(dev, "Unable to claim irq %d; error %d\n",
+> +			pdata->irq, error);
+> +		goto fail2;
+> +	}
+> +
+> +	mutex_init(&ddata->lock);
+> +	error = sysfs_create_group(&dev->kobj, &sfh7741_attr_group);
+> +	if (error) {
+> +		dev_err(dev, "failed to create sysfs entries\n");
+> +		mutex_destroy(&ddata->lock);
+> +	}
+> +
+> +	return 0;
+> +
+> +fail2:
+> +	input_unregister_device(input);
+> +	platform_set_drvdata(pdev, NULL);
+> +fail1:
+> +	input_free_device(input);
+> +	kfree(ddata);
+> +	return error;
+> +
+> +}
+> +
+> +static int __devexit sfh7741_remove(struct platform_device *pdev)
+> +{
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	struct device *dev = &pdev->dev;
+> +	mutex_destroy(&ddata->lock);
+> +	sysfs_remove_group(&dev->kobj, &sfh7741_attr_group);
+> +	free_irq(ddata->irq, (void *)ddata);
+> +	input_unregister_device(ddata->input);
+> +	kfree(ddata);
+> +	return 0;
+> +}
+> +
+> +#ifdef CONFIG_PM
+> +static int sfh7741_suspend(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	ddata->activate_func(0);
+> +	return 0;
+> +}
+> +
+> +static int sfh7741_resume(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	ddata->activate_func(1);
+> +	return 0;
+> +}
+> +
+> +static const struct dev_pm_ops sfh7741_pm_ops = {
+> +	.suspend	= sfh7741_suspend,
+> +	.resume		= sfh7741_resume,
+> +};
+> +#endif
+> +
+> +static struct platform_driver sfh7741_device_driver = {
+> +	.probe		= sfh7741_probe,
+> +	.remove		= __devexit_p(sfh7741_remove),
+> +	.driver		= {
+> +		.name	= "sfh7741",
+> +		.owner	= THIS_MODULE,
+> +#ifdef CONFIG_PM
+> +		.pm	= &sfh7741_pm_ops,
+> +#endif
+> +	}
+> +};
+> +
+> +static int __init sfh7741_init(void)
+> +{
+> +	return platform_driver_register(&sfh7741_device_driver);
+> +}
+> +
+> +static void __exit sfh7741_exit(void)
+> +{
+> +	platform_driver_unregister(&sfh7741_device_driver);
+> +}
+> +
+> +module_init(sfh7741_init);
+> +module_exit(sfh7741_exit);
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Texas Instruments");
+> +MODULE_DESCRIPTION("Proximity sensor SFH7741 driver");
+> +MODULE_ALIAS("platform:sfh7741");
+> +
+> diff --git a/include/linux/input/sfh7741.h b/include/linux/input/sfh7741.h
+> new file mode 100644
+> index 0000000..18868e0
+> --- /dev/null
+> +++ b/include/linux/input/sfh7741.h
+> @@ -0,0 +1,39 @@
+> +/*
+> + * sfh7741.h
+> + * SFH7741 Proximity sensor driver
+> + *
+> + * Copyright (C) 2010 Texas Instruments
+> + * Author: Shubhrajyoti D <shubhrajyoti@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#ifndef __SFH7741_H
+> +#define __SFH7741_H
+> +
+> +/*
+> + * struct sfh7741_platform_data - SFH7741 Platform data
+> + * @irq: IRQ assigned
+> + * @prox_enable: State of the sensor
+> + * @activate_func: function called to activate/deactivate the sensor
+> + * @read_prox: function to read the sensor output
+> + */
+> +struct sfh7741_platform_data {
+> +	int irq;
+> +	int prox_enable;
+> +	void (*activate_func)(int state);
+> +	int (*read_prox)(void);
+> +};
+> +
+> +#endif
+> +
 
-Which one is better depends on how many endpoints are doing,
-transfers in parallel, I suppose.
-
-I did post the a patch for the other approach (to fall back to PIO).
-I haven't received a response to that yet. I'm okay with either approach.
-
-
-- Anand--
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
