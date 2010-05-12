@@ -1,79 +1,42 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
- 	DSP_MMUFAULT
-Date: Wed, 12 May 2010 16:09:53 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CB5B99E5@dlee06.ent.ti.com>
-References: <1271177720-1299-1-git-send-email-deepak.chitriki@ti.com>
-	 <496565EC904933469F292DDA3F1663E602CB215CB2@dlee06.ent.ti.com>
- <AANLkTik46ilQPBGtsgWAMTlWrdWaaYTDC2aCYmf4iUIn@mail.gmail.com>
+From: Peter =?iso-8859-1?q?H=FCwe?= <PeterHuewe@gmx.de>
+Subject: Buildfailure for omap3_defconfig due to patch OMAP: RX51: Add LCD Panel support
+Date: Wed, 12 May 2010 23:31:51 +0200
+Message-ID: <201005122331.51347.PeterHuewe@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32857 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756049Ab0ELVKD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 17:10:03 -0400
-In-Reply-To: <AANLkTik46ilQPBGtsgWAMTlWrdWaaYTDC2aCYmf4iUIn@mail.gmail.com>
-Content-Language: en-US
+Received: from mail.gmx.net ([213.165.64.20]:46219 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757894Ab0ELVbx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 May 2010 17:31:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Cc: tomi.valkeinen@nokia.com, roger.quadros@nokia.com, tony@atomide.com, khilman@deeprootsystems.com, paul@pwsan.com, jpihet@mvista.com, kalle.valo@iki.fi, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
+Hi Roger,
 
+I just wanted to inform you that your Patch
+OMAP: RX51: Add LCD Panel support (b499d77834ae292465f8d06bb0a88f1a647dfa1a) 
+introduces a build failure for the omap3_defconfig.
 
-Hi,
+You can see the error message here:
+http://kisskb.ellerman.id.au/kisskb/buildresult/2601981/
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
-> Sent: Wednesday, May 12, 2010 2:39 PM
-> To: Guzman Lugo, Fernando
-> Cc: Chitriki Rudramuni, Deepak; linux-omap; Ameya Palande; Felipe
-> Contreras; Hiroshi Doyu; Ramirez Luna, Omar; Menon, Nishanth
-> Subject: Re: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
-> DSP_MMUFAULT
-> 
-> Hi,
-> 
-> I didn't touch this issue in the hopes that it would be fixed, but
-> seems it hasn't.
-> 
-> On Mon, Apr 19, 2010 at 9:25 PM, Guzman Lugo, Fernando <x0095840@ti.com>
-> wrote:
-> > To sum up:
-> >
-> > - "DSPBRIDGE:Fix Kernel memory poison overwritten after DSP_MMUFAULT" is
-> only hidden the problem, we don't need aligned memory in this point, that
-> patch should be removed if it is already apply.
-> >
-> > - There is no need to create a patch for the issue because it is already
-> indirectly fix with "DSPBRIDGE: MMU-Fault debugging enhancements".
-> 
-> If you are referring to this patch:
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-
-> 2.6.git;a=commit;h=26ad62f03578a12e942d8bb86d0e52ef1afdee22
+This is due to the fact that omap3_defconfig has
+CONFIG_MACH_NOKIA_RX51=y
+set which enables the compilation of arch/arm/mach-omap2/board-rx51.c
 
-Yes, that's the patch. Could you make sure that the GPT8 interrupt is generated before acking MMU fault interrupt?
+board-rx51.c calls rx51_video_mem_init in arch/arm/mach-omap2/board-rx51-
+video.c which is guarded by 
+#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
 
-> 
-> I tried to backport it to minimize the changes to a reproducible
-> test-case. I guess in the l-o branch the commit would be dd1fd0b.
-> Unfortunately that didn't fix the corruption. So I don't by that GPT8
-> theory.
-> 
-> > - we don't need allocate memory for dummy_va_addr, if some patch should
-> be created should be the patch to remove dummy_va_addr allocation and
-> deletion.
-> 
-> I tried that, and that actually fixes the corruption for me (passing 0
-> to hw_mmu_tlb_add).
+Unfortunately none if them is set in the omap3_defconfig.
 
-I think first page DSP side memory is never mapped to MPU side, so even if the DSP corrupts that page it does not affect MPU side. However the right solution is the one explained before: avoid DSP continues executing after MMUfault.
+Would be nice if you could fix this :)
 
-Regards,
-Fernando.
+Thanks,
+Peter
 
-> 
-> --
-> Felipe Contreras
+Reported-by: Peter Huewe <peterhuewe@gmx.de>
