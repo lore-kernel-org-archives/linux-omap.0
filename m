@@ -1,174 +1,64 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH 3/3] omap3 nand: fix issue in board file to detect the
- nand
-Date: Wed, 12 May 2010 11:30:17 +0300
-Message-ID: <4BEA6719.1050400@compulab.co.il>
-References: <[Sukumar Ghorai <s-ghorai@ti.com>]> <1273652243-6303-1-git-send-email-s-ghorai@ti.com> <1273652243-6303-2-git-send-email-s-ghorai@ti.com> <1273652243-6303-3-git-send-email-s-ghorai@ti.com> <1273652243-6303-4-git-send-email-s-ghorai@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH v2 0/0] McBSP changes for OMAP4 platform
+Date: Wed, 12 May 2010 11:39:26 +0300
+Message-ID: <201005121139.26990.peter.ujfalusi@nokia.com>
+References: <1273108546-2507-1-git-send-email-jorge.candelaria@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:48627 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753169Ab0ELIaa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 May 2010 04:30:30 -0400
-In-Reply-To: <1273652243-6303-4-git-send-email-s-ghorai@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:29967 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab0ELIjk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 04:39:40 -0400
+In-Reply-To: <1273108546-2507-1-git-send-email-jorge.candelaria@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sukumar Ghorai <s-ghorai@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, tony@atomide.com, sakoman@gmail.com, Artem.Bityutskiy@nokia.com
+To: ext Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, lrg@slimlogic.co.uk, tony@atomide.com, broonie@opensource.wolfsonmicro.com
 
-[Sukumar Ghorai wrote:
-> From: Sukumar Ghorai <s-ghorai@ti.com>
-> 
-> Board file modified to pass the GMPC phys_base address to nand driver. This is
-> required to adopt the _prob function as in omap2.c
-> 
-> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-> ---
->  arch/arm/mach-omap2/board-cm-t35.c         |   10 ++++++++++
->  arch/arm/mach-omap2/board-devkit8000.c     |    9 +++++++++
->  arch/arm/mach-omap2/board-omap3beagle.c    |    9 +++++++++
->  arch/arm/mach-omap2/board-omap3touchbook.c |    9 +++++++++
->  arch/arm/mach-omap2/board-overo.c          |    8 ++++++++
->  5 files changed, 45 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-> index fb23122..73a32bd
-> --- a/arch/arm/mach-omap2/board-cm-t35.c
-> +++ b/arch/arm/mach-omap2/board-cm-t35.c
-> @@ -240,6 +240,16 @@ static struct platform_device cm_t35_nand_device = {
->  
->  static void __init cm_t35_init_nand(void)
->  {
-> +	struct device *dev = &cm_t35_nand_device.dev;
-> +	int err = 0;
-> +
-> +	err = gpmc_cs_request(cm_t35_nand_data.cs,
-> +					NAND_IO_SIZE, &cm_t35_nand_data.phys_base);
-> +	if (err < 0) {
-> +		dev_err(dev, "Cannot request GPMC CS\n");
-> +		return;
-> +	}
-> +	
->  	if (platform_device_register(&cm_t35_nand_device) < 0)
->  		pr_err("CM-T35: Unable to register NAND device\n");
+Hi,
 
-Why won't you use gpmc_nand_init instead of platform_device_register? 
-With gpmc_nand_init there would be no need to request NAND CS in the 
-board files. Besides, if you convert the boards to use gpmc_nand_init at 
-the first place, it would simplify further patches.
+On Thursday 06 May 2010 04:15:44 ext Jorge Eduardo Candelaria wrote:
+> The following patches enable McBSP driver to be used along with the
+> audio driver in SDP4430 and other OMAP4 based boards.
+>=20
+> Changes from v1:
+> - Changed to correct IRQ lines.
+> - Check if rx_irq is defined, instead of checking if cpu is omap4
+>=20
+> Jorge Eduardo Candelaria (2):
+>       ARM: McBSP: Fix request for irq in OMAP4
+>       ARM: OMAP4: Add support for omap4 in McBSP driver
+>=20
+>  arch/arm/mach-omap2/mcbsp.c |   12 ++++--------
+>  arch/arm/plat-omap/mcbsp.c  |   34 +++++++++++++++++++--------------=
+-
+>  2 files changed, 23 insertions(+), 23 deletions(-)
 
->  }
-> diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-> index be50d18..86358e3
-> --- a/arch/arm/mach-omap2/board-devkit8000.c
-> +++ b/arch/arm/mach-omap2/board-devkit8000.c
-> @@ -578,6 +578,9 @@ static void __init devkit8000_flash_init(void)
->  	u8 cs = 0;
->  	u8 nandcs = GPMC_CS_NUM + 1;
->  
-> +	struct device *dev = &devkit8000_nand_device.dev;
-> +	int err = 0;
-> +
->  	/* find out the chip-select on which NAND exists */
->  	while (cs < GPMC_CS_NUM) {
->  		u32 ret = 0;
-> @@ -599,6 +602,12 @@ static void __init devkit8000_flash_init(void)
->  
->  	if (nandcs < GPMC_CS_NUM) {
->  		devkit8000_nand_data.cs = nandcs;
-> +		err = gpmc_cs_request(devkit8000_nand_data.cs,
-> +					NAND_IO_SIZE, &devkit8000_nand_data.phys_base);
-> +		if (err < 0) {
-> +			dev_err(dev, "Cannot request GPMC CS\n");
-> +			return;
-> +		}
->  
->  		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
->  		if (platform_device_register(&devkit8000_nand_device) < 0)
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index becaebe..d54719d
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -374,6 +374,9 @@ static void __init omap3beagle_flash_init(void)
->  	u8 cs = 0;
->  	u8 nandcs = GPMC_CS_NUM + 1;
->  
-> +	struct device *dev = &omap3beagle_nand_device.dev;
-> +	int err = 0;
-> +
->  	/* find out the chip-select on which NAND exists */
->  	while (cs < GPMC_CS_NUM) {
->  		u32 ret = 0;
-> @@ -395,6 +398,12 @@ static void __init omap3beagle_flash_init(void)
->  
->  	if (nandcs < GPMC_CS_NUM) {
->  		omap3beagle_nand_data.cs = nandcs;
-> +		err = gpmc_cs_request(omap3beagle_nand_data.cs,
-> +						NAND_IO_SIZE, &omap3beagle_nand_data.phys_base);
-> +		if (err < 0) {
-> +			dev_err(dev, "Cannot request GPMC CS\n");
-> +			return;
-> +		}
->  
->  		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
->  		if (platform_device_register(&omap3beagle_nand_device) < 0)
-> diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-> index d6f1b12..088a704
-> --- a/arch/arm/mach-omap2/board-omap3touchbook.c
-> +++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-> @@ -456,6 +456,9 @@ static void __init omap3touchbook_flash_init(void)
->  	u8 cs = 0;
->  	u8 nandcs = GPMC_CS_NUM + 1;
->  
-> +	struct device *dev = &omap3touchbook_nand_device.dev;
-> +	int err = 0;
-> +
->  	/* find out the chip-select on which NAND exists */
->  	while (cs < GPMC_CS_NUM) {
->  		u32 ret = 0;
-> @@ -477,6 +480,12 @@ static void __init omap3touchbook_flash_init(void)
->  
->  	if (nandcs < GPMC_CS_NUM) {
->  		omap3touchbook_nand_data.cs = nandcs;
-> +		err = gpmc_cs_request(omap3touchbook_nand_data.cs,
-> +					NAND_IO_SIZE, &omap3touchbook_nand_data.phys_base);
-> +		if (err < 0) {
-> +			dev_err(dev, "Cannot request GPMC CS\n");
-> +			return;
-> +		}
->  
->  		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
->  		if (platform_device_register(&omap3touchbook_nand_device) < 0)
-> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-> index d843a0a..d6658b5
-> --- a/arch/arm/mach-omap2/board-overo.c
-> +++ b/arch/arm/mach-omap2/board-overo.c
-> @@ -236,6 +236,8 @@ static void __init overo_flash_init(void)
->  {
->  	u8 cs = 0;
->  	u8 nandcs = GPMC_CS_NUM + 1;
-> +	struct device *dev = &overo_nand_device.dev;
-> +	int err = 0;
->  
->  	/* find out the chip-select on which NAND exists */
->  	while (cs < GPMC_CS_NUM) {
-> @@ -258,6 +260,12 @@ static void __init overo_flash_init(void)
->  
->  	if (nandcs < GPMC_CS_NUM) {
->  		overo_nand_data.cs = nandcs;
-> +		err = gpmc_cs_request(overo_nand_data.cs,
-> +						NAND_IO_SIZE, &overo_nand_data.phys_base);
-> +		if (err < 0) {
-> +			dev_err(dev, "Cannot request GPMC CS\n");
-> +			return;
-> +		}
->  
->  		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
->  		if (platform_device_register(&overo_nand_device) < 0)
+Looks good with Jarkko's comment.
+However, I'd like to ask Tony, Liam, Jarkko, and Mark the following:
+Would it make sense to use the alsa tree for OMAP McBSP related patches=
+, while=20
+keeping l-o in CC off course.
+If we have patches for mcbsp pending in l-o and in alsa tree, than we a=
+re going=20
+to have hard times to sort things out when they need to be merged.
 
+I'm asking this, because I will also have some patches for mcbsp, which=
+ will=20
+need change in arch/ and in sound/ as well.
 
--- 
-Sincerely yours,
-Mike.
+I know that taking patches to alsa tree for the arch/ is unorthodox, bu=
+t it will=20
+ease up our life in a long run...
+
+What do you think?
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
