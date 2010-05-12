@@ -1,143 +1,43 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC] [PATCHv2 2/2] SFH7741: Proximity sensor board support.
-Date: Wed, 12 May 2010 08:22:31 -0500
-Message-ID: <4BEAAB97.1000106@ti.com>
-References: <0680EC522D0CC943BC586913CF3768C003B3209EF5@dbde02.ent.ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 4/5] musb: use system DMA for unaligned buffers on RTL
+ >= 1.8
+Date: Wed, 12 May 2010 19:25:22 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E405072@dbde02.ent.ti.com>
+References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com>
+ <1273664979-493-2-git-send-email-ajay.gupta@ti.com>
+ <1273664979-493-3-git-send-email-ajay.gupta@ti.com>
+ <1273664979-493-4-git-send-email-ajay.gupta@ti.com>
+ <4BEAAA8A.1000003@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B3209EF5@dbde02.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60175 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751113Ab0ELNzc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 09:55:32 -0400
+In-Reply-To: <4BEAAA8A.1000003@ru.mvista.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Datta, Shubhrajyoti had written, on 05/12/2010 03:52 AM, the following:
-> Adding board support for the proximity sensor.
+Hi,
+> >  	if (channel->status == MUSB_DMA_STATUS_BUSY) {
+> >  		if (musb_channel->transmit) {
+> > +			if (musb_channel->sysdma_channel != -1)
+> > +				omap_stop_dma(musb_channel->sysdma_channel);
+> > +
+> >
 > 
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
->  arch/arm/mach-omap2/board-4430sdp.c |   71 +++++++++++++++++++++++++++++++++++
->  1 files changed, 71 insertions(+), 0 deletions(-)
+>    Have you thought about e.g. Blackfin? How this is going to compile
+> there, without omap_*() functions even existing? Or did you think that
+> OMAP is the only user of this driver?
+Thanks for pointing this. It would require adding wrapper functions for
+Blckfin's.
+
+-Ajay
 > 
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> index b88f28c..beb3059 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -18,6 +18,7 @@
->  #include <linux/io.h>
->  #include <linux/gpio.h>
->  #include <linux/usb/otg.h>
-> +#include <linux/input/sfh7741.h>
->  
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
-> @@ -31,7 +32,25 @@
->  #include <plat/usb.h>
->  #include <asm/hardware/gic.h>
->  #include <asm/hardware/cache-l2x0.h>
-> +#define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
-> +#define OMAP4_SFH7741_ENABLE_GPIO		188
-> +static void omap_prox_activate(int state);
-> +static int omap_prox_read(void);
-> +
-> +static struct sfh7741_platform_data omap_sfh7741_data = {
-> +		.irq = OMAP_GPIO_IRQ(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO),
-> +		.prox_enable = 1,
-> +		.activate_func = omap_prox_activate,
-> +		.read_prox = omap_prox_read,
-> +};
->  
-> +static struct platform_device sdp4430_proximity_device = {
-> +	.name		= "sfh7741",
-> +	.id		= 1,
-> +	.dev		= {
-> +		.platform_data = &omap_sfh7741_data,
-> +	},
-> +};
->  static struct platform_device sdp4430_lcd_device = {
->  	.name		= "sdp4430_lcd",
->  	.id		= -1,
-> @@ -39,6 +58,7 @@ static struct platform_device sdp4430_lcd_device = {
->  
->  static struct platform_device *sdp4430_devices[] __initdata = {
->  	&sdp4430_lcd_device,
-> +	&sdp4430_proximity_device,
->  };
->  
->  static struct omap_lcd_config sdp4430_lcd_config __initdata = {
-> @@ -111,6 +131,56 @@ static struct omap_musb_board_data musb_board_data = {
->  	.power			= 100,
->  };
->  
-> +static void omap_prox_activate(int state)
-> +{
-> +	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , state);
-> +}
-> +
-> +static int omap_prox_read(void)
-> +{
-> +	int proximity;
-> +	proximity = gpio_get_value(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO);
-> +	return proximity;
-> +}
-> +
-> +static void omap_sfh7741prox_init(void)
-> +{
-> +	char *desc = "sfh7741";
-> +	int  error;
-> +
-> +	error = gpio_request(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO, "sfh7741");
-> +	if (error < 0) {
-> +		pr_err("%s: GPIO configuration failed: GPIO %d, error %d\n"
-> +			, __func__, OMAP4_SFH7741_SENSOR_OUTPUT_GPIO, error);
-> +		return ;
-> +	}
-> +
-> +	error = gpio_direction_input(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO);
-> +	if (error < 0) {
-> +		pr_err("Proximity GPIO input configuration failed\n");
-> +		goto fail1;
-> +	}
-> +
-> +	error = gpio_request(OMAP4_SFH7741_ENABLE_GPIO, "sfh7741");
-> +	if (error < 0) {
-> +		pr_err("failed to request GPIO %d, error %d\n",
-> +			OMAP4_SFH7741_ENABLE_GPIO, error);
-> +		goto fail1;
-> +	}
-> +
-> +	error = gpio_direction_output(OMAP4_SFH7741_ENABLE_GPIO , 1);
-> +	if (error < 0) {
-> +		pr_err("%s: GPIO configuration failed: GPIO %d,\
-> +			error %d\n",__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
-> +		goto fail3;
-> +	}
-> +	return;
-> +
-> +fail3:
-> +	gpio_free(OMAP4_SFH7741_ENABLE_GPIO);
-> +fail1:
-> +	gpio_free(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO);
-> +}
+> WBR, Sergei
 
-a) mux handling?
-b) if init failed, still register the prox device? it wont function right?
-
->  static void __init omap_4430sdp_init(void)
->  {
->  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
-> @@ -120,6 +190,7 @@ static void __init omap_4430sdp_init(void)
->  	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
->  	if (!cpu_is_omap44xx())
->  		usb_musb_init(&musb_board_data);
-> +	omap_sfh7741prox_init();
->  }
->  
->  static void __init omap_4430sdp_map_io(void)
-
-
--- 
-Regards,
-Nishanth Menon
