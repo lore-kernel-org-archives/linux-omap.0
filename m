@@ -1,77 +1,46 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 4/6] OMAP: hwmod: Temporary disable dependency
-Date: Wed, 12 May 2010 17:54:39 +0200
-Message-ID: <1273679681-27549-5-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 6/6] OMAP: hwmod: Temp fixes to get hwmod registers work
+Date: Wed, 12 May 2010 17:54:41 +0200
+Message-ID: <1273679681-27549-7-git-send-email-b-cousson@ti.com>
 References: <1273679681-27549-1-git-send-email-b-cousson@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48497 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39534 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756328Ab0ELPy6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 May 2010 11:54:58 -0400
+	id S1756327Ab0ELPy5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 May 2010 11:54:57 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4CFsuHk030547
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 10:54:57 -0500
 In-Reply-To: <1273679681-27549-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-Dependency not supported yet, hence comment all dependency handling
-code in hwmod.
+Do not disable any clocks yet since not all drivers are adapted
+and rely on bootloader to enable clocks
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 2fff39f..302f2c8 100644
+index 302f2c8..9f7cb9f 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -908,7 +908,9 @@ static int _enable(struct omap_hwmod *oh)
+@@ -524,6 +524,8 @@ static int _disable_clocks(struct omap_hwmod *oh)
  
- 	/* XXX mux balls */
+ 	pr_debug("omap_hwmod: %s: disabling clocks\n", oh->name);
  
-+#if 0
- 	_add_initiator_dep(oh, mpu_oh);
-+#endif
- 	_enable_clocks(oh);
- 
- 	r = _wait_target_ready(oh);
-@@ -949,7 +951,9 @@ static int _idle(struct omap_hwmod *oh)
- 
- 	if (oh->class->sysc)
- 		_sysc_idle(oh);
-+#if 0
- 	_del_initiator_dep(oh, mpu_oh);
-+#endif
- 	_disable_clocks(oh);
- 
- 	oh->_state = _HWMOD_STATE_IDLE;
-@@ -1544,7 +1548,10 @@ struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
- int omap_hwmod_add_initiator_dep(struct omap_hwmod *oh,
- 				 struct omap_hwmod *init_oh)
- {
-+#if 0
- 	return _add_initiator_dep(oh, init_oh);
-+#endif
 +	return 0;
- }
++
+ 	if (oh->_clk)
+ 		clk_disable(oh->_clk);
  
- /*
-@@ -1569,7 +1576,10 @@ int omap_hwmod_add_initiator_dep(struct omap_hwmod *oh,
- int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
- 				 struct omap_hwmod *init_oh)
- {
-+#if 0
- 	return _del_initiator_dep(oh, init_oh);
-+#endif
-+	return 0;
- }
- 
- /**
 -- 
 1.6.1.3
 
