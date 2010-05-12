@@ -1,76 +1,46 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] omap_hsmmc: improve interrupt synchronisation
-Date: Wed, 12 May 2010 12:52:13 -0700
-Message-ID: <20100512125213.36631d2d.akpm@linux-foundation.org>
-References: <4BEA5DD5.9010308@nokia.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: Re: [RFC][PATCHv3 1/2] SFH7741: proximity sensor driver support
+Date: Wed, 12 May 2010 22:08:15 +0200
+Message-ID: <1273694895.15717.4.camel@lovely>
+References: <0680EC522D0CC943BC586913CF3768C003B320A007@dbde02.ent.ti.com>
+	 <4BEAF03A.2070308@cam.ac.uk>
+	 <20100512182913.GC29366@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35115 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932170Ab0ELTwt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 May 2010 15:52:49 -0400
-In-Reply-To: <4BEA5DD5.9010308@nokia.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:47925 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752702Ab0ELUCH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 16:02:07 -0400
+In-Reply-To: <20100512182913.GC29366@core.coreip.homeip.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Venkatraman S <svenkatr@ti.com>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 12 May 2010 10:50:45 +0300
-Adrian Hunter <adrian.hunter@nokia.com> wrote:
-
-> >From ad2e1cd024ccf9144b6620cfe808893719db738f Mon Sep 17 00:00:00 2001
-> From: Adrian Hunter <adrian.hunter@nokia.com>
-> Date: Wed, 14 Apr 2010 16:26:45 +0300
-> Subject: [PATCH] omap_hsmmc: improve interrupt synchronisation
+On Wed, 2010-05-12 at 11:29 -0700, Dmitry Torokhov wrote:
+> On Wed, May 12, 2010 at 07:15:22PM +0100, Jonathan Cameron wrote:
+> > Hi,
+> > 
+> > I was wondering if you could provide a bit more detail on what this
+> > driver is actually doing?  My appologies if I have missed a
+> > previous explanation.  If so, please add a Documentation file
+> > to explain what is going on.
+> > 
+> > The driver you have here does virtually nothing itself.  It takes
+> > both its source of interrupt and read function from platform
+> > data. Given the value is always 0 or 1, I'm guessing you are
+> > simply reading a gpio pin. That makes this effectively a button
+> > and doesn't require any specific code.  The fact it is a
+> > proximity sensor isn't relevant to anything other than perhaps
+> > the name.
 > 
-> The following changes were needed:
-> 	- do not use in_interrupt() because it will not work
-> 	with threaded interrupts
+> Excellent point. Maybe it should simply use gpio_keys driver with
+> SW_FRONT_PROXIMITY code.
 > 
-> In addition, the following improvements were made:
-> 	- ensure DMA is unmapped only after the final DMA interrupt
-> 	- ensure a request is completed only after the final DMA interrupt
-> 	- disable controller interrupts when a request is not in progress
-> 	- remove the spin-lock protecting the start of a new request from
-> 	an unexpected interrupt because the locking was complicated and
-> 	a 'req_in_progress' flag suffices (since the spin-lock only defers
-> 	the unexpected interrupts anyway)
-> 	- instead use the spin-lock to protect the MMC interrupt handler
-> 	from the DMA interrupt handler
-> 	- remove the semaphore preventing DMA from being started while
-> 	the previous DMA is still in progress - the other changes make that
-> 	impossible, so it is now a BUG_ON condition
-> 	- ensure the controller interrupt status is clear before exiting
-> 	the interrrupt handler
-> 
-> In general, these changes make the code safer but do not fix any specific
-> bugs so backporting is not necessary.
-> 
->
-> ...
->
-> +static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_request *mrq)
-> +{
-> +	int dma_ch;
-> +
-> +	spin_lock(&host->irq_lock);
-> +	host->req_in_progress = 0;
-> +	dma_ch = host->dma_ch;
-> +	spin_unlock(&host->irq_lock);
-> +
-> +	omap_hsmmc_disable_irq(host);
-> +	/* Do not complete the request if DMA is still in progress */
-> +	if (mrq->data && host->use_dma && dma_ch != -1)
-> +		return;
-> +	host->mrq = NULL;
-> +	mmc_request_done(host->mmc, mrq);
-> +}
 
-Are we sure that irq_lock doesn't need to be taken in an irq-safe fashion?
+I had a look into the datasheet, this SFH 7741 has one Schmitt trigger
+output: So yes, it's a "key" even without chatter.
 
-
-send_init_stream() doesn't report an error if its busywait times out.
 
