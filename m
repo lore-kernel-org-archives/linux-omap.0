@@ -1,421 +1,177 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Re: Possible bug in onenand_base ?
-Date: Wed, 12 May 2010 15:16:34 +0200
-Message-ID: <AANLkTiktbqSHHw572y1YGVw7XhZaim9Pg3lhoMmDBLXY@mail.gmail.com>
-References: <u2v70c9a9111004300305n4c86774bm7ed70161ad72d830@mail.gmail.com>
-	 <z2p9c9fda241005052046j3fea69a4v91f3d5fd86648fac@mail.gmail.com>
-	 <k2x70c9a9111005060422v90e246daw19b1f71d57a890a1@mail.gmail.com>
-	 <g2x9c9fda241005060444x7f9c4360u334d3afb06f1e8b8@mail.gmail.com>
-	 <z2v70c9a9111005060602n7b7477ebueb197af05372bd5@mail.gmail.com>
-	 <AANLkTimwO5iU6zPUJeLwAxW3GZGz5ldSRLmp2vpTBem3@mail.gmail.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 4/5] musb: use system DMA for unaligned buffers on RTL
+ >= 1.8
+Date: Wed, 12 May 2010 17:18:02 +0400
+Message-ID: <4BEAAA8A.1000003@ru.mvista.com>
+References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com> <1273664979-493-2-git-send-email-ajay.gupta@ti.com> <1273664979-493-3-git-send-email-ajay.gupta@ti.com> <1273664979-493-4-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:53562 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435Ab0ELNQf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 09:16:35 -0400
-Received: by pxi5 with SMTP id 5so2907325pxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 06:16:35 -0700 (PDT)
-In-Reply-To: <AANLkTimwO5iU6zPUJeLwAxW3GZGz5ldSRLmp2vpTBem3@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1273664979-493-4-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kyungmin Park <kmpark@infradead.org>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-I answer to myself.
+Hello.
 
-DDP (dual die plane) not implies 'ONENAND_HAS_2PLANE'.  A device with
-a single die can also have '2 planes'. I'm right ?
+Ajay Kumar Gupta wrote:
 
-Sorry for these newbie questions, I'm just introducing to OneNAND devic=
-es.
+> MUSB RTL version 1.8 onward (OMAP3630, AM/DM37x, OMAP4) DMA requires
+> the buffers to be aligned on a four byte boundary. This affects USB
+> CDC/RNDIS class application where buffers are always unaligned.
+>
+> Use system DMA for unaligned buffers as a workaround of this issue.
+>
+> Current patch supports device side CDC/RNDIS. Host side would require
+> change in Tx programming path for mode-0 operation when transfer length
+> is more than packet size.
+>
+> Also fixed an issue in device Tx completion path where 'is_dma' is getting
+> set unconditionally. This would fail the io if Tx transfer is done in
+> mode-0. Fixed it by updating it based on 'request->actual' length.
+>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+>   
+[...]
+> diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
+> index 70342eb..6118d5f 100644
+> --- a/drivers/usb/musb/musbhsdma.c
+> +++ b/drivers/usb/musb/musbhsdma.c
+> @@ -54,12 +54,18 @@ static void musb_sysdma_completion(int lch, u16 ch_status, void *data)
+>  					(struct musb_dma_channel *) data;
+>  	struct musb_dma_controller *controller = musb_channel->controller;
+>  	struct musb *musb = controller->private_data;
+> +	void __iomem *mbase = controller->base;
+> +
+>  	channel = &musb_channel->channel;
+>  
+>  	DBG(2, "lch = 0x%d, ch_status = 0x%x\n", lch, ch_status);
+>  	spin_lock_irqsave(&musb->lock, flags);
+>  
+> -	addr = (u32) omap_get_dma_dst_pos(musb_channel->sysdma_channel);
+> +	if (musb_channel->transmit)
+> +		addr = (u32) omap_get_dma_src_pos(musb_channel->sysdma_channel);
+> +	else
+> +		addr = (u32) omap_get_dma_dst_pos(musb_channel->sysdma_channel);
+> +
+>  	if (musb_channel->len == 0)
+>  		channel->actual_len = 0;
+>  	else
+> @@ -72,6 +78,26 @@ static void musb_sysdma_completion(int lch, u16 ch_status, void *data)
+>  		"=> reconfig 0 " : " => complete");
+>  
+>  	channel->status = MUSB_DMA_STATUS_FREE;
+> +
+> +	/* completed */
+> +	if ((musb_channel->transmit) && (channel->desired_mode == 0)
+> +		&& (channel->actual_len == musb_channel->max_packet_sz)) {
+> +
+> +		u8  epnum  = musb_channel->epnum;
+> +		int offset = MUSB_EP_OFFSET(epnum,
+> +				    MUSB_TXCSR);
+> +		u16 txcsr;
+> +
+> +		/*
+> +		 * The programming guide says that we
+> +		 * must clear DMAENAB before DMAMODE.
+> +		 */
+> +		musb_ep_select(mbase, epnum);
+> +		txcsr = musb_readw(mbase, offset);
+> +		txcsr |=  MUSB_TXCSR_TXPKTRDY;
+> +		musb_writew(mbase, offset, txcsr);
+> +	}
+> +
+>  	musb_dma_completion(musb, musb_channel->epnum, musb_channel->transmit);
+>  
+>  	spin_unlock_irqrestore(&musb->lock, flags);
+> @@ -138,8 +164,15 @@ static struct dma_channel *dma_channel_allocate(struct dma_controller *c,
+>  			 * issue when TX and RX DMA channels are simultaneously
+>  			 * enabled. To work around this issue, use system DMA
+>  			 * for all RX channels.
+> +			 * Also on MUSB RTL version 1.8 onward (OMAP3630, OMAP4
+> +			 * and AM/DM37x) DMA requires buffers to be aligned on
+> +			 * a four byte boundary. This affects USB CDC/RNDIS
+> +			 * class application where buffers are always unaligned.
+> +			 * Using system DMA for unaligned buffers as a
+> +			 * workaround for this issue.
+>  			 */
+> -			if (((musb->hwvers == MUSB_HWVERS_1400) && !transmit)
+> +			if ((((musb->hwvers == MUSB_HWVERS_1400) && !transmit)
+> +				|| (musb->hwvers >= MUSB_HWVERS_1800))
+>  				&& use_sdma_workaround()) {
+>  				int ret;
+>  				ret = omap_request_dma(OMAP24XX_DMA_NO_DEVICE,
+> @@ -194,11 +227,18 @@ static void configure_channel(struct dma_channel *channel,
+>  	struct musb *musb = controller->private_data;
+>  	void __iomem *mbase = controller->base;
+>  	u8 bchannel = musb_channel->idx;
+> +	u8 buffer_is_aligned = (dma_addr & 0x3) ? 0 : 1;
+> +	u8 use_sdma = (musb_channel->sysdma_channel == -1) ? 0 : 1;
+>  	u16 csr = 0;
+>  
+>  	DBG(4, "%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
+>  			channel, packet_sz, dma_addr, len, mode);
+> -	if (musb_channel->sysdma_channel != -1) {
+> +
+> +	if (buffer_is_aligned && (packet_sz >= 512) &&
+> +			(musb->hwvers >= MUSB_HWVERS_1800))
+> +		use_sdma = 0;
+> +
+> +	if (use_sdma &&	!musb_channel->transmit) {
+>  		/* System DMA */
+>  		/* RX: set src = FIFO */
+>  		omap_set_dma_transfer_params(musb_channel->sysdma_channel,
+> @@ -224,6 +264,32 @@ static void configure_channel(struct dma_channel *channel,
+>  
+>  		omap_start_dma(musb_channel->sysdma_channel);
+>  
+> +	} else if (use_sdma && musb_channel->transmit) {
+> +		/* System DMA */
+> +		/* TX: set dst = FIFO */
+> +		omap_set_dma_transfer_params(musb_channel->sysdma_channel,
+> +					OMAP_DMA_DATA_TYPE_S8,
+> +					len ? len : 1, 1, /* One frame */
+> +					OMAP_DMA_SYNC_ELEMENT,
+> +					OMAP24XX_DMA_NO_DEVICE,
+> +					0); /* Src Sync */
+> +
+> +		omap_set_dma_src_params(musb_channel->sysdma_channel, 0,
+> +					OMAP_DMA_AMODE_POST_INC, dma_addr,
+> +					0, 0);
+> +
+> +		omap_set_dma_dest_params(musb_channel->sysdma_channel, 0,
+> +					OMAP_DMA_AMODE_CONSTANT,
+> +					MUSB_FIFO_ADDRESS(musb->ctrl_phys_base,
+> +						musb_channel->epnum),
+> +					0, 0);
+> +
+> +		omap_set_dma_dest_data_pack(musb_channel->sysdma_channel, 0);
+> +		omap_set_dma_dest_burst_mode(musb_channel->sysdma_channel,
+> +					OMAP_DMA_DATA_BURST_DIS);
+> +
+> +		omap_start_dma(musb_channel->sysdma_channel);
+> +
+>  	} else { /* Mentor DMA */
+>  
+>  	if (mode) {
+> @@ -299,6 +365,9 @@ static int dma_channel_abort(struct dma_channel *channel)
+>  
+>  	if (channel->status == MUSB_DMA_STATUS_BUSY) {
+>  		if (musb_channel->transmit) {
+> +			if (musb_channel->sysdma_channel != -1)
+> +				omap_stop_dma(musb_channel->sysdma_channel);
+> +
+>   
 
-Cheers,
+   Have you thought about e.g. Blackfin? How this is going to compile 
+there, without omap_*() functions even existing? Or did you think that 
+OMAP is the only user of this driver?
 
-Enric
+WBR, Sergei
 
-2010/5/12 Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com>:
-> Hello,
->
-> I have a bit of time to investigate more.
->
-> I have two boards with two different OneNAND chips populated.
->
-> The first one is a dual Die Plan 4-Gbit (2 dice of 2-Gbit)
->
-> [ =C2=A0 26.406890] Muxed OneNAND(DDP) 512MB 1.8V 16-bit (0x58)
-> [ =C2=A0 26.412170] OneNAND version =3D 0x0031
-> [ =C2=A0 26.415771] Chip support all block unlock
-> [ =C2=A0 26.419830] Chip has 2 plane
->
-> The second is a single die of 2-Gbit.
->
-> [ =C2=A0 32.897735] Muxed OneNAND 256MB 1.8V 16-bit (0x40)
-> [ =C2=A0 32.902557] OneNAND version =3D 0x0031
-> [ =C2=A0 32.906188] Chip support all block unlock
-> [ =C2=A0 32.910247] Chip has 2 plane
->
-> As I understand the bit 3 of DEVICE_ID register indicates if package
-> is a single-die or a dual-die, so
->
-> - Muxed OneNAND(DDP) 512MB 1.8V 16-bit -> device id: 0x58 -> bit 3 is
-> 1 -> dual-die
-> - Muxed OneNAND 256MB 1.8V 16-bit -> device id: 0x40 -> bit 3 is 0 ->=
-single-die
->
-> The question is, why those devices are reporting 'Chip has 2 plane' ?
->
-> Sorry if this is a trivial question but I'm not sure about DDP and '2
-> plane' concepts. Are the same ?
->
-> Cheers,
->
-> Enric
->
-> 2010/5/6 Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com>:
->> Hi,
->>
->> 2010/5/6 Kyungmin Park <kmpark@infradead.org>:
->>> Hi,
->>>
->>> What's your chip version? maybe some mis-probe it seems to be probe=
-d
->>> at 4KiB pagesize OneNAND.
->>
->> Is a 4-Gbit DDP OneNAND device from Numonyx composed of two 2-Gbit 2=
-KB
->> page dice stacked together, the device is equipped with two DataRAMs=
-,
->> and two-plane NAND Flash memory array,
->>
->> These two component enables simultaneous program of 4KiB (
->> CONFIG_MTD_ONENAND_2X_PROGRAM)
->>
->> Cheers,
->>
->> Enric
->>
->>>
->>> Thank you,
->>> Kyungmin Park
->>>
->>> On Thu, May 6, 2010 at 8:22 PM, Enric Balletb=C3=B2 i Serra
->>> <eballetbo@gmail.com> wrote:
->>>> Hi,
->>>>
->>>> 2010/5/6 Kyungmin Park <kyungmin.park@samsung.com>:
->>>>> Hi,
->>>>>
->>>>> Can you add this statement at below the code?
->>>>> printk("%s[%d] page %d, %d, %d\n", __func__, __LINE__, page, (int=
-)
->>>>> onenand_addr(this, block), ((int) addr >> this->page_shift) &
->>>>> this->page_mask);
->>>>
->>>> Yes,
->>>>
->>>> With this code nandtest fails:
->>>>
->>>> onenand_base.c
->>>>
->>>> 377: =C2=A0 =C2=A0 default:
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0block =3D o=
-nenand_block(this, addr);
->>>> /* =C2=A0(line disabled) =C2=A0 page =3D (int) (addr >> this->page=
-_shift); */
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0page=
- =3D (int) (addr - onenand_addr(this, block)) >>
->>>> this->page_shift;
->>>>
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0printk("%s[=
-%d] page %d, %d, %d\n", __func__, __LINE__,
->>>> page, (int)
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0onenand_addr(this, block), ((int) addr >>
->>>> this->page_shift) &
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0this->page_mask);
->>>>
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ONENAND=
-_IS_2PLANE(this)) {
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0/* Make the even block number */
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0block &=3D ~1;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0/* Is it the odd plane? */
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0if (addr & this->writesize)
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0block++;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0page >>=3D 1;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0page &=3D t=
-his->page_mask;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
->>>>
->>>>
->>>> --- start log nandtest fail ---
->>>> # nandtest -l 262144 /dev/mtd3
->>>> ECC corrections: 0
->>>> ECC failures =C2=A0 : 0
->>>> Bad blocks =C2=A0 =C2=A0 : 0
->>>> BBT blocks =C2=A0 =C2=A0 : 0
->>>> 00000000: writing...
->>>> [ =C2=A0243.144287] onenand_command[382] page 0, 2621440, 0
->>>> [ =C2=A0243.150787] onenand_command[382] page 2, 2621440, 2
->>>> [ =C2=A0243.156158] onenand_command[382] page 4, 2621440, 4
->>>> (...)
->>>> [ =C2=A0243.310729] onenand_command[382] page 60, 2621440, 60
->>>> [ =C2=A0243.316223] onenand_command[382] page 62, 2621440, 62
->>>> [ =C2=A0243.322204] onenand_command[382] page 0, 2752512, 0
->>>> [ =C2=A0243.327636] onenand_command[382] page 2, 2752512, 2
->>>> [ =C2=A0243.332977] onenand_command[382] page 4, 2752512, 4
->>>> (...)
->>>> [ =C2=A0243.487487] onenand_command[382] page 60, 2752512, 60
->>>> [ =C2=A0243.493041] onenand_command[382] page 62, 2752512, 62
->>>> 00000000: reading...
->>>> [ =C2=A0243.498535] onenand_command[382] page 0, 2621440, 0
->>>> [ =C2=A0243.505249] onenand_wait: ECC error =3D 0x8488
->>>> [ =C2=A0243.509552] onenand_command[382] page 1, 2621440, 1
->>>> [ =C2=A0243.514587] onenand_wait: ECC error =3D 0x8488
->>>> [ =C2=A0243.518890] onenand_command[382] page 2, 2621440, 2
->>>> (...)
->>>> [ =C2=A0244.089050] onenand_command[382] page 62, 2621440, 62
->>>> [ =C2=A0244.094268] onenand_wait: ECC error =3D 0x8448
->>>> [ =C2=A0244.098602] onenand_command[382] page 63, 2621440, 63
->>>> [ =C2=A0244.103790] onenand_wait: ECC error =3D 0x8488
->>>> [ =C2=A0244.109191] onenand_command[382] page 0, 2752512, 0
->>>> [ =C2=A0244.114196] onenand_wait: ECC error =3D 0x8488
->>>> [ =C2=A0244.118469] onenand_command[382] page 1, 2752512, 1
->>>> [ =C2=A0244.123535] onenand_wait: ECC error =3D 0x8488
->>>> [ =C2=A0244.127838] onenand_command[382] page 2, 2752512, 2
->>>> (...)
->>>> [ =C2=A0244.698150] onenand_command[382] page 62, 2752512, 62
->>>> [ =C2=A0244.703369] onenand_wait: ECC error =3D 0x8448
->>>> [ =C2=A0244.707672] onenand_command[382] page 63, 2752512, 63
->>>> [ =C2=A0244.712890] onenand_wait: ECC error =3D 0x8488
->>>>
->>>> ECC failed at 00000000
->>>> 00000000: checking...
->>>> compare failed. seed 1804289383
->>>> Byte 0x1 is 5a should be da
->>>> Byte 0x3 is 82 should be 92
->>>> Byte 0x4 is 10 should be 1a
->>>> Byte 0x5 is 21 should be b7
->>>>
->>>> --- end log nandtest fail ---
->>>>
->>>>
->>>> With this other code nandtest pass
->>>>
->>>> onenand_base.c
->>>>
->>>> 377: =C2=A0 =C2=A0 default:
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0block =3D o=
-nenand_block(this, addr);
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0page =3D (i=
-nt) (addr >> this->page_shift);
->>>> /* (line disabled) =C2=A0page =3D (int) (addr - onenand_addr(this,=
- block)) >>
->>>> this->page_shift; */
->>>>
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0printk("%s[=
-%d] page %d, %d, %d\n", __func__, __LINE__,
->>>> page, (int)
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0onenand_addr(this, block), ((int) addr >>
->>>> this->page_shift) &
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0this->page_mask);
->>>>
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ONENAND=
-_IS_2PLANE(this)) {
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0/* Make the even block number */
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0block &=3D ~1;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0/* Is it the odd plane? */
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0if (addr & this->writesize)
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0block++;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0page >>=3D 1;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0page &=3D t=
-his->page_mask;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
->>>>
->>>> --- start log nandtest pass ---
->>>> # nandtest -l 262144 /dev/mtd3
->>>> ECC corrections: 0
->>>> ECC failures =C2=A0 : 33
->>>> Bad blocks =C2=A0 =C2=A0 : 0
->>>> BBT blocks =C2=A0 =C2=A0 : 0
->>>> 00000000: writing...
->>>> [ 2024.624664] onenand_command[382] page 1280, 2621440, 0
->>>> [ 2024.631530] onenand_command[382] page 1282, 2621440, 2
->>>> [ 2024.637145] onenand_command[382] page 1284, 2621440, 4
->>>> (...)
->>>> [ 2024.796813] onenand_command[382] page 1340, 2621440, 60
->>>> [ 2024.802520] onenand_command[382] page 1342, 2621440, 62
->>>> [ 2024.808593] onenand_command[382] page 1344, 2752512, 0
->>>> [ 2024.814239] onenand_command[382] page 1346, 2752512, 2
->>>> (...)
->>>> [ 2024.979644] onenand_command[382] page 1404, 2752512, 60
->>>> [ 2024.985351] onenand_command[382] page 1406, 2752512, 62
->>>> 00000000: reading...
->>>> [ 2024.990997] onenand_command[382] page 1280, 2621440, 0
->>>> [ 2024.997985] onenand_command[382] page 1281, 2621440, 1
->>>> [ 2025.003295] onenand_command[382] page 1282, 2621440, 2
->>>> (...)
->>>>
->>>> [ 2025.326782] onenand_command[382] page 1342, 2621440, 62
->>>> [ 2025.332214] onenand_command[382] page 1343, 2621440, 63
->>>> [ 2025.338592] onenand_command[382] page 1344, 2752512, 0
->>>> [ 2025.343811] onenand_command[382] page 1345, 2752512, 1
->>>> [ 2025.349151] onenand_command[382] page 1346, 2752512, 2
->>>> (...)
->>>> [ 2025.672576] onenand_command[382] page 1406, 2752512, 62
->>>> [ 2025.677978] onenand_command[382] page 1407, 2752512, 63
->>>> 00000000: checking...
->>>> Finished pass 1 successfully
->>>> --- end log nandtest pass ---
->>>>
->>>>>
->>>>> In my test environment, it displays the correct page number.
->>>>> (addr - onenand_addr(this, block) >> this->page_shift is same as
->>>>> '(addr >> this->page_shift) & this->page_mask'.
->>>>>
->>>>
->>>> Looks like page number is wrong ?
->>>>
->>>> Cheers,
->>>>
->>>> Enric
->>>>
->>>>> Thank you,
->>>>> Kyungmin Park
->>>>>
->>>>> On Fri, Apr 30, 2010 at 7:05 PM, Enric Balletb=C3=B2 i Serra
->>>>> <eballetbo@gmail.com> wrote:
->>>>>> Hello all,
->>>>>>
->>>>>> After commit 5988af2319781bc8e0ce418affec4e09cfa77907 (mtd:
->>>>>> Flex-OneNAND support) the onenand support for my device is broke=
-n.
->>>>>>
->>>>>> Before this commit when I run the nandtest program all is ok
->>>>>> ---
->>>>>> # nandtest /dev/mtd3
->>>>>> ECC corrections: 0
->>>>>> ECC failures =C2=A0 : 0
->>>>>> Bad blocks =C2=A0 =C2=A0 : 0
->>>>>> BBT blocks =C2=A0 =C2=A0 : 0
->>>>>> 002c0000: checking...
->>>>>> Finished pass 1 successfully
->>>>>> --
->>>>>>
->>>>>> Introduced commit 5988af2319781bc8e0ce418affec4e09cfa7790 the na=
-ndtest
->>>>>> fails with:
->>>>>> ---
->>>>>> # nandtest /dev/mtd3
->>>>>> ECC corrections: 0
->>>>>> ECC failures =C2=A0 : 0
->>>>>> Bad blocks =C2=A0 =C2=A0 : 0
->>>>>> BBT blocks =C2=A0 =C2=A0 : 0
->>>>>> 00000000: reading...
->>>>>> [ =C2=A0299.092041] onenand_wait: ECC error =3D 0x8488
->>>>>> =C2=A0 =C2=A0( ... lots of ECC errors ... )
->>>>>> [ =C2=A0299.092041] onenand_wait: ECC error =3D 0x8488
->>>>>> ECC failed at 00000000
->>>>>> 00000000: checking...
->>>>>> compare failed. seed 1804289383
->>>>>> Byte 0x1 is 5a should be da
->>>>>> Byte 0x3 is 82 should be 92
->>>>>> Byte 0x4 is 10 should be 1a
->>>>>> =C2=A0 =C2=A0( ... )
->>>>>> ---
->>>>>>
->>>>>> Investigating a little I see a significant difference introduced=
- by
->>>>>> this patch. In line
->>>>>>
->>>>>> 347: =C2=A0 =C2=A0 =C2=A0 =C2=A0page =3D (int) (addr - onenand_a=
-ddr(this, block)) >>
->>>>>> this->page_shift; =C2=A0 (patch applied)
->>>>>>
->>>>>> instead of
->>>>>>
->>>>>> 347: =C2=A0 =C2=A0 =C2=A0 =C2=A0page =3D (int) (addr >> this->pa=
-ge_shift); =C2=A0(without patch)
->>>>>>
->>>>>> I applied commit 5988af2319781bc8e0ce418affec4e09cfa7790 and rep=
-laced
->>>>>> the line 347 and now works again. Fantastic, but I suspect this =
-is not
->>>>>> the proper solution (probably this breaks other onenands devices=
-, I
->>>>>> can't test).
->>>>>>
->>>>>> I'm just introducing in OneNAND devices so anyone can help me to
->>>>>> understand and solve the problem ? Note that my device is a Numo=
-nyx
->>>>>> 4-Gbit DDP (DUAL DIE PLAN) OneNAND flash memory ( 2 dice of 2Gb,=
- 2KB
->>>>>> page )
->>>>>>
->>>>>> Thanks in advance,
->>>>>>
->>>>>> ///:~Enric
->>>>>>
->>>>>> ---
->>>>>> diff --git a/drivers/mtd/onenand/onenand_base.c
->>>>>> b/drivers/mtd/onenand/onenand_base.c
->>>>>> index 081f97d..b1d50a3 100644
->>>>>> --- a/drivers/mtd/onenand/onenand_base.c
->>>>>> +++ b/drivers/mtd/onenand/onenand_base.c
->>>>>> @@ -344,7 +344,7 @@ static int onenand_command(struct mtd_info *=
-mtd,
->>>>>> int cmd, loff_t addr, size_t le
->>>>>>
->>>>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0default:
->>>>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0block =3D=
- (int) onenand_block(this, addr);
->>>>>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 page =3D (int=
-) (addr - onenand_addr(this, block)) >> this->page_shift;
->>>>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 page =3D (int=
-) (addr >> this->page_shift);
->>>>>>
->>>>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ONENA=
-ND_IS_2PLANE(this)) {
->>>>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0/* Make the even block number */
->>>>>> ---
->>>>>>
->>>>>> ______________________________________________________
->>>>>> Linux MTD discussion mailing list
->>>>>> http://lists.infradead.org/mailman/listinfo/linux-mtd/
->>>>>>
->>>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-om=
-ap" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info=
-=2Ehtml
->>>>
->>>
->>
->
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
