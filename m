@@ -1,31 +1,232 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/3] omap4 i2c board support
-Date: Wed, 12 May 2010 13:57:28 +0530
-Message-ID: <1273652851-14147-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 2/3] omap4: add i2c1 peripherals data
+Date: Wed, 12 May 2010 13:57:30 +0530
+Message-ID: <1273652851-14147-3-git-send-email-santosh.shilimkar@ti.com>
+References: <1273652851-14147-1-git-send-email-santosh.shilimkar@ti.com>
+ <1273652851-14147-2-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45932 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45933 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754164Ab0ELI1h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754114Ab0ELI1h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 12 May 2010 04:27:37 -0400
+In-Reply-To: <1273652851-14147-2-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Tony,
+From: Balaji T K <balajitk@ti.com>
 
-This series contains remaining patches from ealier series and
-is is rebased against the current omap "for-next" branch
+This patch adds i2c1 peripherals data to
+omap4430 sdp board file.
 
-Balaji T K (2):
-  omap4: add i2c1 peripherals data
-  omap4: Enable RTC and regulator support
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |  177 ++++++++++++++++++++++++++++++++++-
+ 1 files changed, 176 insertions(+), 1 deletions(-)
 
-Santosh Shilimkar (1):
-  omap4: Add i2c board support on omap4430 sdp platform
-
- arch/arm/configs/omap_4430sdp_defconfig |  376 ++++++++++++++++++++++++++++---
- arch/arm/mach-omap2/board-4430sdp.c     |  187 +++++++++++++++
- arch/arm/plat-omap/i2c.c                |   21 ++-
- 3 files changed, 553 insertions(+), 31 deletions(-)
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 41fed92..921cde3 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -19,6 +19,8 @@
+ #include <linux/gpio.h>
+ #include <linux/usb/otg.h>
+ #include <linux/spi/spi.h>
++#include <linux/i2c/twl.h>
++#include <linux/regulator/machine.h>
+ 
+ #include <mach/hardware.h>
+ #include <mach/omap4-common.h>
+@@ -135,13 +137,186 @@ static struct omap_musb_board_data musb_board_data = {
+ 	.mode			= MUSB_PERIPHERAL,
+ 	.power			= 100,
+ };
++static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
++	{
++		.supply = "vmmc",
++	},
++	{
++		.supply = "vmmc",
++	},
++	{
++		.supply = "vmmc",
++	},
++	{
++		.supply = "vmmc",
++	},
++	{
++		.supply = "vmmc",
++	},
++};
++
++static struct regulator_init_data sdp4430_vaux1 = {
++	.constraints = {
++		.min_uV			= 1000000,
++		.max_uV			= 3000000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data sdp4430_vaux2 = {
++	.constraints = {
++		.min_uV			= 1200000,
++		.max_uV			= 2800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data sdp4430_vaux3 = {
++	.constraints = {
++		.min_uV			= 1000000,
++		.max_uV			= 3000000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++/* VMMC1 for MMC1 card */
++static struct regulator_init_data sdp4430_vmmc = {
++	.constraints = {
++		.min_uV			= 1200000,
++		.max_uV			= 3000000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 5,
++	.consumer_supplies      = sdp4430_vmmc_supply,
++};
++
++static struct regulator_init_data sdp4430_vpp = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 2500000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data sdp4430_vusim = {
++	.constraints = {
++		.min_uV			= 1200000,
++		.max_uV			= 2900000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data sdp4430_vana = {
++	.constraints = {
++		.min_uV			= 2100000,
++		.max_uV			= 2100000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data sdp4430_vcxio = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data sdp4430_vdac = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data sdp4430_vusb = {
++	.constraints = {
++		.min_uV			= 3300000,
++		.max_uV			= 3300000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 =	REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct twl4030_platform_data sdp4430_twldata = {
++	.irq_base	= TWL6030_IRQ_BASE,
++	.irq_end	= TWL6030_IRQ_END,
++
++	/* Regulators */
++	.vmmc		= &sdp4430_vmmc,
++	.vpp		= &sdp4430_vpp,
++	.vusim		= &sdp4430_vusim,
++	.vana		= &sdp4430_vana,
++	.vcxio		= &sdp4430_vcxio,
++	.vdac		= &sdp4430_vdac,
++	.vusb		= &sdp4430_vusb,
++	.vaux1		= &sdp4430_vaux1,
++	.vaux2		= &sdp4430_vaux2,
++	.vaux3		= &sdp4430_vaux3,
++};
++
++static struct i2c_board_info __initdata sdp4430_i2c_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("twl6030", 0x48),
++		.flags = I2C_CLIENT_WAKE,
++		.irq = OMAP44XX_IRQ_SYS_1N,
++		.platform_data = &sdp4430_twldata,
++	},
++};
+ static int __init omap4_i2c_init(void)
+ {
+ 	/*
+ 	 * Phoenix Audio IC needs I2C1 to
+ 	 * start with 400 KHz or less
+ 	 */
+-	omap_register_i2c_bus(1, 400, NULL, 0);
++	omap_register_i2c_bus(1, 400, sdp4430_i2c_boardinfo,
++			ARRAY_SIZE(sdp4430_i2c_boardinfo));
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	omap_register_i2c_bus(4, 400, NULL, 0);
+-- 
+1.6.0.4
 
