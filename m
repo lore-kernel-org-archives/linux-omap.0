@@ -1,44 +1,41 @@
-From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Subject: Re: [PATCH 2/5] musb: use system DMA to fix Inventra DMA issue on
- RTL-1.4
-Date: Wed, 12 May 2010 20:51:14 +0300
-Message-ID: <20100512175113.GA3285@gandalf>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 3/5] musb: add function to check if Inventra DMA used
+Date: Wed, 12 May 2010 20:52:26 +0300
+Message-ID: <20100512175225.GB3285@gandalf>
 References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com>
  <1273664979-493-2-git-send-email-ajay.gupta@ti.com>
-Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+ <1273664979-493-3-git-send-email-ajay.gupta@ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns1.siteground211.com ([209.62.36.12]:53931 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756969Ab0ELRvm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 13:51:42 -0400
 Content-Disposition: inline
-In-Reply-To: <1273664979-493-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1273664979-493-3-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Wed, May 12, 2010 at 05:19:36PM +0530, Ajay Kumar Gupta wrote:
-> MUSB RTL version 1.4 has a hardware issue when TX and RX DMA channels are
-> simultaneously enabled which results in DMA lockup.
-
-I've seen it on rtl1.8 also if I remember correctly.
-
-> Use system DMA for all RX channels as a workaround of this issue as this
-> will have minimal throughput overhead based on the fact that Rx transfers
-> are done in DMA mode-0 on OMAP34x/35x platforms.
+On Wed, May 12, 2010 at 05:19:37PM +0530, Ajay Kumar Gupta wrote:
+> Added is_inventra_dma_enabled() funtion which would be required
+> for adding workaround for Inventra DMA issues. It can also be
+> used at other places instead of #ifdefs.
 > 
-> Another approach to use PIO mode in opposite direction would increase the
-> cpu loading and thus using system DMA is preferred workaround.
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-I think falling back to pio is better than this patch. It will most
-likely be only one transfer. Another approach is to allocate dma
-channels on a transfer basis. This is way too big of a problem.
+[..]
+
+> +#ifdef CONFIG_USB_INVENTRA_DMA
+> +#define	is_inventra_dma_enabled()	1
+> +#else
+> +#define	is_inventra_dma_enabled()	0
+> +#endif
+
+actually I wanted to get rid of those...
 
 -- 
 balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
