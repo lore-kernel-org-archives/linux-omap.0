@@ -1,46 +1,31 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH v2 2/2] ARM: McBSP: Add support for omap4 in McBSP
- driver
-Date: Wed, 12 May 2010 11:15:08 +0300
-Message-ID: <20100512111508.48780edb.jhnikula@gmail.com>
-References: <1273108546-2507-1-git-send-email-jorge.candelaria@ti.com>
-	<1273108546-2507-2-git-send-email-jorge.candelaria@ti.com>
-	<1273108546-2507-3-git-send-email-jorge.candelaria@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/3] omap4 i2c board support
+Date: Wed, 12 May 2010 13:57:28 +0530
+Message-ID: <1273652851-14147-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:63441 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752547Ab0ELINf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 04:13:35 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so78974eyd.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 01:13:34 -0700 (PDT)
-In-Reply-To: <1273108546-2507-3-git-send-email-jorge.candelaria@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45932 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754164Ab0ELI1h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 May 2010 04:27:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Cc: linux-omap@vger.kernel.org, Margarita Olaya Cabrera <magi.olaya@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Wed,  5 May 2010 20:15:46 -0500
-Jorge Eduardo Candelaria <jorge.candelaria@ti.com> wrote:
+Tony,
 
-> McBSP module in OMAP4 needs to be able to set its tx/rx threshold
-> and enable the transmitter/receiver when starting an audio stream.
-> 
-> Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-> Signed-off-by: Margarita Olaya Cabrera <magi.olaya@ti.com>
-> ---
-...
-> @@ -899,7 +899,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
->  
->  	/* Reset receiver */
->  	rx &= 1;
-> -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> +	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx) {
+This series contains remaining patches from ealier series and
+is is rebased against the current omap "for-next" branch
 
-Parentheses missing here from cpu_is_omap44xx. Otherwise looks good.
+Balaji T K (2):
+  omap4: add i2c1 peripherals data
+  omap4: Enable RTC and regulator support
 
+Santosh Shilimkar (1):
+  omap4: Add i2c board support on omap4430 sdp platform
 
--- 
-Jarkko
+ arch/arm/configs/omap_4430sdp_defconfig |  376 ++++++++++++++++++++++++++++---
+ arch/arm/mach-omap2/board-4430sdp.c     |  187 +++++++++++++++
+ arch/arm/plat-omap/i2c.c                |   21 ++-
+ 3 files changed, 553 insertions(+), 31 deletions(-)
+
