@@ -1,91 +1,106 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 9/9] OMAP:GPIO: Implement GPIO as a platform device
-Date: Wed, 12 May 2010 07:47:52 -0700
-Message-ID: <87pr11qiqv.fsf@deeprootsystems.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02C52D12CB@dbde02.ent.ti.com>
-	<877hni5akk.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02C54EF825@dbde02.ent.ti.com>
+Subject: Re: [PATCH 5/9] OMAP:GPIO: Introduce support for OMAP2PLUS chip specific GPIO
+Date: Wed, 12 May 2010 07:49:25 -0700
+Message-ID: <87ljbpqioa.fsf@deeprootsystems.com>
+References: <20100505223147.GG29604@atomide.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02C54EF826@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:39592 "EHLO
+Received: from mail-px0-f174.google.com ([209.85.212.174]:41296 "EHLO
 	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755709Ab0ELOr5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 10:47:57 -0400
-Received: by pxi5 with SMTP id 5so44218pxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 07:47:56 -0700 (PDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C54EF825@dbde02.ent.ti.com> (Charulatha Varadarajan's message of "Wed\, 12 May 2010 17\:59\:06 +0530")
+	with ESMTP id S1755997Ab0ELOt3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 10:49:29 -0400
+Received: by pxi5 with SMTP id 5so45183pxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 07:49:29 -0700 (PDT)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C54EF826@dbde02.ent.ti.com> (Charulatha Varadarajan's message of "Wed\, 12 May 2010 17\:59\:31 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
 
 "Varadarajan, Charulatha" <charu@ti.com> writes:
 
->> 
->> >> -----Original Message-----
->> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> >> Sent: Saturday, May 01, 2010 5:34 AM
->> >> To: Varadarajan, Charulatha
->> >> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com;
->> tony@atomide.com
->> >> Subject: Re: [PATCH 9/9] OMAP:GPIO: Implement GPIO as a platform device
->> >>
-> [...]
->> >> >
->> >> > +static int init_gpio_info(void)
->> >> > +{
->> >> > +   gpio_bank_bits = 32;
->> >> > +
->> >> > +   if (cpu_is_omap15xx()) {
->> >> > +           gpio_bank_count = 2;
->> >> > +           gpio_bank_bits = 16;
->> >> > +   } else if (cpu_is_omap16xx()) {
->> >> > +           gpio_bank_count = 5;
->> >> > +           gpio_bank_bits = 16;
->> >> > +   } else if (cpu_is_omap7xx())
->> >> > +           gpio_bank_count = 7;
->> >> > +   else if (cpu_is_omap242x())
->> >> > +           gpio_bank_count = 4;
->> >> > +   else if (cpu_is_omap243x())
->> >> > +           gpio_bank_count = 5;
->> >> > +   else if (cpu_is_omap34xx() || cpu_is_omap44xx())
->> >> > +           gpio_bank_count = OMAP34XX_NR_GPIOS;
->> >>
->> >> Both the bank count and bank bits could be part of platform_data
->> >> and set in the SoC specific init.  This is the GPIO driver part
->> >> and we're trying to make this as SoC independent as possible.  Anytime
->> >> you need to add a cpu_is* or #ifdef in this code indicates something
->> >> that should be part of SoC specific init and passed in.
->> >
->> > bank count and bank bits are not specific to each device, but SoC specific.
->> > Hence I did not consider passing it as part of platform_data, because this
->> information would be duplicated across all devices in that SoC.
->> >
->> > It would be good if we have a way to pass the SoC specific data which is
->> > common for all the devices rather than duplicating them by sending them via
->> > platform_data.
->> >
->> > Anyways, I can move it to platform_data if there is no other way.
->> 
->> Probably the right place for the SoC specifics is attached to the SoC
->> specific hwmod using the dev_attr pointer.  That struct can then
->> be passed in via platform_data.
->> 
->> You can see how Thara did this for SmartReflex as an example.
->> 
+> Tony/Kevin,
 >
-> Using dev_attr for OMAP2PLUS is fine. How about OMAP1? 
-> 1. To be implemented in a uniform way, may I get this info as 
-> part of platform_data? 
-> 2. Use dev_attr for OMAP2PLUS and use platform_data for OMAP1? 
+>> > > +{
+>> > > +	if (cpu_is_omap242x())
+>> > > +		gpio_bank_count = 4;
+>> > > +	else if (cpu_is_omap243x())
+>> > > +		gpio_bank_count = 5;
+>> > > +	else if (cpu_is_omap34xx() || cpu_is_omap44xx())
+>> > > +		gpio_bank_count = OMAP34XX_NR_GPIOS;
+>> > > +
+>> > > +	if (gpio_init())
+>> > > +		return -EINVAL;
+>> > > +
+>> > > +	early_platform_driver_register_all("earlygpio");
+>> > > +	early_platform_driver_probe("earlygpio", gpio_bank_count, 0);
+>> > > +	return 0;
+>> > > +}
+>> >
+>> > Then please replace this init with something like:
+>> 
+>> Okay.
+>> 
+>> >
+>> > #ifdef CONFIG_ARCH_OMAP2
+>> > int __init omap242x_gpio_init(void)
+>> > {
+>> > 	if (!cpu_is_omap2420())
+>> > 		return -EINVAL;
+>> >
+>> > 	gpio_bank_count = 4;
+>> >
+>> > 	return gpio_init(METHOD_GPIO_24XX);
+>> > }
+>> > subsys_initcall(omap242x_gpio_init);
+>> >
+>> > int __init omap243x_gpio_init(void)
+>> > {
+>> > 	if (!cpu_is_omap2430())
+>> > 		return -EINVAL;
+>> >
+>> > 	gpio_bank_count = 5;
+>> >
+>> > 	return gpio_init(METHOD_GPIO_24XX);
+>> > }
+>> > subsys_initcall(omap243x_gpio_init);
+>> > #endif
+>> >
+>> > #ifdef CONFIG_ARCH_OMAP3
+>> > int __init omap34xx_gpio_init(void)
+>> > {
+>> > 	if (!cpu_is_omap34xx())
+>> > 		return -EINVAL;
+>> >
+>> > 	gpio_bank_count = OMAP34X_NR_GPIOS;
+>> >
+>> > 	return gpio_init(METHOD_GPIO_34XX);
+>> > }
+>> > subsys_initcall(omap34xx_gpio_init);
+>> > #endif
+>> > ...
+>> >
+>> > This way it will be more future proof when new omaps get added
+>> > and the if else stuff disappears. Also then you'll have an omap
+>> > specific function to initialize the gpio stuff.
+>> >
+>> > Note that then early_platform_driver_register_all and
+>> > early_platform_driver_probe can be moved to gpio_init.
+>> >
+>> > With multi-omap build the subsys_initcall runs for all of the
+>> > selected platforms, but returns early except for the machine
+>> > we're running on. All the code is optimized out for omap
+>> > specific product kernels.
+>> 
+>> Okay. Will do the needful and send new patch series in 2 weeks.
+>
+> subsys_initcall is not sufficient for SoC specific gpio_init as it needs
+> to be done before machine_init functions access gpio APIs. Hence I am 
+> making SoC specific gpio_init as postcore_initcall.
 
-Not sure I understand the question.
-
-You should be able to use a dev_attr struct in OMAP1 and OMAP2+, as
-there is technically nothing hwmod specific in the dev_attr.  It
-is attached to the hwmod as a 'void *' and should be passed into the driver
-as the platform_data.
+OK.  Please add a comment at the postcore_initcall() location with the
+details as to why it is needed and what it needs to go before etc.
 
 Kevin
-
