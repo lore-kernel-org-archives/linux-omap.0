@@ -1,107 +1,70 @@
-From: "Arce, Abraham" <x0066660@ti.com>
-Subject: [RFC] [PATCH] OMAP: Remove compilation warnings
-Date: Wed, 12 May 2010 10:52:30 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E08FAEA@dlee03.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v2 0/6] OMAP: hwmod: Full data set for OMAP4430 ES1.0
+Date: Wed, 12 May 2010 17:54:35 +0200
+Message-ID: <1273679681-27549-1-git-send-email-b-cousson@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34963 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756663Ab0ELPwd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 11:52:33 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4CFqWdM020649
+Received: from devils.ext.ti.com ([198.47.26.153]:43410 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752145Ab0ELPyp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 11:54:45 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4CFsi27027780
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 10:52:32 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id o4CFqVEo022849
-	for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 10:52:31 -0500 (CDT)
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4CFqVEt002429
-	for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 10:52:31 -0500 (CDT)
-Content-Language: en-US
+	for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 10:54:44 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Benoit Cousson <b-cousson@ti.com>
 
-Against for-next branch
+Hi,
 
----
+Here is the OMAP4430 ES1.0 hwmod data serie v2.
+It is based on the "OMAP: HWMOD fixes and cleanup serie":
+  http://marc.info/?l=linux-omap&m=127324706012621&w=2
 
-Add __attribute__ ((unused))
+It was only tested on OMAP4430 ES1.0 GP device using PAB board for the moment.
 
-  arch/arm/mach-omap2/clockdomains.h:58
- 	warning: 'gfx_sgx_wkdeps' defined but not used
-  arch/arm/mach-omap2/mux.c:52
- 	warning: 'mux_phys' defined but not used
+Please note, that the two temporary fixes are pure hacks that are just there
+to allow the OMAP4 hwmod to boot properly and work corretly with the debug
+uart. There are not intented to go upstream.
 
-Initialize to 0
+The second part of the data set "OMAP4: hwmod: Add remaining hwmod support 
+for OMAP4430 ES1.0" is commented out for the moment. 
+The idea being that each time a driver is validated with this hwmod data,
+the comment can (and must) be removed.
 
-  arch/arm/plat-omap/gpio.c
- 	In function 'omap2_gpio_resume_after_retention':
- 	2131: warning: 'l' may be used uninitialized in this function
-  arch/arm/plat-omap/gpio.c
- 	In function 'omap2_gpio_prepare_for_retention':
- 	2074: warning: 'l2' may be used uninitialized in this function
-  arch/arm/plat-omap/gpio.c:2074
-	warning: 'l1' may be used uninitialized in this function
+I'd like to thanks Rajendra and Santosh for their help during the debug.
 
-Signed-off-by: Abraham Arce <x0066660@ti.com>
----
- arch/arm/mach-omap2/clockdomains.h |    2 +-
- arch/arm/mach-omap2/mux.c          |    2 +-
- arch/arm/plat-omap/gpio.c          |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+Comments are welcome.
 
-diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
-index 8fc19ff..cf23547 100644
---- a/arch/arm/mach-omap2/clockdomains.h
-+++ b/arch/arm/mach-omap2/clockdomains.h
-@@ -55,7 +55,7 @@
-  * These can share data since they will never be present simultaneously
-  * on the same device.
-  */
--static struct clkdm_dep gfx_sgx_wkdeps[] = {
-+static __attribute__ ((unused)) struct clkdm_dep gfx_sgx_wkdeps[] = {
- 	{
- 		.clkdm_name = "core_l3_clkdm",
- 		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP24XX)
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 8b3d269..269449a 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -49,7 +49,7 @@ struct omap_mux_entry {
- 	struct list_head	node;
- };
- 
--static unsigned long mux_phys;
-+static __attribute__ ((unused)) unsigned long mux_phys;
- static void __iomem *mux_base;
- 
- u16 omap_mux_read(u16 reg)
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index dddc9d6..fffc7f2 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -2071,7 +2071,7 @@ void omap2_gpio_prepare_for_retention(void)
- 	 * IRQs will be generated.  See OMAP2420 Errata item 1.101. */
- 	for (i = 0; i < gpio_bank_count; i++) {
- 		struct gpio_bank *bank = &gpio_bank[i];
--		u32 l1, l2;
-+		u32 l1 = 0, l2 = 0;
- 
- 		if (!(bank->enabled_non_wakeup_gpios))
- 			continue;
-@@ -2128,7 +2128,7 @@ void omap2_gpio_resume_after_retention(void)
- 		return;
- 	for (i = 0; i < gpio_bank_count; i++) {
- 		struct gpio_bank *bank = &gpio_bank[i];
--		u32 l, gen, gen0, gen1;
-+		u32 l = 0, gen, gen0, gen1;
- 
- 		if (!(bank->enabled_non_wakeup_gpios))
- 			continue;
--- 
-1.5.4.3
+Thanks,
+Benoit
+
+v1
+  http://marc.info/?l=linux-omap&m=127324843814741&w=2
+  
+v2
+  - [PATCH 3/6] OMAP4: hwmod: Enable omap_device build for OMAP4
+    Removed some old defines for OMAP_32KSYNCT_BASE that has nothing
+    to do in that file and was already removed by Tony.
+
+
+Benoit Cousson (3):
+  OMAP4: hwmod: Add partial hwmod support for OMAP4430 ES1.0
+  OMAP4: hwmod: Enable omap_hwmod build for OMAP4
+  OMAP4: hwmod: Add remaining hwmod support for OMAP4430 ES1.0
+
+Rajendra Nayak (3):
+  OMAP4: hwmod: Enable omap_device build for OMAP4
+  OMAP: hwmod: Temporary disable dependency
+  OMAP: hwmod: Temp fixes to get hwmod registers work
+
+ arch/arm/mach-omap2/Makefile                 |    3 +-
+ arch/arm/mach-omap2/io.c                     |    6 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |   12 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   | 4900 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/Makefile                  |    1 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 6 files changed, 4920 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 
