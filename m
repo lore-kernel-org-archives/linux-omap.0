@@ -1,353 +1,141 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC][PATCHv2 1/2] SFH7741: proximity sensor driver support
-Date: Wed, 12 May 2010 08:20:21 -0500
-Message-ID: <4BEAAB15.5030500@ti.com>
-References: <0680EC522D0CC943BC586913CF3768C003B3209EF4@dbde02.ent.ti.com>
+Subject: Re: [RFC] [PATCHv2 2/2] SFH7741: Proximity sensor board support.
+Date: Wed, 12 May 2010 08:22:31 -0500
+Message-ID: <4BEAAB97.1000106@ti.com>
+References: <0680EC522D0CC943BC586913CF3768C003B3209EF5@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B3209EF4@dbde02.ent.ti.com>
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B3209EF5@dbde02.ent.ti.com>
 Sender: linux-input-owner@vger.kernel.org
 To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
 Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-very minor comments follow:
 Datta, Shubhrajyoti had written, on 05/12/2010 03:52 AM, the following:
-> Driver support for the proximity sensor SFH7741.
+> Adding board support for the proximity sensor.
 > 
 > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 > ---
->  drivers/input/misc/Kconfig    |    9 ++
->  drivers/input/misc/Makefile   |    1 +
->  drivers/input/misc/sfh7741.c  |  256 +++++++++++++++++++++++++++++++++++++++++
->  include/linux/input/sfh7741.h |   16 +++
->  4 files changed, 282 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/input/misc/sfh7741.c
->  create mode 100644 include/linux/input/sfh7741.h
+>  arch/arm/mach-omap2/board-4430sdp.c |   71 +++++++++++++++++++++++++++++++++++
+>  1 files changed, 71 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-> index 23140a3..925dca3 100644
-> --- a/drivers/input/misc/Kconfig
-> +++ b/drivers/input/misc/Kconfig
-> @@ -340,4 +340,13 @@ config INPUT_PCAP
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called pcap_keys.
->  
-> +config SENSORS_SFH7741
-> +	tristate "Proximity sensor"
-> +	default y
-
-default n?
-
-> +	help
-> +	  Say Y here if you want to use proximity sensor sfh7741.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called sfh7741.
-> +
->  endif
-> diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-> index 7e95a5d..5fea200 100644
-> --- a/drivers/input/misc/Makefile
-> +++ b/drivers/input/misc/Makefile
-> @@ -32,4 +32,5 @@ obj-$(CONFIG_INPUT_WINBOND_CIR)		+= winbond-cir.o
->  obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
->  obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
->  obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
-> +obj-$(CONFIG_SENSORS_SFH7741)		+= sfh7741.o
->  
-> diff --git a/drivers/input/misc/sfh7741.c b/drivers/input/misc/sfh7741.c
-> new file mode 100644
-> index 0000000..cde4d1b
-> --- /dev/null
-> +++ b/drivers/input/misc/sfh7741.c
-> @@ -0,0 +1,256 @@
-> +/*
-> + * sfh7741.c
-> + *
-> + * SFH7741 Proximity Driver
-> + *
-> + * Copyright (C) 2010 Texas Instruments
-> + *
-> + * Author: Shubhrajyoti Datta <shubhrajyoti@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-> + */
-> +
-> +#include <linux/interrupt.h>
-> +#include <linux/pm.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/input.h>
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index b88f28c..beb3059 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/io.h>
+>  #include <linux/gpio.h>
+>  #include <linux/usb/otg.h>
 > +#include <linux/input/sfh7741.h>
-> +#include <linux/slab.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -31,7 +32,25 @@
+>  #include <plat/usb.h>
+>  #include <asm/hardware/gic.h>
+>  #include <asm/hardware/cache-l2x0.h>
+> +#define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
+> +#define OMAP4_SFH7741_ENABLE_GPIO		188
+> +static void omap_prox_activate(int state);
+> +static int omap_prox_read(void);
 > +
-> +struct sfh7741_drvdata {
-> +	struct input_dev *input;
-> +	int irq;
-> +	int prox_enable;
-> +	/* mutex for sysfs operations */
-> +	struct mutex lock;
-> +	void (*activate_func)(int state);
-> +	int (*read_prox)(void);
+> +static struct sfh7741_platform_data omap_sfh7741_data = {
+> +		.irq = OMAP_GPIO_IRQ(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO),
+> +		.prox_enable = 1,
+> +		.activate_func = omap_prox_activate,
+> +		.read_prox = omap_prox_read,
 > +};
-> +
-> +static irqreturn_t sfh7741_isr(int irq, void *dev_id)
+>  
+> +static struct platform_device sdp4430_proximity_device = {
+> +	.name		= "sfh7741",
+> +	.id		= 1,
+> +	.dev		= {
+> +		.platform_data = &omap_sfh7741_data,
+> +	},
+> +};
+>  static struct platform_device sdp4430_lcd_device = {
+>  	.name		= "sdp4430_lcd",
+>  	.id		= -1,
+> @@ -39,6 +58,7 @@ static struct platform_device sdp4430_lcd_device = {
+>  
+>  static struct platform_device *sdp4430_devices[] __initdata = {
+>  	&sdp4430_lcd_device,
+> +	&sdp4430_proximity_device,
+>  };
+>  
+>  static struct omap_lcd_config sdp4430_lcd_config __initdata = {
+> @@ -111,6 +131,56 @@ static struct omap_musb_board_data musb_board_data = {
+>  	.power			= 100,
+>  };
+>  
+> +static void omap_prox_activate(int state)
 > +{
-> +	struct sfh7741_drvdata *ddata = dev_id;
-> +	int proximity;
-> +
-> +	proximity = ddata->read_prox();
-> +	input_report_abs(ddata->input, ABS_DISTANCE, proximity);
-> +	input_sync(ddata->input);
-> +
-> +	return IRQ_HANDLED;
+> +	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , state);
 > +}
 > +
-> +static ssize_t set_prox_state(struct device *dev,
-> +				struct device_attribute *attr,
-> +				const char *buf, size_t count)
-> +{
-> +	int state;
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> +
-> +	if (sscanf(buf, "%u", &state) != 1)
-> +		return -EINVAL;
-> +
-> +	if ((state != 1) && (state != 0))
-> +		return -EINVAL;
-> +
-> +	ddata->activate_func(state);
-> +
-> +	mutex_lock(&ddata->lock);
-> +	if (state != ddata->prox_enable) {
-> +		if (state)
-> +			enable_irq(ddata->irq);
-> +		else
-> +			disable_irq(ddata->irq);
-> +		ddata->prox_enable = state;
-> +	}
-> +	mutex_unlock(&ddata->lock);
-> +	return strnlen(buf, count);
-> +}
-> +
-> +static ssize_t show_prox_state(struct device *dev,
-> +			struct device_attribute *attr,
-> +			char *buf)
-> +{
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> +	return sprintf(buf, "%u\n", ddata->prox_enable);
-> +}
-> +static DEVICE_ATTR(state, S_IWUSR | S_IRUGO, show_prox_state, set_prox_state);
-> +
-> +static ssize_t show_proximity(struct device *dev,
-> +			struct device_attribute *attr,
-> +			char *buf)
+> +static int omap_prox_read(void)
 > +{
 > +	int proximity;
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> +	proximity = ddata->read_prox();
-> +	return sprintf(buf, "%u\n", proximity);
+> +	proximity = gpio_get_value(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO);
+> +	return proximity;
 > +}
-> +static DEVICE_ATTR(proximity, S_IRUGO, show_proximity, NULL);
 > +
-> +static struct attribute *sfh7741_attributes[] = {
-> +	&dev_attr_state.attr,
-> +	&dev_attr_proximity.attr,
-> +	NULL
-> +};
-> +
-> +static const struct attribute_group sfh7741_attr_group = {
-> +	.attrs = sfh7741_attributes,
-> +};
-> +
-> +static int __devinit sfh7741_probe(struct platform_device *pdev)
+> +static void omap_sfh7741prox_init(void)
 > +{
-> +	struct sfh7741_platform_data *pdata = pdev->dev.platform_data;
-> +	struct sfh7741_drvdata *ddata;
-> +	struct device *dev = &pdev->dev;
-> +	struct input_dev *input;
-> +	int  error;
 > +	char *desc = "sfh7741";
+> +	int  error;
 > +
-> +	pr_info("SFH7741: Proximity sensor\n");
-> +
-> +	ddata = kzalloc(sizeof(struct sfh7741_drvdata),
-> +			GFP_KERNEL);
-> +	input = input_allocate_device();
-> +	if (!ddata || !input) {
-> +		dev_err(dev, "failed to allocate input device\n");
-> +		return -ENOMEM;
+> +	error = gpio_request(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO, "sfh7741");
+> +	if (error < 0) {
+> +		pr_err("%s: GPIO configuration failed: GPIO %d, error %d\n"
+> +			, __func__, OMAP4_SFH7741_SENSOR_OUTPUT_GPIO, error);
+> +		return ;
 > +	}
 > +
-> +	input->name = pdev->name;
-> +	input->phys = "sfh7741/input0";
-> +	input->dev.parent = &pdev->dev;
-> +
-> +	input->id.bustype = BUS_HOST;
-> +	ddata->irq = pdata->irq;
-> +	ddata->prox_enable = pdata->prox_enable;
-> +	if (!pdata->activate_func || !pdata->read_prox) {
-> +		dev_err(dev, "The activate and read func not allocated\n");
-ddata free?
-> +		return -EINVAL;
-> +	}
-> +
-> +	ddata->activate_func = pdata->activate_func;
-> +	ddata->read_prox =  pdata->read_prox;
-> +
-> +	ddata->input = input;
-> +	__set_bit(EV_ABS, input->evbit);
-> +
-> +	input_set_abs_params(input, ABS_DISTANCE, 0, 1, 0, 0);
-> +
-> +	error = input_register_device(input);
-> +	if (error) {
-> +		dev_err(dev, "Unable to register input device,error: %d\n"
-> +				, error);
+> +	error = gpio_direction_input(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO);
+> +	if (error < 0) {
+> +		pr_err("Proximity GPIO input configuration failed\n");
 > +		goto fail1;
 > +	}
 > +
-> +	platform_set_drvdata(pdev, ddata);
-> +
-> +	error = request_threaded_irq(pdata->irq , NULL ,
-> +				sfh7741_isr,
-> +				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
-> +				| IRQF_ONESHOT,
-> +				desc, ddata);
-> +	if (error) {
-> +		dev_err(dev, "Unable to claim irq %d; error %d\n",
-> +			pdata->irq, error);
-> +		goto fail2;
+> +	error = gpio_request(OMAP4_SFH7741_ENABLE_GPIO, "sfh7741");
+> +	if (error < 0) {
+> +		pr_err("failed to request GPIO %d, error %d\n",
+> +			OMAP4_SFH7741_ENABLE_GPIO, error);
+> +		goto fail1;
 > +	}
 > +
-> +	mutex_init(&ddata->lock);
-> +	error = sysfs_create_group(&dev->kobj, &sfh7741_attr_group);
-> +	if (error) {
-> +		dev_err(dev, "failed to create sysfs entries\n");
-> +		mutex_destroy(&ddata->lock);
-> +		free_irq(pdata->irq, &ddata);
-but no free for ddata and cleanup?
+> +	error = gpio_direction_output(OMAP4_SFH7741_ENABLE_GPIO , 1);
+> +	if (error < 0) {
+> +		pr_err("%s: GPIO configuration failed: GPIO %d,\
+> +			error %d\n",__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
+> +		goto fail3;
 > +	}
+> +	return;
 > +
-> +	return 0;
-> +
-> +fail2:
-> +	input_unregister_device(input);
-> +	platform_set_drvdata(pdev, NULL);
+> +fail3:
+> +	gpio_free(OMAP4_SFH7741_ENABLE_GPIO);
 > +fail1:
-> +	input_free_device(input);
-> +	kfree(ddata);
-> +	return error;
-> +
+> +	gpio_free(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO);
 > +}
-> +
-> +static int __devexit sfh7741_remove(struct platform_device *pdev)
-> +{
-> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> +	struct device *dev = &pdev->dev;
-> +	mutex_destroy(&ddata->lock);
-> +	sysfs_remove_group(&dev->kobj, &sfh7741_attr_group);
-> +	free_irq(ddata->irq, (void *)ddata);
-> +	input_unregister_device(ddata->input);
-> +	kfree(ddata);
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_PM
-> +static int sfh7741_suspend(struct device *dev)
-> +{
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> +	ddata->activate_func(0);
-> +	return 0;
-> +}
-> +
-> +static int sfh7741_resume(struct device *dev)
-> +{
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
-> +	ddata->activate_func(1);
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops sfh7741_pm_ops = {
-> +	.suspend	= sfh7741_suspend,
-> +	.resume		= sfh7741_resume,
-> +};
-> +#endif
-> +
-> +static struct platform_driver sfh7741_device_driver = {
-> +	.probe		= sfh7741_probe,
-> +	.remove		= __devexit_p(sfh7741_remove),
-> +	.driver		= {
-> +		.name	= "sfh7741",
-> +		.owner	= THIS_MODULE,
-> +#ifdef CONFIG_PM
-> +		.pm	= &sfh7741_pm_ops,
-> +#endif
-> +	}
-> +};
-> +
-> +static int __init sfh7741_init(void)
-> +{
-> +	return platform_driver_register(&sfh7741_device_driver);
-> +}
-> +
-> +static void __exit sfh7741_exit(void)
-> +{
-> +	platform_driver_unregister(&sfh7741_device_driver);
-> +}
-> +
-> +module_init(sfh7741_init);
-> +module_exit(sfh7741_exit);
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Texas Instruments");
-> +MODULE_DESCRIPTION("Proximity driver ");
-                                     ^^^ trailing space? and may be a 
-better description..
-> +MODULE_ALIAS("platform:sfh7741");
-> +
-> diff --git a/include/linux/input/sfh7741.h b/include/linux/input/sfh7741.h
-> new file mode 100644
-> index 0000000..d8894e0
-> --- /dev/null
-> +++ b/include/linux/input/sfh7741.h
-> @@ -0,0 +1,16 @@
-> +/*
-> + * Configuration and driver data for Proximity driver.
-> + */
-> +
-you may want to add licensing info here.
 
-> +#ifndef __SFH7741_H
-> +#define __SFH7741_H
-> +
-> +struct sfh7741_platform_data {
-> +	int irq;
-> +	int prox_enable;
-> +	void (*activate_func)(int state);
-> +	int (*read_prox)(void);
-> +};
-> +
-> +#endif
-> +
+a) mux handling?
+b) if init failed, still register the prox device? it wont function right?
+
+>  static void __init omap_4430sdp_init(void)
+>  {
+>  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+> @@ -120,6 +190,7 @@ static void __init omap_4430sdp_init(void)
+>  	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
+>  	if (!cpu_is_omap44xx())
+>  		usb_musb_init(&musb_board_data);
+> +	omap_sfh7741prox_init();
+>  }
+>  
+>  static void __init omap_4430sdp_map_io(void)
 
 
 -- 
