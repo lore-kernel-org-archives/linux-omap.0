@@ -1,49 +1,76 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
-	DSP_MMUFAULT
-Date: Wed, 12 May 2010 22:39:10 +0300
-Message-ID: <AANLkTik46ilQPBGtsgWAMTlWrdWaaYTDC2aCYmf4iUIn@mail.gmail.com>
-References: <1271177720-1299-1-git-send-email-deepak.chitriki@ti.com>
-	 <496565EC904933469F292DDA3F1663E602CB215CB2@dlee06.ent.ti.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] omap_hsmmc: improve interrupt synchronisation
+Date: Wed, 12 May 2010 12:52:13 -0700
+Message-ID: <20100512125213.36631d2d.akpm@linux-foundation.org>
+References: <4BEA5DD5.9010308@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:61814 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753386Ab0ELTjM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 15:39:12 -0400
-Received: by fxm5 with SMTP id 5so27369fxm.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 12:39:11 -0700 (PDT)
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CB215CB2@dlee06.ent.ti.com>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35115 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932170Ab0ELTwt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 May 2010 15:52:49 -0400
+In-Reply-To: <4BEA5DD5.9010308@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Venkatraman S <svenkatr@ti.com>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Hi,
+On Wed, 12 May 2010 10:50:45 +0300
+Adrian Hunter <adrian.hunter@nokia.com> wrote:
 
-I didn't touch this issue in the hopes that it would be fixed, but
-seems it hasn't.
-
-On Mon, Apr 19, 2010 at 9:25 PM, Guzman Lugo, Fernando <x0095840@ti.com> wrote:
-> To sum up:
+> >From ad2e1cd024ccf9144b6620cfe808893719db738f Mon Sep 17 00:00:00 2001
+> From: Adrian Hunter <adrian.hunter@nokia.com>
+> Date: Wed, 14 Apr 2010 16:26:45 +0300
+> Subject: [PATCH] omap_hsmmc: improve interrupt synchronisation
+> 
+> The following changes were needed:
+> 	- do not use in_interrupt() because it will not work
+> 	with threaded interrupts
+> 
+> In addition, the following improvements were made:
+> 	- ensure DMA is unmapped only after the final DMA interrupt
+> 	- ensure a request is completed only after the final DMA interrupt
+> 	- disable controller interrupts when a request is not in progress
+> 	- remove the spin-lock protecting the start of a new request from
+> 	an unexpected interrupt because the locking was complicated and
+> 	a 'req_in_progress' flag suffices (since the spin-lock only defers
+> 	the unexpected interrupts anyway)
+> 	- instead use the spin-lock to protect the MMC interrupt handler
+> 	from the DMA interrupt handler
+> 	- remove the semaphore preventing DMA from being started while
+> 	the previous DMA is still in progress - the other changes make that
+> 	impossible, so it is now a BUG_ON condition
+> 	- ensure the controller interrupt status is clear before exiting
+> 	the interrrupt handler
+> 
+> In general, these changes make the code safer but do not fix any specific
+> bugs so backporting is not necessary.
+> 
 >
-> - "DSPBRIDGE:Fix Kernel memory poison overwritten after DSP_MMUFAULT" is only hidden the problem, we don't need aligned memory in this point, that patch should be removed if it is already apply.
+> ...
 >
-> - There is no need to create a patch for the issue because it is already indirectly fix with "DSPBRIDGE: MMU-Fault debugging enhancements".
+> +static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_request *mrq)
+> +{
+> +	int dma_ch;
+> +
+> +	spin_lock(&host->irq_lock);
+> +	host->req_in_progress = 0;
+> +	dma_ch = host->dma_ch;
+> +	spin_unlock(&host->irq_lock);
+> +
+> +	omap_hsmmc_disable_irq(host);
+> +	/* Do not complete the request if DMA is still in progress */
+> +	if (mrq->data && host->use_dma && dma_ch != -1)
+> +		return;
+> +	host->mrq = NULL;
+> +	mmc_request_done(host->mmc, mrq);
+> +}
 
-If you are referring to this patch:
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=26ad62f03578a12e942d8bb86d0e52ef1afdee22
+Are we sure that irq_lock doesn't need to be taken in an irq-safe fashion?
 
-I tried to backport it to minimize the changes to a reproducible
-test-case. I guess in the l-o branch the commit would be dd1fd0b.
-Unfortunately that didn't fix the corruption. So I don't by that GPT8
-theory.
 
-> - we don't need allocate memory for dummy_va_addr, if some patch should be created should be the patch to remove dummy_va_addr allocation and deletion.
+send_init_stream() doesn't report an error if its busywait times out.
 
-I tried that, and that actually fixes the corruption for me (passing 0
-to hw_mmu_tlb_add).
-
--- 
-Felipe Contreras
