@@ -1,177 +1,355 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 4/5] musb: use system DMA for unaligned buffers on RTL
- >= 1.8
-Date: Wed, 12 May 2010 17:18:02 +0400
-Message-ID: <4BEAAA8A.1000003@ru.mvista.com>
-References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com> <1273664979-493-2-git-send-email-ajay.gupta@ti.com> <1273664979-493-3-git-send-email-ajay.gupta@ti.com> <1273664979-493-4-git-send-email-ajay.gupta@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC][PATCHv2 1/2] SFH7741: proximity sensor driver support
+Date: Wed, 12 May 2010 08:20:21 -0500
+Message-ID: <4BEAAB15.5030500@ti.com>
+References: <0680EC522D0CC943BC586913CF3768C003B3209EF4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1273664979-493-4-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B3209EF4@dbde02.ent.ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+very minor comments follow:
+Datta, Shubhrajyoti had written, on 05/12/2010 03:52 AM, the following:
+> Driver support for the proximity sensor SFH7741.
+> 
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+>  drivers/input/misc/Kconfig    |    9 ++
+>  drivers/input/misc/Makefile   |    1 +
+>  drivers/input/misc/sfh7741.c  |  256 +++++++++++++++++++++++++++++++++++++++++
+>  include/linux/input/sfh7741.h |   16 +++
+>  4 files changed, 282 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/input/misc/sfh7741.c
+>  create mode 100644 include/linux/input/sfh7741.h
+> 
+> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+> index 23140a3..925dca3 100644
+> --- a/drivers/input/misc/Kconfig
+> +++ b/drivers/input/misc/Kconfig
+> @@ -340,4 +340,13 @@ config INPUT_PCAP
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called pcap_keys.
+>  
+> +config SENSORS_SFH7741
+> +	tristate "Proximity sensor"
+> +	default y
 
-Ajay Kumar Gupta wrote:
+default n?
 
-> MUSB RTL version 1.8 onward (OMAP3630, AM/DM37x, OMAP4) DMA requires
-> the buffers to be aligned on a four byte boundary. This affects USB
-> CDC/RNDIS class application where buffers are always unaligned.
->
-> Use system DMA for unaligned buffers as a workaround of this issue.
->
-> Current patch supports device side CDC/RNDIS. Host side would require
-> change in Tx programming path for mode-0 operation when transfer length
-> is more than packet size.
->
-> Also fixed an issue in device Tx completion path where 'is_dma' is getting
-> set unconditionally. This would fail the io if Tx transfer is done in
-> mode-0. Fixed it by updating it based on 'request->actual' length.
->
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
->   
-[...]
-> diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-> index 70342eb..6118d5f 100644
-> --- a/drivers/usb/musb/musbhsdma.c
-> +++ b/drivers/usb/musb/musbhsdma.c
-> @@ -54,12 +54,18 @@ static void musb_sysdma_completion(int lch, u16 ch_status, void *data)
->  					(struct musb_dma_channel *) data;
->  	struct musb_dma_controller *controller = musb_channel->controller;
->  	struct musb *musb = controller->private_data;
-> +	void __iomem *mbase = controller->base;
+> +	help
+> +	  Say Y here if you want to use proximity sensor sfh7741.
 > +
->  	channel = &musb_channel->channel;
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called sfh7741.
+> +
+>  endif
+> diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+> index 7e95a5d..5fea200 100644
+> --- a/drivers/input/misc/Makefile
+> +++ b/drivers/input/misc/Makefile
+> @@ -32,4 +32,5 @@ obj-$(CONFIG_INPUT_WINBOND_CIR)		+= winbond-cir.o
+>  obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
+>  obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
+>  obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
+> +obj-$(CONFIG_SENSORS_SFH7741)		+= sfh7741.o
 >  
->  	DBG(2, "lch = 0x%d, ch_status = 0x%x\n", lch, ch_status);
->  	spin_lock_irqsave(&musb->lock, flags);
->  
-> -	addr = (u32) omap_get_dma_dst_pos(musb_channel->sysdma_channel);
-> +	if (musb_channel->transmit)
-> +		addr = (u32) omap_get_dma_src_pos(musb_channel->sysdma_channel);
-> +	else
-> +		addr = (u32) omap_get_dma_dst_pos(musb_channel->sysdma_channel);
+> diff --git a/drivers/input/misc/sfh7741.c b/drivers/input/misc/sfh7741.c
+> new file mode 100644
+> index 0000000..cde4d1b
+> --- /dev/null
+> +++ b/drivers/input/misc/sfh7741.c
+> @@ -0,0 +1,256 @@
+> +/*
+> + * sfh7741.c
+> + *
+> + * SFH7741 Proximity Driver
+> + *
+> + * Copyright (C) 2010 Texas Instruments
+> + *
+> + * Author: Shubhrajyoti Datta <shubhrajyoti@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+> + */
 > +
->  	if (musb_channel->len == 0)
->  		channel->actual_len = 0;
->  	else
-> @@ -72,6 +78,26 @@ static void musb_sysdma_completion(int lch, u16 ch_status, void *data)
->  		"=> reconfig 0 " : " => complete");
->  
->  	channel->status = MUSB_DMA_STATUS_FREE;
+> +#include <linux/interrupt.h>
+> +#include <linux/pm.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/input.h>
+> +#include <linux/input/sfh7741.h>
+> +#include <linux/slab.h>
 > +
-> +	/* completed */
-> +	if ((musb_channel->transmit) && (channel->desired_mode == 0)
-> +		&& (channel->actual_len == musb_channel->max_packet_sz)) {
+> +struct sfh7741_drvdata {
+> +	struct input_dev *input;
+> +	int irq;
+> +	int prox_enable;
+> +	/* mutex for sysfs operations */
+> +	struct mutex lock;
+> +	void (*activate_func)(int state);
+> +	int (*read_prox)(void);
+> +};
 > +
-> +		u8  epnum  = musb_channel->epnum;
-> +		int offset = MUSB_EP_OFFSET(epnum,
-> +				    MUSB_TXCSR);
-> +		u16 txcsr;
+> +static irqreturn_t sfh7741_isr(int irq, void *dev_id)
+> +{
+> +	struct sfh7741_drvdata *ddata = dev_id;
+> +	int proximity;
 > +
-> +		/*
-> +		 * The programming guide says that we
-> +		 * must clear DMAENAB before DMAMODE.
-> +		 */
-> +		musb_ep_select(mbase, epnum);
-> +		txcsr = musb_readw(mbase, offset);
-> +		txcsr |=  MUSB_TXCSR_TXPKTRDY;
-> +		musb_writew(mbase, offset, txcsr);
+> +	proximity = ddata->read_prox();
+> +	input_report_abs(ddata->input, ABS_DISTANCE, proximity);
+> +	input_sync(ddata->input);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static ssize_t set_prox_state(struct device *dev,
+> +				struct device_attribute *attr,
+> +				const char *buf, size_t count)
+> +{
+> +	int state;
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +
+> +	if (sscanf(buf, "%u", &state) != 1)
+> +		return -EINVAL;
+> +
+> +	if ((state != 1) && (state != 0))
+> +		return -EINVAL;
+> +
+> +	ddata->activate_func(state);
+> +
+> +	mutex_lock(&ddata->lock);
+> +	if (state != ddata->prox_enable) {
+> +		if (state)
+> +			enable_irq(ddata->irq);
+> +		else
+> +			disable_irq(ddata->irq);
+> +		ddata->prox_enable = state;
+> +	}
+> +	mutex_unlock(&ddata->lock);
+> +	return strnlen(buf, count);
+> +}
+> +
+> +static ssize_t show_prox_state(struct device *dev,
+> +			struct device_attribute *attr,
+> +			char *buf)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	return sprintf(buf, "%u\n", ddata->prox_enable);
+> +}
+> +static DEVICE_ATTR(state, S_IWUSR | S_IRUGO, show_prox_state, set_prox_state);
+> +
+> +static ssize_t show_proximity(struct device *dev,
+> +			struct device_attribute *attr,
+> +			char *buf)
+> +{
+> +	int proximity;
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	proximity = ddata->read_prox();
+> +	return sprintf(buf, "%u\n", proximity);
+> +}
+> +static DEVICE_ATTR(proximity, S_IRUGO, show_proximity, NULL);
+> +
+> +static struct attribute *sfh7741_attributes[] = {
+> +	&dev_attr_state.attr,
+> +	&dev_attr_proximity.attr,
+> +	NULL
+> +};
+> +
+> +static const struct attribute_group sfh7741_attr_group = {
+> +	.attrs = sfh7741_attributes,
+> +};
+> +
+> +static int __devinit sfh7741_probe(struct platform_device *pdev)
+> +{
+> +	struct sfh7741_platform_data *pdata = pdev->dev.platform_data;
+> +	struct sfh7741_drvdata *ddata;
+> +	struct device *dev = &pdev->dev;
+> +	struct input_dev *input;
+> +	int  error;
+> +	char *desc = "sfh7741";
+> +
+> +	pr_info("SFH7741: Proximity sensor\n");
+> +
+> +	ddata = kzalloc(sizeof(struct sfh7741_drvdata),
+> +			GFP_KERNEL);
+> +	input = input_allocate_device();
+> +	if (!ddata || !input) {
+> +		dev_err(dev, "failed to allocate input device\n");
+> +		return -ENOMEM;
 > +	}
 > +
->  	musb_dma_completion(musb, musb_channel->epnum, musb_channel->transmit);
->  
->  	spin_unlock_irqrestore(&musb->lock, flags);
-> @@ -138,8 +164,15 @@ static struct dma_channel *dma_channel_allocate(struct dma_controller *c,
->  			 * issue when TX and RX DMA channels are simultaneously
->  			 * enabled. To work around this issue, use system DMA
->  			 * for all RX channels.
-> +			 * Also on MUSB RTL version 1.8 onward (OMAP3630, OMAP4
-> +			 * and AM/DM37x) DMA requires buffers to be aligned on
-> +			 * a four byte boundary. This affects USB CDC/RNDIS
-> +			 * class application where buffers are always unaligned.
-> +			 * Using system DMA for unaligned buffers as a
-> +			 * workaround for this issue.
->  			 */
-> -			if (((musb->hwvers == MUSB_HWVERS_1400) && !transmit)
-> +			if ((((musb->hwvers == MUSB_HWVERS_1400) && !transmit)
-> +				|| (musb->hwvers >= MUSB_HWVERS_1800))
->  				&& use_sdma_workaround()) {
->  				int ret;
->  				ret = omap_request_dma(OMAP24XX_DMA_NO_DEVICE,
-> @@ -194,11 +227,18 @@ static void configure_channel(struct dma_channel *channel,
->  	struct musb *musb = controller->private_data;
->  	void __iomem *mbase = controller->base;
->  	u8 bchannel = musb_channel->idx;
-> +	u8 buffer_is_aligned = (dma_addr & 0x3) ? 0 : 1;
-> +	u8 use_sdma = (musb_channel->sysdma_channel == -1) ? 0 : 1;
->  	u16 csr = 0;
->  
->  	DBG(4, "%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
->  			channel, packet_sz, dma_addr, len, mode);
-> -	if (musb_channel->sysdma_channel != -1) {
+> +	input->name = pdev->name;
+> +	input->phys = "sfh7741/input0";
+> +	input->dev.parent = &pdev->dev;
 > +
-> +	if (buffer_is_aligned && (packet_sz >= 512) &&
-> +			(musb->hwvers >= MUSB_HWVERS_1800))
-> +		use_sdma = 0;
+> +	input->id.bustype = BUS_HOST;
+> +	ddata->irq = pdata->irq;
+> +	ddata->prox_enable = pdata->prox_enable;
+> +	if (!pdata->activate_func || !pdata->read_prox) {
+> +		dev_err(dev, "The activate and read func not allocated\n");
+ddata free?
+> +		return -EINVAL;
+> +	}
 > +
-> +	if (use_sdma &&	!musb_channel->transmit) {
->  		/* System DMA */
->  		/* RX: set src = FIFO */
->  		omap_set_dma_transfer_params(musb_channel->sysdma_channel,
-> @@ -224,6 +264,32 @@ static void configure_channel(struct dma_channel *channel,
->  
->  		omap_start_dma(musb_channel->sysdma_channel);
->  
-> +	} else if (use_sdma && musb_channel->transmit) {
-> +		/* System DMA */
-> +		/* TX: set dst = FIFO */
-> +		omap_set_dma_transfer_params(musb_channel->sysdma_channel,
-> +					OMAP_DMA_DATA_TYPE_S8,
-> +					len ? len : 1, 1, /* One frame */
-> +					OMAP_DMA_SYNC_ELEMENT,
-> +					OMAP24XX_DMA_NO_DEVICE,
-> +					0); /* Src Sync */
+> +	ddata->activate_func = pdata->activate_func;
+> +	ddata->read_prox =  pdata->read_prox;
 > +
-> +		omap_set_dma_src_params(musb_channel->sysdma_channel, 0,
-> +					OMAP_DMA_AMODE_POST_INC, dma_addr,
-> +					0, 0);
+> +	ddata->input = input;
+> +	__set_bit(EV_ABS, input->evbit);
 > +
-> +		omap_set_dma_dest_params(musb_channel->sysdma_channel, 0,
-> +					OMAP_DMA_AMODE_CONSTANT,
-> +					MUSB_FIFO_ADDRESS(musb->ctrl_phys_base,
-> +						musb_channel->epnum),
-> +					0, 0);
+> +	input_set_abs_params(input, ABS_DISTANCE, 0, 1, 0, 0);
 > +
-> +		omap_set_dma_dest_data_pack(musb_channel->sysdma_channel, 0);
-> +		omap_set_dma_dest_burst_mode(musb_channel->sysdma_channel,
-> +					OMAP_DMA_DATA_BURST_DIS);
+> +	error = input_register_device(input);
+> +	if (error) {
+> +		dev_err(dev, "Unable to register input device,error: %d\n"
+> +				, error);
+> +		goto fail1;
+> +	}
 > +
-> +		omap_start_dma(musb_channel->sysdma_channel);
+> +	platform_set_drvdata(pdev, ddata);
 > +
->  	} else { /* Mentor DMA */
->  
->  	if (mode) {
-> @@ -299,6 +365,9 @@ static int dma_channel_abort(struct dma_channel *channel)
->  
->  	if (channel->status == MUSB_DMA_STATUS_BUSY) {
->  		if (musb_channel->transmit) {
-> +			if (musb_channel->sysdma_channel != -1)
-> +				omap_stop_dma(musb_channel->sysdma_channel);
+> +	error = request_threaded_irq(pdata->irq , NULL ,
+> +				sfh7741_isr,
+> +				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
+> +				| IRQF_ONESHOT,
+> +				desc, ddata);
+> +	if (error) {
+> +		dev_err(dev, "Unable to claim irq %d; error %d\n",
+> +			pdata->irq, error);
+> +		goto fail2;
+> +	}
 > +
->   
+> +	mutex_init(&ddata->lock);
+> +	error = sysfs_create_group(&dev->kobj, &sfh7741_attr_group);
+> +	if (error) {
+> +		dev_err(dev, "failed to create sysfs entries\n");
+> +		mutex_destroy(&ddata->lock);
+> +		free_irq(pdata->irq, &ddata);
+but no free for ddata and cleanup?
+> +	}
+> +
+> +	return 0;
+> +
+> +fail2:
+> +	input_unregister_device(input);
+> +	platform_set_drvdata(pdev, NULL);
+> +fail1:
+> +	input_free_device(input);
+> +	kfree(ddata);
+> +	return error;
+> +
+> +}
+> +
+> +static int __devexit sfh7741_remove(struct platform_device *pdev)
+> +{
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	struct device *dev = &pdev->dev;
+> +	mutex_destroy(&ddata->lock);
+> +	sysfs_remove_group(&dev->kobj, &sfh7741_attr_group);
+> +	free_irq(ddata->irq, (void *)ddata);
+> +	input_unregister_device(ddata->input);
+> +	kfree(ddata);
+> +	return 0;
+> +}
+> +
+> +#ifdef CONFIG_PM
+> +static int sfh7741_suspend(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	ddata->activate_func(0);
+> +	return 0;
+> +}
+> +
+> +static int sfh7741_resume(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct sfh7741_drvdata *ddata = platform_get_drvdata(pdev);
+> +	ddata->activate_func(1);
+> +	return 0;
+> +}
+> +
+> +static const struct dev_pm_ops sfh7741_pm_ops = {
+> +	.suspend	= sfh7741_suspend,
+> +	.resume		= sfh7741_resume,
+> +};
+> +#endif
+> +
+> +static struct platform_driver sfh7741_device_driver = {
+> +	.probe		= sfh7741_probe,
+> +	.remove		= __devexit_p(sfh7741_remove),
+> +	.driver		= {
+> +		.name	= "sfh7741",
+> +		.owner	= THIS_MODULE,
+> +#ifdef CONFIG_PM
+> +		.pm	= &sfh7741_pm_ops,
+> +#endif
+> +	}
+> +};
+> +
+> +static int __init sfh7741_init(void)
+> +{
+> +	return platform_driver_register(&sfh7741_device_driver);
+> +}
+> +
+> +static void __exit sfh7741_exit(void)
+> +{
+> +	platform_driver_unregister(&sfh7741_device_driver);
+> +}
+> +
+> +module_init(sfh7741_init);
+> +module_exit(sfh7741_exit);
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Texas Instruments");
+> +MODULE_DESCRIPTION("Proximity driver ");
+                                     ^^^ trailing space? and may be a 
+better description..
+> +MODULE_ALIAS("platform:sfh7741");
+> +
+> diff --git a/include/linux/input/sfh7741.h b/include/linux/input/sfh7741.h
+> new file mode 100644
+> index 0000000..d8894e0
+> --- /dev/null
+> +++ b/include/linux/input/sfh7741.h
+> @@ -0,0 +1,16 @@
+> +/*
+> + * Configuration and driver data for Proximity driver.
+> + */
+> +
+you may want to add licensing info here.
 
-   Have you thought about e.g. Blackfin? How this is going to compile 
-there, without omap_*() functions even existing? Or did you think that 
-OMAP is the only user of this driver?
+> +#ifndef __SFH7741_H
+> +#define __SFH7741_H
+> +
+> +struct sfh7741_platform_data {
+> +	int irq;
+> +	int prox_enable;
+> +	void (*activate_func)(int state);
+> +	int (*read_prox)(void);
+> +};
+> +
+> +#endif
+> +
 
-WBR, Sergei
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
