@@ -1,236 +1,80 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/5] musb: use system DMA for unaligned buffers on RTL >= 1.8
-Date: Wed, 12 May 2010 17:19:38 +0530
-Message-ID: <1273664979-493-4-git-send-email-ajay.gupta@ti.com>
-References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-2-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-3-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1273664979-493-3-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH 9/9] OMAP:GPIO: Implement GPIO as a platform device
+Date: Wed, 12 May 2010 17:59:06 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C54EF825@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02C52D12CB@dbde02.ent.ti.com>
+ <877hni5akk.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59654 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752092Ab0ELM3Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 May 2010 08:29:16 -0400
+In-Reply-To: <877hni5akk.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
 
-MUSB RTL version 1.8 onward (OMAP3630, AM/DM37x, OMAP4) DMA requires
-the buffers to be aligned on a four byte boundary. This affects USB
-CDC/RNDIS class application where buffers are always unaligned.
+> 
+> >> -----Original Message-----
+> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> >> Sent: Saturday, May 01, 2010 5:34 AM
+> >> To: Varadarajan, Charulatha
+> >> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com;
+> tony@atomide.com
+> >> Subject: Re: [PATCH 9/9] OMAP:GPIO: Implement GPIO as a platform device
+> >>
+[...]
+> >> >
+> >> > +static int init_gpio_info(void)
+> >> > +{
+> >> > +   gpio_bank_bits = 32;
+> >> > +
+> >> > +   if (cpu_is_omap15xx()) {
+> >> > +           gpio_bank_count = 2;
+> >> > +           gpio_bank_bits = 16;
+> >> > +   } else if (cpu_is_omap16xx()) {
+> >> > +           gpio_bank_count = 5;
+> >> > +           gpio_bank_bits = 16;
+> >> > +   } else if (cpu_is_omap7xx())
+> >> > +           gpio_bank_count = 7;
+> >> > +   else if (cpu_is_omap242x())
+> >> > +           gpio_bank_count = 4;
+> >> > +   else if (cpu_is_omap243x())
+> >> > +           gpio_bank_count = 5;
+> >> > +   else if (cpu_is_omap34xx() || cpu_is_omap44xx())
+> >> > +           gpio_bank_count = OMAP34XX_NR_GPIOS;
+> >>
+> >> Both the bank count and bank bits could be part of platform_data
+> >> and set in the SoC specific init.  This is the GPIO driver part
+> >> and we're trying to make this as SoC independent as possible.  Anytime
+> >> you need to add a cpu_is* or #ifdef in this code indicates something
+> >> that should be part of SoC specific init and passed in.
+> >
+> > bank count and bank bits are not specific to each device, but SoC specific.
+> > Hence I did not consider passing it as part of platform_data, because this
+> information would be duplicated across all devices in that SoC.
+> >
+> > It would be good if we have a way to pass the SoC specific data which is
+> > common for all the devices rather than duplicating them by sending them via
+> > platform_data.
+> >
+> > Anyways, I can move it to platform_data if there is no other way.
+> 
+> Probably the right place for the SoC specifics is attached to the SoC
+> specific hwmod using the dev_attr pointer.  That struct can then
+> be passed in via platform_data.
+> 
+> You can see how Thara did this for SmartReflex as an example.
+> 
 
-Use system DMA for unaligned buffers as a workaround of this issue.
+Using dev_attr for OMAP2PLUS is fine. How about OMAP1? 
+1. To be implemented in a uniform way, may I get this info as 
+part of platform_data? 
+2. Use dev_attr for OMAP2PLUS and use platform_data for OMAP1? 
 
-Current patch supports device side CDC/RNDIS. Host side would require
-change in Tx programming path for mode-0 operation when transfer length
-is more than packet size.
-
-Also fixed an issue in device Tx completion path where 'is_dma' is getting
-set unconditionally. This would fail the io if Tx transfer is done in
-mode-0. Fixed it by updating it based on 'request->actual' length.
-
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/musb/Kconfig       |    6 +++
- drivers/usb/musb/musb_gadget.c |   21 +++++++++++-
- drivers/usb/musb/musbhsdma.c   |   75 ++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 98 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index f847fe2..05db0ff 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -166,6 +166,12 @@ config MUSB_USE_SYSTEM_DMA_WORKAROUND
-           DMA channels are simultaneously enabled. To work around this issue,
-           you can choose to use System DMA for RX channels.
- 
-+	  Also on Mentor DMA in MUSB RTL version 1.8 (OMAP3630, AM/DM37x)
-+	  requires buffers to be aligned on a four byte boundary. This affects
-+	  USB CDC/RNDIS class application where buffers are always unaligned.
-+	  To work around this issue, you can choose to use System DMA for
-+	  unaligned buffers.
-+
- config USB_TI_CPPI_DMA
- 	bool
- 	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 6fca870..9ac45e4 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -317,6 +317,22 @@ static void txstate(struct musb *musb, struct musb_request *req)
- 			else
- 				musb_ep->dma->desired_mode = 1;
- 
-+			/*
-+			 * Use system dma for unaligned buffers on RTL >= 1.8
-+			 * for Inventra DMA. As system DMA can work only in
-+			 * mode-0 so update the desired_mode and request_size.
-+			 */
-+			if (is_inventra_dma_enabled() &&
-+				((request->dma + request->actual) & 0x3) &&
-+				(musb->hwvers >= MUSB_HWVERS_1800)) {
-+
-+				request_size = min_t(size_t,
-+					musb_ep->hw_ep->max_packet_sz_tx,
-+					request->length - request->actual);
-+
-+				musb_ep->dma->desired_mode = 0;
-+			}
-+
- 			use_dma = use_dma && c->channel_program(
- 					musb_ep->dma, musb_ep->packet_sz,
- 					musb_ep->dma->desired_mode,
-@@ -463,7 +479,6 @@ void musb_g_tx(struct musb *musb, u8 epnum)
- 		u8	is_dma = 0;
- 
- 		if (dma && (csr & MUSB_TXCSR_DMAENAB)) {
--			is_dma = 1;
- 			csr |= MUSB_TXCSR_P_WZC_BITS;
- 			csr &= ~(MUSB_TXCSR_DMAENAB | MUSB_TXCSR_P_UNDERRUN |
- 				 MUSB_TXCSR_TXPKTRDY);
-@@ -471,6 +486,10 @@ void musb_g_tx(struct musb *musb, u8 epnum)
- 			/* Ensure writebuffer is empty. */
- 			csr = musb_readw(epio, MUSB_TXCSR);
- 			request->actual += musb_ep->dma->actual_len;
-+
-+			if (request->actual == request->length)
-+				is_dma = 1;
-+
- 			DBG(4, "TXCSR%d %04x, DMA off, len %zu, req %p\n",
- 				epnum, csr, musb_ep->dma->actual_len, request);
- 		}
-diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-index 70342eb..6118d5f 100644
---- a/drivers/usb/musb/musbhsdma.c
-+++ b/drivers/usb/musb/musbhsdma.c
-@@ -54,12 +54,18 @@ static void musb_sysdma_completion(int lch, u16 ch_status, void *data)
- 					(struct musb_dma_channel *) data;
- 	struct musb_dma_controller *controller = musb_channel->controller;
- 	struct musb *musb = controller->private_data;
-+	void __iomem *mbase = controller->base;
-+
- 	channel = &musb_channel->channel;
- 
- 	DBG(2, "lch = 0x%d, ch_status = 0x%x\n", lch, ch_status);
- 	spin_lock_irqsave(&musb->lock, flags);
- 
--	addr = (u32) omap_get_dma_dst_pos(musb_channel->sysdma_channel);
-+	if (musb_channel->transmit)
-+		addr = (u32) omap_get_dma_src_pos(musb_channel->sysdma_channel);
-+	else
-+		addr = (u32) omap_get_dma_dst_pos(musb_channel->sysdma_channel);
-+
- 	if (musb_channel->len == 0)
- 		channel->actual_len = 0;
- 	else
-@@ -72,6 +78,26 @@ static void musb_sysdma_completion(int lch, u16 ch_status, void *data)
- 		"=> reconfig 0 " : " => complete");
- 
- 	channel->status = MUSB_DMA_STATUS_FREE;
-+
-+	/* completed */
-+	if ((musb_channel->transmit) && (channel->desired_mode == 0)
-+		&& (channel->actual_len == musb_channel->max_packet_sz)) {
-+
-+		u8  epnum  = musb_channel->epnum;
-+		int offset = MUSB_EP_OFFSET(epnum,
-+				    MUSB_TXCSR);
-+		u16 txcsr;
-+
-+		/*
-+		 * The programming guide says that we
-+		 * must clear DMAENAB before DMAMODE.
-+		 */
-+		musb_ep_select(mbase, epnum);
-+		txcsr = musb_readw(mbase, offset);
-+		txcsr |=  MUSB_TXCSR_TXPKTRDY;
-+		musb_writew(mbase, offset, txcsr);
-+	}
-+
- 	musb_dma_completion(musb, musb_channel->epnum, musb_channel->transmit);
- 
- 	spin_unlock_irqrestore(&musb->lock, flags);
-@@ -138,8 +164,15 @@ static struct dma_channel *dma_channel_allocate(struct dma_controller *c,
- 			 * issue when TX and RX DMA channels are simultaneously
- 			 * enabled. To work around this issue, use system DMA
- 			 * for all RX channels.
-+			 * Also on MUSB RTL version 1.8 onward (OMAP3630, OMAP4
-+			 * and AM/DM37x) DMA requires buffers to be aligned on
-+			 * a four byte boundary. This affects USB CDC/RNDIS
-+			 * class application where buffers are always unaligned.
-+			 * Using system DMA for unaligned buffers as a
-+			 * workaround for this issue.
- 			 */
--			if (((musb->hwvers == MUSB_HWVERS_1400) && !transmit)
-+			if ((((musb->hwvers == MUSB_HWVERS_1400) && !transmit)
-+				|| (musb->hwvers >= MUSB_HWVERS_1800))
- 				&& use_sdma_workaround()) {
- 				int ret;
- 				ret = omap_request_dma(OMAP24XX_DMA_NO_DEVICE,
-@@ -194,11 +227,18 @@ static void configure_channel(struct dma_channel *channel,
- 	struct musb *musb = controller->private_data;
- 	void __iomem *mbase = controller->base;
- 	u8 bchannel = musb_channel->idx;
-+	u8 buffer_is_aligned = (dma_addr & 0x3) ? 0 : 1;
-+	u8 use_sdma = (musb_channel->sysdma_channel == -1) ? 0 : 1;
- 	u16 csr = 0;
- 
- 	DBG(4, "%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
- 			channel, packet_sz, dma_addr, len, mode);
--	if (musb_channel->sysdma_channel != -1) {
-+
-+	if (buffer_is_aligned && (packet_sz >= 512) &&
-+			(musb->hwvers >= MUSB_HWVERS_1800))
-+		use_sdma = 0;
-+
-+	if (use_sdma &&	!musb_channel->transmit) {
- 		/* System DMA */
- 		/* RX: set src = FIFO */
- 		omap_set_dma_transfer_params(musb_channel->sysdma_channel,
-@@ -224,6 +264,32 @@ static void configure_channel(struct dma_channel *channel,
- 
- 		omap_start_dma(musb_channel->sysdma_channel);
- 
-+	} else if (use_sdma && musb_channel->transmit) {
-+		/* System DMA */
-+		/* TX: set dst = FIFO */
-+		omap_set_dma_transfer_params(musb_channel->sysdma_channel,
-+					OMAP_DMA_DATA_TYPE_S8,
-+					len ? len : 1, 1, /* One frame */
-+					OMAP_DMA_SYNC_ELEMENT,
-+					OMAP24XX_DMA_NO_DEVICE,
-+					0); /* Src Sync */
-+
-+		omap_set_dma_src_params(musb_channel->sysdma_channel, 0,
-+					OMAP_DMA_AMODE_POST_INC, dma_addr,
-+					0, 0);
-+
-+		omap_set_dma_dest_params(musb_channel->sysdma_channel, 0,
-+					OMAP_DMA_AMODE_CONSTANT,
-+					MUSB_FIFO_ADDRESS(musb->ctrl_phys_base,
-+						musb_channel->epnum),
-+					0, 0);
-+
-+		omap_set_dma_dest_data_pack(musb_channel->sysdma_channel, 0);
-+		omap_set_dma_dest_burst_mode(musb_channel->sysdma_channel,
-+					OMAP_DMA_DATA_BURST_DIS);
-+
-+		omap_start_dma(musb_channel->sysdma_channel);
-+
- 	} else { /* Mentor DMA */
- 
- 	if (mode) {
-@@ -299,6 +365,9 @@ static int dma_channel_abort(struct dma_channel *channel)
- 
- 	if (channel->status == MUSB_DMA_STATUS_BUSY) {
- 		if (musb_channel->transmit) {
-+			if (musb_channel->sysdma_channel != -1)
-+				omap_stop_dma(musb_channel->sysdma_channel);
-+
- 			offset = MUSB_EP_OFFSET(musb_channel->epnum,
- 						MUSB_TXCSR);
- 
--- 
-1.6.2.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Any other way? Please suggest.
