@@ -1,136 +1,49 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: [RFC] [PATCHv2 2/2] SFH7741: Proximity sensor board support.
-Date: Wed, 12 May 2010 14:22:16 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003B3209EF5@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
+ tree
+Date: Wed, 12 May 2010 11:59:04 +0300
+Message-ID: <1273654744.2814.14.camel@tubuntu.research.nokia.com>
+References: <20100507134334.75808884.sfr@canb.auug.org.au>
+	 <20100510202056.GG16460@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100510202056.GG16460@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Quadros Roger (Nokia-D/Helsinki)" <roger.quadros@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-Adding board support for the proximity sensor.
+On Mon, 2010-05-10 at 22:20 +0200, ext Tony Lindgren wrote:
+> * Stephen Rothwell <sfr@canb.auug.org.au> [100506 22:05]:
+> > Hi Tomi,
+> > 
+> > Today's linux-next merge of the omap_dss2 tree got a conflict in
+> > arch/arm/mach-omap2/board-rx51-peripherals.c between commit
+> > e87da74e34ad151e6ae75ebb7a7bf447f02c0004 ("omap: rx51: Add supplies for
+> > the tlv320aic3x codec driver") from the omap tree and commit
+> > a693839eab0292aa234d7a6f48d40389389baebb ("OMAP: RX51: Add "vdds_sdi"
+> > supply voltage for SDI") from the omap_dss2 tree.
+> > 
+> > Just overlapping additions. I fixed it up (see below) and can carry the
+> > fix as necessary.
+> 
+> Thanks again Stephen. We will move the conflicting DSS board-*.c
+> file changes over to omap for next.
+> 
+> Tomi, do you want to do a branch of board-*.c patches for me to
+> pull, or do you want me to just pick this one?
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   71 +++++++++++++++++++++++++++++++++++
- 1 files changed, 71 insertions(+), 0 deletions(-)
+I think it's ok to pick just this one. It's just adds a regulator
+supply, and doesn't interfere with anything. I just need to make sure
+linux-omap's for-next is merged first, before I send my pull request.
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index b88f28c..beb3059 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -18,6 +18,7 @@
- #include <linux/io.h>
- #include <linux/gpio.h>
- #include <linux/usb/otg.h>
-+#include <linux/input/sfh7741.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -31,7 +32,25 @@
- #include <plat/usb.h>
- #include <asm/hardware/gic.h>
- #include <asm/hardware/cache-l2x0.h>
-+#define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
-+#define OMAP4_SFH7741_ENABLE_GPIO		188
-+static void omap_prox_activate(int state);
-+static int omap_prox_read(void);
-+
-+static struct sfh7741_platform_data omap_sfh7741_data = {
-+		.irq = OMAP_GPIO_IRQ(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO),
-+		.prox_enable = 1,
-+		.activate_func = omap_prox_activate,
-+		.read_prox = omap_prox_read,
-+};
- 
-+static struct platform_device sdp4430_proximity_device = {
-+	.name		= "sfh7741",
-+	.id		= 1,
-+	.dev		= {
-+		.platform_data = &omap_sfh7741_data,
-+	},
-+};
- static struct platform_device sdp4430_lcd_device = {
- 	.name		= "sdp4430_lcd",
- 	.id		= -1,
-@@ -39,6 +58,7 @@ static struct platform_device sdp4430_lcd_device = {
- 
- static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_lcd_device,
-+	&sdp4430_proximity_device,
- };
- 
- static struct omap_lcd_config sdp4430_lcd_config __initdata = {
-@@ -111,6 +131,56 @@ static struct omap_musb_board_data musb_board_data = {
- 	.power			= 100,
- };
- 
-+static void omap_prox_activate(int state)
-+{
-+	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , state);
-+}
-+
-+static int omap_prox_read(void)
-+{
-+	int proximity;
-+	proximity = gpio_get_value(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO);
-+	return proximity;
-+}
-+
-+static void omap_sfh7741prox_init(void)
-+{
-+	char *desc = "sfh7741";
-+	int  error;
-+
-+	error = gpio_request(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO, "sfh7741");
-+	if (error < 0) {
-+		pr_err("%s: GPIO configuration failed: GPIO %d, error %d\n"
-+			, __func__, OMAP4_SFH7741_SENSOR_OUTPUT_GPIO, error);
-+		return ;
-+	}
-+
-+	error = gpio_direction_input(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO);
-+	if (error < 0) {
-+		pr_err("Proximity GPIO input configuration failed\n");
-+		goto fail1;
-+	}
-+
-+	error = gpio_request(OMAP4_SFH7741_ENABLE_GPIO, "sfh7741");
-+	if (error < 0) {
-+		pr_err("failed to request GPIO %d, error %d\n",
-+			OMAP4_SFH7741_ENABLE_GPIO, error);
-+		goto fail1;
-+	}
-+
-+	error = gpio_direction_output(OMAP4_SFH7741_ENABLE_GPIO , 1);
-+	if (error < 0) {
-+		pr_err("%s: GPIO configuration failed: GPIO %d,\
-+			error %d\n",__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
-+		goto fail3;
-+	}
-+	return;
-+
-+fail3:
-+	gpio_free(OMAP4_SFH7741_ENABLE_GPIO);
-+fail1:
-+	gpio_free(OMAP4_SFH7741_SENSOR_OUTPUT_GPIO);
-+}
- static void __init omap_4430sdp_init(void)
- {
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
-@@ -120,6 +190,7 @@ static void __init omap_4430sdp_init(void)
- 	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
- 	if (!cpu_is_omap44xx())
- 		usb_musb_init(&musb_board_data);
-+	omap_sfh7741prox_init();
- }
- 
- static void __init omap_4430sdp_map_io(void)
--- 
-1.5.4.7
+I made a branch for it, based on linux-omap/for-next:
+git://gitorious.org/linux-omap-dss2/linux.git for-tony
 
+And I dropped the patch from my for-next branch.
+
+ Tomi
