@@ -1,105 +1,157 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4] OMAP3: Registering sgx device and it's platform data
-Date: Thu, 13 May 2010 10:32:01 -0500
-Message-ID: <4BEC1B71.3070204@ti.com>
-References: <1273727200-4811-1-git-send-email-manjugk@ti.com>
+From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: [PATCHv2] DSPBRIDGE: Include missing info in MMU Fault debugging
+ trace
+Date: Thu, 13 May 2010 10:40:40 -0500
+Message-ID: <B852767254C5C94EBB1040EE0EFA06009359281E@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45379 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45522 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755056Ab0EMPcK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 May 2010 11:32:10 -0400
-In-Reply-To: <1273727200-4811-1-git-send-email-manjugk@ti.com>
+	id S1750731Ab0EMPkm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 11:40:42 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Agarwal, Preshit" <preshit.agarwal@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Turquette, Mike" <mturquette@ti.com>, "V, Hemanth" <hemanthv@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
 
-G, Manjunath Kondaiah had written, on 05/13/2010 12:06 AM, the following:
-> The SGX powervr_device is registered with it's platform specific
-> data to provide information about setting constraint through
-> omap_pm_set_min_bus_tput.
-> 
-> Signed-off-by: Preshit Agarwal <preshit.agarwal@ti.com>
-> Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Mike Turquette <mturquette@ti.com>
-> Cc: Hemanth V <hemanthv@ti.com>
-> ---
->  arch/arm/mach-omap2/devices.c                  |   21 +++++++++++++++++++--
->  arch/arm/mach-omap2/include/mach/omap_sgxdef.h |   11 +++++++++++
->  2 files changed, 30 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/include/mach/omap_sgxdef.h
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 2271b9b..6349ee5 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -26,7 +26,7 @@
->  #include <plat/mux.h>
->  #include <mach/gpio.h>
->  #include <plat/mmc.h>
-> -
-> +#include <mach/omap_sgxdef.h>
->  #include "mux.h"
->  
->  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-> @@ -786,6 +786,23 @@ static inline void omap_hdq_init(void)
->  static inline void omap_hdq_init(void) {}
->  #endif
->  
-> +struct sgx_platform_data omap_sgx_data = {
-> +	.set_min_bus_tput = NULL,
-> +};
-> +
-> +static struct platform_device powervr_device = {
-> +	.name            = "pvrsrvkm",
-> +	.id              = -1,
-> +	.dev            = {
-> +	.platform_data = &omap_sgx_data,
-> +       }
-> +};
-> +
-> +static void omap_init_sgx(void)
-> +{
-> +       (void) platform_device_register(&powervr_device);
-> +}
-> +
->  /*-------------------------------------------------------------------------*/
->  
->  static int __init omap2_init_devices(void)
-> @@ -800,7 +817,7 @@ static int __init omap2_init_devices(void)
->  	omap_hdq_init();
->  	omap_init_sti();
->  	omap_init_sha1_md5();
-> -
-> +	omap_init_sgx();
-should'nt we depend on has_sgx_feature?
->  	return 0;
->  }
->  arch_initcall(omap2_init_devices);
-> diff --git a/arch/arm/mach-omap2/include/mach/omap_sgxdef.h b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
-> new file mode 100644
-> index 0000000..e03ad8b
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
-> @@ -0,0 +1,11 @@
-> +#ifndef OMAP_SGXDEF_H
-> +#define OMAP_SGXDEF_H
-> +
-> +#include <plat/omap-pm.h>
-> +
-> +struct sgx_platform_data {
-> +	void (*set_min_bus_tput)(struct device *dev, u8 agent_id,
-> +				unsigned long r);
-> +};
-> +
-> +#endif
+Resending this patch rebased to the last changes included in dspbridge.
+---
 
+Some execution info is missing at the beginning of the
+trace buffer printout. This fix is to include this information
+according to the buffer contents description and
+also couple of cosmetic changes to make the traces more
+readable.
 
+Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+---
+ drivers/dsp/bridge/core/io_sm.c |   44 +++++++++++++++++++++++++++++++-------
+ 1 files changed, 36 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/dsp/bridge/core/io_sm.c b/drivers/dsp/bridge/core/io_sm.c
+index d6c1a98..d11bd9f 100644
+--- a/drivers/dsp/bridge/core/io_sm.c
++++ b/drivers/dsp/bridge/core/io_sm.c
+@@ -1949,9 +1949,9 @@ dsp_status print_dsp_trace_buffer(struct bridge_dev_context *hbridge_context)
+ 		if (DSP_FAILED(status))
+ 			goto func_end;
+ 		/* Pack and do newline conversion */
+-		pr_info("%s: DSP Trace Buffer Begin:\n"
++		pr_info("DSP Trace Buffer Begin:\n"
+ 			"=======================\n%s\n",
+-			__func__, psz_buf);
++			psz_buf);
+ 
+ 
+ 		/* convert to offset */
+@@ -2058,6 +2058,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
+ 		u32 size;
+ 	} mmu_fault_dbg_info;
+ 	u32 *buffer;
++	u32 *buffer_beg;
+ 	u32 *buffer_end;
+ 	u32 exc_type;
+ 	u32 i;
+@@ -2067,6 +2068,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
+ 	const char *dsp_regs[] = {"EFR", "IERR", "ITSR", "NTSR",
+ 				"IRP", "NRP", "AMR", "SSR",
+ 				"ILC", "RILC", "IER", "CSR"};
++	const char *exec_ctxt[] = {"Task", "SWI", "HWI", "Unknown"};
+ 	struct bridge_drv_interface *intf_fxns;
+ 	struct dev_object *dev_object = bridge_context->hdev_obj;
+ 
+@@ -2136,6 +2138,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
+ 			total_size = MAX_MMU_DBGBUFF;
+ 
+ 		buffer = kzalloc(total_size, GFP_ATOMIC);
++		buffer_beg = buffer;
+ 		buffer_end =  buffer + total_size / 4;
+ 
+ 		if (!buffer) {
+@@ -2155,7 +2158,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
+ 			goto func_end;
+ 		}
+ 
+-		pr_err("Aproximate Crash Position:\n");
++		pr_err("\nAproximate Crash Position:\n");
+ 		pr_err("--------------------------\n");
+ 
+ 		exc_type = buffer[3];
+@@ -2171,7 +2174,27 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
+ 		else
+ 			pr_err("0x%-8x [Unable to match to a symbol.]\n", i);
+ 
+-		pr_err("Execution Info:\n");
++		buffer += 4;
++
++		pr_err("\nExecution Info:\n");
++		pr_err("---------------\n");
++
++		if (*buffer < ARRAY_SIZE(exec_ctxt)) {
++			pr_err("Execution context \t%s\n",
++				exec_ctxt[*buffer++]);
++		} else {
++			pr_err("Execution context corrupt\n");
++			kfree(buffer_beg);
++			return -EFAULT;
++		}
++		pr_err("Task Handle\t\t0x%x\n", *buffer++);
++		pr_err("Stack Pointer\t\t0x%x\n", *buffer++);
++		pr_err("Stack Top\t\t0x%x\n", *buffer++);
++		pr_err("Stack Bottom\t\t0x%x\n", *buffer++);
++		pr_err("Stack Size\t\t0x%x\n", *buffer++);
++		pr_err("Stack Size In Use\t0x%x\n", *buffer++);
++
++		pr_err("\nCPU Registers\n");
+ 		pr_err("---------------\n");
+ 
+ 		for (i = 0; i < 32; i++) {
+@@ -2205,16 +2228,21 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
+ 			if (i == 4 || i == 6 || i == 8)
+ 				pr_err("B%d 0x%-8x [Function Argument %d]\n",
+ 							i, *buffer++, i-2);
+-			else if (i == 15)
++			else if (i == 14)
+ 				pr_err("B14 0x%-8x [Data Page Pointer]\n",
+ 								*buffer++);
+ 			else
+ 				pr_err("B%d 0x%x\n", i, *buffer++);
+ 		}
+ 
++		pr_err("\n");
++
+ 		for (i = 0; i < ARRAY_SIZE(dsp_regs); i++)
+ 			pr_err("%s 0x%x\n", dsp_regs[i], *buffer++);
+ 
++		pr_err("\nStack:\n");
++		pr_err("------\n");
++
+ 		for (i = 0; buffer < buffer_end; i++, buffer++) {
+ 			if ((*buffer > 0x01000000) && (node_find_addr(node_mgr,
+ 				*buffer , 0x600, &offset_output, name) ==
+@@ -2225,7 +2253,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
+ 			else
+ 				pr_err("[%d] 0x%x\n", i, *buffer);
+ 		}
+-		kfree(buffer - total_size / 4);
++		kfree(buffer_beg);
+ 	}
+ func_end:
+ 	return status;
+@@ -2290,8 +2318,8 @@ void dump_dl_modules(struct bridge_dev_context *bridge_context)
+ 	pr_debug("%s: dll_module_header 0x%x %d\n", __func__, module_dsp_addr,
+ 								module_size);
+ 
+-	pr_err("%s: \nDynamically Loaded Modules:\n"
+-		"---------------------------\n", __func__);
++	pr_err("\nDynamically Loaded Modules:\n"
++		"---------------------------\n");
+ 
+ 	/* For each dll_module structure in the list... */
+ 	while (module_size) {
 -- 
-Regards,
-Nishanth Menon
+1.5.4.5
+
