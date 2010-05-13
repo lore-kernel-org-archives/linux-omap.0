@@ -1,88 +1,96 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/5] musb: use system DMA to fix Inventra DMA issue on
- RTL-1.4
-Date: Thu, 13 May 2010 09:52:43 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E40516E@dbde02.ent.ti.com>
-References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-2-git-send-email-ajay.gupta@ti.com>,<20100512175113.GA3285@gandalf>
- <5A47E75E594F054BAF48C5E4FC4B92AB03216237DA@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03216237DA-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org" <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Manjunatha GK <manjugk@ti.com>
+Subject: [PATCH v4] OMAP3: Registering sgx device and it's platform data
+Date: Thu, 13 May 2010 10:36:40 +0530
+Message-ID: <1273727200-4811-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:51860 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751879Ab0EMFGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 01:06:32 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Preshit Agarwal <preshit.agarwal@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@ti.com>, Hemanth V <hemanthv@ti.com>
 
-Hi,
->Subject: RE: [PATCH 2/5] musb: use system DMA to fix Inventra DMA issue on
-> RTL-1.4
-> 
-> Felipe Balbi wrote:
-> > On Wed, May 12, 2010 at 05:19:36PM +0530, Ajay Kumar Gupta wrote:
-> > > MUSB RTL version 1.4 has a hardware issue when TX and RX DMA channels
-> are
-> > > simultaneously enabled which results in DMA lockup.
-> >
-> > I've seen it on rtl1.8 also if I remember correctly.
-> >
-> 
-> I'm fairly certain that this is not the case with RTL1.8, and if it is I'm
-> very
-> much interested in getting to the bottom of it. Do you have a test case
-> that reproduces the lockup? Or a description of your use-case, or
-> a register dump at failure, or any other clues?
-> 
+The SGX powervr_device is registered with it's platform specific
+data to provide information about setting constraint through
+omap_pm_set_min_bus_tput.
 
-Felipe,
+Signed-off-by: Preshit Agarwal <preshit.agarwal@ti.com>
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Mike Turquette <mturquette@ti.com>
+Cc: Hemanth V <hemanthv@ti.com>
+---
+ arch/arm/mach-omap2/devices.c                  |   21 +++++++++++++++++++--
+ arch/arm/mach-omap2/include/mach/omap_sgxdef.h |   11 +++++++++++
+ 2 files changed, 30 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/omap_sgxdef.h
 
-I have also not seen lockup issue on rtl1.8. Can you provide more detail
-on your test case as Anand asked?
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 2271b9b..6349ee5 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -26,7 +26,7 @@
+ #include <plat/mux.h>
+ #include <mach/gpio.h>
+ #include <plat/mmc.h>
+-
++#include <mach/omap_sgxdef.h>
+ #include "mux.h"
+ 
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+@@ -786,6 +786,23 @@ static inline void omap_hdq_init(void)
+ static inline void omap_hdq_init(void) {}
+ #endif
+ 
++struct sgx_platform_data omap_sgx_data = {
++	.set_min_bus_tput = NULL,
++};
++
++static struct platform_device powervr_device = {
++	.name            = "pvrsrvkm",
++	.id              = -1,
++	.dev            = {
++	.platform_data = &omap_sgx_data,
++       }
++};
++
++static void omap_init_sgx(void)
++{
++       (void) platform_device_register(&powervr_device);
++}
++
+ /*-------------------------------------------------------------------------*/
+ 
+ static int __init omap2_init_devices(void)
+@@ -800,7 +817,7 @@ static int __init omap2_init_devices(void)
+ 	omap_hdq_init();
+ 	omap_init_sti();
+ 	omap_init_sha1_md5();
+-
++	omap_init_sgx();
+ 	return 0;
+ }
+ arch_initcall(omap2_init_devices);
+diff --git a/arch/arm/mach-omap2/include/mach/omap_sgxdef.h b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
+new file mode 100644
+index 0000000..e03ad8b
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/omap_sgxdef.h
+@@ -0,0 +1,11 @@
++#ifndef OMAP_SGXDEF_H
++#define OMAP_SGXDEF_H
++
++#include <plat/omap-pm.h>
++
++struct sgx_platform_data {
++	void (*set_min_bus_tput)(struct device *dev, u8 agent_id,
++				unsigned long r);
++};
++
++#endif
+-- 
+1.7.0.4
 
-> > > Use system DMA for all RX channels as a workaround of this issue as
-> this
-> > > will have minimal throughput overhead based on the fact that Rx
-> transfers
-> > > are done in DMA mode-0 on OMAP34x/35x platforms.
-> > >
-> > > Another approach to use PIO mode in opposite direction would increase
-> the
-> > > cpu loading and thus using system DMA is preferred workaround.
-> > >
-> > > Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-> > > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> >
-> > I think falling back to pio is better than this patch.
-At the cost of cpu, which certainly is not preferred.
-
->> It will most likely be only one transfer.
-
-How about host mode with multiple devices connected and doing transfers?
-Falling back to PIO would kill the cpu.
-
->> Another approach is to allocate dma channels on a transfer basis.
-
-Can you elaborate this?
-
->> This is way too big of a problem.
-
-
-If we think of the scenarios in host mode then certainly using system DMA is
-best approach.
-
--Ajay
-> Which one is better depends on how many endpoints are doing,
-> transfers in parallel, I suppose.
-> 
-> I did post the a patch for the other approach (to fall back to PIO).
-> I haven't received a response to that yet. I'm okay with either approach.
-> 
-> 
-> - Anand
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
