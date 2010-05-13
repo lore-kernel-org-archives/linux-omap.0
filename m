@@ -1,65 +1,132 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 00/15] omap: mailbox: reorganize init
-Date: Thu, 13 May 2010 20:47:21 +0300
-Message-ID: <1273772856-10881-1-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 01/15] omap: mailbox: trivial cleanups
+Date: Thu, 13 May 2010 20:47:22 +0300
+Message-ID: <1273772856-10881-2-git-send-email-felipe.contreras@gmail.com>
+References: <1273772856-10881-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from fg-out-1718.google.com ([72.14.220.157]:11171 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753870Ab0EMRsE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 13:48:04 -0400
+	with ESMTP id S1753870Ab0EMRsN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 13:48:13 -0400
 Received: by fg-out-1718.google.com with SMTP id 19so2624632fgg.1
-        for <linux-omap@vger.kernel.org>; Thu, 13 May 2010 10:48:02 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Thu, 13 May 2010 10:48:12 -0700 (PDT)
+In-Reply-To: <1273772856-10881-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Hi,
+And fix a few compilation warnings.
 
-The main purpose of this patch series is to be able to compile mach platform
-data as built-in. Otherwise, client modules such as bridgedriver will load the
-platform code, but not the mach code when mailbox is built as a module.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ arch/arm/mach-omap1/devices.c |    6 ++----
+ arch/arm/mach-omap1/mailbox.c |    3 +--
+ arch/arm/mach-omap2/mailbox.c |    7 +++----
+ arch/arm/plat-omap/mailbox.c  |    2 --
+ 4 files changed, 6 insertions(+), 12 deletions(-)
 
-Unfortunately, there's no easy way to do that since plat and mach code are
-deepely interrelated. So the first patches try to separate the mailbox
-registering through a defined omap_mbox_platform_data.
-
-Also, it's worth noting that mailboxes are not a one-to-one mapping to
-resources; that is, some resources belong to multiple mboxes. So it's best to
-think of mailboxes as fake devices. That is why custom platform_data is required.
-
-Finally, a bunch of cleaning up is done in the very first patches, specially for
-OMAP1.
-
-The initial RFC included comments from Felipe Balbi, and this proposal includes
-comments from Tony Lindgren.
-
-Tested on OMAP3 (beagleboard), and compiled-tested for OMAP1.
-
-Felipe Contreras (15):
-  omap: mailbox: trivial cleanups
-  omap: mailbox: reorganize structures
-  omap: mailbox: 2420 should be detected at run-time
-  omap: mailbox: use correct config for omap1
-  omap: mailbox: update omap1 probing
-  omap: mailbox: reorganize registering
-  omap: mailbox: only compile for configured archs
-  omap: mailbox: reorganize omap platform_device
-  omap: mailbox: move more stuff to omap_mbox_init()
-  omap: mailbox: trivial sync between omap1 and 2
-  omap: mailbox: split platform driver
-  omap: mailbox: always built-in platform data
-  omap: mailbox: reorganize headers
-  omap: mailbox: don't export unecessary symbols
-  omap: mailbox: mark some resources as __initdata
-
- arch/arm/mach-omap1/Makefile              |    6 +-
- arch/arm/mach-omap1/devices.c             |   40 -----
- arch/arm/mach-omap1/mailbox.c             |  114 ++++++++-----
- arch/arm/mach-omap2/Makefile              |    5 +-
- arch/arm/mach-omap2/devices.c             |   74 --------
- arch/arm/mach-omap2/mailbox.c             |  259 ++++++++++++++++-------------
- arch/arm/plat-omap/include/plat/mailbox.h |    7 +-
- arch/arm/plat-omap/mailbox.c              |   53 +++++-
- 8 files changed, 275 insertions(+), 283 deletions(-)
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index a2d07aa..462b59c 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -73,12 +73,10 @@ static inline void omap_init_rtc(void) {}
+ #  define INT_DSP_MAILBOX1	INT_1610_DSP_MAILBOX1
+ #endif
+ 
+-#define OMAP1_MBOX_BASE		OMAP1_IO_ADDRESS(OMAP16XX_MAILBOX_BASE)
+-
+ static struct resource mbox_resources[] = {
+ 	{
+-		.start		= OMAP1_MBOX_BASE,
+-		.end		= OMAP1_MBOX_BASE + OMAP1_MBOX_SIZE,
++		.start		= OMAP16XX_MAILBOX_BASE,
++		.end		= OMAP16XX_MAILBOX_BASE + OMAP1_MBOX_SIZE,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
+index caf889a..f3266dd 100644
+--- a/arch/arm/mach-omap1/mailbox.c
++++ b/arch/arm/mach-omap1/mailbox.c
+@@ -146,7 +146,6 @@ EXPORT_SYMBOL(mbox_dsp_info);
+ static int __devinit omap1_mbox_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res;
+-	int ret = 0;
+ 
+ 	if (pdev->num_resources != 2) {
+ 		dev_err(&pdev->dev, "invalid number of resources: %d\n",
+@@ -160,7 +159,7 @@ static int __devinit omap1_mbox_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "invalid mem resource\n");
+ 		return -ENODEV;
+ 	}
+-	mbox_base = res->start;
++	mbox_base = OMAP1_IO_ADDRESS(res->start);
+ 
+ 	/* DSP IRQ */
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 281ab63..7263b9b 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -93,7 +93,7 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
+ 
+ 	mbox_ick_handle = clk_get(NULL, "mailboxes_ick");
+ 	if (IS_ERR(mbox_ick_handle)) {
+-		printk(KERN_ERR "Could not get mailboxes_ick: %d\n",
++		printk(KERN_ERR "Could not get mailboxes_ick: %ld\n",
+ 			PTR_ERR(mbox_ick_handle));
+ 		return PTR_ERR(mbox_ick_handle);
+ 	}
+@@ -279,8 +279,6 @@ static struct omap_mbox2_priv omap2_mbox_dsp_priv = {
+ 	.irqdisable	= MAILBOX_IRQENABLE(0),
+ };
+ 
+-
+-
+ /* OMAP4 specific data structure. Use the cpu_is_omap4xxx()
+ to use this*/
+ static struct omap_mbox2_priv omap2_mbox_1_priv = {
+@@ -336,7 +334,6 @@ struct omap_mbox mbox_2_info = {
+ };
+ EXPORT_SYMBOL(mbox_2_info);
+ 
+-
+ #if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+ static struct omap_mbox2_priv omap2_mbox_iva_priv = {
+ 	.tx_fifo = {
+@@ -419,8 +416,10 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+ #endif
+ 	return 0;
+ 
++#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+ err_iva1:
+ 	omap_mbox_unregister(&mbox_dsp_info);
++#endif
+ 
+ err_dsp:
+ 	iounmap(mbox_base);
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 8d86b0b..822c377 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -82,7 +82,6 @@ static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+ 	return ret;
+ }
+ 
+-
+ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+ {
+ 
+@@ -108,7 +107,6 @@ static void mbox_tx_tasklet(unsigned long tx_data)
+ 	struct request_queue *q = mbox->txq->queue;
+ 
+ 	while (1) {
+-
+ 		rq = blk_fetch_request(q);
+ 
+ 		if (!rq)
+-- 
+1.7.1
 
