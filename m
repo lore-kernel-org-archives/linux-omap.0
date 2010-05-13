@@ -1,28 +1,399 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 13 May 2010 21:08:14 +0100
-Message-ID: <20100513200814.GA20254@srcf.ucam.org>
-References: <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com> <Pine.LNX.4.44L0.1005131002380.1695-100000@iolanthe.rowland.org> <20100513191717.GA3428@atomide.com> <20100513192522.GA19256@srcf.ucam.org> <20100513194205.GC3428@atomide.com> <20100513195349.GB19722@srcf.ucam.org> <20100513200003.GE3428@atomide.com>
+From: "kishore kadiyala" <kishore.kadiyala@ti.com>
+Subject: [PATCH v3 1/5] OMAP HSMMC: Adding a flag to determine the card
+     detect type
+Date: Fri, 14 May 2010 01:41:31 +0530 (IST)
+Message-ID: <12479.10.24.255.17.1273781491.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100513200003.GE3428@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Kevin Hilman <khilman@deeprootsystems.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46372 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753692Ab0EMULr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 May 2010 16:11:47 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk, paul@pwsan.com
 
-On Thu, May 13, 2010 at 01:00:04PM -0700, Tony Lindgren wrote:
+Adding a flag to determine the card detect type which can be
+either GPIO or NON-GPIO.MMC1 Controller of OMAP4 has a NON-GPIO
+interrupt line from twl6030 for card detect.
 
-> The system stays running because there's something to do. The system
-> won't suspend until all the processors hit the kernel idle loop and
-> the next_timer_interrupt_critical() returns nothing.
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+---
+ arch/arm/mach-omap2/board-2430sdp.c          |    2 ++
+ arch/arm/mach-omap2/board-3430sdp.c          |    3 +++
+ arch/arm/mach-omap2/board-cm-t35.c           |    3 +++
+ arch/arm/mach-omap2/board-devkit8000.c       |    2 ++
+ arch/arm/mach-omap2/board-igep0020.c         |    3 +++
+ arch/arm/mach-omap2/board-ldp.c              |    2 ++
+ arch/arm/mach-omap2/board-omap3beagle.c      |    2 ++
+ arch/arm/mach-omap2/board-omap3evm.c         |    2 ++
+ arch/arm/mach-omap2/board-omap3pandora.c     |    4 ++++
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    2 ++
+ arch/arm/mach-omap2/board-overo.c            |    3 +++
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    3 +++
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    3 +++
+ arch/arm/mach-omap2/hsmmc.h                  |    1 +
+ arch/arm/plat-omap/include/plat/mmc.h        |    4 ++++
+ 15 files changed, 39 insertions(+), 0 deletions(-)
 
-At which point an application in a busy loop cripples you. I think we 
-could implement your suggestion more easily by just giving untrusted 
-applications an effectively infinite amount of timer slack, but it still 
-doesn't handle the case where an app behaves excrutiatingly badly.
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 01d113f..466c4a8 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -37,6 +37,7 @@
+ #include <plat/gpmc.h>
+ #include <plat/usb.h>
+ #include <plat/gpmc-smc91x.h>
++#include <plat/mmc.h>
 
+ #include "hsmmc.h"
+
+@@ -187,6 +188,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 		.ext_clock	= 1,
+ 	},
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 5822bcf..85d0e09 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -40,6 +40,7 @@
+
+ #include <plat/control.h>
+ #include <plat/gpmc-smc91x.h>
++#include <plat/mmc.h>
+
+ #include <mach/board-sdp.h>
+
+@@ -355,11 +356,13 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		 * so the SIM card isn't used; else 4 bits.
+ 		 */
+ 		.wires		= 8,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= 4,
+ 	},
+ 	{
+ 		.mmc		= 2,
+ 		.wires		= 8,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= 7,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 2de4f79..a6ce29e 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -45,6 +45,7 @@
+ #include <plat/gpmc.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
++#include <plat/mmc.h>
+
+ #include <mach/hardware.h>
+
+@@ -598,6 +599,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+
+ 	},
+@@ -606,6 +608,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.wires		= 4,
+ 		.transceiver	= 1,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 		.ocr_mask	= 0x00100000,	/* 3.3V */
+ 	},
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 47e3af2..c880546 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -45,6 +45,7 @@
+ #include <plat/usb.h>
+ #include <plat/timer-gp.h>
+ #include <plat/display.h>
++#include <plat/mmc.h>
+
+ #include <plat/mcspi.h>
+ #include <linux/input/matrix_keypad.h>
+@@ -122,6 +123,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+ 		.wires		= 8,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= 29,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index d55c57b..3d5d506 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -30,6 +30,7 @@
+ #include <plat/usb.h>
+ #include <plat/display.h>
+ #include <plat/onenand.h>
++#include <plat/mmc.h>
+
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -250,12 +251,14 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{
+ 		.mmc		= 2,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}      /* Terminator */
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 5fcb52e..efe3b1b 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -38,6 +38,7 @@
+ #include <plat/board.h>
+ #include <plat/common.h>
+ #include <plat/gpmc.h>
++#include <plat/mmc.h>
+
+ #include <asm/delay.h>
+ #include <plat/control.h>
+@@ -364,6 +365,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 962d377..d79adff 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -43,6 +43,7 @@
+ #include <plat/nand.h>
+ #include <plat/usb.h>
+ #include <plat/timer-gp.h>
++#include <plat/mmc.h>
+
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -112,6 +113,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+ 		.wires		= 8,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= 29,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 017bb2f..1902a0e 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -42,6 +42,7 @@
+ #include <plat/common.h>
+ #include <plat/mcspi.h>
+ #include <plat/display.h>
++#include <plat/mmc.h>
+
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+@@ -372,6 +373,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= 63,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 395d049..ba5043c 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -41,6 +41,7 @@
+ #include <plat/mcspi.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
++#include <plat/mmc.h>
+
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+@@ -232,6 +233,7 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= 126,
+ 		.ext_clock	= 0,
+ 	},
+@@ -239,6 +241,7 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ 		.mmc		= 2,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= 127,
+ 		.ext_clock	= 1,
+ 		.transceiver	= true,
+@@ -247,6 +250,7 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ 		.mmc		= 3,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 2504d41..e6cab4a 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -48,6 +48,7 @@
+ #include <plat/nand.h>
+ #include <plat/usb.h>
+ #include <plat/timer-gp.h>
++#include <plat/mmc.h>
+
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -126,6 +127,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+ 		.wires		= 8,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= 29,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 8848c7c..f556f01 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -45,6 +45,7 @@
+ #include <mach/hardware.h>
+ #include <plat/nand.h>
+ #include <plat/usb.h>
++#include <plat/mmc.h>
+
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+@@ -277,12 +278,14 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.mmc		= 1,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{
+ 		.mmc		= 2,
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 		.transceiver	= true,
+ 		.ocr_mask	= 0x00100000,	/* 3.3V */
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 4377a4c..a8982a2 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -32,6 +32,7 @@
+ #include <plat/gpmc.h>
+ #include <plat/onenand.h>
+ #include <plat/gpmc-smc91x.h>
++#include <plat/mmc.h>
+
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -256,6 +257,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 		.wires		= 4,
+ 		.cover_only	= true,
+ 		.gpio_cd	= 160,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 		.power_saving	= true,
+ 	},
+@@ -264,6 +266,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 		.mmc		= 2,
+ 		.wires		= 8, /* See also rx51_mmc2_remux */
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 		.nonremovable	= true,
+ 		.power_saving	= true,
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 6b39849..018a813 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -23,6 +23,7 @@
+
+ #include <plat/common.h>
+ #include <plat/usb.h>
++#include <plat/mmc.h>
+
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -156,6 +157,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 		.name		= "external",
+ 		.mmc		= 1,
+ 		.wires		= 4,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 		.power_saving	= true,
+ 	},
+@@ -164,6 +166,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 		.mmc		= 2,
+ 		.wires		= 8,
+ 		.gpio_cd	= -EINVAL,
++		.cd_type	= GPIO,
+ 		.gpio_wp	= -EINVAL,
+ 		.nonremovable	= true,
+ 		.power_saving	= true,
+diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
+index 36f0ba8..10690b9 100644
+--- a/arch/arm/mach-omap2/hsmmc.h
++++ b/arch/arm/mach-omap2/hsmmc.h
+@@ -17,6 +17,7 @@ struct omap2_hsmmc_info {
+ 	bool	no_off;		/* power_saving and power is not to go off */
+ 	bool	vcc_aux_disable_is_sleep; /* Regulator off remapped to sleep */
+ 	int	gpio_cd;	/* or -EINVAL */
++	bool	cd_type;	/* GPIO or NON_GPIO */
+ 	int	gpio_wp;	/* or -EINVAL */
+ 	char	*name;		/* or NULL for default */
+ 	struct device *dev;	/* returned: pointer to mmc adapter */
+diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
+index a1bac07..e4e595b 100644
+--- a/arch/arm/plat-omap/include/plat/mmc.h
++++ b/arch/arm/plat-omap/include/plat/mmc.h
+@@ -43,6 +43,9 @@
+
+ #define OMAP_MMC_MAX_SLOTS	2
+
++#define NON_GPIO		0
++#define GPIO			1
++
+ struct omap_mmc_platform_data {
+ 	/* back-link to device */
+ 	struct device *dev;
+@@ -103,6 +106,7 @@ struct omap_mmc_platform_data {
+ 		unsigned vcc_aux_disable_is_sleep:1;
+
+ 		int switch_pin;			/* gpio (card detect) */
++		unsigned cd_type:1;		/* GPIO or NON_GPIO */
+ 		int gpio_wp;			/* gpio (write protect) */
+
+ 		int (*set_bus_mode)(struct device *dev, int slot, int bus_mode);
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.6.3.3
+
+
