@@ -1,98 +1,64 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCHv3 12/22] OMAP3: PM: Minimizing the passing around of sr
- id in smartreflex.c
-Date: Thu, 13 May 2010 12:43:15 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D370@dbde02.ent.ti.com>
-References: <1271408597-3066-1-git-send-email-thara@ti.com>
-	<1271408597-3066-2-git-send-email-thara@ti.com>
-	<1271408597-3066-3-git-send-email-thara@ti.com>
-	<1271408597-3066-4-git-send-email-thara@ti.com>
-	<1271408597-3066-5-git-send-email-thara@ti.com>
-	<1271408597-3066-6-git-send-email-thara@ti.com>
-	<1271408597-3066-7-git-send-email-thara@ti.com>
-	<1271408597-3066-8-git-send-email-thara@ti.com>
-	<1271408597-3066-9-git-send-email-thara@ti.com>
-	<1271408597-3066-10-git-send-email-thara@ti.com>
-	<1271408597-3066-11-git-send-email-thara@ti.com>
-	<1271408597-3066-12-git-send-email-thara@ti.com>
-	<1271408597-3066-13-git-send-email-thara@ti.com>
- <87pr1kius7.fsf@deeprootsystems.com>
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: Re: Buildfailure for omap3_defconfig due to patch OMAP: RX51: Add
+ LCD Panel support
+Date: Thu, 13 May 2010 10:35:02 +0300
+Message-ID: <4BEBABA6.6040907@nokia.com>
+References: <201005122331.51347.PeterHuewe@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48732 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752132Ab0EMHNY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 03:13:24 -0400
-In-Reply-To: <87pr1kius7.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:38933 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753104Ab0EMHsg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 03:48:36 -0400
+In-Reply-To: <201005122331.51347.PeterHuewe@gmx.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: =?ISO-8859-1?Q?ext_Peter_H=FCwe?= <PeterHuewe@gmx.de>
+Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "jpihet@mvista.com" <jpihet@mvista.com>, "kalle.valo@iki.fi" <kalle.valo@iki.fi>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
+Hi Peter,
 
+ext Peter H=FCwe wrote:
+> Hi Roger,
+>=20
+> I just wanted to inform you that your Patch
+> OMAP: RX51: Add LCD Panel support (b499d77834ae292465f8d06bb0a88f1a64=
+7dfa1a)=20
+> introduces a build failure for the omap3_defconfig.
+>=20
+> You can see the error message here:
+> http://kisskb.ellerman.id.au/kisskb/buildresult/2601981/
+>=20
+> This is due to the fact that omap3_defconfig has
+> CONFIG_MACH_NOKIA_RX51=3Dy
+> set which enables the compilation of arch/arm/mach-omap2/board-rx51.c
+>=20
+> board-rx51.c calls rx51_video_mem_init in arch/arm/mach-omap2/board-r=
+x51-
+> video.c which is guarded by=20
+> #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
+>=20
+> Unfortunately none if them is set in the omap3_defconfig.
+>=20
+> Would be nice if you could fix this :)
+>=20
+Thanks for pointing this out. Kevin Hilman had already informed me of t=
+his earlier.
 
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Wednesday, April 28, 2010 12:32 AM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy, Vishwanath; Sawant, Anand
->>Subject: Re: [PATCHv3 12/22] OMAP3: PM: Minimizing the passing around of sr id in smartreflex.c
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>> This patch ensures that sr id is passed as a parameter only to
->>> public APIs in smartreflex.c and other APIs in smartreflex.c
->>> uses the omap_sr strucutres.
->>>
->>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>
->>Good change, but...
->>
->>> ---
->>>  arch/arm/mach-omap2/smartreflex.c |   36 +++++++++++++-----------------------
->>>  1 files changed, 13 insertions(+), 23 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
->>> index fffd5f7..c6942e9 100644
->>> --- a/arch/arm/mach-omap2/smartreflex.c
->>> +++ b/arch/arm/mach-omap2/smartreflex.c
->>> @@ -190,16 +190,8 @@ static void sr_configure(struct omap_sr *sr)
->>>  	sr->is_sr_reset = 0;
->>>  }
->>>
->>> -static void sr_start_vddautocomp(int srid)
->>> +static void sr_start_vddautocomp(struct omap_sr *sr)
->>>  {
->>> -	struct omap_sr *sr = _sr_lookup(srid);
->>> -
->>> -	if (!sr) {
->>> -		pr_warning("omap_sr struct corresponding to SR%d not found\n",
->>> -								srid + 1);
->>> -		return;
->>> -	}
->>> -
->>>  	if (!sr_class || !(sr_class->enable)) {
->>>  		pr_warning("smartreflex class driver not registered\n");
->>>  		return;
->>> @@ -211,30 +203,22 @@ static void sr_start_vddautocomp(int srid)
->>>  	}
->>>
->>>  	sr->is_autocomp_active = 1;
->>> -	if (!sr_class->enable(srid)) {
->>> +	if (!sr_class->enable(sr->srid)) {
->>
->>... the class3 layer is still taking SR ID as a parameter and it
->>should also just take an sr_info ptr.
+The patch with the fix is here
+https://patchwork.kernel.org/patch/98092/
 
-Hi Kevin,
+Tomi has picked up the fixed patch in his tree in the for-next branch
+http://gitorious.org/linux-omap-dss2/linux/commit/9585a7e56c51d224830ad=
+b29b1843310a87cd034
 
-sr_info is an internal structure for smartreflex driver. The intention behind this patch is all external API's pass the srid and internally the driver static APIs take sr_info as parameter. I did not realize this point till now when I was doing the actual changes and hence the late reply :-)
-
-Regards
-Thara
-
->>
->>Kevin
+regards,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
