@@ -1,77 +1,50 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 13 May 2010 17:37:03 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005131729510.1731-100000@iolanthe.rowland.org>
-References: <20100513191717.GA3428@atomide.com>
+Date: Thu, 13 May 2010 14:36:57 -0700
+Message-ID: <20100513213656.GL3428@atomide.com>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+ <201005132311.26293.rjw@sisk.pl>
+ <1273785399.19100.98.camel@c-dwalke-linux.qualcomm.com>
+ <201005132327.16163.rjw@sisk.pl>
+ <1273786409.19100.104.camel@c-dwalke-linux.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100513191717.GA3428@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <1273786409.19100.104.camel@c-dwalke-linux.qualcomm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Arve =?utf-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Kevin Hilman <khilman@deeprootsystems.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Linus Walleij <linus.walleij@ericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Daniel Walker <dwalker@fifo99.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Brian Swetland <swetland@google.com>, Paul Walmsley <paul@pwsan.com>, Arve =?utf-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Greg KH <gregkh@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 13 May 2010, Tony Lindgren wrote:
-
-> * Alan Stern <stern@rowland.harvard.edu> [100513 07:11]:
-> > On Wed, 12 May 2010, Paul Walmsley wrote:
-> > 
-> > > Hello,
-> > > 
-> > > Some general comments on the suspend blockers/wakelock/opportunistic
-> > > suspend v6 patch series, posted here:
-> > > 
-> > >     https://lists.linux-foundation.org/pipermail/linux-pm/2010-April/025146.html
-> > > 
-> > > The comments below are somewhat telegraphic in the interests of 
-> > > readability - more specific comments to follow in later E-mails. I am 
-> > > indebted to those of us who discussed these issues at LPC last year and 
-> > > ELC this year for several stimulating discussions.
-> > > 
-> > > There are several general problems with the design of opportunistic
-> > > suspend and suspend-blocks.
-> > > 
-> > > 1. The opportunistic suspend code bypasses existing Linux kernel code,
-> > >    such as timers and the scheduler, that indicates when code
-> > >    needs to run, and when the system is idle.
-> > 
-> > Whoa!  That's not my understanding at all.
-> > 
-> > As I see it, opportunistic suspend doesn't bypass any code that isn't 
-> > already bypassed by the existing suspend code.  Users can do
-> > 
-> > 	echo mem >/sys/power/state
-> > 
-> > whenever they want, without regard to kernel timers and the scheduler 
-> > (other than the fact that the user's thread must be running in order to 
-> > carry out the write, of course).
+* Daniel Walker <dwalker@fifo99.com> [100513 14:28]:
+> On Thu, 2010-05-13 at 23:27 +0200, Rafael J. Wysocki wrote:
 > 
-> The difference between echo mem > /sys/power/state and suspend blocks
-> is that with suspend blocks the system keeps running.
+> > Because someone would have to remove suspend blockers (or rather wakelocks)
+> > from the drivers, test that they work correctly without suspend blockers and
+> > submit the modified versions.  Going forward, every party responsible for such
+> > a driver would have to maintain an out-of-tree version with suspend blockers
+> > (or wakelocks) anyway, so the incentive to do that is zero.
+> 
+> They should work without wakelock since wakelock are optional .. I mean
+> there's nothing in suspend blockers I've seen that indicates it's
+> required for some drivers to work. So it's just a matter of patching out
+> the wakelocks, with no need to re-test anything.
+> 
+> You get the driver mainlined, then maintain a small patch to add
+> wakelocks. Not hard at all , with lots of incentive to do so since you
+> don't have to maintain such a large block of code out of tree.
+> 
+> > Practically, as long as the opportunistic suspend is out of tree, there will be
+> > a _growing_ number of out-of-tree drivers out there, which is not acceptable
+> > in the long run.
+> 
+> I don't see why your saying that. These driver should work with out all
+> of this, which means they can get mainlined right now.
 
-Irrelevant.  Paul wasn't talking about the suspend blockers; he was 
-talking about opportunistic suspend.  So what's the difference between 
-opportunistic suspend and "echo mem >/sys/power/state"?  Especially 
-when suspend blockers aren't being used?
+I agree with Daniel here. We should keep merging the drivers separate
+from the suspend blocks issues.
 
-> And that's why 
-> it should be handled by runtime power management instead.
+Regards,
 
-Runtime PM is not capable of freezing userspace and shutting down CPUs.  
-More or less by definition -- if it could then it wouldn't be "runtime" 
-any more, since the processor wouldn't be running.
-
-> The suspend blocks seems like a hack to spam filter good and bad
-> apps from timer usage point of view. Applications are categorized
-> as good or bad depending if they grab a susped blocker or not.
-
-You're referring just to the userspace part of the suspend blocker 
-API.  What about the kernel part?
-
-> I believe categorizing the apps should be instead done with some
-> timer flags or cgroups instead.
-
-That would be compatible with using suspend blockers.
-
-Alan Stern
+Tony
