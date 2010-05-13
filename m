@@ -1,34 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Daniel Walker <dwalker@fifo99.com>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 13 May 2010 14:31:22 -0700
-Message-ID: <20100513213121.GJ3428@atomide.com>
-References: <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com>
- <Pine.LNX.4.44L0.1005131002380.1695-100000@iolanthe.rowland.org>
- <20100513191717.GA3428@atomide.com>
- <201005132314.22497.rjw@sisk.pl>
+Date: Thu, 13 May 2010 14:33:29 -0700
+Message-ID: <1273786409.19100.104.camel@c-dwalke-linux.qualcomm.com>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	 <201005132311.26293.rjw@sisk.pl>
+	 <1273785399.19100.98.camel@c-dwalke-linux.qualcomm.com>
+	 <201005132327.16163.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64641 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754031Ab0EMVbd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 17:31:33 -0400
-Content-Disposition: inline
-In-Reply-To: <201005132314.22497.rjw@sisk.pl>
+Received: from fifo99.com ([67.223.236.141]:33894 "EHLO fifo99.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751590Ab0EMVdm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 May 2010 17:33:42 -0400
+In-Reply-To: <201005132327.16163.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?utf-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Kevin Hilman <khilman@deeprootsystems.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Matthew Garrett <mjg@redhat.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Linus Walleij <linus.walleij@ericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Matthew Garrett <mjg@redhat.com>, Brian Swetland <swetland@google.com>, Paul Walmsley <paul@pwsan.com>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Greg KH <gregkh@suse.de>
 
-* Rafael J. Wysocki <rjw@sisk.pl> [100513 14:08]:
-> On Thursday 13 May 2010, Tony Lindgren wrote:
-> > 
-> > The difference between echo mem > /sys/power/state and suspend blocks
-> > is that with suspend blocks the system keeps running.
-> 
-> Care to elaborate?
+On Thu, 2010-05-13 at 23:27 +0200, Rafael J. Wysocki wrote:
 
-The suspend blocks affects the runtime behaviour of the system by
-categorizing apps into good and bad apps in a weird way.
+> Because someone would have to remove suspend blockers (or rather wakelocks)
+> from the drivers, test that they work correctly without suspend blockers and
+> submit the modified versions.  Going forward, every party responsible for such
+> a driver would have to maintain an out-of-tree version with suspend blockers
+> (or wakelocks) anyway, so the incentive to do that is zero.
 
-Tony
+They should work without wakelock since wakelock are optional .. I mean
+there's nothing in suspend blockers I've seen that indicates it's
+required for some drivers to work. So it's just a matter of patching out
+the wakelocks, with no need to re-test anything.
+
+You get the driver mainlined, then maintain a small patch to add
+wakelocks. Not hard at all , with lots of incentive to do so since you
+don't have to maintain such a large block of code out of tree.
+
+> Practically, as long as the opportunistic suspend is out of tree, there will be
+> a _growing_ number of out-of-tree drivers out there, which is not acceptable
+> in the long run.
+
+I don't see why your saying that. These driver should work with out all
+of this, which means they can get mainlined right now.
+
+Daniel
+
