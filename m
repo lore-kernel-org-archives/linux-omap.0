@@ -1,71 +1,114 @@
-From: Brian Swetland <swetland@google.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 13 May 2010 16:28:23 -0700
-Message-ID: <s2wa55d774e1005131628v107b339fo7f1da3816a22c5c0@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Fri, 14 May 2010 00:36:08 +0100
+Message-ID: <20100513233608.GA1582@sirena.org.uk>
 References: <1272667021-21312-1-git-send-email-arve@android.com>
-	 <201005132311.26293.rjw@sisk.pl>
-	 <1273785399.19100.98.camel@c-dwalke-linux.qualcomm.com>
-	 <201005132327.16163.rjw@sisk.pl>
-	 <1273786409.19100.104.camel@c-dwalke-linux.qualcomm.com>
-	 <20100513214653.GA21120@suse.de>
-	 <13B9B4C6EF24D648824FF11BE896716203BB0EEAE9@dlee02.ent.ti.com>
-	 <20100513224600.GB23014@suse.de>
+	<20100513214653.GA21120@suse.de>
+	<20100513222748.GA3240@opensource.wolfsonmicro.com>
+	<201005140046.33508.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.35]:4417 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752780Ab0EMX22 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 19:28:28 -0400
-In-Reply-To: <20100513224600.GB23014@suse.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <201005140046.33508.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Oleg Nesterov <oleg@redhat.com>, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Daniel Walker <dwalker@fifo99.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Paul Walmsley <paul@pwsan.com>, =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vitaly Wool <vitalywool@gma>
 
-On Thu, May 13, 2010 at 3:46 PM, Greg KH <gregkh@suse.de> wrote:
-> On Thu, May 13, 2010 at 05:33:58PM -0500, Woodruff, Richard wrote:
->>
->> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> > owner@vger.kernel.org] On Behalf Of Greg KH
->> > Sent: Thursday, May 13, 2010 4:47 PM
->>
->> > Also note that such a driver, without wakelocks, would never get tested,
->> > and so, things start quickly diverging.
->>
->> Do wakelock enabled drivers require a wakelock aware user space to
->> function properly?
->
-> Not that I can tell, but others might know more.
+On Fri, May 14, 2010 at 12:46:33AM +0200, Rafael J. Wysocki wrote:
+> On Friday 14 May 2010, Mark Brown wrote:
 
-Drivers with correct wakelock usage will play nice with opportunistic suspend.
+> > Is that really the issue?  The ones I've looked at have mostly suffered
+> > from being built on 2.6.29 and needing refreshes for current kernel APIs
+> > or from general code quality issues - I don't recall ever looking at one
+> > and thinking that the wakelocks were the one issue.
 
-If you're not using opportunistic suspend, you probably don't need
-wakelocks at all, and the driver (unless it's broken) should work just
-fine for you.
+...
 
->> If the driver is added you want to make sure the benefit is there and
->> testable for all userspaces.
->
-> Agreed.
+> > Chances are that if the driver is useful people will start using it in
+> > non-Android systems anyway.
 
-Definitely.  The fact that say the dsp audio driver or serial driver
-on MSM use wakelocks to play nice with opportunistic suspend should
-have no impact on, say, Debian-on-G1 which is not using that feature.
-Debian would still be able to play audio or write to the serial port.
+> You're missing the point IMO.  Even if they are only used on Android, there
+> still is a problem if they don't go into the mainline, because that leads to
+> code divergence that's growing over time and will ultimately create an entire
+> ecosystem that's independent of the mainline.
 
-With wakelock support in the kernel, I'm able to maintain drivers that
-(provided they meet the normal style, correctness, etc requirements)
-that both can be submitted to mainline (yay!) and can ship on
-production hardware as-is (yay!).  Porting other linux based
-environments to hardware like G1, N1, etc becomes that much easier
-too, which hopefully makes various folks happy.
+See my first paragraph there.  My point here is that we appear to have
+the standard vendor BSP ecosystem problem here rather than a wakelock
+problem.
 
-This helps get us ever closer to being able to build a
-production-ready kernel for various android devices "out of the box"
-from the mainline tree and gets me ever closer to not being in the
-business of maintaining a bunch of SoC-specific
-android-something-2.6.# trees, which seriously is not a business I
-particularly want to be in.
+It's fairly common in the embedded space to get a whole bunch of work
+done which doesn't make its way into mainline due to a SoC vendor having
+produced a BSP for their SoC which is based around a particular kernel
+version which never gets updated.  This means users with that SoC can't
+boot anything newer until someone does the work of mainlining support
+for the system, meaning that development on systems using that SoC gets
+stuck on an old kernel which mainline drifts away from.  Users find it
+hard to contribute back since they can't run current code easily and
+often have to jump through serious hoops to backport drivers from newer
+kernels.  If the SoC is successful enough then you do get something of
+an ecosystem around the BSP, though eventually that usually results in
+the community doing the mainline merge.
 
-Brian
+> We've been successful in avoiding that for quite some time and I don't think
+> we should allow that to happen right now because of the opportunistic suspend
+> feature.
+
+This is still a work in progress in the embedded space (where wakelocks
+are primarily relevant).  Many of the major vendors are working in the
+right direction here, but it's far from universal and it's not something
+that it's easy for vendors to change overnight.
+
+> I'm not a big fan of suspend blockers myself, but let's face it, _currently_
+> there's no alternative and we need to stop the trend, the sooner the better.
+
+I don't think this is a major part of the trend - like I say, the fact
+that people have been working with an old kernel version is generally
+a much more substantial issue than the wakelocks in the code I've seen.
+
+> > As people have already observed wakelocks
+> > needn't have any practical effect on the running system so if the
+> > drivers are broken without wakelocks they'd be broken anyway.  
+
+> You need to prove the reverse, ie. that a driver working correctly with
+> wakelocks will also work correctly without them, which is not a given.
+
+If they can be compiled out then the updates really ought to be trivial.
+If not I really need to go back and reexamine what's going on here to
+make sure I understand what drivers are supposed to do, I have to
+confess that I haven't looked too closely at the driver side API yet.
+
+> > It's not particularly pretty but it'd deal with the driver merge
+> > side of things.
+
+> Again, I don't see why you hate that feature so much.  What is there to worry
+> about?
+
+As I have said previously I'm not actively opposed to merging wakelocks
+at this point.  My major concern has been addressed, I now agree with
+most of what the PM guys are saying - it's not the nicest thing ever but
+it works for now.
+
+The issue was that when I originally noticed the patch series was being
+considered for mainline again was that one effect of using it in a
+mobile phone with the standard Linux embedded audio subsystem would be
+to break use cases such as audio on voice calls, which isn't really
+desirable, and that there was no roadmap for how to fix that or any
+other subsystems with similar issues.  This didn't seem like it would
+have been a good situation given that the major user is expected to be
+Android, which is mainly for mobile phones.
+
+Since we seemed to all agree that no other subsystems were affected,
+meaning nothing general was required, I've now implemented support in
+the subsystem for ignoring suspends for some audio paths (this should
+appear In the next merge window).  This should mesh well with wakelocks.
