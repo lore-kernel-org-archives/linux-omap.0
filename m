@@ -1,20 +1,25 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Greg KH <gregkh@suse.de>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 00:46:33 +0200
-Message-ID: <201005140046.33508.rjw@sisk.pl>
-References: <1272667021-21312-1-git-send-email-arve@android.com> <20100513214653.GA21120@suse.de> <20100513222748.GA3240@opensource.wolfsonmicro.com>
+Date: Thu, 13 May 2010 15:45:03 -0700
+Message-ID: <20100513224503.GA23014@suse.de>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+ <201005132311.26293.rjw@sisk.pl>
+ <1273785399.19100.98.camel@c-dwalke-linux.qualcomm.com>
+ <201005132327.16163.rjw@sisk.pl>
+ <1273786409.19100.104.camel@c-dwalke-linux.qualcomm.com>
+ <20100513214653.GA21120@suse.de>
+ <20100513222748.GA3240@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <20100513222748.GA3240@opensource.wolfsonmicro.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Greg KH <gregkh@suse.de>, Daniel Walker <dwalker@fifo99.com>, Matthew Garrett <mjg@redhat.com>, Brian Swetland <swetland@google.com>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, =?iso-8859-1?q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Daniel Walker <dwalker@fifo99.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Brian Swetland <swetland@google.com>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 14 May 2010, Mark Brown wrote:
+On Thu, May 13, 2010 at 11:27:49PM +0100, Mark Brown wrote:
 > On Thu, May 13, 2010 at 02:46:53PM -0700, Greg KH wrote:
 > > On Thu, May 13, 2010 at 02:33:29PM -0700, Daniel Walker wrote:
 > 
@@ -30,43 +35,33 @@ On Friday 14 May 2010, Mark Brown wrote:
 > from being built on 2.6.29 and needing refreshes for current kernel APIs
 > or from general code quality issues - I don't recall ever looking at one
 > and thinking that the wakelocks were the one issue.
-> 
+
+Yes, it is an issue.  See the mess that we have had in trying to get
+some of the original G1 drivers merged in the staging tree for proof of
+this.
+
 > > Also note that such a driver, without wakelocks, would never get tested,
 > > and so, things start quickly diverging.
 > 
 > Chances are that if the driver is useful people will start using it in
 > non-Android systems anyway.
 
-You're missing the point IMO.  Even if they are only used on Android, there
-still is a problem if they don't go into the mainline, because that leads to
-code divergence that's growing over time and will ultimately create an entire
-ecosystem that's independent of the mainline.
+No, not usually.  Do you really think that someone else is going to use
+the G1 camera driver for anything else?  :)
 
-We've been successful in avoiding that for quite some time and I don't think
-we should allow that to happen right now because of the opportunistic suspend
-feature.
-
-I'm not a big fan of suspend blockers myself, but let's face it, _currently_
-there's no alternative and we need to stop the trend, the sooner the better.
-
-> As people have already observed wakelocks
-> needn't have any practical effect on the running system so if the
-> drivers are broken without wakelocks they'd be broken anyway.  
-
-You need to prove the reverse, ie. that a driver working correctly with
-wakelocks will also work correctly without them, which is not a given.
-
+> As people have already observed wakelocks needn't have any practical
+> effect on the running system so if the drivers are broken without
+> wakelocks they'd be broken anyway.  
+> 
 > If this really is a big concern with getting drivers into mainline then
 > surely we could just add some noop wakelock functions for the drivers to
-> call?
-
-Well, I don't see a big difference between that and adding the feature
-depending on a .config option.  Really.
-
-> It's not particularly pretty but it'd deal with the driver merge
+> call?  It's not particularly pretty but it'd deal with the driver merge
 > side of things.
 
-Again, I don't see why you hate that feature so much.  What is there to worry
-about?
+I fail to see why getting the real functionality of the wakelocks into
+the kernel is a problem.  Especially as they fit a real need, and work
+well for that.
 
-Rafael
+thanks,
+
+greg k-h
