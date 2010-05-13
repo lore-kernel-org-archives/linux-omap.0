@@ -1,37 +1,41 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 13 May 2010 17:33:58 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203BB0EEAE9@dlee02.ent.ti.com>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
- <201005132311.26293.rjw@sisk.pl>
- <1273785399.19100.98.camel@c-dwalke-linux.qualcomm.com>
- <201005132327.16163.rjw@sisk.pl>
- <1273786409.19100.104.camel@c-dwalke-linux.qualcomm.com>
- <20100513214653.GA21120@suse.de>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 1/2] dspbridge: deh: fix corruption on MMU fault
+Date: Fri, 14 May 2010 01:42:47 +0300
+Message-ID: <AANLkTimJ0La59QijKT07GCZocapSZMmMg-OFT3m7sG0F@mail.gmail.com>
+References: <1273783601-13472-1-git-send-email-felipe.contreras@gmail.com>
+	 <1273783601-13472-2-git-send-email-felipe.contreras@gmail.com>
+	 <496565EC904933469F292DDA3F1663E602CB6CABC3@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100513214653.GA21120@suse.de>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@suse.de>, Daniel Walker <dwalker@fifo99.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Brian Swetland <swetland@google.com>, Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "magnus.damm@gmail.com" <magnus.damm@gmail.com>, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.w>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:57987 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756003Ab0EMWmu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 18:42:50 -0400
+Received: by fxm6 with SMTP id 6so921775fxm.19
+        for <linux-omap@vger.kernel.org>; Thu, 13 May 2010 15:42:48 -0700 (PDT)
+In-Reply-To: <496565EC904933469F292DDA3F1663E602CB6CABC3@dlee06.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
 
+On Fri, May 14, 2010 at 12:21 AM, Guzman Lugo, Fernando
+<fernando.lugo@ti.com> wrote:
+> dump_dsp_stack is waiting DSP for dumping the stack, I don't think that you
+> are getting the complete dump with this patch.
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Greg KH
-> Sent: Thursday, May 13, 2010 4:47 PM
+I'm not getting it anyway. Besides, that feature should be
+configurable so we can disable it on production systems. If this patch
+indeed prevents that feature from working, then all that code should
+be somehow configurable. Probably all the GPT8 code is not really
+needed either and can be enabled only when
+CONFIG_OMAP_BRIDGE_BACKTRACE.
 
-> Also note that such a driver, without wakelocks, would never get tested,
-> and so, things start quickly diverging.
+In the meantime, getting rid of memory corruption > having dump stack
+functionality.
 
-Do wakelock enabled drivers require a wakelock aware user space to function properly?  If the driver is added you want to make sure the benefit is there and testable for all userspaces.
+Are you using the public L23.i3.3 baseimage?
 
-Early Android service managers did take/release userspace locks to ensure the handoff worked.
-
-Getting all these drivers is positive.  Getting to some constraint mechanism is positive.  It does need to exist end to end to make a difference at the battery.
-
-Regards,
-Richard W.
+-- 
+Felipe Contreras
