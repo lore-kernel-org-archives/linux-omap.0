@@ -1,81 +1,68 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH] OMAP3: PM: fix AM35x musb issue with AUTOIDLE bit in
- CONTROL_SYSCONFIG
-Date: Thu, 13 May 2010 17:15:23 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E40534D@dbde02.ent.ti.com>
-References: <1272965585-21836-1-git-send-email-ajay.gupta@ti.com>
- <87vdb28byp.fsf@deeprootsystems.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCHv2 1/2] ARM: VFP: Fixed suspend and added context save
+ 	support
+Date: Thu, 13 May 2010 17:15:57 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703050DED97@dbde02.ent.ti.com>
+References: <1259847353-22725-1-git-send-email-tero.kristo@nokia.com>
+	 <1259847353-22725-2-git-send-email-tero.kristo@nokia.com>
+	 <AANLkTilyji16JTT1Oe8fOT6Oz5tzopQNc-3AIQ3UprCO@mail.gmail.com>
+	 <20100511212719.GC32186@n2100.arm.linux.org.uk>
+	 <AANLkTimKKwe-_kjiSlr3fVVy0Bi1krK8rmyT8-0L3B0d@mail.gmail.com>
+ <AANLkTilErBCyRab33tfRfLouudkP3iRmgsKX58Z5CRM_@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33779 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60892 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758708Ab0EMLpa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 07:45:30 -0400
-In-Reply-To: <87vdb28byp.fsf@deeprootsystems.com>
+	id S1756241Ab0EMLqT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 07:46:19 -0400
+In-Reply-To: <AANLkTilErBCyRab33tfRfLouudkP3iRmgsKX58Z5CRM_@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ye janboe <janboe.ye@gmail.com>, Tero Kristo <tero.kristo@nokia.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "peter.de-schrijver@nokia.com" <pet>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-Hi,
-Kumar Gupta <ajay.gupta@ti.com> writes:
-> 
-> > MUSB interface on AM35x stops working when we set AUTOIDLE bit (D0) in
-> > CONTROL_SYSCONFIG(0x48002010) register.
-> 
-> why?
-> 
-> stops working in what way?
-> 
-> I think you need to investigate more into why this is happening.
->
+Ack.
 
-There is 'turnaround/timeout' error shown in first SETUP packet on
-USB bus when a device is connected to OTG port.
+Regards
+Vishwa
 
-In second retry of SETUP packet, 8 byte of GET_DESCRIPTOR went out
-Successfully but there is no 'IN token' to receive the descriptor
-Data although ReqPkt is set for endpoint zero.
-
-All this observation shows that OTG controller starts misbehaving
-When AUTOIDLE bit is set in CONTROL_SYSCONFIG register.
-
-> This suggest to me that something in the MUSB device/driver init
-> is not quite right for these boards.
-Do you have anything specific to try in init path ?
-
-Regards,
-Ajay
+> -----Original Message-----
+> From: ye janboe [mailto:janboe.ye@gmail.com]
+> Sent: Thursday, May 13, 2010 2:44 PM
+> To: Tero Kristo; Sripathy, Vishwanath; Nayak, Rajendra; Woodruff, Richard; peter.de-
+> schrijver@nokia.com
+> Cc: tony@atomide.com; linux-arm-kernel@lists.infradead.org; linux-
+> omap@vger.kernel.org; Russell King - ARM Linux
+> Subject: Re: [PATCHv2 1/2] ARM: VFP: Fixed suspend and added context save
+> support
 > 
-> Kevin
+> + peoples who are in CC list.
 > 
+> Janboe Ye
 > 
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> 2010/5/13 ye janboe <janboe.ye@gmail.com>:
+> > Thanks for Russell and Tony.
 > >
-> > ---
-> >  arch/arm/mach-omap2/pm34xx.c |    7 ++++++-
-> >  1 files changed, 6 insertions(+), 1 deletions(-)
+> > I think this patch is needed when MPU support OFF mode, special on
+> > omap. Otherwise, VFP state will be lost.
 > >
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> > index ea0000b..cc9d566 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -849,7 +849,12 @@ static void __init prcm_setup_regs(void)
-> >  			CM_AUTOIDLE);
-> >  	}
+> > Reviewed-by: Janboe Ye <janboe.ye@gmail.com>
 > >
-> > -	omap_ctrl_writel(OMAP3430_AUTOIDLE, OMAP2_CONTROL_SYSCONFIG);
-> > +	/*
-> > +	 * MUSB interface on AM35x stops working when we enable AUTOIDLE,
-> > +	 * so avoid this for AM3517 and AM3505 device.
-> > +	 */
-> > +	if (!cpu_is_omap3517() && !cpu_is_omap3505())
-> > +		omap_ctrl_writel(OMAP3430_AUTOIDLE, OMAP2_CONTROL_SYSCONFIG);
+> > 2010/5/12 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> >> On Tue, May 11, 2010 at 11:15:13AM +0800, ye janboe wrote:
+> >>> Is this patch ignored by you? I do not see any ack for this patch.
+> >>
+> >> Patch is fine, shame some of the people on the Cc haven't acked it though.
+> >> Can we get acks from anyone of those, and then submit it to the patch
+> >> system?
+> >>
+> >>> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> >>> > Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> >>> > Cc: Rajendra Nayak <rnayak@ti.com>
+> >>> > Cc: Richard Woodruff <r-woodruff2@ti.com>
+> >>> > Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> >>
 > >
-> >  	/*
-> >  	 * Set all plls to autoidle. This is needed until autoidle is
-> > --
-> > 1.6.2.4
