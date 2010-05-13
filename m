@@ -1,207 +1,392 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 2/5] musb: use system DMA to fix Inventra DMA issue on
- RTL-1.4
-Date: Thu, 13 May 2010 15:40:57 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E4052E6@dbde02.ent.ti.com>
-References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-2-git-send-email-ajay.gupta@ti.com>,<20100512175113.GA3285@gandalf>
- <5A47E75E594F054BAF48C5E4FC4B92AB03216237DA@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E7394044E40516E@dbde02.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94026F9F43A6@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: shweta gulati <shweta.gulati@ti.com>
+Subject: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+Date: Thu, 13 May 2010 15:42:15 +0530
+Message-ID: <1273745535-27139-1-git-send-email-shweta.gulati@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40437 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57130 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756708Ab0EMKLI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 06:11:08 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94026F9F43A6@dbde02.ent.ti.com>
-Content-Language: en-US
+	id S1758464Ab0EMKMU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 May 2010 06:12:20 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4DACHDB020560
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 13 May 2010 05:12:20 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kalliguddi, Hema" <hemahk@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "me@felipebalbi.com" <me@felipebalbi.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, Shweta Gulati <shweta.gulati@ti.com>
 
-Hi,
-> >> > > Another approach to use PIO mode in opposite direction would
-> >> > > increase
-> >> the
-> >> > > cpu loading and thus using system DMA is preferred workaround.
-> >> > >
-> >> > > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> >> > > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> >> >
-> >> > I think falling back to pio is better than this patch.
-> >At the cost of cpu, which certainly is not preferred.
-> >
-> >>> It will most likely be only one transfer.
-> >
-> >How about host mode with multiple devices connected and doing
-> >transfers?
-> >Falling back to PIO would kill the cpu.
-> >
-> >>> Another approach is to allocate dma channels on a transfer basis.
-> >
-> >Can you elaborate this?
-> 
-> It might be good idea to allocate the dma channels on tarnsfer basis as
-> Felipe
-> Suggested. The musb driver allocates dma channels for the first 8 enabled
-> endpoints and  higher endpoints works in PIO mode.
-> For system dma if there are more nummber of Rx endpoints enabled but not
-> used for data
-> Transfer you might end up having many sdma channles allocated biut not
-> used which will
-> Impact in the system of not utilizing the sdma channels effectively.
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-Felipe, Is this what you meant? If so then I have a patch (copied below)
-to fix this and I can post this one along with others.
+OMAP3430/3630 has a Silicon bug because of which SDRC is
+released from IDLE even before Core DPLL has locked. This leads
+to undefined behaviour of SDRC DLL. 
 
--------------- cut here -----------------
-Currently DMA channels are allocated and they remain allocated
-even if there is no active data transfer. Added channel_release()
-whenever there is no pending request.
+This patch has workaround for the same.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Description of WA for 3430:
+Initialization:
+	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3 
+	is always locked.
+
+Before CORE Voltage Domain (VDD2) Sleep Transition to RETENTION or OFF mode:
+1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP2 Frequency 
+	(by changing M2 Divider value). This is increasing the period duration of 
+	one L3 clock cycle.
+	o	In case of CORE is at OPP3 (166MHz@1.15V):
+	"	Lower the frequency to 83MHz.
+
+	o	In case of CORE is at OPP2 (83MHz@1.05V):
+	"	Keep the frequency as it is (83MHz).
+
+2.	Increase CORE Voltage to 1.2V. This is reducing the timing duration of the
+	critical path signal which will now fit to one L3 clock cycle.
+
+3.	Enable DPLL3 Automatic mode. This will ensure proper transition to 
+	RETENTION or OFF mode.
+
+After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
+1.	Disable DPLL3 Automatic mode.
+2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
+
+Description of WA for 3630:
+Initialization:
+	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3 is always locked.
+
+Before CORE Voltage Domain(VDD2) Sleep Transition to RETENTION or OFF mode:
+1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP50 Frequency 
+	(by changing M2 Divider value) and set VDD2 Voltage for OPP100. 
+	This is increasing the period duration of one L3 clock cycle and reducing
+	the timing duration of the critical path signal which will now fit to one 
+	L3 clock cycle.
+	o	In case of CORE is at OPP100 (L3=200MHz, VDD2=1.1375V):
+		"	Lower the frequency to 100MHz.
+		"	Keep the voltage as it is (1.1375V).
+
+	o	In case of CORE is at OPP50 (L3=100MHz, VDD2=0.93V):
+		"	Keep the frequency as it is (100MHz).
+		"	Increase the voltage to 1.1375V.
+
+2.	Enable DPLL3 Automatic mode. This will ensure proper transition to 
+	RETENTION or OFF mode.
+
+After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
+1.	Disable DPLL3 Automatic mode.
+2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
+
+Also OSWR should not be attempted if DPLL3 has locked. This should be done as part of OSWR patch series.
+
+Patch tested on 3430SDP and 3630 ZOOM3.
+
+Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com> 
+Signed-off-by: Shweta Gulati <shweta.gulati@ti.com> 
 ---
- drivers/usb/musb/musb_gadget.c |   27 +++++++++++++++++++++------
- drivers/usb/musb/musb_host.c   |   14 ++++++++++++--
- 2 files changed, 33 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index fd842af..477a009 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -297,9 +297,13 @@ static void txstate(struct musb *musb, struct musb_request *req)
- 			csr);
+
+Index: linux-omap-pm/arch/arm/mach-omap2/pm.h
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/pm.h
++++ linux-omap-pm/arch/arm/mach-omap2/pm.h
+@@ -60,6 +60,10 @@ struct prm_setup_vc {
  
- #ifndef	CONFIG_MUSB_PIO_ONLY
--	if (is_dma_capable() && musb_ep->dma) {
+ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
++extern int program_vdd2_opp_3430(void);
++extern int reprogram_vdd2_opp_3430(int restore);
++extern int program_vdd2_opp_3630(void);
++extern int reprogram_vdd2_opp_3630(int restore);
+ 
+ extern u32 wakeup_timer_seconds;
+ extern struct omap_dm_timer *gptimer_wakeup;
+Index: linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/pm34xx.c
++++ linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
+@@ -56,6 +56,7 @@
+ #include "sdrc.h"
+ #include "omap3-opp.h"
+ 
 +
-+	if (is_dma_capable() && musb->dma_controller) {
- 		struct dma_controller	*c = musb->dma_controller;
- 
-+		if (!musb_ep->dma)
-+			musb_ep->dma = c->channel_alloc(c, musb_ep->hw_ep, 1);
-+
- 		use_dma = (request->dma != DMA_ADDR_INVALID);
- 
- 		/* MUSB_TXCSR_P_ISO is still set correctly */
-@@ -433,6 +437,7 @@ void musb_g_tx(struct musb *musb, u8 epnum)
- 	u8 __iomem		*mbase = musb->mregs;
- 	struct musb_ep		*musb_ep = &musb->endpoints[epnum].ep_in;
- 	void __iomem		*epio = musb->endpoints[epnum].regs;
-+	struct dma_controller	*c = musb->dma_controller;
- 	struct dma_channel	*dma;
- 
- 	musb_ep_select(mbase, epnum);
-@@ -535,6 +540,10 @@ void musb_g_tx(struct musb *musb, u8 epnum)
- 			if (!request) {
- 				DBG(4, "%s idle now\n",
- 					musb_ep->end_point.name);
-+				if (musb_ep->dma) {
-+					c->channel_release(musb_ep->dma);
-+					musb_ep->dma = NULL;
-+				}
- 				return;
- 			}
- 		}
-@@ -585,6 +594,7 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- 	struct usb_request	*request = &req->request;
- 	struct musb_ep		*musb_ep = &musb->endpoints[epnum].ep_out;
- 	void __iomem		*epio = musb->endpoints[epnum].regs;
-+	struct dma_controller	*c = musb->dma_controller;
- 	unsigned		fifo_count = 0;
- 	u16			len = musb_ep->packet_sz;
- 	u16			csr = musb_readw(epio, MUSB_RXCSR);
-@@ -601,8 +611,10 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ #ifdef CONFIG_SUSPEND
+ static suspend_state_t suspend_state = PM_SUSPEND_ON;
+ static inline bool is_suspending(void)
+@@ -363,6 +364,8 @@ void omap_sram_idle(void)
+ 	u32 sdrc_pwr = 0;
+ 	int per_state_modified = 0;
+ 	unsigned int start =0, end = 0;
++	u32 fclk_status = 0;
++	int restore = 1;
+ 	if (!_omap_sram_idle)
  		return;
- 	}
  
-+	if (is_dma_capable() && musb->dma_controller && !musb_ep->dma)
-+		musb_ep->dma = c->channel_alloc(c, musb_ep->hw_ep, 0);
+@@ -415,15 +418,6 @@ void omap_sram_idle(void)
+ 	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
+ 		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+ 
+-	/*
+-	 * Disable smartreflex before entering WFI.
+-	 * Only needed if we are going to enter retention or off.
+-	 */
+-	if (mpu_next_state <= PWRDM_POWER_RET)
+-		omap_smartreflex_disable(VDD1, 1);
+-	if (core_next_state <= PWRDM_POWER_RET)
+-		omap_smartreflex_disable(VDD2, 1);
+-
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_POWER_ON) {
+ 		omap_uart_prepare_idle(0);
+@@ -447,6 +441,31 @@ void omap_sram_idle(void)
+ 		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
+ 		omap3_enable_io_chain();
+ 	}
++	/*
++	 * Disable smartreflex before entering WFI.
++	 * Only needed if we are going to enter retention or off.
++	 */
++	if (mpu_next_state <= PWRDM_POWER_RET)
++		omap_smartreflex_disable(VDD1, 1);
++	if (core_next_state <= PWRDM_POWER_RET) {
++		fclk_status = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN) |
++			cm_read_mod_reg(CORE_MOD, CM_FCLKEN1) |
++			cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3) |
++			cm_read_mod_reg(OMAP3430_DSS_MOD, CM_FCLKEN) |
++			cm_read_mod_reg(OMAP3430_CAM_MOD, CM_FCLKEN) |
++			cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_FCLKEN) |
++			cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_FCLKEN);
++		if (!fclk_status) {
++			omap_smartreflex_disable(VDD2, 1);
++			if (cpu_is_omap3630())
++				program_vdd2_opp_3630();
++			else if (cpu_is_omap3430())
++				program_vdd2_opp_3430();
++			cm_rmw_mod_reg_bits(OMAP3430_AUTO_CORE_DPLL_MASK,
++					0x1, PLL_MOD, CM_AUTOIDLE);
++		}
++	}
 +
- 	if ((is_cppi_enabled() || is_cppi41_enabled()) && musb_ep->dma) {
--		struct dma_controller	*c = musb->dma_controller;
- 		struct dma_channel	*channel = musb_ep->dma;
+ 	omap3_intc_prepare_idle();
  
- 		/* NOTE:  CPPI won't actually stop advancing the DMA
-@@ -633,11 +645,9 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- 		if (request->actual < request->length) {
- #ifdef CONFIG_USB_INVENTRA_DMA
- 			if (is_dma_capable() && musb_ep->dma) {
--				struct dma_controller	*c;
- 				struct dma_channel	*channel;
- 				int			use_dma = 0;
- 
--				c = musb->dma_controller;
- 				channel = musb_ep->dma;
- 
- 	/* We use DMA Req mode 0 in rx_csr, and DMA controller operates in
-@@ -719,7 +729,6 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- 
- #ifdef	CONFIG_USB_TUSB_OMAP_DMA
- 			if (tusb_dma_omap() && musb_ep->dma) {
--				struct dma_controller *c = musb->dma_controller;
- 				struct dma_channel *channel = musb_ep->dma;
- 				u32 dma_addr = request->dma + request->actual;
- 				int ret;
-@@ -764,6 +773,7 @@ void musb_g_rx(struct musb *musb, u8 epnum)
- 	void __iomem		*mbase = musb->mregs;
- 	struct musb_ep		*musb_ep = &musb->endpoints[epnum].ep_out;
- 	void __iomem		*epio = musb->endpoints[epnum].regs;
-+	struct dma_controller	*c = musb->dma_controller;
- 	struct dma_channel	*dma;
- 
- 	musb_ep_select(mbase, epnum);
-@@ -838,8 +848,13 @@ void musb_g_rx(struct musb *musb, u8 epnum)
- 		musb_g_giveback(musb_ep, request, 0);
- 
- 		request = next_request(musb_ep);
--		if (!request)
-+		if (!request) {
-+			if (musb_ep->dma) {
-+				c->channel_release(musb_ep->dma);
-+				musb_ep->dma = NULL;
-+			}
- 			return;
-+		}
- 	}
- 
- 	/* analyze request if the ep is hot */
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 89c8c35..001a1d6 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -460,11 +460,21 @@ static void musb_advance_schedule(struct musb *musb, struct urb *urb,
+ 	/*
+@@ -488,6 +507,7 @@ void omap_sram_idle(void)
+ 	if (core_next_state < PWRDM_POWER_ON) {
+ 		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
+ 		if (core_prev_state == PWRDM_POWER_OFF) {
++			restore = 0;
+ 			omap3_core_restore_context();
+ 			omap3_prcm_restore_context();
+ 			omap3_sram_restore_context();
+@@ -522,9 +542,18 @@ void omap_sram_idle(void)
  	 */
- 	if (list_empty(&qh->hep->urb_list)) {
- 		struct list_head	*head;
-+		struct dma_controller	*dma = musb->dma_controller;
- 
--		if (is_in)
-+		if (is_in) {
- 			ep->rx_reinit = 1;
--		else
-+			if (ep->rx_channel) {
-+				dma->channel_release(ep->rx_channel);
-+				ep->rx_channel = NULL;
-+			}
-+		} else {
- 			ep->tx_reinit = 1;
-+			if (ep->tx_channel) {
-+				dma->channel_release(ep->tx_channel);
-+				ep->tx_channel = NULL;
-+			}
+ 	if (mpu_next_state <= PWRDM_POWER_RET)
+ 		omap_smartreflex_enable(VDD1);
+-	if (core_next_state <= PWRDM_POWER_RET)
+-		omap_smartreflex_enable(VDD2);
+-
++	if (core_next_state <= PWRDM_POWER_RET) {
++		if (restore)
++			cm_rmw_mod_reg_bits(OMAP3430_AUTO_CORE_DPLL_MASK,
++					0x0, PLL_MOD, CM_AUTOIDLE);
++		if (!fclk_status) {
++			if (cpu_is_omap3630())
++				reprogram_vdd2_opp_3630(restore);
++			else if (cpu_is_omap3430())
++				reprogram_vdd2_opp_3430(restore);
++			omap_smartreflex_enable(VDD2);
 +		}
++	}
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		if (per_next_state == PWRDM_POWER_OFF) {
+@@ -948,9 +977,8 @@ static void __init prcm_setup_regs(void)
+ 	cm_write_mod_reg(1 << OMAP3430_AUTO_MPU_DPLL_SHIFT,
+ 			 MPU_MOD,
+ 			 CM_AUTOIDLE2);
+-	cm_write_mod_reg((1 << OMAP3430_AUTO_PERIPH_DPLL_SHIFT) |
+-			 (1 << OMAP3430_AUTO_CORE_DPLL_SHIFT),
+-			 PLL_MOD,
++	cm_write_mod_reg((1 << OMAP3430_AUTO_PERIPH_DPLL_SHIFT),
++			  PLL_MOD,
+ 			 CM_AUTOIDLE);
+ 	cm_write_mod_reg(1 << OMAP3430ES2_AUTO_PERIPH2_DPLL_SHIFT,
+ 			 PLL_MOD,
+@@ -1124,7 +1152,6 @@ static int __init omap3_pm_init(void)
+ 	struct power_state *pwrst, *tmp;
+ 	struct clockdomain *neon_clkdm, *per_clkdm, *mpu_clkdm, *core_clkdm;
+ 	int ret;
+-
+ 	if (!cpu_is_omap34xx())
+ 		return -ENODEV;
  
- 		/* Clobber old pointers to this qh */
- 		musb_ep_set_qh(ep, is_in, NULL);
--- 
-1.6.2.4
-
-
------------------------------------------
--Ajay
-> 
+Index: linux-omap-pm/arch/arm/mach-omap2/resource34xx.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/resource34xx.c
++++ linux-omap-pm/arch/arm/mach-omap2/resource34xx.c
+@@ -38,6 +38,7 @@
+ #warning MPU latency constraints require CONFIG_CPU_IDLE to function!
+ #endif
+ 
++
+ /**
+  * init_latency - Initializes the mpu/core latency resource.
+  * @resp: Latency resource to be initalized
+@@ -147,6 +148,9 @@ int set_pd_latency(struct shared_resourc
+ 	return 0;
+ }
+ 
++unsigned long freq = 0, min_freq;
++struct omap_opp *min_opp, *max_opp;
++
+ static struct shared_resource *vdd1_resp;
+ static struct shared_resource *vdd2_resp;
+ static struct device dummy_mpu_dev;
+@@ -154,7 +158,7 @@ static struct device dummy_dsp_dev;
+ static struct device vdd2_dev;
+ static int vdd1_lock;
+ static int vdd2_lock;
+-static struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk;
++static struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk, *l3_clk;
+ static int curr_vdd1_opp;
+ static int curr_vdd2_opp;
+ static DEFINE_MUTEX(dvfs_mutex);
+@@ -214,7 +218,6 @@ static int __deprecated freq_to_opp(u8 *
+  */
+ void init_opp(struct shared_resource *resp)
+ {
+-	struct clk *l3_clk;
+ 	int ret;
+ 	u8 opp_id;
+ 	resp->no_of_users = 0;
+@@ -238,6 +241,15 @@ void init_opp(struct shared_resource *re
+ 		curr_vdd2_opp = opp_id;
+ 	}
+ 	resp->curr_level = opp_id;
++	if (cpu_is_omap3630()) {
++		min_opp = opp_find_freq_ceil(OPP_L3, &freq);
++		min_freq = opp_get_freq(min_opp);
++		freq = ULONG_MAX;
++		max_opp = opp_find_freq_floor(OPP_L3, &freq);
++	} else if (cpu_is_omap3430()) {
++		min_opp = opp_find_freq_ceil(OPP_L3, &freq);
++		min_freq = opp_get_freq(min_opp);
++	}
+ 	return;
+ }
+ 
+@@ -553,3 +565,97 @@ int validate_freq(struct shared_resource
+ 		return freq_to_opp(&x, OPP_DSP, target_level);
+ 	return 0;
+ }
++
++static struct omap_opp *c_vdd2_opp;
++int program_vdd2_opp_3430()
++{
++	int ret = 0, div;
++	struct omap_opp *c_opp;
++	unsigned long vc, vt;
++
++
++	c_vdd2_opp = c_opp = opp_find_freq_exact(OPP_L3, l3_clk->rate, true);
++
++	if (opp_get_freq(c_opp) != min_freq) {
++		div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++			OMAP3430_CLKSEL_L3_MASK;
++		ret = clk_set_rate(dpll3_clk, min_freq * div);
++	}
++	/* for omap3430, VDD2 should be at 1.2V */
++	vt = 1200000;
++	vc = opp_get_voltage(c_opp);
++	ret = omap_voltage_scale(VDD2, vt, vc);
++	return ret;
++}
++
++int reprogram_vdd2_opp_3430(int restore)
++{
++	int ret = 0, div;
++	unsigned long freq = 0;
++	struct omap_opp *c_opp;
++	unsigned long  vc, vt;
++	c_opp = opp_find_freq_exact(OPP_L3, l3_clk->rate, true);
++	if (restore) {
++		if (opp_get_freq(c_opp) != opp_get_freq(c_vdd2_opp)) {
++			freq = opp_get_freq(c_vdd2_opp);
++			div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++				OMAP3430_CLKSEL_L3_MASK;
++			ret = clk_set_rate(dpll3_clk, freq * div);
++		}
++	}
++	vc = 1200000;
++	vt = opp_get_voltage(c_vdd2_opp);
++	ret = omap_voltage_scale(VDD2, vt, vc);
++	return ret;
++
++}
++
++
++int program_vdd2_opp_3630()
++{
++	int ret = 0, div;
++	struct omap_opp *c_opp;
++	unsigned long vc, vt;
++
++	c_vdd2_opp = c_opp = opp_find_freq_exact(OPP_L3, l3_clk->rate, true);
++
++	if (opp_get_freq(c_opp) == min_freq) {
++		vc = opp_get_voltage(c_opp);
++		vt = opp_get_voltage(max_opp);
++		ret = omap_voltage_scale(VDD2, vt, vc);
++	} else {
++		div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++			OMAP3430_CLKSEL_L3_MASK;
++		ret = clk_set_rate(dpll3_clk, min_freq * div);
++	}
++
++	return ret;
++}
++
++int reprogram_vdd2_opp_3630(int restore)
++{
++	int ret = 0, div;
++	unsigned long freq = 0;
++	struct omap_opp *c_opp;
++	unsigned long  vc, vt;
++
++	c_opp = opp_find_freq_exact(OPP_L3, l3_clk->rate, true);
++
++	if (opp_get_freq(c_opp) == opp_get_freq(c_vdd2_opp)) {
++			vc = opp_get_voltage(max_opp);
++			vt = opp_get_voltage(c_vdd2_opp);
++			/* ok to scale.. */
++			ret = omap_voltage_scale(VDD2, vt, vc);
++	} else {
++		if (restore) {
++			freq = opp_get_freq(max_opp);
++			div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++				OMAP3430_CLKSEL_L3_MASK;
++			ret = clk_set_rate(dpll3_clk, freq * div);
++		}
++	}
++
++	return ret;
++}
++
++
+Index: linux-omap-pm/arch/arm/mach-omap2/voltage.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/voltage.c
++++ linux-omap-pm/arch/arm/mach-omap2/voltage.c
+@@ -479,7 +479,6 @@ static int vc_bypass_scale_voltage(u32 v
+ 			pr_warning("Unable to get voltage table for VDD%d \
+ 				during voltage scaling. Some really Wrong!",
+ 				vdd + 1);
+-			return false;
+ 		}
+ 		vp_reg[vdd].vp_errorgain = volt_data.vp_errorgain <<
+ 			OMAP3430_ERRORGAIN_SHIFT;
+@@ -584,7 +583,6 @@ static int vp_forceupdate_scale_voltage(
+ 			pr_warning("Unable to get voltage table for VDD%d \
+ 				during voltage scaling. Some really Wrong!",
+ 				vdd + 1);
+-			return false;
+ 		}
+ 		vp_reg[vdd].vp_errorgain = (volt_data.vp_errorgain <<
+ 				OMAP3430_ERRORGAIN_SHIFT);
