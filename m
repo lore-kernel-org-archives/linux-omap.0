@@ -1,101 +1,381 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 07/15] omap: mailbox: only compile for configured archs
-Date: Thu, 13 May 2010 20:47:28 +0300
-Message-ID: <1273772856-10881-8-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 08/15] omap: mailbox: reorganize omap platform_device
+Date: Thu, 13 May 2010 20:47:29 +0300
+Message-ID: <1273772856-10881-9-git-send-email-felipe.contreras@gmail.com>
 References: <1273772856-10881-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:64611 "EHLO
+Received: from fg-out-1718.google.com ([72.14.220.157]:11171 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753870Ab0EMRsh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 13:48:37 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so1239991fga.1
-        for <linux-omap@vger.kernel.org>; Thu, 13 May 2010 10:48:37 -0700 (PDT)
+	with ESMTP id S1753870Ab0EMRsl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 13:48:41 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so2624632fgg.1
+        for <linux-omap@vger.kernel.org>; Thu, 13 May 2010 10:48:40 -0700 (PDT)
 In-Reply-To: <1273772856-10881-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>
 
+Makes more sense to register in the mach file, plus it will allow more
+functionality later on.
+
+Also, this probably enables multi-omap for real.
+
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- arch/arm/mach-omap2/mailbox.c |   15 +++++++++++++--
- 1 files changed, 13 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap1/devices.c |   38 ----------------
+ arch/arm/mach-omap1/mailbox.c |   57 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/devices.c |   74 -------------------------------
+ arch/arm/mach-omap2/mailbox.c |   97 +++++++++++++++++++++++++++++++++++++++--
+ 4 files changed, 150 insertions(+), 116 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 0902965..103c670 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -265,6 +265,7 @@ static struct omap_mbox_ops omap2_mbox_ops = {
- 
- /* FIXME: the following structs should be filled automatically by the user id */
- 
-+#if defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_ARCH_OMAP2420)
- /* DSP */
- static struct omap_mbox2_priv omap2_mbox_dsp_priv = {
- 	.tx_fifo = {
-@@ -288,11 +289,13 @@ struct omap_mbox mbox_dsp_info = {
- 	.priv	= &omap2_mbox_dsp_priv,
- };
- EXPORT_SYMBOL(mbox_dsp_info);
-+#endif
- 
-+#if defined(CONFIG_ARCH_OMAP3430)
- struct omap_mbox *omap3_mboxes[] = { &mbox_dsp_info, NULL };
-+#endif
- 
- #if defined(CONFIG_ARCH_OMAP2420)
--
- /* IVA */
- static struct omap_mbox2_priv omap2_mbox_iva_priv = {
- 	.tx_fifo = {
-@@ -319,6 +322,7 @@ static struct omap_mbox mbox_iva_info = {
- struct omap_mbox *omap2_mboxes[] = { &mbox_iva_info, &mbox_dsp_info, NULL };
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index da796f2..093dd13 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -63,43 +63,6 @@ static void omap_init_rtc(void)
+ static inline void omap_init_rtc(void) {}
  #endif
  
-+#if defined(CONFIG_ARCH_OMAP4)
- /* OMAP4 */
- static struct omap_mbox2_priv omap2_mbox_1_priv = {
- 	.tx_fifo = {
-@@ -367,6 +371,7 @@ struct omap_mbox mbox_2_info = {
- EXPORT_SYMBOL(mbox_2_info);
+-#if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+-
+-#if defined(CONFIG_ARCH_OMAP15XX)
+-#  define OMAP1_MBOX_SIZE	0x23
+-#  define INT_DSP_MAILBOX1	INT_1510_DSP_MAILBOX1
+-#elif defined(CONFIG_ARCH_OMAP16XX)
+-#  define OMAP1_MBOX_SIZE	0x2f
+-#  define INT_DSP_MAILBOX1	INT_1610_DSP_MAILBOX1
+-#endif
+-
+-static struct resource mbox_resources[] = {
+-	{
+-		.start		= OMAP16XX_MAILBOX_BASE,
+-		.end		= OMAP16XX_MAILBOX_BASE + OMAP1_MBOX_SIZE,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= INT_DSP_MAILBOX1,
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static struct platform_device mbox_device = {
+-	.name		= "omap1-mailbox",
+-	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(mbox_resources),
+-	.resource	= mbox_resources,
+-};
+-
+-static inline void omap_init_mbox(void)
+-{
+-	platform_device_register(&mbox_device);
+-}
+-#else
+-static inline void omap_init_mbox(void) { }
+-#endif
+-
+ /*-------------------------------------------------------------------------*/
  
- struct omap_mbox *omap4_mboxes[] = { &mbox_1_info, &mbox_2_info, NULL };
+ #if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
+@@ -293,7 +256,6 @@ static int __init omap1_init_devices(void)
+ 	 * in alphabetical order so they're easier to sort through.
+ 	 */
+ 
+-	omap_init_mbox();
+ 	omap_init_rtc();
+ 	omap_init_spi100k();
+ 	omap_init_sti();
+diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
+index 8b18313..e28b226 100644
+--- a/arch/arm/mach-omap1/mailbox.c
++++ b/arch/arm/mach-omap1/mailbox.c
+@@ -147,6 +147,20 @@ EXPORT_SYMBOL(mbox_dsp_info);
+ 
+ struct omap_mbox *omap1_mboxes[] = { &mbox_dsp_info, NULL };
+ 
++#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
++static struct resource omap1_mbox_resources[] = {
++	{
++		.start		= OMAP16XX_MAILBOX_BASE,
++		.end		= OMAP16XX_MAILBOX_BASE, /* to be updated */
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= 10,
++		.flags		= IORESOURCE_IRQ,
++	},
++};
 +#endif
++
+ static int __devinit omap1_mbox_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res;
+@@ -198,7 +212,50 @@ static struct platform_driver omap1_mbox_driver = {
  
+ static int __init omap1_mbox_init(void)
+ {
++	int err;
++	struct platform_device *pdev;
++	struct resource *res;
++	unsigned num;
++
++	if (false) {
++	}
++#if defined(CONFIG_ARCH_OMAP15XX)
++	else if (cpu_is_omap15xx()) {
++		res = omap1_mbox_resources;
++		num = ARRAY_SIZE(omap1_mbox_resources);
++		res[1].end += 0x23;
++	}
++#endif
++#if defined(CONFIG_ARCH_OMAP16XX)
++	else if (cpu_is_omap16xx()) {
++		res = omap1_mbox_resources;
++		num = ARRAY_SIZE(omap1_mbox_resources);
++		res[1].end += 0x2f;
++	}
++#endif
++	else {
++		pr_err("%s: platform not supported\n", __func__);
++		return -ENODEV;
++	}
++
++	pdev = platform_device_alloc("omap1-mailbox", -1);
++	if (!pdev) {
++		err = -ENOMEM;
++		goto err_out;
++	}
++
++	err = platform_device_add_resources(pdev, res, num);
++	if (err)
++		goto err_out;
++
++	err = platform_device_add(pdev);
++	if (err)
++		goto err_out;
++
+ 	return platform_driver_register(&omap1_mbox_driver);
++
++err_out:
++	return err;
+ }
+ 
+ static void __exit omap1_mbox_exit(void)
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 18ad931..bc7ac38 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -136,79 +136,6 @@ static inline void omap_init_camera(void)
+ }
+ #endif
+ 
+-#if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+-
+-#define MBOX_REG_SIZE   0x120
+-
+-#ifdef CONFIG_ARCH_OMAP2
+-static struct resource omap_mbox_resources[] = {
+-	{
+-		.start		= OMAP24XX_MAILBOX_BASE,
+-		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= INT_24XX_MAIL_U0_MPU,
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-	{
+-		.start		= INT_24XX_MAIL_U3_MPU,
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-};
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-static struct resource omap_mbox_resources[] = {
+-	{
+-		.start		= OMAP34XX_MAILBOX_BASE,
+-		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= INT_24XX_MAIL_U0_MPU,
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-};
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP4
+-
+-#define OMAP4_MBOX_REG_SIZE	0x130
+-static struct resource omap_mbox_resources[] = {
+-	{
+-		.start          = OMAP44XX_MAILBOX_BASE,
+-		.end            = OMAP44XX_MAILBOX_BASE +
+-					OMAP4_MBOX_REG_SIZE - 1,
+-		.flags          = IORESOURCE_MEM,
+-	},
+-	{
+-		.start          = INT_44XX_MAIL_U0_MPU,
+-		.flags          = IORESOURCE_IRQ,
+-	},
+-};
+-#endif
+-
+-static struct platform_device mbox_device = {
+-	.name		= "omap2-mailbox",
+-	.id		= -1,
+-};
+-
+-static inline void omap_init_mbox(void)
+-{
+-	if (cpu_is_omap2420() || cpu_is_omap3430() || cpu_is_omap44xx()) {
+-		mbox_device.num_resources = ARRAY_SIZE(omap_mbox_resources);
+-		mbox_device.resource = omap_mbox_resources;
+-	} else {
+-		pr_err("%s: platform not supported\n", __func__);
+-		return;
+-	}
+-	platform_device_register(&mbox_device);
+-}
+-#else
+-static inline void omap_init_mbox(void) { }
+-#endif /* CONFIG_OMAP_MBOX_FWK */
+-
+ #if defined(CONFIG_OMAP_STI)
+ 
+ #if defined(CONFIG_ARCH_OMAP2)
+@@ -772,7 +699,6 @@ static int __init omap2_init_devices(void)
+ 	 */
+ 	omap_hsmmc_reset();
+ 	omap_init_camera();
+-	omap_init_mbox();
+ 	omap_init_mcspi();
+ 	omap_hdq_init();
+ 	omap_init_sti();
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 103c670..31a0659 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -373,6 +373,52 @@ EXPORT_SYMBOL(mbox_2_info);
+ struct omap_mbox *omap4_mboxes[] = { &mbox_1_info, &mbox_2_info, NULL };
+ #endif
+ 
++#ifdef CONFIG_ARCH_OMAP2420
++static struct resource omap2_mbox_resources[] = {
++	{
++		.start		= OMAP24XX_MAILBOX_BASE,
++		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= INT_24XX_MAIL_U0_MPU,
++		.flags		= IORESOURCE_IRQ,
++	},
++	{
++		.start		= INT_24XX_MAIL_U3_MPU,
++		.flags		= IORESOURCE_IRQ,
++	},
++};
++#endif
++
++#ifdef CONFIG_ARCH_OMAP3430
++static struct resource omap3_mbox_resources[] = {
++	{
++		.start		= OMAP34XX_MAILBOX_BASE,
++		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= INT_24XX_MAIL_U0_MPU,
++		.flags		= IORESOURCE_IRQ,
++	},
++};
++#endif
++
++#ifdef CONFIG_ARCH_OMAP4
++static struct resource omap4_mbox_resources[] = {
++	{
++		.start          = OMAP44XX_MAILBOX_BASE,
++		.end            = OMAP44XX_MAILBOX_BASE + OMAP4_MBOX_REG_SIZE - 1,
++		.flags          = IORESOURCE_MEM,
++	},
++	{
++		.start          = INT_44XX_MAIL_U0_MPU,
++		.flags          = IORESOURCE_IRQ,
++	},
++};
++#endif
++
  static int __devinit omap2_mbox_probe(struct platform_device *pdev)
  {
-@@ -380,11 +385,15 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
- 	if (!mbox_base)
- 		return -ENOMEM;
+ 	struct resource *res;
+@@ -410,10 +456,6 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+ 		list[1]->irq = res[1].start;
+ 	}
+ #endif
+-	else {
+-		pr_err("%s: platform not supported\n", __func__);
+-		return -ENODEV;
+-	}
  
--	if (cpu_is_omap3430()) {
+ 	for (i = 0; list[i]; i++) {
+ 		ret = omap_mbox_register(&pdev->dev, list[i]);
+@@ -450,7 +492,54 @@ static struct platform_driver omap2_mbox_driver = {
+ 
+ static int __init omap2_mbox_init(void)
+ {
++	int err;
++	struct platform_device *pdev;
++	struct resource *res;
++	unsigned num;
++
 +	if (false) {
 +	}
 +#if defined(CONFIG_ARCH_OMAP3430)
 +	else if (cpu_is_omap3430()) {
- 		list = omap3_mboxes;
- 
- 		list[0]->irq = res[1].start;
- 	}
++		res = omap3_mbox_resources;
++		num = ARRAY_SIZE(omap3_mbox_resources);
++	}
 +#endif
- #if defined(CONFIG_ARCH_OMAP2420)
- 	else if (cpu_is_omap2420()) {
- 		list = omap2_mboxes;
-@@ -393,12 +402,14 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
- 		list[1]->irq = res[2].start;
- 	}
- #endif
++#if defined(CONFIG_ARCH_OMAP2420)
++	else if (cpu_is_omap2420()) {
++		res = omap2_mbox_resources;
++		num = ARRAY_SIZE(omap2_mbox_resources);
++	}
++#endif
 +#if defined(CONFIG_ARCH_OMAP4)
- 	else if (cpu_is_omap44xx()) {
- 		list = omap4_mboxes;
- 
- 		list[0]->irq = res[1].start;
- 		list[1]->irq = res[1].start;
- 	}
++	else if (cpu_is_omap44xx()) {
++		res = omap4_mbox_resources;
++		num = ARRAY_SIZE(omap4_mbox_resources);
++	}
 +#endif
- 	else {
- 		pr_err("%s: platform not supported\n", __func__);
- 		return -ENODEV;
++	else {
++		pr_err("%s: platform not supported\n", __func__);
++		return -ENODEV;
++	}
++
++	pdev = platform_device_alloc("omap2-mailbox", -1);
++	if (!pdev) {
++		err = -ENOMEM;
++		goto err_out;
++	}
++
++	err = platform_device_add_resources(pdev, res, num);
++	if (err)
++		goto err_out;
++
++	err = platform_device_add(pdev);
++	if (err)
++		goto err_out;
++
+ 	return platform_driver_register(&omap2_mbox_driver);
++
++err_out:
++	return err;
+ }
+ 
+ static void __exit omap2_mbox_exit(void)
 -- 
 1.7.1
 
