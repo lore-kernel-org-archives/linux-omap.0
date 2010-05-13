@@ -1,114 +1,71 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 00:36:08 +0100
-Message-ID: <20100513233608.GA1582@sirena.org.uk>
+From: Brian Swetland <swetland@google.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Thu, 13 May 2010 16:48:40 -0700
+Message-ID: <r2qa55d774e1005131648i1702d3b2ob6bc823e4a4a113c@mail.gmail.com>
 References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<20100513214653.GA21120@suse.de>
-	<20100513222748.GA3240@opensource.wolfsonmicro.com>
-	<201005140046.33508.rjw@sisk.pl>
+	 <20100513214653.GA21120@suse.de>
+	 <20100513222748.GA3240@opensource.wolfsonmicro.com>
+	 <201005140046.33508.rjw@sisk.pl> <20100513233608.GA1582@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <201005140046.33508.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Oleg Nesterov <oleg@redhat.com>, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([216.239.44.51]:60202 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750837Ab0EMXsq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 19:48:46 -0400
+In-Reply-To: <20100513233608.GA1582@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <gregkh@suse.de>, Daniel Walker <dwalker@fifo99.com>, Matthew Garrett <mjg@redhat.com>, Paul Walmsley <paul@pwsan.com>, Arve Hj?nnev?g <arve@android.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Beno?t Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-On Fri, May 14, 2010 at 12:46:33AM +0200, Rafael J. Wysocki wrote:
-> On Friday 14 May 2010, Mark Brown wrote:
+On Thu, May 13, 2010 at 4:36 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+>
+>> I'm not a big fan of suspend blockers myself, but let's face it, _cu=
+rrently_
+>> there's no alternative and we need to stop the trend, the sooner the=
+ better.
+>
+> I don't think this is a major part of the trend - like I say, the fac=
+t
+> that people have been working with an old kernel version is generally
+> a much more substantial issue than the wakelocks in the code I've see=
+n.
 
-> > Is that really the issue?  The ones I've looked at have mostly suffered
-> > from being built on 2.6.29 and needing refreshes for current kernel APIs
-> > or from general code quality issues - I don't recall ever looking at one
-> > and thinking that the wakelocks were the one issue.
+Current published trees are based on .32 (used for the coming-soon
+froyo release that's been in late QA for a while now) and forward
+development is moving to .34 post final (or in the case of tegra2,
+tracking .34-rc series as it happens).  We've been actively snapping
+up to track mainline since we started doing this around 2.6.16.  We'd
+*love* to be able to get more stuff sanely upstream instead of
+maintaining branches and rebasing every other mainline release or so.
 
-...
+> The issue was that when I originally noticed the patch series was bei=
+ng
+> considered for mainline again was that one effect of using it in a
+> mobile phone with the standard Linux embedded audio subsystem would b=
+e
+> to break use cases such as audio on voice calls, which isn't really
+> desirable, and that there was no roadmap for how to fix that or any
+> other subsystems with similar issues. =C2=A0This didn't seem like it =
+would
+> have been a good situation given that the major user is expected to b=
+e
+> Android, which is mainly for mobile phones.
 
-> > Chances are that if the driver is useful people will start using it in
-> > non-Android systems anyway.
+I'd love to have a separate discussion on using standard linux
+embedded audio for mobile devices -- one of my goals for 2010 is to
+try to migrate from our "one off" approach on MSM to making use of
+ALSA and standard interfaces.  I have a lot of questions about handing
+encoded data (mp3/aac/etc) that will be processed by the DSP, how to
+approach routing control, and how to best interact with the
+user/kernel interface, etc.
 
-> You're missing the point IMO.  Even if they are only used on Android, there
-> still is a problem if they don't go into the mainline, because that leads to
-> code divergence that's growing over time and will ultimately create an entire
-> ecosystem that's independent of the mainline.
-
-See my first paragraph there.  My point here is that we appear to have
-the standard vendor BSP ecosystem problem here rather than a wakelock
-problem.
-
-It's fairly common in the embedded space to get a whole bunch of work
-done which doesn't make its way into mainline due to a SoC vendor having
-produced a BSP for their SoC which is based around a particular kernel
-version which never gets updated.  This means users with that SoC can't
-boot anything newer until someone does the work of mainlining support
-for the system, meaning that development on systems using that SoC gets
-stuck on an old kernel which mainline drifts away from.  Users find it
-hard to contribute back since they can't run current code easily and
-often have to jump through serious hoops to backport drivers from newer
-kernels.  If the SoC is successful enough then you do get something of
-an ecosystem around the BSP, though eventually that usually results in
-the community doing the mainline merge.
-
-> We've been successful in avoiding that for quite some time and I don't think
-> we should allow that to happen right now because of the opportunistic suspend
-> feature.
-
-This is still a work in progress in the embedded space (where wakelocks
-are primarily relevant).  Many of the major vendors are working in the
-right direction here, but it's far from universal and it's not something
-that it's easy for vendors to change overnight.
-
-> I'm not a big fan of suspend blockers myself, but let's face it, _currently_
-> there's no alternative and we need to stop the trend, the sooner the better.
-
-I don't think this is a major part of the trend - like I say, the fact
-that people have been working with an old kernel version is generally
-a much more substantial issue than the wakelocks in the code I've seen.
-
-> > As people have already observed wakelocks
-> > needn't have any practical effect on the running system so if the
-> > drivers are broken without wakelocks they'd be broken anyway.  
-
-> You need to prove the reverse, ie. that a driver working correctly with
-> wakelocks will also work correctly without them, which is not a given.
-
-If they can be compiled out then the updates really ought to be trivial.
-If not I really need to go back and reexamine what's going on here to
-make sure I understand what drivers are supposed to do, I have to
-confess that I haven't looked too closely at the driver side API yet.
-
-> > It's not particularly pretty but it'd deal with the driver merge
-> > side of things.
-
-> Again, I don't see why you hate that feature so much.  What is there to worry
-> about?
-
-As I have said previously I'm not actively opposed to merging wakelocks
-at this point.  My major concern has been addressed, I now agree with
-most of what the PM guys are saying - it's not the nicest thing ever but
-it works for now.
-
-The issue was that when I originally noticed the patch series was being
-considered for mainline again was that one effect of using it in a
-mobile phone with the standard Linux embedded audio subsystem would be
-to break use cases such as audio on voice calls, which isn't really
-desirable, and that there was no roadmap for how to fix that or any
-other subsystems with similar issues.  This didn't seem like it would
-have been a good situation given that the major user is expected to be
-Android, which is mainly for mobile phones.
-
-Since we seemed to all agree that no other subsystems were affected,
-meaning nothing general was required, I've now implemented support in
-the subsystem for ignoring suspends for some audio paths (this should
-appear In the next merge window).  This should mesh well with wakelocks.
+Brian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
