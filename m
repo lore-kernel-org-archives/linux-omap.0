@@ -1,43 +1,32 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCHv2] DSPBRIDGE: Include missing info in MMU Fault
- debugging trace
-Date: Thu, 13 May 2010 10:54:35 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4BB47BDE@dlee03.ent.ti.com>
-References: <B852767254C5C94EBB1040EE0EFA06009359281E@dlee01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 7/7] omap hsmmc: fix the hsmmc driver for am3517.
+Date: Thu, 13 May 2010 08:58:44 -0700
+Message-ID: <20100513155843.GA31224@atomide.com>
+References: <1271745212-4474-1-git-send-email-stanley.miao@windriver.com>
+ <1271745212-4474-8-git-send-email-stanley.miao@windriver.com>
+ <20100511232656.GO13931@atomide.com>
+ <4BEBE829.8020801@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58521 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756383Ab0EMPyl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 11:54:41 -0400
-In-Reply-To: <B852767254C5C94EBB1040EE0EFA06009359281E@dlee01.ent.ti.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59102 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758927Ab0EMP6u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 11:58:50 -0400
+Content-Disposition: inline
+In-Reply-To: <4BEBE829.8020801@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramos Falcon, Ernesto" <ernesto@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
+To: "stanley.miao" <stanley.miao@windriver.com>
+Cc: linux-omap@vger.kernel.org, hvaibhav@ti.com, srk@ti.com, anuj.aggarwal@ti.com
 
-Ernesto
+* stanley.miao <stanley.miao@windriver.com> [100513 04:38]:
+> We can move other features into the variable "features", such as
+> "nonremovable", "power_saving".
 
-> @@ -2136,6 +2138,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context
-> *bridge_context)
->  			total_size = MAX_MMU_DBGBUFF;
-> 
->  		buffer = kzalloc(total_size, GFP_ATOMIC);
-> +		buffer_beg = buffer;
->  		buffer_end =  buffer + total_size / 4;
-> 
->  		if (!buffer) {
+Great, that sounds good to me. Might help with the mmc init issues
+for omap4 also.
 
--- Shouldn't this check be present before the above 2 statements ?
+Regards,
 
->  		for (i = 0; buffer < buffer_end; i++, buffer++) {
->  			if ((*buffer > 0x01000000) && (node_find_addr(node_mgr,
-
--- Is 0x01000000 MAX_MMU_DBGBUFF ? 
-
-Thank you,
-Best regards,
-Hari
+Tony
