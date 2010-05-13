@@ -1,44 +1,53 @@
-From: Daniel Walker <dwalker@fifo99.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 13 May 2010 14:16:39 -0700
-Message-ID: <1273785399.19100.98.camel@c-dwalke-linux.qualcomm.com>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	 <1273779394.19100.47.camel@c-dwalke-linux.qualcomm.com>
-	 <20100513194820.GA19722@srcf.ucam.org>  <201005132311.26293.rjw@sisk.pl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] Initial attempt to make ARM use LMB
+Date: Thu, 13 May 2010 14:19:51 -0700
+Message-ID: <20100513211951.GH3428@atomide.com>
+References: <20100325233248.GM24984@n2100.arm.linux.org.uk>
+ <20100505150209.GC2606@n2100.arm.linux.org.uk>
+ <20100513174023.GB13001@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201005132311.26293.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg@redhat.com>, Brian Swetland <swetland@google.com>, Paul Walmsley <paul@pwsan.com>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63538 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753282Ab0EMVUC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 17:20:02 -0400
+Content-Disposition: inline
+In-Reply-To: <20100513174023.GB13001@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-On Thu, 2010-05-13 at 23:11 +0200, Rafael J. Wysocki wrote:
-> On Thursday 13 May 2010, Matthew Garrett wrote:
-> > On Thu, May 13, 2010 at 12:36:34PM -0700, Daniel Walker wrote:
-> > > On Thu, 2010-05-13 at 20:11 +0100, Matthew Garrett wrote:
-> > > > See feature-removal-schedule.txt. So far we have no indication that it's 
-> > > > going to be replaced, because nobody has actually suggested a working 
-> > > > way to do this better. If we had a concrete implementation proposal for 
-> > > > that then we'd be in a pretty different position right now.
-> > > 
-> > > Ok, feature-removal-schedule.txt applies to everything tho. What your
-> > > saying is that if this interface only last a short time it might take 6
-> > > months, if it last for a long time it would take longer. There's no easy
-> > > way to know that Google is the only user after some amount of time
-> > > passes.
-> > 
-> > If the interface is there for a long time, it's because we haven't come 
-> > up with anything better. And if we haven't come up with anything better, 
-> > the interface deserves to be there.
-> 
-> Moreover, the interface is already in use out-of-tree and that usage is
-> actually _growing_, so we have a growing number of out-of-tree drivers that
-> aren't megrgeable for this very reason.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [100513 10:35]:
+> And here's a patch which converts the OMAP FB code to use lmb_reserve
+> instead of poking about with bootmem stuff.  Untested, so I'd like to
+> hear back whether it works.
 
-Why can't we merge the drivers? Drivers are just drivers, they don't
-need this to get merged. (They need it to work with Android)
+Did a quick test with the following patches picked from your lmb
+branch on top of omap for-next branch:
 
-Daniel
+ARM: Remove useless linux/bootmem.h includes
+ARM: Ensure meminfo is sorted prior to sanity_check_meminfo
+ARM: initial LMB trial
+ARM: Move platform LMB memory reservations out of generic code
+
+and then this patch.
+
+It does not boot.. It seems to be related to the patch
+"ARM: initial LMB trial". If I only apply the first two patches
+above the system boots.
+
+Otherwise it only boots to:
+
+Linux version 2.6.34-rc7-08102-ga1a6e35 ...
+CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7), cr=10c53c7f  
+CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+Machine: Nokia RX-51 board                                       
+Ignoring unrecognised tag 0x414f4d50                             
+bootconsole [earlycon0] enabled                                  
+Memory policy: ECC disabled, Data cache writeback
+
+Regards,
+
+Tony
