@@ -1,378 +1,217 @@
 From: "Arce, Abraham" <x0066660@ti.com>
-Subject: [RFC] [PATCH v2 2/4] OMAP4: Keyboard controller support
-Date: Thu, 13 May 2010 15:50:19 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E113BFA@dlee03.ent.ti.com>
+Subject: [RFC] [PATCH v2 3/4] OMAP4: Keyboard board support
+Date: Thu, 13 May 2010 15:50:46 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E113BFB@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44724 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759465Ab0EMUuV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 16:50:21 -0400
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-input-owner@vger.kernel.org
 To: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-OMAP4 keyboard controller includes:
-  - built-in scanning algorithm
-  - debouncing feature
+Keyboard support for SDP OMAP4430
 
-Driver implementation is based on matrix_keypac.c
-
-Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
 Signed-off-by: Abraham Arce <x0066660@ti.com>
 ---
- drivers/input/keyboard/Kconfig        |   10 +
- drivers/input/keyboard/Makefile       |    1 +
- drivers/input/keyboard/omap4-keypad.c |  304 +++++++++++++++++++++++++++++++++
- 3 files changed, 315 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/keyboard/omap4-keypad.c
+ arch/arm/mach-omap2/board-4430sdp.c |  157 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 157 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index 64c1023..9e1c5d5 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -403,6 +403,16 @@ config KEYBOARD_OMAP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called omap-keypad.
- 
-+config KEYBOARD_OMAP4
-+        tristate "TI OMAP4 keypad support"
-+        depends on ARCH_OMAP4
-+	default n
-+        help
-+          Say Y here if you want to use the OMAP4 keypad.
-+
-+          To compile this driver as a module, choose M here: the
-+          module will be called omap-keypad.
-+
- config KEYBOARD_TWL4030
- 	tristate "TI TWL4030/TWL5030/TPS659x0 keypad support"
- 	depends on TWL4030_CORE
-diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
-index 706c6b5..7e2987e 100644
---- a/drivers/input/keyboard/Makefile
-+++ b/drivers/input/keyboard/Makefile
-@@ -28,6 +28,7 @@ obj-$(CONFIG_KEYBOARD_MATRIX)		+= matrix_keypad.o
- obj-$(CONFIG_KEYBOARD_MAX7359)		+= max7359_keypad.o
- obj-$(CONFIG_KEYBOARD_NEWTON)		+= newtonkbd.o
- obj-$(CONFIG_KEYBOARD_OMAP)		+= omap-keypad.o
-+obj-$(CONFIG_KEYBOARD_OMAP4)		+= omap4-keypad.o
- obj-$(CONFIG_KEYBOARD_OPENCORES)	+= opencores-kbd.o
- obj-$(CONFIG_KEYBOARD_PXA27x)		+= pxa27x_keypad.o
- obj-$(CONFIG_KEYBOARD_PXA930_ROTARY)	+= pxa930_rotary.o
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-new file mode 100644
-index 0000000..e8bac82
---- /dev/null
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -0,0 +1,304 @@
-+/*
-+ * omap4-keypad.c
-+ *
-+ * OMAP4 Keypad Driver
-+ *
-+ * Copyright (C) 2010 Texas Instruments
-+ *
-+ * Author: Abraham Arce <x0066660@ti.com>
-+ * Initial Code: Syed Rafiuddin <rafiuddin.syed@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+#include <linux/errno.h>
-+#include <linux/io.h>
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 6cce6f2..19742c5 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -19,6 +19,8 @@
+ #include <linux/gpio.h>
+ #include <linux/usb/otg.h>
+ #include <linux/spi/spi.h>
 +#include <linux/input.h>
 +#include <linux/input/matrix_keypad.h>
-+#include <linux/slab.h>
+ 
+ #include <mach/hardware.h>
+ #include <mach/omap4-common.h>
+@@ -31,11 +33,161 @@
+ #include <plat/control.h>
+ #include <plat/timer-gp.h>
+ #include <plat/usb.h>
++#include <plat/omap_device.h>
++#include <plat/omap_hwmod.h>
+ 
+ #define ETH_KS8851_IRQ			34
+ #define ETH_KS8851_POWER_ON		48
+ #define ETH_KS8851_QUART		138
+ 
++static int sdp4430_keymap[] = {
++	KEY(0, 0, KEY_E),
++	KEY(0, 1, KEY_R),
++	KEY(0, 2, KEY_T),
++	KEY(0, 3, KEY_HOME),
++	KEY(0, 4, KEY_F5),
++	KEY(0, 5, KEY_UNKNOWN),
++	KEY(0, 6, KEY_I),
++	KEY(0, 7, KEY_LEFTSHIFT),
 +
-+/* OMAP4 registers */
-+#define OMAP4_KBD_REVISION		0x00
-+#define OMAP4_KBD_SYSCONFIG		0x10
-+#define OMAP4_KBD_SYSSTATUS		0x14
-+#define OMAP4_KBD_IRQSTATUS		0x18
-+#define OMAP4_KBD_IRQENABLE		0x1C
-+#define OMAP4_KBD_WAKEUPENABLE		0x20
-+#define OMAP4_KBD_PENDING		0x24
-+#define OMAP4_KBD_CTRL			0x28
-+#define OMAP4_KBD_DEBOUNCINGTIME	0x2C
-+#define OMAP4_KBD_LONGKEYTIME		0x30
-+#define OMAP4_KBD_TIMEOUT		0x34
-+#define OMAP4_KBD_STATEMACHINE		0x38
-+#define OMAP4_KBD_ROWINPUTS		0x3C
-+#define OMAP4_KBD_COLUMNOUTPUTS		0x40
-+#define OMAP4_KBD_FULLCODE31_0		0x44
-+#define OMAP4_KBD_FULLCODE63_32		0x48
++	KEY(1, 0, KEY_D),
++	KEY(1, 1, KEY_F),
++	KEY(1, 2, KEY_G),
++	KEY(1, 3, KEY_SEND),
++	KEY(1, 4, KEY_F6),
++	KEY(1, 5, KEY_UNKNOWN),
++	KEY(1, 6, KEY_K),
++	KEY(1, 7, KEY_ENTER),
 +
-+/* OMAP4 bit definitions */
-+#define OMAP4_DEF_SYSCONFIG_SOFTRST	(1 << 1)
-+#define OMAP4_DEF_SYSCONFIG_ENAWKUP	(1 << 2)
-+#define OMAP4_DEF_IRQENABLE_EVENTEN	(1 << 0)
-+#define OMAP4_DEF_IRQENABLE_LONGKEY	(1 << 1)
-+#define OMAP4_DEF_IRQENABLE_TIMEOUTEN	(1 << 2)
-+#define OMAP4_DEF_CTRL_NOSOFTMODE	(1 << 1)
-+#define OMAP4_DEF_CTRLPTVVALUE		(1 << 2)
-+#define OMAP4_DEF_CTRLPTV		(1 << 1)
-+#define OMAP4_DEF_IRQDISABLE		0x00
++	KEY(2, 0, KEY_X),
++	KEY(2, 1, KEY_C),
++	KEY(2, 2, KEY_V),
++	KEY(2, 3, KEY_END),
++	KEY(2, 4, KEY_F7),
++	KEY(2, 5, KEY_UNKNOWN),
++	KEY(2, 6, KEY_DOT),
++	KEY(2, 7, KEY_CAPSLOCK),
 +
-+/* OMAP4 values */
-+#define OMAP4_VAL_DEBOUNCINGTIME	0x07
-+#define OMAP4_VAL_FUNCTIONALCFG		0x1E
++	KEY(3, 0, KEY_Z),
++	KEY(3, 1, KEY_KPPLUS),
++	KEY(3, 2, KEY_B),
++	KEY(3, 3, KEY_F1),
++	KEY(3, 4, KEY_F8),
++	KEY(3, 5, KEY_UNKNOWN),
++	KEY(3, 6, KEY_O),
++	KEY(3, 7, KEY_SPACE),
 +
-+#define OMAP4_MASK_IRQSTATUSDISABLE	0xFFFF
++	KEY(4, 0, KEY_W),
++	KEY(4, 1, KEY_Y),
++	KEY(4, 2, KEY_U),
++	KEY(4, 3, KEY_F2),
++	KEY(4, 4, KEY_VOLUMEUP),
++	KEY(4, 5, KEY_UNKNOWN),
++	KEY(4, 6, KEY_L),
++	KEY(4, 7, KEY_LEFT),
 +
-+struct omap_keypad {
-+	struct input_dev *input;
-+	struct platform_device *pdev;
++	KEY(5, 0, KEY_S),
++	KEY(5, 1, KEY_H),
++	KEY(5, 2, KEY_J),
++	KEY(5, 3, KEY_F3),
++	KEY(5, 4, KEY_F9),
++	KEY(5, 5, KEY_VOLUMEDOWN),
++	KEY(5, 6, KEY_M),
++	KEY(5, 7, KEY_RIGHT),
 +
-+	void __iomem    *base;
-+	int irq;
++	KEY(6, 0, KEY_Q),
++	KEY(6, 1, KEY_A),
++	KEY(6, 2, KEY_N),
++	KEY(6, 3, KEY_BACK),
++	KEY(6, 4, KEY_BACKSPACE),
++	KEY(6, 5, KEY_UNKNOWN),
++	KEY(6, 6, KEY_P),
++	KEY(6, 7, KEY_UP),
 +
-+	unsigned short *keycodes;
-+	unsigned int rows;
-+	unsigned int cols;
-+	unsigned int row_shift;
-+	unsigned char key_state[8];
-+	unsigned short keymap[];
++	KEY(7, 0, KEY_PROG1),
++	KEY(7, 1, KEY_PROG2),
++	KEY(7, 2, KEY_PROG3),
++	KEY(7, 3, KEY_PROG4),
++	KEY(7, 4, KEY_F4),
++	KEY(7, 5, KEY_UNKNOWN),
++	KEY(7, 6, KEY_OK),
++	KEY(7, 7, KEY_DOWN),
 +};
 +
-+static void __init omap_keypad_config(struct omap_keypad *keypad_data)
-+{
-+	__raw_writel(OMAP4_DEF_SYSCONFIG_SOFTRST | OMAP4_DEF_SYSCONFIG_ENAWKUP,
-+			keypad_data->base + OMAP4_KBD_SYSCONFIG);
-+	__raw_writel(OMAP4_VAL_FUNCTIONALCFG,
-+			keypad_data->base + OMAP4_KBD_CTRL);
-+	__raw_writel(OMAP4_VAL_DEBOUNCINGTIME,
-+			keypad_data->base + OMAP4_KBD_DEBOUNCINGTIME);
-+	__raw_writel(OMAP4_DEF_IRQDISABLE,
-+			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-+	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
-+			keypad_data->base + OMAP4_KBD_IRQENABLE);
-+}
++static struct matrix_keymap_data sdp4430_keymap_data = {
++	.keymap			= sdp4430_keymap,
++	.keymap_size		= ARRAY_SIZE(sdp4430_keymap),
++};
 +
-+/* Interrupt handler */
-+static irqreturn_t omap_keypad_interrupt(int irq, void *dev_id)
-+{
-+	struct omap_keypad *keypad_data = dev_id;
-+	struct input_dev *input_dev = keypad_data->input;
-+	unsigned char key_state[8];
-+	int col, row, code;
-+	u32 *new_state = (u32 *) key_state;
++static struct matrix_keypad_platform_data sdp4430_keypad_data = {
++	.keymap_data		= &sdp4430_keymap_data,
++	.num_row_gpios		= 8,
++	.num_col_gpios		= 8,
++	.device_enable		= omap_device_enable,
++	.device_shutdown	= omap_device_shutdown,
++	.device_idle		= omap_device_idle,
++};
 +
-+	/* Disable interrupts */
-+	__raw_writel(OMAP4_DEF_IRQDISABLE, keypad_data->base +
-+			OMAP4_KBD_IRQENABLE);
-+
-+	*new_state = __raw_readl(keypad_data->base +
-+			OMAP4_KBD_FULLCODE31_0);
-+	*(new_state + 1) = __raw_readl(keypad_data->base +
-+			OMAP4_KBD_FULLCODE63_32);
-+
-+	for (col = 0; col < keypad_data->cols; col++) {
-+		for (row = 0; row < keypad_data->rows; row++) {
-+			code = MATRIX_SCAN_CODE(row, col,
-+					keypad_data->row_shift);
-+			input_event(input_dev, EV_MSC, MSC_SCAN, code);
-+			input_report_key(input_dev, keypad_data->keymap[code],
-+					key_state[row] & (1 << col));
-+			input_sync(input_dev);
-+		}
-+	}
-+
-+	memcpy(keypad_data->key_state, &key_state,
-+			sizeof(keypad_data->key_state));
-+
-+	/* clear pending interrupts */
-+	__raw_writel(__raw_readl(keypad_data->base + OMAP4_KBD_IRQSTATUS),
-+			keypad_data->base + OMAP4_KBD_IRQSTATUS);
-+
-+	/* enable interrupts */
-+	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
-+			keypad_data->base + OMAP4_KBD_IRQENABLE);
-+
-+	return IRQ_HANDLED;
-+
-+}
-+
-+
-+static int __devinit omap_keypad_probe(struct platform_device *pdev)
-+{
-+	struct matrix_keypad_platform_data *pdata;
-+	struct input_dev *input_dev;
-+	const struct matrix_keymap_data *keymap_data;
-+	struct omap_keypad *keypad_data;
-+
-+	unsigned int status = 0, row_shift = 0, error = 0;
-+
-+	/* platform data */
-+	pdata = pdev->dev.platform_data;
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "no platform data defined\n");
-+		return -EINVAL;
-+	}
-+
-+	/* keymap data */
-+	keymap_data = pdata->keymap_data;
-+	if (!keymap_data) {
-+		dev_err(&pdev->dev, "no keymap data defined\n");
-+		error = -EINVAL;
-+		goto failed_free_pdata;
-+	}
-+
-+	/* omap keypad data and keycodes */
-+	row_shift = get_count_order(pdata->num_col_gpios);
-+	keypad_data = kzalloc(sizeof(struct omap_keypad) +
-+			(pdata->num_row_gpios << row_shift) *
-+			sizeof(unsigned short), GFP_KERNEL);
-+	if (!keypad_data) {
-+		dev_err(&pdev->dev, "keypad_data memory allocation failed\n");
-+		error = -ENOMEM;
-+		goto failed_free_keymap;
-+	}
-+
-+	memcpy(keypad_data->keymap, pdata->keymap_data->keymap,
-+			sizeof(pdata->keymap_data->keymap_size));
-+
-+	/* omap keyboard base resource */
-+	keypad_data->base = pdata->base;
-+	if (!keypad_data->base) {
-+		error = -ENOMEM;
-+		goto failed_free_keypad;
-+	}
-+
-+	/* omap keyboard irq */
-+	keypad_data->irq = pdata->irq;
-+	if (keypad_data->irq < 0) {
-+		dev_err(&pdev->dev, "no keyboard irq assigned\n");
-+		error = keypad_data->irq;
-+		goto failed_free_base;
-+	}
-+
-+	/* input device allocation */
-+	input_dev = input_allocate_device();
-+	if (!input_dev) {
-+		error = -ENOMEM;
-+		goto failed_free_base;
-+	}
-+
-+	keypad_data->input = input_dev;
-+	keypad_data->row_shift = row_shift;
-+	keypad_data->rows = pdata->num_row_gpios;
-+	keypad_data->cols = pdata->num_col_gpios;
-+
-+	input_dev->name = pdev->name;
-+	input_dev->dev.parent = &pdev->dev;
-+	input_dev->id.bustype = BUS_HOST;
-+	input_dev->id.vendor = 0x0001;
-+	input_dev->id.product = 0x0001;
-+	input_dev->id.version = 0x0001;
-+	input_dev->keycode	= keypad_data->keymap;
-+	input_dev->keycodesize	= sizeof(keypad_data->keymap[0]);
-+	input_dev->keycodemax	= pdata->num_row_gpios << row_shift;
-+
-+	__set_bit(EV_KEY, input_dev->evbit);
-+	__set_bit(EV_REP, input_dev->evbit);
-+
-+	input_set_capability(input_dev, EV_MSC, MSC_SCAN);
-+	input_set_drvdata(input_dev, keypad_data);
-+
-+	matrix_keypad_build_keymap(keymap_data, row_shift,
-+			input_dev->keycode, input_dev->keybit);
-+
-+	status = input_register_device(keypad_data->input);
-+	if (status < 0) {
-+		dev_err(&pdev->dev, "failed to register input device\n");
-+		goto failed_free_input;
-+	}
-+
-+	omap_keypad_config(keypad_data);
-+
-+	status = request_irq(keypad_data->irq, omap_keypad_interrupt,
-+			IRQF_TRIGGER_FALLING,
-+			"omap4-keypad", keypad_data);
-+	if (status) {
-+		dev_err(&pdev->dev, "failed to register interrupt\n");
-+		error = -ENOMEM;
-+		goto failed_unregister_device;
-+	}
-+
-+	platform_set_drvdata(pdev, keypad_data);
-+
-+	return 0;
-+
-+failed_unregister_device:
-+	input_unregister_device(keypad_data->input);
-+	input_dev = NULL;
-+failed_free_input:
-+	input_free_device(input_dev);
-+failed_free_base:
-+	keypad_data->base = NULL;
-+failed_free_keypad:
-+	kfree(keypad_data);
-+failed_free_keymap:
-+	kfree(keymap_data);
-+failed_free_pdata:
-+	kfree(pdata);
-+	return error;
-+}
-+
-+static int __devexit omap_keypad_remove(struct platform_device *pdev)
-+{
-+	struct omap_keypad *keypad_data = platform_get_drvdata(pdev);
-+
-+	free_irq(keypad_data->irq, keypad_data);
-+	input_unregister_device(keypad_data->input);
-+	keypad_data->input = NULL;
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(keypad_data);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver omap_keypad_driver = {
-+	.probe		= omap_keypad_probe,
-+	.remove		= __devexit_p(omap_keypad_remove),
-+	.driver		= {
-+		.name	= "omap4-keypad",
-+		.owner	= THIS_MODULE,
++static struct platform_device sdp4430_keypad_device = {
++	.name		= "omap4-keypad",
++	.id		= -1,
++	.dev		= {
++		.platform_data = &sdp4430_keypad_data,
 +	},
 +};
 +
-+static int __init omap_keypad_init(void)
++struct omap_device_pm_latency omap_keyboard_latency[] = {
++	{
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func   = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	},
++};
++
++struct omap_device *od;
++
++static int __init sdp4430_keypad_init(void)
 +{
-+	return platform_driver_register(&omap_keypad_driver);
++	struct omap_hwmod *oh;
++	struct matrix_keypad_platform_data *pdata;
++
++	unsigned int length = 0, id = 0;
++	int hw_mod_name_len = 16;
++	char oh_name[hw_mod_name_len];
++	char *name = "omap4-keypad";
++
++	length = snprintf(oh_name, hw_mod_name_len, "keyboard");
++
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh) {
++		pr_err("Could not look up %s\n", oh_name);
++		return -EIO;
++	}
++
++	pdata = kzalloc(sizeof(struct matrix_keypad_platform_data), GFP_KERNEL);
++	if (!pdata) {
++		WARN(1, "Keyboard pdata memory allocation failed\n");
++		return -ENOMEM;
++	}
++
++	pdata = &sdp4430_keypad_data;
++
++	pdata->base = oh->_rt_va;
++	pdata->irq = oh->mpu_irqs[0].irq;
++	pdata->device_enable = omap_device_enable;
++	pdata->device_idle = omap_device_idle;
++	pdata->device_shutdown = omap_device_shutdown;
++
++	od = omap_device_build(name, id, oh, pdata,
++			sizeof(struct matrix_keypad_platform_data),
++			omap_keyboard_latency,
++			ARRAY_SIZE(omap_keyboard_latency), 1);
++	WARN(IS_ERR(od), "Could not build omap_device for %s %s\n",
++		name, oh_name);
++
++	return 0;
 +}
 +
-+static void __exit omap_keypad_exit(void)
-+{
-+	platform_driver_unregister(&omap_keypad_driver);
-+}
+ static struct spi_board_info sdp4430_spi_board_info[] __initdata = {
+ 	{
+ 		.modalias               = "ks8851",
+@@ -108,6 +260,7 @@ static struct platform_device sdp4430_lcd_device = {
+ 
+ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_lcd_device,
++	&sdp4430_keypad_device,
+ };
+ 
+ static struct omap_lcd_config sdp4430_lcd_config __initdata = {
+@@ -140,6 +293,10 @@ static void __init omap_4430sdp_init(void)
+ {
+ 	int status;
+ 
++	status = sdp4430_keypad_init();
++	if (status)
++		pr_err("Keypad initialization failed: %d\n", status);
 +
-+module_init(omap_keypad_init);
-+module_exit(omap_keypad_exit);
-+
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("OMAP4 Keypad Driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:omap4-keypad");
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+ 	omap_serial_init();
+ 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
 -- 
 1.5.4.3
 
