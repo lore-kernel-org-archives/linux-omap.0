@@ -1,51 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mmc-omap: Add support for 16-bit and 32-bit registers
-Date: Thu, 13 May 2010 12:49:22 -0700
-Message-ID: <20100513194922.GD3428@atomide.com>
-References: <1267984078-6036-1-git-send-email-darkstar6262@gmail.com>
- <20100513192934.GB3428@atomide.com>
- <20100513124121.753689ce.akpm@linux-foundation.org>
+From: info <infweb729@singnet.com.sg>
+Subject: Congratulation ***Your E-mail ID Have Won***
+Date: Fri, 14 May 2010 03:43:05 +0800 (SGT)
+Message-ID: <1273779785.4bec5649596ff__48437.1871258647$1273780241$gmane$org@discus.singnet.com.sg>
+Reply-To: bnlclaimsdept@live.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100513124121.753689ce.akpm@linux-foundation.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mmc@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>, Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org, Marek Belisko <marek.belisko@open-nandra.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comsmtp1.singnet.com.sg ([165.21.101.74]:52558 "EHLO
+	comsmtp1.singnet.com.sg" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758514Ab0EMTuX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 15:50:23 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: iri@uk.cc
 
-* Andrew Morton <akpm@linux-foundation.org> [100513 12:36]:
-> On Thu, 13 May 2010 12:29:35 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > * Cory Maccarrone <darkstar6262@gmail.com> [100307 09:44]:
-> > > From: Marek Belisko <marek.belisko@open-nandra.com>
-> > > 
-> > > The omap850 and omap730 use 16-bit registers instead of 32-bit, requiring
-> > > a modification of the register addresses in the mmc-omap driver.  To resolve
-> > > this, a bit shift is performed on base register addresses, either by 1 or 2
-> > > bits depending on the CPU in use.  This yields the correct registers for
-> > > each CPU.
-> > > 
-> > > Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
-> > > Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > Can you please queue this patch too? Ben's comments in this thread
-> > were for the i2c-omap, not for this MMC patch. We've had this patch
-> > in the omap tree for testing for quite a while now.
-> > 
-> > The patch is also available in at:
-> > 
-> > https://patchwork.kernel.org/patch/83971/
-> > 
-> > with the direct link to the mbox being:
-> > 
-> > https://patchwork.kernel.org/patch/83971/mbox/
-> 
-> I already have that, as mmc-omap-add-support-for-16-bit-and-32-bit-registers.patch
+Your email address has won,=A31,000,000.00 Pounds,in the on going UK pr=
+omo.send your details:
+Names.......
+Tele.......
+Age.......
+Address.......
+occupation.......
+country.......
 
-OK, thanks. I should have checked your queue first.
-
-Tony
+Mr. Roy Phil
+Tel:+44 704-571-0545
+email:bnlclaimsdept@live.co.uk
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
