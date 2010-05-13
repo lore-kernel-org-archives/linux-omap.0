@@ -1,157 +1,84 @@
-From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
-Subject: [PATCHv2] DSPBRIDGE: Include missing info in MMU Fault debugging
- trace
-Date: Thu, 13 May 2010 10:40:40 -0500
-Message-ID: <B852767254C5C94EBB1040EE0EFA06009359281E@dlee01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3] omap3 nand: cleanup for not to use GPMC virtual
+ address
+Date: Thu, 13 May 2010 08:41:03 -0700
+Message-ID: <20100513154103.GI29368@atomide.com>
+References: <s-ghorai@ti.com>
+ <1273657718-12517-1-git-send-email-s-ghorai@ti.com>
+ <1273657718-12517-2-git-send-email-s-ghorai@ti.com>
+ <1273657718-12517-3-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45522 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750731Ab0EMPkm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 11:40:42 -0400
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52084 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750731Ab0EMPlI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 11:41:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1273657718-12517-3-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, sakoman@gmail.com, mike@compulab.co.il, Artem.Bityutskiy@nokia.com
 
-Resending this patch rebased to the last changes included in dspbridge.
----
+* Sukumar Ghorai <s-ghorai@ti.com> [100512 02:43]:
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -64,16 +64,32 @@ static void __iomem *gpmc_base;
+>  
+>  static struct clk *gpmc_l3_clk;
+>  
+> -static void gpmc_write_reg(int idx, u32 val)
+> +void gpmc_write_reg(int idx, u32 val)
+>  {
+>  	__raw_writel(val, gpmc_base + idx);
+>  }
+>  
+> -static u32 gpmc_read_reg(int idx)
+> +u32 gpmc_read_reg(int idx)
+>  {
+>  	return __raw_readl(gpmc_base + idx);
+>  }
+>  
+> +void gpmc_cs_write_byte(int cs, int idx, u32 val)
+> +{
+> +	void __iomem *reg_addr;
+> +
+> +	reg_addr = gpmc_base + GPMC_CS0_BASE + (cs * GPMC_CS_SIZE) + idx;
+> +	__raw_writeb(val, reg_addr);
+> +}
+> +
+> +u8 gpmc_cs_read_byte(int cs, int idx)
+> +{
+> +	void __iomem *reg_addr;
+> +
+> +	reg_addr = gpmc_base + GPMC_CS0_BASE + (cs * GPMC_CS_SIZE) + idx;
+> +	return __raw_readb(reg_addr);
+> +}
+> +
 
-Some execution info is missing at the beginning of the
-trace buffer printout. This fix is to include this information
-according to the buffer contents description and
-also couple of cosmetic changes to make the traces more
-readable.
+This will not improve the situation unfortunately.
+We for sure don't want to export functions to mess
+with the GPMC registers all over the place.
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
----
- drivers/dsp/bridge/core/io_sm.c |   44 +++++++++++++++++++++++++++++++-------
- 1 files changed, 36 insertions(+), 8 deletions(-)
+> @@ -432,15 +448,6 @@ void gpmc_prefetch_reset(void)
+>  }
+>  EXPORT_SYMBOL(gpmc_prefetch_reset);
+>  
+> -/**
+> - * gpmc_prefetch_status - reads prefetch status of engine
+> - */
+> -int  gpmc_prefetch_status(void)
+> -{
+> -	return gpmc_read_reg(GPMC_PREFETCH_STATUS);
+> -}
+> -EXPORT_SYMBOL(gpmc_prefetch_status);
+> -
 
-diff --git a/drivers/dsp/bridge/core/io_sm.c b/drivers/dsp/bridge/core/io_sm.c
-index d6c1a98..d11bd9f 100644
---- a/drivers/dsp/bridge/core/io_sm.c
-+++ b/drivers/dsp/bridge/core/io_sm.c
-@@ -1949,9 +1949,9 @@ dsp_status print_dsp_trace_buffer(struct bridge_dev_context *hbridge_context)
- 		if (DSP_FAILED(status))
- 			goto func_end;
- 		/* Pack and do newline conversion */
--		pr_info("%s: DSP Trace Buffer Begin:\n"
-+		pr_info("DSP Trace Buffer Begin:\n"
- 			"=======================\n%s\n",
--			__func__, psz_buf);
-+			psz_buf);
- 
- 
- 		/* convert to offset */
-@@ -2058,6 +2058,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
- 		u32 size;
- 	} mmu_fault_dbg_info;
- 	u32 *buffer;
-+	u32 *buffer_beg;
- 	u32 *buffer_end;
- 	u32 exc_type;
- 	u32 i;
-@@ -2067,6 +2068,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
- 	const char *dsp_regs[] = {"EFR", "IERR", "ITSR", "NTSR",
- 				"IRP", "NRP", "AMR", "SSR",
- 				"ILC", "RILC", "IER", "CSR"};
-+	const char *exec_ctxt[] = {"Task", "SWI", "HWI", "Unknown"};
- 	struct bridge_drv_interface *intf_fxns;
- 	struct dev_object *dev_object = bridge_context->hdev_obj;
- 
-@@ -2136,6 +2138,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
- 			total_size = MAX_MMU_DBGBUFF;
- 
- 		buffer = kzalloc(total_size, GFP_ATOMIC);
-+		buffer_beg = buffer;
- 		buffer_end =  buffer + total_size / 4;
- 
- 		if (!buffer) {
-@@ -2155,7 +2158,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
- 			goto func_end;
- 		}
- 
--		pr_err("Aproximate Crash Position:\n");
-+		pr_err("\nAproximate Crash Position:\n");
- 		pr_err("--------------------------\n");
- 
- 		exc_type = buffer[3];
-@@ -2171,7 +2174,27 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
- 		else
- 			pr_err("0x%-8x [Unable to match to a symbol.]\n", i);
- 
--		pr_err("Execution Info:\n");
-+		buffer += 4;
-+
-+		pr_err("\nExecution Info:\n");
-+		pr_err("---------------\n");
-+
-+		if (*buffer < ARRAY_SIZE(exec_ctxt)) {
-+			pr_err("Execution context \t%s\n",
-+				exec_ctxt[*buffer++]);
-+		} else {
-+			pr_err("Execution context corrupt\n");
-+			kfree(buffer_beg);
-+			return -EFAULT;
-+		}
-+		pr_err("Task Handle\t\t0x%x\n", *buffer++);
-+		pr_err("Stack Pointer\t\t0x%x\n", *buffer++);
-+		pr_err("Stack Top\t\t0x%x\n", *buffer++);
-+		pr_err("Stack Bottom\t\t0x%x\n", *buffer++);
-+		pr_err("Stack Size\t\t0x%x\n", *buffer++);
-+		pr_err("Stack Size In Use\t0x%x\n", *buffer++);
-+
-+		pr_err("\nCPU Registers\n");
- 		pr_err("---------------\n");
- 
- 		for (i = 0; i < 32; i++) {
-@@ -2205,16 +2228,21 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
- 			if (i == 4 || i == 6 || i == 8)
- 				pr_err("B%d 0x%-8x [Function Argument %d]\n",
- 							i, *buffer++, i-2);
--			else if (i == 15)
-+			else if (i == 14)
- 				pr_err("B14 0x%-8x [Data Page Pointer]\n",
- 								*buffer++);
- 			else
- 				pr_err("B%d 0x%x\n", i, *buffer++);
- 		}
- 
-+		pr_err("\n");
-+
- 		for (i = 0; i < ARRAY_SIZE(dsp_regs); i++)
- 			pr_err("%s 0x%x\n", dsp_regs[i], *buffer++);
- 
-+		pr_err("\nStack:\n");
-+		pr_err("------\n");
-+
- 		for (i = 0; buffer < buffer_end; i++, buffer++) {
- 			if ((*buffer > 0x01000000) && (node_find_addr(node_mgr,
- 				*buffer , 0x600, &offset_output, name) ==
-@@ -2225,7 +2253,7 @@ dsp_status dump_dsp_stack(struct bridge_dev_context *bridge_context)
- 			else
- 				pr_err("[%d] 0x%x\n", i, *buffer);
- 		}
--		kfree(buffer - total_size / 4);
-+		kfree(buffer_beg);
- 	}
- func_end:
- 	return status;
-@@ -2290,8 +2318,8 @@ void dump_dl_modules(struct bridge_dev_context *bridge_context)
- 	pr_debug("%s: dll_module_header 0x%x %d\n", __func__, module_dsp_addr,
- 								module_size);
- 
--	pr_err("%s: \nDynamically Loaded Modules:\n"
--		"---------------------------\n", __func__);
-+	pr_err("\nDynamically Loaded Modules:\n"
-+		"---------------------------\n");
- 
- 	/* For each dll_module structure in the list... */
- 	while (module_size) {
--- 
-1.5.4.5
+And we don't want to remove GPMC functions like this,
+instead we need to implement more functions like this
+for the platform init code to use.
 
+Regards,
+
+Tony
