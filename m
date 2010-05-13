@@ -1,262 +1,147 @@
-From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC 2/2] usb: ehci-omap: add suspend/resume support
-Date: Thu, 13 May 2010 20:30:22 +0530
-Message-ID: <1273762822-23073-2-git-send-email-gadiyar@ti.com>
-References: <1273762822-23073-1-git-send-email-gadiyar@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1273762822-23073-1-git-send-email-gadiyar-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: [PATCH] DSPBRIDGE: Include missing info in MMU Fault debugging trace
+Date: Thu, 13 May 2010 10:15:48 -0500
+Message-ID: <B852767254C5C94EBB1040EE0EFA060093592785@dlee01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44088 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758993Ab0EMPPx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 11:15:53 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, "Jansson, Cris" <cjansson@ti.com>
 
-Add support for suspend and resume to the ehci-omap driver.
-Added routines for platform_driver suspend/resume and 
-wrappers around ehci_bus_suspend/resume.
+Some execution info is missing at the beginning of the trace buffer printout. This fix is to include this information according to the buffer contents description and also couple of cosmetic changes to make the traces more readable.
 
-Disable the USB clocks after a bus_suspend and re-enable them
-back before a bus_resume.
-
-This allows the OMAP to enter low power modes when the driver
-is loaded but no device is connected, or when all connected
-devices are suspended and the root-hub autosuspends.
-
-TODO:
-- This patch breaks USB remote-wakeup after the root-hub
-  autosuspends. This needs to be handled by enabling
-  wakeup-detection on the IO pads, and is work-in-progress.
-
-Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ernesto Ramos <ernesto@ti.com>
 ---
-Tested against the linux-omap-pm tree at [1] which allows the chip
-to hit low power modes after all the clocks are disabled.
+ drivers/dsp/bridge/wmd/io_sm.c |   44 ++++++++++++++++++++++++++++++++-------
+ 1 files changed, 36 insertions(+), 8 deletions(-)
 
-Tested on OMAP3 SDPs (which use an NXP ISP1504 PHY). Suspend-resume
-works great with or without any connected devices.
-
-Tested on OMAP3EVM EHCI port which has SMSC3320 PHY. Suspend/resume
-works fine when no devices are connected to EHCI port but if any
-device is connected then it gets detected as full speed device after
-resume and EHCI port becomes unusable. This is likely due to known
-errata i542 on SMSC PHY interoperability with OMAP.
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-
- drivers/usb/host/ehci-omap.c |  134 ++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 115 insertions(+), 19 deletions(-)
-
-Index: linux-2.6/drivers/usb/host/ehci-omap.c
-===================================================================
---- linux-2.6.orig/drivers/usb/host/ehci-omap.c
-+++ linux-2.6/drivers/usb/host/ehci-omap.c
-@@ -49,7 +49,10 @@
- #define	OMAP_USBTLL_REVISION				(0x00)
- #define	OMAP_USBTLL_SYSCONFIG				(0x10)
- #define	OMAP_USBTLL_SYSCONFIG_CACTIVITY			(1 << 8)
--#define	OMAP_USBTLL_SYSCONFIG_SIDLEMODE			(1 << 3)
-+#define	OMAP_USBTLL_SYSCONFIG_SMARTIDLE		(2 << 3)
-+#define	OMAP_USBTLL_SYSCONFIG_NOIDLE			(1 << 3)
-+#define	OMAP_USBTLL_SYSCONFIG_FORCEIDLE		(0 << 3)
-+#define	OMAP_USBTLL_SYSCONFIG_SIDLEMASK			(3 << 3)
- #define	OMAP_USBTLL_SYSCONFIG_ENAWAKEUP			(1 << 2)
- #define	OMAP_USBTLL_SYSCONFIG_SOFTRESET			(1 << 1)
- #define	OMAP_USBTLL_SYSCONFIG_AUTOIDLE			(1 << 0)
-@@ -92,9 +95,15 @@
- /* UHH Register Set */
- #define	OMAP_UHH_REVISION				(0x00)
- #define	OMAP_UHH_SYSCONFIG				(0x10)
--#define	OMAP_UHH_SYSCONFIG_MIDLEMODE			(1 << 12)
-+#define	OMAP_UHH_SYSCONFIG_SMARTSTDBY			(2 << 12)
-+#define	OMAP_UHH_SYSCONFIG_NOSTDBY			(1 << 12)
-+#define	OMAP_UHH_SYSCONFIG_FORCESTDBY			(0 << 12)
-+#define	OMAP_UHH_SYSCONFIG_MIDLEMASK			(3 << 12)
- #define	OMAP_UHH_SYSCONFIG_CACTIVITY			(1 << 8)
--#define	OMAP_UHH_SYSCONFIG_SIDLEMODE			(1 << 3)
-+#define	OMAP_UHH_SYSCONFIG_SMARTIDLE			(2 << 3)
-+#define	OMAP_UHH_SYSCONFIG_NOIDLE			(1 << 3)
-+#define	OMAP_UHH_SYSCONFIG_FORCEIDLE			(0 << 3)
-+#define	OMAP_UHH_SYSCONFIG_SIDLEMASK			(3 << 3)
- #define	OMAP_UHH_SYSCONFIG_ENAWAKEUP			(1 << 2)
- #define	OMAP_UHH_SYSCONFIG_SOFTRESET			(1 << 1)
- #define	OMAP_UHH_SYSCONFIG_AUTOIDLE			(1 << 0)
-@@ -159,6 +168,7 @@ struct ehci_hcd_omap {
- 	struct clk		*usbhost1_48m_fck;
- 	struct clk		*usbtll_fck;
- 	struct clk		*usbtll_ick;
-+	unsigned		suspended:1;
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c index 1a5f794..f52c7b3 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -1960,9 +1960,9 @@ dsp_status print_dsp_trace_buffer(struct wmd_dev_context *hwmd_context)
+ 		if (DSP_FAILED(status))
+ 			goto func_end;
+ 		/* Pack and do newline conversion */
+-		pr_info("%s: DSP Trace Buffer Begin:\n"
++		pr_info("DSP Trace Buffer Begin:\n"
+ 			"=======================\n%s\n",
+-			__func__, psz_buf);
++			psz_buf);
  
- 	/* FIXME the following two workarounds are
- 	 * board specific not silicon-specific so these
-@@ -207,6 +217,35 @@ static void ehci_omap_clock_power(struct
+ 
+ 		/* convert to offset */
+@@ -2069,6 +2069,7 @@ dsp_status dump_dsp_stack(struct wmd_dev_context *wmd_context)
+ 		u32 size;
+ 	} mmu_fault_dbg_info;
+ 	u32 *buffer;
++	u32 *buffer_beg;
+ 	u32 *buffer_end;
+ 	u32 exc_type;
+ 	u32 i;
+@@ -2078,6 +2079,7 @@ dsp_status dump_dsp_stack(struct wmd_dev_context *wmd_context)
+ 	const char *dsp_regs[] = {"EFR", "IERR", "ITSR", "NTSR",
+ 				"IRP", "NRP", "AMR", "SSR",
+ 				"ILC", "RILC", "IER", "CSR"};
++	const char *exec_ctxt[] = {"Task", "SWI", "HWI", "Unknown"};
+ 	struct bridge_drv_interface *intf_fxns;
+ 	struct dev_object *dev_object = wmd_context->hdev_obj;
+ 
+@@ -2147,6 +2149,7 @@ dsp_status dump_dsp_stack(struct wmd_dev_context *wmd_context)
+ 			total_size = MAX_MMU_DBGBUFF;
+ 
+ 		buffer = mem_calloc(total_size, MEM_NONPAGED);
++		buffer_beg = buffer;
+ 		buffer_end =  buffer + total_size / 4;
+ 
+ 		if (!buffer) {
+@@ -2166,7 +2169,7 @@ dsp_status dump_dsp_stack(struct wmd_dev_context *wmd_context)
+ 			goto func_end;
+ 		}
+ 
+-		pr_err("Aproximate Crash Position:\n");
++		pr_err("\nAproximate Crash Position:\n");
+ 		pr_err("--------------------------\n");
+ 
+ 		exc_type = buffer[3];
+@@ -2182,7 +2185,27 @@ dsp_status dump_dsp_stack(struct wmd_dev_context *wmd_context)
+ 		else
+ 			pr_err("0x%-8x [Unable to match to a symbol.]\n", i);
+ 
+-		pr_err("Execution Info:\n");
++		buffer += 4;
++
++		pr_err("\nExecution Info:\n");
++		pr_err("---------------\n");
++
++		if (*buffer < ARRAY_SIZE(exec_ctxt)) {
++			pr_err("Execution context \t%s\n",
++				exec_ctxt[*buffer++]);
++		} else {
++			pr_err("Execution context corrupt\n");
++			kfree(buffer_beg);
++			return -EFAULT;
++		}
++		pr_err("Task Handle\t\t0x%x\n", *buffer++);
++		pr_err("Stack Pointer\t\t0x%x\n", *buffer++);
++		pr_err("Stack Top\t\t0x%x\n", *buffer++);
++		pr_err("Stack Bottom\t\t0x%x\n", *buffer++);
++		pr_err("Stack Size\t\t0x%x\n", *buffer++);
++		pr_err("Stack Size In Use\t0x%x\n", *buffer++);
++
++		pr_err("\nCPU Registers\n");
+ 		pr_err("---------------\n");
+ 
+ 		for (i = 0; i < 32; i++) {
+@@ -2216,16 +2239,21 @@ dsp_status dump_dsp_stack(struct wmd_dev_context *wmd_context)
+ 			if (i == 4 || i == 6 || i == 8)
+ 				pr_err("B%d 0x%-8x [Function Argument %d]\n",
+ 							i, *buffer++, i-2);
+-			else if (i == 15)
++			else if (i == 14)
+ 				pr_err("B14 0x%-8x [Data Page Pointer]\n",
+ 								*buffer++);
+ 			else
+ 				pr_err("B%d 0x%x\n", i, *buffer++);
+ 		}
+ 
++		pr_err("\n");
++
+ 		for (i = 0; i < ARRAY_SIZE(dsp_regs); i++)
+ 			pr_err("%s 0x%x\n", dsp_regs[i], *buffer++);
+ 
++		pr_err("\nStack:\n");
++		pr_err("------\n");
++
+ 		for (i = 0; buffer < buffer_end; i++, buffer++) {
+ 			if ((*buffer > 0x01000000) && (node_find_addr(node_mgr,
+ 				*buffer , 0x600, &offset_output, name) == @@ -2236,7 +2264,7 @@ dsp_status dump_dsp_stack(struct wmd_dev_context *wmd_context)
+ 			else
+ 				pr_err("[%d] 0x%x\n", i, *buffer);
+ 		}
+-		kfree(buffer - total_size / 4);
++		kfree(buffer_beg);
  	}
- }
+ func_end:
+ 	return status;
+@@ -2301,8 +2329,8 @@ void dump_dl_modules(struct wmd_dev_context *wmd_context)
+ 	pr_debug("%s: dll_module_header 0x%x %d\n", __func__, module_dsp_addr,
+ 								module_size);
  
-+static void ehci_omap_enable(struct ehci_hcd_omap *omap, int enable)
-+{
-+	u32 reg;
-+
-+	if (enable) {
-+		ehci_omap_clock_power(omap, 1);
-+
-+		/* Enable NoIdle/NoStandby mode */
-+		reg = ehci_omap_readl(omap->uhh_base, OMAP_UHH_SYSCONFIG);
-+		reg &= ~(OMAP_UHH_SYSCONFIG_SIDLEMASK
-+				| OMAP_UHH_SYSCONFIG_MIDLEMASK);
-+		reg |= OMAP_UHH_SYSCONFIG_NOIDLE
-+				| OMAP_UHH_SYSCONFIG_NOSTDBY;
-+		ehci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
-+		omap->suspended = 0;
-+	} else {
-+		/* Enable ForceIdle/ForceStandby mode */
-+		reg = ehci_omap_readl(omap->uhh_base, OMAP_UHH_SYSCONFIG);
-+		reg &= ~(OMAP_UHH_SYSCONFIG_SIDLEMASK
-+				| OMAP_UHH_SYSCONFIG_MIDLEMASK);
-+		reg |= OMAP_UHH_SYSCONFIG_FORCEIDLE
-+				| OMAP_UHH_SYSCONFIG_FORCESTDBY;
-+		ehci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
-+
-+		ehci_omap_clock_power(omap, 0);
-+		omap->suspended = 1;
-+	}
-+}
-+
- static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
- {
- 	unsigned reg;
-@@ -340,20 +379,21 @@ static int omap_start_ehc(struct ehci_hc
+-	pr_err("%s: \nDynamically Loaded Modules:\n"
+-		"---------------------------\n", __func__);
++	pr_err("\nDynamically Loaded Modules:\n"
++		"---------------------------\n");
  
- 	dev_dbg(omap->dev, "TLL RESET DONE\n");
- 
--	/* (1<<3) = no idle mode only for initial debugging */
--	ehci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
--			OMAP_USBTLL_SYSCONFIG_ENAWAKEUP |
--			OMAP_USBTLL_SYSCONFIG_SIDLEMODE |
--			OMAP_USBTLL_SYSCONFIG_CACTIVITY);
--
-+	/* Enable smart-idle, wakeup */
-+	reg = OMAP_USBTLL_SYSCONFIG_CACTIVITY
-+			| OMAP_USBTLL_SYSCONFIG_AUTOIDLE
-+			| OMAP_USBTLL_SYSCONFIG_ENAWAKEUP
-+			| OMAP_USBTLL_SYSCONFIG_SMARTIDLE;
-+	ehci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG, reg);
- 
- 	/* Put UHH in NoIdle/NoStandby mode */
- 	reg = ehci_omap_readl(omap->uhh_base, OMAP_UHH_SYSCONFIG);
--	reg |= (OMAP_UHH_SYSCONFIG_ENAWAKEUP
--			| OMAP_UHH_SYSCONFIG_SIDLEMODE
--			| OMAP_UHH_SYSCONFIG_CACTIVITY
--			| OMAP_UHH_SYSCONFIG_MIDLEMODE);
--	reg &= ~OMAP_UHH_SYSCONFIG_AUTOIDLE;
-+	reg |= OMAP_UHH_SYSCONFIG_CACTIVITY
-+			| OMAP_UHH_SYSCONFIG_AUTOIDLE
-+			| OMAP_UHH_SYSCONFIG_ENAWAKEUP;
-+	reg &= ~(OMAP_UHH_SYSCONFIG_SIDLEMASK | OMAP_UHH_SYSCONFIG_MIDLEMASK);
-+	reg |= OMAP_UHH_SYSCONFIG_NOIDLE
-+			| OMAP_UHH_SYSCONFIG_NOSTDBY;
- 
- 	ehci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
- 
-@@ -555,7 +595,56 @@ static void omap_stop_ehc(struct ehci_hc
- 	dev_dbg(omap->dev, "Clock to USB host has been disabled\n");
- }
- 
-+#ifdef CONFIG_PM
- /*-------------------------------------------------------------------------*/
-+static int ehci_omap_dev_suspend(struct device *dev)
-+{
-+	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
-+
-+	if (!omap->suspended)
-+		ehci_omap_enable(omap, 0);
-+	return 0;
-+}
-+
-+static int ehci_omap_dev_resume(struct device *dev)
-+{
-+	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
-+
-+	if (omap->suspended)
-+		ehci_omap_enable(omap, 1);
-+	return 0;
-+}
-+
-+static int ehci_omap_bus_suspend(struct usb_hcd *hcd)
-+{
-+	struct usb_bus *bus = hcd_to_bus(hcd);
-+	int ret;
-+
-+	ret = ehci_bus_suspend(hcd);
-+
-+	ehci_omap_dev_suspend(bus->controller);
-+
-+	return ret;
-+}
-+static int ehci_omap_bus_resume(struct usb_hcd *hcd)
-+{
-+	struct usb_bus *bus = hcd_to_bus(hcd);
-+	int ret;
-+
-+	ehci_omap_dev_resume(bus->controller);
-+
-+	ret = ehci_bus_resume(hcd);
-+
-+	return ret;
-+}
-+static const struct dev_pm_ops ehci_omap_dev_pm_ops = {
-+	.suspend	= ehci_omap_dev_suspend,
-+	.resume_noirq	= ehci_omap_dev_resume,
-+};
-+#define EHCI_OMAP_DEV_PM_OPS (&ehci_omap_dev_pm_ops)
-+#else
-+#define EHCI_OMAP_DEV_PM_OPS NULL
-+#endif
- 
- static const struct hc_driver ehci_omap_hc_driver;
- 
-@@ -614,6 +703,7 @@ static int ehci_hcd_omap_probe(struct pl
- 	omap->port_mode[2]		= pdata->port_mode[2];
- 	omap->ehci		= hcd_to_ehci(hcd);
- 	omap->ehci->sbrn	= 0x20;
-+	omap->suspended = 0;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 
-@@ -735,6 +825,9 @@ static int ehci_hcd_omap_remove(struct p
- 	struct usb_hcd *hcd = ehci_to_hcd(omap->ehci);
- 	int i;
- 
-+	if (omap->suspended)
-+		ehci_omap_enable(omap, 1);
-+
- 	usb_remove_hcd(hcd);
- 	omap_stop_ehc(omap, hcd);
- 	iounmap(hcd->regs);
-@@ -757,6 +850,9 @@ static void ehci_hcd_omap_shutdown(struc
- 	struct ehci_hcd_omap *omap = platform_get_drvdata(pdev);
- 	struct usb_hcd *hcd = ehci_to_hcd(omap->ehci);
- 
-+	if (omap->suspended)
-+		ehci_omap_enable(omap, 1);
-+
- 	if (hcd->driver->shutdown)
- 		hcd->driver->shutdown(hcd);
- }
-@@ -765,10 +861,9 @@ static struct platform_driver ehci_hcd_o
- 	.probe			= ehci_hcd_omap_probe,
- 	.remove			= ehci_hcd_omap_remove,
- 	.shutdown		= ehci_hcd_omap_shutdown,
--	/*.suspend		= ehci_hcd_omap_suspend, */
--	/*.resume		= ehci_hcd_omap_resume, */
- 	.driver = {
- 		.name		= "ehci-omap",
-+		.pm		= EHCI_OMAP_DEV_PM_OPS,
- 	}
- };
- 
-@@ -811,9 +906,10 @@ static const struct hc_driver ehci_omap_
- 	 */
- 	.hub_status_data	= ehci_hub_status_data,
- 	.hub_control		= ehci_hub_control,
--	.bus_suspend		= ehci_bus_suspend,
--	.bus_resume		= ehci_bus_resume,
+ 	/* For each dll_module structure in the list... */
+ 	while (module_size) {
+--
+1.5.4.5
+
