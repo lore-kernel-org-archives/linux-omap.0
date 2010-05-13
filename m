@@ -1,72 +1,153 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH RFC 2/2] usb: ehci-omap: add suspend/resume support
-Date: Thu, 13 May 2010 13:09:47 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005131305320.1731-100000@iolanthe.rowland.org>
-References: <1273762822-23073-2-git-send-email-gadiyar@ti.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
+ 	DSP_MMUFAULT
+Date: Thu, 13 May 2010 12:29:54 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CB6CA9FC@dlee06.ent.ti.com>
+References: <1271177720-1299-1-git-send-email-deepak.chitriki@ti.com>
+	 <496565EC904933469F292DDA3F1663E602CB215CB2@dlee06.ent.ti.com>
+	 <AANLkTik46ilQPBGtsgWAMTlWrdWaaYTDC2aCYmf4iUIn@mail.gmail.com>
+	 <496565EC904933469F292DDA3F1663E602CB5B99E5@dlee06.ent.ti.com>
+ <AANLkTikUc623KkBg88CYr9_Pskx_A6sqXikGEdqhhKm8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:34735 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754652Ab0EMRJs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 13:09:48 -0400
-In-Reply-To: <1273762822-23073-2-git-send-email-gadiyar@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53049 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752866Ab0EMRaA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 13:30:00 -0400
+In-Reply-To: <AANLkTikUc623KkBg88CYr9_Pskx_A6sqXikGEdqhhKm8@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
-On Thu, 13 May 2010, Anand Gadiyar wrote:
 
-> Add support for suspend and resume to the ehci-omap driver.
-> Added routines for platform_driver suspend/resume and 
-> wrappers around ehci_bus_suspend/resume.
 
-> +#ifdef CONFIG_PM
->  /*-------------------------------------------------------------------------*/
-> +static int ehci_omap_dev_suspend(struct device *dev)
-> +{
-> +	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
-> +
-> +	if (!omap->suspended)
-> +		ehci_omap_enable(omap, 0);
-> +	return 0;
-> +}
-> +
-> +static int ehci_omap_dev_resume(struct device *dev)
-> +{
-> +	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
-> +
-> +	if (omap->suspended)
-> +		ehci_omap_enable(omap, 1);
-> +	return 0;
-> +}
-> +
-> +static int ehci_omap_bus_suspend(struct usb_hcd *hcd)
-> +{
-> +	struct usb_bus *bus = hcd_to_bus(hcd);
-> +	int ret;
-> +
-> +	ret = ehci_bus_suspend(hcd);
-> +
-> +	ehci_omap_dev_suspend(bus->controller);
-> +
-> +	return ret;
-> +}
-> +static int ehci_omap_bus_resume(struct usb_hcd *hcd)
-> +{
-> +	struct usb_bus *bus = hcd_to_bus(hcd);
-> +	int ret;
-> +
-> +	ehci_omap_dev_resume(bus->controller);
-> +
-> +	ret = ehci_bus_resume(hcd);
-> +
-> +	return ret;
-> +}
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Thursday, May 13, 2010 6:39 AM
+> To: Guzman Lugo, Fernando
+> Cc: Chitriki Rudramuni, Deepak; linux-omap; Ameya Palande; Felipe
+> Contreras; Hiroshi Doyu; Ramirez Luna, Omar; Menon, Nishanth
+> Subject: Re: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
+> DSP_MMUFAULT
+> 
+> On Thu, May 13, 2010 at 12:09 AM, Guzman Lugo, Fernando
+> <fernando.lugo@ti.com> wrote:
+> >> If you are referring to this patch:
+> >> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-
+> >> 2.6.git;a=commit;h=26ad62f03578a12e942d8bb86d0e52ef1afdee22
+> >
+> > Yes, that's the patch. Could you make sure that the GPT8 interrupt is
+> generated before acking MMU fault interrupt?
+> 
+> I'll try tomorrow when I have access to the hw.
+> 
+> >> I tried to backport it to minimize the changes to a reproducible
+> >> test-case. I guess in the l-o branch the commit would be dd1fd0b.
+> >> Unfortunately that didn't fix the corruption. So I don't by that GPT8
+> >> theory.
+> >>
+> >> > - we don't need allocate memory for dummy_va_addr, if some patch
+> should
+> >> be created should be the patch to remove dummy_va_addr allocation and
+> >> deletion.
+> >>
+> >> I tried that, and that actually fixes the corruption for me (passing 0
+> >> to hw_mmu_tlb_add).
+> >
+> > I think first page DSP side memory is never mapped to MPU side, so even
+> if the DSP corrupts that page it does not affect MPU side. However the
+> right solution is the one explained before: avoid DSP continues executing
+> after MMUfault.
+> 
+> First of all, what is the DSP supposed to do with that memory? Do we
+> really need to call hw_mmu_tlb_add at all?
 
-You could use the runtime-PM interface instead of explicitly suspending 
-and resuming the controller.  It is now standard.
+Once DSP MMUfault happens iva mmu module prevents DSP continue executing until mmu module is able get some physical address for the virtual address that the dsp wanted to access. Once mmu fault interrupt is acked the mmu module tries to translate the virtual address again and if it gets the physical address DSP continue executing. So in order to DSP can dumps its stack we need to map some physical address to that virtual address, so that mmu release DSP and it can dumps the stack. Therefore we allocate some dummy buffer of one 4K page and get the physical address of that buffer and use that physical address to fill the tbl on the mmu module using hw_mmu_tlb_add function.
 
-Alan Stern
+However the address returned by kmalloc is not page aling, that's means this mpu virtual address has some offset, for examples in the log that were send the dummy address had an offset of 0x080 and the DSP side virtual memory had an offset of 0x040. base on the offset of the MPU side and as we allocate one page that means we can access from 0x080 - 0xfff of the first page and from 0x000 - 0x080 if the second page, but we always allocate the first page to the DSP side, then DSP access to the address it wanted to access and now there is no mmufault but it is accessing (actually writing because reading not cause corruption) to that page but with a offset of 0x040 causing the corruption.
 
+Using get_user_pages fixes that case because as it returns address page aligned the DSP side can access from 0x000 - 0xfff of that page.
+
+However this is not the right solution because lets suppose if DSP side virtual address offset is 0xfff. So we map a page and DSP can access that page from 0x000 - 0xfff, however is the DSP is able to continue executing it will reach the following page and maybe that page is already mapped but it only can access from an specific offset like for example 0x100, in this ca DSP will still corrupt from 0x000 to 0x0ff of the next page.
+
+Let me recheck the changes I and will let you my findings.
+
+Regards,
+Fernando.
+
+
+> 
+> We really, absolutely want the DSP to don't corrupt memory on ARM
+> side, so if we pass something, it should be full pages.
+> 
+> Sure, it would be nice to wait for the DSP to stop, but if for some
+> reason it doesn't, we need to know that the DSP doesn't have the power
+> to corrupt memory.
+> 
+> Now, I went back to commit 72110f1 and tried the patch you mentioned.
+> There's no GPT8 involved, and I cannot reproduce any corruption on a
+> beagleboard.
+> 
+> --- a/drivers/dsp/bridge/wmd/ue_deh.c
+> +++ b/drivers/dsp/bridge/wmd/ue_deh.c
+> @@ -193,6 +193,7 @@ void bridge_deh_notify(struct deh_mgr *hdeh_mgr,
+> u32 ulEventMask, u32 dwErrInfo)
+>                                         &resources);
+> 
+>         if (MEM_IS_VALID_HANDLE(deh_mgr_obj, SIGNATURE)) {
+> +               void *temp1, *temp2;
+>                 printk(KERN_INFO
+>                        "bridge_deh_notify: ********** DEVICE EXCEPTION "
+>                        "**********\n");
+> @@ -227,8 +228,11 @@ void bridge_deh_notify(struct deh_mgr *hdeh_mgr,
+> u32 ulEventMask, u32 dwErrInfo)
+>                         printk(KERN_INFO
+>                                "bridge_deh_notify: DSP_MMUFAULT, fault "
+>                                "address = 0x%x\n", (unsigned
+> int)fault_addr);
+> -                       dummy_va_addr =
+> -                           (u32) mem_calloc(sizeof(char) * 0x1000,
+> MEM_PAGED);
+> +                       temp1 = kmalloc(0x100000, GFP_ATOMIC);
+> +                       temp2 = kmalloc(0x1000, GFP_ATOMIC);
+> +                       kfree(temp1);
+> +                       kfree(temp2);
+> +                       dummy_va_addr = (u32) kmalloc(0x1000, GFP_ATOMIC);
+>                         mem_physical =
+>                             VIRT_TO_PHYS(PG_ALIGN_LOW
+>                                          ((u32) dummy_va_addr,
+> PG_SIZE4K));
+> 
+> Is there anything special I should do?
+> 
+> Also, wouldn't it be easier to trigger this by doing:
+> 
+>                         printk(KERN_INFO
+>                                "bridge_deh_notify: DSP_MMUFAULT, fault "
+>                                "address = 0x%x\n", (unsigned
+> int)fault_addr);
+> -                       dummy_va_addr =
+> -                           (u32) mem_calloc(sizeof(char) * 0x1000,
+> MEM_PAGED);
+> +                       temp1 = kmalloc(0x100000, GFP_ATOMIC);
+> +                       temp2 = kmalloc(0x1000, GFP_ATOMIC);
+> +                       kfree(temp1);
+>                         mem_physical =
+>                             VIRT_TO_PHYS(PG_ALIGN_LOW
+> -                                        ((u32) dummy_va_addr,
+> PG_SIZE4K));
+> +                                        ((u32) temp2, PG_SIZE4K));
+> +                       kfree(temp2);
+>                         dev_context = (struct wmd_dev_context *)
+>                             deh_mgr_obj->hwmd_context;
+>                         /* Reset the dynamic mmu index to fixed count if
+> it
+> 
+> Cheers.
+> 
+> --
+> Felipe Contreras
