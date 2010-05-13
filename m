@@ -1,153 +1,40 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
- 	DSP_MMUFAULT
-Date: Thu, 13 May 2010 12:29:54 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CB6CA9FC@dlee06.ent.ti.com>
-References: <1271177720-1299-1-git-send-email-deepak.chitriki@ti.com>
-	 <496565EC904933469F292DDA3F1663E602CB215CB2@dlee06.ent.ti.com>
-	 <AANLkTik46ilQPBGtsgWAMTlWrdWaaYTDC2aCYmf4iUIn@mail.gmail.com>
-	 <496565EC904933469F292DDA3F1663E602CB5B99E5@dlee06.ent.ti.com>
- <AANLkTikUc623KkBg88CYr9_Pskx_A6sqXikGEdqhhKm8@mail.gmail.com>
+From: Daniel Walker <dwalker@fifo99.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Thu, 13 May 2010 10:33:10 -0700
+Message-ID: <1273771990.19100.13.camel@c-dwalke-linux.qualcomm.com>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	 <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com>
+	 <20100513121745.GA10749@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53049 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752866Ab0EMRaA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 13:30:00 -0400
-In-Reply-To: <AANLkTikUc623KkBg88CYr9_Pskx_A6sqXikGEdqhhKm8@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100513121745.GA10749@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Linus Walleij <linus.walleij@ericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
+On Thu, 2010-05-13 at 13:17 +0100, Matthew Garrett wrote:
+> On Wed, May 12, 2010 at 09:35:30PM -0600, Paul Walmsley wrote:
+> > 
+> > Figuring out a different way to do this should not limit Android at all, 
+> > since Google can do what other Linux distributions do and continue to 
+> > patch opportunistic suspend/suspend-block calls into their kernels as 
+> > needed to ship devices, while contributing towards a different solution to 
+> > the problem.
+> 
+> I basically agree, except that despite having a year to do so none of us 
+> have come up with a different way that would actually work. Google have 
+> done this work. Who's going to prove that there is actually a different 
+> way to do this?
 
+We all feel the pain of inelegance right? I think it's clear that this
+system will not last (but there's no other immediate option) .. That
+doesn't mean we should reject it, but we need to be clear that this
+system will get replaced. So we should format the patches appropriately.
+To me the userspace aspect is a permanent change .. If we could drop
+that (or put it into debugfs) then it would make this a lot easy to
+accept as a stepping stone.
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
-> Sent: Thursday, May 13, 2010 6:39 AM
-> To: Guzman Lugo, Fernando
-> Cc: Chitriki Rudramuni, Deepak; linux-omap; Ameya Palande; Felipe
-> Contreras; Hiroshi Doyu; Ramirez Luna, Omar; Menon, Nishanth
-> Subject: Re: [PATCH] DSPBRIDGE:Fix Kernel memory poison overwritten after
-> DSP_MMUFAULT
-> 
-> On Thu, May 13, 2010 at 12:09 AM, Guzman Lugo, Fernando
-> <fernando.lugo@ti.com> wrote:
-> >> If you are referring to this patch:
-> >> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-
-> >> 2.6.git;a=commit;h=26ad62f03578a12e942d8bb86d0e52ef1afdee22
-> >
-> > Yes, that's the patch. Could you make sure that the GPT8 interrupt is
-> generated before acking MMU fault interrupt?
-> 
-> I'll try tomorrow when I have access to the hw.
-> 
-> >> I tried to backport it to minimize the changes to a reproducible
-> >> test-case. I guess in the l-o branch the commit would be dd1fd0b.
-> >> Unfortunately that didn't fix the corruption. So I don't by that GPT8
-> >> theory.
-> >>
-> >> > - we don't need allocate memory for dummy_va_addr, if some patch
-> should
-> >> be created should be the patch to remove dummy_va_addr allocation and
-> >> deletion.
-> >>
-> >> I tried that, and that actually fixes the corruption for me (passing 0
-> >> to hw_mmu_tlb_add).
-> >
-> > I think first page DSP side memory is never mapped to MPU side, so even
-> if the DSP corrupts that page it does not affect MPU side. However the
-> right solution is the one explained before: avoid DSP continues executing
-> after MMUfault.
-> 
-> First of all, what is the DSP supposed to do with that memory? Do we
-> really need to call hw_mmu_tlb_add at all?
-
-Once DSP MMUfault happens iva mmu module prevents DSP continue executing until mmu module is able get some physical address for the virtual address that the dsp wanted to access. Once mmu fault interrupt is acked the mmu module tries to translate the virtual address again and if it gets the physical address DSP continue executing. So in order to DSP can dumps its stack we need to map some physical address to that virtual address, so that mmu release DSP and it can dumps the stack. Therefore we allocate some dummy buffer of one 4K page and get the physical address of that buffer and use that physical address to fill the tbl on the mmu module using hw_mmu_tlb_add function.
-
-However the address returned by kmalloc is not page aling, that's means this mpu virtual address has some offset, for examples in the log that were send the dummy address had an offset of 0x080 and the DSP side virtual memory had an offset of 0x040. base on the offset of the MPU side and as we allocate one page that means we can access from 0x080 - 0xfff of the first page and from 0x000 - 0x080 if the second page, but we always allocate the first page to the DSP side, then DSP access to the address it wanted to access and now there is no mmufault but it is accessing (actually writing because reading not cause corruption) to that page but with a offset of 0x040 causing the corruption.
-
-Using get_user_pages fixes that case because as it returns address page aligned the DSP side can access from 0x000 - 0xfff of that page.
-
-However this is not the right solution because lets suppose if DSP side virtual address offset is 0xfff. So we map a page and DSP can access that page from 0x000 - 0xfff, however is the DSP is able to continue executing it will reach the following page and maybe that page is already mapped but it only can access from an specific offset like for example 0x100, in this ca DSP will still corrupt from 0x000 to 0x0ff of the next page.
-
-Let me recheck the changes I and will let you my findings.
-
-Regards,
-Fernando.
-
-
-> 
-> We really, absolutely want the DSP to don't corrupt memory on ARM
-> side, so if we pass something, it should be full pages.
-> 
-> Sure, it would be nice to wait for the DSP to stop, but if for some
-> reason it doesn't, we need to know that the DSP doesn't have the power
-> to corrupt memory.
-> 
-> Now, I went back to commit 72110f1 and tried the patch you mentioned.
-> There's no GPT8 involved, and I cannot reproduce any corruption on a
-> beagleboard.
-> 
-> --- a/drivers/dsp/bridge/wmd/ue_deh.c
-> +++ b/drivers/dsp/bridge/wmd/ue_deh.c
-> @@ -193,6 +193,7 @@ void bridge_deh_notify(struct deh_mgr *hdeh_mgr,
-> u32 ulEventMask, u32 dwErrInfo)
->                                         &resources);
-> 
->         if (MEM_IS_VALID_HANDLE(deh_mgr_obj, SIGNATURE)) {
-> +               void *temp1, *temp2;
->                 printk(KERN_INFO
->                        "bridge_deh_notify: ********** DEVICE EXCEPTION "
->                        "**********\n");
-> @@ -227,8 +228,11 @@ void bridge_deh_notify(struct deh_mgr *hdeh_mgr,
-> u32 ulEventMask, u32 dwErrInfo)
->                         printk(KERN_INFO
->                                "bridge_deh_notify: DSP_MMUFAULT, fault "
->                                "address = 0x%x\n", (unsigned
-> int)fault_addr);
-> -                       dummy_va_addr =
-> -                           (u32) mem_calloc(sizeof(char) * 0x1000,
-> MEM_PAGED);
-> +                       temp1 = kmalloc(0x100000, GFP_ATOMIC);
-> +                       temp2 = kmalloc(0x1000, GFP_ATOMIC);
-> +                       kfree(temp1);
-> +                       kfree(temp2);
-> +                       dummy_va_addr = (u32) kmalloc(0x1000, GFP_ATOMIC);
->                         mem_physical =
->                             VIRT_TO_PHYS(PG_ALIGN_LOW
->                                          ((u32) dummy_va_addr,
-> PG_SIZE4K));
-> 
-> Is there anything special I should do?
-> 
-> Also, wouldn't it be easier to trigger this by doing:
-> 
->                         printk(KERN_INFO
->                                "bridge_deh_notify: DSP_MMUFAULT, fault "
->                                "address = 0x%x\n", (unsigned
-> int)fault_addr);
-> -                       dummy_va_addr =
-> -                           (u32) mem_calloc(sizeof(char) * 0x1000,
-> MEM_PAGED);
-> +                       temp1 = kmalloc(0x100000, GFP_ATOMIC);
-> +                       temp2 = kmalloc(0x1000, GFP_ATOMIC);
-> +                       kfree(temp1);
->                         mem_physical =
->                             VIRT_TO_PHYS(PG_ALIGN_LOW
-> -                                        ((u32) dummy_va_addr,
-> PG_SIZE4K));
-> +                                        ((u32) temp2, PG_SIZE4K));
-> +                       kfree(temp2);
->                         dev_context = (struct wmd_dev_context *)
->                             deh_mgr_obj->hwmd_context;
->                         /* Reset the dynamic mmu index to fixed count if
-> it
-> 
-> Cheers.
-> 
-> --
-> Felipe Contreras
+Daniel
