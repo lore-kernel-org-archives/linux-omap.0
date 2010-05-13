@@ -1,54 +1,34 @@
-From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Subject: Re: [PATCH 4/5] musb: use system DMA for unaligned buffers on RTL
- >= 1.8
-Date: Thu, 13 May 2010 22:43:11 +0300
-Message-ID: <20100513194311.GA19318@gandalf>
-References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-2-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-3-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-4-git-send-email-ajay.gupta@ti.com>
- <4BEAAA8A.1000003@ru.mvista.com>
- <19F8576C6E063C45BE387C64729E7394044E405072@dbde02.ent.ti.com>
- <4BEAC268.1080601@ru.mvista.com>
- <20100512175543.GD3285@gandalf>
- <19F8576C6E063C45BE387C64729E7394044E40516A@dbde02.ent.ti.com>
-Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Thu, 13 May 2010 20:48:20 +0100
+Message-ID: <20100513194820.GA19722@srcf.ucam.org>
+References: <1272667021-21312-1-git-send-email-arve@android.com> <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com> <20100513121745.GA10749@srcf.ucam.org> <1273771990.19100.13.camel@c-dwalke-linux.qualcomm.com> <s2ga55d774e1005131117yd138c59bk54cc109401eb4a8d@mail.gmail.com> <1273775157.19100.20.camel@c-dwalke-linux.qualcomm.com> <20100513183646.GA18155@srcf.ucam.org> <1273777177.19100.24.camel@c-dwalke-linux.qualcomm.com> <20100513191142.GA18886@srcf.ucam.org> <1273779394.19100.47.camel@c-dwalke-linux.qualcomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E40516A-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org" <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1273779394.19100.47.camel@c-dwalke-linux.qualcomm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Walker <dwalker@fifo99.com>
+Cc: Brian Swetland <swetland@google.com>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 13, 2010 at 09:44:11AM +0530, Gupta, Ajay Kumar wrote:
-> Hi,
-> > -----Original Message-----
-> > From: Felipe Balbi [mailto:me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org]
-> > Sent: Wednesday, May 12, 2010 11:26 PM
-> > To: Sergei Shtylyov
-> > Cc: Gupta, Ajay Kumar; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> > omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: Re: [PATCH 4/5] musb: use system DMA for unaligned buffers on RTL
-> > >= 1.8
-> > 
-> > On Wed, May 12, 2010 at 06:59:52PM +0400, Sergei Shtylyov wrote:
-> > >    Better wrap your stuff into #ifdef OMAP, I think...
-> > 
-> > please don't, better to use the bounce buffer... It would work on
-> > blackfin, davinci and omap...
+On Thu, May 13, 2010 at 12:36:34PM -0700, Daniel Walker wrote:
+> On Thu, 2010-05-13 at 20:11 +0100, Matthew Garrett wrote:
+> > See feature-removal-schedule.txt. So far we have no indication that it's 
+> > going to be replaced, because nobody has actually suggested a working 
+> > way to do this better. If we had a concrete implementation proposal for 
+> > that then we'd be in a pretty different position right now.
 > 
-> Just working is not enough. We need to think of performance and cpu
-> loading as well.
+> Ok, feature-removal-schedule.txt applies to everything tho. What your
+> saying is that if this interface only last a short time it might take 6
+> months, if it last for a long time it would take longer. There's no easy
+> way to know that Google is the only user after some amount of time
+> passes.
 
-allocating a bounce buffer doesn't take long and you can still use
-mentor DMA to transfer the data.
+If the interface is there for a long time, it's because we haven't come 
+up with anything better. And if we haven't come up with anything better, 
+the interface deserves to be there.
 
 -- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Matthew Garrett | mjg59@srcf.ucam.org
