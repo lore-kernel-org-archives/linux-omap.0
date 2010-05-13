@@ -1,36 +1,58 @@
-From: Matthew Garrett <mjg@redhat.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 13 May 2010 22:21:08 +0100
-Message-ID: <20100513212108.GA22103@srcf.ucam.org>
-References: <Pine.LNX.4.44L0.1005131002380.1695-100000@iolanthe.rowland.org> <20100513191717.GA3428@atomide.com> <20100513192522.GA19256@srcf.ucam.org> <20100513194205.GC3428@atomide.com> <20100513195349.GB19722@srcf.ucam.org> <20100513200003.GE3428@atomide.com> <20100513200814.GA20254@srcf.ucam.org> <20100513202320.GF3428@atomide.com> <20100513203412.GA21244@srcf.ucam.org> <20100513211006.GG3428@atomide.com>
+Date: Thu, 13 May 2010 23:27:16 +0200
+Message-ID: <201005132327.16163.rjw@sisk.pl>
+References: <1272667021-21312-1-git-send-email-arve@android.com> <201005132311.26293.rjw@sisk.pl> <1273785399.19100.98.camel@c-dwalke-linux.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:37638 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753389Ab0EMVVi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 17:21:38 -0400
-Content-Disposition: inline
-In-Reply-To: <20100513211006.GG3428@atomide.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:54493 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424Ab0EMV0J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 May 2010 17:26:09 -0400
+In-Reply-To: <1273785399.19100.98.camel@c-dwalke-linux.qualcomm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Kevin Hilman <khilman@deeprootsystems.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Daniel Walker <dwalker@fifo99.com>
+Cc: Matthew Garrett <mjg@redhat.com>, Brian Swetland <swetland@google.com>, Paul Walmsley <paul@pwsan.com>, Arve =?utf-8?q?Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, =?utf-8?q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Greg KH <gregkh@suse.de>
 
-On Thu, May 13, 2010 at 02:10:06PM -0700, Tony Lindgren wrote:
-> * Matthew Garrett <mjg@redhat.com> [100513 13:29]:
-> > And if that's the application that's listening to the network socket 
-> > that you want to get a wakeup event from? This problem is hard. I'd love 
-> > there to be an elegant solution based on using the scheduler, but I 
-> > really don't know what it is.
+On Thursday 13 May 2010, Daniel Walker wrote:
+> On Thu, 2010-05-13 at 23:11 +0200, Rafael J. Wysocki wrote:
+> > On Thursday 13 May 2010, Matthew Garrett wrote:
+> > > On Thu, May 13, 2010 at 12:36:34PM -0700, Daniel Walker wrote:
+> > > > On Thu, 2010-05-13 at 20:11 +0100, Matthew Garrett wrote:
+> > > > > See feature-removal-schedule.txt. So far we have no indication that it's 
+> > > > > going to be replaced, because nobody has actually suggested a working 
+> > > > > way to do this better. If we had a concrete implementation proposal for 
+> > > > > that then we'd be in a pretty different position right now.
+> > > > 
+> > > > Ok, feature-removal-schedule.txt applies to everything tho. What your
+> > > > saying is that if this interface only last a short time it might take 6
+> > > > months, if it last for a long time it would take longer. There's no easy
+> > > > way to know that Google is the only user after some amount of time
+> > > > passes.
+> > > 
+> > > If the interface is there for a long time, it's because we haven't come 
+> > > up with anything better. And if we haven't come up with anything better, 
+> > > the interface deserves to be there.
+> > 
+> > Moreover, the interface is already in use out-of-tree and that usage is
+> > actually _growing_, so we have a growing number of out-of-tree drivers that
+> > aren't megrgeable for this very reason.
 > 
-> Your system should wake up to an interrupt in that case. Then you have
-> the trusted apps running that can decide if the untrusted apps should
-> be continued or not.
+> Why can't we merge the drivers? Drivers are just drivers, they don't
+> need this to get merged. (They need it to work with Android)
 
-What race-free mechanism do you use to ensure that? It's very easy to 
-handwave these problems away. It's very difficult to actually write an 
-implementation that works.
+Because someone would have to remove suspend blockers (or rather wakelocks)
+from the drivers, test that they work correctly without suspend blockers and
+submit the modified versions.  Going forward, every party responsible for such
+a driver would have to maintain an out-of-tree version with suspend blockers
+(or wakelocks) anyway, so the incentive to do that is zero.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Practically, as long as the opportunistic suspend is out of tree, there will be
+a _growing_ number of out-of-tree drivers out there, which is not acceptable
+in the long run.
+
+Rafael
