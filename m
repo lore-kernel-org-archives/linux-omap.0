@@ -1,51 +1,72 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 1/2] DSS2: Allow FB_OMAP2 to build without VRFB
-Date: Thu, 13 May 2010 11:15:09 -0500
-Message-ID: <4BEC258D.7030104@ti.com>
-References: <1273764028-25822-1-git-send-email-svadivu@ti.com> <1273764028-25822-2-git-send-email-svadivu@ti.com> <EBB422FB-C763-4EBE-AAD3-02AE86D4FF05@student.utwente.nl>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH RFC 2/2] usb: ehci-omap: add suspend/resume support
+Date: Thu, 13 May 2010 13:09:47 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1005131305320.1731-100000@iolanthe.rowland.org>
+References: <1273762822-23073-2-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48532 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759223Ab0EMQPQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 May 2010 12:15:16 -0400
-In-Reply-To: <EBB422FB-C763-4EBE-AAD3-02AE86D4FF05@student.utwente.nl>
+Received: from iolanthe.rowland.org ([192.131.102.54]:34735 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754652Ab0EMRJs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 13:09:48 -0400
+In-Reply-To: <1273762822-23073-2-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Koen Kooi had written, on 05/13/2010 11:00 AM, the following:
-> Op 13 mei 2010, om 17:20 heeft Senthilvadivu Guruswamy het volgende geschreven:
-> 
->> FB_OMAP2 can work without VRFB, but currently does not build. Fix this.
->>
->> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
->> ---
->> arch/arm/plat-omap/include/plat/vrfb.h |   16 ++++++++++++++++
->> 1 file changed, 16 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/include/plat/vrfb.h b/arch/arm/plat-omap/include/plat/vrfb.h
->> index d8a03ce..3792bde 100644
->> --- a/arch/arm/plat-omap/include/plat/vrfb.h
->> +++ b/arch/arm/plat-omap/include/plat/vrfb.h
->> @@ -35,6 +35,7 @@ struct vrfb {
->> 	bool yuv_mode;
->> };
->>
->> +#ifdef CONFIG_OMAP2_VRFB
-> 
-> That is still a compiletime option, not a runtime check. You need something like if(is_omap3()), not #ifdef 
-> 
-having VRFB or tiler is a SOC feature - ideal detection should be in 
-id.c using the FEATURES framework.
+On Thu, 13 May 2010, Anand Gadiyar wrote:
 
-and the actual rotation handling should be handled with function 
-pointers to use VRFB apis OR use tiler APIs (once it is available) to 
-runtime use the right rotation/other features functions runtime..
+> Add support for suspend and resume to the ehci-omap driver.
+> Added routines for platform_driver suspend/resume and 
+> wrappers around ehci_bus_suspend/resume.
 
--- 
-Regards,
-Nishanth Menon
+> +#ifdef CONFIG_PM
+>  /*-------------------------------------------------------------------------*/
+> +static int ehci_omap_dev_suspend(struct device *dev)
+> +{
+> +	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
+> +
+> +	if (!omap->suspended)
+> +		ehci_omap_enable(omap, 0);
+> +	return 0;
+> +}
+> +
+> +static int ehci_omap_dev_resume(struct device *dev)
+> +{
+> +	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
+> +
+> +	if (omap->suspended)
+> +		ehci_omap_enable(omap, 1);
+> +	return 0;
+> +}
+> +
+> +static int ehci_omap_bus_suspend(struct usb_hcd *hcd)
+> +{
+> +	struct usb_bus *bus = hcd_to_bus(hcd);
+> +	int ret;
+> +
+> +	ret = ehci_bus_suspend(hcd);
+> +
+> +	ehci_omap_dev_suspend(bus->controller);
+> +
+> +	return ret;
+> +}
+> +static int ehci_omap_bus_resume(struct usb_hcd *hcd)
+> +{
+> +	struct usb_bus *bus = hcd_to_bus(hcd);
+> +	int ret;
+> +
+> +	ehci_omap_dev_resume(bus->controller);
+> +
+> +	ret = ehci_bus_resume(hcd);
+> +
+> +	return ret;
+> +}
+
+You could use the runtime-PM interface instead of explicitly suspending 
+and resuming the controller.  It is now standard.
+
+Alan Stern
+
