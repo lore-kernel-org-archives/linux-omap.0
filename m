@@ -1,69 +1,45 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [RFC][PATCHv3 1/2] SFH7741: proximity sensor driver support
-Date: Thu, 13 May 2010 12:16:16 +0530
-Message-ID: <09ea01caf267$fe48d620$LocalHost@wipblrx0099946>
-References: <0680EC522D0CC943BC586913CF3768C003B320A007@dbde02.ent.ti.com> <4BEAF03A.2070308@cam.ac.uk> <20100512182913.GC29366@core.coreip.homeip.net> <1273694895.15717.4.camel@lovely>
+From: ye janboe <janboe.ye@gmail.com>
+Subject: Re: [PATCHv2 1/2] ARM: VFP: Fixed suspend and added context save
+	support
+Date: Thu, 13 May 2010 14:59:44 +0800
+Message-ID: <AANLkTimKKwe-_kjiSlr3fVVy0Bi1krK8rmyT8-0L3B0d@mail.gmail.com>
+References: <1259847353-22725-1-git-send-email-tero.kristo@nokia.com>
+	 <1259847353-22725-2-git-send-email-tero.kristo@nokia.com>
+	 <AANLkTilyji16JTT1Oe8fOT6Oz5tzopQNc-3AIQ3UprCO@mail.gmail.com>
+	 <20100511212719.GC32186@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f204.google.com ([209.85.222.204]:36973 "EHLO
+	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753724Ab0EMG7o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 May 2010 02:59:44 -0400
+Received: by pzk42 with SMTP id 42so536121pzk.4
+        for <linux-omap@vger.kernel.org>; Wed, 12 May 2010 23:59:44 -0700 (PDT)
+In-Reply-To: <20100511212719.GC32186@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <tero.kristo@nokia.com>
 
------ Original Message ----- 
-From: "Christoph Fritz" <chf.fritz@googlemail.com>
-To: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Cc: "Jonathan Cameron" <jic23@cam.ac.uk>; "Datta, Shubhrajyoti" 
-<shubhrajyoti@ti.com>; <linux-input@vger.kernel.org>; 
-<linux-omap@vger.kernel.org>
-Sent: Thursday, May 13, 2010 1:38 AM
-Subject: Re: [RFC][PATCHv3 1/2] SFH7741: proximity sensor driver support
+Thanks for Russell and Tony.
 
+I think this patch is needed when MPU support OFF mode, special on
+omap. Otherwise, VFP state will be lost.
 
-> On Wed, 2010-05-12 at 11:29 -0700, Dmitry Torokhov wrote:
->> On Wed, May 12, 2010 at 07:15:22PM +0100, Jonathan Cameron wrote:
->> > Hi,
->> >
->> > I was wondering if you could provide a bit more detail on what this
->> > driver is actually doing?  My appologies if I have missed a
->> > previous explanation.  If so, please add a Documentation file
->> > to explain what is going on.
->> >
->> > The driver you have here does virtually nothing itself.  It takes
->> > both its source of interrupt and read function from platform
->> > data. Given the value is always 0 or 1, I'm guessing you are
->> > simply reading a gpio pin. That makes this effectively a button
->> > and doesn't require any specific code.  The fact it is a
->> > proximity sensor isn't relevant to anything other than perhaps
->> > the name.
->>
->> Excellent point. Maybe it should simply use gpio_keys driver with
->> SW_FRONT_PROXIMITY code.
->>
+Reviewed-by: Janboe Ye <janboe.ye@gmail.com>
+
+2010/5/12 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> On Tue, May 11, 2010 at 11:15:13AM +0800, ye janboe wrote:
+>> Is this patch ignored by you? I do not see any ack for this patch.
 >
-> I had a look into the datasheet, this SFH 7741 has one Schmitt trigger
-> output: So yes, it's a "key" even without chatter.
+> Patch is fine, shame some of the people on the Cc haven't acked it though.
+> Can we get acks from anyone of those, and then submit it to the patch
+> system?
 >
-Output being configured as GPIO  is specific to OMAP4 board, SFH7741 doesnot 
-really
-mandate this. The idea behind this driver is to provide a generic interface 
-and
-hooks for platform specific configuration.
-
-Will using gpio_keys make this very specific to platform configuration.
-
-Thanks
-Hemanth
-
+>> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>> > Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+>> > Cc: Rajendra Nayak <rnayak@ti.com>
+>> > Cc: Richard Woodruff <r-woodruff2@ti.com>
+>> > Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
