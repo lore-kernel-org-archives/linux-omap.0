@@ -1,129 +1,80 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
-	OMAP data
-Date: Fri, 14 May 2010 11:24:03 +0300
-Message-ID: <20100514082403.GA4329@besouro.research.nokia.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
-	<20100512152424.803ea807.akpm@linux-foundation.org>
-Reply-To: eduardo.valentin@nokia.com
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/4] omap: mailbox: convert rwlocks to spinlock
+Date: Fri, 14 May 2010 11:30:57 +0300 (EEST)
+Message-ID: <20100514.113057.242129373.Hiroshi.DOYU@nokia.com>
+References: <1273483013-5942-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	<x2p94a0d4531005100312ocd30641ds7648e9a497e3dfd9@mail.gmail.com>
+	<20100510.134014.226801230.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20100512152424.803ea807.akpm@linux-foundation.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ext Andrew Morton <akpm@linux-foundation.org>
-Cc: ext Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, ext Tony Lindgren <tony@atomide.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, LKML <linux-kernel@vger.kernel.org>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, Ambresh <a0393775@ti.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Paul Mundt <lethal@linux-sh.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:48786 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756383Ab0ENIbI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 04:31:08 -0400
+In-Reply-To: <20100510.134014.226801230.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: felipe.contreras@gmail.com, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ohad@wizery.com, h-kanigeri2@ti.com
 
-Hello Andrew,
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/4] omap: mailbox: convert rwlocks to spinlock
+Date: Mon, 10 May 2010 13:40:14 +0300 (EEST)
 
-On Thu, May 13, 2010 at 12:24:24AM +0200, Andrew Morton wrote:
-> On Tue, 11 May 2010 17:15:28 +0300
-> Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+> Hi Felipe,
 > 
-> > Here is the version 5 of the change to export OMAP data to userspace
-> > (name, revision, id code, production id and die id).
-> > 
-> > Basically, this version is still attempting to create a new file under /proc.
-> > It is the /proc/socinfo, which should be used to export bits which are SoC specific
-> > (not CPU related, nor machine related).
-> > 
-> > So, differences between previous version are:
-> > - merged patch 02/04 with 03/04 to avoid compilation breakages.
-> > - simplified the seq_file usage by using the single_open and single_release functions
-> > - exported a function to register a seq_operation .show callback
-> > - adapted the changes accordingly
-> > 
-> > As usual, comments are welcome.
+> From: ext Felipe Contreras <felipe.contreras@gmail.com>
+> Subject: Re: [PATCH 1/4] omap: mailbox: convert rwlocks to spinlock
+> Date: Mon, 10 May 2010 12:12:52 +0200
 > 
-> This changelog would be rather more useful if it was to show us some
-> sample output from /proc/socinfo, perhaps accompanied with an
-> explanation for people who aren't familar with this area of the kernel.
-
-Indeed. So, after applying this series, one example of output would be,
-in case of OMAP3:
-
-/ # cat /proc/socinfo
-SoC     : OMAP3430 ES3.1
-IDCODE  : 4b7ae02f
-Pr. ID  : 00000000 00000000 000000cc cafeb7ae
-
-These ids can be used, for instance, to track down silicon specific issues.
-
+>> On Mon, May 10, 2010 at 12:16 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+>>> From: Ohad Ben-Cohen <ohad@wizery.com>
+>>>
+>>> rwlocks are slower and have potential starvation issues
+>>> therefore spinlocks are generally preferred.
+>>>
+>>> see also: http://lwn.net/Articles/364583/
+>>>
+>>> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+>>> Signed-off-by: Kanigeri Hari <h-kanigeri2@ti.com>
+>>> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+>> 
+>> There's no cover letter, so I'll comment here.
+>> 
+>> What about these patches?
+>> http://article.gmane.org/gmane.linux.ports.arm.omap/31208
 > 
-> I'd have thought that sysfs was an appropriate place for this info. 
-> Perhaps under /sys/devices/platform?  Or /sys/devices/system?  Peter's
-> original patch didn't tell us where in the hierarchy the file was
-> placed, nor why it was placed there, not what its contents look like. 
-> But crappy changelogs are the norm :(
+> OK, I'll incorporate them and send patches again.
 
-IIRC, originally, Peter's patch was creating /sys/power/idcode. The content
-was very similar:
+The above has been sent to LAKML by Tony a while ago. I just rebased
+Ohad's ones on the top of Fernando's.
 
+The following changes since commit b57f95a38233a2e73b679bea4a5453a1cc2a1cc9:
 
-Nokia-N900:~# cat /sys/power/idcode 
-IDCODE: 4b7ae02f
-Production ID: 00000000 00000000 000000cc cafeb7ae
-Die ID: 05018019 04033312 00000000 54500024
+  Linux 2.6.34-rc7 (2010-05-09 18:36:28 -0700)
 
+are available in the git repository at:
+  git://gitorious.org/~doyu/lk/mainline.git v2.6.34-rc7.mailbox
 
-> 
-> The objections stated in this email:
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17630.html
-> appear to still apply to this version of the patches?
+Fernando Guzman Lugo (4):
+      Mailbox: free mailbox interrupt before freeing blk queue
+      Mailbox: flush pending deferred works before freeing blk queue
+      Mailbox: Check valid registered callback before calling
+      Mailbox: disable mailbox interrupt when request queue
 
-Yeah, it is not applied on all IDs actually. At some point, the complain has changed.
-More recently, Tony complained about Die ID:
-http://marc.info/?l=linux-omap&m=127230649306842&w=2
+Hiroshi DOYU (1):
+      Mailbox: new mutext lock for h/w mailbox configuration
 
-And that's what is in patch 03/03 of this series. So, there are two things:
-1. A separated config option to have DIE ID code in
-2. User also have to explicitly pass the omap3_die_id kernel parameter.
-Just like the "serialnumber" parameter for x86's.
+Ohad Ben-Cohen (4):
+      omap: mailbox: convert rwlocks to spinlock
+      omap: mailbox cleanup: split MODULE_AUTHOR line
+      omap: mailbox: remove (un)likely macros from cold paths
+      omap: mailbox: convert block api to kfifo
 
-Once the user has a kernel with CONFIG_OMAP3_EXPORT_DIE_ID and boots it with omap3_die_id parameter,
-the first output I posted above would also include die id:
-
-/ # cat /proc/socinfo 
-SoC     : OMAP3430 ES3.1
-IDCODE  : 4b7ae02f
-Pr. ID  : 00000000 00000000 000000cc cafeb7ae
-Die ID	: 05018019 04033312 00000000 54500024
-
-
-> 
-> Kevin didn't explain why he said "Please export these via debugfs". 
-> Tony didn't clearly explain why he said "I don't think we want to
-> export unique chip identifiers by default".
-> 
-> 
-> 
-> So apart from having certain opinions regarding communication skills
-> and wondering why people cc me on stuff without vaguely providing
-> enough info for me to understand what they're thinking, I don't know
-> what to make of it all :(
-
-Yeah, I agree here that there are some piece of info missing here and there.
-Anyways, I believe the main point here is what is the best place to export these bits.
-
-Originally was under sysfs (maybe not the correct place: /sys/power/idcode). Then I suggested
-to move it to /proc/cpuinfo, which has been denied because these bits do not belong to CPU.
-Then, it has been suggested to be under /proc/socinfo, which is the current version.
-Now, I think your suggestion is to move back to sysfs, but under sys/devices/platform or /sys/devices/system, right ?
-
-
-
-Thanks for your comments,
-
---
-Eduardo Valentin
+ arch/arm/mach-omap2/mailbox.c             |    3 +-
+ arch/arm/plat-omap/Kconfig                |    9 ++
+ arch/arm/plat-omap/include/plat/mailbox.h |    4 +-
+ arch/arm/plat-omap/mailbox.c              |  169 ++++++++++++++---------------
+ 4 files changed, 97 insertions(+), 88 deletions(-)
