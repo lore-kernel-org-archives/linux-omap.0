@@ -1,50 +1,66 @@
-From: tytso@mit.edu
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 19:15:10 -0400
-Message-ID: <20100514231510.GG16989@thunk.org>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<87wrvl5479.fsf@deeprootsystems.com>
-	<20100503215028.GB18910@srcf.ucam.org>
-	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
-	<20100514203202.GA12409@srcf.ucam.org>
-	<87aas2azc5.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/2] omap3 nand: cleanup for not to use GPMC virtual
+ address
+Date: Fri, 14 May 2010 16:58:52 -0700
+Message-ID: <20100514235852.GN3428@atomide.com>
+References: <s-ghorai@ti.com>
+ <1273850591-19040-1-git-send-email-s-ghorai@ti.com>
+ <1273850591-19040-2-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62054 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755123Ab0ENX65 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 19:58:57 -0400
 Content-Disposition: inline
-In-Reply-To: <87aas2azc5.fsf@deeprootsystems.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
+In-Reply-To: <1273850591-19040-2-git-send-email-s-ghorai@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, sakoman@gmail.com, mike@compulab.co.il, Artem.Bityutskiy@nokia.com
 
-On Fri, May 14, 2010 at 03:32:58PM -0700, Kevin Hilman wrote:
-> Another likely reason that that there hasn't been an alternate
-> proposal (at least from some of us that are raising concerns) is
-> because we already have a working solution to dynamic, system-wide PM
-> that is 1) already in mainline and 2) shipping on consumer devices
-> with very strict power budgets (as already pointed out in detail by
-> Paul[2].)
+Few more comments below.
 
-The examples cited where the things like the Palm Pre, and the Nokia
-N770/800/810 series.  #1, what works on one embedded
-chipset/architecture might not work on another, and #2, the battery
-lifetime on the N770 and N800 (both of which I have) is **appalling**
-**bad**.
+* Sukumar Ghorai <s-ghorai@ti.com> [100514 08:18]:
+> +
+> +/**
+> + * gmpc_ecc_init - Initialize the HW ECC for NAND flash in GPMC controller
+> + * @cs: Chip select number
+> + * @ecc_size: bytes for which ECC will be generated
+> + */
+> +void gpmc_ecc_init(int cs, int ecc_size)
+> +{
+> +	unsigned int val = 0x0;
+> +
+> +	/* Read from ECC Control Register */
+> +	val = gpmc_read_reg(GPMC_ECC_CONTROL);
+> +
+> +	/* Clear all ECC | Enable Reg1 */
+> +	val = ((0x00000001<<8) | 0x00000001);
+> +	gpmc_write_reg(GPMC_ECC_CONTROL, val);
+> +
+> +	/* Read from ECC Size Config Register */
+> +	val = gpmc_read_reg(GPMC_ECC_SIZE_CONFIG);
+> +	/* ECCSIZE1=512 | Select eccResultsize[0-3] */
+> +	val = ((((ecc_size >> 1) - 1) << 22) | (0x0000000F));
+> +	gpmc_write_reg(GPMC_ECC_SIZE_CONFIG, val);
+> +}
 
-I really don't understand why people are so opposed to merging code
-that works well for a very large set of devices and products.  Just
-because *you* don't need it is not a sufficiently good reason to argue
-for it not be merged.  If you don't want to use it, then don't CONFIG
-it in.
+There should be some locking as only one chipselect can use
+the ECC or prefetch engine at a time. If you have NAND in
+two chipselects, bad things would happen..
 
-						- Ted
+Maybe something like:
+
+int gpmc_ecc_request(int cs);
+void gpmc_ecc_free(int cs);
+int gpmc_prefetch_request(int cs);
+void gpmc_prefetch_free(int cs);
+
+Other than that, looks like a good clean-up so we can easily
+add the platform init code for all the board files.
+
+Regards,
+
+Tony
