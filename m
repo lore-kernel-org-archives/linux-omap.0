@@ -1,61 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] Initial attempt to make ARM use LMB
-Date: Fri, 14 May 2010 08:22:09 -0700
-Message-ID: <20100514152208.GU3428@atomide.com>
-References: <20100325233248.GM24984@n2100.arm.linux.org.uk>
- <20100505150209.GC2606@n2100.arm.linux.org.uk>
- <20100513174023.GB13001@n2100.arm.linux.org.uk>
- <20100513211951.GH3428@atomide.com>
- <20100513215825.GC13001@n2100.arm.linux.org.uk>
- <20100513220139.GO3428@atomide.com>
- <20100513221229.GD13001@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sukumar Ghorai <s-ghorai@ti.com>
+Subject: [PATCH v2 0/2] omap3 nand: cleanup exiting platform related code
+Date: Fri, 14 May 2010 20:53:09 +0530
+Message-ID: <1273850591-19040-1-git-send-email-s-ghorai@ti.com>
+References: <Sukumar Ghorai <s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54258 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140Ab0ENPWW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 11:22:22 -0400
-Content-Disposition: inline
-In-Reply-To: <20100513221229.GD13001@n2100.arm.linux.org.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:57972 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753282Ab0ENPXg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 May 2010 11:23:36 -0400
+In-Reply-To: <Sukumar Ghorai <s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-mtd@lists.infradead.org, tony@atomide.com, sakoman@gmail.com, mike@compulab.co.il, Artem.Bityutskiy@nokia.com, Sukumar Ghorai <s-ghorai@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [100513 15:07]:
-> On Thu, May 13, 2010 at 03:01:39PM -0700, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [100513 14:53]:
-> > > On Thu, May 13, 2010 at 02:19:51PM -0700, Tony Lindgren wrote:
-> > > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [100513 10:35]:
-> > > > > And here's a patch which converts the OMAP FB code to use lmb_reserve
-> > > > > instead of poking about with bootmem stuff.  Untested, so I'd like to
-> > > > > hear back whether it works.
-> > > > 
-> > > > Did a quick test with the following patches picked from your lmb
-> > > > branch on top of omap for-next branch:
-> > > > 
-> > > > ARM: Remove useless linux/bootmem.h includes
-> > > > ARM: Ensure meminfo is sorted prior to sanity_check_meminfo
-> > > > ARM: initial LMB trial
-> > > > ARM: Move platform LMB memory reservations out of generic code
-> > > > 
-> > > > and then this patch.
-> > > > 
-> > > > It does not boot.. It seems to be related to the patch
-> > > > "ARM: initial LMB trial". If I only apply the first two patches
-> > > > above the system boots.
-> > > 
-> > > Hmm, I'm sure it worked for me when I tested it out.  Could you try
-> > > booting with lmb=debug please?
-> > 
-> > No other output with that it seems.
-> 
-> Hang on, you didn't pick up ARM: Move memory mapping into mmu.c ?
+  v2:
+   The following set of patches applies on top of master branch.
+	http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git
+   Patches verified on: omap3430-SDP, omap3630-sdp, zoom3 and beagle board
 
-Hmm, looks like I did not send a reply yesterday.. Here's a
-second attempt.
+   And these are the patches required to address the following input -
+     1. The NAND driver needs to stop tinkering with the GPMC registers
+	The omap General Purpose Memory Controller (GPMC) registers are omap
+        specific, and not driver specific. Tinkering with these registers can
+        cause issues with the other devices on the GPMC.
 
-Yeah, that missing patch was it. Compiles and boots now:
+     2. Passing hardcoded GPMC_CS0_BASE needs to go from the board files
+	Passing hardcoded GPMC virtual addressess is sure way to mess up things.
+        This should all become unnecessary once the NAND drivers stops messing
+        with the GPMC registers directly.
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+  v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28164.html
+
+Sukumar Ghorai (2):
+	omap3 nand: cleanup for not to use GPMC virtual address
+	omap3 nand: fix issue in board file to detect the nand
+
+ arch/arm/mach-omap2/board-cm-t35.c         |   20 +---
+ arch/arm/mach-omap2/board-devkit8000.c     |   25 +---
+ arch/arm/mach-omap2/board-omap3beagle.c    |   24 +---
+ arch/arm/mach-omap2/board-omap3touchbook.c |   25 +---
+ arch/arm/mach-omap2/board-overo.c          |   24 +---
+ arch/arm/mach-omap2/gpmc-nand.c            |   38 ++----
+ arch/arm/mach-omap2/gpmc-onenand.c         |    2 +-
+ arch/arm/mach-omap2/gpmc.c                 |  244 ++++++++++++++++++++++++----
+ arch/arm/plat-omap/include/plat/gpmc.h     |   36 ++++-
+ arch/arm/plat-omap/include/plat/nand.h     |    6 +-
+ drivers/mtd/nand/omap2.c                   |  190 ++++++----------------
+ 11 files changed, 306 insertions(+), 328 deletions(-)
+
+
