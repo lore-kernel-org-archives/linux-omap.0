@@ -1,47 +1,50 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 03/15] omap: mailbox: 2420 should be detected at run-time
-Date: Fri, 14 May 2010 14:17:10 +0400
-Message-ID: <4BED2326.4090302@ru.mvista.com>
-References: <1273772856-10881-1-git-send-email-felipe.contreras@gmail.com> <1273772856-10881-4-git-send-email-felipe.contreras@gmail.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [PATCH v3 0/2] McBSP changes for OMAP4 platform
+Date: Fri, 14 May 2010 11:23:03 +0100
+Message-ID: <1273832583.3069.11.camel@odin>
+References: <1273684720-16619-1-git-send-email-jorge.candelaria@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:48183 "EHLO
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33988 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759075Ab0ENKR6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 06:17:58 -0400
-Received: by wyb32 with SMTP id 32so1568394wyb.19
-        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 03:17:56 -0700 (PDT)
-In-Reply-To: <1273772856-10881-4-git-send-email-felipe.contreras@gmail.com>
+	with ESMTP id S1752194Ab0ENKXI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 06:23:08 -0400
+Received: by wyb32 with SMTP id 32so1571852wyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 03:23:06 -0700 (PDT)
+In-Reply-To: <1273684720-16619-1-git-send-email-jorge.candelaria@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com
 
-Hello.
-
-Felipe Contreras wrote:
-
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> ---
->  arch/arm/mach-omap2/mailbox.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
+On Wed, 2010-05-12 at 12:18 -0500, Jorge Eduardo Candelaria wrote:
+> The following patches enable McBSP driver to be used along with the
+> audio driver in SDP4430 and other OMAP4 based boards.
 > 
-> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-> index 252e53b..6d17da8 100644
-> --- a/arch/arm/mach-omap2/mailbox.c
-> +++ b/arch/arm/mach-omap2/mailbox.c
-> @@ -431,7 +431,8 @@ err_dsp:
->  static int __devexit omap2_mbox_remove(struct platform_device *pdev)
->  {
->  #if defined(CONFIG_ARCH_OMAP2420)
-> -	omap_mbox_unregister(&mbox_iva_info);
-> +	if (cpu_is_omap2420())
-> +		omap_mbox_unregister(&mbox_iva_info);
->  #endif
+> Changes from v2:
+> - Fixed missing parentheses.
+> - Added Acked-by tag to patch #1.
+> - Sending to alsa-devel list also, as suggested by Peter Ujfalusi
+>   and Liam Girdwood
+> 
+> Jorge Eduardo Candelaria (2):
+>       ARM: McBSP: Fix request for irq in OMAP4
+>       ARM: OMAP4: Add support for omap4 in McBSP driver
+> 
+>  arch/arm/mach-omap2/mcbsp.c |   12 ++++--------
+>  arch/arm/plat-omap/mcbsp.c  |   34 +++++++++++++++++++---------------
+>  2 files changed, 23 insertions(+), 23 deletions(-)
+> 
 
-    Shouldn't #ifdef be remove then?
+Both Applied.
 
-WBR, Sergei
+Thanks
+
+Liam
+-- 
+Freelance Developer, SlimLogic Ltd
+ASoC and Voltage Regulator Maintainer.
+http://www.slimlogic.co.uk
 
