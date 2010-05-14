@@ -1,38 +1,27 @@
-From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH] omap: iommu- update ducati mmu irq define name
-Date: Fri, 14 May 2010 17:55:41 -0500
-Message-ID: <1273877741-15635-1-git-send-email-h-kanigeri2@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51287 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752139Ab0ENWtf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 May 2010 18:49:35 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Matt Fleming <matt@console-pimps.org>
+Subject: Re: [PATCH] MMC: OMAP HS-MMC: convert to dev_pm_ops
+Date: Fri, 14 May 2010 23:57:20 +0100
+Message-ID: <20100514225720.GA13046@console-pimps.org>
+References: <1273615036-4516-1-git-send-email-khilman@deeprootsystems.com>
+ <87k4r74p01.fsf@linux-g6p1.site>
+ <87ljbmmnp2.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <87ljbmmnp2.fsf@deeprootsystems.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-2.6.34-rc6 kernel has the Ducati mmu irq define name changed, which is
-resulting in compilation error.
+On Fri, May 14, 2010 at 09:51:21AM -0700, Kevin Hilman wrote:
+> 
+> I don't see a reason either, but it requires patching the MMC core as
+> well as all the users.  As I'm not an MMC core person, I thought this
+> best left to someone in that domain.
+> 
+> Fixing the core and callers could easily be done on top of this patch.
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
----
- arch/arm/mach-omap2/omap-iommu.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index eb9bee7..f5a1aad 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -59,7 +59,7 @@ static struct platform_device *omap3_iommu_pdev[NR_OMAP3_IOMMU_DEVICES];
- static struct iommu_device omap4_devices[] = {
- 	{
- 		.base = OMAP4_MMU1_BASE,
--		.irq = INT_44XX_DUCATI_MMU_IRQ,
-+		.irq = OMAP44XX_IRQ_DUCATI_MMU,
- 		.pdata = {
- 			.name = "ducati",
- 			.nr_tlb_entries = 32,
--- 
-1.7.0
-
+I've sent a patch that fixes up all the callers now and Andrew has taken
+it into -mm.
