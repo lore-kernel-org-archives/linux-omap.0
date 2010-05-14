@@ -1,103 +1,62 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH] OMAP3: PM: fix AM35x musb issue with AUTOIDLE bit in
- CONTROL_SYSCONFIG
-Date: Fri, 14 May 2010 15:22:44 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E4055CD@dbde02.ent.ti.com>
-References: <1272965585-21836-1-git-send-email-ajay.gupta@ti.com>
- <87vdb28byp.fsf@deeprootsystems.com>
- <19F8576C6E063C45BE387C64729E7394044E40534D@dbde02.ent.ti.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: [PATCH v2 0/2] DSS2:Allow FB to build without VRFB
+Date: Fri, 14 May 2010 15:33:24 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703042887DB@dbde02.ent.ti.com>
+References: <1273764028-25822-1-git-send-email-svadivu@ti.com>
+ <1273821814.2814.63.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53668 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753050Ab0ENJwv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 05:52:51 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E40534D@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49512 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752413Ab0ENKDf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 06:03:35 -0400
+In-Reply-To: <1273821814.2814.63.camel@tubuntu.research.nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Hi,
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Gupta, Ajay Kumar
-> Sent: Thursday, May 13, 2010 5:15 PM
-> To: Kevin Hilman
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH] OMAP3: PM: fix AM35x musb issue with AUTOIDLE bit in
-> CONTROL_SYSCONFIG
-> 
-> Hi,
-> Kumar Gupta <ajay.gupta@ti.com> writes:
-> >
-> > > MUSB interface on AM35x stops working when we set AUTOIDLE bit (D0) in
-> > > CONTROL_SYSCONFIG(0x48002010) register.
-> >
-> > why?
-> >
-> > stops working in what way?
-> >
-> > I think you need to investigate more into why this is happening.
-> >
-> 
-> There is 'turnaround/timeout' error shown in first SETUP packet on
-> USB bus when a device is connected to OTG port.
-> 
-> In second retry of SETUP packet, 8 byte of GET_DESCRIPTOR went out
-> Successfully but there is no 'IN token' to receive the descriptor
-> Data although ReqPkt is set for endpoint zero.
-> 
-> All this observation shows that OTG controller starts misbehaving
-> When AUTOIDLE bit is set in CONTROL_SYSCONFIG register.
-> 
-> > This suggest to me that something in the MUSB device/driver init
-> > is not quite right for these boards.
-> Do you have anything specific to try in init path ?
-
-I observed OTG port to be working with plane linus's tree + AM3517 musb
-Support patch and without AUTOIDLE bit set so please hold on this patch
-For now. I will do further testing and let you know.
-
--Ajay 
-> 
-> Regards,
-> Ajay
-> >
-> > Kevin
-> >
-> >
-> > > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > >
-> > > ---
-> > >  arch/arm/mach-omap2/pm34xx.c |    7 ++++++-
-> > >  1 files changed, 6 insertions(+), 1 deletions(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
-> omap2/pm34xx.c
-> > > index ea0000b..cc9d566 100644
-> > > --- a/arch/arm/mach-omap2/pm34xx.c
-> > > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > > @@ -849,7 +849,12 @@ static void __init prcm_setup_regs(void)
-> > >  			CM_AUTOIDLE);
-> > >  	}
-> > >
-> > > -	omap_ctrl_writel(OMAP3430_AUTOIDLE, OMAP2_CONTROL_SYSCONFIG);
-> > > +	/*
-> > > +	 * MUSB interface on AM35x stops working when we enable AUTOIDLE,
-> > > +	 * so avoid this for AM3517 and AM3505 device.
-> > > +	 */
-> > > +	if (!cpu_is_omap3517() && !cpu_is_omap3505())
-> > > +		omap_ctrl_writel(OMAP3430_AUTOIDLE, OMAP2_CONTROL_SYSCONFIG);
-> > >
-> > >  	/*
-> > >  	 * Set all plls to autoidle. This is needed until autoidle is
-> > > --
-> > > 1.6.2.4
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWkgVmFsa2VpbmVu
+IFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXSANCj4gU2VudDogRnJpZGF5LCBNYXkg
+MTQsIDIwMTAgMTI6NTQgUE0NCj4gVG86IEd1cnVzd2FteSwgU2VudGhpbHZhZGl2dQ0KPiBDYzog
+bGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWZiZGV2QHZnZXIua2VybmVsLm9yZzsg
+DQo+IHRvbnlAYXRvbWlkZS5jb207IEhpcmVtYXRoLCBWYWliaGF2DQo+IFN1YmplY3Q6IFJlOiBb
+UEFUQ0ggdjIgMC8yXSBEU1MyOkFsbG93IEZCIHRvIGJ1aWxkIHdpdGhvdXQgVlJGQg0KPiANCj4g
+SGksDQo+IA0KPiBPbiBUaHUsIDIwMTAtMDUtMTMgYXQgMTc6MjAgKzAyMDAsIGV4dCBTZW50aGls
+dmFkaXZ1IEd1cnVzd2FteSB3cm90ZToNCj4gPiBGcm9tOiBTZW50aGlsdmFkaXZ1IEd1cnVzd2Ft
+eSAgPHN2YWRpdnVAdGkuY29tPg0KPiA+IA0KPiA+IEhpIGFsbCwNCj4gPiANCj4gPiBUaGlzIHBh
+dGNoIHNlcmllcyByZXBsYWNlcyB0aGUgcGF0Y2ggDQo+ID4gIkRTUzIgSW5jbHVkZSBWUkZCIGlu
+dG8gb21hcDItM2J1aWxkIG9ubHkiDQo+ID4gVGhhbmtzIGZvciB0aGUgcmV2aWV3IGNvbW1lbnRz
+LiANCj4gPiANCj4gPiBUaGUgaW50ZW50IG9mIHRoaXMgc2VyaWVzIGlzIHRvIHNwbGl0IHRoZSBw
+YXRjaCBpbnRvIDIgbG9naWNhbA0KPiA+IHBhdGNoZXMgYW5kIGFsc28gdG8gaW5jb3Jwb3JhdGUg
+dGhlIGNvbW1lbnRzIG9uIG11bHRpLW9tYXAgYnVpbGQuDQo+ID4gDQo+ID4gSW4gdGhpcyBzZXJp
+ZXMsIEtjb25maWcgaXMgY2hhbmdlZCB0byBoYXZlIA0KPiA+IE9NQVAyX1ZSRkIgZGVwZW5kIG9u
+IEFSQ0hfT01BUDIgYW5kIEFSQ0hfT01BUDMuDQo+ID4gVGhpcyBjaGFuZ2UgdGFrZXMgY2FyZSBv
+ZiB0aGUgbXVsdGktb21hcCBidWlsZHMuIA0KPiA+IA0KPiA+IFRoaXMgcGF0Y2ggd291bGQgYWxs
+b3cgc3VjY2Vzc2Z1bCBidWlsZCBvZiBvbWFwXzQ0MzBzZHBfZGVmY29uZmlnIA0KPiA+IHdoZW4g
+T01BUDJfRFNTIGFuZCBGQl9PTUFQMiBpcyBlbmFibGVkIGZyb20gbWVudWNvbmZpZy4NCj4gPiAN
+Cj4gPiBGb3IgdmVyaWZpY2F0aW9uOiBHZW5lcmF0ZWQgdGhlIC5jb25maWcgb24gb21hcDNfZGVm
+Y29uZmlnIHdpdGggRFNTDQo+ID4gYW5kIEZCIGVuYWJsZWQuIEdlbmVyYXRlZCAuY29uZmlnIGlz
+IHNhbWUgd2l0aCBhbmQgd2l0aG91dCANCj4gdGhlIHBhdGNoLg0KPiA+IA0KPiA+IExpc3Qgb2Yg
+Q2hhbmdlZCBGaWxlczoNCj4gPiBhcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L3ZyZmIu
+aA0KPiA+IGRyaXZlcnMvdmlkZW8vb21hcDIvS2NvbmZpZw0KPiA+IGRyaXZlcnMvdmlkZW8vb21h
+cDIvb21hcGZiL0tjb25maWcNCj4gDQo+IFRoZSBwYXRjaCBzZXQgbWFrZXMgVlJGQiBvcHRpb25h
+bC4gV2hhdCBoYXBwZW5zIGlmIFZSRkIgaXMgdHVybmVkIG9mZiwNCj4gYW5kIHRoZSB1c2VyIHVz
+ZXMgVlJGQiBmb3IgYSBmcmFtZWJ1ZmZlcj8NCltTZW50aGlsXSBUaGlzIHBhdGNoIGtlZXBzIFZS
+RkI9eSBmb3IgQVJDSF9PTUFQMiBhbmQgQVJDSF9PTUFQMy4NClVzZXIgd291bGQgaGF2ZSBnb3Qg
+YW4gb3B0aW9uIHRvIHR1cm4gaXQgT0ZGIGlmIGl0IGhhZCBhcHBlYXJlZCBpbiANCnRoZSBtZW51
+Y29uZmlnIHNlbGVjdGlvbnMuICBJIGRpZCBub3QgZ2l2ZSB0aGF0IG9wdGlvbiBpbiBtZW51Y29u
+ZmlnIA0KZXhwbGljaXRseS4gDQppZSAgY29uZmlnIE9NQVAyX1ZSRkINCglib29sIDxObyBuYW1l
+IGdpdmVuIGhlcmU+DQoNClN1cHBvc2Ugb24gYSBidWlsZCB0aGUgdXNlciBkZWxpYmVyYXRlbHkg
+Z2l2ZXMgIkNPTkZJR19PTUFQMl9WUkZCIG5vdCBzZXQiLA0KdGhlbiBWUkZCIGZ1bmN0aW9ucyBh
+cmUgbWFkZSBhcyBlbXB0eSBmdW5jdGlvbnMgYnkgdGhlIGNvbXBpbGVyLg0KDQpUaGlzIGlzIGZp
+bmUgYXMgbG9uZyBhcyB0aGUgdXNlciBkb2VzIG5vdCBzYXkgb21hcGZiLnZyZmI9MS4NCg0KQnV0
+IGlmIHRoZSB1c2VyIHNldHMgb21hcGZiLnZyZmI9MSwgdGhlbiBpdCBpcyBhIHdyb25nIHVzYWdl
+IG9mIHRoZSBib290YXJncw0KYXMgaGUgaGFzIGFscmVhZHkgZGVsaWJlcmF0ZWx5IGNoYW5nZWQg
+dGhlIGRlZmNvbmZpZyB0byBzYXkgIlZSRkIgbm90IHNldCIuDQoNClRoZSByZXN1bHQgb2YgaGlz
+IGV4cGVyaW1lbnQ6IE5vIGJvb3R1cCBvbiB0aGUgYm9hcmQgYXMgdGhlIHZhZGRyIG9mIFZSRkIg
+DQppcyBwb3B1bGF0ZWQgbm9yIG9mIHRoZSBub3JtYWwgUkFNIGJ1ZmZlci4NCg0KPiAgVG9taQ0K
+PiANCj4gDQo+IA==
