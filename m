@@ -1,81 +1,75 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 15:37:12 -0700
-Message-ID: <AANLkTilsAC--0TGYgeJpNVPzBCFL5uQmeBTjb3SgtjKY@mail.gmail.com>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<87wrvl5479.fsf@deeprootsystems.com>
-	<20100503215028.GB18910@srcf.ucam.org>
-	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
-	<20100514203202.GA12409@srcf.ucam.org>
-	<87aas2azc5.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Fri, 14 May 2010 15:45:58 -0700
+Message-ID: <87k4r69k61.fsf@deeprootsystems.com>
+References: <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com>
+	<878w7mgqse.fsf@deeprootsystems.com>
+	<87tyqaduvr.fsf@deeprootsystems.com> <201005142350.01222.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <87aas2azc5.fsf@deeprootsystems.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201005142350.01222.rjw@sisk.pl> (Rafael J. Wysocki's message of "Fri\, 14 May 2010 23\:50\:01 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tony Lindgren <tony@atomide.com>, Matthew Garrett <mjg@redhat.com>, Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 14, 2010 at 3:32 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Matthew Garrett <mjg@redhat.com> writes:
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+
+> On Friday 14 May 2010, Kevin Hilman wrote:
+>> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>> 
+>> > "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+>> >
+>> >> On Thursday 13 May 2010, Tony Lindgren wrote:
+>> >>> * Rafael J. Wysocki <rjw@sisk.pl> [100513 14:16]:
+>> >
+>> > [...]
+>> >
+>> >>>  
+>> >>> > It solves a practical issue that _at_ _the_ _moment_ cannot be solved
+>> >>> > differently, while there's a growing number of out-of-tree drivers depending
+>> >>> > on this framework.  We need those drivers in and because we don't have any
+>> >>> > viable alternative at hand, we have no good reason to reject it.
+>> >>> 
+>> >>> Nothing is preventing merging the drivers can be merged without
+>> >>> these calls.
+>> >>
+>> >> And yet, there _is_ a growing nuber of drivers that don't get merge because
+>> >> of that.  That's _reality_.  Are you going to discuss with facts, or what?
+>> >
+>> > It may be reality, but IMO, "preventing other drivers" isn't a good
+>> > *technical* argument for merging a feature.  It feels like these "for
+>> > the 'good' of the community" arguments are being used to trump the
+>> > technical arguments.  Maybe we need to keep the separate.
+>> 
+>> To continue along the "for the good of the community" path...
+>> 
+>> If it truly is the lack of a suspend blocker API that is preventing
+>> the merge of these out of tree drivers, I second Mark's proposal[1] to
+>> merge a noop version of the API while the technical issues continue to
+>> be discussed.
 >
->> On Fri, May 14, 2010 at 02:20:43PM -0600, Paul Walmsley wrote:
->>> Hello,
->>>
->>> On Mon, 3 May 2010, Matthew Garrett wrote:
->>>
->>> > I agree that the runtime scenario is a far more appealing one from an
->>> > aesthetic standpoint, but so far we don't have a very compelling
->>> > argument for dealing with the starting and stopping of userspace.
->>>
->>> The problem of how to start and stop (some) userspace is not specifical=
-ly
->>> system power management-related, nor top-down, /sys/power/state-suspend
->>> related. =A0PM is just one potential user.
->>>
->>> It's hard to see how the Android opportunistic suspend approach would be
->>> useful for the other use-cases (e.g., checkpoint/restart). =A0On the ot=
-her
->>> hand, it's easier to see how something like freezer cgroups could be
->>> useful for system power management and checkpoint/restart.
+> I'm against that, sorry.
+
+OK, I'll bite... Why?
+
+>> Then we would see how many drivers get submitted and merged.
 >>
->> And difficult to see how to implement something using freezer cgroups
->> that actually works in this case. Look, I don't want to sound like I
->> have a one-track mind or anything, but all of these arguments would be
->> significantly more compelling if someone would actually provide a
->> concrete implementation proposal that deals with the set of use-cases
->> that Google's implementation does and which doesn't make anyone cry.
+>> Personally, I suspect that lack of this feature is not the real
+>> obstacle to getting these out-of-tree drivers upstream.  Having this
+>> API upstream will not change the product schedules and corporate
+>> cultures that have prevented code from making its way upstream.
 >
-> That might be possible if this "set of use-cases" was available
-> someplace. =A0At least I haven't seen it, and would expect it to be in
-> the docs included with patch 1.
->
-> Another likely reason that that there hasn't been an alternate
-> proposal (at least from some of us that are raising concerns) is
-> because we already have a working solution to dynamic, system-wide PM
-> that is 1) already in mainline and 2) shipping on consumer devices
-> with very strict power budgets (as already pointed out in detail by
-> Paul[2].)
->
-> Yes, "excruciatingly bad" apps can kill PM on these systems since
-> anyone can write apps, but the same is true on an opporunistic-suspend
-> based system since any app could hold a suspend blocker whenever it
-> wants.
->
+> But apparently it is considered as a suitable excuse.
 
-No, apps need permission to block suspend.
+No, it is not a _technical_ excuse.  Just a healthy, experience-based
+dose of skepticism.
 
--- =
+It was expressed because I find the arguments above for merging
+because it prevents out-of-tree drivers from merging quite
+unconvincing.  This is not just about opportunistic suspend + suspend
+blockers specifically but comes from several years experience in the
+embedded Linux world.
 
-Arve Hj=F8nnev=E5g
+Kevin
