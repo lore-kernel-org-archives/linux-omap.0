@@ -1,38 +1,86 @@
-From: <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH] OMAP: McBSP: Add 32-bit mode support
-Date: Fri, 14 May 2010 09:06:08 +0200
-Message-ID: <C358A26273CF2948B8BCDBA661A5817824275E36A7@NOK-EUMSG-03.mgdnok.nokia.com>
-References: <1273765697-15745-1-git-send-email-slapin@ossfans.org>
-	<20100513154857.GB28378@rakim.wolfsonmicro.main>,
-	<20100514084636.42435f9f.jhnikula@gmail.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH] omap_hsmmc: improve interrupt synchronisation
+Date: Fri, 14 May 2010 10:13:11 +0300
+Message-ID: <4BECF807.9060006@nokia.com>
+References: <4BEA5DD5.9010308@nokia.com> <20100512125213.36631d2d.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20100514084636.42435f9f.jhnikula@gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: jhnikula@gmail.com, broonie@opensource.wolfsonmicro.com
-Cc: tony@atomide.com, slapin@ossfans.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, lrg@slimlogic.co.uk
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:62599 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752408Ab0ENHNk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 03:13:40 -0400
+In-Reply-To: <20100512125213.36631d2d.akpm@linux-foundation.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Venkatraman S <svenkatr@ti.com>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-On Thu, 13 May 2010 16:48:57 +0100
-Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
+Andrew Morton wrote:
+> On Wed, 12 May 2010 10:50:45 +0300
+> Adrian Hunter <adrian.hunter@nokia.com> wrote:
+> 
+>> >From ad2e1cd024ccf9144b6620cfe808893719db738f Mon Sep 17 00:00:00 2001
+>> From: Adrian Hunter <adrian.hunter@nokia.com>
+>> Date: Wed, 14 Apr 2010 16:26:45 +0300
+>> Subject: [PATCH] omap_hsmmc: improve interrupt synchronisation
+>>
+>> The following changes were needed:
+>> 	- do not use in_interrupt() because it will not work
+>> 	with threaded interrupts
+>>
+>> In addition, the following improvements were made:
+>> 	- ensure DMA is unmapped only after the final DMA interrupt
+>> 	- ensure a request is completed only after the final DMA interrupt
+>> 	- disable controller interrupts when a request is not in progress
+>> 	- remove the spin-lock protecting the start of a new request from
+>> 	an unexpected interrupt because the locking was complicated and
+>> 	a 'req_in_progress' flag suffices (since the spin-lock only defers
+>> 	the unexpected interrupts anyway)
+>> 	- instead use the spin-lock to protect the MMC interrupt handler
+>> 	from the DMA interrupt handler
+>> 	- remove the semaphore preventing DMA from being started while
+>> 	the previous DMA is still in progress - the other changes make that
+>> 	impossible, so it is now a BUG_ON condition
+>> 	- ensure the controller interrupt status is clear before exiting
+>> 	the interrrupt handler
+>>
+>> In general, these changes make the code safer but do not fix any specific
+>> bugs so backporting is not necessary.
+>>
+>>
+>> ...
+>>
+>> +static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_request *mrq)
+>> +{
+>> +	int dma_ch;
+>> +
+>> +	spin_lock(&host->irq_lock);
+>> +	host->req_in_progress = 0;
+>> +	dma_ch = host->dma_ch;
+>> +	spin_unlock(&host->irq_lock);
+>> +
+>> +	omap_hsmmc_disable_irq(host);
+>> +	/* Do not complete the request if DMA is still in progress */
+>> +	if (mrq->data && host->use_dma && dma_ch != -1)
+>> +		return;
+>> +	host->mrq = NULL;
+>> +	mmc_request_done(host->mmc, mrq);
+>> +}
+> 
+> Are we sure that irq_lock doesn't need to be taken in an irq-safe fashion?
 
-> On Thu, May 13, 2010 at 07:48:16PM +0400, Sergey Lapin wrote:
-> > This patchs should allow to use 32-bit samples on e.g. TLV320AIC3x codec,
-> > or others.
-> >
-> > Signed-off-by: Sergey Lapin <slapin@ossfans.org>
->
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+It is OK at the moment.
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+It is only used in interrupt handlers which currently do run in interrupt
+context with IRQF_DISABLED.  If both DMA and MMC interrupt handlers were
+changed to be threaded interrupts, then the spin-lock would still be OK.
+But if only one of them was changed, then the spin-lock would have to be
+changed to be irq-safe.
+
+> send_init_stream() doesn't report an error if its busywait times out.
+
+It is not a problem.  It may mean the card does not initialize but if that
+happens there will be lots more errors.
+
