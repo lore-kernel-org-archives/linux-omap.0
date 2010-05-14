@@ -1,56 +1,129 @@
-From: "Mittal, Mukund" <mmittal@ti.com>
-Subject: RE: Patches for enabling display on Zoom2/3 & 3630 SDP
-Date: Fri, 14 May 2010 13:23:41 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C54F0283@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02C54549BC@dbde02.ent.ti.com>
- <1273820783.2814.55.camel@tubuntu.research.nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
+	OMAP data
+Date: Fri, 14 May 2010 11:24:03 +0300
+Message-ID: <20100514082403.GA4329@besouro.research.nokia.com>
+References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
+	<20100512152424.803ea807.akpm@linux-foundation.org>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43813 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932092Ab0ENHxu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 03:53:50 -0400
-In-Reply-To: <1273820783.2814.55.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20100512152424.803ea807.akpm@linux-foundation.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: ext Andrew Morton <akpm@linux-foundation.org>
+Cc: ext Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, ext Tony Lindgren <tony@atomide.com>, "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, LKML <linux-kernel@vger.kernel.org>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, Ambresh <a0393775@ti.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Paul Mundt <lethal@linux-sh.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-VG9taSwNClRoYW5rcyBmb3IgeW91ciBjb21tZW50cy4gV2Ugd2lsbCBzdWJtaXQgdGhlIG5leHQg
-dmVyc2lvbiBhZnRlciBpbmNvcnBvcmF0aW5nIHRoZXNlIGNvbW1lbnRzLg0KVGhhbmtzIGFuZCBy
-ZWdhcmRzLA0KTXVrdW5kDQoNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZy
-b206IFRvbWkgVmFsa2VpbmVuIFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXQ0KPiBT
-ZW50OiBGcmlkYXksIE1heSAxNCwgMjAxMCAxMjozNiBQTQ0KPiBUbzogTWl0dGFsLCBNdWt1bmQN
-Cj4gQ2M6IFRvbnkgTGluZGdyZW47IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IFN1Ympl
-Y3Q6IFJlOiBQYXRjaGVzIGZvciBlbmFibGluZyBkaXNwbGF5IG9uIFpvb20yLzMgJiAzNjMwIFNE
-UA0KPiANCj4gSGksDQo+IA0KPiBPbiBNb24sIDIwMTAtMDUtMTAgYXQgMDg6NDEgKzAyMDAsIGV4
-dCBNaXR0YWwsIE11a3VuZCB3cm90ZToNCj4gPiBUb21pLA0KPiA+IFdvdWxkIHlvdSBwbGVhc2Ug
-Y2hlY2sgaWYgdGhlcmUgYXJlIG5vIGZ1cnRoZXIgY29tbWVudHMgYW5kIGNhbiB5b3UNCj4gPiBw
-bGVhc2UgcHVsbCB0aGUgZm9sbG93aW5nIHBhdGNoZXMgaW4/DQo+ID4NCj4gPiBodHRwczovL3Bh
-dGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk1MDY3Lw0KPiA+IGh0dHBzOi8vcGF0Y2h3b3JrLmtl
-cm5lbC5vcmcvcGF0Y2gvOTUwNjgvDQo+ID4gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9w
-YXRjaC85NDkzNy8NCj4gPiBodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk0OTM0
-Lw0KPiA+IGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvOTQ4OTMvDQo+IA0KPiAN
-Cj4gVGhpcyBvbmUgaXMgYWxyZWFkeSBhcHBsaWVkOg0KPiBPTUFQOkRTUzogQWRkIG1pc3Npbmcg
-bGluZSBmb3IgdXBkYXRlIGJnIGNvbG9yDQo+IA0KPiBUaGlzIHBhdGNoIGFmZmVjdHMgYWxzbyAz
-NjMwU0RQLCBzaG91bGQgYmUgbWVudGlvbmVkIGluIHBhdGNoIHRpdGxlLiBBbmQNCj4gSSB0aGlu
-ayB0aGUgdGl0bGUgc2hvdWxkIG5vdCBiZSAiT01BUDogRFNTIiwgYXMgaXQncyBub3QgYWJvdXQg
-RFNTIGJ1dA0KPiB0aGUgYm9hcmQgZmlsZXMuIEl0IHNob3VsZCBiZSBzb21ldGhpbmcgbGlrZSBP
-TUFQMzYzMFNEUDogb3Igc2ltaWxhci4NCj4gT01BUDogRFNTOiBBZGQgZGlzcGxheSBib2FyZCBm
-aWxlIGZvciB6b29tIGJvYXJkcw0KPiANCj4gU2FtZSBjb21tZW50IGFzIGFib3ZlOg0KPiBPTUFQ
-OiBEU1M6IEVuYWJsZSBkaXNwbGF5IG9uIFpPT00yLzMgJiAzNjMwU0RQDQo+IA0KPiBUUk0gc3Bl
-YWtzIG9mIHByZS1tdWx0aXBsaWVkIGFscGhhLCBhcyBkb2VzIHlvdXIgcGF0Y2ggdGl0bGUuIEJ1
-dCBpbiB0aGUNCj4gY29kZSB5b3VyIHZhcmlhYmxlcyBhcmUgcHJlLWFscGhhIG11bHRpcGxpZWQ6
-DQo+IE9NQVAzNjMwOkRTUzI6RW5hYmxlIFByZS1NdWx0aXBsaWVkIEFscGhhIFN1cHBvcnQNCj4g
-DQo+IEZvciB0aGlzIG9uZSBJIGhhdmUgYWxyZWFkeSBzZW50IGNvbW1lbnRzLCB0aGV5IGhhdmUg
-bm90IGJlZW4gYW5zd2VyZWQuDQo+IFRoZXJlIHdlcmUgc29tZSBwcm9ibGVtcyB3aXRoIGVtYWls
-cyB0byBsaW51eC1vbWFwIGF0IHRoYXQgdGltZSwgc28gSSd2ZQ0KPiBhbHNvIGF0dGFjaGVkIHRo
-ZSBlbWFpbC4gQWxzbywgdGhpcyBwYXRjaCBzaG91bGQgZ28gaW4gYmVmb3JlIHRoZSBib2FyZA0K
-PiBmaWxlIHBhdGNoZXMgYWJvdmUsIHNvIHB1dCB0aGVtIGludG8gc2FtZSBwYXRjaCBzZXQgd2l0
-aCB0aGlzIG9uZSBiZWZvcmUNCj4gdGhlIGJvYXJkIGZpbGUgY2hhbmdlczoNCj4gT01BUDogRFNT
-OiBBZGQgTkVDIE5MODA0OEhMMTEtMDFCIGRpc3BsYXkgcGFuZWwNCj4gDQo+IEFsc28sIG1hbnkg
-b2YgdGhlIHBhdGNoIGNvbW1lbnRzIGNvbnRhaW5lZCB0eXBvcy4gQ291bGQgeW91IGNoZWNrIHRo
-ZW0NCj4gYWxzbz8NCj4gDQo+IFRvbWkNCg0K
+Hello Andrew,
+
+On Thu, May 13, 2010 at 12:24:24AM +0200, Andrew Morton wrote:
+> On Tue, 11 May 2010 17:15:28 +0300
+> Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+> 
+> > Here is the version 5 of the change to export OMAP data to userspace
+> > (name, revision, id code, production id and die id).
+> > 
+> > Basically, this version is still attempting to create a new file under /proc.
+> > It is the /proc/socinfo, which should be used to export bits which are SoC specific
+> > (not CPU related, nor machine related).
+> > 
+> > So, differences between previous version are:
+> > - merged patch 02/04 with 03/04 to avoid compilation breakages.
+> > - simplified the seq_file usage by using the single_open and single_release functions
+> > - exported a function to register a seq_operation .show callback
+> > - adapted the changes accordingly
+> > 
+> > As usual, comments are welcome.
+> 
+> This changelog would be rather more useful if it was to show us some
+> sample output from /proc/socinfo, perhaps accompanied with an
+> explanation for people who aren't familar with this area of the kernel.
+
+Indeed. So, after applying this series, one example of output would be,
+in case of OMAP3:
+
+/ # cat /proc/socinfo
+SoC     : OMAP3430 ES3.1
+IDCODE  : 4b7ae02f
+Pr. ID  : 00000000 00000000 000000cc cafeb7ae
+
+These ids can be used, for instance, to track down silicon specific issues.
+
+> 
+> I'd have thought that sysfs was an appropriate place for this info. 
+> Perhaps under /sys/devices/platform?  Or /sys/devices/system?  Peter's
+> original patch didn't tell us where in the hierarchy the file was
+> placed, nor why it was placed there, not what its contents look like. 
+> But crappy changelogs are the norm :(
+
+IIRC, originally, Peter's patch was creating /sys/power/idcode. The content
+was very similar:
+
+
+Nokia-N900:~# cat /sys/power/idcode 
+IDCODE: 4b7ae02f
+Production ID: 00000000 00000000 000000cc cafeb7ae
+Die ID: 05018019 04033312 00000000 54500024
+
+
+> 
+> The objections stated in this email:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17630.html
+> appear to still apply to this version of the patches?
+
+Yeah, it is not applied on all IDs actually. At some point, the complain has changed.
+More recently, Tony complained about Die ID:
+http://marc.info/?l=linux-omap&m=127230649306842&w=2
+
+And that's what is in patch 03/03 of this series. So, there are two things:
+1. A separated config option to have DIE ID code in
+2. User also have to explicitly pass the omap3_die_id kernel parameter.
+Just like the "serialnumber" parameter for x86's.
+
+Once the user has a kernel with CONFIG_OMAP3_EXPORT_DIE_ID and boots it with omap3_die_id parameter,
+the first output I posted above would also include die id:
+
+/ # cat /proc/socinfo 
+SoC     : OMAP3430 ES3.1
+IDCODE  : 4b7ae02f
+Pr. ID  : 00000000 00000000 000000cc cafeb7ae
+Die ID	: 05018019 04033312 00000000 54500024
+
+
+> 
+> Kevin didn't explain why he said "Please export these via debugfs". 
+> Tony didn't clearly explain why he said "I don't think we want to
+> export unique chip identifiers by default".
+> 
+> 
+> 
+> So apart from having certain opinions regarding communication skills
+> and wondering why people cc me on stuff without vaguely providing
+> enough info for me to understand what they're thinking, I don't know
+> what to make of it all :(
+
+Yeah, I agree here that there are some piece of info missing here and there.
+Anyways, I believe the main point here is what is the best place to export these bits.
+
+Originally was under sysfs (maybe not the correct place: /sys/power/idcode). Then I suggested
+to move it to /proc/cpuinfo, which has been denied because these bits do not belong to CPU.
+Then, it has been suggested to be under /proc/socinfo, which is the current version.
+Now, I think your suggestion is to move back to sysfs, but under sys/devices/platform or /sys/devices/system, right ?
+
+
+
+Thanks for your comments,
+
+--
+Eduardo Valentin
