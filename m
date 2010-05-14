@@ -1,68 +1,74 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv3 12/22] OMAP3: PM: Minimizing the passing around of sr id in smartreflex.c
-Date: Fri, 14 May 2010 10:14:23 -0700
-Message-ID: <87wrv6l828.fsf@deeprootsystems.com>
-References: <1271408597-3066-1-git-send-email-thara@ti.com>
-	<1271408597-3066-2-git-send-email-thara@ti.com>
-	<1271408597-3066-3-git-send-email-thara@ti.com>
-	<1271408597-3066-4-git-send-email-thara@ti.com>
-	<1271408597-3066-5-git-send-email-thara@ti.com>
-	<1271408597-3066-6-git-send-email-thara@ti.com>
-	<1271408597-3066-7-git-send-email-thara@ti.com>
-	<1271408597-3066-8-git-send-email-thara@ti.com>
-	<1271408597-3066-9-git-send-email-thara@ti.com>
-	<1271408597-3066-10-git-send-email-thara@ti.com>
-	<1271408597-3066-11-git-send-email-thara@ti.com>
-	<1271408597-3066-12-git-send-email-thara@ti.com>
-	<1271408597-3066-13-git-send-email-thara@ti.com>
-	<87pr1kius7.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0322D7D370@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Fri, 14 May 2010 11:22:05 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1005141101070.3348@utopia.booyaka.com>
+References: <Pine.LNX.4.44L0.1005031301400.1651-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:62282 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755413Ab0ENRO2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 13:14:28 -0400
-Received: by gyg13 with SMTP id 13so1340932gyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 10:14:27 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D370@dbde02.ent.ti.com> (Thara Gopinath's message of "Thu\, 13 May 2010 12\:43\:15 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <Pine.LNX.4.44L0.1005031301400.1651-100000@iolanthe.rowland.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-"Gopinath, Thara" <thara@ti.com> writes:
 
->>>
->>>Thara Gopinath <thara@ti.com> writes:
->>>
->>>> This patch ensures that sr id is passed as a parameter only to
->>>> public APIs in smartreflex.c and other APIs in smartreflex.c
->>>> uses the omap_sr strucutres.
->>>>
->>>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>>
->>>Good change, but...
->>>
+Hello,
 
-[...]
+Please forgive the delay in commenting - I am just now catching up on 
+these huge E-mail threads;
 
->>>
->>>... the class3 layer is still taking SR ID as a parameter and it
->>>should also just take an sr_info ptr.
->
-> sr_info is an internal structure for smartreflex driver. The
-> intention behind this patch is all external API's pass the srid and
-> internally the driver static APIs take sr_info as parameter. 
+On Mon, 3 May 2010, Alan Stern wrote:
 
-OK, that makes sense.  I though I saw the usage of _sr_lookup() inside
-the class driver which made me think it should just take sr_info.  But
-looking again now, I see it's only using the id.
+> So for example, runtime PM cannot be used to put the system into an S3 
+> sleep state.
 
-> I did not realize this point till now when I was doing the actual
-> changes and hence the late reply :-)
+This is not quite true.  Runtime PM, *in conjunction with CPUIdle,* can 
+put many current embedded Linux systems into not just S3, but actually S5.
 
-no worries, thanks for clarifying.
+This is done right now on OMAP in mainline Linux[1].  (S5 is called "C6" 
+in that codebase, since the CPUIdle governor is used - this is a 
+misnomer.)
 
-Kevin
+This approach allows the system to wake up, or stay running, as requested 
+by the timer subsystem, or the scheduler.  No suspend-block-like API is 
+needed.
+
+Several consumer-market Linux devices have already shipped using this 
+mechanism.
+
+> The simplest example is that suspend blockers can be used to control 
+> whether or not the CPU shuts down, whereas runtime PM can't.
+
+Runtime PM still needs to be combined with some sort of governor to 
+control not only CPU power states, but also system power states.  CPUIdle 
+works pretty well as a system power governor for a single-CPU system, but 
+is admittedly something of a hack[2].
+
+Going forward, some sort of basic, system-wide governor is a cleaner 
+design[3].  But since the "opportunistic suspend" governor proposed in 
+patch 1 ignores timer expiries and the scheduler runqueue, and then hacks 
+around that decision by inserting suspend-block calls into code that would 
+otherwise work normally, it's not a good approach.
+
+
+- Paul
+
+
+
+1. http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/mach-omap2/cpuidle34xx.c;h=3d3d035db9aff62ce522e0080e570cfdbf8e70cc;hb=4462dc02842698f173f518c1f5ce79c0fb89395a#l292
+
+2. Paul Walmsley E-mail to the linux-pm mailing list, dated Thu, 13
+   May 2010 13:01:33 -0600:
+   http://permalink.gmane.org/gmane.linux.power-management.general/18592
+
+3. ibid.
