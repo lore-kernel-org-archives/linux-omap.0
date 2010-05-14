@@ -1,55 +1,81 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: USB video capture shuts up
-Date: Fri, 14 May 2010 19:28:14 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D8A8@dbde02.ent.ti.com>
-References: <36070.80.35.16.215.1273843502.squirrel@mail.santesteban.eu>
-    <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D898@dbde02.ent.ti.com>
- <52653.79.153.141.221.1273845314.squirrel@mail.santesteban.eu>
+Subject: RE: [PATCH RFC 2/2] usb: ehci-omap: add suspend/resume support
+Date: Fri, 14 May 2010 19:31:15 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D8AA@dbde02.ent.ti.com>
+References: <1273762822-23073-2-git-send-email-gadiyar@ti.com>
+ <Pine.LNX.4.44L0.1005131305320.1731-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59685 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:59867 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055Ab0ENN6j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 09:58:39 -0400
-In-Reply-To: <52653.79.153.141.221.1273845314.squirrel@mail.santesteban.eu>
+	with ESMTP id S1751312Ab0ENOBd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 10:01:33 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1005131305320.1731-100000@iolanthe.rowland.org>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "simon@santesteban.eu" <simon@santesteban.eu>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
 
-c2ltb25Ac2FudGVzdGViYW4uZXUgd3JvdGU6DQo+ID4gc2ltb25Ac2FudGVzdGViYW4uZXUgd3Jv
-dGU6DQo+ID4+IEhpIEkgYW0gdXNpbmcgYSB2NGwyIHVzYiB2aWRlbyBjYXB0dXJlciAoZW0yOHh4
-IGJhc2VkKSwgYW5kIGl0IGlzIHdvcmtpbmcNCj4gPj4gZmluZSBmb3IgYXJvdW5kIDUgbWludXRl
-cy4gSG93ZXZlciwgaXQgc3RvcHMgY2FwdHVyaW5nIGFmdGVyIHRoaXMgdGltZS4NCj4gPj4NCj4g
-Pj4gVGhlcmUgaXMgbm8gZXJyb3IgbWVzc2FnZSBzZW50IHRvIGttc2cgb3QgdGhlIGFwcGxpY2F0
-aW9uLCB3aGljaA0KPiA+PiBhcHBhcmVudGx5IHdhaXRzIGZvciBtb3JlIGRhdGEgdG8gYmUgcmVj
-ZWl2ZWQuDQo+ID4+DQo+ID4+IFRoZSBkZWJ1ZyBkdW1wIGZyb20gdXNibW9uIGlzOg0KPiA+Pg0K
-PiA+IDxzbmlwIHVzYm1vbiBkdW1wPg0KPiA+DQo+ID4+DQo+ID4+IEkgYW0gdXNpbmcga2VybmVs
-IDIuNi4zNC1yYzcsIGFuZCBub3cgdGhlIEUgbWVzc2FnZXMgYXJlIHNob3duLiBJbiBrZXJuZWxz
-DQo+ID4+IDIuNi4zMyBhbmQgMi42LjMyIHRoZSBidXMgd2VudCBvbiBzZW5kaW5nIGNhbGxiYWNr
-cyB3aXRoIDBzLg0KPiA+PiBJIGFzc3VtZSB0aGF0IHRoZXJlIGlzIHN0aWxsIHNvbWUgd29yayBp
-biBwcm9ncmVzcyBvbiB0aGUgZWhjaSBtb2R1bGUsIGFuZA0KPiA+PiBldmVudHVhbGx5IHRoaXMg
-aXNzdWUgd2lsbCBiZSBzb2x2ZWQuDQo+ID4+DQo+ID4+IEFsc28sIHdoZW4gSSBzdG9wIHRoZSBh
-cHBsaWNhdGlvbiB0aGUgZm9sbG93aW5nIG1lc3NhZ2UgaXMgc2hvd246DQo+ID4+DQo+ID4+IGVt
-Mjh4eCAjMDogY2Fubm90IGNoYW5nZSBhbHRlcm5hdGUgbnVtYmVyIHRvIDAgKGVycm9yPS0xMTAp
-DQo+ID4+DQo+ID4NCj4gPiBXaGljaCBwcm9jZXNzb3IgYW5kIHdoaWNoIGJvYXJkIGFyZSB5b3Ug
-cnVubmluZyB0aGlzIG9uPyBXaGF0IGlzIHRoZQ0KPiA+IHRyYW5zY2VpdmVyIHlvdSBhcmUgdXNp
-bmc/IChXZSBoYWQgaXNzdWVzIGR1ZSB0byBpbmFkZXF1YXRlIGNhcGFjaXRhbmNlDQo+ID4gb24g
-c29tZSBwb3dlciByYWlscywgYW5kIHBvb3IgYm9hcmQgZGVzaWduKS4gVGhpcyBjb3VsZCBiZSBv
-bmUgc291cmNlDQo+ID4gb2YgeW91ciBwcm9ibGVtLg0KPiA+DQo+ID4gVGhlbiBhZ2FpbiwgeW91
-IG1pZ2h0IGJlIGhpdHRpbmcgYW4gT01BUCBlcnJhdGEuDQo+ID4NCj4gPiBBcmUgeW91IGFibGUg
-dG8gdXNlIHRoZSBkZXZpY2UgYWZ0ZXIgeW91IGxvYWQgdGhlIEVIQ0kgbW9kdWxlIGFnYWluPw0K
-PiA+DQo+IA0KPiBJIGFtIHVzaW5nIGd1bXN0aXggb3Zlcm8gYWlyIGJvYXJkLg0KPiANCj4gSSBh
-bSB1c2luZyBhIGh1YiBhdHRhY2hlZCB0byB0aGUgb3Zlcm8sIGFuZCB0aGUgY2FwdHVyZXIgDQo+
-IGF0dGFjaGVkIHRvIHRoZSBkZXZpY2UuDQo+IA0KPiBPbmNlIEkgcmVsb2FkIHRoZSBlaGNpLWhj
-ZCBtb2R1bGUsIEkgaGF2ZSB0byByZXBsdWcgZWl0aGVyIHRoZSB1c2IgaHViIG9yDQo+IHRoZSBj
-YXB0dXJlciBzbyB0aGF0IGl0IGlzIGRldGVjdGVkIGFnYWluIGJ5IGVoY2kuDQo+IEkgbWVhbiwg
-d2hlbiBJIHJlbG9hZCB0aGUgZWhjaS1oY2QgbW9kdWxlIHRoZSByb290IGh1YiBpcyBkZXRlY3Rl
-ZCwgYnV0DQo+IG5vdCB0aGUgZGV2aWNlcyBhdHRhY2hlZCB0byBpdC4NCj4gDQoNCldoYXQgaGFw
-cGVucyBpZiB5b3UgaGF2ZSB0aGUgdmlkZW8gY2FwdHVyZSBkZXZpY2UgYW5kIGFub3RoZXIgVVNC
-IGRldmljZQ0KKGEgZmxhc2ggZHJpdmUgbWF5YmUpIGNvbm5lY3RlZCB0byB0aGUgZXh0ZXJuYWwg
-aHViPyBEb2VzIHRoZSBvdGhlciBkZXZpY2UNCmFsc28gc3RvcCB3b3JraW5nIHdoZW4gdGhlIHZp
-ZGVvIGNhcHR1cmUgZGV2aWNlIGZhaWxzPw0KDQotIEFuYW5kDQo=
+Alan Stern wrote:
+> On Thu, 13 May 2010, Anand Gadiyar wrote:
+> 
+> > Add support for suspend and resume to the ehci-omap driver.
+> > Added routines for platform_driver suspend/resume and 
+> > wrappers around ehci_bus_suspend/resume.
+> 
+> > +#ifdef CONFIG_PM
+> >  
+> /*-------------------------------------------------------------------------*/
+> > +static int ehci_omap_dev_suspend(struct device *dev)
+> > +{
+> > +	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
+> > +
+> > +	if (!omap->suspended)
+> > +		ehci_omap_enable(omap, 0);
+> > +	return 0;
+> > +}
+> > +
+> > +static int ehci_omap_dev_resume(struct device *dev)
+> > +{
+> > +	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
+> > +
+> > +	if (omap->suspended)
+> > +		ehci_omap_enable(omap, 1);
+> > +	return 0;
+> > +}
+> > +
+> > +static int ehci_omap_bus_suspend(struct usb_hcd *hcd)
+> > +{
+> > +	struct usb_bus *bus = hcd_to_bus(hcd);
+> > +	int ret;
+> > +
+> > +	ret = ehci_bus_suspend(hcd);
+> > +
+> > +	ehci_omap_dev_suspend(bus->controller);
+> > +
+> > +	return ret;
+> > +}
+> > +static int ehci_omap_bus_resume(struct usb_hcd *hcd)
+> > +{
+> > +	struct usb_bus *bus = hcd_to_bus(hcd);
+> > +	int ret;
+> > +
+> > +	ehci_omap_dev_resume(bus->controller);
+> > +
+> > +	ret = ehci_bus_resume(hcd);
+> > +
+> > +	return ret;
+> > +}
+> 
+> You could use the runtime-PM interface instead of explicitly suspending 
+> and resuming the controller.  It is now standard.
+> 
+
+Will work on this. I'll be out for a while, so it could be some time
+before I repost.
+
+Thanks,
+Anand
