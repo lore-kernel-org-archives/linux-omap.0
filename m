@@ -1,53 +1,56 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: omap iommu: patch for v2.6.34-rc7
-Date: Fri, 14 May 2010 10:40:36 +0300 (EEST)
-Message-ID: <20100514.104036.15239017.Hiroshi.DOYU@nokia.com>
+From: "Mittal, Mukund" <mmittal@ti.com>
+Subject: RE: Patches for enabling display on Zoom2/3 & 3630 SDP
+Date: Fri, 14 May 2010 13:23:41 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C54F0283@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02C54549BC@dbde02.ent.ti.com>
+ <1273820783.2814.55.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:43957 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757476Ab0ENHlB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 03:41:01 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:43813 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932092Ab0ENHxu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 03:53:50 -0400
+In-Reply-To: <1273820783.2814.55.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tony,
-
-The patches was sent on:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27968.html
-
-The following changes since commit b57f95a38233a2e73b679bea4a5453a1cc2a1cc9:
-
-  Linux 2.6.34-rc7 (2010-05-09 18:36:28 -0700)
-
-are available in the git repository at:
-  git://gitorious.org/~doyu/lk/mainline.git v2.6.34-rc7.iommu
-
-Hiroshi DOYU (5):
-      omap iommu: Introduce iteration macro for iotlb entry scan
-      omap iommu: Make CONFIG_OMAP_IOMMU_DEBUG selectable
-      omap iommu: Insert a gap page between IOVMAs against override
-      omap iommu: Exit iteration if no possibility of available area
-      omap iommu: Reject unaligned addresses at setting page table entry
-
-Kanigeri, Hari (4):
-      omap iommu: renamed omap3-iommu to omap-iommu
-      omap iommu: support for OMAP4
-      omap iommu: missing check for TLB valid entry
-      omap iommu: add TLB preservation support
-
- arch/arm/mach-omap2/Makefile               |    5 +-
- arch/arm/mach-omap2/iommu2.c               |    6 +-
- arch/arm/mach-omap2/omap-iommu.c           |  157 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap3-iommu.c          |  105 -------------------
- arch/arm/plat-omap/Kconfig                 |    9 ++-
- arch/arm/plat-omap/include/plat/omap44xx.h |    3 +
- arch/arm/plat-omap/iommu.c                 |  101 ++++++++++++------
- arch/arm/plat-omap/iovmm.c                 |    9 +-
- 8 files changed, 244 insertions(+), 151 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap-iommu.c
- delete mode 100644 arch/arm/mach-omap2/omap3-iommu.c
+VG9taSwNClRoYW5rcyBmb3IgeW91ciBjb21tZW50cy4gV2Ugd2lsbCBzdWJtaXQgdGhlIG5leHQg
+dmVyc2lvbiBhZnRlciBpbmNvcnBvcmF0aW5nIHRoZXNlIGNvbW1lbnRzLg0KVGhhbmtzIGFuZCBy
+ZWdhcmRzLA0KTXVrdW5kDQoNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZy
+b206IFRvbWkgVmFsa2VpbmVuIFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXQ0KPiBT
+ZW50OiBGcmlkYXksIE1heSAxNCwgMjAxMCAxMjozNiBQTQ0KPiBUbzogTWl0dGFsLCBNdWt1bmQN
+Cj4gQ2M6IFRvbnkgTGluZGdyZW47IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IFN1Ympl
+Y3Q6IFJlOiBQYXRjaGVzIGZvciBlbmFibGluZyBkaXNwbGF5IG9uIFpvb20yLzMgJiAzNjMwIFNE
+UA0KPiANCj4gSGksDQo+IA0KPiBPbiBNb24sIDIwMTAtMDUtMTAgYXQgMDg6NDEgKzAyMDAsIGV4
+dCBNaXR0YWwsIE11a3VuZCB3cm90ZToNCj4gPiBUb21pLA0KPiA+IFdvdWxkIHlvdSBwbGVhc2Ug
+Y2hlY2sgaWYgdGhlcmUgYXJlIG5vIGZ1cnRoZXIgY29tbWVudHMgYW5kIGNhbiB5b3UNCj4gPiBw
+bGVhc2UgcHVsbCB0aGUgZm9sbG93aW5nIHBhdGNoZXMgaW4/DQo+ID4NCj4gPiBodHRwczovL3Bh
+dGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk1MDY3Lw0KPiA+IGh0dHBzOi8vcGF0Y2h3b3JrLmtl
+cm5lbC5vcmcvcGF0Y2gvOTUwNjgvDQo+ID4gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9w
+YXRjaC85NDkzNy8NCj4gPiBodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk0OTM0
+Lw0KPiA+IGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvOTQ4OTMvDQo+IA0KPiAN
+Cj4gVGhpcyBvbmUgaXMgYWxyZWFkeSBhcHBsaWVkOg0KPiBPTUFQOkRTUzogQWRkIG1pc3Npbmcg
+bGluZSBmb3IgdXBkYXRlIGJnIGNvbG9yDQo+IA0KPiBUaGlzIHBhdGNoIGFmZmVjdHMgYWxzbyAz
+NjMwU0RQLCBzaG91bGQgYmUgbWVudGlvbmVkIGluIHBhdGNoIHRpdGxlLiBBbmQNCj4gSSB0aGlu
+ayB0aGUgdGl0bGUgc2hvdWxkIG5vdCBiZSAiT01BUDogRFNTIiwgYXMgaXQncyBub3QgYWJvdXQg
+RFNTIGJ1dA0KPiB0aGUgYm9hcmQgZmlsZXMuIEl0IHNob3VsZCBiZSBzb21ldGhpbmcgbGlrZSBP
+TUFQMzYzMFNEUDogb3Igc2ltaWxhci4NCj4gT01BUDogRFNTOiBBZGQgZGlzcGxheSBib2FyZCBm
+aWxlIGZvciB6b29tIGJvYXJkcw0KPiANCj4gU2FtZSBjb21tZW50IGFzIGFib3ZlOg0KPiBPTUFQ
+OiBEU1M6IEVuYWJsZSBkaXNwbGF5IG9uIFpPT00yLzMgJiAzNjMwU0RQDQo+IA0KPiBUUk0gc3Bl
+YWtzIG9mIHByZS1tdWx0aXBsaWVkIGFscGhhLCBhcyBkb2VzIHlvdXIgcGF0Y2ggdGl0bGUuIEJ1
+dCBpbiB0aGUNCj4gY29kZSB5b3VyIHZhcmlhYmxlcyBhcmUgcHJlLWFscGhhIG11bHRpcGxpZWQ6
+DQo+IE9NQVAzNjMwOkRTUzI6RW5hYmxlIFByZS1NdWx0aXBsaWVkIEFscGhhIFN1cHBvcnQNCj4g
+DQo+IEZvciB0aGlzIG9uZSBJIGhhdmUgYWxyZWFkeSBzZW50IGNvbW1lbnRzLCB0aGV5IGhhdmUg
+bm90IGJlZW4gYW5zd2VyZWQuDQo+IFRoZXJlIHdlcmUgc29tZSBwcm9ibGVtcyB3aXRoIGVtYWls
+cyB0byBsaW51eC1vbWFwIGF0IHRoYXQgdGltZSwgc28gSSd2ZQ0KPiBhbHNvIGF0dGFjaGVkIHRo
+ZSBlbWFpbC4gQWxzbywgdGhpcyBwYXRjaCBzaG91bGQgZ28gaW4gYmVmb3JlIHRoZSBib2FyZA0K
+PiBmaWxlIHBhdGNoZXMgYWJvdmUsIHNvIHB1dCB0aGVtIGludG8gc2FtZSBwYXRjaCBzZXQgd2l0
+aCB0aGlzIG9uZSBiZWZvcmUNCj4gdGhlIGJvYXJkIGZpbGUgY2hhbmdlczoNCj4gT01BUDogRFNT
+OiBBZGQgTkVDIE5MODA0OEhMMTEtMDFCIGRpc3BsYXkgcGFuZWwNCj4gDQo+IEFsc28sIG1hbnkg
+b2YgdGhlIHBhdGNoIGNvbW1lbnRzIGNvbnRhaW5lZCB0eXBvcy4gQ291bGQgeW91IGNoZWNrIHRo
+ZW0NCj4gYWxzbz8NCj4gDQo+IFRvbWkNCg0K
