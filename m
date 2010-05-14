@@ -1,53 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 14:53:42 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1005141441220.3348@utopia.booyaka.com>
-References: <Pine.LNX.4.44L0.1005040949060.1729-100000@iolanthe.rowland.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Fri, 14 May 2010 23:25:07 +0200
+Message-ID: <201005142325.08061.rjw@sisk.pl>
+References: <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com> <201005132356.21355.rjw@sisk.pl> <878w7mgqse.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <Pine.LNX.4.44L0.1005040949060.1729-100000@iolanthe.rowland.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Arjan van de Ven <arjan@infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:58228 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752719Ab0ENVYI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 May 2010 17:24:08 -0400
+In-Reply-To: <878w7mgqse.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, Matthew Garrett <mjg@redhat.com>, Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, =?iso-8859-1?q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
+On Friday 14 May 2010, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> 
+> > On Thursday 13 May 2010, Tony Lindgren wrote:
+> >> * Rafael J. Wysocki <rjw@sisk.pl> [100513 14:16]:
+> 
+> [...]
+> 
+> >>  
+> >> > It solves a practical issue that _at_ _the_ _moment_ cannot be solved
+> >> > differently, while there's a growing number of out-of-tree drivers depending
+> >> > on this framework.  We need those drivers in and because we don't have any
+> >> > viable alternative at hand, we have no good reason to reject it.
+> >> 
+> >> Nothing is preventing merging the drivers can be merged without
+> >> these calls.
+> >
+> > And yet, there _is_ a growing nuber of drivers that don't get merge because
+> > of that.  That's _reality_.  Are you going to discuss with facts, or what?
+> 
+> It may be reality, but IMO, "preventing other drivers" isn't a good
+> *technical* argument for merging a feature.  It feels like these "for
+> the 'good' of the community" arguments are being used to trump the
+> technical arguments.  Maybe we need to keep the separate.
+> 
+> Distros (especially embedded ones) have long had out of tree features
+> that create barriers to getting other drivers upstream.  While it
+> might be nice to see all those features upstream, no one has argued
+> that they should get merged simply because they create a barrier.  Each
+> feature should be merged on its own technical merit.
 
-Hello,
+Well, this is very much like the selinux vs apparmour (& friends) issue.
+One can argue we need only one of them, but in fact we're not worse off having
+both in.
 
-On Tue, 4 May 2010, Alan Stern wrote:
+The feature is not technically unacceptable to me and since having it in
+would potentially make it easier to merge quite a few drivers, I regard that as
+a good enough argument for.  YMMV.
 
-> Another thing that Kevin is missing: There is more to the system than
-> the devices and the CPU.  For example: RAM, an embedded controller (on
-> modern desktop/laptop systems), a power supply, and so on.  Dynamic PM
-> for the CPU and the devices won't power-down these things, but system
-> PM will.
-
-No.  A dynamic PM-based kernel can, and in the case of the mainline Linux 
-code running on OMAP, does, power down RAM[1] and the power supply[2].
-
-Since the CPU is already powered off when it is time for this to happen, 
-so this is done under autonomous hardware control.  We currently use 
-CPUIdle[3] to choose whether to program the SoC hardware to enable this 
-autonomous power control before it goes off, depending on the required 
-wakeup latency for timers and PM constraints.
-
-
-- Paul
-
-
-1. (technically, put the RAM into self-refresh mode): 
-   http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/mach-omap2/sleep34xx.S/sleep34xx.S;h=d522cd70bf53485d0a3af2453845777e3a89edd7;hb=4fc4c3ce0dc1096cbd0daa3fe8f6905cbec2b87e#l204
-
-2. http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/mach-omap2/sleep34xx.S/sleep34xx.S;h=d522cd70bf53485d0a3af2453845777e3a89edd7;hb=4fc4c3ce0dc1096cbd0daa3fe8f6905cbec2b87e#l204
-
-3. http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/arm/mach-omap2/cpuidle34xx.c;h=3d3d035db9aff62ce522e0080e570cfdbf8e70cc;hb=4462dc02842698f173f518c1f5ce79c0fb89395a#l292
+Thanks,
+Rafael
