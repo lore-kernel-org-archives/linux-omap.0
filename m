@@ -1,117 +1,61 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
-Date: Fri, 14 May 2010 18:09:30 +0300
-Message-ID: <AANLkTildHTovAq6DZa2nPgYwX3BHsHuvM9oKGFssFH6-@mail.gmail.com>
-References: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] Initial attempt to make ARM use LMB
+Date: Fri, 14 May 2010 08:22:09 -0700
+Message-ID: <20100514152208.GU3428@atomide.com>
+References: <20100325233248.GM24984@n2100.arm.linux.org.uk>
+ <20100505150209.GC2606@n2100.arm.linux.org.uk>
+ <20100513174023.GB13001@n2100.arm.linux.org.uk>
+ <20100513211951.GH3428@atomide.com>
+ <20100513215825.GC13001@n2100.arm.linux.org.uk>
+ <20100513220139.GO3428@atomide.com>
+ <20100513221229.GD13001@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f191.google.com ([209.85.210.191]:55839 "EHLO
-	mail-yx0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140Ab0ENPJv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 11:09:51 -0400
-Received: by yxe29 with SMTP id 29so1019319yxe.4
-        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 08:09:50 -0700 (PDT)
-In-Reply-To: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54258 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751140Ab0ENPWW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 11:22:22 -0400
+Content-Disposition: inline
+In-Reply-To: <20100513221229.GD13001@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Hi Felipe,
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [100513 15:07]:
+> On Thu, May 13, 2010 at 03:01:39PM -0700, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [100513 14:53]:
+> > > On Thu, May 13, 2010 at 02:19:51PM -0700, Tony Lindgren wrote:
+> > > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [100513 10:35]:
+> > > > > And here's a patch which converts the OMAP FB code to use lmb_reserve
+> > > > > instead of poking about with bootmem stuff.  Untested, so I'd like to
+> > > > > hear back whether it works.
+> > > > 
+> > > > Did a quick test with the following patches picked from your lmb
+> > > > branch on top of omap for-next branch:
+> > > > 
+> > > > ARM: Remove useless linux/bootmem.h includes
+> > > > ARM: Ensure meminfo is sorted prior to sanity_check_meminfo
+> > > > ARM: initial LMB trial
+> > > > ARM: Move platform LMB memory reservations out of generic code
+> > > > 
+> > > > and then this patch.
+> > > > 
+> > > > It does not boot.. It seems to be related to the patch
+> > > > "ARM: initial LMB trial". If I only apply the first two patches
+> > > > above the system boots.
+> > > 
+> > > Hmm, I'm sure it worked for me when I tested it out.  Could you try
+> > > booting with lmb=debug please?
+> > 
+> > No other output with that it seems.
+> 
+> Hang on, you didn't pick up ARM: Move memory mapping into mmu.c ?
 
-On Fri, May 14, 2010 at 6:01 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> Hi,
->
-> The main purpose of this patch series is to be able to compile mach p=
-latform
-> data as built-in. Otherwise, client modules such as bridgedriver will=
- load the
-> platform code, but not the mach code when mailbox is built as a modul=
-e.
->
-> Unfortunately, there's no easy way to do that since plat and mach cod=
-e are
-> deepely interrelated. So the first patches try to separate the mailbo=
-x
-> registering through a defined omap_mbox_platform_data.
+Hmm, looks like I did not send a reply yesterday.. Here's a
+second attempt.
 
+Yeah, that missing patch was it. Compiles and boots now:
 
-Have you considered converting mailbox to hwmod + omap_device ?
-
-
-Thanks,
-Ohad.
-
->
-> Also, it's worth noting that mailboxes are not a one-to-one mapping t=
-o
-> resources; that is, some resources belong to multiple mboxes. So it's=
- best to
-> think of mailboxes as fake devices. That is why custom platform_data =
-is required.
->
-> Finally, a bunch of cleaning up is done in the very first patches, sp=
-ecially for
-> OMAP1.
->
-> The initial RFC included comments from Felipe Balbi, and this proposa=
-l includes
-> comments from Tony Lindgren.
->
-> v2:
-> =A0* Rebased on top of Hiroshi's v2.6.34-rc7.mailbox
-> =A0* A bit more extra cleanups
->
-> v1 was tested on OMAP3 (beagleboard), and compiled-tested for OMAP1.
-> v2 was compile-tested for OMAP3 and 1.
->
-> Felipe Contreras (17):
-> =A0omap: mailbox: trivial whitespace cleanups
-> =A0omap: mailbox: trivial cleanups
-> =A0omap: mailbox: reorganize structures
-> =A0omap: mailbox: 2420 should be detected at run-time
-> =A0omap: mailbox: use correct config for omap1
-> =A0omap: mailbox: update omap1 probing
-> =A0omap: mailbox: reorganize registering
-> =A0omap: mailbox: only compile for configured archs
-> =A0omap: mailbox: reorganize omap platform_device
-> =A0omap: mailbox: move more stuff to omap_mbox_init()
-> =A0omap: mailbox: trivial sync between omap1 and 2
-> =A0omap: mailbox: split platform driver
-> =A0omap: mailbox: always built-in platform data
-> =A0omap: mailbox: reorganize headers
-> =A0omap: mailbox: don't export unecessary symbols
-> =A0omap: mailbox: mark some resources as __initdata
-> =A0omap: mailbox: don't export register/unregister
->
-> =A0arch/arm/mach-omap1/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A06=
- +-
-> =A0arch/arm/mach-omap1/devices.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 40 ---=
---
-> =A0arch/arm/mach-omap1/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0118 +++=
-+++++------
-> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A05=
- +-
-> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 92 ---=
---------
-> =A0arch/arm/mach-omap2/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0254 +++=
-+++++++++++++-------------
-> =A0arch/arm/plat-omap/include/plat/mailbox.h | =A0 10 +-
-> =A0arch/arm/plat-omap/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 89 +=
-++++++---
-> =A08 files changed, 290 insertions(+), 324 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tested-by: Tony Lindgren <tony@atomide.com>
