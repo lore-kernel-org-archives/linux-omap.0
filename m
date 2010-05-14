@@ -1,15 +1,15 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH v2 13/17] omap: mailbox: always built-in platform data
-Date: Fri, 14 May 2010 18:01:46 +0300
-Message-ID: <1273849310-32169-14-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH v2 16/17] omap: mailbox: mark some resources as __initdata
+Date: Fri, 14 May 2010 18:01:49 +0300
+Message-ID: <1273849310-32169-17-git-send-email-felipe.contreras@gmail.com>
 References: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:44846 "EHLO
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:33360 "EHLO
 	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755631Ab0ENPC2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 11:02:28 -0400
-Received: by mail-ew0-f216.google.com with SMTP id 8so902320ewy.28
-        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 08:02:28 -0700 (PDT)
+	with ESMTP id S1755997Ab0ENPCe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 11:02:34 -0400
+Received: by mail-ew0-f216.google.com with SMTP id 8so902601ewy.28
+        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 08:02:33 -0700 (PDT)
 In-Reply-To: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,43 +18,54 @@ Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu
 
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- arch/arm/mach-omap1/Makefile |    6 +++---
- arch/arm/mach-omap2/Makefile |    5 +++--
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap1/mailbox.c |    2 +-
+ arch/arm/mach-omap2/mailbox.c |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index b6a537c..c1e1ae5 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -14,9 +14,9 @@ obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
- # Power Management
- obj-$(CONFIG_PM) += pm.o sleep.o
+diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
+index 7e6aea3..aa661a1 100644
+--- a/arch/arm/mach-omap1/mailbox.c
++++ b/arch/arm/mach-omap1/mailbox.c
+@@ -144,7 +144,7 @@ struct omap_mbox mbox_dsp_info = {
+ struct omap_mbox *omap1_mboxes[] = { &mbox_dsp_info, NULL };
  
--# DSP
--obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
--mailbox_mach-objs		:= mailbox.o
-+ifneq ($(CONFIG_OMAP_MBOX_FWK),)
-+obj-y					+= mailbox.o
-+endif
+ #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
+-static struct resource omap1_mbox_resources[] = {
++static struct resource __initdata omap1_mbox_resources[] = {
+ 	{
+ 		.start		= OMAP16XX_MAILBOX_BASE,
+ 		.end		= OMAP16XX_MAILBOX_BASE, /* to be updated */
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index f230edb..ddaf7f0 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -389,7 +389,7 @@ struct omap_mbox *omap4_mboxes[] = { &mbox_1_info, &mbox_2_info, NULL };
+ #endif
  
- i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
- obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4b9fc57..c9757fb 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -86,8 +86,9 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
- # EMU peripherals
- obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+ #ifdef CONFIG_ARCH_OMAP2420
+-static struct resource omap2_mbox_resources[] = {
++static struct resource __initdata omap2_mbox_resources[] = {
+ 	{
+ 		.start		= OMAP24XX_MAILBOX_BASE,
+ 		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+@@ -407,7 +407,7 @@ static struct resource omap2_mbox_resources[] = {
+ #endif
  
--obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
--mailbox_mach-objs			:= mailbox.o
-+ifneq ($(CONFIG_OMAP_MBOX_FWK),)
-+obj-y					+= mailbox.o
-+endif
+ #ifdef CONFIG_ARCH_OMAP3430
+-static struct resource omap3_mbox_resources[] = {
++static struct resource __initdata omap3_mbox_resources[] = {
+ 	{
+ 		.start		= OMAP34XX_MAILBOX_BASE,
+ 		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+@@ -421,7 +421,7 @@ static struct resource omap3_mbox_resources[] = {
+ #endif
  
- iommu-y					+= iommu2.o
- iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
+ #ifdef CONFIG_ARCH_OMAP4
+-static struct resource omap4_mbox_resources[] = {
++static struct resource __initdata omap4_mbox_resources[] = {
+ 	{
+ 		.start          = OMAP44XX_MAILBOX_BASE,
+ 		.end            = OMAP44XX_MAILBOX_BASE + OMAP4_MBOX_REG_SIZE - 1,
 -- 
 1.7.1
 
