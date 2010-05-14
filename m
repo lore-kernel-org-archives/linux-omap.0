@@ -1,40 +1,73 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
+From: simon@santesteban.eu
 Subject: RE: USB video capture shuts up
-Date: Fri, 14 May 2010 19:16:46 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D898@dbde02.ent.ti.com>
+Date: Fri, 14 May 2010 15:55:14 +0200 (CEST)
+Message-ID: <52653.79.153.141.221.1273845314.squirrel@mail.santesteban.eu>
 References: <36070.80.35.16.215.1273843502.squirrel@mail.santesteban.eu>
+    <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D898@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51393 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756166Ab0ENNrJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 May 2010 09:47:09 -0400
-In-Reply-To: <36070.80.35.16.215.1273843502.squirrel@mail.santesteban.eu>
-Content-Language: en-US
+Received: from slcd079.piensasolutions.com ([217.76.150.162]:59767 "EHLO
+	slcd079.piensasolutions.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751312Ab0ENNzR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 May 2010 09:55:17 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D898@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "simon@santesteban.eu" <simon@santesteban.eu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-c2ltb25Ac2FudGVzdGViYW4uZXUgd3JvdGU6DQo+IEhpIEkgYW0gdXNpbmcgYSB2NGwyIHVzYiB2
-aWRlbyBjYXB0dXJlciAoZW0yOHh4IGJhc2VkKSwgYW5kIGl0IGlzIHdvcmtpbmcNCj4gZmluZSBm
-b3IgYXJvdW5kIDUgbWludXRlcy4gSG93ZXZlciwgaXQgc3RvcHMgY2FwdHVyaW5nIGFmdGVyIHRo
-aXMgdGltZS4NCj4gDQo+IFRoZXJlIGlzIG5vIGVycm9yIG1lc3NhZ2Ugc2VudCB0byBrbXNnIG90
-IHRoZSBhcHBsaWNhdGlvbiwgd2hpY2gNCj4gYXBwYXJlbnRseSB3YWl0cyBmb3IgbW9yZSBkYXRh
-IHRvIGJlIHJlY2VpdmVkLg0KPiANCj4gVGhlIGRlYnVnIGR1bXAgZnJvbSB1c2Jtb24gaXM6DQo+
-IA0KPHNuaXAgdXNibW9uIGR1bXA+DQoNCj4gDQo+IEkgYW0gdXNpbmcga2VybmVsIDIuNi4zNC1y
-YzcsIGFuZCBub3cgdGhlIEUgbWVzc2FnZXMgYXJlIHNob3duLiBJbiBrZXJuZWxzDQo+IDIuNi4z
-MyBhbmQgMi42LjMyIHRoZSBidXMgd2VudCBvbiBzZW5kaW5nIGNhbGxiYWNrcyB3aXRoIDBzLg0K
-PiBJIGFzc3VtZSB0aGF0IHRoZXJlIGlzIHN0aWxsIHNvbWUgd29yayBpbiBwcm9ncmVzcyBvbiB0
-aGUgZWhjaSBtb2R1bGUsIGFuZA0KPiBldmVudHVhbGx5IHRoaXMgaXNzdWUgd2lsbCBiZSBzb2x2
-ZWQuDQo+IA0KPiBBbHNvLCB3aGVuIEkgc3RvcCB0aGUgYXBwbGljYXRpb24gdGhlIGZvbGxvd2lu
-ZyBtZXNzYWdlIGlzIHNob3duOg0KPiANCj4gZW0yOHh4ICMwOiBjYW5ub3QgY2hhbmdlIGFsdGVy
-bmF0ZSBudW1iZXIgdG8gMCAoZXJyb3I9LTExMCkNCj4gDQoNCldoaWNoIHByb2Nlc3NvciBhbmQg
-d2hpY2ggYm9hcmQgYXJlIHlvdSBydW5uaW5nIHRoaXMgb24/IFdoYXQgaXMgdGhlDQp0cmFuc2Nl
-aXZlciB5b3UgYXJlIHVzaW5nPyAoV2UgaGFkIGlzc3VlcyBkdWUgdG8gaW5hZGVxdWF0ZSBjYXBh
-Y2l0YW5jZQ0Kb24gc29tZSBwb3dlciByYWlscywgYW5kIHBvb3IgYm9hcmQgZGVzaWduKS4gVGhp
-cyBjb3VsZCBiZSBvbmUgc291cmNlDQpvZiB5b3VyIHByb2JsZW0uDQoNClRoZW4gYWdhaW4sIHlv
-dSBtaWdodCBiZSBoaXR0aW5nIGFuIE9NQVAgZXJyYXRhLg0KDQpBcmUgeW91IGFibGUgdG8gdXNl
-IHRoZSBkZXZpY2UgYWZ0ZXIgeW91IGxvYWQgdGhlIEVIQ0kgbW9kdWxlIGFnYWluPw0KDQotIEFu
-YW5kDQo=
+> simon@santesteban.eu wrote:
+>> Hi I am using a v4l2 usb video capturer (em28xx based), and it is
+>> working
+>> fine for around 5 minutes. However, it stops capturing after this time.
+>>
+>> There is no error message sent to kmsg ot the application, which
+>> apparently waits for more data to be received.
+>>
+>> The debug dump from usbmon is:
+>>
+> <snip usbmon dump>
+>
+>>
+>> I am using kernel 2.6.34-rc7, and now the E messages are shown. In
+>> kernels
+>> 2.6.33 and 2.6.32 the bus went on sending callbacks with 0s.
+>> I assume that there is still some work in progress on the ehci module,
+>> and
+>> eventually this issue will be solved.
+>>
+>> Also, when I stop the application the following message is shown:
+>>
+>> em28xx #0: cannot change alternate number to 0 (error=-110)
+>>
+>
+> Which processor and which board are you running this on? What is the
+> transceiver you are using? (We had issues due to inadequate capacitance
+> on some power rails, and poor board design). This could be one source
+> of your problem.
+>
+> Then again, you might be hitting an OMAP errata.
+>
+> Are you able to use the device after you load the EHCI module again?
+>
+> - Anand
+>
+
+
+I am using gumstix overo air board.
+
+I am using a hub attached to the overo, and the capturer attached to the
+device.
+
+Once I reload the ehci-hcd module, I have to replug either the usb hub or
+the capturer so that it is detected again by ehci.
+I mean, when I reload the ehci-hcd module the root hub is detected, but
+not the devices attached to it.
+
+Thanks,
+
+Simon
+
