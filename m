@@ -1,74 +1,51 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 15:18:13 -0700
-Message-ID: <AANLkTinyNYFwM4QJKPunlvK-ATJwSYVXGayeZIR9izx2@mail.gmail.com>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<87wrvl5479.fsf@deeprootsystems.com>
-	<20100503180741.GB2098@rakim.wolfsonmicro.main>
-	<201005032318.35383.rjw@sisk.pl> <87sk68r1zh.fsf@deeprootsystems.com>
-	<s2qd6200be21005031709r28420f0ezf3cf286517ee9114@mail.gmail.com>
-	<alpine.DEB.2.00.1005141422110.3348@utopia.booyaka.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2 08/17] omap: mailbox: only compile for configured archs
+Date: Sat, 15 May 2010 01:24:15 +0300
+Message-ID: <AANLkTilPh72HNFBx5ZkOVOFUf0tiR8CL7-7Abjgxbx0G@mail.gmail.com>
+References: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
+	 <1273849310-32169-9-git-send-email-felipe.contreras@gmail.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E4BBC5C8A@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <alpine.DEB.2.00.1005141422110.3348@utopia.booyaka.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, linux-input@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, =?ISO-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Brian Swetland <swetland@goo>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:46663 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752531Ab0ENWYR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 18:24:17 -0400
+Received: by fxm6 with SMTP id 6so1995046fxm.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 15:24:16 -0700 (PDT)
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4BBC5C8A@dlee03.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-On Fri, May 14, 2010 at 1:27 PM, Paul Walmsley <paul@pwsan.com> wrote:
+On Sat, May 15, 2010 at 12:27 AM, Kanigeri, Hari <h-kanigeri2@ti.com> w=
+rote:
+>>
+>> - =C2=A0 =C2=A0 if (cpu_is_omap3430()) {
+>> + =C2=A0 =C2=A0 if (false);
 >
-> Hello,
->
-> On Mon, 3 May 2010, Arve Hj=F8nnev=E5g wrote:
->
->> No, suspend blockers are mostly used to ensure wakeup events are not
->> ignored, and to ensure tasks triggered by these wakeup events
->> complete.
->
-> Standard Linux systems don't need these,
+> -- Is this statement needed ?
 
-If you don't want to lose wakeup events they do. Standard Linux
-systems support suspend, but since they usually don't have a lot of
-wakeup events you don't run into a lot of problems.
+Yeah, so:
 
-> because the scheduler just keeps
-> the system running as long as there is work to be done.
->
+if (false);
+#if 0
+else if (foo) {
+}
+#endif
+else {
+  return -1;
+}
 
-That is only true if you never use suspend.
+Works.
 
-> Suspend-blocks are only needed because patch 1's opportunistic suspend
-> governor tries to suspend the system even when the scheduler indicates
-> that there is work to be done. =A0That decision requires all kinds of hac=
-ks
-> throughout the codebase [1][2].
->
->
-> - Paul
->
->
-> 1. Paul Walmsley E-mail to the linux-pm mailing list, dated Fri, 14
-> =A0 May 2010 00:27:56 -0600:
-> =A0 http://permalink.gmane.org/gmane.linux.power-management.general/18658
->
-> 2. Paul Walmsley E-mail to the linux-pm mailing list, dated Fri, 14
-> =A0 May 2010 00:13:50 -0600:
-> =A0 http://permalink.gmane.org/gmane.linux.power-management.general/18657
->
->
-
-
--- =
-
-Arve Hj=F8nnev=E5g
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
