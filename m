@@ -1,67 +1,68 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv2 1/2]OMAP3: PM: To put all the powerdomains in OFF mode instead of Ret
-Date: Fri, 14 May 2010 10:04:04 -0700
-Message-ID: <877hn6mn3v.fsf@deeprootsystems.com>
-References: <1273830555-19750-1-git-send-email-shweta.gulati@ti.com>
+Subject: Re: [PATCHv3 12/22] OMAP3: PM: Minimizing the passing around of sr id in smartreflex.c
+Date: Fri, 14 May 2010 10:14:23 -0700
+Message-ID: <87wrv6l828.fsf@deeprootsystems.com>
+References: <1271408597-3066-1-git-send-email-thara@ti.com>
+	<1271408597-3066-2-git-send-email-thara@ti.com>
+	<1271408597-3066-3-git-send-email-thara@ti.com>
+	<1271408597-3066-4-git-send-email-thara@ti.com>
+	<1271408597-3066-5-git-send-email-thara@ti.com>
+	<1271408597-3066-6-git-send-email-thara@ti.com>
+	<1271408597-3066-7-git-send-email-thara@ti.com>
+	<1271408597-3066-8-git-send-email-thara@ti.com>
+	<1271408597-3066-9-git-send-email-thara@ti.com>
+	<1271408597-3066-10-git-send-email-thara@ti.com>
+	<1271408597-3066-11-git-send-email-thara@ti.com>
+	<1271408597-3066-12-git-send-email-thara@ti.com>
+	<1271408597-3066-13-git-send-email-thara@ti.com>
+	<87pr1kius7.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0322D7D370@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:48253 "EHLO
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:62282 "EHLO
 	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753992Ab0ENREK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 13:04:10 -0400
-Received: by gyg13 with SMTP id 13so1335417gyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 10:04:08 -0700 (PDT)
-In-Reply-To: <1273830555-19750-1-git-send-email-shweta.gulati@ti.com> (shweta gulati's message of "Fri\, 14 May 2010 15\:19\:15 +0530")
+	with ESMTP id S1755413Ab0ENRO2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 13:14:28 -0400
+Received: by gyg13 with SMTP id 13so1340932gyg.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 10:14:27 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D370@dbde02.ent.ti.com> (Thara Gopinath's message of "Thu\, 13 May 2010 12\:43\:15 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: shweta gulati <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, Vishwanath BS <Vishwanath.bs@ti.com>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-shweta gulati <shweta.gulati@ti.com> writes:
+"Gopinath, Thara" <thara@ti.com> writes:
 
-> From: Shweta Gulati <shweta.gulati@ti.com>
+>>>
+>>>Thara Gopinath <thara@ti.com> writes:
+>>>
+>>>> This patch ensures that sr id is passed as a parameter only to
+>>>> public APIs in smartreflex.c and other APIs in smartreflex.c
+>>>> uses the omap_sr strucutres.
+>>>>
+>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>>
+>>>Good change, but...
+>>>
+
+[...]
+
+>>>
+>>>... the class3 layer is still taking SR ID as a parameter and it
+>>>should also just take an sr_info ptr.
 >
-> According to Defect OMAPS00210499 CAM, DSS and USBHOST should stay
-> in OFF state instead of Retention in OS Idle Path.
+> sr_info is an internal structure for smartreflex driver. The
+> intention behind this patch is all external API's pass the srid and
+> internally the driver static APIs take sr_info as parameter. 
 
-Please summarize the above defect.
+OK, that makes sense.  I though I saw the usage of _sr_lookup() inside
+the class driver which made me think it should just take sr_info.  But
+looking again now, I see it's only using the id.
 
-> This Patch puts all the powerdomain in OFF state by default 
-> in pm init code and ensures that Mpu next state is OFF only
-> before it goes to Suspend/Idle and RET initiallly as that 
-> could have caused system to hang if ROM code issues WFI.  
+> I did not realize this point till now when I was doing the actual
+> changes and hence the late reply :-)
 
-That's a long sentence that is not clear.  It attempts to explain
-_what_ is happening, but is not clear about why.
-
-IIUC, this same patch could be done with a one-liner patch[1]
-
-> Signed-off-by: Vishwanath BS <Vishwanath.bs@ti.com>
-> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-> ---
-
--EDOESNOTAPPLY
-
-Please state what this patch applies to.  It does not apply to
-mainline, linux-omap or the PM branch.  I see OSWR related code
-in this patch which means it's clearly against an internal tree.
-
-Because of that, I didn't read the rest of the patch.
+no worries, thanks for clarifying.
 
 Kevin
-
-[1] 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 5039b35..5b93a84 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -74,7 +74,7 @@ static inline bool is_suspending(void)
- #define OMAP343X_TABLE_VALUE_OFFSET	   0x30
- #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0x32
- 
--u32 enable_off_mode;
-+u32 enable_off_mode = 1;
- u32 sleep_while_idle;
- u32 wakeup_timer_seconds;
- u32 wakeup_timer_milliseconds;
