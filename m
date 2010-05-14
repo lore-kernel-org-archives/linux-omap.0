@@ -1,42 +1,49 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 09:18:15 -0700
-Message-ID: <87fx1uo3so.fsf@deeprootsystems.com>
-References: <20100513191717.GA3428@atomide.com>
-	<Pine.LNX.4.44L0.1005131729510.1731-100000@iolanthe.rowland.org>
-	<20100513214739.GM3428@atomide.com>
-	<AANLkTilL2mvqpwirTfJRWZFdrFJvSihnaY8-xao4pLpH@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
+ OMAP data
+Date: Fri, 14 May 2010 09:27:39 -0700
+Message-ID: <20100514162739.GY3428@atomide.com>
+References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
+ <20100512152424.803ea807.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTilL2mvqpwirTfJRWZFdrFJvSihnaY8-xao4pLpH@mail.gmail.com> (Magnus Damm's message of "Fri\, 14 May 2010 12\:25\:26 +0900")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Linus Walleij <linus.walleij@ericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60300 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753340Ab0ENQ1y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 12:27:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20100512152424.803ea807.akpm@linux-foundation.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, santosh.shilimkar@ti.com, Ambresh <a0393775@ti.com>, felipe.balbi@nokia.com, Jouni Hogander <jouni.hogander@nokia.com>, Paul Mundt <lethal@linux-sh.org>
 
-Magnus Damm <magnus.damm@gmail.com> writes:
+* Andrew Morton <akpm@linux-foundation.org> [100512 15:19]:
+> 
+> I'd have thought that sysfs was an appropriate place for this info. 
+> Perhaps under /sys/devices/platform?  Or /sys/devices/system?  Peter's
+> original patch didn't tell us where in the hierarchy the file was
+> placed, nor why it was placed there, not what its contents look like. 
+> But crappy changelogs are the norm :(
 
-> Still not sure how the system wide suspend is different from Runtime
-> PM and CPUidle from the hardware perspective...
+To me both proc and sys work, I'm fine either way.
+ 
+> The objections stated in this email:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17630.html
+> appear to still apply to this version of the patches?
+>
+> Kevin didn't explain why he said "Please export these via debugfs". 
+> Tony didn't clearly explain why he said "I don't think we want to
+> export unique chip identifiers by default".
+ 
+The issue I had was with the unique silicon ID getting exposed
+by default to avoid the Pentium id number situation :)
 
-At least on OMAP and other embedded SoCs I'm familiar with, there is
-no difference from the hardware perspecitve.
+It's now handled with a Kconfig and cmdline option, basically the
+same way as the id on x86. So the issues in the email thread
+above are sorted out.
 
-However, I understand that on ACPI-based systems, there are low-power
-that are only reachable via system-wide suspsend since ACPI does not
-provide the kernel with fine-grained control to hit those states
-during idle.
+Regards,
 
-That being said, I don't think this should be an issue since
-opportunistic suspend is currently targetted primarily at embedded HW
-which has much more fine-grained power control than traditional
-ACPI-based systems.
-
-To me the only real difference between system-wide suspend and runtime
-PM + CPUidle is the freezing of userspace.
-
-As has been discussed elsewhere in this discussion, any alternative
-solution must address the freezing/idling of userspace.  
-
-Kevin
+Tony 
