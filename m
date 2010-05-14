@@ -1,62 +1,17 @@
-From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Subject: RE: [PATCH v2 0/2] DSS2:Allow FB to build without VRFB
-Date: Fri, 14 May 2010 15:33:24 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703042887DB@dbde02.ent.ti.com>
-References: <1273764028-25822-1-git-send-email-svadivu@ti.com>
- <1273821814.2814.63.camel@tubuntu.research.nokia.com>
+From: Liu Tai Ling <mayhan@zm09.stanford.edu>
+Subject: Consider my offer
+Date: Fri, 14 May 2010 03:05:25 -0700 (PDT)
+Message-ID: <523656474.136420.1273831525121.JavaMail.root@zm09.stanford.edu>
+Reply-To: Liu Tai Ling <lingtiutai12@yahoo.com.hk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49512 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752413Ab0ENKDf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 06:03:35 -0400
-In-Reply-To: <1273821814.2814.63.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from smtp3.Stanford.EDU ([171.67.219.83]:56808 "EHLO
+	smtp.stanford.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758915Ab0ENKFr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 06:05:47 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-IA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWkgVmFsa2VpbmVu
-IFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXSANCj4gU2VudDogRnJpZGF5LCBNYXkg
-MTQsIDIwMTAgMTI6NTQgUE0NCj4gVG86IEd1cnVzd2FteSwgU2VudGhpbHZhZGl2dQ0KPiBDYzog
-bGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWZiZGV2QHZnZXIua2VybmVsLm9yZzsg
-DQo+IHRvbnlAYXRvbWlkZS5jb207IEhpcmVtYXRoLCBWYWliaGF2DQo+IFN1YmplY3Q6IFJlOiBb
-UEFUQ0ggdjIgMC8yXSBEU1MyOkFsbG93IEZCIHRvIGJ1aWxkIHdpdGhvdXQgVlJGQg0KPiANCj4g
-SGksDQo+IA0KPiBPbiBUaHUsIDIwMTAtMDUtMTMgYXQgMTc6MjAgKzAyMDAsIGV4dCBTZW50aGls
-dmFkaXZ1IEd1cnVzd2FteSB3cm90ZToNCj4gPiBGcm9tOiBTZW50aGlsdmFkaXZ1IEd1cnVzd2Ft
-eSAgPHN2YWRpdnVAdGkuY29tPg0KPiA+IA0KPiA+IEhpIGFsbCwNCj4gPiANCj4gPiBUaGlzIHBh
-dGNoIHNlcmllcyByZXBsYWNlcyB0aGUgcGF0Y2ggDQo+ID4gIkRTUzIgSW5jbHVkZSBWUkZCIGlu
-dG8gb21hcDItM2J1aWxkIG9ubHkiDQo+ID4gVGhhbmtzIGZvciB0aGUgcmV2aWV3IGNvbW1lbnRz
-LiANCj4gPiANCj4gPiBUaGUgaW50ZW50IG9mIHRoaXMgc2VyaWVzIGlzIHRvIHNwbGl0IHRoZSBw
-YXRjaCBpbnRvIDIgbG9naWNhbA0KPiA+IHBhdGNoZXMgYW5kIGFsc28gdG8gaW5jb3Jwb3JhdGUg
-dGhlIGNvbW1lbnRzIG9uIG11bHRpLW9tYXAgYnVpbGQuDQo+ID4gDQo+ID4gSW4gdGhpcyBzZXJp
-ZXMsIEtjb25maWcgaXMgY2hhbmdlZCB0byBoYXZlIA0KPiA+IE9NQVAyX1ZSRkIgZGVwZW5kIG9u
-IEFSQ0hfT01BUDIgYW5kIEFSQ0hfT01BUDMuDQo+ID4gVGhpcyBjaGFuZ2UgdGFrZXMgY2FyZSBv
-ZiB0aGUgbXVsdGktb21hcCBidWlsZHMuIA0KPiA+IA0KPiA+IFRoaXMgcGF0Y2ggd291bGQgYWxs
-b3cgc3VjY2Vzc2Z1bCBidWlsZCBvZiBvbWFwXzQ0MzBzZHBfZGVmY29uZmlnIA0KPiA+IHdoZW4g
-T01BUDJfRFNTIGFuZCBGQl9PTUFQMiBpcyBlbmFibGVkIGZyb20gbWVudWNvbmZpZy4NCj4gPiAN
-Cj4gPiBGb3IgdmVyaWZpY2F0aW9uOiBHZW5lcmF0ZWQgdGhlIC5jb25maWcgb24gb21hcDNfZGVm
-Y29uZmlnIHdpdGggRFNTDQo+ID4gYW5kIEZCIGVuYWJsZWQuIEdlbmVyYXRlZCAuY29uZmlnIGlz
-IHNhbWUgd2l0aCBhbmQgd2l0aG91dCANCj4gdGhlIHBhdGNoLg0KPiA+IA0KPiA+IExpc3Qgb2Yg
-Q2hhbmdlZCBGaWxlczoNCj4gPiBhcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L3ZyZmIu
-aA0KPiA+IGRyaXZlcnMvdmlkZW8vb21hcDIvS2NvbmZpZw0KPiA+IGRyaXZlcnMvdmlkZW8vb21h
-cDIvb21hcGZiL0tjb25maWcNCj4gDQo+IFRoZSBwYXRjaCBzZXQgbWFrZXMgVlJGQiBvcHRpb25h
-bC4gV2hhdCBoYXBwZW5zIGlmIFZSRkIgaXMgdHVybmVkIG9mZiwNCj4gYW5kIHRoZSB1c2VyIHVz
-ZXMgVlJGQiBmb3IgYSBmcmFtZWJ1ZmZlcj8NCltTZW50aGlsXSBUaGlzIHBhdGNoIGtlZXBzIFZS
-RkI9eSBmb3IgQVJDSF9PTUFQMiBhbmQgQVJDSF9PTUFQMy4NClVzZXIgd291bGQgaGF2ZSBnb3Qg
-YW4gb3B0aW9uIHRvIHR1cm4gaXQgT0ZGIGlmIGl0IGhhZCBhcHBlYXJlZCBpbiANCnRoZSBtZW51
-Y29uZmlnIHNlbGVjdGlvbnMuICBJIGRpZCBub3QgZ2l2ZSB0aGF0IG9wdGlvbiBpbiBtZW51Y29u
-ZmlnIA0KZXhwbGljaXRseS4gDQppZSAgY29uZmlnIE9NQVAyX1ZSRkINCglib29sIDxObyBuYW1l
-IGdpdmVuIGhlcmU+DQoNClN1cHBvc2Ugb24gYSBidWlsZCB0aGUgdXNlciBkZWxpYmVyYXRlbHkg
-Z2l2ZXMgIkNPTkZJR19PTUFQMl9WUkZCIG5vdCBzZXQiLA0KdGhlbiBWUkZCIGZ1bmN0aW9ucyBh
-cmUgbWFkZSBhcyBlbXB0eSBmdW5jdGlvbnMgYnkgdGhlIGNvbXBpbGVyLg0KDQpUaGlzIGlzIGZp
-bmUgYXMgbG9uZyBhcyB0aGUgdXNlciBkb2VzIG5vdCBzYXkgb21hcGZiLnZyZmI9MS4NCg0KQnV0
-IGlmIHRoZSB1c2VyIHNldHMgb21hcGZiLnZyZmI9MSwgdGhlbiBpdCBpcyBhIHdyb25nIHVzYWdl
-IG9mIHRoZSBib290YXJncw0KYXMgaGUgaGFzIGFscmVhZHkgZGVsaWJlcmF0ZWx5IGNoYW5nZWQg
-dGhlIGRlZmNvbmZpZyB0byBzYXkgIlZSRkIgbm90IHNldCIuDQoNClRoZSByZXN1bHQgb2YgaGlz
-IGV4cGVyaW1lbnQ6IE5vIGJvb3R1cCBvbiB0aGUgYm9hcmQgYXMgdGhlIHZhZGRyIG9mIFZSRkIg
-DQppcyBwb3B1bGF0ZWQgbm9yIG9mIHRoZSBub3JtYWwgUkFNIGJ1ZmZlci4NCg0KPiAgVG9taQ0K
-PiANCj4gDQo+IA==
+I have a Business Proposal of $21,300,000.00 for you to handle with me from my bank.please contact me on(lingtai25@yahoo.com.hk) with your Full names,occupation,private phone number,current residential address
