@@ -1,86 +1,83 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH] omap_hsmmc: improve interrupt synchronisation
-Date: Fri, 14 May 2010 10:13:11 +0300
-Message-ID: <4BECF807.9060006@nokia.com>
-References: <4BEA5DD5.9010308@nokia.com> <20100512125213.36631d2d.akpm@linux-foundation.org>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: [PATCH 1/8] PM: Add suspend block api.
+Date: Fri, 14 May 2010 00:14:47 -0700
+Message-ID: <AANLkTimghkjR5PaWdOpJFM7jeq8vFpEAcF9DhgEW0hCK@mail.gmail.com>
+References: <1273810273-3039-1-git-send-email-arve@android.com>
+	<1273810273-3039-2-git-send-email-arve@android.com>
+	<alpine.DEB.2.00.1005140023220.3348@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:62599 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752408Ab0ENHNk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 03:13:40 -0400
-In-Reply-To: <20100512125213.36631d2d.akpm@linux-foundation.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <alpine.DEB.2.00.1005140023220.3348@utopia.booyaka.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Venkatraman S <svenkatr@ti.com>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Andrew Morton wrote:
-> On Wed, 12 May 2010 10:50:45 +0300
-> Adrian Hunter <adrian.hunter@nokia.com> wrote:
-> 
->> >From ad2e1cd024ccf9144b6620cfe808893719db738f Mon Sep 17 00:00:00 2001
->> From: Adrian Hunter <adrian.hunter@nokia.com>
->> Date: Wed, 14 Apr 2010 16:26:45 +0300
->> Subject: [PATCH] omap_hsmmc: improve interrupt synchronisation
+On Thu, May 13, 2010 at 11:27 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>
+> Hello,
+>
+> Another comment on the kernel suspend-blocker API.
+>
+> On Thu, 13 May 2010, Arve Hj=F8nnev=E5g wrote:
+>
+>> Adds /sys/power/policy that selects the behaviour of /sys/power/state.
+>> After setting the policy to opportunistic, writes to /sys/power/state
+>> become non-blocking requests that specify which suspend state to enter
+>> when no suspend blockers are active. A special state, "on", stops the
+>> process by activating the "main" suspend blocker.
 >>
->> The following changes were needed:
->> 	- do not use in_interrupt() because it will not work
->> 	with threaded interrupts
->>
->> In addition, the following improvements were made:
->> 	- ensure DMA is unmapped only after the final DMA interrupt
->> 	- ensure a request is completed only after the final DMA interrupt
->> 	- disable controller interrupts when a request is not in progress
->> 	- remove the spin-lock protecting the start of a new request from
->> 	an unexpected interrupt because the locking was complicated and
->> 	a 'req_in_progress' flag suffices (since the spin-lock only defers
->> 	the unexpected interrupts anyway)
->> 	- instead use the spin-lock to protect the MMC interrupt handler
->> 	from the DMA interrupt handler
->> 	- remove the semaphore preventing DMA from being started while
->> 	the previous DMA is still in progress - the other changes make that
->> 	impossible, so it is now a BUG_ON condition
->> 	- ensure the controller interrupt status is clear before exiting
->> 	the interrrupt handler
->>
->> In general, these changes make the code safer but do not fix any specific
->> bugs so backporting is not necessary.
->>
->>
->> ...
->>
->> +static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_request *mrq)
->> +{
->> +	int dma_ch;
->> +
->> +	spin_lock(&host->irq_lock);
->> +	host->req_in_progress = 0;
->> +	dma_ch = host->dma_ch;
->> +	spin_unlock(&host->irq_lock);
->> +
->> +	omap_hsmmc_disable_irq(host);
->> +	/* Do not complete the request if DMA is still in progress */
->> +	if (mrq->data && host->use_dma && dma_ch != -1)
->> +		return;
->> +	host->mrq = NULL;
->> +	mmc_request_done(host->mmc, mrq);
->> +}
-> 
-> Are we sure that irq_lock doesn't need to be taken in an irq-safe fashion?
+>> Signed-off-by: Arve Hj=F8nnev=E5g <arve@android.com>
+>
+> Looking at the way that suspend-blocks are used in the current Android
+> 'msm' kernel tree[1], they seem likely to cause layering violations,
+> fragile kernel code with userspace dependencies, and code that consumes
+> power unnecessarily.
+>
+> For example, in drivers/mmc/core/core.c:721, in mmc_rescan() [2], we find
+> the following code:
+>
+> =A0 =A0 =A0 =A0/* give userspace some time to react */
+> =A0 =A0 =A0 =A0wake_lock_timeout(&mmc_delayed_work_wake_lock, HZ / 2);
+>
+> This is a layering violation. =A0The MMC subsystem should have nothing to=
+ do
+> with "giving userspace time to react." =A0That is the responsibility of t=
+he
+> Linux scheduler.
+>
+> This code is also intrinsically fragile and use-case dependent. =A0What if
+> userspace occasionally needs more than (HZ / 2) to react? =A0If the
+> distributor is lucky enough to catch this before the product ships, then
+> the distributor can patch in a new magic number. =A0But if the device mak=
+es
+> it to the consumer, the result is an unstable device that unpredictably
+> suspends.
+>
+> The above code will also waste power. =A0Even if userspace takes less than
+> (HZ / 2) to react, the system will still be prevented from entering a
+> system-wide low power state for the duration of the remaining time. =A0Th=
+is
+> is in contrast to an approach that uses the idle loop to enter a
+> system-wide low power state. =A0The moment that the system has no further
+> work to do, it can start saving power.
+>
 
-It is OK at the moment.
+Yes, preventing suspend for 1/2 second wastes some power, but are you
+seriously suggesting that it wastes more power then never suspending?
+Opportunitic suspend does not prevent entering low power modes from
+idle.
 
-It is only used in interrupt handlers which currently do run in interrupt
-context with IRQF_DISABLED.  If both DMA and MMC interrupt handlers were
-changed to be threaded interrupts, then the spin-lock would still be OK.
-But if only one of them was changed, then the spin-lock would have to be
-changed to be irq-safe.
+-- =
 
-> send_init_stream() doesn't report an error if its busywait times out.
-
-It is not a problem.  It may mean the card does not initialize but if that
-happens there will be lots more errors.
-
+Arve Hj=F8nnev=E5g
