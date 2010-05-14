@@ -1,48 +1,68 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 00/15] omap: mailbox: reorganize init
-Date: Fri, 14 May 2010 12:12:53 +0300 (EEST)
-Message-ID: <20100514.121253.116379760.Hiroshi.DOYU@nokia.com>
-References: <1273772856-10881-1-git-send-email-felipe.contreras@gmail.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: [PATCH v2 1/2] DSS2: Allow FB_OMAP2 to build without VRFB
+Date: Fri, 14 May 2010 14:58:21 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703042887DA@dbde02.ent.ti.com>
+References: <1273764028-25822-1-git-send-email-svadivu@ti.com>
+ <1273764028-25822-2-git-send-email-svadivu@ti.com>
+ <EBB422FB-C763-4EBE-AAD3-02AE86D4FF05@student.utwente.nl>
+ <4BEC258D.7030104@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:65053 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752317Ab0ENJNg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 05:13:36 -0400
-In-Reply-To: <1273772856-10881-1-git-send-email-felipe.contreras@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47812 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181Ab0ENJ2a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 05:28:30 -0400
+In-Reply-To: <4BEC258D.7030104@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk
+To: "Menon, Nishanth" <nm@ti.com>, Koen Kooi <koen@dominion.thruhere.net>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Hi Felipe,
+ 
 
-From: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 00/15] omap: mailbox: reorganize init
-Date: Thu, 13 May 2010 19:47:21 +0200
-
-> Hi,
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Thursday, May 13, 2010 9:45 PM
+> To: Koen Kooi
+> Cc: Guruswamy, Senthilvadivu; linux-omap@vger.kernel.org; 
+> linux-fbdev@vger.kernel.org; tony@atomide.com; 
+> tomi.valkeinen@nokia.com; Hiremath, Vaibhav
+> Subject: Re: [PATCH v2 1/2] DSS2: Allow FB_OMAP2 to build without VRFB
 > 
-> The main purpose of this patch series is to be able to compile mach platform
-> data as built-in. Otherwise, client modules such as bridgedriver will load the
-> platform code, but not the mach code when mailbox is built as a module.
+> Koen Kooi had written, on 05/13/2010 11:00 AM, the following:
+> > Op 13 mei 2010, om 17:20 heeft Senthilvadivu Guruswamy het 
+> volgende geschreven:
+> > 
+> >> FB_OMAP2 can work without VRFB, but currently does not 
+> build. Fix this.
+> >>
+> >> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> >> ---
+> >>
+> >> +#ifdef CONFIG_OMAP2_VRFB
+> > 
+> > That is still a compiletime option, not a runtime check. 
+> You need something like if(is_omap3()), not #ifdef 
+> > 
+> having VRFB or tiler is a SOC feature - ideal detection should be in 
+> id.c using the FEATURES framework.
 > 
-> Unfortunately, there's no easy way to do that since plat and mach code are
-> deepely interrelated. So the first patches try to separate the mailbox
-> registering through a defined omap_mbox_platform_data.
-> 
-> Also, it's worth noting that mailboxes are not a one-to-one mapping to
-> resources; that is, some resources belong to multiple mboxes. So it's best to
-> think of mailboxes as fake devices. That is why custom platform_data is required.
-> 
-> Finally, a bunch of cleaning up is done in the very first patches, specially for
-> OMAP1.
+> and the actual rotation handling should be handled with function 
+> pointers to use VRFB apis OR use tiler APIs (once it is available) to 
+> runtime use the right rotation/other features functions runtime..
+[Senthil] Yes, its good to have function pointers to call VRFB/Tiler APIs.  
+We will consider FnPtrs for VRFB/Tiler when we plugin Tiler APIs in FB driver.
+ie "if (rotation.type == VRFB)" could be replaced with FnPtrs later.
 
-Can you rebase them against the following?
+Even to introduce FnPtrs for VRFB, compiletime dependency of sdrc.c-vrfb.c
+has to be resolved first (this patch address this) in case of omap 
+platforms without ARCH_OMAP2 and ARCH_OMAP3 
+(ie omap_4430sdp_defconfig, omap_panda_defconfig).
+Currently these omap4_defconfig is not compilable since sdrc.c is included
+as  $(omap2-3-common) = sdrc.o.
 
-  git://gitorious.org/~doyu/lk/mainline.git v2.6.34-rc7.mailbox
-
-The above includes the unmerged patches for omap mailbox, and it seems
-that yours can be applied to neither v2.6.34-rc7 or omap/master now.
+Regards,
+Senthil
