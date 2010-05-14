@@ -1,71 +1,226 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 23:50:01 +0200
-Message-ID: <201005142350.01222.rjw@sisk.pl>
-References: <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com>
-	<878w7mgqse.fsf@deeprootsystems.com>
-	<87tyqaduvr.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/5] OMAP4 HSMMC: Adding hsmmc support to board file
+Date: Fri, 14 May 2010 14:56:51 -0700
+Message-ID: <20100514215651.GI3428@atomide.com>
+References: <12490.10.24.255.17.1273781497.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <87tyqaduvr.fsf@deeprootsystems.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Arve@smtp1.linux-foundation.org, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <12490.10.24.255.17.1273781497.squirrel@dbdmail.itg.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: kishore kadiyala <kishore.kadiyala@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk, paul@pwsan.com, adrian.hunter@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 14 May 2010, Kevin Hilman wrote:
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
+* kishore kadiyala <kishore.kadiyala@ti.com> [100513 13:06]:
+> Support for MMC1 & MMC2 controllers is added to the board file.
+> Also includes configuration of MMC1 Card detect initially.
+
+This patch does not seem to apply, I don't know where you're getting
+the sdp4430_vmmc_supply in this patch?
+
+I suggest you forget about the card detect patches for now and
+first produce a minimal set of patches to get the MMC working
+for board-4430sdp.c. The card detect patches should be applied
+only after board-4430sdp.c works for MMC. And we're running out
+of time for this merge window.
+
+Regards,
+
+Tony
+ 
+> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile        |    3 +-
+>  arch/arm/mach-omap2/board-4430sdp.c |   64 +++++++++++++++++++++++++++++++----
+>  include/linux/i2c/twl.h             |   44 ++++++++++++++++++++++++
+>  3 files changed, 103 insertions(+), 8 deletions(-)
 > 
-> > "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> >
-> >> On Thursday 13 May 2010, Tony Lindgren wrote:
-> >>> * Rafael J. Wysocki <rjw@sisk.pl> [100513 14:16]:
-> >
-> > [...]
-> >
-> >>>  
-> >>> > It solves a practical issue that _at_ _the_ _moment_ cannot be solved
-> >>> > differently, while there's a growing number of out-of-tree drivers depending
-> >>> > on this framework.  We need those drivers in and because we don't have any
-> >>> > viable alternative at hand, we have no good reason to reject it.
-> >>> 
-> >>> Nothing is preventing merging the drivers can be merged without
-> >>> these calls.
-> >>
-> >> And yet, there _is_ a growing nuber of drivers that don't get merge because
-> >> of that.  That's _reality_.  Are you going to discuss with facts, or what?
-> >
-> > It may be reality, but IMO, "preventing other drivers" isn't a good
-> > *technical* argument for merging a feature.  It feels like these "for
-> > the 'good' of the community" arguments are being used to trump the
-> > technical arguments.  Maybe we need to keep the separate.
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index ffe600a..65d8d11 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -140,7 +140,8 @@ obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
+>  					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK)	+= board-omap3touchbook.o \
+>  					   hsmmc.o
+> -obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
+> +obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o \
+> +					   hsmmc.o
 > 
-> To continue along the "for the good of the community" path...
+>  obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
 > 
-> If it truly is the lack of a suspend blocker API that is preventing
-> the merge of these out of tree drivers, I second Mark's proposal[1] to
-> merge a noop version of the API while the technical issues continue to
-> be discussed.
-
-I'm against that, sorry.
-
-> Then we would see how many drivers get submitted and merged.
->
-> Personally, I suspect that lack of this feature is not the real
-> obstacle to getting these out-of-tree drivers upstream.  Having this
-> API upstream will not change the product schedules and corporate
-> cultures that have prevented code from making its way upstream.
-
-But apparently it is considered as a suitable excuse.
-
-Rafael
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index d86e22d..70c8ab7 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -32,6 +32,8 @@
+>  #include <plat/control.h>
+>  #include <plat/timer-gp.h>
+>  #include <plat/usb.h>
+> +#include <plat/mmc.h>
+> +#include "hsmmc.h"
+> 
+>  static struct platform_device sdp4430_lcd_device = {
+>  	.name		= "sdp4430_lcd",
+> @@ -68,24 +70,71 @@ static struct omap_musb_board_data musb_board_data = {
+>  	.power			= 100,
+>  };
+> 
+> -static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+> -	{
+> -		.supply = "vmmc",
+> -	},
+> +static struct omap2_hsmmc_info mmc[] = {
+>  	{
+> -		.supply = "vmmc",
+> +		.mmc		= 1,
+> +		.wires		= 8,
+> +		.gpio_cd	= TWL6030_IRQ_BASE + MMCDETECT_INTR_OFFSET,
+> +		.cd_type	= NON_GPIO,
+> +		.gpio_wp	= -EINVAL,
+>  	},
+>  	{
+> -		.supply = "vmmc",
+> +		.mmc		= 2,
+> +		.wires		= 8,
+> +		.gpio_cd	= -EINVAL,
+> +		.gpio_wp	= -EINVAL,
+> +		.nonremovable   = true,
+>  	},
+> +	{}	/* Terminator */
+> +};
+> +
+> +static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+>  	{
+>  		.supply = "vmmc",
+> +		.dev_name = "mmci-omap-hs.0",
+>  	},
+>  	{
+>  		.supply = "vmmc",
+> +		.dev_name = "mmci-omap-hs.1",
+>  	},
+>  };
+> 
+> +static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+> +{
+> +	int ret = 0;
+> +	struct platform_device *pdev = container_of(dev,
+> +				struct platform_device, dev);
+> +	struct omap_mmc_platform_data *pdata = dev->platform_data;
+> +
+> +	/* MMC1 Card detect Configuration */
+> +	if (pdev->id == 0) {
+> +		ret = omap4_hsmmc1_card_detect_config();
+> +		if (ret < 0)
+> +			pr_err("Unable to configure Card detect for MMC1\n");
+> +		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
+> +						MMCDETECT_INTR_OFFSET;
+> +	}
+> +	return ret;
+> +}
+> +
+> +static __init void omap4_twl6030_hsmmc_set_late_init(struct device *dev)
+> +{
+> +	struct omap_mmc_platform_data *pdata = dev->platform_data;
+> +
+> +	pdata->init =	omap4_twl6030_hsmmc_late_init;
+> +}
+> +
+> +static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+> +{
+> +	struct omap2_hsmmc_info *c;
+> +
+> +	omap2_hsmmc_init(controllers);
+> +	for (c = controllers; c->mmc; c++)
+> +		omap4_twl6030_hsmmc_set_late_init(c->dev);
+> +
+> +	return 0;
+> +}
+> +
+>  static struct regulator_init_data sdp4430_vaux1 = {
+>  	.constraints = {
+>  		.min_uV			= 1000000,
+> @@ -137,7 +186,7 @@ static struct regulator_init_data sdp4430_vmmc = {
+>  					| REGULATOR_CHANGE_MODE
+>  					| REGULATOR_CHANGE_STATUS,
+>  	},
+> -	.num_consumer_supplies  = 5,
+> +	.num_consumer_supplies  = 2,
+>  	.consumer_supplies      = sdp4430_vmmc_supply,
+>  };
+> 
+> @@ -256,6 +305,7 @@ static void __init omap_4430sdp_init(void)
+>  	omap4_i2c_init();
+>  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+>  	omap_serial_init();
+> +	omap4_twl6030_hsmmc_init(mmc);
+>  	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
+>  	usb_nop_xceiv_register();
+>  	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
+> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> index fb6784e..f382d59 100644
+> --- a/include/linux/i2c/twl.h
+> +++ b/include/linux/i2c/twl.h
+> @@ -141,6 +141,15 @@
+>  #define TWL6030_CHARGER_CTRL_INT_MASK 	0x10
+>  #define TWL6030_CHARGER_FAULT_INT_MASK 	0x60
+> 
+> +#define TWL6030_MMCCTRL			0xEE
+> +#define VMMC_AUTO_OFF			(0x1 << 3)
+> +#define SW_FC				(0x1 << 2)
+> +#define STS_MMC				0x1
+> +
+> +#define TWL6030_CFG_INPUT_PUPD3		0xF2
+> +#define MMC_PU				(0x1 << 3)
+> +#define MMC_PD				(0x1 << 2)
+> +
+> 
+>  #define TWL4030_CLASS_ID 		0x4030
+>  #define TWL6030_CLASS_ID 		0x6030
+> @@ -173,6 +182,41 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
+>  int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
+>  int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+> 
+> +/* Configuring Card Detect for MMC1 */
+> +static inline int omap4_hsmmc1_card_detect_config(void)
+> +{
+> +	int res = -1;
+> +	u8 reg_val = 0;
+> +
+> +	/* Unmasking the Card detect Interrupt line for MMC1 from Phoenix */
+> +	if (twl_class_is_6030()) {
+> +		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
+> +							REG_INT_MSK_LINE_B);
+> +		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
+> +							REG_INT_MSK_STS_B);
+> +	}
+> +
+> +	/*
+> +	 * Intially Configuring MMC_CTRL for receving interrupts &
+> +	 * Card status on TWL6030 for MMC1
+> +	 */
+> +	res = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val, TWL6030_MMCCTRL);
+> +	if (res < 0)
+> +		return res;
+> +	reg_val &= ~VMMC_AUTO_OFF;
+> +	reg_val |= SW_FC;
+> +	twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_MMCCTRL);
+> +
+> +	res = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
+> +						TWL6030_CFG_INPUT_PUPD3);
+> +	if (res < 0)
+> +		return res;
+> +	reg_val &= ~(MMC_PU | MMC_PD);
+> +	twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,
+> +						TWL6030_CFG_INPUT_PUPD3);
+> +	return res;
+> +}
+> +
+>  /*----------------------------------------------------------------------*/
+> 
+>  /*
+> -- 
+> 1.6.3.3
+> 
