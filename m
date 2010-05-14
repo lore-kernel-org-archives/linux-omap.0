@@ -1,90 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/10] omap: DMA: Fix multi-line comments
-Date: Fri, 14 May 2010 14:27:52 -0700
-Message-ID: <20100514212752.25599.69904.stgit@baageli.muru.com>
+Subject: [PATCH 03/10] omap: init the gpio pinmux for mmc
+Date: Fri, 14 May 2010 14:27:54 -0700
+Message-ID: <20100514212754.25599.5024.stgit@baageli.muru.com>
 References: <20100514212506.25599.98073.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56257 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755499Ab0ENV1y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 17:27:54 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63198 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755797Ab0ENV1z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 17:27:55 -0400
 In-Reply-To: <20100514212506.25599.98073.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Manjunatha GK <manjugk@ti.com>, linux-omap@vger.kernel.org
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
 
-From: manjugk manjugk <manjugk@ti.com>
+From: stanley.miao <stanley.miao@windriver.com>
 
-Multi line comments are fixed as per CodingStyle
-guidelines.
+There is two gpio for mmc use, one is for card detecting, another is
+used for checking write protect. Intialize its pinmux in case the bootloader
+doesn't set it.
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Manjunatha GK <manjugk@ti.com>
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/dma.c |   18 ++++++++++++------
- 1 files changed, 12 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/devices.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index ad42ec3..f7f571e 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -501,7 +501,8 @@ void omap_set_dma_src_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
- 			burst = 0x2;
- 			break;
- 		}
--		/* not supported by current hardware on OMAP1
-+		/*
-+		 * not supported by current hardware on OMAP1
- 		 * w |= (0x03 << 7);
- 		 * fall through
- 		 */
-@@ -510,7 +511,8 @@ void omap_set_dma_src_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
- 			burst = 0x3;
- 			break;
- 		}
--		/* OMAP1 don't support burst 16
-+		/*
-+		 * OMAP1 don't support burst 16
- 		 * fall through
- 		 */
- 	default:
-@@ -604,7 +606,8 @@ void omap_set_dma_dest_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
- 			burst = 0x3;
- 			break;
- 		}
--		/* OMAP1 don't support burst 16
-+		/*
-+		 * OMAP1 don't support burst 16
- 		 * fall through
- 		 */
- 	default:
-@@ -1285,8 +1288,10 @@ int omap_request_dma_chain(int dev_id, const char *dev_name,
- 		return -EINVAL;
- 	}
- 
--	/* Allocate a queue to maintain the status of the channels
--	 * in the chain */
-+	/*
-+	 * Allocate a queue to maintain the status of the channels
-+	 * in the chain
-+	 */
- 	channels = kmalloc(sizeof(*channels) * no_of_chans, GFP_KERNEL);
- 	if (channels == NULL) {
- 		printk(KERN_ERR "omap_dma: No memory for channel queue\n");
-@@ -1915,7 +1920,8 @@ static int omap2_dma_handle_ch(int ch)
- 		printk(KERN_INFO "DMA transaction error with device %d\n",
- 		       dma_chan[ch].dev_id);
- 		if (cpu_class_is_omap2()) {
--			/* Errata: sDMA Channel is not disabled
-+			/*
-+			 * Errata: sDMA Channel is not disabled
- 			 * after a transaction error. So we explicitely
- 			 * disable the channel
- 			 */
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 10f3a3c..3d30f22 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -591,6 +591,15 @@ static inline void omap_hsmmc_reset(void) {}
+ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			int controller_nr)
+ {
++	if ((mmc_controller->slots[0].switch_pin > 0) && \
++		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
++		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
++					OMAP_PIN_INPUT_PULLUP);
++	if ((mmc_controller->slots[0].gpio_wp > 0) && \
++		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
++		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
++					OMAP_PIN_INPUT_PULLUP);
++
+ 	if (cpu_is_omap2420() && controller_nr == 0) {
+ 		omap_cfg_reg(H18_24XX_MMC_CMD);
+ 		omap_cfg_reg(H15_24XX_MMC_CLKI);
 
