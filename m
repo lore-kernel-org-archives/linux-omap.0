@@ -1,81 +1,62 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH RFC 2/2] usb: ehci-omap: add suspend/resume support
-Date: Fri, 14 May 2010 19:31:15 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D8AA@dbde02.ent.ti.com>
-References: <1273762822-23073-2-git-send-email-gadiyar@ti.com>
- <Pine.LNX.4.44L0.1005131305320.1731-100000@iolanthe.rowland.org>
+From: Sebastien Jan <s-jan@ti.com>
+Subject: Re: [RFC PATCHv2 1/7] HSI: Introducing HSI framework
+Date: Fri, 14 May 2010 16:22:12 +0200
+Message-ID: <201005141622.12281.s-jan@ti.com>
+References: <1273245517-30712-1-git-send-email-carlos.chinea@nokia.com> <1273245517-30712-2-git-send-email-carlos.chinea@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59867 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312Ab0ENOBd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 10:01:33 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1005131305320.1731-100000@iolanthe.rowland.org>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:53414 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751277Ab0ENOSp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 May 2010 10:18:45 -0400
+In-Reply-To: <1273245517-30712-2-git-send-email-carlos.chinea@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Alan Stern wrote:
-> On Thu, 13 May 2010, Anand Gadiyar wrote:
-> 
-> > Add support for suspend and resume to the ehci-omap driver.
-> > Added routines for platform_driver suspend/resume and 
-> > wrappers around ehci_bus_suspend/resume.
-> 
-> > +#ifdef CONFIG_PM
-> >  
-> /*-------------------------------------------------------------------------*/
-> > +static int ehci_omap_dev_suspend(struct device *dev)
-> > +{
-> > +	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
-> > +
-> > +	if (!omap->suspended)
-> > +		ehci_omap_enable(omap, 0);
-> > +	return 0;
-> > +}
-> > +
-> > +static int ehci_omap_dev_resume(struct device *dev)
-> > +{
-> > +	struct ehci_hcd_omap *omap = dev_get_drvdata(dev);
-> > +
-> > +	if (omap->suspended)
-> > +		ehci_omap_enable(omap, 1);
-> > +	return 0;
-> > +}
-> > +
-> > +static int ehci_omap_bus_suspend(struct usb_hcd *hcd)
-> > +{
-> > +	struct usb_bus *bus = hcd_to_bus(hcd);
-> > +	int ret;
-> > +
-> > +	ret = ehci_bus_suspend(hcd);
-> > +
-> > +	ehci_omap_dev_suspend(bus->controller);
-> > +
-> > +	return ret;
-> > +}
-> > +static int ehci_omap_bus_resume(struct usb_hcd *hcd)
-> > +{
-> > +	struct usb_bus *bus = hcd_to_bus(hcd);
-> > +	int ret;
-> > +
-> > +	ehci_omap_dev_resume(bus->controller);
-> > +
-> > +	ret = ehci_bus_resume(hcd);
-> > +
-> > +	return ret;
-> > +}
-> 
-> You could use the runtime-PM interface instead of explicitly suspending 
-> and resuming the controller.  It is now standard.
-> 
+Hi Carlos,
 
-Will work on this. I'll be out for a while, so it could be some time
-before I repost.
+After review, I do not have many comments on the interface, as we already 
+aligned on most of it.
 
-Thanks,
-Anand
+Please see my comments inlined below.
+
+On Friday 07 May 2010 17:18:31 Carlos Chinea wrote:
+[strip]
+> diff --git a/include/linux/hsi/hsi.h b/include/linux/hsi/hsi.h
+[strip]
+> +/**
+> + * hsi_start_tx - Signal the port that the client wants to start a TX
+> + * @cl: Pointer to the HSI client
+> + *
+> + * Return -errno on failure, 0 on success
+> + */
+> +static inline int hsi_start_tx(struct hsi_client *cl)
+> +{
+> +       if (!hsi_port_claimed(cl))
+> +               return -EACCES;
+> +       return hsi_get_port(cl)->start_tx(cl);
+> +}
+> +
+> +/**
+> + * hsi_stop_tx - Signal the port that the client no longer wants to
+>  transmit + * @cl: Pointer to the HSI client
+> + *
+> + * Return -errno on failure, 0 on success
+> + */
+> +static inline int hsi_stop_tx(struct hsi_client *cl)
+> +{
+> +       if (!hsi_port_claimed(cl))
+> +               return -EACCES;
+> +       return hsi_get_port(cl)->stop_tx(cl);
+> +}
+
+As I can see, these two I/F functions are the way an HSI protocol layer can 
+play with Tx_wake lines if it has to, right? 
+I suppose it allows more flexibility with regards to 3/4 wires HSI flavors 
+management and avoids additional callbacks to Tx_wake related events?
+
