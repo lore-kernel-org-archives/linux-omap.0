@@ -1,159 +1,143 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/10] omap: GPIO: Fix OMAP4 GPIO reg access issues
-Date: Fri, 14 May 2010 14:28:10 -0700
-Message-ID: <20100514212810.25599.99703.stgit@baageli.muru.com>
+Subject: [PATCH 06/10] OMAP4: Ethernet: KS8851 Board Support
+Date: Fri, 14 May 2010 14:28:03 -0700
+Message-ID: <20100514212802.25599.61150.stgit@baageli.muru.com>
 References: <20100514212506.25599.98073.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56666 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56489 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757394Ab0ENV2K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 17:28:10 -0400
+	with ESMTP id S1756830Ab0ENV2D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 17:28:03 -0400
 In-Reply-To: <20100514212506.25599.98073.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Charulatha V <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, Abraham Arce <x0066660@ti.com>
 
-From: Tony Lindgren <charu@ti.com>
+From: Abraham Arce <x0066660@ti.com>
 
-Access to some of the OMAP4 GPIO registers are not properly handled.
-This patch fixes it.
+Enable Micrel KS8851 SPI network chip for OMAP4430
 
-This patch is tested on 3430SDP and 4430SDP boards
-
-Signed-off-by: Charulatha V <charu@ti.com>
-cc: Kevin Hilman <khilman@deeprootsystems.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Abraham Arce <x0066660@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/gpio.c |   59 ++++++++++++++++++++++++++++++++++++---------
- 1 files changed, 47 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c |   81 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 81 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 955597f..dc2ac42 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -138,7 +138,11 @@
- #define OMAP4_GPIO_IRQSTATUSCLR1	0x0040
- #define OMAP4_GPIO_IRQWAKEN0		0x0044
- #define OMAP4_GPIO_IRQWAKEN1		0x0048
--#define OMAP4_GPIO_SYSSTATUS		0x0104
-+#define OMAP4_GPIO_SYSSTATUS		0x0114
-+#define OMAP4_GPIO_IRQENABLE1		0x011c
-+#define OMAP4_GPIO_WAKE_EN		0x0120
-+#define OMAP4_GPIO_IRQSTATUS2		0x0128
-+#define OMAP4_GPIO_IRQENABLE2		0x012c
- #define OMAP4_GPIO_CTRL			0x0130
- #define OMAP4_GPIO_OE			0x0134
- #define OMAP4_GPIO_DATAIN		0x0138
-@@ -149,6 +153,10 @@
- #define OMAP4_GPIO_FALLINGDETECT	0x014c
- #define OMAP4_GPIO_DEBOUNCENABLE	0x0150
- #define OMAP4_GPIO_DEBOUNCINGTIME	0x0154
-+#define OMAP4_GPIO_CLEARIRQENABLE1	0x0160
-+#define OMAP4_GPIO_SETIRQENABLE1	0x0164
-+#define OMAP4_GPIO_CLEARWKUENA		0x0180
-+#define OMAP4_GPIO_SETWKUENA		0x0184
- #define OMAP4_GPIO_CLEARDATAOUT		0x0190
- #define OMAP4_GPIO_SETDATAOUT		0x0194
- /*
-@@ -591,12 +599,16 @@ static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
- 		reg += OMAP7XX_GPIO_DATA_OUTPUT;
- 		break;
- #endif
--#ifdef CONFIG_ARCH_OMAP2PLUS
-+#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- 	case METHOD_GPIO_24XX:
--	case METHOD_GPIO_44XX:
- 		reg += OMAP24XX_GPIO_DATAOUT;
- 		break;
- #endif
-+#ifdef CONFIG_ARCH_OMAP4
-+	case METHOD_GPIO_44XX:
-+		reg += OMAP4_GPIO_DATAOUT;
-+		break;
-+#endif
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1213,11 +1225,17 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
- #endif
- 	if (!cpu_class_is_omap1()) {
- 		if (!bank->mod_usage) {
-+			void __iomem *reg = bank->base;
- 			u32 ctrl;
--			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
--			ctrl &= 0xFFFFFFFE;
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index b88f28c..be7a786 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -18,6 +18,7 @@
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/usb/otg.h>
++#include <linux/spi/spi.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -32,6 +33,75 @@
+ #include <asm/hardware/gic.h>
+ #include <asm/hardware/cache-l2x0.h>
+ 
++#define ETH_KS8851_IRQ			34
++#define ETH_KS8851_POWER_ON		48
++#define ETH_KS8851_QUART		138
 +
-+			if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+				reg += OMAP24XX_GPIO_CTRL;
-+			else if (cpu_is_omap44xx())
-+				reg += OMAP4_GPIO_CTRL;
-+			ctrl = __raw_readl(reg);
- 			/* Module is enabled, clocks are not gated */
--			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
-+			ctrl &= 0xFFFFFFFE;
-+			__raw_writel(ctrl, reg);
- 		}
- 		bank->mod_usage |= 1 << offset;
- 	}
-@@ -1239,22 +1257,34 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
- 		__raw_writel(1 << offset, reg);
- 	}
- #endif
--#ifdef CONFIG_ARCH_OMAP2PLUS
--	if ((bank->method == METHOD_GPIO_24XX) ||
--			(bank->method == METHOD_GPIO_44XX)) {
-+#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-+	if (bank->method == METHOD_GPIO_24XX) {
- 		/* Disable wake-up during idle for dynamic tick */
- 		void __iomem *reg = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
- 		__raw_writel(1 << offset, reg);
- 	}
- #endif
-+#ifdef CONFIG_ARCH_OMAP4
-+	if (bank->method == METHOD_GPIO_44XX) {
-+		/* Disable wake-up during idle for dynamic tick */
-+		void __iomem *reg = bank->base + OMAP4_GPIO_IRQWAKEN0;
-+		__raw_writel(1 << offset, reg);
++static struct spi_board_info sdp4430_spi_board_info[] __initdata = {
++	{
++		.modalias               = "ks8851",
++		.bus_num                = 1,
++		.chip_select            = 0,
++		.max_speed_hz           = 24000000,
++		.irq                    = ETH_KS8851_IRQ,
++	},
++};
++
++static int omap_ethernet_init(void)
++{
++	int status;
++
++	/* Request of GPIO lines */
++
++	status = gpio_request(ETH_KS8851_POWER_ON, "eth_power");
++	if (status) {
++		pr_err("Cannot request GPIO %d\n", ETH_KS8851_POWER_ON);
++		return status;
 +	}
-+#endif
- 	if (!cpu_class_is_omap1()) {
- 		bank->mod_usage &= ~(1 << offset);
- 		if (!bank->mod_usage) {
-+			void __iomem *reg = bank->base;
- 			u32 ctrl;
--			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
 +
-+			if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+				reg += OMAP24XX_GPIO_CTRL;
-+			else if (cpu_is_omap44xx())
-+				reg += OMAP4_GPIO_CTRL;
-+			ctrl = __raw_readl(reg);
- 			/* Module is disabled, clocks are gated */
- 			ctrl |= 1;
--			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
-+			__raw_writel(ctrl, reg);
- 		}
- 	}
- 	_reset_gpio(bank, bank->chip.base + offset);
-@@ -1583,9 +1613,14 @@ static int gpio_is_input(struct gpio_bank *bank, int mask)
- 		reg += OMAP7XX_GPIO_DIR_CONTROL;
- 		break;
- 	case METHOD_GPIO_24XX:
--	case METHOD_GPIO_44XX:
- 		reg += OMAP24XX_GPIO_OE;
- 		break;
-+	case METHOD_GPIO_44XX:
-+		reg += OMAP4_GPIO_OE;
-+		break;
-+	default:
-+		WARN_ONCE(1, "gpio_is_input: incorrect OMAP GPIO method");
-+		return -EINVAL;
- 	}
- 	return __raw_readl(reg) & mask;
++	status = gpio_request(ETH_KS8851_QUART, "quart");
++	if (status) {
++		pr_err("Cannot request GPIO %d\n", ETH_KS8851_QUART);
++		goto error1;
++	}
++
++	status = gpio_request(ETH_KS8851_IRQ, "eth_irq");
++	if (status) {
++		pr_err("Cannot request GPIO %d\n", ETH_KS8851_IRQ);
++		goto error2;
++	}
++
++	/* Configuration of requested GPIO lines */
++
++	status = gpio_direction_output(ETH_KS8851_POWER_ON, 1);
++	if (status) {
++		pr_err("Cannot set output GPIO %d\n", ETH_KS8851_IRQ);
++		goto error3;
++	}
++
++	status = gpio_direction_output(ETH_KS8851_QUART, 1);
++	if (status) {
++		pr_err("Cannot set output GPIO %d\n", ETH_KS8851_QUART);
++		goto error3;
++	}
++
++	status = gpio_direction_input(ETH_KS8851_IRQ);
++	if (status) {
++		pr_err("Cannot set input GPIO %d\n", ETH_KS8851_IRQ);
++		goto error3;
++	}
++
++	return 0;
++
++error3:
++	gpio_free(ETH_KS8851_IRQ);
++error2:
++	gpio_free(ETH_KS8851_QUART);
++error1:
++	gpio_free(ETH_KS8851_POWER_ON);
++	return status;
++}
++
+ static struct platform_device sdp4430_lcd_device = {
+ 	.name		= "sdp4430_lcd",
+ 	.id		= -1,
+@@ -113,6 +183,8 @@ static struct omap_musb_board_data musb_board_data = {
+ 
+ static void __init omap_4430sdp_init(void)
+ {
++	int status;
++
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+ 	omap_serial_init();
+ 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
+@@ -120,6 +192,15 @@ static void __init omap_4430sdp_init(void)
+ 	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
+ 	if (!cpu_is_omap44xx())
+ 		usb_musb_init(&musb_board_data);
++
++	status = omap_ethernet_init();
++	if (status) {
++		pr_err("Ethernet initialization failed: %d\n", status);
++	} else {
++		sdp4430_spi_board_info[0].irq = gpio_to_irq(ETH_KS8851_IRQ);
++		spi_register_board_info(sdp4430_spi_board_info,
++				ARRAY_SIZE(sdp4430_spi_board_info));
++	}
  }
+ 
+ static void __init omap_4430sdp_map_io(void)
 
