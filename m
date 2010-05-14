@@ -1,61 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 23:25:07 +0200
-Message-ID: <201005142325.08061.rjw@sisk.pl>
-References: <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com> <201005132356.21355.rjw@sisk.pl> <878w7mgqse.fsf@deeprootsystems.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH v2 08/17] omap: mailbox: only compile for configured
+ archs
+Date: Fri, 14 May 2010 16:27:22 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4BBC5C8A@dlee03.ent.ti.com>
+References: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
+ <1273849310-32169-9-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:58228 "EHLO ogre.sisk.pl"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46956 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719Ab0ENVYI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 May 2010 17:24:08 -0400
-In-Reply-To: <878w7mgqse.fsf@deeprootsystems.com>
+	id S1753724Ab0ENV1h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 17:27:37 -0400
+In-Reply-To: <1273849310-32169-9-git-send-email-felipe.contreras@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, Matthew Garrett <mjg@redhat.com>, Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, =?iso-8859-1?q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-On Friday 14 May 2010, Kevin Hilman wrote:
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
 > 
-> > On Thursday 13 May 2010, Tony Lindgren wrote:
-> >> * Rafael J. Wysocki <rjw@sisk.pl> [100513 14:16]:
-> 
-> [...]
-> 
-> >>  
-> >> > It solves a practical issue that _at_ _the_ _moment_ cannot be solved
-> >> > differently, while there's a growing number of out-of-tree drivers depending
-> >> > on this framework.  We need those drivers in and because we don't have any
-> >> > viable alternative at hand, we have no good reason to reject it.
-> >> 
-> >> Nothing is preventing merging the drivers can be merged without
-> >> these calls.
-> >
-> > And yet, there _is_ a growing nuber of drivers that don't get merge because
-> > of that.  That's _reality_.  Are you going to discuss with facts, or what?
-> 
-> It may be reality, but IMO, "preventing other drivers" isn't a good
-> *technical* argument for merging a feature.  It feels like these "for
-> the 'good' of the community" arguments are being used to trump the
-> technical arguments.  Maybe we need to keep the separate.
-> 
-> Distros (especially embedded ones) have long had out of tree features
-> that create barriers to getting other drivers upstream.  While it
-> might be nice to see all those features upstream, no one has argued
-> that they should get merged simply because they create a barrier.  Each
-> feature should be merged on its own technical merit.
+> -	if (cpu_is_omap3430()) {
+> +	if (false);
 
-Well, this is very much like the selinux vs apparmour (& friends) issue.
-One can argue we need only one of them, but in fact we're not worse off having
-both in.
+-- Is this statement needed ?
 
-The feature is not technically unacceptable to me and since having it in
-would potentially make it easier to merge quite a few drivers, I regard that as
-a good enough argument for.  YMMV.
+> +#if defined(CONFIG_ARCH_OMAP3430)
+> +	else if (cpu_is_omap3430()) {
+>  		list = omap3_mboxes;
+> 
+>  		list[0]->irq = res[1].start;
 
-Thanks,
-Rafael
+Thank you,
+Best regards,
+Hari
+  	
