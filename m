@@ -1,38 +1,77 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH v2 08/17] omap: mailbox: only compile for configured
- archs
-Date: Fri, 14 May 2010 16:27:22 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4BBC5C8A@dlee03.ent.ti.com>
-References: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
- <1273849310-32169-9-git-send-email-felipe.contreras@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 00/10] omap platform init patches for 2.6.35 merge window
+Date: Fri, 14 May 2010 14:27:43 -0700
+Message-ID: <20100514212506.25599.98073.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46956 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753724Ab0ENV1h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 17:27:37 -0400
-In-Reply-To: <1273849310-32169-9-git-send-email-felipe.contreras@gmail.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63032 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753724Ab0ENV1p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 17:27:45 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-> 
-> -	if (cpu_is_omap3430()) {
-> +	if (false);
+Hi all,
 
--- Is this statement needed ?
+Here are some omap patches mostly to get some more devices
+initialized.
 
-> +#if defined(CONFIG_ARCH_OMAP3430)
-> +	else if (cpu_is_omap3430()) {
->  		list = omap3_mboxes;
-> 
->  		list[0]->irq = res[1].start;
+With these the omap4 Ethernet should work, the drivers
+related patches are queued too.
 
-Thank you,
-Best regards,
-Hari
-  	
+Regards,
+
+Tony
+
+---
+
+Abraham Arce (2):
+      OMAP4: Ethernet: KS8851 Board Support
+      OMAP4: Networking: Defconfig Support
+
+Mika Westerberg (1):
+      OMAP2/3/4: DMA: disable channel interrupts in omap_init_dma()
+
+Santosh Shilimkar (1):
+      omap4: Move SOC specific code from board file
+
+Syed Rafiuddin (1):
+      OMAP4: SPI: Fix Driver Kconfig
+
+Tony Lindgren (1):
+      omap: GPIO: Fix OMAP4 GPIO reg access issues
+
+manjugk manjugk (1):
+      omap: DMA: Fix multi-line comments
+
+stanley.miao (3):
+      omap: init the gpio pinmux for mmc
+      omap: hsmmc: fix the hsmmc driver for am3517
+      AM3517: rename the i2c boardinfo to make it more readable
+
+
+ arch/arm/configs/omap_4430sdp_defconfig         |   57 ++++++++++
+ arch/arm/mach-omap2/Makefile                    |    2 
+ arch/arm/mach-omap2/board-4430sdp.c             |  128 +++++++++++++++--------
+ arch/arm/mach-omap2/board-am3517evm.c           |   20 ++--
+ arch/arm/mach-omap2/devices.c                   |    9 ++
+ arch/arm/mach-omap2/hsmmc.c                     |   27 ++++-
+ arch/arm/mach-omap2/include/mach/omap4-common.h |   26 +++++
+ arch/arm/mach-omap2/omap-smp.c                  |    2 
+ arch/arm/mach-omap2/omap4-common.c              |   72 +++++++++++++
+ arch/arm/plat-omap/common.c                     |    3 -
+ arch/arm/plat-omap/dma.c                        |   45 ++++++--
+ arch/arm/plat-omap/gpio.c                       |   59 ++++++++---
+ arch/arm/plat-omap/include/plat/common.h        |    3 -
+ arch/arm/plat-omap/include/plat/mmc.h           |    4 +
+ drivers/spi/Kconfig                             |    6 +
+ 15 files changed, 362 insertions(+), 101 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/omap4-common.h
+ create mode 100644 arch/arm/mach-omap2/omap4-common.c
+
+-- 
+Signature
