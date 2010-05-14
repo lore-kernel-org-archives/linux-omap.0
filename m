@@ -1,38 +1,65 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v2 0/2] DSS2:Allow FB to build without VRFB
-Date: Fri, 14 May 2010 15:56:38 +0300
-Message-ID: <1273841798.2814.80.camel@tubuntu.research.nokia.com>
+Subject: RE: [PATCH v2 0/2] DSS2:Allow FB to build without VRFB
+Date: Fri, 14 May 2010 16:01:40 +0300
+Message-ID: <1273842100.2814.85.camel@tubuntu.research.nokia.com>
 References: <1273764028-25822-1-git-send-email-svadivu@ti.com>
 	 <1273821814.2814.63.camel@tubuntu.research.nokia.com>
 	 <FCCFB4CDC6E5564B9182F639FC35608703042887DB@dbde02.ent.ti.com>
-	 <AA4B1310-2BA5-411E-A7EA-AAE03F41CCF3@student.utwente.nl>
-	 <4BED2CD9.9000303@ti.com>
-	 <5FC7083E-FFD9-4297-AC5D-522FBCBF11F0@dominion.thruhere.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:41806 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:42567 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754575Ab0ENM4r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 08:56:47 -0400
-In-Reply-To: <5FC7083E-FFD9-4297-AC5D-522FBCBF11F0@dominion.thruhere.net>
+	with ESMTP id S1754422Ab0ENNCA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 09:02:00 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703042887DB@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Koen Kooi <koen@dominion.thruhere.net>
-Cc: Nishanth Menon <nm@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "ext Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Fri, 2010-05-14 at 13:18 +0200, ext Koen Kooi wrote:
-> Op 14 mei 2010, om 12:58 heeft Nishanth Menon het volgende geschreven:
-
-> > But why use bootargs?
+On Fri, 2010-05-14 at 12:03 +0200, ext Guruswamy, Senthilvadivu wrote:
 > 
-> Because (for some unknown reason) you can't toggle vrfb at runtime. If you realize you need rotation you need to reboot. I guess it's because the memory layout for vrfb is completely different, but again, I'm not a kernel hacker :)
-> 
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com] 
+> > Sent: Friday, May 14, 2010 12:54 PM
+> > To: Guruswamy, Senthilvadivu
+> > Cc: linux-omap@vger.kernel.org; linux-fbdev@vger.kernel.org; 
+> > tony@atomide.com; Hiremath, Vaibhav
+> > Subject: Re: [PATCH v2 0/2] DSS2:Allow FB to build without VRFB
 
-You can. There's rotate_type in the framebuffer sysfs directory. But I
-think you need to release memories etc before that, and reallocate after
-changing the rotation type.
+<snip>
+
+> > The patch set makes VRFB optional. What happens if VRFB is turned off,
+> > and the user uses VRFB for a framebuffer?
+> [Senthil] This patch keeps VRFB=y for ARCH_OMAP2 and ARCH_OMAP3.
+> User would have got an option to turn it OFF if it had appeared in 
+> the menuconfig selections.  I did not give that option in menuconfig 
+> explicitly. 
+> ie  config OMAP2_VRFB
+> 	bool <No name given here>
+> 
+> Suppose on a build the user deliberately gives "CONFIG_OMAP2_VRFB not set",
+> then VRFB functions are made as empty functions by the compiler.
+> 
+> This is fine as long as the user does not say omapfb.vrfb=1.
+> 
+> But if the user sets omapfb.vrfb=1, then it is a wrong usage of the bootargs
+> as he has already deliberately changed the defconfig to say "VRFB not set".
+> 
+> The result of his experiment: No bootup on the board as the vaddr of VRFB 
+> is populated nor of the normal RAM buffer.
+
+The kernel should be able to cope with that. While giving wrong boot
+arguments to the kernel causing it to not boot is bad, it could be
+somewhat acceptable. But if the user changes the rotation type via sysfs
+file, and the kernel crashes (which is what I fear will happen), it's
+totally unacceptable.
+
+If it's possible to turn VRFB off, then the code should handle the case
+where VRFB is not there. Meaning, returning error values or somehow else
+failing gracefully, and informing the user of wrong arguments.
 
  Tomi
 
