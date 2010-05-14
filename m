@@ -1,71 +1,32 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 4/5] musb: use system DMA for unaligned buffers on RTL
- >= 1.8
-Date: Fri, 14 May 2010 10:09:57 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E4054AC@dbde02.ent.ti.com>
-References: <1273664979-493-1-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-2-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-3-git-send-email-ajay.gupta@ti.com>
- <1273664979-493-4-git-send-email-ajay.gupta@ti.com>
- <4BEAAA8A.1000003@ru.mvista.com>
- <19F8576C6E063C45BE387C64729E7394044E405072@dbde02.ent.ti.com>
- <4BEAC268.1080601@ru.mvista.com> <20100512175543.GD3285@gandalf>
- <19F8576C6E063C45BE387C64729E7394044E40516A@dbde02.ent.ti.com>
- <20100513194311.GA19318@gandalf>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH 1/1] omap-sham: OMAP macros corrected
+Date: Fri, 14 May 2010 14:46:05 +1000
+Message-ID: <20100514044605.GA26117@gondor.apana.org.au>
+References: <948fcc79dd3d31f4930d4b62bb7ca7a19949fd9a.1273493232.git.dmitry.kasatkin@nokia.com> <20100510121416.GA12769@gondor.apana.org.au> <4BE800F3.2070602@nokia.com> <20100510170328.GD16460@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41241 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751658Ab0ENEkM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 00:40:12 -0400
-In-Reply-To: <20100513194311.GA19318@gandalf>
-Content-Language: en-US
+Received: from ringil.hengli.com.au ([216.59.3.182]:52432 "EHLO
+	arnor.apana.org.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751622Ab0ENEqb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 00:46:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20100510170328.GD16460@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Subbrathnam, Swaminathan" <swami.iyer@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-> On Thu, May 13, 2010 at 09:44:11AM +0530, Gupta, Ajay Kumar wrote:
-> > Hi,
-> > > -----Original Message-----
-> > > From: Felipe Balbi [mailto:me@felipebalbi.com]
-> > > Sent: Wednesday, May 12, 2010 11:26 PM
-> > > To: Sergei Shtylyov
-> > > Cc: Gupta, Ajay Kumar; linux-usb@vger.kernel.org; linux-
-> > > omap@vger.kernel.org
-> > > Subject: Re: [PATCH 4/5] musb: use system DMA for unaligned buffers on
-> RTL
-> > > >= 1.8
-> > >
-> > > On Wed, May 12, 2010 at 06:59:52PM +0400, Sergei Shtylyov wrote:
-> > > >    Better wrap your stuff into #ifdef OMAP, I think...
-> > >
-> > > please don't, better to use the bounce buffer... It would work on
-> > > blackfin, davinci and omap...
-> >
-> > Just working is not enough. We need to think of performance and cpu
-> > loading as well.
+On Mon, May 10, 2010 at 10:03:29AM -0700, Tony Lindgren wrote:
+>
+> Yeah please go ahead and add it. If we run into merge problems with
+> devices.c, we move some patches into omap for-next branch.
 > 
-> allocating a bounce buffer doesn't take long and you can still use
-> mentor DMA to transfer the data.
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-But there is a memcpy involved right? It will use cpu and thus would be
-hitting on performance, cpu loading and power consumption. Instead why
-not use other available system resources (system dma)to do this job.
-
-I understand, some platform may not support/have system dma then they can surely use bounce buffer or use PIO mode.
-
-There was another workaround proposed earlier which was using 'memmove'
-(similar to memcpy) that was badly affecting cpu loading. I was hardly getting 50Mbits/sec of throughput with 100% loading. Instead when I tried system DMA, numbers went up to 90Mbits/sec  with a cpu loading of 50%.
-
-I think we must use system DMA for this issue and also have bounce buffer
-Or PIO fallback mechanism in place for platforms not supporting system DMA.
-
-Regards,
-Ajay
-> 
-> --
-> balbi
+Applied to cryptodev.  Thanks everyone!
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
