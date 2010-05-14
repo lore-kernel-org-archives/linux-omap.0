@@ -1,103 +1,149 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH 3/3 v2] musb: AM35x: Workaround for fifo read issue
-Date: Sat, 15 May 2010 00:53:34 +0530
-Message-ID: <AANLkTim78r8bwcKc4MAqEexam_NJbrEkqNrgoBIknisH@mail.gmail.com>
-References: <1273838737-6995-1-git-send-email-ajay.gupta@ti.com>
-	 <1273838737-6995-2-git-send-email-ajay.gupta@ti.com>
-	 <1273838737-6995-3-git-send-email-ajay.gupta@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
+Date: Fri, 14 May 2010 22:27:55 +0300
+Message-ID: <AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
+References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
+	 <g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
+	 <r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:55662 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759245Ab0ENTXg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 15:23:36 -0400
-In-Reply-To: <1273838737-6995-3-git-send-email-ajay.gupta@ti.com>
+Received: from fg-out-1718.google.com ([72.14.220.157]:58745 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752752Ab0ENT16 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 15:27:58 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so1821769fga.1
+        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 12:27:56 -0700 (PDT)
+In-Reply-To: <r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-Ajay Kumar Gupta <ajay.gupta@ti.com> wrote:
-> AM35x supports only 32bit read operations so we need to have
-> workaround for 8bit and 16bit read operations.
+Hi,
+
+I spent some time looking deeper into this patch series, and I have som=
+e doubts.
+
+On Sun, May 2, 2010 at 8:47 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> On Sun, May 2, 2010 at 4:17 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+>> On Sat, May 1, 2010 at 11:44 PM, Ohad Ben-Cohen <ohad@wizery.com> wr=
+ote:
+>>> =C2=A0 The patchset renames the flush ioctl to begin_dma_to_dsp and
+>>> =C2=A0 the invalidate ioctl to begin_dma_from_dsp. Both functions
+>>> =C2=A0 eventually call dma_map_sg, with the former requesting a
+>>> =C2=A0 DMA_BIDIRECTIONAL direction, and the latter requesting a
+>>> =C2=A0 DMA_FROM_DEVICE direction.
+>>> =C2=A0 In addition, the patchset adds two new APIs which calls dma_=
+unmap_sg:
+>>> =C2=A0 end_dma_to_dsp and end_dma_from_dsp.
+>>>
+>>> =C2=A0 Ideally, there would be only a single begin_dma command and =
+a single
+>>> =C2=A0 end_dma one, which would accept an additional parameter that=
+ will
+>>> =C2=A0 determine the direction of the transfer. Such an approach wo=
+uld be more
+>>> =C2=A0 versatile and cleaner, but it would also break all user spac=
+e apps that
+>>> =C2=A0 use dspbridge today.
+>>
+>> If I understand correctly all user-space apps would be broken anyway
+>> because they are not issuing the end_dma calls. At the very least th=
+ey
+>> need to be updated to use them.
 >
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> ---
-> =A0drivers/usb/musb/am3517.c =A0 =A0| =A0 30 ++++++++++++++++++++++++=
-++++++
-> =A0drivers/usb/musb/musb_core.c | =A0 =A02 ++
-> =A02 files changed, 32 insertions(+), 0 deletions(-)
+> Basically you're right, but the patches currently silently allow
+> today's user space
+> to somehow work (because if you don't use dma bounce buffers and you =
+feel lucky
+> about speculative prefetching then you might get away with not callin=
+g
+> dma unmap).
+> I did that on purpose, to ease testing & migration, but didn't
+> explicitely said it because
+> =C2=A0frankly it's just wrong.
+
+I looked into the dma code (I guess it's in arch/arm/mm/dma-mapping.c)
+and I don't understand what dma_unmap_sg is supposed to do. I see that
+first some "safe buffer" is searched, and if there isn't any... then
+it depends on the direction whether something is actually done or not.
+
+I guess it depends whether our arch has dmabounce or not, which I have
+no idea, but if we do, wouldn't skiping dma_unmap calls leak some
+massive amount of "safe buffers"?
+
+>> Also, in Nokia we patched the bridgedriver to be able to have the 3
+>> operations available from user-space (clean, inv, and flush), so we
+>> would be very interested in having the direction of the transfer
+>> available.
 >
-> diff --git a/drivers/usb/musb/am3517.c b/drivers/usb/musb/am3517.c
-> index dd9e883..24bdc2e 100644
-> --- a/drivers/usb/musb/am3517.c
-> +++ b/drivers/usb/musb/am3517.c
-> @@ -515,3 +515,33 @@ void musb_platform_restore_context(struct musb_c=
-ontext_registers
-> =A0 =A0 =A0 =A0phy_on();
-> =A0}
-> =A0#endif
-> +
-> +/* AM35x supports only 32bit read operation */
-> +void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
-> +{
-> + =A0 =A0 =A0 void __iomem *fifo =3D hw_ep->fifo;
-> + =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 val;
-> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 i;
-> +
-> + =A0 =A0 =A0 /* Read for 32bit-aligned destination address */
-> + =A0 =A0 =A0 if ((likely((0x03 & (unsigned long) dst) =3D=3D 0)) && =
-len >=3D 4) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 readsl(fifo, dst, len >> 2);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dst +=3D (len & ~0x03);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 len &=3D 0x03;
-> + =A0 =A0 =A0 }
-> + =A0 =A0 =A0 /* Now read the rest 1 to 3 bytes or complete length if
-check multiline comments style
-> + =A0 =A0 =A0 =A0* unaligned address.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 if (len > 4) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (i =3D 0; i < (len >> 2); i++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D musb_readl(fifo=
-, 0);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 memcpy(dst, &val, 4);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dst +=3D 4;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 len %=3D 4;
-> + =A0 =A0 =A0 }
-> + =A0 =A0 =A0 if (len > 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D musb_readl(fifo, 0);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 memcpy(dst, &val, len);
-> + =A0 =A0 =A0 }
-> +}
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_cor=
-e.c
-> index 705cc4a..bc2cf14 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -191,6 +191,7 @@ void musb_write_fifo(struct musb_hw_ep *hw_ep, u1=
-6 len, const u8 *src)
-> =A0 =A0 =A0 =A0}
-> =A0}
+> Thanks, that's important to know.
+
+It's not that critical, but I guess it can't hurt to do the right thing=
+=2E
+
+> What do you say about the following plan then:
+> - I'll add a single pair of begin_dma and end_dma commands that will
+> take the additional
+> direction parameter as described above. I'll then covert the existing
+> flush & invalidate commands to use this begin_dma command supplying i=
+t
+> the appropriate direction argument.
+
+Sounds perfect, but I wonder if the deprecated flush & invalidate
+would really work. See previous comments.
+
+> - In a separate patch, I'll deprecate flush & invalidate entirely
+> (usage of this deprecated
+> API will fail, resulting in a guiding error message).
 >
-> +#if !defined(CONFIG_MACH_OMAP3517EVM)
-> =A0/*
-> =A0* Unload an endpoint's FIFO
-> =A0*/
-> @@ -228,6 +229,7 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16=
- len, u8 *dst)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0readsb(fifo, dst, len);
-> =A0 =A0 =A0 =A0}
-> =A0}
-> +#endif
->
-> =A0#endif /* normal PIO */
->
-> --
-> 1.6.2.4
->
+> We get a sane and versatile (and platform-independent) implementation
+> that always work,
+> but breaks user space. If anyone would need to work with current user=
+ space,
+> the deprecating patch can always be reverted locally to get back a
+> flush & invalidate
+> implementations that (somehow) work.
+
+User-space API is being broken all the time in dspbridge. The
+difference is that this one might require nontrivial changes. But it
+must be done.
+
+So, I tried your patches, and a simple test app worked fine without
+modification, but a real video decoding hanged the device
+completely... some spinlock was stuck. I don't know if it's because of
+your patches, or because of the state of the bridge at that point.
+I'll try first to rebase to the latest to have a better idea of what's
+happening.
+
+Also, I noticed an important problem. Your code assumes that we would
+always have a bunch of scattered pages, however you are not taking
+into account bridge_brd_mem_map() where vm_flags have VM_IO... in that
+case get_user_pages() is skipped completely. This code-path is
+important in order to mmap framebuffer memory, which is contiguous.
+So, in this case there are no pages too keep track at all.
+
+This use-case is very important since the dspbridge mmap operation is
+very expensive, and due to GStreamer design, we must do it
+constantly... if the memory is contiguous (VM_IO), the mmap operation
+is really fast (or at least should be... in theory).
+
+Reading your patches I see the ioctl to start the dmap operations
+would simply error out, but from the looks of it, they would be
+failing already, which is weird, because we are already using
+framebuffer memory for video decoding + rendering. In gst-dsp we are
+not checking the success of clean/invalidate ioctls so it might be
+that it has been failing all this time and seems to work by pure luck.
+
+Anyway, I'll keep investigating and let you know if I find anything.
+
+Cheers.
+
+--=20
+=46elipe Contreras
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
