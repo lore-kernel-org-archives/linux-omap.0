@@ -1,68 +1,54 @@
-From: simon@santesteban.eu
-Subject: em28xx driver for omap - right shift
-Date: Fri, 14 May 2010 10:33:13 +0200 (CEST)
-Message-ID: <58854.80.35.16.215.1273825993.squirrel@mail.santesteban.eu>
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Subject: RE: [RFC][PATCHv3 1/2] SFH7741: proximity sensor driver support
+Date: Fri, 14 May 2010 14:23:22 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003B320A40C@dbde02.ent.ti.com>
+References: <0680EC522D0CC943BC586913CF3768C003B320A007@dbde02.ent.ti.com>
+ <4BEAF03A.2070308@cam.ac.uk> <20100512182913.GC29366@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slcd079.piensasolutions.com ([217.76.150.162]:60328 "EHLO
-	slcd079.piensasolutions.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932221Ab0ENIdP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 May 2010 04:33:15 -0400
-Received: from mail.santesteban.eu (localhost.localdomain [127.0.0.1])
-	by slcd079.piensasolutions.com (Postfix) with ESMTP id 8D82E1DC4009
-	for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 10:33:13 +0200 (CEST)
+Received: from comal.ext.ti.com ([198.47.26.152]:51028 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751499Ab0ENIxd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 04:53:33 -0400
+In-Reply-To: <20100512182913.GC29366@core.coreip.homeip.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-
-I have been trying to use an usb video capturer on my overo board, and id
-idn't work, all that I got was a blank (actually green on SDL) picture.
-
-After some digging I found that there was a problem in the initialization
-of the device, wich was solved applying the foolowing patch to
-em28xx-core.c
-
-diff em28xx-core_old.c em28xx-core.c
-778c778
-< 		height >>= norm_maxh(dev);
----
-> 		height >>= 1;
-
-
-Some time in the past, there was a patch to add support for interlaced
-video that replaced the ancient code
-
-	height = norm_maxh(dev) >> 1;
-
-with
-
-	height = norm_maxh(dev);
-	[..some code..]
-	if (!dev->progressive)
-		height >>= norm_maxh(dev);
-
-
-Surprisingly on my desktop computer this code is working. When
-norm_maxh(dev) = 576, the shift to the right does not change the value of
-height, ie:
-height = 576;
-height>>=height;
-printf("%i\n",height);
-
-returns 576
-
-However, if I compile for arm, the code returns 0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jonathan Cameron <jic23@cam.ac.uk>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
 
-Could you confirm that this is right? (maybe I'm breaking something else)
+> -----Original Message-----
+> From: Dmitry Torokhov [mailto:dmitry.torokhov@gmail.com]
+> Sent: Wednesday, May 12, 2010 11:59 PM
+> To: Jonathan Cameron
+> Cc: Datta, Shubhrajyoti; linux-input@vger.kernel.org; linux-
+> omap@vger.kernel.org
+> Subject: Re: [RFC][PATCHv3 1/2] SFH7741: proximity sensor driver support
+> 
+> On Wed, May 12, 2010 at 07:15:22PM +0100, Jonathan Cameron wrote:
+> > Hi,
+> >
+> > I was wondering if you could provide a bit more detail on what this
+> > driver is actually doing?  My appologies if I have missed a
+> > previous explanation.  If so, please add a Documentation file
+> > to explain what is going on.
+> >
+> > The driver you have here does virtually nothing itself.  It takes
+> > both its source of interrupt and read function from platform
+> > data. Given the value is always 0 or 1, I'm guessing you are
+> > simply reading a gpio pin. That makes this effectively a button
+> > and doesn't require any specific code.  The fact it is a
+> > proximity sensor isn't relevant to anything other than perhaps
+> > the name.
+> 
+> Excellent point. Maybe it should simply use gpio_keys driver with
+> SW_FRONT_PROXIMITY code.
+> 
+In that case, I have another GPIO to switch on and off. How may I handle that case.
 
-Once this change is applied, the video is shown ok (at least for a while,
-but I thinnk this is another issue)
-
-
-
-
+> --
+> Dmitry
