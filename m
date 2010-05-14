@@ -1,77 +1,95 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/10] omap platform init patches for 2.6.35 merge window
-Date: Fri, 14 May 2010 14:27:43 -0700
-Message-ID: <20100514212506.25599.98073.stgit@baageli.muru.com>
+Subject: [PATCH 01/10] OMAP2/3/4: DMA: disable channel interrupts in
+	omap_init_dma()
+Date: Fri, 14 May 2010 14:27:47 -0700
+Message-ID: <20100514212747.25599.60817.stgit@baageli.muru.com>
+References: <20100514212506.25599.98073.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63032 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753724Ab0ENV1p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 17:27:45 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56173 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755248Ab0ENV1u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 17:27:50 -0400
+In-Reply-To: <20100514212506.25599.98073.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Mika Westerberg <ext-mika.1.westerberg@nokia.com>
 
-Hi all,
+From: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
 
-Here are some omap patches mostly to get some more devices
-initialized.
+If we are softbooting another kernel using kexec, DMA controller state is not
+known when we are performing omap_init_dma(). It is possible that some DMA
+channels are already active. For example after kexec we get:
 
-With these the omap4 Ethernet should work, the drivers
-related patches are queued too.
+<4>IRQ 0020 for non-allocated DMAchannel 5
+<4>IRQ 0020 for non-allocated DMAchannel 5
+<4>IRQ 0020 for non-allocated DMAchannel 5
+<4>IRQ 0020 for non-allocated DMAchannel 5
+<4>IRQ 0020 for non-allocated DMAchannel 5
 
-Regards,
+To prevent any weird things happening, we disable all channel interrupts during
+init.
 
-Tony
-
+Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/plat-omap/dma.c |   27 +++++++++++++++++++--------
+ 1 files changed, 19 insertions(+), 8 deletions(-)
 
-Abraham Arce (2):
-      OMAP4: Ethernet: KS8851 Board Support
-      OMAP4: Networking: Defconfig Support
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 1d95996..ad42ec3 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -709,6 +709,21 @@ static inline void omap2_enable_irq_lch(int lch)
+ 	spin_unlock_irqrestore(&dma_chan_lock, flags);
+ }
+ 
++static inline void omap2_disable_irq_lch(int lch)
++{
++	u32 val;
++	unsigned long flags;
++
++	if (!cpu_class_is_omap2())
++		return;
++
++	spin_lock_irqsave(&dma_chan_lock, flags);
++	val = dma_read(IRQENABLE_L0);
++	val &= ~(1 << lch);
++	dma_write(val, IRQENABLE_L0);
++	spin_unlock_irqrestore(&dma_chan_lock, flags);
++}
++
+ int omap_request_dma(int dev_id, const char *dev_name,
+ 		     void (*callback)(int lch, u16 ch_status, void *data),
+ 		     void *data, int *dma_ch_out)
+@@ -807,14 +822,7 @@ void omap_free_dma(int lch)
+ 	}
+ 
+ 	if (cpu_class_is_omap2()) {
+-		u32 val;
+-
+-		spin_lock_irqsave(&dma_chan_lock, flags);
+-		/* Disable interrupts */
+-		val = dma_read(IRQENABLE_L0);
+-		val &= ~(1 << lch);
+-		dma_write(val, IRQENABLE_L0);
+-		spin_unlock_irqrestore(&dma_chan_lock, flags);
++		omap2_disable_irq_lch(lch);
+ 
+ 		/* Clear the CSR register and IRQ status register */
+ 		dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(lch));
+@@ -2107,6 +2115,9 @@ static int __init omap_init_dma(void)
+ 
+ 	for (ch = 0; ch < dma_chan_count; ch++) {
+ 		omap_clear_dma(ch);
++		if (cpu_class_is_omap2())
++			omap2_disable_irq_lch(ch);
++
+ 		dma_chan[ch].dev_id = -1;
+ 		dma_chan[ch].next_lch = -1;
+ 
 
-Mika Westerberg (1):
-      OMAP2/3/4: DMA: disable channel interrupts in omap_init_dma()
-
-Santosh Shilimkar (1):
-      omap4: Move SOC specific code from board file
-
-Syed Rafiuddin (1):
-      OMAP4: SPI: Fix Driver Kconfig
-
-Tony Lindgren (1):
-      omap: GPIO: Fix OMAP4 GPIO reg access issues
-
-manjugk manjugk (1):
-      omap: DMA: Fix multi-line comments
-
-stanley.miao (3):
-      omap: init the gpio pinmux for mmc
-      omap: hsmmc: fix the hsmmc driver for am3517
-      AM3517: rename the i2c boardinfo to make it more readable
-
-
- arch/arm/configs/omap_4430sdp_defconfig         |   57 ++++++++++
- arch/arm/mach-omap2/Makefile                    |    2 
- arch/arm/mach-omap2/board-4430sdp.c             |  128 +++++++++++++++--------
- arch/arm/mach-omap2/board-am3517evm.c           |   20 ++--
- arch/arm/mach-omap2/devices.c                   |    9 ++
- arch/arm/mach-omap2/hsmmc.c                     |   27 ++++-
- arch/arm/mach-omap2/include/mach/omap4-common.h |   26 +++++
- arch/arm/mach-omap2/omap-smp.c                  |    2 
- arch/arm/mach-omap2/omap4-common.c              |   72 +++++++++++++
- arch/arm/plat-omap/common.c                     |    3 -
- arch/arm/plat-omap/dma.c                        |   45 ++++++--
- arch/arm/plat-omap/gpio.c                       |   59 ++++++++---
- arch/arm/plat-omap/include/plat/common.h        |    3 -
- arch/arm/plat-omap/include/plat/mmc.h           |    4 +
- drivers/spi/Kconfig                             |    6 +
- 15 files changed, 362 insertions(+), 101 deletions(-)
- create mode 100644 arch/arm/mach-omap2/include/mach/omap4-common.h
- create mode 100644 arch/arm/mach-omap2/omap4-common.c
-
--- 
-Signature
