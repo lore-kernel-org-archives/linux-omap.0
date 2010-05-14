@@ -1,61 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap iommu: patch for v2.6.34-rc7
-Date: Fri, 14 May 2010 12:08:49 -0700
-Message-ID: <20100514190849.GZ3428@atomide.com>
-References: <20100514.104036.15239017.Hiroshi.DOYU@nokia.com>
+Subject: Re: linux-next: manual merge of the omap_dss2 tree with the omap
+ tree
+Date: Fri, 14 May 2010 12:09:06 -0700
+Message-ID: <20100514190906.GA3428@atomide.com>
+References: <20100507134334.75808884.sfr@canb.auug.org.au>
+ <20100510202056.GG16460@atomide.com>
+ <1273654744.2814.14.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49531 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759150Ab0ENTIx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 15:08:53 -0400
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20100514.104036.15239017.Hiroshi.DOYU@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1273654744.2814.14.camel@tubuntu.research.nokia.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Quadros Roger (Nokia-D/Helsinki)" <roger.quadros@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100514 00:36]:
-> Hi Tony,
+* Tomi Valkeinen <tomi.valkeinen@nokia.com> [100512 01:54]:
+> Hi,
 > 
-> The patches was sent on:
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27968.html
+> On Mon, 2010-05-10 at 22:20 +0200, ext Tony Lindgren wrote:
+> > * Stephen Rothwell <sfr@canb.auug.org.au> [100506 22:05]:
+> > > Hi Tomi,
+> > > 
+> > > Today's linux-next merge of the omap_dss2 tree got a conflict in
+> > > arch/arm/mach-omap2/board-rx51-peripherals.c between commit
+> > > e87da74e34ad151e6ae75ebb7a7bf447f02c0004 ("omap: rx51: Add supplies for
+> > > the tlv320aic3x codec driver") from the omap tree and commit
+> > > a693839eab0292aa234d7a6f48d40389389baebb ("OMAP: RX51: Add "vdds_sdi"
+> > > supply voltage for SDI") from the omap_dss2 tree.
+> > > 
+> > > Just overlapping additions. I fixed it up (see below) and can carry the
+> > > fix as necessary.
+> > 
+> > Thanks again Stephen. We will move the conflicting DSS board-*.c
+> > file changes over to omap for next.
+> > 
+> > Tomi, do you want to do a branch of board-*.c patches for me to
+> > pull, or do you want me to just pick this one?
 > 
-> The following changes since commit b57f95a38233a2e73b679bea4a5453a1cc2a1cc9:
-> 
->   Linux 2.6.34-rc7 (2010-05-09 18:36:28 -0700)
-> 
-> are available in the git repository at:
->   git://gitorious.org/~doyu/lk/mainline.git v2.6.34-rc7.iommu
-> 
-> Hiroshi DOYU (5):
->       omap iommu: Introduce iteration macro for iotlb entry scan
->       omap iommu: Make CONFIG_OMAP_IOMMU_DEBUG selectable
->       omap iommu: Insert a gap page between IOVMAs against override
->       omap iommu: Exit iteration if no possibility of available area
->       omap iommu: Reject unaligned addresses at setting page table entry
-> 
-> Kanigeri, Hari (4):
->       omap iommu: renamed omap3-iommu to omap-iommu
->       omap iommu: support for OMAP4
->       omap iommu: missing check for TLB valid entry
->       omap iommu: add TLB preservation support
-> 
->  arch/arm/mach-omap2/Makefile               |    5 +-
->  arch/arm/mach-omap2/iommu2.c               |    6 +-
->  arch/arm/mach-omap2/omap-iommu.c           |  157 ++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/omap3-iommu.c          |  105 -------------------
->  arch/arm/plat-omap/Kconfig                 |    9 ++-
->  arch/arm/plat-omap/include/plat/omap44xx.h |    3 +
->  arch/arm/plat-omap/iommu.c                 |  101 ++++++++++++------
->  arch/arm/plat-omap/iovmm.c                 |    9 +-
->  8 files changed, 244 insertions(+), 151 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/omap-iommu.c
->  delete mode 100644 arch/arm/mach-omap2/omap3-iommu.c
+> I think it's ok to pick just this one. It's just adds a regulator
+> supply, and doesn't interfere with anything. I just need to make sure
+> linux-omap's for-next is merged first, before I send my pull request.
 
-Thanks, I've pulled this into omap-for-linus.
+Thanks, I've picked this patch.
+ 
+> I made a branch for it, based on linux-omap/for-next:
+> git://gitorious.org/linux-omap-dss2/linux.git for-tony
+> 
+> And I dropped the patch from my for-next branch.
+
+Tomi, next time please check that your branch is based on
+either the most recent tag by Linus, or in the conflicting
+cases you can base on omap-for-linus branch. Please don't
+base on for-next or other branches that are not yet
+static, we don't want the merge history of duplicate branches.
 
 Regards,
 
