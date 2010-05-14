@@ -1,136 +1,40 @@
-From: simon@santesteban.eu
-Subject: USB video capture shuts up
-Date: Fri, 14 May 2010 15:25:02 +0200 (CEST)
-Message-ID: <36070.80.35.16.215.1273843502.squirrel@mail.santesteban.eu>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: USB video capture shuts up
+Date: Fri, 14 May 2010 19:16:46 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D898@dbde02.ent.ti.com>
+References: <36070.80.35.16.215.1273843502.squirrel@mail.santesteban.eu>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slcd079.piensasolutions.com ([217.76.150.162]:44773 "EHLO
-	slcd079.piensasolutions.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757006Ab0ENNZE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 May 2010 09:25:04 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:51393 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756166Ab0ENNrJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 May 2010 09:47:09 -0400
+In-Reply-To: <36070.80.35.16.215.1273843502.squirrel@mail.santesteban.eu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+To: "simon@santesteban.eu" <simon@santesteban.eu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi I am using a v4l2 usb video capturer (em28xx based), and it is working
-fine for around 5 minutes. However, it stops capturing after this time.
-
-There is no error message sent to kmsg ot the application, which
-apparently waits for more data to be received.
-
-The debug dump from usbmon is:
-
-cee45c00 2165674255 C Zi:1:004:2 0:1:2008:0 40 0:0:644 0:1448:644
-0:2896:644 0:4344:644 0:5792:604 25224 = 88888888 16811781 11883b82
-4d8b4e7d 4b8f4e7a 4d8c5077 4f885077 4f885179
-cee45c00 2165675109 S Zi:1:004:2 -115:1:2008 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cffdac00 2165679260 C Zi:1:004:2 0:1:0:0 40 0:0:612 0:1448:608 0:2896:608
-0:4344:644 0:5792:644 25656 = 88888888 39a13c74 3aa33a75 39a23776 3a9f3b78
-3a9e3c78 3c9f3e77 449c4374
-cffdac00 2165680145 S Zi:1:004:2 -115:1:0 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cff3a800 2165684234 C Zi:1:004:2 0:1:40:0 40 0:0:644 0:1448:644 0:2896:644
-0:4344:644 0:5792:644 25420 = 88888888 10831081 10892f82 4487437f 3e87437f
-468b437d 428f447a 46924379
-cff3a800 2165685089 S Zi:1:004:2 -115:1:40 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cee45400 2165773132 C Zi:1:004:2 0:1:80:0 40 0:0:608 0:1448:608 0:2896:608
-0:4344:608 0:5792:608 25504 = 88888888 43823c7e 39863380 2e853281 34833883
-3a843e84 40814380 4280467e
-cee45400 2165773651 S Zi:1:004:2 -115:1:80 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cee45000 2165773773 C Zi:1:004:2 0:1:120:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cee45000 2165773803 S Zi:1:004:2 -115:1:120 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cee45c00 2165773895 C Zi:1:004:2 0:1:160:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cee45c00 2165773895 S Zi:1:004:2 -115:1:160 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cffdac00 2165774017 C Zi:1:004:2 0:1:200:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cffdac00 2165774017 S Zi:1:004:2 -115:1:200 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cff3a800 2165774108 C Zi:1:004:2 0:1:240:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cff3a800 2165774139 S Zi:1:004:2 -115:1:240 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cee45400 2165774230 C Zi:1:004:2 0:1:280:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cee45400 2165774230 S Zi:1:004:2 -115:1:280 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cee45000 2165774353 C Zi:1:004:2 0:1:320:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cee45000 2165774353 S Zi:1:004:2 -115:1:320 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cee45c00 2165774444 C Zi:1:004:2 0:1:360:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cee45c00 2165774475 S Zi:1:004:2 -115:1:360 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cffdac00 2165774566 C Zi:1:004:2 0:1:400:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cffdac00 2165774597 S Zi:1:004:2 -115:1:400 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cff3a800 2165774688 C Zi:1:004:2 0:1:440:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cff3a800 2165774688 S Zi:1:004:2 -115:1:440 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cff3a800 2165774719 E Zi:1:004:2 -27 0
-cee45400 2165774749 C Zi:1:004:2 0:1:480:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cee45400 2165774780 S Zi:1:004:2 -115:1:480 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cee45400 2165774780 E Zi:1:004:2 -27 0
-cee45000 2165774810 C Zi:1:004:2 0:1:520:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cee45000 2165774871 S Zi:1:004:2 -115:1:520 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cee45000 2165774871 E Zi:1:004:2 -27 0
-cee45c00 2165774902 C Zi:1:004:2 0:1:560:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cee45c00 2165774932 S Zi:1:004:2 -115:1:560 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cee45c00 2165774932 E Zi:1:004:2 -27 0
-cffdac00 2165774993 C Zi:1:004:2 0:1:600:0 40 -18:0:0 -18:1448:0
--18:2896:0 -18:4344:0 -18:5792:0 0
-cffdac00 2165774993 S Zi:1:004:2 -115:1:600 40 -18:0:1448 -18:1448:1448
--18:2896:1448 -18:4344:1448 -18:5792:1448 57920 <
-cffdac00 2165775024 E Zi:1:004:2 -27 0
-
-
-I am using kernel 2.6.34-rc7, and now the E messages are shown. In kernels
-2.6.33 and 2.6.32 the bus went on sending callbacks with 0s.
-I assume that there is still some work in progress on the ehci module, and
-eventually this issue will be solved.
-
-Also, when I stop the application the following message is shown:
-
-em28xx #0: cannot change alternate number to 0 (error=-110)
-
-And when I rmmod ehci-hcd:
-
-rmmod ehci-hcd
-ehci-omap ehci-omap.0: remove, state 1
-usb usb1: USB disconnect, address 1
-usb 1-2: USB disconnect, address 2
-usb 1-2.4: USB disconnect, address 3
-usb 1-2.4.2: USB disconnect, address 4
-em28xx #0: disconnecting em28xx #0 video
-em28xx #0: V4L2 device vbi0 deregistered
-em28xx #0: V4L2 device video0 deregistered
-ehci-omap ehci-omap.0: force halt; handshake fa064814 0000c000 00000000 ->
--110
-ehci-omap ehci-omap.0: USB bus 1 deregistered
-
-
-
-Do you know how can I investigate this further?
-
-Thanks in advance,
-
-Simon
-
+c2ltb25Ac2FudGVzdGViYW4uZXUgd3JvdGU6DQo+IEhpIEkgYW0gdXNpbmcgYSB2NGwyIHVzYiB2
+aWRlbyBjYXB0dXJlciAoZW0yOHh4IGJhc2VkKSwgYW5kIGl0IGlzIHdvcmtpbmcNCj4gZmluZSBm
+b3IgYXJvdW5kIDUgbWludXRlcy4gSG93ZXZlciwgaXQgc3RvcHMgY2FwdHVyaW5nIGFmdGVyIHRo
+aXMgdGltZS4NCj4gDQo+IFRoZXJlIGlzIG5vIGVycm9yIG1lc3NhZ2Ugc2VudCB0byBrbXNnIG90
+IHRoZSBhcHBsaWNhdGlvbiwgd2hpY2gNCj4gYXBwYXJlbnRseSB3YWl0cyBmb3IgbW9yZSBkYXRh
+IHRvIGJlIHJlY2VpdmVkLg0KPiANCj4gVGhlIGRlYnVnIGR1bXAgZnJvbSB1c2Jtb24gaXM6DQo+
+IA0KPHNuaXAgdXNibW9uIGR1bXA+DQoNCj4gDQo+IEkgYW0gdXNpbmcga2VybmVsIDIuNi4zNC1y
+YzcsIGFuZCBub3cgdGhlIEUgbWVzc2FnZXMgYXJlIHNob3duLiBJbiBrZXJuZWxzDQo+IDIuNi4z
+MyBhbmQgMi42LjMyIHRoZSBidXMgd2VudCBvbiBzZW5kaW5nIGNhbGxiYWNrcyB3aXRoIDBzLg0K
+PiBJIGFzc3VtZSB0aGF0IHRoZXJlIGlzIHN0aWxsIHNvbWUgd29yayBpbiBwcm9ncmVzcyBvbiB0
+aGUgZWhjaSBtb2R1bGUsIGFuZA0KPiBldmVudHVhbGx5IHRoaXMgaXNzdWUgd2lsbCBiZSBzb2x2
+ZWQuDQo+IA0KPiBBbHNvLCB3aGVuIEkgc3RvcCB0aGUgYXBwbGljYXRpb24gdGhlIGZvbGxvd2lu
+ZyBtZXNzYWdlIGlzIHNob3duOg0KPiANCj4gZW0yOHh4ICMwOiBjYW5ub3QgY2hhbmdlIGFsdGVy
+bmF0ZSBudW1iZXIgdG8gMCAoZXJyb3I9LTExMCkNCj4gDQoNCldoaWNoIHByb2Nlc3NvciBhbmQg
+d2hpY2ggYm9hcmQgYXJlIHlvdSBydW5uaW5nIHRoaXMgb24/IFdoYXQgaXMgdGhlDQp0cmFuc2Nl
+aXZlciB5b3UgYXJlIHVzaW5nPyAoV2UgaGFkIGlzc3VlcyBkdWUgdG8gaW5hZGVxdWF0ZSBjYXBh
+Y2l0YW5jZQ0Kb24gc29tZSBwb3dlciByYWlscywgYW5kIHBvb3IgYm9hcmQgZGVzaWduKS4gVGhp
+cyBjb3VsZCBiZSBvbmUgc291cmNlDQpvZiB5b3VyIHByb2JsZW0uDQoNClRoZW4gYWdhaW4sIHlv
+dSBtaWdodCBiZSBoaXR0aW5nIGFuIE9NQVAgZXJyYXRhLg0KDQpBcmUgeW91IGFibGUgdG8gdXNl
+IHRoZSBkZXZpY2UgYWZ0ZXIgeW91IGxvYWQgdGhlIEVIQ0kgbW9kdWxlIGFnYWluPw0KDQotIEFu
+YW5kDQo=
