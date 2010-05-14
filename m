@@ -1,72 +1,95 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH v2 00/17] omap: mailbox: reorganize init
-Date: Fri, 14 May 2010 18:01:33 +0300
-Message-ID: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH v2 02/17] omap: mailbox: trivial cleanups
+Date: Fri, 14 May 2010 18:01:35 +0300
+Message-ID: <1273849310-32169-3-git-send-email-felipe.contreras@gmail.com>
+References: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ew0-f216.google.com ([209.85.219.216]:44846 "EHLO
 	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344Ab0ENPCC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 11:02:02 -0400
-Received: by ewy8 with SMTP id 8so902320ewy.28
-        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 08:02:00 -0700 (PDT)
+	with ESMTP id S1752764Ab0ENPCG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 11:02:06 -0400
+Received: by mail-ew0-f216.google.com with SMTP id 8so902320ewy.28
+        for <linux-omap@vger.kernel.org>; Fri, 14 May 2010 08:02:06 -0700 (PDT)
+In-Reply-To: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Hi,
+And fix a few compilation warnings.
 
-The main purpose of this patch series is to be able to compile mach platform
-data as built-in. Otherwise, client modules such as bridgedriver will load the
-platform code, but not the mach code when mailbox is built as a module.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ arch/arm/mach-omap1/devices.c |    6 ++----
+ arch/arm/mach-omap1/mailbox.c |    2 +-
+ arch/arm/mach-omap2/mailbox.c |    8 +++++---
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-Unfortunately, there's no easy way to do that since plat and mach code are
-deepely interrelated. So the first patches try to separate the mailbox
-registering through a defined omap_mbox_platform_data.
-
-Also, it's worth noting that mailboxes are not a one-to-one mapping to
-resources; that is, some resources belong to multiple mboxes. So it's best to
-think of mailboxes as fake devices. That is why custom platform_data is required.
-
-Finally, a bunch of cleaning up is done in the very first patches, specially for
-OMAP1.
-
-The initial RFC included comments from Felipe Balbi, and this proposal includes
-comments from Tony Lindgren.
-
-v2:
- * Rebased on top of Hiroshi's v2.6.34-rc7.mailbox
- * A bit more extra cleanups
-
-v1 was tested on OMAP3 (beagleboard), and compiled-tested for OMAP1.
-v2 was compile-tested for OMAP3 and 1.
-
-Felipe Contreras (17):
-  omap: mailbox: trivial whitespace cleanups
-  omap: mailbox: trivial cleanups
-  omap: mailbox: reorganize structures
-  omap: mailbox: 2420 should be detected at run-time
-  omap: mailbox: use correct config for omap1
-  omap: mailbox: update omap1 probing
-  omap: mailbox: reorganize registering
-  omap: mailbox: only compile for configured archs
-  omap: mailbox: reorganize omap platform_device
-  omap: mailbox: move more stuff to omap_mbox_init()
-  omap: mailbox: trivial sync between omap1 and 2
-  omap: mailbox: split platform driver
-  omap: mailbox: always built-in platform data
-  omap: mailbox: reorganize headers
-  omap: mailbox: don't export unecessary symbols
-  omap: mailbox: mark some resources as __initdata
-  omap: mailbox: don't export register/unregister
-
- arch/arm/mach-omap1/Makefile              |    6 +-
- arch/arm/mach-omap1/devices.c             |   40 -----
- arch/arm/mach-omap1/mailbox.c             |  118 ++++++++------
- arch/arm/mach-omap2/Makefile              |    5 +-
- arch/arm/mach-omap2/devices.c             |   92 -----------
- arch/arm/mach-omap2/mailbox.c             |  254 ++++++++++++++++-------------
- arch/arm/plat-omap/include/plat/mailbox.h |   10 +-
- arch/arm/plat-omap/mailbox.c              |   89 +++++++---
- 8 files changed, 290 insertions(+), 324 deletions(-)
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index 379100c..462b59c 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -73,12 +73,10 @@ static inline void omap_init_rtc(void) {}
+ #  define INT_DSP_MAILBOX1	INT_1610_DSP_MAILBOX1
+ #endif
+ 
+-#define OMAP1_MBOX_BASE		OMAP16XX_MAILBOX_BASE
+-
+ static struct resource mbox_resources[] = {
+ 	{
+-		.start		= OMAP1_MBOX_BASE,
+-		.end		= OMAP1_MBOX_BASE + OMAP1_MBOX_SIZE,
++		.start		= OMAP16XX_MAILBOX_BASE,
++		.end		= OMAP16XX_MAILBOX_BASE + OMAP1_MBOX_SIZE,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
+index 4f5b3da..15bf2a2 100644
+--- a/arch/arm/mach-omap1/mailbox.c
++++ b/arch/arm/mach-omap1/mailbox.c
+@@ -83,7 +83,7 @@ static int omap1_mbox_fifo_full(struct omap_mbox *mbox)
+ 	struct omap_mbox1_fifo *fifo =
+ 		&((struct omap_mbox1_priv *)mbox->priv)->rx_fifo;
+ 
+-	return (mbox_read_reg(fifo->flag));
++	return mbox_read_reg(fifo->flag);
+ }
+ 
+ /* irq */
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 763272c..c9f3d39 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -300,8 +300,6 @@ static struct omap_mbox2_priv omap2_mbox_dsp_priv = {
+ 	.irqdisable	= MAILBOX_IRQENABLE(0),
+ };
+ 
+-
+-
+ /* OMAP4 specific data structure. Use the cpu_is_omap4xxx()
+ to use this*/
+ static struct omap_mbox2_priv omap2_mbox_1_priv = {
+@@ -357,7 +355,6 @@ struct omap_mbox mbox_2_info = {
+ };
+ EXPORT_SYMBOL(mbox_2_info);
+ 
+-
+ #if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+ static struct omap_mbox2_priv omap2_mbox_iva_priv = {
+ 	.tx_fifo = {
+@@ -443,6 +440,11 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+ #endif
+ 	return 0;
+ 
++#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
++err_iva1:
++	omap_mbox_unregister(&mbox_dsp_info);
++#endif
++
+ err_dsp:
+ 	iounmap(mbox_base);
+ 	return ret;
+-- 
+1.7.1
 
