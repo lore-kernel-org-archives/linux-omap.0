@@ -1,15 +1,15 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Sat, 15 May 2010 21:47:22 +0200
-Message-ID: <201005152147.22122.rjw@sisk.pl>
+Date: Sat, 15 May 2010 21:52:15 +0200
+Message-ID: <201005152152.15996.rjw@sisk.pl>
 References: <1272667021-21312-1-git-send-email-arve@android.com>
 	<87aas2azc5.fsf@deeprootsystems.com>
-	<AANLkTilsAC--0TGYgeJpNVPzBCFL5uQmeBTjb3SgtjKY@mail.gmail.com>
+	<20100514231510.GG16989@thunk.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <AANLkTilsAC--0TGYgeJpNVPzBCFL5uQmeBTjb3SgtjKY@mail.gmail.com>
+In-Reply-To: <20100514231510.GG16989@thunk.org>
 List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
@@ -19,66 +19,39 @@ List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
 Sender: linux-pm-bounces@lists.linux-foundation.org
 Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
+To: tytso@mit.edu
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Arve@smtp1.linux-foundation.org, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 15 May 2010, Arve Hj=F8nnev=E5g wrote:
-> On Fri, May 14, 2010 at 3:32 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
-> > Matthew Garrett <mjg@redhat.com> writes:
-> >
-> >> On Fri, May 14, 2010 at 02:20:43PM -0600, Paul Walmsley wrote:
-> >>> Hello,
-> >>>
-> >>> On Mon, 3 May 2010, Matthew Garrett wrote:
-> >>>
-> >>> > I agree that the runtime scenario is a far more appealing one from =
-an
-> >>> > aesthetic standpoint, but so far we don't have a very compelling
-> >>> > argument for dealing with the starting and stopping of userspace.
-> >>>
-> >>> The problem of how to start and stop (some) userspace is not specific=
-ally
-> >>> system power management-related, nor top-down, /sys/power/state-suspe=
-nd
-> >>> related.  PM is just one potential user.
-> >>>
-> >>> It's hard to see how the Android opportunistic suspend approach would=
- be
-> >>> useful for the other use-cases (e.g., checkpoint/restart).  On the ot=
-her
-> >>> hand, it's easier to see how something like freezer cgroups could be
-> >>> useful for system power management and checkpoint/restart.
-> >>
-> >> And difficult to see how to implement something using freezer cgroups
-> >> that actually works in this case. Look, I don't want to sound like I
-> >> have a one-track mind or anything, but all of these arguments would be
-> >> significantly more compelling if someone would actually provide a
-> >> concrete implementation proposal that deals with the set of use-cases
-> >> that Google's implementation does and which doesn't make anyone cry.
-> >
-> > That might be possible if this "set of use-cases" was available
-> > someplace.  At least I haven't seen it, and would expect it to be in
-> > the docs included with patch 1.
-> >
+On Saturday 15 May 2010, tytso@mit.edu wrote:
+> On Fri, May 14, 2010 at 03:32:58PM -0700, Kevin Hilman wrote:
 > > Another likely reason that that there hasn't been an alternate
 > > proposal (at least from some of us that are raising concerns) is
 > > because we already have a working solution to dynamic, system-wide PM
 > > that is 1) already in mainline and 2) shipping on consumer devices
 > > with very strict power budgets (as already pointed out in detail by
 > > Paul[2].)
-> >
-> > Yes, "excruciatingly bad" apps can kill PM on these systems since
-> > anyone can write apps, but the same is true on an opporunistic-suspend
-> > based system since any app could hold a suspend blocker whenever it
-> > wants.
-> >
-> =
+> 
+> The examples cited where the things like the Palm Pre, and the Nokia
+> N770/800/810 series.  #1, what works on one embedded
+> chipset/architecture might not work on another, and #2, the battery
+> lifetime on the N770 and N800 (both of which I have) is **appalling**
+> **bad**.
+> 
+> I really don't understand why people are so opposed to merging code
+> that works well for a very large set of devices and products.  Just
+> because *you* don't need it is not a sufficiently good reason to argue
+> for it not be merged.  If you don't want to use it, then don't CONFIG
+> it in.
 
-> No, apps need permission to block suspend.
+Violently agreed.
 
-Are you referring to the fact the permissions of the special device file or
-something different?
+And really, the only semi-technical argument against the opportunistic suspend
+feature I've seen so far in this thread is that it _may_ _be_ possible to
+achieve the same goal in a different way.  If I don't see anything more serious
+than that, I will take the patchset and push it to Linus (patches [1-6/8] from
+version 7 to be precise, as soon as the changelogs are improved as
+requested).
 
+Thanks,
 Rafael
