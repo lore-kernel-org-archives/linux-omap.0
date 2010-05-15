@@ -1,137 +1,70 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 2/3 v2] musb: add musb support for AM35x
-Date: Sat, 15 May 2010 07:24:20 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E5350D2@dbde02.ent.ti.com>
-References: <1273838737-6995-1-git-send-email-ajay.gupta@ti.com>
-	 <1273838737-6995-2-git-send-email-ajay.gupta@ti.com>
- <AANLkTim_Ii_2qNt30ZXbseT-dWPB7kJCq72sTXRhG686@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Fri, 14 May 2010 22:25:09 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1005142216481.11498-100000@netrider.rowland.org>
+References: <AANLkTinyNYFwM4QJKPunlvK-ATJwSYVXGayeZIR9izx2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59185 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800Ab0EOBy2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 May 2010 21:54:28 -0400
-In-Reply-To: <AANLkTim_Ii_2qNt30ZXbseT-dWPB7kJCq72sTXRhG686@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <AANLkTinyNYFwM4QJKPunlvK-ATJwSYVXGayeZIR9izx2@mail.gmail.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, linux-input@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, =?ISO-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Brian Swetland <swetland@google.co>
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@gmail.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-> Ajay Kumar Gupta <ajay.gupta@ti.com> wrote:
-> > AM35x is based on OMAP35x but has an updated musb interface which
-> > uses CPPI4.1 DMA engine.
+On Fri, 14 May 2010, Arve Hj=F8nnev=E5g wrote:
+
+> On Fri, May 14, 2010 at 1:27 PM, Paul Walmsley <paul@pwsan.com> wrote:
 > >
-> > Current patch supports only PIO mode transfers.
+> > Hello,
 > >
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > ---
-> > Changes from v1: (Based on Sergei's comment)
-> > =A0 =A0 =A0 =A0- Moved PHY clock and OTGMODE settings to board file=
-s
-> > =A0 =A0 =A0 =A0- Added clk_disable/put in exit path
-> > =A0 =A0 =A0 =A0- Removed unwanted code related to vbus
-> > =A0 =A0 =A0 =A0- Removed unhandled interrupt check
-> > =A0 =A0 =A0 =A0- Added timeout in phy_on()
-> > I had to use MACH_OMAP3517EVM as there is no ARCH_xxx config specif=
-ic to
-> > AM3517 platforms other than ARCH_OMAP3.
+> > On Mon, 3 May 2010, Arve Hj=F8nnev=E5g wrote:
 > >
-> > =A0drivers/usb/musb/Kconfig =A0| =A0 =A04 +-
-> > =A0drivers/usb/musb/Makefile | =A0 =A04 +
-> > =A0drivers/usb/musb/am3517.c | =A0517
-[..]
-> > +
-> > +static inline void phy_on(void)
-> > +{
-> > + =A0 =A0 =A0 unsigned long timeout =3D jiffies + msecs_to_jiffies(=
-100);
-> > + =A0 =A0 =A0 u32 devconf2;
-> > +
-> > + =A0 =A0 =A0 /*
-> > + =A0 =A0 =A0 =A0* Start the on-chip PHY and its PLL.
-> > + =A0 =A0 =A0 =A0*/
-> > + =A0 =A0 =A0 devconf2 =3D omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)=
-;
-> > +
-> > + =A0 =A0 =A0 devconf2 &=3D ~(CONF2_RESET | CONF2_PHYPWRDN | CONF2_=
-OTGPWRDN |
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 CONF2_PHY_GPIOMODE);
-> > + =A0 =A0 =A0 devconf2 |=3D CONF2_PHY_PLLON | CONF2_DATPOL;
-> > +
-> > + =A0 =A0 =A0 omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-> > +
-> > + =A0 =A0 =A0 DBG(1, "Waiting for PHY clock good...\n");
-> > + =A0 =A0 =A0 while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 & CONF2_PHYCLKGD)) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpu_relax();
-> > +
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (time_after(jiffies, timeout)) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 DBG(1, "musb PHY cloc=
-k good timed out\n");
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> A 'break' would have been more appropriate.
+> >> No, suspend blockers are mostly used to ensure wakeup events are not
+> >> ignored, and to ensure tasks triggered by these wakeup events
+> >> complete.
+> >
+> > Standard Linux systems don't need these,
+> =
 
-Why?
-'break' would bring in additional instruction and finally it would
-return as the loop is already at the bottom of the function.
+> If you don't want to lose wakeup events they do. Standard Linux
+> systems support suspend, but since they usually don't have a lot of
+> wakeup events you don't run into a lot of problems.
 
->=20
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> > + =A0 =A0 =A0 }
-> > +}
-> > +
-[..]
-> > +int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
-> > +{
-> > + =A0 =A0 =A0 u32 devconf2 =3D omap_ctrl_readl(AM35XX_CONTROL_DEVCO=
-NF2);
-> > +
-> > + =A0 =A0 =A0 devconf2 &=3D ~CONF2_OTGMODE;
-> > + =A0 =A0 =A0 switch (musb_mode) {
-> > +#ifdef CONFIG_USB_MUSB_HDRC_HCD
-> > + =A0 =A0 =A0 case MUSB_HOST: =A0 =A0 =A0 =A0 /* Force VBUS valid, =
-ID =3D 0 */
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 devconf2 |=3D CONF2_FORCE_HOST;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> > +#endif
-> > +#ifdef CONFIG_USB_GADGET_MUSB_HDRC
-> > + =A0 =A0 =A0 case MUSB_PERIPHERAL: =A0 /* Force VBUS valid, ID =3D=
- 1 */
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 devconf2 |=3D CONF2_FORCE_DEVICE;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> > +#endif
-> > +#ifdef CONFIG_USB_MUSB_OTG
-> > + =A0 =A0 =A0 case MUSB_OTG: =A0 =A0 =A0 =A0 =A0/* Don't override t=
-he VBUS/ID
-> comparators */
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 devconf2 |=3D CONF2_NO_OVERRIDE;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> > +#endif
-> > + =A0 =A0 =A0 default:
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 DBG(2, "Trying to set unsupported mod=
-e %u\n",
-> musb_mode);
-> > + =A0 =A0 =A0 }
-> Either the switch case or the compile time flag is redundant.
-No. both has to be there.
+The primary client for opportunistic suspend and suspend blockers
+appears to be embedded systems.  These systems are typically capable of
+powering the CPU down and up again with low latency, and they typically
+have very aggressive runtime PM support capable of powering down each
+device when it's not in active use.  Given this ability, it does seem
+that opportunistic suspend and suspend blockers might be unnecessary.
 
-'musb_mode' is an entry from user via sysfs for changing the
-operating mode and if some modes are not even configured in
-kernel then we should not switch the mode and also warn the
-user for this.
+I'd like to explore this avenue a little farther.  In particular, what =
 
-Ajay
->=20
-> > +
-> > + =A0 =A0 =A0 omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-> > + =A0 =A0 =A0 return 0;
-[..]
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+is the issue involving loss of wakeup events?  Can you describe this in =
+
+more detail?
+
+> > because the scheduler just keeps
+> > the system running as long as there is work to be done.
+> >
+> =
+
+> That is only true if you never use suspend.
+
+Why would you want to use system suspend if runtime PM can do
+everything you need?
+
+Sure, I can see that an ACPI-based system needs something more.  But =
+
+that's not the real issue here.
+
+Alan Stern
