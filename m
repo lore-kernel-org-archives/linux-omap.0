@@ -1,70 +1,119 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Sat, 15 May 2010 17:25:37 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005151720330.24645-100000@netrider.rowland.org>
-References: <AANLkTinztS8B4LkceGgZB94sRKbseKQ6qMnWB0Jcyh9I@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Sat, 15 May 2010 22:14:33 +0200
+Message-ID: <201005152214.33691.rjw@sisk.pl>
+References: <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com> <201005142350.01222.rjw@sisk.pl> <87k4r69k61.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <AANLkTinztS8B4LkceGgZB94sRKbseKQ6qMnWB0Jcyh9I@mail.gmail.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, linux-input@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, =?ISO-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Brian Swetland <swetland@google.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87k4r69k61.fsf@deeprootsystems.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, Matthew Garrett <mjg@redhat.com>, Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, =?iso-8859-1?q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 14 May 2010, Arve Hj=F8nnev=E5g wrote:
-
-> > I'd like to explore this avenue a little farther. =A0In particular, what
-> > is the issue involving loss of wakeup events? =A0Can you describe this =
-in
-> > more detail?
+On Saturday 15 May 2010, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> 
+> > On Friday 14 May 2010, Kevin Hilman wrote:
+> >> Kevin Hilman <khilman@deeprootsystems.com> writes:
+> >> 
+> >> > "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> >> >
+> >> >> On Thursday 13 May 2010, Tony Lindgren wrote:
+> >> >>> * Rafael J. Wysocki <rjw@sisk.pl> [100513 14:16]:
+> >> >
+> >> > [...]
+> >> >
+> >> >>>  
+> >> >>> > It solves a practical issue that _at_ _the_ _moment_ cannot be solved
+> >> >>> > differently, while there's a growing number of out-of-tree drivers depending
+> >> >>> > on this framework.  We need those drivers in and because we don't have any
+> >> >>> > viable alternative at hand, we have no good reason to reject it.
+> >> >>> 
+> >> >>> Nothing is preventing merging the drivers can be merged without
+> >> >>> these calls.
+> >> >>
+> >> >> And yet, there _is_ a growing nuber of drivers that don't get merge because
+> >> >> of that.  That's _reality_.  Are you going to discuss with facts, or what?
+> >> >
+> >> > It may be reality, but IMO, "preventing other drivers" isn't a good
+> >> > *technical* argument for merging a feature.  It feels like these "for
+> >> > the 'good' of the community" arguments are being used to trump the
+> >> > technical arguments.  Maybe we need to keep the separate.
+> >> 
+> >> To continue along the "for the good of the community" path...
+> >> 
+> >> If it truly is the lack of a suspend blocker API that is preventing
+> >> the merge of these out of tree drivers, I second Mark's proposal[1] to
+> >> merge a noop version of the API while the technical issues continue to
+> >> be discussed.
 > >
-> =
+> > I'm against that, sorry.
+> 
+> OK, I'll bite... Why?
 
-> On the desktop systems I have used I only wake the up the system by
-> pressing a button/key or with an rtc alarm. Losing a button or key
-> wakeup event is not usually a problem on a desktop since the user will
-> press it again. Losing an alarm however could be a problem and this
-> can be avoided by using opportunistic suspend and suspend blockers.
+Because in that case the real feature will always be opposed as "unnecessary"
+and never merged.  I very much prefer to decide whether to merge it or reject
+it right now.
 
-How can runtime PM combined with CPUidle cause an alarm to be lost?
-
-> > Why would you want to use system suspend if runtime PM can do
-> > everything you need?
+> >> Then we would see how many drivers get submitted and merged.
+> >>
+> >> Personally, I suspect that lack of this feature is not the real
+> >> obstacle to getting these out-of-tree drivers upstream.  Having this
+> >> API upstream will not change the product schedules and corporate
+> >> cultures that have prevented code from making its way upstream.
 > >
-> Because it stops threads that wakeup every second to check if they
-> have work to do (this includes standard kernel threads), and it
-> prevents bad apps that never go idle from completely destroying our
-> battery life.
+> > But apparently it is considered as a suitable excuse.
+> 
+> No, it is not a _technical_ excuse.  Just a healthy, experience-based
+> dose of skepticism.
 
-Ah, the ill-behaved apps problem.  I think everybody agrees that they =
+I didn't mean that, actually.  What I wanted to say is that people use the
+lack of "wakelocks" in the mainline as an excuse not to push their drivers
+upstream (which is kind of understandable, because there's a zero benefit to
+them from mainlining their code, as they will have to maintain a separate
+"Android" version of it anyway).
 
-are hard to deal with.
+Sorry for the confusion.
 
-The kernel-threads problem might better be addressed by fixing those
-threads than by adding a new API.
+> It was expressed because I find the arguments above for merging
+> because it prevents out-of-tree drivers from merging quite
+> unconvincing.  This is not just about opportunistic suspend + suspend
+> blockers specifically but comes from several years experience in the
+> embedded Linux world.
 
-> > Sure, I can see that an ACPI-based system needs something more. =A0But
-> > that's not the real issue here.
-> >
-> =
+In this particular case, the lack of the mainline's support for opportunistic
+suspend (in the form of "wakelocks" to be precise) has been given as a main
+obstacle against merging of several drivers at least.
 
-> The system we started with entered a much lower power state from
-> suspend than idle so we needed wakelocks to get more than 24 hours
-> battery life. We kept wakelocks when we moved to the msm platform
-> since it reduces our power consumption.
+So, let's not just easily generalize, please.
 
-Is it generally true among embedded systems nowadays that idle is =
+And this is not the only reason to push the opportunistic suspend feature
+upstream IMO.
 
-capable of reaching essentially the same power states as suspend?
+First, I think it is a legitimate approach to power management, whether you
+like it or not.  I haven't seen anyone seriously arguing against that yet.
 
-Alan Stern
+Second, (as said above) there is a number of drivers _already_ depending
+on it and that number is only going to grow given the popularity of Android.
+They are not mainlined in part because their authors don't see a benefit from
+doing so (usually the benefit is that you don't have to maintain your code out
+of the tree, because the mainline does it for you to some extent, so if you
+need to maintain a separate version yourself, the benefit is zero).
+
+Next, the only thing the Arve's patches do is to give people an _option_ to use
+opportunistic suspend if they need it or want it.  It's not mandatory and not
+even enabled by default, so I don't really see what the problem is.  Quite on
+the contrary, I'd like people to be able to use the mainline on Android systems
+without major modifications, because potentially that can increase our tester
+base (and developer base too in consequence) and including opportunistic
+suspend in the mainline would be a step in that direction.
+
+Finally, it appears to address some issues that at the moment we don't
+seriously know how to address in a different way.
+
+Thanks,
+Rafael
