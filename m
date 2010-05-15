@@ -1,33 +1,39 @@
 From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 22:35:41 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005142233070.11498-100000@netrider.rowland.org>
-References: <201005140028.49443.rjw@sisk.pl>
+Date: Fri, 14 May 2010 22:47:01 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1005142238150.11498-100000@netrider.rowland.org>
+References: <AANLkTilL2mvqpwirTfJRWZFdrFJvSihnaY8-xao4pLpH@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201005140028.49443.rjw@sisk.pl>
+In-Reply-To: <AANLkTilL2mvqpwirTfJRWZFdrFJvSihnaY8-xao4pLpH@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Kevin Hilman <khilman@deeprootsystems.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Matthew Garrett <mjg@redhat.com>, =?iso-8859-1?q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Kevin Hilman <khilman@deeprootsystems.com>, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Linus Walleij <linus.walleij@ericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 14 May 2010, Rafael J. Wysocki wrote:
+On Fri, 14 May 2010, Magnus Damm wrote:
 
-> > > How do you handle situations where the CPU is currently idle but an 
-> > > event (such as I/O completion) is expected to occur in the near future?  
-> > > You don't want to power-off and reboot then, do you?
-> > 
-> > The idle code looks at next_timer_interrupt() value, then if the
-> > next timer event if far enough ahead, the system powers down and
-> > wakes to the timer interrupt. It also wakes to device interrupts.
-> 
-> For the record, waking to interrupts doesn't work on quite some systems
-> (like ACPI-based PCs for one example).
+> I agree with you Tony. I thought shutting down CPUs for power
+> managment purposes could be done without freezing user space. At least
+> that's what we do today with SH-Mobile.
 
-Ironically, it appears that ACPI-based PCs are in a position to benefit 
-more from opportunistic suspend and suspend blockers than are embedded 
-systems -- and yet they are being proposed for use on cell phones 
-rather than on desktops.
+If you can shut down and restart CPUs in the time periods between 
+transitions into and out of the idle loop, then yes -- userspace 
+doesn't need to be suspended.  After all, if the idle loop is running 
+then no user threads are runnable.  (Not necessarily true on SMP 
+systems, but you know what I mean.)
+
+> Still not sure how the system wide suspend is different from Runtime
+> PM and CPUidle from the hardware perspective...
+
+For embedded systems, apparently the difference is minimal.  For other
+systems, like ACPI-based PCs, there is a big difference: Powering down
+devices and CPUs still leaves large parts of the system running.
+
+In addition, these larger systems generally don't have aggressive 
+runtime PM support, so a significant fraction (maybe more than 50%) of 
+devices won't be powered down when they are idle -- whereas system 
+suspend powers virtually everything down.
 
 Alan Stern
