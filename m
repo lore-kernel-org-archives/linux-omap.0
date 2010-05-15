@@ -1,33 +1,72 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 3/6] DSPBRIDGE: remove mapping information in
-	proc_unmap
-Date: Sat, 15 May 2010 11:38:32 +0300
-Message-ID: <AANLkTilsK1ItSbn2RgUd4xd_3Otd9mHve-_5_OZ-Q6tM@mail.gmail.com>
-References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	 <1272746671-13423-4-git-send-email-ohad@wizery.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v3 2/5] OMAP4 HSMMC: Adding hsmmc support to board file
+Date: Sat, 15 May 2010 14:27:11 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C558B38D@dbde02.ent.ti.com>
+References: <12490.10.24.255.17.1273781497.squirrel@dbdmail.itg.ti.com>
+ <20100514215651.GI3428@atomide.com>
+ <20100514220508.GC7185@flint.arm.linux.org.uk>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C558B36B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:4425 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753046Ab0EOIie (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 May 2010 04:38:34 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so1997413fga.1
-        for <linux-omap@vger.kernel.org>; Sat, 15 May 2010 01:38:32 -0700 (PDT)
-In-Reply-To: <1272746671-13423-4-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C558B36B@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "jarkko.lavinen@nokia.com" <jarkko.lavinen@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>, "adrian.hunter@nokia.com" <adrian.hunter@nokia.com>, Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-On Sat, May 1, 2010 at 11:44 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> Clean up all mapping information resources whenever
-> a buffer is unmapped.
+Kishore,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> Shilimkar, Santosh
+> Sent: Saturday, May 15, 2010 11:41 AM
+> To: Kadiyala, Kishore
+> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Chikkature Rajashekar, Madhusudhan;
+> jarkko.lavinen@nokia.com; paul@pwsan.com; adrian.hunter@nokia.com; Russell King; Tony Lindgren
+> Subject: RE: [PATCH v3 2/5] OMAP4 HSMMC: Adding hsmmc support to board file
+> 
+> Kishore,
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> Russell
+> > King
+> > Sent: Saturday, May 15, 2010 3:35 AM
+> > To: Tony Lindgren
+> > Cc: Kadiyala, Kishore; linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Chikkature
+> Rajashekar,
+> > Madhusudhan; jarkko.lavinen@nokia.com; paul@pwsan.com; adrian.hunter@nokia.com
+> > Subject: Re: [PATCH v3 2/5] OMAP4 HSMMC: Adding hsmmc support to board file
+> >
+> > On Fri, May 14, 2010 at 02:56:51PM -0700, Tony Lindgren wrote:
+> > > * kishore kadiyala <kishore.kadiyala@ti.com> [100513 13:06]:
+> > > > Support for MMC1 & MMC2 controllers is added to the board file.
+> > > > Also includes configuration of MMC1 Card detect initially.
+> > >
+> > > This patch does not seem to apply, I don't know where you're getting
+> > > the sdp4430_vmmc_supply in this patch?
+> > >
+> > > I suggest you forget about the card detect patches for now and
+> > > first produce a minimal set of patches to get the MMC working
+> > > for board-4430sdp.c. The card detect patches should be applied
+> > > only after board-4430sdp.c works for MMC. And we're running out
+> > > of time for this merge window.
+> >
+> > Absolutely - we _really_ _really_ _really_ need to get MMC usable
+> > on the 4430SDP for this merge window - don't care about the card
+> > detection provided the system can find a MMC card which is left
+> > plugged in.
+> >
+> > To do this makes the overall 4430SDP more usable than it currently
+> > is with mainline kernels.
+> >
+> Why is it taking so much time to get 4-5 patches in shape for mainline??
+> What is expected is just basic MMC support and no advance features yet.
+> 
+Please have a look at Tony's "for-next" branch where your i2c board
+depedancy is taken care. May be you can rebase your patches against
+this branch.
 
-If I understand correctly the previous patch doesn't make sense on
-it's own because it will leak memory. Therefore it should be squashed
-with this one. Otherwise a git bisect might land on a very bad place.
-It's good for reviewing though.
-
--- 
-Felipe Contreras
+Regards,
+Santosh
