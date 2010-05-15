@@ -1,258 +1,84 @@
-From: "kishore kadiyala" <kishore.kadiyala@ti.com>
-Subject: [PATCH v4 5/5] OMAP4 HSMMC: Adding card detect support for MMC1
-     Controller
-Date: Sat, 15 May 2010 23:52:02 +0530 (IST)
-Message-ID: <22514.10.24.255.17.1273947722.squirrel@dbdmail.itg.ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Sat, 15 May 2010 21:47:22 +0200
+Message-ID: <201005152147.22122.rjw@sisk.pl>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<87aas2azc5.fsf@deeprootsystems.com>
+	<AANLkTilsAC--0TGYgeJpNVPzBCFL5uQmeBTjb3SgtjKY@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37645 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753849Ab0EOSWS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 May 2010 14:22:18 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <AANLkTilsAC--0TGYgeJpNVPzBCFL5uQmeBTjb3SgtjKY@mail.gmail.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk, paul@pwsan.com, santosh.shilimkar@ti.com
 
-Adds card detect callback function which gives the status of
-the card .For MMC1 Controller, Card detect interrupt is provided
-by twl6030 and card status is provided by MMCCTRL reg of twl6030.
+On Saturday 15 May 2010, Arve Hj=F8nnev=E5g wrote:
+> On Fri, May 14, 2010 at 3:32 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+> > Matthew Garrett <mjg@redhat.com> writes:
+> >
+> >> On Fri, May 14, 2010 at 02:20:43PM -0600, Paul Walmsley wrote:
+> >>> Hello,
+> >>>
+> >>> On Mon, 3 May 2010, Matthew Garrett wrote:
+> >>>
+> >>> > I agree that the runtime scenario is a far more appealing one from =
+an
+> >>> > aesthetic standpoint, but so far we don't have a very compelling
+> >>> > argument for dealing with the starting and stopping of userspace.
+> >>>
+> >>> The problem of how to start and stop (some) userspace is not specific=
+ally
+> >>> system power management-related, nor top-down, /sys/power/state-suspe=
+nd
+> >>> related.  PM is just one potential user.
+> >>>
+> >>> It's hard to see how the Android opportunistic suspend approach would=
+ be
+> >>> useful for the other use-cases (e.g., checkpoint/restart).  On the ot=
+her
+> >>> hand, it's easier to see how something like freezer cgroups could be
+> >>> useful for system power management and checkpoint/restart.
+> >>
+> >> And difficult to see how to implement something using freezer cgroups
+> >> that actually works in this case. Look, I don't want to sound like I
+> >> have a one-track mind or anything, but all of these arguments would be
+> >> significantly more compelling if someone would actually provide a
+> >> concrete implementation proposal that deals with the set of use-cases
+> >> that Google's implementation does and which doesn't make anyone cry.
+> >
+> > That might be possible if this "set of use-cases" was available
+> > someplace.  At least I haven't seen it, and would expect it to be in
+> > the docs included with patch 1.
+> >
+> > Another likely reason that that there hasn't been an alternate
+> > proposal (at least from some of us that are raising concerns) is
+> > because we already have a working solution to dynamic, system-wide PM
+> > that is 1) already in mainline and 2) shipping on consumer devices
+> > with very strict power budgets (as already pointed out in detail by
+> > Paul[2].)
+> >
+> > Yes, "excruciatingly bad" apps can kill PM on these systems since
+> > anyone can write apps, but the same is true on an opporunistic-suspend
+> > based system since any app could hold a suspend blocker whenever it
+> > wants.
+> >
+> =
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c   |    9 +++++-
- arch/arm/mach-omap2/hsmmc.c           |    1 +
- arch/arm/plat-omap/include/plat/mmc.h |    1 +
- drivers/mfd/twl6030-irq.c             |   23 ++++++++++++++++
- drivers/mmc/host/omap_hsmmc.c         |   31 ++++++++++++++++++---
- include/linux/i2c/twl.h               |   47 +++++++++++++++++++++++++++++++++
- 6 files changed, 105 insertions(+), 7 deletions(-)
+> No, apps need permission to block suspend.
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index e4a5d66..eb4545e 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -144,6 +144,7 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{
- 		.mmc		= 1,
- 		.wires		= 8,
-+		.cd_type	= NON_GPIO,
- 		.gpio_wp	= -EINVAL,
- 	},
- 	{
-@@ -174,10 +175,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
- 				struct platform_device, dev);
- 	struct omap_mmc_platform_data *pdata = dev->platform_data;
+Are you referring to the fact the permissions of the special device file or
+something different?
 
--	/* Setting MMC1 Card detect Irq */
--	if (pdev->id == 0)
-+	/* MMC1 Card detect Configuration */
-+	if (pdev->id == 0) {
-+		ret = omap4_hsmmc1_card_detect_config();
-+		if (ret < 0)
-+			pr_err("Unable to configure Card detect for MMC1\n");
- 		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
- 						MMCDETECT_INTR_OFFSET;
-+	}
- 	return ret;
- }
-
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index 1ef54b0..8a8f7b1 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -265,6 +265,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 		mmc->get_context_loss_count = hsmmc_get_context_loss;
-
- 		mmc->slots[0].switch_pin = c->gpio_cd;
-+		mmc->slots[0].cd_type = c->cd_type;
- 		mmc->slots[0].gpio_wp = c->gpio_wp;
-
- 		mmc->slots[0].remux = c->remux;
-diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
-index ed60c0f..cd42c77 100644
---- a/arch/arm/plat-omap/include/plat/mmc.h
-+++ b/arch/arm/plat-omap/include/plat/mmc.h
-@@ -14,6 +14,7 @@
- #include <linux/types.h>
- #include <linux/device.h>
- #include <linux/mmc/host.h>
-+#include <linux/i2c/twl.h>
-
- #include <plat/board.h>
-
-diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-index 10bf228..ca8b30b 100644
---- a/drivers/mfd/twl6030-irq.c
-+++ b/drivers/mfd/twl6030-irq.c
-@@ -223,6 +223,29 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset)
- }
- EXPORT_SYMBOL(twl6030_interrupt_mask);
-
-+int twl6030_mmc_card_detect(int host_id, int slot)
-+{
-+	int ret = -ENOSYS;
-+	u8 read_reg;
-+
-+	switch (host_id) {
-+	case 0:
-+		/*
-+		 * BIT0 of REG_MMC_CTRL
-+		 * 0 - Card not present ,1 - Card present
-+		 */
-+		ret = twl_i2c_read_u8(TWL6030_MODULE_ID0,
-+			&read_reg, TWL6030_MMCCTRL);
-+		if (ret >= 0)
-+			ret = read_reg & STS_MMC;
-+		break;
-+	default:
-+		pr_err("Unkown MMC controller %d in %s\n", host_id, __func__);
-+	}
-+	return ret;
-+}
-+EXPORT_SYMBOL(twl6030_mmc_card_detect);
-+
- int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- {
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index e9caf69..e25db63 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -190,9 +190,16 @@ struct omap_hsmmc_host {
- static int omap_hsmmc_card_detect(struct device *dev, int slot)
- {
- 	struct omap_mmc_platform_data *mmc = dev->platform_data;
-+	struct platform_device *pdev = container_of(dev,
-+					struct platform_device, dev);
-+	int ret = -ENOSYS;
-
--	/* NOTE: assumes card detect signal is active-low */
--	return !gpio_get_value_cansleep(mmc->slots[0].switch_pin);
-+	if (mmc->slots[0].cd_type == GPIO)
-+		/* NOTE: assumes card detect signal is active-low */
-+		ret = !gpio_get_value_cansleep(mmc->slots[0].switch_pin);
-+	else
-+		ret = twl6030_mmc_card_detect(pdev->id, slot);
-+	return ret;
- }
-
- static int omap_hsmmc_get_wp(struct device *dev, int slot)
-@@ -465,8 +472,6 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
- 	int ret;
-
- 	if (gpio_is_valid(pdata->slots[0].switch_pin)) {
--		pdata->suspend = omap_hsmmc_suspend_cdirq;
--		pdata->resume = omap_hsmmc_resume_cdirq;
- 		if (pdata->slots[0].cover)
- 			pdata->slots[0].get_cover_state =
- 					omap_hsmmc_get_cover_state;
-@@ -505,6 +510,16 @@ err_free_sp:
- 	return ret;
- }
-
-+static int omap_hsmmc_non_gpio_init(struct omap_mmc_platform_data *pdata)
-+{
-+
-+	if (pdata->slots[0].switch_pin > 0) {
-+		pdata->slots[0].card_detect = omap_hsmmc_card_detect;
-+		pdata->slots[0].card_detect_irq = pdata->slots[0].switch_pin;
-+	}
-+	return 0;
-+}
-+
- static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
- {
- 	if (gpio_is_valid(pdata->slots[0].gpio_wp))
-@@ -1977,7 +1992,11 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 	if (res == NULL)
- 		return -EBUSY;
-
--	ret = omap_hsmmc_gpio_init(pdata);
-+	if (pdata->slots[0].cd_type == GPIO)
-+		ret = omap_hsmmc_gpio_init(pdata);
-+	else
-+		ret =  omap_hsmmc_non_gpio_init(pdata);
-+
- 	if (ret)
- 		goto err;
-
-@@ -2160,6 +2179,8 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 				"Unable to grab MMC CD IRQ\n");
- 			goto err_irq_cd;
- 		}
-+		pdata->suspend = omap_hsmmc_suspend_cdirq;
-+		pdata->resume = omap_hsmmc_resume_cdirq;
- 	}
-
- 	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index fb6784e..ce67b9a 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -141,6 +141,15 @@
- #define TWL6030_CHARGER_CTRL_INT_MASK 	0x10
- #define TWL6030_CHARGER_FAULT_INT_MASK 	0x60
-
-+#define TWL6030_MMCCTRL			0xEE
-+#define VMMC_AUTO_OFF			(0x1 << 3)
-+#define SW_FC				(0x1 << 2)
-+#define STS_MMC				0x1
-+
-+#define TWL6030_CFG_INPUT_PUPD3		0xF2
-+#define MMC_PU				(0x1 << 3)
-+#define MMC_PD				(0x1 << 2)
-+
-
- #define TWL4030_CLASS_ID 		0x4030
- #define TWL6030_CLASS_ID 		0x6030
-@@ -173,6 +182,44 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
- int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
-
-+/* MMC1 Controller on OMAP4 uses Phoenix Irq for Card detect */
-+int twl6030_mmc_card_detect(int host_id, int slot);
-+
-+/* Configuring Card Detect for MMC1 */
-+static inline int omap4_hsmmc1_card_detect_config(void)
-+{
-+	int res = -1;
-+	u8 reg_val = 0;
-+
-+	/* Unmasking the Card detect Interrupt line for MMC1 from Phoenix */
-+	if (twl_class_is_6030()) {
-+		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
-+							REG_INT_MSK_LINE_B);
-+		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
-+							REG_INT_MSK_STS_B);
-+	}
-+
-+	/*
-+	 * Intially Configuring MMC_CTRL for receving interrupts &
-+	 * Card status on TWL6030 for MMC1
-+	 */
-+	res = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val, TWL6030_MMCCTRL);
-+	if (res < 0)
-+		return res;
-+	reg_val &= ~VMMC_AUTO_OFF;
-+	reg_val |= SW_FC;
-+	twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_MMCCTRL);
-+
-+	res = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
-+						TWL6030_CFG_INPUT_PUPD3);
-+	if (res < 0)
-+		return res;
-+	reg_val &= ~(MMC_PU | MMC_PD);
-+	twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,
-+						TWL6030_CFG_INPUT_PUPD3);
-+	return res;
-+}
-+
- /*----------------------------------------------------------------------*/
-
- /*
--- 
-1.6.3.3
-
+Rafael
