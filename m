@@ -1,57 +1,34 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Sat, 15 May 2010 21:52:15 +0200
-Message-ID: <201005152152.15996.rjw@sisk.pl>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<87aas2azc5.fsf@deeprootsystems.com>
-	<20100514231510.GG16989@thunk.org>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Sat, 15 May 2010 20:54:01 +0100
+Message-ID: <20100515195401.GA29677@srcf.ucam.org>
+References: <20100513192522.GA19256@srcf.ucam.org> <20100513194205.GC3428@atomide.com> <20100513195349.GB19722@srcf.ucam.org> <20100513200003.GE3428@atomide.com> <20100513200814.GA20254@srcf.ucam.org> <20100513202320.GF3428@atomide.com> <20100513203412.GA21244@srcf.ucam.org> <20100513211006.GG3428@atomide.com> <20100513212108.GA22103@srcf.ucam.org> <20100513213455.GK3428@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20100514231510.GG16989@thunk.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: tytso@mit.edu
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Arve@smtp1.linux-foundation.org, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100513213455.GK3428@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, Kevin Hilman <khilman@deeprootsystems.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 15 May 2010, tytso@mit.edu wrote:
-> On Fri, May 14, 2010 at 03:32:58PM -0700, Kevin Hilman wrote:
-> > Another likely reason that that there hasn't been an alternate
-> > proposal (at least from some of us that are raising concerns) is
-> > because we already have a working solution to dynamic, system-wide PM
-> > that is 1) already in mainline and 2) shipping on consumer devices
-> > with very strict power budgets (as already pointed out in detail by
-> > Paul[2].)
+On Thu, May 13, 2010 at 02:34:55PM -0700, Tony Lindgren wrote:
+> * Matthew Garrett <mjg@redhat.com> [100513 14:16]:
+> > What race-free mechanism do you use to ensure that? It's very easy to 
+> > handwave these problems away. It's very difficult to actually write an 
+> > implementation that works.
 > 
-> The examples cited where the things like the Palm Pre, and the Nokia
-> N770/800/810 series.  #1, what works on one embedded
-> chipset/architecture might not work on another, and #2, the battery
-> lifetime on the N770 and N800 (both of which I have) is **appalling**
-> **bad**.
-> 
-> I really don't understand why people are so opposed to merging code
-> that works well for a very large set of devices and products.  Just
-> because *you* don't need it is not a sufficiently good reason to argue
-> for it not be merged.  If you don't want to use it, then don't CONFIG
-> it in.
+> Can you describe where do you see the race now?
 
-Violently agreed.
+1) Trusted app decides to suspend
+2) Network packet that would otherwise wake the system is received
+3) Trusted app sends SIGSTOP to untrusted userspace
+4) Network packet sits waiting for stopped userspace to process it
 
-And really, the only semi-technical argument against the opportunistic suspend
-feature I've seen so far in this thread is that it _may_ _be_ possible to
-achieve the same goal in a different way.  If I don't see anything more serious
-than that, I will take the patchset and push it to Linus (patches [1-6/8] from
-version 7 to be precise, as soon as the changelogs are improved as
-requested).
+Unless the trusted userspace gets woken up on every event that would 
+potentially cause a wakeup, you're racy. And the alternative involves an 
+extra userspace wakeup for every network packet - which is expensive.
 
-Thanks,
-Rafael
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
