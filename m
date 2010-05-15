@@ -1,51 +1,56 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 21:04:38 -0700
-Message-ID: <AANLkTim7Gh7045xiEbnPSBFAWPmPstfi71zdgZb8KXD4@mail.gmail.com>
-References: <201005140028.49443.rjw@sisk.pl>
-	<Pine.LNX.4.44L0.1005142233070.11498-100000@netrider.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <Pine.LNX.4.44L0.1005142233070.11498-100000@netrider.rowland.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-omap@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Arjan van de Ven <arjan@infradead.org>
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] musb: host: release dma channels if no active io
+Date: Sat, 15 May 2010 09:37:49 +0530
+Message-ID: <1273896469-9686-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 14, 2010 at 7:35 PM, Alan Stern <stern@rowland.harvard.edu> wro=
-te:
-> On Fri, 14 May 2010, Rafael J. Wysocki wrote:
->
->> > > How do you handle situations where the CPU is currently idle but an
->> > > event (such as I/O completion) is expected to occur in the near futu=
-re?
->> > > You don't want to power-off and reboot then, do you?
->> >
->> > The idle code looks at next_timer_interrupt() value, then if the
->> > next timer event if far enough ahead, the system powers down and
->> > wakes to the timer interrupt. It also wakes to device interrupts.
->>
->> For the record, waking to interrupts doesn't work on quite some systems
->> (like ACPI-based PCs for one example).
->
-> Ironically, it appears that ACPI-based PCs are in a position to benefit
-> more from opportunistic suspend and suspend blockers than are embedded
-> systems -- and yet they are being proposed for use on cell phones
-> rather than on desktops.
->
+Currently DMA channels are allocated and they remain allocated
+even if there is no active data transfer. Added channel_release()
+whenever there is no pending request.
 
-I would also use it on a desktop.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+---
+This patch is against today's linus's tree.
 
--- =
+ drivers/usb/musb/musb_host.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-Arve Hj=F8nnev=E5g
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index 877d20b..d78b887 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -387,11 +387,21 @@ static void musb_advance_schedule(struct musb *musb, struct urb *urb,
+ 	 */
+ 	if (list_empty(&qh->hep->urb_list)) {
+ 		struct list_head	*head;
++		struct dma_controller	*dma = musb->dma_controller;
+ 
+-		if (is_in)
++		if (is_in) {
+ 			ep->rx_reinit = 1;
+-		else
++			if (ep->rx_channel) {
++				dma->channel_release(ep->rx_channel);
++				ep->rx_channel = NULL;
++			}
++		} else {
+ 			ep->tx_reinit = 1;
++			if (ep->tx_channel) {
++				dma->channel_release(ep->tx_channel);
++				ep->tx_channel = NULL;
++			}
++		}
+ 
+ 		/* Clobber old pointers to this qh */
+ 		musb_ep_set_qh(ep, is_in, NULL);
+-- 
+1.6.2.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
