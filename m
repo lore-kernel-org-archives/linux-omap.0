@@ -1,119 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Sat, 15 May 2010 22:14:33 +0200
-Message-ID: <201005152214.33691.rjw@sisk.pl>
-References: <alpine.DEB.2.00.1005122118530.7624@utopia.booyaka.com> <201005142350.01222.rjw@sisk.pl> <87k4r69k61.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Sun, 16 May 2010 01:51:09 +0200
+Message-ID: <201005160151.09964.rjw@sisk.pl>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<201005152147.22122.rjw@sisk.pl>
+	<AANLkTim8OXbnCyrT_9mPGr-5Us4kjf_mUOSHDIHW_LtB@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87k4r69k61.fsf@deeprootsystems.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, Matthew Garrett <mjg@redhat.com>, Alan Stern <stern@rowland.harvard.edu>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, =?iso-8859-1?q?Beno=EEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <AANLkTim8OXbnCyrT_9mPGr-5Us4kjf_mUOSHDIHW_LtB@mail.gmail.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Brian Swetland <swetland@google.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 15 May 2010, Kevin Hilman wrote:
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
-> > On Friday 14 May 2010, Kevin Hilman wrote:
-> >> Kevin Hilman <khilman@deeprootsystems.com> writes:
-> >> 
-> >> > "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+On Saturday 15 May 2010, Brian Swetland wrote:
+> On Sat, May 15, 2010 at 12:47 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 > >> >
-> >> >> On Thursday 13 May 2010, Tony Lindgren wrote:
-> >> >>> * Rafael J. Wysocki <rjw@sisk.pl> [100513 14:16]:
-> >> >
-> >> > [...]
-> >> >
-> >> >>>  
-> >> >>> > It solves a practical issue that _at_ _the_ _moment_ cannot be solved
-> >> >>> > differently, while there's a growing number of out-of-tree drivers depending
-> >> >>> > on this framework.  We need those drivers in and because we don't have any
-> >> >>> > viable alternative at hand, we have no good reason to reject it.
-> >> >>> 
-> >> >>> Nothing is preventing merging the drivers can be merged without
-> >> >>> these calls.
-> >> >>
-> >> >> And yet, there _is_ a growing nuber of drivers that don't get merge because
-> >> >> of that.  That's _reality_.  Are you going to discuss with facts, or what?
-> >> >
-> >> > It may be reality, but IMO, "preventing other drivers" isn't a good
-> >> > *technical* argument for merging a feature.  It feels like these "for
-> >> > the 'good' of the community" arguments are being used to trump the
-> >> > technical arguments.  Maybe we need to keep the separate.
-> >> 
-> >> To continue along the "for the good of the community" path...
-> >> 
-> >> If it truly is the lack of a suspend blocker API that is preventing
-> >> the merge of these out of tree drivers, I second Mark's proposal[1] to
-> >> merge a noop version of the API while the technical issues continue to
-> >> be discussed.
-> >
-> > I'm against that, sorry.
-> 
-> OK, I'll bite... Why?
-
-Because in that case the real feature will always be opposed as "unnecessary"
-and never merged.  I very much prefer to decide whether to merge it or reject
-it right now.
-
-> >> Then we would see how many drivers get submitted and merged.
+> >> > Yes, "excruciatingly bad" apps can kill PM on these systems since
+> >> > anyone can write apps, but the same is true on an opporunistic-suspend
+> >> > based system since any app could hold a suspend blocker whenever it
+> >> > wants.
 > >>
-> >> Personally, I suspect that lack of this feature is not the real
-> >> obstacle to getting these out-of-tree drivers upstream.  Having this
-> >> API upstream will not change the product schedules and corporate
-> >> cultures that have prevented code from making its way upstream.
+> >> No, apps need permission to block suspend.
 > >
-> > But apparently it is considered as a suitable excuse.
+> > Are you referring to the fact the permissions of the special device file or
+> > something different?
 > 
-> No, it is not a _technical_ excuse.  Just a healthy, experience-based
-> dose of skepticism.
+> The special device file will have filesystem permissions that limit
+> access to system services.
+> 
+> Arbitrary userspace apps do not have direct access to the device --
+> they use a service (provided by binder rpc), and the app must declare
+> its intent (and the user accept this on install) in order to use that
+> service.
 
-I didn't mean that, actually.  What I wanted to say is that people use the
-lack of "wakelocks" in the mainline as an excuse not to push their drivers
-upstream (which is kind of understandable, because there's a zero benefit to
-them from mainlining their code, as they will have to maintain a separate
-"Android" version of it anyway).
+On Android, right?
 
-Sorry for the confusion.
+> The service keeps track of usage stats so if a user
+> experiences poor battery life they can look at the battery usage thing
+> and see which apps are keeping the device awake, etc.
 
-> It was expressed because I find the arguments above for merging
-> because it prevents out-of-tree drivers from merging quite
-> unconvincing.  This is not just about opportunistic suspend + suspend
-> blockers specifically but comes from several years experience in the
-> embedded Linux world.
+That sounds like it should go into a doc or at least into the changelog of
+patch [2/8] IMnsHO.
 
-In this particular case, the lack of the mainline's support for opportunistic
-suspend (in the form of "wakelocks" to be precise) has been given as a main
-obstacle against merging of several drivers at least.
+The thing you said about timers in one of the previous messages should be
+documented too, BTW, because it's one of the motivation factors for this
+work.
 
-So, let's not just easily generalize, please.
-
-And this is not the only reason to push the opportunistic suspend feature
-upstream IMO.
-
-First, I think it is a legitimate approach to power management, whether you
-like it or not.  I haven't seen anyone seriously arguing against that yet.
-
-Second, (as said above) there is a number of drivers _already_ depending
-on it and that number is only going to grow given the popularity of Android.
-They are not mainlined in part because their authors don't see a benefit from
-doing so (usually the benefit is that you don't have to maintain your code out
-of the tree, because the mainline does it for you to some extent, so if you
-need to maintain a separate version yourself, the benefit is zero).
-
-Next, the only thing the Arve's patches do is to give people an _option_ to use
-opportunistic suspend if they need it or want it.  It's not mandatory and not
-even enabled by default, so I don't really see what the problem is.  Quite on
-the contrary, I'd like people to be able to use the mainline on Android systems
-without major modifications, because potentially that can increase our tester
-base (and developer base too in consequence) and including opportunistic
-suspend in the mainline would be a step in that direction.
-
-Finally, it appears to address some issues that at the moment we don't
-seriously know how to address in a different way.
+In general, I think the motivation is not explained sufficienty in the patches'
+changelogs and that's one of the reasons why people have so many doubts about
+the feature's usefulness.
 
 Thanks,
 Rafael
