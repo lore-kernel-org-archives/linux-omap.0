@@ -1,50 +1,55 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH] OMAP3: musb: remove unneeded include files
-Date: Sat, 15 May 2010 11:34:15 +0530
-Message-ID: <1273903455-8793-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34720 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751335Ab0EOGEW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 15 May 2010 02:04:22 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v3 2/5] OMAP4 HSMMC: Adding hsmmc support to board file
+Date: Sat, 15 May 2010 11:41:22 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C558B36B@dbde02.ent.ti.com>
+References: <12490.10.24.255.17.1273781497.squirrel@dbdmail.itg.ti.com>
+ <20100514215651.GI3428@atomide.com>
+ <20100514220508.GC7185@flint.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100514220508.GC7185@flint.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "jarkko.lavinen@nokia.com" <jarkko.lavinen@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>, "adrian.hunter@nokia.com" <adrian.hunter@nokia.com>, Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Removed include files from usb-musb.c which were not required.
+Kishore,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Russell
+> King
+> Sent: Saturday, May 15, 2010 3:35 AM
+> To: Tony Lindgren
+> Cc: Kadiyala, Kishore; linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Chikkature Rajashekar,
+> Madhusudhan; jarkko.lavinen@nokia.com; paul@pwsan.com; adrian.hunter@nokia.com
+> Subject: Re: [PATCH v3 2/5] OMAP4 HSMMC: Adding hsmmc support to board file
+> 
+> On Fri, May 14, 2010 at 02:56:51PM -0700, Tony Lindgren wrote:
+> > * kishore kadiyala <kishore.kadiyala@ti.com> [100513 13:06]:
+> > > Support for MMC1 & MMC2 controllers is added to the board file.
+> > > Also includes configuration of MMC1 Card detect initially.
+> >
+> > This patch does not seem to apply, I don't know where you're getting
+> > the sdp4430_vmmc_supply in this patch?
+> >
+> > I suggest you forget about the card detect patches for now and
+> > first produce a minimal set of patches to get the MMC working
+> > for board-4430sdp.c. The card detect patches should be applied
+> > only after board-4430sdp.c works for MMC. And we're running out
+> > of time for this merge window.
+> 
+> Absolutely - we _really_ _really_ _really_ need to get MMC usable
+> on the 4430SDP for this merge window - don't care about the card
+> detection provided the system can find a MMC card which is left
+> plugged in.
+> 
+> To do this makes the overall 4430SDP more usable than it currently
+> is with mainline kernels.
+> 
+Why is it taking so much time to get 4-5 patches in shape for mainline??
+What is expected is just basic MMC support and no advance features yet.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
-Patch created against latest linux-omap/master.
-
- arch/arm/mach-omap2/usb-musb.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 63104dd..1929f3b 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -16,19 +16,11 @@
-  * published by the Free Software Foundation.
-  */
- 
--#include <linux/types.h>
--#include <linux/errno.h>
--#include <linux/delay.h>
- #include <linux/platform_device.h>
--#include <linux/clk.h>
- #include <linux/dma-mapping.h>
--#include <linux/io.h>
--
- #include <linux/usb/musb.h>
- 
--#include <mach/hardware.h>
- #include <mach/irqs.h>
--#include <plat/mux.h>
- #include <plat/usb.h>
- 
- #ifdef CONFIG_USB_MUSB_SOC
--- 
-1.6.2.4
-
+Regards,
+Santosh
