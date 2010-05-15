@@ -1,56 +1,54 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] musb: host: release dma channels if no active io
-Date: Sat, 15 May 2010 09:37:49 +0530
-Message-ID: <1273896469-9686-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH] OMAP3: musb: remove unneeded inits in musb_plat
+Date: Sat, 15 May 2010 10:29:41 +0530
+Message-ID: <1273899581-26622-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44448 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751169Ab0EOE7y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 May 2010 00:59:54 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Currently DMA channels are allocated and they remain allocated
-even if there is no active data transfer. Added channel_release()
-whenever there is no pending request.
+Removed unneeded 'power' and 'mode' field from musb_config as
+they are now getting updated by the values provided from board
+files at usb_musb_init().
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
-This patch is against today's linus's tree.
+Patch created against today's linux-omap/master.
 
- drivers/usb/musb/musb_host.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |   13 -------------
+ 1 files changed, 0 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 877d20b..d78b887 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -387,11 +387,21 @@ static void musb_advance_schedule(struct musb *musb, struct urb *urb,
- 	 */
- 	if (list_empty(&qh->hep->urb_list)) {
- 		struct list_head	*head;
-+		struct dma_controller	*dma = musb->dma_controller;
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 6d41fa7..63104dd 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -55,21 +55,8 @@ static struct musb_hdrc_config musb_config = {
+ };
  
--		if (is_in)
-+		if (is_in) {
- 			ep->rx_reinit = 1;
--		else
-+			if (ep->rx_channel) {
-+				dma->channel_release(ep->rx_channel);
-+				ep->rx_channel = NULL;
-+			}
-+		} else {
- 			ep->tx_reinit = 1;
-+			if (ep->tx_channel) {
-+				dma->channel_release(ep->tx_channel);
-+				ep->tx_channel = NULL;
-+			}
-+		}
+ static struct musb_hdrc_platform_data musb_plat = {
+-#ifdef CONFIG_USB_MUSB_OTG
+-	.mode		= MUSB_OTG,
+-#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
+-	.mode		= MUSB_HOST,
+-#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+-	.mode		= MUSB_PERIPHERAL,
+-#endif
+ 	/* .clock is set dynamically */
+ 	.config		= &musb_config,
+-
+-	/* REVISIT charge pump on TWL4030 can supply up to
+-	 * 100 mA ... but this value is board-specific, like
+-	 * "mode", and should be passed to usb_musb_init().
+-	 */
+-	.power		= 50,			/* up to 100 mA */
+ };
  
- 		/* Clobber old pointers to this qh */
- 		musb_ep_set_qh(ep, is_in, NULL);
+ static u64 musb_dmamask = DMA_BIT_MASK(32);
 -- 
 1.6.2.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
