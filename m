@@ -1,52 +1,95 @@
-From: Brian Swetland <swetland@google.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 14 May 2010 20:40:08 -0700
-Message-ID: <AANLkTinwJdPneNSlAeTml5fHW2LFy53Dz3DRf95y1Bcl@mail.gmail.com>
-References: <AANLkTil-Ky5L84JF7xn6su8VMtglBpZwCNIh7VgBiHgL@mail.gmail.com>
-	 <Pine.LNX.4.44L0.1005142256070.11498-100000@netrider.rowland.org>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Fri, 14 May 2010 21:02:34 -0700
+Message-ID: <AANLkTinztS8B4LkceGgZB94sRKbseKQ6qMnWB0Jcyh9I@mail.gmail.com>
+References: <AANLkTinyNYFwM4QJKPunlvK-ATJwSYVXGayeZIR9izx2@mail.gmail.com>
+	<Pine.LNX.4.44L0.1005142216481.11498-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1005142256070.11498-100000@netrider.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <Pine.LNX.4.44L0.1005142216481.11498-100000@netrider.rowland.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
 To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tony Lindgren <tony@atomide.com>, Matthew Garrett <mjg@redhat.com>, Paul Walmsley <paul@pwsan.com>, =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, linux-input@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, =?ISO-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Brian Swetland <swetland@google.co>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 14, 2010 at 7:58 PM, Alan Stern <stern@rowland.harvard.edu>=
- wrote:
-> On Fri, 14 May 2010, Brian Swetland wrote:
+On Fri, May 14, 2010 at 7:25 PM, Alan Stern <stern@rowland.harvard.edu> wro=
+te:
+> On Fri, 14 May 2010, Arve Hj=F8nnev=E5g wrote:
 >
->> It provides useful functionality -- you apparently disagree, but the
->> wakelock/suspendblock model is in use, shipping, and solving problem=
-s
->> for quite a lot of android devices that have been shipping for a whi=
-le
->> now. =C2=A0We actively go to lowest power state in idle (on omap, ms=
-m,
->> etc), and use drivers that aggressively declock and depower modules
->> (similar to runtime pm), but we have found that using the
->> opportunistic suspend model combined with wakelocks allows us to
->> attain even lower average power consumption in always-connected,
->> actively-syncing devices.
+>> On Fri, May 14, 2010 at 1:27 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>> >
+>> > Hello,
+>> >
+>> > On Mon, 3 May 2010, Arve Hj=F8nnev=E5g wrote:
+>> >
+>> >> No, suspend blockers are mostly used to ensure wakeup events are not
+>> >> ignored, and to ensure tasks triggered by these wakeup events
+>> >> complete.
+>> >
+>> > Standard Linux systems don't need these,
+>>
+>> If you don't want to lose wakeup events they do. Standard Linux
+>> systems support suspend, but since they usually don't have a lot of
+>> wakeup events you don't run into a lot of problems.
 >
-> Can you explain this in more detail? =C2=A0Are you saying that some d=
-evices
-> go on generating interrupts and causing timers to be scheduled, even
-> though what they're doing isn't important enough to prevent the syste=
-m
-> from powering down?
+> The primary client for opportunistic suspend and suspend blockers
+> appears to be embedded systems. =A0These systems are typically capable of
+> powering the CPU down and up again with low latency, and they typically
+> have very aggressive runtime PM support capable of powering down each
+> device when it's not in active use. =A0Given this ability, it does seem
+> that opportunistic suspend and suspend blockers might be unnecessary.
+>
 
-In tickless mode, the time until next timer is a signed int, so the
-longest the kernel will ever sleep is ~2 seconds at a go.  In
-practice, userspace entities often have polling behavior that can
-trigger more often than that, and I've observed some kernel periodic
-timers (haven't cataloged them recently) that happen more often than
-once a second.
+With the current kernel and user-space code we run, we get
+significantly better battery life on the msm plaform using suspend
+compared to entering the same power state from idle. On some devices
+it takes only five wakeup events per second to cut the best case
+battery life in half.
 
-When we go to full suspend, we know that only specific wakeup sources
-(keyboard gpios, baseband voice/ip events, rtc alarms, etc) are going
-to wake us up.
+> I'd like to explore this avenue a little farther. =A0In particular, what
+> is the issue involving loss of wakeup events? =A0Can you describe this in
+> more detail?
+>
 
-Brian
+On the desktop systems I have used I only wake the up the system by
+pressing a button/key or with an rtc alarm. Losing a button or key
+wakeup event is not usually a problem on a desktop since the user will
+press it again. Losing an alarm however could be a problem and this
+can be avoided by using opportunistic suspend and suspend blockers.
+
+>> > because the scheduler just keeps
+>> > the system running as long as there is work to be done.
+>> >
+>>
+>> That is only true if you never use suspend.
+>
+> Why would you want to use system suspend if runtime PM can do
+> everything you need?
+>
+Because it stops threads that wakeup every second to check if they
+have work to do (this includes standard kernel threads), and it
+prevents bad apps that never go idle from completely destroying our
+battery life.
+
+> Sure, I can see that an ACPI-based system needs something more. =A0But
+> that's not the real issue here.
+>
+
+The system we started with entered a much lower power state from
+suspend than idle so we needed wakelocks to get more than 24 hours
+battery life. We kept wakelocks when we moved to the msm platform
+since it reduces our power consumption.
+
+-- =
+
+Arve Hj=F8nnev=E5g
