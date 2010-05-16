@@ -1,90 +1,110 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
 Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Mon, 17 May 2010 02:25:37 +0300
-Message-ID: <AANLkTin0hfLWtD9BubW7ihUj2TriXyiXNMhP3IuXlcug@mail.gmail.com>
+Date: Mon, 17 May 2010 02:51:20 +0300
+Message-ID: <AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
 References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	<g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
-	<r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
-	<AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
-	<AANLkTikxM8gISXO_wSVNOM6FKC8l5MbLy1nSMmgMB_4w@mail.gmail.com>
-	<AANLkTikAkqatIMvdFPwVvwYV_4Tw3-SsUkBAjwK2Oa_P@mail.gmail.com>
+	 <g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
+	 <r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
+	 <AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
+	 <AANLkTindMySAOe6UG_hRoCvjIuPZdyg2nNe-Gub9pwau@mail.gmail.com>
+	 <AANLkTikLfEQB0mtbOXIrxTj68LoY9EcSn86su6OJW8ev@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:37446 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142Ab0EPXZ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 May 2010 19:25:59 -0400
-Received: by gwaa20 with SMTP id a20so187076gwa.19
-        for <linux-omap@vger.kernel.org>; Sun, 16 May 2010 16:25:58 -0700 (PDT)
-In-Reply-To: <AANLkTikAkqatIMvdFPwVvwYV_4Tw3-SsUkBAjwK2Oa_P@mail.gmail.com>
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:50210 "EHLO
+	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301Ab0EPXvW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 May 2010 19:51:22 -0400
+Received: by ewy8 with SMTP id 8so1601633ewy.28
+        for <linux-omap@vger.kernel.org>; Sun, 16 May 2010 16:51:21 -0700 (PDT)
+In-Reply-To: <AANLkTikLfEQB0mtbOXIrxTj68LoY9EcSn86su6OJW8ev@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
 Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-On Mon, May 17, 2010 at 2:15 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> Hi Ohad,
->
-> On Mon, May 17, 2010 at 1:35 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
->> On Fri, May 14, 2010 at 10:27 PM, Felipe Contreras
->> <felipe.contreras@gmail.com> wrote:
->>> I looked into the dma code (I guess it's in arch/arm/mm/dma-mapping.c)
->>> and I don't understand what dma_unmap_sg is supposed to do.
->>
->> Portable code must use the dma_unmap_* APIs.
->>
->> As you mentioned, one of the things it's crucial for
->> (but not used in our case) is bounce buffers:
->> e.g. when doing a DMA from a device using a buffer
->> that is out of the platform's DMA reach,
->> the DMA API uses bounce buffers: data DMA'ed to that
->> bounce buffer, and then the dma unmap copies it back
->> to the original buffer).
->
-> Yes, but in dspbridge the most important use-case is video
-> encoding/decoding, so we definitely don't want bouncing buffers.
-> Besides, from what I can see very few platforms need them.
->
->> Another thing unmap is taking care of is speculative prefetch:
->> modern ARM processors can access the buffer during DMA
->> in order to speculatively prefetch data into the cache. Naturally
->> this can seriously break a DMA from a device, so unmap is
->> invalidating the caches to prevent this.
->>
->> The current dspbridge cache API is mostly relying on the
->> application to do the right thing: application programmer should
->> decide when to clean, flush or invalidate the caches in order
->> to have a successful DMA operation.
->>
->> This is prone to mistakes, it's not portable, and of course
->> not upstreamable.
->>
->> Using the standard DMA API we take the freedom from the
->> application programmer - we just ask him/her to tell us before
->> a DMA operation begins, and after it ends. The DMA API
->> is then responsible to do the right thing.
->
-> It is a higher level of abstraction, but the application still needs
-> to do the right thing, and errors can still happen. Anyway, I see now
-> the changes 2.6.34.
-> can
->> I read at your latest posts that after rebasing to newest dspbridge
->> code the issue doesn't reproduce anymore ? Please tell me if it's back.
->
-> Yes... I haven't tried in the old commit you started from + the patch
-> Omar suggested, but I guess there's no need for that any more. I can
-> play with this code now :)
+Hello,
 
-Out of curiosity, what board/environment do you use to play with
-the code ? I'd like to run the same use cases you do, so I can
-reproduce any issue you may bump into.
-
-Thanks,
-Ohad.
-
+On Mon, May 17, 2010 at 1:57 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> On Sun, May 16, 2010 at 8:35 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+>> Now I understand better; arch/arm/mm/dma-mapping.c will not be used
+>> unless CONFIG_DMABOUNCE=y, which is not the case for OMAP3.
+>>
+>> So, as you can see in arch/arm/include/asm/dma-mapping.h, dma_unmap_sgprefetching
+>> is a noop.
 >
-> --
-> Felipe Contreras
+> This has changed since 2.6.34, when support was added
+> to ARM speculative prefetching. dma_unmap_* API is now
+> responsible to invalidate caches when data was moved in from the device
+> (regardless of CONFIG_DMABOUNCE).
+
+Yes, I just realized that the implementation of dma_unmap changed. In
+2.6.34 issues with speculative prefetching should be handled better
+with dma_map/dma_unmap.
+
+However, the situations the speculative prefetching fixes are supposed
+to avoid, are present in any kernel <= 2.6.33, right? So, sure, it
+would be nice to avoid those issues, but before that, the priority is
+to get dspbridge working on 2.6.34.
+
+So, in theory the easiest thing to do is to reach the deprecated API
+dmac_flush_range/dmac_inv_range somehow.
+
+Now, to simplify the analysis I'll ignore the portability arguments,
+and concentrate on OMAP3, which is the only platform really supported
+by the dspbridge. Here OUTER_CACHE=n, so, outer_*_range are no ops.
+
+So currently (v2.6.33), before sending a read-olny buffer (TO_DEVICE),
+we do dmac_flush_range (should be clean, but whatever), and before
+sending a write-only (FROM_DEVICE), we do dmac_inv_range.
+
+On v2.6.33 the same could be achieved with only dma_map_* functions,
+but on v2.6.34 that's not the case.
+
+This is what a properly implemented application with dma_map_* and
+dma_map_* functions would end up doing to achieve similar behavior:
+
+in: begin BIDI:
+	dma_clean_range
+
+out: begin FROM_DEV:
+	dma_clean_range
+
+out: end FROM_DEV:
+	dma_inv_range
+
+in: end BIDI:
+	dma_inv_range
+
+>From my reduced experience in caches I already see a problem there,
+but that's irrelevant right now. Wouldn't the old
+PROC_FLUSHMEMORY/PROC_INVALIDATEMEMORY behavior be achieved by calling
+the begin and end operations at the same time? Or even easier, just
+call dmac_flush_range (which is not obsolete yet)?
+
+I'm not saying this should be the final solution... we should
+definitely go for the right API, but in the meantime, I think the old
+applications that still use the old API can work just fine if we call
+dmac_flush_range(). This is only for compatibility reasons.
+
+Here I'm assuming that applications would call PROC_INVALIDATEMEMORY
+*before* sending the buffer to the DSP, which is the case for both
+openmax and gst-dsp.
+
+> Dspbridge really must support this, and applications should start
+> using it.
 >
+> Whether to deprecate the old API ? Eventually I think we should,
+> but probably not anytime soon. Let's take the kernel approach of minimizing
+> user space pain: keep the old API around, mark it as candidate for
+> deprecation, and rethink in the future.
+
+Now that I see the changes for speculative prefetching, yeah, I agree.
+But I think we can minimize the pain even more by providing an old
+compatible API that actually works well (almost as good as before).
+
+Cheers.
+
+-- 
+Felipe Contreras
