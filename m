@@ -1,62 +1,81 @@
-From: Brian Swetland <swetland@google.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Sat, 15 May 2010 17:31:23 -0700
-Message-ID: <AANLkTimQfEKNjA5OPCGhNKdb7RJg4l-vH9UuXJFn7qps@mail.gmail.com>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<201005152147.22122.rjw@sisk.pl>
-	<AANLkTim8OXbnCyrT_9mPGr-5Us4kjf_mUOSHDIHW_LtB@mail.gmail.com>
-	<201005160151.09964.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <201005160151.09964.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH v2] dspbridge: deh: fix corruption on MMU fault
+Date: Sun, 16 May 2010 18:44:28 +0300
+Message-ID: <1274024668-20899-2-git-send-email-felipe.contreras@gmail.com>
+References: <1274024668-20899-1-git-send-email-felipe.contreras@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:49359 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751809Ab0EPPoq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 May 2010 11:44:46 -0400
+Received: by fxm6 with SMTP id 6so2976907fxm.19
+        for <linux-omap@vger.kernel.org>; Sun, 16 May 2010 08:44:44 -0700 (PDT)
+In-Reply-To: <1274024668-20899-1-git-send-email-felipe.contreras@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Deepak Chitriki <deepak.chitriki@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Sat, May 15, 2010 at 4:51 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Saturday 15 May 2010, Brian Swetland wrote:
->> The special device file will have filesystem permissions that limit
->> access to system services.
->>
->> Arbitrary userspace apps do not have direct access to the device --
->> they use a service (provided by binder rpc), and the app must declare
->> its intent (and the user accept this on install) in order to use that
->> service.
->
-> On Android, right?
+The DSP might misbehave and write to the dummy memory. So let's make
+sure that nobody else is using the pages related to it by grabbing a
+full page.
 
-Yup -- other userspace environments may choose different ways to
-grant/deny access.  At the bottom we gate it by having a group that
-processes which may access the device are part of (with the device
-node being 0660, etc).
+Based on the analysis of Deepak Chitriki.
 
->> The service keeps track of usage stats so if a user
->> experiences poor battery life they can look at the battery usage thing
->> and see which apps are keeping the device awake, etc.
->
-> That sounds like it should go into a doc or at least into the changelog of
-> patch [2/8] IMnsHO.
->
-> The thing you said about timers in one of the previous messages should be
-> documented too, BTW, because it's one of the motivation factors for this
-> work.
->
-> In general, I think the motivation is not explained sufficienty in the patches'
-> changelogs and that's one of the reasons why people have so many doubts about
-> the feature's usefulness.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ drivers/dsp/bridge/core/ue_deh.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
 
-Seems reasonable -- I know Arve's working on making these a bit more
-verbose for you.
+diff --git a/drivers/dsp/bridge/core/ue_deh.c b/drivers/dsp/bridge/core/ue_deh.c
+index 605f312..ab95916 100644
+--- a/drivers/dsp/bridge/core/ue_deh.c
++++ b/drivers/dsp/bridge/core/ue_deh.c
+@@ -53,8 +53,6 @@
+ #include "_tiomap_pwr.h"
+ #include <dspbridge/io_sm.h>
+ 
+-#define ALIGN_DOWN(x, a)  ((x)&(~((a)-1)))
+-
+ /* GP Timer number to trigger interrupt for MMU-fault ISR on DSP */
+ #define GPTIMER_FOR_DSP_MMU_FAULT      8
+ /* Bit mask to enable overflow interrupt */
+@@ -191,7 +189,6 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
+ {
+ 	struct bridge_dev_context *dev_context;
+ 	dsp_status status = DSP_SOK;
+-	u32 mem_physical = 0;
+ 	u32 hw_mmu_max_tlb_count = 31;
+ 	struct cfg_hostres *resources;
+ 	hw_status hw_status_obj;
+@@ -227,9 +224,7 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
+ 			(unsigned int) deh_mgr->err_info.dw_val1,
+ 			(unsigned int) deh_mgr->err_info.dw_val2,
+ 			(unsigned int) fault_addr);
+-		dummy_va_addr = kzalloc(sizeof(char) * 0x1000, GFP_ATOMIC);
+-		mem_physical =
+-			ALIGN_DOWN(virt_to_phys(dummy_va_addr), PAGE_SIZE);
++		dummy_va_addr = (void*)__get_free_page(GFP_ATOMIC);
+ 		dev_context = (struct bridge_dev_context *)
+ 			deh_mgr->hbridge_context;
+ 
+@@ -249,7 +244,7 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
+ 		if (DSP_SUCCEEDED(status)) {
+ 			hw_status_obj =
+ 				hw_mmu_tlb_add(resources->dw_dmmu_base,
+-						mem_physical, fault_addr,
++						virt_to_phys(dummy_va_addr), fault_addr,
+ 						HW_PAGE_SIZE4KB, 1,
+ 						&map_attrs, HW_SET, HW_SET);
+ 		}
+@@ -355,6 +350,6 @@ dsp_status bridge_deh_get_info(struct deh_mgr *deh_mgr,
+ 
+ void bridge_deh_release_dummy_mem(void)
+ {
+-	kfree(dummy_va_addr);
++	free_page((unsigned long)dummy_va_addr);
+ 	dummy_va_addr = NULL;
+ }
+-- 
+1.7.1
 
-Brian
