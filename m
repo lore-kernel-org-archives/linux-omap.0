@@ -1,7 +1,7 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
 Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Mon, 17 May 2010 02:21:08 +0300
-Message-ID: <AANLkTinJaMro76D4v0_6PvvYXS0LzZEdr0btB3CEPzek@mail.gmail.com>
+Date: Mon, 17 May 2010 02:25:37 +0300
+Message-ID: <AANLkTin0hfLWtD9BubW7ihUj2TriXyiXNMhP3IuXlcug@mail.gmail.com>
 References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
 	<g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
 	<r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
@@ -11,12 +11,12 @@ References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:61997 "EHLO
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:37446 "EHLO
 	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750844Ab0EPXV2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 May 2010 19:21:28 -0400
-Received: by gwaa20 with SMTP id a20so186052gwa.19
-        for <linux-omap@vger.kernel.org>; Sun, 16 May 2010 16:21:28 -0700 (PDT)
+	with ESMTP id S1751142Ab0EPXZ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 May 2010 19:25:59 -0400
+Received: by gwaa20 with SMTP id a20so187076gwa.19
+        for <linux-omap@vger.kernel.org>; Sun, 16 May 2010 16:25:58 -0700 (PDT)
 In-Reply-To: <AANLkTikAkqatIMvdFPwVvwYV_4Tw3-SsUkBAjwK2Oa_P@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -46,11 +46,6 @@ On Mon, May 17, 2010 at 2:15 AM, Felipe Contreras
 > Yes, but in dspbridge the most important use-case is video
 > encoding/decoding, so we definitely don't want bouncing buffers.
 > Besides, from what I can see very few platforms need them.
-
-Sure.
-I just mentioned that as one reason why portable code
-that does DMA must use the unmap API.
-
 >
 >> Another thing unmap is taking care of is speculative prefetch:
 >> modern ARM processors can access the buffer during DMA
@@ -81,6 +76,14 @@ that does DMA must use the unmap API.
 > Yes... I haven't tried in the old commit you started from + the patch
 > Omar suggested, but I guess there's no need for that any more. I can
 > play with this code now :)
+
+Out of curiosity, what board/environment do you use to play with
+the code ? I'd like to run the same use cases you do, so I can
+reproduce any issue you may bump into.
+
+Thanks,
+Ohad.
+
 >
 > --
 > Felipe Contreras
