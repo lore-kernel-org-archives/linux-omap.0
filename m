@@ -1,37 +1,125 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC] Initial attempt to make ARM use LMB
-Date: Mon, 17 May 2010 10:44:21 +0100
-Message-ID: <20100517094421.GG23118@n2100.arm.linux.org.uk>
-References: <20100505150209.GC2606@n2100.arm.linux.org.uk> <20100513174023.GB13001@n2100.arm.linux.org.uk> <20100513211951.GH3428@atomide.com> <20100513215825.GC13001@n2100.arm.linux.org.uk> <20100513220139.GO3428@atomide.com> <20100513221229.GD13001@n2100.arm.linux.org.uk> <EAF47CD23C76F840A9E7FCE10091EFAB02C54F0247@dbde02.ent.ti.com> <AANLkTikZvfvjY9e2QNWRwVcJcTvn58Ly_DgzrcXKu2iJ@mail.gmail.com> <20100514101615.GF10339@n2100.arm.linux.org.uk> <AANLkTinY9M2cHKw86hTLaMUCvBX57o8AioBtrENB-JhK@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: felipe.balbi@nokia.com
+Subject: [PATCH 1/5] gpiolib: introduce set_debounce method
+Date: Mon, 17 May 2010 13:02:30 +0300
+Message-ID: <1274090554-19420-2-git-send-email-felipe.balbi@nokia.com>
+References: <1274090554-19420-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39362 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999Ab0EQJoo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 05:44:44 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTinY9M2cHKw86hTLaMUCvBX57o8AioBtrENB-JhK@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:48758 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752502Ab0EQKFH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 06:05:07 -0400
+In-Reply-To: <1274090554-19420-1-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Andrew Morton <akpm@linux-foundation.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Mon, May 17, 2010 at 12:38:55PM +0300, Grazvydas Ignotas wrote:
-> On Fri, May 14, 2010 at 1:16 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> >> because it also uses reserve_bootmem() in
-> >> drivers/video/omap2/vram.c and later ioremap on RAM. Perhaps LMB can
-> >> be used to fix that too?
-> >
-> > WTF is reserve_bootmem doing in a driver?
-> 
-> IIRC Tony refused any new fb related code in arch/arm/*omap* so it
-> ended up there (or maybe because of something else, not that I had
-> anything to do with this).
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-Can someone please answer these questions:
+Few architectures, like OMAP, allow you to set
+a debouncing time for the gpio before generating
+the IRQ. Teach gpiolib about that.
 
-1. why does the framebuffer need to _reserve_ a set of specific sections
-   of SDRAM rather than _allocate_ a set of sections?
-2. what range of sizes of SDRAM does the framebuffer driver need?
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/gpio/gpiolib.c     |   43 +++++++++++++++++++++++++++++++++++++++++++
+ include/asm-generic/gpio.h |    5 +++++
+ include/linux/gpio.h       |    5 +++++
+ 3 files changed, 53 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index eb0c3fe..cd85fd1 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1447,6 +1447,49 @@ fail:
+ }
+ EXPORT_SYMBOL_GPL(gpio_direction_output);
+ 
++/**
++ * gpio_set_debounce - sets @debounce time for a @gpio
++ * @gpio: the gpio to set debounce time
++ * @debounce: debounce time is microseconds
++ */
++int gpio_set_debounce(unsigned gpio, unsigned debounce)
++{
++	unsigned long		flags;
++	struct gpio_chip	*chip;
++	struct gpio_desc	*desc = &gpio_desc[gpio];
++	int			status = -EINVAL;
++
++	spin_lock_irqsave(&gpio_lock, flags);
++
++	if (!gpio_is_valid(gpio))
++		goto fail;
++	chip = desc->chip;
++	if (!chip || !chip->set || !chip->set_debounce)
++		goto fail;
++	gpio -= chip->base;
++	if (gpio >= chip->ngpio)
++		goto fail;
++	status = gpio_ensure_requested(desc, gpio);
++	if (status < 0)
++		goto fail;
++
++	/* now we know the gpio is valid and chip won't vanish */
++
++	spin_unlock_irqrestore(&gpio_lock, flags);
++
++	might_sleep_if(extra_checks && chip->can_sleep);
++
++	return chip->set_debounce(chip, gpio, debounce);
++
++fail:
++	spin_unlock_irqrestore(&gpio_lock, flags);
++	if (status)
++		pr_debug("%s: gpio-%d status %d\n",
++			__func__, gpio, status);
++
++	return status;
++}
++EXPORT_SYMBOL_GPL(gpio_set_debounce);
+ 
+ /* I/O calls are only valid after configuration completed; the relevant
+  * "is this a valid GPIO" error checks should already have been done.
+diff --git a/include/asm-generic/gpio.h b/include/asm-generic/gpio.h
+index 979c6a5..ce3eb87 100644
+--- a/include/asm-generic/gpio.h
++++ b/include/asm-generic/gpio.h
+@@ -88,6 +88,9 @@ struct gpio_chip {
+ 						unsigned offset);
+ 	int			(*direction_output)(struct gpio_chip *chip,
+ 						unsigned offset, int value);
++	int			(*set_debounce)(struct gpio_chip *chip,
++						unsigned offset, unsigned debounce);
++
+ 	void			(*set)(struct gpio_chip *chip,
+ 						unsigned offset, int value);
+ 
+@@ -121,6 +124,8 @@ extern void gpio_free(unsigned gpio);
+ extern int gpio_direction_input(unsigned gpio);
+ extern int gpio_direction_output(unsigned gpio, int value);
+ 
++extern int gpio_set_debounce(unsigned gpio, unsigned debounce);
++
+ extern int gpio_get_value_cansleep(unsigned gpio);
+ extern void gpio_set_value_cansleep(unsigned gpio, int value);
+ 
+diff --git a/include/linux/gpio.h b/include/linux/gpio.h
+index 4e949a5..03f616b 100644
+--- a/include/linux/gpio.h
++++ b/include/linux/gpio.h
+@@ -51,6 +51,11 @@ static inline int gpio_direction_output(unsigned gpio, int value)
+ 	return -ENOSYS;
+ }
+ 
++static inline int gpio_set_debounce(unsigned gpio, unsigned debounce)
++{
++	return -ENOSYS;
++}
++
+ static inline int gpio_get_value(unsigned gpio)
+ {
+ 	/* GPIO can never have been requested or set as {in,out}put */
+-- 
+1.7.1
+
