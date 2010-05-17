@@ -1,55 +1,86 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Mon, 17 May 2010 03:05:07 +0300
-Message-ID: <AANLkTin3y-RpOYfaa9rzK9HraeOAdkXsC3N0FDGo-iA9@mail.gmail.com>
-References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	 <g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
-	 <r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
-	 <AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
-	 <AANLkTikxM8gISXO_wSVNOM6FKC8l5MbLy1nSMmgMB_4w@mail.gmail.com>
-	 <AANLkTikAkqatIMvdFPwVvwYV_4Tw3-SsUkBAjwK2Oa_P@mail.gmail.com>
-	 <AANLkTin0hfLWtD9BubW7ihUj2TriXyiXNMhP3IuXlcug@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [RFC][RFT][PATCH] OMAPFB: LCDC: change update_mode to DISABLED when going suspend
+Date: Mon, 17 May 2010 03:20:13 +0200
+Message-ID: <201005170320.29580.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:57785 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751301Ab0EQAFK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 May 2010 20:05:10 -0400
-Received: by ewy8 with SMTP id 8so1604729ewy.28
-        for <linux-omap@vger.kernel.org>; Sun, 16 May 2010 17:05:09 -0700 (PDT)
-In-Reply-To: <AANLkTin0hfLWtD9BubW7ihUj2TriXyiXNMhP3IuXlcug@mail.gmail.com>
+Received: from d1.icnet.pl ([212.160.220.21]:43303 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751763Ab0EQBV2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 16 May 2010 21:21:28 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-On Mon, May 17, 2010 at 2:25 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> Out of curiosity, what board/environment do you use to play with
-> the code ? I'd like to run the same use cases you do, so I can
-> reproduce any issue you may bump into.
+I was observing the following error messages on my OMAP1 based Amstrad Delta 
+board when first changing from text to graphics mode or vice versa after the 
+LCD display had been blanked:
+	omapfb omapfb: timeout waiting for FRAME DONE
+with a followup error message while unblanking it back:
+	omapfb omapfb: resetting (status 0xffffffb2,reset count 1)
+As a visible result, image pixels happened to be shifted by a few bits, 
+giving wrong colors.
 
-I use a beagleboard, use the DSP firmware in L23.i3.3[1], do simple
-tests with dsp-test[2], and real tests with gst-dsp[3].
+Examining the code, I found that this problem occures when an OMAP1 internal 
+LCD controller is disabled from omap_lcdc_suspend() and then a subsequent 
+omap_lcdc_setup_plane() calls disable_controller() again. This potentially 
+error provoking behaviour is triggered by the lcdc.update_mode flag being kept 
+at OMAP_AUTO_UPDATE, regardless of the controller and panel being suspended. 
 
-I just pushed my latest changes of dsp-tools, which include an app
-called dsp-test that sends buffers back and forth (like TI's
-dmmcopy.out), but has options to trigger MMU faults, change buffer
-sizes, and number of iterations, along with a trivial DSP socket-node.
+This patch tries to correct the problem by replacing both omap_lcdc_suspend() 
+and omap_lcdc_resume() function bodies with single calls to 
+omap_lcdc_set_update_mode() with a respective OMAP_UPDATE_DISABLE or 
+OMAP_AUTO_UPDATE argument. As a result, exactly the same lower level 
+operations are performed, with addition of changing the lcdc.update_mode flag 
+to a value better suited for the controller state. This prevents any further 
+calls to disable_controller() from omap_lcdc_setup_plane() while the display 
+is suspended.
 
-The whole thing (app + socket-node) is 15K and you don't even need
-dynreg.out to load. Also, the code is really really simple. There are
-no dependencies, so you can just type 'make'.
+Created against linux-2.6.34-rc7.
+Tested on Amstrad Delta.
 
-I'm not sure if you are familiar with GStreamer, but that's pretty
-much all you need to compile gst-dsp. If you have problems we have a
-relatively active mailing list.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+Hi,
 
-Cheers.
+Those of you having access to other display equipped OMAP1 boards, could you 
+please test if this patch doesn't break anything?
 
-[1] http://www.omapedia.org/wiki/L23.i3.3_Release_Notes
-[2] http://github.com/felipec/dsp-tools
-[3] http://github.com/felipec/gst-dsp
+Thanks,
+Janusz
 
--- 
-Felipe Contreras
+ drivers/video/omap/lcdc.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
+
+--- git/drivers/video/omap/lcdc.c.orig	2010-05-16 21:39:20.000000000 +0200
++++ git/drivers/video/omap/lcdc.c	2010-05-17 00:00:43.000000000 +0200
+@@ -572,22 +572,12 @@ static enum omapfb_update_mode omap_lcdc
+ /* PM code called only in internal controller mode */
+ static void omap_lcdc_suspend(void)
+ {
+-	if (lcdc.update_mode == OMAPFB_AUTO_UPDATE) {
+-		disable_controller();
+-		omap_stop_lcd_dma();
+-	}
++	omap_lcdc_set_update_mode(OMAPFB_UPDATE_DISABLED);
+ }
+ 
+ static void omap_lcdc_resume(void)
+ {
+-	if (lcdc.update_mode == OMAPFB_AUTO_UPDATE) {
+-		setup_regs();
+-		load_palette();
+-		setup_lcd_dma();
+-		set_load_mode(OMAP_LCDC_LOAD_FRAME);
+-		enable_irqs(OMAP_LCDC_IRQ_DONE);
+-		enable_controller();
+-	}
++	omap_lcdc_set_update_mode(OMAPFB_AUTO_UPDATE);
+ }
+ 
+ static void omap_lcdc_get_caps(int plane, struct omapfb_caps *caps)
