@@ -1,72 +1,161 @@
-From: "Liu, Stanley" <stanley_liu@ti.com>
-Subject: RE: [PATCH 02/14] dspbridge: deh: trivial cleanups
-Date: Mon, 17 May 2010 17:10:06 -0500
-Message-ID: <7D7BE4595BC7A140A837988A40785DE18F86FDEB@dlee03.ent.ti.com>
-References: <1274024765-21076-1-git-send-email-felipe.contreras@gmail.com>
-	 <1274024765-21076-3-git-send-email-felipe.contreras@gmail.com>
-	 <496565EC904933469F292DDA3F1663E602CB6CB3CC@dlee06.ent.ti.com>
-	 <B321760590390941B64F0F8AB59ED2508FA24042@dlee01.ent.ti.com>
- <AANLkTikuXt1KgmJ2uzCL_X5pJfFeODLBtJdFAxwAcaOw@mail.gmail.com>
- <B321760590390941B64F0F8AB59ED2508FA242B2@dlee01.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Mon, 17 May 2010 15:55:36 -0700
+Message-ID: <87mxvyt9xz.fsf@deeprootsystems.com>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<87wrvl5479.fsf@deeprootsystems.com>
+	<20100503215028.GB18910@srcf.ucam.org>
+	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
+	<20100514203202.GA12409@srcf.ucam.org>
+	<87aas2azc5.fsf@deeprootsystems.com>
+	<20100514231510.GG16989@thunk.org>
+	<87r5laa4oc.fsf@deeprootsystems.com>
+	<AANLkTilL90pYVlquvMDAEPHj_AraEi9Qzk-0tTjw9Bkx@mail.gmail.com>
+	<AANLkTil7358FHTlFZ0LqwymkiZZ-7An0HlaOTVhTkpgW@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35990 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752656Ab0EQWKI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 18:10:08 -0400
-In-Reply-To: <B321760590390941B64F0F8AB59ED2508FA242B2@dlee01.ent.ti.com>
-Content-Language: en-US
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:58552 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754734Ab0EQWzl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 18:55:41 -0400
+In-Reply-To: <AANLkTil7358FHTlFZ0LqwymkiZZ-7An0HlaOTVhTkpgW@mail.gmail.com> (Mike Chan's message of "Mon\, 17 May 2010 13\:07\:50 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Jansson, Cris" <cjansson@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+To: Mike Chan <mike@android.com>
+Cc: Vitaly Wool <vitalywool@gmail.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 
-If "disable" means cutting off the clock of the timer, then no.
-The clock for the timer is needed so DSP can clear the timer IRQ status=
- register.
+Mike Chan <mike@android.com> writes:
 
-If it is to stop the timer from counting, then it is fine.
-
------Original Message-----
-=46rom: Jansson, Cris=20
-Sent: Monday, May 17, 2010 4:53 PM
-To: Felipe Contreras
-Cc: Guzman Lugo, Fernando; linux-omap; Liu, Stanley; Ramirez Luna, Omar
-Subject: RE: [PATCH 02/14] dspbridge: deh: trivial cleanups
-
-The safe thing to do is disable the timer after the DSP has completed t=
-he dump.  During the dump processing, the DSP will clear the timer inte=
-rrupt. I don't know what would happen if the timer were disabled prior =
-to that.
-
-Best Regards,
-=20
-Cris
-
------Original Message-----
-=46rom: Felipe Contreras [mailto:felipe.contreras@gmail.com]=20
-Sent: Monday, May 17, 2010 4:14 PM
-To: Jansson, Cris
-Cc: Guzman Lugo, Fernando; linux-omap; Liu, Stanley; Ramirez Luna, Omar
-Subject: Re: [PATCH 02/14] dspbridge: deh: trivial cleanups
-
-Hi Cris,
-
-On Mon, May 17, 2010 at 10:39 PM, Jansson, Cris <cjansson@ti.com> wrote=
-:
-> Thanks for forwarding the thread.
+> On Mon, May 17, 2010 at 12:27 PM, Vitaly Wool <vitalywool@gmail.com> =
+wrote:
+>> On Mon, May 17, 2010 at 6:12 PM, Kevin Hilman
+>> <khilman@deeprootsystems.com> wrote:
+>>
+>>>> and #2, the battery lifetime on the N770 and N800 (both of which I=
+ have)
+>>>> is **appalling** **bad**.
+>>>
+>>> Appalling bad compared to what?
+>>>
+>>> What's probably more interesting in terms of rough comparisons is
+>>> comparing similar devices with and without opportunistic suspend. =A0=
+The
+>>> Nokia n900 (maemo) and the Moto Droid (android) use the same SoC (T=
+I
+>>> OMAP3) and roughly the same kernel (2.6.2[89], although both are
+>>> heavily patched from mainline.)
+>>>
+>>> The n900 *never* suspends. =A0It only uses dynamic PM + CPUidle.
+>>> The droid uses opportunistic suspend (as well as dynamic PM + CPUid=
+le)
+>>>
+>>> I don't know of any more objective comparison of the two, but as a
+>>> user of both devices I can say that the active usage is basically t=
+he
+>>> same (around a day) and the idle use is similar as well, even thoug=
+h
+>>> the Droid has a slightly bigger battery (1400 mAh vs. 1320 mAh.) =A0=
+My
+>>> own usage suggests the n900 is a bit better in idle time, but I hav=
+e
+>>> not done any measuring or objective tests. =A0I'm guessing the
+>>> difference is probably because the Droid does not use the deepest
+>>> off-mode power states either in idle or suspend (IIRC) where the n9=
+00
+>>> does. =A0I suspect that if both were using off-mode and had the sam=
+e
+>>> battery, these differences would go away.
+>>>
 >
-> In wait_for_timer(), should return be used inside the loop? =A0It wil=
-l result in omap_dm_timer_disable(timer) not being called. =A0I believe=
- it should be called in all outcomes.
+> Although both are OMAP3430 and run 2.6.29 you cannot compare the N900
+> and Droid's perceived user battery life to one another to evaluate
+> opportunistic suspend. There are many factors uncounted for such as:
+> network reception, screen brightness (and size), button back-light,
+> keyboard back-light, modem stack (CDMA vs UMTS). Also the difference
+> in uerspace.
 
-Yes, that's a mistake I already acknowledged. The question is: can we
-disable the timer _before_ the DSP has finished dumping the stack?
+Agreed.  I was reluctant to even make the comparison for all those
+reasons, but with the lack of real numbers, it was all I had to show a
+very rough subjective guess, and at least show that with and without
+opportunistic suspend, you're in the same ballpark.
 
---=20
-=46elipe Contreras
+>>> While this is not really a scientific comparison, it at least gives=
+ a
+>>> rough idea. =A0If using opportunistic suspend was adding noticably
+>>> better battery life, I think this would be a different discussion.
+>>
+>> Exactly. The point is, opportunistic suspend doesn't in fact add any
+>> value compared to dynamic PM + CPUIdle. It only produces some false
+>> impression that one can handle power management right without using
+>> dynamic PM. And this false impression is the cause for many really
+>> ugly designs (like, for instance, 15 minutes touchscreen inactivity
+>> delay before forcibly shutting down the wireless, as it's done in
+>> stock Android framework).
+>>
+>
+> Opportunistic suspend is an extension to the current suspend model,
+> not a replacement dynamic / run-time PM. If you can replace good old
+> suspend then this would be a different story.
+>
+> As you mention, Droid uses opportunistic suspend + dynamic pm +
+> cpuidle + freq. So I decided to do some measurements on a Droid using
+> our 2.9.32 kernel
+> (http://android.git.kernel.org/?p=3Dkernel/omap.git;a=3Dsummary). For=
+ a
+> little better apples to apples comparison.
+
+Excellent.  Thanks for some real numbers.
+
+(btw, sure would be nice to have the basic droid board files in mainlin=
+e. ;)
+
+> Droid (idle system, airplane mode, screen off, 3 min interval):
+> measured average current
+> - with opportunity suspend: 3.19mA
+> - without opportunistic suspend: 3.5mA
+>
+> Stock userspace build, all I did was replace the kernel. We are
+> hitting retention on idle as well as suspend for omap (instead of ful=
+l
+> off-mode).
+
+[at risk of stating the obvious] Since both approaches hit the same
+power states, if the system was truly idle, you'd expect the numbers
+to be the same, right?  So what the difference shows is that the
+system is not fully idle, IOW userspace and/or kernel wakeups are
+cusing the difference.
+
+It might also be instructive to see these numbers with a "noop"
+userspace, like just booting into busybox init=3D/bin/sh (or the androi=
+d
+equivalent.)  That would show how much of that difference is due to
+kernel idleness (or lack thereof.)
+
+Even still, to me this all boils down to the lack of definition of the
+problem and clear description of the solution
+
+The fundamental problem is one of idleness.  What we want is the
+system to be idle in order to hit the lowest power states.  We can't
+get there because the system is not truly idle.
+
+So, there are basically two solutions:
+
+1) find and fix the problem spots so we can be idle more often
+2) add a new definition of idle so we can be idle more often
+
+Opporuntistic suspend takes the second approach where the new
+definition of idle is "no suspend blockers held."
+
+Of course, I clearly prefer the former, but it's also becoming clear
+that since I'm the only one still whining about it, I must be too much
+of an idealist to keep hoping for it.
+
+Kevin
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
