@@ -1,50 +1,46 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH v5 3/5] omap3: pm: Generic TRITON power scripts
-	forOMAP3 based boards
-Date: Mon, 17 May 2010 13:58:33 +0300
-Message-ID: <20100517105833.GA4736@codecarver.research.nokia.com>
-References: <1271677408-2143-1-git-send-email-leslyam@ti.com> <20100510143043.GA4703@codecarver.research.nokia.com> <015501caf28a$5a984e20$ba8818ac@apr.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:29200 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179Ab0EQK6w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 06:58:52 -0400
-Content-Disposition: inline
-In-Reply-To: <015501caf28a$5a984e20$ba8818ac@apr.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 3/6] musb: add function to check if Inventra DMA used
+Date: Mon, 17 May 2010 16:38:05 +0530
+Message-ID: <1274094488-15925-3-git-send-email-ajay.gupta@ti.com>
+References: <1274094488-15925-1-git-send-email-ajay.gupta@ti.com>
+ <1274094488-15925-2-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1274094488-15925-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Lesly Arackal Manuel <leslyam@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
 
-Hi,
+Added is_inventra_dma_enabled() funtion which would be required
+for adding workaround for Inventra DMA issues. It can also be
+used at other places instead of #ifdefs.
 
-> 
-> Hi Peter,
-> 
-> The RES_TYPE field is same for all messages.
-> 
-> The resource which can go to low-power mode with clk_req sig de-asserting is
-> configured as RES_TYPE2 = '2'. And the resource which can go to low-power
-> mode with sys_off sig de-asserting is configured as RES_TYPE2 = '1'.
-> 
-> The RES_TYPE2 is '2' for P3 wakeup and the msg will applicable for Resource
-> which have their TYPE2 field configured '2' (RES_VINTANA1, RES_VINTANA2,
-> RES_VINTDIG, VIO, RES_CLKEN, RES_HFCLKOUT).
-> 
-> RES_TYPE2 = '1' for P1_P2 wakeup.
-> (Applicable for res: RES_VPLL1, RES_VDD1, RES_VDD2, RES_REGEN,
-> RES_NRES_PWRON, RES_SYSEN)
-> 
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/musb/musb_dma.h |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-Ok. But why not just assign the resources to the appropriate groups ?
-Eg.  assign VIO to P3 and assign VPLL1 to P1_P2 ? Then you only need one
-message type. Also, why are you using RES_TYPE2 instead of RES_TYPE ?
-
-Cheers,
-
-Peter.
-
+diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma.h
+index 916065b..b8b385e 100644
+--- a/drivers/usb/musb/musb_dma.h
++++ b/drivers/usb/musb/musb_dma.h
+@@ -80,6 +80,12 @@ struct musb_hw_ep;
+ #define tusb_dma_omap()			0
+ #endif
+ 
++#ifdef CONFIG_USB_INVENTRA_DMA
++#define	is_inventra_dma_enabled()	1
++#else
++#define	is_inventra_dma_enabled()	0
++#endif
++
+ /* Anomaly 05000456 - USB Receive Interrupt Is Not Generated in DMA Mode 1
+  *	Only allow DMA mode 1 to be used when the USB will actually generate the
+  *	interrupts we expect.
 -- 
-goa is a state of mind
+1.6.2.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
