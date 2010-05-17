@@ -1,91 +1,158 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 3/3] musb: AM35x: Workaround for fifo read issue
-Date: Mon, 17 May 2010 16:17:15 +0530
-Message-ID: <1274093235-7616-3-git-send-email-ajay.gupta@ti.com>
-References: <1274093235-7616-1-git-send-email-ajay.gupta@ti.com>
- <1274093235-7616-2-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38694 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754627Ab0EQKr0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 May 2010 06:47:26 -0400
-In-Reply-To: <1274093235-7616-2-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/3 v3] AM35x: Add musb support
+Date: Mon, 17 May 2010 16:17:13 +0530
+Message-ID: <1274093235-7616-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-AM35x supports only 32bit read operations so we need to have
-workaround for 8bit and 16bit read operations.
+AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
+It supports upto 500mA of power in host mode.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
 Patch created against linus'tree + all musb patches in Greg's queue
-Changes from v2:
-	- fixed multipline comment style
- drivers/usb/musb/am3517.c    |   31 +++++++++++++++++++++++++++++++
- drivers/usb/musb/musb_core.c |    2 ++
- 2 files changed, 33 insertions(+), 0 deletions(-)
+and patches available in linux-omap/for-next branch.
 
-diff --git a/drivers/usb/musb/am3517.c b/drivers/usb/musb/am3517.c
-index b74e664..c68c784 100644
---- a/drivers/usb/musb/am3517.c
-+++ b/drivers/usb/musb/am3517.c
-@@ -515,3 +515,34 @@ void musb_platform_restore_context(struct musb_context_registers
- 	phy_on();
+ arch/arm/mach-omap2/board-am3517evm.c |   43 +++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/usb-musb.c        |    4 +++
+ arch/arm/plat-omap/include/plat/usb.h |   21 ++++++++++++++++
+ 3 files changed, 68 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index af383a8..313559c 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -35,6 +35,7 @@
+ #include <plat/control.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
++#include <plat/control.h>
+ 
+ #include "mux.h"
+ 
+@@ -375,6 +376,43 @@ static void __init am3517_evm_init_irq(void)
+ 	omap_gpio_init();
  }
- #endif
+ 
++static struct omap_musb_board_data musb_board_data = {
++	.interface_type         = MUSB_INTERFACE_ULPI,
++	.mode                   = MUSB_OTG,
++	.power                  = 500,
++};
 +
-+/* AM35x supports only 32bit read operation */
-+void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
++static __init void am3517_evm_musb_init(void)
 +{
-+	void __iomem *fifo = hw_ep->fifo;
-+	u32		val;
-+	int		i;
++	u32 devconf2;
 +
-+	/* Read for 32bit-aligned destination address */
-+	if ((likely((0x03 & (unsigned long) dst) == 0)) && len >= 4) {
-+		readsl(fifo, dst, len >> 2);
-+		dst += (len & ~0x03);
-+		len &= 0x03;
-+	}
 +	/*
-+	 * Now read the rest 1 to 3 bytes or complete length if
-+	 * unaligned address.
++	 * Set up USB clock/mode in the DEVCONF2 register.
 +	 */
-+	if (len > 4) {
-+		for (i = 0; i < (len >> 2); i++) {
-+			val = musb_readl(fifo, 0);
-+			memcpy(dst, &val, 4);
-+			dst += 4;
-+		}
-+		len %= 4;
-+	}
-+	if (len > 0) {
-+		val = musb_readl(fifo, 0);
-+		memcpy(dst, &val, len);
-+	}
-+}
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 4093f6d..9c59a8e 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -262,6 +262,7 @@ void musb_write_fifo(struct musb_hw_ep *hw_ep, u16 len, const u8 *src)
- 	}
- }
- 
-+#if !defined(CONFIG_MACH_OMAP3517EVM)
- /*
-  * Unload an endpoint's FIFO
-  */
-@@ -299,6 +300,7 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
- 		readsb(fifo, dst, len);
- 	}
- }
++	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
++
++	/* USB2.0 PHY reference clock is 13 MHz */
++	devconf2 &= ~CONF2_REFFREQ;
++	devconf2 |=  CONF2_REFFREQ_13MHZ;
++
++	/*
++	 * We have to override VBUS/ID signals when MUSB is configured into the
++	 * host-only mode -- ID pin will float if no cable is connected, so the
++	 * controller won't be able to drive VBUS thinking that it's a B-device.
++	 * Otherwise, we want to use the OTG mode and enable VBUS comparators.
++	 */
++	devconf2 &= ~CONF2_OTGMODE;
++#ifdef	CONFIG_USB_MUSB_HOST
++	devconf2 |=  CONF2_FORCE_HOST;
++#else
++	devconf2 |=  CONF2_SESENDEN | CONF2_VBDTCTEN;
 +#endif
++
++	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
++
++	usb_musb_init(&musb_board_data);
++}
++
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+ #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
+@@ -393,6 +431,8 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
  
- #endif	/* normal PIO */
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* USB OTG DRVVBUS offset = 0x212 */
++	OMAP3_MUX(SAD2D_MCAD23, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
+@@ -459,6 +499,9 @@ static void __init am3517_evm_init(void)
+ 				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
+ 	/*Ethernet*/
+ 	am3517_evm_ethernet_init(&am3517_evm_emac_pdata);
++
++	/* MUSB */
++	am3517_evm_musb_init();
+ }
  
+ static void __init am3517_evm_map_io(void)
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 3befddb..883795b 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -21,6 +21,7 @@
+ #include <linux/usb/musb.h>
+ 
+ #include <mach/irqs.h>
++#include <mach/am35xx.h>
+ #include <plat/usb.h>
+ 
+ #ifdef CONFIG_USB_MUSB_SOC
+@@ -69,6 +70,9 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+ 	if (cpu_is_omap243x()) {
+ 		musb_resources[0].start = OMAP243X_HS_BASE;
++	} else if (cpu_is_omap3517()) {
++		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
++		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+ 	} else if (cpu_is_omap34xx()) {
+ 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+ 	} else if (cpu_is_omap44xx()) {
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index 60c734f..c7a019c 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -168,5 +168,26 @@ void omap_usb_init(struct omap_usb_config *pdata);
+ #	define	USBT2TLL5PI		(1 << 17)
+ #	define	USB0PUENACTLOI		(1 << 16)
+ #	define	USBSTANDBYCTRL		(1 << 15)
++/* AM3517 */
++/* USB 2.0 PHY Control */
++#define CONF2_PHY_GPIOMODE	(1 << 23)
++#define CONF2_OTGMODE		(3 << 14)
++#define CONF2_NO_OVERRIDE	(0 << 14)
++#define CONF2_FORCE_HOST	(1 << 14)
++#define CONF2_FORCE_DEVICE	(2 << 14)
++#define CONF2_FORCE_HOST_VBUS_LOW (3 << 14)
++#define CONF2_SESENDEN		(1 << 13)
++#define CONF2_VBDTCTEN		(1 << 12)
++#define CONF2_REFFREQ_24MHZ	(2 << 8)
++#define CONF2_REFFREQ_26MHZ	(7 << 8)
++#define CONF2_REFFREQ_13MHZ	(6 << 8)
++#define CONF2_REFFREQ		(0xf << 8)
++#define CONF2_PHYCLKGD		(1 << 7)
++#define CONF2_VBUSSENSE		(1 << 6)
++#define CONF2_PHY_PLLON		(1 << 5)
++#define CONF2_RESET		(1 << 4)
++#define CONF2_PHYPWRDN		(1 << 3)
++#define CONF2_OTGPWRDN		(1 << 2)
++#define CONF2_DATPOL		(1 << 1)
+ 
+ #endif	/* __ASM_ARCH_OMAP_USB_H */
 -- 
 1.6.2.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
