@@ -1,282 +1,82 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 12/14] dspbridge: move mmufault to deh
-Date: Mon, 17 May 2010 14:11:56 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CB6CB3D7@dlee06.ent.ti.com>
-References: <1274024765-21076-1-git-send-email-felipe.contreras@gmail.com>
- <1274024765-21076-13-git-send-email-felipe.contreras@gmail.com>
+From: James Bottomley <James.Bottomley@suse.de>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Mon, 17 May 2010 15:24:27 -0400
+Message-ID: <1274124267.4418.149.camel@mulgrave.site>
+References: <Pine.LNX.4.44L0.1005151716180.24645-100000@netrider.rowland.org>
+	 <87hbm6cz90.fsf@deeprootsystems.com>
+	 <1274115885.4418.59.camel@mulgrave.site> <20100517174647.GA11512@gandalf>
+	 <1274119179.4418.68.camel@mulgrave.site>  <20100517181252.GA14260@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48646 "EHLO bear.ext.ti.com"
+Received: from cantor.suse.de ([195.135.220.2]:45147 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754440Ab0EQTMC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 15:12:02 -0400
-In-Reply-To: <1274024765-21076-13-git-send-email-felipe.contreras@gmail.com>
-Content-Language: en-US
+	id S1751657Ab0EQTYj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 May 2010 15:24:39 -0400
+In-Reply-To: <20100517181252.GA14260@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "Liu, Stanley" <stanley_liu@ti.com>, "Jansson, Cris" <cjansson@ti.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+To: me@felipebalbi.com
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>
 
+On Mon, 2010-05-17 at 21:12 +0300, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, May 17, 2010 at 01:59:39PM -0400, James Bottomley wrote:
+> > Have you actually tried this?  On my N1 with CM5.0.6 just running
+> > powertop requires me to keep the USB system up (debugging cable) and
+> > paths into the usb console ... all of this produces significant wakeup
+> > distortion, mostly in the msm i2c subsystem.  But in all the noise it's
+> > hard to find rogue applications.
+> 
+> Well, I use serial console, but in the worst case scenario I would make
+> powertop save the output to a memory buffer a big one, and after
+> finished flush to some mmc or anything like that.
 
-+Cris
-+Stanley
-Loop in DSP guys in case they would have something to add.
+Surely, depending on your UART FIFO depth, of course, a serial console
+interrupts once every 16 characters or so ... how do you filter out that
+storm of interrupts refreshing the powertop screen from the actual
+application problems?
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
-> Sent: Sunday, May 16, 2010 10:46 AM
-> To: linux-omap
-> Cc: Ramirez Luna, Omar; Guzman Lugo, Fernando; Felipe Contreras
-> Subject: [PATCH 12/14] dspbridge: move mmufault to deh
+But anyway, the average user probably either doesn't have or doesn't
+know how to get to a serial console on their phone ...
+
+> > The technical reason for wanting suspend blockers (as has been stated
+> > more times than I can be bothered to go back and count) is that no-one
+> > can currently produce a working model for race free kernel to user work
+> > handoff and, in the face of open app stores, rogue applications are a
+> > significant problem.  The fact that suspend blockers enables easy
+> > identification of power hogging apps is just a very useful side effect.
 > 
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> ---
->  drivers/dsp/bridge/Makefile         |    2 +-
->  drivers/dsp/bridge/core/mmu_fault.c |  100 ------------------------------
-> -----
->  drivers/dsp/bridge/core/mmu_fault.h |   34 ------------
->  drivers/dsp/bridge/core/ue_deh.c    |   50 +++++++++++++++++-
->  4 files changed, 50 insertions(+), 136 deletions(-)
->  delete mode 100644 drivers/dsp/bridge/core/mmu_fault.c
->  delete mode 100644 drivers/dsp/bridge/core/mmu_fault.h
+> I still can't get over the fact that suspend_blockers are dealing with
+> userland problems in kernel space. If we can't really trust apps, I'm
+> sorry but companies like Google and Nokia (which I work for) will have
+> to setup better application acceptance on their stores. The fact that we
+> can get statistics of power usage from kernel space is actually really
+> good and could be easily automated on an AppStore environment. If it's
+> cause too many wakeups you report that to the developer of the app
+> before accepting. The same feature could be shipped on the SDK, so
+> developer has also early feedback about how good (or bad) his/her
+> application really is to the system.
 > 
-> diff --git a/drivers/dsp/bridge/Makefile b/drivers/dsp/bridge/Makefile
-> index 4c2f923..39624d4 100644
-> --- a/drivers/dsp/bridge/Makefile
-> +++ b/drivers/dsp/bridge/Makefile
-> @@ -5,7 +5,7 @@ libservices = services/sync.o services/cfg.o \
->  		services/ntfy.o services/services.o
->  libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
->  		core/tiomap3430_pwr.o core/tiomap_io.o \
-> -		core/mmu_fault.o core/ue_deh.o core/wdt.o core/dsp-clock.o
-> +		core/ue_deh.o core/wdt.o core/dsp-clock.o
->  libpmgr = pmgr/chnl.o pmgr/io.o pmgr/msg.o pmgr/cod.o pmgr/dev.o
-> pmgr/dspapi.o \
->  		pmgr/dmm.o pmgr/cmm.o pmgr/dbll.o
->  librmgr = rmgr/dbdcd.o rmgr/disp.o rmgr/drv.o rmgr/mgr.o rmgr/node.o \
-> diff --git a/drivers/dsp/bridge/core/mmu_fault.c
-> b/drivers/dsp/bridge/core/mmu_fault.c
-> deleted file mode 100644
-> index 49034cf..0000000
-> --- a/drivers/dsp/bridge/core/mmu_fault.c
-> +++ /dev/null
-> @@ -1,100 +0,0 @@
-> -/*
-> - * mmu_fault.c
-> - *
-> - * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-> - *
-> - * Implements DSP MMU fault handling functions.
-> - *
-> - * Copyright (C) 2005-2006 Texas Instruments, Inc.
-> - *
-> - * This package is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2 as
-> - * published by the Free Software Foundation.
-> - *
-> - * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-> - * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-> - * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-> - */
-> -
-> -/*  ----------------------------------- DSP/BIOS Bridge */
-> -#include <dspbridge/std.h>
-> -#include <dspbridge/dbdefs.h>
-> -#include <dspbridge/errbase.h>
-> -
-> -/*  ----------------------------------- Trace & Debug */
-> -#include <dspbridge/host_os.h>
-> -#include <dspbridge/dbc.h>
-> -
-> -/*  ----------------------------------- OS Adaptation Layer */
-> -#include <dspbridge/drv.h>
-> -
-> -/*  ----------------------------------- Link Driver */
-> -#include <dspbridge/dspdeh.h>
-> -
-> -/* ------------------------------------ Hardware Abstraction Layer */
-> -#include <hw_defs.h>
-> -#include <hw_mmu.h>
-> -
-> -/*  ----------------------------------- This */
-> -#include "_deh.h"
-> -#include <dspbridge/cfg.h>
-> -#include "_tiomap_mmu.h"
-> -#include "_tiomap.h"
-> -#include "mmu_fault.h"
-> -
-> -/*
-> - *  ======== mmu_fault_dpc ========
-> - *      Deferred procedure call to handle DSP MMU fault.
-> - */
-> -void mmu_fault_dpc(IN unsigned long pRefData)
-> -{
-> -	struct deh_mgr *hdeh_mgr = (struct deh_mgr *)pRefData;
-> -
-> -	if (!hdeh_mgr)
-> -		return;
-> -
-> -	bridge_deh_notify(hdeh_mgr, DSP_MMUFAULT, 0L);
-> -}
-> -
-> -/*
-> - *  ======== mmu_fault_isr ========
-> - *      ISR to be triggered by a DSP MMU fault interrupt.
-> - */
-> -irqreturn_t mmu_fault_isr(int irq, IN void *pRefData)
-> -{
-> -	struct deh_mgr *deh_mgr_obj = pRefData;
-> -	struct cfg_hostres *resources;
-> -	u32 dmmu_event_mask;
-> -
-> -	if (!deh_mgr_obj)
-> -		return IRQ_HANDLED;
-> -
-> -	resources = deh_mgr_obj->hbridge_context->resources;
-> -	if (!resources) {
-> -		dev_dbg(bridge, "%s: Failed to get Host Resources\n",
-> -				__func__);
-> -		return IRQ_HANDLED;
-> -	}
-> -
-> -	hw_mmu_event_status(resources->dw_dmmu_base, &dmmu_event_mask);
-> -	if (dmmu_event_mask == HW_MMU_TRANSLATION_FAULT) {
-> -		hw_mmu_fault_addr_read(resources->dw_dmmu_base, &deh_mgr_obj-
-> >fault_addr);
-> -		dev_info(bridge, "%s: status=0x%x, fault_addr=0x%x\n",
-> __func__,
-> -				dmmu_event_mask, deh_mgr_obj->fault_addr);
-> -		/*
-> -		 * Schedule a DPC directly. In the future, it may be
-> -		 * necessary to check if DSP MMU fault is intended for
-> -		 * Bridge.
-> -		 */
-> -		tasklet_schedule(&deh_mgr_obj->dpc_tasklet);
-> -
-> -		/* Disable the MMU events, else once we clear it will
-> -		 * start to raise INTs again */
-> -		hw_mmu_event_disable(resources->dw_dmmu_base,
-> -				HW_MMU_TRANSLATION_FAULT);
-> -	} else {
-> -		hw_mmu_event_disable(resources->dw_dmmu_base,
-> -				HW_MMU_ALL_INTERRUPTS);
-> -	}
-> -	return IRQ_HANDLED;
-> -}
-> diff --git a/drivers/dsp/bridge/core/mmu_fault.h
-> b/drivers/dsp/bridge/core/mmu_fault.h
-> deleted file mode 100644
-> index 537e6e7..0000000
-> --- a/drivers/dsp/bridge/core/mmu_fault.h
-> +++ /dev/null
-> @@ -1,34 +0,0 @@
-> -/*
-> - * mmu_fault.h
-> - *
-> - * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-> - *
-> - * Defines DSP MMU fault handling functions.
-> - *
-> - * Copyright (C) 2005-2006 Texas Instruments, Inc.
-> - *
-> - * This package is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2 as
-> - * published by the Free Software Foundation.
-> - *
-> - * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-> - * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-> - * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-> - */
-> -
-> -#ifndef MMU_FAULT_
-> -#define MMU_FAULT_
-> -
-> -/*
-> - *  ======== mmu_fault_dpc ========
-> - *      Deferred procedure call to handle DSP MMU fault.
-> - */
-> -void mmu_fault_dpc(IN unsigned long pRefData);
-> -
-> -/*
-> - *  ======== mmu_fault_isr ========
-> - *      ISR to be triggered by a DSP MMU fault interrupt.
-> - */
-> -irqreturn_t mmu_fault_isr(int irq, IN void *pRefData);
-> -
-> -#endif /* MMU_FAULT_ */
-> diff --git a/drivers/dsp/bridge/core/ue_deh.c
-> b/drivers/dsp/bridge/core/ue_deh.c
-> index 6035757..d44c895 100644
-> --- a/drivers/dsp/bridge/core/ue_deh.c
-> +++ b/drivers/dsp/bridge/core/ue_deh.c
-> @@ -46,7 +46,6 @@
->  #include <hw_mmu.h>
-> 
->  /*  ----------------------------------- This */
-> -#include "mmu_fault.h"
->  #include "_tiomap.h"
->  #include "_deh.h"
->  #include "_tiomap_mmu.h"
-> @@ -62,6 +61,55 @@
-> 
->  static struct omap_dm_timer *timer;
-> 
-> +static void mmu_fault_dpc(unsigned long data)
-> +{
-> +	struct deh_mgr *hdeh_mgr = (void *)data;
-> +
-> +	if (!hdeh_mgr)
-> +		return;
-> +
-> +	bridge_deh_notify(hdeh_mgr, DSP_MMUFAULT, 0);
-> +}
-> +
-> +static irqreturn_t mmu_fault_isr(int irq, void *data)
-> +{
-> +	struct deh_mgr *deh_mgr_obj = data;
-> +	struct cfg_hostres *resources;
-> +	u32 dmmu_event_mask;
-> +
-> +	if (!deh_mgr_obj)
-> +		return IRQ_HANDLED;
-> +
-> +	resources = deh_mgr_obj->hbridge_context->resources;
-> +	if (!resources) {
-> +		dev_dbg(bridge, "%s: Failed to get Host Resources\n",
-> +				__func__);
-> +		return IRQ_HANDLED;
-> +	}
-> +
-> +	hw_mmu_event_status(resources->dw_dmmu_base, &dmmu_event_mask);
-> +	if (dmmu_event_mask == HW_MMU_TRANSLATION_FAULT) {
-> +		hw_mmu_fault_addr_read(resources->dw_dmmu_base, &deh_mgr_obj-
-> >fault_addr);
-> +		dev_info(bridge, "%s: status=0x%x, fault_addr=0x%x\n",
-> __func__,
-> +				dmmu_event_mask, deh_mgr_obj->fault_addr);
-> +		/*
-> +		 * Schedule a DPC directly. In the future, it may be
-> +		 * necessary to check if DSP MMU fault is intended for
-> +		 * Bridge.
-> +		 */
-> +		tasklet_schedule(&deh_mgr_obj->dpc_tasklet);
-> +
-> +		/* Disable the MMU events, else once we clear it will
-> +		 * start to raise INTs again */
-> +		hw_mmu_event_disable(resources->dw_dmmu_base,
-> +				HW_MMU_TRANSLATION_FAULT);
-> +	} else {
-> +		hw_mmu_event_disable(resources->dw_dmmu_base,
-> +				HW_MMU_ALL_INTERRUPTS);
-> +	}
-> +	return IRQ_HANDLED;
-> +}
-> +
->  dsp_status bridge_deh_create(struct deh_mgr **ret_deh_mgr,
->  		struct dev_object *hdev_obj)
->  {
-> --
-> 1.7.1
+> IMO we should be celebrating good apps, not dealing in kernel space with
+> bad ones. And on top of all that, we would still need custom
+> applications with suspend_blockers support built into them.
+
+If you actually s/app/USB storage device/ (with a few other obvious text
+changes) in most of the above two paragraphs, you've got a good
+description of the problems we go through on an almost daily basis in
+the kernel for USB storage ... and why we've grown a massive exception
+table.
+
+Just saying "devices should conform to specifications" is a wonderful
+magic wand for wishing away all the problems bad devices cause and
+bludgeoning manufacturers with the said spec wrapped around a large lead
+brick is very cathartic but it doesn't change the fact that users blame
+the kernel for not working with the bad devices ... and we gave up
+trying to re-educate users on that score years ago.
+
+James
+
 
