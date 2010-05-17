@@ -1,82 +1,72 @@
-From: James Bottomley <James.Bottomley@suse.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Mon, 17 May 2010 15:24:27 -0400
-Message-ID: <1274124267.4418.149.camel@mulgrave.site>
-References: <Pine.LNX.4.44L0.1005151716180.24645-100000@netrider.rowland.org>
-	 <87hbm6cz90.fsf@deeprootsystems.com>
-	 <1274115885.4418.59.camel@mulgrave.site> <20100517174647.GA11512@gandalf>
-	 <1274119179.4418.68.camel@mulgrave.site>  <20100517181252.GA14260@gandalf>
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Mon, 17 May 2010 21:27:47 +0200
+Message-ID: <AANLkTilL90pYVlquvMDAEPHj_AraEi9Qzk-0tTjw9Bkx@mail.gmail.com>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<87wrvl5479.fsf@deeprootsystems.com>
+	<20100503215028.GB18910@srcf.ucam.org>
+	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
+	<20100514203202.GA12409@srcf.ucam.org>
+	<87aas2azc5.fsf@deeprootsystems.com>
+	<20100514231510.GG16989@thunk.org>
+	<87r5laa4oc.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:45147 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751657Ab0EQTYj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 May 2010 15:24:39 -0400
-In-Reply-To: <20100517181252.GA14260@gandalf>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <87r5laa4oc.fsf@deeprootsystems.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>
 
-On Mon, 2010-05-17 at 21:12 +0300, Felipe Balbi wrote:
-> Hi,
-> 
-> On Mon, May 17, 2010 at 01:59:39PM -0400, James Bottomley wrote:
-> > Have you actually tried this?  On my N1 with CM5.0.6 just running
-> > powertop requires me to keep the USB system up (debugging cable) and
-> > paths into the usb console ... all of this produces significant wakeup
-> > distortion, mostly in the msm i2c subsystem.  But in all the noise it's
-> > hard to find rogue applications.
-> 
-> Well, I use serial console, but in the worst case scenario I would make
-> powertop save the output to a memory buffer a big one, and after
-> finished flush to some mmc or anything like that.
+On Mon, May 17, 2010 at 6:12 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
 
-Surely, depending on your UART FIFO depth, of course, a serial console
-interrupts once every 16 characters or so ... how do you filter out that
-storm of interrupts refreshing the powertop screen from the actual
-application problems?
+>> and #2, the battery lifetime on the N770 and N800 (both of which I have)
+>> is **appalling** **bad**.
+>
+> Appalling bad compared to what?
+>
+> What's probably more interesting in terms of rough comparisons is
+> comparing similar devices with and without opportunistic suspend. =A0The
+> Nokia n900 (maemo) and the Moto Droid (android) use the same SoC (TI
+> OMAP3) and roughly the same kernel (2.6.2[89], although both are
+> heavily patched from mainline.)
+>
+> The n900 *never* suspends. =A0It only uses dynamic PM + CPUidle.
+> The droid uses opportunistic suspend (as well as dynamic PM + CPUidle)
+>
+> I don't know of any more objective comparison of the two, but as a
+> user of both devices I can say that the active usage is basically the
+> same (around a day) and the idle use is similar as well, even though
+> the Droid has a slightly bigger battery (1400 mAh vs. 1320 mAh.) =A0My
+> own usage suggests the n900 is a bit better in idle time, but I have
+> not done any measuring or objective tests. =A0I'm guessing the
+> difference is probably because the Droid does not use the deepest
+> off-mode power states either in idle or suspend (IIRC) where the n900
+> does. =A0I suspect that if both were using off-mode and had the same
+> battery, these differences would go away.
+>
+> While this is not really a scientific comparison, it at least gives a
+> rough idea. =A0If using opportunistic suspend was adding noticably
+> better battery life, I think this would be a different discussion.
 
-But anyway, the average user probably either doesn't have or doesn't
-know how to get to a serial console on their phone ...
+Exactly. The point is, opportunistic suspend doesn't in fact add any
+value compared to dynamic PM + CPUIdle. It only produces some false
+impression that one can handle power management right without using
+dynamic PM. And this false impression is the cause for many really
+ugly designs (like, for instance, 15 minutes touchscreen inactivity
+delay before forcibly shutting down the wireless, as it's done in
+stock Android framework).
 
-> > The technical reason for wanting suspend blockers (as has been stated
-> > more times than I can be bothered to go back and count) is that no-one
-> > can currently produce a working model for race free kernel to user work
-> > handoff and, in the face of open app stores, rogue applications are a
-> > significant problem.  The fact that suspend blockers enables easy
-> > identification of power hogging apps is just a very useful side effect.
-> 
-> I still can't get over the fact that suspend_blockers are dealing with
-> userland problems in kernel space. If we can't really trust apps, I'm
-> sorry but companies like Google and Nokia (which I work for) will have
-> to setup better application acceptance on their stores. The fact that we
-> can get statistics of power usage from kernel space is actually really
-> good and could be easily automated on an AppStore environment. If it's
-> cause too many wakeups you report that to the developer of the app
-> before accepting. The same feature could be shipped on the SDK, so
-> developer has also early feedback about how good (or bad) his/her
-> application really is to the system.
-> 
-> IMO we should be celebrating good apps, not dealing in kernel space with
-> bad ones. And on top of all that, we would still need custom
-> applications with suspend_blockers support built into them.
-
-If you actually s/app/USB storage device/ (with a few other obvious text
-changes) in most of the above two paragraphs, you've got a good
-description of the problems we go through on an almost daily basis in
-the kernel for USB storage ... and why we've grown a massive exception
-table.
-
-Just saying "devices should conform to specifications" is a wonderful
-magic wand for wishing away all the problems bad devices cause and
-bludgeoning manufacturers with the said spec wrapped around a large lead
-brick is very cathartic but it doesn't change the fact that users blame
-the kernel for not working with the bad devices ... and we gave up
-trying to re-educate users on that score years ago.
-
-James
-
-
+Thanks,
+   Vitaly
