@@ -1,54 +1,39 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PM][PATCH 1/2] omap: opp: make opp_get_opp_id robust
-Date: Mon, 17 May 2010 15:11:21 -0500
-Message-ID: <1274127082-16288-2-git-send-email-nm@ti.com>
-References: <1274127082-16288-1-git-send-email-nm@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58096 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753043Ab0EQUL5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 16:11:57 -0400
-In-Reply-To: <1274127082-16288-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Mon, 17 May 2010 22:15:13 +0200
+Message-ID: <201005172215.13132.rjw@sisk.pl>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<20100514231510.GG16989@thunk.org>
+	<87r5laa4oc.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <87r5laa4oc.fsf@deeprootsystems.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Arve@smtp1.linux-foundation.org, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Sanjeev Premi <premi@ti.com>, Tero Kristo <tero.kristo@nokia.com>, Tony Lindgren <tony@atomide.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
-opp_get_opp_id should handle the error cases that might hit it. check
-parameters before using it
+On Monday 17 May 2010, Kevin Hilman wrote:
+> tytso@mit.edu writes:
+...
+> At least for OMAP, I don't consider "config it out" a viable option.
+> 
+> We would like one kernel (in particular one PM core) to be usable for
+> a broad range of devices: maemo/meego, Android, webOS, Archos, and
+> whatever else we haven't seen yet.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
+You don't need to config it out in the first place, so this argument doesn't
+really fly.  Besides, I don't get how rejecting the opportunisting suspend
+feature would help us achieve this goal.
 
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: Jouni Hogander <jouni.hogander@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Sanjeev Premi <premi@ti.com>
-Cc: Tero Kristo <tero.kristo@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Vishwanath BS <vishwanath.bs@ti.com>
----
-Note: even though this is a deprecated function, it should be robust
-
- arch/arm/plat-omap/opp.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-index 229960d..0b61325 100644
---- a/arch/arm/plat-omap/opp.c
-+++ b/arch/arm/plat-omap/opp.c
-@@ -101,6 +101,10 @@ struct omap_opp * __deprecated opp_find_by_opp_id(enum opp_t opp_type,
- 
- u8 __deprecated opp_get_opp_id(struct omap_opp *opp)
- {
-+	if (unlikely(!opp || IS_ERR(opp)) || !opp->enabled) {
-+		pr_err("%s: Invalid parameter being passed\n", __func__);
-+		return 0;
-+	}
- 	return opp->opp_id;
- }
- 
--- 
-1.6.3.3
-
+Rafael
