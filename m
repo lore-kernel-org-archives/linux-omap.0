@@ -1,61 +1,28 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Mon, 17 May 2010 22:22:22 +0200
-Message-ID: <201005172222.22494.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1005151716180.24645-100000@netrider.rowland.org> <20100517183904.GA14047@gandalf> <AANLkTillcFg_y-GeXJNBuIYiGvht-NBZPxwdb71qDui0@mail.gmail.com>
+From: "Chris Friesen" <cfriesen@nortel.com>
+Subject: Re: Issue with SCHED_FIFO app
+Date: Mon, 17 May 2010 14:51:29 -0600
+Message-ID: <4BF1AC51.7080108@nortel.com>
+References: <k2j54a292881005092139u7e120250hf530f8b688abdd22@mail.gmail.com>	 <t2s54a292881005092142h58ccae9ch2ecec665d06a7601@mail.gmail.com>	 <AANLkTillkVE9Mmz3CiQyIF5yiZfpp13g18UCyMQSuZ_K@mail.gmail.com>	 <201005131249.56432.kernel@kolivas.org> <AANLkTilGJ8VVFM5sUEP3ZXOSaUSeGpxui7NkuUPRpM_m@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:38476 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755269Ab0EQUVA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 May 2010 16:21:00 -0400
-In-Reply-To: <AANLkTillcFg_y-GeXJNBuIYiGvht-NBZPxwdb71qDui0@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTilGJ8VVFM5sUEP3ZXOSaUSeGpxui7NkuUPRpM_m@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Xianghua Xiao <xiaoxianghua@gmail.com>
+Cc: Con Kolivas <kernel@kolivas.org>, Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: me@felipebalbi.com, James Bottomley <James.Bottomley@suse.de>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>
 
-On Monday 17 May 2010, Brian Swetland wrote:
-> On Mon, May 17, 2010 at 11:39 AM, Felipe Balbi <me@felipebalbi.com> wrote:
-...
-> > but can anyone write an app that holds a suspend_blocker ?? If so, then
-> > your goal is already broken, right ? I mean, if anyone can keep a
-> > suspend_blocker held forever, you'll never ever sleep, right ? While
-> > with runtime, if you keep the keypad open, only the keypad and the paths
-> > directly related to it (probably the i2c controller and the power domain
-> > where the i2c controller sits) will be kept alive, no ?
-> 
-> No, you'll never suspend, which is different from never going to the
-> lowest CPU power state.  On shipping Android devices we aggressively
-> completely power down the CPU in idle whenever we can (based on
-> latency requirements generally).  We power off peripherals whenever
-> they're not in use.
-> 
-> This is why I've stated previously that I don't think runtime PM and
-> opportunistic suspend are competitive features.
+On 05/12/2010 09:16 PM, Xianghua Xiao wrote:
 
-Agreed.
+> I'm unsure if the newest "top" (or /proc/PID/stat) reports the correct
+> cpu usage when CFS/BFS is used, as you mentioned it seems failed to do
+> that. I will try to stress the system and see who fails first under
+> same workload, maybe that's the only way to compare cpu usage between
+> 2.6.18rt vs 2.6.33rt, for now.
 
-> Everyone who cares about minimizing power should want runtime pm or at least
-> similar functionality (our drivers have always powered down peripherals when
-> not in use, even while the device is open, etc, prior to the existence
-> of runtime PM).
+If you turn on scheduler debugging, then /proc/sched_debug gives
+accurate information using the scheduler clock (at least with CFS, not
+sure about BFS).
 
-Yes.
-
-> If your environment is such that going to full suspend will not gain
-> you anything, then don't use opportunistic suspend.
-
-Exactly.
-
-> We find that there are savings to be had with this model in Android which is
-> why we use it.  If you are going to use opportunistic suspend,
-> suspend_blockers provide useful functionality.
-
-And as I said, I regard this as a legitimate approach to power management.
-
-Thanks,
-Rafael
+Chris
