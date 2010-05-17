@@ -1,22 +1,23 @@
-From: Daniel Walker <dwalker@codeaurora.org>
+From: Matthew Garrett <mjg@redhat.com>
 Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Mon, 17 May 2010 14:29:24 -0700
-Message-ID: <1274131764.25625.54.camel@c-dwalke-linux.qualcomm.com>
-References: <alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
+Date: Mon, 17 May 2010 22:34:37 +0100
+Message-ID: <20100517213437.GA2395@srcf.ucam.org>
+References: <87wrvl5479.fsf@deeprootsystems.com>
+	<20100503215028.GB18910@srcf.ucam.org>
+	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
 	<20100514203202.GA12409@srcf.ucam.org>
 	<87aas2azc5.fsf@deeprootsystems.com>
-	<20100514231510.GG16989@thunk.org> <87r5laa4oc.fsf@deeprootsystems.com>
+	<20100514231510.GG16989@thunk.org>
+	<87r5laa4oc.fsf@deeprootsystems.com>
 	<AANLkTilL90pYVlquvMDAEPHj_AraEi9Qzk-0tTjw9Bkx@mail.gmail.com>
 	<20100517193440.GA32066@srcf.ucam.org>
-	<CEE6BB42CAD6E947908279175AF8470A025A726242@EXDCVYMBSTM006.EQ1STM.local>
-	<20100517210615.GB1873@srcf.ucam.org>
-	<CEE6BB42CAD6E947908279175AF8470A025A726244@EXDCVYMBSTM006.EQ1STM.local>
-	<20100517212437.GA2190@srcf.ucam.org>
+	<87ljbi1anb.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20100517212437.GA2190@srcf.ucam.org>
+Content-Disposition: inline
+In-Reply-To: <87ljbi1anb.fsf@deeprootsystems.com>
 List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
@@ -26,28 +27,37 @@ List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
 Sender: linux-pm-bounces@lists.linux-foundation.org
 Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, nes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus WALLEIJ <linus.walleij@stericsson.com>, "tytso@mit.edu" <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Arjan van de Ven <arjan@infradead.org>, Jesse@smtp1.lin
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 2010-05-17 at 22:24 +0100, Matthew Garrett wrote:
-> On Mon, May 17, 2010 at 11:16:52PM +0200, Linus WALLEIJ wrote:
-> > Maybe I'm misunderstanding something basic here, but when you say frozen,
-> > are you referring to freezer control groups
-> > Documentation/cgroups/freezer-subsystem.txt?
-> > 
-> > I was more thinking about something new, that isn't freezing anything.
-> > The only purpose would be to group the stuff that CPUidle can ignore,
-> > and let CPUidle ignore it, so that the system can still be idled.
+On Mon, May 17, 2010 at 02:27:52PM -0700, Kevin Hilman wrote:
+> Matthew Garrett <mjg@redhat.com> writes:
+> > Run this (or equivalent code) on an N900 and on an Android. Measure the 
+> > screen-off power draw on both.
+> >
+> > int main() {
+> > 	int i;
+> > 	while (1)
+> > 		i++;
+> > 	return 0;
+> > }
 > 
-> So they'd be on the runqeue but wouldn't factor into cpuidle's 
-> calculations of when the next wakeup should be? Ok. I think that still 
-> leaves you with the same problem - you're not scheduling that task, so 
-> how do you know to execute it when a network packet is received? I think 
-> you also still have the race condition.
+> This kind of rogue app will also kill my CPU performance.  For rogue
+> CPU-hog apps, we use _tools_ to find and fix this kind of problem:
+> top, renice, kill, etc. that use features of the scheduler to find
+> and/or solve the problem.
 
-Couldn't you special case the network packet situation ? Like the idle
-loop could take into account that there are packets flowing through the
-networking stack that may need to get handled.
+If my phone is able to avoid losing almost all of its standby time 
+without me having to care about whether my bouncing cow game was written 
+by a complete fool or not, that means that my phone is *better* than one 
+where I have to care. Would the world be better if said fool could be 
+sent to reeducation camps before being allowed to write any more 
+software? Probably, but sadly that doesn't seem to be something we can 
+implement through code. I'd love it if we could assume that all software 
+is going to be perfect, but in the absence of that ideal world there's a 
+strong incentive to develop technology that does its best to cope with 
+adverse situations.
 
-Daniel
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
