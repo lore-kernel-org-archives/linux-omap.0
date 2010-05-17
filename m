@@ -1,281 +1,82 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 2/6 v2] musb: use system DMA to fix Inventra DMA issue on RTL-1.4
-Date: Mon, 17 May 2010 16:38:04 +0530
-Message-ID: <1274094488-15925-2-git-send-email-ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 5/6] musb: gadget: fix tx transfer path for mode0 operation
+Date: Mon, 17 May 2010 16:38:07 +0530
+Message-ID: <1274094488-15925-5-git-send-email-ajay.gupta@ti.com>
 References: <1274094488-15925-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39662 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752242Ab0EQLIS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 May 2010 07:08:18 -0400
-In-Reply-To: <1274094488-15925-1-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+ <1274094488-15925-2-git-send-email-ajay.gupta@ti.com>
+ <1274094488-15925-3-git-send-email-ajay.gupta@ti.com>
+ <1274094488-15925-4-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1274094488-15925-4-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-MUSB RTL version 1.4 has a hardware issue when TX and RX DMA channels are
-simultaneously enabled which results in DMA lockup.
+Current gadget Tx path always programs DMA in mode-1 if request length
+is more than packet size. As system DMA can work only in mode-0 so
+updating the DMA mode and transfer length for it.
 
-Use system DMA for all RX channels as a workaround of this issue as this
-will have minimal throughput overhead based on the fact that Rx transfers
-are done in DMA mode-0 on OMAP34x/35x platforms. Also added stub functions
-for non OMAP platforms so that there is no compilation failure.
+Also fixed an issue in device Tx completion path where 'is_dma' is
+getting set unconditionally. This would fail the io if Tx transfer
+is done in mode-0. Fixed it by updating it based on
+'request->actual' length.
 
-Another approach to use PIO mode in opposite direction would increase the
-cpu loading and thus using system DMA is preferred workaround.
-
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
-Patch created against linus'tree + all musb patches in Greg's queue
-Changes from v1:
-	- Added wrapper function to make it compilable for BlackFins
+ drivers/usb/musb/musb_gadget.c |   21 ++++++++++++++++++++-
+ 1 files changed, 20 insertions(+), 1 deletions(-)
 
- drivers/usb/musb/Kconfig     |    9 +++
- drivers/usb/musb/musbhsdma.c |  132 ++++++++++++++++++++++++++++++++++++++++++
- drivers/usb/musb/musbhsdma.h |   10 +++
- 3 files changed, 151 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 07fe490..be5bea6 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -157,6 +157,15 @@ config USB_INVENTRA_DMA
- 	help
- 	  Enable DMA transfers using Mentor's engine.
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index 6fca870..9ac45e4 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -317,6 +317,22 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ 			else
+ 				musb_ep->dma->desired_mode = 1;
  
-+config MUSB_USE_SYSTEM_DMA_WORKAROUND
-+	bool 'Use System DMA for Mentor DMA workaround'
-+	depends on USB_MUSB_HDRC && USB_INVENTRA_DMA && ARCH_OMAP
-+	default y
-+	help
-+          MUSB RTL version 1.4 (OMAP34x/35x) has a hardware issue when TX and RX
-+          DMA channels are simultaneously enabled. To work around this issue,
-+          you can choose to use System DMA for RX channels.
-+
- config USB_TI_CPPI_DMA
- 	bool
- 	depends on USB_MUSB_HDRC && !MUSB_PIO_ONLY
-diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-index 1008044..d2dab57 100644
---- a/drivers/usb/musb/musbhsdma.c
-+++ b/drivers/usb/musb/musbhsdma.c
-@@ -37,6 +37,97 @@
- #include "musb_core.h"
- #include "musbhsdma.h"
- 
-+#ifdef CONFIG_ARCH_OMAP
-+#include <plat/dma.h>
-+static void musb_sdma_channel_release(int ch_num)
-+{
-+	omap_stop_dma(ch_num);
-+	omap_free_dma(ch_num);
-+}
-+static void musb_sdma_channel_abort(int ch_num)
-+{
-+	omap_stop_dma(ch_num);
-+}
-+static void musb_sdma_channel_program(struct musb *musb,
-+		struct musb_dma_channel *musb_channel,
-+		dma_addr_t dma_addr, u32 len)
-+{
-+	/* System DMA */
-+	/* RX: set src = FIFO */
-+	omap_set_dma_transfer_params(musb_channel->sysdma_channel,
-+				OMAP_DMA_DATA_TYPE_S8,
-+				len ? len : 1, 1, /* One frame */
-+				OMAP_DMA_SYNC_ELEMENT,
-+				OMAP24XX_DMA_NO_DEVICE,
-+				0); /* Src Sync */
-+
-+	omap_set_dma_src_params(musb_channel->sysdma_channel, 0,
-+				OMAP_DMA_AMODE_CONSTANT,
-+				MUSB_FIFO_ADDRESS(musb->ctrl_phys_base,
-+				musb_channel->epnum),
-+				0, 0);
-+
-+	omap_set_dma_dest_params(musb_channel->sysdma_channel, 0,
-+				OMAP_DMA_AMODE_POST_INC, dma_addr,
-+				0, 0);
-+
-+	omap_set_dma_dest_data_pack(musb_channel->sysdma_channel, 1);
-+	omap_set_dma_dest_burst_mode(musb_channel->sysdma_channel,
-+				OMAP_DMA_DATA_BURST_16);
-+
-+	omap_start_dma(musb_channel->sysdma_channel);
-+}
-+static void musb_sysdma_completion(int lch, u16 ch_status, void *data)
-+{
-+	u32 addr;
-+	unsigned long flags;
-+
-+	struct dma_channel *channel;
-+
-+	struct musb_dma_channel *musb_channel =
-+					(struct musb_dma_channel *) data;
-+	struct musb_dma_controller *controller = musb_channel->controller;
-+	struct musb *musb = controller->private_data;
-+	channel = &musb_channel->channel;
-+
-+	DBG(2, "lch = 0x%d, ch_status = 0x%x\n", lch, ch_status);
-+	spin_lock_irqsave(&musb->lock, flags);
-+
-+	addr = (u32) omap_get_dma_dst_pos(musb_channel->sysdma_channel);
-+	if (musb_channel->len == 0)
-+		channel->actual_len = 0;
-+	else
-+		channel->actual_len = addr - musb_channel->start_addr;
-+
-+	DBG(2, "ch %p, 0x%x -> 0x%x (%d / %d) %s\n",
-+		channel, musb_channel->start_addr, addr,
-+		channel->actual_len, musb_channel->len,
-+		(channel->actual_len < musb_channel->len) ?
-+		"=> reconfig 0 " : " => complete");
-+
-+	channel->status = MUSB_DMA_STATUS_FREE;
-+	musb_dma_completion(musb, musb_channel->epnum, musb_channel->transmit);
-+
-+	spin_unlock_irqrestore(&musb->lock, flags);
-+	return;
-+}
-+static int musb_sdma_channel_request(void *musb_channel, int *ch_num)
-+{
-+	return omap_request_dma(OMAP24XX_DMA_NO_DEVICE, "MUSB SysDMA",
-+			 musb_sysdma_completion, (void *) musb_channel, ch_num);
-+}
-+#else
-+static int musb_sdma_channel_request(void *musb_channel, int *ch_num)
-+{
-+	return 1;
-+}
-+static void musb_sdma_channel_program(struct musb *musb,
-+		struct musb_dma_channel *musb_channel,
-+		dma_addr_t dma_addr, u32 len) {}
-+static void musb_sdma_channel_abort(int ch_num) {}
-+static void musb_sdma_channel_release(int ch_num) {}
-+#endif /* CONFIG_ARCH_OMAP */
-+
- static int dma_controller_start(struct dma_controller *c)
- {
- 	/* nothing to do */
-@@ -77,6 +168,7 @@ static struct dma_channel *dma_channel_allocate(struct dma_controller *c,
- 	struct musb_dma_controller *controller = container_of(c,
- 			struct musb_dma_controller, controller);
- 	struct musb_dma_channel *musb_channel = NULL;
-+	struct musb *musb = controller->private_data;
- 	struct dma_channel *channel = NULL;
- 	u8 bit;
- 
-@@ -95,6 +187,32 @@ static struct dma_channel *dma_channel_allocate(struct dma_controller *c,
- 			/* Tx => mode 1; Rx => mode 0 */
- 			channel->desired_mode = transmit;
- 			channel->actual_len = 0;
-+			musb_channel->sysdma_channel = -1;
-+
 +			/*
-+			 * MUSB RTL version 1.4 (OMAP34x/35x) has a hardware
-+			 * issue when TX and RX DMA channels are simultaneously
-+			 * enabled. To work around this issue, use system DMA
-+			 * for all RX channels.
++			 * Use system dma for unaligned buffers on RTL >= 1.8
++			 * for Inventra DMA. As system DMA can work only in
++			 * mode-0 so update the desired_mode and request_size.
 +			 */
-+			if (((musb->hwvers == MUSB_HWVERS_1400) && !transmit)
-+				&& use_sdma_workaround()) {
-+				int ret;
-+				ret = musb_sdma_channel_request(
-+					(void *) musb_channel,
-+					&(musb_channel->sysdma_channel));
++			if (is_inventra_dma_enabled() &&
++				((request->dma + request->actual) & 0x3) &&
++				(musb->hwvers >= MUSB_HWVERS_1800)) {
 +
-+				if (ret) {
-+					printk(KERN_ERR "request_dma failed:"
-+							" %d\n", ret);
-+					controller->used_channels &=
-+								~(1 << bit);
-+					channel->status =
-+							MUSB_DMA_STATUS_UNKNOWN;
-+					musb_channel->sysdma_channel = -1;
-+					channel = NULL;
-+				}
++				request_size = min_t(size_t,
++					musb_ep->hw_ep->max_packet_sz_tx,
++					request->length - request->actual);
++
++				musb_ep->dma->desired_mode = 0;
 +			}
- 			break;
++
+ 			use_dma = use_dma && c->channel_program(
+ 					musb_ep->dma, musb_ep->packet_sz,
+ 					musb_ep->dma->desired_mode,
+@@ -463,7 +479,6 @@ void musb_g_tx(struct musb *musb, u8 epnum)
+ 		u8	is_dma = 0;
+ 
+ 		if (dma && (csr & MUSB_TXCSR_DMAENAB)) {
+-			is_dma = 1;
+ 			csr |= MUSB_TXCSR_P_WZC_BITS;
+ 			csr &= ~(MUSB_TXCSR_DMAENAB | MUSB_TXCSR_P_UNDERRUN |
+ 				 MUSB_TXCSR_TXPKTRDY);
+@@ -471,6 +486,10 @@ void musb_g_tx(struct musb *musb, u8 epnum)
+ 			/* Ensure writebuffer is empty. */
+ 			csr = musb_readw(epio, MUSB_TXCSR);
+ 			request->actual += musb_ep->dma->actual_len;
++
++			if (request->actual == request->length)
++				is_dma = 1;
++
+ 			DBG(4, "TXCSR%d %04x, DMA off, len %zu, req %p\n",
+ 				epnum, csr, musb_ep->dma->actual_len, request);
  		}
- 	}
-@@ -114,6 +232,11 @@ static void dma_channel_release(struct dma_channel *channel)
- 		~(1 << musb_channel->idx);
- 
- 	channel->status = MUSB_DMA_STATUS_UNKNOWN;
-+
-+	if (musb_channel->sysdma_channel != -1) {
-+		musb_sdma_channel_release(musb_channel->sysdma_channel);
-+		musb_channel->sysdma_channel = -1;
-+	}
- }
- 
- static void configure_channel(struct dma_channel *channel,
-@@ -122,12 +245,16 @@ static void configure_channel(struct dma_channel *channel,
- {
- 	struct musb_dma_channel *musb_channel = channel->private_data;
- 	struct musb_dma_controller *controller = musb_channel->controller;
-+	struct musb *musb = controller->private_data;
- 	void __iomem *mbase = controller->base;
- 	u8 bchannel = musb_channel->idx;
- 	u16 csr = 0;
- 
- 	DBG(4, "%p, pkt_sz %d, addr 0x%x, len %d, mode %d\n",
- 			channel, packet_sz, dma_addr, len, mode);
-+	if (musb_channel->sysdma_channel != -1) {
-+		musb_sdma_channel_program(musb, musb_channel, dma_addr, len);
-+	} else { /* Mentor DMA */
- 
- 	if (mode) {
- 		csr |= 1 << MUSB_HSDMA_MODE1_SHIFT;
-@@ -160,6 +287,7 @@ static void configure_channel(struct dma_channel *channel,
- 	musb_writew(mbase,
- 		MUSB_HSDMA_CHANNEL_OFFSET(bchannel, MUSB_HSDMA_CONTROL),
- 		csr);
-+	}
- }
- 
- static int dma_channel_program(struct dma_channel *channel,
-@@ -214,6 +342,10 @@ static int dma_channel_abort(struct dma_channel *channel)
- 			csr &= ~MUSB_TXCSR_DMAMODE;
- 			musb_writew(mbase, offset, csr);
- 		} else {
-+			if (musb_channel->sysdma_channel != -1)
-+				musb_sdma_channel_abort(
-+					musb_channel->sysdma_channel);
-+
- 			offset = MUSB_EP_OFFSET(musb_channel->epnum,
- 						MUSB_RXCSR);
- 
-diff --git a/drivers/usb/musb/musbhsdma.h b/drivers/usb/musb/musbhsdma.h
-index 613f95a..effc89a 100644
---- a/drivers/usb/musb/musbhsdma.h
-+++ b/drivers/usb/musb/musbhsdma.h
-@@ -142,6 +142,15 @@ static inline void musb_write_hsdma_count(void __iomem *mbase,
- 
- #define MUSB_HSDMA_CHANNELS		8
- 
-+#define MUSB_FIFO_ADDRESS(base, epnum)      \
-+	((unsigned long) (base + MUSB_FIFO_OFFSET(epnum)))
-+
-+#ifdef CONFIG_MUSB_USE_SYSTEM_DMA_WORKAROUND
-+#define	use_sdma_workaround()	1
-+#else
-+#define	use_sdma_workaround()	0
-+#endif
-+
- struct musb_dma_controller;
- 
- struct musb_dma_channel {
-@@ -153,6 +162,7 @@ struct musb_dma_channel {
- 	u8				idx;
- 	u8				epnum;
- 	u8				transmit;
-+	int                             sysdma_channel;
- };
- 
- struct musb_dma_controller {
 -- 
 1.6.2.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
