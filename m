@@ -1,87 +1,66 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH v2 1/2] omap3 nand: cleanup for not to use GPMC virtual
- address
-Date: Mon, 17 May 2010 11:18:58 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030D8FB825@dbde02.ent.ti.com>
-References: <s-ghorai@ti.com>
- <1273850591-19040-1-git-send-email-s-ghorai@ti.com>
- <1273850591-19040-2-git-send-email-s-ghorai@ti.com>
- <20100514235852.GN3428@atomide.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: [PATCH v2 0/2] DSS2:Allow FB to build without VRFB
+Date: Mon, 17 May 2010 11:19:42 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703042887E2@dbde02.ent.ti.com>
+References: <1273764028-25822-1-git-send-email-svadivu@ti.com>
+	 <1273821814.2814.63.camel@tubuntu.research.nokia.com>
+	 <FCCFB4CDC6E5564B9182F639FC35608703042887DB@dbde02.ent.ti.com>
+ <1273842100.2814.85.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53069 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753068Ab0EQFtS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 01:49:18 -0400
-In-Reply-To: <20100514235852.GN3428@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40154 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753068Ab0EQFuI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 01:50:08 -0400
+In-Reply-To: <1273842100.2814.85.camel@tubuntu.research.nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "sakoman@gmail.com" <sakoman@gmail.com>, "mike@compulab.co.il" <mike@compulab.co.il>, "Artem.Bityutskiy@nokia.com" <Artem.Bityutskiy@nokia.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Tony,
-
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: 2010-05-15 05:29
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org;
-> sakoman@gmail.com; mike@compulab.co.il; Artem.Bityutskiy@nokia.com
-> Subject: Re: [PATCH v2 1/2] omap3 nand: cleanup for not to use GPMC
-> virtual address
-> 
-> Few more comments below.
-> 
-> * Sukumar Ghorai <s-ghorai@ti.com> [100514 08:18]:
-> > +
-> > +/**
-> > + * gmpc_ecc_init - Initialize the HW ECC for NAND flash in GPMC
-> controller
-> > + * @cs: Chip select number
-> > + * @ecc_size: bytes for which ECC will be generated
-> > + */
-> > +void gpmc_ecc_init(int cs, int ecc_size)
-> > +{
-> > +	unsigned int val = 0x0;
-> > +
-> > +	/* Read from ECC Control Register */
-> > +	val = gpmc_read_reg(GPMC_ECC_CONTROL);
-> > +
-> > +	/* Clear all ECC | Enable Reg1 */
-> > +	val = ((0x00000001<<8) | 0x00000001);
-> > +	gpmc_write_reg(GPMC_ECC_CONTROL, val);
-> > +
-> > +	/* Read from ECC Size Config Register */
-> > +	val = gpmc_read_reg(GPMC_ECC_SIZE_CONFIG);
-> > +	/* ECCSIZE1=512 | Select eccResultsize[0-3] */
-> > +	val = ((((ecc_size >> 1) - 1) << 22) | (0x0000000F));
-> > +	gpmc_write_reg(GPMC_ECC_SIZE_CONFIG, val);
-> > +}
-> 
-> There should be some locking as only one chipselect can use
-> the ECC or prefetch engine at a time. If you have NAND in
-> two chipselects, bad things would happen..
-> 
-> Maybe something like:
-> 
-> int gpmc_ecc_request(int cs);
-> void gpmc_ecc_free(int cs);
-> int gpmc_prefetch_request(int cs);
-> void gpmc_prefetch_free(int cs);
-> 
-> Other than that, looks like a good clean-up so we can easily
-> add the platform init code for all the board files.
-[Ghorai] agreed.. and -
-1). Adding one flag/variable for prefetch enable/reset request
-2). Adding another flag/variable for ecc int/reset request
-
-Regards,
-Ghorai
-
-> 
-> Regards,
-> 
-> Tony
+IA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWkgVmFsa2VpbmVu
+IFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXSANCj4gU2VudDogRnJpZGF5LCBNYXkg
+MTQsIDIwMTAgNjozMiBQTQ0KPiBUbzogR3VydXN3YW15LCBTZW50aGlsdmFkaXZ1DQo+IENjOiBs
+aW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgbGludXgtZmJkZXZAdmdlci5rZXJuZWwub3JnOyAN
+Cj4gdG9ueUBhdG9taWRlLmNvbTsgSGlyZW1hdGgsIFZhaWJoYXYNCj4gU3ViamVjdDogUkU6IFtQ
+QVRDSCB2MiAwLzJdIERTUzI6QWxsb3cgRkIgdG8gYnVpbGQgd2l0aG91dCBWUkZCDQo+IA0KPiBP
+biBGcmksIDIwMTAtMDUtMTQgYXQgMTI6MDMgKzAyMDAsIGV4dCBHdXJ1c3dhbXksIFNlbnRoaWx2
+YWRpdnUgd3JvdGU6DQo+ID4gDQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+
+ID4gRnJvbTogVG9taSBWYWxrZWluZW4gW21haWx0bzp0b21pLnZhbGtlaW5lbkBub2tpYS5jb21d
+IA0KPiA+ID4gU2VudDogRnJpZGF5LCBNYXkgMTQsIDIwMTAgMTI6NTQgUE0NCj4gPiA+IFRvOiBH
+dXJ1c3dhbXksIFNlbnRoaWx2YWRpdnUNCj4gPiA+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVs
+Lm9yZzsgbGludXgtZmJkZXZAdmdlci5rZXJuZWwub3JnOyANCj4gPiA+IHRvbnlAYXRvbWlkZS5j
+b207IEhpcmVtYXRoLCBWYWliaGF2DQo+ID4gPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyIDAvMl0g
+RFNTMjpBbGxvdyBGQiB0byBidWlsZCB3aXRob3V0IFZSRkINCj4gDQo+IDxzbmlwPg0KPiANCj4g
+PiA+IFRoZSBwYXRjaCBzZXQgbWFrZXMgVlJGQiBvcHRpb25hbC4gV2hhdCBoYXBwZW5zIGlmIFZS
+RkIgDQo+IGlzIHR1cm5lZCBvZmYsDQo+ID4gPiBhbmQgdGhlIHVzZXIgdXNlcyBWUkZCIGZvciBh
+IGZyYW1lYnVmZmVyPw0KPiA+IFtTZW50aGlsXSBUaGlzIHBhdGNoIGtlZXBzIFZSRkI9eSBmb3Ig
+QVJDSF9PTUFQMiBhbmQgQVJDSF9PTUFQMy4NCj4gPiBVc2VyIHdvdWxkIGhhdmUgZ290IGFuIG9w
+dGlvbiB0byB0dXJuIGl0IE9GRiBpZiBpdCBoYWQgYXBwZWFyZWQgaW4gDQo+ID4gdGhlIG1lbnVj
+b25maWcgc2VsZWN0aW9ucy4gIEkgZGlkIG5vdCBnaXZlIHRoYXQgb3B0aW9uIGluIA0KPiBtZW51
+Y29uZmlnIA0KPiA+IGV4cGxpY2l0bHkuIA0KPiA+IGllICBjb25maWcgT01BUDJfVlJGQg0KPiA+
+IAlib29sIDxObyBuYW1lIGdpdmVuIGhlcmU+DQo+ID4gDQo+ID4gU3VwcG9zZSBvbiBhIGJ1aWxk
+IHRoZSB1c2VyIGRlbGliZXJhdGVseSBnaXZlcyANCj4gIkNPTkZJR19PTUFQMl9WUkZCIG5vdCBz
+ZXQiLA0KPiA+IHRoZW4gVlJGQiBmdW5jdGlvbnMgYXJlIG1hZGUgYXMgZW1wdHkgZnVuY3Rpb25z
+IGJ5IHRoZSBjb21waWxlci4NCj4gPiANCj4gPiBUaGlzIGlzIGZpbmUgYXMgbG9uZyBhcyB0aGUg
+dXNlciBkb2VzIG5vdCBzYXkgb21hcGZiLnZyZmI9MS4NCj4gPiANCj4gPiBCdXQgaWYgdGhlIHVz
+ZXIgc2V0cyBvbWFwZmIudnJmYj0xLCB0aGVuIGl0IGlzIGEgd3JvbmcgDQo+IHVzYWdlIG9mIHRo
+ZSBib290YXJncw0KPiA+IGFzIGhlIGhhcyBhbHJlYWR5IGRlbGliZXJhdGVseSBjaGFuZ2VkIHRo
+ZSBkZWZjb25maWcgdG8gc2F5IA0KPiAiVlJGQiBub3Qgc2V0Ii4NCj4gPiANCj4gPiBUaGUgcmVz
+dWx0IG9mIGhpcyBleHBlcmltZW50OiBObyBib290dXAgb24gdGhlIGJvYXJkIGFzIHRoZSANCj4g
+dmFkZHIgb2YgVlJGQiANCj4gPiBpcyBwb3B1bGF0ZWQgbm9yIG9mIHRoZSBub3JtYWwgUkFNIGJ1
+ZmZlci4NCj4gDQo+IFRoZSBrZXJuZWwgc2hvdWxkIGJlIGFibGUgdG8gY29wZSB3aXRoIHRoYXQu
+IFdoaWxlIGdpdmluZyB3cm9uZyBib290DQo+IGFyZ3VtZW50cyB0byB0aGUga2VybmVsIGNhdXNp
+bmcgaXQgdG8gbm90IGJvb3QgaXMgYmFkLCBpdCBjb3VsZCBiZQ0KPiBzb21ld2hhdCBhY2NlcHRh
+YmxlLiBCdXQgaWYgdGhlIHVzZXIgY2hhbmdlcyB0aGUgcm90YXRpb24gDQo+IHR5cGUgdmlhIHN5
+c2ZzDQo+IGZpbGUsIGFuZCB0aGUga2VybmVsIGNyYXNoZXMgKHdoaWNoIGlzIHdoYXQgSSBmZWFy
+IHdpbGwgaGFwcGVuKSwgaXQncw0KPiB0b3RhbGx5IHVuYWNjZXB0YWJsZS4NCj4gDQo+IElmIGl0
+J3MgcG9zc2libGUgdG8gdHVybiBWUkZCIG9mZiwgdGhlbiB0aGUgY29kZSBzaG91bGQgDQo+IGhh
+bmRsZSB0aGUgY2FzZQ0KPiB3aGVyZSBWUkZCIGlzIG5vdCB0aGVyZS4gTWVhbmluZywgcmV0dXJu
+aW5nIGVycm9yIHZhbHVlcyBvciANCj4gc29tZWhvdyBlbHNlDQo+IGZhaWxpbmcgZ3JhY2VmdWxs
+eSwgYW5kIGluZm9ybWluZyB0aGUgdXNlciBvZiB3cm9uZyBhcmd1bWVudHMuDQo+DQpbU2VudGhp
+bF0gWWVzLCBJIGNvdWxkIHByb3ZpZGUgYSBjaGVjayBpbiB0aGUgZHJpdmVyIGZvciB3cm9uZyBh
+cmd1bWVudHMuDQo+ICBUb21pDQo+IA0KPiANCj4g
