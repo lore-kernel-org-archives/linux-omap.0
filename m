@@ -1,86 +1,76 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [RFC][RFT][PATCH] OMAPFB: LCDC: change update_mode to DISABLED when going suspend
-Date: Mon, 17 May 2010 03:20:13 +0200
-Message-ID: <201005170320.29580.jkrzyszt@tis.icnet.pl>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH 02/14] dspbridge: deh: trivial cleanups
+Date: Sun, 16 May 2010 21:31:16 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CB6CB099@dlee06.ent.ti.com>
+References: <1274024765-21076-1-git-send-email-felipe.contreras@gmail.com>
+	 <1274024765-21076-3-git-send-email-felipe.contreras@gmail.com>
+	 <496565EC904933469F292DDA3F1663E602CB6CB077@dlee06.ent.ti.com>
+ <AANLkTin-f7RzW3vXL-fYAirGEzN_O1RD0LjmcVJdp1v7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:43303 "EHLO d1.icnet.pl"
+Received: from bear.ext.ti.com ([192.94.94.41]:52247 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751763Ab0EQBV2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 16 May 2010 21:21:28 -0400
-Content-Disposition: inline
+	id S1752289Ab0EQCbT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 May 2010 22:31:19 -0400
+In-Reply-To: <AANLkTin-f7RzW3vXL-fYAirGEzN_O1RD0LjmcVJdp1v7@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-I was observing the following error messages on my OMAP1 based Amstrad Delta 
-board when first changing from text to graphics mode or vice versa after the 
-LCD display had been blanked:
-	omapfb omapfb: timeout waiting for FRAME DONE
-with a followup error message while unblanking it back:
-	omapfb omapfb: resetting (status 0xffffffb2,reset count 1)
-As a visible result, image pixels happened to be shifted by a few bits, 
-giving wrong colors.
 
-Examining the code, I found that this problem occures when an OMAP1 internal 
-LCD controller is disabled from omap_lcdc_suspend() and then a subsequent 
-omap_lcdc_setup_plane() calls disable_controller() again. This potentially 
-error provoking behaviour is triggered by the lcdc.update_mode flag being kept 
-at OMAP_AUTO_UPDATE, regardless of the controller and panel being suspended. 
-
-This patch tries to correct the problem by replacing both omap_lcdc_suspend() 
-and omap_lcdc_resume() function bodies with single calls to 
-omap_lcdc_set_update_mode() with a respective OMAP_UPDATE_DISABLE or 
-OMAP_AUTO_UPDATE argument. As a result, exactly the same lower level 
-operations are performed, with addition of changing the lcdc.update_mode flag 
-to a value better suited for the controller state. This prevents any further 
-calls to disable_controller() from omap_lcdc_setup_plane() while the display 
-is suspended.
-
-Created against linux-2.6.34-rc7.
-Tested on Amstrad Delta.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
 Hi,
 
-Those of you having access to other display equipped OMAP1 boards, could you 
-please test if this patch doesn't break anything?
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Sunday, May 16, 2010 5:13 PM
+> To: Guzman Lugo, Fernando
+> Cc: linux-omap; Ramirez Luna, Omar
+> Subject: Re: [PATCH 02/14] dspbridge: deh: trivial cleanups
+>=20
+> On Mon, May 17, 2010 at 1:02 AM, Guzman Lugo, Fernando
+> <fernando.lugo@ti.com> wrote:
+>=20
+> >> + =A0 =A0 for (c =3D 0; c < GPTIMER_IRQ_WAIT_MAX_CNT; c++)
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 if ((omap_dm_timer_read_status(timer) &
+> GPTIMER_IRQ_OVERFLOW))
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> >> +
+> >> + =A0 =A0 pr_err("%s: GPTimer interrupt failed\n", __func__);
+> >
+> > In case of not timeout the timer is not disabled, that could preven=
+t
+> power transition to off. It should be disable as soon as it is not ne=
+eded
+> which is after calling dump_dsp_stack.
+>=20
+> Right, I originally had timer_disable() outside of wait_for_timeout()=
+,
+> and only later decided to put it in. However, do we still need to let
+> the timer on? Can't we disable the timer always before dumping the
+> stack? The rest of the code seems to run fine with the timer disabled=
+=2E
 
-Thanks,
-Janusz
+If there is no f/i clock the DSP cannot ack the interruption, maybe rea=
+ding the register without the clocks not cause a fatal in the DSP. But =
+you will have issues if the ack is not done.
 
- drivers/video/omap/lcdc.c |   14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+Regards,
+=46ernando.
 
---- git/drivers/video/omap/lcdc.c.orig	2010-05-16 21:39:20.000000000 +0200
-+++ git/drivers/video/omap/lcdc.c	2010-05-17 00:00:43.000000000 +0200
-@@ -572,22 +572,12 @@ static enum omapfb_update_mode omap_lcdc
- /* PM code called only in internal controller mode */
- static void omap_lcdc_suspend(void)
- {
--	if (lcdc.update_mode == OMAPFB_AUTO_UPDATE) {
--		disable_controller();
--		omap_stop_lcd_dma();
--	}
-+	omap_lcdc_set_update_mode(OMAPFB_UPDATE_DISABLED);
- }
- 
- static void omap_lcdc_resume(void)
- {
--	if (lcdc.update_mode == OMAPFB_AUTO_UPDATE) {
--		setup_regs();
--		load_palette();
--		setup_lcd_dma();
--		set_load_mode(OMAP_LCDC_LOAD_FRAME);
--		enable_irqs(OMAP_LCDC_IRQ_DONE);
--		enable_controller();
--	}
-+	omap_lcdc_set_update_mode(OMAPFB_AUTO_UPDATE);
- }
- 
- static void omap_lcdc_get_caps(int plane, struct omapfb_caps *caps)
+>=20
+> >> =A0 =A0 =A0 omap_dm_timer_disable(timer);
+> >> =A0}
+>=20
+> Cheers.
+>=20
+> --
+> Felipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
