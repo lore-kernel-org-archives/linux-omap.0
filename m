@@ -1,140 +1,90 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH v2 1/2] omap3 nand: cleanup for not to use GPMC virtual
- 	address
-Date: Mon, 17 May 2010 20:04:14 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030D8FBB71@dbde02.ent.ti.com>
-References: <s-ghorai@ti.com>
- <1273850591-19040-1-git-send-email-s-ghorai@ti.com>
- 	<1273850591-19040-2-git-send-email-s-ghorai@ti.com>
- <AANLkTinGirx4-PPkpPhYEutbnN_uIPoYbA7BlUPCPnaK@mail.gmail.com>
- 	<2A3DCF3DA181AD40BDE86A3150B27B6B030D8FB75B@dbde02.ent.ti.com>
- <AANLkTimHof-ZYHHWifCoyixbpJJD4h3FlIyfcZntFSXy@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Mon, 17 May 2010 08:40:59 -0700
+Message-ID: <87hbm6cz90.fsf@deeprootsystems.com>
+References: <Pine.LNX.4.44L0.1005151716180.24645-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58244 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753418Ab0EQOe3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 10:34:29 -0400
-In-Reply-To: <AANLkTimHof-ZYHHWifCoyixbpJJD4h3FlIyfcZntFSXy@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1005151716180.24645-100000@netrider.rowland.org> (Alan Stern's message of "Sat\, 15 May 2010 17\:19\:55 -0400 \(EDT\)")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Brian Swetland <swetland@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tony Lindgren <tony@atomide.com>, Matthew Garrett <mjg@redhat.com>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Artem.Bityutskiy@nokia.com" <Artem.Bityutskiy@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "sakoman@gmail.com" <sakoman@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+
+Alan Stern <stern@rowland.harvard.edu> writes:
+
+> On Fri, 14 May 2010, Brian Swetland wrote:
+>
+>> In tickless mode, the time until next timer is a signed int, so the
+>> longest the kernel will ever sleep is ~2 seconds at a go.  In
+>> practice, userspace entities often have polling behavior that can
+>> trigger more often than that, and I've observed some kernel periodic
+>> timers (haven't cataloged them recently) that happen more often than
+>> once a second.
+>
+> Paul and Kevin, how does the OMAP implementation handle these 
+> difficulties?
+
+just a minor clarification... these aren't OMAP-specific issues, but
+generic issues to all power-sensitive kernel users.
+
+The ~2 second limit was fixed by Jon Hunter (TI) and is in mainline
+since 2.6.32[1].
+
+For other timers, there has been active work (mostly by Intel folks)
+on deferrable timers, coalescing timers, timer slack etc. that has
+greatly reduced the kernel timer impact on wakeups.
+
+> Also, how does it handle the issue of ill-behaved apps?
+
+For userspace, apps that have polling behavior or are ill-behaved must
+be found and fixed.  Thanks to tools like powertop, this is a farily
+easy task.
+
+But really, I don't consider the "ill-behaved app" problem to be a
+real-world problem.  Both in maemo/meego and Android, if someone
+writes an app that kills battery life, it will get reported as a bug,
+or get bad ratings etc.  On these kinds of devices, there is a *stong*
+developer incentive to not write battery sucking apps.
+
+Kevin
 
 
+[1]
+commit 97813f2fe77804a4464564c75ba8d8826377feea
+Author: Jon Hunter <jon-hunter@ti.com>
+Date:   Tue Aug 18 12:45:11 2009 -0500
 
-> -----Original Message-----
-> From: Vimal Singh [mailto:vimal.newwork@gmail.com]
-> Sent: 2010-05-17 19:57
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; Artem.Bityutskiy@nokia.com;
-> tony@atomide.com; sakoman@gmail.com; linux-mtd@lists.infradead.org
-> Subject: Re: [PATCH v2 1/2] omap3 nand: cleanup for not to use GPMC
-> virtual address
->=20
-> On Mon, May 17, 2010 at 9:52 AM, Ghorai, Sukumar <s-ghorai@ti.com> wr=
-ote:
-> [...]
-> >> > @@ -108,11 +108,27 @@ static u32 gpmc_read_reg(int idx)
-> >> > =A0 =A0 =A0 =A0return __raw_readl(gpmc_base + idx);
-> >> > =A0}
-> >> >
-> >> > +static void gpmc_cs_write_byte(int cs, int idx, u8 val)
-> >> > +{
-> >> > + =A0 =A0 =A0 void __iomem *reg_addr;
-> >> > +
-> >> > + =A0 =A0 =A0 reg_addr =3D gpmc_base + GPMC_CS0_BASE + (cs * GPM=
-C_CS_SIZE) +
-> >> idx;
-> >> > + =A0 =A0 =A0 __raw_writeb(val, reg_addr);
-> >> > +}
-> >> > +
-> >> > +static u8 gpmc_cs_read_byte(int cs, int idx)
-> >> > +{
-> >> > + =A0 =A0 =A0 void __iomem *reg_addr;
-> >> > +
-> >> > + =A0 =A0 =A0 reg_addr =3D gpmc_base + GPMC_CS0_BASE + (cs * GPM=
-C_CS_SIZE) +
-> >> idx;
-> >> > + =A0 =A0 =A0 return __raw_readb(reg_addr);
-> >> > +}
-> >> > +
-> >>
-> >> I do not think we need these functions.
-> > [Ghorai] This is used in gpmc_hwcontrol() and to get the nand statu=
-s
-> from omap2.c.
->=20
-> Yes, I can see that. But I think you should read complete register
-> (32-bits) and the manipulate them accordingly.
->=20
-> >
-> [...]
-> >> > @@ -229,14 +191,15 @@ static void omap_read_buf8(struct mtd_info
-> *mtd,
-> >> u_char *buf, int len)
-> >> > =A0*/
-> >> > =A0static void omap_write_buf8(struct mtd_info *mtd, const u_cha=
-r *buf,
-> >> int len)
-> >> > =A0{
-> >> > - =A0 =A0 =A0 struct omap_nand_info *info =3D container_of(mtd,
-> >> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct
-> omap_nand_info,
-> >> mtd);
-> >> > + =A0 =A0 =A0 u32 =A0 =A0 status;
-> >> > + =A0 =A0 =A0 struct nand_chip *nand =3D mtd->priv;
-> >> > =A0 =A0 =A0 =A0u_char *p =3D (u_char *)buf;
-> >> >
-> >> > =A0 =A0 =A0 =A0while (len--) {
-> >> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 iowrite8(*p++, info->nand.IO_ADDR_=
-W);
-> >> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (GPMC_BUF_EMPTY =3D=3D (read=
-l(info->gpmc_baseaddr +
-> >> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 GPMC_STATUS) &
-> >> GPMC_BUF_FULL));
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 iowrite8(*p++, nand->IO_ADDR_W);
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_hwcontrol(0, 0, GPMC_GET_SET_=
-STATUS, 0,
-> &status);
-> >> If I am not mistaking, 2nd argument is 'cs', correct? And then, wh=
-y
-> >> are you hard coding this?
-> >> Different boards will have NAND chip present at different 'cs'.
-> >> Please have a look at uses of 'gpmc_hwcontrol' elsewhere as well f=
-or
-> this.
-> > [Ghorai] I agree.
-> >>
-> >> Again, say, you got '(status & GPMC_BUF_FULL) !=3D GPMC_BUF_EMPTY'=
-, then:
-> >>
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (GPMC_BUF_EMPTY =3D=3D (stat=
-us & GPMC_BUF_FULL))
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ;
-> >>
-> >> You got in an infinite loop here?
-> > [Ghorai] if you see carefully this is same as existing code. Let me
-> check if any better solution.
->=20
-> No. Look carefully. In previous code 'gpmc status' was being read in
-> each loop, while in your code you read it once and then you never loo=
-k
-> for updated value.
-> That's why your code is going into infinite loop
-[Ghorai] ok. thanks
->=20
->=20
-> --
-> Regards,
-> Vimal Singh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    nohz: Allow 32-bit machines to sleep for more than 2.15 seconds
+    
+    In the dynamic tick code, "max_delta_ns" (member of the
+    "clock_event_device" structure) represents the maximum sleep time
+    that can occur between timer events in nanoseconds.
+    
+    The variable, "max_delta_ns", is defined as an unsigned long
+    which is a 32-bit integer for 32-bit machines and a 64-bit
+    integer for 64-bit machines (if -m64 option is used for gcc).
+    The value of max_delta_ns is set by calling the function
+    "clockevent_delta2ns()" which returns a maximum value of LONG_MAX.
+    For a 32-bit machine LONG_MAX is equal to 0x7fffffff and in
+    nanoseconds this equates to ~2.15 seconds. Hence, the maximum
+    sleep time for a 32-bit machine is ~2.15 seconds, where as for
+    a 64-bit machine it will be many years.
+    
+    This patch changes the type of max_delta_ns to be "u64" instead of
+    "unsigned long" so that this variable is a 64-bit type for both 32-bit
+    and 64-bit machines. It also changes the maximum value returned by
+    clockevent_delta2ns() to KTIME_MAX.  Hence this allows a 32-bit
+    machine to sleep for longer than ~2.15 seconds. Please note that this
+    patch also changes "min_delta_ns" to be "u64" too and although this is
+    unnecessary, it makes the patch simpler as it avoids to fixup all
+    callers of clockevent_delta2ns().
+    
+    [ tglx: changed "unsigned long long" to u64 as we use this data type
+        through out the time code ]
+    
+    Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+    Cc: John Stultz <johnstul@us.ibm.com>
+    LKML-Reference: <1250617512-23567-3-git-send-email-jon-hunter@ti.com>
+    Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
