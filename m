@@ -1,23 +1,23 @@
-From: Matthew Garrett <mjg@redhat.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Mon, 17 May 2010 22:24:37 +0100
-Message-ID: <20100517212437.GA2190@srcf.ucam.org>
-References: <alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
+Date: Mon, 17 May 2010 14:27:52 -0700
+Message-ID: <87ljbi1anb.fsf@deeprootsystems.com>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<87wrvl5479.fsf@deeprootsystems.com>
+	<20100503215028.GB18910@srcf.ucam.org>
+	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
 	<20100514203202.GA12409@srcf.ucam.org>
 	<87aas2azc5.fsf@deeprootsystems.com>
 	<20100514231510.GG16989@thunk.org>
 	<87r5laa4oc.fsf@deeprootsystems.com>
 	<AANLkTilL90pYVlquvMDAEPHj_AraEi9Qzk-0tTjw9Bkx@mail.gmail.com>
 	<20100517193440.GA32066@srcf.ucam.org>
-	<CEE6BB42CAD6E947908279175AF8470A025A726242@EXDCVYMBSTM006.EQ1STM.local>
-	<20100517210615.GB1873@srcf.ucam.org>
-	<CEE6BB42CAD6E947908279175AF8470A025A726244@EXDCVYMBSTM006.EQ1STM.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <CEE6BB42CAD6E947908279175AF8470A025A726244@EXDCVYMBSTM006.EQ1STM.local>
+In-Reply-To: <20100517193440.GA32066@srcf.ucam.org> (Matthew Garrett's message
+	of "Mon\, 17 May 2010 20\:34\:40 +0100")
 List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
@@ -27,24 +27,47 @@ List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
 Sender: linux-pm-bounces@lists.linux-foundation.org
 Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Linus WALLEIJ <linus.walleij@stericsson.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.org>, "tytso@mit.edu" <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 17, 2010 at 11:16:52PM +0200, Linus WALLEIJ wrote:
-> Maybe I'm misunderstanding something basic here, but when you say frozen,
-> are you referring to freezer control groups
-> Documentation/cgroups/freezer-subsystem.txt?
-> 
-> I was more thinking about something new, that isn't freezing anything.
-> The only purpose would be to group the stuff that CPUidle can ignore,
-> and let CPUidle ignore it, so that the system can still be idled.
+Matthew Garrett <mjg@redhat.com> writes:
 
-So they'd be on the runqeue but wouldn't factor into cpuidle's 
-calculations of when the next wakeup should be? Ok. I think that still 
-leaves you with the same problem - you're not scheduling that task, so 
-how do you know to execute it when a network packet is received? I think 
-you also still have the race condition.
+> On Mon, May 17, 2010 at 09:27:47PM +0200, Vitaly Wool wrote:
+>
+>> Exactly. The point is, opportunistic suspend doesn't in fact add any
+>> value compared to dynamic PM + CPUIdle. It only produces some false
+>> impression that one can handle power management right without using
+>> dynamic PM. And this false impression is the cause for many really
+>> ugly designs (like, for instance, 15 minutes touchscreen inactivity
+>> delay before forcibly shutting down the wireless, as it's done in
+>> stock Android framework).
+>
+> Run this (or equivalent code) on an N900 and on an Android. Measure the 
+> screen-off power draw on both.
+>
+> int main() {
+> 	int i;
+> 	while (1)
+> 		i++;
+> 	return 0;
+> }
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+This kind of rogue app will also kill my CPU performance.  For rogue
+CPU-hog apps, we use _tools_ to find and fix this kind of problem:
+top, renice, kill, etc. that use features of the scheduler to find
+and/or solve the problem.
+
+For rogue apps that affect PM, what is being proposed is to bypass the
+root causes (timers, scheduler, activity, etc.) and just freeze the
+apps.
+
+Rogue CPU-hog apps are generally not tolerated.  The problems are
+found using tools and fixed (or removed.)  Why should we do any
+different for rogue power-hog apps?
+
+Maybe the tools aren't as good for finding power-sucking apps.
+Then we should be focusing on the _tools_ instead of masking the
+problem.
+
+Kevin
