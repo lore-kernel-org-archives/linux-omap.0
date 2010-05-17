@@ -1,90 +1,97 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Mon, 17 May 2010 08:40:59 -0700
-Message-ID: <87hbm6cz90.fsf@deeprootsystems.com>
-References: <Pine.LNX.4.44L0.1005151716180.24645-100000@netrider.rowland.org>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Mon, 17 May 2010 09:12:03 -0700
+Message-ID: <87r5laa4oc.fsf@deeprootsystems.com>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<87wrvl5479.fsf@deeprootsystems.com>
+	<20100503215028.GB18910@srcf.ucam.org>
+	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
+	<20100514203202.GA12409@srcf.ucam.org>
+	<87aas2azc5.fsf@deeprootsystems.com>
+	<20100514231510.GG16989@thunk.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1005151716180.24645-100000@netrider.rowland.org> (Alan Stern's message of "Sat\, 15 May 2010 17\:19\:55 -0400 \(EDT\)")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Brian Swetland <swetland@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tony Lindgren <tony@atomide.com>, Matthew Garrett <mjg@redhat.com>, Paul Walmsley <paul@pwsan.com>, Arve =?iso-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Oleg Nesterov <oleg@redhat.com>, magnus.damm@gmail.com, Theodore Ts'o <tytso@mit.edu>, mark gross <mgross@linux.intel.com>, Arjan van de Ven <arjan@infradead.org>, Geoff Smith <geoffx.smith@intel.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Vitaly Wool <vitalywool@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20100514231510.GG16989@thunk.org> (tytso@mit.edu's message of
+	"Fri\, 14 May 2010 19\:15\:10 -0400")
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: tytso@mit.edu
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-Alan Stern <stern@rowland.harvard.edu> writes:
+tytso@mit.edu writes:
 
-> On Fri, 14 May 2010, Brian Swetland wrote:
+> On Fri, May 14, 2010 at 03:32:58PM -0700, Kevin Hilman wrote:
+>> Another likely reason that that there hasn't been an alternate
+>> proposal (at least from some of us that are raising concerns) is
+>> because we already have a working solution to dynamic, system-wide PM
+>> that is 1) already in mainline and 2) shipping on consumer devices
+>> with very strict power budgets (as already pointed out in detail by
+>> Paul[2].)
 >
->> In tickless mode, the time until next timer is a signed int, so the
->> longest the kernel will ever sleep is ~2 seconds at a go.  In
->> practice, userspace entities often have polling behavior that can
->> trigger more often than that, and I've observed some kernel periodic
->> timers (haven't cataloged them recently) that happen more often than
->> once a second.
->
-> Paul and Kevin, how does the OMAP implementation handle these 
-> difficulties?
+> The examples cited where the things like the Palm Pre, and the Nokia
+> N770/800/810 series.  #1, what works on one embedded
+> chipset/architecture might not work on another, 
 
-just a minor clarification... these aren't OMAP-specific issues, but
-generic issues to all power-sensitive kernel users.
+In my experience with embedded SoCs they are all remarkably similar in
+power management capabilities and control.
 
-The ~2 second limit was fixed by Jon Hunter (TI) and is in mainline
-since 2.6.32[1].
+> and #2, the battery lifetime on the N770 and N800 (both of which I have)
+> is **appalling** **bad**.
 
-For other timers, there has been active work (mostly by Intel folks)
-on deferrable timers, coalescing timers, timer slack etc. that has
-greatly reduced the kernel timer impact on wakeups.
+Appalling bad compared to what?  
 
-> Also, how does it handle the issue of ill-behaved apps?
+What's probably more interesting in terms of rough comparisons is
+comparing similar devices with and without opportunistic suspend.  The
+Nokia n900 (maemo) and the Moto Droid (android) use the same SoC (TI
+OMAP3) and roughly the same kernel (2.6.2[89], although both are
+heavily patched from mainline.)
 
-For userspace, apps that have polling behavior or are ill-behaved must
-be found and fixed.  Thanks to tools like powertop, this is a farily
-easy task.
+The n900 *never* suspends.  It only uses dynamic PM + CPUidle.
+The droid uses opportunistic suspend (as well as dynamic PM + CPUidle)
 
-But really, I don't consider the "ill-behaved app" problem to be a
-real-world problem.  Both in maemo/meego and Android, if someone
-writes an app that kills battery life, it will get reported as a bug,
-or get bad ratings etc.  On these kinds of devices, there is a *stong*
-developer incentive to not write battery sucking apps.
+I don't know of any more objective comparison of the two, but as a
+user of both devices I can say that the active usage is basically the
+same (around a day) and the idle use is similar as well, even though
+the Droid has a slightly bigger battery (1400 mAh vs. 1320 mAh.)  My
+own usage suggests the n900 is a bit better in idle time, but I have
+not done any measuring or objective tests.  I'm guessing the
+difference is probably because the Droid does not use the deepest
+off-mode power states either in idle or suspend (IIRC) where the n900
+does.  I suspect that if both were using off-mode and had the same
+battery, these differences would go away.
+
+While this is not really a scientific comparison, it at least gives a
+rough idea.  If using opportunistic suspend was adding noticably
+better battery life, I think this would be a different discussion.
+
+> I really don't understand why people are so opposed to merging code
+> that works well for a very large set of devices and products.  Just
+> because *you* don't need it is not a sufficiently good reason to argue
+> for it not be merged.  If you don't want to use it, then don't CONFIG
+> it in.
+
+At least for OMAP, I don't consider "config it out" a viable option.
+
+We would like one kernel (in particular one PM core) to be usable for
+a broad range of devices: maemo/meego, Android, webOS, Archos, and
+whatever else we haven't seen yet.  Having to config in/out something
+as important as core PM functionality has other consequences.  It
+makes PM-aware driver and subsystem writers (and maintainers) to have
+to develop and validate against two different types of PM
+functionality.
+
+As co-maintainer of the PM subsystem for an architecture (OMAP) where
+people *really* care about power, I don't consider that a viable or
+scalable option.
 
 Kevin
-
-
-[1]
-commit 97813f2fe77804a4464564c75ba8d8826377feea
-Author: Jon Hunter <jon-hunter@ti.com>
-Date:   Tue Aug 18 12:45:11 2009 -0500
-
-    nohz: Allow 32-bit machines to sleep for more than 2.15 seconds
-    
-    In the dynamic tick code, "max_delta_ns" (member of the
-    "clock_event_device" structure) represents the maximum sleep time
-    that can occur between timer events in nanoseconds.
-    
-    The variable, "max_delta_ns", is defined as an unsigned long
-    which is a 32-bit integer for 32-bit machines and a 64-bit
-    integer for 64-bit machines (if -m64 option is used for gcc).
-    The value of max_delta_ns is set by calling the function
-    "clockevent_delta2ns()" which returns a maximum value of LONG_MAX.
-    For a 32-bit machine LONG_MAX is equal to 0x7fffffff and in
-    nanoseconds this equates to ~2.15 seconds. Hence, the maximum
-    sleep time for a 32-bit machine is ~2.15 seconds, where as for
-    a 64-bit machine it will be many years.
-    
-    This patch changes the type of max_delta_ns to be "u64" instead of
-    "unsigned long" so that this variable is a 64-bit type for both 32-bit
-    and 64-bit machines. It also changes the maximum value returned by
-    clockevent_delta2ns() to KTIME_MAX.  Hence this allows a 32-bit
-    machine to sleep for longer than ~2.15 seconds. Please note that this
-    patch also changes "min_delta_ns" to be "u64" too and although this is
-    unnecessary, it makes the patch simpler as it avoids to fixup all
-    callers of clockevent_delta2ns().
-    
-    [ tglx: changed "unsigned long long" to u64 as we use this data type
-        through out the time code ]
-    
-    Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-    Cc: John Stultz <johnstul@us.ibm.com>
-    LKML-Reference: <1250617512-23567-3-git-send-email-jon-hunter@ti.com>
-    Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
