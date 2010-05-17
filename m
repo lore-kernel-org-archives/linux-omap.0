@@ -1,80 +1,91 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [RFC] Initial attempt to make ARM use LMB
-Date: Mon, 17 May 2010 13:26:18 +0300
-Message-ID: <1274091978.2307.49.camel@tubuntu.research.nokia.com>
-References: <20100505150209.GC2606@n2100.arm.linux.org.uk>
-	 <20100513174023.GB13001@n2100.arm.linux.org.uk>
-	 <20100513211951.GH3428@atomide.com>
-	 <20100513215825.GC13001@n2100.arm.linux.org.uk>
-	 <20100513220139.GO3428@atomide.com>
-	 <20100513221229.GD13001@n2100.arm.linux.org.uk>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C54F0247@dbde02.ent.ti.com>
-	 <AANLkTikZvfvjY9e2QNWRwVcJcTvn58Ly_DgzrcXKu2iJ@mail.gmail.com>
-	 <20100514101615.GF10339@n2100.arm.linux.org.uk>
-	 <AANLkTinY9M2cHKw86hTLaMUCvBX57o8AioBtrENB-JhK@mail.gmail.com>
-	 <20100517094421.GG23118@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 3/3] musb: AM35x: Workaround for fifo read issue
+Date: Mon, 17 May 2010 16:17:15 +0530
+Message-ID: <1274093235-7616-3-git-send-email-ajay.gupta@ti.com>
+References: <1274093235-7616-1-git-send-email-ajay.gupta@ti.com>
+ <1274093235-7616-2-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:50506 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925Ab0EQK0h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 06:26:37 -0400
-In-Reply-To: <20100517094421.GG23118@n2100.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38694 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754627Ab0EQKr0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 May 2010 06:47:26 -0400
+In-Reply-To: <1274093235-7616-2-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Hi,
+AM35x supports only 32bit read operations so we need to have
+workaround for 8bit and 16bit read operations.
 
-On Mon, 2010-05-17 at 11:44 +0200, ext Russell King - ARM Linux wrote:
-> On Mon, May 17, 2010 at 12:38:55PM +0300, Grazvydas Ignotas wrote:
-> > On Fri, May 14, 2010 at 1:16 PM, Russell King - ARM Linux
-> > <linux@arm.linux.org.uk> wrote:
-> > >> because it also uses reserve_bootmem() in
-> > >> drivers/video/omap2/vram.c and later ioremap on RAM. Perhaps LMB can
-> > >> be used to fix that too?
-> > >
-> > > WTF is reserve_bootmem doing in a driver?
-> > 
-> > IIRC Tony refused any new fb related code in arch/arm/*omap* so it
-> > ended up there (or maybe because of something else, not that I had
-> > anything to do with this).
-> 
-> Can someone please answer these questions:
-> 
-> 1. why does the framebuffer need to _reserve_ a set of specific sections
->    of SDRAM rather than _allocate_ a set of sections?
-> 2. what range of sizes of SDRAM does the framebuffer driver need?
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+Patch created against linus'tree + all musb patches in Greg's queue
+Changes from v2:
+	- fixed multipline comment style
+ drivers/usb/musb/am3517.c    |   31 +++++++++++++++++++++++++++++++
+ drivers/usb/musb/musb_core.c |    2 ++
+ 2 files changed, 33 insertions(+), 0 deletions(-)
 
-Yep, vram.c was first located in arch/arm/plat-omap/ but was moved under
-drivers/video/omap2 by request from Tony. vram.c is not really a driver,
-so in that sense I think it'd fit better into arch/arm/plat-omap/.
-
-To question 1:
-
-- The bootloader may use a certain area of memory to display to boot
-image, and the kernel needs to use this same memory area for the
-framebuffer, so that we don't get any glitches on the display during
-boot. If this is not required, then the memory areas can be allocated.
-
-- OMAP display hardware requires a continuous memory area for the
-framebuffer. Allocating such a large continuous memory area later seemed
-to be next to impossible, probably because of memory fragmentation.
-
-- Originally I used dma_alloc_*, but that doesn't support the
-bootloader-init case, and I also wanted to support having the
-framebuffer in OMAP's SRAM. Also, if I recall right, dma_alloc_* didn't
-support the huge allocations that are needed for the framebuffer.
-
-To 2:
-It varies a lot on the use case. One can configure the reserved VRAM
-area, and I would imagine that the smallest would be something like
-~150kB (320x240x2) and the largest in extreme case ~40MB (1600x1200*4,
-x2 for double buffering and x3 for each overlay).
-
- Tomi
-
+diff --git a/drivers/usb/musb/am3517.c b/drivers/usb/musb/am3517.c
+index b74e664..c68c784 100644
+--- a/drivers/usb/musb/am3517.c
++++ b/drivers/usb/musb/am3517.c
+@@ -515,3 +515,34 @@ void musb_platform_restore_context(struct musb_context_registers
+ 	phy_on();
+ }
+ #endif
++
++/* AM35x supports only 32bit read operation */
++void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
++{
++	void __iomem *fifo = hw_ep->fifo;
++	u32		val;
++	int		i;
++
++	/* Read for 32bit-aligned destination address */
++	if ((likely((0x03 & (unsigned long) dst) == 0)) && len >= 4) {
++		readsl(fifo, dst, len >> 2);
++		dst += (len & ~0x03);
++		len &= 0x03;
++	}
++	/*
++	 * Now read the rest 1 to 3 bytes or complete length if
++	 * unaligned address.
++	 */
++	if (len > 4) {
++		for (i = 0; i < (len >> 2); i++) {
++			val = musb_readl(fifo, 0);
++			memcpy(dst, &val, 4);
++			dst += 4;
++		}
++		len %= 4;
++	}
++	if (len > 0) {
++		val = musb_readl(fifo, 0);
++		memcpy(dst, &val, len);
++	}
++}
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 4093f6d..9c59a8e 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -262,6 +262,7 @@ void musb_write_fifo(struct musb_hw_ep *hw_ep, u16 len, const u8 *src)
+ 	}
+ }
+ 
++#if !defined(CONFIG_MACH_OMAP3517EVM)
+ /*
+  * Unload an endpoint's FIFO
+  */
+@@ -299,6 +300,7 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+ 		readsb(fifo, dst, len);
+ 	}
+ }
++#endif
+ 
+ #endif	/* normal PIO */
+ 
+-- 
+1.6.2.4
 
