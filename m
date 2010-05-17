@@ -1,40 +1,66 @@
-From: Sebastien Jan <s-jan@ti.com>
-Subject: Re: [RFC PATCHv2 2/7] OMAP SSI: Introducing OMAP SSI driver
-Date: Tue, 18 May 2010 16:05:55 +0200
-Message-ID: <201005181605.55809.s-jan@ti.com>
-References: <1273245517-30712-1-git-send-email-carlos.chinea@nokia.com> <201005141641.59244.s-jan@ti.com> <1274173640.7755.22703.camel@localhost>
+From: Linus WALLEIJ <linus.walleij@stericsson.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Mon, 17 May 2010 23:16:52 +0200
+Message-ID: <CEE6BB42CAD6E947908279175AF8470A025A726244@EXDCVYMBSTM006.EQ1STM.local>
+References: <87wrvl5479.fsf@deeprootsystems.com>
+	<20100503215028.GB18910@srcf.ucam.org>
+	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
+	<20100514203202.GA12409@srcf.ucam.org>
+	<87aas2azc5.fsf@deeprootsystems.com>
+	<20100514231510.GG16989@thunk.org> <87r5laa4oc.fsf@deeprootsystems.com>
+	<AANLkTilL90pYVlquvMDAEPHj_AraEi9Qzk-0tTjw9Bkx@mail.gmail.com>
+	<20100517193440.GA32066@srcf.ucam.org>
+	<CEE6BB42CAD6E947908279175AF8470A025A726242@EXDCVYMBSTM006.EQ1STM.local>
+	<20100517210615.GB1873@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1274173640.7755.22703.camel@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20100517210615.GB1873@srcf.ucam.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.org>, "tytso@mit.edu" <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 18 May 2010 11:07:20 Carlos Chinea wrote:
-[cut]
-> > > +       val |= __raw_readl(omap_ssi->sys +
-> > > SSI_MPU_ENABLE_REG(port->num, 0)); +       __raw_writel(val,
-> > > omap_ssi->sys +
-> > >  SSI_MPU_ENABLE_REG(port->num, 0)); +
-> > > +       msg->status = HSI_STATUS_COMPLETED;
-> > > +       msg->actual_len = sg_dma_len(msg->sgt.sgl);
-> > > +       spin_unlock(&omap_ssi->lock);
-> > > +}
+[Matthew]
+> On Mon, May 17, 2010 at 10:53:36PM +0200, Linus WALLEIJ wrote:
+> > I understand the problem such that the scheduler cannot determine wheth=
+er
+> > a certain process should be allowed to schedule or not.
 > >
-> > Don't you need to check the queue related to this transfer at this point,
-> > to start the potentially next queued transfer on the same channel?
-> > (calling ssi_start_transfer(), like in ssi_pio_complete()?)
-> 
-> No this is done in ssi_pio_complete(). Notice that we do not call the
-> complete callback at any point here. We just arm the pio interrupt for
-> that channel and transfer direction. AFAIK, this is the SW logic
-> expected by the OMAP SSI HW.
+> > It strikes me that the intuitive solution is to group all un-trusted
+> > processes/threads/tasks that need to be shut off even if they are
+> > scheduling into a control group and let the idle code ignore the
+> > processes in this group.
+> >
+> > Or is there something too na=EFve about this?
+> =
 
-Ok, though I would not expect the interrupt to fire in an Rx scenario as the 
-fifo would have already been emptied by the DMA for this transfer (unless you 
-rely on the next transfer initiated by the peer to make the Rx interrupt fire 
-on this channel?)?
+> It gets most of the way there (and I spent a while playing with it), but
+> the problem is that not all wakeup events get proxied through the
+> trusted userspace runtime. Network packets are the easiest example - a
+> packet may wake the system, but if the process it's delivered to is
+> frozen then obviously things get trickier. It's also racy, in that if
+> you're currently awake and receive a packet that would otherwise have
+> woken the system you may go to sleep between the packet being received
+> and bubbling up through the kernel to get to userspace.
+
+Maybe I'm misunderstanding something basic here, but when you say frozen,
+are you referring to freezer control groups
+Documentation/cgroups/freezer-subsystem.txt?
+
+I was more thinking about something new, that isn't freezing anything.
+The only purpose would be to group the stuff that CPUidle can ignore,
+and let CPUidle ignore it, so that the system can still be idled.
+
+Yours,
+Linus Walleij
