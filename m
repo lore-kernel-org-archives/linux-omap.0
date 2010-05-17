@@ -1,44 +1,50 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 02/14] dspbridge: deh: trivial cleanups
-Date: Tue, 18 May 2010 00:13:57 +0300
-Message-ID: <AANLkTikuXt1KgmJ2uzCL_X5pJfFeODLBtJdFAxwAcaOw@mail.gmail.com>
-References: <1274024765-21076-1-git-send-email-felipe.contreras@gmail.com>
-	 <1274024765-21076-3-git-send-email-felipe.contreras@gmail.com>
-	 <496565EC904933469F292DDA3F1663E602CB6CB3CC@dlee06.ent.ti.com>
-	 <B321760590390941B64F0F8AB59ED2508FA24042@dlee01.ent.ti.com>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Mon, 17 May 2010 22:24:37 +0100
+Message-ID: <20100517212437.GA2190@srcf.ucam.org>
+References: <alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
+	<20100514203202.GA12409@srcf.ucam.org>
+	<87aas2azc5.fsf@deeprootsystems.com>
+	<20100514231510.GG16989@thunk.org>
+	<87r5laa4oc.fsf@deeprootsystems.com>
+	<AANLkTilL90pYVlquvMDAEPHj_AraEi9Qzk-0tTjw9Bkx@mail.gmail.com>
+	<20100517193440.GA32066@srcf.ucam.org>
+	<CEE6BB42CAD6E947908279175AF8470A025A726242@EXDCVYMBSTM006.EQ1STM.local>
+	<20100517210615.GB1873@srcf.ucam.org>
+	<CEE6BB42CAD6E947908279175AF8470A025A726244@EXDCVYMBSTM006.EQ1STM.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:63492 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090Ab0EQVOA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 17:14:00 -0400
-Received: by ewy8 with SMTP id 8so2121506ewy.28
-        for <linux-omap@vger.kernel.org>; Mon, 17 May 2010 14:13:58 -0700 (PDT)
-In-Reply-To: <B321760590390941B64F0F8AB59ED2508FA24042@dlee01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <CEE6BB42CAD6E947908279175AF8470A025A726244@EXDCVYMBSTM006.EQ1STM.local>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Linus WALLEIJ <linus.walleij@stericsson.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.org>, "tytso@mit.edu" <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Jansson, Cris" <cjansson@ti.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Liu, Stanley" <stanley_liu@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-Hi Cris,
+On Mon, May 17, 2010 at 11:16:52PM +0200, Linus WALLEIJ wrote:
+> Maybe I'm misunderstanding something basic here, but when you say frozen,
+> are you referring to freezer control groups
+> Documentation/cgroups/freezer-subsystem.txt?
+> 
+> I was more thinking about something new, that isn't freezing anything.
+> The only purpose would be to group the stuff that CPUidle can ignore,
+> and let CPUidle ignore it, so that the system can still be idled.
 
-On Mon, May 17, 2010 at 10:39 PM, Jansson, Cris <cjansson@ti.com> wrote=
-:
-> Thanks for forwarding the thread.
->
-> In wait_for_timer(), should return be used inside the loop? =C2=A0It =
-will result in omap_dm_timer_disable(timer) not being called. =C2=A0I b=
-elieve it should be called in all outcomes.
+So they'd be on the runqeue but wouldn't factor into cpuidle's 
+calculations of when the next wakeup should be? Ok. I think that still 
+leaves you with the same problem - you're not scheduling that task, so 
+how do you know to execute it when a network packet is received? I think 
+you also still have the race condition.
 
-Yes, that's a mistake I already acknowledged. The question is: can we
-disable the timer _before_ the DSP has finished dumping the stack?
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
