@@ -1,9 +1,8 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Mon, 17 May 2010 15:55:36 -0700
-Message-ID: <87mxvyt9xz.fsf@deeprootsystems.com>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<87wrvl5479.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Mon, 17 May 2010 15:56:44 -0700
+Message-ID: <87k4r2t9w3.fsf@deeprootsystems.com>
+References: <87wrvl5479.fsf@deeprootsystems.com>
 	<20100503215028.GB18910@srcf.ucam.org>
 	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
 	<20100514203202.GA12409@srcf.ucam.org>
@@ -11,153 +10,78 @@ References: <1272667021-21312-1-git-send-email-arve@android.com>
 	<20100514231510.GG16989@thunk.org>
 	<87r5laa4oc.fsf@deeprootsystems.com>
 	<AANLkTilL90pYVlquvMDAEPHj_AraEi9Qzk-0tTjw9Bkx@mail.gmail.com>
-	<AANLkTil7358FHTlFZ0LqwymkiZZ-7An0HlaOTVhTkpgW@mail.gmail.com>
+	<20100517193440.GA32066@srcf.ucam.org>
+	<87ljbi1anb.fsf@deeprootsystems.com>
+	<20100517213437.GA2395@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:58552 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754734Ab0EQWzl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 18:55:41 -0400
-In-Reply-To: <AANLkTil7358FHTlFZ0LqwymkiZZ-7An0HlaOTVhTkpgW@mail.gmail.com> (Mike Chan's message of "Mon\, 17 May 2010 13\:07\:50 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20100517213437.GA2395@srcf.ucam.org> (Matthew Garrett's message
+	of "Mon\, 17 May 2010 22\:34\:37 +0100")
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Chan <mike@android.com>
-Cc: Vitaly Wool <vitalywool@gmail.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
 
-Mike Chan <mike@android.com> writes:
+Matthew Garrett <mjg@redhat.com> writes:
 
-> On Mon, May 17, 2010 at 12:27 PM, Vitaly Wool <vitalywool@gmail.com> =
-wrote:
->> On Mon, May 17, 2010 at 6:12 PM, Kevin Hilman
->> <khilman@deeprootsystems.com> wrote:
->>
->>>> and #2, the battery lifetime on the N770 and N800 (both of which I=
- have)
->>>> is **appalling** **bad**.
->>>
->>> Appalling bad compared to what?
->>>
->>> What's probably more interesting in terms of rough comparisons is
->>> comparing similar devices with and without opportunistic suspend. =A0=
-The
->>> Nokia n900 (maemo) and the Moto Droid (android) use the same SoC (T=
-I
->>> OMAP3) and roughly the same kernel (2.6.2[89], although both are
->>> heavily patched from mainline.)
->>>
->>> The n900 *never* suspends. =A0It only uses dynamic PM + CPUidle.
->>> The droid uses opportunistic suspend (as well as dynamic PM + CPUid=
-le)
->>>
->>> I don't know of any more objective comparison of the two, but as a
->>> user of both devices I can say that the active usage is basically t=
-he
->>> same (around a day) and the idle use is similar as well, even thoug=
-h
->>> the Droid has a slightly bigger battery (1400 mAh vs. 1320 mAh.) =A0=
-My
->>> own usage suggests the n900 is a bit better in idle time, but I hav=
-e
->>> not done any measuring or objective tests. =A0I'm guessing the
->>> difference is probably because the Droid does not use the deepest
->>> off-mode power states either in idle or suspend (IIRC) where the n9=
-00
->>> does. =A0I suspect that if both were using off-mode and had the sam=
-e
->>> battery, these differences would go away.
->>>
+> On Mon, May 17, 2010 at 02:27:52PM -0700, Kevin Hilman wrote:
+>> Matthew Garrett <mjg@redhat.com> writes:
+>> > Run this (or equivalent code) on an N900 and on an Android. Measure the 
+>> > screen-off power draw on both.
+>> >
+>> > int main() {
+>> > 	int i;
+>> > 	while (1)
+>> > 		i++;
+>> > 	return 0;
+>> > }
+>> 
+>> This kind of rogue app will also kill my CPU performance.  For rogue
+>> CPU-hog apps, we use _tools_ to find and fix this kind of problem:
+>> top, renice, kill, etc. that use features of the scheduler to find
+>> and/or solve the problem.
 >
-> Although both are OMAP3430 and run 2.6.29 you cannot compare the N900
-> and Droid's perceived user battery life to one another to evaluate
-> opportunistic suspend. There are many factors uncounted for such as:
-> network reception, screen brightness (and size), button back-light,
-> keyboard back-light, modem stack (CDMA vs UMTS). Also the difference
-> in uerspace.
+> If my phone is able to avoid losing almost all of its standby time 
+> without me having to care about whether my bouncing cow game was written 
+> by a complete fool or not, that means that my phone is *better* than one 
+> where I have to care. 
 
-Agreed.  I was reluctant to even make the comparison for all those
-reasons, but with the lack of real numbers, it was all I had to show a
-very rough subjective guess, and at least show that with and without
-opportunistic suspend, you're in the same ballpark.
+Someday I hope to see this bouncing cow app I keep hearing about.  I
+must be pretty spectacular since can't help talking about it.  ;)
 
->>> While this is not really a scientific comparison, it at least gives=
- a
->>> rough idea. =A0If using opportunistic suspend was adding noticably
->>> better battery life, I think this would be a different discussion.
->>
->> Exactly. The point is, opportunistic suspend doesn't in fact add any
->> value compared to dynamic PM + CPUIdle. It only produces some false
->> impression that one can handle power management right without using
->> dynamic PM. And this false impression is the cause for many really
->> ugly designs (like, for instance, 15 minutes touchscreen inactivity
->> delay before forcibly shutting down the wireless, as it's done in
->> stock Android framework).
->>
->
-> Opportunistic suspend is an extension to the current suspend model,
-> not a replacement dynamic / run-time PM. If you can replace good old
-> suspend then this would be a different story.
->
-> As you mention, Droid uses opportunistic suspend + dynamic pm +
-> cpuidle + freq. So I decided to do some measurements on a Droid using
-> our 2.9.32 kernel
-> (http://android.git.kernel.org/?p=3Dkernel/omap.git;a=3Dsummary). For=
- a
-> little better apples to apples comparison.
+> Would the world be better if said fool could be 
+> sent to reeducation camps before being allowed to write any more 
+> software? Probably, but sadly that doesn't seem to be something we can 
+> implement through code. I'd love it if we could assume that all software 
+> is going to be perfect, but in the absence of that ideal world there's a 
+> strong incentive to develop technology that does its best to cope with 
+> adverse situations.
 
-Excellent.  Thanks for some real numbers.
+I completely agree.  
 
-(btw, sure would be nice to have the basic droid board files in mainlin=
-e. ;)
+The only thing being debated is the implementation of the coping
+mechanism.
 
-> Droid (idle system, airplane mode, screen off, 3 min interval):
-> measured average current
-> - with opportunity suspend: 3.19mA
-> - without opportunistic suspend: 3.5mA
->
-> Stock userspace build, all I did was replace the kernel. We are
-> hitting retention on idle as well as suspend for omap (instead of ful=
-l
-> off-mode).
+In particular, why the coping mechanism for PM "badness" has to be a
+large sledgehammer where other badness (CPU, IO, etc.) has been dealt
+with using infrastructure like timers, scheduling, throttling, etc.
 
-[at risk of stating the obvious] Since both approaches hit the same
-power states, if the system was truly idle, you'd expect the numbers
-to be the same, right?  So what the difference shows is that the
-system is not fully idle, IOW userspace and/or kernel wakeups are
-cusing the difference.
+My shrink would say that the sledgehammer approach to badness might
+work for the short term, but eventually that badness is going to seep
+out in other, unpredictable places.
 
-It might also be instructive to see these numbers with a "noop"
-userspace, like just booting into busybox init=3D/bin/sh (or the androi=
-d
-equivalent.)  That would show how much of that difference is due to
-kernel idleness (or lack thereof.)
-
-Even still, to me this all boils down to the lack of definition of the
-problem and clear description of the solution
-
-The fundamental problem is one of idleness.  What we want is the
-system to be idle in order to hit the lowest power states.  We can't
-get there because the system is not truly idle.
-
-So, there are basically two solutions:
-
-1) find and fix the problem spots so we can be idle more often
-2) add a new definition of idle so we can be idle more often
-
-Opporuntistic suspend takes the second approach where the new
-definition of idle is "no suspend blockers held."
-
-Of course, I clearly prefer the former, but it's also becoming clear
-that since I'm the only one still whining about it, I must be too much
-of an idealist to keep hoping for it.
+My shrink would also probably tell me that since I'm seem to be the
+last one left who seems to care, it's probably time to throw in the
+towel.
 
 Kevin
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
