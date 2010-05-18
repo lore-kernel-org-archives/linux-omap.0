@@ -1,264 +1,408 @@
-From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v6 5/7] omap3: pm: Generic TRITON power scripts for OMAP3 based boards
-Date: Tue, 18 May 2010 18:05:50 +0530
-Message-ID: <1274186150-23992-1-git-send-email-leslyam@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCH 11/23] OMAP: DSS2: Taal: add mutex to protect panel data
+Date: Tue, 18 May 2010 15:35:02 +0300
+Message-ID: <1274186114-26951-12-git-send-email-tomi.valkeinen@nokia.com>
+References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54187 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757503Ab0ERMgN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 May 2010 08:36:13 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:53396 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757511Ab0ERMgM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:12 -0400
+In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-This pacth will create the generic TRITON power scripts which can be used
-by different OMAP3 boards with the same power companion chip (TWL4030 series).
-
-Added the api(twl4030_get_scripts/twl4030_get_vc_timings) to update the
-sleep/wakeup/warm_rest sequence, resource configuration & voltsetup_time
-in the board file.
-
-Signed-off-by: Lesly A M <x0080970@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: David Derrick <dderrick@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/mach-omap2/twl4030.c |  185 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/twl4030.h |   15 ++++
- arch/arm/mach-omap2/voltage.c |    5 +-
- 3 files changed, 202 insertions(+), 3 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030.c
- create mode 100644 arch/arm/mach-omap2/twl4030.h
+ drivers/video/omap2/displays/panel-taal.c |  140 ++++++++++++++++++++++++-----
+ 1 files changed, 119 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/twl4030.c b/arch/arm/mach-omap2/twl4030.c
-new file mode 100644
-index 0000000..b5b3f3c
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030.c
-@@ -0,0 +1,185 @@
-+/*
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Lesly A M <x0080970@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifdef CONFIG_TWL4030_POWER
-+
-+#include "twl4030.h"
-+
-+static struct prm_setup_vc twl4030_voltsetup_time = {
-+	/* VOLT SETUPTIME for RET */
-+	.ret = {
-+		.voltsetup1_vdd1 = 0x005B,
-+		.voltsetup1_vdd2 = 0x0055,
-+		.voltsetup2 = 0x0,
-+		.voltoffset = 0x0,
-+	},
-+	/* VOLT SETUPTIME for OFF */
-+	.off = {
-+		.voltsetup1_vdd1 = 0x00B3,
-+		.voltsetup1_vdd2 = 0x00A0,
-+		.voltsetup2 = 0x118,
-+		.voltoffset = 0x32,
-+	},
-+};
-+
-+/*
-+ * Sequence to control the TRITON Power resources,
-+ * when the system goes into sleep.
-+ * Executed upon P1_P2/P3 transition for sleep.
-+ */
-+static struct twl4030_ins __initdata sleep_on_seq[] = {
-+	/* Broadcast message to put res to sleep */
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-+							RES_STATE_SLEEP), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-+							RES_STATE_SLEEP), 2},
-+};
-+
-+static struct twl4030_script sleep_on_script __initdata = {
-+	.script	= sleep_on_seq,
-+	.size	= ARRAY_SIZE(sleep_on_seq),
-+	.flags	= TWL4030_SLEEP_SCRIPT,
-+};
-+
-+/*
-+ * Sequence to control the TRITON Power resources,
-+ * when the system wakeup from sleep.
-+ * Executed upon P1_P2 transition for wakeup.
-+ */
-+static struct twl4030_ins wakeup_p12_seq[] __initdata = {
-+	/* Broadcast message to put res to active */
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-+							RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wakeup_p12_script __initdata = {
-+	.script	= wakeup_p12_seq,
-+	.size	= ARRAY_SIZE(wakeup_p12_seq),
-+	.flags	= TWL4030_WAKEUP12_SCRIPT,
-+};
-+
-+/*
-+ * Sequence to control the TRITON Power resources,
-+ * when the system wakeup from sleep.
-+ * Executed upon P3 transition for wakeup.
-+ */
-+static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-+	/* Broadcast message to put res to active */
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-+							RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wakeup_p3_script __initdata = {
-+	.script = wakeup_p3_seq,
-+	.size   = ARRAY_SIZE(wakeup_p3_seq),
-+	.flags  = TWL4030_WAKEUP3_SCRIPT,
-+};
-+
-+/*
-+ * Sequence to reset the TRITON Power resources,
-+ * when the system gets warm reset.
-+ * Executed upon warm reset signal.
-+ */
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+/*
-+ * Reset twl4030.
-+ * Reset Main_Ref.
-+ * Reset All type2_group2.
-+ * Reset VUSB_3v1.
-+ * Reset All type2_group1.
-+ * Reset RC.
-+ * Reenable twl4030.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_Main_Ref, RES_STATE_WRST), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-+							RES_STATE_WRST), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VUSB_3V1, RES_STATE_WRST), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-+							RES_STATE_WRST), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
-+							RES_STATE_WRST), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size   = ARRAY_SIZE(wrst_seq),
-+	.flags  = TWL4030_WRST_SCRIPT,
-+};
-+
-+/* TRITON script for sleep, wakeup & warm_reset */
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	&wakeup_p12_script,
-+	&wakeup_p3_script,
-+	&sleep_on_script,
-+	&wrst_script,
-+};
-+
-+static struct twl4030_resconfig twl4030_rconfig[] = {
-+	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1, .type = 3,
-+		.type2 = 1, .remap_sleep = RES_STATE_OFF },
-+	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_ALL, .type = 1,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_ALL, .type = 0,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_ALL, .type = 1,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VIO, .devgroup = DEV_GRP_ALL, .type = 2,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1,
-+		.type = 4, .type2 = 1, .remap_sleep = RES_STATE_OFF },
-+	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1,
-+		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
-+	{ .resource = RES_REGEN, .devgroup = DEV_GRP_ALL, .type = 2,
-+		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_ALL, .type = 0,
-+		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_ALL, .type = 3,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_ALL, .type = 6,
-+		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3,
-+		.type = 0, .type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ 0, 0},
-+};
-+
-+static struct twl4030_power_data twl4030_generic_script __initdata = {
-+	.scripts	= twl4030_scripts,
-+	.num		= ARRAY_SIZE(twl4030_scripts),
-+	.resource_config = twl4030_rconfig,
-+};
-+
-+void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data)
-+{
-+	t2scripts_data->scripts = twl4030_generic_script.scripts;
-+	t2scripts_data->num = twl4030_generic_script.num;
-+	t2scripts_data->resource_config =
-+			twl4030_generic_script.resource_config;
-+}
-+
-+void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc)
-+{
-+	/* copies new voltsetup time for RERT */
-+	setup_vc->ret.voltsetup1_vdd1 =
-+				twl4030_voltsetup_time.ret.voltsetup1_vdd1;
-+	setup_vc->ret.voltsetup1_vdd2 =
-+				twl4030_voltsetup_time.ret.voltsetup1_vdd2;
-+	setup_vc->ret.voltsetup2 = twl4030_voltsetup_time.ret.voltsetup2;
-+	setup_vc->ret.voltoffset = twl4030_voltsetup_time.ret.voltoffset;
-+
-+	/* copies new voltsetup time for OFF */
-+	setup_vc->off.voltsetup1_vdd1 =
-+				twl4030_voltsetup_time.off.voltsetup1_vdd1;
-+	setup_vc->off.voltsetup1_vdd2 =
-+				twl4030_voltsetup_time.off.voltsetup1_vdd2;
-+	setup_vc->off.voltsetup2 = twl4030_voltsetup_time.off.voltsetup2;
-+	setup_vc->off.voltoffset = twl4030_voltsetup_time.off.voltoffset;
-+}
-+#endif
-diff --git a/arch/arm/mach-omap2/twl4030.h b/arch/arm/mach-omap2/twl4030.h
-new file mode 100644
-index 0000000..3a7da2d
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030.h
-@@ -0,0 +1,15 @@
-+#ifndef __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
-+#define __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
-+
-+#include <linux/i2c/twl.h>
-+#include "voltage.h"
-+
-+#ifdef CONFIG_TWL4030_POWER
-+extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data);
-+extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc);
-+#else
-+extern void twl4030_get_scripts(struct twl4030_power_data *t2scripts_data) {}
-+extern void twl4030_get_vc_timings(struct prm_setup_vc *setup_vc) {}
-+#endif
-+
-+#endif
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 1c3f9ed..e685c55 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -938,9 +938,8 @@ void __init omap_voltage_init_vc(struct prm_setup_vc *setup_vc)
- 	if (!setup_vc)
- 		return;
+diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+index 4f3988a..1799096 100644
+--- a/drivers/video/omap2/displays/panel-taal.c
++++ b/drivers/video/omap2/displays/panel-taal.c
+@@ -31,6 +31,7 @@
+ #include <linux/completion.h>
+ #include <linux/workqueue.h>
+ #include <linux/slab.h>
++#include <linux/mutex.h>
  
--	/* CLK SETUPTIME for RET & OFF */
--	vc_config.ret.clksetup = setup_vc->ret.clksetup;
--	vc_config.off.clksetup = setup_vc->off.clksetup;
-+	/* CLK & VOLT SETUPTIME for RET & OFF */
-+	memcpy(&vc_config, setup_vc, 2 * sizeof(struct setuptime_vc));
+ #include <plat/display.h>
+ 
+@@ -67,6 +68,8 @@
+ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable);
+ 
+ struct taal_data {
++	struct mutex lock;
++
+ 	struct backlight_device *bldev;
+ 
+ 	unsigned long	hw_guard_end;	/* next value of jiffies when we can
+@@ -510,6 +513,8 @@ static int taal_probe(struct omap_dss_device *dssdev)
+ 	}
+ 	td->dssdev = dssdev;
+ 
++	mutex_init(&td->lock);
++
+ 	td->esd_wq = create_singlethread_workqueue("taal_esd");
+ 	if (td->esd_wq == NULL) {
+ 		dev_err(&dssdev->dev, "can't create ESD workqueue\n");
+@@ -733,54 +738,96 @@ static void taal_power_off(struct omap_dss_device *dssdev)
+ 
+ static int taal_enable(struct omap_dss_device *dssdev)
+ {
++	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+ 	int r;
++
+ 	dev_dbg(&dssdev->dev, "enable\n");
+ 
+-	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED)
+-		return -EINVAL;
++	mutex_lock(&td->lock);
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
++		r = -EINVAL;
++		goto err;
++	}
+ 
+ 	r = taal_power_on(dssdev);
+ 	if (r)
+-		return r;
++		goto err;
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+ 
++	mutex_unlock(&td->lock);
++
++	return 0;
++err:
++	dev_dbg(&dssdev->dev, "enable failed\n");
++	mutex_unlock(&td->lock);
+ 	return r;
  }
  
- void omap_voltage_vc_update(int core_next_state)
+ static void taal_disable(struct omap_dss_device *dssdev)
+ {
++	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
++
+ 	dev_dbg(&dssdev->dev, "disable\n");
+ 
++	mutex_lock(&td->lock);
++
+ 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
+ 		taal_power_off(dssdev);
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++
++	mutex_unlock(&td->lock);
+ }
+ 
+ static int taal_suspend(struct omap_dss_device *dssdev)
+ {
++	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
++	int r;
++
+ 	dev_dbg(&dssdev->dev, "suspend\n");
+ 
+-	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+-		return -EINVAL;
++	mutex_lock(&td->lock);
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
++		r = -EINVAL;
++		goto err;
++	}
+ 
+ 	taal_power_off(dssdev);
+ 	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
+ 
++	mutex_unlock(&td->lock);
++
+ 	return 0;
++err:
++	mutex_unlock(&td->lock);
++	return r;
+ }
+ 
+ static int taal_resume(struct omap_dss_device *dssdev)
+ {
++	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+ 	int r;
++
+ 	dev_dbg(&dssdev->dev, "resume\n");
+ 
+-	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
+-		return -EINVAL;
++	mutex_lock(&td->lock);
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED) {
++		r = -EINVAL;
++		goto err;
++	}
+ 
+ 	r = taal_power_on(dssdev);
+ 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	mutex_unlock(&td->lock);
++
++	return r;
++err:
++	mutex_unlock(&td->lock);
+ 	return r;
+ }
+ 
+@@ -799,6 +846,7 @@ static int taal_update(struct omap_dss_device *dssdev,
+ 
+ 	dev_dbg(&dssdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
+ 
++	mutex_lock(&td->lock);
+ 	dsi_bus_lock();
+ 
+ 	if (!td->enabled) {
+@@ -820,18 +868,24 @@ static int taal_update(struct omap_dss_device *dssdev,
+ 		goto err;
+ 
+ 	/* note: no bus_unlock here. unlock is in framedone_cb */
++	mutex_unlock(&td->lock);
+ 	return 0;
+ err:
+ 	dsi_bus_unlock();
++	mutex_unlock(&td->lock);
+ 	return r;
+ }
+ 
+ static int taal_sync(struct omap_dss_device *dssdev)
+ {
++	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
++
+ 	dev_dbg(&dssdev->dev, "sync\n");
+ 
++	mutex_lock(&td->lock);
+ 	dsi_bus_lock();
+ 	dsi_bus_unlock();
++	mutex_unlock(&td->lock);
+ 
+ 	dev_dbg(&dssdev->dev, "sync done\n");
+ 
+@@ -861,13 +915,16 @@ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable)
+ 
+ static int taal_enable_te(struct omap_dss_device *dssdev, bool enable)
+ {
++	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+ 	int r;
+ 
++	mutex_lock(&td->lock);
+ 	dsi_bus_lock();
+ 
+ 	r = _taal_enable_te(dssdev, enable);
+ 
+ 	dsi_bus_unlock();
++	mutex_unlock(&td->lock);
+ 
+ 	return r;
+ }
+@@ -875,7 +932,13 @@ static int taal_enable_te(struct omap_dss_device *dssdev, bool enable)
+ static int taal_get_te(struct omap_dss_device *dssdev)
+ {
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+-	return td->te_enabled;
++	int r;
++
++	mutex_lock(&td->lock);
++	r = td->te_enabled;
++	mutex_unlock(&td->lock);
++
++	return r;
+ }
+ 
+ static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
+@@ -885,6 +948,7 @@ static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
+ 
+ 	dev_dbg(&dssdev->dev, "rotate %d\n", rotate);
+ 
++	mutex_lock(&td->lock);
+ 	dsi_bus_lock();
+ 
+ 	if (td->enabled) {
+@@ -896,16 +960,24 @@ static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
+ 	td->rotate = rotate;
+ 
+ 	dsi_bus_unlock();
++	mutex_unlock(&td->lock);
+ 	return 0;
+ err:
+ 	dsi_bus_unlock();
++	mutex_unlock(&td->lock);
+ 	return r;
+ }
+ 
+ static u8 taal_get_rotate(struct omap_dss_device *dssdev)
+ {
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+-	return td->rotate;
++	int r;
++
++	mutex_lock(&td->lock);
++	r = td->rotate;
++	mutex_unlock(&td->lock);
++
++	return r;
+ }
+ 
+ static int taal_mirror(struct omap_dss_device *dssdev, bool enable)
+@@ -915,6 +987,7 @@ static int taal_mirror(struct omap_dss_device *dssdev, bool enable)
+ 
+ 	dev_dbg(&dssdev->dev, "mirror %d\n", enable);
+ 
++	mutex_lock(&td->lock);
+ 	dsi_bus_lock();
+ 	if (td->enabled) {
+ 		r = taal_set_addr_mode(td->rotate, enable);
+@@ -925,23 +998,33 @@ static int taal_mirror(struct omap_dss_device *dssdev, bool enable)
+ 	td->mirror = enable;
+ 
+ 	dsi_bus_unlock();
++	mutex_unlock(&td->lock);
+ 	return 0;
+ err:
+ 	dsi_bus_unlock();
++	mutex_unlock(&td->lock);
+ 	return r;
+ }
+ 
+ static bool taal_get_mirror(struct omap_dss_device *dssdev)
+ {
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+-	return td->mirror;
++	int r;
++
++	mutex_lock(&td->lock);
++	r = td->mirror;
++	mutex_unlock(&td->lock);
++
++	return r;
+ }
+ 
+ static int taal_run_test(struct omap_dss_device *dssdev, int test_num)
+ {
++	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+ 	u8 id1, id2, id3;
+ 	int r;
+ 
++	mutex_lock(&td->lock);
+ 	dsi_bus_lock();
+ 
+ 	r = taal_dcs_read_1(DCS_GET_ID1, &id1);
+@@ -955,9 +1038,11 @@ static int taal_run_test(struct omap_dss_device *dssdev, int test_num)
+ 		goto err;
+ 
+ 	dsi_bus_unlock();
++	mutex_unlock(&td->lock);
+ 	return 0;
+ err:
+ 	dsi_bus_unlock();
++	mutex_unlock(&td->lock);
+ 	return r;
+ }
+ 
+@@ -971,12 +1056,16 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
+ 	unsigned buf_used = 0;
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+ 
+-	if (!td->enabled)
+-		return -ENODEV;
+-
+ 	if (size < w * h * 3)
+ 		return -ENOMEM;
+ 
++	mutex_lock(&td->lock);
++
++	if (!td->enabled) {
++		r = -ENODEV;
++		goto err1;
++	}
++
+ 	size = min(w * h * 3,
+ 			dssdev->panel.timings.x_res *
+ 			dssdev->panel.timings.y_res * 3);
+@@ -995,7 +1084,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
+ 
+ 	r = dsi_vc_set_max_rx_packet_size(TCH, plen);
+ 	if (r)
+-		goto err0;
++		goto err2;
+ 
+ 	while (buf_used < size) {
+ 		u8 dcs_cmd = first ? 0x2e : 0x3e;
+@@ -1006,7 +1095,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
+ 
+ 		if (r < 0) {
+ 			dev_err(&dssdev->dev, "read error\n");
+-			goto err;
++			goto err3;
+ 		}
+ 
+ 		buf_used += r;
+@@ -1020,16 +1109,18 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
+ 			dev_err(&dssdev->dev, "signal pending, "
+ 					"aborting memory read\n");
+ 			r = -ERESTARTSYS;
+-			goto err;
++			goto err3;
+ 		}
+ 	}
+ 
+ 	r = buf_used;
+ 
+-err:
++err3:
+ 	dsi_vc_set_max_rx_packet_size(TCH, 1);
+-err0:
++err2:
+ 	dsi_bus_unlock();
++err1:
++	mutex_unlock(&td->lock);
+ 	return r;
+ }
+ 
+@@ -1041,8 +1132,12 @@ static void taal_esd_work(struct work_struct *work)
+ 	u8 state1, state2;
+ 	int r;
+ 
+-	if (!td->enabled)
++	mutex_lock(&td->lock);
++
++	if (!td->enabled) {
++		mutex_unlock(&td->lock);
+ 		return;
++	}
+ 
+ 	dsi_bus_lock();
+ 
+@@ -1084,16 +1179,19 @@ static void taal_esd_work(struct work_struct *work)
+ 
+ 	queue_delayed_work(td->esd_wq, &td->esd_work, TAAL_ESD_CHECK_PERIOD);
+ 
++	mutex_unlock(&td->lock);
+ 	return;
+ err:
+ 	dev_err(&dssdev->dev, "performing LCD reset\n");
+ 
+-	taal_disable(dssdev);
+-	taal_enable(dssdev);
++	taal_power_off(dssdev);
++	taal_power_on(dssdev);
+ 
+ 	dsi_bus_unlock();
+ 
+ 	queue_delayed_work(td->esd_wq, &td->esd_work, TAAL_ESD_CHECK_PERIOD);
++
++	mutex_unlock(&td->lock);
+ }
+ 
+ static int taal_set_update_mode(struct omap_dss_device *dssdev,
 -- 
 1.7.0.4
 
