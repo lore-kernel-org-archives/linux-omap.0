@@ -1,50 +1,54 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: dss2 for-next BUG at drivers/video/omap2/dss/core.c:323!
-Date: Tue, 18 May 2010 10:55:34 +0300
-Message-ID: <1274169334.2307.74.camel@tubuntu.research.nokia.com>
-References: <AANLkTinS0irEdEzttaHd0n_w5Cs3h6Q44e9sXgcbDmNH@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
+Date: Tue, 18 May 2010 11:05:23 +0300
+Message-ID: <AANLkTimwAMbz8kSSW5OvQHvfskvM9auqYRq13GO2hBv_@mail.gmail.com>
+References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
+	<g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
+	<r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
+	<AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
+	<AANLkTindMySAOe6UG_hRoCvjIuPZdyg2nNe-Gub9pwau@mail.gmail.com>
+	<AANLkTikLfEQB0mtbOXIrxTj68LoY9EcSn86su6OJW8ev@mail.gmail.com>
+	<AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:25140 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754101Ab0ERHzr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 03:55:47 -0400
-In-Reply-To: <AANLkTinS0irEdEzttaHd0n_w5Cs3h6Q44e9sXgcbDmNH@mail.gmail.com>
+Received: from mail-gx0-f227.google.com ([209.85.217.227]:43543 "EHLO
+	mail-gx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754452Ab0ERIFo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 04:05:44 -0400
+Received: by gxk27 with SMTP id 27so3225163gxk.1
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 01:05:43 -0700 (PDT)
+In-Reply-To: <AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Robert Nelson <robertcnelson@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-On Mon, 2010-05-17 at 16:30 +0200, ext Robert Nelson wrote:
-> Hi Tomi,
-> 
-> I've been using your dss2 branch with much success.
-> 
-> http://gitorious.org/linux-omap-dss2/linux/commits/for-next
-> 
-> I've just ran into a weird BUG that occurs on reboot on my headless
-> beagles and wondering if you've ran into it too...
-> 
-> The kernel I'm currently testing is 2.6.34-rc7 plus the 2.6.35 dss2
-> for-next commits..
-> 
-> I was assuming http://gitorious.org/linux-omap-dss2/linux/commit/89627989c6b4408c4578a41bcd5f9d04545797ad
-> would fix it, but it hasn't fixed the Opps'ing...
-> 
-> log on attempt to reboot:
-> 
-> http://pastebin.com/iqAHMVD4
+On Mon, May 17, 2010 at 2:51 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> So currently (v2.6.33), before sending a read-olny buffer (TO_DEVICE),
+> we do dmac_flush_range (should be clean, but whatever) and before
+> sending a write-only (FROM_DEVICE), we do dmac_inv_range.
+>
+> On v2.6.33 the same could be achieved with only dma_map_* functions,
+> but on v2.6.34 that's not the case.
 
-It looks like there's a mismatch with clock enables and disables
-somewhere... I haven't seen that.
+Sorry, I didn't completely follow you here, let's take a look at the
+mapping code:
 
-Can you tell me more details of your beagle? Does "headless" mean that
-it's standard beagle board, but no display is connected to it?
+ENTRY(v7_dma_map_area)
+	add	r1, r1, r0
+	teq	r2, #DMA_FROM_DEVICE
+	beq	v7_dma_inv_range
+	b	v7_dma_clean_range
+ENDPROC(v7_dma_map_area)
 
- Tomi
+DMA_FROM_DEVICE will get the cache invalidated and then cleaned,
+and DMA_BIDIRECTIONAL/DMA_TO_DEVICE will get the cache only
+cleaned.
 
-Ps. Added linux-omap to cc, somebody there may have encountered this.
+Unfortunately I don't have a setup right now to test this, but the code
+seems to be ok for our needs, don't you think ?
 
-
+Thanks,
+Ohad.
