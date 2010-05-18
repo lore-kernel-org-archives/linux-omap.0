@@ -1,203 +1,71 @@
 From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: [PATCH 2/4] OMAP: mcbsp - add smart idle configuration API
-Date: Tue, 18 May 2010 21:13:12 +0100
-Message-ID: <1274213594-26554-3-git-send-email-lrg@slimlogic.co.uk>
+Subject: [PATCH 4/4] OMAP: mcbsp - remove sysfs set for DMA op mode.
+Date: Tue, 18 May 2010 21:13:14 +0100
+Message-ID: <1274213594-26554-5-git-send-email-lrg@slimlogic.co.uk>
 References: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:48480 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754806Ab0ERUNv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 16:13:51 -0400
-Received: by mail-wy0-f174.google.com with SMTP id 39so1699320wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 13:13:50 -0700 (PDT)
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:39291 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754806Ab0ERUNz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 16:13:55 -0400
+Received: by mail-ww0-f46.google.com with SMTP id 22so61884wwb.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 13:13:55 -0700 (PDT)
 In-Reply-To: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 Cc: Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-Add a small API to configure McBSP smart idle modes
-to conserve power.
+The mcbsp DMA op mode is tightly integrated with the
+mcbsp client driver operation and hence is unsuitable
+for userspace configuration via sysfs.
 
 Signed-off-by: Liam Girdwood <lrg@slimlogic.co.uk>
 ---
- arch/arm/plat-omap/include/plat/mcbsp.h |   15 ++++
- arch/arm/plat-omap/mcbsp.c              |  122 +++++++++++++++++++++++++++++++
- 2 files changed, 137 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/mcbsp.c |   30 +-----------------------------
+ 1 files changed, 1 insertions(+), 29 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index f8823f4..3f9fb71 100644
---- a/arch/arm/plat-omap/include/plat/mcbsp.h
-+++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -278,6 +278,15 @@
- #define ENAWAKEUP		0x0004
- #define SOFTRST			0x0002
- 
-+#define MCBSP_CLK_ACT_IOFF_POFF		0
-+#define MCBSP_CLK_ACT_ION_POFF		1
-+#define MCBSP_CLK_ACT_IOFF_PON		2
-+#define MCBSP_CLK_ACT_ION_PON			3
-+
-+#define MCBSP_IDLE_FORCE	0
-+#define MCBSP_IDLE_NONE		1
-+#define MCBSP_IDLE_SMART	2
-+
- /********************** McBSP SSELCR bit definitions ***********************/
- #define SIDETONEEN		0x0400
- 
-@@ -456,6 +465,7 @@ struct omap_mcbsp {
- #ifdef CONFIG_ARCH_OMAP3
- 	struct omap_mcbsp_st_data *st_data;
- 	int dma_op_mode;
-+	int idle_mode;
- 	u16 max_tx_thres;
- 	u16 max_rx_thres;
- #endif
-@@ -477,6 +487,11 @@ u16 omap_mcbsp_get_tx_delay(unsigned int id);
- u16 omap_mcbsp_get_rx_delay(unsigned int id);
- int omap_mcbsp_get_dma_op_mode(unsigned int id);
- int omap_mcbsp_set_dma_op_mode(unsigned int id, unsigned int mode);
-+int omap_mcbsp_set_idle_smart(unsigned int id, unsigned int clk_activity,
-+		unsigned int wake);
-+int omap_mcbsp_set_idle_none(unsigned int id);
-+int omap_mcbsp_set_idle_force(unsigned int id);
-+int omap_mcbsp_get_idle_mode(unsigned int id);
- #else
- static inline void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
- { }
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index cc2b73c..7785050 100644
+index 7785050..b7b8b5e 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -1743,6 +1743,128 @@ static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp)
- 			omap_st_remove(mcbsp);
- 	}
+@@ -1546,35 +1546,7 @@ static ssize_t dma_op_mode_show(struct device *dev,
+ 	return len;
  }
-+
-+/* assert standby requests when idle */
-+int omap_mcbsp_set_idle_smart(unsigned int id, unsigned int clk_activity,
-+		u32 wakeup)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	u16 syscon;
-+	int ret = 0;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%u)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	spin_lock_irq(&mcbsp->lock);
-+	if (!mcbsp->free) {
-+		ret = -EBUSY;
-+		goto unlock;
-+	}
-+
-+	syscon = MCBSP_READ(mcbsp, SYSCON) &
-+			~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
-+	MCBSP_WRITE(mcbsp, WAKEUPEN, wakeup);
-+	MCBSP_WRITE(mcbsp, SYSCON,
-+			syscon | SIDLEMODE(MCBSP_IDLE_SMART) |
-+			CLOCKACTIVITY(clk_activity) | ENAWAKEUP);
-+	mcbsp->idle_mode = MCBSP_IDLE_SMART;
-+
-+unlock:
-+	spin_unlock_irq(&mcbsp->lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_set_idle_smart);
-+
-+/* never assert standby requests */
-+int omap_mcbsp_set_idle_none(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	u16 syscon;
-+	int ret = 0;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%u)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	spin_lock_irq(&mcbsp->lock);
-+	if (!mcbsp->free) {
-+		ret = -EBUSY;
-+		goto unlock;
-+	}
-+
-+	syscon = MCBSP_READ(mcbsp, SYSCON) &
-+			~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
-+
-+	MCBSP_WRITE(mcbsp, SYSCON, syscon | SIDLEMODE(MCBSP_IDLE_NONE));
-+	MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
-+	mcbsp->idle_mode = MCBSP_IDLE_NONE;
-+
-+unlock:
-+	spin_unlock_irq(&mcbsp->lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_set_idle_none);
-+
-+/* unconditionally assert standby requests */
-+int omap_mcbsp_set_idle_force(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	u16 syscon;
-+	int ret = 0;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%u)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	spin_lock_irq(&mcbsp->lock);
-+	if (!mcbsp->free) {
-+		ret = -EBUSY;
-+		goto unlock;
-+	}
-+
-+	syscon = MCBSP_READ(mcbsp, SYSCON) &
-+			~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
-+	/*
-+	 * HW bug workaround - If no_idle mode is taken, we need to
-+	 * go to smart_idle before going to always_idle, or the
-+	 * device will not hit retention anymore.
-+	 */
-+	syscon |= SIDLEMODE(MCBSP_IDLE_SMART);
-+	MCBSP_WRITE(mcbsp, SYSCON, syscon);
-+	syscon &= ~(SIDLEMODE(0x03));
-+
-+	MCBSP_WRITE(mcbsp, SYSCON, syscon | SIDLEMODE(MCBSP_IDLE_FORCE));
-+	MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
-+	mcbsp->idle_mode = MCBSP_IDLE_FORCE;
-+
-+unlock:
-+	spin_unlock_irq(&mcbsp->lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_set_idle_force);
-+
-+int omap_mcbsp_get_idle_mode(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%u)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	return mcbsp->idle_mode;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_get_idle_mode);
-+
-+
- #else
- static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp) {}
- static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp) {}
+ 
+-static ssize_t dma_op_mode_store(struct device *dev,
+-				struct device_attribute *attr,
+-				const char *buf, size_t size)
+-{
+-	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
+-	const char * const *s;
+-	int i = 0;
+-
+-	for (s = &dma_op_modes[i]; i < ARRAY_SIZE(dma_op_modes); s++, i++)
+-		if (sysfs_streq(buf, *s))
+-			break;
+-
+-	if (i == ARRAY_SIZE(dma_op_modes))
+-		return -EINVAL;
+-
+-	spin_lock_irq(&mcbsp->lock);
+-	if (!mcbsp->free) {
+-		size = -EBUSY;
+-		goto unlock;
+-	}
+-	mcbsp->dma_op_mode = i;
+-
+-unlock:
+-	spin_unlock_irq(&mcbsp->lock);
+-
+-	return size;
+-}
+-
+-static DEVICE_ATTR(dma_op_mode, 0644, dma_op_mode_show, dma_op_mode_store);
++static DEVICE_ATTR(dma_op_mode, 0644, dma_op_mode_show, NULL);
+ 
+ static ssize_t st_taps_show(struct device *dev,
+ 			    struct device_attribute *attr, char *buf)
 -- 
 1.7.0.4
 
