@@ -1,54 +1,67 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Tue, 18 May 2010 11:05:23 +0300
-Message-ID: <AANLkTimwAMbz8kSSW5OvQHvfskvM9auqYRq13GO2hBv_@mail.gmail.com>
-References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	<g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
-	<r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
-	<AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
-	<AANLkTindMySAOe6UG_hRoCvjIuPZdyg2nNe-Gub9pwau@mail.gmail.com>
-	<AANLkTikLfEQB0mtbOXIrxTj68LoY9EcSn86su6OJW8ev@mail.gmail.com>
-	<AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: Re: [RFC PATCHv2 1/7] HSI: Introducing HSI framework
+Date: Tue, 18 May 2010 11:37:33 +0300
+Message-ID: <1274171853.7755.22650.camel@localhost>
+References: <1273245517-30712-1-git-send-email-carlos.chinea@nokia.com>
+	 <1273245517-30712-2-git-send-email-carlos.chinea@nokia.com>
+	 <201005141622.12281.s-jan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f227.google.com ([209.85.217.227]:43543 "EHLO
-	mail-gx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754452Ab0ERIFo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 04:05:44 -0400
-Received: by gxk27 with SMTP id 27so3225163gxk.1
-        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 01:05:43 -0700 (PDT)
-In-Reply-To: <AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201005141622.12281.s-jan@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Sebastien Jan <s-jan@ti.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-On Mon, May 17, 2010 at 2:51 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> So currently (v2.6.33), before sending a read-olny buffer (TO_DEVICE),
-> we do dmac_flush_range (should be clean, but whatever) and before
-> sending a write-only (FROM_DEVICE), we do dmac_inv_range.
->
-> On v2.6.33 the same could be achieved with only dma_map_* functions,
-> but on v2.6.34 that's not the case.
+On Fri, 2010-05-14 at 16:22 +0200, ext Sebastien Jan wrote:
+> Hi Carlos,
+> 
+> After review, I do not have many comments on the interface, as we already 
+> aligned on most of it.
+> 
+> Please see my comments inlined below.
+> 
+> On Friday 07 May 2010 17:18:31 Carlos Chinea wrote:
+> [strip]
+> > diff --git a/include/linux/hsi/hsi.h b/include/linux/hsi/hsi.h
+> [strip]
+> > +/**
+> > + * hsi_start_tx - Signal the port that the client wants to start a TX
+> > + * @cl: Pointer to the HSI client
+> > + *
+> > + * Return -errno on failure, 0 on success
+> > + */
+> > +static inline int hsi_start_tx(struct hsi_client *cl)
+> > +{
+> > +       if (!hsi_port_claimed(cl))
+> > +               return -EACCES;
+> > +       return hsi_get_port(cl)->start_tx(cl);
+> > +}
+> > +
+> > +/**
+> > + * hsi_stop_tx - Signal the port that the client no longer wants to
+> >  transmit + * @cl: Pointer to the HSI client
+> > + *
+> > + * Return -errno on failure, 0 on success
+> > + */
+> > +static inline int hsi_stop_tx(struct hsi_client *cl)
+> > +{
+> > +       if (!hsi_port_claimed(cl))
+> > +               return -EACCES;
+> > +       return hsi_get_port(cl)->stop_tx(cl);
+> > +}
+> 
+> As I can see, these two I/F functions are the way an HSI protocol layer can 
+> play with Tx_wake lines if it has to, right? 
 
-Sorry, I didn't completely follow you here, let's take a look at the
-mapping code:
+Right
 
-ENTRY(v7_dma_map_area)
-	add	r1, r1, r0
-	teq	r2, #DMA_FROM_DEVICE
-	beq	v7_dma_inv_range
-	b	v7_dma_clean_range
-ENDPROC(v7_dma_map_area)
+> I suppose it allows more flexibility with regards to 3/4 wires HSI flavors 
+> management and avoids additional callbacks to Tx_wake related events?
 
-DMA_FROM_DEVICE will get the cache invalidated and then cleaned,
-and DMA_BIDIRECTIONAL/DMA_TO_DEVICE will get the cache only
-cleaned.
+Yep
 
-Unfortunately I don't have a setup right now to test this, but the code
-seems to be ok for our needs, don't you think ?
-
-Thanks,
-Ohad.
+Br,
+Carlos Chinea
