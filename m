@@ -1,119 +1,187 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 07/23] OMAP: DSS2: check lock_fb_info() return value
-Date: Tue, 18 May 2010 15:34:58 +0300
-Message-ID: <1274186114-26951-8-git-send-email-tomi.valkeinen@nokia.com>
-References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
+From: Lesly A M <leslyam@ti.com>
+Subject: [PATCH v6 6/7] omap3: pm: Use generic TRITON power scripts for 3430SDP board
+Date: Tue, 18 May 2010 18:06:00 +0530
+Message-ID: <1274186160-24024-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53432 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757523Ab0ERMgS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:18 -0400
-In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:35320 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757539Ab0ERMgX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 May 2010 08:36:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Jani Nikula <ext-jani.1.nikula@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+This patch will removed the sleep/wakeup/warm_rest sequence & resource configuration
+from the 3430SDP board file and use the generic script.
 
-Give up if lock_fb_info() fails, following the same convention as other
-lock_fb_info() users.
+Updating the sleep/wakeup/warm_rest sequence & resource configuration in the
+board file from generic script file.
 
-Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Signed-off-by: Lesly A M <x0080970@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: David Derrick <dderrick@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- drivers/video/omap2/omapfb/omapfb-ioctl.c |    3 ++-
- drivers/video/omap2/omapfb/omapfb-sysfs.c |   21 ++++++++++++++-------
- 2 files changed, 16 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/Makefile        |    3 +-
+ arch/arm/mach-omap2/board-3430sdp.c |   92 +---------------------------------
+ include/linux/i2c/twl.h             |    4 ++
+ 3 files changed, 9 insertions(+), 90 deletions(-)
 
-diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-index 2c0f01c..9c73618 100644
---- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
-+++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-@@ -183,7 +183,8 @@ int omapfb_update_window(struct fb_info *fbi,
- 	struct omapfb2_device *fbdev = ofbi->fbdev;
- 	int r;
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 184badd..f60dca3 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -127,7 +127,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+ 					   hsmmc.o \
+-					   board-sdp-flash.o
++					   board-sdp-flash.o \
++					   twl4030.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ 					   board-rx51-sdram.o \
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index c7f0fa8..91d8cc6 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -46,6 +46,7 @@
+ #include "mux.h"
+ #include "sdram-qimonda-hyb18m512160af-6.h"
+ #include "hsmmc.h"
++#include "twl4030.h"
+ #include "pm.h"
+ #include "omap3-opp.h"
+ #include "smartreflex-class3.h"
+@@ -424,95 +425,7 @@ static struct twl4030_madc_platform_data sdp3430_madc_data = {
+ 	.irq_line	= 1,
+ };
  
--	lock_fb_info(fbi);
-+	if (!lock_fb_info(fbi))
-+		return -ENODEV;
- 	omapfb_lock(fbdev);
+-
+-static struct twl4030_ins __initdata sleep_on_seq[] = {
+-	/* Turn off HFCLKOUT */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_OFF), 2},
+-	/* Turn OFF VDD1 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 2},
+-	/* Turn OFF VDD2 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
+-	/* Turn OFF VPLL1 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 2},
+-};
+-
+-static struct twl4030_script sleep_on_script __initdata = {
+-	.script	= sleep_on_seq,
+-	.size	= ARRAY_SIZE(sleep_on_seq),
+-	.flags	= TWL4030_SLEEP_SCRIPT,
+-};
+-
+-static struct twl4030_ins wakeup_p12_seq[] __initdata = {
+-	/* Turn on HFCLKOUT */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
+-	/* Turn ON VDD1 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 2},
+-	/* Turn ON VDD2 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 2},
+-	/* Turn ON VPLL1 */
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 2},
+-};
+-
+-static struct twl4030_script wakeup_p12_script __initdata = {
+-	.script	= wakeup_p12_seq,
+-	.size	= ARRAY_SIZE(wakeup_p12_seq),
+-	.flags	= TWL4030_WAKEUP12_SCRIPT,
+-};
+-
+-static struct twl4030_ins wakeup_p3_seq[] __initdata = {
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
+-};
+-
+-static struct twl4030_script wakeup_p3_script __initdata = {
+-	.script = wakeup_p3_seq,
+-	.size   = ARRAY_SIZE(wakeup_p3_seq),
+-	.flags  = TWL4030_WAKEUP3_SCRIPT,
+-};
+-
+-static struct twl4030_ins wrst_seq[] __initdata = {
+-/*
+- * Reset twl4030.
+- * Reset VDD1 regulator.
+- * Reset VDD2 regulator.
+- * Reset VPLL1 regulator.
+- * Enable sysclk output.
+- * Reenable twl4030.
+- */
+-	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
+-	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
+-	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
+-	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
+-};
+-static struct twl4030_script wrst_script __initdata = {
+-	.script = wrst_seq,
+-	.size   = ARRAY_SIZE(wrst_seq),
+-	.flags  = TWL4030_WRST_SCRIPT,
+-};
+-
+-static struct twl4030_script *twl4030_scripts[] __initdata = {
+-	&sleep_on_script,
+-	&wakeup_p12_script,
+-	&wakeup_p3_script,
+-	&wrst_script,
+-};
+-
+-static struct twl4030_resconfig twl4030_rconfig[] = {
+-	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
+-		.type2 = -1 },
+-	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
+-		.type2 = -1 },
+-	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
+-		.type2 = -1 },
+-	{ 0, 0},
+-};
+-
+-static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
+-	.scripts	= twl4030_scripts,
+-	.num		= ARRAY_SIZE(twl4030_scripts),
+-	.resource_config = twl4030_rconfig,
+-};
++static struct twl4030_power_data sdp3430_t2scripts_data __initdata;
  
- 	r = omapfb_update_window_nolock(fbi, x, y, w, h);
-diff --git a/drivers/video/omap2/omapfb/omapfb-sysfs.c b/drivers/video/omap2/omapfb/omapfb-sysfs.c
-index e104450..5179219 100644
---- a/drivers/video/omap2/omapfb/omapfb-sysfs.c
-+++ b/drivers/video/omap2/omapfb/omapfb-sysfs.c
-@@ -57,7 +57,8 @@ static ssize_t store_rotate_type(struct device *dev,
- 	if (rot_type != OMAP_DSS_ROT_DMA && rot_type != OMAP_DSS_ROT_VRFB)
- 		return -EINVAL;
+ /*
+  * Apply all the fixed voltages since most versions of U-Boot
+@@ -877,6 +790,7 @@ static struct omap_musb_board_data musb_board_data = {
  
--	lock_fb_info(fbi);
-+	if (!lock_fb_info(fbi))
-+		return -ENODEV;
+ static void __init omap_3430sdp_init(void)
+ {
++	twl4030_get_scripts(&sdp3430_t2scripts_data);
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3430_i2c_init();
+ 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index fb6784e..2e00e83 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -371,6 +371,7 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+ #define DEV_GRP_P1		0x1	/* P1: all OMAP devices */
+ #define DEV_GRP_P2		0x2	/* P2: all Modem devices */
+ #define DEV_GRP_P3		0x4	/* P3: all peripheral devices */
++#define DEV_GRP_ALL		0x7	/* P1/P2/P3: all devices */
  
- 	r = 0;
- 	if (rot_type == ofbi->rotation_type)
-@@ -105,7 +106,8 @@ static ssize_t store_mirror(struct device *dev,
- 	if (mirror != 0 && mirror != 1)
- 		return -EINVAL;
+ /* Resource groups */
+ #define RES_GRP_RES		0x0	/* Reserved */
+@@ -383,7 +384,10 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+ #define RES_GRP_ALL		0x7	/* All resource groups */
  
--	lock_fb_info(fbi);
-+	if (!lock_fb_info(fbi))
-+		return -ENODEV;
+ #define RES_TYPE2_R0		0x0
++#define RES_TYPE2_R1		0x1
++#define RES_TYPE2_R2		0x2
  
- 	ofbi->mirror = mirror;
++#define RES_TYPE_R0		0x0
+ #define RES_TYPE_ALL		0x7
  
-@@ -137,7 +139,8 @@ static ssize_t show_overlays(struct device *dev,
- 	ssize_t l = 0;
- 	int t;
- 
--	lock_fb_info(fbi);
-+	if (!lock_fb_info(fbi))
-+		return -ENODEV;
- 	omapfb_lock(fbdev);
- 
- 	for (t = 0; t < ofbi->num_overlays; t++) {
-@@ -195,7 +198,8 @@ static ssize_t store_overlays(struct device *dev, struct device_attribute *attr,
- 	if (buf[len - 1] == '\n')
- 		len = len - 1;
- 
--	lock_fb_info(fbi);
-+	if (!lock_fb_info(fbi))
-+		return -ENODEV;
- 	omapfb_lock(fbdev);
- 
- 	if (len > 0) {
-@@ -317,7 +321,8 @@ static ssize_t show_overlays_rotate(struct device *dev,
- 	ssize_t l = 0;
- 	int t;
- 
--	lock_fb_info(fbi);
-+	if (!lock_fb_info(fbi))
-+		return -ENODEV;
- 
- 	for (t = 0; t < ofbi->num_overlays; t++) {
- 		l += snprintf(buf + l, PAGE_SIZE - l, "%s%d",
-@@ -345,7 +350,8 @@ static ssize_t store_overlays_rotate(struct device *dev,
- 	if (buf[len - 1] == '\n')
- 		len = len - 1;
- 
--	lock_fb_info(fbi);
-+	if (!lock_fb_info(fbi))
-+		return -ENODEV;
- 
- 	if (len > 0) {
- 		char *p = (char *)buf;
-@@ -416,7 +422,8 @@ static ssize_t store_size(struct device *dev, struct device_attribute *attr,
- 
- 	size = PAGE_ALIGN(simple_strtoul(buf, NULL, 0));
- 
--	lock_fb_info(fbi);
-+	if (!lock_fb_info(fbi))
-+		return -ENODEV;
- 
- 	for (i = 0; i < ofbi->num_overlays; i++) {
- 		if (ofbi->overlays[i]->info.enabled) {
+ /* Resource states */
 -- 
 1.7.0.4
 
