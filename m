@@ -1,91 +1,85 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 1/2] omap: iommu-update irq mask to be specific about twl
-Date: Tue, 18 May 2010 11:54:57 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4BC6CD4A@dlee03.ent.ti.com>
-References: <1274137950-18759-1-git-send-email-h-kanigeri2@ti.com>
-	<1274137950-18759-2-git-send-email-h-kanigeri2@ti.com>
- <20100518.091202.246514683.Hiroshi.DOYU@nokia.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
+Date: Tue, 18 May 2010 19:57:55 +0300
+Message-ID: <AANLkTik_FL2keLD9mdBcg8Rm9n8uYDElg1NdyeT2yy6B@mail.gmail.com>
+References: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
+	 <20100518.114642.35020415.Hiroshi.DOYU@nokia.com>
+	 <AANLkTim5SxEb64QbBQgBhufhgpQ33MNFBhuHixfUeVKp@mail.gmail.com>
+	 <20100518.163145.232774311.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45920 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751567Ab0ERQzE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 12:55:04 -0400
-In-Reply-To: <20100518.091202.246514683.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:45990 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434Ab0ERQ55 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 12:57:57 -0400
+Received: by fxm10 with SMTP id 10so1343194fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 09:57:56 -0700 (PDT)
+In-Reply-To: <20100518.163145.232774311.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk
 
-Hi Hiroshi,
+On Tue, May 18, 2010 at 4:31 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> =
+wrote:
+> From: ext Felipe Contreras <felipe.contreras@gmail.com>
+>> I'm not familiar with this kind of module loading, but certainly not
+>> all systems have udev.
+>>
+>> I realized the problem because I have a bare-bones system in my
+>> beagleboard where I had to manually load mailbox_mach.
+>
+> With udev or something equivalent, it should work fine.
 
-> -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> Sent: Tuesday, May 18, 2010 1:12 AM
-> To: Kanigeri, Hari
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: Re: [PATCH 1/2] omap: iommu-update irq mask to be specific about
-> twl
-> 
-> > Update the irq mask so that is is clear that the MMU
->                               ~~typo?
-> 
+But still, you are relying on udev. I don't think we should, and I
+don't think there's any need.
 
--- thanks for spotting this.
+>>> The platform device omap2-mailbox accomodatess logical mboxes.
+>>
+>> Wouldn't it be better the way my patches handle them?
+>> =C2=A0* devices.ko: =C2=A0doesn't care about mbox
+>> =C2=A0* mach_omap1/mailbox.ko: =C2=A0registers "omap-mailbox" platfo=
+rm device
+>> with a list of logical mboxes for OMAP1
+>> =C2=A0* mach_omap2/mailbox.ko: =C2=A0registers "omap-mailbox" platfo=
+rm device
+>> with a list of logical mboxes for OMAP2
+>> =C2=A0* plat-omap/mailbox.ko: creates platform driver based on logic=
+al list
+>> of mboxes from platform device and handles the list internally
+>>
+>> The end result would be the exactly same, except that there's no har=
+d
+>> dependency between the mach, and plat code.
+>
+> With the attachemnt, which is just 17 lines of code, you will get the
+> structure of logical mbox devices, which are located under the single
+> platform device, "omap2-mailbox". This is more _descriptive_ since
+> it displays the connection of a platform device and logical devices,
+> IOW, where these logical ones come. I don't see any point of not usin=
+g
+> this struture.
 
-> > interrupt is related to TWL fault.
-> >
-> > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/iommu2.c |   10 ++++++++--
-> >  1 files changed, 8 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
-> > index e82da68..fcf4f4a 100644
-> > --- a/arch/arm/mach-omap2/iommu2.c
-> > +++ b/arch/arm/mach-omap2/iommu2.c
-> > @@ -46,7 +46,13 @@
-> >  #define MMU_IRQ_TLBMISS		(1 << 0)
-> >  #define MMU_IRQ_MASK	\
-> >  	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_TABLEWALKFAULT | MMU_IRQ_EMUMISS |
-> \
-> > -	 MMU_IRQ_TRANSLATIONFAULT)
-> > +	  MMU_IRQ_TRANSLATIONFAULT | MMU_IRQ_TLBMISS)
-> > +#define MMU_IRQ_TWL_MASK	\
-> > +	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_TABLEWALKFAULT | MMU_IRQ_EMUMISS |
-> \
-> > +	  MMU_IRQ_TRANSLATIONFAULT)
-> > +#define MMU_IRQ_TLB_MISS_MASK	\
-> > +	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_TLBMISS | MMU_IRQ_EMUMISS | \
-> > +	  MMU_IRQ_TRANSLATIONFAULT)
-> 
-> nitpick: The above could look better as blew?
+That's neat. Am I understanding correctly that that's not an argument
+against the split of mailbox_mach and plat mailbox?
 
--- I agree. I will update this in my next patch revision.
+>>> Would it be possible to rebase them on the top of my coming patch t=
+o
+>>> get back logical device entry?
+>>
+>> Where is that?
+>
+> Attached. Would it be possible to rebase the cleanups on this one?
 
-> 
-> #define __MMU_IRQ_FAULT		(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_EMUMISS |
-> MMU_IRQ_TRANSLATIONFAULT)
-> #define MMU_IRQ_MASK		(__MMU_IRQ_FAULT | MMU_IRQ_TABLEWALKFAULT |
-> MMU_IRQ_TLBMISS)
-> #define MMU_IRQ_TWL_MASK	(__MMU_IRQ_FAULT | MMU_IRQ_TABLEWALKFAULT)
-> #define MMU_IRQ_TLB_MISS_MASK	(__MMU_IRQ_FAULT | MMU_IRQ_TLBMISS)
-> 
-> >
-> >  /* MMU_CNTL */
-> >  #define MMU_CNTL_SHIFT		1
-> > @@ -96,7 +102,7 @@ static int omap2_iommu_enable(struct iommu *obj)
-> >  	l |= (MMU_SYS_IDLE_SMART | MMU_SYS_AUTOIDLE);
-> >  	iommu_write_reg(obj, l, MMU_SYSCONFIG);
-> >
-> > -	iommu_write_reg(obj, MMU_IRQ_MASK, MMU_IRQENABLE);
-> > +	iommu_write_reg(obj, MMU_IRQ_TWL_MASK, MMU_IRQENABLE);
-> >  	iommu_write_reg(obj, pa, MMU_TTB);
-> >
-> >  	l = iommu_read_reg(obj, MMU_CNTL);
-> > --
-> > 1.7.0
-> >
+I think it would be easier to apply the patch on top of my patch
+series... specially since it's so small. Would that be acceptable?
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
