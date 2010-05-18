@@ -1,93 +1,38 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
-Date: Tue, 18 May 2010 22:58:35 +0300 (EEST)
-Message-ID: <20100518.225835.116348725.Hiroshi.DOYU@nokia.com>
-References: <AANLkTim5SxEb64QbBQgBhufhgpQ33MNFBhuHixfUeVKp@mail.gmail.com>
-	<20100518.163145.232774311.Hiroshi.DOYU@nokia.com>
-	<AANLkTik_FL2keLD9mdBcg8Rm9n8uYDElg1NdyeT2yy6B@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: [PATCH 0/4] McBSP smart idle and DMA op mode updates for ASoC
+Date: Tue, 18 May 2010 21:13:10 +0100
+Message-ID: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:42753 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756155Ab0ERT7Q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 15:59:16 -0400
-In-Reply-To: <AANLkTik_FL2keLD9mdBcg8Rm9n8uYDElg1NdyeT2yy6B@mail.gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:48480 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753751Ab0ERUNs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 16:13:48 -0400
+Received: by wyb39 with SMTP id 39so1699320wyb.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 13:13:46 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
-Date: Tue, 18 May 2010 18:57:55 +0200
+This series expands the OMAP mcbsp driver to support changing it's DMA operating
+mode and smart idle mode from client drivers. It's primarily aimed at lowering
+the power consumption for OMAP ASoC drivers by providing methods to gate clocks
+on the mcbsp interface at runtime.
 
-> On Tue, May 18, 2010 at 4:31 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com=
-> wrote:
->> From: ext Felipe Contreras <felipe.contreras@gmail.com>
->>> I'm not familiar with this kind of module loading, but certainly no=
-t
->>> all systems have udev.
->>>
->>> I realized the problem because I have a bare-bones system in my
->>> beagleboard where I had to manually load mailbox_mach.
->>
->> With udev or something equivalent, it should work fine.
->=20
-> But still, you are relying on udev. I don't think we should, and I
-> don't think there's any need.
+I've also added a patch to remove the mcbsp DMA op mode sysfs set functionality.
+I think DMA op mode is very specific to the mcbsp client driver _only_ and
+shouldn't really be changed by userspace. Please let me know if you use this
+feature and I'll drop this patch.
 
-Some expert may give some comment here.....
+Tony, can I get your ack to upstream via ALSA if it's ok
 
->>>> The platform device omap2-mailbox accomodatess logical mboxes.
->>>
->>> Wouldn't it be better the way my patches handle them?
->>> =A0* devices.ko: =A0doesn't care about mbox
->>> =A0* mach_omap1/mailbox.ko: =A0registers "omap-mailbox" platform de=
-vice
->>> with a list of logical mboxes for OMAP1
->>> =A0* mach_omap2/mailbox.ko: =A0registers "omap-mailbox" platform de=
-vice
->>> with a list of logical mboxes for OMAP2
->>> =A0* plat-omap/mailbox.ko: creates platform driver based on logical=
- list
->>> of mboxes from platform device and handles the list internally
->>>
->>> The end result would be the exactly same, except that there's no ha=
-rd
->>> dependency between the mach, and plat code.
->>
->> With the attachemnt, which is just 17 lines of code, you will get th=
-e
->> structure of logical mbox devices, which are located under the singl=
-e
->> platform device, "omap2-mailbox". This is more _descriptive_ since
->> it displays the connection of a platform device and logical devices,
->> IOW, where these logical ones come. I don't see any point of not usi=
-ng
->> this struture.
->=20
-> That's neat. Am I understanding correctly that that's not an argument
-> against the split of mailbox_mach and plat mailbox?
+Thanks
 
-I may not get your point. That's just 17 lines of code, nothing else.
+Liam
 
->>>> Would it be possible to rebase them on the top of my coming patch =
-to
->>>> get back logical device entry?
->>>
->>> Where is that?
->>
->> Attached. Would it be possible to rebase the cleanups on this one?
->=20
-> I think it would be easier to apply the patch on top of my patch
-> series... specially since it's so small. Would that be acceptable?
+ arch/arm/plat-omap/include/plat/mcbsp.h |   17 +++
+ arch/arm/plat-omap/mcbsp.c              |  183 ++++++++++++++++++++++++++-----
+ sound/soc/omap/omap-mcbsp.c             |   22 ++++-
+ sound/soc/omap/omap-mcbsp.h             |    2 +
+ 4 files changed, 194 insertions(+), 30 deletions(-)
 
-I can pick up some of your cleanups if applied on the previous attachem=
-nt.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
