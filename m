@@ -1,75 +1,127 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Tue, 18 May 2010 14:57:39 +0300
-Message-ID: <AANLkTin9Fe4qWoxUKlZvQ7RuTRDTka9QmcP_ATe-jgVa@mail.gmail.com>
-References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	<r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
-	<AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
-	<AANLkTindMySAOe6UG_hRoCvjIuPZdyg2nNe-Gub9pwau@mail.gmail.com>
-	<AANLkTikLfEQB0mtbOXIrxTj68LoY9EcSn86su6OJW8ev@mail.gmail.com>
-	<AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
-	<AANLkTimwAMbz8kSSW5OvQHvfskvM9auqYRq13GO2hBv_@mail.gmail.com>
-	<AANLkTingzOiLETDW9gCNK1W6OVrWZx0ltREJVDYXFcMt@mail.gmail.com>
-	<AANLkTil9tD1EAn-8ldMmMpLU8osiiwaGf1hF19VO0Q7R@mail.gmail.com>
-	<AANLkTil7Mfi15ADpjK7XQn5vDaihjv8fjU2AMzO9swET@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
+Date: Tue, 18 May 2010 15:03:26 +0300
+Message-ID: <AANLkTim5SxEb64QbBQgBhufhgpQ33MNFBhuHixfUeVKp@mail.gmail.com>
+References: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
+	 <20100518.114642.35020415.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:48403 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755250Ab0ERL6A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 07:58:00 -0400
-Received: by gyg13 with SMTP id 13so2723742gyg.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 04:57:59 -0700 (PDT)
-In-Reply-To: <AANLkTil7Mfi15ADpjK7XQn5vDaihjv8fjU2AMzO9swET@mail.gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:59758 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757059Ab0ERMD3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:03:29 -0400
+Received: by fxm10 with SMTP id 10so996629fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 05:03:27 -0700 (PDT)
+In-Reply-To: <20100518.114642.35020415.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk
 
-On Tue, May 18, 2010 at 2:43 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Tue, May 18, 2010 at 2:14 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
->>>> Unfortunately I don't have a setup right now to test this, but the code
->>>> seems to be ok for our needs, don't you think ?
->>>
->>> But yeah, actually that fits our needs; calling the dma_map only,
->>> while still wrong, will give us the same behavior we have right now
->>> (v2.6.33).
+On Tue, May 18, 2010 at 11:46 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>=
+ wrote:
+> From: ext Felipe Contreras <felipe.contreras@gmail.com>
+> Subject: [PATCH v2 00/17] omap: mailbox: reorganize init
+> Date: Fri, 14 May 2010 17:01:33 +0200
+>
+>> Hi,
 >>
->> Great, so are you ok with this patchset proposal ?
+>> The main purpose of this patch series is to be able to compile mach =
+platform
+>> data as built-in. Otherwise, client modules such as bridgedriver wil=
+l load the
+>> platform code, but not the mach code when mailbox is built as a modu=
+le.
 >
-> I thought you were going to add separate ioctls, one for dma_map, and
-> another for dma_unmap that receive direction as an argument. Then, map
-> the current PROC_FLUSH/INVALIDATE to those without changing their
-> semantics, but marking them as deprecated.
+> I think that this is the *udev* responsibility. The udev should take
+> care of loading mailbox_mach.ko since the mailbox platform device was
+> registered by devices.ko at bootup. devices.ko is built in earlier
+> than dspbridge.ko, so the mailbox platform device is registered
+> earlier than the dsp device, "C6410". this registration ordering
+> should take care of the dependency if the udevd works correctly.
 
-Yes, I am (this and a few other small stuff we mentioned in the
-threads) - I was just asking generally about the move to dma_(un)map_*
-API.
+I'm not familiar with this kind of module loading, but certainly not
+all systems have udev.
 
-Anyway, I'll prepare a v2 and resubmit.
+I realized the problem because I have a bare-bones system in my
+beagleboard where I had to manually load mailbox_mach.
 
+>> Unfortunately, there's no easy way to do that since plat and mach co=
+de are
+>> deepely interrelated. So the first patches try to separate the mailb=
+ox
+>> registering through a defined omap_mbox_platform_data.
+>>
+>> Also, it's worth noting that mailboxes are not a one-to-one mapping =
+to
+>> resources; that is, some resources belong to multiple mboxes. So it'=
+s best to
+>> think of mailboxes as fake devices. That is why custom platform_data
+>> is required.
 >
->> I'll just add support for the VM_IO path you mentioned.
+> Actually there were logical mailbox devices/instances implemented, bu=
+t
+> it was broken partially when dropping mailbox class support by
+> accident(*1). This is the reason whey omap_mbox struct has unused dev
+> pointer now. At that time, the sysfs interface was not necessary but
+> the device creation itself should not have been removed. I'll get thi=
+s
+> code back again soon.
 >
-> Cool. I actually tried your patches to render to the framebuffer, and
-> everything seemed to work fine. I didn't check for error codes or
-> anything, so I'm not sure what's going on.
-
-How is the framebuffer mmap'ed ?
-
-Can you please tell me more about this scenario ?
-(applications + drivers involved).
-
-How do I test this scenario ? using the tools you sent me ?
-Do I have to have a beagle board or will ZOOM do ?
-
-Thanks,
-Ohad.
-
-
+> The role of each modules were/should be:
 >
-> --
-> Felipe Contreras
+> =C2=A0- devices.ko: =C2=A0 =C2=A0 =C2=A0 =C2=A0 a platform device, ba=
+sed on its resource.
+> =C2=A0- mailbox_mach.ko: =C2=A0 =C2=A0a platform driver to register m=
+ultiple logical mboxes/devices.
+> =C2=A0- mailbox.ko: =C2=A0 =C2=A0 =C2=A0 =C2=A0 a kind of framework w=
+hich holds multiple logical mboxes/devices.
 >
+> The sysfs structure is like below:
+>
+> =C2=A0~# tree -d -L 2 /sys/devices/platform/omap2-mailbox/
+
+I don't see the point of having 'omap2' there, at best it should be
+'omap-mailbox', or perhaps even just 'mailbox'.
+
+> The platform device omap2-mailbox accomodatess logical mboxes.
+
+Wouldn't it be better the way my patches handle them?
+ * devices.ko:  doesn't care about mbox
+ * mach_omap1/mailbox.ko:  registers "omap-mailbox" platform device
+with a list of logical mboxes for OMAP1
+ * mach_omap2/mailbox.ko:  registers "omap-mailbox" platform device
+with a list of logical mboxes for OMAP2
+ * plat-omap/mailbox.ko: creates platform driver based on logical list
+of mboxes from platform device and handles the list internally
+
+The end result would be the exactly same, except that there's no hard
+dependency between the mach, and plat code.
+
+>> Finally, a bunch of cleaning up is done in the very first patches, s=
+pecially for
+>> OMAP1.
+>
+> Most of the cleanups are quite ok.
+>
+> Would it be possible to rebase them on the top of my coming patch to
+> get back logical device entry?
+
+Where is that?
+
+> Sorry for the late reply, it took some time to recall my bad memory..=
+=2E
+
+No worries.
+
+Cheers.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
