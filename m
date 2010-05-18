@@ -1,72 +1,62 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Tue, 18 May 2010 15:24:11 +0300
-Message-ID: <AANLkTimmvjlsgRmjn7NokL4RnXU8nRA-D2pbCJwJ3axk@mail.gmail.com>
-References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	 <AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
-	 <AANLkTindMySAOe6UG_hRoCvjIuPZdyg2nNe-Gub9pwau@mail.gmail.com>
-	 <AANLkTikLfEQB0mtbOXIrxTj68LoY9EcSn86su6OJW8ev@mail.gmail.com>
-	 <AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
-	 <AANLkTimwAMbz8kSSW5OvQHvfskvM9auqYRq13GO2hBv_@mail.gmail.com>
-	 <AANLkTingzOiLETDW9gCNK1W6OVrWZx0ltREJVDYXFcMt@mail.gmail.com>
-	 <AANLkTil9tD1EAn-8ldMmMpLU8osiiwaGf1hF19VO0Q7R@mail.gmail.com>
-	 <AANLkTil7Mfi15ADpjK7XQn5vDaihjv8fjU2AMzO9swET@mail.gmail.com>
-	 <AANLkTin9Fe4qWoxUKlZvQ7RuTRDTka9QmcP_ATe-jgVa@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Lesly A M <leslyam@ti.com>
+Subject: [PATCH v6 0/7] omap3: pm: Update TRITON power scripts and making it generic
+Date: Tue, 18 May 2010 18:01:30 +0530
+Message-ID: <1274185890-23745-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:60109 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757162Ab0ERMYN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:24:13 -0400
-Received: by fxm10 with SMTP id 10so1020363fxm.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 05:24:11 -0700 (PDT)
-In-Reply-To: <AANLkTin9Fe4qWoxUKlZvQ7RuTRDTka9QmcP_ATe-jgVa@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41353 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757050Ab0ERMbt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:31:49 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4ICVkjj029393
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 07:31:48 -0500
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4ICViTY010125
+	for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 18:01:45 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: linux-omap@vger.kernel.org
 
-On Tue, May 18, 2010 at 2:57 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> On Tue, May 18, 2010 at 2:43 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->>> I'll just add support for the VM_IO path you mentioned.
->>
->> Cool. I actually tried your patches to render to the framebuffer, and
->> everything seemed to work fine. I didn't check for error codes or
->> anything, so I'm not sure what's going on.
->
-> How is the framebuffer mmap'ed ?
+T2 script changes rebased on top of Thara's SmartReflex patches.
 
-mmap(NULL, self->mem_info.size, PROT_WRITE, MAP_SHARED, self->overlay_fd, 0);
+This series of patch implements a updated TRITON power scripts.
+Also moving the sleep, wakeup & warm_reset sequence to a generic script file,
+which can be used by different OMAP3 board with the power companion chip TWL4030.
 
-> Can you please tell me more about this scenario ?
-> (applications + drivers involved).
+This patch series is based off Kevin's tree remotes/origin/pm-wip-sr branch,
+which have the SmartReflex changes done by Thara Gopinath.
 
-I use gst-omapfb[1], and then it's very easy with a gst-launch command
-(part of GStreamer):
+Changes to fix Kevin's & Peter's comments.
 
- gst-launch filesrc location=video.avi ! avidemux ! dspvdec ! omapfbsink
+This changes are tested on OMAP3430 SDP board with:
+	enable_off_mode
+	voltage_off_while_idle
+	sleep_while_idle (VDD1/VDD2 voltage scaling to 0v) enabled in cpuidle and suspned path.
 
-> How do I test this scenario ? using the tools you sent me ?
-> Do I have to have a beagle board or will ZOOM do ?
+Lesly A M (7):
+  omap3: pm: fix for twl4030 script load
+  omap3: pm: Using separate clk/volt setup_time for RET and OFF states
+  omap3: pm: re-programing the setup time based on CORE_DOMAIN target
+    state.
+  omap3: pm: changing vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure.
+  omap3: pm: Generic TRITON power scripts for OMAP3 based boards
+  omap3: pm: Use generic TRITON power scripts for 3430SDP board
+  omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP
+    board
 
-I guess you would need to modify dsp-tools to use framebuffer memory.
-Or you can do what I do and use gst-dsp + gst-omapfb.
+ arch/arm/mach-omap2/Makefile                 |   12 +-
+ arch/arm/mach-omap2/board-3430sdp.c          |  111 +---------------
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    6 +
+ arch/arm/mach-omap2/pm.h                     |   18 ---
+ arch/arm/mach-omap2/pm34xx.c                 |   26 +---
+ arch/arm/mach-omap2/twl4030.c                |  185 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/twl4030.h                |   15 ++
+ arch/arm/mach-omap2/voltage.c                |  157 +++++++++++++++++-----
+ arch/arm/mach-omap2/voltage.h                |   26 ++++
+ drivers/mfd/twl4030-power.c                  |    5 +-
+ include/linux/i2c/twl.h                      |    4 +
+ 11 files changed, 373 insertions(+), 192 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl4030.c
+ create mode 100644 arch/arm/mach-omap2/twl4030.h
 
-I don't have a zoom, so I haven't tried, but gst-dsp should work on
-any platform, and I have tried to make gst-omapfb the same, although
-YMMV.
-
-You could also try these binaries:
-http://people.freedesktop.org/~felipec/dsp/gst-omap-test.tar.bz
-
-Put on any system, on /opt/gst, and then PATH=/opt/gst/bin.
-
-Cheers.
-
-[1] http://github.com/felipec/gst-omapfb
-[2] http://people.freedesktop.org/~felipec/beagle-2.6.32-rc3/
-
--- 
-Felipe Contreras
