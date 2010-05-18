@@ -1,114 +1,125 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/13] omap4: Add support for i2c init
-Date: Mon, 17 May 2010 19:42:46 -0700
-Message-ID: <20100518024246.21705.71913.stgit@baageli.muru.com>
+Subject: [PATCH 03/13] omap4: Add i2c board support on omap4430 sdp platform
+Date: Mon, 17 May 2010 19:42:50 -0700
+Message-ID: <20100518024250.21705.94224.stgit@baageli.muru.com>
 References: <20100518023707.21705.26205.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58527 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58560 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754975Ab0ERCmu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 22:42:50 -0400
+	with ESMTP id S1754975Ab0ERCmx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 22:42:53 -0400
 In-Reply-To: <20100518023707.21705.26205.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Balaji T K <balajitk@ti.com>
 
-Add support for i2c init for omap4.
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch is based on and earlier patch by
-Santosh Shilimkar <santosh.shilimkar@ti.com>.
+This patch adds the i2c board support for OMAP4430 SDP platform.
 
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Balaji T K <balajitk@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/i2c.c |   33 ++++++++++++++++++++++++++-------
- 1 files changed, 26 insertions(+), 7 deletions(-)
+ arch/arm/configs/omap_4430sdp_defconfig |   46 ++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/board-4430sdp.c     |   14 +++++++++
+ 2 files changed, 58 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index 484a4f0..4281bb6 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -35,6 +35,7 @@
- #define OMAP2_I2C_BASE1		0x48070000
- #define OMAP2_I2C_BASE2		0x48072000
- #define OMAP2_I2C_BASE3		0x48060000
-+#define OMAP4_I2C_BASE4		0x48350000
- 
- static const char name[] = "i2c_omap";
- 
-@@ -51,11 +52,14 @@ static const char name[] = "i2c_omap";
- 
- static struct resource i2c_resources[][2] = {
- 	{ I2C_RESOURCE_BUILDER(0, 0) },
--#if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
--	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_24XX_I2C2_IRQ) },
-+#if	defined(CONFIG_ARCH_OMAP2PLUS)
-+	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, 0) },
- #endif
--#if	defined(CONFIG_ARCH_OMAP3)
--	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_34XX_I2C3_IRQ) },
-+#if	defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-+	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, 0) },
-+#endif
-+#if	defined(CONFIG_ARCH_OMAP4)
-+	{ I2C_RESOURCE_BUILDER(OMAP4_I2C_BASE4, 0) },
- #endif
- };
- 
-@@ -73,12 +77,15 @@ static struct resource i2c_resources[][2] = {
- static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
- static struct platform_device omap_i2c_devices[] = {
- 	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
--#if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-+#if	defined(CONFIG_ARCH_OMAP2PLUS)
- 	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
- #endif
--#if	defined(CONFIG_ARCH_OMAP3)
-+#if	defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- 	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
- #endif
-+#if	defined(CONFIG_ARCH_OMAP4)
-+	I2C_DEV_BUILDER(4, i2c_resources[3], &i2c_rate[3]),
-+#endif
- };
- 
- #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
-@@ -93,6 +100,8 @@ static int __init omap_i2c_nr_ports(void)
- 		ports = 2;
- 	else if (cpu_is_omap34xx())
- 		ports = 3;
-+	else if (cpu_is_omap44xx())
-+		ports = 4;
- 
- 	return ports;
- }
-@@ -104,6 +113,13 @@ static resource_size_t omap2_i2c_irq[3] __initdata = {
- 	INT_34XX_I2C3_IRQ,
- };
- 
-+static resource_size_t omap4_i2c_irq[4] __initdata = {
-+	OMAP44XX_IRQ_I2C1,
-+	OMAP44XX_IRQ_I2C2,
-+	OMAP44XX_IRQ_I2C3,
-+	OMAP44XX_IRQ_I2C4,
-+};
+diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
+index d87a349..a555305 100644
+--- a/arch/arm/configs/omap_4430sdp_defconfig
++++ b/arch/arm/configs/omap_4430sdp_defconfig
+@@ -490,14 +490,58 @@ CONFIG_HW_RANDOM=y
+ # CONFIG_R3964 is not set
+ # CONFIG_RAW_DRIVER is not set
+ # CONFIG_TCG_TPM is not set
+-# CONFIG_I2C is not set
++CONFIG_I2C=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_COMPAT=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_HELPER_AUTO=y
 +
- static inline int omap1_i2c_add_bus(struct platform_device *pdev, int bus_id)
++#
++# I2C Hardware Bus support
++#
++
++#
++# I2C system bus drivers (mostly embedded / system-on-chip)
++#
++# CONFIG_I2C_DESIGNWARE is not set
++# CONFIG_I2C_GPIO is not set
++# CONFIG_I2C_OCORES is not set
++CONFIG_I2C_OMAP=y
++# CONFIG_I2C_SIMTEC is not set
++# CONFIG_I2C_XILINX is not set
++
++#
++# External I2C/SMBus adapter drivers
++#
++# CONFIG_I2C_PARPORT_LIGHT is not set
++# CONFIG_I2C_TAOS_EVM is not set
++
++#
++# Other I2C/SMBus bus drivers
++#
++# CONFIG_I2C_PCA_PLATFORM is not set
++# CONFIG_I2C_STUB is not set
++# CONFIG_I2C_DEBUG_CORE is not set
++# CONFIG_I2C_DEBUG_ALGO is not set
++# CONFIG_I2C_DEBUG_BUS is not set
+ CONFIG_SPI=y
++# CONFIG_SPI_DEBUG is not set
+ CONFIG_SPI_MASTER=y
+ 
+ #
+ # SPI Master Controller Drivers
+ #
++# CONFIG_SPI_BITBANG is not set
++# CONFIG_SPI_GPIO is not set
+ CONFIG_SPI_OMAP24XX=y
++# CONFIG_SPI_XILINX is not set
++# CONFIG_SPI_DESIGNWARE is not set
++
++#
++# SPI Protocol Masters
++#
++# CONFIG_SPI_SPIDEV is not set
++# CONFIG_SPI_TLE62X0 is not set
+ 
+ #
+ # PPS support
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 6cce6f2..41fed92 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -135,11 +135,23 @@ static struct omap_musb_board_data musb_board_data = {
+ 	.mode			= MUSB_PERIPHERAL,
+ 	.power			= 100,
+ };
+-
++static int __init omap4_i2c_init(void)
++{
++	/*
++	 * Phoenix Audio IC needs I2C1 to
++	 * start with 400 KHz or less
++	 */
++	omap_register_i2c_bus(1, 400, NULL, 0);
++	omap_register_i2c_bus(2, 400, NULL, 0);
++	omap_register_i2c_bus(3, 400, NULL, 0);
++	omap_register_i2c_bus(4, 400, NULL, 0);
++	return 0;
++}
+ static void __init omap_4430sdp_init(void)
  {
- 	struct resource *res;
-@@ -124,7 +140,10 @@ static inline int omap2_i2c_add_bus(struct platform_device *pdev, int bus_id)
+ 	int status;
  
- 	res = pdev->resource;
- 
--	irq = omap2_i2c_irq;
-+	if (!cpu_is_omap44xx())
-+		irq = omap2_i2c_irq;
-+	else
-+		irq = omap4_i2c_irq;
- 
- 	if (bus_id == 1) {
- 		res[0].start = OMAP2_I2C_BASE1;
++	omap4_i2c_init();
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+ 	omap_serial_init();
+ 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
 
