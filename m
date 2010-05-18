@@ -1,67 +1,46 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Tue, 18 May 2010 09:20:56 +0300
-Message-ID: <AANLkTin8spHFJvWqA97lOcfzhnNq-lv3hulpZilNgG_h@mail.gmail.com>
-References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	<g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
-	<r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
-	<AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
-	<AANLkTikxM8gISXO_wSVNOM6FKC8l5MbLy1nSMmgMB_4w@mail.gmail.com>
-	<AANLkTikAkqatIMvdFPwVvwYV_4Tw3-SsUkBAjwK2Oa_P@mail.gmail.com>
-	<AANLkTin0hfLWtD9BubW7ihUj2TriXyiXNMhP3IuXlcug@mail.gmail.com>
-	<AANLkTin3y-RpOYfaa9rzK9HraeOAdkXsC3N0FDGo-iA9@mail.gmail.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Tue, 18 May 2010 09:40:22 +0300
+Message-ID: <20100518064022.GA6522@nokia.com>
+References: <Pine.LNX.4.44L0.1005151716180.24645-100000@netrider.rowland.org>
+ <87hbm6cz90.fsf@deeprootsystems.com>
+ <1274115885.4418.59.camel@mulgrave.site>
+ <20100517174647.GA11512@gandalf>
+ <1274119179.4418.68.camel@mulgrave.site>
+ <20100517181252.GA14260@gandalf>
+ <1274124267.4418.149.camel@mulgrave.site>
+ <20100517193840.GB14047@gandalf>
+ <20100517193952.GC14047@gandalf>
+ <1274125775.4418.182.camel@mulgrave.site>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.211.176]:43814 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434Ab0ERG2t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 02:28:49 -0400
-Received: by ywh6 with SMTP id 6so3038193ywh.16
-        for <linux-omap@vger.kernel.org>; Mon, 17 May 2010 23:28:48 -0700 (PDT)
-In-Reply-To: <AANLkTin3y-RpOYfaa9rzK9HraeOAdkXsC3N0FDGo-iA9@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:60309 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752159Ab0ERHDG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 03:03:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1274125775.4418.182.camel@mulgrave.site>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: ext James Bottomley <James.Bottomley@suse.de>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>
 
-Hi Felipe,
+On Mon, May 17, 2010 at 09:49:35PM +0200, ext James Bottomley wrote:
+>Right, because Firmware writers are from the rugged unresponsive uplands
+>of planet
+>ignore-user-complaints-and-eat-them-for-breakfast-if-they-file-bugs and
+>Software writers are from the emollient responsive groves of planet
+>harmony.  Obviously what would work for one wouldn't work for the other.
+>
+>As a software writer, I fully buy into that world view.  The trouble is
+>that when I go to dinner with hardware people, they seem to be awfully
+>nice chaps ... almost exactly like me, in fact ...
 
-On Mon, May 17, 2010 at 3:05 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Mon, May 17, 2010 at 2:25 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
->> Out of curiosity, what board/environment do you use to play with
->> the code ? I'd like to run the same use cases you do, so I can
->> reproduce any issue you may bump into.
->
-> I use a beagleboard, use the DSP firmware in L23.i3.3[1], do simple
-> tests with dsp-test[2], and real tests with gst-dsp[3].
->
-> I just pushed my latest changes of dsp-tools, which include an app
-> called dsp-test that sends buffers back and forth (like TI's
-> dmmcopy.out), but has options to trigger MMU faults, change buffer
-> sizes, and number of iterations, along with a trivial DSP socket-node.
->
-> The whole thing (app + socket-node) is 15K and you don't even need
-> dynreg.out to load. Also, the code is really really simple. There are
-> no dependencies, so you can just type 'make'.
->
-> I'm not sure if you are familiar with GStreamer, but that's pretty
-> much all you need to compile gst-dsp. If you have problems we have a
-> relatively active mailing list.
+what does this add to suspend_blockers discussion ?
 
-Thanks for the detailed answer!
+-- 
+balbi
 
-I'll surely look into this.
-Ohad.
-
->
-> Cheers.
->
-> [1] http://www.omapedia.org/wiki/L23.i3.3_Release_Notes
-> [2] http://github.com/felipec/dsp-tools
-> [3] http://github.com/felipec/gst-dsp
->
-> --
-> Felipe Contreras
->
+DefectiveByDesign.org
