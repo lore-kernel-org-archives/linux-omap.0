@@ -1,67 +1,27 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: Re: [RFC PATCHv2 1/7] HSI: Introducing HSI framework
-Date: Tue, 18 May 2010 11:37:33 +0300
-Message-ID: <1274171853.7755.22650.camel@localhost>
-References: <1273245517-30712-1-git-send-email-carlos.chinea@nokia.com>
-	 <1273245517-30712-2-git-send-email-carlos.chinea@nokia.com>
-	 <201005141622.12281.s-jan@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC] Initial attempt to make ARM use LMB
+Date: Tue, 18 May 2010 09:40:13 +0100
+Message-ID: <20100518084013.GA13832@n2100.arm.linux.org.uk>
+References: <20100513220139.GO3428@atomide.com> <20100513221229.GD13001@n2100.arm.linux.org.uk> <EAF47CD23C76F840A9E7FCE10091EFAB02C54F0247@dbde02.ent.ti.com> <AANLkTikZvfvjY9e2QNWRwVcJcTvn58Ly_DgzrcXKu2iJ@mail.gmail.com> <20100514101615.GF10339@n2100.arm.linux.org.uk> <AANLkTinY9M2cHKw86hTLaMUCvBX57o8AioBtrENB-JhK@mail.gmail.com> <20100517094421.GG23118@n2100.arm.linux.org.uk> <1274091978.2307.49.camel@tubuntu.research.nokia.com> <20100517173715.GA5818@atomide.com> <1274168877.2307.70.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201005141622.12281.s-jan@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Sebastien Jan <s-jan@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46739 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756989Ab0ERIkn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 04:40:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1274168877.2307.70.camel@tubuntu.research.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, 2010-05-14 at 16:22 +0200, ext Sebastien Jan wrote:
-> Hi Carlos,
-> 
-> After review, I do not have many comments on the interface, as we already 
-> aligned on most of it.
-> 
-> Please see my comments inlined below.
-> 
-> On Friday 07 May 2010 17:18:31 Carlos Chinea wrote:
-> [strip]
-> > diff --git a/include/linux/hsi/hsi.h b/include/linux/hsi/hsi.h
-> [strip]
-> > +/**
-> > + * hsi_start_tx - Signal the port that the client wants to start a TX
-> > + * @cl: Pointer to the HSI client
-> > + *
-> > + * Return -errno on failure, 0 on success
-> > + */
-> > +static inline int hsi_start_tx(struct hsi_client *cl)
-> > +{
-> > +       if (!hsi_port_claimed(cl))
-> > +               return -EACCES;
-> > +       return hsi_get_port(cl)->start_tx(cl);
-> > +}
-> > +
-> > +/**
-> > + * hsi_stop_tx - Signal the port that the client no longer wants to
-> >  transmit + * @cl: Pointer to the HSI client
-> > + *
-> > + * Return -errno on failure, 0 on success
-> > + */
-> > +static inline int hsi_stop_tx(struct hsi_client *cl)
-> > +{
-> > +       if (!hsi_port_claimed(cl))
-> > +               return -EACCES;
-> > +       return hsi_get_port(cl)->stop_tx(cl);
-> > +}
-> 
-> As I can see, these two I/F functions are the way an HSI protocol layer can 
-> play with Tx_wake lines if it has to, right? 
+On Tue, May 18, 2010 at 10:47:57AM +0300, Tomi Valkeinen wrote:
+> Allocating without ioremapping... dma_alloc_* always ioremaps the
+> allocated area, even though it's never used (in some cases).
 
-Right
+What do you mean by that?  Are you suggesting that something does
+phys_to_virt() on the returned DMA pointer?
 
-> I suppose it allows more flexibility with regards to 3/4 wires HSI flavors 
-> management and avoids additional callbacks to Tx_wake related events?
-
-Yep
-
-Br,
-Carlos Chinea
+Why is it that OMAP seems to do all these _wrong_ things?
