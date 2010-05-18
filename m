@@ -1,37 +1,48 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [alsa-devel] [PATCH 2/4] OMAP: mcbsp - add smart idle configuration API
-Date: Tue, 18 May 2010 16:01:47 -0700
-Message-ID: <87tyq4lspw.fsf@deeprootsystems.com>
-References: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
-	<1274213594-26554-3-git-send-email-lrg@slimlogic.co.uk>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: [UPDATE] [RFC] [PATCH 0/4] OMAP4 Keyboard Controller Support
+Date: Tue, 18 May 2010 18:13:48 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E22D52D@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:47405 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752039Ab0ERXBu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 19:01:50 -0400
-Received: by pva18 with SMTP id 18so671749pva.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 16:01:49 -0700 (PDT)
-In-Reply-To: <1274213594-26554-3-git-send-email-lrg@slimlogic.co.uk> (Liam Girdwood's message of "Tue\, 18 May 2010 21\:13\:12 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-Liam Girdwood <lrg@slimlogic.co.uk> writes:
+Hi,
 
-> Add a small API to configure McBSP smart idle modes
-> to conserve power.
+Here you have the list of changes done so far for OMAP4 Keyboard
+Controller Support v2. I'll appreciate if someone else has more comments
+to share.
 
-Would be useful here to explain why client drivers need to change
-idle modes.
+Vikram.Pandita.01    | struct omap_device global
+Govindraj.Raja.01    | Extra space between interrupt and probe functions
 
-Also, this patch is telling me that it's time the McBSP is converted
-over to the omap_hwmod/omap_device infrastructure where this type
-of functionality would already be provided.
+---
 
-Not necesssarily a reason to prevent this patch for now, but this
-will all need to be changed when converted to hwmod.
+[PATCH v2 1/4] Input: matrix_keypad: Device driver interfaces
+[PATCH v2 2/4] OMAP4: Keyboard controller support
+[PATCH v2 3/4] OMAP4: Keyboard board support
+[PATCH v2 4/4] OMAP4: Keyboard kernel configuration
 
-Kevin
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28334.html
+https://patchwork.kernel.org/patch/99429/
+https://patchwork.kernel.org/patch/99430/
+https://patchwork.kernel.org/patch/99432/
+https://patchwork.kernel.org/patch/99434/
+
+--
+
+ arch/arm/configs/omap_4430sdp_defconfig |    3
+ arch/arm/mach-omap2/board-4430sdp.c     |  157 ++++++++++++++++
+ drivers/input/keyboard/Kconfig          |   10 +
+ drivers/input/keyboard/Makefile         |    1
+ drivers/input/keyboard/omap4-keypad.c   |  304 ++++++++++++++++++++++++++++++++
+ include/linux/input/matrix_keypad.h     |    7
+ 6 files changed, 481 insertions(+), 1 deletion(-)
+
+Best Regards
+Abraham
+
