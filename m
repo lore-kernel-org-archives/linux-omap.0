@@ -1,239 +1,216 @@
-From: Charulatha V <charu@ti.com>
-Subject: [PATCH 04/11] OMAP: GPIO: Introduce support for OMAP16xx chip GPIO init
-Date: Tue, 18 May 2010 20:20:53 +0530
-Message-ID: <1274194260-16401-5-git-send-email-charu@ti.com>
-References: <1274194260-16401-1-git-send-email-charu@ti.com>
- <1274194260-16401-2-git-send-email-charu@ti.com>
- <1274194260-16401-3-git-send-email-charu@ti.com>
- <1274194260-16401-4-git-send-email-charu@ti.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+Date: Tue, 18 May 2010 21:10:27 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703051ADC7D@dbde02.ent.ti.com>
+References: <1273745535-27139-1-git-send-email-shweta.gulati@ti.com>
+ <87hbmajrgh.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35802 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42568 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757883Ab0EROty (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 May 2010 10:49:54 -0400
-In-Reply-To: <1274194260-16401-4-git-send-email-charu@ti.com>
+	id S1756406Ab0ERPke convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 11:40:34 -0400
+In-Reply-To: <87hbmajrgh.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: rnayak@ti.com, paul@pwsan.com, tony@atomide.com, khilman@deeprootsystems.com, Charulatha V <charu@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Gulati, Shweta" <shweta.gulati@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch adds support for handling OMAP16xx specific gpio_init
-by providing platform device data and doing device registration.
+Kevin,
 
-Signed-off-by: Charulatha V <charu@ti.com>
----
- arch/arm/mach-omap1/gpio16xx.c |  202 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 202 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap1/gpio16xx.c
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Friday, May 14, 2010 11:28 PM
+> To: Gulati, Shweta
+> Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath
+> Subject: Re: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+> 
+> shweta gulati <shweta.gulati@ti.com> writes:
+> 
+> > From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> >
+> > OMAP3430/3630 has a Silicon bug because of which SDRC is
+> > released from IDLE even before Core DPLL has locked. This leads
+> > to undefined behaviour of SDRC DLL.
+> >
+> > This patch has workaround for the same.
+> >
+> > Description of WA for 3430:
+> > Initialization:
+> > 	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3
+> > 	is always locked.
+> >
+> > Before CORE Voltage Domain (VDD2) Sleep Transition to RETENTION or OFF mode:
+> > 1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP2 Frequency
+> > 	(by changing M2 Divider value). This is increasing the period duration of
+> > 	one L3 clock cycle.
+> > 	o	In case of CORE is at OPP3 (166MHz@1.15V):
+> > 	"	Lower the frequency to 83MHz.
+> >
+> > 	o	In case of CORE is at OPP2 (83MHz@1.05V):
+> > 	"	Keep the frequency as it is (83MHz).
+> >
+> > 2.	Increase CORE Voltage to 1.2V. This is reducing the timing duration of the
+> > 	critical path signal which will now fit to one L3 clock cycle.
+> >
+> > 3.	Enable DPLL3 Automatic mode. This will ensure proper transition to
+> > 	RETENTION or OFF mode.
+> >
+> > After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
+> > 1.	Disable DPLL3 Automatic mode.
+> > 2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
+> >
+> > Description of WA for 3630:
+> > Initialization:
+> > 	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3 is
+> always locked.
+> >
+> > Before CORE Voltage Domain(VDD2) Sleep Transition to RETENTION or OFF mode:
+> > 1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP50 Frequency
+> > 	(by changing M2 Divider value) and set VDD2 Voltage for OPP100.
+> > 	This is increasing the period duration of one L3 clock cycle and reducing
+> > 	the timing duration of the critical path signal which will now fit to one
+> > 	L3 clock cycle.
+> > 	o	In case of CORE is at OPP100 (L3=200MHz, VDD2=1.1375V):
+> > 		"	Lower the frequency to 100MHz.
+> > 		"	Keep the voltage as it is (1.1375V).
+> >
+> > 	o	In case of CORE is at OPP50 (L3=100MHz, VDD2=0.93V):
+> > 		"	Keep the frequency as it is (100MHz).
+> > 		"	Increase the voltage to 1.1375V.
+> >
+> > 2.	Enable DPLL3 Automatic mode. This will ensure proper transition to
+> > 	RETENTION or OFF mode.
+> >
+> > After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
+> > 1.	Disable DPLL3 Automatic mode.
+> > 2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
+> >
+> > Also OSWR should not be attempted if DPLL3 has locked. This should be done as
+> part of OSWR patch series.
+> >
+> > Patch tested on 3430SDP and 3630 ZOOM3.
+> >
+> > Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> > Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+> > ---
+> 
+> This patch appears to depend on Thara's SR series.  Please state
+> dependencies here.
+OK
+> 
+> 
+> >
+> > Index: linux-omap-pm/arch/arm/mach-omap2/pm.h
+> >
+> =====================================================
+> ==============
+> > --- linux-omap-pm.orig/arch/arm/mach-omap2/pm.h
+> > +++ linux-omap-pm/arch/arm/mach-omap2/pm.h
+> > @@ -60,6 +60,10 @@ struct prm_setup_vc {
+> >
+> >  extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+> >  extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+> > +extern int program_vdd2_opp_3430(void);
+> > +extern int reprogram_vdd2_opp_3430(int restore);
+> > +extern int program_vdd2_opp_3630(void);
+> > +extern int reprogram_vdd2_opp_3630(int restore);
+> >
+> >  extern u32 wakeup_timer_seconds;
+> >  extern struct omap_dm_timer *gptimer_wakeup;
+> > Index: linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
+> >
+> =====================================================
+> ==============
+> > --- linux-omap-pm.orig/arch/arm/mach-omap2/pm34xx.c
+> > +++ linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
+> > @@ -56,6 +56,7 @@
+> >  #include "sdrc.h"
+> >  #include "omap3-opp.h"
+> >
+> > +
+> 
+> stray whitespace change
+> 
+> >  #ifdef CONFIG_SUSPEND
+> >  static suspend_state_t suspend_state = PM_SUSPEND_ON;
+> >  static inline bool is_suspending(void)
+> > @@ -363,6 +364,8 @@ void omap_sram_idle(void)
+> >  	u32 sdrc_pwr = 0;
+> >  	int per_state_modified = 0;
+> >  	unsigned int start =0, end = 0;
+> > +	u32 fclk_status = 0;
+> > +	int restore = 1;
+> >  	if (!_omap_sram_idle)
+> >  		return;
+> >
+> > @@ -415,15 +418,6 @@ void omap_sram_idle(void)
+> >  	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
+> >  		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+> >
+> > -	/*
+> > -	 * Disable smartreflex before entering WFI.
+> > -	 * Only needed if we are going to enter retention or off.
+> > -	 */
+> > -	if (mpu_next_state <= PWRDM_POWER_RET)
+> > -		omap_smartreflex_disable(VDD1, 1);
+> > -	if (core_next_state <= PWRDM_POWER_RET)
+> > -		omap_smartreflex_disable(VDD2, 1);
+> > -
+> >  	/* CORE */
+> >  	if (core_next_state < PWRDM_POWER_ON) {
+> >  		omap_uart_prepare_idle(0);
+> > @@ -447,6 +441,31 @@ void omap_sram_idle(void)
+> >  		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
+> >  		omap3_enable_io_chain();
+> >  	}
+> > +	/*
+> > +	 * Disable smartreflex before entering WFI.
+> > +	 * Only needed if we are going to enter retention or off.
+> > +	 */
+> > +	if (mpu_next_state <= PWRDM_POWER_RET)
+> > +		omap_smartreflex_disable(VDD1, 1);
+> > +	if (core_next_state <= PWRDM_POWER_RET) {
+> > +		fclk_status = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN) |
+> > +			cm_read_mod_reg(CORE_MOD, CM_FCLKEN1) |
+> > +			cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3) |
+> > +			cm_read_mod_reg(OMAP3430_DSS_MOD, CM_FCLKEN) |
+> > +			cm_read_mod_reg(OMAP3430_CAM_MOD, CM_FCLKEN) |
+> > +			cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_FCLKEN) |
+> > +			cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+> CM_FCLKEN);
+> 
+> Doing this fclk checking here has already been rejected and Tero has
+> solved it in a different way in the CPUidle logic.  Please see the series
+> beginning here: https://patchwork.kernel.org/patch/85268/
+OK, will incorporate this in next version.
 
-diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
-new file mode 100644
-index 0000000..07febcc
---- /dev/null
-+++ b/arch/arm/mach-omap1/gpio16xx.c
-@@ -0,0 +1,202 @@
-+/*
-+ * gpio16xx.c - OMAP16XX-specific gpio code
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ *
-+ * Author:
-+ *	Charulatha V <charu@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/gpio.h>
-+
-+static struct omap_gpio_dev_attr omap16xx_gpio_attr = {
-+	.gpio_bank_count	= 5,
-+	.gpio_bank_bits		= 16,
-+	.arm_gpio_ck_flag	= false,
-+};
-+
-+/*
-+ * OMAP16XX MPU GPIO interface data
-+ */
-+static struct __initdata resource omap16xx_mpu_gpio_resources[] = {
-+	{
-+		.start	= OMAP1_MPUIO_VBASE,
-+		.end	= OMAP1_MPUIO_VBASE + SZ_2K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= INT_MPUIO,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct __initdata omap_gpio_platform_data omap16xx_mpu_gpio_config = {
-+	.virtual_irq_start	= IH_MPUIO_BASE,
-+	.method			= METHOD_MPUIO,
-+	.gpio_attr		= &omap16xx_gpio_attr,
-+};
-+
-+static struct __initdata platform_device omap16xx_mpu_gpio = {
-+	.name           = "omap-gpio",
-+	.id             = 0,
-+	.dev            = {
-+		.platform_data = &omap16xx_mpu_gpio_config,
-+	},
-+	.num_resources = ARRAY_SIZE(omap16xx_mpu_gpio_resources),
-+	.resource = omap16xx_mpu_gpio_resources,
-+};
-+
-+/*
-+ * OMAP16XX GPIO1 interface data
-+ */
-+static struct __initdata resource omap16xx_gpio1_resources[] = {
-+	{
-+		.start	= OMAP1610_GPIO1_BASE,
-+		.end	= OMAP1610_GPIO1_BASE + SZ_2K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= INT_GPIO_BANK1,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct __initdata omap_gpio_platform_data omap16xx_gpio1_config = {
-+	.virtual_irq_start	= IH_GPIO_BASE,
-+	.method			= METHOD_GPIO_1610,
-+	.gpio_attr		= &omap16xx_gpio_attr,
-+};
-+
-+static struct __initdata platform_device omap16xx_gpio1 = {
-+	.name           = "omap-gpio",
-+	.id             = 1,
-+	.dev            = {
-+		.platform_data = &omap16xx_gpio1_config,
-+	},
-+	.num_resources = ARRAY_SIZE(omap16xx_gpio1_resources),
-+	.resource = omap16xx_gpio1_resources,
-+};
-+
-+/*
-+ * OMAP16XX GPIO2 interface data
-+ */
-+static struct __initdata resource omap16xx_gpio2_resources[] = {
-+	{
-+		.start	= OMAP1610_GPIO2_BASE,
-+		.end	= OMAP1610_GPIO2_BASE + SZ_2K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= INT_1610_GPIO_BANK2,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct __initdata omap_gpio_platform_data omap16xx_gpio2_config = {
-+	.virtual_irq_start	= IH_GPIO_BASE + 16,
-+	.method			= METHOD_GPIO_1610,
-+	.gpio_attr		= &omap16xx_gpio_attr,
-+};
-+
-+static struct __initdata platform_device omap16xx_gpio2 = {
-+	.name           = "omap-gpio",
-+	.id             = 2,
-+	.dev            = {
-+		.platform_data = &omap16xx_gpio2_config,
-+	},
-+	.num_resources = ARRAY_SIZE(omap16xx_gpio2_resources),
-+	.resource = omap16xx_gpio2_resources,
-+};
-+
-+/*
-+ * OMAP16XX GPIO3 interface data
-+ */
-+static struct __initdata resource omap16xx_gpio3_resources[] = {
-+	{
-+		.start	= OMAP1610_GPIO3_BASE,
-+		.end	= OMAP1610_GPIO3_BASE + SZ_2K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= INT_1610_GPIO_BANK3,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct __initdata omap_gpio_platform_data omap16xx_gpio3_config = {
-+	.virtual_irq_start	= IH_GPIO_BASE + 32,
-+	.method			= METHOD_GPIO_1610,
-+	.gpio_attr		= &omap16xx_gpio_attr,
-+};
-+
-+static struct __initdata platform_device omap16xx_gpio3 = {
-+	.name           = "omap-gpio",
-+	.id             = 3,
-+	.dev            = {
-+		.platform_data = &omap16xx_gpio3_config,
-+	},
-+	.num_resources = ARRAY_SIZE(omap16xx_gpio3_resources),
-+	.resource = omap16xx_gpio3_resources,
-+};
-+
-+/*
-+ * OMAP16XX GPIO4 interface data
-+  */
-+static struct __initdata resource omap16xx_gpio4_resources[] = {
-+	{
-+		.start	= OMAP1610_GPIO4_BASE,
-+		.end	= OMAP1610_GPIO4_BASE + SZ_2K - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= INT_1610_GPIO_BANK4,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct __initdata omap_gpio_platform_data omap16xx_gpio4_config = {
-+	.virtual_irq_start	= IH_GPIO_BASE + 48,
-+	.method			= METHOD_GPIO_1610,
-+	.gpio_attr		= &omap16xx_gpio_attr,
-+};
-+
-+static struct __initdata platform_device omap16xx_gpio4 = {
-+	.name           = "omap-gpio",
-+	.id             = 4,
-+	.dev            = {
-+		.platform_data = &omap16xx_gpio4_config,
-+	},
-+	.num_resources = ARRAY_SIZE(omap16xx_gpio4_resources),
-+	.resource = omap16xx_gpio4_resources,
-+};
-+
-+static struct __initdata platform_device * omap16xx_gpio_dev[] = {
-+	&omap16xx_mpu_gpio,
-+	&omap16xx_gpio1,
-+	&omap16xx_gpio2,
-+	&omap16xx_gpio3,
-+	&omap16xx_gpio4,
-+};
-+
-+/*
-+ * omap16xx_gpio_init needs to be done before
-+ * machine_init functions access gpio APIs.
-+ * Hence omap16xx_gpio_init is a postcore_initcall.
-+ */
-+static int __init omap16xx_gpio_init(void)
-+{
-+	int i;
-+
-+	if (!cpu_is_omap16xx())
-+		return -EINVAL;
-+
-+	for (i = 0; i < sizeof(omap16xx_gpio_dev); i++)
-+			platform_device_register(omap16xx_gpio_dev[i]);
-+
-+	return 0;
-+}
-+postcore_initcall(omap16xx_gpio_init);
--- 
-1.6.3.3
+> 
+> > +		if (!fclk_status) {
+> > +			omap_smartreflex_disable(VDD2, 1);
+> > +			if (cpu_is_omap3630())
+> > +				program_vdd2_opp_3630();
+> > +			else if (cpu_is_omap3430())
+> > +				program_vdd2_opp_3430();
+> 
+> Please don't use cpu_is_* checks for errata.  Use errata flags.
+OK
+> 
+> > +			cm_rmw_mod_reg_bits(OMAP3430_AUTO_CORE_DPLL_MASK,
+> > +					0x1, PLL_MOD, CM_AUTOIDLE);
+> > +		}
+> > +	}
+> > +
+> 
+> All that being said, why is the voltage level being programmed here?
+> 
+> It seems to me that all of this errata handling should be
+> self-contained in the voltage layer.
+I am not sure if entire errata can be contained in voltage layer. This is because we are performing DVFS operation in CPU Idle path which involves both Frequency and Voltage scaling. So currently this has been done in resource34xx.c where DVFS is implemented. 
 
+Vishwa
+> 
+> Kevin
