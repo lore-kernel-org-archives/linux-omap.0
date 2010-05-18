@@ -1,408 +1,73 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 11/23] OMAP: DSS2: Taal: add mutex to protect panel data
-Date: Tue, 18 May 2010 15:35:02 +0300
-Message-ID: <1274186114-26951-12-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 16/23] OMAP: RX51: Add Touch Controller in SPI board info
+Date: Tue, 18 May 2010 15:35:07 +0300
+Message-ID: <1274186114-26951-17-git-send-email-tomi.valkeinen@nokia.com>
 References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53396 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757511Ab0ERMgM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:12 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:62518 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757511Ab0ERMgS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:18 -0400
 In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Roger Quadros <roger.quadros@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
+From: Roger Quadros <roger.quadros@nokia.com>
+
+The Touch controller and LCD Panel share the same SPI bus 1.
+So, we need to define the touch controller in the SPI board info
+else, the SPI bus will be contended due to invalid state of
+Touch controller's Chip Select thus preventing the LCD panel
+from working.
+
+Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- drivers/video/omap2/displays/panel-taal.c |  140 ++++++++++++++++++++++++-----
- 1 files changed, 119 insertions(+), 21 deletions(-)
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 4f3988a..1799096 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -31,6 +31,7 @@
- #include <linux/completion.h>
- #include <linux/workqueue.h>
- #include <linux/slab.h>
-+#include <linux/mutex.h>
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index f404537..d27a4ef 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -46,6 +46,7 @@
+ enum {
+ 	RX51_SPI_WL1251,
+ 	RX51_SPI_MIPID,		/* LCD panel */
++	RX51_SPI_TSC2005,	/* Touch Controller */
+ };
  
- #include <plat/display.h>
+ static struct wl12xx_platform_data wl1251_pdata;
+@@ -60,6 +61,11 @@ static struct omap2_mcspi_device_config mipid_mcspi_config = {
+ 	.single_channel	= 1,
+ };
  
-@@ -67,6 +68,8 @@
- static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable);
- 
- struct taal_data {
-+	struct mutex lock;
++static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,
++};
 +
- 	struct backlight_device *bldev;
- 
- 	unsigned long	hw_guard_end;	/* next value of jiffies when we can
-@@ -510,6 +513,8 @@ static int taal_probe(struct omap_dss_device *dssdev)
- 	}
- 	td->dssdev = dssdev;
- 
-+	mutex_init(&td->lock);
-+
- 	td->esd_wq = create_singlethread_workqueue("taal_esd");
- 	if (td->esd_wq == NULL) {
- 		dev_err(&dssdev->dev, "can't create ESD workqueue\n");
-@@ -733,54 +738,96 @@ static void taal_power_off(struct omap_dss_device *dssdev)
- 
- static int taal_enable(struct omap_dss_device *dssdev)
- {
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
- 	int r;
-+
- 	dev_dbg(&dssdev->dev, "enable\n");
- 
--	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED)
--		return -EINVAL;
-+	mutex_lock(&td->lock);
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
-+		r = -EINVAL;
-+		goto err;
-+	}
- 
- 	r = taal_power_on(dssdev);
- 	if (r)
--		return r;
-+		goto err;
- 
- 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
- 
-+	mutex_unlock(&td->lock);
-+
-+	return 0;
-+err:
-+	dev_dbg(&dssdev->dev, "enable failed\n");
-+	mutex_unlock(&td->lock);
- 	return r;
- }
- 
- static void taal_disable(struct omap_dss_device *dssdev)
- {
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+
- 	dev_dbg(&dssdev->dev, "disable\n");
- 
-+	mutex_lock(&td->lock);
-+
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
- 		taal_power_off(dssdev);
- 
- 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+
-+	mutex_unlock(&td->lock);
- }
- 
- static int taal_suspend(struct omap_dss_device *dssdev)
- {
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	int r;
-+
- 	dev_dbg(&dssdev->dev, "suspend\n");
- 
--	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
--		return -EINVAL;
-+	mutex_lock(&td->lock);
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
-+		r = -EINVAL;
-+		goto err;
-+	}
- 
- 	taal_power_off(dssdev);
- 	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
- 
-+	mutex_unlock(&td->lock);
-+
- 	return 0;
-+err:
-+	mutex_unlock(&td->lock);
-+	return r;
- }
- 
- static int taal_resume(struct omap_dss_device *dssdev)
- {
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
- 	int r;
-+
- 	dev_dbg(&dssdev->dev, "resume\n");
- 
--	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
--		return -EINVAL;
-+	mutex_lock(&td->lock);
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED) {
-+		r = -EINVAL;
-+		goto err;
-+	}
- 
- 	r = taal_power_on(dssdev);
- 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	mutex_unlock(&td->lock);
-+
-+	return r;
-+err:
-+	mutex_unlock(&td->lock);
- 	return r;
- }
- 
-@@ -799,6 +846,7 @@ static int taal_update(struct omap_dss_device *dssdev,
- 
- 	dev_dbg(&dssdev->dev, "update %d, %d, %d x %d\n", x, y, w, h);
- 
-+	mutex_lock(&td->lock);
- 	dsi_bus_lock();
- 
- 	if (!td->enabled) {
-@@ -820,18 +868,24 @@ static int taal_update(struct omap_dss_device *dssdev,
- 		goto err;
- 
- 	/* note: no bus_unlock here. unlock is in framedone_cb */
-+	mutex_unlock(&td->lock);
- 	return 0;
- err:
- 	dsi_bus_unlock();
-+	mutex_unlock(&td->lock);
- 	return r;
- }
- 
- static int taal_sync(struct omap_dss_device *dssdev)
- {
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+
- 	dev_dbg(&dssdev->dev, "sync\n");
- 
-+	mutex_lock(&td->lock);
- 	dsi_bus_lock();
- 	dsi_bus_unlock();
-+	mutex_unlock(&td->lock);
- 
- 	dev_dbg(&dssdev->dev, "sync done\n");
- 
-@@ -861,13 +915,16 @@ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- 
- static int taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- {
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
- 	int r;
- 
-+	mutex_lock(&td->lock);
- 	dsi_bus_lock();
- 
- 	r = _taal_enable_te(dssdev, enable);
- 
- 	dsi_bus_unlock();
-+	mutex_unlock(&td->lock);
- 
- 	return r;
- }
-@@ -875,7 +932,13 @@ static int taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- static int taal_get_te(struct omap_dss_device *dssdev)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	return td->te_enabled;
-+	int r;
-+
-+	mutex_lock(&td->lock);
-+	r = td->te_enabled;
-+	mutex_unlock(&td->lock);
-+
-+	return r;
- }
- 
- static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
-@@ -885,6 +948,7 @@ static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
- 
- 	dev_dbg(&dssdev->dev, "rotate %d\n", rotate);
- 
-+	mutex_lock(&td->lock);
- 	dsi_bus_lock();
- 
- 	if (td->enabled) {
-@@ -896,16 +960,24 @@ static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
- 	td->rotate = rotate;
- 
- 	dsi_bus_unlock();
-+	mutex_unlock(&td->lock);
- 	return 0;
- err:
- 	dsi_bus_unlock();
-+	mutex_unlock(&td->lock);
- 	return r;
- }
- 
- static u8 taal_get_rotate(struct omap_dss_device *dssdev)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	return td->rotate;
-+	int r;
-+
-+	mutex_lock(&td->lock);
-+	r = td->rotate;
-+	mutex_unlock(&td->lock);
-+
-+	return r;
- }
- 
- static int taal_mirror(struct omap_dss_device *dssdev, bool enable)
-@@ -915,6 +987,7 @@ static int taal_mirror(struct omap_dss_device *dssdev, bool enable)
- 
- 	dev_dbg(&dssdev->dev, "mirror %d\n", enable);
- 
-+	mutex_lock(&td->lock);
- 	dsi_bus_lock();
- 	if (td->enabled) {
- 		r = taal_set_addr_mode(td->rotate, enable);
-@@ -925,23 +998,33 @@ static int taal_mirror(struct omap_dss_device *dssdev, bool enable)
- 	td->mirror = enable;
- 
- 	dsi_bus_unlock();
-+	mutex_unlock(&td->lock);
- 	return 0;
- err:
- 	dsi_bus_unlock();
-+	mutex_unlock(&td->lock);
- 	return r;
- }
- 
- static bool taal_get_mirror(struct omap_dss_device *dssdev)
- {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
--	return td->mirror;
-+	int r;
-+
-+	mutex_lock(&td->lock);
-+	r = td->mirror;
-+	mutex_unlock(&td->lock);
-+
-+	return r;
- }
- 
- static int taal_run_test(struct omap_dss_device *dssdev, int test_num)
- {
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
- 	u8 id1, id2, id3;
- 	int r;
- 
-+	mutex_lock(&td->lock);
- 	dsi_bus_lock();
- 
- 	r = taal_dcs_read_1(DCS_GET_ID1, &id1);
-@@ -955,9 +1038,11 @@ static int taal_run_test(struct omap_dss_device *dssdev, int test_num)
- 		goto err;
- 
- 	dsi_bus_unlock();
-+	mutex_unlock(&td->lock);
- 	return 0;
- err:
- 	dsi_bus_unlock();
-+	mutex_unlock(&td->lock);
- 	return r;
- }
- 
-@@ -971,12 +1056,16 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 	unsigned buf_used = 0;
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
- 
--	if (!td->enabled)
--		return -ENODEV;
--
- 	if (size < w * h * 3)
- 		return -ENOMEM;
- 
-+	mutex_lock(&td->lock);
-+
-+	if (!td->enabled) {
-+		r = -ENODEV;
-+		goto err1;
-+	}
-+
- 	size = min(w * h * 3,
- 			dssdev->panel.timings.x_res *
- 			dssdev->panel.timings.y_res * 3);
-@@ -995,7 +1084,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 
- 	r = dsi_vc_set_max_rx_packet_size(TCH, plen);
- 	if (r)
--		goto err0;
-+		goto err2;
- 
- 	while (buf_used < size) {
- 		u8 dcs_cmd = first ? 0x2e : 0x3e;
-@@ -1006,7 +1095,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 
- 		if (r < 0) {
- 			dev_err(&dssdev->dev, "read error\n");
--			goto err;
-+			goto err3;
- 		}
- 
- 		buf_used += r;
-@@ -1020,16 +1109,18 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 			dev_err(&dssdev->dev, "signal pending, "
- 					"aborting memory read\n");
- 			r = -ERESTARTSYS;
--			goto err;
-+			goto err3;
- 		}
- 	}
- 
- 	r = buf_used;
- 
--err:
-+err3:
- 	dsi_vc_set_max_rx_packet_size(TCH, 1);
--err0:
-+err2:
- 	dsi_bus_unlock();
-+err1:
-+	mutex_unlock(&td->lock);
- 	return r;
- }
- 
-@@ -1041,8 +1132,12 @@ static void taal_esd_work(struct work_struct *work)
- 	u8 state1, state2;
- 	int r;
- 
--	if (!td->enabled)
-+	mutex_lock(&td->lock);
-+
-+	if (!td->enabled) {
-+		mutex_unlock(&td->lock);
- 		return;
-+	}
- 
- 	dsi_bus_lock();
- 
-@@ -1084,16 +1179,19 @@ static void taal_esd_work(struct work_struct *work)
- 
- 	queue_delayed_work(td->esd_wq, &td->esd_work, TAAL_ESD_CHECK_PERIOD);
- 
-+	mutex_unlock(&td->lock);
- 	return;
- err:
- 	dev_err(&dssdev->dev, "performing LCD reset\n");
- 
--	taal_disable(dssdev);
--	taal_enable(dssdev);
-+	taal_power_off(dssdev);
-+	taal_power_on(dssdev);
- 
- 	dsi_bus_unlock();
- 
- 	queue_delayed_work(td->esd_wq, &td->esd_work, TAAL_ESD_CHECK_PERIOD);
-+
-+	mutex_unlock(&td->lock);
- }
- 
- static int taal_set_update_mode(struct omap_dss_device *dssdev,
+ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 	[RX51_SPI_WL1251] = {
+ 		.modalias		= "wl1251",
+@@ -77,6 +83,15 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 		.max_speed_hz		= 6000000,
+ 		.controller_data	= &mipid_mcspi_config,
+ 	},
++	[RX51_SPI_TSC2005] = {
++		.modalias		= "tsc2005",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		/* .irq = OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),*/
++		.max_speed_hz		= 6000000,
++		.controller_data	= &tsc2005_mcspi_config,
++		/* .platform_data = &tsc2005_config,*/
++	},
+ };
+ 
+ #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
 -- 
 1.7.0.4
 
