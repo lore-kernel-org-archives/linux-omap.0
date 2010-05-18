@@ -1,72 +1,103 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH 2/2] omap: rx51: Add supplies and data for the tpa6130a2 headphone amplifier
-Date: Tue, 18 May 2010 14:06:01 +0300
-Message-ID: <1274180761-14221-2-git-send-email-jhnikula@gmail.com>
-References: <1274180761-14221-1-git-send-email-jhnikula@gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
+Date: Tue, 18 May 2010 14:14:02 +0300
+Message-ID: <AANLkTil9tD1EAn-8ldMmMpLU8osiiwaGf1hF19VO0Q7R@mail.gmail.com>
+References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
+	<g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
+	<r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
+	<AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
+	<AANLkTindMySAOe6UG_hRoCvjIuPZdyg2nNe-Gub9pwau@mail.gmail.com>
+	<AANLkTikLfEQB0mtbOXIrxTj68LoY9EcSn86su6OJW8ev@mail.gmail.com>
+	<AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
+	<AANLkTimwAMbz8kSSW5OvQHvfskvM9auqYRq13GO2hBv_@mail.gmail.com>
+	<AANLkTingzOiLETDW9gCNK1W6OVrWZx0ltREJVDYXFcMt@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:56926 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755560Ab0ERLEP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 07:04:15 -0400
-Received: by wyb39 with SMTP id 39so1203530wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 04:04:14 -0700 (PDT)
-In-Reply-To: <1274180761-14221-1-git-send-email-jhnikula@gmail.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:55287 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756552Ab0ERLOX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 07:14:23 -0400
+Received: by gyg13 with SMTP id 13so2707034gyg.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 04:14:22 -0700 (PDT)
+In-Reply-To: <AANLkTingzOiLETDW9gCNK1W6OVrWZx0ltREJVDYXFcMt@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
----
-This is build and boot safe but required if wanting to add support for
-headphones in upcoming sound/soc/omap/rx51.c.
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+On Tue, May 18, 2010 at 2:02 PM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Tue, May 18, 2010 at 11:05 AM, Ohad Ben-Cohen <ohad@wizery.com> wr=
+ote:
+>> On Mon, May 17, 2010 at 2:51 AM, Felipe Contreras
+>> <felipe.contreras@gmail.com> wrote:
+>>> So currently (v2.6.33), before sending a read-olny buffer (TO_DEVIC=
+E),
+>>> we do dmac_flush_range (should be clean, but whatever) and before
+>>> sending a write-only (FROM_DEVICE), we do dmac_inv_range.
+>>>
+>>> On v2.6.33 the same could be achieved with only dma_map_* functions=
+,
+>>> but on v2.6.34 that's not the case.
+>>
+>> Sorry, I didn't completely follow you here, let's take a look at the
+>> mapping code:
+>>
+>> ENTRY(v7_dma_map_area)
+>> =A0 =A0 =A0 =A0add =A0 =A0 r1, r1, r0
+>> =A0 =A0 =A0 =A0teq =A0 =A0 r2, #DMA_FROM_DEVICE
+>> =A0 =A0 =A0 =A0beq =A0 =A0 v7_dma_inv_range
+>> =A0 =A0 =A0 =A0b =A0 =A0 =A0 v7_dma_clean_range
+>> ENDPROC(v7_dma_map_area)
+>>
+>> DMA_FROM_DEVICE will get the cache invalidated and then cleaned,
+>> and DMA_BIDIRECTIONAL/DMA_TO_DEVICE will get the cache only
+>> cleaned.
+>
+> No, when DMA_FROM_DEVICE, only v7_dma_inv_range is executed (see the
+> mov pc, lr at the end).
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index ead7ee1..2376ef7 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -33,6 +33,8 @@
- #include <plat/onenand.h>
- #include <plat/gpmc-smc91x.h>
- 
-+#include <sound/tpa6130a2-plat.h>
-+
- #include "mux.h"
- #include "hsmmc.h"
- 
-@@ -285,6 +287,9 @@ static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
- 	/* tlv320aic3x analog supplies */
- 	REGULATOR_SUPPLY("AVDD", "2-0018"),
- 	REGULATOR_SUPPLY("DRVDD", "2-0018"),
-+	/* tpa6130a2 */
-+	REGULATOR_SUPPLY("CPVSS", "2-0060"),
-+	REGULATOR_SUPPLY("Vdd", "2-0060"),
- 	/* Keep vmmc as last item. It is not iterated for newer boards */
- 	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
- };
-@@ -652,10 +657,19 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_1[] = {
- 	},
- };
- 
-+static struct tpa6130a2_platform_data rx51_tpa6130a2_data __initdata = {
-+	.id			= TPA6130A2,
-+	.power_gpio		= 98,
-+};
-+
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- 	{
- 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
- 	},
-+	{
-+		I2C_BOARD_INFO("tpa6130a2", 0x60),
-+		.platform_data = &rx51_tpa6130a2_data,
-+	}
- };
- 
- static int __init rx51_i2c_init(void)
--- 
-1.7.1
+Oh, sure. thanks for pointing that out.
 
+>> Unfortunately I don't have a setup right now to test this, but the c=
+ode
+>> seems to be ok for our needs, don't you think ?
+>
+> But yeah, actually that fits our needs; calling the dma_map only,
+> while still wrong, will give us the same behavior we have right now
+> (v2.6.33).
+>
+
+Great, so are you ok with this patchset proposal ?
+
+I'll just add support for the VM_IO path you mentioned.
+
+Thanks,
+Ohad.
+
+> So my table was wrong, it's actually:
+>
+> in: begin BIDI:
+> =A0 =A0 =A0 dma_clean_range
+>
+> out: begin FROM_DEV:
+> =A0 =A0 =A0 dma_inv_range
+>
+> out: end FROM_DEV:
+> =A0 =A0 =A0 dma_inv_range
+>
+> in: end BIDI:
+> =A0 =A0 =A0 dma_inv_range
+>
+> Cheers.
+>
+> --
+> Felipe Contreras
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
