@@ -1,89 +1,72 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/3 v2] musb: AM35x: Workaround for fifo read issue
-Date: Tue, 18 May 2010 17:39:46 +0530
-Message-ID: <1274184586-28843-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
+Date: Tue, 18 May 2010 15:24:11 +0300
+Message-ID: <AANLkTimmvjlsgRmjn7NokL4RnXU8nRA-D2pbCJwJ3axk@mail.gmail.com>
+References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
+	 <AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
+	 <AANLkTindMySAOe6UG_hRoCvjIuPZdyg2nNe-Gub9pwau@mail.gmail.com>
+	 <AANLkTikLfEQB0mtbOXIrxTj68LoY9EcSn86su6OJW8ev@mail.gmail.com>
+	 <AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
+	 <AANLkTimwAMbz8kSSW5OvQHvfskvM9auqYRq13GO2hBv_@mail.gmail.com>
+	 <AANLkTingzOiLETDW9gCNK1W6OVrWZx0ltREJVDYXFcMt@mail.gmail.com>
+	 <AANLkTil9tD1EAn-8ldMmMpLU8osiiwaGf1hF19VO0Q7R@mail.gmail.com>
+	 <AANLkTil7Mfi15ADpjK7XQn5vDaihjv8fjU2AMzO9swET@mail.gmail.com>
+	 <AANLkTin9Fe4qWoxUKlZvQ7RuTRDTka9QmcP_ATe-jgVa@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:60109 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757162Ab0ERMYN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:24:13 -0400
+Received: by fxm10 with SMTP id 10so1020363fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 05:24:11 -0700 (PDT)
+In-Reply-To: <AANLkTin9Fe4qWoxUKlZvQ7RuTRDTka9QmcP_ATe-jgVa@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-AM35x supports only 32bit read operations so we need to have
-workaround for 8bit and 16bit read operations.
+On Tue, May 18, 2010 at 2:57 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> On Tue, May 18, 2010 at 2:43 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+>>> I'll just add support for the VM_IO path you mentioned.
+>>
+>> Cool. I actually tried your patches to render to the framebuffer, and
+>> everything seemed to work fine. I didn't check for error codes or
+>> anything, so I'm not sure what's going on.
+>
+> How is the framebuffer mmap'ed ?
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
----
-Patch created against linus'tree + all musb patches in Greg's queue 
-Changes from v1:
-	- removed unnecessary parens.
-	- Removed 'memcpy' for 32 bit read loops.
+mmap(NULL, self->mem_info.size, PROT_WRITE, MAP_SHARED, self->overlay_fd, 0);
 
- drivers/usb/musb/am3517.c    |   30 ++++++++++++++++++++++++++++++
- drivers/usb/musb/musb_core.c |    2 ++
- 2 files changed, 32 insertions(+), 0 deletions(-)
+> Can you please tell me more about this scenario ?
+> (applications + drivers involved).
 
-diff --git a/drivers/usb/musb/am3517.c b/drivers/usb/musb/am3517.c
-index b74e664..3299c66 100644
---- a/drivers/usb/musb/am3517.c
-+++ b/drivers/usb/musb/am3517.c
-@@ -515,3 +515,33 @@ void musb_platform_restore_context(struct musb_context_registers
- 	phy_on();
- }
- #endif
-+
-+/* AM35x supports only 32bit read operation */
-+void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
-+{
-+	void __iomem *fifo = hw_ep->fifo;
-+	u32		val;
-+	int		i;
-+
-+	/* Read for 32bit-aligned destination address */
-+	if (likely((0x03 & (unsigned long) dst) == 0) && len >= 4) {
-+		readsl(fifo, dst, len >> 2);
-+		dst += len & ~0x03;
-+		len &= 0x03;
-+	}
-+	/*
-+	 * Now read the rest 1 to 3 bytes or complete length if
-+	 * unaligned address.
-+	 */
-+	if (len > 4) {
-+		for (i = 0; i < (len >> 2); i++) {
-+			*(u32 *) dst = musb_readl(fifo, 0);
-+			dst += 4;
-+		}
-+		len %= 4;
-+	}
-+	if (len > 0) {
-+		val = musb_readl(fifo, 0);
-+		memcpy(dst, &val, len);
-+	}
-+}
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 4093f6d..9c59a8e 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -262,6 +262,7 @@ void musb_write_fifo(struct musb_hw_ep *hw_ep, u16 len, const u8 *src)
- 	}
- }
- 
-+#if !defined(CONFIG_MACH_OMAP3517EVM)
- /*
-  * Unload an endpoint's FIFO
-  */
-@@ -299,6 +300,7 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
- 		readsb(fifo, dst, len);
- 	}
- }
-+#endif
- 
- #endif	/* normal PIO */
- 
+I use gst-omapfb[1], and then it's very easy with a gst-launch command
+(part of GStreamer):
+
+ gst-launch filesrc location=video.avi ! avidemux ! dspvdec ! omapfbsink
+
+> How do I test this scenario ? using the tools you sent me ?
+> Do I have to have a beagle board or will ZOOM do ?
+
+I guess you would need to modify dsp-tools to use framebuffer memory.
+Or you can do what I do and use gst-dsp + gst-omapfb.
+
+I don't have a zoom, so I haven't tried, but gst-dsp should work on
+any platform, and I have tried to make gst-omapfb the same, although
+YMMV.
+
+You could also try these binaries:
+http://people.freedesktop.org/~felipec/dsp/gst-omap-test.tar.bz
+
+Put on any system, on /opt/gst, and then PATH=/opt/gst/bin.
+
+Cheers.
+
+[1] http://github.com/felipec/gst-omapfb
+[2] http://people.freedesktop.org/~felipec/beagle-2.6.32-rc3/
+
 -- 
-1.6.2.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Felipe Contreras
