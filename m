@@ -1,12 +1,12 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: [PATCH 09/14] OMAP2: Devkit8000: Fixing comment about pins used
-Date: Tue, 18 May 2010 14:05:30 +0200
-Message-ID: <1274184335-29322-10-git-send-email-weber@corscience.de>
+Subject: [PATCH 10/14] OMAP2: Devkit8000: Fix whitespace with tab
+Date: Tue, 18 May 2010 14:05:31 +0200
+Message-ID: <1274184335-29322-11-git-send-email-weber@corscience.de>
 References: <1274184335-29322-1-git-send-email-weber@corscience.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62553 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.9]:61865 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757059Ab0ERMGE (ORCPT
+	with ESMTP id S1757316Ab0ERMGE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:06:04 -0400
 In-Reply-To: <1274184335-29322-1-git-send-email-weber@corscience.de>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,26 +14,24 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, Thomas Weber <weber@corscience.de>
 
-Fix the comment about the pins support by the vmmc1 power source.
-
 Signed-off-by: Thomas Weber <weber@corscience.de>
 ---
  arch/arm/mach-omap2/board-devkit8000.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 4a633f8..d8c1d81 100644
+index d8c1d81..637a2c3 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -291,7 +291,7 @@ static struct twl4030_gpio_platform_data devkit8000_gpio_data = {
- static struct regulator_consumer_supply devkit8000_vpll1_supply =
- 	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
+@@ -262,7 +262,7 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
+ 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+ 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
  
--/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
-+/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT7 (20 mA, plus card == max 220 mA) */
- static struct regulator_init_data devkit8000_vmmc1 = {
- 	.constraints = {
- 		.min_uV			= 1850000,
+-        /* gpio + 1 is "LCD_PWREN" (out, active high) */
++	/* gpio + 1 is "LCD_PWREN" (out, active high) */
+ 	devkit8000_lcd_device.reset_gpio = gpio + 1;
+ 	gpio_request(devkit8000_lcd_device.reset_gpio, "LCD_PWREN");
+ 	/* Disable until needed */
 -- 
 1.6.4.4
 
