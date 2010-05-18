@@ -1,73 +1,119 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 16/23] OMAP: RX51: Add Touch Controller in SPI board info
-Date: Tue, 18 May 2010 15:35:07 +0300
-Message-ID: <1274186114-26951-17-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 07/23] OMAP: DSS2: check lock_fb_info() return value
+Date: Tue, 18 May 2010 15:34:58 +0300
+Message-ID: <1274186114-26951-8-git-send-email-tomi.valkeinen@nokia.com>
 References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62518 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757511Ab0ERMgS (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:53432 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757523Ab0ERMgS (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:18 -0400
 In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Roger Quadros <roger.quadros@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Jani Nikula <ext-jani.1.nikula@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-From: Roger Quadros <roger.quadros@nokia.com>
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-The Touch controller and LCD Panel share the same SPI bus 1.
-So, we need to define the touch controller in the SPI board info
-else, the SPI bus will be contended due to invalid state of
-Touch controller's Chip Select thus preventing the LCD panel
-from working.
+Give up if lock_fb_info() fails, following the same convention as other
+lock_fb_info() users.
 
-Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
+Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-ioctl.c |    3 ++-
+ drivers/video/omap2/omapfb/omapfb-sysfs.c |   21 ++++++++++++++-------
+ 2 files changed, 16 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index f404537..d27a4ef 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -46,6 +46,7 @@
- enum {
- 	RX51_SPI_WL1251,
- 	RX51_SPI_MIPID,		/* LCD panel */
-+	RX51_SPI_TSC2005,	/* Touch Controller */
- };
+diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+index 2c0f01c..9c73618 100644
+--- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
++++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+@@ -183,7 +183,8 @@ int omapfb_update_window(struct fb_info *fbi,
+ 	struct omapfb2_device *fbdev = ofbi->fbdev;
+ 	int r;
  
- static struct wl12xx_platform_data wl1251_pdata;
-@@ -60,6 +61,11 @@ static struct omap2_mcspi_device_config mipid_mcspi_config = {
- 	.single_channel	= 1,
- };
+-	lock_fb_info(fbi);
++	if (!lock_fb_info(fbi))
++		return -ENODEV;
+ 	omapfb_lock(fbdev);
  
-+static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,
-+};
-+
- static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 	[RX51_SPI_WL1251] = {
- 		.modalias		= "wl1251",
-@@ -77,6 +83,15 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 		.max_speed_hz		= 6000000,
- 		.controller_data	= &mipid_mcspi_config,
- 	},
-+	[RX51_SPI_TSC2005] = {
-+		.modalias		= "tsc2005",
-+		.bus_num		= 1,
-+		.chip_select		= 0,
-+		/* .irq = OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),*/
-+		.max_speed_hz		= 6000000,
-+		.controller_data	= &tsc2005_mcspi_config,
-+		/* .platform_data = &tsc2005_config,*/
-+	},
- };
+ 	r = omapfb_update_window_nolock(fbi, x, y, w, h);
+diff --git a/drivers/video/omap2/omapfb/omapfb-sysfs.c b/drivers/video/omap2/omapfb/omapfb-sysfs.c
+index e104450..5179219 100644
+--- a/drivers/video/omap2/omapfb/omapfb-sysfs.c
++++ b/drivers/video/omap2/omapfb/omapfb-sysfs.c
+@@ -57,7 +57,8 @@ static ssize_t store_rotate_type(struct device *dev,
+ 	if (rot_type != OMAP_DSS_ROT_DMA && rot_type != OMAP_DSS_ROT_VRFB)
+ 		return -EINVAL;
  
- #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
+-	lock_fb_info(fbi);
++	if (!lock_fb_info(fbi))
++		return -ENODEV;
+ 
+ 	r = 0;
+ 	if (rot_type == ofbi->rotation_type)
+@@ -105,7 +106,8 @@ static ssize_t store_mirror(struct device *dev,
+ 	if (mirror != 0 && mirror != 1)
+ 		return -EINVAL;
+ 
+-	lock_fb_info(fbi);
++	if (!lock_fb_info(fbi))
++		return -ENODEV;
+ 
+ 	ofbi->mirror = mirror;
+ 
+@@ -137,7 +139,8 @@ static ssize_t show_overlays(struct device *dev,
+ 	ssize_t l = 0;
+ 	int t;
+ 
+-	lock_fb_info(fbi);
++	if (!lock_fb_info(fbi))
++		return -ENODEV;
+ 	omapfb_lock(fbdev);
+ 
+ 	for (t = 0; t < ofbi->num_overlays; t++) {
+@@ -195,7 +198,8 @@ static ssize_t store_overlays(struct device *dev, struct device_attribute *attr,
+ 	if (buf[len - 1] == '\n')
+ 		len = len - 1;
+ 
+-	lock_fb_info(fbi);
++	if (!lock_fb_info(fbi))
++		return -ENODEV;
+ 	omapfb_lock(fbdev);
+ 
+ 	if (len > 0) {
+@@ -317,7 +321,8 @@ static ssize_t show_overlays_rotate(struct device *dev,
+ 	ssize_t l = 0;
+ 	int t;
+ 
+-	lock_fb_info(fbi);
++	if (!lock_fb_info(fbi))
++		return -ENODEV;
+ 
+ 	for (t = 0; t < ofbi->num_overlays; t++) {
+ 		l += snprintf(buf + l, PAGE_SIZE - l, "%s%d",
+@@ -345,7 +350,8 @@ static ssize_t store_overlays_rotate(struct device *dev,
+ 	if (buf[len - 1] == '\n')
+ 		len = len - 1;
+ 
+-	lock_fb_info(fbi);
++	if (!lock_fb_info(fbi))
++		return -ENODEV;
+ 
+ 	if (len > 0) {
+ 		char *p = (char *)buf;
+@@ -416,7 +422,8 @@ static ssize_t store_size(struct device *dev, struct device_attribute *attr,
+ 
+ 	size = PAGE_ALIGN(simple_strtoul(buf, NULL, 0));
+ 
+-	lock_fb_info(fbi);
++	if (!lock_fb_info(fbi))
++		return -ENODEV;
+ 
+ 	for (i = 0; i < ofbi->num_overlays; i++) {
+ 		if (ofbi->overlays[i]->info.enabled) {
 -- 
 1.7.0.4
 
