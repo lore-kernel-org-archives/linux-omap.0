@@ -1,91 +1,93 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 02/23] OMAP: AM3517: Enable DSS2 in AM3517EVM defconfig
-Date: Tue, 18 May 2010 15:34:53 +0300
-Message-ID: <1274186114-26951-3-git-send-email-tomi.valkeinen@nokia.com>
-References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
+From: Lesly A M <leslyam@ti.com>
+Subject: [PATCH v6 7/7] omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP board
+Date: Tue, 18 May 2010 18:06:09 +0530
+Message-ID: <1274186169-24056-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62541 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757528Ab0ERMg2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:28 -0400
-In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54208 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757556Ab0ERMga (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 May 2010 08:36:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Adding the power script data for zoom board to TWL4030 platform data.
+Updating the sleep/wakeup/warm_rest sequence & resource configuration
+from generic script file.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-[tomi.valkeinen@nokia.com: removed the board file changes]
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Signed-off-by: Lesly A M <x0080970@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: David Derrick <dderrick@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/configs/am3517_evm_defconfig |   52 ++++++++++++++++++++++++++++++++-
- 1 files changed, 51 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/Makefile                 |    9 ++++++---
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    6 ++++++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/configs/am3517_evm_defconfig b/arch/arm/configs/am3517_evm_defconfig
-index 66a10b5..214ef42 100644
---- a/arch/arm/configs/am3517_evm_defconfig
-+++ b/arch/arm/configs/am3517_evm_defconfig
-@@ -692,7 +692,57 @@ CONFIG_SSB_POSSIBLE=y
- #
- # CONFIG_VGASTATE is not set
- # CONFIG_VIDEO_OUTPUT_CONTROL is not set
--# CONFIG_FB is not set
-+CONFIG_FB=y
-+# CONFIG_FIRMWARE_EDID is not set
-+# CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-+CONFIG_FB_CFB_FILLRECT=y
-+CONFIG_FB_CFB_COPYAREA=y
-+CONFIG_FB_CFB_IMAGEBLIT=y
-+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-+# CONFIG_FB_SYS_FILLRECT is not set
-+# CONFIG_FB_SYS_COPYAREA is not set
-+# CONFIG_FB_SYS_IMAGEBLIT is not set
-+# CONFIG_FB_FOREIGN_ENDIAN is not set
-+# CONFIG_FB_SYS_FOPS is not set
-+# CONFIG_FB_SVGALIB is not set
-+# CONFIG_FB_MACMODES is not set
-+# CONFIG_FB_BACKLIGHT is not set
-+# CONFIG_FB_MODE_HELPERS is not set
-+# CONFIG_FB_TILEBLITTING is not set
-+
-+#
-+# Frame buffer hardware drivers
-+#
-+# CONFIG_FB_ARMCLCD is not set
-+# CONFIG_FB_S1D13XXX is not set
-+# CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
-+# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-+CONFIG_OMAP2_VRAM=y
-+CONFIG_OMAP2_VRFB=y
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=4
-+CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
-+CONFIG_FB_OMAP2=y
-+CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=3
-+
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+CONFIG_PANEL_GENERIC=y
-+# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-+CONFIG_PANEL_SHARP_LQ043T1DG01=y
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index f60dca3..ba3de05 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -137,14 +137,17 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+ 					   board-zoom-peripherals.o \
+ 					   hsmmc.o \
+-					   board-zoom-debugboard.o
++					   board-zoom-debugboard.o \
++					   twl4030.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+ 					   board-zoom-peripherals.o \
+ 					   hsmmc.o \
+-					   board-zoom-debugboard.o
++					   board-zoom-debugboard.o \
++					   twl4030.o
+ obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
+ 					   board-zoom-peripherals.o \
+-					   hsmmc.o
++					   hsmmc.o \
++					   twl4030.o
+ obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 6b39849..5c8a329 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -26,6 +26,7 @@
  
- #
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "twl4030.h"
+ 
+ /* Zoom2 has Qwerty keyboard*/
+ static int board_keymap[] = {
+@@ -94,6 +95,8 @@ static struct twl4030_keypad_data zoom_kp_twl4030_data = {
+ 	.rep		= 1,
+ };
+ 
++static struct twl4030_power_data zoom_t2scripts_data __initdata;
++
+ static struct regulator_consumer_supply zoom_vmmc1_supply = {
+ 	.supply		= "vmmc",
+ };
+@@ -239,6 +242,7 @@ static struct twl4030_platform_data zoom_twldata = {
+ 	.usb		= &zoom_usb_data,
+ 	.gpio		= &zoom_gpio_data,
+ 	.keypad		= &zoom_kp_twl4030_data,
++	.power		= &zoom_t2scripts_data,
+ 	.codec		= &zoom_codec_data,
+ 	.vmmc1          = &zoom_vmmc1,
+ 	.vmmc2          = &zoom_vmmc2,
+@@ -279,6 +283,8 @@ static void enable_board_wakeup_source(void)
+ 
+ void __init zoom_peripherals_init(void)
+ {
++	twl4030_get_scripts(&zoom_t2scripts_data);
++
+ 	omap_i2c_init();
+ 	usb_musb_init(&musb_board_data);
+ 	enable_board_wakeup_source();
 -- 
 1.7.0.4
 
