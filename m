@@ -1,184 +1,83 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 2/2] omap: iommu-add functionality to get TLB miss
- interrupt
-Date: Tue, 18 May 2010 12:03:55 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4BC6CD62@dlee03.ent.ti.com>
-References: <1274137950-18759-1-git-send-email-h-kanigeri2@ti.com>
-	<1274137950-18759-3-git-send-email-h-kanigeri2@ti.com>
- <20100518.091130.260105572.Hiroshi.DOYU@nokia.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: dss2 for-next BUG at drivers/video/omap2/dss/core.c:323!
+Date: Tue, 18 May 2010 20:12:10 +0300
+Message-ID: <AANLkTikEouEjWyu9De6hAweyEGXx6drV4E18zWyC_CRg@mail.gmail.com>
+References: <AANLkTinS0irEdEzttaHd0n_w5Cs3h6Q44e9sXgcbDmNH@mail.gmail.com>
+	 <1274169334.2307.74.camel@tubuntu.research.nokia.com>
+	 <AANLkTilySmQn2w0royR2UXltWt4Y94AAU-EYXvny9Se1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34897 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932193Ab0ERREF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 13:04:05 -0400
-In-Reply-To: <20100518.091130.260105572.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:42923 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434Ab0ERRMM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 13:12:12 -0400
+Received: by fxm10 with SMTP id 10so1359718fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 10:12:10 -0700 (PDT)
+In-Reply-To: <AANLkTilySmQn2w0royR2UXltWt4Y94AAU-EYXvny9Se1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Gupta, Ramesh" <grgupta@ti.com>
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ville Syrjala <ville.syrjala@nokia.com>
 
-Hi Hiroshi,
+On Tue, May 18, 2010 at 3:34 PM, Robert Nelson <robertcnelson@gmail.com=
+> wrote:
+> On Tue, May 18, 2010 at 2:55 AM, Tomi Valkeinen
+> <tomi.valkeinen@nokia.com> wrote:
+>> On Mon, 2010-05-17 at 16:30 +0200, ext Robert Nelson wrote:
+>>> Hi Tomi,
+>>>
+>>> I've been using your dss2 branch with much success.
+>>>
+>>> http://gitorious.org/linux-omap-dss2/linux/commits/for-next
+>>>
+>>> I've just ran into a weird BUG that occurs on reboot on my headless
+>>> beagles and wondering if you've ran into it too...
+>>>
+>>> The kernel I'm currently testing is 2.6.34-rc7 plus the 2.6.35 dss2
+>>> for-next commits..
+>>>
+>>> I was assuming http://gitorious.org/linux-omap-dss2/linux/commit/89=
+627989c6b4408c4578a41bcd5f9d04545797ad
+>>> would fix it, but it hasn't fixed the Opps'ing...
+>>>
+>>> log on attempt to reboot:
+>>>
+>>> http://pastebin.com/iqAHMVD4
+>>
+>> It looks like there's a mismatch with clock enables and disables
+>> somewhere... I haven't seen that.
+>>
+>> Can you tell me more details of your beagle? Does "headless" mean th=
+at
+>> it's standard beagle board, but no display is connected to it?
+>
+> Correct, just a beagle with no display connected..
+>
+> I upgraded to 2.6.34 final plus dss2 for-next and enabled omapfb.debu=
+g
+> and a generic modesetting to see if would make any difference in the
+> bootargs. =C2=A0Same result..
+>
+> http://www.pastie.org/965380
+>
+> I should also mention, this only occurs after a small length of time
+> (about 10 minutes).. I can't seem to trigger it after a frresh reboot
+> (1-2 minutes)..
+>
+> config for reference:
+> http://bazaar.launchpad.net/~beagleboard-kernel/+junk/2.6.34-devel/an=
+notate/head:/patches/lucid-defconfig
 
+I think I saw this bug yesterday, but didn't paid much attention.
 
-> -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> Sent: Tuesday, May 18, 2010 1:12 AM
-> To: Kanigeri, Hari
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com; Gupta, Ramesh
-> Subject: Re: [PATCH 2/2] omap: iommu-add functionality to get TLB miss
-> interrupt
-> 
-> Hi Hari,
-> 
-> From: ext Hari Kanigeri <h-kanigeri2@ti.com>
-> Subject: [PATCH 2/2] omap: iommu-add functionality to get TLB miss
-> interrupt
-> Date: Tue, 18 May 2010 01:12:30 +0200
-> 
-> > In order to enable TLB miss interrupt, the TWL should be
-> > disabled. This patch provides the functionality to get the
-> > MMU fault interrupt for a TLB miss in the cases where the
-> > users are working with the locked TLB entries and with TWL
-> > disabled.
-> 
-> I want to keep leave the functionality to allow the locked TLB and
-> TWL enabled at the same time too. Is it still feasible with this?
-> 
+CC'ing Ville who might have fixed this already.
 
--- Absolutely. You can still work with locked TLB entries with TWL enabled.
-My patch just provides the functionality where the users want to work only with locked TLB entries and with TWL disabled, and this is a valid use case. 
-
-So basically, the user has to call this new function after calling iommu_get function if they want to have TWL disabled.
-
-Reference: Check the MMU_IRQENABLE register definition in TRM for enabling TLB miss interrupt.
-
-Please let me know if you need additional clarification.
-
-
-> > New interface is added to disable twl and enable TLB miss
-> > interrupt.
-> >
-> > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> > Signed-off-by: Ramesh Gupta <grgupta@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/iommu2.c            |   13 +++++++++++++
-> >  arch/arm/plat-omap/include/plat/iommu.h |    2 ++
-> >  arch/arm/plat-omap/iommu.c              |   12 ++++++++++++
-> >  3 files changed, 27 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
-> > index fcf4f4a..2e78cea 100644
-> > --- a/arch/arm/mach-omap2/iommu2.c
-> > +++ b/arch/arm/mach-omap2/iommu2.c
-> > @@ -124,6 +124,18 @@ static void omap2_iommu_disable(struct iommu *obj)
-> >  	dev_dbg(obj->dev, "%s is shutting down\n", obj->name);
-> >  }
-> >
-> > +static void omap2_iommu_disable_twl(struct iommu *obj)
-> > +{
-> > +       u32 l = iommu_read_reg(obj, MMU_CNTL);
-> > +
-> > +       l &= ~MMU_CNTL_MASK;
-> > +       l |= (MMU_CNTL_MMU_EN);
-> > +       iommu_write_reg(obj, l, MMU_CNTL);
-> > +
-> > +       /* Enable TLB miss interrupt */
-> > +       iommu_write_reg(obj, MMU_IRQ_TLB_MISS_MASK, MMU_IRQENABLE);
-> > +}
-> > +
-> >  static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
-> >  {
-> >  	int i;
-> > @@ -306,6 +318,7 @@ static const struct iommu_functions omap2_iommu_ops
-> = {
-> >
-> >  	.enable		= omap2_iommu_enable,
-> >  	.disable	= omap2_iommu_disable,
-> > +	.disable_twl    = omap2_iommu_disable_twl,
-> >  	.fault_isr	= omap2_iommu_fault_isr,
-> >
-> >  	.tlb_read_cr	= omap2_tlb_read_cr,
-> > diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-
-> omap/include/plat/iommu.h
-> > index 0752af9..52a3852 100644
-> > --- a/arch/arm/plat-omap/include/plat/iommu.h
-> > +++ b/arch/arm/plat-omap/include/plat/iommu.h
-> > @@ -80,6 +80,7 @@ struct iommu_functions {
-> >
-> >  	int (*enable)(struct iommu *obj);
-> >  	void (*disable)(struct iommu *obj);
-> > +	void (*disable_twl)(struct iommu *obj);
-> >  	u32 (*fault_isr)(struct iommu *obj, u32 *ra);
-> >
-> >  	void (*tlb_read_cr)(struct iommu *obj, struct cr_regs *cr);
-> > @@ -143,6 +144,7 @@ extern void iotlb_cr_to_e(struct cr_regs *cr, struct
-> iotlb_entry *e);
-> >  extern u32 iotlb_cr_to_virt(struct cr_regs *cr);
-> >
-> >  extern int load_iotlb_entry(struct iommu *obj, struct iotlb_entry *e);
-> > +extern void iommu_disable_twl(struct iommu *obj);
-> >  extern void flush_iotlb_page(struct iommu *obj, u32 da);
-> >  extern void flush_iotlb_range(struct iommu *obj, u32 start, u32 end);
-> >  extern void flush_iotlb_all(struct iommu *obj);
-> > diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-> > index b2b3937..d64a4d8 100644
-> > --- a/arch/arm/plat-omap/iommu.c
-> > +++ b/arch/arm/plat-omap/iommu.c
-> > @@ -370,6 +370,18 @@ void flush_iotlb_all(struct iommu *obj)
-> >  }
-> >  EXPORT_SYMBOL_GPL(flush_iotlb_all);
-> >
-> > +/**
-> > + * Call this function if working with locked TLB entries and
-> > + * TWL disabled
-> > + */
-> 
-> nitpick: It may be better to follow this for global func.
-> 
-> From linux/Documentation/kernel-doc-nano-HOWTO.txt:
-> ...
-> Example kernel-doc function comment:
-> 
-> /**
->  * foobar() - short function description of foobar
->  * @arg1:	Describe the first argument to foobar.
->  * @arg2:	Describe the second argument to foobar.
->  *		One can provide multiple line descriptions
->  *		for arguments.
->  *
->  * A longer description, with more discussion of the function foobar()
->  * that might be useful to those using or modifying it.  Begins with
->  * empty comment line, and may include additional embedded empty
->  * comment lines.
->  *
->  * The longer description can have multiple paragraphs.
->  */
-
--- Will update this in next patch revision.
-
-> 
-> 
-> > +extern void iommu_disable_twl(struct iommu *obj)
-> 
-> extern?
-
-Oops ! Copy paste error from header file.
-
-> 
-> > +{
-> > +	clk_enable(obj->clk);
-> > +	arch_iommu->disable_twl(obj);
-> > +	clk_disable(obj->clk);
-> > +}
-> > +EXPORT_SYMBOL_GPL(iommu_disable_twl);
-> > +
-> >  #if defined(CONFIG_OMAP_IOMMU_DEBUG_MODULE)
-> >
-> >  ssize_t iommu_dump_ctx(struct iommu *obj, char *buf, ssize_t bytes)
-> > --
-> > 1.7.0
-> >
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
