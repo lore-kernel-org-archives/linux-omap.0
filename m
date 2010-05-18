@@ -1,98 +1,115 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 00/23] OMAP DSS patches for 2.6.35 merge window
-Date: Tue, 18 May 2010 15:34:51 +0300
-Message-ID: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 03/23] OMAP: DSS2: Add Kconfig option for DPI display type
+Date: Tue, 18 May 2010 15:34:54 +0300
+Message-ID: <1274186114-26951-4-git-send-email-tomi.valkeinen@nokia.com>
+References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57871 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:57879 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757465Ab0ERMfz (ORCPT
+	with ESMTP id S1756206Ab0ERMfz (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:35:55 -0400
+In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Roger Quadros <roger.quadros@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Here are OMAP DSS patches for 2.6.35 merge window. They have been previ=
-ously
-reviewed on linux-omap and fbdev lists.
+From: Roger Quadros <roger.quadros@nokia.com>
 
- Tomi
+This allows us to disable DPI on systems that do not have it
 
-Carlos Lopez (1):
-  OMAP2: DSS: Add missing line for update bg color
+Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ drivers/video/omap2/dss/Kconfig   |    6 ++++++
+ drivers/video/omap2/dss/Makefile  |    3 ++-
+ drivers/video/omap2/dss/core.c    |    4 ++++
+ drivers/video/omap2/dss/display.c |    4 ++++
+ 4 files changed, 16 insertions(+), 1 deletions(-)
 
-Grazvydas Ignotas (1):
-  OMAP: DSS2: TPO-TD03MTEA1: fix Kconfig dependency
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+index 87afb81..43b6440 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -36,6 +36,12 @@ config OMAP2_DSS_COLLECT_IRQ_STATS
+ 	  <debugfs>/omapdss/dispc_irq for DISPC interrupts, and
+ 	  <debugfs>/omapdss/dsi_irq for DSI interrupts.
+ 
++config OMAP2_DSS_DPI
++	bool "DPI support"
++	default y
++	help
++	  DPI Interface. This is the Parallel Display Interface.
++
+ config OMAP2_DSS_RFBI
+ 	bool "RFBI support"
+         default n
+diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
+index 980c72c..d71b5d9 100644
+--- a/drivers/video/omap2/dss/Makefile
++++ b/drivers/video/omap2/dss/Makefile
+@@ -1,5 +1,6 @@
+ obj-$(CONFIG_OMAP2_DSS) += omapdss.o
+-omapdss-y := core.o dss.o dispc.o dpi.o display.o manager.o overlay.o
++omapdss-y := core.o dss.o dispc.o display.o manager.o overlay.o
++omapdss-$(CONFIG_OMAP2_DSS_DPI) += dpi.o
+ omapdss-$(CONFIG_OMAP2_DSS_RFBI) += rfbi.o
+ omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o
+ omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 7ebe50b..6d54467 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -526,11 +526,13 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 	}
+ #endif
+ 
++#ifdef CONFIG_OMAP2_DSS_DPI
+ 	r = dpi_init(pdev);
+ 	if (r) {
+ 		DSSERR("Failed to initialize dpi\n");
+ 		goto fail0;
+ 	}
++#endif
+ 
+ 	r = dispc_init();
+ 	if (r) {
+@@ -601,7 +603,9 @@ static int omap_dss_remove(struct platform_device *pdev)
+ 	venc_exit();
+ #endif
+ 	dispc_exit();
++#ifdef CONFIG_OMAP2_DSS_DPI
+ 	dpi_exit();
++#endif
+ #ifdef CONFIG_OMAP2_DSS_RFBI
+ 	rfbi_exit();
+ #endif
+diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
+index 6a74ea1..7138963 100644
+--- a/drivers/video/omap2/dss/display.c
++++ b/drivers/video/omap2/dss/display.c
+@@ -392,7 +392,9 @@ void dss_init_device(struct platform_device *pdev,
+ 	int r;
+ 
+ 	switch (dssdev->type) {
++#ifdef CONFIG_OMAP2_DSS_DPI
+ 	case OMAP_DISPLAY_TYPE_DPI:
++#endif
+ #ifdef CONFIG_OMAP2_DSS_RFBI
+ 	case OMAP_DISPLAY_TYPE_DBI:
+ #endif
+@@ -413,9 +415,11 @@ void dss_init_device(struct platform_device *pdev,
+ 	}
+ 
+ 	switch (dssdev->type) {
++#ifdef CONFIG_OMAP2_DSS_DPI
+ 	case OMAP_DISPLAY_TYPE_DPI:
+ 		r = dpi_init_display(dssdev);
+ 		break;
++#endif
+ #ifdef CONFIG_OMAP2_DSS_RFBI
+ 	case OMAP_DISPLAY_TYPE_DBI:
+ 		r = rfbi_init_display(dssdev);
+-- 
+1.7.0.4
 
-Jani Nikula (6):
-  OMAP: DSS2: fix lock_fb_info() and omapfb_lock() locking order
-  OMAP: DSS2: check lock_fb_info() return value
-  OMAP: DSS2: VENC: don't call platform_enable/disable() twice
-  OMAP: DSS2: Fix device disable when driver is not loaded
-  OMAP: DSS2: omap_dss_probe() conditional compilation cleanup
-  OMAP: DSS2: Fix omap_dss_probe() error path
-
-Kishore Y (1):
-  OMAP3630: DSS2: Updating MAX divider value
-
-Koen Kooi (1):
-  board-omap3-beagle: add DSS2 support
-
-Roger Quadros (7):
-  OMAP: DSS2: Add Kconfig option for DPI display type
-  OMAP: DSS2: Remove redundant enable/disable calls from SDI
-  OMAP: DSS2: Use vdds_sdi regulator supply in SDI
-  OMAP: RX51: Add LCD Panel support
-  OMAP: RX51: Add Touch Controller in SPI board info
-  OMAP: DSS2: Add ACX565AKM Panel Driver
-  OMAP: RX51: Update board defconfig
-
-Tomi Valkeinen (2):
-  OMAP: DSS2: Make partial update width even
-  OMAP: DSS2: Taal: add mutex to protect panel data
-
-Vaibhav Hiremath (3):
-  OMAP: Enable DSS2 in OMAP3EVM defconfig
-  OMAP: AM3517: Enable DSS2 in AM3517EVM defconfig
-  OMAP: LCD LS037V7DW01: Add Backlight driver support
-
-Ville Syrj=C3=A4l=C3=A4 (1):
-  OMAP: DSS2: Taal: Fix DSI bus locking problem
-
- arch/arm/configs/am3517_evm_defconfig              |   52 ++-
- arch/arm/configs/omap3_evm_defconfig               |   51 ++-
- arch/arm/configs/rx51_defconfig                    |   39 +-
- arch/arm/mach-omap2/Makefile                       |    1 +
- arch/arm/mach-omap2/board-omap3beagle.c            |  101 ++-
- arch/arm/mach-omap2/board-rx51-peripherals.c       |   28 +
- arch/arm/mach-omap2/board-rx51-video.c             |  109 +++
- arch/arm/mach-omap2/board-rx51.c                   |    2 +
- drivers/video/omap2/displays/Kconfig               |    9 +-
- drivers/video/omap2/displays/Makefile              |    1 +
- drivers/video/omap2/displays/panel-acx565akm.c     |  819 ++++++++++++=
-++++++++
- .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   78 ++
- drivers/video/omap2/displays/panel-taal.c          |  143 +++-
- drivers/video/omap2/dss/Kconfig                    |    6 +
- drivers/video/omap2/dss/Makefile                   |    3 +-
- drivers/video/omap2/dss/core.c                     |   85 ++-
- drivers/video/omap2/dss/display.c                  |    9 +-
- drivers/video/omap2/dss/dss.c                      |   24 +-
- drivers/video/omap2/dss/dss.h                      |   50 ++
- drivers/video/omap2/dss/manager.c                  |   21 +
- drivers/video/omap2/dss/sdi.c                      |   26 +-
- drivers/video/omap2/dss/venc.c                     |   15 +-
- drivers/video/omap2/omapfb/omapfb-ioctl.c          |    5 +-
- drivers/video/omap2/omapfb/omapfb-sysfs.c          |   25 +-
- 24 files changed, 1573 insertions(+), 129 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-rx51-video.c
- create mode 100644 drivers/video/omap2/displays/panel-acx565akm.c
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
