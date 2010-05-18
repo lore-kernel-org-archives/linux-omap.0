@@ -1,90 +1,46 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 01/23] OMAP: Enable DSS2 in OMAP3EVM defconfig
-Date: Tue, 18 May 2010 15:34:52 +0300
-Message-ID: <1274186114-26951-2-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 09/23] OMAP: DSS2: Fix device disable when driver is not loaded
+Date: Tue, 18 May 2010 15:35:00 +0300
+Message-ID: <1274186114-26951-10-git-send-email-tomi.valkeinen@nokia.com>
 References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62457 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757262Ab0ERMfy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:35:54 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:57904 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757495Ab0ERMgF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:05 -0400
 In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Jani Nikula <ext-jani.1.nikula@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-[tomi.valkeinen@nokia.com: removed the board file changes]
+Only call driver disable when device isn't already disabled, which also
+handles the driver not loaded case.
+
+Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/configs/omap3_evm_defconfig |   51 +++++++++++++++++++++++++++++++++-
- 1 files changed, 50 insertions(+), 1 deletions(-)
+ drivers/video/omap2/dss/display.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
-index a6dd6d1..b02e371 100644
---- a/arch/arm/configs/omap3_evm_defconfig
-+++ b/arch/arm/configs/omap3_evm_defconfig
-@@ -911,7 +911,56 @@ CONFIG_DAB=y
- #
- # CONFIG_VGASTATE is not set
- CONFIG_VIDEO_OUTPUT_CONTROL=m
--# CONFIG_FB is not set
-+CONFIG_FB=y
-+# CONFIG_FIRMWARE_EDID is not set
-+# CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-+CONFIG_FB_CFB_FILLRECT=y
-+CONFIG_FB_CFB_COPYAREA=y
-+CONFIG_FB_CFB_IMAGEBLIT=y
-+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-+# CONFIG_FB_SYS_FILLRECT is not set
-+# CONFIG_FB_SYS_COPYAREA is not set
-+# CONFIG_FB_SYS_IMAGEBLIT is not set
-+# CONFIG_FB_FOREIGN_ENDIAN is not set
-+# CONFIG_FB_SYS_FOPS is not set
-+# CONFIG_FB_SVGALIB is not set
-+# CONFIG_FB_MACMODES is not set
-+# CONFIG_FB_BACKLIGHT is not set
-+# CONFIG_FB_MODE_HELPERS is not set
-+# CONFIG_FB_TILEBLITTING is not set
+diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
+index 7138963..ef8c852 100644
+--- a/drivers/video/omap2/dss/display.c
++++ b/drivers/video/omap2/dss/display.c
+@@ -545,7 +545,10 @@ int dss_resume_all_devices(void)
+ static int dss_disable_device(struct device *dev, void *data)
+ {
+ 	struct omap_dss_device *dssdev = to_dss_device(dev);
+-	dssdev->driver->disable(dssdev);
 +
-+#
-+# Frame buffer hardware drivers
-+#
-+# CONFIG_FB_S1D13XXX is not set
-+# CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
-+# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-+CONFIG_OMAP2_VRAM=y
-+CONFIG_OMAP2_VRFB=y
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=4
-+# CONFIG_OMAP2_DSS_DEBUG_SUPPORT is not set
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
-+CONFIG_FB_OMAP2=y
-+# CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=3
++	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED)
++		dssdev->driver->disable(dssdev);
 +
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+CONFIG_PANEL_GENERIC=y
-+# CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
-+CONFIG_PANEL_SHARP_LS037V7DW01=y
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+ 	return 0;
+ }
  
- #
 -- 
 1.7.0.4
 
