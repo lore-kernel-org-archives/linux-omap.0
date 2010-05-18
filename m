@@ -1,34 +1,45 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 3/3 v2] musb: AM35x: Workaround for fifo read issue
-Date: Tue, 18 May 2010 19:12:12 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DCC5F3E@dbde02.ent.ti.com>
-References: <1274184586-28843-1-git-send-email-ajay.gupta@ti.com>,<4BF28DF2.5010407@mvista.com>
+From: James Bottomley <James.Bottomley@suse.de>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Tue, 18 May 2010 09:59:48 -0400
+Message-ID: <1274191188.10304.5.camel@mulgrave.site>
+References: <Pine.LNX.4.44L0.1005151716180.24645-100000@netrider.rowland.org>
+	 <87hbm6cz90.fsf@deeprootsystems.com>
+	 <1274115885.4418.59.camel@mulgrave.site> <20100517174647.GA11512@gandalf>
+	 <1274119179.4418.68.camel@mulgrave.site> <20100517181252.GA14260@gandalf>
+	 <1274124267.4418.149.camel@mulgrave.site> <20100517193840.GB14047@gandalf>
+	 <20100517193952.GC14047@gandalf> <1274125775.4418.182.camel@mulgrave.site>
+	 <20100518064022.GA6522@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32831 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757261Ab0ERNpB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 09:45:01 -0400
-In-Reply-To: <4BF28DF2.5010407@mvista.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100518064022.GA6522@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: felipe.balbi@nokia.com
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi
-> AM35x supports only 32bit read operations so we need to have
-> workaround for 8bit and 16bit read operations.
+On Tue, 2010-05-18 at 09:40 +0300, Felipe Balbi wrote:
+> On Mon, May 17, 2010 at 09:49:35PM +0200, ext James Bottomley wrote:
+> >Right, because Firmware writers are from the rugged unresponsive uplands
+> >of planet
+> >ignore-user-complaints-and-eat-them-for-breakfast-if-they-file-bugs and
+> >Software writers are from the emollient responsive groves of planet
+> >harmony.  Obviously what would work for one wouldn't work for the other.
+> >
+> >As a software writer, I fully buy into that world view.  The trouble is
+> >that when I go to dinner with hardware people, they seem to be awfully
+> >nice chaps ... almost exactly like me, in fact ...
+> 
+> what does this add to suspend_blockers discussion ?
 
->   But don't we need to override musb_readb() and musb_readw() then?
+Sorry I was evidently being too subtle.
 
-Yes, Correct. I do have another patch on that which I will cleanup and submit later.
-Anyways with currebt three patch set, basic Host and device operation has been tested.
+The point is that if, as you acknowledge, that you can't train firmware
+engineers to be responsive, there's no reason to think you can train
+software engineers in the same quality ... they're very similar people.
 
--Ajay
+The corollary is that real world systems have to operate in the face of
+misbehaving hardware *and* software.
 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
->WBR, Sergei
-
+James
