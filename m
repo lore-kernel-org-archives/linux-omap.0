@@ -1,69 +1,54 @@
-From: "Lesly Arackal Manuel" <leslyam@ti.com>
-Subject: RE: [PATCH v5 3/5] omap3: pm: Generic TRITON power scriptsforOMAP3 based boards
-Date: Tue, 18 May 2010 14:18:33 +0530
-Message-ID: <000f01caf666$e799e4c0$db8818ac@apr.dhcp.ti.com>
-References: <1271677408-2143-1-git-send-email-leslyam@ti.com> <20100510143043.GA4703@codecarver.research.nokia.com> <015501caf28a$5a984e20$ba8818ac@apr.dhcp.ti.com> <20100517105833.GA4736@codecarver.research.nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [RFC] Initial attempt to make ARM use LMB
+Date: Tue, 18 May 2010 11:58:10 +0300
+Message-ID: <1274173090.2307.100.camel@tubuntu.research.nokia.com>
+References: <20100513220139.GO3428@atomide.com>
+	 <20100513221229.GD13001@n2100.arm.linux.org.uk>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02C54F0247@dbde02.ent.ti.com>
+	 <AANLkTikZvfvjY9e2QNWRwVcJcTvn58Ly_DgzrcXKu2iJ@mail.gmail.com>
+	 <20100514101615.GF10339@n2100.arm.linux.org.uk>
+	 <AANLkTinY9M2cHKw86hTLaMUCvBX57o8AioBtrENB-JhK@mail.gmail.com>
+	 <20100517094421.GG23118@n2100.arm.linux.org.uk>
+	 <1274091978.2307.49.camel@tubuntu.research.nokia.com>
+	 <20100517173715.GA5818@atomide.com>
+	 <1274168877.2307.70.camel@tubuntu.research.nokia.com>
+	 <20100518084013.GA13832@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46215 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757023Ab0ERIsp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 May 2010 04:48:45 -0400
-In-Reply-To: <20100517105833.GA4736@codecarver.research.nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:37090 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750914Ab0ERI6c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 04:58:32 -0400
+In-Reply-To: <20100518084013.GA13832@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
+To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: ext Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Peter 'p2' De Schrijver [mailto:peter.de-schrijver@nokia.com]
-> Sent: Monday, May 17, 2010 4:29 PM
-> To: ext Lesly Arackal Manuel
-> Cc: linux-omap@vger.kernel.org; 'Lesly A M'; 'Nishanth Menon'; 'David
-> Derrick'; 'Samuel Ortiz'
-> Subject: Re: [PATCH v5 3/5] omap3: pm: Generic TRITON power
-> scriptsforOMAP3 based boards
+On Tue, 2010-05-18 at 10:40 +0200, ext Russell King - ARM Linux wrote:
+> On Tue, May 18, 2010 at 10:47:57AM +0300, Tomi Valkeinen wrote:
+> > Allocating without ioremapping... dma_alloc_* always ioremaps the
+> > allocated area, even though it's never used (in some cases).
 > 
-> Hi,
-> 
-> >
-> > Hi Peter,
-> >
-> > The RES_TYPE field is same for all messages.
-> >
-> > The resource which can go to low-power mode with clk_req sig de-
-> asserting is
-> > configured as RES_TYPE2 = '2'. And the resource which can go to low-
-> power
-> > mode with sys_off sig de-asserting is configured as RES_TYPE2 = '1'.
-> >
-> > The RES_TYPE2 is '2' for P3 wakeup and the msg will applicable for
-> Resource
-> > which have their TYPE2 field configured '2' (RES_VINTANA1, RES_VINTANA2,
-> > RES_VINTDIG, VIO, RES_CLKEN, RES_HFCLKOUT).
-> >
-> > RES_TYPE2 = '1' for P1_P2 wakeup.
-> > (Applicable for res: RES_VPLL1, RES_VDD1, RES_VDD2, RES_REGEN,
-> > RES_NRES_PWRON, RES_SYSEN)
-> >
-> 
-> Ok. But why not just assign the resources to the appropriate groups ?
-> Eg.  assign VIO to P3 and assign VPLL1 to P1_P2 ? Then you only need one
-> message type. Also, why are you using RES_TYPE2 instead of RES_TYPE ?
-> 
+> What do you mean by that?  Are you suggesting that something does
+> phys_to_virt() on the returned DMA pointer?
 
-Hi Peter,
+No.
 
-This sequence is recommended by the Hardware team.
+VRFB rotation HW uses the real memory as a backend storage, and exposes
+0/90/180/270 degree views of that memory area via its own memory areas.
+So we need to reserve the real memory, program it to VRFB HW, and then
+map VRFB's memory areas, which are used as framebuffers. The real memory
+is never used directly in this case.
 
-Because some resource have non-zero reset values for RES_TYPE, and may be
-used in some other seq (eg: power_up).
+And even when not using VRFB, I think it's not really required to map
+the framebuffer into kernel virtual memory. The kernel doesn't
+read/write from/to the framebuffer (except when using FB console), it's
+the user space, SGX or DSP that does the writing, and DSS which does the
+reading. However, currently the framebuffer is always mapped.
 
-Regards,
-Lesly A M
+ Tomi
+
 
