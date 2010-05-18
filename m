@@ -1,13 +1,13 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 15/23] OMAP: RX51: Add LCD Panel support
-Date: Tue, 18 May 2010 15:35:06 +0300
-Message-ID: <1274186114-26951-16-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 04/23] OMAP: DSS2: Remove redundant enable/disable calls from SDI
+Date: Tue, 18 May 2010 15:34:55 +0300
+Message-ID: <1274186114-26951-5-git-send-email-tomi.valkeinen@nokia.com>
 References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57922 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757528Ab0ERMgU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:20 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:62557 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757528Ab0ERMgc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:32 -0400
 In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,203 +16,47 @@ Cc: Roger Quadros <roger.quadros@nokia.com>, Tomi Valkeinen <tomi.valkeinen@noki
 
 From: Roger Quadros <roger.quadros@nokia.com>
 
-Adds basic support for LCD Panel on Nokia N900
+Panel enable/disable is now done via the panel driver, so we should not
+call the panel driver again
 
 Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/mach-omap2/Makefile                 |    1 +
- arch/arm/mach-omap2/board-rx51-peripherals.c |   13 +++
- arch/arm/mach-omap2/board-rx51-video.c       |  109 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-rx51.c             |    2 +
- 4 files changed, 125 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-rx51-video.c
+ drivers/video/omap2/dss/sdi.c |   11 -----------
+ 1 files changed, 0 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4b9fc57..b03cbb4 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -122,6 +122,7 @@ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-sdram.o \
- 					   board-rx51-peripherals.o \
-+					   board-rx51-video.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
- 					   board-zoom-peripherals.o \
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 4377a4c..f404537 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -45,6 +45,7 @@
- /* list all spi devices here */
- enum {
- 	RX51_SPI_WL1251,
-+	RX51_SPI_MIPID,		/* LCD panel */
- };
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index 12eb404..3de3c1e 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -115,17 +115,9 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
  
- static struct wl12xx_platform_data wl1251_pdata;
-@@ -54,6 +55,11 @@ static struct omap2_mcspi_device_config wl1251_mcspi_config = {
- 	.single_channel	= 1,
- };
+ 	dssdev->manager->enable(dssdev->manager);
  
-+static struct omap2_mcspi_device_config mipid_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,
-+};
-+
- static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 	[RX51_SPI_WL1251] = {
- 		.modalias		= "wl1251",
-@@ -64,6 +70,13 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 		.controller_data	= &wl1251_mcspi_config,
- 		.platform_data		= &wl1251_pdata,
- 	},
-+	[RX51_SPI_MIPID] = {
-+		.modalias		= "acx565akm",
-+		.bus_num		= 1,
-+		.chip_select		= 2,
-+		.max_speed_hz		= 6000000,
-+		.controller_data	= &mipid_mcspi_config,
-+	},
- };
+-	if (dssdev->driver->enable) {
+-		r = dssdev->driver->enable(dssdev);
+-		if (r)
+-			goto err3;
+-	}
+-
+ 	sdi.skip_init = 0;
  
- #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
-new file mode 100644
-index 0000000..b743a4f
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-rx51-video.c
-@@ -0,0 +1,109 @@
-+/*
-+ * linux/arch/arm/mach-omap2/board-rx51-video.c
-+ *
-+ * Copyright (C) 2010 Nokia
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/gpio.h>
-+#include <linux/spi/spi.h>
-+#include <linux/mm.h>
-+
-+#include <asm/mach-types.h>
-+#include <plat/mux.h>
-+#include <plat/display.h>
-+#include <plat/vram.h>
-+#include <plat/mcspi.h>
-+
-+#include "mux.h"
-+
-+#define RX51_LCD_RESET_GPIO	90
-+
-+#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-+
-+static int rx51_lcd_enable(struct omap_dss_device *dssdev)
-+{
-+	gpio_set_value(dssdev->reset_gpio, 1);
-+	return 0;
-+}
-+
-+static void rx51_lcd_disable(struct omap_dss_device *dssdev)
-+{
-+	gpio_set_value(dssdev->reset_gpio, 0);
-+}
-+
-+static struct omap_dss_device rx51_lcd_device = {
-+	.name			= "lcd",
-+	.driver_name		= "panel-acx565akm",
-+	.type			= OMAP_DISPLAY_TYPE_SDI,
-+	.phy.sdi.datapairs	= 2,
-+	.reset_gpio		= RX51_LCD_RESET_GPIO,
-+	.platform_enable	= rx51_lcd_enable,
-+	.platform_disable	= rx51_lcd_disable,
-+};
-+
-+static struct omap_dss_device *rx51_dss_devices[] = {
-+	&rx51_lcd_device,
-+};
-+
-+static struct omap_dss_board_info rx51_dss_board_info = {
-+	.num_devices	= ARRAY_SIZE(rx51_dss_devices),
-+	.devices	= rx51_dss_devices,
-+	.default_device	= &rx51_lcd_device,
-+};
-+
-+struct platform_device rx51_display_device = {
-+	.name	= "omapdss",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data = &rx51_dss_board_info,
-+	},
-+};
-+
-+static struct platform_device *rx51_video_devices[] __initdata = {
-+	&rx51_display_device,
-+};
-+
-+static int __init rx51_video_init(void)
-+{
-+	if (!machine_is_nokia_rx51())
-+		return 0;
-+
-+	if (omap_mux_init_gpio(RX51_LCD_RESET_GPIO, OMAP_PIN_OUTPUT)) {
-+		pr_err("%s cannot configure MUX for LCD RESET\n", __func__);
-+		return 0;
-+	}
-+
-+	if (gpio_request(RX51_LCD_RESET_GPIO, "LCD ACX565AKM reset")) {
-+		pr_err("%s failed to get LCD Reset GPIO\n", __func__);
-+		return 0;
-+	}
-+
-+	gpio_direction_output(RX51_LCD_RESET_GPIO, 1);
-+
-+	platform_add_devices(rx51_video_devices,
-+				ARRAY_SIZE(rx51_video_devices));
-+	return 0;
-+}
-+
-+subsys_initcall(rx51_video_init);
-+
-+void __init rx51_video_mem_init(void)
-+{
-+	/*
-+	 * GFX 864x480x32bpp
-+	 * VID1/2 1280x720x32bpp double buffered
-+	 */
-+	omap_vram_set_sdram_vram(PAGE_ALIGN(864 * 480 * 4) +
-+			2 * PAGE_ALIGN(1280 * 720 * 4 * 2), 0);
-+}
-+
-+#else
-+void __init rx51_video_mem_init(void) { }
-+#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index b155c36..1b86b5b 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -36,6 +36,7 @@
- #define RX51_GPIO_SLEEP_IND 162
+ 	return 0;
+-err3:
+-	dssdev->manager->disable(dssdev->manager);
+ err2:
+ 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
+ err1:
+@@ -137,9 +129,6 @@ EXPORT_SYMBOL(omapdss_sdi_display_enable);
  
- struct omap_sdrc_params *rx51_get_sdram_timings(void);
-+extern void rx51_video_mem_init(void);
- 
- static struct gpio_led gpio_leds[] = {
- 	{
-@@ -143,6 +144,7 @@ static void __init rx51_init(void)
- static void __init rx51_map_io(void)
+ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
  {
- 	omap2_set_globals_343x();
-+	rx51_video_mem_init();
- 	omap34xx_map_common_io();
- }
+-	if (dssdev->driver->disable)
+-		dssdev->driver->disable(dssdev);
+-
+ 	dssdev->manager->disable(dssdev->manager);
  
+ 	dss_sdi_disable();
 -- 
 1.7.0.4
 
