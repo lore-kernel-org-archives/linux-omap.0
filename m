@@ -1,75 +1,85 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 17/18] omap: rx51: Add supplies for the tlv320aic3x
-	codec driver
-Date: Tue, 18 May 2010 13:00:26 +0300
-Message-ID: <20100518130026.a979ac51.jhnikula@gmail.com>
-References: <20100505192957.21568.19569.stgit@baageli.muru.com>
-	<20100505193323.21568.32626.stgit@baageli.muru.com>
-	<20100506065716.GA16262@besouro.research.nokia.com>
-	<20100506070018.GB16262@besouro.research.nokia.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 3/3] musb: AM35x: Workaround for fifo read issue
+Date: Tue, 18 May 2010 13:59:45 +0400
+Message-ID: <4BF26511.2060705@ru.mvista.com>
+References: <1274093235-7616-1-git-send-email-ajay.gupta@ti.com> <1274093235-7616-2-git-send-email-ajay.gupta@ti.com> <1274093235-7616-3-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20100506070018.GB16262@besouro.research.nokia.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: eduardo.valentin@nokia.com
-Cc: ext Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:57131 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752602Ab0ERKAh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 06:00:37 -0400
+In-Reply-To: <1274093235-7616-3-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
-On Thu, 6 May 2010 10:00:18 +0300
-Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+Hello.
 
-> > > +static struct regulator_consumer_supply rx51_vio_supplies[] = {
-> > > +	/* tlv320aic3x digital supplies */
-> > > +	{
-> > > +		.supply		= "IOVDD",
-> > > +		.dev_name	= "2-0018"
-> > > +	},
-> > > +	{
-> > > +		.supply		= "DVDD",
-> > > +		.dev_name	= "2-0018"
-> > > +	},
-> > > +};
-> > 
-> > 
-> > This isn't mandatory, but I find the code more readable if you use the REGULATOR_SUPPLY macro,
-> > which kinda suitable for cases like yours, where you are passing the pair supply&dev_name.
->
-Yeah, I was just following how the MMC supplies were defined in this
-file and it's better to convert all of these to use REGULATOR_SUPPLY
-macro. I'll send conversion patch on top of this + one adding couple
-supplies more I would like to get in during this merge window.
+Ajay Kumar Gupta wrote:
 
-> > > +static struct regulator_init_data rx51_vio = {
-> > > +	.constraints = {
-> > > +		.min_uV			= 1800000,
-> > > +		.max_uV			= 1800000,
-> > > +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-> > > +					| REGULATOR_MODE_STANDBY,
-> > > +		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-> > 
-> > I'm not sure if we would ever change voltage level in VIO in rx51 case.
-> > It could enter sleep mode. But even there it wouldn't change voltage level.
-> > Except, of cource, during off mode transition. But then, the regfw wouldn't care.
-> 
-> Actually, one correction here, even during off mode transition I believe we need to
-> keep it, otherwise some wake up source would be screwed.
-> > 
-What do you think about those other TWL regulators, do they have valid
-mask bits so would it make sense to correct all of them at once? I'm
-not expert with TWL & RX51 HW but I'm thinking if there are also other
-regulators which should not change. At least many regulators have the
-same min_uV and max_uV defined.
+> AM35x supports only 32bit read operations so we need to have
+> workaround for 8bit and 16bit read operations.
 
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> ---
+> Patch created against linus'tree + all musb patches in Greg's queue
+> Changes from v2:
+> 	- fixed multipline comment style
+>  drivers/usb/musb/am3517.c    |   31 +++++++++++++++++++++++++++++++
+>  drivers/usb/musb/musb_core.c |    2 ++
+>  2 files changed, 33 insertions(+), 0 deletions(-)
 
--- 
-Jarkko
+> diff --git a/drivers/usb/musb/am3517.c b/drivers/usb/musb/am3517.c
+> index b74e664..c68c784 100644
+> --- a/drivers/usb/musb/am3517.c
+> +++ b/drivers/usb/musb/am3517.c
+> @@ -515,3 +515,34 @@ void musb_platform_restore_context(struct musb_context_registers
+>  	phy_on();
+>  }
+>  #endif
+> +
+> +/* AM35x supports only 32bit read operation */
+> +void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+> +{
+> +	void __iomem *fifo = hw_ep->fifo;
+> +	u32		val;
+> +	int		i;
+> +
+> +	/* Read for 32bit-aligned destination address */
+> +	if ((likely((0x03 & (unsigned long) dst) == 0)) && len >= 4) {
+
+    You don't need to put likely() in parens.
+
+> +		readsl(fifo, dst, len >> 2);
+> +		dst += (len & ~0x03);
+
+    You don't need parens here as well.
+
+> +		len &= 0x03;
+> +	}
+> +	/*
+> +	 * Now read the rest 1 to 3 bytes or complete length if
+> +	 * unaligned address.
+> +	 */
+> +	if (len > 4) {
+> +		for (i = 0; i < (len >> 2); i++) {
+> +			val = musb_readl(fifo, 0);
+> +			memcpy(dst, &val, 4);
+
+    Can't you do away with memcpy() here?
+
+> +			dst += 4;
+> +		}
+> +		len %= 4;
+> +	}
+> +	if (len > 0) {
+> +		val = musb_readl(fifo, 0);
+> +		memcpy(dst, &val, len);
+> +	}
+> +}
+
+WBR, Sergei
