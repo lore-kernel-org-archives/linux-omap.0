@@ -1,46 +1,150 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 20/23] OMAP2: DSS: Add missing line for update bg color
-Date: Tue, 18 May 2010 15:35:11 +0300
-Message-ID: <1274186114-26951-21-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 23/23] OMAP: DSS2: Fix omap_dss_probe() error path
+Date: Tue, 18 May 2010 15:35:14 +0300
+Message-ID: <1274186114-26951-24-git-send-email-tomi.valkeinen@nokia.com>
 References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57954 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757559Ab0ERMgc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:32 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:62574 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757587Ab0ERMgh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:37 -0400
 In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Carlos Lopez <carlos.cruz@sasken.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Jani Nikula <ext-jani.1.nikula@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-From: Carlos Lopez <carlos.cruz@sasken.com>
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-The driver set the background color canvas but never writes it in
-DISPC_DEFAULT_COLOR_m register, which changes the background color
-on the LCD or TV.
+Perform graceful cleanup on errors instead of just bailing out.
 
-This patch adds a line to call to dispc_set_default_color() which is
-the function in charge to write the DISPC_DEFAULT_COLOR_m register.
-
-Signed-off-by: Carlos Lopez <carlos.cruz@sasken.com>
+Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- drivers/video/omap2/dss/manager.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/core.c |   54 ++++++++++++++++++++++++++++++---------
+ 1 files changed, 41 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 32ec2ff..9e1fbe5 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -843,6 +843,7 @@ static void configure_manager(enum omap_channel channel)
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 92ee067..b3a498f 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -507,7 +507,7 @@ static int omap_dss_probe(struct platform_device *pdev)
  
- 	c = &dss_cache.manager_cache[channel];
+ 	r = dss_get_clocks();
+ 	if (r)
+-		goto fail0;
++		goto err_clocks;
  
-+	dispc_set_default_color(channel, c->default_color);
- 	dispc_set_trans_key(channel, c->trans_key_type, c->trans_key);
- 	dispc_enable_trans_key(channel, c->trans_enabled);
- 	dispc_enable_alpha_blending(channel, c->alpha_enabled);
+ 	dss_clk_enable_all_no_ctx();
+ 
+@@ -523,57 +523,64 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 	r = dss_init(skip_init);
+ 	if (r) {
+ 		DSSERR("Failed to initialize DSS\n");
+-		goto fail0;
++		goto err_dss;
+ 	}
+ 
+ 	r = rfbi_init();
+ 	if (r) {
+ 		DSSERR("Failed to initialize rfbi\n");
+-		goto fail0;
++		goto err_rfbi;
+ 	}
+ 
+ 	r = dpi_init(pdev);
+ 	if (r) {
+ 		DSSERR("Failed to initialize dpi\n");
+-		goto fail0;
++		goto err_dpi;
+ 	}
+ 
+ 	r = dispc_init();
+ 	if (r) {
+ 		DSSERR("Failed to initialize dispc\n");
+-		goto fail0;
++		goto err_dispc;
+ 	}
+ 
+ 	r = venc_init(pdev);
+ 	if (r) {
+ 		DSSERR("Failed to initialize venc\n");
+-		goto fail0;
++		goto err_venc;
+ 	}
+ 
+ 	if (cpu_is_omap34xx()) {
+ 		r = sdi_init(skip_init);
+ 		if (r) {
+ 			DSSERR("Failed to initialize SDI\n");
+-			goto fail0;
++			goto err_sdi;
+ 		}
+ 
+ 		r = dsi_init(pdev);
+ 		if (r) {
+ 			DSSERR("Failed to initialize DSI\n");
+-			goto fail0;
++			goto err_dsi;
+ 		}
+ 	}
+ 
+ 	r = dss_initialize_debugfs();
+ 	if (r)
+-		goto fail0;
++		goto err_debugfs;
+ 
+ 	for (i = 0; i < pdata->num_devices; ++i) {
+ 		struct omap_dss_device *dssdev = pdata->devices[i];
+ 
+ 		r = omap_dss_register_device(dssdev);
+-		if (r)
+-			DSSERR("device reg failed %d\n", i);
++		if (r) {
++			DSSERR("device %d %s register failed %d\n", i,
++				dssdev->name ?: "unnamed", r);
++
++			while (--i >= 0)
++				omap_dss_unregister_device(pdata->devices[i]);
++
++			goto err_register;
++		}
+ 
+ 		if (def_disp_name && strcmp(def_disp_name, dssdev->name) == 0)
+ 			pdata->default_device = dssdev;
+@@ -583,8 +590,29 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-	/* XXX fail correctly */
+-fail0:
++err_register:
++	dss_uninitialize_debugfs();
++err_debugfs:
++	if (cpu_is_omap34xx())
++		dsi_exit();
++err_dsi:
++	if (cpu_is_omap34xx())
++		sdi_exit();
++err_sdi:
++	venc_exit();
++err_venc:
++	dispc_exit();
++err_dispc:
++	dpi_exit();
++err_dpi:
++	rfbi_exit();
++err_rfbi:
++	dss_exit();
++err_dss:
++	dss_clk_disable_all_no_ctx();
++	dss_put_clocks();
++err_clocks:
++
+ 	return r;
+ }
+ 
 -- 
 1.7.0.4
 
