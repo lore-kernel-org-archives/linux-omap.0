@@ -1,127 +1,102 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
-Date: Tue, 18 May 2010 15:03:26 +0300
-Message-ID: <AANLkTim5SxEb64QbBQgBhufhgpQ33MNFBhuHixfUeVKp@mail.gmail.com>
-References: <1273849310-32169-1-git-send-email-felipe.contreras@gmail.com>
-	 <20100518.114642.35020415.Hiroshi.DOYU@nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 1/2] omap: rx51: Use REGULATOR_SUPPLY macro when
+ initializing regulator consumers
+Date: Tue, 18 May 2010 15:09:00 +0300
+Message-ID: <20100518120900.GF11782@besouro.research.nokia.com>
+References: <1274180761-14221-1-git-send-email-jhnikula@gmail.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:59758 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757059Ab0ERMD3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:03:29 -0400
-Received: by fxm10 with SMTP id 10so996629fxm.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 05:03:27 -0700 (PDT)
-In-Reply-To: <20100518.114642.35020415.Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:54517 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757342Ab0ERMD5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:03:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1274180761-14221-1-git-send-email-jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
 
-On Tue, May 18, 2010 at 11:46 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>=
- wrote:
-> From: ext Felipe Contreras <felipe.contreras@gmail.com>
-> Subject: [PATCH v2 00/17] omap: mailbox: reorganize init
-> Date: Fri, 14 May 2010 17:01:33 +0200
->
->> Hi,
->>
->> The main purpose of this patch series is to be able to compile mach =
-platform
->> data as built-in. Otherwise, client modules such as bridgedriver wil=
-l load the
->> platform code, but not the mach code when mailbox is built as a modu=
-le.
->
-> I think that this is the *udev* responsibility. The udev should take
-> care of loading mailbox_mach.ko since the mailbox platform device was
-> registered by devices.ko at bootup. devices.ko is built in earlier
-> than dspbridge.ko, so the mailbox platform device is registered
-> earlier than the dsp device, "C6410". this registration ordering
-> should take care of the dependency if the udevd works correctly.
+Moi Jarkko,
 
-I'm not familiar with this kind of module loading, but certainly not
-all systems have udev.
+On Tue, May 18, 2010 at 01:06:00PM +0200, Jarkko Nikula wrote:
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
 
-I realized the problem because I have a bare-bones system in my
-beagleboard where I had to manually load mailbox_mach.
+I don't have any major objections on this one. I'd just add a patch description though.
+Other than that:
 
->> Unfortunately, there's no easy way to do that since plat and mach co=
-de are
->> deepely interrelated. So the first patches try to separate the mailb=
-ox
->> registering through a defined omap_mbox_platform_data.
->>
->> Also, it's worth noting that mailboxes are not a one-to-one mapping =
-to
->> resources; that is, some resources belong to multiple mboxes. So it'=
-s best to
->> think of mailboxes as fake devices. That is why custom platform_data
->> is required.
->
-> Actually there were logical mailbox devices/instances implemented, bu=
-t
-> it was broken partially when dropping mailbox class support by
-> accident(*1). This is the reason whey omap_mbox struct has unused dev
-> pointer now. At that time, the sysfs interface was not necessary but
-> the device creation itself should not have been removed. I'll get thi=
-s
-> code back again soon.
->
-> The role of each modules were/should be:
->
-> =C2=A0- devices.ko: =C2=A0 =C2=A0 =C2=A0 =C2=A0 a platform device, ba=
-sed on its resource.
-> =C2=A0- mailbox_mach.ko: =C2=A0 =C2=A0a platform driver to register m=
-ultiple logical mboxes/devices.
-> =C2=A0- mailbox.ko: =C2=A0 =C2=A0 =C2=A0 =C2=A0 a kind of framework w=
-hich holds multiple logical mboxes/devices.
->
-> The sysfs structure is like below:
->
-> =C2=A0~# tree -d -L 2 /sys/devices/platform/omap2-mailbox/
+Acked-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-I don't see the point of having 'omap2' there, at best it should be
-'omap-mailbox', or perhaps even just 'mailbox'.
 
-> The platform device omap2-mailbox accomodatess logical mboxes.
-
-Wouldn't it be better the way my patches handle them?
- * devices.ko:  doesn't care about mbox
- * mach_omap1/mailbox.ko:  registers "omap-mailbox" platform device
-with a list of logical mboxes for OMAP1
- * mach_omap2/mailbox.ko:  registers "omap-mailbox" platform device
-with a list of logical mboxes for OMAP2
- * plat-omap/mailbox.ko: creates platform driver based on logical list
-of mboxes from platform device and handles the list internally
-
-The end result would be the exactly same, except that there's no hard
-dependency between the mach, and plat code.
-
->> Finally, a bunch of cleaning up is done in the very first patches, s=
-pecially for
->> OMAP1.
->
-> Most of the cleanups are quite ok.
->
-> Would it be possible to rebase them on the top of my coming patch to
-> get back logical device entry?
-
-Where is that?
-
-> Sorry for the late reply, it took some time to recall my bad memory..=
-=2E
-
-No worries.
-
-Cheers.
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |   43 ++++++-------------------
+>  1 files changed, 11 insertions(+), 32 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index 8179d55..ead7ee1 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -272,48 +272,27 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+>  	{}	/* Terminator */
+>  };
+>  
+> -static struct regulator_consumer_supply rx51_vmmc1_supply = {
+> -	.supply   = "vmmc",
+> -	.dev_name = "mmci-omap-hs.0",
+> -};
+> +static struct regulator_consumer_supply rx51_vmmc1_supply =
+> +	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.0");
+>  
+> -static struct regulator_consumer_supply rx51_vaux3_supply = {
+> -	.supply   = "vmmc",
+> -	.dev_name = "mmci-omap-hs.1",
+> -};
+> +static struct regulator_consumer_supply rx51_vaux3_supply =
+> +	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1");
+>  
+> -static struct regulator_consumer_supply rx51_vsim_supply = {
+> -	.supply   = "vmmc_aux",
+> -	.dev_name = "mmci-omap-hs.1",
+> -};
+> +static struct regulator_consumer_supply rx51_vsim_supply =
+> +	REGULATOR_SUPPLY("vmmc_aux", "mmci-omap-hs.1");
+>  
+>  static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
+>  	/* tlv320aic3x analog supplies */
+> -	{
+> -		.supply		= "AVDD",
+> -		.dev_name	= "2-0018",
+> -	},
+> -	{
+> -		.supply		= "DRVDD",
+> -		.dev_name	= "2-0018",
+> -	},
+> +	REGULATOR_SUPPLY("AVDD", "2-0018"),
+> +	REGULATOR_SUPPLY("DRVDD", "2-0018"),
+>  	/* Keep vmmc as last item. It is not iterated for newer boards */
+> -	{
+> -		.supply		= "vmmc",
+> -		.dev_name	= "mmci-omap-hs.1",
+> -	},
+> +	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
+>  };
+>  
+>  static struct regulator_consumer_supply rx51_vio_supplies[] = {
+>  	/* tlv320aic3x digital supplies */
+> -	{
+> -		.supply		= "IOVDD",
+> -		.dev_name	= "2-0018"
+> -	},
+> -	{
+> -		.supply		= "DVDD",
+> -		.dev_name	= "2-0018"
+> -	},
+> +	REGULATOR_SUPPLY("IOVDD", "2-0018"),
+> +	REGULATOR_SUPPLY("DVDD", "2-0018"),
+>  };
+>  
+>  static struct regulator_init_data rx51_vaux1 = {
+> -- 
+> 1.7.1
