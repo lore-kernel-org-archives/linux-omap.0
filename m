@@ -1,12 +1,12 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: [PATCH 11/14] OMAP2: Devkit8000: Fix comment
-Date: Tue, 18 May 2010 14:05:32 +0200
-Message-ID: <1274184335-29322-12-git-send-email-weber@corscience.de>
+Subject: [PATCH 06/14] OMAP2: Devkit8000: Remove nonexisting vsim
+Date: Tue, 18 May 2010 14:05:27 +0200
+Message-ID: <1274184335-29322-7-git-send-email-weber@corscience.de>
 References: <1274184335-29322-1-git-send-email-weber@corscience.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:60380 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.8]:55350 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757313Ab0ERMGE (ORCPT
+	with ESMTP id S1757218Ab0ERMGE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:06:04 -0400
 In-Reply-To: <1274184335-29322-1-git-send-email-weber@corscience.de>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,26 +14,74 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, Thomas Weber <weber@corscience.de>
 
-The comment says VAUX4 which is not used for ads7846.
+The Devkit8000 uses the cost reduced variant tps65930 of the twl4030.
+The TPS65930 only has vdd1, vdd2, vpll1, vio, vmmc1, vdac and vaux2.
+
+vaux2 is not used.
 
 Signed-off-by: Thomas Weber <weber@corscience.de>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-devkit8000.c |   22 ----------------------
+ 1 files changed, 0 insertions(+), 22 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 637a2c3..bb3f3f5 100644
+index 4611274..7d68016 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -334,7 +334,7 @@ static struct regulator_init_data devkit8000_vpll1 = {
- 	.consumer_supplies	= &devkit8000_vpll1_supply,
+@@ -168,15 +168,10 @@ static void devkit8000_panel_disable_tv(struct omap_dss_device *dssdev)
+ {
+ }
+ 
+-
+ static struct regulator_consumer_supply devkit8000_vmmc1_supply = {
+ 	.supply			= "vmmc",
  };
  
--/* VAUX4 for ads7846 and nubs */
-+/* VIO for ads7846 */
- static struct regulator_init_data devkit8000_vio = {
+-static struct regulator_consumer_supply devkit8000_vsim_supply = {
+-	.supply			= "vmmc_aux",
+-};
+-
+ /* ads7846 on SPI */
+ static struct regulator_consumer_supply devkit8000_vio_supplies[] = {
+ 	REGULATOR_SUPPLY("vcc", "spi2.0")
+@@ -281,7 +276,6 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
+ 
+ 	/* link regulators to MMC adapters */
+ 	devkit8000_vmmc1_supply.dev = mmc[0].dev;
+-	devkit8000_vsim_supply.dev = mmc[0].dev;
+ 
+ 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+ 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+@@ -334,21 +328,6 @@ static struct regulator_init_data devkit8000_vmmc1 = {
+ 	.consumer_supplies	= &devkit8000_vmmc1_supply,
+ };
+ 
+-/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+-static struct regulator_init_data devkit8000_vsim = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 3000000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &devkit8000_vsim_supply,
+-};
+-
+ /* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+ static struct regulator_init_data devkit8000_vdac = {
  	.constraints = {
- 		.min_uV                 = 1800000,
+@@ -414,7 +393,6 @@ static struct twl4030_platform_data devkit8000_twldata = {
+ 	.gpio		= &devkit8000_gpio_data,
+ 	.codec		= &devkit8000_codec_data,
+ 	.vmmc1		= &devkit8000_vmmc1,
+-	.vsim		= &devkit8000_vsim,
+ 	.vdac		= &devkit8000_vdac,
+ 	.vpll1		= &devkit8000_vpll1,
+ 	.vio		= &devkit8000_vio,
 -- 
 1.6.4.4
 
