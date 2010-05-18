@@ -1,115 +1,90 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 03/23] OMAP: DSS2: Add Kconfig option for DPI display type
-Date: Tue, 18 May 2010 15:34:54 +0300
-Message-ID: <1274186114-26951-4-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 01/23] OMAP: Enable DSS2 in OMAP3EVM defconfig
+Date: Tue, 18 May 2010 15:34:52 +0300
+Message-ID: <1274186114-26951-2-git-send-email-tomi.valkeinen@nokia.com>
 References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57879 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756206Ab0ERMfz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:35:55 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:62457 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757262Ab0ERMfy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:35:54 -0400
 In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Roger Quadros <roger.quadros@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-From: Roger Quadros <roger.quadros@nokia.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-This allows us to disable DPI on systems that do not have it
-
-Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+[tomi.valkeinen@nokia.com: removed the board file changes]
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- drivers/video/omap2/dss/Kconfig   |    6 ++++++
- drivers/video/omap2/dss/Makefile  |    3 ++-
- drivers/video/omap2/dss/core.c    |    4 ++++
- drivers/video/omap2/dss/display.c |    4 ++++
- 4 files changed, 16 insertions(+), 1 deletions(-)
+ arch/arm/configs/omap3_evm_defconfig |   51 +++++++++++++++++++++++++++++++++-
+ 1 files changed, 50 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
-index 87afb81..43b6440 100644
---- a/drivers/video/omap2/dss/Kconfig
-+++ b/drivers/video/omap2/dss/Kconfig
-@@ -36,6 +36,12 @@ config OMAP2_DSS_COLLECT_IRQ_STATS
- 	  <debugfs>/omapdss/dispc_irq for DISPC interrupts, and
- 	  <debugfs>/omapdss/dsi_irq for DSI interrupts.
- 
-+config OMAP2_DSS_DPI
-+	bool "DPI support"
-+	default y
-+	help
-+	  DPI Interface. This is the Parallel Display Interface.
+diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
+index a6dd6d1..b02e371 100644
+--- a/arch/arm/configs/omap3_evm_defconfig
++++ b/arch/arm/configs/omap3_evm_defconfig
+@@ -911,7 +911,56 @@ CONFIG_DAB=y
+ #
+ # CONFIG_VGASTATE is not set
+ CONFIG_VIDEO_OUTPUT_CONTROL=m
+-# CONFIG_FB is not set
++CONFIG_FB=y
++# CONFIG_FIRMWARE_EDID is not set
++# CONFIG_FB_DDC is not set
++# CONFIG_FB_BOOT_VESA_SUPPORT is not set
++CONFIG_FB_CFB_FILLRECT=y
++CONFIG_FB_CFB_COPYAREA=y
++CONFIG_FB_CFB_IMAGEBLIT=y
++# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
++# CONFIG_FB_SYS_FILLRECT is not set
++# CONFIG_FB_SYS_COPYAREA is not set
++# CONFIG_FB_SYS_IMAGEBLIT is not set
++# CONFIG_FB_FOREIGN_ENDIAN is not set
++# CONFIG_FB_SYS_FOPS is not set
++# CONFIG_FB_SVGALIB is not set
++# CONFIG_FB_MACMODES is not set
++# CONFIG_FB_BACKLIGHT is not set
++# CONFIG_FB_MODE_HELPERS is not set
++# CONFIG_FB_TILEBLITTING is not set
 +
- config OMAP2_DSS_RFBI
- 	bool "RFBI support"
-         default n
-diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
-index 980c72c..d71b5d9 100644
---- a/drivers/video/omap2/dss/Makefile
-+++ b/drivers/video/omap2/dss/Makefile
-@@ -1,5 +1,6 @@
- obj-$(CONFIG_OMAP2_DSS) += omapdss.o
--omapdss-y := core.o dss.o dispc.o dpi.o display.o manager.o overlay.o
-+omapdss-y := core.o dss.o dispc.o display.o manager.o overlay.o
-+omapdss-$(CONFIG_OMAP2_DSS_DPI) += dpi.o
- omapdss-$(CONFIG_OMAP2_DSS_RFBI) += rfbi.o
- omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o
- omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 7ebe50b..6d54467 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -526,11 +526,13 @@ static int omap_dss_probe(struct platform_device *pdev)
- 	}
- #endif
++#
++# Frame buffer hardware drivers
++#
++# CONFIG_FB_S1D13XXX is not set
++# CONFIG_FB_VIRTUAL is not set
++# CONFIG_FB_METRONOME is not set
++# CONFIG_FB_MB862XX is not set
++# CONFIG_FB_BROADSHEET is not set
++# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
++CONFIG_OMAP2_VRAM=y
++CONFIG_OMAP2_VRFB=y
++CONFIG_OMAP2_DSS=y
++CONFIG_OMAP2_VRAM_SIZE=4
++# CONFIG_OMAP2_DSS_DEBUG_SUPPORT is not set
++# CONFIG_OMAP2_DSS_RFBI is not set
++CONFIG_OMAP2_DSS_VENC=y
++# CONFIG_OMAP2_DSS_SDI is not set
++# CONFIG_OMAP2_DSS_DSI is not set
++# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
++CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=4
++CONFIG_FB_OMAP2=y
++# CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
++# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
++CONFIG_FB_OMAP2_NUM_FBS=3
++
++#
++# OMAP2/3 Display Device Drivers
++#
++CONFIG_PANEL_GENERIC=y
++# CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
++CONFIG_PANEL_SHARP_LS037V7DW01=y
+ # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
  
-+#ifdef CONFIG_OMAP2_DSS_DPI
- 	r = dpi_init(pdev);
- 	if (r) {
- 		DSSERR("Failed to initialize dpi\n");
- 		goto fail0;
- 	}
-+#endif
- 
- 	r = dispc_init();
- 	if (r) {
-@@ -601,7 +603,9 @@ static int omap_dss_remove(struct platform_device *pdev)
- 	venc_exit();
- #endif
- 	dispc_exit();
-+#ifdef CONFIG_OMAP2_DSS_DPI
- 	dpi_exit();
-+#endif
- #ifdef CONFIG_OMAP2_DSS_RFBI
- 	rfbi_exit();
- #endif
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index 6a74ea1..7138963 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -392,7 +392,9 @@ void dss_init_device(struct platform_device *pdev,
- 	int r;
- 
- 	switch (dssdev->type) {
-+#ifdef CONFIG_OMAP2_DSS_DPI
- 	case OMAP_DISPLAY_TYPE_DPI:
-+#endif
- #ifdef CONFIG_OMAP2_DSS_RFBI
- 	case OMAP_DISPLAY_TYPE_DBI:
- #endif
-@@ -413,9 +415,11 @@ void dss_init_device(struct platform_device *pdev,
- 	}
- 
- 	switch (dssdev->type) {
-+#ifdef CONFIG_OMAP2_DSS_DPI
- 	case OMAP_DISPLAY_TYPE_DPI:
- 		r = dpi_init_display(dssdev);
- 		break;
-+#endif
- #ifdef CONFIG_OMAP2_DSS_RFBI
- 	case OMAP_DISPLAY_TYPE_DBI:
- 		r = rfbi_init_display(dssdev);
+ #
 -- 
 1.7.0.4
 
