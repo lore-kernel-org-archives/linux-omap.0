@@ -1,238 +1,92 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 22/23] OMAP: DSS2: omap_dss_probe() conditional compilation cleanup
-Date: Tue, 18 May 2010 15:35:13 +0300
-Message-ID: <1274186114-26951-23-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 19/23] OMAP3630: DSS2: Updating MAX divider value
+Date: Tue, 18 May 2010 15:35:10 +0300
+Message-ID: <1274186114-26951-20-git-send-email-tomi.valkeinen@nokia.com>
 References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53508 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757572Ab0ERMge (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:34 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:62555 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757557Ab0ERMgb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:31 -0400
 In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Jani Nikula <ext-jani.1.nikula@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Kishore Y <kishore.y@ti.com>, Sudeep Basavaraj <sudeep.basavaraj@ti.com>, Mukund Mittal <mmittal@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+From: Kishore Y <kishore.y@ti.com>
 
-Move a number of #ifdefs from code into dss.h and elsewhere, and
-conditionally define no-op static inline functions, cleaning up the
-code. This style is according to Documentation/SubmittingPatches.
+In DPLL4 M3, M4, M5 and M6 field width has been increased by 1 bit in 3630.
+So the max divider value that can be achived will be 32 and not 16.
+In 3630 the functional clock is x1 of DPLL4 and not x2. Hence multiplier 2
+is removed.
 
-Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Sudeep Basavaraj <sudeep.basavaraj@ti.com>
+Signed-off-by: Mukund Mittal <mmittal@ti.com>
+Signed-off-by: Kishore Y <kishore.y@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- drivers/video/omap2/dss/core.c |   35 ++++++++-------------------
- drivers/video/omap2/dss/dss.h  |   50 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 61 insertions(+), 24 deletions(-)
+ drivers/video/omap2/dss/dss.c |   24 +++++++++++++++++++-----
+ 1 files changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 6d54467..92ee067 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -482,6 +482,14 @@ static void dss_uninitialize_debugfs(void)
- 	if (dss_debugfs_dir)
- 		debugfs_remove_recursive(dss_debugfs_dir);
- }
-+#else /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
-+static inline int dss_initialize_debugfs(void)
-+{
-+	return 0;
-+}
-+static inline void dss_uninitialize_debugfs(void)
-+{
-+}
- #endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 5434418..24b1825 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -223,7 +223,13 @@ void dss_dump_clocks(struct seq_file *s)
  
- /* PLATFORM DEVICE */
-@@ -518,56 +526,47 @@ static int omap_dss_probe(struct platform_device *pdev)
- 		goto fail0;
- 	}
+ 	seq_printf(s, "dpll4_ck %lu\n", dpll4_ck_rate);
  
--#ifdef CONFIG_OMAP2_DSS_RFBI
- 	r = rfbi_init();
- 	if (r) {
- 		DSSERR("Failed to initialize rfbi\n");
- 		goto fail0;
- 	}
--#endif
+-	seq_printf(s, "dss1_alwon_fclk = %lu / %lu * 2 = %lu\n",
++	if (cpu_is_omap3630())
++		seq_printf(s, "dss1_alwon_fclk = %lu / %lu  = %lu\n",
++			dpll4_ck_rate,
++			dpll4_ck_rate / dpll4_m4_ck_rate,
++			dss_clk_get_rate(DSS_CLK_FCK1));
++	else
++		seq_printf(s, "dss1_alwon_fclk = %lu / %lu * 2 = %lu\n",
+ 			dpll4_ck_rate,
+ 			dpll4_ck_rate / dpll4_m4_ck_rate,
+ 			dss_clk_get_rate(DSS_CLK_FCK1));
+@@ -293,7 +299,8 @@ int dss_calc_clock_rates(struct dss_clock_info *cinfo)
+ {
+ 	unsigned long prate;
  
--#ifdef CONFIG_OMAP2_DSS_DPI
- 	r = dpi_init(pdev);
- 	if (r) {
- 		DSSERR("Failed to initialize dpi\n");
- 		goto fail0;
- 	}
--#endif
+-	if (cinfo->fck_div > 16 || cinfo->fck_div == 0)
++	if (cinfo->fck_div > (cpu_is_omap3630() ? 32 : 16) ||
++						cinfo->fck_div == 0)
+ 		return -EINVAL;
  
- 	r = dispc_init();
- 	if (r) {
- 		DSSERR("Failed to initialize dispc\n");
- 		goto fail0;
- 	}
--#ifdef CONFIG_OMAP2_DSS_VENC
-+
- 	r = venc_init(pdev);
- 	if (r) {
- 		DSSERR("Failed to initialize venc\n");
- 		goto fail0;
- 	}
--#endif
-+
+ 	prate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
+@@ -329,7 +336,10 @@ int dss_get_clock_div(struct dss_clock_info *cinfo)
  	if (cpu_is_omap34xx()) {
--#ifdef CONFIG_OMAP2_DSS_SDI
- 		r = sdi_init(skip_init);
- 		if (r) {
- 			DSSERR("Failed to initialize SDI\n");
- 			goto fail0;
- 		}
--#endif
--#ifdef CONFIG_OMAP2_DSS_DSI
-+
- 		r = dsi_init(pdev);
- 		if (r) {
- 			DSSERR("Failed to initialize DSI\n");
- 			goto fail0;
- 		}
--#endif
+ 		unsigned long prate;
+ 		prate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
+-		cinfo->fck_div = prate / (cinfo->fck / 2);
++		if (cpu_is_omap3630())
++			cinfo->fck_div = prate / (cinfo->fck);
++		else
++			cinfo->fck_div = prate / (cinfo->fck / 2);
+ 	} else {
+ 		cinfo->fck_div = 0;
  	}
+@@ -402,10 +412,14 @@ retry:
  
--#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
- 	r = dss_initialize_debugfs();
- 	if (r)
- 		goto fail0;
--#endif
+ 		goto found;
+ 	} else if (cpu_is_omap34xx()) {
+-		for (fck_div = 16; fck_div > 0; --fck_div) {
++		for (fck_div = (cpu_is_omap3630() ? 32 : 16);
++					fck_div > 0; --fck_div) {
+ 			struct dispc_clock_info cur_dispc;
  
- 	for (i = 0; i < pdata->num_devices; ++i) {
- 		struct omap_dss_device *dssdev = pdata->devices[i];
-@@ -595,27 +594,15 @@ static int omap_dss_remove(struct platform_device *pdev)
- 	int i;
- 	int c;
+-			fck = prate / fck_div * 2;
++			if (cpu_is_omap3630())
++				fck = prate / fck_div;
++			else
++				fck = prate / fck_div * 2;
  
--#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
- 	dss_uninitialize_debugfs();
--#endif
- 
--#ifdef CONFIG_OMAP2_DSS_VENC
- 	venc_exit();
--#endif
- 	dispc_exit();
--#ifdef CONFIG_OMAP2_DSS_DPI
- 	dpi_exit();
--#endif
--#ifdef CONFIG_OMAP2_DSS_RFBI
- 	rfbi_exit();
--#endif
- 	if (cpu_is_omap34xx()) {
--#ifdef CONFIG_OMAP2_DSS_DSI
- 		dsi_exit();
--#endif
--#ifdef CONFIG_OMAP2_DSS_SDI
- 		sdi_exit();
--#endif
- 	}
- 
- 	dss_exit();
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 24326a5..786f433 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -242,11 +242,22 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
- 		struct dispc_clock_info *dispc_cinfo);
- 
- /* SDI */
-+#ifdef CONFIG_OMAP2_DSS_SDI
- int sdi_init(bool skip_init);
- void sdi_exit(void);
- int sdi_init_display(struct omap_dss_device *display);
-+#else
-+static inline int sdi_init(bool skip_init)
-+{
-+	return 0;
-+}
-+static inline void sdi_exit(void)
-+{
-+}
-+#endif
- 
- /* DSI */
-+#ifdef CONFIG_OMAP2_DSS_DSI
- int dsi_init(struct platform_device *pdev);
- void dsi_exit(void);
- 
-@@ -270,11 +281,30 @@ void dsi_pll_uninit(void);
- void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
- 		u32 fifo_size, enum omap_burst_size *burst_size,
- 		u32 *fifo_low, u32 *fifo_high);
-+#else
-+static inline int dsi_init(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+static inline void dsi_exit(void)
-+{
-+}
-+#endif
- 
- /* DPI */
-+#ifdef CONFIG_OMAP2_DSS_DPI
- int dpi_init(struct platform_device *pdev);
- void dpi_exit(void);
- int dpi_init_display(struct omap_dss_device *dssdev);
-+#else
-+static inline int dpi_init(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+static inline void dpi_exit(void)
-+{
-+}
-+#endif
- 
- /* DISPC */
- int dispc_init(void);
-@@ -362,12 +392,23 @@ int dispc_get_clock_div(struct dispc_clock_info *cinfo);
- 
- 
- /* VENC */
-+#ifdef CONFIG_OMAP2_DSS_VENC
- int venc_init(struct platform_device *pdev);
- void venc_exit(void);
- void venc_dump_regs(struct seq_file *s);
- int venc_init_display(struct omap_dss_device *display);
-+#else
-+static inline int venc_init(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+static inline void venc_exit(void)
-+{
-+}
-+#endif
- 
- /* RFBI */
-+#ifdef CONFIG_OMAP2_DSS_RFBI
- int rfbi_init(void);
- void rfbi_exit(void);
- void rfbi_dump_regs(struct seq_file *s);
-@@ -379,6 +420,15 @@ void rfbi_transfer_area(u16 width, u16 height,
- void rfbi_set_timings(int rfbi_module, struct rfbi_timings *t);
- unsigned long rfbi_get_max_tx_rate(void);
- int rfbi_init_display(struct omap_dss_device *display);
-+#else
-+static inline int rfbi_init(void)
-+{
-+	return 0;
-+}
-+static inline void rfbi_exit(void)
-+{
-+}
-+#endif
- 
- 
- #ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
+ 			if (fck > DISPC_MAX_FCK)
+ 				continue;
 -- 
 1.7.0.4
 
