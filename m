@@ -1,55 +1,69 @@
-From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v6 1/7] omap3: pm: fix for twl4030 script load
-Date: Tue, 18 May 2010 18:02:53 +0530
-Message-ID: <1274185973-23839-1-git-send-email-leslyam@ti.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: dss2 for-next BUG at drivers/video/omap2/dss/core.c:323!
+Date: Tue, 18 May 2010 07:34:13 -0500
+Message-ID: <AANLkTilySmQn2w0royR2UXltWt4Y94AAU-EYXvny9Se1@mail.gmail.com>
+References: <AANLkTinS0irEdEzttaHd0n_w5Cs3h6Q44e9sXgcbDmNH@mail.gmail.com>
+	 <1274169334.2307.74.camel@tubuntu.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41459 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757262Ab0ERMdp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:33:45 -0400
+Received: from fg-out-1718.google.com ([72.14.220.157]:60812 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757262Ab0ERMeP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:34:15 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so3221217fga.1
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 05:34:13 -0700 (PDT)
+In-Reply-To: <1274169334.2307.74.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch will fix the TRITON sleep/wakeup sequence.
+On Tue, May 18, 2010 at 2:55 AM, Tomi Valkeinen
+<tomi.valkeinen@nokia.com> wrote:
+> On Mon, 2010-05-17 at 16:30 +0200, ext Robert Nelson wrote:
+>> Hi Tomi,
+>>
+>> I've been using your dss2 branch with much success.
+>>
+>> http://gitorious.org/linux-omap-dss2/linux/commits/for-next
+>>
+>> I've just ran into a weird BUG that occurs on reboot on my headless
+>> beagles and wondering if you've ran into it too...
+>>
+>> The kernel I'm currently testing is 2.6.34-rc7 plus the 2.6.35 dss2
+>> for-next commits..
+>>
+>> I was assuming http://gitorious.org/linux-omap-dss2/linux/commit/89627989c6b4408c4578a41bcd5f9d04545797ad
+>> would fix it, but it hasn't fixed the Opps'ing...
+>>
+>> log on attempt to reboot:
+>>
+>> http://pastebin.com/iqAHMVD4
+>
+> It looks like there's a mismatch with clock enables and disables
+> somewhere... I haven't seen that.
+>
+> Can you tell me more details of your beagle? Does "headless" mean that
+> it's standard beagle board, but no display is connected to it?
 
-Since the function to populate the sleep script is getting called always
-irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
-is getting over written by the sleep script.
+Correct, just a beagle with no display connected..
 
-Print warning if the sleep script is loaded before wakeup script.
-Because there is a chance that the Power chip may go to sleep before
-the wakeup script is completely loaded, which can cause a system hang.
+I upgraded to 2.6.34 final plus dss2 for-next and enabled omapfb.debug
+and a generic modesetting to see if would make any difference in the
+bootargs.  Same result..
 
-Signed-off-by: Lesly A M <x0080970@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: David Derrick <dderrick@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
----
- drivers/mfd/twl4030-power.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+http://www.pastie.org/965380
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 7efa878..b4fc190 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -451,12 +451,13 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
- 		if (err)
- 			goto out;
- 	}
--	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
--		if (order)
-+	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
-+		if (!order)
- 			pr_warning("TWL4030: Bad order of scripts (sleep "\
- 					"script before wakeup) Leads to boot"\
- 					"failure on some boards\n");
- 		err = twl4030_config_sleep_sequence(address);
-+	}
- out:
- 	return err;
- }
+I should also mention, this only occurs after a small length of time
+(about 10 minutes).. I can't seem to trigger it after a frresh reboot
+(1-2 minutes)..
+
+config for reference:
+http://bazaar.launchpad.net/~beagleboard-kernel/+junk/2.6.34-devel/annotate/head:/patches/lucid-defconfig
+
+Regards,
+
 -- 
-1.7.0.4
-
+Robert Nelson
+http://www.rcn-ee.com/
