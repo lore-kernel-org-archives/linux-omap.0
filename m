@@ -1,58 +1,188 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 12/23] OMAP: DSS2: Taal: Fix DSI bus locking problem
-Date: Tue, 18 May 2010 15:35:03 +0300
-Message-ID: <1274186114-26951-13-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 21/23] board-omap3-beagle: add DSS2 support
+Date: Tue, 18 May 2010 15:35:12 +0300
+Message-ID: <1274186114-26951-22-git-send-email-tomi.valkeinen@nokia.com>
 References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62560 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:62570 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757570Ab0ERMgc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:32 -0400
+	with ESMTP id S1757584Ab0ERMgg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:36 -0400
 In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Koen Kooi <koen.kooi@gmail.com>, Koen Kooi <koen@dominion.thruhere.net>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-=46rom: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
+From: Koen Kooi <koen.kooi@gmail.com>
 
-If omapdss_dsi_display_enable() failed the DSI bus was left locked. Als=
-o
-if the operation failed later omapdss_dsi_display_disable() would get
-called without holding the bus lock.
+This patch adds DSS2 support to the beagleboard boardfile. DVI and
+TV-out are supported.
 
-Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@nokia.com>
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- drivers/video/omap2/displays/panel-taal.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |  101 +++++++++++++++++++++++--------
+ 1 files changed, 75 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/=
-omap2/displays/panel-taal.c
-index 1799096..aaf5d30 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -702,10 +702,9 @@ static int taal_power_on(struct omap_dss_device *d=
-ssdev)
-=20
- 	return 0;
- err:
--	dsi_bus_unlock();
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 962d377..69b154c 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -39,6 +39,7 @@
+ 
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/display.h>
+ #include <plat/gpmc.h>
+ #include <plat/nand.h>
+ #include <plat/usb.h>
+@@ -106,6 +107,77 @@ static struct platform_device omap3beagle_nand_device = {
+ 	.resource	= &omap3beagle_nand_resource,
+ };
+ 
++/* DSS */
++
++static int beagle_enable_dvi(struct omap_dss_device *dssdev)
++{
++	if (gpio_is_valid(dssdev->reset_gpio))
++		gpio_set_value(dssdev->reset_gpio, 1);
++
++	return 0;
++}
++
++static void beagle_disable_dvi(struct omap_dss_device *dssdev)
++{
++	if (gpio_is_valid(dssdev->reset_gpio))
++		gpio_set_value(dssdev->reset_gpio, 0);
++}
++
++static struct omap_dss_device beagle_dvi_device = {
++	.type = OMAP_DISPLAY_TYPE_DPI,
++	.name = "dvi",
++	.driver_name = "generic_panel",
++	.phy.dpi.data_lines = 24,
++	.reset_gpio = 170,
++	.platform_enable = beagle_enable_dvi,
++	.platform_disable = beagle_disable_dvi,
++};
++
++static struct omap_dss_device beagle_tv_device = {
++	.name = "tv",
++	.driver_name = "venc",
++	.type = OMAP_DISPLAY_TYPE_VENC,
++	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
++};
++
++static struct omap_dss_device *beagle_dss_devices[] = {
++	&beagle_dvi_device,
++	&beagle_tv_device,
++};
++
++static struct omap_dss_board_info beagle_dss_data = {
++	.num_devices = ARRAY_SIZE(beagle_dss_devices),
++	.devices = beagle_dss_devices,
++	.default_device = &beagle_dvi_device,
++};
++
++static struct platform_device beagle_dss_device = {
++	.name          = "omapdss",
++	.id            = -1,
++	.dev            = {
++		.platform_data = &beagle_dss_data,
++	},
++};
++
++static struct regulator_consumer_supply beagle_vdac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omapdss");
++
++static struct regulator_consumer_supply beagle_vdvi_supply =
++	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
++
++static void __init beagle_display_init(void)
++{
++	int r;
++
++	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
++	if (r < 0) {
++		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
++		return;
++	}
++
++	gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
++}
++
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ 
+ static struct omap2_hsmmc_info mmc[] = {
+@@ -117,15 +189,6 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}	/* Terminator */
+ };
+ 
+-static struct platform_device omap3_beagle_lcd_device = {
+-	.name		= "omap3beagle_lcd",
+-	.id		= -1,
+-};
 -
- 	omapdss_dsi_display_disable(dssdev);
- err0:
-+	dsi_bus_unlock();
- 	if (dssdev->platform_disable)
- 		dssdev->platform_disable(dssdev);
-=20
---=20
+-static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
+-};
+-
+ static struct regulator_consumer_supply beagle_vmmc1_supply = {
+ 	.supply			= "vmmc",
+ };
+@@ -181,16 +244,6 @@ static struct twl4030_gpio_platform_data beagle_gpio_data = {
+ 	.setup		= beagle_twl_gpio_setup,
+ };
+ 
+-static struct regulator_consumer_supply beagle_vdac_supply = {
+-	.supply		= "vdac",
+-	.dev		= &omap3_beagle_lcd_device.dev,
+-};
+-
+-static struct regulator_consumer_supply beagle_vdvi_supply = {
+-	.supply		= "vdvi",
+-	.dev		= &omap3_beagle_lcd_device.dev,
+-};
+-
+ /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+ static struct regulator_init_data beagle_vmmc1 = {
+ 	.constraints = {
+@@ -349,14 +402,8 @@ static struct platform_device keys_gpio = {
+ 	},
+ };
+ 
+-static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+-	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
+-};
+-
+ static void __init omap3_beagle_init_irq(void)
+ {
+-	omap_board_config = omap3_beagle_config;
+-	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+ 			     mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+@@ -367,9 +414,9 @@ static void __init omap3_beagle_init_irq(void)
+ }
+ 
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+-	&omap3_beagle_lcd_device,
+ 	&leds_gpio,
+ 	&keys_gpio,
++	&beagle_dss_device,
+ };
+ 
+ static void __init omap3beagle_flash_init(void)
+@@ -456,6 +503,8 @@ static void __init omap3_beagle_init(void)
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+ 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
++
++	beagle_display_init();
+ }
+ 
+ static void __init omap3_beagle_map_io(void)
+-- 
 1.7.0.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
