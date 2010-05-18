@@ -1,50 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
-Date: Mon, 17 May 2010 19:50:27 -0700
-Message-ID: <20100518025026.GF5818@atomide.com>
-References: <22422.10.24.255.17.1273947606.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [PATCH 1/3] omap4: Add i2c board support on omap4430 sdp
+ platform
+Date: Mon, 17 May 2010 19:52:58 -0700
+Message-ID: <20100518025257.GG5818@atomide.com>
+References: <1273652851-14147-1-git-send-email-santosh.shilimkar@ti.com>
+ <1273652851-14147-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52243 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753149Ab0ERCxB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 May 2010 22:53:01 -0400
 Content-Disposition: inline
-In-Reply-To: <22422.10.24.255.17.1273947606.squirrel@dbdmail.itg.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: kishore kadiyala <kishore.kadiyala@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk, paul@pwsan.com, santosh.shilimkar@ti.com
+In-Reply-To: <1273652851-14147-2-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
 
-Hi,
-
-* kishore kadiyala <kishore.kadiyala@ti.com> [100515 11:15]:
-> Adding MMC1 and MMC2 controllers support for OMAP4
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [100512 01:22]:
+> This patch adds the i2c board support for OMAP4430 SDP platform. The
+> necessary drivers support patch is posted earlier.
 > 
-> V4:
-> - Rebased to "for_next" branch[LO].
-> - The first 3 patches [1,2,3] in the series are Minimal set of changes
->   with which MMC1/MMC2 works [No card detect for MMC1]on OMAP4 but with
->   dependencies on following patches [Not in "for_next" branch]
->   [1] I2c patches
->       a)https://patchwork.kernel.org/patch/98937/
->       b)https://patchwork.kernel.org/patch/98936/
->       c)https://patchwork.kernel.org/patch/98939/
->       d)https://patchwork.kernel.org/patch/79735/
+> https://patchwork.kernel.org/patch/80659/
+>
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+> @@ -35,6 +35,7 @@
+>  #define OMAP2_I2C_BASE1		0x48070000
+>  #define OMAP2_I2C_BASE2		0x48072000
+>  #define OMAP2_I2C_BASE3		0x48060000
+> +#define OMAP2_I2C_BASE4		0x48350000
+>  
+>  static const char name[] = "i2c_omap";
+>  
+> @@ -54,9 +55,16 @@ static struct resource i2c_resources[][2] = {
+>  #if	defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+>  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_24XX_I2C2_IRQ) },
+>  #endif
+> +#if	defined(CONFIG_ARCH_OMAP4)
+> +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, OMAP44XX_IRQ_I2C2) },
+> +#endif
+>  #if	defined(CONFIG_ARCH_OMAP3)
+>  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_34XX_I2C3_IRQ) },
+>  #endif
+> +#if	defined(CONFIG_ARCH_OMAP4)
+> +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, OMAP44XX_IRQ_I2C3) },
+> +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE4, OMAP44XX_IRQ_I2C4) },
+> +#endif
+>  };
+>  
+>  #define I2C_DEV_BUILDER(bus_id, res, data)		\
 
-I've taken the updated versions of the I2C patches,
-and fixed them not to break omap3_defconfig.
+The above breaks omap3_defconfig. You'll end up with all of the above
+in the array, and as the code is using the array index as the key,
+you end up with wrong resources.
 
->   [2] Regulator pacth
->       a)https://patchwork.kernel.org/patch/94054/
->   [3] hsmmc-clk patch
->       a)https://patchwork.kernel.org/patch/96821/
-
-I've picked up these too.
-
-> - The patches 4,5 adds card detect feature for MMC1
-
-I only took 1 - 3 out of the MMC patches, it's too
-late to start changing the other stuff.
-
-I've reposted the whole series for a quick review.
+I've posted a fix for that in the MMC series and updated your
+patch accordingly.
 
 Regards,
 
