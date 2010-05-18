@@ -1,39 +1,42 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/5] OMAP4: PRCM: Spring cleanup
-Date: Tue, 18 May 2010 13:31:16 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1005181331030.27473@utopia.booyaka.com>
-References: <1273523518-17758-1-git-send-email-b-cousson@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Tue, 18 May 2010 21:39:29 +0200
+Message-ID: <201005182139.29783.rjw@sisk.pl>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<AANLkTinOFSVHnufbVKIei0KMbfkVvDgLVDRHkCldagfY@mail.gmail.com>
+	<4BF23BAC.90102@euromail.se>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-884622968-1274211076=:27473"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39840 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755766Ab0ERTbR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 15:31:17 -0400
-In-Reply-To: <1273523518-17758-1-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <4BF23BAC.90102@euromail.se>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Henrik Rydberg <rydberg@euromail.se>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, linux-input@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, =?iso-8859-1?q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Brian Swetland <swetland@goo>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Tuesday 18 May 2010, Henrik Rydberg wrote:
+> Arve Hj=F8nnev=E5g wrote:
+> > It does not matter how you enter suspend. Without opportunistic
+> > suspend, once you tell the kernel that you want to suspend, you cannot
+> > abort. If a wakeup event occurs at this point, it will probably not be
+> > processed until the system wakes up for another wakeup event.
+> > =
 
---155748971-884622968-1274211076=:27473
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> =
 
-Hi Beno=EEt,
+> Since it seems to be at the very core of the argument, how long time does=
+ it
+> take to suspend your system? Is it something that could be improved upon?
 
-On Mon, 10 May 2010, Benoit Cousson wrote:
+It's not a matter of time.  It's a matter of lost keystrokes and such.
 
-> This series remove a couple of useless or non-functional registers
-> from the OMAP4430 ES1.0 defines.=20
-> It cleans as well the registers that didn't stick to the PRCM
-> naming convention and add a couple of new defines for offset.
-
-Thanks, queued for 2.6.35.
-
-
-- Paul
---155748971-884622968-1274211076=:27473--
+Rafael
