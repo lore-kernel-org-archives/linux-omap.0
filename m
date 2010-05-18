@@ -1,23 +1,22 @@
-From: Linus WALLEIJ <linus.walleij@stericsson.com>
+From: Henrik Rydberg <rydberg@euromail.se>
 Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Mon, 17 May 2010 23:16:52 +0200
-Message-ID: <CEE6BB42CAD6E947908279175AF8470A025A726244@EXDCVYMBSTM006.EQ1STM.local>
-References: <87wrvl5479.fsf@deeprootsystems.com>
-	<20100503215028.GB18910@srcf.ucam.org>
-	<alpine.DEB.2.00.1005141408260.3348@utopia.booyaka.com>
-	<20100514203202.GA12409@srcf.ucam.org>
-	<87aas2azc5.fsf@deeprootsystems.com>
-	<20100514231510.GG16989@thunk.org> <87r5laa4oc.fsf@deeprootsystems.com>
-	<AANLkTilL90pYVlquvMDAEPHj_AraEi9Qzk-0tTjw9Bkx@mail.gmail.com>
-	<20100517193440.GA32066@srcf.ucam.org>
-	<CEE6BB42CAD6E947908279175AF8470A025A726242@EXDCVYMBSTM006.EQ1STM.local>
-	<20100517210615.GB1873@srcf.ucam.org>
+Date: Tue, 18 May 2010 09:03:08 +0200
+Message-ID: <4BF23BAC.90102@euromail.se>
+References: <1272667021-21312-1-git-send-email-arve@android.com>	
+	<87wrvl5479.fsf@deeprootsystems.com>	
+	<20100503180741.GB2098@rakim.wolfsonmicro.main>	
+	<201005032318.35383.rjw@sisk.pl>
+	<87sk68r1zh.fsf@deeprootsystems.com>	
+	<s2qd6200be21005031709r28420f0ezf3cf286517ee9114@mail.gmail.com>	
+	<alpine.DEB.2.00.1005141422110.3348@utopia.booyaka.com>	
+	<AANLkTinyNYFwM4QJKPunlvK-ATJwSYVXGayeZIR9izx2@mail.gmail.com>	
+	<alpine.DEB.2.00.1005172018380.27473@utopia.booyaka.com>
+	<AANLkTinOFSVHnufbVKIei0KMbfkVvDgLVDRHkCldagfY@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20100517210615.GB1873@srcf.ucam.org>
-Content-Language: en-US
+In-Reply-To: <AANLkTinOFSVHnufbVKIei0KMbfkVvDgLVDRHkCldagfY@mail.gmail.com>
 List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
@@ -27,40 +26,19 @@ List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
 Sender: linux-pm-bounces@lists.linux-foundation.org
 Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.org>, "tytso@mit.edu" <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>
+To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, linux-input@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, =?ISO-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Brian Swetland <swetland@google.com>
 List-Id: linux-omap@vger.kernel.org
 
-[Matthew]
-> On Mon, May 17, 2010 at 10:53:36PM +0200, Linus WALLEIJ wrote:
-> > I understand the problem such that the scheduler cannot determine wheth=
-er
-> > a certain process should be allowed to schedule or not.
-> >
-> > It strikes me that the intuitive solution is to group all un-trusted
-> > processes/threads/tasks that need to be shut off even if they are
-> > scheduling into a control group and let the idle code ignore the
-> > processes in this group.
-> >
-> > Or is there something too na=EFve about this?
+Arve Hj=F8nnev=E5g wrote:
+> It does not matter how you enter suspend. Without opportunistic
+> suspend, once you tell the kernel that you want to suspend, you cannot
+> abort. If a wakeup event occurs at this point, it will probably not be
+> processed until the system wakes up for another wakeup event.
 > =
 
-> It gets most of the way there (and I spent a while playing with it), but
-> the problem is that not all wakeup events get proxied through the
-> trusted userspace runtime. Network packets are the easiest example - a
-> packet may wake the system, but if the process it's delivered to is
-> frozen then obviously things get trickier. It's also racy, in that if
-> you're currently awake and receive a packet that would otherwise have
-> woken the system you may go to sleep between the packet being received
-> and bubbling up through the kernel to get to userspace.
 
-Maybe I'm misunderstanding something basic here, but when you say frozen,
-are you referring to freezer control groups
-Documentation/cgroups/freezer-subsystem.txt?
+Since it seems to be at the very core of the argument, how long time does it
+take to suspend your system? Is it something that could be improved upon?
 
-I was more thinking about something new, that isn't freezing anything.
-The only purpose would be to group the stuff that CPUidle can ignore,
-and let CPUidle ignore it, so that the system can still be idled.
-
-Yours,
-Linus Walleij
+Henrik
