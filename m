@@ -1,32 +1,40 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] MMC: OMAP HS-MMC: convert to dev_pm_ops
-Date: Tue, 18 May 2010 09:34:47 -0700
-Message-ID: <87ocgdqic8.fsf@deeprootsystems.com>
-References: <1273615036-4516-1-git-send-email-khilman@deeprootsystems.com>
-	<87k4r74p01.fsf@linux-g6p1.site> <87ljbmmnp2.fsf@deeprootsystems.com>
-	<20100514225720.GA13046@console-pimps.org>
+Subject: Re: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+Date: Tue, 18 May 2010 09:36:35 -0700
+Message-ID: <87hbm5qi98.fsf@deeprootsystems.com>
+References: <1273745535-27139-1-git-send-email-shweta.gulati@ti.com>
+	<87hbmajrgh.fsf@deeprootsystems.com>
+	<FCCFB4CDC6E5564B9182F639FC35608703051ADC7D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100514225720.GA13046@console-pimps.org> (Matt Fleming's message of "Fri\, 14 May 2010 23\:57\:20 +0100")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Fleming <matt@console-pimps.org>
-Cc: linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:52207 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753434Ab0ERQgi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 12:36:38 -0400
+Received: by pva18 with SMTP id 18so524786pva.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 09:36:37 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703051ADC7D@dbde02.ent.ti.com> (Vishwanath Sripathy's message of "Tue\, 18 May 2010 21\:10\:27 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: "Gulati, Shweta" <shweta.gulati@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Matt Fleming <matt@console-pimps.org> writes:
+"Sripathy, Vishwanath" <vishwanath.bs@ti.com> writes:
 
-> On Fri, May 14, 2010 at 09:51:21AM -0700, Kevin Hilman wrote:
+>> All that being said, why is the voltage level being programmed here?
 >> 
->> I don't see a reason either, but it requires patching the MMC core as
->> well as all the users.  As I'm not an MMC core person, I thought this
->> best left to someone in that domain.
->> 
->> Fixing the core and callers could easily be done on top of this patch.
+>> It seems to me that all of this errata handling should be
+>> self-contained in the voltage layer.
 >
-> I've sent a patch that fixes up all the callers now and Andrew has taken
-> it into -mm.
+> I am not sure if entire errata can be contained in voltage
+> layer. This is because we are performing DVFS operation in CPU Idle
+> path which involves both Frequency and Voltage scaling. So currently
+> this has been done in resource34xx.c where DVFS is implemented.
 
-Very nice,  Thanks.
+What I mean is that there seems to be no good reason to be calling
+these from pm34xx.c, they should be called where voltage scaling is
+done.
 
 Kevin
+
