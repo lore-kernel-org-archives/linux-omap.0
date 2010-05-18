@@ -1,122 +1,92 @@
-From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v6 4/7] omap3: pm: changing vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure
-Date: Tue, 18 May 2010 18:05:39 +0530
-Message-ID: <1274186139-23960-1-git-send-email-leslyam@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCH 05/23] OMAP: DSS2: Use vdds_sdi regulator supply in SDI
+Date: Tue, 18 May 2010 15:34:56 +0300
+Message-ID: <1274186114-26951-6-git-send-email-tomi.valkeinen@nokia.com>
+References: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54177 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757489Ab0ERMgC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 May 2010 08:36:02 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:62494 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757502Ab0ERMgJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:36:09 -0400
+In-Reply-To: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+Cc: Roger Quadros <roger.quadros@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Rename vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure.
+From: Roger Quadros <roger.quadros@nokia.com>
 
-Signed-off-by: Lesly A M <x0080970@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: David Derrick <dderrick@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+This patch enables the use of vdds_sdi regulator in SDI subsystem.
+We can disable the vdds_sdi voltage when not in use to save
+power.
+
+Signed-off-by: Roger Quadros <roger.quadros@nokia.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/mach-omap2/voltage.c |   34 +++++++++++++++++-----------------
- arch/arm/mach-omap2/voltage.h |   10 +++++-----
- 2 files changed, 22 insertions(+), 22 deletions(-)
+ drivers/video/omap2/dss/sdi.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index f4069db..1c3f9ed 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -147,14 +147,14 @@ struct __initdata prm_setup_vc omap3430_vc_config = {
- 		.voltoffset = 0x32,
- 	},
- 	/* VC COMMAND VALUES for VDD1/VDD2 */
--	.vdd0_on = 0x30,        /* 1.2v */
--	.vdd0_onlp = 0x20,      /* 1.0v */
--	.vdd0_ret = 0x1e,       /* 0.975v */
--	.vdd0_off = 0x00,       /* 0.6v */
--	.vdd1_on = 0x2c,        /* 1.15v */
-+	.vdd1_on = 0x30,        /* 1.2v */
- 	.vdd1_onlp = 0x20,      /* 1.0v */
--	.vdd1_ret = 0x1e,       /* .975v */
-+	.vdd1_ret = 0x1e,       /* 0.975v */
- 	.vdd1_off = 0x00,       /* 0.6v */
-+	.vdd2_on = 0x2c,        /* 1.15v */
-+	.vdd2_onlp = 0x20,      /* 1.0v */
-+	.vdd2_ret = 0x1e,       /* 0.975v */
-+	.vdd2_off = 0x00,       /* 0.6v */
- };
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index 3de3c1e..ee07a3c 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -23,13 +23,16 @@
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/err.h>
++#include <linux/regulator/consumer.h>
  
- /*
-@@ -178,14 +178,14 @@ struct __initdata prm_setup_vc omap3630_vc_config = {
- 		.voltoffset = 0x32,
- 	},
- 	/* VC COMMAND VALUES for VDD1/VDD2 */
--	.vdd0_on = 0x28,	/* 1.1v */
--	.vdd0_onlp = 0x20,	/* 1.0v */
--	.vdd0_ret = 0x13,	/* 0.83v */
--	.vdd0_off = 0x00,	/* 0.6v */
--	.vdd1_on = 0x2B,	/* 1.1375v */
-+	.vdd1_on = 0x28,	/* 1.1v */
- 	.vdd1_onlp = 0x20,	/* 1.0v */
- 	.vdd1_ret = 0x13,	/* 0.83v */
- 	.vdd1_off = 0x00,	/* 0.6v */
-+	.vdd2_on = 0x2B,	/* 1.1375v */
-+	.vdd2_onlp = 0x20,	/* 1.0v */
-+	.vdd2_ret = 0x13,	/* 0.83v */
-+	.vdd2_off = 0x00,	/* 0.6v */
- };
+ #include <plat/display.h>
++#include <plat/cpu.h>
+ #include "dss.h"
  
- static struct prm_setup_vc vc_config;
-@@ -279,17 +279,17 @@ static void __init init_voltagecontroller(void)
- 			VC_VOLRA0_SHIFT));
+ static struct {
+ 	bool skip_init;
+ 	bool update_enabled;
++	struct regulator *vdds_sdi_reg;
+ } sdi;
  
- 	voltage_write_reg(vc_reg.cmdval0_reg,
--			(vc_config.vdd0_on << VC_CMD_ON_SHIFT) |
--			(vc_config.vdd0_onlp << VC_CMD_ONLP_SHIFT) |
--			(vc_config.vdd0_ret << VC_CMD_RET_SHIFT) |
--			(vc_config.vdd0_off << VC_CMD_OFF_SHIFT));
--
--	voltage_write_reg(vc_reg.cmdval1_reg,
- 			(vc_config.vdd1_on << VC_CMD_ON_SHIFT) |
- 			(vc_config.vdd1_onlp << VC_CMD_ONLP_SHIFT) |
- 			(vc_config.vdd1_ret << VC_CMD_RET_SHIFT) |
- 			(vc_config.vdd1_off << VC_CMD_OFF_SHIFT));
+ static void sdi_basic_init(void)
+@@ -57,6 +60,10 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 		goto err0;
+ 	}
  
-+	voltage_write_reg(vc_reg.cmdval1_reg,
-+			(vc_config.vdd2_on << VC_CMD_ON_SHIFT) |
-+			(vc_config.vdd2_onlp << VC_CMD_ONLP_SHIFT) |
-+			(vc_config.vdd2_ret << VC_CMD_RET_SHIFT) |
-+			(vc_config.vdd2_off << VC_CMD_OFF_SHIFT));
++	r = regulator_enable(sdi.vdds_sdi_reg);
++	if (r)
++		goto err1;
 +
- 	voltage_write_reg(vc_ch_conf_reg, VC_CMD1 | VC_RAV1);
+ 	/* In case of skip_init sdi_init has already enabled the clocks */
+ 	if (!sdi.skip_init)
+ 		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
+@@ -120,6 +127,7 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 	return 0;
+ err2:
+ 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	regulator_disable(sdi.vdds_sdi_reg);
+ err1:
+ 	omap_dss_stop_device(dssdev);
+ err0:
+@@ -135,6 +143,8 @@ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
  
- 	voltage_write_reg(vc_i2c_cfg_reg, VC_MCODE_SHIFT | VC_HSEN);
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index f8462c3..04c3bdf 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -28,15 +28,15 @@ struct prm_setup_vc {
- /* CLK & VOLT SETUPTIME for OFF */
- 	struct setuptime_vc off;
- /* PRM_VC_CMD_VAL_0 specific bits */
--	u16 vdd0_on;
--	u16 vdd0_onlp;
--	u16 vdd0_ret;
--	u16 vdd0_off;
--/* PRM_VC_CMD_VAL_1 specific bits */
- 	u16 vdd1_on;
- 	u16 vdd1_onlp;
- 	u16 vdd1_ret;
- 	u16 vdd1_off;
-+/* PRM_VC_CMD_VAL_1 specific bits */
-+	u16 vdd2_on;
-+	u16 vdd2_onlp;
-+	u16 vdd2_ret;
-+	u16 vdd2_off;
- };
+ 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
  
- #define VOLTSCALE_VPFORCEUPDATE		1
++	regulator_disable(sdi.vdds_sdi_reg);
++
+ 	omap_dss_stop_device(dssdev);
+ }
+ EXPORT_SYMBOL(omapdss_sdi_display_disable);
+@@ -151,6 +161,11 @@ int sdi_init(bool skip_init)
+ 	/* we store this for first display enable, then clear it */
+ 	sdi.skip_init = skip_init;
+ 
++	sdi.vdds_sdi_reg = dss_get_vdds_sdi();
++	if (IS_ERR(sdi.vdds_sdi_reg)) {
++		DSSERR("can't get VDDS_SDI regulator\n");
++		return PTR_ERR(sdi.vdds_sdi_reg);
++	}
+ 	/*
+ 	 * Enable clocks already here, otherwise there would be a toggle
+ 	 * of them until sdi_display_enable is called.
 -- 
 1.7.0.4
 
