@@ -1,146 +1,98 @@
-From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v6 3/7] omap3: pm: re-programing the setup time based on CORE_DOMAIN target state
-Date: Tue, 18 May 2010 18:05:29 +0530
-Message-ID: <1274186129-23928-1-git-send-email-leslyam@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCH 00/23] OMAP DSS patches for 2.6.35 merge window
+Date: Tue, 18 May 2010 15:34:51 +0300
+Message-ID: <1274186114-26951-1-git-send-email-tomi.valkeinen@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54168 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756206Ab0ERMfx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 May 2010 08:35:53 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:57871 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757465Ab0ERMfz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 08:35:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-This patch will add a new function omap_voltage_vc_update() to re-program
-the VC parameters while entering low power mode, based on CORE_DOMAIN target state.
-The voltsetup2 is used only when the device exits sys_off mode
-(with PRM_VOLTCTRL[3]SEL_OFF set to 1).
+Here are OMAP DSS patches for 2.6.35 merge window. They have been previ=
+ously
+reviewed on linux-omap and fbdev lists.
 
-Also removed the clearing of PRM_VOLTCTRL register bits, because this will be
-used only when it goes to low power mode next time.
+ Tomi
 
-Signed-off-by: Lesly A M <x0080970@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: David Derrick <dderrick@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
----
- arch/arm/mach-omap2/pm34xx.c  |   26 +++-----------------------
- arch/arm/mach-omap2/voltage.c |   41 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/voltage.h |    1 +
- 3 files changed, 45 insertions(+), 23 deletions(-)
+Carlos Lopez (1):
+  OMAP2: DSS: Add missing line for update bg color
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 5039b35..1ff6293 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -439,20 +439,12 @@ void omap_sram_idle(void)
- 	if (core_next_state < PWRDM_POWER_ON) {
- 		omap_uart_prepare_idle(0);
- 		omap_uart_prepare_idle(1);
--		if (core_next_state == PWRDM_POWER_OFF) {
--			u32 voltctrl = OMAP3430_AUTO_OFF;
-+		/* Update the voltsetup time for RET/OFF */
-+		omap_voltage_vc_update(core_next_state);
- 
--			if (voltage_off_while_idle)
--				voltctrl |= OMAP3430_SEL_OFF;
--			prm_set_mod_reg_bits(voltctrl,
--					     OMAP3430_GR_MOD,
--					     OMAP3_PRM_VOLTCTRL_OFFSET);
-+		if (core_next_state == PWRDM_POWER_OFF) {
- 			omap3_core_save_context();
- 			omap3_prcm_save_context();
--		} else if (core_next_state == PWRDM_POWER_RET) {
--			prm_set_mod_reg_bits(OMAP3430_AUTO_RET,
--						OMAP3430_GR_MOD,
--						OMAP3_PRM_VOLTCTRL_OFFSET);
- 		}
- 	}
- 
-@@ -510,18 +502,6 @@ void omap_sram_idle(void)
- 		}
- 		omap_uart_resume_idle(0);
- 		omap_uart_resume_idle(1);
--		if (core_next_state == PWRDM_POWER_OFF) {
--			u32 voltctrl = OMAP3430_AUTO_OFF;
--
--			if (voltage_off_while_idle)
--				voltctrl |= OMAP3430_SEL_OFF;
--			prm_clear_mod_reg_bits(voltctrl,
--					       OMAP3430_GR_MOD,
--					       OMAP3_PRM_VOLTCTRL_OFFSET);
--		} else if (core_next_state == PWRDM_POWER_RET)
--			prm_clear_mod_reg_bits(OMAP3430_AUTO_RET,
--						OMAP3430_GR_MOD,
--						OMAP3_PRM_VOLTCTRL_OFFSET);
- 	}
- 	omap3_intc_resume_idle();
- 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index efa16d4..f4069db 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -943,6 +943,47 @@ void __init omap_voltage_init_vc(struct prm_setup_vc *setup_vc)
- 	vc_config.off.clksetup = setup_vc->off.clksetup;
- }
- 
-+void omap_voltage_vc_update(int core_next_state)
-+{
-+	u32 voltctrl = 0;
-+
-+	/* update voltsetup time */
-+	if (core_next_state == PWRDM_POWER_OFF) {
-+		voltctrl = OMAP3430_AUTO_OFF;
-+		prm_write_mod_reg(vc_config.off.clksetup, OMAP3430_GR_MOD,
-+				OMAP3_PRM_CLKSETUP_OFFSET);
-+		prm_write_mod_reg((vc_config.off.voltsetup1_vdd2 <<
-+				OMAP3430_SETUP_TIME2_SHIFT) |
-+				(vc_config.off.voltsetup1_vdd1 <<
-+				OMAP3430_SETUP_TIME1_SHIFT),
-+				OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
-+
-+		if (voltage_off_while_idle) {
-+			voltctrl |= OMAP3430_SEL_OFF;
-+			prm_write_mod_reg(vc_config.off.voltsetup2,
-+					OMAP3430_GR_MOD,
-+					OMAP3_PRM_VOLTSETUP2_OFFSET);
-+		}
-+
-+	} else if (core_next_state == PWRDM_POWER_RET) {
-+		voltctrl = OMAP3430_AUTO_RET;
-+		prm_write_mod_reg(vc_config.ret.clksetup, OMAP3430_GR_MOD,
-+				OMAP3_PRM_CLKSETUP_OFFSET);
-+		prm_write_mod_reg((vc_config.ret.voltsetup1_vdd2 <<
-+				OMAP3430_SETUP_TIME2_SHIFT) |
-+				(vc_config.ret.voltsetup1_vdd1 <<
-+				OMAP3430_SETUP_TIME1_SHIFT),
-+				OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
-+
-+		/* clear voltsetup2_reg if sys_off not enabled */
-+		prm_write_mod_reg(vc_config.ret.voltsetup2, OMAP3430_GR_MOD,
-+				OMAP3_PRM_VOLTSETUP2_OFFSET);
-+	}
-+
-+	prm_set_mod_reg_bits(voltctrl, OMAP3430_GR_MOD,
-+				OMAP3_PRM_VOLTCTRL_OFFSET);
-+}
-+
- /**
-  * omap_get_voltage_table : API to get the voltage table associated with a
-  *			    particular voltage domain.
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index cc2b355..f8462c3 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -126,6 +126,7 @@ struct omap_volt_data {
- void omap_voltageprocessor_enable(int vp_id);
- void omap_voltageprocessor_disable(int vp_id);
- void omap_voltage_init_vc(struct prm_setup_vc *setup_vc);
-+void omap_voltage_vc_update(int core_next_state);
- void omap_voltage_init(void);
- int omap_voltage_scale(int vdd, unsigned long target_volt,
- 					unsigned long current_volt);
--- 
-1.7.0.4
+Grazvydas Ignotas (1):
+  OMAP: DSS2: TPO-TD03MTEA1: fix Kconfig dependency
 
+Jani Nikula (6):
+  OMAP: DSS2: fix lock_fb_info() and omapfb_lock() locking order
+  OMAP: DSS2: check lock_fb_info() return value
+  OMAP: DSS2: VENC: don't call platform_enable/disable() twice
+  OMAP: DSS2: Fix device disable when driver is not loaded
+  OMAP: DSS2: omap_dss_probe() conditional compilation cleanup
+  OMAP: DSS2: Fix omap_dss_probe() error path
+
+Kishore Y (1):
+  OMAP3630: DSS2: Updating MAX divider value
+
+Koen Kooi (1):
+  board-omap3-beagle: add DSS2 support
+
+Roger Quadros (7):
+  OMAP: DSS2: Add Kconfig option for DPI display type
+  OMAP: DSS2: Remove redundant enable/disable calls from SDI
+  OMAP: DSS2: Use vdds_sdi regulator supply in SDI
+  OMAP: RX51: Add LCD Panel support
+  OMAP: RX51: Add Touch Controller in SPI board info
+  OMAP: DSS2: Add ACX565AKM Panel Driver
+  OMAP: RX51: Update board defconfig
+
+Tomi Valkeinen (2):
+  OMAP: DSS2: Make partial update width even
+  OMAP: DSS2: Taal: add mutex to protect panel data
+
+Vaibhav Hiremath (3):
+  OMAP: Enable DSS2 in OMAP3EVM defconfig
+  OMAP: AM3517: Enable DSS2 in AM3517EVM defconfig
+  OMAP: LCD LS037V7DW01: Add Backlight driver support
+
+Ville Syrj=C3=A4l=C3=A4 (1):
+  OMAP: DSS2: Taal: Fix DSI bus locking problem
+
+ arch/arm/configs/am3517_evm_defconfig              |   52 ++-
+ arch/arm/configs/omap3_evm_defconfig               |   51 ++-
+ arch/arm/configs/rx51_defconfig                    |   39 +-
+ arch/arm/mach-omap2/Makefile                       |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c            |  101 ++-
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |   28 +
+ arch/arm/mach-omap2/board-rx51-video.c             |  109 +++
+ arch/arm/mach-omap2/board-rx51.c                   |    2 +
+ drivers/video/omap2/displays/Kconfig               |    9 +-
+ drivers/video/omap2/displays/Makefile              |    1 +
+ drivers/video/omap2/displays/panel-acx565akm.c     |  819 ++++++++++++=
+++++++++
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   78 ++
+ drivers/video/omap2/displays/panel-taal.c          |  143 +++-
+ drivers/video/omap2/dss/Kconfig                    |    6 +
+ drivers/video/omap2/dss/Makefile                   |    3 +-
+ drivers/video/omap2/dss/core.c                     |   85 ++-
+ drivers/video/omap2/dss/display.c                  |    9 +-
+ drivers/video/omap2/dss/dss.c                      |   24 +-
+ drivers/video/omap2/dss/dss.h                      |   50 ++
+ drivers/video/omap2/dss/manager.c                  |   21 +
+ drivers/video/omap2/dss/sdi.c                      |   26 +-
+ drivers/video/omap2/dss/venc.c                     |   15 +-
+ drivers/video/omap2/omapfb/omapfb-ioctl.c          |    5 +-
+ drivers/video/omap2/omapfb/omapfb-sysfs.c          |   25 +-
+ 24 files changed, 1573 insertions(+), 129 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-rx51-video.c
+ create mode 100644 drivers/video/omap2/displays/panel-acx565akm.c
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
