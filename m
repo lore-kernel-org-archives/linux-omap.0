@@ -1,88 +1,88 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Tue, 18 May 2010 14:02:44 +0300
-Message-ID: <AANLkTingzOiLETDW9gCNK1W6OVrWZx0ltREJVDYXFcMt@mail.gmail.com>
-References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	 <g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
-	 <r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
-	 <AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
-	 <AANLkTindMySAOe6UG_hRoCvjIuPZdyg2nNe-Gub9pwau@mail.gmail.com>
-	 <AANLkTikLfEQB0mtbOXIrxTj68LoY9EcSn86su6OJW8ev@mail.gmail.com>
-	 <AANLkTilMrSeEv1pzlGwdLg4mFADzkUX9LgV8Co4QIm7V@mail.gmail.com>
-	 <AANLkTimwAMbz8kSSW5OvQHvfskvM9auqYRq13GO2hBv_@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH 1/2] omap: rx51: Use REGULATOR_SUPPLY macro when initializing regulator consumers
+Date: Tue, 18 May 2010 14:06:00 +0300
+Message-ID: <1274180761-14221-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36504 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751964Ab0ERLCt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 07:02:49 -0400
-Received: by fxm10 with SMTP id 10so930602fxm.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 04:02:46 -0700 (PDT)
-In-Reply-To: <AANLkTimwAMbz8kSSW5OvQHvfskvM9auqYRq13GO2hBv_@mail.gmail.com>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:36743 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755560Ab0ERLEL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 07:04:11 -0400
+Received: by wwi17 with SMTP id 17so376312wwi.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 04:04:10 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-On Tue, May 18, 2010 at 11:05 AM, Ohad Ben-Cohen <ohad@wizery.com> wrot=
-e:
-> On Mon, May 17, 2010 at 2:51 AM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> So currently (v2.6.33), before sending a read-olny buffer (TO_DEVICE=
-),
->> we do dmac_flush_range (should be clean, but whatever) and before
->> sending a write-only (FROM_DEVICE), we do dmac_inv_range.
->>
->> On v2.6.33 the same could be achieved with only dma_map_* functions,
->> but on v2.6.34 that's not the case.
->
-> Sorry, I didn't completely follow you here, let's take a look at the
-> mapping code:
->
-> ENTRY(v7_dma_map_area)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0add =C2=A0 =C2=A0 r1, r1, r0
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0teq =C2=A0 =C2=A0 r2, #DMA_FROM_DEVICE
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0beq =C2=A0 =C2=A0 v7_dma_inv_range
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0b =C2=A0 =C2=A0 =C2=A0 v7_dma_clean_range
-> ENDPROC(v7_dma_map_area)
->
-> DMA_FROM_DEVICE will get the cache invalidated and then cleaned,
-> and DMA_BIDIRECTIONAL/DMA_TO_DEVICE will get the cache only
-> cleaned.
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   43 ++++++-------------------
+ 1 files changed, 11 insertions(+), 32 deletions(-)
 
-No, when DMA_FROM_DEVICE, only v7_dma_inv_range is executed (see the
-mov pc, lr at the end).
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 8179d55..ead7ee1 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -272,48 +272,27 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{}	/* Terminator */
+ };
+ 
+-static struct regulator_consumer_supply rx51_vmmc1_supply = {
+-	.supply   = "vmmc",
+-	.dev_name = "mmci-omap-hs.0",
+-};
++static struct regulator_consumer_supply rx51_vmmc1_supply =
++	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.0");
+ 
+-static struct regulator_consumer_supply rx51_vaux3_supply = {
+-	.supply   = "vmmc",
+-	.dev_name = "mmci-omap-hs.1",
+-};
++static struct regulator_consumer_supply rx51_vaux3_supply =
++	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1");
+ 
+-static struct regulator_consumer_supply rx51_vsim_supply = {
+-	.supply   = "vmmc_aux",
+-	.dev_name = "mmci-omap-hs.1",
+-};
++static struct regulator_consumer_supply rx51_vsim_supply =
++	REGULATOR_SUPPLY("vmmc_aux", "mmci-omap-hs.1");
+ 
+ static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
+ 	/* tlv320aic3x analog supplies */
+-	{
+-		.supply		= "AVDD",
+-		.dev_name	= "2-0018",
+-	},
+-	{
+-		.supply		= "DRVDD",
+-		.dev_name	= "2-0018",
+-	},
++	REGULATOR_SUPPLY("AVDD", "2-0018"),
++	REGULATOR_SUPPLY("DRVDD", "2-0018"),
+ 	/* Keep vmmc as last item. It is not iterated for newer boards */
+-	{
+-		.supply		= "vmmc",
+-		.dev_name	= "mmci-omap-hs.1",
+-	},
++	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
+ };
+ 
+ static struct regulator_consumer_supply rx51_vio_supplies[] = {
+ 	/* tlv320aic3x digital supplies */
+-	{
+-		.supply		= "IOVDD",
+-		.dev_name	= "2-0018"
+-	},
+-	{
+-		.supply		= "DVDD",
+-		.dev_name	= "2-0018"
+-	},
++	REGULATOR_SUPPLY("IOVDD", "2-0018"),
++	REGULATOR_SUPPLY("DVDD", "2-0018"),
+ };
+ 
+ static struct regulator_init_data rx51_vaux1 = {
+-- 
+1.7.1
 
-> Unfortunately I don't have a setup right now to test this, but the co=
-de
-> seems to be ok for our needs, don't you think ?
-
-But yeah, actually that fits our needs; calling the dma_map only,
-while still wrong, will give us the same behavior we have right now
-(v2.6.33).
-
-So my table was wrong, it's actually:
-
-in: begin BIDI:
-       dma_clean_range
-
-out: begin FROM_DEV:
-       dma_inv_range
-
-out: end FROM_DEV:
-       dma_inv_range
-
-in: end BIDI:
-       dma_inv_range
-
-Cheers.
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
