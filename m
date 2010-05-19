@@ -1,94 +1,235 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 09/22] OMAP: hwmod: Rename hwmod name for the MPU
-Date: Tue, 18 May 2010 20:18:48 -0600
-Message-ID: <20100519021847.19716.28674.stgit@localhost.localdomain>
+Subject: [PATCH 12/22] OMAP4: PRM: Remove MPU internal code name and apply
+	PRCM naming convention
+Date: Tue, 18 May 2010 20:18:52 -0600
+Message-ID: <20100519021851.19716.41447.stgit@localhost.localdomain>
 References: <20100519021800.19716.8938.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:39805 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752576Ab0ESCVB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 22:21:01 -0400
 In-Reply-To: <20100519021800.19716.8938.stgit@localhost.localdomain>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
 From: Benoit Cousson <b-cousson@ti.com>
 
-In the lastest OMAP4 hwmod data file, the _hwmod was removed
-in order to save some memory space and because it does not
-bring a lot.
+The MPU subsystem was named based on internal code name (CHIRON).
+This patch will remove all the occurences of the chiron name
+are replace it with PRCM_MPU in order to differentiate
+the MPU local PRCM to the global one.
 
-The same cleanup will be have to done for other hwmods in
-OMAP2 & 3 data files.
+Remove PDA_ from PRCM_MPU registers names to stick to the global
+PRM naming convention.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c           |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clockdomains44xx.h     |    4 +-
+ arch/arm/mach-omap2/powerdomains44xx.h     |   10 +++--
+ arch/arm/mach-omap2/prcm-common.h          |   10 +++--
+ arch/arm/mach-omap2/prm.h                  |    4 +-
+ arch/arm/mach-omap2/prm44xx.h              |   55 +++++++++++++++-------------
+ arch/arm/plat-omap/include/plat/omap44xx.h |    1 +
+ 6 files changed, 45 insertions(+), 39 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index b624ad6..b6031e4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -58,7 +58,7 @@
- #define MAX_MODULE_RESET_WAIT		10000
+diff --git a/arch/arm/mach-omap2/clockdomains44xx.h b/arch/arm/mach-omap2/clockdomains44xx.h
+index 438aaee..7e5ba0f 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx.h
++++ b/arch/arm/mach-omap2/clockdomains44xx.h
+@@ -131,7 +131,7 @@ static struct clockdomain mpuss_44xx_clkdm = {
+ static struct clockdomain mpu0_44xx_clkdm = {
+ 	.name		  = "mpu0_clkdm",
+ 	.pwrdm		  = { .name = "cpu0_pwrdm" },
+-	.clkstctrl_reg	  = OMAP4430_CM_PDA_CPU0_CLKSTCTRL,
++	.clkstctrl_reg	  = OMAP4430_CM_CPU0_CLKSTCTRL,
+ 	.clktrctrl_mask	  = OMAP4430_CLKTRCTRL_MASK,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -140,7 +140,7 @@ static struct clockdomain mpu0_44xx_clkdm = {
+ static struct clockdomain mpu1_44xx_clkdm = {
+ 	.name		  = "mpu1_clkdm",
+ 	.pwrdm		  = { .name = "cpu1_pwrdm" },
+-	.clkstctrl_reg	  = OMAP4430_CM_PDA_CPU1_CLKSTCTRL,
++	.clkstctrl_reg	  = OMAP4430_CM_CPU1_CLKSTCTRL,
+ 	.clktrctrl_mask	  = OMAP4430_CLKTRCTRL_MASK,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+diff --git a/arch/arm/mach-omap2/powerdomains44xx.h b/arch/arm/mach-omap2/powerdomains44xx.h
+index c101514..e002d42 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx.h
++++ b/arch/arm/mach-omap2/powerdomains44xx.h
+@@ -1,12 +1,12 @@
+ /*
+  * OMAP4 Power domains framework
+  *
+- * Copyright (C) 2009 Texas Instruments, Inc.
+- * Copyright (C) 2009 Nokia Corporation
++ * Copyright (C) 2009-2010 Texas Instruments, Inc.
++ * Copyright (C) 2009-2010 Nokia Corporation
+  *
+  * Abhijit Pagare (abhijitpagare@ti.com)
+  * Benoit Cousson (b-cousson@ti.com)
+- * Paul Walmsley
++ * Paul Walmsley (paul@pwsan.com)
+  *
+  * This file is automatically generated from the OMAP hardware databases.
+  * We respectfully ask that any modifications to this file be coordinated
+@@ -143,7 +143,7 @@ static struct powerdomain wkup_44xx_pwrdm = {
+ /* cpu0_44xx_pwrdm: MPU0 processor and Neon coprocessor power domain */
+ static struct powerdomain cpu0_44xx_pwrdm = {
+ 	.name		  = "cpu0_pwrdm",
+-	.prcm_offs	  = OMAP4430_CHIRONSS_CHIRONSS_CPU0_MOD,
++	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU0_MOD,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+@@ -159,7 +159,7 @@ static struct powerdomain cpu0_44xx_pwrdm = {
+ /* cpu1_44xx_pwrdm: MPU1 processor and Neon coprocessor power domain */
+ static struct powerdomain cpu1_44xx_pwrdm = {
+ 	.name		  = "cpu1_pwrdm",
+-	.prcm_offs	  = OMAP4430_CHIRONSS_CHIRONSS_CPU1_MOD,
++	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU1_MOD,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index ed2379f..ad1df56 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -112,12 +112,12 @@
  
- /* Name of the OMAP hwmod for the MPU */
--#define MPU_INITIATOR_NAME		"mpu_hwmod"
-+#define MPU_INITIATOR_NAME		"mpu"
+ #define OMAP4430_SCRM_SCRM_MOD	0x0000
  
- /* omap_hwmod_list contains all registered struct omap_hwmods */
- static LIST_HEAD(omap_hwmod_list);
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index eb7ee24..e5530c5 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -125,7 +125,7 @@ static struct omap_hwmod_ocp_if *omap2420_mpu_masters[] = {
+-/* CHIRONSS instances */
++/* PRCM_MPU instances */
  
- /* MPU */
- static struct omap_hwmod omap2420_mpu_hwmod = {
--	.name		= "mpu_hwmod",
-+	.name		= "mpu",
- 	.class		= &mpu_hwmod_class,
- 	.main_clk	= "mpu_ck",
- 	.masters	= omap2420_mpu_masters,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 241bd82..0852d95 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -127,7 +127,7 @@ static struct omap_hwmod_ocp_if *omap2430_mpu_masters[] = {
+-#define OMAP4430_CHIRONSS_CHIRONSS_OCP_SOCKET_PRCM_MOD	0x0000
+-#define OMAP4430_CHIRONSS_CHIRONSS_DEVICE_PRM_MOD	0x0200
+-#define OMAP4430_CHIRONSS_CHIRONSS_CPU0_MOD		0x0400
+-#define OMAP4430_CHIRONSS_CHIRONSS_CPU1_MOD		0x0800
++#define OMAP4430_PRCM_MPU_OCP_SOCKET_PRCM_MOD	0x0000
++#define OMAP4430_PRCM_MPU_DEVICE_PRM_MOD	0x0200
++#define OMAP4430_PRCM_MPU_CPU0_MOD		0x0400
++#define OMAP4430_PRCM_MPU_CPU1_MOD		0x0800
  
- /* MPU */
- static struct omap_hwmod omap2430_mpu_hwmod = {
--	.name		= "mpu_hwmod",
-+	.name		= "mpu",
- 	.class		= &mpu_hwmod_class,
- 	.main_clk	= "mpu_ck",
- 	.masters	= omap2430_mpu_masters,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index ed60840..39b0c0e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -156,7 +156,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_mpu_masters[] = {
+ /* Base Addresses for the OMAP4 */
  
- /* MPU */
- static struct omap_hwmod omap3xxx_mpu_hwmod = {
--	.name		= "mpu_hwmod",
-+	.name		= "mpu",
- 	.class		= &mpu_hwmod_class,
- 	.main_clk	= "arm_fck",
- 	.masters	= omap3xxx_mpu_masters,
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 7bffb6e..588873b 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -24,8 +24,8 @@
+ 		OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE + (module) + (reg))
+ #define OMAP44XX_PRM_REGADDR(module, reg)				\
+ 		OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE + (module) + (reg))
+-#define OMAP44XX_CHIRONSS_REGADDR(module, reg)				\
+-		OMAP2_L4_IO_ADDRESS(OMAP4430_CHIRONSS_BASE + (module) + (reg))
++#define OMAP44XX_PRCM_MPU_REGADDR(module, reg)				\
++		OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE + (module) + (reg))
+ 
+ #include "prm44xx.h"
+ 
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index adb2558..54edaba 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -1,8 +1,8 @@
+ /*
+  * OMAP44xx PRM instance offset macros
+  *
+- * Copyright (C) 2009 Texas Instruments, Inc.
+- * Copyright (C) 2009 Nokia Corporation
++ * Copyright (C) 2009-2010 Texas Instruments, Inc.
++ * Copyright (C) 2009-2010 Nokia Corporation
+  *
+  * Paul Walmsley (paul@pwsan.com)
+  * Rajendra Nayak (rnayak@ti.com)
+@@ -25,7 +25,6 @@
+ 
+ /* PRM */
+ 
+-
+ /* PRM.OCP_SOCKET_PRM register offsets */
+ #define OMAP4430_REVISION_PRM				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_MOD, 0x0000)
+ #define OMAP4430_PRM_IRQSTATUS_MPU			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_OCP_SOCKET_MOD, 0x0010)
+@@ -382,30 +381,36 @@
+ #define OMAP4430_PRM_PHASE2B_CNDP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_MOD, 0x00f0)
+ #define OMAP4430_PRM_MODEM_IF_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_MOD, 0x00f4)
+ 
+-/* CHIRON_PRCM */
+-
++/*
++ * PRCM_MPU
++ *
++ * The PRCM_MPU is a local PRCM inside the MPU subsystem. For the PRCM (global)
++ * point of view the PRCM_MPU is a single entity. It shares the same
++ * programming model as the global PRCM and thus can be assimilate as two new
++ * MOD inside the PRCM
++ */
+ 
+-/* CHIRON_PRCM.CHIRONSS_OCP_SOCKET_PRCM register offsets */
+-#define OMAP4430_REVISION_PRCM				OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_OCP_SOCKET_PRCM_MOD, 0x0000)
++/* PRCM_MPU.OCP_SOCKET_PRCM register offsets */
++#define OMAP4430_REVISION_PRCM				OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_OCP_SOCKET_PRCM_MOD, 0x0000)
+ 
+-/* CHIRON_PRCM.CHIRONSS_DEVICE_PRM register offsets */
+-#define OMAP4430_CHIRON_PRCM_PRM_RSTST			OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_DEVICE_PRM_MOD, 0x0000)
++/* PRCM_MPU.DEVICE_PRM register offsets */
++#define OMAP4430_PRCM_MPU_PRM_RSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_DEVICE_PRM_MOD, 0x0000)
+ 
+-/* CHIRON_PRCM.CHIRONSS_CPU0 register offsets */
+-#define OMAP4430_PM_PDA_CPU0_PWRSTCTRL			OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU0_MOD, 0x0000)
+-#define OMAP4430_PM_PDA_CPU0_PWRSTST			OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU0_MOD, 0x0004)
+-#define OMAP4430_RM_PDA_CPU0_CPU0_CONTEXT		OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU0_MOD, 0x0008)
+-#define OMAP4430_RM_PDA_CPU0_CPU0_RSTCTRL		OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU0_MOD, 0x000c)
+-#define OMAP4430_RM_PDA_CPU0_CPU0_RSTST			OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU0_MOD, 0x0010)
+-#define OMAP4430_CM_PDA_CPU0_CPU0_CLKCTRL		OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU0_MOD, 0x0014)
+-#define OMAP4430_CM_PDA_CPU0_CLKSTCTRL			OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU0_MOD, 0x0018)
++/* PRCM_MPU.CPU0 register offsets */
++#define OMAP4430_PM_CPU0_PWRSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_MOD, 0x0000)
++#define OMAP4430_PM_CPU0_PWRSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_MOD, 0x0004)
++#define OMAP4430_RM_CPU0_CPU0_CONTEXT			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_MOD, 0x0008)
++#define OMAP4430_RM_CPU0_CPU0_RSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_MOD, 0x000c)
++#define OMAP4430_RM_CPU0_CPU0_RSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_MOD, 0x0010)
++#define OMAP4430_CM_CPU0_CPU0_CLKCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_MOD, 0x0014)
++#define OMAP4430_CM_CPU0_CLKSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU0_MOD, 0x0018)
+ 
+-/* CHIRON_PRCM.CHIRONSS_CPU1 register offsets */
+-#define OMAP4430_PM_PDA_CPU1_PWRSTCTRL			OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU1_MOD, 0x0000)
+-#define OMAP4430_PM_PDA_CPU1_PWRSTST			OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU1_MOD, 0x0004)
+-#define OMAP4430_RM_PDA_CPU1_CPU1_CONTEXT		OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU1_MOD, 0x0008)
+-#define OMAP4430_RM_PDA_CPU1_CPU1_RSTCTRL		OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU1_MOD, 0x000c)
+-#define OMAP4430_RM_PDA_CPU1_CPU1_RSTST			OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU1_MOD, 0x0010)
+-#define OMAP4430_CM_PDA_CPU1_CPU1_CLKCTRL		OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU1_MOD, 0x0014)
+-#define OMAP4430_CM_PDA_CPU1_CLKSTCTRL			OMAP44XX_CHIRONSS_REGADDR(OMAP4430_CHIRONSS_CHIRONSS_CPU1_MOD, 0x0018)
++/* PRCM_MPU.CPU1 register offsets */
++#define OMAP4430_PM_CPU1_PWRSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_MOD, 0x0000)
++#define OMAP4430_PM_CPU1_PWRSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_MOD, 0x0004)
++#define OMAP4430_RM_CPU1_CPU1_CONTEXT			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_MOD, 0x0008)
++#define OMAP4430_RM_CPU1_CPU1_RSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_MOD, 0x000c)
++#define OMAP4430_RM_CPU1_CPU1_RSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_MOD, 0x0010)
++#define OMAP4430_CM_CPU1_CPU1_CLKCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_MOD, 0x0014)
++#define OMAP4430_CM_CPU1_CLKSTCTRL			OMAP44XX_PRCM_MPU_REGADDR(OMAP4430_PRCM_MPU_CPU1_MOD, 0x0018)
+ #endif
+diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
+index bb94a0b..8b3f12f 100644
+--- a/arch/arm/plat-omap/include/plat/omap44xx.h
++++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+@@ -30,6 +30,7 @@
+ #define OMAP4430_CM_BASE		OMAP4430_CM1_BASE
+ #define OMAP4430_CM2_BASE		0x4a008000
+ #define OMAP4430_PRM_BASE		0x4a306000
++#define OMAP4430_PRCM_MPU_BASE		0x48243000
+ #define OMAP44XX_GPMC_BASE		0x50000000
+ #define OMAP443X_SCM_BASE		0x4a002000
+ #define OMAP443X_CTRL_BASE		0x4a100000
+
+
