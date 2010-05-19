@@ -1,109 +1,184 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 00/22] OMAP PRCM/clock/powerdomain/hwmod: remaining patches
-	for 2.6.35
-Date: Tue, 18 May 2010 20:18:36 -0600
-Message-ID: <20100519021800.19716.8938.stgit@localhost.localdomain>
+Subject: [PATCH 03/22] OMAP4: hwmod & CM: Implement the
+	omap4_cm_wait_module_ready function
+Date: Tue, 18 May 2010 20:18:41 -0600
+Message-ID: <20100519021840.19716.47328.stgit@localhost.localdomain>
+References: <20100519021800.19716.8938.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39767 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:39776 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752361Ab0ESCU6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 22:20:58 -0400
+	with ESMTP id S1753102Ab0ESCU7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 22:20:59 -0400
+In-Reply-To: <20100519021800.19716.8938.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Benoit Cousson <b-cousson@ti.com>
 
-Hi,
+From: Benoit Cousson <b-cousson@ti.com>
 
-here are some remaining patches intended for 2.6.35, in case
-anyone has comments.  The series consists almost entirely of fixes:
+The return of the omap4_cm_wait_module_ready function is checked
+in order to avoid accessing the sysconfig register if the module is
+not in the correct state.
+In that case the _setup will exit without trying to reset
+using sysconfig.
+For the moment a warning is printed. A proper management of fclk
+and module reset will have to be done in order to init correctly
+the problematic IPs listed below.
 
-- hwmod infrastructure fixes from Beno=C3=AEt,
+  <4>omap_hwmod: ivahd: cannot be enabled (3)
+  <4>omap_hwmod: iss: cannot be enabled (3)
+  <4>omap_hwmod: tesla: cannot be enabled (3)
+  <4>omap_hwmod: sdma: cannot be enabled (3)
+  <4>omap_hwmod: sl2: cannot be enabled (3)
+  <4>omap_hwmod: sad2d: cannot be enabled (3)
+  <4>omap_hwmod: ducati: cannot be enabled (3)
 
-- OMAP4 PRCM macro fixes from Beno=C3=AEt,
-
-- OMAP4 clock/powerdomain fixes from Rajendra,
-
-- and some miscellaneous patches.
-
-
-- Paul
-
-
-size:
-   text    data     bss     dec     hex filename
-3130596  195296   93248 3419140  342c04 vmlinux.omap3beagle.old
-3130600  195296   93248 3419144  342c08 vmlinux.omap3beagle
-
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/cm.h         |    2 +-
+ arch/arm/mach-omap2/cm4xxx.c     |   36 +++++++++++++++++++++++++++++-------
+ arch/arm/mach-omap2/omap_hwmod.c |   33 ++++++++++++++++++++-------------
+ 3 files changed, 50 insertions(+), 21 deletions(-)
 
-Benoit Cousson (13):
-      OMAP4: hwmod: Replace module & device offsets by absolute clkctrl=
- address
-      OMAP: CM: Move MAX_MODULE_READY_TIME to cm.h
-      OMAP4: hwmod & CM: Implement the omap4_cm_wait_module_ready funct=
-ion
-      OMAP4: hwmod: Replace OCPIF_HAS_IDLEST by HWMOD_NO_IDLEST
-      OMAP: hwmod: Fix wrong pointer iteration in oh->slaves
-      OMAP: hwmod: Remove IS_ERR check with omap_clk_get_by_name return=
- value
-      OMAP: hwmod: Replace WARN by pr_warning if clock lookup failed
-      OMAP: hwmod: Do not exit the iteration if one clock init failed
-      OMAP: hwmod: Rename hwmod name for the MPU
-      OMAP: hwmod: Replace WARN by pr_warning for clockdomain check
-      OMAP4: CM: Remove non-functional registers in ES1.0
-      OMAP4: PRM: Remove MPU internal code name and apply PRCM naming c=
-onvention
-      OMAP4: PRCM: Remove duplicate definition of base addresses
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+index bbc69df..a02ca30 100644
+--- a/arch/arm/mach-omap2/cm.h
++++ b/arch/arm/mach-omap2/cm.h
+@@ -112,7 +112,7 @@ extern u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
+ 
+ extern int omap2_cm_wait_module_ready(s16 prcm_mod, u8 idlest_id,
+ 				      u8 idlest_shift);
+-extern int omap4_cm_wait_module_ready(u32 prcm_mod, u8 prcm_dev_offs);
++extern int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg);
+ 
+ static inline u32 cm_set_mod_reg_bits(u32 bits, s16 module, s16 idx)
+ {
+diff --git a/arch/arm/mach-omap2/cm4xxx.c b/arch/arm/mach-omap2/cm4xxx.c
+index af32a45..b101091 100644
+--- a/arch/arm/mach-omap2/cm4xxx.c
++++ b/arch/arm/mach-omap2/cm4xxx.c
+@@ -21,19 +21,41 @@
+ 
+ #include <asm/atomic.h>
+ 
++#include <plat/common.h>
++
+ #include "cm.h"
+ #include "cm-regbits-44xx.h"
+ 
+ /**
+- * omap4_cm_wait_idlest_ready - wait for a module to leave idle or standby
+- * @prcm_mod: PRCM module offset (XXX example)
+- * @prcm_dev_offs: PRCM device offset (e.g. MCASP XXX example)
++ * omap4_cm_wait_module_ready - wait for a module to be in 'func' state
++ * @clkctrl_reg: CLKCTRL module address
++ *
++ * Wait for the module IDLEST to be functional. If the idle state is in any
++ * the non functional state (trans, idle or disabled), module and thus the
++ * sysconfig cannot be accessed and will probably lead to an "imprecise
++ * external abort"
++ *
++ * Module idle state:
++ *   0x0 func:     Module is fully functional, including OCP
++ *   0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
++ *                 abortion
++ *   0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
++ *                 using separate functional clock
++ *   0x3 disabled: Module is disabled and cannot be accessed
+  *
+- * XXX document
++ * TODO: Need to handle module accessible in idle state
+  */
+-int omap4_cm_wait_idlest_ready(u32 prcm_mod, u8 prcm_dev_offs)
++int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
+ {
+-	/* FIXME: Add clock manager related code */
+-	return 0;
++	int i = 0;
++
++	if (!clkctrl_reg)
++		return 0;
++
++	omap_test_timeout(((__raw_readl(clkctrl_reg) &
++			    OMAP4430_IDLEST_MASK) == 0),
++			  MAX_MODULE_READY_TIME, i);
++
++	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
+ }
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e436dcb..4a134c4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -819,11 +819,8 @@ static int _wait_target_ready(struct omap_hwmod *oh)
+ 		ret = omap2_cm_wait_module_ready(oh->prcm.omap2.module_offs,
+ 						 oh->prcm.omap2.idlest_reg_id,
+ 						 oh->prcm.omap2.idlest_idle_bit);
+-#if 0
+ 	} else if (cpu_is_omap44xx()) {
+-		ret = omap4_cm_wait_module_ready(oh->prcm.omap4.module_offs,
+-						 oh->prcm.omap4.device_offs);
+-#endif
++		ret = omap4_cm_wait_module_ready(oh->prcm.omap4.clkctrl_reg);
+ 	} else {
+ 		BUG();
+ 	};
+@@ -912,16 +909,21 @@ static int _enable(struct omap_hwmod *oh)
+ 	_add_initiator_dep(oh, mpu_oh);
+ 	_enable_clocks(oh);
+ 
+-	if (oh->class->sysc) {
+-		if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
+-			_update_sysc_cache(oh);
+-		_sysc_enable(oh);
+-	}
+-
+ 	r = _wait_target_ready(oh);
+-	if (!r)
++	if (!r) {
+ 		oh->_state = _HWMOD_STATE_ENABLED;
+ 
++		/* Access the sysconfig only if the target is ready */
++		if (oh->class->sysc) {
++			if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
++				_update_sysc_cache(oh);
++			_sysc_enable(oh);
++		}
++	} else {
++		pr_debug("omap_hwmod: %s: _wait_target_ready: %d\n",
++			 oh->name, r);
++	}
++
+ 	return r;
+ }
+ 
+@@ -999,7 +1001,7 @@ static int _shutdown(struct omap_hwmod *oh)
+ static int _setup(struct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+-	int i;
++	int i, r;
+ 
+ 	if (!oh)
+ 		return -EINVAL;
+@@ -1023,7 +1025,12 @@ static int _setup(struct omap_hwmod *oh)
+ 
+ 	oh->_state = _HWMOD_STATE_INITIALIZED;
+ 
+-	_enable(oh);
++	r = _enable(oh);
++	if (r) {
++		pr_warning("omap_hwmod: %s: cannot be enabled (%d)\n",
++			   oh->name, oh->_state);
++		return 0;
++	}
+ 
+ 	if (!(oh->flags & HWMOD_INIT_NO_RESET)) {
+ 		/*
 
-Laine Walker-Avina (1):
-      OMAP3 clock: add support for setting the divider for sys_clkout2 =
-using clk_set_rate
 
-Paul Walmsley (2):
-      OMAP powerdomain, hwmod, omap_device: add some credits
-      OMAP2 clock: fix recursive spinlock attempt when CONFIG_CPU_FREQ=3D=
-y
-
-Rajendra Nayak (6):
-      OMAP4: PRCM: Add offset defines for all PRM registers
-      OMAP4: PRCM: Add offset defines for all CM registers
-      OMAP4 clock: Support clk_set_parent
-      OMAP: timers: Fix clock source names for OMAP4
-      OMAP4 powerdomain: Fix pwrsts flags for ALWAYS ON domains
-      OMAP4 powerdomain: Support LOWPOWERSTATECHANGE for powerdomains
-
-
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c  |   17 -
- arch/arm/mach-omap2/clock3xxx_data.c          |    2=20
- arch/arm/mach-omap2/clockdomains44xx.h        |    4=20
- arch/arm/mach-omap2/cm.c                      |    3=20
- arch/arm/mach-omap2/cm.h                      |   11 +
- arch/arm/mach-omap2/cm44xx.h                  |  301 +++++++++++++++++=
---
- arch/arm/mach-omap2/cm4xxx.c                  |   54 ++-
- arch/arm/mach-omap2/omap_hwmod.c              |  121 ++++----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c    |    2=20
- arch/arm/mach-omap2/omap_hwmod_2430_data.c    |    2=20
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    2=20
- arch/arm/mach-omap2/powerdomain.c             |   30 ++
- arch/arm/mach-omap2/powerdomains44xx.h        |   23 +
- arch/arm/mach-omap2/prcm-common.h             |   18 -
- arch/arm/mach-omap2/prm.h                     |    4=20
- arch/arm/mach-omap2/prm44xx.h                 |  389 +++++++++++++++++=
-++++++--
- arch/arm/plat-omap/clock.c                    |    5=20
- arch/arm/plat-omap/dmtimer.c                  |    4=20
- arch/arm/plat-omap/include/plat/omap44xx.h    |    1=20
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |   16 +
- arch/arm/plat-omap/include/plat/powerdomain.h |    7=20
- arch/arm/plat-omap/omap_device.c              |    4=20
- 22 files changed, 814 insertions(+), 206 deletions(-)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
