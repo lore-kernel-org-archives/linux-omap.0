@@ -1,128 +1,121 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
-Date: Wed, 19 May 2010 19:20:13 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030527036D@dbde02.ent.ti.com>
-References: <1273745535-27139-1-git-send-email-shweta.gulati@ti.com>
- <4BF3D23F.6070308@ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH 00/11] OMAP: GPIO: Implement GPIO in HWMOD way
+Date: Wed, 19 May 2010 19:25:39 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C566669E@dbde02.ent.ti.com>
+References: <1274194260-16401-1-git-send-email-charu@ti.com>
+ <4BF3A72D.3080501@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53224 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43685 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752034Ab0ESNuU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 09:50:20 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4JDoHac019823
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 08:50:19 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4JDoGXT024370
-	for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 19:20:16 +0530 (IST)
-In-Reply-To: <4BF3D23F.6070308@ti.com>
+	id S1751133Ab0ESNzu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 09:55:50 -0400
+In-Reply-To: <4BF3A72D.3080501@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, "Gulati, Shweta" <shweta.gulati@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-Hi Benoit,
+
 
 > -----Original Message-----
 > From: Cousson, Benoit
-> Sent: Wednesday, May 19, 2010 5:28 PM
-> To: Gulati, Shweta
-> Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath
-> Subject: Re: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+> Sent: Wednesday, May 19, 2010 2:24 PM
+> To: Varadarajan, Charulatha
+> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com; tony@atomide.com;
+> khilman@deeprootsystems.com
+> Subject: Re: [PATCH 00/11] OMAP: GPIO: Implement GPIO in HWMOD way
 > 
-> Hi Vishwa,
+> On 5/18/2010 4:50 PM, Charulatha V wrote:
+> > This patch series implements GPIO module in platform device model.
+> > It also makes OMAP2PLUS specific GPIO implemented in HWMOD FW way.
+> >
+> > This patch series is created on "origin/pm-wip/runtime".
+> >
+> > This patch series is tested on OMAP3430 SDP board. It would be of
+> > great help if someone could test the same on OMAP1 and OMAP2 boards.
 > 
-> On 5/13/2010 12:12 PM, shweta gulati wrote:
-> > From: Vishwanath Sripathy<vishwanath.bs@ti.com>
-> >
-> > OMAP3430/3630 has a Silicon bug because of which SDRC is
-> > released from IDLE even before Core DPLL has locked. This leads
-> > to undefined behaviour of SDRC DLL.
-> >
-> > This patch has workaround for the same.
-> >
-> > Description of WA for 3430:
-> > Initialization:
-> > 	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3
-> > 	is always locked.
-> >
-> > Before CORE Voltage Domain (VDD2) Sleep Transition to RETENTION or OFF mode:
-> > 1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP2 Frequency
-> > 	(by changing M2 Divider value). This is increasing the period duration of
-> > 	one L3 clock cycle.
-> > 	o	In case of CORE is at OPP3 (166MHz@1.15V):
-> > 	"	Lower the frequency to 83MHz.
-> >
-> > 	o	In case of CORE is at OPP2 (83MHz@1.05V):
-> > 	"	Keep the frequency as it is (83MHz).
-> >
-> > 2.	Increase CORE Voltage to 1.2V. This is reducing the timing duration of the
-> > 	critical path signal which will now fit to one L3 clock cycle.
-> >
-> > 3.	Enable DPLL3 Automatic mode. This will ensure proper transition to
-> > 	RETENTION or OFF mode.
-> >
-> > After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
-> > 1.	Disable DPLL3 Automatic mode.
-> > 2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
-> >
-> > Description of WA for 3630:
-> > Initialization:
-> > 	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3 is
-> always locked.
-> >
-> > Before CORE Voltage Domain(VDD2) Sleep Transition to RETENTION or OFF mode:
-> > 1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP50 Frequency
-> > 	(by changing M2 Divider value) and set VDD2 Voltage for OPP100.
-> > 	This is increasing the period duration of one L3 clock cycle and reducing
-> > 	the timing duration of the critical path signal which will now fit to one
-> > 	L3 clock cycle.
-> > 	o	In case of CORE is at OPP100 (L3=200MHz, VDD2=1.1375V):
-> > 		"	Lower the frequency to 100MHz.
-> > 		"	Keep the voltage as it is (1.1375V).
-> >
-> > 	o	In case of CORE is at OPP50 (L3=100MHz, VDD2=0.93V):
-> > 		"	Keep the frequency as it is (100MHz).
-> > 		"	Increase the voltage to 1.1375V.
-> >
-> > 2.	Enable DPLL3 Automatic mode. This will ensure proper transition to
-> > 	RETENTION or OFF mode.
-> >
-> > After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
-> > 1.	Disable DPLL3 Automatic mode.
-> > 2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
-> >
-> > Also OSWR should not be attempted if DPLL3 has locked. This should be done as
-> part of OSWR patch series.
-> >
-> > Patch tested on 3430SDP and 3630 ZOOM3.
-> >
-> 
-> Do you have a more accurate description of the bug? What is the defect ID?
-> 
-Defect Id is i581. 
-> The subject is about DPLL3 lock issue, and the description is all about
-> the transition to CORE RET or OFF and playing with voltage... and why
-> OSWR is affected as well?
-> I'm a little bit confused by that...
-> 
-> Is this bug dependent of the target power state? What about INACTIVE?
-The root cause of the issue is that SDRC IDLEREQ is deasserted before DPLL3 has locked. Because of this DLL may/may not lock based on Process Voltage Temperature conditions. The bug can occur when DPLL3 automatic transition is enabled. So DPLL3 automatic transition is disabled by default and it is enabled only when system is entering ret/off state (to facilitate voltage scaling). So when system is entering ret/off state, WA is applied (since DPLL3 autoidle is enabled, we can possibly hit the issue; hence the WA)
+> What about OMAP4? Didn't you test it on SDP or Blaze?
 
-Regarding OSWR, as per errata i580, DPLL3 cannot be kept Locked when CORE is in OSWR state if DPLL3 is set in Manual Lock mode. So if DPLL3 autoidle is not enabled (manual lock mode), then we should not attempt to goto Core OSWR. 
+I tested this series on 4430SDP using an TI internal tree. Since origin/pm-wip/runtime branch does not have OMAP4 hwmod database, I did not mention about OMAP4.
 
 > 
-> Why setting the CORE at 1.2v when the description is only considering
-> 1.1375v?
-> 
-For OMAP3430, as per errata VDD2 should be set to 1.2V before attempting off/retention. 1.1375V applies for OMAP3630.
-
-Regards
-Vishwa
-> Thanks,
 > Benoit
+> 
+> > Charulatha V (11):
+> >    OMAP: GPIO: Modify init() in preparation for platform device
+> >      implementation
+> >    OMAP: GPIO: Include platform_data structure for GPIO
+> >    OMAP: GPIO: Introduce support for OMAP15xx chip GPIO init
+> >    OMAP: GPIO: Introduce support for OMAP16xx chip GPIO init
+> >    OMAP: GPIO: Introduce support for OMAP7xx chip GPIO init
+> >    OMAP: GPIO: add GPIO hwmods structures for OMAP3
+> >    OMAP: GPIO: add GPIO hwmods structures for OMAP242X
+> >    OMAP: GPIO: add GPIO hwmods structures for OMAP243X
+> >    OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init
+> >    OMAP: GPIO: Implement GPIO as a platform device
+> >    OMAP: GPIO: Remove omap_gpio_init()
+> >
+> >   arch/arm/mach-omap1/Makefile               |    6 +
+> >   arch/arm/mach-omap1/board-ams-delta.c      |    1 -
+> >   arch/arm/mach-omap1/board-fsample.c        |    1 -
+> >   arch/arm/mach-omap1/board-h2.c             |    1 -
+> >   arch/arm/mach-omap1/board-h3.c             |    1 -
+> >   arch/arm/mach-omap1/board-htcherald.c      |    1 -
+> >   arch/arm/mach-omap1/board-innovator.c      |    1 -
+> >   arch/arm/mach-omap1/board-nokia770.c       |    1 -
+> >   arch/arm/mach-omap1/board-osk.c            |    1 -
+> >   arch/arm/mach-omap1/board-palmte.c         |    1 -
+> >   arch/arm/mach-omap1/board-palmz71.c        |    1 -
+> >   arch/arm/mach-omap1/board-perseus2.c       |    1 -
+> >   arch/arm/mach-omap1/board-sx1.c            |    1 -
+> >   arch/arm/mach-omap1/board-voiceblue.c      |    1 -
+> >   arch/arm/mach-omap1/clock_data.c           |    2 +-
+> >   arch/arm/mach-omap1/gpio15xx.c             |  104 +++++
+> >   arch/arm/mach-omap1/gpio16xx.c             |  202 +++++++++
+> >   arch/arm/mach-omap1/gpio7xx.c              |  266 ++++++++++++
+> >   arch/arm/mach-omap2/Makefile               |    2 +-
+> >   arch/arm/mach-omap2/board-2430sdp.c        |    1 -
+> >   arch/arm/mach-omap2/board-3430sdp.c        |    1 -
+> >   arch/arm/mach-omap2/board-3630sdp.c        |    1 -
+> >   arch/arm/mach-omap2/board-4430sdp.c        |    1 -
+> >   arch/arm/mach-omap2/board-am3517evm.c      |    1 -
+> >   arch/arm/mach-omap2/board-apollon.c        |    1 -
+> >   arch/arm/mach-omap2/board-cm-t35.c         |    1 -
+> >   arch/arm/mach-omap2/board-devkit8000.c     |    1 -
+> >   arch/arm/mach-omap2/board-h4.c             |    1 -
+> >   arch/arm/mach-omap2/board-igep0020.c       |    1 -
+> >   arch/arm/mach-omap2/board-ldp.c            |    1 -
+> >   arch/arm/mach-omap2/board-n8x0.c           |    1 -
+> >   arch/arm/mach-omap2/board-omap3beagle.c    |    1 -
+> >   arch/arm/mach-omap2/board-omap3evm.c       |    1 -
+> >   arch/arm/mach-omap2/board-omap3pandora.c   |    1 -
+> >   arch/arm/mach-omap2/board-omap3touchbook.c |    1 -
+> >   arch/arm/mach-omap2/board-overo.c          |    1 -
+> >   arch/arm/mach-omap2/board-rx51.c           |    1 -
+> >   arch/arm/mach-omap2/board-zoom2.c          |    1 -
+> >   arch/arm/mach-omap2/board-zoom3.c          |    1 -
+> >   arch/arm/mach-omap2/clock2420_data.c       |   10 +-
+> >   arch/arm/mach-omap2/clock2430_data.c       |   14 +-
+> >   arch/arm/mach-omap2/clock3xxx_data.c       |   24 +-
+> >   arch/arm/mach-omap2/clock44xx_data.c       |   24 +-
+> >   arch/arm/mach-omap2/gpio.c                 |  113 +++++
+> >   arch/arm/mach-omap2/omap_hwmod_2420_data.c |  222 ++++++++++
+> >   arch/arm/mach-omap2/omap_hwmod_2430_data.c |  270 ++++++++++++
+> >   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  357 ++++++++++++++++-
+> >   arch/arm/plat-omap/gpio.c                  |  622 ++++++++++------------------
+> >   arch/arm/plat-omap/include/plat/gpio.h     |   84 ++++-
+> >   49 files changed, 1886 insertions(+), 469 deletions(-)
+> >   create mode 100644 arch/arm/mach-omap1/gpio15xx.c
+> >   create mode 100644 arch/arm/mach-omap1/gpio16xx.c
+> >   create mode 100644 arch/arm/mach-omap1/gpio7xx.c
+> >   create mode 100644 arch/arm/mach-omap2/gpio.c
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
