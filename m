@@ -1,42 +1,92 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 00/11] OMAP: GPIO: Implement GPIO in HWMOD way
-Date: Wed, 19 May 2010 17:24:27 +0200
-Message-ID: <4BF402AB.50308@ti.com>
-References: <1274194260-16401-1-git-send-email-charu@ti.com> <4BF3A72D.3080501@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C566669E@dbde02.ent.ti.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
+Date: Wed, 19 May 2010 10:25:38 -0500
+Message-ID: <002201caf767$895965f0$544ff780@am.dhcp.ti.com>
+References: <22422.10.24.255.17.1273947606.squirrel@dbdmail.itg.ti.com> <20100518025026.GF5818@atomide.com> <20100519000912.GX5818@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49488 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752075Ab0ESPYe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 May 2010 11:24:34 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C566669E@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39979 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab0ESPZz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 11:25:55 -0400
+In-Reply-To: <20100519000912.GX5818@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: 'Tony Lindgren' <tony@atomide.com>, 'kishore kadiyala' <kishore.kadiyala@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk, paul@pwsan.com, santosh.shilimkar@ti.com
 
-On 5/19/2010 3:55 PM, Varadarajan, Charulatha wrote:
->
->> From: Cousson, Benoit
->> Sent: Wednesday, May 19, 2010 2:24 PM
->>
->> On 5/18/2010 4:50 PM, Charulatha V wrote:
->>> This patch series implements GPIO module in platform device model.
->>> It also makes OMAP2PLUS specific GPIO implemented in HWMOD FW way.
->>>
->>> This patch series is created on "origin/pm-wip/runtime".
->>>
->>> This patch series is tested on OMAP3430 SDP board. It would be of
->>> great help if someone could test the same on OMAP1 and OMAP2 boards.
->>
->> What about OMAP4? Didn't you test it on SDP or Blaze?
->
-> I tested this series on 4430SDP using an TI internal tree. Since origin/pm-wip/runtime branch does not have OMAP4 hwmod database, I did not mention about OMAP4.
 
-Since the OMAP4 data was posted one week ago 
-(https://patchwork.kernel.org/patch/99052/), I think you can use them in 
-order to validate on both OMAP3 & OMAP4 with the public code.
 
-Benoit
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Tuesday, May 18, 2010 7:09 PM
+> To: kishore kadiyala
+> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org;
+> madhu.cr@ti.com; jarkko.lavinen@nokia.com; rmk@arm.linux.org.uk;
+> paul@pwsan.com; santosh.shilimkar@ti.com
+> Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
+> 
+> * Tony Lindgren <tony@atomide.com> [100517 19:45]:
+> > Hi,
+> >
+> > * kishore kadiyala <kishore.kadiyala@ti.com> [100515 11:15]:
+> > > Adding MMC1 and MMC2 controllers support for OMAP4
+> > >
+> > > V4:
+> > > - Rebased to "for_next" branch[LO].
+> > > - The first 3 patches [1,2,3] in the series are Minimal set of changes
+> > >   with which MMC1/MMC2 works [No card detect for MMC1]on OMAP4 but
+> with
+> > >   dependencies on following patches [Not in "for_next" branch]
+> > >   [1] I2c patches
+> > >       a)https://patchwork.kernel.org/patch/98937/
+> > >       b)https://patchwork.kernel.org/patch/98936/
+> > >       c)https://patchwork.kernel.org/patch/98939/
+> > >       d)https://patchwork.kernel.org/patch/79735/
+> >
+> > I've taken the updated versions of the I2C patches,
+> > and fixed them not to break omap3_defconfig.
+> >
+> > >   [2] Regulator pacth
+> > >       a)https://patchwork.kernel.org/patch/94054/
+> > >   [3] hsmmc-clk patch
+> > >       a)https://patchwork.kernel.org/patch/96821/
+> >
+> > I've picked up these too.
+> >
+> > > - The patches 4,5 adds card detect feature for MMC1
+> >
+> > I only took 1 - 3 out of the MMC patches, it's too
+> > late to start changing the other stuff.
+> >
+> > I've reposted the whole series for a quick review.
+> 
+> FYI, the MMC on omap4 is not quite there yet at least
+> on my board. It mostly detects the card with
+> omap_4430sdp_defconfig, but fails always unless
+> CONFIG_RTC_DRV_TWL92330=y.. This is without CONFIG_SMP
+> as it oopses.
+> 
+
+I did try the omap_4430sdp_defconfig on the master branch. On my SDP the MMC
+cards were detected fine without any dependency on CONFIG_RTC_DRV_TWL92330.
+
+Regards,
+Madhu
+
+> Also MMC is never detected with omap3_defconfig.
+> 
+> Santosh & Kishore, maybe take a look at that, otherwise
+> it looks like we still don't have a very usable support
+> for omap4.
+> 
+> I've piled all these patches into linux-omap master branch
+> for easy testing. Let me know if I missed some patch.
+> 
+> Regards,
+> 
+> Tony
+
