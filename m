@@ -1,65 +1,63 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH] scheduler: Extract cgroups_cpuaccount code from
- sched.c into own file
-Date: Wed, 19 May 2010 12:27:57 +0200
-Message-ID: <1274264877.5605.10541.camel@twins>
-References: <1274232620-23003-1-git-send-email-mike@android.com>
-	 <1274232620-23003-4-git-send-email-mike@android.com>
-	 <201005191130.42851.trenn@suse.de>  <1274261856.5605.10439.camel@twins>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 0/4] McBSP smart idle and DMA op mode
+	updates for ASoC
+Date: Wed, 19 May 2010 13:42:10 +0300
+Message-ID: <20100519104209.GI4265@besouro.research.nokia.com>
+References: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:56060 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753382Ab0ESK2f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 06:28:35 -0400
-In-Reply-To: <1274261856.5605.10439.camel@twins>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Mike Chan <mike@android.com>, khilman@deeprootsystems.com, menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mingo@elte.hu, lizf@cn.fujitsu.com, containers@lists.linux-foundation.org
 
-On Wed, 2010-05-19 at 11:37 +0200, Peter Zijlstra wrote:
-> On Wed, 2010-05-19 at 11:30 +0200, Thomas Renninger wrote:
-> >=20
-> > This is a cleanup against current linux-2.6 Linus tree.
-> >    =20
-> > Having CONFIG_CGROUP_CPUACCT code in kernel/sched.c looks wrong.
-> > Move this out to kernel/cgroup_cpuaccount.c
-> >    =20
-> > Test compiled with and without CONFIG_CGROUP_CPUACCT set on x86_64.
->=20
-> Sure, works for me, less code to look at :-)
+On Tue, May 18, 2010 at 10:13:10PM +0200, Liam Girdwood wrote:
+> This series expands the OMAP mcbsp driver to support changing it's DMA operating
+> mode and smart idle mode from client drivers. It's primarily aimed at lowering
+> the power consumption for OMAP ASoC drivers by providing methods to gate clocks
+> on the mcbsp interface at runtime.
+> 
+> I've also added a patch to remove the mcbsp DMA op mode sysfs set functionality.
+> I think DMA op mode is very specific to the mcbsp client driver _only_ and
+> shouldn't really be changed by userspace. Please let me know if you use this
+> feature and I'll drop this patch.
 
+Yeah, I'm not sure if that would be strong enough argument though. Unfortunately,
+this dma op mode also couples with the usage of mcbsp internal buffer. Which in the very
+end will mean a compromise between delay vs. pm, as you are probably aware.
 
-In file included from /mnt/build/linux-2.6/kernel/sched.c:1908:
-/mnt/build/linux-2.6/kernel/sched_fair.c: In function =E2=80=98update_c=
-urr=E2=80=99:
-/mnt/build/linux-2.6/kernel/sched_fair.c:544: error: implicit declarati=
-on of function =E2=80=98cpuacct_charge=E2=80=99
-  CC      kernel/sysctl_binary.o
-/mnt/build/linux-2.6/kernel/sched.c: In function =E2=80=98account_user_=
-time=E2=80=99:
-/mnt/build/linux-2.6/kernel/sched.c:3265: error: implicit declaration o=
-f function =E2=80=98cpuacct_update_stats=E2=80=99
-/mnt/build/linux-2.6/kernel/sched.c:3265: error: =E2=80=98CPUACCT_STAT_=
-USER=E2=80=99 undeclared (first use in this function)
-/mnt/build/linux-2.6/kernel/sched.c:3265: error: (Each undeclared ident=
-ifier is reported only once
-/mnt/build/linux-2.6/kernel/sched.c:3265: error: for each function it a=
-ppears in.)
-/mnt/build/linux-2.6/kernel/sched.c: In function =E2=80=98account_syste=
-m_time=E2=80=99:
-/mnt/build/linux-2.6/kernel/sched.c:3332: error: =E2=80=98CPUACCT_STAT_=
-SYSTEM=E2=80=99 undeclared (first use in this function)
-make[2]: *** [kernel/sched.o] Error 1
-make[2]: *** Waiting for unfinished jobs....
-make[1]: *** [kernel/] Error 2
-make: *** [sub-make] Error 2
+So, letting userspace to toggle this mode will also mean they can choose between pm friendly
+(op mode with frame and so on) or short delay friendly (element mode).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Of course, this might not be the best way of choosing it though.
+
+> 
+> Tony, can I get your ack to upstream via ALSA if it's ok
+> 
+> Thanks
+> 
+> Liam
+> 
+>  arch/arm/plat-omap/include/plat/mcbsp.h |   17 +++
+>  arch/arm/plat-omap/mcbsp.c              |  183 ++++++++++++++++++++++++++-----
+>  sound/soc/omap/omap-mcbsp.c             |   22 ++++-
+>  sound/soc/omap/omap-mcbsp.h             |    2 +
+>  4 files changed, 194 insertions(+), 30 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
