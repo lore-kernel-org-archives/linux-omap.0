@@ -1,840 +1,100 @@
-From: Mike Chan <mike@android.com>
-Subject: Re: [PATCH] scheduler: Extract cgroups_cpuaccount code from sched.c
-	into own file
-Date: Wed, 19 May 2010 12:06:09 -0700
-Message-ID: <AANLkTilRwxE2feVWKUGALnTR0BFRIec0j0r3hKwywAYF@mail.gmail.com>
-References: <1274232620-23003-1-git-send-email-mike@android.com>
-	 <1274232620-23003-4-git-send-email-mike@android.com>
-	 <201005191130.42851.trenn@suse.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2] omap4: Fix multi-omap boot with reset un-used clocks
+Date: Wed, 19 May 2010 15:01:08 -0500
+Message-ID: <4BF44384.40901@ti.com>
+References: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:37553 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754044Ab0ESTGL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 15:06:11 -0400
-In-Reply-To: <201005191130.42851.trenn@suse.de>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38578 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755336Ab0ESUBK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 May 2010 16:01:10 -0400
+In-Reply-To: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: khilman@deeprootsystems.com, menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mingo@elte.hu, peterz@infradead.org, lizf@cn.fujitsu.com, containers@lists.linux-foundation.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-2010/5/19 Thomas Renninger <trenn@suse.de>:
-> Hi,
->
-> thread topic was:
-> Re: [PATCH 3/4] scheduler: cpuacct: Enable platform callbacks for cpu=
-acct power tracking
->
-> I mingled this patch together with a minor comment for Mike's patch.
-> Like this interested people in CC are kept.
->
-> Peter/Ingo: Can you pick up this cleanup if appropriate, please.
-> Shall I resend separately or could you cut out comments below?
->
-> On Wednesday 19 May 2010 03:30:19 Mike Chan wrote:
->> Platform must register cpu power function that return power in
->> milliWatt seconds.
->>
->> Signed-off-by: Mike Chan <mike@android.com>
->> ---
->> =A0Documentation/cgroups/cpuacct.txt | =A0 =A03 +++
->> =A0include/linux/cpuacct.h =A0 =A0 =A0 =A0 =A0 | =A0 =A04 +++-
->> =A0kernel/sched.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 24 ++=
-++++++++++++++++++++--
->> =A03 files changed, 28 insertions(+), 3 deletions(-)
-> ...
->> diff --git a/include/linux/cpuacct.h b/include/linux/cpuacct.h
->> index 9ff479e..effe842 100644
->> --- a/include/linux/cpuacct.h
->> +++ b/include/linux/cpuacct.h
->> @@ -31,7 +31,9 @@ struct cpuacct_cpufreq_calls {
-> This is a general cpuacct_charge interface, not cpufreq specific?
-> I'd call it "struct cpuacct_charge_calls".
-> Platforms can account C-states, frequency, power, whatever they like?
-> The latter two are implemented with your patches.
-
-I'm ok with the name change if that's what people prefer.
-
->> =A0 =A0 =A0 =A0*/
->> =A0 =A0 =A0 void (*init) (void **cpuacct_data);
->> =A0 =A0 =A0 void (*charge) (void *cpuacct_data, =A0u64 cputime, unsi=
-gned int cpu);
->> - =A0 =A0 void (*show) (void *cpuacct_data, struct cgroup_map_cb *cb=
-);
->> + =A0 =A0 void (*cpufreq_show) (void *cpuacct_data, struct cgroup_ma=
-p_cb *cb);
->> + =A0 =A0 /* Returns power consumed in milliWatt seconds */
->> + =A0 =A0 u64 (*power_usage) (void *cpuacct_data);
->> =A0};
->> =A0int cpuacct_register_cpufreq(struct cpuacct_cpufreq_calls *fn);
-> Same here, why not name it cpuacct_register_charge?
-> Eventually at other places.
->
->> diff --git a/kernel/sched.c b/kernel/sched.c
->> index 6b6c45a..d55d8af 100644
->> --- a/kernel/sched.c
->> +++ b/kernel/sched.c
-> Nothing to do with this patch, but I wonder why this is all in kernel=
-/sched.c.
-> Try a quick cleanup... works.
-> Whatabout below cleanup?
-> Not sure through which tree this should go in, but if below is accept=
-ed,
-> would you mind rebasing your things against it.
-> Then it would already show up in cgroup_cpuaccount.c git history.
-
-Sounds reasonable
-
--- Mike
-
->
-> =A0 =A0 =A0 Thomas
->
-> This is a cleanup against current linux-2.6 Linus tree.
->
-> Having CONFIG_CGROUP_CPUACCT code in kernel/sched.c looks wrong.
-> Move this out to kernel/cgroup_cpuaccount.c
->
-> Test compiled with and without CONFIG_CGROUP_CPUACCT set on x86_64.
->
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> CC: linux-kernel@vger.kernel.org
-> CC: mike@android.com
-> CC: menage@google.com
-> CC: lizf@cn.fujitsu.com
-> CC: containers@lists.linux-foundation.org
-> CC: mingo@elte.hu
-> CC: peterz@infradead.org
->
+Shilimkar, Santosh had written, on 05/19/2010 11:38 AM, the following:
+> This patch uses "ENABLE_ON_INIT" flag on the emif clock nodes
+> to avoid the emif clk getting cut as part of reset un-used clock
+> routine which prevents boot.
+> 
+> Since omap4 "omap2_clk_init()" calls "clk_enable_init_clocks()"
+> which increases the usecount on all ENABLE_ON_INIT clocks, it
+> prevents "omap2_clk_disable_unused()" from disabling the clock.
+> 
+> The real fix is to have driver for EMIF and do clock get/enable
+> as part of it. The EMIF driver is planned to be done HWMOD way
+> so till that available to keep omap3_defconfig booting on OMAP4430,
+> this patch is necessary.
+> (Will updated the auto-gen script for 44xx accordingly)
+> 
+> The fix was suggested by Paul Walmsley
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 > ---
-> diff --git a/include/linux/cgroup.h b/include/linux/cgroup.h
-> index 8f78073..6e2c88a 100644
-> --- a/include/linux/cgroup.h
-> +++ b/include/linux/cgroup.h
-> @@ -609,6 +609,24 @@ bool css_is_ancestor(struct cgroup_subsys_state =
-*cg,
-> =A0unsigned short css_id(struct cgroup_subsys_state *css);
-> =A0unsigned short css_depth(struct cgroup_subsys_state *css);
->
-> +/* Time spent by the tasks of the cpu accounting group executing in =
-=2E.. */
-> +enum cpuacct_stat_index {
-> + =A0 =A0 =A0 CPUACCT_STAT_USER, =A0 =A0 =A0/* ... user mode */
-> + =A0 =A0 =A0 CPUACCT_STAT_SYSTEM, =A0 =A0/* ... kernel mode */
-> +
-> + =A0 =A0 =A0 CPUACCT_STAT_NSTATS,
-> +};
-> +
-> +#ifdef CONFIG_CGROUP_CPUACCT
-> +void cpuacct_charge(struct task_struct *tsk, u64 cputime);
-> +void cpuacct_update_stats(struct task_struct *tsk,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 enum cpuacct_stat_index idx, cputime_t =
-val);
-> +#else
-> +static inline void cpuacct_charge(struct task_struct *tsk, u64 cputi=
-me) {}
-> +static inline void cpuacct_update_stats(struct task_struct *tsk,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 enum cpuacct_stat_index=
- idx, cputime_t val) {}
-> +#endif
-> +
-> =A0#else /* !CONFIG_CGROUPS */
->
-> =A0static inline int cgroup_init_early(void) { return 0; }
-> diff --git a/kernel/Makefile b/kernel/Makefile
-> index 149e18e..1df6e53 100644
-> --- a/kernel/Makefile
-> +++ b/kernel/Makefile
-> @@ -60,6 +60,7 @@ obj-$(CONFIG_KEXEC) +=3D kexec.o
-> =A0obj-$(CONFIG_BACKTRACE_SELF_TEST) +=3D backtracetest.o
-> =A0obj-$(CONFIG_COMPAT) +=3D compat.o
-> =A0obj-$(CONFIG_CGROUPS) +=3D cgroup.o
-> +obj-$(CONFIG_CGROUP_CPUACCT) +=3D cgroup_cpuaccount.o
-> =A0obj-$(CONFIG_CGROUP_FREEZER) +=3D cgroup_freezer.o
-> =A0obj-$(CONFIG_CPUSETS) +=3D cpuset.o
-> =A0obj-$(CONFIG_CGROUP_NS) +=3D ns_cgroup.o
-> diff --git a/kernel/cgroup_cpuaccount.c b/kernel/cgroup_cpuaccount.c
-> new file mode 100644
-> index 0000000..d32b927
-> --- /dev/null
-> +++ b/kernel/cgroup_cpuaccount.c
-> @@ -0,0 +1,284 @@
-> +#include <linux/kernel.h>
-> +#include <linux/percpu.h>
-> +#include <linux/spinlock.h>
-> +#include <linux/sched.h>
-> +#include <linux/cgroup.h>
-> +#include <linux/srcu.h>
-> +#include <linux/slab.h>
-> +#include <linux/seq_file.h>
-> +
-> +#include <asm/cputime.h>
-> +
-> +/*
-> + * CPU accounting code for task groups.
-> + *
-> + * Based on the work by Paul Menage (menage@google.com) and Balbir S=
-ingh
-> + * (balbir@in.ibm.com).
-> + */
-> +
-> +/* track cpu usage of a group of tasks and its child groups */
-> +struct cpuacct {
-> + =A0 =A0 =A0 struct cgroup_subsys_state css;
-> + =A0 =A0 =A0 /* cpuusage holds pointer to a u64-type object on every=
- cpu */
-> + =A0 =A0 =A0 u64 __percpu *cpuusage;
-> + =A0 =A0 =A0 struct percpu_counter cpustat[CPUACCT_STAT_NSTATS];
-> + =A0 =A0 =A0 struct cpuacct *parent;
-> +};
-> +
-> +struct cgroup_subsys cpuacct_subsys;
-> +
-> +/* return cpu accounting group corresponding to this container */
-> +static inline struct cpuacct *cgroup_ca(struct cgroup *cgrp)
-> +{
-> + =A0 =A0 =A0 return container_of(cgroup_subsys_state(cgrp, cpuacct_s=
-ubsys_id),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct cpuacct,=
- css);
-> +}
-> +
-> +/* return cpu accounting group to which this task belongs */
-> +static inline struct cpuacct *task_ca(struct task_struct *tsk)
-> +{
-> + =A0 =A0 =A0 return container_of(task_subsys_state(tsk, cpuacct_subs=
-ys_id),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct cpuacct,=
- css);
-> +}
-> +
-> +/* create a new cpu accounting group */
-> +static struct cgroup_subsys_state *cpuacct_create(
-> + =A0 =A0 =A0 struct cgroup_subsys *ss, struct cgroup *cgrp)
-> +{
-> + =A0 =A0 =A0 struct cpuacct *ca =3D kzalloc(sizeof(*ca), GFP_KERNEL)=
-;
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 if (!ca)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> +
-> + =A0 =A0 =A0 ca->cpuusage =3D alloc_percpu(u64);
-> + =A0 =A0 =A0 if (!ca->cpuusage)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out_free_ca;
-> +
-> + =A0 =A0 =A0 for (i =3D 0; i < CPUACCT_STAT_NSTATS; i++)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (percpu_counter_init(&ca->cpustat[i]=
-, 0))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out_free_counters;
-> +
-> + =A0 =A0 =A0 if (cgrp->parent)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ca->parent =3D cgroup_ca(cgrp->parent);
-> +
-> + =A0 =A0 =A0 return &ca->css;
-> +
-> +out_free_counters:
-> + =A0 =A0 =A0 while (--i >=3D 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 percpu_counter_destroy(&ca->cpustat[i])=
-;
-> + =A0 =A0 =A0 free_percpu(ca->cpuusage);
-> +out_free_ca:
-> + =A0 =A0 =A0 kfree(ca);
-> +out:
-> + =A0 =A0 =A0 return ERR_PTR(-ENOMEM);
-> +}
-> +
-> +/* destroy an existing cpu accounting group */
-> +static void
-> +cpuacct_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp)
-> +{
-> + =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgrp);
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 for (i =3D 0; i < CPUACCT_STAT_NSTATS; i++)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 percpu_counter_destroy(&ca->cpustat[i])=
-;
-> + =A0 =A0 =A0 free_percpu(ca->cpuusage);
-> + =A0 =A0 =A0 kfree(ca);
-> +}
-> +
-> +static u64 cpuacct_cpuusage_read(struct cpuacct *ca, int cpu)
-> +{
-> + =A0 =A0 =A0 u64 *cpuusage =3D per_cpu_ptr(ca->cpuusage, cpu);
-> + =A0 =A0 =A0 u64 data;
-> +
-> +#ifndef CONFIG_64BIT
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* Take rq->lock to make 64-bit read safe on 32-bit p=
-latforms.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 raw_spin_lock_irq(&cpu_rq(cpu)->lock);
-> + =A0 =A0 =A0 data =3D *cpuusage;
-> + =A0 =A0 =A0 raw_spin_unlock_irq(&cpu_rq(cpu)->lock);
-> +#else
-> + =A0 =A0 =A0 data =3D *cpuusage;
-> +#endif
-> +
-> + =A0 =A0 =A0 return data;
-> +}
-> +
-> +static void cpuacct_cpuusage_write(struct cpuacct *ca, int cpu, u64 =
-val)
-> +{
-> + =A0 =A0 =A0 u64 *cpuusage =3D per_cpu_ptr(ca->cpuusage, cpu);
-> +
-> +#ifndef CONFIG_64BIT
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* Take rq->lock to make 64-bit write safe on 32-bit =
-platforms.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 raw_spin_lock_irq(&cpu_rq(cpu)->lock);
-> + =A0 =A0 =A0 *cpuusage =3D val;
-> + =A0 =A0 =A0 raw_spin_unlock_irq(&cpu_rq(cpu)->lock);
-> +#else
-> + =A0 =A0 =A0 *cpuusage =3D val;
-> +#endif
-> +}
-> +
-> +/* return total cpu usage (in nanoseconds) of a group */
-> +static u64 cpuusage_read(struct cgroup *cgrp, struct cftype *cft)
-> +{
-> + =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgrp);
-> + =A0 =A0 =A0 u64 totalcpuusage =3D 0;
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 for_each_present_cpu(i)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 totalcpuusage +=3D cpuacct_cpuusage_rea=
-d(ca, i);
-> +
-> + =A0 =A0 =A0 return totalcpuusage;
-> +}
-> +
-> +static int cpuusage_write(struct cgroup *cgrp, struct cftype *cftype=
-,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u64 reset)
-> +{
-> + =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgrp);
-> + =A0 =A0 =A0 int err =3D 0;
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 if (reset) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 err =3D -EINVAL;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 for_each_present_cpu(i)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpuacct_cpuusage_write(ca, i, 0);
-> +
-> +out:
-> + =A0 =A0 =A0 return err;
-> +}
-> +
-> +static int cpuacct_percpu_seq_read(struct cgroup *cgroup, struct cft=
-ype *cft,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-struct seq_file *m)
-> +{
-> + =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgroup);
-> + =A0 =A0 =A0 u64 percpu;
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 for_each_present_cpu(i) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 percpu =3D cpuacct_cpuusage_read(ca, i)=
-;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 seq_printf(m, "%llu ", (unsigned long l=
-ong) percpu);
-> + =A0 =A0 =A0 }
-> + =A0 =A0 =A0 seq_printf(m, "\n");
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static const char *cpuacct_stat_desc[] =3D {
-> + =A0 =A0 =A0 [CPUACCT_STAT_USER] =3D "user",
-> + =A0 =A0 =A0 [CPUACCT_STAT_SYSTEM] =3D "system",
-> +};
-> +
-> +static int cpuacct_stats_show(struct cgroup *cgrp, struct cftype *cf=
-t,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct cgroup_map_cb *cb)
-> +{
-> + =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgrp);
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 for (i =3D 0; i < CPUACCT_STAT_NSTATS; i++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 s64 val =3D percpu_counter_read(&ca->cp=
-ustat[i]);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D cputime64_to_clock_t(val);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cb->fill(cb, cpuacct_stat_desc[i], val)=
-;
-> + =A0 =A0 =A0 }
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static struct cftype files[] =3D {
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "usage",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .read_u64 =3D cpuusage_read,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .write_u64 =3D cpuusage_write,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "usage_percpu",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .read_seq_string =3D cpuacct_percpu_seq=
-_read,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "stat",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .read_map =3D cpuacct_stats_show,
-> + =A0 =A0 =A0 },
-> +};
-> +
-> +static int cpuacct_populate(struct cgroup_subsys *ss, struct cgroup =
-*cgrp)
-> +{
-> + =A0 =A0 =A0 return cgroup_add_files(cgrp, ss, files, ARRAY_SIZE(fil=
-es));
-> +}
-> +
-> +/*
-> + * charge this task's execution time to its accounting group.
-> + *
-> + * called with rq->lock held.
-> + */
-> +void cpuacct_charge(struct task_struct *tsk, u64 cputime)
-> +{
-> + =A0 =A0 =A0 struct cpuacct *ca;
-> + =A0 =A0 =A0 int cpu;
-> +
-> + =A0 =A0 =A0 if (unlikely(!cpuacct_subsys.active))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> +
-> + =A0 =A0 =A0 cpu =3D task_cpu(tsk);
-> +
-> + =A0 =A0 =A0 rcu_read_lock();
-> +
-> + =A0 =A0 =A0 ca =3D task_ca(tsk);
-> +
-> + =A0 =A0 =A0 for (; ca; ca =3D ca->parent) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u64 *cpuusage =3D per_cpu_ptr(ca->cpuus=
-age, cpu);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 *cpuusage +=3D cputime;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 rcu_read_unlock();
-> +}
-> +
-> +/*
-> + * When CONFIG_VIRT_CPU_ACCOUNTING is enabled one jiffy can be very =
-large
-> + * in cputime_t units. As a result, cpuacct_update_stats calls
-> + * percpu_counter_add with values large enough to always overflow th=
-e
-> + * per cpu batch limit causing bad SMP scalability.
-> + *
-> + * To fix this we scale percpu_counter_batch by cputime_one_jiffy so=
- we
-> + * batch the same amount of time with CONFIG_VIRT_CPU_ACCOUNTING dis=
-abled
-> + * and enabled. We cap it at INT_MAX which is the largest allowed ba=
-tch value.
-> + */
-> +#ifdef CONFIG_SMP
-> +#define CPUACCT_BATCH =A0\
-> + =A0 =A0 =A0 min_t(long, percpu_counter_batch * cputime_one_jiffy, I=
-NT_MAX)
-> +#else
-> +#define CPUACCT_BATCH =A00
-> +#endif
-> +
-> +/*
-> + * Charge the system/user time to the task's accounting group.
-> + */
-> +void cpuacct_update_stats(struct task_struct *tsk,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 enum cpuacct_stat_i=
-ndex idx, cputime_t val)
-> +{
-> + =A0 =A0 =A0 struct cpuacct *ca;
-> + =A0 =A0 =A0 int batch =3D CPUACCT_BATCH;
-> +
-> + =A0 =A0 =A0 if (unlikely(!cpuacct_subsys.active))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> +
-> + =A0 =A0 =A0 rcu_read_lock();
-> + =A0 =A0 =A0 ca =3D task_ca(tsk);
-> +
-> + =A0 =A0 =A0 do {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 __percpu_counter_add(&ca->cpustat[idx],=
- val, batch);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ca =3D ca->parent;
-> + =A0 =A0 =A0 } while (ca);
-> + =A0 =A0 =A0 rcu_read_unlock();
-> +}
-> +
-> +struct cgroup_subsys cpuacct_subsys =3D {
-> + =A0 =A0 =A0 .name =3D "cpuacct",
-> + =A0 =A0 =A0 .create =3D cpuacct_create,
-> + =A0 =A0 =A0 .destroy =3D cpuacct_destroy,
-> + =A0 =A0 =A0 .populate =3D cpuacct_populate,
-> + =A0 =A0 =A0 .subsys_id =3D cpuacct_subsys_id,
-> +};
-> diff --git a/kernel/sched.c b/kernel/sched.c
-> index 1d93cd0..45d60dd 100644
-> --- a/kernel/sched.c
-> +++ b/kernel/sched.c
-> @@ -1394,24 +1394,6 @@ static const u32 prio_to_wmult[40] =3D {
-> =A0/* =A015 */ 119304647, 148102320, 186737708, 238609294, 286331153,
-> =A0};
->
-> -/* Time spent by the tasks of the cpu accounting group executing in =
-=2E.. */
-> -enum cpuacct_stat_index {
-> - =A0 =A0 =A0 CPUACCT_STAT_USER, =A0 =A0 =A0/* ... user mode */
-> - =A0 =A0 =A0 CPUACCT_STAT_SYSTEM, =A0 =A0/* ... kernel mode */
-> -
-> - =A0 =A0 =A0 CPUACCT_STAT_NSTATS,
-> -};
-> -
-> -#ifdef CONFIG_CGROUP_CPUACCT
-> -static void cpuacct_charge(struct task_struct *tsk, u64 cputime);
-> -static void cpuacct_update_stats(struct task_struct *tsk,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 enum cpuacct_stat_index idx, cputime_t =
-val);
-> -#else
-> -static inline void cpuacct_charge(struct task_struct *tsk, u64 cputi=
-me) {}
-> -static inline void cpuacct_update_stats(struct task_struct *tsk,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 enum cpuacct_stat_index idx, cputime_t =
-val) {}
-> -#endif
-> -
-> =A0static inline void inc_cpu_load(struct rq *rq, unsigned long load)
-> =A0{
-> =A0 =A0 =A0 =A0update_load_add(&rq->load, load);
-> @@ -8617,283 +8599,6 @@ struct cgroup_subsys cpu_cgroup_subsys =3D {
->
-> =A0#endif /* CONFIG_CGROUP_SCHED */
->
-> -#ifdef CONFIG_CGROUP_CPUACCT
-> -
-> -/*
-> - * CPU accounting code for task groups.
-> - *
-> - * Based on the work by Paul Menage (menage@google.com) and Balbir S=
-ingh
-> - * (balbir@in.ibm.com).
-> - */
-> -
-> -/* track cpu usage of a group of tasks and its child groups */
-> -struct cpuacct {
-> - =A0 =A0 =A0 struct cgroup_subsys_state css;
-> - =A0 =A0 =A0 /* cpuusage holds pointer to a u64-type object on every=
- cpu */
-> - =A0 =A0 =A0 u64 __percpu *cpuusage;
-> - =A0 =A0 =A0 struct percpu_counter cpustat[CPUACCT_STAT_NSTATS];
-> - =A0 =A0 =A0 struct cpuacct *parent;
-> -};
-> -
-> -struct cgroup_subsys cpuacct_subsys;
-> -
-> -/* return cpu accounting group corresponding to this container */
-> -static inline struct cpuacct *cgroup_ca(struct cgroup *cgrp)
-> -{
-> - =A0 =A0 =A0 return container_of(cgroup_subsys_state(cgrp, cpuacct_s=
-ubsys_id),
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct cpuacct,=
- css);
-> -}
-> -
-> -/* return cpu accounting group to which this task belongs */
-> -static inline struct cpuacct *task_ca(struct task_struct *tsk)
-> -{
-> - =A0 =A0 =A0 return container_of(task_subsys_state(tsk, cpuacct_subs=
-ys_id),
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct cpuacct,=
- css);
-> -}
-> -
-> -/* create a new cpu accounting group */
-> -static struct cgroup_subsys_state *cpuacct_create(
-> - =A0 =A0 =A0 struct cgroup_subsys *ss, struct cgroup *cgrp)
-> -{
-> - =A0 =A0 =A0 struct cpuacct *ca =3D kzalloc(sizeof(*ca), GFP_KERNEL)=
-;
-> - =A0 =A0 =A0 int i;
-> -
-> - =A0 =A0 =A0 if (!ca)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> -
-> - =A0 =A0 =A0 ca->cpuusage =3D alloc_percpu(u64);
-> - =A0 =A0 =A0 if (!ca->cpuusage)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out_free_ca;
-> -
-> - =A0 =A0 =A0 for (i =3D 0; i < CPUACCT_STAT_NSTATS; i++)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (percpu_counter_init(&ca->cpustat[i]=
-, 0))
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out_free_counters;
-> -
-> - =A0 =A0 =A0 if (cgrp->parent)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ca->parent =3D cgroup_ca(cgrp->parent);
-> -
-> - =A0 =A0 =A0 return &ca->css;
-> -
-> -out_free_counters:
-> - =A0 =A0 =A0 while (--i >=3D 0)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 percpu_counter_destroy(&ca->cpustat[i])=
-;
-> - =A0 =A0 =A0 free_percpu(ca->cpuusage);
-> -out_free_ca:
-> - =A0 =A0 =A0 kfree(ca);
-> -out:
-> - =A0 =A0 =A0 return ERR_PTR(-ENOMEM);
-> -}
-> -
-> -/* destroy an existing cpu accounting group */
-> -static void
-> -cpuacct_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp)
-> -{
-> - =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgrp);
-> - =A0 =A0 =A0 int i;
-> -
-> - =A0 =A0 =A0 for (i =3D 0; i < CPUACCT_STAT_NSTATS; i++)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 percpu_counter_destroy(&ca->cpustat[i])=
-;
-> - =A0 =A0 =A0 free_percpu(ca->cpuusage);
-> - =A0 =A0 =A0 kfree(ca);
-> -}
-> -
-> -static u64 cpuacct_cpuusage_read(struct cpuacct *ca, int cpu)
-> -{
-> - =A0 =A0 =A0 u64 *cpuusage =3D per_cpu_ptr(ca->cpuusage, cpu);
-> - =A0 =A0 =A0 u64 data;
-> -
-> -#ifndef CONFIG_64BIT
-> - =A0 =A0 =A0 /*
-> - =A0 =A0 =A0 =A0* Take rq->lock to make 64-bit read safe on 32-bit p=
-latforms.
-> - =A0 =A0 =A0 =A0*/
-> - =A0 =A0 =A0 raw_spin_lock_irq(&cpu_rq(cpu)->lock);
-> - =A0 =A0 =A0 data =3D *cpuusage;
-> - =A0 =A0 =A0 raw_spin_unlock_irq(&cpu_rq(cpu)->lock);
-> -#else
-> - =A0 =A0 =A0 data =3D *cpuusage;
-> -#endif
-> -
-> - =A0 =A0 =A0 return data;
-> -}
-> -
-> -static void cpuacct_cpuusage_write(struct cpuacct *ca, int cpu, u64 =
-val)
-> -{
-> - =A0 =A0 =A0 u64 *cpuusage =3D per_cpu_ptr(ca->cpuusage, cpu);
-> -
-> -#ifndef CONFIG_64BIT
-> - =A0 =A0 =A0 /*
-> - =A0 =A0 =A0 =A0* Take rq->lock to make 64-bit write safe on 32-bit =
-platforms.
-> - =A0 =A0 =A0 =A0*/
-> - =A0 =A0 =A0 raw_spin_lock_irq(&cpu_rq(cpu)->lock);
-> - =A0 =A0 =A0 *cpuusage =3D val;
-> - =A0 =A0 =A0 raw_spin_unlock_irq(&cpu_rq(cpu)->lock);
-> -#else
-> - =A0 =A0 =A0 *cpuusage =3D val;
-> -#endif
-> -}
-> -
-> -/* return total cpu usage (in nanoseconds) of a group */
-> -static u64 cpuusage_read(struct cgroup *cgrp, struct cftype *cft)
-> -{
-> - =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgrp);
-> - =A0 =A0 =A0 u64 totalcpuusage =3D 0;
-> - =A0 =A0 =A0 int i;
-> -
-> - =A0 =A0 =A0 for_each_present_cpu(i)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 totalcpuusage +=3D cpuacct_cpuusage_rea=
-d(ca, i);
-> -
-> - =A0 =A0 =A0 return totalcpuusage;
-> -}
-> -
-> -static int cpuusage_write(struct cgroup *cgrp, struct cftype *cftype=
-,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u64 reset)
-> -{
-> - =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgrp);
-> - =A0 =A0 =A0 int err =3D 0;
-> - =A0 =A0 =A0 int i;
-> -
-> - =A0 =A0 =A0 if (reset) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 err =3D -EINVAL;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> - =A0 =A0 =A0 }
-> -
-> - =A0 =A0 =A0 for_each_present_cpu(i)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpuacct_cpuusage_write(ca, i, 0);
-> -
-> -out:
-> - =A0 =A0 =A0 return err;
-> -}
-> -
-> -static int cpuacct_percpu_seq_read(struct cgroup *cgroup, struct cft=
-ype *cft,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-struct seq_file *m)
-> -{
-> - =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgroup);
-> - =A0 =A0 =A0 u64 percpu;
-> - =A0 =A0 =A0 int i;
-> -
-> - =A0 =A0 =A0 for_each_present_cpu(i) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 percpu =3D cpuacct_cpuusage_read(ca, i)=
-;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 seq_printf(m, "%llu ", (unsigned long l=
-ong) percpu);
-> - =A0 =A0 =A0 }
-> - =A0 =A0 =A0 seq_printf(m, "\n");
-> - =A0 =A0 =A0 return 0;
-> -}
-> -
-> -static const char *cpuacct_stat_desc[] =3D {
-> - =A0 =A0 =A0 [CPUACCT_STAT_USER] =3D "user",
-> - =A0 =A0 =A0 [CPUACCT_STAT_SYSTEM] =3D "system",
-> -};
-> -
-> -static int cpuacct_stats_show(struct cgroup *cgrp, struct cftype *cf=
-t,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct cgroup_map_cb *cb)
-> -{
-> - =A0 =A0 =A0 struct cpuacct *ca =3D cgroup_ca(cgrp);
-> - =A0 =A0 =A0 int i;
-> -
-> - =A0 =A0 =A0 for (i =3D 0; i < CPUACCT_STAT_NSTATS; i++) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 s64 val =3D percpu_counter_read(&ca->cp=
-ustat[i]);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D cputime64_to_clock_t(val);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 cb->fill(cb, cpuacct_stat_desc[i], val)=
-;
-> - =A0 =A0 =A0 }
-> - =A0 =A0 =A0 return 0;
-> -}
-> -
-> -static struct cftype files[] =3D {
-> - =A0 =A0 =A0 {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "usage",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .read_u64 =3D cpuusage_read,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .write_u64 =3D cpuusage_write,
-> - =A0 =A0 =A0 },
-> - =A0 =A0 =A0 {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "usage_percpu",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .read_seq_string =3D cpuacct_percpu_seq=
-_read,
-> - =A0 =A0 =A0 },
-> - =A0 =A0 =A0 {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "stat",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .read_map =3D cpuacct_stats_show,
-> - =A0 =A0 =A0 },
-> -};
-> -
-> -static int cpuacct_populate(struct cgroup_subsys *ss, struct cgroup =
-*cgrp)
-> -{
-> - =A0 =A0 =A0 return cgroup_add_files(cgrp, ss, files, ARRAY_SIZE(fil=
-es));
-> -}
-> -
-> -/*
-> - * charge this task's execution time to its accounting group.
-> - *
-> - * called with rq->lock held.
-> - */
-> -static void cpuacct_charge(struct task_struct *tsk, u64 cputime)
-> -{
-> - =A0 =A0 =A0 struct cpuacct *ca;
-> - =A0 =A0 =A0 int cpu;
-> -
-> - =A0 =A0 =A0 if (unlikely(!cpuacct_subsys.active))
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> -
-> - =A0 =A0 =A0 cpu =3D task_cpu(tsk);
-> -
-> - =A0 =A0 =A0 rcu_read_lock();
-> -
-> - =A0 =A0 =A0 ca =3D task_ca(tsk);
-> -
-> - =A0 =A0 =A0 for (; ca; ca =3D ca->parent) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 u64 *cpuusage =3D per_cpu_ptr(ca->cpuus=
-age, cpu);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 *cpuusage +=3D cputime;
-> - =A0 =A0 =A0 }
-> -
-> - =A0 =A0 =A0 rcu_read_unlock();
-> -}
-> -
-> -/*
-> - * When CONFIG_VIRT_CPU_ACCOUNTING is enabled one jiffy can be very =
-large
-> - * in cputime_t units. As a result, cpuacct_update_stats calls
-> - * percpu_counter_add with values large enough to always overflow th=
-e
-> - * per cpu batch limit causing bad SMP scalability.
-> - *
-> - * To fix this we scale percpu_counter_batch by cputime_one_jiffy so=
- we
-> - * batch the same amount of time with CONFIG_VIRT_CPU_ACCOUNTING dis=
-abled
-> - * and enabled. We cap it at INT_MAX which is the largest allowed ba=
-tch value.
-> - */
-> -#ifdef CONFIG_SMP
-> -#define CPUACCT_BATCH =A0\
-> - =A0 =A0 =A0 min_t(long, percpu_counter_batch * cputime_one_jiffy, I=
-NT_MAX)
-> -#else
-> -#define CPUACCT_BATCH =A00
-> -#endif
-> -
-> -/*
-> - * Charge the system/user time to the task's accounting group.
-> - */
-> -static void cpuacct_update_stats(struct task_struct *tsk,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 enum cpuacct_stat_index idx, cputime_t =
-val)
-> -{
-> - =A0 =A0 =A0 struct cpuacct *ca;
-> - =A0 =A0 =A0 int batch =3D CPUACCT_BATCH;
-> -
-> - =A0 =A0 =A0 if (unlikely(!cpuacct_subsys.active))
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> -
-> - =A0 =A0 =A0 rcu_read_lock();
-> - =A0 =A0 =A0 ca =3D task_ca(tsk);
-> -
-> - =A0 =A0 =A0 do {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 __percpu_counter_add(&ca->cpustat[idx],=
- val, batch);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ca =3D ca->parent;
-> - =A0 =A0 =A0 } while (ca);
-> - =A0 =A0 =A0 rcu_read_unlock();
-> -}
-> -
-> -struct cgroup_subsys cpuacct_subsys =3D {
-> - =A0 =A0 =A0 .name =3D "cpuacct",
-> - =A0 =A0 =A0 .create =3D cpuacct_create,
-> - =A0 =A0 =A0 .destroy =3D cpuacct_destroy,
-> - =A0 =A0 =A0 .populate =3D cpuacct_populate,
-> - =A0 =A0 =A0 .subsys_id =3D cpuacct_subsys_id,
-> -};
-> -#endif /* CONFIG_CGROUP_CPUACCT */
-> -
-> =A0#ifndef CONFIG_SMP
->
-> =A0void synchronize_sched_expedited(void)
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> With this patch and Tony's below sram fix, omap3_defconfig
+> boots on OMAP4430 as it is. Boot tested with 2.6.34 maniline kernel
+> on OMAP4430, OMAP3430 with omap3_defconfig and regular defconfig
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27363.html
+> 
+>  arch/arm/mach-omap2/clock44xx_data.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index a5c0c9c..a1b4cae 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -1369,6 +1369,7 @@ static struct clk emif1_ick = {
+>  	.ops		= &clkops_omap2_dflt,
+>  	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_1_CLKCTRL,
+>  	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+> +	.flags		= ENABLE_ON_INIT,
+>  	.clkdm_name	= "l3_emif_clkdm",
+>  	.parent		= &ddrphy_ck,
+>  	.recalc		= &followparent_recalc,
+> @@ -1379,6 +1380,7 @@ static struct clk emif2_ick = {
+>  	.ops		= &clkops_omap2_dflt,
+>  	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_2_CLKCTRL,
+>  	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+> +	.flags		= ENABLE_ON_INIT,
+>  	.clkdm_name	= "l3_emif_clkdm",
+>  	.parent		= &ddrphy_ck,
+>  	.recalc		= &followparent_recalc,
+Tested-by: Nishanth Menon <nm@ti.com>
+
+tested on SDP4430 -> NOTE: it wont get through beyond
+[    5.953491] Bluetooth: L2CAP socket layer initialized
+[    5.958648] Bluetooth: SCO (Voice Link) ver 0.6
+[    5.963256] Bluetooth: SCO socket layer initialized
+[    5.968475] Bluetooth: RFCOMM TTY layer initialized
+[    5.973449] Bluetooth: RFCOMM socket layer initialized
+[    5.978698] Bluetooth: RFCOMM ver 1.11
+[    5.982482] Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+[    5.987884] Bluetooth: BNEP filters: protocol multicast
+[    5.993164] Bluetooth: HIDP (Human Interface Emulation) ver 1.2
+[    6.000457] lib80211: common routines for IEEE802.11 drivers
+[    6.006286] ThumbEE CPU extension supported.
+[    6.045471] VFP support v0.3: implementor 41 architecture 3 part 30 
+variant 9 rev 0
+[    6.057250] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
+[   18.688720] Looking up port of RPC 100003/2 on 128.247.75.5
+[   48.694244] rpcbind: server 128.247.75.1 not responding, timed out
+[   48.700958] Root-NFS: Unable to get nfsd port number from server, 
+using default
+[   48.708374] Looking up port of RPC 100005/1 on 128.247.75.5
+[   78.710479] rpcbind: server 128.247.75.1 not responding, timed out
+[   78.716827] Root-NFS: Unable to get mountd port number from server, 
+using default
+looks like network is still not functional on SDP4430. different issue
+
+Pass to NFS boot on: SDP3630, SDP3430.
+
+-- 
+Regards,
+Nishanth Menon
