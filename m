@@ -1,100 +1,54 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2] omap4: Fix multi-omap boot with reset un-used clocks
-Date: Wed, 19 May 2010 15:01:08 -0500
-Message-ID: <4BF44384.40901@ti.com>
-References: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Wed, 19 May 2010 22:42:55 +0200
+Message-ID: <201005192242.55706.rjw@sisk.pl>
+References: <1274115885.4418.59.camel@mulgrave.site> <1274191188.10304.5.camel@mulgrave.site> <20100519065934.GH12879@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38578 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755336Ab0ESUBK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 May 2010 16:01:10 -0400
-In-Reply-To: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100519065934.GH12879@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: felipe.balbi@nokia.com
+Cc: ext James Bottomley <James.Bottomley@suse.de>, "me@felipebalbi.com" <me@felipebalbi.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-Shilimkar, Santosh had written, on 05/19/2010 11:38 AM, the following:
-> This patch uses "ENABLE_ON_INIT" flag on the emif clock nodes
-> to avoid the emif clk getting cut as part of reset un-used clock
-> routine which prevents boot.
+On Wednesday 19 May 2010, Felipe Balbi wrote:
+> On Tue, May 18, 2010 at 03:59:48PM +0200, ext James Bottomley wrote:
+> >On Tue, 2010-05-18 at 09:40 +0300, Felipe Balbi wrote:
+> >> On Mon, May 17, 2010 at 09:49:35PM +0200, ext James Bottomley wrote:
+> >> >Right, because Firmware writers are from the rugged unresponsive uplands
+> >> >of planet
+> >> >ignore-user-complaints-and-eat-them-for-breakfast-if-they-file-bugs and
+> >> >Software writers are from the emollient responsive groves of planet
+> >> >harmony.  Obviously what would work for one wouldn't work for the other.
+> >> >
+> >> >As a software writer, I fully buy into that world view.  The trouble is
+> >> >that when I go to dinner with hardware people, they seem to be awfully
+> >> >nice chaps ... almost exactly like me, in fact ...
+> >>
+> >> what does this add to suspend_blockers discussion ?
+> >
+> >Sorry I was evidently being too subtle.
+> >
+> >The point is that if, as you acknowledge, that you can't train firmware
+> >engineers to be responsive, there's no reason to think you can train
+> >software engineers in the same quality ... they're very similar people.
 > 
-> Since omap4 "omap2_clk_init()" calls "clk_enable_init_clocks()"
-> which increases the usecount on all ENABLE_ON_INIT clocks, it
-> prevents "omap2_clk_disable_unused()" from disabling the clock.
+> I wouldn't say it's up to the engineer himself, it's more related to how 
+> the company that person works for deal with such things.
 > 
-> The real fix is to have driver for EMIF and do clock get/enable
-> as part of it. The EMIF driver is planned to be done HWMOD way
-> so till that available to keep omap3_defconfig booting on OMAP4430,
-> this patch is necessary.
-> (Will updated the auto-gen script for 44xx accordingly)
+> >The corollary is that real world systems have to operate in the face of
+> >misbehaving hardware *and* software.
 > 
-> The fix was suggested by Paul Walmsley
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> ---
-> With this patch and Tony's below sram fix, omap3_defconfig
-> boots on OMAP4430 as it is. Boot tested with 2.6.34 maniline kernel
-> on OMAP4430, OMAP3430 with omap3_defconfig and regular defconfig
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27363.html
-> 
->  arch/arm/mach-omap2/clock44xx_data.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-> index a5c0c9c..a1b4cae 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -1369,6 +1369,7 @@ static struct clk emif1_ick = {
->  	.ops		= &clkops_omap2_dflt,
->  	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_1_CLKCTRL,
->  	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
-> +	.flags		= ENABLE_ON_INIT,
->  	.clkdm_name	= "l3_emif_clkdm",
->  	.parent		= &ddrphy_ck,
->  	.recalc		= &followparent_recalc,
-> @@ -1379,6 +1380,7 @@ static struct clk emif2_ick = {
->  	.ops		= &clkops_omap2_dflt,
->  	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_2_CLKCTRL,
->  	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
-> +	.flags		= ENABLE_ON_INIT,
->  	.clkdm_name	= "l3_emif_clkdm",
->  	.parent		= &ddrphy_ck,
->  	.recalc		= &followparent_recalc,
-Tested-by: Nishanth Menon <nm@ti.com>
+> I still think the kernel shouldn't deal with broken applications and we 
+> shouldn't try to fix them in kernel space. We can, of course, try to 
+> find them and have all sorts of bells and whistles shouting 'process 
+> %s is preventing CPU from sleeping for %llu nanoseconds' or something 
+> like that.
 
-tested on SDP4430 -> NOTE: it wont get through beyond
-[    5.953491] Bluetooth: L2CAP socket layer initialized
-[    5.958648] Bluetooth: SCO (Voice Link) ver 0.6
-[    5.963256] Bluetooth: SCO socket layer initialized
-[    5.968475] Bluetooth: RFCOMM TTY layer initialized
-[    5.973449] Bluetooth: RFCOMM socket layer initialized
-[    5.978698] Bluetooth: RFCOMM ver 1.11
-[    5.982482] Bluetooth: BNEP (Ethernet Emulation) ver 1.3
-[    5.987884] Bluetooth: BNEP filters: protocol multicast
-[    5.993164] Bluetooth: HIDP (Human Interface Emulation) ver 1.2
-[    6.000457] lib80211: common routines for IEEE802.11 drivers
-[    6.006286] ThumbEE CPU extension supported.
-[    6.045471] VFP support v0.3: implementor 41 architecture 3 part 30 
-variant 9 rev 0
-[    6.057250] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
-[   18.688720] Looking up port of RPC 100003/2 on 128.247.75.5
-[   48.694244] rpcbind: server 128.247.75.1 not responding, timed out
-[   48.700958] Root-NFS: Unable to get nfsd port number from server, 
-using default
-[   48.708374] Looking up port of RPC 100005/1 on 128.247.75.5
-[   78.710479] rpcbind: server 128.247.75.1 not responding, timed out
-[   78.716827] Root-NFS: Unable to get mountd port number from server, 
-using default
-looks like network is still not functional on SDP4430. different issue
+Please note that this approach is not too practical for vendors who ship
+systems like cell phones to the general public.
 
-Pass to NFS boot on: SDP3630, SDP3430.
-
--- 
-Regards,
-Nishanth Menon
+Rafael
