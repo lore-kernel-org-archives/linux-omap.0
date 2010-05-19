@@ -1,147 +1,57 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH v3 1/3] omap3 gpmc: functionality enhancement
-Date: Thu, 20 May 2010 00:00:47 +0530
-Message-ID: <AANLkTikK4ISAsLFS-l5fXGxCppv98F2qqb8OBnZ7OTHd@mail.gmail.com>
-References: <s-ghorai@ti.com> <1274181389-7488-1-git-send-email-s-ghorai@ti.com>
-	<1274181389-7488-2-git-send-email-s-ghorai@ti.com> <AANLkTikFxtzDpiJvJjnuonM2urMJR1LDLafx5JtpC_bS@mail.gmail.com>
-	<1274284094.6286.17.camel@thunk> <2A3DCF3DA181AD40BDE86A3150B27B6B030D991D50@dbde02.ent.ti.com>
+From: Mike Chan <mike@android.com>
+Subject: Re: [PATCH 4/4] omap: cpu: Power tracking support for cgroup cpuacct
+Date: Wed, 19 May 2010 11:56:27 -0700
+Message-ID: <AANLkTikcBxjyOMtdt60Kov9kpD-rscC_1aOJ2ueHD5qD@mail.gmail.com>
+References: <1274232620-23003-1-git-send-email-mike@android.com>
+	 <1274232620-23003-5-git-send-email-mike@android.com>
+	 <4BF3E367.5080906@ti.com> <201005191734.27887.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f194.google.com ([209.85.222.194]:36702 "EHLO
-	mail-pz0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238Ab0ESSbK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 14:31:10 -0400
-Received: by pzk32 with SMTP id 32so2882283pzk.21
-        for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 11:31:09 -0700 (PDT)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030D991D50@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201005191734.27887.trenn@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Nishanth Menon <nm@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "menage@google.com" <menage@google.com>, "balbir@in.ibm.com" <balbir@in.ibm.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "sakoman@gmail.com" <sakoman@gmail.com>, "mike@compulab.co.il" <mike@compulab.co.il>, "Artem.Bityutskiy@nokia.com" <Artem.Bityutskiy@nokia.com>, "peter.barada@gmail.com" <peter.barada@gmail.com>
 
-On Wed, May 19, 2010 at 11:34 PM, Ghorai, Sukumar <s-ghorai@ti.com> wro=
-te:
->> > > +
->> > > + =A0 =A0 =A0 case GPMC_CONFIG_RDY_BSY:
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 regval =A0=3D gpmc_cs_read_reg(cs,=
- GPMC_CS_CONFIG1);
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 regval |=3D WR_RD_PIN_MONITORING;
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_cs_write_reg(cs, GPMC_CS_CONF=
-IG1, regval);
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> >
->> > IIRC, at least in OMAP2/3, ready/busy pin is not in use (not conne=
-cted).
+On Wed, May 19, 2010 at 8:34 AM, Thomas Renninger <trenn@suse.de> wrote=
+:
+> On Wednesday 19 May 2010 15:11:03 Nishanth Menon wrote:
+>> Mike Chan had written, on 05/18/2010 08:30 PM, the following:
+>> > Specify new power field in struct omap_opp, which is
+>> > power exported in milliWatt.
+> ...
+>> > + =A0 =A0 =A0 =A0 =A0 totalpower +=3D cpuacct_freq[i] * mpu_opps[i=
+ + 1].power;
+> ...
+>> > + =A0 unsigned long power; /* power consumed running at OPP in
+> milliWatts */
 >>
->> On the Logic OMAP3530 LV SOM and Torpedo modules, the R/B# pin of th=
-e
->> NAND in the Micron mt29c2g4maklajg-6it POP part is connected to the
->> WAIT0 pin on the OMAP3530 and I'm looking to use it to speed up NAND
->> accesses
-> [Ghorai] So better keep this feature,
+>> this conflicts with the OPP layer implementation. this structure wil=
+l
+>> disappear for good.
 
-Yes, looks like there are some boards which can still take advantage of=
- this.
+Okay, I wasn't sure what to use. The omap-pm branch uses omap_opp for
+the mpu frequencies. However it looks like struct prcm_config is used
+in linux-next for mpu frequencies, but there are deprecated comments
+around this struct definition so I'm not sure where what struct I
+should be using.
 
->>
-[...]
->> > > @@ -456,13 +572,20 @@ EXPORT_SYMBOL(gpmc_prefetch_enable);
->> > > =A0/**
->> > > =A0* gpmc_prefetch_reset - disables and stops the prefetch engin=
-e
->> > > =A0*/
->> > > -void gpmc_prefetch_reset(void)
->> > > +int gpmc_prefetch_reset(int cs)
->> > > =A0{
->> > > + =A0 =A0 =A0 if (gpmc_pref_used =3D=3D cs)
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_pref_used =3D -EINVAL;
->> > > + =A0 =A0 =A0 else
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> > > +
->> >
->> > This is also not required. As, this function will be called only i=
-f
->> > prefetch was used.
-> [Ghorai] Agree. Can you see this input too?
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28520.html
-
-Exactly, this is what I am telling here. Enable prefetch engine call
-is already being check for *busy* or not.
-
+> Ah yes, another question:
+> The power variable in struct omap_opp never gets initialized
+> with a sane value, something is wrong...
 >
-[...]
->> > > +int gpmc_ecc_init(int cs, int ecc_size)
->> > > +{
->> > > + =A0 =A0 =A0 unsigned int val =3D 0x0;
->> > > +
->> > > + =A0 =A0 =A0 /* check if ecc engine already by another cs */
->> > > + =A0 =A0 =A0 if (gpmc_ecc_used =3D=3D -EINVAL)
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_ecc_used =3D cs;
->> > > + =A0 =A0 =A0 else
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EBUSY;
->> > Here few things need be to consider:
->> > 1. 'init' is supposed to done once for every instance of driver du=
-ring
->> probe
->> > 2. But ECC engine, too, have only one instance at a time, So
->> > 3. As long as all NAND chip are supposed to use same ECC machenism=
-, we
->> > can go for only one time 'init' for all drivers, perhaps in
->> > gpmc_nand.c.
->> > 4. But in case, different instances of driver (or NAND chip) requi=
-res
->> > different ECC machenism (for ex. Hamming or BCH, or even with
->> > different capabilities of error correction),
->> > this will no longer vailid. Then rather we should have something l=
-ike
->> > 'gpmc_ecc_config' call to configer ECC engine for everytime a driv=
-er
->> > needs it (something like as it is done for prefetch engine).
-> [Ghorai]
-> a. do you think it will reduce the throughput?
-No. But in current implementation it will be called for each instance
-driver. (see my 3rd point)
 
-> b. Moreover I think we will take this as 5th patch as cleanup/ improv=
-emnt.
-> c. And how to know that ECC engine is in used other driver should not=
- use it? Any bit to know that ecc engine is busy, as we check for prefe=
-tch?
-Do not really remember config registers. Perhaps there is no way.
-But I guess you should check into register GPMC_ECC_CONFIG at bit 1.
-This is the bit we are setting to enable ECC calculation, IIRC.
+You're right, this last patch won't work on linux-next, it seems quite
+a bit has changed in the omap specific. Previously board files can
+register their OPP table which is an array of struct omp_opp, which is
+exactly what I do for Droid in our android-omap branch.
 
-> d. any further input on http://www.mail-archive.com/linux-omap@vger.k=
-ernel.org/msg28520.html
-And this what I was suggesting in my point 4. In my example
-'gpmc_ecc_config' is analogy to 'gpmc_ecc_request'.
-I said *config*, since in such scenario you need to configer HW
-ECCconfig register everytime as well, rather just checking
-availability and enabling.
+I'm hoping some omap folks can offer some suggestions for what needs
+to be changed.
 
+-- Mike
+
+> =A0 =A0 Thomas
 >
-[...]
->> > > +int gpmc_ecc_reset(int cs)
->> > > +{
->> > > + =A0 =A0 =A0 if (gpmc_ecc_used =3D=3D cs)
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_ecc_used =3D -EINVAL;
->> > > + =A0 =A0 =A0 else
->> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> > > +
->> > > + =A0 =A0 =A0 return 0;
->> > > +}
-
-I guess in this function you should also clear gpmc ecc config
-register explicitly.
-
-
---=20
-Regards,
-Vimal Singh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
