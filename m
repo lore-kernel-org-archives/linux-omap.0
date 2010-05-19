@@ -1,46 +1,68 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 2/4] OMAP: mcbsp - add smart idle
-	configuration API
-Date: Wed, 19 May 2010 15:15:54 +0300
-Message-ID: <201005191515.54723.peter.ujfalusi@nokia.com>
-References: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
-	<87tyq4lspw.fsf@deeprootsystems.com>
-	<1274265808.3240.101.camel@odin>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 2/2] omap: iommu-add functionality to get TLB miss
+ interrupt
+Date: Wed, 19 May 2010 07:25:15 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4BCEAEF6@dlee03.ent.ti.com>
+References: <1274137950-18759-3-git-send-email-h-kanigeri2@ti.com>
+	<20100518.091130.260105572.Hiroshi.DOYU@nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4BC6CD62@dlee03.ent.ti.com>
+ <20100519.122751.71107025.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1274265808.3240.101.camel@odin>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49471 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754994Ab0ESMZU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 08:25:20 -0400
+In-Reply-To: <20100519.122751.71107025.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-T24gV2VkbmVzZGF5IDE5IE1heSAyMDEwIDEzOjQzOjI4IGV4dCBMaWFtIEdpcmR3b29kIHdyb3Rl
-Ogo+IE9uIFR1ZSwgMjAxMC0wNS0xOCBhdCAxNjowMSAtMDcwMCwgS2V2aW4gSGlsbWFuIHdyb3Rl
-Ogo+ID4gTGlhbSBHaXJkd29vZCA8bHJnQHNsaW1sb2dpYy5jby51az4gd3JpdGVzOgo+ID4gPiBB
-ZGQgYSBzbWFsbCBBUEkgdG8gY29uZmlndXJlIE1jQlNQIHNtYXJ0IGlkbGUgbW9kZXMKPiA+ID4g
-dG8gY29uc2VydmUgcG93ZXIuCj4gPiAKPiA+IFdvdWxkIGJlIHVzZWZ1bCBoZXJlIHRvIGV4cGxh
-aW4gd2h5IGNsaWVudCBkcml2ZXJzIG5lZWQgdG8gY2hhbmdlCj4gPiBpZGxlIG1vZGVzLgo+IAo+
-IEkgdGhpbmsgUGV0ZXIgaGFzIGNvdmVyZWQgdGhpcyBpbiBvbmUgb2YgaGlzIHJlcGxpZXMuCj4g
-Cj4gPiBBbHNvLCB0aGlzIHBhdGNoIGlzIHRlbGxpbmcgbWUgdGhhdCBpdCdzIHRpbWUgdGhlIE1j
-QlNQIGlzIGNvbnZlcnRlZAo+ID4gb3ZlciB0byB0aGUgb21hcF9od21vZC9vbWFwX2RldmljZSBp
-bmZyYXN0cnVjdHVyZSB3aGVyZSB0aGlzIHR5cGUKPiA+IG9mIGZ1bmN0aW9uYWxpdHkgd291bGQg
-YWxyZWFkeSBiZSBwcm92aWRlZC4KPiA+IAo+ID4gTm90IG5lY2Vzc3NhcmlseSBhIHJlYXNvbiB0
-byBwcmV2ZW50IHRoaXMgcGF0Y2ggZm9yIG5vdywgYnV0IHRoaXMKPiA+IHdpbGwgYWxsIG5lZWQg
-dG8gYmUgY2hhbmdlZCB3aGVuIGNvbnZlcnRlZCB0byBod21vZC4KPiAKPiBPaywgSSB0aGluayBJ
-J2xsIGFjdHVhbGx5IGp1c3QgY29udmVydCBpdCB0byBod21vZCByYXRoZXIgdGhhbiBhZGRpbmcg
-YQo+IHNvb24gdG8gYmUgZGVwcmVjYXRlZCBBUEkuCgpEb2VzIHRoZSBod21vbiBzdXBwb3J0ZWQg
-b24gT01BUDEsIDIsIDMsIGFuZCA0PyBEbyB3ZSBoYXZlIHRoZSBuZWVkZWQgZnJhbWV3b3JrIApj
-b3ZlcmluZyBhbGwgT01BUCB2ZXJzaW9ucz8KCj4gCj4gVGhhbmtzCj4gCj4gTGlhbQoKLS0gClDD
-qXRlcgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNh
-LWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21h
-aWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
+Hi Hiroshi,
+
+
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Wednesday, May 19, 2010 4:28 AM
+> To: Kanigeri, Hari
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com; Gupta, Ramesh
+> Subject: Re: [PATCH 2/2] omap: iommu-add functionality to get TLB miss
+> interrupt
+> 
+> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> Subject: RE: [PATCH 2/2] omap: iommu-add functionality to get TLB miss
+> interrupt
+> Date: Tue, 18 May 2010 19:03:55 +0200
+> 
+> >> > diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-
+> >> omap/include/plat/iommu.h
+> >> > index 0752af9..52a3852 100644
+> >> > --- a/arch/arm/plat-omap/include/plat/iommu.h
+> >> > +++ b/arch/arm/plat-omap/include/plat/iommu.h
+> >> > @@ -80,6 +80,7 @@ struct iommu_functions {
+> >> >
+> >> >  	int (*enable)(struct iommu *obj);
+> >> >  	void (*disable)(struct iommu *obj);
+> >> > +	void (*disable_twl)(struct iommu *obj);
+> >> >  	u32 (*fault_isr)(struct iommu *obj, u32 *ra);
+> >> >
+> >> >  	void (*tlb_read_cr)(struct iommu *obj, struct cr_regs *cr);
+> >> > @@ -143,6 +144,7 @@ extern void iotlb_cr_to_e(struct cr_regs *cr,
+> struct
+> 
+> Just one thought, isn't the following a little bit flexible?
+> 
+> -	void (*disable_twl)(struct iommu *obj);
+> +	void (*set_twl)(struct iommu *obj, int on);
+
+-- Probabaly if one want to toggle between enabling and disabling twl during run time. I agree with you about the change so that this can be flexible in future. I will make this change.
+Thank you for your inputs.
+
+Thank you,
+Best regards,
+Hari
+
