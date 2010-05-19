@@ -1,57 +1,60 @@
-From: Mike Chan <mike@android.com>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH 4/4] omap: cpu: Power tracking support for cgroup cpuacct
-Date: Wed, 19 May 2010 11:56:27 -0700
-Message-ID: <AANLkTikcBxjyOMtdt60Kov9kpD-rscC_1aOJ2ueHD5qD@mail.gmail.com>
-References: <1274232620-23003-1-git-send-email-mike@android.com>
-	 <1274232620-23003-5-git-send-email-mike@android.com>
-	 <4BF3E367.5080906@ti.com> <201005191734.27887.trenn@suse.de>
+Date: Wed, 19 May 2010 14:00:05 -0500
+Message-ID: <4BF43535.3090908@ti.com>
+References: <1274232620-23003-1-git-send-email-mike@android.com>	 <1274232620-23003-5-git-send-email-mike@android.com>	 <4BF3E367.5080906@ti.com> <201005191734.27887.trenn@suse.de> <AANLkTikcBxjyOMtdt60Kov9kpD-rscC_1aOJ2ueHD5qD@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201005191734.27887.trenn@suse.de>
+In-Reply-To: <AANLkTikcBxjyOMtdt60Kov9kpD-rscC_1aOJ2ueHD5qD@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Nishanth Menon <nm@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "menage@google.com" <menage@google.com>, "balbir@in.ibm.com" <balbir@in.ibm.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mike Chan <mike@android.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Thomas Renninger <trenn@suse.de>, "menage@google.com" <menage@google.com>, "balbir@in.ibm.com" <balbir@in.ibm.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, May 19, 2010 at 8:34 AM, Thomas Renninger <trenn@suse.de> wrote=
-:
-> On Wednesday 19 May 2010 15:11:03 Nishanth Menon wrote:
->> Mike Chan had written, on 05/18/2010 08:30 PM, the following:
->> > Specify new power field in struct omap_opp, which is
->> > power exported in milliWatt.
-> ...
->> > + =A0 =A0 =A0 =A0 =A0 totalpower +=3D cpuacct_freq[i] * mpu_opps[i=
- + 1].power;
-> ...
->> > + =A0 unsigned long power; /* power consumed running at OPP in
-> milliWatts */
+Mike Chan had written, on 05/19/2010 01:56 PM, the following:
+> On Wed, May 19, 2010 at 8:34 AM, Thomas Renninger <trenn@suse.de> wrote:
+>> On Wednesday 19 May 2010 15:11:03 Nishanth Menon wrote:
+>>> Mike Chan had written, on 05/18/2010 08:30 PM, the following:
+>>>> Specify new power field in struct omap_opp, which is
+>>>> power exported in milliWatt.
+>> ...
+>>>> +           totalpower += cpuacct_freq[i] * mpu_opps[i + 1].power;
+>> ...
+>>>> +   unsigned long power; /* power consumed running at OPP in
+>> milliWatts */
+>>> this conflicts with the OPP layer implementation. this structure will
+>>> disappear for good.
+> 
+> Okay, I wasn't sure what to use. The omap-pm branch uses omap_opp for
+> the mpu frequencies. However it looks like struct prcm_config is used
+> in linux-next for mpu frequencies, but there are deprecated comments
+> around this struct definition so I'm not sure where what struct I
+> should be using.
+
+Kevin can probably comment on opp upstream plans.
+
+> 
+>> Ah yes, another question:
+>> The power variable in struct omap_opp never gets initialized
+>> with a sane value, something is wrong...
 >>
->> this conflicts with the OPP layer implementation. this structure wil=
-l
->> disappear for good.
+> 
+> You're right, this last patch won't work on linux-next, it seems quite
+> a bit has changed in the omap specific. Previously board files can
+> register their OPP table which is an array of struct omp_opp, which is
+> exactly what I do for Droid in our android-omap branch.
+> 
+> I'm hoping some omap folks can offer some suggestions for what needs
+> to be changed.
+> 
+> -- Mike
+> 
+>>     Thomas
+>>
 
-Okay, I wasn't sure what to use. The omap-pm branch uses omap_opp for
-the mpu frequencies. However it looks like struct prcm_config is used
-in linux-next for mpu frequencies, but there are deprecated comments
-around this struct definition so I'm not sure where what struct I
-should be using.
 
-> Ah yes, another question:
-> The power variable in struct omap_opp never gets initialized
-> with a sane value, something is wrong...
->
-
-You're right, this last patch won't work on linux-next, it seems quite
-a bit has changed in the omap specific. Previously board files can
-register their OPP table which is an array of struct omp_opp, which is
-exactly what I do for Droid in our android-omap branch.
-
-I'm hoping some omap folks can offer some suggestions for what needs
-to be changed.
-
--- Mike
-
-> =A0 =A0 Thomas
->
+-- 
+Regards,
+Nishanth Menon
