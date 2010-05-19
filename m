@@ -1,62 +1,48 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH] tsl2563 ALS support for Nokia N900
-Date: Wed, 19 May 2010 19:11:30 +0300
-Message-ID: <63bae8d024cc56ac3ea380dee21ac9add900a7e0.1274285408.git.ameya.palande@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:25639 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750900Ab0ESQMO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 12:12:14 -0400
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o4JGBFB6005449
-	for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 11:12:13 -0500
-Received: from localhost.localdomain (esdhcp04343.research.nokia.com [172.21.43.43])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o4JGBubj023027
-	for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 19:11:56 +0300
-Sender: linux-omap-owner@vger.kernel.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Wed, 19 May 2010 10:17:01 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1005191016110.27473@utopia.booyaka.com>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<87aas2azc5.fsf@deeprootsystems.com>
+	<20100514231510.GG16989@thunk.org> <201005152152.15996.rjw@sisk.pl>
+	<alpine.DEB.2.00.1005171932540.27473@utopia.booyaka.com>
+	<20100518015519.GA6500@srcf.ucam.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20100518015519.GA6500@srcf.ucam.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-This commit will enable usage of tsl2563 ambient light sensor on Nokia N900.
+Hi Matthew,
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+On Tue, 18 May 2010, Matthew Garrett wrote:
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 966f5f8..82d5ac7 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -23,6 +23,7 @@
- #include <linux/gpio.h>
- #include <linux/gpio_keys.h>
- #include <linux/mmc/host.h>
-+#include <../drivers/staging/iio/light/tsl2563.h>
- 
- #include <plat/mcspi.h>
- #include <plat/mux.h>
-@@ -54,6 +55,10 @@ static struct omap2_mcspi_device_config wl1251_mcspi_config = {
- 	.single_channel	= 1,
- };
- 
-+static struct tsl2563_platform_data rx51_tsl2563_platform_data = {
-+	.cover_comp_gain = 16,
-+	};
-+
- static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 	[RX51_SPI_WL1251] = {
- 		.modalias		= "wl1251",
-@@ -686,6 +691,9 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_1[] = {
- 		.irq = INT_34XX_SYS_NIRQ,
- 		.platform_data = &rx51_twldata,
- 	},
-+	{	I2C_BOARD_INFO("tsl2563", 0x29),
-+		.platform_data = &rx51_tsl2563_platform_data,
-+	},
- };
- 
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
--- 
-1.6.3.3
+> On Mon, May 17, 2010 at 07:39:44PM -0600, Paul Walmsley wrote:
+> 
+> >       A. To prevent untrusted process timers from waking the system,
+> >          the processes can be run in a cgroup that calls
+> >          del_timer_sync() on all process timers upon receipt of some
+> >          trigger.  When the system returns from the system low-power
+> >          state and some trigger event happens, add_timer() can be
+> >          called to add all the cgroup's timers back.
+> 
+> This doesn't work, for the reasons previously discussed.
 
+Could you please elaborate, or provide a link to an E-mail in the archives 
+that would explain why?
+
+thanks,
+
+- Paul
