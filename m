@@ -1,42 +1,34 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [alsa-devel] [PATCH 3/4] ASoC: mcbsp - add machine threshold
- callback
-Date: Wed, 19 May 2010 10:37:12 +0100
-Message-ID: <1274261832.3240.34.camel@odin>
-References: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
-	 <1274213594-26554-4-git-send-email-lrg@slimlogic.co.uk>
-	 <2256F256009DAA4CBE661E9F41EAC84B9145EC6A@dlee01.ent.ti.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH] scheduler: Extract cgroups_cpuaccount code from
+ sched.c into own file
+Date: Wed, 19 May 2010 11:37:36 +0200
+Message-ID: <1274261856.5605.10439.camel@twins>
+References: <1274232620-23003-1-git-send-email-mike@android.com>
+	 <1274232620-23003-4-git-send-email-mike@android.com>
+	 <201005191130.42851.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:34033 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753749Ab0ESJhT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 05:37:19 -0400
-Received: by wwb22 with SMTP id 22so425998wwb.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 02:37:17 -0700 (PDT)
-In-Reply-To: <2256F256009DAA4CBE661E9F41EAC84B9145EC6A@dlee01.ent.ti.com>
+Received: from casper.infradead.org ([85.118.1.10]:57686 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751885Ab0ESJiO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 05:38:14 -0400
+In-Reply-To: <201005191130.42851.trenn@suse.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Candelaria Villarreal, Jorge" <jorge.candelaria@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Mike Chan <mike@android.com>, khilman@deeprootsystems.com, menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mingo@elte.hu, lizf@cn.fujitsu.com, containers@lists.linux-foundation.org
 
-On Tue, 2010-05-18 at 15:56 -0500, Candelaria Villarreal, Jorge wrote:
-> > 
-> > +int omap_bcbsp_set_threshold_func(struct snd_soc_dai *cpu_dai,
-> > +             void (*mach_set_threshold)(struct
-> > snd_pcm_substream *substream))
+On Wed, 2010-05-19 at 11:30 +0200, Thomas Renninger wrote:
 > 
-> I think you meant omap_mcbsp_set_threshold_func here. 
+> This is a cleanup against current linux-2.6 Linus tree.
+>     
+> Having CONFIG_CGROUP_CPUACCT code in kernel/sched.c looks wrong.
+> Move this out to kernel/cgroup_cpuaccount.c
+>     
+> Test compiled with and without CONFIG_CGROUP_CPUACCT set on x86_64.
 
-I did indeed !
+Sure, works for me, less code to look at :-)
 
-Thanks
-
-Liam
--- 
-Freelance Developer, SlimLogic Ltd
-ASoC and Voltage Regulator Maintainer.
-http://www.slimlogic.co.uk
 
