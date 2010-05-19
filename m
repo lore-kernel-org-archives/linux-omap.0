@@ -1,62 +1,120 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Wed, 19 May 2010 09:59:34 +0300
-Message-ID: <20100519065934.GH12879@nokia.com>
-References: <1274115885.4418.59.camel@mulgrave.site>
- <20100517174647.GA11512@gandalf>
- <1274119179.4418.68.camel@mulgrave.site>
- <20100517181252.GA14260@gandalf>
- <1274124267.4418.149.camel@mulgrave.site>
- <20100517193840.GB14047@gandalf>
- <20100517193952.GC14047@gandalf>
- <1274125775.4418.182.camel@mulgrave.site>
- <20100518064022.GA6522@nokia.com>
- <1274191188.10304.5.camel@mulgrave.site>
-Reply-To: felipe.balbi@nokia.com
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH 01/11] OMAP: GPIO: Modify init() in preparation for
+ platform device implementation
+Date: Wed, 19 May 2010 12:53:33 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5666364@dbde02.ent.ti.com>
+References: <1274194260-16401-1-git-send-email-charu@ti.com>
+ <1274194260-16401-2-git-send-email-charu@ti.com>
+ <20100518234100.GU5818@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1274191188.10304.5.camel@mulgrave.site>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext James Bottomley <James.Bottomley@suse.de>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "me@felipebalbi.com" <me@felipebalbi.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:34981 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753650Ab0ESHXm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 03:23:42 -0400
+In-Reply-To: <20100518234100.GU5818@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-On Tue, May 18, 2010 at 03:59:48PM +0200, ext James Bottomley wrote:
->On Tue, 2010-05-18 at 09:40 +0300, Felipe Balbi wrote:
->> On Mon, May 17, 2010 at 09:49:35PM +0200, ext James Bottomley wrote:
->> >Right, because Firmware writers are from the rugged unresponsive uplands
->> >of planet
->> >ignore-user-complaints-and-eat-them-for-breakfast-if-they-file-bugs and
->> >Software writers are from the emollient responsive groves of planet
->> >harmony.  Obviously what would work for one wouldn't work for the other.
->> >
->> >As a software writer, I fully buy into that world view.  The trouble is
->> >that when I go to dinner with hardware people, they seem to be awfully
->> >nice chaps ... almost exactly like me, in fact ...
->>
->> what does this add to suspend_blockers discussion ?
->
->Sorry I was evidently being too subtle.
->
->The point is that if, as you acknowledge, that you can't train firmware
->engineers to be responsive, there's no reason to think you can train
->software engineers in the same quality ... they're very similar people.
 
-I wouldn't say it's up to the engineer himself, it's more related to how 
-the company that person works for deal with such things.
 
->The corollary is that real world systems have to operate in the face of
->misbehaving hardware *and* software.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Wednesday, May 19, 2010 5:11 AM
+> To: Varadarajan, Charulatha
+> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com;
+> khilman@deeprootsystems.com
+> Subject: Re: [PATCH 01/11] OMAP: GPIO: Modify init() in preparation for platform
+> device implementation
+> 
+> * Charulatha V <charu@ti.com> [100518 07:44]:
+> > This is in prepartion for implementing GPIO as a platform device.
+> > gpio bank's base addresses are moved from gpio.c to plat/gpio.h.
+> >
+> > This patch also modifies omap_gpio_init() to make use of
+> > omap_gpio_chip_init() and omap_gpio_mod_init(). omap_gpio_mod_init() does
+> > the module init by clearing the status register and initializing the
+> > GPIO control register. omap_gpio_chip_init() initializes the chip request,
+> > free, get, set and other function pointers and sets the gpio irq handler.
+> 
+> <snip>
+> 
+> > diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-
+> omap/include/plat/gpio.h
+> > index de7c547..a06acb6 100644
+> > --- a/arch/arm/plat-omap/include/plat/gpio.h
+> > +++ b/arch/arm/plat-omap/include/plat/gpio.h
+> > @@ -29,7 +29,8 @@
+> >  #include <linux/io.h>
+> >  #include <mach/irqs.h>
+> >
+> > -#define OMAP1_MPUIO_BASE			0xfffb5000
+> > +#define OMAP1_MPUIO_BASE		0xfffb5000
+> > +#define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
+> >
+> >  #if (defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850))
+> >
+> > @@ -62,8 +63,73 @@
+> >  #define OMAP_MPUIO_LATCH		0x34
+> >  #endif
+> >
+> > +/*
+> > + * OMAP1510 GPIO base addresses
+> > + */
+> > +#define OMAP1510_GPIO_BASE		0xfffce000
+> > +#define OMAP1510_IH_GPIO_BASE		64
+> > +
+> > +/*
+> > + * OMAP1610 GPIO base addresses
+> > + */
+> > +#define OMAP1610_GPIO1_BASE		0xfffbe400
+> > +#define OMAP1610_GPIO2_BASE		0xfffbec00
+> > +#define OMAP1610_GPIO3_BASE		0xfffbb400
+> > +#define OMAP1610_GPIO4_BASE		0xfffbbc00
+> > +
+> > +/*
+> > + * OMAP7XX GPIO base addresses
+> > + */
+> > +#define OMAP7XX_GPIO1_BASE		0xfffbc000
+> > +#define OMAP7XX_GPIO2_BASE		0xfffbc800
+> > +#define OMAP7XX_GPIO3_BASE		0xfffbd000
+> > +#define OMAP7XX_GPIO4_BASE		0xfffbd800
+> > +#define OMAP7XX_GPIO5_BASE		0xfffbe000
+> > +#define OMAP7XX_GPIO6_BASE		0xfffbe800
+> 
+> Please move these into the mach-omap1/gpio1xxx.c instead,
+> they should not be needed anywhere else. We don't want
+> to have the GPIO registers available in the common headers
+> as otherwise we'll get tons of drivers that suddenly
+> start tinkering with these registers directly..
+> 
+> > +/*
+> > + * omap24xx GPIO base addresses
+> > + */
+> > +#define OMAP242X_GPIO1_BASE		0x48018000
+> > +#define OMAP242X_GPIO2_BASE		0x4801a000
+> > +#define OMAP242X_GPIO3_BASE		0x4801c000
+> > +#define OMAP242X_GPIO4_BASE		0x4801e000
+> > +
+> > +#define OMAP243X_GPIO1_BASE		0x4900C000
+> > +#define OMAP243X_GPIO2_BASE		0x4900E000
+> > +#define OMAP243X_GPIO3_BASE		0x49010000
+> > +#define OMAP243X_GPIO4_BASE		0x49012000
+> > +#define OMAP243X_GPIO5_BASE		0x480B6000
+> 
+> These should go into mach-omap2/gpioxxxx.c. The same
+> for the others.
 
-I still think the kernel shouldn't deal with broken applications and we 
-shouldn't try to fix them in kernel space. We can, of course, try to 
-find them and have all sorts of bells and whistles shouting 'process 
-%s is preventing CPU from sleeping for %llu nanoseconds' or something 
-like that.
+They are used in omap_hwmod_xxxx_data.c files. That is why they are
+moved to plat-omap/gpio.h files. 
+1. Instead of having them in common headers, I can move them to mach-omapx/gpio.h. 2. Else, hard code these addresses directly in hwmod data structures and avoid moving these definitions to header files.
 
--- 
-balbi
-
-DefectiveByDesign.org
+> 
+> Regards,
+> 
+> Tony
