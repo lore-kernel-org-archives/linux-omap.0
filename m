@@ -1,73 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
-Date: Wed, 19 May 2010 11:13:49 -0700
-Message-ID: <20100519181348.GE5818@atomide.com>
-References: <AANLkTim5SxEb64QbBQgBhufhgpQ33MNFBhuHixfUeVKp@mail.gmail.com>
- <20100518.163145.232774311.Hiroshi.DOYU@nokia.com>
- <AANLkTik_FL2keLD9mdBcg8Rm9n8uYDElg1NdyeT2yy6B@mail.gmail.com>
- <20100518.225835.116348725.Hiroshi.DOYU@nokia.com>
- <AANLkTinpqitfuw3vuDhqXaQH6uHal1nbonVaUg1a2ewt@mail.gmail.com>
+Subject: Re: [PATCH v3 2/3] omap3 nand: cleanup virtual address usages
+Date: Wed, 19 May 2010 11:19:12 -0700
+Message-ID: <20100519181912.GF5818@atomide.com>
+References: <s-ghorai@ti.com>
+ <1274181389-7488-1-git-send-email-s-ghorai@ti.com>
+ <1274181389-7488-2-git-send-email-s-ghorai@ti.com>
+ <1274181389-7488-3-git-send-email-s-ghorai@ti.com>
+ <AANLkTinEaP9cN5A24K9Zwd4L9Fq4pzxQqqY44r7NSl4-@mail.gmail.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030D991D43@dbde02.ent.ti.com>
+ <AANLkTikh1c3tgtO5TvOnNzJKXz7oTnna1WfLiWU67C_5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64259 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238Ab0ESSOA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 14:14:00 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49285 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753929Ab0ESSTV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 14:19:21 -0400
 Content-Disposition: inline
-In-Reply-To: <AANLkTinpqitfuw3vuDhqXaQH6uHal1nbonVaUg1a2ewt@mail.gmail.com>
+In-Reply-To: <AANLkTikh1c3tgtO5TvOnNzJKXz7oTnna1WfLiWU67C_5@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "sakoman@gmail.com" <sakoman@gmail.com>, "mike@compulab.co.il" <mike@compulab.co.il>, "Artem.Bityutskiy@nokia.com" <Artem.Bityutskiy@nokia.com>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [100519 02:58]:
-> On Tue, May 18, 2010 at 10:58 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
-> > From: ext Felipe Contreras <felipe.contreras@gmail.com>
-> > Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
-> > Date: Tue, 18 May 2010 18:57:55 +0200
-> >
-> >> On Tue, May 18, 2010 at 4:31 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
-> >>> From: ext Felipe Contreras <felipe.contreras@gmail.com>
-> >>>> I'm not familiar with this kind of module loading, but certainly not
-> >>>> all systems have udev.
-> >>>>
-> >>>> I realized the problem because I have a bare-bones system in my
-> >>>> beagleboard where I had to manually load mailbox_mach.
-> >>>
-> >>> With udev or something equivalent, it should work fine.
+* Vimal Singh <vimal.newwork@gmail.com> [100519 11:02]:
+> On Wed, May 19, 2010 at 10:54 PM, Ghorai, Sukumar <s-ghorai@ti.com> w=
+rote:
+> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0/* take care of subpage reads */
+> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0for (; len % 4 !=3D 0; ) {
+> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*buf++ =3D=
+ __raw_readb(info->nand.IO_ADDR_R);
+> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0len--;
+> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> >> > - =C2=A0 =C2=A0 =C2=A0 p =3D (u32 *) buf;
 > >>
-> >> But still, you are relying on udev. I don't think we should, and I
-> >> don't think there's any need.
-> >
-> > Some expert may give some comment here.....
-> 
-> Russell, Tony: should mailbox_mach, a module that checks for logical
-> devices be always built-in?
-> 
-> I think that's the easiest... in my patches I moved the
-> architecture-specific code from mach-omapX/devices.c to
-> mach-omapX/mailbox.c, so both the logical devices and real platform
-> devices are in the same code, and can be built-in.
-> 
-> This way, there's no need to rely on services like udev to load
-> mailbox, then mailbox_mach, then bridgedriver. After all, all
-> mailbox_mach is doing is calling functions in mailbox to register the
-> logical devices.
-> 
-> Judging from:
-> http://article.gmane.org/gmane.linux.ports.arm.kernel/58555
-> 
-> The answer is yes.
+> >> Above code had an issue, which was fixed by this commit:
+> >> http://git.infradead.org/mtd-
+> >> 2.6.git/commitdiff/c3341d0ceb4de1680572024f50233403c6a8b10d
+> >>
+> >> I would suggest you to prepare your patch on MTD tree.
+> > [Ghorai] Patches started posting on lo. And lets continue the same.
+>=20
+> Not sure about this. Its your/Tony's call.
 
-Maybe try using the tested good old criteria: What works the best
-for "standard Linux behaviour" out of the box? :)
+I'd assume that fix is on it's way to the mainline kernel,
+looks like a trivial rebase after the merge window is over.
 
-Anything that registers platform devices should be built in.
-Also anything that's needed to boot the device into a sane operating
-mode should be built in. For example, the DSP should be powered
-down (or idled on some earlier omaps) even if no bridge is being used.
+Anyways, this will not make it this merge window, we're
+out of time.
 
-Cheers,
+Regards,
 
-Tony
+Tony=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
