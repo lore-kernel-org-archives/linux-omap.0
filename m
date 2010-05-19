@@ -1,105 +1,91 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 1/4] fbdev: add a MIPI DSI header
-Date: Wed, 19 May 2010 10:49:10 +0300
-Message-ID: <1274255350.2307.159.camel@tubuntu.research.nokia.com>
-References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
-	 <Pine.LNX.4.64.1005071102440.4777@axis700.grange>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: RE: [PATCH 10/11] OMAP: GPIO: Implement GPIO as a platform device
+Date: Wed, 19 May 2010 09:50:52 +0200
+Message-ID: <74583B8642AB8841B30447520659FCA9EC423083@dnce01.ent.ti.com>
+References: <1274194260-16401-1-git-send-email-charu@ti.com>
+ <1274194260-16401-2-git-send-email-charu@ti.com>
+ <1274194260-16401-3-git-send-email-charu@ti.com>
+ <1274194260-16401-4-git-send-email-charu@ti.com>
+ <1274194260-16401-5-git-send-email-charu@ti.com>
+ <1274194260-16401-6-git-send-email-charu@ti.com>
+ <1274194260-16401-7-git-send-email-charu@ti.com>
+ <1274194260-16401-8-git-send-email-charu@ti.com>
+ <1274194260-16401-9-git-send-email-charu@ti.com>
+ <1274194260-16401-10-git-send-email-charu@ti.com>
+ <1274194260-16401-11-git-send-email-charu@ti.com> <4BF2CD67.3090208@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C5666252@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1005071102440.4777@axis700.grange>
-Sender: linux-sh-owner@vger.kernel.org
-To: ext Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45627 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752475Ab0ESHu7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 03:50:59 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5666252@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Varadarajan, Charulatha" <charu@ti.com>, 'Paul Walmsley' <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Charu
 
-On Fri, 2010-05-07 at 11:07 +0200, ext Guennadi Liakhovetski wrote:
-> This header adds defines for MIPI DSI and DCS commands and data formats. See
-> http://www.mipi.org/ for details.
+>From: Varadarajan, Charulatha
+>
+>> From: Cousson, Benoit
+>> Sent: Tuesday, May 18, 2010 10:55 PM
+>>
+>> Hi Charu,
+>>
+>> On 5/18/2010 4:50 PM, Charulatha V wrote:
+>>
+>> [snip]
+>>
+>> > diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-
+>> omap2/clock2420_data.c
+>> > index d932b14..a693403 100644
+>> > --- a/arch/arm/mach-omap2/clock2420_data.c
+>> > +++ b/arch/arm/mach-omap2/clock2420_data.c
+>> > @@ -1802,8 +1802,14 @@ static struct omap_clk omap2420_clks[] = {
+>> >          CLK(NULL,       "uart2_fck",&uart2_fck,     CK_242X),
+>> >          CLK(NULL,       "uart3_ick",&uart3_ick,     CK_242X),
+>> >          CLK(NULL,       "uart3_fck",&uart3_fck,     CK_242X),
+>> > -       CLK(NULL,       "gpios_ick",&gpios_ick,     CK_242X),
+>> > -       CLK(NULL,       "gpios_fck",&gpios_fck,     CK_242X),
+>> > +       CLK("omap-gpio.0",      "ick",&gpios_ick,     CK_242X),
+>> > +       CLK("omap-gpio.1",      "ick",&gpios_ick,     CK_242X),
+>> > +       CLK("omap-gpio.2",      "ick",&gpios_ick,     CK_242X),
+>> > +       CLK("omap-gpio.3",      "ick",&gpios_ick,     CK_242X),
+>> > +       CLK("omap-gpio.0",      "fck",&gpios_fck,     CK_242X),
+>> > +       CLK("omap-gpio.1",      "fck",&gpios_fck,     CK_242X),
+>> > +       CLK("omap-gpio.2",      "fck",&gpios_fck,     CK_242X),
+>> > +       CLK("omap-gpio.3",      "fck",&gpios_fck,     CK_242X),
+>>
+>> Are you sure that this is still needed? In theory Paul removed the
+>> dependency a couple of months ago.
+>> HWMOD does not need that anymore at least, it is relying on the clock
+>> name only.
+>
+>You are right. These are not required if hwmod is used. But
+>here we use pm_runtime APIs which needs clk_get/ clk_enable in
+>case of CONFIG_PM_RUNTIME is not defined.
+>Also in OMAP3&4, for dbck we need clk_get/clk_enable to be
+>used as opt_clk is
+>taken care by the driver. Hence the above changes are required.
 
-Did you notice that I have implemented MIPI DSI command mode support for
-OMAP processors? It's located in drivers/video/omap2/dss/dsi.c and one
-DSI panel driver is located in drivers/video/omap2/displays/panel-taal.c
+That still looks wrong to me. We cannot keep exposing manual clock management method in case runtime_pm is not used.
+It makes the whole hwmod isolation stuff a little bit useless, it forces us to maintain some dummy clocks node...
+In that case you should use the omap_device to enable the device.
+Dbck are listed as opt_clock in the hwmod struct and thus can be accesses.
 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  include/video/mipi_dsi.h |   99 ++++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 99 insertions(+), 0 deletions(-)
->  create mode 100644 include/video/mipi_dsi.h
-> 
-> diff --git a/include/video/mipi_dsi.h b/include/video/mipi_dsi.h
-> new file mode 100644
-> index 0000000..5d3a6d6
-> --- /dev/null
-> +++ b/include/video/mipi_dsi.h
-> @@ -0,0 +1,99 @@
-> +/*
-> + * Mobile Industry Processor Interface (MIPI(R)) defines
+Paul, Kevin,
+Any thoughts on that?
 
-The file name is mipi_dsi.h, the comment talks about MIPI, and the file
-contains defines for MIPI DSI and MIPI DCS. If you want the file to
-contain defines about all MIPI specs, I think the file name should be
-just mipi.h.
+Benoit
 
-> + *
-> + * Copyright (C) 2010 Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> + * Copyright (C) 2006 Nokia Corporation
-> + * Author: Imre Deak <imre.deak@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +#ifndef MIPI_DSI_H
-> +#define MIPI_DSI_H
-> +
-> +#include <linux/types.h>
-> +
-> +enum mipi_dsi_cmd {
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
 
-I think these are DSI datatypes, not commands.
-
-> +	MIPI_DSI_DCS_SHORT_WRITE			= 5,
-
-Please use the same number format for all enums. So this should be 0x05.
-
-> +	MIPI_DSI_DCS_SHORT_WRITE_PARAM			= 0x15,
-> +	MIPI_DSI_COLOR_MODE_OFF				= 2,
-> +	MIPI_DSI_COLOR_MODE_ON				= 0x12,
-> +	MIPI_DSI_SHUTDOWN_PERIPHERAL			= 0x22,
-> +	MIPI_DSI_TURN_ON_PERIPHERAL			= 0x32,
-> +	MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM		= 3,
-> +	MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM		= 0x13,
-> +	MIPI_DSI_GENERIC_SHORT_WRITE_2_PARAM		= 0x23,
-> +	MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM		= 4,
-> +	MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM		= 0x14,
-> +	MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM		= 0x24,
-> +	MIPI_DSI_DCS_LONG_WRITE				= 0x39,
-> +	MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE		= 0x37,
-> +	MIPI_DSI_NULL_PACKET				= 9,
-> +	MIPI_DSI_BLANKING_PACKET			= 0x19,
-> +	MIPI_DSI_GENERIC_LONG_WRITE			= 0x29,
-> +	MIPI_DSI_LOOSELY_PACKED_PIXEL_STREAM_YCBCR20	= 0xc,
-> +	MIPI_DSI_PACKED_PIXEL_STREAM_YCBCR24		= 0x1c,
-> +	MIPI_DSI_PACKED_PIXEL_STREAM_YCBCR16		= 0x2c,
-> +	MIPI_DSI_PACKED_PIXEL_STREAM_30			= 0xd,
-> +	MIPI_DSI_PACKED_PIXEL_STREAM_36			= 0x1d,
-> +	MIPI_DSI_PACKED_PIXEL_STREAM_YCBCR12		= 0x3d,
-> +	MIPI_DSI_PACKED_PIXEL_STREAM_16			= 0xe,
-> +	MIPI_DSI_PACKED_PIXEL_STREAM_18			= 0x1e,
-> +	MIPI_DSI_PIXEL_STREAM_3BYTE_18			= 0x2e,
-> +	MIPI_DSI_PACKED_PIXEL_STREAM_24			= 0x3e,
-> +};
-> +
-> +enum mipi_dcs_cmd {
-
-While the MIPI specs define a certain set of commands, the real panels
-usually implement also their own custom commands. That's why I don't
-think enum is a good choice here.
-
- Tomi
 
 
