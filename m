@@ -1,123 +1,103 @@
 From: Mike Chan <mike@android.com>
-Subject: [PATCH 2/4] omap: cpu: Implement callbacks for cpu frequency tracking in cpuacct
-Date: Tue, 18 May 2010 18:30:18 -0700
-Message-ID: <1274232620-23003-3-git-send-email-mike@android.com>
+Subject: [PATCH 3/4] scheduler: cpuacct: Enable platform callbacks for cpuacct power tracking
+Date: Tue, 18 May 2010 18:30:19 -0700
+Message-ID: <1274232620-23003-4-git-send-email-mike@android.com>
 References: <1274232620-23003-1-git-send-email-mike@android.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([74.125.121.35]:10986 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756068Ab0ESBag (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 21:30:36 -0400
 In-Reply-To: <1274232620-23003-1-git-send-email-mike@android.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: khilman@deeprootsystems.com, menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mike Chan <mike@android.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mike Chan <mike@android.com>
 
-Implement OMAP platform specific scheduler callbacks for tracking
-cpu frequencies per cpuacct cgroup.
+Platform must register cpu power function that return power in
+milliWatt seconds.
 
 Signed-off-by: Mike Chan <mike@android.com>
 ---
- arch/arm/plat-omap/cpu-omap.c |   66 ++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 65 insertions(+), 1 deletions(-)
+ Documentation/cgroups/cpuacct.txt |    3 +++
+ include/linux/cpuacct.h           |    4 +++-
+ kernel/sched.c                    |   24 ++++++++++++++++++++++--
+ 3 files changed, 28 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index 6d3d333..d27234d 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -21,6 +21,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/cpuacct.h>
+diff --git a/Documentation/cgroups/cpuacct.txt b/Documentation/cgroups/cpuacct.txt
+index 600d2d0..84e471b 100644
+--- a/Documentation/cgroups/cpuacct.txt
++++ b/Documentation/cgroups/cpuacct.txt
+@@ -44,6 +44,9 @@ cpuacct.cpufreq file gives CPU time (in nanoseconds) spent at each CPU
+ frequency. Platform hooks must be implemented inorder to properly track
+ time at each CPU frequency.
  
- #include <mach/hardware.h>
- #include <plat/clock.h>
-@@ -38,6 +39,10 @@ static struct cpufreq_frequency_table *freq_table;
- 
- static struct clk *mpu_clk;
- 
-+#ifdef CONFIG_CGROUP_CPUACCT
-+static int freq_index;
-+#endif
++cpuacct.power file gives CPU power consumed (in milliWatt seconds). Platform
++must provide and implement power callback functions.
 +
- /* TODO: Add support for SDRAM timing changes */
+ cpuacct controller uses percpu_counter interface to collect user and
+ system times. This has two side effects:
  
- int omap_verify_speed(struct cpufreq_policy *policy)
-@@ -96,6 +101,11 @@ static int omap_target(struct cpufreq_policy *policy,
- 	       freqs.old, freqs.new);
- #endif
- 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
-+#ifdef CONFIG_CGROUP_CPUACCT
-+	/* Update freq_index before cpufreq transition post notification. */
-+	cpufreq_frequency_table_target(policy, freq_table, freqs.new,
-+			CPUFREQ_RELATION_L, &freq_index);
-+#endif
- 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+diff --git a/include/linux/cpuacct.h b/include/linux/cpuacct.h
+index 9ff479e..effe842 100644
+--- a/include/linux/cpuacct.h
++++ b/include/linux/cpuacct.h
+@@ -31,7 +31,9 @@ struct cpuacct_cpufreq_calls {
+ 	 */
+ 	void (*init) (void **cpuacct_data);
+ 	void (*charge) (void *cpuacct_data,  u64 cputime, unsigned int cpu);
+-	void (*show) (void *cpuacct_data, struct cgroup_map_cb *cb);
++	void (*cpufreq_show) (void *cpuacct_data, struct cgroup_map_cb *cb);
++	/* Returns power consumed in milliWatt seconds */
++	u64 (*power_usage) (void *cpuacct_data);
+ };
  
- 	return ret;
-@@ -125,7 +135,14 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
- 		policy->cpuinfo.max_freq = clk_round_rate(mpu_clk,
- 							VERY_HI_RATE) / 1000;
- 	}
--
-+#ifdef CONFIG_CGROUP_CPUACCT
-+	/*
-+	 * Update freq_index, since we are using the extact frequency
-+	 * we can use any relation.
-+	 */
-+	cpufreq_frequency_table_target(policy, freq_table, policy->cur,
-+			CPUFREQ_RELATION_L, &freq_index);
-+#endif
- 	/* FIXME: what's the actual transition time? */
- 	policy->cpuinfo.transition_latency = 300 * 1000;
+ int cpuacct_register_cpufreq(struct cpuacct_cpufreq_calls *fn);
+diff --git a/kernel/sched.c b/kernel/sched.c
+index 6b6c45a..d55d8af 100644
+--- a/kernel/sched.c
++++ b/kernel/sched.c
+@@ -8838,12 +8838,28 @@ static int cpuacct_cpufreq_show(struct cgroup *cgrp, struct cftype *cft,
+ 		struct cgroup_map_cb *cb)
+ {
+ 	struct cpuacct *ca = cgroup_ca(cgrp);
+-	if (ca->cpufreq_fn && ca->cpufreq_fn->show)
+-		ca->cpufreq_fn->show(ca->cpuacct_data, cb);
++	if (ca->cpufreq_fn && ca->cpufreq_fn->cpufreq_show)
++		ca->cpufreq_fn->cpufreq_show(ca->cpuacct_data, cb);
  
-@@ -169,3 +186,50 @@ arch_initcall(omap_cpufreq_init);
-  * cpufreq_frequency_table_put_attr()
-  */
+ 	return 0;
+ }
  
-+#ifdef CONFIG_CGROUP_CPUACCT
-+/*
-+ * Omap platform calls for cpuacct frequency accounting.
-+ */
-+
-+static void omap_cpuacct_freq_init(void **cpuacct_data)
-+{
-+	*cpuacct_data = kzalloc(sizeof(u64) * MAX_VDD1_OPP,
-+			GFP_KERNEL);
-+}
-+
-+/* Called with rcu_read_lock() held. */
-+static void omap_cpuacct_freq_charge(void *cpuacct_data, u64 cputime, unsigned int cpu)
-+{
-+	u64 *cpuacct_freq = cpuacct_data;
-+	if (freq_index < 0)
-+		return;
-+
-+	cpuacct_freq[freq_index] += cputime;
-+}
-+
-+static void omap_cpuacct_freq_show(void *cpuacct_data, struct cgroup_map_cb *cb)
++/* return total cpu power usage (milliWatt second) of a group */
++static u64 cpuacct_powerusage_read(struct cgroup *cgrp, struct cftype *cft)
 +{
 +	int i;
-+	char buf[32];
-+	u64 *cpuacct_freq = cpuacct_data;
-+	for (i = 0; freq_table[i].frequency != CPUFREQ_TABLE_END; i++) {
-+		snprintf(buf, sizeof(buf), "%u", freq_table[i].frequency);
-+		cb->fill(cb, buf, cpuacct_freq[i]);
-+	}
++	struct cpuacct *ca = cgroup_ca(cgrp);
++	u64 totalpower = 0;
++
++	if (ca->cpufreq_fn && ca->cpufreq_fn->power_usage)
++		for_each_present_cpu(i) {
++			totalpower += ca->cpufreq_fn->power_usage(
++					ca->cpuacct_data);
++		}
++
++	return totalpower;
 +}
 +
-+static struct cpuacct_cpufreq_calls omap_cpuacct_cpufreq = {
-+	.init = omap_cpuacct_freq_init,
-+	.charge = omap_cpuacct_freq_charge,
-+	.show = omap_cpuacct_freq_show,
-+};
-+
-+static int __init omap_cpuacct_init(void)
-+{
-+	freq_index = -1;
-+	cpuacct_register_cpufreq(&omap_cpuacct_cpufreq);
-+	return 0;
-+}
-+
-+early_initcall(omap_cpuacct_init);
-+#endif
+ static struct cftype files[] = {
+ 	{
+ 		.name = "usage",
+@@ -8862,6 +8878,10 @@ static struct cftype files[] = {
+ 		.name =  "cpufreq",
+ 		.read_map = cpuacct_cpufreq_show,
+ 	},
++	{
++		.name = "power",
++		.read_u64 = cpuacct_powerusage_read
++	},
+ };
+ 
+ static int cpuacct_populate(struct cgroup_subsys *ss, struct cgroup *cgrp)
 -- 
 1.7.0.1
+
