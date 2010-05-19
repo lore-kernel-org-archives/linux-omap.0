@@ -1,72 +1,98 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 18/22] OMAP4 powerdomain: Fix pwrsts flags for ALWAYS ON
-	domains
-Date: Tue, 18 May 2010 20:18:59 -0600
-Message-ID: <20100519021858.19716.11617.stgit@localhost.localdomain>
+Subject: [PATCH 02/22] OMAP: CM: Move MAX_MODULE_READY_TIME to cm.h
+Date: Tue, 18 May 2010 20:18:40 -0600
+Message-ID: <20100519021838.19716.52696.stgit@localhost.localdomain>
 References: <20100519021800.19716.8938.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39824 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:39773 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755593Ab0ESCVF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 22:21:05 -0400
+	with ESMTP id S1753032Ab0ESCU7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 22:20:59 -0400
 In-Reply-To: <20100519021800.19716.8938.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
 
-The pwrsts flag for ALWAYS ON domains like always_on_core_pwrdm
-and wkup_pwrdm is wrongly populated with the define for a
-powerdomain power state, instead of the allowable state
-bitfields.
-This causes a few api's to fail sensing invalid pwrst
-requested.
+The maximum timeout to wait for the PRCM to request that a module
+exit idle or reach functionnal state is common to OMAP2/3/4 SoCs,
+so, move it to the chip family-common cm.h include file.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Reduce the timeout from 20 ms to 2 ms.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/powerdomains44xx.h        |    4 ++--
- arch/arm/plat-omap/include/plat/powerdomain.h |    1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/cm.c     |    3 ---
+ arch/arm/mach-omap2/cm.h     |    9 +++++++++
+ arch/arm/mach-omap2/cm4xxx.c |   18 +-----------------
+ 3 files changed, 10 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomains44xx.h b/arch/arm/mach-omap2/powerdomains44xx.h
-index e002d42..ad5a265 100644
---- a/arch/arm/mach-omap2/powerdomains44xx.h
-+++ b/arch/arm/mach-omap2/powerdomains44xx.h
-@@ -130,7 +130,7 @@ static struct powerdomain wkup_44xx_pwrdm = {
- 	.name		  = "wkup_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_WKUP_MOD,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
--	.pwrsts		  = PWRDM_POWER_ON,
-+	.pwrsts		  = PWRSTS_ON,
- 	.banks		  = 1,
- 	.pwrsts_mem_ret	= {
- 		[0] = PWRDM_POWER_OFF,	/* wkup_bank */
-@@ -286,7 +286,7 @@ static struct powerdomain always_on_core_44xx_pwrdm = {
- 	.name		  = "always_on_core_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_ALWAYS_ON_MOD,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
--	.pwrsts		  = PWRDM_POWER_ON,
-+	.pwrsts		  = PWRSTS_ON,
+diff --git a/arch/arm/mach-omap2/cm.c b/arch/arm/mach-omap2/cm.c
+index 58e4a1c..2d83565 100644
+--- a/arch/arm/mach-omap2/cm.c
++++ b/arch/arm/mach-omap2/cm.c
+@@ -27,9 +27,6 @@
+ #include "cm-regbits-24xx.h"
+ #include "cm-regbits-34xx.h"
+ 
+-/* MAX_MODULE_READY_TIME: max milliseconds for module to leave idle */
+-#define MAX_MODULE_READY_TIME		20000
+-
+ static const u8 cm_idlest_offs[] = {
+ 	CM_IDLEST1, CM_IDLEST2, OMAP2430_CM_IDLEST3
  };
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+index b6ab183..bbc69df 100644
+--- a/arch/arm/mach-omap2/cm.h
++++ b/arch/arm/mach-omap2/cm.h
+@@ -144,4 +144,13 @@ static inline u32 cm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
+ #define OMAP24XX_CM_IDLEST_VAL		0
+ #define OMAP34XX_CM_IDLEST_VAL		1
  
- /* cefuse_44xx_pwrdm: Customer efuse controller power domain */
-diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
-index d82b2c0..e7cc7e6 100644
---- a/arch/arm/plat-omap/include/plat/powerdomain.h
-+++ b/arch/arm/plat-omap/include/plat/powerdomain.h
-@@ -31,6 +31,7 @@
- #define PWRDM_MAX_PWRSTS	4
++/*
++ * MAX_MODULE_READY_TIME: max duration in microseconds to wait for the
++ * PRCM to request that a module exit the inactive state in the case of
++ * OMAP2 & 3.
++ * In the case of OMAP4 this is the max duration in microseconds for the
++ * module to reach the functionnal state from an inactive state.
++ */
++#define MAX_MODULE_READY_TIME		2000
++
+ #endif
+diff --git a/arch/arm/mach-omap2/cm4xxx.c b/arch/arm/mach-omap2/cm4xxx.c
+index 4af76bb..af32a45 100644
+--- a/arch/arm/mach-omap2/cm4xxx.c
++++ b/arch/arm/mach-omap2/cm4xxx.c
+@@ -22,23 +22,7 @@
+ #include <asm/atomic.h>
  
- /* Powerdomain allowable state bitfields */
-+#define PWRSTS_ON		(1 << PWRDM_POWER_ON)
- #define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | \
- 				 (1 << PWRDM_POWER_ON))
+ #include "cm.h"
+-
+-/* XXX move this to cm.h */
+-/* MAX_MODULE_READY_TIME: max milliseconds for module to leave idle */
+-#define MAX_MODULE_READY_TIME			20000
+-
+-/*
+- * OMAP4_PRCM_CM_CLKCTRL_IDLEST_MASK: isolates the IDLEST field in the
+- * CM_CLKCTRL register.
+- */
+-#define OMAP4_PRCM_CM_CLKCTRL_IDLEST_MASK	(0x2 << 16)
+-
+-/*
+- * OMAP4 prcm_mod u32 fields contain packed data: the CM ID in bit 16 and
+- * the PRCM module offset address (from the CM module base) in bits 15-0.
+- */
+-#define OMAP4_PRCM_MOD_CM_ID_SHIFT		16
+-#define OMAP4_PRCM_MOD_OFFS_MASK		0xffff
++#include "cm-regbits-44xx.h"
  
+ /**
+  * omap4_cm_wait_idlest_ready - wait for a module to leave idle or standby
 
 
