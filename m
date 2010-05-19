@@ -1,53 +1,105 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@nokia.com>
-Subject: Re: [PATCH 1/4] fbdev: add a MIPI DSI header
-Date: Wed, 19 May 2010 18:39:50 +0300
-Message-ID: <20100519153950.GK30960@nokia.com>
-References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
- <Pine.LNX.4.64.1005071102440.4777@axis700.grange>
- <1274255350.2307.159.camel@tubuntu.research.nokia.com>
- <Pine.LNX.4.64.1005190955500.3099@axis700.grange>
- <1274257308.2307.168.camel@tubuntu.research.nokia.com>
- <20100519142732.GG30960@nokia.com>
- <20100519150057.GA16082@linux-sh.org>
+From: "kishore kadiyala" <kishore.kadiyala@ti.com>
+Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
+Date: Wed, 19 May 2010 21:14:49 +0530
+Message-ID: <05ec01caf76a$3a02da60$LocalHost@wipblrx0099945A>
+References: <22422.10.24.255.17.1273947606.squirrel@dbdmail.itg.ti.com> <20100518025026.GF5818@atomide.com> <20100519000912.GX5818@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100519150057.GA16082@linux-sh.org>
-Sender: linux-sh-owner@vger.kernel.org
-To: ext Paul Mundt <lethal@linux-sh.org>
-Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, ext Guennadi Liakhovetski <g.liakhovetski@gmx.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50816 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753278Ab0ESPpM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 May 2010 11:45:12 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk, paul@pwsan.com, santosh.shilimkar@ti.com
 
-On Wed, May 19, 2010 at 05:00:58PM +0200, ext Paul Mundt wrote:
-> On Wed, May 19, 2010 at 05:27:32PM +0300, Ville Syrj?l? wrote:
-> > On Wed, May 19, 2010 at 10:21:48AM +0200, Valkeinen Tomi (Nokia-D/H=
-elsinki) wrote:
-> > > I think a simple solution would be to just use defines, and have
-> > > functions that take the command as u8. That's what the OMAP DSI d=
-river
-> > > does. If you have better ideas, please share =3D).
-> >=20
-> > I find enums easier on the eye than defines. Less irrelevant junk o=
-n
-> > each line. There's no reason you can't pass enum values as u8. But =
-in
-> > that case giving the enum a name doesn't really make sense.
-> >=20
-> enums are cleaner for these cases, but you also have the case where t=
-he
-> enum type itself is variable size depending on the ABI being used. If
-> the type in question isn't being packed in to a user-visible data
-> structure then this will never matter, but it does help to be a bit
-> careful here regardless. Many people were bitten by this in the ARM
-> OABI -> EABI conversion, while other architectures generally managed =
-to
-> get it right from the onset.
 
-Yeah using the enum type in ABI is a bad idea since actual type is
-implementation defined. But if you don't give the enum an identifier
-there's no way to even accidentally use it as a type.
+----- Original Message ----- 
+From: "Tony Lindgren" <tony@atomide.com>
+To: "kishore kadiyala" <kishore.kadiyala@ti.com>
+Cc: <linux-mmc@vger.kernel.org>; <linux-omap@vger.kernel.org>; 
+<madhu.cr@ti.com>; <jarkko.lavinen@nokia.com>; <rmk@arm.linux.org.uk>; 
+<paul@pwsan.com>; <santosh.shilimkar@ti.com>
+Sent: Wednesday, May 19, 2010 5:39 AM
+Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
 
---=20
-Ville Syrj=E4l=E4
+
+>* Tony Lindgren <tony@atomide.com> [100517 19:45]:
+>> Hi,
+>>
+>> * kishore kadiyala <kishore.kadiyala@ti.com> [100515 11:15]:
+>> > Adding MMC1 and MMC2 controllers support for OMAP4
+>> >
+>> > V4:
+>> > - Rebased to "for_next" branch[LO].
+>> > - The first 3 patches [1,2,3] in the series are Minimal set of changes
+>> >   with which MMC1/MMC2 works [No card detect for MMC1]on OMAP4 but with
+>> >   dependencies on following patches [Not in "for_next" branch]
+>> >   [1] I2c patches
+>> >       a)https://patchwork.kernel.org/patch/98937/
+>> >       b)https://patchwork.kernel.org/patch/98936/
+>> >       c)https://patchwork.kernel.org/patch/98939/
+>> >       d)https://patchwork.kernel.org/patch/79735/
+>>
+>> I've taken the updated versions of the I2C patches,
+>> and fixed them not to break omap3_defconfig.
+>>
+>> >   [2] Regulator pacth
+>> >       a)https://patchwork.kernel.org/patch/94054/
+>> >   [3] hsmmc-clk patch
+>> >       a)https://patchwork.kernel.org/patch/96821/
+>>
+>> I've picked up these too.
+>>
+>> > - The patches 4,5 adds card detect feature for MMC1
+>>
+>> I only took 1 - 3 out of the MMC patches, it's too
+>> late to start changing the other stuff.
+>>
+>> I've reposted the whole series for a quick review.
+>
+> FYI, the MMC on omap4 is not quite there yet at least
+> on my board. It mostly detects the card with
+> omap_4430sdp_defconfig, but fails always unless
+> CONFIG_RTC_DRV_TWL92330=y.. This is without CONFIG_SMP
+> as it oopses.
+
+Hope you are referring CONFIG_RTC_DRV_TWL92330 to omap3_defconfig
+and not to omap_4430sdp_defconfig.
+
+With omap_4430sdp_defconfig , I've tested on 4430SDP and Blaze and always
+Cards on MMC1 & MMC2 gets detected once bootedup.
+
+>
+> Also MMC is never detected with omap3_defconfig.
+
+With omap3_defconfig  +  disabling "CONFIG_OMAP_RESET_CLOCKS",
+I've tested on 4430SDP and Blaze and always Cards on MMC1 & MMC2
+gets detected on bootup.
+
+>
+> Santosh & Kishore, maybe take a look at that, otherwise
+> it looks like we still don't have a very usable support
+> for omap4.
+>
+> I've piled all these patches into linux-omap master branch
+> for easy testing. Let me know if I missed some patch.
+
+Following is the commit ID :1674c0ceabfb7726246989874bb4da7bcb55ea89
+used on LO master branch for testing. All the patches were merged.
+
+Regards,
+Kishore
+
+>
+> Regards,
+>
+> Tony
+> 
+
