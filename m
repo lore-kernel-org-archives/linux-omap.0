@@ -1,54 +1,102 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 0/4] McBSP smart idle and DMA op mode updates for ASoC
-Date: Wed, 19 May 2010 17:50:05 +0300
-Message-ID: <20100519175005.0e702bdd.jhnikula@gmail.com>
-References: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
-	<20100519104209.GI4265@besouro.research.nokia.com>
-	<1274267231.3240.117.camel@odin>
-	<201005191527.35439.peter.ujfalusi@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] omap4: Fix multi-omap boot with reset un-used clocks
+Date: Wed, 19 May 2010 08:50:40 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1005190848360.27473@utopia.booyaka.com>
+References: <1274270345-28769-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:48967 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752967Ab0ESOuF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 10:50:05 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so10031eyd.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 07:50:04 -0700 (PDT)
-In-Reply-To: <201005191527.35439.peter.ujfalusi@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:34427 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751999Ab0ESOul (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 10:50:41 -0400
+In-Reply-To: <1274270345-28769-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: ext Liam Girdwood <lrg@slimlogic.co.uk>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, 19 May 2010 15:27:35 +0300
-Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+Santosh,
 
-> > The sysfs set interface implies userspace having knowledge of driver
-> > capabilities and configuration in order to safely toggle between the two
-> > DMA modes. Imo, the mcbsp client driver should be the only entity
-> > configuring it's DMA modes (in a safe manner) depending on the use case.
+a comment.
+
+On Wed, 19 May 2010, Santosh Shilimkar wrote:
+
+> As part of the "CONFIG_OMAP_RESET_CLOCKS" routine, all the clock
+> are cut which are not acquired/enabled during the boot.
 > 
-> Furthermore, if there is a need for 'Use Cases', than the machine driver can 
-> provide user control to switch between them.
-> The thing is that in most cases these are trivial, and mostly the same settings, 
-> but if you throw a codec like the tlv320dac33 into the mix, which has it's own 
-> FIFO, than things gets complicated.
-> The user (the real one, not the developer) has several settings scattered all 
-> around the place, and those has to be configured in harmony.
-> The only place is to do this, is in the machine driver, whihc than can build up 
-> 'scenarios', and configure the things in synchronized manner.
+> Because of this on OMAP4, memory controller clocks (emif) getting
+> disabled which prevents further boot
 > 
-Yes and I think only very few developers know what to do with those op
-mode and threshold sysfs controls so most probably they are unused.
-Then machine drivers setting them automatically/with some control could
-give us more testing base.
+> This patch uses "ENABLE_ON_INIT" flag on the emif clock nodes
+> and adds a check in the reset un-used clock routine to skip
+> such clock nodes. Will updated the auto-gen script for 44xx
+> accordingly
+> 
+> The real fix is to have driver for EMIF and do clock get/enable
+> part of it. The EMIF driver is planned to be done HWMOD way so
+> till that point to keep omap3_defconfig booting on OMAP4430,
+> this patch is necessary. Also the cpu_is_44xx() check is added 
+> to avoid any impact on the other OMAPs using "ENABLE_ON_INIT" flag
+> 
+> The flag usage was suggested by Paul Walmsley
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+> With this patch and Tony's below sram fix, omap3_defconfig
+> boots on OMAP4430 as it is. Tested with 2.6.34 maniline kernel
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27363.html
+> 
+>  arch/arm/mach-omap2/clock.c          |    4 ++++
+>  arch/arm/mach-omap2/clock44xx_data.c |    2 ++
+>  2 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index a6d0b34..67b531b 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -380,6 +380,10 @@ void omap2_clk_disable_unused(struct clk *clk)
+>  {
+>  	u32 regval32, v;
+>  
+> +	/* FIXME: Remove this when EMIF driver is ready */
+> +	if (cpu_is_omap44xx() && (clk->flags & ENABLE_ON_INIT))
+> +		return;
+> +
 
-But as those sysfs controls are there we must preserve them for a
-release cycle or two in case if someone is using them. At least Linus
-or Andrew may complain about removal of them.
+Why is this needed?  omap4xxx_clk_init() should call 	
+clk_enable_init_clocks() which should increase the usecount on all 
+ENABLE_ON_INIT clocks.  That should prevent omap2_clk_disable_unused() 
+from disabling the clock.
 
 
--- 
-Jarkko
+>  	v = (clk->flags & INVERT_ENABLE) ? (1 << clk->enable_bit) : 0;
+>  
+>  	regval32 = __raw_readl(clk->enable_reg);
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index a5c0c9c..a1b4cae 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -1369,6 +1369,7 @@ static struct clk emif1_ick = {
+>  	.ops		= &clkops_omap2_dflt,
+>  	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_1_CLKCTRL,
+>  	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+> +	.flags		= ENABLE_ON_INIT,
+>  	.clkdm_name	= "l3_emif_clkdm",
+>  	.parent		= &ddrphy_ck,
+>  	.recalc		= &followparent_recalc,
+> @@ -1379,6 +1380,7 @@ static struct clk emif2_ick = {
+>  	.ops		= &clkops_omap2_dflt,
+>  	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_2_CLKCTRL,
+>  	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+> +	.flags		= ENABLE_ON_INIT,
+>  	.clkdm_name	= "l3_emif_clkdm",
+>  	.parent		= &ddrphy_ck,
+>  	.recalc		= &followparent_recalc,
+> -- 
+> 1.6.0.4
+> 
+
+
+- Paul
