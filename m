@@ -1,84 +1,55 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
 Subject: Re: [PATCH 0/4] McBSP smart idle and DMA op mode updates for ASoC
-Date: Wed, 19 May 2010 13:52:27 +0300
-Message-ID: <20100519105227.GL4265@besouro.research.nokia.com>
+Date: Wed, 19 May 2010 12:07:11 +0100
+Message-ID: <1274267231.3240.117.camel@odin>
 References: <1274213594-26554-1-git-send-email-lrg@slimlogic.co.uk>
- <20100519081325.6e341075.jhnikula@gmail.com>
- <201005191131.58167.peter.ujfalusi@nokia.com>
-Reply-To: eduardo.valentin@nokia.com
+	 <20100519104209.GI4265@besouro.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:59472 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752457Ab0ESKq7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 06:46:59 -0400
-Content-Disposition: inline
-In-Reply-To: <201005191131.58167.peter.ujfalusi@nokia.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41810 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757029Ab0ESLHR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 07:07:17 -0400
+Received: by wyg36 with SMTP id 36so316863wyg.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 04:07:16 -0700 (PDT)
+In-Reply-To: <20100519104209.GI4265@besouro.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
-Cc: ext Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
+To: eduardo.valentin@nokia.com
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-On Wed, May 19, 2010 at 10:31:57AM +0200, Ujfalusi Peter (Nokia-D/Tampe=
-re) wrote:
-> On Wednesday 19 May 2010 08:13:25 ext Jarkko Nikula wrote:
-> > On Tue, 18 May 2010 21:13:10 +0100
-> >=20
-> > Liam Girdwood <lrg@slimlogic.co.uk> wrote:
-> > > I've also added a patch to remove the mcbsp DMA op mode sysfs set
-> > > functionality. I think DMA op mode is very specific to the mcbsp =
-client
-> > > driver _only_ and shouldn't really be changed by userspace. Pleas=
-e let
-> > > me know if you use this feature and I'll drop this patch.
-> >=20
-> > I've used to say that the DMA op mode is more like use-case not mac=
-hine
-> > specific but I'm not sure is my point valid onemore. I've used to t=
-hink
-> > that low-latency processing would need accurate DMA pointer (op
-> > mode =3D=3D element) while mp3 playback would need low power consum=
-ption
-> > (op mode =3D=3D threshold).
->=20
-> Yeah, it used to be so clear ;)
-> I see these:
-> element mode: if user want to have constant latency [1]
-> threshold mode: variable latency, but possibility to save power [2]
->=20
-> [1] The McBSP is kept full during playback (and empty during capture)
-> The DMA pointer moves word-by-word
->=20
-> [2] The McBSP FIFO fill rate changes (full, drain, refill, full, drai=
-n...)
-> The DMA pointer moves in bursts.
-> Between burst memories can relax, core, MPU also in theory.
-> Smart idle helps to conserve more power here
->=20
-> > Peter: what's the status today how well can we do low-latency
-> > processing with threshold mode? IRCC, with your FIFO delay query
-> > patches, can we estimate the DMA pointer position with enough accur=
-acy?
->=20
-> The DMA pointer is easy, and it was know before as well, but accordin=
-g to my=20
-> tests, the McBSP FIFO caused delay reporting is fairly accurate.
-> I'll ask my users, if they have done some additional tests.
+On Wed, 2010-05-19 at 13:42 +0300, Eduardo Valentin wrote:
+> On Tue, May 18, 2010 at 10:13:10PM +0200, Liam Girdwood wrote:
+> > This series expands the OMAP mcbsp driver to support changing it's DMA operating
+> > mode and smart idle mode from client drivers. It's primarily aimed at lowering
+> > the power consumption for OMAP ASoC drivers by providing methods to gate clocks
+> > on the mcbsp interface at runtime.
+> > 
+> > I've also added a patch to remove the mcbsp DMA op mode sysfs set functionality.
+> > I think DMA op mode is very specific to the mcbsp client driver _only_ and
+> > shouldn't really be changed by userspace. Please let me know if you use this
+> > feature and I'll drop this patch.
+> 
+> Yeah, I'm not sure if that would be strong enough argument though. Unfortunately,
+> this dma op mode also couples with the usage of mcbsp internal buffer. Which in the very
+> end will mean a compromise between delay vs. pm, as you are probably aware.
+> 
+> So, letting userspace to toggle this mode will also mean they can choose between pm friendly
+> (op mode with frame and so on) or short delay friendly (element mode).
+> 
+> Of course, this might not be the best way of choosing it though.
+> 
 
-OK. fair enough. What if you really want to avoid the delay at all?
+The sysfs set interface implies userspace having knowledge of driver
+capabilities and configuration in order to safely toggle between the two
+DMA modes. Imo, the mcbsp client driver should be the only entity
+configuring it's DMA modes (in a safe manner) depending on the use case.
 
->=20
-> --=20
-> P=E9ter
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Liam
+-- 
+Freelance Developer, SlimLogic Ltd
+ASoC and Voltage Regulator Maintainer.
+http://www.slimlogic.co.uk
+
