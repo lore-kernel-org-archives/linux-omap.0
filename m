@@ -1,68 +1,92 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v2] ARMv7: Use the Inner Shareable I-cache on MP
-Date: Wed, 19 May 2010 18:09:07 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C566661F@dbde02.ent.ti.com>
-References: <1274271062-30807-1-git-send-email-santosh.shilimkar@ti.com>
- <AANLkTim03PQYiNGNzxNfs-MkyFSZgc2DKMxVMoJzxSnR@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 4/4] omap: cpu: Power tracking support for cgroup cpuacct
+Date: Wed, 19 May 2010 08:11:03 -0500
+Message-ID: <4BF3E367.5080906@ti.com>
+References: <1274232620-23003-1-git-send-email-mike@android.com> <1274232620-23003-5-git-send-email-mike@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57801 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755412Ab0ESMjV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 08:39:21 -0400
-In-Reply-To: <AANLkTim03PQYiNGNzxNfs-MkyFSZgc2DKMxVMoJzxSnR@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1274232620-23003-5-git-send-email-mike@android.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Chan <mike@android.com>
+Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "menage@google.com" <menage@google.com>, "balbir@in.ibm.com" <balbir@in.ibm.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>
 
-> -----Original Message-----
-> From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of S, =
-Venkatraman
-> Sent: Wednesday, May 19, 2010 6:06 PM
-> To: Shilimkar, Santosh
-> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org;=
- Catalin Marinas
-> Subject: Re: [PATCH v2] ARMv7: Use the Inner Shareable I-cache on MP
->=20
-> Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
-> > This patch fixes the flush_cache_all for ARMv7 SMP. It was
-> > missing from commit b8349b569aae661dea9d59d7d2ee587ccea3336c
-> >
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Cc: Catalin Marinas <catalin.marinas@arm.com>
-> > ---
-> > Updated version after removing the not necessary second hunk
-> >
-> > arch/arm/mm/cache-v7.S | =A0 =A04 ++++
-> > =A01 files changed, 4 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-> > index 06a90dc..5009635 100644
-> > --- a/arch/arm/mm/cache-v7.S
-> > +++ b/arch/arm/mm/cache-v7.S
-> > @@ -91,7 +91,11 @@ ENTRY(v7_flush_kern_cache_all)
-> > =A0THUMB( =A0 =A0 =A0 =A0stmfd =A0 sp!, {r4-r7, r9-r11, lr} =A0 =A0=
- =A0 =A0)
-> > =A0 =A0 =A0 =A0bl =A0 =A0 =A0v7_flush_dcache_all
-> > =A0 =A0 =A0 =A0mov =A0 =A0 r0, #0
-> > +#ifdef CONFIG_SMP
-> > + =A0 =A0 =A0 mcr =A0 =A0 p15, 0, r0, c7, c1, 0 =A0 =A0 =A0 =A0 =A0=
- @ invalidate I-cache inner shareable
-> > +#elese
->=20
-> s/elese/else
->=20
-oops ... Will correct this while submitting to the patch
-system
+Mike Chan had written, on 05/18/2010 08:30 PM, the following:
+> Specify new power field in struct omap_opp, which is
+> power exported in milliWatt.
+> 
+> power_usage function gives power consumed in milliWatt seconds
+> 
+> Signed-off-by: Mike Chan <mike@android.com>
+> ---
+>  arch/arm/plat-omap/cpu-omap.c             |   23 ++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/plat/omap-pm.h |    1 +
+>  2 files changed, 23 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+> index d27234d..1381539 100644
+> --- a/arch/arm/plat-omap/cpu-omap.c
+> +++ b/arch/arm/plat-omap/cpu-omap.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+>  #include <linux/cpuacct.h>
+> +#include <linux/math64.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <plat/clock.h>
+> @@ -218,10 +219,30 @@ static void omap_cpuacct_freq_show(void *cpuacct_data, struct cgroup_map_cb *cb)
+>  	}
+>  }
+>  
+> +
+> +/* Returns power (in milliWatt seconds) for cgroup */
+> +static u64 omap_cpuacct_power_usage(void *cpuacct_data)
+> +{
+> +	int i;
+> +	u64 *cpuacct_freq = cpuacct_data;
+> +	u64 totalpower = 0;
+> +
+> +	/* mpu_opps table starts at 1 */
+> +	for (i = 0; freq_table[i].frequency != CPUFREQ_TABLE_END; i++)
+> +		totalpower += cpuacct_freq[i] * mpu_opps[i + 1].power;
+> +
+> +	/* milliwatt seconds */
+> +	totalpower = div64_u64(totalpower, NSEC_PER_SEC);
+> +
+> +	return totalpower;
+> +}
+> +
+> +
+>  static struct cpuacct_cpufreq_calls omap_cpuacct_cpufreq = {
+>  	.init = omap_cpuacct_freq_init,
+>  	.charge = omap_cpuacct_freq_charge,
+> -	.show = omap_cpuacct_freq_show,
+> +	.cpufreq_show = omap_cpuacct_freq_show,
+> +	.power_usage = omap_cpuacct_power_usage,
+>  };
+>  
+>  static int __init omap_cpuacct_init(void)
+> diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+> index 3ee41d7..8f2db6f 100644
+> --- a/arch/arm/plat-omap/include/plat/omap-pm.h
+> +++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+> @@ -31,6 +31,7 @@ struct omap_opp {
+>  	unsigned long rate;
+>  	u8 opp_id;
+>  	u16 min_vdd;
+> +	unsigned long power; /* power consumed running at OPP in milliWatts */
 
+this conflicts with the OPP layer implementation. this structure will 
+disappear for good.
+
+>  };
+>  
+>  extern struct omap_opp *mpu_opps;
+
+
+-- 
 Regards,
-Santosh=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Nishanth Menon
