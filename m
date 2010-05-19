@@ -1,63 +1,53 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
-Date: Wed, 19 May 2010 13:03:46 +0300
-Message-ID: <AANLkTinpqitfuw3vuDhqXaQH6uHal1nbonVaUg1a2ewt@mail.gmail.com>
-References: <AANLkTim5SxEb64QbBQgBhufhgpQ33MNFBhuHixfUeVKp@mail.gmail.com>
-	 <20100518.163145.232774311.Hiroshi.DOYU@nokia.com>
-	 <AANLkTik_FL2keLD9mdBcg8Rm9n8uYDElg1NdyeT2yy6B@mail.gmail.com>
-	 <20100518.225835.116348725.Hiroshi.DOYU@nokia.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+Date: Wed, 19 May 2010 15:42:12 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703052701ED@dbde02.ent.ti.com>
+References: <1273745535-27139-1-git-send-email-shweta.gulati@ti.com>
+	<87hbmajrgh.fsf@deeprootsystems.com>
+	<FCCFB4CDC6E5564B9182F639FC35608703051ADC7D@dbde02.ent.ti.com>
+ <87hbm5qi98.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:48221 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753750Ab0ESKDz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 06:03:55 -0400
-Received: by fxm10 with SMTP id 10so2120744fxm.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 03:03:53 -0700 (PDT)
-In-Reply-To: <20100518.225835.116348725.Hiroshi.DOYU@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43308 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756997Ab0ESKMS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 06:12:18 -0400
+In-Reply-To: <87hbm5qi98.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Gulati, Shweta" <shweta.gulati@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, May 18, 2010 at 10:58 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
-> From: ext Felipe Contreras <felipe.contreras@gmail.com>
-> Subject: Re: [PATCH v2 00/17] omap: mailbox: reorganize init
-> Date: Tue, 18 May 2010 18:57:55 +0200
->
->> On Tue, May 18, 2010 at 4:31 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
->>> From: ext Felipe Contreras <felipe.contreras@gmail.com>
->>>> I'm not familiar with this kind of module loading, but certainly not
->>>> all systems have udev.
->>>>
->>>> I realized the problem because I have a bare-bones system in my
->>>> beagleboard where I had to manually load mailbox_mach.
->>>
->>> With udev or something equivalent, it should work fine.
->>
->> But still, you are relying on udev. I don't think we should, and I
->> don't think there's any need.
->
-> Some expert may give some comment here.....
+Kevin,
 
-Russell, Tony: should mailbox_mach, a module that checks for logical
-devices be always built-in?
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Tuesday, May 18, 2010 10:07 PM
+> To: Sripathy, Vishwanath
+> Cc: Gulati, Shweta; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+> 
+> "Sripathy, Vishwanath" <vishwanath.bs@ti.com> writes:
+> 
+> >> All that being said, why is the voltage level being programmed here?
+> >>
+> >> It seems to me that all of this errata handling should be
+> >> self-contained in the voltage layer.
+> >
+> > I am not sure if entire errata can be contained in voltage
+> > layer. This is because we are performing DVFS operation in CPU Idle
+> > path which involves both Frequency and Voltage scaling. So currently
+> > this has been done in resource34xx.c where DVFS is implemented.
+> 
+> What I mean is that there seems to be no good reason to be calling
+> these from pm34xx.c, they should be called where voltage scaling is
+> done.
+Sorry I still do not understand how errata can be invoked from Voltage scaling. Pls note that errata has to be applied only when Core is entering retention or off which can be detected only in omap_sram_idle function. Errata is tightly coupled with CPU idle path. 
 
-I think that's the easiest... in my patches I moved the
-architecture-specific code from mach-omapX/devices.c to
-mach-omapX/mailbox.c, so both the logical devices and real platform
-devices are in the same code, and can be built-in.
+Vishwa
+> 
+> Kevin
 
-This way, there's no need to rely on services like udev to load
-mailbox, then mailbox_mach, then bridgedriver. After all, all
-mailbox_mach is doing is calling functions in mailbox to register the
-logical devices.
-
-Judging from:
-http://article.gmane.org/gmane.linux.ports.arm.kernel/58555
-
-The answer is yes.
-
--- 
-Felipe Contreras
