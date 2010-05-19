@@ -1,111 +1,56 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 11/22] OMAP4: CM: Remove non-functional registers in ES1.0
-Date: Tue, 18 May 2010 20:18:51 -0600
-Message-ID: <20100519021850.19716.29094.stgit@localhost.localdomain>
+Subject: [PATCH 08/22] OMAP: hwmod: Do not exit the iteration if one clock
+	init failed
+Date: Tue, 18 May 2010 20:18:47 -0600
+Message-ID: <20100519021846.19716.52695.stgit@localhost.localdomain>
 References: <20100519021800.19716.8938.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39801 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:39791 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755794Ab0ESCVB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 22:21:01 -0400
+	with ESMTP id S1754434Ab0ESCVA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 22:21:00 -0400
 In-Reply-To: <20100519021800.19716.8938.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 
 From: Benoit Cousson <b-cousson@ti.com>
 
-The automatic HW restore from OFF mode is not functional at all in
-OMAP4430 ES1.0.
-Because of that, it will be extensively changed in the next Si revision,
-and the compatibilty will not be maintained with ES1.0.
-
-Remove the current XXX_RESTORE registers definition to avoid future
-conflicts with the next Si revision.
+During the _init_clocks phase, the iteration is stopped but the
+status is still change from _HWMOD_STATE_REGISTERED to
+_HWMOD_STATE_CLKS_INITED.
+Since the _setup phase will be done nevertheless, it might be
+better to keep initializing the others clocks nodes and just
+keep the warning.
+It is much easier to debug when a important number of clocks
+name are wrong during the early debug phase of a new platform.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/cm44xx.h |   41 ++---------------------------------------
- 1 files changed, 2 insertions(+), 39 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm44xx.h b/arch/arm/mach-omap2/cm44xx.h
-index c575b9b..b889ac6 100644
---- a/arch/arm/mach-omap2/cm44xx.h
-+++ b/arch/arm/mach-omap2/cm44xx.h
-@@ -1,8 +1,8 @@
- /*
-  * OMAP44xx CM1 & CM2 instance offset macros
-  *
-- * Copyright (C) 2009 Texas Instruments, Inc.
-- * Copyright (C) 2009 Nokia Corporation
-+ * Copyright (C) 2009-2010 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2010 Nokia Corporation
-  *
-  * Paul Walmsley (paul@pwsan.com)
-  * Rajendra Nayak (rnayak@ti.com)
-@@ -25,7 +25,6 @@
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 5d3a3ea..b624ad6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -783,9 +783,10 @@ static int _init_clocks(struct omap_hwmod *oh)
+ 	ret |= _init_interface_clks(oh);
+ 	ret |= _init_opt_clks(oh);
  
- /* CM1 */
+-	oh->_state = _HWMOD_STATE_CLKS_INITED;
++	if (!ret)
++		oh->_state = _HWMOD_STATE_CLKS_INITED;
  
--
- /* CM1.OCP_SOCKET_CM1 register offsets */
- #define OMAP4430_REVISION_CM1				OMAP44XX_CM1_REGADDR(OMAP4430_CM1_OCP_SOCKET_MOD, 0x0000)
- #define OMAP4430_CM_CM1_PROFILING_CLKCTRL		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_OCP_SOCKET_MOD, 0x0040)
-@@ -116,25 +115,8 @@
- #define OMAP4430_CM1_ABE_TIMER8_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_MOD, 0x0080)
- #define OMAP4430_CM1_ABE_WDT3_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_ABE_MOD, 0x0088)
+-	return ret;
++	return 0;
+ }
  
--/* CM1.RESTORE_CM1 register offsets */
--#define OMAP4430_CM_CLKSEL_CORE_RESTORE			OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0000)
--#define OMAP4430_CM_DIV_M2_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0004)
--#define OMAP4430_CM_DIV_M3_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0008)
--#define OMAP4430_CM_DIV_M4_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x000c)
--#define OMAP4430_CM_DIV_M5_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0010)
--#define OMAP4430_CM_DIV_M6_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0014)
--#define OMAP4430_CM_DIV_M7_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0018)
--#define OMAP4430_CM_CLKSEL_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x001c)
--#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_CORE_RESTORE	OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0020)
--#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_CORE_RESTORE	OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0024)
--#define OMAP4430_CM_CLKMODE_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0028)
--#define OMAP4430_CM_SHADOW_FREQ_CONFIG1_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x002c)
--#define OMAP4430_CM_AUTOIDLE_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0030)
--#define OMAP4430_CM_MPU_CLKSTCTRL_RESTORE		OMAP44XX_CM1_REGADDR(OMAP4430_CM1_RESTORE_MOD, 0x0034)
--
- /* CM2 */
- 
--
- /* CM2.OCP_SOCKET_CM2 register offsets */
- #define OMAP4430_REVISION_CM2				OMAP44XX_CM2_REGADDR(OMAP4430_CM2_OCP_SOCKET_MOD, 0x0000)
- #define OMAP4430_CM_CM2_PROFILING_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_OCP_SOCKET_MOD, 0x0040)
-@@ -336,23 +318,4 @@
- /* CM2.CEFUSE_CM2 register offsets */
- #define OMAP4430_CM_CEFUSE_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_MOD, 0x0000)
- #define OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CEFUSE_MOD, 0x0020)
--
--/* CM2.RESTORE_CM2 register offsets */
--#define OMAP4430_CM_L3_1_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0000)
--#define OMAP4430_CM_L3_2_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0004)
--#define OMAP4430_CM_L4CFG_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0008)
--#define OMAP4430_CM_MEMIF_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x000c)
--#define OMAP4430_CM_L4PER_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0010)
--#define OMAP4430_CM_L3INIT_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0014)
--#define OMAP4430_CM_L3INSTR_L3_3_CLKCTRL_RESTORE	OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0018)
--#define OMAP4430_CM_L3INSTR_L3_INSTR_CLKCTRL_RESTORE	OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x001c)
--#define OMAP4430_CM_L3INSTR_OCP_WP1_CLKCTRL_RESTORE	OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0020)
--#define OMAP4430_CM_L4PER_GPIO2_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0024)
--#define OMAP4430_CM_L4PER_GPIO3_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0028)
--#define OMAP4430_CM_L4PER_GPIO4_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x002c)
--#define OMAP4430_CM_L4PER_GPIO5_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0030)
--#define OMAP4430_CM_L4PER_GPIO6_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0034)
--#define OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL_RESTORE	OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0038)
--#define OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL_RESTORE	OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x003c)
--#define OMAP4430_CM_SDMA_STATICDEP_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4430_CM2_RESTORE_MOD, 0x0040)
- #endif
+ /**
 
 
