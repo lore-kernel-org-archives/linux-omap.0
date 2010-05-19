@@ -1,124 +1,145 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 14/18] omap: Overo: Add support for second ethernet port
-Date: Wed, 19 May 2010 11:27:27 -0700
-Message-ID: <20100519182727.GG5818@atomide.com>
-References: <20100505192957.21568.19569.stgit@baageli.muru.com>
- <20100505193315.21568.55530.stgit@baageli.muru.com>
- <AANLkTinxHaxG89pUhD7nmMjQSF-p-FB1FWj_w-de9y1r@mail.gmail.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH v3 1/3] omap3 gpmc: functionality enhancement
+Date: Thu, 20 May 2010 00:00:47 +0530
+Message-ID: <AANLkTikK4ISAsLFS-l5fXGxCppv98F2qqb8OBnZ7OTHd@mail.gmail.com>
+References: <s-ghorai@ti.com> <1274181389-7488-1-git-send-email-s-ghorai@ti.com>
+	<1274181389-7488-2-git-send-email-s-ghorai@ti.com> <AANLkTikFxtzDpiJvJjnuonM2urMJR1LDLafx5JtpC_bS@mail.gmail.com>
+	<1274284094.6286.17.camel@thunk> <2A3DCF3DA181AD40BDE86A3150B27B6B030D991D50@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60870 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754113Ab0ESS1b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 14:27:31 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTinxHaxG89pUhD7nmMjQSF-p-FB1FWj_w-de9y1r@mail.gmail.com>
+Received: from mail-pz0-f194.google.com ([209.85.222.194]:36702 "EHLO
+	mail-pz0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751238Ab0ESSbK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 14:31:10 -0400
+Received: by pzk32 with SMTP id 32so2882283pzk.21
+        for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 11:31:09 -0700 (PDT)
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030D991D50@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "sakoman@gmail.com" <sakoman@gmail.com>, "mike@compulab.co.il" <mike@compulab.co.il>, "Artem.Bityutskiy@nokia.com" <Artem.Bityutskiy@nokia.com>, "peter.barada@gmail.com" <peter.barada@gmail.com>
 
-* Steve Sakoman <sakoman@gmail.com> [100518 06:36]:
-> On Wed, May 5, 2010 at 12:33 PM, Tony Lindgren <tony@atomide.com> wro=
+On Wed, May 19, 2010 at 11:34 PM, Ghorai, Sukumar <s-ghorai@ti.com> wro=
 te:
-> > From: Steve Sakoman <steve@sakoman.com>
-> >
-> > Some Overo add-on boards include a second ethernet port. =C2=A0This=
- patch
-> > adds support for that second port.
-> >
-> > Signed-off-by: Steve Sakoman <steve@sakoman.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> > =C2=A0arch/arm/mach-omap2/board-overo.c | =C2=A0 14 +++++++++++++-
-> > =C2=A01 files changed, 13 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap=
-2/board-overo.c
-> > index 8848c7c..79ac414 100644
-> > --- a/arch/arm/mach-omap2/board-overo.c
-> > +++ b/arch/arm/mach-omap2/board-overo.c
-> > @@ -63,6 +63,8 @@
-> >
-> > =C2=A0#define OVERO_SMSC911X_CS =C2=A0 =C2=A0 =C2=A05
-> > =C2=A0#define OVERO_SMSC911X_GPIO =C2=A0 =C2=A0176
-> > +#define OVERO_SMSC911X2_CS =C2=A0 =C2=A0 4
-> > +#define OVERO_SMSC911X2_GPIO =C2=A0 65
-> >
-> > =C2=A0#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0defined(CONFIG_TOUCHSCREEN_ADS7846_MODUL=
-E)
-> > @@ -137,6 +139,16 @@ static struct resource overo_smsc911x_resource=
-s[] =3D {
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0},
-> > =C2=A0};
-> >
-> > +static struct resource overo_smsc911x2_resources[] =3D {
-> > + =C2=A0 =C2=A0 =C2=A0 {
-> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .name =C2=A0 =3D=
- "smsc911x2-memory",
-> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0=3D=
- IORESOURCE_MEM,
-> > + =C2=A0 =C2=A0 =C2=A0 },
-> > + =C2=A0 =C2=A0 =C2=A0 {
-> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0=3D=
- IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
-> > + =C2=A0 =C2=A0 =C2=A0 },
-> > +};
-> > +
-> > =C2=A0static struct smsc911x_platform_config overo_smsc911x_config =
-=3D {
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0.irq_polarity =C2=A0 =3D SMSC911X_IRQ_PO=
-LARITY_ACTIVE_LOW,
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0.irq_type =C2=A0 =C2=A0 =C2=A0 =3D SMSC9=
-11X_IRQ_TYPE_OPEN_DRAIN,
-> > @@ -146,7 +158,7 @@ static struct smsc911x_platform_config overo_sm=
-sc911x_config =3D {
-> >
-> > =C2=A0static struct platform_device overo_smsc911x_device =3D {
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0.name =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =3D "smsc911x",
-> > - =C2=A0 =C2=A0 =C2=A0 .id =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =3D -1,
-> > + =C2=A0 =C2=A0 =C2=A0 .id =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =3D 0,
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0.num_resources =C2=A0=3D ARRAY_SIZE(over=
-o_smsc911x_resources),
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0.resource =C2=A0 =C2=A0 =C2=A0 =3D overo=
-_smsc911x_resources,
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0.dev =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0=3D {
-> >
-> > --
->=20
-> I just noticed that somehow a good portion of my original patch got
-> dropped in this version!
-
-It seems to be a patchwork issue, note how some of that got into the co=
-mmit
-message:
-
-https://patchwork.kernel.org/patch/91277/
-
-Might be worth investigating further, there's the mbox link there, mayb=
+>> > > +
+>> > > + =A0 =A0 =A0 case GPMC_CONFIG_RDY_BSY:
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 regval =A0=3D gpmc_cs_read_reg(cs,=
+ GPMC_CS_CONFIG1);
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 regval |=3D WR_RD_PIN_MONITORING;
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_cs_write_reg(cs, GPMC_CS_CONF=
+IG1, regval);
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> >
+>> > IIRC, at least in OMAP2/3, ready/busy pin is not in use (not conne=
+cted).
+>>
+>> On the Logic OMAP3530 LV SOM and Torpedo modules, the R/B# pin of th=
 e
-that contains some clues.
-=20
-> Original:
->=20
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26350.html
->=20
-> How would you like to handle getting the missing chuncks?
+>> NAND in the Micron mt29c2g4maklajg-6it POP part is connected to the
+>> WAIT0 pin on the OMAP3530 and I'm looking to use it to speed up NAND
+>> accesses
+> [Ghorai] So better keep this feature,
 
-Can you please post your fix as a reply to this thread? I've already
-merged the original patch into omap-for-linus, this is too late to
-start messing with that.
+Yes, looks like there are some boards which can still take advantage of=
+ this.
 
+>>
+[...]
+>> > > @@ -456,13 +572,20 @@ EXPORT_SYMBOL(gpmc_prefetch_enable);
+>> > > =A0/**
+>> > > =A0* gpmc_prefetch_reset - disables and stops the prefetch engin=
+e
+>> > > =A0*/
+>> > > -void gpmc_prefetch_reset(void)
+>> > > +int gpmc_prefetch_reset(int cs)
+>> > > =A0{
+>> > > + =A0 =A0 =A0 if (gpmc_pref_used =3D=3D cs)
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_pref_used =3D -EINVAL;
+>> > > + =A0 =A0 =A0 else
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> > > +
+>> >
+>> > This is also not required. As, this function will be called only i=
+f
+>> > prefetch was used.
+> [Ghorai] Agree. Can you see this input too?
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28520.html
+
+Exactly, this is what I am telling here. Enable prefetch engine call
+is already being check for *busy* or not.
+
+>
+[...]
+>> > > +int gpmc_ecc_init(int cs, int ecc_size)
+>> > > +{
+>> > > + =A0 =A0 =A0 unsigned int val =3D 0x0;
+>> > > +
+>> > > + =A0 =A0 =A0 /* check if ecc engine already by another cs */
+>> > > + =A0 =A0 =A0 if (gpmc_ecc_used =3D=3D -EINVAL)
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_ecc_used =3D cs;
+>> > > + =A0 =A0 =A0 else
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EBUSY;
+>> > Here few things need be to consider:
+>> > 1. 'init' is supposed to done once for every instance of driver du=
+ring
+>> probe
+>> > 2. But ECC engine, too, have only one instance at a time, So
+>> > 3. As long as all NAND chip are supposed to use same ECC machenism=
+, we
+>> > can go for only one time 'init' for all drivers, perhaps in
+>> > gpmc_nand.c.
+>> > 4. But in case, different instances of driver (or NAND chip) requi=
+res
+>> > different ECC machenism (for ex. Hamming or BCH, or even with
+>> > different capabilities of error correction),
+>> > this will no longer vailid. Then rather we should have something l=
+ike
+>> > 'gpmc_ecc_config' call to configer ECC engine for everytime a driv=
+er
+>> > needs it (something like as it is done for prefetch engine).
+> [Ghorai]
+> a. do you think it will reduce the throughput?
+No. But in current implementation it will be called for each instance
+driver. (see my 3rd point)
+
+> b. Moreover I think we will take this as 5th patch as cleanup/ improv=
+emnt.
+> c. And how to know that ECC engine is in used other driver should not=
+ use it? Any bit to know that ecc engine is busy, as we check for prefe=
+tch?
+Do not really remember config registers. Perhaps there is no way.
+But I guess you should check into register GPMC_ECC_CONFIG at bit 1.
+This is the bit we are setting to enable ECC calculation, IIRC.
+
+> d. any further input on http://www.mail-archive.com/linux-omap@vger.k=
+ernel.org/msg28520.html
+And this what I was suggesting in my point 4. In my example
+'gpmc_ecc_config' is analogy to 'gpmc_ecc_request'.
+I said *config*, since in such scenario you need to configer HW
+ECCconfig register everytime as well, rather just checking
+availability and enabling.
+
+>
+[...]
+>> > > +int gpmc_ecc_reset(int cs)
+>> > > +{
+>> > > + =A0 =A0 =A0 if (gpmc_ecc_used =3D=3D cs)
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_ecc_used =3D -EINVAL;
+>> > > + =A0 =A0 =A0 else
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> > > +
+>> > > + =A0 =A0 =A0 return 0;
+>> > > +}
+
+I guess in this function you should also clear gpmc ecc config
+register explicitly.
+
+
+--=20
 Regards,
-
-Tony
+Vimal Singh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
