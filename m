@@ -1,76 +1,86 @@
-From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH] omap:hwmod-remove prm header from prm-regbits-xxxx headers
-Date: Wed, 19 May 2010 17:10:29 -0500
-Message-ID: <1274307029-22032-1-git-send-email-h-kanigeri2@ti.com>
+From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
+Subject: [PATCH 0/4] DSPBRIDGE: Remove comments refering to Windows OS.
+Date: Wed, 19 May 2010 17:21:38 -0500
+Message-ID: <1274307702-22637-1-git-send-email-ivan.gomez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57070 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751359Ab0ESWEQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 May 2010 18:04:16 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:36767 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750943Ab0ESW2k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 18:28:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Linux Omap <linux-omap@vger.kernel.org>
-Cc: Hari Kanigeri <h-kanigeri2@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
 
-The prm-regbits-xxxx.h header files are not dependent on prm.h
-header file.
+This patch series remove comments refering to:
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
- arch/arm/mach-omap2/prm-regbits-24xx.h     |    1 -
- arch/arm/mach-omap2/prm-regbits-34xx.h     |    1 -
- arch/arm/mach-omap2/prm-regbits-44xx.h     |    1 -
- 4 files changed, 1 insertions(+), 3 deletions(-)
+WMD (Windows Mini Driver)
+WCD (Windows Class Driver)
+Mini-driver
+Class-driver
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 667633c..88cc9ca 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -26,6 +26,7 @@
- #include "omap_hwmod_common_data.h"
- 
- #include "cm.h"
-+#include "prm.h"
- #include "prm-regbits-44xx.h"
- 
- /* Base offset for all OMAP4 interrupts external to MPUSS */
-diff --git a/arch/arm/mach-omap2/prm-regbits-24xx.h b/arch/arm/mach-omap2/prm-regbits-24xx.h
-index 4002051..fd763b5 100644
---- a/arch/arm/mach-omap2/prm-regbits-24xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-24xx.h
-@@ -14,7 +14,6 @@
-  * published by the Free Software Foundation.
-  */
- 
--#include "prm.h"
- 
- /* Bits shared between registers */
- 
-diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-index 8f21bae..ef7fd5e 100644
---- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-@@ -14,7 +14,6 @@
-  * published by the Free Software Foundation.
-  */
- 
--#include "prm.h"
- 
- /* Shared register bits */
- 
-diff --git a/arch/arm/mach-omap2/prm-regbits-44xx.h b/arch/arm/mach-omap2/prm-regbits-44xx.h
-index 597be4a..ef7af7e 100644
---- a/arch/arm/mach-omap2/prm-regbits-44xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-44xx.h
-@@ -22,7 +22,6 @@
- #ifndef __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_44XX_H
- #define __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_44XX_H
- 
--#include "prm.h"
- 
- 
- /*
--- 
-1.7.0
+As they refer to the Windows Driver Model. Instead of using these,
+they are replaced as follows:
+WMD => Bridge driver (Contain only hardware specific functionallity)
+WCD => DSP API (Since WCD provides an interface between the different
+layers of the Windows Driver Model and Applications)
+
+This patch series is a compliment of the patch series to remove code
+refering to other OS.
+
+Ivan Gomez Castellanos (4):
+  DSPBRIDGE: Remove comments refering to WMD.
+  DSPBRIDGE: Remove comments refering to WCD.
+  DSPBRIDGE: Remove comments refering to "mini driver"
+  DSPBRIDGE: Remove comments refering to "class driver"
+
+ arch/arm/plat-omap/include/dspbridge/_chnl_sm.h    |    2 +-
+ arch/arm/plat-omap/include/dspbridge/brddefs.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/cfg.h         |    6 +-
+ arch/arm/plat-omap/include/dspbridge/cfgdefs.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/chnl.h        |    4 +-
+ arch/arm/plat-omap/include/dspbridge/chnlpriv.h    |    3 +-
+ arch/arm/plat-omap/include/dspbridge/dehdefs.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dev.h         |   65 ++++++------
+ arch/arm/plat-omap/include/dspbridge/devdefs.h     |    4 +-
+ arch/arm/plat-omap/include/dspbridge/drvdefs.h     |    2 +-
+ .../arm/plat-omap/include/dspbridge/dspapi-ioctl.h |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dspchnl.h     |    4 +-
+ arch/arm/plat-omap/include/dspbridge/dspdefs.h     |  115 ++++++++++----------
+ arch/arm/plat-omap/include/dspbridge/dspdeh.h      |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dspdrv.h      |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dspio.h       |    4 +-
+ arch/arm/plat-omap/include/dspbridge/dspioctl.h    |    4 +-
+ arch/arm/plat-omap/include/dspbridge/dspmsg.h      |    4 +-
+ arch/arm/plat-omap/include/dspbridge/io_sm.h       |    6 +-
+ arch/arm/plat-omap/include/dspbridge/ldr.h         |    2 +-
+ arch/arm/plat-omap/include/dspbridge/memdefs.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/mgr.h         |    2 +-
+ arch/arm/plat-omap/include/dspbridge/mgrpriv.h     |    2 +-
+ arch/arm/plat-omap/include/dspbridge/node.h        |    2 +-
+ arch/arm/plat-omap/include/dspbridge/proc.h        |    4 +-
+ arch/arm/plat-omap/include/dspbridge/procpriv.h    |    2 +-
+ arch/arm/plat-omap/include/dspbridge/utildefs.h    |    2 +-
+ drivers/dsp/bridge/core/_msg_sm.h                  |    4 +-
+ drivers/dsp/bridge/core/_tiomap.h                  |   10 +-
+ drivers/dsp/bridge/core/chnl_sm.c                  |    8 +-
+ drivers/dsp/bridge/core/io_sm.c                    |   20 ++--
+ drivers/dsp/bridge/core/msg_sm.c                   |    2 +-
+ drivers/dsp/bridge/core/tiomap3430.c               |   12 +-
+ drivers/dsp/bridge/core/tiomap3430_pwr.c           |    6 +-
+ drivers/dsp/bridge/core/ue_deh.c                   |    2 +-
+ drivers/dsp/bridge/pmgr/chnl.c                     |   10 +-
+ drivers/dsp/bridge/pmgr/chnlobj.h                  |   16 ++--
+ drivers/dsp/bridge/pmgr/dev.c                      |   48 +++++----
+ drivers/dsp/bridge/pmgr/dspapi.c                   |    2 +-
+ drivers/dsp/bridge/pmgr/io.c                       |    4 +-
+ drivers/dsp/bridge/pmgr/ioobj.h                    |   10 +-
+ drivers/dsp/bridge/pmgr/msg.c                      |    8 +-
+ drivers/dsp/bridge/pmgr/msgobj.h                   |   11 +-
+ drivers/dsp/bridge/rmgr/disp.c                     |    5 +-
+ drivers/dsp/bridge/rmgr/node.c                     |    9 +-
+ drivers/dsp/bridge/rmgr/proc.c                     |   11 +-
+ drivers/dsp/bridge/rmgr/strm.c                     |    7 +-
+ drivers/dsp/bridge/services/cfg.c                  |    2 +-
+ 48 files changed, 235 insertions(+), 225 deletions(-)
 
