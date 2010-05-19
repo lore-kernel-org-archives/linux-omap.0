@@ -1,34 +1,72 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] touchscreen: ads7846: please don't touch free'd memory
-Date: Tue, 18 May 2010 17:00:20 -0700
-Message-ID: <20100519000019.GA17475@core.coreip.homeip.net>
-References: <1274226413-8520-1-git-send-email-khilman@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
+Date: Tue, 18 May 2010 17:09:12 -0700
+Message-ID: <20100519000912.GX5818@atomide.com>
+References: <22422.10.24.255.17.1273947606.squirrel@dbdmail.itg.ti.com>
+ <20100518025026.GF5818@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63895 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752565Ab0ESAJW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 20:09:22 -0400
 Content-Disposition: inline
-In-Reply-To: <1274226413-8520-1-git-send-email-khilman@deeprootsystems.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Michael Roth <mroth@nessie.de>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, Mike Frysinger <vapier@gentoo.org>, linux-kernel@vger.kernel.org
+In-Reply-To: <20100518025026.GF5818@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: kishore kadiyala <kishore.kadiyala@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk, paul@pwsan.com, santosh.shilimkar@ti.com
 
-On Tue, May 18, 2010 at 04:46:53PM -0700, Kevin Hilman wrote:
-> If the _probe() method fails, the 'ts' struct is freed, yet it is
-> still used as the drvdata passed to suspend/resume/remove methods.
-> Even though the input device does not get registerd, the driver's
-> suspend/resume methods still get called as it's a registered SPI
-> device.  This patch adds sanity checks to these methods to ensure that
-> drvdata is valid before using it.
+* Tony Lindgren <tony@atomide.com> [100517 19:45]:
+> Hi,
 > 
+> * kishore kadiyala <kishore.kadiyala@ti.com> [100515 11:15]:
+> > Adding MMC1 and MMC2 controllers support for OMAP4
+> > 
+> > V4:
+> > - Rebased to "for_next" branch[LO].
+> > - The first 3 patches [1,2,3] in the series are Minimal set of changes
+> >   with which MMC1/MMC2 works [No card detect for MMC1]on OMAP4 but with
+> >   dependencies on following patches [Not in "for_next" branch]
+> >   [1] I2c patches
+> >       a)https://patchwork.kernel.org/patch/98937/
+> >       b)https://patchwork.kernel.org/patch/98936/
+> >       c)https://patchwork.kernel.org/patch/98939/
+> >       d)https://patchwork.kernel.org/patch/79735/
+> 
+> I've taken the updated versions of the I2C patches,
+> and fixed them not to break omap3_defconfig.
+> 
+> >   [2] Regulator pacth
+> >       a)https://patchwork.kernel.org/patch/94054/
+> >   [3] hsmmc-clk patch
+> >       a)https://patchwork.kernel.org/patch/96821/
+> 
+> I've picked up these too.
+> 
+> > - The patches 4,5 adds card detect feature for MMC1
+> 
+> I only took 1 - 3 out of the MMC patches, it's too
+> late to start changing the other stuff.
+> 
+> I've reposted the whole series for a quick review.
 
-This is a load of crap. If probe() fails that means that driver does not
-manage the device and thus ads7846_suspend() and ads7846_resume() should
-not be called _at all_. If SPI core manages to call random methods from
-the drivers that failed to bind to a device that should be fixed in SPI
-core.
+FYI, the MMC on omap4 is not quite there yet at least
+on my board. It mostly detects the card with
+omap_4430sdp_defconfig, but fails always unless
+CONFIG_RTC_DRV_TWL92330=y.. This is without CONFIG_SMP
+as it oopses.
 
-Thanks.
+Also MMC is never detected with omap3_defconfig.
 
--- 
-Dmitry
+Santosh & Kishore, maybe take a look at that, otherwise
+it looks like we still don't have a very usable support
+for omap4.
+
+I've piled all these patches into linux-omap master branch
+for easy testing. Let me know if I missed some patch.
+
+Regards,
+
+Tony
