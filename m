@@ -1,13 +1,13 @@
 From: Damian <dhobsong@igel.co.jp>
-Subject: Re: [PATCH 3/4] ARM: add framebuffer support for ap4evb
-Date: Wed, 19 May 2010 13:47:15 +0900
-Message-ID: <4BF36D53.8020304@igel.co.jp>
-References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange> <Pine.LNX.4.64.1005071105140.4777@axis700.grange>
+Subject: Re: [PATCH 3/4 v2] ARM: add framebuffer support for ap4evb
+Date: Wed, 19 May 2010 13:36:57 +0900
+Message-ID: <4BF36AE9.1040009@igel.co.jp>
+References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange> <Pine.LNX.4.64.1005071105140.4777@axis700.grange> <Pine.LNX.4.64.1005071641440.4777@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1005071105140.4777@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1005071641440.4777@axis700.grange>
 Sender: linux-sh-owner@vger.kernel.org
 To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
@@ -16,22 +16,24 @@ List-Id: linux-omap@vger.kernel.org
 (4:59), Guennadi Liakhovetski wrote:
 > ap4evb uses an LCD, connected to the SoC over the MIPI bus. This patch adds
 > platform data to configure this display and a static clock activation.
-> 
+>
 > Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
-Console framebuffer tested on sh-2.6 tree and sh/dmaengine branch with
+Console framebuffer tested on sh-2.6 tree and sh/dmaengine branch with 
 the necessary clock and intc patches applied.
-Boot logo and framebuffer console displayed with no problems or unusual
+Boot logo and framebuffer console displayed with no problems or unusual 
 effects.
 
 Tested-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
 > ---
-> 
-> Nothing OMAP-relevant here, just for completeness.
-> 
+>
+> v1 ->  v2:
+>
+> Use the correct interrupt number for LCDC, based on INTCS.
+>
 >   arch/arm/mach-shmobile/Kconfig        |    1 +
 >   arch/arm/mach-shmobile/board-ap4evb.c |  121 +++++++++++++++++++++++++++++++++
 >   2 files changed, 122 insertions(+), 0 deletions(-)
-> 
+>
 > diff --git a/arch/arm/mach-shmobile/Kconfig b/arch/arm/mach-shmobile/Kconfig
 > index 9003ea9..e216132 100644
 > --- a/arch/arm/mach-shmobile/Kconfig
@@ -41,9 +43,9 @@ Tested-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
 >   	depends on ARCH_SH7372
 >   	select ARCH_REQUIRE_GPIOLIB
 > +	select SH_LCD_MIPI_DSI
-> 
+>
 >   comment "SH-Mobile System Configuration"
-> 
+>
 > diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
 > index d2bb7b0..e3f5375 100644
 > --- a/arch/arm/mach-shmobile/board-ap4evb.c
@@ -74,7 +76,7 @@ Tested-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
 > @@ -237,11 +244,86 @@ static struct platform_device sdhi0_device = {
 >   	},
 >   };
-> 
+>
 > +static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
 > +	.clock_source = LCDC_CLK_PERIPHERAL, /* One of interface clocks */
 > +	.ch[0] = {
@@ -110,7 +112,7 @@ Tested-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
 > +		.flags	= IORESOURCE_MEM,
 > +	},
 > +	[1] = {
-> +		.start	= evt2irq(0x580),
+> +		.start	= intcs_evt2irq(0x580),
 > +		.flags	= IORESOURCE_IRQ,
 > +	},
 > +};
@@ -156,12 +158,12 @@ Tested-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
 > +	&lcdc_device,
 > +	&mipidsi0_device,
 >   };
-> 
+>
 >   static struct map_desc ap4evb_io_desc[] __initdata = {
 > @@ -265,6 +347,45 @@ static void __init ap4evb_map_io(void)
 >   	shmobile_setup_console();
 >   }
-> 
+>
 > +/* This function will disappear when we switch to (runtime) PM */
 > +static int __init ap4evb_init_display_clk(void)
 > +{
