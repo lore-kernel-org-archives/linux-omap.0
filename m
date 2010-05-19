@@ -1,72 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
-Date: Tue, 18 May 2010 17:09:12 -0700
-Message-ID: <20100519000912.GX5818@atomide.com>
-References: <22422.10.24.255.17.1273947606.squirrel@dbdmail.itg.ti.com>
- <20100518025026.GF5818@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [RFC/PATCH] arm: oprofile: remove locking from suspend/resume
+Date: Tue, 18 May 2010 17:13:01 -0700
+Message-ID: <1274227981-20130-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63895 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752565Ab0ESAJW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 20:09:22 -0400
-Content-Disposition: inline
-In-Reply-To: <20100518025026.GF5818@atomide.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:64175 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752565Ab0ESANH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 20:13:07 -0400
+Received: by pwi5 with SMTP id 5so1255474pwi.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 May 2010 17:13:04 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kishore kadiyala <kishore.kadiyala@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk, paul@pwsan.com, santosh.shilimkar@ti.com
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [100517 19:45]:
-> Hi,
-> 
-> * kishore kadiyala <kishore.kadiyala@ti.com> [100515 11:15]:
-> > Adding MMC1 and MMC2 controllers support for OMAP4
-> > 
-> > V4:
-> > - Rebased to "for_next" branch[LO].
-> > - The first 3 patches [1,2,3] in the series are Minimal set of changes
-> >   with which MMC1/MMC2 works [No card detect for MMC1]on OMAP4 but with
-> >   dependencies on following patches [Not in "for_next" branch]
-> >   [1] I2c patches
-> >       a)https://patchwork.kernel.org/patch/98937/
-> >       b)https://patchwork.kernel.org/patch/98936/
-> >       c)https://patchwork.kernel.org/patch/98939/
-> >       d)https://patchwork.kernel.org/patch/79735/
-> 
-> I've taken the updated versions of the I2C patches,
-> and fixed them not to break omap3_defconfig.
-> 
-> >   [2] Regulator pacth
-> >       a)https://patchwork.kernel.org/patch/94054/
-> >   [3] hsmmc-clk patch
-> >       a)https://patchwork.kernel.org/patch/96821/
-> 
-> I've picked up these too.
-> 
-> > - The patches 4,5 adds card detect feature for MMC1
-> 
-> I only took 1 - 3 out of the MMC patches, it's too
-> late to start changing the other stuff.
-> 
-> I've reposted the whole series for a quick review.
+Since oprofile is a sysdev, its suspend/resume methods are called with
+interrupts disabled.  Using a mutex (which might sleep) in this atomic
+context is not safe.
 
-FYI, the MMC on omap4 is not quite there yet at least
-on my board. It mostly detects the card with
-omap_4430sdp_defconfig, but fails always unless
-CONFIG_RTC_DRV_TWL92330=y.. This is without CONFIG_SMP
-as it oopses.
+Since these methods are already called in atomic context, simply
+remove the locking in the suspend/resume methods.
 
-Also MMC is never detected with omap3_defconfig.
+Found using lockdep on OMAP3 (Cortex-A8)
 
-Santosh & Kishore, maybe take a look at that, otherwise
-it looks like we still don't have a very usable support
-for omap4.
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/oprofile/common.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-I've piled all these patches into linux-omap master branch
-for easy testing. Let me know if I missed some patch.
+diff --git a/arch/arm/oprofile/common.c b/arch/arm/oprofile/common.c
+index 3fcd752..ea005d8 100644
+--- a/arch/arm/oprofile/common.c
++++ b/arch/arm/oprofile/common.c
+@@ -79,19 +79,15 @@ static void op_arm_stop(void)
+ #ifdef CONFIG_PM
+ static int op_arm_suspend(struct sys_device *dev, pm_message_t state)
+ {
+-	mutex_lock(&op_arm_mutex);
+ 	if (op_arm_enabled)
+ 		op_arm_model->stop();
+-	mutex_unlock(&op_arm_mutex);
+ 	return 0;
+ }
+ 
+ static int op_arm_resume(struct sys_device *dev)
+ {
+-	mutex_lock(&op_arm_mutex);
+ 	if (op_arm_enabled && op_arm_model->start())
+ 		op_arm_enabled = 0;
+-	mutex_unlock(&op_arm_mutex);
+ 	return 0;
+ }
+ 
+-- 
+1.7.0.2
 
-Regards,
-
-Tony
