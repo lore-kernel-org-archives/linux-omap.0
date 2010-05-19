@@ -1,20 +1,28 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH 01/11] OMAP: GPIO: Modify init() in preparation for
- platform device implementation
-Date: Wed, 19 May 2010 12:53:33 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5666364@dbde02.ent.ti.com>
+Subject: RE: [PATCH 09/11] OMAP: GPIO: Introduce support for OMAP2PLUS chip
+ GPIO init
+Date: Wed, 19 May 2010 12:56:05 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5666369@dbde02.ent.ti.com>
 References: <1274194260-16401-1-git-send-email-charu@ti.com>
  <1274194260-16401-2-git-send-email-charu@ti.com>
- <20100518234100.GU5818@atomide.com>
+ <1274194260-16401-3-git-send-email-charu@ti.com>
+ <1274194260-16401-4-git-send-email-charu@ti.com>
+ <1274194260-16401-5-git-send-email-charu@ti.com>
+ <1274194260-16401-6-git-send-email-charu@ti.com>
+ <1274194260-16401-7-git-send-email-charu@ti.com>
+ <1274194260-16401-8-git-send-email-charu@ti.com>
+ <1274194260-16401-9-git-send-email-charu@ti.com>
+ <1274194260-16401-10-git-send-email-charu@ti.com>
+ <20100518234649.GW5818@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34981 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753650Ab0ESHXm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 03:23:42 -0400
-In-Reply-To: <20100518234100.GU5818@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44495 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753650Ab0ESH0M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 03:26:12 -0400
+In-Reply-To: <20100518234649.GW5818@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -25,94 +33,75 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra"
 
 > -----Original Message-----
 > From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Wednesday, May 19, 2010 5:11 AM
+> Sent: Wednesday, May 19, 2010 5:17 AM
 > To: Varadarajan, Charulatha
 > Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com;
 > khilman@deeprootsystems.com
-> Subject: Re: [PATCH 01/11] OMAP: GPIO: Modify init() in preparation for platform
-> device implementation
+> Subject: Re: [PATCH 09/11] OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO
+> init
 > 
 > * Charulatha V <charu@ti.com> [100518 07:44]:
-> > This is in prepartion for implementing GPIO as a platform device.
-> > gpio bank's base addresses are moved from gpio.c to plat/gpio.h.
+> > This patch adds support for handling GPIO as a HWMOD FW adapted
+> > platform device for OMAP2PLUS chips.
 > >
-> > This patch also modifies omap_gpio_init() to make use of
-> > omap_gpio_chip_init() and omap_gpio_mod_init(). omap_gpio_mod_init() does
-> > the module init by clearing the status register and initializing the
-> > GPIO control register. omap_gpio_chip_init() initializes the chip request,
-> > free, get, set and other function pointers and sets the gpio irq handler.
-> 
-> <snip>
-> 
-> > diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-
-> omap/include/plat/gpio.h
-> > index de7c547..a06acb6 100644
-> > --- a/arch/arm/plat-omap/include/plat/gpio.h
-> > +++ b/arch/arm/plat-omap/include/plat/gpio.h
-> > @@ -29,7 +29,8 @@
-> >  #include <linux/io.h>
-> >  #include <mach/irqs.h>
-> >
-> > -#define OMAP1_MPUIO_BASE			0xfffb5000
-> > +#define OMAP1_MPUIO_BASE		0xfffb5000
-> > +#define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
-> >
-> >  #if (defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850))
-> >
-> > @@ -62,8 +63,73 @@
-> >  #define OMAP_MPUIO_LATCH		0x34
-> >  #endif
-> >
-> > +/*
-> > + * OMAP1510 GPIO base addresses
-> > + */
-> > +#define OMAP1510_GPIO_BASE		0xfffce000
-> > +#define OMAP1510_IH_GPIO_BASE		64
-> > +
-> > +/*
-> > + * OMAP1610 GPIO base addresses
-> > + */
-> > +#define OMAP1610_GPIO1_BASE		0xfffbe400
-> > +#define OMAP1610_GPIO2_BASE		0xfffbec00
-> > +#define OMAP1610_GPIO3_BASE		0xfffbb400
-> > +#define OMAP1610_GPIO4_BASE		0xfffbbc00
-> > +
-> > +/*
-> > + * OMAP7XX GPIO base addresses
-> > + */
-> > +#define OMAP7XX_GPIO1_BASE		0xfffbc000
-> > +#define OMAP7XX_GPIO2_BASE		0xfffbc800
-> > +#define OMAP7XX_GPIO3_BASE		0xfffbd000
-> > +#define OMAP7XX_GPIO4_BASE		0xfffbd800
-> > +#define OMAP7XX_GPIO5_BASE		0xfffbe000
-> > +#define OMAP7XX_GPIO6_BASE		0xfffbe800
-> 
-> Please move these into the mach-omap1/gpio1xxx.c instead,
-> they should not be needed anywhere else. We don't want
-> to have the GPIO registers available in the common headers
-> as otherwise we'll get tons of drivers that suddenly
-> start tinkering with these registers directly..
-> 
-> > +/*
-> > + * omap24xx GPIO base addresses
-> > + */
-> > +#define OMAP242X_GPIO1_BASE		0x48018000
-> > +#define OMAP242X_GPIO2_BASE		0x4801a000
-> > +#define OMAP242X_GPIO3_BASE		0x4801c000
-> > +#define OMAP242X_GPIO4_BASE		0x4801e000
-> > +
-> > +#define OMAP243X_GPIO1_BASE		0x4900C000
-> > +#define OMAP243X_GPIO2_BASE		0x4900E000
-> > +#define OMAP243X_GPIO3_BASE		0x49010000
-> > +#define OMAP243X_GPIO4_BASE		0x49012000
-> > +#define OMAP243X_GPIO5_BASE		0x480B6000
-> 
-> These should go into mach-omap2/gpioxxxx.c. The same
-> for the others.
+> > Signed-off-by: Charulatha V <charu@ti.com>
 
-They are used in omap_hwmod_xxxx_data.c files. That is why they are
-moved to plat-omap/gpio.h files. 
-1. Instead of having them in common headers, I can move them to mach-omapx/gpio.h. 2. Else, hard code these addresses directly in hwmod data structures and avoid moving these definitions to header files.
+> > +
+> > +/*
+> > + * gpio_init needs to be done before
+> > + * machine_init functions access gpio APIs.
+> > + * Hence gpio_init is a postcore_initcall.
+> > + */
+
+Need for postcore_initcall is mentioned here as a common comment
+for all SoCs in the beginning of the file
+
+> > +#ifdef CONFIG_ARCH_OMAP2
+> > +static int __init omap242x_gpio_init(void)
+> > +{	if (!cpu_is_omap2420())
+> > +		return -EINVAL;
+> > +
+> > +	return gpio_init(METHOD_GPIO_24XX);
+> > +}
+> > +postcore_initcall(omap242x_gpio_init);
+> > +
+> > +static int __init omap243x_gpio_init(void)
+> > +{
+> > +	if (!cpu_is_omap2430())
+> > +		return -EINVAL;
+> > +
+> > +	return gpio_init(METHOD_GPIO_24XX);
+> > +}
+> > +postcore_initcall(omap243x_gpio_init);
+> > +#endif
+> > +
+> > +#ifdef CONFIG_ARCH_OMAP3
+> > +static int __init omap3xxx_gpio_init(void)
+> > +{
+> > +	if (!cpu_is_omap34xx())
+> > +		return -EINVAL;
+> > +
+> > +	return gpio_init(METHOD_GPIO_24XX);
+> > +}
+> > +postcore_initcall(omap3xxx_gpio_init);
+> > +#endif
+> > +
+> > +#ifdef CONFIG_ARCH_OMAP4
+> > +static int __init omap44xx_gpio_init(void)
+> > +{
+> > +	if (!cpu_is_omap44xx())
+> > +		return -EINVAL;
+> > +
+> > +	return gpio_init(METHOD_GPIO_44XX);
+> > +}
+> > +postcore_initcall(omap44xx_gpio_init);
+> > +#endif
+> 
+> What was the reason again for using postcore_initcall? You mentioned
+> it somewhere, but I forgot already.. Maybe put that into the patch
+> description too?
+
+Okay. I will add it in this patch description too.
 
 > 
 > Regards,
