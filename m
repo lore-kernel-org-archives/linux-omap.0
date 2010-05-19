@@ -1,66 +1,93 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: RE: [PATCH v2] ARMv7: Use the Inner Shareable I-cache on MP
-Date: Wed, 19 May 2010 15:08:51 +0100
-Message-ID: <1274278131.3196.35.camel@e102109-lin.cambridge.arm.com>
-References: <1274271062-30807-1-git-send-email-santosh.shilimkar@ti.com>
-	 <AANLkTim03PQYiNGNzxNfs-MkyFSZgc2DKMxVMoJzxSnR@mail.gmail.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB02C566661F@dbde02.ent.ti.com>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@nokia.com>
+Subject: Re: [PATCH 1/4] fbdev: add a MIPI DSI header
+Date: Wed, 19 May 2010 17:27:32 +0300
+Message-ID: <20100519142732.GG30960@nokia.com>
+References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
+ <Pine.LNX.4.64.1005071102440.4777@axis700.grange>
+ <1274255350.2307.159.camel@tubuntu.research.nokia.com>
+ <Pine.LNX.4.64.1005190955500.3099@axis700.grange>
+ <1274257308.2307.168.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:40979 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752419Ab0ESOJA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 May 2010 10:09:00 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C566661F@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1274257308.2307.168.camel@tubuntu.research.nokia.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
+Cc: ext Guennadi Liakhovetski <g.liakhovetski@gmx.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, 2010-05-19 at 13:39 +0100, Shilimkar, Santosh wrote:
-> > -----Original Message-----
-> > From: svenkatr@gmail.com [mailto:svenkatr@gmail.com] On Behalf Of S, Venkatraman
-> > Sent: Wednesday, May 19, 2010 6:06 PM
-> > To: Shilimkar, Santosh
-> > Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org; Catalin Marinas
-> > Subject: Re: [PATCH v2] ARMv7: Use the Inner Shareable I-cache on MP
-> >
-> > Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
-> > > This patch fixes the flush_cache_all for ARMv7 SMP. It was
-> > > missing from commit b8349b569aae661dea9d59d7d2ee587ccea3336c
-> > >
-> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > Cc: Catalin Marinas <catalin.marinas@arm.com>
-> > > ---
-> > > Updated version after removing the not necessary second hunk
-> > >
-> > > arch/arm/mm/cache-v7.S |    4 ++++
-> > >  1 files changed, 4 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-> > > index 06a90dc..5009635 100644
-> > > --- a/arch/arm/mm/cache-v7.S
-> > > +++ b/arch/arm/mm/cache-v7.S
-> > > @@ -91,7 +91,11 @@ ENTRY(v7_flush_kern_cache_all)
-> > >  THUMB(        stmfd   sp!, {r4-r7, r9-r11, lr}        )
-> > >        bl      v7_flush_dcache_all
-> > >        mov     r0, #0
-> > > +#ifdef CONFIG_SMP
-> > > +       mcr     p15, 0, r0, c7, c1, 0           @ invalidate I-cache inner shareable
-> > > +#elese
-> >
-> > s/elese/else
-> >
-> oops ... Will correct this while submitting to the patch
-> system
+On Wed, May 19, 2010 at 10:21:48AM +0200, Valkeinen Tomi (Nokia-D/Helsi=
+nki) wrote:
+> Hi,
+>=20
+> On Wed, 2010-05-19 at 10:08 +0200, ext Guennadi Liakhovetski wrote:
+> > Hi Tomi
+> >=20
+> > On Wed, 19 May 2010, Tomi Valkeinen wrote:
+> > > > +	MIPI_DSI_DCS_SHORT_WRITE			=3D 5,
+> > >=20
+> > > Please use the same number format for all enums. So this should b=
+e 0x05.
+> >=20
+> > Where does this requirement come from? Is it in CodingStyle?;)
+>=20
+> I don't know, but mixing different formats looks ugly to me =3D).
 
-With the typo fixed:
+One case where it would perhaps make sense if you define some fields
+with shifts and masks. Specifying shifts as decimal and masks as hex
+is clearer IMO. But in this case I agree it just looks ugly and only
+serves to confuse the reader as he tries to figure out if there's
+some magic meaning to the different formats.
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+>=20
+> > > > +	MIPI_DSI_DCS_SHORT_WRITE_PARAM			=3D 0x15,
+> > > > +	MIPI_DSI_COLOR_MODE_OFF				=3D 2,
+> > > > +	MIPI_DSI_COLOR_MODE_ON				=3D 0x12,
+> > > > +	MIPI_DSI_SHUTDOWN_PERIPHERAL			=3D 0x22,
+> > > > +	MIPI_DSI_TURN_ON_PERIPHERAL			=3D 0x32,
+> > > > +	MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM		=3D 3,
+> > > > +	MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM		=3D 0x13,
+> > > > +	MIPI_DSI_GENERIC_SHORT_WRITE_2_PARAM		=3D 0x23,
+> > > > +	MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM		=3D 4,
+> > > > +	MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM		=3D 0x14,
+> > > > +	MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM		=3D 0x24,
+> > > > +	MIPI_DSI_DCS_LONG_WRITE				=3D 0x39,
+> > > > +	MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE		=3D 0x37,
+> > > > +	MIPI_DSI_NULL_PACKET				=3D 9,
+> > > > +	MIPI_DSI_BLANKING_PACKET			=3D 0x19,
+> > > > +	MIPI_DSI_GENERIC_LONG_WRITE			=3D 0x29,
+> > > > +	MIPI_DSI_LOOSELY_PACKED_PIXEL_STREAM_YCBCR20	=3D 0xc,
+> > > > +	MIPI_DSI_PACKED_PIXEL_STREAM_YCBCR24		=3D 0x1c,
+> > > > +	MIPI_DSI_PACKED_PIXEL_STREAM_YCBCR16		=3D 0x2c,
+> > > > +	MIPI_DSI_PACKED_PIXEL_STREAM_30			=3D 0xd,
+> > > > +	MIPI_DSI_PACKED_PIXEL_STREAM_36			=3D 0x1d,
+> > > > +	MIPI_DSI_PACKED_PIXEL_STREAM_YCBCR12		=3D 0x3d,
+> > > > +	MIPI_DSI_PACKED_PIXEL_STREAM_16			=3D 0xe,
+> > > > +	MIPI_DSI_PACKED_PIXEL_STREAM_18			=3D 0x1e,
+> > > > +	MIPI_DSI_PIXEL_STREAM_3BYTE_18			=3D 0x2e,
+> > > > +	MIPI_DSI_PACKED_PIXEL_STREAM_24			=3D 0x3e,
+> > > > +};
+> > > > +
+> > > > +enum mipi_dcs_cmd {
+> > >=20
+> > > While the MIPI specs define a certain set of commands, the real p=
+anels
+> > > usually implement also their own custom commands. That's why I do=
+n't
+> > > think enum is a good choice here.
+> >=20
+> > Yes, that's a valid point, I'll have to think about it more.
+>=20
+> I think a simple solution would be to just use defines, and have
+> functions that take the command as u8. That's what the OMAP DSI drive=
+r
+> does. If you have better ideas, please share =3D).
 
--- 
-Catalin
+I find enums easier on the eye than defines. Less irrelevant junk on
+each line. There's no reason you can't pass enum values as u8. But in
+that case giving the enum a name doesn't really make sense.
 
+--=20
+Ville Syrj=E4l=E4
