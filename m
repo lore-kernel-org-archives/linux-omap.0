@@ -1,224 +1,141 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH v3 2/3] omap3 nand: cleanup virtual address usages
-Date: Wed, 19 May 2010 21:00:04 +0530
-Message-ID: <AANLkTinEaP9cN5A24K9Zwd4L9Fq4pzxQqqY44r7NSl4-@mail.gmail.com>
-References: <s-ghorai@ti.com> <1274181389-7488-1-git-send-email-s-ghorai@ti.com>
-	<1274181389-7488-2-git-send-email-s-ghorai@ti.com> <1274181389-7488-3-git-send-email-s-ghorai@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 01/11] OMAP: GPIO: Modify init() in preparation for platform
+ device implementation
+Date: Wed, 19 May 2010 17:32:42 +0200
+Message-ID: <4BF4049A.5030603@ti.com>
+References: <1274194260-16401-1-git-send-email-charu@ti.com> <1274194260-16401-2-git-send-email-charu@ti.com> <20100518234100.GU5818@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5666364@dbde02.ent.ti.com> <4BF39AE9.1090107@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C56666A6@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:48223 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751723Ab0ESPaZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 11:30:25 -0400
-Received: by pwi5 with SMTP id 5so1596577pwi.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 08:30:25 -0700 (PDT)
-In-Reply-To: <1274181389-7488-3-git-send-email-s-ghorai@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60693 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751582Ab0ESPct (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 May 2010 11:32:49 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C56666A6@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sukumar Ghorai <s-ghorai@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, tony@atomide.com, sakoman@gmail.com, mike@compulab.co.il, Artem.Bityutskiy@nokia.com
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-On Tue, May 18, 2010 at 4:46 PM, Sukumar Ghorai <s-ghorai@ti.com> wrote=
-:
-> This patch removes direct reference of gpmc address from generic nand=
- platform code.
-> Nand platform code now uses wrapper functions which are implemented i=
-n gpmc module.
+On 5/19/2010 3:57 PM, Varadarajan, Charulatha wrote:
 >
-> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-[...]
-
 >
-> @@ -287,16 +246,15 @@ static void omap_read_buf_pref(struct mtd_info =
-*mtd, u_char *buf, int len)
-> =A0{
-> =A0 =A0 =A0 =A0struct omap_nand_info *info =3D container_of(mtd,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0struct omap_nand_info, mtd);
-> - =A0 =A0 =A0 uint32_t pfpw_status =3D 0, r_count =3D 0;
-> + =A0 =A0 =A0 u32 r_count =3D 0;
-> =A0 =A0 =A0 =A0int ret =3D 0;
-> - =A0 =A0 =A0 u32 *p =3D (u32 *)buf;
-> + =A0 =A0 =A0 u32 *p;
+>> -----Original Message-----
+>> From: Cousson, Benoit
+>> Sent: Wednesday, May 19, 2010 1:32 PM
+>> To: Varadarajan, Charulatha
+>> Cc: Tony Lindgren; linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com;
+>> khilman@deeprootsystems.com
+>> Subject: Re: [PATCH 01/11] OMAP: GPIO: Modify init() in preparation for platform
+>> device implementation
+>>
+>> On 5/19/2010 9:23 AM, Varadarajan, Charulatha wrote:
+>>>
+>>>> From: Tony Lindgren [mailto:tony@atomide.com]
+>>>> Sent: Wednesday, May 19, 2010 5:11 AM
+>>>>
+>>>> * Charulatha V<charu@ti.com>   [100518 07:44]:
+>>>>> This is in prepartion for implementing GPIO as a platform device.
+>>>>> gpio bank's base addresses are moved from gpio.c to plat/gpio.h.
+>>>>>
+>>>>> This patch also modifies omap_gpio_init() to make use of
+>>>>> omap_gpio_chip_init() and omap_gpio_mod_init(). omap_gpio_mod_init() does
+>>>>> the module init by clearing the status register and initializing the
+>>>>> GPIO control register. omap_gpio_chip_init() initializes the chip request,
+>>>>> free, get, set and other function pointers and sets the gpio irq handler.
+>>>>
+>>>> <snip>
+>>>>
+>>>>> diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-
+>>>> omap/include/plat/gpio.h
+>>>>> index de7c547..a06acb6 100644
+>>>>> --- a/arch/arm/plat-omap/include/plat/gpio.h
+>>>>> +++ b/arch/arm/plat-omap/include/plat/gpio.h
+>>>>> @@ -29,7 +29,8 @@
+>>>>>    #include<linux/io.h>
+>>>>>    #include<mach/irqs.h>
+>>>>>
+>>>>> -#define OMAP1_MPUIO_BASE			0xfffb5000
+>>>>> +#define OMAP1_MPUIO_BASE		0xfffb5000
+>>>>> +#define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
+>>>>>
+>>>>>    #if (defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850))
+>>>>>
+>>>>> @@ -62,8 +63,73 @@
+>>>>>    #define OMAP_MPUIO_LATCH		0x34
+>>>>>    #endif
+>>>>>
+>>>>> +/*
+>>>>> + * OMAP1510 GPIO base addresses
+>>>>> + */
+>>>>> +#define OMAP1510_GPIO_BASE		0xfffce000
+>>>>> +#define OMAP1510_IH_GPIO_BASE		64
+>>>>> +
+>>>>> +/*
+>>>>> + * OMAP1610 GPIO base addresses
+>>>>> + */
+>>>>> +#define OMAP1610_GPIO1_BASE		0xfffbe400
+>>>>> +#define OMAP1610_GPIO2_BASE		0xfffbec00
+>>>>> +#define OMAP1610_GPIO3_BASE		0xfffbb400
+>>>>> +#define OMAP1610_GPIO4_BASE		0xfffbbc00
+>>>>> +
+>>>>> +/*
+>>>>> + * OMAP7XX GPIO base addresses
+>>>>> + */
+>>>>> +#define OMAP7XX_GPIO1_BASE		0xfffbc000
+>>>>> +#define OMAP7XX_GPIO2_BASE		0xfffbc800
+>>>>> +#define OMAP7XX_GPIO3_BASE		0xfffbd000
+>>>>> +#define OMAP7XX_GPIO4_BASE		0xfffbd800
+>>>>> +#define OMAP7XX_GPIO5_BASE		0xfffbe000
+>>>>> +#define OMAP7XX_GPIO6_BASE		0xfffbe800
+>>>>
+>>>> Please move these into the mach-omap1/gpio1xxx.c instead,
+>>>> they should not be needed anywhere else. We don't want
+>>>> to have the GPIO registers available in the common headers
+>>>> as otherwise we'll get tons of drivers that suddenly
+>>>> start tinkering with these registers directly..
+>>>>
+>>>>> +/*
+>>>>> + * omap24xx GPIO base addresses
+>>>>> + */
+>>>>> +#define OMAP242X_GPIO1_BASE		0x48018000
+>>>>> +#define OMAP242X_GPIO2_BASE		0x4801a000
+>>>>> +#define OMAP242X_GPIO3_BASE		0x4801c000
+>>>>> +#define OMAP242X_GPIO4_BASE		0x4801e000
+>>>>> +
+>>>>> +#define OMAP243X_GPIO1_BASE		0x4900C000
+>>>>> +#define OMAP243X_GPIO2_BASE		0x4900E000
+>>>>> +#define OMAP243X_GPIO3_BASE		0x49010000
+>>>>> +#define OMAP243X_GPIO4_BASE		0x49012000
+>>>>> +#define OMAP243X_GPIO5_BASE		0x480B6000
+>>>>
+>>>> These should go into mach-omap2/gpioxxxx.c. The same
+>>>> for the others.
+>>>
+>>> They are used in omap_hwmod_xxxx_data.c files. That is why they are
+>>> moved to plat-omap/gpio.h files.
+>>> 1. Instead of having them in common headers, I can move them to mach-
+>> omapx/gpio.h.
+>>   >  2. Else, hard code these addresses directly in hwmod data structures
+>> and avoid
+>>   >  moving these definitions to header files.
+>>
+>> What was agreed on that is to eventually move all the SoC base address
+>> in a single header file (omapXXXX.h) that should be used only by the
+>> omap_hwmod_xxxx_data.c file.
 >
-> =A0 =A0 =A0 =A0/* take care of subpage reads */
-> =A0 =A0 =A0 =A0for (; len % 4 !=3D 0; ) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*buf++ =3D __raw_readb(info->nand.IO_A=
-DDR_R);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0len--;
-> =A0 =A0 =A0 =A0}
-> - =A0 =A0 =A0 p =3D (u32 *) buf;
+> Can you give pointers on where this file would be located and if it is going to auto-generated?
 
-Above code had an issue, which was fixed by this commit:
-http://git.infradead.org/mtd-2.6.git/commitdiff/c3341d0ceb4de1680572024=
-f50233403c6a8b10d
+These are the already existing plat-omap/omapXXXX.h files. We should be 
+able to generate them, and I think Paul already did a OMAP3 version, but 
+that should not prevent you to just move manually the GPIO defines in 
+theses files for the moment.
 
-I would suggest you to prepare your patch on MTD tree.
+Do not take into account the following comment:
+/*
+  * Please place only base defines here and put the rest in device
+  * specific headers.
+  */
 
->
-> =A0 =A0 =A0 =A0/* configure and start prefetch transfer */
-> =A0 =A0 =A0 =A0ret =3D gpmc_prefetch_enable(info->gpmc_cs, 0x0, len, =
-0x0);
-> @@ -307,17 +265,18 @@ static void omap_read_buf_pref(struct mtd_info =
-*mtd, u_char *buf, int len)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_read_buf8(mtd, bu=
-f, len);
-> =A0 =A0 =A0 =A0} else {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 p =3D (u32 *) buf;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0do {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pfpw_status =3D gpmc_pr=
-efetch_status();
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 r_count =3D ((pfpw_stat=
-us >> 24) & 0x7F) >> 2;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ioread32_rep(info->nand=
-_pref_fifo_add, p, r_count);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_hwcontrol(info->gp=
-mc_cs,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 GPMC_PR=
-EFETCH_FIFO_CNT, 0, 0, &r_count);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 r_count =3D r_count >> =
-2;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ioread32_rep(info->nand=
-=2EIO_ADDR_R, p, r_count);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0p +=3D r_count;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 len -=3D r_count << 2;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 len -=3D (r_count << 2)=
-;
-
-Braces are not required here.
-
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0} while (len);
-> -
-
-After call to 'gpmc_prefetch_enable', next line are:
-           if (ret) {
-                       /* PFPW engine is busy, use cpu copy method */
-                       if (info->nand.options & NAND_BUSWIDTH_16)
-                       ...
-                       ...
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* disable and stop the PFPW engine */
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_prefetch_reset(info->gpmc_cs);
-> =A0 =A0 =A0 =A0}
-
-So, if above 'if' fails, driver will not get prefetch engine (it was
-already busy). Then it doesn't makes sense to call for __reset__.
-
-> + =A0 =A0 =A0 /* disable and stop the PFPW engine */
-> + =A0 =A0 =A0 gpmc_prefetch_reset(info->gpmc_cs);
-
-(Also see my comments on your other patch.)
-
-> =A0}
->
-> =A0/**
-> @@ -331,13 +290,13 @@ static void omap_write_buf_pref(struct mtd_info=
- *mtd,
-> =A0{
-> =A0 =A0 =A0 =A0struct omap_nand_info *info =3D container_of(mtd,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0struct omap_nand_info, mtd);
-> - =A0 =A0 =A0 uint32_t pfpw_status =3D 0, w_count =3D 0;
-> + =A0 =A0 =A0 uint32_t pref_count =3D 0, w_count =3D 0;
-> =A0 =A0 =A0 =A0int i =3D 0, ret =3D 0;
-> - =A0 =A0 =A0 u16 *p =3D (u16 *) buf;
-> + =A0 =A0 =A0 u16 *p;
->
-> =A0 =A0 =A0 =A0/* take care of subpage writes */
-> =A0 =A0 =A0 =A0if (len % 2 !=3D 0) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 writeb(*buf, info->nand.IO_ADDR_R);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 writeb(*buf, info->nand.IO_ADDR_W);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0p =3D (u16 *)(buf + 1);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0len--;
-> =A0 =A0 =A0 =A0}
-> @@ -351,17 +310,22 @@ static void omap_write_buf_pref(struct mtd_info=
- *mtd,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_write_buf8(mtd, b=
-uf, len);
-> =A0 =A0 =A0 =A0} else {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pfpw_status =3D gpmc_prefetch_status();
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (pfpw_status & 0x3FFF) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 w_count =3D ((pfpw_stat=
-us >> 24) & 0x7F) >> 1;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 p =3D (u16 *) buf;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (len) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_hwcontrol(info->gp=
-mc_cs,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 GPMC_PREFETCH_FIFO_CNT, 0, 0, &w_count);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 w_count =3D w_count >> =
-1;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0for (i =3D 0; (i < w_c=
-ount) && len; i++, len -=3D 2)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 iowrite=
-16(*p++, info->nand_pref_fifo_add);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pfpw_status =3D gpmc_pr=
-efetch_status();
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 iowrite=
-16(*p++, info->nand.IO_ADDR_W);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* disable and stop the PFPW engine */
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_prefetch_reset(info->gpmc_cs);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* wait for data to flushed-out before =
-reset the prefetch */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 do {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_hwcontrol(info->gp=
-mc_cs,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 GPMC_PR=
-EFETCH_COUNT, 0, 0, &pref_count);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 } while (pref_count);
-> =A0 =A0 =A0 =A0}
-> + =A0 =A0 =A0 /* disable and stop the PFPW engine */
-> + =A0 =A0 =A0 gpmc_prefetch_reset(info->gpmc_cs);
-
-Same as above.
-
-
-> =A0}
->
-> =A0#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH_DMA
-> @@ -448,8 +412,10 @@ static inline int omap_nand_dma_transfer(struct =
-mtd_info *mtd, void *addr,
-> =A0 =A0 =A0 =A0/* setup and start DMA using dma_addr */
-> =A0 =A0 =A0 =A0wait_for_completion(&info->comp);
->
-> - =A0 =A0 =A0 while (0x3fff & (prefetch_status =3D gpmc_prefetch_stat=
-us()))
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ;
-> + =A0 =A0 =A0 do {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpmc_hwcontrol(info->gpmc_cs,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 GPMC_PR=
-EFETCH_COUNT, 0, 0, &prefetch_status);
-> + =A0 =A0 =A0 } while (prefetch_status);
-> =A0 =A0 =A0 =A0/* disable and stop the PFPW engine */
-> =A0 =A0 =A0 =A0gpmc_prefetch_reset();
->
-> @@ -502,7 +468,7 @@ static void omap_write_buf_dma_pref(struct mtd_in=
-fo *mtd,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_write_buf_pref(mtd, buf, len);
-> =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* start transfer in DMA mode */
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_nand_dma_transfer(mtd, buf, len, 0=
-x1);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_nand_dma_transfer(mtd, (u_char *) =
-buf, len, 0x1);
-
-This is already fixed. See commit:
-http://git.infradead.org/mtd-2.6.git/commitdiff/bdaefc41627b6f2815ef7aa=
-476dfa4ebb3ad499f
-
-
-Rest, patches looks good. It is a good clean-up all together.
-
---=20
-Regards,
-Vimal Singh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Benoit
