@@ -1,233 +1,145 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/8] PM: Add suspend block api.
-Date: Wed, 19 May 2010 09:55:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1005190936560.27473@utopia.booyaka.com>
-References: <1273810273-3039-1-git-send-email-arve@android.com>
-	<1273810273-3039-2-git-send-email-arve@android.com>
-	<alpine.DEB.2.00.1005140023220.3348@utopia.booyaka.com>
-	<AANLkTimghkjR5PaWdOpJFM7jeq8vFpEAcF9DhgEW0hCK@mail.gmail.com>
-	<alpine.DEB.2.00.1005172011310.27473@utopia.booyaka.com>
-	<AANLkTikybZSgsmcORpfptOrK__57sl71896JV-01OilQ@mail.gmail.com>
-	<alpine.DEB.2.00.1005172115020.27473@utopia.booyaka.com>
-	<AANLkTikKfyvHQVoY93u6-yK5V9RHzWdVcX73bpiD6Vdp@mail.gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+Date: Wed, 19 May 2010 18:04:31 +0200
+Message-ID: <4BF40C0F.4000308@ti.com>
+References: <1273745535-27139-1-git-send-email-shweta.gulati@ti.com> <4BF3D23F.6070308@ti.com> <FCCFB4CDC6E5564B9182F639FC356087030527036D@dbde02.ent.ti.com> <4BF3F5FF.20407@ti.com> <FCCFB4CDC6E5564B9182F639FC356087030527039F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-290829453-1274284558=:27473"
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <AANLkTikKfyvHQVoY93u6-yK5V9RHzWdVcX73bpiD6Vdp@mail.gmail.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Arjan van de Ven <arjan@infradead.org>
-List-Id: linux-omap@vger.kernel.org
-
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---155748971-290829453-1274284558=:27473
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-Hi Arve,
-
-On Mon, 17 May 2010, Arve Hj=F8nnev=E5g wrote:
-
-> On Mon, May 17, 2010 at 8:34 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> > On Mon, 17 May 2010, Arve Hj=F8nnev=E5g wrote:
-> >> On Mon, May 17, 2010 at 7:17 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> >> > On Fri, 14 May 2010, Arve Hj=F8nnev=E5g wrote:
-> >> >> On Thu, May 13, 2010 at 11:27 PM, Paul Walmsley <paul@pwsan.com> wr=
-ote:
-> >> >> > On Thu, 13 May 2010, Arve Hj=F8nnev=E5g wrote:
-> >> >> >
-> >> >> >> Adds /sys/power/policy that selects the behaviour of /sys/power/=
-state.
-> >> >> >> After setting the policy to opportunistic, writes to /sys/power/=
-state
-> >> >> >> become non-blocking requests that specify which suspend state to=
- enter
-> >> >> >> when no suspend blockers are active. A special state, "on", stop=
-s the
-> >> >> >> process by activating the "main" suspend blocker.
-> >> >> >>
-> >> >> >> Signed-off-by: Arve Hj=F8nnev=E5g <arve@android.com>
-> >> >> >
-> >> >> > Looking at the way that suspend-blocks are used in the current An=
-droid
-> >> >> > 'msm' kernel tree[1], they seem likely to cause layering violatio=
-ns,
-> >> >> > fragile kernel code with userspace dependencies, and code that co=
-nsumes
-> >> >> > power unnecessarily.
-> >> >> >
-> >> >> > For example, in drivers/mmc/core/core.c:721, in mmc_rescan() [2],=
- we find
-> >> >> > the following code:
-> >> >> >
-> >> >> > =A0 =A0 =A0 =A0/* give userspace some time to react */
-> >> >> > =A0 =A0 =A0 =A0wake_lock_timeout(&mmc_delayed_work_wake_lock, HZ =
-/ 2);
-> >> >> >
-> >> >> > This is a layering violation. =A0The MMC subsystem should have no=
-thing to do
-> >> >> > with "giving userspace time to react." =A0That is the responsibil=
-ity of the
-> >> >> > Linux scheduler.
-> >> >> >
-> >> >> > This code is also intrinsically fragile and use-case dependent. =
-=A0What if
-> >> >> > userspace occasionally needs more than (HZ / 2) to react? =A0If t=
-he
-> >> >> > distributor is lucky enough to catch this before the product ship=
-s, then
-> >> >> > the distributor can patch in a new magic number. =A0But if the de=
-vice makes
-> >> >> > it to the consumer, the result is an unstable device that unpredi=
-ctably
-> >> >> > suspends.
-> >> >> >
-> >> >> > The above code will also waste power. =A0Even if userspace takes =
-less than
-> >> >> > (HZ / 2) to react, the system will still be prevented from enteri=
-ng a
-> >> >> > system-wide low power state for the duration of the remaining tim=
-e. =A0This
-> >> >> > is in contrast to an approach that uses the idle loop to enter a
-> >> >> > system-wide low power state. =A0The moment that the system has no=
- further
-> >> >> > work to do, it can start saving power.
-> >> >> >
-> >> >>
-> >> >> Yes, preventing suspend for 1/2 second wastes some power, but are y=
-ou
-> >> >> seriously suggesting that it wastes more power then never suspendin=
-g?
-> >> >> Opportunitic suspend does not prevent entering low power modes from
-> >> >> idle.
-> >> >
-> >> > Sorry, my E-mail was unclear. =A0Here is my intended point:
-> >> >
-> >> > The current Android opportunistic suspend governor does not enter fu=
-ll
-> >> > system suspend until all suspend-blocks are released. =A0If the gove=
-rnor
-> >> > were modified to respect the scheduler, then it could enter suspend =
-the
-> >> > moment that the system had no further work to do.
-> >> >
-> >>
-> >> On the hardware that shipped we enter the same power state from idle
-> >> and suspend, so the only power savings we get from suspend that we
-> >> don't get in idle is from not respecting the scheduler and timers.
-> >
-> > Other people
-> > say that their hardware XXX. =A0(This is probably likely for anything t=
-hat
-> > supports ACPI.)
-
-Heh, looks like this part of my E-mail escaped a little too early.
-
-> >> > So during part of the (HZ / 2) time interval in the above code, the =
-system
-> >> > is running some kernel or userspace code. =A0But after that work is =
-done, an
-> >> > idle-loop-based opportunistic suspend governor could enter idle duri=
-ng
-> >> > the remaining portion of that (HZ / 2) time interval, while the curr=
-ent
-> >> > governor must keep the system out of suspend.
-> >> >
-> >> Triggering a full suspend (that disregards normal timers) from idle
-> >> does not work, since the system may temporarily enter idle while
-> >> processing the event.
-> >
-> > Could you provide an example?
->=20
-> The code takes a pagefault. The system is idle while waiting for the
-> dma to finish.
-
-OK.
-
-> > In such a case, how can the kernel guarantee that the system will proce=
-ss
-> > the event within (HZ / 2) seconds?
->
-> It can't, but in my opinion if the event did not start processing in
-> 1/2 second it was probably not time critical.
-
-Thanks for the correction regarding the unit of the time interval.
-
-To use the pagefault example, wouldn't that be partially dependent on=20
-factors outside the control of the task that handles the input event? =20
-(e.g., the time needed to page back in, or other code running on the=20
-system.)
-
-> >> > Of course, to do this, a different method for freezing processes wou=
-ld be
-> >> > needed; one possible approach is described here[1]; others have prop=
-osed
-> >> > similar approaches.
-> >>
-> >> If you freeze processes you need something like a suspend blocker to
-> >> prevent processes from being frozen.
-> >
-> > (It occurs to me that "frozen" is the wrong terminology to use.
-> > =A0Perhaps "paused" would be a better term, along the lines of [1].)
-> >
-> > The full set of processes does not need to be paused. =A0For example, i=
-f
-> > "untrusted" processes are run in a cgroup, and only tasks in that cgrou=
-p
-> > are put into TASK_INTERRUPTIBLE, then "trusted" processes will not be
-> > paused.
->=20
-> We want to freeze trusted processes.
-
-By "trusted," I mean processes that are run with a suspend block, as in=20
-your example to Tony[1].  Isn't it so that Android has processes that=20
-either run entirely under suspend-blocks, or which take suspend-blocks at=
-=20
-some point in time during their execution?  Wouldn't those processes need=
-=20
-to be prevented from a force-pause or force-freeze?
-
-> >> By having a process that never gets frozen you could implement this
-> >> entirely in user space, but you would have to funnel all wakeup events
-> >> though this process.
-> >
-> > The proposal[2] does require a kernel change. =A0No wakeup funnel proce=
-ss
-> > would be needed. =A0The proposal is to put processes into
-> > TASK_INTERRUPTIBLE, not TASK_STOPPED (unlike most "freezers").
-> >
->=20
-> Why is the method used for pausing the processes relevant? If the
-> process is paused it cannot process the wakeup event.
-
-Tasks in TASK_INTERRUPTIBLE are woken back up when an event arrives,=20
-unlike tasks in TASK_STOPPED, which are stopped until a SIGCONT arrives.
-
-> The only way to get the wake event to the process is to funnel it though=
-=20
-> a process that never is paused.
-
-
-- Paul
-
-1. http://lkml.org/lkml/2010/5/7/420
-
-
---155748971-290829453-1274284558=:27473
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42696 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751453Ab0ESQEg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 12:04:36 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4JG4ZF3004472
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 19 May 2010 11:04:35 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087030527039F@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: "Gulati, Shweta" <shweta.gulati@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On 5/19/2010 4:37 PM, Sripathy, Vishwanath wrote:
+> Hi Benoit,
+>
+>> -----Original Message-----
+>> From: Cousson, Benoit
+>> Sent: Wednesday, May 19, 2010 8:00 PM
+>> To: Sripathy, Vishwanath
+>> Cc: Gulati, Shweta; linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+>>
+>> On 5/19/2010 3:50 PM, Sripathy, Vishwanath wrote:
+>>> Hi Benoit,
+>>>
+>>>> -----Original Message-----
+>>>> From: Cousson, Benoit
+>>>> Sent: Wednesday, May 19, 2010 5:28 PM
+>>>> To: Gulati, Shweta
+>>>> Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath
+>>>> Subject: Re: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
+>>>>
+>>>> Hi Vishwa,
+>>>>
+>>>> On 5/13/2010 12:12 PM, shweta gulati wrote:
+>>>>> From: Vishwanath Sripathy<vishwanath.bs@ti.com>
+>>>>>
+>>>>> OMAP3430/3630 has a Silicon bug because of which SDRC is
+>>>>> released from IDLE even before Core DPLL has locked. This leads
+>>>>> to undefined behaviour of SDRC DLL.
+>>>>>
+>>>>> This patch has workaround for the same.
+>>>>>
+>>>>> Description of WA for 3430:
+>>>>> Initialization:
+>>>>> 	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3
+>>>>> 	is always locked.
+>>>>>
+>>>>> Before CORE Voltage Domain (VDD2) Sleep Transition to RETENTION or OFF
+>> mode:
+>>>>> 1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP2 Frequency
+>>>>> 	(by changing M2 Divider value). This is increasing the period duration of
+>>>>> 	one L3 clock cycle.
+>>>>> 	o	In case of CORE is at OPP3 (166MHz@1.15V):
+>>>>> 	"	Lower the frequency to 83MHz.
+>>>>>
+>>>>> 	o	In case of CORE is at OPP2 (83MHz@1.05V):
+>>>>> 	"	Keep the frequency as it is (83MHz).
+>>>>>
+>>>>> 2.	Increase CORE Voltage to 1.2V. This is reducing the timing duration of
+>> the
+>>>>> 	critical path signal which will now fit to one L3 clock cycle.
+>>>>>
+>>>>> 3.	Enable DPLL3 Automatic mode. This will ensure proper transition to
+>>>>> 	RETENTION or OFF mode.
+>>>>>
+>>>>> After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
+>>>>> 1.	Disable DPLL3 Automatic mode.
+>>>>> 2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
+>>>>>
+>>>>> Description of WA for 3630:
+>>>>> Initialization:
+>>>>> 	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3 is
+>>>> always locked.
+>>>>>
+>>>>> Before CORE Voltage Domain(VDD2) Sleep Transition to RETENTION or OFF
+>> mode:
+>>>>> 1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP50 Frequency
+>>>>> 	(by changing M2 Divider value) and set VDD2 Voltage for OPP100.
+>>>>> 	This is increasing the period duration of one L3 clock cycle and reducing
+>>>>> 	the timing duration of the critical path signal which will now fit to one
+>>>>> 	L3 clock cycle.
+>>>>> 	o	In case of CORE is at OPP100 (L3=200MHz, VDD2=1.1375V):
+>>>>> 		"	Lower the frequency to 100MHz.
+>>>>> 		"	Keep the voltage as it is (1.1375V).
+>>>>>
+>>>>> 	o	In case of CORE is at OPP50 (L3=100MHz, VDD2=0.93V):
+>>>>> 		"	Keep the frequency as it is (100MHz).
+>>>>> 		"	Increase the voltage to 1.1375V.
+>>>>>
+>>>>> 2.	Enable DPLL3 Automatic mode. This will ensure proper transition to
+>>>>> 	RETENTION or OFF mode.
+>>>>>
+>>>>> After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
+>>>>> 1.	Disable DPLL3 Automatic mode.
+>>>>> 2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
+>>>>>
+>>>>> Also OSWR should not be attempted if DPLL3 has locked. This should be done as
+>>>> part of OSWR patch series.
+>>>>>
+>>>>> Patch tested on 3430SDP and 3630 ZOOM3.
+>>>>>
+>>>>
+>>>> Do you have a more accurate description of the bug? What is the defect ID?
+>>>>
+>>> Defect Id is i581.
+>>>> The subject is about DPLL3 lock issue, and the description is all about
+>>>> the transition to CORE RET or OFF and playing with voltage... and why
+>>>> OSWR is affected as well?
+>>>> I'm a little bit confused by that...
+>>>>
+>>>> Is this bug dependent of the target power state? What about INACTIVE?
+>>> The root cause of the issue is that SDRC IDLEREQ is deasserted before DPLL3 has
+>> locked. Because of this DLL may/may not lock based on Process Voltage Temperature
+>> conditions. The bug can occur when DPLL3 automatic transition is enabled. So DPLL3
+>> automatic transition is disabled by default and it is enabled only when system is
+>> entering ret/off state (to facilitate voltage scaling). So when system is entering ret/off
+>> state, WA is applied (since DPLL3 autoidle is enabled, we can possibly hit the issue;
+>> hence the WA)
+>>
+>> Thanks, but that still not explain why this WA is considered only for
+>> device transition to RET or OFF. The DPLL3 can got to idle as soon as
+>> the CORE is INACTIVE. How this case is handled?
+> DPLL3 auto idle is disabled when Core is in ON or INACTIVE state. So DPLL3 cannot goto idle state. We enable DPPL3 auto idle only when Core is about to enter RET or OFF state (otherwise VDD2 will not be able to scale the voltage down).
 
---155748971-290829453-1274284558=:27473--
+Why did you prevent that mode for INACTIVE? If I remember well, during 
+the early measurement we did on 3430, the DPLL consumption in locked 
+mode is around 5mw, so you can save a good amount of power for very low 
+load use cases.
+
+Did you try to enable that in CPUIdle to check the power saving you can 
+achieve with that mode?
+
+Benoit
