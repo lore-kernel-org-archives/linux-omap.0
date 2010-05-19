@@ -1,88 +1,67 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 04/22] OMAP4: hwmod: Replace OCPIF_HAS_IDLEST by
-	HWMOD_NO_IDLEST
-Date: Tue, 18 May 2010 20:18:42 -0600
-Message-ID: <20100519021841.19716.47124.stgit@localhost.localdomain>
+Subject: [PATCH 10/22] OMAP: hwmod: Replace WARN by pr_warning for clockdomain
+	check
+Date: Tue, 18 May 2010 20:18:50 -0600
+Message-ID: <20100519021848.19716.50002.stgit@localhost.localdomain>
 References: <20100519021800.19716.8938.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:39798 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755770Ab0ESCVA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 May 2010 22:21:00 -0400
 In-Reply-To: <20100519021800.19716.8938.stgit@localhost.localdomain>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Benoit Cousson <b-cousson@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
 From: Benoit Cousson <b-cousson@ti.com>
 
-Some initiator modules in OMAP2 & 3 does not have IDLEST bit,
-in that case we cannot detect the module readiness by
-polling that bit and must exist the function immediately
-assuming that the module is ready.
-
-The previous flag was affected to the OCP interface. While it is
-technically true that the idlest is related to the L4 slave
-interface of the module, the PRCM status belong to the module.
+Most of the clock nodes belong to a clock domain, but it is perfectly valid
+to have clock without clock domain.
+Root clocks for example does not belong to any clock domain.
+Keep the warning but reduce the verbosity.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |    2 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    8 +++++---
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 4a134c4..6459d07 100644
+index b6031e4..2fff39f 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -808,7 +808,7 @@ static int _wait_target_ready(struct omap_hwmod *oh)
+@@ -404,21 +404,20 @@ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+  */
+ static int _init_main_clk(struct omap_hwmod *oh)
+ {
+-	struct clk *c;
+ 	int ret = 0;
  
- 	os = *oh->slaves + oh->_mpu_port_index;
- 
--	if (!(os->flags & OCPIF_HAS_IDLEST))
-+	if (oh->flags & HWMOD_NO_IDLEST)
+ 	if (!oh->main_clk)
  		return 0;
  
- 	/* XXX check module SIDLEMODE */
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 4965bbe..0eccc09 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -176,9 +176,8 @@ struct omap_hwmod_addr_space {
- #define OCP_USER_SDMA			(1 << 1)
+-	c = omap_clk_get_by_name(oh->main_clk);
+-	if (!c)
++	oh->_clk = omap_clk_get_by_name(oh->main_clk);
++	if (!oh->_clk)
+ 		pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
+ 			   oh->name, oh->main_clk);
+-		ret = -EINVAL;
+-	oh->_clk = c;
++		return -EINVAL;
  
- /* omap_hwmod_ocp_if.flags bits */
--#define OCPIF_HAS_IDLEST		(1 << 0)
--#define OCPIF_SWSUP_IDLE		(1 << 1)
--#define OCPIF_CAN_BURST			(1 << 2)
-+#define OCPIF_SWSUP_IDLE		(1 << 0)
-+#define OCPIF_CAN_BURST			(1 << 1)
+-	WARN(!c->clkdm, "omap_hwmod: %s: missing clockdomain for %s.\n",
+-	     oh->main_clk, c->name);
++	if (!oh->_clk->clkdm)
++		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
++			   oh->main_clk, oh->_clk->name);
  
- /**
-  * struct omap_hwmod_ocp_if - OCP interface data
-@@ -351,6 +350,8 @@ struct omap_hwmod_omap4_prcm {
-  *     when module is enabled, rather than the default, which is to
-  *     enable autoidle
-  * HWMOD_SET_DEFAULT_CLOCKACT: program CLOCKACTIVITY bits at startup
-+ * HWMOD_NO_IDLEST : this module does not have idle status - this is the case
-+ *     only for few initiator modules on OMAP2 & 3.
-  */
- #define HWMOD_SWSUP_SIDLE			(1 << 0)
- #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
-@@ -358,6 +359,7 @@ struct omap_hwmod_omap4_prcm {
- #define HWMOD_INIT_NO_IDLE			(1 << 3)
- #define HWMOD_NO_OCP_AUTOIDLE			(1 << 4)
- #define HWMOD_SET_DEFAULT_CLOCKACT		(1 << 5)
-+#define HWMOD_NO_IDLEST				(1 << 6)
- 
- /*
-  * omap_hwmod._int_flags definitions
+ 	return ret;
+ }
+
+
