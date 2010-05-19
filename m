@@ -1,80 +1,26 @@
-From: felipe.balbi@nokia.com
-Subject: [PATCH/PM] arm: omap: musb: proper error checking
-Date: Wed, 19 May 2010 09:42:56 +0300
-Message-ID: <1274251376-6111-1-git-send-email-felipe.balbi@nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC/PATCH] arm: oprofile: remove locking from suspend/resume
+Date: Wed, 19 May 2010 08:04:59 +0100
+Message-ID: <20100519070459.GA22212@n2100.arm.linux.org.uk>
+References: <1274227981-20130-1-git-send-email-khilman@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:46173 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752468Ab0ESGpX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 02:45:23 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33037 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751289Ab0ESHFT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 03:05:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1274227981-20130-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+On Tue, May 18, 2010 at 05:13:01PM -0700, Kevin Hilman wrote:
+> Since oprofile is a sysdev, its suspend/resume methods are called with
+> interrupts disabled.  Using a mutex (which might sleep) in this atomic
+> context is not safe.
 
-We need to clk_put() and iounmap() to fully release
-the resources.
-
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
-
-applies on top of the linux-omap/pm
-
- arch/arm/mach-omap2/usb-musb.c |   33 ++++++++++++++++++++++-----------
- 1 files changed, 22 insertions(+), 11 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 116548d..085e22e 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -60,23 +60,34 @@ static void __init usb_musb_pm_init(void)
- 
- 	dev_set_name(dev, "musb_hdrc");
- 	otg_clk = clk_get(dev, "ick");
-+	if (IS_ERR(otg_clk)) {
-+		printk(KERN_WARNING "%s: Unable to get clock for MUSB.\n",
-+				__func__);
-+		goto out0;
-+	}
- 
--	if (otg_clk && clk_enable(otg_clk)) {
-+	if (clk_enable(otg_clk)) {
- 		printk(KERN_WARNING
- 			"%s: Unable to enable clocks for MUSB, "
- 			"cannot reset.\n",  __func__);
--	} else {
--		/* Reset OTG controller. After reset, it will be in
--		 * force-idle, force-standby mode. */
--		__raw_writel(OTG_SYSC_SOFTRESET, otg_base + OTG_SYSCONFIG);
--
--		while (!(OTG_SYSS_RESETDONE &
--					__raw_readl(otg_base + OTG_SYSSTATUS)))
--			cpu_relax();
-+		goto out1;
- 	}
- 
--	if (otg_clk)
--		clk_disable(otg_clk);
-+	/* Reset OTG controller. After reset, it will be in
-+	 * force-idle, force-standby mode. */
-+	__raw_writel(OTG_SYSC_SOFTRESET, otg_base + OTG_SYSCONFIG);
-+
-+	while (!(OTG_SYSS_RESETDONE &
-+				__raw_readl(otg_base + OTG_SYSSTATUS)))
-+		cpu_relax();
-+
-+	clk_disable(otg_clk);
-+
-+out1:
-+	clk_put(otg_clk);
-+
-+out0:
-+	iounmap(otg_base);
- }
- 
- void usb_musb_disable_autoidle(void)
--- 
-1.7.1
-
+It isn't a sysdev anymore.  Suggest you take a look at the ARM tree once
+in a while.
