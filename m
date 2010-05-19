@@ -1,40 +1,65 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Wed, 19 May 2010 17:25:57 +0100
-Message-ID: <20100519162557.GA25719@srcf.ucam.org>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<87aas2azc5.fsf@deeprootsystems.com>
-	<20100514231510.GG16989@thunk.org> <201005152152.15996.rjw@sisk.pl>
-	<alpine.DEB.2.00.1005171932540.27473@utopia.booyaka.com>
-	<20100518015519.GA6500@srcf.ucam.org>
-	<alpine.DEB.2.00.1005191016110.27473@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1005191016110.27473@utopia.booyaka.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH v2] omap4: Fix multi-omap boot with reset un-used clocks
+Date: Wed, 19 May 2010 22:08:07 +0530
+Message-ID: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54752 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753976Ab0ESQiP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 May 2010 12:38:15 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, May 19, 2010 at 10:17:01AM -0600, Paul Walmsley wrote:
+This patch uses "ENABLE_ON_INIT" flag on the emif clock nodes
+to avoid the emif clk getting cut as part of reset un-used clock
+routine which prevents boot.
 
-> Could you please elaborate, or provide a link to an E-mail in the archives 
-> that would explain why?
+Since omap4 "omap2_clk_init()" calls "clk_enable_init_clocks()"
+which increases the usecount on all ENABLE_ON_INIT clocks, it
+prevents "omap2_clk_disable_unused()" from disabling the clock.
 
-What would otherwise be a wakeup event may be delivered between you 
-deciding to stop tasks and you actually stopping tasks. How do you know 
-to restart tasks at that point?
+The real fix is to have driver for EMIF and do clock get/enable
+as part of it. The EMIF driver is planned to be done HWMOD way
+so till that available to keep omap3_defconfig booting on OMAP4430,
+this patch is necessary.
+(Will updated the auto-gen script for 44xx accordingly)
 
+The fix was suggested by Paul Walmsley
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+With this patch and Tony's below sram fix, omap3_defconfig
+boots on OMAP4430 as it is. Boot tested with 2.6.34 maniline kernel
+on OMAP4430, OMAP3430 with omap3_defconfig and regular defconfig
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27363.html
+
+ arch/arm/mach-omap2/clock44xx_data.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index a5c0c9c..a1b4cae 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -1369,6 +1369,7 @@ static struct clk emif1_ick = {
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_1_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
++	.flags		= ENABLE_ON_INIT,
+ 	.clkdm_name	= "l3_emif_clkdm",
+ 	.parent		= &ddrphy_ck,
+ 	.recalc		= &followparent_recalc,
+@@ -1379,6 +1380,7 @@ static struct clk emif2_ick = {
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_2_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
++	.flags		= ENABLE_ON_INIT,
+ 	.clkdm_name	= "l3_emif_clkdm",
+ 	.parent		= &ddrphy_ck,
+ 	.recalc		= &followparent_recalc,
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.6.0.4
+
