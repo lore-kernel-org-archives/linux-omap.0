@@ -1,121 +1,136 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH 00/11] OMAP: GPIO: Implement GPIO in HWMOD way
-Date: Wed, 19 May 2010 19:25:39 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C566669E@dbde02.ent.ti.com>
+Subject: RE: [PATCH 01/11] OMAP: GPIO: Modify init() in preparation for
+ platform device implementation
+Date: Wed, 19 May 2010 19:27:56 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C56666A6@dbde02.ent.ti.com>
 References: <1274194260-16401-1-git-send-email-charu@ti.com>
- <4BF3A72D.3080501@ti.com>
+ <1274194260-16401-2-git-send-email-charu@ti.com>
+ <20100518234100.GU5818@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C5666364@dbde02.ent.ti.com>
+ <4BF39AE9.1090107@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43685 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43832 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751133Ab0ESNzu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 09:55:50 -0400
-In-Reply-To: <4BF3A72D.3080501@ti.com>
+	id S1751441Ab0ESN6D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 09:58:03 -0400
+In-Reply-To: <4BF39AE9.1090107@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
 
 
 > -----Original Message-----
 > From: Cousson, Benoit
-> Sent: Wednesday, May 19, 2010 2:24 PM
+> Sent: Wednesday, May 19, 2010 1:32 PM
 > To: Varadarajan, Charulatha
-> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com; tony@atomide.com;
+> Cc: Tony Lindgren; linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com;
 > khilman@deeprootsystems.com
-> Subject: Re: [PATCH 00/11] OMAP: GPIO: Implement GPIO in HWMOD way
+> Subject: Re: [PATCH 01/11] OMAP: GPIO: Modify init() in preparation for platform
+> device implementation
 > 
-> On 5/18/2010 4:50 PM, Charulatha V wrote:
-> > This patch series implements GPIO module in platform device model.
-> > It also makes OMAP2PLUS specific GPIO implemented in HWMOD FW way.
+> On 5/19/2010 9:23 AM, Varadarajan, Charulatha wrote:
 > >
-> > This patch series is created on "origin/pm-wip/runtime".
+> >> From: Tony Lindgren [mailto:tony@atomide.com]
+> >> Sent: Wednesday, May 19, 2010 5:11 AM
+> >>
+> >> * Charulatha V<charu@ti.com>  [100518 07:44]:
+> >>> This is in prepartion for implementing GPIO as a platform device.
+> >>> gpio bank's base addresses are moved from gpio.c to plat/gpio.h.
+> >>>
+> >>> This patch also modifies omap_gpio_init() to make use of
+> >>> omap_gpio_chip_init() and omap_gpio_mod_init(). omap_gpio_mod_init() does
+> >>> the module init by clearing the status register and initializing the
+> >>> GPIO control register. omap_gpio_chip_init() initializes the chip request,
+> >>> free, get, set and other function pointers and sets the gpio irq handler.
+> >>
+> >> <snip>
+> >>
+> >>> diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-
+> >> omap/include/plat/gpio.h
+> >>> index de7c547..a06acb6 100644
+> >>> --- a/arch/arm/plat-omap/include/plat/gpio.h
+> >>> +++ b/arch/arm/plat-omap/include/plat/gpio.h
+> >>> @@ -29,7 +29,8 @@
+> >>>   #include<linux/io.h>
+> >>>   #include<mach/irqs.h>
+> >>>
+> >>> -#define OMAP1_MPUIO_BASE			0xfffb5000
+> >>> +#define OMAP1_MPUIO_BASE		0xfffb5000
+> >>> +#define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
+> >>>
+> >>>   #if (defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850))
+> >>>
+> >>> @@ -62,8 +63,73 @@
+> >>>   #define OMAP_MPUIO_LATCH		0x34
+> >>>   #endif
+> >>>
+> >>> +/*
+> >>> + * OMAP1510 GPIO base addresses
+> >>> + */
+> >>> +#define OMAP1510_GPIO_BASE		0xfffce000
+> >>> +#define OMAP1510_IH_GPIO_BASE		64
+> >>> +
+> >>> +/*
+> >>> + * OMAP1610 GPIO base addresses
+> >>> + */
+> >>> +#define OMAP1610_GPIO1_BASE		0xfffbe400
+> >>> +#define OMAP1610_GPIO2_BASE		0xfffbec00
+> >>> +#define OMAP1610_GPIO3_BASE		0xfffbb400
+> >>> +#define OMAP1610_GPIO4_BASE		0xfffbbc00
+> >>> +
+> >>> +/*
+> >>> + * OMAP7XX GPIO base addresses
+> >>> + */
+> >>> +#define OMAP7XX_GPIO1_BASE		0xfffbc000
+> >>> +#define OMAP7XX_GPIO2_BASE		0xfffbc800
+> >>> +#define OMAP7XX_GPIO3_BASE		0xfffbd000
+> >>> +#define OMAP7XX_GPIO4_BASE		0xfffbd800
+> >>> +#define OMAP7XX_GPIO5_BASE		0xfffbe000
+> >>> +#define OMAP7XX_GPIO6_BASE		0xfffbe800
+> >>
+> >> Please move these into the mach-omap1/gpio1xxx.c instead,
+> >> they should not be needed anywhere else. We don't want
+> >> to have the GPIO registers available in the common headers
+> >> as otherwise we'll get tons of drivers that suddenly
+> >> start tinkering with these registers directly..
+> >>
+> >>> +/*
+> >>> + * omap24xx GPIO base addresses
+> >>> + */
+> >>> +#define OMAP242X_GPIO1_BASE		0x48018000
+> >>> +#define OMAP242X_GPIO2_BASE		0x4801a000
+> >>> +#define OMAP242X_GPIO3_BASE		0x4801c000
+> >>> +#define OMAP242X_GPIO4_BASE		0x4801e000
+> >>> +
+> >>> +#define OMAP243X_GPIO1_BASE		0x4900C000
+> >>> +#define OMAP243X_GPIO2_BASE		0x4900E000
+> >>> +#define OMAP243X_GPIO3_BASE		0x49010000
+> >>> +#define OMAP243X_GPIO4_BASE		0x49012000
+> >>> +#define OMAP243X_GPIO5_BASE		0x480B6000
+> >>
+> >> These should go into mach-omap2/gpioxxxx.c. The same
+> >> for the others.
 > >
-> > This patch series is tested on OMAP3430 SDP board. It would be of
-> > great help if someone could test the same on OMAP1 and OMAP2 boards.
+> > They are used in omap_hwmod_xxxx_data.c files. That is why they are
+> > moved to plat-omap/gpio.h files.
+> > 1. Instead of having them in common headers, I can move them to mach-
+> omapx/gpio.h.
+>  > 2. Else, hard code these addresses directly in hwmod data structures
+> and avoid
+>  > moving these definitions to header files.
 > 
-> What about OMAP4? Didn't you test it on SDP or Blaze?
+> What was agreed on that is to eventually move all the SoC base address
+> in a single header file (omapXXXX.h) that should be used only by the
+> omap_hwmod_xxxx_data.c file.
 
-I tested this series on 4430SDP using an TI internal tree. Since origin/pm-wip/runtime branch does not have OMAP4 hwmod database, I did not mention about OMAP4.
+Can you give pointers on where this file would be located and if it is going to auto-generated? 
 
 > 
 > Benoit
-> 
-> > Charulatha V (11):
-> >    OMAP: GPIO: Modify init() in preparation for platform device
-> >      implementation
-> >    OMAP: GPIO: Include platform_data structure for GPIO
-> >    OMAP: GPIO: Introduce support for OMAP15xx chip GPIO init
-> >    OMAP: GPIO: Introduce support for OMAP16xx chip GPIO init
-> >    OMAP: GPIO: Introduce support for OMAP7xx chip GPIO init
-> >    OMAP: GPIO: add GPIO hwmods structures for OMAP3
-> >    OMAP: GPIO: add GPIO hwmods structures for OMAP242X
-> >    OMAP: GPIO: add GPIO hwmods structures for OMAP243X
-> >    OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init
-> >    OMAP: GPIO: Implement GPIO as a platform device
-> >    OMAP: GPIO: Remove omap_gpio_init()
-> >
-> >   arch/arm/mach-omap1/Makefile               |    6 +
-> >   arch/arm/mach-omap1/board-ams-delta.c      |    1 -
-> >   arch/arm/mach-omap1/board-fsample.c        |    1 -
-> >   arch/arm/mach-omap1/board-h2.c             |    1 -
-> >   arch/arm/mach-omap1/board-h3.c             |    1 -
-> >   arch/arm/mach-omap1/board-htcherald.c      |    1 -
-> >   arch/arm/mach-omap1/board-innovator.c      |    1 -
-> >   arch/arm/mach-omap1/board-nokia770.c       |    1 -
-> >   arch/arm/mach-omap1/board-osk.c            |    1 -
-> >   arch/arm/mach-omap1/board-palmte.c         |    1 -
-> >   arch/arm/mach-omap1/board-palmz71.c        |    1 -
-> >   arch/arm/mach-omap1/board-perseus2.c       |    1 -
-> >   arch/arm/mach-omap1/board-sx1.c            |    1 -
-> >   arch/arm/mach-omap1/board-voiceblue.c      |    1 -
-> >   arch/arm/mach-omap1/clock_data.c           |    2 +-
-> >   arch/arm/mach-omap1/gpio15xx.c             |  104 +++++
-> >   arch/arm/mach-omap1/gpio16xx.c             |  202 +++++++++
-> >   arch/arm/mach-omap1/gpio7xx.c              |  266 ++++++++++++
-> >   arch/arm/mach-omap2/Makefile               |    2 +-
-> >   arch/arm/mach-omap2/board-2430sdp.c        |    1 -
-> >   arch/arm/mach-omap2/board-3430sdp.c        |    1 -
-> >   arch/arm/mach-omap2/board-3630sdp.c        |    1 -
-> >   arch/arm/mach-omap2/board-4430sdp.c        |    1 -
-> >   arch/arm/mach-omap2/board-am3517evm.c      |    1 -
-> >   arch/arm/mach-omap2/board-apollon.c        |    1 -
-> >   arch/arm/mach-omap2/board-cm-t35.c         |    1 -
-> >   arch/arm/mach-omap2/board-devkit8000.c     |    1 -
-> >   arch/arm/mach-omap2/board-h4.c             |    1 -
-> >   arch/arm/mach-omap2/board-igep0020.c       |    1 -
-> >   arch/arm/mach-omap2/board-ldp.c            |    1 -
-> >   arch/arm/mach-omap2/board-n8x0.c           |    1 -
-> >   arch/arm/mach-omap2/board-omap3beagle.c    |    1 -
-> >   arch/arm/mach-omap2/board-omap3evm.c       |    1 -
-> >   arch/arm/mach-omap2/board-omap3pandora.c   |    1 -
-> >   arch/arm/mach-omap2/board-omap3touchbook.c |    1 -
-> >   arch/arm/mach-omap2/board-overo.c          |    1 -
-> >   arch/arm/mach-omap2/board-rx51.c           |    1 -
-> >   arch/arm/mach-omap2/board-zoom2.c          |    1 -
-> >   arch/arm/mach-omap2/board-zoom3.c          |    1 -
-> >   arch/arm/mach-omap2/clock2420_data.c       |   10 +-
-> >   arch/arm/mach-omap2/clock2430_data.c       |   14 +-
-> >   arch/arm/mach-omap2/clock3xxx_data.c       |   24 +-
-> >   arch/arm/mach-omap2/clock44xx_data.c       |   24 +-
-> >   arch/arm/mach-omap2/gpio.c                 |  113 +++++
-> >   arch/arm/mach-omap2/omap_hwmod_2420_data.c |  222 ++++++++++
-> >   arch/arm/mach-omap2/omap_hwmod_2430_data.c |  270 ++++++++++++
-> >   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  357 ++++++++++++++++-
-> >   arch/arm/plat-omap/gpio.c                  |  622 ++++++++++------------------
-> >   arch/arm/plat-omap/include/plat/gpio.h     |   84 ++++-
-> >   49 files changed, 1886 insertions(+), 469 deletions(-)
-> >   create mode 100644 arch/arm/mach-omap1/gpio15xx.c
-> >   create mode 100644 arch/arm/mach-omap1/gpio16xx.c
-> >   create mode 100644 arch/arm/mach-omap1/gpio7xx.c
-> >   create mode 100644 arch/arm/mach-omap2/gpio.c
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
