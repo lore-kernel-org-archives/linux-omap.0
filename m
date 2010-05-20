@@ -1,48 +1,39 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 1/4] fbdev: add a MIPI DSI header
-Date: Thu, 20 May 2010 11:02:55 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1005201058250.26000@axis700.grange>
-References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
- <Pine.LNX.4.64.1005071102440.4777@axis700.grange>
- <1274255350.2307.159.camel@tubuntu.research.nokia.com>
- <Pine.LNX.4.64.1005190955500.3099@axis700.grange>
- <1274257308.2307.168.camel@tubuntu.research.nokia.com>
- <Pine.LNX.4.64.1005200939030.26000@axis700.grange>
- <1274344369.4246.28.camel@tubuntu.research.nokia.com> <20100520085405.GA14584@gandalf>
+From: Timo Kokkonen <timo.t.kokkonen@nokia.com>
+Subject: Re: [PATCH] twl4030_wdt: Disable watchdog while probing
+Date: Thu, 20 May 2010 12:12:10 +0300
+Message-ID: <1274346730.6093.4.camel@sarki.nmp.nokia.com>
+References: <7fcfe2bbdbad2e7c330c219fa1e27497a5fd0f89.1274094577.git.ameya.palande@nokia.com>
+	 <1274333988.30871.17.camel@sarki.nmp.nokia.com>
+	 <20100520074630.GN4008@infomag.iguana.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20100520085405.GA14584@gandalf>
-Sender: linux-sh-owner@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:33844 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754193Ab0ETJMZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 05:12:25 -0400
+In-Reply-To: <20100520074630.GN4008@infomag.iguana.be>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Wim Van Sebroeck <wim@iguana.be>
+Cc: "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 20 May 2010, Felipe Balbi wrote:
+Hi Wim,
 
-> On Thu, May 20, 2010 at 11:32:49AM +0300, Tomi Valkeinen wrote:
-> > On Thu, 2010-05-20 at 10:07 +0200, ext Guennadi Liakhovetski wrote:
-> > 
-> > > Yes, right, I should have said "they are related";) How about calling the 
-> > > header mipi_display.h? This would then unite DSI, DCS, DBI and DPI? 
-> > > Creating a separate header for each of these standards seems like an 
-> > > overkill to me. We could then put MIPI CSI and CPI standards in an 
-> > > include/media/mipi_camera.h. Not sure where to put various other MIPI 
-> > > standards, I guess, we'll have to think about it as a need arises.
-> > 
-> > mipi_display.h sounds good to me.
-> 
-> if there are extra mipi standards which should be taken care of, why
-> not include/linux/mipi/[display.h camera.h other1.h other2.h...] ?
+On Thu, 2010-05-20 at 09:46 +0200, ext Wim Van Sebroeck wrote:
+> => bottom line: this patch adds the correct default behaviour and should
+> not be changed. Feel free to add the module-parameter to keep the watchog
+> running at start.
 
-I thought about this too, but I prefer to separate them thematically: 
-put display standards under video/, camera under media/ etc. This way 
-including these headers from respective drivers and platform code would 
-look more naturally, IMHO.
+Thanks for the detailed explanation. I was worried about the kernel and
+the early user space booting being in the "grey area" where errors might
+occurr which can cause the device (I'm talking about embedded devices
+here) to go into failed state without watchdog being able to reboot the
+machinge. But as you said, this can be fixed by adding additional module
+parameters that override this default behavior, so I have no further
+objections for this patch.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Acked-By: Timo Kokkonen <timo.t.kokkonen@nokia.com>
+
+
