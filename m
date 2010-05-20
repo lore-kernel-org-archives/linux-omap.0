@@ -1,102 +1,77 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3 v2] musb: AM35x: Workaround for fifo read issue
-Date: Thu, 20 May 2010 13:06:30 +0300
-Message-ID: <20100520100630.GF9992@nokia.com>
-References: <1274184586-28843-1-git-send-email-ajay.gupta@ti.com>
- <19F8576C6E063C45BE387C64729E7394044E535C95@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0322EAE899@dbde02.ent.ti.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322EAE899-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "andrea.marson-0U1K5dsi4As@public.gmane.org" <andrea.marson-0U1K5dsi4As@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCHv2 2/2] omap: rx51: Add supply and data for the tpa6130a2 headphone amplifier
+Date: Thu, 20 May 2010 13:08:45 +0300
+Message-ID: <1274350125-5702-2-git-send-email-jhnikula@gmail.com>
+References: <1274350125-5702-1-git-send-email-jhnikula@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.25]:8039 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755460Ab0ETKJK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 06:09:10 -0400
+Received: by ey-out-2122.google.com with SMTP id 9so367313eyd.5
+        for <linux-omap@vger.kernel.org>; Thu, 20 May 2010 03:09:08 -0700 (PDT)
+In-Reply-To: <1274350125-5702-1-git-send-email-jhnikula@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-On Thu, May 20, 2010 at 11:41:14AM +0200, ext Gadiyar, Anand wrote:
->It would not scale very well - we already have multi-omap builds
->that select support for multiple boards. If the AM35x boards are
->part of such builds, then mutually exclusive config options won't
->work - already n8x0 MUSB is exclusive with 243x/omap3.
->
->If it is possible to detect the AM35x at runtime, then we could
->handle this well. Also, a similar set of changes will be needed for
->the DMA code as well (right now we can pick only one of the DMA
->engines at a time).
+With these and upcoming change to tpa6130a2 driver it's possible to add
+support for the TPA6130A2 headphone amplifier.
 
-it's time to split out platform code from musb core. I was thinking of 
-having omap2430.c blackfin.c tusb6010.c davinci.c be a platform_device 
-that instantiates musb_hdrc platform_device. It would also ioremap() the 
-area and pass the gotten/enabled clock to musb. Then we can have all of 
-the platforms enabled since the board files would pass down the 
-platform_device for the platform code. Something like:
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+v2:
+- Rebased on top of 7b93a0d
+- Only Vdd supply added as the CPVSS turned out to be miss defined in
+  tpa6130a2. Thanks to Eduardo Valentin <eduardo.valentin@nokia.com> for
+  noticing.
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-arch/arm/mach-omap2/usb-musb.c:
-
-static struct platform_device omap_musb = {
-	.dev	= {
-		.name	= "omap-hsusbotg",	/* using the IP block name */
-	},
-	[..]
-};
-
-[..]
-
-	platform_device_register(&omap_musb);
-
-drivers/usb/musb/omap2430.c:
-
-static struct musb_platform_data omap_musb_data;
-
-static int __init omap_musb_probe(struct platform_device *pdev)
-{
-	clk = clk_get(&pdev->dev, "ick");
-	base = ioremap(res->start, resource_size(res));
-
-	omap_musb_data.clk = clk;
-	omap_musb_data.base = base;
-
-	[... all other necessary fields, like mode, etc]
-
-	musb_pdev = platform_device_alloc("musb_hdrc", -1);
-	musb_pdev->dev.parent = &pdev->dev;
-	platform_device_add_data(musb_pdev, &omap_musb_data);
-	platform_device_add(musb_pdev);
-
-	return 0;
-}
-
-static int __exit omap_musb_remove(struct platform_device *pdev)
-{
-	clk_put(clk);
-	iounmap(base);
-
-	platform_device_del(musb_pdev);
-
-	return 0;
-}
-
-[...]
-
-io functions could also be passed through this platform_device so that 
-we remove the insane amounts of ifdefs. Also context save/restore could 
-be done a per-platform basis. Since the platform-code would be a parent 
-to musb_hdrc, platform-code's suspend would be called before musb_hdrc 
-suspend, then we would save context at that point already.
-
-Any other ifdefferry on anything would be easier to remove with this 
-approach and it also means we can have one musb_hdrc.ko for all (well 
-arm-based only) boards and be sure it would work. We would just need to 
-put something similar down for dma engines.
-
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index e8ac47c..9e618b6 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -33,6 +33,8 @@
+ #include <plat/onenand.h>
+ #include <plat/gpmc-smc91x.h>
+ 
++#include <sound/tpa6130a2-plat.h>
++
+ #include "mux.h"
+ #include "hsmmc.h"
+ 
+@@ -285,6 +287,8 @@ static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
+ 	/* tlv320aic3x analog supplies */
+ 	REGULATOR_SUPPLY("AVDD", "2-0018"),
+ 	REGULATOR_SUPPLY("DRVDD", "2-0018"),
++	/* tpa6130a2 */
++	REGULATOR_SUPPLY("Vdd", "2-0060"),
+ 	/* Keep vmmc as last item. It is not iterated for newer boards */
+ 	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
+ };
+@@ -667,10 +671,19 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_1[] = {
+ 	},
+ };
+ 
++static struct tpa6130a2_platform_data rx51_tpa6130a2_data __initdata = {
++	.id			= TPA6130A2,
++	.power_gpio		= 98,
++};
++
+ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
+ 	{
+ 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
+ 	},
++	{
++		I2C_BOARD_INFO("tpa6130a2", 0x60),
++		.platform_data = &rx51_tpa6130a2_data,
++	}
+ };
+ 
+ static int __init rx51_i2c_init(void)
 -- 
-balbi
+1.7.1
 
-DefectiveByDesign.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
