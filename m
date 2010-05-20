@@ -1,66 +1,45 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
-Date: Thu, 20 May 2010 10:32:18 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C56668DE@dbde02.ent.ti.com>
-References: <22422.10.24.255.17.1273947606.squirrel@dbdmail.itg.ti.com>
- <20100518025026.GF5818@atomide.com> <20100519000912.GX5818@atomide.com>
- <05ec01caf76a$3a02da60$LocalHost@wipblrx0099945A>
- <20100520005800.GK5818@atomide.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Thu, 20 May 2010 07:49:26 +0300
+Message-ID: <20100520044926.GB6773@nokia.com>
+References: <1274115885.4418.59.camel@mulgrave.site>
+ <1274191188.10304.5.camel@mulgrave.site>
+ <20100519065934.GH12879@nokia.com>
+ <201005192242.55706.rjw@sisk.pl>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45273 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753789Ab0ETFCi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 01:02:38 -0400
-In-Reply-To: <20100520005800.GK5818@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201005192242.55706.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "ext Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, ext James Bottomley <James.Bottomley@suse.de>, "me@felipebalbi.com" <me@felipebalbi.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "jarkko.lavinen@nokia.com" <jarkko.lavinen@nokia.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "paul@pwsan.com" <paul@pwsan.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, May 20, 2010 6:28 AM
-> To: Kadiyala, Kishore
-> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Chikkature Rajashekar, Madhusudhan;
-> jarkko.lavinen@nokia.com; rmk@arm.linux.org.uk; paul@pwsan.com; Shilimkar, Santosh
-> Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
-> 
-> * kishore kadiyala <kishore.kadiyala@ti.com> [100519 08:39]:
-> > >
-> > >FYI, the MMC on omap4 is not quite there yet at least
-> > >on my board. It mostly detects the card with
-> > >omap_4430sdp_defconfig, but fails always unless
-> > >CONFIG_RTC_DRV_TWL92330=y.. This is without CONFIG_SMP
-> > >as it oopses.
-> >
-> > Hope you are referring CONFIG_RTC_DRV_TWL92330 to omap3_defconfig
-> > and not to omap_4430sdp_defconfig.
-> 
-> Sorry I meant CONFIG_RTC_DRV_TWL4030 in the omap_4430sdp_defconfig.
-> If you take that out, MMC is never detected.
-> 
-> > With omap_4430sdp_defconfig , I've tested on 4430SDP and Blaze and always
-> > Cards on MMC1 & MMC2 gets detected once bootedup.
-> 
-> Are you able to actually mount root on the MMC with let's say
-> current linux-omap master branch?
-> 
-> > >Also MMC is never detected with omap3_defconfig.
-> >
-> > With omap3_defconfig  +  disabling "CONFIG_OMAP_RESET_CLOCKS",
-> > I've tested on 4430SDP and Blaze and always Cards on MMC1 & MMC2
-> > gets detected on bootup.
-> 
-> That should be fixed so CONFIG_OMAP_RESET_CLOCKS works. Otherwise
-> we're relying on some random clocks being enabled.
-> 
-The fix for this is already in Paul's queue now.
+Hi,
 
-https://patchwork.kernel.org/patch/101094/
+On Wed, May 19, 2010 at 10:42:55PM +0200, ext Rafael J. Wysocki wrote:
+>Please note that this approach is not too practical for vendors who ship
+>systems like cell phones to the general public.
 
-Regards,
-Santosh
+yeah, tell me about it :-p
+
+during development on MeeGo devices we try to tackle down as much as 
+possible the use_time offenders and start by filing bugs to those apps, 
+instead of fixing their issues in kernel space.
+
+if suspend_blockers could at least be transparent to applications, then 
+it wouldn't be the best scenario but at least applications wouldn't have 
+to be specially written to support that. And like I said, if anyone can 
+hold a suspend_blocker forever the idea of "improving use_time" is easy 
+to break, but then someone replied "anyone holding a suspend_blocker 
+will show up in UI", and again I say you don't need suspend_blockers to 
+have a fancy UI showing which processes are waking up the processor. 
+Powertop already gathers that information, you just need to make a fancy 
+UI around it.
+
+-- 
+balbi
+
+DefectiveByDesign.org
