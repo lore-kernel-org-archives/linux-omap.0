@@ -1,57 +1,45 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 20 May 2010 16:37:30 -0700 (PDT)
-Message-ID: <641482.90616.qm@web180303.mail.gq1.yahoo.com>
-References: <alpine.DEB.2.00.1005172018380.27473@utopia.booyaka.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: collaboration on hwmod conversions and runtime PM
+Date: Thu, 20 May 2010 16:56:31 -0700
+Message-ID: <87mxvucekw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <alpine.DEB.2.00.1005172018380.27473@utopia.booyaka.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: =?iso-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Oleg Nesterov <oleg@redhat.com>, Tero Saarni <tero.saarni@gmail.com>, linux-input@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Greg Kroah-Hartman <gregkh@suse.de>, Daniel Mack <daniel@caiaq.de>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Linus Walleij <linus.walleij@stericsson.com>, =?iso-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:62703 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751077Ab0ETX4e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 19:56:34 -0400
+Received: by pvg3 with SMTP id 3so159222pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 May 2010 16:56:33 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
+Hello,
 
-> > > On Mon, 3 May 2010, Arve Hj=F8nnev=E5g wrote:
-> > >
-> > >> No, suspend blockers are mostly used to
-> ensure wakeup events are not
-> > >> ignored, and to ensure tasks triggered by
-> these wakeup events
-> > >> complete.
-> > >
-> > > Standard Linux systems don't need these,
-> > =
+There has been quite a bit of activity on the hwmod front, but no
+common place to combine patches for testing.
 
-> > If you don't want to lose wakeup events they do.=A0
-> Standard Linux systems =
+To that end, I've update the pm-wip/hwmods branch in my tree to 
+the two fixes/cleanup series from Benoit (which will be merged
+via for 2.6.35):
 
-> > support suspend, but since they usually don't have a
-> lot of wakeup =
+  [PATCH 00/10] OMAP: HWMOD fixes and cleanup
+  [PATCH 0/5] OMAP4: PRCM: Spring cleanup
 
-> > events you don't run into a lot of problems.
+On top of this, there is the pm-wip/hwmods-omap4 branch which includes
+the OMAP4 series from Benoit
 
-Yes and no...  stick a bunch of USB hubs and devices
-on the system, and you may have a lot of wake events.
-Keyboard, mouse, network adapter, and so on.
+  [PATCH 0/6] OMAP: hwmod: Full data set for OMAP4430 ES1.0
 
- Way back when I made USB remote wakeup work, ISTR running
-into a version of the issue you're raising.  Briefly, the
-wake event could be queued in hardware, but there were also
-various unavoidable races .... with ambiguity about just when
-particular events should be recognized.  If the system entered
-sleep before the wake event(s) triggered, or the relevant devices
-suspended first, then things were clear; otherwise, not.  On
-first blush, I'd expect every hardware wake mechanism would have
-the same issues; the fact that USB wakes are mediated via khubd
-is not a huge difference.
+so that conversions for OMAP4 can also be done and tested.  Note that
+I've reverted the two "temporary" patches in this series since they
+cause problems on OMAP3,
+
+On top of this, there is the pm-wip/runtime branch which includes
+the base runtime PM implementation for OMAP.
+
+On top of this there are work-in-progress branches for the conversions
+for UART (pm-wip/uart) and MMC (pm-wip/mmc)
+
+Kevin
