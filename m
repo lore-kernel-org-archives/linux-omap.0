@@ -1,36 +1,34 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3 v2] musb: AM35x: Workaround for fifo read issue
-Date: Thu, 20 May 2010 13:08:55 +0300
-Message-ID: <20100520100855.GG9992@nokia.com>
-References: <1274184586-28843-1-git-send-email-ajay.gupta@ti.com>
- <19F8576C6E063C45BE387C64729E7394044E535C95@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0322EAE899@dbde02.ent.ti.com>
- <20100520100630.GF9992@nokia.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 6/9] OMAP:GPIO:hwmod: add GPIO hwmods for OMAP3
+Date: Thu, 20 May 2010 12:13:17 +0200
+Message-ID: <4BF50B3D.3030003@ti.com>
+References: <1271951720-21714-1-git-send-email-charu@ti.com> <1271951720-21714-2-git-send-email-charu@ti.com> <1271951720-21714-3-git-send-email-charu@ti.com> <1271951720-21714-4-git-send-email-charu@ti.com> <1271951720-21714-5-git-send-email-charu@ti.com> <1271951720-21714-6-git-send-email-charu@ti.com> <1271951720-21714-7-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100520100630.GF9992-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "andrea.marson-0U1K5dsi4As@public.gmane.org" <andrea.marson-0U1K5dsi4As@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:55809 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755424Ab0ETKNY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 May 2010 06:13:24 -0400
+In-Reply-To: <1271951720-21714-7-git-send-email-charu@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-On Thu, May 20, 2010 at 12:06:30PM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
->arm-based only) boards and be sure it would work. We would just need to
->put something similar down for dma engines.
+On 4/22/2010 5:55 PM, Varadarajan, Charulatha wrote:
+> Add hwmod structures for GPIO module on OMAP3
 
-and of course, the same platform-code could instantiate a dma engine 
-platform_device but that's trickier, I guess, since the base address 
-would have to be used by two drivers, then platform code would have to 
-handle synchronization.
+[snip]
 
--- 
-balbi
+> +
+> +static struct omap_hwmod omap3xxx_gpio1_hwmod = {
+> +       .name           = "gpio1_hwmod",
 
-DefectiveByDesign.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You should remove the "_hwmod" prefix of all the hwmod name in order to 
+align with the convention we have on OMAP4.
+It will increase the data size without bringing any extra information.
+
+Thanks,
+Benoit
