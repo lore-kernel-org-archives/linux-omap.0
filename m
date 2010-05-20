@@ -1,57 +1,102 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 20 May 2010 12:05:19 +0200
-Message-ID: <20100520120519.0d27d6bf@schatten.dmk.lab>
-References: <1274119179.4418.68.camel@mulgrave.site>
-	<20100517181252.GA14260@gandalf>
-	<1274124267.4418.149.camel@mulgrave.site>
-	<20100517193840.GB14047@gandalf>
-	<20100517193952.GC14047@gandalf>
-	<1274125775.4418.182.camel@mulgrave.site>
-	<20100518064022.GA6522@nokia.com>
-	<1274191188.10304.5.camel@mulgrave.site>
-	<20100519065934.GH12879@nokia.com>
-	<20100520071528.494c38e4@schatten.dmk.lab>
-	<20100520085739.GB14584@gandalf>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/3 v2] musb: AM35x: Workaround for fifo read issue
+Date: Thu, 20 May 2010 13:06:30 +0300
+Message-ID: <20100520100630.GF9992@nokia.com>
+References: <1274184586-28843-1-git-send-email-ajay.gupta@ti.com>
+ <19F8576C6E063C45BE387C64729E7394044E535C95@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0322EAE899@dbde02.ent.ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100520085739.GB14584@gandalf>
-Sender: linux-kernel-owner@vger.kernel.org
-To: me@felipebalbi.com
-Cc: felipe.balbi@nokia.com, ext James Bottomley <James.Bottomley@suse.de>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322EAE899-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "andrea.marson-0U1K5dsi4As@public.gmane.org" <andrea.marson-0U1K5dsi4As@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 20 May 2010 11:57:40 +0300
-Felipe Balbi <me@felipebalbi.com> wrote:
+On Thu, May 20, 2010 at 11:41:14AM +0200, ext Gadiyar, Anand wrote:
+>It would not scale very well - we already have multi-omap builds
+>that select support for multiple boards. If the AM35x boards are
+>part of such builds, then mutually exclusive config options won't
+>work - already n8x0 MUSB is exclusive with 243x/omap3.
+>
+>If it is possible to detect the AM35x at runtime, then we could
+>handle this well. Also, a similar set of changes will be needed for
+>the DMA code as well (right now we can pick only one of the DMA
+>engines at a time).
 
-> On Thu, May 20, 2010 at 07:15:28AM +0200, Florian Mickler wrote:
-> > But with that, you still shift the burden of exchanging that app with
-> > an feature-equivalent non-broken version to the user. 
-> > which is not user friendly and not necessary if you have a "smart"
-> > enough kernel.
-> 
-> and _without that_, you shift the burden of having a working power
-> management completely into the kernel. Forcing the kernel to deal with
-> completely broken apps. What will happen is that apps developers won't
-> boder thinking about power consumption since the kernel is "smart"
-> enough to "fix" their mess.
-> 
-> To me that's much bigger burden to the kernel than the other option is
-> to apps.
-> 
+it's time to split out platform code from musb core. I was thinking of 
+having omap2430.c blackfin.c tusb6010.c davinci.c be a platform_device 
+that instantiates musb_hdrc platform_device. It would also ioremap() the 
+area and pass the gotten/enabled clock to musb. Then we can have all of 
+the platforms enabled since the board files would pass down the 
+platform_device for the platform code. Something like:
 
-You said that already. For me this sounds like you want to take the
-users hostage in order to get nice (poweraware) apps.
+arch/arm/mach-omap2/usb-musb.c:
 
-Robust system design can take crap and perform well. Users will most of
-the time prefer a robust system over a nicely designed system. (Just
-think of the ak-47)
+static struct platform_device omap_musb = {
+	.dev	= {
+		.name	= "omap-hsusbotg",	/* using the IP block name */
+	},
+	[..]
+};
 
-I think we just have to agree to disagree here? 
+[..]
 
-Cheers,
-Flo
+	platform_device_register(&omap_musb);
 
-p.s.: don't take me seriously, i'm just a user
+drivers/usb/musb/omap2430.c:
+
+static struct musb_platform_data omap_musb_data;
+
+static int __init omap_musb_probe(struct platform_device *pdev)
+{
+	clk = clk_get(&pdev->dev, "ick");
+	base = ioremap(res->start, resource_size(res));
+
+	omap_musb_data.clk = clk;
+	omap_musb_data.base = base;
+
+	[... all other necessary fields, like mode, etc]
+
+	musb_pdev = platform_device_alloc("musb_hdrc", -1);
+	musb_pdev->dev.parent = &pdev->dev;
+	platform_device_add_data(musb_pdev, &omap_musb_data);
+	platform_device_add(musb_pdev);
+
+	return 0;
+}
+
+static int __exit omap_musb_remove(struct platform_device *pdev)
+{
+	clk_put(clk);
+	iounmap(base);
+
+	platform_device_del(musb_pdev);
+
+	return 0;
+}
+
+[...]
+
+io functions could also be passed through this platform_device so that 
+we remove the insane amounts of ifdefs. Also context save/restore could 
+be done a per-platform basis. Since the platform-code would be a parent 
+to musb_hdrc, platform-code's suspend would be called before musb_hdrc 
+suspend, then we would save context at that point already.
+
+Any other ifdefferry on anything would be easier to remove with this 
+approach and it also means we can have one musb_hdrc.ko for all (well 
+arm-based only) boards and be sure it would work. We would just need to 
+put something similar down for dma engines.
+
+-- 
+balbi
+
+DefectiveByDesign.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
