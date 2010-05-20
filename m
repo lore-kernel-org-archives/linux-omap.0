@@ -1,59 +1,66 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v2] omap4: Fix multi-omap boot with reset un-used clocks
-Date: Thu, 20 May 2010 10:28:35 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C56668CC@dbde02.ent.ti.com>
-References: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com>
- <alpine.DEB.2.00.1005191708320.27473@utopia.booyaka.com>
+Subject: RE: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
+Date: Thu, 20 May 2010 10:32:18 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C56668DE@dbde02.ent.ti.com>
+References: <22422.10.24.255.17.1273947606.squirrel@dbdmail.itg.ti.com>
+ <20100518025026.GF5818@atomide.com> <20100519000912.GX5818@atomide.com>
+ <05ec01caf76a$3a02da60$LocalHost@wipblrx0099945A>
+ <20100520005800.GK5818@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59911 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45273 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751756Ab0ETE6k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 00:58:40 -0400
-In-Reply-To: <alpine.DEB.2.00.1005191708320.27473@utopia.booyaka.com>
+	id S1753789Ab0ETFCi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 01:02:38 -0400
+In-Reply-To: <20100520005800.GK5818@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "jarkko.lavinen@nokia.com" <jarkko.lavinen@nokia.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "paul@pwsan.com" <paul@pwsan.com>
 
 > -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, May 20, 2010 4:41 AM
-> To: Shilimkar, Santosh; Menon, Nishanth
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v2] omap4: Fix multi-omap boot with reset un-used clocks
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Thursday, May 20, 2010 6:28 AM
+> To: Kadiyala, Kishore
+> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Chikkature Rajashekar, Madhusudhan;
+> jarkko.lavinen@nokia.com; rmk@arm.linux.org.uk; paul@pwsan.com; Shilimkar, Santosh
+> Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
 > 
-> Hi,
-> 
-> On Wed, 19 May 2010, Santosh Shilimkar wrote:
-> 
-> > This patch uses "ENABLE_ON_INIT" flag on the emif clock nodes
-> > to avoid the emif clk getting cut as part of reset un-used clock
-> > routine which prevents boot.
+> * kishore kadiyala <kishore.kadiyala@ti.com> [100519 08:39]:
+> > >
+> > >FYI, the MMC on omap4 is not quite there yet at least
+> > >on my board. It mostly detects the card with
+> > >omap_4430sdp_defconfig, but fails always unless
+> > >CONFIG_RTC_DRV_TWL92330=y.. This is without CONFIG_SMP
+> > >as it oopses.
 > >
-> > Since omap4 "omap2_clk_init()" calls "clk_enable_init_clocks()"
-> > which increases the usecount on all ENABLE_ON_INIT clocks, it
-> > prevents "omap2_clk_disable_unused()" from disabling the clock.
-> >
-> > The real fix is to have driver for EMIF and do clock get/enable
-> > as part of it. The EMIF driver is planned to be done HWMOD way
-> > so till that available to keep omap3_defconfig booting on OMAP4430,
-> > this patch is necessary.
-> > (Will updated the auto-gen script for 44xx accordingly)
-> >
-> > The fix was suggested by Paul Walmsley
-> >
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Hope you are referring CONFIG_RTC_DRV_TWL92330 to omap3_defconfig
+> > and not to omap_4430sdp_defconfig.
 > 
-> Thanks, I've added Nishanth's Tested-by: and fixed the patch changelog;
-> the following patch is now queued for 2.6.35-rc, unless there are any
-> further comments.
+> Sorry I meant CONFIG_RTC_DRV_TWL4030 in the omap_4430sdp_defconfig.
+> If you take that out, MMC is never detected.
 > 
-Thanks Paul.
+> > With omap_4430sdp_defconfig , I've tested on 4430SDP and Blaze and always
+> > Cards on MMC1 & MMC2 gets detected once bootedup.
+> 
+> Are you able to actually mount root on the MMC with let's say
+> current linux-omap master branch?
+> 
+> > >Also MMC is never detected with omap3_defconfig.
+> >
+> > With omap3_defconfig  +  disabling "CONFIG_OMAP_RESET_CLOCKS",
+> > I've tested on 4430SDP and Blaze and always Cards on MMC1 & MMC2
+> > gets detected on bootup.
+> 
+> That should be fixed so CONFIG_OMAP_RESET_CLOCKS works. Otherwise
+> we're relying on some random clocks being enabled.
+> 
+The fix for this is already in Paul's queue now.
+
+https://patchwork.kernel.org/patch/101094/
 
 Regards,
 Santosh
