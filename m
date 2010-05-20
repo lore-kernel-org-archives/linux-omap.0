@@ -1,54 +1,55 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH 6/9] OMAP:GPIO:hwmod: add GPIO hwmods for OMAP3
-Date: Thu, 20 May 2010 15:46:39 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5666BBC@dbde02.ent.ti.com>
-References: <1271951720-21714-1-git-send-email-charu@ti.com>
- <1271951720-21714-2-git-send-email-charu@ti.com>
- <1271951720-21714-3-git-send-email-charu@ti.com>
- <1271951720-21714-4-git-send-email-charu@ti.com>
- <1271951720-21714-5-git-send-email-charu@ti.com>
- <1271951720-21714-6-git-send-email-charu@ti.com>
- <1271951720-21714-7-git-send-email-charu@ti.com> <4BF50B3D.3030003@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Thu, 20 May 2010 13:15:34 +0300
+Message-ID: <20100520101534.GH9992@nokia.com>
+References: <1274124267.4418.149.camel@mulgrave.site>
+ <20100517193840.GB14047@gandalf>
+ <20100517193952.GC14047@gandalf>
+ <1274125775.4418.182.camel@mulgrave.site>
+ <20100518064022.GA6522@nokia.com>
+ <1274191188.10304.5.camel@mulgrave.site>
+ <20100519065934.GH12879@nokia.com>
+ <20100520071528.494c38e4@schatten.dmk.lab>
+ <20100520085739.GB14584@gandalf>
+ <20100520120519.0d27d6bf@schatten.dmk.lab>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59084 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751571Ab0ETKQr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 06:16:47 -0400
-In-Reply-To: <4BF50B3D.3030003@ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:41353 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751826Ab0ETKU0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 06:20:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20100520120519.0d27d6bf@schatten.dmk.lab>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: ext Florian Mickler <florian@mickler.org>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, ext James Bottomley <James.Bottomley@suse.de>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
+Hi,
 
+On Thu, May 20, 2010 at 12:05:19PM +0200, ext Florian Mickler wrote:
+>You said that already. For me this sounds like you want to take the
+>users hostage in order to get nice (poweraware) apps.
 
-> -----Original Message-----
-> From: Cousson, Benoit
-> Sent: Thursday, May 20, 2010 3:43 PM
-> To: Varadarajan, Charulatha
-> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra; paul@pwsan.com; tony@atomide.com;
-> khilman@deeprootsystems.com
-> Subject: Re: [PATCH 6/9] OMAP:GPIO:hwmod: add GPIO hwmods for OMAP3
-> 
-> On 4/22/2010 5:55 PM, Varadarajan, Charulatha wrote:
-> > Add hwmod structures for GPIO module on OMAP3
-> 
-> [snip]
-> 
-> > +
-> > +static struct omap_hwmod omap3xxx_gpio1_hwmod = {
-> > +       .name           = "gpio1_hwmod",
-> 
-> You should remove the "_hwmod" prefix of all the hwmod name in order to
-> align with the convention we have on OMAP4.
-> It will increase the data size without bringing any extra information.
-> 
+not the users, no. The app developers. They should know what bad 
+applications can cause to a nicely done system.
 
-Yep. Will change the naming convention as followed in OMAP4.
+>Robust system design can take crap and perform well. Users will most of
+>the time prefer a robust system over a nicely designed system. (Just
+>think of the ak-47)
 
-> Thanks,
-> Benoit
+(hope you're talking about the gun :-p)
+put some bad bullets on ak-47 and see if it behaves well, a really 
+crappy trigger will also make it fail. How robust can a system be with 
+badly chosen components ?
+
+>I think we just have to agree to disagree here?
+
+I think so.
+
+-- 
+balbi
+
+DefectiveByDesign.org
