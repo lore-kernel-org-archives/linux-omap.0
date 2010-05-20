@@ -1,33 +1,51 @@
-From: "Mr Ming Yang" <info@w.cn>
-Subject: Awaiting Your Response
-Date: Wed, 19 May 2010 21:05:12 -0400
-Message-ID: <291440a2ec9831a5f84e394e9a8325fc.squirrel@woolnet.net>
-Reply-To: mrmingyanghk@9.cn
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] omap4: Fix multi-omap boot with reset un-used clocks
+Date: Wed, 19 May 2010 18:24:25 -0700
+Message-ID: <20100520012425.GN5818@atomide.com>
+References: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com>
+ <4BF44384.40901@ti.com>
+ <20100520010046.GL5818@atomide.com>
+ <4BF48A4E.7040208@ti.com>
+ <20100520010622.GM5818@atomide.com>
+ <4BF48BAC.6080904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from server5a.woolnet.net ([209.59.181.202]:42817 "EHLO
-	server5a.woolnet.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751495Ab0ETBYB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 21:24:01 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54042 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495Ab0ETBY3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 21:24:29 -0400
+Content-Disposition: inline
+In-Reply-To: <4BF48BAC.6080904@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
+* Nishanth Menon <nm@ti.com> [100519 18:03]:
+> Tony Lindgren had written, on 05/19/2010 08:06 PM, the following:
+> >* Nishanth Menon <nm@ti.com> [100519 17:58]:
+> >>Tony Lindgren had written, on 05/19/2010 08:00 PM, the following:
+> >>>* Nishanth Menon <nm@ti.com> [100519 12:56]:
+> >>>>looks like network is still not functional on SDP4430. different issue
+> >>>Oh so Ethernet does not work either? What's wrong with that?
+> >>I was told offline that the driver is somewhere in the net ML on the
+> >>way I believe in parallel.. I dont have collaborative links though
+> >>:(
+> >>
+> >>Santosh,
+> >>Can you point out the status?
+> >
+> >I thought I have those in omap-testing and merged into the master
+> >branch in linux-omap:
+> >
+> >ks8851: Add caching of CCR register
+> >ks8851: Low level functions for read/write to companion eeprom
+> >ks8851: companion eeprom access through ethtool
+> Okay then it makes this an operator error - I have been playing with
+> vanilla linus 2.6.34 tree and adding just the basic patches I need..
+> I can give the omap-testing a whirl..
 
+OK, cool.
 
-
-Please I would like you to keep this proposal as a top secret and delete
-it if you are not interested and get back to me if you are ineterested 
-for details as regards to the transfer of $24,500,000.000 to you. this
-money initially belongs to a client who died and had no next of kin in his
-account-opening package. in other to achieve this, I shall require your
-full name, and telephone number to reach you.Most importantly, a
-confirmation of acceptance from you after which I shall furnish you with
-the full details of this transaction
-
-Reply via this email only mrmingyanghk@9.cn
-
-regards,
-Mr Ming Yang
-
+Tony
