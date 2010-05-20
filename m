@@ -1,58 +1,58 @@
-From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 1/2] omap: iommu-update irq mask to be specific about twl and tlb
-Date: Thu, 20 May 2010 16:10:22 -0500
-Message-ID: <1274389823-4051-2-git-send-email-h-kanigeri2@ti.com>
-References: <1274389823-4051-1-git-send-email-h-kanigeri2@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
+Date: Fri, 21 May 2010 00:18:12 +0300
+Message-ID: <AANLkTimnKJ9OQ51HDJJ3ctT10j1wk-wEYzrGE8vjHu_B@mail.gmail.com>
+References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
+	<g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
+	<r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
+	<AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34532 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757590Ab0ETVEC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 May 2010 17:04:02 -0400
-In-Reply-To: <1274389823-4051-1-git-send-email-h-kanigeri2@ti.com>
+Received: from mail-yw0-f180.google.com ([209.85.211.180]:38816 "EHLO
+	mail-yw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754698Ab0ETVSd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 17:18:33 -0400
+Received: by ywh10 with SMTP id 10so190984ywh.1
+        for <linux-omap@vger.kernel.org>; Thu, 20 May 2010 14:18:32 -0700 (PDT)
+In-Reply-To: <AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux Omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-Revise the IRQ mask definitions to handle the  MMU faults related
-to TWL fault as well as TLB miss fault.
+Hi Felipe,
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-Signed-off-by: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
----
- arch/arm/mach-omap2/iommu2.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+On Fri, May 14, 2010 at 10:27 PM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> Also, I noticed an important problem. Your code assumes that we would
+> always have a bunch of scattered pages,
 
-diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
-index e82da68..ebbdae2 100644
---- a/arch/arm/mach-omap2/iommu2.c
-+++ b/arch/arm/mach-omap2/iommu2.c
-@@ -44,9 +44,13 @@
- #define MMU_IRQ_EMUMISS		(1 << 2)
- #define MMU_IRQ_TRANSLATIONFAULT	(1 << 1)
- #define MMU_IRQ_TLBMISS		(1 << 0)
--#define MMU_IRQ_MASK	\
--	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_TABLEWALKFAULT | MMU_IRQ_EMUMISS | \
--	 MMU_IRQ_TRANSLATIONFAULT)
-+
-+#define __MMU_IRQ_FAULT		\
-+	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_EMUMISS | MMU_IRQ_TRANSLATIONFAULT)
-+#define MMU_IRQ_MASK		\
-+	(__MMU_IRQ_FAULT | MMU_IRQ_TABLEWALKFAULT | MMU_IRQ_TLBMISS)
-+#define MMU_IRQ_TWL_MASK	(__MMU_IRQ_FAULT | MMU_IRQ_TABLEWALKFAULT)
-+#define MMU_IRQ_TLB_MISS_MASK	(__MMU_IRQ_FAULT | MMU_IRQ_TLBMISS)
- 
- /* MMU_CNTL */
- #define MMU_CNTL_SHIFT		1
-@@ -96,7 +100,7 @@ static int omap2_iommu_enable(struct iommu *obj)
- 	l |= (MMU_SYS_IDLE_SMART | MMU_SYS_AUTOIDLE);
- 	iommu_write_reg(obj, l, MMU_SYSCONFIG);
- 
--	iommu_write_reg(obj, MMU_IRQ_MASK, MMU_IRQENABLE);
-+	iommu_write_reg(obj, MMU_IRQ_TWL_MASK, MMU_IRQENABLE);
- 	iommu_write_reg(obj, pa, MMU_TTB);
- 
- 	l = iommu_read_reg(obj, MMU_CNTL);
--- 
-1.7.0
+Just a small note: the pages can be contiguous even in normal memory
+allocation (not with framebuffer). That's perfectly ok and there's no
+problem with that in the code.
 
+> however you are not taking
+> into account bridge_brd_mem_map() where vm_flags have VM_IO... in that
+> case get_user_pages() is skipped completely. This code-path is
+> important in order to mmap framebuffer memory, which is contiguous.
+> So, in this case there are no pages too keep track at all.
+
+I gave some thought to this, and I concluded that nothing needs to be
+changed in the patches for this scenario.
+You see, in this case, as you said, no pages were pinned in memory
+using get_user_pages.
+This is perfectly fine since the MM application writes to a physical
+writecombine framebuffer memory which is not cached or swapped out.
+If the MM application will try to begin a DMA operation on this memory
+it will immediately fail because no related mapping will be found.
+This should actually be the expected behavior in such case: there
+really isn't a mapping to this buffer since there's no point to have
+it in VM_IO memory, and applications should not even try to flush/inv
+such memory: it's just redundant.
+
+IOW, the support for this scenario is actually to have no support :
+just return an error, which is what already happens.
+
+Thanks,
+Ohad.
