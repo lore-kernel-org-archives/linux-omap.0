@@ -1,96 +1,43 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH] OMAP2/3: Keypad: Fix memory leak
-Date: Thu, 20 May 2010 20:41:11 +0530
-Message-ID: <AANLkTiludDGO8EW_siAzxqo2bC6SNmtnMTV932D1Wumv@mail.gmail.com>
-References: <1274365792-24938-1-git-send-email-manjugk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Tobias Klauser <tklauser@distanz.ch>
+Subject: [PATCH] OMAP: DSS2: storage class should be before const qualifier
+Date: Thu, 20 May 2010 17:12:52 +0200
+Message-ID: <1274368372-4043-1-git-send-email-tklauser@distanz.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:60199 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942Ab0ETPLb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 11:11:31 -0400
-Received: by pxi18 with SMTP id 18so1358401pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 May 2010 08:11:31 -0700 (PDT)
-In-Reply-To: <1274365792-24938-1-git-send-email-manjugk@ti.com>
+Received: from mx1.zhaw.ch ([160.85.104.50]:58520 "EHLO mx1.zhaw.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751495Ab0ETPM5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 May 2010 11:12:57 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manjunatha GK <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, Damodar <x0132156@ti.com>, Tony Lindgren <tony@atomide.com>
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@nokia.com, linux-arm-kernel@lists.infradead.org, kernel-janitors@vger.kernel.org, Tobias Klauser <tklauser@distanz.ch>
 
-On Thu, May 20, 2010 at 7:59 PM, Manjunatha GK <manjugk@ti.com> wrote:
-> From: Damodar <x0132156@ti.com>
->
-> This patch corrects Possible memory leak of 'input' allocated
-> through input_allocate_device and Suspicious dereference of pointer '=
-pdata'
-> before NULL check
->
-> Signed-off-by: Damodar Santhapuri <x0132156@ti.com>
-> Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
->
-> ---
-> =A0drivers/input/keyboard/twl4030_keypad.c | =A0 21 +++++++++++++----=
-----
-> =A01 files changed, 13 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/=
-keyboard/twl4030_keypad.c
-> index 7aa59e0..aa13aec 100644
-> --- a/drivers/input/keyboard/twl4030_keypad.c
-> +++ b/drivers/input/keyboard/twl4030_keypad.c
-> @@ -326,30 +326,34 @@ static int __devinit twl4030_kp_program(struct =
-twl4030_keypad *kp)
-> =A0*/
-> =A0static int __devinit twl4030_kp_probe(struct platform_device *pdev=
-)
-> =A0{
-> - =A0 =A0 =A0 struct twl4030_keypad_data *pdata =3D pdev->dev.platfor=
-m_data;
-> - =A0 =A0 =A0 const struct matrix_keymap_data *keymap_data =3D pdata-=
->keymap_data;
-> + =A0 =A0 =A0 struct twl4030_keypad_data *pdata;
-> + =A0 =A0 =A0 const struct matrix_keymap_data *keymap_data;
-> =A0 =A0 =A0 =A0struct twl4030_keypad *kp;
-> =A0 =A0 =A0 =A0struct input_dev *input;
-> =A0 =A0 =A0 =A0u8 reg;
-> =A0 =A0 =A0 =A0int error;
-> -
-> + =A0 =A0 =A0 if (!pdev) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "Invalid platorm_device=
-\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 }
-> + =A0 =A0 =A0 pdata =3D pdev->dev.platform_data;
-> =A0 =A0 =A0 =A0if (!pdata || !pdata->rows || !pdata->cols ||
-> =A0 =A0 =A0 =A0 =A0 =A0pdata->rows > TWL4030_MAX_ROWS || pdata->cols =
-> TWL4030_MAX_COLS) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(&pdev->dev, "Invalid platform_=
-data\n");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
-> =A0 =A0 =A0 =A0}
-> -
-> + =A0 =A0 =A0 keymap_data =3D pdata->keymap_data;
-> =A0 =A0 =A0 =A0kp =3D kzalloc(sizeof(*kp), GFP_KERNEL);
-> + =A0 =A0 =A0 if (!kp)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return =A0-ENOMEM;
-> =A0 =A0 =A0 =A0input =3D input_allocate_device();
-> - =A0 =A0 =A0 if (!kp || !input) {
-> + =A0 =A0 =A0 if (!input) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0error =3D -ENOMEM;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err1;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err0;
+The C99 specification states in section 6.11.5:
 
-If I am not mistaking you should still goto 'err1', as
-'input_register_device' is yet not called.
+The placement of a storage-class specifier other than at the beginning
+of the declaration specifiers in a declaration is an obsolescent
+feature.
 
---=20
-Regards,
-Vimal Singh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+---
+ arch/arm/plat-omap/include/plat/display.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+index 1c529ce..fbbb966 100644
+--- a/arch/arm/plat-omap/include/plat/display.h
++++ b/arch/arm/plat-omap/include/plat/display.h
+@@ -277,8 +277,8 @@ struct omap_video_timings {
+  * identify the mode, and does not actually use the configs
+  * itself. However, the configs should be something that
+  * a normal monitor can also show */
+-const extern struct omap_video_timings omap_dss_pal_timings;
+-const extern struct omap_video_timings omap_dss_ntsc_timings;
++extern const struct omap_video_timings omap_dss_pal_timings;
++extern const struct omap_video_timings omap_dss_ntsc_timings;
+ #endif
+ 
+ struct omap_overlay_info {
+-- 
+1.6.3.3
+
