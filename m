@@ -1,45 +1,295 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 20 May 2010 14:29:13 +0300
-Message-ID: <20100520112913.GA12055@nokia.com>
-References: <1274115885.4418.59.camel@mulgrave.site>
- <1274191188.10304.5.camel@mulgrave.site>
- <20100519065934.GH12879@nokia.com>
- <201005192242.55706.rjw@sisk.pl>
- <20100520044926.GB6773@nokia.com>
- <4BF51C9D.8050406@nt.tu-darmstadt.de>
-Reply-To: felipe.balbi@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4BF51C9D.8050406@nt.tu-darmstadt.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Vladimir Pantelic <pan@nt.tu-darmstadt.de>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "ext Rafael J. Wysocki" <rjw@sisk.pl>, ext James Bottomley <James.Bottomley@suse.de>, "me@felipebalbi.com" <me@felipebalbi.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: OMAP: Fix board data to support device only, host only and OTG roles.
+Date: Thu, 20 May 2010 18:39:26 +0530
+Message-ID: <1274360966-9974-1-git-send-email-x0082077@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 20, 2010 at 01:27:25PM +0200, ext Vladimir Pantelic wrote:
->Felipe Balbi wrote:
->> Hi,
->>
->> On Wed, May 19, 2010 at 10:42:55PM +0200, ext Rafael J. Wysocki wrote:
->>>Please note that this approach is not too practical for vendors who ship
->>>systems like cell phones to the general public.
->>
->> yeah, tell me about it :-p
->>
->> during development on MeeGo devices we try to tackle down as much as
->> possible the use_time offenders and start by filing bugs to those apps,
->> instead of fixing their issues in kernel space.
->
->And you will continue doing that once the Meego app store has 100k apps?
+Fix board data to support device only, host only and OTG roles.
 
-I'm not here speaking for MeeGo. I'm presenting my own feelings and my 
-own opinion regarding this issue. Don't bring the company into the game, 
-please.
+The board data hardcodes the mode to OTG or Peripheral.
+This fix will allow to use Peripheral, Host and OTG
+roles independently.
 
--- 
-balbi
+Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+Based on top of today's mainline.
+Applies cleanly on linux-omap master also.
 
-DefectiveByDesign.org
+ arch/arm/mach-omap2/board-2430sdp.c          |    6 ++++++
+ arch/arm/mach-omap2/board-3430sdp.c          |    6 ++++++
+ arch/arm/mach-omap2/board-4430sdp.c          |    6 ++++++
+ arch/arm/mach-omap2/board-cm-t35.c           |    6 ++++++
+ arch/arm/mach-omap2/board-devkit8000.c       |    6 ++++++
+ arch/arm/mach-omap2/board-igep0020.c         |    6 ++++++
+ arch/arm/mach-omap2/board-ldp.c              |    6 ++++++
+ arch/arm/mach-omap2/board-omap3beagle.c      |    6 ++++++
+ arch/arm/mach-omap2/board-omap3evm.c         |    6 ++++++
+ arch/arm/mach-omap2/board-omap3pandora.c     |    6 ++++++
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    6 ++++++
+ arch/arm/mach-omap2/board-overo.c            |    6 ++++++
+ arch/arm/mach-omap2/board-rx51.c             |    6 ++++++
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    6 ++++++
+ 14 files changed, 84 insertions(+)
+
+Index: mainline/arch/arm/mach-omap2/board-2430sdp.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-2430sdp.c
++++ mainline/arch/arm/mach-omap2/board-2430sdp.c
+@@ -195,7 +195,13 @@ static struct omap2_hsmmc_info mmc[] __i
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-ldp.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-ldp.c
++++ mainline/arch/arm/mach-omap2/board-ldp.c
+@@ -385,7 +385,13 @@ static struct omap_board_mux board_mux[]
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-omap3beagle.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-omap3beagle.c
++++ mainline/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -432,7 +432,13 @@ static struct omap_board_mux board_mux[]
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-overo.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-overo.c
++++ mainline/arch/arm/mach-omap2/board-overo.c
+@@ -415,7 +415,13 @@ static struct omap_board_mux board_mux[]
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-3430sdp.c
++++ mainline/arch/arm/mach-omap2/board-3430sdp.c
+@@ -778,7 +778,13 @@ static struct flash_partitions sdp_flash
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-omap3pandora.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-omap3pandora.c
++++ mainline/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -567,7 +567,13 @@ static struct omap_board_mux board_mux[]
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-4430sdp.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-4430sdp.c
++++ mainline/arch/arm/mach-omap2/board-4430sdp.c
+@@ -107,7 +107,13 @@ static void __init omap_4430sdp_init_irq
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_UTMI,
++#ifdef CONFIG_USB_MUSB_OTG
++	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+ 	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-cm-t35.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-cm-t35.c
++++ mainline/arch/arm/mach-omap2/board-cm-t35.c
+@@ -813,7 +813,13 @@ static struct omap_board_mux board_mux[]
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-omap3evm.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-omap3evm.c
++++ mainline/arch/arm/mach-omap2/board-omap3evm.c
+@@ -664,7 +664,13 @@ static struct omap_board_mux board_mux[]
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-rx51.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-rx51.c
++++ mainline/arch/arm/mach-omap2/board-rx51.c
+@@ -122,7 +122,13 @@ static struct omap_board_mux board_mux[]
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
++	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+ 	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 0,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-devkit8000.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-devkit8000.c
++++ mainline/arch/arm/mach-omap2/board-devkit8000.c
+@@ -617,7 +617,13 @@ static void __init devkit8000_flash_init
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-igep0020.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-igep0020.c
++++ mainline/arch/arm/mach-omap2/board-igep0020.c
+@@ -453,7 +453,13 @@ static int __init igep2_i2c_init(void)
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-omap3touchbook.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-omap3touchbook.c
++++ mainline/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -529,7 +529,13 @@ early_param("tbr", early_touchbook_revis
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+Index: mainline/arch/arm/mach-omap2/board-zoom-peripherals.c
+===================================================================
+--- mainline.orig/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ mainline/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -266,7 +266,13 @@ static int __init omap_i2c_init(void)
+ 
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_ULPI,
++#ifdef CONFIG_USB_MUSB_OTG
+ 	.mode			= MUSB_OTG,
++#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
++	.mode			= MUSB_HOST,
++#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
++	.mode			= MUSB_PERIPHERAL,
++#endif
+ 	.power			= 100,
+ };
+ 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
