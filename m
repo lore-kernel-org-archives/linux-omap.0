@@ -1,111 +1,33 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 1/4] fbdev: add a MIPI DSI header
-Date: Thu, 20 May 2010 13:03:45 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1005201251350.26000@axis700.grange>
-References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
- <Pine.LNX.4.64.1005071102440.4777@axis700.grange>
- <1274255350.2307.159.camel@tubuntu.research.nokia.com>
- <Pine.LNX.4.64.1005190955500.3099@axis700.grange>
- <1274257308.2307.168.camel@tubuntu.research.nokia.com>
- <Pine.LNX.4.64.1005200939030.26000@axis700.grange>
- <1274344369.4246.28.camel@tubuntu.research.nokia.com>
+From: Vladimir Pantelic <pan@nt.tu-darmstadt.de>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Thu, 20 May 2010 13:27:25 +0200
+Message-ID: <4BF51C9D.8050406@nt.tu-darmstadt.de>
+References: <1274115885.4418.59.camel@mulgrave.site> <1274191188.10304.5.camel@mulgrave.site> <20100519065934.GH12879@nokia.com> <201005192242.55706.rjw@sisk.pl> <20100520044926.GB6773@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35883 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751948Ab0ETLDo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 May 2010 07:03:44 -0400
-In-Reply-To: <1274344369.4246.28.camel@tubuntu.research.nokia.com>
+Received: from mo-p05-ob.rzone.de ([81.169.146.180]:30715 "EHLO
+	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753119Ab0ETL2j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 07:28:39 -0400
+In-Reply-To: <20100520044926.GB6773@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>
+To: felipe.balbi@nokia.com
+Cc: "ext Rafael J. Wysocki" <rjw@sisk.pl>, ext James Bottomley <James.Bottomley@suse.de>, "me@felipebalbi.com" <me@felipebalbi.com>, Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Geoff Smith <geoffx.smith@intel.com>, Brian Swetland <swetland@google.com>, Kernel development list <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Thu, 20 May 2010, Tomi Valkeinen wrote:
+Felipe Balbi wrote:
+> Hi,
+>
+> On Wed, May 19, 2010 at 10:42:55PM +0200, ext Rafael J. Wysocki wrote:
+>>Please note that this approach is not too practical for vendors who ship
+>>systems like cell phones to the general public.
+>
+> yeah, tell me about it :-p
+>
+> during development on MeeGo devices we try to tackle down as much as
+> possible the use_time offenders and start by filing bugs to those apps,
+> instead of fixing their issues in kernel space.
 
-> On Thu, 2010-05-20 at 10:07 +0200, ext Guennadi Liakhovetski wrote:
-> 
-> > Yes, right, I should have said "they are related";) How about calling the 
-> > header mipi_display.h? This would then unite DSI, DCS, DBI and DPI? 
-> > Creating a separate header for each of these standards seems like an 
-> > overkill to me. We could then put MIPI CSI and CPI standards in an 
-> > include/media/mipi_camera.h. Not sure where to put various other MIPI 
-> > standards, I guess, we'll have to think about it as a need arises.
-> 
-> mipi_display.h sounds good to me.
-> 
-> > > Well, true, this is not a clear thing. MIPI DSI spec talks about "turn
-> > > on peripheral command". But the numbers are DSI data types, according to
-> > > the spec, and not all of them are commands.
-> > 
-> > Ok, how about "telegram types" then?
-> 
-> I wouldn't invent a new word for this =). The DSI spec talks about
-> commands, data types and transactions, I think we should pick one of
-> them.
-> 
-> Perhaps this is already approaching nitpicking, but:
-> 
-> As only some of the commands/datatypes/transactions are commands, I
-> think that's not proper word. All of them have a data type number, and I
-> guess they all are transactions. So "Turn On Peripheral Command" is a
-> transaction, and its data type is 0x32.
-
-Yes, transaction looks good to me.
-
-> I guess if the enum is named, it should then be mipi_dsi_transaction.
-> 
-> But then, which one of these would be more correct:
-> 
-> dsi_send(enum mipi_dsi_transaction transaction)
-> dsi_send(u8 datatype)
-> 
-> As I said previously, I haven't seen any panel using custom datatypes,
-> but I wouldn't be surprised if some panel does. In that sense I would go
-> for using u8, and then perhaps leaving the enum unnamed.
-> 
-> What do you think?
-
-Yes, I'd use u8 too, because the specs define "transaction types" to take 
-6 bits and "DCS commands" to be 8-bit ints. But, you know, doesn't our 
-case fall under case (b) of Chapter 5 "Typedefs" of CodingStyle?:) I mean, 
-wouldn't it make sense to create two typedefs for these to add some 
-type-safety? In fact, transaction types cannot be user-defined / 
-proprietary, right? So, for that an enum would work. It's only DCS 
-commands that allow extensions. But making transaction type an enum and 
-command a typedef would be ugly, and making a typedef for an enum is 
-frowned upon too...
-
-> > As others voted for unnamed enums, how about using them?
-> 
-> Sounds good.
-> 
-> > Concerning omap2 display drivers, AFAICS the only thing we want to change 
-> > there is to switch them too to using the common header and telegram type 
-> 
-> Yep, I think that's the only change for now.
-> 
-> > and command names? So far I don't see a need for a generic MIPI (display) 
-> > subsystem in the kernel with an own bus type, API etc. We could of course 
-> > create a simpe bus with callbacks for sending short and long packets and 
-> > reading data back, but do we really need it ATM?
-> 
-> This is something I've been thinking about for some time. I even made
-> some prototypes for it, but I didn't have time to go forward with it.
-> 
-> It would of course be nice to use the same panel driver on different
-> boards, so I think this is definitely something to think about in the
-> future.
-
-But you only need specific panel drivers if you want to support their 
-proprietary commands? Otherwise you only need a set of parameters - 
-timeing requirements etc. - which you can perfectly just pass in platform 
-data?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+And you will continue doing that once the Meego app store has 100k apps?
