@@ -1,68 +1,34 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] mfd: twl5031: Rename sih modules
-Date: Fri, 21 May 2010 00:59:38 +0200
-Message-ID: <20100520225935.GE3130@sortiz.org>
-References: <1274349860-1736-1-git-send-email-ilkka.koskinen@nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Thu, 20 May 2010 16:08:49 -0700 (PDT)
+Message-ID: <758575.48890.qm@web180307.mail.gq1.yahoo.com>
+References: <20100520185057.GA25089@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1274349860-1736-1-git-send-email-ilkka.koskinen@nokia.com>
+In-Reply-To: <20100520185057.GA25089@gandalf>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: felipe.balbi@nokia.com, Vladimir Pantelic <pan@nt.tu-darmstadt.de>, Matthew Garrett <mjg@redhat.com>, "me@felipebalbi.com" <me@felipebalbi.com>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Kernel development list <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Andrew Morton <akpm@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ilkka,
 
-On Thu, May 20, 2010 at 01:04:20PM +0300, Ilkka Koskinen wrote:
-> Fix the names of twl5031 specific sih modules to match
-> the documentation.
-Patch applied, thanks.
+> -0700, David Brownell wrote:
+> > Some apps do abuse kernel mechanisms, and whether the
+> bug is in the
+> > app or that kernel mechanism can be a judgement
+> call.=A0 I'd expect to
+>=20
+> hey come on, there's no judgement call for an app polling
+> every second
+> to check battery status or some other status that doesn't
+> change that frequently.
 
-Cheers,
-Samuel.
+Or something as broken as a non-terminating CPU loop ...
 
 
-> Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-> ---
->  drivers/mfd/twl4030-irq.c |   11 ++++++-----
->  1 files changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-> index 202bdd5..097f24d 100644
-> --- a/drivers/mfd/twl4030-irq.c
-> +++ b/drivers/mfd/twl4030-irq.c
-> @@ -232,10 +232,11 @@ static const struct sih sih_modules_twl5031[8] = {
->  	},
->  	[6] = {
->  		/*
-> -		 * ACI doesn't use the same SIH organization.
-> -		 * For example, it supports only one interrupt line
-> +		 * ECI/DBI doesn't use the same SIH organization.
-> +		 * For example, it supports only one interrupt output line.
-> +		 * That is, the interrupts are seen on both INT1 and INT2 lines.
->  		 */
-> -		.name		= "aci",
-> +		.name		= "eci_dbi",
->  		.module		= TWL5031_MODULE_ACCESSORY,
->  		.bits		= 9,
->  		.bytes_ixr	= 2,
-> @@ -247,8 +248,8 @@ static const struct sih sih_modules_twl5031[8] = {
->  
->  	},
->  	[7] = {
-> -		/* Accessory */
-> -		.name		= "acc",
-> +		/* Audio accessory */
-> +		.name		= "audio",
->  		.module		= TWL5031_MODULE_ACCESSORY,
->  		.control_offset	= TWL5031_ACCSIHCTRL,
->  		.bits		= 2,
-> -- 
-> 1.6.0.4
-> 
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Of course not.  But if there's a kernel mechanism exposed to
+userspace which really sucks down power ... either it's done
+correctly and the problem is userspace abusing it, or it's done
+wrong so that it's not possible to be used correctly.  There are
+some things that just cost power, and that cost can't be escaped.
