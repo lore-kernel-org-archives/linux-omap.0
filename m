@@ -1,66 +1,43 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 1/4] fbdev: add a MIPI DSI header
-Date: Thu, 20 May 2010 17:20:59 +0300
-Message-ID: <1274365259.4246.52.camel@tubuntu.research.nokia.com>
-References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
-	 <Pine.LNX.4.64.1005071102440.4777@axis700.grange>
-	 <1274255350.2307.159.camel@tubuntu.research.nokia.com>
-	 <Pine.LNX.4.64.1005190955500.3099@axis700.grange>
-	 <1274257308.2307.168.camel@tubuntu.research.nokia.com>
-	 <Pine.LNX.4.64.1005200939030.26000@axis700.grange>
-	 <1274344369.4246.28.camel@tubuntu.research.nokia.com>
-	 <Pine.LNX.4.64.1005201251350.26000@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1005201251350.26000@axis700.grange>
-Sender: linux-sh-owner@vger.kernel.org
-To: ext Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>
+From: Manjunatha GK <manjugk@ti.com>
+Subject: [PATCH] OMAP: McSPI: Fix Null pointer check
+Date: Thu, 20 May 2010 19:59:50 +0530
+Message-ID: <1274365792-24938-2-git-send-email-manjugk@ti.com>
+References: <1274365792-24938-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56259 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755076Ab0ETOa0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 May 2010 10:30:26 -0400
+In-Reply-To: <1274365792-24938-1-git-send-email-manjugk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Satish <x0124230@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Thu, 2010-05-20 at 13:03 +0200, ext Guennadi Liakhovetski wrote:
+From: Satish <x0124230@ti.com>
 
-> Yes, I'd use u8 too, because the specs define "transaction types" to take 
-> 6 bits and "DCS commands" to be 8-bit ints. But, you know, doesn't our 
-> case fall under case (b) of Chapter 5 "Typedefs" of CodingStyle?:) I mean, 
+Fix Null pointer check for pointer r in omap2_mcspi_remove() function.
 
-CodingStyle says: "if there is a clear reason for why it under certain
-circumstances might be an "unsigned int" and under other configurations
-might be "unsigned long", then by all means go ahead and use a typedef."
+Signed-off-by: Satish Kumar <x0124230@ti.com>
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ drivers/spi/omap2_mcspi.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-In our case the DSI transactions and DCS commands are always 6 and 8
-bits, so I don't think it applies.
-
-And the transaction datatypes and DCS commands are really just payload
-sent to the peripheral, and the peripheral can do anything it wants with
-those.
-
-> wouldn't it make sense to create two typedefs for these to add some 
-
-But wouldn't a typedef basically lock the possible transactions or DCS
-commands that you can give to the functions? And that was the original
-problem also.
-
-> type-safety? In fact, transaction types cannot be user-defined / 
-> proprietary, right? So, for that an enum would work. It's only DCS 
-
-Why they cannot be? I don't see any technical problem there, at least.
-And while I don't have any current use to extend transactions, I
-wouldn't want to limit it for any possible future use either.
-
-> But you only need specific panel drivers if you want to support their 
-> proprietary commands? Otherwise you only need a set of parameters - 
-> timeing requirements etc. - which you can perfectly just pass in platform 
-> data?
-
-That's true. I guess you've gotten it easy, if you only have DSI video
-mode panels that do not need any special care =). Command mode panels
-are usually slightly more complex, and especially early prototypes of
-the panels can require quite a lot of trickery. And then there are DSI
-hubs, which make DSI command mode panels look trivial...
-
- Tomi
-
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index e0de0d0..a95d306 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -1198,6 +1198,8 @@ static int __exit omap2_mcspi_remove(struct platform_device *pdev)
+ 	clk_put(mcspi->ick);
+ 
+ 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (r == NULL)
++		return -EINVAL;
+ 	release_mem_region(r->start, (r->end - r->start) + 1);
+ 
+ 	base = mcspi->base;
+-- 
+1.7.0.4
 
