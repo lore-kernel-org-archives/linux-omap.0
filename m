@@ -1,134 +1,159 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [pm-wip/uart][PATCH 1/6] Serial: Clean up set_uart_globals.
-Date: Thu, 20 May 2010 19:08:03 +0530 (IST)
-Message-ID: <47579.192.168.10.88.1274362683.squirrel@dbdmail.itg.ti.com>
+Subject: [pm-wip/uart][PATCH 2/6] Serial: Add UART4 hwmod data.
+Date: Thu, 20 May 2010 19:08:24 +0530 (IST)
+Message-ID: <47872.192.168.10.88.1274362704.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53116 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36642 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753220Ab0ETNiF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 May 2010 09:38:05 -0400
+	id S1753220Ab0ETNi0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 May 2010 09:38:26 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
 
-Remove set_uart_globals function as this will not be
-needed as physical address for uarts will be taken from
-hwmod data file.
+Introduce UART4 hwmod data for OMAP3630
 
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c             |    5 -----
- arch/arm/plat-omap/common.c              |   17 -----------------
- arch/arm/plat-omap/include/plat/common.h |    1 -
- 3 files changed, 0 insertions(+), 23 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   54 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm-common.h          |    2 +
+ arch/arm/plat-omap/include/plat/dma.h      |    2 +
+ arch/arm/plat-omap/include/plat/irqs.h     |    2 +
+ 4 files changed, 60 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index a95bc25..7d0dc3a 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -102,11 +102,6 @@ struct omap_uart_state {
- static LIST_HEAD(uart_list);
- static u8 num_uarts;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 5f74c34..079a65e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -86,6 +86,7 @@ static struct omap_hwmod omap3xxx_l4_wkup_hwmod;
+ static struct omap_hwmod omap3xxx_uart1_hwmod;
+ static struct omap_hwmod omap3xxx_uart2_hwmod;
+ static struct omap_hwmod omap3xxx_uart3_hwmod;
++static struct omap_hwmod omap3xxx_uart4_hwmod;
+ static struct omap_hwmod omap3xxx_mmc1_hwmod;
+ static struct omap_hwmod omap3xxx_mmc2_hwmod;
+ static struct omap_hwmod omap3xxx_mmc3_hwmod;
+@@ -151,6 +152,24 @@ static struct omap_hwmod_ocp_if omap3_l4_per__uart3 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
 
--
--void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
--{
--}
--
- static struct omap_device_pm_latency omap_uart_latency[] = {
++/* L4 PER -> UART4 interface */
++static struct omap_hwmod_addr_space omap3xxx_uart4_addr_space[] = {
++	{
++		.pa_start	= OMAP3_UART4_BASE,
++		.pa_end		= OMAP3_UART4_BASE + SZ_1K - 1,
++		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3_l4_per__uart4 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_uart4_hwmod,
++	.clk		= "uart4_ick",
++	.addr		= omap3xxx_uart4_addr_space,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_uart4_addr_space),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* L4 CORE -> MMC1 interface */
+ static struct omap_hwmod_addr_space omap3xxx_mmc1_addr_space[] = {
  	{
- 		.deactivate_func = omap_device_idle_hwmods,
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index f12f0e3..354267e 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -252,7 +252,6 @@ static void __init __omap2_set_globals(struct omap_globals *omap2_globals)
- 	omap2_set_globals_sdrc(omap2_globals);
- 	omap2_set_globals_control(omap2_globals);
- 	omap2_set_globals_prcm(omap2_globals);
--	omap2_set_globals_uart(omap2_globals);
- }
-
- #endif
-@@ -267,9 +266,6 @@ static struct omap_globals omap242x_globals = {
- 	.ctrl	= OMAP2420_CTRL_BASE,
- 	.prm	= OMAP2420_PRM_BASE,
- 	.cm	= OMAP2420_CM_BASE,
--	.uart1_phys	= OMAP2_UART1_BASE,
--	.uart2_phys	= OMAP2_UART2_BASE,
--	.uart3_phys	= OMAP2_UART3_BASE,
+@@ -257,6 +276,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_per_slaves[] = {
+ /* Master interfaces on the L4_PER interconnect */
+ static struct omap_hwmod_ocp_if *omap3xxx_l4_per_masters[] = {
+ 	&omap3_l4_per__uart3,
++	&omap3_l4_per__uart4,
  };
 
- void __init omap2_set_globals_242x(void)
-@@ -288,9 +284,6 @@ static struct omap_globals omap243x_globals = {
- 	.ctrl	= OMAP243X_CTRL_BASE,
- 	.prm	= OMAP2430_PRM_BASE,
- 	.cm	= OMAP2430_CM_BASE,
--	.uart1_phys	= OMAP2_UART1_BASE,
--	.uart2_phys	= OMAP2_UART2_BASE,
--	.uart3_phys	= OMAP2_UART3_BASE,
+ /* L4 PER */
+@@ -425,6 +445,40 @@ static struct omap_hwmod omap3xxx_uart3_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
  };
 
- void __init omap2_set_globals_243x(void)
-@@ -309,9 +302,6 @@ static struct omap_globals omap3_globals = {
- 	.ctrl	= OMAP343X_CTRL_BASE,
- 	.prm	= OMAP3430_PRM_BASE,
- 	.cm	= OMAP3430_CM_BASE,
--	.uart1_phys	= OMAP3_UART1_BASE,
--	.uart2_phys	= OMAP3_UART2_BASE,
--	.uart3_phys	= OMAP3_UART3_BASE,
- };
++/* UART4 */
++
++static struct omap_hwmod_irq_info uart4_mpu_irqs[] = {
++	{ .irq = INT_36XX_UART4_IRQ, },
++};
++
++static struct omap_hwmod_dma_info uart4_sdma_chs[] = {
++	{ .name = "rx",	.dma_ch = OMAP36XX_DMA_UART4_RX, },
++	{ .name = "tx",	.dma_ch = OMAP36XX_DMA_UART4_TX, },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_uart4_slaves[] = {
++	&omap3_l4_per__uart4,
++};
++
++static struct omap_hwmod omap3xxx_uart4_hwmod = {
++	.name		= "uart4",
++	.mpu_irqs	= uart4_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(uart4_mpu_irqs),
++	.sdma_chs	= uart4_sdma_chs,
++	.sdma_chs_cnt	= ARRAY_SIZE(uart4_sdma_chs),
++	.main_clk	= "uart4_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3630_EN_UART4_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_uart4_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_uart4_slaves),
++	.class		= &uart_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
++};
++
+ /* MMC/SD/SDIO common */
 
- void __init omap2_set_globals_343x(void)
-@@ -321,8 +311,6 @@ void __init omap2_set_globals_343x(void)
+ static struct omap_hwmod_class_sysconfig mmc_sysc = {
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 90f603d..0fc20c9 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -390,6 +390,8 @@
+ #define OMAP3430_EN_MPU_SHIFT				1
 
- void __init omap2_set_globals_36xx(void)
- {
--	omap3_globals.uart4_phys = OMAP3_UART4_BASE;
--
- 	__omap2_set_globals(&omap3_globals);
- }
- #endif
-@@ -335,10 +323,6 @@ static struct omap_globals omap4_globals = {
- 	.prm	= OMAP4430_PRM_BASE,
- 	.cm	= OMAP4430_CM_BASE,
- 	.cm2	= OMAP4430_CM2_BASE,
--	.uart1_phys	= OMAP4_UART1_BASE,
--	.uart2_phys	= OMAP4_UART2_BASE,
--	.uart3_phys	= OMAP4_UART3_BASE,
--	.uart4_phys	= OMAP4_UART4_BASE,
- };
+ /* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
++#define OMAP3630_EN_UART4				(1 << 18)
++#define OMAP3630_EN_UART4_SHIFT				18
+ #define OMAP3430_EN_GPIO6				(1 << 17)
+ #define OMAP3430_EN_GPIO6_SHIFT				17
+ #define OMAP3430_EN_GPIO5				(1 << 16)
+diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+index 02232ca..105bdb5 100644
+--- a/arch/arm/plat-omap/include/plat/dma.h
++++ b/arch/arm/plat-omap/include/plat/dma.h
+@@ -319,6 +319,8 @@
+ #define OMAP34XX_DMA_USIM_TX		79	/* S_DMA_78 */
+ #define OMAP34XX_DMA_USIM_RX		80	/* S_DMA_79 */
 
- void __init omap2_set_globals_443x(void)
-@@ -346,7 +330,6 @@ void __init omap2_set_globals_443x(void)
- 	omap2_set_globals_tap(&omap4_globals);
- 	omap2_set_globals_control(&omap4_globals);
- 	omap2_set_globals_prcm(&omap4_globals);
--	omap2_set_globals_uart(&omap4_globals);
- }
- #endif
++#define OMAP36XX_DMA_UART4_TX		81	/* S_DMA_80 */
++#define OMAP36XX_DMA_UART4_RX		82	/* S_DMA_81 */
+ /*----------------------------------------------------------------------------*/
 
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 7556e27..3167a9d 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -68,7 +68,6 @@ void omap2_set_globals_tap(struct omap_globals *);
- void omap2_set_globals_sdrc(struct omap_globals *);
- void omap2_set_globals_control(struct omap_globals *);
- void omap2_set_globals_prcm(struct omap_globals *);
--void omap2_set_globals_uart(struct omap_globals *);
+ #define OMAP1_DMA_TOUT_IRQ		(1 << 0)
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index 4017019..1732cca 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -345,6 +345,8 @@
+ #define INT_34XX_MMC3_IRQ	94
+ #define INT_34XX_GPT12_IRQ	95
 
- /**
-  * omap_test_timeout - busy-loop, testing a condition
++#define INT_36XX_UART4_IRQ	80
++
+ #define INT_35XX_HECC0_IRQ		24
+ #define INT_35XX_HECC1_IRQ		28
+ #define INT_35XX_EMAC_C0_RXTHRESH_IRQ	67
 -- 
 1.6.3.3
-
 
 
 
