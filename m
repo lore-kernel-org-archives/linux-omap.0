@@ -1,58 +1,80 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Fri, 21 May 2010 00:18:12 +0300
-Message-ID: <AANLkTimnKJ9OQ51HDJJ3ctT10j1wk-wEYzrGE8vjHu_B@mail.gmail.com>
-References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	<g2w94a0d4531005020617oa856c549k1af5d0100bf013aa@mail.gmail.com>
-	<r2ida15981b1005021047o67886d9u912eb1313d863d45@mail.gmail.com>
-	<AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
+From: Mike Chan <mike@android.com>
+Subject: Re: [PATCH v2 0/3] Enable CPU frequency and power tracking in cpuacct
+	cgroup
+Date: Thu, 20 May 2010 14:21:40 -0700
+Message-ID: <AANLkTimrJ-F-rBDKnEusN2oViObCCPvZzeIWavkf-tqa@mail.gmail.com>
+References: <1274380944-20947-1-git-send-email-mike@android.com>
+	 <201005202301.12259.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f180.google.com ([209.85.211.180]:38816 "EHLO
-	mail-yw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754698Ab0ETVSd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 17:18:33 -0400
-Received: by ywh10 with SMTP id 10so190984ywh.1
-        for <linux-omap@vger.kernel.org>; Thu, 20 May 2010 14:18:32 -0700 (PDT)
-In-Reply-To: <AANLkTini4eWhImqK7BBkXDzvYdIxEGAF_yrUalgQ_7YJ@mail.gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38226 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752186Ab0ETVVm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 17:21:42 -0400
+In-Reply-To: <201005202301.12259.trenn@suse.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>
 
-Hi Felipe,
+On Thu, May 20, 2010 at 2:01 PM, Thomas Renninger <trenn@suse.de> wrote=
+:
+> Hi Mike,
+>
+> On Thursday 20 May 2010 08:42:21 pm Mike Chan wrote:
+>> v2:
+>> Rebased off of Thomas Renninger's patch for cgroups_cpuacct refactor=
+ing,
+> thanks.
+> A general comment:
+> I don't know much about the cgroup stuff.
 
-On Fri, May 14, 2010 at 10:27 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> Also, I noticed an important problem. Your code assumes that we would
-> always have a bunch of scattered pages,
+Perhaps Paul Menage or Balbir Singh can look and sign off on the API's?
 
-Just a small note: the pages can be contiguous even in normal memory
-allocation (not with framebuffer). That's perfectly ok and there's no
-problem with that in the code.
+> I am also not sure how exactly power can be measured on this arch bas=
+ed on
 
-> however you are not taking
-> into account bridge_brd_mem_map() where vm_flags have VM_IO... in that
-> case get_user_pages() is skipped completely. This code-path is
-> important in order to mmap framebuffer memory, which is contiguous.
-> So, in this case there are no pages too keep track at all.
+If you know how much time was spent at each frequency executing code,
+you can calculate how much power was consumed if the platform (with
+hooks) provide power numbers (in milliWatts) for the power at
+frequency X.
 
-I gave some thought to this, and I concluded that nothing needs to be
-changed in the patches for this scenario.
-You see, in this case, as you said, no pages were pinned in memory
-using get_user_pages.
-This is perfectly fine since the MM application writes to a physical
-writecombine framebuffer memory which is not cached or swapped out.
-If the MM application will try to begin a DMA operation on this memory
-it will immediately fail because no related mapping will be found.
-This should actually be the expected behavior in such case: there
-really isn't a mapping to this buffer since there's no point to have
-it in VM_IO memory, and applications should not even try to flush/inv
-such memory: it's just redundant.
+I did some initial testing on Motorola Droid comparing to a power
+meter and I got within 2% variance.
 
-IOW, the support for this scenario is actually to have no support :
-just return an error, which is what already happens.
+> frequency accounting (there also were some threads I was not aware of=
+?)
+> A signed-off-by or reviewed-by from someone who is more involved in t=
+his omap
+> stuff would probably not that bad.
+>
 
-Thanks,
-Ohad.
+OMAP was the closest with mainline support I could provide an example
+how to use these hooks.
+
+I'm hoping for some blessing from some people on the linux-omap list
+for that. However can we possibly just stack the first two patches to
+get the API in? This will make it easier to fixup the omap hooks if
+they don't get in.
+
+-- Mike
+
+> Still I Iike this interface and I could imagine others hook into it a=
+s well,
+> for whatever has to be cpu cgroup accounted.
+>
+> My two cents...,
+>
+> =A0 =A0 Thomas
+> --
+> To unsubscribe from this list: send the line "unsubscribe cpufreq" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
