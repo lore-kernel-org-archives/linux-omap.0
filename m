@@ -1,27 +1,82 @@
-From: "Raul abbe" <jane@p4001-ipbf610yosida.nagano.ocn.ne.jp>
-Subject: marketing email list
-Date: Thu, 20 May 2010 13:18:20 +0900 (JST)
-Message-ID: <20100520041820.E42D7DF7206@mail.legend-net.jp>
-Reply-To: jane@p4001-ipbf610yosida.nagano.ocn.ne.jp
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/3] omap iommu: Introduce iopgd_is_table MACRO
+Date: Thu, 20 May 2010 07:46:18 +0300
+Message-ID: <1274330780-31764-2-git-send-email-Hiroshi.DOYU@nokia.com>
+References: <1274330780-31764-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pee5b73.tokyff01.ap.so-net.ne.jp ([202.238.91.115]:33431 "EHLO
-	mail.legend-net.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750781Ab0ETESi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 00:18:38 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:60122 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752414Ab0ETErA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 00:47:00 -0400
+In-Reply-To: <1274330780-31764-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: polzer@zsi.at, retreats@summitdharmacenter.org, ja8pyc3@mailja.com, christina.crumpecker@uchsc.edu, hemejcot@dxkrvhzr.com, adrienne@planet3com.net, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: h-kanigeri2@ti.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Here's a list package on sale this week only:
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-USA Lawyers Database - 269,787 records with 235,244 emails
-US New Business Database - 4.8 million records all with emails
-American Consumer Database - 1,300,000 records all with emails.
+A bit more strict comparison.
 
-All complete lists above: $289
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/plat-omap/iommu.c     |    8 ++++----
+ arch/arm/plat-omap/iopgtable.h |    2 ++
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-There are more list packages also available for consumer, healthcare, business and more. Contact me here for more info or to get samples: successtools@gmx.com
-  
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index bc094db..341c481 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -653,7 +653,7 @@ void iopgtable_lookup_entry(struct iommu *obj, u32 da, u32 **ppgd, u32 **ppte)
+ 	if (!*iopgd)
+ 		goto out;
+ 
+-	if (*iopgd & IOPGD_TABLE)
++	if (iopgd_is_table(*iopgd))
+ 		iopte = iopte_offset(iopgd, da);
+ out:
+ 	*ppgd = iopgd;
+@@ -670,7 +670,7 @@ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
+ 	if (!*iopgd)
+ 		return 0;
+ 
+-	if (*iopgd & IOPGD_TABLE) {
++	if (iopgd_is_table(*iopgd)) {
+ 		int i;
+ 		u32 *iopte = iopte_offset(iopgd, da);
+ 
+@@ -745,7 +745,7 @@ static void iopgtable_clear_entry_all(struct iommu *obj)
+ 		if (!*iopgd)
+ 			continue;
+ 
+-		if (*iopgd & IOPGD_TABLE)
++		if (iopgd_is_table(*iopgd))
+ 			iopte_free(iopte_offset(iopgd, 0));
+ 
+ 		*iopgd = 0;
+@@ -785,7 +785,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+ 
+ 	iopgd = iopgd_offset(obj, da);
+ 
+-	if (!(*iopgd & IOPGD_TABLE)) {
++	if (!iopgd_is_table(*iopgd)) {
+ 		dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%08x\n", __func__,
+ 			da, iopgd, *iopgd);
+ 		return IRQ_NONE;
+diff --git a/arch/arm/plat-omap/iopgtable.h b/arch/arm/plat-omap/iopgtable.h
+index ab23b6a..f2e6b64 100644
+--- a/arch/arm/plat-omap/iopgtable.h
++++ b/arch/arm/plat-omap/iopgtable.h
+@@ -63,6 +63,8 @@
+ #define IOPGD_SECTION		(2 << 0)
+ #define IOPGD_SUPER		(1 << 18 | 2 << 0)
+ 
++#define iopgd_is_table(x)	(((x) & 3) == IOPGD_TABLE)
++
+ #define IOPTE_SMALL		(2 << 0)
+ #define IOPTE_LARGE		(1 << 0)
+ 
+-- 
+1.7.1.rc1
 
-
-To invoke no further correspondence status please send an email to remfiles@gmx.com
