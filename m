@@ -1,120 +1,234 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] OMAP clock/powerdomain/hwmod/omap_device patches for
- 2.6.35
-Date: Wed, 19 May 2010 18:07:44 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1005191804450.27473@utopia.booyaka.com>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: [PATCH 1/8] PM: Add suspend block api.
+Date: Wed, 19 May 2010 17:35:42 -0700
+Message-ID: <AANLkTinBFqO_QnGxYqGIk3PXA9Hp0JrST_oVwJ_yDeZQ@mail.gmail.com>
+References: <1273810273-3039-1-git-send-email-arve@android.com>
+	<1273810273-3039-2-git-send-email-arve@android.com>
+	<alpine.DEB.2.00.1005140023220.3348@utopia.booyaka.com>
+	<AANLkTimghkjR5PaWdOpJFM7jeq8vFpEAcF9DhgEW0hCK@mail.gmail.com>
+	<alpine.DEB.2.00.1005172011310.27473@utopia.booyaka.com>
+	<AANLkTikybZSgsmcORpfptOrK__57sl71896JV-01OilQ@mail.gmail.com>
+	<alpine.DEB.2.00.1005172115020.27473@utopia.booyaka.com>
+	<AANLkTikKfyvHQVoY93u6-yK5V9RHzWdVcX73bpiD6Vdp@mail.gmail.com>
+	<alpine.DEB.2.00.1005190936560.27473@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36433 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752276Ab0ETAHp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 May 2010 20:07:45 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <alpine.DEB.2.00.1005190936560.27473@utopia.booyaka.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+On Wed, May 19, 2010 at 8:55 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hi Arve,
+>
+> On Mon, 17 May 2010, Arve Hj=F8nnev=E5g wrote:
+>
+>> On Mon, May 17, 2010 at 8:34 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>> > On Mon, 17 May 2010, Arve Hj=F8nnev=E5g wrote:
+>> >> On Mon, May 17, 2010 at 7:17 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>> >> > On Fri, 14 May 2010, Arve Hj=F8nnev=E5g wrote:
+>> >> >> On Thu, May 13, 2010 at 11:27 PM, Paul Walmsley <paul@pwsan.com> w=
+rote:
+>> >> >> > On Thu, 13 May 2010, Arve Hj=F8nnev=E5g wrote:
+>> >> >> >
+>> >> >> >> Adds /sys/power/policy that selects the behaviour of /sys/power=
+/state.
+>> >> >> >> After setting the policy to opportunistic, writes to /sys/power=
+/state
+>> >> >> >> become non-blocking requests that specify which suspend state t=
+o enter
+>> >> >> >> when no suspend blockers are active. A special state, "on", sto=
+ps the
+>> >> >> >> process by activating the "main" suspend blocker.
+>> >> >> >>
+>> >> >> >> Signed-off-by: Arve Hj=F8nnev=E5g <arve@android.com>
+>> >> >> >
+>> >> >> > Looking at the way that suspend-blocks are used in the current A=
+ndroid
+>> >> >> > 'msm' kernel tree[1], they seem likely to cause layering violati=
+ons,
+>> >> >> > fragile kernel code with userspace dependencies, and code that c=
+onsumes
+>> >> >> > power unnecessarily.
+>> >> >> >
+>> >> >> > For example, in drivers/mmc/core/core.c:721, in mmc_rescan() [2]=
+, we find
+>> >> >> > the following code:
+>> >> >> >
+>> >> >> > =A0 =A0 =A0 =A0/* give userspace some time to react */
+>> >> >> > =A0 =A0 =A0 =A0wake_lock_timeout(&mmc_delayed_work_wake_lock, HZ=
+ / 2);
+>> >> >> >
+>> >> >> > This is a layering violation. =A0The MMC subsystem should have n=
+othing to do
+>> >> >> > with "giving userspace time to react." =A0That is the responsibi=
+lity of the
+>> >> >> > Linux scheduler.
+>> >> >> >
+>> >> >> > This code is also intrinsically fragile and use-case dependent. =
+=A0What if
+>> >> >> > userspace occasionally needs more than (HZ / 2) to react? =A0If =
+the
+>> >> >> > distributor is lucky enough to catch this before the product shi=
+ps, then
+>> >> >> > the distributor can patch in a new magic number. =A0But if the d=
+evice makes
+>> >> >> > it to the consumer, the result is an unstable device that unpred=
+ictably
+>> >> >> > suspends.
+>> >> >> >
+>> >> >> > The above code will also waste power. =A0Even if userspace takes=
+ less than
+>> >> >> > (HZ / 2) to react, the system will still be prevented from enter=
+ing a
+>> >> >> > system-wide low power state for the duration of the remaining ti=
+me. =A0This
+>> >> >> > is in contrast to an approach that uses the idle loop to enter a
+>> >> >> > system-wide low power state. =A0The moment that the system has n=
+o further
+>> >> >> > work to do, it can start saving power.
+>> >> >> >
+>> >> >>
+>> >> >> Yes, preventing suspend for 1/2 second wastes some power, but are =
+you
+>> >> >> seriously suggesting that it wastes more power then never suspendi=
+ng?
+>> >> >> Opportunitic suspend does not prevent entering low power modes from
+>> >> >> idle.
+>> >> >
+>> >> > Sorry, my E-mail was unclear. =A0Here is my intended point:
+>> >> >
+>> >> > The current Android opportunistic suspend governor does not enter f=
+ull
+>> >> > system suspend until all suspend-blocks are released. =A0If the gov=
+ernor
+>> >> > were modified to respect the scheduler, then it could enter suspend=
+ the
+>> >> > moment that the system had no further work to do.
+>> >> >
+>> >>
+>> >> On the hardware that shipped we enter the same power state from idle
+>> >> and suspend, so the only power savings we get from suspend that we
+>> >> don't get in idle is from not respecting the scheduler and timers.
+>> >
+>> > Other people
+>> > say that their hardware XXX. =A0(This is probably likely for anything =
+that
+>> > supports ACPI.)
+>
+> Heh, looks like this part of my E-mail escaped a little too early.
+>
+>> >> > So during part of the (HZ / 2) time interval in the above code, the=
+ system
+>> >> > is running some kernel or userspace code. =A0But after that work is=
+ done, an
+>> >> > idle-loop-based opportunistic suspend governor could enter idle dur=
+ing
+>> >> > the remaining portion of that (HZ / 2) time interval, while the cur=
+rent
+>> >> > governor must keep the system out of suspend.
+>> >> >
+>> >> Triggering a full suspend (that disregards normal timers) from idle
+>> >> does not work, since the system may temporarily enter idle while
+>> >> processing the event.
+>> >
+>> > Could you provide an example?
+>>
+>> The code takes a pagefault. The system is idle while waiting for the
+>> dma to finish.
+>
+> OK.
+>
+>> > In such a case, how can the kernel guarantee that the system will proc=
+ess
+>> > the event within (HZ / 2) seconds?
+>>
+>> It can't, but in my opinion if the event did not start processing in
+>> 1/2 second it was probably not time critical.
+>
+> Thanks for the correction regarding the unit of the time interval.
+>
+> To use the pagefault example, wouldn't that be partially dependent on
+> factors outside the control of the task that handles the input event?
+> (e.g., the time needed to page back in, or other code running on the
+> system.)
+>
+Yes (we don't need any timeouts to handle input events though).
+
+>> >> > Of course, to do this, a different method for freezing processes wo=
+uld be
+>> >> > needed; one possible approach is described here[1]; others have pro=
+posed
+>> >> > similar approaches.
+>> >>
+>> >> If you freeze processes you need something like a suspend blocker to
+>> >> prevent processes from being frozen.
+>> >
+>> > (It occurs to me that "frozen" is the wrong terminology to use.
+>> > =A0Perhaps "paused" would be a better term, along the lines of [1].)
+>> >
+>> > The full set of processes does not need to be paused. =A0For example, =
+if
+>> > "untrusted" processes are run in a cgroup, and only tasks in that cgro=
+up
+>> > are put into TASK_INTERRUPTIBLE, then "trusted" processes will not be
+>> > paused.
+>>
+>> We want to freeze trusted processes.
+>
+> By "trusted," I mean processes that are run with a suspend block, as in
+> your example to Tony[1]. =A0Isn't it so that Android has processes that
+> either run entirely under suspend-blocks, or which take suspend-blocks at
+> some point in time during their execution? =A0Wouldn't those processes ne=
+ed
+> to be prevented from a force-pause or force-freeze?
+>
+We don't freeze processes while any suspend blockers are active.
+
+>> >> By having a process that never gets frozen you could implement this
+>> >> entirely in user space, but you would have to funnel all wakeup events
+>> >> though this process.
+>> >
+>> > The proposal[2] does require a kernel change. =A0No wakeup funnel proc=
+ess
+>> > would be needed. =A0The proposal is to put processes into
+>> > TASK_INTERRUPTIBLE, not TASK_STOPPED (unlike most "freezers").
+>> >
+>>
+>> Why is the method used for pausing the processes relevant? If the
+>> process is paused it cannot process the wakeup event.
+>
+> Tasks in TASK_INTERRUPTIBLE are woken back up when an event arrives,
+
+So you are not actually preventing them from. A task that wakes up 60
+times a second will still drain the battery, unless you happened to
+pause it while it was active.
+
+> unlike tasks in TASK_STOPPED, which are stopped until a SIGCONT arrives.
+>
+>> The only way to get the wake event to the process is to funnel it though
+>> a process that never is paused.
+>
+>
+> - Paul
+>
+> 1. http://lkml.org/lkml/2010/5/7/420
+>
+>
 
 
-Hi Tony,
 
-Here are some patches for 2.6.35.  This branch is based on your 
-omap-for-linus branch.
+-- =
 
-regards,
-
-- Paul
-
-The following changes since commit 0b088e693d0f2126444b9e97ec7e716602d884e3:
-
-  AM3517: rename the i2c boardinfo to make it more readable (2010-05-14 14:15:30 -0700)
-
-are available in the git repository at:
-
-  git://git.pwsan.com/linux-2.6 for_2.6.35
-
-Benoit Cousson (13):
-      OMAP4: hwmod: Replace module & device offsets by absolute clkctrl address
-      OMAP: CM: Move MAX_MODULE_READY_TIME to cm.h
-      OMAP4: hwmod & CM: Implement the omap4_cm_wait_module_ready function
-      OMAP4: hwmod: Replace OCPIF_HAS_IDLEST by HWMOD_NO_IDLEST
-      OMAP: hwmod: Fix wrong pointer iteration in oh->slaves
-      OMAP: hwmod: Remove IS_ERR check with omap_clk_get_by_name return value
-      OMAP: hwmod: Replace WARN by pr_warning if clock lookup failed
-      OMAP: hwmod: Do not exit the iteration if one clock init failed
-      OMAP: hwmod: Rename hwmod name for the MPU
-      OMAP: hwmod: Replace WARN by pr_warning for clockdomain check
-      OMAP4: CM: Remove non-functional registers in ES1.0
-      OMAP4: PRM: Remove MPU internal code name and apply PRCM naming convention
-      OMAP4: PRCM: Remove duplicate definition of base addresses
-
-Felipe Balbi (1):
-      OMAP1 clock: fix section mismatch on clk_init
-
-Laine Walker-Avina (1):
-      OMAP3 clock: add support for setting the divider for sys_clkout2 using clk_set_rate
-
-Paul Walmsley (11):
-      OMAP2 PRCM: convert OMAP2 PRCM macros to the _SHIFT/_MASK suffixes
-      OMAP3 PRCM: convert OMAP3 PRCM macros to the _SHIFT/_MASK suffixes
-      OMAP2+ PRCM: convert remaining PRCM macros to the _SHIFT/_MASK suffixes
-      OMAP3: PM: PM_MPUGRPSEL writes should use GRPSEL macros, not EN macros
-      OMAP2+ clock: remove DEFAULT_RATE clksel_rate flag
-      OMAP2+ clock: clean up clkt_clksel.c
-      OMAP3 clock: rename RATE_IN_343X, RATE_IN_3430ES2 to match reality
-      OMAP3 clock: remove unnecessary duplicate of dpll4_m2_ck, added for 36xx
-      OMAP clock: resolve old checkpatch and CodingStyle issues with plat-omap/clock.c
-      OMAP powerdomain, hwmod, omap_device: add some credits
-      OMAP2 clock: fix recursive spinlock attempt when CONFIG_CPU_FREQ=y
-
-Rajendra Nayak (6):
-      OMAP4: PRCM: Add offset defines for all PRM registers
-      OMAP4: PRCM: Add offset defines for all CM registers
-      Remove the hack put in place while clock framework was still not in
-      OMAP: timers: Fix clock source names for OMAP4
-      OMAP4 powerdomain: Fix pwrsts flags for ALWAYS ON domains
-      OMAP4 powerdomain: Support LOWPOWERSTATECHANGE for powerdomains
-
- arch/arm/mach-omap1/clock.c                   |    2 +-
- arch/arm/mach-omap1/clock.h                   |    2 +-
- arch/arm/mach-omap2/clkt2xxx_apll.c           |    4 +-
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c  |   17 +-
- arch/arm/mach-omap2/clkt_clksel.c             |  472 +++++++++++++++----------
- arch/arm/mach-omap2/clock.c                   |    9 +
- arch/arm/mach-omap2/clock.h                   |   11 +-
- arch/arm/mach-omap2/clock2420_data.c          |   50 ++--
- arch/arm/mach-omap2/clock2430_data.c          |   54 ++--
- arch/arm/mach-omap2/clock3xxx_data.c          |  408 +++++++++-------------
- arch/arm/mach-omap2/clock_common_data.c       |   12 +-
- arch/arm/mach-omap2/clockdomain.c             |    4 +-
- arch/arm/mach-omap2/clockdomains44xx.h        |    4 +-
- arch/arm/mach-omap2/cm-regbits-24xx.h         |  236 ++++++------
- arch/arm/mach-omap2/cm-regbits-34xx.h         |  222 ++++++------
- arch/arm/mach-omap2/cm.c                      |    3 -
- arch/arm/mach-omap2/cm.h                      |   16 +-
- arch/arm/mach-omap2/cm44xx.h                  |  301 ++++++++++++++--
- arch/arm/mach-omap2/cm4xxx.c                  |   54 ++--
- arch/arm/mach-omap2/control.c                 |    7 +-
- arch/arm/mach-omap2/omap_hwmod.c              |  121 ++++---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c    |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c    |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    2 +-
- arch/arm/mach-omap2/pm24xx.c                  |  126 ++++----
- arch/arm/mach-omap2/pm34xx.c                  |  205 ++++++-----
- arch/arm/mach-omap2/powerdomain.c             |   56 +++-
- arch/arm/mach-omap2/powerdomains44xx.h        |   23 +-
- arch/arm/mach-omap2/prcm-common.h             |  164 ++++-----
- arch/arm/mach-omap2/prcm.c                    |    4 +-
- arch/arm/mach-omap2/prm-regbits-24xx.h        |  120 ++++----
- arch/arm/mach-omap2/prm-regbits-34xx.h        |  360 ++++++++++----------
- arch/arm/mach-omap2/prm.h                     |   22 +-
- arch/arm/mach-omap2/prm44xx.h                 |  389 +++++++++++++++++++--
- arch/arm/plat-omap/clock.c                    |   25 +-
- arch/arm/plat-omap/dmtimer.c                  |    4 +-
- arch/arm/plat-omap/include/plat/clock.h       |   14 +-
- arch/arm/plat-omap/include/plat/omap44xx.h    |    1 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |   16 +-
- arch/arm/plat-omap/include/plat/powerdomain.h |    7 +
- arch/arm/plat-omap/omap_device.c              |    4 +-
- 41 files changed, 2099 insertions(+), 1456 deletions(-)
-
+Arve Hj=F8nnev=E5g
