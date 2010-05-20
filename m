@@ -1,88 +1,55 @@
-From: "kishore kadiyala" <kishore.kadiyala@ti.com>
-Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
-Date: Thu, 20 May 2010 23:01:06 +0530
-Message-ID: <087101caf842$3d7aabe0$LocalHost@wipblrx0099945A>
-References: <22422.10.24.255.17.1273947606.squirrel@dbdmail.itg.ti.com> <20100518025026.GF5818@atomide.com> <20100519000912.GX5818@atomide.com> <05ec01caf76a$3a02da60$LocalHost@wipblrx0099945A> <20100520005800.GK5818@atomide.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Thu, 20 May 2010 10:40:17 -0700 (PDT)
+Message-ID: <15003.23611.qm@web180316.mail.gq1.yahoo.com>
+References: <4BF51C9D.8050406@nt.tu-darmstadt.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, jarkko.lavinen@nokia.com, rmk@arm.linux.org.uk, paul@pwsan.com, santosh.shilimkar@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from n6-vm0.bullet.mail.gq1.yahoo.com ([98.137.26.79]:47064 "HELO
+	n6-vm0.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752613Ab0ETRkS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 May 2010 13:40:18 -0400
+In-Reply-To: <4BF51C9D.8050406@nt.tu-darmstadt.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: felipe.balbi@nokia.com, Vladimir Pantelic <pan@nt.tu-darmstadt.de>
+Cc: Matthew Garrett <mjg@redhat.com>, "me@felipebalbi.com" <me@felipebalbi.com>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Kernel development list <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Andrew Morton <akpm@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
 
 
------ Original Message ----- 
-From: "Tony Lindgren" <tony@atomide.com>
-To: "kishore kadiyala" <kishore.kadiyala@ti.com>
-Cc: <linux-mmc@vger.kernel.org>; <linux-omap@vger.kernel.org>; 
-<madhu.cr@ti.com>; <jarkko.lavinen@nokia.com>; <rmk@arm.linux.org.uk>; 
-<paul@pwsan.com>; <santosh.shilimkar@ti.com>
-Sent: Thursday, May 20, 2010 6:28 AM
-Subject: Re: [PATCH v4 0/5] Adding MMC Support on OMAP4430 SDP
+> > during development on MeeGo devices we try to tackle
+> down as much as
+> > possible the use_time offenders and start by filing
+> bugs to those apps,
+> > instead of fixing their issues in kernel space.
+
+Some apps do abuse kernel mechanisms, and whether the bug is in the
+app or that kernel mechanism can be a judgement call.  I'd expect to
+see some fixes be appropriately in-kernel; maybe not many though.
+
+When reading about this suspend block stuff, does anyone else hear
+eachoes of APM?  It's been ages since that was used, but ISTR it also
+leveraged handshaking between kernel and userspace.  Are there lessons
+to be applied from there to this discussion?
+
+On first principles, I don't see anything wrong with acknowledging that
+the kernel doesn't have a "whole system PM view" and thus its PM knowledge could usefully be augmented by information from userspace (applications), possibly on request.
+
+Just what that broad PM view consists of gets kind of system-specific.  For OMAP hardware, with smart device-level power reduction active almost
+all the time, it may look different from an ACPI laptop where the BIOS
+is biased towards saving device power primarily in some suspend state(s) ... or some other hardware platform without much hardware or BIOS assist, where the main PM mechanisms involve software detection/instigation of hardware idleness (and potentially "off-ness").
 
 
->* kishore kadiyala <kishore.kadiyala@ti.com> [100519 08:39]:
->> >
->> >FYI, the MMC on omap4 is not quite there yet at least
->> >on my board. It mostly detects the card with
->> >omap_4430sdp_defconfig, but fails always unless
->> >CONFIG_RTC_DRV_TWL92330=y.. This is without CONFIG_SMP
->> >as it oopses.
->>
->> Hope you are referring CONFIG_RTC_DRV_TWL92330 to omap3_defconfig
->> and not to omap_4430sdp_defconfig.
->
-> Sorry I meant CONFIG_RTC_DRV_TWL4030 in the omap_4430sdp_defconfig.
-> If you take that out, MMC is never detected.
 
-Even disabling  CONFIG_RTC_DRV_TWL4030 in  omap_4430sdp_defconfig, card gets 
-detected
-always on booting up.
 
->
->> With omap_4430sdp_defconfig , I've tested on 4430SDP and Blaze and always
->> Cards on MMC1 & MMC2 gets detected once bootedup.
->
-> Are you able to actually mount root on the MMC with let's say
-> current linux-omap master branch?
+> And you will continue doing that once the Meego app store
+> has 100k apps?
 
-Yes I booted with file system mounted on card present on MMC1,
-and I can see cards getting detected properly and also filesystem gettting 
-mounted.
+I may have overlooked it, in one of the 100K messsages in my
+mailbox about versions of suspend block/etc patches ...
 
-Here are the boot logs with "CONFIG_RTC_DRV_TWL4030 " disabled and 
-filesystem
-on ext2 partition of card present on MMC1
-http://pastebin.mozilla.org/726228
+But surely NOBODY is actually contending that broken aps NOT get fixed??
 
-Regards,
-Kishore
-
->
->> >Also MMC is never detected with omap3_defconfig.
->>
->> With omap3_defconfig  +  disabling "CONFIG_OMAP_RESET_CLOCKS",
->> I've tested on 4430SDP and Blaze and always Cards on MMC1 & MMC2
->> gets detected on bootup.
->
-> That should be fixed so CONFIG_OMAP_RESET_CLOCKS works. Otherwise
-> we're relying on some random clocks being enabled.
->
->> >I've piled all these patches into linux-omap master branch
->> >for easy testing. Let me know if I missed some patch.
->>
->> Following is the commit ID :1674c0ceabfb7726246989874bb4da7bcb55ea89
->> used on LO master branch for testing. All the patches were merged.
->
-> OK, thanks for checking that.
->
-> Regards,
->
-> Tony
-> 
+It's clear to me that tools are needed to identify power hogs; powertop can't be the extent of such tools.  (ISTR it doesn't monitor display power usage, for one thing; maybe newer versions do so.)  Once such hogs get identified they will need to get fixed.  Any other proposal seems broken to me...
 
