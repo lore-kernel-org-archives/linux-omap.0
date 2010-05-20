@@ -1,77 +1,97 @@
 From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCHv2 2/2] omap: rx51: Add supply and data for the tpa6130a2 headphone amplifier
-Date: Thu, 20 May 2010 13:08:45 +0300
-Message-ID: <1274350125-5702-2-git-send-email-jhnikula@gmail.com>
-References: <1274350125-5702-1-git-send-email-jhnikula@gmail.com>
+Subject: [PATCHv2 1/2] omap: rx51: Use REGULATOR_SUPPLY macro when initializing regulator consumers
+Date: Thu, 20 May 2010 13:08:44 +0300
+Message-ID: <1274350125-5702-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:8039 "EHLO
+Received: from ey-out-2122.google.com ([74.125.78.24]:54023 "EHLO
 	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755460Ab0ETKJK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 06:09:10 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so367313eyd.5
-        for <linux-omap@vger.kernel.org>; Thu, 20 May 2010 03:09:08 -0700 (PDT)
-In-Reply-To: <1274350125-5702-1-git-send-email-jhnikula@gmail.com>
+	with ESMTP id S1755391Ab0ETKJG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 06:09:06 -0400
+Received: by ey-out-2122.google.com with SMTP id d26so62219eyd.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 May 2010 03:09:05 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-With these and upcoming change to tpa6130a2 driver it's possible to add
-support for the TPA6130A2 headphone amplifier.
+There is REGULATOR_SUPPLY macro available for initializing the struct
+regulator_consumer_supply so use it where applicable (all other supplies
+than vdds_sdi) as it improves the readability.
 
 Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Acked-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
 v2:
-- Rebased on top of 7b93a0d
-- Only Vdd supply added as the CPVSS turned out to be miss defined in
-  tpa6130a2. Thanks to Eduardo Valentin <eduardo.valentin@nokia.com> for
-  noticing.
+No functional changes but short description added, rebased on top of 7b93a0d
+and added Eduardo's ack to v1.
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   43 ++++++-------------------
+ 1 files changed, 11 insertions(+), 32 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index e8ac47c..9e618b6 100644
+index 966f5f8..e8ac47c 100644
 --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
 +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -33,6 +33,8 @@
- #include <plat/onenand.h>
- #include <plat/gpmc-smc91x.h>
+@@ -272,48 +272,27 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{}	/* Terminator */
+ };
  
-+#include <sound/tpa6130a2-plat.h>
-+
- #include "mux.h"
- #include "hsmmc.h"
+-static struct regulator_consumer_supply rx51_vmmc1_supply = {
+-	.supply   = "vmmc",
+-	.dev_name = "mmci-omap-hs.0",
+-};
++static struct regulator_consumer_supply rx51_vmmc1_supply =
++	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.0");
  
-@@ -285,6 +287,8 @@ static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
+-static struct regulator_consumer_supply rx51_vaux3_supply = {
+-	.supply   = "vmmc",
+-	.dev_name = "mmci-omap-hs.1",
+-};
++static struct regulator_consumer_supply rx51_vaux3_supply =
++	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1");
+ 
+-static struct regulator_consumer_supply rx51_vsim_supply = {
+-	.supply   = "vmmc_aux",
+-	.dev_name = "mmci-omap-hs.1",
+-};
++static struct regulator_consumer_supply rx51_vsim_supply =
++	REGULATOR_SUPPLY("vmmc_aux", "mmci-omap-hs.1");
+ 
+ static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
  	/* tlv320aic3x analog supplies */
- 	REGULATOR_SUPPLY("AVDD", "2-0018"),
- 	REGULATOR_SUPPLY("DRVDD", "2-0018"),
-+	/* tpa6130a2 */
-+	REGULATOR_SUPPLY("Vdd", "2-0060"),
+-	{
+-		.supply		= "AVDD",
+-		.dev_name	= "2-0018",
+-	},
+-	{
+-		.supply		= "DRVDD",
+-		.dev_name	= "2-0018",
+-	},
++	REGULATOR_SUPPLY("AVDD", "2-0018"),
++	REGULATOR_SUPPLY("DRVDD", "2-0018"),
  	/* Keep vmmc as last item. It is not iterated for newer boards */
- 	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
- };
-@@ -667,10 +671,19 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_1[] = {
- 	},
- };
- 
-+static struct tpa6130a2_platform_data rx51_tpa6130a2_data __initdata = {
-+	.id			= TPA6130A2,
-+	.power_gpio		= 98,
-+};
-+
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- 	{
- 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
- 	},
-+	{
-+		I2C_BOARD_INFO("tpa6130a2", 0x60),
-+		.platform_data = &rx51_tpa6130a2_data,
-+	}
+-	{
+-		.supply		= "vmmc",
+-		.dev_name	= "mmci-omap-hs.1",
+-	},
++	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
  };
  
- static int __init rx51_i2c_init(void)
+ static struct regulator_consumer_supply rx51_vio_supplies[] = {
+ 	/* tlv320aic3x digital supplies */
+-	{
+-		.supply		= "IOVDD",
+-		.dev_name	= "2-0018"
+-	},
+-	{
+-		.supply		= "DVDD",
+-		.dev_name	= "2-0018"
+-	},
++	REGULATOR_SUPPLY("IOVDD", "2-0018"),
++	REGULATOR_SUPPLY("DVDD", "2-0018"),
+ };
+ 
+ #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
 -- 
 1.7.1
 
