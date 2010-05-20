@@ -1,52 +1,104 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH] omap:hwmod-remove prm header from prm-regbits-xxxx
- headers
-Date: Thu, 20 May 2010 13:25:34 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4BD7717A@dlee03.ent.ti.com>
-References: <1274307029-22032-1-git-send-email-h-kanigeri2@ti.com>
- <87bpcafqf2.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53856 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752652Ab0ETSZi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 14:25:38 -0400
-In-Reply-To: <87bpcafqf2.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Mike Chan <mike@android.com>
+Subject: [PATCH v2 2/3] scheduler: cpuacct: Enable platform callbacks for cpuacct power tracking
+Date: Thu, 20 May 2010 11:42:23 -0700
+Message-ID: <1274380944-20947-3-git-send-email-mike@android.com>
+References: <1274380944-20947-1-git-send-email-mike@android.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1274380944-20947-1-git-send-email-mike@android.com>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, trenn@suse.de, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Mike Chan <mike@android.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Linux Omap <linux-omap@vger.kernel.org>
 
-Hi Kevin
+V2:
+- Rebased off Thomass Renninger's cgroup_cpuacct refactoring
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, May 20, 2010 12:13 PM
-> To: Kanigeri, Hari
-> Cc: Paul Walmsley; Linux Omap
-> Subject: Re: [PATCH] omap:hwmod-remove prm header from prm-regbits-xxxx
-> headers
-> 
-> Hari Kanigeri <h-kanigeri2@ti.com> writes:
-> 
-> > The prm-regbits-xxxx.h header files are not dependent on prm.h
-> > header file.
-> >
-> > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
-> 
-> This file is not in mailine, or linux-omap master.  Please
-> state any dependencies in this part of the changelog.
-> 
+Platform must register cpu power function that return power in
+milliWatt seconds.
 
-This is based on the latest omap4_next branch on dev.omapzoom.org, so most probably didn't make it to linux omap yet.
+New file:
+cpuacct.power reports the power consumed in milliWatt seconds
 
-I came to know through Benoit that this file is auto-generated using Perl script, so I guess this change can be handled in the generator script.
+Signed-off-by: Mike Chan <mike@android.com>
+---
+ Documentation/cgroups/cpuacct.txt |    3 +++
+ include/linux/cpuacct.h           |    4 +++-
+ kernel/cgroup_cpuaccount.c        |   24 ++++++++++++++++++++++--
+ 3 files changed, 28 insertions(+), 3 deletions(-)
 
-Thank you,
-Best regards,
-Hari
+diff --git a/Documentation/cgroups/cpuacct.txt b/Documentation/cgroups/cpuacct.txt
+index 600d2d0..84e471b 100644
+--- a/Documentation/cgroups/cpuacct.txt
++++ b/Documentation/cgroups/cpuacct.txt
+@@ -44,6 +44,9 @@ cpuacct.cpufreq file gives CPU time (in nanoseconds) spent at each CPU
+ frequency. Platform hooks must be implemented inorder to properly track
+ time at each CPU frequency.
+ 
++cpuacct.power file gives CPU power consumed (in milliWatt seconds). Platform
++must provide and implement power callback functions.
++
+ cpuacct controller uses percpu_counter interface to collect user and
+ system times. This has two side effects:
+ 
+diff --git a/include/linux/cpuacct.h b/include/linux/cpuacct.h
+index 6205d29..c17a634 100644
+--- a/include/linux/cpuacct.h
++++ b/include/linux/cpuacct.h
+@@ -31,7 +31,9 @@ struct cpuacct_charge_calls {
+ 	 */
+ 	void (*init) (void **cpuacct_data);
+ 	void (*charge) (void *cpuacct_data,  u64 cputime, unsigned int cpu);
+-	void (*show) (void *cpuacct_data, struct cgroup_map_cb *cb);
++	void (*cpufreq_show) (void *cpuacct_data, struct cgroup_map_cb *cb);
++	/* Returns power consumed in milliWatt seconds */
++	u64 (*power_usage) (void *cpuacct_data);
+ };
+ 
+ int cpuacct_charge_register(struct cpuacct_charge_calls *fn);
+diff --git a/kernel/cgroup_cpuaccount.c b/kernel/cgroup_cpuaccount.c
+index 11799a7..d9bf889 100644
+--- a/kernel/cgroup_cpuaccount.c
++++ b/kernel/cgroup_cpuaccount.c
+@@ -226,12 +226,28 @@ static int cpuacct_cpufreq_show(struct cgroup *cgrp, struct cftype *cft,
+ 		struct cgroup_map_cb *cb)
+ {
+ 	struct cpuacct *ca = cgroup_ca(cgrp);
+-	if (ca->cpufreq_fn && ca->cpufreq_fn->show)
+-		ca->cpufreq_fn->show(ca->cpuacct_data, cb);
++	if (ca->cpufreq_fn && ca->cpufreq_fn->cpufreq_show)
++		ca->cpufreq_fn->cpufreq_show(ca->cpuacct_data, cb);
+ 
+ 	return 0;
+ }
+ 
++/* return total cpu power usage (milliWatt second) of a group */
++static u64 cpuacct_powerusage_read(struct cgroup *cgrp, struct cftype *cft)
++{
++	int i;
++	struct cpuacct *ca = cgroup_ca(cgrp);
++	u64 totalpower = 0;
++
++	if (ca->cpufreq_fn && ca->cpufreq_fn->power_usage)
++		for_each_present_cpu(i) {
++			totalpower += ca->cpufreq_fn->power_usage(
++					ca->cpuacct_data);
++		}
++
++	return totalpower;
++}
++
+ static struct cftype files[] = {
+ 	{
+ 		.name = "usage",
+@@ -250,6 +266,10 @@ static struct cftype files[] = {
+ 		.name =  "cpufreq",
+ 		.read_map = cpuacct_cpufreq_show,
+ 	},
++	{
++		.name = "power",
++		.read_u64 = cpuacct_powerusage_read
++	},
+ };
+ 
+ static int cpuacct_populate(struct cgroup_subsys *ss, struct cgroup *cgrp)
+-- 
+1.7.0.1
