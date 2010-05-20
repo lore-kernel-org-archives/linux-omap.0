@@ -1,32 +1,36 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 1/5] gpiolib: introduce set_debounce method
-Date: Thu, 20 May 2010 21:51:34 +0100
-Message-ID: <20100520215134.6c172752@lxorguk.ukuu.org.uk>
-References: <1274090554-19420-1-git-send-email-felipe.balbi@nokia.com>
-	<1274090554-19420-2-git-send-email-felipe.balbi@nokia.com>
-	<20100520110600.be702f58.akpm@linux-foundation.org>
-	<20100520200417.5ec99735@lxorguk.ukuu.org.uk>
-	<20100520121652.cbcbb8b4.akpm@linux-foundation.org>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH v2 0/3] Enable CPU frequency and power tracking in cpuacct cgroup
+Date: Thu, 20 May 2010 23:01:11 +0200
+Message-ID: <201005202301.12259.trenn@suse.de>
+References: <1274380944-20947-1-git-send-email-mike@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100520121652.cbcbb8b4.akpm@linux-foundation.org>
+In-Reply-To: <1274380944-20947-1-git-send-email-mike@android.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Mike Chan <mike@android.com>
+Cc: menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-> I'm still wobbling on the 35-vs-36 line.  Is that a big need or a
-> little need?  What user-visible problem does it solve, etc?
-> 
-> Did anyone test it on the MID boxes?
+Hi Mike,
 
-Yes and no - our code is subtly different but we'll just adapt to the
-Nokia patch.
+On Thursday 20 May 2010 08:42:21 pm Mike Chan wrote:
+> v2:
+> Rebased off of Thomas Renninger's patch for cgroups_cpuacct refactoring,
+thanks.
+A general comment:
+I don't know much about the cgroup stuff.
+I am also not sure how exactly power can be measured on this arch based on
+frequency accounting (there also were some threads I was not aware of?)
+A signed-off-by or reviewed-by from someone who is more involved in this omap
+stuff would probably not that bad.
 
-The MID bits are heading for .36 I hope so I can't help on the "when"
-choice other than to note that it doesn't touch seem to change any code
-other than the new functions...
+Still I Iike this interface and I could imagine others hook into it as well, 
+for whatever has to be cpu cgroup accounted.
 
-Alan
+My two cents...,
+
+     Thomas
