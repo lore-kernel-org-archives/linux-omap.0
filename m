@@ -1,97 +1,36 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCHv2 1/2] omap: rx51: Use REGULATOR_SUPPLY macro when initializing regulator consumers
-Date: Thu, 20 May 2010 13:08:44 +0300
-Message-ID: <1274350125-5702-1-git-send-email-jhnikula@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:54023 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755391Ab0ETKJG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 06:09:06 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so62219eyd.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 May 2010 03:09:05 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/3 v2] musb: AM35x: Workaround for fifo read issue
+Date: Thu, 20 May 2010 13:08:55 +0300
+Message-ID: <20100520100855.GG9992@nokia.com>
+References: <1274184586-28843-1-git-send-email-ajay.gupta@ti.com>
+ <19F8576C6E063C45BE387C64729E7394044E535C95@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0322EAE899@dbde02.ent.ti.com>
+ <20100520100630.GF9992@nokia.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20100520100630.GF9992-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "andrea.marson-0U1K5dsi4As@public.gmane.org" <andrea.marson-0U1K5dsi4As@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-There is REGULATOR_SUPPLY macro available for initializing the struct
-regulator_consumer_supply so use it where applicable (all other supplies
-than vdds_sdi) as it improves the readability.
+On Thu, May 20, 2010 at 12:06:30PM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
+>arm-based only) boards and be sure it would work. We would just need to
+>put something similar down for dma engines.
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-Acked-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
-v2:
-No functional changes but short description added, rebased on top of 7b93a0d
-and added Eduardo's ack to v1.
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   43 ++++++-------------------
- 1 files changed, 11 insertions(+), 32 deletions(-)
+and of course, the same platform-code could instantiate a dma engine 
+platform_device but that's trickier, I guess, since the base address 
+would have to be used by two drivers, then platform code would have to 
+handle synchronization.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 966f5f8..e8ac47c 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -272,48 +272,27 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
- 	{}	/* Terminator */
- };
- 
--static struct regulator_consumer_supply rx51_vmmc1_supply = {
--	.supply   = "vmmc",
--	.dev_name = "mmci-omap-hs.0",
--};
-+static struct regulator_consumer_supply rx51_vmmc1_supply =
-+	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.0");
- 
--static struct regulator_consumer_supply rx51_vaux3_supply = {
--	.supply   = "vmmc",
--	.dev_name = "mmci-omap-hs.1",
--};
-+static struct regulator_consumer_supply rx51_vaux3_supply =
-+	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1");
- 
--static struct regulator_consumer_supply rx51_vsim_supply = {
--	.supply   = "vmmc_aux",
--	.dev_name = "mmci-omap-hs.1",
--};
-+static struct regulator_consumer_supply rx51_vsim_supply =
-+	REGULATOR_SUPPLY("vmmc_aux", "mmci-omap-hs.1");
- 
- static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
- 	/* tlv320aic3x analog supplies */
--	{
--		.supply		= "AVDD",
--		.dev_name	= "2-0018",
--	},
--	{
--		.supply		= "DRVDD",
--		.dev_name	= "2-0018",
--	},
-+	REGULATOR_SUPPLY("AVDD", "2-0018"),
-+	REGULATOR_SUPPLY("DRVDD", "2-0018"),
- 	/* Keep vmmc as last item. It is not iterated for newer boards */
--	{
--		.supply		= "vmmc",
--		.dev_name	= "mmci-omap-hs.1",
--	},
-+	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
- };
- 
- static struct regulator_consumer_supply rx51_vio_supplies[] = {
- 	/* tlv320aic3x digital supplies */
--	{
--		.supply		= "IOVDD",
--		.dev_name	= "2-0018"
--	},
--	{
--		.supply		= "DVDD",
--		.dev_name	= "2-0018"
--	},
-+	REGULATOR_SUPPLY("IOVDD", "2-0018"),
-+	REGULATOR_SUPPLY("DVDD", "2-0018"),
- };
- 
- #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
 -- 
-1.7.1
+balbi
 
+DefectiveByDesign.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
