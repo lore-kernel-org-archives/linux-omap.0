@@ -1,124 +1,45 @@
-From: Mike Chan <mike@android.com>
-Subject: [PATCH v2 3/3] omap: cpu: Implement callbacks for cpu frequency tracking in cpuacct
-Date: Thu, 20 May 2010 11:42:24 -0700
-Message-ID: <1274380944-20947-4-git-send-email-mike@android.com>
-References: <1274380944-20947-1-git-send-email-mike@android.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
+Date: Thu, 20 May 2010 21:50:57 +0300
+Message-ID: <20100520185057.GA25089@gandalf>
+References: <4BF51C9D.8050406@nt.tu-darmstadt.de>
+ <15003.23611.qm@web180316.mail.gq1.yahoo.com>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1274380944-20947-1-git-send-email-mike@android.com>
+Content-Disposition: inline
+In-Reply-To: <15003.23611.qm@web180316.mail.gq1.yahoo.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, trenn@suse.de, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Mike Chan <mike@android.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: felipe.balbi@nokia.com, Vladimir Pantelic <pan@nt.tu-darmstadt.de>, Matthew Garrett <mjg@redhat.com>, "me@felipebalbi.com" <me@felipebalbi.com>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Kernel development list <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Andrew Morton <akpm@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Implement OMAP platform specific scheduler callbacks for tracking
-cpu frequencies per cpuacct cgroup.
+On Thu, May 20, 2010 at 10:40:17AM -0700, David Brownell wrote:
+> Some apps do abuse kernel mechanisms, and whether the bug is in the
+> app or that kernel mechanism can be a judgement call.  I'd expect to
 
-Signed-off-by: Mike Chan <mike@android.com>
----
- arch/arm/plat-omap/cpu-omap.c |   67 ++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 66 insertions(+), 1 deletions(-)
+hey come on, there's no judgement call for an app polling every second
+to check battery status or some other status that doesn't change that
+frequently.
 
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index 6d3d333..176417a 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -21,6 +21,8 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/slab.h>
-+#include <linux/cpuacct.h>
- 
- #include <mach/hardware.h>
- #include <plat/clock.h>
-@@ -38,6 +40,10 @@ static struct cpufreq_frequency_table *freq_table;
- 
- static struct clk *mpu_clk;
- 
-+#ifdef CONFIG_CGROUP_CPUACCT
-+static int freq_index;
-+#endif
-+
- /* TODO: Add support for SDRAM timing changes */
- 
- int omap_verify_speed(struct cpufreq_policy *policy)
-@@ -96,6 +102,11 @@ static int omap_target(struct cpufreq_policy *policy,
- 	       freqs.old, freqs.new);
- #endif
- 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
-+#ifdef CONFIG_CGROUP_CPUACCT
-+	/* Update freq_index before cpufreq transition post notification. */
-+	cpufreq_frequency_table_target(policy, freq_table, freqs.new,
-+			CPUFREQ_RELATION_L, &freq_index);
-+#endif
- 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
- 
- 	return ret;
-@@ -125,7 +136,14 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
- 		policy->cpuinfo.max_freq = clk_round_rate(mpu_clk,
- 							VERY_HI_RATE) / 1000;
- 	}
--
-+#ifdef CONFIG_CGROUP_CPUACCT
-+	/*
-+	 * Update freq_index, since we are using the extact frequency
-+	 * we can use any relation.
-+	 */
-+	cpufreq_frequency_table_target(policy, freq_table, policy->cur,
-+			CPUFREQ_RELATION_L, &freq_index);
-+#endif
- 	/* FIXME: what's the actual transition time? */
- 	policy->cpuinfo.transition_latency = 300 * 1000;
- 
-@@ -169,3 +187,50 @@ arch_initcall(omap_cpufreq_init);
-  * cpufreq_frequency_table_put_attr()
-  */
- 
-+#ifdef CONFIG_CGROUP_CPUACCT
-+/*
-+ * Omap platform calls for cpuacct frequency accounting.
-+ */
-+
-+static void omap_cpuacct_freq_init(void **cpuacct_data)
-+{
-+	/* MAX_VDD1_OPP is gone, define a table size to fit available values */
-+	*cpuacct_data = kzalloc(sizeof(u64) * 8, GFP_KERNEL);
-+}
-+
-+/* Called with rcu_read_lock() held. */
-+static void omap_cpuacct_freq_charge(void *cpuacct_data, u64 cputime, unsigned int cpu)
-+{
-+	u64 *cpuacct_freq = cpuacct_data;
-+	if (freq_index < 0)
-+		return;
-+
-+	cpuacct_freq[freq_index] += cputime;
-+}
-+
-+static void omap_cpuacct_freq_show(void *cpuacct_data, struct cgroup_map_cb *cb)
-+{
-+	int i;
-+	char buf[32];
-+	u64 *cpuacct_freq = cpuacct_data;
-+	for (i = 0; freq_table[i].frequency != CPUFREQ_TABLE_END; i++) {
-+		snprintf(buf, sizeof(buf), "%u", freq_table[i].frequency);
-+		cb->fill(cb, buf, cpuacct_freq[i]);
-+	}
-+}
-+
-+static struct cpuacct_charge_calls omap_cpuacct_cpufreq = {
-+	.init = omap_cpuacct_freq_init,
-+	.charge = omap_cpuacct_freq_charge,
-+	.cpufreq_show = omap_cpuacct_freq_show,
-+};
-+
-+static int __init omap_cpuacct_init(void)
-+{
-+	freq_index = -1;
-+	cpuacct_charge_register(&omap_cpuacct_cpufreq);
-+	return 0;
-+}
-+
-+early_initcall(omap_cpuacct_init);
-+#endif
+> I may have overlooked it, in one of the 100K messsages in my mailbox
+> about versions of suspend block/etc patches ...
+> 
+> But surely NOBODY is actually contending that broken aps NOT get
+> fixed??
+> 
+> It's clear to me that tools are needed to identify power hogs;
+> powertop can't be the extent of such tools.  (ISTR it doesn't monitor
+> display power usage, for one thing; maybe newer versions do so.)  Once
+> such hogs get identified they will need to get fixed.  Any other
+> proposal seems broken to me...
+
+that's my feeling too. I don't see any needs for suspend blockers in any
+real system. I acknowledge we need tools probing power consumption to be
+shipped to production device, that's a good idea, but forcing apps to
+modify just to have that UI fill up some treeview, I think it's a bit
+too much.
+
 -- 
-1.7.0.1
+balbi
