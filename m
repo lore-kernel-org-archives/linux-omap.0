@@ -1,34 +1,36 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 6)
-Date: Thu, 20 May 2010 16:08:49 -0700 (PDT)
-Message-ID: <758575.48890.qm@web180307.mail.gq1.yahoo.com>
-References: <20100520185057.GA25089@gandalf>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Future of resource framework?
+Date: Thu, 20 May 2010 18:23:20 -0500
+Message-ID: <4BF5C468.208@ti.com>
+References: <AANLkTilpHjef3xbxB9QN9bj6MFmJA1jMwVxNQyZQcSKy@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100520185057.GA25089@gandalf>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: felipe.balbi@nokia.com, Vladimir Pantelic <pan@nt.tu-darmstadt.de>, Matthew Garrett <mjg@redhat.com>, "me@felipebalbi.com" <me@felipebalbi.com>, Theodore Ts'o <tytso@mit.edu>, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Kernel development list <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Andrew Morton <akpm@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40995 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755008Ab0ETXXX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 May 2010 19:23:23 -0400
+In-Reply-To: <AANLkTilpHjef3xbxB9QN9bj6MFmJA1jMwVxNQyZQcSKy@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Chan <mike@android.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
+Mike Chan had written, on 05/20/2010 05:37 PM, the following:
+> I'm not sure if this has been discussed, yet but since it seems that
+> the resource framework will not be making it upstream, I am curious
+http://marc.info/?l=linux-omap&m=127206504624556&w=2 (we are getting to 
+the one month expiry date btw..)
 
-> -0700, David Brownell wrote:
-> > Some apps do abuse kernel mechanisms, and whether the
-> bug is in the
-> > app or that kernel mechanism can be a judgement
-> call.=A0 I'd expect to
->=20
-> hey come on, there's no judgement call for an app polling
-> every second
-> to check battery status or some other status that doesn't
-> change that frequently.
+> what are the replacements under consideration. I am starting to see
+> similar issues on other platforms (msm / tegra) so more generic
+> (non-omap) solution might be something to consider.
 
-Or something as broken as a non-terminating CPU loop ...
+I know of one by Sanjeev Premi:
+[1] http://marc.info/?l=linux-omap&m=125716806431649&w=2
+it should be rather trivial to adapt it to opp layer and make it work.
 
-
-Of course not.  But if there's a kernel mechanism exposed to
-userspace which really sucks down power ... either it's done
-correctly and the problem is userspace abusing it, or it's done
-wrong so that it's not possible to be used correctly.  There are
-some things that just cost power, and that cost can't be escaped.
+-- 
+Regards,
+Nishanth Menon
