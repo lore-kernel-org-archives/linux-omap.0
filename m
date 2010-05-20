@@ -1,36 +1,32 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH v2 0/3] Enable CPU frequency and power tracking in cpuacct cgroup
-Date: Thu, 20 May 2010 23:01:11 +0200
-Message-ID: <201005202301.12259.trenn@suse.de>
-References: <1274380944-20947-1-git-send-email-mike@android.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1274380944-20947-1-git-send-email-mike@android.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Chan <mike@android.com>
-Cc: menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>
+From: Hari Kanigeri <h-kanigeri2@ti.com>
+Subject: [PATCH 0/2][v2] omap:iommu-enable TLB miss interrupt
+Date: Thu, 20 May 2010 16:10:21 -0500
+Message-ID: <1274389823-4051-1-git-send-email-h-kanigeri2@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43135 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754655Ab0ETVD4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 17:03:56 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux Omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-Hi Mike,
+The current iommu module doesn't provide the mechanism to get MMU fault on
+TLB miss when working with locked TLB entries and TWL disabled.
+To get the TLB miss interrupt, the TWL should be disabled.
+This patch set provides the option to enable/disable TWL and to enable TLB miss
+interrupt.
 
-On Thursday 20 May 2010 08:42:21 pm Mike Chan wrote:
-> v2:
-> Rebased off of Thomas Renninger's patch for cgroups_cpuacct refactoring,
-thanks.
-A general comment:
-I don't know much about the cgroup stuff.
-I am also not sure how exactly power can be measured on this arch based on
-frequency accounting (there also were some threads I was not aware of?)
-A signed-off-by or reviewed-by from someone who is more involved in this omap
-stuff would probably not that bad.
+Based on Hiroshi, the initial patch set was revised to add more flexibility
+to enable TWL.
 
-Still I Iike this interface and I could imagine others hook into it as well, 
-for whatever has to be cpu cgroup accounted.
+Hari Kanigeri (2):
+  omap: iommu-update irq mask to be specific about twl and tlb
+  omap: iommu-add functionality to get TLB miss interrupt
 
-My two cents...,
+ arch/arm/mach-omap2/iommu2.c            |   36 ++++++++++++++++++++++++-------
+ arch/arm/plat-omap/include/plat/iommu.h |    2 +
+ arch/arm/plat-omap/iommu.c              |   17 ++++++++++++++
+ 3 files changed, 47 insertions(+), 8 deletions(-)
 
-     Thomas
