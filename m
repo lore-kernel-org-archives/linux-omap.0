@@ -1,43 +1,124 @@
 From: Mike Chan <mike@android.com>
-Subject: [PATCH v2 0/3] Enable CPU frequency and power tracking in cpuacct cgroup
-Date: Thu, 20 May 2010 11:42:21 -0700
-Message-ID: <1274380944-20947-1-git-send-email-mike@android.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:25419 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754901Ab0ETSmi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 14:42:38 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Subject: [PATCH v2 3/3] omap: cpu: Implement callbacks for cpu frequency tracking in cpuacct
+Date: Thu, 20 May 2010 11:42:24 -0700
+Message-ID: <1274380944-20947-4-git-send-email-mike@android.com>
+References: <1274380944-20947-1-git-send-email-mike@android.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1274380944-20947-1-git-send-email-mike@android.com>
+Sender: linux-kernel-owner@vger.kernel.org
 Cc: menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, trenn@suse.de, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Mike Chan <mike@android.com>
+List-Id: linux-omap@vger.kernel.org
 
-v2:
-Rebased off of Thomas Renninger's patch for cgroups_cpuacct refactoring,
-which is based off of linus's tree. Thomas it might be easier to merge our
-patches if you take these patches and put them in a series ontop of your
-original patches (presuming there are no objections to your patch).
+Implement OMAP platform specific scheduler callbacks for tracking
+cpu frequencies per cpuacct cgroup.
 
-This patch series introduces cpu frequency and power tracking for cpuacct
-cgroups. A similar patch set was discussed a while back and it was concluded
-that due to varying architectures (ppc, x86 with overboot) you cannot account
-for frequencies and their power consumption generically in sched.c, thus we
-have platform specific hooks the cpuacct can call into (if available).
+Signed-off-by: Mike Chan <mike@android.com>
+---
+ arch/arm/plat-omap/cpu-omap.c |   67 ++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 66 insertions(+), 1 deletions(-)
 
-This patch series is not 3 instead of 4. I have left out the power
-implementation for OMAP due to implementation conflicts in linux-next.
-
-Mike Chan (3):
-  scheduler: cpuacct: Enable platform hooks to track cpuusage for CPU
-    frequencies
-  scheduler: cpuacct: Enable platform callbacks for cpuacct power
-    tracking
-  omap: cpu: Implement callbacks for cpu frequency tracking in cpuacct
-
- Documentation/cgroups/cpuacct.txt |    7 ++++
- arch/arm/plat-omap/cpu-omap.c     |   67 +++++++++++++++++++++++++++++++++++-
- include/linux/cpuacct.h           |   43 +++++++++++++++++++++++
- kernel/cgroup_cpuaccount.c        |   69 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 185 insertions(+), 1 deletions(-)
- create mode 100644 include/linux/cpuacct.h
-
- Signed-off-by: Mike Chan <mike@android.com>
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index 6d3d333..176417a 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -21,6 +21,8 @@
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/slab.h>
++#include <linux/cpuacct.h>
+ 
+ #include <mach/hardware.h>
+ #include <plat/clock.h>
+@@ -38,6 +40,10 @@ static struct cpufreq_frequency_table *freq_table;
+ 
+ static struct clk *mpu_clk;
+ 
++#ifdef CONFIG_CGROUP_CPUACCT
++static int freq_index;
++#endif
++
+ /* TODO: Add support for SDRAM timing changes */
+ 
+ int omap_verify_speed(struct cpufreq_policy *policy)
+@@ -96,6 +102,11 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	       freqs.old, freqs.new);
+ #endif
+ 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
++#ifdef CONFIG_CGROUP_CPUACCT
++	/* Update freq_index before cpufreq transition post notification. */
++	cpufreq_frequency_table_target(policy, freq_table, freqs.new,
++			CPUFREQ_RELATION_L, &freq_index);
++#endif
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+ 
+ 	return ret;
+@@ -125,7 +136,14 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
+ 		policy->cpuinfo.max_freq = clk_round_rate(mpu_clk,
+ 							VERY_HI_RATE) / 1000;
+ 	}
+-
++#ifdef CONFIG_CGROUP_CPUACCT
++	/*
++	 * Update freq_index, since we are using the extact frequency
++	 * we can use any relation.
++	 */
++	cpufreq_frequency_table_target(policy, freq_table, policy->cur,
++			CPUFREQ_RELATION_L, &freq_index);
++#endif
+ 	/* FIXME: what's the actual transition time? */
+ 	policy->cpuinfo.transition_latency = 300 * 1000;
+ 
+@@ -169,3 +187,50 @@ arch_initcall(omap_cpufreq_init);
+  * cpufreq_frequency_table_put_attr()
+  */
+ 
++#ifdef CONFIG_CGROUP_CPUACCT
++/*
++ * Omap platform calls for cpuacct frequency accounting.
++ */
++
++static void omap_cpuacct_freq_init(void **cpuacct_data)
++{
++	/* MAX_VDD1_OPP is gone, define a table size to fit available values */
++	*cpuacct_data = kzalloc(sizeof(u64) * 8, GFP_KERNEL);
++}
++
++/* Called with rcu_read_lock() held. */
++static void omap_cpuacct_freq_charge(void *cpuacct_data, u64 cputime, unsigned int cpu)
++{
++	u64 *cpuacct_freq = cpuacct_data;
++	if (freq_index < 0)
++		return;
++
++	cpuacct_freq[freq_index] += cputime;
++}
++
++static void omap_cpuacct_freq_show(void *cpuacct_data, struct cgroup_map_cb *cb)
++{
++	int i;
++	char buf[32];
++	u64 *cpuacct_freq = cpuacct_data;
++	for (i = 0; freq_table[i].frequency != CPUFREQ_TABLE_END; i++) {
++		snprintf(buf, sizeof(buf), "%u", freq_table[i].frequency);
++		cb->fill(cb, buf, cpuacct_freq[i]);
++	}
++}
++
++static struct cpuacct_charge_calls omap_cpuacct_cpufreq = {
++	.init = omap_cpuacct_freq_init,
++	.charge = omap_cpuacct_freq_charge,
++	.cpufreq_show = omap_cpuacct_freq_show,
++};
++
++static int __init omap_cpuacct_init(void)
++{
++	freq_index = -1;
++	cpuacct_charge_register(&omap_cpuacct_cpufreq);
++	return 0;
++}
++
++early_initcall(omap_cpuacct_init);
++#endif
+-- 
+1.7.0.1
