@@ -1,90 +1,66 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v4] OMAP3: Registering sgx device and it's platform data
-Date: Thu, 20 May 2010 19:50:41 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026FB232B2@dbde02.ent.ti.com>
-References: <1273727200-4811-1-git-send-email-manjugk@ti.com>
- <87vdaqmo7m.fsf@deeprootsystems.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 1/4] fbdev: add a MIPI DSI header
+Date: Thu, 20 May 2010 17:20:59 +0300
+Message-ID: <1274365259.4246.52.camel@tubuntu.research.nokia.com>
+References: <Pine.LNX.4.64.1005071054510.4777@axis700.grange>
+	 <Pine.LNX.4.64.1005071102440.4777@axis700.grange>
+	 <1274255350.2307.159.camel@tubuntu.research.nokia.com>
+	 <Pine.LNX.4.64.1005190955500.3099@axis700.grange>
+	 <1274257308.2307.168.camel@tubuntu.research.nokia.com>
+	 <Pine.LNX.4.64.1005200939030.26000@axis700.grange>
+	 <1274344369.4246.28.camel@tubuntu.research.nokia.com>
+	 <Pine.LNX.4.64.1005201251350.26000@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39168 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751934Ab0ETOUt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 May 2010 10:20:49 -0400
-In-Reply-To: <87vdaqmo7m.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.1005201251350.26000@axis700.grange>
+Sender: linux-sh-owner@vger.kernel.org
+To: ext Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Agarwal, Preshit" <preshit.agarwal@ti.com>, Tony Lindgren <tony@atomide.com>, "Turquette, Mike" <mturquette@ti.com>, "V, Hemanth" <hemanthv@ti.com>
+
+On Thu, 2010-05-20 at 13:03 +0200, ext Guennadi Liakhovetski wrote:
+
+> Yes, I'd use u8 too, because the specs define "transaction types" to take 
+> 6 bits and "DCS commands" to be 8-bit ints. But, you know, doesn't our 
+> case fall under case (b) of Chapter 5 "Typedefs" of CodingStyle?:) I mean, 
+
+CodingStyle says: "if there is a clear reason for why it under certain
+circumstances might be an "unsigned int" and under other configurations
+might be "unsigned long", then by all means go ahead and use a typedef."
+
+In our case the DSI transactions and DCS commands are always 6 and 8
+bits, so I don't think it applies.
+
+And the transaction datatypes and DCS commands are really just payload
+sent to the peripheral, and the peripheral can do anything it wants with
+those.
+
+> wouldn't it make sense to create two typedefs for these to add some 
+
+But wouldn't a typedef basically lock the possible transactions or DCS
+commands that you can give to the functions? And that was the original
+problem also.
+
+> type-safety? In fact, transaction types cannot be user-defined / 
+> proprietary, right? So, for that an enum would work. It's only DCS 
+
+Why they cannot be? I don't see any technical problem there, at least.
+And while I don't have any current use to extend transactions, I
+wouldn't want to limit it for any possible future use either.
+
+> But you only need specific panel drivers if you want to support their 
+> proprietary commands? Otherwise you only need a set of parameters - 
+> timeing requirements etc. - which you can perfectly just pass in platform 
+> data?
+
+That's true. I guess you've gotten it easy, if you only have DSI video
+mode panels that do not need any special care =). Command mode panels
+are usually slightly more complex, and especially early prototypes of
+the panels can require quite a lot of trickery. And then there are DSI
+hubs, which make DSI command mode panels look trivial...
+
+ Tomi
 
 
-
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Friday, May 14, 2010 10:10 PM
-> To: G, Manjunath Kondaiah
-> Cc: linux-omap@vger.kernel.org; Agarwal, Preshit; Tony 
-> Lindgren; Turquette, Mike; V, Hemanth
-> Subject: Re: [PATCH v4] OMAP3: Registering sgx device and 
-> it's platform data
-> 
-> Manjunatha GK <manjugk@ti.com> writes:
-> 
-> > The SGX powervr_device is registered with it's platform specific
-> > data to provide information about setting constraint through
-> > omap_pm_set_min_bus_tput.
-> 
-> Now the patch content doesn't match the description as you no
-> longer call omap_pm_set_min_bus_tput()...
-> 
-> > Signed-off-by: Preshit Agarwal <preshit.agarwal@ti.com>
-> > Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> > Cc: Mike Turquette <mturquette@ti.com>
-> > Cc: Hemanth V <hemanthv@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/devices.c                  |   21 
-> +++++++++++++++++++--
-> >  arch/arm/mach-omap2/include/mach/omap_sgxdef.h |   11 +++++++++++
-> >  2 files changed, 30 insertions(+), 2 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/include/mach/omap_sgxdef.h
-> >
-> > diff --git a/arch/arm/mach-omap2/devices.c 
-> b/arch/arm/mach-omap2/devices.c
-> > index 2271b9b..6349ee5 100644
-> > --- a/arch/arm/mach-omap2/devices.c
-> > +++ b/arch/arm/mach-omap2/devices.c
-> > @@ -26,7 +26,7 @@
-> >  #include <plat/mux.h>
-> >  #include <mach/gpio.h>
-> >  #include <plat/mmc.h>
-> > -
-> > +#include <mach/omap_sgxdef.h>
-> >  #include "mux.h"
-> >  
-> >  #if defined(CONFIG_VIDEO_OMAP2) || 
-> defined(CONFIG_VIDEO_OMAP2_MODULE)
-> > @@ -786,6 +786,23 @@ static inline void omap_hdq_init(void)
-> >  static inline void omap_hdq_init(void) {}
-> >  #endif
-> >  
-> > +struct sgx_platform_data omap_sgx_data = {
-> > +	.set_min_bus_tput = NULL,
-> > +};
-> 
-> When I suggested you remove the #ifdef CONFIG_PM, I was expecting
-> you to leave the omap_pm_set_min_bus_tput() part.
-> 
-> The point was that the driver itself should choose whether or 
-> not to call
-> pdata->set_min_bus_tput() using #ifdef or other runtime decisions.
-
-I agree with your point. I will have only:
-.set_min_bus_tput = omap_pm_set_min_bus_tput,
-
-Let driver decide calling this using #ifdef or other runtime decisions.
-
--Manjunath
