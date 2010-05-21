@@ -1,23 +1,21 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
+From: Daniel Mack <daniel@caiaq.de>
 Subject: Re: [RFC] [PATCH] misc : ROHM BH1780GLI Ambient light sensor Driver
-Date: Fri, 21 May 2010 13:06:18 +0100
-Message-ID: <4BF6773A.2020803@cam.ac.uk>
+Date: Fri, 21 May 2010 14:03:48 +0200
+Message-ID: <20100521120347.GP30801@buzzloop.caiaq.de>
 References: <31752.10.24.255.17.1274441750.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <31752.10.24.255.17.1274441750.squirrel@dbdmail.itg.ti.com>
 Sender: linux-input-owner@vger.kernel.org
 To: Hemanth V <hemanthv@ti.com>
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/21/10 12:35, Hemanth V wrote:
-> From: Hemanth V <hemanthv@ti.com>
-> Date: Fri, 21 May 2010 15:52:03 +0530
-> Subject: [PATCH] misc: ROHM BH1780GLI Ambient light sensor Driver
-> 
+Hi,
+
+On Fri, May 21, 2010 at 05:05:50PM +0530, Hemanth V wrote:
 > Corrected the mailing list, should be linux-kernel
 > 
 > This patch adds support for ROHM BH1780GLI Ambient light sensor.
@@ -25,23 +23,11 @@ On 05/21/10 12:35, Hemanth V wrote:
 > BH1780 supports I2C interface. Driver supports read/update of power state and
 > read of lux value (through SYSFS). Writing value 3 to power_state enables the
 > sensor and current lux value could be read.
-Only comment here is that lux is the unit, but what we are measuring is
-illuminance.  (see the whole debate that took place when working
-out the abi for the now defunct Ambient Light Sensors (ALS) frameowrk.)
-Hence I'd rather see the attribute being called illuminance.
-Acutally on that note, after the many abi debates, it probably makes sense
-to match hwmon conventions and call it, illuminance0_input.
 
-Nice simple driver.
+FWIW, this looks pretty good to me, just some minor things below.
 
-Up to you whether you change the attribute name.  I know there are various
-namings in other drivers as things currently stand.  That was what
-ALS was meant to clear up, but such is life.  We're standardising 
-in IIO on the above and will probably eat all the als drivers
-at somepoint given Linus isn't happy with them having their own subsystem.
+Daniel
 
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
-> 
 > Signed-off-by: Hemanth V <hemanthv@ti.com>
 > ---
 >  drivers/misc/Kconfig     |   11 ++
@@ -122,7 +108,9 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +#define BH1780_POWMASK        (0x3)
 > +#define BH1780_POFF	      (0x0)
 > +#define BH1780_PON            (0x3)
-> +
+
+Just a nit ... something's wrong with the indentation here.
+
 > +/* power on settling time in ms */
 > +#define BH1780_PON_DELAY      2
 > +
@@ -134,6 +122,9 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +};
 > +
 > +int bh1780_write(struct bh1780_data *ddata, u8 reg, u8 val, char *msg)
+
+Should be static.
+
 > +{
 > +	int ret = i2c_smbus_write_byte_data(ddata->client, reg, val);
 > +	if (ret < 0)
@@ -144,6 +135,9 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +}
 > +
 > +int bh1780_read(struct bh1780_data *ddata, u8 reg, char *msg)
+
+Dito.
+
 > +{
 > +	int ret = i2c_smbus_read_byte_data(ddata->client, reg);
 > +	if (ret < 0)
@@ -212,11 +206,20 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +	}
 > +
 > +	msleep(BH1780_PON_DELAY);
+
+Hmm, what do you wait for here?
+
 > +	ddata->power_state = val;
 > +	mutex_unlock(&ddata->lock);
+
+And I don't get the usage of the mutex here. Can you explain?
+
 > +	return count;
 > +
 > +}
+
+Remove the empty line. Or move it above the return statement.
+
 > +
 > +static DEVICE_ATTR(lux, S_IRUGO, bh1780_show_lux, NULL);
 > +
@@ -238,6 +241,9 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +{
 > +	int ret;
 > +	struct bh1780_data *ddata = NULL;
+
+The initialization isn't needed.
+
 > +	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
 > +
 > +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE)) {
@@ -272,6 +278,10 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +err_op_failed:
 > +	if (ddata != NULL)
 > +		kfree(ddata);
+
+kfree() is resitant against NULL pointers, so you can call it
+unconditionally.
+
 > +
 > +	return ret;
 > +}
@@ -287,6 +297,9 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +		i2c_set_clientdata(client, NULL);
 > +		kfree(ddata);
 > +	}
+
+Same here.
+
 > +
 > +	return 0;
 > +}
@@ -329,6 +342,12 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +
 > +	return 0;
 > +}
+
+#else
+static inline int bh1780_suspend(struct i2c_client *client, pm_message_t mesg) {}
+static inline int bh1780_resume(struct i2c_client *client) {}
+
+
 > +#endif
 > +
 > +static const struct i2c_device_id bh1780_id[] = {
@@ -341,6 +360,9 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +	.remove		= bh1780_remove,
 > +	.id_table	= bh1780_id,
 > +#ifdef CONFIG_PM
+
+... then this #ifdef can go away.
+
 > +	.suspend	= bh1780_suspend,
 > +	.resume		= bh1780_resume,
 > +#endif
@@ -365,4 +387,11 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +MODULE_DESCRIPTION("BH1780GLI Ambient Light Sensor Driver");
 > +MODULE_LICENSE("GPL");
 > +MODULE_AUTHOR("Hemanth V <hemanthv@ti.com>");
-
+> -- 
+> 1.5.6.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
