@@ -1,93 +1,95 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH 14/18 FIX] omap: Overo: Add support for second ethernet
-	port
-Date: Fri, 21 May 2010 13:15:58 -0700
-Message-ID: <AANLkTin8FdLGx1UOwFrbxHwjkwK3DgeC95YbpniSR_HN@mail.gmail.com>
-References: <20100505192957.21568.19569.stgit@baageli.muru.com>
-	 <20100505193315.21568.55530.stgit@baageli.muru.com>
-	 <AANLkTinxHaxG89pUhD7nmMjQSF-p-FB1FWj_w-de9y1r@mail.gmail.com>
-	 <20100519182727.GG5818@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH v2t2 01/17] omap: mailbox: trivial whitespace cleanups
+Date: Sat, 22 May 2010 00:44:33 +0300
+Message-ID: <1274478289-22188-2-git-send-email-felipe.contreras@gmail.com>
+References: <1274478289-22188-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:57408 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752294Ab0EUUQA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 16:16:00 -0400
-Received: by vws9 with SMTP id 9so1217969vws.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 May 2010 13:15:58 -0700 (PDT)
-In-Reply-To: <20100519182727.GG5818@atomide.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:40510 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753040Ab0EUVo5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 17:44:57 -0400
+Received: by fxm5 with SMTP id 5so1251271fxm.19
+        for <linux-omap@vger.kernel.org>; Fri, 21 May 2010 14:44:56 -0700 (PDT)
+In-Reply-To: <1274478289-22188-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Previous patch was truncated by patchwork, this patch supplies the
-missing chunks
-
-Signed-off-by: Steve Sakoman <sakoman@gmail.com>
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
+ arch/arm/plat-omap/mailbox.c |   32 ++++++++++++++++----------------
+ 1 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-overo.c
-b/arch/arm/mach-omap2/board-overo.c
-index 24b32d7..035eb35 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -166,9 +166,26 @@ static struct platform_device overo_smsc911x_device = {
- 	},
- };
-
-+static struct platform_device overo_smsc911x2_device = {
-+	.name		= "smsc911x",
-+	.id		= 1,
-+	.num_resources	= ARRAY_SIZE(overo_smsc911x2_resources),
-+	.resource	= overo_smsc911x2_resources,
-+	.dev		= {
-+		.platform_data = &overo_smsc911x_config,
-+	},
-+};
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 36b3aa2..7877bbb 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -142,14 +142,14 @@ static void mbox_rx_work(struct work_struct *work)
+ 	struct omap_mbox_queue *mq =
+ 			container_of(work, struct omap_mbox_queue, work);
+ 	mbox_msg_t msg;
+- 	int len;
+-  
+- 	while (kfifo_len(&mq->fifo) >= sizeof(msg)) {
+- 		len = kfifo_out(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+- 		WARN_ON(len != sizeof(msg));
+-
+- 		if (mq->callback)
+- 			mq->callback((void *)msg);
++	int len;
 +
-+static struct platform_device *smsc911x_devices[] = {
-+	&overo_smsc911x_device,
-+	&overo_smsc911x2_device,
-+};
++	while (kfifo_len(&mq->fifo) >= sizeof(msg)) {
++		len = kfifo_out(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
++		WARN_ON(len != sizeof(msg));
 +
- static inline void __init overo_init_smsc911x(void)
- {
--	unsigned long cs_mem_base;
-+	unsigned long cs_mem_base, cs_mem_base2;
-+
-+	/* set up first smsc911x chip */
-
- 	if (gpmc_cs_request(OVERO_SMSC911X_CS, SZ_16M, &cs_mem_base) < 0) {
- 		printk(KERN_ERR "Failed request for GPMC mem for smsc911x\n");
-@@ -189,7 +206,28 @@ static inline void __init overo_init_smsc911x(void)
- 	overo_smsc911x_resources[1].start = OMAP_GPIO_IRQ(OVERO_SMSC911X_GPIO);
- 	overo_smsc911x_resources[1].end	  = 0;
-
--	platform_device_register(&overo_smsc911x_device);
-+	/* set up second smsc911x chip */
-+
-+	if (gpmc_cs_request(OVERO_SMSC911X2_CS, SZ_16M, &cs_mem_base2) < 0) {
-+		printk(KERN_ERR "Failed request for GPMC mem for smsc911x2\n");
-+		return;
-+	}
-+
-+	overo_smsc911x2_resources[0].start = cs_mem_base2 + 0x0;
-+	overo_smsc911x2_resources[0].end   = cs_mem_base2 + 0xff;
-+
-+	if ((gpio_request(OVERO_SMSC911X2_GPIO, "SMSC911X2 IRQ") == 0) &&
-+	    (gpio_direction_input(OVERO_SMSC911X2_GPIO) == 0)) {
-+		gpio_export(OVERO_SMSC911X2_GPIO, 0);
-+	} else {
-+		printk(KERN_ERR "could not obtain gpio for SMSC911X2 IRQ\n");
-+		return;
-+	}
-+
-+	overo_smsc911x2_resources[1].start = OMAP_GPIO_IRQ(OVERO_SMSC911X2_GPIO);
-+	overo_smsc911x2_resources[1].end   = 0;
-+
-+	platform_add_devices(smsc911x_devices, ARRAY_SIZE(smsc911x_devices));
++		if (mq->callback)
++			mq->callback((void *)msg);
+ 	}
  }
+ 
+@@ -165,12 +165,12 @@ static void __mbox_tx_interrupt(struct omap_mbox *mbox)
+ 
+ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+ {
+- 	struct omap_mbox_queue *mq = mbox->rxq;
++	struct omap_mbox_queue *mq = mbox->rxq;
+ 	mbox_msg_t msg;
+- 	int len;
++	int len;
+ 
+ 	while (!mbox_fifo_empty(mbox)) {
+- 		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
++		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
+ 			omap_mbox_disable_irq(mbox, IRQ_RX);
+ 			rq_full = true;
+ 			goto nomem;
+@@ -178,8 +178,8 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+ 
+ 		msg = mbox_fifo_read(mbox);
+ 
+- 		len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+- 		WARN_ON(len != sizeof(msg));
++		len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
++		WARN_ON(len != sizeof(msg));
+ 
+ 		if (mbox->ops->type == OMAP_MBOX_TYPE1)
+ 			break;
+@@ -278,11 +278,11 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
+ 
+ 	return 0;
+ 
+- fail_alloc_rxq:
++fail_alloc_rxq:
+ 	mbox_queue_free(mbox->txq);
+- fail_alloc_txq:
++fail_alloc_txq:
+ 	free_irq(mbox->irq, mbox);
+- fail_request_irq:
++fail_request_irq:
+ 	if (mbox->ops->shutdown)
+ 		mbox->ops->shutdown(mbox);
+ 
+-- 
+1.7.1
 
- #else
