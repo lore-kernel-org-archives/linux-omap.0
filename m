@@ -1,73 +1,80 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 10/22] OMAP: hwmod: Replace WARN by pr_warning for clockdomain
- check
-Date: Fri, 21 May 2010 12:41:24 +0200
-Message-ID: <4BF66354.4060400@ti.com>
-References: <20100519021800.19716.8938.stgit@localhost.localdomain> <20100519021848.19716.50002.stgit@localhost.localdomain> <4BF65A27.9030603@ru.mvista.com> <4BF65F39.4090909@ru.mvista.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: collaboration on hwmod conversions and runtime PM
+Date: Fri, 21 May 2010 16:28:12 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322FA7EE5@dbde02.ent.ti.com>
+References: <87mxvucekw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53077 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44320 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754594Ab0EUKlb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 May 2010 06:41:31 -0400
-In-Reply-To: <4BF65F39.4090909@ru.mvista.com>
+	id S1751606Ab0EUK6T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 06:58:19 -0400
+In-Reply-To: <87mxvucekw.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 5/21/2010 12:23 PM, Sergei Shtylyov wrote:
-> Hello.
->
-> I wrote:
->
->>> From: Benoit Cousson<b-cousson@ti.com>
->
->>> Most of the clock nodes belong to a clock domain, but it is perfectly
->>> valid
->>> to have clock without clock domain.
->>> Root clocks for example does not belong to any clock domain.
->>> Keep the warning but reduce the verbosity.
->
->>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->>> Signed-off-by: Paul Walmsley<paul@pwsan.com>
->> [...]
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
->>> b/arch/arm/mach-omap2/omap_hwmod.c
->>> index b6031e4..2fff39f 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>> @@ -404,21 +404,20 @@ static int _del_initiator_dep(struct omap_hwmod
->>> *oh, struct omap_hwmod *init_oh)
->>>    */
->>>   static int _init_main_clk(struct omap_hwmod *oh)
->>>   {
->>> -    struct clk *c;
->>>       int ret = 0;
->>>
->>>       if (!oh->main_clk)
->>>           return 0;
->>>
->>> -    c = omap_clk_get_by_name(oh->main_clk);
->>> -    if (!c)
->>> +    oh->_clk = omap_clk_get_by_name(oh->main_clk);
->>> +    if (!oh->_clk)
->>>           pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
->>>                  oh->name, oh->main_clk);
->>> -        ret = -EINVAL;
->>> -    oh->_clk = c;
->>> +        return -EINVAL;
->
->>     Don't you need {} here again?
->
->      Looks like the original file misses them too, so it needs fixing in
-> a  separate patch perhaps...
+ 
 
-You're right, the original-original was fine, I messed up this one 
-during the replacement of WARM ([PATCH 07/22] OMAP: hwmod: Replace WARN 
-by pr_warning if clock lookup failed) you commented previously.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Friday, May 21, 2010 5:27 AM
+> To: linux-omap@vger.kernel.org
+> Subject: collaboration on hwmod conversions and runtime PM
+> 
+> Hello,
+> 
+> There has been quite a bit of activity on the hwmod front, but no
+> common place to combine patches for testing.
+> 
+> To that end, I've update the pm-wip/hwmods branch in my tree to 
+> the two fixes/cleanup series from Benoit (which will be merged
+> via for 2.6.35):
+> 
+>   [PATCH 00/10] OMAP: HWMOD fixes and cleanup
+>   [PATCH 0/5] OMAP4: PRCM: Spring cleanup
+> 
+> On top of this, there is the pm-wip/hwmods-omap4 branch which includes
+> the OMAP4 series from Benoit
+> 
+>   [PATCH 0/6] OMAP: hwmod: Full data set for OMAP4430 ES1.0
+> 
+> so that conversions for OMAP4 can also be done and tested.  Note that
+> I've reverted the two "temporary" patches in this series since they
+> cause problems on OMAP3,
 
-Thanks,
-Benoit
+Hi Kevin,
+
+These temp patches might not be needed anymore, even for omap4. The clockdomain
+has cpu checks to take care of the dependency, and there is already a patch from
+Santosh to keep the emif clocks always active.
+
+If you pull these 2 patches, we don't need the hacks anymore and multi omap build
+would work as well on these branches.
+https://patchwork.kernel.org/patch/100932/
+https://patchwork.kernel.org/patch/96048/
+
+I was able to boot test on my 4430sdp with these 2 patches on pm-wip/hwmods-omap4
+branch.
+
+regards,
+Rajendra
+
+> 
+> On top of this, there is the pm-wip/runtime branch which includes
+> the base runtime PM implementation for OMAP.
+> 
+> On top of this there are work-in-progress branches for the conversions
+> for UART (pm-wip/uart) and MMC (pm-wip/mmc)
+> 
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
