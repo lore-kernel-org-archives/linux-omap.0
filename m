@@ -1,19 +1,21 @@
 From: "Hemanth V" <hemanthv@ti.com>
 Subject: [RFC] [PATCH] misc : ROHM BH1780GLI Ambient light sensor Driver
-Date: Fri, 21 May 2010 16:59:02 +0530 (IST)
-Message-ID: <28112.10.24.255.17.1274441342.squirrel@dbdmail.itg.ti.com>
+Date: Fri, 21 May 2010 17:05:50 +0530 (IST)
+Message-ID: <31752.10.24.255.17.1274441750.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-input-owner@vger.kernel.org>
 Sender: linux-input-owner@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Hemanth V <hemanthv@ti.com>
 Date: Fri, 21 May 2010 15:52:03 +0530
 Subject: [PATCH] misc: ROHM BH1780GLI Ambient light sensor Driver
+
+Corrected the mailing list, should be linux-kernel
 
 This patch adds support for ROHM BH1780GLI Ambient light sensor.
 
