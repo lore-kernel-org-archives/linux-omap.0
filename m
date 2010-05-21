@@ -1,80 +1,349 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: collaboration on hwmod conversions and runtime PM
-Date: Fri, 21 May 2010 16:28:12 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322FA7EE5@dbde02.ent.ti.com>
-References: <87mxvucekw.fsf@deeprootsystems.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: [RFC] [PATCH] misc : ROHM BH1780GLI Ambient light sensor Driver
+Date: Fri, 21 May 2010 16:59:02 +0530 (IST)
+Message-ID: <28112.10.24.255.17.1274441342.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44320 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751606Ab0EUK6T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 06:58:19 -0400
-In-Reply-To: <87mxvucekw.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+From: Hemanth V <hemanthv@ti.com>
+Date: Fri, 21 May 2010 15:52:03 +0530
+Subject: [PATCH] misc: ROHM BH1780GLI Ambient light sensor Driver
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Friday, May 21, 2010 5:27 AM
-> To: linux-omap@vger.kernel.org
-> Subject: collaboration on hwmod conversions and runtime PM
-> 
-> Hello,
-> 
-> There has been quite a bit of activity on the hwmod front, but no
-> common place to combine patches for testing.
-> 
-> To that end, I've update the pm-wip/hwmods branch in my tree to 
-> the two fixes/cleanup series from Benoit (which will be merged
-> via for 2.6.35):
-> 
->   [PATCH 00/10] OMAP: HWMOD fixes and cleanup
->   [PATCH 0/5] OMAP4: PRCM: Spring cleanup
-> 
-> On top of this, there is the pm-wip/hwmods-omap4 branch which includes
-> the OMAP4 series from Benoit
-> 
->   [PATCH 0/6] OMAP: hwmod: Full data set for OMAP4430 ES1.0
-> 
-> so that conversions for OMAP4 can also be done and tested.  Note that
-> I've reverted the two "temporary" patches in this series since they
-> cause problems on OMAP3,
+This patch adds support for ROHM BH1780GLI Ambient light sensor.
 
-Hi Kevin,
+BH1780 supports I2C interface. Driver supports read/update of power state and
+read of lux value (through SYSFS). Writing value 3 to power_state enables the
+sensor and current lux value could be read.
 
-These temp patches might not be needed anymore, even for omap4. The clockdomain
-has cpu checks to take care of the dependency, and there is already a patch from
-Santosh to keep the emif clocks always active.
+Signed-off-by: Hemanth V <hemanthv@ti.com>
+---
+ drivers/misc/Kconfig     |   11 ++
+ drivers/misc/Makefile    |    1 +
+ drivers/misc/bh1780gli.c |  278 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 290 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/bh1780gli.c
 
-If you pull these 2 patches, we don't need the hacks anymore and multi omap build
-would work as well on these branches.
-https://patchwork.kernel.org/patch/100932/
-https://patchwork.kernel.org/patch/96048/
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 0d0d625..0687a0c 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -278,6 +278,17 @@ config SENSORS_TSL2550
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called tsl2550.
 
-I was able to boot test on my 4430sdp with these 2 patches on pm-wip/hwmods-omap4
-branch.
++config SENSORS_BH1780
++	tristate "ROHM BH1780GLI ambient light sensor"
++	depends on I2C && SYSFS
++	help
++	  If you say yes here you get support for the ROHM BH1780GLI
++	  ambient light sensor.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called bh1780gli.
++
++
+ config EP93XX_PWM
+ 	tristate "EP93xx PWM support"
+ 	depends on ARCH_EP93XX
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 7b6f7ee..c479d91 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -30,3 +30,4 @@ obj-$(CONFIG_IWMC3200TOP)      += iwmc3200top/
+ obj-y				+= eeprom/
+ obj-y				+= cb710/
+ obj-$(CONFIG_VMWARE_BALLOON)	+= vmware_balloon.o
++obj-$(CONFIG_SENSORS_BH1780)	+= bh1780gli.o
+diff --git a/drivers/misc/bh1780gli.c b/drivers/misc/bh1780gli.c
+new file mode 100644
+index 0000000..9b4137d
+--- /dev/null
++++ b/drivers/misc/bh1780gli.c
+@@ -0,0 +1,278 @@
++/*
++ * bh1780gli.c
++ * ROHM Ambient Light Sensor Driver
++ *
++ * Copyright (C) 2010 Texas Instruments
++ * Author: Hemanth V <hemanthv@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++#include <linux/i2c.h>
++#include <linux/slab.h>
++#include <linux/mutex.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++
++#define BH1780_REG_CONTROL     0x80
++#define BH1780_REG_PARTID      0x8A
++#define BH1780_REG_MANFID      0x8B
++#define BH1780_REG_DLOW        0x8C
++#define BH1780_REG_DHIGH       0x8D
++
++#define BH1780_REVMASK        (0xf)
++#define BH1780_POWMASK        (0x3)
++#define BH1780_POFF	      (0x0)
++#define BH1780_PON            (0x3)
++
++/* power on settling time in ms */
++#define BH1780_PON_DELAY      2
++
++struct bh1780_data {
++	struct i2c_client *client;
++	int power_state;
++	/* lock for sysfs operations */
++	struct mutex lock;
++};
++
++int bh1780_write(struct bh1780_data *ddata, u8 reg, u8 val, char *msg)
++{
++	int ret = i2c_smbus_write_byte_data(ddata->client, reg, val);
++	if (ret < 0)
++		dev_err(&ddata->client->dev,
++			"i2c_smbus_write_byte_data failed error %d\
++			Register (%s)\n", ret, msg);
++	return ret;
++}
++
++int bh1780_read(struct bh1780_data *ddata, u8 reg, char *msg)
++{
++	int ret = i2c_smbus_read_byte_data(ddata->client, reg);
++	if (ret < 0)
++		dev_err(&ddata->client->dev,
++			"i2c_smbus_read_byte_data failed error %d\
++			 Register (%s)\n", ret, msg);
++	return ret;
++}
++
++static ssize_t bh1780_show_lux(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++
++	struct platform_device *pdev = to_platform_device(dev);
++	struct bh1780_data *ddata = platform_get_drvdata(pdev);
++	int lsb, msb;
++
++	lsb = bh1780_read(ddata, BH1780_REG_DLOW, "DLOW");
++	if (lsb < 0)
++		return lsb;
++
++	msb = bh1780_read(ddata, BH1780_REG_DHIGH, "DHIGH");
++	if (msb < 0)
++		return msb;
++
++	return sprintf(buf, "%d\n", (msb << 8) | lsb);
++}
++
++static ssize_t bh1780_show_power_state(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct bh1780_data *ddata = platform_get_drvdata(pdev);
++	int state;
++
++	state = bh1780_read(ddata, BH1780_REG_CONTROL, "CONTROL");
++	if (state < 0)
++		return state;
++
++	return sprintf(buf, "%d\n", state & BH1780_POWMASK);
++}
++
++static ssize_t bh1780_store_power_state(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t count)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct bh1780_data *ddata = platform_get_drvdata(pdev);
++	unsigned long val;
++	int error;
++
++	error = strict_strtoul(buf, 0, &val);
++	if (error)
++		return error;
++
++	if (val < BH1780_POFF || val > BH1780_PON)
++		return -EINVAL;
++
++	mutex_lock(&ddata->lock);
++
++	error = bh1780_write(ddata, BH1780_REG_CONTROL, val, "CONTROL");
++	if (error < 0) {
++		mutex_unlock(&ddata->lock);
++		return error;
++	}
++
++	msleep(BH1780_PON_DELAY);
++	ddata->power_state = val;
++	mutex_unlock(&ddata->lock);
++	return count;
++
++}
++
++static DEVICE_ATTR(lux, S_IRUGO, bh1780_show_lux, NULL);
++
++static DEVICE_ATTR(power_state, S_IWUSR | S_IRUGO,
++		bh1780_show_power_state, bh1780_store_power_state);
++
++static struct attribute *bh1780_attributes[] = {
++	&dev_attr_power_state.attr,
++	&dev_attr_lux.attr,
++	NULL
++};
++
++static const struct attribute_group bh1780_attr_group = {
++	.attrs = bh1780_attributes,
++};
++
++static int __devinit bh1780_probe(struct i2c_client *client,
++						const struct i2c_device_id *id)
++{
++	int ret;
++	struct bh1780_data *ddata = NULL;
++	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE)) {
++		ret = -EIO;
++		goto err_op_failed;
++	}
++
++	ddata = kzalloc(sizeof(struct bh1780_data), GFP_KERNEL);
++	if (ddata == NULL) {
++		ret = -ENOMEM;
++		goto err_op_failed;
++	}
++
++	ddata->client = client;
++	i2c_set_clientdata(client, ddata);
++
++	ret = bh1780_read(ddata, BH1780_REG_PARTID, "PART ID");
++	if (ret < 0)
++		goto err_op_failed;
++
++	dev_info(&client->dev, "Ambient Light Sensor, Rev : %d\n",
++			(ret & BH1780_REVMASK));
++
++	mutex_init(&ddata->lock);
++
++	ret = sysfs_create_group(&client->dev.kobj, &bh1780_attr_group);
++	if (ret)
++		goto err_op_failed;
++
++	return 0;
++
++err_op_failed:
++	if (ddata != NULL)
++		kfree(ddata);
++
++	return ret;
++}
++
++static int __devexit bh1780_remove(struct i2c_client *client)
++{
++	struct bh1780_data *ddata;
++
++	ddata = i2c_get_clientdata(client);
++	sysfs_remove_group(&client->dev.kobj, &bh1780_attr_group);
++
++	if (ddata != NULL) {
++		i2c_set_clientdata(client, NULL);
++		kfree(ddata);
++	}
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int bh1780_suspend(struct i2c_client *client, pm_message_t mesg)
++{
++	struct bh1780_data *ddata;
++	int state, ret;
++
++	ddata = i2c_get_clientdata(client);
++	state = bh1780_read(ddata, BH1780_REG_CONTROL, "CONTROL");
++	if (state < 0)
++		return state;
++
++	ddata->power_state = state & BH1780_POWMASK;
++
++	ret = bh1780_write(ddata, BH1780_REG_CONTROL, BH1780_POFF,
++				"CONTROL");
++
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++static int bh1780_resume(struct i2c_client *client)
++{
++	struct bh1780_data *ddata;
++	int state, ret;
++
++	ddata = i2c_get_clientdata(client);
++	state = ddata->power_state;
++
++	ret = bh1780_write(ddata, BH1780_REG_CONTROL, state,
++				"CONTROL");
++
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++#endif
++
++static const struct i2c_device_id bh1780_id[] = {
++	{ "bh1780", 0 },
++	{ },
++};
++
++static struct i2c_driver bh1780_driver = {
++	.probe		= bh1780_probe,
++	.remove		= bh1780_remove,
++	.id_table	= bh1780_id,
++#ifdef CONFIG_PM
++	.suspend	= bh1780_suspend,
++	.resume		= bh1780_resume,
++#endif
++	.driver = {
++		.name = "bh1780"
++	},
++};
++
++static int __init bh1780_init(void)
++{
++	return i2c_add_driver(&bh1780_driver);
++}
++
++static void __exit bh1780_exit(void)
++{
++	i2c_del_driver(&bh1780_driver);
++}
++
++module_init(bh1780_init)
++module_exit(bh1780_exit)
++
++MODULE_DESCRIPTION("BH1780GLI Ambient Light Sensor Driver");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Hemanth V <hemanthv@ti.com>");
+-- 
+1.5.6.3
 
-regards,
-Rajendra
-
-> 
-> On top of this, there is the pm-wip/runtime branch which includes
-> the base runtime PM implementation for OMAP.
-> 
-> On top of this there are work-in-progress branches for the conversions
-> for UART (pm-wip/uart) and MMC (pm-wip/mmc)
-> 
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
