@@ -1,49 +1,58 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [GIT PULL] omap mailbox: updates for 2.6.35
-Date: Fri, 21 May 2010 16:39:52 +0300 (EEST)
-Message-ID: <20100521.163952.116384006.Hiroshi.DOYU@nokia.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [RFC] [PATCH] misc : ROHM BH1780GLI Ambient light sensor Driver
+Date: Fri, 21 May 2010 19:32:50 +0530
+Message-ID: <03b301caf8ee$4dc484b0$LocalHost@wipblrx0099946>
+References: <31752.10.24.255.17.1274441750.squirrel@dbdmail.itg.ti.com> <20100521120347.GP30801@buzzloop.caiaq.de> <035e01caf8e2$bb7b5580$LocalHost@wipblrx0099946> <20100521124641.GQ30801@buzzloop.caiaq.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51909 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754839Ab0EUNkR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 09:40:17 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Daniel Mack <daniel@caiaq.de>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org
 
-Hi Tony,
+----- Original Message ----- 
+From: "Daniel Mack" <daniel@caiaq.de>
+To: "Hemanth V" <hemanthv@ti.com>
+Cc: <linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>; 
+<linux-input@vger.kernel.org>
+Sent: Friday, May 21, 2010 6:16 PM
+Subject: Re: [RFC] [PATCH] misc : ROHM BH1780GLI Ambient light sensor Driver
 
-Here are the latest updates for omap mailbox modules.
 
-The following changes since commit e40152ee1e1c7a63f4777791863215e3faa37a86:
+> On Fri, May 21, 2010 at 06:10:00PM +0530, Hemanth V wrote:
+>> >On Fri, May 21, 2010 at 05:05:50PM +0530, Hemanth V wrote:
+>> >>+ mutex_lock(&ddata->lock);
+>> >>+
+>> >>+ error = bh1780_write(ddata, BH1780_REG_CONTROL, val, "CONTROL");
+>> >>+ if (error < 0) {
+>> >>+ mutex_unlock(&ddata->lock);
+>> >>+ return error;
+>> >>+ }
+>> >>+
+>> >>+ msleep(BH1780_PON_DELAY);
+>> >
+>> >Hmm, what do you wait for here?
+>>
+>> Settling time delay required before lux read out
+>
+> I thought so, but in fact you're just delaying the next two lines by
+> that:
+>
+>> >>+ ddata->power_state = val;
+>> >>+ mutex_unlock(&ddata->lock);
+>
+> ... which doesn't make sense to me.
+>
+> I can believe there is need to wait for the value to settle, but I think
+> it's the wrong place where you're doing it currently.
+>
 
-  Linus 2.6.34 (2010-05-16 14:17:36 -0700)
+I could move it one line down,  but not really release the mutex.
+Which other place would you suggest.
 
-are available in the git repository at:
-  git://gitorious.org/~doyu/lk/mainline.git for-tony-mailbox
 
-Fernando Guzman Lugo (4):
-      Mailbox: free mailbox interrupt before freeing blk queue
-      Mailbox: flush pending deferred works before freeing blk queue
-      Mailbox: Check valid registered callback before calling
-      Mailbox: disable mailbox interrupt when request queue
-
-Hiroshi DOYU (2):
-      Mailbox: new mutext lock for h/w mailbox configuration
-      omap mailbox: Set a device in logical mbox instance for traceability
-
-Ohad Ben-Cohen (4):
-      omap: mailbox: convert rwlocks to spinlock
-      omap: mailbox cleanup: split MODULE_AUTHOR line
-      omap: mailbox: remove (un)likely macros from cold paths
-      omap: mailbox: convert block api to kfifo
-
- arch/arm/mach-omap2/mailbox.c             |    3 +-
- arch/arm/plat-omap/Kconfig                |    9 ++
- arch/arm/plat-omap/include/plat/mailbox.h |    4 +-
- arch/arm/plat-omap/mailbox.c              |  186 +++++++++++++++-------------
- 4 files changed, 113 insertions(+), 89 deletions(-)
