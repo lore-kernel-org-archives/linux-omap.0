@@ -1,62 +1,48 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: collaboration on hwmod conversions and runtime PM
-Date: Fri, 21 May 2010 08:06:33 -0700
-Message-ID: <87ljbdl2fa.fsf@deeprootsystems.com>
-References: <87mxvucekw.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0322FA7EE5@dbde02.ent.ti.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 2/5] ARM: add LCDC and MIPI DSI-Tx clock definitions to sh7372
+Date: Fri, 21 May 2010 17:15:38 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1005211700420.8450@axis700.grange>
+References: <Pine.LNX.4.64.1005201829260.26000@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f185.google.com ([209.85.222.185]:34254 "EHLO
-	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756157Ab0EUPGg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 11:06:36 -0400
-Received: by pzk15 with SMTP id 15so638399pzk.15
-        for <linux-omap@vger.kernel.org>; Fri, 21 May 2010 08:06:35 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322FA7EE5@dbde02.ent.ti.com> (Rajendra Nayak's message of "Fri\, 21 May 2010 16\:28\:12 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.1005201829260.26000@axis700.grange>
+Sender: linux-sh-owner@vger.kernel.org
+To: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
+Cc: Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev, @vger.kernel.org" <linux-fbdev@vger.kernel.org>, "lin, ux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+Define clock objects for switching on and off clocks for LCDC0, LCDC1 and MIPI
+DSI-Tx.
 
->> There has been quite a bit of activity on the hwmod front, but no
->> common place to combine patches for testing.
->> 
->> To that end, I've update the pm-wip/hwmods branch in my tree to 
->> the two fixes/cleanup series from Benoit (which will be merged
->> via for 2.6.35):
->> 
->>   [PATCH 00/10] OMAP: HWMOD fixes and cleanup
->>   [PATCH 0/5] OMAP4: PRCM: Spring cleanup
->> 
->> On top of this, there is the pm-wip/hwmods-omap4 branch which includes
->> the OMAP4 series from Benoit
->> 
->>   [PATCH 0/6] OMAP: hwmod: Full data set for OMAP4430 ES1.0
->> 
->> so that conversions for OMAP4 can also be done and tested.  Note that
->> I've reverted the two "temporary" patches in this series since they
->> cause problems on OMAP3,
->
-> Hi Kevin,
->
-> These temp patches might not be needed anymore, even for omap4. The clockdomain
-> has cpu checks to take care of the dependency, and there is already a patch from
-> Santosh to keep the emif clocks always active.
->
-> If you pull these 2 patches, we don't need the hacks anymore and multi omap build
-> would work as well on these branches.
-> https://patchwork.kernel.org/patch/100932/
-> https://patchwork.kernel.org/patch/96048/
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-OK, I'll pull those two in while waiting for them to merge upstream.
+Now that the "fbdev: add a MIPI DSI header" patch has been acked, we can 
+add the rest of the patches in this series, which can completely be pulled 
+via the genesis tree. Paul, please apply. This patch is unchanged from its 
+original version.
 
-> I was able to boot test on my 4430sdp with these 2 patches on pm-wip/hwmods-omap4
-> branch.
+ arch/arm/mach-shmobile/clock-sh7372.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Excellent, Thanks for testing!
-
-Kevin
+diff --git a/arch/arm/mach-shmobile/clock-sh7372.c b/arch/arm/mach-shmobile/clock-sh7372.c
+index abbc380..66ee47a 100644
+--- a/arch/arm/mach-shmobile/clock-sh7372.c
++++ b/arch/arm/mach-shmobile/clock-sh7372.c
+@@ -264,8 +264,12 @@ struct clk div6_clks[] = {
+ 
+ #define R_CLK (&r_clk)
+ #define HP_CLK (&div4_clks[DIV4_HP])
++#define B_CLK (&div4_clks[DIV4_B])
+ 
+ static struct clk mstp_clks[] = {
++	MSTP("lcdc0", B_CLK, SMSTPCR1, 0, 0),
++	MSTP("lcdc1", B_CLK, SMSTPCR1, 17, 0),
++	MSTP("dsitx", B_CLK, SMSTPCR1, 18, 0),
+ 	MSTP("sdhi0", HP_CLK, SMSTPCR3, 14, 0),
+ 	MSTP("sdhi1", HP_CLK, SMSTPCR3, 13, 0),
+ 	MSTP("keysc0", R_CLK, SMSTPCR4, 3, 0),
+-- 
+1.6.2.4
 
