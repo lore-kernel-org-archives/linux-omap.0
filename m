@@ -1,52 +1,114 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Future of resource framework?
-Date: Fri, 21 May 2010 09:47:51 -0700
-Message-ID: <871vd5kxqg.fsf@deeprootsystems.com>
-References: <AANLkTilpHjef3xbxB9QN9bj6MFmJA1jMwVxNQyZQcSKy@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Fri, 21 May 2010 10:51:58 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1005191320010.27473@utopia.booyaka.com>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<87aas2azc5.fsf@deeprootsystems.com>
+	<20100514231510.GG16989@thunk.org> <201005152152.15996.rjw@sisk.pl>
+	<alpine.DEB.2.00.1005171932540.27473@utopia.booyaka.com>
+	<20100518015519.GA6500@srcf.ucam.org>
+	<alpine.DEB.2.00.1005191016110.27473@utopia.booyaka.com>
+	<20100519162557.GA25719@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:52836 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758479Ab0EUQry (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 12:47:54 -0400
-Received: by pva18 with SMTP id 18so117257pva.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 May 2010 09:47:53 -0700 (PDT)
-In-Reply-To: <AANLkTilpHjef3xbxB9QN9bj6MFmJA1jMwVxNQyZQcSKy@mail.gmail.com> (Mike Chan's message of "Thu\, 20 May 2010 15\:37\:17 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-548612109-1274460718=:19937"
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20100519162557.GA25719@srcf.ucam.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Chan <mike@android.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Mike Chan <mike@android.com> writes:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> I'm not sure if this has been discussed, yet but since it seems that
-> the resource framework will not be making it upstream, I am curious
-> what are the replacements under consideration. I am starting to see
-> similar issues on other platforms (msm / tegra) so more generic
-> (non-omap) solution might be something to consider.
+--155748971-548612109-1274460718=:19937
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hi Mike,
+Hello Matthew,
 
-Which parts of the SRF do you currently use and find useful?  It would
-be helpful for us to to understand the parts you see as useful and
-potentially helpful to generalize.
+On Wed, 19 May 2010, Matthew Garrett wrote:
 
-As you know, the current implementation has a several layers
-and attempts to manage several things: OPPs, latencies etc.
+> On Wed, May 19, 2010 at 10:17:01AM -0600, Paul Walmsley wrote:
+>=20
+> > Could you please elaborate, or provide a link to an E-mail in the archi=
+ves=20
+> > that would explain why?
+>=20
+> What would otherwise be a wakeup event may be delivered between you=20
+> deciding to stop tasks and you actually stopping tasks. How do you know=
+=20
+> to restart tasks at that point?
 
-Our current plans are essentially to break up the "one framework to
-rule them all" philosophy and design of SRF and manage the various
-pieces by exending other layers such as the new OPP layer and voltage
-layers.  Latencies are being managed by the omap_device layer and we
-will hopefully have some discussions with the broader linux-pm
-community about generalizing that more into the generic driver model
-over this year.
+The original message you sent[1] quoted this part[2] of the proposal:
 
-For the OPP management parts, you should expect RFC patches in the
-next week or two that will start discussions on this.
+----
+       A. To prevent untrusted process timers from waking the system,
+          the processes can be run in a cgroup that calls
+          del_timer_sync() on all process timers upon receipt of some
+          trigger.  When the system returns from the system low-power
+          state and some trigger event happens, add_timer() can be
+          called to add all the cgroup's timers back.
+----
 
-Thanks for the input,
+That isn't intended to address the task restarting problem.  The task=20
+restarting problem is intended to be addressed by this part[3]:
 
-Kevin
+----
+      B. To prevent untrusted processes from hogging CPUs, the
+         processes can be run in a cgroup that puts all threads in
+         TASK_RUNNING processes into TASK_INTERRUPTIBLE state and
+         calls schedule() [6], upon receipt of some trigger.  This
+         should allow processes to be awakened by an external system
+         event, e.g., network packet received.  When the system
+         returns from the system low-power state and some trigger
+         event happens, those process threads can be placed back into
+         TASK_RUNNING state and rescheduled.
+----
 
+It sounds like Android doesn't even need to use full system suspend if=20
+some proposal like (A) and (B) are implemented[4].  In that case, all the=
+=20
+code that deals with races in full system suspend (like suspend blockers)=
+=20
+can be dropped.
+
+
+- Paul
+
+1. Matthew Garrett E-mail to the linux-pm mailing list, dated Tue May 18
+   02:55:19 +0100
+   https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025664.ht=
+ml
+
+2. Paragraph B4A of Paul Walmsley E-mail to the linux-pm mailing list,=20
+   dated Mon May 17 19:39:44 CDT 2010:
+   https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025663.ht=
+ml
+
+3. Paragraph B4B of Paul Walmsley E-mail to the linux-pm mailing list,=20
+   dated Mon May 17 19:39:44 CDT 2010:
+   https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025663.ht=
+ml
+
+4. Arve Hj=F8nnev=E5g E-mail to the linux-pm mailing list, dated Mon, May 1=
+7=20
+   20:06:33 PDT 2010:
+   https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025668.ht=
+ml
+--155748971-548612109-1274460718=:19937
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--155748971-548612109-1274460718=:19937--
