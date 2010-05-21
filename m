@@ -1,140 +1,85 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [pm-wip/uart][PATCH] Serial: Avoid using hwmod lookup using name
-     string.
-Date: Fri, 21 May 2010 14:10:57 +0530 (IST)
-Message-ID: <39979.192.168.10.88.1274431257.squirrel@dbdmail.itg.ti.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH v2] OMAP: Fix Memory leak
+Date: Fri, 21 May 2010 03:44:19 -0500
+Message-ID: <A24693684029E5489D1D202277BE8944557B5A7B@dlee02.ent.ti.com>
+References: <1274422500-29955-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42279 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751246Ab0EUIlF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 04:41:05 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48596 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752447Ab0EUIo0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 04:44:26 -0400
+In-Reply-To: <1274422500-29955-1-git-send-email-manjugk@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kumar, Satish" <satish.k@ti.com>, Tony Lindgren <tony@atomide.com>, vimal singh <vimal.newwork@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
+Hi Manjunath,
 
-Avoid using hwmod lookup using name string rather
-retreive port info using the hwmod class interface.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
+> Sent: Friday, May 21, 2010 1:15 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Kumar, Satish; Tony Lindgren; vimal singh
+> Subject: [PATCH v2] OMAP: Fix Memory leak
 
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
-This patch is based on top the series posted earlier
-http://marc.info/?l=linux-omap&m=127436267414492&w=2
+The subject prefix doesn't help much to know which OMAP code you're
+referring to. Maybe a more proper renaming could be:
 
- arch/arm/mach-omap2/serial.c |   76 ++++++++++++++++++++----------------------
- 1 files changed, 36 insertions(+), 40 deletions(-)
+omap: iovmm: Fix memory leak
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index da9fee6..8e3f929 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -55,8 +55,6 @@
-  */
- #define DEFAULT_TIMEOUT 0
+Just do 'git log -p arch/arm/plat-omap/iovmm.c' to see the convention taken so far.
 
--#define MAX_UART_HWMOD_NAME_LEN		16
--
- struct omap_uart_state {
- 	int num;
- 	int can_sleep;
-@@ -568,52 +566,50 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
- }
- #endif
+> 
+> From: Satish <x0124230@ti.com>
+> 
+> The memory allocated for sgt structure is not freed on error
+> when sg_alloc_table is called in sgtable_alloc().
+> 
+> Signed-off-by: Satish Kumar <x0124230@ti.com>
+> Signed-off-by: Manjunatha GK <manjugk@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: vimal singh <vimal.newwork@gmail.com>
 
--void __init omap_serial_early_init(void)
-+static int omap_serial_port_init(struct omap_hwmod *oh, void *user)
- {
--	int i = 0;
-+	struct omap_uart_state *uart;
-+	static int i;
+You're missing here the main code maintainer:
 
--	do {
--		char oh_name[MAX_UART_HWMOD_NAME_LEN];
--		struct omap_hwmod *oh;
--		struct omap_uart_state *uart;
-+	uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
-+	if (WARN_ON(!uart))
-+		return -ENOMEM;
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
--		snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN,
--			 "uart%d", i + 1);
--		oh = omap_hwmod_lookup(oh_name);
--		if (!oh)
--			break;
-+	uart->oh = oh;
-+	uart->num = i++;
-+	list_add_tail(&uart->node, &uart_list);
-+	num_uarts++;
+I'm looping him in this time.
 
--		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
--		if (WARN_ON(!uart))
--			return;
-+	/*
-+	 * NOTE: omap_hwmod_init() has not yet been called,
-+	 *       so no hwmod functions will work yet.
-+	 */
+Regards,
+Sergio
 
--		uart->oh = oh;
--		uart->num = i++;
--		list_add_tail(&uart->node, &uart_list);
--		num_uarts++;
-+	/*
-+	 * During UART early init, device need to be probed
-+	 * to determine SoC specific init before omap_device
-+	 * is ready.  Therefore, don't allow idle here
-+	 */
-
--		/*
--		 * NOTE: omap_hwmod_init() has not yet been called,
--		 *       so no hwmod functions will work yet.
--		 */
-+	uart->oh->flags |= HWMOD_INIT_NO_IDLE;
-
--		/*
--		 * During UART early init, device need to be probed
--		 * to determine SoC specific init before omap_device
--		 * is ready.  Therefore, don't allow idle here
--		 */
--		uart->oh->flags |= HWMOD_INIT_NO_IDLE;
--
--		/*
--		 * Since UART hwmod is idle/enabled inside the
--		 * idle loop, interrupts are already disabled and
--		 * thus no locking is needed.  Since the mutex-based
--		 * locking in hwmod might sleep, allowing locking
--		 * may introduce problems.
--		 */
--		uart->oh->flags |= HWMOD_NO_IDLE_LOCKING;
-+	/*
-+	 * Since UART hwmod is idle/enabled inside the
-+	 * idle loop, interrupts are already disabled and
-+	 * thus no locking is needed.  Since the mutex-based
-+	 * locking in hwmod might sleep, allowing locking
-+	 * may introduce problems.
-+	 */
-+
-+	uart->oh->flags |= HWMOD_NO_IDLE_LOCKING;
-
--	} while (1);
-+	return 0;
-+}
-+
-+void __init omap_serial_early_init(void)
-+{
-+	omap_hwmod_for_each_by_class("uart",
-+		omap_serial_port_init, NULL);
- }
-
- /**
--- 
-1.6.3.3
-
-
-
-
-
+> ---
+>  arch/arm/plat-omap/iovmm.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index e43983b..8ce0de2 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
+> @@ -140,8 +140,10 @@ static struct sg_table *sgtable_alloc(const size_t
+> bytes, u32 flags)
+>  		return ERR_PTR(-ENOMEM);
+> 
+>  	err = sg_alloc_table(sgt, nr_entries, GFP_KERNEL);
+> -	if (err)
+> +	if (err) {
+> +		kfree(sgt);
+>  		return ERR_PTR(err);
+> +	}
+> 
+>  	pr_debug("%s: sgt:%p(%d entries)\n", __func__, sgt, nr_entries);
+> 
+> --
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
