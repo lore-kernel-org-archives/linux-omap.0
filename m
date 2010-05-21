@@ -1,100 +1,264 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH v2t2 08/17] omap: mailbox: only compile for configured archs
-Date: Sat, 22 May 2010 00:44:40 +0300
-Message-ID: <1274478289-22188-9-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH v2t2 07/17] omap: mailbox: reorganize registering
+Date: Sat, 22 May 2010 00:44:39 +0300
+Message-ID: <1274478289-22188-8-git-send-email-felipe.contreras@gmail.com>
 References: <1274478289-22188-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:48769 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753390Ab0EUVpL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 17:45:11 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 7so202277bwz.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 May 2010 14:45:10 -0700 (PDT)
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:40510 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753373Ab0EUVpJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 17:45:09 -0400
+Received: by mail-fx0-f46.google.com with SMTP id 5so1251271fxm.19
+        for <linux-omap@vger.kernel.org>; Fri, 21 May 2010 14:45:08 -0700 (PDT)
 In-Reply-To: <1274478289-22188-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
+This is a step forward to split the mbox registers.
+
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- arch/arm/mach-omap2/mailbox.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap1/mailbox.c |   41 +++++++++--------
+ arch/arm/mach-omap2/mailbox.c |  102 +++++++++++++++++------------------------
+ 2 files changed, 64 insertions(+), 79 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 5dda11c..04b70ba 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -286,6 +286,7 @@ static struct omap_mbox_ops omap2_mbox_ops = {
+diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
+index 211b9fc..d81b238 100644
+--- a/arch/arm/mach-omap1/mailbox.c
++++ b/arch/arm/mach-omap1/mailbox.c
+@@ -29,6 +29,8 @@
  
- /* FIXME: the following structs should be filled automatically by the user id */
+ static void __iomem *mbox_base;
  
-+#if defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_ARCH_OMAP2420)
- /* DSP */
- static struct omap_mbox2_priv omap2_mbox_dsp_priv = {
- 	.tx_fifo = {
-@@ -309,11 +310,13 @@ struct omap_mbox mbox_dsp_info = {
- 	.priv	= &omap2_mbox_dsp_priv,
++static struct omap_mbox **list;
++
+ struct omap_mbox1_fifo {
+ 	unsigned long cmd;
+ 	unsigned long data;
+@@ -143,44 +145,45 @@ struct omap_mbox mbox_dsp_info = {
  };
  EXPORT_SYMBOL(mbox_dsp_info);
-+#endif
  
-+#if defined(CONFIG_ARCH_OMAP3430)
- struct omap_mbox *omap3_mboxes[] = { &mbox_dsp_info, NULL };
-+#endif
- 
- #if defined(CONFIG_ARCH_OMAP2420)
--
- /* IVA */
- static struct omap_mbox2_priv omap2_mbox_iva_priv = {
- 	.tx_fifo = {
-@@ -340,6 +343,7 @@ static struct omap_mbox mbox_iva_info = {
- struct omap_mbox *omap2_mboxes[] = { &mbox_iva_info, &mbox_dsp_info, NULL };
- #endif
- 
-+#if defined(CONFIG_ARCH_OMAP4)
- /* OMAP4 */
- static struct omap_mbox2_priv omap2_mbox_1_priv = {
- 	.tx_fifo = {
-@@ -388,6 +392,7 @@ struct omap_mbox mbox_2_info = {
- EXPORT_SYMBOL(mbox_2_info);
- 
- struct omap_mbox *omap4_mboxes[] = { &mbox_1_info, &mbox_2_info, NULL };
-+#endif
- 
- static int __devinit omap2_mbox_probe(struct platform_device *pdev)
++struct omap_mbox *omap1_mboxes[] = { &mbox_dsp_info, NULL };
++
+ static int __devinit omap1_mbox_probe(struct platform_device *pdev)
  {
-@@ -401,11 +406,14 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	int ret;
++	int i;
+ 
+-	/* MBOX base */
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (unlikely(!res)) {
+-		dev_err(&pdev->dev, "invalid mem resource\n");
+-		return -ENODEV;
+-	}
++	res = pdev->resource;
+ 
+-	mbox_base = ioremap(res->start, resource_size(res));
++	mbox_base = ioremap(res[0].start, resource_size(&res[0]));
  	if (!mbox_base)
  		return -ENOMEM;
  
--	if (cpu_is_omap3430()) {
-+	if (false);
-+#if defined(CONFIG_ARCH_OMAP3430)
-+	else if (cpu_is_omap3430()) {
- 		list = omap3_mboxes;
+-	/* DSP IRQ */
+-	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (unlikely(!res)) {
+-		dev_err(&pdev->dev, "invalid irq resource\n");
+-		ret = -ENODEV;
+-		goto err_out;
+-	}
+-	mbox_dsp_info.irq = res->start;
++	list = omap1_mboxes;
  
- 		list[0]->irq = res[1].start;
- 	}
-+#endif
+-	ret = omap_mbox_register(&pdev->dev, &mbox_dsp_info);
+-	if (ret)
+-		goto err_out;
++	list[0]->irq = res[1].start;
++
++	for (i = 0; list[i]; i++) {
++		ret = omap_mbox_register(&pdev->dev, list[i]);
++		if (ret)
++			goto err_out;
++	}
+ 	return 0;
+ 
+ err_out:
++	while (i--)
++		omap_mbox_unregister(list[i]);
+ 	iounmap(mbox_base);
+ 	return ret;
+ }
+ 
+ static int __devexit omap1_mbox_remove(struct platform_device *pdev)
+ {
+-	omap_mbox_unregister(&mbox_dsp_info);
++	int i;
++
++	for (i = 0; list[i]; i++)
++		omap_mbox_unregister(list[i]);
++
+ 	iounmap(mbox_base);
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 7afc9aa..5dda11c 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -56,6 +56,8 @@
+ 
+ static void __iomem *mbox_base;
+ 
++static struct omap_mbox **list;
++
+ struct omap_mbox2_fifo {
+ 	unsigned long msg;
+ 	unsigned long fifo_stat;
+@@ -308,6 +310,8 @@ struct omap_mbox mbox_dsp_info = {
+ };
+ EXPORT_SYMBOL(mbox_dsp_info);
+ 
++struct omap_mbox *omap3_mboxes[] = { &mbox_dsp_info, NULL };
++
  #if defined(CONFIG_ARCH_OMAP2420)
- 	else if (cpu_is_omap2420()) {
- 		list = omap2_mboxes;
-@@ -414,12 +422,14 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
- 		list[1]->irq = res[2].start;
- 	}
- #endif
-+#if defined(CONFIG_ARCH_OMAP4)
- 	else if (cpu_is_omap44xx()) {
- 		list = omap4_mboxes;
  
- 		list[0]->irq = res[1].start;
- 		list[1]->irq = res[1].start;
+ /* IVA */
+@@ -332,6 +336,8 @@ static struct omap_mbox mbox_iva_info = {
+ 	.ops	= &omap2_mbox_ops,
+ 	.priv	= &omap2_mbox_iva_priv,
+ };
++
++struct omap_mbox *omap2_mboxes[] = { &mbox_iva_info, &mbox_dsp_info, NULL };
+ #endif
+ 
+ /* OMAP4 */
+@@ -381,89 +387,65 @@ struct omap_mbox mbox_2_info = {
+ };
+ EXPORT_SYMBOL(mbox_2_info);
+ 
++struct omap_mbox *omap4_mboxes[] = { &mbox_1_info, &mbox_2_info, NULL };
++
+ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res;
+ 	int ret;
++	int i;
+ 
+-	/* MBOX base */
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (unlikely(!res)) {
+-		dev_err(&pdev->dev, "invalid mem resource\n");
+-		return -ENODEV;
+-	}
+-	mbox_base = ioremap(res->start, resource_size(res));
++	res = pdev->resource;
++
++	mbox_base = ioremap(res[0].start, resource_size(&res[0]));
+ 	if (!mbox_base)
+ 		return -ENOMEM;
+ 
+-	/* DSP or IVA2 IRQ */
+-	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (cpu_is_omap3430()) {
++		list = omap3_mboxes;
+ 
+-	if (unlikely(!res)) {
+-		dev_err(&pdev->dev, "invalid irq resource\n");
+-		ret = -ENODEV;
+-		goto err_dsp;
++		list[0]->irq = res[1].start;
  	}
+-	if (cpu_is_omap44xx()) {
+-		mbox_1_info.irq = res->start;
+-		ret = omap_mbox_register(&pdev->dev, &mbox_1_info);
+-	} else {
+-		mbox_dsp_info.irq = res->start;
+-		ret = omap_mbox_register(&pdev->dev, &mbox_dsp_info);
++#if defined(CONFIG_ARCH_OMAP2420)
++	else if (cpu_is_omap2420()) {
++		list = omap2_mboxes;
++
++		list[0]->irq = res[1].start;
++		list[1]->irq = res[2].start;
+ 	}
+-	if (ret)
+-		goto err_dsp;
 +#endif
- 	else {
- 		pr_err("%s: platform not supported\n", __func__);
- 		return -ENODEV;
++	else if (cpu_is_omap44xx()) {
++		list = omap4_mboxes;
+ 
+-	if (cpu_is_omap44xx()) {
+-		mbox_2_info.irq = res->start;
+-		ret = omap_mbox_register(&pdev->dev, &mbox_2_info);
+-		if (ret) {
+-			omap_mbox_unregister(&mbox_1_info);
+-			goto err_dsp;
+-		}
++		list[0]->irq = res[1].start;
++		list[1]->irq = res[1].start;
+ 	}
+-#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+-	if (cpu_is_omap2420()) {
+-		/* IVA IRQ */
+-		res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
+-		if (unlikely(!res)) {
+-			dev_err(&pdev->dev, "invalid irq resource\n");
+-			ret = -ENODEV;
+-			omap_mbox_unregister(&mbox_dsp_info);
+-			goto err_dsp;
+-		}
+-		mbox_iva_info.irq = res->start;
+-		ret = omap_mbox_register(&pdev->dev, &mbox_iva_info);
+-		if (ret) {
+-			omap_mbox_unregister(&mbox_dsp_info);
+-			goto err_dsp;
+-		}
++	else {
++		pr_err("%s: platform not supported\n", __func__);
++		return -ENODEV;
+ 	}
+-#endif
+-	return 0;
+ 
+-#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+-err_iva1:
+-	omap_mbox_unregister(&mbox_dsp_info);
+-#endif
++	for (i = 0; list[i]; i++) {
++		ret = omap_mbox_register(&pdev->dev, list[i]);
++		if (ret)
++			goto err_out;
++	}
++	return 0;
+ 
+-err_dsp:
++err_out:
++	while (i--)
++		omap_mbox_unregister(list[i]);
+ 	iounmap(mbox_base);
+ 	return ret;
+ }
+ 
+ static int __devexit omap2_mbox_remove(struct platform_device *pdev)
+ {
+-#if defined(CONFIG_ARCH_OMAP2420)
+-	if (cpu_is_omap2420())
+-		omap_mbox_unregister(&mbox_iva_info);
+-#endif
++	int i;
++
++	for (i = 0; list[i]; i++)
++		omap_mbox_unregister(list[i]);
+ 
+-	if (cpu_is_omap44xx()) {
+-		omap_mbox_unregister(&mbox_2_info);
+-		omap_mbox_unregister(&mbox_1_info);
+-	} else
+-		omap_mbox_unregister(&mbox_dsp_info);
+ 	iounmap(mbox_base);
+ 	return 0;
+ }
 -- 
 1.7.1
 
