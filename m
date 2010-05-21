@@ -1,64 +1,54 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 10/22] OMAP: hwmod: Replace WARN by pr_warning for clockdomain
- check
-Date: Fri, 21 May 2010 14:02:15 +0400
-Message-ID: <4BF65A27.9030603@ru.mvista.com>
-References: <20100519021800.19716.8938.stgit@localhost.localdomain> <20100519021848.19716.50002.stgit@localhost.localdomain>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 1/5] gpiolib: introduce set_debounce method
+Date: Fri, 21 May 2010 11:11:36 +0100
+Message-ID: <20100521111136.53dba6c9@lxorguk.ukuu.org.uk>
+References: <20100520194509.GB10739@sirena.org.uk>
+	<598314.1671.qm@web180305.mail.gq1.yahoo.com>
+	<20100521064925.GF925@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:52140 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476Ab0EUKDF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 06:03:05 -0400
-Received: by wyg36 with SMTP id 36so531496wyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 May 2010 03:03:03 -0700 (PDT)
-In-Reply-To: <20100519021848.19716.50002.stgit@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100521064925.GF925@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: felipe.balbi@nokia.com
+Cc: David Brownell <david-b@pacbell.net>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Hello.
 
-Paul Walmsley wrote:
+> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> index cd85fd1..ed1ed74 100644
+> --- a/drivers/gpio/gpiolib.c
+> +++ b/drivers/gpio/gpiolib.c
+> @@ -1461,9 +1461,14 @@ int gpio_set_debounce(unsigned gpio, unsigned debounce)
+>   
+>          spin_lock_irqsave(&gpio_lock, flags);
+>   
+> +       chip = desc->chip;
+> +       if (!(chip->flags & GPIO_FLAG_DEBOUNCE)) {
+> +               spin_unlock_irqrestore(&gpio_lock, flags);
+> +               return 0;
+> +       }
+> +
 
-> From: Benoit Cousson <b-cousson@ti.com>
+If you add the feature check then presumably someone trying to do
+debounce on a port without the feature isn't paying attention so this
+should WARN at the very least. Also it shouldn't be a return 0.
 
-> Most of the clock nodes belong to a clock domain, but it is perfectly valid
-> to have clock without clock domain.
-> Root clocks for example does not belong to any clock domain.
-> Keep the warning but reduce the verbosity.
+This however seems a bit excessive and inconsistent. Every other function
+simply returns -EINVAL if the request is unsupported. So not only does it
+complicate the code it makes the code inconsistent with its existing
+regular behaviour. The initial patch is consistent, regular and follows
+expected gpiolib behaviour in all respects.
 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-[...]
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index b6031e4..2fff39f 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -404,21 +404,20 @@ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
->   */
->  static int _init_main_clk(struct omap_hwmod *oh)
->  {
-> -	struct clk *c;
->  	int ret = 0;
->  
->  	if (!oh->main_clk)
->  		return 0;
->  
-> -	c = omap_clk_get_by_name(oh->main_clk);
-> -	if (!c)
-> +	oh->_clk = omap_clk_get_by_name(oh->main_clk);
-> +	if (!oh->_clk)
->  		pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
->  			   oh->name, oh->main_clk);
-> -		ret = -EINVAL;
-> -	oh->_clk = c;
-> +		return -EINVAL;
+> that could be used later for adding debounce emulation for chips that 
+> doesn't support hw debouncing.
 
-    Don't you need {} here again?
+You don't need flags for this - the request will just start working if
+someone adds the feature.
 
-WBR, Sergei
+GPIO is almost always fairly tightly platform bound so features only
+existing on certain ports is fine. The platform vendor will have made
+sure they relevant ports have suitable debounce facilities.
 
+Alan
