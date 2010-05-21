@@ -1,147 +1,76 @@
-From: "Girish S G" <girishsg@ti.com>
-Subject: RE: [PATCH V2] OMAP3: PM: Workaround for DPLL3 Lock issue
-Date: Thu, 20 May 2010 23:49:43 -0500
-Message-ID: <010201caf8a1$07de9050$324ff780@am.dhcp.ti.com>
-References: <1273745535-27139-1-git-send-email-shweta.gulati@ti.com> <4BF3D23F.6070308@ti.com> <FCCFB4CDC6E5564B9182F639FC356087030527036D@dbde02.ent.ti.com> <4BF3F5FF.20407@ti.com> <FCCFB4CDC6E5564B9182F639FC356087030527039F@dbde02.ent.ti.com> <4BF40C0F.4000308@ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: Fix board data to support device only, host
+ only and OTG roles.
+Date: Fri, 21 May 2010 10:45:37 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E535E9B@dbde02.ent.ti.com>
+References: <1274360966-9974-1-git-send-email-x0082077@ti.com>
+ <602675.31449.qm@web180309.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52833 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753000Ab0EUEtr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 May 2010 00:49:47 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4L4nlpl012646
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 20 May 2010 23:49:47 -0500
-In-Reply-To: <4BF40C0F.4000308@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34808 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753519Ab0EUFPu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 01:15:50 -0400
+In-Reply-To: <602675.31449.qm@web180309.mail.gq1.yahoo.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Benoit Cousson' <b-cousson@ti.com>, "'Sripathy, Vishwanath'" <vishwanath.bs@ti.com>
-Cc: "'Gulati, Shweta'" <shweta.gulati@ti.com>, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Mankad, Maulik Ojas" <x0082077@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>
 
+Hi,
+> > +#ifdef CONFIG_USB_MUSB_OTG
+> > +=A0=A0=A0 .mode
+> > =A0=A0=A0 =A0=A0=A0 =3D MUSB_OTG,
+> > +#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
+> > +=A0=A0=A0 .mode
+> > =A0=A0=A0 =A0=A0=A0 =3D MUSB_HOST,
+> > +#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+> >  =A0=A0=A0 .mode
+> > =A0=A0=A0 =A0=A0=A0 =3D MUSB_PERIPHERAL,
+> > +#endif
+>=20
+> > =A0=A0=A0 =A0=A0=A0 =3D MUSB_PERIPHERAL,
+> > +#endif
+>=20
+> By the way ... the #ifdeffery should indeed vanish from all board
+> configs except the Davinci DM6446 EVM.
 
+If we are claiming to support:
+	A. Same kernel would work on multiple boards
+	B. Single kernel for one single board
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Benoit
-> Cousson
+Then I think these #ifdefferys are required in all the board files.
 
-> >>>> Hi Vishwa,
-> >>>>
-> >>>> On 5/13/2010 12:12 PM, shweta gulati wrote:
-> >>>>> From: Vishwanath Sripathy<vishwanath.bs@ti.com>
-> >>>>>
-> >>>>> OMAP3430/3630 has a Silicon bug because of which SDRC is
-> >>>>> released from IDLE even before Core DPLL has locked. This leads
-> >>>>> to undefined behaviour of SDRC DLL.
-> >>>>>
-> >>>>> This patch has workaround for the same.
-> >>>>>
-> >>>>> Description of WA for 3430:
-> >>>>> Initialization:
-> >>>>> 	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3
-> >>>>> 	is always locked.
-> >>>>>
-> >>>>> Before CORE Voltage Domain (VDD2) Sleep Transition to RETENTION or OFF
-> >> mode:
-> >>>>> 1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP2 Frequency
-> >>>>> 	(by changing M2 Divider value). This is increasing the period duration of
-> >>>>> 	one L3 clock cycle.
-> >>>>> 	o	In case of CORE is at OPP3 (166MHz@1.15V):
-> >>>>> 	"	Lower the frequency to 83MHz.
-> >>>>>
-> >>>>> 	o	In case of CORE is at OPP2 (83MHz@1.05V):
-> >>>>> 	"	Keep the frequency as it is (83MHz).
-> >>>>>
-> >>>>> 2.	Increase CORE Voltage to 1.2V. This is reducing the timing duration of
-> >> the
-> >>>>> 	critical path signal which will now fit to one L3 clock cycle.
-> >>>>>
-> >>>>> 3.	Enable DPLL3 Automatic mode. This will ensure proper transition to
-> >>>>> 	RETENTION or OFF mode.
-> >>>>>
-> >>>>> After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
-> >>>>> 1.	Disable DPLL3 Automatic mode.
-> >>>>> 2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
-> >>>>>
-> >>>>> Description of WA for 3630:
-> >>>>> Initialization:
-> >>>>> 	Disable DPLL3 automatic mode by default. Issue will not be faced as DPLL3 is
-> >>>> always locked.
-> >>>>>
-> >>>>> Before CORE Voltage Domain(VDD2) Sleep Transition to RETENTION or OFF
-> >> mode:
-> >>>>> 1.	Reduce DPLL3 M2 Frequency to get L3 running at OPP50 Frequency
-> >>>>> 	(by changing M2 Divider value) and set VDD2 Voltage for OPP100.
-> >>>>> 	This is increasing the period duration of one L3 clock cycle and reducing
-> >>>>> 	the timing duration of the critical path signal which will now fit to one
-> >>>>> 	L3 clock cycle.
-> >>>>> 	o	In case of CORE is at OPP100 (L3=200MHz, VDD2=1.1375V):
-> >>>>> 		"	Lower the frequency to 100MHz.
-> >>>>> 		"	Keep the voltage as it is (1.1375V).
-> >>>>>
-> >>>>> 	o	In case of CORE is at OPP50 (L3=100MHz, VDD2=0.93V):
-> >>>>> 		"	Keep the frequency as it is (100MHz).
-> >>>>> 		"	Increase the voltage to 1.1375V.
-> >>>>>
-> >>>>> 2.	Enable DPLL3 Automatic mode. This will ensure proper transition to
-> >>>>> 	RETENTION or OFF mode.
-> >>>>>
-> >>>>> After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
-> >>>>> 1.	Disable DPLL3 Automatic mode.
-> >>>>> 2.	Restore previous DPLL3 M2 Frequency and CORE Voltage values.
-> >>>>>
-> >>>>> Also OSWR should not be attempted if DPLL3 has locked. This should be done as
-> >>>> part of OSWR patch series.
-> >>>>>
-> >>>>> Patch tested on 3430SDP and 3630 ZOOM3.
-> >>>>>
-> >>>>
-> >>>> Do you have a more accurate description of the bug? What is the defect ID?
-> >>>>
-> >>> Defect Id is i581.
-> >>>> The subject is about DPLL3 lock issue, and the description is all about
-> >>>> the transition to CORE RET or OFF and playing with voltage... and why
-> >>>> OSWR is affected as well?
-> >>>> I'm a little bit confused by that...
-> >>>>
-> >>>> Is this bug dependent of the target power state? What about INACTIVE?
-> >>> The root cause of the issue is that SDRC IDLEREQ is deasserted before DPLL3 has
-> >> locked. Because of this DLL may/may not lock based on Process Voltage Temperature
-> >> conditions. The bug can occur when DPLL3 automatic transition is enabled. So DPLL3
-> >> automatic transition is disabled by default and it is enabled only when system is
-> >> entering ret/off state (to facilitate voltage scaling). So when system is entering ret/off
-> >> state, WA is applied (since DPLL3 autoidle is enabled, we can possibly hit the issue;
-> >> hence the WA)
-> >>
-> >> Thanks, but that still not explain why this WA is considered only for
-> >> device transition to RET or OFF. The DPLL3 can got to idle as soon as
-> >> the CORE is INACTIVE. How this case is handled?
-> > DPLL3 auto idle is disabled when Core is in ON or INACTIVE state. So DPLL3 cannot goto idle state.
-> We enable DPPL3 auto idle only when Core is about to enter RET or OFF state (otherwise VDD2 will not
-> be able to scale the voltage down).
-> 
-> Why did you prevent that mode for INACTIVE? If I remember well, during
-> the early measurement we did on 3430, the DPLL consumption in locked
-> mode is around 5mw, so you can save a good amount of power for very low
-> load use cases.
-> 
-> Did you try to enable that in CPUIdle to check the power saving you can
-> achieve with that mode?
+Let's consider the OMAP3EVM which supports all the three modes and
+If these #ifdefferys are not present and .mode is set to OTG.
+Then if I choose to compile the Kernel only for peripheral mode
+(Case-B above) then I would get below error from musb_core.c.
 
-I partially agree here, definitely there will be savings of the order ~5mW if DPLL3 is idled in CORE INA state. However, if this
-done then WA will be applied in all these states increasing the latency(there will be case were l3 is held high by some usecase
-whilst this c-state is hit; then 200->100->200 MHz transition might cause some latency and eventually hampering the functionality of
-the usecase). 
+"incompatible Kconfig role setting"
 
--Girish
+-Ajay
 
-> 
-> Benoit
+>  That board is kind of quirky
+> in terms of USB support, and needs jumpering to get host or periphera=
+l
+> mode (and can't do OTG).  I suspect some of the other boards did a ba=
+d
+> thing and tried emulating what that board did.
+>=20
+> But the description for such a patch would emphasize removing bogus
+> ifdeffery, to match the board hardware (which is not conditional but
+> is instead fixed).
+>=20
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" =
+in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
