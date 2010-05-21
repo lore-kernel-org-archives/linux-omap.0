@@ -1,67 +1,51 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 0/3] Enable CPU frequency and power tracking in cpuacct  cgroup
-Date: Fri, 21 May 2010 10:05:08 -0700
-Message-ID: <87sk5ljid7.fsf@deeprootsystems.com>
-References: <1274380944-20947-1-git-send-email-mike@android.com>
-	<201005202301.12259.trenn@suse.de>
-	<AANLkTimrJ-F-rBDKnEusN2oViObCCPvZzeIWavkf-tqa@mail.gmail.com>
+From: Matthew Garrett <mjg@redhat.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Fri, 21 May 2010 18:09:44 +0100
+Message-ID: <20100521170944.GA13142@srcf.ucam.org>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<87aas2azc5.fsf@deeprootsystems.com>
+	<20100514231510.GG16989@thunk.org> <201005152152.15996.rjw@sisk.pl>
+	<alpine.DEB.2.00.1005171932540.27473@utopia.booyaka.com>
+	<20100518015519.GA6500@srcf.ucam.org>
+	<alpine.DEB.2.00.1005191016110.27473@utopia.booyaka.com>
+	<20100519162557.GA25719@srcf.ucam.org>
+	<alpine.DEB.2.00.1005191320010.27473@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:65494 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934442Ab0EURFL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 13:05:11 -0400
-In-Reply-To: <AANLkTimrJ-F-rBDKnEusN2oViObCCPvZzeIWavkf-tqa@mail.gmail.com> (Mike Chan's message of "Thu\, 20 May 2010 14\:21\:40 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1005191320010.27473@utopia.booyaka.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Geoff Smith <geoffx.smith@intel.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Wu Fengguang <fengguang.wu@intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Chan <mike@android.com>
-Cc: Thomas Renninger <trenn@suse.de>, menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>
 
-Mike Chan <mike@android.com> writes:
+On Fri, May 21, 2010 at 10:51:58AM -0600, Paul Walmsley wrote:
 
-> On Thu, May 20, 2010 at 2:01 PM, Thomas Renninger <trenn@suse.de> wrote:
->> Hi Mike,
->>
->> On Thursday 20 May 2010 08:42:21 pm Mike Chan wrote:
->>> v2:
->>> Rebased off of Thomas Renninger's patch for cgroups_cpuacct refactoring,
->> thanks.
->> A general comment:
->> I don't know much about the cgroup stuff.
->
-> Perhaps Paul Menage or Balbir Singh can look and sign off on the API's?
->
->> I am also not sure how exactly power can be measured on this arch based on
->
-> If you know how much time was spent at each frequency executing code,
-> you can calculate how much power was consumed if the platform (with
-> hooks) provide power numbers (in milliWatts) for the power at
-> frequency X.
->
-> I did some initial testing on Motorola Droid comparing to a power
-> meter and I got within 2% variance.
->
->> frequency accounting (there also were some threads I was not aware of?)
->> A signed-off-by or reviewed-by from someone who is more involved in this omap
->> stuff would probably not that bad.
->>
->
-> OMAP was the closest with mainline support I could provide an example
-> how to use these hooks.
->
-> I'm hoping for some blessing from some people on the linux-omap list
-> for that. However can we possibly just stack the first two patches to
-> get the API in? This will make it easier to fixup the omap hooks if
-> they don't get in.
+>       B. To prevent untrusted processes from hogging CPUs, the
+>          processes can be run in a cgroup that puts all threads in
+>          TASK_RUNNING processes into TASK_INTERRUPTIBLE state and
+>          calls schedule() [6], upon receipt of some trigger.  This
+>          should allow processes to be awakened by an external system
+>          event, e.g., network packet received.  When the system
+>          returns from the system low-power state and some trigger
+>          event happens, those process threads can be placed back into
+>          TASK_RUNNING state and rescheduled.
 
-This looks like a great enhancement to me.
+I don't think that works. If I have an app that would generally complete 
+some work and then call select(), you'll instead stop it in the middle 
+of that work. If that app is the one that should process the wakeup 
+event then it'll never be delivered because you've never got back to 
+select().
 
-Speaking for OMAP PM... I'd suggest getting the generic stuff upstream
-(or into -next) soon and then work out the OMAP specifics after.
-
-Since the OMAP OPP layer is going through some churn (but stabilizing
-and will be submitted for 2.6.36), I'd suggest we queue the
-OMAP-specific parts of this along with the OPP layer changes.
-
-Kevin
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
