@@ -1,85 +1,37 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH v2] OMAP: Fix Memory leak
-Date: Fri, 21 May 2010 03:44:19 -0500
-Message-ID: <A24693684029E5489D1D202277BE8944557B5A7B@dlee02.ent.ti.com>
-References: <1274422500-29955-1-git-send-email-manjugk@ti.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ARM: OMAP: Fix board data to support device only, host
+ only and OTG roles.
+Date: Fri, 21 May 2010 11:48:02 +0300
+Message-ID: <20100521084802.GC2737@nokia.com>
+References: <1274360966-9974-1-git-send-email-x0082077@ti.com>
+ <602675.31449.qm@web180309.mail.gq1.yahoo.com>
+ <19F8576C6E063C45BE387C64729E7394044E535E9B@dbde02.ent.ti.com>
+ <20100521065218.GG925@nokia.com>
+ <19F8576C6E063C45BE387C64729E7394044E535F3E@dbde02.ent.ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48596 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752447Ab0EUIo0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 04:44:26 -0400
-In-Reply-To: <1274422500-29955-1-git-send-email-manjugk@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E535F3E-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ext Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kumar, Satish" <satish.k@ti.com>, Tony Lindgren <tony@atomide.com>, vimal singh <vimal.newwork@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Hi Manjunath,
+Hi,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
-> Sent: Friday, May 21, 2010 1:15 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Kumar, Satish; Tony Lindgren; vimal singh
-> Subject: [PATCH v2] OMAP: Fix Memory leak
+On Fri, May 21, 2010 at 09:43:29AM +0200, ext Gupta, Ajay Kumar wrote:
+>I meant OTG with ID pin based role.
 
-The subject prefix doesn't help much to know which OMAP code you're
-referring to. Maybe a more proper renaming could be:
+that's the only OTG mode. If your board has OTG support, it will have to 
+act on ID pin.
 
-omap: iovmm: Fix memory leak
+-- 
+balbi
 
-Just do 'git log -p arch/arm/plat-omap/iovmm.c' to see the convention taken so far.
-
-> 
-> From: Satish <x0124230@ti.com>
-> 
-> The memory allocated for sgt structure is not freed on error
-> when sg_alloc_table is called in sgtable_alloc().
-> 
-> Signed-off-by: Satish Kumar <x0124230@ti.com>
-> Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: vimal singh <vimal.newwork@gmail.com>
-
-You're missing here the main code maintainer:
-
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-
-I'm looping him in this time.
-
-Regards,
-Sergio
-
-> ---
->  arch/arm/plat-omap/iovmm.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-> index e43983b..8ce0de2 100644
-> --- a/arch/arm/plat-omap/iovmm.c
-> +++ b/arch/arm/plat-omap/iovmm.c
-> @@ -140,8 +140,10 @@ static struct sg_table *sgtable_alloc(const size_t
-> bytes, u32 flags)
->  		return ERR_PTR(-ENOMEM);
-> 
->  	err = sg_alloc_table(sgt, nr_entries, GFP_KERNEL);
-> -	if (err)
-> +	if (err) {
-> +		kfree(sgt);
->  		return ERR_PTR(err);
-> +	}
-> 
->  	pr_debug("%s: sgt:%p(%d entries)\n", __func__, sgt, nr_entries);
-> 
-> --
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DefectiveByDesign.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
