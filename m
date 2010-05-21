@@ -1,76 +1,155 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: Fix board data to support device only, host
- only and OTG roles.
-Date: Fri, 21 May 2010 10:45:37 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E535E9B@dbde02.ent.ti.com>
-References: <1274360966-9974-1-git-send-email-x0082077@ti.com>
- <602675.31449.qm@web180309.mail.gq1.yahoo.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 2/2] omap: iommu-add functionality to get TLB miss
+ interrupt
+Date: Fri, 21 May 2010 08:45:14 +0300 (EEST)
+Message-ID: <20100521.084514.48503626.Hiroshi.DOYU@nokia.com>
+References: <1274389823-4051-1-git-send-email-h-kanigeri2@ti.com>
+	<1274389823-4051-3-git-send-email-h-kanigeri2@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34808 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753519Ab0EUFPu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 01:15:50 -0400
-In-Reply-To: <602675.31449.qm@web180309.mail.gq1.yahoo.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:31504 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754476Ab0EUFpe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 01:45:34 -0400
+In-Reply-To: <1274389823-4051-3-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Mankad, Maulik Ojas" <x0082077@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>
+To: h-kanigeri2@ti.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, grgupta@ti.com
 
-Hi,
-> > +#ifdef CONFIG_USB_MUSB_OTG
-> > +=A0=A0=A0 .mode
-> > =A0=A0=A0 =A0=A0=A0 =3D MUSB_OTG,
-> > +#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
-> > +=A0=A0=A0 .mode
-> > =A0=A0=A0 =A0=A0=A0 =3D MUSB_HOST,
-> > +#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
-> >  =A0=A0=A0 .mode
-> > =A0=A0=A0 =A0=A0=A0 =3D MUSB_PERIPHERAL,
-> > +#endif
->=20
-> > =A0=A0=A0 =A0=A0=A0 =3D MUSB_PERIPHERAL,
-> > +#endif
->=20
-> By the way ... the #ifdeffery should indeed vanish from all board
-> configs except the Davinci DM6446 EVM.
+Hi Hari,
 
-If we are claiming to support:
-	A. Same kernel would work on multiple boards
-	B. Single kernel for one single board
+From: ext Hari Kanigeri <h-kanigeri2@ti.com>
+Subject: [PATCH 2/2] omap: iommu-add functionality to get TLB miss interrupt
+Date: Thu, 20 May 2010 23:10:23 +0200
 
-Then I think these #ifdefferys are required in all the board files.
+> In order to enable TLB miss interrupt, the TWL should be
+> disabled. This patch provides the functionality to get the
+> MMU fault interrupt for a TLB miss in the cases where the
+> users are working with the locked TLB entries and with TWL
+> disabled.
+> New interface is added to select twl and to enable TLB miss
+> interrupt.
+> 
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> Signed-off-by: Ramesh Gupta <grgupta@ti.com>
+> Signed-off-by: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+> ---
+>  arch/arm/mach-omap2/iommu2.c            |   26 +++++++++++++++++++++-----
+>  arch/arm/plat-omap/include/plat/iommu.h |    2 ++
+>  arch/arm/plat-omap/iommu.c              |   17 +++++++++++++++++
+>  3 files changed, 40 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+> index ebbdae2..3cfe1c4 100644
+> --- a/arch/arm/mach-omap2/iommu2.c
+> +++ b/arch/arm/mach-omap2/iommu2.c
+> @@ -65,6 +65,25 @@
+>  	 ((pgsz) == MMU_CAM_PGSZ_64K) ? 0xffff0000 :	\
+>  	 ((pgsz) == MMU_CAM_PGSZ_4K)  ? 0xfffff000 : 0)
+>  
+> +
+> +static void omap2_iommu_set_twl(struct iommu *obj, bool on)
+> +{
+> +	u32 l = iommu_read_reg(obj, MMU_CNTL);
+> +
+> +	if (on)
+> +		iommu_write_reg(obj, MMU_IRQ_TWL_MASK, MMU_IRQENABLE);
+> +	else
+> +		iommu_write_reg(obj, MMU_IRQ_TLB_MISS_MASK, MMU_IRQENABLE);
+> +
+> +	l &= ~MMU_CNTL_MASK;
+> +	if (on)
+> +		l |= (MMU_CNTL_MMU_EN | MMU_CNTL_TWL_EN);
+> +	else
+> +		l |= (MMU_CNTL_MMU_EN);
+> +
+> +	iommu_write_reg(obj, l, MMU_CNTL);
+> +}
+> +
+>  static int omap2_iommu_enable(struct iommu *obj)
+>  {
+>  	u32 l, pa;
+> @@ -100,13 +119,9 @@ static int omap2_iommu_enable(struct iommu *obj)
+>  	l |= (MMU_SYS_IDLE_SMART | MMU_SYS_AUTOIDLE);
+>  	iommu_write_reg(obj, l, MMU_SYSCONFIG);
+>  
+> -	iommu_write_reg(obj, MMU_IRQ_TWL_MASK, MMU_IRQENABLE);
+>  	iommu_write_reg(obj, pa, MMU_TTB);
+>  
+> -	l = iommu_read_reg(obj, MMU_CNTL);
+> -	l &= ~MMU_CNTL_MASK;
+> -	l |= (MMU_CNTL_MMU_EN | MMU_CNTL_TWL_EN);
+> -	iommu_write_reg(obj, l, MMU_CNTL);
+> +	omap2_iommu_set_twl(obj, true);
+>  
+>  	return 0;
+>  }
 
-Let's consider the OMAP3EVM which supports all the three modes and
-If these #ifdefferys are not present and .mode is set to OTG.
-Then if I choose to compile the Kernel only for peripheral mode
-(Case-B above) then I would get below error from musb_core.c.
+nitpick: The function prefix "omap2_iommu_" are used to indicate that
+this prefixed function belongs to "omap2_iommu_ops" to provide iommu
+basic functionalities for the above layer. It's better to avoid to use
+the prefixed function in the same prefixed ones, IOW, nested like
+above, where "omap2_iommu_enable()" calls "omap2_iommu_set_twl()"
+internally. It's can be considered as a violation of layer? Same to
+"omap2_iommu_disable()".
 
-"incompatible Kconfig role setting"
+> @@ -304,6 +319,7 @@ static const struct iommu_functions omap2_iommu_ops = {
+>  
+>  	.enable		= omap2_iommu_enable,
+>  	.disable	= omap2_iommu_disable,
+> +	.set_twl	= omap2_iommu_set_twl,
+>  	.fault_isr	= omap2_iommu_fault_isr,
+>  
+>  	.tlb_read_cr	= omap2_tlb_read_cr,
+> diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+> index 0752af9..33c7d41 100644
+> --- a/arch/arm/plat-omap/include/plat/iommu.h
+> +++ b/arch/arm/plat-omap/include/plat/iommu.h
+> @@ -80,6 +80,7 @@ struct iommu_functions {
+>  
+>  	int (*enable)(struct iommu *obj);
+>  	void (*disable)(struct iommu *obj);
+> +	void (*set_twl)(struct iommu *obj, bool on);
+>  	u32 (*fault_isr)(struct iommu *obj, u32 *ra);
 
--Ajay
+This could be like the following, which also keeps the order of the
+above "struct iommu_functions".
 
->  That board is kind of quirky
-> in terms of USB support, and needs jumpering to get host or periphera=
-l
-> mode (and can't do OTG).  I suspect some of the other boards did a ba=
-d
-> thing and tried emulating what that board did.
->=20
-> But the description for such a patch would emphasize removing bogus
-> ifdeffery, to match the board hardware (which is not conditional but
-> is instead fixed).
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Modified arch/arm/mach-omap2/iommu2.c
+diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+index 3cfe1c4..c87f662 100644
+--- a/arch/arm/mach-omap2/iommu2.c
++++ b/arch/arm/mach-omap2/iommu2.c
+@@ -66,7 +66,7 @@
+ 	 ((pgsz) == MMU_CAM_PGSZ_4K)  ? 0xfffff000 : 0)
+ 
+ 
+-static void omap2_iommu_set_twl(struct iommu *obj, bool on)
++static void __iommu_set_twl(struct iommu *obj, bool on)
+ {
+ 	u32 l = iommu_read_reg(obj, MMU_CNTL);
+ 
+@@ -121,7 +121,7 @@ static int omap2_iommu_enable(struct iommu *obj)
+ 
+ 	iommu_write_reg(obj, pa, MMU_TTB);
+ 
+-	omap2_iommu_set_twl(obj, true);
++	__iommu_set_twl(obj, true);
+ 
+ 	return 0;
+ }
+@@ -137,6 +137,11 @@ static void omap2_iommu_disable(struct iommu *obj)
+ 	dev_dbg(obj->dev, "%s is shutting down\n", obj->name);
+ }
+ 
++static void omap2_iommu_set_twl(struct iommu *obj, bool on)
++{
++	__iommu_set_twl(obj, on);
++}
++
+ static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
+ {
+ 	int i;
