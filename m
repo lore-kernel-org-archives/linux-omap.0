@@ -1,393 +1,220 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: [RFC] [PATCH] TMP105 : Driver support for the temperature sensor
-Date: Fri, 21 May 2010 17:47:46 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003B32B3AC4@dbde02.ent.ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 2/3] OMAP3630: PM: implement Foward Body-Bias for OPP1G
+Date: Fri, 21 May 2010 15:44:54 +0300
+Message-ID: <20100521124454.GA19047@besouro.research.nokia.com>
+References: <1271453603-21929-1-git-send-email-mturquette@ti.com>
+ <1271453603-21929-3-git-send-email-mturquette@ti.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:23547 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752561Ab0EUMjJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 May 2010 08:39:09 -0400
+Content-Disposition: inline
+In-Reply-To: <1271453603-21929-3-git-send-email-mturquette@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Mike Turquette <mturquette@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Thara Gopinath <thara@ti.com>, Shweta Gulati <shweta.gulati@ti.com>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Turquette <mturquette@ti.com>
+
+Hello Mike,
+
+On Fri, Apr 16, 2010 at 11:33:22PM +0200, ext Mike Turquette wrote:
+> Introduces voltscale_adaptive_body_bias function to voltage.c.
+> voltscale_adaptive_body_bias is called by omap_voltage_scale after a
+> voltage transition has occured.  Currently voltscale_adaptive_body_bias
+> only implements Forward Body-Bias (FBB) for OMAP3630 when MPU runs at
+> 1GHz or higher.  In the future Reverse Body-Bias might be included.
+> 
+> FBB is an Adaptive Body-Bias technique to boost performance for weak
+> process devices at high OPPs. This results in voltage boost on the VDD1
+> PMOS back gates when running at maximum OPP.  Current recommendations
+> are to enable FBB on all 3630 regardless of silicon characteristics and
+> EFUSE values.
+> 
+> ABB applies to all OMAP silicon based on 45nm process, which includes
+> OMAP4.  OMAP4 recommendations for ABB are not complete and will be added
+> to voltscale_adaptive_body_bias in the future.
 
 
-Adds the driver support for the TMP105 temperature sensor device. The interface is I2C.The driver supports the read of the temperature values.
+What is not clear to me in this ABB activation is about the idle path.
+At least, from your patch, it looks like it does care about ABB & system in idle state.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/hwmon/Kconfig  |   10 ++
- drivers/hwmon/Makefile |    1 +
- drivers/hwmon/tmp105.c |  326 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 337 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hwmon/tmp105.c
+So, my question is, what is the recommendation if system idles in 1GHz OPP with FBB enabled?
+Should we care to disable it by software and re-enable it while waking up?
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 68cf877..a4a5352 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -1076,6 +1076,16 @@ config SENSORS_MC13783_ADC
-         help
-           Support for the A/D converter on MC13783 PMIC.
- 
-+config SENSORS_TMP105
-+	tristate "Texas Instruments TMP421 and compatible"
-+	depends on I2C
-+	help
-+	  If you say yes here you get support for Texas Instruments TMP105
-+	  temperature sensor chips.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called tmp105.
-+
- if ACPI
- 
- comment "ACPI drivers"
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 4bc215c..2c4e7a5 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -99,6 +99,7 @@ obj-$(CONFIG_SENSORS_W83L785TS)	+= w83l785ts.o
- obj-$(CONFIG_SENSORS_W83L786NG)	+= w83l786ng.o
- obj-$(CONFIG_SENSORS_WM831X)	+= wm831x-hwmon.o
- obj-$(CONFIG_SENSORS_WM8350)	+= wm8350-hwmon.o
-+obj-$(CONFIG_SENSORS_TMP105)    += tmp105.o
- 
- ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
- EXTRA_CFLAGS += -DDEBUG
-diff --git a/drivers/hwmon/tmp105.c b/drivers/hwmon/tmp105.c
-new file mode 100644
-index 0000000..8765b11
---- /dev/null
-+++ b/drivers/hwmon/tmp105.c
-@@ -0,0 +1,326 @@
-+/*
-+ * tmp105.c
-+ *
-+ * TMP105 temperature sensor driver
-+ *
-+ * Copyright (C) 2010 Texas Instruments
-+ *
-+ * Author: Shubhrajyoti Datta <a0393217@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+*/
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/kernel.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/slab.h>
-+
-+/* Registers */
-+#define		TMP105_TEMP_REG		0x00
-+#define		TMP105_CONF_REG		0x01
-+#define		TMP105_TLOW_REG		0x02
-+#define		TMP105_THIGH_REG	0x03
-+
-+/* Configuration register parameters */
-+#define		TMP105_CONF_SD		0x01
-+#define		TMP105_CONF_TM		0x02
-+#define		TMP105_CONF_POL		0x04
-+#define		TMP105_CONF_F0		0x08
-+#define		TMP105_CONF_F1		0x10
-+#define		TMP105_CONF_R0		0x20
-+#define		TMP105_CONF_R1		0x40
-+#define		TMP105_CONF_OS		0x80
-+
-+#define 	TMP105_I2C_ADDRESS	0x48
-+
-+#define         MAX_TEMP		128
-+#define         MIN_TEMP		-55
-+
-+/* Each client has this additional data */
-+struct tmp105_data {
-+	struct i2c_client *client;
-+	/* mutex for sysfs operations */
-+	struct mutex lock;
-+	struct device *hwmon_dev;
-+	s16 temp[3];
-+	unsigned long last_updated;
-+	u8 configuration_setting;
-+};
-+
-+static const u8 tmp105_reg[] = {
-+	TMP105_TEMP_REG,
-+	TMP105_TLOW_REG,
-+	TMP105_THIGH_REG,
-+};
-+
-+static void tmp105_init_client(struct i2c_client *client);
-+
-+static signed long tmp105_reg_to_mC(s16 val)
-+{
-+	signed long temp_mC;
-+	if (val  & 0x800)
-+		val = val - 0x1000 ;
-+	 temp_mC = (val * 64000) / 1024;
-+	 return temp_mC;
-+}
-+
-+static u16 tmp105_C_to_reg(signed long val)
-+{
-+	val =  (val * 1024) / 64000;
-+	if (val < 0)
-+		val = val + 0x1000;
-+	return (u16)val;
-+}
-+
-+static s16 *tmp105_update_device(struct i2c_client *client,
-+						int  index)
-+{
-+	struct tmp105_data *data = i2c_get_clientdata(client);
-+	u8 tmp[2];
-+
-+	mutex_lock(&data->lock);
-+
-+	if (time_after(jiffies, data->last_updated +  HZ/4)) {
-+		i2c_smbus_read_i2c_block_data(client,
-+						tmp105_reg[index], 2, tmp);
-+		data->temp[index] = ((tmp[0] << 4) | ((tmp[1] & 0xF0) >> 4));
-+		printk(KERN_INFO "Raw temperature: %u\n", data->temp[index]);
-+		data->last_updated = jiffies;
-+	}
-+
-+	mutex_unlock(&data->lock);
-+	return data->temp[index] ;
-+}
-+
-+static ssize_t show_temp_value(struct device *dev,
-+			       struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *sda = to_sensor_dev_attr(devattr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	s16 temperature = tmp105_update_device(client , sda->index);
-+	signed long temp_in_mC;
-+
-+	temp_in_mC = tmp105_reg_to_mC(temperature);
-+
-+	return sprintf(buf, "%d\n", temp_in_mC);
-+}
-+
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_value, NULL , 0);
-+
-+static ssize_t tmp105_set_temp(struct device *dev,
-+				struct device_attribute *attr,
-+				const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct tmp105_data *tmp105 = i2c_get_clientdata(client);
-+	signed long val;
-+	int status = 0;
-+	u16 temp;
-+
-+	if ((strict_strtol(buf, 10, &val) < 0))
-+		return -EINVAL;
-+
-+	SENSORS_LIMIT(val , MIN_TEMP , MAX_TEMP);
-+
-+	mutex_lock(&tmp105->lock);
-+
-+	temp = tmp105_C_to_reg(val);
-+	temp = ((temp & 0xFF0) >> 4) | ((temp & 0xF)<<12);
-+
-+	status = i2c_smbus_write_word_data(client, tmp105_reg[sda->index],
-+			temp);
-+
-+	tmp105->temp[sda->index] = temp;
-+	mutex_unlock(&tmp105->lock);
-+	return status ? : count;
-+}
-+
-+static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp_value,
-+	tmp105_set_temp, 1);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_value,
-+	tmp105_set_temp, 2);
-+
-+/* sysfs call */
-+static ssize_t set_configuration(struct device *dev,
-+				struct device_attribute *attr,
-+				const char *buf, size_t count)
-+{
-+	s32 status;
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct tmp105_data *data = i2c_get_clientdata(client);
-+	data->configuration_setting = simple_strtoul(buf, NULL, 10);
-+	/* I2C write to the configuration register */
-+	status = i2c_smbus_write_byte_data(client, TMP105_CONF_REG,
-+			data->configuration_setting);
-+	return count;
-+}
-+
-+static ssize_t show_configuration(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct tmp105_data *data = i2c_get_clientdata(client);
-+	u8 tmp;
-+	i2c_smbus_read_i2c_block_data(client, TMP105_CONF_REG, 1, &tmp);
-+	data->configuration_setting = tmp;
-+	return sprintf(buf, "%u\n", data->configuration_setting);
-+}
-+static DEVICE_ATTR(configuration, S_IWUSR | S_IRUGO, show_configuration,
-+		set_configuration);
-+
-+
-+static struct attribute *tmp105_attributes[] = {
-+	&dev_attr_configuration.attr,
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_min.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group tmp105_attr_group = {
-+	.attrs = tmp105_attributes,
-+};
-+
-+static int tmp105_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	struct tmp105_data *tmp105_data;
-+	int err;
-+
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
-+		dev_dbg(&client->dev, "adapter doesn't support I2C\n");
-+		return -ENODEV;
-+	}
-+
-+	tmp105_data = kzalloc(sizeof(struct tmp105_data), GFP_KERNEL);
-+	if (!tmp105_data) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+	tmp105_data->client = client;
-+
-+	i2c_set_clientdata(client, tmp105_data);
-+	mutex_init(&tmp105_data->lock);
-+
-+	/* Initialize the TMP105 chip */
-+	tmp105_init_client(client);
-+
-+	/* Register sysfs hooks */
-+	err = sysfs_create_group(&client->dev.kobj, &tmp105_attr_group);
-+	if (err)
-+		goto exit_free;
-+	tmp105_data->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(tmp105_data->hwmon_dev)) {
-+		err = PTR_ERR(tmp105_data->hwmon_dev);
-+		tmp105_data->hwmon_dev = NULL;
-+		goto exit_remove;
-+	}
-+	return 0;
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &tmp105_attr_group);
-+exit_free:
-+	i2c_set_clientdata(client, NULL);
-+	kfree(tmp105_data);
-+exit:
-+	return err;
-+}
-+
-+static int tmp105_remove(struct i2c_client *client)
-+{
-+	struct tmp105_data *tmp105 = i2c_get_clientdata(client);
-+	hwmon_device_unregister(tmp105->hwmon_dev);
-+
-+	sysfs_remove_group(&client->dev.kobj, &tmp105_attr_group);
-+	i2c_set_clientdata(client, NULL);
-+	kfree(tmp105);
-+	return 0;
-+}
-+
-+/* Called when we have found a new TMP105. */
-+static void tmp105_init_client(struct i2c_client *client)
-+{
-+	struct tmp105_data *data = i2c_get_clientdata(client);
-+	data->last_updated = jiffies - HZ;
-+	mutex_init(&data->lock);
-+}
-+
-+static const struct i2c_device_id tmp105_id[] = {
-+	{ "tmp105", 0 },
-+	{ }
-+};
-+
-+#ifdef CONFIG_PM
-+static int tmp105_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	u8 config_reg;
-+	i2c_smbus_read_i2c_block_data(client, TMP105_CONF_REG, 1, &config_reg);
-+	config_reg = config_reg | TMP102_CONF_SD;
-+	i2c_smbus_write_byte_data(client, TMP105_CONF_REG, TMP102_CONF_SD);
-+	return 0;
-+}
-+
-+static int tmp105_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	i2c_smbus_read_i2c_block_data(client, TMP105_CONF_REG, 1, &config_reg);
-+	config_reg = config_reg & ~TMP102_CONF_SD;
-+	i2c_smbus_write_byte_data(client, TMP105_CONF_REG, TMP102_CONF_SD);
-+}
-+
-+static struct dev_pm_ops tmp105_dev_pm_ops = {
-+	.suspend = tmp105_suspend,
-+	.resume = tmp105_resume,
-+};
-+
-+#define TMP105_DEV_PM_OPS (&tmp105_dev_pm_ops)
-+#else
-+#define TMP105_DEV_PM_OPS NULL
-+#endif /* CONFIG_PM */
-+
-+
-+static struct i2c_driver tmp105_driver = {
-+	.driver = {
-+		.name	= "tmp105",
-+		.owner = THIS_MODULE,
-+		.pm = TMP105_DEV_PM_OPS,
-+	},
-+	.probe		= tmp105_probe,
-+	.remove		= tmp105_remove,
-+	.id_table	= tmp105_id,
-+	.class = I2C_CLASS_HWMON,
-+};
-+
-+static int __init tmp105_init(void)
-+{
-+	return i2c_add_driver(&tmp105_driver);
-+}
-+
-+static void __exit tmp105_exit(void)
-+{
-+	i2c_del_driver(&tmp105_driver);
-+}
-+
-+MODULE_DESCRIPTION("TMP105 driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(tmp105_init);
-+module_exit(tmp105_exit);
-+
--- 
-1.5.4.7
+Or is it somehow bound to SmartReflex activation (then your patch would rely to the fact that
+SR is enabled & disabled before & after WFI)?
 
+> 
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
+> ---
+>  arch/arm/mach-omap2/voltage.c |  129 ++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 127 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index c2c8192..98d8bb3 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -37,6 +37,11 @@
+>  #define VP_IDLE_TIMEOUT		200
+>  #define VP_TRANXDONE_TIMEOUT	300
+>  
+> +#define ABB_MAX_SETTLING_TIME	30
+> +#define ABB_FAST_OPP		1
+> +#define ABB_NOMINAL_OPP		2
+> +#define ABB_SLOW_OPP		3
+> +
+>  /**
+>   * OMAP3 Voltage controller SR parameters. TODO: Pass this info as part of
+>   * board data or PMIC data
+> @@ -635,6 +640,118 @@ static int vp_forceupdate_scale_voltage(u32 vdd, unsigned long target_volt,
+>  }
+>  
+>  /**
+> + * voltscale_adaptive_body_bias - controls ABB ldo during voltage scaling
+> + * @target_volt: target voltage determines if ABB ldo is active or bypassed
+> + *
+> + * Adaptive Body-Bias is a technique in all OMAP silicon that uses the 45nm
+> + * process.  ABB can boost voltage in high OPPs for silicon with weak
+> + * characteristics (forward Body-Bias) as well as lower voltage in low OPPs
+> + * for silicon with strong characteristics (Reverse Body-Bias).
+> + *
+> + * Only Foward Body-Bias for operating at high OPPs is implemented below, per
+> + * recommendations from silicon team.
+> + * Reverse Body-Bias for saving power in active cases and sleep cases is not
+> + * yet implemented.
+> + * OMAP4 hardward also supports ABB ldo, but no recommendations have been made
+> + * to implement it yet.
+> + */
+> +int voltscale_adaptive_body_bias(unsigned long target_volt)
+> +{
+> +	u32 sr2en_enabled;
+> +	int timeout;
+> +	int sr2_wtcnt_value;
+> +
+> +	/* calculate SR2_WTCNT_VALUE settling time */
+> +	sr2_wtcnt_value = (ABB_MAX_SETTLING_TIME *
+> +			(clk_get_rate("sys_ck") / 1000000) / 8);
+> +
+> +	/* has SR2EN been enabled previously? */
+> +	sr2en_enabled = (prm_read_mod_reg(OMAP3430_GR_MOD,
+> +				OMAP3_PRM_LDO_ABB_CTRL_OFFSET) &
+> +			OMAP3630_SR2EN);
+> +
+> +	/* select fast, nominal or slow OPP for ABB ldo */
+> +	/* FIXME: include OMAP4 once recommendations are complete */
+> +	if (cpu_is_omap3630() && (target_volt >= 1350000)) {
+> +		/* program for fast opp - enable FBB */
+> +		prm_rmw_mod_reg_bits(OMAP3630_OPP_SEL_MASK,
+> +				(ABB_FAST_OPP << OMAP3630_OPP_SEL_SHIFT),
+> +				OMAP3430_GR_MOD,
+> +				OMAP3_PRM_LDO_ABB_SETUP_OFFSET);
+> +
+> +		/* enable the ABB ldo if not done already */
+> +		if (!sr2en_enabled)
+> +			prm_set_mod_reg_bits(OMAP3630_SR2EN,
+> +					OMAP3430_GR_MOD,
+> +					OMAP3_PRM_LDO_ABB_CTRL_OFFSET);
+> +	} else if (sr2en_enabled) {
+> +		/* program for nominal opp - bypass ABB ldo */
+> +		prm_rmw_mod_reg_bits(OMAP3630_OPP_SEL_MASK,
+> +				(ABB_NOMINAL_OPP << OMAP3630_OPP_SEL_SHIFT),
+> +				OMAP3430_GR_MOD,
+> +				OMAP3_PRM_LDO_ABB_SETUP_OFFSET);
+> +	} else {
+> +		/* nothing to do here yet... might enable RBB here someday */
+> +		return 0;
+> +	}
+> +
+> +	/* set ACTIVE_FBB_SEL for all 45nm silicon */
+> +	prm_set_mod_reg_bits(OMAP3630_ACTIVE_FBB_SEL,
+> +			OMAP3430_GR_MOD,
+> +			OMAP3_PRM_LDO_ABB_CTRL_OFFSET);
+> +
+> +	/* program settling time of 30us for ABB ldo transition */
+> +	prm_rmw_mod_reg_bits(OMAP3630_SR2_WTCNT_VALUE_MASK,
+> +			(sr2_wtcnt_value << OMAP3630_SR2_WTCNT_VALUE_SHIFT),
+> +			OMAP3430_GR_MOD,
+> +			OMAP3_PRM_LDO_ABB_CTRL_OFFSET);
+> +
+> +	/* clear ABB ldo interrupt status */
+> +	prm_write_mod_reg(OMAP3630_ABB_LDO_TRANXDONE_ST,
+> +			OCP_MOD,
+> +			OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
+> +
+> +	/* enable ABB LDO OPP change */
+> +	prm_set_mod_reg_bits(OMAP3630_OPP_CHANGE,
+> +			OMAP3430_GR_MOD,
+> +			OMAP3_PRM_LDO_ABB_SETUP_OFFSET);
+> +
+> +	timeout = 0;
+> +
+> +	/* wait until OPP change completes */
+> +	while ((timeout < ABB_MAX_SETTLING_TIME ) &&
+> +			(!(prm_read_mod_reg(OCP_MOD,
+> +					    OMAP2_PRCM_IRQSTATUS_MPU_OFFSET) &
+> +			   OMAP3630_ABB_LDO_TRANXDONE_ST))) {
+> +		udelay(1);
+> +		timeout++;
+> +	}
+> +
+> +	if (timeout == ABB_MAX_SETTLING_TIME)
+> +		pr_debug("ABB: TRANXDONE timed out waiting for OPP change\n");
+> +
+> +	timeout = 0;
+> +
+> +	/* Clear all pending TRANXDONE interrupts/status */
+> +	while (timeout < ABB_MAX_SETTLING_TIME) {
+> +		prm_write_mod_reg(OMAP3630_ABB_LDO_TRANXDONE_ST,
+> +				OCP_MOD,
+> +				OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
+> +		if (!(prm_read_mod_reg(OCP_MOD,
+> +						OMAP2_PRCM_IRQSTATUS_MPU_OFFSET)
+> +					& OMAP3630_ABB_LDO_TRANXDONE_ST))
+> +			break;
+> +
+> +		udelay(1);
+> +		timeout++;
+> +	}
+> +	if (timeout == ABB_MAX_SETTLING_TIME)
+> +		pr_debug("ABB: TRANXDONE timed out trying to clear status\n");
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+>   * get_curr_vdd1_voltage : Gets the current non-auto-compensated vdd1 voltage
+>   *
+>   * This is a temporary placeholder for this API. This should ideally belong
+> @@ -758,11 +875,19 @@ void omap_voltageprocessor_disable(int vp_id)
+>  int omap_voltage_scale(int vdd, unsigned long target_volt,
+>  					unsigned long current_volt)
+>  {
+> +	int ret;
+> +
+>  	if (voltscale_vpforceupdate)
+> -		return vp_forceupdate_scale_voltage(vdd, target_volt,
+> +		ret = vp_forceupdate_scale_voltage(vdd, target_volt,
+>  								current_volt);
+>  	else
+> -		return vc_bypass_scale_voltage(vdd, target_volt, current_volt);
+> +		ret = vc_bypass_scale_voltage(vdd, target_volt, current_volt);
+> +
+> +	/* FIXME OMAP4 needs ABB too; recommendations not yet complete */
+> +	if (ret && (cpu_is_omap3630() && vdd == VDD1))
+> +		ret = voltscale_adaptive_body_bias(target_volt);
+> +
+> +	return ret;
+>  }
+>  
+>  /**
+> -- 
+> 1.6.3.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
