@@ -1,45 +1,109 @@
 From: Charulatha V <charu@ti.com>
-Subject: [PATCH 0/6] OMAP2PLUS: WDT: Implement WDT in HWMOD way
-Date: Sat, 22 May 2010 18:26:00 +0530
-Message-ID: <1274532966-19916-1-git-send-email-charu@ti.com>
+Subject: [PATCH 3/6] OMAP2420: WDT: Add watchdog timer HWMOD data for OMAP2420
+Date: Sat, 22 May 2010 18:26:03 +0530
+Message-ID: <1274532966-19916-4-git-send-email-charu@ti.com>
+References: <1274532966-19916-1-git-send-email-charu@ti.com>
+ <1274532966-19916-2-git-send-email-charu@ti.com>
+ <1274532966-19916-3-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39500 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39501 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751586Ab0EVMyb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752045Ab0EVMyb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Sat, 22 May 2010 08:54:31 -0400
+In-Reply-To: <1274532966-19916-3-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: wim@iguana.be, khilman@deeprootsystems.com, rnayak@ti.com, paul@pwsan.com, Charulatha V <charu@ti.com>
 
-This patch series makes OMAP2PLUS Watchdog Timer Module implemented
-in HWMOD FW way. It also implements OMAP2/3 Watchdog timer driver to
-use the runtime PM layer.
+Add hwmod structures for Watchdog module on OMAP2420
 
-This patch series is created on "origin/pm-wip/hwmod-omap4".
+Signed-off-by: Charulatha V <charu@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   56 ++++++++++++++++++++++++++++
+ 1 files changed, 56 insertions(+), 0 deletions(-)
 
-This patch series is tested on OMAP3430 SDP, OMAP3630 SDP and OMAP4430 SDP.
-It would be of great help if someone could test the same on
-OMAP1 and OMAP2 boards.
-
-The same patchset is also tested on "origin/pm-wip/runtime".
-Please note that patch 5/6 "OMAP4: WDT: Enable watchdog timer2
-hwmod structure" is not valid in "origin/pm-wip/runtime" branch.
-
-Charulatha V (6):
-  OMAP2PLUS: WDT: Add ICLKEN, FCLKEN, WKEN shared bits for WDT
-  OMAP3: WDT: Add watchdog timer HWMOD data for OMAP3
-  OMAP2420: WDT: Add watchdog timer HWMOD data for OMAP2420
-  OMAP2430: WDT: Add watchdog timer HWMOD data for OMAP2430
-  OMAP4: WDT: Enable watchdog timer2 hwmod structure
-  OMAP2PLUS: WDT: Conversion to runtime PM
-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   56 +++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   56 +++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   61 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
- arch/arm/mach-omap2/prcm-common.h          |    4 ++
- arch/arm/plat-omap/devices.c               |   52 ++++++++++++++++-------
- drivers/watchdog/omap_wdt.c                |   43 +++++++++++---------
- 7 files changed, 238insertions(+), 36 deletions(-)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index e5530c5..ceed66e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -69,6 +69,7 @@ static struct omap_hwmod omap2420_l3_hwmod = {
+ };
+ 
+ static struct omap_hwmod omap2420_l4_wkup_hwmod;
++static struct omap_hwmod omap2420_wd_timer2_hwmod;
+ 
+ /* L4_CORE -> L4_WKUP interface */
+ static struct omap_hwmod_ocp_if omap2420_l4_core__l4_wkup = {
+@@ -118,6 +119,60 @@ static struct omap_hwmod omap2420_l4_wkup_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+ };
+ 
++/* WDTIMER2 <- L4_WKUP interface */
++static struct omap_hwmod_addr_space omap2420_wd_timer2_addrs[] = {
++	{
++		.pa_start	= 0x48022000,
++		.pa_end		= 0x48022000 + SZ_4K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap2420_l4_wkup__wd_timer2 = {
++	.master		= &omap2420_l4_wkup_hwmod,
++	.slave		= &omap2420_wd_timer2_hwmod,
++	.clk		= "mpu_wdt_ick",
++	.addr		= omap2420_wd_timer2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_wd_timer2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* WDTIMER common */
++
++static struct omap_hwmod_class_sysconfig omap2420_wd_timer_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_SOFTRESET |
++			   SYSC_HAS_AUTOIDLE),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap2420_wd_timer_hwmod_class = {
++	.name = "wd_timer",
++	.sysc = &omap2420_wd_timer_sysc,
++};
++
++/* WDTIMER2 */
++static struct omap_hwmod_ocp_if *omap2420_wd_timer2_slaves[] = {
++	&omap2420_l4_wkup__wd_timer2,
++};
++
++static struct omap_hwmod omap2420_wd_timer2_hwmod = {
++	.name		= "wd_timer2",
++	.class		= &omap2420_wd_timer_hwmod_class,
++	.main_clk	= "mpu_wdt_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_WDT2_SHIFT,
++		},
++	},
++	.slaves		= omap2420_wd_timer2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_wd_timer2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++};
++
+ /* Master interfaces on the MPU device */
+ static struct omap_hwmod_ocp_if *omap2420_mpu_masters[] = {
+ 	&omap2420_mpu__l3,
+@@ -138,6 +193,7 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
+ 	&omap2420_l4_core_hwmod,
+ 	&omap2420_l4_wkup_hwmod,
+ 	&omap2420_mpu_hwmod,
++	&omap2420_wd_timer2_hwmod,
+ 	NULL,
+ };
+ 
+-- 
+1.6.3.3
 
