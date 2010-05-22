@@ -1,50 +1,131 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH v3 00/14] omap: mailbox: bunch of cleanups
-Date: Sat, 22 May 2010 20:14:11 +0300
-Message-ID: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH v3 01/14] omap: mailbox: trivial whitespace cleanups
+Date: Sat, 22 May 2010 20:14:12 +0300
+Message-ID: <1274548465-20208-2-git-send-email-felipe.contreras@gmail.com>
+References: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:55289 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752895Ab0EVROd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 May 2010 13:14:33 -0400
-Received: by bwz7 with SMTP id 7so383709bwz.19
-        for <linux-omap@vger.kernel.org>; Sat, 22 May 2010 10:14:31 -0700 (PDT)
+	with ESMTP id S1755769Ab0EVROe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 May 2010 13:14:34 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 7so383709bwz.19
+        for <linux-omap@vger.kernel.org>; Sat, 22 May 2010 10:14:33 -0700 (PDT)
+In-Reply-To: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Hi,
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
 
-These are hopefully non-functional changes. Just shuffling code around, and
-removing unecessary stuff.
+Hiroshi: I think there's something wrong with your editor =/
 
-In v2 I tried to split platform_device and also make mailbox_mach built-in. Not
-any more.
+ arch/arm/plat-omap/mailbox.c |   44 +++++++++++++++++++++---------------------
+ 1 files changed, 22 insertions(+), 22 deletions(-)
 
-Comments from Felipe Balbi, Tony Lindgren, Hiroshi DOYU, and Russell King.
-
-Felipe Contreras (14):
-  omap: mailbox: trivial whitespace cleanups
-  omap: mailbox: trivial cleanups
-  omap: mailbox: reorganize structures
-  omap: mailbox: 2420 should be detected at run-time
-  omap: mailbox: use correct config for omap1
-  omap: mailbox: update omap1 probing
-  omap: mailbox: don't export unecessary symbols
-  omap: mailbox: remove unecessary fields
-  omap: mailbox: add IRQ names
-  omap: mailbox: reorganize registering
-  omap: mailbox: only compile for configured archs
-  omap: mailbox: standarize on 'omap-mailbox'
-  omap: mailbox: simplify omap_mbox_register()
-  omap: mailbox: reorganize headers
-
- arch/arm/mach-omap1/devices.c             |   11 +-
- arch/arm/mach-omap1/mailbox.c             |   52 ++++-----
- arch/arm/mach-omap2/devices.c             |    6 +-
- arch/arm/mach-omap2/mailbox.c             |  177 +++++++++++++----------------
- arch/arm/plat-omap/include/plat/mailbox.h |   16 +--
- arch/arm/plat-omap/mailbox.c              |  136 +++++++++-------------
- 6 files changed, 168 insertions(+), 230 deletions(-)
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 36b3aa2..38a6cb1 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -142,14 +142,14 @@ static void mbox_rx_work(struct work_struct *work)
+ 	struct omap_mbox_queue *mq =
+ 			container_of(work, struct omap_mbox_queue, work);
+ 	mbox_msg_t msg;
+- 	int len;
+-  
+- 	while (kfifo_len(&mq->fifo) >= sizeof(msg)) {
+- 		len = kfifo_out(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+- 		WARN_ON(len != sizeof(msg));
+-
+- 		if (mq->callback)
+- 			mq->callback((void *)msg);
++	int len;
++
++	while (kfifo_len(&mq->fifo) >= sizeof(msg)) {
++		len = kfifo_out(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
++		WARN_ON(len != sizeof(msg));
++
++		if (mq->callback)
++			mq->callback((void *)msg);
+ 	}
+ }
+ 
+@@ -165,12 +165,12 @@ static void __mbox_tx_interrupt(struct omap_mbox *mbox)
+ 
+ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+ {
+- 	struct omap_mbox_queue *mq = mbox->rxq;
++	struct omap_mbox_queue *mq = mbox->rxq;
+ 	mbox_msg_t msg;
+- 	int len;
++	int len;
+ 
+ 	while (!mbox_fifo_empty(mbox)) {
+- 		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
++		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
+ 			omap_mbox_disable_irq(mbox, IRQ_RX);
+ 			rq_full = true;
+ 			goto nomem;
+@@ -178,8 +178,8 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+ 
+ 		msg = mbox_fifo_read(mbox);
+ 
+- 		len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+- 		WARN_ON(len != sizeof(msg));
++		len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
++		WARN_ON(len != sizeof(msg));
+ 
+ 		if (mbox->ops->type == OMAP_MBOX_TYPE1)
+ 			break;
+@@ -278,11 +278,11 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
+ 
+ 	return 0;
+ 
+- fail_alloc_rxq:
++fail_alloc_rxq:
+ 	mbox_queue_free(mbox->txq);
+- fail_alloc_txq:
++fail_alloc_txq:
+ 	free_irq(mbox->irq, mbox);
+- fail_request_irq:
++fail_request_irq:
+ 	if (mbox->ops->shutdown)
+ 		mbox->ops->shutdown(mbox);
+ 
+@@ -359,10 +359,10 @@ int omap_mbox_register(struct device *parent, struct omap_mbox *mbox)
+ 	if (mbox->next)
+ 		return -EBUSY;
+ 
+- 	mbox->dev = device_create(&omap_mbox_class,
+- 				  parent, 0, mbox, "%s", mbox->name);
+- 	if (IS_ERR(mbox->dev))
+- 		return PTR_ERR(mbox->dev);
++	mbox->dev = device_create(&omap_mbox_class,
++				  parent, 0, mbox, "%s", mbox->name);
++	if (IS_ERR(mbox->dev))
++		return PTR_ERR(mbox->dev);
+ 
+ 	spin_lock(&mboxes_lock);
+ 	tmp = find_mboxes(mbox->name);
+@@ -405,7 +405,7 @@ EXPORT_SYMBOL(omap_mbox_unregister);
+ 
+ static int __init omap_mbox_init(void)
+ {
+- 	int err;
++	int err;
+ 
+ 	err = class_register(&omap_mbox_class);
+ 	if (err)
+@@ -426,7 +426,7 @@ subsys_initcall(omap_mbox_init);
+ static void __exit omap_mbox_exit(void)
+ {
+ 	destroy_workqueue(mboxd);
+- 	class_unregister(&omap_mbox_class);
++	class_unregister(&omap_mbox_class);
+ }
+ module_exit(omap_mbox_exit);
+ 
+-- 
+1.7.1
 
