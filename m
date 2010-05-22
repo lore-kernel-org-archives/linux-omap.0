@@ -1,49 +1,43 @@
 From: Charulatha V <charu@ti.com>
-Subject: [PATCH 1/6] OMAP2PLUS: WDT: Add ICLKEN, FCLKEN, WKEN shared bits for WDT
-Date: Sat, 22 May 2010 18:26:01 +0530
-Message-ID: <1274532966-19916-2-git-send-email-charu@ti.com>
+Subject: [PATCH 5/6] OMAP4: WDT: Enable watchdog timer2 hwmod structure
+Date: Sat, 22 May 2010 18:26:05 +0530
+Message-ID: <1274532966-19916-6-git-send-email-charu@ti.com>
 References: <1274532966-19916-1-git-send-email-charu@ti.com>
+ <1274532966-19916-2-git-send-email-charu@ti.com>
+ <1274532966-19916-3-git-send-email-charu@ti.com>
+ <1274532966-19916-4-git-send-email-charu@ti.com>
+ <1274532966-19916-5-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39502 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752222Ab0EVMyb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 22 May 2010 08:54:31 -0400
-In-Reply-To: <1274532966-19916-1-git-send-email-charu@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48447 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753698Ab0EVMyd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 May 2010 08:54:33 -0400
+In-Reply-To: <1274532966-19916-5-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: wim@iguana.be, khilman@deeprootsystems.com, rnayak@ti.com, paul@pwsan.com, Charulatha V <charu@ti.com>
 
-This patch adds the CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP
-shared bits for OMAP2PLUS watchdog timer module
+This patch enables the watchdog timer2 hwmod structure
 
 Signed-off-by: Charulatha V <charu@ti.com>
 ---
- arch/arm/mach-omap2/prcm-common.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 64d1027..3666b63 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -237,6 +237,8 @@
- #define OMAP24XX_ST_USB_MASK				(1 << 0)
- 
- /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-+#define OMAP24XX_EN_WDT2_SHIFT				3
-+#define OMAP24XX_EN_WDT2				(1 << 3)
- #define OMAP24XX_EN_GPIOS_SHIFT				2
- #define OMAP24XX_EN_GPIOS				(1 << 2)
- #define OMAP24XX_EN_GPT1_SHIFT				0
-@@ -344,6 +346,8 @@
- #define OMAP3430_ST_D2D_MASK				(1 << 3)
- 
- /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-+#define OMAP3430_EN_WDT2				(1 << 5)
-+#define OMAP3430_EN_WDT2_SHIFT				5
- #define OMAP3430_EN_GPIO1				(1 << 3)
- #define OMAP3430_EN_GPIO1_SHIFT				3
- #define OMAP3430_EN_GPT12				(1 << 1)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 20f5f8c..87ff332 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -4888,7 +4888,7 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	/* usb_tll_hs class */
+ /*	&omap44xx_usb_tll_hs_hwmod, */
+ 	/* wd_timer class */
+-/*	&omap44xx_wd_timer2_hwmod, */
++	&omap44xx_wd_timer2_hwmod,
+ /*	&omap44xx_wd_timer3_hwmod, */
+ 	NULL,
+ };
 -- 
 1.6.3.3
 
