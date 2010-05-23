@@ -1,74 +1,85 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: omap: Build failure with tip of Linus' tree
-Date: Sun, 23 May 2010 03:11:08 +0300
-Message-ID: <20100523001108.GB15859@matterhorn.lan>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="UHN/qo2QbUvPLonB"
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 4/6] omap: improve OMAP3_HAS_FEATURE
+Date: Sat, 22 May 2010 22:36:37 -0500
+Message-ID: <1274585799-16226-5-git-send-email-nm@ti.com>
+References: <1274585799-16226-1-git-send-email-nm@ti.com>
+ <1274585799-16226-2-git-send-email-nm@ti.com>
+ <1274585799-16226-3-git-send-email-nm@ti.com>
+ <1274585799-16226-4-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:47855 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755516Ab0EWAKr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 May 2010 20:10:47 -0400
-Received: by fxm5 with SMTP id 5so1688268fxm.19
-        for <linux-omap@vger.kernel.org>; Sat, 22 May 2010 17:10:45 -0700 (PDT)
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:39313 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754444Ab0EWDgv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 May 2010 23:36:51 -0400
+In-Reply-To: <1274585799-16226-4-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, ajay.gupta@ti.com
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Senthilvadivu Gurusamy <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Vishwanath S <vishwa.s@ti.com>, linux-omap@vger.kernel.org
 
+Replace OMAP3_HAS_FEATURE with OMAP_HAS_FEATURE allowing
+us to support multiple chip features
 
---UHN/qo2QbUvPLonB
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Angelo Arrifano <miknix@gmail.com>
+Cc: "Zebediah C. McClure" <zmc@lurian.net>
+Cc: Alistair Buxton <a.j.buxton@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Senthilvadivu Gurusamy <svadivu@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Vishwanath S <vishwa.s@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Tony,
-
-I see the following build failure with the latest tip from Linus. I'm not
-sure if something is yet to be merged for other subsystem trees before -rc1,
-but a patch to fix the build is attached.
-
-Cheers,
-Amit
-
---UHN/qo2QbUvPLonB
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment; filename="0001-omap-fix-build-failure-due-to-missing-include-dma-ma.patch"
-
->From 0222c29661c9a36dcf3a1b2786b62b0080b9dc88 Mon Sep 17 00:00:00 2001
-Message-Id: <0222c29661c9a36dcf3a1b2786b62b0080b9dc88.1274572962.git.amit.kucheria@canonical.com>
-From: Amit Kucheria <amit.kucheria@canonical.com>
-Date: Sun, 23 May 2010 03:00:51 +0300
-Subject: [PATCH] omap: fix build failure due to missing include dma-mapping.h
-
-Fixes following error,
-
-CC      arch/arm/mach-omap2/usb-ehci.o
-arch/arm/mach-omap2/usb-ehci.c:263: error: implicit declaration of function
-'DMA_BIT_MASK'
-arch/arm/mach-omap2/usb-ehci.c:263: error: initializer element is not constant
-make[1]: *** [arch/arm/mach-omap2/usb-ehci.o] Error 1
-
-Signed-off-by: Amit Kucheria <amit.kucheria@canonical.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/usb-ehci.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/cpu.h |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
-index c68f799..d72d1ac 100644
---- a/arch/arm/mach-omap2/usb-ehci.c
-+++ b/arch/arm/mach-omap2/usb-ehci.c
-@@ -20,6 +20,8 @@
- #include <linux/delay.h>
- #include <linux/platform_device.h>
- #include <linux/clk.h>
-+#include <linux/dma-mapping.h>
-+
- #include <asm/io.h>
- #include <plat/mux.h>
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 5f12a0b..c71dbf4 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -444,6 +444,12 @@ static inline void omap1_check_revision(void) {}
+ #endif
+ void omap_check_revision(void);
  
++#define OMAP_HAS_FEATURE(rev, feat, flag)				\
++static inline unsigned int omap##rev##_has_ ##feat(void)		\
++{									\
++	return omap##rev##_features & OMAP##rev##_HAS_ ##flag;		\
++}									\
++
+ /*
+  * Runtime detection of OMAP3 features
+  */
+@@ -456,17 +462,11 @@ extern u32 omap3_features;
+ #define OMAP3_HAS_ISP			BIT(4)
+ #define OMAP3_HAS_192MHZ_CLK		BIT(5)
+ 
+-#define OMAP3_HAS_FEATURE(feat,flag)			\
+-static inline unsigned int omap3_has_ ##feat(void)	\
+-{							\
+-	return (omap3_features & OMAP3_HAS_ ##flag);	\
+-}							\
+-
+-OMAP3_HAS_FEATURE(l2cache, L2CACHE)
+-OMAP3_HAS_FEATURE(sgx, SGX)
+-OMAP3_HAS_FEATURE(iva, IVA)
+-OMAP3_HAS_FEATURE(neon, NEON)
+-OMAP3_HAS_FEATURE(isp, ISP)
+-OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
++OMAP_HAS_FEATURE(3, l2cache, L2CACHE)
++OMAP_HAS_FEATURE(3, sgx, SGX)
++OMAP_HAS_FEATURE(3, iva, IVA)
++OMAP_HAS_FEATURE(3, neon, NEON)
++OMAP_HAS_FEATURE(3, isp, ISP)
++OMAP_HAS_FEATURE(3, 192mhz_clk, 192MHZ_CLK)
+ 
+ #endif
 -- 
-1.7.0.4
+1.6.3.3
 
-
---UHN/qo2QbUvPLonB--
