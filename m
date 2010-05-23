@@ -1,103 +1,77 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC][RFT][PATCH] OMAPFB: LCDC: change update_mode to DISABLED when going suspend
-Date: Sun, 23 May 2010 14:09:42 +0200
-Message-ID: <201005231409.44541.jkrzyszt@tis.icnet.pl>
-References: <201005170320.29580.jkrzyszt@tis.icnet.pl>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 2/5 v2] ARM: mach-shmobile: add LCDC and MIPI DSI-Tx clock
+ definitions to sh7372
+Date: Sun, 23 May 2010 15:55:34 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1005231551420.3571@axis700.grange>
+References: <Pine.LNX.4.64.1005201829260.26000@axis700.grange>
+ <Pine.LNX.4.64.1005211700420.8450@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:50954 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753615Ab0EWMK3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 23 May 2010 08:10:29 -0400
-In-Reply-To: <201005170320.29580.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.1005211700420.8450@axis700.grange>
+Sender: linux-sh-owner@vger.kernel.org
+To: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
+Cc: Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev, @vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Paul Mundt <lethal@linux-sh.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Monday 17 May 2010 03:20:13 Janusz Krzysztofik wrote:
-> I was observing the following error messages on my OMAP1 based Amstrad
-> Delta board when first changing from text to graphics mode or vice versa
-> after the LCD display had been blanked:
-> 	omapfb omapfb: timeout waiting for FRAME DONE
-> with a followup error message while unblanking it back:
-> 	omapfb omapfb: resetting (status 0xffffffb2,reset count 1)
-> As a visible result, image pixels happened to be shifted by a few bits,
-> giving wrong colors.
->
-> Examining the code, I found that this problem occures when an OMAP1
-> internal LCD controller is disabled from omap_lcdc_suspend() and then a
-> subsequent omap_lcdc_setup_plane() calls disable_controller() again. This
-> potentially error provoking behaviour is triggered by the lcdc.update_mode
-> flag being kept at OMAP_AUTO_UPDATE, regardless of the controller and panel
-> being suspended.
->
-> This patch tries to correct the problem by replacing both
-> omap_lcdc_suspend() and omap_lcdc_resume() function bodies with single
-> calls to
-> omap_lcdc_set_update_mode() with a respective OMAP_UPDATE_DISABLE or
-> OMAP_AUTO_UPDATE argument. As a result, exactly the same lower level
-> operations are performed, with addition of changing the lcdc.update_mode
-> flag to a value better suited for the controller state. This prevents any
-> further calls to disable_controller() from omap_lcdc_setup_plane() while
-> the display is suspended.
+Define clock objects for switching on and off clocks for LCDC0, LCDC1 and MIPI
+DSI-Tx.
 
-Hi,
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-One more week of successfull, trouble-free testing on my side. Although there 
-were no other test reports, no objections nor change requests were raised as 
-well on this relatively simple and straightforward patch. Could we then agree 
-on it being accepted for inclusion? Tomi?
+v1 -> v2:
 
-Thanks,
-Janusz
+1. reimplemented based on the arm-shmobile clocking scheme v2. Please, 
+verify, that this is ok now, also that the naming choise is suitable.
 
-> Created against linux-2.6.34-rc7.
-> Tested on Amstrad Delta.
->
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> ---
-> Hi,
->
-> Those of you having access to other display equipped OMAP1 boards, could
-> you please test if this patch doesn't break anything?
->
-> Thanks,
-> Janusz
->
->  drivers/video/omap/lcdc.c |   14 ++------------
->  1 file changed, 2 insertions(+), 12 deletions(-)
->
-> --- git/drivers/video/omap/lcdc.c.orig	2010-05-16 21:39:20.000000000 +0200
-> +++ git/drivers/video/omap/lcdc.c	2010-05-17 00:00:43.000000000 +0200
-> @@ -572,22 +572,12 @@ static enum omapfb_update_mode omap_lcdc
->  /* PM code called only in internal controller mode */
->  static void omap_lcdc_suspend(void)
->  {
-> -	if (lcdc.update_mode == OMAPFB_AUTO_UPDATE) {
-> -		disable_controller();
-> -		omap_stop_lcd_dma();
-> -	}
-> +	omap_lcdc_set_update_mode(OMAPFB_UPDATE_DISABLED);
->  }
->
->  static void omap_lcdc_resume(void)
->  {
-> -	if (lcdc.update_mode == OMAPFB_AUTO_UPDATE) {
-> -		setup_regs();
-> -		load_palette();
-> -		setup_lcd_dma();
-> -		set_load_mode(OMAP_LCDC_LOAD_FRAME);
-> -		enable_irqs(OMAP_LCDC_IRQ_DONE);
-> -		enable_controller();
-> -	}
-> +	omap_lcdc_set_update_mode(OMAPFB_AUTO_UPDATE);
->  }
->
->  static void omap_lcdc_get_caps(int plane, struct omapfb_caps *caps)
+2. adjusted the subject line
 
+ arch/arm/mach-shmobile/clock-sh7372.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-shmobile/clock-sh7372.c b/arch/arm/mach-shmobile/clock-sh7372.c
+index ac46b4b..d6414ad 100644
+--- a/arch/arm/mach-shmobile/clock-sh7372.c
++++ b/arch/arm/mach-shmobile/clock-sh7372.c
+@@ -241,7 +241,10 @@ struct clk div6_clks[DIV6_NR] = {
+ };
+ 
+ enum { MSTP001,
+-       MSTP131, MSTP130, MSTP129, MSTP128, MSTP116, MSTP106, MSTP101,
++       MSTP131, MSTP130,
++       MSTP129, MSTP128,
++       MSTP118, MSTP117, MSTP116,
++       MSTP106, MSTP101, MSTP100,
+        MSTP223,
+        MSTP207, MSTP206, MSTP204, MSTP203, MSTP202, MSTP201, MSTP200,
+        MSTP329, MSTP323, MSTP322, MSTP314, MSTP313,
+@@ -257,9 +260,12 @@ static struct clk mstp_clks[MSTP_NR] = {
+ 	[MSTP130] = MSTP(&div4_clks[DIV4_B], SMSTPCR1, 30, 0), /* VEU2 */
+ 	[MSTP129] = MSTP(&div4_clks[DIV4_B], SMSTPCR1, 29, 0), /* VEU1 */
+ 	[MSTP128] = MSTP(&div4_clks[DIV4_B], SMSTPCR1, 28, 0), /* VEU0 */
++	[MSTP118] = MSTP(&div6_clks[DIV4_B], SMSTPCR1, 18, 0), /* DSITX */
++	[MSTP117] = MSTP(&div6_clks[DIV4_B], SMSTPCR1, 17, 0), /* LCDC1 */
+ 	[MSTP116] = MSTP(&div6_clks[DIV6_SUB], SMSTPCR1, 16, 0), /* IIC0 */
+ 	[MSTP106] = MSTP(&div4_clks[DIV4_B], SMSTPCR1, 6, 0), /* JPU */
+ 	[MSTP101] = MSTP(&div4_clks[DIV4_M1], SMSTPCR1, 1, 0), /* VPU */
++	[MSTP100] = MSTP(&div4_clks[DIV4_B], SMSTPCR1, 0, 0), /* LCDC0 */
+ 	[MSTP223] = MSTP(&div6_clks[DIV6_SPU], SMSTPCR2, 23, 0), /* SPU2 */
+ 	[MSTP207] = MSTP(&div6_clks[DIV6_SUB], SMSTPCR2, 7, 0), /* SCIFA5 */
+ 	[MSTP206] = MSTP(&div6_clks[DIV6_SUB], SMSTPCR2, 6, 0), /* SCIFB */
+@@ -335,9 +341,12 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_DEV_ID("uio_pdrv_genirq.2", &mstp_clks[MSTP130]), /* VEU2 */
+ 	CLKDEV_DEV_ID("uio_pdrv_genirq.1", &mstp_clks[MSTP129]), /* VEU1 */
+ 	CLKDEV_DEV_ID("uio_pdrv_genirq.0", &mstp_clks[MSTP128]), /* VEU0 */
++	CLKDEV_DEV_ID("sh-mipi-dsi.0", &mstp_clks[MSTP118]), /* DSITX */
++	CLKDEV_DEV_ID("sh_mobile_lcdc_fb.1", &mstp_clks[MSTP117]), /* LCDC1 */
+ 	CLKDEV_DEV_ID("i2c-sh_mobile.0", &mstp_clks[MSTP116]), /* IIC0 */
+ 	CLKDEV_DEV_ID("uio_pdrv_genirq.5", &mstp_clks[MSTP106]), /* JPU */
+ 	CLKDEV_DEV_ID("uio_pdrv_genirq.0", &mstp_clks[MSTP101]), /* VPU */
++	CLKDEV_DEV_ID("sh_mobile_lcdc_fb.0", &mstp_clks[MSTP100]), /* LCDC0 */
+ 	CLKDEV_DEV_ID("uio_pdrv_genirq.6", &mstp_clks[MSTP223]), /* SPU2DSP0 */
+ 	CLKDEV_DEV_ID("uio_pdrv_genirq.7", &mstp_clks[MSTP223]), /* SPU2DSP1 */
+ 	CLKDEV_DEV_ID("sh-sci.5", &mstp_clks[MSTP207]), /* SCIFA5 */
+-- 
+1.6.2.4
 
