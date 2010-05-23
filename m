@@ -1,29 +1,24 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/6] omap2/3: id: fix sparse warning
-Date: Sat, 22 May 2010 22:36:35 -0500
-Message-ID: <1274585799-16226-3-git-send-email-nm@ti.com>
+Subject: [PATCH 5/6] omap: introduce OMAP_SHOW_FEATURE
+Date: Sat, 22 May 2010 22:36:38 -0500
+Message-ID: <1274585799-16226-6-git-send-email-nm@ti.com>
 References: <1274585799-16226-1-git-send-email-nm@ti.com>
  <1274585799-16226-2-git-send-email-nm@ti.com>
+ <1274585799-16226-3-git-send-email-nm@ti.com>
+ <1274585799-16226-4-git-send-email-nm@ti.com>
+ <1274585799-16226-5-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39990 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39987 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754234Ab0EWDgu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 22 May 2010 23:36:50 -0400
-In-Reply-To: <1274585799-16226-2-git-send-email-nm@ti.com>
+	id S1752951Ab0EWDgs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 22 May 2010 23:36:48 -0400
+In-Reply-To: <1274585799-16226-5-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Senthilvadivu Gurusamy <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Vishwanath S <vishwa.s@ti.com>, linux-omap@vger.kernel.org
 
-omap24xx_check_revision, omap3_check_features,
-omap3_check_revision, omap4_check_revision, omap3_cpuinfo
-are not used elsewhere, it should be static
-
-Also fixes the following sparse warnings:
-arch/arm/mach-omap2/id.c:105:13: warning: symbol 'omap24xx_check_revision' was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:167:13: warning: symbol 'omap3_check_features' was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:189:13: warning: symbol 'omap3_check_revision' was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:270:13: warning: symbol 'omap4_check_revision' was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:300:13: warning: symbol 'omap3_cpuinfo' was not declared. Should it be static?
+change OMAP3_SHOW_FEATURE into OMAP_SHOW_FEATURE to make the usage
+generic.
 
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Angelo Arrifano <miknix@gmail.com>
@@ -42,58 +37,61 @@ Cc: linux-omap@vger.kernel.org
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/id.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/id.c              |   16 ++++++----------
+ arch/arm/plat-omap/include/plat/cpu.h |    6 ++++++
+ 2 files changed, 12 insertions(+), 10 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 37b8a1a..c7bf0e1 100644
+index c7bf0e1..809e13a 100644
 --- a/arch/arm/mach-omap2/id.c
 +++ b/arch/arm/mach-omap2/id.c
-@@ -102,7 +102,7 @@ static struct omap_id omap_ids[] __initdata = {
- static void __iomem *tap_base;
- static u16 tap_prod_id;
- 
--void __init omap24xx_check_revision(void)
-+static void __init omap24xx_check_revision(void)
- {
- 	int i, j;
- 	u32 idcode, prod_id;
-@@ -164,7 +164,7 @@ void __init omap24xx_check_revision(void)
- 		omap3_features |= OMAP3_HAS_ ##feat;			\
- 	}
- 
--void __init omap3_check_features(void)
-+static void __init omap3_check_features(void)
- {
- 	u32 status;
- 
-@@ -186,7 +186,7 @@ void __init omap3_check_features(void)
- 	 */
+@@ -293,10 +293,6 @@ static void __init omap4_check_revision(void)
+ 	pr_err("Unknown OMAP4 CPU id\n");
  }
  
--void __init omap3_check_revision(void)
-+static void __init omap3_check_revision(void)
- {
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
-@@ -267,7 +267,7 @@ void __init omap3_check_revision(void)
- 	}
- }
- 
--void __init omap4_check_revision(void)
-+static void __init omap4_check_revision(void)
- {
- 	u32 idcode;
- 	u16 hawkeye;
-@@ -297,7 +297,7 @@ void __init omap4_check_revision(void)
- 	if (omap3_has_ ##feat())		\
- 		printk(#feat" ");
- 
--void __init omap3_cpuinfo(void)
-+static void __init omap3_cpuinfo(void)
+-#define OMAP3_SHOW_FEATURE(feat)		\
+-	if (omap3_has_ ##feat())		\
+-		printk(#feat" ");
+-
+ static void __init omap3_cpuinfo(void)
  {
  	u8 rev = GET_OMAP_REVISION();
- 	char cpu_name[16], cpu_rev[16];
+@@ -358,12 +354,12 @@ static void __init omap3_cpuinfo(void)
+ 	/* Print verbose information */
+ 	pr_info("%s ES%s (", cpu_name, cpu_rev);
+ 
+-	OMAP3_SHOW_FEATURE(l2cache);
+-	OMAP3_SHOW_FEATURE(iva);
+-	OMAP3_SHOW_FEATURE(sgx);
+-	OMAP3_SHOW_FEATURE(neon);
+-	OMAP3_SHOW_FEATURE(isp);
+-	OMAP3_SHOW_FEATURE(192mhz_clk);
++	OMAP_SHOW_FEATURE(3, l2cache);
++	OMAP_SHOW_FEATURE(3, iva);
++	OMAP_SHOW_FEATURE(3, sgx);
++	OMAP_SHOW_FEATURE(3, neon);
++	OMAP_SHOW_FEATURE(3, isp);
++	OMAP_SHOW_FEATURE(3, 192mhz_clk);
+ 
+ 	printk(")\n");
+ }
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index c71dbf4..f8ecbc4 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -450,6 +450,12 @@ static inline unsigned int omap##rev##_has_ ##feat(void)		\
+ 	return omap##rev##_features & OMAP##rev##_HAS_ ##flag;		\
+ }									\
+ 
++#define OMAP_SHOW_FEATURE(rev, feat)					\
++{									\
++	if (omap##rev##_has_ ##feat())					\
++		printk(#feat" ");					\
++}									\
++
+ /*
+  * Runtime detection of OMAP3 features
+  */
 -- 
 1.6.3.3
 
