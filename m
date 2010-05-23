@@ -1,27 +1,48 @@
-From: Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCH 5/5 v3] ARM: mach-shmobile: add framebuffer support for ap4evb
-Date: Sun, 23 May 2010 23:24:11 +0900
-Message-ID: <20100523142411.GA16229@linux-sh.org>
-References: <Pine.LNX.4.64.1005201829260.26000@axis700.grange> <Pine.LNX.4.64.1005211712130.8450@axis700.grange> <Pine.LNX.4.64.1005231602040.3571@axis700.grange>
+From: David Brownell <david-b@pacbell.net>
+Subject: RE: [PATCH] ARM: OMAP: Fix board data to support device only, host only and OTG roles.
+Date: Sun, 23 May 2010 09:21:23 -0700 (PDT)
+Message-ID: <937688.59887.qm@web180315.mail.gq1.yahoo.com>
+References: <19F8576C6E063C45BE387C64729E7394044E535F3E@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:52015 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754308Ab0EWOYS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 May 2010 10:24:18 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1005231602040.3571@axis700.grange>
+Received: from n2-vm0.bullet.mail.gq1.yahoo.com ([67.195.23.154]:31975 "HELO
+	n2-vm0.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753338Ab0EWQVY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 23 May 2010 12:21:24 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E535F3E@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "linux-fbdev, @vger.kernel.org" <linux-fbdev@vger.kernel.org>, "lin, ux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Ajay KumarGupta <ajay.gupta@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Maulik OjasMankad <x0082077@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Sun, May 23, 2010 at 04:04:03PM +0200, Guennadi Liakhovetski wrote:
-> ap4evb uses an LCD, connected to the SoC over the MIPI bus. This patch adds
-> platform data to configure this display and a static clock activation.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Tested-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
 
-Please just repost the entire series with the updates.
+
+--- On Fri, 5/21/10, Gupta, Ajay Kumar <ajay.gupta@ti.com> wrote:
+
+> > >Then I think these #ifdefferys are required in all
+> the board files.
+
+As I already explained:  *NO*.
+
+Unless the board has been designed in a flakey
+manner (like the DM6446 EVM) it should
+have no #ifdeffery in the MUSB configuration.
+
+
+> > >Then if I choose to compile the Kernel only for
+> peripheral mode
+> > >(Case-B above) then I would get below error from
+> musb_core.c.
+> > >
+> > >"incompatible Kconfig role setting"
+
+That's a *correct* report that your config is broken.
+The hardware has an OTG connector, so the kernel should
+be supporting OTG mode.  If it's not, that's an error;
+don't try to hide such errors.
+
+- Dave
+ 
+
