@@ -1,114 +1,344 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2t2 00/17] omap: mailbox:
-Date: Mon, 24 May 2010 14:03:15 +0300
-Message-ID: <AANLkTilDGSULiICq_GPmUJlVRKs2HGHQlTaFw_kvEfaI@mail.gmail.com>
-References: <20100522.081415.258113387.Hiroshi.DOYU@nokia.com>
-	 <20100524.093625.241440026.Hiroshi.DOYU@nokia.com>
-	 <AANLkTinVKTmI6PCwTFwfSgvkmv0K1QLATj1xwKEng4hD@mail.gmail.com>
-	 <20100524.122905.42796935.Hiroshi.DOYU@nokia.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: [PATCH V2] misc : ROHM BH1780GLI Ambient light sensor Driver
+Date: Mon, 24 May 2010 16:34:25 +0530 (IST)
+Message-ID: <39216.10.24.255.17.1274699065.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:54816 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754738Ab0EXLDT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 07:03:19 -0400
-Received: by bwz7 with SMTP id 7so899603bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 04:03:17 -0700 (PDT)
-In-Reply-To: <20100524.122905.42796935.Hiroshi.DOYU@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, felipe.contreras@nokia.com
 
-On Mon, May 24, 2010 at 12:29 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>=
- wrote:
-> From: ext Felipe Contreras <felipe.contreras@gmail.com>
-> Subject: Re: [PATCH v2t2 00/17] omap: mailbox:
-> Date: Mon, 24 May 2010 10:58:31 +0200
->
->> On Mon, May 24, 2010 at 9:36 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.co=
-m> wrote:
->>>>> Moreover, Tony says that anything that registers platform devices
->>>>> should be built-in, but omap3-iommu does register devices and is =
-not
->>>>> built-in.
->>>>
->>>> It seems that this makes you confused. It should have been
->>>> build-in;). This is going to be integrated into omap hwmod framewo=
-rk
->>>> soon.
->>>
->>> For built-in part, it could be something like:
->>>
->>> From a09c2040e083f23a43232f97cb29b9aefc9c0d11 Mon Sep 17 00:00:00 2=
-001
->>> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->>> Date: Mon, 24 May 2010 09:35:11 +0300
->>> Subject: [PATCH 1/1] omap iommu: Make omap-iommu.o built-in
->>>
->>> This is a platform device registration.
->>>
->>> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->>> ---
->>> =C2=A0arch/arm/mach-omap2/Makefile | =C2=A0 =C2=A05 ++++-
->>> =C2=A01 files changed, 4 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Mak=
-efile
->>> index 7d2cf0f..4d754f6 100644
->>> --- a/arch/arm/mach-omap2/Makefile
->>> +++ b/arch/arm/mach-omap2/Makefile
->>> @@ -89,7 +89,10 @@ obj-$(CONFIG_OMAP3_EMU) =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0+=3D emu.o
->>> =C2=A0obj-$(CONFIG_OMAP_MBOX_FWK) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0+=3D mailbox_mach.o
->>> =C2=A0mailbox_mach-objs =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0:=3D mailbox.o
->>>
->>> -obj-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 :=3D iommu2.o omap-iommu.o
->>> +obj-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 :=3D iommu2.o
->>> +
->>> +iommu-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- :=3D omap-iommu.o
->>> +obj-y =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0+=3D $(iommu-m)=
- $(iommu-y)
->>>
->>> =C2=A0i2c-omap-$(CONFIG_I2C_OMAP) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0:=3D i2c.o
->>> =C2=A0obj-y =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0+=3D $(i=
-2c-omap-m) $(i2c-omap-y)
->>> --
->>
->> I would prefer this:
->> -obj-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 :=3D iommu2.o omap-iommu.o
->> +obj-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 :=3D iommu2.o
->> +
->> +ifneq ($(CONFIG_OMAP_IOMMU),)
->> +obj-y =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0+=3D omap-iommu=
-=2Eo
->> +endif
->
-> The above occupies 3 lines. I'd follow the current convention of this
-> Makefile. There are five more similar ones, "obj-y +=3D $(*-m) $(*-y)=
-".
+From: Hemanth V <hemanthv@ti.com>
+Date: Fri, 21 May 2010 15:52:03 +0530
+Subject: [PATCH] misc: ROHM BH1780GLI Ambient light sensor Driver
 
-Ok. I tried to grep the whole kernel to find a convention outside of
-omap Makefiles but it seems nobody is doing similar things, except in
-fs/Makefile for NFSD where they do follow this convention.
+This patch adds support for ROHM BH1780GLI Ambient light sensor.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+BH1780 supports I2C interface. Driver supports read/update of power state and
+read of lux value (through SYSFS). Writing value 3 to power_state enables the
+sensor and current lux value could be read.
+
+Signed-off-by: Hemanth V <hemanthv@ti.com>
+Reviewed-by: Daniel Mack <daniel@caiaq.de>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+---
+ drivers/misc/Kconfig     |   10 ++
+ drivers/misc/Makefile    |    1 +
+ drivers/misc/bh1780gli.c |  273 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 284 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/bh1780gli.c
+
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 0d0d625..3f5bf0f 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -278,6 +278,16 @@ config SENSORS_TSL2550
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called tsl2550.
+
++config SENSORS_BH1780
++	tristate "ROHM BH1780GLI ambient light sensor"
++	depends on I2C && SYSFS
++	help
++	  If you say yes here you get support for the ROHM BH1780GLI
++	  ambient light sensor.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called bh1780gli.
++
+ config EP93XX_PWM
+ 	tristate "EP93xx PWM support"
+ 	depends on ARCH_EP93XX
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 7b6f7ee..c479d91 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -30,3 +30,4 @@ obj-$(CONFIG_IWMC3200TOP)      += iwmc3200top/
+ obj-y				+= eeprom/
+ obj-y				+= cb710/
+ obj-$(CONFIG_VMWARE_BALLOON)	+= vmware_balloon.o
++obj-$(CONFIG_SENSORS_BH1780)	+= bh1780gli.o
+diff --git a/drivers/misc/bh1780gli.c b/drivers/misc/bh1780gli.c
+new file mode 100644
+index 0000000..774531d
+--- /dev/null
++++ b/drivers/misc/bh1780gli.c
+@@ -0,0 +1,273 @@
++/*
++ * bh1780gli.c
++ * ROHM Ambient Light Sensor Driver
++ *
++ * Copyright (C) 2010 Texas Instruments
++ * Author: Hemanth V <hemanthv@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++#include <linux/i2c.h>
++#include <linux/slab.h>
++#include <linux/mutex.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++
++#define BH1780_REG_CONTROL	0x80
++#define BH1780_REG_PARTID	0x8A
++#define BH1780_REG_MANFID	0x8B
++#define BH1780_REG_DLOW	0x8C
++#define BH1780_REG_DHIGH	0x8D
++
++#define BH1780_REVMASK		(0xf)
++#define BH1780_POWMASK		(0x3)
++#define BH1780_POFF		(0x0)
++#define BH1780_PON		(0x3)
++
++/* power on settling time in ms */
++#define BH1780_PON_DELAY	2
++
++struct bh1780_data {
++	struct i2c_client *client;
++	int power_state;
++	/* lock for sysfs operations */
++	struct mutex lock;
++};
++
++static int bh1780_write(struct bh1780_data *ddata, u8 reg, u8 val, char *msg)
++{
++	int ret = i2c_smbus_write_byte_data(ddata->client, reg, val);
++	if (ret < 0)
++		dev_err(&ddata->client->dev,
++			"i2c_smbus_write_byte_data failed error %d\
++			Register (%s)\n", ret, msg);
++	return ret;
++}
++
++static int bh1780_read(struct bh1780_data *ddata, u8 reg, char *msg)
++{
++	int ret = i2c_smbus_read_byte_data(ddata->client, reg);
++	if (ret < 0)
++		dev_err(&ddata->client->dev,
++			"i2c_smbus_read_byte_data failed error %d\
++			 Register (%s)\n", ret, msg);
++	return ret;
++}
++
++static ssize_t bh1780_show_lux(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct bh1780_data *ddata = platform_get_drvdata(pdev);
++	int lsb, msb;
++
++	lsb = bh1780_read(ddata, BH1780_REG_DLOW, "DLOW");
++	if (lsb < 0)
++		return lsb;
++
++	msb = bh1780_read(ddata, BH1780_REG_DHIGH, "DHIGH");
++	if (msb < 0)
++		return msb;
++
++	return sprintf(buf, "%d\n", (msb << 8) | lsb);
++}
++
++static ssize_t bh1780_show_power_state(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct bh1780_data *ddata = platform_get_drvdata(pdev);
++	int state;
++
++	state = bh1780_read(ddata, BH1780_REG_CONTROL, "CONTROL");
++	if (state < 0)
++		return state;
++
++	return sprintf(buf, "%d\n", state & BH1780_POWMASK);
++}
++
++static ssize_t bh1780_store_power_state(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t count)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct bh1780_data *ddata = platform_get_drvdata(pdev);
++	unsigned long val;
++	int error;
++
++	error = strict_strtoul(buf, 0, &val);
++	if (error)
++		return error;
++
++	if (val < BH1780_POFF || val > BH1780_PON)
++		return -EINVAL;
++
++	mutex_lock(&ddata->lock);
++
++	error = bh1780_write(ddata, BH1780_REG_CONTROL, val, "CONTROL");
++	if (error < 0) {
++		mutex_unlock(&ddata->lock);
++		return error;
++	}
++
++	msleep(BH1780_PON_DELAY);
++	ddata->power_state = val;
++	mutex_unlock(&ddata->lock);
++
++	return count;
++}
++
++static DEVICE_ATTR(lux, S_IRUGO, bh1780_show_lux, NULL);
++
++static DEVICE_ATTR(power_state, S_IWUSR | S_IRUGO,
++		bh1780_show_power_state, bh1780_store_power_state);
++
++static struct attribute *bh1780_attributes[] = {
++	&dev_attr_power_state.attr,
++	&dev_attr_lux.attr,
++	NULL
++};
++
++static const struct attribute_group bh1780_attr_group = {
++	.attrs = bh1780_attributes,
++};
++
++static int __devinit bh1780_probe(struct i2c_client *client,
++						const struct i2c_device_id *id)
++{
++	int ret;
++	struct bh1780_data *ddata = NULL;
++	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE)) {
++		ret = -EIO;
++		goto err_op_failed;
++	}
++
++	ddata = kzalloc(sizeof(struct bh1780_data), GFP_KERNEL);
++	if (ddata == NULL) {
++		ret = -ENOMEM;
++		goto err_op_failed;
++	}
++
++	ddata->client = client;
++	i2c_set_clientdata(client, ddata);
++
++	ret = bh1780_read(ddata, BH1780_REG_PARTID, "PART ID");
++	if (ret < 0)
++		goto err_op_failed;
++
++	dev_info(&client->dev, "Ambient Light Sensor, Rev : %d\n",
++			(ret & BH1780_REVMASK));
++
++	mutex_init(&ddata->lock);
++
++	ret = sysfs_create_group(&client->dev.kobj, &bh1780_attr_group);
++	if (ret)
++		goto err_op_failed;
++
++	return 0;
++
++err_op_failed:
++	kfree(ddata);
++	return ret;
++}
++
++static int __devexit bh1780_remove(struct i2c_client *client)
++{
++	struct bh1780_data *ddata;
++
++	ddata = i2c_get_clientdata(client);
++	sysfs_remove_group(&client->dev.kobj, &bh1780_attr_group);
++	i2c_set_clientdata(client, NULL);
++	kfree(ddata);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int bh1780_suspend(struct i2c_client *client, pm_message_t mesg)
++{
++	struct bh1780_data *ddata;
++	int state, ret;
++
++	ddata = i2c_get_clientdata(client);
++	state = bh1780_read(ddata, BH1780_REG_CONTROL, "CONTROL");
++	if (state < 0)
++		return state;
++
++	ddata->power_state = state & BH1780_POWMASK;
++
++	ret = bh1780_write(ddata, BH1780_REG_CONTROL, BH1780_POFF,
++				"CONTROL");
++
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++static int bh1780_resume(struct i2c_client *client)
++{
++	struct bh1780_data *ddata;
++	int state, ret;
++
++	ddata = i2c_get_clientdata(client);
++	state = ddata->power_state;
++
++	ret = bh1780_write(ddata, BH1780_REG_CONTROL, state,
++				"CONTROL");
++
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++#else
++#define bh1780_suspend NULL
++#define bh1780_resume NULL
++#endif /* CONFIG_PM */
++
++static const struct i2c_device_id bh1780_id[] = {
++	{ "bh1780", 0 },
++	{ },
++};
++
++static struct i2c_driver bh1780_driver = {
++	.probe		= bh1780_probe,
++	.remove		= bh1780_remove,
++	.id_table	= bh1780_id,
++	.suspend	= bh1780_suspend,
++	.resume		= bh1780_resume,
++	.driver = {
++		.name = "bh1780"
++	},
++};
++
++static int __init bh1780_init(void)
++{
++	return i2c_add_driver(&bh1780_driver);
++}
++
++static void __exit bh1780_exit(void)
++{
++	i2c_del_driver(&bh1780_driver);
++}
++
++module_init(bh1780_init)
++module_exit(bh1780_exit)
++
++MODULE_DESCRIPTION("BH1780GLI Ambient Light Sensor Driver");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Hemanth V <hemanthv@ti.com>");
+-- 
+1.5.6.3
