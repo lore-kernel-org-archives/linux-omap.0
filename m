@@ -1,54 +1,58 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [RFC/PATCH 1/2] omap: mailbox: initial hwmod support
-Date: Sun, 23 May 2010 19:59:28 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4BDF42DA@dlee03.ent.ti.com>
-References: <1274549122-26521-1-git-send-email-felipe.contreras@gmail.com>
- <1274549122-26521-2-git-send-email-felipe.contreras@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Hari Kanigeri <h-kanigeri2@ti.com>
+Subject: [PATCH 1/3] omap: iommu-update irq mask to be specific about twl and tlb
+Date: Sun, 23 May 2010 21:01:50 -0500
+Message-ID: <1274666512-19765-2-git-send-email-h-kanigeri2@ti.com>
+References: <1274666512-19765-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58779 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40942 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752614Ab0EXA7g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 May 2010 20:59:36 -0400
-In-Reply-To: <1274549122-26521-2-git-send-email-felipe.contreras@gmail.com>
-Content-Language: en-US
+	id S1753628Ab0EXBzK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 23 May 2010 21:55:10 -0400
+In-Reply-To: <1274666512-19765-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Linux Omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-Felipe,
+Revise the IRQ mask definitions to handle the  MMU faults related
+to TWL fault as well as TLB miss fault.
 
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+Signed-off-by: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/mach-omap2/iommu2.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Felipe Contreras
-> Sent: Saturday, May 22, 2010 12:25 PM
-> To: linux-omap
-> Cc: Hiroshi Doyu; Kevin Hilman; Paul Walmsley; Ohad Ben-Cohen; Felipe
-> Contreras
-> Subject: [RFC/PATCH 1/2] omap: mailbox: initial hwmod support
-> 
-> Only OMAP3 would work.
-
--- This is good start. 
-I will look into adding/verifying OMAP4 support. If any one already started this effort please inform.
+diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+index e82da68..ebbdae2 100644
+--- a/arch/arm/mach-omap2/iommu2.c
++++ b/arch/arm/mach-omap2/iommu2.c
+@@ -44,9 +44,13 @@
+ #define MMU_IRQ_EMUMISS		(1 << 2)
+ #define MMU_IRQ_TRANSLATIONFAULT	(1 << 1)
+ #define MMU_IRQ_TLBMISS		(1 << 0)
+-#define MMU_IRQ_MASK	\
+-	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_TABLEWALKFAULT | MMU_IRQ_EMUMISS | \
+-	 MMU_IRQ_TRANSLATIONFAULT)
++
++#define __MMU_IRQ_FAULT		\
++	(MMU_IRQ_MULTIHITFAULT | MMU_IRQ_EMUMISS | MMU_IRQ_TRANSLATIONFAULT)
++#define MMU_IRQ_MASK		\
++	(__MMU_IRQ_FAULT | MMU_IRQ_TABLEWALKFAULT | MMU_IRQ_TLBMISS)
++#define MMU_IRQ_TWL_MASK	(__MMU_IRQ_FAULT | MMU_IRQ_TABLEWALKFAULT)
++#define MMU_IRQ_TLB_MISS_MASK	(__MMU_IRQ_FAULT | MMU_IRQ_TLBMISS)
  
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-
-> omap2/omap_hwmod_3xxx_data.c
-> index ed60840..62b8fa8 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -164,12 +164,57 @@ static struct omap_hwmod omap3xxx_mpu_hwmod = {
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->  };
-> 
+ /* MMU_CNTL */
+ #define MMU_CNTL_SHIFT		1
+@@ -96,7 +100,7 @@ static int omap2_iommu_enable(struct iommu *obj)
+ 	l |= (MMU_SYS_IDLE_SMART | MMU_SYS_AUTOIDLE);
+ 	iommu_write_reg(obj, l, MMU_SYSCONFIG);
+ 
+-	iommu_write_reg(obj, MMU_IRQ_MASK, MMU_IRQENABLE);
++	iommu_write_reg(obj, MMU_IRQ_TWL_MASK, MMU_IRQENABLE);
+ 	iommu_write_reg(obj, pa, MMU_TTB);
+ 
+ 	l = iommu_read_reg(obj, MMU_CNTL);
+-- 
+1.7.0
 
--- Probably this should form a new patch.
-
-
-Thank you,
-Best regards,
-Hari
