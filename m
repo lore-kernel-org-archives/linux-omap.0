@@ -1,68 +1,83 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 0/6] DSPBRIDGE: fix mem+cache API issues
-Date: Mon, 24 May 2010 22:21:51 +0300
-Message-ID: <AANLkTimRQ4mfpHb4ij3tWXDBnkUItPIr06jG7lMmF0p9@mail.gmail.com>
-References: <1272746671-13423-1-git-send-email-ohad@wizery.com>
-	 <AANLkTin9Fe4qWoxUKlZvQ7RuTRDTka9QmcP_ATe-jgVa@mail.gmail.com>
-	 <AANLkTimmvjlsgRmjn7NokL4RnXU8nRA-D2pbCJwJ3axk@mail.gmail.com>
-	 <AANLkTiktBVZx5ZFbU49w0IsfuUbdWD5XDsHVgmBpE9Fv@mail.gmail.com>
-	 <AANLkTil-R_R66WxbLRjFp7uHBtQ6-FNLgifqyka0NIQh@mail.gmail.com>
-	 <AANLkTikamXrz9kwL6OhO2-llzU51WpGSn91UZOnlkBki@mail.gmail.com>
-	 <AANLkTimeUwfnmj5pcabFuqGKZ2ExEcf-GPopGDjeV-XB@mail.gmail.com>
-	 <AANLkTimAZLGNQsOCqHsk5QbbquIoDIYCtIW2NJqVcoup@mail.gmail.com>
-	 <AANLkTim9HXNk-9P_lGtGy32lLQrVl2bfN-qKTY5Qm9xR@mail.gmail.com>
-	 <AANLkTimr6_rmx3_wQSc4nnVqZyi2dLu26d6Y8Cd2MMCB@mail.gmail.com>
+Subject: Re: [PATCH v3 11/14] omap: mailbox: only compile for configured archs
+Date: Mon, 24 May 2010 22:29:01 +0300
+Message-ID: <AANLkTim7Jxlx3Owyn2IM_TjUWxS72I7h9H5d0evbCsVQ@mail.gmail.com>
+References: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com>
+	 <1274548465-20208-12-git-send-email-felipe.contreras@gmail.com>
+	 <20100524.174205.22049047.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:42911 "EHLO
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:33269 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755733Ab0EXTVy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 15:21:54 -0400
-Received: by bwz7 with SMTP id 7so1193085bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 12:21:53 -0700 (PDT)
-In-Reply-To: <AANLkTimr6_rmx3_wQSc4nnVqZyi2dLu26d6Y8Cd2MMCB@mail.gmail.com>
+	with ESMTP id S1753047Ab0EXT3D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 15:29:03 -0400
+Received: by bwz7 with SMTP id 7so1197482bwz.19
+        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 12:29:01 -0700 (PDT)
+In-Reply-To: <20100524.174205.22049047.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On Mon, May 24, 2010 at 7:19 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> On Fri, May 21, 2010 at 12:42 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> Although I'm still worried that VM_IO !=3D write-combine, but I gues=
-s
->> it's a safe assumption to do for now.
->
-> small update we missed:
->
-> The original code is ignoring VM_IO buffers as well:
->
-> static int memory_sync_vma(unsigned long start, u32 len,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 enum dsp_flushtype ftype)
-> {
-> ...
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (vma->vm_fl=
-ags & (VM_IO | VM_PFNMAP))
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0return -EINVAL;
-> ...
-> }
->
-> So the new code is actually behaving in exactly the same manner
-> (besides the error code, which is now -EFAULT and not -EINVAL).
+On Mon, May 24, 2010 at 5:42 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> =
+wrote:
+> From: ext Felipe Contreras <felipe.contreras@gmail.com>
 
-That's what I said in my original comment:
-> Reading your patches I see the ioctl to start the dmap operations wou=
-ld
-> simply error out, but from the looks of it, they would be failing alr=
-eady,
-> which is weird, because we are already using framebuffer memory for v=
-ideo
-> decoding + rendering.
+>> +     if (false);
+>
+> nitpcik:
+> The above may look better as below:
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (false)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0;
+>
+> "checkpatch.pl" also doesn't complain.
+
+Personally I think it looks weird and it's a checkpatch bug, but fine b=
+y me.
+
+>> +#if defined(CONFIG_ARCH_OMAP3430)
+>> + =C2=A0 =C2=A0 else if (cpu_is_omap3430()) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 list =3D omap3_mbox=
+es;
+>>
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 list[0]->irq =3D pl=
+atform_get_irq_byname(pdev, "dsp");
+>> =C2=A0 =C2=A0 =C2=A0 }
+>> +#endif
+>> =C2=A0#if defined(CONFIG_ARCH_OMAP2420)
+>> =C2=A0 =C2=A0 =C2=A0 else if (cpu_is_omap2420()) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 list =3D omap2_mbox=
+es;
+>> @@ -407,12 +415,14 @@ static int __devinit omap2_mbox_probe(struct p=
+latform_device *pdev)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 list[1]->irq =3D pl=
+atform_get_irq_byname(pdev, "iva");
+>> =C2=A0 =C2=A0 =C2=A0 }
+>> =C2=A0#endif
+>> +#if defined(CONFIG_ARCH_OMAP4)
+>> =C2=A0 =C2=A0 =C2=A0 else if (cpu_is_omap44xx()) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 list =3D omap4_mbox=
+es;
+>>
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 list[0]->irq =3D li=
+st[1]->irq =3D
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 platform_get_irq_byname(pdev, "mbox");
+>
+> For checkpatch.pl,
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0list[0]->irq =3D
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0platform_get_irq_byname(pdev, "mbox");
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0list[1]->irq =3D=
+ list[0]->irq;
+
+I don't see checkpatch (0.30) complaining about that.
+
+Cheers.
 
 --=20
 =46elipe Contreras
