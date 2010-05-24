@@ -1,54 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3 11/14] omap: mailbox: only compile for configured
-	archs
-Date: Mon, 24 May 2010 22:00:50 +0100
-Message-ID: <20100524210050.GG21117@n2100.arm.linux.org.uk>
-References: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com> <1274548465-20208-12-git-send-email-felipe.contreras@gmail.com> <20100524.174205.22049047.Hiroshi.DOYU@nokia.com> <AANLkTim7Jxlx3Owyn2IM_TjUWxS72I7h9H5d0evbCsVQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 0/2] OMAP: hwmod: Fixes and OMAP2&3 data update
+Date: Mon, 24 May 2010 23:23:12 +0200
+Message-ID: <1274736194-30652-1-git-send-email-b-cousson@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47307 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755617Ab0EXVBJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 17:01:09 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTim7Jxlx3Owyn2IM_TjUWxS72I7h9H5d0evbCsVQ@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45152 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756673Ab0EXVXT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 May 2010 17:23:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com
+Cc: Benoit Cousson <b-cousson@ti.com>
 
-On Mon, May 24, 2010 at 10:29:01PM +0300, Felipe Contreras wrote:
-> On Mon, May 24, 2010 at 5:42 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com=
-> wrote:
-> > From: ext Felipe Contreras <felipe.contreras@gmail.com>
->=20
-> >> +     if (false);
-> >
-> > nitpcik:
-> > The above may look better as below:
-> >
-> > =A0 =A0 =A0 =A0if (false)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0;
-> >
-> > "checkpatch.pl" also doesn't complain.
->=20
-> Personally I think it looks weird and it's a checkpatch bug, but fine=
- by me.
+Add the missing braces in hwmod fw and clean the data for 
+OMAP2420, 2430 and 3430.
 
-No, I'd say it's intentional.
+The brace fix was tested on OMAP4 PAB.
+Please note that the data changes were built for the 3 platforms
+but not tested on board.
 
-	if (false);
+The series is based on l-o master. 
 
-looks too much like an error - think about:
+Thanks,
+Benoit
 
-	if (false);
-		do_something();
 
-which would be very easy to miss while reviewing.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Benoit Cousson (2):
+  OMAP: hwmod: Fix the missing braces
+  OMAP2&3: hwmod: Remove _hwmod prefix in name string
+
+ arch/arm/mach-omap2/omap_hwmod.c           |    9 ++++++---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++---
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +++---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
+ 4 files changed, 16 insertions(+), 13 deletions(-)
+
