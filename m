@@ -1,49 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Mon, 24 May 2010 20:49:18 +0200
-Message-ID: <201005242049.18920.rjw@sisk.pl>
-References: <1274482015-30899-1-git-send-email-arve@android.com> <201005240246.55043.rjw@sisk.pl> <20100524043224.GA31700@nokia.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v3 14/14] omap: mailbox: reorganize headers
+Date: Mon, 24 May 2010 22:14:24 +0300
+Message-ID: <AANLkTimEtI3pDJKJOCyiBK8f0y1p0nyyIeptcS2eyy_v@mail.gmail.com>
+References: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com>
+	 <1274548465-20208-15-git-send-email-felipe.contreras@gmail.com>
+	 <20100524171634.GA23202@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100524043224.GA31700@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:63146 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752526Ab0EXTO0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 15:14:26 -0400
+Received: by bwz7 with SMTP id 7so1188457bwz.19
+        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 12:14:25 -0700 (PDT)
+In-Reply-To: <20100524171634.GA23202@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: felipe.balbi@nokia.com
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-On Monday 24 May 2010, Felipe Balbi wrote:
-> On Mon, May 24, 2010 at 02:46:54AM +0200, ext Rafael J. Wysocki wrote=
-:
-> >On Saturday 22 May 2010, Arve Hj=F8nnev=E5g wrote:
-> >> This patch series adds a suspend-block api that provides the same
-> >> functionality as the android wakelock api. This version adds a
-> >> delay before suspending again if no suspend blockers were used
-> >> during the last suspend attempt.
-> >
-> >Patches [1-6/8] applied to suspend-2.6/linux-next
->=20
-> funny thing is that even without sorting out the concerns plenty of=20
-> developers had on the other thread, this series is still taken. What'=
-s=20
-> the point in dicussing/reviewing the patches then ?
+On Mon, May 24, 2010 at 8:16 PM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+> personally I don't like this patch since it makes the C-sources rely on
+> indirect header inclusion by another header. That's really error prone and
+> will cause build failures if someone decides to remove the include
+> <linux/device.h> from plat/mailbox.h.
 
-I don't think the concerns you're referring to can be solved out.  Some=
- people
-just don't like the whole idea and I don't think there's any way we can=
- improve
-the patches to make them happy.  The only "solution" they would be sati=
-sfied
-with would simply be rejecting the feature altogether, although there a=
-re no
-practically viable alternatives known to me.
+First of all, you cannot expect each and every source file to include
+each and every header it's using directly. It would be nice, but it's
+not happening now, and probably will not happen ever.
 
-OTOH I do think there are quite a few reasons to take the patchset, so =
-I'm
-going to push it to Linus as I told in one of my replies to Kevin.  If =
-Linus
-decides not to pull it, so be it.
+Now, with a few exceptions, I didn't assume somebody else would be
+loading anything, in fact, the patch is mostly _adding_ headers that
+were missing.
 
-Thanks,
-Rafael
+If you take a look at the modified files regarding kernel.h and module.h:
+
+* arch/arm/mach-omap1/mailbox.c:
+ Not really using kernel.h, missing module.h
+
+* arch/arm/mach-omap2/mailbox.c:
+ Missing module.h
+
+* arch/arm/plat-omap/mailbox.c
+ Missing kernel.h
+
+So it was clear to me that these were not carefully added, and
+probably were redundant, so I choose to remove them completely. If you
+have something against that, I can add them where it makes sense but
+the current patch is not really making the situation much worst.
+
+Now, regarding device.h:
+
+* arch/arm/mach-omap2/mailbox.c
+ Using it, but missing
+
+* arch/arm/plat-omap/include/plat/mailbox.h
+ Was using it, but a 'struct device' would suffice
+
+ * arch/arm/plat-omap/mailbox.c
+ Using it correctly
+
+Now, I am pretty sure that platform_device.h will always depend on
+device.h that's why I removed them, but I can add them again if
+somebody wants to, but again, the situation is already bad.
+
+-- 
+Felipe Contreras
