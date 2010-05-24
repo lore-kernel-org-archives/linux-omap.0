@@ -1,102 +1,116 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v2 5/7] DSPBRIDGE: remove mem_flush_cache
-Date: Mon, 24 May 2010 19:05:16 +0300
-Message-ID: <1274717118-15226-6-git-send-email-ohad@wizery.com>
+Subject: [PATCH v2 6/7] DSPBRIDGE: add dspbridge API to mark end of DMA
+Date: Mon, 24 May 2010 19:05:17 +0300
+Message-ID: <1274717118-15226-7-git-send-email-ohad@wizery.com>
 References: <1274717118-15226-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:64406 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757714Ab0EXQGR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 12:06:17 -0400
+	with ESMTP id S1757725Ab0EXQGW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 12:06:22 -0400
 Received: by mail-bw0-f46.google.com with SMTP id 7so1076486bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 09:06:16 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 09:06:22 -0700 (PDT)
 In-Reply-To: <1274717118-15226-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Contreras <felipe.contreras@gmail.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-Now that we use standard DMA API instead of low level cache
-manipulation API, mem_flush_cache can be removed.
+Add new dspbridge API that ends DMA transfers.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
 If you want, you can also reach me at <  ohadb at ti dot com  >.
 
- arch/arm/plat-omap/include/dspbridge/drv.h |   15 ------------
- drivers/dsp/bridge/rmgr/drv.c              |   33 ----------------------------
- 2 files changed, 0 insertions(+), 48 deletions(-)
+ drivers/dsp/bridge/rmgr/proc.c |   68 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 68 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-index 3186935..2eeb47f 100644
---- a/arch/arm/plat-omap/include/dspbridge/drv.h
-+++ b/arch/arm/plat-omap/include/dspbridge/drv.h
-@@ -466,21 +466,6 @@ extern void *mem_alloc_phys_mem(IN u32 byte_size,
- 				IN u32 ulAlign, OUT u32 *pPhysicalAddress);
- 
- /*
-- *  ======== mem_flush_cache ========
-- *  Purpose:
-- *      Performs system cache sync with discard
-- *  Parameters:
-- *      pMemBuf:    Pointer to memory region to be flushed.
-- *      pMemBuf:    Size of the memory region to be flushed.
-- *  Returns:
-- *  Requires:
-- *      MEM is initialized.
-- *  Ensures:
-- *      Cache is synchronized
-- */
--extern void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType);
--
--/*
-  *  ======== mem_free_phys_mem ========
-  *  Purpose:
-  *      Free the given block of physically contiguous memory.
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index a8e711a..6ffae0b 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -1039,39 +1039,6 @@ void *mem_alloc_phys_mem(u32 byte_size, u32 ulAlign, OUT u32 * pPhysicalAddress)
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 9ab633d..08d1408 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -647,6 +647,36 @@ out:
+ 	return ret;
  }
  
++static int memory_regain_ownership(struct dmm_map_object *map_obj,
++		unsigned long start, ssize_t len, enum dma_data_direction dir)
++{
++	int ret = 0;
++	unsigned long first_data_page = start >> PAGE_SHIFT;
++	unsigned long last_data_page = ((u32)(start + len - 1) >> PAGE_SHIFT);
++	/* calculating the number of pages this area spans */
++	unsigned long num_pages = last_data_page - first_data_page + 1;
++	struct bridge_dma_map_info *dma_info = &map_obj->dma_info;
++
++	if (!dma_info->sg)
++		goto out;
++
++	if (dma_info->dir != dir || dma_info->num_pages != num_pages) {
++		pr_err("%s: dma info doesn't match given params\n", __func__);
++		return -EINVAL;
++	}
++
++	dma_unmap_sg(bridge, dma_info->sg, num_pages, dma_info->dir);
++
++	pr_debug("%s: dma_map_sg unmapped\n", __func__);
++
++	kfree(dma_info->sg);
++
++	map_obj->dma_info.sg = NULL;
++
++out:
++	return ret;
++}
++
+ /* Cache operation against kernel address instead of users */
+ static int memory_give_ownership(struct dmm_map_object *map_obj,
+ 		unsigned long start, ssize_t len, enum dma_data_direction dir)
+@@ -743,6 +773,44 @@ err_out:
+ 	return status;
+ }
+ 
++static int proc_end_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
++			enum dma_data_direction dir)
++{
++	/* Keep STATUS here for future additions to this function */
++	int status = 0;
++	struct process_context *pr_ctxt = (struct process_context *) hprocessor;
++	struct dmm_map_object *map_obj;
++
++	DBC_REQUIRE(refs > 0);
++
++	if (!pr_ctxt) {
++		status = -EFAULT;
++		goto err_out;
++	}
++
++	pr_debug("%s: addr 0x%x, size 0x%x, type %d\n", __func__,
++							(u32)pmpu_addr,
++							ul_size, dir);
++
++	/* find requested memory are in cached mapping information */
++	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
++	if (!map_obj) {
++		pr_err("%s: find_containing_mapping failed\n", __func__);
++		status = -EFAULT;
++		goto err_out;
++	}
++
++	if (memory_regain_ownership(map_obj, (u32) pmpu_addr, ul_size, dir)) {
++		pr_err("%s: InValid address parameters %p %x\n",
++		       __func__, pmpu_addr, ul_size);
++		status = -EFAULT;
++		goto err_out;
++	}
++
++err_out:
++	return status;
++}
++
  /*
-- *  ======== mem_flush_cache ========
-- *  Purpose:
-- *      Flush cache
-- */
--void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType)
--{
--	if (!pMemBuf)
--		return;
--
--	switch (FlushType) {
--		/* invalidate only */
--	case PROC_INVALIDATE_MEM:
--		dmac_inv_range(pMemBuf, pMemBuf + byte_size);
--		outer_inv_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
--							  byte_size));
--		break;
--		/* writeback only */
--	case PROC_WRITEBACK_MEM:
--		dmac_clean_range(pMemBuf, pMemBuf + byte_size);
--		outer_clean_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
--							    byte_size));
--		break;
--		/* writeback and invalidate */
--	case PROC_WRITEBACK_INVALIDATE_MEM:
--		dmac_flush_range(pMemBuf, pMemBuf + byte_size);
--		outer_flush_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
--							    byte_size));
--		break;
--	}
--
--}
--
--/*
-  *  ======== mem_free_phys_mem ========
+  *  ======== proc_flush_memory ========
   *  Purpose:
-  *      Free the given block of physically contiguous memory.
 -- 
 1.7.0.4
 
