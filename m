@@ -1,135 +1,76 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 2/2] OMAP2&3: hwmod: Remove _hwmod prefix in name string
-Date: Mon, 24 May 2010 23:23:14 +0200
-Message-ID: <1274736194-30652-3-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 1/2] OMAP: hwmod: Fix the missing braces
+Date: Mon, 24 May 2010 23:23:13 +0200
+Message-ID: <1274736194-30652-2-git-send-email-b-cousson@ti.com>
 References: <1274736194-30652-1-git-send-email-b-cousson@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57646 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57644 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758020Ab0EXVXY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 May 2010 17:23:24 -0400
+	id S1758020Ab0EXVXW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 May 2010 17:23:22 -0400
 In-Reply-To: <1274736194-30652-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com
-Cc: Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>
 
-In the lastest OMAP4 hwmod data file, the _hwmod was removed
-in order to save some memory space and because it does not
-bring a lot.
-Align OMAP2420, 2430 and 3430 data files with the same convention.
+As reported by Sergei, a couple of braces were missing after
+the WARM removal patch.
+
+[07/22] OMAP: hwmod: Replace WARN by pr_warning if clock lookup failed
+
+https://patchwork.kernel.org/patch/100756/
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index e5530c5..73e27c7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2420_l3_masters[] = {
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 95c9a5f..b7a4133 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -409,10 +409,11 @@ static int _init_main_clk(struct omap_hwmod *oh)
+ 		return 0;
  
- /* L3 */
- static struct omap_hwmod omap2420_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3_main",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap2420_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l3_masters),
-@@ -89,7 +89,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_core_masters[] = {
+ 	oh->_clk = omap_clk_get_by_name(oh->main_clk);
+-	if (!oh->_clk)
++	if (!oh->_clk) {
+ 		pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
+ 			   oh->name, oh->main_clk);
+ 		return -EINVAL;
++	}
  
- /* L4 CORE */
- static struct omap_hwmod omap2420_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2420_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_core_masters),
-@@ -109,7 +109,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_wkup_masters[] = {
+ 	if (!oh->_clk->clkdm)
+ 		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
+@@ -444,10 +445,11 @@ static int _init_interface_clks(struct omap_hwmod *oh)
+ 			continue;
  
- /* L4 WKUP */
- static struct omap_hwmod omap2420_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2420_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_wkup_masters),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 0852d95..75b57c4 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2430_l3_masters[] = {
+ 		c = omap_clk_get_by_name(os->clk);
+-		if (!c)
++		if (!c) {
+ 			pr_warning("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
+ 				   oh->name, os->clk);
+ 			ret = -EINVAL;
++		}
+ 		os->_clk = c;
+ 	}
  
- /* L3 */
- static struct omap_hwmod omap2430_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3_main",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap2430_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l3_masters),
-@@ -91,7 +91,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_core_masters[] = {
+@@ -470,10 +472,11 @@ static int _init_opt_clks(struct omap_hwmod *oh)
  
- /* L4 CORE */
- static struct omap_hwmod omap2430_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2430_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_core_masters),
-@@ -111,7 +111,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_wkup_masters[] = {
+ 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
+ 		c = omap_clk_get_by_name(oc->clk);
+-		if (!c)
++		if (!c) {
+ 			pr_warning("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
+ 				   oh->name, oc->clk);
+ 			ret = -EINVAL;
++		}
+ 		oc->_clk = c;
+ 	}
  
- /* L4 WKUP */
- static struct omap_hwmod omap2430_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2430_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_wkup_masters),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 39b0c0e..3c9b903 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -70,7 +70,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l3_masters[] = {
- 
- /* L3 */
- static struct omap_hwmod omap3xxx_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3_main",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap3xxx_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_masters),
-@@ -100,7 +100,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_core_masters[] = {
- 
- /* L4 CORE */
- static struct omap_hwmod omap3xxx_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_core_masters),
-@@ -120,7 +120,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_per_masters[] = {
- 
- /* L4 PER */
- static struct omap_hwmod omap3xxx_l4_per_hwmod = {
--	.name		= "l4_per_hwmod",
-+	.name		= "l4_per",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_per_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_per_masters),
-@@ -140,7 +140,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_masters[] = {
- 
- /* L4 WKUP */
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_masters),
 -- 
 1.6.1.3
 
