@@ -1,260 +1,284 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v2 3/7] DSPBRIDGE: do not call follow_page
-Date: Mon, 24 May 2010 19:05:14 +0300
-Message-ID: <1274717118-15226-4-git-send-email-ohad@wizery.com>
+Subject: [PATCH v2 4/7] DSPBRIDGE: do not use low level cache manipulation API
+Date: Mon, 24 May 2010 19:05:15 +0300
+Message-ID: <1274717118-15226-5-git-send-email-ohad@wizery.com>
 References: <1274717118-15226-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:64406 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757689Ab0EXQGH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 12:06:07 -0400
+	with ESMTP id S1757697Ab0EXQGM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 12:06:12 -0400
 Received: by mail-bw0-f46.google.com with SMTP id 7so1076486bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 09:06:06 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 09:06:11 -0700 (PDT)
 In-Reply-To: <1274717118-15226-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Contreras <felipe.contreras@gmail.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-Eliminate the call to follow_page. Instead, use the page
-information that was kept during the proc_map call.
-This also has the advantage that users can now only
-specify memory areas that were previously mapped.
+Instead of using low level cache manipulation API,
+use the standard DMA API. This is achieved by adding
+a proc_begin_dma function that takes a generic
+dma_data_direction, and then implementing proc_flush_memory
+and proc_invalidate_memory by means of proc_begin_dma
+in the following manner:
+
+* flush calls proc_begin_dma with DMA_BIDIRECTIONAL
+* Invalidate calls proc_begin_dma with DMA_FROM_DEVICE
+
+proc_begin_dma builds a scatter gatter list using the
+page information that was kept during proc_map,
+and feed it to the standard dma_map_sg API.
+
+Note that now users cannot manipulate the cache state of any random
+address; if the buffer is not part of a previous memory mapping of that
+application, the request is denied.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
 If you want, you can also reach me at <  ohadb at ti dot com  >.
 
- drivers/dsp/bridge/pmgr/dspapi.c |    4 +-
- drivers/dsp/bridge/rmgr/proc.c   |  142 ++++++++++++++++++++++++--------------
- 2 files changed, 93 insertions(+), 53 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/drv.h |   13 +++
+ drivers/dsp/bridge/rmgr/proc.c             |  119 +++++++++++++++++++++-------
+ 2 files changed, 104 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/dsp/bridge/pmgr/dspapi.c b/drivers/dsp/bridge/pmgr/dspapi.c
-index 05ea853..cc64a99 100644
---- a/drivers/dsp/bridge/pmgr/dspapi.c
-+++ b/drivers/dsp/bridge/pmgr/dspapi.c
-@@ -688,7 +688,7 @@ u32 procwrap_flush_memory(union Trapped_Args *args, void *pr_ctxt)
- 	    PROC_WRITEBACK_INVALIDATE_MEM)
- 		return -EINVAL;
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index b1312aa..3186935 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -84,6 +84,18 @@ struct node_res_object {
+ 	struct node_res_object *next;
+ };
  
--	status = proc_flush_memory(args->args_proc_flushmemory.hprocessor,
-+	status = proc_flush_memory(pr_ctxt,
- 				   args->args_proc_flushmemory.pmpu_addr,
- 				   args->args_proc_flushmemory.ul_size,
- 				   args->args_proc_flushmemory.ul_flags);
-@@ -703,7 +703,7 @@ u32 procwrap_invalidate_memory(union Trapped_Args *args, void *pr_ctxt)
- 	dsp_status status;
++/* used to cache dma mapping information */
++struct bridge_dma_map_info {
++	/* direction of DMA in action, or DMA_NONE */
++	enum dma_data_direction dir;
++	/* number of elements requested by us */
++	int num_pages;
++	/* number of elements returned from dma_map_sg */
++	int sg_num;
++	/* list of buffers used in this DMA action */
++	struct scatterlist *sg;
++};
++
+ /* Used for DMM mapped memory accounting */
+ struct dmm_map_object {
+ 	struct list_head link;
+@@ -92,6 +104,7 @@ struct dmm_map_object {
+ 	u32 size;
+ 	u32 num_usr_pgs;
+ 	struct page **pages;
++	struct bridge_dma_map_info dma_info;
+ };
  
- 	status =
--	    proc_invalidate_memory(args->args_proc_invalidatememory.hprocessor,
-+	    proc_invalidate_memory(pr_ctxt,
- 				   args->args_proc_invalidatememory.pmpu_addr,
- 				   args->args_proc_invalidatememory.ul_size);
- 	return status;
+ /* Used for DMM reserved memory accounting */
 diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 37258c4..eb65bc7 100644
+index eb65bc7..9ab633d 100644
 --- a/drivers/dsp/bridge/rmgr/proc.c
 +++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -189,6 +189,69 @@ out:
- 	spin_unlock(&pr_ctxt->dmm_map_lock);
- }
+@@ -17,6 +17,8 @@
+  */
  
-+static int match_containing_map_obj(struct dmm_map_object *map_obj,
-+					u32 mpu_addr, u32 size)
-+{
-+	u32 map_obj_end = map_obj->mpu_addr + map_obj->size;
+ /* ------------------------------------ Host OS */
++#include <linux/dma-mapping.h>
++#include <linux/scatterlist.h>
+ #include <dspbridge/host_os.h>
+ 
+ /*  ----------------------------------- DSP/BIOS Bridge */
+@@ -74,6 +76,8 @@
+ #define RBUF		0x4000		/* Input buffer */
+ #define WBUF		0x8000		/* Output Buffer */
+ 
++extern struct device *bridge;
 +
-+	return mpu_addr >= map_obj->mpu_addr &&
-+		mpu_addr + size <= map_obj_end;
-+}
-+
-+static struct dmm_map_object *find_containing_mapping(
-+				struct process_context *pr_ctxt,
-+				u32 mpu_addr, u32 size)
-+{
-+	struct dmm_map_object *map_obj;
-+	pr_debug("%s: looking for mpu_addr 0x%x size 0x%x\n", __func__,
-+						mpu_addr, size);
-+
-+	spin_lock(&pr_ctxt->dmm_map_lock);
-+	list_for_each_entry(map_obj, &pr_ctxt->dmm_map_list, link) {
-+		pr_debug("%s: candidate: mpu_addr 0x%x virt 0x%x size 0x%x\n",
-+						__func__,
-+						map_obj->mpu_addr,
-+						map_obj->dsp_addr,
-+						map_obj->size);
-+		if (match_containing_map_obj(map_obj, mpu_addr, size)) {
-+			pr_debug("%s: match!\n", __func__);
-+			goto out;
-+		}
-+
-+		pr_debug("%s: no match!\n", __func__);
-+	}
-+
-+	map_obj = NULL;
-+out:
-+	spin_unlock(&pr_ctxt->dmm_map_lock);
-+	return map_obj;
-+}
-+
-+static int find_first_page_in_cache(struct dmm_map_object *map_obj,
-+					unsigned long mpu_addr)
-+{
-+	u32 mapped_base_page = map_obj->mpu_addr >> PAGE_SHIFT;
-+	u32 requested_base_page = mpu_addr >> PAGE_SHIFT;
-+	int pg_index = requested_base_page - mapped_base_page;
-+
-+	if (pg_index < 0 || pg_index >= map_obj->num_usr_pgs) {
-+		pr_err("%s: failed (got %d)\n", __func__, pg_index);
-+		return -1;
-+	}
-+
-+	pr_debug("%s: first page is %d\n", __func__, pg_index);
-+	return pg_index;
-+}
-+
-+static inline struct page *get_mapping_page(struct dmm_map_object *map_obj,
-+								int pg_i)
-+{
-+	if (pg_i < 0 || pg_i >= map_obj->num_usr_pgs)
-+		return NULL;
-+
-+	return map_obj->pages[pg_i];
-+}
-+
- /*
-  *  ======== proc_attach ========
-  *  Purpose:
-@@ -537,23 +600,30 @@ dsp_status proc_enum_nodes(void *hprocessor, void **node_tab,
+ /*  ----------------------------------- Globals */
+ 
+ /* The proc_object structure. */
+@@ -177,6 +181,7 @@ static void remove_mapping_information(struct process_context *pr_ctxt,
+ 		if (match_exact_map_obj(map_obj, dsp_addr, size)) {
+ 			pr_debug("%s: match, deleting map info\n", __func__);
+ 			list_del(&map_obj->link);
++			kfree(map_obj->dma_info.sg);
+ 			kfree(map_obj->pages);
+ 			kfree(map_obj);
+ 			goto out;
+@@ -600,49 +605,108 @@ dsp_status proc_enum_nodes(void *hprocessor, void **node_tab,
  }
  
  /* Cache operation against kernel address instead of users */
--static int memory_sync_page(struct vm_area_struct *vma, unsigned long start,
--			    ssize_t len, enum dsp_flushtype ftype)
-+static int memory_sync_page(struct dmm_map_object *map_obj,
-+		unsigned long start, ssize_t len, enum dsp_flushtype ftype)
+-static int memory_sync_page(struct dmm_map_object *map_obj,
+-		unsigned long start, ssize_t len, enum dsp_flushtype ftype)
++static int build_dma_sg(struct dmm_map_object *map_obj, unsigned long start,
++						ssize_t len, int pg_i)
  {
  	struct page *page;
- 	void *kaddr;
+-	void *kaddr;
  	unsigned long offset;
  	ssize_t rest;
-+	int pg_i;
+-	int pg_i;
+-
+-	pg_i = find_first_page_in_cache(map_obj, start);
+-	if (pg_i < 0) {
+-		pr_err("%s: failed to find first page in cache\n", __func__);
+-		return -EINVAL;
+-	}
++	int ret = 0, i = 0;
++	struct scatterlist *sg = map_obj->dma_info.sg;
+ 
+ 	while (len) {
+ 		page = get_mapping_page(map_obj, pg_i);
+ 		if (!page) {
+ 			pr_err("%s: no page for %08lx\n", __func__, start);
+-			return -EINVAL;
++			ret = -EINVAL;
++			goto out;
+ 		} else if (IS_ERR(page)) {
+ 			pr_err("%s: err page for %08lx(%lu)\n", __func__, start,
+ 			       PTR_ERR(page));
+-			return PTR_ERR(page);
++			ret = PTR_ERR(page);
++			goto out;
+ 		}
+ 
+ 		offset = start & ~PAGE_MASK;
+-		kaddr = kmap(page) + offset;
+ 		rest = min_t(ssize_t, PAGE_SIZE - offset, len);
+-		mem_flush_cache(kaddr, rest, ftype);
+ 
+-		kunmap(page);
++		sg_set_page(&sg[i], page, rest, offset);
++
+ 		len -= rest;
+ 		start += rest;
+-		pg_i++;
++		pg_i++, i++;
+ 	}
+ 
++	if (i != map_obj->dma_info.num_pages) {
++		pr_err("%s: bad number of sg iterations\n", __func__);
++		ret = -EFAULT;
++		goto out;
++	}
++
++out:
++	return ret;
++}
++
++/* Cache operation against kernel address instead of users */
++static int memory_give_ownership(struct dmm_map_object *map_obj,
++		unsigned long start, ssize_t len, enum dma_data_direction dir)
++{
++	int pg_i, ret, sg_num;
++	struct scatterlist *sg;
++	unsigned long first_data_page = start >> PAGE_SHIFT;
++	unsigned long last_data_page = ((u32)(start + len - 1) >> PAGE_SHIFT);
++	/* calculating the number of pages this area spans */
++	unsigned long num_pages = last_data_page - first_data_page + 1;
 +
 +	pg_i = find_first_page_in_cache(map_obj, start);
 +	if (pg_i < 0) {
 +		pr_err("%s: failed to find first page in cache\n", __func__);
-+		return -EINVAL;
++		ret = -EINVAL;
++		goto out;
 +	}
- 
- 	while (len) {
--		page = follow_page(vma, start, FOLL_GET);
-+		page = get_mapping_page(map_obj, pg_i);
- 		if (!page) {
- 			pr_err("%s: no page for %08lx\n", __func__, start);
- 			return -EINVAL;
- 		} else if (IS_ERR(page)) {
- 			pr_err("%s: err page for %08lx(%lu)\n", __func__, start,
--			       IS_ERR(page));
--			return IS_ERR(page);
-+			       PTR_ERR(page));
-+			return PTR_ERR(page);
- 		}
- 
- 		offset = start & ~PAGE_MASK;
-@@ -562,77 +632,47 @@ static int memory_sync_page(struct vm_area_struct *vma, unsigned long start,
- 		mem_flush_cache(kaddr, rest, ftype);
- 
- 		kunmap(page);
--		put_page(page);
- 		len -= rest;
- 		start += rest;
-+		pg_i++;
- 	}
- 
++
++	sg = kcalloc(num_pages, sizeof(*sg), GFP_KERNEL);
++	if (!sg) {
++		pr_err("%s: kcalloc failed\n", __func__);
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	sg_init_table(sg, num_pages);
++
++	/* cleanup a previous sg allocation */
++	/* this may happen if application doesn't signal for e/o DMA */
++	kfree(map_obj->dma_info.sg);
++
++	map_obj->dma_info.sg = sg;
++	map_obj->dma_info.dir = dir;
++	map_obj->dma_info.num_pages = num_pages;
++
++	ret = build_dma_sg(map_obj, start, len, pg_i);
++	if (ret)
++		goto kfree_sg;
++
++	sg_num = dma_map_sg(bridge, sg, num_pages, dir);
++	if (sg_num < 1) {
++		pr_err("%s: dma_map_sg failed: %d\n", __func__, sg_num);
++		ret = -EFAULT;
++		goto kfree_sg;
++	}
++
++	pr_debug("%s: dma_map_sg mapped %d elements\n", __func__, sg_num);
++	map_obj->dma_info.sg_num = sg_num;
++
  	return 0;
++
++kfree_sg:
++	kfree(sg);
++	map_obj->dma_info.sg = NULL;
++out:
++	return ret;
  }
  
--/* Check if the given area blongs to process virtul memory address space */
--static int memory_sync_vma(unsigned long start, u32 len,
--			   enum dsp_flushtype ftype)
--{
--	int err = 0;
--	unsigned long end;
--	struct vm_area_struct *vma;
--
--	end = start + len;
--	if (end <= start)
--		return -EINVAL;
--
--	while ((vma = find_vma(current->mm, start)) != NULL) {
--		ssize_t size;
--
--		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
--			return -EINVAL;
--
--		if (vma->vm_start > start)
--			return -EINVAL;
--
--		size = min_t(ssize_t, vma->vm_end - start, len);
--		err = memory_sync_page(vma, start, size, ftype);
--		if (err)
--			break;
--
--		if (end <= vma->vm_end)
--			break;
--
--		start = vma->vm_end;
--	}
--
--	if (!vma)
--		err = -EINVAL;
--
--	return err;
--}
--
- static dsp_status proc_memory_sync(void *hprocessor, void *pmpu_addr,
- 				   u32 ul_size, u32 ul_flags,
- 				   enum dsp_flushtype FlushMemType)
+-static dsp_status proc_memory_sync(void *hprocessor, void *pmpu_addr,
+-				   u32 ul_size, u32 ul_flags,
+-				   enum dsp_flushtype FlushMemType)
++static int proc_begin_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
++				enum dma_data_direction dir)
  {
  	/* Keep STATUS here for future additions to this function */
  	dsp_status status = DSP_SOK;
--	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
-+	struct process_context *pr_ctxt = (struct process_context *) hprocessor;
-+	struct dmm_map_object *map_obj;
+@@ -658,7 +722,7 @@ static dsp_status proc_memory_sync(void *hprocessor, void *pmpu_addr,
  
- 	DBC_REQUIRE(refs > 0);
+ 	pr_debug("%s: addr 0x%x, size 0x%x, type %d\n", __func__,
+ 							(u32)pmpu_addr,
+-							ul_size, ul_flags);
++							ul_size, dir);
  
--	if (!p_proc_object) {
-+	if (!pr_ctxt) {
+ 	/* find requested memory are in cached mapping information */
+ 	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
+@@ -667,7 +731,8 @@ static dsp_status proc_memory_sync(void *hprocessor, void *pmpu_addr,
  		status = -EFAULT;
  		goto err_out;
  	}
- 
--	down_read(&current->mm->mmap_sem);
-+	pr_debug("%s: addr 0x%x, size 0x%x, type %d\n", __func__,
-+							(u32)pmpu_addr,
-+							ul_size, ul_flags);
- 
--	if (memory_sync_vma((u32) pmpu_addr, ul_size, FlushMemType)) {
-+	/* find requested memory are in cached mapping information */
-+	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
-+	if (!map_obj) {
-+		pr_err("%s: find_containing_mapping failed\n", __func__);
-+		status = -EFAULT;
-+		goto err_out;
-+	}
-+	if (memory_sync_page(map_obj, (u32) pmpu_addr, ul_size, ul_flags)) {
+-	if (memory_sync_page(map_obj, (u32) pmpu_addr, ul_size, ul_flags)) {
++
++	if (memory_give_ownership(map_obj, (u32) pmpu_addr, ul_size, dir)) {
  		pr_err("%s: InValid address parameters %p %x\n",
--		       __func__, pmpu_addr, ul_size);
-+			       __func__, pmpu_addr, ul_size);
+ 			       __func__, pmpu_addr, ul_size);
  		status = -EFAULT;
- 	}
+@@ -686,10 +751,9 @@ err_out:
+ dsp_status proc_flush_memory(void *hprocessor, void *pmpu_addr,
+ 			     u32 ul_size, u32 ul_flags)
+ {
+-	enum dsp_flushtype mtype = PROC_WRITEBACK_INVALIDATE_MEM;
++	enum dma_data_direction dir = DMA_BIDIRECTIONAL;
  
--	up_read(&current->mm->mmap_sem);
--
- err_out:
+-	return proc_memory_sync(hprocessor, pmpu_addr, ul_size, ul_flags,
+-				mtype);
++	return proc_begin_dma(hprocessor, pmpu_addr, ul_size, dir);
+ }
  
- 	return status;
+ /*
+@@ -697,12 +761,11 @@ dsp_status proc_flush_memory(void *hprocessor, void *pmpu_addr,
+  *  Purpose:
+  *     Invalidates the memory specified
+  */
+-dsp_status proc_invalidate_memory(void *hprocessor, void *pmpu_addr,
+-				  u32 ul_size)
++dsp_status proc_invalidate_memory(void *hprocessor, void *pmpu_addr, u32 size)
+ {
+-	enum dsp_flushtype mtype = PROC_INVALIDATE_MEM;
++	enum dma_data_direction dir = DMA_FROM_DEVICE;
+ 
+-	return proc_memory_sync(hprocessor, pmpu_addr, ul_size, 0, mtype);
++	return proc_begin_dma(hprocessor, pmpu_addr, size, dir);
+ }
+ 
+ /*
 -- 
 1.7.0.4
 
