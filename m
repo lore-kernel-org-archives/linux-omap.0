@@ -1,130 +1,141 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v2t2 00/17] omap: mailbox:
-Date: Mon, 24 May 2010 09:36:25 +0300 (EEST)
-Message-ID: <20100524.093625.241440026.Hiroshi.DOYU@nokia.com>
-References: <20100521221557.GM11042@n2100.arm.linux.org.uk>
-	<AANLkTinMFJTlbXYiS9G87VSQyRuGxJfJGHkVejOEfgVQ@mail.gmail.com>
-	<20100522.081415.258113387.Hiroshi.DOYU@nokia.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: usb_nop_xceiv_register() missing when OTG built as modules
+Date: Mon, 24 May 2010 12:37:37 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E61643A@dbde02.ent.ti.com>
+References: <87635d54nn.fsf@deeprootsystems.com>
+ <19F8576C6E063C45BE387C64729E7394044DB7B6BD@dbde02.ent.ti.com>
+ <87eik03scn.fsf@deeprootsystems.com> <20100305090426.GG12757@nokia.com>
+ <871vfy3azr.fsf@deeprootsystems.com>
+ <558f5bffd42210a777154737d6730232@secure211.sgcpanel.com>
+ <87y6i6zatj.fsf@deeprootsystems.com> <20100522235310.GA15859@matterhorn.lan>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:26093 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751430Ab0EXGgq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 02:36:46 -0400
-In-Reply-To: <20100522.081415.258113387.Hiroshi.DOYU@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:44306 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755587Ab0EXHIH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 03:08:07 -0400
+In-Reply-To: <20100522235310.GA15859@matterhorn.lan>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, felipe.contreras@nokia.com
+To: Amit Kucheria <amit.kucheria@verdurent.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v2t2 00/17] omap: mailbox:
-Date: Sat, 22 May 2010 08:14:15 +0300 (EEST)
+Hi, 
+> Here is a compile-tested patch since I haven't seen this fixed in mainline
+> yet.  It applies to the tip of Linus' tree.
+> 
+> Attempting to remove usb_nop_xceiv_register() completely will require
+> someone
+> with more knowledge of davinci and blackfin archs to comment on what
+> boards
+> need the platform_device defined.
 
-> From: ext Felipe Contreras <felipe.contreras@gmail.com>
-> Subject: Re: [PATCH v2t2 00/17] omap: mailbox:
-> Date: Sat, 22 May 2010 01:34:52 +0200
-> 
->> On Sat, May 22, 2010 at 1:15 AM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->>> On Sat, May 22, 2010 at 01:09:12AM +0300, Felipe Contreras wrote:
->>>> On Sat, May 22, 2010 at 12:57 AM, Russell King - ARM Linux
->>>> <linux@arm.linux.org.uk> wrote:
->>>> > The only reason 3 would be loaded due to that dependency is if 2 were
->>>> > being modprobed, which means it's going to be inserted after 3 anyway.
->>>> >
->>>> > I don't see anything else in 3 which would trigger it to be loaded.
->>>> >
->>>> > The "platform:omap2-mailbox" module alias of 2 should result in 2
->>>> > being modprobed,
->>>>
->>>> I see, at initialization?
->>>
->>> That's the theory - and it should be that same mechanism which allows
->>> things like already plugged in PCMCIA and the like cards to be properly
->>> dealt with at boot time.
->>>
->>>> > causing 3 to be loaded to satisfy the dependency.
->>>> > As already pointed out, this should happen as a result of udev or
->>>> > (older) hotplug initialization.
->>>>
->>>> Well, in the minimal system I have in my beagleboard it doesn't
->>>> happen. I load bridgedriver, which loads mailbox, but fails
->>>> immediately because mailbox_mach is not there.
->>>
->>> I assume that having the MMC host driver built in, but the MMC block
->>> driver as a module also doesn't work on your setup?
->> 
->> I wouldn't know because my file-system is on the MMC.
-> 
-> I guess that your other platform drivers wouldn't work as dynamic module.
-> 
->>> I don't see this as something that should be worked around in the
->>> kernel by making things non-modular - I view the missing userspace
->>> functionality causing the problem.
->> 
->> First of all, most of the cleanups are independent of the built-in
->> option, although that was my motivation, the patches are good by
-> 
-> Your cleanup patches are ok.
-> 
->> themselves: there's no need to export
->> omap_mbox_register()/_unregister() unnecessarily when the platform
->> data can be used, right?
-> 
-> This is not the point.
-> 
->> Now, regarding the built-in mode; for the iommu case you said it
->> should be built-in:
->> http://article.gmane.org/gmane.linux.ports.arm.kernel/58555
-> 
-> Right.
-> 
->> Apparently it's not, so it's not clear to me how omap3-iommu would be
->> loaded since there's no "platform:" alias.
-> 
-> This alias is only necessary for platform drivers.
-> 
->> Moreover, Tony says that anything that registers platform devices
->> should be built-in, but omap3-iommu does register devices and is not
->> built-in.
-> 
-> It seems that this makes you confused. It should have been
-> build-in;). This is going to be integrated into omap hwmod framework
-> soon.
+NAK..
+This is an incorrect fix as it duplicates the code snippet which
+is already present in nop file.
 
-For built-in part, it could be something like:
+Here is a better fix for this (patch attached below). The approach
+in this patch has already been discussed and was not agreed and I was
+asked to move nop registration to board files.
 
->From a09c2040e083f23a43232f97cb29b9aefc9c0d11 Mon Sep 17 00:00:00 2001
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Date: Mon, 24 May 2010 09:35:11 +0300
-Subject: [PATCH 1/1] omap iommu: Make omap-iommu.o built-in
+------------ cut here ------------------
+NOP transceiver is getting registered in board files of OAMP3EVM
+and OMAP4430 SDP as they use ISP150x and internal transceivers.
 
-This is a platform device registration.
+This registration in board file forces NOP transceiver to be
+built into the kernel.
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Fixing this by removing NOP tranceiver from board files to omap
+platform file within musb driver.
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- arch/arm/mach-omap2/Makefile |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c  |    3 ---
+ arch/arm/mach-omap2/board-omap3evm.c |    4 ----
+ drivers/usb/musb/omap2430.c          |   11 ++++++++++-
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 7d2cf0f..4d754f6 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -89,7 +89,10 @@ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
- obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
- mailbox_mach-objs			:= mailbox.o
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index e4a5d66..77af4c9 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -17,7 +17,6 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+-#include <linux/usb/otg.h>
+ #include <linux/spi/spi.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
+@@ -374,8 +373,6 @@ static void __init omap_4430sdp_init(void)
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+ 	omap_serial_init();
+ 	omap4_twl6030_hsmmc_init(mmc);
+-	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
+-	usb_nop_xceiv_register();
+ 	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
+ 	if (!cpu_is_omap44xx())
+ 		usb_musb_init(&musb_board_data);
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 81bba19..83d3aa5 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -27,7 +27,6 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+ #include <linux/i2c/twl.h>
+-#include <linux/usb/otg.h>
+ #include <linux/smsc911x.h>
  
--obj-$(CONFIG_OMAP_IOMMU)		:= iommu2.o omap-iommu.o
-+obj-$(CONFIG_OMAP_IOMMU)		:= iommu2.o
+ #include <linux/regulator/machine.h>
+@@ -682,9 +681,6 @@ static void __init omap3_evm_init(void)
+ 
+ 	omap_serial_init();
+ 
+-	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
+-	usb_nop_xceiv_register();
+-
+ 	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
+ 		/* enable EHCI VBUS using GPIO22 */
+ 		omap_mux_init_gpio(22, OMAP_PIN_INPUT_PULLUP);
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index e06d65e..58acd0c 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -198,6 +198,13 @@ int __init musb_platform_init(struct musb *musb, void *board_data)
+ 	omap_cfg_reg(AE5_2430_USB0HS_STP);
+ #endif
+ 
++#if defined(CONFIG_MACH_OMAP3EVM) || defined(CONFIG_MACH_OMAP_4430SDP)
++	/* OMAP3EVM used ISP150x and OMAP4 SDP uses internal transceiver
++	 * so register nop transceiver
++	 */
++	usb_nop_xceiv_register();
++#endif
 +
-+iommu-$(CONFIG_OMAP_IOMMU)		:= omap-iommu.o
-+obj-y					+= $(iommu-m) $(iommu-y)
+ 	/* We require some kind of external transceiver, hooked
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+@@ -325,6 +332,8 @@ int musb_platform_exit(struct musb *musb)
+ {
  
- i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
- obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
+ 	musb_platform_suspend(musb);
+-
++#if defined(CONFIG_MACH_OMAP3EVM) || defined(CONFIG_MACH_OMAP_4430SDP)
++	usb_nop_xceiv_unregister();
++#endif
+ 	return 0;
+ }
 -- 
-1.7.1.rc1
+1.6.2.4
+----------------------------------------
+
+Regards,
+Ajay
+> 
+> Cheers,
+> Amit
 
