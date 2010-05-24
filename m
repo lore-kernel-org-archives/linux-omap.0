@@ -1,63 +1,98 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [RFC][RFT][PATCH] OMAPFB: LCDC: change update_mode to DISABLED
- when going suspend
-Date: Mon, 24 May 2010 10:26:03 +0300
-Message-ID: <1274685963.2265.3.camel@tubuntu.research.nokia.com>
-References: <201005170320.29580.jkrzyszt@tis.icnet.pl>
-	 <201005231409.44541.jkrzyszt@tis.icnet.pl>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2t2 00/17] omap: mailbox:
+Date: Mon, 24 May 2010 11:58:31 +0300
+Message-ID: <AANLkTinVKTmI6PCwTFwfSgvkmv0K1QLATj1xwKEng4hD@mail.gmail.com>
+References: <20100521221557.GM11042@n2100.arm.linux.org.uk>
+	 <AANLkTinMFJTlbXYiS9G87VSQyRuGxJfJGHkVejOEfgVQ@mail.gmail.com>
+	 <20100522.081415.258113387.Hiroshi.DOYU@nokia.com>
+	 <20100524.093625.241440026.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:44565 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755587Ab0EXH1D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 03:27:03 -0400
-In-Reply-To: <201005231409.44541.jkrzyszt@tis.icnet.pl>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:41918 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753939Ab0EXI6d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 04:58:33 -0400
+Received: by bwz7 with SMTP id 7so845148bwz.19
+        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 01:58:31 -0700 (PDT)
+In-Reply-To: <20100524.093625.241440026.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, felipe.contreras@nokia.com
 
-Hi,
+On Mon, May 24, 2010 at 9:36 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> =
+wrote:
+>>> Moreover, Tony says that anything that registers platform devices
+>>> should be built-in, but omap3-iommu does register devices and is no=
+t
+>>> built-in.
+>>
+>> It seems that this makes you confused. It should have been
+>> build-in;). This is going to be integrated into omap hwmod framework
+>> soon.
+>
+> For built-in part, it could be something like:
+>
+> From a09c2040e083f23a43232f97cb29b9aefc9c0d11 Mon Sep 17 00:00:00 200=
+1
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Date: Mon, 24 May 2010 09:35:11 +0300
+> Subject: [PATCH 1/1] omap iommu: Make omap-iommu.o built-in
+>
+> This is a platform device registration.
+>
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+> =C2=A0arch/arm/mach-omap2/Makefile | =C2=A0 =C2=A05 ++++-
+> =C2=A01 files changed, 4 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makef=
+ile
+> index 7d2cf0f..4d754f6 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -89,7 +89,10 @@ obj-$(CONFIG_OMAP3_EMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0+=3D emu.o
+> =C2=A0obj-$(CONFIG_OMAP_MBOX_FWK) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0+=3D mailbox_mach.o
+> =C2=A0mailbox_mach-objs =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0:=3D mailbox.o
+>
+> -obj-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 :=3D iommu2.o omap-iommu.o
+> +obj-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 :=3D iommu2.o
+> +
+> +iommu-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ :=3D omap-iommu.o
+> +obj-y =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0+=3D $(iommu-m)=
+ $(iommu-y)
+>
+> =C2=A0i2c-omap-$(CONFIG_I2C_OMAP) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0:=3D i2c.o
+> =C2=A0obj-y                                 =C2=A0+=3D $(i2c-omap-m) =
+$(i2c-omap-y)
+> --
 
-On Sun, 2010-05-23 at 14:09 +0200, ext Janusz Krzysztofik wrote:
-> Monday 17 May 2010 03:20:13 Janusz Krzysztofik wrote:
-> > I was observing the following error messages on my OMAP1 based Amstrad
-> > Delta board when first changing from text to graphics mode or vice versa
-> > after the LCD display had been blanked:
-> > 	omapfb omapfb: timeout waiting for FRAME DONE
-> > with a followup error message while unblanking it back:
-> > 	omapfb omapfb: resetting (status 0xffffffb2,reset count 1)
-> > As a visible result, image pixels happened to be shifted by a few bits,
-> > giving wrong colors.
-> >
-> > Examining the code, I found that this problem occures when an OMAP1
-> > internal LCD controller is disabled from omap_lcdc_suspend() and then a
-> > subsequent omap_lcdc_setup_plane() calls disable_controller() again. This
-> > potentially error provoking behaviour is triggered by the lcdc.update_mode
-> > flag being kept at OMAP_AUTO_UPDATE, regardless of the controller and panel
-> > being suspended.
-> >
-> > This patch tries to correct the problem by replacing both
-> > omap_lcdc_suspend() and omap_lcdc_resume() function bodies with single
-> > calls to
-> > omap_lcdc_set_update_mode() with a respective OMAP_UPDATE_DISABLE or
-> > OMAP_AUTO_UPDATE argument. As a result, exactly the same lower level
-> > operations are performed, with addition of changing the lcdc.update_mode
-> > flag to a value better suited for the controller state. This prevents any
-> > further calls to disable_controller() from omap_lcdc_setup_plane() while
-> > the display is suspended.
-> 
-> Hi,
-> 
-> One more week of successfull, trouble-free testing on my side. Although there 
-> were no other test reports, no objections nor change requests were raised as 
-> well on this relatively simple and straightforward patch. Could we then agree 
-> on it being accepted for inclusion? Tomi?
+I would prefer this:
+-obj-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 :=3D iommu2.o omap-iommu.o
++obj-$(CONFIG_OMAP_IOMMU) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 :=3D iommu2.o
++
++ifneq ($(CONFIG_OMAP_IOMMU),)
++obj-y                                  +=3D omap-iommu.o
++endif
 
-Yep, looks ok to me. Applied to DSS tree.
+Much clearer, and easier to understand.
 
- Tomi
-
-
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
