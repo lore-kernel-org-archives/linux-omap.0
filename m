@@ -1,51 +1,54 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC/PATCH 0/2] omap: mailbox: hwmod experiment
-Date: Mon, 24 May 2010 22:55:28 +0300
-Message-ID: <AANLkTikrjWVfK69M4f22dmYapXZk0tPwD4NGzpmmsFJj@mail.gmail.com>
-References: <1274549122-26521-1-git-send-email-felipe.contreras@gmail.com>
-	<AANLkTimiCIA7Bx3mWcFBl6UMWSYMEEufDkAUcidnQ_i_@mail.gmail.com>
-	<AANLkTimci9dfIUXNpLb32r_Hbk2KegnVZnNKvr-3V2j9@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3 11/14] omap: mailbox: only compile for configured
+	archs
+Date: Mon, 24 May 2010 22:00:50 +0100
+Message-ID: <20100524210050.GG21117@n2100.arm.linux.org.uk>
+References: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com> <1274548465-20208-12-git-send-email-felipe.contreras@gmail.com> <20100524.174205.22049047.Hiroshi.DOYU@nokia.com> <AANLkTim7Jxlx3Owyn2IM_TjUWxS72I7h9H5d0evbCsVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f182.google.com ([209.85.211.182]:33371 "EHLO
-	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753499Ab0EXTzu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 15:55:50 -0400
-Received: by ywh12 with SMTP id 12so871835ywh.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 12:55:48 -0700 (PDT)
-In-Reply-To: <AANLkTimci9dfIUXNpLb32r_Hbk2KegnVZnNKvr-3V2j9@mail.gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47307 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755617Ab0EXVBJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 17:01:09 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTim7Jxlx3Owyn2IM_TjUWxS72I7h9H5d0evbCsVQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, May 24, 2010 at 10:33 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Mon, May 24, 2010 at 8:29 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
->> On Sat, May 22, 2010 at 8:25 PM, Felipe Contreras
->> <felipe.contreras@gmail.com> wrote:
->>> I played a bit with omap_hwmod/omap_device for the mailbox, and this is the
->>> result.
->>
->> Nice move Felipe :)
->
-> Thanks :)
->
->> Can you convert this to use the runtime PM layer, instead of directly
->> calling omap_device functions via pdata ?
->
-> Well, I didn't see anybody using omap_device, so I just assumed from
-> reading the code.
->
-> Recently I saw some patches using this pm_runtime stuff, but it seems
-> to be for some pm branch... not sure which one.
+On Mon, May 24, 2010 at 10:29:01PM +0300, Felipe Contreras wrote:
+> On Mon, May 24, 2010 at 5:42 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com=
+> wrote:
+> > From: ext Felipe Contreras <felipe.contreras@gmail.com>
+>=20
+> >> +     if (false);
+> >
+> > nitpcik:
+> > The above may look better as below:
+> >
+> > =A0 =A0 =A0 =A0if (false)
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0;
+> >
+> > "checkpatch.pl" also doesn't complain.
+>=20
+> Personally I think it looks weird and it's a checkpatch bug, but fine=
+ by me.
 
-check out pm-wip/mmc on
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-:)
+No, I'd say it's intentional.
 
->
-> --
-> Felipe Contreras
->
+	if (false);
+
+looks too much like an error - think about:
+
+	if (false);
+		do_something();
+
+which would be very easy to miss while reviewing.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
