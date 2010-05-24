@@ -1,36 +1,46 @@
-From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 0/3][v3] omap:iommu-enable TLB miss interrupt
-Date: Sun, 23 May 2010 21:01:49 -0500
-Message-ID: <1274666512-19765-1-git-send-email-h-kanigeri2@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42000 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754890Ab0EXBzN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 May 2010 21:55:13 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 8)
+Date: Mon, 24 May 2010 07:32:24 +0300
+Message-ID: <20100524043224.GA31700@nokia.com>
+References: <1274482015-30899-1-git-send-email-arve@android.com>
+	<201005240246.55043.rjw@sisk.pl>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <201005240246.55043.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "ext Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Linux Omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-The current iommu module doesn't provide the mechanism to get MMU fault on
-TLB miss when working with locked TLB entries and TWL disabled.
-To get the TLB miss interrupt, the TWL should be disabled.
-This patch set provides the option to enable/disable TWL and to enable TLB miss
-interrupt.
+On Mon, May 24, 2010 at 02:46:54AM +0200, ext Rafael J. Wysocki wrote:
+>On Saturday 22 May 2010, Arve Hj=F8nnev=E5g wrote:
+>> This patch series adds a suspend-block api that provides the same
+>> functionality as the android wakelock api. This version adds a
+>> delay before suspending again if no suspend blockers were used
+>> during the last suspend attempt.
+>
+>Patches [1-6/8] applied to suspend-2.6/linux-next
 
-Based on Hiroshi, the initial patch set was revised to add more flexibility
-to enable TWL and cleanup the part of the code that had layering violations.
-https://patchwork.kernel.org/patch/101336/
+funny thing is that even without sorting out the concerns plenty of =
 
-Hari Kanigeri (2):
-  omap: iommu-update irq mask to be specific about twl and tlb
-  omap: iommu-add functionality to get TLB miss interrupt
+developers had on the other thread, this series is still taken. What's =
 
-Hiroshi DOYU (1):
-  omap iommu: move iommu_disable at fault to the above layer
+the point in dicussing/reviewing the patches then ?
 
- arch/arm/mach-omap2/iommu2.c            |   44 ++++++++++++++++++++++++------
- arch/arm/plat-omap/include/plat/iommu.h |    2 +
- arch/arm/plat-omap/iommu.c              |   19 +++++++++++++
- 3 files changed, 56 insertions(+), 9 deletions(-)
+-- =
 
+balbi
+
+DefectiveByDesign.org
