@@ -1,48 +1,61 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Tue, 25 May 2010 11:33:35 -0700
-Message-ID: <20100525183334.GA4669@core.coreip.homeip.net>
-References: <20100525165137.GB2730@core.coreip.homeip.net>
-	<Pine.LNX.4.44L0.1005251408120.1634-100000@iolanthe.rowland.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM:VFPv3:enable {d16-d31} access
+Date: Tue, 25 May 2010 19:57:41 +0100
+Message-ID: <20100525185741.GB16204@n2100.arm.linux.org.uk>
+References: <tarun.kanti@ti.com> <1274818736-26597-1-git-send-email-tarun.kanti@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0322FA884E@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36738 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754291Ab0EYS5x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 May 2010 14:57:53 -0400
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1005251408120.1634-100000@iolanthe.rowland.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Kernel development list <linux-kernel@vger.kernel.org>, Tero Saarni <tero.saarni@gmail.com>, linux-input@vger.kernel.org, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, =?iso-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Brian Swetland <swetland@google.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322FA884E@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, May 25, 2010 at 02:25:08PM -0400, Alan Stern wrote:
-> On Tue, 25 May 2010, Dmitry Torokhov wrote:
-> 
-> > BTW, If you are concerned about events that already "left" physical
-> > device but has not reached userspace yet - maybe instead of suspend
-> > blockers we should make sure that all drivers throughout the chain
-> > implement suspend/resume and refuse suspending if their queues are not
-> > empty.  In input land that would mean extending suspend routine in
-> > input_dev and adding one to evdev.
-> 
-> That's not the only problem.  We also have to consider events that have
-> reached userspace but not yet been fully processed.  The user thread
-> handling the event needs some way to prevent the system from suspending
-> until it is all done.
-> 
+On Tue, May 25, 2010 at 02:39:17PM +0530, DebBarma, Tarun Kanti wrote:
+>  #ifdef CONFIG_VFPv3
+>  	@ d16 - d31 registers
+> -	.irp	dr,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+> -1:	mrrc	p11, 3, r0, r1, c\dr	@ fmrrd	r0, r1, d\dr
+> +	.irp	dr,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+> +1:	fmrrd	r0, r1, d\dr
 
-It is a problem if kernel initiated suspend transition on its own. I
-believe that it is userspace responsibility to initiate sustend (and
-make sure that needs of userspace, including processing of certain
-events, are served beforehand).
+The existing code is correct.
 
--- 
-Dmitry
+For every fmrrd instruction, there is a corresponding mrrc version which
+assembles to exactly the same opcode.
+
+mrrc instructions take:
+
+1. Co-processor number, range 0-15.
+2. Opcode number N, range 0-15.
+3. Destination register 1, range 0-15.
+4. Destination register 2, range 0-15.
+5. Co-processor register number R, range 0-15.
+
+For fmrrd encodings, the first 16 registers are encoded using N=1 with
+R=0 to 15.  The second 16 registers are encoded using N=3 with R=0 to 15.
+Specifying a co-processor register number greater than 15 is illegal,
+hence why the 'irp' specifies the numbers 0 to 15.
+
+If we look at the instruction encodings, for MRRC:
+
+ 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+ 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+|  cond |1 1 0 0 0 1 0 1|  Rn   |  Rm   |CP Num |   N   |   R   |
+
+For FMRRD:
+
+ 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+ 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+|  cond |1 1 0 0 0 1 0 1|  Rn   |  Rm   |1 0 1 1 0 0 M 1|   R   |
+
+where "M" and "R" together define the register.
+
+As I said above, the existing code is correct.  What problem are you
+actually trying to solve here?
