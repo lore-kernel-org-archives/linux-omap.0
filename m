@@ -1,61 +1,73 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM:VFPv3:enable {d16-d31} access
-Date: Tue, 25 May 2010 19:57:41 +0100
-Message-ID: <20100525185741.GB16204@n2100.arm.linux.org.uk>
-References: <tarun.kanti@ti.com> <1274818736-26597-1-git-send-email-tarun.kanti@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0322FA884E@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] touchscreen: ads7846: please don't touch free'd memory
+Date: Tue, 25 May 2010 12:52:12 -0700
+Message-ID: <87mxvnlpxv.fsf@deeprootsystems.com>
+References: <1274226413-8520-1-git-send-email-khilman@deeprootsystems.com>
+	<20100519000019.GA17475@core.coreip.homeip.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36738 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754291Ab0EYS5x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 May 2010 14:57:53 -0400
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322FA884E@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20100519000019.GA17475@core.coreip.homeip.net> (Dmitry Torokhov's message of "Tue\, 18 May 2010 17\:00\:20 -0700")
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Michael Roth <mroth@nessie.de>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, Mike Frysinger <vapier@gentoo.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, May 25, 2010 at 02:39:17PM +0530, DebBarma, Tarun Kanti wrote:
->  #ifdef CONFIG_VFPv3
->  	@ d16 - d31 registers
-> -	.irp	dr,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-> -1:	mrrc	p11, 3, r0, r1, c\dr	@ fmrrd	r0, r1, d\dr
-> +	.irp	dr,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
-> +1:	fmrrd	r0, r1, d\dr
+Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
 
-The existing code is correct.
+> On Tue, May 18, 2010 at 04:46:53PM -0700, Kevin Hilman wrote:
+>> If the _probe() method fails, the 'ts' struct is freed, yet it is
+>> still used as the drvdata passed to suspend/resume/remove methods.
+>> Even though the input device does not get registerd, the driver's
+>> suspend/resume methods still get called as it's a registered SPI
+>> device.  This patch adds sanity checks to these methods to ensure that
+>> drvdata is valid before using it.
+>> 
+>
+> This is a load of crap. If probe() fails that means that driver does not
+> manage the device and thus ads7846_suspend() and ads7846_resume() should
+> not be called _at all_. If SPI core manages to call random methods from
+> the drivers that failed to bind to a device that should be fixed in SPI
+> core.
 
-For every fmrrd instruction, there is a corresponding mrrc version which
-assembles to exactly the same opcode.
+Agreed, this is indeed a bug in the SPI driver core.
 
-mrrc instructions take:
+However, by fixing the SPI core to unregister the driver on failure
+(patch below), we prevent the suspend & resume methods from being
+called, but the driver's ->remove() method will still be called due to
+the driver_unregister().  So at least the remove() method needs fixing
+to prevent accessing free'd memory.
 
-1. Co-processor number, range 0-15.
-2. Opcode number N, range 0-15.
-3. Destination register 1, range 0-15.
-4. Destination register 2, range 0-15.
-5. Co-processor register number R, range 0-15.
+Unless there are objections, I'll post the below along with an updated
+version of ads7846 patch.
 
-For fmrrd encodings, the first 16 registers are encoded using N=1 with
-R=0 to 15.  The second 16 registers are encoded using N=3 with R=0 to 15.
-Specifying a co-processor register number greater than 15 is illegal,
-hence why the 'irp' specifies the numbers 0 to 15.
+Kevin
 
-If we look at the instruction encodings, for MRRC:
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index b3a1f92..42d4d26 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -175,6 +175,8 @@ static void spi_drv_shutdown(struct device *dev)
+  */
+ int spi_register_driver(struct spi_driver *sdrv)
+ {
++	int ret;
++
+ 	sdrv->driver.bus = &spi_bus_type;
+ 	if (sdrv->probe)
+ 		sdrv->driver.probe = spi_drv_probe;
+@@ -182,7 +184,12 @@ int spi_register_driver(struct spi_driver *sdrv)
+ 		sdrv->driver.remove = spi_drv_remove;
+ 	if (sdrv->shutdown)
+ 		sdrv->driver.shutdown = spi_drv_shutdown;
+-	return driver_register(&sdrv->driver);
++
++	ret = driver_register(&sdrv->driver);
++	if (!ret)
++		driver_unregister(&sdrv->driver);
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(spi_register_driver);
+ 
 
- 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
- 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-|  cond |1 1 0 0 0 1 0 1|  Rn   |  Rm   |CP Num |   N   |   R   |
-
-For FMRRD:
-
- 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
- 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-|  cond |1 1 0 0 0 1 0 1|  Rn   |  Rm   |1 0 1 1 0 0 M 1|   R   |
-
-where "M" and "R" together define the register.
-
-As I said above, the existing code is correct.  What problem are you
-actually trying to solve here?
