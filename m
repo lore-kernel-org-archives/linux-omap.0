@@ -1,57 +1,40 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC/PATCH 0/2] omap: mailbox: hwmod experiment
-Date: Mon, 24 May 2010 17:02:09 -0700
-Message-ID: <87vdacu9vi.fsf@deeprootsystems.com>
-References: <1274549122-26521-1-git-send-email-felipe.contreras@gmail.com>
-	<AANLkTimiCIA7Bx3mWcFBl6UMWSYMEEufDkAUcidnQ_i_@mail.gmail.com>
-	<AANLkTimci9dfIUXNpLb32r_Hbk2KegnVZnNKvr-3V2j9@mail.gmail.com>
-	<AANLkTikrjWVfK69M4f22dmYapXZk0tPwD4NGzpmmsFJj@mail.gmail.com>
+Subject: Re: [pm-wip/uart][PATCH 2/6] Serial: Add UART4 hwmod data.
+Date: Mon, 24 May 2010 17:07:49 -0700
+Message-ID: <87r5l0u9m2.fsf@deeprootsystems.com>
+References: <47872.192.168.10.88.1274362704.squirrel@dbdmail.itg.ti.com>
+	<87y6fcerz1.fsf@deeprootsystems.com>
+	<17f301cafb40$2bc91e80$LocalHost@wipblrx0100947A>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:60453 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932281Ab0EYACM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 20:02:12 -0400
-Received: by pwi2 with SMTP id 2so767186pwi.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 17:02:11 -0700 (PDT)
-In-Reply-To: <AANLkTikrjWVfK69M4f22dmYapXZk0tPwD4NGzpmmsFJj@mail.gmail.com> (Ohad Ben-Cohen's message of "Mon\, 24 May 2010 22\:55\:28 +0300")
+Received: from mail-px0-f174.google.com ([209.85.212.174]:47938 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932114Ab0EYAHw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 May 2010 20:07:52 -0400
+Received: by pxi18 with SMTP id 18so1683331pxi.19
+        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 17:07:51 -0700 (PDT)
+In-Reply-To: <17f301cafb40$2bc91e80$LocalHost@wipblrx0100947A> (Govindraj R.'s message of "Mon\, 24 May 2010 18\:23\:54 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Paul Walmsley <paul@pwsan.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>, saaguirre@ti.com
+Cc: linux-omap@vger.kernel.org
 
-Ohad Ben-Cohen <ohad@wizery.com> writes:
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-> On Mon, May 24, 2010 at 10:33 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> On Mon, May 24, 2010 at 8:29 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
->>> On Sat, May 22, 2010 at 8:25 PM, Felipe Contreras
->>> <felipe.contreras@gmail.com> wrote:
->>>> I played a bit with omap_hwmod/omap_device for the mailbox, and this is the
->>>> result.
->>>
->>> Nice move Felipe :)
->>
->> Thanks :)
->>
->>> Can you convert this to use the runtime PM layer, instead of directly
->>> calling omap_device functions via pdata ?
->>
->> Well, I didn't see anybody using omap_device, so I just assumed from
->> reading the code.
->>
->> Recently I saw some patches using this pm_runtime stuff, but it seems
->> to be for some pm branch... not sure which one.
+> This happening because we are missing these patches:
+>  
+> https://patchwork.kernel.org/patch/84748/
+> https://patchwork.kernel.org/patch/84749/
+> https://patchwork.kernel.org/patch/84755/
+> https://patchwork.kernel.org/patch/84750/
+>  
+> Not part of LO yet.
 >
-> check out pm-wip/mmc on
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-> :)
+> But we need these patches for uart4 support for 3630.
 
-Agreed, using runtime PM, you no longer need to call omap_device
-functions directly.
+Ah, OK.  I thought these had been merged already.
 
-As pointed out by Ohad, the pm-wip/mmc branch has an example
-conversion of the MMC driver with this approach.
+Looks like these need to be refreshed/resubmitted for l-o.  Sergio?
 
 Kevin
