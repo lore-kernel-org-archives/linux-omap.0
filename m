@@ -1,22 +1,24 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 Subject: [PATCH] ARM:VFPv3:enable {d16-d31} access
-Date: Wed, 26 May 2010 01:48:56 +0530
-Message-ID: <1274818736-26597-1-git-send-email-tarun.kanti@ti.com>
+Date: Tue, 25 May 2010 14:39:17 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322FA884E@dbde02.ent.ti.com>
 References: <Tarun Kanti DebBarma <tarun.kanti@ti.com>
+ <1274818736-26597-1-git-send-email-tarun.kanti@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46026 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756283Ab0EYJCg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 May 2010 05:02:36 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4P92X0Z025022
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 25 May 2010 04:02:35 -0500
-In-Reply-To: <Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41608 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754082Ab0EYJJS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 May 2010 05:09:18 -0400
+In-Reply-To: <1274818736-26597-1-git-send-email-tarun.kanti@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tarun Kanti Debbarma <tarun.kanti@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+
+(Including ARM mailing list)
 
 From: Tarun Kanti Debbarma <a0876346@a0876346-desktop.(none)>
 
