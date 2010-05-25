@@ -1,112 +1,59 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 1/2] omap: mailbox: initial hwmod support
-Date: Tue, 25 May 2010 18:23:48 +0300
-Message-ID: <AANLkTikXZRPJIeZcnUBdegFTnHIOaXUL9Ukns45GO1bh@mail.gmail.com>
-References: <1274549122-26521-1-git-send-email-felipe.contreras@gmail.com>
-	 <1274549122-26521-2-git-send-email-felipe.contreras@gmail.com>
-	 <871vd0voiu.fsf@deeprootsystems.com>
-	 <AANLkTilI_Fqlz9Bj6WDxahheVODv-OZEQcacWw4dz6dV@mail.gmail.com>
-	 <87bpc4qbnb.fsf@deeprootsystems.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH v3 1/3] omap3 gpmc: functionality enhancement
+Date: Tue, 25 May 2010 21:04:37 +0530
+Message-ID: <AANLkTimvO3Gd1oM6Ctp22PcaBw7QmvOZhY6YhawJNos0@mail.gmail.com>
+References: <s-ghorai@ti.com> <1274181389-7488-1-git-send-email-s-ghorai@ti.com>
+	<1274181389-7488-2-git-send-email-s-ghorai@ti.com> <AANLkTikFxtzDpiJvJjnuonM2urMJR1LDLafx5JtpC_bS@mail.gmail.com>
+	<1274284094.6286.17.camel@thunk> <2A3DCF3DA181AD40BDE86A3150B27B6B030D991D50@dbde02.ent.ti.com>
+	<AANLkTikK4ISAsLFS-l5fXGxCppv98F2qqb8OBnZ7OTHd@mail.gmail.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B030DA9F8EB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:53319 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757090Ab0EYPXt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 May 2010 11:23:49 -0400
-Received: by bwz7 with SMTP id 7so1319878bwz.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 May 2010 08:23:48 -0700 (PDT)
-In-Reply-To: <87bpc4qbnb.fsf@deeprootsystems.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:57225 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753903Ab0EYPkA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 May 2010 11:40:00 -0400
+Received: by pxi18 with SMTP id 18so2018492pxi.19
+        for <linux-omap@vger.kernel.org>; Tue, 25 May 2010 08:40:00 -0700 (PDT)
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030DA9F8EB@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Paul Walmsley <paul@pwsan.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "sakoman@gmail.com" <sakoman@gmail.com>, "mike@compulab.co.il" <mike@compulab.co.il>, "Artem.Bityutskiy@nokia.com" <Artem.Bityutskiy@nokia.com>, "peter.barada@gmail.com" <peter.barada@gmail.com>
 
-On Tue, May 25, 2010 at 5:49 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Felipe Contreras <felipe.contreras@gmail.com> writes:
->
->> On Tue, May 25, 2010 at 3:00 AM, Kevin Hilman
->> <khilman@deeprootsystems.com> wrote:
->>> Felipe Contreras <felipe.contreras@gmail.com> writes:
->>>
->>>> Only OMAP3 would work.
->>>>
->>>> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
->>>> ---
->>>> =C2=A0arch/arm/mach-omap2/devices.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0| =C2=A0103 +++++----------------------
->>>> =C2=A0arch/arm/mach-omap2/mailbox.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0| =C2=A0 14 +---
->>>> =C2=A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =C2=A0 45 +++++=
-+++++++
->>>> =C2=A0arch/arm/plat-omap/include/plat/mailbox.h =C2=A0| =C2=A0 =C2=
-=A04 +
->>>> =C2=A04 files changed, 72 insertions(+), 94 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/d=
-evices.c
->>>> index d9ac853..89f6cbc 100644
->>>> --- a/arch/arm/mach-omap2/devices.c
->>>> +++ b/arch/arm/mach-omap2/devices.c
->>>> @@ -20,12 +20,14 @@
->>>> =C2=A0#include <asm/mach-types.h>
->>>> =C2=A0#include <asm/mach/map.h>
->>>>
->>>> +#include <plat/omap_device.h>
->>>> =C2=A0#include <plat/control.h>
->>>> =C2=A0#include <plat/tc.h>
->>>> =C2=A0#include <plat/board.h>
->>>> =C2=A0#include <plat/mux.h>
->>>> =C2=A0#include <mach/gpio.h>
->>>> =C2=A0#include <plat/mmc.h>
->>>> +#include <plat/mailbox.h>
->>>>
->>>> =C2=A0#include "mux.h"
->>>>
->>>> @@ -137,95 +139,28 @@ static inline void omap_init_camera(void)
->>>> =C2=A0#endif
->>>>
->>>> =C2=A0#if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBO=
-X_FWK_MODULE)
->>>> +static inline void omap_init_mbox(void)
->>>> +{
->>>> + =C2=A0 =C2=A0 struct omap_hwmod *hwmod;
->>>> + =C2=A0 =C2=A0 struct omap_device *odev;
->>>> + =C2=A0 =C2=A0 struct omap_mbox_platform_data pdata;
->> ...
->>
->>>> + =C2=A0 =C2=A0 hwmod =3D omap_hwmod_lookup("mailbox");
->>>> + =C2=A0 =C2=A0 if (!hwmod) {
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err("%s: unable to =
-find hwmod\n", __func__);
->>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
->>>> + =C2=A0 =C2=A0 }
->>>>
->>>> -static struct platform_device mbox_device =3D {
->>>> - =C2=A0 =C2=A0 .name =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D "omap=
--mailbox",
->>>> - =C2=A0 =C2=A0 .id =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D =
--1,
->>>> -};
->>>> + =C2=A0 =C2=A0 pdata.base_addr =3D hwmod->_rt_va;
->>>
->>> Shouldn't need the base address in pdata. =C2=A0The driver should j=
-ust do a
->>> platform_get_resource() to get the physical address and then iorema=
-p.
->>
->> But the hwmod code already did ioremap in _find_mpu_rt_base().
->
-> Yes, but that's a hwmod-internal implementation detail that may
-> change, or may not be needed for some hwmods, or may be iounmapped
-> after hwmod init etc.
+On Tue, May 25, 2010 at 8:07 PM, Ghorai, Sukumar <s-ghorai@ti.com> wrot=
+e:
+[...]
+>> > c. And how to know that ECC engine is in used other driver should =
+not
+>> use it? Any bit to know that ecc engine is busy, as we check for pre=
+fetch?
+>> Do not really remember config registers. Perhaps there is no way.
+>> But I guess you should check into register GPMC_ECC_CONFIG at bit 1.
+>> This is the bit we are setting to enable ECC calculation, IIRC.
+> [Ghorai] there are two functions -
+> =A0 =A0 =A0 info->nand.ecc.calculate =A0 =A0 =A0 =A0=3D omap_calculat=
+e_ecc;
+> =A0 =A0 =A0 info->nand.ecc.hwctl =A0 =A0 =A0 =A0 =A0 =A0=3D omap_enab=
+le_hwecc;
+> And GPMC_ECC_CONFIG register..
+> =A0 =A0 =A0 =A03:1 ECCCS Selects the CS where ECC is computed
+> =A0 =A0 =A0 =A00 ECCENABLE Enables the ECC feature
+> Now we enable omap_enable_hwecc (with GPMC_ECC_CONFIG[ECCENABLE]=3D1)=
+; and its get disabled (automatically) when ecc_size data transfer over=
+=2E
+> But say still it did not read the ecc value yet (omap_calculate_ecc).
+> So how to protect following omap_enable_hwecc() before omap_calculate=
+_ecc() =A0without additional flag? Any input is welcome.
 
-So I have to do another ioremap()?
+Oh yes, that's is a problem. Perhaps in that case you have to protect
+it in very much same way you already did.
 
 --=20
-=46elipe Contreras
+Regards,
+Vimal Singh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
