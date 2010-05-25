@@ -1,108 +1,90 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCHv3 1/6] SPI omap2_mcspi.c: Check params before dereference
-	or use
-Date: Tue, 25 May 2010 00:28:46 -0600
-Message-ID: <AANLkTim7YtMJCwm1A88SQYEARiSFxspfsJET1ta82vsO@mail.gmail.com>
-References: <1268406713.14445.50.camel@quad> <AANLkTikCydr_Nj446sySru774pY2jXLKNUNVfW3LSK9R@mail.gmail.com>
-	<1274710827.2888.9.camel@quad>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f227.google.com ([209.85.217.227]:55769 "EHLO
-	mail-gx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756249Ab0EYG3H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 May 2010 02:29:07 -0400
-Received: by gxk27 with SMTP id 27so1132506gxk.1
-        for <linux-omap@vger.kernel.org>; Mon, 24 May 2010 23:29:06 -0700 (PDT)
-In-Reply-To: <1274710827.2888.9.camel@quad>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 3/3 v3] musb: AM35x: Workaround for fifo read issue
+Date: Tue, 25 May 2010 12:08:42 +0530
+Message-ID: <1274769522-28212-3-git-send-email-ajay.gupta@ti.com>
+References: <1274769522-28212-1-git-send-email-ajay.gupta@ti.com>
+ <1274769522-28212-2-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1274769522-28212-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Scott Ellis <scott@jumpnowtek.com>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
 
-On Mon, May 24, 2010 at 8:20 AM, Scott Ellis <scott@jumpnowtek.com> wro=
-te:
-> Check spi->chip_select for range before use.
->
-> The spi->controller_state check is already in 2.6.34-rc7
->
-> Signed-off-by: Scott Ellis <scott@jumpnowtek.com>
+AM35x supports only 32bit read operations so we need to have
+workaround for 8bit and 16bit read operations.
 
-Okay, I've pick up this patch, but please check your Evolution
-configuration.  Patchwork seems to be barfing on the patches sent by
-you.  My guess is that it relies on a "---" line between the last
-"signed-off-by", and the start of the actual patch.  See here to see
-what I'm talking about:
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+---
+Changes from v2:
+	- Added CONFIG_ARCH_AMx
 
-https://patchwork.kernel.org/patch/101890/
+ drivers/usb/musb/am3517.c    |   30 ++++++++++++++++++++++++++++++
+ drivers/usb/musb/musb_core.c |    2 ++
+ 2 files changed, 32 insertions(+), 0 deletions(-)
 
-Cheers,
-g.
+diff --git a/drivers/usb/musb/am3517.c b/drivers/usb/musb/am3517.c
+index b74e664..3299c66 100644
+--- a/drivers/usb/musb/am3517.c
++++ b/drivers/usb/musb/am3517.c
+@@ -515,3 +515,33 @@ void musb_platform_restore_context(struct musb_context_registers
+ 	phy_on();
+ }
+ #endif
++
++/* AM35x supports only 32bit read operation */
++void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
++{
++	void __iomem *fifo = hw_ep->fifo;
++	u32		val;
++	int		i;
++
++	/* Read for 32bit-aligned destination address */
++	if (likely((0x03 & (unsigned long) dst) == 0) && len >= 4) {
++		readsl(fifo, dst, len >> 2);
++		dst += len & ~0x03;
++		len &= 0x03;
++	}
++	/*
++	 * Now read the rest 1 to 3 bytes or complete length if
++	 * unaligned address.
++	 */
++	if (len > 4) {
++		for (i = 0; i < (len >> 2); i++) {
++			*(u32 *) dst = musb_readl(fifo, 0);
++			dst += 4;
++		}
++		len %= 4;
++	}
++	if (len > 0) {
++		val = musb_readl(fifo, 0);
++		memcpy(dst, &val, len);
++	}
++}
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 5f53ac1..e71049c 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -262,6 +262,7 @@ void musb_write_fifo(struct musb_hw_ep *hw_ep, u16 len, const u8 *src)
+ 	}
+ }
+ 
++#if !defined(CONFIG_ARCH_AM35x)
+ /*
+  * Unload an endpoint's FIFO
+  */
+@@ -299,6 +300,7 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+ 		readsb(fifo, dst, len);
+ 	}
+ }
++#endif
+ 
+ #endif	/* normal PIO */
+ 
+-- 
+1.6.2.4
 
->
-> =A0drivers/spi/omap2_mcspi.c | =A0 19 +++++++++++--------
-> =A01 files changed, 11 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index e0de0d0..0b35468 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -755,7 +755,6 @@ static void omap2_mcspi_cleanup(struct spi_device
-> *spi)
-> =A0 =A0 =A0 =A0struct omap2_mcspi_cs =A0 *cs;
->
-> =A0 =A0 =A0 =A0mcspi =3D spi_master_get_devdata(spi->master);
-> - =A0 =A0 =A0 mcspi_dma =3D &mcspi->dma_channels[spi->chip_select];
->
-> =A0 =A0 =A0 =A0if (spi->controller_state) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Unlink controller state from contex=
-t save list */
-> @@ -765,13 +764,17 @@ static void omap2_mcspi_cleanup(struct spi_devi=
-ce
-> *spi)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0kfree(spi->controller_state);
-> =A0 =A0 =A0 =A0}
->
-> - =A0 =A0 =A0 if (mcspi_dma->dma_rx_channel !=3D -1) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_free_dma(mcspi_dma->dma_rx_channel=
-);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mcspi_dma->dma_rx_channel =3D -1;
-> - =A0 =A0 =A0 }
-> - =A0 =A0 =A0 if (mcspi_dma->dma_tx_channel !=3D -1) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_free_dma(mcspi_dma->dma_tx_channel=
-);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mcspi_dma->dma_tx_channel =3D -1;
-> + =A0 =A0 =A0 if (spi->chip_select < spi->master->num_chipselect) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 mcspi_dma =3D &mcspi->dma_channels[spi-=
->chip_select];
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (mcspi_dma->dma_rx_channel !=3D -1) =
-{
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_free_dma(mcspi_dma=
-->dma_rx_channel);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mcspi_dma->dma_rx_chann=
-el =3D -1;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (mcspi_dma->dma_tx_channel !=3D -1) =
-{
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_free_dma(mcspi_dma=
-->dma_tx_channel);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mcspi_dma->dma_tx_chann=
-el =3D -1;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> =A0 =A0 =A0 =A0}
-> =A0}
->
->
-
-
-
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
