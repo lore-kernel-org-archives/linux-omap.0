@@ -1,62 +1,52 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] OMAP: DMTIMER: Ack pending interrupt always when stopping a timer
-Date: Tue, 25 May 2010 17:17:16 +0300
-Message-ID: <1274797036-21107-1-git-send-email-tero.kristo@nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: dss2 for-next BUG at drivers/video/omap2/dss/core.c:323!
+Date: Tue, 25 May 2010 15:49:18 +0300
+Message-ID: <1274791758.2265.79.camel@tubuntu.research.nokia.com>
+References: <AANLkTinS0irEdEzttaHd0n_w5Cs3h6Q44e9sXgcbDmNH@mail.gmail.com>
+	 <1274169334.2307.74.camel@tubuntu.research.nokia.com>
+	 <AANLkTilySmQn2w0royR2UXltWt4Y94AAU-EYXvny9Se1@mail.gmail.com>
+	 <AANLkTikEouEjWyu9De6hAweyEGXx6drV4E18zWyC_CRg@mail.gmail.com>
+	 <AANLkTimy4PLEJ7LtnO79nF_NbMUrpIvfhfGJeg-MUPl4@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28387 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753885Ab0EYMlt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 May 2010 08:41:49 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o4PCfcGf000541
-	for <linux-omap@vger.kernel.org>; Tue, 25 May 2010 07:41:48 -0500
-Received: from localhost.localdomain (sokoban.nmp.nokia.com [172.22.215.13])
-	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o4PCfhJr004974
-	for <linux-omap@vger.kernel.org>; Tue, 25 May 2010 15:41:43 +0300
-In-Reply-To: <>
-References: <>
+Received: from smtp.nokia.com ([192.100.122.233]:45111 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753102Ab0EYMuF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 May 2010 08:50:05 -0400
+In-Reply-To: <AANLkTimy4PLEJ7LtnO79nF_NbMUrpIvfhfGJeg-MUPl4@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext Robert Nelson <robertcnelson@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Contreras <felipe.contreras@gmail.com>, "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+On Mon, 2010-05-24 at 19:02 +0200, ext Robert Nelson wrote:
 
-The kernel timer queue is being run currently from a GP timer running in a one
-shot mode, which works in a way that when it expires, it will also stop.
-Usually during this situation, the interrupt handler will ack the interrupt,
-load a new value to the timer and start it again. During suspend, the
-situation is slightly different, as we disable interrupts just before
-timekeeping is suspended, which leaves a small window where the timer can
-expire before it is stopped, and will leave the interrupt flag pending.
-This pending interrupt will prevent ARM sleep entry, thus now we ack it always
-when we are attempting to stop a timer.
+> After 10mins, the display enters dpms mode (suspend) neither ssh or
+> serial activity will resume the display. (not a bug, usb
+> mouse/keyboard will of course awaken it..)
+> 
+> But when reboot is called, it doesn't handle the display correctly
+> when it's suspended..  By simply un-suspending the display from
+> suspend the bug goes away.. Not sure on the best method to detect this
+> situation, but the attached quick patch seems to fix it on my beagles
+> using generic_panel_disable...
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/plat-omap/dmtimer.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+Right, panel-generic tries to handle things a bit too simply.
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index c64875f..023d664 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -541,11 +541,13 @@ void omap_dm_timer_stop(struct omap_dm_timer *timer)
- 		  * timer is stopped
- 		  */
- 		udelay(3500000 / clk_get_rate(timer->fclk) + 1);
--		/* Ack possibly pending interrupt */
--		omap_dm_timer_write_reg(timer, OMAP_TIMER_STAT_REG,
--				OMAP_TIMER_INT_OVERFLOW);
- #endif
- 	}
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+	/* Ack possibly pending interrupt */
-+	omap_dm_timer_write_reg(timer, OMAP_TIMER_STAT_REG,
-+			OMAP_TIMER_INT_OVERFLOW);
-+#endif
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
- 
--- 
-1.5.4.3
+Your patch first powers on the display if it's suspended at disable
+time. This is not necessary.
+
+Also, mutexes should be added to all the functions that are called from
+outside.
+
+panel-taal.c tries to do these a bit better. I guess the locking and
+handling the dssdev->state could be copied quite directly from there. 
+
+I'm overloaded with work currently, so I can't make any promises when
+I'll get to do it, but patches are always accepted! =)
+
+ Tomi
+
 
