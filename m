@@ -1,63 +1,66 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 17:49:40 +0200
-Message-ID: <20100526174940.1140370d@schatten.dmk.lab>
-References: <1274482015-30899-1-git-send-email-arve@android.com>
-	<201005242049.18920.rjw@sisk.pl>
-	<87wrusvrqe.fsf@deeprootsystems.com>
-	<201005250138.16293.rjw@sisk.pl>
-	<1274863655.5882.4875.camel@twins>
-	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
-	<1274867106.5882.5090.camel@twins>
-	<20100526120242.5c9b73ad@schatten.dmk.lab>
-	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
-	<20100526133721.602633b2@schatten.dmk.lab>
-	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
-	<20100526142430.327ccbc4@schatten.dmk.lab>
-	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
-	<20100526171106.0e44a736@schatten.dmk.lab>
-	<1274886947.1674.1757.camel@laptop>
-	<20100526174049.5f803b4a@schatten.dmk.lab>
-	<1274888700.1674.1760.camel@laptop>
-	<20100526174735.2613c1d2@schatten.dmk.lab>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 12/17] drivers/video/omap2/displays: Add missing mutex_unlock
+Date: Wed, 26 May 2010 17:57:41 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1005261757240.23743@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100526174735.2613c1d2@schatten.dmk.lab>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mgw1.diku.dk ([130.225.96.91]:46275 "EHLO mgw1.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755491Ab0EZP5q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 May 2010 11:57:46 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-On Wed, 26 May 2010 17:47:35 +0200
-Florian Mickler <florian@mickler.org> wrote:
+From: Julia Lawall <julia@diku.dk>
 
-> On Wed, 26 May 2010 17:45:00 +0200
-> Peter Zijlstra <peterz@infradead.org> wrote:
-> 
-> > On Wed, 2010-05-26 at 17:40 +0200, Florian Mickler wrote:
-> > > On Wed, 26 May 2010 17:15:47 +0200
-> > > Peter Zijlstra <peterz@infradead.org> wrote:
-> > > 
-> > > > On Wed, 2010-05-26 at 17:11 +0200, Florian Mickler wrote:
-> > > > > I'm not saying that your argument is not valid. But why don't you look
-> > > > > at suspend blockers as a contract between userspace and kernelspace? An
-> > > > > Opt-In to the current guarantees the kernel provides in the non-suspend
-> > > > > case.
-> > > > 
-> > > > That's backwards.
-> > > 
-> > > I think that's the point of it. 
-> > 
-> > Apparently, and you're not accepting that we're telling you we think its
-> > a singularly bad idea. Alan seems to have the skill to clearly explain
-> > why, I suggest you re-read his emails again.
-> 
-> I'm sorry if I offend you. I indeed read Alan's emails. It's just they
-> have more content than yours. So it takes longer. 
-> 
-> Cheers,
-> Flo
+Add a mutex_unlock missing on the error paths.  The use of the mutex is
+balanced elsewhere in the file.
 
-p.s.: also they encourage me to think more before answering. 
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression E1;
+@@
+
+* mutex_lock(E1,...);
+  <+... when != E1
+  if (...) {
+    ... when != E1
+*   return ...;
+  }
+  ...+>
+* mutex_unlock(E1,...);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/video/omap2/displays/panel-acx565akm.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
+index 1f8eb70..07fbb8a 100644
+--- a/drivers/video/omap2/displays/panel-acx565akm.c
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -592,7 +592,7 @@ static int acx_panel_power_on(struct omap_dss_device *dssdev)
+ 	r = omapdss_sdi_display_enable(dssdev);
+ 	if (r) {
+ 		pr_err("%s sdi enable failed\n", __func__);
+-		return r;
++		goto fail_unlock;
+ 	}
+ 
+ 	/*FIXME tweak me */
+@@ -633,6 +633,8 @@ static int acx_panel_power_on(struct omap_dss_device *dssdev)
+ 	return acx565akm_bl_update_status(md->bl_dev);
+ fail:
+ 	omapdss_sdi_display_disable(dssdev);
++fail_unlock:
++	mutex_unlock(&md->mutex);
+ 	return r;
+ }
+ 
