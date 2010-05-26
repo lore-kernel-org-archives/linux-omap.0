@@ -1,7 +1,7 @@
 From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 17:47:35 +0200
-Message-ID: <20100526174735.2613c1d2@schatten.dmk.lab>
+Date: Wed, 26 May 2010 17:49:40 +0200
+Message-ID: <20100526174940.1140370d@schatten.dmk.lab>
 References: <1274482015-30899-1-git-send-email-arve@android.com>
 	<201005242049.18920.rjw@sisk.pl>
 	<87wrusvrqe.fsf@deeprootsystems.com>
@@ -19,39 +19,45 @@ References: <1274482015-30899-1-git-send-email-arve@android.com>
 	<1274886947.1674.1757.camel@laptop>
 	<20100526174049.5f803b4a@schatten.dmk.lab>
 	<1274888700.1674.1760.camel@laptop>
+	<20100526174735.2613c1d2@schatten.dmk.lab>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1274888700.1674.1760.camel@laptop>
+In-Reply-To: <20100526174735.2613c1d2@schatten.dmk.lab>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Florian Mickler <florian@mickler.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 26 May 2010 17:45:00 +0200
-Peter Zijlstra <peterz@infradead.org> wrote:
+On Wed, 26 May 2010 17:47:35 +0200
+Florian Mickler <florian@mickler.org> wrote:
 
-> On Wed, 2010-05-26 at 17:40 +0200, Florian Mickler wrote:
-> > On Wed, 26 May 2010 17:15:47 +0200
-> > Peter Zijlstra <peterz@infradead.org> wrote:
-> > 
-> > > On Wed, 2010-05-26 at 17:11 +0200, Florian Mickler wrote:
-> > > > I'm not saying that your argument is not valid. But why don't you look
-> > > > at suspend blockers as a contract between userspace and kernelspace? An
-> > > > Opt-In to the current guarantees the kernel provides in the non-suspend
-> > > > case.
-> > > 
-> > > That's backwards.
-> > 
-> > I think that's the point of it. 
+> On Wed, 26 May 2010 17:45:00 +0200
+> Peter Zijlstra <peterz@infradead.org> wrote:
 > 
-> Apparently, and you're not accepting that we're telling you we think its
-> a singularly bad idea. Alan seems to have the skill to clearly explain
-> why, I suggest you re-read his emails again.
+> > On Wed, 2010-05-26 at 17:40 +0200, Florian Mickler wrote:
+> > > On Wed, 26 May 2010 17:15:47 +0200
+> > > Peter Zijlstra <peterz@infradead.org> wrote:
+> > > 
+> > > > On Wed, 2010-05-26 at 17:11 +0200, Florian Mickler wrote:
+> > > > > I'm not saying that your argument is not valid. But why don't you look
+> > > > > at suspend blockers as a contract between userspace and kernelspace? An
+> > > > > Opt-In to the current guarantees the kernel provides in the non-suspend
+> > > > > case.
+> > > > 
+> > > > That's backwards.
+> > > 
+> > > I think that's the point of it. 
+> > 
+> > Apparently, and you're not accepting that we're telling you we think its
+> > a singularly bad idea. Alan seems to have the skill to clearly explain
+> > why, I suggest you re-read his emails again.
+> 
+> I'm sorry if I offend you. I indeed read Alan's emails. It's just they
+> have more content than yours. So it takes longer. 
+> 
+> Cheers,
+> Flo
 
-I'm sorry if I offend you. I indeed read Alan's emails. It's just they
-have more content than yours. So it takes longer. 
-
-Cheers,
-Flo
+p.s.: also they encourage me to think more before answering. 
