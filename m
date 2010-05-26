@@ -1,92 +1,110 @@
-From: Felipe Balbi <me@felipebalbi.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 18:33:47 +0300
-Message-ID: <20100526153346.GB17655@gandalf>
-References: <1274863655.5882.4875.camel@twins>
- <AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
- <1274867106.5882.5090.camel@twins>
- <20100526120242.5c9b73ad@schatten.dmk.lab>
- <AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
- <20100526133721.602633b2@schatten.dmk.lab>
- <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
- <20100526142430.327ccbc4@schatten.dmk.lab>
- <20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
- <alpine.LFD.2.00.1005261521510.2995@localhost.localdomain>
-Reply-To: me@felipebalbi.com
+Date: Wed, 26 May 2010 16:45:14 +0100
+Message-ID: <20100526164514.5f90c677@lxorguk.ukuu.org.uk>
+References: <1274482015-30899-1-git-send-email-arve@android.com>
+	<201005242049.18920.rjw@sisk.pl>
+	<87wrusvrqe.fsf@deeprootsystems.com>
+	<201005250138.16293.rjw@sisk.pl>
+	<1274863655.5882.4875.camel@twins>
+	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
+	<1274867106.5882.5090.camel@twins>
+	<20100526120242.5c9b73ad@schatten.dmk.lab>
+	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
+	<20100526133721.602633b2@schatten.dmk.lab>
+	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
+	<20100526142430.327ccbc4@schatten.dmk.lab>
+	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
+	<20100526171106.0e44a736@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1005261521510.2995@localhost.localdomain>
+In-Reply-To: <20100526171106.0e44a736@schatten.dmk.lab>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Florian Mickler <florian@mickler.org>
+Cc: Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+> I'm not saying that your argument is not valid. But why don't you look
+> at suspend blockers as a contract between userspace and kernelspace? An
+> Opt-In to the current guarantees the kernel provides in the non-suspend
+> case.
 
-On Wed, May 26, 2010 at 03:46:55PM +0200, Thomas Gleixner wrote:
-> > > Really, what are you getting at? Do you deny that there are programs,
-> > > that prevent a device from sleeping? (Just think of the bouncing
-> > > cows app)
-> > > 
-> > > And if you have two kernels, one with which your device is dead after 1
-> > > hour and one with which your device is dead after 10 hours. Which would
-> > > you prefer? I mean really... this is ridiculous. 
-> > 
-> > The problem you have is that this is policy. If I have the device wired
-> > to a big screen and I want cows bouncing on it I'll be most upset if
-> > instead it suspends. What you are essentially arguing for is for the
-> > kernel to disobey the userspace. It's as ridiculous (albeit usually less
-> > damaging) as a file system saying "Ooh thats a rude file name, the app
-> > can't have meant it, I'll put your document soemwhere else"
-> > 
-> > The whole API feels wrong to me. It's breaking rule #1 of technology "You
-> > cannot solve a social problem with technology". In this case you have a
-> > social/economic problem which is crap code. You solve it with an
-> > economics solution - creative incentives not to produce crap code like
-> > boxes that keep popping up saying "App XYZ is using all your battery" and
-> > red-amber-green powermeter scores in app stores.
-> 
-> I completely agree. 
-> 
-> We have already proven that the social pressure on crappy applications
-> works. When NOHZ was merged into the kernel we got no effect at all
-> because a big percentage of user space applications just used timers
-> at will and without any thoughts, also it unveiled busy polling and
-> other horrible coding constructs. So what happened ? Arjan created
-> powertop which lets the user analyse the worst offenders in his
-> system. As a result the offending apps got fixed rapidly simply
-> because no maintainer wanted to be on top of the powertop sh*tlist.
-> 
-> In the mobile app space it's basically the same problem. Users can
-> influence the app writers simply by voting and setting up public lists
-> of apps which are crappy or excellent. All it needs is a nice powertop
-> tool for the phone which allows the users to identify the crap on
-> their phones. That provides much more incentive - especially for
-> commercial players - to fix their crappy code.
-> 
-> Adding that sys_try_to_fix_crappy_userspace_code() API to the kernel
-> is just counter productive as it signals to the app provider: Go
-> ahead, keep on coding crap!
-> 
-> That's not a solution, that's just capitulation. 
-> 
-> It's absurd that some folks believe that giving up the most efficient
-> tool to apply pressure to crappy app providers is a good idea.
+It is a contract - but not the right one. You are removing autonomy from
+the kernel when only the kernel can measure the full picture and when the
+kernel is actually supposed to be responsible for resource management.
 
-I couldn't agree more with both of you. I also have stated that a
-powertop application with a fancy UI would do the job. Also building
-some sort of power estimations on the SDK would allow the developer the
-have fast feedback about potential power consumption caused by his app
-on the device.
+> On the other hand, applications can say, they don't need that much
+> power and userspace guaranties and not take a suspend blocker.
 
-On top of that, the app stores can use the same power estimation
-"technology" to rate apps automatically and even reject apps that are
-waaaay too badly written.
+Even the the model is wrong.
 
-I also feel that kernel shouldn't have to deal, fix, hide bad behavior
-from apps.
+> I don't think opportunistic suspend is a policy decision by the kernel.
+> it is something new. Something which currently only the android
 
--- 
-balbi
+Disagree. It's an arbitary and misleading divide that happens to reflect
+a specific vendors current phones. Worse yet it may not reflect their own
+future products. It assumes for example that their is some power level
+that is 'suspend' that is singular, application understood and can be
+effectively user space managed. Big assumptions and not ones that seem to
+be sensible.
+
+It also breaks another rule - when the hardware changes your application
+blocker policies will be wrong. Do you want multiple hand optimised
+copies of each app ? Take a look at what happened to CPU designs where
+the assumption was you'd recompile the app for each CPU version to get
+any useful performance.
+
+If you are instead expressing it as "must be able to respond in time X"
+and "must be able to wake up from an event on an active device" then your
+interface is generic and hardware independant.
+
+If "bouncing cows" says 'need to wake up every 0.3 seconds" you want the
+kernel to decide how best to do that. It will vary by hardware. On todays
+desktop PC thats probably a low power state limit. On some current
+embedded hardware it might be a special deep sleep mode. On one or two
+devices it might be 'suspend'. It might also be that the properties have
+been set to 2 seconds already so it gets told it can't have 0.3.
+
+The app cannot be allowed to know platform specific stuff or your
+portability comes apart and you end up with a disaster area where each
+app only comes on a subset of devices. Express the requirement right and
+you get a simple clean interface that continues to work.
+
+Express it wrong and you get a mess.
+
+> userspace implements / supports. If you don't want to suspend while
+> looking at the bouncing-cow, you have to take a suspend blocker and
+> make yourself a user-visible power-eater, or don't do 
+
+Thats a very big hammer and it doesn't express what I actually want,
+which is to allow the cows to run as efficiently as possible.
+> 
+> echo "opportunistic" > /sys/power/policy 
+> 
+> in the first place.
+
+But you can do this properly by having a per process idle requirement,
+and that can encompass things like hard real time as well (or even
+gaming). The suspend blockers break all the global policy, don't solve
+real time and don't allow for sensible expansion models. They don't solve
+our existing wakeup versus device problems either.
+
+> How does this address the loss of wakeup events while using suspend? 
+> (For example the 2 issues formulated by Alan Stern in [1])
+
+In this environment the problem cannot occur in the first place unless
+there are kernel code bugs, if there are then they are in GPL code and can
+be fixed. But you are mixing up interfaces and implementations which I
+find is usually a bad idea. Doing the right thing badly gives you an
+interface to an implementation you can later fix. Doing the wrong thing
+well leaves you stuck down a hole.
+
+> p.s.: 
+> dmk@schatten /usr/src/linux $ grep -r "setpidle" .
+
+Yes I know - no point having a new function which has an in use name is
+there ? It's trivial to add per process idling or wakeup requirements.
+
+Alan
