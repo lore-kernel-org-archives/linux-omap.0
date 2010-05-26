@@ -1,10 +1,8 @@
 From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 15:19:45 +0200
-Message-ID: <20100526151945.1b3813ac@schatten.dmk.lab>
-References: <1274482015-30899-1-git-send-email-arve@android.com>
-	<201005242049.18920.rjw@sisk.pl>
-	<87wrusvrqe.fsf@deeprootsystems.com>
+Date: Wed, 26 May 2010 15:30:52 +0200
+Message-ID: <20100526153052.3b95621d@schatten.dmk.lab>
+References: <87wrusvrqe.fsf@deeprootsystems.com>
 	<201005250138.16293.rjw@sisk.pl>
 	<1274863655.5882.4875.camel@twins>
 	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
@@ -14,51 +12,40 @@ References: <1274482015-30899-1-git-send-email-arve@android.com>
 	<20100526133721.602633b2@schatten.dmk.lab>
 	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
 	<20100526142430.327ccbc4@schatten.dmk.lab>
-	<AANLkTikQmd8IxZlFELUGmVJh59DpXrqIS_yjmMLuaj0D@mail.gmail.com>
+	<20100526122932.GB1990@nokia.com>
+	<20100526143323.7c6f8705@schatten.dmk.lab>
+	<1274877689.27810.287.camel@twins>
+	<20100526150348.54ea29c7@schatten.dmk.lab>
+	<1274879247.27810.390.camel@twins>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:57395 "EHLO mx01.d-labs.de"
+Received: from ist.d-labs.de ([213.239.218.44]:40916 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752691Ab0EZNTu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 May 2010 09:19:50 -0400
-In-Reply-To: <AANLkTikQmd8IxZlFELUGmVJh59DpXrqIS_yjmMLuaj0D@mail.gmail.com>
+	id S1752691Ab0EZNa5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 May 2010 09:30:57 -0400
+In-Reply-To: <1274879247.27810.390.camel@twins>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vitaly Wool <vitalywool@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: felipe.balbi@nokia.com, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Wed, 26 May 2010 14:55:31 +0200
-Vitaly Wool <vitalywool@gmail.com> wrote:
+On Wed, 26 May 2010 15:07:27 +0200
+Peter Zijlstra <peterz@infradead.org> wrote:
 
-> On Wed, May 26, 2010 at 2:24 PM, Florian Mickler <florian@mickler.org> wrote:
+> On Wed, 2010-05-26 at 15:03 +0200, Florian Mickler wrote:
+> > The kernel can not win if it does not try to integrate any use of it.
 > 
-> > Really, what are you getting at? Do you deny that there are programs,
-> > that prevent a device from sleeping? (Just think of the bouncing
-> > cows app)
-> >
-> > And if you have two kernels, one with which your device is dead after 1
-> > hour and one with which your device is dead after 10 hours. Which would
-> > you prefer? I mean really... this is ridiculous.
+> If we'd integrate every patch that came to lkml, you'd run away
+> screaming.
 > 
-> You almost always need to "hack" the mainline software for a
-> production system. So do it here as well. Make sure the hack is well
-> isolated and local. You can even submit it to the mainline, better as
-> a configuration option, _unless_ it is a *framework* that provokes
-> writing code in an ugly and unsafe way.
-> 
-> ~Vitaly
+> We most certainly do not want to integrate _any_ use.
 
-I don't think that the in-kernel suspend block is a bad idea. 
+We most certainly do want to integrate any use that is not harmful to
+others.
 
-You could probably use the suspend-blockers unconditionally in the
-suspend framework to indicate if a suspend is possible or not.
-Regardless of opportunistic suspend or not. This way, you don't have to
-try-and-fail on a suspend request and thus making suspending
-potentially more robust or allowing for a "suspend as soon as
-possible" semantic (which is probably a good idea, if you have to grab
-your laptop in a hurry to get away).
+I don't buy the argument that this is harmful. 
 
 Cheers,
 Flo
