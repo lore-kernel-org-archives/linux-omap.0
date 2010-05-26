@@ -1,79 +1,66 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC] Initial attempt to make ARM use LMB
-Date: Wed, 26 May 2010 22:40:37 +0100
-Message-ID: <20100526214037.GB16418@n2100.arm.linux.org.uk>
-References: <20100325233248.GM24984@n2100.arm.linux.org.uk> <20100522215848.GB29889@n2100.arm.linux.org.uk> <20100526004418.GM9645@atomide.com> <20100526075059.GA25435@n2100.arm.linux.org.uk> <20100526135128.GN9645@atomide.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 26 May 2010 23:09:43 +0100
+Message-ID: <20100526230943.6f5e5b37@lxorguk.ukuu.org.uk>
+References: <20100526171106.0e44a736@schatten.dmk.lab>
+	<alpine.LFD.2.00.1005261829540.2995@localhost.localdomain>
+	<20100526215409.33296d94@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55873 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753601Ab0EZVky (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 17:40:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20100526135128.GN9645@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100526215409.33296d94@schatten.dmk.lab>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Florian Mickler <florian@mickler.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-On Wed, May 26, 2010 at 06:51:29AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100526 00:45]:
-> > On Tue, May 25, 2010 at 05:44:18PM -0700, Tony Lindgren wrote:
-> > 
-> > > After applying the next patch in your lmb branch "ARM: OMAP: Convert
-> > > to use ->reserve method to reserve boot time memory" tux still works
-> > > on 5912osk, but not on n900. The difference is that osk5912 uses
-> > > the old omapfb code.
-> > 
-> > I guess this is because I don't have board-n900.c in my tree.  All OMAP
-> > boards need a ".reserve = omap_reserve," line added in their machine
-> > descriptor.
+> > suspend blockers are completely backwards as they basically disable
+> > the kernels ability to do resource management.
 > 
-> It's there but well hidden, board-rx51.c is the one for n900.
->  
-> > I just noticed that board-n8x0.c contains more than one machine descriptor,
-> > which I've now fixed up.
-> 
-> OK good catch.
-> 
-> > > Anyways, I've picked the patches from lmb branch up to the one below
-> > > into omap-testing. Will add more of them once we get them working.
-> > 
-> > You should now be able to pick all but the last patch.
-> 
-> Yeah I'll do that once the dss2 code has been verified to work.
+> I don't think this is a defect in the approach but the point of it. 
 
-It'd help with this patch - it seems rx51 needs some additional stuff.
-Any other OMAP platforms with this kind of thing?
+I think it's both. It's the point of it, and that itself is a defect. Its
+designed wrongly.
 
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index 3bd956f..e3a42d1 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -144,17 +144,22 @@ static void __init rx51_init(void)
- static void __init rx51_map_io(void)
- {
- 	omap2_set_globals_343x();
--	rx51_video_mem_init();
- 	omap34xx_map_common_io();
- }
- 
-+static void __init rx51_reserve(void)
-+{
-+	rx51_video_mem_init();
-+	omap_reserve();
-+}
-+
- MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
- 	/* Maintainer: Lauri Leukkunen <lauri.leukkunen@nokia.com> */
- 	.phys_io	= 0x48000000,
- 	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= rx51_map_io,
--	.reserve	= omap_reserve,
-+	.reserve	= rx51_reserve,
- 	.init_irq	= rx51_init_irq,
- 	.init_machine	= rx51_init,
- 	.timer		= &omap_timer,
+> drivers code is needed anyway. What looses the kernel by implementing
+> suspend blockers, and later a more finegrained approach and mapping the
+> userspace part of suspend blockers on that finegrained approach later
+> on?
 
+The Linux approach is to do the job right. That means getting the
+interface right and so it works across all the interested parties (or as
+close as we can get).
+
+> >   - how much delay of wakeups is tolerated (missing interface)
+> 
+> Doesn't solve the segregation problem and is probably overkill for most
+> applications. I see this as an orthogonal thing (i.e. not
+> affecting this merge). 
+
+The key question that matters for suspend management is 'what wakeup
+delay is tolerated'. So it's absolutely fundamental.
+
+> True. But I wouldnt say, that it is the linux kernel who should force
+> this politics onto its users.
+
+This is the Linux way of doing things. It's like the GPL and being
+shouted at by Linus. They are things you accept when you choose to take
+part. Google chose to use Linux, if they want a feature upstream then the
+way you get it there is to figure out how to solve the real problem and
+make *everyone* (within reason) happy.
+
+We now have suggestions how to do the job properly so the right thing is
+probably to go and explore those suggestions not merge crap.
+
+Merging crap won't help anyway. The rest of the kernel community can
+still simply stonewall those interfaces, and a volunteer community has
+ways of dealing with abuse of process, notably by simply not getting
+around to, or implementing things directly contrary to the crap bits.
+
+So it's not even in the interest of people to play political games. Even
+if you get away with in the short term the people who rely on the junk
+will end up out on a limb and holding the baby when the crap hits the fan
+(see reiserfs)
+
+Alan
