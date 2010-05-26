@@ -1,51 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] Initial attempt to make ARM use LMB
-Date: Wed, 26 May 2010 06:51:29 -0700
-Message-ID: <20100526135128.GN9645@atomide.com>
-References: <20100325233248.GM24984@n2100.arm.linux.org.uk>
- <20100522215848.GB29889@n2100.arm.linux.org.uk>
- <20100526004418.GM9645@atomide.com>
- <20100526075059.GA25435@n2100.arm.linux.org.uk>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 26 May 2010 10:38:50 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1005261033440.1961-100000@iolanthe.rowland.org>
+References: <20100526151945.1b3813ac@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55282 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754282Ab0EZNvl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 09:51:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20100526075059.GA25435@n2100.arm.linux.org.uk>
+Received: from iolanthe.rowland.org ([192.131.102.54]:45858 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755340Ab0EZOix (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 10:38:53 -0400
+In-Reply-To: <20100526151945.1b3813ac@schatten.dmk.lab>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Florian Mickler <florian@mickler.org>
+Cc: Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [100526 00:45]:
-> On Tue, May 25, 2010 at 05:44:18PM -0700, Tony Lindgren wrote:
+On Wed, 26 May 2010, Florian Mickler wrote:
+
+> I don't think that the in-kernel suspend block is a bad idea. 
 > 
-> > After applying the next patch in your lmb branch "ARM: OMAP: Convert
-> > to use ->reserve method to reserve boot time memory" tux still works
-> > on 5912osk, but not on n900. The difference is that osk5912 uses
-> > the old omapfb code.
-> 
-> I guess this is because I don't have board-n900.c in my tree.  All OMAP
-> boards need a ".reserve = omap_reserve," line added in their machine
-> descriptor.
+> You could probably use the suspend-blockers unconditionally in the
+> suspend framework to indicate if a suspend is possible or not.
 
-It's there but well hidden, board-rx51.c is the one for n900.
- 
-> I just noticed that board-n8x0.c contains more than one machine descriptor,
-> which I've now fixed up.
+That's not how it works.  Drivers aren't supposed to abort
+unconditional suspend -- not without a really good reason (for example,
+the device received a wakeup event before it was fully suspended).  In
+short, suspends should be considered to be _always_ possible.
 
-OK good catch.
+> Regardless of opportunistic suspend or not. This way, you don't have to
+> try-and-fail on a suspend request and thus making suspending
+> potentially more robust or allowing for a "suspend as soon as
+> possible" semantic (which is probably a good idea, if you have to grab
+> your laptop in a hurry to get away).
 
-> > Anyways, I've picked the patches from lmb branch up to the one below
-> > into omap-testing. Will add more of them once we get them working.
-> 
-> You should now be able to pick all but the last patch.
+That's different.  Suspend blockers could block (not abort!) regular 
+suspends, just as they do opportunistic suspends.
 
-Yeah I'll do that once the dss2 code has been verified to work.
+But why should they?  I mean, if userspace wants to initiate a suspend
+that is capable of being blocked by a kernel suspend blocker, then all
+it has to do is initiate an opportunistic suspend instead of a normal
+suspend.
 
-Regards,
+Alan Stern
 
-Tony
