@@ -1,85 +1,65 @@
-From: Linus WALLEIJ <linus.walleij@stericsson.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Wed, 26 May 2010 09:23:47 +0200
-Message-ID: <CEE6BB42CAD6E947908279175AF8470A025A7D7DC4@EXDCVYMBSTM006.EQ1STM.local>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<20100503180741.GB2098@rakim.wolfsonmicro.main>
-	<201005032318.35383.rjw@sisk.pl> <87sk68r1zh.fsf@deeprootsystems.com>
-	<s2qd6200be21005031709r28420f0ezf3cf286517ee9114@mail.gmail.com>
-	<alpine.DEB.2.00.1005141422110.3348@utopia.booyaka.com>
-	<AANLkTinyNYFwM4QJKPunlvK-ATJwSYVXGayeZIR9izx2@mail.gmail.com>
-	<alpine.DEB.2.00.1005172018380.27473@utopia.booyaka.com>
-	<AANLkTinOFSVHnufbVKIei0KMbfkVvDgLVDRHkCldagfY@mail.gmail.com>
-	<alpine.DEB.2.00.1005250050060.13376@utopia.booyaka.com>
-	<AANLkTilj79bWWIxg-g6OmLtk37zaAdjntoJAfZPBivAV@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC] Initial attempt to make ARM use LMB
+Date: Wed, 26 May 2010 08:50:59 +0100
+Message-ID: <20100526075059.GA25435@n2100.arm.linux.org.uk>
+References: <20100325233248.GM24984@n2100.arm.linux.org.uk> <20100522215848.GB29889@n2100.arm.linux.org.uk> <20100526004418.GM9645@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <AANLkTilj79bWWIxg-g6OmLtk37zaAdjntoJAfZPBivAV@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: =?Windows-1252?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54071 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933376Ab0EZHvN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 03:51:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20100526004418.GM9645@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-[Arve wrote]
-> On Tue, May 25, 2010 at 2:41 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> > On Mon, 17 May 2010, Arve Hj=F8nnev=E5g wrote:
-> >>
-> >> How do you know if the work being done while suspending is work that
-> >> is needed to suspend or work that should abort suspend?
-> >
-> > Consider a suspending system in which all "untrusted" processes have be=
-en
-> > placed into TASK_INTERRUPTIBLE state and have had their timers
-> > disabled.[2] The only remaining work to do on the system is work that
-> > needs to be done as part of the suspend process, or work that is part of
-> > a
-> > "trusted" process or the kernel. =A0If the suspend needs to be aborted =
-due
-> > to the arrival of an event, this can be handled as part of the standard
-> > suspend process (described below).
-> =
+On Tue, May 25, 2010 at 05:44:18PM -0700, Tony Lindgren wrote:
+> > So, below is a patch to sanitize the code in arch/arm/plat-omap/fb.c.
+> > The logic in this file is rather convoluted, but essentially:
+> 
+> I've tried the patch below with the patches from your lmb branch
+> up to this one and I can see tux on my osk5912 and n900:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-> That means modifying all kernel code that would use suspend blockers
-> to abort suspend by returning an error from suspend instead. How is
-> this better than using suspend blockers?
+Interesting patch name!
 
-It will mean that the same API is used for blocking suspend in
-regular suspend/resume, runtime PM runtime_suspend/runtime_resume
-and now also suspend blockers, right? So only one code path for
-drivers that want to support both, no?
+> After applying the next patch in your lmb branch "ARM: OMAP: Convert
+> to use ->reserve method to reserve boot time memory" tux still works
+> on 5912osk, but not on n900. The difference is that osk5912 uses
+> the old omapfb code.
 
-That'll be a bit more elegant for drivers that want to support
-both runtime PM and suspend blockers I believe.
+I guess this is because I don't have board-n900.c in my tree.  All OMAP
+boards need a ".reserve = omap_reserve," line added in their machine
+descriptor.
 
-Overall as a driver writer I'm quite confused at this point, if
-I have a driver X, how is that code going to look if it is going
-to support both runtime PM *and* suspend blockers? I don't say
-it has to support both mechanisms in parallell, I'm even fine
-with putting it in #ifdef:s, but how will the source code look?
-A real-world example on a simple driver out of the Motorola Droid
-git or so would help a lot.
+I just noticed that board-n8x0.c contains more than one machine descriptor,
+which I've now fixed up.
 
-It's quite relevant since e.g. all OMAP drivers will need this
-modification to be used with Android-like systems, and at
-ST-Ericsson we will need both runtime PM and suspend blockers for
-our drivers as well. It will as a consequence affect the drivers
-for all ARM reference boards since we use the drivers for ARM
-PrimeCells. etc...
+> Then, looks like reordering of the patches now causes patch
+> "ARM: initial LMB trial" to fail with:
+> 
+> arch/arm/mm/init.c:301: error: conflicting types for 'bootmem_init'
+> arch/arm/mm/mm.h:32: error: previous declaration of 'bootmem_init' was here
+> arch/arm/mm/init.c: In function 'bootmem_init':
+> arch/arm/mm/init.c:312: error: 'mdesc' undeclared (first use in this function)
+> arch/arm/mm/init.c:312: error: (Each undeclared identifier is reported only once
+> arch/arm/mm/init.c:312: error: for each function it appears in.)
+> make[1]: *** [arch/arm/mm/init.o] Error 1
 
-Now if this mechanism is going in, my main interest is that there
-is some clearly cut way and design pattern for supporting both
-runtime PM and suspend blocks.
+Now fixed, thanks.
 
-Yours,
-Linus Walleij
+> Also, the last patch in lmb branch "ARM: use LMB to allocate system
+> memory MMIO resource structures" causes both osk5912 and n900
+> to hang very early. Maybe I'm missing some patch again..
+
+Hmm, I'll take a look later today.
+
+> Anyways, I've picked the patches from lmb branch up to the one below
+> into omap-testing. Will add more of them once we get them working.
+
+You should now be able to pick all but the last patch.
