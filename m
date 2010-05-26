@@ -1,82 +1,85 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCHv3 3/3] omap: rx51: Add supply and data for the tpa6130a2 headphone amplifier
-Date: Wed, 26 May 2010 10:30:17 +0300
-Message-ID: <1274859017-19509-4-git-send-email-jhnikula@gmail.com>
-References: <1274859017-19509-1-git-send-email-jhnikula@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:65325 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754129Ab0EZHaF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 03:30:05 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so152498eyd.5
-        for <linux-omap@vger.kernel.org>; Wed, 26 May 2010 00:30:03 -0700 (PDT)
-In-Reply-To: <1274859017-19509-1-git-send-email-jhnikula@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Linus WALLEIJ <linus.walleij@stericsson.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Wed, 26 May 2010 09:23:47 +0200
+Message-ID: <CEE6BB42CAD6E947908279175AF8470A025A7D7DC4@EXDCVYMBSTM006.EQ1STM.local>
+References: <1272667021-21312-1-git-send-email-arve@android.com>
+	<20100503180741.GB2098@rakim.wolfsonmicro.main>
+	<201005032318.35383.rjw@sisk.pl> <87sk68r1zh.fsf@deeprootsystems.com>
+	<s2qd6200be21005031709r28420f0ezf3cf286517ee9114@mail.gmail.com>
+	<alpine.DEB.2.00.1005141422110.3348@utopia.booyaka.com>
+	<AANLkTinyNYFwM4QJKPunlvK-ATJwSYVXGayeZIR9izx2@mail.gmail.com>
+	<alpine.DEB.2.00.1005172018380.27473@utopia.booyaka.com>
+	<AANLkTinOFSVHnufbVKIei0KMbfkVvDgLVDRHkCldagfY@mail.gmail.com>
+	<alpine.DEB.2.00.1005250050060.13376@utopia.booyaka.com>
+	<AANLkTilj79bWWIxg-g6OmLtk37zaAdjntoJAfZPBivAV@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <AANLkTilj79bWWIxg-g6OmLtk37zaAdjntoJAfZPBivAV@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: =?Windows-1252?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-With these and upcoming change to tpa6130a2 driver it's possible to add
-support for the TPA6130A2 headphone amplifier.
+[Arve wrote]
+> On Tue, May 25, 2010 at 2:41 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Mon, 17 May 2010, Arve Hj=F8nnev=E5g wrote:
+> >>
+> >> How do you know if the work being done while suspending is work that
+> >> is needed to suspend or work that should abort suspend?
+> >
+> > Consider a suspending system in which all "untrusted" processes have be=
+en
+> > placed into TASK_INTERRUPTIBLE state and have had their timers
+> > disabled.[2] The only remaining work to do on the system is work that
+> > needs to be done as part of the suspend process, or work that is part of
+> > a
+> > "trusted" process or the kernel. =A0If the suspend needs to be aborted =
+due
+> > to the arrival of an event, this can be handled as part of the standard
+> > suspend process (described below).
+> =
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
----
-v3:
-- No functional changes. Rebased on top of 1/3.
+> That means modifying all kernel code that would use suspend blockers
+> to abort suspend by returning an error from suspend instead. How is
+> this better than using suspend blockers?
 
-v2:
-- Rebased on top of 7b93a0d
-- Only Vdd supply added as the CPVSS turned out to be miss defined in
-  tpa6130a2. Thanks to Eduardo Valentin <eduardo.valentin@nokia.com> for
-  noticing.
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+It will mean that the same API is used for blocking suspend in
+regular suspend/resume, runtime PM runtime_suspend/runtime_resume
+and now also suspend blockers, right? So only one code path for
+drivers that want to support both, no?
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 0f9d2e9..87e00b8 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -34,6 +34,7 @@
- #include <plat/gpmc-smc91x.h>
- 
- #include <sound/tlv320aic3x.h>
-+#include <sound/tpa6130a2-plat.h>
- 
- #include "mux.h"
- #include "hsmmc.h"
-@@ -315,6 +316,8 @@ static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
- 	/* tlv320aic3x analog supplies */
- 	REGULATOR_SUPPLY("AVDD", "2-0018"),
- 	REGULATOR_SUPPLY("DRVDD", "2-0018"),
-+	/* tpa6130a2 */
-+	REGULATOR_SUPPLY("Vdd", "2-0060"),
- 	/* Keep vmmc as last item. It is not iterated for newer boards */
- 	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
- };
-@@ -692,6 +695,11 @@ static struct aic3x_pdata rx51_aic3x_data __initdata = {
- 	.gpio_reset		= 60,
- };
- 
-+static struct tpa6130a2_platform_data rx51_tpa6130a2_data __initdata = {
-+	.id			= TPA6130A2,
-+	.power_gpio		= 98,
-+};
-+
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_1[] = {
- 	{
- 		I2C_BOARD_INFO("twl5030", 0x48),
-@@ -706,6 +714,10 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
- 		.platform_data = &rx51_aic3x_data,
- 	},
-+	{
-+		I2C_BOARD_INFO("tpa6130a2", 0x60),
-+		.platform_data = &rx51_tpa6130a2_data,
-+	}
- };
- 
- static int __init rx51_i2c_init(void)
--- 
-1.7.1
+That'll be a bit more elegant for drivers that want to support
+both runtime PM and suspend blockers I believe.
 
+Overall as a driver writer I'm quite confused at this point, if
+I have a driver X, how is that code going to look if it is going
+to support both runtime PM *and* suspend blockers? I don't say
+it has to support both mechanisms in parallell, I'm even fine
+with putting it in #ifdef:s, but how will the source code look?
+A real-world example on a simple driver out of the Motorola Droid
+git or so would help a lot.
+
+It's quite relevant since e.g. all OMAP drivers will need this
+modification to be used with Android-like systems, and at
+ST-Ericsson we will need both runtime PM and suspend blockers for
+our drivers as well. It will as a consequence affect the drivers
+for all ARM reference boards since we use the drivers for ARM
+PrimeCells. etc...
+
+Now if this mechanism is going in, my main interest is that there
+is some clearly cut way and design pattern for supporting both
+runtime PM and suspend blocks.
+
+Yours,
+Linus Walleij
