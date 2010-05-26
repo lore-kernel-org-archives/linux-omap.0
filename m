@@ -1,373 +1,281 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Tue, 25 May 2010 16:08:00 -0700
-Message-ID: <AANLkTilj79bWWIxg-g6OmLtk37zaAdjntoJAfZPBivAV@mail.gmail.com>
-References: <1272667021-21312-1-git-send-email-arve@android.com>
-	<20100503180741.GB2098@rakim.wolfsonmicro.main>
-	<201005032318.35383.rjw@sisk.pl> <87sk68r1zh.fsf@deeprootsystems.com>
-	<s2qd6200be21005031709r28420f0ezf3cf286517ee9114@mail.gmail.com>
-	<alpine.DEB.2.00.1005141422110.3348@utopia.booyaka.com>
-	<AANLkTinyNYFwM4QJKPunlvK-ATJwSYVXGayeZIR9izx2@mail.gmail.com>
-	<alpine.DEB.2.00.1005172018380.27473@utopia.booyaka.com>
-	<AANLkTinOFSVHnufbVKIei0KMbfkVvDgLVDRHkCldagfY@mail.gmail.com>
-	<alpine.DEB.2.00.1005250050060.13376@utopia.booyaka.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] touchscreen: ads7846: please don't touch free'd memory
+Date: Tue, 25 May 2010 17:09:13 -0700 (PDT)
+Message-ID: <391357.24231.qm@web180309.mail.gq1.yahoo.com>
+References: <8739xflkn5.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <alpine.DEB.2.00.1005250050060.13376@utopia.booyaka.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, linux-input@vger.kernel.org, linux-pm@lists.linux-foundation.org, Liam Girdwood <lrg@slimlogic.co.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Daniel Walker <dwalker@codeaurora.org>, Theodore Ts'o <tytso@mit.edu>, =?ISO-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>, Brian Swetland <swetland@goo>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8739xflkn5.fsf@deeprootsystems.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Michael Roth <mroth@nessie.de>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, Mike Frysinger <vapier@gentoo.org>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, May 25, 2010 at 2:41 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hello Arve,
->
-> I regret the delay in responding.
->
-> On Mon, 17 May 2010, Arve Hj=F8nnev=E5g wrote:
->
->> On Mon, May 17, 2010 at 7:26 PM, Paul Walmsley <paul@pwsan.com> wrote:
->> > On Fri, 14 May 2010, Arve Hj=F8nnev=E5g wrote:
->> >> On Fri, May 14, 2010 at 1:27 PM, Paul Walmsley <paul@pwsan.com> wrote:
->> >> > On Mon, 3 May 2010, Arve Hj=F8nnev=E5g wrote:
->> >> >
->> >> >> No, suspend blockers are mostly used to ensure wakeup events are n=
-ot
->> >> >> ignored, and to ensure tasks triggered by these wakeup events
->> >> >> complete.
->> >> >
->> >> > Standard Linux systems don't need these,
->> >>
->> >> If you don't want to lose wakeup events they do. =A0Standard Linux sy=
-stems
->> >> support suspend, but since they usually don't have a lot of wakeup
->> >> events you don't run into a lot of problems.
->> >
->> > Sorry, I don't follow. =A0What causes wakeup events to be lost? =A0Is =
-it the
->> > current opportunistic suspend governor? =A0On OMAP Linux systems, as f=
-ar as
->> > I know, we don't lose any wakeup events.
->> >
->> Have you used suspend?
->
-> I see. =A0You are referring to wakeup event loss/delay caused by the full
-> system suspend process (e.g., kernel/power/suspend.c:enter_state()
-> onwards[1]), correct? =A0This message addresses this at the end of the ma=
-il.
->
->> >> > because the scheduler just keeps the system running as long as there
->> >> > is work to be done.
->> >>
->> >> That is only true if you never use suspend.
->> >
->> > If, instead of the current Android opportunistic suspend governor, the
->> > system entered suspend from pm_idle(), wouldn't that keep the system
->> > running as long as there is work to done?
->> >
->> How do you know if the work being done while suspending is work that
->> is needed to suspend or work that should abort suspend?
->
-> Consider a suspending system in which all "untrusted" processes have been
-> placed into TASK_INTERRUPTIBLE state and have had their timers
-> disabled.[2] The only remaining work to do on the system is work that
-> needs to be done as part of the suspend process, or work that is part of a
-> "trusted" process or the kernel. =A0If the suspend needs to be aborted due
-> to the arrival of an event, this can be handled as part of the standard
-> suspend process (described below).
->
 
-That means modifying all kernel code that would use suspend blockers
-to abort suspend by returning an error from suspend instead. How is
-this better than using suspend blockers?
 
->> When should the system wake up?
->
-> I suspect that I am misunderstanding your question, but the system should
-> wake up the same way it does now: when a wakeup interrupt arrives (either
-> from the next scheduled timer expiration, or from some external device).
->
+--- On Tue, 5/25/10, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+> >> > This is a load of crap. If probe() fails that
+> means that driver does not
+> >> > manage the device
 
-That is not how the system wakes up from suspend now. The monotonic
-clock stops, and timers are ignored.
+And thus, dev->driver shouldn't be assigned ...
 
->> > As far as I can see, it's the current Android opportunistic suspend
->> > governor design in patch 1 that causes the system to enter suspend even
->> > when there is work to be done, since it will try to suspend even when =
-the
->> > system is out of the idle loop.
->>
->> It does not matter how you enter suspend. Without opportunistic suspend,
->> once you tell the kernel that you want to suspend, you cannot abort.
->
-> Any driver should be able to abort suspend by returning an error from its
-> struct device_driver/struct dev_pm_ops suspend function. =A0Consider this
 
-Yes a driver can abort, but the user space code that initiated suspend cann=
-ot.
+That probe() looks very odd, lately, yes.  It seems
+to have changed a lot over the past few years, and
+grown a few fault paths that don't behave right (that
+is, they don't clean up properly on failure, or don't
+report their faults)...
 
-> partial callgraph for full system suspend, from [3], [4]:
->
-> =A0 kernel/power/suspend.c: =A0 enter_state() ->
-> =A0 kernel/power/suspend.c: =A0 =A0suspend_devices_and_enter() ->
-> drivers/base/power/main.c: =A0 =A0 dpm_suspend_start() ->
-> drivers/base/power/main.c: =A0 =A0 =A0dpm_suspend() ->
-> drivers/base/power/main.c: =A0 =A0 =A0 device_suspend() ->
-> drivers/base/power/main.c: =A0 =A0 =A0 =A0__device_suspend() ->
-> drivers/base/power/main.c: =A0 =A0 =A0 =A0 pm_op() ->
-> drivers/base/power/main.c: =A0 =A0 =A0 =A0 =A0ops->suspend()
->
-> If ops->suspend() returns an error, it's ultimately passed back to
-> suspend_devices_and_enter(), which aborts the suspend[5].
->
-> In this context, the main change that should be necessary is for
-> driver/subsystem suspend functions to return an error when there are
-> events pending. =A0For example, as an alternative to the Android series'
-> evdev.c patch[6], the evdev.c suspend function could return an error such
-> as -EBUSY if events are currently queued (example below).
->
-> Aborting suspend in the event of driver activity seems like the right
-> thing to do in a system that attempts to enter full system suspend while
-> idle. =A0But it is not the current expected Linux behavior, which also se=
-ems
-> useful. =A0Any abort-suspend-if-busy behavior should be configurable. =A0=
-One
-> way would be to add a sysfs file for each driver/subsystem: perhaps
-> something like 'abort_suspend_if_busy'. =A0The default value would be zero
-> to preserve the current behavior. =A0Systems that wish to use opportunist=
-ic
-> suspend could write a one to some or all of those files.
->
-> An untested, purely illustrative example, based on evdev.c, is at the end
-> of this message. =A0It's not meant to be functional; it's just meant to
-> demonstrate the basic idea in code form.
->
 
-Do you think this is simpler than using a suspend blocker?
+> >> > and thus ads7846_suspend()
+> and ads7846_resume() should
+> >> > not be called _at all_.
 
-> ...
->
-> Like suspend-blockers, adding abort_suspend_if_busy support would require
-> changes throughout many drivers and subsystems. =A0However, unlike
-> suspend-blockers, the above abort_suspend_if_busy approach would not
-> introduce any new APIs[7], nor would it change the default suspend
-> behavior of the system.
->
+Those being called is an indication that
+the probe() succeeded so the driver is
+bound to that device...
 
-Opportunistic suspend does not change the default behaviour either.
-Your proposal requires that all the drivers that would block suspend
-using a suspend blocker, now block suspend without the help of the
-suspend blocker api.
 
-> As an aside, it seems that Android shouldn't currently need this if it's
-> possible to pause "untrusted" processes and timers[8], since current
+ If SPI core manages
+> to call random methods from
+> >> > the drivers that failed to bind to a device
+> that should be fixed in SPI
+> >> > core.
 
-Your proposal to "pause"processes by putting them in
-TASK_INTERRUPTIBLE state and stop their timers does not work. It is
-effectivly the same ase freezing them, since if you "paused" it while
-it was busy, a wakeup event cannot unpause it.
+Not random methods.  The appropriate ones ... for
+the case where probe() succeeded and the device has
+been properly set up.
 
-> shipping Android hardware can enter the same system low power state both
-> with and without full system suspend[9]. =A0But this could be useful for
-> non-Android systems that still wish to use an idle-loop based,
-> opportunistic full system suspend.
->
->
-> regards,
->
-> - Paul
->
->
-> 1. http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=
-=3Dblob;f=3Dkernel/power/suspend.c;h=3D56e7dbb8b996db295b4fc7cdf1b5f11a0409=
-cb0c;hb=3D7e125f7b9cbfce4101191b8076d606c517a73066#l258
->
-> 2. Section B4 of Paul Walmsley E-mail to the linux-pm mailing list,
-> =A0 dated Mon May 17 19:39:44 CDT 2010:
-> =A0 https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025663=
-.html
->
-> 3. http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=
-=3Dblob;f=3Dkernel/power/suspend.c;h=3D56e7dbb8b996db295b4fc7cdf1b5f11a0409=
-cb0c;hb=3D7e125f7b9cbfce4101191b8076d606c517a73066#l258
->
-> 4. http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=
-=3Dblob;f=3Ddrivers/base/power/main.c;h=3D941fcb87e52a12765df2aaa2e2ab21267=
-693af9f;hb=3D7e125f7b9cbfce4101191b8076d606c517a73066#l1062
->
-> 5. http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=
-=3Dblob;f=3Dkernel/power/suspend.c;h=3D56e7dbb8b996db295b4fc7cdf1b5f11a0409=
-cb0c;hb=3D7e125f7b9cbfce4101191b8076d606c517a73066#l207
->
-> 6. Arve Hj=F8nnev=E5g E-mail to the linux-pm mailing list, dated Fri May =
-21
-> =A0 15:46:54 PDT 2010:
-> =A0 https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025747=
-.html
->
-> 7. Paul Walmsley E-mail to the linux-pm mailing list, dated Thu May 13
-> =A0 23:13:50 PDT 2010:
-> =A0 https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025524=
-.html
->
-> 8. Paul Walmsley E-mail to the linux-pm mailing list, dated Mon May 17
-> =A0 18:39:44 PDT 2010:
-> =A0 https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025663=
-.html
->
-> 9. Arve Hj=F8nnev=E5g E-mail to the linux-pm mailing list, dated Mon, May=
- 17
-> =A0 20:06:33 PDT 2010:
-> =A0 https://lists.linux-foundation.org/pipermail/linux-pm/2010-May/025668=
-.html
->
->
->
-> -------------------------------------------------------------------------=
--------------
->
-> evdev.c abort_suspend_if_idle experiment:
->
+
+I suspect a bug was added when the driver binding got rewritten, whereb=
+y dev->driver was wrongly assigned
+on fault paths (where it should have been cleared).
+Of course that goes through slightly convoluted bits
+of driver model code... maybe there's no such bug,
+and everything is explained by probe() misbehaving.
+
+
+> >> Agreed, this is indeed a bug in the SPI driver
+> core.
+
+That's not at all clear to me.
+
+> >> However, by fixing the SPI core to unregister the
+> driver on failure
+> >> (patch below),
+
+=2E.. as you noted, not a good patch "below".
+The issue seems to be on probe() paths, NOT
+as part of driver registration.
+
+
+> we prevent the suspend & resume
+> methods from being
+> >> called, but the driver's ->remove() method will
+> still be called due to
+> >> the driver_unregister().=A0 So at least the
+> remove() method needs fixing
+> >> to prevent accessing free'd memory.
+
+That doesn't seem right; if the issue is probe()
+misbehavior, fixing that makes that access issue
+go away.  Don't change remove() etc.
+
+
+ I see two issues.  One
+is flakey ads7846 probe() behavior.  Another is
+the response of the current SPI core code to that
+flakiness ... the report here seems to indicate that
+the driver is bound to the device even though it's not
+been properly set up ... unclear whether probe() is
+reporting a clean failure, I suspect not.  (If it
+were reporting a clean failure, the device should
+end up with no driver bound.)
+
+It's very possible the probe() errors explain all
+the problems.
+
+
+> >> Unless there are objections, I'll post the below
+> along with an updated
+> >> version of ads7846 patch.
+> >>=20
+> >> Kevin
+> >>=20
+> >> diff --git a/drivers/spi/spi.c
+> b/drivers/spi/spi.c
+> >> index b3a1f92..42d4d26 100644
+> >> --- a/drivers/spi/spi.c
+> >> +++ b/drivers/spi/spi.c
+> >> @@ -175,6 +175,8 @@ static void
+> spi_drv_shutdown(struct device *dev)
+> >>=A0=A0=A0*/
+> >>=A0 int spi_register_driver(struct spi_driver
+> *sdrv)
+> >>=A0 {
+> >> +=A0=A0=A0 int ret;
+> >> +
+> >>=A0 =A0=A0=A0 sdrv->driver.bus =3D
+> &spi_bus_type;
+> >>=A0 =A0=A0=A0 if (sdrv->probe)
+> >>=A0 =A0=A0=A0 =A0=A0=A0
+> sdrv->driver.probe =3D spi_drv_probe;
+> >> @@ -182,7 +184,12 @@ int
+> spi_register_driver(struct spi_driver *sdrv)
+> >>=A0 =A0=A0=A0 =A0=A0=A0
+> sdrv->driver.remove =3D spi_drv_remove;
+> >>=A0 =A0=A0=A0 if (sdrv->shutdown)
+> >>=A0 =A0=A0=A0 =A0=A0=A0
+> sdrv->driver.shutdown =3D spi_drv_shutdown;
+> >> -=A0=A0=A0 return
+> driver_register(&sdrv->driver);
+> >> +
+> >> +=A0=A0=A0 ret =3D
+> driver_register(&sdrv->driver);
+> >> +=A0=A0=A0 if (!ret)
+> >> +=A0=A0=A0 =A0=A0=A0
+> driver_unregister(&sdrv->driver);
+> >
+> > This is still wrong. driver_register() should properly
+> clean up after
+> > itself and not require calls to driver_unregister()
+> (and I believe it
+> > does).
+
+Right ... driver registration should always be safe.
+The tricky bit would be a side effect:  probing any
+devices which match that driver.  Don't unregister
+drivers on error; just make sure they don't get wrongly
+bound to devices if probe() misbehaves.
+
+
+> >
+> > Besides, I do not see how this patch changes anything
+> with regard to
+> > binding devices and drivers. Even if driver_register()
+> succeeds, binding
+> > may still fail and we should not be calling neither
+> ->remove(), nor
+> > ->suspend()/->resume() for the devices that
+> failed to be bound.
+>=20
+> Hmm, good point.
+>=20
+> After digging into the driver core and realizing that it
+> seemed to
+> have sane error handling itself,
+
+Sane but somewhat convoluted.  It can be tricky
+to figure out.
+
+
+> I took a closer look at
+> ads7846_probe() and discovered it doesn't actually return
+> an error
+> code for certain failure cases!=A0 That was the root
+> cause.
+
+My conclusion too...
+
+> The patch below fixes the problem.
+
+Did you do much of an audit, or just work to fix
+this specific problem?  I thought the code was
+looking fairly goofy.  Regulator additions were
+pretty recent, but it wasn't clear to me that it'd
+be the *only* source of such problems...
+
+>=20
+> Thanks,
+>=20
+> Kevin=20
+>=20
+>=20
+>=20
+> From 3588494cf6e51754f7089bb8089b99abd765c493 Mon Sep 17
+> 00:00:00 2001
+> From: Kevin Hilman <khilman@deeprootsystems.com>
+> Date: Tue, 25 May 2010 14:38:04 -0700
+> Subject: [PATCH] input: touchscreen: ads7846: return error
+> on probe failure
+>=20
+> In probe(), if regulator_get() failed, an error code was
+> not being
+> returned causing the driver to be successfully bound, even
+> though
+> probe failed.=A0 This in turn caused the suspend, resume
+> and remove
+> methods to be registered and accessed via the SPI
+> core.
+
+Or more simply:  this was a nasty violation of the
+driver model, which lead to breakage.  (The SPI core
+is just inheriting driver model/core behavior.)  A
+driver that fails to properly bind to the device must
+report a probe() failure, ensuring that the driver is
+not recorded as being bound to the device...
+
+
+> =A0 Since these
+> functions all access private driver data using pointers
+> that had been
+> freed during the failed probe, this would lead to
+> unpredictable
+> behavior.
+>=20
+> This patch ensures that probe() returns an error code in
+> this failure
+> case so the driver is not bound.
+>=20
+> Found using lockdep and noticing the lock used in the
+> suspend/resum
+> path pointed to a bogus lock due to the freed memory.
+>=20
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 > ---
-> =A0drivers/input/evdev.c | =A0 64 +++++++++++++++++++++++++++++++++++++++=
-+++++++++-
-> =A01 files changed, 63 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/input/evdev.c b/drivers/input/evdev.c
-> index 2ee6c7a..23eaad1 100644
-> --- a/drivers/input/evdev.c
-> +++ b/drivers/input/evdev.c
-> @@ -20,8 +20,16 @@
-> =A0#include <linux/input.h>
-> =A0#include <linux/major.h>
-> =A0#include <linux/device.h>
-> +#include <linux/pm.h>
-> =A0#include "input-compat.h"
->
-> +/*
-> + * abort_suspend_if_busy: set to 1 to prevent suspend as long as there
-> + * is an event in the queue; set to 0 to allow suspend at any time.
-> + * XXX Intended to be read from sysfs or the input subsystem.
-> + */
-> +static int abort_suspend_if_busy;
-> +
-> =A0struct evdev {
-> =A0 =A0 =A0 =A0int exist;
-> =A0 =A0 =A0 =A0int open;
-> @@ -118,6 +126,36 @@ static int evdev_flush(struct file *file, fl_owner_t=
- id)
-> =A0 =A0 =A0 =A0return retval;
-> =A0}
->
-> +static int evdev_suspend(struct device *dev)
-> +{
-> + =A0 =A0 =A0 struct evdev *evdev =3D container_of(dev, struct evdev, dev=
-);
-> + =A0 =A0 =A0 struct evdev_client *client;
-> + =A0 =A0 =A0 int ret =3D 0;
-> +
-> + =A0 =A0 =A0 if (!abort_suspend_if_busy)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
-> +
-> + =A0 =A0 =A0 rcu_read_lock();
-> +
-> + =A0 =A0 =A0 client =3D rcu_dereference(evdev->grab);
-> + =A0 =A0 =A0 if (client) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (client->head !=3D client->tail)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EBUSY;
-> + =A0 =A0 =A0 } else {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_for_each_entry_rcu(client, &evdev->cli=
-ent_list, node) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (client->head !=3D clien=
-t->tail) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EB=
-USY;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 rcu_read_unlock();
-> +
-> + =A0 =A0 =A0 return ret;
-> +}
-> +
-> +
-> =A0static void evdev_free(struct device *dev)
-> =A0{
-> =A0 =A0 =A0 =A0struct evdev *evdev =3D container_of(dev, struct evdev, de=
-v);
-> @@ -787,6 +825,21 @@ static void evdev_cleanup(struct evdev *evdev)
-> =A0 =A0 =A0 =A0}
-> =A0}
->
-> +static const struct dev_pm_ops evdev_pm_ops =3D {
-> + =A0 =A0 =A0 .suspend =A0 =A0 =A0 =A0=3D &evdev_suspend,
-> +};
-> +
-> +static char *evdev_devnode(struct device *dev, mode_t *mode)
-> +{
-> + =A0 =A0 =A0 return kasprintf(GFP_KERNEL, "input/%s", dev_name(dev));
-> +}
-> +
-> +static struct class evdev_class =3D {
-> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "evdev",
-> + =A0 =A0 =A0 .devnode =A0 =A0 =A0 =A0=3D evdev_devnode,
-> + =A0 =A0 =A0 .pm =A0 =A0 =A0 =A0 =A0 =A0 =3D &evdev_pm_ops,
-> +};
-> +
-> =A0/*
-> =A0* Create new evdev device. Note that input core serializes calls
-> =A0* to connect and disconnect so we don't need to lock evdev_table here.
-> @@ -826,7 +879,7 @@ static int evdev_connect(struct input_handler *handle=
-r, struct input_dev *dev,
-> =A0 =A0 =A0 =A0evdev->handle.private =3D evdev;
->
-> =A0 =A0 =A0 =A0evdev->dev.devt =3D MKDEV(INPUT_MAJOR, EVDEV_MINOR_BASE + =
-minor);
-> - =A0 =A0 =A0 evdev->dev.class =3D &input_class;
-> + =A0 =A0 =A0 evdev->dev.class =3D &evdev_class;
-> =A0 =A0 =A0 =A0evdev->dev.parent =3D &dev->dev;
-> =A0 =A0 =A0 =A0evdev->dev.release =3D evdev_free;
-> =A0 =A0 =A0 =A0device_initialize(&evdev->dev);
-> @@ -883,12 +936,21 @@ static struct input_handler evdev_handler =3D {
->
-> =A0static int __init evdev_init(void)
-> =A0{
-> + =A0 =A0 =A0 int err;
-> +
-> + =A0 =A0 =A0 err =3D class_register(&input_class);
-> + =A0 =A0 =A0 if (err) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "evdev: unable to register =
-evdev class\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return err;
-> + =A0 =A0 =A0 }
-> +
-> =A0 =A0 =A0 =A0return input_register_handler(&evdev_handler);
-> =A0}
->
-> =A0static void __exit evdev_exit(void)
-> =A0{
-> =A0 =A0 =A0 =A0input_unregister_handler(&evdev_handler);
-> + =A0 =A0 =A0 class_unregister(&evdev_class);
-> =A0}
->
-> =A0module_init(evdev_init);
-> --
-> 1.7.1.GIT
+>  drivers/input/touchscreen/ads7846.c |=A0 =A0 4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/input/touchscreen/ads7846.c
+> b/drivers/input/touchscreen/ads7846.c
+> index 532279c..634f6f6 100644
+> --- a/drivers/input/touchscreen/ads7846.c
+> +++ b/drivers/input/touchscreen/ads7846.c
+> @@ -1163,8 +1163,8 @@ static int __devinit
+> ads7846_probe(struct spi_device *spi)
+> =20
+>  =A0=A0=A0 ts->reg =3D
+> regulator_get(&spi->dev, "vcc");
+>  =A0=A0=A0 if (IS_ERR(ts->reg)) {
+> -=A0=A0=A0 =A0=A0=A0
+> dev_err(&spi->dev, "unable to get regulator: %ld\n",
+
+Adding a requirement for a Vcc regulator seems
+likely to have broken lots of boards, FWIW ...
+
+
+> -=A0=A0=A0 =A0=A0=A0 =A0=A0=A0
+> PTR_ERR(ts->reg));
+> +=A0=A0=A0 =A0=A0=A0 err =3D
+> PTR_ERR(ts->reg);
+
+That error should be returned, yes.  (one line
+not two; maybe the patch got wrapped somewhere.)
+
+I didn't check to make sure that was sufficient
+cleanup though.
+
+- Dave
 
 
 
--- =
-
-Arve Hj=F8nnev=E5g
+> +=A0=A0=A0 =A0=A0=A0
+> dev_err(&spi->dev, "unable to get regulator: %ld\n",
+> err);
+>  =A0=A0=A0 =A0=A0=A0 goto err_free_gpio;
+>  =A0=A0=A0 }
+> =20
+>=20
