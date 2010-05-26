@@ -1,89 +1,66 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: RE: NULL Pointer Deference: NFS & Telnet
-Date: Wed, 26 May 2010 22:48:53 +0200
-Message-ID: <1274906933.2542.17.camel@edumazet-laptop>
-References: <27F9C60D11D683428E133F85D2BB4A53043E33A997@dlee03.ent.ti.com>
-	 <27F9C60D11D683428E133F85D2BB4A53043E3EDFE6@dlee03.ent.ti.com>
-	 <20100525.185236.193707791.davem@davemloft.net>
-	 <27F9C60D11D683428E133F85D2BB4A53043E3EDFF1@dlee03.ent.ti.com>
-	 <1274851741.25136.16.camel@edumazet-laptop>
-	 <27F9C60D11D683428E133F85D2BB4A53043E3EE6A3@dlee03.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 04/10] OMAP4: hwmod: Replace OCPIF_HAS_IDLEST by HWMOD_NO_IDLEST
+Date: Wed, 26 May 2010 14:34:14 -0700
+Message-ID: <874ohuny95.fsf@deeprootsystems.com>
+References: <1273247055-15165-1-git-send-email-b-cousson@ti.com>
+	<1273247055-15165-5-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53043E3EE6A3@dlee03.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Arce, Abraham" <x0066660@ti.com>
-Cc: David Miller <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Ha, Tristram" <Tristram.Ha@micrel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:39837 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753075Ab0EZVeT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 17:34:19 -0400
+Received: by pwi7 with SMTP id 7so401087pwi.19
+        for <linux-omap@vger.kernel.org>; Wed, 26 May 2010 14:34:18 -0700 (PDT)
+In-Reply-To: <1273247055-15165-5-git-send-email-b-cousson@ti.com> (Benoit Cousson's message of "Fri\,  7 May 2010 17\:44\:09 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Le mercredi 26 mai 2010 =C3=A0 15:19 -0500, Arce, Abraham a =C3=A9crit =
-:
+Benoit Cousson <b-cousson@ti.com> writes:
 
-> By increasing the allocation length of our rx skbuff the corruption i=
-ssue is fixed... I have increased it by 2... Were we writing outside ou=
-r boundaries of skb data?
->=20
-> Please let me know about this approach...
->=20
-> diff --git a/drivers/net/ks8851.c b/drivers/net/ks8851.c
-> index b4fb07a..6da81e1 100644
-> --- a/drivers/net/ks8851.c
-> +++ b/drivers/net/ks8851.c
-> @@ -504,7 +504,7 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
->                                ks->rc_rxqcr | RXQCR_SDA | RXQCR_ADRFE=
-);
->=20
->                 if (rxlen > 0) {
-> -                       skb =3D netdev_alloc_skb(ks->netdev, rxlen + =
-2 + 8);
-> +                       skb =3D netdev_alloc_skb(ks->netdev, rxlen + =
-4 + 8);
->                         if (!skb) {
->=20
-> Best Regards
-> Abraham
->=20
+> Some initiator modules in OMAP2 & 3 does not have IDLEST bit,
+> in that case we cannot detect the module readiness by
+> polling that bit and must exist the function immediately
+> assuming that the module is ready.
+>
+> The previous flag was affected to the OCP interface. While it is
+> technically true that the idlest is related to the L4 slave
+> interface of the module, the PRCM status belong to the module.
+>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 
-Yes that makes sense, nr_frag is right after the packet (padded to L1
-cache size)
+We had some discussions off-list on this patch... summarizing below.
 
-But please do the correct allocation ?
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c             |    2 +-
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h |    8 +++++---
+>  2 files changed, 6 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 4a134c4..6459d07 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -808,7 +808,7 @@ static int _wait_target_ready(struct omap_hwmod *oh)
+>  
+>  	os = *oh->slaves + oh->_mpu_port_index;
+>  
+> -	if (!(os->flags & OCPIF_HAS_IDLEST))
+> +	if (oh->flags & HWMOD_NO_IDLEST)
+>  		return 0;
 
-Also, we dont need FCS ?
+This changes the default from assuming a module doesn't have an IDLEST
+to assuming it does.
 
-diff --git a/drivers/net/ks8851.c b/drivers/net/ks8851.c
-index b4fb07a..05bd312 100644
---- a/drivers/net/ks8851.c
-+++ b/drivers/net/ks8851.c
-@@ -503,8 +503,9 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
- 		ks8851_wrreg16(ks, KS_RXQCR,
- 			       ks->rc_rxqcr | RXQCR_SDA | RXQCR_ADRFE);
-=20
--		if (rxlen > 0) {
--			skb =3D netdev_alloc_skb(ks->netdev, rxlen + 2 + 8);
-+		if (rxlen > 4) {
-+			rxlen -=3D 4;
-+			skb =3D netdev_alloc_skb(ks->netdev, 2 + 8 + ALIGN(rxlen, 4));
- 			if (!skb) {
- 				/* todo - dump frame and move on */
- 			}
-@@ -513,7 +514,7 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
- 			 * for the status header and 4 bytes of garbage */
- 			skb_reserve(skb, 2 + 4 + 4);
-=20
--			rxpkt =3D skb_put(skb, rxlen - 4) - 8;
-+			rxpkt =3D skb_put(skb, rxlen) - 8;
-=20
- 			/* align the packet length to 4 bytes, and add 4 bytes
- 			 * as we're getting the rx status header as well */
-@@ -526,7 +527,7 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
- 			netif_rx(skb);
-=20
- 			ks->netdev->stats.rx_packets++;
--			ks->netdev->stats.rx_bytes +=3D rxlen - 4;
-+			ks->netdev->stats.rx_bytes +=3D rxlen;
- 		}
-=20
- 		ks8851_wrreg16(ks, KS_RXQCR, ks->rc_rxqcr);
+Because of this, we now get a bunch of failures in _enable() on
+OMAP2/3 due to missing fields in the hwmods, in particular the members
+of the 'struct omap_hwmod_omap2_prcm' are required to get correct
+_wait_for_ready() behavior.
+
+Therefore, when creating new hwmods, please be sure the fields of this
+struct are filled out and correct.
+
+Kevin
