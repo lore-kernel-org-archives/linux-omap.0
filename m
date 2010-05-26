@@ -1,59 +1,76 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Wed, 26 May 2010 12:01:49 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005261156130.1328-100000@iolanthe.rowland.org>
-References: <CEE6BB42CAD6E947908279175AF8470A025A7D7DC4@EXDCVYMBSTM006.EQ1STM.local>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 26 May 2010 19:22:16 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1005261829540.2995@localhost.localdomain>
+References: <20100526171106.0e44a736@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CEE6BB42CAD6E947908279175AF8470A025A7D7DC4@EXDCVYMBSTM006.EQ1STM.local>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Linus WALLEIJ <linus.walleij@stericsson.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100526171106.0e44a736@schatten.dmk.lab>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Florian Mickler <florian@mickler.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 26 May 2010, Linus WALLEIJ wrote:
+Florian,
 
-> Overall as a driver writer I'm quite confused at this point, if
-> I have a driver X, how is that code going to look if it is going
-> to support both runtime PM *and* suspend blockers? I don't say
-> it has to support both mechanisms in parallell, I'm even fine
-> with putting it in #ifdef:s, but how will the source code look?
-> A real-world example on a simple driver out of the Motorola Droid
-> git or so would help a lot.
+On Wed, 26 May 2010, Florian Mickler wrote:
+>
+> On the other hand, applications can say, they don't need that much
+> power and userspace guaranties and not take a suspend blocker.
 > 
-> It's quite relevant since e.g. all OMAP drivers will need this
-> modification to be used with Android-like systems, and at
-> ST-Ericsson we will need both runtime PM and suspend blockers for
-> our drivers as well. It will as a consequence affect the drivers
-> for all ARM reference boards since we use the drivers for ARM
-> PrimeCells. etc...
+> This is an option which they currently don't have.
+
+Wrong. A well coded power aware application is very well able to
+express that in various ways already today. Admittedly it's far from
+perfect, but that can be fixed by adding interfaces which allow the
+power aware coder to express the requirements of his application
+actively, not by avoiding it.
+
+suspend blockers are completely backwards as they basically disable
+the kernels ability to do resource management.
+
+Also they enforce a black and white scheme (suspend or run) on the
+kernel which is stupid, as there are more options to efficiently save
+power than those two. While current android devices might not provide
+them, later hardware will have it and any atom based device has them
+already.
+
+So what the kernel needs to know to make better decisions are things
+like:
+
+  - how much slack can timers have (exisiting interface)
+  - how much delay of wakeups is tolerated (missing interface)
+
+and probably some others. That information would allow the kernel to
+make better decisions versus power states, grouping timers, race to
+idle and other things which influence the power consumption based on
+the hardware you are running on.
+
+> I don't think opportunistic suspend is a policy decision by the kernel.
+> it is something new. Something which currently only the android
+> userspace implements / supports. If you don't want to suspend while
+> looking at the bouncing-cow, you have to take a suspend blocker and
+> make yourself a user-visible power-eater, or don't do 
 > 
-> Now if this mechanism is going in, my main interest is that there
-> is some clearly cut way and design pattern for supporting both
-> runtime PM and suspend blocks.
+> echo "opportunistic" > /sys/power/policy 
+> 
+> in the first place.
+> 
+> This "optionally being badly written, who cares?" is a new feature the
+> kernel can provide to applications. 
 
-It's not difficult.  You just have to decide what situations should 
-block opportunistic suspend.  For example, let's say that opportunistic 
-suspend should be blocked when your event queue is non-empty.
+It's a misfeature which the kernel should not provide at all. It sends
+out the completely wrong message: Hey, we can deal with your crappy
+code, keep on coding that way.
 
-Then in the routine that adds new events to the queue, while still
-holding the spinlock that protects your queue, you enable your suspend
-blocker.  Likewise, in the routine that takes events off the queue and
-sends them to userspace, while holding the spinlock you test whether
-the queue has become empty; if it has you disable your suspend blocker.
+While this seems to sound cool to certain people in the mobile space,
+it's completely backwards and will backfire in no time. 
 
-That's all.  No other changes are needed (except to create and destroy 
-the suspend blocker, of course).  No other interaction with suspend, 
-resume, or runtime PM.
+The power efficiency of a mobile device is depending on a sane overall
+software stack and not on the ability to mitigate crappy software in
+some obscure way which is prone to malfunction and disappoint users.
 
-Alan Stern
+Thanks,
+
+	tglx
