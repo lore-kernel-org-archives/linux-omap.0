@@ -1,66 +1,189 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 23:09:43 +0100
-Message-ID: <20100526230943.6f5e5b37@lxorguk.ukuu.org.uk>
-References: <20100526171106.0e44a736@schatten.dmk.lab>
-	<alpine.LFD.2.00.1005261829540.2995@localhost.localdomain>
-	<20100526215409.33296d94@schatten.dmk.lab>
+Date: Wed, 26 May 2010 15:30:58 -0700
+Message-ID: <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+References: <1274482015-30899-1-git-send-email-arve@android.com>
+	<201005242049.18920.rjw@sisk.pl>
+	<87wrusvrqe.fsf@deeprootsystems.com>
+	<201005250138.16293.rjw@sisk.pl>
+	<1274863655.5882.4875.camel@twins>
+	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
+	<1274867106.5882.5090.camel@twins>
+	<20100526120242.5c9b73ad@schatten.dmk.lab>
+	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
+	<20100526133721.602633b2@schatten.dmk.lab>
+	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
+	<20100526142430.327ccbc4@schatten.dmk.lab>
+	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100526215409.33296d94@schatten.dmk.lab>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:40632 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934603Ab0EZWbA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 18:31:00 -0400
+In-Reply-To: <20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-> > suspend blockers are completely backwards as they basically disable
-> > the kernels ability to do resource management.
-> 
-> I don't think this is a defect in the approach but the point of it. 
+On Wed, May 26, 2010 at 6:16 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wr=
+ote:
+>> Really, what are you getting at? Do you deny that there are programs=
+,
+>> that prevent a device from sleeping? (Just think of the bouncing
+>> cows app)
+>>
+>> And if you have two kernels, one with which your device is dead afte=
+r 1
+>> hour and one with which your device is dead after 10 hours. Which wo=
+uld
+>> you prefer? I mean really... this is ridiculous.
+>
+> The problem you have is that this is policy. If I have the device wir=
+ed
+> to a big screen and I want cows bouncing on it I'll be most upset if
+> instead it suspends.
 
-I think it's both. It's the point of it, and that itself is a defect. Its
-designed wrongly.
+We never suspend when the screen is on. If the screen is off, I would
+not be upset if it suspends.
 
-> drivers code is needed anyway. What looses the kernel by implementing
-> suspend blockers, and later a more finegrained approach and mapping the
-> userspace part of suspend blockers on that finegrained approach later
-> on?
+> What you are essentially arguing for is for the
+> kernel to disobey the userspace.
 
-The Linux approach is to do the job right. That means getting the
-interface right and so it works across all the interested parties (or as
-close as we can get).
+No I'm not. User-space asked the kernel to suspend when possible.
+Suspend is an existing kernel feature. All opportunistic suspend adds
+is the ability to use it safely when there are wakeup event you cannot
+afford to ignore.
 
-> >   - how much delay of wakeups is tolerated (missing interface)
-> 
-> Doesn't solve the segregation problem and is probably overkill for most
-> applications. I see this as an orthogonal thing (i.e. not
-> affecting this merge). 
+> It's as ridiculous (albeit usually less
+> damaging) as a file system saying "Ooh thats a rude file name, the ap=
+p
+> can't have meant it, I'll put your document soemwhere else"
+>
+> The whole API feels wrong to me. It's breaking rule #1 of technology =
+"You
+> cannot solve a social problem with technology". In this case you have=
+ a
+> social/economic problem which is crap code. You solve it with an
+> economics solution - creative incentives not to produce crap code lik=
+e
+> boxes that keep popping up saying "App XYZ is using all your battery"=
+ and
+> red-amber-green powermeter scores in app stores.
+>
+> That said if you want technical mitigation I think it makes more sens=
+e
+> if you look at it from a different starting point. The starting point
+> being this: We have idling logic in the kernel and improving this hel=
+ps
+> everyone. What is needed to improve the existing logic ?
+>
 
-The key question that matters for suspend management is 'what wakeup
-delay is tolerated'. So it's absolutely fundamental.
+Our actual stating point is this: Some systems can only enter their
+lowest power state from suspend. So we added an api that allowed us to
+use suspend without loosing wakeup events. Since suspending also
+improves our battery life on platforms that enter the same power state
+from idle and suspend and we already have a way to safely use suspend,
+we would be crazy not to use it.
 
-> True. But I wouldnt say, that it is the linux kernel who should force
-> this politics onto its users.
+> - You don't know which processes should be ignored for the purpose of
+> =A0suspend (except for kernel threads) and there is no way to set thi=
+s
+>
+> - You don't know whether a move from a deep idle to a 'suspend' (whic=
+h is
+> =A0just a really deep idle in truth anyway) might break wakeups
+> =A0requirements because a device has wake dependencies due to hardwar=
+e
+> =A0design (eg a port that has no electronics to kick the box out of
+> =A0suspend into running). This is a problem we have already. [1]
+>
+> That maps onto two existing ideas
+>
+> Sandboxing/Resource Limits: handling apps that can't be trusted. So t=
+he
+> phone runs the appstore code via something like
 
-This is the Linux way of doing things. It's like the GPL and being
-shouted at by Linus. They are things you accept when you choose to take
-part. Google chose to use Linux, if they want a feature upstream then the
-way you get it there is to figure out how to solve the real problem and
-make *everyone* (within reason) happy.
+Sandboxing is problematic on Android since there are a lot of cross
+process dependencies. When a call comes in I don't know where the name
+and picture to display comes from. With suspend blockers we block
+suspend when we get notified that we have an incoming call and we can
+call into any process and get a response.
 
-We now have suggestions how to do the job properly so the right thing is
-probably to go and explore those suggestions not merge crap.
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0setpidle(getpid(), something);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0exec()
+>
+> where 'something' is a value with meaning to both user space and to t=
+he
+> existing idling logic in the kernel that basically says to what exten=
+t it
+> is permitted to block idling/suspend. That also seems to tie into som=
+e of
+> the realtime + idle problems. This I think deals with Kevin Hillman's
+> thoughts on dealing with untrustworthy app code more cleanly and avoi=
+ds
+> the need for userspace hackery like the blocker API.
+>
+> And an entirely in kernel API where device drivers can indicate that =
+in
+> their current situation they require that the power level doesn't dro=
+p
+> below some limit unless user requested. This is really important beca=
+use
+> the platform vendor of the phone/pda/tablet whatever effectively owns=
+ the
+> kernel - so it's *their* problem, *their* control, *their* hardware a=
+nd
+> they can make it work as best for the device. Best of all it means it=
+s
+> all free software stuff so if the vendor screws up you can still fix =
+your
+> phone.
+>
+> Implementation-wise it probably ties into setpidle, its simply that a=
+ task
+> has a pair of idle values, a dynamic one and a base one, the dynamic =
+one
+> being the base one but updatable temporarily by drivers.
+>
 
-Merging crap won't help anyway. The rest of the kernel community can
-still simply stonewall those interfaces, and a volunteer community has
-ways of dealing with abuse of process, notably by simply not getting
-around to, or implementing things directly contrary to the crap bits.
 
-So it's not even in the interest of people to play political games. Even
-if you get away with in the short term the people who rely on the junk
-will end up out on a limb and holding the baby when the crap hits the fan
-(see reiserfs)
+What about platforms that currently cannot enter low power states from
+idle? Do you remove suspend support from the kernel?
 
-Alan
+
+> Alan
+> --
+>
+> [1] Note I disagree with Kevin here on static/dynamic power managemen=
+t.
+> There are IMHO two types of PM but they are 'user invoked' and
+> 'automatic'. "Static" simply means it's not been made fast enough yet=
+ but
+> its just a policy divide dependant on the users 'acceptable' resume t=
+ime
+> (which for hard RT may just as well rule out some more usual power st=
+ates)
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at =A0http://www.tux.org/lkml/
+>
+
+
+
+--=20
+Arve Hj=F8nnev=E5g
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
