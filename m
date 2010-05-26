@@ -1,52 +1,92 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 13:37:21 +0200
-Message-ID: <20100526133721.602633b2@schatten.dmk.lab>
-References: <1274482015-30899-1-git-send-email-arve@android.com>
-	<201005242049.18920.rjw@sisk.pl>
-	<87wrusvrqe.fsf@deeprootsystems.com>
-	<201005250138.16293.rjw@sisk.pl>
-	<1274863655.5882.4875.camel@twins>
-	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
-	<1274867106.5882.5090.camel@twins>
-	<20100526120242.5c9b73ad@schatten.dmk.lab>
-	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH] ARM:VFPv3:enable {d16-d31} access
+Date: Wed, 26 May 2010 17:13:24 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0322FA8E37@dbde02.ent.ti.com>
+References: <tarun.kanti@ti.com>
+ <1274818736-26597-1-git-send-email-tarun.kanti@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0322FA884E@dbde02.ent.ti.com>
+ <20100525185741.GB16204@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vitaly Wool <vitalywool@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44023 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934341Ab0EZLnj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 07:43:39 -0400
+In-Reply-To: <20100525185741.GB16204@n2100.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, 26 May 2010 13:18:51 +0200
-Vitaly Wool <vitalywool@gmail.com> wrote:
+Russell,
 
-> On Wed, May 26, 2010 at 12:02 PM, Florian Mickler <florian@mickler.org> wrote:
-> 
-> >> So why again was this such a great scheme? Go fix your userspace to not
-> >> not run when not needed.
-> >
-> > Hi Peter!
-> >
-> > This was already mentioned in one of these threads.
-> >
-> > The summary is: The device this kernel is running on dosn't want to
-> > (or can) rely on userspace to save power. This is because it is an open
-> > system, without an app-store or the like. Everyone can run what he
-> > wants.
-> 
-> I don't see this as a valid point. Everyone can run a different kernel
-> where nothing will just work. Are you aiming protection against that
-> as well?
-> 
-> ~Vitaly
+-----Original Message-----
+From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+Sent: Wednesday, May 26, 2010 12:28 AM
+To: DebBarma, Tarun Kanti
+Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] ARM:VFPv3:enable {d16-d31} access
 
-This is not "protection". This is functioning properly in a real world
-scenario. Why would the user change the kernel, if the device would be
-buggy after that? (Except maybe he is a geek)
+On Tue, May 25, 2010 at 02:39:17PM +0530, DebBarma, Tarun Kanti wrote:
+>  #ifdef CONFIG_VFPv3
+>  	@ d16 - d31 registers
+> -	.irp	dr,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+> -1:	mrrc	p11, 3, r0, r1, c\dr	@ fmrrd	r0, r1, d\dr
+> +	.irp	dr,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+> +1:	fmrrd	r0, r1, d\dr
 
-Cheers,
-Flo
+The existing code is correct.
+
+For every fmrrd instruction, there is a corresponding mrrc version which
+assembles to exactly the same opcode.
+
+mrrc instructions take:
+
+1. Co-processor number, range 0-15.
+2. Opcode number N, range 0-15.
+3. Destination register 1, range 0-15.
+4. Destination register 2, range 0-15.
+5. Co-processor register number R, range 0-15.
+
+For fmrrd encodings, the first 16 registers are encoded using N=1 with
+R=0 to 15.  The second 16 registers are encoded using N=3 with R=0 to 15.
+Specifying a co-processor register number greater than 15 is illegal,
+hence why the 'irp' specifies the numbers 0 to 15.
+
+If we look at the instruction encodings, for MRRC:
+
+ 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+ 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+|  cond |1 1 0 0 0 1 0 1|  Rn   |  Rm   |CP Num |   N   |   R   |
+
+For FMRRD:
+
+ 3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+ 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+|  cond |1 1 0 0 0 1 0 1|  Rn   |  Rm   |1 0 1 1 0 0 M 1|   R   |
+
+where "M" and "R" together define the register.
+
+As I said above, the existing code is correct.  What problem are you
+actually trying to solve here?
+
+######################
+I have a test case which exercise all VFP general purpose registers by writing a known value and reading it back using vfp_put_double() and vfp_get_double() APIs.
+
+	long long d1=777, d2=0;
+	int i=31;
+	for (; i>=0; i--){
+		vfp_put_double(d1, i);
+		d2 = vfp_get_double(i);
+		printk("D%d read=%lld\n",i, (long long)d2);
+		d2 = 0.0;
+	}
+
+1) With the existing implementation I am not able to correctly write/read {d0-d15} but not the {d16-d31} set
+
+2) With my changes I am able to write/read correctly.
+
+Tarun
