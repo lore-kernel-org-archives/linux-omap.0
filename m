@@ -1,86 +1,81 @@
-From: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 16:18:20 -0400
-Message-ID: <20100526201820.GA25663@gibbs.hungrycats.org>
-References: <AANLkTiksR3YozbBH0Iv5kNsQkEGKCH1APCvn_s6LkjV9@mail.gmail.com>
- <1274868593.5882.5185.camel@twins>
- <AANLkTinuxCbeBmxIR7b_1OtrqQYJCamiDZJbnNTih1Fb@mail.gmail.com>
- <1274869966.5882.5262.camel@twins>
- <AANLkTikRMBkoFxgaKsxMJ2lOMomTXpiHJDk3rVt0EtwM@mail.gmail.com>
- <1274870970.5882.5311.camel@twins>
- <AANLkTinlxsokwralwRAL9_YRQ7-SZUSvrGHTlRISA9bC@mail.gmail.com>
- <1274872357.27810.16.camel@twins>
- <20100526133510.6e9de670@lxorguk.ukuu.org.uk>
- <1274878396.27810.334.camel@twins>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: RE: NULL Pointer Deference: NFS & Telnet
+Date: Wed, 26 May 2010 15:19:07 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E3EE6A3@dlee03.ent.ti.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043E33A997@dlee03.ent.ti.com>
+	 <27F9C60D11D683428E133F85D2BB4A53043E3EDFE6@dlee03.ent.ti.com>
+	 <20100525.185236.193707791.davem@davemloft.net>
+	 <27F9C60D11D683428E133F85D2BB4A53043E3EDFF1@dlee03.ent.ti.com>
+ <1274851741.25136.16.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ip-70-38-54-39.static.privatedns.com ([70.38.54.39]:45783 "EHLO
-	ginevra.hungrycats.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756735Ab0EZUS2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 16:18:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1274878396.27810.334.camel@twins>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1274851741.25136.16.camel@edumazet-laptop>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>, David Miller <davem@davemloft.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Ha, Tristram" <Tristram.Ha@micrel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@deeprootsystems.com>, felipe.balbi@nokia.com, Linux PM <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, May 26, 2010 at 02:53:16PM +0200, Peter Zijlstra wrote:
-> On Wed, 2010-05-26 at 13:35 +0100, Alan Cox wrote:
-> > This is an area where machines are improving and where the ability to
-> > do stuff like autosuspend, the technology like the OLPC screen and so on
-> > create an incentive for the BIOS and platform people to improve their
-> > bits of it.
+Thanks Eric, David,
+
+[..]
+
+> > > > -		if (skb_shinfo(skb)->nr_frags) {
+> > > > +		if (skb_shinfo(skb)->nr_frags && skb_has_frags(skb)) {
+> > > >  			int i;
+> > > >  			for (i = 0; i < skb_shinfo(skb)->nr_frags; i++)
+> > > >  				put_page(skb_shinfo(skb)->frags[i].page);
+> > >
+> > > skb_shinfo(skb)->nr_frags counts the number of entries contained
+> > > in the skb_shinfo(skb)->frags[] array.
+> > >
+> > > This has nothing to do with the frag list pointer,
+> > > skb_shinfo(skb)->frag_list, which is what skb_has_frags()
+> > > tests.
+> > >
+> > > You've got some kind of memory corruption going on and it
+> > > appears to have nothing to do with the code paths you're
+> > > playing with here.
+> >
+> > Do you have any recommendation on debugging technique/tool for this memory
+> corruption issue?
+
+[..]
+
+> It seems quite strange. You have a skb->nr_frags > 0 value, but a
+> frags[i].page = 0 value
 > 
-> But do you think its a sensible thing to do? Explicitly not running
-> runnable tasks just sounds wrong. 
-[...]
-> Why would the code holding suspend blockers be any more or less
-> important than any other piece of runnable code.
+> You might add following function :
+> 
+> shinfo_check(struct sk_buff *skb)
+> {
+> 	struct skb_shared_info *shinfo = skb_shinfo(skb);
+> 	int i;
+> 
+> 	WARN_ON(shinfo->nr_frags >= MAX_SKB_FRAGS);
+> 	for (i = 0; i < shinfo->nr_frags; i++)
+> 		WARN_ON(!shinfo->frags[i].page);
+> }
+> 
+> And call it from various points, to check who corrupts your skb.
 
-With my userspace developer hat on, I'd *kill* for a way to tell
-the kernel that there are more important things for the system to
-be doing than executing my runnable task.  In some cases, the set of
-"more important things" the system might include running other tasks,
-but it also might include conserving power.  I'd like to have my program
-tell the kernel things like "wake me up in 0.1 seconds, plus or minus
-a year if you have something better to do."
+By increasing the allocation length of our rx skbuff the corruption issue is fixed... I have increased it by 2... Were we writing outside our boundaries of skb data?
 
-With my sysadmin hat on (which is nearly identical to my phone owner hat,
-BTW), I'd like whatever syscall implements those features to take a PID
-argument, so I can impose my importance decisions on other processes.
-I'd also like to set the relative importance of keeping the CPU idle on
-the same scale, so that I could raise or lower the importance of keeping
-the CPU idle as power availability changes.
+Please let me know about this approach...
 
-> This whole thing introduces an artificial segregation of code. My 'cool'
-> code is more important than your 'uncool' code. Without a clear
-> definition of what makes code cool or not.
+diff --git a/drivers/net/ks8851.c b/drivers/net/ks8851.c
+index b4fb07a..6da81e1 100644
+--- a/drivers/net/ks8851.c
++++ b/drivers/net/ks8851.c
+@@ -504,7 +504,7 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
+                               ks->rc_rxqcr | RXQCR_SDA | RXQCR_ADRFE);
 
-It's impossible in the general case for an application to know whether
-it's important or not, so it's also impossible for the kernel to derive
-this information from the application's behavior--and impossible, in the
-general case, to decide whether the application is more important than the
-battery or some other scarce resource the kernel might also be managing
-(e.g. if the machine is running hot, heat dissipation might be scarce,
-and we'd want to be idle then too).  This is similar to niceness and
-SCHED_RR/FIFO:  there's no way for the kernel to automatically assign
-those values either, they have to be specified by a user or administrator.
-Of course, programs are free--within limits--to specify these values
-about themselves.
+                if (rxlen > 0) {
+-                       skb = netdev_alloc_skb(ks->netdev, rxlen + 2 + 8);
++                       skb = netdev_alloc_skb(ks->netdev, rxlen + 4 + 8);
+                        if (!skb) {
 
-Consider a traditional Unix program like "sort".  Seriously, how is "sort"
-supposed to know that it's the most important application on the system
-(because I need my contacts list alphabetized *now*), or the least
-(because the screensaver needs to know which is the oldest graphics
-hack in the list)?
-
-"sort" gets invoked from a shell, cooperating with other processes to do
-its work.  It knows very little about the context in which it is executing
-(nor should it).  Should "sort" sprout command-line arguments for every
-possible scheduling latency and power management policy option, or should
-"sort" not care, and defer such decisions to other command-line
-tools which set these options before exec()ing "sort", or to a management
-utility like "top" that implements policy across the entire system?
-
+Best Regards
+Abraham
