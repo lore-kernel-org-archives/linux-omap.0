@@ -1,142 +1,218 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH pm-wip/uart 2/4] OMAP2/3: hwmod: L3 and L4 CORE/PER/WKUP hwmods don't have IDLEST
-Date: Wed, 26 May 2010 16:05:13 -0700
-Message-ID: <1274915115-28355-3-git-send-email-khilman@deeprootsystems.com>
-References: <1274915115-28355-1-git-send-email-khilman@deeprootsystems.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:36727 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755110Ab0EZXFZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 19:05:25 -0400
-Received: by mail-pw0-f46.google.com with SMTP id 7so430965pwi.19
-        for <linux-omap@vger.kernel.org>; Wed, 26 May 2010 16:05:25 -0700 (PDT)
-In-Reply-To: <1274915115-28355-1-git-send-email-khilman@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 00:39:43 +0100
+Message-ID: <20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+References: <1274482015-30899-1-git-send-email-arve@android.com>
+	<201005242049.18920.rjw@sisk.pl>
+	<87wrusvrqe.fsf@deeprootsystems.com>
+	<201005250138.16293.rjw@sisk.pl>
+	<1274863655.5882.4875.camel@twins>
+	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
+	<1274867106.5882.5090.camel@twins>
+	<20100526120242.5c9b73ad@schatten.dmk.lab>
+	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
+	<20100526133721.602633b2@schatten.dmk.lab>
+	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
+	<20100526142430.327ccbc4@schatten.dmk.lab>
+	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
+	<AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-14
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>
+Cc: Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Since these hwmods do not have IDLEST, set the HWMOD_NO_IDLEST flag,
-otherwise _enable() will fail due to failing _wait_target_ready().
+On Wed, 26 May 2010 15:30:58 -0700
+Arve Hj=F8nnev=E5g <arve@android.com> wrote:
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    9 ++++++---
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    9 ++++++---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   12 ++++++++----
- 3 files changed, 20 insertions(+), 10 deletions(-)
+> On Wed, May 26, 2010 at 6:16 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> =
+wrote:
+> >> Really, what are you getting at? Do you deny that there are progra=
+ms,
+> >> that prevent a device from sleeping? (Just think of the bouncing
+> >> cows app)
+> >>
+> >> And if you have two kernels, one with which your device is dead af=
+ter 1
+> >> hour and one with which your device is dead after 10 hours. Which =
+would
+> >> you prefer? I mean really... this is ridiculous.
+> >
+> > The problem you have is that this is policy. If I have the device w=
+ired
+> > to a big screen and I want cows bouncing on it I'll be most upset i=
+f
+> > instead it suspends.
+>=20
+> We never suspend when the screen is on. If the screen is off, I would
+> not be upset if it suspends.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index bbe3006..b9a957d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -66,7 +66,8 @@ static struct omap_hwmod omap2420_l3_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l3_masters),
- 	.slaves		= omap2420_l3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2420_l3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- static struct omap_hwmod omap2420_l4_wkup_hwmod;
-@@ -156,7 +157,8 @@ static struct omap_hwmod omap2420_l4_core_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_core_masters),
- 	.slaves		= omap2420_l4_core_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2420_l4_core_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Slave interfaces on the L4_WKUP interconnect */
-@@ -176,7 +178,8 @@ static struct omap_hwmod omap2420_l4_wkup_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_wkup_masters),
- 	.slaves		= omap2420_l4_wkup_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2420_l4_wkup_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Master interfaces on the MPU device */
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 45767b1..d7faef2 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -66,7 +66,8 @@ static struct omap_hwmod omap2430_l3_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l3_masters),
- 	.slaves		= omap2430_l3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2430_l3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- static struct omap_hwmod omap2430_l4_wkup_hwmod;
-@@ -155,7 +156,8 @@ static struct omap_hwmod omap2430_l4_core_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_core_masters),
- 	.slaves		= omap2430_l4_core_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2430_l4_core_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Slave interfaces on the L4_WKUP interconnect */
-@@ -178,7 +180,8 @@ static struct omap_hwmod omap2430_l4_wkup_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_wkup_masters),
- 	.slaves		= omap2430_l4_wkup_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2430_l4_wkup_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Master interfaces on the MPU device */
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 5bf8690..6bc1173 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -77,7 +77,8 @@ static struct omap_hwmod omap3xxx_l3_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_masters),
- 	.slaves		= omap3xxx_l3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod;
-@@ -185,7 +186,8 @@ static struct omap_hwmod omap3xxx_l4_core_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_core_masters),
- 	.slaves		= omap3xxx_l4_core_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_core_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Slave interfaces on the L4_PER interconnect */
-@@ -207,7 +209,8 @@ static struct omap_hwmod omap3xxx_l4_per_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_per_masters),
- 	.slaves		= omap3xxx_l4_per_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_per_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Slave interfaces on the L4_WKUP interconnect */
-@@ -227,7 +230,8 @@ static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_masters),
- 	.slaves		= omap3xxx_l4_wkup_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Master interfaces on the MPU device */
--- 
-1.7.0.2
+This is policy and platform specific. The OLPC can suspend with the
+screen on. Should I write my app to know about this once for Android an=
+d
+once for OLPC (and no doubt once for Apple). In the OLPC case cows coul=
+d
+indeed suspend to RAM between frames if the wakeup time was suitable.
 
+My app simply should not have to know this sort of crap, that's the who=
+le
+point of an OS.
+
+> > What you are essentially arguing for is for the
+> > kernel to disobey the userspace.
+>=20
+> No I'm not. User-space asked the kernel to suspend when possible.
+> Suspend is an existing kernel feature. All opportunistic suspend adds
+> is the ability to use it safely when there are wakeup event you canno=
+t
+> afford to ignore.
+
+Don't get me wrong - opportunistic suspend isn't the problem. Suspend
+blockers are - or more precisely - the manner in which they express
+intent from userspace. Opportunistic suspend is wonderful stuff for all
+sorts of things and if it persuades people like netbook manufacturers t=
+o
+think harder, and Linux driver authors to optimise their suspend/resume
+paths we all win.
+
+> Our actual stating point is this: Some systems can only enter their
+> lowest power state from suspend. So we added an api that allowed us t=
+o
+> use suspend without loosing wakeup events. Since suspending also
+> improves our battery life on platforms that enter the same power stat=
+e
+> from idle and suspend and we already have a way to safely use suspend=
+,
+> we would be crazy not to use it.
+
+Opportunistic suspend isn't special. Suspend is just a very deep idle. =
+In
+fact some of the low power states on processors look little different t=
+o
+suspend - the OS executes a whole pile of CPU state saving and cache
+flushing. It might be a hardware state machine, it might be buried in
+firmware or it might be quite explicit (eg mrst). So we already have
+differing degrees of doing additional work in different states.
+
+User triggered suspend is a bit special in that the user is usually rig=
+ht
+in that case to override the power management policy.
+
+Note I'm not suggesting we run off and restructure all our power
+management code to take this view right now. I'm suggesting we need a
+clean 'opportunistic suspend is not special' view by user space. How th=
+e
+kernel handles this is addressible later without app breakage, but only
+if we get the interface wrong to begin with.
+
+> > Sandboxing/Resource Limits: handling apps that can't be trusted. So=
+ the
+> > phone runs the appstore code via something like
+>=20
+> Sandboxing is problematic on Android since there are a lot of cross
+> process dependencies. When a call comes in I don't know where the nam=
+e
+> and picture to display comes from. With suspend blockers we block
+> suspend when we get notified that we have an incoming call and we can
+> call into any process and get a response.
+
+But you can express user suspend blocking in this manner. Your call
+incoming code would say 'I want good latency'. As someone needs good
+latency the box won't suspend. If your approach is to start with an
+initial 'anyone can set a low latency we don't care' then anyone can
+block suspends.
+
+Equally your call handling example is about latency not about suspend.
+You want the phone to stay on, to fetch a picture and display it prompt=
+ly.
+
+So what are expressing
+
+'I am using device 'screen' please keep it live'  (which may or may not
+block suspend - see OLPC). I guess your display server and kernel suppo=
+rt
+manage this bit.
+
+'I want the photo to appear in a resonable timescale'  (latency). It's
+not a suspend question - an imaginary non suspend idle mode with a 20
+second latency would be just as annoying yes ?
+
+At the moment we have a very real bigger problem that your problem is
+part of.
+
+- Hard real time people want to be able to limit the CPU sleeping
+  behaviour based upon what tasks are running
+
+- Certain gaming types want their boxes to be good power citizens excep=
+t
+  when committing digital mass murder. Right now that involves wrapping
+  the game in a script with bits occurring as root and that generally
+  breaks if the game crashes so the script doesn't run nicely on exit
+
+- Virtual machine people desperately want to see latency data to help
+  schedule stuff in a power efficient manner.  In a virtual machine
+  environment its vital information about how you schedule a virtual
+  machine, whether now is a good time to live migrate it and how best t=
+o
+  optimise power/performance on the server end.
+
+- Some drivers want to constrain idling because they know
+  platform/hardware stuff the core power management code doesn't (eg
+  serial ports at high speed). We want that expressed in a way that kee=
+ps
+  the power management code clean of such device knowledge
+
+Now I don't care if we have an elegant kernel interface and Android use=
+s
+it as a big hammer - if that makes Android work well everyone can be
+happy. What I don't want is to have a big hammer when it doesn't solve =
+the
+underlying big picture problem for everyone.
+
+So my working position is summarised thusly
+
+- Supporting Android needs well good
+- Opportunistic suspend good
+- Manner in which interface is expressed to userspace bad
+- Latency constraint interface would be better
+- Your existing behaviour can be implemented by a simplistic use of a
+  latency constraint interface
+- We can fix a pile of other directly connected things at the same time
+- Implementation internals I care far less about because we can fix tho=
+se
+  later
+- Suspend is just a power state
+
+How does that fit your model and vision ?
+
+> What about platforms that currently cannot enter low power states fro=
+m
+> idle? Do you remove suspend support from the kernel?
+
+I would actually expect a system that can't do any low power states to
+support the user API and blissfully ignore it. Applications will ask fo=
+r
+various latency guarantees and of course always get them. The apps will=
+ be
+portable, the device will be offering it's best behaviour and everyone
+will be happy.
+
+If your device only supports full on and suspend I don't see why
+opportunistic suspend couldn't be provided assuming sufficient wakeup
+support was present. It won't be the most exciting power management
+policy to write but it's perfectly doable and the apps again will not n=
+eed
+recoding to handle it.
+
+The latency goal data is also priceless for another consumer - in a
+virtual machine environment its vital information about how you schedul=
+e
+a virtual machine, whether now is a good time to live migrate it and ho=
+w
+best to optimise power/performance on the server end.
+
+Alan
