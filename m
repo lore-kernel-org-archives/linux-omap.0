@@ -1,78 +1,65 @@
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: RE: NULL Pointer Deference: NFS & Telnet
-Date: Wed, 26 May 2010 07:29:01 +0200
-Message-ID: <1274851741.25136.16.camel@edumazet-laptop>
-References: <27F9C60D11D683428E133F85D2BB4A53043E33A997@dlee03.ent.ti.com>
-	 <27F9C60D11D683428E133F85D2BB4A53043E3EDFE6@dlee03.ent.ti.com>
-	 <20100525.185236.193707791.davem@davemloft.net>
-	 <27F9C60D11D683428E133F85D2BB4A53043E3EDFF1@dlee03.ent.ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: usb_nop_xceiv_register() missing when OTG built as modules
+Date: Wed, 26 May 2010 09:02:52 +0300
+Message-ID: <20100526060252.GD3069@nokia.com>
+References: <87635d54nn.fsf@deeprootsystems.com>
+ <19F8576C6E063C45BE387C64729E7394044DB7B6BD@dbde02.ent.ti.com>
+ <87eik03scn.fsf@deeprootsystems.com>
+ <20100305090426.GG12757@nokia.com>
+ <871vfy3azr.fsf@deeprootsystems.com>
+ <558f5bffd42210a777154737d6730232@secure211.sgcpanel.com>
+ <87y6i6zatj.fsf@deeprootsystems.com>
+ <20100522235310.GA15859@matterhorn.lan>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53043E3EDFF1-lTKHBJngVwKIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Arce, Abraham" <x0066660-l0cyMroinI0@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:47630 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752683Ab0EZGDS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 02:03:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20100522235310.GA15859@matterhorn.lan>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, me@felipebalbi.com, felipe.balbi@nokia.com, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com
 
-Le mardi 25 mai 2010 =C3=A0 21:02 -0500, Arce, Abraham a =C3=A9crit :
-> Thanks David,
->=20
-> > > diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-> > > index f8abf68..eb81f76 100644
-> > > --- a/net/core/skbuff.c
-> > > +++ b/net/core/skbuff.c
-> > > @@ -334,7 +334,7 @@ static void skb_release_data(struct sk_buff *=
-skb)
-> > >  	if (!skb->cloned ||
-> > >  	    !atomic_sub_return(skb->nohdr ? (1 << SKB_DATAREF_SHIFT) + =
-1 : 1,
-> > >  			       &skb_shinfo(skb)->dataref)) {
-> > > -		if (skb_shinfo(skb)->nr_frags) {
-> > > +		if (skb_shinfo(skb)->nr_frags && skb_has_frags(skb)) {
-> > >  			int i;
-> > >  			for (i =3D 0; i < skb_shinfo(skb)->nr_frags; i++)
-> > >  				put_page(skb_shinfo(skb)->frags[i].page);
-> >=20
-> > skb_shinfo(skb)->nr_frags counts the number of entries contained
-> > in the skb_shinfo(skb)->frags[] array.
-> >=20
-> > This has nothing to do with the frag list pointer,
-> > skb_shinfo(skb)->frag_list, which is what skb_has_frags()
-> > tests.
-> >=20
-> > You've got some kind of memory corruption going on and it
-> > appears to have nothing to do with the code paths you're
-> > playing with here.
->=20
-> Do you have any recommendation on debugging technique/tool for this m=
-emory corruption issue?
->=20
-> Best Regards
-> Abraham
-> --
+Hi,
 
-It seems quite strange. You have a skb->nr_frags > 0 value, but a
-frags[i].page =3D 0 value
+On Sun, May 23, 2010 at 01:53:10AM +0200, ext Amit Kucheria wrote:
+>From 3df714f995b0895e905090760482194233f66a1d Mon Sep 17 00:00:00 2001
+>Message-Id: <3df714f995b0895e905090760482194233f66a1d.1274570700.git.amit.kucheria@canonical.com>
+>From: Amit Kucheria <amit.kucheria@canonical.com>
+>Date: Sun, 23 May 2010 01:35:00 +0300
+>Subject: [PATCH] omap: remove calls to usb_nop_xceiv_register from board files
+>
+>This will allow the OMAP USB drivers to be compiled in as modules. At the
+>moment, CONFIG_NOP_USB_XCEIV cannot be a module.
+>
+>Signed-off-by: Amit Kucheria <amit.kucheria@canonical.com>
+>---
+> arch/arm/mach-omap2/board-4430sdp.c  |   10 ++++++++--
+> arch/arm/mach-omap2/board-omap3evm.c |   11 ++++++++---
+> 2 files changed, 16 insertions(+), 5 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+>index e4a5d66..131f0fd 100644
+>--- a/arch/arm/mach-omap2/board-4430sdp.c
+>+++ b/arch/arm/mach-omap2/board-4430sdp.c
+>@@ -110,8 +110,16 @@ static struct platform_device sdp4430_lcd_device = {
+> 	.id		= -1,
+> };
+> 
+>+static struct platform_device sdp4430_nop_usb_device = {
+>+	.name		= "nop_usb_xceiv",
+>+	.id		= -1,
+>+	.resource	= NULL,
+>+	.num_resources	= 0,
 
-You might add following function :
+you don't need to zero-initialize a static variable. So you can just 
+drop .resource and .num_resources altogether.
 
-shinfo_check(struct sk_buff *skb)
-{
-	struct skb_shared_info *shinfo =3D skb_shinfo(skb);
-	int i;
+-- 
+balbi
 
-	WARN_ON(shinfo->nr_frags >=3D MAX_SKB_FRAGS);
-	for (i =3D 0; i < shinfo->nr_frags; i++)
-		WARN_ON(!shinfo->frags[i].page);
-}
-
-And call it from various points, to check who corrupts your skb.
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DefectiveByDesign.org
