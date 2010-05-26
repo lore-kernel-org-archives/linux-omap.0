@@ -1,66 +1,59 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 12/17] drivers/video/omap2/displays: Add missing mutex_unlock
-Date: Wed, 26 May 2010 17:57:41 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1005261757240.23743@ask.diku.dk>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Wed, 26 May 2010 12:01:49 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1005261156130.1328-100000@iolanthe.rowland.org>
+References: <CEE6BB42CAD6E947908279175AF8470A025A7D7DC4@EXDCVYMBSTM006.EQ1STM.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw1.diku.dk ([130.225.96.91]:46275 "EHLO mgw1.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755491Ab0EZP5q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 May 2010 11:57:46 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <CEE6BB42CAD6E947908279175AF8470A025A7D7DC4@EXDCVYMBSTM006.EQ1STM.local>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Linus WALLEIJ <linus.walleij@stericsson.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+On Wed, 26 May 2010, Linus WALLEIJ wrote:
 
-Add a mutex_unlock missing on the error paths.  The use of the mutex is
-balanced elsewhere in the file.
+> Overall as a driver writer I'm quite confused at this point, if
+> I have a driver X, how is that code going to look if it is going
+> to support both runtime PM *and* suspend blockers? I don't say
+> it has to support both mechanisms in parallell, I'm even fine
+> with putting it in #ifdef:s, but how will the source code look?
+> A real-world example on a simple driver out of the Motorola Droid
+> git or so would help a lot.
+> 
+> It's quite relevant since e.g. all OMAP drivers will need this
+> modification to be used with Android-like systems, and at
+> ST-Ericsson we will need both runtime PM and suspend blockers for
+> our drivers as well. It will as a consequence affect the drivers
+> for all ARM reference boards since we use the drivers for ARM
+> PrimeCells. etc...
+> 
+> Now if this mechanism is going in, my main interest is that there
+> is some clearly cut way and design pattern for supporting both
+> runtime PM and suspend blocks.
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+It's not difficult.  You just have to decide what situations should 
+block opportunistic suspend.  For example, let's say that opportunistic 
+suspend should be blocked when your event queue is non-empty.
 
-// <smpl>
-@@
-expression E1;
-@@
+Then in the routine that adds new events to the queue, while still
+holding the spinlock that protects your queue, you enable your suspend
+blocker.  Likewise, in the routine that takes events off the queue and
+sends them to userspace, while holding the spinlock you test whether
+the queue has become empty; if it has you disable your suspend blocker.
 
-* mutex_lock(E1,...);
-  <+... when != E1
-  if (...) {
-    ... when != E1
-*   return ...;
-  }
-  ...+>
-* mutex_unlock(E1,...);
-// </smpl>
+That's all.  No other changes are needed (except to create and destroy 
+the suspend blocker, of course).  No other interaction with suspend, 
+resume, or runtime PM.
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/video/omap2/displays/panel-acx565akm.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
-index 1f8eb70..07fbb8a 100644
---- a/drivers/video/omap2/displays/panel-acx565akm.c
-+++ b/drivers/video/omap2/displays/panel-acx565akm.c
-@@ -592,7 +592,7 @@ static int acx_panel_power_on(struct omap_dss_device *dssdev)
- 	r = omapdss_sdi_display_enable(dssdev);
- 	if (r) {
- 		pr_err("%s sdi enable failed\n", __func__);
--		return r;
-+		goto fail_unlock;
- 	}
- 
- 	/*FIXME tweak me */
-@@ -633,6 +633,8 @@ static int acx_panel_power_on(struct omap_dss_device *dssdev)
- 	return acx565akm_bl_update_status(md->bl_dev);
- fail:
- 	omapdss_sdi_display_disable(dssdev);
-+fail_unlock:
-+	mutex_unlock(&md->mutex);
- 	return r;
- }
- 
+Alan Stern
