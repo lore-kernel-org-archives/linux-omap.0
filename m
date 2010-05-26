@@ -1,50 +1,38 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: Re: [RFC PATCHv2 2/7] OMAP SSI: Introducing OMAP SSI driver
-Date: Wed, 26 May 2010 10:27:13 +0300
-Message-ID: <1274858833.8099.14.camel@localhost>
-References: <1273245517-30712-1-git-send-email-carlos.chinea@nokia.com>
-	 <201005141641.59244.s-jan@ti.com> <1274173640.7755.22703.camel@localhost>
-	 <201005181605.55809.s-jan@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201005181605.55809.s-jan@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Sebastien Jan <s-jan@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH 0/3] omap: rx51: board-rx51-peripherals.c updates
+Date: Wed, 26 May 2010 10:30:14 +0300
+Message-ID: <1274859017-19509-1-git-send-email-jhnikula@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:33953 "EHLO
+	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751170Ab0EZH34 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 03:29:56 -0400
+Received: by ewy8 with SMTP id 8so748155ewy.28
+        for <linux-omap@vger.kernel.org>; Wed, 26 May 2010 00:29:55 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-On Tue, 2010-05-18 at 16:05 +0200, ext Sebastien Jan wrote:
-> On Tuesday 18 May 2010 11:07:20 Carlos Chinea wrote:
-> [cut]
-> > > > +       val |= __raw_readl(omap_ssi->sys +
-> > > > SSI_MPU_ENABLE_REG(port->num, 0)); +       __raw_writel(val,
-> > > > omap_ssi->sys +
-> > > >  SSI_MPU_ENABLE_REG(port->num, 0)); +
-> > > > +       msg->status = HSI_STATUS_COMPLETED;
-> > > > +       msg->actual_len = sg_dma_len(msg->sgt.sgl);
-> > > > +       spin_unlock(&omap_ssi->lock);
-> > > > +}
-> > >
-> > > Don't you need to check the queue related to this transfer at this point,
-> > > to start the potentially next queued transfer on the same channel?
-> > > (calling ssi_start_transfer(), like in ssi_pio_complete()?)
-> > 
-> > No this is done in ssi_pio_complete(). Notice that we do not call the
-> > complete callback at any point here. We just arm the pio interrupt for
-> > that channel and transfer direction. AFAIK, this is the SW logic
-> > expected by the OMAP SSI HW.
-> 
-> Ok, though I would not expect the interrupt to fire in an Rx scenario as the 
-> fifo would have already been emptied by the DMA for this transfer (unless you 
-> rely on the next transfer initiated by the peer to make the Rx interrupt fire 
-> on this channel?)?
+Hi
 
-No I do not rely on the next RX transfer. I rely on the fact that the
-GDD(DMA) controller does not reset the RX status bit for that channel
-when RX transfer is finished.
+There are now required sound/soc/ patches in mainline and linux-omap to get
+basic Nokia N900 audio working.
 
-Br,
+Patch 1/3 is continuation to earlier set, see
+
+http://marc.info/?l=linux-omap&m=127306914008392&w=2
+
+IMO, it should go for 2.6.35 as it's kind of fix for unworking audio due
+codec being in unknown reset state.
+
+Patches 2-3/3 are posted earlier but now based on top 1/3 since it has
+priority over them.
+
+Patches 2/3/3 are not important for 2.6.35 but they are preparation for 2.6.36
+and must hit the mainline before adding headphone support to
+sound/soc/omap/rx51.c.
+
+
 -- 
-Carlos Chinea <carlos.chinea@nokia.com>
+Jarkko
