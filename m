@@ -1,61 +1,68 @@
 From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 14:41:29 +0200
-Message-ID: <1274877689.27810.287.camel@twins>
-References: <87wrusvrqe.fsf@deeprootsystems.com>
-	 <201005250138.16293.rjw@sisk.pl> <1274863655.5882.4875.camel@twins>
+Subject: Re: [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 26 May 2010 14:53:16 +0200
+Message-ID: <1274878396.27810.334.camel@twins>
+References: <1274482015-30899-1-git-send-email-arve@android.com>
+	 <1274863655.5882.4875.camel@twins>
 	 <AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
 	 <1274867106.5882.5090.camel@twins>
-	 <20100526120242.5c9b73ad@schatten.dmk.lab>
-	 <AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
-	 <20100526133721.602633b2@schatten.dmk.lab>
-	 <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
-	 <20100526142430.327ccbc4@schatten.dmk.lab>
-	 <20100526122932.GB1990@nokia.com>
-	 <20100526143323.7c6f8705@schatten.dmk.lab>
+	 <AANLkTiksR3YozbBH0Iv5kNsQkEGKCH1APCvn_s6LkjV9@mail.gmail.com>
+	 <1274868593.5882.5185.camel@twins>
+	 <AANLkTinuxCbeBmxIR7b_1OtrqQYJCamiDZJbnNTih1Fb@mail.gmail.com>
+	 <1274869966.5882.5262.camel@twins>
+	 <AANLkTikRMBkoFxgaKsxMJ2lOMomTXpiHJDk3rVt0EtwM@mail.gmail.com>
+	 <1274870970.5882.5311.camel@twins>
+	 <AANLkTinlxsokwralwRAL9_YRQ7-SZUSvrGHTlRISA9bC@mail.gmail.com>
+	 <1274872357.27810.16.camel@twins>
+	 <20100526133510.6e9de670@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100526143323.7c6f8705@schatten.dmk.lab>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: felipe.balbi@nokia.com, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:34711 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753611Ab0EZMxZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 08:53:25 -0400
+In-Reply-To: <20100526133510.6e9de670@lxorguk.ukuu.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@deeprootsystems.com>, felipe.balbi@nokia.com, Linux PM <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, 2010-05-26 at 14:33 +0200, Florian Mickler wrote:
-> On Wed, 26 May 2010 15:29:32 +0300
-> Felipe Balbi <felipe.balbi@nokia.com> wrote:
+On Wed, 2010-05-26 at 13:35 +0100, Alan Cox wrote:
+
+> This is an area where machines are improving and where the ability to
+> do stuff like autosuspend, the technology like the OLPC screen and so on
+> create an incentive for the BIOS and platform people to improve their
+> bits of it.
+
+But do you think its a sensible thing to do? Explicitly not running
+runnable tasks just sounds wrong. Also, at the extreme end, super fast
+suspend is basically an efficient idle mode.
+
+Why would the code holding suspend blockers be any more or less
+important than any other piece of runnable code.
+
+In fact, having runnable but non suspend blocking tasks around will
+delay the completion of the suspend blocker, so will we start removing
+those?
+
+This whole thing introduces an artificial segregation of code. My 'cool'
+code is more important than your 'uncool' code. Without a clear
+definition of what makes code cool or not.
+
+> > So yes, I do think merging this will delay the effort in fixing
+> > userspace, simply because all the mobile/embedded folks don't care about
+> > it anymore.
 > 
-> > hi,
-> > 
-> > On Wed, May 26, 2010 at 02:24:30PM +0200, ext Florian Mickler wrote:
-> > >And if you have two kernels, one with which your device is dead after 1
-> > >hour and one with which your device is dead after 10 hours. Which would
-> > >you prefer? I mean really... this is ridiculous.
-> > 
-> > What I find ridiculous is the assumption that kernel should provide good 
-> > power management even for badly written applications. They should work, 
-> > of course, but there's no assumption that the kernel should cope with 
-> > those applications and provide good battery usage on those cases.
-> > 
-> > You can install and run anything on the device, and they will work as 
-> > they should (they will be scheduled and will be processed) but you can't 
-> > expect the kernel to prevent that application from waking up the CPU 
-> > every 10 ms simply because someone didn't think straight while writting 
-> > the app.
-> > 
-> 
-> But then someone at the user side has to know what he is doing. 
-> 
-> I fear, if you target mass market without central distribution
-> channels, you can not assume that much.
+> The mobile space probably doesn't care too much about many of the large
+> bloated desktop apps anyway and traditional embedded generally has a very
+> small fixed application set where the optimise both halves of the system
+> together.
 
-Provide the developers and users with tools. 
+Sure, but at least we share the kernel. It was said that the kernel
+generates too many wakeups (and iwlagn certainly is the top most waker
+on my laptop). Improvements to the kernel will benefit all, regardless
+of whatever userspace we run.
 
-Notify the users that their phone is using power at an unadvised rate
-due to proglet $foo.
 
-Also, if you can integrate into the development environment and provide
-developers instant feedback on suckage of their app they can react and
-fix before letting users run into the issue.
