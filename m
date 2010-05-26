@@ -1,60 +1,56 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 03:53:31 -0700
-Message-ID: <AANLkTinlxsokwralwRAL9_YRQ7-SZUSvrGHTlRISA9bC@mail.gmail.com>
-References: <1274482015-30899-1-git-send-email-arve@android.com>
-	 <1274863655.5882.4875.camel@twins>
-	 <AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
-	 <1274867106.5882.5090.camel@twins>
-	 <AANLkTiksR3YozbBH0Iv5kNsQkEGKCH1APCvn_s6LkjV9@mail.gmail.com>
-	 <1274868593.5882.5185.camel@twins>
-	 <AANLkTinuxCbeBmxIR7b_1OtrqQYJCamiDZJbnNTih1Fb@mail.gmail.com>
-	 <1274869966.5882.5262.camel@twins>
-	 <AANLkTikRMBkoFxgaKsxMJ2lOMomTXpiHJDk3rVt0EtwM@mail.gmail.com>
-	 <1274870970.5882.5311.camel@twins>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [PATCH V2] misc : ROHM BH1780GLI Ambient light sensor Driver
+Date: Wed, 26 May 2010 16:42:18 +0530 (IST)
+Message-ID: <23686.10.24.255.18.1274872338.squirrel@dbdmail.itg.ti.com>
+References: <39216.10.24.255.17.1274699066.squirrel@dbdmail.itg.ti.com>
+    <4428.10.24.255.17.1274862635.squirrel@dbdmail.itg.ti.com>
+    <4BFCEC43.3080205@jic23.retrosnub.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1274870970.5882.5311.camel@twins>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@deeprootsystems.com>, felipe.balbi@nokia.com, Linux PM <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42959 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757083Ab0EZLMi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 May 2010 07:12:38 -0400
+In-Reply-To: <4BFCEC43.3080205@jic23.retrosnub.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, kernel@jic23.retrosnub.co.uk
 
-2010/5/26 Peter Zijlstra <peterz@infradead.org>:
-> On Wed, 2010-05-26 at 03:40 -0700, Arve Hj=F8nnev=E5g wrote:
->> 2010/5/26 Peter Zijlstra <peterz@infradead.org>:
->> > On Wed, 2010-05-26 at 03:25 -0700, Arve Hj=F8nnev=E5g wrote:
->> >
->> >> and on systems where the
->> >> same power state can be used from idle and suspend, we use suspen=
-d so
->> >> we can stay in the low power state for minutes to hours instead o=
-f
->> >> milliseconds to seconds.
->> >
->> > So don't you think working on making it possible for systems to be=
- idle
->> > _that_ long would improve things for everybody? as opposed to this
->> > auto-suspend which only improves matters for those that (can) use =
-it?
+----- Original Message -----
+From: "Jonathan Cameron"
+> On 05/26/10 09:30, Hemanth V wrote:
+>>> From: Hemanth V <hemanthv@ti.com>
+>>> Date: Fri, 21 May 2010 15:52:03 +0530
+>>> Subject: [PATCH] misc: ROHM BH1780GLI Ambient light sensor Driver
+>>>
+>>> This patch adds support for ROHM BH1780GLI Ambient light sensor.
+>>>
+>>> BH1780 supports I2C interface. Driver supports read/update of power state and
+>>> read of lux value (through SYSFS). Writing value 3 to power_state enables the
+>>> sensor and current lux value could be read.
+>>>
+>> Jonathan, Daniel
 >>
->> I'm not preventing anyone from working on improving this. Currently
->> both the kernel and our user-space code polls way too much. I don't
->> think it is reasonable to demand that no one should run any user-spa=
-ce
->> code with periodic timers when we have not even fixed the kernel to
->> not do this.
+>> If there are no more comments, do you know howto push this to linus tree.
+
+> It's in misc, so send a copy (with reference back to review thread)
+> to Andrew Morton <akpm@linux-foundation.org>
 >
-> All I'm saying is that merging a stop-gap measure will decrease the
-> urgency and thus the time spend fixing the actual issues while adding
-> the burden of maintaining this stop-gap measure.
+> Andrew tends to pick things up eventually for lkml, but he'll notice
+> it quicker if you cc him in on relevant emails!
 >
 
-=46ixing the actually issue means fixing all user-space code, and
-replacing most x86 hardware. I don't think keeping this feature out of
-the kernel will significantly accelerate this.
+Andrew,
 
---=20
-Arve Hj=F8nnev=E5g
+Could you pull the patch listed in https://patchwork.kernel.org/patch/101860/
+
+This is version 2 of the patch. Review comments and discussion are listed part
+of https://patchwork.kernel.org/patch/101396/
+
+Thanks
+Hemanth
+
+
