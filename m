@@ -1,10 +1,8 @@
 From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 15:30:52 +0200
-Message-ID: <20100526153052.3b95621d@schatten.dmk.lab>
-References: <87wrusvrqe.fsf@deeprootsystems.com>
-	<201005250138.16293.rjw@sisk.pl>
-	<1274863655.5882.4875.camel@twins>
+Date: Wed, 26 May 2010 15:39:48 +0200
+Message-ID: <20100526153948.49fc03d1@schatten.dmk.lab>
+References: <1274863655.5882.4875.camel@twins>
 	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
 	<1274867106.5882.5090.camel@twins>
 	<20100526120242.5c9b73ad@schatten.dmk.lab>
@@ -14,38 +12,46 @@ References: <87wrusvrqe.fsf@deeprootsystems.com>
 	<20100526142430.327ccbc4@schatten.dmk.lab>
 	<20100526122932.GB1990@nokia.com>
 	<20100526143323.7c6f8705@schatten.dmk.lab>
-	<1274877689.27810.287.camel@twins>
-	<20100526150348.54ea29c7@schatten.dmk.lab>
-	<1274879247.27810.390.camel@twins>
+	<20100526123532.GA2629@nokia.com>
+	<20100526145452.685337db@schatten.dmk.lab>
+	<20100526141942.2a6b94ff@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:40916 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752691Ab0EZNa5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 May 2010 09:30:57 -0400
-In-Reply-To: <1274879247.27810.390.camel@twins>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100526141942.2a6b94ff@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: felipe.balbi@nokia.com, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: felipe.balbi@nokia.com, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Wed, 26 May 2010 15:07:27 +0200
-Peter Zijlstra <peterz@infradead.org> wrote:
+On Wed, 26 May 2010 14:19:42 +0100
+Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
 
-> On Wed, 2010-05-26 at 15:03 +0200, Florian Mickler wrote:
-> > The kernel can not win if it does not try to integrate any use of it.
+
+> > This is a _big_ plus for attracting 3rd party programs. (And of course
+> > the thing you don't like). 
 > 
-> If we'd integrate every patch that came to lkml, you'd run away
-> screaming.
+> You would do better to concentrate on technical issues that the
+> assignment of malicious intent to other parties.
 > 
-> We most certainly do not want to integrate _any_ use.
+> Alan
 
-We most certainly do want to integrate any use that is not harmful to
-others.
+This was nothing the kind of! He explicitly said this:
 
-I don't buy the argument that this is harmful. 
+On Wed, 26 May 2010 15:29:32 +0300
+Felipe Balbi <felipe.balbi@nokia.com> wrote:
+
+> What I find ridiculous is the assumption that kernel should provide good 
+> power management even for badly written applications. They should work, 
+> of course, but there's no assumption that the kernel should cope with 
+> those applications and provide good battery usage on those cases.
+
+And I responded that if the kernel would do this, then that would
+be a "_big_ plus for attracting 3d party programs". 
+
+I had no intent in attacking anyone or putting word's in someones mouth.
+Sorry if this was unclearly written.
 
 Cheers,
 Flo
