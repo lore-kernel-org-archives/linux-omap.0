@@ -1,189 +1,62 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 15:30:58 -0700
-Message-ID: <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
-References: <1274482015-30899-1-git-send-email-arve@android.com>
-	<201005242049.18920.rjw@sisk.pl>
-	<87wrusvrqe.fsf@deeprootsystems.com>
-	<201005250138.16293.rjw@sisk.pl>
-	<1274863655.5882.4875.camel@twins>
-	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
-	<1274867106.5882.5090.camel@twins>
-	<20100526120242.5c9b73ad@schatten.dmk.lab>
-	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
-	<20100526133721.602633b2@schatten.dmk.lab>
-	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
-	<20100526142430.327ccbc4@schatten.dmk.lab>
-	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] serial: Add OMAP high-speed UART driver
+Date: Wed, 26 May 2010 15:48:58 -0700
+Message-ID: <87wruqmg85.fsf@deeprootsystems.com>
+References: <58269.192.168.10.88.1274708590.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:40632 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934603Ab0EZWbA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 18:31:00 -0400
-In-Reply-To: <20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <58269.192.168.10.88.1274708590.squirrel@dbdmail.itg.ti.com> (Govindraj R.'s message of "Mon\, 24 May 2010 19\:13\:10 +0530 \(IST\)")
+Sender: linux-serial-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Wed, May 26, 2010 at 6:16 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wr=
-ote:
->> Really, what are you getting at? Do you deny that there are programs=
-,
->> that prevent a device from sleeping? (Just think of the bouncing
->> cows app)
->>
->> And if you have two kernels, one with which your device is dead afte=
-r 1
->> hour and one with which your device is dead after 10 hours. Which wo=
-uld
->> you prefer? I mean really... this is ridiculous.
->
-> The problem you have is that this is policy. If I have the device wir=
-ed
-> to a big screen and I want cows bouncing on it I'll be most upset if
-> instead it suspends.
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-We never suspend when the screen is on. If the screen is off, I would
-not be upset if it suspends.
+> This patch adds driver support for OMAP3/4 high speed UART.
+>
+> The driver is made separate from 8250 driver as we cannot
+> over load 8250 driver with omap platform specific configuration for
+> features like DMA, it makes easier to implement features like DMA and
+> hardware flow control and software flow control configuration with
+> this driver as required for the omap-platform.This patch involves only
+> the core driver and its dependent.
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+> Platform data support for this driver is currently
+> present in Kevin's PM tree remotes/origin/pm-wip/uart branch
+> This branch contains uart-hwmod platform conversion which
+> utilizes the omap-hwmod framework. Tested using OMAP
+> 3430/3630/4430SDP boards.
+>
+>  arch/arm/plat-omap/include/plat/omap-serial.h |  129 +++
+>  drivers/serial/Kconfig                        |   27 +
+>  drivers/serial/Makefile                       |    1 +
+>  drivers/serial/omap-serial.c                  | 1318 +++++++++++++++++++++++++
+>  include/linux/serial_core.h                   |    3 +
+>  5 files changed, 1478 insertions(+), 0 deletions(-)
 
-> What you are essentially arguing for is for the
-> kernel to disobey the userspace.
+[...]
 
-No I'm not. User-space asked the kernel to suspend when possible.
-Suspend is an existing kernel feature. All opportunistic suspend adds
-is the ability to use it safely when there are wakeup event you cannot
-afford to ignore.
+> diff --git a/drivers/serial/Kconfig b/drivers/serial/Kconfig
+> index f55c494..4346bfa 100644
+> --- a/drivers/serial/Kconfig
+> +++ b/drivers/serial/Kconfig
+> @@ -1387,6 +1387,33 @@ config SERIAL_OF_PLATFORM
+>  	  Currently, only 8250 compatible ports are supported, but
+>  	  others can easily be added.
+>
+> +config SERIAL_OMAP
+> +	tristate "OMAP serial port support"
+> +	depends on ARCH_OMAP3 || ARCH_OMAP4
 
-> It's as ridiculous (albeit usually less
-> damaging) as a file system saying "Ooh thats a rude file name, the ap=
-p
-> can't have meant it, I'll put your document soemwhere else"
->
-> The whole API feels wrong to me. It's breaking rule #1 of technology =
-"You
-> cannot solve a social problem with technology". In this case you have=
- a
-> social/economic problem which is crap code. You solve it with an
-> economics solution - creative incentives not to produce crap code lik=
-e
-> boxes that keep popping up saying "App XYZ is using all your battery"=
- and
-> red-amber-green powermeter scores in app stores.
->
-> That said if you want technical mitigation I think it makes more sens=
-e
-> if you look at it from a different starting point. The starting point
-> being this: We have idling logic in the kernel and improving this hel=
-ps
-> everyone. What is needed to improve the existing logic ?
->
+FYI... this also works on OMAP2.  
 
-Our actual stating point is this: Some systems can only enter their
-lowest power state from suspend. So we added an api that allowed us to
-use suspend without loosing wakeup events. Since suspending also
-improves our battery life on platforms that enter the same power state
-from idle and suspend and we already have a way to safely use suspend,
-we would be crazy not to use it.
+I tested it on my n810 along with UART hwmod conversion and it works
+just fine there.
 
-> - You don't know which processes should be ignored for the purpose of
-> =A0suspend (except for kernel threads) and there is no way to set thi=
-s
->
-> - You don't know whether a move from a deep idle to a 'suspend' (whic=
-h is
-> =A0just a really deep idle in truth anyway) might break wakeups
-> =A0requirements because a device has wake dependencies due to hardwar=
-e
-> =A0design (eg a port that has no electronics to kick the box out of
-> =A0suspend into running). This is a problem we have already. [1]
->
-> That maps onto two existing ideas
->
-> Sandboxing/Resource Limits: handling apps that can't be trusted. So t=
-he
-> phone runs the appstore code via something like
-
-Sandboxing is problematic on Android since there are a lot of cross
-process dependencies. When a call comes in I don't know where the name
-and picture to display comes from. With suspend blockers we block
-suspend when we get notified that we have an incoming call and we can
-call into any process and get a response.
-
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0setpidle(getpid(), something);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0exec()
->
-> where 'something' is a value with meaning to both user space and to t=
-he
-> existing idling logic in the kernel that basically says to what exten=
-t it
-> is permitted to block idling/suspend. That also seems to tie into som=
-e of
-> the realtime + idle problems. This I think deals with Kevin Hillman's
-> thoughts on dealing with untrustworthy app code more cleanly and avoi=
-ds
-> the need for userspace hackery like the blocker API.
->
-> And an entirely in kernel API where device drivers can indicate that =
-in
-> their current situation they require that the power level doesn't dro=
-p
-> below some limit unless user requested. This is really important beca=
-use
-> the platform vendor of the phone/pda/tablet whatever effectively owns=
- the
-> kernel - so it's *their* problem, *their* control, *their* hardware a=
-nd
-> they can make it work as best for the device. Best of all it means it=
-s
-> all free software stuff so if the vendor screws up you can still fix =
-your
-> phone.
->
-> Implementation-wise it probably ties into setpidle, its simply that a=
- task
-> has a pair of idle values, a dynamic one and a base one, the dynamic =
-one
-> being the base one but updatable temporarily by drivers.
->
-
-
-What about platforms that currently cannot enter low power states from
-idle? Do you remove suspend support from the kernel?
-
-
-> Alan
-> --
->
-> [1] Note I disagree with Kevin here on static/dynamic power managemen=
-t.
-> There are IMHO two types of PM but they are 'user invoked' and
-> 'automatic'. "Static" simply means it's not been made fast enough yet=
- but
-> its just a policy divide dependant on the users 'acceptable' resume t=
-ime
-> (which for hard RT may just as well rule out some more usual power st=
-ates)
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at =A0http://www.tux.org/lkml/
->
-
-
-
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
