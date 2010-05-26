@@ -1,66 +1,79 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 04/10] OMAP4: hwmod: Replace OCPIF_HAS_IDLEST by HWMOD_NO_IDLEST
-Date: Wed, 26 May 2010 14:34:14 -0700
-Message-ID: <874ohuny95.fsf@deeprootsystems.com>
-References: <1273247055-15165-1-git-send-email-b-cousson@ti.com>
-	<1273247055-15165-5-git-send-email-b-cousson@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC] Initial attempt to make ARM use LMB
+Date: Wed, 26 May 2010 22:40:37 +0100
+Message-ID: <20100526214037.GB16418@n2100.arm.linux.org.uk>
+References: <20100325233248.GM24984@n2100.arm.linux.org.uk> <20100522215848.GB29889@n2100.arm.linux.org.uk> <20100526004418.GM9645@atomide.com> <20100526075059.GA25435@n2100.arm.linux.org.uk> <20100526135128.GN9645@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:39837 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753075Ab0EZVeT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 17:34:19 -0400
-Received: by pwi7 with SMTP id 7so401087pwi.19
-        for <linux-omap@vger.kernel.org>; Wed, 26 May 2010 14:34:18 -0700 (PDT)
-In-Reply-To: <1273247055-15165-5-git-send-email-b-cousson@ti.com> (Benoit Cousson's message of "Fri\,  7 May 2010 17\:44\:09 +0200")
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55873 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753601Ab0EZVky (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 17:40:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20100526135128.GN9645@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Benoit Cousson <b-cousson@ti.com> writes:
-
-> Some initiator modules in OMAP2 & 3 does not have IDLEST bit,
-> in that case we cannot detect the module readiness by
-> polling that bit and must exist the function immediately
-> assuming that the module is ready.
->
-> The previous flag was affected to the OCP interface. While it is
-> technically true that the idlest is related to the L4 slave
-> interface of the module, the PRCM status belong to the module.
->
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-
-We had some discussions off-list on this patch... summarizing below.
-
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c             |    2 +-
->  arch/arm/plat-omap/include/plat/omap_hwmod.h |    8 +++++---
->  2 files changed, 6 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 4a134c4..6459d07 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -808,7 +808,7 @@ static int _wait_target_ready(struct omap_hwmod *oh)
+On Wed, May 26, 2010 at 06:51:29AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100526 00:45]:
+> > On Tue, May 25, 2010 at 05:44:18PM -0700, Tony Lindgren wrote:
+> > 
+> > > After applying the next patch in your lmb branch "ARM: OMAP: Convert
+> > > to use ->reserve method to reserve boot time memory" tux still works
+> > > on 5912osk, but not on n900. The difference is that osk5912 uses
+> > > the old omapfb code.
+> > 
+> > I guess this is because I don't have board-n900.c in my tree.  All OMAP
+> > boards need a ".reserve = omap_reserve," line added in their machine
+> > descriptor.
+> 
+> It's there but well hidden, board-rx51.c is the one for n900.
 >  
->  	os = *oh->slaves + oh->_mpu_port_index;
->  
-> -	if (!(os->flags & OCPIF_HAS_IDLEST))
-> +	if (oh->flags & HWMOD_NO_IDLEST)
->  		return 0;
+> > I just noticed that board-n8x0.c contains more than one machine descriptor,
+> > which I've now fixed up.
+> 
+> OK good catch.
+> 
+> > > Anyways, I've picked the patches from lmb branch up to the one below
+> > > into omap-testing. Will add more of them once we get them working.
+> > 
+> > You should now be able to pick all but the last patch.
+> 
+> Yeah I'll do that once the dss2 code has been verified to work.
 
-This changes the default from assuming a module doesn't have an IDLEST
-to assuming it does.
+It'd help with this patch - it seems rx51 needs some additional stuff.
+Any other OMAP platforms with this kind of thing?
 
-Because of this, we now get a bunch of failures in _enable() on
-OMAP2/3 due to missing fields in the hwmods, in particular the members
-of the 'struct omap_hwmod_omap2_prcm' are required to get correct
-_wait_for_ready() behavior.
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 3bd956f..e3a42d1 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -144,17 +144,22 @@ static void __init rx51_init(void)
+ static void __init rx51_map_io(void)
+ {
+ 	omap2_set_globals_343x();
+-	rx51_video_mem_init();
+ 	omap34xx_map_common_io();
+ }
+ 
++static void __init rx51_reserve(void)
++{
++	rx51_video_mem_init();
++	omap_reserve();
++}
++
+ MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
+ 	/* Maintainer: Lauri Leukkunen <lauri.leukkunen@nokia.com> */
+ 	.phys_io	= 0x48000000,
+ 	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
+ 	.boot_params	= 0x80000100,
+ 	.map_io		= rx51_map_io,
+-	.reserve	= omap_reserve,
++	.reserve	= rx51_reserve,
+ 	.init_irq	= rx51_init_irq,
+ 	.init_machine	= rx51_init,
+ 	.timer		= &omap_timer,
 
-Therefore, when creating new hwmods, please be sure the fields of this
-struct are filled out and correct.
-
-Kevin
