@@ -1,7 +1,7 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 26 May 2010 03:25:44 -0700
-Message-ID: <AANLkTinuxCbeBmxIR7b_1OtrqQYJCamiDZJbnNTih1Fb@mail.gmail.com>
+Date: Wed, 26 May 2010 12:32:46 +0200
+Message-ID: <1274869966.5882.5262.camel@twins>
 References: <1274482015-30899-1-git-send-email-arve@android.com>
 	 <201005242049.18920.rjw@sisk.pl> <87wrusvrqe.fsf@deeprootsystems.com>
 	 <201005250138.16293.rjw@sisk.pl> <1274863655.5882.4875.camel@twins>
@@ -9,54 +9,24 @@ References: <1274482015-30899-1-git-send-email-arve@android.com>
 	 <1274867106.5882.5090.camel@twins>
 	 <AANLkTiksR3YozbBH0Iv5kNsQkEGKCH1APCvn_s6LkjV9@mail.gmail.com>
 	 <1274868593.5882.5185.camel@twins>
+	 <AANLkTinuxCbeBmxIR7b_1OtrqQYJCamiDZJbnNTih1Fb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f176.google.com ([209.85.222.176]:54459 "EHLO
-	mail-pz0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757208Ab0EZKZp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 06:25:45 -0400
-In-Reply-To: <1274868593.5882.5185.camel@twins>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinuxCbeBmxIR7b_1OtrqQYJCamiDZJbnNTih1Fb@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@deeprootsystems.com>, felipe.balbi@nokia.com, Linux PM <linux-pm@lists.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+List-Id: linux-omap@vger.kernel.org
 
-2010/5/26 Peter Zijlstra <peterz@infradead.org>:
-> On Wed, 2010-05-26 at 03:06 -0700, Arve Hj=F8nnev=E5g wrote:
->
->> I was not talking about our user-space code. Suspend has to be calle=
-d
->> by a running thread, so at least one runqueue is not empty.
->
-> But why would you need to suspend if the machine is fully idle?
->
+On Wed, 2010-05-26 at 03:25 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
 
-I have never seen a system that is fully idle for hours or even minutes=
-=2E
+> and on systems where the
+> same power state can be used from idle and suspend, we use suspend so
+> we can stay in the low power state for minutes to hours instead of
+> milliseconds to seconds.
 
-> Is it because you're using broken hardware that has lower power
-> consumption in suspend state as in idle?
->
-
-Initially, yes, but for shipping android phones, no.
-
-> Couldn't you make the runtime-pm smarter and utilize the suspend stat=
-es?
->
-
-I don't think runtime-pm is relevant here. We don't use suspend to
-power down devices that are not in use, we use suspend to enter system
-power states that we cannot enter from idle, and on systems where the
-same power state can be used from idle and suspend, we use suspend so
-we can stay in the low power state for minutes to hours instead of
-milliseconds to seconds.
-
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So don't you think working on making it possible for systems to be idle
+_that_ long would improve things for everybody? as opposed to this
+auto-suspend which only improves matters for those that (can) use it?
