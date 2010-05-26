@@ -1,64 +1,72 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: usb_nop_xceiv_register() missing when OTG built as modules
-Date: Wed, 26 May 2010 11:50:48 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E616B33@dbde02.ent.ti.com>
-References: <87635d54nn.fsf@deeprootsystems.com>
- <19F8576C6E063C45BE387C64729E7394044DB7B6BD@dbde02.ent.ti.com>
- <87eik03scn.fsf@deeprootsystems.com> <20100305090426.GG12757@nokia.com>
- <871vfy3azr.fsf@deeprootsystems.com>
- <558f5bffd42210a777154737d6730232@secure211.sgcpanel.com>
- <87y6i6zatj.fsf@deeprootsystems.com> <20100522235310.GA15859@matterhorn.lan>
- <19F8576C6E063C45BE387C64729E7394044E61643A@dbde02.ent.ti.com>
- <20100526060321.GE3069@nokia.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [RFC][PATCH] Add support for TMP105
+Date: Wed, 26 May 2010 08:53:35 +0200
+Message-ID: <20100526085335.043fa5d2@hyperion.delvare>
+References: <0680EC522D0CC943BC586913CF3768C003B32B4012@dbde02.ent.ti.com>
+	<4BFBC0C7.2010401@cam.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60443 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752218Ab0EZGVK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 May 2010 02:21:10 -0400
-In-Reply-To: <20100526060321.GE3069@nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <4BFBC0C7.2010401@cam.ac.uk>
+Sender: linux-input-owner@vger.kernel.org
+To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: Amit Kucheria <amit.kucheria@verdurent.com>, Kevin Hilman <khilman@deeprootsystems.com>, "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-Hi,
-> On Mon, May 24, 2010 at 09:07:37AM +0200, ext Gupta, Ajay Kumar wrote:
-> >> Attempting to remove usb_nop_xceiv_register() completely will require
-> >> someone
-> >> with more knowledge of davinci and blackfin archs to comment on what
-> >> boards
-> >> need the platform_device defined.
-> >
-> >NAK..
-> >This is an incorrect fix as it duplicates the code snippet which
-> >is already present in nop file.
+On Tue, 25 May 2010 13:21:27 +0100, Jonathan Cameron wrote:
+> On 05/25/10 13:12, Datta, Shubhrajyoti wrote:
+> > 
+> > Adds the driver support for the TMP105 temperature sensor device. The
+> > interface is I2C.The driver supports the read of the temperature values.
+> > 
+> Still on the wrong list... cc'ing lm-sensors...
+> Please check MAINTAINERS for the correct mailing list for patches.
 
-> I don't believe you understood the purpose of the original patch:
-I did and that's why an alternative patch.
+Please re-send this patch to me and the lm-sensors list. Otherwise I
+can't apply it.
 
-> The idea is that currently, it's impossible to build a board which uses
-> nop transceiver and have that be a module because when you'll have an
-> undefined function being used on a board file.
-I know.
+> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+> > ---
+> >  drivers/hwmon/Kconfig |    3 ++-
+> >  drivers/hwmon/lm75.c  |    2 ++
+> >  2 files changed, 4 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> > index a4a5352..7a137d5 100644
+> > --- a/drivers/hwmon/Kconfig
+> > +++ b/drivers/hwmon/Kconfig
+> > @@ -483,7 +483,8 @@ config SENSORS_LM75
+> >  		- NXP's LM75A
+> >  		- ST Microelectronics STDS75
+> >  		- TelCom (now Microchip) TCN75
+> > -		- Texas Instruments TMP100, TMP101, TMP75, TMP175, TMP275
+> > +		- Texas Instruments TMP100, TMP101, TMP105, TMP75, TMP175, 
+> > +			TMP275
+> >  
+> >  	  This driver supports driver model based binding through board
+> >  	  specific I2C device tables.
+> > diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+> > index 8ae2cfe..5646342 100644
+> > --- a/drivers/hwmon/lm75.c
+> > +++ b/drivers/hwmon/lm75.c
+> > @@ -46,6 +46,7 @@ enum lm75_type {		/* keep sorted in alphabetical order */
+> >  	tcn75,
+> >  	tmp100,
+> >  	tmp101,
+> > +	tmp105,
+> >  	tmp175,
+> >  	tmp275,
+> >  	tmp75,
+> > @@ -220,6 +221,7 @@ static const struct i2c_device_id lm75_ids[] = {
+> >  	{ "tcn75", tcn75, },
+> >  	{ "tmp100", tmp100, },
+> >  	{ "tmp101", tmp101, },
+> > +	{ "tmp105", tmp105, },
+> >  	{ "tmp175", tmp175, },
+> >  	{ "tmp275", tmp275, },
+> >  	{ "tmp75", tmp75, },
 
-> 
-> Removing the call to nop_xceiv_register() and using a
-> platform_device_register() is the way to go, since it's only 4 ~ 5 lines
-> of code anyway.
-4 ~5 lines would keep on repeating for all current and future boards
-requiring to use NOP.
-
-> 
-> ps: you really think that adding more and more ifdefs is better than
-> Amit's patch ??
-Yes, when compared to the approach of repeating those 4 ~5 line in all
-the board files requiring NOP.
-
--Ajay
-> 
-> --
-> balbi
+-- 
+Jean Delvare
