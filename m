@@ -1,57 +1,49 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 23:40:29 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1005272334040.3478@localhost.localdomain>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org> <alpine.LFD.2.00.1005271924170.3032@localhost.localdomain> <201005272315.28475.rjw@sisk.pl>
+Date: Thu, 27 May 2010 22:49:49 +0100
+Message-ID: <20100527224949.4d561091@lxorguk.ukuu.org.uk>
+References: <Pine.LNX.4.44L0.1005271329460.3239-100000@iolanthe.rowland.org>
+	<1274981871.27810.5650.camel@twins>
+	<201005272336.26643.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201005272315.28475.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:34293 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757930Ab0E0Vms (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:42:48 -0400
+In-Reply-To: <201005272336.26643.rjw@sisk.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Peter Zijlstra <peterz@infradead.org>, Alan Stern <stern@rowland.harvard.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com
 
-On Thu, 27 May 2010, Rafael J. Wysocki wrote:
+On Thu, 27 May 2010 23:36:26 +0200
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-> On Thursday 27 May 2010, Thomas Gleixner wrote:
-> > On Thu, 27 May 2010, Alan Stern wrote:
+> On Thursday 27 May 2010, Peter Zijlstra wrote:
+> > On Thu, 2010-05-27 at 13:32 -0400, Alan Stern wrote:
 > > 
-> > > On Thu, 27 May 2010, Felipe Balbi wrote:
-> > > 
-> > > > On Thu, May 27, 2010 at 05:06:23PM +0200, ext Alan Stern wrote:
-> > > > >If people don't mind, here is a greatly simplified summary of the
-> > > > >comments and objections I have seen so far on this thread:
-> > > > >
-> > > > >	The in-kernel suspend blocker implementation is okay, even
-> > > > >	beneficial.
-> > > > 
-> > > > I disagree here. I believe expressing that as QoS is much better. Let 
-> > > > the kernel decide which power state is better as long as I can say I 
-> > > > need 100us IRQ latency or 100ms wakeup latency.
-> > > 
-> > > Does this mean you believe "echo mem >/sys/power/state" is bad and
-> > > should be removed?  Or "echo disk >/sys/power/state"?  They pay no
+> > > On some platforms (like those with ACPI), deeper power-savings are
+> > > available by using forced suspend than by using idle. 
 > > 
-> > mem should be replaced by an idle suspend to ram mechanism
+> > Sounds like something that's fixable, doesn't it?
 > 
-> Well, what about when I want the machine to suspend _regardless_ of whether
-> or not it's idle at the moment?  That actually happens quite often to me. :-)
+> The fix would probably have to involve rewriting the ACPI spec.
 
-Fair enough. Let's agree on a non ambigous terminology then:
+We are on about the fourth version of ACPI already. ACPI evolves and
+improves and extends. It's not an impossibility to sort that out if
+everyone in the x86 OS world starts thinking 'How come their ARM platform
+can do this'
 
-     forced:
+We are also on at least the second suspend/resume model in Linux. The
+first was 'isn't this APM stuff neat', the second is heavily oriented
+around ACPI ideas. And we already have SoC people moving into the third
+model and making it work on non-x6 ('suspend is not special').
 
-	     suspend which you enforce via user interaction, which
-     	     also implies that you risk losing wakeups depending on
-     	     the hardware properties
+I've not poked at the current desktop stuff enough to see if the
+gnome-power-manager and friends handle pushing the suspend button with
+dbus notifiers to apps. I guess it does.
 
-     opportunistic:
-
-	     suspend driven from the idle context, which guarantees to
-	     not lose wakeups. Provided only when the hardware does
-	     provide the necessary capabilities.
-
-Thanks,
-
-	tglx
+Alan
