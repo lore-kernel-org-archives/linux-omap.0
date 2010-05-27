@@ -1,35 +1,50 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 17:26:03 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005271724430.3239-100000@iolanthe.rowland.org>
-References: <20100527203843.GA8395@srcf.ucam.org>
+Date: Thu, 27 May 2010 22:34:18 +0100
+Message-ID: <20100527223418.281a687f@lxorguk.ukuu.org.uk>
+References: <1274980420.27810.5557.camel@twins>
+	<Pine.LNX.4.44L0.1005271327560.3239-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100527203843.GA8395@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:48444 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932556Ab0E0V0s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:26:48 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1005271327560.3239-100000@iolanthe.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Peter Zijlstra <peterz@infradead.org>, Felipe Balbi <felipe.balbi@nokia.com>, Thomas Gleixner <tglx@linutronix.de>, Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, 27 May 2010, Matthew Garrett wrote:
+On Thu, 27 May 2010 13:29:18 -0400 (EDT)
+Alan Stern <stern@rowland.harvard.edu> wrote:
 
-> On Thu, May 27, 2010 at 10:23:50PM +0200, Thomas Gleixner wrote:
-> > On Thu, 27 May 2010, Matthew Garrett wrote:
-> > > A wakeup event is defined as one that wakes the system - if a system 
-> > > can't be woken by a specific event then it's impossible to lose it, 
-> > > since it wasn't a wakeup event to begin with.
-> > 
-> > So where is the problem ?
+> On Thu, 27 May 2010, Peter Zijlstra wrote:
 > 
-> The problem is that, right now, if a wakeup event is received between 
-> the point where userspace decides to start a suspend and userspace 
-> actually starts a suspend, that event may not abort the suspend.
+> > On Thu, 2010-05-27 at 13:04 -0400, Alan Stern wrote:
+> > > 
+> > > Does this mean you believe "echo mem >/sys/power/state" is bad and
+> > > should be removed?  Or "echo disk >/sys/power/state"?  They pay no
+> > > attention to latencies or other requirements. 
+> > 
+> > Those are a whole different beast, those are basically a quick-off
+> > button like thing. Forced suspend is conceptually a very different beast
+> > from power-saving a running system.
+> 
+> They may be different conceptually.  Nevertheless, Android uses forced 
+> suspend as a form of power saving.  Until better mechanisms are in 
+> place, it makes sense.
 
-The two of you are talking at cross purposes.  Thomas is referring to 
-idle-based suspend and Matthew is talking about forced suspend.
+For them, not for Linux.
 
-Or at least, that's how it appears to me.  No wonder you can't agree on 
-anything.
+Several vendors have exciting kernel drivers that do things like binary
+patch other modules. Until better mechanisms are in place it does *NOT*
+make sense to merge such stuff.
 
-Alan Stern
+I don't care what they do in their own tree (consenting adults in their
+own home and all that) but what they do in the public tree is another
+matter.
+
+Alan
