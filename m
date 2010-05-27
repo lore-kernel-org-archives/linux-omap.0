@@ -1,45 +1,46 @@
 From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 07:11:00 +0200
-Message-ID: <20100527071100.3a38bbac@schatten.dmk.lab>
+Date: Thu, 27 May 2010 07:14:29 +0200
+Message-ID: <20100527071429.58fa81ac@schatten.dmk.lab>
 References: <20100526171106.0e44a736@schatten.dmk.lab>
 	<alpine.LFD.2.00.1005261829540.2995@localhost.localdomain>
-	<20100526190204.5efe4d59@lxorguk.ukuu.org.uk>
-	<20100526215606.2a747c61@schatten.dmk.lab>
-	<AANLkTil3OdarNjeIuzWqM59x4ysFqJrMeiUZzceC_r7P@mail.gmail.com>
+	<20100526215409.33296d94@schatten.dmk.lab>
+	<20100526230943.6f5e5b37@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTil3OdarNjeIuzWqM59x4ysFqJrMeiUZzceC_r7P@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vitaly Wool <vitalywool@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ist.d-labs.de ([213.239.218.44]:48002 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932551Ab0E0FOf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 01:14:35 -0400
+In-Reply-To: <20100526230943.6f5e5b37@lxorguk.ukuu.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Wed, 26 May 2010 22:03:37 +0200
-Vitaly Wool <vitalywool@gmail.com> wrote:
+On Wed, 26 May 2010 23:09:43 +0100
+Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
 
-> On Wed, May 26, 2010 at 9:56 PM, Florian Mickler <florian@mickler.org> wrote:
+> We now have suggestions how to do the job properly so the right thing is
+> probably to go and explore those suggestions not merge crap.
 > 
-> > Your approach definitely sounds better than the current solution.
-> > What about mapping suspend blocker functionality later on, when this
-> > interface exists, on to this new approach and deprecating it?
+> Merging crap won't help anyway. The rest of the kernel community can
+> still simply stonewall those interfaces, and a volunteer community has
+> ways of dealing with abuse of process, notably by simply not getting
+> around to, or implementing things directly contrary to the crap bits.
 > 
-> What about coming back after some while with the appropriate solution
-> when it's ready instead of stubbornly pushing crap?
+> So it's not even in the interest of people to play political games. Even
+> if you get away with in the short term the people who rely on the junk
+> will end up out on a limb and holding the baby when the crap hits the fan
+> (see reiserfs)
 > 
-> ~Vitaly
+> Alan
 
-Because quite frankly, for a good part of linux users, suspend blockers
-is already in the kernel. It's just an historical mistake that they are
-not in the linux kernel's hosted on kernel.org. 
-So why don't we do what we always do? Improve existing interfaces step
-by step? 
-
-Top Down approaches fail from time to time. Also it is not clear, that
-that proposed interface works for the use cases. This has to be proven
-by providing an implementation. 
+I'm not interested in "abusing processes". I just think, this is in
+limbo for too long already.
+Just decide something. One way or the other. The world will continue.
 
 Cheers,
 Flo
