@@ -1,102 +1,284 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v3 5/7] DSPBRIDGE: remove mem_flush_cache
-Date: Thu, 27 May 2010 19:02:12 +0300
-Message-ID: <1274976134-22769-6-git-send-email-ohad@wizery.com>
+Subject: [PATCH v3 4/7] DSPBRIDGE: do not use low level cache manipulation API
+Date: Thu, 27 May 2010 19:02:11 +0300
+Message-ID: <1274976134-22769-5-git-send-email-ohad@wizery.com>
 References: <1274976134-22769-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:14152 "EHLO
+Received: from fg-out-1718.google.com ([72.14.220.155]:18333 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759186Ab0E0QCm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 12:02:42 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so83476fga.1
-        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 09:02:42 -0700 (PDT)
+	with ESMTP id S1759186Ab0E0QCk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 12:02:40 -0400
+Received: by fg-out-1718.google.com with SMTP id l26so247400fgb.1
+        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 09:02:39 -0700 (PDT)
 In-Reply-To: <1274976134-22769-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Contreras <felipe.contreras@gmail.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-Now that we use standard DMA API instead of low level cache
-manipulation API, mem_flush_cache can be removed.
+Instead of using low level cache manipulation API,
+use the standard DMA API. This is achieved by adding
+a proc_begin_dma function that takes a generic
+dma_data_direction, and then implementing proc_flush_memory
+and proc_invalidate_memory by means of proc_begin_dma
+in the following manner:
+
+* flush calls proc_begin_dma with DMA_BIDIRECTIONAL
+* Invalidate calls proc_begin_dma with DMA_FROM_DEVICE
+
+proc_begin_dma builds a scatter gatter list using the
+page information that was kept during proc_map,
+and feed it to the standard dma_map_sg API.
+
+Note that now users cannot manipulate the cache state of any random
+address; if the buffer is not part of a previous memory mapping of that
+application, the request is denied.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
 If you want, you can also reach me at <  ohadb at ti dot com  >.
 
- arch/arm/plat-omap/include/dspbridge/drv.h |   15 ------------
- drivers/dsp/bridge/rmgr/drv.c              |   33 ----------------------------
- 2 files changed, 0 insertions(+), 48 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/drv.h |   13 +++
+ drivers/dsp/bridge/rmgr/proc.c             |  119 +++++++++++++++++++++-------
+ 2 files changed, 104 insertions(+), 28 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-index 3186935..2eeb47f 100644
+index b1312aa..3186935 100644
 --- a/arch/arm/plat-omap/include/dspbridge/drv.h
 +++ b/arch/arm/plat-omap/include/dspbridge/drv.h
-@@ -466,21 +466,6 @@ extern void *mem_alloc_phys_mem(IN u32 byte_size,
- 				IN u32 ulAlign, OUT u32 *pPhysicalAddress);
+@@ -84,6 +84,18 @@ struct node_res_object {
+ 	struct node_res_object *next;
+ };
  
- /*
-- *  ======== mem_flush_cache ========
-- *  Purpose:
-- *      Performs system cache sync with discard
-- *  Parameters:
-- *      pMemBuf:    Pointer to memory region to be flushed.
-- *      pMemBuf:    Size of the memory region to be flushed.
-- *  Returns:
-- *  Requires:
-- *      MEM is initialized.
-- *  Ensures:
-- *      Cache is synchronized
-- */
--extern void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType);
++/* used to cache dma mapping information */
++struct bridge_dma_map_info {
++	/* direction of DMA in action, or DMA_NONE */
++	enum dma_data_direction dir;
++	/* number of elements requested by us */
++	int num_pages;
++	/* number of elements returned from dma_map_sg */
++	int sg_num;
++	/* list of buffers used in this DMA action */
++	struct scatterlist *sg;
++};
++
+ /* Used for DMM mapped memory accounting */
+ struct dmm_map_object {
+ 	struct list_head link;
+@@ -92,6 +104,7 @@ struct dmm_map_object {
+ 	u32 size;
+ 	u32 num_usr_pgs;
+ 	struct page **pages;
++	struct bridge_dma_map_info dma_info;
+ };
+ 
+ /* Used for DMM reserved memory accounting */
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 6628483..2710a11 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -17,6 +17,8 @@
+  */
+ 
+ /* ------------------------------------ Host OS */
++#include <linux/dma-mapping.h>
++#include <linux/scatterlist.h>
+ #include <dspbridge/host_os.h>
+ 
+ /*  ----------------------------------- DSP/BIOS Bridge */
+@@ -74,6 +76,8 @@
+ #define RBUF		0x4000		/* Input buffer */
+ #define WBUF		0x8000		/* Output Buffer */
+ 
++extern struct device *bridge;
++
+ /*  ----------------------------------- Globals */
+ 
+ /* The proc_object structure. */
+@@ -177,6 +181,7 @@ static void remove_mapping_information(struct process_context *pr_ctxt,
+ 		if (match_exact_map_obj(map_obj, dsp_addr, size)) {
+ 			pr_debug("%s: match, deleting map info\n", __func__);
+ 			list_del(&map_obj->link);
++			kfree(map_obj->dma_info.sg);
+ 			kfree(map_obj->pages);
+ 			kfree(map_obj);
+ 			goto out;
+@@ -606,49 +611,108 @@ dsp_status proc_enum_nodes(void *hprocessor, void **node_tab,
+ }
+ 
+ /* Cache operation against kernel address instead of users */
+-static int memory_sync_page(struct dmm_map_object *map_obj,
+-		unsigned long start, ssize_t len, enum dsp_flushtype ftype)
++static int build_dma_sg(struct dmm_map_object *map_obj, unsigned long start,
++						ssize_t len, int pg_i)
+ {
+ 	struct page *page;
+-	void *kaddr;
+ 	unsigned long offset;
+ 	ssize_t rest;
+-	int pg_i;
 -
--/*
-  *  ======== mem_free_phys_mem ========
-  *  Purpose:
-  *      Free the given block of physically contiguous memory.
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index a8e711a..6ffae0b 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -1039,39 +1039,6 @@ void *mem_alloc_phys_mem(u32 byte_size, u32 ulAlign, OUT u32 * pPhysicalAddress)
+-	pg_i = find_first_page_in_cache(map_obj, start);
+-	if (pg_i < 0) {
+-		pr_err("%s: failed to find first page in cache\n", __func__);
+-		return -EINVAL;
+-	}
++	int ret = 0, i = 0;
++	struct scatterlist *sg = map_obj->dma_info.sg;
+ 
+ 	while (len) {
+ 		page = get_mapping_page(map_obj, pg_i);
+ 		if (!page) {
+ 			pr_err("%s: no page for %08lx\n", __func__, start);
+-			return -EINVAL;
++			ret = -EINVAL;
++			goto out;
+ 		} else if (IS_ERR(page)) {
+ 			pr_err("%s: err page for %08lx(%lu)\n", __func__, start,
+ 			       PTR_ERR(page));
+-			return PTR_ERR(page);
++			ret = PTR_ERR(page);
++			goto out;
+ 		}
+ 
+ 		offset = start & ~PAGE_MASK;
+-		kaddr = kmap(page) + offset;
+ 		rest = min_t(ssize_t, PAGE_SIZE - offset, len);
+-		mem_flush_cache(kaddr, rest, ftype);
+ 
+-		kunmap(page);
++		sg_set_page(&sg[i], page, rest, offset);
++
+ 		len -= rest;
+ 		start += rest;
+-		pg_i++;
++		pg_i++, i++;
+ 	}
+ 
++	if (i != map_obj->dma_info.num_pages) {
++		pr_err("%s: bad number of sg iterations\n", __func__);
++		ret = -EFAULT;
++		goto out;
++	}
++
++out:
++	return ret;
++}
++
++/* Cache operation against kernel address instead of users */
++static int memory_give_ownership(struct dmm_map_object *map_obj,
++		unsigned long start, ssize_t len, enum dma_data_direction dir)
++{
++	int pg_i, ret, sg_num;
++	struct scatterlist *sg;
++	unsigned long first_data_page = start >> PAGE_SHIFT;
++	unsigned long last_data_page = ((u32)(start + len - 1) >> PAGE_SHIFT);
++	/* calculating the number of pages this area spans */
++	unsigned long num_pages = last_data_page - first_data_page + 1;
++
++	pg_i = find_first_page_in_cache(map_obj, start);
++	if (pg_i < 0) {
++		pr_err("%s: failed to find first page in cache\n", __func__);
++		ret = -EINVAL;
++		goto out;
++	}
++
++	sg = kcalloc(num_pages, sizeof(*sg), GFP_KERNEL);
++	if (!sg) {
++		pr_err("%s: kcalloc failed\n", __func__);
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	sg_init_table(sg, num_pages);
++
++	/* cleanup a previous sg allocation */
++	/* this may happen if application doesn't signal for e/o DMA */
++	kfree(map_obj->dma_info.sg);
++
++	map_obj->dma_info.sg = sg;
++	map_obj->dma_info.dir = dir;
++	map_obj->dma_info.num_pages = num_pages;
++
++	ret = build_dma_sg(map_obj, start, len, pg_i);
++	if (ret)
++		goto kfree_sg;
++
++	sg_num = dma_map_sg(bridge, sg, num_pages, dir);
++	if (sg_num < 1) {
++		pr_err("%s: dma_map_sg failed: %d\n", __func__, sg_num);
++		ret = -EFAULT;
++		goto kfree_sg;
++	}
++
++	pr_debug("%s: dma_map_sg mapped %d elements\n", __func__, sg_num);
++	map_obj->dma_info.sg_num = sg_num;
++
+ 	return 0;
++
++kfree_sg:
++	kfree(sg);
++	map_obj->dma_info.sg = NULL;
++out:
++	return ret;
+ }
+ 
+-static dsp_status proc_memory_sync(void *hprocessor, void *pmpu_addr,
+-				   u32 ul_size, u32 ul_flags,
+-				   enum dsp_flushtype FlushMemType)
++static int proc_begin_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
++				enum dma_data_direction dir)
+ {
+ 	/* Keep STATUS here for future additions to this function */
+ 	dsp_status status = DSP_SOK;
+@@ -664,7 +728,7 @@ static dsp_status proc_memory_sync(void *hprocessor, void *pmpu_addr,
+ 
+ 	pr_debug("%s: addr 0x%x, size 0x%x, type %d\n", __func__,
+ 							(u32)pmpu_addr,
+-							ul_size, ul_flags);
++							ul_size, dir);
+ 
+ 	/* find requested memory are in cached mapping information */
+ 	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
+@@ -673,7 +737,8 @@ static dsp_status proc_memory_sync(void *hprocessor, void *pmpu_addr,
+ 		status = -EFAULT;
+ 		goto err_out;
+ 	}
+-	if (memory_sync_page(map_obj, (u32) pmpu_addr, ul_size, ul_flags)) {
++
++	if (memory_give_ownership(map_obj, (u32) pmpu_addr, ul_size, dir)) {
+ 		pr_err("%s: InValid address parameters %p %x\n",
+ 			       __func__, pmpu_addr, ul_size);
+ 		status = -EFAULT;
+@@ -692,10 +757,9 @@ err_out:
+ dsp_status proc_flush_memory(void *hprocessor, void *pmpu_addr,
+ 			     u32 ul_size, u32 ul_flags)
+ {
+-	enum dsp_flushtype mtype = PROC_WRITEBACK_INVALIDATE_MEM;
++	enum dma_data_direction dir = DMA_BIDIRECTIONAL;
+ 
+-	return proc_memory_sync(hprocessor, pmpu_addr, ul_size, ul_flags,
+-				mtype);
++	return proc_begin_dma(hprocessor, pmpu_addr, ul_size, dir);
  }
  
  /*
-- *  ======== mem_flush_cache ========
-- *  Purpose:
-- *      Flush cache
-- */
--void mem_flush_cache(void *pMemBuf, u32 byte_size, s32 FlushType)
--{
--	if (!pMemBuf)
--		return;
--
--	switch (FlushType) {
--		/* invalidate only */
--	case PROC_INVALIDATE_MEM:
--		dmac_inv_range(pMemBuf, pMemBuf + byte_size);
--		outer_inv_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
--							  byte_size));
--		break;
--		/* writeback only */
--	case PROC_WRITEBACK_MEM:
--		dmac_clean_range(pMemBuf, pMemBuf + byte_size);
--		outer_clean_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
--							    byte_size));
--		break;
--		/* writeback and invalidate */
--	case PROC_WRITEBACK_INVALIDATE_MEM:
--		dmac_flush_range(pMemBuf, pMemBuf + byte_size);
--		outer_flush_range(__pa((u32) pMemBuf), __pa((u32) pMemBuf +
--							    byte_size));
--		break;
--	}
--
--}
--
--/*
-  *  ======== mem_free_phys_mem ========
+@@ -703,12 +767,11 @@ dsp_status proc_flush_memory(void *hprocessor, void *pmpu_addr,
   *  Purpose:
-  *      Free the given block of physically contiguous memory.
+  *     Invalidates the memory specified
+  */
+-dsp_status proc_invalidate_memory(void *hprocessor, void *pmpu_addr,
+-				  u32 ul_size)
++dsp_status proc_invalidate_memory(void *hprocessor, void *pmpu_addr, u32 size)
+ {
+-	enum dsp_flushtype mtype = PROC_INVALIDATE_MEM;
++	enum dma_data_direction dir = DMA_FROM_DEVICE;
+ 
+-	return proc_memory_sync(hprocessor, pmpu_addr, ul_size, 0, mtype);
++	return proc_begin_dma(hprocessor, pmpu_addr, size, dir);
+ }
+ 
+ /*
 -- 
 1.7.0.4
 
