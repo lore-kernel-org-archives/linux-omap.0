@@ -1,33 +1,68 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 18:41:40 +0100
-Message-ID: <20100527174140.GB3187@srcf.ucam.org>
-References: <20100527161943.GA32764@srcf.ucam.org> <alpine.LFD.2.00.1005271901020.3032@localhost.localdomain> <20100527170740.GA1980@srcf.ucam.org> <1274980391.27810.5552.camel@twins> <20100527171644.GA2468@srcf.ucam.org> <1274980856.27810.5582.camel@twins> <20100527172510.GC2468@srcf.ucam.org> <1274981288.27810.5609.camel@twins> <20100527173218.GF2468@srcf.ucam.org> <1274981750.27810.5641.camel@twins>
+Date: Thu, 27 May 2010 19:42:41 +0200
+Message-ID: <20100527194241.52caaf37@schatten.dmk.lab>
+References: <20100526120242.5c9b73ad@schatten.dmk.lab>
+	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
+	<20100526133721.602633b2@schatten.dmk.lab>
+	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
+	<20100526142430.327ccbc4@schatten.dmk.lab>
+	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
+	<AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+	<20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+	<20100527140655.GA28048@srcf.ucam.org>
+	<alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
+	<20100527155201.GA31937@srcf.ucam.org>
+	<alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
+	<20100527192135.6c6543b3@schatten.dmk.lab>
+	<1274981127.27810.5597.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1274981750.27810.5641.camel@twins>
+In-Reply-To: <1274981127.27810.5597.camel@twins>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 27, 2010 at 07:35:50PM +0200, Peter Zijlstra wrote:
-> On Thu, 2010-05-27 at 18:32 +0100, Matthew Garrett wrote:
-> > On Thu, May 27, 2010 at 07:28:08PM +0200, Peter Zijlstra wrote:
-> > > Why would you care about the screen for a network event?
+On Thu, 27 May 2010 19:25:27 +0200
+Peter Zijlstra <peterz@infradead.org> wrote:
+
+> On Thu, 2010-05-27 at 19:21 +0200, Florian Mickler wrote:
+> > On Thu, 27 May 2010 18:45:25 +0200 (CEST)
+> > Thomas Gleixner <tglx@linutronix.de> wrote:
 > > 
-> > Because the application that needs to handle the network packet is 
-> > currently blocked trying to draw something to the screen.
+> > > The whole notion of treating suspend to RAM any different than a plain
+> > > idle C-State is wrong. It's not different at all. You just use a
+> > > different mechanism which has longer takedown and wakeup latencies and
+> > > requires to shut down stuff and setup extra wakeup sources.
+> > > 
+> > > And there is the whole problem. Switching from normal event delivery
+> > > to those special wakeup sources. That needs to be engineered in any
+> > > case carefuly and it does not matter whether you add suspend blockers
+> > > or not.
+> > 
+> > Ok, I just don't know the answer: How is it just another idle state if
+> > the userspace gets frozen? Doesn't that bork the whole transition and
+> > you need a userspace<->kernel synchronisation point to not loose events?
 > 
-> Then that's an application bug right there, isn't it?
-> 
-> If should have listened to the window server telling its clients it was
-> going to go away. Drawing after you get that is your own damn fault ;-)
+> There is no userspace to freeze when the runqueues are empty.
 
-How long do you wait for applications to respond that they've stopped 
-drawing? What if the application is heavily in swap at the time?
+If in the imaginery situation where userspace can aquire certain
+wakeup-constraints and loose certain wakeup-constraints, then it could
+be that the system enters suspend without empty runqueues. 
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> And as explained, you won't loose events if all the devices do a proper
+> state transition. To quote:
+
+I believe the problem beeing userspace frozen at an unopportune time.
+So the wakeup event is processed (kernel-side) but userspace didn't
+have time to reacquire the correct wakeup-constraint to process the
+event.
+
+I.e. the wakeup will be effectivly ignored.
+
+
+Cheers,
+Flo
