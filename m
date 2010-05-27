@@ -1,64 +1,68 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Thomas Gleixner <tglx@linutronix.de>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 18:23:43 +0100
-Message-ID: <20100527172343.GB2468@srcf.ucam.org>
-References: <20100526142430.327ccbc4@schatten.dmk.lab> <20100526141612.3e2e0443@lxorguk.ukuu.org.uk> <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk> <20100527140655.GA28048@srcf.ucam.org> <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain> <20100527155201.GA31937@srcf.ucam.org> <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain> <20100527165931.GB1062@srcf.ucam.org> <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain>
+Date: Thu, 27 May 2010 19:24:02 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1005271915540.3032@localhost.localdomain>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.tglx.de ([62.245.132.106]:41337 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757893Ab0E0RY1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 13:24:27 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Thu, May 27, 2010 at 07:15:31PM +0200, Thomas Gleixner wrote:
-> On Thu, 27 May 2010, Matthew Garrett wrote:
-> > You still need the in-kernel suspend blockers if you want to guarantee 
-> > that you can't lose wakeup events. But yes, if you're not concerned 
-> > handling badly behaved applications then I believe that you can lose 
-> > opportunistic suspend and just use the scheduler.
+On Thu, 27 May 2010, Alan Stern wrote:
+
+> On Thu, 27 May 2010, Thomas Gleixner wrote:
 > 
-> No, we do not. We need correctly implemented drivers and a safe
-> switchover from normal event delivery to wakeup based.
-
-What is a "Correctly implemented driver" in this case? One that receives 
-a wakeup event and then prevents suspend being entered until userspace 
-has acknowledged that event? Because that's what an in-kernel suspend 
-blocker is.
-
-> > My question was about explicit suspend states, not implicitly handling 
-> > an identical state based on scheduler constraints. Suspend-as-a-C-state 
-> > isn't usable on x86 - you have to explicitly trigger it based on some 
+> > The whole notion of treating suspend to RAM any different than a plain
+> > idle C-State is wrong. It's not different at all. You just use a
+> > different mechanism which has longer takedown and wakeup latencies and
+> > requires to shut down stuff and setup extra wakeup sources.
 > 
-> And why not ? Just because suspend is not implemented as an ACPI
-> C-state ? 
-> 
-> Nonsense, if we want to push the system into suspend from the idle
-> state we can do that. It's just not implemented and we've never tried
-> to do it as it requires a non trivial amount of work, but I have done
-> it on an ARM two years ago as a prove of concept and it works like a
-> charm.
+> This is where you are wrong.  Maybe not wrong in principle, but wrong 
+> in practice -- the kernel's present suspend-to-RAM (or just "suspend") 
+> implementation is _very_ different from C-states (or just "idle").
 
-ACPI provides no guarantees about what level of hardware functionality 
-remains during S3. You don't have any useful ability to determine which 
-events will generate wakeups. And from a purely practical point of view, 
-since the latency is in the range of seconds, you'll never have a low 
-enough wakeup rate to hit it.
+Holy bouncing cow. I damned good know that the current implementation
+is not doing that and that suspend is implemented in a totally
+different way. That does not mean that this is written in stone. We
+CAN change that and fix it to gain opportunistic suspend.
+ 
+> The primary difference is that the kernel can be forced into suspend
+> even when the system isn't idle.  In particular, it may be in the
+> middle of processing a potential wakeup event -- and the current design
+> gives the PM core no way to know if that is so.  This is a weakness
+> that in-kernel suspend blockers fix.
 
-> > policy. And if you want to be able to do that without risking the loss 
-> > of wakeup events then you need in-kernel suspend blockers.
-> 
-> Crap. Stop beating on those lost wakeup events. If we lose them then
-> the drivers are broken and do not handle the switch over correctly. Or
-> the suspend mechanism is broken as it does not evaluate the system
-> state correctly. Blockers are just papering over that w/o tackling the
-> real problem.
+Oh no. They paper over a short coming. If there is a pending event,
+the kernel knows that. It just does not make use of this
+information. Blockers just paper over this by sprinkling
+do_not_suspend() calls all over the place. What a sensible solution.
 
-Ger;kljaserf;kljf;kljer;klj. Suspend blockers are the mechanism for the 
-driver to indicate whether the wakeup event has been handled. That's 
-what they're there for. The in-kernel ones don't paper over anything.
+> With C-states this can't happen.  If the CPU goes into a deeper C-state 
+> then ipso facto it isn't busy processing anything, much less a wakeup 
+> event.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+And that's the whole point of doing the opportunistic suspend with the
+help of the scheduler.
+
+> Now maybe this difference is a bad thing, and the whole PM 
+> suspend/hibernate infrastructure should be rewritten.  But the fact, 
+> remains, that's how it works now.  And it can't be changed easily or 
+> quickly.
+
+So what you are saying is that we better paper over the shortcomings
+of our current implementation with do_not_suspend() code sprinkled all
+over the place instead of sitting down and making suspend from idle
+work. It's more or less trivial depending on the platform, but not
+rocket science.
+
+Thanks,
+
+	tglx
