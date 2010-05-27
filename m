@@ -1,86 +1,67 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 16:52:01 +0100
-Message-ID: <20100527155201.GA31937@srcf.ucam.org>
-References: <20100526120242.5c9b73ad@schatten.dmk.lab> <AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com> <20100526133721.602633b2@schatten.dmk.lab> <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com> <20100526142430.327ccbc4@schatten.dmk.lab> <20100526141612.3e2e0443@lxorguk.ukuu.org.uk> <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk> <20100527140655.GA28048@srcf.ucam.org> <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH v3 0/7] DSPBRIDGE: fix mem+cache API issues
+Date: Thu, 27 May 2010 19:02:07 +0300
+Message-ID: <1274976134-22769-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.157]:14152 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753897Ab0E0QC1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 12:02:27 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so83476fga.1
+        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 09:02:25 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-On Thu, May 27, 2010 at 05:32:56PM +0200, Thomas Gleixner wrote:
-> On Thu, 27 May 2010, Matthew Garrett wrote:
-> > Now let's try this in the Android world. The user hits a key and the 
-> > system wakes up. The input layer takes a suspend block. The application 
-> > now draws all the cows it wants to, takes its own suspend block and 
-> > reads the input device. This empties the queue and the kernel-level 
-> > suspend block is released. The application then processes the event 
-> > before releasing the suspend block. The event has been delivered and 
-> > handled.
-> 
-> Thanks for providing this example:
-> 
->   1) It proves that suspend blockers are solely designed to encourage
->      people to code crap.
+This patchset introduces an approach to eliminate the direct calls
+to follow_page and to the low level cache APIs.
 
-No. Suspend blockers are designed to ensure that suspend isn't racy with 
-respect to wakeup events. The bit that mitigates badly written 
-applications is the bit where the scheduler doesn't run any more.
+The patchset works by caching the page information while memory
+is mapped, and then using that information later when needed 
+instead of calling follow_page. The low level cache API is then replaced
+by standard DMA API.
 
-If you're happy with a single badly written application being able to 
-cripple your power management story, you don't need opportunistic 
-suspend. But you still have complications when it comes to deciding to 
-enter suspend at the same time as you receive a wakeup event.
+Changes from v2:
 
->      And you need to do that, because the user applications suspend
->      blocker magic is racy as hell. To work around that you sprinkle
->      your suspend blocker magic all over the kernel instead of telling
->      people how to solve the problem correctly.
+* Fix rebase error that plagued the v2 series
+* Added some debug logs to help analyzing missing mapping issues
 
-What /is/ the correct way to solve this problem when entering explicit 
-suspend states? How do you guarantee that an event has been delivered to 
-userspace before transitioning into suspend? Now, this is a less 
-interesting problem if you're not using opportunistic suspend, but it's 
-still a problem.
+Notes:
+1. The global bridge device struct is used by adding an 'extern'
+   to proc. This issue should be handled in a different patch series
+   (the struct should not be global. instead, it should be accessible
+   to the dspbridge code via one of the context objects. This way we 
+   will also be able to transform pr_* prints to dev_* prints).
+2. The patchset was tested with testsuite, DMM sample app and varios
+    MM and recovery scenarios. Many thanks to Ivan Gomez Castellanos
+    for the help here. Also Many thanks to Felipe Contreras for the
+    thorough review, comments and testing.
 
->      Simply because you move the cow drawing CPU time from the point
->      where the device wants to go into suspend to the point where the
->      user hits a key again. You even delay the reaction of your app to
->      the user input by the time it needs to finish drawing cows.
+Thanks,
+Ohad.
 
-It's how application mainloops tend to work.
+---
+If you want, you can also reach me at <  ohadb at ti dot com  >.
 
-> > You can't express that with resource limits or QoS constraints. If you 
-> > want to deal with this kind of situation then, as far as I can tell, you 
-> > need either suspend blockers or something so close to them that it makes 
-> > no difference.
-> 
-> Wrong. If your application is interactive then you set the QoS
-> requirement once to interactive and be done.
->
-> So the correct point to make a power state decision is when the app
-> waits for a key press. At this point the kernel can take several
-> pathes:
-> 
->       1) Keep the system alive because the input device is in active
->        	 state and a key press is expected
-> 
->       2) Go into supsend because the input device is deactivated after
->       	 the screen lock kicked in.
+Ohad Ben-Cohen (7):
+  DSPBRIDGE: enhance dmm_map_object
+  DSPBRIDGE: maintain mapping and page info
+  DSPBRIDGE: do not call follow_page
+  DSPBRIDGE: do not use low level cache manipulation API
+  DSPBRIDGE: remove mem_flush_cache
+  DSPBRIDGE: add dspbridge API to mark end of DMA
+  DSPBRIDGE: add new PROC_BEGINDMA and PROC_ENDDMA ioctls
 
-That's no good. If the input device has been deactivated, how does the 
-wakeup event get delivered to the application?
- 
-> This behaves exactly the same way in terms of power consumption as
-> your blocker example just without all the mess you are trying to
-> create.
+ arch/arm/plat-omap/include/dspbridge/drv.h         |   32 +-
+ .../arm/plat-omap/include/dspbridge/dspapi-ioctl.h |    9 +
+ arch/arm/plat-omap/include/dspbridge/dspapi.h      |    2 +
+ arch/arm/plat-omap/include/dspbridge/dspdefs.h     |    3 +-
+ arch/arm/plat-omap/include/dspbridge/proc.h        |   29 ++
+ drivers/dsp/bridge/core/io_sm.c                    |   11 +-
+ drivers/dsp/bridge/core/tiomap3430.c               |    9 +-
+ drivers/dsp/bridge/pmgr/dspapi.c                   |   34 ++-
+ drivers/dsp/bridge/rmgr/drv.c                      |   33 --
+ drivers/dsp/bridge/rmgr/proc.c                     |  410 ++++++++++++++++----
+ 10 files changed, 433 insertions(+), 139 deletions(-)
 
-And means that wakeup events don't get delivered. That's a shortcoming.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
