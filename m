@@ -1,7 +1,7 @@
 From: Igor Stoppa <igor.stoppa@nokia.com>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 15:28:07 +0300
-Message-ID: <4BFE6557.3030400@nokia.com>
+Date: Thu, 27 May 2010 15:27:50 +0300
+Message-ID: <4BFE6546.9070300@nokia.com>
 References: <20100526151945.1b3813ac@schatten.dmk.lab>	<Pine.LNX.4.44L0.1005261033440.1961-100000@iolanthe.rowland.org> <20100527125605.2855f980@schatten.dmk.lab>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
