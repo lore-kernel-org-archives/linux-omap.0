@@ -1,79 +1,28 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 17:38:03 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+Date: Thu, 27 May 2010 22:38:19 +0100
+Message-ID: <20100527213819.GB9916@srcf.ucam.org>
+References: <Pine.LNX.4.44L0.1005271724430.3239-100000@iolanthe.rowland.org> <alpine.LFD.2.00.1005272332320.3478@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1005272332320.3478@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 27 May 2010, Alan Cox wrote:
-
-> > That's the point -- suspend does not evaluate the system state 
-> > correctly because it doesn't have the necessary information.  Suspend 
+On Thu, May 27, 2010 at 11:33:32PM +0200, Thomas Gleixner wrote:
+> On Thu, 27 May 2010, Alan Stern wrote:
+> > The two of you are talking at cross purposes.  Thomas is referring to 
+> > idle-based suspend and Matthew is talking about forced suspend.
 > 
-> The power management layer knows if the machine is idle, it has insight
-> into when the next wakeups will occur.
+> Yes, and forced suspend to disk is the same as force suspend to disk,
+> which has both nothing to do with sensible resource management.
 
-But not the kind of insight we need.  See below.
+It doesn't matter. Current forced suspend to RAM is racy with respect to 
+wakeup events and should be fixed.
 
-> > blockers are a way of providing it that information.  They don't paper 
-> > over the problem; they solve it.
-> 
-> I'm still unconvinced (see Thomas examples as a starter) and even if they
-> did, the cure would be far worse than the disease.
-
-Perhaps.
-
-> The hardware world also shows how you handle suspend/resume event races
-> cleanly and in turn how we can handle right from user to hardware.
-> 
-> If you are dealing with a well behaved UI app then its event loop will
-> just do
-> 
-> 	if (message == UI_OFF) {
-> 		stop_background_stuff();
-> 		event_mask &= stuff;
-> 		send_reply(NIGHT_NIGHT);
-> 		continue;
-> 		/* Back to poll() */
-> 	}
-> 
-> and power management does the rest. If an event wakes up the process
-> before we get to suspend in kernel we will wake it back up.
-
-Okay, and the kernel never suspends.  We _are_ talking about a kind of
-forced suspend, right?
-
->  If the event
-> gets in after pm decides to idle via suspend then it'll bounce through
-> the kernel back to a kernel resume,
-
-No, it won't.  That's the problem suspend blockers were meant to solve.  
-The event winds up sitting in a kernel queue, the PM core doesn't know
-about it (that's what I meant above -- the PM core doesn't know as much
-as you seem to think it does), and the suspend takes place regardless.
-
-> or potentially through a full
-> hardware/software suspend/resume bounce.
-
-It would be okay if that happened.  But once the event gets into the
-kernel and the hardware IRQ source has turned off, there's nothing to
-cause the resume.
-
-> You have one person who needs to
-> track the sequence - that's however is the guy sending UI_ON/UI_OFF
-> information and making the screen light up.
-> 
-> If you are dealing with a badly behaved app then you can't win because it
-> may not have the magic 'suspend blockers' or will do it wrong.
-
-Agreed.  Badly behaved apps must not be allowed to block suspends.  As 
-far as I'm concerned, we can ignore them.
-
-Alan Stern
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
