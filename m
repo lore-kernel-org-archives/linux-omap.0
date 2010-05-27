@@ -1,57 +1,52 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: omap3 pm: dependency between opp layer and cpufreq
-Date: Thu, 27 May 2010 18:56:57 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDE2F@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E71FDE25@dbde02.ent.ti.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 15:26:44 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1005271519460.3032@localhost.localdomain>
+References: <20100526171106.0e44a736@schatten.dmk.lab> <alpine.LFD.2.00.1005261829540.2995@localhost.localdomain> <20100526190204.5efe4d59@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43112 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752182Ab0E0N1E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 09:27:04 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4RDQxTj006630
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 08:27:02 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4RDQxRK011757
-	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 18:56:59 +0530 (IST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDE25@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from www.tglx.de ([62.245.132.106]:47374 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754371Ab0E0N1m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 09:27:42 -0400
+In-Reply-To: <20100526190204.5efe4d59@lxorguk.ukuu.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
-> Sent: Thursday, May 27, 2010 6:50 PM
-> To: linux-omap@vger.kernel.org
-> Subject: RE: omap3 pm: dependency between opp layer and cpufreq
+On Wed, 26 May 2010, Alan Cox wrote:
+
+> > The power efficiency of a mobile device is depending on a sane overall
+> > software stack and not on the ability to mitigate crappy software in
+> > some obscure way which is prone to malfunction and disappoint users.
 > 
+> Even if you believe the kernel should be containing junk the model that
+> works and is used for everything else is resource management. Not giving
+> various tasks the ability to override rules, otherwise you end up needing
+> suspend blocker blockers next week.
 
-[snip]--[snip]
+We definitely will need them when we want to optimize the kernel
+resource management on a QoS based scheme, which is the only sensible
+way to go IMNSHO.
 
->  
-> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> index 2b9ebf0..18d291f 100644
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -15,7 +15,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
->  # OPP support in (OMAP3+ only at the moment)
->  # XXX The OPP TWL/TPS code should only be included when a TWL/TPS
->  # PMIC is selected.
-> -ifdef CONFIG_CPU_FREQ
-> +ifdef CONFIG_TWL4030_POWER
->  obj-$(CONFIG_ARCH_OMAP3) += opp.o opp_twl_tps.o
->  endif
-> 
-After sending the mail, I realized that inclusion of opp_twl_tps.o should
-depend upon CONFIG_TWL4030_POWER and opp.o should be included as default.
+> A model based on the idea that a task can set its desired wakeup
+> behaviour *subject to hard limits* (ie soft/hard process wakeup) works
+> both for the sane system where its elegantly managing hard RT, and for
+> the crud where you sandbox it to stop it making a nasty mess.
 
-~sanjeev
+Right, the base system can set sensible defaults for "verified" apps,
+which will work most of the time except for those which have special
+requirements and need a skilled coder anyway. And for the sandbox crud
+the sensible default can be "very long time" and allow the kernel to
+ignore them at will.
 
-[snip]--[snip]
+> Do we even need a syscall or will adding RLIMIT_WAKEUP or similar do the
+> trick ?
+
+That might be a good starting point.
+
+Thanks,
+
+	tglx
