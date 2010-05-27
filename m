@@ -1,48 +1,81 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCHv2] omap3: Increase limit on bootarg 'mpurate'
-Date: Thu, 27 May 2010 19:24:46 +0530
-Message-ID: <1274968486-27825-1-git-send-email-premi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46018 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753858Ab0E0NzC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 May 2010 09:55:02 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4RDsxjK023161
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 08:55:01 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 15:06:55 +0100
+Message-ID: <20100527140655.GA28048@srcf.ucam.org>
+References: <AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com> <1274867106.5882.5090.camel@twins> <20100526120242.5c9b73ad@schatten.dmk.lab> <AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com> <20100526133721.602633b2@schatten.dmk.lab> <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com> <20100526142430.327ccbc4@schatten.dmk.lab> <20100526141612.3e2e0443@lxorguk.ukuu.org.uk> <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
 
-The value of mpurate is currently expected to be less
-than 1000 when specified in MHz.
+On Thu, May 27, 2010 at 12:39:43AM +0100, Alan Cox wrote:
 
-This patch raises this limit to 2000 to support 1GHz
-capable processors. The new limit should be reasonable
-for quite some time.
+> - Supporting Android needs well good
+> - Opportunistic suspend good
+> - Manner in which interface is expressed to userspace bad
+> - Latency constraint interface would be better
+> - Your existing behaviour can be implemented by a simplistic use of a
+>   latency constraint interface
+> - We can fix a pile of other directly connected things at the same time
+> - Implementation internals I care far less about because we can fix those
+>   later
+> - Suspend is just a power state
+> 
+> How does that fit your model and vision ?
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
-v2: Removed a newline introduced in earlier patch
----
- arch/arm/plat-omap/clock.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I don't entirely see how this works. In order to deal with poorly 
+written applications, it's necessary to (optionally, based on some 
+policy) ignore them when it comes to the scheduler. The problem is how 
+to implement the optional nature of this in a race-free manner. This is 
+obviously a pathological case, but imagine an application that does 
+something along the following lines:
 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 5261a09..4fd1e15 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -186,7 +186,7 @@ static int __init omap_clk_setup(char *str)
- 	if (!mpurate)
- 		return 1;
- 
--	if (mpurate < 1000)
-+	if (mpurate < 2000)
- 		mpurate *= 1000000;
- 
- 	return 1;
+int input = open ("/dev/input", O_RDONLY|O_NONBLOCK);
+char foo;
+
+while (1) {
+	suspend_block();
+	if (read(input, &foo, 1) > 0) {
+		(do something)
+		suspend_unblock();
+	} else {
+		suspend_unblock();
+		(draw bouncing cows and clouds and tractor beams briefly)
+	}
+}
+
+Now, if the user is playing this game, you want it to be scheduled. If 
+the user has put down their phone and the screen lock has kicked in, you 
+don't want it to be scheduled. So we could imagine some sort of cgroup 
+that contains untrusted tasks - when the session is active we set a flag 
+one way which indicates to the scheduler that tasks in TASK_RUNNING 
+should be scheduled, and when the session is idle we set the flag the 
+other way and all processes in that cgroup get shifted to 
+TASK_INTERRUPTIBLE or something.
+
+Except that doesn't work. If the session goes idle in the middle of the 
+app drawing a frame, we'll stop the process and the task will never call 
+read(). So the user hits a key, we wake up, nothing shifts from 
+TASK_INTERRUPTIBLE into TASK_RUNNING, the key never gets read, we go 
+back to sleep. The event never gets delivered.
+
+Now let's try this in the Android world. The user hits a key and the 
+system wakes up. The input layer takes a suspend block. The application 
+now draws all the cows it wants to, takes its own suspend block and 
+reads the input device. This empties the queue and the kernel-level 
+suspend block is released. The application then processes the event 
+before releasing the suspend block. The event has been delivered and 
+handled.
+
+You can't express that with resource limits or QoS constraints. If you 
+want to deal with this kind of situation then, as far as I can tell, you 
+need either suspend blockers or something so close to them that it makes 
+no difference.
+
 -- 
-1.6.6.1
-
+Matthew Garrett | mjg59@srcf.ucam.org
