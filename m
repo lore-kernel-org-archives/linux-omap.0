@@ -1,45 +1,87 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 00:01:07 +0200
-Message-ID: <201005280001.07364.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1005271334560.3239-100000@iolanthe.rowland.org> <alpine.LFD.2.00.1005272006560.3032@localhost.localdomain>
+Date: Thu, 27 May 2010 23:08:06 +0100
+Message-ID: <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50136 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753285Ab0E0V7n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 May 2010 17:59:43 -0400
-In-Reply-To: <alpine.LFD.2.00.1005272006560.3032@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Thursday 27 May 2010, Thomas Gleixner wrote:
-> On Thu, 27 May 2010, Alan Stern wrote:
+On Thu, 27 May 2010 17:38:03 -0400 (EDT)
+Alan Stern <stern@rowland.harvard.edu> wrote:
+
+> > and power management does the rest. If an event wakes up the process
+> > before we get to suspend in kernel we will wake it back up.
 > 
-> > On Thu, 27 May 2010, Thomas Gleixner wrote:
-> > 
-> > > Crap. Stop beating on those lost wakeup events. If we lose them then
-> > > the drivers are broken and do not handle the switch over correctly. Or
-> > > the suspend mechanism is broken as it does not evaluate the system
-> > > state correctly. Blockers are just papering over that w/o tackling the
-> > > real problem.
-> > 
-> > That's the point -- suspend does not evaluate the system state 
-> > correctly because it doesn't have the necessary information.  Suspend 
-> > blockers are a way of providing it that information.  They don't paper 
-> > over the problem; they solve it.
+> Okay, and the kernel never suspends.  We _are_ talking about a kind of
+> forced suspend, right?
+
+No ? We are talking about just letting power management solve the whole
+problem for us.
+
+> >  If the event
+> > gets in after pm decides to idle via suspend then it'll bounce through
+> > the kernel back to a kernel resume,
 > 
-> Nonsense. The system state is well defined when a event is pending and
-> we just have to say good bye to the idea that forced suspend is a good
-> solution. It's not as it does not guarantee the event processing in
-> badly written apps and it does move the power consumption to a later
-> point in time for those apps which acquire/drop the blockers.
+> No, it won't.  That's the problem suspend blockers were meant to solve.  
+> The event winds up sitting in a kernel queue, the PM core doesn't know
+> about it (that's what I meant above -- the PM core doesn't know as much
+> as you seem to think it does), and the suspend takes place regardless.
 
-Well, now you have stated that Android actually doesn't work. :-)
+No - because we are not forcing the suspend. The app must go idle. If you
+force the suspend of running processes then yes the entire thing goes
+castors up - which is why it's a bad idea to do so.
 
-Rafael
+> > or potentially through a full
+> > hardware/software suspend/resume bounce.
+> 
+> It would be okay if that happened.  But once the event gets into the
+> kernel and the hardware IRQ source has turned off, there's nothing to
+> cause the resume.
+
+Read the discussion about how the race is avoided at the hardware level.
+That race is I think not there and furthermore most drivers get it right
+already.
+
+There are several cases
+
+1.	IRQ during app layer (ie policy in user space) asking
+		applications to go passive
+
+	- The event occurs, we undo the app layer policy, easy
+	  (or app wakes process and we let it fall through)
+
+2.	IRQ after the app layer quiesces its clients
+
+	- The task wakes, the app layer won't see it - the app layer
+	  allows suspend as an idle mode. Not a problem - the app is
+	  running the cpu policy manager will see this and not suspend
+	  until the app has been asleep for a bit. The app may well of
+	  course tell the UI layer 'hey I want you back on' and it take
+	  you back to the full on case.
+
+3.	IRQ after kernel suspend begins
+
+	- The driver will refuse the suspend, we don't suspend, we unwind
+	  the resume so far, the app wakes, we propogate stuff back up to
+	  user space whose policy manager unwinds its position
+
+4.	IRQ after driver has done its final checks
+
+	- Wake up lines are set
+	- We suspend
+	- We immediately get resumed
+	- We follow the full resume path
+
+This is I believe robust (and has been implemented on some non x86
+boxes). It depends on not forcing running tasks into suspend. That is the
+key.
+
+Alan
