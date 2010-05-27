@@ -1,26 +1,48 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 23:09:49 +0100
-Message-ID: <20100527220949.GB10602@srcf.ucam.org>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk> <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org> <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+Date: Thu, 27 May 2010 23:20:43 +0100
+Message-ID: <20100527232043.784d5c72@lxorguk.ukuu.org.uk>
+References: <20100527140655.GA28048@srcf.ucam.org>
+	<20100527182058.GL3543@srcf.ucam.org>
+	<20100527200950.44305cef@lxorguk.ukuu.org.uk>
+	<201005272355.13222.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+In-Reply-To: <201005272355.13222.rjw@sisk.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Gleixner <tglx@linutronix.de>, Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 27, 2010 at 11:08:06PM +0100, Alan Cox wrote:
+On Thu, 27 May 2010 23:55:13 +0200
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-> This is I believe robust (and has been implemented on some non x86
-> boxes). It depends on not forcing running tasks into suspend. That is the
-> key.
+> On Thursday 27 May 2010, Alan Cox wrote:
+> > > > If one works so does the other.
+> > > 
+> > > Not at all. The entire point of opportunistic suspend is that I don't 
+> > > care is currently in TASK_RUNNABLE or has a timer that's due to expire 
+> > > in 100msec - based on policy (through not having any held suspend 
+> > > blockers), I'll go to sleep. That's easily possible on PCs.
+> > 
+> > Yes I appreciate what suspend blockers are trying to do. Now how does
+> > that connect with my first sentence ?
+> 
+> I guess what Matthew wanted to say was that you couldn't use ACPI S3 as
+> a very deep CPU idle state, because of the way wakeup sources are set up
+> for it, while you could use it for aggressive power management with suspend
+> blockers as proposed by Arve.
 
-We've already established that ACPI systems require us to force running 
-tasks into suspend. How do we avoid the race in that situation?
+Which is a nonsense. Because the entire Gnome desktop and KDE, and
+OpenOffice and Firefox and friends would need fitting out with
+suspend blockers.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+x86 hardware is moving to fix these problems (at least on handheld
+devices initially). Look up the C6 power idle, and S0i1 and S0i3
+standby states. I reckon the laptop folks can probably get the hardware
+fixed well before anyone can convert the entire PC desktop to include
+blockers.
+
+Alan
