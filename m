@@ -1,37 +1,49 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 22:06:09 +0100
-Message-ID: <20100527210609.GA8865@srcf.ucam.org>
-References: <20100527172510.GC2468@srcf.ucam.org> <1274981288.27810.5609.camel@twins> <20100527173218.GF2468@srcf.ucam.org> <1274981750.27810.5641.camel@twins> <20100527174140.GB3187@srcf.ucam.org> <1274982397.27810.5679.camel@twins> <20100527175258.GB3543@srcf.ucam.org> <1274982981.27810.5719.camel@twins> <20100527175920.GE3543@srcf.ucam.org> <20100527220314.312d9e3c@lxorguk.ukuu.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH pm-wip/uart 0/4] misc. fixes for IDLEST and OMAP24xx support
+Date: Thu, 27 May 2010 14:06:36 -0700
+Message-ID: <87ocg1gilf.fsf@deeprootsystems.com>
+References: <1274915115-28355-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100527220314.312d9e3c@lxorguk.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f176.google.com ([209.85.222.176]:53489 "EHLO
+	mail-pz0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932175Ab0E0VGj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:06:39 -0400
+Received: by pzk6 with SMTP id 6so311528pzk.1
+        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:06:39 -0700 (PDT)
+In-Reply-To: <1274915115-28355-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Wed\, 26 May 2010 16\:05\:11 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Thu, May 27, 2010 at 10:03:14PM +0100, Alan Cox wrote:
-> On Thu, 27 May 2010 18:59:20 +0100
-> Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > Ok. So the existing badly-behaved application ignores your request and 
-> > then gets blocked. And now it no longer responds to wakeup events. So 
-> > you penalise well-behaved applications without providing any benefits to 
-> > badly-behaved ones.
-> 
-> I don't see how you put the first two sentences together and get the
-> final one.
-> 
-> When you beat up badly behaved apps that doesn't penalise well behaved
-> ones.
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-If you're going to block an app on drawing then you either need to 
-reenable drawing on wakeup or you need to have an interface for alerting 
-the app to the fact that drawing is about to block and it should get 
-back to its event loop. The first is suboptimal, the second penalises 
-well behaved apps.
+> This series on top of my pm-wip/uart branch fixes up various issues
+> with UART hwmods for 24xx as well as IDLEST issues after Benoit's
+> fixes/cleanup series.
+>
+> Tested on OMAP3 (omap3evm) and OMAP2 (n810/2420).
+>
+> Note that for OMAP2, this recently posted patch is required as well:
+>
+>   [PATCH] OMAP24xx: CM: fix mask used for checking IDLEST status
+>
+> These ares posted as FYI, and will be folded into the original hwmod
+> data for OMAP2+ UARTs.
+>
+> Kevin
+>
+>
+> Kevin Hilman (4):
+>   OMAP3: hwmod: UART: add module offs
+>   OMAP2/3: hwmod: L3 and L4 CORE/PER/WKUP hwmods don't have IDLEST
+>   OMAP2420: hwmod: UART3 needs prcm_reg_id = 2
+>   24xx: need .module_offs = CORE_MOD
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+FYI.
+
+This series has been folded into the original UART hwmod conversion
+patch in an updated pm-wip/uart branch.
+
+Kevin
