@@ -1,65 +1,57 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v4 0/3] omap3 nand: cleanup exiting platform related code
-Date: Thu, 27 May 2010 18:54:04 +0530
-Message-ID: <1274966647-32500-1-git-send-email-s-ghorai@ti.com>
-References: <Sukumar Ghorai <s-ghorai@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: omap3 pm: dependency between opp layer and cpufreq
+Date: Thu, 27 May 2010 18:56:57 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDE2F@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E71FDE25@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54824 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751063Ab0E0NYM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 May 2010 09:24:12 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4RDO8Dv004432
+Received: from devils.ext.ti.com ([198.47.26.153]:43112 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182Ab0E0N1E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 09:27:04 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4RDQxTj006630
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 08:24:11 -0500
-In-Reply-To: <Sukumar Ghorai <s-ghorai@ti.com>
+	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 08:27:02 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4RDQxRK011757
+	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 18:56:59 +0530 (IST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDE25@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sukumar Ghorai <s-ghorai@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-   The following set of patches applies on top of for-next branch.
-	http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git
-   Patches verified on: omap3430-SDP, omap3630-sdp, zoom3 and beagle board
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
+> Sent: Thursday, May 27, 2010 6:50 PM
+> To: linux-omap@vger.kernel.org
+> Subject: RE: omap3 pm: dependency between opp layer and cpufreq
+> 
 
-   And these are the patches required to address the following input -
-     1. The NAND driver needs to stop tinkering with the GPMC registers
-	The omap General Purpose Memory Controller (GPMC) registers are omap
-        specific, and not driver specific. Tinkering with these registers can
-        cause issues with the other devices on the GPMC.
+[snip]--[snip]
 
-     2. Passing hardcoded GPMC_CS0_BASE needs to go from the board files
-	Passing hardcoded GPMC virtual addressess is sure way to mess up things.
-        This should all become unnecessary once the NAND drivers stops messing
-        with the GPMC registers directly.
-     Discussion: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27630.html
+>  
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 2b9ebf0..18d291f 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -15,7 +15,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+>  # OPP support in (OMAP3+ only at the moment)
+>  # XXX The OPP TWL/TPS code should only be included when a TWL/TPS
+>  # PMIC is selected.
+> -ifdef CONFIG_CPU_FREQ
+> +ifdef CONFIG_TWL4030_POWER
+>  obj-$(CONFIG_ARCH_OMAP3) += opp.o opp_twl_tps.o
+>  endif
+> 
+After sending the mail, I realized that inclusion of opp_twl_tps.o should
+depend upon CONFIG_TWL4030_POWER and opp.o should be included as default.
 
-  v3: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28715.html
-	Functions related to ecc and prefetch engine are optimized.
+~sanjeev
 
-  v2: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28467.html
-	Few functionality was missing  like - There should be some locking 
-	as only one chipselect can use the ECC or prefetch engine at a time. 
-	If you have NAND in two chipselects, bad things would happen.
-	
-  v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28164.html
-	Additionally, it was needed to implement more functions for the
-	platform init code to use.
-
-
-Sukumar Ghorai (3):
-	omap3 gpmc: functionality enhancement
-	omap3 nand: cleanup virtual address usages
-	omap3 nand: fix issue in board file to detect nand
- arch/arm/mach-omap2/board-cm-t35.c         |   20 +---
- arch/arm/mach-omap2/board-devkit8000.c     |   25 +---
- arch/arm/mach-omap2/board-omap3beagle.c    |   24 +---
- arch/arm/mach-omap2/board-omap3touchbook.c |   25 +---
- arch/arm/mach-omap2/board-overo.c          |   24 +---
- arch/arm/mach-omap2/gpmc-nand.c            |   39 ++----
- arch/arm/mach-omap2/gpmc.c                 |  219 +++++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/gpmc.h     |   36 ++++-
- arch/arm/plat-omap/include/plat/nand.h     |    6 +-
- drivers/mtd/nand/omap2.c                   |  229 ++++++++--------------------
- 10 files changed, 320 insertions(+), 327 deletions(-)
-
+[snip]--[snip]
