@@ -1,45 +1,58 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 18:50:30 +0100
-Message-ID: <20100527175030.GA3543@srcf.ucam.org>
-References: <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk> <20100527140655.GA28048@srcf.ucam.org> <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain> <20100527155201.GA31937@srcf.ucam.org> <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain> <20100527165931.GB1062@srcf.ucam.org> <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain> <20100527172343.GB2468@srcf.ucam.org> <20100527184918.3d090921@lxorguk.ukuu.org.uk>
+Date: Thu, 27 May 2010 19:52:09 +0200
+Message-ID: <1274982729.27810.5703.camel@twins>
+References: <20100526120242.5c9b73ad@schatten.dmk.lab>
+	 <AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
+	 <20100526133721.602633b2@schatten.dmk.lab>
+	 <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
+	 <20100526142430.327ccbc4@schatten.dmk.lab>
+	 <20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
+	 <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+	 <20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+	 <20100527140655.GA28048@srcf.ucam.org>
+	 <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
+	 <20100527155201.GA31937@srcf.ucam.org>
+	 <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
+	 <20100527192135.6c6543b3@schatten.dmk.lab>
+	 <1274981127.27810.5597.camel@twins>
+	 <20100527194241.52caaf37@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100527184918.3d090921@lxorguk.ukuu.org.uk>
+In-Reply-To: <20100527194241.52caaf37@schatten.dmk.lab>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Florian Mickler <florian@mickler.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 27, 2010 at 06:49:18PM +0100, Alan Cox wrote:
-> > ACPI provides no guarantees about what level of hardware functionality 
-> > remains during S3. You don't have any useful ability to determine which 
-> > events will generate wakeups. And from a purely practical point of view, 
-> > since the latency is in the range of seconds, you'll never have a low 
-> > enough wakeup rate to hit it.
+On Thu, 2010-05-27 at 19:42 +0200, Florian Mickler wrote:
+
+> If in the imaginery situation where userspace can aquire certain
+> wakeup-constraints and loose certain wakeup-constraints, then it could
+> be that the system enters suspend without empty runqueues. 
+
+No. Wakeup constaints simply delay wakeups, not loose them.
+
+If there's something runnable, we run it.
+
+What could happen is that you try to program a timer every 5ms, but then
+QoS won't let you and errors the timer_create() or something. But then
+the app gets to deal with it.
+
+> > And as explained, you won't loose events if all the devices do a proper
+> > state transition. To quote:
 > 
-> So PCs with current ACPI don't get opportunistic suspend capability. It
-> probably won't be supported on the Commodore Amiga either - your point ?
-
-Actually, the reverse - there's no terribly good way to make PCs work 
-with scheduler-based suspend, but there's no reason why they wouldn't 
-work with the current opportunistic suspend implementation.
-
-> > Suspend blockers are the mechanism for the 
-> > driver to indicate whether the wakeup event has been handled. That's 
-> > what they're there for. The in-kernel ones don't paper over anything.
+> I believe the problem beeing userspace frozen at an unopportune time.
+> So the wakeup event is processed (kernel-side) but userspace didn't
+> have time to reacquire the correct wakeup-constraint to process the
+> event.
 > 
-> Semantically the in kernel blockers and the in kernel expression of
-> device driven constraints are the same thing except that instead of 
-> yes/no you replace the boolean with information.
+> I.e. the wakeup will be effectivly ignored.
 
-In some cases, not all. It may be a latency constraint (in which case 
-pm_qos is an appropriate mechanism), but instead it may be something 
-like "A key was pressed but never read" or "A network packet was 
-received but not delivered". These don't fit into the pm_qos model, but 
-it's state that you have to track.
+How so, event happens on hardware level, IRQ gets raised, CPU wakes up,
+handler gets run, handler generates a task wakeup, runqueue isn't empty,
+we run stuff.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I'm not quite sure how to loose something there.
