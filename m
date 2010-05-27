@@ -1,53 +1,68 @@
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 21:53:47 +0100
-Message-ID: <20100527215347.431c4934@lxorguk.ukuu.org.uk>
-References: <20100527160714.GB31937@srcf.ucam.org>
-	<20100527174131.18fd1c72@lxorguk.ukuu.org.uk>
-	<20100527165210.GA1062@srcf.ucam.org>
-	<20100527190204.14546caa@lxorguk.ukuu.org.uk>
-	<20100527181239.GF3543@srcf.ucam.org>
-	<20100527194840.5bca973f@lxorguk.ukuu.org.uk>
-	<20100527185658.GA5703@srcf.ucam.org>
-	<20100527202538.7d2d7f3c@lxorguk.ukuu.org.uk>
-	<20100527192926.GA6977@srcf.ucam.org>
-	<20100527205333.676ad65e@lxorguk.ukuu.org.uk>
-	<20100527201155.GB7449@srcf.ucam.org>
+Subject: Re: [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 22:03:14 +0100
+Message-ID: <20100527220314.312d9e3c@lxorguk.ukuu.org.uk>
+References: <20100527171644.GA2468@srcf.ucam.org>
+	<1274980856.27810.5582.camel@twins>
+	<20100527172510.GC2468@srcf.ucam.org>
+	<1274981288.27810.5609.camel@twins>
+	<20100527173218.GF2468@srcf.ucam.org>
+	<1274981750.27810.5641.camel@twins>
+	<20100527174140.GB3187@srcf.ucam.org>
+	<1274982397.27810.5679.camel@twins>
+	<20100527175258.GB3543@srcf.ucam.org>
+	<1274982981.27810.5719.camel@twins>
+	<20100527175920.GE3543@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:40540 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754592Ab0E0UrK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 16:47:10 -0400
-In-Reply-To: <20100527201155.GB7449@srcf.ucam.org>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20100527175920.GE3543@srcf.ucam.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
 To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux@smtp1.linux-foundation.org, Thomas Gleixner <tglx@linutronix.de>, List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
+List-Id: linux-omap@vger.kernel.org
 
-> > The event was not lost.
-> 
-> Not lost, but not delivered. So you need your policy agent to send 
+On Thu, 27 May 2010 18:59:20 +0100
+Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 
-it will be delivered next time the process wakes. It's not lost.
-
-> SIGCONT when you receive any wakeup event, which either means proxying 
-> all your network traffic through your policy agent or having some 
-> mechanism for alerting the policy agent whenever you leave the deep idle 
-> state.
-
-You didn't mention that requirement last time.
-
-> > > also the race of an application being in the middle of handling a wakeup 
-> > > event when you send it the signal.
+> On Thu, May 27, 2010 at 07:56:21PM +0200, Peter Zijlstra wrote:
+> > On Thu, 2010-05-27 at 18:52 +0100, Matthew Garrett wrote:
 > > 
-> > sigmask()
+> > > If that's what you're aiming for then you don't need to block 
+> > > applications on hardware access because they should all already have 
+> > > idled themselves.
+> > 
+> > Correct, a well behaved app would have. I thought we all agreed that
+> > well behaved apps weren't the problem?
 > 
-> Doesn't help - I may be hit by the signal between the poll() unblocking 
-> and me having the opportunity to call sigmask().
+> Ok. So the existing badly-behaved application ignores your request and 
+> then gets blocked. And now it no longer responds to wakeup events. So 
+> you penalise well-behaved applications without providing any benefits to 
+> badly-behaved ones.
 
-ppoll(). This is all existing solved stuff.
+I don't see how you put the first two sentences together and get the
+final one.
+
+When you beat up badly behaved apps that doesn't penalise well behaved
+ones.
+
+Forcing "well behaved apps" to make hundreds of extra calls to a complex
+blocker interface that also requires tons of kernel code and requires the
+application know platform policy and be recompiled if it changes - now
+that is punishing well behaved apps.
+
+A well behaved app should just work using standard existing APIs because
+that is how all the standard current well behaved apps are written [1].
 
 Alan
+--
+[1] I'm dying to see the suspend blocker patch for evolution ;)
