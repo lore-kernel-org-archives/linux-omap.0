@@ -1,88 +1,53 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 21:38:43 +0100
-Message-ID: <20100527203843.GA8395@srcf.ucam.org>
-References: <20100527155201.GA31937@srcf.ucam.org> <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain> <20100527165931.GB1062@srcf.ucam.org> <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain> <20100527172343.GB2468@srcf.ucam.org> <alpine.LFD.2.00.1005271930350.3032@localhost.localdomain> <20100527182633.GN3543@srcf.ucam.org> <alpine.LFD.2.00.1005272027560.3032@localhost.localdomain> <20100527190622.GB5703@srcf.ucam.org> <alpine.LFD.2.00.1005272207500.3032@localhost.localdomain>
+Date: Thu, 27 May 2010 21:53:47 +0100
+Message-ID: <20100527215347.431c4934@lxorguk.ukuu.org.uk>
+References: <20100527160714.GB31937@srcf.ucam.org>
+	<20100527174131.18fd1c72@lxorguk.ukuu.org.uk>
+	<20100527165210.GA1062@srcf.ucam.org>
+	<20100527190204.14546caa@lxorguk.ukuu.org.uk>
+	<20100527181239.GF3543@srcf.ucam.org>
+	<20100527194840.5bca973f@lxorguk.ukuu.org.uk>
+	<20100527185658.GA5703@srcf.ucam.org>
+	<20100527202538.7d2d7f3c@lxorguk.ukuu.org.uk>
+	<20100527192926.GA6977@srcf.ucam.org>
+	<20100527205333.676ad65e@lxorguk.ukuu.org.uk>
+	<20100527201155.GB7449@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1005272207500.3032@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:40540 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754592Ab0E0UrK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 16:47:10 -0400
+In-Reply-To: <20100527201155.GB7449@srcf.ucam.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, May 27, 2010 at 10:23:50PM +0200, Thomas Gleixner wrote:
-> On Thu, 27 May 2010, Matthew Garrett wrote:
-> > A wakeup event is defined as one that wakes the system - if a system 
-> > can't be woken by a specific event then it's impossible to lose it, 
-> > since it wasn't a wakeup event to begin with.
+> > The event was not lost.
 > 
-> So where is the problem ?
+> Not lost, but not delivered. So you need your policy agent to send 
 
-The problem is that, right now, if a wakeup event is received between 
-the point where userspace decides to start a suspend and userspace 
-actually starts a suspend, that event may not abort the suspend.
+it will be delivered next time the process wakes. It's not lost.
 
-> > Consider the case where the read() is non-blocking.
+> SIGCONT when you receive any wakeup event, which either means proxying 
+> all your network traffic through your policy agent or having some 
+> mechanism for alerting the policy agent whenever you leave the deep idle 
+> state.
+
+You didn't mention that requirement last time.
+
+> > > also the race of an application being in the middle of handling a wakeup 
+> > > event when you send it the signal.
+> > 
+> > sigmask()
 > 
-> Which I consider in the same range as the application which does:
-> 
->       while (1);
+> Doesn't help - I may be hit by the signal between the poll() unblocking 
+> and me having the opportunity to call sigmask().
 
-Not at all. Depending on what it reads, it may follow some other path 
-where it sleeps. But, as I keep saying, if you don't want to support 
-that kind of code then all of this is massively easier.
+ppoll(). This is all existing solved stuff.
 
-> > What sets that flag, and how does it interact with an application that 
-> > never makes a blocking system call?
-> 
->   QoS(NONE) would be default policy for untrusted apps in the same way
->   as you'd refuse the usage of supsend blockers for untrusted apps.
->
->   while (1); is definitely not an application which should be granted
->   trusted rights, right ?
-
-No, but if that while (1) is draw_cows() then the user may want this to 
-run while their session is active and stop running while their session 
-is idle. So you only want it to be QoS(NONE) in the idle session case. 
-How do you change that state?
- 
-> > The numbers were earlier in the thread.
-> 
->   Numbers, yes. But I really give a sh*t about numbers w/o a detailed
->   explanation of the scenario which created those numbers. And if the
->   numbers boil down to: we handle the untrusted app which does "while
->   (1);" then they are absolutely useless.
-
-The tested case was a stock Android install with opportunistic suspend 
-enabled and one that just used runtime idle. The lowest power state 
-entered was the same on both.
-
-> > Yes, and I'd agree with this if anyone seemed to have any idea how to do 
-> > it right. But despite all the heat and noise in this thread, all we've 
-> > got is an expression that it should be handled by the scheduler (a 
-> > viewpoint I agree with) without any explanation of how to switch 
-> > policies in such a way that applications idle without losing wakeup 
-> > events.
-> 
-> Why in the world should they lose wakeup events ? If an app goes idle,
-> it goes idle because it is waiting for an event. There is no other
-> sane reason except for those apps which are untrusted and force
-> idled. And for those you agreed already the suspend blockers don't
-> solve anything as they are either not implemented or the app is not
-> trusted to use them.
->
-> So we are back to round one of the whole discussion:
-> 
->    Is it worth to create an utter mess in the kernel just to handle a
->    subset of crappy coded applications ?
-> 
-> And the answer stays the same: No, not at all.
-
-You need suspend blockers to avoid losing wakeups in the explicit 
-suspend case even if you don't want to implement opportunistic suspend.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Alan
