@@ -1,92 +1,35 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 17:16:15 +0100
-Message-ID: <20100527171615.15a1fd3d@lxorguk.ukuu.org.uk>
-References: <20100526120242.5c9b73ad@schatten.dmk.lab>
-	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
-	<20100526133721.602633b2@schatten.dmk.lab>
-	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
-	<20100526142430.327ccbc4@schatten.dmk.lab>
-	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
-	<AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
-	<20100527003943.07c17f85@lxorguk.ukuu.org.uk>
-	<20100527140655.GA28048@srcf.ucam.org>
-	<alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
-	<20100527155201.GA31937@srcf.ucam.org>
+Date: Thu, 27 May 2010 17:19:43 +0100
+Message-ID: <20100527161943.GA32764@srcf.ucam.org>
+References: <20100526133721.602633b2@schatten.dmk.lab> <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com> <20100526142430.327ccbc4@schatten.dmk.lab> <20100526141612.3e2e0443@lxorguk.ukuu.org.uk> <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk> <20100527140655.GA28048@srcf.ucam.org> <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain> <20100527155201.GA31937@srcf.ucam.org> <20100527171615.15a1fd3d@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100527155201.GA31937@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Arve =?ISO-8859-14?B?SGr4bm5l?= =?ISO-8859-14?B?duVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:44220 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751777Ab0E0QUB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 12:20:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20100527171615.15a1fd3d@lxorguk.ukuu.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-> No. Suspend blockers are designed to ensure that suspend isn't racy with 
-> respect to wakeup events. The bit that mitigates badly written 
-> applications is the bit where the scheduler doesn't run any more.
+On Thu, May 27, 2010 at 05:16:15PM +0100, Alan Cox wrote:
 
-How does having applications taking blockers fix that - it makes it
-worse. They are now blocking the kernel doing the right job.
+> I can't speak for Thomas, but I'm certainly not arguing that you don't
+> need something that looks more like the blocker side of the logic *in
+> kernel*, because there is stuff that you want to express which isn't tied
+> to the task.
 
-> If you're happy with a single badly written application being able to 
-> cripple your power management story, you don't need opportunistic
+Sure, if you're not using opportunistic suspend then I don't think 
+there's any real need for the userspace side of this. The question is 
+how to implement something with the useful properties of opportunistic 
+suspend without without implementing something pretty much equivalent to 
+the userspace suspend blockers. I've sent another mail expressing why I 
+don't think your proposed QoS style behaviour provides that.
 
-And taking a suspend blocker isn't "crippling your power management" ???
- 
-> What /is/ the correct way to solve this problem when entering explicit 
-> suspend states? How do you guarantee that an event has been delivered to 
-> userspace before transitioning into suspend? Now, this is a less 
-> interesting problem if you're not using opportunistic suspend, but it's 
-> still a problem.
-
-The same way as we deal with low power states on other non PC devices ?
-
-> That's no good. If the input device has been deactivated, how does the 
-> wakeup event get delivered to the application?
-
-If the input device is letting itself get de-activated in a way that can
-lose events the input device driver is buggy. It's nobody elses business
-how it does the its job, and certainly *not* the applications.
-
-That's a kernel internal issue.
-
-You know the resource constraint exists because the driver knows it is
-open
-Your QoS guarantees tell you what you desired latency of response at the
-point you can become ready is.
-
-That's all your need to do it right.
-
-In kernel yes your device driver probably does need to say things like
-'Don't go below C6 for a moment' just as a high speed serial port might
-want to say 'Nothing over 10mS please'
-
-I can't speak for Thomas, but I'm certainly not arguing that you don't
-need something that looks more like the blocker side of the logic *in
-kernel*, because there is stuff that you want to express which isn't tied
-to the task.
-
-So you need
-
-	Userspace -> QoS guarantee expression, implied resource
-			expression via device use. *NO* knowledge of
-			device or platform in the application
-
-	Kernel space 
-
-		Drivers -> Explicit guarantee expression not bound to
-			tasks. Driver encapsulates the variety in the
-			device hardware and expresses it in a uniform
-			manner to the idling/suspend logic
-
-		CPU Freq -> Encapsulates the variety in the CPU and core
-			power functionality of devices, makes policy
-			based upon the uniform express from the drivers
-			and tasks
-
-All the autonomy is now in the right places, and we have requisite variety
-to actually manage the situation.
-
-Alan
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
