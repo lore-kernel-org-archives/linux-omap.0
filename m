@@ -1,95 +1,38 @@
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 22:25:14 +0100
-Message-ID: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-References: <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain>
-	<Pine.LNX.4.44L0.1005271334560.3239-100000@iolanthe.rowland.org>
+Subject: Re: [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 22:29:57 +0100
+Message-ID: <20100527222957.7f39b5af@lxorguk.ukuu.org.uk>
+References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
+	<alpine.LFD.2.00.1005271924170.3032@localhost.localdomain>
+	<201005272315.28475.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1005271334560.3239-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <201005272315.28475.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Arve@smtp1.linux-foundation.org, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-> That's the point -- suspend does not evaluate the system state 
-> correctly because it doesn't have the necessary information.  Suspend 
+> Well, what about when I want the machine to suspend _regardless_ of whether
+> or not it's idle at the moment?  That actually happens quite often to me. :-)
 
-The power management layer knows if the machine is idle, it has insight
-into when the next wakeups will occur.
+I don't think it helps to combine them for this discussion ?
 
-> blockers are a way of providing it that information.  They don't paper 
-> over the problem; they solve it.
+> I don't see much difference between that and ACPI S3 other than the memory
+> contents are preserved in S3.  It also is complete power off state - except for
+> memory refresh and wakeup sources (which also may be active in S4).
 
-I'm still unconvinced (see Thomas examples as a starter) and even if they
-did, the cure would be far worse than the disease.
-
-The hardware world also shows how you handle suspend/resume event races
-cleanly and in turn how we can handle right from user to hardware.
-
-If you are dealing with a well behaved UI app then its event loop will
-just do
-
-	if (message == UI_OFF) {
-		stop_background_stuff();
-		event_mask &= stuff;
-		send_reply(NIGHT_NIGHT);
-		continue;
-		/* Back to poll() */
-	}
-
-and power management does the rest. If an event wakes up the process
-before we get to suspend in kernel we will wake it back up. If the event
-gets in after pm decides to idle via suspend then it'll bounce through
-the kernel back to a kernel resume, or potentially through a full
-hardware/software suspend/resume bounce. You have one person who needs to
-track the sequence - that's however is the guy sending UI_ON/UI_OFF
-information and making the screen light up.
-
-If you are dealing with a badly behaved app then you can't win because it
-may not have the magic 'suspend blockers' or will do it wrong. You
-can constrain it (brute force SIGSTOP after it refuses to UI_OFF for a
-bit, or via nice or other QoS policy) but you can't assume it'll
-magically managge itself. It is "badly behaved" so by that very
-definition you can't assume it has correct magic goo in it. (Side note:
-the extra magic goo and complexity of such blockers makes it more likely
-the app will be buggy and thus 'badly behaved' !)
-
-You can pick up which tasks are stopping the suspend fairly easily at the
-moment via the ktrace interfaces. Maybe there is a case for making that
-tidier but powertop and the like already demonstrate you can track this.
-
-A cpu policy can obviously expose offenders itself directly to user
-space. That (and indeed people not responding to UI_OFF) then lets your
-phone do
-
-	<boop>
-	X is misbehaving
-	[Close it] [Allow this time] [Disable]
-
-and also to provide stats for each wakeup a policy manager can spot
-offenders (even those who are perhaps hard to see because they wake up a
-little bit every so often but just enough to mess up pm). In the x86
-world Arjan found a *lot* of that sort of stuff.
-
-Your policy manager can also act on it. The current policy manager is
-to fix app bugs and shows people up at conferences. I would imagine a
-google policy would be to collate misbehaving app reports at google.com
-and use them both to assist in 'educating' authors and in scoring app
-store stuff.
-
-As it is <boop> X is misbehaving is a powerful economic lever in a
-pretty dynamic and functioning software market.
-
-Google seem to be pretty good at statistical data, I can't believe
-battery advice for apps on the app stores and indeed a 'where did my
-battery go' pie chart are beyond their wit, or beyond the end user to
-figure out.
-
-There are a considerable number of people shipping power constrained
-Linux devices without suddenely desperately needing extra magic potions.
-Are they really all just that much smarter than Google ?
+Agreed although I am pushed to think of many real world cases where it
+might matter. VM's maybe?
 
 Alan
