@@ -1,26 +1,33 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 13:41:34 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005271340030.3239-100000@iolanthe.rowland.org>
-References: <alpine.LFD.2.00.1005271924170.3032@localhost.localdomain>
+Date: Thu, 27 May 2010 18:41:40 +0100
+Message-ID: <20100527174140.GB3187@srcf.ucam.org>
+References: <20100527161943.GA32764@srcf.ucam.org> <alpine.LFD.2.00.1005271901020.3032@localhost.localdomain> <20100527170740.GA1980@srcf.ucam.org> <1274980391.27810.5552.camel@twins> <20100527171644.GA2468@srcf.ucam.org> <1274980856.27810.5582.camel@twins> <20100527172510.GC2468@srcf.ucam.org> <1274981288.27810.5609.camel@twins> <20100527173218.GF2468@srcf.ucam.org> <1274981750.27810.5641.camel@twins>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1005271924170.3032@localhost.localdomain>
+Content-Disposition: inline
+In-Reply-To: <1274981750.27810.5641.camel@twins>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 27 May 2010, Thomas Gleixner wrote:
-
-> > Does this mean you believe "echo mem >/sys/power/state" is bad and
-> > should be removed?  Or "echo disk >/sys/power/state"?  They pay no
+On Thu, May 27, 2010 at 07:35:50PM +0200, Peter Zijlstra wrote:
+> On Thu, 2010-05-27 at 18:32 +0100, Matthew Garrett wrote:
+> > On Thu, May 27, 2010 at 07:28:08PM +0200, Peter Zijlstra wrote:
+> > > Why would you care about the screen for a network event?
+> > 
+> > Because the application that needs to handle the network packet is 
+> > currently blocked trying to draw something to the screen.
 > 
-> mem should be replaced by an idle suspend to ram mechanism
+> Then that's an application bug right there, isn't it?
+> 
+> If should have listened to the window server telling its clients it was
+> going to go away. Drawing after you get that is your own damn fault ;-)
 
-In other words, you are suggesting that not only should the Android
-patches not be accepted, in addition a large part of the PM suspend
-framework should be rewritten?
+How long do you wait for applications to respond that they've stopped 
+drawing? What if the application is heavily in swap at the time?
 
-Alan Stern
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
