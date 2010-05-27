@@ -1,46 +1,169 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH] ARM:VFPv3:enable {d16-d31} access
-Date: Thu, 27 May 2010 15:01:01 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03230B1D5B@dbde02.ent.ti.com>
-References: <tarun.kanti@ti.com>
- <1274818736-26597-1-git-send-email-tarun.kanti@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0322FA884E@dbde02.ent.ti.com>
- <20100525185741.GB16204@n2100.arm.linux.org.uk>
- <5A47E75E594F054BAF48C5E4FC4B92AB0322FA8E37@dbde02.ent.ti.com>
- <20100526201017.GE6232@n2100.arm.linux.org.uk>
- <5A47E75E594F054BAF48C5E4FC4B92AB03230B1B3E@dbde02.ent.ti.com>
- <20100527092933.GB28112@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] omap: pandora: add support for wl1251 wifi chip
+Date: Thu, 27 May 2010 12:42:43 +0300
+Message-ID: <1274953363-1985-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41926 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933159Ab0E0JbN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 05:31:13 -0400
-In-Reply-To: <20100527092933.GB28112@n2100.arm.linux.org.uk>
-Content-Language: en-US
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:40916 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755408Ab0E0Jmu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 05:42:50 -0400
+Received: by wwb34 with SMTP id 34so65539wwb.19
+        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 02:42:48 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
 
+Define platform data and setup GPIOs so that TI wl1251 wifi chip
+and it's driver can function.
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Thursday, May 27, 2010 3:00 PM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH] ARM:VFPv3:enable {d16-d31} access
-> 
-> On Thu, May 27, 2010 at 10:07:40AM +0530, DebBarma, Tarun Kanti wrote:
-> > > Note the different registers.  Change "r1, r2" to "r0, r1" and it
-> > > should work.
-> >
-> > Yes, that's right. I figured that out yesterday and confirmed the test
-> > results. Thanks!
-> 
-> I've now committed a fix to change those registers.  Are you ok with
-> being credited with a Reported-by tag?
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+I could have sent this earlier but it depended on the wifi tree,
+hope this can still go in for -rc2, it's just platform data anyway.
 
-That's fine!
+ arch/arm/mach-omap2/board-omap3pandora.c |   83 ++++++++++++++++++++++++++++++
+ 1 files changed, 83 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 395d049..8e164f1 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -29,6 +29,7 @@
+ #include <linux/input.h>
+ #include <linux/input/matrix_keypad.h>
+ #include <linux/gpio_keys.h>
++#include <linux/spi/wl12xx.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -46,6 +47,8 @@
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "hsmmc.h"
+ 
++#define PANDORA_WIFI_IRQ_GPIO		21
++#define PANDORA_WIFI_NRESET_GPIO	23
+ #define OMAP3_PANDORA_TS_GPIO		94
+ 
+ /* hardware debounce: (value + 1) * 31us */
+@@ -248,6 +251,7 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ 		.wires		= 4,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
++		.ocr_mask	= 0x80,	/* MMC_VDD_165_195 */
+ 	},
+ 	{}	/* Terminator */
+ };
+@@ -255,12 +259,33 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ static int omap3pandora_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
++	int ret, gpio_32khz;
++
+ 	/* gpio + {0,1} is "mmc{0,1}_cd" (input/IRQ) */
+ 	omap3pandora_mmc[0].gpio_cd = gpio + 0;
+ 	omap3pandora_mmc[1].gpio_cd = gpio + 1;
+ 	omap2_hsmmc_init(omap3pandora_mmc);
+ 
++	/* gpio + 13 drives 32kHz buffer for wifi module */
++	gpio_32khz = gpio + 13;
++	ret = gpio_request(gpio_32khz, "wifi 32kHz");
++	if (ret < 0) {
++		pr_err("Cannot get GPIO line %d, ret=%d\n", gpio_32khz, ret);
++		goto fail;
++	}
++
++	ret = gpio_direction_output(gpio_32khz, 1);
++	if (ret < 0) {
++		pr_err("Cannot set GPIO line %d, ret=%d\n", gpio_32khz, ret);
++		goto fail_direction;
++	}
++
+ 	return 0;
++
++fail_direction:
++	gpio_free(gpio_32khz);
++fail:
++	return -ENODEV;
+ }
+ 
+ static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
+@@ -539,10 +564,67 @@ static void __init omap3pandora_init_irq(void)
+ 	omap_gpio_init();
+ }
+ 
++static void pandora_wl1251_set_power(bool enable)
++{
++	/*
++	 * Keep power always on until wl1251_sdio driver learns to re-init
++	 * the chip after powering it down and back up.
++	 */
++}
++
++static struct wl12xx_platform_data pandora_wl1251_pdata = {
++	.set_power	= pandora_wl1251_set_power,
++	.use_eeprom	= true,
++};
++
++static struct platform_device pandora_wl1251_data = {
++	.name           = "wl1251_data",
++	.id             = -1,
++	.dev		= {
++		.platform_data	= &pandora_wl1251_pdata,
++	},
++};
++
++static void pandora_wl1251_init(void)
++{
++	int ret;
++
++	ret = gpio_request(PANDORA_WIFI_IRQ_GPIO, "wl1251 irq");
++	if (ret < 0)
++		goto fail;
++
++	ret = gpio_direction_input(PANDORA_WIFI_IRQ_GPIO);
++	if (ret < 0)
++		goto fail_irq;
++
++	pandora_wl1251_pdata.irq = gpio_to_irq(PANDORA_WIFI_IRQ_GPIO);
++	if (pandora_wl1251_pdata.irq < 0)
++		goto fail_irq;
++
++	ret = gpio_request(PANDORA_WIFI_NRESET_GPIO, "wl1251 nreset");
++	if (ret < 0)
++		goto fail_irq;
++
++	/* start powered so that it probes with MMC subsystem */
++	ret = gpio_direction_output(PANDORA_WIFI_NRESET_GPIO, 1);
++	if (ret < 0)
++		goto fail_nreset;
++
++	return;
++
++fail_nreset:
++	gpio_free(PANDORA_WIFI_NRESET_GPIO);
++fail_irq:
++	gpio_free(PANDORA_WIFI_IRQ_GPIO);
++fail:
++	printk(KERN_ERR "wl1251 board initialisation failed\n");
++}
++
+ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 	&pandora_leds_gpio,
+ 	&pandora_keys_gpio,
+ 	&pandora_dss_device,
++	&pandora_wl1251_data,
+ };
+ 
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+@@ -575,6 +657,7 @@ static void __init omap3pandora_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3pandora_i2c_init();
++	pandora_wl1251_init();
+ 	platform_add_devices(omap3pandora_devices,
+ 			ARRAY_SIZE(omap3pandora_devices));
+ 	omap_serial_init();
+-- 
+1.6.3.3
+
