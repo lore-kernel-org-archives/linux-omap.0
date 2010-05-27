@@ -1,146 +1,98 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 22:23:50 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1005272207500.3032@localhost.localdomain>
-References: <20100527140655.GA28048@srcf.ucam.org> <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain> <20100527155201.GA31937@srcf.ucam.org> <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain> <20100527165931.GB1062@srcf.ucam.org>
- <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain> <20100527172343.GB2468@srcf.ucam.org> <alpine.LFD.2.00.1005271930350.3032@localhost.localdomain> <20100527182633.GN3543@srcf.ucam.org> <alpine.LFD.2.00.1005272027560.3032@localhost.localdomain>
- <20100527190622.GB5703@srcf.ucam.org>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: omap3 pm: dependency between opp layer and cpufreq
+Date: Fri, 28 May 2010 01:59:39 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>,<4BFE9D7E.8020602@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100527190622.GB5703@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38079 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758832Ab0E0U3o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 16:29:44 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4RKTfd2003911
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 15:29:43 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4RKTe4X005208
+	for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 01:59:40 +0530 (IST)
+In-Reply-To: <4BFE9D7E.8020602@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 27 May 2010, Matthew Garrett wrote:
+From: Menon, Nishanth
+Sent: Thursday, May 27, 2010 9:57 PM
+To: Premi, Sanjeev
+Cc: linux-omap@vger.kernel.org
+Subject: Re: omap3 pm: dependency between opp layer and cpufreq
 
-> On Thu, May 27, 2010 at 08:53:11PM +0200, Thomas Gleixner wrote:
-> > On Thu, 27 May 2010, Matthew Garrett wrote:
-> > > We were talking about PCs. Suspend-as-c-state is already implemented for 
-> > > OMAP.
-> >  
-> > Ah, now we talk about PCs. And all of a sudden the problem of the
-> > unability of determining wakeup sources is not longer relevant ? So
-> > how do you guarantee that we don't miss one if we cant figure out
-> > which ones are kept alive in S3 ?
-> 
-> A wakeup event is defined as one that wakes the system - if a system 
-> can't be woken by a specific event then it's impossible to lose it, 
-> since it wasn't a wakeup event to begin with.
+[snip]--[snip]
 
-So where is the problem ?
- 
-> > > > So the only thing you are imposing to app writers is to use an
-> > > > interface which solves nothing and does not save you any power at
-> > > > all. 
-> > > 
-> > > It's already been demonstrated that the Android approach saves power.
-> > 
-> > Demonstrated ? Care to explain me how it makes a difference:
-> > 
-> > while (1) {
-> >   block();
-> >   read();
-> >   process_event();
-> >   unblock();
-> > 		---> suspend
-> > 		<--- resume
-> >   do_crap();	1000000 cycles
-> > }
-> > 
-> > vs.
-> > 
-> > while (1) {
-> >   read();
-> > 		---> suspend
-> > 		<--- resume
-> >   process_event();
-> >   do_crap();	1000000 cycles
-> > }
-> > 
-> > You spend the damned 10000000 cycles in any case just at a different
-> > point in time. So if you are so convinced and have fully understood
-> > all the implications, please enlighten me why do_crap() costs less
-> > power with the blockers approach.
-> 
-> Consider the case where the read() is non-blocking.
+[sp] Responding via webmail.. so the formatting and quotes are non-standard :(
 
-Which I consider in the same range as the application which does:
+> # OPP support in (OMAP3+ only at the moment)
+> # XXX The OPP TWL/TPS code should only be included when a TWL/TPS
+> # PMIC is selected.
+> ifdef CONFIG_CPU_FREQ
+> obj-$(CONFIG_ARCH_OMAP3) += opp.o opp_twl_tps.o
+ok this needs to be split:
+a) opp_twl_tps should depend on TWL_CORE and not CPUFREQ - there is no
+need actually
+b) opp.o should remain dependent on CPU_FREQ.
 
-      while (1);
+[sp] That was in my next mail.
 
-> > 1) The kernel blocker does not guarantee that the lousy app has
-> >    processed the event. It just guarantees that the lousy app has
-> >    emptied the input queue. So what's the point of the kernel blocker
-> >    in that case ?
-> 
-> Yes, I think you're right here. You need the userspace component as well 
-> for this to work correctly.
+> endif
 >
-> > 2) What's the difference on setting that app to QoS(NONE) and let the
-> >    kernel happily ignore it.
-> 
-> What sets that flag, and how does it interact with an application that 
-> never makes a blocking system call?
+> But changing CONFIG_CPU_FREQ to CONFIG_TWL4030_POWER leads to these errors:
+see (b)
+>
+[snip--[snip]
 
-  QoS(NONE) would be default policy for untrusted apps in the same way
-  as you'd refuse the usage of supsend blockers for untrusted apps.
-  
-  while (1); is definitely not an application which should be granted
-  trusted rights, right ?
+>
+> Questions/ comments:
+>
+> 1) The linkage between OPP and Voltage are not driven by the PMIC.
+>     They are defined by/for the silicon itself.
 
-  block_suspend(); while(1);
-  
-  is the same as:
+look carefully at twl -> it is the abstraction where needed for pmic
+translation of a voltage value - this you agree is PMIC dependent I suppose.
 
-  QoS(minimal latency); while(1);
+>
+> 2) The implementation for setting the voltage should depend upon the PMIC.
+ACK- the concept should be independent of PMIC - each PMIC, like
+5030/tps Vs custom PMICs have thier own unique mechanisms of setting
+voltages - the renewed SR series from Thara addresses this concern.(not
+in pm branch yet - but potentially soon)
 
-  So if you really go to trust an "while (1);" application you better
-  make sure that this app has the appropriate QoS(NONE) or QoS(10s)
-  call in it before letting it lose.
- 
-> > Come up with real explanations and numbers and not just the "it has
-> > been demonstrated" chant which is not holding water if you look at the
-> > above.
-> 
-> The numbers were earlier in the thread.
+>
+> 3) Was there any specific need to tie the functions "opp_get_voltage" and others to cpufreq only?
 
-  Numbers, yes. But I really give a sh*t about numbers w/o a detailed
-  explanation of the scenario which created those numbers. And if the
-  numbers boil down to: we handle the untrusted app which does "while
-  (1);" then they are absolutely useless.
+yes, because without cpufreq there is no transitions in the system :)
 
-> > The kernel history is full of examples where crappy solutions got
-> > rejected and kept out of the kernel for a long time even if there was
-> > a need for them in the application field and they got shipped in
-> > quantities with out of tree patches (NOHZ, high resolution timers,
-> > ...). At some point people stopped arguing for crappy solutions and
-> > sat down and got it right. The problem of power management and
-> > opportunistic suspend is not different in any way.
-> 
-> Yes, and I'd agree with this if anyone seemed to have any idea how to do 
-> it right. But despite all the heat and noise in this thread, all we've 
-> got is an expression that it should be handled by the scheduler (a 
-> viewpoint I agree with) without any explanation of how to switch 
-> policies in such a way that applications idle without losing wakeup 
-> events.
+[sp] I does - via bootarg - mpurate!
 
-Why in the world should they lose wakeup events ? If an app goes idle,
-it goes idle because it is waiting for an event. There is no other
-sane reason except for those apps which are untrusted and force
-idled. And for those you agreed already the suspend blockers don't
-solve anything as they are either not implemented or the app is not
-trusted to use them.
+When kernel boots, volatge must be set properly.
+We cannot rely on u-boot to be settiing everything correctly. e.g. 720MHz on OMAP3530 would fail at nominal 1.2V set by u-boot.
 
-So we are back to round one of the whole discussion:
+>
+> I am working on a patch that should remove some of these dependencies.
+> But, trying to open up a discussion as well...
 
-   Is it worth to create an utter mess in the kernel just to handle a
-   subset of crappy coded applications ?
+do post them. thanks
 
-And the answer stays the same: No, not at all.
+>
+> Best regards,
+> Sanjeev
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thanks,
-
-	tglx
+Regards,
+Nishanth Menon
