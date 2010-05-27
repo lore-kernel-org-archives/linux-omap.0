@@ -1,10 +1,8 @@
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 16:05:43 +0100
-Message-ID: <20100527160543.2228fc17@lxorguk.ukuu.org.uk>
-References: <AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
-	<1274867106.5882.5090.camel@twins>
-	<20100526120242.5c9b73ad@schatten.dmk.lab>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 16:10:54 +0100
+Message-ID: <20100527161054.203663ca@lxorguk.ukuu.org.uk>
+References: <20100526120242.5c9b73ad@schatten.dmk.lab>
 	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
 	<20100526133721.602633b2@schatten.dmk.lab>
 	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
@@ -13,108 +11,38 @@ References: <AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
 	<AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
 	<20100527003943.07c17f85@lxorguk.ukuu.org.uk>
 	<20100527140655.GA28048@srcf.ucam.org>
+	<1274970531.27810.5024.camel@twins>
+	<20100527143508.GA30117@srcf.ucam.org>
+	<1274971317.27810.5070.camel@twins>
+	<1274971437.27810.5078.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20100527140655.GA28048@srcf.ucam.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux@smtp1.linux-foundation.org, felipe.balbi@nokia.com, List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1274971437.27810.5078.camel@twins>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Arve =?ISO-8859-14?B?SGr4bm5l?= =?ISO-8859-14?B?duVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-> Now, if the user is playing this game, you want it to be scheduled. If 
-> the user has put down their phone and the screen lock has kicked in, you 
-> don't want it to be scheduled. So we could imagine some sort of cgroup 
-> that contains untrusted tasks - when the session is active we set a flag 
+> > Heck, for all I care, simply SIGKILL the thing and report it once the
+> > user starts looking at his screen again.
+> 
+> Provide incentive for Joe Clicker to improve his app, instead of cope
+> with the shit he created.
 
-I would hope not, because I'd rather prefer my app that used the screen
-to get the chance to save important data on what it was doing
-irrespective of the screen blank:  "I have an elegant proof for this
-problem but my battery has gone flat"
+That isn't helpful. But if you feel like that I suggest you run with your
+memory management protection disabled, it's really on there to deal with
+crap code and its giving the wrong incentives. Come to think of it
+you might want to remove your seatbelts and any safety catches or airbags
+- it only encourages carelessness.
 
-(and I imagine we can play that examples game forever given Ashby's law)
+The reality is you need a sane, generic, race free way to express your
+requirements (eg for hard RT) and ditto for constraining the expression
+(for 'crapplications')
 
-> You can't express that with resource limits or QoS constraints. 
+Arguing that you don't need to do this isn't useful. Android has
+demonstrated a need to do this. RT has a need to do some of this.
+Virtualisation wants elements of this etc.
 
-I don't see why not. You just have to think about the problem from the
-right end. Start from "normality is well behaved applications" and
-progress to "but I can constrain bogus ones". 
-
-So what are the resource constraints/QoS constraints for your example:
-
-[Simplistically]
-
-1. App says 'I want to wakeup from events for me within 1 second'
-	(Because I like drawing cows at about that rate)
-2. App open driver for buttons
-3. App opens driver for screen
-
-   Driver for buttons goes 'humm, well I can trigger wakeup from all
-   power states so I need no restrictions'. Screen will vary by device a
-   lot.
-
-
-(I'll come back to the screen a bit more in a moment)
-
-So lets consider the same binary
-
-App runs on OLPC like h/w
-
-The pm code goes 'well I can suspend/resume in a second thats cool'
-The screen code goes 'Hey I've got OLPC like video so thats ok'
-The button driver can wake the system from suspend and queue an event
-
-
-App runs on Android like h/w
-
-The pm code goes 'well I can suspend/resume in a second thats cool'
-The screen code goes 'Gee the screen goes blank if I go below level X' so
-	I'll set a limit
-The button driver can wake the system from suspend and queue an event
-
-
-App runs on Android like h/w but not trusted
-
-The pm code goes 'well tough, you can't do that, I'll refuse you'
-	(Maybe user space wrapped by Android with a 'Cows wants to eat
-	your phone alive [Refuse] [This Time Only] [Always] UI
-	User hits refuse and Android duly assigns the code no guarantee
-	and a hard limit of no guarantee.
-
-The screen code goes 'tough'
-The button driver can wake the system etc
-
-Cows will get suspended for longer than one second whether it likes it or
-not
-
-App runs on a desktop PC
-
-The pm code goes 'well I can't do suspend/resume in 1 second, but I can
-do C6'
-The screen goes 'I need C6'
-The button driver goes 'I need C6'
-
-
-Same app in each case and a lot less syscalls. No pathalogical cases
-either - with suspend blockers you can get emergent synchronization
-patterns between applications where each app rarely blocks suspends but
-together their timings fall such that they never allow it. How do you
-propose to even detect that ?
-
-
-Ok now the screen
-
-If I write to an X server and the server doesn't wish to talk to me it
-ignores the stream and I block. This has been the case since the 1980s.
-
-What is the problem here - your device driver for the display can block
-tasks it doesn't want to use the display.
+The question is how you do it right.
