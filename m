@@ -1,49 +1,54 @@
-From: Florian Mickler <florian@mickler.org>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 19:21:35 +0200
-Message-ID: <20100527192135.6c6543b3@schatten.dmk.lab>
-References: <20100526120242.5c9b73ad@schatten.dmk.lab>
-	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
-	<20100526133721.602633b2@schatten.dmk.lab>
-	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
-	<20100526142430.327ccbc4@schatten.dmk.lab>
+Date: Thu, 27 May 2010 18:30:41 +0100
+Message-ID: <20100527183041.0487bdf8@lxorguk.ukuu.org.uk>
+References: <20100526142430.327ccbc4@schatten.dmk.lab>
 	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
 	<AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
 	<20100527003943.07c17f85@lxorguk.ukuu.org.uk>
 	<20100527140655.GA28048@srcf.ucam.org>
 	<alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
 	<20100527155201.GA31937@srcf.ucam.org>
-	<alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
+	<20100527171615.15a1fd3d@lxorguk.ukuu.org.uk>
+	<20100527161943.GA32764@srcf.ucam.org>
+	<alpine.LFD.2.00.1005271901020.3032@localhost.localdomain>
+	<20100527170740.GA1980@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:51966 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932443Ab0E0RVl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 May 2010 13:21:41 -0400
-In-Reply-To: <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100527170740.GA1980@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Arve =?ISO-8859-14?B?SGr4bm5l?= =?ISO-8859-14?B?duVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, 27 May 2010 18:45:25 +0200 (CEST)
-Thomas Gleixner <tglx@linutronix.de> wrote:
-
-> The whole notion of treating suspend to RAM any different than a plain
-> idle C-State is wrong. It's not different at all. You just use a
-> different mechanism which has longer takedown and wakeup latencies and
-> requires to shut down stuff and setup extra wakeup sources.
+> > Opportunistic suspend is just a deep idle state, nothing else.
 > 
-> And there is the whole problem. Switching from normal event delivery
-> to those special wakeup sources. That needs to be engineered in any
-> case carefuly and it does not matter whether you add suspend blockers
-> or not.
+> No. The useful property of opportunistic suspend is that nothing gets 
+> scheduled. That's fundamentally different to a deep idle state.
 
-Ok, I just don't know the answer: How is it just another idle state if
-the userspace gets frozen? Doesn't that bork the whole transition and
-you need a userspace<->kernel synchronisation point to not loose events?
+Nothing gets scheduled in a deep idle state either - its idle. We leave
+the idle state to schedule anything.
 
-Cheers,
-Flo
+I believe the constraint is
+
+- Do not auto-enter a state for which you cannot maintain the devices in
+  use "properly".
+
+On a current PC that generally means 'not suspend', on a lot of embedded
+boards (including Android phones) it includes an opportunistic 'suspend'
+and also several states half way between the PC deepest idles and suspend.
+
+> > Stop thinking about suspend as a special mechanism. It's not - except
+> > for s2disk, which is an entirely different beast.
+> 
+> On PCs, suspend has more in common with s2disk than it does C states.
+
+Todays PCs are a special case. More to the point I don't think anyone is
+expected opportunistic suspend to be useful on _todays_ x86 systems.
+
+Even on todays PCs your assumption is questionable for virtual machines
+where a VM suspend is a lot faster and rather useful.
+
+Alan
