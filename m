@@ -1,36 +1,26 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 23:08:19 +0100
-Message-ID: <20100527220819.GA10602@srcf.ucam.org>
-References: <20100527161943.GA32764@srcf.ucam.org> <alpine.LFD.2.00.1005271901020.3032@localhost.localdomain> <20100527170740.GA1980@srcf.ucam.org> <1274980391.27810.5552.camel@twins> <20100527171644.GA2468@srcf.ucam.org> <1274980856.27810.5582.camel@twins> <20100527172510.GC2468@srcf.ucam.org> <20100527223751.7af3b5ee@lxorguk.ukuu.org.uk> <20100527213635.GA9916@srcf.ucam.org> <20100527225637.57a336ad@lxorguk.ukuu.org.uk>
+Date: Thu, 27 May 2010 23:09:49 +0100
+Message-ID: <20100527220949.GB10602@srcf.ucam.org>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk> <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org> <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20100527225637.57a336ad@lxorguk.ukuu.org.uk>
+In-Reply-To: <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 27, 2010 at 10:56:37PM +0100, Alan Cox wrote:
-> On Thu, 27 May 2010 22:36:35 +0100
-> Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > No it doesn't. The kernel continues executing anything that was on the 
-> 
-> Would you like to come and watch my laptop resume ? With printk's if you
-> want. You appear at this point to be arguing that bumble bees can't
-> fly, while watching one.
+On Thu, May 27, 2010 at 11:08:06PM +0100, Alan Cox wrote:
 
-The kernel performs no explicit notification to userspace. With legacy 
-graphics setups you'll get a VT switch, but X is entirely unaware that 
-that's due to suspend and that's going away in any case. On a typical 
-setup it's not even the kernel that does the VT switch to and from X - 
-that's handled by a script that happens to be on the runqueue. So yeah, 
-things kind of work as you suggest right now - but only by accident, not 
-design. What you're describing requires a new interface to inform 
-interested bits of userspace whenever you transition from your deep idle 
-state into a less deep one.
+> This is I believe robust (and has been implemented on some non x86
+> boxes). It depends on not forcing running tasks into suspend. That is the
+> key.
+
+We've already established that ACPI systems require us to force running 
+tasks into suspend. How do we avoid the race in that situation?
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
