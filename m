@@ -1,83 +1,55 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 3/5] OMAP: hwmod: add option for no locking in idle/enable paths
-Date: Thu, 27 May 2010 14:13:34 -0700
-Message-ID: <1274994816-30335-4-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 4/5] OMAP24xx: CM: fix mask used for checking IDLEST status
+Date: Thu, 27 May 2010 14:13:35 -0700
+Message-ID: <1274994816-30335-5-git-send-email-khilman@deeprootsystems.com>
 References: <1274994816-30335-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:45584 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756733Ab0E0VNp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:13:45 -0400
-Received: by mail-pw0-f46.google.com with SMTP id 7so248809pwi.19
-        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:13:44 -0700 (PDT)
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:61906 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756733Ab0E0VNq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:13:46 -0400
+Received: by mail-pv0-f174.google.com with SMTP id 11so82342pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:13:46 -0700 (PDT)
 In-Reply-To: <1274994816-30335-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Some hwmods may be idled/enabled directly from within the core
-idle/suspend path.  Since interrupts are already disabled here,
-the mutex-based locking in hwmod can sleep and will cause
-potential deadlocks.
+On OMAP24xx, the polarity for the IDLEST bits is opposite of OMAP3.
+The mask used to check this was using the bit position instead of the
+bit mask.
 
-To fix, add a hwmod flag HWMOD_NO_IDLE_LOCKING which indicates to the
-hwmod core that no locking should be done during the idle/enable
-paths for this hwmod.
+This patch fixes the problem by using the bit mask instead of the bit
+field.
 
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |   16 ++++++++++++----
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/cm.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 77fef90..1ee2fb2 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1304,9 +1304,13 @@ int omap_hwmod_enable(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
+diff --git a/arch/arm/mach-omap2/cm.c b/arch/arm/mach-omap2/cm.c
+index 2d83565..721c3b6 100644
+--- a/arch/arm/mach-omap2/cm.c
++++ b/arch/arm/mach-omap2/cm.c
+@@ -50,15 +50,15 @@ int omap2_cm_wait_module_ready(s16 prcm_mod, u8 idlest_id, u8 idlest_shift)
  
--	mutex_lock(&omap_hwmod_mutex);
-+	if (!(oh->flags & HWMOD_NO_IDLE_LOCKING))
-+		mutex_lock(&omap_hwmod_mutex);
+ 	cm_idlest_reg = cm_idlest_offs[idlest_id - 1];
+ 
++	mask = 1 << idlest_shift;
 +
- 	r = _enable(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+
-+	if (!(oh->flags & HWMOD_NO_IDLE_LOCKING))
-+		mutex_unlock(&omap_hwmod_mutex);
+ 	if (cpu_is_omap24xx())
+-		ena = idlest_shift;
++		ena = mask;
+ 	else if (cpu_is_omap34xx())
+ 		ena = 0;
+ 	else
+ 		BUG();
  
- 	return r;
- }
-@@ -1323,9 +1327,13 @@ int omap_hwmod_idle(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	if (!(oh->flags & HWMOD_NO_IDLE_LOCKING))
-+		mutex_lock(&omap_hwmod_mutex);
-+
- 	_idle(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+
-+	if (!(oh->flags & HWMOD_NO_IDLE_LOCKING))
-+		mutex_unlock(&omap_hwmod_mutex);
- 
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 0eccc09..cc3f9a7 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -360,6 +360,7 @@ struct omap_hwmod_omap4_prcm {
- #define HWMOD_NO_OCP_AUTOIDLE			(1 << 4)
- #define HWMOD_SET_DEFAULT_CLOCKACT		(1 << 5)
- #define HWMOD_NO_IDLEST				(1 << 6)
-+#define HWMOD_NO_IDLE_LOCKING       (1 << 7)
- 
- /*
-  * omap_hwmod._int_flags definitions
+-	mask = 1 << idlest_shift;
+-
+ 	/* XXX should be OMAP2 CM */
+ 	omap_test_timeout(((cm_read_mod_reg(prcm_mod, cm_idlest_reg) & mask) == ena),
+ 			  MAX_MODULE_READY_TIME, i);
 -- 
 1.7.0.2
 
