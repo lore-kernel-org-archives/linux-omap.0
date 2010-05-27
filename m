@@ -1,88 +1,92 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 18:06:43 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1005271751240.3032@localhost.localdomain>
-References: <Pine.LNX.4.44L0.1005271141410.3239-100000@iolanthe.rowland.org>
+Date: Thu, 27 May 2010 17:16:15 +0100
+Message-ID: <20100527171615.15a1fd3d@lxorguk.ukuu.org.uk>
+References: <20100526120242.5c9b73ad@schatten.dmk.lab>
+	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
+	<20100526133721.602633b2@schatten.dmk.lab>
+	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
+	<20100526142430.327ccbc4@schatten.dmk.lab>
+	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
+	<AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+	<20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+	<20100527140655.GA28048@srcf.ucam.org>
+	<alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
+	<20100527155201.GA31937@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:58431 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756463Ab0E0QHj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 May 2010 12:07:39 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1005271141410.3239-100000@iolanthe.rowland.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100527155201.GA31937@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Arve =?ISO-8859-14?B?SGr4bm5l?= =?ISO-8859-14?B?duVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, 27 May 2010, Alan Stern wrote:
-> On Thu, 27 May 2010, Peter Zijlstra wrote:
-> 
-> > On Thu, 2010-05-27 at 16:33 +0100, Alan Cox wrote:
-> > > On Thu, 27 May 2010 17:09:16 +0200
-> > > Peter Zijlstra <peterz@infradead.org> wrote:
-> > > 
-> > > > On Thu, 2010-05-27 at 11:06 -0400, Alan Stern wrote:
-> > > > > 
-> > > > >         Opportunistic suspends are okay.
-> > > > > 
-> > > > >         The proposed userspace API is too Android-specific.
-> > > > 
-> > > > I would argue opportunistic suspends are not ok, and therefore the
-> > > > proposed API is utterly irrelevant.
-> > > 
-> > > Assuming you are happy that opportunistically entering C6 and the like is
-> > > ok via ACPI can you explain why you have a problem with opportunistic
-> > > suspend and why it is different to a very deep sleep CPU state such as we
-> > > have now (and which on many embedded platforms we deal with *is* sleeping
-> > > external devices too)
-> > 
-> > Agreed, but I understood the opportunistic suspend line from Alan Stern
-> > to mean the echo opportunistic > /sys/power/foo thing.
-> 
-> Yes, that's what I meant.  Why do you think it is any worse than "echo 
-> mem >/sys/power/state"?  The only difference is that it will block 
-> until all in-kernel suspend blockers are disabled.
-> 
-> Or do you also think that "echo mem >/sys/power/state" is evil and 
-> should be removed from the kernel as soon as possible?
-> 
-> And to answer Thomas's question: The whole reason for having in-kernel 
-> suspend blockers is so that userspace can tell the system to suspend 
-> without losing wakeup events.
-> 
-> Suppose a key is pressed just as a user program writes "mem" to
-> /sys/power/state.  The keyboard driver handles the keystroke and queues
-> an input event.  Then the system suspends and doesn't wake up until
-> some other event occurs -- even though the keypress was an important
-> one and it should have prevented the system from suspending.
-> 
-> With in-kernel suspend blockers and opportunistic suspend, this 
-> scenario is prevented.  That is their raison-d'etre.
+> No. Suspend blockers are designed to ensure that suspend isn't racy with 
+> respect to wakeup events. The bit that mitigates badly written 
+> applications is the bit where the scheduler doesn't run any more.
 
-I tend to disagree. You are still looking at suspend as some extra
-esoteric mechanism. We should stop doing this and look at suspend (to
-RAM) as an additional deep idle state, which is well defined in terms
-of power savings and wakeup latency. That's what I think opportunistic
-suspend is all about. Now if you look at our current idle states in
-x86 the incoming keystroke is never lost. 
+How does having applications taking blockers fix that - it makes it
+worse. They are now blocking the kernel doing the right job.
 
-So when suspend does lose the wakeup event then we need to fix that,
-but why do we need suspend blockers for this ? Let's take your
-example:
+> If you're happy with a single badly written application being able to 
+> cripple your power management story, you don't need opportunistic
 
-> The keyboard driver handles the keystroke and queues an input
-> event. Then the system goes into suspend ....
+And taking a suspend blocker isn't "crippling your power management" ???
+ 
+> What /is/ the correct way to solve this problem when entering explicit 
+> suspend states? How do you guarantee that an event has been delivered to 
+> userspace before transitioning into suspend? Now, this is a less 
+> interesting problem if you're not using opportunistic suspend, but it's 
+> still a problem.
 
-Why do we go into suspend at all? If there is an event queued then
-something is woken up and got running, which is reason enough _not_ to
-enter suspend. If that's broken in the current implementation then we
-need to fix it, but not with a big hammer by adding another
-interface. We have that information already and obviously we do not
-use it, so lets figure out why before adding suspend blockers just
-because they paper over the underlying problem.
+The same way as we deal with low power states on other non PC devices ?
 
-Thanks,
+> That's no good. If the input device has been deactivated, how does the 
+> wakeup event get delivered to the application?
 
-	tglx
+If the input device is letting itself get de-activated in a way that can
+lose events the input device driver is buggy. It's nobody elses business
+how it does the its job, and certainly *not* the applications.
+
+That's a kernel internal issue.
+
+You know the resource constraint exists because the driver knows it is
+open
+Your QoS guarantees tell you what you desired latency of response at the
+point you can become ready is.
+
+That's all your need to do it right.
+
+In kernel yes your device driver probably does need to say things like
+'Don't go below C6 for a moment' just as a high speed serial port might
+want to say 'Nothing over 10mS please'
+
+I can't speak for Thomas, but I'm certainly not arguing that you don't
+need something that looks more like the blocker side of the logic *in
+kernel*, because there is stuff that you want to express which isn't tied
+to the task.
+
+So you need
+
+	Userspace -> QoS guarantee expression, implied resource
+			expression via device use. *NO* knowledge of
+			device or platform in the application
+
+	Kernel space 
+
+		Drivers -> Explicit guarantee expression not bound to
+			tasks. Driver encapsulates the variety in the
+			device hardware and expresses it in a uniform
+			manner to the idling/suspend logic
+
+		CPU Freq -> Encapsulates the variety in the CPU and core
+			power functionality of devices, makes policy
+			based upon the uniform express from the drivers
+			and tasks
+
+All the autonomy is now in the right places, and we have requisite variety
+to actually manage the situation.
+
+Alan
