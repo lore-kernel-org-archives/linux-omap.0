@@ -1,106 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 23:00:15 +0200
-Message-ID: <201005272300.15453.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1005271141410.3239-100000@iolanthe.rowland.org> <alpine.LFD.2.00.1005271751240.3032@localhost.localdomain>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [pm-wip/uart][PATCH 0/6]: Serial HWMOD updation and cleanup.
+Date: Thu, 27 May 2010 14:05:43 -0700
+Message-ID: <87typtgimw.fsf@deeprootsystems.com>
+References: <47398.192.168.10.88.1274362670.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49869 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757094Ab0E0U70 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 May 2010 16:59:26 -0400
-In-Reply-To: <alpine.LFD.2.00.1005271751240.3032@localhost.localdomain>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:60819 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756937Ab0E0VFr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:05:47 -0400
+Received: by pwi7 with SMTP id 7so246183pwi.19
+        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:05:46 -0700 (PDT)
+In-Reply-To: <47398.192.168.10.88.1274362670.squirrel@dbdmail.itg.ti.com> (Govindraj R.'s message of "Thu\, 20 May 2010 19\:07\:50 +0530 \(IST\)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thursday 27 May 2010, Thomas Gleixner wrote:
-> On Thu, 27 May 2010, Alan Stern wrote:
-> > On Thu, 27 May 2010, Peter Zijlstra wrote:
-> > 
-> > > On Thu, 2010-05-27 at 16:33 +0100, Alan Cox wrote:
-> > > > On Thu, 27 May 2010 17:09:16 +0200
-> > > > Peter Zijlstra <peterz@infradead.org> wrote:
-> > > > 
-> > > > > On Thu, 2010-05-27 at 11:06 -0400, Alan Stern wrote:
-> > > > > > 
-> > > > > >         Opportunistic suspends are okay.
-> > > > > > 
-> > > > > >         The proposed userspace API is too Android-specific.
-> > > > > 
-> > > > > I would argue opportunistic suspends are not ok, and therefore the
-> > > > > proposed API is utterly irrelevant.
-> > > > 
-> > > > Assuming you are happy that opportunistically entering C6 and the like is
-> > > > ok via ACPI can you explain why you have a problem with opportunistic
-> > > > suspend and why it is different to a very deep sleep CPU state such as we
-> > > > have now (and which on many embedded platforms we deal with *is* sleeping
-> > > > external devices too)
-> > > 
-> > > Agreed, but I understood the opportunistic suspend line from Alan Stern
-> > > to mean the echo opportunistic > /sys/power/foo thing.
-> > 
-> > Yes, that's what I meant.  Why do you think it is any worse than "echo 
-> > mem >/sys/power/state"?  The only difference is that it will block 
-> > until all in-kernel suspend blockers are disabled.
-> > 
-> > Or do you also think that "echo mem >/sys/power/state" is evil and 
-> > should be removed from the kernel as soon as possible?
-> > 
-> > And to answer Thomas's question: The whole reason for having in-kernel 
-> > suspend blockers is so that userspace can tell the system to suspend 
-> > without losing wakeup events.
-> > 
-> > Suppose a key is pressed just as a user program writes "mem" to
-> > /sys/power/state.  The keyboard driver handles the keystroke and queues
-> > an input event.  Then the system suspends and doesn't wake up until
-> > some other event occurs -- even though the keypress was an important
-> > one and it should have prevented the system from suspending.
-> > 
-> > With in-kernel suspend blockers and opportunistic suspend, this 
-> > scenario is prevented.  That is their raison-d'etre.
-> 
-> I tend to disagree. You are still looking at suspend as some extra
-> esoteric mechanism. We should stop doing this and look at suspend (to
-> RAM) as an additional deep idle state, which is well defined in terms
-> of power savings and wakeup latency.
+Hi Govindraj,
 
-Well, the ACPI spec doesn't agree with you. :-)
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-> That's what I think opportunistic suspend is all about. Now if you look at
-> our current idle states in x86 the incoming keystroke is never lost. 
-> 
-> So when suspend does lose the wakeup event then we need to fix that,
+> Patch series is based on remotes/origin/pm-wip/govindraj
+> branch from Kevin's PM tree.
+>
+> Patches are tested with 3430SDP.
+> Have updated 2420/2430 hwmod data files
+> it would be great if some one can test the same.
 
-With ACPI, we can't, because we have to switch our wakeup sources from
-the "runtime" mode to the "system wakeup" mode in a racy fashion.
+OK, I've updated pm-wip/uart to include most of this series as well as
+some of the other fixes I posted yesterday to get things working on
+OMAP2.
 
-> but why do we need suspend blockers for this ? Let's take your example:
-> 
-> > The keyboard driver handles the keystroke and queues an input
-> > event. Then the system goes into suspend ....
-> 
-> Why do we go into suspend at all?
+> Govindraj.R (6):
+>   Serial: Clean up set_uart_globals.
+>   Serial: Add UART4 hwmod data.
+>   Serial: Modify OMAP3 hwmod data file with uart data.
+>   Serial: Add UART hwmod data for 2420.
+>   Serial: Add UART hwmod data for 2430.
+>   Serial: Update UART HWMOD layer.
 
-The decision to go to suspend may be made in parallel to the keystroke in
-such a way that we may not be able to detect it (that doesn't apply to the
-hardware Android currently runs on, though).
+I've kept patch 1 as is, but changed the subject slightly.
 
-> If there is an event queued then something is woken up and got running,
-> which is reason enough _not_ to enter suspend. If that's broken in the
-> current implementation then we need to fix it,
+Patches 2, 4 and 5 I've folded into the patch that added hwmod data
+for OMAP3.
 
-That's not a matter of implementation (which I admit can be improved).
+Patch 6 I folded into the initial UART conversion patch and also
+changed the authorship for that patch to you, since you've done most
+of that work.
 
-> but not with a big hammer by adding another
-> interface. We have that information already and obviously we do not
-> use it, so lets figure out why before adding suspend blockers just
-> because they paper over the underlying problem.
+Patch 3, I've dropped as that shouldn't be needed after you switch
+to platform_get_resource_byname().
 
-I'm not really sure what information you're referring to.
+Please update your omap-serial driver on top of the new pm-wip/uart
+branch and then we'll be basically ready for upstream.
 
-Rafael
+Kevin
+
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |  184 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |  184 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   66 +++++++++-
+>  arch/arm/mach-omap2/prcm-common.h          |    2 +
+>  arch/arm/mach-omap2/serial.c               |   38 +++----
+>  arch/arm/plat-omap/common.c                |   17 ---
+>  arch/arm/plat-omap/include/plat/common.h   |    1 -
+>  arch/arm/plat-omap/include/plat/dma.h      |    2 +
+>  arch/arm/plat-omap/include/plat/irqs.h     |    2 +
+>  9 files changed, 449 insertions(+), 47 deletions(-)
