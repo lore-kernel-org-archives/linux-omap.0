@@ -1,57 +1,49 @@
-From: Peter Zijlstra <peterz@infradead.org>
+From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 19:20:56 +0200
-Message-ID: <1274980856.27810.5582.camel@twins>
-References: <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
-	 <20100527003943.07c17f85@lxorguk.ukuu.org.uk>
-	 <20100527140655.GA28048@srcf.ucam.org>
-	 <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
-	 <20100527155201.GA31937@srcf.ucam.org>
-	 <20100527171615.15a1fd3d@lxorguk.ukuu.org.uk>
-	 <20100527161943.GA32764@srcf.ucam.org>
-	 <alpine.LFD.2.00.1005271901020.3032@localhost.localdomain>
-	 <20100527170740.GA1980@srcf.ucam.org> <1274980391.27810.5552.camel@twins>
-	 <20100527171644.GA2468@srcf.ucam.org>
+Date: Thu, 27 May 2010 19:21:35 +0200
+Message-ID: <20100527192135.6c6543b3@schatten.dmk.lab>
+References: <20100526120242.5c9b73ad@schatten.dmk.lab>
+	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
+	<20100526133721.602633b2@schatten.dmk.lab>
+	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
+	<20100526142430.327ccbc4@schatten.dmk.lab>
+	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
+	<AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+	<20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+	<20100527140655.GA28048@srcf.ucam.org>
+	<alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
+	<20100527155201.GA31937@srcf.ucam.org>
+	<alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:40121 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754371Ab0E0RVD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 13:21:03 -0400
-In-Reply-To: <20100527171644.GA2468@srcf.ucam.org>
+Received: from ist.d-labs.de ([213.239.218.44]:51966 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932443Ab0E0RVl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 13:21:41 -0400
+In-Reply-To: <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, 2010-05-27 at 18:16 +0100, Matthew Garrett wrote:
-> On Thu, May 27, 2010 at 07:13:11PM +0200, Peter Zijlstra wrote:
-> > On Thu, 2010-05-27 at 18:07 +0100, Matthew Garrett wrote:
-> > > No. The useful property of opportunistic suspend is that nothing gets 
-> > > scheduled. That's fundamentally different to a deep idle state.
-> > 
-> > I think Alan and Thomas but certainly I am saying is that you can get to
-> > the same state without suspend.
-> > 
-> > Either you suspend (forcefully don't schedule stuff), or you end up
-> > blocking all tasks on QoS/resource limits and end up with an idle system
-> > that goes into a deep idle state (aka suspend).
-> >
-> > So why isn't blocking every task on a QoS/resource good enough for you?
+On Thu, 27 May 2010 18:45:25 +0200 (CEST)
+Thomas Gleixner <tglx@linutronix.de> wrote:
+
+> The whole notion of treating suspend to RAM any different than a plain
+> idle C-State is wrong. It's not different at all. You just use a
+> different mechanism which has longer takedown and wakeup latencies and
+> requires to shut down stuff and setup extra wakeup sources.
 > 
-> Because you may then block them in such a way that they never handle an 
-> event that should wake them.
+> And there is the whole problem. Switching from normal event delivery
+> to those special wakeup sources. That needs to be engineered in any
+> case carefuly and it does not matter whether you add suspend blockers
+> or not.
 
-*blink*, do explain?
+Ok, I just don't know the answer: How is it just another idle state if
+the userspace gets frozen? Doesn't that bork the whole transition and
+you need a userspace<->kernel synchronisation point to not loose events?
 
-Suppose X (or whatever windowing system) will block all clients that try
-to draw when you switch off your screen.
-
-How would we not wake them when we do turn the screen back on and start
-servicing the pending requests again?
-
-Pretty much the same for everything else, input events, WoL etc..
-
-
+Cheers,
+Flo
