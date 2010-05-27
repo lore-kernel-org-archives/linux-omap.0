@@ -1,44 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [RFC] Initial attempt to make ARM use LMB
-Date: Thu, 27 May 2010 12:47:06 +0300
-Message-ID: <1274953626.2265.196.camel@tubuntu.research.nokia.com>
-References: <20100325233248.GM24984@n2100.arm.linux.org.uk>
-	 <20100522215848.GB29889@n2100.arm.linux.org.uk>
-	 <20100526004418.GM9645@atomide.com>
-	 <20100526075059.GA25435@n2100.arm.linux.org.uk>
-	 <20100526135128.GN9645@atomide.com>
-	 <20100526214037.GB16418@n2100.arm.linux.org.uk>
-	 <1274950338.2265.134.camel@tubuntu.research.nokia.com>
-	 <20100527092501.GA28112@n2100.arm.linux.org.uk>
+From: Florian Mickler <florian@mickler.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 12:56:05 +0200
+Message-ID: <20100527125605.2855f980@schatten.dmk.lab>
+References: <20100526151945.1b3813ac@schatten.dmk.lab>
+	<Pine.LNX.4.44L0.1005261033440.1961-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61282 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932400Ab0E0Jry (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 05:47:54 -0400
-In-Reply-To: <20100527092501.GA28112@n2100.arm.linux.org.uk>
+Received: from ist.d-labs.de ([213.239.218.44]:59658 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754418Ab0E0K4L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 06:56:11 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1005261033440.1961-100000@iolanthe.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, 2010-05-27 at 11:25 +0200, ext Russell King - ARM Linux wrote:
-> On Thu, May 27, 2010 at 11:52:18AM +0300, Tomi Valkeinen wrote:
+On Wed, 26 May 2010 10:38:50 -0400 (EDT)
+Alan Stern <stern@rowland.harvard.edu> wrote:
 
-> > I tested your lmb branch on OMAP 3430SDP board, and after removing the
-> > topmost patch (ARM: use LMB to allocate system memory MMIO resource
-> > structures) everything related to DSS2 (drivers/video/omap2/) seemed to
-> > work ok.
+> On Wed, 26 May 2010, Florian Mickler wrote:
 > 
-> Great, can I add your tested-by for the OMAP and LMB stuff up to but not
-> including the last commit?
+> > I don't think that the in-kernel suspend block is a bad idea. 
+> > 
+> > You could probably use the suspend-blockers unconditionally in the
+> > suspend framework to indicate if a suspend is possible or not.
+> 
+> That's not how it works.  Drivers aren't supposed to abort
+> unconditional suspend -- not without a really good reason (for example,
+> the device received a wakeup event before it was fully suspended).  In
+> short, suspends should be considered to be _always_ possible.
+> 
+> > Regardless of opportunistic suspend or not. This way, you don't have to
+> > try-and-fail on a suspend request and thus making suspending
+> > potentially more robust or allowing for a "suspend as soon as
+> > possible" semantic (which is probably a good idea, if you have to grab
+> > your laptop in a hurry to get away).
+> 
+> That's different.  Suspend blockers could block (not abort!) regular 
+> suspends, just as they do opportunistic suspends.
+> 
+> But why should they?  I mean, if userspace wants to initiate a suspend
+> that is capable of being blocked by a kernel suspend blocker, then all
+> it has to do is initiate an opportunistic suspend instead of a normal
+> suspend.
+> 
+> Alan Stern
 
-Sure.
+Let me elaborate what i mean:
 
-I'll also try to find time to review the DSS side changes properly.
+The assumption beeing that specifying pm constraints in the drivers is
+a good thing which we will be doing anyway in the long run. 
+(See Alan Cox's summary of current mainline problems[1].)
 
- Tomi
+I don't wanna go into specifing any constraint API here, but it could
+probably be either a blocker flag (the here presented suspend-blocker,
+which Alan doesnt like?) 
+or maybe a few integer-typed constraints defined by the pm-core.
+(needed scheduler-latency/needed io-latency?)
 
+As an intermediate step, it would probably be possible to
+specify the "I cant be suspended" constraint (aka blocker) for all
+drivers not explicitly stating anything other. 
 
+Converting a driver to using any constraint-API would require analysing
+what makes a driver refuse suspending in the old suspend handler and
+then specify any "no suspend" (or whatever) constraint before those
+conditions arise and clearing of the constraints when it is no longer critical.  
+(Much work.)
+
+A future switch from something like a flag (blocker) to a
+full integer-typed requirement would probably be a simple search and
+replace or even possible by extending the blocker-api. 
+
+If that is done, the prototype of the driver callback
+
+int suspend(); 
+
+could probably be changed to 
+
+void suspend();
+
+and it be expected to always _successfully_ suspend.
+
+The hard part is finding the places where special guarantees are
+needed. But android did show that this is possible.
+
+Cheers,
+Flo
+
+[1]: http://lkml.org/lkml/2010/5/26/575
