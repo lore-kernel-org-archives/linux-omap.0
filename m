@@ -1,78 +1,108 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 1/4] platform_bus: allow custom extensions to system PM methods
-Date: Thu, 27 May 2010 14:13:16 -0700
-Message-ID: <1274994799-30297-2-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 3/4] OMAP: PM: use omap_device API for suspend/resume
+Date: Thu, 27 May 2010 14:13:18 -0700
+Message-ID: <1274994799-30297-4-git-send-email-khilman@deeprootsystems.com>
 References: <1274994799-30297-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:45584 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756760Ab0E0VNX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:13:23 -0400
-Received: by pwi7 with SMTP id 7so248809pwi.19
-        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:13:23 -0700 (PDT)
+Received: from mail-pz0-f176.google.com ([209.85.222.176]:64008 "EHLO
+	mail-pz0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755166Ab0E0VN0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:13:26 -0400
+Received: by mail-pz0-f176.google.com with SMTP id 6so314656pzk.1
+        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:13:26 -0700 (PDT)
 In-Reply-To: <1274994799-30297-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-When runtime PM for platform_bus was added, it allowed for platforms
-to customize the runtime PM methods since they are defined as weak
-symbols.
+Hook into the platform bus methods for suspend and resume and
+use the omap_device API to automatically idle and enable the
+device on suspend and resume.
 
-This patch allows platforms to also extend the system PM methods with
-custom hooks so runtime PM and system PM extensions can be managed
-together by custom platform-specific code.
+This allows device drivers to get rid of direct management of their
+clocks in their suspend/resume paths, and let omap_device do it for
+them.
+
+We currently use the _noirq (late suspend, early resume) versions of
+the suspend/resume methods to ensure that the device is not disabled
+too early for any drivers also using the _noirq methods.
+
+NOTE: only works for devices with omap_hwmod support.
 
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Magnus Damm <damm@opensource.se>
-Cc: Rafael Wysocki <rjw@sisk.pl>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Eric Miao <eric.y.miao@gmail.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 ---
- drivers/base/platform.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/pm_bus.c |   61 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 61 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index 4b4b565..0bc478a 100644
---- a/drivers/base/platform.c
-+++ b/drivers/base/platform.c
-@@ -735,7 +735,7 @@ static void platform_pm_complete(struct device *dev)
+diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_bus.c
+index 69acaa5..3787da8 100644
+--- a/arch/arm/mach-omap2/pm_bus.c
++++ b/arch/arm/mach-omap2/pm_bus.c
+@@ -70,3 +70,64 @@ int platform_pm_runtime_idle(struct device *dev)
+ };
+ #endif /* CONFIG_PM_RUNTIME */
  
- #ifdef CONFIG_SUSPEND
- 
--static int platform_pm_suspend(struct device *dev)
-+int __weak platform_pm_suspend(struct device *dev)
- {
- 	struct device_driver *drv = dev->driver;
- 	int ret = 0;
-@@ -753,7 +753,7 @@ static int platform_pm_suspend(struct device *dev)
- 	return ret;
- }
- 
--static int platform_pm_suspend_noirq(struct device *dev)
-+int __weak platform_pm_suspend_noirq(struct device *dev)
- {
- 	struct device_driver *drv = dev->driver;
- 	int ret = 0;
-@@ -769,7 +769,7 @@ static int platform_pm_suspend_noirq(struct device *dev)
- 	return ret;
- }
- 
--static int platform_pm_resume(struct device *dev)
-+int __weak platform_pm_resume(struct device *dev)
- {
- 	struct device_driver *drv = dev->driver;
- 	int ret = 0;
-@@ -787,7 +787,7 @@ static int platform_pm_resume(struct device *dev)
- 	return ret;
- }
- 
--static int platform_pm_resume_noirq(struct device *dev)
-+int __weak platform_pm_resume_noirq(struct device *dev)
- {
- 	struct device_driver *drv = dev->driver;
- 	int ret = 0;
++#ifdef CONFIG_SUSPEND
++int platform_pm_suspend_noirq(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *odev = to_omap_device(pdev);
++	int ret = 0;
++
++	if (!drv)
++		return 0;
++
++	if (drv->pm) {
++		if (drv->pm->suspend_noirq)
++			ret = drv->pm->suspend_noirq(dev);
++	}
++
++	if (omap_device_is_valid(odev)) {
++		if (odev->flags & OMAP_DEVICE_NO_BUS_SUSPEND) {
++			dev_dbg(dev, "no automatic bus-level system resume.\n");
++			return 0;
++		}
++
++		dev_dbg(dev, "%s\n", __func__);
++		omap_device_idle(pdev);
++	} else {
++		dev_dbg(dev, "not an omap_device\n");
++	}
++
++	return ret;
++}
++
++int platform_pm_resume_noirq(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *odev = to_omap_device(pdev);
++	int ret = 0;
++
++	if (omap_device_is_valid(odev)) {
++		if (odev->flags & OMAP_DEVICE_NO_BUS_SUSPEND) {
++			dev_dbg(dev, "no automatic bus-level system resume.\n");
++			return 0;
++		}
++
++		dev_dbg(dev, "%s\n", __func__);
++		omap_device_enable(pdev);
++	} else {
++		dev_dbg(dev, "not an omap_device\n");
++	}
++
++	if (!drv)
++		return 0;
++
++	if (drv->pm) {
++		if (drv->pm->resume_noirq)
++			ret = drv->pm->resume_noirq(dev);
++	}
++
++	return ret;
++}
++#endif /* CONFIG_SUSPEND */
 -- 
 1.7.0.2
 
