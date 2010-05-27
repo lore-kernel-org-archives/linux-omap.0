@@ -1,64 +1,86 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 11:47:48 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005271141410.3239-100000@iolanthe.rowland.org>
-References: <1274974479.27810.5247.camel@twins>
+Date: Thu, 27 May 2010 16:52:01 +0100
+Message-ID: <20100527155201.GA31937@srcf.ucam.org>
+References: <20100526120242.5c9b73ad@schatten.dmk.lab> <AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com> <20100526133721.602633b2@schatten.dmk.lab> <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com> <20100526142430.327ccbc4@schatten.dmk.lab> <20100526141612.3e2e0443@lxorguk.ukuu.org.uk> <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk> <20100527140655.GA28048@srcf.ucam.org> <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:59880 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932296Ab0E0Prt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 11:47:49 -0400
-In-Reply-To: <1274974479.27810.5247.camel@twins>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, 27 May 2010, Peter Zijlstra wrote:
-
-> On Thu, 2010-05-27 at 16:33 +0100, Alan Cox wrote:
-> > On Thu, 27 May 2010 17:09:16 +0200
-> > Peter Zijlstra <peterz@infradead.org> wrote:
-> > 
-> > > On Thu, 2010-05-27 at 11:06 -0400, Alan Stern wrote:
-> > > > 
-> > > >         Opportunistic suspends are okay.
-> > > > 
-> > > >         The proposed userspace API is too Android-specific.
-> > > 
-> > > I would argue opportunistic suspends are not ok, and therefore the
-> > > proposed API is utterly irrelevant.
-> > 
-> > Assuming you are happy that opportunistically entering C6 and the like is
-> > ok via ACPI can you explain why you have a problem with opportunistic
-> > suspend and why it is different to a very deep sleep CPU state such as we
-> > have now (and which on many embedded platforms we deal with *is* sleeping
-> > external devices too)
+On Thu, May 27, 2010 at 05:32:56PM +0200, Thomas Gleixner wrote:
+> On Thu, 27 May 2010, Matthew Garrett wrote:
+> > Now let's try this in the Android world. The user hits a key and the 
+> > system wakes up. The input layer takes a suspend block. The application 
+> > now draws all the cows it wants to, takes its own suspend block and 
+> > reads the input device. This empties the queue and the kernel-level 
+> > suspend block is released. The application then processes the event 
+> > before releasing the suspend block. The event has been delivered and 
+> > handled.
 > 
-> Agreed, but I understood the opportunistic suspend line from Alan Stern
-> to mean the echo opportunistic > /sys/power/foo thing.
+> Thanks for providing this example:
+> 
+>   1) It proves that suspend blockers are solely designed to encourage
+>      people to code crap.
 
-Yes, that's what I meant.  Why do you think it is any worse than "echo 
-mem >/sys/power/state"?  The only difference is that it will block 
-until all in-kernel suspend blockers are disabled.
+No. Suspend blockers are designed to ensure that suspend isn't racy with 
+respect to wakeup events. The bit that mitigates badly written 
+applications is the bit where the scheduler doesn't run any more.
 
-Or do you also think that "echo mem >/sys/power/state" is evil and 
-should be removed from the kernel as soon as possible?
+If you're happy with a single badly written application being able to 
+cripple your power management story, you don't need opportunistic 
+suspend. But you still have complications when it comes to deciding to 
+enter suspend at the same time as you receive a wakeup event.
 
-And to answer Thomas's question: The whole reason for having in-kernel 
-suspend blockers is so that userspace can tell the system to suspend 
-without losing wakeup events.
+>      And you need to do that, because the user applications suspend
+>      blocker magic is racy as hell. To work around that you sprinkle
+>      your suspend blocker magic all over the kernel instead of telling
+>      people how to solve the problem correctly.
 
-Suppose a key is pressed just as a user program writes "mem" to
-/sys/power/state.  The keyboard driver handles the keystroke and queues
-an input event.  Then the system suspends and doesn't wake up until
-some other event occurs -- even though the keypress was an important
-one and it should have prevented the system from suspending.
+What /is/ the correct way to solve this problem when entering explicit 
+suspend states? How do you guarantee that an event has been delivered to 
+userspace before transitioning into suspend? Now, this is a less 
+interesting problem if you're not using opportunistic suspend, but it's 
+still a problem.
 
-With in-kernel suspend blockers and opportunistic suspend, this 
-scenario is prevented.  That is their raison-d'etre.
+>      Simply because you move the cow drawing CPU time from the point
+>      where the device wants to go into suspend to the point where the
+>      user hits a key again. You even delay the reaction of your app to
+>      the user input by the time it needs to finish drawing cows.
 
-Alan Stern
+It's how application mainloops tend to work.
 
+> > You can't express that with resource limits or QoS constraints. If you 
+> > want to deal with this kind of situation then, as far as I can tell, you 
+> > need either suspend blockers or something so close to them that it makes 
+> > no difference.
+> 
+> Wrong. If your application is interactive then you set the QoS
+> requirement once to interactive and be done.
+>
+> So the correct point to make a power state decision is when the app
+> waits for a key press. At this point the kernel can take several
+> pathes:
+> 
+>       1) Keep the system alive because the input device is in active
+>        	 state and a key press is expected
+> 
+>       2) Go into supsend because the input device is deactivated after
+>       	 the screen lock kicked in.
+
+That's no good. If the input device has been deactivated, how does the 
+wakeup event get delivered to the application?
+ 
+> This behaves exactly the same way in terms of power consumption as
+> your blocker example just without all the mess you are trying to
+> create.
+
+And means that wakeup events don't get delivered. That's a shortcoming.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
