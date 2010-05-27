@@ -1,31 +1,44 @@
 From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 20:02:13 +0200
-Message-ID: <1274983333.27810.5744.camel@twins>
-References: <Pine.LNX.4.44L0.1005271344040.3239-100000@iolanthe.rowland.org>
-	 <1274982779.27810.5708.camel@twins>  <20100527175719.GD3543@srcf.ucam.org>
+Date: Thu, 27 May 2010 20:02:43 +0200
+Message-ID: <1274983363.27810.5749.camel@twins>
+References: <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+	 <20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+	 <20100527140655.GA28048@srcf.ucam.org>
+	 <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
+	 <20100527155201.GA31937@srcf.ucam.org>
+	 <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
+	 <20100527192135.6c6543b3@schatten.dmk.lab>
+	 <1274981127.27810.5597.camel@twins>
+	 <20100527194241.52caaf37@schatten.dmk.lab>
+	 <1274982729.27810.5703.camel@twins>  <20100527175426.GC3543@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100527175719.GD3543@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:37457 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934383Ab0E0SCt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 14:02:49 -0400
+In-Reply-To: <20100527175426.GC3543@srcf.ucam.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Florian Mickler <florian@mickler.org>, Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, 2010-05-27 at 18:57 +0100, Matthew Garrett wrote:
-> On Thu, May 27, 2010 at 07:52:59PM +0200, Peter Zijlstra wrote:
+On Thu, 2010-05-27 at 18:54 +0100, Matthew Garrett wrote:
+> On Thu, May 27, 2010 at 07:52:09PM +0200, Peter Zijlstra wrote:
 > 
-> > Shall we henceforth stop confusing forced suspend for laptops and
-> > powersaving a running system?
+> > How so, event happens on hardware level, IRQ gets raised, CPU wakes up,
+> > handler gets run, handler generates a task wakeup, runqueue isn't empty,
+> > we run stuff.
 > 
-> If you want to support forced suspend for laptops and you want to avoid 
-> the risk of losing wakeups then you need in-kernel suspend blockers. 
-> That's entirely orthogonal to Android's runtime power management.
+> If you're using idle-based suspend without any forced idling or blocking 
+> of applications then you don't lose wakeups. People keep conflating 
+> separate issues.
 
-The simple fact of life is, on PC style hardware suspend is mostly about
-missing events. I really _really_ want to miss mouse movement of my
-bluetooth mouse when the gear is stowed in my backpack.
+I still don't see how blocking applications will cause missed wakeups in
+anything but a buggy application at worst, and even those will
+eventually get the event when they unblock.
 
-Its perfectly OK to miss events on _forced_ suspend.
+What seems to be the confusion?
