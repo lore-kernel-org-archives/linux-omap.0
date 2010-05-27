@@ -1,54 +1,64 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 18:30:41 +0100
-Message-ID: <20100527183041.0487bdf8@lxorguk.ukuu.org.uk>
-References: <20100526142430.327ccbc4@schatten.dmk.lab>
-	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
-	<AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
-	<20100527003943.07c17f85@lxorguk.ukuu.org.uk>
-	<20100527140655.GA28048@srcf.ucam.org>
-	<alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
-	<20100527155201.GA31937@srcf.ucam.org>
-	<20100527171615.15a1fd3d@lxorguk.ukuu.org.uk>
-	<20100527161943.GA32764@srcf.ucam.org>
-	<alpine.LFD.2.00.1005271901020.3032@localhost.localdomain>
-	<20100527170740.GA1980@srcf.ucam.org>
+Date: Thu, 27 May 2010 18:23:43 +0100
+Message-ID: <20100527172343.GB2468@srcf.ucam.org>
+References: <20100526142430.327ccbc4@schatten.dmk.lab> <20100526141612.3e2e0443@lxorguk.ukuu.org.uk> <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk> <20100527140655.GA28048@srcf.ucam.org> <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain> <20100527155201.GA31937@srcf.ucam.org> <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain> <20100527165931.GB1062@srcf.ucam.org> <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100527170740.GA1980@srcf.ucam.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Arve =?ISO-8859-14?B?SGr4bm5l?= =?ISO-8859-14?B?duVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-> > Opportunistic suspend is just a deep idle state, nothing else.
+On Thu, May 27, 2010 at 07:15:31PM +0200, Thomas Gleixner wrote:
+> On Thu, 27 May 2010, Matthew Garrett wrote:
+> > You still need the in-kernel suspend blockers if you want to guarantee 
+> > that you can't lose wakeup events. But yes, if you're not concerned 
+> > handling badly behaved applications then I believe that you can lose 
+> > opportunistic suspend and just use the scheduler.
 > 
-> No. The useful property of opportunistic suspend is that nothing gets 
-> scheduled. That's fundamentally different to a deep idle state.
+> No, we do not. We need correctly implemented drivers and a safe
+> switchover from normal event delivery to wakeup based.
 
-Nothing gets scheduled in a deep idle state either - its idle. We leave
-the idle state to schedule anything.
+What is a "Correctly implemented driver" in this case? One that receives 
+a wakeup event and then prevents suspend being entered until userspace 
+has acknowledged that event? Because that's what an in-kernel suspend 
+blocker is.
 
-I believe the constraint is
-
-- Do not auto-enter a state for which you cannot maintain the devices in
-  use "properly".
-
-On a current PC that generally means 'not suspend', on a lot of embedded
-boards (including Android phones) it includes an opportunistic 'suspend'
-and also several states half way between the PC deepest idles and suspend.
-
-> > Stop thinking about suspend as a special mechanism. It's not - except
-> > for s2disk, which is an entirely different beast.
+> > My question was about explicit suspend states, not implicitly handling 
+> > an identical state based on scheduler constraints. Suspend-as-a-C-state 
+> > isn't usable on x86 - you have to explicitly trigger it based on some 
 > 
-> On PCs, suspend has more in common with s2disk than it does C states.
+> And why not ? Just because suspend is not implemented as an ACPI
+> C-state ? 
+> 
+> Nonsense, if we want to push the system into suspend from the idle
+> state we can do that. It's just not implemented and we've never tried
+> to do it as it requires a non trivial amount of work, but I have done
+> it on an ARM two years ago as a prove of concept and it works like a
+> charm.
 
-Todays PCs are a special case. More to the point I don't think anyone is
-expected opportunistic suspend to be useful on _todays_ x86 systems.
+ACPI provides no guarantees about what level of hardware functionality 
+remains during S3. You don't have any useful ability to determine which 
+events will generate wakeups. And from a purely practical point of view, 
+since the latency is in the range of seconds, you'll never have a low 
+enough wakeup rate to hit it.
 
-Even on todays PCs your assumption is questionable for virtual machines
-where a VM suspend is a lot faster and rather useful.
+> > policy. And if you want to be able to do that without risking the loss 
+> > of wakeup events then you need in-kernel suspend blockers.
+> 
+> Crap. Stop beating on those lost wakeup events. If we lose them then
+> the drivers are broken and do not handle the switch over correctly. Or
+> the suspend mechanism is broken as it does not evaluate the system
+> state correctly. Blockers are just papering over that w/o tackling the
+> real problem.
 
-Alan
+Ger;kljaserf;kljf;kljer;klj. Suspend blockers are the mechanism for the 
+driver to indicate whether the wakeup event has been handled. That's 
+what they're there for. The in-kernel ones don't paper over anything.
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
