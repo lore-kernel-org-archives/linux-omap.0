@@ -1,145 +1,62 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 2/4] OMAP: PM: initial runtime PM core support
-Date: Thu, 27 May 2010 14:13:17 -0700
-Message-ID: <1274994799-30297-3-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 4/4] OMAP: omap_device: add flag to disable automatic bus-level suspend/resume
+Date: Thu, 27 May 2010 14:13:19 -0700
+Message-ID: <1274994799-30297-5-git-send-email-khilman@deeprootsystems.com>
 References: <1274994799-30297-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:44665 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757094Ab0E0VNZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:13:25 -0400
-Received: by pxi18 with SMTP id 18so219680pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:13:24 -0700 (PDT)
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:61906 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753064Ab0E0VN3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:13:29 -0400
+Received: by pvg11 with SMTP id 11so82342pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:13:28 -0700 (PDT)
 In-Reply-To: <1274994799-30297-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Implement the new runtime PM framework as a thin layer on top of the
-omap_device API.  Since we don't have an OMAP-specific bus, override
-the runtime PM hooks for the platform_bus for the OMAP specific
-implementation.
+As part of the runtime PM support, bus-level code can automatically
+handle the enable/idle for each omap_device.  There are, however, some
+special cases where we don't want the bus-level layer to handle this,
+and instead handle it manually.
 
-While the runtime PM API has three main states (idle, suspend, resume)
-This version treats idle and suspend the same way by implementing both
-on top of omap_device_disable(), which follows closely with how driver
-are currently using clock enable/disable calls. Longer-termm
-pm_runtime_idle() could take other constraints into consideration to
-make the decision, but the current
-
-Device driver ->runtime_suspend() hooks are called just before the
-device is disabled (via omap_device_idle()), and device driver
-->runtime_resume() hooks are called just after device has been
-enabled (via omap_device_enable().)
+Specific use cases are for omap_devices that are controlled
+inside the idle path (like UART.)
 
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/Makefile |    7 +++-
- arch/arm/mach-omap2/pm_bus.c |   72 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 78 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pm_bus.c
+ arch/arm/plat-omap/include/plat/omap_device.h |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4b9fc57..58a0474 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -46,12 +46,17 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sdrc2xxx.o
- ifeq ($(CONFIG_PM),y)
- obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
- obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
--obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
-+obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o \
-+					   pm_bus.o
- obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 3694b62..2cdbcdd 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -68,12 +68,16 @@ struct omap_device {
+ 	struct omap_device_pm_latency	*pm_lats;
+ 	u32				dev_wakeup_lat;
+ 	u32				_dev_wakeup_lat_limit;
++	u32                             flags;
+ 	u8				pm_lats_cnt;
+ 	s8				pm_lat_level;
+ 	u8				hwmods_cnt;
+ 	u8				_state;
+ };
  
- AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
- AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
++/* flags for struct omap_device */
++#define OMAP_DEVICE_NO_BUS_SUSPEND     BIT(0)
++
+ /* Device driver interface (call via platform_data fn ptrs) */
  
-+ifeq ($(CONFIG_PM_VERBOSE),y)
-+CFLAGS_pm_bus.o				+= -DDEBUG
-+endif
-+
- endif
+ int omap_device_enable(struct platform_device *pdev);
+@@ -142,6 +146,7 @@ struct omap_device_pm_latency {
+ 	u32 flags;
+ };
  
- # PRCM
-diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_bus.c
-new file mode 100644
-index 0000000..69acaa5
---- /dev/null
-+++ b/arch/arm/mach-omap2/pm_bus.c
-@@ -0,0 +1,72 @@
-+/*
-+ * Runtime PM support code for OMAP
-+ *
-+ * Author: Kevin Hilman, Deep Root Systems, LLC
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ *
-+ * This file is licensed under the terms of the GNU General Public
-+ * License version 2. This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
-+ */
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/io.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/platform_device.h>
-+#include <linux/mutex.h>
-+
-+#include <plat/omap_device.h>
-+#include <plat/omap-pm.h>
-+
-+#ifdef CONFIG_PM_RUNTIME
-+int platform_pm_runtime_suspend(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omap_device *odev = to_omap_device(pdev);
-+	int r, ret = 0;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	if (dev->driver->pm && dev->driver->pm->runtime_suspend)
-+		ret = dev->driver->pm->runtime_suspend(dev);
-+	if (!ret && omap_device_is_valid(odev)) {
-+		r = omap_device_idle(pdev);
-+		WARN_ON(r);
-+	}
-+
-+	return ret;
-+};
-+
-+int platform_pm_runtime_resume(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omap_device *odev = to_omap_device(pdev);
-+	int r, ret = 0;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	if (omap_device_is_valid(odev)) {
-+		r = omap_device_enable(pdev);
-+		WARN_ON(r);
-+	}
-+
-+	if (dev->driver->pm && dev->driver->pm->runtime_resume)
-+		ret = dev->driver->pm->runtime_resume(dev);
-+
-+	return ret;
-+};
-+
-+int platform_pm_runtime_idle(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omap_device *odev = to_omap_device(pdev);
-+	int ret;
-+
-+	ret = pm_runtime_suspend(dev);
-+	dev_dbg(dev, "%s [%d]\n", __func__, ret);
-+
-+	return 0;
-+};
-+#endif /* CONFIG_PM_RUNTIME */
-+
++/* flags for struct omap_device_pm_latency */
+ #define OMAP_DEVICE_LATENCY_AUTO_ADJUST BIT(1)
+ 
+ /* Get omap_device pointer from platform_device pointer */
 -- 
 1.7.0.2
 
