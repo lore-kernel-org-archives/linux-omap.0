@@ -1,98 +1,88 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: omap3 pm: dependency between opp layer and cpufreq
-Date: Fri, 28 May 2010 01:59:39 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>,<4BFE9D7E.8020602@ti.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 21:38:43 +0100
+Message-ID: <20100527203843.GA8395@srcf.ucam.org>
+References: <20100527155201.GA31937@srcf.ucam.org> <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain> <20100527165931.GB1062@srcf.ucam.org> <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain> <20100527172343.GB2468@srcf.ucam.org> <alpine.LFD.2.00.1005271930350.3032@localhost.localdomain> <20100527182633.GN3543@srcf.ucam.org> <alpine.LFD.2.00.1005272027560.3032@localhost.localdomain> <20100527190622.GB5703@srcf.ucam.org> <alpine.LFD.2.00.1005272207500.3032@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38079 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758832Ab0E0U3o convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 16:29:44 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4RKTfd2003911
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 15:29:43 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4RKTe4X005208
-	for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 01:59:40 +0530 (IST)
-In-Reply-To: <4BFE9D7E.8020602@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1005272207500.3032@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Menon, Nishanth
-Sent: Thursday, May 27, 2010 9:57 PM
-To: Premi, Sanjeev
-Cc: linux-omap@vger.kernel.org
-Subject: Re: omap3 pm: dependency between opp layer and cpufreq
+On Thu, May 27, 2010 at 10:23:50PM +0200, Thomas Gleixner wrote:
+> On Thu, 27 May 2010, Matthew Garrett wrote:
+> > A wakeup event is defined as one that wakes the system - if a system 
+> > can't be woken by a specific event then it's impossible to lose it, 
+> > since it wasn't a wakeup event to begin with.
+> 
+> So where is the problem ?
 
-[snip]--[snip]
+The problem is that, right now, if a wakeup event is received between 
+the point where userspace decides to start a suspend and userspace 
+actually starts a suspend, that event may not abort the suspend.
 
-[sp] Responding via webmail.. so the formatting and quotes are non-standard :(
+> > Consider the case where the read() is non-blocking.
+> 
+> Which I consider in the same range as the application which does:
+> 
+>       while (1);
 
-> # OPP support in (OMAP3+ only at the moment)
-> # XXX The OPP TWL/TPS code should only be included when a TWL/TPS
-> # PMIC is selected.
-> ifdef CONFIG_CPU_FREQ
-> obj-$(CONFIG_ARCH_OMAP3) += opp.o opp_twl_tps.o
-ok this needs to be split:
-a) opp_twl_tps should depend on TWL_CORE and not CPUFREQ - there is no
-need actually
-b) opp.o should remain dependent on CPU_FREQ.
+Not at all. Depending on what it reads, it may follow some other path 
+where it sleeps. But, as I keep saying, if you don't want to support 
+that kind of code then all of this is massively easier.
 
-[sp] That was in my next mail.
-
-> endif
+> > What sets that flag, and how does it interact with an application that 
+> > never makes a blocking system call?
+> 
+>   QoS(NONE) would be default policy for untrusted apps in the same way
+>   as you'd refuse the usage of supsend blockers for untrusted apps.
 >
-> But changing CONFIG_CPU_FREQ to CONFIG_TWL4030_POWER leads to these errors:
-see (b)
+>   while (1); is definitely not an application which should be granted
+>   trusted rights, right ?
+
+No, but if that while (1) is draw_cows() then the user may want this to 
+run while their session is active and stop running while their session 
+is idle. So you only want it to be QoS(NONE) in the idle session case. 
+How do you change that state?
+ 
+> > The numbers were earlier in the thread.
+> 
+>   Numbers, yes. But I really give a sh*t about numbers w/o a detailed
+>   explanation of the scenario which created those numbers. And if the
+>   numbers boil down to: we handle the untrusted app which does "while
+>   (1);" then they are absolutely useless.
+
+The tested case was a stock Android install with opportunistic suspend 
+enabled and one that just used runtime idle. The lowest power state 
+entered was the same on both.
+
+> > Yes, and I'd agree with this if anyone seemed to have any idea how to do 
+> > it right. But despite all the heat and noise in this thread, all we've 
+> > got is an expression that it should be handled by the scheduler (a 
+> > viewpoint I agree with) without any explanation of how to switch 
+> > policies in such a way that applications idle without losing wakeup 
+> > events.
+> 
+> Why in the world should they lose wakeup events ? If an app goes idle,
+> it goes idle because it is waiting for an event. There is no other
+> sane reason except for those apps which are untrusted and force
+> idled. And for those you agreed already the suspend blockers don't
+> solve anything as they are either not implemented or the app is not
+> trusted to use them.
 >
-[snip--[snip]
+> So we are back to round one of the whole discussion:
+> 
+>    Is it worth to create an utter mess in the kernel just to handle a
+>    subset of crappy coded applications ?
+> 
+> And the answer stays the same: No, not at all.
 
->
-> Questions/ comments:
->
-> 1) The linkage between OPP and Voltage are not driven by the PMIC.
->     They are defined by/for the silicon itself.
+You need suspend blockers to avoid losing wakeups in the explicit 
+suspend case even if you don't want to implement opportunistic suspend.
 
-look carefully at twl -> it is the abstraction where needed for pmic
-translation of a voltage value - this you agree is PMIC dependent I suppose.
-
->
-> 2) The implementation for setting the voltage should depend upon the PMIC.
-ACK- the concept should be independent of PMIC - each PMIC, like
-5030/tps Vs custom PMICs have thier own unique mechanisms of setting
-voltages - the renewed SR series from Thara addresses this concern.(not
-in pm branch yet - but potentially soon)
-
->
-> 3) Was there any specific need to tie the functions "opp_get_voltage" and others to cpufreq only?
-
-yes, because without cpufreq there is no transitions in the system :)
-
-[sp] I does - via bootarg - mpurate!
-
-When kernel boots, volatge must be set properly.
-We cannot rely on u-boot to be settiing everything correctly. e.g. 720MHz on OMAP3530 would fail at nominal 1.2V set by u-boot.
-
->
-> I am working on a patch that should remove some of these dependencies.
-> But, trying to open up a discussion as well...
-
-do post them. thanks
-
->
-> Best regards,
-> Sanjeev
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Regards,
-Nishanth Menon
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
