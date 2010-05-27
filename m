@@ -1,12 +1,12 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
 Subject: [PATCH V3] OMAP3: PM: Workaround for DLL Lock issue
-Date: Thu, 27 May 2010 18:15:13 +0530
-Message-ID: <1274964313-5177-1-git-send-email-vishwanath.bs@ti.com>
+Date: Thu, 27 May 2010 18:20:26 +0530
+Message-ID: <1274964626-5202-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49024 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53208 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750831Ab0E0Mn6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 May 2010 08:43:58 -0400
+	id S1754949Ab0E0MtJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 08:49:09 -0400
 In-Reply-To: <>
 References: <>
 Sender: linux-omap-owner@vger.kernel.org
@@ -85,6 +85,9 @@ After CORE Voltage Domain Wakeup Transition from RETENTION or OFF mode:
 
 Also OSWR should not be attempted if DPLL3 has locked. This should be done as part of OSWR patch
 series.
+These patch is based on Thara's Smart Reflex V3 patch series (wip_sr branch) and Tero's OS Idle changes @
+https://patchwork.kernel.org/patch/85268/
+
 Patch tested on 3430SDP and 3630 ZOOM3.
 
 Changes done in V3:
