@@ -1,38 +1,29 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 22:29:57 +0100
-Message-ID: <20100527222957.7f39b5af@lxorguk.ukuu.org.uk>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
-	<alpine.LFD.2.00.1005271924170.3032@localhost.localdomain>
-	<201005272315.28475.rjw@sisk.pl>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 17:24:28 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1005271723200.3239-100000@iolanthe.rowland.org>
+References: <20100527210808.GB8865@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <201005272315.28475.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Arve@smtp1.linux-foundation.org, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100527210808.GB8865@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-> Well, what about when I want the machine to suspend _regardless_ of whether
-> or not it's idle at the moment?  That actually happens quite often to me. :-)
+On Thu, 27 May 2010, Matthew Garrett wrote:
 
-I don't think it helps to combine them for this discussion ?
+> > > Doesn't help - I may be hit by the signal between the poll() unblocking 
+> > > and me having the opportunity to call sigmask().
+> > 
+> > ppoll(). This is all existing solved stuff.
+> 
+> Isn't that the inverse of what we want? The application should default 
+> to being SIGSTOPpable except in the case of it being in the process of 
+> having a specific event delivered.
 
-> I don't see much difference between that and ACPI S3 other than the memory
-> contents are preserved in S3.  It also is complete power off state - except for
-> memory refresh and wakeup sources (which also may be active in S4).
+Would it help to divide the application into two processes, one of 
+which receives events and the other does the drawing?
 
-Agreed although I am pushed to think of many real world cases where it
-might matter. VM's maybe?
-
-Alan
+Alan Stern
