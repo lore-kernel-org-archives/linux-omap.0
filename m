@@ -1,62 +1,44 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 4/4] OMAP: omap_device: add flag to disable automatic bus-level suspend/resume
-Date: Thu, 27 May 2010 14:13:19 -0700
-Message-ID: <1274994799-30297-5-git-send-email-khilman@deeprootsystems.com>
-References: <1274994799-30297-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 0/5] OMAP2/3: misc. hwmod fixes
+Date: Thu, 27 May 2010 14:13:31 -0700
+Message-ID: <1274994816-30335-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pv0-f174.google.com ([74.125.83.174]:61906 "EHLO
 	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753064Ab0E0VN3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:13:29 -0400
-Received: by pvg11 with SMTP id 11so82342pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:13:28 -0700 (PDT)
-In-Reply-To: <1274994799-30297-1-git-send-email-khilman@deeprootsystems.com>
+	with ESMTP id S1753571Ab0E0VNi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:13:38 -0400
+Received: by mail-pv0-f174.google.com with SMTP id 11so82342pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 14:13:38 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-As part of the runtime PM support, bus-level code can automatically
-handle the enable/idle for each omap_device.  There are, however, some
-special cases where we don't want the bus-level layer to handle this,
-and instead handle it manually.
+This series is a set of misc. hwmod fixes needed for functioning
+runtime PM on OMAP2 and OMAP3.  These were used to get an
+omap_device/hwmod-based runtime PM working an tested on OMAP3430
+(omap3evm) and OMAP2 (n810)
 
-Specific use cases are for omap_devices that are controlled
-inside the idle path (like UART.)
+All of these have been previously posted in various forms, but here
+they are all collected into one place.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/plat-omap/include/plat/omap_device.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+This series is also available in the pm-wip/hwmods branch of my git
+tree.
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index 3694b62..2cdbcdd 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -68,12 +68,16 @@ struct omap_device {
- 	struct omap_device_pm_latency	*pm_lats;
- 	u32				dev_wakeup_lat;
- 	u32				_dev_wakeup_lat_limit;
-+	u32                             flags;
- 	u8				pm_lats_cnt;
- 	s8				pm_lat_level;
- 	u8				hwmods_cnt;
- 	u8				_state;
- };
- 
-+/* flags for struct omap_device */
-+#define OMAP_DEVICE_NO_BUS_SUSPEND     BIT(0)
-+
- /* Device driver interface (call via platform_data fn ptrs) */
- 
- int omap_device_enable(struct platform_device *pdev);
-@@ -142,6 +146,7 @@ struct omap_device_pm_latency {
- 	u32 flags;
- };
- 
-+/* flags for struct omap_device_pm_latency */
- #define OMAP_DEVICE_LATENCY_AUTO_ADJUST BIT(1)
- 
- /* Get omap_device pointer from platform_device pointer */
--- 
-1.7.0.2
+This series applies on top of Benoit's two fixup/cleanup series that
+Paul has accepted.
+
+Kevin Hilman (5):
+  OMAP: hwmod: allow idle after HWMOD_INIT_NO_IDLE
+  OMAP: hwmod: if IDLEST fields are not set, use module defaults
+  OMAP: hwmod: add option for no locking in idle/enable paths
+  OMAP24xx: CM: fix mask used for checking IDLEST status
+  OMAP2/3: hwmod: L3 and L4 CORE/PER/WKUP hwmods don't have IDLEST
+
+ arch/arm/mach-omap2/cm.c                     |    6 ++--
+ arch/arm/mach-omap2/omap_hwmod.c             |   33 ++++++++++++++++++++++----
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    9 ++++--
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    9 ++++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   12 ++++++---
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 6 files changed, 52 insertions(+), 18 deletions(-)
 
