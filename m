@@ -1,34 +1,81 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 19:31:00 +0100
-Message-ID: <20100527183100.GP3543@srcf.ucam.org>
-References: <20100527173218.GF2468@srcf.ucam.org> <1274981750.27810.5641.camel@twins> <20100527174140.GB3187@srcf.ucam.org> <1274982397.27810.5679.camel@twins> <20100527175258.GB3543@srcf.ucam.org> <1274982981.27810.5719.camel@twins> <20100527175920.GE3543@srcf.ucam.org> <1274983598.27810.5761.camel@twins> <20100527181758.GJ3543@srcf.ucam.org> <1274984528.27810.5818.camel@twins>
+Date: Thu, 27 May 2010 14:35:56 -0400
+Message-ID: <20100527183556.GB25663@gibbs.hungrycats.org>
+References: <20100526133721.602633b2@schatten.dmk.lab>
+ <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
+ <20100526142430.327ccbc4@schatten.dmk.lab>
+ <20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
+ <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+ <20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+ <20100527140655.GA28048@srcf.ucam.org>
+ <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
+ <20100527155201.GA31937@srcf.ucam.org>
+ <20100527171615.15a1fd3d@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:42904 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755166Ab0E0SbR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 14:31:17 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1274984528.27810.5818.camel@twins>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20100527171615.15a1fd3d@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Gleixner <tglx@linutronix.de>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, May 27, 2010 at 08:22:08PM +0200, Peter Zijlstra wrote:
-> On Thu, 2010-05-27 at 19:17 +0100, Matthew Garrett wrote:
+On Thu, May 27, 2010 at 05:16:15PM +0100, Alan Cox wrote:
+> So you need
 > 
-> > It's blocked on the screen being turned off. It's supposed to be reading 
-> > a network packet. How does it ever get to reading the network packet?
-> 
-> Its blocked because its a buggy app, who cares about misbehaviour in a
-> buggy app?
+> 	Userspace -> QoS guarantee expression, implied resource
+> 			expression via device use. *NO* knowledge of
+> 			device or platform in the application
 
-So why bother blocking? Just kill the app and tell the user. If you want 
-to support suboptimal apps then blocking isn't sufficient. If you don't 
-want to then blocking isn't necessary.
+I have a pile of use cases where I want to turn off "implied resource
+expression via device use."  There are two orthogonal variables to
+consider:
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+1.  I'm drawing cows on the screen (or asking another process to do so
+on my behalf).
+
+2.  I care whether anyone can actually see the cows, and I'm willing
+(or not) to burn power to make them visible.
+
+Quite often, I'm drawing cows but I don't care about cow visibility,
+so I would tell PM to turn the display off when the PM framework is
+looking for ways to conserve power; however, if the animated cow is part
+of an alarm clock application, then I want the display on, powering it
+up if was previously turned off.
+
+A real-world example of this is a backup process on a file server.
+I'd like to tell the kernel that the backup process's CPU usage and
+disk I/O is *not* implied resource expression, and if there's no other
+processes using the CPU or disks, the kernel can just power down the
+drives or idle the CPU on a whim.  The backup process can hang until
+some other process comes along to wake the drives and CPU up again,
+and then the backups will run during the idle time while the drive
+is waiting for new requests from other processes.  Obviously if the
+backup process is trying to write dirty pages to a powered-down drive
+there will be problems (memory starvation and lost data come to mind),
+so I'd make sure I don't do that.
+
+I'd also like to change my mind about these sorts of things on the fly,
+without requiring hooks in the backup process itself.  I'm thinking
+of a syscall with PID, FD, mode bits (read/write?  iowait/runnable?),
+and policy (whether usage implies expression).
+
+I can express mostly the same things if "policy" was "maximum latency,"
+but not all.  Consider how you'd have to specify latencies to get hard
+disks that spin down when idle, spin up immediately if read requests are
+issued, but wait several minutes to spin up if write requests are issued.
+I can't specify that with a single latency value since it would result
+in either unacceptably large latencies in some cases, or the disks
+would never spin down.  I'd need a matrix with drive power states as
+rows and read/write operations as columns, either per process or per
+file descriptor.  Also something in user-space needs to know about the
+approximate value for hard disk spin-up times in order to set their PM
+QoS constraints high enough to be useful but also low enough to be useful.
+
+Well, maybe the last problem can be resolved by specifying QoS constraints
+in bands.  You'd have a QOS_OTHER band that applies to processes that
+haven't specified a constraint, and a QOS_EXPLICIT band that applies to
+those that have, and you'd be able to change all the QOS_OTHER processes
+at once.
