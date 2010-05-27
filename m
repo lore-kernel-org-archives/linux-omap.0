@@ -1,101 +1,59 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 20:06:23 +0100
-Message-ID: <20100527190622.GB5703@srcf.ucam.org>
-References: <20100527140655.GA28048@srcf.ucam.org> <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain> <20100527155201.GA31937@srcf.ucam.org> <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain> <20100527165931.GB1062@srcf.ucam.org> <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain> <20100527172343.GB2468@srcf.ucam.org> <alpine.LFD.2.00.1005271930350.3032@localhost.localdomain> <20100527182633.GN3543@srcf.ucam.org> <alpine.LFD.2.00.1005272027560.3032@localhost.localdomain>
+Date: Thu, 27 May 2010 20:13:02 +0100
+Message-ID: <20100527191302.GC5703@srcf.ucam.org>
+References: <Pine.LNX.4.44L0.1005271344040.3239-100000@iolanthe.rowland.org> <1274982779.27810.5708.camel@twins> <20100527175719.GD3543@srcf.ucam.org> <1274983333.27810.5744.camel@twins> <20100527181433.GG3543@srcf.ucam.org> <20100527200313.5c532f2f@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1005272027560.3032@localhost.localdomain>
+In-Reply-To: <20100527200313.5c532f2f@lxorguk.ukuu.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Peter Zijlstra <peterz@infradead.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 27, 2010 at 08:53:11PM +0200, Thomas Gleixner wrote:
-> On Thu, 27 May 2010, Matthew Garrett wrote:
-> > We were talking about PCs. Suspend-as-c-state is already implemented for 
-> > OMAP.
->  
-> Ah, now we talk about PCs. And all of a sudden the problem of the
-> unability of determining wakeup sources is not longer relevant ? So
-> how do you guarantee that we don't miss one if we cant figure out
-> which ones are kept alive in S3 ?
-
-A wakeup event is defined as one that wakes the system - if a system 
-can't be woken by a specific event then it's impossible to lose it, 
-since it wasn't a wakeup event to begin with.
-
-> > > So the only thing you are imposing to app writers is to use an
-> > > interface which solves nothing and does not save you any power at
-> > > all. 
-> > 
-> > It's already been demonstrated that the Android approach saves power.
+On Thu, May 27, 2010 at 08:03:13PM +0100, Alan Cox wrote:
+> > No, it's not. Forced suspend may be in response to hitting a key, but it 
 > 
-> Demonstrated ? Care to explain me how it makes a difference:
+> You are the only person here talking about 'forced' suspends. The rest of
+> us are talking about idling down and ensuring we are always in a state we
+> un-idle correctly.
+
+Sigh. No. Forced suspend is a fact of life, and suspend blockers improve 
+the ability to support it. It's orthogonal to more general runtime PM.
+
+> > may also be in response to a 30 minute timeout expiring. If I get a WoL 
+> > packet in the 0.5 of a second between userspace deciding to suspend and 
+> > actually doing so, the system shouldn't suspend.
 > 
-> while (1) {
->   block();
->   read();
->   process_event();
->   unblock();
-> 		---> suspend
-> 		<--- resume
->   do_crap();	1000000 cycles
-> }
+> I don't think that argument holds water in the form you have it
 > 
-> vs.
+> What about 5 nanoseconds before you suspend. Now you can't do that (laws
+> of physics and stuff).
+
+Drivers should enable wakeups before they disable interrupts. So either 
+the packet hits the IRQ handler and the driver takes a suspend block 
+(aborting suspend in the process) or it doesn't, the GPE goes high and 
+the system resumes immediately after entering S3.
+
+> 	Set wake flags
+> 	Check if idle
+> 	If idle
+> 		Suspend
+> 	else
+> 		Clear wake flags
+> 		Unwind
 > 
-> while (1) {
->   read();
-> 		---> suspend
-> 		<--- resume
->   process_event();
->   do_crap();	1000000 cycles
-> }
-> 
-> You spend the damned 10000000 cycles in any case just at a different
-> point in time. So if you are so convinced and have fully understood
-> all the implications, please enlighten me why do_crap() costs less
-> power with the blockers approach.
+> and the wake flags guarantee that an event at any point after the wake
+> flags are set until they are cleared will cause a suspend to be resumed,
+> possibly immediately after the suspend.
 
-Consider the case where the read() is non-blocking.
-
-> 1) The kernel blocker does not guarantee that the lousy app has
->    processed the event. It just guarantees that the lousy app has
->    emptied the input queue. So what's the point of the kernel blocker
->    in that case ?
-
-Yes, I think you're right here. You need the userspace component as well 
-for this to work correctly.
-
-> 2) What's the difference on setting that app to QoS(NONE) and let the
->    kernel happily ignore it.
-
-What sets that flag, and how does it interact with an application that 
-never makes a blocking system call?
-
-> Come up with real explanations and numbers and not just the "it has
-> been demonstrated" chant which is not holding water if you look at the
-> above.
-
-The numbers were earlier in the thread.
-
-> The kernel history is full of examples where crappy solutions got
-> rejected and kept out of the kernel for a long time even if there was
-> a need for them in the application field and they got shipped in
-> quantities with out of tree patches (NOHZ, high resolution timers,
-> ...). At some point people stopped arguing for crappy solutions and
-> sat down and got it right. The problem of power management and
-> opportunistic suspend is not different in any way.
-
-Yes, and I'd agree with this if anyone seemed to have any idea how to do 
-it right. But despite all the heat and noise in this thread, all we've 
-got is an expression that it should be handled by the scheduler (a 
-viewpoint I agree with) without any explanation of how to switch 
-policies in such a way that applications idle without losing wakeup 
-events.
+Exactly. So the 5 nanosecond case is already handled. The interesting 
+case is where userspace makes the decision to go to sleep and starts 
+performing various housekeeping tasks before triggering the suspend. You 
+need some way to abort that suspend. The hardware may be long idle by 
+then, so you can't just look at the hardware state.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
