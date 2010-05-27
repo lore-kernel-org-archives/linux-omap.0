@@ -1,16 +1,16 @@
 From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH] omap3: Increase limit on bootarg 'mpurate'
-Date: Thu, 27 May 2010 19:16:58 +0530
-Message-ID: <1274968018-27333-1-git-send-email-premi@ti.com>
+Subject: [PATCHv2] omap3: Increase limit on bootarg 'mpurate'
+Date: Thu, 27 May 2010 19:24:46 +0530
+Message-ID: <1274968486-27825-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51991 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46018 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751777Ab0E0NrZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 May 2010 09:47:25 -0400
+	id S1753858Ab0E0NzC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 09:55:02 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4RDlLSH004967
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4RDsxjK023161
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 08:47:23 -0500
+	for <linux-omap@vger.kernel.org>; Thu, 27 May 2010 08:55:01 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -25,22 +25,16 @@ for quite some time.
 
 Signed-off-by: Sanjeev Premi <premi@ti.com>
 ---
- arch/arm/plat-omap/clock.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+v2: Removed a newline introduced in earlier patch
+---
+ arch/arm/plat-omap/clock.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 5261a09..7ea757e 100644
+index 5261a09..4fd1e15 100644
 --- a/arch/arm/plat-omap/clock.c
 +++ b/arch/arm/plat-omap/clock.c
-@@ -175,6 +175,7 @@ EXPORT_SYMBOL(clk_get_parent);
- 
- int __initdata mpurate;
- 
-+
- /*
-  * By default we use the rate set by the bootloader.
-  * You can override this with mpurate= cmdline option.
-@@ -186,7 +187,7 @@ static int __init omap_clk_setup(char *str)
+@@ -186,7 +186,7 @@ static int __init omap_clk_setup(char *str)
  	if (!mpurate)
  		return 1;
  
