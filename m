@@ -1,49 +1,33 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 22:49:49 +0100
-Message-ID: <20100527224949.4d561091@lxorguk.ukuu.org.uk>
-References: <Pine.LNX.4.44L0.1005271329460.3239-100000@iolanthe.rowland.org>
-	<1274981871.27810.5650.camel@twins>
-	<201005272336.26643.rjw@sisk.pl>
+Date: Thu, 27 May 2010 17:49:51 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1005271744130.3239-100000@iolanthe.rowland.org>
+References: <alpine.LFD.2.00.1005272332320.3478@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:34293 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757930Ab0E0Vms (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 17:42:48 -0400
-In-Reply-To: <201005272336.26643.rjw@sisk.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1005272332320.3478@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Peter Zijlstra <peterz@infradead.org>, Alan Stern <stern@rowland.harvard.edu>, Matthew Garrett <mjg59@srcf.ucam.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com
 
-On Thu, 27 May 2010 23:36:26 +0200
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+On Thu, 27 May 2010, Thomas Gleixner wrote:
 
-> On Thursday 27 May 2010, Peter Zijlstra wrote:
-> > On Thu, 2010-05-27 at 13:32 -0400, Alan Stern wrote:
-> > 
-> > > On some platforms (like those with ACPI), deeper power-savings are
-> > > available by using forced suspend than by using idle. 
-> > 
-> > Sounds like something that's fixable, doesn't it?
+> > The two of you are talking at cross purposes.  Thomas is referring to 
+> > idle-based suspend and Matthew is talking about forced suspend.
 > 
-> The fix would probably have to involve rewriting the ACPI spec.
+> Yes, and forced suspend to disk is the same as force suspend to disk,
+> which has both nothing to do with sensible resource management.
 
-We are on about the fourth version of ACPI already. ACPI evolves and
-improves and extends. It's not an impossibility to sort that out if
-everyone in the x86 OS world starts thinking 'How come their ARM platform
-can do this'
+If I understand correctly, you are saying that all the untrusted 
+applications should run with QoS(NONE).  Then they could do whatever 
+they wanted without causing any interference.
 
-We are also on at least the second suspend/resume model in Linux. The
-first was 'isn't this APM stuff neat', the second is heavily oriented
-around ACPI ideas. And we already have SoC people moving into the third
-model and making it work on non-x6 ('suspend is not special').
+And with idle-based power management (rather than forced suspend), 
+there would be no issue with wakeup events getting unduly delayed.
 
-I've not poked at the current desktop stuff enough to see if the
-gnome-power-manager and friends handle pushing the suspend button with
-dbus notifiers to apps. I guess it does.
+Unless one of those events was meant for an untrusted application.  Is 
+that the source of the difficulty?
 
-Alan
+Alan Stern
