@@ -1,117 +1,71 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 17:52:10 +0100
-Message-ID: <20100527165210.GA1062@srcf.ucam.org>
-References: <20100526133721.602633b2@schatten.dmk.lab> <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com> <20100526142430.327ccbc4@schatten.dmk.lab> <20100526141612.3e2e0443@lxorguk.ukuu.org.uk> <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk> <20100527140655.GA28048@srcf.ucam.org> <20100527160543.2228fc17@lxorguk.ukuu.org.uk> <20100527160714.GB31937@srcf.ucam.org> <20100527174131.18fd1c72@lxorguk.ukuu.org.uk>
+Date: Thu, 27 May 2010 17:59:31 +0100
+Message-ID: <20100527165931.GB1062@srcf.ucam.org>
+References: <20100526133721.602633b2@schatten.dmk.lab> <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com> <20100526142430.327ccbc4@schatten.dmk.lab> <20100526141612.3e2e0443@lxorguk.ukuu.org.uk> <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk> <20100527140655.GA28048@srcf.ucam.org> <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain> <20100527155201.GA31937@srcf.ucam.org> <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20100527174131.18fd1c72@lxorguk.ukuu.org.uk>
+In-Reply-To: <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 27, 2010 at 05:41:31PM +0100, Alan Cox wrote:
-> On Thu, 27 May 2010 17:07:14 +0100
-> Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > Perhaps set after callbacks are made. But given that the approach 
-> > doesn't work anyway...
-> 
-> Which approach doesn't work, and why ?
-
-Sorry, using cgroups and scheduler tricks as a race-free replacement for 
-opportunistic suspend.
-
-> > It's still racy. Going back to my example without any of the suspend 
-> > blocking code, but using a network socket rather than an input device:
+On Thu, May 27, 2010 at 06:45:25PM +0200, Thomas Gleixner wrote:
+> On Thu, 27 May 2010, Matthew Garrett wrote:
+> > No. Suspend blockers are designed to ensure that suspend isn't racy with 
+> > respect to wakeup events. The bit that mitigates badly written 
+> > applications is the bit where the scheduler doesn't run any more.
 > > 
-> > int input = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);
-> > char foo;
-> > struct sockaddr addr;
-> > connect (input, &addr, sizeof(addr))
-> > while (1) {
-> >        if (read(input, &foo, 1) > 0) {
-> >                (do something)
-> >        } else {
-> >                (draw bouncing cows and clouds and tractor beams briefly)
-> >        }
-> > }
-> > 
-> > A network packet arrives while we're drawing. Before we finish drawing, 
-> > the policy timeout expires and the screen turns off.
+> > If you're happy with a single badly written application being able to 
+> > cripple your power management story, you don't need opportunistic 
+> > suspend. But you still have complications when it comes to deciding to 
+> > enter suspend at the same time as you receive a wakeup event.
 > 
-> Which is correct for a badly behaved application. You said you wanted to
-> constrain it. You've done so. Now I am not sure why such a "timeout"
-> would expire in the example as the task is clearly busy when drawing, or
-> is talking to someone else who is in turn busy. Someone somewhere is
-> actually drawing be it a driver or app code.
+> Wrong. Setting the QoS requirements of the badly written app to any
+> latency will allow the kernel to suspend even if the crappy app is
+> active.
 
-The timeout would be at the userspace platform level. If I haven't 
-touched the app for 30 seconds (and if the app hasn't taken any form of 
-suspend block), the screen should turn off. In the current Android 
-implementation that will then (in the absence of any kernel-level 
-suspend blockers) result in the system transitioning into a fully 
-suspended state.
+That's not what I want if I'm using the app at the time...
 
-> For a well behaved application you are drawing so you are running
-> drawing stuff so why would you suspend. The app has said it has a
-> latency constraint that suspend cannot meet, or has a device open that
-> cannot meet the constraints in suspend.
+> And again. I'm opposing the general chant that fixing crappy
+> applications in the kernel is a good thing. It's the worst decision we
+> could make.
 
-Not at all. The fact that the application hasn't taken any sort of 
-suspend block means that the application has indicated that it's happy 
-with no longer being scheduled when the screen is shut off, *providing 
-there's no wakeup event to be processed*.
+You still need the in-kernel suspend blockers if you want to guarantee 
+that you can't lose wakeup events. But yes, if you're not concerned 
+handling badly behaved applications then I believe that you can lose 
+opportunistic suspend and just use the scheduler.
 
-> You also have the socket open so you can meaningfully extract resource
-> constraint information from that fact.
-> 
-> See it's not the read() that matters, it's the connect and the close. 
-> 
-> If your policy for a well behaved application is 'thou shalt not
-> suspend in a way that breaks its networking' then for a well behaving app
-> once I connect the socket we cannot suspend that app until such point as
-> the app closes the socket. At any other point we will break the
-> connection. Whether that is desirable is a policy question and you get to
-> pick how much you choose to trust an app and how you interpret the
-> information in your cpufreq and suspend drivers.
+> The whole notion of treating suspend to RAM any different than a plain
+> idle C-State is wrong. It's not different at all. You just use a
+> different mechanism which has longer takedown and wakeup latencies and
+> requires to shut down stuff and setup extra wakeup sources.
 
-Again, that's not the desired outcome. The desired outcome is that when 
-the screen shuts off, the application no longer gets scheduled until a 
-network packet arrives. The difference between these scenarios is large.
+My question was about explicit suspend states, not implicitly handling 
+an identical state based on scheduler constraints. Suspend-as-a-C-state 
+isn't usable on x86 - you have to explicitly trigger it based on some 
+policy. And if you want to be able to do that without risking the loss 
+of wakeup events then you need in-kernel suspend blockers.
 
-> If you have wake-on-lan then the network stack might be smarter and
-> choose to express itself as
-> 
-> 	'the constraint is C6 unless the input queue is empty in which
-> 	 case suspend is ok as I have WoL and my network routing is such
-> 	 that I can prove that interface will be used'
+> I'm starting to get really grumpy about the chant that suspend
+> blockers are the only way to fix missed wakeups. That might be the
+> only way you can think of with your pink android glasses on, but again
+> this is not rocket science even if it does not fit into the current
+> way the kernel handles the whole suspend mechanism.
 
-This is still racy. Going back to this:
+I don't work for Google. I'm not an Android developer.
 
-int input = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);
-char foo;
-struct sockaddr addr;
-connect (input, &addr, sizeof(addr))
-while (1) {
-       if (read(input, &foo, 1) > 0) {
-               (do something)
-       } else {
-		* SUSPEND OCCURS HERE *
-               (draw bouncing cows and clouds and tractor beams briefly)
-       }
-}
+> So if we really sit back and look at suspend as another idle state,
+> then we have first off the same requirements for entering it as we
+> have for any other idle state:
 
-A wakeup event now arrives. We use kernel level suspend blockers to 
-prevent the system from going back to sleep until userspace has read the 
-packet. The application finishes drawing its cows, reads the packet 
-(thus releasing the kernel-level suspend block) and them immediately 
-reaches the end of its timeslice. At this point the application has not 
-had an opportunity to indicate in any way whether or not the packet has 
-altered its constraints in any way. What stops us from immediately 
-suspending again?
+There are various platforms where we cannot treat suspend as an idle 
+state. Any solution that requires that doesn't actually solve the 
+problem. Yes, this is *trivial* if you can depend on the scheduler. But 
+we can't, and so it's difficult.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
