@@ -1,59 +1,50 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 20:13:02 +0100
-Message-ID: <20100527191302.GC5703@srcf.ucam.org>
-References: <Pine.LNX.4.44L0.1005271344040.3239-100000@iolanthe.rowland.org> <1274982779.27810.5708.camel@twins> <20100527175719.GD3543@srcf.ucam.org> <1274983333.27810.5744.camel@twins> <20100527181433.GG3543@srcf.ucam.org> <20100527200313.5c532f2f@lxorguk.ukuu.org.uk>
+Date: Thu, 27 May 2010 20:25:38 +0100
+Message-ID: <20100527202538.7d2d7f3c@lxorguk.ukuu.org.uk>
+References: <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+	<20100527003943.07c17f85@lxorguk.ukuu.org.uk>
+	<20100527140655.GA28048@srcf.ucam.org>
+	<20100527160543.2228fc17@lxorguk.ukuu.org.uk>
+	<20100527160714.GB31937@srcf.ucam.org>
+	<20100527174131.18fd1c72@lxorguk.ukuu.org.uk>
+	<20100527165210.GA1062@srcf.ucam.org>
+	<20100527190204.14546caa@lxorguk.ukuu.org.uk>
+	<20100527181239.GF3543@srcf.ucam.org>
+	<20100527194840.5bca973f@lxorguk.ukuu.org.uk>
+	<20100527185658.GA5703@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100527200313.5c532f2f@lxorguk.ukuu.org.uk>
+In-Reply-To: <20100527185658.GA5703@srcf.ucam.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Peter Zijlstra <peterz@infradead.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 27, 2010 at 08:03:13PM +0100, Alan Cox wrote:
-> > No, it's not. Forced suspend may be in response to hitting a key, but it 
-> 
-> You are the only person here talking about 'forced' suspends. The rest of
-> us are talking about idling down and ensuring we are always in a state we
-> un-idle correctly.
+> The problem is determining how to constrain it to go idle, where "idle" 
+> is defined as "Doesn't wake up until a wakeup event is received". It's 
+> acceptable for something to use as much CPU as it wants when the user is 
+> actively interacting with the device, but in most cases processes 
+> shouldn't be permitted to use any CPU when the session is idle. The 
+> question is how to implement something that allows a CPU-guzzling 
+> application to be idled without impairing its ability to process wakeup 
+> events.
 
-Sigh. No. Forced suspend is a fact of life, and suspend blockers improve 
-the ability to support it. It's orthogonal to more general runtime PM.
+>From your literal description:
 
-> > may also be in response to a 30 minute timeout expiring. If I get a WoL 
-> > packet in the 0.5 of a second between userspace deciding to suspend and 
-> > actually doing so, the system shouldn't suspend.
-> 
-> I don't think that argument holds water in the form you have it
-> 
-> What about 5 nanoseconds before you suspend. Now you can't do that (laws
-> of physics and stuff).
+setpriority. signal, process groups.
 
-Drivers should enable wakeups before they disable interrupts. So either 
-the packet hits the IRQ handler and the driver takes a suspend block 
-(aborting suspend in the process) or it doesn't, the GPE goes high and 
-the system resumes immediately after entering S3.
+	kill(-desktopgroup, SIGSTOP);
+	kill(-desktopgroup, SIGCONT);
+	kill(pid_i_am_crit_eventing, SIGCONT);
 
-> 	Set wake flags
-> 	Check if idle
-> 	If idle
-> 		Suspend
-> 	else
-> 		Clear wake flags
-> 		Unwind
-> 
-> and the wake flags guarantee that an event at any point after the wake
-> flags are set until they are cleared will cause a suspend to be resumed,
-> possibly immediately after the suspend.
+or SIGTSTP might be friendlier as a well behaved smart app can catch it,
+fire it into the event loop and elegantly save and sleep.
 
-Exactly. So the 5 nanosecond case is already handled. The interesting 
-case is where userspace makes the decision to go to sleep and starts 
-performing various housekeeping tasks before triggering the suspend. You 
-need some way to abort that suspend. The hardware may be long idle by 
-then, so you can't just look at the hardware state.
+Some window managers played with doing setpriority for focussed windows.
+OLPC the same thing for OOM targets via /proc/oom_adj
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+The scheduler can happily do this, the power management will also
+recognize STOPPED processes as no impediment to suspend.
