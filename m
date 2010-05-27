@@ -1,54 +1,30 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 17:07:14 +0100
-Message-ID: <20100527160714.GB31937@srcf.ucam.org>
-References: <20100526120242.5c9b73ad@schatten.dmk.lab> <AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com> <20100526133721.602633b2@schatten.dmk.lab> <AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com> <20100526142430.327ccbc4@schatten.dmk.lab> <20100526141612.3e2e0443@lxorguk.ukuu.org.uk> <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com> <20100527003943.07c17f85@lxorguk.ukuu.org.uk> <20100527140655.GA28048@srcf.ucam.org> <20100527160543.2228fc17@lxorguk.ukuu.org.uk>
+From: "Luke-Jr" <luke@dashjr.org>
+Subject: Re: [PATCH v2] serial: Add OMAP high-speed UART driver
+Date: Thu, 27 May 2010 11:00:19 -0500
+Message-ID: <201005271100.41305.luke@dashjr.org>
+References: <58269.192.168.10.88.1274708590.squirrel@dbdmail.itg.ti.com> <87wruqmg85.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100527160543.2228fc17@lxorguk.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from zinan.dashjr.org ([173.242.112.54]:47765 "EHLO zinan.dashjr.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755509Ab0E0QHf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 12:07:35 -0400
+In-Reply-To: <87wruqmg85.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Thu, May 27, 2010 at 04:05:43PM +0100, Alan Cox wrote:
-> > Now, if the user is playing this game, you want it to be scheduled. If 
-> > the user has put down their phone and the screen lock has kicked in, you 
-> > don't want it to be scheduled. So we could imagine some sort of cgroup 
-> > that contains untrusted tasks - when the session is active we set a flag 
+On Wednesday 26 May 2010 05:48:58 pm Kevin Hilman wrote:
+> FYI... this also works on OMAP2.
 > 
-> I would hope not, because I'd rather prefer my app that used the screen
-> to get the chance to save important data on what it was doing
-> irrespective of the screen blank:  "I have an elegant proof for this
-> problem but my battery has gone flat"
+> I tested it on my n810 along with UART hwmod conversion and it works
+> just fine there.
 
-Perhaps set after callbacks are made. But given that the approach 
-doesn't work anyway...
-
-> What is the problem here - your device driver for the display can block
-> tasks it doesn't want to use the display.
-
-It's still racy. Going back to my example without any of the suspend 
-blocking code, but using a network socket rather than an input device:
-
-int input = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);
-char foo;
-struct sockaddr addr;
-connect (input, &addr, sizeof(addr))
-while (1) {
-       if (read(input, &foo, 1) > 0) {
-               (do something)
-       } else {
-               (draw bouncing cows and clouds and tractor beams briefly)
-       }
-}
-
-A network packet arrives while we're drawing. Before we finish drawing, 
-the policy timeout expires and the screen turns off. The app's drawing 
-is blocked and so never gets to the point of reading the socket. The 
-wakeup event has been lost.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Is it somehow different from the basic 8250 driver on OMAP2? I've been 
+struggling to figure out why my N810's GPS isn't working when I change kernels 
+(I've already made sure ttyS0 is the correct major/minor and adjusted the GPIO 
+calls; gpiodriver is talking to the chip, but not getting anywhere).
