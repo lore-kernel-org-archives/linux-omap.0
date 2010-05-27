@@ -1,68 +1,106 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 22:03:14 +0100
-Message-ID: <20100527220314.312d9e3c@lxorguk.ukuu.org.uk>
-References: <20100527171644.GA2468@srcf.ucam.org>
-	<1274980856.27810.5582.camel@twins>
-	<20100527172510.GC2468@srcf.ucam.org>
-	<1274981288.27810.5609.camel@twins>
-	<20100527173218.GF2468@srcf.ucam.org>
-	<1274981750.27810.5641.camel@twins>
-	<20100527174140.GB3187@srcf.ucam.org>
-	<1274982397.27810.5679.camel@twins>
-	<20100527175258.GB3543@srcf.ucam.org>
-	<1274982981.27810.5719.camel@twins>
-	<20100527175920.GE3543@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 27 May 2010 23:00:15 +0200
+Message-ID: <201005272300.15453.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1005271141410.3239-100000@iolanthe.rowland.org> <alpine.LFD.2.00.1005271751240.3032@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20100527175920.GE3543@srcf.ucam.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux@smtp1.linux-foundation.org, Thomas Gleixner <tglx@linutronix.de>, List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:49869 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757094Ab0E0U70 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 16:59:26 -0400
+In-Reply-To: <alpine.LFD.2.00.1005271751240.3032@localhost.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, 27 May 2010 18:59:20 +0100
-Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-
-> On Thu, May 27, 2010 at 07:56:21PM +0200, Peter Zijlstra wrote:
-> > On Thu, 2010-05-27 at 18:52 +0100, Matthew Garrett wrote:
+On Thursday 27 May 2010, Thomas Gleixner wrote:
+> On Thu, 27 May 2010, Alan Stern wrote:
+> > On Thu, 27 May 2010, Peter Zijlstra wrote:
 > > 
-> > > If that's what you're aiming for then you don't need to block 
-> > > applications on hardware access because they should all already have 
-> > > idled themselves.
+> > > On Thu, 2010-05-27 at 16:33 +0100, Alan Cox wrote:
+> > > > On Thu, 27 May 2010 17:09:16 +0200
+> > > > Peter Zijlstra <peterz@infradead.org> wrote:
+> > > > 
+> > > > > On Thu, 2010-05-27 at 11:06 -0400, Alan Stern wrote:
+> > > > > > 
+> > > > > >         Opportunistic suspends are okay.
+> > > > > > 
+> > > > > >         The proposed userspace API is too Android-specific.
+> > > > > 
+> > > > > I would argue opportunistic suspends are not ok, and therefore the
+> > > > > proposed API is utterly irrelevant.
+> > > > 
+> > > > Assuming you are happy that opportunistically entering C6 and the like is
+> > > > ok via ACPI can you explain why you have a problem with opportunistic
+> > > > suspend and why it is different to a very deep sleep CPU state such as we
+> > > > have now (and which on many embedded platforms we deal with *is* sleeping
+> > > > external devices too)
+> > > 
+> > > Agreed, but I understood the opportunistic suspend line from Alan Stern
+> > > to mean the echo opportunistic > /sys/power/foo thing.
 > > 
-> > Correct, a well behaved app would have. I thought we all agreed that
-> > well behaved apps weren't the problem?
+> > Yes, that's what I meant.  Why do you think it is any worse than "echo 
+> > mem >/sys/power/state"?  The only difference is that it will block 
+> > until all in-kernel suspend blockers are disabled.
+> > 
+> > Or do you also think that "echo mem >/sys/power/state" is evil and 
+> > should be removed from the kernel as soon as possible?
+> > 
+> > And to answer Thomas's question: The whole reason for having in-kernel 
+> > suspend blockers is so that userspace can tell the system to suspend 
+> > without losing wakeup events.
+> > 
+> > Suppose a key is pressed just as a user program writes "mem" to
+> > /sys/power/state.  The keyboard driver handles the keystroke and queues
+> > an input event.  Then the system suspends and doesn't wake up until
+> > some other event occurs -- even though the keypress was an important
+> > one and it should have prevented the system from suspending.
+> > 
+> > With in-kernel suspend blockers and opportunistic suspend, this 
+> > scenario is prevented.  That is their raison-d'etre.
 > 
-> Ok. So the existing badly-behaved application ignores your request and 
-> then gets blocked. And now it no longer responds to wakeup events. So 
-> you penalise well-behaved applications without providing any benefits to 
-> badly-behaved ones.
+> I tend to disagree. You are still looking at suspend as some extra
+> esoteric mechanism. We should stop doing this and look at suspend (to
+> RAM) as an additional deep idle state, which is well defined in terms
+> of power savings and wakeup latency.
 
-I don't see how you put the first two sentences together and get the
-final one.
+Well, the ACPI spec doesn't agree with you. :-)
 
-When you beat up badly behaved apps that doesn't penalise well behaved
-ones.
+> That's what I think opportunistic suspend is all about. Now if you look at
+> our current idle states in x86 the incoming keystroke is never lost. 
+> 
+> So when suspend does lose the wakeup event then we need to fix that,
 
-Forcing "well behaved apps" to make hundreds of extra calls to a complex
-blocker interface that also requires tons of kernel code and requires the
-application know platform policy and be recompiled if it changes - now
-that is punishing well behaved apps.
+With ACPI, we can't, because we have to switch our wakeup sources from
+the "runtime" mode to the "system wakeup" mode in a racy fashion.
 
-A well behaved app should just work using standard existing APIs because
-that is how all the standard current well behaved apps are written [1].
+> but why do we need suspend blockers for this ? Let's take your example:
+> 
+> > The keyboard driver handles the keystroke and queues an input
+> > event. Then the system goes into suspend ....
+> 
+> Why do we go into suspend at all?
 
-Alan
---
-[1] I'm dying to see the suspend blocker patch for evolution ;)
+The decision to go to suspend may be made in parallel to the keystroke in
+such a way that we may not be able to detect it (that doesn't apply to the
+hardware Android currently runs on, though).
+
+> If there is an event queued then something is woken up and got running,
+> which is reason enough _not_ to enter suspend. If that's broken in the
+> current implementation then we need to fix it,
+
+That's not a matter of implementation (which I admit can be improved).
+
+> but not with a big hammer by adding another
+> interface. We have that information already and obviously we do not
+> use it, so lets figure out why before adding suspend blockers just
+> because they paper over the underlying problem.
+
+I'm not really sure what information you're referring to.
+
+Rafael
