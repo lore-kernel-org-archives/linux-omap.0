@@ -1,55 +1,27 @@
 From: Vitaly Wool <vitalywool@gmail.com>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 09:42:14 +0200
-Message-ID: <AANLkTimcPZTZYH4fDxX0xlLxMvtl87FDOEP_hdaztFYJ@mail.gmail.com>
-References: <1274482015-30899-1-git-send-email-arve@android.com>
-	<201005242049.18920.rjw@sisk.pl>
-	<87wrusvrqe.fsf@deeprootsystems.com>
-	<201005250138.16293.rjw@sisk.pl>
-	<1274863655.5882.4875.camel@twins>
-	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
-	<1274867106.5882.5090.camel@twins>
-	<20100526120242.5c9b73ad@schatten.dmk.lab>
-	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
-	<20100526133721.602633b2@schatten.dmk.lab>
-	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
-	<20100526142430.327ccbc4@schatten.dmk.lab>
-	<20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
-	<AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+Date: Thu, 27 May 2010 09:43:23 +0200
+Message-ID: <AANLkTima8IBIudVATpv75UxriVYPMrzZhgA9g0ftwo4V@mail.gmail.com>
+References: <20100526171106.0e44a736@schatten.dmk.lab>
+	<alpine.LFD.2.00.1005261829540.2995@localhost.localdomain>
+	<20100526215409.33296d94@schatten.dmk.lab>
+	<20100526230943.6f5e5b37@lxorguk.ukuu.org.uk>
+	<20100527071429.58fa81ac@schatten.dmk.lab>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
+In-Reply-To: <20100527071429.58fa81ac@schatten.dmk.lab>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Florian Mickler <florian@mickler.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-2010/5/27 Arve Hj=F8nnev=E5g <arve@android.com>:
-> On Wed, May 26, 2010 at 6:16 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> =
-wrote:
->>> Really, what are you getting at? Do you deny that there are program=
-s,
->>> that prevent a device from sleeping? (Just think of the bouncing
->>> cows app)
->>>
->>> And if you have two kernels, one with which your device is dead aft=
-er 1
->>> hour and one with which your device is dead after 10 hours. Which w=
-ould
->>> you prefer? I mean really... this is ridiculous.
->>
->> The problem you have is that this is policy. If I have the device wi=
-red
->> to a big screen and I want cows bouncing on it I'll be most upset if
->> instead it suspends.
->
-> We never suspend when the screen is on. If the screen is off, I would
-> not be upset if it suspends.
+On Thu, May 27, 2010 at 7:14 AM, Florian Mickler <florian@mickler.org> wrote:
 
-That's /wrong/. What if you have an active download ongoing when the
-screen is off? This ugly simplistic approach is one of the worst
-things in Android.
+> I'm not interested in "abusing processes". I just think, this is in
+> limbo for too long already.
+> Just decide something. One way or the other. The world will continue.
+
+Oh man, you rule the world eh? :)
 
 ~Vitaly
