@@ -1,106 +1,54 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 00:50:45 +0100
-Message-ID: <20100528005045.6ea5feba@lxorguk.ukuu.org.uk>
-References: <Pine.LNX.4.44L0.1005271344040.3239-100000@iolanthe.rowland.org>
-	<20100527181433.GG3543@srcf.ucam.org>
-	<20100527200313.5c532f2f@lxorguk.ukuu.org.uk>
-	<201005280110.17075.rjw@sisk.pl>
+Date: Fri, 28 May 2010 01:50:24 +0200
+Message-ID: <201005280150.24873.rjw@sisk.pl>
+References: <20100527140655.GA28048@srcf.ucam.org> <201005272355.13222.rjw@sisk.pl> <20100527232043.784d5c72@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201005280110.17075.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:50476 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751644Ab0E0XtI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 May 2010 19:49:08 -0400
+In-Reply-To: <20100527232043.784d5c72@lxorguk.ukuu.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Gleixner <tglx@linutronix.de>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-> That's correct, but to me the Arve's goal is simply to maximize battery life
-> and he found experimentally that the longest battery life is achieved if
-> system suspend is used whenever the system doesn't need to be active (from its
-> user's perspective).  This actually is different from "when the system is
-> idle", because the system isn't idle, for example, when updatedb is running.
-> However, from the user's perspective the updatedb process doesn't really need
-> to run at this particular time, it can very well do it's job in parallel with
-> the user typing or reading news.  So, the system may very well be suspended
-> when updatedb is running.
+On Friday 28 May 2010, Alan Cox wrote:
+> On Thu, 27 May 2010 23:55:13 +0200
+> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> 
+> > On Thursday 27 May 2010, Alan Cox wrote:
+> > > > > If one works so does the other.
+> > > > 
+> > > > Not at all. The entire point of opportunistic suspend is that I don't 
+> > > > care is currently in TASK_RUNNABLE or has a timer that's due to expire 
+> > > > in 100msec - based on policy (through not having any held suspend 
+> > > > blockers), I'll go to sleep. That's easily possible on PCs.
+> > > 
+> > > Yes I appreciate what suspend blockers are trying to do. Now how does
+> > > that connect with my first sentence ?
+> > 
+> > I guess what Matthew wanted to say was that you couldn't use ACPI S3 as
+> > a very deep CPU idle state, because of the way wakeup sources are set up
+> > for it, while you could use it for aggressive power management with suspend
+> > blockers as proposed by Arve.
+> 
+> Which is a nonsense. Because the entire Gnome desktop and KDE, and
+> OpenOffice and Firefox and friends would need fitting out with
+> suspend blockers.
+> 
+> x86 hardware is moving to fix these problems (at least on handheld
+> devices initially). Look up the C6 power idle, and S0i1 and S0i3
+> standby states. I reckon the laptop folks can probably get the hardware
+> fixed well before anyone can convert the entire PC desktop to include
+> blockers.
 
-This is where the original questions around QoS came in
+To clarify, I'm not suggesting to spread suspend blockers all over the
+universe.
 
-> Since I think we've now rejected the feature, do we have a clear picture about
-> what the Android people should do _instead_ and yet keep the battery life they
-> want?  Because I don't think telling "let them do what they want, who cares"
-> is right.
-
-Today "idle" means "no task running"
-
-If you are prepared to rephrase that as "no task that matters is running"
-what would need to answer ?
-
-- How do we define who matters: QoS ?
-
-- Can you describe "idle" in terms of QoS without then breaking the
-  reliable wakeup for an event (and do you need to ?)
-
-	Could this for example look like
-
-	Set QoS of 'user apps' to QS_NONE
-	Button pushed
-	Button driver sets QoS of app it wakes to QS_ABOVESUSPEND
-
-	That would I think solve the reliable wakeup case although
-	drivers raising a QoS parameter is a bit unusual in the kernel.
-	That would at least however be specific to a few Android drivers
-	and maybe a tiny amount of shared driver stuff so probably not
-	unacceptable. (wake_up_pri(&queue, priority); isn't going to
-	kill anyone is it - especially if it usually ignores the
-	priority argument)
-
-	I am curious Thomas how that would tie in with PI in the RT
-	world, it's effectively inheriting priority from the users finger.
-
-- Would a model where the UI side behaviour looked like
-
-	Timeout
-	Screen Off
-	Set QoS of 'user apps' to QS_NONE
-
-	Event
-	[Some chain of activity]
-	Screen On
-	Set QoS of 'user apps' to QS_ABOVESUSPEND
-
-  do the job combined with the ability to see who is stopping us dropping
-  to suspend so user space can take action. This could be a data table
-  from the Android cpu manager provided to Android specific policy in
-  whoever owns the display.
-
-
-If so how do we fix the UI policy code doing
-
-	Screen Off
-					Button Press
-					task to QS_ABOVESUSPEND
-	task to QS_NONE
-
-without touching the app userspace code
-
-
-Perhaps
-
-	count2 = tasks to QS_NONE | QS_NOTCHANGED
-	Screen off
-					Button Press
-					task to QS_ABOVESUSPEND
-	count = tasks that are QS_NOTCHANGED to QS_NONE
-
-	if (count != count2) {
-		Stuff happened ... rethink
-	}
-
-That is still a bit weird and wonderful but all the logic is in the right
-places. The special magic remains in the Android policy code and in the
-kernel specifics for Android.
-
-Thoughts ?
+Rafael
