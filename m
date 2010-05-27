@@ -1,88 +1,168 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 11:58:35 +0300
-Message-ID: <AANLkTik2ZkNABlqIptjxDGtJoXpNo578oQle0vVtAvUp@mail.gmail.com>
-References: <1274863655.5882.4875.camel@twins>
-	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
-	<1274867106.5882.5090.camel@twins>
-	<20100526120242.5c9b73ad@schatten.dmk.lab>
-	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
-	<20100526133721.602633b2@schatten.dmk.lab>
-	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
-	<20100526142430.327ccbc4@schatten.dmk.lab>
-	<20100526122932.GB1990@nokia.com>
-	<20100526143323.7c6f8705@schatten.dmk.lab>
-	<20100526123532.GA2629@nokia.com>
-	<20100526145452.685337db@schatten.dmk.lab>
+From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/3] musb: populate board_data within musb structure
+Date: Thu, 27 May 2010 14:33:14 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026FC4E284@dbde02.ent.ti.com>
+References: <1274943888-17615-1-git-send-email-ajay.gupta@ti.com>
+ <1274943888-17615-2-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:49901 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932311Ab0E0I6h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 04:58:37 -0400
-In-Reply-To: <20100526145452.685337db@schatten.dmk.lab>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1274943888-17615-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "amit.kucheria-LY4KaoCqKrnby3iVrkZq2A@public.gmane.org" <amit.kucheria-LY4KaoCqKrnby3iVrkZq2A@public.gmane.org>, "khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org" <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: felipe.balbi@nokia.com, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Wed, May 26, 2010 at 3:54 PM, Florian Mickler <florian@mickler.org> wrote:
-> It really comes down to a policy decision by the distribution maker.
-> And I don't think kernel upstream should be the one to force one way or
-> the other. So merging this patch set will allow android to continue
-> their work _on mainline_ while everybody else can continue as before.
+ 
+
+>-----Original Message-----
+>From: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org 
+>[mailto:linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Gupta, Ajay Kumar
+>Sent: Thursday, May 27, 2010 12:35 PM
+>To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; 
+>amit.kucheria-LY4KaoCqKrnby3iVrkZq2A@public.gmane.org; khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org; 
+>Gupta, Ajay Kumar
+>Subject: [PATCH 2/3] musb: populate board_data within musb structure
 >
-> All points about the impact on the kernel have already been raised. So
-> you should be happy there.
+>Added board_data within musb as it would be required in
+>musb_platform_exit() also to unregister the nop transceiver.
 >
-> Nonetheless, I really think the kernel needs to allow for the android
-> way of power saving. It misses out on a big feature and a big user-base
-> if not.
+>Also changed the signature of musb_platform_init() as now
+>board_data can be taken from musb itself.
+>
+>Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+>---
+> drivers/usb/musb/blackfin.c  |    2 +-
+> drivers/usb/musb/davinci.c   |    2 +-
+> drivers/usb/musb/musb_core.c |    3 ++-
+> drivers/usb/musb/musb_core.h |    3 ++-
+> drivers/usb/musb/omap2430.c  |    4 ++--
+> drivers/usb/musb/tusb6010.c  |    2 +-
+> 6 files changed, 9 insertions(+), 7 deletions(-)
+>
+>diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+>index b611420..0bef011 100644
+>--- a/drivers/usb/musb/blackfin.c
+>+++ b/drivers/usb/musb/blackfin.c
+>@@ -323,7 +323,7 @@ int musb_platform_set_mode(struct musb 
+>*musb, u8 musb_mode)
+> 	return -EIO;
+> }
+> 
+>-int __init musb_platform_init(struct musb *musb, void *board_data)
+>+int __init musb_platform_init(struct musb *musb)
+> {
+> 
+> 	/*
+>diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
+>index 5762436..ce2e16f 100644
+>--- a/drivers/usb/musb/davinci.c
+>+++ b/drivers/usb/musb/davinci.c
+>@@ -376,7 +376,7 @@ int musb_platform_set_mode(struct musb 
+>*musb, u8 mode)
+> 	return -EIO;
+> }
+> 
+>-int __init musb_platform_init(struct musb *musb, void *board_data)
+>+int __init musb_platform_init(struct musb *musb)
+> {
+> 	void __iomem	*tibase = musb->ctrl_base;
+> 	u32		revision;
+>diff --git a/drivers/usb/musb/musb_core.c 
+>b/drivers/usb/musb/musb_core.c
+>index d3911ab..1ccc4d7 100644
+>--- a/drivers/usb/musb/musb_core.c
+>+++ b/drivers/usb/musb/musb_core.c
+>@@ -1961,6 +1961,7 @@ bad_config:
+> 	}
+> 
+> 	spin_lock_init(&musb->lock);
+>+	musb->board_data = plat->board_data;
+> 	musb->board_mode = plat->mode;
+> 	musb->board_set_power = plat->set_power;
+> 	musb->set_clock = plat->set_clock;
 
-Let's get rid of hypothetical uses in the future: suspend blockers is
-_only_ used by Android user-space. Nobody else has expressed any
-intention of using them.
+I think musb structure already has a pointer to device structure which intern has the platform_data pointer.
+I think all of these member variables are not required. Might need to cleanup the musb structre. 
 
-> Also I expect there to be synergies between android development and
-> mainline kernel development _only_ if android development can use
-> mainline kernel.
-
-That's like saying "there can only be synergies between linux real
-time and mainline _only_ if RT development can use mainline".
-
-I can give you my experience at Nokia... can you use mainline on any
-of the Maemo devices? No. You have to patch the kernel heavily, to be
-able to kind-of run the official user-space, or you have to use a
-different user-space.
-
-Does that prevent synergies? No. As Brian Swetland and Daniel Walker
-already expressed before; you can run mainline kernel with debian on
-Android phones.
-
-It would be nice to run Android user-space, or parts of it on mainline
-kernels, but if it's not possible, that's a deficiency on Android's
-design; Maemo/Moblin/Meego are good players in the linux ecosystem so
-you can re-use parts of the system on typical desktops (in fact many
-are coming from there), and there are community distributions re-using
-those parts and running just fine on mainline kernels.
-
-Sure, it would be easier for Android developers if all their crap was
-in the mainline, but even then there are no guarantees of anything.
-Just like any other linux phone, you'll probably need to add patches
-for 3D drivers, DSP, or other hardware acceleration, missing
-board-specfic patches, and bunch of hacks.
-
-So if you have to add all those patches anyway, what's the problem of
-having to add the suspend block patches?
-
-Why do some Android developers think they can be the exception and
-have patches merged in the core of linux _only_ for their specific
-user-space, and their specific drivers?
-
-If you separate suspend blockers from Android, and judge them on their
-technical merit, I don't see a single person saying this is a good
-idea, we'll switch all our user-space to use them.
-
--- 
-Felipe Contreras
+>@@ -1995,7 +1996,7 @@ bad_config:
+> 	 * isp1504, non-OTG, etc) mostly hooking up through ULPI.
+> 	 */
+> 	musb->isr = generic_interrupt;
+>-	status = musb_platform_init(musb, plat->board_data);
+>+	status = musb_platform_init(musb);
+> 	if (status < 0)
+> 		goto fail2;
+> 
+>diff --git a/drivers/usb/musb/musb_core.h 
+>b/drivers/usb/musb/musb_core.h
+>index 7cef2b7..9dddaa4 100644
+>--- a/drivers/usb/musb/musb_core.h
+>+++ b/drivers/usb/musb/musb_core.h
+>@@ -393,6 +393,7 @@ struct musb {
+> 	int			(*board_set_power)(int state);
+> 
+> 	int			(*set_clock)(struct clk *clk, 
+>int is_active);
+>+	void			*board_data;	/* board 
+>specific data */
+> 
+> 	u8			min_power;	/* vbus for 
+>periph, in mA/2 */
+> 
+>@@ -604,7 +605,7 @@ extern int 
+>musb_platform_get_vbus_status(struct musb *musb);
+> #define musb_platform_get_vbus_status(x)	0
+> #endif
+> 
+>-extern int __init musb_platform_init(struct musb *musb, void 
+>*board_data);
+>+extern int __init musb_platform_init(struct musb *musb);
+> extern int musb_platform_exit(struct musb *musb);
+> 
+> #endif	/* __MUSB_CORE_H__ */
+>diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+>index e06d65e..50591e7 100644
+>--- a/drivers/usb/musb/omap2430.c
+>+++ b/drivers/usb/musb/omap2430.c
+>@@ -189,10 +189,10 @@ int musb_platform_set_mode(struct musb 
+>*musb, u8 musb_mode)
+> 	return 0;
+> }
+> 
+>-int __init musb_platform_init(struct musb *musb, void *board_data)
+>+int __init musb_platform_init(struct musb *musb)
+> {
+> 	u32 l;
+>-	struct omap_musb_board_data *data = board_data;
+>+	struct omap_musb_board_data *data = musb->board_data;
+> 
+> #if defined(CONFIG_ARCH_OMAP2430)
+> 	omap_cfg_reg(AE5_2430_USB0HS_STP);
+>diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+>index 05c077f..60d3938 100644
+>--- a/drivers/usb/musb/tusb6010.c
+>+++ b/drivers/usb/musb/tusb6010.c
+>@@ -1104,7 +1104,7 @@ err:
+> 	return -ENODEV;
+> }
+> 
+>-int __init musb_platform_init(struct musb *musb, void *board_data)
+>+int __init musb_platform_init(struct musb *musb)
+> {
+> 	struct platform_device	*pdev;
+> 	struct resource		*mem;
+>-- 
+>1.6.2.4
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
