@@ -1,71 +1,73 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 16:32:15 +0300
-Message-ID: <4BFFC5DF.5030504@nokia.com>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>	<20100527220949.GB10602@srcf.ucam.org>	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>	<20100527223605.GB11364@srcf.ucam.org>	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>	<20100528043114.GC26177@thunk.org>	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>	<20100528114123.GA22947@srcf.ucam.org>	<4BFFB681.1000105@nokia.com> <AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+Date: Fri, 28 May 2010 15:20:17 +0200
+Message-ID: <1275052817.1645.64.camel@laptop>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	 <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	 <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	 <20100527220949.GB10602@srcf.ucam.org>
+	 <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	 <AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
+	 <20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
+	 <AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
+	 <20100528132138.2d802d77@lxorguk.ukuu.org.uk>
+	 <1275049836.1645.1.camel@laptop>
+	 <20100528140236.3214929e@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:44983 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753471Ab0E1NJl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 09:09:41 -0400
-In-Reply-To: <AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+Received: from casper.infradead.org ([85.118.1.10]:34691 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753178Ab0E1NUU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 09:20:20 -0400
+Received: from f199130.upc-f.chello.nl ([80.56.199.130] helo=dyad.programming.kicks-ass.net)
+	by casper.infradead.org with esmtpsa (Exim 4.71 #1 (Red Hat Linux))
+	id 1OHzU3-0002VE-Kw
+	for linux-omap@vger.kernel.org; Fri, 28 May 2010 13:20:19 +0000
+In-Reply-To: <20100528140236.3214929e@lxorguk.ukuu.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Brian Swetland <swetland@google.com>
-Cc: ext Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-ext Brian Swetland wrote:
+On Fri, 2010-05-28 at 14:02 +0100, Alan Cox wrote:
+> On Fri, 28 May 2010 14:30:36 +0200
+> Peter Zijlstra <peterz@infradead.org> wrote:
+> 
+> > On Fri, 2010-05-28 at 13:21 +0100, Alan Cox wrote:
+> > > [Total kernel changes
+> > > 
+> > >         Ability to mark/unmark a scheduler control group as outside of
+> > >         some parts of idle consideration. Generically useful and
+> > >         localised. Group latency will do most jobs fine (Zygo is correct
+> > >         it can't solve his backup case elegantly I think)
+> > > 
+> > >         Test in the idling logic to distinguish the case and only needed
+> > >         for a single Android specific power module. Generically useful
+> > >         and localised] 
+> > 
+> > I really don't like this..
+> > 
+> > Why can't we go with the previously suggested: make bad apps block on
+> > QoS resources or send SIGXCPU, SIGSTOP, SIGTERM and eventually SIGKILL
+> 
+> Ok. Are you happy with the QoS being attached to a scheduler control
+> group and the use of them to figure out what is what ?
 
-> At a certain point, if one side of the argument is using "N900 / OMAP3
-> works just fine as is" (which has certainly been the case stated by a
-> number of folks throughout these discussions), I think it's a little
-> unrealistic to express shock that somebody argues the opposing point.
->   
-The problem lies in the definition of the goal and means to achieve it.
-We do rely on repositories to discriminate on the quality of applications.
-As I stated some are accessible and run by our community.
+Up to a point, but explicitly not running runnable tasks complicates the
+task model significantly, and interacts with fun stuff like bandwidth
+inheritance and priority/deadline inheritance like things -- a subject
+you really don't want to complicate further.
 
-So, in this scenario, it works well enough.
+We really want to do our utmost best to make applications block on
+something without altering our task model.
 
-> I've personally avoided commenting on specific power management issues
-> or properties of competitive platforms because it can easily be viewed
-> as rather rude or unprofessional.  (though in theory we all could
-> benefit from any improvements to the kernel regarding power
-> management, no?).
->   
+If applications keep running despite being told repeatedly to cease, I
+think the SIGKILL option is a sane one (they got SIGXCPU, SIGSTOP and
+SIGTERM before that) and got ample opportunity to block on something.
 
-What I consider plain wrong i to claim that since there are this many 
-units out, some code should be merged.
-A company needs to cut corners sometimes when making a product but this 
-should not affect upstream code.
-> I am quite willing to state that on both MSM and OMAP based Android
-> platforms, we've found that the suspend blocker model allows us to
-> obtain a lower average power draw than if we don't use it -- Mike Chan
-> provided some numbers earlier in another thread in the trivial device
-> idle case, the win is of course much larger in the case of several
-> poorly behaved apps being active.
->   
+Traditional cpu resource management treats the CPU as an ever
+replenished resource, breaking that assumption (not running runnable
+tasks) puts us on very shaky ground indeed.
 
-That's very good. But if it is done in a conceptually flawed way, some 
-better solution should be considered for upstream merge.
-
-[snip]
-> A reality of a mass market device with a completely open and
-> unrestricted application development and distribution ecosystem is
-> that there will be plenty of non-optimal apps available to users
-> (Sturgeon's Law applies everywhere, after all).  Worse yet, many of
-> these non-optimal apps may be beloved by users for various reasons.  I
-> think there's value in trying to do the best you can power-wise even
-> in the face of such horrible foes as the dreaded Bouncing Cows App
-> that Matthew is fond of citing as an example.
-
-Sure.
-
-I simply disagree on the methods proposed (suspend_blockers) and some of 
-the rationale used for promoting them (volume of otherwise unsupported 
-units).
-
-igor
