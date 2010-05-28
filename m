@@ -1,78 +1,49 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 09:25:52 +0200
-Message-ID: <20100528092552.087bd38a@schatten.dmk.lab>
-References: <20100526171106.0e44a736@schatten.dmk.lab>
-	<alpine.LFD.2.00.1005261829540.2995@localhost.localdomain>
-	<20100526190204.5efe4d59@lxorguk.ukuu.org.uk>
-	<20100526215606.2a747c61@schatten.dmk.lab>
-	<AANLkTil3OdarNjeIuzWqM59x4ysFqJrMeiUZzceC_r7P@mail.gmail.com>
-	<20100527071100.3a38bbac@schatten.dmk.lab>
-	<alpine.LFD.2.00.1005271530240.3032@localhost.localdomain>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: omap3 pm: dependency between opp layer and cpufreq
+Date: Fri, 28 May 2010 02:39:50 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0132DE0A84@dlee02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>,<4BFE9D7E.8020602@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1005271530240.3032@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vitaly Wool <vitalywool@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33735 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754552Ab0E1Hj4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 03:39:56 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Thu, 27 May 2010 15:35:18 +0200 (CEST)
-Thomas Gleixner <tglx@linutronix.de> wrote:
+> -----Original Message-----
+> From: Premi, Sanjeev
+> Sent: Thursday, May 27, 2010 10:30 PM
 
-> On Thu, 27 May 2010, Florian Mickler wrote:
+[...]
+
+> >
+> > 3) Was there any specific need to tie the functions "opp_get_voltage"
+> and others to cpufreq only?
 > 
-> > On Wed, 26 May 2010 22:03:37 +0200
-> > Vitaly Wool <vitalywool@gmail.com> wrote:
-> > 
-> > > On Wed, May 26, 2010 at 9:56 PM, Florian Mickler <florian@mickler.org> wrote:
-> > > 
-> > > > Your approach definitely sounds better than the current solution.
-> > > > What about mapping suspend blocker functionality later on, when this
-> > > > interface exists, on to this new approach and deprecating it?
-> > > 
-> > > What about coming back after some while with the appropriate solution
-> > > when it's ready instead of stubbornly pushing crap?
-> > > 
-> > > ~Vitaly
-> > 
-> > Because quite frankly, for a good part of linux users, suspend blockers
-> > is already in the kernel. It's just an historical mistake that they are
-> > not in the linux kernel's hosted on kernel.org. 
+> yes, because without cpufreq there is no transitions in the system :)
 > 
-> No, it's not a historical mistake. It's a technical decision _NOT_ to
-> merge crap. If we would accept every crappy patch which gets shipped
-> in large quantities as a defacto part of the kernel we would have a
-> completely unmaintainable mess since years.
-> > So why don't we do what we always do? Improve existing interfaces step
-> > by step? 
+> [sp] I does - via bootarg - mpurate!
 > 
-> Exactly, that's what we are going to do. We improve and extend
-> existing interfaces step by step, but not by creating a horrible and
-> unmaintainable mess in the frist place which we can never get rid of
-> anymore.
+> When kernel boots, volatge must be set properly.
+> We cannot rely on u-boot to be settiing everything correctly. e.g. 720MHz
+> on OMAP3530 would fail at nominal 1.2V set by u-boot.
 
-Ok to your two paragraphs. I can understand this. 
+I agree, but mpurate does not seem to use the cpufreq interfaces - so is 
+kinda a question how it interfaces back -> but note, mpurate tells us what
+the start freq is for the system - it still does no *dynamic* transitions - 
+just a static startup frequency. But I agree, it assumes that if you provide 
+mpurate, the system supposedly is operating at that frequency, aka all
+setups have been done for that operational frequency(including voltage)
 
-Nonetheless, i'm convinced that there has to be some solution in
-mainline to allow for what android does. But perhaps it needs more
-refactoring and piggybagging on some more general constraint interface.
 
-> 
-> > Top Down approaches fail from time to time. Also it is not clear, that
-> > that proposed interface works for the use cases. This has to be proven
-> > by providing an implementation. 
-> 
-> Nobody prevents you to sit down and start with a prove of concept
-> implementation.
-
-Hmm... *scratch*... *lookaround* .. who?
-
-Really, I'd first like to get the whole picture before doing anything.
-
-> 
-> Thanks,
-> 
-> 	tglx
+Regards,
+Nishanth Menon
