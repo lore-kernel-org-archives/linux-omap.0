@@ -1,58 +1,78 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v2] serial: Add OMAP high-speed UART driver
-Date: Fri, 28 May 2010 12:41:29 +0530
-Message-ID: <AANLkTikta1db8KHV2Crz1zJEagmcOI20mSnXYUq02sZ5@mail.gmail.com>
-References: <58269.192.168.10.88.1274708590.squirrel@dbdmail.itg.ti.com>
-	<87wruqmg85.fsf@deeprootsystems.com>
-	<201005271100.41305.luke@dashjr.org>
+From: Florian Mickler <florian@mickler.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 09:25:52 +0200
+Message-ID: <20100528092552.087bd38a@schatten.dmk.lab>
+References: <20100526171106.0e44a736@schatten.dmk.lab>
+	<alpine.LFD.2.00.1005261829540.2995@localhost.localdomain>
+	<20100526190204.5efe4d59@lxorguk.ukuu.org.uk>
+	<20100526215606.2a747c61@schatten.dmk.lab>
+	<AANLkTil3OdarNjeIuzWqM59x4ysFqJrMeiUZzceC_r7P@mail.gmail.com>
+	<20100527071100.3a38bbac@schatten.dmk.lab>
+	<alpine.LFD.2.00.1005271530240.3032@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f183.google.com ([209.85.221.183]:54241 "EHLO
-	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754677Ab0E1HLc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 03:11:32 -0400
-In-Reply-To: <201005271100.41305.luke@dashjr.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1005271530240.3032@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vitaly Wool <vitalywool@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Luke-Jr <luke@dashjr.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Thu, May 27, 2010 at 9:30 PM, Luke-Jr <luke@dashjr.org> wrote:
-> On Wednesday 26 May 2010 05:48:58 pm Kevin Hilman wrote:
->> FYI... this also works on OMAP2.
->>
->> I tested it on my n810 along with UART hwmod conversion and it works
->> just fine there.
->
-> Is it somehow different from the basic 8250 driver on OMAP2? I've bee=
-n
-> struggling to figure out why my N810's GPS isn't working when I chang=
-e kernels
-> (I've already made sure ttyS0 is the correct major/minor and adjusted=
- the GPIO
-> calls; gpiodriver is talking to the chip, but not getting anywhere).
+On Thu, 27 May 2010 15:35:18 +0200 (CEST)
+Thomas Gleixner <tglx@linutronix.de> wrote:
 
-You need to use ttyO0 [%s/ttyS*/ttyO*]
+> On Thu, 27 May 2010, Florian Mickler wrote:
+> 
+> > On Wed, 26 May 2010 22:03:37 +0200
+> > Vitaly Wool <vitalywool@gmail.com> wrote:
+> > 
+> > > On Wed, May 26, 2010 at 9:56 PM, Florian Mickler <florian@mickler.org> wrote:
+> > > 
+> > > > Your approach definitely sounds better than the current solution.
+> > > > What about mapping suspend blocker functionality later on, when this
+> > > > interface exists, on to this new approach and deprecating it?
+> > > 
+> > > What about coming back after some while with the appropriate solution
+> > > when it's ready instead of stubbornly pushing crap?
+> > > 
+> > > ~Vitaly
+> > 
+> > Because quite frankly, for a good part of linux users, suspend blockers
+> > is already in the kernel. It's just an historical mistake that they are
+> > not in the linux kernel's hosted on kernel.org. 
+> 
+> No, it's not a historical mistake. It's a technical decision _NOT_ to
+> merge crap. If we would accept every crappy patch which gets shipped
+> in large quantities as a defacto part of the kernel we would have a
+> completely unmaintainable mess since years.
+> > So why don't we do what we always do? Improve existing interfaces step
+> > by step? 
+> 
+> Exactly, that's what we are going to do. We improve and extend
+> existing interfaces step by step, but not by creating a horrible and
+> unmaintainable mess in the frist place which we can never get rid of
+> anymore.
 
-Since uart tty interface name as been modified with this driver.
+Ok to your two paragraphs. I can understand this. 
 
-+#define OMAP_SERIAL_NAME       "ttyO"
+Nonetheless, i'm convinced that there has to be some solution in
+mainline to allow for what android does. But perhaps it needs more
+refactoring and piggybagging on some more general constraint interface.
 
----
-Regards,
-Govindraj.R
+> 
+> > Top Down approaches fail from time to time. Also it is not clear, that
+> > that proposed interface works for the use cases. This has to be proven
+> > by providing an implementation. 
+> 
+> Nobody prevents you to sit down and start with a prove of concept
+> implementation.
 
+Hmm... *scratch*... *lookaround* .. who?
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Really, I'd first like to get the whole picture before doing anything.
+
+> 
+> Thanks,
+> 
+> 	tglx
