@@ -1,62 +1,79 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
+From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 15:26:41 +0300
-Message-ID: <4BFFB681.1000105@nokia.com>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>	<20100527220949.GB10602@srcf.ucam.org>	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>	<20100527223605.GB11364@srcf.ucam.org>	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>	<20100528043114.GC26177@thunk.org>	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk> <20100528114123.GA22947@srcf.ucam.org>
+Date: Fri, 28 May 2010 14:09:04 +0200
+Message-ID: <20100528140904.0d0d4878@schatten.dmk.lab>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	<alpine.LFD.2.00.1005271915540.3032@localhost.localdomain>
+	<20100527173118.GE2468@srcf.ucam.org>
+	<alpine.LFD.2.00.1005271959450.3032@localhost.localdomain>
+	<20100528104415.1403541a@schatten.dmk.lab>
+	<AANLkTikXtk-f41-z8gXfXLNLqgGVa0z4d-qgIvwljbR-@mail.gmail.com>
+	<20100528122521.3698a62e@schatten.dmk.lab>
+	<AANLkTikumixQTaKvlyaxjZgfCZNZXFM9LySJ2YZ4OVZf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:16737 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754346Ab0E1MEa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 08:04:30 -0400
-In-Reply-To: <20100528114123.GA22947@srcf.ucam.org>
+Received: from ist.d-labs.de ([213.239.218.44]:59626 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755279Ab0E1MJL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 08:09:11 -0400
+In-Reply-To: <AANLkTikumixQTaKvlyaxjZgfCZNZXFM9LySJ2YZ4OVZf@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+To: Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-ext Matthew Garrett wrote:
+On Fri, 28 May 2010 04:35:34 -0700
+Arve Hj=F8nnev=E5g <arve@android.com> wrote:
 
-> On Fri, May 28, 2010 at 10:37:13AM +0100, Alan Cox wrote:
->
->   
->> The other vendors appear to be managing nicely without magic blockers. I
->> conjecture therefore there are other solutions.
->>     
->
-> Actually, no. A badly behaved application will kill the N900's battery 
-> life. Nobody else has "managed nicely" - they've just made life harder 
-> for application developers and users, which may have something to do 
-> with the relative levels of market adoption of Maemo and Android. I'm 
-> not aware of any form of resource management framework in MeeGo either, 
-> so as far as I know it'll have exactly the same problem.
->
->   
-It's true that a braindead app can kill the battery.
+> 2010/5/28 Florian Mickler <florian@mickler.org>:
 
-However we provide a version of powertop that is tailored to the N900, 
-there is a nokia energy profiler meant to give graphical representation 
-of the battery current, there is htop available and you can even get the 
-processor activity visualized on the leftmost and rightmost keyboard 
-backlight LEDS, when in RD mode and with screen blanked.
+> > It sounds like it could save some duplication of effort to integrat=
+e
+> > suspend into the idle-framework. "Purpose-fulness" could be just
+> > another measure of "idle".
+> >
+>=20
+> To me idle means that no threads are ready to run and no interrupts a=
+re pending.
 
-I would advice you to not start debating on company strategies, this is 
-not the right place.
+I misused the term "idle".  I tried to express this by "quoting" it.
 
-Otherwise I'll have to ask what's the expected threshold of devices sold 
-with broken sw design to get automatic admission into the mainline 
-kernel source tree.
+>=20
+> I don't think we can plug suspend in as a cpu idle state. 1. we want
+> to suspend even the cpu is not idle. 2. starting suspend will cause
+> the cpu to not be idle.
+>=20
 
-But this is not the direction we want to take.
+yeah. it would have to move out of the cpu-specific context. it would
+be a more general "system-state" thing.
 
-Notice also that we _do_ have a store and official repository where apps 
-are monitored for sanity, also with feedback from users and their help 
-to promote new apps to trusted state.
+if the properties of the state's are well expressed, it does not matter
+that starting suspend will cause the cpu to not be idle, because our
+target-state(suspend) has better properties than any other state.
 
-Former Maemo 6, now MeeGo do introduce resource management from security 
-POV, but that will also have the side effect of discriminating between 
-signers.
+(or maybe there needs to be a "state-transition-in-flight" flag.)
 
-igor
+if we take the "approximated duration of staying in that state" into
+account, we could provoke the pm-framework to always suspend if no
+constraint(i.e. blocker) is there.
+
+But really. I think I can't implement something like that.
+Also I really have _no_ idea how much work this would be.
+
+_And_ I am not really shure if this is a better approach than the
+current solution.
+
+Just an idea.=20
+
+Cheers,
+=46lo
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
