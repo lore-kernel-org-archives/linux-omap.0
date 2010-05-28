@@ -1,23 +1,20 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 17:06:47 -0700
-Message-ID: <20100528000647.GB8645@core.coreip.homeip.net>
-References: <Pine.LNX.4.44L0.1005271344040.3239-100000@iolanthe.rowland.org>
- <20100527181433.GG3543@srcf.ucam.org>
- <20100527200313.5c532f2f@lxorguk.ukuu.org.uk>
- <201005280110.17075.rjw@sisk.pl>
- <20100528005045.6ea5feba@lxorguk.ukuu.org.uk>
+Date: Fri, 28 May 2010 02:39:14 +0200
+Message-ID: <201005280239.14819.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1005271344040.3239-100000@iolanthe.rowland.org> <201005280110.17075.rjw@sisk.pl> <20100528005045.6ea5feba@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <20100528005045.6ea5feba@lxorguk.ukuu.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Brian Swetland <swetland@google.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 28, 2010 at 12:50:45AM +0100, Alan Cox wrote:
+On Friday 28 May 2010, Alan Cox wrote:
 > > That's correct, but to me the Arve's goal is simply to maximize battery life
 > > and he found experimentally that the longest battery life is achieved if
 > > system suspend is used whenever the system doesn't need to be active (from its
@@ -41,7 +38,9 @@ On Fri, May 28, 2010 at 12:50:45AM +0100, Alan Cox wrote:
 > what would need to answer ?
 > 
 > - How do we define who matters: QoS ?
-> 
+
+That's reasonable IMO.
+
 > - Can you describe "idle" in terms of QoS without then breaking the
 >   reliable wakeup for an event (and do you need to ?)
 > 
@@ -58,12 +57,56 @@ On Fri, May 28, 2010 at 12:50:45AM +0100, Alan Cox wrote:
 > 	unacceptable. (wake_up_pri(&queue, priority); isn't going to
 > 	kill anyone is it - especially if it usually ignores the
 > 	priority argument)
+> 
+> 	I am curious Thomas how that would tie in with PI in the RT
+> 	world, it's effectively inheriting priority from the users finger.
+> 
+> - Would a model where the UI side behaviour looked like
+> 
+> 	Timeout
+> 	Screen Off
+> 	Set QoS of 'user apps' to QS_NONE
+> 
+> 	Event
+> 	[Some chain of activity]
+> 	Screen On
+> 	Set QoS of 'user apps' to QS_ABOVESUSPEND
+> 
+>   do the job combined with the ability to see who is stopping us dropping
+>   to suspend so user space can take action. This could be a data table
+>   from the Android cpu manager provided to Android specific policy in
+>   whoever owns the display.
+> 
+> 
+> If so how do we fix the UI policy code doing
+> 
+> 	Screen Off
+> 					Button Press
+> 					task to QS_ABOVESUSPEND
+> 	task to QS_NONE
+> 
+> without touching the app userspace code
+> 
+> 
+> Perhaps
+> 
+> 	count2 = tasks to QS_NONE | QS_NOTCHANGED
+> 	Screen off
+> 					Button Press
+> 					task to QS_ABOVESUSPEND
+> 	count = tasks that are QS_NOTCHANGED to QS_NONE
+> 
+> 	if (count != count2) {
+> 		Stuff happened ... rethink
+> 	}
+> 
+> That is still a bit weird and wonderful but all the logic is in the right
+> places. The special magic remains in the Android policy code and in the
+> kernel specifics for Android.
+> 
+> Thoughts ?
 
-That should probably go into higher levels, not in individual drivers,
-so we should be able to limit spreading of wake_up_pri() or whatever
-throughout the tree.  This particular case should be probably handled by
-evdev raising QoS of the user that is opened particular
-/dev/input/eventX.
+Hmm.  How do we prevent the "non-relevant" tasks from being scheduled
+once we've decided to go for power saving?
 
--- 
-Dmitry
+Rafael
