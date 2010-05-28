@@ -1,108 +1,58 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 09:03:49 +0200
-Message-ID: <20100528090349.64112e8a@schatten.dmk.lab>
-References: <1274482015-30899-1-git-send-email-arve@android.com>
-	<201005242049.18920.rjw@sisk.pl>
-	<87wrusvrqe.fsf@deeprootsystems.com>
-	<201005250138.16293.rjw@sisk.pl>
-	<1274863655.5882.4875.camel@twins>
-	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
-	<1274867106.5882.5090.camel@twins>
-	<20100526120242.5c9b73ad@schatten.dmk.lab>
-	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
-	<20100526133721.602633b2@schatten.dmk.lab>
-	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
-	<20100526142430.327ccbc4@schatten.dmk.lab>
-	<877hmon5em.fsf@gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v2] serial: Add OMAP high-speed UART driver
+Date: Fri, 28 May 2010 12:41:29 +0530
+Message-ID: <AANLkTikta1db8KHV2Crz1zJEagmcOI20mSnXYUq02sZ5@mail.gmail.com>
+References: <58269.192.168.10.88.1274708590.squirrel@dbdmail.itg.ti.com>
+	<87wruqmg85.fsf@deeprootsystems.com>
+	<201005271100.41305.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:43160 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754827Ab0E1HD5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 May 2010 03:03:57 -0400
-In-Reply-To: <877hmon5em.fsf@gmail.com>
+Received: from mail-qy0-f183.google.com ([209.85.221.183]:54241 "EHLO
+	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754677Ab0E1HLc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 03:11:32 -0400
+In-Reply-To: <201005271100.41305.luke@dashjr.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gamari <bgamari.foss@gmail.com>
-Cc: Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Luke-Jr <luke@dashjr.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Thu, 27 May 2010 22:09:37 -0400
-Ben Gamari <bgamari.foss@gmail.com> wrote:
+On Thu, May 27, 2010 at 9:30 PM, Luke-Jr <luke@dashjr.org> wrote:
+> On Wednesday 26 May 2010 05:48:58 pm Kevin Hilman wrote:
+>> FYI... this also works on OMAP2.
+>>
+>> I tested it on my n810 along with UART hwmod conversion and it works
+>> just fine there.
+>
+> Is it somehow different from the basic 8250 driver on OMAP2? I've bee=
+n
+> struggling to figure out why my N810's GPS isn't working when I chang=
+e kernels
+> (I've already made sure ttyS0 is the correct major/minor and adjusted=
+ the GPIO
+> calls; gpiodriver is talking to the chip, but not getting anywhere).
 
-> On Wed, 26 May 2010 14:24:30 +0200, Florian Mickler <florian@mickler.org> wrote:
-> > Because he is using a robust kernel that provides suspend blockers and
-> > is preventing the vampire from sucking power? 
-> > 
-> Suspend blockers are only a flawed and indirect way to keep the vampire
-> from sucking.
-> 
+You need to use ttyO0 [%s/ttyS*/ttyO*]
+
+Since uart tty interface name as been modified with this driver.
+
++#define OMAP_SERIAL_NAME       "ttyO"
+
+---
+Regards,
+Govindraj.R
 
 
-
-> > Most users don't even grasp the simple concept of different "programs".
-> > They just have a device and click here and there and are happy. 
-> > 
-> > Really, what are you getting at? Do you deny that there are programs,
-> > that prevent a device from sleeping? (Just think of the bouncing
-> > cows app)
-> 
-> He's getting at the fact that there are much better ways to deal with
-> this problem. The issue here is that we seem to be expected to swallow
-> whatever Google throws at us, regardless of the quality of the
-> solution. It seems like the best argument we have for merging is "we
-> couldn't think of anything better and we need it yesterday." This might be
-> a good enough reason for shipping, but it certainly doesn't satisfy the
-> requirements for merging.
-
-I don't disagree on the quality. But I don't think it is because of the
-patches, but because of how the kernel is architectured in that area
-(suspend not being an idle state).
-
-Look, probably suspend needs to be integrated into the idle states and
-used from there. I could imagine a cost-specification for idle states:
-
-c3
-	cost-to-transition-to-this-state: X 
-	powersavings-per-time: Y
-	expected time we stay in this state: relative short, there is a
-	timer sheduled
-	suspend-blockers: ignored
-
-suspend 
-	cost-to-transition-to-this-state: depends, how much drivers to
-	suspend, how much processes to freeze, ...
-	powersavings-per-time: Y
-	expected time we stay in this state: long, independent of
-	sheduled timers
-	suspend-blockers: need not be activated
-
-Now, a governor could compute if it is ok, to enter suspend or only
-wait for idle-c3. And maybe it would never transition from idle-c3 to
-suspend but only from c1. because the cost to enter suspend would mean
-it just has to go to c1 anyway.
-
-what do ya think?
-
-> > And if you have two kernels, one with which your device is dead after 1
-> > hour and one with which your device is dead after 10 hours. Which would
-> > you prefer? I mean really... this is ridiculous. 
-> 
-> It is absolutely not. If you want to keep power usage down, then
-> implement real resource management in the scheduler. Suspend blockers
-> are nothing but a clunky and ineffective means of resource allocation.
-> As has been pointed out in this thread, there are much better ways of
-> dealing with this problem.
-> 
-> - Ben
-
-I think this has to be independently to the scheduler, because as soon
-as the user interacts with the phone, everything needs to be scheduled.
-even the stuff that doesn't directly interact with the user.
-as soon as _nothing_ interacts with the user, the phone does schedule
-_nothing_ anymore.
-
-Cheers,
-Flo
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
