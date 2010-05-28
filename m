@@ -1,93 +1,66 @@
-From: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 13:27:13 -0400
-Message-ID: <20100528172713.GA7444@gibbs.hungrycats.org>
-References: <20100528114123.GA22947@srcf.ucam.org>
- <4BFFB681.1000105@nokia.com>
- <AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
- <4BFFC5DF.5030504@nokia.com>
- <20100528133900.GG26177@thunk.org>
- <4BFFCFC7.7070302@nokia.com>
- <20100528142124.GA26733@srcf.ucam.org>
- <AANLkTilj6i7Qi-eh7e3WWeh4zxKALqr-0yhAvWKis52t@mail.gmail.com>
- <20100528160628.7c121dab@lxorguk.ukuu.org.uk>
- <AANLkTin3suKfGBSfiDj0n8ztY8UiHzr4af_Cr0SPOevY@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: omap3 pm: dependency between opp layer and cpufreq
+Date: Fri, 28 May 2010 10:57:52 -0700
+Message-ID: <876327ewnz.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>
+	<4BFE9D7E.8020602@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com>
+	<7A436F7769CA33409C6B44B358BFFF0C0132DE0A84@dlee02.ent.ti.com>
+	<068A0169-7F7B-46D6-B3B6-462EEFB66026@student.utwente.nl>
+	<4BFFC622.90904@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E71FE512@dbde02.ent.ti.com>
+	<4BFFCB6B.50005@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E71FE537@dbde02.ent.ti.com>
+	<1275065163.10319.5.camel@Nokia-N900-51-1>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTin3suKfGBSfiDj0n8ztY8UiHzr4af_Cr0SPOevY@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, Igor Stoppa <igor.stoppa@nokia.com>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f204.google.com ([209.85.222.204]:36203 "EHLO
+	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752334Ab0E1R56 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 13:57:58 -0400
+Received: by pzk42 with SMTP id 42so706345pzk.4
+        for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 10:57:57 -0700 (PDT)
+In-Reply-To: <1275065163.10319.5.camel@Nokia-N900-51-1> (Nishanth menon's message of "Fri\, 28 May 2010 18\:46\:03 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth menon <menon.nishanth@gmail.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "Menon, Nishanth" <nm@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-omap@vger.kernel.org, eduardo.valentin@nokia.com
 
-On Fri, May 28, 2010 at 08:13:08AM -0700, Brian Swetland wrote:
-> On Fri, May 28, 2010 at 8:06 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> > They fix a general problem in terms of a driver specific item. We end up
-> > making changes around the tree but we make everyone happy not just
-> > Android. Also we are isolating policy properly. The apps and drivers say
-> > "I have these needs", the power manager figures out how to meet them.
-> 
-> That makes sense -- and as I've mentioned elsewhere, we're really not
-> super picky about naming -- if it turns out that
-> wakelocks/suspendblockers were shorthand for "request a qos constraint
-> that ensures that threads are running", we'll be able to get things
-> done just as well as we do now.
+Nishanth menon <menon.nishanth@gmail.com> writes:
 
->From my reading of this thread, there's a lot of overlap between
-suspendblockers and constraints.  Many use cases are served equally
-well with one or the other, except for one:  a case where an event that
-should ultimately wake the system triggers a code execution path (or data
-flow path) that wanders through a user-space full of complex interacting
-processes where the kernel (and maybe even the processes) can't see it.
+[...]
 
-Suspend-blockers in user-space handle this by making such code/data paths
-visible to the kernel.  An all-kernel constraint-based approach has no
-way to see the user-space paths, so the system will end up trying to
-sleep when it should be waking up.
+>> 'mpurate' is usually used when cpufreq is not required. It
+>> means - set me up for the specified freq and forget it. There
+>> is no further change needed/ possible.
+>
+> That opens up the question - why not use cpufreq with userspace
+> governor instead?  Esp if u dont want a change in freq, ok i get the
+> part where u'd like a single freq for the system to function at, but
+> u also mention, mpurate is for systems that dont care abt any other
+> dependencies. So, bit of a contradiction if it depends on scaling
+> voltage to the right level aka u are selecting an freq from opp
+> table.
+>
+> This in my mind means u shud modify mpurate to use opp layer aka
+> another user beyond cpufreq.
 
-Wait, what?  Surely all the user-space code handling such events is
-running under a PM-QoS constraint that says "don't sleep if this process
-is runnable," so the system won't go to sleep.  Presumably all other
-processes which don't handle wakeup events will be running under a
-PM-QoS constraint that says "do sleep even if this process is runnable."
+>>
+>> You could always argue that it can be done in u-boot; but this
+>> bootarg helps people choose target freq keeping the u-boot same.
+>
+> Errr..... Makes me feel that u shud really be using cpufreq instead! Either way
+> i am not completely convinced u shud be doing voltage scaling when using
+> mpurate given ur description- if u are trying to write a new cpufreq layer, why
+> not fix why cpufreq doesn't work for u and help the rest of us as well ;)
 
-That's true, except for one common case:  a process is drawing things on
-the display on behalf of other processes, and that drawing process can't
-have the "don't sleep" constraint because if it did the system would
-seem to be continuously busy and never go to sleep.  Any process that is
-handling a critical event but also needs to talk to the display process
-will end up being not-runnable, and the system may go to sleep before the
-display process wakes up.  So we need another PM-QoS constraint that says
-"don't sleep even if this process isn't runnable, because some *other*
-runnable process might do something that makes our critical process
-runnable again."  The critical event handling app would switch to this
-PM-QoS constraint until it had received an ack from whatever it talked
-to in user-space, then switch back to the "don't sleep if this process
-is runnable" state until a new event comes in.
+Personally, I'm not opposed to supporting mpurate= (with CPUfreq
+disabled) as this would also have the benefit of allowing a smaller
+kernel if you really don't want DVFS.
 
-So, three constraint policies should do it (*):
+After getting he right voltage from the OPP layer, what interface are
+you planning to use to actually scale the voltage?  SR?  new voltage
+layer directly?
 
-	1.  Do sleep even if this process is runnable,
-
-	2.  Don't sleep if this process is runnable, and
-
-	3.  Don't sleep even if this process isn't runnable, as long as
-	at least one other runnable process exists somewhere on the
-	system.
-
-"Runnable" would include tasks that are literally runnable as well as
-tasks that aren't runnable but are presumed to be imminently runnable
-(e.g. blocked on timers that are going to expire before the wakeup
-latency).
-
-"Sleep" means going into any state where the scheduler doesn't run
-any tasks.  That covers most CPU idle modes, deep power saving states,
-ACPI suspend, or whatever.
-
-(*) or you could define a "please stop wasting CPU" message in user-space,
-and send that message to anything in user-space which has a PM-QoS
-constraint better than "none" whenever something in user-space thinks
-the user has gone away.  Then the display process can have constraint #2,
-and we don't need #3.
+Kevin
