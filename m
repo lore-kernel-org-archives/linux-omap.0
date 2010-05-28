@@ -1,53 +1,68 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] omap: Fix build break with omap3_defconfig
-Date: Fri, 28 May 2010 21:23:42 +0530
-Message-ID: <1275062022-15067-1-git-send-email-santosh.shilimkar@ti.com>
+From: Florian Mickler <florian@mickler.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 17:53:54 +0200
+Message-ID: <20100528175354.7e6a73d1@schatten.dmk.lab>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	<20100527220949.GB10602@srcf.ucam.org>
+	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
+	<20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
+	<AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
+	<20100528132138.2d802d77@lxorguk.ukuu.org.uk>
+	<1275049836.1645.1.camel@laptop>
+	<20100528140236.3214929e@lxorguk.ukuu.org.uk>
+	<1275052817.1645.64.camel@laptop>
+	<1275058794.27810.9571.camel@twins>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36962 "EHLO bear.ext.ti.com"
+Received: from ist.d-labs.de ([213.239.218.44]:35768 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752489Ab0E1Pxt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 May 2010 11:53:49 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4SFriIx017778
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 10:53:46 -0500
+	id S1758892Ab0E1PyE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 May 2010 11:54:04 -0400
+In-Reply-To: <1275058794.27810.9571.camel@twins>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-15?Q?Hj=F8nnev=E5?= =?ISO-8859-15?Q?g?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-With latest linus's tip omap3_defconfig is broken.
+On Fri, 28 May 2010 16:59:54 +0200
+Peter Zijlstra <peterz@infradead.org> wrote:
 
->From the commit 8feb337475aaf, board-omap3stalker.c seems to
-be missed out.
+> So lets look at the problem, we want to be frugal with power, this means
+> that the system as a whole should strive to do nothing. And we want to
+> enforce this as strict as possible.
 
- LD      init/built-in.o
-  LD      .tmp_vmlinux1
-arch/arm/mach-omap2/built-in.o: In function `ads7846_dev_init':
-linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:542: undefined reference to `omap_set_gpio_debounce'
-linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:543: undefined reference to `omap_set_gpio_debounce_time'
-make: *** [.tmp_vmlinux1] Error 1
+An interesting thought might be to add the costs of staying in
+a state versus going to a lower power state into consideration. 
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/board-omap3stalker.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+If the system is busy doing stuff it would need to do anyway (today
+stuff that is guarded/annotated by the suspend blockers) , the costs for
+not being in suspend have to be paid anyway. So it is opportune for
+processes to run. Even if they by themselves would not justify the
+system running. 
 
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index f848ba8..a04cffd 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -538,9 +538,7 @@ static void ads7846_dev_init(void)
- 		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
- 
- 	gpio_direction_input(OMAP3_STALKER_TS_GPIO);
--
--	omap_set_gpio_debounce(OMAP3_STALKER_TS_GPIO, 1);
--	omap_set_gpio_debounce_time(OMAP3_STALKER_TS_GPIO, 0xa);
-+	gpio_set_debounce(OMAP3_STALKER_TS_GPIO, 310);
- }
- 
- static int ads7846_get_pendown_state(void)
--- 
-1.6.0.4
+If instead nothing system-relevant has to be done, the costs of running
+anything non-relevant is the full amount of battery-life that could
+be saved by suspending + (some minor) running costs. 
 
+Also if there is much work to do (many tasks) its more likely that it's
+good to do the work.
+
+something along the lines :
+
+(amount of energy saved by being in suspend) / (number of tasks we
+would run if we werent suspended) *
+some_parameter_for_this_tasks_importance (which falls clearly into
+scheduler-territory)
+
+And if this goes above some threshold we run it.
+
+But this isn't easily done in a robust way.
+Also it complicates things. 
+
+Cheers,
+Flo
