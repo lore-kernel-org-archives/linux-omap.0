@@ -1,87 +1,166 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 23:44:49 +0200
-Message-ID: <201005282344.49892.rjw@sisk.pl>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk> <1275052817.1645.64.camel@laptop> <1275058794.27810.9571.camel@twins>
+Date: Fri, 28 May 2010 14:53:31 -0700
+Message-ID: <AANLkTimqHZsm2g-yzl_XF0Wmtt9QZ9wfmLKaxJDWc5im@mail.gmail.com>
+References: <20100527223605.GB11364@srcf.ucam.org>
+	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+	<20100528043114.GC26177@thunk.org>
+	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+	<20100528114123.GA22947@srcf.ucam.org>
+	<4BFFB681.1000105@nokia.com>
+	<AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+	<4BFFC5DF.5030504@nokia.com>
+	<20100528133900.GG26177@thunk.org>
+	<4BFFCFC7.7070302@nokia.com>
+	<20100528142124.GA26733@srcf.ucam.org>
+	<AANLkTilj6i7Qi-eh7e3WWeh4zxKALqr-0yhAvWKis52t@mail.gmail.com>
+	<20100528160628.7c121dab@lxorguk.ukuu.org.uk>
+	<AANLkTin3suKfGBSfiDj0n8ztY8UiHzr4af_Cr0SPOevY@mail.gmail.com>
+	<20100528173151.2c5f6fde@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54188 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751576Ab0E1Vnt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 May 2010 17:43:49 -0400
-In-Reply-To: <1275058794.27810.9571.camel@twins>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:41592 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750705Ab0E1Vxc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 17:53:32 -0400
+In-Reply-To: <20100528173151.2c5f6fde@lxorguk.ukuu.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?utf-8?q?Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Brian Swetland <swetland@google.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Igor Stoppa <igor.stoppa@nokia.com>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-On Friday 28 May 2010, Peter Zijlstra wrote:
-> On Fri, 2010-05-28 at 15:20 +0200, Peter Zijlstra wrote:
-> > On Fri, 2010-05-28 at 14:02 +0100, Alan Cox wrote:
-> > > On Fri, 28 May 2010 14:30:36 +0200
-> > > Peter Zijlstra <peterz@infradead.org> wrote:
-> > > 
-> > > > On Fri, 2010-05-28 at 13:21 +0100, Alan Cox wrote:
-> > > > > [Total kernel changes
-> > > > > 
-> > > > >         Ability to mark/unmark a scheduler control group as outside of
-> > > > >         some parts of idle consideration. Generically useful and
-> > > > >         localised. Group latency will do most jobs fine (Zygo is correct
-> > > > >         it can't solve his backup case elegantly I think)
-> > > > > 
-> > > > >         Test in the idling logic to distinguish the case and only needed
-> > > > >         for a single Android specific power module. Generically useful
-> > > > >         and localised] 
-> > > > 
-> > > > I really don't like this..
-> > > > 
-> > > > Why can't we go with the previously suggested: make bad apps block on
-> > > > QoS resources or send SIGXCPU, SIGSTOP, SIGTERM and eventually SIGKILL
-> > > 
-> > > Ok. Are you happy with the QoS being attached to a scheduler control
-> > > group and the use of them to figure out what is what ?
-> > 
-> > Up to a point, but explicitly not running runnable tasks complicates the
-> > task model significantly, and interacts with fun stuff like bandwidth
-> > inheritance and priority/deadline inheritance like things -- a subject
-> > you really don't want to complicate further.
-> > 
-> > We really want to do our utmost best to make applications block on
-> > something without altering our task model.
-> > 
-> > If applications keep running despite being told repeatedly to cease, I
-> > think the SIGKILL option is a sane one (they got SIGXCPU, SIGSTOP and
-> > SIGTERM before that) and got ample opportunity to block on something.
-> > 
-> > Traditional cpu resource management treats the CPU as an ever
-> > replenished resource, breaking that assumption (not running runnable
-> > tasks) puts us on very shaky ground indeed.
-> 
-> Also, I'm not quite sure why we would need cgroups to pull this off.
-> 
-> It seems most of the problems the suspend-blockers are trying to solve
-> are due to the fact of not running runnable tasks. Not running runnable
-> tasks can be seen as assigning tasks 0 bandwidth. Which is a situation
-> extremely prone to all things inversion. Such a situation would require
-> bandwidth inheritance to function at all, so possibly we can see
-> suspend-blockers as a misguided implementation of that.
+On Fri, May 28, 2010 at 9:31 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wr=
+ote:
+>> I think Arve's concern was the representation of the "I care, but on=
+ly
+>> a little" or "just low enough to ensure threads must run" level whic=
+h
+>> is what suspend blockers would map to (low enough to ensure we
+>> shouldn't halt the world but not necessarily implying a hard latency
+>> constraint beyond that).
+>
+> That's why I suggested "manyana" (can't get accents for ma=F1ana in a
+> define) or perhaps "dreckly"[1]. They are both words that mean "at so=
+me
+> point" but in a very very vague and 'relax it'll happen eventually' s=
+ense.
+>
+> More importantly it's policy. It's a please meet this constraint guid=
+e
+> to the PM layer - not a you must do as say even if its stupid.
 
-I think this is a matter of what is regarded as a "runnable task".  Some
-tasks may not even be regarded as runnable in specific power conditions,
-although otherwise they would be.
+Huh?
 
-Consider updatedb or another file indexing ... thing on a laptop.  I certainly
-don't want anything like this to run and drain my battery, even if it has
-already been started when the machine was on AC power.  Now, of course,
-I can kill it, but for that I need to notice that it's running and it presumably
-might have done some job already and it would be wasteful to lose it.
-It would be quite nice if that app was not regarded as runnable when the
-system was on battery power.
+>
+>> > They fix a general problem in terms of a driver specific item. We =
+end up
+>> > making changes around the tree but we make everyone happy not just
+>> > Android. Also we are isolating policy properly. The apps and drive=
+rs say
+>> > "I have these needs", the power manager figures out how to meet th=
+em.
+>>
+>> That makes sense -- and as I've mentioned elsewhere, we're really no=
+t
+>> super picky about naming -- if it turns out that
+>> wakelocks/suspendblockers were shorthand for "request a qos constrai=
+nt
+>> that ensures that threads are running", we'll be able to get things
+>> done just as well as we do now.
+>
+> Cool. I think they are or at least they are close enough that nobody =
+will
+> notice the join ;)
+>
+>> > Where it gets ugly is if you start trying to have drivers giving a=
+n app a
+>> > guarantee which the app then magically has to know to dispose of.
+>>
+>> Yeah -- which is something we've avoided in the existing model with
+>> overlapping wakelocks during handoff between domains.
+>
+> I'm not sure avoided is the right description - its there in all its
+> identical ugliness in wakelock magic
+>
+> If you treat QoS guarantees as a wakelock for your purposes (which is
+> just fine, drivers and apps give you policy, you use it how you like)
+> then you could write the paragraph below substituting the word
+> 'guarantee' for 'wakelock' So in that sense the mess is the same beca=
+use
+> in both cases you are trying to suspend active tasks rather than aski=
+ng
+> the task to behave and then taking remedial action with offenders.
+>
+>> - input service is select()ing on input devices
+>> - when select() returns it grabs a wakelock, reads events, passes th=
+em
+>> on, releases the wakelock
+>> - the event subsystem can then safely drop its "should be running
+>> threads" constraint as soon as the last event is read because it has
+>> no queues for userspace to drain, but the overlapping wakelock
+>> prevents the system from immediately snapping back to sleep
+>
+> The conventional PC model is 'we don't go back into sleep proper fast
+> enough for that race to occur'.
 
-In my view that's quite analogous to the Android situation, when they simply
-don't want some tasks to be regarded as runnable in specific situations.
+This is the same as saying these two threads don't run often enough to
+need a mutex around their critical section. Just because you have not
+been bitten by the race yet, does not mean it does not exist.
 
-Rafael
+> It's hard to see how you change it. An
+
+If each layer prevents suspend while it knows there are pending events
+you don't have a race. Suspend blockers lets you do this.
+
+> app->device "thank you for that event, I enjoyed it very much and hav=
+e
+> finished with it" message moves the underlying event management and Q=
+oS
+> knowledge into he driver proper but doesn't really change the interfa=
+ce.
+>
+Yes you can do this, and it it how the android alarm driver works, but
+we found the select()/poll(), block suspend, read event, process event
+then unblock suspend sequence cleaner (especially for interfaces that
+can return more than one event at a time). Kernel suspend blocker lets
+you implement the alarm driver model, adding user-space suspend
+blockers lets you implement the second.
+
+>> > If you are prepared to exclude untrusted apps from perfectly relia=
+ble
+>> > event reporting (ie from finger to application action) that doesn'=
+t seem
+>> > to be a neccessity anyway.
+>>
+>> Currently in the Android userpace only trusted (system) apps can
+>> directly obtain wakelocks -- arbitrary apps obtain them via rpc to a
+>> trusted system service (which ensures the app has been granted
+>> permission to do this and tracks usage for accountability to
+>> user/developer).
+>
+> Clearly that would continue to work out.
+>
+> Alan
+> [1] Dreckly being used in Cornwall, as one friend put it 'Like man=E3=
+na but
+> without that dreadful sense of urgency'
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at =A0http://www.tux.org/lkml/
+>
+
+
+
+--=20
+Arve Hj=F8nnev=E5g
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
