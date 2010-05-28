@@ -1,51 +1,91 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Sat, 29 May 2010 00:24:22 +0200
-Message-ID: <201005290024.22915.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<20100528104415.1403541a@schatten.dmk.lab>
-	<AANLkTikXtk-f41-z8gXfXLNLqgGVa0z4d-qgIvwljbR-@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Sat, 29 May 2010 02:42:35 +0300
+Message-ID: <AANLkTinyh1YLmL6miVAxvkh9RMYDY5JChA-_f7oN0zvb@mail.gmail.com>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	<20100527220949.GB10602@srcf.ucam.org>
+	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100527223605.GB11364@srcf.ucam.org>
+	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+	<20100528043114.GC26177@thunk.org>
+	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+	<20100528114123.GA22947@srcf.ucam.org>
+	<4BFFB681.1000105@nokia.com>
+	<AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+	<4BFFC5DF.5030504@nokia.com>
+	<AANLkTikKGeGHHL6AYC7uBuT7Zihj7lozfidWQ8zRHwab@mail.gmail.com>
+	<4BFFCF39.3010507@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <AANLkTikXtk-f41-z8gXfXLNLqgGVa0z4d-qgIvwljbR-@mail.gmail.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4BFFCF39.3010507@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Igor Stoppa <igor.stoppa@nokia.com>
+Cc: ext Brian Swetland <swetland@google.com>, ext Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 28 May 2010, Arve Hj=F8nnev=E5g wrote:
-> On Fri, May 28, 2010 at 1:44 AM, Florian Mickler <florian@mickler.org> wr=
+On Fri, May 28, 2010 at 5:12 PM, Igor Stoppa <igor.stoppa@nokia.com> wr=
 ote:
-> > On Thu, 27 May 2010 20:05:39 +0200 (CEST)
-> > Thomas Gleixner <tglx@linutronix.de> wrote:
-...
-> > To integrate this with the current way of doing things, i gathered it
-> > needs to be implemented as an idle-state that does the suspend()-call?
-> >
-> =
+> ext Brian Swetland wrote:
+>> How is it flawed? =C2=A0Serious question.
+>
+> I would avoid repeating all the good arguments given so far, but to m=
+ake it
+> short:
+>
+> * I believe runtime PM is a much better starting point (at least for =
+the
+> type of HW targeted at mobile devices) because it mimics an always-on=
+ system
+> toward userspace, which requires less disruption in the way apps are
+> designed
 
-> I think it is better no not confuse this with idle. Since initiating
-> suspend will cause the system to become not-idle, I don't think is is
-> beneficial to initiate suspend from idle.
+I agree.
 
-It is, if the following two conditions hold simultaneously:
+If I understand correctly, if we have a perfect user-space that only
+does work when strictly needed and trying to do it in bursts, then we
+would be reaching the lowest power state, and there would be no need
+for suspend. The problem is that Android's user-space is pretty far
+from that, so they said "let's segregate user-space and go to lower
+power mode anyway".
 
-(a) Doing full system suspend is ultimately going to bring you more energy
-    savings than the (presumably lowest) idle state you're currently in.
+If that's true, then this problem can be fixed in user-space, and in
+fact, it already is on N900. Good behaving applications are
+asynchronous, use g_timeout_add_seconds() to align bursts of work at
+the same second intervals, and don't do polls directly, but use GLib's
+mainloop. Same as in GNOME desktop. It seems there are other methods
+to align multiple processes for longer periods of time, but that code
+is closed and I can't find much information.
 
-(b) You anticipate that the system will stay idle for a considerably long t=
-ime
-    such that it's worth suspending.
+> * QoS is closer to the apps pov: fps if it is a media player or a gam=
+e,
+> transfer speed if it is a file manager, bandwidth if it is a network =
+app,
+> etc
+> The app is required to express its opinion by using a format that it
+> understands better and is less system dependent.
+> Actually the kernel should only be concerned with 2 parameters at mos=
+t for
+> any given operation: latency and bandwidth/throughput
 
-Thanks,
-Rafael
+I think this information can be obtained dynamically while the
+application is running, and perhaps the limits can be stored. It would
+be pretty difficult for the applications to give this kind of
+information because there are so many variables.
+
+=46or example, an media player can tell you: this clip has 24 fps, but
+if the user is moving the time slider, the fps would increase and drop
+very rapidly, and how much depends at least on the container format
+and type of seek.
+
+A game or a telephony app could tell you "I need real-time priority"
+but so much as giving the details of latency and bandwidth? I find
+that very unlikely.
+
+Cheers.
+
+--=20
+=46elipe Contreras
