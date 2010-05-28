@@ -1,77 +1,53 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] omap: Fix build break with omap3_defconfig
-Date: Fri, 28 May 2010 11:01:38 -0700
-Message-ID: <87typrdhx9.fsf@deeprootsystems.com>
-References: <1275062022-15067-1-git-send-email-santosh.shilimkar@ti.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 20:16:20 +0200
+Message-ID: <1275070580.1645.379.camel@laptop>
+References: <20100528114123.GA22947@srcf.ucam.org>
+	 <4BFFB681.1000105@nokia.com>
+	 <AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+	 <4BFFC5DF.5030504@nokia.com> <20100528133900.GG26177@thunk.org>
+	 <4BFFCFC7.7070302@nokia.com> <20100528142124.GA26733@srcf.ucam.org>
+	 <AANLkTilj6i7Qi-eh7e3WWeh4zxKALqr-0yhAvWKis52t@mail.gmail.com>
+	 <20100528160628.7c121dab@lxorguk.ukuu.org.uk>
+	 <AANLkTin3suKfGBSfiDj0n8ztY8UiHzr4af_Cr0SPOevY@mail.gmail.com>
+	 <20100528172713.GA7444@gibbs.hungrycats.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f204.google.com ([209.85.222.204]:56725 "EHLO
-	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752930Ab0E1SBm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 14:01:42 -0400
-Received: by pzk42 with SMTP id 42so707890pzk.4
-        for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 11:01:42 -0700 (PDT)
-In-Reply-To: <1275062022-15067-1-git-send-email-santosh.shilimkar@ti.com> (Santosh Shilimkar's message of "Fri\, 28 May 2010 21\:23\:42 +0530")
+Received: from casper.infradead.org ([85.118.1.10]:48178 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753516Ab0E1SQY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 14:16:24 -0400
+Received: from f199130.upc-f.chello.nl ([80.56.199.130] helo=dyad.programming.kicks-ass.net)
+	by casper.infradead.org with esmtpsa (Exim 4.71 #1 (Red Hat Linux))
+	id 1OI46Z-0007Zi-QN
+	for linux-omap@vger.kernel.org; Fri, 28 May 2010 18:16:23 +0000
+In-Reply-To: <20100528172713.GA7444@gibbs.hungrycats.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
+Cc: Brian Swetland <swetland@google.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, Igor Stoppa <igor.stoppa@nokia.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+On Fri, 2010-05-28 at 13:27 -0400, Zygo Blaxell wrote:
+> From my reading of this thread, there's a lot of overlap between
+> suspendblockers and constraints.  Many use cases are served equally
+> well with one or the other, 
 
-> With latest linus's tip omap3_defconfig is broken.
+If using suspend-blockers, 
 
-This subject/shortlog is not terribly useful for git history.  it
-should say something like
+Please explain to me how:
 
-OMAP: Stalker board: update usage of GPIO debounce API
+- I will avoid the cpu going into some idle state for which the wakeup
+latency is larger than my RT app fancies?
 
-or something like that.  The changelog should summarize that this
-API changed (or was removed) in mainline and the previous change
-that updated this API missed this board etc...
+- to avoid some tasks from being serviced by the filesystems whilst
+others are? (ionice on steroids).
 
-All of this can be deduced from reading the current patch and changelog,
-but it's better to summarize it in the changelog.
+- does my sporadic task (with strict bandwidth budget) not suffer
+bandwidth inversion?
 
-Thanks,
 
-Kevin
+suspend blockers do a bit of each of that, but none of it in a usable
+fashion.
 
-> From the commit 8feb337475aaf, board-omap3stalker.c seems to
-> be missed out.
->
->  LD      init/built-in.o
->   LD      .tmp_vmlinux1
-> arch/arm/mach-omap2/built-in.o: In function `ads7846_dev_init':
-> linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:542: undefined reference to `omap_set_gpio_debounce'
-> linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:543: undefined reference to `omap_set_gpio_debounce_time'
-> make: *** [.tmp_vmlinux1] Error 1
->
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3stalker.c |    4 +---
->  1 files changed, 1 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-> index f848ba8..a04cffd 100644
-> --- a/arch/arm/mach-omap2/board-omap3stalker.c
-> +++ b/arch/arm/mach-omap2/board-omap3stalker.c
-> @@ -538,9 +538,7 @@ static void ads7846_dev_init(void)
->  		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
->  
->  	gpio_direction_input(OMAP3_STALKER_TS_GPIO);
-> -
-> -	omap_set_gpio_debounce(OMAP3_STALKER_TS_GPIO, 1);
-> -	omap_set_gpio_debounce_time(OMAP3_STALKER_TS_GPIO, 0xa);
-> +	gpio_set_debounce(OMAP3_STALKER_TS_GPIO, 310);
->  }
->  
->  static int ads7846_get_pendown_state(void)
-> -- 
-> 1.6.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
