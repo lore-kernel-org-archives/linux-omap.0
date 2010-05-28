@@ -1,64 +1,79 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix board data to support device only, host
-	only and OTG roles.
-Date: Fri, 28 May 2010 23:55:40 +0800
-Message-ID: <AANLkTimobZ-5AxhI_nyctpj8g94LGwsV0KKW7UHTYv4r@mail.gmail.com>
-References: <20100521065218.GG925@nokia.com>
-	<420791.3389.qm@web180306.mail.gq1.yahoo.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB032194B74C@dbde02.ent.ti.com>
-	<AANLkTinIC2D8kQKSUdxMZVVSlIxYzVw1txqJrIN2DPne@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] omap4: mmc: Fix the regulator resource for MMC2
+Date: Fri, 28 May 2010 21:38:04 +0530
+Message-ID: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:46074 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758897Ab0E1Pzl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 11:55:41 -0400
-In-Reply-To: <AANLkTinIC2D8kQKSUdxMZVVSlIxYzVw1txqJrIN2DPne@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:55007 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758930Ab0E1QIJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 May 2010 12:08:09 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4SG86QF004647
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 11:08:08 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: David Brownell <david-b@pacbell.net>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mankad, Maulik Ojas" <x0082077@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Sukumar Ghorai <s-ghorai@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>
 
-sorry, some fixes.
+The MMC1 and MMC2 cards have seperate LDO supplies. Current code assumes
+that they are powered by same LDO.
 
-2010/5/28 Ming Lei <tom.leiming@gmail.com>:
-> 2010/5/28 Gadiyar, Anand <gadiyar@ti.com>:
->> David Brownell wrote:
->>
->> (Okay, I do know anyone who compiles a custom kernel of
->> this sort is likely capable of patching the board files
->> as needed to downgrade to the desired mode. But I still
->> think the patch at [1] is useful to have.)
->
-> David NAK the patch and it is the reason:
->
-> 1, don't support mini-A plug connected into mini-ab receptacle if
-> degrading to host-only role;
+This patch fixes the same and has VAUX1 as supply to MMC2 card.
 
- 1, don't support mini-B plug connected into mini-ab receptacle if
-  degrading to host-only role;
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Tested-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+Tested with omap3_defconfig on OMAP4430SDP
 
->
-> and
->
-> 2,don't support mini-B plug connected into mini-ab receptacle if
-> degrading to peripheral-only role.
+ arch/arm/mach-omap2/board-4430sdp.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-2,don't support mini-A plug connected into mini-ab receptacle if
-degrading to peripheral-only role.
-
-> This two cases may confuse users.
->
-> Maybe we can print messages to user to show the cases above.
-> Anyway, I don't mind if the patch is accepted or not.
->
->
-> --
-> Lei Ming
->
-
-
-
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 7a78986..f62042e 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -384,14 +384,16 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}	/* Terminator */
+ };
+ 
+-static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
++static struct regulator_consumer_supply sdp4430_vaux_supply[] = {
+ 	{
+ 		.supply = "vmmc",
+-		.dev_name = "mmci-omap-hs.0",
++		.dev_name = "mmci-omap-hs.1",
+ 	},
++};
++static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+ 	{
+ 		.supply = "vmmc",
+-		.dev_name = "mmci-omap-hs.1",
++		.dev_name = "mmci-omap-hs.0",
+ 	},
+ };
+ 
+@@ -447,6 +449,8 @@ static struct regulator_init_data sdp4430_vaux1 = {
+ 					| REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = sdp4430_vaux_supply,
+ };
+ 
+ static struct regulator_init_data sdp4430_vaux2 = {
+@@ -487,7 +491,7 @@ static struct regulator_init_data sdp4430_vmmc = {
+ 					| REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
+-	.num_consumer_supplies  = 2,
++	.num_consumer_supplies  = 1,
+ 	.consumer_supplies      = sdp4430_vmmc_supply,
+ };
+ 
 -- 
-Lei Ming
+1.6.0.4
+
