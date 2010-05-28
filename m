@@ -1,47 +1,133 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 17:12:09 +0300
-Message-ID: <4BFFCF39.3010507@nokia.com>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>	<20100527220949.GB10602@srcf.ucam.org>	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>	<20100527223605.GB11364@srcf.ucam.org>	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>	<20100528043114.GC26177@thunk.org>	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>	<20100528114123.GA22947@srcf.ucam.org>	<4BFFB681.1000105@nokia.com>	<AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>	<4BFFC5DF.5030504@nokia.com> <AANLkTikKGeGHHL6AYC7uBuT7Zihj7lozfidWQ8zRHwab@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: omap3 pm: dependency between opp layer and cpufreq
+Date: Fri, 28 May 2010 15:55:55 +0200
+Message-ID: <4BFFCB6B.50005@ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>,<4BFE9D7E.8020602@ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0C0132DE0A84@dlee02.ent.ti.com> <068A0169-7F7B-46D6-B3B6-462EEFB66026@student.utwente.nl> <4BFFC622.90904@ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301E71FE512@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikKGeGHHL6AYC7uBuT7Zihj7lozfidWQ8zRHwab@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Brian Swetland <swetland@google.com>
-Cc: ext Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48717 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754489Ab0E1N4E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 09:56:04 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E71FE512@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-ext Brian Swetland wrote:
+On 05/28/2010 03:42 PM, Premi, Sanjeev wrote:
+>> -----Original Message-----
+>> From: Menon, Nishanth
+>> Sent: Friday, May 28, 2010 7:03 PM
+>> To: Koen Kooi
+>> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org;
+>> eduardo.valentin@nokia.com; Kevin Hilman
+>> Subject: Re: omap3 pm: dependency between opp layer and cpufreq
+>>
+>> On 05/28/2010 10:56 AM, Koen Kooi wrote:
+>>>
+>>> Op 28 mei 2010, om 09:39 heeft Menon, Nishanth het volgende
+>> geschreven:
+>>>
+>>>>> -----Original Message-----
+>>>>> From: Premi, Sanjeev
+>>>>> Sent: Thursday, May 27, 2010 10:30 PM
+>>>>
+>>>> [...]
+>>>>
+>>>>>>
+>>>>>> 3) Was there any specific need to tie the functions
+>> "opp_get_voltage"
+>>>>> and others to cpufreq only?
+>>>>>
+>>>>> yes, because without cpufreq there is no transitions in
+>> the system :)
+>>>>>
+>>>>> [sp] I does - via bootarg - mpurate!
+>>>>>
+>>>>> When kernel boots, volatge must be set properly.
+>>>>> We cannot rely on u-boot to be settiing everything
+>> correctly. e.g. 720MHz
+>>>>> on OMAP3530 would fail at nominal 1.2V set by u-boot.
+>>>>
+>>>> I agree, but mpurate does not seem to use the cpufreq
+>> interfaces - so is
+>>>> kinda a question how it interfaces back ->   but note,
+>> mpurate tells us what
+>>>> the start freq is for the system - it still does no
+>> *dynamic* transitions -
+>>>> just a static startup frequency. But I agree, it assumes
+>> that if you provide
+>>>> mpurate, the system supposedly is operating at that
+>> frequency, aka all
+>>>> setups have been done for that operational
+>> frequency(including voltage)
+>>>
+>>> There's also a funny bug in the current (PSP)
+>> mpurate/cpufreq code. The mpurate code has a
+>>   >  check for 720MHz on 35xx silicon, but cpufreq doesnt. So I can do:
+>>>
+>>> setenv bootargs '<foo>   mpurate=720'
+>>>
+>>> And the kernel will say "unsupported" and not switch to
+>> 720MHz during boot. But if I do this after boot:
+>>>
+>>> cpufreq-set -f 720
+>>>
+>>> it *will* switch to 720MHz, even if the mpurate code
+>> explicitly forbids it. I tested on all the
+>>   >OMAP3 silicon I have and it will run at 720MHz fine, even
+>> if it's out
+>> of spec, so I'm happy with this bug :)
+>>
+>> :) on mainline, if you dont have the frequency in opp definitions and
+>> your board has not done an explicit opp_add, cpufreq will
+>> only set u to
+>> the nearest available freq - easy for mainline fix if someone
+>> would like
+>> to send a patch adding the OPPs and the detection logic involved for
+>> enabling them.
+>>
+>> Now, thinking aloud, the voltage setting by SR will probably occur in
+>> late_init, if mpurate is setting the clock earlier in the
+>> boot process,
+>> we might have a potential conflict in the mpurate expecting
+>> the system
+>> to be set in a certain voltage based on Sanjeev's argument, but not
+>> actually there.. we expect ondemand+cpufreq to do the job on runtime
+>> anyways.
+>
+> Nishanth,
+>
+> When setting via mpurate, we need to get the appropriate voltage
+> corresponding to the mpurate so that right combination can be done.
+>
+> This is where the mapping between freq and voltage needs to be queried.
+> And OPP layer is best placed to provide the info... without duplication.
+> The mechanism of changing the voltage itself can vary on the PMIC.
+>
+> BTW, I am getting ready to submit an updated patch for mpurate. Just
+> waiting for an early resolution to this discussion.
 
-> How is it flawed?  Serious question.
->   
+aye, I am aware of the concept here, just questioning what does it mean 
+by setting mpurate to the kernel - it could mean two things:
+a) mean this is mpurate that the system was working on (aka) - now setup 
+the required stuff to continue to function at that rate.
+b) go to this rate and forget where you were running at.
 
-I would avoid repeating all the good arguments given so far, but to make 
-it short:
+the job of ondemand and other governors is to adjust to an optimal OPP 
+using cpufreq which would conflict IMHO with (b), which kinda questions 
+if you dont use cpufreq, does mpurate mean actually (a)?
 
-* I believe runtime PM is a much better starting point (at least for the 
-type of HW targeted at mobile devices) because it mimics an always-on 
-system toward userspace, which requires less disruption in the way apps 
-are designed
+anyways for cpufreq to work at 720Mhz, you need to add that frequency 
+and corresponding voltage to the opptable, neither exists, further 
+mpurate should work with opp table as well, else clockframework has no 
+direct mechanism to verify the valid OPPs on a runtime system. that was 
+the intent of opp layer - to provide the rest of the users with a 
+mechanism to verify, query and use opps without functional knowledge of 
+the silicon it works on..
 
-* QoS is closer to the apps pov: fps if it is a media player or a game, 
-transfer speed if it is a file manager, bandwidth if it is a network 
-app, etc
-The app is required to express its opinion by using a format that it 
-understands better and is less system dependent.
-Actually the kernel should only be concerned with 2 parameters at most 
-for any given operation: latency and bandwidth/throughput
-
-* Some form of resource management is needed as trust mechanism to 
-discriminate "trusted" vs untrusted apps that can give reliable info 
-(but in your case you should give trust to whom prevents the suspend)
-
-* Most of this could be done in userspace with the kernel merely 
-providing the means to enforce the decisions taken by the userspace manager.
-
-* The kernel wouldn't even have to try to outsmart the "evil application 
-writer"
-
-igor
+Regards,
+Nishanth Menon
