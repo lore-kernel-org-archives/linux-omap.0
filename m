@@ -1,46 +1,40 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 14:02:36 +0100
-Message-ID: <20100528140236.3214929e@lxorguk.ukuu.org.uk>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
-	<20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
-	<AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
-	<20100528132138.2d802d77@lxorguk.ukuu.org.uk>
-	<1275049836.1645.1.camel@laptop>
+From: "Luke-Jr" <luke@dashjr.org>
+Subject: Re: [PATCH v2] serial: Add OMAP high-speed UART driver
+Date: Fri, 28 May 2010 08:06:24 -0500
+Message-ID: <201005280806.30838.luke@dashjr.org>
+References: <58269.192.168.10.88.1274708590.squirrel@dbdmail.itg.ti.com> <201005271100.41305.luke@dashjr.org> <AANLkTikta1db8KHV2Crz1zJEagmcOI20mSnXYUq02sZ5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1275049836.1645.1.camel@laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikta1db8KHV2Crz1zJEagmcOI20mSnXYUq02sZ5@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 28 May 2010 14:30:36 +0200
-Peter Zijlstra <peterz@infradead.org> wrote:
-
-> On Fri, 2010-05-28 at 13:21 +0100, Alan Cox wrote:
-> > [Total kernel changes
-> > 
-> >         Ability to mark/unmark a scheduler control group as outside of
-> >         some parts of idle consideration. Generically useful and
-> >         localised. Group latency will do most jobs fine (Zygo is correct
-> >         it can't solve his backup case elegantly I think)
-> > 
-> >         Test in the idling logic to distinguish the case and only needed
-> >         for a single Android specific power module. Generically useful
-> >         and localised] 
+On Friday 28 May 2010 02:11:29 am you wrote:
+> On Thu, May 27, 2010 at 9:30 PM, Luke-Jr <luke@dashjr.org> wrote:
+> > On Wednesday 26 May 2010 05:48:58 pm Kevin Hilman wrote:
+> >> FYI... this also works on OMAP2.
+> >>
+> >> I tested it on my n810 along with UART hwmod conversion and it works
+> >> just fine there.
+> >
+> > Is it somehow different from the basic 8250 driver on OMAP2? I've been
+> > struggling to figure out why my N810's GPS isn't working when I change
+> > kernels (I've already made sure ttyS0 is the correct major/minor and
+> > adjusted the GPIO calls; gpiodriver is talking to the chip, but not
+> > getting anywhere).
 > 
-> I really don't like this..
+> You need to use ttyO0 [%s/ttyS*/ttyO*]
 > 
-> Why can't we go with the previously suggested: make bad apps block on
-> QoS resources or send SIGXCPU, SIGSTOP, SIGTERM and eventually SIGKILL
+> Since uart tty interface name as been modified with this driver.
+> 
+> +#define OMAP_SERIAL_NAME       "ttyO"
 
-Ok. Are you happy with the QoS being attached to a scheduler control
-group and the use of them to figure out what is what ?
+Beyond the fact that this is hard-coded into Nokia's blob and thus not 
+something trivial to change, I meant it doesn't work with the 8250 driver. My 
+question pertains to if this driver does anything different that would make it 
+possibly work.
