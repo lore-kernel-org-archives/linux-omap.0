@@ -1,42 +1,124 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 10:26:24 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1005281024290.3116@localhost.localdomain>
-References: <Pine.LNX.4.44L0.1005271744130.3239-100000@iolanthe.rowland.org>
+Date: Fri, 28 May 2010 10:44:15 +0200
+Message-ID: <20100528104415.1403541a@schatten.dmk.lab>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	<alpine.LFD.2.00.1005271915540.3032@localhost.localdomain>
+	<20100527173118.GE2468@srcf.ucam.org>
+	<alpine.LFD.2.00.1005271959450.3032@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1005271744130.3239-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ist.d-labs.de ([213.239.218.44]:34062 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753001Ab0E1IoZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 May 2010 04:44:25 -0400
+In-Reply-To: <alpine.LFD.2.00.1005271959450.3032@localhost.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Thu, 27 May 2010, Alan Stern wrote:
+On Thu, 27 May 2010 20:05:39 +0200 (CEST)
+Thomas Gleixner <tglx@linutronix.de> wrote:
 
-> On Thu, 27 May 2010, Thomas Gleixner wrote:
+> On Thu, 27 May 2010, Matthew Garrett wrote:
 > 
-> > > The two of you are talking at cross purposes.  Thomas is referring to 
-> > > idle-based suspend and Matthew is talking about forced suspend.
+> > On Thu, May 27, 2010 at 07:24:02PM +0200, Thomas Gleixner wrote:
 > > 
-> > Yes, and forced suspend to disk is the same as force suspend to disk,
-> > which has both nothing to do with sensible resource management.
+> > > Oh no. They paper over a short coming. If there is a pending event,
+> > > the kernel knows that. It just does not make use of this
+> > > information. Blockers just paper over this by sprinkling
+> > > do_not_suspend() calls all over the place. What a sensible solution.
+> > 
+> > Even if we could use suspend-via-deep-idle-state on PCs, we still need 
+> > to be able to enter suspend while the system isn't idle. There's two 
+> > ways to do that:
+> > 
+> > 1) Force the system to be idle. Doing this race-free is difficult.
+> > 
+> > 2) Enter suspend even though the system isn't idle. Since we can't rely 
+> > on the scheduler, we need drivers to know whether userspace has consumed 
+> > all wakeup events before allowing the transition to occur. Doing so 
+> > requires either in-kernel suspend blockers or something that's almost 
+> > identical.
 > 
-> If I understand correctly, you are saying that all the untrusted 
-> applications should run with QoS(NONE).  Then they could do whatever 
-> they wanted without causing any interference.
+> You're just not getting it. If user space has consumed the event is
+> not relevant at all.
 > 
-> And with idle-based power management (rather than forced suspend), 
-> there would be no issue with wakeup events getting unduly delayed.
+> What's relevant is whether the app has processed the event and reacted
+> accordingly. That's all that matters.
 > 
-> Unless one of those events was meant for an untrusted application.  Is 
-> that the source of the difficulty?
+> Emptying your input queue is just the wrong indicator.
+> 
+> And as I explained several times now: It does _NOT_ matter when the
+> app goes back in to blocked/idle state. You have to spend the CPU
+> cycles and power for that anyway.
+> 
+> And for the apps which do not use the user space blockers the queue
+> empty indicator is just bullshit, because after emptying the queue the
+> kernel can go into suspend w/o any guarantee that the event has been
+> processed.
+> 
+> The whole concept sucks, as it does not solve anything. Burning power
+> now or in 100ms is the same thing power consumption wise.
+> 
+> Thanks,
+> 
+> 	tglx
 
-Probably, but that's not solved by suspend blockers either as I
-explained several times now. Because those untrusted apps either lack
-blocker calls or are not allowed to use them, so the blocker does not
-help for those either.
+Thomas,
+do you really have a problem with the actual concept? Or do you just
+don't like the way it is done?
 
-Thanks,
+IMO, the whole concept is defining 2 modes of operation: 
 
-	tglx
+1. user interacts with the device (at least one suspend block active)
+2. user doesn't interact with the device (zero suspend block active)
+
+In case 1. the device wants _everything_ sheduled as normal (and save
+maximum possible power, i.e. runtime pm with every technology available
+now).
+
+In case 2. we want nothing sheduled (and save maximum possible power,
+i.e. suspend)
+
+And now, every application and every kernel driver annotates (on behalve
+of the user) if it (possibly) interacts with the user. 
+
+(Is this really the problematic bit, that userspace is giving
+the kernel hints? Or is it that the hints are called "blocker"?)
+
+We can only enter mode 2, if _nothing_ (claims) to interact with the
+user.
+
+To integrate this with the current way of doing things, i gathered it 
+needs to be implemented as an idle-state that does the suspend()-call?
+
+Attributes of the idle states could be smth like this:
+
+c3
+	cost-to-transition-to-this-state: X 
+	powersavings-per-time: Y
+	expected time we stay in this state: relative short, there is a
+		timer sheduled
+	suspend-blockers: ignored
+
+suspend 
+	cost-to-transition-to-this-state: depends, how much drivers to
+	suspend, how much processes to freeze, how much state to save
+	powersavings-per-time: Y
+	expected time we stay in this state: long, independent of
+		sheduled timers
+	suspend-blockers: must not be activated
+
+
+Now all transitions and opportunistic suspend could be handled by the
+same algorithms.
+
+Would this work?
+
+
+Cheers,
+Flo
