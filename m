@@ -1,80 +1,80 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+From: tytso@mit.edu
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 19:47:18 -0700
-Message-ID: <AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
+Date: Fri, 28 May 2010 00:31:14 -0400
+Message-ID: <20100528043114.GC26177@thunk.org>
 References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+ <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+ <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+ <20100527220949.GB10602@srcf.ucam.org>
+ <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+ <20100527223605.GB11364@srcf.ucam.org>
+ <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:52542 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755257Ab0E1CrV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 May 2010 22:47:21 -0400
-In-Reply-To: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+Received: from thunk.org ([69.25.196.29]:59846 "EHLO thunker.thunk.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750901Ab0E1Ebi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 May 2010 00:31:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, May 27, 2010 at 3:23 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wr=
-ote:
-> On Thu, 27 May 2010 23:09:49 +0100
-> Matthew Garrett <mjg59@srcf.ucam.org> wrote:
->
->> On Thu, May 27, 2010 at 11:08:06PM +0100, Alan Cox wrote:
->>
->> > This is I believe robust (and has been implemented on some non x86
->> > boxes). It depends on not forcing running tasks into suspend. That=
- is the
->> > key.
->>
->> We've already established that ACPI systems require us to force runn=
-ing
->> tasks into suspend. How do we avoid the race in that situation?
->
-> Android phones do not have ACPI. Embedded platforms do not have ACPI.=
- MID
-> x86 devices do not have ACPI.
->
+On Thu, May 27, 2010 at 11:55:46PM +0100, Alan Cox wrote:
+> 
+> This started because the Android people came to a meeting that was put
+> together of various folks to try and sort of the big blockage in getting
+> Android and Linux kernels back towards merging.
+> 
+> I am interested right now in finding a general solution to the Android
+> case and the fact it looks very similar to the VM, hard RT, gamer and
+> other related problems although we seem to have diverged from that logic.
 
-Android does not only run on phones. It is possible that no android
-devices have ACPI, but I don't know that for a fact. What I do know is
-that people want to run Android on x86 hardware and supporting suspend
-could be very benficial.
+Keep in mind, though, that a solution which is acceptable for Android
+has to include making sure that crappy applications don't cause the
+battery to get drained.  There seem to be some people who seem
+adamently against this requirement.  From the Android folks'
+perspective, this is part of what is required to have an open app
+store, as opposed to one where each application has to be carefully
+screened and approved ala the Apple iPhone App Store.
 
-> I would imagine the existing laptops will handle power management lim=
-ited
-> by the functionality they have available. Just like any other piece o=
-f
-> hardware.
+Maybe it would be acceptable if there were an easy way THAT A USER AND
+NOT A DEVELOPER COULD USE ON A SMART PHONE to find the bad
+application, but realistically, it's much better if the solution can
+work well even in the face of crappy application.  Having interacted
+with application programmers, I can assure you there are a lot of
+crappy application programmers out there, and they vastly outnumber us
+kernel developers.  (See as exhibit A all of the application programs
+who refuse to use fsync, even though it's going to wipe them out on
+all new modern file systems, including btrfs.)
 
-I think existing laptops (and desktops) can benefit from opportunistic
-suspend support. If opportunistic suspend is used for auto-sleep after
-inactivity instead of forced suspend, the user space suspend blocker
-api will allow an application to delay this auto sleep until for
-instance a download completes. This part could also be done with a
-user-space IPC call, but having a standard kernel interface for it may
-make it more common. A less common case, but more critical, is RTC
-alarms. I know my desktops can wakeup at a specific time by
-programming an RTC alarm, but without suspend blockers how do you
-ensure that the system does not suspend right after the alarm
-triggered? I have a system that wakes up at specific times requested
-by my DVR application, but I cannot use this system for anything else
-unless I manually turn off the DVR application's auto-sleep feature.
-With suspend blockers and something like the android alarm driver, I
-could use this system for more than one application that have
-scheduled tasks and it would be more usable for interactive
-applications.
+We need to agree on the requirements up front, because otherwise this
+is going to be a waste of everyone's time.
 
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And if we can't get agreement on requirements, I'd suggest appealing
+this whole thing to Linus.  Either he'll agree to the requirements
+and/or the existing implementation, in which case we can move on with
+our lives, or he'll say no, in which case it will be blately obvious
+that it was Linux developer community who rejected the Android
+approach, despite a fairly large amount of effort trying to get
+something that satisfies *all* of the various LKML developers who have
+commented on this patch, and we can continue with Android having
+kernel which is different from mainline --- just as many other
+embedded companies have patches which are utterly required by their
+products, but which have been judged Too Ugly To Live In Mainline ---
+and we can also move on and get on with our lives.
+
+						- Ted
+
+P.S.  Keep in mind how this looks from an outsider's perspective; an
+embedded manufacturer spends a fairly large amount of time answering
+one set of review comments, and a few weeks later, more people pop up,
+and make a much deeper set of complaints, and request that the current
+implementation be completely thrown out and that someone new be
+designed from scratch --- and the new design isn't even going to meet
+all of the requirements that the embedded manufacturer thought were
+necessary.  Is it any wonder a number of embedded developers have
+decided it's Just Too Hard to Work With the LKML?
