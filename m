@@ -1,68 +1,64 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 17:53:54 +0200
-Message-ID: <20100528175354.7e6a73d1@schatten.dmk.lab>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
-	<20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
-	<AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
-	<20100528132138.2d802d77@lxorguk.ukuu.org.uk>
-	<1275049836.1645.1.camel@laptop>
-	<20100528140236.3214929e@lxorguk.ukuu.org.uk>
-	<1275052817.1645.64.camel@laptop>
-	<1275058794.27810.9571.camel@twins>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix board data to support device only, host
+	only and OTG roles.
+Date: Fri, 28 May 2010 23:55:40 +0800
+Message-ID: <AANLkTimobZ-5AxhI_nyctpj8g94LGwsV0KKW7UHTYv4r@mail.gmail.com>
+References: <20100521065218.GG925@nokia.com>
+	<420791.3389.qm@web180306.mail.gq1.yahoo.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB032194B74C@dbde02.ent.ti.com>
+	<AANLkTinIC2D8kQKSUdxMZVVSlIxYzVw1txqJrIN2DPne@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:35768 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758892Ab0E1PyE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 May 2010 11:54:04 -0400
-In-Reply-To: <1275058794.27810.9571.camel@twins>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:46074 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758897Ab0E1Pzl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 11:55:41 -0400
+In-Reply-To: <AANLkTinIC2D8kQKSUdxMZVVSlIxYzVw1txqJrIN2DPne@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-15?Q?Hj=F8nnev=E5?= =?ISO-8859-15?Q?g?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: David Brownell <david-b@pacbell.net>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mankad, Maulik Ojas" <x0082077@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Fri, 28 May 2010 16:59:54 +0200
-Peter Zijlstra <peterz@infradead.org> wrote:
+sorry, some fixes.
 
-> So lets look at the problem, we want to be frugal with power, this means
-> that the system as a whole should strive to do nothing. And we want to
-> enforce this as strict as possible.
+2010/5/28 Ming Lei <tom.leiming@gmail.com>:
+> 2010/5/28 Gadiyar, Anand <gadiyar@ti.com>:
+>> David Brownell wrote:
+>>
+>> (Okay, I do know anyone who compiles a custom kernel of
+>> this sort is likely capable of patching the board files
+>> as needed to downgrade to the desired mode. But I still
+>> think the patch at [1] is useful to have.)
+>
+> David NAK the patch and it is the reason:
+>
+> 1, don't support mini-A plug connected into mini-ab receptacle if
+> degrading to host-only role;
 
-An interesting thought might be to add the costs of staying in
-a state versus going to a lower power state into consideration. 
+ 1, don't support mini-B plug connected into mini-ab receptacle if
+  degrading to host-only role;
 
-If the system is busy doing stuff it would need to do anyway (today
-stuff that is guarded/annotated by the suspend blockers) , the costs for
-not being in suspend have to be paid anyway. So it is opportune for
-processes to run. Even if they by themselves would not justify the
-system running. 
+>
+> and
+>
+> 2,don't support mini-B plug connected into mini-ab receptacle if
+> degrading to peripheral-only role.
 
-If instead nothing system-relevant has to be done, the costs of running
-anything non-relevant is the full amount of battery-life that could
-be saved by suspending + (some minor) running costs. 
+2,don't support mini-A plug connected into mini-ab receptacle if
+degrading to peripheral-only role.
 
-Also if there is much work to do (many tasks) its more likely that it's
-good to do the work.
+> This two cases may confuse users.
+>
+> Maybe we can print messages to user to show the cases above.
+> Anyway, I don't mind if the patch is accepted or not.
+>
+>
+> --
+> Lei Ming
+>
 
-something along the lines :
 
-(amount of energy saved by being in suspend) / (number of tasks we
-would run if we werent suspended) *
-some_parameter_for_this_tasks_importance (which falls clearly into
-scheduler-territory)
 
-And if this goes above some threshold we run it.
-
-But this isn't easily done in a robust way.
-Also it complicates things. 
-
-Cheers,
-Flo
+-- 
+Lei Ming
