@@ -1,62 +1,69 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: omap3 pm: dependency between opp layer and cpufreq
-Date: Fri, 28 May 2010 10:56:36 +0200
-Message-ID: <068A0169-7F7B-46D6-B3B6-462EEFB66026@student.utwente.nl>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>,<4BFE9D7E.8020602@ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0C0132DE0A84@dlee02.ent.ti.com>
-Mime-Version: 1.0 (Apple Message framework v1078)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:27306 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753288Ab0E1I4k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 04:56:40 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so58066eyd.19
-        for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 01:56:39 -0700 (PDT)
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C0132DE0A84@dlee02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 10:17:55 +0100
+Message-ID: <20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	<20100527220949.GB10602@srcf.ucam.org>
+	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>
+Cc: Mailing List <linux-omap@vger.kernel.org>, Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux@smtp1.linux-foundation.org, Thomas Gleixner <tglx@linutronix.de>, Peter@smtp1.linux-foundation.org, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
+> Android does not only run on phones. It is possible that no android
+> devices have ACPI, but I don't know that for a fact. What I do know is
+> that people want to run Android on x86 hardware and supporting suspend
+> could be very benficial.
 
-Op 28 mei 2010, om 09:39 heeft Menon, Nishanth het volgende geschreven:
-
->> -----Original Message-----
->> From: Premi, Sanjeev
->> Sent: Thursday, May 27, 2010 10:30 PM
+Sufficently beneficial to justify putting all this stuff all over the
+kernel and apps ? That is a *very* high hurdle, doubly so when those
+vendors who have chosen to be part of the community are shipping phones
+and PDAs just fine without them.
+ 
+> > I would imagine the existing laptops will handle power management limited
+> > by the functionality they have available. Just like any other piece of
+> > hardware.
 > 
-> [...]
-> 
->>> 
->>> 3) Was there any specific need to tie the functions "opp_get_voltage"
->> and others to cpufreq only?
->> 
->> yes, because without cpufreq there is no transitions in the system :)
->> 
->> [sp] I does - via bootarg - mpurate!
->> 
->> When kernel boots, volatge must be set properly.
->> We cannot rely on u-boot to be settiing everything correctly. e.g. 720MHz
->> on OMAP3530 would fail at nominal 1.2V set by u-boot.
-> 
-> I agree, but mpurate does not seem to use the cpufreq interfaces - so is 
-> kinda a question how it interfaces back -> but note, mpurate tells us what
-> the start freq is for the system - it still does no *dynamic* transitions - 
-> just a static startup frequency. But I agree, it assumes that if you provide 
-> mpurate, the system supposedly is operating at that frequency, aka all
-> setups have been done for that operational frequency(including voltage)
+> I think existing laptops (and desktops) can benefit from opportunistic
+> suspend support. If opportunistic suspend is used for auto-sleep after
+> inactivity instead of forced suspend, the user space suspend blocker
+> api will allow an application to delay this auto sleep until for
+> instance a download completes. This part could also be done with a
 
-There's also a funny bug in the current (PSP) mpurate/cpufreq code. The mpurate code has a check for 720MHz on 35xx silicon, but cpufreq doesnt. So I can do:
+This assumes you modify all the applications. That isn't going to happen.
+The hardware is going to catch up anyway.
 
-setenv bootargs '<foo> mpurate=720'
+> alarms. I know my desktops can wakeup at a specific time by
+> programming an RTC alarm, but without suspend blockers how do you
+> ensure that the system does not suspend right after the alarm
+> triggered? I have a system that wakes up at specific times requested
 
-And the kernel will say "unsupported" and not switch to 720MHz during boot. But if I do this after boot:
+How do you know that isn't the correct behavior. My laptop behaves in
+that way if for example the battery is almost flat. Your suspend blocker
+would cause me to lose all my work with a flat battery. This is another
+example of why the application must not be the policy manager.
 
-cpufreq-set -f 720
+In the normal case in the PC world outside of corner cases like flat
+batteries the answer is really simple. The laptop suspend to RAM
+on idle intervals set in the BIOS and the like are sufficient that
+progress will have been made before it considers going back to sleep
+again. Right now its about ten seconds in each direction plus other costs
+(wear on LCD backlight, disc parking etc).
 
-it *will* switch to 720MHz, even if the mpurate code explicitly forbids it. I tested on all the OMAP3 silicon I have and it will run at 720MHz fine, even if it's out of spec, so I'm happy with this bug :) 
-
-regards,
-
-Koen
+Alan
