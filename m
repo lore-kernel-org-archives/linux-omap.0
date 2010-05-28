@@ -1,60 +1,62 @@
-From: Linus WALLEIJ <linus.walleij@stericsson.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 6)
-Date: Fri, 28 May 2010 13:54:49 +0200
-Message-ID: <CEE6BB42CAD6E947908279175AF8470A025A820FA7@EXDCVYMBSTM006.EQ1STM.local>
-References: <CEE6BB42CAD6E947908279175AF8470A025A8206ED@EXDCVYMBSTM006.EQ1STM.local>
-	<Pine.LNX.4.44L0.1005271121210.3239-100000@iolanthe.rowland.org>
+From: Igor Stoppa <igor.stoppa@nokia.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 15:26:41 +0300
+Message-ID: <4BFFB681.1000105@nokia.com>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>	<20100527220949.GB10602@srcf.ucam.org>	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>	<20100527223605.GB11364@srcf.ucam.org>	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>	<20100528043114.GC26177@thunk.org>	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk> <20100528114123.GA22947@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <Pine.LNX.4.44L0.1005271121210.3239-100000@iolanthe.rowland.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:16737 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754346Ab0E1MEa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 08:04:30 -0400
+In-Reply-To: <20100528114123.GA22947@srcf.ucam.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-[Alan]
-> On Thu, 27 May 2010, Linus WALLEIJ wrote:
-> 
-> > OK I understand it will be rather OK to do this. For example I have
-> > drivers/spi/amba-pl022.c which is quite clearly taking elements
-> > off a queue and transmitting them.
-> >
-> > Currently, as we do not have suspend blockers, we try to stop the
-> > queue in suspend() and if that fails we return something negative
-> > so that the suspend() is blocked by the negative return code.
-> 
-> How can it fail?  Even if the queue can't be stopped immediately, can't
-> the suspend routine block for a few milliseconds until the queue can be
-> stopped?
-> 
-> > Maybe the behaviour for an SPI bus should rather be to return
-> > -EBUSY as long as there are events in the queue. I don't quite
-> > know frankly.
-> 
-> No.  It should stop the queue.
-> 
-> Think of it this way: Somebody has just closed the lid of their
-> laptop and thrown the computer into a backpack.  You don't want the
-> machine to fail to suspend merely because an SPI queue wasn't empty.
+ext Matthew Garrett wrote:
 
-Not quite! On the other end of that SPI link is our power
-regulators. (I'm not making this up, they are really there.) The events
-in the queue may be the register writes that actually put the system
-to low-power sleep.
+> On Fri, May 28, 2010 at 10:37:13AM +0100, Alan Cox wrote:
+>
+>   
+>> The other vendors appear to be managing nicely without magic blockers. I
+>> conjecture therefore there are other solutions.
+>>     
+>
+> Actually, no. A badly behaved application will kill the N900's battery 
+> life. Nobody else has "managed nicely" - they've just made life harder 
+> for application developers and users, which may have something to do 
+> with the relative levels of market adoption of Maemo and Android. I'm 
+> not aware of any form of resource management framework in MeeGo either, 
+> so as far as I know it'll have exactly the same problem.
+>
+>   
+It's true that a braindead app can kill the battery.
 
-But the apropriate action may likely be to wait for this queue to become
-empty before returning 0 from suspend().
+However we provide a version of powertop that is tailored to the N900, 
+there is a nokia energy profiler meant to give graphical representation 
+of the battery current, there is htop available and you can even get the 
+processor activity visualized on the leftmost and rightmost keyboard 
+backlight LEDS, when in RD mode and with screen blanked.
 
-Yours,
-Linus Walleij
+I would advice you to not start debating on company strategies, this is 
+not the right place.
+
+Otherwise I'll have to ask what's the expected threshold of devices sold 
+with broken sw design to get automatic admission into the mainline 
+kernel source tree.
+
+But this is not the direction we want to take.
+
+Notice also that we _do_ have a store and official repository where apps 
+are monitored for sanity, also with feedback from users and their help 
+to promote new apps to trusted state.
+
+Former Maemo 6, now MeeGo do introduce resource management from security 
+POV, but that will also have the side effect of discriminating between 
+signers.
+
+igor
