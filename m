@@ -1,73 +1,96 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+From: Brian Swetland <swetland@google.com>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 13:31:10 +0100
-Message-ID: <20100528123110.GA23930@srcf.ucam.org>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk> <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org> <20100527230806.4deb6de3@lxorguk.ukuu.org.uk> <20100527220949.GB10602@srcf.ucam.org> <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk> <AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com> <20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk> <AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com> <20100528132138.2d802d77@lxorguk.ukuu.org.uk>
+Date: Fri, 28 May 2010 05:52:04 -0700
+Message-ID: <AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	<20100527220949.GB10602@srcf.ucam.org>
+	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100527223605.GB11364@srcf.ucam.org>
+	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+	<20100528043114.GC26177@thunk.org>
+	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+	<20100528114123.GA22947@srcf.ucam.org>
+	<4BFFB681.1000105@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:57708 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751650Ab0E1Mb0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 08:31:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20100528132138.2d802d77@lxorguk.ukuu.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4BFFB681.1000105@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Igor Stoppa <igor.stoppa@nokia.com>
+Cc: ext Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Fri, May 28, 2010 at 01:21:38PM +0100, Alan Cox wrote:
+On Fri, May 28, 2010 at 5:26 AM, Igor Stoppa <igor.stoppa@nokia.com> wrote:
+> ext Matthew Garrett wrote:
+>> On Fri, May 28, 2010 at 10:37:13AM +0100, Alan Cox wrote:
+>>> The other vendors appear to be managing nicely without magic blockers. I
+>>> conjecture therefore there are other solutions.
+>>
+>> Actually, no. A badly behaved application will kill the N900's battery
+>> life. Nobody else has "managed nicely" - they've just made life harder for
+>> application developers and users, which may have something to do with the
+>> relative levels of market adoption of Maemo and Android. I'm not aware of
+>> any form of resource management framework in MeeGo either, so as far as I
+>> know it'll have exactly the same problem.
+>
+> It's true that a braindead app can kill the battery.
+>
+> However we provide a version of powertop that is tailored to the N900, there
+> is a nokia energy profiler meant to give graphical representation of the
+> battery current, there is htop available and you can even get the processor
+> activity visualized on the leftmost and rightmost keyboard backlight LEDS,
+> when in RD mode and with screen blanked.
+>
+> I would advice you to not start debating on company strategies, this is not
+> the right place.
 
-> So I put my phone down
-> 
-> 	The UI manager gets told the phone is 'down'
-> 	Ten seconds later it is still down
-            <- wakeup event that should be delivered to untrusted app arrives here
+At a certain point, if one side of the argument is using "N900 / OMAP3
+works just fine as is" (which has certainly been the case stated by a
+number of folks throughout these discussions), I think it's a little
+unrealistic to express shock that somebody argues the opposing point.
 
-At this point you may mark the downtrodden group as ignored between the 
-untrusted app receiving the event and the untrusted app marking itself 
-as important. To avoid this you need the UI manager to receive every 
-wakeup event in order to change its scheduling decisions.
+I've personally avoided commenting on specific power management issues
+or properties of competitive platforms because it can easily be viewed
+as rather rude or unprofessional.  (though in theory we all could
+benefit from any improvements to the kernel regarding power
+management, no?).
 
-> If I push the button we get an IRQ
-> We come out of power save
-> The app gets poked
+I am quite willing to state that on both MSM and OMAP based Android
+platforms, we've found that the suspend blocker model allows us to
+obtain a lower average power draw than if we don't use it -- Mike Chan
+provided some numbers earlier in another thread in the trivial device
+idle case, the win is of course much larger in the case of several
+poorly behaved apps being active.
 
-(The cgroup has to have some awareness of suspend/resume so that it can 
-allow the untrusted apps to be scheduled again)
+I do think that everyone involved agrees that it is beneficial to
+educate users and developers in hopes that users will understand that
+some apps are non-optimal and developers will be encouraged to write
+better apps.
 
-> The app may be unimportant but the IRQ means we have a new timeout of
->     some form to run down to idle
+I think we also all agree that striving to obtain the lowest power
+state at all times through cpu frequency scaling, runtime pm, drivers
+that aggressively clock/power down when idle, etc is a worthy goal.
+Some have argued that suspend blockers may deter further development
+in these areas, but I think this is unlikely -- power usage while the
+device is active and the user is interacting with it is just as
+critical as when it's not being used interactively.  We (Android)
+certainly pursue aggressive low power optimization in both states.
 
-The timeout-based nature means that if the application doesn't get 
-scheduled for some reason (say there's heavy swap pressure - not likely 
-in the embedded world, but an issue on laptop-type devices) the event 
-may not be handled before you get back to sleep. I accept that this 
-isn't likely to be a problem in the real world, but it does make this 
-mechanism less deterministic than a suspend block based one.
+There appears to be some disagreement in terms of what one should do
+in the face of poorly behaved applications.  The Android approach has
+been to both gather as much data as possible for education of user and
+developer and to mitigate the impact of poorly written apps on
+endusers, goals which are aided by the suspend blocker model.
 
-> If you are absolutely utterly paranoid about it you need the button
-> driver to mark the task it wakes back as important rather than rely on
-> time for response like everyone else. That specific bit is uggglly but
-> worst case its just a google private patch to a few drivers. I understand
-> why Android wants it. The narrower the gap between 'we are doing nothing,
-> sit in lowest CPU on state' and 'we are off' the better the battery life
-> and the more hittable the condition.
+A reality of a mass market device with a completely open and
+unrestricted application development and distribution ecosystem is
+that there will be plenty of non-optimal apps available to users
+(Sturgeon's Law applies everywhere, after all).  Worse yet, many of
+these non-optimal apps may be beloved by users for various reasons.  I
+think there's value in trying to do the best you can power-wise even
+in the face of such horrible foes as the dreaded Bouncing Cows App
+that Matthew is fond of citing as an example.
 
-Not just the button driver. Every driver that generates wakeupa. This 
-gets difficult when it comes to the network layer, for instance, when 
-the network driver has very little idea how the packet it just received 
-will be routed.
-
-> Apart from that optional paranoia case my kernel now contains some
-> trivial changes of generic value that have nothing to do with suspend
-> blocking. Android has suspend blocking by choosing to use the generic
-> features in its own specific way and we need almost no code writing ?
-
-The problem is that you still have a race, and fixing that race requires 
-every event that could generate a wakeup to be proxied out to the policy 
-manager as well. That's a moderate additional overhead.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Brian
