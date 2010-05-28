@@ -1,98 +1,76 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 27 May 2010 16:50:36 -0700
-Message-ID: <AANLkTinTk6iCgfcY1QaZkCCapYjzbEYgGbSR4Ki75z0R@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
-	<201005272315.28475.rjw@sisk.pl>
-	<alpine.LFD.2.00.1005272334040.3478@localhost.localdomain>
-	<201005280143.01889.rjw@sisk.pl>
+Date: Fri, 28 May 2010 02:05:01 +0200
+Message-ID: <201005280205.01561.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org> <201005280041.43553.rjw@sisk.pl> <20100528001514.28e593ef@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201005280143.01889.rjw@sisk.pl>
+In-Reply-To: <20100528001514.28e593ef@lxorguk.ukuu.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Peter Zijlstra <peterz@infradead.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Brian Swetland <swetland@google.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 27, 2010 at 4:43 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday 27 May 2010, Thomas Gleixner wrote:
->> On Thu, 27 May 2010, Rafael J. Wysocki wrote:
->>
->> > On Thursday 27 May 2010, Thomas Gleixner wrote:
->> > > On Thu, 27 May 2010, Alan Stern wrote:
->> > >
->> > > > On Thu, 27 May 2010, Felipe Balbi wrote:
->> > > >
->> > > > > On Thu, May 27, 2010 at 05:06:23PM +0200, ext Alan Stern wro=
-te:
->> > > > > >If people don't mind, here is a greatly simplified summary =
-of the
->> > > > > >comments and objections I have seen so far on this thread:
->> > > > > >
->> > > > > > =A0 =A0 The in-kernel suspend blocker implementation is ok=
-ay, even
->> > > > > > =A0 =A0 beneficial.
->> > > > >
->> > > > > I disagree here. I believe expressing that as QoS is much be=
-tter. Let
->> > > > > the kernel decide which power state is better as long as I c=
-an say I
->> > > > > need 100us IRQ latency or 100ms wakeup latency.
->> > > >
->> > > > Does this mean you believe "echo mem >/sys/power/state" is bad=
- and
->> > > > should be removed? =A0Or "echo disk >/sys/power/state"? =A0The=
-y pay no
->> > >
->> > > mem should be replaced by an idle suspend to ram mechanism
->> >
->> > Well, what about when I want the machine to suspend _regardless_ o=
-f whether
->> > or not it's idle at the moment? =A0That actually happens quite oft=
-en to me. :-)
->>
->> Fair enough. Let's agree on a non ambigous terminology then:
->>
->> =A0 =A0 =A0forced:
->>
->> =A0 =A0 =A0 =A0 =A0 =A0suspend which you enforce via user interactio=
-n, which
->> =A0 =A0 =A0 =A0 =A0 =A0also implies that you risk losing wakeups dep=
-ending on
->> =A0 =A0 =A0 =A0 =A0 =A0the hardware properties
->
-> OK
->
->> =A0 =A0 =A0opportunistic:
->>
->> =A0 =A0 =A0 =A0 =A0 =A0suspend driven from the idle context, which g=
-uarantees to
->> =A0 =A0 =A0 =A0 =A0 =A0not lose wakeups. Provided only when the hard=
-ware does
->> =A0 =A0 =A0 =A0 =A0 =A0provide the necessary capabilities.
->
-> I can accept that definition, but this is not what "opportunistic" me=
-ans in the
+On Friday 28 May 2010, Alan Cox wrote:
+> > The approach with user space power manager suggested by Dmitry and Alan Stern
+> > may work, but it still assumes some kind of suspend blockers to be present in
+> > the kernel.  If we reject that too, I wonder what approach Google is supposed
+> > to use and still get the same battery life they get with suspend blockers.
+> 
+> I'm getting less convinced it needs suspend blockers at all for this case,
+> assuming that you are willing to have a policy that is based on
+> 
+> - assuming apps play nicely
+> - having the information to user space you need (who woke us, who blocked
+>   us, events)
+> - dealing with offenders primarily from user space using that information
+> 
+> I'm fairly happy about the following so far
+> 
+> - we should have a common interface for seeing some pm events (like
+>   duh ?) but it does need careful thought so the watcher doesn't change
+>   the behaviour and break it. (Message "We are suspending", gosh someone
+>   is running to receive the message, resume being the obvious case)
+> 
+> - Suspend is (for many platforms) just a cotinuation down the power
+>   chain. Demonstrated and implemented on ARM. Very much the direction of
+>   S0i1/S0i3 on x86 MID devices. Proved by the fact it has been done and
+>   made to work, and by reading the Moorestown PR.
+> 
+> - Given a non forced (that is 'idle down') transition to a suspend level
+>   we can implement a 'suspend as idle' on many embedded platforms in a
+>   manner which is not racy at kernel level. Apparently implemented
+>   already on ARM
+> 
+> - Given a non forced transition to such a suspend level and the reporting
+>   of certain events we can do a full user space managed graphical UI type
+>   environment policy in a race free fashion
+> 
+> - With notification of who caused a resume and maybe a bit of other
+>   general stat gathering it is possible to identify and handle abuses of
+>   power resource. Proved by the fact we can do this with powertop but
+>   more elegance in the interfaces would be nice.
+> 
+> I am not sure if a pm event is what is needed for this or a sum 'hardware
+> triggered wake up' event.
+> 
+> I accept that current ACPI based laptops probably couldn't make use of
+> such a feature but I don't think this is important at the moment.
 
-Is there a difference between this new definition of opportunistic and
-idle? I assume suspend here means low a low power sleep state since it
-is impossible to initiate and abort Linux suspend from idle since
-initiating suspend will cause the system to become not idle.
+No, it's not.
 
-> Arve's changelogs. =A0What it means there is that he wants the system=
- to suspend
-> even when it is not technically idle (like in the updatedb example I =
-gave in a
-> previous message). =A0Suspend blockers are supposed to be a mechanism=
- by which
-> the kernel and user space together may determine when to suspend (and=
- it's
-> somewhat orthogonal to idle).
->
+> A resource constraint model might help further in the ACPI case. It's
+> useful for other stuff but it might well be a distraction and
+> implementation detail in terms of the basic question about what is needed
+> for something like Android.
+> 
+> At this point the input of the Android team and the Nokia people would
+> be rather more useful to me.
 
+OK, I added Arve and Brian to the CC list.
 
-
---=20
-Arve Hj=F8nnev=E5g
+Thanks,
+Rafael
