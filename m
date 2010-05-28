@@ -1,42 +1,39 @@
-From: Theodore Tso <tytso@mit.edu>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 08:28:06 -0400
-Message-ID: <CC8B666C-545E-455A-BC03-FCCF20F936C8@mit.edu>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 14:30:36 +0200
+Message-ID: <1275049836.1645.1.camel@laptop>
 References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<20100527223605.GB11364@srcf.ucam.org>
-	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
-	<20100528043114.GC26177@thunk.org>
-	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
-	<06439EEF-9404-45DC-AB37-5CC0486CCF6C@mit.edu>
-Mime-Version: 1.0 (Apple Message framework v1078)
-Content-Type: text/plain; charset="us-ascii"
+	 <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	 <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	 <20100527220949.GB10602@srcf.ucam.org>
+	 <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	 <AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
+	 <20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
+	 <AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
+	 <20100528132138.2d802d77@lxorguk.ukuu.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <06439EEF-9404-45DC-AB37-5CC0486CCF6C@mit.edu>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Theodore Tso <tytso@mit.edu>
-Cc: Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100528132138.2d802d77@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-On May 28, 2010, at 8:16 AM, Theodore Tso wrote:
+On Fri, 2010-05-28 at 13:21 +0100, Alan Cox wrote:
+> [Total kernel changes
 > 
-> I've seen very hard to debug situations  with Maemo where users are essentially asked to uninstall all their applications, and then install them back one at a time, waiting several hours between each install for a charge/discharge cycle, to figure out which application was waking up the system so !@#@! much while the screen was turned off.   And, when the periodic wakeups are faster than the refresh time of powertop, no, powertop won't help you find the crapplication.   
+>         Ability to mark/unmark a scheduler control group as outside of
+>         some parts of idle consideration. Generically useful and
+>         localised. Group latency will do most jobs fine (Zygo is correct
+>         it can't solve his backup case elegantly I think)
+> 
+>         Test in the idling logic to distinguish the case and only needed
+>         for a single Android specific power module. Generically useful
+>         and localised] 
 
-Sorry, miswording:   s/faster/less frequent/
+I really don't like this..
 
-I'm not convinced CPU activity LEDs help either, BTW.    It only takes the CPU getting crowbarred out of idle for a tiny amount of time before you start impacting battery life, and if the crapplication is only doing it every 30-60 seconds or so, I doubt you'd see it on the LED's....  that sort of thing might be acceptable if you have a 1-3 pound battery, but maybe much less so if you have a bettery which is cell-phoned sized.
-
--- Ted
+Why can't we go with the previously suggested: make bad apps block on
+QoS resources or send SIGXCPU, SIGSTOP, SIGTERM and eventually SIGKILL?
