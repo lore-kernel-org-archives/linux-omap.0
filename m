@@ -1,94 +1,79 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/3 v3] AM35x: Add musb support
-Date: Fri, 28 May 2010 18:09:16 +0400
-Message-ID: <4BFFCE8C.40909@ru.mvista.com>
-References: <1274769522-28212-1-git-send-email-ajay.gupta@ti.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 15:20:37 +0100
+Message-ID: <20100528152037.2568f2fb@lxorguk.ukuu.org.uk>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	<20100527220949.GB10602@srcf.ucam.org>
+	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100527223605.GB11364@srcf.ucam.org>
+	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+	<20100528043114.GC26177@thunk.org>
+	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+	<20100528114123.GA22947@srcf.ucam.org>
+	<4BFFB681.1000105@nokia.com>
+	<AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+	<4BFFC5DF.5030504@nokia.com>
+	<AANLkTikKGeGHHL6AYC7uBuT7Zihj7lozfidWQ8zRHwab@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1274769522-28212-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikKGeGHHL6AYC7uBuT7Zihj7lozfidWQ8zRHwab@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Swetland <swetland@google.com>
+Cc: Igor Stoppa <igor.stoppa@nokia.com>, ext Matthew Garrett <mjg59@srcf.ucam.org>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
-
-Ajay Kumar Gupta wrote:
-
-> AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
-> It has USB phy built inside the IP itself.
-
-> Also added ARCH_AM35x which is required to differentiate musb ips
-> between OMAP3x and AM35x. This config would be used to for below
-> purposes,
-> 	- Select am3517.c instead of omap2430.c for compilation
-> 	  at drivers/usb/musb directory. Please note there are
-> 	  significant differneces in these two files as musb ip
-> 	  in quite different on AM35x.
-> 	- Select workaround codes applicable for AM35x musb issues.
-> 	  one such workaround is for bytewise read issue on AM35x.
+> > That's very good. But if it is done in a conceptually flawed way, some
+> > better solution should be considered for upstream merge.
 > 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> How is it flawed?  Serious question.
 
-[...]
+- It means changing drivers and quite a few apps
+- It doesn't solve the problem of rogue apps if they end up owning locks
+- It puts the deep knowledge of the platform in the applications
+- It gives the apps control of the action taken not policy indication
+- It doesn't resolve the problem of synchronization of take/releases
+  stopping any suspend
+- The kernel parts are not generically useful, merely effective for
+  solving a specific problem right now - even things like VM migration
+  to/from phones seems to break it
+- It inverts the whole logic the kernel is following and trend it is
+  following that suspend is simply a very deep idle (with implementations
+  merged)
 
-> @@ -375,6 +376,43 @@ static void __init am3517_evm_init_irq(void)
->  	omap_gpio_init();
->  }
->  
-> +static struct omap_musb_board_data musb_board_data = {
-> +	.interface_type         = MUSB_INTERFACE_ULPI,
-> +	.mode                   = MUSB_OTG,
-> +	.power                  = 500,
-> +};
-> +
-> +static __init void am3517_evm_musb_init(void)
-> +{
-> +	u32 devconf2;
-> +
-> +	/*
-> +	 * Set up USB clock/mode in the DEVCONF2 register.
-> +	 */
-> +	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-> +
-> +	/* USB2.0 PHY reference clock is 13 MHz */
-> +	devconf2 &= ~CONF2_REFFREQ;
-> +	devconf2 |=  CONF2_REFFREQ_13MHZ;
-> +
-> +	/*
-> +	 * We have to override VBUS/ID signals when MUSB is configured into the
-> +	 * host-only mode -- ID pin will float if no cable is connected, so the
-> +	 * controller won't be able to drive VBUS thinking that it's a B-device.
-> +	 * Otherwise, we want to use the OTG mode and enable VBUS comparators.
-> +	 */
-> +	devconf2 &= ~CONF2_OTGMODE;
-> +#ifdef	CONFIG_USB_MUSB_HOST
-> +	devconf2 |=  CONF2_FORCE_HOST;
+If it was a localised turd I wouldn't worry. There are plenty df deep
+unmentionables hidden away enirely in platform specific code that deal
+with everything from stoned hardware engineers to crazed software stack
+implementations.
 
-    Well, this is only necessary if the board doesn't have pulldown on 
-the USB ID signal. On DA830 EVM, rev. of the board A had it, and it got 
-removed on the later revisions (presumably it conflicted with OTG 
-function?), so this override became necessary. So, make sure this is 
-indeed necessary on your board as using the overrides isn't generally 
-desirable (they all also override VBUS sensing in addition to ID pin).
+Here is a question back the other way perhaps
 
-> +#else
-> +	devconf2 |=  CONF2_SESENDEN | CONF2_VBDTCTEN;
-> +#endif
-> +
-> +	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-> +
-> +	usb_musb_init(&musb_board_data);
-> +}
-> +
->  static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
->  	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
->  #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
+- If the existing kerne was almostl entirely read only, or you had to pay
+  a large fee per line of code changed outside your own driver how would
+  you implement the wakelock/suspend blocker API ?
 
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Because if you take the path that 'we want wakelockers' that is
+essentially the question you have to answer. How do you merge it so that
+nobody outside of your driver and maybe a spot of arch code knows about
+it. You are permitted a couple of sneaky substitions of core function
+bits in headers.
+
+Right now bits are going to leak out over the kernel which is the cause of
+friction. At the point it's invisible to everyone else they cease to be
+stakeholders so you don't have keep them happy. You've only got a couple
+in your patches but its painfully obvious from Matthew and your comments
+you'll end up needing a ton more and these will get everywhere as Android
+grows hardware platforms and CPU support as phones become more featureful
+and PC like. The moment a phone grows a USB base station with hub for
+example the entire USB stack becomes burdened with them. Matthew has
+already indicated networking needs them. Good luck with Dave Miller on
+that.
+
+I'm asking questions to look for generalised approaches, or even better
+doing it without new kernel stuff in the first place, but it's not the
+only way.
+
+Alan
