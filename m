@@ -1,58 +1,63 @@
-From: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 15:51:58 -0400
-Message-ID: <20100528195158.GA5910@gibbs.hungrycats.org>
-References: <AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
- <4BFFC5DF.5030504@nokia.com>
- <20100528133900.GG26177@thunk.org>
- <4BFFCFC7.7070302@nokia.com>
- <20100528142124.GA26733@srcf.ucam.org>
- <AANLkTilj6i7Qi-eh7e3WWeh4zxKALqr-0yhAvWKis52t@mail.gmail.com>
- <20100528160628.7c121dab@lxorguk.ukuu.org.uk>
- <AANLkTin3suKfGBSfiDj0n8ztY8UiHzr4af_Cr0SPOevY@mail.gmail.com>
- <20100528172713.GA7444@gibbs.hungrycats.org>
- <1275070580.1645.379.camel@laptop>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: simple sd card performance bug fix on OMAP
+Date: Fri, 28 May 2010 14:53:02 -0500
+Message-ID: <006801cafe9f$6209e030$544ff780@am.dhcp.ti.com>
+References: <4C0013DC.6060601@earthlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1275070580.1645.379.camel@laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Brian Swetland <swetland@google.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, Igor Stoppa <igor.stoppa@nokia.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48562 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755774Ab0E1TxF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 May 2010 15:53:05 -0400
+In-Reply-To: <4C0013DC.6060601@earthlink.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "'Stephen Schwarm, CSDP'" <w3eve@earthlink.net>, linux-omap@vger.kernel.org
 
-On Fri, May 28, 2010 at 08:16:20PM +0200, Peter Zijlstra wrote:
-> On Fri, 2010-05-28 at 13:27 -0400, Zygo Blaxell wrote:
-> > From my reading of this thread, there's a lot of overlap between
-> > suspendblockers and constraints.  Many use cases are served equally
-> > well with one or the other, 
 
-Oops, I apparently meant "many use cases *of suspendblockers* are served
-equally well with one or the other."
 
-> If using suspend-blockers, 
-> Please explain to me how:
-> - I will avoid the cpu going into some idle state for which the wakeup
-> latency is larger than my RT app fancies?
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Stephen Schwarm, CSDP
+> Sent: Friday, May 28, 2010 2:05 PM
+> To: linux-omap@vger.kernel.org
+> Subject: simple sd card performance bug fix on OMAP
+> 
+> I have not had time to make a formal patch for this but I thought it was
+> significant enough just to send it out.  The problem is on omap systems
+> that use omap_hsmmc.c to run sd or mmc cards.  If the system you are
+> using has an 8 wire interface, it will only use a one wire interface to
+> 4 wire cards (eg, sd class 4 and sd class 6).
+> 
+A patch to fix this was already posted on LO by Kishore.
 
-...though I'd think you could do that by holding a suspendblocker, thus
-preventing the CPU from going into any idle state at all.
+Regards,
+Madhu
 
-There's four likely outcomes, corresponding to inclusion or non-inclusion
-of suspend blockers and PM constraints in the kernel.  Both could coexist
-in the same kernel, since a suspend blocker can be trivially expressed as
-"an extreme PM constraint with other non-constraint-related semantics."
+> In the file driver/mmc/omap_hsmmc.c in the function omap_hsmmc_probe:
+> at about line 1739 change:
+> 
+>     if (mmc_slot(host).wires >= 8)
+>         mmc->caps |= MMC_CAP_8_BIT_DATA;
+>     else if (mmc_slot(host).wires >= 4)
+>         mmc->caps |= MMC_CAP_4_BIT_DATA;
+> 
+> to:
+> 
+>     if (mmc_slot(host).wires >= 8)
+>         mmc->caps |= MMC_CAP_8_BIT_DATA;
+>     if (mmc_slot(host).wires >= 4)
+>         mmc->caps |= w;
+> 
+> just delete the word "else".  This sets the MMC_CAP_4_BIT_DATA bit on
+> interfaces that have 8 wire interfaces.
+> 
+> We have seen a BIG performance improvement on our systems.
+> 
+> Steve Schwarm
+> 
 
-It's the "other non-constraint-related semantics" that seem to be the
-contentious issue.  What can a suspend blocker do that a PM resource
-constraint cannot do?  If that set contains at least one useful use case,
-then we need either suspend blockers, or some other thing that provides
-for the use case.
 
-Lots of people want PM constraints, and I haven't seen anyone suggest
-there should *not* be PM constraints in the kernel some day.  I've seen
-a few "working and useful PM constraints aren't going to happen any time
-soon" statements, and several "there's lots of stuff you still can't do
-with PM constraints or suspend blockers" statements, but those aren't
-arguments *against* PM constraints or *for* suspend blockers.
