@@ -1,156 +1,108 @@
 From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 08:39:34 +0200
-Message-ID: <20100528083934.5f2f2cb6@schatten.dmk.lab>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<20100527223605.GB11364@srcf.ucam.org>
-	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
-	<AANLkTimqcVYhRxa4JUaiArPHS4_T7I-kbclhVx_jJOt3@mail.gmail.com>
+Date: Fri, 28 May 2010 09:03:49 +0200
+Message-ID: <20100528090349.64112e8a@schatten.dmk.lab>
+References: <1274482015-30899-1-git-send-email-arve@android.com>
+	<201005242049.18920.rjw@sisk.pl>
+	<87wrusvrqe.fsf@deeprootsystems.com>
+	<201005250138.16293.rjw@sisk.pl>
+	<1274863655.5882.4875.camel@twins>
+	<AANLkTinN6MKvCEhPkbYQRD2gu-mGXdNW9asRsTuKN3_Y@mail.gmail.com>
+	<1274867106.5882.5090.camel@twins>
+	<20100526120242.5c9b73ad@schatten.dmk.lab>
+	<AANLkTim4021cTnhVZrQpefq1MG-eEPOFLDRO-XDepHb4@mail.gmail.com>
+	<20100526133721.602633b2@schatten.dmk.lab>
+	<AANLkTikzgaOFdQKess4E-D86OLPOzxP3dWiDkU_UR0ri@mail.gmail.com>
+	<20100526142430.327ccbc4@schatten.dmk.lab>
+	<877hmon5em.fsf@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:55247 "EHLO mx01.d-labs.de"
+Received: from ist.d-labs.de ([213.239.218.44]:43160 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752143Ab0E1Gjn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 May 2010 02:39:43 -0400
-In-Reply-To: <AANLkTimqcVYhRxa4JUaiArPHS4_T7I-kbclhVx_jJOt3@mail.gmail.com>
+	id S1754827Ab0E1HD5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 May 2010 03:03:57 -0400
+In-Reply-To: <877hmon5em.fsf@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Ben Gamari <bgamari.foss@gmail.com>
+Cc: Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Thu, 27 May 2010 21:55:26 -0700
-Brian Swetland <swetland@google.com> wrote:
+On Thu, 27 May 2010 22:09:37 -0400
+Ben Gamari <bgamari.foss@gmail.com> wrote:
 
-> On Thu, May 27, 2010 at 3:55 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> >
-> > This started because the Android people came to a meeting that was put
-> > together of various folks to try and sort of the big blockage in getting
-> > Android and Linux kernels back towards merging.
-> >
-> > I am interested right now in finding a general solution to the Android
-> > case and the fact it looks very similar to the VM, hard RT, gamer and
-> > other related problems although we seem to have diverged from that logic.
+> On Wed, 26 May 2010 14:24:30 +0200, Florian Mickler <florian@mickler.org> wrote:
+> > Because he is using a robust kernel that provides suspend blockers and
+> > is preventing the vampire from sucking power? 
+> > 
+> Suspend blockers are only a flawed and indirect way to keep the vampire
+> from sucking.
 > 
-> I think that the suspend block model can be viewed as a constraints
-> problem (similar to some of things things you've been sketching out in
-> these threads), but I think we (Google/Android) view it as more of a
-> state constraint (don't enter suspend) than a latency constraint.
+
+
+
+> > Most users don't even grasp the simple concept of different "programs".
+> > They just have a device and click here and there and are happy. 
+> > 
+> > Really, what are you getting at? Do you deny that there are programs,
+> > that prevent a device from sleeping? (Just think of the bouncing
+> > cows app)
 > 
-> We think there's a need for these constraints both from the driver
-> side and userspace side, and that these constraints are not tied to
-> processes (multiple entities in one process may have different
-> constraints at different times or multiple processes may be working
-> together to accomplish some goal under a single constraint -- at least
-> both cases exist in the Android system as it ships today).
+> He's getting at the fact that there are much better ways to deal with
+> this problem. The issue here is that we seem to be expected to swallow
+> whatever Google throws at us, regardless of the quality of the
+> solution. It seems like the best argument we have for merging is "we
+> couldn't think of anything better and we need it yesterday." This might be
+> a good enough reason for shipping, but it certainly doesn't satisfy the
+> requirements for merging.
+
+I don't disagree on the quality. But I don't think it is because of the
+patches, but because of how the kernel is architectured in that area
+(suspend not being an idle state).
+
+Look, probably suspend needs to be integrated into the idle states and
+used from there. I could imagine a cost-specification for idle states:
+
+c3
+	cost-to-transition-to-this-state: X 
+	powersavings-per-time: Y
+	expected time we stay in this state: relative short, there is a
+	timer sheduled
+	suspend-blockers: ignored
+
+suspend 
+	cost-to-transition-to-this-state: depends, how much drivers to
+	suspend, how much processes to freeze, ...
+	powersavings-per-time: Y
+	expected time we stay in this state: long, independent of
+	sheduled timers
+	suspend-blockers: need not be activated
+
+Now, a governor could compute if it is ok, to enter suspend or only
+wait for idle-c3. And maybe it would never transition from idle-c3 to
+suspend but only from c1. because the cost to enter suspend would mean
+it just has to go to c1 anyway.
+
+what do ya think?
+
+> > And if you have two kernels, one with which your device is dead after 1
+> > hour and one with which your device is dead after 10 hours. Which would
+> > you prefer? I mean really... this is ridiculous. 
 > 
-> The exact naming of the API is not terribly important to us.  The
-> first thing we spent a bunch of time discussing last summer when Arve
-> first looked into sending wakelocks upstream was changing the name
-> because many objected to "wakelock" for various reasons.
+> It is absolutely not. If you want to keep power usage down, then
+> implement real resource management in the scheduler. Suspend blockers
+> are nothing but a clunky and ineffective means of resource allocation.
+> As has been pointed out in this thread, there are much better ways of
+> dealing with this problem.
 > 
-> Being able to have userful statistics (which drivers/processes/etc
-> held which wakelock for how long, how many times, etc) is important to
-> us.  While we want to do the best we can in the face of poorly written
-> apps, we also want to educate users and developers about which apps
-> are contributing to their poor battery life -- so users can decide to
-> uninstall an app if its usefulness does not justify its impact on
-> battery life and application developers can be more aware of what the
-> cost of their app is to endusers.
-> 
-> As an example, http://frotz.net/misc/battery-stats-unplugged.txt
-> contains a dump from the "battery service" aggregating wakelock usage,
-> cpu usage, and sensor device usage of processes (#....: sections) on
-> my phone the other day for a ~3 hour period.  This data is presented
-> visually to the enduser in a "what's using my battery" feature of the
-> platform.  "realtime" refers to wall clock time here and "uptime"
-> refers to not-in-suspend execution time.
-> 
-> Brian
+> - Ben
 
-
-Hi!
-Thinking about the issue a little more, this isn't really about trusted
-apps and not trusted apps. Or crapplications. 
-
-The point is, that as soon as an app takes a suspend-blocker it becomes
- what is here referred to as a "trusted app". But just because it is then visible as
-consuming power in an official way. 
-
-Android suspends (as in echo mem > /sys/power/state)
-whenever possible. It's as if there were a spring on the laptop lid,
-and if the user doesnt hold his grip on it, the thing closes. How does
-he hold his grip? The application registers a suspend-blocker for him.
-
-So, why not use something like idle/QOS with this? 
-
-I can imagine to theoretically have a "latency requirement" where 0
-means this application does not interact with the user. and != 0 means
-this application interacts with the user.
-
-("latency requirement" doesn't quite get it, but it works for now)
-
-In android land, the default would be that every application has a
-latency-requirement of 0. And then everything (userland) that takes a
-suspend-blocker would be changed to take a "latency requirement != 0". 
-
-Now, if the system interacts with the user
-( i.e. there is a global
-latency requirement > 0, where "global latency requirement" is
-computed by the pm framework maxing over all the userland processes
-and the kernel side)
-everything has to run. So we also need to schedule things which specify 
-a latency requirement == 0.
-
-This last thing means, that it has to be independent of the scheduler, doesn't it?
-
-I don't see how renaming suspend_blocker to set_pidle would not do
-something equivalent to this, but the bit's are probably a bit scattered
-throughout the kernel. 
-(Which I don't think is introduced by that patch set, but by the fact that 
-suspend is currently not an idle state.)
-
-I can understand if there needs to be a good solution in the kernel
-from day 1. 
-
-So, what would compose to a good solution? 
-
-Here should probably the more experienced people jump in, but let me express 
-what i've gathered in this discussion (especially from Thomas and Alan Cox):
-
-1. change suspend framework to be "just another idle state"
-2. specify that "just another idle state" can only be entered if
-"global latency requirement" == 0
-3. probably add some cost-estimate-computation to the "just another
-idle state"
-
-(the trick here is, that this idle-state ignores all current measures of "idle", 
-so the cost for this would only depend on the cost-estimate to enter it and 
-the suspend-power-usage. which also means it is probably 'opportune' to enter it, whenever possible, 
-except the machine is idle the old way already (because the cost to enter is bigger))
-
-4. change the userspace suspend interface 
-	i.e. echo mem > /sys/power/state to override the "global
-	latency requirement" to be 0.
-
-5. convert the drivers to relax their latency-requirement to be 0
-whenever possible. (in android land, this is already done, probably just needs a 
-s/suspend_block/set_pidle(1)/ )
-6. enhance the cpufreq drivers to take global latency requirement into
-view. (i.e. opportunistic suspend would be implemented in the proper place,
- don't know which that is, please chime in)
-
-So, what specifically would have to be done to the suspend blockers patches?
-And can it be done incrementally? (I guess the answer is no, we don't want this done 
-in the kernel , we want it done right?)
+I think this has to be independently to the scheduler, because as soon
+as the user interacts with the phone, everything needs to be scheduled.
+even the stuff that doesn't directly interact with the user.
+as soon as _nothing_ interacts with the user, the phone does schedule
+_nothing_ anymore.
 
 Cheers,
 Flo
-
-
-
