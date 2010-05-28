@@ -1,91 +1,99 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 10:37:13 +0100
-Message-ID: <20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+Date: Fri, 28 May 2010 02:32:11 -0700
+Message-ID: <AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
 References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
 	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
 	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
 	<20100527220949.GB10602@srcf.ucam.org>
 	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<20100527223605.GB11364@srcf.ucam.org>
-	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
-	<20100528043114.GC26177@thunk.org>
+	<AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
+	<20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100528043114.GC26177@thunk.org>
+In-Reply-To: <20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tytso@mit.edu
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-> Keep in mind, though, that a solution which is acceptable for Android
-> has to include making sure that crappy applications don't cause the
+2010/5/28 Alan Cox <alan@lxorguk.ukuu.org.uk>:
+>> Android does not only run on phones. It is possible that no android
+>> devices have ACPI, but I don't know that for a fact. What I do know =
+is
+>> that people want to run Android on x86 hardware and supporting suspe=
+nd
+>> could be very benficial.
+>
+> Sufficently beneficial to justify putting all this stuff all over the
+> kernel and apps ? That is a *very* high hurdle, doubly so when those
 
-Ted if you are speaking for Android do you think you should post from a
-google address or with a google .sig ?
+In my opinion yes.
 
-> battery to get drained.  There seem to be some people who seem
-> adamently against this requirement.  From the Android folks'
-> perspective, this is part of what is required to have an open app
-> store, as opposed to one where each application has to be carefully
-> screened and approved ala the Apple iPhone App Store.
+> vendors who have chosen to be part of the community are shipping phon=
+es
+> and PDAs just fine without them.
+>
+>> > I would imagine the existing laptops will handle power management =
+limited
+>> > by the functionality they have available. Just like any other piec=
+e of
+>> > hardware.
+>>
+>> I think existing laptops (and desktops) can benefit from opportunist=
+ic
+>> suspend support. If opportunistic suspend is used for auto-sleep aft=
+er
+>> inactivity instead of forced suspend, the user space suspend blocker
+>> api will allow an application to delay this auto sleep until for
+>> instance a download completes. This part could also be done with a
+>
+> This assumes you modify all the applications.
 
-The other vendors appear to be managing nicely without magic blockers. I
-conjecture therefore there are other solutions.
+No it does not. You only have to modify the applications were you want
+to improved behavior compared to what you have now.
 
-> We need to agree on the requirements up front, because otherwise this
-> is going to be a waste of everyone's time.
+> That isn't going to happen.
+> The hardware is going to catch up anyway.
 
-This is why I am trying to understand the problem properly.
+I want it work today.
 
-> And if we can't get agreement on requirements, I'd suggest appealing
-> this whole thing to Linus.  Either he'll agree to the requirements
-> and/or the existing implementation, in which case we can move on with
+>
+>> alarms. I know my desktops can wakeup at a specific time by
+>> programming an RTC alarm, but without suspend blockers how do you
+>> ensure that the system does not suspend right after the alarm
+>> triggered? I have a system that wakes up at specific times requested
+>
+> How do you know that isn't the correct behavior.
 
-The existing implementation has been comprehensively rejected by half the
-x86 maintainers and scheduler people to start with. That's a fairly big
-'No'.
+If the inactivity timeout happens to expire at the same time as my
+alarm that would wake up the system to run my scheduled task if it was
+already suspended my sceduled task will not run when scheduled. How
+can you argue that this is the correct behavior.
 
-> our lives, or he'll say no, in which case it will be blately obvious
-> that it was Linux developer community who rejected the Android
-> approach, despite a fairly large amount of effort trying to get
-> something that satisfies *all* of the various LKML developers who have
+> My laptop behaves in
+> that way if for example the battery is almost flat. Your suspend bloc=
+ker
+> would cause me to lose all my work with a flat battery. This is anoth=
+er
+> example of why the application must not be the policy manager.
+>
 
-Ted save the politicing and blame mongering for management meetings
-please.
+You can still force suspend when the battery gets low.
 
-If we don't have a solution it means that between us we couldn't find a
-viable solution. Maybe there isn't one, maybe we missed it. It's as much
-'google rejects kernel approach' as 'kernel rejects google approach' and
-more importantly its actually 'we (cumulative) were not smart enough
-between us to figure it out'
+> In the normal case in the PC world outside of corner cases like flat
+> batteries the answer is really simple. The laptop suspend to RAM
+> on idle intervals set in the BIOS and the like are sufficient that
+> progress will have been made before it considers going back to sleep
+> again. Right now its about ten seconds in each direction plus other c=
+osts
+> (wear on LCD backlight, disc parking etc).
+>
 
-> P.S.  Keep in mind how this looks from an outsider's perspective; an
-> embedded manufacturer spends a fairly large amount of time answering
-> one set of review comments, and a few weeks later, more people pop up,
-> and make a much deeper set of complaints, and request that the current
-> implementation be completely thrown out and that someone new be
-> designed from scratch --- and the new design isn't even going to meet
-> all of the requirements that the embedded manufacturer thought were
-> necessary.  Is it any wonder a number of embedded developers have
-> decided it's Just Too Hard to Work With the LKML?
+I'm not sure what you are trying to say here. Are you saying your
+laptop enters S3 from idle?
 
-In some cases it is easier to do stuff yourself than work with others.
-One of the conditions of working in a public space is that you do so
-without harming others. This is why in much of the western world you can
-drive a car around your own land without a licence but must have one to
-drive on a public road. This is why a restuarant must meet different food
-standards to a home kitchen. This is why the kernel standards are higher
-than what you go off and do in private.
-
-Android is a very unique and extremely narrow environment. If it really
-is special enough to need its own kernel fork it isn't the first case for
-that and it's not a problem. The GPL is quite happy to encourage this.
-Time will then answer the questions because in 3 years time either every
-non Google phone will be kicking butt without suspend blockers, or every
-phone vendor using Linux with a traditional user space will be demanding
-them.
-
-Alan
+--=20
+Arve Hj=F8nnev=E5g
