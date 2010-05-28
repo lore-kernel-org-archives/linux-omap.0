@@ -1,37 +1,66 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 11:30:40 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1005281128280.1939-100000@iolanthe.rowland.org>
-References: <1275059924.27810.9640.camel@twins>
+From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH] ARM: OMAP: Fix board data to support device only, host
+ only and OTG roles.
+Date: Fri, 28 May 2010 21:06:56 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032194B74C@dbde02.ent.ti.com>
+References: <20100521065218.GG925@nokia.com>
+ <420791.3389.qm@web180306.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1275059924.27810.9640.camel@twins>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <420791.3389.qm-g47maUHHHF8HBU+L9ui1Svu2YVrzzGjVVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 28 May 2010, Peter Zijlstra wrote:
-
-> On Fri, 2010-05-28 at 10:35 -0400, Alan Stern wrote:
-> >         The app is busy doing something else unimportant
-> >         We do into power save
-> >         Push a button, generate an IRQ
-> >         Come out of power save
-> >         No app to poke
-> >         * System goes back to sleep and eventually wakes up again
-> >         The app finishes what it was doing
-> >         The app sees there is a keystroke and marks itself important
-> >         ...
+David Brownell wrote:
 > > 
-> > The * step is where trouble can occur. 
+> > >"incompatible Kconfig role setting"
+> > 
+> > there's a patch making that a warning instead of an #error
+> > if I'm not wrong.
 > 
-> Only because you don't run runnable tasks. Please stop considering that
-> an option and these problems go away.
+> It's not an #error, it's a dev_err().
+> 
+> But more to the point, it's reporting a real error.  As
+> the comment in the code explains:
+> 
+>         /* The driver might handle more features than
+>          * the board; OK.
+>          * Fail when the board needs a feature that's
+>          * not enabled.
+>          */
+> 
+> Ut;s simple:  OTG connectors require OTG support.  Host
+> connectors require host support.  Peripheral connectors 
+> require peripheral support.  Why is anyone confused??
 
-True.  If the untrusted apps can be segregated and forcibly stopped, 
-and if they don't need timely delivery of wakeup events, then there's 
-no problem.
 
-Alan Stern
+A board which has an OTG connector, and supports OTG mode
+with this driver, very likely also supports host-only and
+peripheral-only usage on that port.
+
+Many times, we build kernels without USB host support
+or without USB gadget support compiled in (if only for
+testing). Instead of failing init, wouldn't it be useful
+to report a big warning and downgrading to host-only
+or peripheral-only roles as configured in the kernel?
+
+(which is almost what Ming Lei's patch at [1] does - except
+that it uses dev_info instead of something more severe).
+
+(Okay, I do know anyone who compiles a custom kernel of
+this sort is likely capable of patching the board files
+as needed to downgrade to the desired mode. But I still
+think the patch at [1] is useful to have.)
+
+- Anand
+
+[1] <http://marc.info/?l=linux-usb&m=127367875600618&w=2>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
