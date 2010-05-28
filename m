@@ -1,71 +1,82 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 14:55:26 +0100
-Message-ID: <20100528145526.0ce83c85@lxorguk.ukuu.org.uk>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
-	<20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
-	<AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
-	<20100528121636.34be17ad@lxorguk.ukuu.org.uk>
-	<AANLkTinVs-YfxCHm7Zees9oq_NYySqI6UFtX57JlsLy-@mail.gmail.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH] nand support on omap3 boards
+Date: Fri, 28 May 2010 19:18:49 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030DAA08AD@dbde02.ent.ti.com>
+References: <Sukumar Ghorai <s-ghorai@ti.com>
+ <1271180246-31779-1-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinVs-YfxCHm7Zees9oq_NYySqI6UFtX57JlsLy-@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51735 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757273Ab0E1Nsz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 09:48:55 -0400
+In-Reply-To: <1271180246-31779-1-git-send-email-s-ghorai@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-> I think you are missing the point. It works fine if the alarm caused
-> the wakeup, but if you had just used your system and your inactivity
-> timeout expired just as your alarm goes off, the alarm will not wake
-> the system, nor does it prevent it from suspending.
-
-As far as I can tell (and its an extremely hard situation to replicate),
-this is not true. My laptop sleeps and wakes straight back up.
-
-The following cannot occur on my laptop for simple idling
-
-	Alarm
-		Suspend
-
-because the Alarm resets the suspend timer when it is delivered. The wake
-pins and wake logic also ensure that the sequence
-
-		Suspend
-			Alarm
-
-always causes
-
-		Suspend
-			Alarm
-		Suspend Finishes
-		Resume
+To: Tony Lindgren <tony@atomide.com>, Vimal Singh <vimal.newwork@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-> > If I suspend/resume my laptop every time I have a 30 second idle gap I
-> > will need a new laptop much sooner than makes me happy.
-> >
+Hello Tony,
+
+I need your comment/input - whether we need an additional file for NAND support in ZOOM2/3?
+
+In current codebase has a board-sdp-flash.c file. I think we can remove "-sdp-" from board-sdp-flash.c and reuse the file for ZOOM boards or any other upcoming board(s).
+
+Advantage: 
+  a. No need to add any additional file like board-zoom-flash.c 
+  b. And the existing board-sdp-flash.c is very small and easily re-use for zoom boards easily.
+
+Disadvantage:
+  a. Few additional functions in the same file for NOR and OneNAND is not applicable for zoom.
+  b. rename the file board-sdp-flash.c to board-flash.c
+  c. Remove the static of board_nand_init() and additional one line for zoom board checking.
+
+Please let me know your opinion. 
+
+Regards,
+Ghorai
+
+> -----Original Message-----
+> From: Ghorai, Sukumar
+> Sent: Tuesday, April 13, 2010 11:07 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Ghorai, Sukumar
+> Subject: [PATCH] nand support on omap3 boards
 > 
-> Then don't set your inactivity timeout to 30 seconds. I don't see how
-> this is relevant.
+>    The following set of patches applies on top of the Tony's master
+> branch.
+>    And these are the patches required to enable nand (nor and onenand for
+> sdp
+>    only) for different platform.
+> 
+> Sukumar Ghorai (3):
+>   OMAP: ZOOM: Introducing 'board-zoom-flash.c'
+>   omap3: add support for NAND on zoom2 board
+>   omap3: add support for NAND on zoom3 board
+>   omap-3630-sdp : Add support for Flash
+>   omap-3630-sdp: enable Flash device support
+>   omap3: add support for NAND on LDP board
+>   zoom2: enable NAND support
+>   zoom3: enable NAND support
+> 
+>  arch/arm/configs/omap_3630sdp_defconfig       |   77 +++++++++++++++++-
+>  arch/arm/configs/omap_zoom2_defconfig         |   90
+> ++++++++++++++++++++-
+>  arch/arm/configs/omap_zoom3_defconfig         |   90
+> ++++++++++++++++++++-
+>  arch/arm/mach-omap2/Makefile                  |    4 +
+>  arch/arm/mach-omap2/board-3630sdp.c           |  110
+> +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-ldp.c               |   41 +++++++++
+>  arch/arm/mach-omap2/board-sdp-flash.c         |    2 +
+>  arch/arm/mach-omap2/board-zoom-flash.c        |   82 ++++++++++++++++++
+>  arch/arm/mach-omap2/board-zoom2.c             |   49 +++++++++++
+>  arch/arm/mach-omap2/board-zoom3.c             |   48 +++++++++++
+>  arch/arm/mach-omap2/include/mach/board-zoom.h |   11 +++
+>  11 files changed, 601 insertions(+), 3 deletions(-) create mode 100644
+> arch/arm/mach-omap2/board-zoom-flash.c
 
-It's very relevant because it means that considering current laptops is
-not that important because they can't do this kind of fast sleep/wakeup
-
-> > I don't claim this is true for a typical mobile phone obviously.
-> >
-> The only difference on the phone is that we have way more wakeup
-> events which makes the race conditions more visible. The race exist on
-> your laptop as well.
-
-The number of events is I think only partly relevant. What matters is how
-long you wait between idle and suspending. The longer you wait the less
-potential you have to end up with an event successfully owned by an
-application you are not considering relevant to suspend.
