@@ -1,79 +1,124 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] omap4: mmc: Fix the regulator resource for MMC2
-Date: Fri, 28 May 2010 21:38:04 +0530
-Message-ID: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 17:31:51 +0100
+Message-ID: <20100528173151.2c5f6fde@lxorguk.ukuu.org.uk>
+References: <20100527223605.GB11364@srcf.ucam.org>
+	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+	<20100528043114.GC26177@thunk.org>
+	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+	<20100528114123.GA22947@srcf.ucam.org>
+	<4BFFB681.1000105@nokia.com>
+	<AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+	<4BFFC5DF.5030504@nokia.com>
+	<20100528133900.GG26177@thunk.org>
+	<4BFFCFC7.7070302@nokia.com>
+	<20100528142124.GA26733@srcf.ucam.org>
+	<AANLkTilj6i7Qi-eh7e3WWeh4zxKALqr-0yhAvWKis52t@mail.gmail.com>
+	<20100528160628.7c121dab@lxorguk.ukuu.org.uk>
+	<AANLkTin3suKfGBSfiDj0n8ztY8UiHzr4af_Cr0SPOevY@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-14
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55007 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758930Ab0E1QIJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 May 2010 12:08:09 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4SG86QF004647
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 11:08:08 -0500
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:60972 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932135Ab0E1QZ3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 12:25:29 -0400
+In-Reply-To: <AANLkTin3suKfGBSfiDj0n8ztY8UiHzr4af_Cr0SPOevY@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Sukumar Ghorai <s-ghorai@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>
+To: Brian Swetland <swetland@google.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Igor Stoppa <igor.stoppa@nokia.com>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-The MMC1 and MMC2 cards have seperate LDO supplies. Current code assumes
-that they are powered by same LDO.
+> I think Arve's concern was the representation of the "I care, but onl=
+y
+> a little" or "just low enough to ensure threads must run" level which
+> is what suspend blockers would map to (low enough to ensure we
+> shouldn't halt the world but not necessarily implying a hard latency
+> constraint beyond that).
 
-This patch fixes the same and has VAUX1 as supply to MMC2 card.
+That's why I suggested "manyana" (can't get accents for ma=F1ana in a
+define) or perhaps "dreckly"[1]. They are both words that mean "at some
+point" but in a very very vague and 'relax it'll happen eventually' sen=
+se.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Tested-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
-Tested with omap3_defconfig on OMAP4430SDP
+More importantly it's policy. It's a please meet this constraint guide
+to the PM layer - not a you must do as say even if its stupid.
 
- arch/arm/mach-omap2/board-4430sdp.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+> > They fix a general problem in terms of a driver specific item. We e=
+nd up
+> > making changes around the tree but we make everyone happy not just
+> > Android. Also we are isolating policy properly. The apps and driver=
+s say
+> > "I have these needs", the power manager figures out how to meet the=
+m.
+>=20
+> That makes sense -- and as I've mentioned elsewhere, we're really not
+> super picky about naming -- if it turns out that
+> wakelocks/suspendblockers were shorthand for "request a qos constrain=
+t
+> that ensures that threads are running", we'll be able to get things
+> done just as well as we do now.
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 7a78986..f62042e 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -384,14 +384,16 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{}	/* Terminator */
- };
- 
--static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
-+static struct regulator_consumer_supply sdp4430_vaux_supply[] = {
- 	{
- 		.supply = "vmmc",
--		.dev_name = "mmci-omap-hs.0",
-+		.dev_name = "mmci-omap-hs.1",
- 	},
-+};
-+static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
- 	{
- 		.supply = "vmmc",
--		.dev_name = "mmci-omap-hs.1",
-+		.dev_name = "mmci-omap-hs.0",
- 	},
- };
- 
-@@ -447,6 +449,8 @@ static struct regulator_init_data sdp4430_vaux1 = {
- 					| REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = sdp4430_vaux_supply,
- };
- 
- static struct regulator_init_data sdp4430_vaux2 = {
-@@ -487,7 +491,7 @@ static struct regulator_init_data sdp4430_vmmc = {
- 					| REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
--	.num_consumer_supplies  = 2,
-+	.num_consumer_supplies  = 1,
- 	.consumer_supplies      = sdp4430_vmmc_supply,
- };
- 
--- 
-1.6.0.4
+Cool. I think they are or at least they are close enough that nobody wi=
+ll
+notice the join ;)
 
+> > Where it gets ugly is if you start trying to have drivers giving an=
+ app a
+> > guarantee which the app then magically has to know to dispose of.
+>=20
+> Yeah -- which is something we've avoided in the existing model with
+> overlapping wakelocks during handoff between domains.
+
+I'm not sure avoided is the right description - its there in all its
+identical ugliness in wakelock magic
+
+If you treat QoS guarantees as a wakelock for your purposes (which is
+just fine, drivers and apps give you policy, you use it how you like)
+then you could write the paragraph below substituting the word
+'guarantee' for 'wakelock' So in that sense the mess is the same becaus=
+e
+in both cases you are trying to suspend active tasks rather than asking
+the task to behave and then taking remedial action with offenders.
+
+> - input service is select()ing on input devices
+> - when select() returns it grabs a wakelock, reads events, passes the=
+m
+> on, releases the wakelock
+> - the event subsystem can then safely drop its "should be running
+> threads" constraint as soon as the last event is read because it has
+> no queues for userspace to drain, but the overlapping wakelock
+> prevents the system from immediately snapping back to sleep
+
+The conventional PC model is 'we don't go back into sleep proper fast
+enough for that race to occur'. It's hard to see how you change it. An
+app->device "thank you for that event, I enjoyed it very much and have
+finished with it" message moves the underlying event management and QoS
+knowledge into he driver proper but doesn't really change the interface=
+=2E
+
+> > If you are prepared to exclude untrusted apps from perfectly reliab=
+le
+> > event reporting (ie from finger to application action) that doesn't=
+ seem
+> > to be a neccessity anyway.
+>=20
+> Currently in the Android userpace only trusted (system) apps can
+> directly obtain wakelocks -- arbitrary apps obtain them via rpc to a
+> trusted system service (which ensures the app has been granted
+> permission to do this and tracks usage for accountability to
+> user/developer).
+
+Clearly that would continue to work out.
+
+Alan
+[1] Dreckly being used in Cornwall, as one friend put it 'Like man=E3na=
+ but
+without that dreadful sense of urgency'
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
