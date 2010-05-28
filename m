@@ -1,118 +1,66 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 04:05:51 -0700
-Message-ID: <AANLkTim3CnUbovWTnN2OET76eLPMAeIVrEtEjkH_r1uL@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1005271344040.3239-100000@iolanthe.rowland.org>
-	<20100527181433.GG3543@srcf.ucam.org>
-	<20100527200313.5c532f2f@lxorguk.ukuu.org.uk>
-	<201005280110.17075.rjw@sisk.pl>
-	<20100528005045.6ea5feba@lxorguk.ukuu.org.uk>
-	<AANLkTimqvMuMpB5E3tj58OtlRc-7mVaec-9EHAegywg7@mail.gmail.com>
-	<20100528120445.245c7075@lxorguk.ukuu.org.uk>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 12:16:36 +0100
+Message-ID: <20100528121636.34be17ad@lxorguk.ukuu.org.uk>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	<20100527220949.GB10602@srcf.ucam.org>
+	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
+	<20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
+	<AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100528120445.245c7075@lxorguk.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Peter Zijlstra <peterz@infradead.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>
+Cc: Mailing List <linux-omap@vger.kernel.org>, Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux@smtp1.linux-foundation.org, Thomas Gleixner <tglx@linutronix.de>, Peter@smtp1.linux-foundation.org, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-2010/5/28 Alan Cox <alan@lxorguk.ukuu.org.uk>:
->> This is a much harder question to answer that what we need to use
->> opportunistic suspend. The question we ask is more like this: "Is al=
-l
->> important work complete?". In the simplest case these can be the sam=
-e,
->
-> I don't believe you can answer that question without telepathy and a
-> crystal ball.
->
-But we have answered this question.
+> > My laptop behaves in
+> > that way if for example the battery is almost flat. Your suspend blocker
+> > would cause me to lose all my work with a flat battery. This is another
+> > example of why the application must not be the policy manager.
+> >
+> 
+> You can still force suspend when the battery gets low.
 
-> The application doesn't know because it has no idea how to balance
-> conflicting resource demands or to infer the users requirements and
-> wishes. Most apps will misbehave anyway.
->
-> The OS doesn't know because it cannot tell what the app wants
->
-> So at best you have a heuristic.
->
->> What happens if the user presses the button right before you set QoS
->> of 'user apps' to =A0QS_NONE?
->
-> Read down a paragraph.
->
->> To me it looks like this solution would result in this sequence whic=
-h
->> may ignore the button press:
->> =A0=A0 =A0 =A0 =A0Button pushed
->> =A0=A0 =A0 =A0 =A0Button driver sets QoS of app it wakes to QS_ABOVE=
-SUSPEND
->> =A0=A0 =A0 =A0 =A0Set QoS of 'user apps' to QS_NONE
->>
->>
->> > =A0 =A0 =A0 =A0That would I think solve the reliable wakeup case a=
-lthough
->> > =A0 =A0 =A0 =A0drivers raising a QoS parameter is a bit unusual in=
- the kernel.
->> > =A0 =A0 =A0 =A0That would at least however be specific to a few An=
-droid drivers
->> > =A0 =A0 =A0 =A0and maybe a tiny amount of shared driver stuff so p=
-robably not
->> > =A0 =A0 =A0 =A0unacceptable. (wake_up_pri(&queue, priority); isn't=
- going to
->> > =A0 =A0 =A0 =A0kill anyone is it - especially if it usually ignore=
-s the
->> > =A0 =A0 =A0 =A0priority argument)
->>
->> Why is "wake_up_pri(&queue, priority)" more acceptable than "suspend=
-_block(..."?
->
-> We keep it kernel side
-> It expresses policy and wishes rather than enforcing a behaviour.
->
-> What for example does "suspend_block" mean on a virtual machine ?
->
-> I would prefer "priority" was some kind of resource constraint model
-> instead but I'm just trying to think how to be absolutely minimally
-> invasible at this point.
->
->> What happens if the button press happend before this line:
->> > =A0 =A0 =A0 =A0count2 =3D tasks to QS_NONE | QS_NOTCHANGED
->> > =A0 =A0 =A0 =A0Screen off
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0Button Press
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0task to QS_ABOVESUSPEND
->> > =A0 =A0 =A0 =A0count =3D tasks that are QS_NOTCHANGED to QS_NONE
->> >
->> > =A0 =A0 =A0 =A0if (count !=3D count2) {
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Stuff happened ... rethink
->> > =A0 =A0 =A0 =A0}
->> >
->> > That is still a bit weird and wonderful but all the logic is in th=
-e right
->> > places. The special magic remains in the Android policy code and i=
-n the
->> > kernel specifics for Android.
->> >
->> > Thoughts ?
->>
->> I don't think it works. Also, it does not seem much less invasive th=
-an
->> suspend blockers.
->
-> "I don't think it works" isn't that helpful. I don't think it works
-> because .. would help me a lot more.
+So now we need suspend blocker blockers - as I predicted.
 
-Did you miss this:
->> What happens if the button press happend before this line:
->> > =A0 =A0 =A0 =A0count2 =3D tasks to QS_NONE | QS_NOTCHANGED
+> > In the normal case in the PC world outside of corner cases like flat
+> > batteries the answer is really simple. The laptop suspend to RAM
+> > on idle intervals set in the BIOS and the like are sufficient that
+> > progress will have been made before it considers going back to sleep
+> > again. Right now its about ten seconds in each direction plus other costs
+> > (wear on LCD backlight, disc parking etc).
+> >
+> 
+> I'm not sure what you are trying to say here. Are you saying your
+> laptop enters S3 from idle?
 
-As far as I can tell this is the same race I described where you just
-told me to read down a paragraph.
+If I have an alarm set on my laptop it will wake up when the alarm goes
+off. Once it has woken up it will not go back to suspend (except for
+something libe a battery event) until a timeout has elapsed that began
+when the laptop woke up.
 
---=20
-Arve Hj=F8nnev=E5g
+This in the laptop work solves the problem of making progress. On a
+laptop power budget, with laptop constraints on suspend (both physical
+cycle limits of hardware and performance) this works fine.
+
+If I suspend/resume my laptop every time I have a 30 second idle gap I
+will need a new laptop much sooner than makes me happy.
+
+I don't claim this is true for a typical mobile phone obviously.
+
+Alan
