@@ -1,82 +1,47 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH] nand support on omap3 boards
-Date: Fri, 28 May 2010 19:18:49 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030DAA08AD@dbde02.ent.ti.com>
-References: <Sukumar Ghorai <s-ghorai@ti.com>
- <1271180246-31779-1-git-send-email-s-ghorai@ti.com>
+From: Igor Stoppa <igor.stoppa@nokia.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 17:12:09 +0300
+Message-ID: <4BFFCF39.3010507@nokia.com>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>	<20100527220949.GB10602@srcf.ucam.org>	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>	<20100527223605.GB11364@srcf.ucam.org>	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>	<20100528043114.GC26177@thunk.org>	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>	<20100528114123.GA22947@srcf.ucam.org>	<4BFFB681.1000105@nokia.com>	<AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>	<4BFFC5DF.5030504@nokia.com> <AANLkTikKGeGHHL6AYC7uBuT7Zihj7lozfidWQ8zRHwab@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51735 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757273Ab0E1Nsz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 09:48:55 -0400
-In-Reply-To: <1271180246-31779-1-git-send-email-s-ghorai@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikKGeGHHL6AYC7uBuT7Zihj7lozfidWQ8zRHwab@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Brian Swetland <swetland@google.com>
+Cc: ext Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Vimal Singh <vimal.newwork@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+ext Brian Swetland wrote:
 
-Hello Tony,
+> How is it flawed?  Serious question.
+>   
 
-I need your comment/input - whether we need an additional file for NAND support in ZOOM2/3?
+I would avoid repeating all the good arguments given so far, but to make 
+it short:
 
-In current codebase has a board-sdp-flash.c file. I think we can remove "-sdp-" from board-sdp-flash.c and reuse the file for ZOOM boards or any other upcoming board(s).
+* I believe runtime PM is a much better starting point (at least for the 
+type of HW targeted at mobile devices) because it mimics an always-on 
+system toward userspace, which requires less disruption in the way apps 
+are designed
 
-Advantage: 
-  a. No need to add any additional file like board-zoom-flash.c 
-  b. And the existing board-sdp-flash.c is very small and easily re-use for zoom boards easily.
+* QoS is closer to the apps pov: fps if it is a media player or a game, 
+transfer speed if it is a file manager, bandwidth if it is a network 
+app, etc
+The app is required to express its opinion by using a format that it 
+understands better and is less system dependent.
+Actually the kernel should only be concerned with 2 parameters at most 
+for any given operation: latency and bandwidth/throughput
 
-Disadvantage:
-  a. Few additional functions in the same file for NOR and OneNAND is not applicable for zoom.
-  b. rename the file board-sdp-flash.c to board-flash.c
-  c. Remove the static of board_nand_init() and additional one line for zoom board checking.
+* Some form of resource management is needed as trust mechanism to 
+discriminate "trusted" vs untrusted apps that can give reliable info 
+(but in your case you should give trust to whom prevents the suspend)
 
-Please let me know your opinion. 
+* Most of this could be done in userspace with the kernel merely 
+providing the means to enforce the decisions taken by the userspace manager.
 
-Regards,
-Ghorai
+* The kernel wouldn't even have to try to outsmart the "evil application 
+writer"
 
-> -----Original Message-----
-> From: Ghorai, Sukumar
-> Sent: Tuesday, April 13, 2010 11:07 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Ghorai, Sukumar
-> Subject: [PATCH] nand support on omap3 boards
-> 
->    The following set of patches applies on top of the Tony's master
-> branch.
->    And these are the patches required to enable nand (nor and onenand for
-> sdp
->    only) for different platform.
-> 
-> Sukumar Ghorai (3):
->   OMAP: ZOOM: Introducing 'board-zoom-flash.c'
->   omap3: add support for NAND on zoom2 board
->   omap3: add support for NAND on zoom3 board
->   omap-3630-sdp : Add support for Flash
->   omap-3630-sdp: enable Flash device support
->   omap3: add support for NAND on LDP board
->   zoom2: enable NAND support
->   zoom3: enable NAND support
-> 
->  arch/arm/configs/omap_3630sdp_defconfig       |   77 +++++++++++++++++-
->  arch/arm/configs/omap_zoom2_defconfig         |   90
-> ++++++++++++++++++++-
->  arch/arm/configs/omap_zoom3_defconfig         |   90
-> ++++++++++++++++++++-
->  arch/arm/mach-omap2/Makefile                  |    4 +
->  arch/arm/mach-omap2/board-3630sdp.c           |  110
-> +++++++++++++++++++++++++
->  arch/arm/mach-omap2/board-ldp.c               |   41 +++++++++
->  arch/arm/mach-omap2/board-sdp-flash.c         |    2 +
->  arch/arm/mach-omap2/board-zoom-flash.c        |   82 ++++++++++++++++++
->  arch/arm/mach-omap2/board-zoom2.c             |   49 +++++++++++
->  arch/arm/mach-omap2/board-zoom3.c             |   48 +++++++++++
->  arch/arm/mach-omap2/include/mach/board-zoom.h |   11 +++
->  11 files changed, 601 insertions(+), 3 deletions(-) create mode 100644
-> arch/arm/mach-omap2/board-zoom-flash.c
-
+igor
