@@ -1,108 +1,48 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 13:21:38 +0100
-Message-ID: <20100528132138.2d802d77@lxorguk.ukuu.org.uk>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
-	<20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
-	<AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>
-Cc: Mailing List <linux-omap@vger.kernel.org>, Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux@smtp1.linux-foundation.org, Thomas Gleixner <tglx@linutronix.de>, Peter@smtp1.linux-foundation.org, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
+From: Theodore Tso <tytso@MIT.EDU>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 08:16:08 -0400
+Message-ID: <06439EEF-9404-45DC-AB37-5CC0486CCF6C@mit.edu>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk> <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org> <20100527230806.4deb6de3@lxorguk.ukuu.org.uk> <20100527220949.GB10602@srcf.ucam.org> <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk> <20100527223605.GB11364@srcf.ucam.org> <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk> <20100528043114.GC26177@thunk.org> <20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+Mime-Version: 1.0 (Apple Message framework v1078)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-Ok lets try and produce something more concrete. The control groups may
-be the wrong tool but we've got several such tools already
 
+On May 28, 2010, at 5:37 AM, Alan Cox wrote:
 
-Kernel involved
-----------------
-acquire:		mark myself important (into cgroup important)
-acquire(timeout)	ditto, plus app timer/timeout handler
-release:		mark myself unimportant (into cgroup downtrodden) 
+>> Keep in mind, though, that a solution which is acceptable for Android
+>> has to include making sure that crappy applications don't cause the
+> 
+> Ted if you are speaking for Android do you think you should post from a
+> google address or with a google .sig ?
 
-All user
---------
-isHeld:			app implementation internal
-setReferenceCounted:	app implementation internal
+We're all engineers here.   Nobody speaks for the company as a whole without the permission of corporate PR, and that's true for Intel, IBM, and all other companies.
 
+>> battery to get drained.  There seem to be some people who seem
+>> adamently against this requirement.  From the Android folks'
+>> perspective, this is part of what is required to have an open app
+>> store, as opposed to one where each application has to be carefully
+>> screened and approved ala the Apple iPhone App Store.
+> 
+> The other vendors appear to be managing nicely without magic blockers. I
+> conjecture therefore there are other solutions.
 
-In the idle manager [Androids own probably]
+I've seen very hard to debug situations  with Maemo where users are essentially asked to uninstall all their applications, and then install them back one at a time, waiting several hours between each install for a charge/discharge cycle, to figure out which application was waking up the system so !@#@! much while the screen was turned off.   And, when the periodic wakeups are faster than the refresh time of powertop, no, powertop won't help you find the crapplication.   If you think that's acceptable, fine --- we'll see who wins in the marketplace, and who gets blamed for producing a crappy platform --- the incompetent application programmer, or the platform supplier.
 
-	if (member of ignored cgroup && in user space)
-		ignore for idle purposes
+> If we don't have a solution it means that between us we couldn't find a
+> viable solution. Maybe there isn't one, maybe we missed it. It's as much
+> 'google rejects kernel approach' as 'kernel rejects google approach' and
+> more importantly its actually 'we (cumulative) were not smart enough
+> between us to figure it out'
 
+Maybe.  And perhaps the right solution in that case is to merge both, as opposed to "consign one to the outer darkness".   And I think that's a decision Linus should make.
 
-In the Android code managing this [Android specific bits of
-probably userspace]
-	mark downtrodden as ignored
-	mark downtrodden as not ignored
+I do hope we can come up with a better solution, eventually.  But I do want to point out as a process point of view, we do have other alternates other than "spinning endlessly".
 
-
-[Total kernel changes
-
-	Ability to mark/unmark a scheduler control group as outside of
-	some parts of idle consideration. Generically useful and
-	localised. Group latency will do most jobs fine (Zygo is correct
-	it can't solve his backup case elegantly I think)
-
-	Test in the idling logic to distinguish the case and only needed
-	for a single Android specific power module. Generically useful
-	and localised]
-
-So I put my phone down
-
-	The UI manager gets told the phone is 'down'
-	Ten seconds later it is still down
-	It marks the downtrodden group as 'ignored'
-
-	The idle logic goes
-		Nothing to run powersave
-		Still nothing
-		Ooh 0.3 seconds of nothing
-		Drop into suspend state
-
-
-If I push the button we get an IRQ
-We come out of power save
-The app gets poked
-The app may be unimportant but the IRQ means we have a new timeout of
-    some form to run down to idle
-The app marks itself important
-The app stays awake for 60 seconds rsyncing your email
-The app marks itself unimportant
-Time elapses
-We return to suspend
-
-
-If you are absolutely utterly paranoid about it you need the button
-driver to mark the task it wakes back as important rather than rely on
-time for response like everyone else. That specific bit is uggglly but
-worst case its just a google private patch to a few drivers. I understand
-why Android wants it. The narrower the gap between 'we are doing nothing,
-sit in lowest CPU on state' and 'we are off' the better the battery life
-and the more hittable the condition.
-
-Apart from that optional paranoia case my kernel now contains some
-trivial changes of generic value that have nothing to do with suspend
-blocking. Android has suspend blocking by choosing to use the generic
-features in its own specific way and we need almost no code writing ?
-
-Alan
+-- Ted
