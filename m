@@ -1,77 +1,58 @@
-From: "Stephen Schwarm, CSDP" <w3eve@earthlink.net>
-Subject: simple sd card performance bug fix on OMAP
-Date: Fri, 28 May 2010 15:05:00 -0400
-Message-ID: <4C0013DC.6060601@earthlink.net>
+From: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 15:51:58 -0400
+Message-ID: <20100528195158.GA5910@gibbs.hungrycats.org>
+References: <AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+ <4BFFC5DF.5030504@nokia.com>
+ <20100528133900.GG26177@thunk.org>
+ <4BFFCFC7.7070302@nokia.com>
+ <20100528142124.GA26733@srcf.ucam.org>
+ <AANLkTilj6i7Qi-eh7e3WWeh4zxKALqr-0yhAvWKis52t@mail.gmail.com>
+ <20100528160628.7c121dab@lxorguk.ukuu.org.uk>
+ <AANLkTin3suKfGBSfiDj0n8ztY8UiHzr4af_Cr0SPOevY@mail.gmail.com>
+ <20100528172713.GA7444@gibbs.hungrycats.org>
+ <1275070580.1645.379.camel@laptop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030502080906080409030806"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from elasmtp-dupuy.atl.sa.earthlink.net ([209.86.89.62]:38356 "EHLO
-	elasmtp-dupuy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752631Ab0E1TkK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 May 2010 15:40:10 -0400
-Received: from [173.14.164.189] (helo=[192.168.3.100])
-	by elasmtp-dupuy.atl.sa.earthlink.net with esmtpa (Exim 4.67)
-	(envelope-from <w3eve@earthlink.net>)
-	id 1OI4rd-0008WB-9J
-	for linux-omap@vger.kernel.org; Fri, 28 May 2010 15:05:01 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1275070580.1645.379.camel@laptop>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Brian Swetland <swetland@google.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, Igor Stoppa <igor.stoppa@nokia.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------030502080906080409030806
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Fri, May 28, 2010 at 08:16:20PM +0200, Peter Zijlstra wrote:
+> On Fri, 2010-05-28 at 13:27 -0400, Zygo Blaxell wrote:
+> > From my reading of this thread, there's a lot of overlap between
+> > suspendblockers and constraints.  Many use cases are served equally
+> > well with one or the other, 
 
-I have not had time to make a formal patch for this but I thought it was 
-significant enough just to send it out.  The problem is on omap systems 
-that use omap_hsmmc.c to run sd or mmc cards.  If the system you are 
-using has an 8 wire interface, it will only use a one wire interface to 
-4 wire cards (eg, sd class 4 and sd class 6).
+Oops, I apparently meant "many use cases *of suspendblockers* are served
+equally well with one or the other."
 
-In the file driver/mmc/omap_hsmmc.c in the function omap_hsmmc_probe:
-at about line 1739 change:
+> If using suspend-blockers, 
+> Please explain to me how:
+> - I will avoid the cpu going into some idle state for which the wakeup
+> latency is larger than my RT app fancies?
 
-    if (mmc_slot(host).wires >= 8)
-        mmc->caps |= MMC_CAP_8_BIT_DATA;
-    else if (mmc_slot(host).wires >= 4)
-        mmc->caps |= MMC_CAP_4_BIT_DATA;
+...though I'd think you could do that by holding a suspendblocker, thus
+preventing the CPU from going into any idle state at all.
 
-to:
+There's four likely outcomes, corresponding to inclusion or non-inclusion
+of suspend blockers and PM constraints in the kernel.  Both could coexist
+in the same kernel, since a suspend blocker can be trivially expressed as
+"an extreme PM constraint with other non-constraint-related semantics."
 
-    if (mmc_slot(host).wires >= 8)
-        mmc->caps |= MMC_CAP_8_BIT_DATA;
-    if (mmc_slot(host).wires >= 4)
-        mmc->caps |= w;
+It's the "other non-constraint-related semantics" that seem to be the
+contentious issue.  What can a suspend blocker do that a PM resource
+constraint cannot do?  If that set contains at least one useful use case,
+then we need either suspend blockers, or some other thing that provides
+for the use case.
 
-just delete the word "else".  This sets the MMC_CAP_4_BIT_DATA bit on 
-interfaces that have 8 wire interfaces.
-
-We have seen a BIG performance improvement on our systems.
-
-Steve Schwarm
-
-
-
---------------030502080906080409030806
-Content-Type: text/x-vcard; charset=utf-8;
- name="w3eve.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="w3eve.vcf"
-
-begin:vcard
-fn:Stephen  Schwarm, CSDP
-n:Schwarm, CSDP;Stephen 
-adr;dom:;;30 Hayden Woods;Wrentham;MA;02093
-email;internet:schwarm@ieee.org
-tel;home:508-384-7697
-tel;cell:508-922-9688
-x-mozilla-html:FALSE
-version:2.1
-end:vcard
-
-
---------------030502080906080409030806--
+Lots of people want PM constraints, and I haven't seen anyone suggest
+there should *not* be PM constraints in the kernel some day.  I've seen
+a few "working and useful PM constraints aren't going to happen any time
+soon" statements, and several "there's lots of stuff you still can't do
+with PM constraints or suspend blockers" statements, but those aren't
+arguments *against* PM constraints or *for* suspend blockers.
