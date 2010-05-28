@@ -1,55 +1,87 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: simple sd card performance bug fix on OMAP
-Date: Sat, 29 May 2010 01:24:30 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032162380F@dbde02.ent.ti.com>
-References: <4C0013DC.6060601@earthlink.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 23:44:49 +0200
+Message-ID: <201005282344.49892.rjw@sisk.pl>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk> <1275052817.1645.64.camel@laptop> <1275058794.27810.9571.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40241 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756549Ab0E1Tyf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 15:54:35 -0400
-In-Reply-To: <4C0013DC.6060601@earthlink.net>
-Content-Language: en-US
+Received: from ogre.sisk.pl ([217.79.144.158]:54188 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751576Ab0E1Vnt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 May 2010 17:43:49 -0400
+In-Reply-To: <1275058794.27810.9571.camel@twins>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Stephen Schwarm, CSDP" <w3eve@earthlink.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?utf-8?q?Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-Stephen Schwarm, CSDP wrote:
+On Friday 28 May 2010, Peter Zijlstra wrote:
+> On Fri, 2010-05-28 at 15:20 +0200, Peter Zijlstra wrote:
+> > On Fri, 2010-05-28 at 14:02 +0100, Alan Cox wrote:
+> > > On Fri, 28 May 2010 14:30:36 +0200
+> > > Peter Zijlstra <peterz@infradead.org> wrote:
+> > > 
+> > > > On Fri, 2010-05-28 at 13:21 +0100, Alan Cox wrote:
+> > > > > [Total kernel changes
+> > > > > 
+> > > > >         Ability to mark/unmark a scheduler control group as outside of
+> > > > >         some parts of idle consideration. Generically useful and
+> > > > >         localised. Group latency will do most jobs fine (Zygo is correct
+> > > > >         it can't solve his backup case elegantly I think)
+> > > > > 
+> > > > >         Test in the idling logic to distinguish the case and only needed
+> > > > >         for a single Android specific power module. Generically useful
+> > > > >         and localised] 
+> > > > 
+> > > > I really don't like this..
+> > > > 
+> > > > Why can't we go with the previously suggested: make bad apps block on
+> > > > QoS resources or send SIGXCPU, SIGSTOP, SIGTERM and eventually SIGKILL
+> > > 
+> > > Ok. Are you happy with the QoS being attached to a scheduler control
+> > > group and the use of them to figure out what is what ?
+> > 
+> > Up to a point, but explicitly not running runnable tasks complicates the
+> > task model significantly, and interacts with fun stuff like bandwidth
+> > inheritance and priority/deadline inheritance like things -- a subject
+> > you really don't want to complicate further.
+> > 
+> > We really want to do our utmost best to make applications block on
+> > something without altering our task model.
+> > 
+> > If applications keep running despite being told repeatedly to cease, I
+> > think the SIGKILL option is a sane one (they got SIGXCPU, SIGSTOP and
+> > SIGTERM before that) and got ample opportunity to block on something.
+> > 
+> > Traditional cpu resource management treats the CPU as an ever
+> > replenished resource, breaking that assumption (not running runnable
+> > tasks) puts us on very shaky ground indeed.
 > 
-> I have not had time to make a formal patch for this but I thought it was
-> significant enough just to send it out.  The problem is on omap systems
-> that use omap_hsmmc.c to run sd or mmc cards.  If the system you are
-> using has an 8 wire interface, it will only use a one wire interface to
-> 4 wire cards (eg, sd class 4 and sd class 6).
+> Also, I'm not quite sure why we would need cgroups to pull this off.
 > 
-> In the file driver/mmc/omap_hsmmc.c in the function omap_hsmmc_probe:
-> at about line 1739 change:
-> 
->     if (mmc_slot(host).wires >= 8)
->         mmc->caps |= MMC_CAP_8_BIT_DATA;
->     else if (mmc_slot(host).wires >= 4)
->         mmc->caps |= MMC_CAP_4_BIT_DATA;
-> 
-> to:
-> 
->     if (mmc_slot(host).wires >= 8)
->         mmc->caps |= MMC_CAP_8_BIT_DATA;
->     if (mmc_slot(host).wires >= 4)
->         mmc->caps |= w;
-> 
-> just delete the word "else".  This sets the MMC_CAP_4_BIT_DATA bit on
-> interfaces that have 8 wire interfaces.
-> 
-> We have seen a BIG performance improvement on our systems.
-> 
+> It seems most of the problems the suspend-blockers are trying to solve
+> are due to the fact of not running runnable tasks. Not running runnable
+> tasks can be seen as assigning tasks 0 bandwidth. Which is a situation
+> extremely prone to all things inversion. Such a situation would require
+> bandwidth inheritance to function at all, so possibly we can see
+> suspend-blockers as a misguided implementation of that.
 
-Thanks for reporting this.
+I think this is a matter of what is regarded as a "runnable task".  Some
+tasks may not even be regarded as runnable in specific power conditions,
+although otherwise they would be.
 
-A similar patch was posted a while ago and is currently marked as "awaiting upstream", although it looks like it got lost again.
+Consider updatedb or another file indexing ... thing on a laptop.  I certainly
+don't want anything like this to run and drain my battery, even if it has
+already been started when the machine was on AC power.  Now, of course,
+I can kill it, but for that I need to notice that it's running and it presumably
+might have done some job already and it would be wasteful to lose it.
+It would be quite nice if that app was not regarded as runnable when the
+system was on battery power.
 
-<https://patchwork.kernel.org/patch/78713/>
+In my view that's quite analogous to the Android situation, when they simply
+don't want some tasks to be regarded as runnable in specific situations.
 
-- Anand
+Rafael
