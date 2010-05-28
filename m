@@ -1,97 +1,75 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 04:20:58 -0700
-Message-ID: <AANLkTinVs-YfxCHm7Zees9oq_NYySqI6UFtX57JlsLy-@mail.gmail.com>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
-	<20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
-	<AANLkTilYHKKmQePBGW3LVLjUZy7HXHQku2Iub-LWGBm6@mail.gmail.com>
-	<20100528121636.34be17ad@lxorguk.ukuu.org.uk>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v2] serial: Add OMAP high-speed UART driver
+Date: Fri, 28 May 2010 16:54:13 +0530
+Message-ID: <AANLkTikvFAs7Ck_1bQtlKmj6cj-Lkh1ySOFZo5pR3QPU@mail.gmail.com>
+References: <58269.192.168.10.88.1274708590.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f176.google.com ([209.85.222.176]:62852 "EHLO
-	mail-pz0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303Ab0E1LVA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 07:21:00 -0400
-In-Reply-To: <20100528121636.34be17ad@lxorguk.ukuu.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <58269.192.168.10.88.1274708590.squirrel@dbdmail.itg.ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-2010/5/28 Alan Cox <alan@lxorguk.ukuu.org.uk>:
->> > My laptop behaves in
->> > that way if for example the battery is almost flat. Your suspend b=
-locker
->> > would cause me to lose all my work with a flat battery. This is an=
-other
->> > example of why the application must not be the policy manager.
->> >
->>
->> You can still force suspend when the battery gets low.
+On Mon, May 24, 2010 at 7:13 PM, Govindraj.R <govindraj.raja@ti.com> wr=
+ote:
+> This patch adds driver support for OMAP3/4 high speed UART.
 >
-> So now we need suspend blocker blockers - as I predicted.
-
-=46orced suspend is still supported. No new API is needed if you really
-want to force suspend.
-
+> The driver is made separate from 8250 driver as we cannot
+> over load 8250 driver with omap platform specific configuration for
+> features like DMA, it makes easier to implement features like DMA and
+> hardware flow control and software flow control configuration with
+> this driver as required for the omap-platform.This patch involves onl=
+y
+> the core driver and its dependent.
 >
->> > In the normal case in the PC world outside of corner cases like fl=
-at
->> > batteries the answer is really simple. The laptop suspend to RAM
->> > on idle intervals set in the BIOS and the like are sufficient that
->> > progress will have been made before it considers going back to sle=
-ep
->> > again. Right now its about ten seconds in each direction plus othe=
-r costs
->> > (wear on LCD backlight, disc parking etc).
->> >
->>
->> I'm not sure what you are trying to say here. Are you saying your
->> laptop enters S3 from idle?
+> Cc: Tony Lindgren <tony@atomide.com>
+> Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+> Platform data support for this driver is currently
+> present in Kevin's PM tree remotes/origin/pm-wip/uart branch
+> This branch contains uart-hwmod platform conversion which
+> utilizes the omap-hwmod framework. Tested using OMAP
+> 3430/3630/4430SDP boards.
 >
-> If I have an alarm set on my laptop it will wake up when the alarm go=
-es
-> off. Once it has woken up it will not go back to suspend (except for
-> something libe a battery event) until a timeout has elapsed that bega=
-n
-> when the laptop woke up.
->
+> =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0129 +++
+> =A0drivers/serial/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0| =A0 27 +
+> =A0drivers/serial/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ | =A0 =A01 +
+> =A0drivers/serial/omap-serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+1318 +++++++++++++++++++++++++
+> =A0include/linux/serial_core.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =
+=A0 =A03 +
+> =A05 files changed, 1478 insertions(+), 0 deletions(-)
+> =A0create mode 100644 arch/arm/plat-omap/include/plat/omap-serial.h
+> =A0create mode 100644 drivers/serial/omap-serial.c
 
-I think you are missing the point. It works fine if the alarm caused
-the wakeup, but if you had just used your system and your inactivity
-timeout expired just as your alarm goes off, the alarm will not wake
-the system, nor does it prevent it from suspending.
+Update:
 
-> This in the laptop work solves the problem of making progress. On a
-> laptop power budget, with laptop constraints on suspend (both physica=
-l
-> cycle limits of hardware and performance) this works fine.
->
-> If I suspend/resume my laptop every time I have a 30 second idle gap =
-I
-> will need a new laptop much sooner than makes me happy.
->
+Populating following changes for v3:
+Will be posting in couple of days.
 
-Then don't set your inactivity timeout to 30 seconds. I don't see how
-this is relevant.
+1.)  Replace platform_get_resource with platform_get_resource_byname
+     Reference :
+     http://marc.info/?l=3Dlinux-omap&m=3D127479257522952&w=3D2
 
-> I don't claim this is true for a typical mobile phone obviously.
->
-The only difference on the phone is that we have way more wakeup
-events which makes the race conditions more visible. The race exist on
-your laptop as well.
+2.)  Update kconfig to add OMAP2 support also
+      [Thanks to Kevin for testing it on n810(omap2)]
+      Reference :
+     http://marc.info/?l=3Dlinux-serial&m=3D127491414713957&w=3D2
 
---=20
-Arve Hj=F8nnev=E5g
+Please let me know if there are any further comments.
+Thanks for the reviews and testing.
+
+---
+Regards,
+Govindraj.R
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
