@@ -1,30 +1,23 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
 Subject: RE: simple sd card performance bug fix on OMAP
-Date: Fri, 28 May 2010 14:53:02 -0500
-Message-ID: <006801cafe9f$6209e030$544ff780@am.dhcp.ti.com>
+Date: Sat, 29 May 2010 01:24:30 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032162380F@dbde02.ent.ti.com>
 References: <4C0013DC.6060601@earthlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48562 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755774Ab0E1TxF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 May 2010 15:53:05 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40241 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756549Ab0E1Tyf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 15:54:35 -0400
 In-Reply-To: <4C0013DC.6060601@earthlink.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "'Stephen Schwarm, CSDP'" <w3eve@earthlink.net>, linux-omap@vger.kernel.org
+To: "Stephen Schwarm, CSDP" <w3eve@earthlink.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Stephen Schwarm, CSDP
-> Sent: Friday, May 28, 2010 2:05 PM
-> To: linux-omap@vger.kernel.org
-> Subject: simple sd card performance bug fix on OMAP
+Stephen Schwarm, CSDP wrote:
 > 
 > I have not had time to make a formal patch for this but I thought it was
 > significant enough just to send it out.  The problem is on omap systems
@@ -32,11 +25,6 @@ To: "'Stephen Schwarm, CSDP'" <w3eve@earthlink.net>, linux-omap@vger.kernel.org
 > using has an 8 wire interface, it will only use a one wire interface to
 > 4 wire cards (eg, sd class 4 and sd class 6).
 > 
-A patch to fix this was already posted on LO by Kishore.
-
-Regards,
-Madhu
-
 > In the file driver/mmc/omap_hsmmc.c in the function omap_hsmmc_probe:
 > at about line 1739 change:
 > 
@@ -57,7 +45,11 @@ Madhu
 > 
 > We have seen a BIG performance improvement on our systems.
 > 
-> Steve Schwarm
-> 
 
+Thanks for reporting this.
 
+A similar patch was posted a while ago and is currently marked as "awaiting upstream", although it looks like it got lost again.
+
+<https://patchwork.kernel.org/patch/78713/>
+
+- Anand
