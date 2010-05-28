@@ -1,77 +1,121 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 14:09:04 +0200
-Message-ID: <20100528140904.0d0d4878@schatten.dmk.lab>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<alpine.LFD.2.00.1005271915540.3032@localhost.localdomain>
-	<20100527173118.GE2468@srcf.ucam.org>
-	<alpine.LFD.2.00.1005271959450.3032@localhost.localdomain>
-	<20100528104415.1403541a@schatten.dmk.lab>
-	<AANLkTikXtk-f41-z8gXfXLNLqgGVa0z4d-qgIvwljbR-@mail.gmail.com>
-	<20100528122521.3698a62e@schatten.dmk.lab>
-	<AANLkTikumixQTaKvlyaxjZgfCZNZXFM9LySJ2YZ4OVZf@mail.gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [pm-wip/uart][PATCH 0/6]: Serial HWMOD updation and cleanup.
+Date: Fri, 28 May 2010 17:41:14 +0530
+Message-ID: <AANLkTikxWTAUOtoUSB7aXcC9Z0miTsJCssf-OzoFbp2e@mail.gmail.com>
+References: <47398.192.168.10.88.1274362670.squirrel@dbdmail.itg.ti.com>
+	<87typtgimw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:59626 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755279Ab0E1MJL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 08:09:11 -0400
-In-Reply-To: <AANLkTikumixQTaKvlyaxjZgfCZNZXFM9LySJ2YZ4OVZf@mail.gmail.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:40164 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755279Ab0E1MLP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 08:11:15 -0400
+Received: by vws9 with SMTP id 9so923674vws.19
+        for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 05:11:14 -0700 (PDT)
+In-Reply-To: <87typtgimw.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org
 
-On Fri, 28 May 2010 04:35:34 -0700
-Arve Hj=F8nnev=E5g <arve@android.com> wrote:
+On Fri, May 28, 2010 at 2:35 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Hi Govindraj,
+>
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>
+>> Patch series is based on remotes/origin/pm-wip/govindraj
+>> branch from Kevin's PM tree.
+>>
+>> Patches are tested with 3430SDP.
+>> Have updated 2420/2430 hwmod data files
+>> it would be great if some one can test the same.
+>
+> OK, I've updated pm-wip/uart to include most of this series as well a=
+s
+> some of the other fixes I posted yesterday to get things working on
+> OMAP2.
+>
+>> Govindraj.R (6):
+>> =A0 Serial: Clean up set_uart_globals.
+>> =A0 Serial: Add UART4 hwmod data.
+>> =A0 Serial: Modify OMAP3 hwmod data file with uart data.
+>> =A0 Serial: Add UART hwmod data for 2420.
+>> =A0 Serial: Add UART hwmod data for 2430.
+>> =A0 Serial: Update UART HWMOD layer.
+>
+> I've kept patch 1 as is, but changed the subject slightly.
+>
+> Patches 2, 4 and 5 I've folded into the patch that added hwmod data
+> for OMAP3.
+>
+> Patch 6 I folded into the initial UART conversion patch and also
+> changed the authorship for that patch to you, since you've done most
+> of that work.
+>
 
-> 2010/5/28 Florian Mickler <florian@mickler.org>:
+Thanks. Looks great now.
 
-> > It sounds like it could save some duplication of effort to integrat=
-e
-> > suspend into the idle-framework. "Purpose-fulness" could be just
-> > another measure of "idle".
-> >
->=20
-> To me idle means that no threads are ready to run and no interrupts a=
-re pending.
+> Patch 3, I've dropped as that shouldn't be needed after you switch
+> to platform_get_resource_byname().
+>
 
-I misused the term "idle".  I tried to express this by "quoting" it.
+One comment here,
+In that patch other than swapping rx and tx fields.
+I had modified name field from uart*_hwmod to uart*
 
->=20
-> I don't think we can plug suspend in as a cpu idle state. 1. we want
-> to suspend even the cpu is not idle. 2. starting suspend will cause
-> the cpu to not be idle.
->=20
+-	.name		=3D "uart[1-3]_hwmod",
++	.name		=3D "uart[1-3]",
 
-yeah. it would have to move out of the cpu-specific context. it would
-be a more general "system-state" thing.
+I think this might be necessary.
+To be in sync with auto generated data file.
 
-if the properties of the state's are well expressed, it does not matter
-that starting suspend will cause the cpu to not be idle, because our
-target-state(suspend) has better properties than any other state.
+I think it can be incorporated with,
 
-(or maybe there needs to be a "state-transition-in-flight" flag.)
+OMAP2/3: UART: add omap_hwmod data for UARTs 1-4
 
-if we take the "approximated duration of staying in that state" into
-account, we could provoke the pm-framework to always suspend if no
-constraint(i.e. blocker) is there.
+> Please update your omap-serial driver on top of the new pm-wip/uart
+> branch and then we'll be basically ready for upstream.
+>
 
-But really. I think I can't implement something like that.
-Also I really have _no_ idea how much work this would be.
+Sure and here is the update:
 
-_And_ I am not really shure if this is a better approach than the
-current solution.
+http://marc.info/?l=3Dlinux-serial&m=3D127504585628001&w=3D2
 
-Just an idea.=20
+Meanwhile I took wip-uart patches to pm branch and tested
+enabling sleep_while_idle and enable_off_mode
+on 3430/3630SDP with omap3_pm_defconfig.
+Things worked fine with ret/off count getting incremented.
 
-Cheers,
-=46lo
+---
+Regards,
+Govindraj.R
 
 
-
+> Kevin
+>
+>> =A0arch/arm/mach-omap2/omap_hwmod_2420_data.c | =A0184 +++++++++++++=
++++++++++++++++
+>> =A0arch/arm/mach-omap2/omap_hwmod_2430_data.c | =A0184 +++++++++++++=
++++++++++++++++
+>> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0 66 +++++++++-
+>> =A0arch/arm/mach-omap2/prcm-common.h =A0 =A0 =A0 =A0 =A0| =A0 =A02 +
+>> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 38=
+ +++----
+>> =A0arch/arm/plat-omap/common.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =
+17 ---
+>> =A0arch/arm/plat-omap/include/plat/common.h =A0 | =A0 =A01 -
+>> =A0arch/arm/plat-omap/include/plat/dma.h =A0 =A0 =A0| =A0 =A02 +
+>> =A0arch/arm/plat-omap/include/plat/irqs.h =A0 =A0 | =A0 =A02 +
+>> =A09 files changed, 449 insertions(+), 47 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
