@@ -1,35 +1,32 @@
-From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Subject: Re: [PATCH 1/3 v3] AM35x: Add musb support
-Date: Fri, 28 May 2010 07:41:22 -0700 (PDT)
-Message-ID: <579055.3526.qm@web180308.mail.gq1.yahoo.com>
-References: <4BFFCE8C.40909@ru.mvista.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 15:41:39 +0100
+Message-ID: <20100528144139.GA27140@srcf.ucam.org>
+References: <20100528043114.GC26177@thunk.org> <20100528103713.0a7952d9@lxorguk.ukuu.org.uk> <20100528114123.GA22947@srcf.ucam.org> <4BFFB681.1000105@nokia.com> <AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com> <4BFFC5DF.5030504@nokia.com> <20100528133900.GG26177@thunk.org> <4BFFCFC7.7070302@nokia.com> <20100528142124.GA26733@srcf.ucam.org> <AANLkTilj6i7Qi-eh7e3WWeh4zxKALqr-0yhAvWKis52t@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BFFCE8C.40909-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTilj6i7Qi-eh7e3WWeh4zxKALqr-0yhAvWKis52t@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Swetland <swetland@google.com>
+Cc: Igor Stoppa <igor.stoppa@nokia.com>, tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, May 28, 2010 at 07:29:27AM -0700, Brian Swetland wrote:
 
+> I need to think more about the cgroups approach, but I'm pretty sure
+> it still suffers from wakeup race situations, and due to the
+> complexity of userspace (at least ours), I suspect it would risk
+> livelock/deadlock/priority-inversion style issues due to interaction
+> between different processes in different groups.
 
---- On Fri, 5/28/10, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org> wrote:
-> 
-> Ajay Kumar Gupta wrote:
-> 
-> > AM35x has musb interface (version 1.8) and uses CPPI41
-> DMA engine.
-> > It has USB phy built inside the IP itself.
+I think the cgroups approach works if you assume that applications that 
+consume wakeup events can be trusted to otherwise be good citizens. 
+Everything that has no direct interest in wakeup events (except the 
+generic Android userspace) can be frozen, and you can use the scheduler 
+to make everything else Just Work. That's a rather big if, but you've 
+got a better idea of the state of the Android app base than I do.
 
-So it's more like DaVinci (earlier CPPI as well as
-integrated PHY) than OMAP3...
-
-> > Also added ARCH_AM35x which is required to
-> differentiate musb ips
-> > between OMAP3x and AM35x. 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
