@@ -1,66 +1,77 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: omap3 pm: dependency between opp layer and cpufreq
-Date: Fri, 28 May 2010 10:57:52 -0700
-Message-ID: <876327ewnz.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>
-	<4BFE9D7E.8020602@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com>
-	<7A436F7769CA33409C6B44B358BFFF0C0132DE0A84@dlee02.ent.ti.com>
-	<068A0169-7F7B-46D6-B3B6-462EEFB66026@student.utwente.nl>
-	<4BFFC622.90904@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E71FE512@dbde02.ent.ti.com>
-	<4BFFCB6B.50005@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E71FE537@dbde02.ent.ti.com>
-	<1275065163.10319.5.camel@Nokia-N900-51-1>
+Subject: Re: [PATCH] omap: Fix build break with omap3_defconfig
+Date: Fri, 28 May 2010 11:01:38 -0700
+Message-ID: <87typrdhx9.fsf@deeprootsystems.com>
+References: <1275062022-15067-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f204.google.com ([209.85.222.204]:36203 "EHLO
+Received: from mail-pz0-f204.google.com ([209.85.222.204]:56725 "EHLO
 	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752334Ab0E1R56 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 13:57:58 -0400
-Received: by pzk42 with SMTP id 42so706345pzk.4
-        for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 10:57:57 -0700 (PDT)
-In-Reply-To: <1275065163.10319.5.camel@Nokia-N900-51-1> (Nishanth menon's message of "Fri\, 28 May 2010 18\:46\:03 +0200")
+	with ESMTP id S1752930Ab0E1SBm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 14:01:42 -0400
+Received: by pzk42 with SMTP id 42so707890pzk.4
+        for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 11:01:42 -0700 (PDT)
+In-Reply-To: <1275062022-15067-1-git-send-email-santosh.shilimkar@ti.com> (Santosh Shilimkar's message of "Fri\, 28 May 2010 21\:23\:42 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth menon <menon.nishanth@gmail.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "Menon, Nishanth" <nm@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-omap@vger.kernel.org, eduardo.valentin@nokia.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Nishanth menon <menon.nishanth@gmail.com> writes:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-[...]
+> With latest linus's tip omap3_defconfig is broken.
 
->> 'mpurate' is usually used when cpufreq is not required. It
->> means - set me up for the specified freq and forget it. There
->> is no further change needed/ possible.
->
-> That opens up the question - why not use cpufreq with userspace
-> governor instead?  Esp if u dont want a change in freq, ok i get the
-> part where u'd like a single freq for the system to function at, but
-> u also mention, mpurate is for systems that dont care abt any other
-> dependencies. So, bit of a contradiction if it depends on scaling
-> voltage to the right level aka u are selecting an freq from opp
-> table.
->
-> This in my mind means u shud modify mpurate to use opp layer aka
-> another user beyond cpufreq.
+This subject/shortlog is not terribly useful for git history.  it
+should say something like
 
->>
->> You could always argue that it can be done in u-boot; but this
->> bootarg helps people choose target freq keeping the u-boot same.
->
-> Errr..... Makes me feel that u shud really be using cpufreq instead! Either way
-> i am not completely convinced u shud be doing voltage scaling when using
-> mpurate given ur description- if u are trying to write a new cpufreq layer, why
-> not fix why cpufreq doesn't work for u and help the rest of us as well ;)
+OMAP: Stalker board: update usage of GPIO debounce API
 
-Personally, I'm not opposed to supporting mpurate= (with CPUfreq
-disabled) as this would also have the benefit of allowing a smaller
-kernel if you really don't want DVFS.
+or something like that.  The changelog should summarize that this
+API changed (or was removed) in mainline and the previous change
+that updated this API missed this board etc...
 
-After getting he right voltage from the OPP layer, what interface are
-you planning to use to actually scale the voltage?  SR?  new voltage
-layer directly?
+All of this can be deduced from reading the current patch and changelog,
+but it's better to summarize it in the changelog.
+
+Thanks,
 
 Kevin
+
+> From the commit 8feb337475aaf, board-omap3stalker.c seems to
+> be missed out.
+>
+>  LD      init/built-in.o
+>   LD      .tmp_vmlinux1
+> arch/arm/mach-omap2/built-in.o: In function `ads7846_dev_init':
+> linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:542: undefined reference to `omap_set_gpio_debounce'
+> linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:543: undefined reference to `omap_set_gpio_debounce_time'
+> make: *** [.tmp_vmlinux1] Error 1
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3stalker.c |    4 +---
+>  1 files changed, 1 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+> index f848ba8..a04cffd 100644
+> --- a/arch/arm/mach-omap2/board-omap3stalker.c
+> +++ b/arch/arm/mach-omap2/board-omap3stalker.c
+> @@ -538,9 +538,7 @@ static void ads7846_dev_init(void)
+>  		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
+>  
+>  	gpio_direction_input(OMAP3_STALKER_TS_GPIO);
+> -
+> -	omap_set_gpio_debounce(OMAP3_STALKER_TS_GPIO, 1);
+> -	omap_set_gpio_debounce_time(OMAP3_STALKER_TS_GPIO, 0xa);
+> +	gpio_set_debounce(OMAP3_STALKER_TS_GPIO, 310);
+>  }
+>  
+>  static int ads7846_get_pendown_state(void)
+> -- 
+> 1.6.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
