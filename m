@@ -1,76 +1,63 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: omap3 pm: dependency between opp layer and cpufreq
-Date: Fri, 28 May 2010 15:33:22 +0200
-Message-ID: <4BFFC622.90904@ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>,<4BFE9D7E.8020602@ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0C0132DE0A84@dlee02.ent.ti.com> <068A0169-7F7B-46D6-B3B6-462EEFB66026@student.utwente.nl>
+From: tytso@mit.edu
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Fri, 28 May 2010 09:39:00 -0400
+Message-ID: <20100528133900.GG26177@thunk.org>
+References: <20100527220949.GB10602@srcf.ucam.org>
+ <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+ <20100527223605.GB11364@srcf.ucam.org>
+ <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+ <20100528043114.GC26177@thunk.org>
+ <20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+ <20100528114123.GA22947@srcf.ucam.org>
+ <4BFFB681.1000105@nokia.com>
+ <AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+ <4BFFC5DF.5030504@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46239 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756146Ab0E1Nd2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 May 2010 09:33:28 -0400
-In-Reply-To: <068A0169-7F7B-46D6-B3B6-462EEFB66026@student.utwente.nl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4BFFC5DF.5030504@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Igor Stoppa <igor.stoppa@nokia.com>
+Cc: ext Brian Swetland <swetland@google.com>, ext Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On 05/28/2010 10:56 AM, Koen Kooi wrote:
->
-> Op 28 mei 2010, om 09:39 heeft Menon, Nishanth het volgende geschreven:
->
->>> -----Original Message-----
->>> From: Premi, Sanjeev
->>> Sent: Thursday, May 27, 2010 10:30 PM
->>
->> [...]
->>
->>>>
->>>> 3) Was there any specific need to tie the functions "opp_get_voltage"
->>> and others to cpufreq only?
->>>
->>> yes, because without cpufreq there is no transitions in the system :)
->>>
->>> [sp] I does - via bootarg - mpurate!
->>>
->>> When kernel boots, volatge must be set properly.
->>> We cannot rely on u-boot to be settiing everything correctly. e.g. 720MHz
->>> on OMAP3530 would fail at nominal 1.2V set by u-boot.
->>
->> I agree, but mpurate does not seem to use the cpufreq interfaces - so is
->> kinda a question how it interfaces back ->  but note, mpurate tells us what
->> the start freq is for the system - it still does no *dynamic* transitions -
->> just a static startup frequency. But I agree, it assumes that if you provide
->> mpurate, the system supposedly is operating at that frequency, aka all
->> setups have been done for that operational frequency(including voltage)
->
-> There's also a funny bug in the current (PSP) mpurate/cpufreq code. The mpurate code has a
- > check for 720MHz on 35xx silicon, but cpufreq doesnt. So I can do:
->
-> setenv bootargs '<foo>  mpurate=720'
->
-> And the kernel will say "unsupported" and not switch to 720MHz during boot. But if I do this after boot:
->
-> cpufreq-set -f 720
->
-> it *will* switch to 720MHz, even if the mpurate code explicitly forbids it. I tested on all the
- >OMAP3 silicon I have and it will run at 720MHz fine, even if it's out 
-of spec, so I'm happy with this bug :)
+On Fri, May 28, 2010 at 04:32:15PM +0300, Igor Stoppa wrote:
+> 
+> What I consider plain wrong i to claim that since there are this
+> many units out, some code should be merged.
+> A company needs to cut corners sometimes when making a product but
+> this should not affect upstream code.
 
-:) on mainline, if you dont have the frequency in opp definitions and 
-your board has not done an explicit opp_add, cpufreq will only set u to 
-the nearest available freq - easy for mainline fix if someone would like 
-to send a patch adding the OPPs and the detection logic involved for 
-enabling them.
+Linus will disagree with you there.  Linus *has* merged code on the
+basis that it is shipping in distributions, regardless of the fact
+that some developers objected to it.  Sometimes "perfect" should not
+be the enemy of "good enough" shipping code.
 
-Now, thinking aloud, the voltage setting by SR will probably occur in 
-late_init, if mpurate is setting the clock earlier in the boot process, 
-we might have a potential conflict in the mpurate expecting the system 
-to be set in a certain voltage based on Sanjeev's argument, but not 
-actually there.. we expect ondemand+cpufreq to do the job on runtime 
-anyways.
+For example, I used to point out that we shipped PCMCIA code in
+mainline that had a 10% chance of crashing the system if you ejected
+the card.  NetBSD was proud to say that their code was so iron-clad
+and well designed that it always did the right thing, even if you
+ejected while it was busily passing network traffic.  Unfortunately,
+NetBSD had working PCMCIA support 3 years later than Linux.  So it
+used to be that we were the technical pragmatists (and Linus
+fortunately, still very much is the pragmatists, while others were the
+hard-line perfectionists.  It seems to me we've started getting some
+of the NetBSD attitude infecting LKML, and IMHO, that's unfortunate.
 
-Regards,
-Nishanth Menon
+We've rewritten our networking stack, 3 or 4 times, depending on how
+you count.  And sometimes shipping in products counts for a lot.  It
+doesn't count for everything, and it isn't a get-out-of-jail card, for
+sure.  But if it's a hard problem, and we have something that's good
+enough, maybe the right call is to merge it now, and we'll rework
+things to make something better and more general later.  Ultimately
+that's a call only Linus can make.
+
+If everyone agrees we're making progress, and we can let this 100+
+mail thread keep going.  But if anyone feels that we are spinning
+endlessly without making forward progress (which is after all the same
+criteria the OOM killer uses, no? :-), people should remember that
+sometimes Linus *has* ended arguments that have gone on too long by
+making a "merge or kill" decision.
+
+						- Ted
