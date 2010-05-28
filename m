@@ -1,115 +1,60 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH v4 1/3] omap3 gpmc: functionality enhancement
-Date: Fri, 28 May 2010 23:50:54 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030DB24311@dbde02.ent.ti.com>
-References: <2A3DCF3DA181AD40BDE86A3150B27B6B030DAA0662@dbde02.ent.ti.com>
- <AANLkTilOF0IW4mJiydPjaut6S-45mtm8EysAF6pepWTn@mail.gmail.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix board data to support device only, host
+	only and OTG roles.
+Date: Fri, 28 May 2010 11:27:36 -0700
+Message-ID: <AANLkTim7r5zq-G8iF1fxHQ9ohqfoOiuUkkMXfRYxkBQu@mail.gmail.com>
+References: <1274360966-9974-1-git-send-email-x0082077@ti.com>
+	<602675.31449.qm@web180309.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43787 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752642Ab0E1SVB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 14:21:01 -0400
-In-Reply-To: <AANLkTilOF0IW4mJiydPjaut6S-45mtm8EysAF6pepWTn@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:34356 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753074Ab0E1S1h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 14:27:37 -0400
+In-Reply-To: <602675.31449.qm@web180309.mail.gq1.yahoo.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org, Maulik Mankad <x0082077@ti.com>, linux-usb@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-
-
-> -----Original Message-----
-> From: Vimal Singh [mailto:vimal.newwork@gmail.com]
-> Sent: Friday, May 28, 2010 9:14 PM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v4 1/3] omap3 gpmc: functionality enhancement
->=20
-> On Fri, May 28, 2010 at 12:03 PM, Ghorai, Sukumar <s-ghorai@ti.com> w=
+On Thu, May 20, 2010 at 8:48 AM, David Brownell <david-b@pacbell.net> w=
 rote:
-> >
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Vimal Singh
-> >> Sent: Thursday, May 27, 2010 11:56 PM
-> >> To: Ghorai, Sukumar
-> >> Cc: linux-omap@vger.kernel.org
-> >> Subject: Re: [PATCH v4 1/3] omap3 gpmc: functionality enhancement
-> >>
-> >> On Thu, May 27, 2010 at 6:54 PM, Sukumar Ghorai <s-ghorai@ti.com>
-> wrote:
-> >> [...]
-> >> > -static unsigned =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpmc_cs_map;
-> >> > +static unsigned =A0 =A0 =A0 =A0int gpmc_cs_map; =A0 =A0 =A0 =A0=
-/* flag for cs which
-> are
-> >> initialized */
-> >>
-> >> Tab should be after 'int', not before.
-> >>
-> >> [...]
-> >> > @@ -456,13 +565,22 @@ EXPORT_SYMBOL(gpmc_prefetch_enable);
-> >> > =A0/**
-> >> > =A0* gpmc_prefetch_reset - disables and stops the prefetch engin=
-e
-> >> > =A0*/
-> >> > -void gpmc_prefetch_reset(void)
-> >> > +int gpmc_prefetch_reset(int cs)
-> >> > =A0{
-> >> > + =A0 =A0 =A0 u32 config1;
-> >> > +
-> >> > + =A0 =A0 =A0 /* check if the same module/cs is trying to reset =
-*/
-> >> > + =A0 =A0 =A0 config1 =3D gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
-> >> > + =A0 =A0 =A0 if (((config1 >> CS_NUM_SHIFT) & 0x7) !=3D cs)
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> >> > +
-> >>
-> >> You really do not need this.
-> >> Prefetch has just one instance at a time and 'reset' will be call =
-only
-> >> when driver has got access to prefetch (for either read or write
-> >> access), from the driver.
-> > [Ghorai] Agree. And.. NAND may not be good example. But if tomorrow=
- i/o
-> operation need to cancel for some other type of device and for big si=
-ze of
-> IO on progress. So is not this API required that case?
-> >
->=20
-> First of all, this prefetch engine is dedicated for only NAND.
-[Ghorai] ok. Does not this below response is contradicting previous sta=
-tement?
-> Then, if user wants to 'cancel', say a big write operation; since
-> there is no 'cancel' command provided by chip (nand), FS has to handl=
-e
-> it. And, I guess, best way will be to complete current chunck of
-> request (in this case writing of current page or sub-page) and then
-> cancel any further pending transfer.
-> And in that case again, prefetch 'reset' will get called for
-> completion of current page/sub-page operation.
+>
+>> +#ifdef CONFIG_USB_MUSB_OTG
+>> +=A0=A0=A0 .mode
+>> =A0=A0=A0 =A0=A0=A0 =3D MUSB_OTG,
+>> +#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
+>> +=A0=A0=A0 .mode
+>> =A0=A0=A0 =A0=A0=A0 =3D MUSB_HOST,
+>> +#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+>> =A0=A0=A0=A0 .mode
+>> =A0=A0=A0 =A0=A0=A0 =3D MUSB_PERIPHERAL,
+>> +#endif
+>
+>> =A0=A0=A0 =A0=A0=A0 =3D MUSB_PERIPHERAL,
+>> +#endif
+>
+> By the way ... the #ifdeffery should indeed vanish from all board
+> configs except the Davinci DM6446 EVM. =A0That board is kind of quirk=
+y
+> in terms of USB support, and needs jumpering to get host or periphera=
+l
+> mode (and can't do OTG). =A0I suspect some of the other boards did a =
+bad
+> thing and tried emulating what that board did.
 
-[Ghorai]=20
-1. In this case why we checks - prefetch engine busy or not, if we are =
-waiting to complete one request to be completed before another? As we r=
-eset the prefetch-engine at the end of the io?
+=46or Overo this patch actually makes quite a bit of sense (and I have
+been using something similar for quite some time).
 
-2. The only possible scenario is - when two driver(say for two separate=
- nand chip) trying to access the prefetch-engine. In that case who acce=
-ssing the prefetch engine he should only reset the engine. And to avoid=
- confusion and mistake of the user of this API, it has been added 'cs' =
-number as a function parameter for reset and the same is used to check =
-before reset.=20
+The Overo COM itself has no USB connector -- the customer can choose
+or create a daughter card with the type of USB connector appropriate
+to their application, be it host, peripheral, or OTG.  Having the mode
+easily settable via a config option allows them to use the standard
+board file without modification.
 
-3. Still you think problem? Let me know..
-
->=20
-> --
-> Regards,
-> Vimal Singh
+Steve
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
