@@ -1,34 +1,60 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 12:45:04 +0100
-Message-ID: <20100528114504.GB22947@srcf.ucam.org>
-References: <20100527210808.GB8865@srcf.ucam.org> <Pine.LNX.4.44L0.1005271723200.3239-100000@iolanthe.rowland.org> <20100527212852.GA9859@srcf.ucam.org> <1275040988.20005.29.camel@thorin>
+From: Linus WALLEIJ <linus.walleij@stericsson.com>
+Subject: Re: [PATCH 0/8] Suspend block api (version 6)
+Date: Fri, 28 May 2010 13:54:49 +0200
+Message-ID: <CEE6BB42CAD6E947908279175AF8470A025A820FA7@EXDCVYMBSTM006.EQ1STM.local>
+References: <CEE6BB42CAD6E947908279175AF8470A025A8206ED@EXDCVYMBSTM006.EQ1STM.local>
+	<Pine.LNX.4.44L0.1005271121210.3239-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:53747 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754553Ab0E1LpS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 07:45:18 -0400
-Content-Disposition: inline
-In-Reply-To: <1275040988.20005.29.camel@thorin>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <Pine.LNX.4.44L0.1005271121210.3239-100000@iolanthe.rowland.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Sven Neumann <s.neumann@raumfeld.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tero Saarni <tero.saarni@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, Arjan van de Ven <arjan@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Daniel Mack <daniel@caiaq.de>, Oleg Nesterov <oleg@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Daniel Walker <dwalker@codeaurora.>
 List-Id: linux-omap@vger.kernel.org
-To: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Fri, May 28, 2010 at 12:03:08PM +0200, Bernd Petrovitsch wrote:
-> On Don, 2010-05-27 at 22:28 +0100, Matthew Garrett wrote:
-> > At the point where you're rewriting the application you can just make it 
-> > adhere to our current behavioural standards anyway.
+[Alan]
+> On Thu, 27 May 2010, Linus WALLEIJ wrote:
 > 
-> Thank you for confirming that the so-called "feature" is just there to
-> make apps work in some area that are crappy anyways - and God knows in
-> which other areas they are crappy too.
+> > OK I understand it will be rather OK to do this. For example I have
+> > drivers/spi/amba-pl022.c which is quite clearly taking elements
+> > off a queue and transmitting them.
+> >
+> > Currently, as we do not have suspend blockers, we try to stop the
+> > queue in suspend() and if that fails we return something negative
+> > so that the suspend() is blocked by the negative return code.
+> 
+> How can it fail?  Even if the queue can't be stopped immediately, can't
+> the suspend routine block for a few milliseconds until the queue can be
+> stopped?
+> 
+> > Maybe the behaviour for an SPI bus should rather be to return
+> > -EBUSY as long as there are events in the queue. I don't quite
+> > know frankly.
+> 
+> No.  It should stop the queue.
+> 
+> Think of it this way: Somebody has just closed the lid of their
+> laptop and thrown the computer into a backpack.  You don't want the
+> machine to fail to suspend merely because an SPI queue wasn't empty.
 
-Kind of like memory protection, really. Or preemptive multitasking. Or 
-many things that the kernel does to prevent badly written applications 
-from interfering with other applications or the user's experience.
+Not quite! On the other end of that SPI link is our power
+regulators. (I'm not making this up, they are really there.) The events
+in the queue may be the register writes that actually put the system
+to low-power sleep.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+But the apropriate action may likely be to wait for this queue to become
+empty before returning 0 from suspend().
+
+Yours,
+Linus Walleij
