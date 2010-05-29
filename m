@@ -1,67 +1,41 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 18:11:22 -0700
-Message-ID: <AANLkTimM7O_k8KVSfMgsB8b_EKQEz0vpYu6pxjedsTcJ@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<20100528104415.1403541a@schatten.dmk.lab>
-	<AANLkTikXtk-f41-z8gXfXLNLqgGVa0z4d-qgIvwljbR-@mail.gmail.com>
-	<201005290024.22915.rjw@sisk.pl>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: mmc omap BUG in mmc_omap_start_request on boot
+Date: Fri, 28 May 2010 18:36:42 -0700
+Message-ID: <1275097002.9620.8.camel@runt.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:49194 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756079Ab0E2BLW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 21:11:22 -0400
-In-Reply-To: <201005290024.22915.rjw@sisk.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Florian Mickler <florian@mickler.org>, Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-2010/5/28 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Friday 28 May 2010, Arve Hj=F8nnev=E5g wrote:
->> On Fri, May 28, 2010 at 1:44 AM, Florian Mickler <florian@mickler.or=
-g> wrote:
->> > On Thu, 27 May 2010 20:05:39 +0200 (CEST)
->> > Thomas Gleixner <tglx@linutronix.de> wrote:
-> ...
->> > To integrate this with the current way of doing things, i gathered=
- it
->> > needs to be implemented as an idle-state that does the suspend()-c=
-all?
->> >
->>
->> I think it is better no not confuse this with idle. Since initiating
->> suspend will cause the system to become not-idle, I don't think is i=
-s
->> beneficial to initiate suspend from idle.
->
-> It is, if the following two conditions hold simultaneously:
->
-> (a) Doing full system suspend is ultimately going to bring you more e=
-nergy
-> =A0 =A0savings than the (presumably lowest) idle state you're current=
-ly in.
->
-> (b) You anticipate that the system will stay idle for a considerably =
-long time
-> =A0 =A0such that it's worth suspending.
->
+Hey all,
 
-I still don't think this matters. If you are waiting for in interrupt
-that cannot wake you up from suspend, then idle is not an indicator
-that it is safe to enter suspend. I also don't think you can avoid any
-user-space suspend blockers by delaying suspend until the system goes
-idle since any page fault could cause it to go idle. Therefore I don't
-see a benefit in delaying suspend until idle when the last suspend
-blocker is released (it would only mask possible race conditions).
+I've been playing with the latest Linus tree kernel trying to get MMC
+working on my device (an HTC Herald), and I've come up against a
+problem.
 
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In the function mmc_omap_start_request in drivers/mmc/host/omap.c, line
+1160, I'm finding that this bug:
+
+    BUG_ON(irqs_disabled());
+
+is triggering shortly after the MMC initializes on boot.  I hadn't had
+this problem before, but it's been a while since I've worked with this,
+and I don't know what could have changed to cause this.  If I comment
+out that line, everything seems to run fine -- the mmc card comes up,
+and I can boot from it perfectly.
+
+I'm sure commenting it out isn't the right solution, but I don't know
+the MMC subsystem well enough to understand why that function is called
+while interrupts are disabled.
+
+Can anyone point me in a direction that might allow me to resolve this?
+Has anyone else had this problem recently?
+
+For reference, this is on an HTC Herald (OMAP850-based OMAP1).
+
+Thanks
+Cory
+
