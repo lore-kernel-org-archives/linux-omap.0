@@ -1,71 +1,103 @@
 From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Sat, 29 May 2010 09:59:42 +0200
-Message-ID: <1275119982.27810.12660.camel@twins>
-References: <Pine.LNX.4.44L0.1005271344040.3239-100000@iolanthe.rowland.org>
-	 <20100528005045.6ea5feba@lxorguk.ukuu.org.uk>
-	 <1275031797.32462.18.camel@laptop>  <201005290018.14832.rjw@sisk.pl>
+Date: Sat, 29 May 2010 10:10:18 +0200
+Message-ID: <1275120618.27810.12699.camel@twins>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	 <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	 <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	 <20100527220949.GB10602@srcf.ucam.org>
+	 <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	 <20100527223605.GB11364@srcf.ucam.org>
+	 <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+	 <20100528043114.GC26177@thunk.org> <1275030704.32462.11.camel@laptop>
+	 <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:49535 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753582Ab0E2H7q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 03:59:46 -0400
-In-Reply-To: <201005290018.14832.rjw@sisk.pl>
+Received: from bombadil.infradead.org ([18.85.46.34]:42349 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750800Ab0E2IKY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 04:10:24 -0400
+In-Reply-To: <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Sat, 2010-05-29 at 00:18 +0200, Rafael J. Wysocki wrote:
-> On Friday 28 May 2010, Peter Zijlstra wrote:
-> > On Fri, 2010-05-28 at 00:50 +0100, Alan Cox wrote:
-> > > Today "idle" means "no task running"
-> > > 
-> > > If you are prepared to rephrase that as "no task that matters is running"
-> > > what would need to answer ?
-> > 
-> > I'm not sure we need or want to go there.
-> > 
-> > Why not simply let upatedb block on its IO because its QoS policy tells
-> > us that its IO priority is idle. Therefore it will not avoid the IO
-> > device from going idle and indefinitely delaying servicing requests.
-> > 
-> > When updatedb blocks, the runqueue becomes empty and we gain goodness.
-> > 
-> > Or are we talking about the same thing?
-> 
-> There may be apps that don't actually do I/O that we may want to be treated
-> that way too.
-> 
-> Consider the following scenario.  I have a purely computational task that's
-> running on my laptop in the background (say it's a folding@home or something
-> similar), but I only want it to run when (a) the box is on AC power and (b)
-> when user interface is "active" (the latter would have to be defined precisely,
-> but for the purpose of this thought experiment let's assume we have such a
-> definition).  Then, I'd only like it to be regarded as runnable if (a) and (b)
-> both happen at the same time, but it can't block on I/O.
+On Fri, 2010-05-28 at 17:43 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
+> On Fri, May 28, 2010 at 12:11 AM, Peter Zijlstra <peterz@infradead.or=
+g> wrote:
+> > On Fri, 2010-05-28 at 00:31 -0400, tytso@mit.edu wrote:
+> >> Keep in mind, though, that a solution which is acceptable for Andr=
+oid
+> >> has to include making sure that crappy applications don't cause th=
+e
+> >> battery to get drained.  There seem to be some people who seem
+> >> adamently against this requirement.
+> >
+> > Again, Alan, Thomas and myself don't argue against that, what we do
+> > however argue against is suspend running apps as a form of power
+> > management.
+> >
+>=20
+> You seem to argue that android is not allowed to use suspend because
+> the hardware we have shipped on can enter the same power state from
+> idle. From my point of view, since we need to support suspend on some
+> hardware we should be allowed to leverage this solution on the better
+> hardware platforms as well if it improves our battery life.
 
-Well, both folding@home and Seti will need to do some IO in order to get
-new data and report results, although the computational task might
-indeed take quite a while before it does so.
+Correct, I strongly oppose using suspend. Not running runnable tasks is
+not a sane solution.
 
-Such tasks should listen to general environment hints, we already have
-battery power state exposed, make it use that information. The user
-interface is active can be gotten from X.
+If current hardware can't cope, too friggin bad, get better hardware.
 
-The thing is, if its a well behaved app and listens to the environment
-hints, it will work as you want (could be done by policy knobs
-all-round).
+But the truth is, all your OMAP phones really can deal with it.
 
-The only problem is dealing with apps that don't listen, those are
-considered bad/buggy and hence we don't particularly care if they don't
-function properly.
+> I have not seen any suggestions for how to deal with all our
+> interprocess dependencies when pausing a subset of processes. Without
+> a solution to that we can only pause a subset of the processes we wan=
+t
+> to pause.
 
-For long-running computational tasks we will send a progression of
-SIGXCPU, SIGSTOP, SIGTERM and eventually SIGKILL if they keep violating
-policy.
+Do not 'pause' processes and you don't have the problem, make them stop
+on their own accord or kill them if they dont listen.. who cares about
+ill-behaved apps anyway?
+
+But really, if you want a more detailed answer, you need to provide mor=
+e
+detail on these problems.
+
+If you want to allow an untrusted app to provide a dependency for a
+trusted app, you've lost and I don't care.
+
+Trusted apps should be well behaved, otherwise there really is no point=
+=2E
+
+> These solutions do not allow us to use suspend. They may get us close=
+r
+> to the power consumption we get from suspend on the good hardware or
+> even surpass it, but we still need suspend on some hardware, and we
+> would get event better results by using these solutions in addition t=
+o
+> suspend compared to using them instead of suspend.
+
+Not using suspend is exactly the point. As Alan has argued, propagating
+suspend blockers up into all regions of userspace will take much longer
+than fixing the hardware.
+
+You got to realize this is about Linux as a whole, I really don't care
+one whit about the specific Android case. We want a solution that is
+generic enough to solve the power consumption problem and makes sense o=
+n
+future hardware.
+
+The only abstraction that really makes sense in that view is idle
+states.
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
