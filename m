@@ -1,55 +1,36 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2] omap: Stalker board: switch over to gpio_set_debounce
-Date: Sat, 29 May 2010 11:34:07 +0530
-Message-ID: <1275113047-14486-1-git-send-email-santosh.shilimkar@ti.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Sat, 29 May 2010 09:53:37 +0200
+Message-ID: <1275119617.27810.12634.camel@twins>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	 <1275052817.1645.64.camel@laptop> <1275058794.27810.9571.camel@twins>
+	 <201005282344.49892.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55879 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751635Ab0E2GES (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 29 May 2010 02:04:18 -0400
+Received: from casper.infradead.org ([85.118.1.10]:54026 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753018Ab0E2HyI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 03:54:08 -0400
+In-Reply-To: <201005282344.49892.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-With latest linus's tip, omap3_defconfig is broken.
- 
- LD      init/built-in.o
-  LD      .tmp_vmlinux1
-arch/arm/mach-omap2/built-in.o: In function `ads7846_dev_init':
-linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:542: undefined reference to `omap_set_gpio_debounce'
-linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:543: undefined reference to `omap_set_gpio_debounce_time'
-make: *** [.tmp_vmlinux1] Error 1
+On Fri, 2010-05-28 at 23:44 +0200, Rafael J. Wysocki wrote:
+> Consider updatedb or another file indexing ... thing on a laptop.  I certainly
+> don't want anything like this to run and drain my battery, even if it has
+> already been started when the machine was on AC power.  Now, of course,
+> I can kill it, but for that I need to notice that it's running and it presumably
+> might have done some job already and it would be wasteful to lose it.
+> It would be quite nice if that app was not regarded as runnable when the
+> system was on battery power. 
 
->From the commit 48feb337475a ( arm: omap: switch over to gpio_set_debounce),
-board-omap3stalker.c seems to be missed out or got merged later.
-The patch was to remove omap-specific implementations for gpio debouncing 
-in favor of gpiolib function.
+How will a ionice on steriods that will defer servicing IO when the IO
+system QoS limit doesn't meet the updatedb process's level is too low,
+not solve this?
 
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
-Updated the subject and changelog as suggested by Kevin Hilman
-
- arch/arm/mach-omap2/board-omap3stalker.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index f848ba8..a04cffd 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -538,9 +538,7 @@ static void ads7846_dev_init(void)
- 		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
- 
- 	gpio_direction_input(OMAP3_STALKER_TS_GPIO);
--
--	omap_set_gpio_debounce(OMAP3_STALKER_TS_GPIO, 1);
--	omap_set_gpio_debounce_time(OMAP3_STALKER_TS_GPIO, 0xa);
-+	gpio_set_debounce(OMAP3_STALKER_TS_GPIO, 310);
- }
- 
- static int ads7846_get_pendown_state(void)
--- 
-1.6.0.4
-
+In that case the updatedb process will simply block on IO, will hence
+not be runnable and thus not drain your battery.
