@@ -1,83 +1,39 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Sat, 29 May 2010 10:56:55 +0200
-Message-ID: <20100529105655.484f516a@schatten.dmk.lab>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<20100527223605.GB11364@srcf.ucam.org>
-	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
-	<20100528043114.GC26177@thunk.org>
-	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
-	<20100528114123.GA22947@srcf.ucam.org>
-	<4BFFB681.1000105@nokia.com>
-	<AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
-	<4BFFC5DF.5030504@nokia.com>
-	<AANLkTikKGeGHHL6AYC7uBuT7Zihj7lozfidWQ8zRHwab@mail.gmail.com>
-	<4BFFCF39.3010507@nokia.com>
-	<AANLkTinyh1YLmL6miVAxvkh9RMYDY5JChA-_f7oN0zvb@mail.gmail.com>
-	<20100529102819.21732783@schatten.dmk.lab>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/3 v3] AM35x: Add musb support
+Date: Sat, 29 May 2010 16:24:55 +0400
+Message-ID: <4C010797.8040207@mvista.com>
+References: <4BFFCE8C.40909@ru.mvista.com> <579055.3526.qm@web180308.mail.gq1.yahoo.com> <19F8576C6E063C45BE387C64729E7394044E6D2537@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:60021 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753781Ab0E2I5F convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 04:57:05 -0400
-In-Reply-To: <20100529102819.21732783@schatten.dmk.lab>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E6D2537-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, Igor Stoppa <igor.stoppa@nokia.com>, ext Brian Swetland <swetland@google.com>, ext Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-On Sat, 29 May 2010 10:28:19 +0200
-=46lorian Mickler <florian@mickler.org> wrote:
+Hello.
 
-> On Sat, 29 May 2010 02:42:35 +0300
-> Felipe Contreras <felipe.contreras@gmail.com> wrote:
->=20
-> > On Fri, May 28, 2010 at 5:12 PM, Igor Stoppa <igor.stoppa@nokia.com=
-> wrote:
-> > > ext Brian Swetland wrote:
-> > >> How is it flawed? =A0Serious question.
-> > >
-> > > I would avoid repeating all the good arguments given so far, but =
-to make it
-> > > short:
-> > >
-> > > * I believe runtime PM is a much better starting point (at least =
-for the
-> > > type of HW targeted at mobile devices) because it mimics an alway=
-s-on system
-> > > toward userspace, which requires less disruption in the way apps =
-are
-> > > designed
-> >=20
-> > I agree.
-> >=20
-> > If I understand correctly, if we have a perfect user-space that onl=
-y
-> > does work when strictly needed and trying to do it in bursts, then =
-we
-> > would be reaching the lowest power state, and there would be no nee=
-d
-> > for suspend. The problem is that Android's user-space is pretty far
-> > from that, so they said "let's segregate user-space and go to lower
-> > power mode anyway".
->=20
-> This has already been mentioned (who knew?): Android doesn't
-> want to depend on userspace for this.
+Gupta, Ajay Kumar wrote:
 
-there is an implicit "all of userspace" in there, btw..=20
+>>>> AM35x has musb interface (version 1.8) and uses CPPI41
+>>> DMA engine.
+>>>> It has USB phy built inside the IP itself.
 
->=20
-> Cheers,
-> Flo
+>> So it's more like DaVinci (earlier CPPI as well as
+>> integrated PHY) than OMAP3...
+
+> Yes. Actually they removed original musb controller from OMAP3
+> and replaced it with DaVinci family musb ip.
+
+    DA8xx/OMAP-L1x family actually. DaVinci has MUSB RTL 1.3 and CPPI 3.0, 
+while DA8xx has RTL 1.8 and CPPI 4.1 like AM35x.
+
+> -Ajay
+
+WBR, Sergei
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
