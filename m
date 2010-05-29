@@ -1,142 +1,77 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH 6/6] omap: move generic omap3 features to generic
-Date: Mon, 31 May 2010 21:36:12 +0530
-Message-ID: <AANLkTinHOZXk9pYeSfsBiejU7x1w-rA2MRtC4BBoKK0r@mail.gmail.com>
-References: <1274585799-16226-1-git-send-email-nm@ti.com>
-	<1274585799-16226-2-git-send-email-nm@ti.com>
-	<1274585799-16226-3-git-send-email-nm@ti.com>
-	<1274585799-16226-4-git-send-email-nm@ti.com>
-	<1274585799-16226-5-git-send-email-nm@ti.com>
-	<1274585799-16226-6-git-send-email-nm@ti.com>
-	<1274585799-16226-7-git-send-email-nm@ti.com>
-	<AANLkTinsrRAYX4dvB8A8wPayfRc7wkULQtUSiJ9RxbWh@mail.gmail.com>
-	<4BFE9C14.9040703@ti.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Sat, 29 May 2010 20:12:14 +0200
+Message-ID: <1275156734.1645.496.camel@laptop>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	 <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	 <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	 <20100527220949.GB10602@srcf.ucam.org>
+	 <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	 <20100527223605.GB11364@srcf.ucam.org>
+	 <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+	 <20100528043114.GC26177@thunk.org> <1275030704.32462.11.camel@laptop>
+	 <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>
+	 <1275120618.27810.12699.camel@twins>
+	 <1275149418.4503.128.camel@mulgrave.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:44142 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756409Ab0EaQNG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 12:13:06 -0400
-Received: by gye5 with SMTP id 5so373208gye.19
-        for <linux-omap@vger.kernel.org>; Mon, 31 May 2010 09:13:05 -0700 (PDT)
-In-Reply-To: <4BFE9C14.9040703@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1275149418.4503.128.camel@mulgrave.site>
+Sender: linux-kernel-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-Nishanth Menon <nm@ti.com> wrote:
-> On 05/27/2010 01:24 PM, S, Venkatraman wrote:
->>
->> Nishanth Menon<nm@ti.com> =A0wrote:
->
-> [..]
->>>
->>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
->>> index 809e13a..01555b6 100644
->>> --- a/arch/arm/mach-omap2/id.c
->>> +++ b/arch/arm/mach-omap2/id.c
->>> @@ -161,7 +161,7 @@ static void __init omap24xx_check_revision(void=
-)
->>> =A0#define OMAP3_CHECK_FEATURE(status,feat) =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
->>> =A0 =A0 =A0 =A0if (((status& =A0OMAP3_ ##feat## _MASK) =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0>> =A0OMAP3_ ##feat## _SHIFT) !=3D F=
-EAT_ ##feat## _NONE) { =A0 \
->>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_features |=3D OMAP3_HAS_ ##feat=
-; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_features |=3D OMAP_HAS_ ##feat; =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
->>> =A0 =A0 =A0 =A0}
->>
->> "CHECK" sounds like a querying API, whereas the macro populates data=
-=2E
->> Maybe UPDATE or SET ?
->>
-> Depends on where you are looking at it from: overall it is checking t=
-he
-> status bits from OMAP and deciding what features it has - this is
-> specifically important for 35xx series of processors. it is indeed a =
-check
-> in that sense. if you look at it from features variable, yeah it is u=
-pdating
-> it, but the idea of usage of the Macro is: check in status if feature=
- X is
-> available.. which is what it does ;). btw, the intent of the current =
-patch
-> was not meant to rename CHECK_FEATURE as it was very OMAP3 specific ;=
-)
->
+On Sat, 2010-05-29 at 11:10 -0500, James Bottomley wrote:
+> > Correct, I strongly oppose using suspend. Not running runnable tasks is
+> > not a sane solution.
+> 
+> Look, this is getting into the realms of a pointless semantic quibble.
+> The problem is that untrusted tasks need to be forcibly suspended when
+> they have no legitimate work to do and the user hasn't authorised them
+> to continue even if the scheduler sees them as runnable.  Whether that's
+> achieved by suspending the entire system or forcibly idling the tasks
+> (using blocking states or freezers or something) so the scheduler can
+> suspend from idle is something to be discussed,
 
-It's ok.  I don't want to worry too much about the name.
+So what happens if you task is CPU bound and gets suspended and is
+holding a resource (lock, whatever) that is required by someone else
+that didn't get suspended?
 
->>> =A0static void __init omap3_check_features(void)
->>> @@ -310,20 +310,20 @@ static void __init omap3_cpuinfo(void)
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/*
->
-> [...]
->
->>> +OMAP_HAS_FEATURE(, l2cache, L2CACHE)
->>> +OMAP_HAS_FEATURE(, sgx, SGX)
->>> +OMAP_HAS_FEATURE(, iva, IVA)
->>> +OMAP_HAS_FEATURE(, neon, NEON)
->>> +OMAP_HAS_FEATURE(, isp, ISP)
->>> +
->>> +/*
->>> =A0* Runtime detection of OMAP3 features
->>> =A0*/
->>> =A0extern u32 omap3_features;
->>>
->>> -#define OMAP3_HAS_L2CACHE =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(0)
->>> -#define OMAP3_HAS_IVA =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(1)
->>> -#define OMAP3_HAS_SGX =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(2)
->>> -#define OMAP3_HAS_NEON =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 BIT(3)
->>> -#define OMAP3_HAS_ISP =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(4)
->>> =A0#define OMAP3_HAS_192MHZ_CLK =A0 =A0 =A0 =A0 =A0 BIT(5)
->>>
->>> -OMAP_HAS_FEATURE(3, l2cache, L2CACHE)
->>> -OMAP_HAS_FEATURE(3, sgx, SGX)
->>> -OMAP_HAS_FEATURE(3, iva, IVA)
->>> -OMAP_HAS_FEATURE(3, neon, NEON)
->>> -OMAP_HAS_FEATURE(3, isp, ISP)
->>> =A0OMAP_HAS_FEATURE(3, 192mhz_clk, 192MHZ_CLK)
->>>
->>> =A0#endif
->>> --
->>
->> What about feature detection for OMAP2 and OMAP4 (similar to
->> omap3_check_features) ?
->> At least a dummy implementation with warning messages would be good,
->> so that they are not used without initialization.
->
-> there is no need for warning messages, they will return as feature no=
-t
-> present. cpu.h is a common header and variable omap_features is in co=
-mmon.c,
-> the check_feature and id.c has not set that bit, the variable will re=
-main 0,
-> hence omap_has_sgx() will return 0 unless someone enables that for le=
-ts say
-> OMAP4 -> feel free to do it, as I mentioned in 0/6, this series was m=
-eant
-> solely to reorganize and provide an infrastructure for further develo=
-pment.
->
+That's the classic inversion problem, and is caused by not running
+runnable tasks.
 
-I don't agree. The patch / series is about making them 'generic', where=
- generic
-is, to the minimum, "making the features exposed for major silicon vers=
-ions".
-If they are not usable beyond OMAP3, it's not generic.
+>  but the net result is
+> that we have to stop a certain set of tasks in such a way that they can
+> still receive certain external events ... semantically, this is
+> equivalent to not running runnable tasks in my book.
 
-[Apologies for the delayed reply, seem to have a delayed delivery issue=
-]
--Venkat.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why would be care about external events? Clearly these apps are ill
+behaved, otherwise they would have listened to the environment telling
+them to idle.
+
+Why would you try to let buggy apps work as intended instead of break
+them as hard as possible? Such policy promotes crappy code since people
+get away with it.
+
+>  (Perhaps this whole
+> thing is because the word runnable means different things ... I'm
+> thinking a task that would consume power ... are you thinking in the
+> scheduler R state?)
+
+Clearly I mean TASK_RUNNABLE, if not that the scheduler doesn't care.
+
+> Realistically, the main thing we need to do is stop timers posted
+> against the task (which is likely polling in a main loop, that being the
+> usual form of easy to write but power crazy app behaviour) from waking
+> the task and bringing the system out of suspend (whether from idle or
+> forced).
+
+Sure, that same main loop will probably receive a message along the
+lines of, 'hey, screen is off, we ought to go sleep'. If after that it
+doesn't listen, and more serious messages don't get responded to, simply
+kill the thing.
+
+Again, there is no reason what so ever to tolerate broken apps, it only
+promotes crappy apps.
