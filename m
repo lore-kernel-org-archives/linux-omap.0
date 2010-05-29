@@ -1,41 +1,1441 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 4/4] OMAP3: PM: Enabling Smartreflex Class 3 driver by default in pm defconfig
-Date: Sat, 29 May 2010 22:16:54 +0530
-Message-ID: <1275151614-16634-5-git-send-email-thara@ti.com>
+Subject: [PATCH 1/4] OMAP3: PM: Cleaning up of smartreflex code.
+Date: Sat, 29 May 2010 22:16:51 +0530
+Message-ID: <1275151614-16634-2-git-send-email-thara@ti.com>
 References: <1275151614-16634-1-git-send-email-thara@ti.com>
- <1275151614-16634-2-git-send-email-thara@ti.com>
- <1275151614-16634-3-git-send-email-thara@ti.com>
- <1275151614-16634-4-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39051 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39052 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753893Ab0E2QrC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 29 May 2010 12:47:02 -0400
-In-Reply-To: <1275151614-16634-4-git-send-email-thara@ti.com>
+	id S1754139Ab0E2QrD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 29 May 2010 12:47:03 -0400
+In-Reply-To: <1275151614-16634-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch enables smartreflex class 3 driver in omap3_pm_defconfig.
+This patch removes smartreflex driver and other associated code so
+that the patch series posted against LO for adding smartreflex support
+can be applied seamlessly on linux-omap-pm . Unfortunately even with
+this patch the code changes in arch/arm/mach-omap2/pm-debug.c in the
+LO smartreflex series have to be manually applied to this tree.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/configs/omap3_pm_defconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Makefile              |    1 -
+ arch/arm/mach-omap2/prm-regbits-34xx.h    |    8 +-
+ arch/arm/mach-omap2/smartreflex.c         | 1043 -----------------------------
+ arch/arm/mach-omap2/smartreflex.h         |  256 -------
+ arch/arm/plat-omap/Kconfig                |   31 -
+ arch/arm/plat-omap/include/plat/control.h |    9 -
+ 6 files changed, 4 insertions(+), 1344 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/smartreflex.c
+ delete mode 100644 arch/arm/mach-omap2/smartreflex.h
 
-diff --git a/arch/arm/configs/omap3_pm_defconfig b/arch/arm/configs/omap3_pm_defconfig
-index 6e86a06..300ac48 100644
---- a/arch/arm/configs/omap3_pm_defconfig
-+++ b/arch/arm/configs/omap3_pm_defconfig
-@@ -246,6 +246,7 @@ CONFIG_ARCH_OMAP4=y
- # OMAP Feature Selections
- #
- CONFIG_OMAP_SMARTREFLEX=y
-+CONFIG_OMAP_SMARTREFLEX_CLASS3=y
- # CONFIG_OMAP_SMARTREFLEX_TESTING is not set
- CONFIG_OMAP_RESET_CLOCKS=y
- CONFIG_OMAP_MUX=y
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index ac08f99..0280b9d 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -48,7 +48,6 @@ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+-obj-$(CONFIG_OMAP_SMARTREFLEX)	+= smartreflex.o
+ 
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+ AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+index 0066693..d0c7a10 100644
+--- a/arch/arm/mach-omap2/prm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+@@ -437,10 +437,10 @@
+ /* PM_PWSTST_EMU specific bits */
+ 
+ /* PRM_VC_SMPS_SA */
+-#define OMAP3430_SMPS_SA1_SHIFT				16
+-#define OMAP3430_SMPS_SA1_MASK				(0x7f << 16)
+-#define OMAP3430_SMPS_SA0_SHIFT				0
+-#define OMAP3430_SMPS_SA0_MASK				(0x7f << 0)
++#define OMAP3430_PRM_VC_SMPS_SA_SA1_SHIFT		16
++#define OMAP3430_PRM_VC_SMPS_SA_SA1_MASK		(0x7f << 16)
++#define OMAP3430_PRM_VC_SMPS_SA_SA0_SHIFT		0
++#define OMAP3430_PRM_VC_SMPS_SA_SA0_MASK		(0x7f << 0)
+ 
+ /* PRM_VC_SMPS_VOL_RA */
+ #define OMAP3430_VOLRA1_SHIFT				16
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+deleted file mode 100644
+index 1c5ec37..0000000
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ /dev/null
+@@ -1,1043 +0,0 @@
+-/*
+- * linux/arch/arm/mach-omap3/smartreflex.c
+- *
+- * OMAP34XX SmartReflex Voltage Control
+- *
+- * Copyright (C) 2008 Nokia Corporation
+- * Kalle Jokiniemi
+- *
+- * Copyright (C) 2007 Texas Instruments, Inc.
+- * Lesly A M <x0080970@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/interrupt.h>
+-#include <linux/module.h>
+-#include <linux/delay.h>
+-#include <linux/err.h>
+-#include <linux/clk.h>
+-#include <linux/sysfs.h>
+-#include <linux/kobject.h>
+-#include <linux/i2c/twl.h>
+-#include <linux/io.h>
+-
+-#include <plat/omap34xx.h>
+-#include <plat/control.h>
+-#include <plat/clock.h>
+-#include <plat/opp.h>
+-#include <plat/opp_twl_tps.h>
+-
+-#include "prm.h"
+-#include "smartreflex.h"
+-#include "prm-regbits-34xx.h"
+-
+-#define MAX_TRIES 100
+-
+-struct omap_sr {
+-	int		srid;
+-	int		is_sr_reset;
+-	int		is_autocomp_active;
+-	struct clk	*clk;
+-	struct clk	*vdd_opp_clk;
+-	u32		clk_length;
+-	u32		req_opp_no;
+-	u32		opp1_nvalue, opp2_nvalue, opp3_nvalue, opp4_nvalue;
+-	u32		opp5_nvalue;
+-	u32		senp_mod, senn_mod;
+-	void __iomem	*srbase_addr;
+-	void __iomem	*vpbase_addr;
+-};
+-
+-#define SR_REGADDR(offs)	(sr->srbase_addr + offset)
+-
+-static inline void sr_write_reg(struct omap_sr *sr, unsigned offset, u32 value)
+-{
+-	__raw_writel(value, SR_REGADDR(offset));
+-}
+-
+-static inline void sr_modify_reg(struct omap_sr *sr, unsigned offset, u32 mask,
+-					u32 value)
+-{
+-	u32 reg_val;
+-
+-	reg_val = __raw_readl(SR_REGADDR(offset));
+-	reg_val &= ~mask;
+-	reg_val |= value;
+-
+-	__raw_writel(reg_val, SR_REGADDR(offset));
+-}
+-
+-static inline u32 sr_read_reg(struct omap_sr *sr, unsigned offset)
+-{
+-	return __raw_readl(SR_REGADDR(offset));
+-}
+-
+-static int sr_clk_enable(struct omap_sr *sr)
+-{
+-	if (clk_enable(sr->clk) != 0) {
+-		pr_err("Could not enable %s\n", sr->clk->name);
+-		return -1;
+-	}
+-
+-	/* set fclk- active , iclk- idle */
+-	sr_modify_reg(sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
+-		      SR_CLKACTIVITY_IOFF_FON);
+-
+-	return 0;
+-}
+-
+-static void sr_clk_disable(struct omap_sr *sr)
+-{
+-	/* set fclk, iclk- idle */
+-	sr_modify_reg(sr, ERRCONFIG, SR_CLKACTIVITY_MASK,
+-		      SR_CLKACTIVITY_IOFF_FOFF);
+-
+-	clk_disable(sr->clk);
+-	sr->is_sr_reset = 1;
+-}
+-
+-static struct omap_sr sr1 = {
+-	.srid			= SR1,
+-	.is_sr_reset		= 1,
+-	.is_autocomp_active	= 0,
+-	.clk_length		= 0,
+-	.srbase_addr		= OMAP2_L4_IO_ADDRESS(OMAP34XX_SR1_BASE),
+-};
+-
+-static struct omap_sr sr2 = {
+-	.srid			= SR2,
+-	.is_sr_reset		= 1,
+-	.is_autocomp_active	= 0,
+-	.clk_length		= 0,
+-	.srbase_addr		= OMAP2_L4_IO_ADDRESS(OMAP34XX_SR2_BASE),
+-};
+-
+-static void cal_reciprocal(u32 sensor, u32 *sengain, u32 *rnsen)
+-{
+-	u32 gn, rn, mul;
+-
+-	for (gn = 0; gn < GAIN_MAXLIMIT; gn++) {
+-		mul = 1 << (gn + 8);
+-		rn = mul / sensor;
+-		if (rn < R_MAXLIMIT) {
+-			*sengain = gn;
+-			*rnsen = rn;
+-		}
+-	}
+-}
+-
+-static u32 cal_test_nvalue(u32 sennval, u32 senpval)
+-{
+-	u32 senpgain, senngain;
+-	u32 rnsenp, rnsenn;
+-
+-	/* Calculating the gain and reciprocal of the SenN and SenP values */
+-	cal_reciprocal(senpval, &senpgain, &rnsenp);
+-	cal_reciprocal(sennval, &senngain, &rnsenn);
+-
+-	return (senpgain << NVALUERECIPROCAL_SENPGAIN_SHIFT) |
+-		(senngain << NVALUERECIPROCAL_SENNGAIN_SHIFT) |
+-		(rnsenp << NVALUERECIPROCAL_RNSENP_SHIFT) |
+-		(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT);
+-}
+-
+-static u8 get_vdd1_opp(void)
+-{
+-	struct omap_opp *opp;
+-	unsigned long freq;
+-
+-	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk))
+-		return 0;
+-
+-	freq = sr1.vdd_opp_clk->rate;
+-	opp = opp_find_freq_ceil(OPP_MPU, &freq);
+-	if (IS_ERR(opp))
+-		return 0;
+-	/*
+-	 * Use higher freq voltage even if an exact match is not available
+-	 * we are probably masking a clock framework bug, so warn
+-	 */
+-	if (unlikely(freq != sr1.vdd_opp_clk->rate))
+-		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
+-			   __func__, freq, sr1.vdd_opp_clk->rate);
+-
+-	return opp_get_opp_id(opp);
+-}
+-
+-static u8 get_vdd2_opp(void)
+-{
+-	struct omap_opp *opp;
+-	unsigned long freq;
+-
+-	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk))
+-		return 0;
+-
+-	freq = sr2.vdd_opp_clk->rate;
+-	opp = opp_find_freq_ceil(OPP_L3, &freq);
+-	if (IS_ERR(opp))
+-		return 0;
+-
+-	/*
+-	 * Use higher freq voltage even if an exact match is not available
+-	 * we are probably masking a clock framework bug, so warn
+-	 */
+-	if (unlikely(freq != sr2.vdd_opp_clk->rate))
+-		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
+-			   __func__, freq, sr2.vdd_opp_clk->rate);
+-	return opp_get_opp_id(opp);
+-}
+-
+-
+-static void sr_set_clk_length(struct omap_sr *sr)
+-{
+-	struct clk *sys_ck;
+-	u32 sys_clk_speed;
+-
+-	sys_ck = clk_get(NULL, "sys_ck");
+-	sys_clk_speed = clk_get_rate(sys_ck);
+-	clk_put(sys_ck);
+-
+-	switch (sys_clk_speed) {
+-	case 12000000:
+-		sr->clk_length = SRCLKLENGTH_12MHZ_SYSCLK;
+-		break;
+-	case 13000000:
+-		sr->clk_length = SRCLKLENGTH_13MHZ_SYSCLK;
+-		break;
+-	case 19200000:
+-		sr->clk_length = SRCLKLENGTH_19MHZ_SYSCLK;
+-		break;
+-	case 26000000:
+-		sr->clk_length = SRCLKLENGTH_26MHZ_SYSCLK;
+-		break;
+-	case 38400000:
+-		sr->clk_length = SRCLKLENGTH_38MHZ_SYSCLK;
+-		break;
+-	default:
+-		pr_err("Invalid sysclk value: %d\n", sys_clk_speed);
+-		break;
+-	}
+-}
+-
+-static void sr_set_efuse_nvalues(struct omap_sr *sr)
+-{
+-	if (sr->srid == SR1) {
+-		sr->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+-					OMAP343X_SR1_SENNENABLE_MASK) >>
+-					OMAP343X_SR1_SENNENABLE_SHIFT;
+-		sr->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+-					OMAP343X_SR1_SENPENABLE_MASK) >>
+-					OMAP343X_SR1_SENPENABLE_SHIFT;
+-
+-		sr->opp5_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP5_VDD1);
+-		sr->opp4_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP4_VDD1);
+-		sr->opp3_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP3_VDD1);
+-		sr->opp2_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP2_VDD1);
+-		sr->opp1_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP1_VDD1);
+-	} else if (sr->srid == SR2) {
+-		sr->senn_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+-					OMAP343X_SR2_SENNENABLE_MASK) >>
+-					OMAP343X_SR2_SENNENABLE_SHIFT;
+-
+-		sr->senp_mod = (omap_ctrl_readl(OMAP343X_CONTROL_FUSE_SR) &
+-					OMAP343X_SR2_SENPENABLE_MASK) >>
+-					OMAP343X_SR2_SENPENABLE_SHIFT;
+-
+-		sr->opp3_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP3_VDD2);
+-		sr->opp2_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP2_VDD2);
+-		sr->opp1_nvalue = omap_ctrl_readl(
+-					OMAP343X_CONTROL_FUSE_OPP1_VDD2);
+-	}
+-}
+-
+-/* Hard coded nvalues for testing purposes, may cause device to hang! */
+-static void sr_set_testing_nvalues(struct omap_sr *sr)
+-{
+-	if (sr->srid == SR1) {
+-		sr->senp_mod = 0x03;	/* SenN-M5 enabled */
+-		sr->senn_mod = 0x03;
+-
+-		/* calculate nvalues for each opp */
+-		sr->opp5_nvalue = cal_test_nvalue(0xacd + 0x330, 0x848 + 0x330);
+-		sr->opp4_nvalue = cal_test_nvalue(0x964 + 0x2a0, 0x727 + 0x2a0);
+-		sr->opp3_nvalue = cal_test_nvalue(0x85b + 0x200, 0x655 + 0x200);
+-		sr->opp2_nvalue = cal_test_nvalue(0x506 + 0x1a0, 0x3be + 0x1a0);
+-		sr->opp1_nvalue = cal_test_nvalue(0x373 + 0x100, 0x28c + 0x100);
+-	} else if (sr->srid == SR2) {
+-		sr->senp_mod = 0x03;
+-		sr->senn_mod = 0x03;
+-
+-		sr->opp3_nvalue = cal_test_nvalue(0x76f + 0x200, 0x579 + 0x200);
+-		sr->opp2_nvalue = cal_test_nvalue(0x4f5 + 0x1c0, 0x390 + 0x1c0);
+-		sr->opp1_nvalue = cal_test_nvalue(0x359, 0x25d);
+-	}
+-
+-}
+-
+-static void sr_set_nvalues(struct omap_sr *sr)
+-{
+-	if (SR_TESTING_NVALUES)
+-		sr_set_testing_nvalues(sr);
+-	else
+-		sr_set_efuse_nvalues(sr);
+-}
+-
+-static void sr_configure_vp(int srid)
+-{
+-	u32 vpconfig;
+-	u32 vsel;
+-	int uvdc;
+-	u32 target_opp_no;
+-	struct omap_opp *opp;
+-
+-	if (srid == SR1) {
+-		target_opp_no = get_vdd1_opp();
+-		if (!target_opp_no)
+-			target_opp_no = VDD1_OPP3;
+-
+-		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+-		BUG_ON(!opp); /* XXX ugh */
+-
+-		uvdc = opp_get_voltage(opp);
+-		vsel = omap_twl_uv_to_vsel(uvdc);
+-
+-		vpconfig = PRM_VP1_CONFIG_ERROROFFSET |
+-			PRM_VP1_CONFIG_ERRORGAIN |
+-			PRM_VP1_CONFIG_TIMEOUTEN |
+-			vsel << OMAP3430_INITVOLTAGE_SHIFT;
+-
+-		prm_write_mod_reg(vpconfig, OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP1_CONFIG_OFFSET);
+-		prm_write_mod_reg(PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN |
+-					PRM_VP1_VSTEPMIN_VSTEPMIN,
+-					OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP1_VSTEPMIN_OFFSET);
+-
+-		prm_write_mod_reg(PRM_VP1_VSTEPMAX_SMPSWAITTIMEMAX |
+-					PRM_VP1_VSTEPMAX_VSTEPMAX,
+-					OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP1_VSTEPMAX_OFFSET);
+-
+-		prm_write_mod_reg(PRM_VP1_VLIMITTO_VDDMAX |
+-					PRM_VP1_VLIMITTO_VDDMIN |
+-					PRM_VP1_VLIMITTO_TIMEOUT,
+-					OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP1_VLIMITTO_OFFSET);
+-
+-		/* Trigger initVDD value copy to voltage processor */
+-		prm_set_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP1_CONFIG_OFFSET);
+-
+-		/* Clear initVDD copy trigger bit */
+-		prm_clear_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
+-				       OMAP3_PRM_VP1_CONFIG_OFFSET);
+-
+-		/* Force update of voltage */
+-		prm_set_mod_reg_bits(OMAP3430_FORCEUPDATE, OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP1_CONFIG_OFFSET);
+-		/* Clear force bit */
+-		prm_clear_mod_reg_bits(OMAP3430_FORCEUPDATE, OMAP3430_GR_MOD,
+-				       OMAP3_PRM_VP1_CONFIG_OFFSET);
+-
+-	} else if (srid == SR2) {
+-		target_opp_no = get_vdd2_opp();
+-		if (!target_opp_no)
+-			target_opp_no = VDD2_OPP3;
+-
+-		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+-		BUG_ON(!opp); /* XXX ugh */
+-
+-		uvdc = opp_get_voltage(opp);
+-		vsel = omap_twl_uv_to_vsel(uvdc);
+-
+-		vpconfig = PRM_VP2_CONFIG_ERROROFFSET |
+-			PRM_VP2_CONFIG_ERRORGAIN |
+-			PRM_VP2_CONFIG_TIMEOUTEN |
+-			vsel << OMAP3430_INITVOLTAGE_SHIFT;
+-
+-		prm_write_mod_reg(vpconfig, OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP2_CONFIG_OFFSET);
+-		prm_write_mod_reg(PRM_VP2_VSTEPMIN_SMPSWAITTIMEMIN |
+-					PRM_VP2_VSTEPMIN_VSTEPMIN,
+-					OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP2_VSTEPMIN_OFFSET);
+-
+-		prm_write_mod_reg(PRM_VP2_VSTEPMAX_SMPSWAITTIMEMAX |
+-					PRM_VP2_VSTEPMAX_VSTEPMAX,
+-					OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP2_VSTEPMAX_OFFSET);
+-
+-		prm_write_mod_reg(PRM_VP2_VLIMITTO_VDDMAX |
+-					PRM_VP2_VLIMITTO_VDDMIN |
+-					PRM_VP2_VLIMITTO_TIMEOUT,
+-					OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP2_VLIMITTO_OFFSET);
+-
+-		/* Trigger initVDD value copy to voltage processor */
+-		prm_set_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP2_CONFIG_OFFSET);
+-
+-		/* Clear initVDD copy trigger bit */
+-		prm_clear_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
+-				       OMAP3_PRM_VP2_CONFIG_OFFSET);
+-
+-		/* Force update of voltage */
+-		prm_set_mod_reg_bits(OMAP3430_FORCEUPDATE, OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP2_CONFIG_OFFSET);
+-		/* Clear force bit */
+-		prm_clear_mod_reg_bits(OMAP3430_FORCEUPDATE, OMAP3430_GR_MOD,
+-				       OMAP3_PRM_VP2_CONFIG_OFFSET);
+-
+-	}
+-}
+-
+-static void sr_configure(struct omap_sr *sr)
+-{
+-	u32 sr_config;
+-	u32 senp_en , senn_en;
+-
+-	if (sr->clk_length == 0)
+-		sr_set_clk_length(sr);
+-
+-	senp_en = sr->senp_mod;
+-	senn_en = sr->senn_mod;
+-	if (sr->srid == SR1) {
+-		sr_config = SR1_SRCONFIG_ACCUMDATA |
+-			(sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
+-			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
+-			SRCONFIG_MINMAXAVG_EN |
+-			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
+-			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
+-			SRCONFIG_DELAYCTRL;
+-
+-		sr_write_reg(sr, SRCONFIG, sr_config);
+-		sr_write_reg(sr, AVGWEIGHT, SR1_AVGWEIGHT_SENPAVGWEIGHT |
+-					SR1_AVGWEIGHT_SENNAVGWEIGHT);
+-
+-		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
+-			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
+-			(SR1_ERRWEIGHT | SR1_ERRMAXLIMIT | SR1_ERRMINLIMIT));
+-
+-	} else if (sr->srid == SR2) {
+-		sr_config = SR2_SRCONFIG_ACCUMDATA |
+-			(sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
+-			SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN |
+-			SRCONFIG_MINMAXAVG_EN |
+-			(senn_en << SRCONFIG_SENNENABLE_SHIFT) |
+-			(senp_en << SRCONFIG_SENPENABLE_SHIFT) |
+-			SRCONFIG_DELAYCTRL;
+-
+-		sr_write_reg(sr, SRCONFIG, sr_config);
+-		sr_write_reg(sr, AVGWEIGHT, SR2_AVGWEIGHT_SENPAVGWEIGHT |
+-					SR2_AVGWEIGHT_SENNAVGWEIGHT);
+-		sr_modify_reg(sr, ERRCONFIG, (SR_ERRWEIGHT_MASK |
+-			SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
+-			(SR2_ERRWEIGHT | SR2_ERRMAXLIMIT | SR2_ERRMINLIMIT));
+-
+-	}
+-	sr->is_sr_reset = 0;
+-}
+-
+-static int sr_reset_voltage(int srid)
+-{
+-	struct omap_opp *opp;
+-	unsigned long uvdc;
+-	u32 target_opp_no, vsel = 0;
+-	u32 reg_addr = 0;
+-	u32 loop_cnt = 0, retries_cnt = 0;
+-	u32 vc_bypass_value;
+-	u32 t2_smps_steps = 0;
+-	u32 t2_smps_delay = 0;
+-	u32 prm_vp1_voltage, prm_vp2_voltage;
+-
+-	if (srid == SR1) {
+-		target_opp_no = get_vdd1_opp();
+-		if (!target_opp_no) {
+-			pr_info("Current OPP unknown: Cannot reset voltage\n");
+-			return 1;
+-		}
+-
+-		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+-		if (!opp)
+-			return 1;
+-
+-		uvdc = opp_get_voltage(opp);
+-		vsel = omap_twl_uv_to_vsel(uvdc);
+-
+-		reg_addr = R_VDD1_SR_CONTROL;
+-		prm_vp1_voltage = prm_read_mod_reg(OMAP3430_GR_MOD,
+-						OMAP3_PRM_VP1_VOLTAGE_OFFSET);
+-		t2_smps_steps = abs(vsel - prm_vp1_voltage);
+-	} else if (srid == SR2) {
+-		target_opp_no = get_vdd2_opp();
+-		if (!target_opp_no) {
+-			pr_info("Current OPP unknown: Cannot reset voltage\n");
+-			return 1;
+-		}
+-
+-		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+-		if (!opp)
+-			return 1;
+-
+-		uvdc = opp_get_voltage(opp);
+-		vsel = omap_twl_uv_to_vsel(uvdc);
+-
+-		reg_addr = R_VDD2_SR_CONTROL;
+-		prm_vp2_voltage = prm_read_mod_reg(OMAP3430_GR_MOD,
+-						OMAP3_PRM_VP2_VOLTAGE_OFFSET);
+-		t2_smps_steps = abs(vsel - prm_vp2_voltage);
+-	}
+-
+-	vc_bypass_value = (vsel << OMAP3430_DATA_SHIFT) |
+-			(reg_addr << OMAP3430_REGADDR_SHIFT) |
+-			(R_SRI2C_SLAVE_ADDR << OMAP3430_SLAVEADDR_SHIFT);
+-
+-	prm_write_mod_reg(vc_bypass_value, OMAP3430_GR_MOD,
+-			OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
+-
+-	vc_bypass_value = prm_set_mod_reg_bits(OMAP3430_VALID, OMAP3430_GR_MOD,
+-					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
+-
+-	while ((vc_bypass_value & OMAP3430_VALID) != 0x0) {
+-		loop_cnt++;
+-		if (retries_cnt > 10) {
+-			pr_info("Loop count exceeded in check SR I2C"
+-								"write\n");
+-			return 1;
+-		}
+-		if (loop_cnt > 50) {
+-			retries_cnt++;
+-			loop_cnt = 0;
+-			udelay(10);
+-		}
+-		vc_bypass_value = prm_read_mod_reg(OMAP3430_GR_MOD,
+-					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
+-	}
+-
+-	/*
+-	 *  T2 SMPS slew rate (min) 4mV/uS, step size 12.5mV,
+-	 *  2us added as buffer.
+-	 */
+-	t2_smps_delay = ((t2_smps_steps * 125) / 40) + 2;
+-	udelay(t2_smps_delay);
+-
+-	return 0;
+-}
+-
+-static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+-{
+-	u32 nvalue_reciprocal, v;
+-	struct omap_opp *opp;
+-	int uvdc;
+-	char vsel;
+-
+-	sr->req_opp_no = target_opp_no;
+-
+-	if (sr->srid == SR1) {
+-		switch (target_opp_no) {
+-		case 5:
+-			nvalue_reciprocal = sr->opp5_nvalue;
+-			break;
+-		case 4:
+-			nvalue_reciprocal = sr->opp4_nvalue;
+-			break;
+-		case 3:
+-			nvalue_reciprocal = sr->opp3_nvalue;
+-			break;
+-		case 2:
+-			nvalue_reciprocal = sr->opp2_nvalue;
+-			break;
+-		case 1:
+-			nvalue_reciprocal = sr->opp1_nvalue;
+-			break;
+-		default:
+-			nvalue_reciprocal = sr->opp3_nvalue;
+-			break;
+-		}
+-
+-		opp = opp_find_by_opp_id(OPP_MPU, target_opp_no);
+-		if (!opp)
+-			return false;
+-	} else {
+-		switch (target_opp_no) {
+-		case 3:
+-			nvalue_reciprocal = sr->opp3_nvalue;
+-			break;
+-		case 2:
+-			nvalue_reciprocal = sr->opp2_nvalue;
+-			break;
+-		case 1:
+-			nvalue_reciprocal = sr->opp1_nvalue;
+-			break;
+-		default:
+-			nvalue_reciprocal = sr->opp3_nvalue;
+-			break;
+-		}
+-
+-		opp = opp_find_by_opp_id(OPP_L3, target_opp_no);
+-		if (!opp)
+-			return false;
+-	}
+-
+-	if (nvalue_reciprocal == 0) {
+-		pr_notice("OPP%d doesn't support SmartReflex\n",
+-								target_opp_no);
+-		return false;
+-	}
+-
+-	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
+-
+-	/* Enable the interrupt */
+-	sr_modify_reg(sr, ERRCONFIG,
+-			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST),
+-			(ERRCONFIG_VPBOUNDINTEN | ERRCONFIG_VPBOUNDINTST));
+-
+-	uvdc = opp_get_voltage(opp);
+-	vsel = omap_twl_uv_to_vsel(uvdc);
+-
+-	if (sr->srid == SR1) {
+-		/* set/latch init voltage */
+-		v = prm_read_mod_reg(OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP1_CONFIG_OFFSET);
+-		v &= ~(OMAP3430_INITVOLTAGE_MASK | OMAP3430_INITVDD);
+-
+-		v |= vsel << OMAP3430_INITVOLTAGE_SHIFT;
+-		prm_write_mod_reg(v, OMAP3430_GR_MOD,
+-				  OMAP3_PRM_VP1_CONFIG_OFFSET);
+-		/* write1 to latch */
+-		prm_set_mod_reg_bits(OMAP3430_INITVDD, OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP1_CONFIG_OFFSET);
+-		/* write2 clear */
+-		prm_clear_mod_reg_bits(OMAP3430_INITVDD, OMAP3430_GR_MOD,
+-				       OMAP3_PRM_VP1_CONFIG_OFFSET);
+-		/* Enable VP1 */
+-		prm_set_mod_reg_bits(PRM_VP1_CONFIG_VPENABLE, OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP1_CONFIG_OFFSET);
+-	} else if (sr->srid == SR2) {
+-		/* set/latch init voltage */
+-		v = prm_read_mod_reg(OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP2_CONFIG_OFFSET);
+-		v &= ~(OMAP3430_INITVOLTAGE_MASK | OMAP3430_INITVDD);
+-		v |= vsel << OMAP3430_INITVOLTAGE_SHIFT;
+-		prm_write_mod_reg(v, OMAP3430_GR_MOD,
+-				  OMAP3_PRM_VP2_CONFIG_OFFSET);
+-		/* write1 to latch */
+-		prm_set_mod_reg_bits(OMAP3430_INITVDD, OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP2_CONFIG_OFFSET);
+-		/* write2 clear */
+-		prm_clear_mod_reg_bits(OMAP3430_INITVDD, OMAP3430_GR_MOD,
+-				       OMAP3_PRM_VP2_CONFIG_OFFSET);
+-		/* Enable VP2 */
+-		prm_set_mod_reg_bits(PRM_VP2_CONFIG_VPENABLE, OMAP3430_GR_MOD,
+-				     OMAP3_PRM_VP2_CONFIG_OFFSET);
+-	}
+-
+-	/* SRCONFIG - enable SR */
+-	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
+-	return true;
+-}
+-
+-static void sr_disable(struct omap_sr *sr)
+-{
+-	u32 i = 0;
+-
+-	sr->is_sr_reset = 1;
+-
+-	/* SRCONFIG - disable SR */
+-	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, ~SRCONFIG_SRENABLE);
+-
+-	if (sr->srid == SR1) {
+-		/* Wait for VP idle before disabling VP */
+-		while ((!prm_read_mod_reg(OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP1_STATUS_OFFSET))
+-					&& i++ < MAX_TRIES)
+-			udelay(1);
+-
+-		if (i >= MAX_TRIES)
+-			pr_warning("VP1 not idle, still going ahead with \
+-							VP1 disable\n");
+-
+-		/* Disable VP1 */
+-		prm_clear_mod_reg_bits(PRM_VP1_CONFIG_VPENABLE, OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP1_CONFIG_OFFSET);
+-
+-	} else if (sr->srid == SR2) {
+-		/* Wait for VP idle before disabling VP */
+-		while ((!prm_read_mod_reg(OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP2_STATUS_OFFSET))
+-					&& i++ < MAX_TRIES)
+-			udelay(1);
+-
+-		if (i >= MAX_TRIES)
+-			pr_warning("VP2 not idle, still going ahead with \
+-							 VP2 disable\n");
+-
+-		/* Disable VP2 */
+-		prm_clear_mod_reg_bits(PRM_VP2_CONFIG_VPENABLE, OMAP3430_GR_MOD,
+-					OMAP3_PRM_VP2_CONFIG_OFFSET);
+-	}
+-}
+-
+-
+-void sr_start_vddautocomap(int srid, u32 target_opp_no)
+-{
+-	struct omap_sr *sr = NULL;
+-
+-	if (srid == SR1)
+-		sr = &sr1;
+-	else if (srid == SR2)
+-		sr = &sr2;
+-	else
+-		return;
+-
+-	if (sr->is_sr_reset == 1) {
+-		sr_clk_enable(sr);
+-		sr_configure(sr);
+-	}
+-
+-	sr->is_autocomp_active = 1;
+-	if (!sr_enable(sr, target_opp_no)) {
+-		sr->is_autocomp_active = 0;
+-		if (sr->is_sr_reset == 1)
+-			sr_clk_disable(sr);
+-	}
+-}
+-EXPORT_SYMBOL(sr_start_vddautocomap);
+-
+-int sr_stop_vddautocomap(int srid)
+-{
+-	struct omap_sr *sr = NULL;
+-
+-	if (srid == SR1)
+-		sr = &sr1;
+-	else if (srid == SR2)
+-		sr = &sr2;
+-	else
+-		return -EINVAL;
+-
+-	if (sr->is_autocomp_active == 1) {
+-		sr_disable(sr);
+-		sr_clk_disable(sr);
+-		sr->is_autocomp_active = 0;
+-		/* Reset the volatage for current OPP */
+-		sr_reset_voltage(srid);
+-		return true;
+-	} else
+-		return false;
+-
+-}
+-EXPORT_SYMBOL(sr_stop_vddautocomap);
+-
+-void enable_smartreflex(int srid)
+-{
+-	u32 target_opp_no = 0;
+-	struct omap_sr *sr = NULL;
+-
+-	if (srid == SR1)
+-		sr = &sr1;
+-	else if (srid == SR2)
+-		sr = &sr2;
+-	else
+-		return;
+-
+-	if (sr->is_autocomp_active == 1) {
+-		if (sr->is_sr_reset == 1) {
+-			/* Enable SR clks */
+-			sr_clk_enable(sr);
+-
+-			if (srid == SR1)
+-				target_opp_no = get_vdd1_opp();
+-			else if (srid == SR2)
+-				target_opp_no = get_vdd2_opp();
+-
+-			if (!target_opp_no) {
+-				pr_info("Current OPP unknown \
+-						 Cannot configure SR\n");
+-			}
+-
+-			sr_configure(sr);
+-
+-			if (!sr_enable(sr, target_opp_no))
+-				sr_clk_disable(sr);
+-		}
+-	}
+-}
+-
+-void disable_smartreflex(int srid)
+-{
+-	u32 i = 0;
+-
+-	struct omap_sr *sr = NULL;
+-
+-	if (srid == SR1)
+-		sr = &sr1;
+-	else if (srid == SR2)
+-		sr = &sr2;
+-	else
+-		return;
+-
+-	if (sr->is_autocomp_active == 1) {
+-		if (sr->is_sr_reset == 0) {
+-
+-			sr->is_sr_reset = 1;
+-			/* SRCONFIG - disable SR */
+-			sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE,
+-							~SRCONFIG_SRENABLE);
+-
+-			/* Disable SR clk */
+-			sr_clk_disable(sr);
+-			if (sr->srid == SR1) {
+-				/* Wait for VP idle before disabling VP */
+-				while ((!prm_read_mod_reg(OMAP3430_GR_MOD,
+-						OMAP3_PRM_VP1_STATUS_OFFSET))
+-						&& i++ < MAX_TRIES)
+-					udelay(1);
+-
+-				if (i >= MAX_TRIES)
+-					pr_warning("VP1 not idle, still going \
+-						ahead with VP1 disable\n");
+-
+-				/* Disable VP1 */
+-				prm_clear_mod_reg_bits(PRM_VP1_CONFIG_VPENABLE,
+-						OMAP3430_GR_MOD,
+-						OMAP3_PRM_VP1_CONFIG_OFFSET);
+-			} else if (sr->srid == SR2) {
+-				/* Wait for VP idle before disabling VP */
+-				while ((!prm_read_mod_reg(OMAP3430_GR_MOD,
+-						OMAP3_PRM_VP2_STATUS_OFFSET))
+-						&& i++ < MAX_TRIES)
+-					udelay(1);
+-
+-				if (i >= MAX_TRIES)
+-					pr_warning("VP2 not idle, still going \
+-						 ahead with VP2 disable\n");
+-
+-				/* Disable VP2 */
+-				prm_clear_mod_reg_bits(PRM_VP2_CONFIG_VPENABLE,
+-						OMAP3430_GR_MOD,
+-						OMAP3_PRM_VP2_CONFIG_OFFSET);
+-			}
+-			/* Reset the volatage for current OPP */
+-			sr_reset_voltage(srid);
+-		}
+-	}
+-}
+-
+-/* Voltage Scaling using SR VCBYPASS */
+-int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
+-					u8 target_vsel, u8 current_vsel)
+-{
+-	int sr_status = 0;
+-	u32 vdd, target_opp_no, current_opp_no;
+-	u32 vc_bypass_value;
+-	u32 reg_addr = 0;
+-	u32 loop_cnt = 0, retries_cnt = 0;
+-	u32 t2_smps_steps = 0;
+-	u32 t2_smps_delay = 0;
+-
+-	vdd = get_vdd(target_opp);
+-	target_opp_no = get_opp_no(target_opp);
+-	current_opp_no = get_opp_no(current_opp);
+-
+-	if (vdd == VDD1_OPP) {
+-		sr_status = sr_stop_vddautocomap(SR1);
+-		t2_smps_steps = abs(target_vsel - current_vsel);
+-
+-		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
+-				(target_vsel << OMAP3430_VC_CMD_ON_SHIFT),
+-				OMAP3430_GR_MOD,
+-				OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
+-		reg_addr = R_VDD1_SR_CONTROL;
+-
+-	} else if (vdd == VDD2_OPP) {
+-		sr_status = sr_stop_vddautocomap(SR2);
+-		t2_smps_steps =  abs(target_vsel - current_vsel);
+-
+-		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
+-				(target_vsel << OMAP3430_VC_CMD_ON_SHIFT),
+-				OMAP3430_GR_MOD,
+-				OMAP3_PRM_VC_CMD_VAL_1_OFFSET);
+-		reg_addr = R_VDD2_SR_CONTROL;
+-	}
+-
+-	vc_bypass_value = (target_vsel << OMAP3430_DATA_SHIFT) |
+-			(reg_addr << OMAP3430_REGADDR_SHIFT) |
+-			(R_SRI2C_SLAVE_ADDR << OMAP3430_SLAVEADDR_SHIFT);
+-
+-	prm_write_mod_reg(vc_bypass_value, OMAP3430_GR_MOD,
+-			OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
+-
+-	vc_bypass_value = prm_set_mod_reg_bits(OMAP3430_VALID, OMAP3430_GR_MOD,
+-					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
+-
+-	while ((vc_bypass_value & OMAP3430_VALID) != 0x0) {
+-		loop_cnt++;
+-		if (retries_cnt > 10) {
+-			pr_info("Loop count exceeded in check SR I2C"
+-								"write\n");
+-			return 1;
+-		}
+-		if (loop_cnt > 50) {
+-			retries_cnt++;
+-			loop_cnt = 0;
+-			udelay(10);
+-		}
+-		vc_bypass_value = prm_read_mod_reg(OMAP3430_GR_MOD,
+-					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
+-	}
+-
+-	/*
+-	 *  T2 SMPS slew rate (min) 4mV/uS, step size 12.5mV,
+-	 *  2us added as buffer.
+-	 */
+-	t2_smps_delay = ((t2_smps_steps * 125) / 40) + 2;
+-	udelay(t2_smps_delay);
+-
+-	if (sr_status) {
+-		if (vdd == VDD1_OPP)
+-			sr_start_vddautocomap(SR1, target_opp_no);
+-		else if (vdd == VDD2_OPP)
+-			sr_start_vddautocomap(SR2, target_opp_no);
+-	}
+-
+-	return 0;
+-}
+-
+-/* Sysfs interface to select SR VDD1 auto compensation */
+-static ssize_t omap_sr_vdd1_autocomp_show(struct kobject *kobj,
+-					struct kobj_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "%d\n", sr1.is_autocomp_active);
+-}
+-
+-static ssize_t omap_sr_vdd1_autocomp_store(struct kobject *kobj,
+-					struct kobj_attribute *attr,
+-					const char *buf, size_t n)
+-{
+-	unsigned short value;
+-
+-	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
+-		pr_err("sr_vdd1_autocomp: Invalid value\n");
+-		return -EINVAL;
+-	}
+-
+-	if (value == 0) {
+-		sr_stop_vddautocomap(SR1);
+-	} else {
+-		u32 current_vdd1opp_no = get_vdd1_opp();
+-		if (!current_vdd1opp_no) {
+-			pr_err("sr_vdd1_autocomp: Current VDD1 opp unknown\n");
+-			return -EINVAL;
+-		}
+-		sr_start_vddautocomap(SR1, current_vdd1opp_no);
+-	}
+-	return n;
+-}
+-
+-static struct kobj_attribute sr_vdd1_autocomp = {
+-	.attr = {
+-	.name = __stringify(sr_vdd1_autocomp),
+-	.mode = 0644,
+-	},
+-	.show = omap_sr_vdd1_autocomp_show,
+-	.store = omap_sr_vdd1_autocomp_store,
+-};
+-
+-/* Sysfs interface to select SR VDD2 auto compensation */
+-static ssize_t omap_sr_vdd2_autocomp_show(struct kobject *kobj,
+-					struct kobj_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "%d\n", sr2.is_autocomp_active);
+-}
+-
+-static ssize_t omap_sr_vdd2_autocomp_store(struct kobject *kobj,
+-					struct kobj_attribute *attr,
+-					const char *buf, size_t n)
+-{
+-	unsigned short value;
+-
+-	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
+-		pr_err("sr_vdd2_autocomp: Invalid value\n");
+-		return -EINVAL;
+-	}
+-
+-	if (value == 0) {
+-		sr_stop_vddautocomap(SR2);
+-	} else {
+-		u32 current_vdd2opp_no = get_vdd2_opp();
+-		if (!current_vdd2opp_no) {
+-			pr_err("sr_vdd2_autocomp: Current VDD2 opp unknown\n");
+-			return -EINVAL;
+-		}
+-		sr_start_vddautocomap(SR2, current_vdd2opp_no);
+-	}
+-	return n;
+-}
+-
+-static struct kobj_attribute sr_vdd2_autocomp = {
+-	.attr = {
+-	.name = __stringify(sr_vdd2_autocomp),
+-	.mode = 0644,
+-	},
+-	.show = omap_sr_vdd2_autocomp_show,
+-	.store = omap_sr_vdd2_autocomp_store,
+-};
+-
+-
+-
+-static int __init omap3_sr_init(void)
+-{
+-	int ret = 0;
+-	u8 RdReg;
+-
+-	/* Enable SR on T2 */
+-	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
+-			      R_DCDC_GLOBAL_CFG);
+-
+-	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
+-	ret |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
+-				R_DCDC_GLOBAL_CFG);
+-
+-	if (cpu_is_omap34xx()) {
+-		sr1.clk = clk_get(NULL, "sr1_fck");
+-		sr2.clk = clk_get(NULL, "sr2_fck");
+-	}
+-	sr1.vdd_opp_clk = clk_get(NULL, "dpll1_ck");
+-	sr2.vdd_opp_clk = clk_get(NULL, "l3_ick");
+-	sr_set_clk_length(&sr1);
+-	sr_set_clk_length(&sr2);
+-
+-	/* Call the VPConfig, VCConfig, set N Values. */
+-	sr_set_nvalues(&sr1);
+-	sr_configure_vp(SR1);
+-
+-	sr_set_nvalues(&sr2);
+-	sr_configure_vp(SR2);
+-
+-	pr_info("SmartReflex driver initialized\n");
+-
+-	ret = sysfs_create_file(power_kobj, &sr_vdd1_autocomp.attr);
+-	if (ret)
+-		pr_err("sysfs_create_file failed: %d\n", ret);
+-
+-	ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
+-	if (ret)
+-		pr_err("sysfs_create_file failed: %d\n", ret);
+-
+-	return 0;
+-}
+-
+-late_initcall(omap3_sr_init);
+diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+deleted file mode 100644
+index 2a0e823..0000000
+--- a/arch/arm/mach-omap2/smartreflex.h
++++ /dev/null
+@@ -1,256 +0,0 @@
+-#ifndef __ARCH_ARM_MACH_OMAP3_SMARTREFLEX_H
+-#define __ARCH_ARM_MACH_OMAP3_SMARTREFLEX_H
+-/*
+- * linux/arch/arm/mach-omap2/smartreflex.h
+- *
+- * Copyright (C) 2008 Nokia Corporation
+- * Kalle Jokiniemi
+- *
+- * Copyright (C) 2007 Texas Instruments, Inc.
+- * Lesly A M <x0080970@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
+-#define PHY_TO_OFF_PM_RECIEVER(p)	(p - 0x5b)
+-#define PHY_TO_OFF_PM_INT(p)		(p - 0x2e)
+-
+-/* SMART REFLEX REG ADDRESS OFFSET */
+-#define SRCONFIG	0x00
+-#define SRSTATUS	0x04
+-#define SENVAL		0x08
+-#define SENMIN		0x0C
+-#define SENMAX		0x10
+-#define SENAVG		0x14
+-#define AVGWEIGHT	0x18
+-#define NVALUERECIPROCAL	0x1C
+-#define SENERROR	0x20
+-#define ERRCONFIG	0x24
+-
+-/* SR Modules */
+-#define SR1		1
+-#define SR2		2
+-
+-#define SR_FAIL		1
+-#define SR_PASS		0
+-
+-#define SR_TRUE		1
+-#define SR_FALSE	0
+-
+-#define GAIN_MAXLIMIT	16
+-#define R_MAXLIMIT	256
+-
+-#define SR1_CLK_ENABLE	BIT(6)
+-#define SR2_CLK_ENABLE	BIT(7)
+-
+-/* PRM_VP1_CONFIG */
+-#define PRM_VP1_CONFIG_ERROROFFSET	(0x00 << 24)
+-#define PRM_VP1_CONFIG_ERRORGAIN	(0x20 << 16)
+-
+-#define PRM_VP1_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
+-#define PRM_VP1_CONFIG_TIMEOUTEN	BIT(3)
+-#define PRM_VP1_CONFIG_INITVDD		BIT(2)
+-#define PRM_VP1_CONFIG_FORCEUPDATE	BIT(1)
+-#define PRM_VP1_CONFIG_VPENABLE		BIT(0)
+-
+-/* PRM_VP1_VSTEPMIN */
+-#define PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
+-#define PRM_VP1_VSTEPMIN_VSTEPMIN		BIT(0)
+-
+-/* PRM_VP1_VSTEPMAX */
+-#define PRM_VP1_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
+-#define PRM_VP1_VSTEPMAX_VSTEPMAX		(0x04 << 0)
+-
+-/* PRM_VP1_VLIMITTO */
+-#define PRM_VP1_VLIMITTO_VDDMAX		(0x3C << 24)
+-#define PRM_VP1_VLIMITTO_VDDMIN		(0x0 << 16)
+-#define PRM_VP1_VLIMITTO_TIMEOUT	(0xFFFF << 0)
+-
+-/* PRM_VP2_CONFIG */
+-#define PRM_VP2_CONFIG_ERROROFFSET	(0x00 << 24)
+-#define PRM_VP2_CONFIG_ERRORGAIN	(0x20 << 16)
+-
+-#define PRM_VP2_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
+-#define PRM_VP2_CONFIG_TIMEOUTEN	BIT(3)
+-#define PRM_VP2_CONFIG_INITVDD		BIT(2)
+-#define PRM_VP2_CONFIG_FORCEUPDATE	BIT(1)
+-#define PRM_VP2_CONFIG_VPENABLE		BIT(0)
+-
+-/* PRM_VP2_VSTEPMIN */
+-#define PRM_VP2_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
+-#define PRM_VP2_VSTEPMIN_VSTEPMIN		BIT(0)
+-
+-/* PRM_VP2_VSTEPMAX */
+-#define PRM_VP2_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
+-#define PRM_VP2_VSTEPMAX_VSTEPMAX		(0x04 << 0)
+-
+-/* PRM_VP2_VLIMITTO */
+-#define PRM_VP2_VLIMITTO_VDDMAX		(0x2C << 24)
+-#define PRM_VP2_VLIMITTO_VDDMIN		(0x0 << 16)
+-#define PRM_VP2_VLIMITTO_TIMEOUT	(0xFFFF << 0)
+-
+-/* SRCONFIG */
+-#define SR1_SRCONFIG_ACCUMDATA		(0x1F4 << 22)
+-#define SR2_SRCONFIG_ACCUMDATA		(0x1F4 << 22)
+-
+-#define SRCLKLENGTH_12MHZ_SYSCLK	0x3C
+-#define SRCLKLENGTH_13MHZ_SYSCLK	0x41
+-#define SRCLKLENGTH_19MHZ_SYSCLK	0x60
+-#define SRCLKLENGTH_26MHZ_SYSCLK	0x82
+-#define SRCLKLENGTH_38MHZ_SYSCLK	0xC0
+-
+-#define SRCONFIG_SRCLKLENGTH_SHIFT	12
+-#define SRCONFIG_SENNENABLE_SHIFT	5
+-#define SRCONFIG_SENPENABLE_SHIFT	3
+-
+-#define SRCONFIG_SRENABLE		BIT(11)
+-#define SRCONFIG_SENENABLE		BIT(10)
+-#define SRCONFIG_ERRGEN_EN		BIT(9)
+-#define SRCONFIG_MINMAXAVG_EN		BIT(8)
+-
+-#define SRCONFIG_DELAYCTRL		BIT(2)
+-#define SRCONFIG_CLKCTRL		(0x00 << 0)
+-
+-/* AVGWEIGHT */
+-#define SR1_AVGWEIGHT_SENPAVGWEIGHT	(0x03 << 2)
+-#define SR1_AVGWEIGHT_SENNAVGWEIGHT	(0x03 << 0)
+-
+-#define SR2_AVGWEIGHT_SENPAVGWEIGHT	BIT(2)
+-#define SR2_AVGWEIGHT_SENNAVGWEIGHT	BIT(0)
+-
+-/* NVALUERECIPROCAL */
+-#define NVALUERECIPROCAL_SENPGAIN_SHIFT	20
+-#define NVALUERECIPROCAL_SENNGAIN_SHIFT	16
+-#define NVALUERECIPROCAL_RNSENP_SHIFT	8
+-#define NVALUERECIPROCAL_RNSENN_SHIFT	0
+-
+-/* ERRCONFIG */
+-#define SR_CLKACTIVITY_MASK		(0x03 << 20)
+-#define SR_ERRWEIGHT_MASK		(0x07 << 16)
+-#define SR_ERRMAXLIMIT_MASK		(0xFF << 8)
+-#define SR_ERRMINLIMIT_MASK		(0xFF << 0)
+-
+-#define SR_CLKACTIVITY_IOFF_FOFF	(0x00 << 20)
+-#define SR_CLKACTIVITY_IOFF_FON		(0x02 << 20)
+-
+-#define ERRCONFIG_VPBOUNDINTEN		BIT(31)
+-#define ERRCONFIG_VPBOUNDINTST		BIT(30)
+-
+-#define SR1_ERRWEIGHT			(0x07 << 16)
+-#define SR1_ERRMAXLIMIT			(0x02 << 8)
+-#define SR1_ERRMINLIMIT			(0xFA << 0)
+-
+-#define SR2_ERRWEIGHT			(0x07 << 16)
+-#define SR2_ERRMAXLIMIT			(0x02 << 8)
+-#define SR2_ERRMINLIMIT			(0xF9 << 0)
+-
+-/* T2 SMART REFLEX */
+-#define R_SRI2C_SLAVE_ADDR		0x12
+-#define R_VDD1_SR_CONTROL		0x00
+-#define R_VDD2_SR_CONTROL		0x01
+-#define T2_SMPS_UPDATE_DELAY		360	/* In uSec */
+-
+-/* Vmode control */
+-#define R_DCDC_GLOBAL_CFG	PHY_TO_OFF_PM_RECIEVER(0x61)
+-
+-#define R_VDD1_VSEL		PHY_TO_OFF_PM_RECIEVER(0xb9)
+-#define R_VDD1_VMODE_CFG	PHY_TO_OFF_PM_RECIEVER(0xba)
+-#define R_VDD1_VFLOOR		PHY_TO_OFF_PM_RECIEVER(0xbb)
+-#define R_VDD1_VROOF		PHY_TO_OFF_PM_RECIEVER(0xbc)
+-#define R_VDD1_STEP		PHY_TO_OFF_PM_RECIEVER(0xbd)
+-
+-#define R_VDD2_VSEL		PHY_TO_OFF_PM_RECIEVER(0xc7)
+-#define R_VDD2_VMODE_CFG	PHY_TO_OFF_PM_RECIEVER(0xc8)
+-#define R_VDD2_VFLOOR		PHY_TO_OFF_PM_RECIEVER(0xc9)
+-#define R_VDD2_VROOF		PHY_TO_OFF_PM_RECIEVER(0xca)
+-#define R_VDD2_STEP		PHY_TO_OFF_PM_RECIEVER(0xcb)
+-
+-/* R_DCDC_GLOBAL_CFG register, SMARTREFLEX_ENABLE values */
+-#define DCDC_GLOBAL_CFG_ENABLE_SRFLX	0x08
+-
+-#define PRCM_MAX_SYSC_REGS 30
+-
+-/*
+- * XXX: These should be removed/moved from here once we have a working DVFS
+- * implementation in place
+- */
+-#define AT_3430		1	/*3430 ES 1.0 */
+-#define AT_3430_ES2	2	/*3430 ES 2.0 */
+-
+-#define ID_OPP			0xE2 	/*OPP*/
+-
+-/* DEVICE ID/DPLL ID/CLOCK ID: bits 28-31 for OMAP type */
+-#define OMAP_TYPE_SHIFT		28
+-#define OMAP_TYPE_MASK		0xF
+-/* OPP ID: bits: 0-4 for OPP number */
+-#define OPP_NO_POS		0
+-#define OPP_NO_MASK		0x1F
+-/* OPP ID: bits: 5-6 for VDD */
+-#define VDD_NO_POS		5
+-#define VDD_NO_MASK		0x3
+-/* Other IDs: bits 20-27 for ID type */
+-/* These IDs have bits 25,26,27 as 1 */
+-#define OTHER_ID_TYPE_SHIFT		20
+-#define OTHER_ID_TYPE_MASK		0xFF
+-
+-#define OTHER_ID_TYPE(X) ((X & OTHER_ID_TYPE_MASK) << OTHER_ID_TYPE_SHIFT)
+-#define ID_OPP_NO(X)	 ((X & OPP_NO_MASK) << OPP_NO_POS)
+-#define ID_VDD(X)	 ((X & VDD_NO_MASK) << VDD_NO_POS)
+-#define OMAP(X)		 ((X >> OMAP_TYPE_SHIFT) & OMAP_TYPE_MASK)
+-#define get_opp_no(X)	 ((X >> OPP_NO_POS) & OPP_NO_MASK)
+-#define get_vdd(X)	 ((X >> VDD_NO_POS) & VDD_NO_MASK)
+-
+-/* VDD1 OPPs */
+-#define PRCM_VDD1_OPP1		(OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
+-					ID_VDD(PRCM_VDD1) | ID_OPP_NO(0x1))
+-#define PRCM_VDD1_OPP2		(OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
+-					ID_VDD(PRCM_VDD1) | ID_OPP_NO(0x2))
+-#define PRCM_VDD1_OPP3		(OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
+-					ID_VDD(PRCM_VDD1) | ID_OPP_NO(0x3))
+-#define PRCM_VDD1_OPP4		(OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
+-					ID_VDD(PRCM_VDD1) | ID_OPP_NO(0x4))
+-#define PRCM_VDD1_OPP5		(OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
+-					ID_VDD(PRCM_VDD1) | ID_OPP_NO(0x5))
+-#define PRCM_NO_VDD1_OPPS	5
+-
+-
+-/* VDD2 OPPs */
+-#define PRCM_VDD2_OPP1		(OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
+-					ID_VDD(PRCM_VDD2) | ID_OPP_NO(0x1))
+-#define PRCM_VDD2_OPP2		(OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
+-					ID_VDD(PRCM_VDD2) | ID_OPP_NO(0x2))
+-#define PRCM_VDD2_OPP3		(OMAP(AT_3430_ES2) | OTHER_ID_TYPE(ID_OPP) | \
+-					ID_VDD(PRCM_VDD2) | ID_OPP_NO(0x3))
+-#define PRCM_NO_VDD2_OPPS	3
+-/* XXX: end remove/move */
+-
+-/* XXX: find more appropriate place for these once DVFS is in place */
+-extern u32 current_vdd1_opp;
+-extern u32 current_vdd2_opp;
+-
+-#ifdef CONFIG_OMAP_SMARTREFLEX_TESTING
+-#define SR_TESTING_NVALUES 	1
+-#else
+-#define SR_TESTING_NVALUES 	0
+-#endif
+-
+-/*
+- * Smartreflex module enable/disable interface.
+- * NOTE: if smartreflex is not enabled from sysfs, these functions will not
+- * do anything.
+- */
+-#ifdef CONFIG_OMAP_SMARTREFLEX
+-void enable_smartreflex(int srid);
+-void disable_smartreflex(int srid);
+-int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8 c_vsel);
+-void sr_start_vddautocomap(int srid, u32 target_opp_no);
+-int sr_stop_vddautocomap(int srid);
+-#else
+-static inline void enable_smartreflex(int srid) {}
+-static inline void disable_smartreflex(int srid) {}
+-#endif
+-
+-#endif
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index b8d5271..da826c3 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -53,37 +53,6 @@ config OMAP_DEBUG_LEDS
+ 	depends on OMAP_DEBUG_DEVICES
+ 	default y if LEDS || LEDS_OMAP_DEBUG
+ 
+-config OMAP_SMARTREFLEX
+-	bool "SmartReflex support"
+-	depends on ARCH_OMAP3 && TWL4030_CORE && PM
+-	help
+-	  Say Y if you want to enable SmartReflex.
+-
+-	  SmartReflex can perform continuous dynamic voltage
+-	  scaling around the nominal operating point voltage
+-	  according to silicon characteristics and operating
+-	  conditions. Enabling SmartReflex reduces power
+-	  consumption.
+-
+-	  Please note, that by default SmartReflex is only
+-	  initialized. To enable the automatic voltage
+-	  compensation for VDD1 and VDD2, user must write 1 to
+-	  /sys/power/sr_vddX_autocomp, where X is 1 or 2.
+-
+-config OMAP_SMARTREFLEX_TESTING
+-	bool "Smartreflex testing support"
+-	depends on OMAP_SMARTREFLEX
+-	default n
+-	help
+-	  Say Y if you want to enable SmartReflex testing with SW hardcoded
+-	  NVALUES intead of E-fuse NVALUES set in factory silicon testing.
+-
+-	  In some devices the E-fuse values have not been set, even though
+-	  SmartReflex modules are included. Using these hardcoded values set
+-	  in software, one can test the SmartReflex features without E-fuse.
+-
+-	  WARNING: Enabling this option may cause your device to hang!
+-
+ config OMAP_RESET_CLOCKS
+ 	bool "Reset unused clocks during boot"
+ 	depends on ARCH_OMAP
+diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+index d540ae8..9f12636 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -144,15 +144,6 @@
+ #define OMAP343X_CONTROL_TEST_KEY_11	(OMAP2_CONTROL_GENERAL + 0x00f4)
+ #define OMAP343X_CONTROL_TEST_KEY_12	(OMAP2_CONTROL_GENERAL + 0x00f8)
+ #define OMAP343X_CONTROL_TEST_KEY_13	(OMAP2_CONTROL_GENERAL + 0x00fc)
+-#define OMAP343X_CONTROL_FUSE_OPP1_VDD1	(OMAP2_CONTROL_GENERAL + 0x0110)
+-#define OMAP343X_CONTROL_FUSE_OPP2_VDD1	(OMAP2_CONTROL_GENERAL + 0x0114)
+-#define OMAP343X_CONTROL_FUSE_OPP3_VDD1	(OMAP2_CONTROL_GENERAL + 0x0118)
+-#define OMAP343X_CONTROL_FUSE_OPP4_VDD1	(OMAP2_CONTROL_GENERAL + 0x011c)
+-#define OMAP343X_CONTROL_FUSE_OPP5_VDD1	(OMAP2_CONTROL_GENERAL + 0x0120)
+-#define OMAP343X_CONTROL_FUSE_OPP1_VDD2	(OMAP2_CONTROL_GENERAL + 0x0124)
+-#define OMAP343X_CONTROL_FUSE_OPP2_VDD2	(OMAP2_CONTROL_GENERAL + 0x0128)
+-#define OMAP343X_CONTROL_FUSE_OPP3_VDD2	(OMAP2_CONTROL_GENERAL + 0x012c)
+-#define OMAP343X_CONTROL_FUSE_SR	(OMAP2_CONTROL_GENERAL + 0x0130)
+ #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
+ #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
+ #define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
 -- 
 1.7.0.rc1.33.g07cf0f
 
