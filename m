@@ -1,39 +1,29 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/3 v3] AM35x: Add musb support
-Date: Sat, 29 May 2010 16:24:55 +0400
-Message-ID: <4C010797.8040207@mvista.com>
-References: <4BFFCE8C.40909@ru.mvista.com> <579055.3526.qm@web180308.mail.gq1.yahoo.com> <19F8576C6E063C45BE387C64729E7394044E6D2537@dbde02.ent.ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Sat, 29 May 2010 10:16:03 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1005291013110.30763-100000@netrider.rowland.org>
+References: <1275120618.27810.12699.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E6D2537-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1275120618.27810.12699.camel@twins>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+On Sat, 29 May 2010, Peter Zijlstra wrote:
 
-Gupta, Ajay Kumar wrote:
+> Correct, I strongly oppose using suspend. Not running runnable tasks is
+> not a sane solution.
+> 
+> If current hardware can't cope, too friggin bad, get better hardware.
 
->>>> AM35x has musb interface (version 1.8) and uses CPPI41
->>> DMA engine.
->>>> It has USB phy built inside the IP itself.
+Taken out of context, this statement suggests you believe that
+x86-based laptops should not be allowed to suspend automatically when
+their lids are closed, and that everybody should replace their
+x86-based laptops with something better.
 
->> So it's more like DaVinci (earlier CPPI as well as
->> integrated PHY) than OMAP3...
+Is that really what you mean?
 
-> Yes. Actually they removed original musb controller from OMAP3
-> and replaced it with DaVinci family musb ip.
-
-    DA8xx/OMAP-L1x family actually. DaVinci has MUSB RTL 1.3 and CPPI 3.0, 
-while DA8xx has RTL 1.8 and CPPI 4.1 like AM35x.
-
-> -Ajay
-
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alan Stern
