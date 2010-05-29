@@ -1,182 +1,233 @@
-From: James Bottomley <James.Bottomley@suse.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Sat, 29 May 2010 11:10:18 -0500
-Message-ID: <1275149418.4503.128.camel@mulgrave.site>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	 <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	 <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	 <20100527220949.GB10602@srcf.ucam.org>
-	 <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	 <20100527223605.GB11364@srcf.ucam.org>
-	 <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
-	 <20100528043114.GC26177@thunk.org> <1275030704.32462.11.camel@laptop>
-	 <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>
-	 <1275120618.27810.12699.camel@twins>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Thara Gopinath <thara@ti.com>
+Subject: [PATCH 3/8] OMAP3: PM: Adding smartreflex device file.
+Date: Sat, 29 May 2010 22:02:23 +0530
+Message-ID: <1275150748-15386-4-git-send-email-thara@ti.com>
+References: <1275150748-15386-1-git-send-email-thara@ti.com>
+ <1275150748-15386-2-git-send-email-thara@ti.com>
+ <1275150748-15386-3-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:45812 "EHLO mx1.suse.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38806 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756867Ab0E2QKb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 29 May 2010 12:10:31 -0400
-In-Reply-To: <1275120618.27810.12699.camel@twins>
+	id S1757367Ab0E2Qcj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 29 May 2010 12:32:39 -0400
+In-Reply-To: <1275150748-15386-3-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-On Sat, 2010-05-29 at 10:10 +0200, Peter Zijlstra wrote:
-> On Fri, 2010-05-28 at 17:43 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
-> > On Fri, May 28, 2010 at 12:11 AM, Peter Zijlstra <peterz@infradead.=
-org> wrote:
-> > > On Fri, 2010-05-28 at 00:31 -0400, tytso@mit.edu wrote:
-> > >> Keep in mind, though, that a solution which is acceptable for An=
-droid
-> > >> has to include making sure that crappy applications don't cause =
-the
-> > >> battery to get drained.  There seem to be some people who seem
-> > >> adamently against this requirement.
-> > >
-> > > Again, Alan, Thomas and myself don't argue against that, what we =
-do
-> > > however argue against is suspend running apps as a form of power
-> > > management.
-> > >
-> >=20
-> > You seem to argue that android is not allowed to use suspend becaus=
-e
-> > the hardware we have shipped on can enter the same power state from
-> > idle. From my point of view, since we need to support suspend on so=
-me
-> > hardware we should be allowed to leverage this solution on the bett=
-er
-> > hardware platforms as well if it improves our battery life.
->=20
-> Correct, I strongly oppose using suspend. Not running runnable tasks =
-is
-> not a sane solution.
+This patch adds support for device registration of various
+smartreflex module present in the system. This patch introduces
+the platform data for smartreflex devices which include
+the efused and test n-target vaules, module enable/disable
+pointers and a parameter to indicate whether smartreflex
+autocompensation needs to be enabled on init or not.
+Currently auocompensation is enabled on init by default
+for OMAP3430 ES3.1 chip.
 
-Look, this is getting into the realms of a pointless semantic quibble.
-The problem is that untrusted tasks need to be forcibly suspended when
-they have no legitimate work to do and the user hasn't authorised them
-to continue even if the scheduler sees them as runnable.  Whether that'=
-s
-achieved by suspending the entire system or forcibly idling the tasks
-(using blocking states or freezers or something) so the scheduler can
-suspend from idle is something to be discussed, but the net result is
-that we have to stop a certain set of tasks in such a way that they can
-still receive certain external events ... semantically, this is
-equivalent to not running runnable tasks in my book. (Perhaps this whol=
-e
-thing is because the word runnable means different things ... I'm
-thinking a task that would consume power ... are you thinking in the
-scheduler R state?)
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
+ arch/arm/mach-omap2/Makefile    |    2 +-
+ arch/arm/mach-omap2/sr_device.c |  177 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 178 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/sr_device.c
 
-Realistically, the main thing we need to do is stop timers posted
-against the task (which is likely polling in a main loop, that being th=
-e
-usual form of easy to write but power crazy app behaviour) from waking
-the task and bringing the system out of suspend (whether from idle or
-forced).
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 9ff9869..ab3772a 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -49,7 +49,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o \
+ 					   voltage.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+-obj-$(CONFIG_OMAP_SMARTREFLEX)          += smartreflex.o
++obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+ 
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+ AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+new file mode 100644
+index 0000000..5ca0253
+--- /dev/null
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -0,0 +1,177 @@
++/*
++ * OMAP3/OMAP4 smartreflex device file
++ *
++ * Author: Thara Gopinath	<thara@ti.com>
++ *
++ * Based originally on code from smartreflex.c
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Thara Gopinath <thara@ti.com>
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Kalle Jokiniemi
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Lesly A M <x0080970@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/err.h>
++#include <linux/slab.h>
++
++#include <plat/control.h>
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
++#include <plat/opp.h>
++#include <plat/smartreflex.h>
++
++#include "voltage.h"
++
++struct omap_device_pm_latency omap_sr_latency[] = {
++	{
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func	 = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST
++	},
++};
++
++/* Read EFUSE values from control registers for OMAP3430 */
++static void __init sr_read_efuse(struct omap_sr_dev_data *dev_data,
++				struct omap_sr_data *sr_data)
++{
++	int i;
++
++	if (!dev_data || !dev_data->volts_supported || !dev_data->volt_data ||
++			!dev_data->efuse_nvalues_offs) {
++		pr_warning("%s: Bad parameters! dev_data = %x,"
++			"dev_data->volts_supported = %x,"
++			"dev_data->volt_data = %x,"
++			"dev_data->efuse_nvalues_offs = %x\n", __func__,
++			(unsigned int)dev_data, dev_data->volts_supported,
++			(unsigned int)dev_data->volt_data,
++			(unsigned int)dev_data->efuse_nvalues_offs);
++		return;
++	}
++
++	/*
++	 * From OMAP3630 onwards there are no efuse registers for senn_mod
++	 * and senp_mod. They have to be 0x1 by default.
++	 */
++	if (!dev_data->efuse_sr_control) {
++		sr_data->senn_mod = 0x1;
++		sr_data->senp_mod = 0x1;
++	} else {
++		sr_data->senn_mod =
++				((omap_ctrl_readl(dev_data->efuse_sr_control) &
++				(0x3 << dev_data->sennenable_shift)) >>
++				dev_data->sennenable_shift);
++		sr_data->senp_mod =
++				((omap_ctrl_readl(dev_data->efuse_sr_control) &
++				(0x3 << dev_data->senpenable_shift)) >>
++				dev_data->senpenable_shift);
++	}
++
++	for (i = 0; i < dev_data->volts_supported; i++)
++		dev_data->volt_data[i].sr_nvalue = omap_ctrl_readl(
++				dev_data->efuse_nvalues_offs[i]);
++}
++
++/*
++ * Hard coded nvalues for testing purposes for OMAP3430,
++ * may cause device to hang!
++ */
++static void __init sr_set_testing_nvalues(struct omap_sr_dev_data *dev_data,
++				struct omap_sr_data *sr_data)
++{
++	int i;
++
++	if (!dev_data || !dev_data->volts_supported ||
++			!dev_data->volt_data || !dev_data->test_nvalues) {
++		pr_warning("%s: Bad parameters! dev_data = %x,"
++			"dev_data->volts_supported = %x,"
++			"dev_data->volt_data = %x,"
++			"dev_data->test_nvalues = %x\n", __func__,
++			(unsigned int)dev_data, dev_data->volts_supported,
++			(unsigned int)dev_data->volt_data,
++			(unsigned int)dev_data->test_nvalues);
++		return;
++	}
++
++	sr_data->senn_mod = dev_data->test_sennenable;
++	sr_data->senp_mod = dev_data->test_senpenable;
++	for (i = 0; i < dev_data->volts_supported; i++)
++		dev_data->volt_data[i].sr_nvalue = dev_data->test_nvalues[i];
++}
++
++static void __init sr_set_nvalues(struct omap_sr_dev_data *dev_data,
++				struct omap_sr_data *sr_data)
++{
++	if (SR_TESTING_NVALUES)
++		sr_set_testing_nvalues(dev_data, sr_data);
++	else
++		sr_read_efuse(dev_data, sr_data);
++}
++
++static int sr_dev_init(struct omap_hwmod *oh, void *user)
++{
++	struct omap_sr_data *sr_data;
++	struct omap_sr_dev_data *sr_dev_data;
++	struct omap_device *od;
++	char *name = "smartreflex";
++	static int i;
++
++	sr_data = kzalloc(sizeof(struct omap_sr_data), GFP_KERNEL);
++	if (!sr_data) {
++		pr_err("%s: Unable to allocate memory for %s sr_data.Error!\n",
++			__func__, oh->name);
++		return -ENOMEM;
++	}
++
++	sr_dev_data = (struct omap_sr_dev_data *)oh->dev_attr;
++	/*
++	 * OMAP3430 ES3.1 chips by default come with Efuse burnt
++	 * with parameters required for full functionality of
++	 * smartreflex AVS feature like ntarget values , sennenable
++	 * and senpenable. So enable the SR AVS feature during boot up
++	 * itself if it is a OMAP3430 ES3.1 chip.
++	 */
++	if (cpu_is_omap343x()) {
++		if (omap_rev() == OMAP3430_REV_ES3_1)
++			sr_data->enable_on_init = true;
++		else
++			sr_data->enable_on_init = false;
++	} else {
++		sr_data->enable_on_init = false;
++	}
++	sr_data->device_enable = omap_device_enable;
++	sr_data->device_shutdown = omap_device_shutdown;
++	sr_data->device_idle = omap_device_idle;
++	sr_dev_data->volts_supported = omap_get_voltage_table(i,
++				&sr_dev_data->volt_data);
++	if (!sr_dev_data->volts_supported) {
++		pr_warning("%s: No Voltage table registerd fo VDD%d.Something \
++				really wrong\n\n", __func__, i + 1);
++		i++;
++		kfree(sr_data);
++		return 0;
++	}
++	sr_set_nvalues(sr_dev_data, sr_data);
++	od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
++			       omap_sr_latency,
++			       ARRAY_SIZE(omap_sr_latency), 0);
++	if (IS_ERR(od)) {
++		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
++			__func__, name, oh->name);
++		kfree(sr_data);
++	}
++	i++;
++	return 0;
++}
++
++static int __init omap_devinit_smartreflex(void)
++{
++	return omap_hwmod_for_each_by_class("smartreflex", sr_dev_init, NULL);
++}
++subsys_initcall(omap_devinit_smartreflex);
+-- 
+1.7.0.rc1.33.g07cf0f
 
-> If current hardware can't cope, too friggin bad, get better hardware.
->=20
-> But the truth is, all your OMAP phones really can deal with it.
-
-That's rubbish and you know it.  We do software workarounds for hardwar=
-e
-problems all the time ... try doing a git grep -i errata in arch x86, o=
-r
-imagine a USB subsystem that only supported sane standards conforming
-devices: that would have an almost zero intersect with the current USB
-device market.
-
-The job of the kernel is to accommodate hardware as best it can ...
-sometimes it might not be able to, but most of the time it does a prett=
-y
-good job.
-
-The facts are that C states and S states are different and are entered
-differently.  For some omap hardware, the power consumption in the
-lowest C state (with all the ancillary power control) is the same as S3=
-,
-that's fine, suspend from idle works as well as suspend to ram modulo
-bad apps. For quite a lot of MSM hardware, the lowest C state power
-consumption is quite a bit above S3.  It's not acceptable to tell those
-people "tough, your battery runs out in 30 minutes because you bought
-the wrong hardware".  We have to figure out how to get to S3 ... whethe=
-r
-this is from idle or some other mechanism is again a discussion point,
-but not doing it is not an option.
-
-> > I have not seen any suggestions for how to deal with all our
-> > interprocess dependencies when pausing a subset of processes. Witho=
-ut
-> > a solution to that we can only pause a subset of the processes we w=
-ant
-> > to pause.
->=20
-> Do not 'pause' processes and you don't have the problem, make them st=
-op
-> on their own accord or kill them if they dont listen.. who cares abou=
-t
-> ill-behaved apps anyway?
->=20
-> But really, if you want a more detailed answer, you need to provide m=
-ore
-> detail on these problems.
->=20
-> If you want to allow an untrusted app to provide a dependency for a
-> trusted app, you've lost and I don't care.
->=20
-> Trusted apps should be well behaved, otherwise there really is no poi=
-nt.
->=20
-> > These solutions do not allow us to use suspend. They may get us clo=
-ser
-> > to the power consumption we get from suspend on the good hardware o=
-r
-> > even surpass it, but we still need suspend on some hardware, and we
-> > would get event better results by using these solutions in addition=
- to
-> > suspend compared to using them instead of suspend.
->=20
-> Not using suspend is exactly the point. As Alan has argued, propagati=
-ng
-> suspend blockers up into all regions of userspace will take much long=
-er
-> than fixing the hardware.
-
-Strange, that's not what I heard as the possible solution.  I thought h=
-e
-was advocating expressing the kernel side of suspend blockers as QoS
-constraints.  Once we have QoS constraints correctly done in the kernel=
-,
-userspace still has to express its requirements.  If the requirements
-are static, then they can be done from policy files or in some other
-static way but if they're dynamic, they'll still have to be in the
-applications ... in about the same places the android wakelocks are.
-
-> You got to realize this is about Linux as a whole, I really don't car=
-e
-> one whit about the specific Android case. We want a solution that is
-> generic enough to solve the power consumption problem and makes sense=
- on
-> future hardware.
-
-I don't think anyone disagrees with this. As long as we find a long ter=
-m
-solution that satisfies the android case, everyone will be happy.
-
-> The only abstraction that really makes sense in that view is idle
-> states.
-
-James
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
