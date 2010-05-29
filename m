@@ -1,92 +1,62 @@
 From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 17:43:12 -0700
-Message-ID: <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	<20100527220949.GB10602@srcf.ucam.org>
-	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<20100527223605.GB11364@srcf.ucam.org>
-	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
-	<20100528043114.GC26177@thunk.org>
-	<1275030704.32462.11.camel@laptop>
+Date: Fri, 28 May 2010 18:11:22 -0700
+Message-ID: <AANLkTimM7O_k8KVSfMgsB8b_EKQEz0vpYu6pxjedsTcJ@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	<20100528104415.1403541a@schatten.dmk.lab>
+	<AANLkTikXtk-f41-z8gXfXLNLqgGVa0z4d-qgIvwljbR-@mail.gmail.com>
+	<201005290024.22915.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:36502 "EHLO
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:49194 "EHLO
 	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063Ab0E2AnM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 20:43:12 -0400
-In-Reply-To: <1275030704.32462.11.camel@laptop>
+	with ESMTP id S1756079Ab0E2BLW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 May 2010 21:11:22 -0400
+In-Reply-To: <201005290024.22915.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Florian Mickler <florian@mickler.org>, Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Fri, May 28, 2010 at 12:11 AM, Peter Zijlstra <peterz@infradead.org>=
- wrote:
-> On Fri, 2010-05-28 at 00:31 -0400, tytso@mit.edu wrote:
->> Keep in mind, though, that a solution which is acceptable for Androi=
-d
->> has to include making sure that crappy applications don't cause the
->> battery to get drained. =A0There seem to be some people who seem
->> adamently against this requirement.
->
-> Again, Alan, Thomas and myself don't argue against that, what we do
-> however argue against is suspend running apps as a form of power
-> management.
->
-
-You seem to argue that android is not allowed to use suspend because
-the hardware we have shipped on can enter the same power state from
-idle. From my point of view, since we need to support suspend on some
-hardware we should be allowed to leverage this solution on the better
-hardware platforms as well if it improves our battery life.
-
-> If you were to read Alan's latest posts he clearly outlines how you c=
-an
-> contain crappy apps.
->
-
-I have not seen any suggestions for how to deal with all our
-interprocess dependencies when pausing a subset of processes. Without
-a solution to that we can only pause a subset of the processes we want
-to pause.
-
-> A combination of weakening QoS guarantees (delaying wakeups etc.)
-> blocking on resources (delay servicing requests) and monitoring resou=
-rce
-> usage (despite all that its still not idle) and taking affirmative
-> action (shoot it in the head).
->
-> If we pose that a well behaved application is one that listens to the
-> environment hints and idles when told to, we can let regular power
-> management kick in and let deep idle states do their thing.
->
-> If a bad application ignores those hints and manages to avoid getting
-> blocked on denied resources, we can easily spot it and promote an
-> attitude of violence toward it in the form of SIGXCPU, SIGSTOP, SIGTE=
-RM
-> and SIGKILL, possibly coupled with a pop-up dialog -- much like we ge=
-t
-> today when we try to close a window and the app isn't responding.
->
-> If we then also let the environment maintain a shitlist of crappy app=
+2010/5/28 Rafael J. Wysocki <rjw@sisk.pl>:
+> On Friday 28 May 2010, Arve Hj=F8nnev=E5g wrote:
+>> On Fri, May 28, 2010 at 1:44 AM, Florian Mickler <florian@mickler.or=
+g> wrote:
+>> > On Thu, 27 May 2010 20:05:39 +0200 (CEST)
+>> > Thomas Gleixner <tglx@linutronix.de> wrote:
+> ...
+>> > To integrate this with the current way of doing things, i gathered=
+ it
+>> > needs to be implemented as an idle-state that does the suspend()-c=
+all?
+>> >
+>>
+>> I think it is better no not confuse this with idle. Since initiating
+>> suspend will cause the system to become not-idle, I don't think is i=
 s
-> (those it had to take affirmative action against) and maybe set up a
-> service that allows people to share their results, it provides an
-> incentive to the app developers to fix their thing.
+>> beneficial to initiate suspend from idle.
 >
-> How is this not working?
+> It is, if the following two conditions hold simultaneously:
+>
+> (a) Doing full system suspend is ultimately going to bring you more e=
+nergy
+> =A0 =A0savings than the (presumably lowest) idle state you're current=
+ly in.
+>
+> (b) You anticipate that the system will stay idle for a considerably =
+long time
+> =A0 =A0such that it's worth suspending.
 >
 
-These solutions do not allow us to use suspend. They may get us closer
-to the power consumption we get from suspend on the good hardware or
-even surpass it, but we still need suspend on some hardware, and we
-would get event better results by using these solutions in addition to
-suspend compared to using them instead of suspend.
+I still don't think this matters. If you are waiting for in interrupt
+that cannot wake you up from suspend, then idle is not an indicator
+that it is safe to enter suspend. I also don't think you can avoid any
+user-space suspend blockers by delaying suspend until the system goes
+idle since any page fault could cause it to go idle. Therefore I don't
+see a benefit in delaying suspend until idle when the last suspend
+blocker is released (it would only mask possible race conditions).
 
 --=20
 Arve Hj=F8nnev=E5g
