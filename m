@@ -1,76 +1,61 @@
-From: mark gross <640e9920@gmail.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 28 May 2010 20:10:38 -0700
-Message-ID: <20100529031038.GD11600@gvim.org>
-References: <alpine.LFD.2.00.1005271545190.3032@localhost.localdomain>
- <Pine.LNX.4.44L0.1005271053420.3239-100000@iolanthe.rowland.org>
-Reply-To: markgross@thegnar.org
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: Commit 0c8219f0... breaks omap7xx support
+Date: Fri, 28 May 2010 21:01:01 -0700
+Message-ID: <AANLkTini1wjhRXEfW4AjSdkVEYGpYXpuLcct-1l4pq0o@mail.gmail.com>
+References: <6cb013311003062056v3ed83a53u2636838348bf4845@mail.gmail.com>
+	<20100309004832.GK2900@atomide.com> <6cb013311003081751u2c7cd8c6v59472ee85ac90e77@mail.gmail.com>
+	<20100309024602.GQ2900@atomide.com> <6cb013311003081906n751bedb4k2794ed40ed68d7ec@mail.gmail.com>
+	<20100309155636.GS2900@atomide.com> <6cb013311003091541k6a18c16bv4bb3d35f101e5bab@mail.gmail.com>
+	<20100315182939.GV2900@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1005271053420.3239-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:54022 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722Ab0E2EBW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 00:01:22 -0400
+Received: by pxi18 with SMTP id 18so808008pxi.19
+        for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 21:01:21 -0700 (PDT)
+In-Reply-To: <20100315182939.GV2900@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, miknix@gmail.com, a.j.buxton@gmail.com, linwizard-devel@lists.sf.net
 
-On Thu, May 27, 2010 at 11:06:23AM -0400, Alan Stern wrote:
-> If people don't mind, here is a greatly simplified summary of the 
-> comments and objections I have seen so far on this thread:
-> 
-> 	The in-kernel suspend blocker implementation is okay, even
-> 	beneficial.
+On Mon, Mar 15, 2010 at 11:29 AM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+>
+> * Cory Maccarrone <darkstar6262@gmail.com> [100309 15:38]:
+> > On Tue, Mar 9, 2010 at 7:56 AM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+> > >
+> > > Does your system boot without any patches if DEBUG_LL is not set
+> > > in your .config?
+> >
+> > No, it doesn't. =C2=A0Seems like the debugging code is still trying=
+ to run,
+> > even disabled. =C2=A0If I add in that check, it'll boot with DEBUG_=
+LL not
+> > set, but won't without that.
+>
+> Sorry for the delay on this. How about with the following patch with
+> DEBUG_LL not set?
+>
+> Note that this is using the shift register now too.
+>
+> Regards,
+>
+> Tony
 
-Only if they only block.  You get into trouble when the in kernel
-un-block opperation triggers an implicit suspend. 
+Sorry I took so long on this one.  This patch worked beautifully for
+me on the latest kernel tree.  Any chance of it getting in for one of
+the RCs of this next kernel?
 
-
-> 
-> 	Opportunistic suspends are okay.
-> 
-> 	The proposed userspace API is too Android-specific.
-> 
-> 	More kernel mechanisms are needed for expressing processes'
-> 	latency requirements.
-
-True.
-
---mgross
-
-> 
-> The last one is obviously a longer-term issue, so let's ignore it for
-> now.  That leaves as the only point of contention the userspace
-> suspend-blocker API.
-> 
-> The proposal I made a couple of days ago removes this API and leaves
-> the other things (i.e., the in-kernel suspend blockers and
-> opportunistic suspend) intact.  In place of the userspace
-> kernel-blocker API, Android would have to implement a power manager
-> process that would essentially juggle all the latency requirements in
-> userspace.
-> 
-> Communication between the power manager process and the kernel would be 
-> limited to adding a new "opportunistic" entry to /sys/power/state -- 
-> something which could well be useful in its own right.  Even if this 
-> API turns out not to be good, it's simple enough that it could be 
-> removed pretty easily.
-> 
-> This answers Alan Cox's (and other's) desire not to implement a 
-> questionable or special-purpose API.  And it also answers Thomas's 
-> desire to make scheduling decisions based on latency requirements 
-> (although the answer is simply to punt all these decisions out of the 
-> kernel and into userspace -- which is reasonable for now since the 
-> alternative would require a long-term kernel development effort).
-> 
-> Indeed, having a power manager thread may well turn out to be a useful
-> thing -- but even if it doesn't, this scheme minimizes the damage while
-> still allowing the Android platform to use a vanilla kernel with only
-> limited modifications to their userspace.
-> 
-> Alan Stern
-> 
-> _______________________________________________
-> linux-pm mailing list
-> linux-pm@lists.linux-foundation.org
-> https://lists.linux-foundation.org/mailman/listinfo/linux-pm
+Thanks
+- Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
