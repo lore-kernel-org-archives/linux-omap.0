@@ -1,78 +1,93 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH 3/4] [OMAP] Add allowance for extra IRQ space
-Date: Fri, 28 May 2010 22:28:06 -0700
-Message-ID: <1275110887-2918-4-git-send-email-darkstar6262@gmail.com>
-References: <1275110887-2918-1-git-send-email-darkstar6262@gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] omap: Fix build break with omap3_defconfig
+Date: Sat, 29 May 2010 11:12:04 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5844CF6@dbde02.ent.ti.com>
+References: <1275062022-15067-1-git-send-email-santosh.shilimkar@ti.com>
+ <87typrdhx9.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:55618 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960Ab0E2Fen (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 01:34:43 -0400
-Received: by gwaa12 with SMTP id a12so1566772gwa.19
-        for <linux-omap@vger.kernel.org>; Fri, 28 May 2010 22:34:42 -0700 (PDT)
-In-Reply-To: <1275110887-2918-1-git-send-email-darkstar6262@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56896 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960Ab0E2FmL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 01:42:11 -0400
+In-Reply-To: <87typrdhx9.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linwizard-devel@lists.sf.net, Cory Maccarrone <darkstar6262@gmail.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This change adds a configuration option that boards can specify that
-gives them an additional 64 or 128 IRQ lines to play with.  This is
-most useful if there are external interrupt-producing devices connected
-to the board.
+ -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Friday, May 28, 2010 11:32 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] omap: Fix build break with omap3_defconfig
+> 
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> 
+> > With latest linus's tip omap3_defconfig is broken.
+> 
+> This subject/shortlog is not terribly useful for git history.  it
+> should say something like
+> 
+> OMAP: Stalker board: update usage of GPIO debounce API
+> 
+Sure. The subject should have included " Stalker" board.
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- arch/arm/plat-omap/Kconfig             |   18 ++++++++++++++++++
- arch/arm/plat-omap/include/plat/irqs.h |    6 +++++-
- 2 files changed, 23 insertions(+), 1 deletions(-)
+> or something like that.  The changelog should summarize that this
+> API changed (or was removed) in mainline and the previous change
+> that updated this API missed this board etc...
+> 
+> All of this can be deduced from reading the current patch and changelog,
+> but it's better to summarize it in the changelog.
+> 
+Exactly and that's why I just gave reference to the commit ID.
 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 52f61f6..a225622 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -20,6 +20,24 @@ config OMAP_GPIO_EXTRA128
- 	  Add an extra 128 gpio numbers to the available GPIO pool. This is
- 	  available for boards that need extra gpios for external devices.
- 
-+config OMAP_IRQ_EXTRA
-+	int
-+	default 128 if OMAP_IRQ_EXTRA128
-+	default 64 if OMAP_IRQ_EXTRA64
-+	default 0
-+
-+config OMAP_IRQ_EXTRA64
-+	bool
-+	help
-+	  Add an extra 64 irq numbers to the available IRQ pool. This is
-+	  available for boards that need extra interrupts for external devices.
-+
-+config OMAP_IRQ_EXTRA128
-+	bool
-+	help
-+	  Add an extra 128 irq numbers to the available IRQ pool. This is
-+	  available for boards that need extra interrupts for external devices.
-+
- config ARCH_OMAP_OTG
- 	bool
- 
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index c01d9f0..2f14c78 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -409,7 +409,11 @@
- #define TWL_IRQ_END		TWL6030_IRQ_END
- #endif
- 
--#define NR_IRQS			TWL_IRQ_END
-+/*
-+ * Some boards require extra irq capacity to support external
-+ * devices that generate interrupts.
-+ */
-+#define NR_IRQS			(TWL_IRQ_END + CONFIG_OMAP_IRQ_EXTRA)
- 
- #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
- 
--- 
-1.7.0.4
+Will repost with changelog/subject corrected.
 
+> Thanks,
+> 
+> Kevin
+> 
+> > From the commit 8feb337475aaf, board-omap3stalker.c seems to
+> > be missed out.
+> >
+> >  LD      init/built-in.o
+> >   LD      .tmp_vmlinux1
+> > arch/arm/mach-omap2/built-in.o: In function `ads7846_dev_init':
+> > linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:542: undefined reference to
+> `omap_set_gpio_debounce'
+> > linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:543: undefined reference to
+> `omap_set_gpio_debounce_time'
+> > make: *** [.tmp_vmlinux1] Error 1
+> >
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-omap3stalker.c |    4 +---
+> >  1 files changed, 1 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+> > index f848ba8..a04cffd 100644
+> > --- a/arch/arm/mach-omap2/board-omap3stalker.c
+> > +++ b/arch/arm/mach-omap2/board-omap3stalker.c
+> > @@ -538,9 +538,7 @@ static void ads7846_dev_init(void)
+> >  		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
+> >
+> >  	gpio_direction_input(OMAP3_STALKER_TS_GPIO);
+> > -
+> > -	omap_set_gpio_debounce(OMAP3_STALKER_TS_GPIO, 1);
+> > -	omap_set_gpio_debounce_time(OMAP3_STALKER_TS_GPIO, 0xa);
+> > +	gpio_set_debounce(OMAP3_STALKER_TS_GPIO, 310);
+> >  }
+> >
+> >  static int ads7846_get_pendown_state(void)
+> > --
+> > 1.6.0.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
