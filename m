@@ -1,237 +1,462 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH] [htcherald] Update defconfig for SPI/touchscreen
-Date: Sun, 30 May 2010 15:56:23 -0700
-Message-ID: <1275260183-11207-1-git-send-email-darkstar6262@gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 3/9] OMAP2/3/4 : Dual mode timer device registration.
+Date: Mon, 31 May 2010 01:02:55 +0200
+Message-ID: <4C02EE9F.70305@ti.com>
+References: <1275143831-7629-1-git-send-email-thara@ti.com> <1275143831-7629-2-git-send-email-thara@ti.com> <1275143831-7629-3-git-send-email-thara@ti.com> <1275143831-7629-4-git-send-email-thara@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:54674 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753401Ab0E3W4p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 May 2010 18:56:45 -0400
-Received: by gwaa12 with SMTP id a12so2275720gwa.19
-        for <linux-omap@vger.kernel.org>; Sun, 30 May 2010 15:56:44 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45131 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751266Ab0E3XDB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 30 May 2010 19:03:01 -0400
+In-Reply-To: <1275143831-7629-4-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Cory Maccarrone <darkstar6262@gmail.com>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>
 
-This change updates the htcherald_defconfig to add in SPI100k
-and ads7684 touchscreen support.
+Hi Thara,
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- arch/arm/configs/htcherald_defconfig |   73 ++++++++++++++++++++++++++++++++-
- 1 files changed, 70 insertions(+), 3 deletions(-)
+On 5/29/2010 4:37 PM, Gopinath, Thara wrote:
+> This patch converts OMAP2/OMAP3/OMAP4 dual mode timers into
+> platform devices using omap hwmod, omap device and runtime pm frameworks.
+> This patch also allows GPTIMER1 and GPTIMER2 to be registered as
+> early devices. This will allow GPTIMER1 to be registered as
+> system timer very early on in the system boot up sequence.
+> Later during normal plaform_device_register these are converted
+> to normal platform device.
+>
+> Signed-off-by: Thara Gopinath<thara@ti.com>
+> ---
+>   arch/arm/mach-omap2/Makefile   |    3 +-
+>   arch/arm/mach-omap2/dmtimers.c |  296 ++++++++++++++++++++++++++++++++++++++++
+>   arch/arm/mach-omap2/dmtimers.h |   57 ++++++++
+>   arch/arm/mach-omap2/timer-gp.c |    2 -
+>   4 files changed, 355 insertions(+), 3 deletions(-)
+>   create mode 100644 arch/arm/mach-omap2/dmtimers.c
+>   create mode 100644 arch/arm/mach-omap2/dmtimers.h
+>
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index dd3a24a..9299e4f 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -3,7 +3,8 @@
+>   #
+>
+>   # Common support
+> -obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
+> +obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o \
+> +       dmtimers.o
+>
+>   omap-2-3-common                                = irq.o sdrc.o
+>   hwmod-common                           = omap_hwmod.o \
+> diff --git a/arch/arm/mach-omap2/dmtimers.c b/arch/arm/mach-omap2/dmtimers.c
+> new file mode 100644
+> index 0000000..6a2caf3
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/dmtimers.c
+> @@ -0,0 +1,296 @@
+> +/**
+> + * OMAP2 Dual-Mode Timers
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + * Thara Gopinath<thara@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include<linux/clk.h>
+> +#include<linux/delay.h>
+> +#include<linux/io.h>
+> +#include<linux/err.h>
+> +#include<linux/slab.h>
+> +#include<linux/pm_runtime.h>
+> +
+> +#include<mach/irqs.h>
+> +#include<plat/dmtimer.h>
+> +#include<plat/omap_hwmod.h>
+> +#include<plat/omap_device.h>
+> +
+> +#include "dmtimers.h"
+> +
+> +#define NO_EARLY_TIMERS                        2
+The "NO_" is a little bit confusing, you should maybe use _COUNT.
 
-diff --git a/arch/arm/configs/htcherald_defconfig b/arch/arm/configs/htcherald_defconfig
-index 42deef6..26c8def 100644
---- a/arch/arm/configs/htcherald_defconfig
-+++ b/arch/arm/configs/htcherald_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
- # Linux kernel version: 2.6.34
--# Fri May 28 21:34:49 2010
-+# Sun May 30 15:54:07 2010
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -541,12 +541,14 @@ CONFIG_MISC_DEVICES=y
- # CONFIG_ISL29003 is not set
- # CONFIG_SENSORS_TSL2550 is not set
- # CONFIG_DS1682 is not set
-+# CONFIG_TI_DAC7512 is not set
- # CONFIG_C2PORT is not set
- 
- #
- # EEPROM support
- #
- # CONFIG_EEPROM_AT24 is not set
-+# CONFIG_EEPROM_AT25 is not set
- # CONFIG_EEPROM_LEGACY is not set
- # CONFIG_EEPROM_MAX6875 is not set
- # CONFIG_EEPROM_93CX6 is not set
-@@ -577,6 +579,7 @@ CONFIG_MII=y
- # CONFIG_AX88796 is not set
- CONFIG_SMC91X=y
- # CONFIG_DM9000 is not set
-+# CONFIG_ENC28J60 is not set
- # CONFIG_ETHOC is not set
- # CONFIG_SMC911X is not set
- # CONFIG_SMSC911X is not set
-@@ -590,6 +593,7 @@ CONFIG_SMC91X=y
- # CONFIG_IBM_NEW_EMAC_MAL_COMMON_ERR is not set
- # CONFIG_B44 is not set
- # CONFIG_KS8842 is not set
-+# CONFIG_KS8851 is not set
- # CONFIG_KS8851_MLL is not set
- CONFIG_NETDEV_1000=y
- CONFIG_NETDEV_10000=y
-@@ -649,7 +653,30 @@ CONFIG_KEYBOARD_OMAP=y
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
- # CONFIG_INPUT_TABLET is not set
--# CONFIG_INPUT_TOUCHSCREEN is not set
-+CONFIG_INPUT_TOUCHSCREEN=y
-+CONFIG_TOUCHSCREEN_ADS7846=y
-+# CONFIG_TOUCHSCREEN_AD7877 is not set
-+# CONFIG_TOUCHSCREEN_AD7879_I2C is not set
-+# CONFIG_TOUCHSCREEN_AD7879_SPI is not set
-+# CONFIG_TOUCHSCREEN_AD7879 is not set
-+# CONFIG_TOUCHSCREEN_DYNAPRO is not set
-+# CONFIG_TOUCHSCREEN_HAMPSHIRE is not set
-+# CONFIG_TOUCHSCREEN_EETI is not set
-+# CONFIG_TOUCHSCREEN_FUJITSU is not set
-+# CONFIG_TOUCHSCREEN_GUNZE is not set
-+# CONFIG_TOUCHSCREEN_ELO is not set
-+# CONFIG_TOUCHSCREEN_WACOM_W8001 is not set
-+# CONFIG_TOUCHSCREEN_MCS5000 is not set
-+# CONFIG_TOUCHSCREEN_MTOUCH is not set
-+# CONFIG_TOUCHSCREEN_INEXIO is not set
-+# CONFIG_TOUCHSCREEN_MK712 is not set
-+# CONFIG_TOUCHSCREEN_PENMOUNT is not set
-+# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
-+# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
-+# CONFIG_TOUCHSCREEN_USB_COMPOSITE is not set
-+# CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
-+# CONFIG_TOUCHSCREEN_TSC2007 is not set
-+# CONFIG_TOUCHSCREEN_W90X900 is not set
- # CONFIG_INPUT_MISC is not set
- 
- #
-@@ -684,6 +711,7 @@ CONFIG_SERIAL_8250_RUNTIME_UARTS=4
- #
- # Non-8250 serial port support
- #
-+# CONFIG_SERIAL_MAX3100 is not set
- CONFIG_SERIAL_CORE=m
- # CONFIG_SERIAL_TIMBERDALE is not set
- # CONFIG_SERIAL_ALTERA_JTAGUART is not set
-@@ -740,7 +768,24 @@ CONFIG_I2C_OMAP=y
- # CONFIG_I2C_DEBUG_CORE is not set
- # CONFIG_I2C_DEBUG_ALGO is not set
- # CONFIG_I2C_DEBUG_BUS is not set
--# CONFIG_SPI is not set
-+CONFIG_SPI=y
-+CONFIG_SPI_MASTER=y
-+
-+#
-+# SPI Master Controller Drivers
-+#
-+# CONFIG_SPI_BITBANG is not set
-+# CONFIG_SPI_GPIO is not set
-+# CONFIG_SPI_OMAP_UWIRE is not set
-+CONFIG_SPI_OMAP_100K=y
-+# CONFIG_SPI_XILINX is not set
-+# CONFIG_SPI_DESIGNWARE is not set
-+
-+#
-+# SPI Protocol Masters
-+#
-+# CONFIG_SPI_SPIDEV is not set
-+# CONFIG_SPI_TLE62X0 is not set
- 
- #
- # PPS support
-@@ -771,6 +816,9 @@ CONFIG_GPIOLIB=y
- #
- # SPI GPIO expanders:
- #
-+# CONFIG_GPIO_MAX7301 is not set
-+# CONFIG_GPIO_MCP23S08 is not set
-+# CONFIG_GPIO_MC33880 is not set
- 
- #
- # AC97 GPIO expanders:
-@@ -786,6 +834,7 @@ CONFIG_HWMON=y
- #
- # CONFIG_SENSORS_AD7414 is not set
- # CONFIG_SENSORS_AD7418 is not set
-+# CONFIG_SENSORS_ADCXX is not set
- # CONFIG_SENSORS_ADM1021 is not set
- # CONFIG_SENSORS_ADM1025 is not set
- # CONFIG_SENSORS_ADM1026 is not set
-@@ -807,6 +856,7 @@ CONFIG_HWMON=y
- # CONFIG_SENSORS_GL520SM is not set
- # CONFIG_SENSORS_IT87 is not set
- # CONFIG_SENSORS_LM63 is not set
-+# CONFIG_SENSORS_LM70 is not set
- # CONFIG_SENSORS_LM73 is not set
- # CONFIG_SENSORS_LM75 is not set
- # CONFIG_SENSORS_LM77 is not set
-@@ -821,6 +871,7 @@ CONFIG_HWMON=y
- # CONFIG_SENSORS_LTC4215 is not set
- # CONFIG_SENSORS_LTC4245 is not set
- # CONFIG_SENSORS_LM95241 is not set
-+# CONFIG_SENSORS_MAX1111 is not set
- # CONFIG_SENSORS_MAX1619 is not set
- # CONFIG_SENSORS_MAX6650 is not set
- # CONFIG_SENSORS_PC87360 is not set
-@@ -833,6 +884,7 @@ CONFIG_HWMON=y
- # CONFIG_SENSORS_SMSC47M192 is not set
- # CONFIG_SENSORS_SMSC47B397 is not set
- # CONFIG_SENSORS_ADS7828 is not set
-+# CONFIG_SENSORS_ADS7871 is not set
- # CONFIG_SENSORS_AMC6821 is not set
- # CONFIG_SENSORS_THMC50 is not set
- # CONFIG_SENSORS_TMP102 is not set
-@@ -847,6 +899,7 @@ CONFIG_HWMON=y
- # CONFIG_SENSORS_W83L786NG is not set
- # CONFIG_SENSORS_W83627HF is not set
- # CONFIG_SENSORS_W83627EHF is not set
-+# CONFIG_SENSORS_LIS3_SPI is not set
- # CONFIG_SENSORS_LIS3_I2C is not set
- # CONFIG_THERMAL is not set
- # CONFIG_WATCHDOG is not set
-@@ -881,7 +934,10 @@ CONFIG_HTC_I2CPLD=y
- # CONFIG_MFD_WM8350_I2C is not set
- # CONFIG_MFD_WM8994 is not set
- # CONFIG_MFD_PCF50633 is not set
-+# CONFIG_MFD_MC13783 is not set
- # CONFIG_AB3100_CORE is not set
-+# CONFIG_EZX_PCAP is not set
-+# CONFIG_AB4500_CORE is not set
- # CONFIG_REGULATOR is not set
- # CONFIG_MEDIA_SUPPORT is not set
- 
-@@ -919,6 +975,7 @@ CONFIG_FB_MODE_HELPERS=y
- # CONFIG_FB_BROADSHEET is not set
- CONFIG_FB_OMAP=y
- # CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
-+# CONFIG_FB_OMAP_LCD_MIPID is not set
- # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
- CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
- # CONFIG_FB_OMAP_DMA_TUNE is not set
-@@ -1042,6 +1099,7 @@ CONFIG_MMC_BLOCK_BOUNCE=y
- #
- # CONFIG_MMC_SDHCI is not set
- CONFIG_MMC_OMAP=y
-+# CONFIG_MMC_SPI is not set
- # CONFIG_MEMSTICK is not set
- CONFIG_NEW_LEDS=y
- CONFIG_LEDS_CLASS=y
-@@ -1054,6 +1112,7 @@ CONFIG_LEDS_GPIO=y
- CONFIG_LEDS_GPIO_PLATFORM=y
- # CONFIG_LEDS_LP3944 is not set
- # CONFIG_LEDS_PCA955X is not set
-+# CONFIG_LEDS_DAC124S085 is not set
- # CONFIG_LEDS_BD2802 is not set
- # CONFIG_LEDS_LT3593 is not set
- CONFIG_LEDS_TRIGGERS=y
-@@ -1108,6 +1167,14 @@ CONFIG_RTC_INTF_DEV=y
- #
- # SPI RTC drivers
- #
-+# CONFIG_RTC_DRV_M41T94 is not set
-+# CONFIG_RTC_DRV_DS1305 is not set
-+# CONFIG_RTC_DRV_DS1390 is not set
-+# CONFIG_RTC_DRV_MAX6902 is not set
-+# CONFIG_RTC_DRV_R9701 is not set
-+# CONFIG_RTC_DRV_RS5C348 is not set
-+# CONFIG_RTC_DRV_DS3234 is not set
-+# CONFIG_RTC_DRV_PCF2123 is not set
- 
- #
- # Platform RTC drivers
--- 
-1.7.0.4
+> +#define OMAP2_DM_TIMER_COUNT           12
+> +#define OMAP3PLUS_DM_TIMER_COUNT       11
+Why do you need such SoC specific info hard coded here?
+You should extract that from hwmod data.
+
+> +
+> +static char *omap2_dm_source_names[] __initdata = {
+> +       "sys_ck",
+> +       "func_32k_ck",
+> +       "alt_ck",
+> +       NULL
+> +};
+> +static struct clk *omap2_dm_source_clocks[3];
+> +
+> +static char *omap3_dm_source_names[] __initdata = {
+> +       "sys_ck",
+> +       "omap_32k_fck",
+> +       NULL
+> +};
+> +static struct clk *omap3_dm_source_clocks[2];
+> +
+> +static char *omap4_dm_source_names[] __initdata = {
+> +       "sys_ck",
+> +       "sys_32k_ck",
+> +       NULL
+> +};
+> +static struct clk *omap4_dm_source_clocks[2];
+> +
+> +static struct clk **omap_dm_source_clocks;
+> +
+> +static void omap2_dm_timer_enable(struct platform_device *pdev)
+> +{
+> +
+> +       if (pm_runtime_get_sync(&pdev->dev))
+> +               dev_warn(&pdev->dev, "%s: Unable to enable the timer\n",
+> +                       __func__);
+> +#ifndef CONFIG_PM_RUNTIME
+> +       if (omap_device_enable(pdev))
+> +               dev_warn(&pdev->dev, "%s: Unable to enable the timer\n",
+> +                       __func__);
+> +#endif
+> +}
+> +
+> +static void omap2_dm_timer_disable(struct platform_device *pdev)
+> +{
+> +
+> +       if (pm_runtime_put_sync(&pdev->dev))
+> +               dev_warn(&pdev->dev, "%s: Unable to disable the timer\n",
+> +                       __func__);
+> +#ifndef CONFIG_PM_RUNTIME
+> +       if (omap_device_idle(pdev))
+> +               dev_warn(&pdev->dev, "%s: Unable to disable the timer\n",
+> +                       __func__);
+> +#endif
+> +}
+> +
+> +static int omap2_dm_timer_set_src(struct platform_device *pdev,
+> +                                       struct clk *timer_clk, int source)
+> +{
+> +       int ret;
+> +
+> +       if (IS_ERR(timer_clk)) {
+> +               dev_warn(&pdev->dev, "%s: Not able get the clock pointer\n",
+> +                       __func__);
+> +               return -EINVAL;
+> +       }
+> +
+> +       clk_disable(timer_clk);
+> +       ret = clk_set_parent(timer_clk, omap_dm_source_clocks[source]);
+> +       if (ret)
+> +               dev_warn(&pdev->dev, "%s: Not able to change the"
+> +                       "fclk source\n", __func__);
+> +
+> +       clk_enable(timer_clk);
+> +       /*
+> +        * When the functional clock disappears, too quick writes seem
+> +        * to cause an abort. XXX Is this still necessary?
+> +        */
+Good question... it is still necessary? Do you know what platform has 
+that bug?
+
+> +       __delay(150000);
+> +       return ret;
+> +}
+> +
+> +static int omap2_dm_timer_set_clk(struct platform_device *pdev, int source)
+> +{
+> +       struct clk *timer_clk = clk_get(&pdev->dev, "fck");
+> +
+> +       return omap2_dm_timer_set_src(pdev, timer_clk, source);
+> +}
+> +
+> +static struct clk *omap2_dm_timer_get_fclk(struct platform_device *pdev)
+> +{
+> +       return clk_get(&pdev->dev, "fck");
+> +}
+> +
+> +/* API's to be used by early timer devices */
+> +static void __init omap2_dm_early_timer_enable(struct platform_device *pdev)
+> +{
+> +       if (omap_device_enable(pdev))
+> +               dev_warn(&pdev->dev, "%s: Unable to enable the timer\n",
+> +                       __func__);
+> +}
+> +
+> +static void __init omap2_dm_early_timer_disable(struct platform_device *pdev)
+> +{
+> +       if (omap_device_idle(pdev))
+> +               dev_warn(&pdev->dev, "%s: Unable to disable the timer\n",
+> +                       __func__);
+> +}
+> +
+> +static int __init omap2_dm_early_timer_set_clk(struct platform_device *pdev,
+> +                                       int source)
+> +{
+> +       struct omap_device *odev = to_omap_device(pdev);
+> +
+> +       return omap2_dm_timer_set_src(pdev, odev->hwmods[0]->_clk, source);
+We should maybe consider some new omap_device accessors in order to 
+avoid direct access to internal hwmod attribute from that code.
+
+> +}
+> +
+> +static struct clk __init *omap2_dm_early_timer_get_fclk
+> +                               (struct platform_device *pdev)
+> +{
+> +       struct omap_device *odev = to_omap_device(pdev);
+> +
+> +       return odev->hwmods[0]->_clk;
+> +}
+> +
+> +/* One time initializations */
+> +static void __init omap2_dm_timer_setup(void)
+> +{
+> +       static int is_initialized;
+> +       char **src_clk_name;
+> +       int i;
+> +
+> +       /*
+> +        * Check if setup has already been done as part of early init.
+> +        * If yes avoid doing it again.
+> +        */
+> +       if (is_initialized)
+> +               return;
+> +
+> +       if (cpu_is_omap24xx()) {
+> +               src_clk_name = omap2_dm_source_names;
+> +               omap_dm_source_clocks = omap2_dm_source_clocks;
+> +       } else if (cpu_is_omap34xx()) {
+> +               src_clk_name = omap3_dm_source_names;
+> +               omap_dm_source_clocks = omap3_dm_source_clocks;
+> +       } else if (cpu_is_omap44xx()) {
+> +               src_clk_name = omap4_dm_source_names;
+> +               omap_dm_source_clocks = omap4_dm_source_clocks;
+> +       } else {
+> +               pr_err("%s: Chip support not yet added\n", __func__);
+> +               return;
+
+I don't know how yet, but there is probably a better way to handle that 
+SoC specific part. We have to do that just because the clocks names  are 
+not consistent between chip.
+Using hwmod, there is probably something doable...
+
+> +
+> +
+> +       /* Initialize the dmtimer src clocks */
+> +       for (i = 0; src_clk_name[i] != NULL; i++)
+> +                       omap_dm_source_clocks[i] =
+> +                               clk_get(NULL, src_clk_name[i]);
+> +
+> +       /* Number of dmtimers in the system */
+> +       if (cpu_is_omap24xx())
+> +               omap_dm_timer_count = OMAP2_DM_TIMER_COUNT;
+> +       else
+> +               omap_dm_timer_count = OMAP3PLUS_DM_TIMER_COUNT;
+> +
+> +       is_initialized = 1;
+> +}
+> +
+> +struct omap_device_pm_latency omap2_dmtimer_latency[] = {
+> +       {
+> +       .deactivate_func = omap_device_idle_hwmods,
+> +       .activate_func   = omap_device_enable_hwmods,
+> +       .flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> +
+> +       },
+> +};
+> +
+> +int __init omap2_get_early_timer_count(void)
+> +{
+> +       return NO_EARLY_TIMERS;
+> +}
+> +
+> +void __init omap2_dm_timer_early_init(void)
+> +{
+> +       int i = 0;
+> +       char *name = "dmtimer";
+> +       do {
+> +               struct omap_device *od;
+> +               struct omap_hwmod *oh;
+> +               int hw_mod_name_len = 16;
+> +               char oh_name[hw_mod_name_len];
+> +               struct omap_dm_timer_plat_info *pdata;
+> +
+> +               snprintf(oh_name, hw_mod_name_len, "timer%d", i + 1);
+> +               oh = omap_hwmod_lookup(oh_name);
+> +               if (!oh)
+> +                       break;
+> +
+> +               pdata = kzalloc(sizeof(struct omap_dm_timer_plat_info),
+> +                               GFP_KERNEL);
+> +               if (!pdata) {
+> +                       pr_err("%s: Unable to allocate pdata for %s:%s\n",
+> +                               __func__, name, oh->name);
+> +                       return;
+> +               }
+> +
+> +               pdata->omap_dm_clk_enable = omap2_dm_early_timer_enable;
+> +               pdata->omap_dm_clk_disable = omap2_dm_early_timer_disable;
+> +               pdata->omap_dm_set_source_clk = omap2_dm_early_timer_set_clk;
+> +               pdata->omap_dm_get_timer_clk = omap2_dm_early_timer_get_fclk;
+> +
+> +               od = omap_device_build(name, i, oh, pdata, sizeof(*pdata),
+> +                               omap2_dmtimer_latency,
+> +                               ARRAY_SIZE(omap2_dmtimer_latency), 1);
+> +               if (IS_ERR(od)) {
+> +                       pr_err("%s: Cant build omap_device for %s:%s.\n",
+> +                               __func__, name, oh->name);
+> +                       kfree(pdata);
+> +               }
+> +               i++;
+> +       } while (i<  NO_EARLY_TIMERS);
+> +
+> +       omap2_dm_timer_setup();
+> +       return;
+> +}
+> +
+> +static int __init omap2_dm_timer_init_dev(struct omap_hwmod *oh, void *user)
+> +{
+> +       struct omap_device *od;
+> +       struct omap_dm_timer_plat_info *pdata;
+> +       static int i;
+> +       char *name = "dmtimer";
+> +
+> +       pdata = kzalloc(sizeof(struct omap_dm_timer_plat_info), GFP_KERNEL);
+> +       if (!pdata) {
+> +               pr_err("%s: Unable to allocate pdata for %s:%s\n",
+> +                       __func__, name, oh->name);
+> +               return -ENOMEM;
+> +       }
+> +
+> +       pdata->omap_dm_clk_enable = omap2_dm_timer_enable;
+> +       pdata->omap_dm_clk_disable = omap2_dm_timer_disable;
+> +       pdata->omap_dm_set_source_clk = omap2_dm_timer_set_clk;
+> +       pdata->omap_dm_get_timer_clk = omap2_dm_timer_get_fclk;
+> +
+> +       od = omap_device_build(name, i, oh, pdata, sizeof(*pdata),
+> +                       omap2_dmtimer_latency,
+> +                       ARRAY_SIZE(omap2_dmtimer_latency), 0);
+> +       if (IS_ERR(od)) {
+> +               pr_err("%s: Cant build omap_device for %s:%s.\n",
+> +                       __func__, name, oh->name);
+> +               kfree(pdata);
+> +               i++;
+> +               return 0;
+> +       }
+> +       pm_runtime_enable(&(od->pdev.dev));
+> +       i++;
+> +       return 0;
+> +}
+> +
+> +static int __init omap2_dm_timer_init(void)
+> +{
+> +       int ret;
+> +
+> +       omap2_dm_timer_setup();
+> +
+> +       ret = omap_hwmod_for_each_by_class("timer_1ms",
+> +                       omap2_dm_timer_init_dev, NULL);
+> +
+> +       ret |= omap_hwmod_for_each_by_class("timer",
+> +                       omap2_dm_timer_init_dev, NULL);
+> +       return ret;
+> +}
+> +arch_initcall(omap2_dm_timer_init);
+> diff --git a/arch/arm/mach-omap2/dmtimers.h b/arch/arm/mach-omap2/dmtimers.h
+> new file mode 100644
+> index 0000000..dbc2b9d
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/dmtimers.h
+> @@ -0,0 +1,57 @@
+> +/**
+> + * OMAP2 Dual-Mode Timers
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + * Thara Gopinath<thara@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef __ASM_ARCH_DMTIMERS_H
+> +#define __ASM_ARCH_DMTIMERS_H
+> +
+> +#define OMAP2420_GPTIMER1_BASE         0x48028000
+> +#define OMAP2430_GPTIMER1_BASE         0x49018000
+> +#define OMAP24XX_GPTIMER2_BASE          0x4802a000
+> +#define OMAP24XX_GPTIMER3_BASE          0x48078000
+> +#define OMAP24XX_GPTIMER4_BASE          0x4807a000
+> +#define OMAP24XX_GPTIMER5_BASE          0x4807c000
+> +#define OMAP24XX_GPTIMER6_BASE          0x4807e000
+> +#define OMAP24XX_GPTIMER7_BASE          0x48080000
+> +#define OMAP24XX_GPTIMER8_BASE          0x48082000
+> +#define OMAP24XX_GPTIMER9_BASE          0x48084000
+> +#define OMAP24XX_GPTIMER10_BASE         0x48086000
+> +#define OMAP24XX_GPTIMER11_BASE         0x48088000
+> +#define OMAP24XX_GPTIMER12_BASE         0x4808a000
+> +
+> +#define OMAP34XX_GPTIMER1_BASE         0x48318000
+> +#define OMAP34XX_GPTIMER2_BASE         0x49032000
+> +#define OMAP34XX_GPTIMER3_BASE         0x49034000
+> +#define OMAP34XX_GPTIMER4_BASE         0x49036000
+> +#define OMAP34XX_GPTIMER5_BASE         0x49038000
+> +#define OMAP34XX_GPTIMER6_BASE         0x4903A000
+> +#define OMAP34XX_GPTIMER7_BASE         0x4903C000
+> +#define OMAP34XX_GPTIMER8_BASE         0x4903E000
+> +#define OMAP34XX_GPTIMER9_BASE         0x49040000
+> +#define OMAP34XX_GPTIMER10_BASE                0x48086000
+> +#define OMAP34XX_GPTIMER11_BASE                0x48088000
+> +#define OMAP34XX_GPTIMER12_BASE                0x48304000
+> +
+> +#define OMAP44XX_GPTIMER1_BASE         0x4a318000
+> +#define OMAP44XX_GPTIMER2_BASE          0x48032000
+> +#define OMAP44XX_GPTIMER3_BASE          0x48034000
+> +#define OMAP44XX_GPTIMER4_BASE          0x48036000
+> +#define OMAP44XX_GPTIMER5_BASE          0x40138000
+> +#define OMAP44XX_GPTIMER6_BASE          0x4013a000
+> +#define OMAP44XX_GPTIMER7_BASE          0x4013a000
+> +#define OMAP44XX_GPTIMER8_BASE          0x4013e000
+> +#define OMAP44XX_GPTIMER9_BASE          0x4803e000
+> +#define OMAP44XX_GPTIMER10_BASE         0x48086000
+> +#define OMAP44XX_GPTIMER11_BASE         0x48088000
+> +#define OMAP44XX_GPTIMER12_BASE         0x4a320000
+If these defines are only used for the hwmod definition, they should be 
+moved to a per Soc memory map file.
+
+Benoit
+
+> +
+> +void __init omap2_dm_timer_early_init(void);
+> +int __init omap2_get_early_timer_count(void);
+> +#endif
+> diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+> index 74fbed8..d5f2ba7 100644
+> --- a/arch/arm/mach-omap2/timer-gp.c
+> +++ b/arch/arm/mach-omap2/timer-gp.c
+> @@ -231,8 +231,6 @@ static void __init omap2_gp_timer_init(void)
+>          twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
+>          BUG_ON(!twd_base);
+>   #endif
+> -       omap_dm_timer_init();
+> -
+>          omap2_gp_clockevent_init();
+>          omap2_gp_clocksource_init();
+>   }
+> --
+> 1.7.0.rc1.33.g07cf0f
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
