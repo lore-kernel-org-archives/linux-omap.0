@@ -1,37 +1,34 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH] [MMC] omap: Remove BUG_ON for disabled interrupts
-Date: Sat, 29 May 2010 19:27:23 -0700
-Message-ID: <1275186443-8242-1-git-send-email-darkstar6262@gmail.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: akpm@linux-foundation.org, Cory Maccarrone <darkstar6262@gmail.com>
+From: Marco Stornelli <marco.stornelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: omap udc driver problem with beagle board
+Date: Sun, 30 May 2010 11:53:49 +0200
+Message-ID: <4C0235AD.70008@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Embedded <linux-embedded-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This change removes a BUG_ON for when interrupts are disabled
-during an MMC request.  During boot, interrupts can be disabled
-when a request is made, causing this bug to be triggered.  In reality,
-there's no reason this should halt the kernel, as the driver has proved
-reliable in spite of disabled interrupts, and additionally, there's
-nothing in this code that would require interrupts to be enabled.
+Hi,
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- drivers/mmc/host/omap.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+I'm using the kernel 2.6.34 with the beagle board rev. c4. I have got
+some problems with the ethernet gadget to use nfs over usb. The problem
+is with the usb. When the g_ether driver register itself, the omap udc
+driver returns ENODEV because the kernel didn't call the probe for
+this driver. Looking at the code, it seems the problem is in board
+specific management of the usb. There isn't the registration of the
+platform device to match the omap udc platform driver. It should be done
+in the omap_usb_init() but in case of beagle board this function is
+never called, so omap udc driver cannot work. Is it a regression? Is
+there any workaround?
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 2b28168..d98ddcf 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1157,7 +1157,6 @@ static void mmc_omap_start_request(struct mmc_omap_host *host,
- 	mmc_omap_start_command(host, req->cmd);
- 	if (host->dma_in_use)
- 		omap_start_dma(host->dma_ch);
--	BUG_ON(irqs_disabled());
- }
- 
- static void mmc_omap_request(struct mmc_host *mmc, struct mmc_request *req)
--- 
-1.7.0.4
+Thanks.
 
+Regards,
+
+Marco
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
