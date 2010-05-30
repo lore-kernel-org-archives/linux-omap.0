@@ -1,85 +1,96 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Sun, 30 May 2010 22:02:39 +0200
-Message-ID: <201005302202.39511.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org> <201005292227.15479.rjw@sisk.pl> <AANLkTim6zsho4RSrseJostaOJe9lL4VNRKA3vDGJWJhK@mail.gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 0/9] OMAP: DMTIMER: Convert platform driver so as to make
+ use of hwmod + omap device framework for OMAP2 PLUS
+Date: Mon, 31 May 2010 00:11:01 +0200
+Message-ID: <4C02E275.2080202@ti.com>
+References: <1275143831-7629-1-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTim6zsho4RSrseJostaOJe9lL4VNRKA3vDGJWJhK@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Florian Mickler <florian@mickler.org>, Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47818 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754984Ab0E3WLK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 May 2010 18:11:10 -0400
+In-Reply-To: <1275143831-7629-1-git-send-email-thara@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>
 
-On Saturday 29 May 2010, Arve Hj=F8nnev=E5g wrote:
-> 2010/5/29 Rafael J. Wysocki <rjw@sisk.pl>:
-> > On Saturday 29 May 2010, Arve Hj=F8nnev=E5g wrote:
-> >> 2010/5/28 Rafael J. Wysocki <rjw@sisk.pl>:
-> >> > On Friday 28 May 2010, Arve Hj=F8nnev=E5g wrote:
-> >> >> On Fri, May 28, 2010 at 1:44 AM, Florian Mickler <florian@mickl=
-er.org> wrote:
-> >> >> > On Thu, 27 May 2010 20:05:39 +0200 (CEST)
-> >> >> > Thomas Gleixner <tglx@linutronix.de> wrote:
-> >> > ...
-> >> >> > To integrate this with the current way of doing things, i gat=
-hered it
-> >> >> > needs to be implemented as an idle-state that does the suspen=
-d()-call?
-> >> >> >
-> >> >>
-> >> >> I think it is better no not confuse this with idle. Since initi=
-ating
-> >> >> suspend will cause the system to become not-idle, I don't think=
- is is
-> >> >> beneficial to initiate suspend from idle.
-> >> >
-> >> > It is, if the following two conditions hold simultaneously:
-> >> >
-> >> > (a) Doing full system suspend is ultimately going to bring you m=
-ore energy
-> >> >    savings than the (presumably lowest) idle state you're curren=
-tly in.
-> >> >
-> >> > (b) You anticipate that the system will stay idle for a consider=
-ably long time
-> >> >    such that it's worth suspending.
-> >> >
-> >>
-> >> I still don't think this matters. If you are waiting for in interr=
-upt
-> >> that cannot wake you up from suspend, then idle is not an indicato=
-r
-> >> that it is safe to enter suspend. I also don't think you can avoid=
- any
-> >> user-space suspend blockers by delaying suspend until the system g=
-oes
-> >> idle since any page fault could cause it to go idle. Therefore I d=
-on't
-> >> see a benefit in delaying suspend until idle when the last suspend
-> >> blocker is released (it would only mask possible race conditions).
-> >
-> > I wasn't referring to suspend blockers, but to the idea of initiati=
-ng full
-> > system suspend from idle, which I still think makes sense.  If you =
-are
-> > waiting for an interrupt that cannot wake you from suspend, then
-> > _obviously_ suspend should not be started.  However, if you're not =
-waiting for
-> > such an interrupt and the (a) and (b) above hold, it makes sense to=
- start
-> > suspend from idle.
-> >
->=20
-> What about timers? When you suspend timers stop (otherwise it is just
-> a deep-idle mode), and this could cause problems. Some drivers rely o=
-n
-> timers if the hardware does not have a completion interrupt. It is no=
-t
-> uncommon to see send command x then wait 200ms in a some hardware
-> specs.
+On 5/29/2010 4:37 PM, Gopinath, Thara wrote:
+> This patch series converts the OMAP Dual Mode Timer into a
+> platform driver. This involves using of hwmod structures and
+> omap_device layer for OMAP2/3/4 dmtimers and generic
+> linux platform device layer for OMAP1.
+>
+> As a result of this patch series the dmtimer platform driver
+> resides in arch/arm/plat-omap directory and arch specific
+> implementations and device registerations reside in
+> arch/arm/mach-omap1 and arch/arm/mach-omap2 for OMAP1
+> and OMAP2 PLUS respectively.
 
-QoS should be used in such cases.
+Hi Thara,
 
-Rafael
+The Dual timer terminology is not used anymore since 2420.
+It was replaced by gptimer and will be simplified going forward
+using timer. This IP is almost the same since 1610, but will have 3 
+different names.
+It might be the good opportunity to align the names?
+(OK, the code is full of dm_timer everywhere... so that might not worth 
+the effort).
+Let's consider that as my 2 cents...
+
+Benoit
+
+
+> This patch series has been compile tested for OMAP1 using
+> omap_1610_h2_defconfig, compile tested for OMAP2 using
+> omap3_defconfig and boot and sanity tested for OMAP3/OMAP4
+> again using omap3_defconfig. Boot testing has been done
+> on OMAP3430 SDP and OMAP4430 SDP boards. All testing has
+> been done on origin/origin/pm-wip/hwmods-omap4 branch off
+> Kevin Hilman's tree as these patches have dependencies on
+> runtime pm API's and OMAP4 autogenerated hwmod data base.
+>
+> It would be great if somebody could test these patches on OMAP1
+> and OMAP2 platforms.
+>
+> Thara Gopinath (9):
+>    OMAP: Convert dual mode timer into a platform driver.
+>    OMAP1: Dual mode timer device registration.
+>    OMAP2/3/4 : Dual mode timer device registration.
+>    OMAP2: Support for early device registration
+>    OMAP2/3/4: Adding device names to dmtimer fclk nodes
+>    OMAP3: Add hwmod data for OMAP3 dual mode timers.
+>    OMAP2: Add hwmod data for OMAP2420 dual mode timers.
+>    OMAP2: Add hwmod data for OMAP2430 dual mode timers.
+>    OMAP4: Changing dmtimer1 fclk name
+>
+>   arch/arm/mach-omap1/Makefile               |    1 +
+>   arch/arm/mach-omap1/dmtimers.c             |  148 +++++++
+>   arch/arm/mach-omap1/timer32k.c             |    3 -
+>   arch/arm/mach-omap2/Makefile               |    3 +-
+>   arch/arm/mach-omap2/clock2420_data.c       |   24 +-
+>   arch/arm/mach-omap2/clock2430_data.c       |   24 +-
+>   arch/arm/mach-omap2/clock3xxx_data.c       |   22 +-
+>   arch/arm/mach-omap2/clock44xx_data.c       |   24 +-
+>   arch/arm/mach-omap2/dmtimers.c             |  296 +++++++++++++
+>   arch/arm/mach-omap2/dmtimers.h             |   57 +++
+>   arch/arm/mach-omap2/io.c                   |   16 +
+>   arch/arm/mach-omap2/omap_hwmod_2420_data.c |  619 +++++++++++++++++++++++++++-
+>   arch/arm/mach-omap2/omap_hwmod_2430_data.c |  619 +++++++++++++++++++++++++++-
+>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  572 +++++++++++++++++++++++++-
+>   arch/arm/mach-omap2/timer-gp.c             |    2 -
+>   arch/arm/plat-omap/dmtimer.c               |  401 ++++++++-----------
+>   arch/arm/plat-omap/include/plat/dmtimer.h  |   12 +-
+>   17 files changed, 2550 insertions(+), 293 deletions(-)
+>   create mode 100644 arch/arm/mach-omap1/dmtimers.c
+>   create mode 100644 arch/arm/mach-omap2/dmtimers.c
+>   create mode 100644 arch/arm/mach-omap2/dmtimers.h
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
