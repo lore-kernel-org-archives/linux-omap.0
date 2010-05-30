@@ -1,92 +1,95 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Sat, 29 May 2010 14:55:24 -0700
-Message-ID: <AANLkTim6zsho4RSrseJostaOJe9lL4VNRKA3vDGJWJhK@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<201005290024.22915.rjw@sisk.pl>
-	<AANLkTimM7O_k8KVSfMgsB8b_EKQEz0vpYu6pxjedsTcJ@mail.gmail.com>
-	<201005292227.15479.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: [PATCH] [SPI] SPI100k: Fix 8-bit and RX-only transfers
+Date: Sat, 29 May 2010 17:12:23 -0700
+Message-ID: <1275178343-28193-1-git-send-email-darkstar6262@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f204.google.com ([209.85.222.204]:59905 "EHLO
-	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755931Ab0E2VzZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 17:55:25 -0400
-In-Reply-To: <201005292227.15479.rjw@sisk.pl>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:61812 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756835Ab0E3AM4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 20:12:56 -0400
+Received: by gwaa12 with SMTP id a12so1904528gwa.19
+        for <linux-omap@vger.kernel.org>; Sat, 29 May 2010 17:12:55 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Florian Mickler <florian@mickler.org>, Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: spi-devel-general@lists.sourceforge.net
+Cc: linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
 
-2010/5/29 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Saturday 29 May 2010, Arve Hj=F8nnev=E5g wrote:
->> 2010/5/28 Rafael J. Wysocki <rjw@sisk.pl>:
->> > On Friday 28 May 2010, Arve Hj=F8nnev=E5g wrote:
->> >> On Fri, May 28, 2010 at 1:44 AM, Florian Mickler <florian@mickler=
-=2Eorg> wrote:
->> >> > On Thu, 27 May 2010 20:05:39 +0200 (CEST)
->> >> > Thomas Gleixner <tglx@linutronix.de> wrote:
->> > ...
->> >> > To integrate this with the current way of doing things, i gathe=
-red it
->> >> > needs to be implemented as an idle-state that does the suspend(=
-)-call?
->> >> >
->> >>
->> >> I think it is better no not confuse this with idle. Since initiat=
-ing
->> >> suspend will cause the system to become not-idle, I don't think i=
-s is
->> >> beneficial to initiate suspend from idle.
->> >
->> > It is, if the following two conditions hold simultaneously:
->> >
->> > (a) Doing full system suspend is ultimately going to bring you mor=
-e energy
->> > =A0 =A0savings than the (presumably lowest) idle state you're curr=
-ently in.
->> >
->> > (b) You anticipate that the system will stay idle for a considerab=
-ly long time
->> > =A0 =A0such that it's worth suspending.
->> >
->>
->> I still don't think this matters. If you are waiting for in interrup=
-t
->> that cannot wake you up from suspend, then idle is not an indicator
->> that it is safe to enter suspend. I also don't think you can avoid a=
-ny
->> user-space suspend blockers by delaying suspend until the system goe=
-s
->> idle since any page fault could cause it to go idle. Therefore I don=
-'t
->> see a benefit in delaying suspend until idle when the last suspend
->> blocker is released (it would only mask possible race conditions).
->
-> I wasn't referring to suspend blockers, but to the idea of initiating=
- full
-> system suspend from idle, which I still think makes sense. =A0If you =
-are
-> waiting for an interrupt that cannot wake you from suspend, then
-> _obviously_ suspend should not be started. =A0However, if you're not =
-waiting for
-> such an interrupt and the (a) and (b) above hold, it makes sense to s=
-tart
-> suspend from idle.
->
+This change fixes 8-bit transfers and RX-only transfers.  The
+SPI100k framework requires minimum 16-bit words to be written, so 8-bit
+transfers must be shited by 8 bits and sent out as a 16-bit word.
 
-What about timers? When you suspend timers stop (otherwise it is just
-a deep-idle mode), and this could cause problems. Some drivers rely on
-timers if the hardware does not have a completion interrupt. It is not
-uncommon to see send command x then wait 200ms in a some hardware
-specs.
+Additionally, receive-only transfers were failing due to the
+perceived need to fill the TX buffer with something.  This is in
+fact not needed.
 
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+---
+ drivers/spi/omap_spi_100k.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/spi/omap_spi_100k.c b/drivers/spi/omap_spi_100k.c
+index 24668b3..9bd1c92 100644
+--- a/drivers/spi/omap_spi_100k.c
++++ b/drivers/spi/omap_spi_100k.c
+@@ -141,7 +141,12 @@ static void spi100k_write_data(struct spi_master *master, int len, int data)
+ {
+ 	struct omap1_spi100k *spi100k = spi_master_get_devdata(master);
+ 
+-	/* write 16-bit word */
++	/* write 16-bit word, shifting 8-bit data if necessary */
++	if (len <= 8) {
++		data <<= 8;
++		len = 16;
++	}
++
+ 	spi100k_enable_clock(master);
+ 	writew( data , spi100k->base + SPI_TX_MSB);
+ 
+@@ -162,6 +167,10 @@ static int spi100k_read_data(struct spi_master *master, int len)
+ 	int dataH,dataL;
+ 	struct omap1_spi100k *spi100k = spi_master_get_devdata(master);
+ 
++	/* Always do at least 16 bits */
++	if (len <= 8)
++		len = 16;
++
+ 	spi100k_enable_clock(master);
+ 	writew(SPI_CTRL_SEN(0) |
+ 	       SPI_CTRL_WORD_SIZE(len) |
+@@ -214,10 +223,6 @@ omap1_spi100k_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 	c = count;
+ 	word_len = cs->word_len;
+ 
+-	/* RX_ONLY mode needs dummy data in TX reg */
+-	if (xfer->tx_buf == NULL)
+-		spi100k_write_data(spi->master,word_len, 0);
+-
+ 	if (word_len <= 8) {
+ 		u8              *rx;
+ 		const u8        *tx;
+@@ -227,9 +232,9 @@ omap1_spi100k_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 		do {
+ 			c-=1;
+ 			if (xfer->tx_buf != NULL)
+-				spi100k_write_data(spi->master,word_len, *tx);
++				spi100k_write_data(spi->master, word_len, *tx++);
+ 			if (xfer->rx_buf != NULL)
+-				*rx = spi100k_read_data(spi->master,word_len);
++				*rx++ = spi100k_read_data(spi->master, word_len);
+ 		} while(c);
+ 	} else if (word_len <= 16) {
+ 		u16             *rx;
+@@ -380,10 +385,6 @@ static void omap1_spi100k_work(struct work_struct *work)
+ 			if (t->len) {
+ 				unsigned count;
+ 
+-				/* RX_ONLY mode needs dummy data in TX reg */
+-				if (t->tx_buf == NULL)
+-					spi100k_write_data(spi->master, 8, 0);
+-
+ 				count = omap1_spi100k_txrx_pio(spi, t);
+ 				m->actual_length += count;
+ 
+-- 
+1.7.0.4
+
