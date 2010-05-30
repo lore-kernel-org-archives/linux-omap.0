@@ -1,102 +1,37 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH] [OMAP] htcherald: SPI register config, TSC2046 touchscreen
-Date: Sat, 29 May 2010 17:13:22 -0700
-Message-ID: <1275178402-28232-1-git-send-email-darkstar6262@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:56836 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756835Ab0E3ANi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 20:13:38 -0400
-Received: by iwn6 with SMTP id 6so259973iwn.19
-        for <linux-omap@vger.kernel.org>; Sat, 29 May 2010 17:13:37 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Subject: [PATCH] [MMC] omap: Remove BUG_ON for disabled interrupts
+Date: Sat, 29 May 2010 19:27:23 -0700
+Message-ID: <1275186443-8242-1-git-send-email-darkstar6262@gmail.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: akpm@linux-foundation.org, Cory Maccarrone <darkstar6262@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-This change adds SPI bus support for the HTC Herald, and adds in
-support for the TSC2046-based touchscreen attached to this
-device (using the ADS7846 driver).
+This change removes a BUG_ON for when interrupts are disabled
+during an MMC request.  During boot, interrupts can be disabled
+when a request is made, causing this bug to be triggered.  In reality,
+there's no reason this should halt the kernel, as the driver has proved
+reliable in spite of disabled interrupts, and additionally, there's
+nothing in this code that would require interrupts to be enabled.
 
 Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 ---
- arch/arm/mach-omap1/board-htcherald.c |   35 +++++++++++++++++++++++++++++++++
- 1 files changed, 35 insertions(+), 0 deletions(-)
+ drivers/mmc/host/omap.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-This patch depends on the earlier-submitted patch:
-
-    [OMAP] HTCHERALD: MMC, I2C, HTCPLD and related devices
-
-as it was developed on top of that work.  These two patches
-can probably be merged together.
-
-diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
-index eb17811..9bfa6e2 100644
---- a/arch/arm/mach-omap1/board-htcherald.c
-+++ b/arch/arm/mach-omap1/board-htcherald.c
-@@ -35,6 +35,8 @@
- #include <linux/i2c-gpio.h>
- #include <linux/htcpld.h>
- #include <linux/leds.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/ads7846.h>
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 2b28168..d98ddcf 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1157,7 +1157,6 @@ static void mmc_omap_start_request(struct mmc_omap_host *host,
+ 	mmc_omap_start_command(host, req->cmd);
+ 	if (host->dma_in_use)
+ 		omap_start_dma(host->dma_ch);
+-	BUG_ON(irqs_disabled());
+ }
  
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -64,6 +66,9 @@
- #define HTCHERALD_GPIO_SLIDE 174
- #define HTCHERALD_GIRQ_BTNS 141
- 
-+/* GPIO definitions for the touchscreen */
-+#define HTCHERALD_GPIO_TS 76
-+
- /* HTCPLD definitions */
- 
- /*
-@@ -411,6 +416,33 @@ static struct platform_device *devices[] __initdata = {
- };
- 
- /*
-+ * Touchscreen
-+ */
-+static const struct ads7846_platform_data htcherald_ts_platform_data = {
-+	.model			= 7846,
-+	.keep_vref_on		= 1,
-+	.x_plate_ohms		= 496,
-+	.gpio_pendown		= HTCHERALD_GPIO_TS,
-+	.pressure_max		= 100000,
-+	.pressure_min		= 5000,
-+	.x_min			= 528,
-+	.x_max			= 3760,
-+	.y_min			= 624,
-+	.y_max			= 3760,
-+};
-+
-+static struct spi_board_info __initdata htcherald_spi_board_info[] = {
-+	{
-+		.modalias		= "ads7846",
-+		.platform_data		= &htcherald_ts_platform_data,
-+		.irq			= OMAP_GPIO_IRQ(HTCHERALD_GPIO_TS),
-+		.max_speed_hz		= 2500000,
-+		.bus_num		= 2,
-+		.chip_select		= 1,
-+	}
-+};
-+
-+/*
-  * Init functions from here on
-  */
- 
-@@ -540,6 +572,9 @@ static void __init htcherald_init(void)
- 	htcherald_usb_enable();
- 	omap_usb_init(&htcherald_usb_config);
- 
-+	spi_register_board_info(htcherald_spi_board_info,
-+		ARRAY_SIZE(htcherald_spi_board_info));
-+
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- 
- 	htc_mmc_init();
+ static void mmc_omap_request(struct mmc_host *mmc, struct mmc_request *req)
 -- 
 1.7.0.4
 
