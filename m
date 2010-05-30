@@ -1,39 +1,85 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: omap udc driver problem with beagle board
-Date: Sun, 30 May 2010 19:00:48 +0300
-Message-ID: <20100530160047.GA7704@gandalf>
-References: <4C0235AD.70008@gmail.com>
-Reply-To: me@felipebalbi.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Sun, 30 May 2010 22:02:39 +0200
+Message-ID: <201005302202.39511.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org> <201005292227.15479.rjw@sisk.pl> <AANLkTim6zsho4RSrseJostaOJe9lL4VNRKA3vDGJWJhK@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:37997 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751308Ab0E3QAM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 May 2010 12:00:12 -0400
-Content-Disposition: inline
-In-Reply-To: <4C0235AD.70008@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTim6zsho4RSrseJostaOJe9lL4VNRKA3vDGJWJhK@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: Florian Mickler <florian@mickler.org>, Thomas Gleixner <tglx@linutronix.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Marco Stornelli <marco.stornelli@gmail.com>
-Cc: felipe.balbi@nokia.com, dbrownell@users.sourceforge.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Linux Embedded <linux-embedded@vger.kernel.org>, tony@atomide.com
 
-On Sun, May 30, 2010 at 11:53:49AM +0200, Marco Stornelli wrote:
-> Hi,
-> 
-> I'm using the kernel 2.6.34 with the beagle board rev. c4. I have got
-> some problems with the ethernet gadget to use nfs over usb. The problem
-> is with the usb. When the g_ether driver register itself, the omap udc
-> driver returns ENODEV because the kernel didn't call the probe for
-> this driver. Looking at the code, it seems the problem is in board
-> specific management of the usb. There isn't the registration of the
-> platform device to match the omap udc platform driver. It should be done
-> in the omap_usb_init() but in case of beagle board this function is
-> never called, so omap udc driver cannot work. Is it a regression? Is
-> there any workaround?
+On Saturday 29 May 2010, Arve Hj=F8nnev=E5g wrote:
+> 2010/5/29 Rafael J. Wysocki <rjw@sisk.pl>:
+> > On Saturday 29 May 2010, Arve Hj=F8nnev=E5g wrote:
+> >> 2010/5/28 Rafael J. Wysocki <rjw@sisk.pl>:
+> >> > On Friday 28 May 2010, Arve Hj=F8nnev=E5g wrote:
+> >> >> On Fri, May 28, 2010 at 1:44 AM, Florian Mickler <florian@mickl=
+er.org> wrote:
+> >> >> > On Thu, 27 May 2010 20:05:39 +0200 (CEST)
+> >> >> > Thomas Gleixner <tglx@linutronix.de> wrote:
+> >> > ...
+> >> >> > To integrate this with the current way of doing things, i gat=
+hered it
+> >> >> > needs to be implemented as an idle-state that does the suspen=
+d()-call?
+> >> >> >
+> >> >>
+> >> >> I think it is better no not confuse this with idle. Since initi=
+ating
+> >> >> suspend will cause the system to become not-idle, I don't think=
+ is is
+> >> >> beneficial to initiate suspend from idle.
+> >> >
+> >> > It is, if the following two conditions hold simultaneously:
+> >> >
+> >> > (a) Doing full system suspend is ultimately going to bring you m=
+ore energy
+> >> >    savings than the (presumably lowest) idle state you're curren=
+tly in.
+> >> >
+> >> > (b) You anticipate that the system will stay idle for a consider=
+ably long time
+> >> >    such that it's worth suspending.
+> >> >
+> >>
+> >> I still don't think this matters. If you are waiting for in interr=
+upt
+> >> that cannot wake you up from suspend, then idle is not an indicato=
+r
+> >> that it is safe to enter suspend. I also don't think you can avoid=
+ any
+> >> user-space suspend blockers by delaying suspend until the system g=
+oes
+> >> idle since any page fault could cause it to go idle. Therefore I d=
+on't
+> >> see a benefit in delaying suspend until idle when the last suspend
+> >> blocker is released (it would only mask possible race conditions).
+> >
+> > I wasn't referring to suspend blockers, but to the idea of initiati=
+ng full
+> > system suspend from idle, which I still think makes sense.  If you =
+are
+> > waiting for an interrupt that cannot wake you from suspend, then
+> > _obviously_ suspend should not be started.  However, if you're not =
+waiting for
+> > such an interrupt and the (a) and (b) above hold, it makes sense to=
+ start
+> > suspend from idle.
+> >
+>=20
+> What about timers? When you suspend timers stop (otherwise it is just
+> a deep-idle mode), and this could cause problems. Some drivers rely o=
+n
+> timers if the hardware does not have a completion interrupt. It is no=
+t
+> uncommon to see send command x then wait 200ms in a some hardware
+> specs.
 
-beagle board uses musb. You shouldn't be relying on the udc controller.
-Your Kconfig is just wrong.
+QoS should be used in such cases.
 
--- 
-balbi
+Rafael
