@@ -1,95 +1,102 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH] [SPI] SPI100k: Fix 8-bit and RX-only transfers
-Date: Sat, 29 May 2010 17:12:23 -0700
-Message-ID: <1275178343-28193-1-git-send-email-darkstar6262@gmail.com>
+Subject: [PATCH] [OMAP] htcherald: SPI register config, TSC2046 touchscreen
+Date: Sat, 29 May 2010 17:13:22 -0700
+Message-ID: <1275178402-28232-1-git-send-email-darkstar6262@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:61812 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756835Ab0E3AM4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 20:12:56 -0400
-Received: by gwaa12 with SMTP id a12so1904528gwa.19
-        for <linux-omap@vger.kernel.org>; Sat, 29 May 2010 17:12:55 -0700 (PDT)
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:56836 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756835Ab0E3ANi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 May 2010 20:13:38 -0400
+Received: by iwn6 with SMTP id 6so259973iwn.19
+        for <linux-omap@vger.kernel.org>; Sat, 29 May 2010 17:13:37 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: spi-devel-general@lists.sourceforge.net
-Cc: linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-This change fixes 8-bit transfers and RX-only transfers.  The
-SPI100k framework requires minimum 16-bit words to be written, so 8-bit
-transfers must be shited by 8 bits and sent out as a 16-bit word.
-
-Additionally, receive-only transfers were failing due to the
-perceived need to fill the TX buffer with something.  This is in
-fact not needed.
+This change adds SPI bus support for the HTC Herald, and adds in
+support for the TSC2046-based touchscreen attached to this
+device (using the ADS7846 driver).
 
 Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 ---
- drivers/spi/omap_spi_100k.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap1/board-htcherald.c |   35 +++++++++++++++++++++++++++++++++
+ 1 files changed, 35 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/spi/omap_spi_100k.c b/drivers/spi/omap_spi_100k.c
-index 24668b3..9bd1c92 100644
---- a/drivers/spi/omap_spi_100k.c
-+++ b/drivers/spi/omap_spi_100k.c
-@@ -141,7 +141,12 @@ static void spi100k_write_data(struct spi_master *master, int len, int data)
- {
- 	struct omap1_spi100k *spi100k = spi_master_get_devdata(master);
+This patch depends on the earlier-submitted patch:
+
+    [OMAP] HTCHERALD: MMC, I2C, HTCPLD and related devices
+
+as it was developed on top of that work.  These two patches
+can probably be merged together.
+
+diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
+index eb17811..9bfa6e2 100644
+--- a/arch/arm/mach-omap1/board-htcherald.c
++++ b/arch/arm/mach-omap1/board-htcherald.c
+@@ -35,6 +35,8 @@
+ #include <linux/i2c-gpio.h>
+ #include <linux/htcpld.h>
+ #include <linux/leds.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/ads7846.h>
  
--	/* write 16-bit word */
-+	/* write 16-bit word, shifting 8-bit data if necessary */
-+	if (len <= 8) {
-+		data <<= 8;
-+		len = 16;
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -64,6 +66,9 @@
+ #define HTCHERALD_GPIO_SLIDE 174
+ #define HTCHERALD_GIRQ_BTNS 141
+ 
++/* GPIO definitions for the touchscreen */
++#define HTCHERALD_GPIO_TS 76
++
+ /* HTCPLD definitions */
+ 
+ /*
+@@ -411,6 +416,33 @@ static struct platform_device *devices[] __initdata = {
+ };
+ 
+ /*
++ * Touchscreen
++ */
++static const struct ads7846_platform_data htcherald_ts_platform_data = {
++	.model			= 7846,
++	.keep_vref_on		= 1,
++	.x_plate_ohms		= 496,
++	.gpio_pendown		= HTCHERALD_GPIO_TS,
++	.pressure_max		= 100000,
++	.pressure_min		= 5000,
++	.x_min			= 528,
++	.x_max			= 3760,
++	.y_min			= 624,
++	.y_max			= 3760,
++};
++
++static struct spi_board_info __initdata htcherald_spi_board_info[] = {
++	{
++		.modalias		= "ads7846",
++		.platform_data		= &htcherald_ts_platform_data,
++		.irq			= OMAP_GPIO_IRQ(HTCHERALD_GPIO_TS),
++		.max_speed_hz		= 2500000,
++		.bus_num		= 2,
++		.chip_select		= 1,
 +	}
++};
 +
- 	spi100k_enable_clock(master);
- 	writew( data , spi100k->base + SPI_TX_MSB);
++/*
+  * Init functions from here on
+  */
  
-@@ -162,6 +167,10 @@ static int spi100k_read_data(struct spi_master *master, int len)
- 	int dataH,dataL;
- 	struct omap1_spi100k *spi100k = spi_master_get_devdata(master);
+@@ -540,6 +572,9 @@ static void __init htcherald_init(void)
+ 	htcherald_usb_enable();
+ 	omap_usb_init(&htcherald_usb_config);
  
-+	/* Always do at least 16 bits */
-+	if (len <= 8)
-+		len = 16;
++	spi_register_board_info(htcherald_spi_board_info,
++		ARRAY_SIZE(htcherald_spi_board_info));
 +
- 	spi100k_enable_clock(master);
- 	writew(SPI_CTRL_SEN(0) |
- 	       SPI_CTRL_WORD_SIZE(len) |
-@@ -214,10 +223,6 @@ omap1_spi100k_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
- 	c = count;
- 	word_len = cs->word_len;
+ 	omap_register_i2c_bus(1, 100, NULL, 0);
  
--	/* RX_ONLY mode needs dummy data in TX reg */
--	if (xfer->tx_buf == NULL)
--		spi100k_write_data(spi->master,word_len, 0);
--
- 	if (word_len <= 8) {
- 		u8              *rx;
- 		const u8        *tx;
-@@ -227,9 +232,9 @@ omap1_spi100k_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
- 		do {
- 			c-=1;
- 			if (xfer->tx_buf != NULL)
--				spi100k_write_data(spi->master,word_len, *tx);
-+				spi100k_write_data(spi->master, word_len, *tx++);
- 			if (xfer->rx_buf != NULL)
--				*rx = spi100k_read_data(spi->master,word_len);
-+				*rx++ = spi100k_read_data(spi->master, word_len);
- 		} while(c);
- 	} else if (word_len <= 16) {
- 		u16             *rx;
-@@ -380,10 +385,6 @@ static void omap1_spi100k_work(struct work_struct *work)
- 			if (t->len) {
- 				unsigned count;
- 
--				/* RX_ONLY mode needs dummy data in TX reg */
--				if (t->tx_buf == NULL)
--					spi100k_write_data(spi->master, 8, 0);
--
- 				count = omap1_spi100k_txrx_pio(spi, t);
- 				m->actual_length += count;
- 
+ 	htc_mmc_init();
 -- 
 1.7.0.4
 
