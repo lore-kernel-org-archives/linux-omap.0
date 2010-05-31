@@ -1,75 +1,53 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [RFC PATCH 0/5] OMAP/ASoC: McBSP: FIFO handling related fixes
-Date: Mon, 31 May 2010 11:16:45 +0300
-Message-ID: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [RFC PATCH 3/5] OMAP3: McBSP: Use the port's buffer_size when calculating tx delay
+Date: Mon, 31 May 2010 11:16:48 +0300
+Message-ID: <1275293810-31984-4-git-send-email-peter.ujfalusi@nokia.com>
+References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:52931 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:52970 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755523Ab0EaIRA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 04:17:00 -0400
+	with ESMTP id S1756074Ab0EaIRD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 04:17:03 -0400
+In-Reply-To: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, jhnikula@gmail.com, tony@atomide.com, ext-eero.nurkkala@nokia.com, eduardo.valentin@nokia.com
 
-Hello,
+Sicne the platform data's buffer_size now holds the full size
+of the FIFO, there is no longer need to handle the ports
+differently.
 
-This series aims to correct how the McBSP FIFO is viewed, and handled.
-
-Introduction of the problem:
-OMAP McBSP FIFO is word structured:
-McBSP2 has 1024 + 256 = 1280 word long buffer,
-McBSP1,3,4,5 has 128 word long buffer
-
-This means, that the size of the FIFO
-depends on the McBSP word size configuration.
-For example on McBSP3:
-16bit samples: size is 128 * 2 = 256 bytes
-32bit samples: size is 128 * 4 = 512 bytes
-It is simpler to place constraint for buffer and period based on channels.
-McBSP3 as example again (16 or 32 bit samples):
-1 channel (mono): size is 128 frames (128 words)
-2 channels (stereo): size is 128 / 2 = 64 frames (2 * 64 words)
-4 channels: size is 128 / 4 = 32 frames (4 * 32 words)
-
-Since now the McBSP codec supports not only 16bit samples (32biut has been
-recently added), the FIFO size handling is no longer correct, since it has
-been hard wired for 16bit word length.
-
-The series changes how the users of McBSP are configuring the FIFO:
-It used to be 0 based (0 meant 1 word threshold). After this series users can
-configure the threshold in 1 base mode (1 means 1 word threshold).
-The platform code now provides the _full_ size of the FIFO in words, instead of
-the already limited value used in the past.
-
-In ASoC omap-mcbsp code hw_rule based constraint refinement is going to be used
-instead of the hardwired static constraint, which was correct only in case of
-16bit word length.
-
-The hw_rule is refining the minimum buffer size based on the channel number
-going to be used by the coming stream.
-In case of threshold mode additional hw_rule refines the maximum allowed period
-size.
-
-The series are generated agains Takashi's sound-2.6: topic/asoc branch.
-
-CCing also Eduardo, and Eero since they have worked on the original
-FIFO/threshold implementation.
-
-All commetns and testers are welcome!
-Peter
-
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
-Peter Ujfalusi (5):
-  OMAP: McBSP: Function to query the FIFO size
-  OMAP3: McBSP: Change the way how the FIFO is handled
-  OMAP3: McBSP: Use the port's buffer_size when calculating tx delay
-  ASoC: omap-mcbsp: Save, and use wlen for threshold configuration
-  ASoC: omap-mcbsp: Place correct constraints for streams
+ arch/arm/plat-omap/mcbsp.c |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
 
- arch/arm/mach-omap2/mcbsp.c             |   10 ++--
- arch/arm/plat-omap/include/plat/mcbsp.h |    2 +
- arch/arm/plat-omap/mcbsp.c              |   31 ++++++---
- sound/soc/omap/omap-mcbsp.c             |  112 +++++++++++++++++++++++-------
- 4 files changed, 114 insertions(+), 41 deletions(-)
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 6462968..f8ffeee 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -575,8 +575,6 @@ u16 omap_mcbsp_get_fifo_size(unsigned int id)
+ }
+ EXPORT_SYMBOL(omap_mcbsp_get_fifo_size);
+ 
+-#define MCBSP2_FIFO_SIZE	0x500 /* 1024 + 256 locations */
+-#define MCBSP1345_FIFO_SIZE	0x80  /* 128 locations */
+ /*
+  * omap_mcbsp_get_tx_delay returns the number of used slots in the McBSP FIFO
+  */
+@@ -595,10 +593,7 @@ u16 omap_mcbsp_get_tx_delay(unsigned int id)
+ 	buffstat = MCBSP_READ(mcbsp, XBUFFSTAT);
+ 
+ 	/* Number of slots are different in McBSP ports */
+-	if (mcbsp->id == 2)
+-		return MCBSP2_FIFO_SIZE - buffstat;
+-	else
+-		return MCBSP1345_FIFO_SIZE - buffstat;
++	return mcbsp->pdata->buffer_size - buffstat;
+ }
+ EXPORT_SYMBOL(omap_mcbsp_get_tx_delay);
+ 
+-- 
+1.7.1
 
