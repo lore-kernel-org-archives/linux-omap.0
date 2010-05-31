@@ -1,83 +1,75 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [RFC PATCH 4/5] ASoC: omap-mcbsp: Save,
-	and use wlen for threshold configuration
-Date: Mon, 31 May 2010 11:16:49 +0300
-Message-ID: <1275293810-31984-5-git-send-email-peter.ujfalusi@nokia.com>
-References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, eduardo.valentin@nokia.com, ext-eero.nurkkala@nokia.com, lrg@slimlogic.co.uk
+Subject: [RFC PATCH 0/5] OMAP/ASoC: McBSP: FIFO handling related fixes
+Date: Mon, 31 May 2010 11:16:45 +0300
+Message-ID: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:52931 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755523Ab0EaIRA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 04:17:00 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, jhnikula@gmail.com, tony@atomide.com, ext-eero.nurkkala@nokia.com, eduardo.valentin@nokia.com
 
-Save the word length configuration of McBSP, and use that information
-to calculate, and configure the threshold in McBSP.
-Previously the calculation was only correct when the stream had 16bit
-audio.
+Hello,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+This series aims to correct how the McBSP FIFO is viewed, and handled.
+
+Introduction of the problem:
+OMAP McBSP FIFO is word structured:
+McBSP2 has 1024 + 256 = 1280 word long buffer,
+McBSP1,3,4,5 has 128 word long buffer
+
+This means, that the size of the FIFO
+depends on the McBSP word size configuration.
+For example on McBSP3:
+16bit samples: size is 128 * 2 = 256 bytes
+32bit samples: size is 128 * 4 = 512 bytes
+It is simpler to place constraint for buffer and period based on channels.
+McBSP3 as example again (16 or 32 bit samples):
+1 channel (mono): size is 128 frames (128 words)
+2 channels (stereo): size is 128 / 2 = 64 frames (2 * 64 words)
+4 channels: size is 128 / 4 = 32 frames (4 * 32 words)
+
+Since now the McBSP codec supports not only 16bit samples (32biut has been
+recently added), the FIFO size handling is no longer correct, since it has
+been hard wired for 16bit word length.
+
+The series changes how the users of McBSP are configuring the FIFO:
+It used to be 0 based (0 meant 1 word threshold). After this series users can
+configure the threshold in 1 base mode (1 means 1 word threshold).
+The platform code now provides the _full_ size of the FIFO in words, instead of
+the already limited value used in the past.
+
+In ASoC omap-mcbsp code hw_rule based constraint refinement is going to be used
+instead of the hardwired static constraint, which was correct only in case of
+16bit word length.
+
+The hw_rule is refining the minimum buffer size based on the channel number
+going to be used by the coming stream.
+In case of threshold mode additional hw_rule refines the maximum allowed period
+size.
+
+The series are generated agains Takashi's sound-2.6: topic/asoc branch.
+
+CCing also Eduardo, and Eero since they have worked on the original
+FIFO/threshold implementation.
+
+All commetns and testers are welcome!
+Peter
+
 ---
- sound/soc/omap/omap-mcbsp.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+Peter Ujfalusi (5):
+  OMAP: McBSP: Function to query the FIFO size
+  OMAP3: McBSP: Change the way how the FIFO is handled
+  OMAP3: McBSP: Use the port's buffer_size when calculating tx delay
+  ASoC: omap-mcbsp: Save, and use wlen for threshold configuration
+  ASoC: omap-mcbsp: Place correct constraints for streams
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 6f44cb4..b06d8f1 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -59,6 +59,7 @@ struct omap_mcbsp_data {
- 	int				configured;
- 	unsigned int			in_freq;
- 	int				clk_div;
-+	int				wlen;
- };
- 
- #define to_mcbsp(priv)	container_of((priv), struct omap_mcbsp_data, bus_id)
-@@ -155,19 +156,21 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
- 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
- 	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
- 	int dma_op_mode = omap_mcbsp_get_dma_op_mode(mcbsp_data->bus_id);
--	int samples;
-+	int words;
- 
- 	/* TODO: Currently, MODE_ELEMENT == MODE_FRAME */
- 	if (dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
--		samples = snd_pcm_lib_period_bytes(substream) >> 1;
-+		/* The FIFO size depends on the McBSP word configuration */
-+		words = snd_pcm_lib_period_bytes(substream) /
-+							(mcbsp_data->wlen / 8);
- 	else
--		samples = 1;
-+		words = 1;
- 
- 	/* Configure McBSP internal buffer usage */
- 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
--		omap_mcbsp_set_tx_threshold(mcbsp_data->bus_id, samples - 1);
-+		omap_mcbsp_set_tx_threshold(mcbsp_data->bus_id, words);
- 	else
--		omap_mcbsp_set_rx_threshold(mcbsp_data->bus_id, samples - 1);
-+		omap_mcbsp_set_rx_threshold(mcbsp_data->bus_id, words);
- }
- 
- static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
-@@ -409,6 +412,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 	}
- 
- 	omap_mcbsp_config(bus_id, &mcbsp_data->regs);
-+	mcbsp_data->wlen = wlen;
- 	mcbsp_data->configured = 1;
- 
- 	return 0;
--- 
-1.7.1
+ arch/arm/mach-omap2/mcbsp.c             |   10 ++--
+ arch/arm/plat-omap/include/plat/mcbsp.h |    2 +
+ arch/arm/plat-omap/mcbsp.c              |   31 ++++++---
+ sound/soc/omap/omap-mcbsp.c             |  112 +++++++++++++++++++++++-------
+ 4 files changed, 114 insertions(+), 41 deletions(-)
+
