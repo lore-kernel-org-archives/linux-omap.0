@@ -1,33 +1,41 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Mon, 31 May 2010 23:46:12 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1005312343290.2933@localhost.localdomain>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>  <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>  <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>  <20100527220949.GB10602@srcf.ucam.org>  <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-  <20100527223605.GB11364@srcf.ucam.org>  <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>  <20100528043114.GC26177@thunk.org> <1275030704.32462.11.camel@laptop>  <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>  <1275120618.27810.12699.camel@twins>
-  <1275149418.4503.128.camel@mulgrave.site>  <alpine.LFD.2.00.1005312231120.2933@localhost.localdomain> <1275340869.2823.344.camel@mulgrave.site>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: [RFC] [PATCH v3 4/4] OMAP4: Keyboard kernel configuration
+Date: Mon, 31 May 2010 16:47:20 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E537F76@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:44724 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751778Ab0EaVqe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 May 2010 17:46:34 -0400
-In-Reply-To: <1275340869.2823.344.camel@mulgrave.site>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: James Bottomley <James.Bottomley@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Mon, 31 May 2010, James Bottomley wrote:
-> 
-> For MSM hardware, it looks possible to unify the S and C states by doing
-> suspend to ram from idle but I'm not sure how much work that is.
+From: Syed Rafiuddin <rafiuddin.syed@ti.com>
 
-On ARM, it's not rocket science and we have in tree support for this
-already (OMAP). I have done the same thing on a Samsung part as a
-prove of concept two years ago and it's really easy as the hardware is
-sane. Hint: It's designed for mobile devices :)
+Update OMAP4430 configuration to enable OMAP4 keyboard driver
 
-Thanks,
+Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+Signed-off-by: Abraham Arce <x0066660@ti.com>
+---
+ arch/arm/configs/omap_4430sdp_defconfig |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-	tglx
+diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
+index d87a349..b7928d4 100644
+--- a/arch/arm/configs/omap_4430sdp_defconfig
++++ b/arch/arm/configs/omap_4430sdp_defconfig
+@@ -439,7 +439,8 @@ CONFIG_INPUT_EVDEV=y
+ #
+ # Input Device Drivers
+ #
+-# CONFIG_INPUT_KEYBOARD is not set
++CONFIG_INPUT_KEYBOARD=y
++CONFIG_KEYBOARD_OMAP4=y
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TABLET is not set
+-- 
+1.5.4.3
+
