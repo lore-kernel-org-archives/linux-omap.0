@@ -1,73 +1,120 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Sat, 29 May 2010 20:12:15 +0200
-Message-ID: <1275156735.1645.497.camel@laptop>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	 <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	 <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	 <20100527220949.GB10602@srcf.ucam.org>
-	 <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	 <20100527223605.GB11364@srcf.ucam.org>
-	 <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
-	 <20100528043114.GC26177@thunk.org> <1275030704.32462.11.camel@laptop>
-	 <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>
-	 <1275120618.27810.12699.camel@twins>
-	 <1275149418.4503.128.camel@mulgrave.site>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [PATCH 6/6] omap: move generic omap3 features to generic
+Date: Mon, 31 May 2010 20:09:27 +0300
+Message-ID: <4C03ED47.6060308@gmail.com>
+References: <1274585799-16226-1-git-send-email-nm@ti.com>	<1274585799-16226-2-git-send-email-nm@ti.com>	<1274585799-16226-3-git-send-email-nm@ti.com>	<1274585799-16226-4-git-send-email-nm@ti.com>	<1274585799-16226-5-git-send-email-nm@ti.com>	<1274585799-16226-6-git-send-email-nm@ti.com>	<1274585799-16226-7-git-send-email-nm@ti.com>	<AANLkTinsrRAYX4dvB8A8wPayfRc7wkULQtUSiJ9RxbWh@mail.gmail.com>	<4BFE9C14.9040703@ti.com> <AANLkTinHOZXk9pYeSfsBiejU7x1w-rA2MRtC4BBoKK0r@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:40640 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755463Ab0EaQeA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 12:34:00 -0400
-Received: from f199130.upc-f.chello.nl ([80.56.199.130] helo=dyad.programming.kicks-ass.net)
-	by bombadil.infradead.org with esmtpsa (Exim 4.69 #1 (Red Hat Linux))
-	id 1OJ7w8-0005Tk-7v
-	for linux-omap@vger.kernel.org; Mon, 31 May 2010 16:34:00 +0000
-In-Reply-To: <1275149418.4503.128.camel@mulgrave.site>
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:39129 "EHLO
+	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755815Ab0EaRJd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 13:09:33 -0400
+Received: by ewy8 with SMTP id 8so1019376ewy.28
+        for <linux-omap@vger.kernel.org>; Mon, 31 May 2010 10:09:32 -0700 (PDT)
+In-Reply-To: <AANLkTinHOZXk9pYeSfsBiejU7x1w-rA2MRtC4BBoKK0r@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: James Bottomley <James.Bottomley@suse.de>
-Cc: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Venkatraman S <svenkatr@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-On Sat, 2010-05-29 at 11:10 -0500, James Bottomley wrote:
-> > If current hardware can't cope, too friggin bad, get better hardware.
-> > 
-> > But the truth is, all your OMAP phones really can deal with it.
-> 
-> That's rubbish and you know it.  We do software workarounds for hardware
-> problems all the time ... try doing a git grep -i errata in arch x86, or
-> imagine a USB subsystem that only supported sane standards conforming
-> devices: that would have an almost zero intersect with the current USB
-> device market.
-> 
-> The job of the kernel is to accommodate hardware as best it can ...
-> sometimes it might not be able to, but most of the time it does a pretty
-> good job.
+On 05/31/2010 07:06 PM, Venkatraman S wrote:
+> Nishanth Menon<nm@ti.com>  wrote:
+>> On 05/27/2010 01:24 PM, S, Venkatraman wrote:
+>>>
+>>> Nishanth Menon<nm@ti.com>    wrote:
+>>
+>> [..]
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+>>>> index 809e13a..01555b6 100644
+>>>> --- a/arch/arm/mach-omap2/id.c
+>>>> +++ b/arch/arm/mach-omap2/id.c
+>>>> @@ -161,7 +161,7 @@ static void __init omap24xx_check_revision(void)
+>>>>   #define OMAP3_CHECK_FEATURE(status,feat)                               \
+>>>>         if (((status&    OMAP3_ ##feat## _MASK)                           \
+>>>>                 >>    OMAP3_ ##feat## _SHIFT) != FEAT_ ##feat## _NONE) {   \
+>>>> -               omap3_features |= OMAP3_HAS_ ##feat;                    \
+>>>> +               omap_features |= OMAP_HAS_ ##feat;                      \
+>>>>         }
+>>>
+>>> "CHECK" sounds like a querying API, whereas the macro populates data.
+>>> Maybe UPDATE or SET ?
+>>>
+>> Depends on where you are looking at it from: overall it is checking the
+>> status bits from OMAP and deciding what features it has - this is
+>> specifically important for 35xx series of processors. it is indeed a check
+>> in that sense. if you look at it from features variable, yeah it is updating
+>> it, but the idea of usage of the Macro is: check in status if feature X is
+>> available.. which is what it does ;). btw, the intent of the current patch
+>> was not meant to rename CHECK_FEATURE as it was very OMAP3 specific ;)
+>>
+>
+> It's ok.  I don't want to worry too much about the name.
+Thanks.
+>
+>>>>   static void __init omap3_check_features(void)
+>>>> @@ -310,20 +310,20 @@ static void __init omap3_cpuinfo(void)
+>>>>                 /*
+>>
+>> [...]
+>>
+>>>> +OMAP_HAS_FEATURE(, l2cache, L2CACHE)
+>>>> +OMAP_HAS_FEATURE(, sgx, SGX)
+>>>> +OMAP_HAS_FEATURE(, iva, IVA)
+>>>> +OMAP_HAS_FEATURE(, neon, NEON)
+>>>> +OMAP_HAS_FEATURE(, isp, ISP)
+>>>> +
+>>>> +/*
+>>>>   * Runtime detection of OMAP3 features
+>>>>   */
+>>>>   extern u32 omap3_features;
+>>>>
+>>>> -#define OMAP3_HAS_L2CACHE              BIT(0)
+>>>> -#define OMAP3_HAS_IVA                  BIT(1)
+>>>> -#define OMAP3_HAS_SGX                  BIT(2)
+>>>> -#define OMAP3_HAS_NEON                 BIT(3)
+>>>> -#define OMAP3_HAS_ISP                  BIT(4)
+>>>>   #define OMAP3_HAS_192MHZ_CLK           BIT(5)
+>>>>
+>>>> -OMAP_HAS_FEATURE(3, l2cache, L2CACHE)
+>>>> -OMAP_HAS_FEATURE(3, sgx, SGX)
+>>>> -OMAP_HAS_FEATURE(3, iva, IVA)
+>>>> -OMAP_HAS_FEATURE(3, neon, NEON)
+>>>> -OMAP_HAS_FEATURE(3, isp, ISP)
+>>>>   OMAP_HAS_FEATURE(3, 192mhz_clk, 192MHZ_CLK)
+>>>>
+>>>>   #endif
+>>>> --
+>>>
+>>> What about feature detection for OMAP2 and OMAP4 (similar to
+>>> omap3_check_features) ?
+>>> At least a dummy implementation with warning messages would be good,
+>>> so that they are not used without initialization.
+>>
+>> there is no need for warning messages, they will return as feature not
+>> present. cpu.h is a common header and variable omap_features is in common.c,
+>> the check_feature and id.c has not set that bit, the variable will remain 0,
+>> hence omap_has_sgx() will return 0 unless someone enables that for lets say
+>> OMAP4 ->  feel free to do it, as I mentioned in 0/6, this series was meant
+>> solely to reorganize and provide an infrastructure for further development.
+>>
+>
+> I don't agree. The patch / series is about making them 'generic', where generic
+> is, to the minimum, "making the features exposed for major silicon versions".
+> If they are not usable beyond OMAP3, it's not generic.
+>
+Which part is not generic? I am unable to comprehend your contention 
+here. Are you contending that ISP, l2cache, neon, isp are *not* generic 
+OMAP features? or are you contending that since I did not add the 
+OMAP2,4 logic to detect the same, this patch is not valid?
+all silicon revisions CAN use the function omap_has_sgx() now, even 
+though I have not added detection logic to actually populate the same. 
+if you do have a patch for detecting actual OMAP4/2 features feel free 
+to add to the patch list, I am more than happy to ack them, if they look 
+good - I personally dont have a omap4 platform at the very moment to 
+write and post a patch - however trivial it may be.
 
-Sure, and if x86 could wake from S3 on a keypress/mouse movement etc..
-you could use S3 as idle state.. not sure people would love the
-wakeup-latency, but that's a QoS matter.
-
-But if there simply are no suitable wakeup sources from an idle state
-(S3 really is nothing more than a hardware idle state) then it might not
-be suitable for transparent idle modes and no amount of software hackery
-will solve that.
-
-So what I'm saying is, if your hardware can't generate the needed wakeup
-events, the auto-suspend stuff won't work either. If it can it can be
-implemented as a regular idle mode.
-
-> The facts are that C states and S states are different and are entered
-> differently.  For some omap hardware, the power consumption in the
-> lowest C state (with all the ancillary power control) is the same as S3,
-> that's fine, suspend from idle works as well as suspend to ram modulo
-> bad apps. For quite a lot of MSM hardware, the lowest C state power
-> consumption is quite a bit above S3. 
-
-Wth is MSM?
-
-But really, why can't existing hardware get shipped with existing hacks,
-and for future hardware that does behave we have a proper solution?
-
+Regards,
+Nishanth Menon
