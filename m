@@ -1,74 +1,117 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [RFC PATCH 1/5] OMAP: McBSP: Function to query the FIFO size
-Date: Mon, 31 May 2010 11:16:46 +0300
-Message-ID: <1275293810-31984-2-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [RFC PATCH 2/5] OMAP3: McBSP: Change the way how the FIFO is handled
+Date: Mon, 31 May 2010 11:16:47 +0300
+Message-ID: <1275293810-31984-3-git-send-email-peter.ujfalusi@nokia.com>
 References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:24600 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756460Ab0EaIRU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 04:17:20 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:53163 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756460Ab0EaIRb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 04:17:31 -0400
 In-Reply-To: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, jhnikula@gmail.com, tony@atomide.com, ext-eero.nurkkala@nokia.com, eduardo.valentin@nokia.com
 
-Users of McBSP can use the omap_mcbsp_get_fifo_size function to query
-the size of the McBSP FIFO.
-The function will return the FIFO size in words (the HW maximum).
+Use the actual FIFO size in words as buffer_size on OMAP2.
+Change the threshold configuration to use 1 based numbering, when
+specifying the allowed threshold maximum or the McBSP threshold value.
+Set the default maximum threshold to (buffer_size - 0x10) intialy.
+>From users of McBSP, now it is expected to use this method.
+Asking for threshold 1 means that the value written to threshold registers
+are going to be 0, which means 1 word threshold.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
- arch/arm/plat-omap/include/plat/mcbsp.h |    2 ++
- arch/arm/plat-omap/mcbsp.c              |   14 ++++++++++++++
- 2 files changed, 16 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c |   10 +++++-----
+ arch/arm/plat-omap/mcbsp.c  |   10 ++++++----
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 1bd7021..e126951 100644
---- a/arch/arm/plat-omap/include/plat/mcbsp.h
-+++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -473,6 +473,7 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold);
- void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold);
- u16 omap_mcbsp_get_max_tx_threshold(unsigned int id);
- u16 omap_mcbsp_get_max_rx_threshold(unsigned int id);
-+u16 omap_mcbsp_get_fifo_size(unsigned int id);
- u16 omap_mcbsp_get_tx_delay(unsigned int id);
- u16 omap_mcbsp_get_rx_delay(unsigned int id);
- int omap_mcbsp_get_dma_op_mode(unsigned int id);
-@@ -483,6 +484,7 @@ static inline void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
- { }
- static inline u16 omap_mcbsp_get_max_tx_threshold(unsigned int id) { return 0; }
- static inline u16 omap_mcbsp_get_max_rx_threshold(unsigned int id) { return 0; }
-+static inline u16 omap_mcbsp_get_fifo_size(unsigned int id) { return 0; }
- static inline u16 omap_mcbsp_get_tx_delay(unsigned int id) { return 0; }
- static inline u16 omap_mcbsp_get_rx_delay(unsigned int id) { return 0; }
- static inline int omap_mcbsp_get_dma_op_mode(unsigned int id) { return 0; }
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 016fe60..9139958 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -132,7 +132,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x6F,
++		.buffer_size	= 0x80,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP2_BASE,
+@@ -142,7 +142,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP2_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x3FF,
++		.buffer_size	= 0x500,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP3_BASE,
+@@ -152,7 +152,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x6F,
++		.buffer_size	= 0x80,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP4_BASE,
+@@ -161,7 +161,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x6F,
++		.buffer_size	= 0x80,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP5_BASE,
+@@ -170,7 +170,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x6F,
++		.buffer_size	= 0x80,
+ 	},
+ };
+ #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 4820cab..51d8abf 100644
+index 51d8abf..6462968 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -559,6 +559,20 @@ u16 omap_mcbsp_get_max_rx_threshold(unsigned int id)
- }
- EXPORT_SYMBOL(omap_mcbsp_get_max_rx_threshold);
+@@ -497,7 +497,8 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
+ 	}
+ 	mcbsp = id_to_mcbsp_ptr(id);
  
-+u16 omap_mcbsp_get_fifo_size(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	return mcbsp->pdata->buffer_size;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_get_fifo_size);
-+
- #define MCBSP2_FIFO_SIZE	0x500 /* 1024 + 256 locations */
- #define MCBSP1345_FIFO_SIZE	0x80  /* 128 locations */
- /*
+-	MCBSP_WRITE(mcbsp, THRSH2, threshold);
++	if (threshold && threshold <= mcbsp->max_tx_thres)
++		MCBSP_WRITE(mcbsp, THRSH2, threshold - 1);
+ }
+ EXPORT_SYMBOL(omap_mcbsp_set_tx_threshold);
+ 
+@@ -519,7 +520,8 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
+ 	}
+ 	mcbsp = id_to_mcbsp_ptr(id);
+ 
+-	MCBSP_WRITE(mcbsp, THRSH1, threshold);
++	if (threshold && threshold <= mcbsp->max_rx_thres)
++		MCBSP_WRITE(mcbsp, THRSH1, threshold - 1);
+ }
+ EXPORT_SYMBOL(omap_mcbsp_set_rx_threshold);
+ 
+@@ -1696,8 +1698,8 @@ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
+ {
+ 	mcbsp->dma_op_mode = MCBSP_DMA_MODE_ELEMENT;
+ 	if (cpu_is_omap34xx()) {
+-		mcbsp->max_tx_thres = max_thres(mcbsp);
+-		mcbsp->max_rx_thres = max_thres(mcbsp);
++		mcbsp->max_tx_thres = max_thres(mcbsp) - 0x10;
++		mcbsp->max_rx_thres = max_thres(mcbsp) - 0x10;
+ 		/*
+ 		 * REVISIT: Set dmap_op_mode to THRESHOLD as default
+ 		 * for mcbsp2 instances.
 -- 
 1.7.1
 
