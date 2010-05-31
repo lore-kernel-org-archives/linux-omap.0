@@ -1,117 +1,72 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [RFC PATCH 2/5] OMAP3: McBSP: Change the way how the FIFO is handled
-Date: Mon, 31 May 2010 11:16:47 +0300
-Message-ID: <1275293810-31984-3-git-send-email-peter.ujfalusi@nokia.com>
-References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Commit 0c8219f0... breaks omap7xx support
+Date: Mon, 31 May 2010 11:21:22 +0300
+Message-ID: <20100531082122.GB30216@atomide.com>
+References: <6cb013311003062056v3ed83a53u2636838348bf4845@mail.gmail.com>
+ <20100309004832.GK2900@atomide.com>
+ <6cb013311003081751u2c7cd8c6v59472ee85ac90e77@mail.gmail.com>
+ <20100309024602.GQ2900@atomide.com>
+ <6cb013311003081906n751bedb4k2794ed40ed68d7ec@mail.gmail.com>
+ <20100309155636.GS2900@atomide.com>
+ <6cb013311003091541k6a18c16bv4bb3d35f101e5bab@mail.gmail.com>
+ <20100315182939.GV2900@atomide.com>
+ <AANLkTini1wjhRXEfW4AjSdkVEYGpYXpuLcct-1l4pq0o@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53163 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756460Ab0EaIRb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 04:17:31 -0400
-In-Reply-To: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63703 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755847Ab0EaIVT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 04:21:19 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTini1wjhRXEfW4AjSdkVEYGpYXpuLcct-1l4pq0o@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, jhnikula@gmail.com, tony@atomide.com, ext-eero.nurkkala@nokia.com, eduardo.valentin@nokia.com
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-omap@vger.kernel.org, miknix@gmail.com, a.j.buxton@gmail.com, linwizard-devel@lists.sf.net
 
-Use the actual FIFO size in words as buffer_size on OMAP2.
-Change the threshold configuration to use 1 based numbering, when
-specifying the allowed threshold maximum or the McBSP threshold value.
-Set the default maximum threshold to (buffer_size - 0x10) intialy.
->From users of McBSP, now it is expected to use this method.
-Asking for threshold 1 means that the value written to threshold registers
-are going to be 0, which means 1 word threshold.
+* Cory Maccarrone <darkstar6262@gmail.com> [100529 06:56]:
+> On Mon, Mar 15, 2010 at 11:29 AM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+> >
+> > * Cory Maccarrone <darkstar6262@gmail.com> [100309 15:38]:
+> > > On Tue, Mar 9, 2010 at 7:56 AM, Tony Lindgren <tony@atomide.com> =
+wrote:
+> > > >
+> > > > Does your system boot without any patches if DEBUG_LL is not se=
+t
+> > > > in your .config?
+> > >
+> > > No, it doesn't. =C2=A0Seems like the debugging code is still tryi=
+ng to run,
+> > > even disabled. =C2=A0If I add in that check, it'll boot with DEBU=
+G_LL not
+> > > set, but won't without that.
+> >
+> > Sorry for the delay on this. How about with the following patch wit=
+h
+> > DEBUG_LL not set?
+> >
+> > Note that this is using the shift register now too.
+> >
+> > Regards,
+> >
+> > Tony
+>=20
+> Sorry I took so long on this one.  This patch worked beautifully for
+> me on the latest kernel tree.  Any chance of it getting in for one of
+> the RCs of this next kernel?
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
----
- arch/arm/mach-omap2/mcbsp.c |   10 +++++-----
- arch/arm/plat-omap/mcbsp.c  |   10 ++++++----
- 2 files changed, 11 insertions(+), 9 deletions(-)
+Yeah this we should be able to merge as a fix. Can I add your Testedy-b=
+y
+to the patch?
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 016fe60..9139958 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -132,7 +132,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.buffer_size	= 0x6F,
-+		.buffer_size	= 0x80,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP2_BASE,
-@@ -142,7 +142,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP2_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.buffer_size	= 0x3FF,
-+		.buffer_size	= 0x500,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP3_BASE,
-@@ -152,7 +152,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.buffer_size	= 0x6F,
-+		.buffer_size	= 0x80,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP4_BASE,
-@@ -161,7 +161,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.buffer_size	= 0x6F,
-+		.buffer_size	= 0x80,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP5_BASE,
-@@ -170,7 +170,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.buffer_size	= 0x6F,
-+		.buffer_size	= 0x80,
- 	},
- };
- #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 51d8abf..6462968 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -497,7 +497,8 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
- 	}
- 	mcbsp = id_to_mcbsp_ptr(id);
- 
--	MCBSP_WRITE(mcbsp, THRSH2, threshold);
-+	if (threshold && threshold <= mcbsp->max_tx_thres)
-+		MCBSP_WRITE(mcbsp, THRSH2, threshold - 1);
- }
- EXPORT_SYMBOL(omap_mcbsp_set_tx_threshold);
- 
-@@ -519,7 +520,8 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
- 	}
- 	mcbsp = id_to_mcbsp_ptr(id);
- 
--	MCBSP_WRITE(mcbsp, THRSH1, threshold);
-+	if (threshold && threshold <= mcbsp->max_rx_thres)
-+		MCBSP_WRITE(mcbsp, THRSH1, threshold - 1);
- }
- EXPORT_SYMBOL(omap_mcbsp_set_rx_threshold);
- 
-@@ -1696,8 +1698,8 @@ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
- {
- 	mcbsp->dma_op_mode = MCBSP_DMA_MODE_ELEMENT;
- 	if (cpu_is_omap34xx()) {
--		mcbsp->max_tx_thres = max_thres(mcbsp);
--		mcbsp->max_rx_thres = max_thres(mcbsp);
-+		mcbsp->max_tx_thres = max_thres(mcbsp) - 0x10;
-+		mcbsp->max_rx_thres = max_thres(mcbsp) - 0x10;
- 		/*
- 		 * REVISIT: Set dmap_op_mode to THRESHOLD as default
- 		 * for mcbsp2 instances.
--- 
-1.7.1
+Regards,
 
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
