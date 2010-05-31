@@ -1,37 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH v2] omap: Stalker board: switch over to gpio_set_debounce
-Date: Mon, 31 May 2010 04:12:22 -0400
-Message-ID: <notify-1275293548@atomide.com>
-References: <1275113047-14486-1-git-send-email-santosh.shilimkar@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: [RFC PATCH 4/5] ASoC: omap-mcbsp: Save,
+	and use wlen for threshold configuration
+Date: Mon, 31 May 2010 11:16:49 +0300
+Message-ID: <1275293810-31984-5-git-send-email-peter.ujfalusi@nokia.com>
+References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52130 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756550Ab0EaIMW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 04:12:22 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1OJ06f-000O9j-7S
-	for linux-omap@vger.kernel.org; Mon, 31 May 2010 08:12:21 +0000
-In-Reply-To: <1275113047-14486-1-git-send-email-santosh.shilimkar@ti.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, eduardo.valentin@nokia.com, ext-eero.nurkkala@nokia.com, lrg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+Save the word length configuration of McBSP, and use that information
+to calculate, and configure the threshold in McBSP.
+Previously the calculation was only correct when the stream had 16bit
+audio.
 
-Branch in linux-omap: omap-fixes
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+---
+ sound/soc/omap/omap-mcbsp.c |   14 +++++++++-----
+ 1 files changed, 9 insertions(+), 5 deletions(-)
 
-Initial commit ID (Likely to change): 34ebd9a47caa9f4fc7bb28a08b89f712f409e55c
-
-PatchWorks
-http://patchwork.kernel.org/patch/103017/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=34ebd9a47caa9f4fc7bb28a08b89f712f409e55c
-
-
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 6f44cb4..b06d8f1 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -59,6 +59,7 @@ struct omap_mcbsp_data {
+ 	int				configured;
+ 	unsigned int			in_freq;
+ 	int				clk_div;
++	int				wlen;
+ };
+ 
+ #define to_mcbsp(priv)	container_of((priv), struct omap_mcbsp_data, bus_id)
+@@ -155,19 +156,21 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
+ 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
+ 	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
+ 	int dma_op_mode = omap_mcbsp_get_dma_op_mode(mcbsp_data->bus_id);
+-	int samples;
++	int words;
+ 
+ 	/* TODO: Currently, MODE_ELEMENT == MODE_FRAME */
+ 	if (dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
+-		samples = snd_pcm_lib_period_bytes(substream) >> 1;
++		/* The FIFO size depends on the McBSP word configuration */
++		words = snd_pcm_lib_period_bytes(substream) /
++							(mcbsp_data->wlen / 8);
+ 	else
+-		samples = 1;
++		words = 1;
+ 
+ 	/* Configure McBSP internal buffer usage */
+ 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+-		omap_mcbsp_set_tx_threshold(mcbsp_data->bus_id, samples - 1);
++		omap_mcbsp_set_tx_threshold(mcbsp_data->bus_id, words);
+ 	else
+-		omap_mcbsp_set_rx_threshold(mcbsp_data->bus_id, samples - 1);
++		omap_mcbsp_set_rx_threshold(mcbsp_data->bus_id, words);
+ }
+ 
+ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
+@@ -409,6 +412,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	}
+ 
+ 	omap_mcbsp_config(bus_id, &mcbsp_data->regs);
++	mcbsp_data->wlen = wlen;
+ 	mcbsp_data->configured = 1;
+ 
+ 	return 0;
+-- 
+1.7.1
