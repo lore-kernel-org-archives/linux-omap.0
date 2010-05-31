@@ -1,72 +1,108 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Commit 0c8219f0... breaks omap7xx support
-Date: Mon, 31 May 2010 11:21:22 +0300
-Message-ID: <20100531082122.GB30216@atomide.com>
-References: <6cb013311003062056v3ed83a53u2636838348bf4845@mail.gmail.com>
- <20100309004832.GK2900@atomide.com>
- <6cb013311003081751u2c7cd8c6v59472ee85ac90e77@mail.gmail.com>
- <20100309024602.GQ2900@atomide.com>
- <6cb013311003081906n751bedb4k2794ed40ed68d7ec@mail.gmail.com>
- <20100309155636.GS2900@atomide.com>
- <6cb013311003091541k6a18c16bv4bb3d35f101e5bab@mail.gmail.com>
- <20100315182939.GV2900@atomide.com>
- <AANLkTini1wjhRXEfW4AjSdkVEYGpYXpuLcct-1l4pq0o@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [RFC PATCH 5/5] ASoC: omap-mcbsp: Place correct
+	constraints for streams
+Date: Mon, 31 May 2010 11:41:12 +0300
+Message-ID: <201005311141.12947.peter.ujfalusi@nokia.com>
+References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1275293810-31984-6-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63703 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755847Ab0EaIVT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 04:21:19 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTini1wjhRXEfW4AjSdkVEYGpYXpuLcct-1l4pq0o@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1275293810-31984-6-git-send-email-peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org, miknix@gmail.com, a.j.buxton@gmail.com, linwizard-devel@lists.sf.net
 
-* Cory Maccarrone <darkstar6262@gmail.com> [100529 06:56]:
-> On Mon, Mar 15, 2010 at 11:29 AM, Tony Lindgren <tony@atomide.com> wr=
-ote:
-> >
-> > * Cory Maccarrone <darkstar6262@gmail.com> [100309 15:38]:
-> > > On Tue, Mar 9, 2010 at 7:56 AM, Tony Lindgren <tony@atomide.com> =
-wrote:
-> > > >
-> > > > Does your system boot without any patches if DEBUG_LL is not se=
-t
-> > > > in your .config?
-> > >
-> > > No, it doesn't. =C2=A0Seems like the debugging code is still tryi=
-ng to run,
-> > > even disabled. =C2=A0If I add in that check, it'll boot with DEBU=
-G_LL not
-> > > set, but won't without that.
-> >
-> > Sorry for the delay on this. How about with the following patch wit=
-h
-> > DEBUG_LL not set?
-> >
-> > Note that this is using the shift register now too.
-> >
-> > Regards,
-> >
-> > Tony
->=20
-> Sorry I took so long on this one.  This patch worked beautifully for
-> me on the latest kernel tree.  Any chance of it getting in for one of
-> the RCs of this next kernel?
+On Monday 31 May 2010 11:16:50 Ujfalusi Peter (Nokia-D/Tampere) wrote:
+...
 
-Yeah this we should be able to merge as a fix. Can I add your Testedy-b=
-y
-to the patch?
+> @@ -185,33 +231,43 @@ static int omap_mcbsp_dai_startup(struct
+> snd_pcm_substream *substream, if (!cpu_dai->active)
+>  		err =3D omap_mcbsp_request(bus_id);
+> =
 
-Regards,
+> +	/*
+> +	 * OMAP McBSP FIFO is word structured.
+> +	 * McBSP2 has 1024 + 256 =3D 1280 word long buffer,
+> +	 * McBSP1,3,4,5 has 128 word long buffer
+> +	 * This means that the size of the FIFO depends on the sample format.
+> +	 * For example on McBSP3:
+> +	 * 16bit samples: size is 128 * 2 =3D 256 bytes
+> +	 * 32bit samples: size is 128 * 4 =3D 512 bytes
+> +	 * It is simpler to place constraint for buffer and period based on
+> +	 * channels.
+> +	 * McBSP3 as example again (16 or 32 bit samples):
+> +	 * 1 channel (mono): size is 128 frames (128 words)
+> +	 * 2 channels (stereo): size is 128 / 2 =3D 64 frames (2 * 64 words)
+> +	 * 4 channels: size is 128 / 4 =3D 32 frames (4 * 32 words)
+> +	 */
+> +
+> +	/*
+> +	 * The first rule is for the buffer size, we should not allow smaller
+> +	 * buffer than the FIFO size to avoid underruns
+> +	 */
+> +	snd_pcm_hw_rule_add(substream->runtime, 0, SNDRV_PCM_HW_PARAM_CHANNELS,
+> +				    hw_rule_bsize_by_channels, mcbsp_data,
+> +				    SNDRV_PCM_HW_PARAM_BUFFER_SIZE, -1);
+> +
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Obviously this hw_rule must be moved after checking the CPU type, since it =
+is =
+
+only valid for OMAP3 class of devices.
+I'll fix this in the v2 series.
+I have been testing this on OMAP3...
+
+>  	if (cpu_is_omap343x()) {
+>  		int dma_op_mode =3D omap_mcbsp_get_dma_op_mode(bus_id);
+> -		int max_period;
+> =
+
+>  		/*
+> -		 * McBSP2 in OMAP3 has 1024 * 32-bit internal audio buffer.
+> -		 * Set constraint for minimum buffer size to the same than FIFO
+> -		 * size in order to avoid underruns in playback startup because
+> -		 * HW is keeping the DMA request active until FIFO is filled.
+> +		 * In case os threshold mode, the rule will ensure, that the
+> +		 * period size is not bigger than the maximum allowed threshold
+> +		 * value.
+>  		 */
+> -		if (bus_id =3D=3D 1)
+> -			snd_pcm_hw_constraint_minmax(substream->runtime,
+> -					SNDRV_PCM_HW_PARAM_BUFFER_BYTES,
+> -					4096, UINT_MAX);
+> -
+> -		if (substream->stream =3D=3D SNDRV_PCM_STREAM_PLAYBACK)
+> -			max_period =3D omap_mcbsp_get_max_tx_threshold(bus_id);
+> -		else
+> -			max_period =3D omap_mcbsp_get_max_rx_threshold(bus_id);
+> -
+> -		max_period++;
+> -		max_period <<=3D 1;
+> -
+>  		if (dma_op_mode =3D=3D MCBSP_DMA_MODE_THRESHOLD)
+> -			snd_pcm_hw_constraint_minmax(substream->runtime,
+> -						SNDRV_PCM_HW_PARAM_PERIOD_BYTES,
+> -						32, max_period);
+> +			snd_pcm_hw_rule_add(substream->runtime, 0,
+> +					SNDRV_PCM_HW_PARAM_CHANNELS,
+> +					hw_rule_psize_by_channels, substream,
+> +					SNDRV_PCM_HW_PARAM_PERIOD_SIZE, -1);
+>  	}
+> =
+
+>  	return err;
+
+-- =
+
+P=E9ter
