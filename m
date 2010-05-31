@@ -1,44 +1,26 @@
 From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCHv1 0/1] omap3: pm: Delink OPP layer from cpufreq
-Date: Mon, 31 May 2010 18:08:47 +0530
-Message-ID: <1275309527-25965-1-git-send-email-premi@ti.com>
+Subject: [PATCHv1 1/1] omap3: pm: Delink opp layer and cpufreq
+Date: Mon, 31 May 2010 18:09:02 +0530
+Message-ID: <1275309542-26004-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41951 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751745Ab0EaMiy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 May 2010 08:38:54 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:47206 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745Ab0EaMjM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 08:39:12 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4VCcpqd016851
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4VCd6Es029394
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 31 May 2010 07:38:53 -0500
+	for <linux-omap@vger.kernel.org>; Mon, 31 May 2010 07:39:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sanjeev Premi <premi@ti.com>
 
-The OPP layer is currently contained in CONFIG_CPU_FREQ.
-When the ARM frequency is set via bootarg 'mpurate' the
-OPP layer is required to:
-  - verify that specified mpurate is valid and available
-    in the OPP table.
-  - get voltage corresponding to specified frequency.
+The OPP layer was contained in the CONFIG_CPU_FREQ.
+This patch removes this containment relation.
 
-This is initial attempt to make OPP layer available without
-cpufreq. Since, this is initial version, i am making changes
-in board-omap3evm.c only. same change will be required in
-other board files as well. Will do so in next version of
-the patch.
-
-I have also updated the OPP tables for OMAP3430 to include
-support for 720MHz. It will be a separate patch when I submit
-it next.
-
-  [1] http://marc.info/?l=linux-omap&m=127495955603835&w=2
-
-
-Sanjeev Premi (1):
-  omap3: pm: Delink opp layer and cpufreq
-
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
  arch/arm/mach-omap2/Makefile          |    6 +-
  arch/arm/mach-omap2/board-omap3evm.c  |    2 +-
  arch/arm/mach-omap2/cpufreq34xx.c     |  164 --------------------------------
@@ -53,4 +35,657 @@ Sanjeev Premi (1):
  delete mode 100644 arch/arm/mach-omap2/cpufreq34xx.c
  delete mode 100644 arch/arm/mach-omap2/omap3-opp.h
  create mode 100644 arch/arm/mach-omap2/opp34xx_data.c
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index ac08f99..4e51a99 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -55,10 +55,8 @@ AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+ 
+ endif
+ 
+-# CPU Frequency
+-ifeq ($(CONFIG_CPU_FREQ),y)
+-obj-$(CONFIG_ARCH_OMAP3)		+= cpufreq34xx.o
+-endif
++# OPP definitions for OMAP3
++obj-$(CONFIG_ARCH_OMAP3)		+= opp34xx_data.o
+ 
+ # PRCM
+ obj-$(CONFIG_ARCH_OMAP2)		+= cm.o
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 0a3f5b6..cb97c5d 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -50,11 +50,11 @@
+ #include <plat/common.h>
+ #include <plat/mcspi.h>
+ #include <plat/display.h>
++#include <plat/opp.h>
+ 
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "hsmmc.h"
+-#include "omap3-opp.h"
+ 
+ #define GPMC_CS0_BASE  0x60
+ #define GPMC_CS_SIZE   0x30
+diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
+deleted file mode 100644
+index 8747dd6..0000000
+--- a/arch/arm/mach-omap2/cpufreq34xx.c
++++ /dev/null
+@@ -1,164 +0,0 @@
+-/*
+- * arch/arm/mach-omap2/cpufreq34xx.c
+- * OMAP3 resource init/change_level/validate_level functions
+- *
+- * Copyright (C) 2009 - 2010 Texas Instruments Incorporated.
+- *	Nishanth Menon
+- * Copyright (C) 2009 - 2010 Deep Root Systems, LLC.
+- *	Kevin Hilman
+- * Copyright (C) 2010 Nokia Corporation.
+- *      Eduardo Valentin
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- * History:
+- *
+- */
+-
+-#include <linux/module.h>
+-#include <linux/err.h>
+-
+-#include <plat/opp.h>
+-#include <plat/cpu.h>
+-#include "omap3-opp.h"
+-
+-static struct omap_opp_def __initdata omap34xx_mpu_rate_table[] = {
+-	/* OPP1 */
+-	OMAP_OPP_DEF(true, 125000000, 975000),
+-	/* OPP2 */
+-	OMAP_OPP_DEF(true, 250000000, 1075000),
+-	/* OPP3 */
+-	OMAP_OPP_DEF(true, 500000000, 1200000),
+-	/* OPP4 */
+-	OMAP_OPP_DEF(true, 550000000, 1270000),
+-	/* OPP5 */
+-	OMAP_OPP_DEF(true, 600000000, 1350000),
+-	/* Terminator */
+-	OMAP_OPP_DEF(0, 0, 0)
+-};
+-
+-static struct omap_opp_def __initdata omap34xx_l3_rate_table[] = {
+-	/*
+-	 * OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
+-	 * almost the same than the one at 83MHz thus providing very little
+-	 * gain for the power point of view. In term of energy it will even
+-	 * increase the consumption due to the very negative performance
+-	 * impact that frequency will do to the MPU and the whole system in
+-	 * general.
+-	 */
+-	OMAP_OPP_DEF(false, 41500000, 975000),
+-	/* OPP2 */
+-	OMAP_OPP_DEF(true, 83000000, 1050000),
+-	/* OPP3 */
+-	OMAP_OPP_DEF(true, 166000000, 1150000),
+-	/* Terminator */
+-	OMAP_OPP_DEF(0, 0, 0)
+-};
+-
+-static struct omap_opp_def __initdata omap34xx_dsp_rate_table[] = {
+-	/* OPP1 */
+-	OMAP_OPP_DEF(true, 90000000, 975000),
+-	/* OPP2 */
+-	OMAP_OPP_DEF(true, 180000000, 1075000),
+-	/* OPP3 */
+-	OMAP_OPP_DEF(true, 360000000, 1200000),
+-	/* OPP4 */
+-	OMAP_OPP_DEF(true, 400000000, 1270000),
+-	/* OPP5 */
+-	OMAP_OPP_DEF(true, 430000000, 1350000),
+-	/* Terminator */
+-	OMAP_OPP_DEF(0, 0, 0)
+-};
+-
+-static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
+-	/* OPP1 - OPP50 */
+-	OMAP_OPP_DEF(true,  300000000, 930000),
+-	/* OPP2 - OPP100 */
+-	OMAP_OPP_DEF(true,  600000000, 1100000),
+-	/* OPP3 - OPP-Turbo */
+-	OMAP_OPP_DEF(false, 800000000, 1260000),
+-	/* OPP4 - OPP-SB */
+-	OMAP_OPP_DEF(false, 1000000000, 1350000),
+-	/* Terminator */
+-	OMAP_OPP_DEF(0, 0, 0)
+-};
+-
+-static struct omap_opp_def __initdata omap36xx_l3_rate_table[] = {
+-	/* OPP1 - OPP50 */
+-	OMAP_OPP_DEF(true, 100000000, 930000),
+-	/* OPP2 - OPP100, OPP-Turbo, OPP-SB */
+-	OMAP_OPP_DEF(true, 200000000, 1137500),
+-	/* Terminator */
+-	OMAP_OPP_DEF(0, 0, 0)
+-};
+-
+-static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
+-	/* OPP1 - OPP50 */
+-	OMAP_OPP_DEF(true,  260000000, 930000),
+-	/* OPP2 - OPP100 */
+-	OMAP_OPP_DEF(true,  520000000, 1100000),
+-	/* OPP3 - OPP-Turbo */
+-	OMAP_OPP_DEF(false, 660000000, 1260000),
+-	/* OPP4 - OPP-SB */
+-	OMAP_OPP_DEF(false, 800000000, 1350000),
+-	/* Terminator */
+-	OMAP_OPP_DEF(0, 0, 0)
+-};
+-
+-int __init omap3_pm_init_opp_table(void)
+-{
+-	int i, r;
+-	struct omap_opp_def **omap3_opp_def_list;
+-	struct omap_opp_def *omap34xx_opp_def_list[] = {
+-		omap34xx_mpu_rate_table,
+-		omap34xx_l3_rate_table,
+-		omap34xx_dsp_rate_table
+-	};
+-	struct omap_opp_def *omap36xx_opp_def_list[] = {
+-		omap36xx_mpu_rate_table,
+-		omap36xx_l3_rate_table,
+-		omap36xx_dsp_rate_table
+-	};
+-	enum opp_t omap3_opps[] = {
+-		OPP_MPU,
+-		OPP_L3,
+-		OPP_DSP
+-	};
+-
+-	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
+-				omap34xx_opp_def_list;
+-
+-	for (i = 0; i < ARRAY_SIZE(omap3_opps); i++) {
+-		r = opp_init_list(omap3_opps[i], omap3_opp_def_list[i]);
+-		if (r)
+-			break;
+-	}
+-	if (!r)
+-		return 0;
+-
+-	/* Cascading error handling - disable all enabled OPPs */
+-	pr_err("%s: Failed to register %d OPP type\n", __func__,
+-		omap3_opps[i]);
+-	i--;
+-	while (i != -1) {
+-		struct omap_opp *opp;
+-		unsigned long freq = 0;
+-
+-		do {
+-			opp = opp_find_freq_ceil(omap3_opps[i], &freq);
+-			if (IS_ERR(opp))
+-				break;
+-			opp_disable(opp);
+-			freq++;
+-		} while (1);
+-		i--;
+-	}
+-
+-	return r;
+-}
+-
+diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
+deleted file mode 100644
+index 16d9e5b..0000000
+--- a/arch/arm/mach-omap2/omap3-opp.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-#ifndef __OMAP3_OPP_H_
+-#define __OMAP3_OPP_H_
+-
+-#include <plat/omap-pm.h>
+-
+-/**
+- * omap3_pm_init_opp_table - OMAP opp table lookup called after cpu is detected.
+- * Initialize the basic opp table here, board files could choose to modify opp
+- * table after the basic initialization
+- */
+-#ifdef CONFIG_CPU_FREQ
+-extern int omap3_pm_init_opp_table(void);
+-#else
+-static inline int omap3_pm_init_opp_table(void)
+-{
+-	return -EINVAL;
+-}
+-#endif
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/opp34xx_data.c b/arch/arm/mach-omap2/opp34xx_data.c
+new file mode 100644
+index 0000000..7017d6d
+--- /dev/null
++++ b/arch/arm/mach-omap2/opp34xx_data.c
+@@ -0,0 +1,166 @@
++/*
++ * arch/arm/mach-omap2/cpufreq34xx.c
++ * OMAP3 resource init/change_level/validate_level functions
++ *
++ * Copyright (C) 2009 - 2010 Texas Instruments Incorporated.
++ *	Nishanth Menon
++ * Copyright (C) 2009 - 2010 Deep Root Systems, LLC.
++ *	Kevin Hilman
++ * Copyright (C) 2010 Nokia Corporation.
++ *      Eduardo Valentin
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ * History:
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/err.h>
++
++#include <plat/opp.h>
++#include <plat/cpu.h>
++
++static struct omap_opp_def __initdata omap34xx_mpu_rate_table[] = {
++	/* OPP1 */
++	OMAP_OPP_DEF(true, 125000000, 975000),
++	/* OPP2 */
++	OMAP_OPP_DEF(true, 250000000, 1075000),
++	/* OPP3 */
++	OMAP_OPP_DEF(true, 500000000, 1200000),
++	/* OPP4 */
++	OMAP_OPP_DEF(true, 550000000, 1270000),
++	/* OPP5 */
++	OMAP_OPP_DEF(true, 600000000, 1350000),
++	/* OPP6 */
++	OMAP_OPP_DEF(true, 720000000, 1350000),
++	/* Terminator */
++	OMAP_OPP_DEF(0, 0, 0)
++};
++
++static struct omap_opp_def __initdata omap34xx_l3_rate_table[] = {
++	/*
++	 * OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
++	 * almost the same than the one at 83MHz thus providing very little
++	 * gain for the power point of view. In term of energy it will even
++	 * increase the consumption due to the very negative performance
++	 * impact that frequency will do to the MPU and the whole system in
++	 * general.
++	 */
++	OMAP_OPP_DEF(false, 41500000, 975000),
++	/* OPP2 */
++	OMAP_OPP_DEF(true, 83000000, 1050000),
++	/* OPP3 */
++	OMAP_OPP_DEF(true, 166000000, 1150000),
++	/* Terminator */
++	OMAP_OPP_DEF(0, 0, 0)
++};
++
++static struct omap_opp_def __initdata omap34xx_dsp_rate_table[] = {
++	/* OPP1 */
++	OMAP_OPP_DEF(true, 90000000, 975000),
++	/* OPP2 */
++	OMAP_OPP_DEF(true, 180000000, 1075000),
++	/* OPP3 */
++	OMAP_OPP_DEF(true, 360000000, 1200000),
++	/* OPP4 */
++	OMAP_OPP_DEF(true, 400000000, 1270000),
++	/* OPP5 */
++	OMAP_OPP_DEF(true, 430000000, 1350000),
++	/* OPP6 */
++	OMAP_OPP_DEF(true, 520000000, 1350000),
++	/* Terminator */
++	OMAP_OPP_DEF(0, 0, 0)
++};
++
++static struct omap_opp_def __initdata omap36xx_mpu_rate_table[] = {
++	/* OPP1 - OPP50 */
++	OMAP_OPP_DEF(true,  300000000, 930000),
++	/* OPP2 - OPP100 */
++	OMAP_OPP_DEF(true,  600000000, 1100000),
++	/* OPP3 - OPP-Turbo */
++	OMAP_OPP_DEF(false, 800000000, 1260000),
++	/* OPP4 - OPP-SB */
++	OMAP_OPP_DEF(false, 1000000000, 1350000),
++	/* Terminator */
++	OMAP_OPP_DEF(0, 0, 0)
++};
++
++static struct omap_opp_def __initdata omap36xx_l3_rate_table[] = {
++	/* OPP1 - OPP50 */
++	OMAP_OPP_DEF(true, 100000000, 930000),
++	/* OPP2 - OPP100, OPP-Turbo, OPP-SB */
++	OMAP_OPP_DEF(true, 200000000, 1137500),
++	/* Terminator */
++	OMAP_OPP_DEF(0, 0, 0)
++};
++
++static struct omap_opp_def __initdata omap36xx_dsp_rate_table[] = {
++	/* OPP1 - OPP50 */
++	OMAP_OPP_DEF(true,  260000000, 930000),
++	/* OPP2 - OPP100 */
++	OMAP_OPP_DEF(true,  520000000, 1100000),
++	/* OPP3 - OPP-Turbo */
++	OMAP_OPP_DEF(false, 660000000, 1260000),
++	/* OPP4 - OPP-SB */
++	OMAP_OPP_DEF(false, 800000000, 1350000),
++	/* Terminator */
++	OMAP_OPP_DEF(0, 0, 0)
++};
++
++int __init omap3_pm_init_opp_table(void)
++{
++	int i, r;
++	struct omap_opp_def **omap3_opp_def_list;
++	struct omap_opp_def *omap34xx_opp_def_list[] = {
++		omap34xx_mpu_rate_table,
++		omap34xx_l3_rate_table,
++		omap34xx_dsp_rate_table
++	};
++	struct omap_opp_def *omap36xx_opp_def_list[] = {
++		omap36xx_mpu_rate_table,
++		omap36xx_l3_rate_table,
++		omap36xx_dsp_rate_table
++	};
++	enum opp_t omap3_opps[] = {
++		OPP_MPU,
++		OPP_L3,
++		OPP_DSP
++	};
++
++	omap3_opp_def_list = cpu_is_omap3630() ? omap36xx_opp_def_list :
++				omap34xx_opp_def_list;
++
++	for (i = 0; i < ARRAY_SIZE(omap3_opps); i++) {
++		r = opp_init_list(omap3_opps[i], omap3_opp_def_list[i]);
++		if (r)
++			break;
++	}
++	if (!r)
++		return 0;
++
++	/* Cascading error handling - disable all enabled OPPs */
++	pr_err("%s: Failed to register %d OPP type\n", __func__,
++		omap3_opps[i]);
++	i--;
++	while (i != -1) {
++		struct omap_opp *opp;
++		unsigned long freq = 0;
++
++		do {
++			opp = opp_find_freq_ceil(omap3_opps[i], &freq);
++			if (IS_ERR(opp))
++				break;
++			opp_disable(opp);
++			freq++;
++		} while (1);
++		i--;
++	}
++
++	return r;
++}
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 48857a4..271d49f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -53,7 +53,6 @@
+ #include "prm.h"
+ #include "pm.h"
+ #include "sdrc.h"
+-#include "omap3-opp.h"
+ 
+ #ifdef CONFIG_SUSPEND
+ static suspend_state_t suspend_state = PM_SUSPEND_ON;
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 2b9ebf0..ee79885 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -13,10 +13,9 @@ obj-  :=
+ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+ 
+ # OPP support in (OMAP3+ only at the moment)
+-# XXX The OPP TWL/TPS code should only be included when a TWL/TPS
+-# PMIC is selected.
+-ifdef CONFIG_CPU_FREQ
+-obj-$(CONFIG_ARCH_OMAP3) += opp.o opp_twl_tps.o
++ifdef CONFIG_ARCH_OMAP3
++obj-y				+= opp.o
++obj-$(CONFIG_TWL4030_POWER)	+= opp_twl_tps.o
+ endif
+ 
+ # omap_device support (OMAP2+ only at the moment)
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index 0674405..d46b8d0 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -121,6 +121,53 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_ARCH_OMAP3
++void opp_init_cpufreq_table(enum opp_t opp_type,
++			    struct cpufreq_frequency_table **table)
++{
++	int i = 0, j;
++	int opp_num;
++	struct cpufreq_frequency_table *freq_table;
++	struct omap_opp *opp;
++
++	if (opp_type >= OPP_TYPES_MAX) {
++		pr_warning("%s: failed to initialize frequency"
++				"table\n", __func__);
++		return;
++	}
++
++	opp_num = opp_get_opp_count(opp_type);
++	if (opp_num < 0) {
++		pr_err("%s: no opp table?\n", __func__);
++		return;
++	}
++
++	freq_table = kmalloc(sizeof(struct cpufreq_frequency_table) *
++			     (opp_num + 1), GFP_ATOMIC);
++	if (!freq_table) {
++		pr_warning("%s: failed to allocate frequency"
++				"table\n", __func__);
++		return;
++	}
++
++	opp = _opp_list[opp_type];
++	opp += opp_num;
++	for (j = opp_num; j >= 0; j--) {
++		if (opp->enabled) {
++			freq_table[i].index = i;
++			freq_table[i].frequency = opp->rate / 1000;
++			i++;
++		}
++		opp--;
++	}
++
++	freq_table[i].index = i;
++	freq_table[i].frequency = CPUFREQ_TABLE_END;
++
++	*table = &freq_table[0];
++}
++#endif
++
+ static int __init omap_cpu_init(struct cpufreq_policy *policy)
+ {
+ 	int result = 0;
+diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
+index 7d16a46..51b1776 100644
+--- a/arch/arm/plat-omap/include/plat/opp.h
++++ b/arch/arm/plat-omap/include/plat/opp.h
+@@ -15,7 +15,6 @@
+ #define __ASM_ARM_OMAP_OPP_H
+ 
+ #include <linux/err.h>
+-#include <linux/cpufreq.h>
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+ enum opp_t {
+@@ -66,7 +65,6 @@ struct omap_opp_def {
+ 
+ struct omap_opp;
+ 
+-#ifdef CONFIG_CPU_FREQ
+ 
+ /**
+  * opp_get_voltage() - Gets the voltage corresponding to an opp
+@@ -233,79 +231,11 @@ struct omap_opp * __deprecated opp_find_by_opp_id(enum opp_t opp_type,
+ 						  u8 opp_id);
+ u8 __deprecated opp_get_opp_id(struct omap_opp *opp);
+ 
+-void opp_init_cpufreq_table(enum opp_t opp_type,
+-			    struct cpufreq_frequency_table **table);
+-#else
+-static inline unsigned long opp_get_voltage(const struct omap_opp *opp)
+-{
+-	return 0;
+-}
+-
+-static inline unsigned long opp_get_freq(const struct omap_opp *opp)
+-{
+-	return 0;
+-}
+-
+-static inline int opp_get_opp_count(struct omap_opp *oppl)
+-{
+-	return 0;
+-}
+-
+-static inline struct omap_opp *opp_find_freq_exact(struct omap_opp *oppl,
+-				     unsigned long freq, bool enabled)
+-{
+-	return ERR_PTR(-EINVAL);
+-}
+-
+-static inline struct omap_opp *opp_find_freq_floor(struct omap_opp *oppl,
+-				     unsigned long *freq)
+-{
+-	return ERR_PTR(-EINVAL);
+-}
+-
+-static inline struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl,
+-					unsigned long *freq)
+-{
+-	return ERR_PTR(-EINVAL);
+-}
+-
+-static inline
+-struct omap_opp __init *opp_init_list(const struct omap_opp_def *opp_defs)
+-{
+-	return ERR_PTR(-EINVAL);
+-}
+-
+-static inline struct omap_opp *opp_add(struct omap_opp *oppl,
+-			 const struct omap_opp_def *opp_def)
+-{
+-	return ERR_PTR(-EINVAL);
+-}
+-
+-static inline int opp_enable(struct omap_opp *opp)
+-{
+-	return 0;
+-}
+-
+-static inline int opp_disable(struct omap_opp *opp)
+-{
+-	return 0;
+-}
+-
+-static inline struct omap_opp * __deprecated
+-opp_find_by_opp_id(struct omap_opp *opps, u8 opp_id)
+-{
+-	return ERR_PTR(-EINVAL);
+-}
+-
+-static inline u8 __deprecated opp_get_opp_id(struct omap_opp *opp)
+-{
+-	return 0;
+-}
+-
+-static inline void opp_init_cpufreq_table(struct omap_opp *opps,
+-			    struct cpufreq_frequency_table **table)
+-{
+-}
++/**
++ * omap3_pm_init_opp_table() - Initialize the OPP table for OMAP3 devices.
++ *
++ * Initializes the OPP table for the current OMAP3 device.
++ */
++int __init omap3_pm_init_opp_table(void);
+ 
+-#endif		/* CONFIG_CPU_FREQ */
+ #endif		/* __ASM_ARM_OMAP_OPP_H */
+diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+index 13da451..3ed3ec1 100644
+--- a/arch/arm/plat-omap/opp.c
++++ b/arch/arm/plat-omap/opp.c
+@@ -351,49 +351,3 @@ int opp_disable(struct omap_opp *opp)
+ 	opp->enabled = false;
+ 	return 0;
+ }
+-
+-/* XXX document */
+-void opp_init_cpufreq_table(enum opp_t opp_type,
+-			    struct cpufreq_frequency_table **table)
+-{
+-	int i = 0, j;
+-	int opp_num;
+-	struct cpufreq_frequency_table *freq_table;
+-	struct omap_opp *opp;
+-
+-	if (opp_type >= OPP_TYPES_MAX) {
+-		pr_warning("%s: failed to initialize frequency"
+-				"table\n", __func__);
+-		return;
+-	}
+-
+-	opp_num = opp_get_opp_count(opp_type);
+-	if (opp_num < 0) {
+-		pr_err("%s: no opp table?\n", __func__);
+-		return;
+-	}
+-
+-	freq_table = kmalloc(sizeof(struct cpufreq_frequency_table) *
+-			     (opp_num + 1), GFP_ATOMIC);
+-	if (!freq_table) {
+-		pr_warning("%s: failed to allocate frequency"
+-				"table\n", __func__);
+-		return;
+-	}
+-
+-	opp = _opp_list[opp_type];
+-	opp += opp_num;
+-	for (j = opp_num; j >= 0; j--) {
+-		if (opp->enabled) {
+-			freq_table[i].index = i;
+-			freq_table[i].frequency = opp->rate / 1000;
+-			i++;
+-		}
+-		opp--;
+-	}
+-
+-	freq_table[i].index = i;
+-	freq_table[i].frequency = CPUFREQ_TABLE_END;
+-
+-	*table = &freq_table[0];
+-}
+-- 
+1.6.6.1
 
