@@ -1,50 +1,73 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [GIT PULL] omap iommu: updates for 2.6.35-rc1
-Date: Mon, 31 May 2010 12:36:37 +0300 (EEST)
-Message-ID: <20100531.123637.28796762.Hiroshi.DOYU@nokia.com>
+From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ARM: OMAP: Fix board data to support device only, host
+	only and OTG roles.
+Date: Mon, 31 May 2010 12:44:05 +0300
+Message-ID: <AANLkTin-Ud-BdQ3lcydqZx7Tb1YoBq05XCONeYqxWhZm@mail.gmail.com>
+References: <AANLkTim7r5zq-G8iF1fxHQ9ohqfoOiuUkkMXfRYxkBQu@mail.gmail.com>
+	<987022.25256.qm@web180303.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:33785 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756267Ab0EaJho (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 05:37:44 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <987022.25256.qm-g47maUHHHF/6X00i2u5GFvu2YVrzzGjVVpNB7YpNyf8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: Steve Sakoman <sakoman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, x0124230@ti.com
 
-Hi Tony,
+On Fri, May 28, 2010 at 9:32 PM, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org> w=
+rote:
+> --- On Fri, 5/28/10, Steve Sakoman <sakoman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+>> > By the way ... the #ifdeffery should indeed vanish
+>> from all board
+>> > configs except the Davinci DM6446 EVM. =A0That board is
+>> kind of quirky
+>> > in terms of USB support, and needs jumpering to get
+>> host or peripheral mode (and can't do OTG).
+>
+>
+>> For Overo this patch actually makes quite a bit of sense
+>> (and I have
+>> been using something similar for quite some time).
+>>
+>> The Overo COM itself has no USB connector -- the customer
+>> can choose
+>> or create a daughter card with the type of USB connector
+>> appropriate> to their application,
+>
+> So that would be another exception ... because it doesn't
+> have a fixed USB connector (and thus does not convey to
+> users any specific details about what modes it supports).
 
-Here are the latest updates for omap iommu module.
+Another issue is that OTG depends on PM, so if I build PM-less kernel
+(PM is still more or less in development on OMAPs), Kconfig will only
+allow host or peripheral for musb, which doesn't match OTG selection
+in the board file, and the driver fails.
 
-The following changes since commit 67a3e12b05e055c0415c556a315a3d3eb637e29e:
+If a board is configured as host and driver is set to only support
+peripheral it is perfectly fine for the driver not to allow that. But
+why is the driver refusing OTG board setting if it's compiled to only
+support host/peripheral? If I apply [1], it works perfectly fine for
+me. What's wrong with degrading OTG to host/peripheral, did you really
+mean to NAK [1], David? Why can't I compile musb in a
+periperal/host-only mode if I have OTG connector?
 
-  Linux 2.6.35-rc1 (2010-05-30 13:21:02 -0700)
+I have to patch around this every time :(
 
-are available in the git repository at:
-  git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc1-iommu
+[1] http://marc.info/?l=3Dlinux-usb&m=3D127367875600618&w=3D2
 
-Hiroshi DOYU (4):
-      omap iommu: Introduce iopgd_is_table MACRO
-      omap iommu: Rename iopte_[p,v]addr -> iopte_page_[p,v]addr
-      omap iommu: move iommu_disable at fault to the above layer
-      omap iommu: Make omap-iommu.o built-in
-
-Kanigeri, Hari (3):
-      omap iommu: update ducati mmu irq define name
-      omap iommu: update irq mask to be specific about twl and tlb
-      omap iommu: add functionality to get TLB miss interrupt
-
-Satish (1):
-      omap iommu: Fix Memory leak
-
- arch/arm/mach-omap2/Makefile            |    5 +++-
- arch/arm/mach-omap2/iommu2.c            |   44 ++++++++++++++++++++++++------
- arch/arm/mach-omap2/omap-iommu.c        |    2 +-
- arch/arm/plat-omap/include/plat/iommu.h |    2 +
- arch/arm/plat-omap/iommu.c              |   27 ++++++++++++++++---
- arch/arm/plat-omap/iopgtable.h          |    8 +++--
- arch/arm/plat-omap/iovmm.c              |    4 ++-
- 7 files changed, 73 insertions(+), 19 deletions(-)
+>
+> - Dave
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
