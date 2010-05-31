@@ -1,115 +1,225 @@
-From: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Sun, 30 May 2010 21:57:10 -0400
-Message-ID: <20100531015710.GA24917@gibbs.hungrycats.org>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
- <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
- <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
- <20100527220949.GB10602@srcf.ucam.org>
- <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
- <AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
- <20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: omap3 pm: dependency between opp layer and cpufreq
+Date: Mon, 31 May 2010 07:19:02 +0300
+Message-ID: <4C0338B6.6070803@gmail.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>	 ,<4BFE9D7E.8020602@ti.com>	 <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com>	 <7A436F7769CA33409C6B44B358BFFF0C0132DE0A84@dlee02.ent.ti.com>	 <068A0169-7F7B-46D6-B3B6-462EEFB66026@student.utwente.nl>	 <4BFFC622.90904@ti.com>	 <B85A65D85D7EB246BE421B3FB0FBB59301E71FE512@dbde02.ent.ti.com>	 <4BFFCB6B.50005@ti.com>	  <B85A65D85D7EB246BE421B3FB0FBB59301E71FE537@dbde02.ent.ti.com>,<1275065163.10319.5.camel@Nokia-N900-51-1> <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:54280 "EHLO
+	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750809Ab0EaETI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 00:19:08 -0400
+Received: by ewy8 with SMTP id 8so860261ewy.28
+        for <linux-omap@vger.kernel.org>; Sun, 30 May 2010 21:19:04 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E5828FC2@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Fri, May 28, 2010 at 10:17:55AM +0100, Alan Cox wrote:
-> > Android does not only run on phones. It is possible that no android
-> > devices have ACPI, but I don't know that for a fact. What I do know is
-> > that people want to run Android on x86 hardware and supporting suspend
-> > could be very benficial.
-> 
-> Sufficently beneficial to justify putting all this stuff all over the
-> kernel and apps ? That is a *very* high hurdle, doubly so when those
-> vendors who have chosen to be part of the community are shipping phones
-> and PDAs just fine without them.
+On 05/30/2010 01:50 PM, Premi, Sanjeev wrote:
+>
+> ________________________________________
+> From: Nishanth menon [menon.nishanth@gmail.com]
+> Sent: Friday, May 28, 2010 10:16 PM
+> To: Premi, Sanjeev; Menon, Nishanth
+> Cc: Koen Kooi; linux-omap@vger.kernel.org; eduardo.valentin@nokia.com; Kevin Hilman
+> Subject: Re: omap3 pm: dependency between opp layer and cpufreq
+>
+> ----- Original message -----
+> (...)
+>>>>>>>> [sp] I does - via bootarg - mpurate!
+>>>>>>>>
+>>>>>>>> When kernel boots, volatge must be set properly.
+>>>>>>>> We cannot rely on u-boot to be settiing everything
+>>>>> correctly. e.g. 720MHz
+>>>>>>>> on OMAP3530 would fail at nominal 1.2V set by u-boot.
+>>>>>>>
+>>>>>>> I agree, but mpurate does not seem to use the cpufreq
+>>>>> interfaces - so is
+>>>>>>> kinda a question how it interfaces back ->     but note,
+>>>>> mpurate tells us what
+>>>>>>> the start freq is for the system - it still does no
+>>>>> *dynamic* transitions -
+>>>>>>> just a static startup frequency. But I agree, it assumes
+>>>>> that if you provide
+>>>>>>> mpurate, the system supposedly is operating at that
+>>>>> frequency, aka all
+>>>>>>> setups have been done for that operational
+>>>>> frequency(including voltage)
+>>>>>>
+>>>>>> There's also a funny bug in the current (PSP)
+>>>>> mpurate/cpufreq code. The mpurate code has a
+>>>>>     >   check for 720MHz on 35xx silicon, but cpufreq doesnt.
+>>> So I can do:
+>>>>>>
+>>>>>> setenv bootargs '<foo>     mpurate=720'
+>>>>>>
+>>>>>> And the kernel will say "unsupported" and not switch to
+>>>>> 720MHz during boot. But if I do this after boot:
+>>>>>>
+>>>>>> cpufreq-set -f 720
+>>>>>>
+>>>>>> it *will* switch to 720MHz, even if the mpurate code
+>>>>> explicitly forbids it. I tested on all the
+>>>>>     >OMAP3 silicon I have and it will run at 720MHz fine, even
+>>>>> if it's out
+>>>>> of spec, so I'm happy with this bug :)
+>>>>>
+>>>>> :) on mainline, if you dont have the frequency in opp
+>>> definitions and
+>>>>> your board has not done an explicit opp_add, cpufreq will
+>>>>> only set u to
+>>>>> the nearest available freq - easy for mainline fix if someone
+>>>>> would like
+>>>>> to send a patch adding the OPPs and the detection logic
+>>> involved for
+>>>>> enabling them.
+>>>>>
+>>>>> Now, thinking aloud, the voltage setting by SR will
+>>> probably occur in
+>>>>> late_init, if mpurate is setting the clock earlier in the
+>>>>> boot process,
+>>>>> we might have a potential conflict in the mpurate expecting
+>>>>> the system
+>>>>> to be set in a certain voltage based on Sanjeev's argument, but not
+>>>>> actually there.. we expect ondemand+cpufreq to do the job
+>>> on runtime
+>>>>> anyways.
+>>>>
+>>>> Nishanth,
+>>>>
+>>>> When setting via mpurate, we need to get the appropriate voltage
+>>>> corresponding to the mpurate so that right combination can be done.
+>>>>
+>>>> This is where the mapping between freq and voltage needs to
+>>> be queried.
+>>>> And OPP layer is best placed to provide the info... without
+>>> duplication.
+>>>> The mechanism of changing the voltage itself can vary on the PMIC.
+>>>>
+>>>> BTW, I am getting ready to submit an updated patch for mpurate. Just
+>>>> waiting for an early resolution to this discussion.
+>>>
+>>> aye, I am aware of the concept here, just questioning what
+>>> does it mean
+>>> by setting mpurate to the kernel - it could mean two things:
+>>> a) mean this is mpurate that the system was working on (aka)
+>>> - now setup
+>>> the required stuff to continue to function at that rate.
+>>> b) go to this rate and forget where you were running at.
+>>>
+>>> the job of ondemand and other governors is to adjust to an
+>>> optimal OPP
+>>> using cpufreq which would conflict IMHO with (b), which kinda
+>>> questions
+>>> if you dont use cpufreq, does mpurate mean actually (a)?
+>>
+>> 'mpurate' is usually used when cpufreq is not required. It
+>> means - set me up for the specified freq and forget it. There
+>> is no further change needed/ possible.
+> That opens up the question - why not use cpufreq with userspace governor instead? Esp if u dont want a change in freq, ok i get the part where u'd like a single freq for the system to function at, but u also mention, mpurate is for systems that dont care abt any other dependencies. So, bit of a contradiction if it depends on scaling voltage to the right level aka u are selecting an freq from opp table.
+>
+> This in my mind means u shud modify mpurate to use opp layer aka another user beyond cpufreq.
+>
+> [sp] That what the discussion is all about. but currently the opp layer is hidden/ wrapped inside CONFIG_CPU_FREQ.
+ > And I want to move it out. See an earlier patch that I send to this 
+effect.
 
-I'm not sure "other people are shipping without them" is such a good
-metric, especially for scheduler features.  For some reason (I have some
-ideas what it might be, but I won't speculate here) people don't like
-messing with the scheduler in mainline, even though there's a lot of
-special cases where a bit of messing with the scheduler (or replacing
-it outright) goes a long way toward qualitatively improving performance
-on some workloads.
+http://marc.info/?l=linux-omap&m=127496850617818&w=2 ? or did i miss the 
+link? might be good to point to the right patch.. the opp layer 
+initially was not under CONFIG_CPU_FREQ, it was moved after debate in 
+this list. if there is a reason to move it out, i dont see why we cant 
+do it..
 
-I'd love to have several more ways to have large classes of processes stop
-executing, and stay stopped, even though traditional Unix and mainline
-Linux would try to run them.  I don't want to put knowledge of this into
-every application I run since there are literally thousands of them,
-and IMNSHO it's not even an application's responsibility to know this
-kind of thing.  The "sort" program can't know what QoS to ask for in any
-sane system design.  The best it can do is try to execute as hard as it
-can whenever the kernel lets it, and have some other application advise
-the kernel about how much or how little service (including cases like
-"no service at all") the sort program should get from the system.
+>
+>>
+>> You could always argue that it can be done in u-boot; but this
+>> bootarg helps people choose target freq keeping the u-boot same.
+>
+> Errr..... Makes me feel that u shud really be using cpufreq instead!
+> [sp] This bootarg is meant for setting frequency. without baggage of cpufreq; so why not use it?
+>
+>   Either way i am not completely convinced u shud be doing voltage scaling when using mpurate given ur description-
+> [sp] So how would I run the 3530 at 720MHZ when the VDD1 is only 1.2V OR 3630 at 1GHz via 'mpurate'? Do you expect it to run magically :)
 
-To choose a random example, I'd like a "duty cycle" constraint on
-process execution (i.e. a runnable task must execute between L and M ns
-per N ns interval--stealing slices from lower priority processes if it
-doesn't get enough and isn't blocked on I/O, and leaving the CPU idle even
-though the process is runnable if it gets too much).  I usually want to
-apply this kind of limit to programs like Firefox, because Firefox is a)
-big enough that controlling it actually matters for power consumption,
-b) sensitive enough to user interaction latency that I want it to have
-fairly high CPU priority when it has something to do, and c) big and
-complex enough that I wouldn't want to try to adjust its behavior by
-modifying its source.  Also, Firefox's behavior tends to be driven by
-the data it pulls from random web sites, over which I have no control
-whatsoever, and many of them are intentionally wasteful.
+I dont really care either way in reality, for me, cpufreq can:
+a) set a single freq,
+b) change frequencies dynamically.
+Vs:
+mpurate sets a single freq.
 
-I'm not willing to run a non-mainline kernel (or Firefox, for that
-matter) just to get that feature, and I'm not willing to submit patches
-to mainline if I've seen nearly identical ideas rejected recently, so I
-live without the feature for now.  This implies that the statistic for
-"people running desirable scheduler features" is at least one lower than
-the statistic for "people who would use desirable scheduler features if
-they didn't have to hack up non-mainline kernels to get them."
+the way to set voltage will be to use the new voltage layer, if we 
+isolate the frequencies to the opp layer, no reason why mpurate cant 
+query for valid ones and use them.
 
-I can hack up something that does something similar to duty cycle in
-user-space, but it's got a lot of problems:
 
-	- when you send SIGSTOP/SIGCONT to a process, it wakes up its
-	parent through waitpid() (well, you can partially get around
-	this with ptrace(), but that raises other issues),
+my point of contention was: is mpurate meant for bootloader telling what 
+configuration it is on to kernel, hence kernel continuing that 
+configuration Vs, bootloader using mpurate to tell kernel what frequency 
+it should run on. thanks it is clarified now that it is the later of the 
+two.
 
-	- it's racy wrt fork(),
+>
+> if u are trying to write a new cpufreq layer, why not fix why cpufreq doesn't work for u and help the rest of us as well ;)
+> [sp] There is no mention of cpufreq not working; but specifically the support of bootarg "mpurate" which is independent of cpufreq.
+>
+> The bootarg mpurate has been existing since quite sometime. I am neither creating a new layer / replacement
+ >for cpufreq not trying to duplicate the code. The intent is simply as 
+stated below:
+>
+> 1) Expose OPP layer - don't hinde it under CONFIG_CPU_FREQ.
+ok with this
+>
+> 2) Use OPP layer to:
+>      - Validate that the requested mpurate is defined in the OPP table for the device
+>      - And get the voltage corresponding to the OPP.
+sounds good too
+>
+> 3) Ensure that right freq and voltage is set - at init time - based on the mpurate.
+ok
 
-	- it can't opportunistically schedule process execution,
-	e.g. during times when the CPU is idle at high clock rates,
+>
+> 4) And at some poit later break the linkage between op player amd PMIC.
+>
+aah you mean a simple patch as follows?
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 2b9ebf0..bfb3d0e 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -16,7 +16,8 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+  # XXX The OPP TWL/TPS code should only be included when a TWL/TPS
+  # PMIC is selected.
+  ifdef CONFIG_CPU_FREQ
+-obj-$(CONFIG_ARCH_OMAP3) += opp.o opp_twl_tps.o
++obj-$(CONFIG_ARCH_OMAP3) += opp.o
++obj-$(CONFIG_TWL4030_CORE) += opp_twl_tps.o
+  endif
 
-	- sufficiently badly behaved processes are able to escape
-	the CPU usage regulation mechanism, and
+  # omap_device support (OMAP2+ only at the moment)
+--
+note - opp layer was never tied to pmic -> there is pmic voltage 
+conversion apis in opp_twl_tps.c
 
-	- estimating how much global CPU has been used as a percentage of
-	real time is easy, but how much CPU relative to other processes
-	running on the system is not.  I keep doing math like "subtract
-	aggregate process CPU usage from global CPU usage" and getting
-	numbers outside the range of 0..100% of global CPU usage.
+or is there more in your view?
 
-Also, for non-trivial cases, the user-space CPU management process
-consumes more CPU than any other process on the system, and keeps waking
-up the CPU every N and M ns, even if the process being scheduled isn't
-runnable.  
+>>
+>>>
+>>> anyways for cpufreq to work at 720Mhz, you need to add that frequency
+>>> and corresponding voltage to the opptable, neither exists, further
+>>> mpurate should work with opp table as well, else
+>>> clockframework has no
+>>> direct mechanism to verify the valid OPPs on a runtime
+>>> system. that was
+>>> the intent of opp layer - to provide the rest of the users with a
+>>> mechanism to verify, query and use opps without functional
+>>> knowledge of
+>>> the silicon it works on..
 
-Simply providing better information to userspace to help a regulator
-application of this kind would be a huge leap in the right direction.
+ofcourse, please feel free to post a patch for the missing frequencies.
 
-Arguably I could run the applications I want to throttle under KVM,
-and hack up the KVM to manage the CPU usage; however, that's hardly
-transparent to the application, which is now running on the wrong machine
-for a lot of what it wants to do.
 
-So instead of fixing the software, I have an extra-large third-party
-battery on my laptop.  It's a cheaper solution on small (one user) scales.
-I can't ship a competitive product with that kind of problem, though.
-
-Having said all that, I'm fairly sure suspend blockers aren't the way to
-get it.  I'd much rather have interesting QoS constraint features,
-including new conditions under which to not run otherwise runnable tasks.
-Maybe ionice and SCHED_IDLEPRIO on steroids?
+Regards,
+Nishanth Menon
