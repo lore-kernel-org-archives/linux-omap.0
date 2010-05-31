@@ -1,462 +1,115 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 3/9] OMAP2/3/4 : Dual mode timer device registration.
-Date: Mon, 31 May 2010 01:02:55 +0200
-Message-ID: <4C02EE9F.70305@ti.com>
-References: <1275143831-7629-1-git-send-email-thara@ti.com> <1275143831-7629-2-git-send-email-thara@ti.com> <1275143831-7629-3-git-send-email-thara@ti.com> <1275143831-7629-4-git-send-email-thara@ti.com>
+From: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Sun, 30 May 2010 21:57:10 -0400
+Message-ID: <20100531015710.GA24917@gibbs.hungrycats.org>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+ <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+ <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+ <20100527220949.GB10602@srcf.ucam.org>
+ <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+ <AANLkTil6Bo7qZltbLzHJjIDyruKHFQEURpe5LPJEpTws@mail.gmail.com>
+ <20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45131 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751266Ab0E3XDB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 30 May 2010 19:03:01 -0400
-In-Reply-To: <1275143831-7629-4-git-send-email-thara@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100528101755.7b5f6b8a@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>
 
-Hi Thara,
+On Fri, May 28, 2010 at 10:17:55AM +0100, Alan Cox wrote:
+> > Android does not only run on phones. It is possible that no android
+> > devices have ACPI, but I don't know that for a fact. What I do know is
+> > that people want to run Android on x86 hardware and supporting suspend
+> > could be very benficial.
+> 
+> Sufficently beneficial to justify putting all this stuff all over the
+> kernel and apps ? That is a *very* high hurdle, doubly so when those
+> vendors who have chosen to be part of the community are shipping phones
+> and PDAs just fine without them.
 
-On 5/29/2010 4:37 PM, Gopinath, Thara wrote:
-> This patch converts OMAP2/OMAP3/OMAP4 dual mode timers into
-> platform devices using omap hwmod, omap device and runtime pm frameworks.
-> This patch also allows GPTIMER1 and GPTIMER2 to be registered as
-> early devices. This will allow GPTIMER1 to be registered as
-> system timer very early on in the system boot up sequence.
-> Later during normal plaform_device_register these are converted
-> to normal platform device.
->
-> Signed-off-by: Thara Gopinath<thara@ti.com>
-> ---
->   arch/arm/mach-omap2/Makefile   |    3 +-
->   arch/arm/mach-omap2/dmtimers.c |  296 ++++++++++++++++++++++++++++++++++++++++
->   arch/arm/mach-omap2/dmtimers.h |   57 ++++++++
->   arch/arm/mach-omap2/timer-gp.c |    2 -
->   4 files changed, 355 insertions(+), 3 deletions(-)
->   create mode 100644 arch/arm/mach-omap2/dmtimers.c
->   create mode 100644 arch/arm/mach-omap2/dmtimers.h
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index dd3a24a..9299e4f 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -3,7 +3,8 @@
->   #
->
->   # Common support
-> -obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
-> +obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o \
-> +       dmtimers.o
->
->   omap-2-3-common                                = irq.o sdrc.o
->   hwmod-common                           = omap_hwmod.o \
-> diff --git a/arch/arm/mach-omap2/dmtimers.c b/arch/arm/mach-omap2/dmtimers.c
-> new file mode 100644
-> index 0000000..6a2caf3
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/dmtimers.c
-> @@ -0,0 +1,296 @@
-> +/**
-> + * OMAP2 Dual-Mode Timers
-> + *
-> + * Copyright (C) 2010 Texas Instruments, Inc.
-> + * Thara Gopinath<thara@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include<linux/clk.h>
-> +#include<linux/delay.h>
-> +#include<linux/io.h>
-> +#include<linux/err.h>
-> +#include<linux/slab.h>
-> +#include<linux/pm_runtime.h>
-> +
-> +#include<mach/irqs.h>
-> +#include<plat/dmtimer.h>
-> +#include<plat/omap_hwmod.h>
-> +#include<plat/omap_device.h>
-> +
-> +#include "dmtimers.h"
-> +
-> +#define NO_EARLY_TIMERS                        2
-The "NO_" is a little bit confusing, you should maybe use _COUNT.
+I'm not sure "other people are shipping without them" is such a good
+metric, especially for scheduler features.  For some reason (I have some
+ideas what it might be, but I won't speculate here) people don't like
+messing with the scheduler in mainline, even though there's a lot of
+special cases where a bit of messing with the scheduler (or replacing
+it outright) goes a long way toward qualitatively improving performance
+on some workloads.
 
-> +#define OMAP2_DM_TIMER_COUNT           12
-> +#define OMAP3PLUS_DM_TIMER_COUNT       11
-Why do you need such SoC specific info hard coded here?
-You should extract that from hwmod data.
+I'd love to have several more ways to have large classes of processes stop
+executing, and stay stopped, even though traditional Unix and mainline
+Linux would try to run them.  I don't want to put knowledge of this into
+every application I run since there are literally thousands of them,
+and IMNSHO it's not even an application's responsibility to know this
+kind of thing.  The "sort" program can't know what QoS to ask for in any
+sane system design.  The best it can do is try to execute as hard as it
+can whenever the kernel lets it, and have some other application advise
+the kernel about how much or how little service (including cases like
+"no service at all") the sort program should get from the system.
 
-> +
-> +static char *omap2_dm_source_names[] __initdata = {
-> +       "sys_ck",
-> +       "func_32k_ck",
-> +       "alt_ck",
-> +       NULL
-> +};
-> +static struct clk *omap2_dm_source_clocks[3];
-> +
-> +static char *omap3_dm_source_names[] __initdata = {
-> +       "sys_ck",
-> +       "omap_32k_fck",
-> +       NULL
-> +};
-> +static struct clk *omap3_dm_source_clocks[2];
-> +
-> +static char *omap4_dm_source_names[] __initdata = {
-> +       "sys_ck",
-> +       "sys_32k_ck",
-> +       NULL
-> +};
-> +static struct clk *omap4_dm_source_clocks[2];
-> +
-> +static struct clk **omap_dm_source_clocks;
-> +
-> +static void omap2_dm_timer_enable(struct platform_device *pdev)
-> +{
-> +
-> +       if (pm_runtime_get_sync(&pdev->dev))
-> +               dev_warn(&pdev->dev, "%s: Unable to enable the timer\n",
-> +                       __func__);
-> +#ifndef CONFIG_PM_RUNTIME
-> +       if (omap_device_enable(pdev))
-> +               dev_warn(&pdev->dev, "%s: Unable to enable the timer\n",
-> +                       __func__);
-> +#endif
-> +}
-> +
-> +static void omap2_dm_timer_disable(struct platform_device *pdev)
-> +{
-> +
-> +       if (pm_runtime_put_sync(&pdev->dev))
-> +               dev_warn(&pdev->dev, "%s: Unable to disable the timer\n",
-> +                       __func__);
-> +#ifndef CONFIG_PM_RUNTIME
-> +       if (omap_device_idle(pdev))
-> +               dev_warn(&pdev->dev, "%s: Unable to disable the timer\n",
-> +                       __func__);
-> +#endif
-> +}
-> +
-> +static int omap2_dm_timer_set_src(struct platform_device *pdev,
-> +                                       struct clk *timer_clk, int source)
-> +{
-> +       int ret;
-> +
-> +       if (IS_ERR(timer_clk)) {
-> +               dev_warn(&pdev->dev, "%s: Not able get the clock pointer\n",
-> +                       __func__);
-> +               return -EINVAL;
-> +       }
-> +
-> +       clk_disable(timer_clk);
-> +       ret = clk_set_parent(timer_clk, omap_dm_source_clocks[source]);
-> +       if (ret)
-> +               dev_warn(&pdev->dev, "%s: Not able to change the"
-> +                       "fclk source\n", __func__);
-> +
-> +       clk_enable(timer_clk);
-> +       /*
-> +        * When the functional clock disappears, too quick writes seem
-> +        * to cause an abort. XXX Is this still necessary?
-> +        */
-Good question... it is still necessary? Do you know what platform has 
-that bug?
+To choose a random example, I'd like a "duty cycle" constraint on
+process execution (i.e. a runnable task must execute between L and M ns
+per N ns interval--stealing slices from lower priority processes if it
+doesn't get enough and isn't blocked on I/O, and leaving the CPU idle even
+though the process is runnable if it gets too much).  I usually want to
+apply this kind of limit to programs like Firefox, because Firefox is a)
+big enough that controlling it actually matters for power consumption,
+b) sensitive enough to user interaction latency that I want it to have
+fairly high CPU priority when it has something to do, and c) big and
+complex enough that I wouldn't want to try to adjust its behavior by
+modifying its source.  Also, Firefox's behavior tends to be driven by
+the data it pulls from random web sites, over which I have no control
+whatsoever, and many of them are intentionally wasteful.
 
-> +       __delay(150000);
-> +       return ret;
-> +}
-> +
-> +static int omap2_dm_timer_set_clk(struct platform_device *pdev, int source)
-> +{
-> +       struct clk *timer_clk = clk_get(&pdev->dev, "fck");
-> +
-> +       return omap2_dm_timer_set_src(pdev, timer_clk, source);
-> +}
-> +
-> +static struct clk *omap2_dm_timer_get_fclk(struct platform_device *pdev)
-> +{
-> +       return clk_get(&pdev->dev, "fck");
-> +}
-> +
-> +/* API's to be used by early timer devices */
-> +static void __init omap2_dm_early_timer_enable(struct platform_device *pdev)
-> +{
-> +       if (omap_device_enable(pdev))
-> +               dev_warn(&pdev->dev, "%s: Unable to enable the timer\n",
-> +                       __func__);
-> +}
-> +
-> +static void __init omap2_dm_early_timer_disable(struct platform_device *pdev)
-> +{
-> +       if (omap_device_idle(pdev))
-> +               dev_warn(&pdev->dev, "%s: Unable to disable the timer\n",
-> +                       __func__);
-> +}
-> +
-> +static int __init omap2_dm_early_timer_set_clk(struct platform_device *pdev,
-> +                                       int source)
-> +{
-> +       struct omap_device *odev = to_omap_device(pdev);
-> +
-> +       return omap2_dm_timer_set_src(pdev, odev->hwmods[0]->_clk, source);
-We should maybe consider some new omap_device accessors in order to 
-avoid direct access to internal hwmod attribute from that code.
+I'm not willing to run a non-mainline kernel (or Firefox, for that
+matter) just to get that feature, and I'm not willing to submit patches
+to mainline if I've seen nearly identical ideas rejected recently, so I
+live without the feature for now.  This implies that the statistic for
+"people running desirable scheduler features" is at least one lower than
+the statistic for "people who would use desirable scheduler features if
+they didn't have to hack up non-mainline kernels to get them."
 
-> +}
-> +
-> +static struct clk __init *omap2_dm_early_timer_get_fclk
-> +                               (struct platform_device *pdev)
-> +{
-> +       struct omap_device *odev = to_omap_device(pdev);
-> +
-> +       return odev->hwmods[0]->_clk;
-> +}
-> +
-> +/* One time initializations */
-> +static void __init omap2_dm_timer_setup(void)
-> +{
-> +       static int is_initialized;
-> +       char **src_clk_name;
-> +       int i;
-> +
-> +       /*
-> +        * Check if setup has already been done as part of early init.
-> +        * If yes avoid doing it again.
-> +        */
-> +       if (is_initialized)
-> +               return;
-> +
-> +       if (cpu_is_omap24xx()) {
-> +               src_clk_name = omap2_dm_source_names;
-> +               omap_dm_source_clocks = omap2_dm_source_clocks;
-> +       } else if (cpu_is_omap34xx()) {
-> +               src_clk_name = omap3_dm_source_names;
-> +               omap_dm_source_clocks = omap3_dm_source_clocks;
-> +       } else if (cpu_is_omap44xx()) {
-> +               src_clk_name = omap4_dm_source_names;
-> +               omap_dm_source_clocks = omap4_dm_source_clocks;
-> +       } else {
-> +               pr_err("%s: Chip support not yet added\n", __func__);
-> +               return;
+I can hack up something that does something similar to duty cycle in
+user-space, but it's got a lot of problems:
 
-I don't know how yet, but there is probably a better way to handle that 
-SoC specific part. We have to do that just because the clocks names  are 
-not consistent between chip.
-Using hwmod, there is probably something doable...
+	- when you send SIGSTOP/SIGCONT to a process, it wakes up its
+	parent through waitpid() (well, you can partially get around
+	this with ptrace(), but that raises other issues),
 
-> +
-> +
-> +       /* Initialize the dmtimer src clocks */
-> +       for (i = 0; src_clk_name[i] != NULL; i++)
-> +                       omap_dm_source_clocks[i] =
-> +                               clk_get(NULL, src_clk_name[i]);
-> +
-> +       /* Number of dmtimers in the system */
-> +       if (cpu_is_omap24xx())
-> +               omap_dm_timer_count = OMAP2_DM_TIMER_COUNT;
-> +       else
-> +               omap_dm_timer_count = OMAP3PLUS_DM_TIMER_COUNT;
-> +
-> +       is_initialized = 1;
-> +}
-> +
-> +struct omap_device_pm_latency omap2_dmtimer_latency[] = {
-> +       {
-> +       .deactivate_func = omap_device_idle_hwmods,
-> +       .activate_func   = omap_device_enable_hwmods,
-> +       .flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> +
-> +       },
-> +};
-> +
-> +int __init omap2_get_early_timer_count(void)
-> +{
-> +       return NO_EARLY_TIMERS;
-> +}
-> +
-> +void __init omap2_dm_timer_early_init(void)
-> +{
-> +       int i = 0;
-> +       char *name = "dmtimer";
-> +       do {
-> +               struct omap_device *od;
-> +               struct omap_hwmod *oh;
-> +               int hw_mod_name_len = 16;
-> +               char oh_name[hw_mod_name_len];
-> +               struct omap_dm_timer_plat_info *pdata;
-> +
-> +               snprintf(oh_name, hw_mod_name_len, "timer%d", i + 1);
-> +               oh = omap_hwmod_lookup(oh_name);
-> +               if (!oh)
-> +                       break;
-> +
-> +               pdata = kzalloc(sizeof(struct omap_dm_timer_plat_info),
-> +                               GFP_KERNEL);
-> +               if (!pdata) {
-> +                       pr_err("%s: Unable to allocate pdata for %s:%s\n",
-> +                               __func__, name, oh->name);
-> +                       return;
-> +               }
-> +
-> +               pdata->omap_dm_clk_enable = omap2_dm_early_timer_enable;
-> +               pdata->omap_dm_clk_disable = omap2_dm_early_timer_disable;
-> +               pdata->omap_dm_set_source_clk = omap2_dm_early_timer_set_clk;
-> +               pdata->omap_dm_get_timer_clk = omap2_dm_early_timer_get_fclk;
-> +
-> +               od = omap_device_build(name, i, oh, pdata, sizeof(*pdata),
-> +                               omap2_dmtimer_latency,
-> +                               ARRAY_SIZE(omap2_dmtimer_latency), 1);
-> +               if (IS_ERR(od)) {
-> +                       pr_err("%s: Cant build omap_device for %s:%s.\n",
-> +                               __func__, name, oh->name);
-> +                       kfree(pdata);
-> +               }
-> +               i++;
-> +       } while (i<  NO_EARLY_TIMERS);
-> +
-> +       omap2_dm_timer_setup();
-> +       return;
-> +}
-> +
-> +static int __init omap2_dm_timer_init_dev(struct omap_hwmod *oh, void *user)
-> +{
-> +       struct omap_device *od;
-> +       struct omap_dm_timer_plat_info *pdata;
-> +       static int i;
-> +       char *name = "dmtimer";
-> +
-> +       pdata = kzalloc(sizeof(struct omap_dm_timer_plat_info), GFP_KERNEL);
-> +       if (!pdata) {
-> +               pr_err("%s: Unable to allocate pdata for %s:%s\n",
-> +                       __func__, name, oh->name);
-> +               return -ENOMEM;
-> +       }
-> +
-> +       pdata->omap_dm_clk_enable = omap2_dm_timer_enable;
-> +       pdata->omap_dm_clk_disable = omap2_dm_timer_disable;
-> +       pdata->omap_dm_set_source_clk = omap2_dm_timer_set_clk;
-> +       pdata->omap_dm_get_timer_clk = omap2_dm_timer_get_fclk;
-> +
-> +       od = omap_device_build(name, i, oh, pdata, sizeof(*pdata),
-> +                       omap2_dmtimer_latency,
-> +                       ARRAY_SIZE(omap2_dmtimer_latency), 0);
-> +       if (IS_ERR(od)) {
-> +               pr_err("%s: Cant build omap_device for %s:%s.\n",
-> +                       __func__, name, oh->name);
-> +               kfree(pdata);
-> +               i++;
-> +               return 0;
-> +       }
-> +       pm_runtime_enable(&(od->pdev.dev));
-> +       i++;
-> +       return 0;
-> +}
-> +
-> +static int __init omap2_dm_timer_init(void)
-> +{
-> +       int ret;
-> +
-> +       omap2_dm_timer_setup();
-> +
-> +       ret = omap_hwmod_for_each_by_class("timer_1ms",
-> +                       omap2_dm_timer_init_dev, NULL);
-> +
-> +       ret |= omap_hwmod_for_each_by_class("timer",
-> +                       omap2_dm_timer_init_dev, NULL);
-> +       return ret;
-> +}
-> +arch_initcall(omap2_dm_timer_init);
-> diff --git a/arch/arm/mach-omap2/dmtimers.h b/arch/arm/mach-omap2/dmtimers.h
-> new file mode 100644
-> index 0000000..dbc2b9d
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/dmtimers.h
-> @@ -0,0 +1,57 @@
-> +/**
-> + * OMAP2 Dual-Mode Timers
-> + *
-> + * Copyright (C) 2010 Texas Instruments, Inc.
-> + * Thara Gopinath<thara@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef __ASM_ARCH_DMTIMERS_H
-> +#define __ASM_ARCH_DMTIMERS_H
-> +
-> +#define OMAP2420_GPTIMER1_BASE         0x48028000
-> +#define OMAP2430_GPTIMER1_BASE         0x49018000
-> +#define OMAP24XX_GPTIMER2_BASE          0x4802a000
-> +#define OMAP24XX_GPTIMER3_BASE          0x48078000
-> +#define OMAP24XX_GPTIMER4_BASE          0x4807a000
-> +#define OMAP24XX_GPTIMER5_BASE          0x4807c000
-> +#define OMAP24XX_GPTIMER6_BASE          0x4807e000
-> +#define OMAP24XX_GPTIMER7_BASE          0x48080000
-> +#define OMAP24XX_GPTIMER8_BASE          0x48082000
-> +#define OMAP24XX_GPTIMER9_BASE          0x48084000
-> +#define OMAP24XX_GPTIMER10_BASE         0x48086000
-> +#define OMAP24XX_GPTIMER11_BASE         0x48088000
-> +#define OMAP24XX_GPTIMER12_BASE         0x4808a000
-> +
-> +#define OMAP34XX_GPTIMER1_BASE         0x48318000
-> +#define OMAP34XX_GPTIMER2_BASE         0x49032000
-> +#define OMAP34XX_GPTIMER3_BASE         0x49034000
-> +#define OMAP34XX_GPTIMER4_BASE         0x49036000
-> +#define OMAP34XX_GPTIMER5_BASE         0x49038000
-> +#define OMAP34XX_GPTIMER6_BASE         0x4903A000
-> +#define OMAP34XX_GPTIMER7_BASE         0x4903C000
-> +#define OMAP34XX_GPTIMER8_BASE         0x4903E000
-> +#define OMAP34XX_GPTIMER9_BASE         0x49040000
-> +#define OMAP34XX_GPTIMER10_BASE                0x48086000
-> +#define OMAP34XX_GPTIMER11_BASE                0x48088000
-> +#define OMAP34XX_GPTIMER12_BASE                0x48304000
-> +
-> +#define OMAP44XX_GPTIMER1_BASE         0x4a318000
-> +#define OMAP44XX_GPTIMER2_BASE          0x48032000
-> +#define OMAP44XX_GPTIMER3_BASE          0x48034000
-> +#define OMAP44XX_GPTIMER4_BASE          0x48036000
-> +#define OMAP44XX_GPTIMER5_BASE          0x40138000
-> +#define OMAP44XX_GPTIMER6_BASE          0x4013a000
-> +#define OMAP44XX_GPTIMER7_BASE          0x4013a000
-> +#define OMAP44XX_GPTIMER8_BASE          0x4013e000
-> +#define OMAP44XX_GPTIMER9_BASE          0x4803e000
-> +#define OMAP44XX_GPTIMER10_BASE         0x48086000
-> +#define OMAP44XX_GPTIMER11_BASE         0x48088000
-> +#define OMAP44XX_GPTIMER12_BASE         0x4a320000
-If these defines are only used for the hwmod definition, they should be 
-moved to a per Soc memory map file.
+	- it's racy wrt fork(),
 
-Benoit
+	- it can't opportunistically schedule process execution,
+	e.g. during times when the CPU is idle at high clock rates,
 
-> +
-> +void __init omap2_dm_timer_early_init(void);
-> +int __init omap2_get_early_timer_count(void);
-> +#endif
-> diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-> index 74fbed8..d5f2ba7 100644
-> --- a/arch/arm/mach-omap2/timer-gp.c
-> +++ b/arch/arm/mach-omap2/timer-gp.c
-> @@ -231,8 +231,6 @@ static void __init omap2_gp_timer_init(void)
->          twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
->          BUG_ON(!twd_base);
->   #endif
-> -       omap_dm_timer_init();
-> -
->          omap2_gp_clockevent_init();
->          omap2_gp_clocksource_init();
->   }
-> --
-> 1.7.0.rc1.33.g07cf0f
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	- sufficiently badly behaved processes are able to escape
+	the CPU usage regulation mechanism, and
 
+	- estimating how much global CPU has been used as a percentage of
+	real time is easy, but how much CPU relative to other processes
+	running on the system is not.  I keep doing math like "subtract
+	aggregate process CPU usage from global CPU usage" and getting
+	numbers outside the range of 0..100% of global CPU usage.
+
+Also, for non-trivial cases, the user-space CPU management process
+consumes more CPU than any other process on the system, and keeps waking
+up the CPU every N and M ns, even if the process being scheduled isn't
+runnable.  
+
+Simply providing better information to userspace to help a regulator
+application of this kind would be a huge leap in the right direction.
+
+Arguably I could run the applications I want to throttle under KVM,
+and hack up the KVM to manage the CPU usage; however, that's hardly
+transparent to the application, which is now running on the wrong machine
+for a lot of what it wants to do.
+
+So instead of fixing the software, I have an extra-large third-party
+battery on my laptop.  It's a cheaper solution on small (one user) scales.
+I can't ship a competitive product with that kind of problem, though.
+
+Having said all that, I'm fairly sure suspend blockers aren't the way to
+get it.  I'd much rather have interesting QoS constraint features,
+including new conditions under which to not run otherwise runnable tasks.
+Maybe ionice and SCHED_IDLEPRIO on steroids?
