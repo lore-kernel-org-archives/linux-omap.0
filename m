@@ -1,196 +1,115 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 6/6] omap: move generic omap3 features to generic
-Date: Mon, 31 May 2010 22:18:14 +0300
-Message-ID: <4C040B76.2090605@ti.com>
-References: <1274585799-16226-1-git-send-email-nm@ti.com>	<1274585799-16226-2-git-send-email-nm@ti.com>	<1274585799-16226-3-git-send-email-nm@ti.com>	<1274585799-16226-4-git-send-email-nm@ti.com>	<1274585799-16226-5-git-send-email-nm@ti.com>	<1274585799-16226-6-git-send-email-nm@ti.com>	<1274585799-16226-7-git-send-email-nm@ti.com>	<AANLkTinsrRAYX4dvB8A8wPayfRc7wkULQtUSiJ9RxbWh@mail.gmail.com>	<4BFE9C14.9040703@ti.com>	<AANLkTinHOZXk9pYeSfsBiejU7x1w-rA2MRtC4BBoKK0r@mail.gmail.com>	<4C03ED47.6060308@gmail.com> <AANLkTin32ueXXPjVFbLt-cur2WlmFOmgPj6Zlr47tuff@mail.gmail.com>
+From: Florian Mickler <florian@mickler.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Mon, 31 May 2010 22:12:19 +0200
+Message-ID: <20100531221219.212bf119@schatten.dmk.lab>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	<20100527220949.GB10602@srcf.ucam.org>
+	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100527223605.GB11364@srcf.ucam.org>
+	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+	<20100528043114.GC26177@thunk.org>
+	<1275030704.32462.11.camel@laptop>
+	<AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>
+	<1275120618.27810.12699.camel@twins>
+	<1275149418.4503.128.camel@mulgrave.site>
+	<1275156734.1645.496.camel@laptop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="------------000203030703080201060208"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60267 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576Ab0EaTS1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 15:18:27 -0400
-In-Reply-To: <AANLkTin32ueXXPjVFbLt-cur2WlmFOmgPj6Zlr47tuff@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1275156734.1645.496.camel@laptop>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: James Bottomley <James.Bottomley@suse.de>, Arve =?ISO-8859-15?Q?Hj=F8n?= =?ISO-8859-15?Q?nev=E5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: Nishanth Menon <menon.nishanth@gmail.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
---------------000203030703080201060208
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sat, 29 May 2010 20:12:14 +0200
+Peter Zijlstra <peterz@infradead.org> wrote:
 
-On 05/31/2010 09:46 PM, S, Venkatraman wrote:
-> I understand that you might not have all platforms to test with, but
-> let's not provide a
-> 'generic feature api' without it being available for the supported platforms.
-> It's incomplete without it.
-well.. if you did read 0/6
-http://marc.info/?l=linux-omap&m=127458581708411&w=2
-"Caveat: this series just introduces the framework by reorganizing
-the existing data, it does not attempt to define what the features
-for OMAP1,2,3,4 would be. As usual, comments are welcome.
-"
-:) anyways, these are how the three follow on patches will look like 
-(sample omap1,2,4 patches are attached), feel free to ack them after 
-testing - but this patch 6/6 needs to be done prior to the remaining 
-being added - that is one more reason why i stopped where I did.
+> On Sat, 2010-05-29 at 11:10 -0500, James Bottomley wrote:
+> > > Correct, I strongly oppose using suspend. Not running runnable tasks is
+> > > not a sane solution.
+> > 
+> > Look, this is getting into the realms of a pointless semantic quibble.
+> > The problem is that untrusted tasks need to be forcibly suspended when
+> > they have no legitimate work to do and the user hasn't authorised them
+> > to continue even if the scheduler sees them as runnable.  Whether that's
+> > achieved by suspending the entire system or forcibly idling the tasks
+> > (using blocking states or freezers or something) so the scheduler can
+> > suspend from idle is something to be discussed,
+> 
+> So what happens if you task is CPU bound and gets suspended and is
+> holding a resource (lock, whatever) that is required by someone else
+> that didn't get suspended?
+> 
+> That's the classic inversion problem, and is caused by not running
+> runnable tasks.
 
-Feel free to modify to rectify my patches and post good ones, as you 
-see, you will need to do 6/6 before doing anything further anyways..
+The trick with the approach currently discussed (i.e.
+opportunistic suspend, if you missed it): We suspend the whole machine.
 
-Regards,
-Nishanth Menon
+And I really think, this is the only way to do it. It is a big hammer,
+shure. But if you can pull it of... 
 
---------------000203030703080201060208
-Content-Type: text/x-patch;
-	name="0001-id-omap-introduce-omap4-feature.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="0001-id-omap-introduce-omap4-feature.patch"
+> 
+> >  but the net result is
+> > that we have to stop a certain set of tasks in such a way that they can
+> > still receive certain external events ... semantically, this is
+> > equivalent to not running runnable tasks in my book.
+> 
+> Why would be care about external events? Clearly these apps are ill
+> behaved, otherwise they would have listened to the environment telling
+> them to idle.
+> 
+> Why would you try to let buggy apps work as intended instead of break
+> them as hard as possible? Such policy promotes crappy code since people
+> get away with it.
 
->From a4f7d23139f8ccfc6b0e910017a759faa0d59578 Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Mon, 31 May 2010 14:03:28 -0500
-Subject: [PATCH 1/3] omap: id: introduce omap4 feature
+If I have a simple shell script then I don't wanna jump through
+hoops just to please your fragile kernel. 
 
-introduce basic omap4 feature framework
+And before you judge code that does not behave to work with YOUR buggy
+kernel, i would think twice. This cuts both ways. Just because the
+problem is too hard for you, this does not excuse forcing crappy
+kernels on other people. 
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-CAVEAT: COMPLETELY UNTESTED!!!
- arch/arm/mach-omap2/id.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+I think you have a point in that it is _in general_ not easily
+possible to solve. But for this case this is clearly a simple, to the
+point and working solution for android based phones. 
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 01555b6..e3f5994 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -267,6 +267,19 @@ static void __init omap3_check_revision(void)
- 	}
- }
- 
-+static void __init omap4_check_features(void)
-+{
-+	/*
-+	 * TODO: add a better check feature once we have
-+	 * more decent feature check
-+	 */
-+	if (cpu_is_omap4430())
-+		omap_features |= OMAP_HAS_L2CACHE |
-+			OMAP_HAS_IVA |
-+			OMAP_HAS_SGX |
-+			OMAP_HAS_NEON;
-+}
-+
- static void __init omap4_check_revision(void)
- {
- 	u32 idcode;
-@@ -382,6 +395,7 @@ void __init omap2_check_revision(void)
- 		return;
- 	} else if (cpu_is_omap44xx()) {
- 		omap4_check_revision();
-+		omap4_check_features();
- 		return;
- 	} else {
- 		pr_err("OMAP revision unknown, please fix!\n");
--- 
-1.6.3.3
+"Der Wurm muss dem Fisch schmecken, nicht dem Angler." 
 
+> 
+> >  (Perhaps this whole
+> > thing is because the word runnable means different things ... I'm
+> > thinking a task that would consume power ... are you thinking in the
+> > scheduler R state?)
+> 
+> Clearly I mean TASK_RUNNABLE, if not that the scheduler doesn't care.
+> 
+> > Realistically, the main thing we need to do is stop timers posted
+> > against the task (which is likely polling in a main loop, that being the
+> > usual form of easy to write but power crazy app behaviour) from waking
+> > the task and bringing the system out of suspend (whether from idle or
+> > forced).
+> 
+> Sure, that same main loop will probably receive a message along the
+> lines of, 'hey, screen is off, we ought to go sleep'. If after that it
+> doesn't listen, and more serious messages don't get responded to, simply
+> kill the thing.
 
---------------000203030703080201060208
-Content-Type: text/x-patch;
-	name="0002-omap-id-introduce-omap24xx-generic-features.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="0002-omap-id-introduce-omap24xx-generic-features.patch"
+I think this would be a possibility. And maybe even sane. But I also
+think this has nothing to do with suspend_blockers. They block
+suspend. You know?   
 
->From 0e4c9df9870c29da19234a1f4be5227a289b6463 Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Mon, 31 May 2010 14:10:31 -0500
-Subject: [PATCH 2/3] omap: id: introduce omap24xx generic features
+> 
+> Again, there is no reason what so ever to tolerate broken apps, it only
+> promotes crappy apps.
+> 
 
-introduce generic features for omap2. omap2 uses mbx, not sgx, and
-it still has a dsp, though not iva2 as omap3 uses..
+This simple doesn't solve the problem.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-CAVEAT: COMPLETELY UNTESTED!!!
- arch/arm/mach-omap2/id.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index e3f5994..fe634dd 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -102,6 +102,16 @@ static struct omap_id omap_ids[] __initdata = {
- static void __iomem *tap_base;
- static u16 tap_prod_id;
- 
-+static void __init omap24xx_check_features(void)
-+{
-+	/*
-+	 * TODO: add a better check feature once we have
-+	 * more decent feature check
-+	 */
-+	omap_features |= OMAP_HAS_L2CACHE |
-+		OMAP_HAS_IVA;
-+}
-+
- static void __init omap24xx_check_revision(void)
- {
- 	int i, j;
-@@ -388,6 +398,7 @@ void __init omap2_check_revision(void)
- 	 */
- 	if (cpu_is_omap24xx()) {
- 		omap24xx_check_revision();
-+		omap24xx_check_features();
- 	} else if (cpu_is_omap34xx()) {
- 		omap3_check_revision();
- 		omap3_check_features();
--- 
-1.6.3.3
-
-
---------------000203030703080201060208
-Content-Type: text/x-patch;
-	name="0003-omap-id-add-feature-check-for-omap1.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="0003-omap-id-add-feature-check-for-omap1.patch"
-
->From c297e29bfd27c373af8d9bdc428f72cad2ef4e7a Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Mon, 31 May 2010 14:13:57 -0500
-Subject: [PATCH 3/3] omap: id: add feature check for omap1
-
-add a minimalist feature - l2cache for omap1.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-CAVEAT: COMPLETELY UNTESTED!!!
- arch/arm/mach-omap1/id.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/id.c b/arch/arm/mach-omap1/id.c
-index 91dbb71..b98a17f 100644
---- a/arch/arm/mach-omap1/id.c
-+++ b/arch/arm/mach-omap1/id.c
-@@ -200,5 +200,11 @@ void __init omap1_check_revision(void)
- 	printk(KERN_INFO " revision %i handled as %02xxx id: %08x%08x\n",
- 	       die_rev, omap_revision & 0xff, system_serial_low,
- 	       system_serial_high);
-+
-+	/*
-+	 * TODO: add a better check feature once we have
-+	 * more decent feature check
-+	 */
-+	omap_features |= OMAP_HAS_L2CACHE;
- }
- 
--- 
-1.6.3.3
-
-
---------------000203030703080201060208--
+Cheers,
+Flo 
