@@ -1,95 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Thomas Gleixner <tglx@linutronix.de>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 1 Jun 2010 00:05:19 +0200
-Message-ID: <201006010005.19554.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org> <alpine.LFD.2.00.1005272334040.3478@localhost.localdomain> <20100531143339.249ae1f4@notabene.brown>
+Date: Tue, 1 Jun 2010 00:17:13 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1006010006320.2933@localhost.localdomain>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>  <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>  <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>  <20100527220949.GB10602@srcf.ucam.org>  <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+  <20100527223605.GB11364@srcf.ucam.org>  <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>  <20100528043114.GC26177@thunk.org> <1275030704.32462.11.camel@laptop>  <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>  <1275120618.27810.12699.camel@twins>
+  <1275149418.4503.128.camel@mulgrave.site>  <alpine.LFD.2.00.1005312231120.2933@localhost.localdomain> <1275340869.2823.344.camel@mulgrave.site>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35751 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753747Ab0EaWEJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 May 2010 18:04:09 -0400
-In-Reply-To: <20100531143339.249ae1f4@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1275340869.2823.344.camel@mulgrave.site>
+Sender: linux-kernel-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Neil Brown <neilb@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Monday 31 May 2010, Neil Brown wrote:
-> On Thu, 27 May 2010 23:40:29 +0200 (CEST)
-> Thomas Gleixner <tglx@linutronix.de> wrote:
-> 
-> > On Thu, 27 May 2010, Rafael J. Wysocki wrote:
-> > 
-> > > On Thursday 27 May 2010, Thomas Gleixner wrote:
-> > > > On Thu, 27 May 2010, Alan Stern wrote:
-> > > > 
-> > > > > On Thu, 27 May 2010, Felipe Balbi wrote:
-> > > > > 
-> > > > > > On Thu, May 27, 2010 at 05:06:23PM +0200, ext Alan Stern wrote:
-> > > > > > >If people don't mind, here is a greatly simplified summary of the
-> > > > > > >comments and objections I have seen so far on this thread:
-> > > > > > >
-> > > > > > >	The in-kernel suspend blocker implementation is okay, even
-> > > > > > >	beneficial.
-> > > > > > 
-> > > > > > I disagree here. I believe expressing that as QoS is much better. Let 
-> > > > > > the kernel decide which power state is better as long as I can say I 
-> > > > > > need 100us IRQ latency or 100ms wakeup latency.
-> > > > > 
-> > > > > Does this mean you believe "echo mem >/sys/power/state" is bad and
-> > > > > should be removed?  Or "echo disk >/sys/power/state"?  They pay no
-> > > > 
-> > > > mem should be replaced by an idle suspend to ram mechanism
+On Mon, 31 May 2010, James Bottomley wrote:
+
+> On Mon, 2010-05-31 at 22:49 +0200, Thomas Gleixner wrote:
+> > On Sat, 29 May 2010, James Bottomley wrote:
+> > > The job of the kernel is to accommodate hardware as best it can ...
+> > > sometimes it might not be able to, but most of the time it does a pretty
+> > > good job.
 > > > 
-> > > Well, what about when I want the machine to suspend _regardless_ of whether
-> > > or not it's idle at the moment?  That actually happens quite often to me. :-)
+> > > The facts are that C states and S states are different and are entered
+> > > differently. 
 > > 
-> > Fair enough. Let's agree on a non ambigous terminology then:
-> > 
-> >      forced:
-> > 
-> > 	     suspend which you enforce via user interaction, which
-> >      	     also implies that you risk losing wakeups depending on
-> >      	     the hardware properties
+> > That's an x86'ism which is going away. And that's really completely
+> > irrelevant for the mobile device space. Can we please stop trying to
+> > fix todays x86 based laptop problems? They are simply not fixable.
 > 
-> Reasonable definition I think.  However the current implementation doesn't
-> exactly match it.
-> With the current implementation you risk losing wakeups *independent* of the
-> hardware properties.
+> You're the one mentioning x86, not me.  I already explained that some
+> MSM hardware (the G1 for example) has lower power consumption in S3
+> (which I'm using as an ACPI shorthand for suspend to ram) than any
+> suspend from idle C state.
 
-Define "losing", please.
+Those machines can go from idle into S2RAM just fine w/o touching the
+/sys/power/state S2RAM mechanism.
 
-Currently, we simply don't regard hardware signals occuring _during_ the
-suspend operation itself as wakeups (unless they are wakeup interrupts to be
-precise, because these _are_ taken into account by our current code).
+It's just a deeper "C" state, really.
 
-The reason is that the meaning of given event may be _different_ at run time
-and after the system has been suspended.  For example, consider a power button
-on a PC box.  If it's pressed at run time, it usually means "power off the
-system" to the kernel.  After the system has been suspended, however, it means
-"wake up".  So, you have to switch from one interpretation of the event to the
-other and that's not an atomic operaition (to put it lightly).
+The confusion is that S3 is considered to be a complete different
+mechanism - which is true for PC style x86 - but not relevant for
+hardware which is sane from the PM point of view.
 
-> Even with ideal hardware events can be lost - by which I mean that they will
-> not be seen until some other event effects a wake-up.
-> e.g. the interrupt which signals the event happens immediately before the
-> suspend is requested (or maybe at the same time as), but the process which
-> needs to handle the event doesn't get a chance to see it before the suspend
-> procedure freezes that process, and even if it did it would have no way to
-> abort the suspend.
-> 
-> So I submit that the current implementation doesn't match your description of
-> "forced", is therefore buggy, and that if it were fixed, that would be
-> sufficient to meet the immediate needs of android.
-
-I don't really think it may be fixed with respect to every possible kind of
-hardware.  On platforms where I/O interrupts are wakeup events it should
-work right now.  On other platforms it may be impossible to overcome hardware
-limitations.
+Now some people think, that suspend blockers are a cure for the
+existing x86/ACPI/BIOS mess, which cannot go to S3 from idle, but
+that's simply not feasible.
 
 Thanks,
-Rafael
+
+	tglx
