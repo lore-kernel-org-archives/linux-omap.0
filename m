@@ -1,30 +1,69 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 6/6] omap: move generic omap3 features to generic
-Date: Tue, 1 Jun 2010 09:23:24 +0300
-Message-ID: <4C04A75C.6080709@ti.com>
-References: <1274585799-16226-1-git-send-email-nm@ti.com>	<1274585799-16226-2-git-send-email-nm@ti.com>	<1274585799-16226-3-git-send-email-nm@ti.com>	<1274585799-16226-4-git-send-email-nm@ti.com>	<1274585799-16226-5-git-send-email-nm@ti.com>	<1274585799-16226-6-git-send-email-nm@ti.com>	<1274585799-16226-7-git-send-email-nm@ti.com>	<AANLkTinsrRAYX4dvB8A8wPayfRc7wkULQtUSiJ9RxbWh@mail.gmail.com>	<4BFE9C14.9040703@ti.com>	<AANLkTinHOZXk9pYeSfsBiejU7x1w-rA2MRtC4BBoKK0r@mail.gmail.com>	<4C03ED47.6060308@gmail.com>	<AANLkTin32ueXXPjVFbLt-cur2WlmFOmgPj6Zlr47tuff@mail.gmail.com>	<4C040B76.2090605@ti.com> <AANLkTilLDPZqmFfVbey0aFixbWRZ4lyAklTuvu5Kv84A@mail.gmail.com>
+From: Igor Stoppa <igor.stoppa@nokia.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Tue, 01 Jun 2010 09:57:31 +0300
+Message-ID: <4C04AF5B.1000702@nokia.com>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>	<201005302202.39511.rjw@sisk.pl>	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>	<201005312347.24251.rjw@sisk.pl> <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51533 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752669Ab0FAGXj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 02:23:39 -0400
-In-Reply-To: <AANLkTilLDPZqmFfVbey0aFixbWRZ4lyAklTuvu5Kv84A@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?ISO-8859-1?Q?ext_Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: Nishanth Menon <menon.nishanth@gmail.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-On 06/01/2010 08:34 AM, Venkatraman S wrote:
-> If you can post them formally as part of the series, I can test and
-> ack them (with OMAP3, OMAP4)
-> My original comment was even if these were not implemented due to some
-> constraints, they should be
-> mentioned in the code (as TODO / FIXME etc). The caveat description is
-> not going to show up in
-> commit logs or printks
-okie.. the 3 RFC patches following to the list.
-Regards,
-Nishanth Menon
+Hi,
+
+ext Arve Hj=F8nnev=E5g wrote:
+
+> It sounded like you were suggesting that initiating suspend from idle
+> would somehow avoid the race condition with wakeup events. All I'm
+> saying is that you would need to block suspend in all the same places=
+=2E
+> If you don't care about ignoring wakeup events, then sure you can
+> initiate suspend from idle.
+>  =20
+
+Sorry if i'm asking something that was already said, but the thread is=20
+quite complex and i am not sure i have been able to grasp all of it.
+
+So, regardless of the SW implementation:
+
+-1) are you focusing on "good" HW or do you want to address all at the=20
+same time?
+
+-2) would you be ok with addressing "bad" HW as a special case, which=20
+requires workarounds and shouldn't dictate the overall design?
+
+-3) do you agree with the assumption that new HW is expected to get=20
+reasonably better and therefore workarounds at point 2) will=20
+progressively be confined to devices less and less common?
+
+-4) going to the definition of "good" and "bad" (maybe this should have=
+=20
+come earlier in the list), can we define "good" HW as HW where:
+ * suspend state and lowest achievable runtime idle state are basically=
+=20
+equivalent from both power consumption and latency pov
+ * the HW itself is properly able to track wakeup sources while it is i=
+n=20
+its deepest power state (as example OMAP3 has few independent=20
+wake-capable pads and a "wake ring" where one only gets the information=
+=20
+that at least one of the pads belonging to such ring has received a wak=
+eup)
+ * wakeup sources can be dynamically masked at HW level, so that if a=20
+peripheral is not interesting, it doesn't wakeup the system (for exampl=
+e=20
+the camera button when the camera cover is closed)
+
+-5) HW that is not capable of properly generating asynchronous signal i=
+s=20
+most likely the cause for extra timers in kernel and it should be=20
+considered "bad" - in any other case having recurring in-kernel timers=20
+should be treated as bugs, if their existence is not tied to some=20
+meaningful work
+
+thanks, igor
