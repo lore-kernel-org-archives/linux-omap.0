@@ -1,62 +1,60 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 1/3 v3] AM35x: Add musb support
-Date: Tue, 1 Jun 2010 16:38:15 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D2AD1@dbde02.ent.ti.com>
-References: <1274769522-28212-1-git-send-email-ajay.gupta@ti.com>
- <4BFFCE8C.40909@ru.mvista.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Tue, 1 Jun 2010 13:10:29 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1006011257580.2933@localhost.localdomain>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk> <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org> <20100527230806.4deb6de3@lxorguk.ukuu.org.uk> <20100527220949.GB10602@srcf.ucam.org> <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+ <20100527223605.GB11364@srcf.ucam.org> <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk> <20100528043114.GC26177@thunk.org> <1275030704.32462.11.camel@laptop> <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com> <1275120618.27810.12699.camel@twins>
+ <1275149418.4503.128.camel@mulgrave.site> <alpine.LFD.2.00.1005312231120.2933@localhost.localdomain> <1275340869.2823.344.camel@mulgrave.site> <alpine.LFD.2.00.1005312343290.2933@localhost.localdomain>
+ <AANLkTinwvkJRU0JjJdNrGfXWYpQMIr8bO3BZxcXubt_Z@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35606 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754528Ab0FALIS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 07:08:18 -0400
-In-Reply-To: <4BFFCE8C.40909@ru.mvista.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-330945326-1275390631=:2933"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinwvkJRU0JjJdNrGfXWYpQMIr8bO3BZxcXubt_Z@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Cc: James Bottomley <James.Bottomley@suse.de>, Peter Zijlstra <peterz@infradead.org>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-[..]
-> > +	 * We have to override VBUS/ID signals when MUSB is configured into
-> the
-> > +	 * host-only mode -- ID pin will float if no cable is connected, so
-> the
-> > +	 * controller won't be able to drive VBUS thinking that it's a B-
-> device.
-> > +	 * Otherwise, we want to use the OTG mode and enable VBUS
-> comparators.
-> > +	 */
-> > +	devconf2 &= ~CONF2_OTGMODE;
-> > +#ifdef	CONFIG_USB_MUSB_HOST
-> > +	devconf2 |=  CONF2_FORCE_HOST;
-> 
->     Well, this is only necessary if the board doesn't have pulldown on
-> the USB ID signal. On DA830 EVM, rev. of the board A had it, and it got
-> removed on the later revisions (presumably it conflicted with OTG
-> function?), so this override became necessary. So, make sure this is
-> indeed necessary on your board as using the overrides isn't generally
-> desirable (they all also override VBUS sensing in addition to ID pin).
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Yes, it's not needed for AM3517EVM
+--8323328-330945326-1275390631=:2933
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 
--Ajay
+
+On Mon, 31 May 2010, Arve Hjønnevåg wrote:
+
+> On Mon, May 31, 2010 at 2:46 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
+> > On Mon, 31 May 2010, James Bottomley wrote:
+> >>
+> >> For MSM hardware, it looks possible to unify the S and C states by doing
+> >> suspend to ram from idle but I'm not sure how much work that is.
+> >
+> > On ARM, it's not rocket science and we have in tree support for this
+> > already (OMAP). I have done the same thing on a Samsung part as a
+> > prove of concept two years ago and it's really easy as the hardware is
+> > sane. Hint: It's designed for mobile devices :)
+> >
 > 
-> > +#else
-> > +	devconf2 |=  CONF2_SESENDEN | CONF2_VBDTCTEN;
-> > +#endif
-> > +
-> > +	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-> > +
-> > +	usb_musb_init(&musb_board_data);
-> > +}
-> > +
-> >  static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst
-> = {
-> >  	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-> >  #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
-> 
-> WBR, Sergei
+> We already enter the same power state from idle and suspend on msm. In
+> the absence of misbehaving apps, the difference in power consumption
+> is entirely caused by periodic timers in the user-space framework
+> _and_ kernel. It only takes a few timers triggering per second (I
+> think 3 if they do no work) to double the average power consumption on
+> the G1 if the radio is off. We originally added wakelocks because the
+> hardware we had at the time had much lower power consumption in
+> suspend then idle, but we still use suspend because it saves power.
+
+So how do you differentiate between timers which _should_ fire and
+those you do not care about ?
+
+We have mechanisms in place to defer timers so the wakeups are
+minimized. If that's not enough we need to revisit.
+
+Thanks,
+
+	tglx
+
+
+--8323328-330945326-1275390631=:2933--
