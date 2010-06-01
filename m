@@ -1,91 +1,148 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH v3 0/5] OMAP/ASoC: McBSP: FIFO handling related
-	fixes
-Date: Tue,  1 Jun 2010 14:18:19 +0300
-Message-ID: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, eduardo.valentin@nokia.com, ext-eero.nurkkala@nokia.com, lrg@slimlogic.co.uk
+Subject: [PATCH v3 2/5] OMAP2: McBSP: Change the way how the FIFO is handled
+Date: Tue,  1 Jun 2010 14:18:21 +0300
+Message-ID: <1275391104-26387-3-git-send-email-peter.ujfalusi@nokia.com>
+References: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:57744 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754528Ab0FALSs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 07:18:48 -0400
+In-Reply-To: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, jhnikula@gmail.com, tony@atomide.com, ext-eero.nurkkala@nokia.com, eduardo.valentin@nokia.com
 
-Hello,
+Use the actual FIFO size in words as buffer_size on OMAP2.
+Change the threshold configuration to use 1 based numbering, when
+specifying the allowed threshold maximum or the McBSP threshold value.
+Set the default maximum threshold to (buffer_size - 0x10) intialy.
+>From users of McBSP, now it is expected to use this method.
+Asking for threshold 1 means that the value written to threshold registers
+are going to be 0, which means 1 word threshold.
 
-Changes since RFC v2:
-- Comments added explaining the changes, and documenting the API in patch2
-- In patch5:
- - Variable names changed in the hw_rule function
- - hw_rule function got renamed
- - The snd_pcm_hw_rule_add calls moved so it anly got set on OMAP3
-
-Intro mail from the previous series:
-
-This series aims to correct how the McBSP FIFO is viewed, and handled.
-
-Introduction of the problem:
-OMAP McBSP FIFO is word structured:
-McBSP2 has 1024 + 256 = 1280 word long buffer,
-McBSP1,3,4,5 has 128 word long buffer
-
-This means, that the size of the FIFO
-depends on the McBSP word size configuration.
-For example on McBSP3:
-16bit samples: size is 128 * 2 = 256 bytes
-32bit samples: size is 128 * 4 = 512 bytes
-It is simpler to place constraint for buffer and period based on channels.
-McBSP3 as example again (16 or 32 bit samples):
-1 channel (mono): size is 128 frames (128 words)
-2 channels (stereo): size is 128 / 2 = 64 frames (2 * 64 words)
-4 channels: size is 128 / 4 = 32 frames (4 * 32 words)
-
-Since now the McBSP codec supports not only 16bit samples (32biut has been
-recently added), the FIFO size handling is no longer correct, since it has
-been hard wired for 16bit word length.
-
-The series changes how the users of McBSP are configuring the FIFO:
-It used to be 0 based (0 meant 1 word threshold). After this series users can
-configure the threshold in 1 base mode (1 means 1 word threshold).
-The platform code now provides the _full_ size of the FIFO in words, instead of
-the already limited value used in the past.
-
-In ASoC omap-mcbsp code hw_rule based constraint refinement is going to be used
-instead of the hardwired static constraint, which was correct only in case of
-16bit word length.
-
-The hw_rule is refining the minimum buffer size based on the channel number
-going to be used by the coming stream.
-In case of threshold mode additional hw_rule refines the maximum allowed period
-size.
-
-The series are generated agains Takashi's sound-2.6: topic/asoc branch.
-
-CCing also Eduardo, and Eero since they have worked on the original
-FIFO/threshold implementation.
-
-All commetns and testers are welcome!
-Peter
-
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
-Peter Ujfalusi (5):
-  OMAP: McBSP: Function to query the FIFO size
-  OMAP2: McBSP: Change the way how the FIFO is handled
-  OMAP2: McBSP: Use the port's buffer_size when calculating tx delay
-  ASoC: omap-mcbsp: Save, and use wlen for threshold configuration
-  ASoC: omap-mcbsp: Place correct constraints for streams
+ arch/arm/mach-omap2/mcbsp.c |   10 +++++-----
+ arch/arm/plat-omap/mcbsp.c  |   30 ++++++++++++++++++++----------
+ 2 files changed, 25 insertions(+), 15 deletions(-)
 
- arch/arm/mach-omap2/mcbsp.c             |   10 ++--
- arch/arm/plat-omap/include/plat/mcbsp.h |    2 +
- arch/arm/plat-omap/mcbsp.c              |   51 ++++++++++-----
- sound/soc/omap/omap-mcbsp.c             |  113 ++++++++++++++++++++++++-------
- 4 files changed, 129 insertions(+), 47 deletions(-)
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 016fe60..ed9f562 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -132,7 +132,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x6F,
++		.buffer_size	= 0x80, /* The FIFO has 128 locations */
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP2_BASE,
+@@ -142,7 +142,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP2_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x3FF,
++		.buffer_size	= 0x500, /* The FIFO has 1024 + 256 locations */
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP3_BASE,
+@@ -152,7 +152,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x6F,
++		.buffer_size	= 0x80, /* The FIFO has 128 locations */
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP4_BASE,
+@@ -161,7 +161,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x6F,
++		.buffer_size	= 0x80, /* The FIFO has 128 locations */
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP5_BASE,
+@@ -170,7 +170,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x6F,
++		.buffer_size	= 0x80, /* The FIFO has 128 locations */
+ 	},
+ };
+ #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 51d8abf..d883bbf 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -480,9 +480,9 @@ int omap_st_is_enabled(unsigned int id)
+ EXPORT_SYMBOL(omap_st_is_enabled);
+ 
+ /*
+- * omap_mcbsp_set_tx_threshold configures how to deal
+- * with transmit threshold. the threshold value and handler can be
+- * configure in here.
++ * omap_mcbsp_set_rx_threshold configures the transmit threshold in words.
++ * The threshold parameter is 1 based, and it is converted (threshold - 1)
++ * for the THRSH2 register.
+  */
+ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
+ {
+@@ -497,14 +497,15 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
+ 	}
+ 	mcbsp = id_to_mcbsp_ptr(id);
+ 
+-	MCBSP_WRITE(mcbsp, THRSH2, threshold);
++	if (threshold && threshold <= mcbsp->max_tx_thres)
++		MCBSP_WRITE(mcbsp, THRSH2, threshold - 1);
+ }
+ EXPORT_SYMBOL(omap_mcbsp_set_tx_threshold);
+ 
+ /*
+- * omap_mcbsp_set_rx_threshold configures how to deal
+- * with receive threshold. the threshold value and handler can be
+- * configure in here.
++ * omap_mcbsp_set_rx_threshold configures the receive threshold in words.
++ * The threshold parameter is 1 based, and it is converted (threshold - 1)
++ * for the THRSH1 register.
+  */
+ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
+ {
+@@ -519,7 +520,8 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
+ 	}
+ 	mcbsp = id_to_mcbsp_ptr(id);
+ 
+-	MCBSP_WRITE(mcbsp, THRSH1, threshold);
++	if (threshold && threshold <= mcbsp->max_rx_thres)
++		MCBSP_WRITE(mcbsp, THRSH1, threshold - 1);
+ }
+ EXPORT_SYMBOL(omap_mcbsp_set_rx_threshold);
+ 
+@@ -1696,8 +1698,16 @@ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
+ {
+ 	mcbsp->dma_op_mode = MCBSP_DMA_MODE_ELEMENT;
+ 	if (cpu_is_omap34xx()) {
+-		mcbsp->max_tx_thres = max_thres(mcbsp);
+-		mcbsp->max_rx_thres = max_thres(mcbsp);
++		/*
++		 * Initially configure the maximum thresholds to a safe value.
++		 * The McBSP FIFO usage with these values should not go under
++		 * 16 locations.
++		 * If the whole FIFO without safety buffer is used, than there
++		 * is a possibility that the DMA will be not able to push the
++		 * new data on time, causing channel shifts in runtime.
++		 */
++		mcbsp->max_tx_thres = max_thres(mcbsp) - 0x10;
++		mcbsp->max_rx_thres = max_thres(mcbsp) - 0x10;
+ 		/*
+ 		 * REVISIT: Set dmap_op_mode to THRESHOLD as default
+ 		 * for mcbsp2 instances.
+-- 
+1.7.1
+
