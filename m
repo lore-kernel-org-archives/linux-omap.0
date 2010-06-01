@@ -1,66 +1,77 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: Re: [PATCH 00/14] Multiple fixes for Devkit8000
-Date: Tue, 01 Jun 2010 07:36:44 +0200
-Message-ID: <4C049C6C.7040303@corscience.de>
-References: <1274184335-29322-1-git-send-email-weber@corscience.de>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [RFC] [PATCH v3 1/4] OMAP4: Keyboard controller support
+Date: Mon, 31 May 2010 23:09:54 -0700
+Message-ID: <20100601060954.GB7391@core.coreip.homeip.net>
+References: <27F9C60D11D683428E133F85D2BB4A53043E537F73@dlee03.ent.ti.com>
+ <20100601044318.GA13883@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:55324 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753297Ab0FAFg4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 01:36:56 -0400
-In-Reply-To: <1274184335-29322-1-git-send-email-weber@corscience.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100601044318.GA13883@nokia.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: "ext Arce, Abraham" <x0066660@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org
 
-Hello Tony,
+On Tue, Jun 01, 2010 at 07:43:19AM +0300, Felipe Balbi wrote:
+> On Mon, May 31, 2010 at 11:44:02PM +0200, ext Arce, Abraham wrote:
+> >diff --git a/arch/arm/plat-omap/include/plat/omap4-keypad.h b/arch/arm/plat-omap/include/plat/omap4-keypad.h
+> >new file mode 100644
+> >index 0000000..7a6ce70
+> >--- /dev/null
+> >+++ b/arch/arm/plat-omap/include/plat/omap4-keypad.h
+> >@@ -0,0 +1,23 @@
+> >+#ifndef ARCH_ARM_PLAT_OMAP4_KEYPAD_H
+> >+#define ARCH_ARM_PLAT_OMAP4_KEYPAD_H
+> >+
+> >+#include <linux/input/matrix_keypad.h>
+> >+
+> >+struct omap4_keypad_platform_data {
+> >+       const struct matrix_keymap_data *keymap_data;
+> >+
+> >+       u8 rows;
+> >+       u8 cols;
+> 
+> rows and cols should be passed by struct matryx_keymap_data
+> 
 
-can you please add these patches? Or is something to change?
+There isn't such member in matrix_keymap_data, it only contains length
+of the keymap.
 
-Thomas
+> >+       u16 irq;
+> >+       void __iomem *base;
+> 
+> base and irq are to be passed by struct resource
+> 
+> >+       int (*device_enable) (struct platform_device *pdev);
+> >+       int (*device_shutdown) (struct platform_device *pdev);
+> >+       int (*device_idle) (struct platform_device *pdev);
+> 
+> why are you passing these three here ?? I would expect those to be
+> driver specific not board specific.
 
-Am 18.05.2010 14:05, schrieb Thomas Weber:
-> Some of these patches were submitted earlier but got no comments
-> so I am sending them one more time. 
-> 
-> These patches correct errors that were done while using the board code
-> from beagle board for Devkit8000. 
-> 
-> The Devkit8000 uses the TPS65930, an reduced version of the TWL4030. 
-> So not all power supplies from the TWL4030 are available.
-> There were also a wrong comment about the pins supported by the vmmc1. 
-> The DSS2 do not need a VDVI any longer so it is removed. 
-> The definition of the supplies are changed to use the new REGULATOR_SUPPLY macro.
-> The pins for lcd and dvi powerdown are corrected.
-> 
-> 
-> Kan-Ru Chen (1):
->   OMAP2: Devkit8000: Setup LCD reset
-> 
-> Thomas Weber (13):
->   OMAP2: Devkit8000: Cleanup for supplies
->   OMAP2: Devkit8000: change lcd panel to generic
->   OMAP2: Devkit8000: Enable DVI-D output
->   OMAP2: Devkit8000: Remove unneeded VDVI
->   OMAP2: Devkit8000: Remove nonexisting vsim
->   OMAP2: Devkit8000: Remove en-/disable for tv panel
->   OMAP2: Devkit8000: Use the REGULATOR_SUPPLY macro
->   OMAP2: Devkit8000: Fixing comment about pins used
->   OMAP2: Devkit8000: Fix whitespace with tab
->   OMAP2: Devkit8000: Fix comment
->   OMAP2: Devkit8000: Using gpio_is_valid
->   OMAP2: Devkit8000: Remove unused omap_board_config
->   OMAP2: Devkit8000: Correct regulator
-> 
->  arch/arm/mach-omap2/board-devkit8000.c |  125 +++++++++++++++-----------------
->  1 files changed, 58 insertions(+), 67 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Except that driver does not seem t be using them... I am not quite sure
+why they are needed.
 
+> 
+> >+       error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
+> >+                            IRQF_TRIGGER_FALLING,
+> >+                            "omap4-keypad", keypad_data);
+> >+       if (error) {
+> >+               dev_err(&pdev->dev, "failed to register interrupt\n");
+> >+               goto err_free_input;
+> >+       }
+> >+
+> >+       error = input_register_device(keypad_data->input);
+> 
+> register the input device before enabling the irq line please, you
+> might end up with 'spurious' irqs happening during probe otherwise.
+> 
+
+It is OK to register input device after registering IRQ. As soon as
+input device is allocated with input_alloc_device() it can accept
+events (although they will not go anywhere).
+
+-- 
+Dmitry
