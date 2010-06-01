@@ -1,48 +1,73 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC PATCH 5/5] ASoC: omap-mcbsp: Place correct
- constraints for streams
-Date: Tue, 1 Jun 2010 10:38:28 +0300
-Message-ID: <20100601103828.55e7b394.jhnikula@gmail.com>
-References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
-	<201005311457.22699.peter.ujfalusi@nokia.com>
-	<20100601093807.f4a9ec27.jhnikula@gmail.com>
-	<201006010947.09640.peter.ujfalusi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: DMTIMER: Ack pending interrupt always when
+ stopping a timer
+Date: Tue, 1 Jun 2010 10:40:48 +0300
+Message-ID: <20100601074048.GD841@atomide.com>
+References: <1274797036-21107-1-git-send-email-tero.kristo@nokia.com>
+ <87d3wkner2.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <201006010947.09640.peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, ext@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Girdwood <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60811 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753430Ab0FAHkz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 03:40:55 -0400
+Content-Disposition: inline
+In-Reply-To: <87d3wkner2.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
 
-On Tue, 1 Jun 2010 09:47:09 +0300
-Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
-
-> I like the following naming:
-> omap_mcbsp_hwrule_min_buffersize()
-> omap_mcbsp_hwrule_max_periodsize()
+* Kevin Hilman <khilman@deeprootsystems.com> [100525 19:07]:
+> Tero Kristo <tero.kristo@nokia.com> writes:
 > 
-Looks clear to me.
-
-> Also, I think there is no point to limit the lower period size in threshold mode 
-> to 32, so I will remove that as well I think.
+> > From: Tero Kristo <tero.kristo@nokia.com>
+> >
+> > The kernel timer queue is being run currently from a GP timer running in a one
+> > shot mode, which works in a way that when it expires, it will also stop.
+> > Usually during this situation, the interrupt handler will ack the interrupt,
+> > load a new value to the timer and start it again. During suspend, the
+> > situation is slightly different, as we disable interrupts just before
+> > timekeeping is suspended, which leaves a small window where the timer can
+> > expire before it is stopped, and will leave the interrupt flag pending.
+> > This pending interrupt will prevent ARM sleep entry, thus now we ack it always
+> > when we are attempting to stop a timer.
+> >
+> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 > 
-What was the reason why period size cannot be bigger than threshold?
-This constraint was there before your patch but I don't remember reason
-for it.
+> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> 
+> > ---
+> >  arch/arm/plat-omap/dmtimer.c |    8 +++++---
+> >  1 files changed, 5 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> > index c64875f..023d664 100644
+> > --- a/arch/arm/plat-omap/dmtimer.c
+> > +++ b/arch/arm/plat-omap/dmtimer.c
+> > @@ -541,11 +541,13 @@ void omap_dm_timer_stop(struct omap_dm_timer *timer)
+> >  		  * timer is stopped
+> >  		  */
+> >  		udelay(3500000 / clk_get_rate(timer->fclk) + 1);
+> > -		/* Ack possibly pending interrupt */
+> > -		omap_dm_timer_write_reg(timer, OMAP_TIMER_STAT_REG,
+> > -				OMAP_TIMER_INT_OVERFLOW);
+> >  #endif
+> >  	}
+> > +#ifdef CONFIG_ARCH_OMAP2PLUS
+> > +	/* Ack possibly pending interrupt */
+> > +	omap_dm_timer_write_reg(timer, OMAP_TIMER_STAT_REG,
+> > +			OMAP_TIMER_INT_OVERFLOW);
+> > +#endif
+> >  }
+> >  EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
 
-Should it be opposite that period size cannot be smaller than threshold?
+I'll add this to omap-fixes queue, but will remove the
+ifdef CONFIG_ARCH_OMAP2PLUS around clearing the interrupt
+as the situation would be the same for omap1 if ever used
+the same way.
 
+Regards,
 
--- 
-Jarkko
+Tony
