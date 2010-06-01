@@ -1,43 +1,140 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] [PATCH v3 2/4] OMAP4: Keyboard device registration
-Date: Tue, 1 Jun 2010 12:43:59 +0300
-Message-ID: <20100601094358.GJ841@atomide.com>
-References: <27F9C60D11D683428E133F85D2BB4A53043E537F74@dlee03.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52136 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755248Ab0FAJoE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 05:44:04 -0400
-Content-Disposition: inline
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53043E537F74@dlee03.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH v2 2/3] kmemleak: Add special scan test case
+Date: Tue,  1 Jun 2010 13:25:10 +0300
+Message-ID: <1275387911-13030-3-git-send-email-Hiroshi.DOYU@nokia.com>
+References: <1273821401-26578-2-git-send-email-Hiroshi.DOYU@nokia.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1273821401-26578-2-git-send-email-Hiroshi.DOYU@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: catalin.marinas@arm.com, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Arce, Abraham" <x0066660@ti.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
 
-* Arce, Abraham <x0066660@ti.com> [100601 00:39]:
-> Register keyboard device with hwmod framework
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Please test this with omap3_defconfig too, and make sure it does not break
-things for omap2 and omap3.
- 
-> +int omap4_init_kp(struct omap4_keypad_platform_data *kp)
-> +{
-> +	struct omap_hwmod *oh;
-> +	struct omap_device *od;
-> +	struct omap4_keypad_platform_data *pdata;
-> +
-> +	unsigned int length = 0, id = 0;
-> +	int hw_mod_name_len = 16;
-> +	char oh_name[hw_mod_name_len];
-> +	char *name = "omap4-keypad";
+For this test case, a pointer is converted to a physical address with
+attribution bits. This test can be executed either with special scan
+or without special scan. For special scan case, specifying the testing
+period second with the kernel module parameter "timeout". Afther that
+timeout, special scan is unregistered automatically. Without this
+timeout, you will get false positives with kmemleak scan.
 
-	if (!cpu_is_omap44xx())
-		return -ENODEV;
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ mm/Makefile                |    2 +-
+ mm/kmemleak-special-test.c |   94 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 95 insertions(+), 1 deletions(-)
+ create mode 100644 mm/kmemleak-special-test.c
 
-
-Might be needed here.
-
-Tony
+diff --git a/mm/Makefile b/mm/Makefile
+index 8982504..5d08581 100644
+--- a/mm/Makefile
++++ b/mm/Makefile
+@@ -44,4 +44,4 @@ obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o page_cgroup.o
+ obj-$(CONFIG_MEMORY_FAILURE) += memory-failure.o
+ obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
+ obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
+-obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
++obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o kmemleak-special-test.o
+diff --git a/mm/kmemleak-special-test.c b/mm/kmemleak-special-test.c
+new file mode 100644
+index 0000000..ed6788c
+--- /dev/null
++++ b/mm/kmemleak-special-test.c
+@@ -0,0 +1,94 @@
++/*
++ * kmemleak: special scan test
++ *
++ * Copyright (C) 2010 Nokia Corporation
++ *
++ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/kmemleak.h>
++
++static int timeout;
++module_param(timeout, int, 0644);
++MODULE_PARM_DESC(timeout, "special scan mode timeout");
++
++#define MAXELEM 8
++static u32 elem[MAXELEM];
++
++static void no_special_func(struct work_struct *unused)
++{
++	kmemleak_no_special(elem);
++	pr_info("%s: Unregistered special scan %p\n", __func__, elem);
++}
++static DECLARE_DELAYED_WORK(no_special_work, no_special_func);
++
++static unsigned long custom_conversion(void *unused, unsigned long orig)
++{
++	u32 addr = orig;
++
++	addr &= ~1;
++	addr = (u32)phys_to_virt(addr);
++
++	pr_info("%s: Converted %08lx -> %08x\n", __func__, orig, addr);
++
++	return addr;
++}
++
++static int __init kmemleak_special_init(void)
++{
++	int i, err;
++
++	for (i = 0; i < ARRAY_SIZE(elem); i++) {
++		void *virt;
++
++		virt = kmalloc(SZ_1K, GFP_KERNEL);
++		if (!virt)
++			continue;
++
++		memset(virt, 0xa5, SZ_1K); /* fill out some markers */
++		*(char *)virt = i;
++
++		elem[i] = virt_to_phys(virt) | 1;
++		pr_info("Stored %d@%p -> %08x\n", SZ_1K, virt, elem[i]);
++	}
++
++	if (!timeout)
++		return 0;
++
++	err = kmemleak_special_scan(elem, sizeof(elem),
++				    custom_conversion, NULL, THIS_MODULE);
++	if (err) {
++		pr_warning("%s: Couldn't register special scan\n",
++			   __func__);
++		return -ENOMEM;
++	}
++	pr_info("%s: Registered special scan: %p\n", __func__, elem);
++
++	schedule_delayed_work(&no_special_work,
++			      msecs_to_jiffies(timeout * 1000));
++	return 0;
++}
++module_init(kmemleak_special_init);
++
++static void __exit kmemleak_special_exit(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(elem); i++) {
++		u32 val;
++
++		val = elem[i];
++		val &= ~1;
++		kfree(phys_to_virt(val));
++	}
++}
++module_exit(kmemleak_special_exit);
++
++MODULE_DESCRIPTION("kmemleak: special scan test");
++MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>");
++MODULE_LICENSE("GPL v2");
+-- 
+1.7.1.rc1
