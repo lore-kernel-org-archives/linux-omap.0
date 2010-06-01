@@ -1,62 +1,121 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH] OMAP1: UART / Bluetooth Support
-Date: Tue,  1 Jun 2010 15:32:48 -0700
-Message-ID: <1275431571-28547-1-git-send-email-darkstar6262@gmail.com>
+Subject: [PATCH] [omap1] omap7xx clocks, mux, serial fixes
+Date: Tue,  1 Jun 2010 15:32:49 -0700
+Message-ID: <1275431571-28547-2-git-send-email-darkstar6262@gmail.com>
+References: <1275431571-28547-1-git-send-email-darkstar6262@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:47672 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756345Ab0FAWdA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 18:33:00 -0400
-Received: by gye5 with SMTP id 5so1624258gye.19
-        for <linux-omap@vger.kernel.org>; Tue, 01 Jun 2010 15:32:59 -0700 (PDT)
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:43243 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755657Ab0FAWdH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 18:33:07 -0400
+Received: by gwaa12 with SMTP id a12so4065064gwa.19
+        for <linux-omap@vger.kernel.org>; Tue, 01 Jun 2010 15:33:06 -0700 (PDT)
+In-Reply-To: <1275431571-28547-1-git-send-email-darkstar6262@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linwizard-devel@lists.sf.net, Cory Maccarrone <darkstar6262@gmail.com>
 
-This set of changes is specifically geared towards enabling bluetooth
-support on the HTC Herald.  To do that, several things were done:
+This change adds in the necessary clocks and mux pins for UART
+control on omap7xx devices.  I also made a change in the serial
+code to only try and initialize two UARTs in omap_serial_init, as
+these devices don't have three.
 
- * I added in the necessary clock and mux configuration to enable
-   both UARTs to operate.
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+---
+ arch/arm/mach-omap1/clock_data.c      |   20 ++++++++++++++++++++
+ arch/arm/mach-omap1/mux.c             |    4 ++++
+ arch/arm/mach-omap1/serial.c          |    7 +++++++
+ arch/arm/plat-omap/include/plat/mux.h |    4 ++++
+ 4 files changed, 35 insertions(+), 0 deletions(-)
 
- * I modified the omap1 serial code to only initialize two UARTs if
-   the CPU type is omap7xx.  These chips don't have 3 UARTs, and trying
-   to initialize the third one causes deadlock.
-
- * I created a common bluetooth-handling driver for HTC smartphones
-   like the herald.  This will be used later by other similar boards,
-   such as the wizard and the opal.  The driver itself only implements
-   an RFKILL switch to enable/disable the GPIO pins that control the
-   bluetooth on these devices.
-
- * I added the new bluetooth driver and serial port init code to the
-   herald board.
-
- * Finally, I updated the htcherald_defconfig both to add in bluetooth
-   support, and to remove old unneeded cruft.
-
-The on-board chip is a TI BRF6150 attached to the first UART.  Rather
-than write (or port) a driver for this chip, this method was chosen because
-bluez supports the chip over a UART with hciattach.  So, rather than
-implement a full brf6150 driver, I expose and configure the serial
-port it's attached to.
-
-Cory Maccarrone (3):
-  [omap1] omap7xx clocks, mux, serial fixes
-  [omap1] Bluetooth device code common to HTC smartphones
-  [htcherald] Add board support for UARTs, bluetooth
-
- arch/arm/configs/htcherald_defconfig      |  159 ++++++++-----------------
- arch/arm/mach-omap1/Makefile              |    2 +-
- arch/arm/mach-omap1/board-htcherald.c     |   23 ++++
- arch/arm/mach-omap1/clock_data.c          |   20 +++
- arch/arm/mach-omap1/htc-bt.c              |  183 +++++++++++++++++++++++++++++
- arch/arm/mach-omap1/include/mach/htc-bt.h |   22 ++++
- arch/arm/mach-omap1/mux.c                 |    4 +
- arch/arm/mach-omap1/serial.c              |    7 +
- arch/arm/plat-omap/include/plat/mux.h     |    4 +
- 9 files changed, 315 insertions(+), 109 deletions(-)
- create mode 100644 arch/arm/mach-omap1/htc-bt.c
- create mode 100644 arch/arm/mach-omap1/include/mach/htc-bt.h
+diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
+index aa8558a..9240bc1 100644
+--- a/arch/arm/mach-omap1/clock_data.c
++++ b/arch/arm/mach-omap1/clock_data.c
+@@ -478,6 +478,24 @@ static struct clk usb_dc_ck7xx = {
+ 	.enable_bit	= 8,
+ };
+ 
++static struct clk uart1_7xx = {
++	.name		= "uart1_ck",
++	.ops		= &clkops_generic,
++	/* Direct from ULPD, no parent */
++	.rate		= 12000000,
++	.enable_reg	= OMAP1_IO_ADDRESS(SOFT_REQ_REG),
++	.enable_bit	= 9,
++};
++
++static struct clk uart2_7xx = {
++	.name		= "uart2_ck",
++	.ops		= &clkops_generic,
++	/* Direct from ULPD, no parent */
++	.rate		= 12000000,
++	.enable_reg	= OMAP1_IO_ADDRESS(SOFT_REQ_REG),
++	.enable_bit	= 11,
++};
++
+ static struct clk mclk_1510 = {
+ 	.name		= "mclk",
+ 	.ops		= &clkops_generic,
+@@ -620,7 +638,9 @@ static struct omap_clk omap_clks[] = {
+ 	/* ULPD clocks */
+ 	CLK(NULL,	"uart1_ck",	&uart1_1510,	CK_1510 | CK_310),
+ 	CLK(NULL,	"uart1_ck",	&uart1_16xx.clk, CK_16XX),
++	CLK(NULL,	"uart1_ck",	&uart1_7xx,	CK_7XX),
+ 	CLK(NULL,	"uart2_ck",	&uart2_ck,	CK_16XX | CK_1510 | CK_310),
++	CLK(NULL,	"uart2_ck",	&uart2_7xx,	CK_7XX),
+ 	CLK(NULL,	"uart3_ck",	&uart3_1510,	CK_1510 | CK_310),
+ 	CLK(NULL,	"uart3_ck",	&uart3_16xx.clk, CK_16XX),
+ 	CLK(NULL,	"usb_clko",	&usb_clko,	CK_16XX | CK_1510 | CK_310),
+diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
+index 8434137..6a9b42f 100644
+--- a/arch/arm/mach-omap1/mux.c
++++ b/arch/arm/mach-omap1/mux.c
+@@ -70,6 +70,10 @@ MUX_CFG_7XX("SPI_7XX_3",           6,   13,    4,   12,   1, 0)
+ MUX_CFG_7XX("SPI_7XX_4",           6,   17,    4,   16,   1, 0)
+ MUX_CFG_7XX("SPI_7XX_5",           8,   25,    0,   24,   0, 0)
+ MUX_CFG_7XX("SPI_7XX_6",           9,    5,    0,    4,   0, 0)
++
++/* UART pins */
++MUX_CFG_7XX("UART_7XX_1",          3,   21,    0,   20,   0, 0)
++MUX_CFG_7XX("UART_7XX_2",          8,    1,    6,    0,   0, 0)
+ };
+ #define OMAP7XX_PINS_SZ		ARRAY_SIZE(omap7xx_pins)
+ #else
+diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
+index 349de90..b78d074 100644
+--- a/arch/arm/mach-omap1/serial.c
++++ b/arch/arm/mach-omap1/serial.c
+@@ -122,6 +122,13 @@ void __init omap_serial_init(void)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(serial_platform_data) - 1; i++) {
+ 
++		/* Don't look at UARTs higher than 2 for omap7xx */
++		if (cpu_is_omap7xx() && i > 1) {
++			serial_platform_data[i].membase = NULL;
++			serial_platform_data[i].mapbase = 0;
++			continue;
++		}
++
+ 		/* Static mapping, never released */
+ 		serial_platform_data[i].membase =
+ 			ioremap(serial_platform_data[i].mapbase, SZ_2K);
+diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
+index c7472a2..82c374c 100644
+--- a/arch/arm/plat-omap/include/plat/mux.h
++++ b/arch/arm/plat-omap/include/plat/mux.h
+@@ -191,6 +191,10 @@ enum omap7xx_index {
+ 	SPI_7XX_4,
+ 	SPI_7XX_5,
+ 	SPI_7XX_6,
++
++	/* UART */
++	UART_7XX_1,
++	UART_7XX_2,
+ };
+ 
+ enum omap1xxx_index {
+-- 
+1.6.0.4
 
