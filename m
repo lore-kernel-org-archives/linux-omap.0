@@ -1,139 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 00:00:52 +0200
-Message-ID: <201006020000.52992.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org> <201006010005.19554.rjw@sisk.pl> <AANLkTimIzm7fEczlaDT5QqkiBFAjbe46rciLxxsoLSya@mail.gmail.com>
+Date: Wed, 2 Jun 2010 00:03:58 +0200
+Message-ID: <201006020003.58899.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1005312159420.9148-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimIzm7fEczlaDT5QqkiBFAjbe46rciLxxsoLSya@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:39763 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757317Ab0FAWCb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Jun 2010 18:02:31 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1005312159420.9148-100000@netrider.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Tuesday 01 June 2010, Arve Hj=F8nnev=E5g wrote:
-> On Mon, May 31, 2010 at 3:05 PM, Rafael J. Wysocki <rjw@sisk.pl> wrot=
-e:
-> > On Monday 31 May 2010, Neil Brown wrote:
-> >> On Thu, 27 May 2010 23:40:29 +0200 (CEST)
-> >> Thomas Gleixner <tglx@linutronix.de> wrote:
-> >>
-> >> > On Thu, 27 May 2010, Rafael J. Wysocki wrote:
-> >> >
-> >> > > On Thursday 27 May 2010, Thomas Gleixner wrote:
-> >> > > > On Thu, 27 May 2010, Alan Stern wrote:
-> >> > > >
-> >> > > > > On Thu, 27 May 2010, Felipe Balbi wrote:
-> >> > > > >
-> >> > > > > > On Thu, May 27, 2010 at 05:06:23PM +0200, ext Alan Stern=
- wrote:
-> >> > > > > > >If people don't mind, here is a greatly simplified summ=
-ary of the
-> >> > > > > > >comments and objections I have seen so far on this thre=
-ad:
-> >> > > > > > >
-> >> > > > > > >   The in-kernel suspend blocker implementation is okay=
-, even
-> >> > > > > > >   beneficial.
-> >> > > > > >
-> >> > > > > > I disagree here. I believe expressing that as QoS is muc=
-h better. Let
-> >> > > > > > the kernel decide which power state is better as long as=
- I can say I
-> >> > > > > > need 100us IRQ latency or 100ms wakeup latency.
-> >> > > > >
-> >> > > > > Does this mean you believe "echo mem >/sys/power/state" is=
- bad and
-> >> > > > > should be removed?  Or "echo disk >/sys/power/state"?  The=
-y pay no
-> >> > > >
-> >> > > > mem should be replaced by an idle suspend to ram mechanism
-> >> > >
-> >> > > Well, what about when I want the machine to suspend _regardles=
-s_ of whether
-> >> > > or not it's idle at the moment?  That actually happens quite o=
-ften to me. :-)
-> >> >
-> >> > Fair enough. Let's agree on a non ambigous terminology then:
-> >> >
-> >> >      forced:
-> >> >
-> >> >          suspend which you enforce via user interaction, which
-> >> >                  also implies that you risk losing wakeups depen=
-ding on
-> >> >                  the hardware properties
-> >>
-> >> Reasonable definition I think.  However the current implementation=
- doesn't
-> >> exactly match it.
-> >> With the current implementation you risk losing wakeups *independe=
-nt* of the
-> >> hardware properties.
-> >
-> > Define "losing", please.
-> >
-> > Currently, we simply don't regard hardware signals occuring _during=
-_ the
-> > suspend operation itself as wakeups (unless they are wakeup interru=
-pts to be
-> > precise, because these _are_ taken into account by our current code=
-).
-> >
-> > The reason is that the meaning of given event may be _different_ at=
- run time
-> > and after the system has been suspended.  For example, consider a p=
-ower button
-> > on a PC box.  If it's pressed at run time, it usually means "power =
-off the
-> > system" to the kernel.  After the system has been suspended, howeve=
-r, it means
-> > "wake up".  So, you have to switch from one interpretation of the e=
-vent to the
-> > other and that's not an atomic operaition (to put it lightly).
-> >
-> >> Even with ideal hardware events can be lost - by which I mean that=
- they will
-> >> not be seen until some other event effects a wake-up.
-> >> e.g. the interrupt which signals the event happens immediately bef=
-ore the
-> >> suspend is requested (or maybe at the same time as), but the proce=
-ss which
-> >> needs to handle the event doesn't get a chance to see it before th=
-e suspend
-> >> procedure freezes that process, and even if it did it would have n=
-o way to
-> >> abort the suspend.
-> >>
-> >> So I submit that the current implementation doesn't match your des=
-cription of
-> >> "forced", is therefore buggy, and that if it were fixed, that woul=
-d be
-> >> sufficient to meet the immediate needs of android.
-> >
-> > I don't really think it may be fixed with respect to every possible=
- kind of
-> > hardware.  On platforms where I/O interrupts are wakeup events it s=
-hould
-> > work right now.  On other platforms it may be impossible to overcom=
-e hardware
-> > limitations.
-> >
->=20
-> There is no reason you cannot make the rtc alarms work reliably on x8=
-6
-> hardware.
+On Tuesday 01 June 2010, Alan Stern wrote:
+> On Tue, 1 Jun 2010, Neil Brown wrote:
+> 
+> > > As I said before, we generally can't prevent such things from happening,
+> > > because even if we handle the particular race described above, it still is
+> > > possible that the event will be "lost" if it arrives just a bit later (eg.
+> > > during a suspend-toggle switch).  So the PRE_SUSPEND thing won't really
+> > > solve the entire problem while increasing complexity.
+> > > 
+> > > > My freerunner has a single core so without CONFIG_PREEMPT it may be that
+> > > > there is no actual race-window - maybe the PRE_SUSPENDs will all run before a
+> > > > soft_irq thread has a chance to finish handling of the interrupt (my
+> > > > knowledge of these details is limits).  But on a muilti-core device I think
+> > > > there would definitely be a race-window.
+> > > 
+> > > Yes, there always will be a race window.  The only thing we can do is to
+> > > narrow it, but we cannot really close it (at least not on a PC, but I'm not
+> > > really sure it can be closed at all).
+> > 
+> > Well you are the expert so I assume you are right, but I would really like to
+> > understand why this is.
+> > 
+> > I guess that if the event was delivered as an edge-triggered interrupt which
+> > the interrupt controller couldn't latch, then it might get lost.  Is that
+> > what happens?
+> 
+> You're barking up the wrong tree.  If I understand correctly, Rafael is
+> saying that there's a race involving events which are not _wakeup_
+> events.  If a non-wakeup event arrives shortly before a suspend, it can
+> have its normal effect.  If it arrives while a suspend is in progress,
+> its delivery may be delayed until the system resumes.  And if it
+> arrives after the system is fully suspended, it may never be noticed at
+> all.
+> 
+> With wakeup events the problem isn't so bad.  Wakeup events are always
+> noticed, and if the system is designed properly they will either abort
+> a suspend-in-progress or else cause the system to resume as soon as the
+> suspend is complete.  (Linux is not yet properly designed in this
+> sense.)
+> 
+> Or maybe I'm misunderstanding also, and Rafael is saying that there's 
+> a race involving events whose meaning changes depending on whether or 
+> not the system is asleep.  This is obviously true and clearly 
+> unavoidable.
 
-They usually work, but not in 100% of cases.
-
-Generally, "x86 hardware" is a broad category, where modern ones have m=
-uch more
-interesting capabilities than the older.
-
-> Even if you may loose key events while suspending I think it
-> is still valuable to have reliable alarms.
-
-I don't think anyone will argue with that. :-)
+In fact I was referring to both in different places.  That's why what I said
+wasn't too clear, sorry about that.
 
 Rafael
