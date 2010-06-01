@@ -1,80 +1,71 @@
-From: Mike Chan <mike@android.com>
-Subject: Re: [PATCH v2 0/3] Enable CPU frequency and power tracking in cpuacct
-	cgroup
-Date: Tue, 1 Jun 2010 13:56:33 -0700
-Message-ID: <AANLkTilmHyf7XHiYY_U45s7W0yrwBkm2fFW1GfSL3kOT@mail.gmail.com>
-References: <1274380944-20947-1-git-send-email-mike@android.com>
-	<201005202301.12259.trenn@suse.de>
-	<AANLkTimrJ-F-rBDKnEusN2oViObCCPvZzeIWavkf-tqa@mail.gmail.com>
-	<87sk5ljid7.fsf@deeprootsystems.com>
+From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+Subject: Re: [PATCH V2] misc : ROHM BH1780GLI Ambient light sensor Driver
+Date: Tue, 01 Jun 2010 22:39:41 +0100
+Message-ID: <4C057E1D.1010309@jic23.retrosnub.co.uk>
+References: <39216.10.24.255.17.1274699065.squirrel@dbdmail.itg.ti.com>	<20100601131244.7164b43c.akpm@linux-foundation.org>	<4C056FEE.3040107@jic23.retrosnub.co.uk> <20100601135430.9c8c28df.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:33215 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756190Ab0FAVCS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 17:02:18 -0400
-In-Reply-To: <87sk5ljid7.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100601135430.9c8c28df.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Hemanth V <hemanthv@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Daniel Mack <daniel@caiaq.de>, Jonathan Cameron <jic23@cam.ac.uk>, Wolfram Sang <w.sang@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Thomas Renninger <trenn@suse.de>, menage@google.com, balbir@in.ibm.com, cpufreq@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>
 
-On Fri, May 21, 2010 at 10:05 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Mike Chan <mike@android.com> writes:
->
->> On Thu, May 20, 2010 at 2:01 PM, Thomas Renninger <trenn@suse.de> wrote:
->>> Hi Mike,
+On 06/01/10 21:54, Andrew Morton wrote:
+> On Tue, 01 Jun 2010 21:39:10 +0100
+> Jonathan Cameron <kernel@jic23.retrosnub.co.uk> wrote:
+> 
 >>>
->>> On Thursday 20 May 2010 08:42:21 pm Mike Chan wrote:
->>>> v2:
->>>> Rebased off of Thomas Renninger's patch for cgroups_cpuacct refactoring,
->>> thanks.
->>> A general comment:
->>> I don't know much about the cgroup stuff.
->>
->> Perhaps Paul Menage or Balbir Singh can look and sign off on the API's?
->>
->>> I am also not sure how exactly power can be measured on this arch based on
->>
->> If you know how much time was spent at each frequency executing code,
->> you can calculate how much power was consumed if the platform (with
->> hooks) provide power numbers (in milliWatts) for the power at
->> frequency X.
->>
->> I did some initial testing on Motorola Droid comparing to a power
->> meter and I got within 2% variance.
->>
->>> frequency accounting (there also were some threads I was not aware of?)
->>> A signed-off-by or reviewed-by from someone who is more involved in this omap
->>> stuff would probably not that bad.
+>>> It would be most useful if the changelog were to fully describe the
+>>> proposed kernel<->userspace interface.  That's the most important part
+>>> of the driver, because it's the only part we can never change.
 >>>
+>>> There is a desultory effort to maintain sysfs API descriptions under
+>>> Documentation/ABI/.  I'd have thought that it would be appropriate to
+>>> document this driver's ABI in there.
+>> Agreed, but we get back to the debate of what we should standardise on.
+> 
+> I'd suggest standardising on one of the existing drivers.  That way we
+> have two compliant drivers and only need to change (n-2) others.  If we
+> pick some new standard then we need to change (n) drivers.
+I agree but take into account that we are getting a number of superficially
+similar interfaces in kernel (hwmon, various sensors in misc and IIO)
+and it makes sense to my mind to share interfaces across these where
+possible (this is exactly the argument Greg made when we carried the
+equivalent standardization out in IIO - for ref, the spec is in
+staging/drivers/iio/Documentation/sysfs-class-iio)
+(gah, the name needs a change to reflect our move to a sysfs bus - oops)
+> 
+> And we can't change the drivers, really.  They'd all end up needing to
+> provide two interfaces: one for the shiny-new-standard and one legacy.
+True enough.  We argued we could do with out this before because we were
+fairly sure that we knew everyone who was using the sensors (also 1 was in staging
+and another extremely)
+> 
+>> The main point of ALS before it died was exactly putting this standardization
+>> in place (admittedly the interface was slightly different from what we
+>> are proposing in IIO, but that was before Greg pointed out that sharing
+>> with hwmon would be a good idea!)
 >>
->> OMAP was the closest with mainline support I could provide an example
->> how to use these hooks.
->>
->> I'm hoping for some blessing from some people on the linux-omap list
->> for that. However can we possibly just stack the first two patches to
->> get the API in? This will make it easier to fixup the omap hooks if
->> they don't get in.
->
-> This looks like a great enhancement to me.
->
-> Speaking for OMAP PM... I'd suggest getting the generic stuff upstream
-> (or into -next) soon and then work out the OMAP specifics after.
->
-> Since the OMAP OPP layer is going through some churn (but stabilizing
-> and will be submitted for 2.6.36), I'd suggest we queue the
-> OMAP-specific parts of this along with the OPP layer changes.
->
+>> I have to admit I'm a little loath to spend too much time on this given
+>> the amount of time wasted previously (ALS).
+> 
+> Well, it's not a waste.  This is very important!  We appear to be
+> making a big mess which we can never fix up.
+I agree entirely, picking a driver to copy is the way to go.
+(personally I'd argue for the tsl2563 for the reasons above)
+I'm just moaning about the time wasted the previous time we tried to clean
+this stuff up :)
 
-So it looks like there is no objections to this API and I'm OK with
-dropping the omap hooks for now until things are settled in 2.6.36. So
-are things good with Thomas' re-factoring patch for cpuacct as well as
-the first 2 patches?
+Note that 'if' these drivers do end up in IIO we will have to add the abi
+as per the tsl2563 (can keep the others around for a while). We have a consistent
+abi over 6+ sensor types so far and we aren't going to want to break it for
+this one.  There are still unresolved corners in our abi but
+they are all event related so this device is nowhere near them.
 
--- Mike
+Either way, I agree entirely that matching any existing driver is a good thing
+even if it isn't the one I'd personally prefer!
 
-> Kevin
->
+Jonathan
