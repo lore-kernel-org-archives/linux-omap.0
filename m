@@ -1,69 +1,85 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 00:03:58 +0200
-Message-ID: <201006020003.58899.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1005312159420.9148-100000@netrider.rowland.org>
+Date: Wed, 2 Jun 2010 00:08:49 +0200
+Message-ID: <201006020008.49150.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1006011032150.2949-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39763 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757317Ab0FAWCb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Jun 2010 18:02:31 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1005312159420.9148-100000@netrider.rowland.org>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1006011032150.2949-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Alan Stern <stern@rowland.harvard.edu>
 Cc: Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+List-Id: linux-omap@vger.kernel.org
 
 On Tuesday 01 June 2010, Alan Stern wrote:
 > On Tue, 1 Jun 2010, Neil Brown wrote:
 > 
-> > > As I said before, we generally can't prevent such things from happening,
-> > > because even if we handle the particular race described above, it still is
-> > > possible that the event will be "lost" if it arrives just a bit later (eg.
-> > > during a suspend-toggle switch).  So the PRE_SUSPEND thing won't really
-> > > solve the entire problem while increasing complexity.
-> > > 
-> > > > My freerunner has a single core so without CONFIG_PREEMPT it may be that
-> > > > there is no actual race-window - maybe the PRE_SUSPENDs will all run before a
-> > > > soft_irq thread has a chance to finish handling of the interrupt (my
-> > > > knowledge of these details is limits).  But on a muilti-core device I think
-> > > > there would definitely be a race-window.
-> > > 
-> > > Yes, there always will be a race window.  The only thing we can do is to
-> > > narrow it, but we cannot really close it (at least not on a PC, but I'm not
-> > > really sure it can be closed at all).
+> > > With wakeup events the problem isn't so bad.  Wakeup events are always
+> > > noticed, and if the system is designed properly they will either abort
+> > > a suspend-in-progress or else cause the system to resume as soon as the
+> > > suspend is complete.  (Linux is not yet properly designed in this
+> > > sense.)
 > > 
-> > Well you are the expert so I assume you are right, but I would really like to
-> > understand why this is.
-> > 
-> > I guess that if the event was delivered as an edge-triggered interrupt which
-> > the interrupt controller couldn't latch, then it might get lost.  Is that
-> > what happens?
+> > This is exactly the issue.  Linux doesn't get this right.  A wakeup that is
+> > processed by the driver just before suspend may not get all the way out to
+> > it's final destination (possibly in meat-space) until after some other event
+> > wakes the device.  It is not possible to guarantee full delivery of a wakeup
+> > event with Linux in its current state.  This is a bug.
 > 
-> You're barking up the wrong tree.  If I understand correctly, Rafael is
-> saying that there's a race involving events which are not _wakeup_
-> events.  If a non-wakeup event arrives shortly before a suspend, it can
-> have its normal effect.  If it arrives while a suspend is in progress,
-> its delivery may be delayed until the system resumes.  And if it
-> arrives after the system is fully suspended, it may never be noticed at
-> all.
+> That wasn't what I meant.  An important requirement is that a wakeup 
+> event received after the device has been suspended, but before the 
+> system suspend is complete, should cause the system suspend to abort.  
+> This is one of the things suspend blockers were meant to help with.  In 
+> theory it should already work correctly -- but it doesn't.  That's a 
+> real bug.
 > 
-> With wakeup events the problem isn't so bad.  Wakeup events are always
-> noticed, and if the system is designed properly they will either abort
-> a suspend-in-progress or else cause the system to resume as soon as the
-> suspend is complete.  (Linux is not yet properly designed in this
-> sense.)
+> The other things you're talking about aren't really bugs.  That is,
+> they are things which the kernel _ought_ to do but it wasn't _intended_
+> to do.  They are misfeatures: failures of design, not failures of 
+> execution.
 > 
-> Or maybe I'm misunderstanding also, and Rafael is saying that there's 
-> a race involving events whose meaning changes depending on whether or 
-> not the system is asleep.  This is obviously true and clearly 
-> unavoidable.
+> > I don't think I'm missing that.  Wakeup events are the only events of
+> > interest.  But wakeup events are more than just low-level hardware events.
+> > They are also the virtual events that are a direct consequence of the
+> > original hardware event.
+> 
+> This is a matter of semantics and it is highly debatable.
+> 
+> > A UART asserts 'data ready' which is routed to an IO interrupt line that
+> > wakes the device.  This is a wakeup event.
+> 
+> Yes.
+> 
+> > So are the bits that appear on the data line which represent the data
+> > So are the characters that appear on the serial port
+> > So is the "here is a message from the GSM processor" event
+> > So is the "there is a new TXT message" event
+> > So is the "'beep beep beep' out the speaker" event
+> 
+> None of those things can cause the system to wake up after it is
+> suspended.  Indeed, they can't happen at all if the CPU isn't running
+> (unless the GSM processor runs autonomously -- let's ignore such
+> details).  Hence it makes little sense to call them "wakeup" events.
+> 
+> > All these events are wakeup events, and should abort or instant-resume the
+> > system.  Currently only the first can be guaranteed to do this (... and maybe
+> > the second, depending on the details of the implementation).
+> > suspend-blocks effectively pass a lock from one event to the next to ensure
+> > that all of these event block the suspend.  There are various other ways to
+> > achieve the same thing, and I think it can be done with no significant change
+> > to the API.  But some how we need to allow all of these events to be
+> > linked wake-up events, not just the first one.
+> 
+> That's not entirely clear.  Yes, for Android's use case that's what you 
+> want.  But in other situations maybe you don't.  Consider the example 
+> of someone who closes the lid of their laptop and throws it in a 
+> backpack.  The computer should suspend immediately; it shouldn't be 
+> delayed by these "virtual wakeup" events.
 
-In fact I was referring to both in different places.  That's why what I said
-wasn't too clear, sorry about that.
+BTW, this is an important point.  We've already had some bug reports regarding
+such unwanted wakeup events.
 
 Rafael
