@@ -1,154 +1,131 @@
-From: James Bottomley <James.Bottomley@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Mon, 31 May 2010 18:47:17 -0500
-Message-ID: <1275349638.2823.395.camel@mulgrave.site>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
-	 <Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
-	 <20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
-	 <20100527220949.GB10602@srcf.ucam.org>
-	 <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	 <20100527223605.GB11364@srcf.ucam.org>
-	 <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
-	 <20100528043114.GC26177@thunk.org> <1275030704.32462.11.camel@laptop>
-	 <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com>
-	 <1275120618.27810.12699.camel@twins>
-	 <1275149418.4503.128.camel@mulgrave.site>
-	 <alpine.LFD.2.00.1005312250050.2933@localhost.localdomain>
+Date: Tue, 1 Jun 2010 02:32:20 +0200
+Message-ID: <201006010232.20263.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org> <201006010005.19554.rjw@sisk.pl> <20100601090023.788cabf4@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1005312250050.2933@localhost.localdomain>
+In-Reply-To: <20100601090023.788cabf4@notabene.brown>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Neil Brown <neilb@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 2010-05-31 at 23:41 +0200, Thomas Gleixner wrote:
-> On Sat, 29 May 2010, James Bottomley wrote:
-> > On Sat, 2010-05-29 at 10:10 +0200, Peter Zijlstra wrote:
+On Tuesday 01 June 2010, Neil Brown wrote:
+> On Tue, 1 Jun 2010 00:05:19 +0200
+> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+> 
+> > On Monday 31 May 2010, Neil Brown wrote:
+> > > On Thu, 27 May 2010 23:40:29 +0200 (CEST)
+> > > Thomas Gleixner <tglx@linutronix.de> wrote:
 > > > 
-> > > Not using suspend is exactly the point. As Alan has argued, propagating
-> > > suspend blockers up into all regions of userspace will take much longer
-> > > than fixing the hardware.
+> > > > On Thu, 27 May 2010, Rafael J. Wysocki wrote:
+> > > > 
+> > > > > On Thursday 27 May 2010, Thomas Gleixner wrote:
+> > > > > > On Thu, 27 May 2010, Alan Stern wrote:
+> > > > > > 
+> > > > > > > On Thu, 27 May 2010, Felipe Balbi wrote:
+> > > > > > > 
+> > > > > > > > On Thu, May 27, 2010 at 05:06:23PM +0200, ext Alan Stern wrote:
+> > > > > > > > >If people don't mind, here is a greatly simplified summary of the
+> > > > > > > > >comments and objections I have seen so far on this thread:
+> > > > > > > > >
+> > > > > > > > >	The in-kernel suspend blocker implementation is okay, even
+> > > > > > > > >	beneficial.
+> > > > > > > > 
+> > > > > > > > I disagree here. I believe expressing that as QoS is much better. Let 
+> > > > > > > > the kernel decide which power state is better as long as I can say I 
+> > > > > > > > need 100us IRQ latency or 100ms wakeup latency.
+> > > > > > > 
+> > > > > > > Does this mean you believe "echo mem >/sys/power/state" is bad and
+> > > > > > > should be removed?  Or "echo disk >/sys/power/state"?  They pay no
+> > > > > > 
+> > > > > > mem should be replaced by an idle suspend to ram mechanism
+> > > > > 
+> > > > > Well, what about when I want the machine to suspend _regardless_ of whether
+> > > > > or not it's idle at the moment?  That actually happens quite often to me. :-)
+> > > > 
+> > > > Fair enough. Let's agree on a non ambigous terminology then:
+> > > > 
+> > > >      forced:
+> > > > 
+> > > > 	     suspend which you enforce via user interaction, which
+> > > >      	     also implies that you risk losing wakeups depending on
+> > > >      	     the hardware properties
+> > > 
+> > > Reasonable definition I think.  However the current implementation doesn't
+> > > exactly match it.
+> > > With the current implementation you risk losing wakeups *independent* of the
+> > > hardware properties.
 > > 
-> > Strange, that's not what I heard as the possible solution.  I thought he
-> > was advocating expressing the kernel side of suspend blockers as QoS
-> > constraints.  Once we have QoS constraints correctly done in the kernel,
-> > userspace still has to express its requirements.  If the requirements
-> > are static, then they can be done from policy files or in some other
-> > static way but if they're dynamic, they'll still have to be in the
-> > applications ... in about the same places the android wakelocks are.
+> > Define "losing", please.
 > 
-> That's wrong. You only need the explicit dynamic QoS constraints for
-> applications which follow the scheme:
-> 
->      while (1) {
->      	   if (event_available())
-> 	      process_event();
-> 	   else
-> 	      do_useless_crap_which_consumes_power();
->      }	   
-> 
-> which need the following annotation:
-> 
->      while (1) {
->      	   block_suspend();
->      	   if (event_available()) {
-> 	      process_event();
-> 	      unblock_suspend();
-> 	   } else {
-> 	      unblock_suspend();
-> 	      do_useless_crap_which_consumes_power();
->            }
->      }	   
-> 
-> Plus the kernel counterpart of drivers which take the suspend blocker
-> in the interrupt handler and release it when the event queue is empty.
-> 
-> So that's done for making polling event handling power "efficient".
-> 
-> Even worse, you need the same "annotation" for non polling mode and it
-> enforces the use of select() because you cannot take a suspend blocker
-> across a blocking read() without adding more invasive interactions to
-> the kernel..
-> 
-> So the "sane" app looks like:
-> 
->    while (1) {
->    	 select();
-> 	 block_suspend();
-> 	 process_events();
-> 	 unblock_suspend();
->    }
-> 
-> I'm really tired of arguing that this promotion of "programming style"
-> is the worst idea ever, so let's look how you can do the same thing
-> QoS based.
-> 
-> s/block_suspend()/qos(INTERACTIVE)/ and
-> s/unblock_suspend()/qos(NONE)/ and
-> s/block_magic()/qos_magic()/ in the drivers.
+> I did.  See next line in my original.
+>  "... by which I mean that they will not be seen until some other event
+>  effects a wake-up".
 
-So this is the re-expression in terms of a QoS API that I mentioned ...
-as I said, I think it's the way forwards. (from the android point of
-view, it keeps the user space expression in exactly the same place as
-the original wake locks, or suspend blocks, which is why it looks like a
-rename to them).
+OK, sorry.
 
-> Yes, it's mostly the same, with a subtle difference:
-> 
-> While android can use it in the big hammer approach to disable the
-> existing user initiated suspend via /sys/power/state, the rest of the
-> world can benefit as well in various ways.
-> 
->  - Sane applications which use a blocking event wait can be handled
->    with a static QoS setting simply because a blocking read relies on
->    the QoS state of the underlying I/O system.
-> 
->  - Idle based suspend as the logical consequence of idle states is
->    just a matter of QoS constraint based decisions.
-> 
->  - Untrusted apps can be confined in cgroups. The groups are set to
->    QoS(None) when user land decides that it's time to safe power
->    (e.g. screen lock kicks in)
-> 
->  - QoS states can block applications from I/O when the I/O system is
->    set to a state which is exclusive.
-> 
->   - ...
-
-I understand this ... it's effectively the alan stern approach.  I've
-already said that looks like the way forwards.
-
-> So that allows to use the same mechanism for more than the android
-> sledge hammer approach and confines the controversial use cases into
-> android specific files without adding a hard to maintain user space
-> interface which would prevent or at least make it hard to do some of
-> the above mentioned things which we want to see implemented.
-
-Yes, which is why I think something like this can be made to work ... I
-don't really see that we differ on the broad brush picture.  As long as
-the acceptable implementation accomplishes what everyone wants, I think
-we're home.
-
-James
-
-> While I personally disagree with the android approach, I REALLY want
-> to provide them a mechanism to make it work, but not for the price
-> that it actively prevents solutions which are considered to be
-> technically superior by a relevant group of developers/maintainers.
-> 
-> > > You got to realize this is about Linux as a whole, I really don't care
-> > > one whit about the specific Android case. We want a solution that is
-> > > generic enough to solve the power consumption problem and makes sense on
-> > > future hardware.
+>  By "seen" I mean "a user-space process has had a chance
+>  to react to the event, including having the opportunity to abort the suspend
+>  (or ensure an immediate wake-up)".
+> Another way of saying it might be that the event - as an abstract concept -
+> does not reach it's final destination promptly.  This "final destination" may
+> be well outside the kernel.
+>
+> > Currently, we simply don't regard hardware signals occuring _during_ the
+> > suspend operation itself as wakeups (unless they are wakeup interrupts to be
+> > precise, because these _are_ taken into account by our current code).
 > > 
-> > I don't think anyone disagrees with this. As long as we find a long term
-> > solution that satisfies the android case, everyone will be happy.
+> > The reason is that the meaning of given event may be _different_ at run time
+> > and after the system has been suspended.  For example, consider a power button
+> > on a PC box.  If it's pressed at run time, it usually means "power off the
+> > system" to the kernel.  After the system has been suspended, however, it means
+> > "wake up".  So, you have to switch from one interpretation of the event to the
+> > other and that's not an atomic operaition (to put it lightly).
 > 
-> See above.
-> 
-> Thanks,
-> 
-> 	tglx
+> Yes, a suspend-toggle switch is inherently racy.
+
+For this reason we generally have to assume that some events occuring during
+suspend will only be seen by user space after resume.  Now, since we make
+such an assumption anyway, there's a little point working around some races
+related to it while leaving the others as they are (that wouldn't improve
+things all that much).
+
+> It is only wake-up sources that are not inherently racy that are interesting.
+> e.g. a serial line from a GSM device which reports "You have an SMS message".
+> I want to be able to turn my freerunner upside-down by which I tell it (via
+> the accelerometers) that I am done and want it to turn off.  If a TXT message
+> comes in just then, I don't want it to suspend, I want it to make an alert
+> noise.
+> I can put code in to ignore the accelerometer if a txt has just recently come
+> in, but if the TXT arrives just as the write to /sys/power/state starts, the
+> UART interrupt handler could have completed before it has the PRE_SUSPEND
+> method called.  So the suspend will complete and the wakeup from the UART
+> will have been "lost" in that the event didn't get all the way to its
+> destination: my ear.
+
+As I said before, we generally can't prevent such things from happening,
+because even if we handle the particular race described above, it still is
+possible that the event will be "lost" if it arrives just a bit later (eg.
+during a suspend-toggle switch).  So the PRE_SUSPEND thing won't really
+solve the entire problem while increasing complexity.
+
+> My freerunner has a single core so without CONFIG_PREEMPT it may be that
+> there is no actual race-window - maybe the PRE_SUSPENDs will all run before a
+> soft_irq thread has a chance to finish handling of the interrupt (my
+> knowledge of these details is limits).  But on a muilti-core device I think
+> there would definitely be a race-window.
+
+Yes, there always will be a race window.  The only thing we can do is to
+narrow it, but we cannot really close it (at least not on a PC, but I'm not
+really sure it can be closed at all).
+
+If you really want _all_ events to be delivered timely, the only way to go is
+to avoid using suspend (and use the idle framework for power management).
+
+Thanks,
+Rafael
