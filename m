@@ -1,73 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: DMTIMER: Ack pending interrupt always when
- stopping a timer
-Date: Tue, 1 Jun 2010 10:40:48 +0300
-Message-ID: <20100601074048.GD841@atomide.com>
-References: <1274797036-21107-1-git-send-email-tero.kristo@nokia.com>
- <87d3wkner2.fsf@deeprootsystems.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [RFC PATCH 5/5] ASoC: omap-mcbsp: Place correct
+	constraints for streams
+Date: Tue, 1 Jun 2010 11:07:32 +0300
+Message-ID: <201006011107.32406.peter.ujfalusi@nokia.com>
+References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
+	<201006010947.09640.peter.ujfalusi@nokia.com>
+	<20100601103828.55e7b394.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60811 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753430Ab0FAHkz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 03:40:55 -0400
-Content-Disposition: inline
-In-Reply-To: <87d3wkner2.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20100601103828.55e7b394.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ext@alsa-project.org" <ext@alsa-project.org>, Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100525 19:07]:
-> Tero Kristo <tero.kristo@nokia.com> writes:
-> 
-> > From: Tero Kristo <tero.kristo@nokia.com>
-> >
-> > The kernel timer queue is being run currently from a GP timer running in a one
-> > shot mode, which works in a way that when it expires, it will also stop.
-> > Usually during this situation, the interrupt handler will ack the interrupt,
-> > load a new value to the timer and start it again. During suspend, the
-> > situation is slightly different, as we disable interrupts just before
-> > timekeeping is suspended, which leaves a small window where the timer can
-> > expire before it is stopped, and will leave the interrupt flag pending.
-> > This pending interrupt will prevent ARM sleep entry, thus now we ack it always
-> > when we are attempting to stop a timer.
-> >
-> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> 
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> 
-> > ---
-> >  arch/arm/plat-omap/dmtimer.c |    8 +++++---
-> >  1 files changed, 5 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> > index c64875f..023d664 100644
-> > --- a/arch/arm/plat-omap/dmtimer.c
-> > +++ b/arch/arm/plat-omap/dmtimer.c
-> > @@ -541,11 +541,13 @@ void omap_dm_timer_stop(struct omap_dm_timer *timer)
-> >  		  * timer is stopped
-> >  		  */
-> >  		udelay(3500000 / clk_get_rate(timer->fclk) + 1);
-> > -		/* Ack possibly pending interrupt */
-> > -		omap_dm_timer_write_reg(timer, OMAP_TIMER_STAT_REG,
-> > -				OMAP_TIMER_INT_OVERFLOW);
-> >  #endif
-> >  	}
-> > +#ifdef CONFIG_ARCH_OMAP2PLUS
-> > +	/* Ack possibly pending interrupt */
-> > +	omap_dm_timer_write_reg(timer, OMAP_TIMER_STAT_REG,
-> > +			OMAP_TIMER_INT_OVERFLOW);
-> > +#endif
-> >  }
-> >  EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
+On Tuesday 01 June 2010 10:38:28 ext Jarkko Nikula wrote:
+> On Tue, 1 Jun 2010 09:47:09 +0300
+> =
 
-I'll add this to omap-fixes queue, but will remove the
-ifdef CONFIG_ARCH_OMAP2PLUS around clearing the interrupt
-as the situation would be the same for omap1 if ever used
-the same way.
+> Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+> > I like the following naming:
+> > omap_mcbsp_hwrule_min_buffersize()
+> > omap_mcbsp_hwrule_max_periodsize()
+> =
 
-Regards,
+> Looks clear to me.
+> =
 
-Tony
+> > Also, I think there is no point to limit the lower period size in
+> > threshold mode to 32, so I will remove that as well I think.
+> =
+
+> What was the reason why period size cannot be bigger than threshold?
+> This constraint was there before your patch but I don't remember reason
+> for it.
+
+When DMA is used to push the data to McBSP on OMAP3:
+The McBSP threshold means, that if threshold amount of locations (words) ar=
+e =
+
+free in the buffer, than the DMA request line will be asserted, and McBSP =
+
+expects that DMA will transfer _exactly_ threshold number of words in respo=
+nse =
+
+to the DMA request.
+So, if threshold is 1 (in register it is 0), than McBSP requests for new wo=
+rd, =
+
+whenever a single location is free in the FIFO. The DMA should send 1 word =
+per =
+
+DMA request.
+
+If threshold is configured to 100 (99 in register), than McBSP will asserts=
+ the =
+
+DMA request line, when 100 locations are free. Than DMA has to send 100 wor=
+ds =
+
+per DMA request.
+
+So we need to limit the period size (which is used to configure the DMA's e=
+lem =
+
+count - number of words per DMA request) that it shall never be bigger than=
+ the =
+
+threshold.
+
+> Should it be opposite that period size cannot be smaller than threshold?
+
+No.
+
+-- =
+
+P=E9ter
