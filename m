@@ -1,16 +1,16 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [RFC PATCH 5/5] ASoC: omap-mcbsp: Place correct
-	constraints for streams
-Date: Tue, 1 Jun 2010 09:47:09 +0300
-Message-ID: <201006010947.09640.peter.ujfalusi@nokia.com>
+Subject: Re: [RFC PATCH 2/5] OMAP3: McBSP: Change the way how
+	the FIFO is handled
+Date: Tue, 1 Jun 2010 09:59:20 +0300
+Message-ID: <201006010959.20610.peter.ujfalusi@nokia.com>
 References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
-	<201005311457.22699.peter.ujfalusi@nokia.com>
-	<20100601093807.f4a9ec27.jhnikula@gmail.com>
+	<1275293810-31984-3-git-send-email-peter.ujfalusi@nokia.com>
+	<4C03F4B8.9090306@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20100601093807.f4a9ec27.jhnikula@gmail.com>
+In-Reply-To: <4C03F4B8.9090306@gmail.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -20,62 +20,220 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Liam Girdwood <lrg@slimlogic.co.uk>
+To: ext Nishanth Menon <menon.nishanth@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 01 June 2010 09:38:07 ext Jarkko Nikula wrote:
-> On Mon, 31 May 2010 14:57:22 +0300
-> =
-
-> Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
-> > On Monday 31 May 2010 13:00:21 ext Liam Girdwood wrote:
+On Monday 31 May 2010 20:41:12 ext Nishanth Menon wrote:
+> On 05/31/2010 11:16 AM, Peter Ujfalusi wrote:
+> > Use the actual FIFO size in words as buffer_size on OMAP2.
+> > Change the threshold configuration to use 1 based numbering, when
+> > specifying the allowed threshold maximum or the McBSP threshold value.
+> > Set the default maximum threshold to (buffer_size - 0x10) intialy.
 > > =
 
-> > ...
+> >> From users of McBSP, now it is expected to use this method.
 > > =
 
-> > > > +static int hw_rule_bsize_by_channels(struct snd_pcm_hw_params
-> > > > *params, +				    struct snd_pcm_hw_rule *rule)
-> > > > +{
-> > > > +	struct snd_interval *bs =3D hw_param_interval(params,
-> > > > +					SNDRV_PCM_HW_PARAM_BUFFER_SIZE);
-> > > > +	struct snd_interval *c =3D hw_param_interval(params,
-> > > > +					SNDRV_PCM_HW_PARAM_CHANNELS);
-> > > =
+> > Asking for threshold 1 means that the value written to threshold
+> > registers are going to be 0, which means 1 word threshold.
+> =
 
-> > > Best to make these variable names more meaningful.
+> just a 2cent minor comment: maybe omap_mcbsp_platform_data needs
+> structure documentation.. it might be difficult for folks to figure that
+> out from commit ID itself..
+
+I can add comments in the mach-omap2/mcbsp.c like this:
+
+> =
+
+> > Signed-off-by: Peter Ujfalusi<peter.ujfalusi@nokia.com>
+> > ---
 > > =
 
-> > Sure, I can change that. I have picked these, since all code, which adds
-> > hw_rule (and the writing an ALSA driver manual) are using variables like
-> > this. In Here I mean:
-> > bs =3D=3D Buffer Size
-> > c =3D=3D Channels
-> =
+> >   arch/arm/mach-omap2/mcbsp.c |   10 +++++-----
+> >   arch/arm/plat-omap/mcbsp.c  |   10 ++++++----
+> >   2 files changed, 11 insertions(+), 9 deletions(-)
+> > =
 
-> Change also function names. They should start with omap_mcbsp_.
-> =
+> > diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+> > index 016fe60..9139958 100644
+> > --- a/arch/arm/mach-omap2/mcbsp.c
+> > +++ b/arch/arm/mach-omap2/mcbsp.c
+> > @@ -132,7 +132,7 @@ static struct omap_mcbsp_platform_data
+> > omap34xx_mcbsp_pdata[] =3D {
+> > =
 
-> hw_rule_bsize_by_channels
-> hw_rule_psize_by_channels
-> ->
-> omap_mcbsp_(calc_max_bufsize, rule_max_buf, or something)
-> omap_mcbsp_(calc_max_periodsize)
+> >   		.rx_irq		=3D INT_24XX_MCBSP1_IRQ_RX,
+> >   		.tx_irq		=3D INT_24XX_MCBSP1_IRQ_TX,
+> >   		.ops		=3D&omap2_mcbsp_ops,
+> > =
 
-Oh yes, they should start with omap_mcbsp_
-I'll change them too.
+> > -		.buffer_size	=3D 0x6F,
+> > +		.buffer_size	=3D 0x80,
 
-I like the following naming:
-omap_mcbsp_hwrule_min_buffersize()
-omap_mcbsp_hwrule_max_periodsize()
+ +		.buffer_size	=3D 0x80, /* The FIFO has 128 locations */
 
-Also, I think there is no point to limit the lower period size in threshold=
- mode =
+> > =
 
-to 32, so I will remove that as well I think.
+> >   	},
+> >   	{
+> >   	=
 
-I'll wait couple of hours for comments, and resend the series.
+> >   		.phys_base	=3D OMAP34XX_MCBSP2_BASE,
+> > =
 
-Thanks,
+> > @@ -142,7 +142,7 @@ static struct omap_mcbsp_platform_data
+> > omap34xx_mcbsp_pdata[] =3D {
+> > =
+
+> >   		.rx_irq		=3D INT_24XX_MCBSP2_IRQ_RX,
+> >   		.tx_irq		=3D INT_24XX_MCBSP2_IRQ_TX,
+> >   		.ops		=3D&omap2_mcbsp_ops,
+> > =
+
+> > -		.buffer_size	=3D 0x3FF,
+> > +		.buffer_size	=3D 0x500,
+
+ +		.buffer_size	=3D 0x500, /* The FIFO has 1024 + 256 locations */
+
+> > =
+
+> >   	},
+> >   	{
+> >   	=
+
+> >   		.phys_base	=3D OMAP34XX_MCBSP3_BASE,
+> > =
+
+> > @@ -152,7 +152,7 @@ static struct omap_mcbsp_platform_data
+> > omap34xx_mcbsp_pdata[] =3D {
+> > =
+
+> >   		.rx_irq		=3D INT_24XX_MCBSP3_IRQ_RX,
+> >   		.tx_irq		=3D INT_24XX_MCBSP3_IRQ_TX,
+> >   		.ops		=3D&omap2_mcbsp_ops,
+> > =
+
+> > -		.buffer_size	=3D 0x6F,
+> > +		.buffer_size	=3D 0x80,
+
+ +		.buffer_size	=3D 0x80, /* The FIFO has 128 locations */
+
+> > =
+
+> >   	},
+> >   	{
+> >   	=
+
+> >   		.phys_base	=3D OMAP34XX_MCBSP4_BASE,
+> > =
+
+> > @@ -161,7 +161,7 @@ static struct omap_mcbsp_platform_data
+> > omap34xx_mcbsp_pdata[] =3D {
+> > =
+
+> >   		.rx_irq		=3D INT_24XX_MCBSP4_IRQ_RX,
+> >   		.tx_irq		=3D INT_24XX_MCBSP4_IRQ_TX,
+> >   		.ops		=3D&omap2_mcbsp_ops,
+> > =
+
+> > -		.buffer_size	=3D 0x6F,
+> > +		.buffer_size	=3D 0x80,
+> > =
+
+> >   	},
+> >   	{
+> >   	=
+
+> >   		.phys_base	=3D OMAP34XX_MCBSP5_BASE,
+> > =
+
+> > @@ -170,7 +170,7 @@ static struct omap_mcbsp_platform_data
+> > omap34xx_mcbsp_pdata[] =3D {
+> > =
+
+> >   		.rx_irq		=3D INT_24XX_MCBSP5_IRQ_RX,
+> >   		.tx_irq		=3D INT_24XX_MCBSP5_IRQ_TX,
+> >   		.ops		=3D&omap2_mcbsp_ops,
+> > =
+
+> > -		.buffer_size	=3D 0x6F,
+> > +		.buffer_size	=3D 0x80,
+> > =
+
+> >   	},
+> >   =
+
+> >   };
+> >   #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
+> > =
+
+> > diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+> > index 51d8abf..6462968 100644
+> > --- a/arch/arm/plat-omap/mcbsp.c
+> > +++ b/arch/arm/plat-omap/mcbsp.c
+> > @@ -497,7 +497,8 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u=
+16
+> > threshold)
+> > =
+
+> >   	}
+> >   	mcbsp =3D id_to_mcbsp_ptr(id);
+> > =
+
+> > -	MCBSP_WRITE(mcbsp, THRSH2, threshold);
+> > +	if (threshold&&  threshold<=3D mcbsp->max_tx_thres)
+> > +		MCBSP_WRITE(mcbsp, THRSH2, threshold - 1);
+> > =
+
+> >   }
+> >   EXPORT_SYMBOL(omap_mcbsp_set_tx_threshold);
+> > =
+
+> > @@ -519,7 +520,8 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u=
+16
+> > threshold)
+> > =
+
+> >   	}
+> >   	mcbsp =3D id_to_mcbsp_ptr(id);
+> > =
+
+> > -	MCBSP_WRITE(mcbsp, THRSH1, threshold);
+> > +	if (threshold&&  threshold<=3D mcbsp->max_rx_thres)
+> > +		MCBSP_WRITE(mcbsp, THRSH1, threshold - 1);
+> > =
+
+> >   }
+> >   EXPORT_SYMBOL(omap_mcbsp_set_rx_threshold);
+> > =
+
+> > @@ -1696,8 +1698,8 @@ static inline void __devinit
+> > omap34xx_device_init(struct omap_mcbsp *mcbsp)
+> > =
+
+> >   {
+> >   =
+
+> >   	mcbsp->dma_op_mode =3D MCBSP_DMA_MODE_ELEMENT;
+> >   	if (cpu_is_omap34xx()) {
+> > =
+
+> > -		mcbsp->max_tx_thres =3D max_thres(mcbsp);
+> > -		mcbsp->max_rx_thres =3D max_thres(mcbsp);
+> > +		mcbsp->max_tx_thres =3D max_thres(mcbsp) - 0x10;
+> > +		mcbsp->max_rx_thres =3D max_thres(mcbsp) - 0x10;
+> > =
+
+> >   		/*
+> >   		=
+
+> >   		 * REVISIT: Set dmap_op_mode to THRESHOLD as default
+> >   		 * for mcbsp2 instances.
+
+Is this sufficient?
+
+-- =
+
 P=E9ter
