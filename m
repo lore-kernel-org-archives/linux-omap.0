@@ -1,165 +1,65 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH v3 5/5] ASoC: omap-mcbsp: Place correct constraints for streams
-Date: Tue,  1 Jun 2010 14:18:24 +0300
-Message-ID: <1275391104-26387-6-git-send-email-peter.ujfalusi@nokia.com>
-References: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
+Subject: Re: [alsa-devel] [RFC PATCH 5/5] ASoC: omap-mcbsp: Place correct constraints for streams
+Date: Tue, 1 Jun 2010 14:34:51 +0300
+Message-ID: <201006011434.51789.peter.ujfalusi@nokia.com>
+References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com> <201006011330.11044.peter.ujfalusi@nokia.com> <20100601142047.c6a549a8.jhnikula@gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:57890 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753294Ab0FALTI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 07:19:08 -0400
-In-Reply-To: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:17514 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752915Ab0FALfR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 07:35:17 -0400
+In-Reply-To: <20100601142047.c6a549a8.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, jhnikula@gmail.com, tony@atomide.com, ext-eero.nurkkala@nokia.com, eduardo.valentin@nokia.com
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Girdwood <lrg@slimlogic.co.uk>
 
-OMAP McBSP FIFO is word structured:
-McBSP2 has 1024 + 256 = 1280 word long buffer,
-McBSP1,3,4,5 has 128 word long buffer
+On Tuesday 01 June 2010 14:20:47 ext Jarkko Nikula wrote:
+> On Tue, 1 Jun 2010 13:30:10 +0300
+>=20
+> Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+> > Because, if you want to transfer in one SDMA burst more than the sp=
+ace
+> > free in the McBSP FIFO, than where would the rest go?
+>=20
+> I would have expected peripheral to deassert the DMA request but I
+> haven't read the TRM so detail and experimenting with bigger period
+> sizes didn't work so some /dev/null effect was obviously happening :-=
+)
 
-This means, that the size of the FIFO
-depends on the McBSP word size configuration.
-For example on McBSP3:
-16bit samples: size is 128 * 2 = 256 bytes
-32bit samples: size is 128 * 4 = 512 bytes
-It is simpler to place constraint for buffer and period based on channels.
-McBSP3 as example again (16 or 32 bit samples):
-1 channel (mono): size is 128 frames (128 words)
-2 channels (stereo): size is 128 / 2 = 64 frames (2 * 64 words)
-4 channels: size is 128 / 4 = 32 frames (4 * 32 words)
+And for exchange I have tried the following:
+in element mode (DMA is set to transfer 1 word on DMA request).
+I have configured the McBSP threshold to max - 4 words.
+It does not work either. Playback did not start.
+I think McBSP is waiting to receive max - 4 samples, while only one wor=
+d arrived
+Or something, don't know...
 
-Use the second method to place hw_rule on buffer size, and in threshold
-mode to period size.
+>=20
+> > I guess it could be better than having 128 word long periods on McB=
+SP1,
+> > 3, 4, and 5. With small period size the applications also need to b=
+e
+> > woken up, but if we silently handling the DMA IRQs, and the applica=
+tion
+> > is only woken up by every 10. DMA IRQ, it might still save some pow=
+er?
+>=20
+> This is worth to experiment. Probably more interrupts with or without
+> application wakeup reduction does not increase power as much as the
+> savings are from core clocks being more idle.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
----
- sound/soc/omap/omap-mcbsp.c |   99 ++++++++++++++++++++++++++++++++++---------
- 1 files changed, 78 insertions(+), 21 deletions(-)
+Although application can also configure the avail_min, so it will be no=
+t woken=20
+up for every period....
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index b06d8f1..8a55c9a 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -173,6 +173,51 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
- 		omap_mcbsp_set_rx_threshold(mcbsp_data->bus_id, words);
- }
- 
-+static int omap_mcbsp_hwrule_min_buffersize(struct snd_pcm_hw_params *params,
-+				    struct snd_pcm_hw_rule *rule)
-+{
-+	struct snd_interval *buffer_size = hw_param_interval(params,
-+					SNDRV_PCM_HW_PARAM_BUFFER_SIZE);
-+	struct snd_interval *channels = hw_param_interval(params,
-+					SNDRV_PCM_HW_PARAM_CHANNELS);
-+	struct omap_mcbsp_data *mcbsp_data = rule->private;
-+	struct snd_interval frames;
-+	int size;
-+
-+	snd_interval_any(&frames);
-+	size = omap_mcbsp_get_fifo_size(mcbsp_data->bus_id);
-+
-+	frames.min = size / channels->min;
-+	frames.integer = 1;
-+	return snd_interval_refine(buffer_size, &frames);
-+
-+}
-+
-+static int omap_mcbsp_hwrule_max_periodsize(struct snd_pcm_hw_params *params,
-+				    struct snd_pcm_hw_rule *rule)
-+{
-+	struct snd_interval *period_size = hw_param_interval(params,
-+					SNDRV_PCM_HW_PARAM_PERIOD_SIZE);
-+	struct snd_interval *channels = hw_param_interval(params,
-+					SNDRV_PCM_HW_PARAM_CHANNELS);
-+	struct snd_pcm_substream *substream = rule->private;
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-+	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
-+	struct snd_interval frames;
-+	int size;
-+
-+	snd_interval_any(&frames);
-+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-+		size = omap_mcbsp_get_max_tx_threshold(mcbsp_data->bus_id);
-+	else
-+		size = omap_mcbsp_get_max_rx_threshold(mcbsp_data->bus_id);
-+
-+	frames.max = size / channels->min;
-+	frames.integer = 1;
-+	return snd_interval_refine(period_size, &frames);
-+}
-+
- static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
- 				  struct snd_soc_dai *dai)
- {
-@@ -185,33 +230,45 @@ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
- 	if (!cpu_dai->active)
- 		err = omap_mcbsp_request(bus_id);
- 
-+	/*
-+	 * OMAP3 McBSP FIFO is word structured.
-+	 * McBSP2 has 1024 + 256 = 1280 word long buffer,
-+	 * McBSP1,3,4,5 has 128 word long buffer
-+	 * This means that the size of the FIFO depends on the sample format.
-+	 * For example on McBSP3:
-+	 * 16bit samples: size is 128 * 2 = 256 bytes
-+	 * 32bit samples: size is 128 * 4 = 512 bytes
-+	 * It is simpler to place constraint for buffer and period based on
-+	 * channels.
-+	 * McBSP3 as example again (16 or 32 bit samples):
-+	 * 1 channel (mono): size is 128 frames (128 words)
-+	 * 2 channels (stereo): size is 128 / 2 = 64 frames (2 * 64 words)
-+	 * 4 channels: size is 128 / 4 = 32 frames (4 * 32 words)
-+	 */
- 	if (cpu_is_omap343x()) {
- 		int dma_op_mode = omap_mcbsp_get_dma_op_mode(bus_id);
--		int max_period;
- 
- 		/*
--		 * McBSP2 in OMAP3 has 1024 * 32-bit internal audio buffer.
--		 * Set constraint for minimum buffer size to the same than FIFO
--		 * size in order to avoid underruns in playback startup because
--		 * HW is keeping the DMA request active until FIFO is filled.
--		 */
--		if (bus_id == 1)
--			snd_pcm_hw_constraint_minmax(substream->runtime,
--					SNDRV_PCM_HW_PARAM_BUFFER_BYTES,
--					4096, UINT_MAX);
--
--		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
--			max_period = omap_mcbsp_get_max_tx_threshold(bus_id);
--		else
--			max_period = omap_mcbsp_get_max_rx_threshold(bus_id);
--
--		max_period++;
--		max_period <<= 1;
-+		* The first rule is for the buffer size, we should not allow
-+		* smaller buffer than the FIFO size to avoid underruns
-+		*/
-+		snd_pcm_hw_rule_add(substream->runtime, 0,
-+				    SNDRV_PCM_HW_PARAM_CHANNELS,
-+				    omap_mcbsp_hwrule_min_buffersize,
-+				    mcbsp_data,
-+				    SNDRV_PCM_HW_PARAM_BUFFER_SIZE, -1);
- 
-+		/*
-+		 * In case of threshold mode, the rule will ensure, that the
-+		 * period size is not bigger than the maximum allowed threshold
-+		 * value.
-+		 */
- 		if (dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
--			snd_pcm_hw_constraint_minmax(substream->runtime,
--						SNDRV_PCM_HW_PARAM_PERIOD_BYTES,
--						32, max_period);
-+			snd_pcm_hw_rule_add(substream->runtime, 0,
-+					    SNDRV_PCM_HW_PARAM_CHANNELS,
-+					    omap_mcbsp_hwrule_max_periodsize,
-+					    substream,
-+					    SNDRV_PCM_HW_PARAM_PERIOD_SIZE, -1);
- 	}
- 
- 	return err;
--- 
-1.7.1
-
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
