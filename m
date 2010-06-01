@@ -1,91 +1,52 @@
-From: Neil Brown <neilb@suse.de>
+From: Thomas Gleixner <tglx@linutronix.de>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 1 Jun 2010 11:33:09 +1000
-Message-ID: <20100601113309.609349fd@notabene.brown>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
-	<201006010005.19554.rjw@sisk.pl>
-	<20100601090023.788cabf4@notabene.brown>
-	<201006010232.20263.rjw@sisk.pl>
+Date: Tue, 1 Jun 2010 03:49:37 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
+References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org> <201006010005.19554.rjw@sisk.pl> <20100601090023.788cabf4@notabene.brown> <201006010232.20263.rjw@sisk.pl> <20100601113309.609349fd@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201006010232.20263.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.tglx.de ([62.245.132.106]:38799 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752185Ab0FABuL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 May 2010 21:50:11 -0400
+In-Reply-To: <20100601113309.609349fd@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Neil Brown <neilb@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Tue, 1 Jun 2010 02:32:20 +0200
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-
-> On Tuesday 01 June 2010, Neil Brown wrote:
-> > I want to be able to turn my freerunner upside-down by which I tell it (via
-> > the accelerometers) that I am done and want it to turn off.  If a TXT message
-> > comes in just then, I don't want it to suspend, I want it to make an alert
-> > noise.
-> > I can put code in to ignore the accelerometer if a txt has just recently come
-> > in, but if the TXT arrives just as the write to /sys/power/state starts, the
-> > UART interrupt handler could have completed before it has the PRE_SUSPEND
-> > method called.  So the suspend will complete and the wakeup from the UART
-> > will have been "lost" in that the event didn't get all the way to its
-> > destination: my ear.
+On Tue, 1 Jun 2010, Neil Brown wrote:
+> And if you are right that the race window cannot be closed, then the whole
+> suspend-blocker infrastructure is pointless as the purpose of it is simply to
+> close that window.  If it really does not and cannot work, then it would be
+> best to reject it for that reason rather than for less concrete aesthetic
+> arguments.
+> But presumably it does work in practice on Android hardware so ..... confused.
 > 
-> As I said before, we generally can't prevent such things from happening,
-> because even if we handle the particular race described above, it still is
-> possible that the event will be "lost" if it arrives just a bit later (eg.
-> during a suspend-toggle switch).  So the PRE_SUSPEND thing won't really
-> solve the entire problem while increasing complexity.
+> Having just seen the email from Thomas, maybe you mean that it cannot be
+> closed on devices using ACPI, but can on other devices.  I can sort-of
+> imagine how that would be the case (I tried reading an ACPI spec once - my
+> hat is of to those of you who understand it).
+> That shouldn't prevent us from closing the race window on "sane" hardware
+> that allows it.  This would, I think, be sufficient for Android's needs.
 > 
-> > My freerunner has a single core so without CONFIG_PREEMPT it may be that
-> > there is no actual race-window - maybe the PRE_SUSPENDs will all run before a
-> > soft_irq thread has a chance to finish handling of the interrupt (my
-> > knowledge of these details is limits).  But on a muilti-core device I think
-> > there would definitely be a race-window.
-> 
-> Yes, there always will be a race window.  The only thing we can do is to
-> narrow it, but we cannot really close it (at least not on a PC, but I'm not
-> really sure it can be closed at all).
+> I'm hoping we can get agreement on:
+>   - there is a race with suspend
 
-Well you are the expert so I assume you are right, but I would really like to
-understand why this is.
+That's a matter of how you define "suspend". 
 
-I guess that if the event was delivered as an edge-triggered interrupt which
-the interrupt controller couldn't latch, then it might get lost.  Is that
-what happens?
-But if the event comes in as a level-triggered (or latched) interrupt, then
-the driver simply chooses not to acknowledge the interrupt after PRE_SUSPEND
-until RESUME.  Then any suspend would immediately be woken.  Maybe the window
-for ignoring interrupt would have to be a bit smaller than that, but it
-should be a well defined window that can be locked.
-Why cannot we carry this sort of guarantee all the way up to user-space and
-beyond?  Am I completely misunderstanding the hardware?
+If "suspend" is another deep idle state and the hardware is sane,
+there is no race at all - assumed that the driver/platform developer
+got it right. It's not rocket science to transition from "normal" irq
+delivery to wakeup based delivery raceless (except for PC style x86
+hardware of today)
 
-And if you are right that the race window cannot be closed, then the whole
-suspend-blocker infrastructure is pointless as the purpose of it is simply to
-close that window.  If it really does not and cannot work, then it would be
-best to reject it for that reason rather than for less concrete aesthetic
-arguments.
-But presumably it does work in practice on Android hardware so ..... confused.
-
-Having just seen the email from Thomas, maybe you mean that it cannot be
-closed on devices using ACPI, but can on other devices.  I can sort-of
-imagine how that would be the case (I tried reading an ACPI spec once - my
-hat is of to those of you who understand it).
-That shouldn't prevent us from closing the race window on "sane" hardware
-that allows it.  This would, I think, be sufficient for Android's needs.
-
-I'm hoping we can get agreement on:
-  - there is a race with suspend
-  - it can be closed on the sort of hardware that is typically used in the
-    mobile space
-  - closing it would address the need which lead to the suspend-block
-    proposal.
-
-If we have agreement on that, we can move on to
-  - should we close the race? (hopefully "yes" because bugs should be fixed).
-  - how should we close the race? (lots of room for exploration there).
-
+If "suspend" is the thing we are used to via /sys/power/state then the
+race will persist forever except for the suspend blocker workaround,
+which we can express in QoS terms as well w/o adding another suspend
+related user space API.
 
 Thanks,
-NeilBrown
+
+	tglx
