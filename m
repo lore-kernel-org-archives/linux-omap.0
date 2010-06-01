@@ -1,112 +1,65 @@
-From: Neil Brown <neilb@suse.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 1 Jun 2010 12:38:46 +1000
-Message-ID: <20100601123846.14d0535b@notabene.brown>
-References: <20100601113309.609349fd@notabene.brown>
-	<Pine.LNX.4.44L0.1005312159420.9148-100000@netrider.rowland.org>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [RFC] [PATCH v3 1/4] OMAP4: Keyboard controller support
+Date: Tue, 1 Jun 2010 07:43:19 +0300
+Message-ID: <20100601044318.GA13883@nokia.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043E537F73@dlee03.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1005312159420.9148-100000@netrider.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53043E537F73@dlee03.ent.ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "ext Arce, Abraham" <x0066660@ti.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 31 May 2010 22:10:00 -0400 (EDT)
-Alan Stern <stern@rowland.harvard.edu> wrote:
+On Mon, May 31, 2010 at 11:44:02PM +0200, ext Arce, Abraham wrote:
+>diff --git a/arch/arm/plat-omap/include/plat/omap4-keypad.h b/arch/arm/plat-omap/include/plat/omap4-keypad.h
+>new file mode 100644
+>index 0000000..7a6ce70
+>--- /dev/null
+>+++ b/arch/arm/plat-omap/include/plat/omap4-keypad.h
+>@@ -0,0 +1,23 @@
+>+#ifndef ARCH_ARM_PLAT_OMAP4_KEYPAD_H
+>+#define ARCH_ARM_PLAT_OMAP4_KEYPAD_H
+>+
+>+#include <linux/input/matrix_keypad.h>
+>+
+>+struct omap4_keypad_platform_data {
+>+       const struct matrix_keymap_data *keymap_data;
+>+
+>+       u8 rows;
+>+       u8 cols;
 
-> On Tue, 1 Jun 2010, Neil Brown wrote:
-> 
-> > > As I said before, we generally can't prevent such things from happening,
-> > > because even if we handle the particular race described above, it still is
-> > > possible that the event will be "lost" if it arrives just a bit later (eg.
-> > > during a suspend-toggle switch).  So the PRE_SUSPEND thing won't really
-> > > solve the entire problem while increasing complexity.
-> > > 
-> > > > My freerunner has a single core so without CONFIG_PREEMPT it may be that
-> > > > there is no actual race-window - maybe the PRE_SUSPENDs will all run before a
-> > > > soft_irq thread has a chance to finish handling of the interrupt (my
-> > > > knowledge of these details is limits).  But on a muilti-core device I think
-> > > > there would definitely be a race-window.
-> > > 
-> > > Yes, there always will be a race window.  The only thing we can do is to
-> > > narrow it, but we cannot really close it (at least not on a PC, but I'm not
-> > > really sure it can be closed at all).
-> > 
-> > Well you are the expert so I assume you are right, but I would really like to
-> > understand why this is.
-> > 
-> > I guess that if the event was delivered as an edge-triggered interrupt which
-> > the interrupt controller couldn't latch, then it might get lost.  Is that
-> > what happens?
-> 
-> You're barking up the wrong tree.  If I understand correctly, Rafael is
-> saying that there's a race involving events which are not _wakeup_
-> events.  If a non-wakeup event arrives shortly before a suspend, it can
-> have its normal effect.  If it arrives while a suspend is in progress,
-> its delivery may be delayed until the system resumes.  And if it
-> arrives after the system is fully suspended, it may never be noticed at
-> all.
+rows and cols should be passed by struct matryx_keymap_data
 
-I am only thinking of wakeup event. (And I am only thinking of suspend as
-initiated by writing 'mem' to /sys/power/state.)
-I agree that non-wakeup events can easily be delayed by suspend, and this is
-by design and no-one wants it to change.
+>+       u16 irq;
+>+       void __iomem *base;
 
-> 
-> With wakeup events the problem isn't so bad.  Wakeup events are always
-> noticed, and if the system is designed properly they will either abort
-> a suspend-in-progress or else cause the system to resume as soon as the
-> suspend is complete.  (Linux is not yet properly designed in this
-> sense.)
+base and irq are to be passed by struct resource
 
-This is exactly the issue.  Linux doesn't get this right.  A wakeup that is
-processed by the driver just before suspend may not get all the way out to
-it's final destination (possibly in meat-space) until after some other event
-wakes the device.  It is not possible to guarantee full delivery of a wakeup
-event with Linux in its current state.  This is a bug.
+>+       int (*device_enable) (struct platform_device *pdev);
+>+       int (*device_shutdown) (struct platform_device *pdev);
+>+       int (*device_idle) (struct platform_device *pdev);
 
-> 
-> Or maybe I'm misunderstanding also, and Rafael is saying that there's 
-> a race involving events whose meaning changes depending on whether or 
-> not the system is asleep.  This is obviously true and clearly 
-> unavoidable.
-> 
-> > And if you are right that the race window cannot be closed, then the whole
-> > suspend-blocker infrastructure is pointless as the purpose of it is simply to
-> > close that window.  If it really does not and cannot work, then it would be
-> > best to reject it for that reason rather than for less concrete aesthetic
-> > arguments.
-> > But presumably it does work in practice on Android hardware so ..... confused.
-> 
-> The point you're missing is that Android works with regard to wakeup
-> events.  It doesn't necessarily always receive non-wakeup events
-> (although I don't know how Android classifies events -- maybe
-> everything is a wakeup event for them).
-> 
+why are you passing these three here ?? I would expect those to be 
+driver specific not board specific.
 
-I don't think I'm missing that.  Wakeup events are the only events of
-interest.  But wakeup events are more than just low-level hardware events.
-They are also the virtual events that are a direct consequence of the
-original hardware event.
-A UART asserts 'data ready' which is routed to an IO interrupt line that
-wakes the device.  This is a wakeup event.
-So are the bits that appear on the data line which represent the data
-So are the characters that appear on the serial port
-So is the "here is a message from the GSM processor" event
-So is the "there is a new TXT message" event
-So is the "'beep beep beep' out the speaker" event
+>+       error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
+>+                            IRQF_TRIGGER_FALLING,
+>+                            "omap4-keypad", keypad_data);
+>+       if (error) {
+>+               dev_err(&pdev->dev, "failed to register interrupt\n");
+>+               goto err_free_input;
+>+       }
+>+
+>+       error = input_register_device(keypad_data->input);
 
-All these events are wakeup events, and should abort or instant-resume the
-system.  Currently only the first can be guaranteed to do this (... and maybe
-the second, depending on the details of the implementation).
-suspend-blocks effectively pass a lock from one event to the next to ensure
-that all of these event block the suspend.  There are various other ways to
-achieve the same thing, and I think it can be done with no significant change
-to the API.  But some how we need to allow all of these events to be
-linked wake-up events, not just the first one.
+register the input device before enabling the irq line please, you might 
+end up with 'spurious' irqs happening during probe otherwise.
 
-Thanks,
-NeilBrown
+-- 
+balbi
+
+DefectiveByDesign.org
