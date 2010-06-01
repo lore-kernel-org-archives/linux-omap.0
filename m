@@ -1,71 +1,68 @@
-From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Subject: Re: [PATCH V2] misc : ROHM BH1780GLI Ambient light sensor Driver
-Date: Tue, 01 Jun 2010 22:39:41 +0100
-Message-ID: <4C057E1D.1010309@jic23.retrosnub.co.uk>
-References: <39216.10.24.255.17.1274699065.squirrel@dbdmail.itg.ti.com>	<20100601131244.7164b43c.akpm@linux-foundation.org>	<4C056FEE.3040107@jic23.retrosnub.co.uk> <20100601135430.9c8c28df.akpm@linux-foundation.org>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Tue, 1 Jun 2010 14:39:29 -0700 (PDT)
+Message-ID: <599286.8177.qm@web180301.mail.gq1.yahoo.com>
+References: <1275426085.21962.967.camel@mulgrave.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100601135430.9c8c28df.akpm@linux-foundation.org>
+In-Reply-To: <1275426085.21962.967.camel@mulgrave.site>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hemanth V <hemanthv@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Daniel Mack <daniel@caiaq.de>, Jonathan Cameron <jic23@cam.ac.uk>, Wolfram Sang <w.sang@pengutronix.de>
+To: Matthew Garrett <mjg59@srcf.ucam.org>, James Bottomley <James.Bottomley@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, =?iso-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/01/10 21:54, Andrew Morton wrote:
-> On Tue, 01 Jun 2010 21:39:10 +0100
-> Jonathan Cameron <kernel@jic23.retrosnub.co.uk> wrote:
-> 
->>>
->>> It would be most useful if the changelog were to fully describe the
->>> proposed kernel<->userspace interface.  That's the most important part
->>> of the driver, because it's the only part we can never change.
->>>
->>> There is a desultory effort to maintain sysfs API descriptions under
->>> Documentation/ABI/.  I'd have thought that it would be appropriate to
->>> document this driver's ABI in there.
->> Agreed, but we get back to the debate of what we should standardise on.
-> 
-> I'd suggest standardising on one of the existing drivers.  That way we
-> have two compliant drivers and only need to change (n-2) others.  If we
-> pick some new standard then we need to change (n) drivers.
-I agree but take into account that we are getting a number of superficially
-similar interfaces in kernel (hwmon, various sensors in misc and IIO)
-and it makes sense to my mind to share interfaces across these where
-possible (this is exactly the argument Greg made when we carried the
-equivalent standardization out in IIO - for ref, the spec is in
-staging/drivers/iio/Documentation/sysfs-class-iio)
-(gah, the name needs a change to reflect our move to a sysfs bus - oops)
-> 
-> And we can't change the drivers, really.  They'd all end up needing to
-> provide two interfaces: one for the shiny-new-standard and one legacy.
-True enough.  We argued we could do with out this before because we were
-fairly sure that we knew everyone who was using the sensors (also 1 was in staging
-and another extremely)
-> 
->> The main point of ALS before it died was exactly putting this standardization
->> in place (admittedly the interface was slightly different from what we
->> are proposing in IIO, but that was before Greg pointed out that sharing
->> with hwmon would be a good idea!)
->>
->> I have to admit I'm a little loath to spend too much time on this given
->> the amount of time wasted previously (ALS).
-> 
-> Well, it's not a waste.  This is very important!  We appear to be
-> making a big mess which we can never fix up.
-I agree entirely, picking a driver to copy is the way to go.
-(personally I'd argue for the tsl2563 for the reasons above)
-I'm just moaning about the time wasted the previous time we tried to clean
-this stuff up :)
+--- On Tue, 6/1/10, James Bottomley <James.Bottomley@suse.de> wrote:
 
-Note that 'if' these drivers do end up in IIO we will have to add the abi
-as per the tsl2563 (can keep the others around for a while). We have a consistent
-abi over 6+ sensor types so far and we aren't going to want to break it for
-this one.  There are still unresolved corners in our abi but
-they are all event related so this device is nowhere near them.
+> > As long as you can set a wakeup timer, an S state is just a C state with 
+> > side effects.
 
-Either way, I agree entirely that matching any existing driver is a good thing
-even if it isn't the one I'd personally prefer!
+I've seen similar statements on this endless
+thread before; they're not quite true...
 
-Jonathan
+
+> > The significant one is that entering an
+> > S state stops the process scheduler and
+> > any in-kernel timers.
+
+There's a structural difference too, related
+to peripheral device activity and power states.
+
+Specifically, peripherals can be active in C
+states (erforming I/O, maybe with DMA etc) and
+ will in general not be in lowest power states
+(PCI etc).  Whereas entry to ACPI S-states
+involves calling the AML code to put those
+peripherals into lowest power modes ... ones
+they can't in general enter at run time.  (An
+additional task of that bytecode is to activate
+any wakeup logic, which again is not generally
+functional in except in S-states).
+
+
+The point being perhaps more that ACPI doesn't
+map well to the more power-efficient architectures
+(often built on ARM) ... hardware vendors provide
+all kinds of PM hooks, and Linux can choose between
+them so it's more power-miserly than if it tried
+to emulate an ACPI based platform.
+
+I've seen some Linux systems which put DRAM into
+self-refresh during certain idle modes, for example,
+not just during suspend-to-RAM, if it's known that
+no DMA is active.  (Why not save that power if it's
+safe?)  Likewise, disable some oscillators and PLLs
+if they're not needed (the clock API allows that to
+be done regardless of "C-states" etc).
+
+The notion of "suspend" gets introduced on such
+systems primarily to match the ACPI-ish models  that
+exist ... rather than because they necessarily make
+good matches for the hardware.  Which has left a
+puzzle:  how and why to use such "suspend" models?
+
+Maybe that's underlying some of the pushback for
+the notion of automagic entry to "suspend" states.
+
+- Dave
