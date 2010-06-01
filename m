@@ -1,52 +1,76 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 1 Jun 2010 03:49:37 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org> <201006010005.19554.rjw@sisk.pl> <20100601090023.788cabf4@notabene.brown> <201006010232.20263.rjw@sisk.pl> <20100601113309.609349fd@notabene.brown>
+Date: Mon, 31 May 2010 22:10:00 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1005312159420.9148-100000@netrider.rowland.org>
+References: <20100601113309.609349fd@notabene.brown>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:38799 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752185Ab0FABuL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 May 2010 21:50:11 -0400
+Received: from netrider.rowland.org ([192.131.102.5]:60998 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752735Ab0FACKB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 May 2010 22:10:01 -0400
 In-Reply-To: <20100601113309.609349fd@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Neil Brown <neilb@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 On Tue, 1 Jun 2010, Neil Brown wrote:
+
+> > As I said before, we generally can't prevent such things from happening,
+> > because even if we handle the particular race described above, it still is
+> > possible that the event will be "lost" if it arrives just a bit later (eg.
+> > during a suspend-toggle switch).  So the PRE_SUSPEND thing won't really
+> > solve the entire problem while increasing complexity.
+> > 
+> > > My freerunner has a single core so without CONFIG_PREEMPT it may be that
+> > > there is no actual race-window - maybe the PRE_SUSPENDs will all run before a
+> > > soft_irq thread has a chance to finish handling of the interrupt (my
+> > > knowledge of these details is limits).  But on a muilti-core device I think
+> > > there would definitely be a race-window.
+> > 
+> > Yes, there always will be a race window.  The only thing we can do is to
+> > narrow it, but we cannot really close it (at least not on a PC, but I'm not
+> > really sure it can be closed at all).
+> 
+> Well you are the expert so I assume you are right, but I would really like to
+> understand why this is.
+> 
+> I guess that if the event was delivered as an edge-triggered interrupt which
+> the interrupt controller couldn't latch, then it might get lost.  Is that
+> what happens?
+
+You're barking up the wrong tree.  If I understand correctly, Rafael is
+saying that there's a race involving events which are not _wakeup_
+events.  If a non-wakeup event arrives shortly before a suspend, it can
+have its normal effect.  If it arrives while a suspend is in progress,
+its delivery may be delayed until the system resumes.  And if it
+arrives after the system is fully suspended, it may never be noticed at
+all.
+
+With wakeup events the problem isn't so bad.  Wakeup events are always
+noticed, and if the system is designed properly they will either abort
+a suspend-in-progress or else cause the system to resume as soon as the
+suspend is complete.  (Linux is not yet properly designed in this
+sense.)
+
+Or maybe I'm misunderstanding also, and Rafael is saying that there's 
+a race involving events whose meaning changes depending on whether or 
+not the system is asleep.  This is obviously true and clearly 
+unavoidable.
+
 > And if you are right that the race window cannot be closed, then the whole
 > suspend-blocker infrastructure is pointless as the purpose of it is simply to
 > close that window.  If it really does not and cannot work, then it would be
 > best to reject it for that reason rather than for less concrete aesthetic
 > arguments.
 > But presumably it does work in practice on Android hardware so ..... confused.
-> 
-> Having just seen the email from Thomas, maybe you mean that it cannot be
-> closed on devices using ACPI, but can on other devices.  I can sort-of
-> imagine how that would be the case (I tried reading an ACPI spec once - my
-> hat is of to those of you who understand it).
-> That shouldn't prevent us from closing the race window on "sane" hardware
-> that allows it.  This would, I think, be sufficient for Android's needs.
-> 
-> I'm hoping we can get agreement on:
->   - there is a race with suspend
 
-That's a matter of how you define "suspend". 
+The point you're missing is that Android works with regard to wakeup
+events.  It doesn't necessarily always receive non-wakeup events
+(although I don't know how Android classifies events -- maybe
+everything is a wakeup event for them).
 
-If "suspend" is another deep idle state and the hardware is sane,
-there is no race at all - assumed that the driver/platform developer
-got it right. It's not rocket science to transition from "normal" irq
-delivery to wakeup based delivery raceless (except for PC style x86
-hardware of today)
+Alan Stern
 
-If "suspend" is the thing we are used to via /sys/power/state then the
-race will persist forever except for the suspend blocker workaround,
-which we can express in QoS terms as well w/o adding another suspend
-related user space API.
-
-Thanks,
-
-	tglx
