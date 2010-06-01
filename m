@@ -1,79 +1,46 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 1 Jun 2010 10:47:49 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006011032150.2949-100000@iolanthe.rowland.org>
-References: <20100601123846.14d0535b@notabene.brown>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: RE: [RFC] [PATCH v3 2/4] OMAP4: Keyboard device registration
+Date: Tue, 1 Jun 2010 10:14:09 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E538286@dlee03.ent.ti.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043E537F74@dlee03.ent.ti.com>
+ <20100601094358.GJ841@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100601123846.14d0535b@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Neil Brown <neilb@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49194 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756080Ab0FAPOO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 11:14:14 -0400
+In-Reply-To: <20100601094358.GJ841@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
 
-On Tue, 1 Jun 2010, Neil Brown wrote:
+Hi Tony,
 
-> > With wakeup events the problem isn't so bad.  Wakeup events are always
-> > noticed, and if the system is designed properly they will either abort
-> > a suspend-in-progress or else cause the system to resume as soon as the
-> > suspend is complete.  (Linux is not yet properly designed in this
-> > sense.)
+> Please test this with omap3_defconfig too, and make sure it does not break
+> things for omap2 and omap3.
+
+Tested, no problems...
+
+> > +int omap4_init_kp(struct omap4_keypad_platform_data *kp)
+> > +{
+> > +	struct omap_hwmod *oh;
+> > +	struct omap_device *od;
+> > +	struct omap4_keypad_platform_data *pdata;
+> > +
+> > +	unsigned int length = 0, id = 0;
+> > +	int hw_mod_name_len = 16;
+> > +	char oh_name[hw_mod_name_len];
+> > +	char *name = "omap4-keypad";
 > 
-> This is exactly the issue.  Linux doesn't get this right.  A wakeup that is
-> processed by the driver just before suspend may not get all the way out to
-> it's final destination (possibly in meat-space) until after some other event
-> wakes the device.  It is not possible to guarantee full delivery of a wakeup
-> event with Linux in its current state.  This is a bug.
+> 	if (!cpu_is_omap44xx())
+> 		return -ENODEV;
 
-That wasn't what I meant.  An important requirement is that a wakeup 
-event received after the device has been suspended, but before the 
-system suspend is complete, should cause the system suspend to abort.  
-This is one of the things suspend blockers were meant to help with.  In 
-theory it should already work correctly -- but it doesn't.  That's a 
-real bug.
+I am using #ifdef CONFIG_ARCH_OMAP4 for this portion of code, what you are suggesting is to check at runtime?
 
-The other things you're talking about aren't really bugs.  That is,
-they are things which the kernel _ought_ to do but it wasn't _intended_
-to do.  They are misfeatures: failures of design, not failures of 
-execution.
-
-> I don't think I'm missing that.  Wakeup events are the only events of
-> interest.  But wakeup events are more than just low-level hardware events.
-> They are also the virtual events that are a direct consequence of the
-> original hardware event.
-
-This is a matter of semantics and it is highly debatable.
-
-> A UART asserts 'data ready' which is routed to an IO interrupt line that
-> wakes the device.  This is a wakeup event.
-
-Yes.
-
-> So are the bits that appear on the data line which represent the data
-> So are the characters that appear on the serial port
-> So is the "here is a message from the GSM processor" event
-> So is the "there is a new TXT message" event
-> So is the "'beep beep beep' out the speaker" event
-
-None of those things can cause the system to wake up after it is
-suspended.  Indeed, they can't happen at all if the CPU isn't running
-(unless the GSM processor runs autonomously -- let's ignore such
-details).  Hence it makes little sense to call them "wakeup" events.
-
-> All these events are wakeup events, and should abort or instant-resume the
-> system.  Currently only the first can be guaranteed to do this (... and maybe
-> the second, depending on the details of the implementation).
-> suspend-blocks effectively pass a lock from one event to the next to ensure
-> that all of these event block the suspend.  There are various other ways to
-> achieve the same thing, and I think it can be done with no significant change
-> to the API.  But some how we need to allow all of these events to be
-> linked wake-up events, not just the first one.
-
-That's not entirely clear.  Yes, for Android's use case that's what you 
-want.  But in other situations maybe you don't.  Consider the example 
-of someone who closes the lid of their laptop and throws it in a 
-backpack.  The computer should suspend immediately; it shouldn't be 
-delayed by these "virtual wakeup" events.
-
-Alan Stern
+Best Regards
+Abraham
