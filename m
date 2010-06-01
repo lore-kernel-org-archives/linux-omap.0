@@ -1,56 +1,57 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 1 Jun 2010 14:17:01 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org> <201005302202.39511.rjw@sisk.pl> <AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com> <201005312347.24251.rjw@sisk.pl>
- <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH v3 5/5] ASoC: omap-mcbsp: Place correct
+	constraints for streams
+Date: Tue, 1 Jun 2010 15:19:23 +0300
+Message-ID: <201006011519.23249.peter.ujfalusi@nokia.com>
+References: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1275391104-26387-6-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1710233220-1275394626=:2933"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Florian Mickler <florian@mickler.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1275391104-26387-6-git-send-email-peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
---8323328-1710233220-1275394626=:2933
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+On Tuesday 01 June 2010 14:18:24 Ujfalusi Peter (Nokia-D/Tampere) wrote:
 
-On Mon, 31 May 2010, Arve Hjønnevåg wrote:
+...
 
-> 2010/5/31 Rafael J. Wysocki <rjw@sisk.pl>:
-> > On Monday 31 May 2010, Arve Hjønnevåg wrote:
-> >> 2010/5/30 Rafael J. Wysocki <rjw@sisk.pl>:
-> > ...
-> >>
-> >> I think it makes more sense to block suspend while wakeup events are
-> >> pending than blocking it everywhere timers are used by code that could
-> >> be called while handling wakeup events or other critical work. Also,
-> >> even if you did block suspend everywhere timers where used you still
-> >> have the race where a wakeup interrupt happens right after you decided
-> >> to suspend. In other words, you still need to block suspend in all the
-> >> same places as with the current opportunistic suspend code, so what is
-> >> the benefit of delaying suspend until idle?
-> >
-> > Assume for a while that you don't use suspend blockers, OK?  I realize you
-> > think that anything else doesn't make sense, but evidently some other people
-> > have that opinion about suspend blockers.
-> >
-> 
-> It sounded like you were suggesting that initiating suspend from idle
-> would somehow avoid the race condition with wakeup events. All I'm
-> saying is that you would need to block suspend in all the same places.
-> If you don't care about ignoring wakeup events, then sure you can
-> initiate suspend from idle.
+> +static int omap_mcbsp_hwrule_min_buffersize(struct snd_pcm_hw_params
+> *params, +				    struct snd_pcm_hw_rule *rule)
+> +{
+> +	struct snd_interval *buffer_size =3D hw_param_interval(params,
+> +					SNDRV_PCM_HW_PARAM_BUFFER_SIZE);
+> +	struct snd_interval *channels =3D hw_param_interval(params,
+> +					SNDRV_PCM_HW_PARAM_CHANNELS);
+> +	struct omap_mcbsp_data *mcbsp_data =3D rule->private;
+> +	struct snd_interval frames;
+> +	int size;
+> +
+> +	snd_interval_any(&frames);
+> +	size =3D omap_mcbsp_get_fifo_size(mcbsp_data->bus_id);
+> +
+> +	frames.min =3D size / channels->min;
+> +	frames.integer =3D 1;
+> +	return snd_interval_refine(buffer_size, &frames);
+> +
+> +}
 
-And why should you miss a wakeup there ? If you get an interrupt in
-the transition, then you are not longer idle.
+Just noticed this extra line after the return...
+Should I resend?
 
-Thanks,
+-- =
 
-	tglx
---8323328-1710233220-1275394626=:2933--
+P=E9ter
