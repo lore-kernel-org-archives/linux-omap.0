@@ -1,69 +1,61 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 01 Jun 2010 09:57:31 +0300
-Message-ID: <4C04AF5B.1000702@nokia.com>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>	<201005302202.39511.rjw@sisk.pl>	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>	<201005312347.24251.rjw@sisk.pl> <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [RFC PATCH 5/5] ASoC: omap-mcbsp: Place correct
+ constraints for streams
+Date: Tue, 1 Jun 2010 09:38:07 +0300
+Message-ID: <20100601093807.f4a9ec27.jhnikula@gmail.com>
+References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1275293810-31984-6-git-send-email-peter.ujfalusi@nokia.com>
+	<1275300021.3174.5.camel@odin>
+	<201005311457.22699.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?ext_Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <201005311457.22699.peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: alsa-devel@alsa-project.org, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, ext@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 31 May 2010 14:57:22 +0300
+Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
 
-ext Arve Hj=F8nnev=E5g wrote:
+> On Monday 31 May 2010 13:00:21 ext Liam Girdwood wrote:
+> 
+> ...
+> 
+> > > +static int hw_rule_bsize_by_channels(struct snd_pcm_hw_params *params,
+> > > +				    struct snd_pcm_hw_rule *rule)
+> > > +{
+> > > +	struct snd_interval *bs = hw_param_interval(params,
+> > > +					SNDRV_PCM_HW_PARAM_BUFFER_SIZE);
+> > > +	struct snd_interval *c = hw_param_interval(params,
+> > > +					SNDRV_PCM_HW_PARAM_CHANNELS);
+> > 
+> > Best to make these variable names more meaningful.
+> 
+> Sure, I can change that. I have picked these, since all code, which adds hw_rule 
+> (and the writing an ALSA driver manual) are using variables like this.
+> In Here I mean:
+> bs == Buffer Size
+> c == Channels
+> 
+Change also function names. They should start with omap_mcbsp_.
 
-> It sounded like you were suggesting that initiating suspend from idle
-> would somehow avoid the race condition with wakeup events. All I'm
-> saying is that you would need to block suspend in all the same places=
-=2E
-> If you don't care about ignoring wakeup events, then sure you can
-> initiate suspend from idle.
->  =20
+hw_rule_bsize_by_channels
+hw_rule_psize_by_channels
+->
+omap_mcbsp_(calc_max_bufsize, rule_max_buf, or something)
+omap_mcbsp_(calc_max_periodsize)
 
-Sorry if i'm asking something that was already said, but the thread is=20
-quite complex and i am not sure i have been able to grasp all of it.
 
-So, regardless of the SW implementation:
-
--1) are you focusing on "good" HW or do you want to address all at the=20
-same time?
-
--2) would you be ok with addressing "bad" HW as a special case, which=20
-requires workarounds and shouldn't dictate the overall design?
-
--3) do you agree with the assumption that new HW is expected to get=20
-reasonably better and therefore workarounds at point 2) will=20
-progressively be confined to devices less and less common?
-
--4) going to the definition of "good" and "bad" (maybe this should have=
-=20
-come earlier in the list), can we define "good" HW as HW where:
- * suspend state and lowest achievable runtime idle state are basically=
-=20
-equivalent from both power consumption and latency pov
- * the HW itself is properly able to track wakeup sources while it is i=
-n=20
-its deepest power state (as example OMAP3 has few independent=20
-wake-capable pads and a "wake ring" where one only gets the information=
-=20
-that at least one of the pads belonging to such ring has received a wak=
-eup)
- * wakeup sources can be dynamically masked at HW level, so that if a=20
-peripheral is not interesting, it doesn't wakeup the system (for exampl=
-e=20
-the camera button when the camera cover is closed)
-
--5) HW that is not capable of properly generating asynchronous signal i=
-s=20
-most likely the cause for extra timers in kernel and it should be=20
-considered "bad" - in any other case having recurring in-kernel timers=20
-should be treated as bugs, if their existence is not tied to some=20
-meaningful work
-
-thanks, igor
+-- 
+Jarkko
