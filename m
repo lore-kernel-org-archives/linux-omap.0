@@ -1,57 +1,32 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH v3 5/5] ASoC: omap-mcbsp: Place correct
-	constraints for streams
-Date: Tue, 1 Jun 2010 15:19:23 +0300
-Message-ID: <201006011519.23249.peter.ujfalusi@nokia.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 0/5]  OMAP/ASoC: McBSP: FIFO handling related fixes
+Date: Tue, 1 Jun 2010 13:30:02 +0100
+Message-ID: <20100601123002.GC863@rakim.wolfsonmicro.main>
 References: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1275391104-26387-6-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1275391104-26387-6-git-send-email-peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:35787 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755889Ab0FAMaE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 08:30:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, jhnikula@gmail.com, tony@atomide.com, ext-eero.nurkkala@nokia.com, eduardo.valentin@nokia.com
 
-Hi,
+On Tue, Jun 01, 2010 at 02:18:19PM +0300, Peter Ujfalusi wrote:
 
-On Tuesday 01 June 2010 14:18:24 Ujfalusi Peter (Nokia-D/Tampere) wrote:
+> Changes since RFC v2:
+> - Comments added explaining the changes, and documenting the API in patch2
+> - In patch5:
+>  - Variable names changed in the hw_rule function
+>  - hw_rule function got renamed
+>  - The snd_pcm_hw_rule_add calls moved so it anly got set on OMAP3
 
-...
+All of these look sensible enough from an ASoC point of view, though I
+can't say too much about the OMAP specifics.
 
-> +static int omap_mcbsp_hwrule_min_buffersize(struct snd_pcm_hw_params
-> *params, +				    struct snd_pcm_hw_rule *rule)
-> +{
-> +	struct snd_interval *buffer_size =3D hw_param_interval(params,
-> +					SNDRV_PCM_HW_PARAM_BUFFER_SIZE);
-> +	struct snd_interval *channels =3D hw_param_interval(params,
-> +					SNDRV_PCM_HW_PARAM_CHANNELS);
-> +	struct omap_mcbsp_data *mcbsp_data =3D rule->private;
-> +	struct snd_interval frames;
-> +	int size;
-> +
-> +	snd_interval_any(&frames);
-> +	size =3D omap_mcbsp_get_fifo_size(mcbsp_data->bus_id);
-> +
-> +	frames.min =3D size / channels->min;
-> +	frames.integer =3D 1;
-> +	return snd_interval_refine(buffer_size, &frames);
-> +
-> +}
-
-Just noticed this extra line after the return...
-Should I resend?
-
--- =
-
-P=E9ter
+Acked-by: Mark Brown <broonie@opensource.wolsfonmicro.com>
