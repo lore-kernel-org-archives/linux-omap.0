@@ -1,73 +1,89 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH v2 3/3] omap iommu: kmemleak: Fix false positive with special scan
-Date: Tue,  1 Jun 2010 13:25:11 +0300
-Message-ID: <1275387911-13030-4-git-send-email-Hiroshi.DOYU@nokia.com>
-References: <1273821401-26578-2-git-send-email-Hiroshi.DOYU@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:59900 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755275Ab0FAK0G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 06:26:06 -0400
-In-Reply-To: <1273821401-26578-2-git-send-email-Hiroshi.DOYU@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [RFC PATCH 5/5] ASoC: omap-mcbsp: Place correct
+	constraints for streams
+Date: Tue, 1 Jun 2010 13:30:10 +0300
+Message-ID: <201006011330.11044.peter.ujfalusi@nokia.com>
+References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com>
+	<201006011119.30651.peter.ujfalusi@nokia.com>
+	<20100601122921.6d842ae8.jhnikula@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20100601122921.6d842ae8.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Girdwood <lrg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: catalin.marinas@arm.com, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+On Tuesday 01 June 2010 12:29:21 ext Jarkko Nikula wrote:
+> On Tue, 1 Jun 2010 11:19:30 +0300
+> =
 
-The fist level iommu page table address is registered with the address
-conversion function for kmemleak special scan.
+> Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+> > If threshold is configured to 100 (99 in register), than McBSP will
+> > asserts the DMA request line, when 100 locations are free. Than DMA has
+> > to send 100 words per DMA request.
+> > =
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/iommu.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+> > So we need to limit the period size (which is used to configure the DMA=
+'s
+> > elem count - number of words per DMA request) that it shall never be
+> > bigger than the threshold.
+> =
 
-diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-index a202a2c..5a19e86 100644
---- a/arch/arm/plat-omap/iommu.c
-+++ b/arch/arm/plat-omap/iommu.c
-@@ -894,6 +894,19 @@ void iommu_put(struct iommu *obj)
- }
- EXPORT_SYMBOL_GPL(iommu_put);
- 
-+static unsigned long kmemleak_special_conv(void *data, unsigned long orig)
-+{
-+	u32 *iopgd;
-+	struct iommu *obj = (struct iommu *)data;
-+
-+	iopgd = iopgd_offset(obj, orig);
-+
-+	if (!iopgd_is_table(*iopgd))
-+		return 0;
-+
-+	return (u32)iopgd_page_vaddr(iopgd);
-+}
-+
- /*
-  *	OMAP Device MMU(IOMMU) detection
-  */
-@@ -967,6 +980,11 @@ static int __devinit omap_iommu_probe(struct platform_device *pdev)
- 
- 	BUG_ON(!IS_ALIGNED((unsigned long)obj->iopgd, IOPGD_TABLE_SIZE));
- 
-+	err = kmemleak_special_scan(p, IOPGD_TABLE_SIZE, kmemleak_special_conv,
-+				    obj, THIS_MODULE);
-+	if (err)
-+		dev_warn(&pdev->dev, "kmemleak: failed to add special scan\n");
-+
- 	dev_info(&pdev->dev, "%s registered\n", obj->name);
- 	return 0;
- 
-@@ -991,6 +1009,7 @@ static int __devexit omap_iommu_remove(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, NULL);
- 
- 	iopgtable_clear_entry_all(obj);
-+	kmemleak_no_special(obj->iopgd);
- 	free_pages((unsigned long)obj->iopgd, get_order(IOPGD_TABLE_SIZE));
- 
- 	irq = platform_get_irq(pdev, 0);
--- 
-1.7.1.rc1
+> Now I get it with some get hands dirty testing :-)
+> =
 
+> So this is a feature of SDMA that in threshold mode the transfer size
+> must equal or smaller than threshold (as says the TRM).
+
+No exactly. This is the feature of McBSP, that the SDMA must transfer exact=
+ly =
+
+the same number of words as the McBSP threshold on DMA request.
+
+> Still don't understand why the transfer size is dependent on peripheral F=
+IFO
+> threshold size but that's the fact and we must obey it as Eduardo's
+> original patch and your's are doing.
+
+Because, if you want to transfer in one SDMA burst more than the space free=
+ in =
+
+the McBSP FIFO, than where would the rest go?
+
+> =
+
+> > If there is interest, I might look at this.
+> > I guess this could be useful on McBSP1,3,4, and 5, which has small
+> > FIFO...
+> =
+
+> Yes, have a packet based DMA transfer saving power and then we have
+> bunch of interrupts coming :-)
+
+I guess it could be better than having 128 word long periods on McBSP1, 3, =
+4, =
+
+and 5. With small period size the applications also need to be woken up, bu=
+t if =
+
+we silently handling the DMA IRQs, and the application is only woken up by =
+every =
+
+10. DMA IRQ, it might still save some power?
+
+
+
+-- =
+
+P=E9ter
