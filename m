@@ -1,34 +1,62 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 1 Jun 2010 12:50:01 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org> <201006010005.19554.rjw@sisk.pl> <20100601090023.788cabf4@notabene.brown> <201006010232.20263.rjw@sisk.pl> <20100601113309.609349fd@notabene.brown> <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
- <20100601122012.1edeaf48@notabene.brown>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 1/3 v3] AM35x: Add musb support
+Date: Tue, 1 Jun 2010 16:38:15 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D2AD1@dbde02.ent.ti.com>
+References: <1274769522-28212-1-git-send-email-ajay.gupta@ti.com>
+ <4BFFCE8C.40909@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:43946 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754934Ab0FAKu4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Jun 2010 06:50:56 -0400
-In-Reply-To: <20100601122012.1edeaf48@notabene.brown>
+Received: from devils.ext.ti.com ([198.47.26.153]:35606 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754528Ab0FALIS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 07:08:18 -0400
+In-Reply-To: <4BFFCE8C.40909@ru.mvista.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Neil Brown <neilb@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 1 Jun 2010, Neil Brown wrote:
+Hi,
+[..]
+> > +	 * We have to override VBUS/ID signals when MUSB is configured into
+> the
+> > +	 * host-only mode -- ID pin will float if no cable is connected, so
+> the
+> > +	 * controller won't be able to drive VBUS thinking that it's a B-
+> device.
+> > +	 * Otherwise, we want to use the OTG mode and enable VBUS
+> comparators.
+> > +	 */
+> > +	devconf2 &= ~CONF2_OTGMODE;
+> > +#ifdef	CONFIG_USB_MUSB_HOST
+> > +	devconf2 |=  CONF2_FORCE_HOST;
 > 
-> I think you have acknowledged that there is a race with suspend - thanks.
-> Next step was "can it be closed".
-> You seem to suggest that it can, but you describe it as a "work around"
-> rather than a "bug fix"...
+>     Well, this is only necessary if the board doesn't have pulldown on
+> the USB ID signal. On DA830 EVM, rev. of the board A had it, and it got
+> removed on the later revisions (presumably it conflicted with OTG
+> function?), so this override became necessary. So, make sure this is
+> indeed necessary on your board as using the overrides isn't generally
+> desirable (they all also override VBUS sensing in addition to ID pin).
+
+Yes, it's not needed for AM3517EVM
+
+-Ajay
 > 
-> Do you agree that the race is a "bug", and therefore it is appropriate to
-> "fix" it assuming an acceptable fix can be found (which I think it can)?
-
-If we can fix it, yes we definitely should do and not work around it.
- 
-Thanks,
-
-	tglx
+> > +#else
+> > +	devconf2 |=  CONF2_SESENDEN | CONF2_VBDTCTEN;
+> > +#endif
+> > +
+> > +	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+> > +
+> > +	usb_musb_init(&musb_board_data);
+> > +}
+> > +
+> >  static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst
+> = {
+> >  	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+> >  #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
+> 
+> WBR, Sergei
