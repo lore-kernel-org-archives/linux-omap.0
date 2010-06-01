@@ -1,64 +1,76 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH 6/6] omap: move generic omap3 features to generic
-Date: Tue, 1 Jun 2010 11:04:15 +0530
-Message-ID: <AANLkTilLDPZqmFfVbey0aFixbWRZ4lyAklTuvu5Kv84A@mail.gmail.com>
-References: <1274585799-16226-1-git-send-email-nm@ti.com>
-	<1274585799-16226-2-git-send-email-nm@ti.com>
-	<1274585799-16226-3-git-send-email-nm@ti.com>
-	<1274585799-16226-4-git-send-email-nm@ti.com>
-	<1274585799-16226-5-git-send-email-nm@ti.com>
-	<1274585799-16226-6-git-send-email-nm@ti.com>
-	<1274585799-16226-7-git-send-email-nm@ti.com>
-	<AANLkTinsrRAYX4dvB8A8wPayfRc7wkULQtUSiJ9RxbWh@mail.gmail.com>
-	<4BFE9C14.9040703@ti.com>
-	<AANLkTinHOZXk9pYeSfsBiejU7x1w-rA2MRtC4BBoKK0r@mail.gmail.com>
-	<4C03ED47.6060308@gmail.com>
-	<AANLkTin32ueXXPjVFbLt-cur2WlmFOmgPj6Zlr47tuff@mail.gmail.com>
-	<4C040B76.2090605@ti.com>
+From: Florian Mickler <florian@mickler.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Tue, 1 Jun 2010 07:35:48 +0200
+Message-ID: <20100601073548.5ed65352@schatten.dmk.lab>
+References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
+	<201006010005.19554.rjw@sisk.pl>
+	<20100601090023.788cabf4@notabene.brown>
+	<201006010232.20263.rjw@sisk.pl>
+	<20100601113309.609349fd@notabene.brown>
+	<alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
+	<20100601122012.1edeaf48@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f179.google.com ([209.85.211.179]:39661 "EHLO
-	mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750768Ab0FAFeR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 01:34:17 -0400
-Received: by ywh9 with SMTP id 9so3250838ywh.17
-        for <linux-omap@vger.kernel.org>; Mon, 31 May 2010 22:34:16 -0700 (PDT)
-In-Reply-To: <4C040B76.2090605@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100601122012.1edeaf48@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Neil Brown <neilb@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Nishanth Menon <menon.nishanth@gmail.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-On Tue, Jun 1, 2010 at 12:48 AM, Nishanth Menon <nm@ti.com> wrote:
-> On 05/31/2010 09:46 PM, S, Venkatraman wrote:
->>
->> I understand that you might not have all platforms to test with, but
->> let's not provide a
->> 'generic feature api' without it being available for the supported
->> platforms.
->> It's incomplete without it.
->
-> well.. if you did read 0/6
-> http://marc.info/?l=linux-omap&m=127458581708411&w=2
-> "Caveat: this series just introduces the framework by reorganizing
-> the existing data, it does not attempt to define what the features
-> for OMAP1,2,3,4 would be. As usual, comments are welcome.
-> "
+On Tue, 1 Jun 2010 12:20:12 +1000
+Neil Brown <neilb@suse.de> wrote:
 
-I did see this. My point was the 6/6 claims to do $foo (where $foo=
-make it generic)
-doesn't fit with a caveat description (My patch doesn't do $foo)
+> On Tue, 1 Jun 2010 03:49:37 +0200 (CEST)
+> Thomas Gleixner <tglx@linutronix.de> wrote:
 
-> :) anyways, these are how the three follow on patches will look like (sample
-> omap1,2,4 patches are attached), feel free to ack them after testing - but
-> this patch 6/6 needs to be done prior to the remaining being added - that is
-> one more reason why i stopped where I did.
+> > If "suspend" is another deep idle state and the hardware is sane,
+> > there is no race at all - assumed that the driver/platform developer
+> > got it right. It's not rocket science to transition from "normal" irq
+> > delivery to wakeup based delivery raceless (except for PC style x86
+> > hardware of today)
 
-If you can post them formally as part of the series, I can test and
-ack them (with OMAP3, OMAP4)
-My original comment was even if these were not implemented due to some
-constraints, they should be
-mentioned in the code (as TODO / FIXME etc). The caveat description is
-not going to show up in
-commit logs or printks
+> > If "suspend" is the thing we are used to via /sys/power/state then the
+> > race will persist forever except for the suspend blocker workaround,
+> > which we can express in QoS terms as well w/o adding another suspend
+> > related user space API.
+
+Can you explain the difference between the /sys/power/state thing? Is
+it the reprogramming of wake-sources as mentioned by Raffael?
+
+In an idle based suspend I assume there would be no new wake-sources
+on suspending.
+
+> I'm not interested in adding another user-space API if it can possibly be
+> avoided, and I think it can.  But that is a later step in the process.
+> 
+> I think you have acknowledged that there is a race with suspend - thanks.
+> Next step was "can it be closed".
+> You seem to suggest that it can, but you describe it as a "work around"
+> rather than a "bug fix"...
+
+Well as far as I get it, the workaround is to not suspend in sitations
+where a race is likely to occur. (I.e. block suspend)
+
+> 
+> Do you agree that the race is a "bug", and therefore it is appropriate to
+> "fix" it assuming an acceptable fix can be found (which I think it can)?
+> 
+> If you agree that it is appropriate for try to fix this bug, then the next
+> step would be to get the Android devs to agree that a fix could - in
+> principle - address the need for which they created suspend-blockers.
+> Arve: can you confirm that?
+> 
+> Then, with a clear and agreed goal, we can look at possible fixes.
+> 
+> Thanks,
+> NeilBrown
+> 
+> > 
+> > Thanks,
+> > 
+> > 	tglx
+
+cheers,
+Flo
