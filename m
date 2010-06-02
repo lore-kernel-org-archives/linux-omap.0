@@ -1,77 +1,53 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 1 Jun 2010 20:23:38 -0700
-Message-ID: <AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<201005302202.39511.rjw@sisk.pl>
-	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
-	<201005312347.24251.rjw@sisk.pl>
-	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
+From: "Gross, Mark" <mark.gross@intel.com>
+Subject: RE: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Tue, 1 Jun 2010 20:26:32 -0700
+Message-ID: <CA1BBBBC9359F04AA639128AC0D5D1E9692AAF4F@orsmsx502.amr.corp.intel.com>
+References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100601135102.GA8098@srcf.ucam.org>
+	<1275426085.21962.967.camel@mulgrave.site>	<201006020024.14220.rjw@sisk.pl>
+	<1275431816.21962.1108.camel@mulgrave.site>
+	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
+	<CA1BBBBC9359F04AA639128AC0D5D1E9692AAF29@orsmsx502.amr.corp.intel.com>
+ <AANLkTinsgmHh7iLhESPXiTkoW9SL4H8E92-7bARpDxNX@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:47894 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755122Ab0FBDXj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jun 2010 23:23:39 -0400
-In-Reply-To: <alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinsgmHh7iLhESPXiTkoW9SL4H8E92-7bARpDxNX@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?iso-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Cc: James Bottomley <James.Bottomley@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, "tytso@mit.edu" <tytso@mit.edu>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Alan Stern <stern@rowland.harvard.edu>, Neil Brown <neilb@suse.de>
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Florian Mickler <florian@mickler.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-2010/6/1 Thomas Gleixner <tglx@linutronix.de>:
-> On Mon, 31 May 2010, Arve Hj=F8nnev=E5g wrote:
->
->> 2010/5/31 Rafael J. Wysocki <rjw@sisk.pl>:
->> > On Monday 31 May 2010, Arve Hj=F8nnev=E5g wrote:
->> >> 2010/5/30 Rafael J. Wysocki <rjw@sisk.pl>:
->> > ...
->> >>
->> >> I think it makes more sense to block suspend while wakeup events =
-are
->> >> pending than blocking it everywhere timers are used by code that =
-could
->> >> be called while handling wakeup events or other critical work. Al=
-so,
->> >> even if you did block suspend everywhere timers where used you st=
-ill
->> >> have the race where a wakeup interrupt happens right after you de=
-cided
->> >> to suspend. In other words, you still need to block suspend in al=
-l the
->> >> same places as with the current opportunistic suspend code, so wh=
-at is
->> >> the benefit of delaying suspend until idle?
->> >
->> > Assume for a while that you don't use suspend blockers, OK? =A0I r=
-ealize you
->> > think that anything else doesn't make sense, but evidently some ot=
-her people
->> > have that opinion about suspend blockers.
->> >
->>
->> It sounded like you were suggesting that initiating suspend from idl=
-e
->> would somehow avoid the race condition with wakeup events. All I'm
->> saying is that you would need to block suspend in all the same place=
-s.
->> If you don't care about ignoring wakeup events, then sure you can
->> initiate suspend from idle.
->
-> And why should you miss a wakeup there ? If you get an interrupt in
-> the transition, then you are not longer idle.
->
 
-Because suspend itself causes you to not be idle you cannot abort
-suspend just because you are not idle anymore.
+>-----Original Message-----
+>From: Arve Hj=F8nnev=E5g [mailto:arve@android.com]
+>Sent: Tuesday, June 01, 2010 8:15 PM
+>To: Gross, Mark
+>Cc: James Bottomley; Rafael J. Wysocki; Matthew Garrett; Thomas Gleixn=
+er;
+>Peter Zijlstra; tytso@mit.edu; LKML; Florian Mickler; Linux PM; Linux =
+OMAP
+>Mailing List; felipe.balbi@nokia.com; Alan Cox; Alan Stern; Neil Brown
+>Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+>
+>2010/6/1 Gross, Mark <mark.gross@intel.com>:
+>...
+>>>4. It would be useful to change pm_qos_add_request to not allocate
+>>>anything so can add constraints from init functions that currently
+>>>cannot fail.
+>> [mtg: ] I'm not sure how to do this but I agree it would be good. =A0=
+I
+>guess we could have a block of pm_qos requests pre-allocated staticall=
+y and
+>re-use them. =A0In practice there will not be more than a handful of r=
+equests
+>ever. =A0Dynamic allocation does seem like a bit of a waste.
+>
+>The calling code will have to store a pointer to your structure
+>anyway, you may as well have them provide the whole structure.
+[mtg: ] duh!  You are right.  Make the caller's hold the structure.  It=
+s been a long day.  That would be easy todo.
 
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--gmross
