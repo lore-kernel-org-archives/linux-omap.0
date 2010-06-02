@@ -1,7 +1,7 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv2 02/11] OMAP2: Devkit8000: change panel to generic panel
-Date: Wed,  2 Jun 2010 13:37:42 +0200
-Message-ID: <1275478671-24563-3-git-send-email-weber@corscience.de>
+Subject: [PATCHv2 07/11] OMAP2: Devkit8000: Remove en-/disable for tv panel
+Date: Wed,  2 Jun 2010 13:37:47 +0200
+Message-ID: <1275478671-24563-8-git-send-email-weber@corscience.de>
 References: <1275478671-24563-1-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,25 +21,43 @@ To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Choose the generic panel for lcd code of Devkit8000.
+devkit8000_panel_enable_tv and devkit8000_panel_disable_tv are already
+done in DSS2 code. So they are no longer needed in board code.
 
 Signed-off-by: Thomas Weber <weber@corscience.de>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-devkit8000.c |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 08a2a01..3bde0e6 100644
+index 59877b1..095dc7a 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -175,7 +175,7 @@ static struct regulator_consumer_supply devkit8000_vio_supplies[] = {
+@@ -158,16 +158,6 @@ static void devkit8000_panel_disable_dvi(struct omap_dss_device *dssdev)
+ 		gpio_set_value(dssdev->reset_gpio, 0);
+ }
  
- static struct omap_dss_device devkit8000_lcd_device = {
- 	.name                   = "lcd",
--	.driver_name            = "innolux_at_panel",
-+	.driver_name            = "generic_panel",
- 	.type                   = OMAP_DISPLAY_TYPE_DPI,
- 	.phy.dpi.data_lines     = 24,
- 	.platform_enable        = devkit8000_panel_enable_lcd,
+-static int devkit8000_panel_enable_tv(struct omap_dss_device *dssdev)
+-{
+-
+-	return 0;
+-}
+-
+-static void devkit8000_panel_disable_tv(struct omap_dss_device *dssdev)
+-{
+-}
+-
+ static struct regulator_consumer_supply devkit8000_vmmc1_supply = {
+ 	.supply			= "vmmc",
+ };
+@@ -201,8 +191,6 @@ static struct omap_dss_device devkit8000_tv_device = {
+ 	.driver_name            = "venc",
+ 	.type                   = OMAP_DISPLAY_TYPE_VENC,
+ 	.phy.venc.type          = OMAP_DSS_VENC_TYPE_SVIDEO,
+-	.platform_enable        = devkit8000_panel_enable_tv,
+-	.platform_disable       = devkit8000_panel_disable_tv,
+ };
+ 
+ 
 -- 
 1.7.1
