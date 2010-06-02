@@ -1,93 +1,54 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv2 06/11] OMAP2: Devkit8000: Remove non existing vsim supply
-Date: Wed,  2 Jun 2010 13:37:46 +0200
-Message-ID: <1275478671-24563-7-git-send-email-weber@corscience.de>
-References: <1275478671-24563-1-git-send-email-weber@corscience.de>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: Trying to understand how to use new OMAP mux code
+Date: Wed, 2 Jun 2010 14:46:06 +0300
+Message-ID: <20100602144606.4287c438.jhnikula@gmail.com>
+References: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
+	<20100311224812.GU2900@atomide.com>
+	<4C062DD4.2050701@cioinfoindus.fr>
+	<20100602112130.GG5980@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1275478671-24563-1-git-send-email-weber@corscience.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.27]:7476 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970Ab0FBLnh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 07:43:37 -0400
+Received: by ey-out-2122.google.com with SMTP id d26so305611eyd.19
+        for <linux-omap@vger.kernel.org>; Wed, 02 Jun 2010 04:43:35 -0700 (PDT)
+In-Reply-To: <20100602112130.GG5980@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laurent Epinat <laurent.epinat@cioinfoindus.fr>, linux-omap@vger.kernel.org
 
-The Devkit8000 uses the cost reduced variant tps65930 of the twl4030.
-The TPS65930 only has vdd1, vdd2, vpll1, vio, vmmc1, vdac and vaux2.
+On Wed, 2 Jun 2010 14:21:30 +0300
+Tony Lindgren <tony@atomide.com> wrote:
 
-vaux2 is not used on Devkit8000.
+> > How can I call  omap_mux_init_signal()
+> > from external driver compiled as module ?
+> > 
+> > cause the function is not in the standard path include files
+> > and is not exported
+> 
+> You can't that's the whole idea :)
+> 
+> Instead, please do the muxing in the board-*.c file for all the
+> pins, or for the device when you initialize the platform data.
+> 
+> The muxing of pins is board specific, and doing it in the board-*.c
+> files allows us to free the memory for the unused pin data. Note
+> that you can also mux using the kernel cmdline if you have something
+> non-standard connected to your board pins.
+> 
+Side note.
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
----
- arch/arm/mach-omap2/board-devkit8000.c |   22 ----------------------
- 1 files changed, 0 insertions(+), 22 deletions(-)
+How about add-on cards for e.g. BeagleBoard? It would be nice feature
+if a kernel module for that particular add-on card can do the muxing
+without needing to specify them on cmdline. I.e. if you are switching
+between cards there is no need to figure out new cmdline for each of
+them. For me even "rootwait" is sometimes too difficult to remember :-)
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 8cc8c3b..59877b1 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -168,15 +168,10 @@ static void devkit8000_panel_disable_tv(struct omap_dss_device *dssdev)
- {
- }
- 
--
- static struct regulator_consumer_supply devkit8000_vmmc1_supply = {
- 	.supply			= "vmmc",
- };
- 
--static struct regulator_consumer_supply devkit8000_vsim_supply = {
--	.supply			= "vmmc_aux",
--};
--
- /* ads7846 on SPI */
- static struct regulator_consumer_supply devkit8000_vio_supplies[] = {
- 	REGULATOR_SUPPLY("vcc", "spi2.0")
-@@ -281,7 +276,6 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
- 
- 	/* link regulators to MMC adapters */
- 	devkit8000_vmmc1_supply.dev = mmc[0].dev;
--	devkit8000_vsim_supply.dev = mmc[0].dev;
- 
- 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
- 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-@@ -334,21 +328,6 @@ static struct regulator_init_data devkit8000_vmmc1 = {
- 	.consumer_supplies	= &devkit8000_vmmc1_supply,
- };
- 
--/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
--static struct regulator_init_data devkit8000_vsim = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 3000000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &devkit8000_vsim_supply,
--};
--
- /* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
- static struct regulator_init_data devkit8000_vdac = {
- 	.constraints = {
-@@ -414,7 +393,6 @@ static struct twl4030_platform_data devkit8000_twldata = {
- 	.gpio		= &devkit8000_gpio_data,
- 	.codec		= &devkit8000_codec_data,
- 	.vmmc1		= &devkit8000_vmmc1,
--	.vsim		= &devkit8000_vsim,
- 	.vdac		= &devkit8000_vdac,
- 	.vpll1		= &devkit8000_vpll1,
- 	.vio		= &devkit8000_vio,
+
 -- 
-1.7.1
+Jarkko
