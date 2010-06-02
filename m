@@ -1,63 +1,55 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
- Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 11:33:05 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006021117480.2933@localhost.localdomain>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org> <201006010005.19554.rjw@sisk.pl> <20100601090023.788cabf4@notabene.brown> <201006010232.20263.rjw@sisk.pl> <20100601113309.609349fd@notabene.brown> <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
- <20100601122012.1edeaf48@notabene.brown> <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain> <20100602153235.340a7852@notabene.brown> <AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com> <20100602180614.729246ea@notabene.brown>
- <AANLkTimISbs4X2YR_Pal9A80mpkNyCy8laWBcOgR2Cl7@mail.gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 02 Jun 2010 11:39:21 +0200
+Message-ID: <1275471561.27810.30865.camel@twins>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	 <201005302202.39511.rjw@sisk.pl>
+	 <AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
+	 <201005312347.24251.rjw@sisk.pl>
+	 <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+	 <alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
+	 <AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
+	 <alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
+	 <AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-206425387-1275471188=:2933"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimISbs4X2YR_Pal9A80mpkNyCy8laWBcOgR2Cl7@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Neil Brown <neilb@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:55468 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755918Ab0FBJjT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 05:39:19 -0400
+In-Reply-To: <AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Florian Mickler <florian@mickler.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Wed, 2010-06-02 at 01:54 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
+> No I want you to stop confusing low power idle modes with suspend.
 
---8323328-206425387-1275471188=:2933
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+I think it is you who is confused. For power management purposes suspen=
+d
+is nothing more but a deep idle state.
 
-On Wed, 2 Jun 2010, Arve Hjønnevåg wrote:
-> 2010/6/2 Neil Brown <neilb@suse.de>:
-> > There would still need to be some sort of communication between the the
-> > suspend daemon on any event daemon to ensure that the events had been
-> > processed.  This could be very light weight interaction.  The point though is
-> > that with this patch it becomes possible to avoid races.  Possible is better
-> > than impossible.
-> >
-> 
-> We already have a solution. I don't think rejecting our solution but
-> merging a worse solution should be the goal.
+(and please don't mention @#$@ up x86 ACPI again, Intel knows, they're
+fixing it, get over it already).
 
-That's not the goal at all. We want a solution which is acceptable for
-android and OTOH does not get into the way of other approaches.
+> Unrelated to
+> Android, I also want to use opportunistic suspend on my desktop.
 
-The main problem I have is that suspend blockers are only addressing
-one particular problem space of power management.
+So you're going to sprinkle this suspend blocker shite all over regular
+userspace? Why not instead work on getting apps to behave properly and
+idle when there's nothing to do?
 
-We have more requirements than that, e.g. an active device transfer
-requires to prevent the idle code to select a deep power state due to
-latency requirements. 
-
-So we then have to implement two mechanisms in the relevant drivers:
-
-   1) telling the idle code to limit latency
-   2) telling the suspend code not to suspend
-
-My main interest is to limit it to one mechanism, which is QoS based
-and let idle and suspend make the appropriate decisions based on that
-information.
-
-Thanks,
-
-	tglx
+After all, if you have the code to add suspend blockers into, you also
+have the means to fix it being stupid in the first place.
 
 
 
 
---8323328-206425387-1275471188=:2933--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
