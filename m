@@ -1,97 +1,49 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 10:29:14 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org> <201005302202.39511.rjw@sisk.pl> <AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com> <201005312347.24251.rjw@sisk.pl> <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
- <alpine.LFD.2.00.1006011411200.2933@localhost.localdomain> <AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: [RFC] [PATCH v3 2/4] OMAP4: Keyboard device registration
+Date: Wed, 2 Jun 2010 10:28:13 +0200
+Message-ID: <20100602102813.59519b77@surf>
+References: <27F9C60D11D683428E133F85D2BB4A53043E537F74@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-3244195-1275462694=:2933"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
-Content-ID: <alpine.LFD.2.00.1006020922080.2933@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Florian Mickler <florian@mickler.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53043E537F74@dlee03.ent.ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Arce, Abraham" <x0066660@ti.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Mon, 31 May 2010 16:44:52 -0500
+"Arce, Abraham" <x0066660@ti.com> wrote:
 
---8323328-3244195-1275462694=:2933
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
-Content-ID: <alpine.LFD.2.00.1006020922081.2933@localhost.localdomain>
+> +	unsigned int length = 0, id = 0;
+> +	int hw_mod_name_len = 16;
+> +	char oh_name[hw_mod_name_len];
+> +	char *name = "omap4-keypad";
+> +
+> +	length = snprintf(oh_name, hw_mod_name_len, "kbd");
+> +
+> +	oh = omap_hwmod_lookup(oh_name);
+> +	if (!oh) {
+> +		pr_err("Could not look up %s\n", oh_name);
+> +		return -EIO;
+> +	}
 
-On Tue, 1 Jun 2010, Arve Hjønnevåg wrote:
-> 2010/6/1 Thomas Gleixner <tglx@linutronix.de>:
-> > On Mon, 31 May 2010, Arve Hjønnevåg wrote:
-> >
-> >> 2010/5/31 Rafael J. Wysocki <rjw@sisk.pl>:
-> >> > On Monday 31 May 2010, Arve Hjønnevåg wrote:
-> >> >> 2010/5/30 Rafael J. Wysocki <rjw@sisk.pl>:
-> >> > ...
-> >> >>
-> >> >> I think it makes more sense to block suspend while wakeup events are
-> >> >> pending than blocking it everywhere timers are used by code that could
-> >> >> be called while handling wakeup events or other critical work. Also,
-> >> >> even if you did block suspend everywhere timers where used you still
-> >> >> have the race where a wakeup interrupt happens right after you decided
-> >> >> to suspend. In other words, you still need to block suspend in all the
-> >> >> same places as with the current opportunistic suspend code, so what is
-> >> >> the benefit of delaying suspend until idle?
-> >> >
-> >> > Assume for a while that you don't use suspend blockers, OK?  I realize you
-> >> > think that anything else doesn't make sense, but evidently some other people
-> >> > have that opinion about suspend blockers.
-> >> >
-> >>
-> >> It sounded like you were suggesting that initiating suspend from idle
-> >> would somehow avoid the race condition with wakeup events. All I'm
-> >> saying is that you would need to block suspend in all the same places.
-> >> If you don't care about ignoring wakeup events, then sure you can
-> >> initiate suspend from idle.
-> >
-> > And why should you miss a wakeup there ? If you get an interrupt in
-> > the transition, then you are not longer idle.
-> >
-> 
-> Because suspend itself causes you to not be idle you cannot abort
-> suspend just because you are not idle anymore.
+Maybe I'm missing something here, but I don't see where "length" is
+being used, and why the snprintf()/oh_name thing is needed. What about:
 
-You still are addicted to the current suspend mechanism. :)
+	unsigned int id = 0;
+	char *name = "omap4-keypad";
 
-The whole point of doing it from idle in the form of a deep power
-state is to avoid the massive sh*tload of work which is neccesary to
-run the existing suspend code. But that needs runtime power management
-and tweaks to avoid your timers waking you, etc.
+	oh = omap_hwmod_lookup("kbd");
+	if (!oh) {
+		pr_err("Could not look up kbd\n");
+		return -EIO;
+	}
 
-The mechanism you want to use is: suspend no matter what, like closing
-the lid of the laptop, but with a few tweaks around it:
-
-   1) An interrupt on a wakeup source which comes in while the suspend
-      code runs, i.e before you transitioned into wakeup mode, must
-      abort / prevent suspend.
-
-   2) Prevent another attempt to suspend before the event has been
-      delivered and the apps have signaled that they have not longer
-      any work to do.
-
-   As a side effect you confine crappy apps with that mechanism in
-   some way.
-
-In the laptop case we do not want the tweaks as not going into suspend
-might set your backpack on fire.
-
-If I understood you correctly then you can shutdown the CPU in idle
-completelty already, but that's not enough due to:
-
-    1) crappy applications keeping the cpu away from idle
-    2) timers firing
-
-Would solving those two issues be sufficient for you or am I missing
-something ?
-
-Thanks,
-
-	tglx
---8323328-3244195-1275462694=:2933--
+Thomas
+-- 
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
