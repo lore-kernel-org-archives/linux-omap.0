@@ -1,155 +1,126 @@
-From: Neil Brown <neilb@suse.de>
-Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
- Suspend block api (version 8)
-Date: Thu, 3 Jun 2010 09:21:39 +1000
-Message-ID: <20100603092139.67c15891@notabene.brown>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
-	<201006010005.19554.rjw@sisk.pl>
-	<20100601090023.788cabf4@notabene.brown>
-	<201006010232.20263.rjw@sisk.pl>
-	<20100601113309.609349fd@notabene.brown>
-	<alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
-	<20100601122012.1edeaf48@notabene.brown>
-	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
-	<20100602153235.340a7852@notabene.brown>
-	<AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
-	<20100602180614.729246ea@notabene.brown>
-	<AANLkTimISbs4X2YR_Pal9A80mpkNyCy8laWBcOgR2Cl7@mail.gmail.com>
-	<20100602210224.6ae2333f@notabene.brown>
-	<20100602210521.54b9cd9b@schatten.dmk.lab>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] [MMC] omap: Remove BUG_ON for disabled interrupts
+Date: Wed, 2 Jun 2010 16:30:41 -0700
+Message-ID: <20100602163041.37677747.akpm@linux-foundation.org>
+References: <1275186443-8242-1-git-send-email-darkstar6262@gmail.com>
+	<20100602140542.8c1073f1.akpm@linux-foundation.org>
+	<AANLkTimERVDHWjTgWfyqjUu-I1aU2kqU99T9yRcJMRgG@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100602210521.54b9cd9b@schatten.dmk.lab>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32888 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758161Ab0FBXb3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 19:31:29 -0400
+In-Reply-To: <AANLkTimERVDHWjTgWfyqjUu-I1aU2kqU99T9yRcJMRgG@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Juha Yrjola <juha.yrjola@solidboot.com>
 
-On Wed, 2 Jun 2010 21:05:21 +0200
-Florian Mickler <florian@mickler.org> wrote:
+On Wed, 2 Jun 2010 15:26:52 -0700
+Cory Maccarrone <darkstar6262@gmail.com> wrote:
 
-> Could someone perhaps make a recap on what are the problems with the
-> API? I have no clear eye (experience?) for that (or so it seems).
-
-Good interface design is an acquired taste.  And it isn't always easy to
-explain satisfactorily.  But let me try to explain what I see.
-
-A key aspect of a good interface is unity, and sometimes uniformity.
-For example, the file descriptor is a key element to the unity of the 
-Unix (and hence Posix and Linux) interface.  "everything is a file" and
-even when it isn't, everything is accessed via a file descriptor.
-This is one of the reasons that signals cause so much problem when
-programming in Unix - they aren't files, don't have file descriptors and
-don't look them at all.  That is why signalfd was created, to try to tie
-signals back in to the 'file descriptor' model.
-
-So unity is important.  Adding new concepts is best done as an extension of
-an existing concept.  That means that all the infrastructure, not only code
-and design but also developer understanding, can be leveraged to help get the
-new concept *right* first time.  It also means that using the new concept is
-easier to learn.
-
-So the problem with the wake-locks / suspend-blockers (and I've actually come
-to like the first name much more) is that it introduces a new concept without
-properly leveraging existing concepts.
-
-The new concept is opportunistic suspend, though maybe a better name would be
-automatic suspend - not sure.
-
-There appear to be two ways you can get opportunistic suspend leveraging
-already-existing concepts.
-
-One is to leverage the current "power/state = mem" architecture and just let
-userspace choose the opportune moment.  The user-space daemon that chooses
-this moment would need full information about states of various things to do
-this, but sysfs is good at providing full information about what is in the
-kernel, and there are dozens of ways for user-space processes to communicate
-their state to each other.  So this is all doable today without introducing
-new design concepts.
-Except there is a race between suspending and new events, so we just need to
-fix the race. Hence my patch.
-
-The other is to leverage the more general power management infrastructure.
-We can already detect when the processor won't be needed for a while, and put
-it into a low-power state.  We can already put devices to sleep when they
-aren't being used.  We can just generalise this so that we can detect when
-all devices are either unused, or capable of supporting an S3 transition, and
-detect when the next timer interrupt is far enough in the future that S3
-latency wont be a problem - set the rtc alarm to match the next timer and go
-to S3.  All completely transparent.  (I admit I'm not entirely sure what the 
-qos that is being discussed brings us, but I assume it is better quality
-rather than correctness).
-
-So there are at least two different ways that opportunistic suspend could be
-integrated into existing infrastructure with virtually no change of interface
-and no new concepts - just refining or extending existing concepts.
-
-Yet the approach used and preferred by android is to create something
-substantially new.  Yes, it does use the existing suspend infrastructure, but
-in a very new and different way.  Suspend is now initiated by the kernel, but
-in a completely different way to the ways that the kernel already initiates
-power saving.  So we have two infrastructures for essentially one task.
-Looked at the other way, it moves the initiation of suspend from user-space
-into the kernel, and then allows user-space to tell the kernel not to suspend.
-That to me is very ugly.
-In general, the kernel should provide information to user-space, and provide
-services to user-space, and user-space should use that information to decide
-what services to request.  This is the essence the "policy lives in
-user-space" maxim.
-The Android code has user-space giving information to the kernel, so the
-kernel can make a policy decision.  This approach is generally less flexible
-and is best avoided.
-
-Just as a bit of background, let's think about some of the areas in the
-kernel where the kernel does make policy decisions based on user-space input.
- - the scheduler - based on 'nice' setting it decided who should run when
- - the VM - based on read-ahead settings, madvise/fadvise, recent-use
-   heuristics, it tries to decide what to keep in memory and what to swap out.
-I think those are the main ones.  There are other smaller fish like the
-choice of IO scheduler and various ways to tune network connections.
-
-But the two big ones are perfect examples of subsystems that have proven very
-hard to get *right*, and have been substantially re-written more than once.
-In each case, the difficulty wasn't how to perform the work, it was the
-choice of what work to perform.  It probably also involved getting different
-sorts of information about the current state.
-
-That perspective leaves me very sceptical of any design that involves making
-policy decisions in the kernel.  It is too easy to get wrong, then too hard
-to change.
-Admittedly the power subsystem does seem to make policy decisions in the
-kernel, via the various governors.  Though I don't know much about how these
-work, it seems significant that there is a pluggable infrastructure with
-multiple governors, and one of them leaves the decisions to user-space.
-
-So that is what I see as wrong with the android API : it doesn't bring unity
-by simply leveraging existing infrastructure, and it makes policy decisions
-in the kernel.
-
-
+> On Wed, Jun 2, 2010 at 2:05 PM, Andrew Morton <akpm@linux-foundation.org> wrote:
+> > On Sat, 29 May 2010 19:27:23 -0700
+> > Cory Maccarrone <darkstar6262@gmail.com> wrote:
+> >
+> >> This change removes a BUG_ON for when interrupts are disabled
+> >> during an MMC request. __During boot, interrupts can be disabled
+> >> when a request is made, causing this bug to be triggered. __In reality,
+> >> there's no reason this should halt the kernel, as the driver has proved
+> >> reliable in spite of disabled interrupts, and additionally, there's
+> >> nothing in this code that would require interrupts to be enabled.
+> >>
+> >> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+> >> ---
+> >> __drivers/mmc/host/omap.c | __ __1 -
+> >> __1 files changed, 0 insertions(+), 1 deletions(-)
+> >>
+> >> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> >> index 2b28168..d98ddcf 100644
+> >> --- a/drivers/mmc/host/omap.c
+> >> +++ b/drivers/mmc/host/omap.c
+> >> @@ -1157,7 +1157,6 @@ static void mmc_omap_start_request(struct mmc_omap_host *host,
+> >> __ __ __ mmc_omap_start_command(host, req->cmd);
+> >> __ __ __ if (host->dma_in_use)
+> >> __ __ __ __ __ __ __ omap_start_dma(host->dma_ch);
+> >> - __ __ BUG_ON(irqs_disabled());
+> >> __}
+> >>
+> >> __static void mmc_omap_request(struct mmc_host *mmc, struct mmc_request *req)
+> >
+> > So we need to decide whether this should be backported into 2.6.34.x
+> > and perhaps earlier.
+> >
+> > For that decision we'll need to know the things you didn't tell us:
+> > Which drivers are affected? __Under which setups is it triggering? __Why
+> > aren't lots of people reporting "hey my kernel went BUG"?
+> >
+> >
 > 
-> > It is a pity that this extra requirement was not clear from your introduction
-> > to the "Opportunistic suspend support" patch.
+> The only setup I've managed to make it trigger on is on the HTC Herald
+> during bootup when the driver is built into the kernel (mostly because
+> that's all I have).  I believe it's related to the fact that on bootup
+> I get many timeout errors on "CMD5" while initializing the card.  Each
+> CMD5 timeout triggers that bug (I changed it to a WARN_ON to get it to
+> boot in) due to the fact that part of the timeout code involves
+> sending the request again.  With interrupts turned off, that BUG would
+> be triggered.
 > 
-> I think that the main problem was that _all_ the requirements were
-> not communicated well.  That caused everybody to think that their
-> solution would be a better fit. You are not alone.
->  
-> > If that be the case, I'll stop bothering you with suggestions that can never
-> > work.
-> > Thanks for your time,
-> > NeilBrown
+> I can't answer the question of why other people aren't reporting this
+> -- I know the CMD timeouts are fairly common with this driver, and
+> it's only within the last few kernel releases that their triggering
+> the BUG started happening.  (I had only been able to test it because I
+> was carrying forward the MMC 16-bit patch I submitted a while ago
+> which only recently made it in.  I'm not sure if that's related or
+> not, but I need that to use the MMC-OMAP on herald.)
+
+Do you have one of these BUG_ON() traces handy, so we can perhaps see
+where local interrupts got disabled?
+
+> I imagine a better solution to this would be to fix the timeout issues
+> so the repeated requests aren't a problem.  But any hardware bugs that
+> cause a timeout during boot would cause this bug to be triggered,
+> which is why I'm proposing removing the BUG_ON entirely (since
+> everything seems to work fine anyway).
 > 
-> Don't be frustrated. What should Arve be?  :)
->
+> I don't know why interrupts are disabled at this point, but my limited
+> googling around leads me to believe the recent LOCKDEP work may be the
+> cause.  I couldn't find enough information on that to know for sure
+> though.  I do know that the bug no longer triggers after the card
+> initializes successfully (and presumably interrupts re-enable).
+> 
+> My guess is that since other people aren't reporting this problem,
+> it's not hugely important to backport.  A better question in that case
+> would be why am I seeing it?  I don't understand why interrupts would
+> be disabled at this point in bootup.
+> 
 
-Sometimes appearing frustrated can elicit a different style of response to
-appearing polite and constructive... can be helpful.
-And yes:  I fully understand that Arve would be frustrated.  There seems to
-be a big disconnect in perceptions of what problem is trying to be solved, and
-thus disconnects in what the solution should look like, and I suspect that
-would be very frustrating all around.
+Yes, before removing the BUG_ON() it would be most helpful to
+understand why it was added.
 
-NeilBrown
+It was added by
+
+: commit abfbe5f7854a083ca324282bf7e39f10bc438313
+: Author:     Juha Yrjola <juha.yrjola@solidboot.com>
+: AuthorDate: Wed Mar 26 16:08:57 2008 -0400
+: Commit:     Pierre Ossman <drzeus@drzeus.cx>
+: CommitDate: Fri Apr 18 20:05:28 2008 +0200
+: 
+:     MMC: OMAP: Introduce new multislot structure and change driver to use it
+:     
+:     Introduce new MMC multislot structure and change driver to use it.
+:     
+:     Note that MMC clocking is now enabled in mmc_omap_select_slot()
+:     and disabled in mmc_omap_release_slot().
+:     
+:     Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+:     Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+:     Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+:     Signed-off-by: Tony Lindgren <tony@atomide.com>
+:     Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+
+Hopefully the email still works..  Juha, do you recall why you added
+the BUG_ON(irqs_disabled()) to mmc_omap_start_request()?
