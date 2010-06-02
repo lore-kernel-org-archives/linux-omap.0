@@ -1,45 +1,32 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 09:21:52 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006020920200.2933@localhost.localdomain>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk> <20100527230806.4deb6de3@lxorguk.ukuu.org.uk> <20100527220949.GB10602@srcf.ucam.org> <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk> <20100527223605.GB11364@srcf.ucam.org> <20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
- <20100528043114.GC26177@thunk.org> <1275030704.32462.11.camel@laptop> <AANLkTikEtlbkT4Ws3H2YGt_9QC46B5dr-b1oxJOcG4GN@mail.gmail.com> <1275120618.27810.12699.camel@twins> <1275149418.4503.128.camel@mulgrave.site> <alpine.LFD.2.00.1005312231120.2933@localhost.localdomain>
- <1275340869.2823.344.camel@mulgrave.site> <alpine.LFD.2.00.1005312343290.2933@localhost.localdomain> <AANLkTinwvkJRU0JjJdNrGfXWYpQMIr8bO3BZxcXubt_Z@mail.gmail.com> <alpine.LFD.2.00.1006011257580.2933@localhost.localdomain> <AANLkTimTO5n_s9JZAcFJOhMlPMtsOrogx-5S5nykOWtY@mail.gmail.com>
- <alpine.LFD.2.00.1006020856550.2933@localhost.localdomain> <AANLkTikI8HUkwA1P-ozAcxoVrlQDmHAI-RbvH5JrjsDT@mail.gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: Ads7846 breaks suspend-to-ram on 3430SDP
+Date: Wed, 2 Jun 2010 00:24:00 -0700
+Message-ID: <20100602072400.GD3713@core.coreip.homeip.net>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D778@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1233818980-1275463314=:2933"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikI8HUkwA1P-ozAcxoVrlQDmHAI-RbvH5JrjsDT@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: James Bottomley <James.Bottomley@suse.de>, Peter Zijlstra <peterz@infradead.org>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D778@dbde02.ent.ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Anand,
 
---8323328-1233818980-1275463314=:2933
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-
-On Wed, 2 Jun 2010, Arve Hjønnevåg wrote:
-> 2010/6/2 Thomas Gleixner <tglx@linutronix.de>:
-> > On Tue, 1 Jun 2010, Arve Hjønnevåg wrote:
-> >> Deferring the the timers forever without stopping the clock can cause
-> >> problems. Our user space code has a lot of timeouts that will trigger
-> >> an error if an app does not respond in time. Freezing everything and
-> >> stopping the clock while suspended is a lot simpler than trying to
-> >> stop individual timers and processes from running.
-> >
-> > And resume updates timekeeping to account for the slept time. So the
+On Fri, May 14, 2010 at 02:26:40PM +0530, Gadiyar, Anand wrote:
+> Looks like the ads7846 driver breaks suspend-to-ram at least on
+> the OMAP 3430SDP. On a kernel built with the omap3_defconfig, with
+> no_console_suspend, I see the log below.
 > 
-> No, for the monotonic clock it does the opposite. The hardware clock
-> is read on resume and the offset is set so the monotonic clock gets
-> the same value as it had when suspend was called.
+> Will investigate some time next week, unless someone already has a fix.
+> 
 
-Grr, yes. Misread the code. -ENOTENOUGHCOFFEE
+Could you please try 2.6.35-rc1 - I expect Kevin's fix to handle
+regulatore registering failure will take care of this oops.
 
-Thanks,
+Thanks.
 
-	tglx
---8323328-1233818980-1275463314=:2933--
+-- 
+Dmitry
