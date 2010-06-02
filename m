@@ -1,211 +1,194 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Tue, 1 Jun 2010 21:41:25 -0700
-Message-ID: <AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
-References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<20100601135102.GA8098@srcf.ucam.org>
-	<1275426085.21962.967.camel@mulgrave.site>
-	<201006020024.14220.rjw@sisk.pl>
-	<1275431816.21962.1108.camel@mulgrave.site>
-	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
-	<1275451342.21962.1777.camel@mulgrave.site>
+From: Neil Brown <neilb@suse.de>
+Subject: [PATCH] - race-free suspend.  Was: Re: [linux-pm] [PATCH 0/8]
+ Suspend block api (version 8)
+Date: Wed, 2 Jun 2010 15:32:35 +1000
+Message-ID: <20100602153235.340a7852@notabene.brown>
+References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
+	<201006010005.19554.rjw@sisk.pl>
+	<20100601090023.788cabf4@notabene.brown>
+	<201006010232.20263.rjw@sisk.pl>
+	<20100601113309.609349fd@notabene.brown>
+	<alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
+	<20100601122012.1edeaf48@notabene.brown>
+	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1275451342.21962.1777.camel@mulgrave.site>
+In-Reply-To: <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@suse.de>
-Cc: Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, mark.gross@intel.com, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-2010/6/1 James Bottomley <James.Bottomley@suse.de>:
-> On Tue, 2010-06-01 at 18:10 -0700, Arve Hj=F8nnev=E5g wrote:
->> On Tue, Jun 1, 2010 at 3:36 PM, James Bottomley <James.Bottomley@sus=
-e.de> wrote:
->> > On Wed, 2010-06-02 at 00:24 +0200, Rafael J. Wysocki wrote:
->> >> On Tuesday 01 June 2010, James Bottomley wrote:
->> >> > On Tue, 2010-06-01 at 14:51 +0100, Matthew Garrett wrote:
->> >> > > On Mon, May 31, 2010 at 04:21:09PM -0500, James Bottomley wro=
-te:
->> >> > >
->> >> > > > You're the one mentioning x86, not me. =A0I already explain=
-ed that some
->> >> > > > MSM hardware (the G1 for example) has lower power consumpti=
-on in S3
->> >> > > > (which I'm using as an ACPI shorthand for suspend to ram) t=
-han any
->> >> > > > suspend from idle C state. =A0The fact that current x86 har=
-dware has the
->> >> > > > same problem may be true, but it's not entirely relevant.
->> >> > >
->> >> > > As long as you can set a wakeup timer, an S state is just a C=
- state with
->> >> > > side effects. The significant one is that entering an S state=
- stops the
->> >> > > process scheduler and any in-kernel timers. I don't think Goo=
-gle care at
->> >> > > all about whether suspend is entered through an explicit tran=
-sition or
->> >> > > something hooked into cpuidle - the relevant issue is that th=
-ey want to
->> >> > > be able to express a set of constraints that lets them contro=
-l whether
->> >> > > or not the scheduler keeps on scheduling, and which doesn't l=
-et them
->> >> > > lose wakeup events in the process.
->> >> >
->> >> > Exactly, so my understanding of where we currently are is:
->> >>
->> >> Thanks for the recap.
->> >>
->> >> > =A0 =A0 =A01. pm_qos will be updated to be able to express the =
-android suspend
->> >> > =A0 =A0 =A0 =A0 blockers as interactivity constraints (exact na=
-me TBD, but
->> >> > =A0 =A0 =A0 =A0 probably /dev/cpu_interactivity)
->> >>
->> >> I think that's not been decided yet precisely enough. =A0I saw a =
-few ideas
->> >> here and there in the thread, but which of them are we going to f=
-ollow?
->> >
->> > Well, android only needs two states (block and don't block), so th=
-at
->> > gets translated as 2 s32 values (say 0 and INT_MAX). =A0I've seen =
-defines
->> > like QOS_INTERACTIVE and QOS_NONE (or QOS_DRECKLY or QOS_MANANA) t=
-o
->> > describe these, but if all we're arguing over is the define name, =
-that's
->> > progress.
->>
->> I think we need separate state constraints for suspend and idle low
->> power modes. On the msm platform only a subset of the interrupts can
->> wake up from the low power mode, so we block the use if the low powe=
-r
->> mode from idle while other interrupts are enabled. We do not block
->> suspend however if those interrupts are not marked as wakeup
->> interrupts. Most constraints that prevent suspend are not hardware
->> specific and should not prevent entering low power modes from idle. =
-In
->> other words we may need to prevent low power idle modes while allowi=
-ng
->> suspend, and we may need to prevent suspend while allowing low power
->> idle modes.
->
-> Well, as I said, pm_qos is s32 ... it's easy to make the constraint
-> ternary instead of binary.
+On Tue, 1 Jun 2010 12:50:01 +0200 (CEST)
+Thomas Gleixner <tglx@linutronix.de> wrote:
 
-No, they have to be two separate constraints, otherwise a constraint
-to block suspend would override a constraint to block a low power idle
-mode or the other way around.
+> On Tue, 1 Jun 2010, Neil Brown wrote:
+> > 
+> > I think you have acknowledged that there is a race with suspend - thanks.
+> > Next step was "can it be closed".
+> > You seem to suggest that it can, but you describe it as a "work around"
+> > rather than a "bug fix"...
+> > 
+> > Do you agree that the race is a "bug", and therefore it is appropriate to
+> > "fix" it assuming an acceptable fix can be found (which I think it can)?
+> 
+> If we can fix it, yes we definitely should do and not work around it.
+>  
+> Thanks,
+> 
+> 	tglx
 
->
->> It would also be good to not have an implementation that gets slower
->> and slower the more clients you have. With binary constraints this i=
-s
->> trivial.
->
-> Well, that's an implementation detail ... ordering the list or using =
-a
+OK.
+Here is my suggestion.
 
-True. I think we also need timeout support in the short term though
-which is also somewhat simpler to implement in an efficient way for
-binary constraints.
+While I think this patch would actually work, and hope the ugly aspects are
+reasonably balanced by the simplicity, I present it primarily as a base for
+improvement.
+The important part is to present how drivers and user-space can co-operate 
+to avoid losing wake-events.  The details of what happens in the kernel are
+certainly up for discussion (as is everything else really of course).
 
-> btree would significantly fix that. =A0However, the most number of
-> constraint users I've seen in android is around 60 ... that's not hug=
-e
-> from a kernel linear list perspective, so is this really a concern? .=
-=2E.
-> particularly when most uses don't necessarily change the constrain, s=
-o a
-> list search isn't done.
+The user-space suspend daemon avoids losing wake-events by using
+fcntl(F_OWNER) to ensure it gets a signal whenever any important wake-event
+is ready to be read by user-space.  This may involve:
+  - the one daemon processing all wake events
+  - Both the suspend daemon and the main event handling daemon opening any
+    given device that delivers wake events (this should work with input
+    events ... unless grabbing is needed)
+  - The event handling daemon giving the suspend-daemon's pid as F_OWNER, and
+    using poll/select to get the events itself.
 
-The search is done every time any of them changes.
+When 'mem' is written to /sys/power/state, suspend_prepare waits in an
+interruptible wait until any wake-event that might have been initiated before
+the suspend was request, has had a chance to be queued for user-space and
+trigger kill_fasync.
+Currently this wait is a configurable time after the last wake-event was
+initiated.  This is hackish, but simple and probably adequate.
+If more precise timing is needed and achievable, that can be added later.  It
+would be an entirely internal change and would not affect the API further.
+Some of the code developed for suspend-blockers might be a starting point for
+this.
 
->
->> > The other piece they need is the suspend block name, which comes w=
-ith
->> > the stats API, and finally we need to decide what the actual const=
-raint
->> > is called (which is how the dev node gets its name) ...
->> >
->> >> > =A0 =A0 =A02. pm_qos will be updated to be callable from atomic=
- context
->> >> > =A0 =A0 =A03. pm_qos will be updated to export statistics initi=
-ally closely
->> >> > =A0 =A0 =A0 =A0 matching what suspend blockers provides (simple=
- update of the rw
->> >> > =A0 =A0 =A0 =A0 interface?)
->>
->> 4. It would be useful to change pm_qos_add_request to not allocate
->> anything so can add constraints from init functions that currently
->> cannot fail.
->
-> Sure .. we do that for the delayed work queues, it's just an API whic=
-h
-> takes the structure as an argument leaving it the responsibility of t=
-he
-> caller to free.
->
->> >> > After this is done, the current android suspend block patch bec=
-omes a
->> >> > re-expression in kernel space in terms of pm_qos, with the curr=
-ent
->> >> > userspace wakelocks being adapted by the android framework into=
- pm_qos
->> >> > requirements expressed to /dev/cpu_interactivity (or whatever n=
-ame is
->> >> > chosen). =A0Then opportunistic suspend is either a small add-on=
- kernel
->> >> > patch they have in their tree to suspend when the interactivity
->> >> > constraint goes to NONE, or it could be done entirely by a user=
-space
->> >> > process. =A0Long term this could migrate to the freezer and sus=
-pend from
->> >> > idle approach as the various problem timers get fixed.
->> >> >
->> >> > I think the big unresolved issue is the stats extension. =A0For=
- android,
->> >> > we need just a name written along with the value, so we have so=
-mething
->> >> > to hang the stats off ... current pm_qos userspace users just w=
-rite a
->> >> > value, so the name would be optional. =A0From the kernel, we pr=
-obably just
->> >> > need an additional API that takes a stats name or NULL if none
->> >> > (pm_qos_add_request_named()?). =A0Then reading the stats could =
-be done by
->> >> > implementing a fops read routine on the misc device.
->> >>
->> >> Is the original idea of having that information in debugfs object=
-ionable?
->> >
->> > Well ... debugfs is usually used to get around the sysfs rules. =A0=
-In this
->> > case, pm_qos has a dev interface ... I don't specifically object t=
-o
->> > using debugfs, but I don't see any reason to forbid it from being =
-a
->> > simple dev read interface either.
->> >
->>
->> We don't currently have a dev interface for stats so this is not an
->> immediate requirement. The suspend blocker debugfs interface is just
->> as good as the proc interface we have for wakelocks.
->
-> OK, great ... what actually exports the statistics is just an
-> implementation detail.
->
-> James
->
->
->
->
+Drivers should call pm_suspend_delay() whenever a wake-event occurs.  This
+simply records the time so that the suspend process knows if there is in fact
+any need to wait at all.
+
+The delay to wait after the last pm_suspend_delay() is limited to 10 seconds
+and can be set by kernel parameter suspend_block_delay=number-of-milliseconds
+It defaults to 2 jiffies (which is possibly too short).
+
+- Would this fix the "bug"??
+- and address the issues that suspend-blockers was created to address?
+- or are the requirements on user-space too onerous?
 
 
+Thanks,
+NeilBrown
 
---=20
-Arve Hj=F8nnev=E5g
+Signed-off-by: NeilBrown <neilb@suse.de>
+
+diff --git a/include/linux/suspend.h b/include/linux/suspend.h
+index 5e781d8..ccbadd0 100644
+--- a/include/linux/suspend.h
++++ b/include/linux/suspend.h
+@@ -142,11 +142,13 @@ extern void arch_suspend_disable_irqs(void);
+ extern void arch_suspend_enable_irqs(void);
+ 
+ extern int pm_suspend(suspend_state_t state);
++extern void pm_suspend_delay(void);
+ #else /* !CONFIG_SUSPEND */
+ #define suspend_valid_only_mem	NULL
+ 
+ static inline void suspend_set_ops(struct platform_suspend_ops *ops) {}
+ static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; }
++static inlint void pm_suspend_delay(void) {}
+ #endif /* !CONFIG_SUSPEND */
+ 
+ /* struct pbe is used for creating lists of pages that should be restored
+diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+index 56e7dbb..07897b9 100644
+--- a/kernel/power/suspend.c
++++ b/kernel/power/suspend.c
+@@ -46,6 +46,69 @@ bool valid_state(suspend_state_t state)
+ 	return suspend_ops && suspend_ops->valid && suspend_ops->valid(state);
+ }
+ 
++/*
++ * Devices that process potential wake-up events report each
++ * wake-up events by pm_suspend_delay();
++ * This ensures that suspend won't happen for a "little while"
++ * so the event has a chance to get to user-space.
++ * pm_suspend calls wait_for_blockers to wait the required
++ * "little while" and to check for signals.
++ * A process that requests a suspend should arrange (via
++ * fcntl(F_GETOWN)) to get signalled whenever a wake-up event
++ * is queued for user-space.  This will ensure that if a suspend
++ * is requested at much the same time as a wakeup event arrives, either
++ * the suspend will be interrupted, or it will complete quickly.
++ *
++ * The "little while" is a heuristic to avoid having to explicitly
++ * track every event through the kernel with associated locking and unlocking.
++ * It should be more than the longest time it can take between an interrupt
++ * occurring and the corresponding event being queued to userspace
++ * (and the accompanying kill_fasync call).
++ * This duration is configurable at boot time, has a lower limit of 2
++ * jiffies and an upper limit of 10 seconds.  It defaults to the minimum.
++ */
++static unsigned long little_while_jiffies = 2;
++static int __init setup_suspend_block_delay(char *str)
++{
++	unsigned long msec;
++	if (sscanf(str, "%lu", &msec) != 1)
++		return 1;
++	if (msec > 10000)
++		msec = 10000;
++	little_while_jiffies = msecs_to_jiffies(msec);
++	if (little_while_jiffies < 2)
++		little_while_jiffies = 2;
++	return 1;
++}
++__setup("suspend_block_delay=", setup_suspend_block_delay);
++
++static unsigned long next_little_while;
++void pm_suspend_delay()
++{
++	unsigned long then = jiffies + little_while_jiffies;
++
++	if (then != next_little_while)
++		next_little_while = then;
++}
++EXPORT_SYMBOL_GPL(pm_suspend_delay);
++
++static int wait_for_blockers(void)
++{
++	unsigned long timeout;
++
++	if (time_after(jiffies, next_little_while))
++		return 0;
++	timeout = next_little_while - jiffies;
++	if (timeout > msecs_to_jiffies(10000))
++		/* jiffy wrap */
++		return 0;
++
++	while (timeout && !signal_pending(current))
++		timeout = schedule_timeout_interruptible(timeout);
++	if (signal_pending(current))
++		return -EINTR;
++	return 0;
++}
+ /**
+  * suspend_valid_only_mem - generic memory-only valid callback
+  *
+@@ -89,6 +152,10 @@ static int suspend_prepare(void)
+ 	if (error)
+ 		goto Finish;
+ 
++	error = wait_for_blockers();
++	if (error)
++		goto Finish;
++
+ 	error = usermodehelper_disable();
+ 	if (error)
+ 		goto Finish;
