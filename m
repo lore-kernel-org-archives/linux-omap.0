@@ -1,32 +1,44 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: Ads7846 breaks suspend-to-ram on 3430SDP
-Date: Wed, 2 Jun 2010 00:24:00 -0700
-Message-ID: <20100602072400.GD3713@core.coreip.homeip.net>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D778@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [GIT PULL] omap iommu: fixes for 2.6.35-rc1
+Date: Wed, 02 Jun 2010 10:50:46 +0300 (EEST)
+Message-ID: <20100602.105046.39180136.Hiroshi.DOYU@nokia.com>
+References: <20100531.123637.28796762.Hiroshi.DOYU@nokia.com>
+	<20100531122703.GD30216@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D778@dbde02.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:22472 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752069Ab0FBHvE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 03:51:04 -0400
+In-Reply-To: <20100531122703.GD30216@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, x0124230@ti.com
 
-Hi Anand,
+Hi Tony,
 
-On Fri, May 14, 2010 at 02:26:40PM +0530, Gadiyar, Anand wrote:
-> Looks like the ads7846 driver breaks suspend-to-ram at least on
-> the OMAP 3430SDP. On a kernel built with the omap3_defconfig, with
-> no_console_suspend, I see the log below.
-> 
-> Will investigate some time next week, unless someone already has a fix.
-> 
+Patches only for fixes for omap iommu module during -rc cycle.
 
-Could you please try 2.6.35-rc1 - I expect Kevin's fix to handle
-regulatore registering failure will take care of this oops.
+The following changes since commit 67a3e12b05e055c0415c556a315a3d3eb637e29e:
 
-Thanks.
+  Linux 2.6.35-rc1 (2010-05-30 13:21:02 -0700)
 
--- 
-Dmitry
+are available in the git repository at:
+  git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc1-iommu-fixes
+
+Hiroshi DOYU (1):
+      omap iommu: Make omap-iommu.o built-in
+
+Kanigeri, Hari (1):
+      omap iommu: update ducati mmu irq define name
+
+Satish (1):
+      omap iommu: Fix Memory leak
+
+ arch/arm/mach-omap2/Makefile     |    5 ++++-
+ arch/arm/mach-omap2/omap-iommu.c |    2 +-
+ arch/arm/plat-omap/iovmm.c       |    4 +++-
+ 3 files changed, 8 insertions(+), 3 deletions(-)
