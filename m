@@ -1,52 +1,128 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
- Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 10:50:39 +0200
-Message-ID: <20100602105039.068c5e00@schatten.dmk.lab>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
-	<201006010005.19554.rjw@sisk.pl>
-	<20100601090023.788cabf4@notabene.brown>
-	<201006010232.20263.rjw@sisk.pl>
-	<20100601113309.609349fd@notabene.brown>
-	<alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
-	<20100601122012.1edeaf48@notabene.brown>
-	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
-	<20100602153235.340a7852@notabene.brown>
-	<AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
-	<20100602180614.729246ea@notabene.brown>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 2 Jun 2010 01:54:38 -0700
+Message-ID: <AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	<201005302202.39511.rjw@sisk.pl>
+	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
+	<201005312347.24251.rjw@sisk.pl>
+	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
+	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
+	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:35500 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753403Ab0FBIuv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jun 2010 04:50:51 -0400
-In-Reply-To: <20100602180614.729246ea@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Florian Mickler <florian@mickler.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Neil Brown <neilb@suse.de>
-Cc: Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
 
-On Wed, 2 Jun 2010 18:06:14 +1000
-Neil Brown <neilb@suse.de> wrote:
+2010/6/2 Thomas Gleixner <tglx@linutronix.de>:
+> On Tue, 1 Jun 2010, Arve Hj=F8nnev=E5g wrote:
+>> 2010/6/1 Thomas Gleixner <tglx@linutronix.de>:
+>> > On Mon, 31 May 2010, Arve Hj=F8nnev=E5g wrote:
+>> >
+>> >> 2010/5/31 Rafael J. Wysocki <rjw@sisk.pl>:
+>> >> > On Monday 31 May 2010, Arve Hj=F8nnev=E5g wrote:
+>> >> >> 2010/5/30 Rafael J. Wysocki <rjw@sisk.pl>:
+>> >> > ...
+>> >> >>
+>> >> >> I think it makes more sense to block suspend while wakeup even=
+ts are
+>> >> >> pending than blocking it everywhere timers are used by code th=
+at could
+>> >> >> be called while handling wakeup events or other critical work.=
+ Also,
+>> >> >> even if you did block suspend everywhere timers where used you=
+ still
+>> >> >> have the race where a wakeup interrupt happens right after you=
+ decided
+>> >> >> to suspend. In other words, you still need to block suspend in=
+ all the
+>> >> >> same places as with the current opportunistic suspend code, so=
+ what is
+>> >> >> the benefit of delaying suspend until idle?
+>> >> >
+>> >> > Assume for a while that you don't use suspend blockers, OK? =A0=
+I realize you
+>> >> > think that anything else doesn't make sense, but evidently some=
+ other people
+>> >> > have that opinion about suspend blockers.
+>> >> >
+>> >>
+>> >> It sounded like you were suggesting that initiating suspend from =
+idle
+>> >> would somehow avoid the race condition with wakeup events. All I'=
+m
+>> >> saying is that you would need to block suspend in all the same pl=
+aces.
+>> >> If you don't care about ignoring wakeup events, then sure you can
+>> >> initiate suspend from idle.
+>> >
+>> > And why should you miss a wakeup there ? If you get an interrupt i=
+n
+>> > the transition, then you are not longer idle.
+>> >
+>>
+>> Because suspend itself causes you to not be idle you cannot abort
+>> suspend just because you are not idle anymore.
+>
+> You still are addicted to the current suspend mechanism. :)
+>
 
-> I cannot imagine why it would take multiple seconds to scan a keypad.
-> Can you explain that?
-> 
-> Do you mean while keys are held pressed?  Maybe you don't get a wake-up event
-> on key-release?  In that case your user-space daemon could block suspend
-> while there are any pressed keys....  confused.
+No I want you to stop confusing low power idle modes with suspend. I
+know how to enter low power modes from idle if that low power mode is
+not too disruptive.
 
-IIRC, the device sends interrupts only for first key-down and
-last key-up.
-To detect simultaneous key-presses you must actively scan it after the
-first key-down.
+> The whole point of doing it from idle in the form of a deep power
+> state is to avoid the massive sh*tload of work which is neccesary to
+> run the existing suspend code. But that needs runtime power managemen=
+t
+> and tweaks to avoid your timers waking you, etc.
+>
+> The mechanism you want to use is: suspend no matter what, like closin=
+g
+> the lid of the laptop, but with a few tweaks around it:
+>
+> =A0 1) An interrupt on a wakeup source which comes in while the suspe=
+nd
+> =A0 =A0 =A0code runs, i.e before you transitioned into wakeup mode, m=
+ust
+> =A0 =A0 =A0abort / prevent suspend.
+>
+> =A0 2) Prevent another attempt to suspend before the event has been
+> =A0 =A0 =A0delivered and the apps have signaled that they have not lo=
+nger
+> =A0 =A0 =A0any work to do.
+>
+> =A0 As a side effect you confine crappy apps with that mechanism in
+> =A0 some way.
+>
+> In the laptop case we do not want the tweaks as not going into suspen=
+d
+> might set your backpack on fire.
 
+If that is the case you should also disable the wakeup events.
 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
+> If I understood you correctly then you can shutdown the CPU in idle
+> completelty already, but that's not enough due to:
+>
+> =A0 =A01) crappy applications keeping the cpu away from idle
+> =A0 =A02) timers firing
+>
+> Would solving those two issues be sufficient for you or am I missing
+> something ?
+
+Solving those two is enough for current android phones, but it may not
+be enough for other android devices. 1 is not solvable (meaning we
+cannot fix all apps), and 2 is difficult to fix since the periodic
+work is useful while the device is actually in use. One possible way
+to solve 2 is to allow timers on a not-idle clock. Unrelated to
+Android, I also want to use opportunistic suspend on my desktop.
+
+--=20
+Arve Hj=F8nnev=E5g
