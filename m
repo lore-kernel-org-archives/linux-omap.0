@@ -1,96 +1,137 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: [PATCH] [MMC] omap: Remove BUG_ON for disabled interrupts
-Date: Wed, 2 Jun 2010 15:26:52 -0700
-Message-ID: <AANLkTimERVDHWjTgWfyqjUu-I1aU2kqU99T9yRcJMRgG@mail.gmail.com>
-References: <1275186443-8242-1-git-send-email-darkstar6262@gmail.com>
-	<20100602140542.8c1073f1.akpm@linux-foundation.org>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 2 Jun 2010 15:27:28 -0700
+Message-ID: <AANLkTikeHarkwvO5-Fdrxt1FzTQL2lGHiQXBSG0vsKob@mail.gmail.com>
+References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100601135102.GA8098@srcf.ucam.org>
+	<1275426085.21962.967.camel@mulgrave.site>
+	<201006020024.14220.rjw@sisk.pl>
+	<1275431816.21962.1108.camel@mulgrave.site>
+	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
+	<1275451342.21962.1777.camel@mulgrave.site>
+	<AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
+	<1275491111.2799.110.camel@mulgrave.site>
+	<20100602214748.7742e3ae@schatten.dmk.lab>
+	<1275511271.2799.516.camel@mulgrave.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20100602140542.8c1073f1.akpm@linux-foundation.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1275511271.2799.516.camel@mulgrave.site>
+Sender: linux-kernel-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: Florian Mickler <florian@mickler.org>, Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, mark.gross@intel.com, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 2, 2010 at 2:05 PM, Andrew Morton <akpm@linux-foundation.or=
-g> wrote:
-> On Sat, 29 May 2010 19:27:23 -0700
-> Cory Maccarrone <darkstar6262@gmail.com> wrote:
->
->> This change removes a BUG_ON for when interrupts are disabled
->> during an MMC request. =C2=A0During boot, interrupts can be disabled
->> when a request is made, causing this bug to be triggered. =C2=A0In r=
-eality,
->> there's no reason this should halt the kernel, as the driver has pro=
-ved
->> reliable in spite of disabled interrupts, and additionally, there's
->> nothing in this code that would require interrupts to be enabled.
+On Wed, Jun 2, 2010 at 1:41 PM, James Bottomley <James.Bottomley@suse.d=
+e> wrote:
+> On Wed, 2010-06-02 at 21:47 +0200, Florian Mickler wrote:
+>> On Wed, 02 Jun 2010 10:05:11 -0500
+>> James Bottomley <James.Bottomley@suse.de> wrote:
 >>
->> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
->> ---
->> =C2=A0drivers/mmc/host/omap.c | =C2=A0 =C2=A01 -
->> =C2=A01 files changed, 0 insertions(+), 1 deletions(-)
+>> > On Tue, 2010-06-01 at 21:41 -0700, Arve Hj=F8nnev=E5g wrote:
+>> > > No, they have to be two separate constraints, otherwise a constr=
+aint
+>> > > to block suspend would override a constraint to block a low powe=
+r idle
+>> > > mode or the other way around.
+>> >
+>> > Depends. =A0If you block the system from going into low power idle=
+, does
+>> > that mean you still want it to be fully suspended?
+>> >
+>> > If yes, then we do have independent constraints. =A0If not, they h=
+ave a
+>> > hierarchy:
+>> >
+>> > =A0 =A0 =A0 * Fully Interactive (no low power idle or suspend)
+>> > =A0 =A0 =A0 * Partially Interactive (may go into low power idle bu=
+t not
+>> > =A0 =A0 =A0 =A0 suspend)
+>> > =A0 =A0 =A0 * None (may go into low power idle or suspend)
+>> >
+>> > Which is expressable as a ternary constraint.
+>> >
+>> > James
+>> >
 >>
->> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
->> index 2b28168..d98ddcf 100644
->> --- a/drivers/mmc/host/omap.c
->> +++ b/drivers/mmc/host/omap.c
->> @@ -1157,7 +1157,6 @@ static void mmc_omap_start_request(struct mmc_=
-omap_host *host,
->> =C2=A0 =C2=A0 =C2=A0 mmc_omap_start_command(host, req->cmd);
->> =C2=A0 =C2=A0 =C2=A0 if (host->dma_in_use)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap_start_dma(host=
-->dma_ch);
->> - =C2=A0 =C2=A0 BUG_ON(irqs_disabled());
->> =C2=A0}
+>> But unblocking suspend at the moment is independent to getting idle.
+>> If you have the requirement to stay in the highest-idle level (i.e.
+>> best latency you can get) that does not (currently) mean, that you c=
+an
+>> not suspend.
+>
+> I don't understand that as a reason. =A0If we looks at this a qos
+> constraints, you're saying that the system may not drop into certain =
+low
+> power states because it might turn something off that's currently bei=
+ng
+> used by a driver or a process. =A0Suspend is certainly the lowest sta=
+te of
+> that because it turns everything off, why would it be legal to drop i=
+nto
+> that?
+
+Because the driver gets called on suspend which gives it a change to
+stop using it.
+
+>
+> I also couldn't find this notion of separation of idleness power from
+> suspend blocking in the original suspend block patch set ... if you c=
+an
+> either tell me where it is, or give me an example of the separated us=
+e
+> cases, I'd understand better.
+>
+
+The suspend block patchset only deals with suspend, not low power idle
+modes. The original wakelock patchset had two wakelock types, idle and
+suspend.
+
+>> To preserve that explicit fall-through while still having working
+>> run-time-powermanagement I think the qos-constraints need to be
+>> separated.
+>
+> OK, as above, why? =A0or better yet, just give an example.
+>
+
+The i2c bus on the Nexus One is used by the other core to turn off the
+power you our core when we enter the lowest power mode. This means
+that we cannot enter that low power mode while the i2c bus is active,
+so we block low power idle modes. At some point we also tries to block
+suspend in this case, but this caused a lot of failed suspend attempts
+since the frequency scaling code would try to ramp up while freezing
+processes which in turn aborted the process freezing attempts.
+
+>> <disclaimer: just from what I read>
+>> Provided you can reach the same power state from idle, current suspe=
+nd
+>> could probably also be implemented by just the freezing part and a h=
+int
+>> to the idle-loop to provide accelerated fall-through to lowest power=
+=2E
+>> </disclaimer>
 >>
->> =C2=A0static void mmc_omap_request(struct mmc_host *mmc, struct mmc_=
-request *req)
+>> At that point, you could probably merge the constraints.
+>>
+>> But the freezing part is also the hard part, isn't it? (I have no
+>> idea. Thomas seems to think about cgroups for that and doing smth ab=
+out the timers.)
 >
-> So we need to decide whether this should be backported into 2.6.34.x
-> and perhaps earlier.
+> Um, well, as I said, I think using suspend from idle and freezer is
+> longer term. =A0I think if we express the constraints as qos android =
+can
+> then use them to gate when to enter S3 .. which is functionally
+> equivalent to suspend blockers. =A0And the vanilla kernel can use the=
+m to
+> gate power states for the drivers in suspend from idle.
 >
-> For that decision we'll need to know the things you didn't tell us:
-> Which drivers are affected? =C2=A0Under which setups is it triggering=
-? =C2=A0Why
-> aren't lots of people reporting "hey my kernel went BUG"?
+> James
+>
 >
 >
 
-The only setup I've managed to make it trigger on is on the HTC Herald
-during bootup when the driver is built into the kernel (mostly because
-that's all I have).  I believe it's related to the fact that on bootup
-I get many timeout errors on "CMD5" while initializing the card.  Each
-CMD5 timeout triggers that bug (I changed it to a WARN_ON to get it to
-boot in) due to the fact that part of the timeout code involves
-sending the request again.  With interrupts turned off, that BUG would
-be triggered.
 
-I can't answer the question of why other people aren't reporting this
--- I know the CMD timeouts are fairly common with this driver, and
-it's only within the last few kernel releases that their triggering
-the BUG started happening.  (I had only been able to test it because I
-was carrying forward the MMC 16-bit patch I submitted a while ago
-which only recently made it in.  I'm not sure if that's related or
-not, but I need that to use the MMC-OMAP on herald.)
 
-I imagine a better solution to this would be to fix the timeout issues
-so the repeated requests aren't a problem.  But any hardware bugs that
-cause a timeout during boot would cause this bug to be triggered,
-which is why I'm proposing removing the BUG_ON entirely (since
-everything seems to work fine anyway).
-
-I don't know why interrupts are disabled at this point, but my limited
-googling around leads me to believe the recent LOCKDEP work may be the
-cause.  I couldn't find enough information on that to know for sure
-though.  I do know that the bug no longer triggers after the card
-initializes successfully (and presumably interrupts re-enable).
-
-My guess is that since other people aren't reporting this problem,
-it's not hugely important to backport.  A better question in that case
-would be why am I seeing it?  I don't understand why interrupts would
-be disabled at this point in bootup.
-
-- Cory
+--=20
+Arve Hj=F8nnev=E5g
