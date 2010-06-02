@@ -1,54 +1,54 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: Trying to understand how to use new OMAP mux code
-Date: Wed, 2 Jun 2010 14:46:06 +0300
-Message-ID: <20100602144606.4287c438.jhnikula@gmail.com>
-References: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
-	<20100311224812.GU2900@atomide.com>
-	<4C062DD4.2050701@cioinfoindus.fr>
-	<20100602112130.GG5980@atomide.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 2 Jun 2010 12:58:11 +0100
+Message-ID: <20100602125811.4ae414e2@lxorguk.ukuu.org.uk>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	<201005302202.39511.rjw@sisk.pl>
+	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
+	<201005312347.24251.rjw@sisk.pl>
+	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
+	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
+	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
+	<1275469851.27810.30775.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:7476 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970Ab0FBLnh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 07:43:37 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so305611eyd.19
-        for <linux-omap@vger.kernel.org>; Wed, 02 Jun 2010 04:43:35 -0700 (PDT)
-In-Reply-To: <20100602112130.GG5980@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <1275469851.27810.30775.camel@twins>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Arve@smtp1.linux-foundation.org, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Laurent Epinat <laurent.epinat@cioinfoindus.fr>, linux-omap@vger.kernel.org
 
-On Wed, 2 Jun 2010 14:21:30 +0300
-Tony Lindgren <tony@atomide.com> wrote:
+On Wed, 02 Jun 2010 11:10:51 +0200
+Peter Zijlstra <peterz@infradead.org> wrote:
 
-> > How can I call  omap_mux_init_signal()
-> > from external driver compiled as module ?
+> On Wed, 2010-06-02 at 10:29 +0200, Thomas Gleixner wrote:
+> 
+> 
+> > If I understood you correctly then you can shutdown the CPU in idle
+> > completelty already, but that's not enough due to:
 > > 
-> > cause the function is not in the standard path include files
-> > and is not exported
+> >     1) crappy applications keeping the cpu away from idle
+> >     2) timers firing
+> > 
+> > Would solving those two issues be sufficient for you or am I missing
+> > something ?
 > 
-> You can't that's the whole idea :)
-> 
-> Instead, please do the muxing in the board-*.c file for all the
-> pins, or for the device when you initialize the platform data.
-> 
-> The muxing of pins is board specific, and doing it in the board-*.c
-> files allows us to free the memory for the unused pin data. Note
-> that you can also mux using the kernel cmdline if you have something
-> non-standard connected to your board pins.
-> 
-Side note.
+> Aren't the container snapshot/resume people fighting the same set of
+> problems here?
 
-How about add-on cards for e.g. BeagleBoard? It would be nice feature
-if a kernel module for that particular add-on card can do the muxing
-without needing to specify them on cmdline. I.e. if you are switching
-between cards there is no need to figure out new cmdline for each of
-them. For me even "rootwait" is sometimes too difficult to remember :-)
+And virtualisation - its a big one for virtualisation because if you've
+got 1000 misbehaving guests generating 100 wakeups a second you've got a
+problem ....
 
-
--- 
-Jarkko
+Alan
