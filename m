@@ -1,264 +1,211 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [PATCHv1 1/1] omap3: pm: Delink opp layer and cpufreq
-Date: Wed, 02 Jun 2010 07:36:50 +0300
-Message-ID: <4C05DFE2.70004@gmail.com>
-References: <1275309542-26004-1-git-send-email-premi@ti.com> <4C03F1E3.9030202@gmail.com> <B85A65D85D7EB246BE421B3FB0FBB59301E7290649@dbde02.ent.ti.com>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Tue, 1 Jun 2010 21:41:25 -0700
+Message-ID: <AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
+References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100601135102.GA8098@srcf.ucam.org>
+	<1275426085.21962.967.camel@mulgrave.site>
+	<201006020024.14220.rjw@sisk.pl>
+	<1275431816.21962.1108.camel@mulgrave.site>
+	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
+	<1275451342.21962.1777.camel@mulgrave.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:29653 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750751Ab0FBEgz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 00:36:55 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so289756eyd.19
-        for <linux-omap@vger.kernel.org>; Tue, 01 Jun 2010 21:36:52 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7290649@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1275451342.21962.1777.camel@mulgrave.site>
+Sender: linux-kernel-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, mark.gross@intel.com, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 06/01/2010 03:01 PM, Premi, Sanjeev wrote:
->
->> -----Original Message-----
->> From: Nishanth Menon [mailto:menon.nishanth@gmail.com]
->> Sent: Monday, May 31, 2010 10:59 PM
->> To: Premi, Sanjeev
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: [PATCHv1 1/1] omap3: pm: Delink opp layer and cpufreq
+2010/6/1 James Bottomley <James.Bottomley@suse.de>:
+> On Tue, 2010-06-01 at 18:10 -0700, Arve Hj=F8nnev=E5g wrote:
+>> On Tue, Jun 1, 2010 at 3:36 PM, James Bottomley <James.Bottomley@sus=
+e.de> wrote:
+>> > On Wed, 2010-06-02 at 00:24 +0200, Rafael J. Wysocki wrote:
+>> >> On Tuesday 01 June 2010, James Bottomley wrote:
+>> >> > On Tue, 2010-06-01 at 14:51 +0100, Matthew Garrett wrote:
+>> >> > > On Mon, May 31, 2010 at 04:21:09PM -0500, James Bottomley wro=
+te:
+>> >> > >
+>> >> > > > You're the one mentioning x86, not me. =A0I already explain=
+ed that some
+>> >> > > > MSM hardware (the G1 for example) has lower power consumpti=
+on in S3
+>> >> > > > (which I'm using as an ACPI shorthand for suspend to ram) t=
+han any
+>> >> > > > suspend from idle C state. =A0The fact that current x86 har=
+dware has the
+>> >> > > > same problem may be true, but it's not entirely relevant.
+>> >> > >
+>> >> > > As long as you can set a wakeup timer, an S state is just a C=
+ state with
+>> >> > > side effects. The significant one is that entering an S state=
+ stops the
+>> >> > > process scheduler and any in-kernel timers. I don't think Goo=
+gle care at
+>> >> > > all about whether suspend is entered through an explicit tran=
+sition or
+>> >> > > something hooked into cpuidle - the relevant issue is that th=
+ey want to
+>> >> > > be able to express a set of constraints that lets them contro=
+l whether
+>> >> > > or not the scheduler keeps on scheduling, and which doesn't l=
+et them
+>> >> > > lose wakeup events in the process.
+>> >> >
+>> >> > Exactly, so my understanding of where we currently are is:
+>> >>
+>> >> Thanks for the recap.
+>> >>
+>> >> > =A0 =A0 =A01. pm_qos will be updated to be able to express the =
+android suspend
+>> >> > =A0 =A0 =A0 =A0 blockers as interactivity constraints (exact na=
+me TBD, but
+>> >> > =A0 =A0 =A0 =A0 probably /dev/cpu_interactivity)
+>> >>
+>> >> I think that's not been decided yet precisely enough. =A0I saw a =
+few ideas
+>> >> here and there in the thread, but which of them are we going to f=
+ollow?
+>> >
+>> > Well, android only needs two states (block and don't block), so th=
+at
+>> > gets translated as 2 s32 values (say 0 and INT_MAX). =A0I've seen =
+defines
+>> > like QOS_INTERACTIVE and QOS_NONE (or QOS_DRECKLY or QOS_MANANA) t=
+o
+>> > describe these, but if all we're arguing over is the define name, =
+that's
+>> > progress.
 >>
->> On 05/31/2010 03:39 PM, Sanjeev Premi wrote:
->>> The OPP layer was contained in the CONFIG_CPU_FREQ.
->>> This patch removes this containment relation.
->>>
->>> Signed-off-by: Sanjeev Premi<premi@ti.com>
->>> ---
->>>    arch/arm/mach-omap2/Makefile          |    6 +-
->>>    arch/arm/mach-omap2/board-omap3evm.c  |    2 +-
+>> I think we need separate state constraints for suspend and idle low
+>> power modes. On the msm platform only a subset of the interrupts can
+>> wake up from the low power mode, so we block the use if the low powe=
+r
+>> mode from idle while other interrupts are enabled. We do not block
+>> suspend however if those interrupts are not marked as wakeup
+>> interrupts. Most constraints that prevent suspend are not hardware
+>> specific and should not prevent entering low power modes from idle. =
+In
+>> other words we may need to prevent low power idle modes while allowi=
+ng
+>> suspend, and we may need to prevent suspend while allowing low power
+>> idle modes.
 >
-> [snip]--[snip]
+> Well, as I said, pm_qos is s32 ... it's easy to make the constraint
+> ternary instead of binary.
+
+No, they have to be two separate constraints, otherwise a constraint
+to block suspend would override a constraint to block a low power idle
+mode or the other way around.
+
 >
->> you sure this is the only board file having "omap3-opp.h" ?
->> anyway.. the
->> need for board files to use opp_init is gone with my patch
->> http://marc.info/?l=linux-omap&m=127507237109393&w=2
->> so I wont harp on it, I would rather post a cleanup patch for
->> all board
->> files once the patch is in..(or mebbe kevin could drop the patch that
->> adds opp_init_table to board files ;) )..
+>> It would also be good to not have an implementation that gets slower
+>> and slower the more clients you have. With binary constraints this i=
+s
+>> trivial.
+>
+> Well, that's an implementation detail ... ordering the list or using =
+a
+
+True. I think we also need timeout support in the short term though
+which is also somewhat simpler to implement in an efficient way for
+binary constraints.
+
+> btree would significantly fix that. =A0However, the most number of
+> constraint users I've seen in android is around 60 ... that's not hug=
+e
+> from a kernel linear list perspective, so is this really a concern? .=
+=2E.
+> particularly when most uses don't necessarily change the constrain, s=
+o a
+> list search isn't done.
+
+The search is done every time any of them changes.
+
+>
+>> > The other piece they need is the suspend block name, which comes w=
+ith
+>> > the stats API, and finally we need to decide what the actual const=
+raint
+>> > is called (which is how the dev node gets its name) ...
+>> >
+>> >> > =A0 =A0 =A02. pm_qos will be updated to be callable from atomic=
+ context
+>> >> > =A0 =A0 =A03. pm_qos will be updated to export statistics initi=
+ally closely
+>> >> > =A0 =A0 =A0 =A0 matching what suspend blockers provides (simple=
+ update of the rw
+>> >> > =A0 =A0 =A0 =A0 interface?)
 >>
+>> 4. It would be useful to change pm_qos_add_request to not allocate
+>> anything so can add constraints from init functions that currently
+>> cannot fail.
 >
-> [sp] You didn't reead the 0/1 of the patch series, where I have clearly
-> mentioned that I will make changes to the other board specific files
-> once there rest of the changes are well discussed. There may be, possibly,
-> more changes in the board specific files and we can review them in the
-> context of this file and then same can be repeated for other board files.
-ok
-
+> Sure .. we do that for the delayed work queues, it's just an API whic=
+h
+> takes the structure as an argument leaving it the responsibility of t=
+he
+> caller to free.
 >
->>>    arch/arm/mach-omap2/cpufreq34xx.c     |  164
->> --------------------------------
->>>    arch/arm/mach-omap2/omap3-opp.h       |   20 ----
->>>    arch/arm/mach-omap2/opp34xx_data.c    |  166
->> +++++++++++++++++++++++++++++++++
->>>    arch/arm/mach-omap2/pm34xx.c          |    1 -
->>>    arch/arm/plat-omap/Makefile           |    7 +-
->>>    arch/arm/plat-omap/cpu-omap.c         |   47 +++++++++
->>>    arch/arm/plat-omap/include/plat/opp.h |   82 +---------------
->>>    arch/arm/plat-omap/opp.c              |   46 ---------
->>>    10 files changed, 225 insertions(+), 316 deletions(-)
->>>    delete mode 100644 arch/arm/mach-omap2/cpufreq34xx.c
->>>    delete mode 100644 arch/arm/mach-omap2/omap3-opp.h
->>>    create mode 100644 arch/arm/mach-omap2/opp34xx_data.c
->>>
->
-> [sp]
->> finding it difficult to align with this change, you introduce
->> omap3_pm_init_opp_table later into plat/opp.h which defeats generic
->> nature of opp.h - as it was supposed to be used for other
->> omaps as well..
->
-> In that case the function omap3_pm_init_opp_table() can be made
-> generic by renaming to omap_pm_init_opp_table and can be implemented
-> for each omap family.
-Do you intend to handle multiomap case by calling
-each omap[1234]_pm_init_opp_table() if cpu_is_omap34xx() etc? you will 
-still need a custom omap family specific init_opp_table - that is what 
-this header provides.
-
->
-> If opp table has to be implementyed for each family then why have
-> different funtion with family specific prefixes?
-opp table contents will be different for each family and they should all 
-build and co-exist in a single uImage.
-
->
-> Also, what this headerf ile is/was doing? only defining the
-> function to return -EINVAL when CONFIG_CPU_FREQ is not selected;
-> which is not required. For OPP layer to be used this table needs
-> to be populated. Now, there is only one place this function is
-> used, so why do/should be need a header for the same.
-
-To allow the the external function that triggers it to be able to use 
-it.. :)
-
->
-> [snip]--[snip]
->
->> +obj-y				+= opp.o
->> +obj-$(CONFIG_TWL4030_POWER)	+= opp_twl_tps.o
-> NAK. you just need TWL4030_CORE not power here. any reason to retain
-> power? it has no dependency on power..
->
-> [sp] Isn't this purpose of this opp to TWL linkage is to define
-> the voltages in terms the PMIC connected; and later make sure
-> that correct voltages are set via the PMIC? This is very much related
-no it does not. these are just translation functions, as long as _CORE 
-exists, it means that the system uses twl and we should be good to go.
-
-> to POWER. We could also do it on CORE; but I don't see this as a
-> big issue.
-ok.
-
->
-> But TWL4030 has more feature beyond PMIC but this is not the case
-> with other simpler PMICs and I wanted to use CONFIG option that
-> can be easier for someone else make the port easy to spot as a necessary
-> change.
-
-i am aligned with the change, except that I believe you should not be 
-using POWER as the prefix for the config build dependency.
-
->
-> [snip]--[snip]
->
->>> +	freq_table[i].index = i;
->>> +	freq_table[i].frequency = CPUFREQ_TABLE_END;
->>> +
->>> +	*table =&freq_table[0];
->>> +}
->>> +#endif
->>> +
->> errrr.... why? it used to be here and was moved to opp.c - see
->> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-p
-> m.git;a=commit;h=9a6b00f70e9f4bce30ad4f8fab41a24bd3706dbd
->> you are essentially reverting that patch!
->
-> [sp] May be I am reverting the patch, but I don't see this function
->       being used anywhere else. Most of the other cpufreq related
->       initialization is happening at this place.
->
->       Only the function omap_cpu_init() calls this function and it
->       is in the same file.
->
->       It also helps in need of an additional header; which seem
->       to make "de-linking" more complex - in terms of #ifdefs.
-
-the idea was to have a common function for ALL omaps to create the table 
-and reuse it where ever needed, if you look beyond omap3 into omap1,2 
-and 4, the ability to do this is invaluable. does it matter if a 
-function exists in the library even if not used?
-
->
-> [snip]--[snip]
->
+>> >> > After this is done, the current android suspend block patch bec=
+omes a
+>> >> > re-expression in kernel space in terms of pm_qos, with the curr=
+ent
+>> >> > userspace wakelocks being adapted by the android framework into=
+ pm_qos
+>> >> > requirements expressed to /dev/cpu_interactivity (or whatever n=
+ame is
+>> >> > chosen). =A0Then opportunistic suspend is either a small add-on=
+ kernel
+>> >> > patch they have in their tree to suspend when the interactivity
+>> >> > constraint goes to NONE, or it could be done entirely by a user=
+space
+>> >> > process. =A0Long term this could migrate to the freezer and sus=
+pend from
+>> >> > idle approach as the various problem timers get fixed.
+>> >> >
+>> >> > I think the big unresolved issue is the stats extension. =A0For=
+ android,
+>> >> > we need just a name written along with the value, so we have so=
+mething
+>> >> > to hang the stats off ... current pm_qos userspace users just w=
+rite a
+>> >> > value, so the name would be optional. =A0From the kernel, we pr=
+obably just
+>> >> > need an additional API that takes a stats name or NULL if none
+>> >> > (pm_qos_add_request_named()?). =A0Then reading the stats could =
+be done by
+>> >> > implementing a fops read routine on the misc device.
+>> >>
+>> >> Is the original idea of having that information in debugfs object=
+ionable?
+>> >
+>> > Well ... debugfs is usually used to get around the sysfs rules. =A0=
+In this
+>> > case, pm_qos has a dev interface ... I don't specifically object t=
+o
+>> > using debugfs, but I don't see any reason to forbid it from being =
+a
+>> > simple dev read interface either.
+>> >
 >>
->>> +/**
->>> + * omap3_pm_init_opp_table() - Initialize the OPP table
->> for OMAP3 devices.
->>> + *
->>> + * Initializes the OPP table for the current OMAP3 device.
->>> + */
->>> +int __init omap3_pm_init_opp_table(void);
->> NAK. opp. is meant to be used by omap2, OMAP4 etc..
->> when you removed from omap3-opp.h, it kinda needed you to
->> have it here,
->> which breaks the generic nature of this header.
+>> We don't currently have a dev interface for stats so this is not an
+>> immediate requirement. The suspend blocker debugfs interface is just
+>> as good as the proc interface we have for wakelocks.
 >
-> [sp] See my comment earlier. The function for init-ing the OPP
->       table can be made generic. Then (after rename) this is a
->       generic function itself.
+> OK, great ... what actually exports the statistics is just an
+> implementation detail.
 >
->       Rather than making sweelping changes, I am only delinking
->       the OPP layer and CPU freq. These changes can be done
->       separately.
-replied above.
+> James
+>
+>
+>
+>
 
->
->>
->>>
->>> -#endif		/* CONFIG_CPU_FREQ */
->>>    #endif		/* __ASM_ARM_OMAP_OPP_H */
->>> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
->>> index 13da451..3ed3ec1 100644
->>> --- a/arch/arm/plat-omap/opp.c
->>> +++ b/arch/arm/plat-omap/opp.c
->>> @@ -351,49 +351,3 @@ int opp_disable(struct omap_opp *opp)
->>>    	opp->enabled = false;
->>>    	return 0;
->>>    }
->>> -
->>> -/* XXX document */
->>> -void opp_init_cpufreq_table(enum opp_t opp_type,
->>> -			    struct cpufreq_frequency_table **table)
->>> -{
->>> -	int i = 0, j;
->>> -	int opp_num;
->>> -	struct cpufreq_frequency_table *freq_table;
->>> -	struct omap_opp *opp;
->>> -
->>> -	if (opp_type>= OPP_TYPES_MAX) {
->>> -		pr_warning("%s: failed to initialize frequency"
->>> -				"table\n", __func__);
->>> -		return;
->>> -	}
->>> -
->>> -	opp_num = opp_get_opp_count(opp_type);
->>> -	if (opp_num<   0) {
->>> -		pr_err("%s: no opp table?\n", __func__);
->>> -		return;
->>> -	}
->>> -
->>> -	freq_table = kmalloc(sizeof(struct cpufreq_frequency_table) *
->>> -			     (opp_num + 1), GFP_ATOMIC);
->>> -	if (!freq_table) {
->>> -		pr_warning("%s: failed to allocate frequency"
->>> -				"table\n", __func__);
->>> -		return;
->>> -	}
->>> -
->>> -	opp = _opp_list[opp_type];
->>> -	opp += opp_num;
->>> -	for (j = opp_num; j>= 0; j--) {
->>> -		if (opp->enabled) {
->>> -			freq_table[i].index = i;
->>> -			freq_table[i].frequency = opp->rate / 1000;
->>> -			i++;
->>> -		}
->>> -		opp--;
->>> -	}
->>> -
->>> -	freq_table[i].index = i;
->>> -	freq_table[i].frequency = CPUFREQ_TABLE_END;
->>> -
->>> -	*table =&freq_table[0];
->>> -}
->> not sure why you removed this..
->>
->
-> [sp] It isn't removed but simply moved to the only file in the code where it
->       is being used... along with rest of the code related to CPU_FREQ.
->
-> The way I see, the OPP layer has been mixed with CPUFREQ usage in the
-> cureent code; but if you look at OPP layer as as "real" layer then the
-> CPUFREQ implementation should be the "client" to this later and use its
-> services - not get 'mingled' into the layer itself. If you go by this
-> reasoning, this init function belong outside the OPP layer.
-I have explained on top, further, the only set of dependencies i see:
-a) naming of the the files
-b) build and #ifdef CPUFREQ dependencies
-these are changes I liked from your patch.
 
-Regards,
-Nishanth Menon
+
+--=20
+Arve Hj=F8nnev=E5g
