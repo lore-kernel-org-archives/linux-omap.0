@@ -1,92 +1,82 @@
 From: Florian Mickler <florian@mickler.org>
-Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
- Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 21:05:21 +0200
-Message-ID: <20100602210521.54b9cd9b@schatten.dmk.lab>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
-	<201006010005.19554.rjw@sisk.pl>
-	<20100601090023.788cabf4@notabene.brown>
-	<201006010232.20263.rjw@sisk.pl>
-	<20100601113309.609349fd@notabene.brown>
-	<alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
-	<20100601122012.1edeaf48@notabene.brown>
-	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
-	<20100602153235.340a7852@notabene.brown>
-	<AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
-	<20100602180614.729246ea@notabene.brown>
-	<AANLkTimISbs4X2YR_Pal9A80mpkNyCy8laWBcOgR2Cl7@mail.gmail.com>
-	<20100602210224.6ae2333f@notabene.brown>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 2 Jun 2010 21:47:48 +0200
+Message-ID: <20100602214748.7742e3ae@schatten.dmk.lab>
+References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100601135102.GA8098@srcf.ucam.org>
+	<1275426085.21962.967.camel@mulgrave.site>
+	<201006020024.14220.rjw@sisk.pl>
+	<1275431816.21962.1108.camel@mulgrave.site>
+	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
+	<1275451342.21962.1777.camel@mulgrave.site>
+	<AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
+	<1275491111.2799.110.camel@mulgrave.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:50719 "EHLO mx01.d-labs.de"
+Received: from ist.d-labs.de ([213.239.218.44]:41800 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757718Ab0FBTFe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jun 2010 15:05:34 -0400
-In-Reply-To: <20100602210224.6ae2333f@notabene.brown>
+	id S1758555Ab0FBTsA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 15:48:00 -0400
+In-Reply-To: <1275491111.2799.110.camel@mulgrave.site>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Neil Brown <neilb@suse.de>
-Cc: Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, mark.gross@intel.com, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
 
-On Wed, 2 Jun 2010 21:02:24 +1000
-Neil Brown <neilb@suse.de> wrote:
-> 
-> And this decision (to block suspend) really needs to be made in the driver,
-> not in userspace?
+On Wed, 02 Jun 2010 10:05:11 -0500
+James Bottomley <James.Bottomley@suse.de> wrote:
 
-Well, it fits. The requirement is a direct consequence of the intimate
-knowledge the driver has about the driven devices. 
-Or if you get in an upper layer, the knowledge that the subsystem has
-about it's requirements to function properly. Why would you separate it out?
+> On Tue, 2010-06-01 at 21:41 -0700, Arve Hj=F8nnev=E5g wrote:
+> > No, they have to be two separate constraints, otherwise a constrain=
+t
+> > to block suspend would override a constraint to block a low power i=
+dle
+> > mode or the other way around.
+>=20
+> Depends.  If you block the system from going into low power idle, doe=
+s
+> that mean you still want it to be fully suspended?
+>=20
+> If yes, then we do have independent constraints.  If not, they have a
+> hierarchy:
+>=20
+>       * Fully Interactive (no low power idle or suspend)
+>       * Partially Interactive (may go into low power idle but not
+>         suspend)
+>       * None (may go into low power idle or suspend)
+>=20
+> Which is expressable as a ternary constraint.
+>=20
+> James
+>=20
 
-If all your drivers specify their needed requirements, the pm-core (or
-idle) has the maximum flexibility to implement any strategy and is
-guaranteed a stable system as long as it honours the given requirements.
-(That's the theory, of course.)
+But unblocking suspend at the moment is independent to getting idle.
+If you have the requirement to stay in the highest-idle level (i.e.
+best latency you can get) that does not (currently) mean, that you can
+not suspend.
 
-> 
-> You could get those drivers to return EBUSY from PM_SUSPEND_PREPARE (which
-> would need to be a configurable option), but then I guess you have no way to
-> wait for the device to become non-busy.
-> 
-> If user-space really cannot tell if the driver is busy or not, then I would
-> suggest that the driver is fairly poorly designed.
+To preserve that explicit fall-through while still having working
+run-time-powermanagement I think the qos-constraints need to be
+separated.=20
 
-In general, userspace has no business knowing if the driver is busy or
-not. It would need intimate knowledge about the driver to determine if
-it is busy or not. That is what the kernel is all about, to hide that
-knowledge from userspace and masking it with a one-fits-all-API.
+<disclaimer: just from what I read>
+Provided you can reach the same power state from idle, current suspend
+could probably also be implemented by just the freezing part and a hint
+to the idle-loop to provide accelerated fall-through to lowest power.=20
+</disclaimer>
 
+At that point, you could probably merge the constraints.=20
 
-> 
-> It would seem then that a user-space requested suspend is not sufficient for
-> your needs even if we remove the race window, as you have drivers that want
-> to avoid suspend indefinitely, and that "need to avoid suspend" status is not
-> visible from user-space.
-
-Well, but the kernel-solution and the userspace solution should be
-pretty independent. The tricky part here seems to be to have a
-kernel-userspace-boundary that doesn't require a specific kernel
-implementation and works. 
-
-Could someone perhaps make a recap on what are the problems with the
-API? I have no clear eye (experience?) for that (or so it seems).
-
-> It is a pity that this extra requirement was not clear from your introduction
-> to the "Opportunistic suspend support" patch.
-
-I think that the main problem was that _all_ the requirements were
-not communicated well.  That caused everybody to think that their
-solution would be a better fit. You are not alone.
- 
-> If that be the case, I'll stop bothering you with suggestions that can never
-> work.
-> Thanks for your time,
-> NeilBrown
-
-Don't be frustrated. What should Arve be?  :)
+But the freezing part is also the hard part, isn't it? (I have no
+idea. Thomas seems to think about cgroups for that and doing smth about=
+ the timers.)
 
 Cheers,
-Flo
+=46lo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
