@@ -1,46 +1,82 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
- Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 16:32:44 -0700
-Message-ID: <20100602233243.GA27666@core.coreip.homeip.net>
-References: <20100601113309.609349fd@notabene.brown>
- <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
- <20100601122012.1edeaf48@notabene.brown>
- <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
- <20100602153235.340a7852@notabene.brown>
- <AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
- <20100602180614.729246ea@notabene.brown>
- <AANLkTimISbs4X2YR_Pal9A80mpkNyCy8laWBcOgR2Cl7@mail.gmail.com>
- <20100602210224.6ae2333f@notabene.brown>
- <20100602210521.54b9cd9b@schatten.dmk.lab>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/8] OMAP3: Adding Smartreflex and Voltage driver support
+Date: Wed, 02 Jun 2010 16:52:45 -0700
+Message-ID: <87zkzd3sc2.fsf@deeprootsystems.com>
+References: <1275150748-15386-1-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100602210521.54b9cd9b@schatten.dmk.lab>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Neil Brown <neilb@suse.de>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:33978 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758647Ab0FBXwv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 19:52:51 -0400
+Received: by pvg16 with SMTP id 16so331721pvg.19
+        for <linux-omap@vger.kernel.org>; Wed, 02 Jun 2010 16:52:50 -0700 (PDT)
+In-Reply-To: <1275150748-15386-1-git-send-email-thara@ti.com> (Thara Gopinath's message of "Sat\, 29 May 2010 22\:02\:20 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
 
-On Wed, Jun 02, 2010 at 09:05:21PM +0200, Florian Mickler wrote:
-> On Wed, 2 Jun 2010 21:02:24 +1000
-> Neil Brown <neilb@suse.de> wrote:
-> > 
-> > And this decision (to block suspend) really needs to be made in the driver,
-> > not in userspace?
-> 
-> Well, it fits. The requirement is a direct consequence of the intimate
-> knowledge the driver has about the driven devices.
+Thara Gopinath <thara@ti.com> writes:
 
-That is not really true. A driver does have intimate knowledge of the
-device, however it does not necessarily have an idea about the data read
-from the device. Consider the gpio_matrix driver: Arve says that it has
-to continue scanning matrix once first interrupt arrvies. But it really
-depends on what key has been pressed - if user pressed KEY_SUSPEND or
-KEY_POWER it cmight be better if we did not wait for key release but
-initiated the action right away. The decision on how system reacts to a
-key press does not belong to the driver but really to userspace.
+> This patch series introduces smartreflex and voltage driver support
+> for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
+> control for real-time voltage adjustments.
+>
+> Originally all the functionalities introduced in this patch
+> were present in arch/arm/mach-omap2/smartreflex.c file in Kevin's
+> pm tree. This patch series does a major rewrite of this file
+> and introduces a separate voltage driver. Major contributors
+> to the original driver are
+
+This is excellent, thanks for the rebase/reorg/compress.
+
+While not yet get getting to a full review of this series, I'd like it
+to get some broader testing.  To that end, I've replaced the pm-sr
+branch in my pm tree with this series, and rebuilt a new PM branch
+using it.
+
+Note that it is also based on top of a new pm-opp branch which is
+Nishanth's condensed version which is also upstream bound for the next
+merge window.
+
+I had to do a couple minor fixes to apply against v2.6.35-rc1 (mainly
+fixing usage of #defines that were renamed to have a _MASK suffix.)
+
+It currently boots fine on OMAP3EVM (no efuse values, so no SR) but
+when I try it on Zoom3, I get repeated errors:
+
+  Wake up daisy chain activation failed. 
+
+I haven't fully isolated the root cause yet, but it looks like it
+might be because omap3_enable_io_chain() seems confused about whether
+it should be writing PM_WKEN or PM_WKST reg.
+
+The patch below (on top of new PM branch) seems to have fixed that
+problem for Zoom3.
+
+Kevin
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index e531621..207905d 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -115,7 +115,7 @@ static void omap3_enable_io_chain(void)
+ 		/* Do a readback to assure write has been done */
+ 		prm_read_mod_reg(WKUP_MOD, PM_WKEN);
  
--- 
-Dmitry
+-		while (!(prm_read_mod_reg(WKUP_MOD, PM_WKST) &
++		while (!(prm_read_mod_reg(WKUP_MOD, PM_WKEN) &
+ 			 OMAP3430_ST_IO_CHAIN_MASK)) {
+ 			timeout++;
+ 			if (timeout > 1000) {
+@@ -124,7 +124,7 @@ static void omap3_enable_io_chain(void)
+ 				return;
+ 			}
+ 			prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
+-					     WKUP_MOD, PM_WKST);
++					     WKUP_MOD, PM_WKEN);
+ 		}
+ 	}
+ }
