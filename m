@@ -1,59 +1,79 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: beagleboard expansion boards, was Trying to understand how to
- use new OMAP mux code
-Date: Wed, 2 Jun 2010 21:42:48 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323207A01@dbde02.ent.ti.com>
-References: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
- <20100311224812.GU2900@atomide.com> <4C062DD4.2050701@cioinfoindus.fr>
- <20100602112130.GG5980@atomide.com>
- <20100602144606.4287c438.jhnikula@gmail.com>
- <3BC7A992-11AB-4EBF-B7A5-4C4B1498CC58@student.utwente.nl>
- <20100602161418.c6af218b.jhnikula@gmail.com>
- <20100602135709.GK5980@atomide.com>
- <20100602171427.5024be97.jhnikula@gmail.com>
- <20100602144547.GM5980@atomide.com> <20100602145456.GC11744@nokia.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: simple sd card performance bug fix on OMAP
+Date: Wed, 2 Jun 2010 12:18:57 -0500
+Message-ID: <007601cb0277$afa019a0$544ff780@am.dhcp.ti.com>
+References: <4C0013DC.6060601@earthlink.net> <5A47E75E594F054BAF48C5E4FC4B92AB032162380F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57359 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41746 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758030Ab0FBQM6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 12:12:58 -0400
-In-Reply-To: <20100602145456.GC11744@nokia.com>
-Content-Language: en-US
+	id S1756264Ab0FBRTD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jun 2010 13:19:03 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032162380F@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, ext Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Koen Kooi <koen@dominion.thruhere.net>, Laurent Epinat <laurent.epinat@cioinfoindus.fr>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "'Gadiyar, Anand'" <gadiyar@ti.com>, "'Stephen Schwarm, CSDP'" <w3eve@earthlink.net>, linux-omap@vger.kernel.org, 'Tony Lindgren' <tony@atomide.com>
 
-Felipe Balbi wrote:
-> On Wed, Jun 02, 2010 at 04:45:48PM +0200, ext Tony Lindgren wrote:
-> >Yeah having the modules do the platform device init and registration will
-> >lead into nasty conflicts. The platform device registration really needs
-> >to happen in the board-*.c files, not in the drivers.
-> 
-> yeah, unless you had a way to register a particular platform_device 
-> conditionaly based on the attached daughter card, but then again, if you 
-> can detect the daughter card, you might as well use that information to 
-> do the muxing correctly on the board-*.c file.
-> 
-> I have to agree modules are not supposed to change platform stuff. On 
-> the other hand, that could be used by EHCI/OHCI to implement port 
-> handoff on runtime:
-> 
->   mux all usb ports to ehci, if enumeration fails, remux ports to ohci 
->   and try again.
-> 
 
-FWIW, this specific configuration is not supported on OMAP3s today.
-You cannot dynamically hand off from EHCI to OHCI - the issue being that
-we don't have a single PHY that can talk both interface languages on the
-exact same pads as the OMAP.
 
-One other case I can think of where you might want to change mux modes
-dynamically is as a workaround for an errata. For instance, you might
-want to mux a particular pad to safe-mode when entering off-mode and
-mux it back to a functional mode after exiting off-mode.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Gadiyar, Anand
+> Sent: Friday, May 28, 2010 2:55 PM
+> To: Stephen Schwarm, CSDP; linux-omap@vger.kernel.org
+> Subject: RE: simple sd card performance bug fix on OMAP
+> 
+> Stephen Schwarm, CSDP wrote:
+> >
+> > I have not had time to make a formal patch for this but I thought it was
+> > significant enough just to send it out.  The problem is on omap systems
+> > that use omap_hsmmc.c to run sd or mmc cards.  If the system you are
+> > using has an 8 wire interface, it will only use a one wire interface to
+> > 4 wire cards (eg, sd class 4 and sd class 6).
+> >
+> > In the file driver/mmc/omap_hsmmc.c in the function omap_hsmmc_probe:
+> > at about line 1739 change:
+> >
+> >     if (mmc_slot(host).wires >= 8)
+> >         mmc->caps |= MMC_CAP_8_BIT_DATA;
+> >     else if (mmc_slot(host).wires >= 4)
+> >         mmc->caps |= MMC_CAP_4_BIT_DATA;
+> >
+> > to:
+> >
+> >     if (mmc_slot(host).wires >= 8)
+> >         mmc->caps |= MMC_CAP_8_BIT_DATA;
+> >     if (mmc_slot(host).wires >= 4)
+> >         mmc->caps |= w;
+> >
+> > just delete the word "else".  This sets the MMC_CAP_4_BIT_DATA bit on
+> > interfaces that have 8 wire interfaces.
+> >
+> > We have seen a BIG performance improvement on our systems.
+> >
+> 
+> Thanks for reporting this.
+> 
+> A similar patch was posted a while ago and is currently marked as
+> "awaiting upstream", although it looks like it got lost again.
+> 
+> <https://patchwork.kernel.org/patch/78713/>
+> 
+A revised version of the same patch was posted.
 
-- Anand
+https://patchwork.kernel.org/patch/93519/
+
+Tony, Can you please push this?
+
+Regards,
+Madhu
+
+> - Anand
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
