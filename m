@@ -1,137 +1,135 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+From: James Bottomley <James.Bottomley@suse.de>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 15:27:28 -0700
-Message-ID: <AANLkTikeHarkwvO5-Fdrxt1FzTQL2lGHiQXBSG0vsKob@mail.gmail.com>
+Date: Wed, 02 Jun 2010 18:03:38 -0500
+Message-ID: <1275519818.2799.527.camel@mulgrave.site>
 References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<20100601135102.GA8098@srcf.ucam.org>
-	<1275426085.21962.967.camel@mulgrave.site>
-	<201006020024.14220.rjw@sisk.pl>
-	<1275431816.21962.1108.camel@mulgrave.site>
-	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
-	<1275451342.21962.1777.camel@mulgrave.site>
-	<AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
-	<1275491111.2799.110.camel@mulgrave.site>
-	<20100602214748.7742e3ae@schatten.dmk.lab>
-	<1275511271.2799.516.camel@mulgrave.site>
+	 <20100601135102.GA8098@srcf.ucam.org>
+	 <1275426085.21962.967.camel@mulgrave.site> <201006020024.14220.rjw@sisk.pl>
+	 <1275431816.21962.1108.camel@mulgrave.site>
+	 <AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
+	 <1275451342.21962.1777.camel@mulgrave.site>
+	 <AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
+	 <1275491111.2799.110.camel@mulgrave.site>
+	 <20100602214748.7742e3ae@schatten.dmk.lab>
+	 <1275511271.2799.516.camel@mulgrave.site>
+	 <AANLkTikeHarkwvO5-Fdrxt1FzTQL2lGHiQXBSG0vsKob@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1275511271.2799.516.camel@mulgrave.site>
-Sender: linux-kernel-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@suse.de>
-Cc: Florian Mickler <florian@mickler.org>, Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, mark.gross@intel.com, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:53410 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933161Ab0FBXDs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jun 2010 19:03:48 -0400
+In-Reply-To: <AANLkTikeHarkwvO5-Fdrxt1FzTQL2lGHiQXBSG0vsKob@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: tytso@mit.edu, Neil Brown <neilb@suse.de>, felipe.balbi@nokia.com, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, mark.gross@intel.com, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Wed, Jun 2, 2010 at 1:41 PM, James Bottomley <James.Bottomley@suse.d=
-e> wrote:
-> On Wed, 2010-06-02 at 21:47 +0200, Florian Mickler wrote:
->> On Wed, 02 Jun 2010 10:05:11 -0500
->> James Bottomley <James.Bottomley@suse.de> wrote:
->>
->> > On Tue, 2010-06-01 at 21:41 -0700, Arve Hj=F8nnev=E5g wrote:
->> > > No, they have to be two separate constraints, otherwise a constr=
-aint
->> > > to block suspend would override a constraint to block a low powe=
-r idle
->> > > mode or the other way around.
->> >
->> > Depends. =A0If you block the system from going into low power idle=
+On Wed, 2010-06-02 at 15:27 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
+> On Wed, Jun 2, 2010 at 1:41 PM, James Bottomley <James.Bottomley@suse=
+=2Ede> wrote:
+> > On Wed, 2010-06-02 at 21:47 +0200, Florian Mickler wrote:
+> >> On Wed, 02 Jun 2010 10:05:11 -0500
+> >> James Bottomley <James.Bottomley@suse.de> wrote:
+> >>
+> >> > On Tue, 2010-06-01 at 21:41 -0700, Arve Hj=C3=B8nnev=C3=A5g wrot=
+e:
+> >> > > No, they have to be two separate constraints, otherwise a cons=
+traint
+> >> > > to block suspend would override a constraint to block a low po=
+wer idle
+> >> > > mode or the other way around.
+> >> >
+> >> > Depends.  If you block the system from going into low power idle=
 , does
->> > that mean you still want it to be fully suspended?
->> >
->> > If yes, then we do have independent constraints. =A0If not, they h=
+> >> > that mean you still want it to be fully suspended?
+> >> >
+> >> > If yes, then we do have independent constraints.  If not, they h=
 ave a
->> > hierarchy:
->> >
->> > =A0 =A0 =A0 * Fully Interactive (no low power idle or suspend)
->> > =A0 =A0 =A0 * Partially Interactive (may go into low power idle bu=
-t not
->> > =A0 =A0 =A0 =A0 suspend)
->> > =A0 =A0 =A0 * None (may go into low power idle or suspend)
->> >
->> > Which is expressable as a ternary constraint.
->> >
->> > James
->> >
->>
->> But unblocking suspend at the moment is independent to getting idle.
->> If you have the requirement to stay in the highest-idle level (i.e.
->> best latency you can get) that does not (currently) mean, that you c=
-an
->> not suspend.
->
-> I don't understand that as a reason. =A0If we looks at this a qos
-> constraints, you're saying that the system may not drop into certain =
-low
-> power states because it might turn something off that's currently bei=
-ng
-> used by a driver or a process. =A0Suspend is certainly the lowest sta=
-te of
-> that because it turns everything off, why would it be legal to drop i=
-nto
-> that?
-
-Because the driver gets called on suspend which gives it a change to
-stop using it.
-
->
-> I also couldn't find this notion of separation of idleness power from
-> suspend blocking in the original suspend block patch set ... if you c=
-an
-> either tell me where it is, or give me an example of the separated us=
-e
-> cases, I'd understand better.
->
-
-The suspend block patchset only deals with suspend, not low power idle
-modes. The original wakelock patchset had two wakelock types, idle and
-suspend.
-
->> To preserve that explicit fall-through while still having working
->> run-time-powermanagement I think the qos-constraints need to be
->> separated.
->
-> OK, as above, why? =A0or better yet, just give an example.
->
-
-The i2c bus on the Nexus One is used by the other core to turn off the
-power you our core when we enter the lowest power mode. This means
-that we cannot enter that low power mode while the i2c bus is active,
-so we block low power idle modes. At some point we also tries to block
-suspend in this case, but this caused a lot of failed suspend attempts
-since the frequency scaling code would try to ramp up while freezing
-processes which in turn aborted the process freezing attempts.
-
->> <disclaimer: just from what I read>
->> Provided you can reach the same power state from idle, current suspe=
-nd
->> could probably also be implemented by just the freezing part and a h=
-int
->> to the idle-loop to provide accelerated fall-through to lowest power=
+> >> > hierarchy:
+> >> >
+> >> >       * Fully Interactive (no low power idle or suspend)
+> >> >       * Partially Interactive (may go into low power idle but no=
+t
+> >> >         suspend)
+> >> >       * None (may go into low power idle or suspend)
+> >> >
+> >> > Which is expressable as a ternary constraint.
+> >> >
+> >> > James
+> >> >
+> >>
+> >> But unblocking suspend at the moment is independent to getting idl=
+e.
+> >> If you have the requirement to stay in the highest-idle level (i.e=
 =2E
->> </disclaimer>
->>
->> At that point, you could probably merge the constraints.
->>
->> But the freezing part is also the hard part, isn't it? (I have no
->> idea. Thomas seems to think about cgroups for that and doing smth ab=
-out the timers.)
->
-> Um, well, as I said, I think using suspend from idle and freezer is
-> longer term. =A0I think if we express the constraints as qos android =
-can
-> then use them to gate when to enter S3 .. which is functionally
-> equivalent to suspend blockers. =A0And the vanilla kernel can use the=
-m to
-> gate power states for the drivers in suspend from idle.
->
-> James
->
->
->
+> >> best latency you can get) that does not (currently) mean, that you=
+ can
+> >> not suspend.
+> >
+> > I don't understand that as a reason.  If we looks at this a qos
+> > constraints, you're saying that the system may not drop into certai=
+n low
+> > power states because it might turn something off that's currently b=
+eing
+> > used by a driver or a process.  Suspend is certainly the lowest sta=
+te of
+> > that because it turns everything off, why would it be legal to drop=
+ into
+> > that?
+>=20
+> Because the driver gets called on suspend which gives it a change to
+> stop using it.
+>=20
+> >
+> > I also couldn't find this notion of separation of idleness power fr=
+om
+> > suspend blocking in the original suspend block patch set ... if you=
+ can
+> > either tell me where it is, or give me an example of the separated =
+use
+> > cases, I'd understand better.
+> >
+>=20
+> The suspend block patchset only deals with suspend, not low power idl=
+e
+> modes. The original wakelock patchset had two wakelock types, idle an=
+d
+> suspend.
+
+OK, so that explains why I didn't see it ...
+
+> >> To preserve that explicit fall-through while still having working
+> >> run-time-powermanagement I think the qos-constraints need to be
+> >> separated.
+> >
+> > OK, as above, why?  or better yet, just give an example.
+> >
+>=20
+> The i2c bus on the Nexus One is used by the other core to turn off th=
+e
+> power you our core when we enter the lowest power mode. This means
+> that we cannot enter that low power mode while the i2c bus is active,
+> so we block low power idle modes. At some point we also tries to bloc=
+k
+> suspend in this case, but this caused a lot of failed suspend attempt=
+s
+> since the frequency scaling code would try to ramp up while freezing
+> processes which in turn aborted the process freezing attempts.
+
+OK, so this is a device specific power constraint state.  I suppose it
+makes sense to have a bunch of those, because the device isn't
+necessarily going to know what idle power mode it can't go into, so the
+cpu govenor should sort it out rather than have the device specify a
+minimum state. =20
+
+James
 
 
-
---=20
-Arve Hj=F8nnev=E5g
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
