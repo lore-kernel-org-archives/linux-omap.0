@@ -1,196 +1,264 @@
 From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [RFC PATCH 2/5] OMAP3: McBSP: Change the way how the FIFO is
- handled
-Date: Wed, 02 Jun 2010 07:24:50 +0300
-Message-ID: <4C05DD12.9010903@gmail.com>
-References: <1275293810-31984-1-git-send-email-peter.ujfalusi@nokia.com> <1275293810-31984-3-git-send-email-peter.ujfalusi@nokia.com> <4C03F4B8.9090306@gmail.com> <201006010959.20610.peter.ujfalusi@nokia.com>
+Subject: Re: [PATCHv1 1/1] omap3: pm: Delink opp layer and cpufreq
+Date: Wed, 02 Jun 2010 07:36:50 +0300
+Message-ID: <4C05DFE2.70004@gmail.com>
+References: <1275309542-26004-1-git-send-email-premi@ti.com> <4C03F1E3.9030202@gmail.com> <B85A65D85D7EB246BE421B3FB0FBB59301E7290649@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:4024 "EHLO
+Received: from ey-out-2122.google.com ([74.125.78.26]:29653 "EHLO
 	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751169Ab0FBEbg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 00:31:36 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so289490eyd.19
-        for <linux-omap@vger.kernel.org>; Tue, 01 Jun 2010 21:31:34 -0700 (PDT)
-In-Reply-To: <201006010959.20610.peter.ujfalusi@nokia.com>
+	with ESMTP id S1750751Ab0FBEgz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 00:36:55 -0400
+Received: by ey-out-2122.google.com with SMTP id d26so289756eyd.19
+        for <linux-omap@vger.kernel.org>; Tue, 01 Jun 2010 21:36:52 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7290649@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 06/01/2010 09:59 AM, Peter Ujfalusi wrote:
-> On Monday 31 May 2010 20:41:12 ext Nishanth Menon wrote:
->> On 05/31/2010 11:16 AM, Peter Ujfalusi wrote:
->>> Use the actual FIFO size in words as buffer_size on OMAP2.
->>> Change the threshold configuration to use 1 based numbering, when
->>> specifying the allowed threshold maximum or the McBSP threshold value.
->>> Set the default maximum threshold to (buffer_size - 0x10) intialy.
->>>
->>>>  From users of McBSP, now it is expected to use this method.
->>>
->>> Asking for threshold 1 means that the value written to threshold
->>> registers are going to be 0, which means 1 word threshold.
->>
->> just a 2cent minor comment: maybe omap_mcbsp_platform_data needs
->> structure documentation.. it might be difficult for folks to figure that
->> out from commit ID itself..
+On 06/01/2010 03:01 PM, Premi, Sanjeev wrote:
 >
-> I can add comments in the mach-omap2/mcbsp.c like this:
->
-
-I had meant more of
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/kernel-doc-nano-HOWTO.txt;h=27a52b35d55bf1b6009551c97f400da5c14f59bc;hb=HEAD#l84
-
-but i suspect that it is out of the scope of this patch at least.. and 
-the comments below might be helpful at the least.
+>> -----Original Message-----
+>> From: Nishanth Menon [mailto:menon.nishanth@gmail.com]
+>> Sent: Monday, May 31, 2010 10:59 PM
+>> To: Premi, Sanjeev
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [PATCHv1 1/1] omap3: pm: Delink opp layer and cpufreq
 >>
->>> Signed-off-by: Peter Ujfalusi<peter.ujfalusi@nokia.com>
+>> On 05/31/2010 03:39 PM, Sanjeev Premi wrote:
+>>> The OPP layer was contained in the CONFIG_CPU_FREQ.
+>>> This patch removes this containment relation.
+>>>
+>>> Signed-off-by: Sanjeev Premi<premi@ti.com>
 >>> ---
->>>
->>>    arch/arm/mach-omap2/mcbsp.c |   10 +++++-----
->>>    arch/arm/plat-omap/mcbsp.c  |   10 ++++++----
->>>    2 files changed, 11 insertions(+), 9 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
->>> index 016fe60..9139958 100644
->>> --- a/arch/arm/mach-omap2/mcbsp.c
->>> +++ b/arch/arm/mach-omap2/mcbsp.c
->>> @@ -132,7 +132,7 @@ static struct omap_mcbsp_platform_data
->>> omap34xx_mcbsp_pdata[] = {
->>>
->>>    		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
->>>    		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
->>>    		.ops		=&omap2_mcbsp_ops,
->>>
->>> -		.buffer_size	= 0x6F,
->>> +		.buffer_size	= 0x80,
+>>>    arch/arm/mach-omap2/Makefile          |    6 +-
+>>>    arch/arm/mach-omap2/board-omap3evm.c  |    2 +-
 >
->   +		.buffer_size	= 0x80, /* The FIFO has 128 locations */
+> [snip]--[snip]
 >
->>>
->>>    	},
->>>    	{
->>>    	
->>>    		.phys_base	= OMAP34XX_MCBSP2_BASE,
->>>
->>> @@ -142,7 +142,7 @@ static struct omap_mcbsp_platform_data
->>> omap34xx_mcbsp_pdata[] = {
->>>
->>>    		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
->>>    		.tx_irq		= INT_24XX_MCBSP2_IRQ_TX,
->>>    		.ops		=&omap2_mcbsp_ops,
->>>
->>> -		.buffer_size	= 0x3FF,
->>> +		.buffer_size	= 0x500,
+>> you sure this is the only board file having "omap3-opp.h" ?
+>> anyway.. the
+>> need for board files to use opp_init is gone with my patch
+>> http://marc.info/?l=linux-omap&m=127507237109393&w=2
+>> so I wont harp on it, I would rather post a cleanup patch for
+>> all board
+>> files once the patch is in..(or mebbe kevin could drop the patch that
+>> adds opp_init_table to board files ;) )..
+>>
 >
->   +		.buffer_size	= 0x500, /* The FIFO has 1024 + 256 locations */
+> [sp] You didn't reead the 0/1 of the patch series, where I have clearly
+> mentioned that I will make changes to the other board specific files
+> once there rest of the changes are well discussed. There may be, possibly,
+> more changes in the board specific files and we can review them in the
+> context of this file and then same can be repeated for other board files.
+ok
+
 >
+>>>    arch/arm/mach-omap2/cpufreq34xx.c     |  164
+>> --------------------------------
+>>>    arch/arm/mach-omap2/omap3-opp.h       |   20 ----
+>>>    arch/arm/mach-omap2/opp34xx_data.c    |  166
+>> +++++++++++++++++++++++++++++++++
+>>>    arch/arm/mach-omap2/pm34xx.c          |    1 -
+>>>    arch/arm/plat-omap/Makefile           |    7 +-
+>>>    arch/arm/plat-omap/cpu-omap.c         |   47 +++++++++
+>>>    arch/arm/plat-omap/include/plat/opp.h |   82 +---------------
+>>>    arch/arm/plat-omap/opp.c              |   46 ---------
+>>>    10 files changed, 225 insertions(+), 316 deletions(-)
+>>>    delete mode 100644 arch/arm/mach-omap2/cpufreq34xx.c
+>>>    delete mode 100644 arch/arm/mach-omap2/omap3-opp.h
+>>>    create mode 100644 arch/arm/mach-omap2/opp34xx_data.c
 >>>
->>>    	},
->>>    	{
->>>    	
->>>    		.phys_base	= OMAP34XX_MCBSP3_BASE,
->>>
->>> @@ -152,7 +152,7 @@ static struct omap_mcbsp_platform_data
->>> omap34xx_mcbsp_pdata[] = {
->>>
->>>    		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
->>>    		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
->>>    		.ops		=&omap2_mcbsp_ops,
->>>
->>> -		.buffer_size	= 0x6F,
->>> +		.buffer_size	= 0x80,
 >
->   +		.buffer_size	= 0x80, /* The FIFO has 128 locations */
+> [sp]
+>> finding it difficult to align with this change, you introduce
+>> omap3_pm_init_opp_table later into plat/opp.h which defeats generic
+>> nature of opp.h - as it was supposed to be used for other
+>> omaps as well..
 >
+> In that case the function omap3_pm_init_opp_table() can be made
+> generic by renaming to omap_pm_init_opp_table and can be implemented
+> for each omap family.
+Do you intend to handle multiomap case by calling
+each omap[1234]_pm_init_opp_table() if cpu_is_omap34xx() etc? you will 
+still need a custom omap family specific init_opp_table - that is what 
+this header provides.
+
+>
+> If opp table has to be implementyed for each family then why have
+> different funtion with family specific prefixes?
+opp table contents will be different for each family and they should all 
+build and co-exist in a single uImage.
+
+>
+> Also, what this headerf ile is/was doing? only defining the
+> function to return -EINVAL when CONFIG_CPU_FREQ is not selected;
+> which is not required. For OPP layer to be used this table needs
+> to be populated. Now, there is only one place this function is
+> used, so why do/should be need a header for the same.
+
+To allow the the external function that triggers it to be able to use 
+it.. :)
+
+>
+> [snip]--[snip]
+>
+>> +obj-y				+= opp.o
+>> +obj-$(CONFIG_TWL4030_POWER)	+= opp_twl_tps.o
+> NAK. you just need TWL4030_CORE not power here. any reason to retain
+> power? it has no dependency on power..
+>
+> [sp] Isn't this purpose of this opp to TWL linkage is to define
+> the voltages in terms the PMIC connected; and later make sure
+> that correct voltages are set via the PMIC? This is very much related
+no it does not. these are just translation functions, as long as _CORE 
+exists, it means that the system uses twl and we should be good to go.
+
+> to POWER. We could also do it on CORE; but I don't see this as a
+> big issue.
+ok.
+
+>
+> But TWL4030 has more feature beyond PMIC but this is not the case
+> with other simpler PMICs and I wanted to use CONFIG option that
+> can be easier for someone else make the port easy to spot as a necessary
+> change.
+
+i am aligned with the change, except that I believe you should not be 
+using POWER as the prefix for the config build dependency.
+
+>
+> [snip]--[snip]
+>
+>>> +	freq_table[i].index = i;
+>>> +	freq_table[i].frequency = CPUFREQ_TABLE_END;
+>>> +
+>>> +	*table =&freq_table[0];
+>>> +}
+>>> +#endif
+>>> +
+>> errrr.... why? it used to be here and was moved to opp.c - see
+>> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-p
+> m.git;a=commit;h=9a6b00f70e9f4bce30ad4f8fab41a24bd3706dbd
+>> you are essentially reverting that patch!
+>
+> [sp] May be I am reverting the patch, but I don't see this function
+>       being used anywhere else. Most of the other cpufreq related
+>       initialization is happening at this place.
+>
+>       Only the function omap_cpu_init() calls this function and it
+>       is in the same file.
+>
+>       It also helps in need of an additional header; which seem
+>       to make "de-linking" more complex - in terms of #ifdefs.
+
+the idea was to have a common function for ALL omaps to create the table 
+and reuse it where ever needed, if you look beyond omap3 into omap1,2 
+and 4, the ability to do this is invaluable. does it matter if a 
+function exists in the library even if not used?
+
+>
+> [snip]--[snip]
+>
+>>
+>>> +/**
+>>> + * omap3_pm_init_opp_table() - Initialize the OPP table
+>> for OMAP3 devices.
+>>> + *
+>>> + * Initializes the OPP table for the current OMAP3 device.
+>>> + */
+>>> +int __init omap3_pm_init_opp_table(void);
+>> NAK. opp. is meant to be used by omap2, OMAP4 etc..
+>> when you removed from omap3-opp.h, it kinda needed you to
+>> have it here,
+>> which breaks the generic nature of this header.
+>
+> [sp] See my comment earlier. The function for init-ing the OPP
+>       table can be made generic. Then (after rename) this is a
+>       generic function itself.
+>
+>       Rather than making sweelping changes, I am only delinking
+>       the OPP layer and CPU freq. These changes can be done
+>       separately.
+replied above.
+
+>
+>>
 >>>
->>>    	},
->>>    	{
->>>    	
->>>    		.phys_base	= OMAP34XX_MCBSP4_BASE,
->>>
->>> @@ -161,7 +161,7 @@ static struct omap_mcbsp_platform_data
->>> omap34xx_mcbsp_pdata[] = {
->>>
->>>    		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
->>>    		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
->>>    		.ops		=&omap2_mcbsp_ops,
->>>
->>> -		.buffer_size	= 0x6F,
->>> +		.buffer_size	= 0x80,
->>>
->>>    	},
->>>    	{
->>>    	
->>>    		.phys_base	= OMAP34XX_MCBSP5_BASE,
->>>
->>> @@ -170,7 +170,7 @@ static struct omap_mcbsp_platform_data
->>> omap34xx_mcbsp_pdata[] = {
->>>
->>>    		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
->>>    		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
->>>    		.ops		=&omap2_mcbsp_ops,
->>>
->>> -		.buffer_size	= 0x6F,
->>> +		.buffer_size	= 0x80,
->>>
->>>    	},
->>>
->>>    };
->>>    #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
->>>
->>> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
->>> index 51d8abf..6462968 100644
->>> --- a/arch/arm/plat-omap/mcbsp.c
->>> +++ b/arch/arm/plat-omap/mcbsp.c
->>> @@ -497,7 +497,8 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16
->>> threshold)
->>>
->>>    	}
->>>    	mcbsp = id_to_mcbsp_ptr(id);
->>>
->>> -	MCBSP_WRITE(mcbsp, THRSH2, threshold);
->>> +	if (threshold&&   threshold<= mcbsp->max_tx_thres)
->>> +		MCBSP_WRITE(mcbsp, THRSH2, threshold - 1);
->>>
+>>> -#endif		/* CONFIG_CPU_FREQ */
+>>>    #endif		/* __ASM_ARM_OMAP_OPP_H */
+>>> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+>>> index 13da451..3ed3ec1 100644
+>>> --- a/arch/arm/plat-omap/opp.c
+>>> +++ b/arch/arm/plat-omap/opp.c
+>>> @@ -351,49 +351,3 @@ int opp_disable(struct omap_opp *opp)
+>>>    	opp->enabled = false;
+>>>    	return 0;
 >>>    }
->>>    EXPORT_SYMBOL(omap_mcbsp_set_tx_threshold);
->>>
->>> @@ -519,7 +520,8 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16
->>> threshold)
->>>
->>>    	}
->>>    	mcbsp = id_to_mcbsp_ptr(id);
->>>
->>> -	MCBSP_WRITE(mcbsp, THRSH1, threshold);
->>> +	if (threshold&&   threshold<= mcbsp->max_rx_thres)
->>> +		MCBSP_WRITE(mcbsp, THRSH1, threshold - 1);
->>>
->>>    }
->>>    EXPORT_SYMBOL(omap_mcbsp_set_rx_threshold);
->>>
->>> @@ -1696,8 +1698,8 @@ static inline void __devinit
->>> omap34xx_device_init(struct omap_mcbsp *mcbsp)
->>>
->>>    {
->>>
->>>    	mcbsp->dma_op_mode = MCBSP_DMA_MODE_ELEMENT;
->>>    	if (cpu_is_omap34xx()) {
->>>
->>> -		mcbsp->max_tx_thres = max_thres(mcbsp);
->>> -		mcbsp->max_rx_thres = max_thres(mcbsp);
->>> +		mcbsp->max_tx_thres = max_thres(mcbsp) - 0x10;
->>> +		mcbsp->max_rx_thres = max_thres(mcbsp) - 0x10;
->>>
->>>    		/*
->>>    		
->>>    		 * REVISIT: Set dmap_op_mode to THRESHOLD as default
->>>    		 * for mcbsp2 instances.
+>>> -
+>>> -/* XXX document */
+>>> -void opp_init_cpufreq_table(enum opp_t opp_type,
+>>> -			    struct cpufreq_frequency_table **table)
+>>> -{
+>>> -	int i = 0, j;
+>>> -	int opp_num;
+>>> -	struct cpufreq_frequency_table *freq_table;
+>>> -	struct omap_opp *opp;
+>>> -
+>>> -	if (opp_type>= OPP_TYPES_MAX) {
+>>> -		pr_warning("%s: failed to initialize frequency"
+>>> -				"table\n", __func__);
+>>> -		return;
+>>> -	}
+>>> -
+>>> -	opp_num = opp_get_opp_count(opp_type);
+>>> -	if (opp_num<   0) {
+>>> -		pr_err("%s: no opp table?\n", __func__);
+>>> -		return;
+>>> -	}
+>>> -
+>>> -	freq_table = kmalloc(sizeof(struct cpufreq_frequency_table) *
+>>> -			     (opp_num + 1), GFP_ATOMIC);
+>>> -	if (!freq_table) {
+>>> -		pr_warning("%s: failed to allocate frequency"
+>>> -				"table\n", __func__);
+>>> -		return;
+>>> -	}
+>>> -
+>>> -	opp = _opp_list[opp_type];
+>>> -	opp += opp_num;
+>>> -	for (j = opp_num; j>= 0; j--) {
+>>> -		if (opp->enabled) {
+>>> -			freq_table[i].index = i;
+>>> -			freq_table[i].frequency = opp->rate / 1000;
+>>> -			i++;
+>>> -		}
+>>> -		opp--;
+>>> -	}
+>>> -
+>>> -	freq_table[i].index = i;
+>>> -	freq_table[i].frequency = CPUFREQ_TABLE_END;
+>>> -
+>>> -	*table =&freq_table[0];
+>>> -}
+>> not sure why you removed this..
+>>
 >
-> Is this sufficient?
+> [sp] It isn't removed but simply moved to the only file in the code where it
+>       is being used... along with rest of the code related to CPU_FREQ.
 >
+> The way I see, the OPP layer has been mixed with CPUFREQ usage in the
+> cureent code; but if you look at OPP layer as as "real" layer then the
+> CPUFREQ implementation should be the "client" to this later and use its
+> services - not get 'mingled' into the layer itself. If you go by this
+> reasoning, this init function belong outside the OPP layer.
+I have explained on top, further, the only set of dependencies i see:
+a) naming of the the files
+b) build and #ifdef CPUFREQ dependencies
+these are changes I liked from your patch.
 
 Regards,
 Nishanth Menon
