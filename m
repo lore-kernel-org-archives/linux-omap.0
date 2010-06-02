@@ -1,65 +1,38 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 03:00:01 -0700
-Message-ID: <AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<201005302202.39511.rjw@sisk.pl>
-	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
-	<201005312347.24251.rjw@sisk.pl>
-	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
-	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
-	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
-	<AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
-	<1275471561.27810.30865.camel@twins>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
+Date: Wed, 2 Jun 2010 13:01:00 +0300
+Message-ID: <20100602100100.GJ6465@nokia.com>
+References: <20100602.105054.59678037.Hiroshi.DOYU@nokia.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1275471561.27810.30865.camel@twins>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Florian Mickler <florian@mickler.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:18167 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757722Ab0FBKBt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 06:01:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20100602.105054.59678037.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "h-kanigeri2@ti.com" <h-kanigeri2@ti.com>
 
-2010/6/2 Peter Zijlstra <peterz@infradead.org>:
-> On Wed, 2010-06-02 at 01:54 -0700, Arve Hj=F8nnev=E5g wrote:
->> No I want you to stop confusing low power idle modes with suspend.
->
-> I think it is you who is confused. For power management purposes susp=
-end
-> is nothing more but a deep idle state.
+On Wed, Jun 02, 2010 at 09:50:54AM +0200, Doyu Hiroshi (Nokia-D/Helsinki) wrote:
+>      omap iommu: Introduce iopgd_is_table MACRO
+>      omap iommu: Rename iopte_[p,v]addr -> iopte_page_[p,v]addr
 
-No, idle is transparent, suspend is not.
+should these two be here or should they go to 2.6.36 merge window ? at 
+least from the description it doesn't look like they are fixing any 
+bugs.
 
->
-> (and please don't mention @#$@ up x86 ACPI again, Intel knows, they'r=
-e
-> fixing it, get over it already).
->
+>      omap iommu: add functionality to get TLB miss interrupt
 
-I don't think it is realistic to drop support for all existing hardware=
-=2E
+for this "add functionality to get TLB miss interrupt"
 
->> Unrelated to
->> Android, I also want to use opportunistic suspend on my desktop.
->
-> So you're going to sprinkle this suspend blocker shite all over regul=
-ar
-> userspace?
+the other two look suspicious looking only at the description.
 
-I have said several times, that regular user-space will not need to be
-modified to maintain their current behavior.
+-- 
+balbi
 
-> Why not instead work on getting apps to behave properly and
-> idle when there's nothing to do?
->
-> After all, if you have the code to add suspend blockers into, you als=
-o
-> have the means to fix it being stupid in the first place.
->
-
-Why would I add suspend blockers to the code I want to prevent running?
-
---=20
-Arve Hj=F8nnev=E5g
+DefectiveByDesign.org
