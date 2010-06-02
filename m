@@ -1,61 +1,51 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 02 Jun 2010 12:21:28 +0200
-Message-ID: <1275474088.27810.31000.camel@twins>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	 <201005302202.39511.rjw@sisk.pl>
-	 <AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
-	 <201005312347.24251.rjw@sisk.pl>
-	 <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-	 <alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
-	 <AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
-	 <alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
-	 <AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
-	 <1275471561.27810.30865.camel@twins>
-	 <AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
+From: Neil Brown <neilb@suse.de>
+Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
+ Suspend block api (version 8)
+Date: Wed, 2 Jun 2010 20:23:00 +1000
+Message-ID: <20100602202300.468b73fe@notabene.brown>
+References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
+	<201006010005.19554.rjw@sisk.pl>
+	<20100601090023.788cabf4@notabene.brown>
+	<201006010232.20263.rjw@sisk.pl>
+	<20100601113309.609349fd@notabene.brown>
+	<alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
+	<20100601122012.1edeaf48@notabene.brown>
+	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
+	<20100602153235.340a7852@notabene.brown>
+	<AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
+	<20100602180614.729246ea@notabene.brown>
+	<20100602105039.068c5e00@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
+In-Reply-To: <20100602105039.068c5e00@schatten.dmk.lab>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Florian Mickler <florian@mickler.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Florian Mickler <florian@mickler.org>
+Cc: Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2010-06-02 at 03:00 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
-> 2010/6/2 Peter Zijlstra <peterz@infradead.org>:
-> > On Wed, 2010-06-02 at 01:54 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
-> >> No I want you to stop confusing low power idle modes with suspend.
-> >
-> > I think it is you who is confused. For power management purposes su=
-spend
-> > is nothing more but a deep idle state.
->=20
-> No, idle is transparent, suspend is not.
+On Wed, 2 Jun 2010 10:50:39 +0200
+Florian Mickler <florian@mickler.org> wrote:
 
-Which is where the problem is, it should be.
+> On Wed, 2 Jun 2010 18:06:14 +1000
+> Neil Brown <neilb@suse.de> wrote:
+> 
+> > I cannot imagine why it would take multiple seconds to scan a keypad.
+> > Can you explain that?
+> > 
+> > Do you mean while keys are held pressed?  Maybe you don't get a wake-up event
+> > on key-release?  In that case your user-space daemon could block suspend
+> > while there are any pressed keys....  confused.
+> 
+> IIRC, the device sends interrupts only for first key-down and
+> last key-up.
+> To detect simultaneous key-presses you must actively scan it after the
+> first key-down.
 
-> Why would I add suspend blockers to the code I want to prevent runnin=
-g?
+That makes sense - thanks.
+Presumably the first key-press gets to user-space promptly, so the user-space
+suspend daemon can be told not to suspend until the last key-up.
 
-Because what you want might not be what others want. Suppose you're fin=
-e
-with your torrent client/irc client/etc.. to loose their network
-connection when you're not behind your desktop so you don't add suspend
-blockers there.
-
-Me, I'd be ready to administer physical violence if either of those los=
-t
-their connections when I wasn't around to keep the screen-saver from
-kicking in.
-
-This leads to having to sprinkle magic dust (and lots of config options=
-)
-all over userspace. Something that gets esp interesting with only a
-boolean interface.
-
-In the example above, having an active net connection would prevent my
-desktop from suspending, but what if another platform can maintain net
-connections while suspended? Do we then end up with arch specific code
-in the net-stack? I'm sure DaveM would love that.
+Thanks,
+NeilBrown
