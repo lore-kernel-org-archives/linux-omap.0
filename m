@@ -1,122 +1,46 @@
-From: James Bottomley <James.Bottomley@suse.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 02 Jun 2010 10:05:11 -0500
-Message-ID: <1275491111.2799.110.camel@mulgrave.site>
-References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	 <20100601135102.GA8098@srcf.ucam.org>
-	 <1275426085.21962.967.camel@mulgrave.site> <201006020024.14220.rjw@sisk.pl>
-	 <1275431816.21962.1108.camel@mulgrave.site>
-	 <AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
-	 <1275451342.21962.1777.camel@mulgrave.site>
-	 <AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, mark.gross@intel.com, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, felipe.balbi@nokia.com
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP: GPIO: fix auto-disable of debounce clock
+Date: Wed,  2 Jun 2010 08:22:29 -0700
+Message-ID: <1275492149-29063-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:55315 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932340Ab0FBPWd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 11:22:33 -0400
+Received: by pxi8 with SMTP id 8so3510pxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 02 Jun 2010 08:22:31 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-On Tue, 2010-06-01 at 21:41 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
-> 2010/6/1 James Bottomley <James.Bottomley@suse.de>:
-> > On Tue, 2010-06-01 at 18:10 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
-> >> On Tue, Jun 1, 2010 at 3:36 PM, James Bottomley <James.Bottomley@s=
-use.de> wrote:
-> >> > On Wed, 2010-06-02 at 00:24 +0200, Rafael J. Wysocki wrote:
-> >> >> On Tuesday 01 June 2010, James Bottomley wrote:
-> >> >> > On Tue, 2010-06-01 at 14:51 +0100, Matthew Garrett wrote:
-> >> >> > > On Mon, May 31, 2010 at 04:21:09PM -0500, James Bottomley w=
-rote:
-> >> >> > >
-> >> >> > > > You're the one mentioning x86, not me.  I already explain=
-ed that some
-> >> >> > > > MSM hardware (the G1 for example) has lower power consump=
-tion in S3
-> >> >> > > > (which I'm using as an ACPI shorthand for suspend to ram)=
- than any
-> >> >> > > > suspend from idle C state.  The fact that current x86 har=
-dware has the
-> >> >> > > > same problem may be true, but it's not entirely relevant.
-> >> >> > >
-> >> >> > > As long as you can set a wakeup timer, an S state is just a=
- C state with
-> >> >> > > side effects. The significant one is that entering an S sta=
-te stops the
-> >> >> > > process scheduler and any in-kernel timers. I don't think G=
-oogle care at
-> >> >> > > all about whether suspend is entered through an explicit tr=
-ansition or
-> >> >> > > something hooked into cpuidle - the relevant issue is that =
-they want to
-> >> >> > > be able to express a set of constraints that lets them cont=
-rol whether
-> >> >> > > or not the scheduler keeps on scheduling, and which doesn't=
- let them
-> >> >> > > lose wakeup events in the process.
-> >> >> >
-> >> >> > Exactly, so my understanding of where we currently are is:
-> >> >>
-> >> >> Thanks for the recap.
-> >> >>
-> >> >> >      1. pm_qos will be updated to be able to express the andr=
-oid suspend
-> >> >> >         blockers as interactivity constraints (exact name TBD=
-, but
-> >> >> >         probably /dev/cpu_interactivity)
-> >> >>
-> >> >> I think that's not been decided yet precisely enough.  I saw a =
-few ideas
-> >> >> here and there in the thread, but which of them are we going to=
- follow?
-> >> >
-> >> > Well, android only needs two states (block and don't block), so =
-that
-> >> > gets translated as 2 s32 values (say 0 and INT_MAX).  I've seen =
-defines
-> >> > like QOS_INTERACTIVE and QOS_NONE (or QOS_DRECKLY or QOS_MANANA)=
- to
-> >> > describe these, but if all we're arguing over is the define name=
-, that's
-> >> > progress.
-> >>
-> >> I think we need separate state constraints for suspend and idle lo=
-w
-> >> power modes. On the msm platform only a subset of the interrupts c=
-an
-> >> wake up from the low power mode, so we block the use if the low po=
-wer
-> >> mode from idle while other interrupts are enabled. We do not block
-> >> suspend however if those interrupts are not marked as wakeup
-> >> interrupts. Most constraints that prevent suspend are not hardware
-> >> specific and should not prevent entering low power modes from idle=
-=2E In
-> >> other words we may need to prevent low power idle modes while allo=
-wing
-> >> suspend, and we may need to prevent suspend while allowing low pow=
-er
-> >> idle modes.
-> >
-> > Well, as I said, pm_qos is s32 ... it's easy to make the constraint
-> > ternary instead of binary.
->=20
-> No, they have to be two separate constraints, otherwise a constraint
-> to block suspend would override a constraint to block a low power idl=
-e
-> mode or the other way around.
+The addition of the new debounce code (commit
+168ef3d9a56bd8bffe0ef4189c450888b4aefefe) broke the auto-disable of
+debounce clocks on idle by forgetting to update the debounce clock
+enable mask.
 
-Depends.  If you block the system from going into low power idle, does
-that mean you still want it to be fully suspended?
+Add back the updating of bank->dbck_enable_mask so debounce clocks are
+auto-disabled.
 
-If yes, then we do have independent constraints.  If not, they have a
-hierarchy:
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+Please include for 2.6.35-rc series.
 
-      * Fully Interactive (no low power idle or suspend)
-      * Partially Interactive (may go into low power idle but not
-        suspend)
-      * None (may go into low power idle or suspend)
+ arch/arm/plat-omap/gpio.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Which is expressable as a ternary constraint.
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 393e921..9b7e354 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -673,6 +673,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
+ 		if (cpu_is_omap34xx() || cpu_is_omap44xx())
+ 			clk_disable(bank->dbck);
+ 	}
++	bank->dbck_enable_mask = val;
+ 
+ 	__raw_writel(val, reg);
+ }
+-- 
+1.7.0.2
 
-James
