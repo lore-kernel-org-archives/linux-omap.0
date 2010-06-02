@@ -1,51 +1,66 @@
-From: Neil Brown <neilb@suse.de>
-Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
- Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 20:23:00 +1000
-Message-ID: <20100602202300.468b73fe@notabene.brown>
-References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
-	<201006010005.19554.rjw@sisk.pl>
-	<20100601090023.788cabf4@notabene.brown>
-	<201006010232.20263.rjw@sisk.pl>
-	<20100601113309.609349fd@notabene.brown>
-	<alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
-	<20100601122012.1edeaf48@notabene.brown>
-	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
-	<20100602153235.340a7852@notabene.brown>
-	<AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
-	<20100602180614.729246ea@notabene.brown>
-	<20100602105039.068c5e00@schatten.dmk.lab>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: [FOR TESTING] [PATCH] KS8851: Fix RX skbuff NULL pointer
+Date: Wed, 2 Jun 2010 05:48:55 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E538A5F@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100602105039.068c5e00@schatten.dmk.lab>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39905 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751610Ab0FBKs7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 06:48:59 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2 Jun 2010 10:50:39 +0200
-Florian Mickler <florian@mickler.org> wrote:
 
-> On Wed, 2 Jun 2010 18:06:14 +1000
-> Neil Brown <neilb@suse.de> wrote:
-> 
-> > I cannot imagine why it would take multiple seconds to scan a keypad.
-> > Can you explain that?
-> > 
-> > Do you mean while keys are held pressed?  Maybe you don't get a wake-up event
-> > on key-release?  In that case your user-space daemon could block suspend
-> > while there are any pressed keys....  confused.
-> 
-> IIRC, the device sends interrupts only for first key-down and
-> last key-up.
-> To detect simultaneous key-presses you must actively scan it after the
-> first key-down.
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-That makes sense - thanks.
-Presumably the first key-press gets to user-space promptly, so the user-space
-suspend daemon can be told not to suspend until the last key-up.
+Fix the allocation length of rx skbuff.
+Based on discussion http://lkml.org/lkml/2010/5/26/501
 
-Thanks,
-NeilBrown
+Signed-off-by: Abraham Arce <x0066660@ti.com>
+---
+ drivers/net/ks8851.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ks8851.c b/drivers/net/ks8851.c
+index b4fb07a..05bd312 100644
+--- a/drivers/net/ks8851.c
++++ b/drivers/net/ks8851.c
+@@ -503,8 +503,9 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
+ 		ks8851_wrreg16(ks, KS_RXQCR,
+ 			       ks->rc_rxqcr | RXQCR_SDA | RXQCR_ADRFE);
+ 
+-		if (rxlen > 0) {
+-			skb = netdev_alloc_skb(ks->netdev, rxlen + 2 + 8);
++		if (rxlen > 4) {
++			rxlen -= 4;
++			skb = netdev_alloc_skb(ks->netdev, 2 + 8 + ALIGN(rxlen, 4));
+ 			if (!skb) {
+ 				/* todo - dump frame and move on */
+ 			}
+@@ -513,7 +514,7 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
+ 			 * for the status header and 4 bytes of garbage */
+ 			skb_reserve(skb, 2 + 4 + 4);
+ 
+-			rxpkt = skb_put(skb, rxlen - 4) - 8;
++			rxpkt = skb_put(skb, rxlen) - 8;
+ 
+ 			/* align the packet length to 4 bytes, and add 4 bytes
+ 			 * as we're getting the rx status header as well */
+@@ -526,7 +527,7 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
+ 			netif_rx(skb);
+ 
+ 			ks->netdev->stats.rx_packets++;
+-			ks->netdev->stats.rx_bytes += rxlen - 4;
++			ks->netdev->stats.rx_bytes += rxlen;
+ 		}
+ 
+ 		ks8851_wrreg16(ks, KS_RXQCR, ks->rc_rxqcr);
+-- 
+1.5.4.3
+
