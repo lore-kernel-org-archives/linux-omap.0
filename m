@@ -1,289 +1,50 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 2/2] AM3517: Add VPFE Capture driver support to board
- file
-Date: Wed, 2 Jun 2010 19:37:05 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DA71055@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1274965876-21845-3-git-send-email-hvaibhav@ti.com>,<A69FA2915331DC488A831521EAE36FE4016B185703@dlee06.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: beagleboard expansion boards, was Trying to understand how to
+ use new OMAP mux code
+Date: Wed, 2 Jun 2010 17:14:27 +0300
+Message-ID: <20100602171427.5024be97.jhnikula@gmail.com>
+References: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
+	<20100311224812.GU2900@atomide.com>
+	<4C062DD4.2050701@cioinfoindus.fr>
+	<20100602112130.GG5980@atomide.com>
+	<20100602144606.4287c438.jhnikula@gmail.com>
+	<3BC7A992-11AB-4EBF-B7A5-4C4B1498CC58@student.utwente.nl>
+	<20100602161418.c6af218b.jhnikula@gmail.com>
+	<20100602135709.GK5980@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43383 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932403Ab0FBOLR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 10:11:17 -0400
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE4016B185703@dlee06.ent.ti.com>
-Content-Language: en-US
+Received: from mail-ew0-f223.google.com ([209.85.219.223]:65519 "EHLO
+	mail-ew0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751440Ab0FBOL6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 10:11:58 -0400
+Received: by ewy23 with SMTP id 23so642980ewy.1
+        for <linux-omap@vger.kernel.org>; Wed, 02 Jun 2010 07:11:55 -0700 (PDT)
+In-Reply-To: <20100602135709.GK5980@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "mchehab@redhat.com" <mchehab@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, Laurent Epinat <laurent.epinat@cioinfoindus.fr>, linux-omap@vger.kernel.org
+
+On Wed, 2 Jun 2010 16:57:10 +0300
+Tony Lindgren <tony@atomide.com> wrote:
+
+> > Problem is that amount of expansion boards is practically unlimited so
+> > patching bootloader and board file could come quite maintenance effort.
+> > 
+> > Of course there are some lets say generic boards but bunch of in-house,
+> > DIY, etc. boards and there is no point to patch common bootloader and
+> > kernel board files because of them.
+> 
+> Just saveenv the kernel cmdline options in u-boot?
+> 
+I meant that if kernel module could do muxing then there is no need the
+user to change muxings for different add-on boards.
+
+Works fine if you have one board but how about when amount of expansion
+boards grow?
 
 
-________________________________________
-From: Karicheri, Muralidharan
-Sent: Wednesday, June 02, 2010 7:31 PM
-To: Hiremath, Vaibhav; linux-media@vger.kernel.org
-Cc: mchehab@redhat.com; linux-omap@vger.kernel.org
-Subject: RE: [PATCH 2/2] AM3517: Add VPFE Capture driver support to board file
-
-Vaibhav,
-
-See below my comments...
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Hiremath, Vaibhav
->Sent: Thursday, May 27, 2010 9:11 AM
->To: linux-media@vger.kernel.org
->Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
->omap@vger.kernel.org; Hiremath, Vaibhav
->Subject: [PATCH 2/2] AM3517: Add VPFE Capture driver support to board file
->
->From: Vaibhav Hiremath <hvaibhav@ti.com>
->
->Also created vpfe master/slave clock aliases, since naming
->convention is different in both Davinci and AM3517 devices.
->
->Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->---
-> arch/arm/mach-omap2/board-am3517evm.c |  161
->+++++++++++++++++++++++++++++++++
-> 1 files changed, 161 insertions(+), 0 deletions(-)
->
->diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
->omap2/board-am3517evm.c
->index c1c4389..edcb6db 100644
->--- a/arch/arm/mach-omap2/board-am3517evm.c
->+++ b/arch/arm/mach-omap2/board-am3517evm.c
->@@ -30,15 +30,168 @@
->
-> #include <plat/board.h>
-> #include <plat/common.h>
->+#include <plat/control.h>
-> #include <plat/usb.h>
-> #include <plat/display.h>
->
->+#include <media/tvp514x.h>
->+#include <media/davinci/vpfe_capture.h>
->+
-> #include "mux.h"
->
-> #define LCD_PANEL_PWR         176
-> #define LCD_PANEL_BKLIGHT_PWR 182
-> #define LCD_PANEL_PWM         181
->
->+/*
->+ * VPFE - Video Decoder interface
->+ */
->+#define TVP514X_STD_ALL               (V4L2_STD_NTSC | V4L2_STD_PAL)
->+
->+/* Inputs available at the TVP5146 */
->+static struct v4l2_input tvp5146_inputs[] = {
->+      {
->+              .index  = 0,
->+              .name   = "Composite",
->+              .type   = V4L2_INPUT_TYPE_CAMERA,
->+              .std    = TVP514X_STD_ALL,
->+      },
->+      {
->+              .index  = 1,
->+              .name   = "S-Video",
->+              .type   = V4L2_INPUT_TYPE_CAMERA,
->+              .std    = TVP514X_STD_ALL,
->+      },
->+};
->+
->+static struct tvp514x_platform_data tvp5146_pdata = {
->+      .clk_polarity   = 0,
->+      .hs_polarity    = 1,
->+      .vs_polarity    = 1
->+};
->+
->+static struct vpfe_route tvp5146_routes[] = {
->+      {
->+              .input  = INPUT_CVBS_VI1A,
->+              .output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
->+      },
->+      {
->+              .input  = INPUT_SVIDEO_VI2C_VI1C,
->+              .output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
->+      },
->+};
->+
->+static struct vpfe_subdev_info vpfe_sub_devs[] = {
->+      {
->+              .name           = "tvp5146",
->+              .grp_id         = 0,
->+              .num_inputs     = ARRAY_SIZE(tvp5146_inputs),
->+              .inputs         = tvp5146_inputs,
->+              .routes         = tvp5146_routes,
->+              .can_route      = 1,
->+              .ccdc_if_params = {
->+                      .if_type = VPFE_BT656,
->+                      .hdpol  = VPFE_PINPOL_POSITIVE,
->+                      .vdpol  = VPFE_PINPOL_POSITIVE,
->+              },
->+              .board_info     = {
->+                      I2C_BOARD_INFO("tvp5146", 0x5C),
->+                      .platform_data = &tvp5146_pdata,
->+              },
->+      },
->+};
->+
->+static void am3517_evm_clear_vpfe_intr(int vdint)
->+{
->+      unsigned int vpfe_int_clr;
->+
->+      vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
->+
->+      switch (vdint) {
->+      /* VD0 interrrupt */
->+      case INT_35XX_CCDC_VD0_IRQ:
->+              vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
->+              vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
->+              break;
->+      /* VD1 interrrupt */
->+      case INT_35XX_CCDC_VD1_IRQ:
->+              vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
->+              vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
->+              break;
->+      /* VD2 interrrupt */
->+      case INT_35XX_CCDC_VD2_IRQ:
->+              vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
->+              vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
->+              break;
->+      /* Clear all interrrupts */
->+      default:
->+              vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
->+                              AM35XX_VPFE_CCDC_VD1_INT_CLR |
->+                              AM35XX_VPFE_CCDC_VD2_INT_CLR);
->+              vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
->+                              AM35XX_VPFE_CCDC_VD1_INT_CLR |
->+                              AM35XX_VPFE_CCDC_VD2_INT_CLR);
->+              break;
->+      }
->+      omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
->+      vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
->+}
->+
->+static struct vpfe_config vpfe_cfg = {
->+      .num_subdevs    = ARRAY_SIZE(vpfe_sub_devs),
->+      .i2c_adapter_id = 3,
->+      .sub_devs       = vpfe_sub_devs,
->+      .clr_intr       = am3517_evm_clear_vpfe_intr,
->+      .card_name      = "DM6446 EVM",
-
->>[MK] You might want to change the card name to match with what you are using.
->> This is what user will see in querycap and should reflect the correct name IMO.
-
-Opps. It should have been Copy-Paste error.
-
-Thanks for pointing me to this. Will change and submit it.
-
->+      .ccdc           = "DM6446 CCDC",
->+};
->+
->+static struct resource vpfe_resources[] = {
->+      {
->+              .start  = INT_35XX_CCDC_VD0_IRQ,
->+              .end    = INT_35XX_CCDC_VD0_IRQ,
->+              .flags  = IORESOURCE_IRQ,
->+      },
->+      {
->+              .start  = INT_35XX_CCDC_VD1_IRQ,
->+              .end    = INT_35XX_CCDC_VD1_IRQ,
->+              .flags  = IORESOURCE_IRQ,
->+      },
->+};
->+
->+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
->+static struct platform_device vpfe_capture_dev = {
->+      .name           = CAPTURE_DRV_NAME,
->+      .id             = -1,
->+      .num_resources  = ARRAY_SIZE(vpfe_resources),
->+      .resource       = vpfe_resources,
->+      .dev = {
->+              .dma_mask               = &vpfe_capture_dma_mask,
->+              .coherent_dma_mask      = DMA_BIT_MASK(32),
->+              .platform_data          = &vpfe_cfg,
->+      },
->+};
->+
->+static struct resource dm644x_ccdc_resource[] = {
->+      /* CCDC Base address */
->+      {
->+              .start  = AM35XX_IPSS_VPFE_BASE,
->+              .end    = AM35XX_IPSS_VPFE_BASE + 0xffff,
->+              .flags  = IORESOURCE_MEM,
->+      },
->+};
-
->> [MK] Does it make sense to use am35xx_ccdc_resource[] instead? We know that
->> dm6446 ccdc device is re-used by looking at the device name below, right?
->> I think we also need to think about renaming the dm6446 ccdc device to
->> something generic in the future.
-
-You got me right here. I think there are different ways to look at it. I will change this name for now till the time we do not have generic name for it.
-
-Submitting this alone patch shortly.
-
-Thanks,
-Vaibhav
-
->+
->+static struct platform_device dm644x_ccdc_dev = {
->+      .name           = "dm644x_ccdc",
->+      .id             = -1,
->+      .num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
->+      .resource       = dm644x_ccdc_resource,
->+      .dev = {
->+              .dma_mask               = &vpfe_capture_dma_mask,
->+              .coherent_dma_mask      = DMA_BIT_MASK(32),
->+      },
->+};
->+
-> static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
->       {
->               I2C_BOARD_INFO("s35390a", 0x30),
->@@ -46,6 +199,7 @@ static struct i2c_board_info __initdata
->am3517evm_i2c_boardinfo[] = {
->       },
-> };
->
->+
-> /*
->  * RTC - S35390A
->  */
->@@ -261,6 +415,8 @@ static struct omap_board_config_kernel
->am3517_evm_config[] __initdata = {
->
-> static struct platform_device *am3517_evm_devices[] __initdata = {
->       &am3517_evm_dss_device,
->+      &dm644x_ccdc_dev,
->+      &vpfe_capture_dev,
-> };
->
-> static void __init am3517_evm_init_irq(void)
->@@ -313,6 +469,11 @@ static void __init am3517_evm_init(void)
->
->       i2c_register_board_info(1, am3517evm_i2c_boardinfo,
->                               ARRAY_SIZE(am3517evm_i2c_boardinfo));
->+
->+      clk_add_alias("master", "dm644x_ccdc", "master",
->+                      &vpfe_capture_dev.dev);
->+      clk_add_alias("slave", "dm644x_ccdc", "slave",
->+                      &vpfe_capture_dev.dev);
-> }
->
-> static void __init am3517_evm_map_io(void)
->--
->1.6.2.4
-
+-- 
+Jarkko
