@@ -1,7 +1,7 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv2 05/11] OMAP2: Devkit8000: Remove unneeded VDVI supply
-Date: Wed,  2 Jun 2010 13:37:45 +0200
-Message-ID: <1275478671-24563-6-git-send-email-weber@corscience.de>
+Subject: [PATCHv2 03/11] OMAP2: Devkit8000: Enable DVI-D output
+Date: Wed,  2 Jun 2010 13:37:43 +0200
+Message-ID: <1275478671-24563-4-git-send-email-weber@corscience.de>
 References: <1275478671-24563-1-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,39 +18,67 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Kan-Ru Chen <kanru@0xlab.org>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The VDVI power supply is no longer needed in
-board code with the new DSS2 interface.
+From: Kan-Ru Chen <kanru@0xlab.org>
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
+This patch corrects the DVI-D output setup of Devkit8000
+
+Devkit8000 has different DVI reset pin with the BeagleBoard.
+On Devkit8000 the TWL4030 GPIO_7 is assigned to do the job.
+
+Signed-off-by: Kan-Ru Chen <kanru@0xlab.org>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/board-devkit8000.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 70552d8..8cc8c3b 100644
+index 3bde0e6..17a2517 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -314,10 +314,6 @@ static struct twl4030_gpio_platform_data devkit8000_gpio_data = {
+@@ -140,13 +140,18 @@ static int devkit8000_panel_enable_lcd(struct omap_dss_device *dssdev)
+ static void devkit8000_panel_disable_lcd(struct omap_dss_device *dssdev)
+ {
+ }
++
+ static int devkit8000_panel_enable_dvi(struct omap_dss_device *dssdev)
+ {
++	if (dssdev->reset_gpio != -EINVAL)
++		gpio_set_value(dssdev->reset_gpio, 1);
+ 	return 0;
+ }
  
- static struct regulator_consumer_supply devkit8000_vpll1_supplies[] = {
- 	{
--	.supply		= "vdvi",
--	.dev		= &devkit8000_lcd_device.dev,
--	},
--	{
- 	.supply		= "vdds_dsi",
- 	.dev		= &devkit8000_dss_device.dev,
- 	}
-@@ -370,7 +366,6 @@ static struct regulator_init_data devkit8000_vdac = {
- /* VPLL1 for digital video outputs */
- static struct regulator_init_data devkit8000_vpll1 = {
- 	.constraints = {
--		.name			= "VDVI",
- 		.min_uV			= 1800000,
- 		.max_uV			= 1800000,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+ static void devkit8000_panel_disable_dvi(struct omap_dss_device *dssdev)
+ {
++	if (dssdev->reset_gpio != -EINVAL)
++		gpio_set_value(dssdev->reset_gpio, 0);
+ }
+ 
+ static int devkit8000_panel_enable_tv(struct omap_dss_device *dssdev)
+@@ -186,6 +191,7 @@ static struct omap_dss_device devkit8000_dvi_device = {
+ 	.driver_name            = "generic_panel",
+ 	.type                   = OMAP_DISPLAY_TYPE_DPI,
+ 	.phy.dpi.data_lines     = 24,
++	.reset_gpio             = -EINVAL, /* will be replaced */
+ 	.platform_enable        = devkit8000_panel_enable_dvi,
+ 	.platform_disable       = devkit8000_panel_disable_dvi,
+ };
+@@ -272,6 +278,15 @@ static int devkit8000_twl_gpio_setup(struct device *dev,
+ 	devkit8000_vmmc1_supply.dev = mmc[0].dev;
+ 	devkit8000_vsim_supply.dev = mmc[0].dev;
+ 
++	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
++	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
++
++	/* gpio + 7 is "DVI_PD" (out, active low) */
++	devkit8000_dvi_device.reset_gpio = gpio + 7;
++	gpio_request(devkit8000_dvi_device.reset_gpio, "DVI PowerDown");
++	/* Disable until needed */
++	gpio_direction_output(devkit8000_dvi_device.reset_gpio, 0);
++
+ 	return 0;
+ }
+ 
 -- 
 1.7.1
