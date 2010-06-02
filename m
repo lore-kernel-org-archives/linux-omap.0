@@ -1,56 +1,51 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v2 0/3] kmemleak: Fix false positive with special scan
-Date: Wed, 02 Jun 2010 15:28:26 +0300 (EEST)
-Message-ID: <20100602.152826.35036625.Hiroshi.DOYU@nokia.com>
-References: <1275387911-13030-1-git-send-email-Hiroshi.DOYU@nokia.com>
-	<1275472884.13743.29.camel@e102109-lin.cambridge.arm.com>
-	<20100602.143458.232754971.Hiroshi.DOYU@nokia.com>
+From: "Arce, Abraham" <x0066660@ti.com>
+Subject: RE: [RFC] [PATCH v3 2/4] OMAP4: Keyboard device registration
+Date: Wed, 2 Jun 2010 07:45:07 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E538AA1@dlee03.ent.ti.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043E537F74@dlee03.ent.ti.com>
+ <20100602102813.59519b77@surf>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:44981 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757771Ab0FBM2i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 08:28:38 -0400
-In-Reply-To: <20100602.143458.232754971.Hiroshi.DOYU@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20100602102813.59519b77@surf>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: catalin.marinas@arm.com
-Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v2 0/3] kmemleak: Fix false positive with special scan
-Date: Wed, 02 Jun 2010 14:34:58 +0300 (EEST)
+Thanks Thomas,
 
-> From: ext Catalin Marinas <catalin.marinas@arm.com>
-> Subject: Re: [PATCH v2 0/3] kmemleak: Fix false positive with special scan
-> Date: Wed, 2 Jun 2010 12:01:24 +0200
+> > +	unsigned int length = 0, id = 0;
+> > +	int hw_mod_name_len = 16;
+> > +	char oh_name[hw_mod_name_len];
+> > +	char *name = "omap4-keypad";
+> > +
+> > +	length = snprintf(oh_name, hw_mod_name_len, "kbd");
+> > +
+> > +	oh = omap_hwmod_lookup(oh_name);
+> > +	if (!oh) {
+> > +		pr_err("Could not look up %s\n", oh_name);
+> > +		return -EIO;
+> > +	}
 > 
->> Hi,
->> 
->> Sorry for the delay, I eventually got the time to look at your patches.
+> Maybe I'm missing something here, but I don't see where "length" is
+> being used, and why the snprintf()/oh_name thing is needed. What about:
 > 
-> Thank you for your review.
+> 	unsigned int id = 0;
+> 	char *name = "omap4-keypad";
 > 
->> On Tue, 2010-06-01 at 11:25 +0100, Hiroshi DOYU wrote:
->>> There is a false positive case that a pointer is calculated by other
->>> methods than the usual container_of macro. "kmemleak_ignore" can cover
->>> such a false positive, but it would loose the advantage of memory leak
->>> detection. This patch allows kmemleak to work with such false
->>> positives by introducing a new special memory block with a specified
->>> calculation formula. A client module can register its area with a
->>> conversion function, with which function kmemleak scan could calculate
->>> a correct pointer.
->> 
->> While something needs to be done to cover these situations, I'm not so
->> convinced about the method as it complicates the code requiring such
->> conversion by having to insert two kmemleak hooks and a callback
->> function.
->>
->> Can we not add a new prio tree (or just use the existing one) for
->> pointer aliases? The advantage is that you only have a single function
->> to call, something like kmemleak_add_alias() and you do it at the point
->> the value was converted.
+> 	oh = omap_hwmod_lookup("kbd");
+> 	if (!oh) {
+> 		pr_err("Could not look up kbd\n");
+> 		return -EIO;
+> 	}
 
-Ok, I understand now. Please ignore my previous. I'll try the above.
+I'll remove length variable and keep snprintf, below oh_name -> kbd is used again, this will keep name defined in one single place
+
+	WARN(IS_ERR(od), "Could not build omap_device for %s %s\n",
+		name, oh_name);
+
+Best Regards
+Abraham
