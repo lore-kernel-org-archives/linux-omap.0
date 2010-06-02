@@ -1,44 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Trying to understand how to use new OMAP mux code
-Date: Wed, 2 Jun 2010 14:21:30 +0300
-Message-ID: <20100602112130.GG5980@atomide.com>
-References: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
- <20100311224812.GU2900@atomide.com>
- <4C062DD4.2050701@cioinfoindus.fr>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH v2 0/3] kmemleak: Fix false positive with special scan
+Date: Wed, 02 Jun 2010 14:34:58 +0300 (EEST)
+Message-ID: <20100602.143458.232754971.Hiroshi.DOYU@nokia.com>
+References: <1273821401-26578-2-git-send-email-Hiroshi.DOYU@nokia.com>
+	<1275387911-13030-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	<1275472884.13743.29.camel@e102109-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50046 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757859Ab0FBLVd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 07:21:33 -0400
-Content-Disposition: inline
-In-Reply-To: <4C062DD4.2050701@cioinfoindus.fr>
+Received: from smtp.nokia.com ([192.100.122.230]:23143 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751823Ab0FBLfc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 07:35:32 -0400
+In-Reply-To: <1275472884.13743.29.camel@e102109-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Epinat <laurent.epinat@cioinfoindus.fr>
-Cc: linux-omap@vger.kernel.org
+To: catalin.marinas@arm.com
+Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
 
-* Laurent Epinat <laurent.epinat@cioinfoindus.fr> [100602 13:03]:
-> Hello all
+From: ext Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v2 0/3] kmemleak: Fix false positive with special scan
+Date: Wed, 2 Jun 2010 12:01:24 +0200
+
+> Hi,
 > 
+> Sorry for the delay, I eventually got the time to look at your patches.
+
+Thank you for your review.
+
+> On Tue, 2010-06-01 at 11:25 +0100, Hiroshi DOYU wrote:
+>> There is a false positive case that a pointer is calculated by other
+>> methods than the usual container_of macro. "kmemleak_ignore" can cover
+>> such a false positive, but it would loose the advantage of memory leak
+>> detection. This patch allows kmemleak to work with such false
+>> positives by introducing a new special memory block with a specified
+>> calculation formula. A client module can register its area with a
+>> conversion function, with which function kmemleak scan could calculate
+>> a correct pointer.
 > 
-> How can I call  omap_mux_init_signal()
-> from external driver compiled as module ?
-> 
-> cause the function is not in the standard path include files
-> and is not exported
+> While something needs to be done to cover these situations, I'm not so
+> convinced about the method as it complicates the code requiring such
+> conversion by having to insert two kmemleak hooks and a callback
+> function.
+>
+> Can we not add a new prio tree (or just use the existing one) for
+> pointer aliases? The advantage is that you only have a single function
+> to call, something like kmemleak_add_alias() and you do it at the point
+> the value was converted.
 
-You can't that's the whole idea :)
+Actually I considered the above aliasing a little bit but I gave up
+soon.
 
-Instead, please do the muxing in the board-*.c file for all the
-pins, or for the device when you initialize the platform data.
+I was afraid that this method might consume way more memory since this
+just adds another member for "struct kmemleak_object", but adding a
+single member for all objects. The number of kmemleak_object is
+usually numerous.
 
-The muxing of pins is board specific, and doing it in the board-*.c
-files allows us to free the memory for the unused pin data. Note
-that you can also mux using the kernel cmdline if you have something
-non-standard connected to your board pins.
-
-Regards,
-
-Tony
+Do you think that this increase of memory consumption is acceptable?
