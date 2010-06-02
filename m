@@ -1,50 +1,49 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] [MMC] omap: Remove BUG_ON for disabled interrupts
-Date: Wed, 2 Jun 2010 14:05:42 -0700
-Message-ID: <20100602140542.8c1073f1.akpm@linux-foundation.org>
-References: <1275186443-8242-1-git-send-email-darkstar6262@gmail.com>
+From: Neil Brown <neilb@suse.de>
+Subject: Re: [PATCH] - race-free suspend.  Was: Re: [linux-pm] [PATCH 0/8]
+ Suspend block api (version 8)
+Date: Thu, 3 Jun 2010 08:05:56 +1000
+Message-ID: <20100603080556.46d2d671@notabene.brown>
+References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
+	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
+	<20100602153235.340a7852@notabene.brown>
+	<201006022241.14152.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1275186443-8242-1-git-send-email-darkstar6262@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor.suse.de ([195.135.220.2]:52371 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758777Ab0FBWGR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jun 2010 18:06:17 -0400
+In-Reply-To: <201006022241.14152.rjw@sisk.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
 
-On Sat, 29 May 2010 19:27:23 -0700
-Cory Maccarrone <darkstar6262@gmail.com> wrote:
+On Wed, 2 Jun 2010 22:41:14 +0200
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-> This change removes a BUG_ON for when interrupts are disabled
-> during an MMC request.  During boot, interrupts can be disabled
-> when a request is made, causing this bug to be triggered.  In reality,
-> there's no reason this should halt the kernel, as the driver has proved
-> reliable in spite of disabled interrupts, and additionally, there's
-> nothing in this code that would require interrupts to be enabled.
+> On Wednesday 02 June 2010, Neil Brown wrote:
+> > - Would this fix the "bug"??
+> > - and address the issues that suspend-blockers was created to address?
+> > - or are the requirements on user-space too onerous?
 > 
-> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
-> ---
->  drivers/mmc/host/omap.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
+> In theory wakeup events can also happen after  wait_for_blockers() has returned
+> 0 and I guess we should rollback the suspend in such cases.
 > 
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index 2b28168..d98ddcf 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -1157,7 +1157,6 @@ static void mmc_omap_start_request(struct mmc_omap_host *host,
->  	mmc_omap_start_command(host, req->cmd);
->  	if (host->dma_in_use)
->  		omap_start_dma(host->dma_ch);
-> -	BUG_ON(irqs_disabled());
->  }
->  
->  static void mmc_omap_request(struct mmc_host *mmc, struct mmc_request *req)
 
-So we need to decide whether this should be backported into 2.6.34.x
-and perhaps earlier.
+I naively assumed this was already the case, but on a slightly closer look at
+the code it seems not.
 
-For that decision we'll need to know the things you didn't tell us:
-Which drivers are affected?  Under which setups is it triggering?  Why
-aren't lots of people reporting "hey my kernel went BUG"?
+Presumably there is some point deep in the suspend code, probably after the
+call to sysdev_suspend, where interrupts are disabled and we are about to
+actually suspend.  At that point a simple "is a roll-back required" test
+could abort the suspend.
+Then any driver that handles wake-up events, if it gets and event that (would
+normally cause a wakeup) PM_SUSPEND_PREPARE and PM_POST_SUSPEND, could set
+the "roll-back is required" flag.
 
+??
+
+NeilBrown
