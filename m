@@ -1,18 +1,27 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv2 11/11] OMAP2: Devkit8000: Fix regulator for power supply
-Date: Wed,  2 Jun 2010 13:37:51 +0200
-Message-ID: <1275478671-24563-12-git-send-email-weber@corscience.de>
+Subject: [PATCHv2 02/11] OMAP2: Devkit8000: change panel to generic panel
+Date: Wed,  2 Jun 2010 13:37:42 +0200
+Message-ID: <1275478671-24563-3-git-send-email-weber@corscience.de>
 References: <1275478671-24563-1-git-send-email-weber@corscience.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1275478671-24563-1-git-send-email-weber@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: Thomas Weber <weber@corscience.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Devkit8000 uses the TPS65930 and not the TWL4030.
-The TPS65930 uses only a subset of the power supplies
-of the TWL4030.
+Choose the generic panel for lcd code of Devkit8000.
 
 Signed-off-by: Thomas Weber <weber@corscience.de>
 ---
@@ -20,17 +29,17 @@ Signed-off-by: Thomas Weber <weber@corscience.de>
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index a485d39..648b565 100644
+index 08a2a01..3bde0e6 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -380,7 +380,7 @@ static struct twl4030_platform_data devkit8000_twldata = {
+@@ -175,7 +175,7 @@ static struct regulator_consumer_supply devkit8000_vio_supplies[] = {
  
- static struct i2c_board_info __initdata devkit8000_i2c_boardinfo[] = {
- 	{
--		I2C_BOARD_INFO("twl4030", 0x48),
-+		I2C_BOARD_INFO("tps65930", 0x48),
- 		.flags = I2C_CLIENT_WAKE,
- 		.irq = INT_34XX_SYS_NIRQ,
- 		.platform_data = &devkit8000_twldata,
+ static struct omap_dss_device devkit8000_lcd_device = {
+ 	.name                   = "lcd",
+-	.driver_name            = "innolux_at_panel",
++	.driver_name            = "generic_panel",
+ 	.type                   = OMAP_DISPLAY_TYPE_DPI,
+ 	.phy.dpi.data_lines     = 24,
+ 	.platform_enable        = devkit8000_panel_enable_lcd,
 -- 
 1.7.1
