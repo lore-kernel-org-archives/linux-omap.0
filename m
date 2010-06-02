@@ -1,42 +1,52 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
-Date: Wed, 02 Jun 2010 10:50:54 +0300 (EEST)
-Message-ID: <20100602.105054.59678037.Hiroshi.DOYU@nokia.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: Ads7846 breaks suspend-to-ram on 3430SDP
+Date: Wed, 2 Jun 2010 13:32:01 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323207744@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D778@dbde02.ent.ti.com>
+ <20100602072400.GD3713@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:44361 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751564Ab0FBHvM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 03:51:12 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:41726 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750908Ab0FBICJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 04:02:09 -0400
+In-Reply-To: <20100602072400.GD3713@core.coreip.homeip.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 
-Hi Tony,
+Dmitry Torokhov wrote:
+> Hi Anand,
+> 
+> On Fri, May 14, 2010 at 02:26:40PM +0530, Gadiyar, Anand wrote:
+> > Looks like the ads7846 driver breaks suspend-to-ram at least on
+> > the OMAP 3430SDP. On a kernel built with the omap3_defconfig, with
+> > no_console_suspend, I see the log below.
+> > 
+> > Will investigate some time next week, unless someone already has a fix.
+> > 
+> 
+> Could you please try 2.6.35-rc1 - I expect Kevin's fix to handle
+> regulatore registering failure will take care of this oops.
+> 
 
-Patches for for-next for omap iommu module.
+Thanks for the tip. I don't see the crash with 2.6.35-rc1.
 
-The following changes since commit 67a3e12b05e055c0415c556a315a3d3eb637e29e:
+But I still cannot get the console back after a suspend. I don't think
+this is related to the ads7846 driver any more.
 
-  Linux 2.6.35-rc1 (2010-05-30 13:21:02 -0700)
 
-are available in the git repository at:
-  git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc1-iommu
+- Anand
 
-Hiroshi DOYU (3):
-      omap iommu: Introduce iopgd_is_table MACRO
-      omap iommu: Rename iopte_[p,v]addr -> iopte_page_[p,v]addr
-      omap iommu: move iommu_disable at fault to the above layer
-
-Kanigeri, Hari (2):
-      omap iommu: update irq mask to be specific about twl and tlb
-      omap iommu: add functionality to get TLB miss interrupt
-
- arch/arm/mach-omap2/iommu2.c            |   44 ++++++++++++++++++++++++------
- arch/arm/plat-omap/include/plat/iommu.h |    2 +
- arch/arm/plat-omap/iommu.c              |   27 ++++++++++++++++---
- arch/arm/plat-omap/iopgtable.h          |    8 +++--
- 4 files changed, 65 insertions(+), 16 deletions(-)
+# echo mem > /sys/power/state
+PM: Syncing filesystems ... done.
+Freezing user space processes ... (elapsed 0.01 seconds) done.
+Freezing remaining freezable tasks ... (elapsed 0.01 seconds) done.
+PM: suspend of devices complete after 108.439 msecs
+PM: late suspend of devices complete after 0.274 msecs
+Class driver suspend failed for cpu0
+PM: early resume of devices complete after 0.122 msecs
