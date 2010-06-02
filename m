@@ -1,44 +1,61 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v2 0/3] kmemleak: Fix false positive with special scan
-Date: Wed, 02 Jun 2010 11:01:24 +0100
-Message-ID: <1275472884.13743.29.camel@e102109-lin.cambridge.arm.com>
-References: <1273821401-26578-2-git-send-email-Hiroshi.DOYU@nokia.com>
-	 <1275387911-13030-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 02 Jun 2010 12:21:28 +0200
+Message-ID: <1275474088.27810.31000.camel@twins>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	 <201005302202.39511.rjw@sisk.pl>
+	 <AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
+	 <201005312347.24251.rjw@sisk.pl>
+	 <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+	 <alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
+	 <AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
+	 <alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
+	 <AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
+	 <1275471561.27810.30865.camel@twins>
+	 <AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1275387911-13030-1-git-send-email-Hiroshi.DOYU@nokia.com>
+In-Reply-To: <AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
+To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Florian Mickler <florian@mickler.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Wed, 2010-06-02 at 03:00 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
+> 2010/6/2 Peter Zijlstra <peterz@infradead.org>:
+> > On Wed, 2010-06-02 at 01:54 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
+> >> No I want you to stop confusing low power idle modes with suspend.
+> >
+> > I think it is you who is confused. For power management purposes su=
+spend
+> > is nothing more but a deep idle state.
+>=20
+> No, idle is transparent, suspend is not.
 
-Sorry for the delay, I eventually got the time to look at your patches.
+Which is where the problem is, it should be.
 
-On Tue, 2010-06-01 at 11:25 +0100, Hiroshi DOYU wrote:
-> There is a false positive case that a pointer is calculated by other
-> methods than the usual container_of macro. "kmemleak_ignore" can cover
-> such a false positive, but it would loose the advantage of memory leak
-> detection. This patch allows kmemleak to work with such false
-> positives by introducing a new special memory block with a specified
-> calculation formula. A client module can register its area with a
-> conversion function, with which function kmemleak scan could calculate
-> a correct pointer.
+> Why would I add suspend blockers to the code I want to prevent runnin=
+g?
 
-While something needs to be done to cover these situations, I'm not so
-convinced about the method as it complicates the code requiring such
-conversion by having to insert two kmemleak hooks and a callback
-function.
+Because what you want might not be what others want. Suppose you're fin=
+e
+with your torrent client/irc client/etc.. to loose their network
+connection when you're not behind your desktop so you don't add suspend
+blockers there.
 
-Can we not add a new prio tree (or just use the existing one) for
-pointer aliases? The advantage is that you only have a single function
-to call, something like kmemleak_add_alias() and you do it at the point
-the value was converted.
+Me, I'd be ready to administer physical violence if either of those los=
+t
+their connections when I wasn't around to keep the screen-saver from
+kicking in.
 
-Thanks.
+This leads to having to sprinkle magic dust (and lots of config options=
+)
+all over userspace. Something that gets esp interesting with only a
+boolean interface.
 
--- 
-Catalin
+In the example above, having an active net connection would prevent my
+desktop from suspending, but what if another platform can maintain net
+connections while suspended? Do we then end up with arch specific code
+in the net-stack? I'm sure DaveM would love that.
