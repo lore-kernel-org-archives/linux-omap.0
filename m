@@ -1,7 +1,7 @@
 From: Thomas Weber <weber@corscience.de>
-Subject: [PATCHv2 07/11] OMAP2: Devkit8000: Remove en-/disable for tv panel
-Date: Wed,  2 Jun 2010 13:37:47 +0200
-Message-ID: <1275478671-24563-8-git-send-email-weber@corscience.de>
+Subject: [PATCHv2 05/11] OMAP2: Devkit8000: Remove unneeded VDVI supply
+Date: Wed,  2 Jun 2010 13:37:45 +0200
+Message-ID: <1275478671-24563-6-git-send-email-weber@corscience.de>
 References: <1275478671-24563-1-git-send-email-weber@corscience.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,43 +21,36 @@ To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-devkit8000_panel_enable_tv and devkit8000_panel_disable_tv are already
-done in DSS2 code. So they are no longer needed in board code.
+The VDVI power supply is no longer needed in
+board code with the new DSS2 interface.
 
 Signed-off-by: Thomas Weber <weber@corscience.de>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |   12 ------------
- 1 files changed, 0 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/board-devkit8000.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 59877b1..095dc7a 100644
+index 70552d8..8cc8c3b 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -158,16 +158,6 @@ static void devkit8000_panel_disable_dvi(struct omap_dss_device *dssdev)
- 		gpio_set_value(dssdev->reset_gpio, 0);
- }
+@@ -314,10 +314,6 @@ static struct twl4030_gpio_platform_data devkit8000_gpio_data = {
  
--static int devkit8000_panel_enable_tv(struct omap_dss_device *dssdev)
--{
--
--	return 0;
--}
--
--static void devkit8000_panel_disable_tv(struct omap_dss_device *dssdev)
--{
--}
--
- static struct regulator_consumer_supply devkit8000_vmmc1_supply = {
- 	.supply			= "vmmc",
- };
-@@ -201,8 +191,6 @@ static struct omap_dss_device devkit8000_tv_device = {
- 	.driver_name            = "venc",
- 	.type                   = OMAP_DISPLAY_TYPE_VENC,
- 	.phy.venc.type          = OMAP_DSS_VENC_TYPE_SVIDEO,
--	.platform_enable        = devkit8000_panel_enable_tv,
--	.platform_disable       = devkit8000_panel_disable_tv,
- };
- 
- 
+ static struct regulator_consumer_supply devkit8000_vpll1_supplies[] = {
+ 	{
+-	.supply		= "vdvi",
+-	.dev		= &devkit8000_lcd_device.dev,
+-	},
+-	{
+ 	.supply		= "vdds_dsi",
+ 	.dev		= &devkit8000_dss_device.dev,
+ 	}
+@@ -370,7 +366,6 @@ static struct regulator_init_data devkit8000_vdac = {
+ /* VPLL1 for digital video outputs */
+ static struct regulator_init_data devkit8000_vpll1 = {
+ 	.constraints = {
+-		.name			= "VDVI",
+ 		.min_uV			= 1800000,
+ 		.max_uV			= 1800000,
+ 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
 -- 
 1.7.1
