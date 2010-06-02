@@ -1,161 +1,155 @@
-From: "Gross, Mark" <mark.gross@intel.com>
-Subject: RE: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Wed, 2 Jun 2010 16:15:05 -0700
-Message-ID: <CA1BBBBC9359F04AA639128AC0D5D1E9692ABC92@orsmsx502.amr.corp.intel.com>
-References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<20100601135102.GA8098@srcf.ucam.org>
-	<1275426085.21962.967.camel@mulgrave.site>	<201006020024.14220.rjw@sisk.pl>
-	<1275431816.21962.1108.camel@mulgrave.site>
-	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
-	<1275451342.21962.1777.camel@mulgrave.site>
-	<AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
-	<1275491111.2799.110.camel@mulgrave.site>
-	<20100602214748.7742e3ae@schatten.dmk.lab>
-	<1275511271.2799.516.camel@mulgrave.site>
- <20100603010607.5baf82a6@schatten.dmk.lab>
+From: Neil Brown <neilb@suse.de>
+Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
+ Suspend block api (version 8)
+Date: Thu, 3 Jun 2010 09:21:39 +1000
+Message-ID: <20100603092139.67c15891@notabene.brown>
+References: <Pine.LNX.4.44L0.1005271303190.3239-100000@iolanthe.rowland.org>
+	<201006010005.19554.rjw@sisk.pl>
+	<20100601090023.788cabf4@notabene.brown>
+	<201006010232.20263.rjw@sisk.pl>
+	<20100601113309.609349fd@notabene.brown>
+	<alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
+	<20100601122012.1edeaf48@notabene.brown>
+	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
+	<20100602153235.340a7852@notabene.brown>
+	<AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
+	<20100602180614.729246ea@notabene.brown>
+	<AANLkTimISbs4X2YR_Pal9A80mpkNyCy8laWBcOgR2Cl7@mail.gmail.com>
+	<20100602210224.6ae2333f@notabene.brown>
+	<20100602210521.54b9cd9b@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100603010607.5baf82a6@schatten.dmk.lab>
-Content-Language: en-US
+In-Reply-To: <20100602210521.54b9cd9b@schatten.dmk.lab>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>
-Cc: =?iso-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Neil Brown <neilb@suse.de>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: Florian Mickler <florian@mickler.org>
+Cc: Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, 2 Jun 2010 21:05:21 +0200
+Florian Mickler <florian@mickler.org> wrote:
+
+> Could someone perhaps make a recap on what are the problems with the
+> API? I have no clear eye (experience?) for that (or so it seems).
+
+Good interface design is an acquired taste.  And it isn't always easy to
+explain satisfactorily.  But let me try to explain what I see.
+
+A key aspect of a good interface is unity, and sometimes uniformity.
+For example, the file descriptor is a key element to the unity of the 
+Unix (and hence Posix and Linux) interface.  "everything is a file" and
+even when it isn't, everything is accessed via a file descriptor.
+This is one of the reasons that signals cause so much problem when
+programming in Unix - they aren't files, don't have file descriptors and
+don't look them at all.  That is why signalfd was created, to try to tie
+signals back in to the 'file descriptor' model.
+
+So unity is important.  Adding new concepts is best done as an extension of
+an existing concept.  That means that all the infrastructure, not only code
+and design but also developer understanding, can be leveraged to help get the
+new concept *right* first time.  It also means that using the new concept is
+easier to learn.
+
+So the problem with the wake-locks / suspend-blockers (and I've actually come
+to like the first name much more) is that it introduces a new concept without
+properly leveraging existing concepts.
+
+The new concept is opportunistic suspend, though maybe a better name would be
+automatic suspend - not sure.
+
+There appear to be two ways you can get opportunistic suspend leveraging
+already-existing concepts.
+
+One is to leverage the current "power/state = mem" architecture and just let
+userspace choose the opportune moment.  The user-space daemon that chooses
+this moment would need full information about states of various things to do
+this, but sysfs is good at providing full information about what is in the
+kernel, and there are dozens of ways for user-space processes to communicate
+their state to each other.  So this is all doable today without introducing
+new design concepts.
+Except there is a race between suspending and new events, so we just need to
+fix the race. Hence my patch.
+
+The other is to leverage the more general power management infrastructure.
+We can already detect when the processor won't be needed for a while, and put
+it into a low-power state.  We can already put devices to sleep when they
+aren't being used.  We can just generalise this so that we can detect when
+all devices are either unused, or capable of supporting an S3 transition, and
+detect when the next timer interrupt is far enough in the future that S3
+latency wont be a problem - set the rtc alarm to match the next timer and go
+to S3.  All completely transparent.  (I admit I'm not entirely sure what the 
+qos that is being discussed brings us, but I assume it is better quality
+rather than correctness).
+
+So there are at least two different ways that opportunistic suspend could be
+integrated into existing infrastructure with virtually no change of interface
+and no new concepts - just refining or extending existing concepts.
+
+Yet the approach used and preferred by android is to create something
+substantially new.  Yes, it does use the existing suspend infrastructure, but
+in a very new and different way.  Suspend is now initiated by the kernel, but
+in a completely different way to the ways that the kernel already initiates
+power saving.  So we have two infrastructures for essentially one task.
+Looked at the other way, it moves the initiation of suspend from user-space
+into the kernel, and then allows user-space to tell the kernel not to suspend.
+That to me is very ugly.
+In general, the kernel should provide information to user-space, and provide
+services to user-space, and user-space should use that information to decide
+what services to request.  This is the essence the "policy lives in
+user-space" maxim.
+The Android code has user-space giving information to the kernel, so the
+kernel can make a policy decision.  This approach is generally less flexible
+and is best avoided.
+
+Just as a bit of background, let's think about some of the areas in the
+kernel where the kernel does make policy decisions based on user-space input.
+ - the scheduler - based on 'nice' setting it decided who should run when
+ - the VM - based on read-ahead settings, madvise/fadvise, recent-use
+   heuristics, it tries to decide what to keep in memory and what to swap out.
+I think those are the main ones.  There are other smaller fish like the
+choice of IO scheduler and various ways to tune network connections.
+
+But the two big ones are perfect examples of subsystems that have proven very
+hard to get *right*, and have been substantially re-written more than once.
+In each case, the difficulty wasn't how to perform the work, it was the
+choice of what work to perform.  It probably also involved getting different
+sorts of information about the current state.
+
+That perspective leaves me very sceptical of any design that involves making
+policy decisions in the kernel.  It is too easy to get wrong, then too hard
+to change.
+Admittedly the power subsystem does seem to make policy decisions in the
+kernel, via the various governors.  Though I don't know much about how these
+work, it seems significant that there is a pluggable infrastructure with
+multiple governors, and one of them leaves the decisions to user-space.
+
+So that is what I see as wrong with the android API : it doesn't bring unity
+by simply leveraging existing infrastructure, and it makes policy decisions
+in the kernel.
 
 
->-----Original Message-----
->From: Florian Mickler [mailto:florian@mickler.org]
->Sent: Wednesday, June 02, 2010 4:06 PM
->To: James Bottomley
->Cc: Arve Hj=F8nnev=E5g; Neil Brown; tytso@mit.edu; Peter Zijlstra; LKM=
-L; Alan
->Cox; Gross, Mark; Thomas Gleixner; Linux OMAP Mailing List; Linux PM;
->felipe.balbi@nokia.com
->Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+> 
+> > It is a pity that this extra requirement was not clear from your introduction
+> > to the "Opportunistic suspend support" patch.
+> 
+> I think that the main problem was that _all_ the requirements were
+> not communicated well.  That caused everybody to think that their
+> solution would be a better fit. You are not alone.
+>  
+> > If that be the case, I'll stop bothering you with suggestions that can never
+> > work.
+> > Thanks for your time,
+> > NeilBrown
+> 
+> Don't be frustrated. What should Arve be?  :)
 >
->On Wed, 02 Jun 2010 15:41:11 -0500
->James Bottomley <James.Bottomley@suse.de> wrote:
->
->> On Wed, 2010-06-02 at 21:47 +0200, Florian Mickler wrote:
->> > On Wed, 02 Jun 2010 10:05:11 -0500
->> > James Bottomley <James.Bottomley@suse.de> wrote:
->> >
->> > > On Tue, 2010-06-01 at 21:41 -0700, Arve Hj=F8nnev=E5g wrote:
->> > > > No, they have to be two separate constraints, otherwise a
->constraint
->> > > > to block suspend would override a constraint to block a low po=
-wer
->idle
->> > > > mode or the other way around.
->> > >
->> > > Depends.  If you block the system from going into low power idle=
-,
->does
->> > > that mean you still want it to be fully suspended?
->> > >
->> > > If yes, then we do have independent constraints.  If not, they h=
-ave a
->> > > hierarchy:
->> > >
->> > >       * Fully Interactive (no low power idle or suspend)
->> > >       * Partially Interactive (may go into low power idle but no=
-t
->> > >         suspend)
->> > >       * None (may go into low power idle or suspend)
->> > >
->> > > Which is expressable as a ternary constraint.
->> > >
->> > > James
->> > >
->> >
->> > But unblocking suspend at the moment is independent to getting idl=
-e.
->> > If you have the requirement to stay in the highest-idle level (i.e=
-=2E
->> > best latency you can get) that does not (currently) mean, that you=
- can
->> > not suspend.
->>
->> I don't understand that as a reason.  If we looks at this a qos
->> constraints, you're saying that the system may not drop into certain=
- low
->> power states because it might turn something off that's currently be=
-ing
->> used by a driver or a process.  Suspend is certainly the lowest stat=
-e of
->> that because it turns everything off, why would it be legal to drop =
-into
->> that?
->>
->> I also couldn't find this notion of separation of idleness power fro=
-m
->> suspend blocking in the original suspend block patch set ... if you =
-can
->> either tell me where it is, or give me an example of the separated u=
-se
->> cases, I'd understand better.
->>
->> > To preserve that explicit fall-through while still having working
->> > run-time-powermanagement I think the qos-constraints need to be
->> > separated.
->>
->> OK, as above, why?  or better yet, just give an example.
->
->Hm. Maybe it is me who doesn't understand.
->
->With proposed patchset:
->1. As soon as we unblock suspend we go down.  (i.e. suspending)
->2. While suspend is blocked, the idle-loop does it's things. (i.e.
->runtime power managment -> can give same power-result as suspend)
->
->possible cases:
->1:
->   - qos-latency-constraints: 1ms,  [here: forbids anything other than
->     C1 idle state.]
->   - suspend is blocked
->
->2: - qos latency-constraints: as in 1
->   - suspend unblocked
->
->3: - qos latency-constraints: infinity, cpu in lowest power state.
->   - suspend is blocked
->
->4: - qos latency-constraints: infinity, cpu in lowest power state.
->   - suspend unblocked
->
->
->in case 2 and 4 we would suspend, regardeless of the qos-latency.
->
->in case 1 and 3 we would stay awake, regardeless of the qos-latency
->constraint.
->
->
->If only one constraint, then case 2 (or 3) wouldn't be possible. But i=
-t
->is possible now.
->
->A possible use case as an example?
->(hmm... i'm trying my imagination hard now):
->	Your sound needs low latency, so that could be a cause for the
->	qos-latency constraint.
->
->	And unblocking suspend could nonetheless happen:
->	For example... you have an firefox open and don't want to
->	prevent suspend for that case when the display is turned off
->
->
-[mtg: ] This has been a pain point for the PM_QOS implementation.  They=
- change the constrain back and forth at the transaction level of the i2=
-c driver.  The pm_qos code really wasn't made to deal with such hot pat=
-h use, as each such change triggers a re-computation of what the aggreg=
-ate qos request is.
 
-We've had a number of attempts at fixing this, but I think the proper f=
-ix is to bolt a "disable C-states > x" interface into cpu_idle that byp=
-ases pm_qos altogether.  Or, perhaps add a new pm_qos API that does the=
- equivalent operation, overriding whatever constraint is active.
+Sometimes appearing frustrated can elicit a different style of response to
+appearing polite and constructive... can be helpful.
+And yes:  I fully understand that Arve would be frustrated.  There seems to
+be a big disconnect in perceptions of what problem is trying to be solved, and
+thus disconnects in what the solution should look like, and I suspect that
+would be very frustrating all around.
 
---mgross
+NeilBrown
