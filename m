@@ -1,94 +1,55 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [linux-dali PATCH 1/1] omap3isp: video: Fix isp_video_far_end to return the correct entity
-Date: Thu,  3 Jun 2010 15:35:23 +0200
-Message-ID: <1275572123-23516-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <201006031527.25644.laurent.pinchart@ideasonboard.com>
+From: mark gross <640e9920@gmail.com>
+Subject: Re: [linux-pm] [PATCH] - race-free suspend. Was: Re: [PATCH 0/8]
+ Suspend block api (version 8)
+Date: Thu, 3 Jun 2010 06:36:46 -0700
+Message-ID: <20100603133646.GF15595@gvim.org>
+References: <20100601113309.609349fd@notabene.brown>
+ <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
+ <20100601122012.1edeaf48@notabene.brown>
+ <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
+ <20100602153235.340a7852@notabene.brown>
+ <AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
+ <20100602180614.729246ea@notabene.brown>
+ <AANLkTikXy__71nBNW0EFbyL_qNf0nQ68pW9KymWlTk7L@mail.gmail.com>
+ <20100603060444.GF11311@gvim.org>
+ <AANLkTilml9GM2GmJhlB39oqDk6oPnLSSfiQAinpCpAbt@mail.gmail.com>
+Reply-To: markgross@thegnar.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:51344 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753992Ab0FCNc7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 09:32:59 -0400
-In-Reply-To: <201006031527.25644.laurent.pinchart@ideasonboard.com>
+Received: from mail-pz0-f185.google.com ([209.85.222.185]:49191 "EHLO
+	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754479Ab0FCNge (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 09:36:34 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTilml9GM2GmJhlB39oqDk6oPnLSSfiQAinpCpAbt@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: svarbanov@mm-sol.com
-Cc: linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
+To: Brian Swetland <swetland@google.com>
+Cc: markgross@thegnar.org, Neil Brown <neilb@suse.de>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-If the pipeline is misconfigured, the isp_video_far_end function could
-return a wrong ISP video device. Fix this by ignoring ISP video devices
-of the same type as the local end.
+On Wed, Jun 02, 2010 at 11:12:39PM -0700, Brian Swetland wrote:
+> On Wed, Jun 2, 2010 at 11:04 PM, mark gross <640e9920@gmail.com> wrote:
+> >>
+> >> There are many wakeup events possible in a typical system --
+> >> keypresses or other input events, network traffic, telephony events,
+> >> media events (fill audio buffer, fill video decoder buffer, etc), and
+> >> I think requiring that all wakeup event processing bottleneck through
+> >> a single userspace process is non-optimal here.
+> >
+> > Um doesn't the android framework bottleneck the user mode lock
+> > processing through the powermanager and any wake up event processing
+> > eventually has to grab a lock through this bottleneck anyway?
+> 
+> For "high level" framework/application level wakelocks, yes, but lower
+> level components beneath the java api layer use the kernel interface
+> directly.
+>
+Oh.  I thought everything went through
+hardware/libhardware_legacy/power/power.c 
+who else is hitting /sys/power/* in the android user mode then? 
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/isp/ispvideo.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+I'll have to go hunting for them I guess.
 
-Running /root/corecam-tests/smoketests/* on RX-71:3110
-v4l2t - V4L2 test program May 19 2010
-RUNNING video0-1008x754-raw-capt ... PASSED
-RUNNING video0-1008x754-raw-fr ... PASSED
-RUNNING video0-1280x720-raw-capt ... PASSED
-RUNNING video0-1280x720-raw-fr ... PASSED
-RUNNING video0-1824x1360-raw-capt ... PASSED
-RUNNING video0-1824x1360-raw-fr ... PASSED
-RUNNING video0-1824x1364-raw-capt ... PASSED
-RUNNING video0-1824x1364-raw-fr ... PASSED
-RUNNING video0-2016x1508-raw-capt ... PASSED
-RUNNING video0-2016x1508-raw-fr ... PASSED
-RUNNING video0-2160x1216-raw-capt ... PASSED
-RUNNING video0-2160x1216-raw-fr ... PASSED
-RUNNING video0-4016x2242-raw-capt ... PASSED
-RUNNING video0-4016x2242-raw-fr ... PASSED
-RUNNING video0-4016x3016-raw-capt ... PASSED
-RUNNING video0-4016x3016-raw-fr ... PASSED
-RUNNING video0-eeprom ... PASSED
-RUNNING video0-hires-raw ... PASSED
-RUNNING video0-hires-yuv ... PASSED
-RUNNING video0-modules ... PASSED
-RUNNING video0-vga-raw ... PASSED
-RUNNING video0-vga-yuv ... PASSED
-RUNNING video1-modules ... PASSED
-RUNNING video1-vga-raw ... PASSED
-RUNNING video1-vga-yuv ... PASSED
-
-passed 25/25 TESTS
-
-diff --git a/drivers/media/video/isp/ispvideo.c b/drivers/media/video/isp/ispvideo.c
-index 7ecd35a..36625d1 100644
---- a/drivers/media/video/isp/ispvideo.c
-+++ b/drivers/media/video/isp/ispvideo.c
-@@ -59,7 +59,7 @@ isp_video_far_end(struct isp_video *video)
- 	struct media_entity_graph graph;
- 	struct media_entity *entity = &video->video.entity;
- 	struct media_device *mdev = entity->parent;
--	struct video_device *vdev = NULL;
-+	struct isp_video *far_end = NULL;
+--mgross
  
- 	mutex_lock(&mdev->graph_mutex);
- 	media_entity_graph_walk_start(&graph, entity);
-@@ -68,14 +68,18 @@ isp_video_far_end(struct isp_video *video)
- 		if (entity == &video->video.entity)
- 			continue;
- 
--		if (entity->type == MEDIA_ENTITY_TYPE_NODE) {
--			vdev = media_entity_to_video_device(entity);
-+		if (entity->type != MEDIA_ENTITY_TYPE_NODE)
-+			continue;
-+
-+		far_end = to_isp_video(media_entity_to_video_device(entity));
-+		if (far_end->type != video->type)
- 			break;
--		}
-+
-+		far_end = NULL;
- 	}
- 
- 	mutex_unlock(&mdev->graph_mutex);
--	return vdev ? to_isp_video(vdev) : NULL;
-+	return far_end;
- }
- 
- /*
--- 
-1.6.4.4
-
