@@ -1,60 +1,94 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 3 Jun 2010 16:18:24 +0200
-Message-ID: <20100603161824.425bd627@schatten.dmk.lab>
-References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	<20100601135102.GA8098@srcf.ucam.org>
-	<1275426085.21962.967.camel@mulgrave.site>
-	<201006020024.14220.rjw@sisk.pl>
-	<1275431816.21962.1108.camel@mulgrave.site>
-	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
-	<1275451342.21962.1777.camel@mulgrave.site>
-	<AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
-	<1275491111.2799.110.camel@mulgrave.site>
-	<20100602214748.7742e3ae@schatten.dmk.lab>
-	<1275511271.2799.516.camel@mulgrave.site>
-	<20100603010607.5baf82a6@schatten.dmk.lab>
-	<CA1BBBBC9359F04AA639128AC0D5D1E9692ABC92@orsmsx502.amr.corp.intel.com>
-	<20100603110312.48a508dc@lxorguk.ukuu.org.uk>
-	<1275571471.5914.2.camel@mulgrave.site>
+From: tytso@mit.edu
+Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
+ Suspend block api (version 8)
+Date: Thu, 3 Jun 2010 10:21:50 -0400
+Message-ID: <20100603142150.GB13179@thunk.org>
+References: <20100601113309.609349fd@notabene.brown>
+ <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
+ <20100601122012.1edeaf48@notabene.brown>
+ <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
+ <20100602153235.340a7852@notabene.brown>
+ <AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
+ <20100602180614.729246ea@notabene.brown>
+ <AANLkTikXy__71nBNW0EFbyL_qNf0nQ68pW9KymWlTk7L@mail.gmail.com>
+ <20100603163307.721b1c23@notabene.brown>
+ <AANLkTikuf6bKVHoGRTjrM_2kPtZqUM6J76Z0hNUQxT_3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:48740 "EHLO mx01.d-labs.de"
+Received: from thunk.org ([69.25.196.29]:39822 "EHLO thunker.thunk.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754326Ab0FCOSf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jun 2010 10:18:35 -0400
-In-Reply-To: <1275571471.5914.2.camel@mulgrave.site>
+	id S1754936Ab0FCOWV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jun 2010 10:22:21 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTikuf6bKVHoGRTjrM_2kPtZqUM6J76Z0hNUQxT_3@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: James Bottomley <James.Bottomley@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Gross, Mark" <mark.gross@intel.com>, Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Neil Brown <neilb@suse.de>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: Brian Swetland <swetland@google.com>
+Cc: Neil Brown <neilb@suse.de>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
 
-On Thu, 03 Jun 2010 08:24:31 -0500
-James Bottomley <James.Bottomley@suse.de> wrote:
+On Wed, Jun 02, 2010 at 11:43:06PM -0700, Brian Swetland wrote:
+> > I guess it becomes an question of economics for you then. =A0Does t=
+he cost of
+> > whatever user-space changes are required exceed the value of using =
+an upstream
+> > kernel? =A0Both the cost and the value would be very hard to estima=
+te in
+> > advance. =A0I don't envy you the decision...
+>=20
+> Well, at this point we've invested more engineering hours in the
+> various rewrites of this (single) patchset and discussion around it
+> than we have spent on rebasing our trees on roughly every other
+> mainline release since 2.6.16 or so, across five years of Android
+> development.  We think there's some good value to be had (all the
+> usual reasons) by heading upstream, so we're still discussing these
+> patches and exploring alternatives, but yes, from one way of looking
+> at it, it'd certainly be cheaper to just keep maintaining our own
+> trees.
 
-> On Thu, 2010-06-03 at 11:03 +0100, Alan Cox wrote:
-> > > [mtg: ] This has been a pain point for the PM_QOS implementation.  They change the constrain back and forth at the transaction level of the i2c driver.  The pm_qos code really wasn't made to deal with such hot path use, as each such change triggers a re-computation of what the aggregate qos request is.
-> > 
-> > That should be trivial in the usual case because 99% of the time you can
-> > hot path
-> > 
-> > 	the QoS entry changing is the latest one
-> > 	there have been no other changes
-> > 	If it is valid I can use the cached previous aggregate I cunningly
-> > 		saved in the top QoS entry when I computed the new one
-> > 
-> > (ie most of the time from the kernel side you have a QoS stack)
-> 
-> It's not just the list based computation: that's trivial to fix, as you
-> say ... the other problem is the notifier chain, because that's blocking
-> and could be long.  Could we invoke the notifier through a workqueue?
-> It doesn't seem to have veto power, so it's pure notification, does it
-> matter if the notice is delayed (as long as it's in order)?
+And let's be blunt.  If in the future the Android team (which I'm not
+a member of) decides that they have invested more engineering time
+than they can justify from a business perspective, the next time
+someone starts whining on a blog, or on Slashdot, or at a conference,
+about how "OMG!  Google is forking the kernel!!!", or "Google is
+making the lives of device driver writers for the embedded world
+difficult", it will now be possible from a political point of view to
+point and the hundreds, if not thousands, of e-mail messages of LKML
+developers wanting to redesign this effort and saying "Nyet!  Nyet!
+Nyet!" to the original patchset, to point out that Google has a made
+an effort, and gone far beyond what is required by the GPL.  Not only
+has the source code been made available, but hundreds of engineering
+hours have been made trying to accomodate the demands of LKML --- and
+LKML has said no to suspend blockers/wakelocks.
 
-I think schedule_work() (worqueue.h) can take care of that. 
-Thats how the rfkill subsystem does it. 
+Realistically, a company makes decisions about whether to pursue
+engineering efforts based on business plans, and this is true whether
+the company is Red Hat, or Novell, or IBM, or Google.  One of the
+cost/benefits can be things that aren't easily measured such as public
+relations.  But past a certain point, it may be that the right answer
+is to make a single public appeal to Linus, and if he says no, or if
+he ignores the pull request, then the company at hand can say, "We've
+done the best that we could, but the Linux developer community, and
+Linus specifically, has refused our patch".  And yes, it's all about
+PR, but let's not kid ourselves --- the GPL and bad PR can't be used
+as blackmail to force a company to invest arbitrarily unlimited
+amounts of engineering effort just to satisfy the mandarins of the
+LKML and/or Linus.
 
-Cheers,
-Flo
+And if people want to call this a fork, Linus has in the past said
+that sometimes forks are healthy, and necessary, and we can see how
+things play out in the marketplace.
+
+Disclosure: I work at Google, but I'm not at all involved in the
+Android development team, and it's not at all my call when Brian and
+his team should make a decision that they've invested more time/energy
+than can be justified to their management --- heck, they even roll up
+to an completely different VP than I do.  :-)
+
+						- Ted
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
