@@ -1,76 +1,93 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 17/40] DSPBRIDGE: err code replace COD_E_ZLCREATEFAILED with ESPIPE
-Date: Thu,  3 Jun 2010 00:47:30 -0500
-Message-ID: <1275544073-20418-18-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 25/40] DSPBRIDGE: err code replace DSP_ETRANSLATE with ESRCH
+Date: Thu,  3 Jun 2010 00:47:38 -0500
+Message-ID: <1275544073-20418-26-git-send-email-omar.ramirez@ti.com>
 References: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44876 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37611 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753992Ab0FCF4T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jun 2010 01:56:19 -0400
+	id S932567Ab0FCF4W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jun 2010 01:56:22 -0400
 In-Reply-To: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Shivananda Hebbar <x0hebbar@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Ernesto Ramos <ernesto@ti.com>, Armando Uribe De Leon <x0095078@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Replace COD_E_ZLCREATEFAILED with ESPIPE
+Replace DSP_ETRANSLATE with ESRCH
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/cod.h |    2 +-
- arch/arm/plat-omap/include/dspbridge/dev.h |    4 ++--
- drivers/dsp/bridge/pmgr/cod.c              |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/dsp/bridge/rmgr/node.c |    6 +++---
+ drivers/dsp/bridge/rmgr/strm.c |    8 ++++----
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/cod.h b/arch/arm/plat-omap/include/dspbridge/cod.h
-index 3ee2eb9..56df6d8 100644
---- a/arch/arm/plat-omap/include/dspbridge/cod.h
-+++ b/arch/arm/plat-omap/include/dspbridge/cod.h
-@@ -84,7 +84,7 @@ extern void cod_close(struct cod_libraryobj *lib);
-  *  Returns:
-  *      0:                Success.
-  *      COD_E_NOZLFUNCTIONS:    Could not initialize ZL functions.
-- *      COD_E_ZLCREATEFAILED:   ZL_Create failed.
-+ *      -ESPIPE:   ZL_Create failed.
-  *      -ENOSYS:           attrs was not NULL.  We don't yet support
-  *                              non default values of attrs.
-  *  Requires:
-diff --git a/arch/arm/plat-omap/include/dspbridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
-index 75e795e..8652f52 100644
---- a/arch/arm/plat-omap/include/dspbridge/dev.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dev.h
-@@ -84,7 +84,7 @@ extern u32 dev_brd_write_fxn(void *pArb,
-  *      LDR_E_NOMEMORY:         PELDR is out of resources.
-  *      -EPERM:              Unable to find WMD entry point function.
-  *      COD_E_NOZLFUNCTIONS:    One or more ZL functions exports not found.
-- *      COD_E_ZLCREATEFAILED:   Unable to load ZL DLL.
-+ *      -ESPIPE:   Unable to load ZL DLL.
-  *  Requires:
-  *      DEV Initialized.
-  *      phDevObject != NULL.
-@@ -126,7 +126,7 @@ extern dsp_status dev_create_device(OUT struct dev_object
-  *      LDR_E_NOMEMORY:         PELDR is out of resources.
-  *      -EPERM:              Unable to find WMD entry point function.
-  *      COD_E_NOZLFUNCTIONS:    One or more ZL functions exports not found.
-- *      COD_E_ZLCREATEFAILED:   Unable to load ZL DLL.
-+ *      -ESPIPE:   Unable to load ZL DLL.
-  *  Requires:
-  *      DEV Initialized.
-  *      phDevObject != NULL.
-diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
-index 552a03f..65acd6f 100644
---- a/drivers/dsp/bridge/pmgr/cod.c
-+++ b/drivers/dsp/bridge/pmgr/cod.c
-@@ -268,7 +268,7 @@ dsp_status cod_create(OUT struct cod_manager **phMgr, char *pstrDummyFile,
- 
- 	if (DSP_FAILED(status)) {
- 		cod_delete(mgr_new);
--		return COD_E_ZLCREATEFAILED;
-+		return -ESPIPE;
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 1c7742a..20bfe18 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -1861,10 +1861,10 @@ dsp_status node_get_message(struct node_object *hnode,
+ 			pmsg->dw_arg1 = (u32) tmp_buf;
+ 			pmsg->dw_arg2 *= hnode->hnode_mgr->udsp_word_size;
+ 		} else {
+-			status = DSP_ETRANSLATE;
++			status = -ESRCH;
+ 		}
+ 	} else {
+-		status = DSP_ETRANSLATE;
++		status = -ESRCH;
  	}
+ func_end:
+ 	dev_dbg(bridge, "%s: hnode: %p pmsg: %p utimeout: 0x%x\n", __func__,
+@@ -2170,7 +2170,7 @@ dsp_status node_put_message(struct node_object *hnode,
+ 				status = -EPERM;	/* bad DSPWordSize */
+ 			}
+ 		} else {	/* failed to translate buffer address */
+-			status = DSP_ETRANSLATE;
++			status = -ESRCH;
+ 		}
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index d560503..094b134 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -440,7 +440,7 @@ dsp_status strm_issue(struct strm_object *hStrm, IN u8 *pbuf, u32 ul_bytes,
+ 						       (void *)pbuf,
+ 						       CMM_VA2DSPPA);
+ 			if (tmp_buf == NULL)
+-				status = DSP_ETRANSLATE;
++				status = -ESRCH;
  
- 	/* return the new manager */
+ 		}
+ 		if (DSP_SUCCEEDED(status)) {
+@@ -676,7 +676,7 @@ dsp_status strm_reclaim(struct strm_object *hStrm, OUT u8 ** buf_ptr,
+ 							       CMM_PA2VA);
+ 			}
+ 			if (tmp_buf == NULL)
+-				status = DSP_ETRANSLATE;
++				status = -ESRCH;
+ 
+ 			chnl_ioc_obj.pbuf = tmp_buf;
+ 		}
+@@ -685,7 +685,7 @@ dsp_status strm_reclaim(struct strm_object *hStrm, OUT u8 ** buf_ptr,
+ func_end:
+ 	/* ensure we return a documented return code */
+ 	DBC_ENSURE(DSP_SUCCEEDED(status) || status == -EFAULT ||
+-		   status == -ETIME || status == DSP_ETRANSLATE ||
++		   status == -ETIME || status == -ESRCH ||
+ 		   status == -EPERM);
+ 
+ 	dev_dbg(bridge, "%s: hStrm: %p buf_ptr: %p pulBytes: %p pdw_arg: %p "
+@@ -730,7 +730,7 @@ dsp_status strm_register_notify(struct strm_object *hStrm, u32 event_mask,
+ 	}
+ 	/* ensure we return a documented return code */
+ 	DBC_ENSURE(DSP_SUCCEEDED(status) || status == -EFAULT ||
+-		   status == -ETIME || status == DSP_ETRANSLATE ||
++		   status == -ETIME || status == -ESRCH ||
+ 		   status == -ENOSYS || status == -EPERM);
+ 	return status;
+ }
 -- 
 1.7.1
 
