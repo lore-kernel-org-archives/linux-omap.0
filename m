@@ -1,105 +1,71 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 06/10] omap: mailbox: convert rwlocks to spinlock
-Date: Thu,  3 Jun 2010 09:34:14 +0300
-Message-ID: <1275546858-29507-7-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 05/10] Mailbox: disable mailbox interrupt when request queue
+Date: Thu,  3 Jun 2010 09:34:13 +0300
+Message-ID: <1275546858-29507-6-git-send-email-Hiroshi.DOYU@nokia.com>
 References: <1275546858-29507-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:34527 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933189Ab0FCGe4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 02:34:56 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:35450 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933385Ab0FCGfW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 02:35:22 -0400
 In-Reply-To: <1275546858-29507-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: Fernando Guzman Lugo <x0095840@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-From: Ohad Ben-Cohen <ohad@wizery.com>
+From: Fernando Guzman Lugo <x0095840@ti.com>
 
-rwlocks are slower and have potential starvation issues
-therefore spinlocks are generally preferred.
+when blk_get_request fails to get the request it is returning
+without read the message from the mailbox fifo, then when it
+leaves the isr and interruption is trigger again and again and
+the workqueue which get elements from the request queue is never
+executed and the kernel is stuck and shows a softlockup message.
+Now the mailbox interrupt is disabled when request queue is full
+and enabled when it pop a elememt form the request queue.
 
-see also: http://lwn.net/Articles/364583/
-
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Signed-off-by: Kanigeri Hari <h-kanigeri2@ti.com>
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/plat-omap/mailbox.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/plat-omap/mailbox.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index c340216..fafe47b 100644
+index 986002b..c340216 100644
 --- a/arch/arm/plat-omap/mailbox.c
 +++ b/arch/arm/plat-omap/mailbox.c
-@@ -31,7 +31,7 @@
- 
+@@ -32,6 +32,7 @@
  static struct workqueue_struct *mboxd;
  static struct omap_mbox *mboxes;
--static DEFINE_RWLOCK(mboxes_lock);
-+static DEFINE_SPINLOCK(mboxes_lock);
- static bool rq_full;
+ static DEFINE_RWLOCK(mboxes_lock);
++static bool rq_full;
  
  static int mbox_configured;
-@@ -341,14 +341,14 @@ struct omap_mbox *omap_mbox_get(const char *name)
- 	struct omap_mbox *mbox;
- 	int ret;
+ static DEFINE_MUTEX(mbox_configured_lock);
+@@ -141,6 +142,10 @@ static void mbox_rx_work(struct work_struct *work)
+ 	while (1) {
+ 		spin_lock_irqsave(q->queue_lock, flags);
+ 		rq = blk_fetch_request(q);
++		if (rq_full) {
++			omap_mbox_enable_irq(mbox, IRQ_RX);
++			rq_full = false;
++		}
+ 		spin_unlock_irqrestore(q->queue_lock, flags);
+ 		if (!rq)
+ 			break;
+@@ -178,8 +183,11 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
  
--	read_lock(&mboxes_lock);
-+	spin_lock(&mboxes_lock);
- 	mbox = *(find_mboxes(name));
- 	if (mbox == NULL) {
--		read_unlock(&mboxes_lock);
-+		spin_unlock(&mboxes_lock);
- 		return ERR_PTR(-ENOENT);
- 	}
+ 	while (!mbox_fifo_empty(mbox)) {
+ 		rq = blk_get_request(q, WRITE, GFP_ATOMIC);
+-		if (unlikely(!rq))
++		if (unlikely(!rq)) {
++			omap_mbox_disable_irq(mbox, IRQ_RX);
++			rq_full = true;
+ 			goto nomem;
++		}
  
--	read_unlock(&mboxes_lock);
-+	spin_unlock(&mboxes_lock);
+ 		msg = mbox_fifo_read(mbox);
  
- 	ret = omap_mbox_startup(mbox);
- 	if (ret)
-@@ -374,15 +374,15 @@ int omap_mbox_register(struct device *parent, struct omap_mbox *mbox)
- 	if (mbox->next)
- 		return -EBUSY;
- 
--	write_lock(&mboxes_lock);
-+	spin_lock(&mboxes_lock);
- 	tmp = find_mboxes(mbox->name);
- 	if (*tmp) {
- 		ret = -EBUSY;
--		write_unlock(&mboxes_lock);
-+		spin_unlock(&mboxes_lock);
- 		goto err_find;
- 	}
- 	*tmp = mbox;
--	write_unlock(&mboxes_lock);
-+	spin_unlock(&mboxes_lock);
- 
- 	return 0;
- 
-@@ -395,18 +395,18 @@ int omap_mbox_unregister(struct omap_mbox *mbox)
- {
- 	struct omap_mbox **tmp;
- 
--	write_lock(&mboxes_lock);
-+	spin_lock(&mboxes_lock);
- 	tmp = &mboxes;
- 	while (*tmp) {
- 		if (mbox == *tmp) {
- 			*tmp = mbox->next;
- 			mbox->next = NULL;
--			write_unlock(&mboxes_lock);
-+			spin_unlock(&mboxes_lock);
- 			return 0;
- 		}
- 		tmp = &(*tmp)->next;
- 	}
--	write_unlock(&mboxes_lock);
-+	spin_unlock(&mboxes_lock);
- 
- 	return -EINVAL;
- }
 -- 
 1.7.1.rc1
 
