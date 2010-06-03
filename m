@@ -1,19 +1,21 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/6] OMAP2PLUS: WDT: Add ICLKEN, FCLKEN, WKEN shared bits for WDT
-Date: Thu, 03 Jun 2010 12:04:03 -0700
-Message-ID: <874ohkq6os.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 3/6] OMAP2420: WDT: Add watchdog timer HWMOD data for OMAP2420
+Date: Thu, 03 Jun 2010 12:05:53 -0700
+Message-ID: <87zkzcos1a.fsf@deeprootsystems.com>
 References: <1274532966-19916-1-git-send-email-charu@ti.com>
 	<1274532966-19916-2-git-send-email-charu@ti.com>
+	<1274532966-19916-3-git-send-email-charu@ti.com>
+	<1274532966-19916-4-git-send-email-charu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f185.google.com ([209.85.222.185]:42212 "EHLO
-	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967Ab0FCTEG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 15:04:06 -0400
-Received: by pzk15 with SMTP id 15so328615pzk.15
-        for <linux-omap@vger.kernel.org>; Thu, 03 Jun 2010 12:04:06 -0700 (PDT)
-In-Reply-To: <1274532966-19916-2-git-send-email-charu@ti.com> (Charulatha V.'s message of "Sat\, 22 May 2010 18\:26\:01 +0530")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:48593 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab0FCTF4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 15:05:56 -0400
+Received: by pvg16 with SMTP id 16so211162pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 03 Jun 2010 12:05:55 -0700 (PDT)
+In-Reply-To: <1274532966-19916-4-git-send-email-charu@ti.com> (Charulatha V.'s message of "Sat\, 22 May 2010 18\:26\:03 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Charulatha V <charu@ti.com>
@@ -21,41 +23,39 @@ Cc: linux-omap@vger.kernel.org, wim@iguana.be, rnayak@ti.com, paul@pwsan.com
 
 Charulatha V <charu@ti.com> writes:
 
-> This patch adds the CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP
-> shared bits for OMAP2PLUS watchdog timer module
+> Add hwmod structures for Watchdog module on OMAP2420
 >
 > Signed-off-by: Charulatha V <charu@ti.com>
 > ---
->  arch/arm/mach-omap2/prcm-common.h |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   56 ++++++++++++++++++++++++++++
+>  1 files changed, 56 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-> index 64d1027..3666b63 100644
-> --- a/arch/arm/mach-omap2/prcm-common.h
-> +++ b/arch/arm/mach-omap2/prcm-common.h
-> @@ -237,6 +237,8 @@
->  #define OMAP24XX_ST_USB_MASK				(1 << 0)
->  
->  /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-> +#define OMAP24XX_EN_WDT2_SHIFT				3
-> +#define OMAP24XX_EN_WDT2				(1 << 3)
->  #define OMAP24XX_EN_GPIOS_SHIFT				2
->  #define OMAP24XX_EN_GPIOS				(1 << 2)
->  #define OMAP24XX_EN_GPT1_SHIFT				0
-> @@ -344,6 +346,8 @@
->  #define OMAP3430_ST_D2D_MASK				(1 << 3)
->  
->  /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-> +#define OMAP3430_EN_WDT2				(1 << 5)
-> +#define OMAP3430_EN_WDT2_SHIFT				5
->  #define OMAP3430_EN_GPIO1				(1 << 3)
->  #define OMAP3430_EN_GPIO1_SHIFT				3
->  #define OMAP3430_EN_GPT12				(1 << 1)
 
+[...]
 
-This needs a refresh against current pm-wip/* branches based on v2.6.35.
+> +/* WDTIMER2 */
+> +static struct omap_hwmod_ocp_if *omap2420_wd_timer2_slaves[] = {
+> +	&omap2420_l4_wkup__wd_timer2,
+> +};
+> +
+> +static struct omap_hwmod omap2420_wd_timer2_hwmod = {
+> +	.name		= "wd_timer2",
+> +	.class		= &omap2420_wd_timer_hwmod_class,
+> +	.main_clk	= "mpu_wdt_fck",
+> +	.prcm		= {
+> +		.omap2 = {
 
-These defines were updated to include the _MASK suffix for
-consistency.
+missing .module_offs
+
+> +			.prcm_reg_id = 1,
+> +			.module_bit = OMAP24XX_EN_WDT2_SHIFT,
+> +		},
+> +	},
+> +	.slaves		= omap2420_wd_timer2_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap2420_wd_timer2_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+> +};
+> +
+>  /* Master interfaces on the MPU device */
 
 Kevin
