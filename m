@@ -1,38 +1,108 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 4/9] OMAP2: Support for early device registration
-Date: Thu, 03 Jun 2010 16:19:53 -0700
-Message-ID: <87sk53k8km.fsf@deeprootsystems.com>
-References: <1275143831-7629-1-git-send-email-thara@ti.com>
-	<1275143831-7629-2-git-send-email-thara@ti.com>
-	<1275143831-7629-3-git-send-email-thara@ti.com>
-	<1275143831-7629-4-git-send-email-thara@ti.com>
-	<1275143831-7629-5-git-send-email-thara@ti.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: suspend blockers & Android integration
+Date: Fri, 4 Jun 2010 01:23:02 +0200
+Message-ID: <20100603232302.GA16184@elte.hu>
+References: <20100603193045.GA7188@elte.hu>
+ <20100603231153.GA11302@elte.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:63449 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675Ab0FCXT5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 19:19:57 -0400
-Received: by pvg16 with SMTP id 16so299872pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 03 Jun 2010 16:19:55 -0700 (PDT)
-In-Reply-To: <1275143831-7629-5-git-send-email-thara@ti.com> (Thara Gopinath's message of "Sat\, 29 May 2010 20\:07\:06 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100603231153.GA11302@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tytso@mit.edu
+Cc: Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, sawant@ti.com
 
-Thara Gopinath <thara@ti.com> writes:
 
-> This patch adds a new API in the common boot up sequence to register
-> early drivers and probe for early devices. This API can be used by any
-> early device to register itself.
-> This patch also adds support to register "earlytimer" drivers and
-> probe for any associated devices that are registered as early devices.
->
-> Signed-off-by: Thara Gopinath <thara@ti.com>
+* Ingo Molnar <mingo@elte.hu> wrote:
 
-Personally, I'd rather see the earlytimer registers/probes contained
-in the timer code itself.
+> * tytso@mit.edu <tytso@mit.edu> wrote:
+> 
+> > [...] Not only has the source code been made available, but hundreds of 
+> > engineering hours have been made trying to accomodate the demands of LKML 
+> > --- and LKML has said no to suspend blockers/wakelocks.
+> 
+> I dont think you are being fair here, at all.
+> 
+> Firstly, the suspend-blockers feature is not being rejected (fixing and 
+> extending suspend is a worthwile goal), it's just that various different 
+> schemes have been proposed by the people who'll eventually have to maintain 
+> that code down the line.
 
-Kevin
+Btw., i'd like to summarize the scheduler based suspend scheme proposed by 
+Thomas Gleixner, Peter Zijlstra and myself. I found no good summary of it in 
+the big thread, and there are also new elements of the proposal:
+
+ - Create a 'deep idle' mode that suspends. This, if all constraints
+   are met, is triggered by the scheduler automatically: just like the other
+   idle modes are triggered currently. This approach fixes the wakeup
+   races because an incoming wakeup event will set need_resched() and
+   abort the suspend.
+
+   ( This mode can even use the existing suspend code to bring stuff down,
+     therefore it also solves the pending timer problem and works even on
+     PC style x86. )
+
+ - Introduce a 'minimum wakeup latency' task attribute (task->latency), 
+   settable via a scheduler syscall. This is an ABI that influences the kernel 
+   how idle the system can go. (i.e. the equivalent of suspend blockers, just
+   not binary and not system-wide.)
+
+ - Solve crappy app confinement via the scheduler:
+
+   A first proposal was to use the existing cgroup mechanism, but we found
+   a different and probably more elegant solution:
+
+   We can slightly extend the scheduler and introduce another per task 'minimum
+   latency other tasks are allowed to run' scheduling attribute 
+   (task->exclude_latency) - set via a scheduler syscall as well. (only 
+   settable by privileged tasks - such as the screensaver.)
+
+   This allows a task to 'exclude' other tasks that dont have low-latency 
+   requirements. Crappy apps would have a large latency value, so they'd
+   be idled out when a privileged task sets the exclusion level low enough.
+
+   In the case of Android, this would for example be used by the screensaver 
+   to introduce different levels of runnability/idling.
+
+   [ Note that this scheme would also be useful in a completely different
+     scenario, for real-time tasks as well: it would allow extreme-RT tasks to 
+     quiescence all lower prio tasks in a controlled manner. (even if the RT 
+     task is sleeping) ]
+
+ - Controlled auto-suspend: drivers (such as input) could on wakeup
+   automatically set the 'minimum wakeup latency' value of wakee tasks to a 
+   lower value. This automatically prevents another auto-suspend in the near 
+   future: up to the point the wakee task increases its latency (via the 
+   scheduler syscall) again and allows suspend again.
+
+   This means there will be no surprise suspends for a task that may take a 
+   bit longer than usual to finish its work. [ Detail: this would only be done 
+   for tasks that have a non-default (non-infinity) task->latency value - to 
+   prevent the input driver from lowering latency values (and preventing 
+   future suspends) just because some unaware apps are running and using input 
+   drivers. ]
+
+All in one, this scheme allows everything without exception that 
+suspend-blockers allows and supports all the important usecases:
+
+ - allows agressive auto-idling
+
+ - has no wakeup races
+
+ - allows crappy-app confinement and other finegrained suspend control
+
+ - it should be pretty easy to adopt by Android as well, as it goes
+   along similar principles of kernel automatisms combined with
+   user-space controlled task and system attributes.
+
+It's straightforward to adapt and it is also more generic, more clean and more 
+flexible than suspend-blockers.
+
+Please mention any remaining technical issues that may still be are 
+unaddressed.
+
+Thanks,
+
+	Ingo
