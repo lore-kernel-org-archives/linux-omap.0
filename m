@@ -1,33 +1,43 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v6 4/7] omap3: pm: changing vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure
-Date: Thu, 03 Jun 2010 10:44:35 -0700
-Message-ID: <87r5koui2k.fsf@deeprootsystems.com>
-References: <1274186139-23960-1-git-send-email-leslyam@ti.com>
+Subject: Re: [PATCH v6 0/7] omap3: pm: Update TRITON power scripts and making it generic
+Date: Thu, 03 Jun 2010 10:51:59 -0700
+Message-ID: <87eigouhq8.fsf@deeprootsystems.com>
+References: <003501cafcd0$26f136e0$e08818ac@apr.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f185.google.com ([209.85.222.185]:45631 "EHLO
-	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752684Ab0FCRoi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 13:44:38 -0400
-Received: by pzk15 with SMTP id 15so265563pzk.15
-        for <linux-omap@vger.kernel.org>; Thu, 03 Jun 2010 10:44:38 -0700 (PDT)
-In-Reply-To: <1274186139-23960-1-git-send-email-leslyam@ti.com> (Lesly A. M.'s message of "Tue\, 18 May 2010 18\:05\:39 +0530")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:41056 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301Ab0FCRwF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 13:52:05 -0400
+Received: by pvg16 with SMTP id 16so180088pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 03 Jun 2010 10:52:03 -0700 (PDT)
+In-Reply-To: <003501cafcd0$26f136e0$e08818ac@apr.dhcp.ti.com> (Lesly Arackal Manuel's message of "Wed\, 26 May 2010 18\:07\:04 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lesly A M <leslyam@ti.com>
-Cc: linux-omap@vger.kernel.org, Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Lesly Arackal Manuel <leslyam@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org
 
-Lesly A M <leslyam@ti.com> writes:
+"Lesly Arackal Manuel" <leslyam@ti.com> writes:
 
-> Rename vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure.
+>
+> Can you please merge these changes, if you don?t have any further
+> comments.
+>
 
-That answers "what?", but not "why?"
+Please see my reply to PATCH 3/7 for an indication as to why there may
+have been delay in reviewing this series.
 
-Yes, I know the answer right now, but I forget things often.  
+Also, it is not required, but considered very helpful, especially to
+the maintainers if you summarize somplace what has changed since the
+previous version.
 
-Please help ease the pain of my forgetfullness by writing a
-descriptive changelog so when I or anyone else looks at this in the
-git history, they will be able to understand.
+Since it took a month to post an updated version, you can understand
+that I don't remember the details of all my previous review comments
+so need some help.  Without this context, I have to go back through
+the mailing list archives to re-read my responses to the previous
+versions of the patch and check if those issues were addressed.  In
+this case, many of them were not.
 
 Kevin
+
