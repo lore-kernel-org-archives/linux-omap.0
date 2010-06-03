@@ -1,53 +1,104 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 30/40] DSPBRIDGE: err code replace DSP_EDCDPARSESECT with EACCES
-Date: Thu,  3 Jun 2010 00:47:43 -0500
-Message-ID: <1275544073-20418-31-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 18/40] DSPBRIDGE: err code replace COD_E_SYMBOLNOTFOUND with ESPIPE
+Date: Thu,  3 Jun 2010 00:47:31 -0500
+Message-ID: <1275544073-20418-19-git-send-email-omar.ramirez@ti.com>
 References: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37603 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56435 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754135Ab0FCF4U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jun 2010 01:56:20 -0400
+	id S1754067Ab0FCF4T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jun 2010 01:56:19 -0400
 In-Reply-To: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Shivananda Hebbar <x0hebbar@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Ernesto Ramos <ernesto@ti.com>, Armando Uribe De Leon <x0095078@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Replace DSP_EDCDPARSESECT with EACCES
+Replace COD_E_SYMBOLNOTFOUND with ESPIPE
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/dbdcd.h |    2 +-
- drivers/dsp/bridge/rmgr/dbdcd.c              |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/cod.h |    4 ++--
+ arch/arm/plat-omap/include/dspbridge/dev.h |    2 +-
+ drivers/dsp/bridge/pmgr/cod.c              |    2 +-
+ drivers/dsp/bridge/rmgr/node.c             |    2 +-
+ drivers/dsp/bridge/rmgr/proc.c             |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbdcd.h b/arch/arm/plat-omap/include/dspbridge/dbdcd.h
-index e615c8a..2a43d6e 100644
---- a/arch/arm/plat-omap/include/dspbridge/dbdcd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbdcd.h
-@@ -255,7 +255,7 @@ extern dsp_status dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
-  *                          union of various possible DCD object types.
+diff --git a/arch/arm/plat-omap/include/dspbridge/cod.h b/arch/arm/plat-omap/include/dspbridge/cod.h
+index 56df6d8..76b6ae9 100644
+--- a/arch/arm/plat-omap/include/dspbridge/cod.h
++++ b/arch/arm/plat-omap/include/dspbridge/cod.h
+@@ -213,7 +213,7 @@ extern dsp_status cod_get_loader(struct cod_manager *cod_mgr_obj,
   *  Returns:
-  *      0: Success.
-- *      DSP_EDCDPARSESECT:  Unable to parse content of object code section.
-+ *      -EACCES:  Unable to parse content of object code section.
-  *      DSP_EDCDREADSECT:   Unable to read object code section.
-  *      -EACCES:    Unable to access object code section.
-  *      -EACCES:   Unable to load code base.
-diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
-index a3d79ba..5592033 100644
---- a/drivers/dsp/bridge/rmgr/dbdcd.c
-+++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -516,7 +516,7 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
- 		status =
- 		    get_attrs_from_buf(psz_coff_buf, ul_len, obj_type, pObjDef);
- 		if (DSP_FAILED(status))
--			status = DSP_EDCDPARSESECT;
-+			status = -EACCES;
+  *      0:                Success
+  *      COD_E_NOSYMBOLSLOADED:  Symbols have not been loaded onto the board.
+- *      COD_E_SYMBOLNOTFOUND:   The symbol could not be found.
++ *      -ESPIPE:   The symbol could not be found.
+  *  Requires:
+  *      COD module initialized.
+  *      valid cod_mgr_obj.
+@@ -243,7 +243,7 @@ extern dsp_status cod_get_section(struct cod_libraryobj *lib,
+  *  Returns:
+  *      0:                Success.
+  *      COD_E_NOSYMBOLSLOADED:  Symbols have not been loaded onto the board.
+- *      COD_E_SYMBOLNOTFOUND:   The symbol could not be found.
++ *      -ESPIPE:   The symbol could not be found.
+  *  Requires:
+  *      COD module initialized.
+  *      Valid cod_mgr_obj.
+diff --git a/arch/arm/plat-omap/include/dspbridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
+index 8652f52..e75a141 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dev.h
++++ b/arch/arm/plat-omap/include/dspbridge/dev.h
+@@ -493,7 +493,7 @@ extern dsp_status dev_get_node_manager(struct dev_object
+  *      0:        Success.
+  *      -EFAULT:    Invalid hdev_obj.
+  *      COD_E_NOSYMBOLSLOADED:  Symbols have not been loaded onto the board.
+- *      COD_E_SYMBOLNOTFOUND:   The symbol could not be found.
++ *      -ESPIPE:   The symbol could not be found.
+  *  Requires:
+  *      pstrSym != NULL.
+  *      pul_value != NULL.
+diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
+index 65acd6f..5a18853 100644
+--- a/drivers/dsp/bridge/pmgr/cod.c
++++ b/drivers/dsp/bridge/pmgr/cod.c
+@@ -450,7 +450,7 @@ dsp_status cod_get_sym_value(struct cod_manager *hmgr, char *pstrSym,
+ 		    get_addr_fxn(hmgr->base_lib, pstrSym, &dbll_sym)) {
+ 			if (!hmgr->fxns.
+ 			    get_c_addr_fxn(hmgr->base_lib, pstrSym, &dbll_sym))
+-				return COD_E_SYMBOLNOTFOUND;
++				return -ESPIPE;
+ 		}
  	} else {
- 		status = DSP_EDCDREADSECT;
- 	}
+ 		return COD_E_NOSYMBOLSLOADED;
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index e087238..159ea2b 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -3098,7 +3098,7 @@ static dsp_status get_rms_fxns(struct node_mgr *hnode_mgr)
+ 		status = dev_get_symbol(dev_obj, psz_fxns[i],
+ 					&(hnode_mgr->ul_fxn_addrs[i]));
+ 		if (DSP_FAILED(status)) {
+-			if (status == COD_E_SYMBOLNOTFOUND) {
++			if (status == -ESPIPE) {
+ 				/*
+ 				 *  May be loaded dynamically (in the future),
+ 				 *  but return an error for now.
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index f3a9b2b..1f46f66 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -970,7 +970,7 @@ dsp_status proc_load(void *hprocessor, IN CONST s32 argc_index,
+ 				dev_dbg(bridge, "%s: Failure to Load the EXE\n",
+ 					__func__);
+ 			}
+-			if (status == COD_E_SYMBOLNOTFOUND) {
++			if (status == -ESPIPE) {
+ 				pr_err("%s: Couldn't parse the file\n",
+ 				       __func__);
+ 			}
 -- 
 1.7.1
 
