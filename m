@@ -1,62 +1,77 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
- Suspend block api (version 8)
-Date: Thu, 03 Jun 2010 17:41:41 +0200
-Message-ID: <1275579701.27810.36036.camel@twins>
-References: <20100601113309.609349fd@notabene.brown>
-	 <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
-	 <20100601122012.1edeaf48@notabene.brown>
-	 <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
-	 <20100602153235.340a7852@notabene.brown>
-	 <AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
-	 <20100602180614.729246ea@notabene.brown>
-	 <AANLkTikXy__71nBNW0EFbyL_qNf0nQ68pW9KymWlTk7L@mail.gmail.com>
-	 <20100603163307.721b1c23@notabene.brown>
-	 <AANLkTikuf6bKVHoGRTjrM_2kPtZqUM6J76Z0hNUQxT_3@mail.gmail.com>
-	 <20100603142150.GB13179@thunk.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 00/14] omap: mailbox: bunch of cleanups
+Date: Thu, 3 Jun 2010 19:15:53 +0300
+Message-ID: <20100603161553.GL30622@atomide.com>
+References: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com>
+ <20100603.094022.200375421.Hiroshi.DOYU@nokia.com>
+ <20100603114726.GC7127@n2100.arm.linux.org.uk>
+ <AANLkTinBMdcxzF_pZuiFHc1Eox_bYtD8PXG1OuKo0XWu@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:52804 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756126Ab0FCPll convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 11:41:41 -0400
-In-Reply-To: <20100603142150.GB13179@thunk.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61971 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932091Ab0FCQQO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 12:16:14 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTinBMdcxzF_pZuiFHc1Eox_bYtD8PXG1OuKo0XWu@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tytso@mit.edu
-Cc: Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2010-06-03 at 10:21 -0400, tytso@mit.edu wrote:
+* Felipe Contreras <felipe.contreras@gmail.com> [100603 17:53]:
+> On Thu, Jun 3, 2010 at 2:47 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Thu, Jun 03, 2010 at 09:40:22AM +0300, Hiroshi DOYU wrote:
+> >> > Felipe Contreras (14):
+> >> > =C2=A0 omap: mailbox: trivial whitespace cleanups
+> >> > =C2=A0 omap: mailbox: trivial cleanups
+> >
+> > I think folk need to read this:
+> >
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0http://lkml.org/lkml/2010/6/2/472
+> >
+> > and consider what it means for the future, and what can be done to =
+reduce
+> > the amount of "churn".
+>=20
+> If I have to decipher that rant, my best guess is that he is
+> complaining about the amount of code. If that's the case, this patch
+> series is only doing good:
+> 6 files changed, 168 insertions(+), 230 deletions(-)
+>=20
+> Another part of the rant is the fact that Linus cannot follow the hug=
+e
+> amount of changes. I think "trivial whitespace cleanups" pretty much
+> says: don't look at me if you want to be productive, while "trivial
+> cleanups" says, look at me if you feel like looking at easy changes.
+> If I were to squash these two, I think the patch series would become
+> harder to follow.
+>=20
+> Something that helps in other projects, like git, is that merges are
+> clearly identified.
+>=20
+> Merge branch 'linux-arm'
+>  Merge branch 'linux-omap'
+>   Merge branch 'linux-omap-mbox'
+>    Merge branch 'fc-cleanups'
+>    Merge branch 'ob-kfifo'
+>=20
+> Then it's a bit clearer what each patch series is doing in the mailbo=
+x
+> tree without looking at individual patches.
 
-> And let's be blunt.  If in the future the Android team (which I'm not
-> a member of) decides that they have invested more engineering time
-> than they can justify from a business perspective, the next time
-> someone starts whining on a blog, or on Slashdot, or at a conference,
-> about how "OMG!  Google is forking the kernel!!!", or "Google is
-> making the lives of device driver writers for the embedded world
-> difficult", it will now be possible from a political point of view to
-> point and the hundreds, if not thousands, of e-mail messages of LKML
-> developers wanting to redesign this effort and saying "Nyet!  Nyet!
-> Nyet!" to the original patchset, to point out that Google has a made
-> an effort, and gone far beyond what is required by the GPL.  Not only
-> has the source code been made available, but hundreds of engineering
-> hours have been made trying to accomodate the demands of LKML --- and
-> LKML has said no to suspend blockers/wakelocks.
+Also we need to make sure all the code we merge is really tested
+well before the merge window. Too much of the code needs to be
+fixed after the merge window. For the upcoming merge window, we
+will only merge things that have been sitting in the for-next
+for days before the merge window opens.
 
-
-In the spirit of being blunt, so what?
-
-We say no for good technical reasons. Also when did it become sensible
-to push features after they were shipped?
-
-It never works to develop stuff like this out-of-tree and then push for
-inclusion. You always get to rewrite (at least 3 times).
-
-If Google indeed decides it doesn't want to play upstream, then sad. But
-I don't see how we would be unjust in complaining about it.
-
-There is more to our community than the letter of the GPL, and you
-should know that. So I really don't see the point of your argument (was
-there one besides the management gibberish?).
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
