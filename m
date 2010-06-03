@@ -1,44 +1,57 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 3/9] OMAP2/3/4 : Dual mode timer device registration.
-Date: Thu, 3 Jun 2010 15:00:50 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323207CFC@dbde02.ent.ti.com>
-References: <1275143831-7629-1-git-send-email-thara@ti.com>
- <1275143831-7629-2-git-send-email-thara@ti.com>
- <1275143831-7629-3-git-send-email-thara@ti.com>
- <1275143831-7629-4-git-send-email-thara@ti.com> <4C02EE9F.70305@ti.com>
- <20100601092030.GH841@atomide.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH v2 0/3] kmemleak: Fix false positive with special scan
+Date: Thu, 03 Jun 2010 12:54:56 +0300 (EEST)
+Message-ID: <20100603.125456.212694217.Hiroshi.DOYU@nokia.com>
+References: <20100602.143458.232754971.Hiroshi.DOYU@nokia.com>
+	<1275487949.23442.9.camel@e102109-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48347 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933584Ab0FCJa6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 05:30:58 -0400
-In-Reply-To: <20100601092030.GH841@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1275487949.23442.9.camel@e102109-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: catalin.marinas@arm.com
+Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Sawant, Anand" <sawant@ti.com>
 
+From: ext Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v2 0/3] kmemleak: Fix false positive with special scan
+Date: Wed, 2 Jun 2010 16:12:29 +0200
 
+> On Wed, 2010-06-02 at 12:34 +0100, Hiroshi DOYU wrote:
+>> From: ext Catalin Marinas <catalin.marinas@arm.com>
+>> > Can we not add a new prio tree (or just use the existing one) for
+>> > pointer aliases? The advantage is that you only have a single function
+>> > to call, something like kmemleak_add_alias() and you do it at the point
+>> > the value was converted.
+>> 
+>> Actually I considered the above aliasing a little bit but I gave up
+>> soon.
+>> 
+>> I was afraid that this method might consume way more memory since this
+>> just adds another member for "struct kmemleak_object", but adding a
+>> single member for all objects. The number of kmemleak_object is
+>> usually numerous.
+> 
+> We could use a different tree with a "struct kmemleak_alias" structure
+> which is much smaller. Something like below:
+> 
+> struct kmemleak_alias {
+> 	struct list_head alias_list;
+> 	struct prio_tree_node tree_node;
+> 	struct kmemleak_object *object;
+> }
 
->>-----Original Message-----
->>From: Tony Lindgren [mailto:tony@atomide.com]
->>Sent: Tuesday, June 01, 2010 2:51 PM
->>To: Cousson, Benoit
->>Cc: Gopinath, Thara; linux-omap@vger.kernel.org; khilman@deeprootsystems.com; Sawant, Anand
->>Subject: Re: [PATCH 3/9] OMAP2/3/4 : Dual mode timer device registration.
->>
->>* Benoit Cousson <b-cousson@ti.com> [100531 01:57]:
->>> >+
->>> >+#define NO_EARLY_TIMERS                        2
->>> The "NO_" is a little bit confusing, you should maybe use _COUNT.
->>
->>Also NR_ is commonly used.
+The above seems to be better than I thought. I'll give this a try.
 
-I will fix this in the repost
+> And an alias_list member would be added to kmemleak_object as well.
+>
+> Would the alias tree need to allow overlapping? Like different IOMMU
+> mappings with the same address (but pointing to different physical
+> memory).
 
->>
->>Tony
+Not for omap iommu.
+
+omap iommu can have multiple instances, multiple devices can have each
+own address spaces respectively. This doesn't affect this kmemleak
+false positive.
