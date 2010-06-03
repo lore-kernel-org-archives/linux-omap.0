@@ -1,33 +1,135 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v3 00/14] omap: mailbox: bunch of cleanups
-Date: Thu, 03 Jun 2010 13:59:46 +0300 (EEST)
-Message-ID: <20100603.135946.233694251.Hiroshi.DOYU@nokia.com>
-References: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com>
-	<20100603.094022.200375421.Hiroshi.DOYU@nokia.com>
-	<AANLkTinI-TCT6CnfauzXPnmZFSSxU3LRD030zRbTuxbF@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:60956 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463Ab0FCK75 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 06:59:57 -0400
-In-Reply-To: <AANLkTinI-TCT6CnfauzXPnmZFSSxU3LRD030zRbTuxbF@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: felipe.balbi@nokia.com
+Subject: [PATCH] spi: omap2_mcspi: make use of dev_vdbg()
+Date: Thu,  3 Jun 2010 14:09:01 +0300
+Message-ID: <1275563341-31078-1-git-send-email-felipe.balbi@nokia.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Roman Tereshonkov <roman.tereshonkov@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, David Brownell <david-b@pacbell.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-From: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v3 00/14] omap: mailbox: bunch of cleanups
-Date: Thu, 3 Jun 2010 12:23:43 +0200
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-> On Thu, Jun 3, 2010 at 9:40 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
->> Have you had a chance to update them?
-> 
-> Sorry, no. I've been busy with user-space stuff. Probably this weekend.
-> 
-> There's no merge-window rush or anything, right?
+dev_vdbg() is only compiled when VERBOSE is defined, so
+there's no need to wrap dev_dbg() on #ifdef VERBOSE .. #endif
+as we can use dev_vdbg() directly.
 
-No rush. Sorry for just ping.
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/spi/omap2_mcspi.c |   36 +++++++++---------------------------
+ 1 files changed, 9 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index b3a94ca..d703927 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -489,10 +489,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 					dev_err(&spi->dev, "TXS timed out\n");
+ 					goto out;
+ 				}
+-#ifdef VERBOSE
+-				dev_dbg(&spi->dev, "write-%d %02x\n",
++				dev_vdbg(&spi->dev, "write-%d %02x\n",
+ 						word_len, *tx);
+-#endif
+ 				__raw_writel(*tx++, tx_reg);
+ 			}
+ 			if (rx != NULL) {
+@@ -506,10 +504,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 				    (l & OMAP2_MCSPI_CHCONF_TURBO)) {
+ 					omap2_mcspi_set_enable(spi, 0);
+ 					*rx++ = __raw_readl(rx_reg);
+-#ifdef VERBOSE
+-					dev_dbg(&spi->dev, "read-%d %02x\n",
++					dev_vdbg(&spi->dev, "read-%d %02x\n",
+ 						    word_len, *(rx - 1));
+-#endif
+ 					if (mcspi_wait_for_reg_bit(chstat_reg,
+ 						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
+ 						dev_err(&spi->dev,
+@@ -522,10 +518,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 				}
+ 
+ 				*rx++ = __raw_readl(rx_reg);
+-#ifdef VERBOSE
+-				dev_dbg(&spi->dev, "read-%d %02x\n",
++				dev_vdbg(&spi->dev, "read-%d %02x\n",
+ 						word_len, *(rx - 1));
+-#endif
+ 			}
+ 		} while (c);
+ 	} else if (word_len <= 16) {
+@@ -542,10 +536,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 					dev_err(&spi->dev, "TXS timed out\n");
+ 					goto out;
+ 				}
+-#ifdef VERBOSE
+-				dev_dbg(&spi->dev, "write-%d %04x\n",
++				dev_vdbg(&spi->dev, "write-%d %04x\n",
+ 						word_len, *tx);
+-#endif
+ 				__raw_writel(*tx++, tx_reg);
+ 			}
+ 			if (rx != NULL) {
+@@ -559,10 +551,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 				    (l & OMAP2_MCSPI_CHCONF_TURBO)) {
+ 					omap2_mcspi_set_enable(spi, 0);
+ 					*rx++ = __raw_readl(rx_reg);
+-#ifdef VERBOSE
+-					dev_dbg(&spi->dev, "read-%d %04x\n",
++					dev_vdbg(&spi->dev, "read-%d %04x\n",
+ 						    word_len, *(rx - 1));
+-#endif
+ 					if (mcspi_wait_for_reg_bit(chstat_reg,
+ 						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
+ 						dev_err(&spi->dev,
+@@ -575,10 +565,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 				}
+ 
+ 				*rx++ = __raw_readl(rx_reg);
+-#ifdef VERBOSE
+-				dev_dbg(&spi->dev, "read-%d %04x\n",
++				dev_vdbg(&spi->dev, "read-%d %04x\n",
+ 						word_len, *(rx - 1));
+-#endif
+ 			}
+ 		} while (c);
+ 	} else if (word_len <= 32) {
+@@ -595,10 +583,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 					dev_err(&spi->dev, "TXS timed out\n");
+ 					goto out;
+ 				}
+-#ifdef VERBOSE
+-				dev_dbg(&spi->dev, "write-%d %08x\n",
++				dev_vdbg(&spi->dev, "write-%d %08x\n",
+ 						word_len, *tx);
+-#endif
+ 				__raw_writel(*tx++, tx_reg);
+ 			}
+ 			if (rx != NULL) {
+@@ -612,10 +598,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 				    (l & OMAP2_MCSPI_CHCONF_TURBO)) {
+ 					omap2_mcspi_set_enable(spi, 0);
+ 					*rx++ = __raw_readl(rx_reg);
+-#ifdef VERBOSE
+-					dev_dbg(&spi->dev, "read-%d %08x\n",
++					dev_vdbg(&spi->dev, "read-%d %08x\n",
+ 						    word_len, *(rx - 1));
+-#endif
+ 					if (mcspi_wait_for_reg_bit(chstat_reg,
+ 						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
+ 						dev_err(&spi->dev,
+@@ -628,10 +612,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 				}
+ 
+ 				*rx++ = __raw_readl(rx_reg);
+-#ifdef VERBOSE
+-				dev_dbg(&spi->dev, "read-%d %08x\n",
++				dev_vdbg(&spi->dev, "read-%d %08x\n",
+ 						word_len, *(rx - 1));
+-#endif
+ 			}
+ 		} while (c);
+ 	}
+-- 
+1.7.1
