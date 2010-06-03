@@ -1,75 +1,102 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 00/14] omap: mailbox: bunch of cleanups
-Date: Thu, 3 Jun 2010 19:15:53 +0300
-Message-ID: <20100603161553.GL30622@atomide.com>
-References: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com>
- <20100603.094022.200375421.Hiroshi.DOYU@nokia.com>
- <20100603114726.GC7127@n2100.arm.linux.org.uk>
- <AANLkTinBMdcxzF_pZuiFHc1Eox_bYtD8PXG1OuKo0XWu@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 03 Jun 2010 09:58:26 -0700
+Message-ID: <87hblkyrwt.fsf@deeprootsystems.com>
+References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100601135102.GA8098@srcf.ucam.org>
+	<1275426085.21962.967.camel@mulgrave.site>
+	<201006020024.14220.rjw@sisk.pl>
+	<1275431816.21962.1108.camel@mulgrave.site>
+	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
+	<1275451342.21962.1777.camel@mulgrave.site>
+	<AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
+	<1275491111.2799.110.camel@mulgrave.site>
+	<20100602214748.7742e3ae@schatten.dmk.lab>
+	<1275511271.2799.516.camel@mulgrave.site>
+	<20100603010607.5baf82a6@schatten.dmk.lab>
+	<CA1BBBBC9359F04AA639128AC0D5D1E9692ABC92@orsmsx502.amr.corp.intel.com>
+	<20100603110312.48a508dc@lxorguk.ukuu.org.uk>
+	<1275559512.27810.35287.camel@twins>
+	<87d3w818ki.fsf@deeprootsystems.com>
+	<CA1BBBBC9359F04AA639128AC0D5D1E96931D4BB@orsmsx502.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61971 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932091Ab0FCQQO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 12:16:14 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTinBMdcxzF_pZuiFHc1Eox_bYtD8PXG1OuKo0XWu@mail.gmail.com>
+Received: from mail-pz0-f185.google.com ([209.85.222.185]:63229 "EHLO
+	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753249Ab0FCQ6b convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 12:58:31 -0400
+In-Reply-To: <CA1BBBBC9359F04AA639128AC0D5D1E96931D4BB@orsmsx502.amr.corp.intel.com> (Mark Gross's message of "Thu\, 3 Jun 2010 07\:52\:38 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Gross, Mark" <mark.gross@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, Arve =?iso-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Neil Brown <neilb@suse.de>, "tytso@mit.edu" <tytso@mit.edu>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [100603 17:53]:
-> On Thu, Jun 3, 2010 at 2:47 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Thu, Jun 03, 2010 at 09:40:22AM +0300, Hiroshi DOYU wrote:
-> >> > Felipe Contreras (14):
-> >> > =C2=A0 omap: mailbox: trivial whitespace cleanups
-> >> > =C2=A0 omap: mailbox: trivial cleanups
-> >
-> > I think folk need to read this:
-> >
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0http://lkml.org/lkml/2010/6/2/472
-> >
-> > and consider what it means for the future, and what can be done to =
-reduce
-> > the amount of "churn".
->=20
-> If I have to decipher that rant, my best guess is that he is
-> complaining about the amount of code. If that's the case, this patch
-> series is only doing good:
-> 6 files changed, 168 insertions(+), 230 deletions(-)
->=20
-> Another part of the rant is the fact that Linus cannot follow the hug=
-e
-> amount of changes. I think "trivial whitespace cleanups" pretty much
-> says: don't look at me if you want to be productive, while "trivial
-> cleanups" says, look at me if you feel like looking at easy changes.
-> If I were to squash these two, I think the patch series would become
-> harder to follow.
->=20
-> Something that helps in other projects, like git, is that merges are
-> clearly identified.
->=20
-> Merge branch 'linux-arm'
->  Merge branch 'linux-omap'
->   Merge branch 'linux-omap-mbox'
->    Merge branch 'fc-cleanups'
->    Merge branch 'ob-kfifo'
->=20
-> Then it's a bit clearer what each patch series is doing in the mailbo=
-x
-> tree without looking at individual patches.
+"Gross, Mark" <mark.gross@intel.com> writes:
 
-Also we need to make sure all the code we merge is really tested
-well before the merge window. Too much of the code needs to be
-fixed after the merge window. For the upcoming merge window, we
-will only merge things that have been sitting in the for-next
-for days before the merge window opens.
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Thursday, June 03, 2010 7:43 AM
+>>To: Peter Zijlstra
+>>Cc: Alan Cox; Gross, Mark; Florian Mickler; James Bottomley; Arve
+>>Hj=F8nnev=E5g; Neil Brown; tytso@mit.edu; LKML; Thomas Gleixner; Linu=
+x OMAP
+>>Mailing List; Linux PM; felipe.balbi@nokia.com
+>>Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+>>
+>>Peter Zijlstra <peterz@infradead.org> writes:
+>>
+>>> On Thu, 2010-06-03 at 11:03 +0100, Alan Cox wrote:
+>>>> > [mtg: ] This has been a pain point for the PM_QOS implementation=
+=2E
+>>>> They change the constrain back and forth at the transaction level =
+of
+>>>> the i2c driver.  The pm_qos code really wasn't made to deal with s=
+uch
+>>>> hot path use, as each such change triggers a re-computation of wha=
+t
+>>>> the aggregate qos request is.
+>>>>
+>>>> That should be trivial in the usual case because 99% of the time y=
+ou can
+>>>> hot path
+>>>>
+>>>> 	the QoS entry changing is the latest one
+>>>> 	there have been no other changes
+>>>> 	If it is valid I can use the cached previous aggregate I cunningl=
+y
+>>>> 		saved in the top QoS entry when I computed the new one
+>>>>
+>>>> (ie most of the time from the kernel side you have a QoS stack)
+>>>
+>>> Why would the kernel change the QoS state of a task? Why not have t=
+wo
+>>> interacting QoS variables, one for the task, one for the subsystem =
+in
+>>> question, and the action depends on their relative value?
+>>
+>>Yes, having a QoS parameter per-subsystem (or even per-device) is ver=
+y
+>>important for SoCs that have independently controlled powerdomains.
+>>If all devices/subsystems in a particular powerdomain have QoS
+>>parameters that permit, the power state of that powerdomain can be
+>>lowered independently from system-wide power state and power states o=
+f
+>>other power domains.
+>>
+> This seems similar to that pm_qos generalization into bus drivers we =
+where=20
+> waving our hands at during the collab summit in April?  We never did =
+get=20
+> into meaningful detail at that time.
 
-Tony
+The hand-waving was around how to generalize it into the driver-model,
+or PM QoS.  We're already doing this for OMAP, but in an OMAP-specific
+way, but it's become clear that this is something useful to
+generalize.
+
+Kevin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
