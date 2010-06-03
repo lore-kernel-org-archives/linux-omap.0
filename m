@@ -1,55 +1,73 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP3: PM: fix IO daisy chain enable to use PM_WKEN reg
-Date: Thu,  3 Jun 2010 10:13:22 -0700
-Message-ID: <1275585202-9637-1-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH v6 1/7] omap3: pm: fix for twl4030 script load
+Date: Thu, 03 Jun 2010 10:17:24 -0700
+Message-ID: <87bpbsyr17.fsf@deeprootsystems.com>
+References: <1274185973-23839-1-git-send-email-leslyam@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:55725 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012Ab0FCRNZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 13:13:25 -0400
-Received: by pwj2 with SMTP id 2so174507pwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 03 Jun 2010 10:13:24 -0700 (PDT)
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:36757 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756676Ab0FCRRb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 13:17:31 -0400
+Received: by pvg16 with SMTP id 16so161891pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 03 Jun 2010 10:17:30 -0700 (PDT)
+In-Reply-To: <1274185973-23839-1-git-send-email-leslyam@ti.com> (Lesly A. M.'s message of "Tue\, 18 May 2010 18\:02\:53 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Lesly A M <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, Lesly A M <x0080970@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Checking to se if the IO daisy chain is enabled should be checking the
-PM_WKEN register, not the PM_WKST register.  Reading PM_WKST tells us
-if an event occurred, not whether or not it is enabled.
+Lesly A M <leslyam@ti.com> writes:
 
-Apparently, we've been lucky until now in that a pending event has not
-been there during enable.  However, on 3630/Zoom3, I noticed because
-of the WARN that this timeout was always happening.
+> This patch will fix the TRITON sleep/wakeup sequence.
+>
+> Since the function to populate the sleep script is getting called always
+> irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
+> is getting over written by the sleep script.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies to mainline v2.6.35-rc1, also in my pm-fixes branch.
+OK, this is a clear bug fix and should be a patch on its own.
 
- arch/arm/mach-omap2/pm34xx.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> Print warning if the sleep script is loaded before wakeup script.
+> Because there is a chance that the Power chip may go to sleep before
+> the wakeup script is completely loaded, which can cause a system hang.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 2e96771..b88737f 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -99,7 +99,7 @@ static void omap3_enable_io_chain(void)
- 		/* Do a readback to assure write has been done */
- 		prm_read_mod_reg(WKUP_MOD, PM_WKEN);
- 
--		while (!(prm_read_mod_reg(WKUP_MOD, PM_WKST) &
-+		while (!(prm_read_mod_reg(WKUP_MOD, PM_WKEN) &
- 			 OMAP3430_ST_IO_CHAIN_MASK)) {
- 			timeout++;
- 			if (timeout > 1000) {
-@@ -108,7 +108,7 @@ static void omap3_enable_io_chain(void)
- 				return;
- 			}
- 			prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
--					     WKUP_MOD, PM_WKST);
-+					     WKUP_MOD, PM_WKEN);
- 		}
- 	}
- }
--- 
-1.7.0.2
+OK, but your patch doesn't add this warning.  It's already  there.
 
+Kevin
+
+> Signed-off-by: Lesly A M <x0080970@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: David Derrick <dderrick@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> ---
+>  drivers/mfd/twl4030-power.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index 7efa878..b4fc190 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -451,12 +451,13 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+>  		if (err)
+>  			goto out;
+>  	}
+> -	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+> -		if (order)
+> +	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+> +		if (!order)
+>  			pr_warning("TWL4030: Bad order of scripts (sleep "\
+>  					"script before wakeup) Leads to boot"\
+>  					"failure on some boards\n");
+>  		err = twl4030_config_sleep_sequence(address);
+> +	}
+>  out:
+>  	return err;
+>  }
+> -- 
+> 1.7.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
