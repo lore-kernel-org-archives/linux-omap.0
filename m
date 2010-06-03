@@ -1,60 +1,84 @@
-From: Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 3 Jun 2010 13:24:06 +0900
-Message-ID: <20100603042403.GC20028@linux-sh.org>
-References: <Pine.LNX.4.44L0.1005271141410.3239-100000@iolanthe.rowland.org> <alpine.LFD.2.00.1005271751240.3032@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: [PATCH v5 0/5] OMAP/ASoC: McBSP: FIFO handling related fixes
+Date: Thu,  3 Jun 2010 07:39:31 +0300
+Message-ID: <1275539976-2075-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:44248 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab0FCEYa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 00:24:30 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1005271751240.3032@localhost.localdomain>
+Received: from smtp.nokia.com ([192.100.122.230]:37192 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187Ab0FCEjz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 00:39:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve Hj?nnev?g <arve@android.com>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, tony@atomide.com
+Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, jhnikula@gmail.com, ext-eero.nurkkala@nokia.com, eduardo.valentin@nokia.com
 
-On Thu, May 27, 2010 at 06:06:43PM +0200, Thomas Gleixner wrote:
-> On Thu, 27 May 2010, Alan Stern wrote:
-> > And to answer Thomas's question: The whole reason for having in-kernel 
-> > suspend blockers is so that userspace can tell the system to suspend 
-> > without losing wakeup events.
-> > 
-> > Suppose a key is pressed just as a user program writes "mem" to
-> > /sys/power/state.  The keyboard driver handles the keystroke and queues
-> > an input event.  Then the system suspends and doesn't wake up until
-> > some other event occurs -- even though the keypress was an important
-> > one and it should have prevented the system from suspending.
-> > 
-> > With in-kernel suspend blockers and opportunistic suspend, this 
-> > scenario is prevented.  That is their raison-d'etre.
-> 
-> I tend to disagree. You are still looking at suspend as some extra
-> esoteric mechanism. We should stop doing this and look at suspend (to
-> RAM) as an additional deep idle state, which is well defined in terms
-> of power savings and wakeup latency. That's what I think opportunistic
-> suspend is all about. Now if you look at our current idle states in
-> x86 the incoming keystroke is never lost. 
-> 
-For systems with runtime PM and deep idle states in cpuidle suspend is
-already fairly opportunistic. If sleep states (including suspend to RAM
-and CPU off) are factored in to cpuidle then it's very easy to get in to
-situations where everything simply shuts off automatically, which can be
-problematic if a platform doesn't expose any external wakeup sources.
+Hello,
 
-Platforms still need to be able to establish some heuristics, whether
-this is via blocking certain state transitions or simply defining a
-maximum acceptable suspend depth irrespective of latency (at least we
-presently don't have a clean interface for preventing entry in to
-impossible to recover from idle states outside of latency hints via PM
-QoS, or at least not one that I'm aware of).
+Tony: Could you take a look at the arch/arm patches in this series?
+Thanks!
 
-On the other hand, while this isn't that difficult for the UP case it
-does pose more problems for the SMP case. Presently the suspend paths
-(suspend-to-RAM/hibernate/kexec jump) all deal with disabling and
-enabling of non-boot CPUs via CPU hotplug explicitly, which will clear
-them from the online CPU map. We would have to rework the semantics a bit
-if cpuidle were also permitted to opportunistically offline CPUs.
+Changes since v3/4:
+- Fixed commit subjects and messages for OMAP3 related patches
+- Added Acked-by from Mark, and Jarkko
+
+Intro message from the original series:
+
+This series aims to correct how the McBSP FIFO is viewed, and handled.
+
+Introduction of the problem:
+OMAP McBSP FIFO is word structured:
+McBSP2 has 1024 + 256 = 1280 word long buffer,
+McBSP1,3,4,5 has 128 word long buffer
+
+This means, that the size of the FIFO
+depends on the McBSP word size configuration.
+For example on McBSP3:
+16bit samples: size is 128 * 2 = 256 bytes
+32bit samples: size is 128 * 4 = 512 bytes
+It is simpler to place constraint for buffer and period based on channels.
+McBSP3 as example again (16 or 32 bit samples):
+1 channel (mono): size is 128 frames (128 words)
+2 channels (stereo): size is 128 / 2 = 64 frames (2 * 64 words)
+4 channels: size is 128 / 4 = 32 frames (4 * 32 words)
+
+Since now the McBSP codec supports not only 16bit samples (32biut has been
+recently added), the FIFO size handling is no longer correct, since it has
+been hard wired for 16bit word length.
+
+The series changes how the users of McBSP are configuring the FIFO:
+It used to be 0 based (0 meant 1 word threshold). After this series users can
+configure the threshold in 1 base mode (1 means 1 word threshold).
+The platform code now provides the full size of the FIFO in words, instead of
+the already limited value used in the past.
+
+In ASoC omap-mcbsp code hw_rule based constraint refinement is going to be used
+instead of the hardwired static constraint, which was correct only in case of
+16bit word length.
+
+The hw_rule is refining the minimum buffer size based on the channel number
+going to be used by the coming stream.
+In case of threshold mode additional hw_rule refines the maximum allowed period
+size.
+
+The series are generated agains Takashi's sound-2.6: topic/asoc branch.
+
+CCing also Eduardo, and Eero since they have worked on the original
+FIFO/threshold implementation.
+
+All commetns and testers are welcome!
+Peter
+
+---
+Peter Ujfalusi (5):
+  OMAP: McBSP: Function to query the FIFO size
+  OMAP3: McBSP: Change the way how the FIFO is handled
+  OMAP3: McBSP: Use the port's buffer_size when calculating tx delay
+  ASoC: omap-mcbsp: Save, and use wlen for threshold configuration
+  ASoC: omap-mcbsp: Place correct constraints for streams
+
+ arch/arm/mach-omap2/mcbsp.c             |   10 ++--
+ arch/arm/plat-omap/include/plat/mcbsp.h |    2 +
+ arch/arm/plat-omap/mcbsp.c              |   51 ++++++++++-----
+ sound/soc/omap/omap-mcbsp.c             |  112 +++++++++++++++++++++++-------
+ 4 files changed, 128 insertions(+), 47 deletions(-)
+
