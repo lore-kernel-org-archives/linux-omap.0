@@ -1,63 +1,30 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 03 Jun 2010 12:05:12 +0200
-Message-ID: <1275559512.27810.35287.camel@twins>
-References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	 <20100601135102.GA8098@srcf.ucam.org>
-	 <1275426085.21962.967.camel@mulgrave.site> <201006020024.14220.rjw@sisk.pl>
-	 <1275431816.21962.1108.camel@mulgrave.site>
-	 <AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
-	 <1275451342.21962.1777.camel@mulgrave.site>
-	 <AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
-	 <1275491111.2799.110.camel@mulgrave.site>
-	 <20100602214748.7742e3ae@schatten.dmk.lab>
-	 <1275511271.2799.516.camel@mulgrave.site>
-	 <20100603010607.5baf82a6@schatten.dmk.lab>
-	 <CA1BBBBC9359F04AA639128AC0D5D1E9692ABC92@orsmsx502.amr.corp.intel.com>
-	 <20100603110312.48a508dc@lxorguk.ukuu.org.uk>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v3 00/14] omap: mailbox: bunch of cleanups
+Date: Thu, 3 Jun 2010 13:23:43 +0300
+Message-ID: <AANLkTinI-TCT6CnfauzXPnmZFSSxU3LRD030zRbTuxbF@mail.gmail.com>
+References: <1274548465-20208-1-git-send-email-felipe.contreras@gmail.com>
+	<20100603.094022.200375421.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100603110312.48a508dc@lxorguk.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Gross, Mark" <mark.gross@intel.com>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Neil Brown <neilb@suse.de>, "tytso@mit.edu" <tytso@mit.edu>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50382 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758955Ab0FCKXo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 06:23:44 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 11so611300bwz.19
+        for <linux-omap@vger.kernel.org>; Thu, 03 Jun 2010 03:23:43 -0700 (PDT)
+In-Reply-To: <20100603.094022.200375421.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On Thu, 2010-06-03 at 11:03 +0100, Alan Cox wrote:
-> > [mtg: ] This has been a pain point for the PM_QOS implementation.
-> They change the constrain back and forth at the transaction level of
-> the i2c driver.  The pm_qos code really wasn't made to deal with such
-> hot path use, as each such change triggers a re-computation of what
-> the aggregate qos request is.
-> 
-> That should be trivial in the usual case because 99% of the time you can
-> hot path
-> 
-> 	the QoS entry changing is the latest one
-> 	there have been no other changes
-> 	If it is valid I can use the cached previous aggregate I cunningly
-> 		saved in the top QoS entry when I computed the new one
-> 
-> (ie most of the time from the kernel side you have a QoS stack)
+On Thu, Jun 3, 2010 at 9:40 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> Have you had a chance to update them?
 
-Why would the kernel change the QoS state of a task? Why not have two
-interacting QoS variables, one for the task, one for the subsystem in
-question, and the action depends on their relative value?
+Sorry, no. I've been busy with user-space stuff. Probably this weekend.
 
+There's no merge-window rush or anything, right?
 
-> > We've had a number of attempts at fixing this, but I think the
-> proper fix is to bolt a "disable C-states > x" interface into cpu_idle
-> that bypases pm_qos altogether.  Or, perhaps add a new pm_qos API that
-> does the equivalent operation, overriding whatever constraint is
-> active.
-> 
-> We need some of this anyway for deep power saving because there is
-> hardware which can't wake from soem states, which in turn means if that
-> device is active we need to be above the state in question.
-
-Right, and I can imagine that depending on the platform details and not
-the device details, so we get platform hooks in the drivers, or possible
-up in the generic stack because I don't think NICs actually know if
-there are open connections.
+-- 
+Felipe Contreras
