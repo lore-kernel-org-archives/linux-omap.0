@@ -1,74 +1,62 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V1 1/2] Davinci: Create seperate Kconfig file for
- davinci devices
-Date: Thu, 3 Jun 2010 21:08:38 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E7A10AD@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	<1275547321-31406-2-git-send-email-hvaibhav@ti.com>
-	<20100603082643.83293005.rdunlap@xenotime.net>
-	<19F8576C6E063C45BE387C64729E7394044E6D3278@dbde02.ent.ti.com>
- <20100603083712.836dc89e.rdunlap@xenotime.net>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
+ Suspend block api (version 8)
+Date: Thu, 03 Jun 2010 17:41:41 +0200
+Message-ID: <1275579701.27810.36036.camel@twins>
+References: <20100601113309.609349fd@notabene.brown>
+	 <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
+	 <20100601122012.1edeaf48@notabene.brown>
+	 <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
+	 <20100602153235.340a7852@notabene.brown>
+	 <AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
+	 <20100602180614.729246ea@notabene.brown>
+	 <AANLkTikXy__71nBNW0EFbyL_qNf0nQ68pW9KymWlTk7L@mail.gmail.com>
+	 <20100603163307.721b1c23@notabene.brown>
+	 <AANLkTikuf6bKVHoGRTjrM_2kPtZqUM6J76Z0hNUQxT_3@mail.gmail.com>
+	 <20100603142150.GB13179@thunk.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20100603083712.836dc89e.rdunlap@xenotime.net>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "Karicheri, Muralidharan" <m-karicheri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:52804 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756126Ab0FCPll convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 11:41:41 -0400
+In-Reply-To: <20100603142150.GB13179@thunk.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tytso@mit.edu
+Cc: Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
+
+On Thu, 2010-06-03 at 10:21 -0400, tytso@mit.edu wrote:
+
+> And let's be blunt.  If in the future the Android team (which I'm not
+> a member of) decides that they have invested more engineering time
+> than they can justify from a business perspective, the next time
+> someone starts whining on a blog, or on Slashdot, or at a conference,
+> about how "OMG!  Google is forking the kernel!!!", or "Google is
+> making the lives of device driver writers for the embedded world
+> difficult", it will now be possible from a political point of view to
+> point and the hundreds, if not thousands, of e-mail messages of LKML
+> developers wanting to redesign this effort and saying "Nyet!  Nyet!
+> Nyet!" to the original patchset, to point out that Google has a made
+> an effort, and gone far beyond what is required by the GPL.  Not only
+> has the source code been made available, but hundreds of engineering
+> hours have been made trying to accomodate the demands of LKML --- and
+> LKML has said no to suspend blockers/wakelocks.
 
 
-> -----Original Message-----
-> From: Randy Dunlap [mailto:rdunlap@xenotime.net]
-> Sent: Thursday, June 03, 2010 9:07 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; Karicheri,
-> Muralidharan; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH-V1 1/2] Davinci: Create seperate Kconfig file for
-> davinci devices
-> 
-> On Thu, 3 Jun 2010 21:03:27 +0530 Hiremath, Vaibhav wrote:
-> 
-> >
-> > > -----Original Message-----
-> > > From: Randy Dunlap [mailto:rdunlap@xenotime.net]
-> > > Sent: Thursday, June 03, 2010 8:57 PM
-> > > To: Hiremath, Vaibhav
-> > > Cc: linux-media@vger.kernel.org; mchehab@redhat.com; Karicheri,
-> > > Muralidharan; linux-omap@vger.kernel.org
-> > > Subject: Re: [PATCH-V1 1/2] Davinci: Create seperate Kconfig file for
-> > > davinci devices
-> > >
-> > > On Thu,  3 Jun 2010 12:12:00 +0530 hvaibhav@ti.com wrote:
-> > >
-> > > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > >
-> > > > Currently VPFE Capture driver and DM6446 CCDC driver is being
-> > > > reused for AM3517. So this patch is preparing the Kconfig/makefile
-> > > > for re-use of such IP's.
-> > >
-> > > Hi,
-> > > What are "IP's"?
-> > >
-> > [Hiremath, Vaibhav] Actually we have various DM series devices and IP's
-> from it are being re-used for some of the OMAP/AM/DM devices as well. We do
-> have some AM18x/AM17x parts which are coming to list in the near future
-> which will again re-use drivers from here.
-> 
-> Since you didn't answer the question:
-> 
-> So IP's are Intellectual Property logic blocks?
-> 
-[Hiremath, Vaibhav] ohhh man. You were asking what's the meaning of IP here?
+In the spirit of being blunt, so what?
 
-Ohhh....
+We say no for good technical reasons. Also when did it become sensible
+to push features after they were shipped?
 
+It never works to develop stuff like this out-of-tree and then push for
+inclusion. You always get to rewrite (at least 3 times).
 
-Thanks,
-Vaibhav
+If Google indeed decides it doesn't want to play upstream, then sad. But
+I don't see how we would be unjust in complaining about it.
 
-> ---
-> ~Randy
-> *** Remember to use Documentation/SubmitChecklist when testing your code ***
+There is more to our community than the letter of the GPL, and you
+should know that. So I really don't see the point of your argument (was
+there one besides the management gibberish?).
