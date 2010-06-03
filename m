@@ -1,46 +1,32 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 3 Jun 2010 06:44:31 -0700 (PDT)
-Message-ID: <806772.17066.qm@web180305.mail.gq1.yahoo.com>
-References: <20100601073548.5ed65352@schatten.dmk.lab>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 0/5] OMAP/ASoC: McBSP: FIFO handling related fixes
+Date: Thu, 3 Jun 2010 16:48:26 +0300
+Message-ID: <20100603134826.GH30622@atomide.com>
+References: <1275539976-2075-1-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from n2-vm0.bullet.mail.gq1.yahoo.com ([67.195.23.154]:30535 "HELO
-	n2-vm0.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752955Ab0FCNoc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 09:44:32 -0400
-In-Reply-To: <20100601073548.5ed65352@schatten.dmk.lab>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50727 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754638Ab0FCNse (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 09:48:34 -0400
+Content-Disposition: inline
+In-Reply-To: <1275539976-2075-1-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Florian Mickler <florian@mickler.org>
-Cc: Neil Brown <neilb@suse.de>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Alan@smtp1.linux-foundation.org, Peter Zijlstra <peterz@infradead.org>, Felipe Balbi <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, jhnikula@gmail.com, ext-eero.nurkkala@nokia.com, eduardo.valentin@nokia.com
 
+* Peter Ujfalusi <peter.ujfalusi@nokia.com> [100603 07:34]:
+> Hello,
+> 
+> Tony: Could you take a look at the arch/arm patches in this series?
+> Thanks!
+> 
+> Changes since v3/4:
+> - Fixed commit subjects and messages for OMAP3 related patches
+> - Added Acked-by from Mark, and Jarkko
 
-> > > If "suspend" is the thing we are used to via
-> /sys/power/state then the
-> > > race will persist forever except for the suspend blocker workaround,
+Looks good to me too.
 
-True, because device wakeups are enabled
-by device.driver.suspend() methods, which are
-invoked towards the end of the activities
-triggered by writing /sys/power/state.
-
-Now, there can be platforms (mostly embedded)
-where the drivers adopt a policy that not only
-do they keep their devices in as low a power
-state as practical at all times, but they also
-keep the hardware wakeup mechanisms enabled (they
-may be needed to kick the hardware out of those
-low power states) ...  That is, suspend() might be
-superfluous (a NOP) in those platforms' drivers.
-
-Such platforms might also be (non-ACPI) ones
-where idle C-states and S3/STR have the same
-power consumption ... but that would be a
-platform-specific issue, not a generic thing
-which all Linux implementations could rely on.
-
-- Dave
-
-
+Acked-by: Tony Lindgren <tony@atomide.com>
