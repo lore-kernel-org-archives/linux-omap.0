@@ -1,107 +1,53 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] iovmm: Support non page-aligned buffers in iommu_vmap
-Date: Thu,  3 Jun 2010 14:53:07 +0200
-Message-ID: <1275569587-32463-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:34064 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492Ab0FCMul (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 08:50:41 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: James Bottomley <James.Bottomley@suse.de>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 03 Jun 2010 08:24:31 -0500
+Message-ID: <1275571471.5914.2.camel@mulgrave.site>
+References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	 <20100601135102.GA8098@srcf.ucam.org>
+	 <1275426085.21962.967.camel@mulgrave.site> <201006020024.14220.rjw@sisk.pl>
+	 <1275431816.21962.1108.camel@mulgrave.site>
+	 <AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
+	 <1275451342.21962.1777.camel@mulgrave.site>
+	 <AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
+	 <1275491111.2799.110.camel@mulgrave.site>
+	 <20100602214748.7742e3ae@schatten.dmk.lab>
+	 <1275511271.2799.516.camel@mulgrave.site>
+	 <20100603010607.5baf82a6@schatten.dmk.lab>
+	 <CA1BBBBC9359F04AA639128AC0D5D1E9692ABC92@orsmsx502.amr.corp.intel.com>
+	 <20100603110312.48a508dc@lxorguk.ukuu.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100603110312.48a508dc@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Gross, Mark" <mark.gross@intel.com>, Florian Mickler <florian@mickler.org>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Neil Brown <neilb@suse.de>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: hiroshi.doyu@nokia.com
 
-The IOMMU virtual memory mapping API requires page-aligned buffers.
-There's no hardware reason behind such a restriction. Remove it by
-rounding the address of the first page entry down, and adding the offset
-back to the IOMMU virtual address.
+On Thu, 2010-06-03 at 11:03 +0100, Alan Cox wrote:
+> > [mtg: ] This has been a pain point for the PM_QOS implementation.  They change the constrain back and forth at the transaction level of the i2c driver.  The pm_qos code really wasn't made to deal with such hot path use, as each such change triggers a re-computation of what the aggregate qos request is.
+> 
+> That should be trivial in the usual case because 99% of the time you can
+> hot path
+> 
+> 	the QoS entry changing is the latest one
+> 	there have been no other changes
+> 	If it is valid I can use the cached previous aggregate I cunningly
+> 		saved in the top QoS entry when I computed the new one
+> 
+> (ie most of the time from the kernel side you have a QoS stack)
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- arch/arm/plat-omap/iovmm.c |   32 ++++++++++++++++++++++++--------
- 1 files changed, 24 insertions(+), 8 deletions(-)
+It's not just the list based computation: that's trivial to fix, as you
+say ... the other problem is the notifier chain, because that's blocking
+and could be long.  Could we invoke the notifier through a workqueue?
+It doesn't seem to have veto power, so it's pure notification, does it
+matter if the notice is delayed (as long as it's in order)?
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 663e2d2..7d63f98 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -59,6 +59,15 @@
- 
- static struct kmem_cache *iovm_area_cachep;
- 
-+/* return the offset of the first scatterlist entry in a sg table */
-+static unsigned int sgtable_offset(const struct sg_table *sgt)
-+{
-+	if (!sgt || !sgt->nents)
-+		return 0;
-+
-+	return sgt->sgl->offset;
-+}
-+
- /* return total bytes of sg buffers */
- static size_t sgtable_len(const struct sg_table *sgt)
- {
-@@ -71,11 +80,17 @@ static size_t sgtable_len(const struct sg_table *sgt)
- 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
- 		size_t bytes;
- 
--		bytes = sg_dma_len(sg);
-+		bytes = sg_dma_len(sg) + sg->offset;
- 
- 		if (!iopgsz_ok(bytes)) {
--			pr_err("%s: sg[%d] not iommu pagesize(%x)\n",
--			       __func__, i, bytes);
-+			pr_err("%s: sg[%d] not iommu pagesize(%u %u)\n",
-+			       __func__, i, bytes, sg->offset);
-+			return 0;
-+		}
-+
-+		if (i && sg->offset) {
-+			pr_err("%s: sg[%d] offset not allowed in internal "
-+			       "entries\n", __func__, i);
- 			return 0;
- 		}
- 
-@@ -197,8 +212,8 @@ static void *vmap_sg(const struct sg_table *sgt)
- 		u32 pa;
- 		int err;
- 
--		pa = sg_phys(sg);
--		bytes = sg_dma_len(sg);
-+		pa = sg_phys(sg) - sg->offset;
-+		bytes = sg_dma_len(sg) + sg->offset;
- 
- 		BUG_ON(bytes != PAGE_SIZE);
- 
-@@ -467,8 +482,8 @@ static int map_iovm_area(struct iommu *obj, struct iovm_struct *new,
- 		size_t bytes;
- 		struct iotlb_entry e;
- 
--		pa = sg_phys(sg);
--		bytes = sg_dma_len(sg);
-+		pa = sg_phys(sg) - sg->offset;
-+		bytes = sg_dma_len(sg) + sg->offset;
- 
- 		flags &= ~IOVMF_PGSZ_MASK;
- 		pgsz = bytes_to_iopgsz(bytes);
-@@ -649,7 +664,7 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
- 	if (IS_ERR_VALUE(da))
- 		vunmap_sg(va);
- 
--	return da;
-+	return da + sgtable_offset(sgt);
- }
- EXPORT_SYMBOL_GPL(iommu_vmap);
- 
-@@ -668,6 +683,7 @@ struct sg_table *iommu_vunmap(struct iommu *obj, u32 da)
- 	 * 'sgt' is allocated before 'iommu_vmalloc()' is called.
- 	 * Just returns 'sgt' to the caller to free
- 	 */
-+	da &= PAGE_MASK;
- 	sgt = unmap_vm_area(obj, da, vunmap_sg, IOVMF_DISCONT | IOVMF_MMIO);
- 	if (!sgt)
- 		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
--- 
-1.6.4.4
+> > We've had a number of attempts at fixing this, but I think the proper fix is to bolt a "disable C-states > x" interface into cpu_idle that bypases pm_qos altogether.  Or, perhaps add a new pm_qos API that does the equivalent operation, overriding whatever constraint is active.
+> 
+> We need some of this anyway for deep power saving because there is
+> hardware which can't wake from soem states, which in turn means if that
+> device is active we need to be above the state in question.
 
+James
