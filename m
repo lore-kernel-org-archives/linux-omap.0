@@ -1,92 +1,280 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 03 Jun 2010 09:40:02 +0200
-Message-ID: <1275550802.27810.34863.camel@twins>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	 <201005302202.39511.rjw@sisk.pl>
-	 <AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
-	 <201005312347.24251.rjw@sisk.pl>
-	 <AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-	 <alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
-	 <AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
-	 <alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
-	 <AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
-	 <1275471561.27810.30865.camel@twins>
-	 <AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
-	 <1275474088.27810.31000.camel@twins>
-	 <20100602221309.6da754e7@schatten.dmk.lab>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
+ file
+Date: Thu, 3 Jun 2010 13:40:54 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D30D6@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1275547321-31406-3-git-send-email-hvaibhav@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0323207C30@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100602221309.6da754e7@schatten.dmk.lab>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323207C30@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "mchehab@redhat.com" <mchehab@redhat.com>, "Karicheri, Muralidharan" <m-karicheri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2010-06-02 at 22:13 +0200, Florian Mickler wrote:
-> On Wed, 02 Jun 2010 12:21:28 +0200
-> Peter Zijlstra <peterz@infradead.org> wrote:
 
-> Do you switch your pc on and off manually? Sometimes? Really?
-> (if not, you are probably a kernel hacker *g*) 
-
-Yeah, when my Radeon GPU locks up the bus _again_, and yeah to replace
-parts, but no, not otherwise ;-) But I've been doing that for pretty
-much as long as I've had a computer.
-
-> But the rest are usecases that are similar to the suspend-blocker
-> usecases. You know that you are not using the machine and going
-> through the pain to shut down your machine. You have to do it manually.
-> Why? 
-
-Make suspend an idle state and teach apps to go real quiet.
-
-(Then again, that only really works when regular network packets can
-wake the machine for my case).
-
-> > This leads to having to sprinkle magic dust (and lots of config options)
-> > all over userspace. Something that gets esp interesting with only a
-> > boolean interface.
+> -----Original Message-----
+> From: DebBarma, Tarun Kanti
+> Sent: Thursday, June 03, 2010 12:49 PM
+> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
+> Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-omap@vger.kernel.org
+> Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
+> file
 > 
-> A userspace daemon could keep track of what applications can be
-> ignored. The wordprocessor probably should not keep the system busy. As
-> well as a running firefox. 
+> Vaibhav,
 > 
-> It is a hard problem. But we have _no way of deciding any of this in
-> the kernel_
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
+> > Sent: Thursday, June 03, 2010 12:12 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
+> > omap@vger.kernel.org; Hiremath, Vaibhav
+> > Subject: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
+> > file
+> >
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> > Also created vpfe master/slave clock aliases, since naming
+> > convention is different in both Davinci and AM3517 devices.
+> >
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-am3517evm.c |  161
+> > +++++++++++++++++++++++++++++++++
+> >  1 files changed, 161 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
+> > omap2/board-am3517evm.c
+> > index c1c4389..f2ff751 100644
+> > --- a/arch/arm/mach-omap2/board-am3517evm.c
+> > +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> > @@ -30,15 +30,168 @@
+> >
+> >  #include <plat/board.h>
+> >  #include <plat/common.h>
+> > +#include <plat/control.h>
+> >  #include <plat/usb.h>
+> >  #include <plat/display.h>
+> >
+> > +#include <media/tvp514x.h>
+> > +#include <media/davinci/vpfe_capture.h>
+> > +
+> >  #include "mux.h"
+> >
+> >  #define LCD_PANEL_PWR		176
+> >  #define LCD_PANEL_BKLIGHT_PWR	182
+> >  #define LCD_PANEL_PWM		181
+> >
+> > +/*
+> > + * VPFE - Video Decoder interface
+> > + */
+> > +#define TVP514X_STD_ALL		(V4L2_STD_NTSC | V4L2_STD_PAL)
+> > +
+> > +/* Inputs available at the TVP5146 */
+> > +static struct v4l2_input tvp5146_inputs[] = {
+> > +	{
+> > +		.index	= 0,
+> > +		.name	= "Composite",
+> > +		.type	= V4L2_INPUT_TYPE_CAMERA,
+> > +		.std	= TVP514X_STD_ALL,
+> > +	},
+> > +	{
+> > +		.index	= 1,
+> > +		.name	= "S-Video",
+> > +		.type	= V4L2_INPUT_TYPE_CAMERA,
+> > +		.std	= TVP514X_STD_ALL,
+> > +	},
+> > +};
+> > +
+> > +static struct tvp514x_platform_data tvp5146_pdata = {
+> > +	.clk_polarity	= 0,
+> > +	.hs_polarity	= 1,
+> > +	.vs_polarity	= 1
+> > +};
+> > +
+> > +static struct vpfe_route tvp5146_routes[] = {
+> > +	{
+> > +		.input	= INPUT_CVBS_VI1A,
+> > +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
+> > +	},
+> > +	{
+> > +		.input	= INPUT_SVIDEO_VI2C_VI1C,
+> > +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
+> > +	},
+> > +};
+> > +
+> > +static struct vpfe_subdev_info vpfe_sub_devs[] = {
+> > +	{
+> > +		.name		= "tvp5146",
+> > +		.grp_id		= 0,
+> > +		.num_inputs	= ARRAY_SIZE(tvp5146_inputs),
+> > +		.inputs		= tvp5146_inputs,
+> > +		.routes		= tvp5146_routes,
+> > +		.can_route	= 1,
+> > +		.ccdc_if_params	= {
+> > +			.if_type = VPFE_BT656,
+> > +			.hdpol	= VPFE_PINPOL_POSITIVE,
+> > +			.vdpol	= VPFE_PINPOL_POSITIVE,
+> > +		},
+> > +		.board_info	= {
+> > +			I2C_BOARD_INFO("tvp5146", 0x5C),
+> > +			.platform_data = &tvp5146_pdata,
+> > +		},
+> > +	},
+> > +};
+> > +
+> > +static void am3517_evm_clear_vpfe_intr(int vdint)
+> > +{
+> > +	unsigned int vpfe_int_clr;
+> > +
+> > +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> > +
+> > +	switch (vdint) {
+> > +	/* VD0 interrrupt */
+> > +	case INT_35XX_CCDC_VD0_IRQ:
+> > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
+> > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
+> > +		break;
+> > +	/* VD1 interrrupt */
+> > +	case INT_35XX_CCDC_VD1_IRQ:
+> > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
+> > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
+> > +		break;
+> > +	/* VD2 interrrupt */
+> > +	case INT_35XX_CCDC_VD2_IRQ:
+> > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
+> > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
+> > +		break;
+> > +	/* Clear all interrrupts */
+> > +	default:
+> > +		vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
+> > +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
+> > +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
+> > +		vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
+> > +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
+> > +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
+> > +		break;
+> > +	}
+> > +	omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
+> > +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> 
+> Is it necessary to assign to the local variable (vpfe_int_clr)? If not, we
+> can reduce the size of this routine by two assembly instructions:
+> One: copying the result to a register
+> Two: pushing the register value to stack
+> 
+[Hiremath, Vaibhav] How are you going to achieve this? How are you going to define the switch case values here?
 
-Therefore I say, fix the worprocessor to not actually do anything if its
-not poked at -- not too hard, wordprocessors really don't need to do
-anything on their own, and you can do your last backup cycle when the
-window becomes invisible and stop the timer until the document changes
-again.
+Also currently this covers only VPFE Capture related interrupts but this function may required for other modules which are part of IPSS, like HECC, EMAC and USBOTG.
 
-Same for firefox, you can teach it to not render animated gifs and run
-javascript for invisible tabs, and once the screen-saver kicks in,
-nothing is visible (and with X telling apps their window is visible or
-not it knows), so it should go idle all of its own.
+Thanks,
+Vaibhav
 
-Fix the friggin apps, don't kludge with freezing.
-
-You really only ever want to freeze broken apps. And even for those I
-would prefer it if I got notified some app is stupid, then I could
-either fix it, or choose not to use it.
-
-You can also teach cron to listen to dbus messages telling it about the
-screen state and postpone jobs -- but please make that a configurable
-thing, I really like all that work done at 4am when I'm (usually) not
-around to be bothered by it.
-
-> The problem is there independently of suspend blockers. If the system
-> can suspend with network up, then you shure as hell want to suspend
-> even if the network is up. So it would actually be a reason for any
-> kind of "suspend blockers" scheme. Wouldn't it?
-
-Well, at that point suspend is nothing more than an idle state, and
-platform code needs to somehow inform the idle state governor that
-active net connections need to prevent that idle state from being used.
-
-If you want to call that suspend blockers, then sure, but its a long way
-away from the explicit scheme proposed at the start of this thread.
+> -Tarun
+> 
+> 
+> > +}
+> > +
+> > +static struct vpfe_config vpfe_cfg = {
+> > +	.num_subdevs	= ARRAY_SIZE(vpfe_sub_devs),
+> > +	.i2c_adapter_id	= 3,
+> > +	.sub_devs	= vpfe_sub_devs,
+> > +	.clr_intr	= am3517_evm_clear_vpfe_intr,
+> > +	.card_name	= "AM3517 EVM",
+> > +	.ccdc		= "DM6446 CCDC",
+> > +};
+> > +
+> > +static struct resource vpfe_resources[] = {
+> > +	{
+> > +		.start	= INT_35XX_CCDC_VD0_IRQ,
+> > +		.end	= INT_35XX_CCDC_VD0_IRQ,
+> > +		.flags	= IORESOURCE_IRQ,
+> > +	},
+> > +	{
+> > +		.start	= INT_35XX_CCDC_VD1_IRQ,
+> > +		.end	= INT_35XX_CCDC_VD1_IRQ,
+> > +		.flags	= IORESOURCE_IRQ,
+> > +	},
+> > +};
+> > +
+> > +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+> > +static struct platform_device vpfe_capture_dev = {
+> > +	.name		= CAPTURE_DRV_NAME,
+> > +	.id		= -1,
+> > +	.num_resources	= ARRAY_SIZE(vpfe_resources),
+> > +	.resource	= vpfe_resources,
+> > +	.dev = {
+> > +		.dma_mask		= &vpfe_capture_dma_mask,
+> > +		.coherent_dma_mask	= DMA_BIT_MASK(32),
+> > +		.platform_data		= &vpfe_cfg,
+> > +	},
+> > +};
+> > +
+> > +static struct resource am3517_ccdc_resource[] = {
+> > +	/* CCDC Base address */
+> > +	{
+> > +		.start	= AM35XX_IPSS_VPFE_BASE,
+> > +		.end	= AM35XX_IPSS_VPFE_BASE + 0xffff,
+> > +		.flags	= IORESOURCE_MEM,
+> > +	},
+> > +};
+> > +
+> > +static struct platform_device am3517_ccdc_dev = {
+> > +	.name		= "dm644x_ccdc",
+> > +	.id		= -1,
+> > +	.num_resources	= ARRAY_SIZE(am3517_ccdc_resource),
+> > +	.resource	= am3517_ccdc_resource,
+> > +	.dev = {
+> > +		.dma_mask		= &vpfe_capture_dma_mask,
+> > +		.coherent_dma_mask	= DMA_BIT_MASK(32),
+> > +	},
+> > +};
+> > +
+> >  static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
+> >  	{
+> >  		I2C_BOARD_INFO("s35390a", 0x30),
+> > @@ -46,6 +199,7 @@ static struct i2c_board_info __initdata
+> > am3517evm_i2c_boardinfo[] = {
+> >  	},
+> >  };
+> >
+> > +
+> >  /*
+> >   * RTC - S35390A
+> >   */
+> > @@ -261,6 +415,8 @@ static struct omap_board_config_kernel
+> > am3517_evm_config[] __initdata = {
+> >
+> >  static struct platform_device *am3517_evm_devices[] __initdata = {
+> >  	&am3517_evm_dss_device,
+> > +	&am3517_ccdc_dev,
+> > +	&vpfe_capture_dev,
+> >  };
+> >
+> >  static void __init am3517_evm_init_irq(void)
+> > @@ -313,6 +469,11 @@ static void __init am3517_evm_init(void)
+> >
+> >  	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
+> >  				ARRAY_SIZE(am3517evm_i2c_boardinfo));
+> > +
+> > +	clk_add_alias("master", "dm644x_ccdc", "master",
+> > +			&vpfe_capture_dev.dev);
+> > +	clk_add_alias("slave", "dm644x_ccdc", "slave",
+> > +			&vpfe_capture_dev.dev);
+> >  }
+> >
+> >  static void __init am3517_evm_map_io(void)
+> > --
+> > 1.6.2.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
