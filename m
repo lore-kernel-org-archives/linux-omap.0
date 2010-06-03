@@ -1,53 +1,94 @@
-From: James Bottomley <James.Bottomley@suse.de>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 03 Jun 2010 08:24:31 -0500
-Message-ID: <1275571471.5914.2.camel@mulgrave.site>
-References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
-	 <20100601135102.GA8098@srcf.ucam.org>
-	 <1275426085.21962.967.camel@mulgrave.site> <201006020024.14220.rjw@sisk.pl>
-	 <1275431816.21962.1108.camel@mulgrave.site>
-	 <AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
-	 <1275451342.21962.1777.camel@mulgrave.site>
-	 <AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
-	 <1275491111.2799.110.camel@mulgrave.site>
-	 <20100602214748.7742e3ae@schatten.dmk.lab>
-	 <1275511271.2799.516.camel@mulgrave.site>
-	 <20100603010607.5baf82a6@schatten.dmk.lab>
-	 <CA1BBBBC9359F04AA639128AC0D5D1E9692ABC92@orsmsx502.amr.corp.intel.com>
-	 <20100603110312.48a508dc@lxorguk.ukuu.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100603110312.48a508dc@lxorguk.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Gross, Mark" <mark.gross@intel.com>, Florian Mickler <florian@mickler.org>, Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, Neil Brown <neilb@suse.de>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [linux-dali PATCH 1/1] omap3isp: video: Fix isp_video_far_end to return the correct entity
+Date: Thu,  3 Jun 2010 15:35:23 +0200
+Message-ID: <1275572123-23516-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <201006031527.25644.laurent.pinchart@ideasonboard.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.irobotique.be ([92.243.18.41]:51344 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753992Ab0FCNc7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 09:32:59 -0400
+In-Reply-To: <201006031527.25644.laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: svarbanov@mm-sol.com
+Cc: linux-omap@vger.kernel.org, sakari.ailus@maxwell.research.nokia.com
 
-On Thu, 2010-06-03 at 11:03 +0100, Alan Cox wrote:
-> > [mtg: ] This has been a pain point for the PM_QOS implementation.  They change the constrain back and forth at the transaction level of the i2c driver.  The pm_qos code really wasn't made to deal with such hot path use, as each such change triggers a re-computation of what the aggregate qos request is.
-> 
-> That should be trivial in the usual case because 99% of the time you can
-> hot path
-> 
-> 	the QoS entry changing is the latest one
-> 	there have been no other changes
-> 	If it is valid I can use the cached previous aggregate I cunningly
-> 		saved in the top QoS entry when I computed the new one
-> 
-> (ie most of the time from the kernel side you have a QoS stack)
+If the pipeline is misconfigured, the isp_video_far_end function could
+return a wrong ISP video device. Fix this by ignoring ISP video devices
+of the same type as the local end.
 
-It's not just the list based computation: that's trivial to fix, as you
-say ... the other problem is the notifier chain, because that's blocking
-and could be long.  Could we invoke the notifier through a workqueue?
-It doesn't seem to have veto power, so it's pure notification, does it
-matter if the notice is delayed (as long as it's in order)?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/isp/ispvideo.c |   14 +++++++++-----
+ 1 files changed, 9 insertions(+), 5 deletions(-)
 
-> > We've had a number of attempts at fixing this, but I think the proper fix is to bolt a "disable C-states > x" interface into cpu_idle that bypases pm_qos altogether.  Or, perhaps add a new pm_qos API that does the equivalent operation, overriding whatever constraint is active.
-> 
-> We need some of this anyway for deep power saving because there is
-> hardware which can't wake from soem states, which in turn means if that
-> device is active we need to be above the state in question.
+Running /root/corecam-tests/smoketests/* on RX-71:3110
+v4l2t - V4L2 test program May 19 2010
+RUNNING video0-1008x754-raw-capt ... PASSED
+RUNNING video0-1008x754-raw-fr ... PASSED
+RUNNING video0-1280x720-raw-capt ... PASSED
+RUNNING video0-1280x720-raw-fr ... PASSED
+RUNNING video0-1824x1360-raw-capt ... PASSED
+RUNNING video0-1824x1360-raw-fr ... PASSED
+RUNNING video0-1824x1364-raw-capt ... PASSED
+RUNNING video0-1824x1364-raw-fr ... PASSED
+RUNNING video0-2016x1508-raw-capt ... PASSED
+RUNNING video0-2016x1508-raw-fr ... PASSED
+RUNNING video0-2160x1216-raw-capt ... PASSED
+RUNNING video0-2160x1216-raw-fr ... PASSED
+RUNNING video0-4016x2242-raw-capt ... PASSED
+RUNNING video0-4016x2242-raw-fr ... PASSED
+RUNNING video0-4016x3016-raw-capt ... PASSED
+RUNNING video0-4016x3016-raw-fr ... PASSED
+RUNNING video0-eeprom ... PASSED
+RUNNING video0-hires-raw ... PASSED
+RUNNING video0-hires-yuv ... PASSED
+RUNNING video0-modules ... PASSED
+RUNNING video0-vga-raw ... PASSED
+RUNNING video0-vga-yuv ... PASSED
+RUNNING video1-modules ... PASSED
+RUNNING video1-vga-raw ... PASSED
+RUNNING video1-vga-yuv ... PASSED
 
-James
+passed 25/25 TESTS
+
+diff --git a/drivers/media/video/isp/ispvideo.c b/drivers/media/video/isp/ispvideo.c
+index 7ecd35a..36625d1 100644
+--- a/drivers/media/video/isp/ispvideo.c
++++ b/drivers/media/video/isp/ispvideo.c
+@@ -59,7 +59,7 @@ isp_video_far_end(struct isp_video *video)
+ 	struct media_entity_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+ 	struct media_device *mdev = entity->parent;
+-	struct video_device *vdev = NULL;
++	struct isp_video *far_end = NULL;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+ 	media_entity_graph_walk_start(&graph, entity);
+@@ -68,14 +68,18 @@ isp_video_far_end(struct isp_video *video)
+ 		if (entity == &video->video.entity)
+ 			continue;
+ 
+-		if (entity->type == MEDIA_ENTITY_TYPE_NODE) {
+-			vdev = media_entity_to_video_device(entity);
++		if (entity->type != MEDIA_ENTITY_TYPE_NODE)
++			continue;
++
++		far_end = to_isp_video(media_entity_to_video_device(entity));
++		if (far_end->type != video->type)
+ 			break;
+-		}
++
++		far_end = NULL;
+ 	}
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+-	return vdev ? to_isp_video(vdev) : NULL;
++	return far_end;
+ }
+ 
+ /*
+-- 
+1.6.4.4
+
