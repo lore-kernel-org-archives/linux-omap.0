@@ -1,89 +1,92 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 24/40] DSPBRIDGE: err code replace DSP_ENOSECT with ENXIO
-Date: Thu,  3 Jun 2010 00:47:37 -0500
-Message-ID: <1275544073-20418-25-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 27/40] DSPBRIDGE: err code replace DSP_EDCDNOAUTOREGISTER with EACCES
+Date: Thu,  3 Jun 2010 00:47:40 -0500
+Message-ID: <1275544073-20418-28-git-send-email-omar.ramirez@ti.com>
 References: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39724 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:39722 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754207Ab0FCF4V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 01:56:21 -0400
+	with ESMTP id S1754163Ab0FCF4U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 01:56:20 -0400
 In-Reply-To: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Shivananda Hebbar <x0hebbar@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Ernesto Ramos <ernesto@ti.com>, Armando Uribe De Leon <x0095078@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Replace DSP_ENOSECT with ENXIO
+Replace DSP_EDCDNOAUTOREGISTER with EACCES
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/dblldefs.h |    8 ++++----
- drivers/dsp/bridge/pmgr/dbll.c                  |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/dbdcd.h |    6 +++---
+ drivers/dsp/bridge/rmgr/dbdcd.c              |    2 +-
+ drivers/dsp/bridge/rmgr/proc.c               |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dblldefs.h b/arch/arm/plat-omap/include/dspbridge/dblldefs.h
-index 18a862f..e780e87 100644
---- a/arch/arm/plat-omap/include/dspbridge/dblldefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dblldefs.h
-@@ -299,7 +299,7 @@ typedef bool(*dbll_get_c_addr_fxn) (struct dbll_library_obj *lib, char *name,
-  *      psize           - Location to store section size on output.
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbdcd.h b/arch/arm/plat-omap/include/dspbridge/dbdcd.h
+index f7e4e79..17fb57a 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbdcd.h
++++ b/arch/arm/plat-omap/include/dspbridge/dbdcd.h
+@@ -34,7 +34,7 @@
+  *                              objects to be registered.
   *  Returns:
-  *      0:        Success.
-- *      DSP_ENOSECT:    Section not found.
-+ *      -ENXIO:    Section not found.
-  *  Requires:
-  *      DBL initialized.
-  *      Valid lib.
-@@ -359,7 +359,7 @@ typedef dsp_status(*dbll_load_fxn) (struct dbll_library_obj *lib,
-  *      attrs           - Contains write function and handle to pass to it.
+  *      0:                Success.
+- *      DSP_EDCDNOAUTOREGISTER: Unable to find auto-registration section.
++ *      -EACCES: Unable to find auto-registration section.
+  *      DSP_EDCDREADSECT:       Unable to read object code section.
+  *      DSP_EDCDLOADBASE:       Unable to load code base.
+  *      -EFAULT:            Invalid DCD_HMANAGER handle..
+@@ -60,7 +60,7 @@ extern dsp_status dcd_auto_register(IN struct dcd_manager *hdcd_mgr,
+  *                              DCD objects to be unregistered.
   *  Returns:
-  *      0:        Success.
-- *      DSP_ENOSECT:    Section not found.
-+ *      -ENXIO:    Section not found.
-  *      DSP_EFWRITE:    Write function failed.
-  *      -ENOSYS:   Function not implemented.
-  *  Requires:
-@@ -412,7 +412,7 @@ typedef dsp_status(*dbll_open_fxn) (struct dbll_tar_obj *target, char *file,
-  *      size            - Buffer size
+  *      0:                Success.
+- *      DSP_EDCDNOAUTOREGISTER: Unable to find auto-registration section.
++ *      -EACCES: Unable to find auto-registration section.
+  *      DSP_EDCDREADSECT:       Unable to read object code section.
+  *      DSP_EDCDLOADBASE:       Unable to load code base.
+  *      -EFAULT:            Invalid DCD_HMANAGER handle..
+@@ -289,7 +289,7 @@ extern dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+  *      handle:                 Handle to pass to callback.
   *  Returns:
-  *      0:        Success.
-- *      DSP_ENOSECT:    Named section does not exists.
-+ *      -ENXIO:    Named section does not exists.
-  *  Requires:
-  *      DBL initialized.
-  *      Valid lib.
-@@ -465,7 +465,7 @@ typedef void (*dbll_unload_fxn) (struct dbll_library_obj *library,
-  *      attrs           - Contains free() function and handle to pass to it.
-  *  Returns:
-  *      0:        Success.
-- *      DSP_ENOSECT:    Named section not found.
-+ *      -ENXIO:    Named section not found.
-  *      -ENOSYS
-  *  Requires:
-  *      DBL initialized.
-diff --git a/drivers/dsp/bridge/pmgr/dbll.c b/drivers/dsp/bridge/pmgr/dbll.c
-index 6a01f56..8e76bf6 100644
---- a/drivers/dsp/bridge/pmgr/dbll.c
-+++ b/drivers/dsp/bridge/pmgr/dbll.c
-@@ -419,7 +419,7 @@ dsp_status dbll_get_sect(struct dbll_library_obj *lib, char *name, u32 *paddr,
- 			/* Align size */
- 			*psize = DOFF_ALIGN(*psize);
- 		} else {
--			status = DSP_ENOSECT;
-+			status = -ENXIO;
- 		}
- 	}
- 	if (opened_doff) {
-@@ -764,7 +764,7 @@ dsp_status dbll_read_sect(struct dbll_library_obj *lib, char *name,
- 
- 	byte_size = 1;
- 	if (!dload_get_section_info(zl_lib->desc, name, &sect)) {
--		status = DSP_ENOSECT;
-+		status = -ENXIO;
+  *      0:                Success.
+- *      DSP_EDCDNOAUTOREGISTER: Unable to find .dcd_register section.
++ *      -EACCES: Unable to find .dcd_register section.
+  *      DSP_EDCDREADSECT:       Unable to read object code section.
+  *      DSP_EDCDLOADBASE:       Unable to load code base.
+  *      -EFAULT:            Invalid DCD_HMANAGER handle..
+diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
+index 1731334..dcca612 100644
+--- a/drivers/dsp/bridge/rmgr/dbdcd.c
++++ b/drivers/dsp/bridge/rmgr/dbdcd.c
+@@ -567,7 +567,7 @@ dsp_status dcd_get_objects(IN struct dcd_manager *hdcd_mgr,
+ 	/* Get DCD_RESIGER_SECTION section information. */
+ 	status = cod_get_section(lib, DCD_REGISTER_SECTION, &ul_addr, &ul_len);
+ 	if (DSP_FAILED(status) || !(ul_len > 0)) {
+-		status = DSP_EDCDNOAUTOREGISTER;
++		status = -EACCES;
  		goto func_cont;
  	}
- 	/*
+ 
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 1f46f66..1afdff0 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -907,13 +907,13 @@ dsp_status proc_load(void *hprocessor, IN CONST s32 argc_index,
+ 		if (DSP_SUCCEEDED(status)) {
+ 			/*  Auto register nodes in specified COFF
+ 			 *  file.  If registration did not fail,
+-			 *  (status = 0 or DSP_EDCDNOAUTOREGISTER)
++			 *  (status = 0 or -EACCES)
+ 			 *  save the name of the COFF file for
+ 			 *  de-registration in the future. */
+ 			status =
+ 			    dcd_auto_register(hdcd_handle,
+ 					      (char *)user_args[0]);
+-			if (status == DSP_EDCDNOAUTOREGISTER)
++			if (status == -EACCES)
+ 				status = 0;
+ 
+ 			if (DSP_FAILED(status)) {
 -- 
 1.7.1
 
