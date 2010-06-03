@@ -1,82 +1,110 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/8] OMAP3: Adding Smartreflex and Voltage driver support
-Date: Wed, 02 Jun 2010 16:52:45 -0700
-Message-ID: <87zkzd3sc2.fsf@deeprootsystems.com>
-References: <1275150748-15386-1-git-send-email-thara@ti.com>
+Subject: Re: omap3 pm: dependency between opp layer and cpufreq
+Date: Wed, 02 Jun 2010 17:00:58 -0700
+Message-ID: <87sk552ddx.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E71FDD30@dbde02.ent.ti.com>
+	<4BFE9D7E.8020602@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E5828FC1@dbde02.ent.ti.com>
+	<7A436F7769CA33409C6B44B358BFFF0C0132DE0A84@dlee02.ent.ti.com>
+	<068A0169-7F7B-46D6-B3B6-462EEFB66026@student.utwente.nl>
+	<4BFFC622.90904@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E71FE512@dbde02.ent.ti.com>
+	<4BFFCB6B.50005@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E71FE537@dbde02.ent.ti.com>
+	<1275065163.10319.5.camel@Nokia-N900-51-1>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E5828FC2@dbde02.ent.ti.com>
+	<4C0338B6.6070803@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:33978 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758647Ab0FBXwv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 19:52:51 -0400
-Received: by pvg16 with SMTP id 16so331721pvg.19
-        for <linux-omap@vger.kernel.org>; Wed, 02 Jun 2010 16:52:50 -0700 (PDT)
-In-Reply-To: <1275150748-15386-1-git-send-email-thara@ti.com> (Thara Gopinath's message of "Sat\, 29 May 2010 22\:02\:20 +0530")
+Received: from mail-pz0-f185.google.com ([209.85.222.185]:37295 "EHLO
+	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758833Ab0FCABB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jun 2010 20:01:01 -0400
+Received: by pzk15 with SMTP id 15so2696394pzk.15
+        for <linux-omap@vger.kernel.org>; Wed, 02 Jun 2010 17:01:00 -0700 (PDT)
+In-Reply-To: <4C0338B6.6070803@gmail.com> (Nishanth Menon's message of "Mon\, 31 May 2010 07\:19\:02 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: Nishanth Menon <menon.nishanth@gmail.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "Menon, Nishanth" <nm@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>
 
-Thara Gopinath <thara@ti.com> writes:
+Nishanth Menon <menon.nishanth@gmail.com> writes:
 
-> This patch series introduces smartreflex and voltage driver support
-> for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
-> control for real-time voltage adjustments.
+> On 05/30/2010 01:50 PM, Premi, Sanjeev wrote:
+>>
+[...]
+
+>> [sp] There is no mention of cpufreq not working; but specifically the support of bootarg "mpurate" which is independent of cpufreq.
+>>
+>> The bootarg mpurate has been existing since quite sometime. I am neither creating a new layer / replacement
+>> for cpufreq not trying to duplicate the code. The intent is simply
+>> as 
+> stated below:
+>>
+>> 1) Expose OPP layer - don't hinde it under CONFIG_CPU_FREQ.
+> ok with this
+>>
+>> 2) Use OPP layer to:
+>>      - Validate that the requested mpurate is defined in the OPP table for the device
+>>      - And get the voltage corresponding to the OPP.
+> sounds good too
+>>
+>> 3) Ensure that right freq and voltage is set - at init time - based on the mpurate.
+> ok
 >
-> Originally all the functionalities introduced in this patch
-> were present in arch/arm/mach-omap2/smartreflex.c file in Kevin's
-> pm tree. This patch series does a major rewrite of this file
-> and introduces a separate voltage driver. Major contributors
-> to the original driver are
+>>
+>> 4) And at some poit later break the linkage between op player amd PMIC.
+>>
+> aah you mean a simple patch as follows?
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 2b9ebf0..bfb3d0e 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -16,7 +16,8 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+>  # XXX The OPP TWL/TPS code should only be included when a TWL/TPS
+>  # PMIC is selected.
+>  ifdef CONFIG_CPU_FREQ
+> -obj-$(CONFIG_ARCH_OMAP3) += opp.o opp_twl_tps.o
+> +obj-$(CONFIG_ARCH_OMAP3) += opp.o
+> +obj-$(CONFIG_TWL4030_CORE) += opp_twl_tps.o
+>  endif
+>
+>  # omap_device support (OMAP2+ only at the moment)
+> --
+> note - opp layer was never tied to pmic -> there is pmic voltage
+> conversion apis in opp_twl_tps.c
+>
+> or is there more in your view?
+>
+>>>
+>>>>
+>>>> anyways for cpufreq to work at 720Mhz, you need to add that frequency
+>>>> and corresponding voltage to the opptable, neither exists, further
+>>>> mpurate should work with opp table as well, else
+>>>> clockframework has no
+>>>> direct mechanism to verify the valid OPPs on a runtime
+>>>> system. that was
+>>>> the intent of opp layer - to provide the rest of the users with a
+>>>> mechanism to verify, query and use opps without functional
+>>>> knowledge of
+>>>> the silicon it works on..
+>
+> ofcourse, please feel free to post a patch for the missing frequencies.
+>
 
-This is excellent, thanks for the rebase/reorg/compress.
 
-While not yet get getting to a full review of this series, I'd like it
-to get some broader testing.  To that end, I've replaced the pm-sr
-branch in my pm tree with this series, and rebuilt a new PM branch
-using it.
+OK, I must admit to not reading this whole thread since I've just
+restructured OPP and CPUfreq support in the PM branch.
 
-Note that it is also based on top of a new pm-opp branch which is
-Nishanth's condensed version which is also upstream bound for the next
-merge window.
+OPP support is now in the pm-opp branch (based on mainline) and
+CPUfreq support is now in the pm-cpufreq branch (based on mainline.)
 
-I had to do a couple minor fixes to apply against v2.6.35-rc1 (mainly
-fixing usage of #defines that were renamed to have a _MASK suffix.)
+Please update this patch/series against one (or both) of those
+branches for more discussion.
 
-It currently boots fine on OMAP3EVM (no efuse values, so no SR) but
-when I try it on Zoom3, I get repeated errors:
-
-  Wake up daisy chain activation failed. 
-
-I haven't fully isolated the root cause yet, but it looks like it
-might be because omap3_enable_io_chain() seems confused about whether
-it should be writing PM_WKEN or PM_WKST reg.
-
-The patch below (on top of new PM branch) seems to have fixed that
-problem for Zoom3.
+FWIW, I like the name change from cpufreq34xx --> opp34xx_data, and
+the Makefile change above makes sense.  Both of these changes should
+be re-submitted against my pm-opp branch.
 
 Kevin
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e531621..207905d 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -115,7 +115,7 @@ static void omap3_enable_io_chain(void)
- 		/* Do a readback to assure write has been done */
- 		prm_read_mod_reg(WKUP_MOD, PM_WKEN);
- 
--		while (!(prm_read_mod_reg(WKUP_MOD, PM_WKST) &
-+		while (!(prm_read_mod_reg(WKUP_MOD, PM_WKEN) &
- 			 OMAP3430_ST_IO_CHAIN_MASK)) {
- 			timeout++;
- 			if (timeout > 1000) {
-@@ -124,7 +124,7 @@ static void omap3_enable_io_chain(void)
- 				return;
- 			}
- 			prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
--					     WKUP_MOD, PM_WKST);
-+					     WKUP_MOD, PM_WKEN);
- 		}
- 	}
- }
