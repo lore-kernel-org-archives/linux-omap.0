@@ -1,36 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Trying to understand how to use new OMAP mux code
-Date: Thu, 3 Jun 2010 17:06:43 +0300
-Message-ID: <20100603140642.GI30622@atomide.com>
-References: <738b3f7e1003111424t34326158j570980c691a98853@mail.gmail.com>
- <20100311224812.GU2900@atomide.com>
- <4C062DD4.2050701@cioinfoindus.fr>
- <20100602112130.GG5980@atomide.com>
- <20100602144606.4287c438.jhnikula@gmail.com>
- <4C07B136.8010008@cioinfoindus.fr>
+From: Florian Mickler <florian@mickler.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 3 Jun 2010 16:12:05 +0200
+Message-ID: <20100603161205.73a2b56d@schatten.dmk.lab>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	<201005302202.39511.rjw@sisk.pl>
+	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
+	<201005312347.24251.rjw@sisk.pl>
+	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
+	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
+	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
+	<AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
+	<1275471561.27810.30865.camel@twins>
+	<AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
+	<1275474088.27810.31000.camel@twins>
+	<20100602221309.6da754e7@schatten.dmk.lab>
+	<1275550802.27810.34863.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61356 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755000Ab0FCOGq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 10:06:46 -0400
-Content-Disposition: inline
-In-Reply-To: <4C07B136.8010008@cioinfoindus.fr>
+Received: from ist.d-labs.de ([213.239.218.44]:33997 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753490Ab0FCOMR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jun 2010 10:12:17 -0400
+In-Reply-To: <1275550802.27810.34863.camel@twins>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Epinat <laurent.epinat@cioinfoindus.fr>
-Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-* Laurent Epinat <laurent.epinat@cioinfoindus.fr> [100603 16:36]:
+On Thu, 03 Jun 2010 09:40:02 +0200
+Peter Zijlstra <peterz@infradead.org> wrote:
+
+> Same for firefox, you can teach it to not render animated gifs and run
+> javascript for invisible tabs, and once the screen-saver kicks in,
+> nothing is visible (and with X telling apps their window is visible or
+> not it knows), so it should go idle all of its own.
 > 
-> I would like one basic configuration for the modules with (twl,net,flash,.. all on the COM's)
-> and for the rest, external driver for extra functionalities on the support board.
-> 
-> This is why I need to change the mux pins dynamically by the driver module.
+> Fix the friggin apps, don't kludge with freezing.
 
-If you really want to do it after the system has booted instead of passing
-the desired muxing in the kernel cmdline, you could just do some
-shell scripts to echo 0xXXXX > /sys/kernel/debug/omap_mux/whateverpin..
+Of course programs should be as smart as possible. But that is an
+orthogonal problem.
 
-Tony
+Suppose firefox were fixed. It still needs to fetch my rss feeds every
+minute, because I'm sad if it doesn't. It just can't be fixed at the
+application level.
+
+Cheers,
+Flo
