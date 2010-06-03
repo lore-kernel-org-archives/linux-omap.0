@@ -1,38 +1,53 @@
-From: Bryan Huntsman <bryanh@codeaurora.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 03 Jun 2010 14:50:39 -0700
-Message-ID: <4C0823AF.6020709@codeaurora.org>
-References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>	<20100601135102.GA8098@srcf.ucam.org>	<1275426085.21962.967.camel@mulgrave.site>	<201006020024.14220.rjw@sisk.pl>	<1275431816.21962.1108.camel@mulgrave.site>	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>	<1275451342.21962.1777.camel@mulgrave.site>	<AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>	<1275491111.2799.110.camel@mulgrave.site>	<20100602214748.7742e3ae@schatten.dmk.lab>	<1275511271.2799.516.camel@mulgrave.site>	<20100603010607.5baf82a6@schatten.dmk.lab>	<CA1BBBBC9359F04AA639128AC0D5D1E9692ABC92@orsmsx502.amr.corp.intel.com>	<20100603110312.48a508dc@lxorguk.ukuu.org.uk>	<1275559512.27810.35287.camel@twins>	<87d3w818ki.fsf@deeprootsystems.com> <CA1BBBBC9359F04AA639128AC0D5D1E96931D4BB@orsmsx502.
- amr.corp.intel.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/9] OMAP: DMTIMER: Convert platform driver so as to make use of hwmod + omap device framework for OMAP2 PLUS
+Date: Thu, 03 Jun 2010 15:20:17 -0700
+Message-ID: <878w6vn4gu.fsf@deeprootsystems.com>
+References: <1275143831-7629-1-git-send-email-thara@ti.com>
+	<4C02E275.2080202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA1BBBBC9359F04AA639128AC0D5D1E96931D4BB@orsmsx502.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Gross, Mark" <mark.gross@intel.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, "tytso@mit.edu" <tytso@mit.edu>, Neil Brown <neilb@suse.de>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, Linux@smtp1.linux-foundation.org, Thomas Gleixner <tglx@linutronix.de>, OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:57344 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752752Ab0FCWUU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 18:20:20 -0400
+Received: by pwj2 with SMTP id 2so293833pwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 03 Jun 2010 15:20:19 -0700 (PDT)
+In-Reply-To: <4C02E275.2080202@ti.com> (Benoit Cousson's message of "Mon\, 31 May 2010 00\:11\:01 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>
 
->> Yes, having a QoS parameter per-subsystem (or even per-device) is very
->> important for SoCs that have independently controlled powerdomains.
->> If all devices/subsystems in a particular powerdomain have QoS
->> parameters that permit, the power state of that powerdomain can be
->> lowered independently from system-wide power state and power states of
->> other power domains.
+Benoit Cousson <b-cousson@ti.com> writes:
+
+> On 5/29/2010 4:37 PM, Gopinath, Thara wrote:
+>> This patch series converts the OMAP Dual Mode Timer into a
+>> platform driver. This involves using of hwmod structures and
+>> omap_device layer for OMAP2/3/4 dmtimers and generic
+>> linux platform device layer for OMAP1.
 >>
-> This seems similar to that pm_qos generalization into bus drivers we where 
-> waving our hands at during the collab summit in April?  We never did get 
-> into meaningful detail at that time.
-> 
-> --mgross
+>> As a result of this patch series the dmtimer platform driver
+>> resides in arch/arm/plat-omap directory and arch specific
+>> implementations and device registerations reside in
+>> arch/arm/mach-omap1 and arch/arm/mach-omap2 for OMAP1
+>> and OMAP2 PLUS respectively.
+>
+> Hi Thara,
+>
+> The Dual timer terminology is not used anymore since 2420.
+> It was replaced by gptimer and will be simplified going forward
+> using timer. This IP is almost the same since 1610, but will have 3
+> different names.
+> It might be the good opportunity to align the names?
 
-I think there is definitely a need for QoS parameters per-device.  I've 
-been pondering how to incorporate this concept into runtime_pm.  One 
-idea would be to add pm_qos-like callbacks to struct dev_pm_ops, e.g. 
-runtime_pm_qos_add/update/remove_requirement().  Requirements would be 
-passed up the tree to the first parent that cares, usually a bus driver. 
-  Is this similar to what you guys were discussing at the collab summit? 
-  Thanks.
+If we were to align the names, what should be the "aligned" name?
+gptimer or timer?  I tend to prefer gptimer as 'timer' is rather
+ambiguous in this context.
 
-- Bryan
+For now, we could leave the names of all the functions and structs as
+'dm_timer', but at least this serious could name the new files and the
+platform devices with the new name.  At the end of the series, one
+final patch to s/dm_timer/new_beautiful_name/ would be an easy patch.
+
+Kevin
