@@ -1,112 +1,60 @@
-From: Neil Brown <neilb@suse.de>
-Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
- Suspend block api (version 8)
-Date: Thu, 3 Jun 2010 13:26:48 +1000
-Message-ID: <20100603132648.3b1e265e@notabene.brown>
-References: <20100601113309.609349fd@notabene.brown>
-	<alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
-	<20100601122012.1edeaf48@notabene.brown>
-	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
-	<20100602153235.340a7852@notabene.brown>
-	<AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
-	<20100602180614.729246ea@notabene.brown>
-	<AANLkTimISbs4X2YR_Pal9A80mpkNyCy8laWBcOgR2Cl7@mail.gmail.com>
-	<20100602210224.6ae2333f@notabene.brown>
-	<20100602210521.54b9cd9b@schatten.dmk.lab>
-	<20100602233243.GA27666@core.coreip.homeip.net>
-	<AANLkTim3WQ6qgBH5Cx5tkf-LPtYZ7L6BN6OZIJpQbET1@mail.gmail.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 3 Jun 2010 13:24:06 +0900
+Message-ID: <20100603042403.GC20028@linux-sh.org>
+References: <Pine.LNX.4.44L0.1005271141410.3239-100000@iolanthe.rowland.org> <alpine.LFD.2.00.1005271751240.3032@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTim3WQ6qgBH5Cx5tkf-LPtYZ7L6BN6OZIJpQbET1@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Florian Mickler <florian@mickler.org>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:44248 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945Ab0FCEYa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 00:24:30 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1005271751240.3032@localhost.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Peter Zijlstra <peterz@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve Hj?nnev?g <arve@android.com>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
 
-On Wed, 2 Jun 2010 19:44:59 -0700
-Arve Hj=C3=B8nnev=C3=A5g <arve@android.com> wrote:
+On Thu, May 27, 2010 at 06:06:43PM +0200, Thomas Gleixner wrote:
+> On Thu, 27 May 2010, Alan Stern wrote:
+> > And to answer Thomas's question: The whole reason for having in-kernel 
+> > suspend blockers is so that userspace can tell the system to suspend 
+> > without losing wakeup events.
+> > 
+> > Suppose a key is pressed just as a user program writes "mem" to
+> > /sys/power/state.  The keyboard driver handles the keystroke and queues
+> > an input event.  Then the system suspends and doesn't wake up until
+> > some other event occurs -- even though the keypress was an important
+> > one and it should have prevented the system from suspending.
+> > 
+> > With in-kernel suspend blockers and opportunistic suspend, this 
+> > scenario is prevented.  That is their raison-d'etre.
+> 
+> I tend to disagree. You are still looking at suspend as some extra
+> esoteric mechanism. We should stop doing this and look at suspend (to
+> RAM) as an additional deep idle state, which is well defined in terms
+> of power savings and wakeup latency. That's what I think opportunistic
+> suspend is all about. Now if you look at our current idle states in
+> x86 the incoming keystroke is never lost. 
+> 
+For systems with runtime PM and deep idle states in cpuidle suspend is
+already fairly opportunistic. If sleep states (including suspend to RAM
+and CPU off) are factored in to cpuidle then it's very easy to get in to
+situations where everything simply shuts off automatically, which can be
+problematic if a platform doesn't expose any external wakeup sources.
 
-> On Wed, Jun 2, 2010 at 4:32 PM, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
-> > On Wed, Jun 02, 2010 at 09:05:21PM +0200, Florian Mickler wrote:
-> >> On Wed, 2 Jun 2010 21:02:24 +1000
-> >> Neil Brown <neilb@suse.de> wrote:
-> >> >
-> >> > And this decision (to block suspend) really needs to be made in =
-the driver,
-> >> > not in userspace?
-> >>
-> >> Well, it fits. The requirement is a direct consequence of the inti=
-mate
-> >> knowledge the driver has about the driven devices.
-> >
-> > That is not really true. A driver does have intimate knowledge of t=
-he
-> > device, however it does not necessarily have an idea about the data=
- read
-> > from the device. Consider the gpio_matrix driver: Arve says that it=
- has
-> > to continue scanning matrix once first interrupt arrvies. But it re=
-ally
-> > depends on what key has been pressed - if user pressed KEY_SUSPEND =
-or
-> > KEY_POWER it cmight be better if we did not wait for key release bu=
-t
-> > initiated the action right away. The decision on how system reacts =
-to a
-> > key press does not belong to the driver but really to userspace.
->=20
-> If we just suspend while the keypad scan is active, a second press of
-> KEY_POWER would not be able wake the device up. The gpio keypad matri=
-x
-> driver has two operating modes. No keys are pressed: all the outputs
-> are active so a key press will generate an interrupt in one of the
-> inputs. Keys are pressed: Activate a single output at a time so we ca=
-n
-> determine which keys are pressed. The second mode is entered when the
-> driver gets an interrupt in the first mode. The first mode is entered
-> if the scan detected that no keys are pressed. The driver could be
-> modified to stop the scan on suspend and forcibly put the device back
-> in no-keys-pressed state, but pressing additional keys connected to
-> the same input can no longer generate any events (the input does not
-> change).
->=20
+Platforms still need to be able to establish some heuristics, whether
+this is via blocking certain state transitions or simply defining a
+maximum acceptable suspend depth irrespective of latency (at least we
+presently don't have a clean interface for preventing entry in to
+impossible to recover from idle states outside of latency hints via PM
+QoS, or at least not one that I'm aware of).
 
-Thanks for the detailed explanation.  That helps a lot.
-
-I see that if follows that performing a suspend while keys are pressed =
-would
-not be good, and keys could be pressed for arbitrarily long periods.
-It does not follow that the keypad driver should therefore explicitly d=
-isable
-suspend.  It could simply inform user-space that the keypad is in the
-alternate scan mode, so user-space can choose not to enter suspend in a=
-t that
-time (i.e. policy in user-space).
-
-I can see also how one might want to express this behaviour as a PM_QOS
-constraint (now that I have read a bit about PM_QOS), but I cannot see =
-that
-you would need to.  As the keypad driver is polling during this mode, i=
-t
-would presumably set a timer that would fire in the near future, and th=
-e very
-existence of this timer (with a duration shorter than the S3 latency) w=
-ould
-be enough to ensure S3 wasn't automatically entered by PM.
-At most you might use set_timer_slack to give a slightly higher upper b=
-ound
-to the timeout.
-
-So if we take the suspend-from-idle approach, this driver needs no
-annotation, and if we take the 'fix the suspend/wake-event race' then t=
-his
-driver needs no special treatment - just enough to close the race, and =
-some
-user-space policy support.
-
-i.e. it doesn't seem to be a special case.
-
-NeilBrown
+On the other hand, while this isn't that difficult for the UP case it
+does pose more problems for the SMP case. Presently the suspend paths
+(suspend-to-RAM/hibernate/kexec jump) all deal with disabling and
+enabling of non-boot CPUs via CPU hotplug explicitly, which will clear
+them from the online CPU map. We would have to rework the semantics a bit
+if cpuidle were also permitted to opportunistically offline CPUs.
