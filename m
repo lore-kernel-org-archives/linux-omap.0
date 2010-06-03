@@ -1,55 +1,46 @@
-From: mark gross <640e9920@gmail.com>
-Subject: Re: [linux-pm] [PATCH] - race-free suspend. Was: Re: [PATCH 0/8]
- Suspend block api (version 8)
-Date: Thu, 3 Jun 2010 06:36:46 -0700
-Message-ID: <20100603133646.GF15595@gvim.org>
-References: <20100601113309.609349fd@notabene.brown>
- <alpine.LFD.2.00.1006010340160.2933@localhost.localdomain>
- <20100601122012.1edeaf48@notabene.brown>
- <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
- <20100602153235.340a7852@notabene.brown>
- <AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
- <20100602180614.729246ea@notabene.brown>
- <AANLkTikXy__71nBNW0EFbyL_qNf0nQ68pW9KymWlTk7L@mail.gmail.com>
- <20100603060444.GF11311@gvim.org>
- <AANLkTilml9GM2GmJhlB39oqDk6oPnLSSfiQAinpCpAbt@mail.gmail.com>
-Reply-To: markgross@thegnar.org
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Thu, 3 Jun 2010 06:44:31 -0700 (PDT)
+Message-ID: <806772.17066.qm@web180305.mail.gq1.yahoo.com>
+References: <20100601073548.5ed65352@schatten.dmk.lab>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f185.google.com ([209.85.222.185]:49191 "EHLO
-	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754479Ab0FCNge (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 09:36:34 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTilml9GM2GmJhlB39oqDk6oPnLSSfiQAinpCpAbt@mail.gmail.com>
+Received: from n2-vm0.bullet.mail.gq1.yahoo.com ([67.195.23.154]:30535 "HELO
+	n2-vm0.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752955Ab0FCNoc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jun 2010 09:44:32 -0400
+In-Reply-To: <20100601073548.5ed65352@schatten.dmk.lab>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: markgross@thegnar.org, Neil Brown <neilb@suse.de>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Thomas Gleixner <tglx@linutronix.de>, Florian Mickler <florian@mickler.org>
+Cc: Neil Brown <neilb@suse.de>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Alan@smtp1.linux-foundation.org, Peter Zijlstra <peterz@infradead.org>, Felipe Balbi <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Wed, Jun 02, 2010 at 11:12:39PM -0700, Brian Swetland wrote:
-> On Wed, Jun 2, 2010 at 11:04 PM, mark gross <640e9920@gmail.com> wrote:
-> >>
-> >> There are many wakeup events possible in a typical system --
-> >> keypresses or other input events, network traffic, telephony events,
-> >> media events (fill audio buffer, fill video decoder buffer, etc), and
-> >> I think requiring that all wakeup event processing bottleneck through
-> >> a single userspace process is non-optimal here.
-> >
-> > Um doesn't the android framework bottleneck the user mode lock
-> > processing through the powermanager and any wake up event processing
-> > eventually has to grab a lock through this bottleneck anyway?
-> 
-> For "high level" framework/application level wakelocks, yes, but lower
-> level components beneath the java api layer use the kernel interface
-> directly.
->
-Oh.  I thought everything went through
-hardware/libhardware_legacy/power/power.c 
-who else is hitting /sys/power/* in the android user mode then? 
 
-I'll have to go hunting for them I guess.
+> > > If "suspend" is the thing we are used to via
+> /sys/power/state then the
+> > > race will persist forever except for the suspend blocker workaround,
 
---mgross
- 
+True, because device wakeups are enabled
+by device.driver.suspend() methods, which are
+invoked towards the end of the activities
+triggered by writing /sys/power/state.
+
+Now, there can be platforms (mostly embedded)
+where the drivers adopt a policy that not only
+do they keep their devices in as low a power
+state as practical at all times, but they also
+keep the hardware wakeup mechanisms enabled (they
+may be needed to kick the hardware out of those
+low power states) ...  That is, suspend() might be
+superfluous (a NOP) in those platforms' drivers.
+
+Such platforms might also be (non-ACPI) ones
+where idle C-states and S3/STR have the same
+power consumption ... but that would be a
+platform-specific issue, not a generic thing
+which all Linux implementations could rely on.
+
+- Dave
+
+
