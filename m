@@ -1,53 +1,71 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 29/40] DSPBRIDGE: err code replace DSP_EDCDGETSECT with EACCES
-Date: Thu,  3 Jun 2010 00:47:42 -0500
-Message-ID: <1275544073-20418-30-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 34/40] DSPBRIDGE: err code replace DSP_EPENDING with EPIPE
+Date: Thu,  3 Jun 2010 00:47:47 -0500
+Message-ID: <1275544073-20418-35-git-send-email-omar.ramirez@ti.com>
 References: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44885 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37609 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932538Ab0FCF4W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jun 2010 01:56:22 -0400
+	id S1754227Ab0FCF4V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jun 2010 01:56:21 -0400
 In-Reply-To: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Shivananda Hebbar <x0hebbar@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Ernesto Ramos <ernesto@ti.com>, Armando Uribe De Leon <x0095078@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Replace DSP_EDCDGETSECT with EACCES
+Replace DSP_EPENDING with EPIPE
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/dbdcd.h |    2 +-
- drivers/dsp/bridge/rmgr/dbdcd.c              |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/strm.h |    2 +-
+ drivers/dsp/bridge/rmgr/strm.c              |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbdcd.h b/arch/arm/plat-omap/include/dspbridge/dbdcd.h
-index b8daea9..e615c8a 100644
---- a/arch/arm/plat-omap/include/dspbridge/dbdcd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbdcd.h
-@@ -257,7 +257,7 @@ extern dsp_status dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
-  *      0: Success.
-  *      DSP_EDCDPARSESECT:  Unable to parse content of object code section.
-  *      DSP_EDCDREADSECT:   Unable to read object code section.
-- *      DSP_EDCDGETSECT:    Unable to access object code section.
-+ *      -EACCES:    Unable to access object code section.
-  *      -EACCES:   Unable to load code base.
-  *      -EPERM:          General failure.
-  *      -EFAULT:        Invalid DCD_HMANAGER handle.
-diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
-index a2cda6b..a3d79ba 100644
---- a/drivers/dsp/bridge/rmgr/dbdcd.c
-+++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -483,7 +483,7 @@ dsp_status dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
- 	/* Get section information. */
- 	status = cod_get_section(lib, sz_sect_name, &ul_addr, &ul_len);
- 	if (DSP_FAILED(status)) {
--		status = DSP_EDCDGETSECT;
-+		status = -EACCES;
- 		goto func_end;
- 	}
+diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
+index 97d657d..c4b1d91 100644
+--- a/arch/arm/plat-omap/include/dspbridge/strm.h
++++ b/arch/arm/plat-omap/include/dspbridge/strm.h
+@@ -59,7 +59,7 @@ extern dsp_status strm_allocate_buffer(struct strm_object *hStrm,
+  *  Returns:
+  *      0:        Success.
+  *      -EFAULT:    Invalid hStrm.
+- *      DSP_EPENDING:   Some data buffers issued to the stream have not
++ *      -EPIPE:   Some data buffers issued to the stream have not
+  *                      been reclaimed.
+  *      -EPERM:      Failure to close stream.
+  *  Requires:
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index 061175e..58ec979 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -166,7 +166,7 @@ dsp_status strm_close(struct strm_object *hStrm,
+ 		status = -EFAULT;
+ 	} else {
+ 		/* Have all buffers been reclaimed? If not, return
+-		 * DSP_EPENDING */
++		 * -EPIPE */
+ 		intf_fxns = hStrm->strm_mgr_obj->intf_fxns;
+ 		status =
+ 		    (*intf_fxns->pfn_chnl_get_info) (hStrm->chnl_obj,
+@@ -174,7 +174,7 @@ dsp_status strm_close(struct strm_object *hStrm,
+ 		DBC_ASSERT(DSP_SUCCEEDED(status));
  
+ 		if (chnl_info_obj.cio_cs > 0 || chnl_info_obj.cio_reqs > 0)
+-			status = DSP_EPENDING;
++			status = -EPIPE;
+ 		else
+ 			status = delete_strm(hStrm);
+ 	}
+@@ -187,7 +187,7 @@ dsp_status strm_close(struct strm_object *hStrm,
+ 		drv_proc_remove_strm_res_element(hstrm_res, pr_ctxt);
+ func_end:
+ 	DBC_ENSURE(status == 0 || status == -EFAULT ||
+-		   status == DSP_EPENDING || status == -EPERM);
++		   status == -EPIPE || status == -EPERM);
+ 
+ 	dev_dbg(bridge, "%s: hStrm: %p, status 0x%x\n", __func__,
+ 		hStrm, status);
 -- 
 1.7.1
 
