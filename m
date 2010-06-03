@@ -1,51 +1,60 @@
 From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Thu, 3 Jun 2010 16:12:05 +0200
-Message-ID: <20100603161205.73a2b56d@schatten.dmk.lab>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<201005302202.39511.rjw@sisk.pl>
-	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
-	<201005312347.24251.rjw@sisk.pl>
-	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
-	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
-	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
-	<AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
-	<1275471561.27810.30865.camel@twins>
-	<AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
-	<1275474088.27810.31000.camel@twins>
-	<20100602221309.6da754e7@schatten.dmk.lab>
-	<1275550802.27810.34863.camel@twins>
+Date: Thu, 3 Jun 2010 16:18:24 +0200
+Message-ID: <20100603161824.425bd627@schatten.dmk.lab>
+References: <20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100601135102.GA8098@srcf.ucam.org>
+	<1275426085.21962.967.camel@mulgrave.site>
+	<201006020024.14220.rjw@sisk.pl>
+	<1275431816.21962.1108.camel@mulgrave.site>
+	<AANLkTikObnAZbyOxeYAhXcEbimO3XTTO-HlC9CD_HH6t@mail.gmail.com>
+	<1275451342.21962.1777.camel@mulgrave.site>
+	<AANLkTilRcFZyYa-0HlaM-6IEZSyar3S9S_cCWSFax2Zo@mail.gmail.com>
+	<1275491111.2799.110.camel@mulgrave.site>
+	<20100602214748.7742e3ae@schatten.dmk.lab>
+	<1275511271.2799.516.camel@mulgrave.site>
+	<20100603010607.5baf82a6@schatten.dmk.lab>
+	<CA1BBBBC9359F04AA639128AC0D5D1E9692ABC92@orsmsx502.amr.corp.intel.com>
+	<20100603110312.48a508dc@lxorguk.ukuu.org.uk>
+	<1275571471.5914.2.camel@mulgrave.site>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:33997 "EHLO mx01.d-labs.de"
+Received: from ist.d-labs.de ([213.239.218.44]:48740 "EHLO mx01.d-labs.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753490Ab0FCOMR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jun 2010 10:12:17 -0400
-In-Reply-To: <1275550802.27810.34863.camel@twins>
+	id S1754326Ab0FCOSf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jun 2010 10:18:35 -0400
+In-Reply-To: <1275571471.5914.2.camel@mulgrave.site>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Gross, Mark" <mark.gross@intel.com>, Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Neil Brown <neilb@suse.de>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-On Thu, 03 Jun 2010 09:40:02 +0200
-Peter Zijlstra <peterz@infradead.org> wrote:
+On Thu, 03 Jun 2010 08:24:31 -0500
+James Bottomley <James.Bottomley@suse.de> wrote:
 
-> Same for firefox, you can teach it to not render animated gifs and run
-> javascript for invisible tabs, and once the screen-saver kicks in,
-> nothing is visible (and with X telling apps their window is visible or
-> not it knows), so it should go idle all of its own.
+> On Thu, 2010-06-03 at 11:03 +0100, Alan Cox wrote:
+> > > [mtg: ] This has been a pain point for the PM_QOS implementation.  They change the constrain back and forth at the transaction level of the i2c driver.  The pm_qos code really wasn't made to deal with such hot path use, as each such change triggers a re-computation of what the aggregate qos request is.
+> > 
+> > That should be trivial in the usual case because 99% of the time you can
+> > hot path
+> > 
+> > 	the QoS entry changing is the latest one
+> > 	there have been no other changes
+> > 	If it is valid I can use the cached previous aggregate I cunningly
+> > 		saved in the top QoS entry when I computed the new one
+> > 
+> > (ie most of the time from the kernel side you have a QoS stack)
 > 
-> Fix the friggin apps, don't kludge with freezing.
+> It's not just the list based computation: that's trivial to fix, as you
+> say ... the other problem is the notifier chain, because that's blocking
+> and could be long.  Could we invoke the notifier through a workqueue?
+> It doesn't seem to have veto power, so it's pure notification, does it
+> matter if the notice is delayed (as long as it's in order)?
 
-Of course programs should be as smart as possible. But that is an
-orthogonal problem.
-
-Suppose firefox were fixed. It still needs to fetch my rss feeds every
-minute, because I'm sad if it doesn't. It just can't be fixed at the
-application level.
+I think schedule_work() (worqueue.h) can take care of that. 
+Thats how the rfkill subsystem does it. 
 
 Cheers,
 Flo
