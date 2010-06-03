@@ -1,12 +1,12 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 16/40] DSPBRIDGE: err code replace CHNL_E_MAXCHANNELS with ECHRNG
-Date: Thu,  3 Jun 2010 00:47:29 -0500
-Message-ID: <1275544073-20418-17-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 17/40] DSPBRIDGE: err code replace COD_E_ZLCREATEFAILED with ESPIPE
+Date: Thu,  3 Jun 2010 00:47:30 -0500
+Message-ID: <1275544073-20418-18-git-send-email-omar.ramirez@ti.com>
 References: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56433 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44876 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753072Ab0FCF4T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753992Ab0FCF4T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 3 Jun 2010 01:56:19 -0400
 In-Reply-To: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,40 +14,63 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Shivananda Hebbar <x0hebbar@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Ernesto Ramos <ernesto@ti.com>, Armando Uribe De Leon <x0095078@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Replace CHNL_E_MAXCHANNELS with ECHRNG
+Replace COD_E_ZLCREATEFAILED with ESPIPE
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/chnl.h |    2 +-
- drivers/dsp/bridge/pmgr/chnl.c              |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/cod.h |    2 +-
+ arch/arm/plat-omap/include/dspbridge/dev.h |    4 ++--
+ drivers/dsp/bridge/pmgr/cod.c              |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/chnl.h b/arch/arm/plat-omap/include/dspbridge/chnl.h
-index 7c06869..ff3ed51 100644
---- a/arch/arm/plat-omap/include/dspbridge/chnl.h
-+++ b/arch/arm/plat-omap/include/dspbridge/chnl.h
-@@ -64,7 +64,7 @@ extern dsp_status chnl_close(struct chnl_object *chnl_obj);
-  *      -EINVAL:        max_channels is 0.
-  *      -ENOMEM:            Insufficient memory for requested resources.
-  *      -EIO:             Unable to plug channel ISR for configured IRQ.
-- *      CHNL_E_MAXCHANNELS:     This manager cannot handle this many channels.
-+ *      -ECHRNG:     This manager cannot handle this many channels.
-  *      CHNL_E_INVALIDIRQ:      Invalid IRQ number. Must be 0 <= birq <= 15.
-  *      -EINVAL: Invalid DSP word size.  Must be > 0.
-  *      -EINVAL:  Invalid base address for DSP communications.
-diff --git a/drivers/dsp/bridge/pmgr/chnl.c b/drivers/dsp/bridge/pmgr/chnl.c
-index 50d49eb..22087f2 100644
---- a/drivers/dsp/bridge/pmgr/chnl.c
-+++ b/drivers/dsp/bridge/pmgr/chnl.c
-@@ -73,7 +73,7 @@ dsp_status chnl_create(OUT struct chnl_mgr **phChnlMgr,
- 	else if (pMgrAttrs->max_channels == 0)
- 		status = -EINVAL;
- 	else
--		status = CHNL_E_MAXCHANNELS;
-+		status = -ECHRNG;
+diff --git a/arch/arm/plat-omap/include/dspbridge/cod.h b/arch/arm/plat-omap/include/dspbridge/cod.h
+index 3ee2eb9..56df6d8 100644
+--- a/arch/arm/plat-omap/include/dspbridge/cod.h
++++ b/arch/arm/plat-omap/include/dspbridge/cod.h
+@@ -84,7 +84,7 @@ extern void cod_close(struct cod_libraryobj *lib);
+  *  Returns:
+  *      0:                Success.
+  *      COD_E_NOZLFUNCTIONS:    Could not initialize ZL functions.
+- *      COD_E_ZLCREATEFAILED:   ZL_Create failed.
++ *      -ESPIPE:   ZL_Create failed.
+  *      -ENOSYS:           attrs was not NULL.  We don't yet support
+  *                              non default values of attrs.
+  *  Requires:
+diff --git a/arch/arm/plat-omap/include/dspbridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
+index 75e795e..8652f52 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dev.h
++++ b/arch/arm/plat-omap/include/dspbridge/dev.h
+@@ -84,7 +84,7 @@ extern u32 dev_brd_write_fxn(void *pArb,
+  *      LDR_E_NOMEMORY:         PELDR is out of resources.
+  *      -EPERM:              Unable to find WMD entry point function.
+  *      COD_E_NOZLFUNCTIONS:    One or more ZL functions exports not found.
+- *      COD_E_ZLCREATEFAILED:   Unable to load ZL DLL.
++ *      -ESPIPE:   Unable to load ZL DLL.
+  *  Requires:
+  *      DEV Initialized.
+  *      phDevObject != NULL.
+@@ -126,7 +126,7 @@ extern dsp_status dev_create_device(OUT struct dev_object
+  *      LDR_E_NOMEMORY:         PELDR is out of resources.
+  *      -EPERM:              Unable to find WMD entry point function.
+  *      COD_E_NOZLFUNCTIONS:    One or more ZL functions exports not found.
+- *      COD_E_ZLCREATEFAILED:   Unable to load ZL DLL.
++ *      -ESPIPE:   Unable to load ZL DLL.
+  *  Requires:
+  *      DEV Initialized.
+  *      phDevObject != NULL.
+diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
+index 552a03f..65acd6f 100644
+--- a/drivers/dsp/bridge/pmgr/cod.c
++++ b/drivers/dsp/bridge/pmgr/cod.c
+@@ -268,7 +268,7 @@ dsp_status cod_create(OUT struct cod_manager **phMgr, char *pstrDummyFile,
  
- 	if (pMgrAttrs->word_size == 0)
- 		status = -EINVAL;
+ 	if (DSP_FAILED(status)) {
+ 		cod_delete(mgr_new);
+-		return COD_E_ZLCREATEFAILED;
++		return -ESPIPE;
+ 	}
+ 
+ 	/* return the new manager */
 -- 
 1.7.1
 
