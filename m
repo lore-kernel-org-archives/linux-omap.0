@@ -1,326 +1,143 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v5 3/3] omap3 nand: fix issue in board file to detect nand
-Date: Fri,  4 Jun 2010 13:10:05 +0530
-Message-ID: <1275637205-489-4-git-send-email-s-ghorai@ti.com>
-References: <Sukumar Ghorai <s-ghorai@ti.com>
- <1275637205-489-1-git-send-email-s-ghorai@ti.com>
- <1275637205-489-2-git-send-email-s-ghorai@ti.com>
- <1275637205-489-3-git-send-email-s-ghorai@ti.com>
+From: "Lesly Arackal Manuel" <leslyam@ti.com>
+Subject: RE: [PATCH v6 3/7] omap3: pm: re-programing the setup time based on CORE_DOMAIN target state
+Date: Fri, 4 Jun 2010 13:18:42 +0530
+Message-ID: <007501cb03ba$5bbd3cc0$e08818ac@apr.dhcp.ti.com>
+References: <1274186129-23928-1-git-send-email-leslyam@ti.com> <8739x4vwrn.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37630 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51734 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752815Ab0FDHk3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jun 2010 03:40:29 -0400
-In-Reply-To: <1275637205-489-3-git-send-email-s-ghorai@ti.com>
+	id S1752665Ab0FDHsy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Jun 2010 03:48:54 -0400
+In-Reply-To: <8739x4vwrn.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org, tony@atomide.com, mike@compulab.co.il, Sukumar Ghorai <s-ghorai@ti.com>
+To: 'Kevin Hilman' <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
 
-Board file modified for not to provide gpmc phys_base address to nand driver.
-The gpmc_nand_init funciton is now used to detect the nand and required to
-adopt _prob function as in nand/omap2.c
+Hi Kevin,
 
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
----
- arch/arm/mach-omap2/board-cm-t35.c         |   20 +-------------------
- arch/arm/mach-omap2/board-devkit8000.c     |   25 +------------------------
- arch/arm/mach-omap2/board-omap3beagle.c    |   24 +-----------------------
- arch/arm/mach-omap2/board-omap3touchbook.c |   25 +------------------------
- arch/arm/mach-omap2/board-overo.c          |   24 +-----------------------
- arch/arm/mach-omap2/board-sdp-flash.c      |    5 -----
- 6 files changed, 5 insertions(+), 118 deletions(-)
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Thursday, June 03, 2010 11:12 PM
+> To: Lesly A M
+> Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
+> Samuel Ortiz
+> Subject: Re: [PATCH v6 3/7] omap3: pm: re-programing the setup time based
+> on CORE_DOMAIN target state
+> 
+> Lesly A M <leslyam@ti.com> writes:
+> 
+> > This patch will add a new function omap_voltage_vc_update() to re-
+> program
+> > the VC parameters while entering low power mode, based on CORE_DOMAIN
+> target state.
+> > The voltsetup2 is used only when the device exits sys_off mode
+> > (with PRM_VOLTCTRL[3]SEL_OFF set to 1).
+> >
+> > Also removed the clearing of PRM_VOLTCTRL register bits, because this
+> will be
+> > used only when it goes to low power mode next time.
+> >
+> > Signed-off-by: Lesly A M <x0080970@ti.com>
+> > Cc: Nishanth Menon <nm@ti.com>
+> > Cc: David Derrick <dderrick@ti.com>
+> > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> 
+> Again, issues from previous review[1] re-appear again.
+> 
+> For the record, when a series is posted multiple times and issues
+> raised in previous reviews continue to appear, you should expect
+> maintainers to pay less and less attention to the series.  I for one
+> have an attention span that grows very short when I repeatedly see the
+> same issues re-posted.
+> 
+> The comment below are ones I already raised in v5[1].
+> 
+> > ---
+> >  arch/arm/mach-omap2/pm34xx.c  |   26 +++-----------------------
+> >  arch/arm/mach-omap2/voltage.c |   41
+> +++++++++++++++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/voltage.h |    1 +
+> >  3 files changed, 45 insertions(+), 23 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> > index 5039b35..1ff6293 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -439,20 +439,12 @@ void omap_sram_idle(void)
+> >  	if (core_next_state < PWRDM_POWER_ON) {
+> >  		omap_uart_prepare_idle(0);
+> >  		omap_uart_prepare_idle(1);
+> > -		if (core_next_state == PWRDM_POWER_OFF) {
+> > -			u32 voltctrl = OMAP3430_AUTO_OFF;
+> > +		/* Update the voltsetup time for RET/OFF */
+> > +		omap_voltage_vc_update(core_next_state);
+> >
+> > -			if (voltage_off_while_idle)
+> > -				voltctrl |= OMAP3430_SEL_OFF;
+> > -			prm_set_mod_reg_bits(voltctrl,
+> > -					     OMAP3430_GR_MOD,
+> > -					     OMAP3_PRM_VOLTCTRL_OFFSET);
+> > +		if (core_next_state == PWRDM_POWER_OFF) {
+> >  			omap3_core_save_context();
+> >  			omap3_prcm_save_context();
+> > -		} else if (core_next_state == PWRDM_POWER_RET) {
+> > -			prm_set_mod_reg_bits(OMAP3430_AUTO_RET,
+> > -						OMAP3430_GR_MOD,
+> > -						OMAP3_PRM_VOLTCTRL_OFFSET);
+> >  		}
+> >  	}
+> 
+> OK, the in the idle path, you replace the various VC settings with a
+> call into the voltage layer.  Good.  But...
+> 
+> > @@ -510,18 +502,6 @@ void omap_sram_idle(void)
+> >  		}
+> >  		omap_uart_resume_idle(0);
+> >  		omap_uart_resume_idle(1);
+> > -		if (core_next_state == PWRDM_POWER_OFF) {
+> > -			u32 voltctrl = OMAP3430_AUTO_OFF;
+> > -
+> > -			if (voltage_off_while_idle)
+> > -				voltctrl |= OMAP3430_SEL_OFF;
+> > -			prm_clear_mod_reg_bits(voltctrl,
+> > -					       OMAP3430_GR_MOD,
+> > -					       OMAP3_PRM_VOLTCTRL_OFFSET);
+> > -		} else if (core_next_state == PWRDM_POWER_RET)
+> > -			prm_clear_mod_reg_bits(OMAP3430_AUTO_RET,
+> > -						OMAP3430_GR_MOD,
+> > -						OMAP3_PRM_VOLTCTRL_OFFSET);
+> 
+> ...in the resume path, this entire part is removed, but with
+> replacement call into the voltage layer.  This needs to be well
+> documented in the changelog as to why this is not needed.
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index bc4c3f8..4870da2
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -61,8 +61,6 @@
- #define SB_T35_SMSC911X_GPIO	65
- 
- #define NAND_BLOCK_SIZE		SZ_128K
--#define GPMC_CS0_BASE		0x60
--#define GPMC_CS0_BASE_ADDR	(OMAP34XX_GPMC_VIRT + GPMC_CS0_BASE)
- 
- #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
- #include <linux/smsc911x.h>
-@@ -223,28 +221,12 @@ static struct omap_nand_platform_data cm_t35_nand_data = {
- 	.nr_parts		= ARRAY_SIZE(cm_t35_nand_partitions),
- 	.dma_channel		= -1,	/* disable DMA in OMAP NAND driver */
- 	.cs			= 0,
--	.gpmc_cs_baseaddr	= (void __iomem *)GPMC_CS0_BASE_ADDR,
--	.gpmc_baseaddr		= (void __iomem *)OMAP34XX_GPMC_VIRT,
- 
- };
- 
--static struct resource cm_t35_nand_resource = {
--	.flags		= IORESOURCE_MEM,
--};
--
--static struct platform_device cm_t35_nand_device = {
--	.name		= "omap2-nand",
--	.id		= -1,
--	.num_resources	= 1,
--	.resource	= &cm_t35_nand_resource,
--	.dev		= {
--		.platform_data	= &cm_t35_nand_data,
--	},
--};
--
- static void __init cm_t35_init_nand(void)
- {
--	if (platform_device_register(&cm_t35_nand_device) < 0)
-+	if (gpmc_nand_init(&cm_t35_nand_data) < 0)
- 		pr_err("CM-T35: Unable to register NAND device\n");
- }
- #else
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 922b746..364511a
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -58,9 +58,6 @@
- #include "mux.h"
- #include "hsmmc.h"
- 
--#define GPMC_CS0_BASE  0x60
--#define GPMC_CS_SIZE   0x30
--
- #define NAND_BLOCK_SIZE		SZ_128K
- 
- #define OMAP_DM9000_GPIO_IRQ	25
-@@ -104,20 +101,6 @@ static struct omap_nand_platform_data devkit8000_nand_data = {
- 	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
- };
- 
--static struct resource devkit8000_nand_resource = {
--	.flags		= IORESOURCE_MEM,
--};
--
--static struct platform_device devkit8000_nand_device = {
--	.name		= "omap2-nand",
--	.id		= -1,
--	.dev		= {
--		.platform_data	= &devkit8000_nand_data,
--	},
--	.num_resources	= 1,
--	.resource	= &devkit8000_nand_resource,
--};
--
- static struct omap2_hsmmc_info mmc[] = {
- 	{
- 		.mmc		= 1,
-@@ -581,8 +564,6 @@ static void __init devkit8000_flash_init(void)
- 	u8 cs = 0;
- 	u8 nandcs = GPMC_CS_NUM + 1;
- 
--	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
--
- 	/* find out the chip-select on which NAND exists */
- 	while (cs < GPMC_CS_NUM) {
- 		u32 ret = 0;
-@@ -604,13 +585,9 @@ static void __init devkit8000_flash_init(void)
- 
- 	if (nandcs < GPMC_CS_NUM) {
- 		devkit8000_nand_data.cs = nandcs;
--		devkit8000_nand_data.gpmc_cs_baseaddr = (void *)
--			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
--		devkit8000_nand_data.gpmc_baseaddr = (void *)
--			(gpmc_base_add);
- 
- 		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
--		if (platform_device_register(&devkit8000_nand_device) < 0)
-+		if (gpmc_nand_init(&devkit8000_nand_data) < 0)
- 			printk(KERN_ERR "Unable to register NAND device\n");
- 	}
- }
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 0ab0c26..befb5e3
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -48,9 +48,6 @@
- #include "mux.h"
- #include "hsmmc.h"
- 
--#define GPMC_CS0_BASE  0x60
--#define GPMC_CS_SIZE   0x30
--
- #define NAND_BLOCK_SIZE		SZ_128K
- 
- static struct mtd_partition omap3beagle_nand_partitions[] = {
-@@ -93,20 +90,6 @@ static struct omap_nand_platform_data omap3beagle_nand_data = {
- 	.dev_ready	= NULL,
- };
- 
--static struct resource omap3beagle_nand_resource = {
--	.flags		= IORESOURCE_MEM,
--};
--
--static struct platform_device omap3beagle_nand_device = {
--	.name		= "omap2-nand",
--	.id		= -1,
--	.dev		= {
--		.platform_data	= &omap3beagle_nand_data,
--	},
--	.num_resources	= 1,
--	.resource	= &omap3beagle_nand_resource,
--};
--
- /* DSS */
- 
- static int beagle_enable_dvi(struct omap_dss_device *dssdev)
-@@ -424,8 +407,6 @@ static void __init omap3beagle_flash_init(void)
- 	u8 cs = 0;
- 	u8 nandcs = GPMC_CS_NUM + 1;
- 
--	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
--
- 	/* find out the chip-select on which NAND exists */
- 	while (cs < GPMC_CS_NUM) {
- 		u32 ret = 0;
-@@ -447,12 +428,9 @@ static void __init omap3beagle_flash_init(void)
- 
- 	if (nandcs < GPMC_CS_NUM) {
- 		omap3beagle_nand_data.cs = nandcs;
--		omap3beagle_nand_data.gpmc_cs_baseaddr = (void *)
--			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
--		omap3beagle_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
- 
- 		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
--		if (platform_device_register(&omap3beagle_nand_device) < 0)
-+		if (gpmc_nand_init(&omap3beagle_nand_data) < 0)
- 			printk(KERN_ERR "Unable to register NAND device\n");
- 	}
- }
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index f05b867..bf8089f
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -54,9 +54,6 @@
- 
- #include <asm/setup.h>
- 
--#define GPMC_CS0_BASE  0x60
--#define GPMC_CS_SIZE   0x30
--
- #define NAND_BLOCK_SIZE		SZ_128K
- 
- #define OMAP3_AC_GPIO		136
-@@ -106,20 +103,6 @@ static struct omap_nand_platform_data omap3touchbook_nand_data = {
- 	.dev_ready	= NULL,
- };
- 
--static struct resource omap3touchbook_nand_resource = {
--	.flags		= IORESOURCE_MEM,
--};
--
--static struct platform_device omap3touchbook_nand_device = {
--	.name		= "omap2-nand",
--	.id		= -1,
--	.dev		= {
--		.platform_data	= &omap3touchbook_nand_data,
--	},
--	.num_resources	= 1,
--	.resource	= &omap3touchbook_nand_resource,
--};
--
- #include "sdram-micron-mt46h32m32lf-6.h"
- 
- static struct omap2_hsmmc_info mmc[] = {
-@@ -458,8 +441,6 @@ static void __init omap3touchbook_flash_init(void)
- 	u8 cs = 0;
- 	u8 nandcs = GPMC_CS_NUM + 1;
- 
--	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
--
- 	/* find out the chip-select on which NAND exists */
- 	while (cs < GPMC_CS_NUM) {
- 		u32 ret = 0;
-@@ -481,13 +462,9 @@ static void __init omap3touchbook_flash_init(void)
- 
- 	if (nandcs < GPMC_CS_NUM) {
- 		omap3touchbook_nand_data.cs = nandcs;
--		omap3touchbook_nand_data.gpmc_cs_baseaddr = (void *)
--			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
--		omap3touchbook_nand_data.gpmc_baseaddr =
--						(void *) (gpmc_base_add);
- 
- 		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
--		if (platform_device_register(&omap3touchbook_nand_device) < 0)
-+		if (gpmc_nand_init(&omap3touchbook_nand_data) < 0)
- 			printk(KERN_ERR "Unable to register NAND device\n");
- 	}
- }
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index d05ced5..9c51936
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -58,8 +58,6 @@
- #define OVERO_GPIO_USBH_NRESET	183
- 
- #define NAND_BLOCK_SIZE SZ_128K
--#define GPMC_CS0_BASE  0x60
--#define GPMC_CS_SIZE   0x30
- 
- #define OVERO_SMSC911X_CS      5
- #define OVERO_SMSC911X_GPIO    176
-@@ -269,28 +267,11 @@ static struct omap_nand_platform_data overo_nand_data = {
- 	.dma_channel = -1,	/* disable DMA in OMAP NAND driver */
- };
- 
--static struct resource overo_nand_resource = {
--	.flags		= IORESOURCE_MEM,
--};
--
--static struct platform_device overo_nand_device = {
--	.name		= "omap2-nand",
--	.id		= -1,
--	.dev		= {
--		.platform_data	= &overo_nand_data,
--	},
--	.num_resources	= 1,
--	.resource	= &overo_nand_resource,
--};
--
--
- static void __init overo_flash_init(void)
- {
- 	u8 cs = 0;
- 	u8 nandcs = GPMC_CS_NUM + 1;
- 
--	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
--
- 	/* find out the chip-select on which NAND exists */
- 	while (cs < GPMC_CS_NUM) {
- 		u32 ret = 0;
-@@ -312,12 +293,9 @@ static void __init overo_flash_init(void)
- 
- 	if (nandcs < GPMC_CS_NUM) {
- 		overo_nand_data.cs = nandcs;
--		overo_nand_data.gpmc_cs_baseaddr = (void *)
--			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
--		overo_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
- 
- 		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
--		if (platform_device_register(&overo_nand_device) < 0)
-+		if (gpmc_nand_init(&overo_nand_data) < 0)
- 			printk(KERN_ERR "Unable to register NAND device\n");
- 	}
- }
-diff --git a/arch/arm/mach-omap2/board-sdp-flash.c b/arch/arm/mach-omap2/board-sdp-flash.c
-old mode 100644
-new mode 100755
-index 2d02632..2638c83
---- a/arch/arm/mach-omap2/board-sdp-flash.c
-+++ b/arch/arm/mach-omap2/board-sdp-flash.c
-@@ -162,11 +162,6 @@ __init board_nand_init(struct flash_partitions sdp_nand_parts, u8 cs)
- 	sdp_nand_data.parts		= sdp_nand_parts.parts;
- 	sdp_nand_data.nr_parts		= sdp_nand_parts.nr_parts;
- 
--	sdp_nand_data.gpmc_cs_baseaddr	= (void *)(OMAP34XX_GPMC_VIRT +
--							GPMC_CS0_BASE +
--							cs * GPMC_CS_SIZE);
--	sdp_nand_data.gpmc_baseaddr	 = (void *) (OMAP34XX_GPMC_VIRT);
--
- 	gpmc_nand_init(&sdp_nand_data);
- }
- #else
+The comment for removing this part is already there in the changelog:
+****
+> > Also removed the clearing of PRM_VOLTCTRL register bits, because this
+> will be
+> > used only when it goes to low power mode next time.
+****
+
+OK, I will add more detail in next ver.
+
+> 
+> Even better, if this part is really unnecessary, which by your patch
+> you seem to imply, you should send a separate patch removing it with a
+> good description.
+> 
+> Kevin
+
+I think, it will be good if the changes are in same patch, with some more
+good explanation.
+
+Regards
+Lesly A M
+
+> 
+> [1] http://marc.info/?l=linux-omap&m=127249508726287&w=2
+
