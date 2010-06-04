@@ -1,92 +1,48 @@
-From: Neil Brown <neilb@suse.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: suspend blockers & Android integration
-Date: Fri, 4 Jun 2010 14:38:26 +1000
-Message-ID: <20100604143826.2de9b0e8@notabene.brown>
-References: <20100603193045.GA7188@elte.hu>
-	<20100603231153.GA11302@elte.hu>
+Date: Thu, 3 Jun 2010 21:46:01 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.1006032141060.8175@i5.linux-foundation.org>
+References: <20100603193045.GA7188@elte.hu> <20100603231153.GA11302@elte.hu>
 	<20100603232302.GA16184@elte.hu>
+	<alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
+	<20100603234634.GA21831@elte.hu>
+	<alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
+	<alpine.LFD.2.00.1006031917500.8175@i5.linux-foundation.org>
+	<20100603204521.09808a7f@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100603232302.GA16184@elte.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: tytso@mit.edu, Brian Swetland <swetland@google.com>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20100603204521.09808a7f@infradead.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Florian Mickler <florian@mickler.org>, Neil Brown <neilb@suse.de>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 4 Jun 2010 01:23:02 +0200
-Ingo Molnar <mingo@elte.hu> wrote:
 
-> Btw., i'd like to summarize the scheduler based suspend scheme proposed by 
-> Thomas Gleixner, Peter Zijlstra and myself. I found no good summary of it in 
-> the big thread, and there are also new elements of the proposal:
 
-Hi
- I would like to summarise the alternate proposal that I an others have
- suggested in a variety of different forms.
+On Thu, 3 Jun 2010, Arjan van de Ven wrote:
+> 
+> And because there's then no power saving (but a performance cost), it's
+> actually a negative for battery life/total energy.
 
- It starts from the premise that
- 1/ Android developers actually like the "big hammer" aspect of suspend.
-   Initiating suspend powers down some devices, puts others in low power
-   states, freezes all processes and generally puts the device to sleep
-   with a well defined and easily controlled (at the whole-of-system level)
-   set of events that will wake from suspend.  This is a big part of the
-   Android approach to power-saving and I'm guessing they are not keen to
-   depart from it.
+Including the UP optimizations we do (ie lock prefix removal)? It's 
+possible that I'm just biased by benchmarks, and it's true that Intel has 
+been getting lots better, but the locking costs are very noticeable 
+performance-wise on some benchmarks.
 
- 2/ The main problem with using suspend as-is is that it is racy.
-   The purpose of suspend is to put the device to sleep until a wake-event
-   occurs.  When that wake-event occurs at much the same time that suspend is
-   requested races can occur.  We want a wake-event to not only wake the
-   device, to be keep the device awake while the wake-event is being handled,
-   and to cancel any suspend that was initiated before the wake event
-   completed.
-   We need to understand "wake event" in an holistic sense.  If a key press is
-   expected to brighten the screen and make a glyph appear, and if that key
-   press is considered to be a wake-event, then the glyph appearing must also
-   be a part of the wake event.  For such a holistic wake-event to fully
-   block/cancel a suspend there much be some mechanism for hand-over of
-   wake-events from kernel-space to user-space.
+And several CPU's have been held back from going into deepest sleep states 
+by stupid firmware and/or platform bugs.
 
-  Given those premises, google's suspend-blocker approach was to allow a
-  kernel thread to initiate suspend whenever nothing was stopping it, and to
-  allow both drivers and user processes to block that suspend while handling
-  a wake event (or anything else that needed to keep the device awake).
-  In this case the hand-over is fairly straight forward as the kernel thread
-  as full knowledge and can easily wait for all sorts of things.
+But hey, if it's not going to help, and people have tried it, I guess I'll 
+have to believe it.
 
-  The alternate proposal is simply to have user-space initiate a suspend (as
-  is already possible), user-space processes can then trivially block that
-  suspend through any of a number of IPC approaches, and kernel space drivers
-  can block/abort suspend by explicitly requesting a block.
-
-  The variety of alternate proposals comes from a variety of ways to modify
-  the semantics of "ask for a suspend" in such a way that userspace can
-  discover when there are kernel-space blocks, and can wait for them to be
-  released without spinning.
-
-  A sample modification (which I think is different to all the ones
-  mentioned so far, and hopefully pulls out the best of them all) is
-  to allow userspace to write e.g. "mem_safe" rather than "mem" to
-  /sys/power/state.  The 'safe' implies it is safe from races.
-
-  When this is written, the process sleeps in an interruptible state until
-  all in-kernel suspend blocks have been dropped.  If any such suspend blocks
-  were found, or if a signal is received, the request aborts.  Only if there
-  were no suspend blocks and no pending signals does the suspend progress.
-
-  wake-events in the kernel then need to be tracked all the way to user-space,
-  and the in-kernel lock is only dropped when the event is consumed by
-  user-space.  User-space must take some sort of lock to ensure no new
-  suspend is requested before consuming any wake-events from the kernel.
-
-  I believe this is very close to what android has today, only with a much
-  smaller change to the user-space interface, which I believe to be the thing
-  that has been found most objectionable.
-  I does still require a degree of event-tracking within the kernel which
-  might still be objectionable - I'm not so sure about different people's
-  positions on that.
-
-Thanks,
-NeilBrown
+		Linus
