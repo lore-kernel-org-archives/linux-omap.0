@@ -1,99 +1,93 @@
-From: "Lesly Arackal Manuel" <leslyam@ti.com>
-Subject: RE: [PATCH v6 2/7] omap3: pm: Using separate clk/volt setup_time for RET and OFF states
-Date: Fri, 4 Jun 2010 13:04:34 +0530
-Message-ID: <007401cb03b8$60f0ca10$e08818ac@apr.dhcp.ti.com>
-References: <1274186051-23871-1-git-send-email-leslyam@ti.com> <87eigovwu8.fsf@deeprootsystems.com>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: suspend blockers & Android integration
+Date: Fri, 4 Jun 2010 00:37:48 -0700
+Message-ID: <AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
+References: <20100603193045.GA7188@elte.hu>
+	<20100603231153.GA11302@elte.hu>
+	<20100603232302.GA16184@elte.hu>
+	<AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
+	<20100604071354.GA14451@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37409 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752510Ab0FDHem (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jun 2010 03:34:42 -0400
-In-Reply-To: <87eigovwu8.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100604071354.GA14451@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: 'Kevin Hilman' <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
+
+On Fri, Jun 4, 2010 at 12:13 AM, Ingo Molnar <mingo@elte.hu> wrote:
+>
+> * Arve Hj?nnev?g <arve@android.com> wrote:
+>
+>> On Thu, Jun 3, 2010 at 4:23 PM, Ingo Molnar <mingo@elte.hu> wrote:
+>> ...
+>> > ?- Controlled auto-suspend: drivers (such as input) could on wakeu=
+p
+>> > ? automatically set the 'minimum wakeup latency' value of wakee ta=
+sks to a
+>> > ? lower value. This automatically prevents another auto-suspend in=
+ the near
+>> > ? future: up to the point the wakee task increases its latency (vi=
+a the
+>> > ? scheduler syscall) again and allows suspend again.
+>> >
+>>
+>> How do you clear the latency value in a safe way? If another wakeup =
+event
+>> happens right after your wakee task is done processing the last even=
+t and
+>> decides to increase its latency, auto suspend will be allowed even t=
+hough
+>> you have an unprocessed wakeup event. Also how do you know which tas=
+k will
+>> read the event if it is not already waiting for it?
+>
+> The easiest solution would be to not do any of that initially. (If it=
+'s ever a
+> concern we could subtract/add without destroying the nesting property=
+)
+>
+> Why do you need to track input wakeups? It's rather fragile and rathe=
+r
+
+Because we have keys that should always turn the screen on, but the
+problem is not specific to input events. If we enabled a wakeup event
+it usually means we need this event to always work, not just when the
+system is fully awake or fully suspended.
+
+> unnecessary - the idle drivers know it very well how to not go into t=
+he
+> deepest idle mode already today. We wont hit C8 on laptops when you a=
+re using
+> the desktop.
+>
+
+The whole point allow the use of suspend.
+
+>> > ? This means there will be no surprise suspends for a task that ma=
+y take a
+>> > ? bit longer than usual to finish its work. [ Detail: this would o=
+nly be done
+>> > ? for tasks that have a non-default (non-infinity) task->latency v=
+alue - to
+>> > ? prevent the input driver from lowering latency values (and preve=
+nting
+>> > ? future suspends) just because some unaware apps are running and =
+using input
+>> > ? drivers. ]
+>>
+>> Don't you need two inifinity values for this?
+>
+> Yes - any value above the max idle latency in the system will do.
+>
+> Thanks,
+>
+> =A0 =A0 =A0 =A0Ingo
+>
 
 
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, June 03, 2010 11:10 PM
-> To: Lesly A M
-> Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
-> Samuel Ortiz
-> Subject: Re: [PATCH v6 2/7] omap3: pm: Using separate clk/volt setup_time
-> for RET and OFF states
-> 
-> Lesly A M <leslyam@ti.com> writes:
-> 
-> > This patch will have the changes to use separate clk/volt setup_time
-> > for RET and OFF state.
-> >
-> > Create separate copies of VC parameters for each Si in voltage.c.
-> > Updates the VC setuptime struct during init based on the OMAP Si.
-> > Removes the VC setuptime struct from board files.
-> >
-> > Signed-off-by: Lesly A M <x0080970@ti.com>
-> > Cc: Nishanth Menon <nm@ti.com>
-> > Cc: David Derrick <dderrick@ti.com>
-> > Cc: Samuel Ortiz <sameo@linux.intel.com>
-> 
-> OK, so you addressed one of my comments from the previous review[1],
-> but didn't address the others, so they have re-appeared in this
-> series, only in different patches this time. :(
-> 
-
-Sorry, I missed the comment...
-
-> 
-> > diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-
-> omap2/voltage.h
-> > index c6445c5..cc2b355 100644
-> > --- a/arch/arm/mach-omap2/voltage.h
-> > +++ b/arch/arm/mach-omap2/voltage.h
-> > @@ -14,6 +14,31 @@
-> >  #define VDD1	0
-> >  #define VDD2	1
-> >
-> > +struct setuptime_vc{
-> > +	u16 clksetup;
-> > +	u16 voltsetup1_vdd1;
-> > +	u16 voltsetup1_vdd2;
-> > +	u16 voltsetup2;
-> > +	u16 voltoffset;
-> > +};
-> > +
-> > +struct prm_setup_vc {
-> > +/* CLK & VOLT SETUPTIME for RET */
-> > +	struct setuptime_vc ret;
-> > +/* CLK & VOLT SETUPTIME for OFF */
-> > +	struct setuptime_vc off;
-> > +/* PRM_VC_CMD_VAL_0 specific bits */
-> > +	u16 vdd0_on;
-> > +	u16 vdd0_onlp;
-> > +	u16 vdd0_ret;
-> > +	u16 vdd0_off;
-> > +/* PRM_VC_CMD_VAL_1 specific bits */
-> > +	u16 vdd1_on;
-> > +	u16 vdd1_onlp;
-> > +	u16 vdd1_ret;
-> > +	u16 vdd1_off;
-> > +};
-> > +
-> 
-> Copy-paste from previous review[1]:
-> 
-> Minor nit (and not your fault since you inherited it):
-> 
-> Please indent the comments to the same level as the code.
-> 
-> Kevin
-> 
-> 
-> [1] http://marc.info/?l=linux-omap&m=127249508726287&w=2
-
+--=20
+Arve Hj=F8nnev=E5g
