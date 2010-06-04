@@ -1,40 +1,75 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Florian Mickler <florian@mickler.org>
 Subject: Re: suspend blockers & Android integration
-Date: Fri, 4 Jun 2010 10:50:26 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006041042410.1794-100000@iolanthe.rowland.org>
-References: <20100604003934.GA5221@elte.hu>
+Date: Fri, 4 Jun 2010 17:07:38 +0200
+Message-ID: <20100604170738.75c7436e@schatten.dmk.lab>
+References: <20100603193045.GA7188@elte.hu>
+	<AANLkTinsOF3wnxsruR0TvjBAQcHks4tf0ay_sM2xB_p4@mail.gmail.com>
+	<20100604075722.GA15181@elte.hu>
+	<AANLkTiksGnpL8tkcc5eScWHrGoijyZNUwZik5lXmU_TS@mail.gmail.com>
+	<20100604085513.GE15181@elte.hu>
+	<AANLkTinphtxn-8pGTYv_mBxKFMa7jU8i1yNbHrs50Vzl@mail.gmail.com>
+	<20100604095917.GA3324@elte.hu>
+	<1275661446.4455.33.camel@mulgrave.site>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:57003 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756119Ab0FDOu1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 10:50:27 -0400
-In-Reply-To: <20100604003934.GA5221@elte.hu>
+Received: from ist.d-labs.de ([213.239.218.44]:53835 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932163Ab0FDPHy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 11:07:54 -0400
+In-Reply-To: <1275661446.4455.33.camel@mulgrave.site>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>, Brian Swetland <swetland@google.com>, tytso@mit.edu, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-On Fri, 4 Jun 2010, Ingo Molnar wrote:
+On Fri, 04 Jun 2010 09:24:06 -0500
+James Bottomley <James.Bottomley@suse.de> wrote:
 
-> Note that this does not necessarily have to be implemented as 'execute suspend 
-> from the idle task' code: scheduling from the idle task, while can certainly 
-> be made to work, is a somewhat recursive concept that we might want to avoid 
-> for robustness reasons.
-> 
-> Instead, the 'deepest idle' (suspend) method could consist of a wakeup of a 
-> kernel thread (or of any of the existing kernel threads such as the migration 
-> thread) - which kernel thread then does a race-free suspend: it offlines all 
-> but one CPU [on platforms that need that] and then initiates the suspend - but 
-> aborts the attempt if there's any sign of wakeup activity.
+> On Fri, 2010-06-04 at 11:59 +0200, Ingo Molnar wrote:
+> > Anyway, i'm not pessimistic at all: _some_ sort of scheme appears t=
+o be=20
+> > crystalising out today. Everyone seems to agree now that the main u=
+secases are=20
+> > indeed useful and need handling one way or another - the rest is re=
+ally just=20
+> > technological discussions how to achieve the mostly-agreed-upon end=
+ goal.
+>=20
+> It's still not clear to me whether everyone's revolving around to usi=
+ng
+> the current suspend block API because it's orthogonal to all other
+> mechanisms and is therefore separate from the kernel (and can be
+> compiled out if you don't want it).  Or whether re-expressing what th=
+e
+> android drivers want (minimum idle states and suspend block) in pm_qo=
+s
+> terms which others can use is the way to go.  I think the latter, but
+> I'd like to know what other people think (because I'm not wedded to t=
+his
+> preference).
 
-Out of morbid curiosity...  A typical sign of wakeup activity is a
-thread becoming runnable because of expiration of a kernel timer or an
-I/O completion interrupt.  How would the "race-free suspend" thread
-detect this sort of thing?  Indeed, isn't the inability to detect these 
-part of what makes the existing suspend implementation (the freezer in 
-particular) not race-free?
+I'd like to know that also.=20
+I have a patch to add=A0pm_qos_add_request_nonblock function, so it is
+possible to register an pm_qos constraint by passing preallocated
+memory to it.=20
 
-Alan Stern
+Notifying should be possible to do from atomic contexts via
+async_schedule()?
 
+The scalability issues of pm_qos can be adressed by using plists for
+all pm_qos_class'es. Or by having the different pm_qos_class'es provide
+their own implementations for the update and get operations.=20
+
+Cheers,
+=46lo
+
+>=20
+> James
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
