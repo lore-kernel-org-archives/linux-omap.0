@@ -1,137 +1,92 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+From: Neil Brown <neilb@suse.de>
 Subject: Re: suspend blockers & Android integration
-Date: Thu, 3 Jun 2010 20:45:59 -0700
-Message-ID: <AANLkTinVAhy_PtGfmD4yZByaloFGjpw-lgBL7k11sqi6@mail.gmail.com>
+Date: Fri, 4 Jun 2010 14:38:26 +1000
+Message-ID: <20100604143826.2de9b0e8@notabene.brown>
 References: <20100603193045.GA7188@elte.hu>
 	<20100603231153.GA11302@elte.hu>
 	<20100603232302.GA16184@elte.hu>
-	<alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
-	<20100603234634.GA21831@elte.hu>
-	<alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
+In-Reply-To: <20100603232302.GA16184@elte.hu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: tytso@mit.edu, Brian Swetland <swetland@google.com>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 3, 2010 at 7:16 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
->
-> On Fri, 4 Jun 2010, Ingo Molnar wrote:
->>
->> What you say is absolutely true, hence this would be driven via sche=
-d_tick() +
->> TIF notifiers - i.e. only ever treat user-mode tasks as 'idle-able'.=
- This can
->> be done with no overhead to the regular fastpaths.
->>
->> The TIF notifier would be the one scheduling to idle - and would thu=
-s do it
->> only to user-mode tasks.
->
-> The thing is, unless there is some _really_ deep other reason to do
-> something like this, I still think it's total overdesign to push any
-> knowledge/choices like this into the scheduler. I'd rather keep thing=
-s way
-> more independent, less tied to each other and to deep kernel subsyste=
-ms.
->
-> IOW, my personal opinion is that somethng like a suspend (blocker or =
-not)
-> decision simply shouldn't be important enough to be tied into the
-> scheduler. Especially not if it could just be its own layer.
->
-> That said, as far as I know, the Android people have mostly been look=
-ing
-> at the suspend angle from a single-core standpoint. And I'm not at al=
-l
-> convinced that they should hijack the existing "/sys/power/state" thi=
-ng
-> which is what I think they do now.
->
+On Fri, 4 Jun 2010 01:23:02 +0200
+Ingo Molnar <mingo@elte.hu> wrote:
 
-While it is true that we have not used this code on a multi core
-system yet, I'm not sure why multiple cores codes would affect it. We
-annotate that works needs to be done before it is safe to suspend, but
-we don't care which core does the work (or if multiple cores do pieces
-of it).
+> Btw., i'd like to summarize the scheduler based suspend scheme proposed by 
+> Thomas Gleixner, Peter Zijlstra and myself. I found no good summary of it in 
+> the big thread, and there are also new elements of the proposal:
 
-> And those two things go together. The /sys/power/state thing is a glo=
-bal
-> suspend - which I don't think is appropriate for a opportunistic thin=
-g in
-> the first place, especially for multi-core.
->
-> A well-designed opportunistic suspend should be a two-phase thing: an
-> opportunistc CPU hotunplug (shutting down cores one by one as the sys=
-tem
-> is idle), and not a "global" event in the first place. And only when
-> you've reached single-core state should you then say "do I suspend th=
-e
-> system too".
->
+Hi
+ I would like to summarise the alternate proposal that I an others have
+ suggested in a variety of different forms.
 
-This seems to fit better into the cpuidle and/or frequency scaling fram=
-ework.
+ It starts from the premise that
+ 1/ Android developers actually like the "big hammer" aspect of suspend.
+   Initiating suspend powers down some devices, puts others in low power
+   states, freezes all processes and generally puts the device to sleep
+   with a well defined and easily controlled (at the whole-of-system level)
+   set of events that will wake from suspend.  This is a big part of the
+   Android approach to power-saving and I'm guessing they are not keen to
+   depart from it.
 
-> So I've tried to look a bit at the patches, and my admittedly rough
-> comments so far is
->
-> =A0- I really do prefer the "off to the side" approach that the curre=
-nt
-> =A0 google opportunistic suspend patches have. As mentioned, I don't =
-think
-> =A0 this should be deep in the scheduler. Not at all.
->
-> =A0- I do think there are possibly races and CPU idle issues there, b=
-ut I
-> =A0 think they are mainly for the multi-core thing. And I think that'=
-s a
-> =A0 totally separate issue. Or it _should_ be.
->
+ 2/ The main problem with using suspend as-is is that it is racy.
+   The purpose of suspend is to put the device to sleep until a wake-event
+   occurs.  When that wake-event occurs at much the same time that suspend is
+   requested races can occur.  We want a wake-event to not only wake the
+   device, to be keep the device awake while the wake-event is being handled,
+   and to cancel any suspend that was initiated before the wake event
+   completed.
+   We need to understand "wake event" in an holistic sense.  If a key press is
+   expected to brighten the screen and make a glyph appear, and if that key
+   press is considered to be a wake-event, then the glyph appearing must also
+   be a part of the wake event.  For such a holistic wake-event to fully
+   block/cancel a suspend there much be some mechanism for hand-over of
+   wake-events from kernel-space to user-space.
 
-I'm not aware of any races with multi-core systems unless there are
-existing problems in suspend. We check if any suspend blockers are
-active after disable_nonboot_cpus() has returned.
+  Given those premises, google's suspend-blocker approach was to allow a
+  kernel thread to initiate suspend whenever nothing was stopping it, and to
+  allow both drivers and user processes to block that suspend while handling
+  a wake event (or anything else that needed to keep the device awake).
+  In this case the hand-over is fairly straight forward as the kernel thread
+  as full knowledge and can easily wait for all sorts of things.
 
-> =A0- once you're single-core (whether because you never had more core=
-s to
-> =A0 begin with, or because the "opportunistic CPU offlining" has take=
-n down
-> =A0 the other cores), I think the suspend-blocker is fine as a concep=
-t, and
-> =A0 certainly shouldn't need any deep scheduler hooks.
->
-> so I'd like to see the opportunistc suspend thing think about CPU
-> offlining,
+  The alternate proposal is simply to have user-space initiate a suspend (as
+  is already possible), user-space processes can then trivially block that
+  suspend through any of a number of IPC approaches, and kernel space drivers
+  can block/abort suspend by explicitly requesting a block.
 
-I see this as a separate problem. We ignore a single busy CPU for
-opportunistic suspend, so why should the number of online CPUs matter?
+  The variety of alternate proposals comes from a variety of ways to modify
+  the semantics of "ask for a suspend" in such a way that userspace can
+  discover when there are kernel-space blocks, and can wait for them to be
+  released without spinning.
 
-> and I'd like to see it disconnect from the existing
-> /sys/power/state.
+  A sample modification (which I think is different to all the ones
+  mentioned so far, and hopefully pulls out the best of them all) is
+  to allow userspace to write e.g. "mem_safe" rather than "mem" to
+  /sys/power/state.  The 'safe' implies it is safe from races.
 
-The entry point is not important to us. The current interface is what
-Rafael wanted instead of the /sys/power/request-state interface which
-is what we changed it to last year.
+  When this is written, the process sleeps in an interruptible state until
+  all in-kernel suspend blocks have been dropped.  If any such suspend blocks
+  were found, or if a signal is received, the request aborts.  Only if there
+  were no suspend blocks and no pending signals does the suspend progress.
 
-> And I'd really not like to involved deep internal kernel
-> hooks into it.
->
-> But I'll also admit that maybe I'm not seeing some problems. I've fra=
-nkly
-> tried to avoid the whole discussion until Andrew pulled me in yesterd=
-ay.
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Linus
->
+  wake-events in the kernel then need to be tracked all the way to user-space,
+  and the in-kernel lock is only dropped when the event is consumed by
+  user-space.  User-space must take some sort of lock to ensure no new
+  suspend is requested before consuming any wake-events from the kernel.
 
+  I believe this is very close to what android has today, only with a much
+  smaller change to the user-space interface, which I believe to be the thing
+  that has been found most objectionable.
+  I does still require a degree of event-tracking within the kernel which
+  might still be objectionable - I'm not so sure about different people's
+  positions on that.
 
-
---=20
-Arve Hj=F8nnev=E5g
+Thanks,
+NeilBrown
