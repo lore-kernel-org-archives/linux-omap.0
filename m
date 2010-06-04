@@ -1,51 +1,146 @@
-From: "Lesly Arackal Manuel" <leslyam@ti.com>
-Subject: RE: [PATCH v6 4/7] omap3: pm: changing vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure
-Date: Fri, 4 Jun 2010 13:25:46 +0530
-Message-ID: <007601cb03bb$573cef50$e08818ac@apr.dhcp.ti.com>
-References: <1274186139-23960-1-git-send-email-leslyam@ti.com> <87r5koui2k.fsf@deeprootsystems.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: suspend blockers & Android integration
+Date: Fri, 4 Jun 2010 09:57:22 +0200
+Message-ID: <20100604075722.GA15181@elte.hu>
+References: <20100603193045.GA7188@elte.hu>
+ <AANLkTinsOF3wnxsruR0TvjBAQcHks4tf0ay_sM2xB_p4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55093 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752149Ab0FDHzz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 03:55:55 -0400
-In-Reply-To: <87r5koui2k.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTinsOF3wnxsruR0TvjBAQcHks4tf0ay_sM2xB_p4@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Swetland <swetland@google.com>
+Cc: tytso@mit.edu, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>
 List-Id: linux-omap@vger.kernel.org
-To: 'Kevin Hilman' <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
 
-Hi Kevin,
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, June 03, 2010 11:15 PM
-> To: Lesly A M
-> Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
-> Samuel Ortiz
-> Subject: Re: [PATCH v6 4/7] omap3: pm: changing vdd0_/vdd1_ to vdd1_/vdd2_
-> in VC param structure
-> 
-> Lesly A M <leslyam@ti.com> writes:
-> 
-> > Rename vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure.
-> 
-> That answers "what?", but not "why?"
-> 
-> Yes, I know the answer right now, but I forget things often.
-> 
-> Please help ease the pain of my forgetfullness by writing a
-> descriptive changelog so when I or anyone else looks at this in the
-> git history, they will be able to understand.
-> 
-> Kevin
+* Brian Swetland <swetland@google.com> wrote:
 
-Actually there is no VDD0, its VDD1 & VDD2. So the renaming is done just to
-avoid the confusion.
+> On Thu, Jun 3, 2010 at 12:30 PM, Ingo Molnar <mingo@elte.hu> wrote:
+> >
+> > Sadly the response from the Android team has been 100% uncompromising: either
+> > suspend blockers or nothing.
+> 
+> Well, we're willing to accept something that gives us the same
+> functionality (thus rewriting the api several times to meet various
+> objections, current discussions around
+> constraint-based-implementations / pm-qos, etc).  We believe we're
+> solving a real problem here and have not seen a counter-proposal that
+> accomplishes the same.
+>
+> Suggestions such as "just yell at developers for writing bad apps" or
+> "it's the user's fault if they install a lousy app" or "make your app
+> marketplace more restrictive" are not helpful. [...]
 
-Regards,
-Lesly A M
+Agreed.
 
+> [...]  The technical discussions around alternatives are more so (though I 
+> do feel like we're going in circles in places), [...]
+
+Yep.
+
+> [...] which again is why we're still here talking about this (that and Arve 
+> is about a billion times more patient and persistent than I am).
+> 
+> We're not interested in massively rearchitecting our userspace to accomplish 
+> this (and the "rewrite your userspace!" proposals I've seen have had race 
+> conditions and/or significant more complexity than the wakelock model).
+
+Having a somewhat different ABI for achieving things you'll probably have 
+prepare for. I doubt it would result in any large-scale, massive rewrites.
+
+> ...
+> 
+> > Also, why did the Android team start its contributions with such a 
+> > difficult and controversial kernel feature?
+> 
+> We started here because it's possibly the only api level change we have -- 
+> almost everything else is driver or subarch type work or controversial but 
+> entirely self-contained (like the binder, which I would be shocked to see 
+> ever hit mainline). [...]
+
+So why arent those bits mainline? It's a 1000 times easier to get drivers and 
+small improvements and non-ABI changes upstream.
+
+After basically two years of growing your fork (and some attempts to get your 
+drivers into drivers/staging/ - from where they have meanwhile dropped out 
+again) you re-started with the worst possible thing to merge: a big and 
+difficult kernel feature affecting many subsystems. Why?
+
+This is one of the fundamental problems here. People simply dont know you, 
+because you have not worked with us much - and hence they dont trust you 
+positively out of box - they are neutral at best.
+
+And believe me, it's hard enough to get difficult features upstream if people 
+_do_ know you and when they positively _do_ trust you ... Arent you talking to 
+Andrew Morton about how to do these things properly? This is kernel 
+contribution 101 really.
+
+> [...]  Assertions have been made that because the "android kernel" (not a 
+> term I like -- linux is linux, we have some assorted patches on top) [...]
+
+I've been tracking android-common and android-msm for a while and i have to 
+say that it shows a very lackluster attitude towards upstream:
+
+ - The latest branches i can see are v2.6.32 based today. We are in the
+   v2.6.35 stabilization cycle and are developing v2.6.36. I.e. your upstream
+   base is about a year too old.
+
+ - The last commit is a couple of weeks old AFAICS.
+
+ - The diffstat of android-common/android-2.6.32 is:
+
+      890 files changed, 39962 insertions(+), 6286 deletions(-)
+
+   Those assorted patches have spread over nearly a thousand files. FYI, by
+   the looks of it you are facing an exponentially worsening maintenance
+   overhead curve here.
+
+Is there perhaps some other tree i should be following? I'm looking at:
+
+ [remote "android-msm"]
+         url = git://android.git.kernel.org/kernel/msm.git
+         fetch = +refs/heads/*:refs/remotes/android-msm/*
+ [remote "android-common"]
+         url = git://android.git.kernel.org/kernel/common.git
+         fetch = +refs/heads/*:refs/remotes/android-common/*
+
+Btw., the commits i've glanced at looked mostly clean and well structured, so 
+i see no fundamental reason why this couldn't be done better.
+
+> See: http://www.kroah.com/log/linux/android-kernel-problems.html and various 
+> other rants about the evil terrible android forks, etc.
+> 
+> So, we figure, let's sort out the hard problem first and then move on with 
+> our lives.
+
+Well, my suggestion would be to first build up a path towards upstream, build 
+up trust, reduce your very high cross section to mainline - and do the most 
+difficult bits last.
+
+Especially 'move on with our lives' suggests that you just want to get rid of 
+this ABI divergence and continue-as-usual with the pattern of non-cooperation, 
+hm?
+
+> > There is absolutely _zero_ technical reason why the Android team should 
+> > present this as as an all-or-nothing effort. Why not merge hw drivers 
+> > first (with suspend blockers commented or stubbed out), to reduce the fork 
+> > distance?
+> 
+> If that's the case then there is no problem and people could stop yelling at 
+> us and just submit their drivers.  Awesome.
+> 
+> I can't speak for all the nameless silicon vendors Greg represents, that we 
+> apparently are preventing from doing this (how? I don't know!), etc, but for 
+> my team maintaining multiple versions of drivers is a headache, we'd rather 
+> square away the wakelock debate first and figure something out there, as it 
+> just seems like a more logical approach.  Maybe we're crazy.
+
+It's not crazy, it's just IMHO inefficient and very difficult to do it like 
+that. And you arent the first one to try it like that (people _always_ 
+gravitate towards coming with their most difficult patches first - because 
+they are very often the most useful patches) - it's a non-trivial learning 
+curve IMHO.
+
+	Ingo
