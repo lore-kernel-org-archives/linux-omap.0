@@ -1,16 +1,17 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: suspend blockers & Android integration
-Date: Thu, 3 Jun 2010 19:16:55 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
+Date: Thu, 3 Jun 2010 19:26:50 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.1006031917500.8175@i5.linux-foundation.org>
 References: <20100603193045.GA7188@elte.hu> <20100603231153.GA11302@elte.hu>
 	<20100603232302.GA16184@elte.hu>
 	<alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
 	<20100603234634.GA21831@elte.hu>
+	<alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20100603234634.GA21831@elte.hu>
+In-Reply-To: <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
 List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
@@ -26,61 +27,38 @@ List-Id: linux-omap@vger.kernel.org
 
 
 
-On Fri, 4 Jun 2010, Ingo Molnar wrote:
+On Thu, 3 Jun 2010, Linus Torvalds wrote:
 > 
-> What you say is absolutely true, hence this would be driven via sched_tick() + 
-> TIF notifiers - i.e. only ever treat user-mode tasks as 'idle-able'. This can 
-> be done with no overhead to the regular fastpaths.
-> 
-> The TIF notifier would be the one scheduling to idle - and would thus do it 
-> only to user-mode tasks.
+> so I'd like to see the opportunistc suspend thing think about CPU 
+> offlining
 
-The thing is, unless there is some _really_ deep other reason to do 
-something like this, I still think it's total overdesign to push any 
-knowledge/choices like this into the scheduler. I'd rather keep things way 
-more independent, less tied to each other and to deep kernel subsystems.
+Side note: one reason for me being somewhat interested in the CPU 
+offlining is that I think the Android kind of opportunistic suspend is 
+_not_ likely something I'd like to see on a desktop. But an the 
+"opportunistic CPU offliner"? That might _well_ be useful even outside of 
+any other suspend activity.
 
-IOW, my personal opinion is that somethng like a suspend (blocker or not) 
-decision simply shouldn't be important enough to be tied into the 
-scheduler. Especially not if it could just be its own layer.
+If the system is idle (or almost idle) for long times, I would heartily 
+recommend actively shutting down unused cores. Some CPU's are hopefully 
+smart enough to not even need that kind of software management, but I 
+suspect even the really smart ones might be able to take advantage of the 
+kernel saying: "I'm shutting you down, you don't have to worry about 
+latency AT ALL, because I'm keeping another CPU active to do any real 
+work".
 
-That said, as far as I know, the Android people have mostly been looking 
-at the suspend angle from a single-core standpoint. And I'm not at all 
-convinced that they should hijack the existing "/sys/power/state" thing 
-which is what I think they do now.
+I'd also be interested to see if it could even improve single-thread 
+performance if we end up doing the whole SMP->UP "lock" prefix rewriting 
+when the system is idle enough that we'd be better off running just a 
+single core. I dunno - just throwing that out there.
 
-And those two things go together. The /sys/power/state thing is a global 
-suspend - which I don't think is appropriate for a opportunistic thing in 
-the first place, especially for multi-core.
+Anyway, the only reason I think this is related is literally because I 
+think that if we know there is only a single CPU active, I think the 
+actual "real" opportunistic suspend is easier. Suddenly you don't have to 
+worry about what happens on other run-queues etc, and whether another CPU 
+is just about to create a suspend block etc.
 
-A well-designed opportunistic suspend should be a two-phase thing: an 
-opportunistc CPU hotunplug (shutting down cores one by one as the system 
-is idle), and not a "global" event in the first place. And only when 
-you've reached single-core state should you then say "do I suspend the 
-system too".
-
-So I've tried to look a bit at the patches, and my admittedly rough 
-comments so far is
-
- - I really do prefer the "off to the side" approach that the current 
-   google opportunistic suspend patches have. As mentioned, I don't think 
-   this should be deep in the scheduler. Not at all.
-
- - I do think there are possibly races and CPU idle issues there, but I 
-   think they are mainly for the multi-core thing. And I think that's a 
-   totally separate issue. Or it _should_ be.
-
- - once you're single-core (whether because you never had more cores to 
-   begin with, or because the "opportunistic CPU offlining" has taken down 
-   the other cores), I think the suspend-blocker is fine as a concept, and 
-   certainly shouldn't need any deep scheduler hooks.
-
-so I'd like to see the opportunistc suspend thing think about CPU 
-offlining, and I'd like to see it disconnect from the existing 
-/sys/power/state. And I'd really not like to involved deep internal kernel 
-hooks into it.
-
-But I'll also admit that maybe I'm not seeing some problems. I've frankly 
-tried to avoid the whole discussion until Andrew pulled me in yesterday.
+So I think they tie together, although it's mostly tangential. And as 
+mentioned, I think a opportunistic CPU suspend part is more relevant 
+outside of Android, and thus perhaps more widely interesting.
 
 			Linus
