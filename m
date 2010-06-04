@@ -1,44 +1,118 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: suspend blockers & Android integration
-Date: Fri, 04 Jun 2010 12:42:26 +0200
-Message-ID: <8739x3xenh.fsf@basil.nowhere.org>
-References: <20100603193045.GA7188@elte.hu> <20100603231153.GA11302@elte.hu>
-	<20100603232302.GA16184@elte.hu>
-	<alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
-	<20100603234634.GA21831@elte.hu>
-	<alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
-	<alpine.LFD.2.00.1006031917500.8175@i5.linux-foundation.org>
-	<20100603204521.09808a7f@infradead.org>
-	<alpine.LFD.2.00.1006032141060.8175@i5.linux-foundation.org>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: Future of resource framework?
+Date: Fri, 4 Jun 2010 16:20:17 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03232DA80F@dbde02.ent.ti.com>
+References: <AANLkTilpHjef3xbxB9QN9bj6MFmJA1jMwVxNQyZQcSKy@mail.gmail.com>
+	<871vd5kxqg.fsf@deeprootsystems.com>
+	<AANLkTinSB0bIorWTwLuNhWC9g4oQArAhx-WdY-K-aadS@mail.gmail.com>,<87hbljisi1.fsf@deeprootsystems.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0321623820@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:55727 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895Ab0FDKm3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 06:42:29 -0400
-In-Reply-To: <alpine.LFD.2.00.1006032141060.8175@i5.linux-foundation.org> (Linus Torvalds's message of "Thu\, 3 Jun 2010 21\:46\:01 -0700 \(PDT\)")
+Received: from devils.ext.ti.com ([198.47.26.153]:33403 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753707Ab0FDKu1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 06:50:27 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0321623820@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Florian Mickler <florian@mickler.org>, Neil Brown <neilb@suse.de>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Chan <mike@android.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-Linus Torvalds <torvalds@linux-foundation.org> writes:
 
-> On Thu, 3 Jun 2010, Arjan van de Ven wrote:
->> 
->> And because there's then no power saving (but a performance cost), it's
->> actually a negative for battery life/total energy.
->
-> Including the UP optimizations we do (ie lock prefix removal)? It's 
 
-Those only help the kernel and most workloads do not do enough kernel
-execution for it to really matter, but spend most of their
-time in user space.
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>>Gadiyar, Anand
+>>Sent: Friday, June 04, 2010 8:32 AM
+>>To: Kevin Hilman; Mike Chan
+>>Cc: linux-omap@vger.kernel.org; Paul Walmsley
+>>Subject: RE: Future of resource framework?
+>>
+>>Kevin Hilman wrote:
+>>> Mike Chan <mike@android.com> writes:
+>>>
+>>> > On Fri, May 21, 2010 at 9:47 AM, Kevin Hilman
+>>> > <khilman@deeprootsystems.com> wrote:
+>>> >> Mike Chan <mike@android.com> writes:
+>>> >>
+>>> >>> I'm not sure if this has been discussed, yet but since it seems that
+>>> >>> the resource framework will not be making it upstream, I am curious
+>>> >>> what are the replacements under consideration. I am starting to see
+>>> >>> similar issues on other platforms (msm / tegra) so more generic
+>>> >>> (non-omap) solution might be something to consider.
+>>> >>
+>>> >> Hi Mike,
+>>> >>
+>>> >> Which parts of the SRF do you currently use and find useful?  It would
+>>> >> be helpful for us to to understand the parts you see as useful and
+>>> >> potentially helpful to generalize.
+>>> >>
+>>> >
+>>> > Off the top of my head, for Droid specifically, OPP values are useful,
+>>> > although in theory if you changed OPP requests to cpu throughput that
+>>> > might give the equivalent functionality.
+>>> >
+>>> > Memory bus speeds / bandwidth, although its tied to CPU, which
+>>> > ultimately ends up in a cpu speed bump.
+>>> >
+>>> > Although most of the usage I've seen are just hacks, ie: the driver
+>>> > knows it needs 550mhz from the cpu so it will request some bogus
+>>> > value.
+>>> >
+>>> >
+>>> >> As you know, the current implementation has a several layers
+>>> >> and attempts to manage several things: OPPs, latencies etc.
+>>> >>
+>>> >> Our current plans are essentially to break up the "one framework to
+>>> >> rule them all" philosophy and design of SRF and manage the various
+>>> >> pieces by exending other layers such as the new OPP layer and voltage
+>>> >> layers.  Latencies are being managed by the omap_device layer and we
+>>> >> will hopefully have some discussions with the broader linux-pm
+>>> >> community about generalizing that more into the generic driver model
+>>> >> over this year.
+>>> >>
+>>> >
+>>> > Bus speed is a common resource I see for omap / msm / tegra. Clocks
+>>> > for devices also.
+>>> >
+>>> > ie: If I'm doing heavy mem operation and need max memory bus, I might
+>>> > need to request higher performance. (which might mean 600mhz on
+>>> > omap34030, on msm it might mean AXI clock running at 128mhz, and
+>>> > something else on tegra).
+>>> >
+>>> > Or if I'm doing graphics, I may need to up the gfx clock rate, or
+>>> > swich which pll its sourcing etc.. etc..
+>>> >
+>>> > It doesn't look like pm qos has bus support, or even clock support,
+>>> > and this gets tricky if you want something semi-general.
+>>>
+>>> What we're hoping to work towards (and has come up in the suspend
+>>> blocker related discussions) is moving towards a way to track
+>>> per-device (or per-subsystem) constraints like latency and throughput
+>>> in real world terms (usecs, bytes/sec, etc.) that would be general
+>>> way.
+>>>
+>>> These constraints would then be visible to the bus- or
+>>> platform-specific code that could make intelligent decisions with them
+>>> (i.e whether or not to raise/lower OPP or bus speed, or whether or not
+>>> to power down a powerdomain etc.)
+>>>
+>>
+>>
+>>What if a driver knows that it cannot afford to let the PM layer
+>>turn off the power domain at certain points of time (maybe as long
+>>as a USB cable is connected). How can this be specified in terms
+>>of a latency or throughput constraint?
+>>
+>>Just curious, since I don't understand current OMAP3 PM code
+>>as well as I would like to.
 
-Even if as kernel programmers we often have a different view, in most
-cases most cycles are in user space :)
+Latency should internally map to a power domain state for the power domain associated with the device. And the SRF/new replacement fmwk should take care of taking requests from all devices
+associated with a power domain and programming the power domain to hit the accepted low power
+state.
 
--Andi
--- 
-ak@linux.intel.com -- Speaking for myself only.
+Regards
+Thara
