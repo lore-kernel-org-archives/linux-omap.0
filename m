@@ -1,60 +1,80 @@
-From: Brian Swetland <swetland@google.com>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: suspend blockers & Android integration
-Date: Fri, 4 Jun 2010 02:08:03 -0700
-Message-ID: <AANLkTinphtxn-8pGTYv_mBxKFMa7jU8i1yNbHrs50Vzl@mail.gmail.com>
-References: <20100603193045.GA7188@elte.hu>
-	<AANLkTinsOF3wnxsruR0TvjBAQcHks4tf0ay_sM2xB_p4@mail.gmail.com>
-	<20100604075722.GA15181@elte.hu>
-	<AANLkTiksGnpL8tkcc5eScWHrGoijyZNUwZik5lXmU_TS@mail.gmail.com>
-	<20100604085513.GE15181@elte.hu>
+Date: Fri, 04 Jun 2010 11:43:39 +0200
+Message-ID: <1275644619.27810.39462.camel@twins>
+References: <20100603193045.GA7188@elte.hu> <20100603231153.GA11302@elte.hu>
+	 <20100603232302.GA16184@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:7206 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753933Ab0FDJIH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 05:08:07 -0400
-In-Reply-To: <20100604085513.GE15181@elte.hu>
+Received: from casper.infradead.org ([85.118.1.10]:35113 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755203Ab0FDJoW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 05:44:22 -0400
+In-Reply-To: <20100603232302.GA16184@elte.hu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ingo Molnar <mingo@elte.hu>
-Cc: tytso@mit.edu, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 
-On Fri, Jun 4, 2010 at 1:55 AM, Ingo Molnar <mingo@elte.hu> wrote:
-> * Brian Swetland <swetland@google.com> wrote:
->> > After basically two years of growing your fork (and some attempts to get
->> > your drivers into drivers/staging/ - from where they have meanwhile
->> > dropped out again) you re-started with the worst possible thing to merge:
->> > a big and difficult kernel feature affecting many subsystems. Why?
->>
->> Because a large number of our drivers depend on it.
+On Fri, 2010-06-04 at 01:23 +0200, Ingo Molnar wrote:
+> Btw., i'd like to summarize the scheduler based suspend scheme proposed by
+> Thomas Gleixner, Peter Zijlstra and myself. I found no good summary of it in
+> the big thread, and there are also new elements of the proposal:
+
+Just to clarify, my proposition doesn't go much further than treating
+'suspend' as a genuine idle state (on suitable hardware, which x86 isn't).
+
+> - Create a 'deep idle' mode that suspends. This, if all constraints
+>    are met, is triggered by the scheduler automatically: just like the other
+>    idle modes are triggered currently. This approach fixes the wakeup
+>    races because an incoming wakeup event will set need_resched() and
+>    abort the suspend.
 >
-> So why not put in some stub or so? Auto-suspend/suspend-blockers is a feature,
-> and drivers ought to be able to work without a feature as well. Keep the
-> suspend-blocker changes in the android tree initially, and get the main body
-> of changes out first, and establish a flow of timely changes. That reduces
-> your maintenance burden and increases trust for future changes - a win-win
-> situation.
 
-The impression I got from previous discussions was that upstream did
-not want things that were built conditionally around APIs that did not
-exist in mainline nor stub implementations for things that were not
-agreed upon.
+Right, so 'suspend' as idle seems (at least on UP/arm) a very sensible
+idea.  On SMP current suspend hot-unplugs all but the boot cpu, I'm not
+sure we need to do that, since if the system is genuinely idle, what races
+are there?
 
-We could easily either #if defined(CONFIG_SUSPEND_BLOCKERS) or submit
-a suspend_blockers.h that just makes everything a no-op, if that's an
-acceptable transition vehicle.  I didn't think either were an option
-open to us.
+And if its not idle...
 
-> In any case, this is not to suggest that the suspend-blocker bits are
-> 'impossible' to merge. I just say that if you start with your most difficult
-> feature you should not be surprised to be on the receiving end of a 1000+
-> mails flamewar on lkml ;-)
+>   ( This mode can even use the existing suspend code to bring stuff down,
+>      therefore it also solves the pending timer problem and works even on
+>      PC style x86. )
 
-Yeah, I do understand that we're not making it easy for ourselves
-here.  I think we hit the point where Rafael and Matthew signed off on
-things and thought "aha, linux-pm maintainers are happy, now we're
-getting somewhere" only to realize the light at the end of the tunnel
-was a bit further out than we anticipated ^^
+You cannot solve the pending timer issue from idle, unless you allow idle
+to stop clock_monotonic, which would change idle semantics, and that is not
+something I can say is a good idea.
 
-Brian
+You want all idle states to have the same semantics, otherwise things just
+get way too confusing.
+
+> - Solve crappy app confinement via the scheduler:
+>
+>    A first proposal was to use the existing cgroup mechanism,
+
+I still believe containment is a cgroup problem. The freeze/snapshot/resume
+container folks seem to face many of the same problems. Including the
+pending timer one I suspect. Lets solve it there.
+
+>  - Controlled auto-suspend: drivers (such as input) could on wakeup
+>    automatically set the 'minimum wakeup latency' value of wakee tasks to a
+>    lower value. This automatically prevents another auto-suspend in the near
+>    future: up to the point the wakee task increases its latency (via the
+>    scheduler syscall) again and allows suspend again.
+
+I think treating wakeups special like that is a mistake. I also think the
+kernel should never adjust a task's QoS attributes, the user set them in
+the expectation of them being respected.
+
+I'm not really sure about the interaction between wakeups and untrusted
+apps. It seems to me that an untrusted app needs a trusted intermediate
+anyway, that intermediate can be responsible for freezing/unfreezing of the
+untrusted app.
+
+So either the app asks for suspend blockers through the intermediate, or it's
+cgroup is managed by the intermediate -- should work out to the same end
+result, right?
+
