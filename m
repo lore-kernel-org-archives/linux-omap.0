@@ -1,99 +1,159 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling for
-	3630
-Date: Fri, 4 Jun 2010 19:38:56 +0530
-Message-ID: <AANLkTimRBs4cpfIyUMMMeU7xIFjhOK4I8W66RSk3oip4@mail.gmail.com>
-References: <53199.192.168.10.88.1275659023.squirrel@dbdmail.itg.ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03232DA919@dbde02.ent.ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [pm-wip/uart][PATCH 3/4] Serial: Avoid using hwmod lookup using
+      name string
+Date: Fri, 4 Jun 2010 19:48:32 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03232DA920@dbde02.ent.ti.com>
+References: <53451.192.168.10.88.1275659037.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f187.google.com ([209.85.211.187]:55915 "EHLO
-	mail-yw0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752375Ab0FDOQo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 10:16:44 -0400
-Received: by ywh17 with SMTP id 17so500635ywh.1
-        for <linux-omap@vger.kernel.org>; Fri, 04 Jun 2010 07:16:41 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03232DA919@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53107 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755580Ab0FDOSk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 10:18:40 -0400
+In-Reply-To: <53451.192.168.10.88.1275659037.squirrel@dbdmail.itg.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Aguirre, Sergio" <saaguirre@ti.com>
+To: "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-On Fri, Jun 4, 2010 at 7:33 PM, Gopinath, Thara <thara@ti.com> wrote:
->
->
->>>-----Original Message-----
->>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger=
-=2Ekernel.org] On Behalf Of
->>>Govindraj.R
->>>Sent: Friday, June 04, 2010 7:14 PM
->>>To: linux-omap@vger.kernel.org
->>>Cc: Kevin Hilman; Aguirre, Sergio
->>>Subject: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling =
-for 3630
->>>
->>>This patch makes the following:
->>> - Adds missing wakeup padding register handling.
->>> - Fixes a hardcode to use PER module ONLY on UART3.
->>> - Muxmode usage needed for uart4 for 3630 for padconf
->>> =A0 wakeup on rx line.
->>>
->>>Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>>Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->>>Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->>>---
->>> arch/arm/mach-omap2/serial.c | =A0 30 +++++++++++++++++++++++++++++=
--
->>> 1 files changed, 29 insertions(+), 1 deletions(-)
->>>
->>>diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seri=
-al.c
->>>index da9fee6..70a9089 100644
->>>--- a/arch/arm/mach-omap2/serial.c
->>>+++ b/arch/arm/mach-omap2/serial.c
->>>@@ -42,6 +42,7 @@
->>> #include "prm.h"
->>> #include "pm.h"
->>> #include "cm.h"
->>>+#include "mux.h"
->>> #include "prm-regbits-34xx.h"
->>>
->>> #define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV =A00x52
->>>@@ -68,6 +69,7 @@ struct omap_uart_state {
->>> =A0 =A0 =A0u32 wk_mask;
->>> =A0 =A0 =A0u32 padconf;
->>> =A0 =A0 =A0u32 dma_enabled;
->>>+ =A0 =A0 u16 muxmode;
->>>
->>> =A0 =A0 =A0struct clk *ick;
->>> =A0 =A0 =A0struct clk *fck;
->>>@@ -229,8 +231,20 @@ static inline void omap_uart_disable_clocks(str=
-uct omap_uart_state *uart)
->>> =A0 =A0 =A0omap_device_idle(uart->pdev);
->>> }
->>>
->>>+static inline void omap_uart_setmux_mode(struct omap_uart_state *ua=
-rt)
->>>+{
->>>+ =A0 =A0 u16 w =3D omap_ctrl_readw(uart->padconf);
->>>+ =A0 =A0 w &=3D ~0x7;
->>>+ =A0 =A0 w |=3D OMAP_MUX_MODE2;
->
-> Why it is hard coded to MUX_MODE2? Should it not be w |=3D uart->muxm=
-ode?
->
-> Regards
-> Thara
 
-Yes correct it should been w |=3D uart->muxmode.
 
----
-Regards,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Raja,
+>>Govindraj
+>>Sent: Friday, June 04, 2010 7:14 PM
+>>To: linux-omap@vger.kernel.org
+>>Cc: Kevin Hilman
+>>Subject: [pm-wip/uart][PATCH 3/4] Serial: Avoid using hwmod lookup using name string
+>>
+>>Avoid using hwmod lookup using name string rather
+>>retreive port info using the hwmod class interface.
+>>
+>>Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>>Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>>---
+>> arch/arm/mach-omap2/serial.c |   76 ++++++++++++++++++++----------------------
+>> 1 files changed, 36 insertions(+), 40 deletions(-)
+>>
+>>diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+>>index 70a9089..017332b 100644
+>>--- a/arch/arm/mach-omap2/serial.c
+>>+++ b/arch/arm/mach-omap2/serial.c
+>>@@ -56,8 +56,6 @@
+>>  */
+>> #define DEFAULT_TIMEOUT 0
+>>
+>>-#define MAX_UART_HWMOD_NAME_LEN		16
+>>-
+>> struct omap_uart_state {
+>> 	int num;
+>> 	int can_sleep;
+>>@@ -596,52 +594,50 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
+>> }
+>> #endif
+>>
+>>-void __init omap_serial_early_init(void)
+>>+static int omap_serial_port_init(struct omap_hwmod *oh, void *user)
+>> {
+>>-	int i = 0;
+>>+	struct omap_uart_state *uart;
+>>+	static int i;
+>>
+>>-	do {
+>>-		char oh_name[MAX_UART_HWMOD_NAME_LEN];
+>>-		struct omap_hwmod *oh;
+>>-		struct omap_uart_state *uart;
+>>+	uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
+>>+	if (WARN_ON(!uart))
+
+A better error message using pr_err ??
+
+>>+		return -ENOMEM;
+>>
+>>-		snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN,
+>>-			 "uart%d", i + 1);
+>>-		oh = omap_hwmod_lookup(oh_name);
+>>-		if (!oh)
+>>-			break;
+>>+	uart->oh = oh;
+>>+	uart->num = i++;
+>>+	list_add_tail(&uart->node, &uart_list);
+>>+	num_uarts++;
+>>
+>>-		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
+>>-		if (WARN_ON(!uart))
+>>-			return;
+>>+	/*
+>>+	 * NOTE: omap_hwmod_init() has not yet been called,
+>>+	 *       so no hwmod functions will work yet.
+>>+	 */
+>>
+>>-		uart->oh = oh;
+>>-		uart->num = i++;
+>>-		list_add_tail(&uart->node, &uart_list);
+>>-		num_uarts++;
+>>+	/*
+>>+	 * During UART early init, device need to be probed
+>>+	 * to determine SoC specific init before omap_device
+>>+	 * is ready.  Therefore, don't allow idle here
+>>+	 */
+
+You have two comment blocks back to back. Either make it into one block or put the first block appropriately above the intended code.
+
+Regards
+Thara
+
+>>
+>>-		/*
+>>-		 * NOTE: omap_hwmod_init() has not yet been called,
+>>-		 *       so no hwmod functions will work yet.
+>>-		 */
+>>+	uart->oh->flags |= HWMOD_INIT_NO_IDLE;
+>>
+>>-		/*
+>>-		 * During UART early init, device need to be probed
+>>-		 * to determine SoC specific init before omap_device
+>>-		 * is ready.  Therefore, don't allow idle here
+>>-		 */
+>>-		uart->oh->flags |= HWMOD_INIT_NO_IDLE;
+>>-
+>>-		/*
+>>-		 * Since UART hwmod is idle/enabled inside the
+>>-		 * idle loop, interrupts are already disabled and
+>>-		 * thus no locking is needed.  Since the mutex-based
+>>-		 * locking in hwmod might sleep, allowing locking
+>>-		 * may introduce problems.
+>>-		 */
+>>-		uart->oh->flags |= HWMOD_NO_IDLE_LOCKING;
+>>+	/*
+>>+	 * Since UART hwmod is idle/enabled inside the
+>>+	 * idle loop, interrupts are already disabled and
+>>+	 * thus no locking is needed.  Since the mutex-based
+>>+	 * locking in hwmod might sleep, allowing locking
+>>+	 * may introduce problems.
+>>+	 */
+>>+
+>>+	uart->oh->flags |= HWMOD_NO_IDLE_LOCKING;
+>>
+>>-	} while (1);
+>>+	return 0;
+>>+}
+>>+
+>>+void __init omap_serial_early_init(void)
+>>+{
+>>+	omap_hwmod_for_each_by_class("uart",
+>>+		omap_serial_port_init, NULL);
+>> }
+>>
+>> /**
+>>--
+>>1.6.3.3
+>>
+>>
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
