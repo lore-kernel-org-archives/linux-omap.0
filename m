@@ -1,159 +1,62 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [pm-wip/uart][PATCH 3/4] Serial: Avoid using hwmod lookup using
-      name string
-Date: Fri, 4 Jun 2010 19:48:32 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03232DA920@dbde02.ent.ti.com>
-References: <53451.192.168.10.88.1275659037.squirrel@dbdmail.itg.ti.com>
+From: James Bottomley <James.Bottomley@suse.de>
+Subject: Re: suspend blockers & Android integration
+Date: Fri, 04 Jun 2010 09:24:06 -0500
+Message-ID: <1275661446.4455.33.camel@mulgrave.site>
+References: <20100603193045.GA7188@elte.hu>
+	 <AANLkTinsOF3wnxsruR0TvjBAQcHks4tf0ay_sM2xB_p4@mail.gmail.com>
+	 <20100604075722.GA15181@elte.hu>
+	 <AANLkTiksGnpL8tkcc5eScWHrGoijyZNUwZik5lXmU_TS@mail.gmail.com>
+	 <20100604085513.GE15181@elte.hu>
+	 <AANLkTinphtxn-8pGTYv_mBxKFMa7jU8i1yNbHrs50Vzl@mail.gmail.com>
+	 <20100604095917.GA3324@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53107 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755580Ab0FDOSk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 10:18:40 -0400
-In-Reply-To: <53451.192.168.10.88.1275659037.squirrel@dbdmail.itg.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100604095917.GA3324@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Brian Swetland <swetland@google.com>, tytso@mit.edu, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>
 List-Id: linux-omap@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
+On Fri, 2010-06-04 at 11:59 +0200, Ingo Molnar wrote:
+> * Brian Swetland <swetland@google.com> wrote:
+> > On Fri, Jun 4, 2010 at 1:55 AM, Ingo Molnar <mingo@elte.hu> wrote:
+> > > * Brian Swetland <swetland@google.com> wrote:
+[...]
+> > > In any case, this is not to suggest that the suspend-blocker bits are 
+> > > 'impossible' to merge. I just say that if you start with your most 
+> > > difficult feature you should not be surprised to be on the receiving end 
+> > > of a 1000+ mails flamewar on lkml ;-)
+> > 
+> > Yeah, I do understand that we're not making it easy for ourselves here.  I 
+> > think we hit the point where Rafael and Matthew signed off on things and 
+> > thought "aha, linux-pm maintainers are happy, now we're getting somewhere" 
+> > only to realize the light at the end of the tunnel was a bit further out 
+> > than we anticipated ^^
+> 
+> That's a well-known problem on lkml: the light at the end of the tunnel was 
+> the other train ;-)
+> 
+> Anyway, i'm not pessimistic at all: _some_ sort of scheme appears to be 
+> crystalising out today. Everyone seems to agree now that the main usecases are 
+> indeed useful and need handling one way or another - the rest is really just 
+> technological discussions how to achieve the mostly-agreed-upon end goal.
 
+It's still not clear to me whether everyone's revolving around to using
+the current suspend block API because it's orthogonal to all other
+mechanisms and is therefore separate from the kernel (and can be
+compiled out if you don't want it).  Or whether re-expressing what the
+android drivers want (minimum idle states and suspend block) in pm_qos
+terms which others can use is the way to go.  I think the latter, but
+I'd like to know what other people think (because I'm not wedded to this
+preference).
 
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Raja,
->>Govindraj
->>Sent: Friday, June 04, 2010 7:14 PM
->>To: linux-omap@vger.kernel.org
->>Cc: Kevin Hilman
->>Subject: [pm-wip/uart][PATCH 3/4] Serial: Avoid using hwmod lookup using name string
->>
->>Avoid using hwmod lookup using name string rather
->>retreive port info using the hwmod class interface.
->>
->>Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->>---
->> arch/arm/mach-omap2/serial.c |   76 ++++++++++++++++++++----------------------
->> 1 files changed, 36 insertions(+), 40 deletions(-)
->>
->>diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
->>index 70a9089..017332b 100644
->>--- a/arch/arm/mach-omap2/serial.c
->>+++ b/arch/arm/mach-omap2/serial.c
->>@@ -56,8 +56,6 @@
->>  */
->> #define DEFAULT_TIMEOUT 0
->>
->>-#define MAX_UART_HWMOD_NAME_LEN		16
->>-
->> struct omap_uart_state {
->> 	int num;
->> 	int can_sleep;
->>@@ -596,52 +594,50 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
->> }
->> #endif
->>
->>-void __init omap_serial_early_init(void)
->>+static int omap_serial_port_init(struct omap_hwmod *oh, void *user)
->> {
->>-	int i = 0;
->>+	struct omap_uart_state *uart;
->>+	static int i;
->>
->>-	do {
->>-		char oh_name[MAX_UART_HWMOD_NAME_LEN];
->>-		struct omap_hwmod *oh;
->>-		struct omap_uart_state *uart;
->>+	uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
->>+	if (WARN_ON(!uart))
+> The worst situation are features where one side says 'we dont need this kind 
+> of functionality at all' - IMO auto/opportunistic-suspend isnt in that 
+> situation, fortunately.
 
-A better error message using pr_err ??
+Great ... because deprecating the problem has been one of the persistent
+memes by some people on this huge thread.
 
->>+		return -ENOMEM;
->>
->>-		snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN,
->>-			 "uart%d", i + 1);
->>-		oh = omap_hwmod_lookup(oh_name);
->>-		if (!oh)
->>-			break;
->>+	uart->oh = oh;
->>+	uart->num = i++;
->>+	list_add_tail(&uart->node, &uart_list);
->>+	num_uarts++;
->>
->>-		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
->>-		if (WARN_ON(!uart))
->>-			return;
->>+	/*
->>+	 * NOTE: omap_hwmod_init() has not yet been called,
->>+	 *       so no hwmod functions will work yet.
->>+	 */
->>
->>-		uart->oh = oh;
->>-		uart->num = i++;
->>-		list_add_tail(&uart->node, &uart_list);
->>-		num_uarts++;
->>+	/*
->>+	 * During UART early init, device need to be probed
->>+	 * to determine SoC specific init before omap_device
->>+	 * is ready.  Therefore, don't allow idle here
->>+	 */
-
-You have two comment blocks back to back. Either make it into one block or put the first block appropriately above the intended code.
-
-Regards
-Thara
-
->>
->>-		/*
->>-		 * NOTE: omap_hwmod_init() has not yet been called,
->>-		 *       so no hwmod functions will work yet.
->>-		 */
->>+	uart->oh->flags |= HWMOD_INIT_NO_IDLE;
->>
->>-		/*
->>-		 * During UART early init, device need to be probed
->>-		 * to determine SoC specific init before omap_device
->>-		 * is ready.  Therefore, don't allow idle here
->>-		 */
->>-		uart->oh->flags |= HWMOD_INIT_NO_IDLE;
->>-
->>-		/*
->>-		 * Since UART hwmod is idle/enabled inside the
->>-		 * idle loop, interrupts are already disabled and
->>-		 * thus no locking is needed.  Since the mutex-based
->>-		 * locking in hwmod might sleep, allowing locking
->>-		 * may introduce problems.
->>-		 */
->>-		uart->oh->flags |= HWMOD_NO_IDLE_LOCKING;
->>+	/*
->>+	 * Since UART hwmod is idle/enabled inside the
->>+	 * idle loop, interrupts are already disabled and
->>+	 * thus no locking is needed.  Since the mutex-based
->>+	 * locking in hwmod might sleep, allowing locking
->>+	 * may introduce problems.
->>+	 */
->>+
->>+	uart->oh->flags |= HWMOD_NO_IDLE_LOCKING;
->>
->>-	} while (1);
->>+	return 0;
->>+}
->>+
->>+void __init omap_serial_early_init(void)
->>+{
->>+	omap_hwmod_for_each_by_class("uart",
->>+		omap_serial_port_init, NULL);
->> }
->>
->> /**
->>--
->>1.6.3.3
->>
->>
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+James
