@@ -1,45 +1,45 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 10/11] OMAP: GPIO: Implement GPIO as a platform device
-Date: Fri, 4 Jun 2010 09:05:58 +0300
-Message-ID: <20100604060558.GW11078@nokia.com>
-References: <1274194260-16401-3-git-send-email-charu@ti.com>
- <1274194260-16401-4-git-send-email-charu@ti.com>
- <1274194260-16401-5-git-send-email-charu@ti.com>
- <1274194260-16401-6-git-send-email-charu@ti.com>
- <1274194260-16401-7-git-send-email-charu@ti.com>
- <1274194260-16401-8-git-send-email-charu@ti.com>
- <1274194260-16401-9-git-send-email-charu@ti.com>
- <1274194260-16401-10-git-send-email-charu@ti.com>
- <1274194260-16401-11-git-send-email-charu@ti.com>
- <87aarcq6y6.fsf@deeprootsystems.com>
-Reply-To: felipe.balbi@nokia.com
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: suspend blockers & Android integration
+Date: Fri, 4 Jun 2010 08:22:21 +0200
+Message-ID: <20100604062221.GA32136@elte.hu>
+References: <20100603193045.GA7188@elte.hu>
+ <20100603231153.GA11302@elte.hu>
+ <20100603232302.GA16184@elte.hu>
+ <alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
+ <20100603234634.GA21831@elte.hu>
+ <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37753 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239Ab0FDGG5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 02:06:57 -0400
+Received: from mx2.mail.elte.hu ([157.181.151.9]:35768 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750775Ab0FDGW4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Jun 2010 02:22:56 -0400
 Content-Disposition: inline
-In-Reply-To: <87aarcq6y6.fsf@deeprootsystems.com>
+In-Reply-To: <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Charulatha V <charu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rnayak@ti.com" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 
-On Thu, Jun 03, 2010 at 08:58:25PM +0200, ext Kevin Hilman wrote:
->This doesn't look right for OMAP1.  With a device name, you should
->just drop the "arm_cpio_ck" part, so you can do a clk_get(dev, NULL).
 
-I guess it doesn't matter. clkdev will try to match device and clk 
-names, if that fails it will try device only and if that still fails, 
-clk only. Although I think something like "ick" instead of "arm_gpio_ck" 
-would be better.
+* Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-And to decrease the amount of iterations to get the clock, use 
-clk_get(dev, "ick");
+> [...]
+> 
+> And those two things go together. The /sys/power/state thing is a global 
+> suspend - which I don't think is appropriate for a opportunistic thing in 
+> the first place, especially for multi-core.
+> 
+> A well-designed opportunistic suspend should be a two-phase thing: an 
+> opportunistc CPU hotunplug (shutting down cores one by one as the system is 
+> idle), and not a "global" event in the first place. And only when you've 
+> reached single-core state should you then say "do I suspend the system too".
 
--- 
-balbi
+Shutting a core down would be a natural idle level, and when the last one goes 
+idle we can do the suspend. (it happens as part of suspend anyway)
 
-DefectiveByDesign.org
+So on systems that dont want to auto-suspend this would indeed behave like you 
+suggest: the final core left would run as UP in essence.
+
+	Ingo
