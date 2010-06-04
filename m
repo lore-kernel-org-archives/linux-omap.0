@@ -1,146 +1,122 @@
 From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: suspend blockers & Android integration
-Date: Fri, 4 Jun 2010 09:57:22 +0200
-Message-ID: <20100604075722.GA15181@elte.hu>
-References: <20100603193045.GA7188@elte.hu>
- <AANLkTinsOF3wnxsruR0TvjBAQcHks4tf0ay_sM2xB_p4@mail.gmail.com>
+Date: Fri, 4 Jun 2010 10:11:40 +0200
+Message-ID: <20100604081140.GB15181@elte.hu>
+References: <20100603193045.GA7188@elte.hu> <20100603231153.GA11302@elte.hu>
+	<20100603232302.GA16184@elte.hu>
+	<alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
+	<20100603234634.GA21831@elte.hu>
+	<alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <AANLkTinsOF3wnxsruR0TvjBAQcHks4tf0ay_sM2xB_p4@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: tytso@mit.edu, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>
+In-Reply-To: <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Florian Mickler <florian@mickler.org>, Neil Brown <neilb@suse.de>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
 
-* Brian Swetland <swetland@google.com> wrote:
+* Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> On Thu, Jun 3, 2010 at 12:30 PM, Ingo Molnar <mingo@elte.hu> wrote:
-> >
-> > Sadly the response from the Android team has been 100% uncompromising: either
-> > suspend blockers or nothing.
+> On Fri, 4 Jun 2010, Ingo Molnar wrote:
 > 
-> Well, we're willing to accept something that gives us the same
-> functionality (thus rewriting the api several times to meet various
-> objections, current discussions around
-> constraint-based-implementations / pm-qos, etc).  We believe we're
-> solving a real problem here and have not seen a counter-proposal that
-> accomplishes the same.
->
-> Suggestions such as "just yell at developers for writing bad apps" or
-> "it's the user's fault if they install a lousy app" or "make your app
-> marketplace more restrictive" are not helpful. [...]
-
-Agreed.
-
-> [...]  The technical discussions around alternatives are more so (though I 
-> do feel like we're going in circles in places), [...]
-
-Yep.
-
-> [...] which again is why we're still here talking about this (that and Arve 
-> is about a billion times more patient and persistent than I am).
+> > What you say is absolutely true, hence this would be driven via 
+> > sched_tick() + TIF notifiers - i.e. only ever treat user-mode tasks as 
+> > 'idle-able'. This can be done with no overhead to the regular fastpaths.
+> > 
+> > The TIF notifier would be the one scheduling to idle - and would thus do 
+> > it only to user-mode tasks.
 > 
-> We're not interested in massively rearchitecting our userspace to accomplish 
-> this (and the "rewrite your userspace!" proposals I've seen have had race 
-> conditions and/or significant more complexity than the wakelock model).
+> The thing is, unless there is some _really_ deep other reason to do 
+> something like this, I still think it's total overdesign to push any 
+> knowledge/choices like this into the scheduler. I'd rather keep things way 
+> more independent, less tied to each other and to deep kernel subsystems.
 
-Having a somewhat different ABI for achieving things you'll probably have 
-prepare for. I doubt it would result in any large-scale, massive rewrites.
+Well, the deep reason as i see it is simply the observation that what the 
+Android auto-suspend code implements via the suspend-blocker patches is an 
+idle driver and user-space scheduler in disguise. (if you count that as a deep 
+enough reason)
 
-> ...
-> 
-> > Also, why did the Android team start its contributions with such a 
-> > difficult and controversial kernel feature?
-> 
-> We started here because it's possibly the only api level change we have -- 
-> almost everything else is driver or subarch type work or controversial but 
-> entirely self-contained (like the binder, which I would be shocked to see 
-> ever hit mainline). [...]
+I dont mind hacks if they are local and if i dont have to maintain them, but 
+the objection from other folks was that suspend blockers are not that local 
+and not that maintainable. And if (and that's a big if) we have a global 
+effect anyway, then we might as well consider implementing it cleanly:
 
-So why arent those bits mainline? It's a 1000 times easier to get drivers and 
-small improvements and non-ABI changes upstream.
+ - A global /sys flag is fundamentally racy and only allows a single
+   user-space actor. Not a problem on mobile phones but sure violates
+   taste buds.
 
-After basically two years of growing your fork (and some attempts to get your 
-drivers into drivers/staging/ - from where they have meanwhile dropped out 
-again) you re-started with the worst possible thing to merge: a big and 
-difficult kernel feature affecting many subsystems. Why?
+   Proper per task latency attributes are not racy - we always know the
+   maximum/minimum values, without user-space interfering with each other.
 
-This is one of the fundamental problems here. People simply dont know you, 
-because you have not worked with us much - and hence they dont trust you 
-positively out of box - they are neutral at best.
+ - When done correctly we might win a couple of new features as well around
+   the fringes:
 
-And believe me, it's hard enough to get difficult features upstream if people 
-_do_ know you and when they positively _do_ trust you ... Arent you talking to 
-Andrew Morton about how to do these things properly? This is kernel 
-contribution 101 really.
+    - Useful for power savings on mobile: crappy apps can be idled on an 
+      intermediate level, even before the system goes totally idle. There's no 
+      equivalent suspend-blockers feature.
 
-> [...]  Assertions have been made that because the "android kernel" (not a 
-> term I like -- linux is linux, we have some assorted patches on top) [...]
+    - Useful for real-time tasks that want to idle lower prio tasks when some
+      really important thing is running - even if the real-time task might sleep.
+      This is superior to the 'hog the CPU' kind of hacks that have been used
+      for this purpose before.
 
-I've been tracking android-common and android-msm for a while and i have to 
-say that it shows a very lackluster attitude towards upstream:
+ - The hacks needed to express a race-free suspend/wakeup cycle are unnatural
+   and stem from the model being a user-space driven idle manager instead of a
+   proper part of task sleep/wakeup.
 
- - The latest branches i can see are v2.6.32 based today. We are in the
-   v2.6.35 stabilization cycle and are developing v2.6.36. I.e. your upstream
-   base is about a year too old.
+ - None of this code seems to impact any scheduler hotpath (most of it is just
+   a special form of idle driver) - it's all on deeper levels of idle and, at 
+   most, in off-line return-to-userspace codepaths. So there's no strong
+   performance reason _against_ some level of integration. There is indeed
+   the coupling effect as you mention, which weighs against.
 
- - The last commit is a couple of weeks old AFAICS.
+ - i also think Andoid's auto-suspend is a strategic feature to Linux: i 
+   think auto/opportunistic suspend will matter more and more, and my guess 
+   is that ten years most of our daily systems will be doing auto-suspend and 
+   will have proper wakeups from suspend implemented in hardware. Not just 
+   phones and gadgets but also portable tablets, book readers, TVs - and i 
+   wouldnt mind a non-portable, table sized tablet either ;-)
 
- - The diffstat of android-common/android-2.6.32 is:
+   At which point i'd hate to have some hack of a solution ingrained and
+   ABI-ized with little chance to move user-space to sanity.
 
-      890 files changed, 39962 insertions(+), 6286 deletions(-)
+But yes, i definitely agree with you that it all comes down to 'do we care':
 
-   Those assorted patches have spread over nearly a thousand files. FYI, by
-   the looks of it you are facing an exponentially worsening maintenance
-   overhead curve here.
+ - If we care we should integrate it intelligently where it belongs
+   conceptually: the idle drivers and the scheduler.
 
-Is there perhaps some other tree i should be following? I'm looking at:
+ - If we dont care then we should isolate the hacks as much as possible - and
+   then the current suspend blocker patch-set is definitely a good basis to 
+   start. (with perhaps the /sys hackery cleaned up a bit, as you suggested)
 
- [remote "android-msm"]
-         url = git://android.git.kernel.org/kernel/msm.git
-         fetch = +refs/heads/*:refs/remotes/android-msm/*
- [remote "android-common"]
-         url = git://android.git.kernel.org/kernel/common.git
-         fetch = +refs/heads/*:refs/remotes/android-common/*
+I dont favor either of the solutions too deeply - so i personally have not 
+NAK-ed suspend blockers - i just saw a half a dozen semi-NAKs flying from 
+other folks, so tried to help come up with a palatable design.
 
-Btw., the commits i've glanced at looked mostly clean and well structured, so 
-i see no fundamental reason why this couldn't be done better.
+_If_ most of x86 hardware was able to suspend race-free i think deeper 
+integration would be a slam-dunk - as we could make it work almost everywhere. 
+Sadly only a tiny subset of x86 qualifies, so the argument isnt obvious. Maybe 
+we should pick a variant of suspend blockers and re-examine things in a few 
+years? It being an ABI makes it difficult tho.
 
-> See: http://www.kroah.com/log/linux/android-kernel-problems.html and various 
-> other rants about the evil terrible android forks, etc.
-> 
-> So, we figure, let's sort out the hard problem first and then move on with 
-> our lives.
+What i would personally find unacceptable is to have _neither_ solutions - and 
+the discussion was heading towards that stage really, with both sides digging 
+the trenches of non-cooperation. IMHO we just cannot afford to let this drop 
+on the floor as the feature is immensely useful to Android and thus to Linux 
+at large.
 
-Well, my suggestion would be to first build up a path towards upstream, build 
-up trust, reduce your very high cross section to mainline - and do the most 
-difficult bits last.
-
-Especially 'move on with our lives' suggests that you just want to get rid of 
-this ABI divergence and continue-as-usual with the pattern of non-cooperation, 
-hm?
-
-> > There is absolutely _zero_ technical reason why the Android team should 
-> > present this as as an all-or-nothing effort. Why not merge hw drivers 
-> > first (with suspend blockers commented or stubbed out), to reduce the fork 
-> > distance?
-> 
-> If that's the case then there is no problem and people could stop yelling at 
-> us and just submit their drivers.  Awesome.
-> 
-> I can't speak for all the nameless silicon vendors Greg represents, that we 
-> apparently are preventing from doing this (how? I don't know!), etc, but for 
-> my team maintaining multiple versions of drivers is a headache, we'd rather 
-> square away the wakelock debate first and figure something out there, as it 
-> just seems like a more logical approach.  Maybe we're crazy.
-
-It's not crazy, it's just IMHO inefficient and very difficult to do it like 
-that. And you arent the first one to try it like that (people _always_ 
-gravitate towards coming with their most difficult patches first - because 
-they are very often the most useful patches) - it's a non-trivial learning 
-curve IMHO.
+Anyway, i'm glad that it's up to you ;-)
 
 	Ingo
