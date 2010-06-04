@@ -1,45 +1,29 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: suspend blockers & Android integration
-Date: Fri, 4 Jun 2010 08:22:21 +0200
-Message-ID: <20100604062221.GA32136@elte.hu>
-References: <20100603193045.GA7188@elte.hu>
- <20100603231153.GA11302@elte.hu>
- <20100603232302.GA16184@elte.hu>
- <alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
- <20100603234634.GA21831@elte.hu>
- <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: ARM defconfigs going away
+Date: Fri, 4 Jun 2010 09:56:00 +0300
+Message-ID: <20100604065600.GA11111@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:35768 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775Ab0FDGW4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jun 2010 02:22:56 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49903 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751523Ab0FDG4F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 02:56:05 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1OKQp0-00068I-Vp
+	for linux-omap@vger.kernel.org; Fri, 04 Jun 2010 06:56:03 +0000
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+To: linux-omap@vger.kernel.org
 
+FYI, there's been dicussion on LKML and LAKML about getting
+rid of the ARM defconfigs:
 
-* Linus Torvalds <torvalds@linux-foundation.org> wrote:
+http://comments.gmane.org/gmane.linux.ports.arm.kernel/81611
 
-> [...]
-> 
-> And those two things go together. The /sys/power/state thing is a global 
-> suspend - which I don't think is appropriate for a opportunistic thing in 
-> the first place, especially for multi-core.
-> 
-> A well-designed opportunistic suspend should be a two-phase thing: an 
-> opportunistc CPU hotunplug (shutting down cores one by one as the system is 
-> idle), and not a "global" event in the first place. And only when you've 
-> reached single-core state should you then say "do I suspend the system too".
+Cheers,
 
-Shutting a core down would be a natural idle level, and when the last one goes 
-idle we can do the suspend. (it happens as part of suspend anyway)
-
-So on systems that dont want to auto-suspend this would indeed behave like you 
-suggest: the final core left would run as UP in essence.
-
-	Ingo
+Tony
