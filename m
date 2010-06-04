@@ -1,62 +1,45 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: suspend blockers & Android integration
-Date: Thu, 3 Jun 2010 21:54:50 -0700
-Message-ID: <AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
-References: <20100603193045.GA7188@elte.hu>
-	<20100603231153.GA11302@elte.hu>
-	<20100603232302.GA16184@elte.hu>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 10/11] OMAP: GPIO: Implement GPIO as a platform device
+Date: Fri, 4 Jun 2010 09:05:58 +0300
+Message-ID: <20100604060558.GW11078@nokia.com>
+References: <1274194260-16401-3-git-send-email-charu@ti.com>
+ <1274194260-16401-4-git-send-email-charu@ti.com>
+ <1274194260-16401-5-git-send-email-charu@ti.com>
+ <1274194260-16401-6-git-send-email-charu@ti.com>
+ <1274194260-16401-7-git-send-email-charu@ti.com>
+ <1274194260-16401-8-git-send-email-charu@ti.com>
+ <1274194260-16401-9-git-send-email-charu@ti.com>
+ <1274194260-16401-10-git-send-email-charu@ti.com>
+ <1274194260-16401-11-git-send-email-charu@ti.com>
+ <87aarcq6y6.fsf@deeprootsystems.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:45760 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752121Ab0FDEyu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 00:54:50 -0400
-In-Reply-To: <20100603232302.GA16184@elte.hu>
+Received: from smtp.nokia.com ([192.100.122.230]:37753 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751239Ab0FDGG5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 02:06:57 -0400
+Content-Disposition: inline
+In-Reply-To: <87aarcq6y6.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Charulatha V <charu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rnayak@ti.com" <rnayak@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Thu, Jun 3, 2010 at 4:23 PM, Ingo Molnar <mingo@elte.hu> wrote:
-=2E..
-> =A0- Controlled auto-suspend: drivers (such as input) could on wakeup
-> =A0 automatically set the 'minimum wakeup latency' value of wakee tas=
-ks to a
-> =A0 lower value. This automatically prevents another auto-suspend in =
-the near
-> =A0 future: up to the point the wakee task increases its latency (via=
- the
-> =A0 scheduler syscall) again and allows suspend again.
->
+On Thu, Jun 03, 2010 at 08:58:25PM +0200, ext Kevin Hilman wrote:
+>This doesn't look right for OMAP1.  With a device name, you should
+>just drop the "arm_cpio_ck" part, so you can do a clk_get(dev, NULL).
 
-How do you clear the latency value in a safe way? If another wakeup
-event happens right after your wakee task is done processing the last
-event and decides to increase its latency, auto suspend will be
-allowed even though you have an unprocessed wakeup event. Also how do
-you know which task will read the event if it is not already waiting
-for it?
+I guess it doesn't matter. clkdev will try to match device and clk 
+names, if that fails it will try device only and if that still fails, 
+clk only. Although I think something like "ick" instead of "arm_gpio_ck" 
+would be better.
 
+And to decrease the amount of iterations to get the clock, use 
+clk_get(dev, "ick");
 
-> =A0 This means there will be no surprise suspends for a task that may=
- take a
-> =A0 bit longer than usual to finish its work. [ Detail: this would on=
-ly be done
-> =A0 for tasks that have a non-default (non-infinity) task->latency va=
-lue - to
-> =A0 prevent the input driver from lowering latency values (and preven=
-ting
-> =A0 future suspends) just because some unaware apps are running and u=
-sing input
-> =A0 drivers. ]
+-- 
+balbi
 
-Don't you need two inifinity values for this?
-
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DefectiveByDesign.org
