@@ -1,143 +1,116 @@
-From: "Lesly Arackal Manuel" <leslyam@ti.com>
-Subject: RE: [PATCH v6 3/7] omap3: pm: re-programing the setup time based on CORE_DOMAIN target state
-Date: Fri, 4 Jun 2010 13:18:42 +0530
-Message-ID: <007501cb03ba$5bbd3cc0$e08818ac@apr.dhcp.ti.com>
-References: <1274186129-23928-1-git-send-email-leslyam@ti.com> <8739x4vwrn.fsf@deeprootsystems.com>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
+	Suspend block api (version 8)
+Date: Fri, 4 Jun 2010 00:55:10 -0700
+Message-ID: <AANLkTintskDDRTiVCC-reC2uNVL9nygMaKYYxCagidFt@mail.gmail.com>
+References: <20100601122012.1edeaf48@notabene.brown>
+	<alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
+	<20100602153235.340a7852@notabene.brown>
+	<AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
+	<20100602180614.729246ea@notabene.brown>
+	<AANLkTimISbs4X2YR_Pal9A80mpkNyCy8laWBcOgR2Cl7@mail.gmail.com>
+	<20100602210224.6ae2333f@notabene.brown>
+	<20100602210521.54b9cd9b@schatten.dmk.lab>
+	<20100602233243.GA27666@core.coreip.homeip.net>
+	<AANLkTim3WQ6qgBH5Cx5tkf-LPtYZ7L6BN6OZIJpQbET1@mail.gmail.com>
+	<20100604071445.GG21239@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51734 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752665Ab0FDHsy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jun 2010 03:48:54 -0400
-In-Reply-To: <8739x4vwrn.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100604071445.GG21239@core.coreip.homeip.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Florian Mickler <florian@mickler.org>, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
 List-Id: linux-omap@vger.kernel.org
-To: 'Kevin Hilman' <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
 
-Hi Kevin,
+2010/6/4 Dmitry Torokhov <dmitry.torokhov@gmail.com>:
+> On Wed, Jun 02, 2010 at 07:44:59PM -0700, Arve Hj=F8nnev=E5g wrote:
+>> On Wed, Jun 2, 2010 at 4:32 PM, Dmitry Torokhov
+>> <dmitry.torokhov@gmail.com> wrote:
+>> > On Wed, Jun 02, 2010 at 09:05:21PM +0200, Florian Mickler wrote:
+>> >> On Wed, 2 Jun 2010 21:02:24 +1000
+>> >> Neil Brown <neilb@suse.de> wrote:
+>> >> >
+>> >> > And this decision (to block suspend) really needs to be made in=
+ the driver,
+>> >> > not in userspace?
+>> >>
+>> >> Well, it fits. The requirement is a direct consequence of the int=
+imate
+>> >> knowledge the driver has about the driven devices.
+>> >
+>> > That is not really true. A driver does have intimate knowledge of =
+the
+>> > device, however it does not necessarily have an idea about the dat=
+a read
+>> > from the device. Consider the gpio_matrix driver: Arve says that i=
+t has
+>> > to continue scanning matrix once first interrupt arrvies. But it r=
+eally
+>> > depends on what key has been pressed - if user pressed KEY_SUSPEND=
+ or
+>> > KEY_POWER it cmight be better if we did not wait for key release b=
+ut
+>> > initiated the action right away. The decision on how system reacts=
+ to a
+>> > key press does not belong to the driver but really to userspace.
+>>
+>> If we just suspend while the keypad scan is active, a second press o=
+f
+>> KEY_POWER would not be able wake the device up. The gpio keypad matr=
+ix
+>> driver has two operating modes. No keys are pressed: all the outputs
+>> are active so a key press will generate an interrupt in one of the
+>> inputs. Keys are pressed: Activate a single output at a time so we c=
+an
+>> determine which keys are pressed. The second mode is entered when th=
+e
+>> driver gets an interrupt in the first mode. The first mode is entere=
+d
+>> if the scan detected that no keys are pressed. The driver could be
+>> modified to stop the scan on suspend and forcibly put the device bac=
+k
+>> in no-keys-pressed state, but pressing additional keys connected to
+>> the same input can no longer generate any events (the input does not
+>> change).
+>
+> Would that be still the case if you reprogram the device as wakeup
+> source while suspending?
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, June 03, 2010 11:12 PM
-> To: Lesly A M
-> Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
-> Samuel Ortiz
-> Subject: Re: [PATCH v6 3/7] omap3: pm: re-programing the setup time based
-> on CORE_DOMAIN target state
-> 
-> Lesly A M <leslyam@ti.com> writes:
-> 
-> > This patch will add a new function omap_voltage_vc_update() to re-
-> program
-> > the VC parameters while entering low power mode, based on CORE_DOMAIN
-> target state.
-> > The voltsetup2 is used only when the device exits sys_off mode
-> > (with PRM_VOLTCTRL[3]SEL_OFF set to 1).
-> >
-> > Also removed the clearing of PRM_VOLTCTRL register bits, because this
-> will be
-> > used only when it goes to low power mode next time.
-> >
-> > Signed-off-by: Lesly A M <x0080970@ti.com>
-> > Cc: Nishanth Menon <nm@ti.com>
-> > Cc: David Derrick <dderrick@ti.com>
-> > Cc: Samuel Ortiz <sameo@linux.intel.com>
-> 
-> Again, issues from previous review[1] re-appear again.
-> 
-> For the record, when a series is posted multiple times and issues
-> raised in previous reviews continue to appear, you should expect
-> maintainers to pay less and less attention to the series.  I for one
-> have an attention span that grows very short when I repeatedly see the
-> same issues re-posted.
-> 
-> The comment below are ones I already raised in v5[1].
-> 
-> > ---
-> >  arch/arm/mach-omap2/pm34xx.c  |   26 +++-----------------------
-> >  arch/arm/mach-omap2/voltage.c |   41
-> +++++++++++++++++++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/voltage.h |    1 +
-> >  3 files changed, 45 insertions(+), 23 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> > index 5039b35..1ff6293 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -439,20 +439,12 @@ void omap_sram_idle(void)
-> >  	if (core_next_state < PWRDM_POWER_ON) {
-> >  		omap_uart_prepare_idle(0);
-> >  		omap_uart_prepare_idle(1);
-> > -		if (core_next_state == PWRDM_POWER_OFF) {
-> > -			u32 voltctrl = OMAP3430_AUTO_OFF;
-> > +		/* Update the voltsetup time for RET/OFF */
-> > +		omap_voltage_vc_update(core_next_state);
-> >
-> > -			if (voltage_off_while_idle)
-> > -				voltctrl |= OMAP3430_SEL_OFF;
-> > -			prm_set_mod_reg_bits(voltctrl,
-> > -					     OMAP3430_GR_MOD,
-> > -					     OMAP3_PRM_VOLTCTRL_OFFSET);
-> > +		if (core_next_state == PWRDM_POWER_OFF) {
-> >  			omap3_core_save_context();
-> >  			omap3_prcm_save_context();
-> > -		} else if (core_next_state == PWRDM_POWER_RET) {
-> > -			prm_set_mod_reg_bits(OMAP3430_AUTO_RET,
-> > -						OMAP3430_GR_MOD,
-> > -						OMAP3_PRM_VOLTCTRL_OFFSET);
-> >  		}
-> >  	}
-> 
-> OK, the in the idle path, you replace the various VC settings with a
-> call into the voltage layer.  Good.  But...
-> 
-> > @@ -510,18 +502,6 @@ void omap_sram_idle(void)
-> >  		}
-> >  		omap_uart_resume_idle(0);
-> >  		omap_uart_resume_idle(1);
-> > -		if (core_next_state == PWRDM_POWER_OFF) {
-> > -			u32 voltctrl = OMAP3430_AUTO_OFF;
-> > -
-> > -			if (voltage_off_while_idle)
-> > -				voltctrl |= OMAP3430_SEL_OFF;
-> > -			prm_clear_mod_reg_bits(voltctrl,
-> > -					       OMAP3430_GR_MOD,
-> > -					       OMAP3_PRM_VOLTCTRL_OFFSET);
-> > -		} else if (core_next_state == PWRDM_POWER_RET)
-> > -			prm_clear_mod_reg_bits(OMAP3430_AUTO_RET,
-> > -						OMAP3430_GR_MOD,
-> > -						OMAP3_PRM_VOLTCTRL_OFFSET);
-> 
-> ...in the resume path, this entire part is removed, but with
-> replacement call into the voltage layer.  This needs to be well
-> documented in the changelog as to why this is not needed.
+It depends on what part you are referring to. It is impossible to
+detect some keys presses if you suspend while a key is held down. That
+key will connect one output to one input. If the interrupt is edge
+triggered you can just turn all the outputs back on (and clear the
+interrupt that this will generate) and suspend, but no additional key
+presses on keys connected to the same input will cause an interrupt
+until all those keys have been released first or a key connected to
+another input is pressed. If the interrupt is level triggered (and
+fixed polarity) you cannot do this. You must either disable the input
+interrupt or the output. This means that you if the user releases the
+key and press it again, you cannot wakeup on this key. You can also
+not wake up on any other keys connected to the disables input or
+output. So you have some choice in what events you loose, but there
+will always be some key press sequence that will not work if you
+suspend but will work if you prevent suspend in the middle.
 
-The comment for removing this part is already there in the changelog:
-****
-> > Also removed the clearing of PRM_VOLTCTRL register bits, because this
-> will be
-> > used only when it goes to low power mode next time.
-****
+>
+> Anyway, it does not really matter. Your case (current suspend blocker=
+s)
+> would delay putting device to sleep till you release all the keys,
+> including KEY_POWER. If you delegate the decision to userspace it wou=
+ld
+> have an _option_ of putting the device to sleep earlier, however in b=
+oth
+> cases user has to release all keys before the device can be resumed.
 
-OK, I will add more detail in next ver.
+We deliver all keys to user space so that is has the option of
+reacting to them. Yes if we did not do this user space would have the
+option of suspending while keys are pressed, but it would need
+detailed knowledge about the driver to make this decision (will the
+driver loose key events if we suspend, which keys can be lost, does
+the condition clear automatically when all the keys are released or do
+we need another wakeup event to get out of it).
 
-> 
-> Even better, if this part is really unnecessary, which by your patch
-> you seem to imply, you should send a separate patch removing it with a
-> good description.
-> 
-> Kevin
-
-I think, it will be good if the changes are in same patch, with some more
-good explanation.
-
-Regards
-Lesly A M
-
-> 
-> [1] http://marc.info/?l=linux-omap&m=127249508726287&w=2
-
+--=20
+Arve Hj=F8nnev=E5g
