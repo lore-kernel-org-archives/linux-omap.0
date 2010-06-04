@@ -1,81 +1,31 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Fri, 4 Jun 2010 17:43:28 +0200
-Message-ID: <20100604174328.30b26b6a@schatten.dmk.lab>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<201005302202.39511.rjw@sisk.pl>
-	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
-	<201005312347.24251.rjw@sisk.pl>
-	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
-	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
-	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
-	<AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
-	<1275471561.27810.30865.camel@twins>
-	<AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
-	<1275474088.27810.31000.camel@twins>
-	<20100602221309.6da754e7@schatten.dmk.lab>
-	<1275550802.27810.34863.camel@twins>
-	<20100603161205.73a2b56d@schatten.dmk.lab>
-	<1275578881.27810.35995.camel@twins>
+From: <jean-luc.robbe@ac-besancon.fr>
+Subject: (unknown)
+Date: Fri, 04 Jun 2010 10:26:21 -0700
+Message-ID: <ecaa6e5a2df097f9.4c08d4cd__35071.2276799188$1275675584$gmane$org@ac-besancon.fr>
+Reply-To: choi_chu808@yahoo.co.jp
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1275578881.27810.35995.camel@twins>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from avas2.ac-besancon.fr ([195.221.85.114]:50210 "EHLO
+	avas2.ac-besancon.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751398Ab0FDSTV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 14:19:21 -0400
+Content-Language: fr
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 03 Jun 2010 17:28:01 +0200
-Peter Zijlstra <peterz@infradead.org> wrote:
 
-> On Thu, 2010-06-03 at 16:12 +0200, Florian Mickler wrote:
-> > On Thu, 03 Jun 2010 09:40:02 +0200
-> > Peter Zijlstra <peterz@infradead.org> wrote:
-> > 
-> > > Same for firefox, you can teach it to not render animated gifs and run
-> > > javascript for invisible tabs, and once the screen-saver kicks in,
-> > > nothing is visible (and with X telling apps their window is visible or
-> > > not it knows), so it should go idle all of its own.
-> > > 
-> > > Fix the friggin apps, don't kludge with freezing.
-> > 
-> > Of course programs should be as smart as possible. But that is an
-> > orthogonal problem.
-> > 
-> > Suppose firefox were fixed. It still needs to fetch my rss feeds every
-> > minute, because I'm sad if it doesn't. It just can't be fixed at the
-> > application level.
-> 
-> Sure it can, why would it need to fetch RSS feeds when the screen is off
-> and nobody could possible see the result? So you can stop the timer when
-> you know the window isn't visible or alternatively when the screensaver
-> is active, I think most desktops have notification of that as well.
 
-This is arguing on a very thin line. In fact it is becoming pointless. 
+I am Mr. Vincent Cheng Hoi Chuen, GBS, JP Chairman of the Hong Kong and Shanghai Banking Corporation Limited.i have a 
+business proposal of Twenty Two million Five Hundred Thousand United State Dollars only for you to  transact with me from my 
+bank to your country.
 
-Suppose there were an RSS-feed plugin that signals events to an event
-Plugin. That event plugin could be either visual notification or sending
-audio-signals. But the RSS feed doesn't know what specific plugin it
-talks to. So screen off is _not always_ the right indicator. Sometimes
-it is, sometimes it's not. 
-There would be a seperate infrastructure needed in the program to tell
-the different plugins that the core thinks everything should stop.
-How does the core knows when to stop? And then there probably need to
-be some kind of "suspend blockers" in the program. *g*
+All confirmable documents to back up the claims will be made available to you prior to your acceptance and as soon as I receive 
+your return mail Via my email address:choi_chu808@yahoo.co.jp and I will let you know what is required of you.
 
-Just solve it at the right level, so that the apps don't need to be
-infected with this shit. And this belongs between the iron and the
-apps. And it seems it needs to be some cooperative approach of kernel
-and userspace-framework as it isn't right to put that much policy in
-the kernel.
-
-I don't think it is a black and white thing, where you can just say
-"fix the friggin apps". 
-
-And this is a really f*beep*ng serious point. (at least to me)
-
-Cheers,
-Flo
+Your earliest response to this letter will be appreciated.
+ 
+Best Regards,
+Mr. Vincent Cheng
