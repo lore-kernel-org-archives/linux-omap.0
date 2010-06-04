@@ -1,20 +1,20 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v6 3/7] omap3: pm: re-programing the setup time based on CORE_DOMAIN target state
-Date: Fri, 04 Jun 2010 08:23:13 -0700
-Message-ID: <87r5kmq0ta.fsf@deeprootsystems.com>
-References: <1274186129-23928-1-git-send-email-leslyam@ti.com>
-	<8739x4vwrn.fsf@deeprootsystems.com>
-	<007501cb03ba$5bbd3cc0$e08818ac@apr.dhcp.ti.com>
+Subject: Re: [PATCH v6 4/7] omap3: pm: changing vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure
+Date: Fri, 04 Jun 2010 08:25:10 -0700
+Message-ID: <87fx12q0q1.fsf@deeprootsystems.com>
+References: <1274186139-23960-1-git-send-email-leslyam@ti.com>
+	<87r5koui2k.fsf@deeprootsystems.com>
+	<007601cb03bb$573cef50$e08818ac@apr.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:37479 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537Ab0FDPXR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 11:23:17 -0400
-Received: by pvg16 with SMTP id 16so620489pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 04 Jun 2010 08:23:17 -0700 (PDT)
-In-Reply-To: <007501cb03ba$5bbd3cc0$e08818ac@apr.dhcp.ti.com> (Lesly Arackal Manuel's message of "Fri\, 4 Jun 2010 13\:18\:42 +0530")
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:36085 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849Ab0FDPZO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 11:25:14 -0400
+Received: by pwj5 with SMTP id 5so41555pwj.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Jun 2010 08:25:13 -0700 (PDT)
+In-Reply-To: <007601cb03bb$573cef50$e08818ac@apr.dhcp.ti.com> (Lesly Arackal Manuel's message of "Fri\, 4 Jun 2010 13\:25\:46 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Lesly Arackal Manuel <leslyam@ti.com>
@@ -22,38 +22,39 @@ Cc: linux-omap@vger.kernel.org, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' 
 
 "Lesly Arackal Manuel" <leslyam@ti.com> writes:
 
->> > @@ -510,18 +502,6 @@ void omap_sram_idle(void)
->> >  		}
->> >  		omap_uart_resume_idle(0);
->> >  		omap_uart_resume_idle(1);
->> > -		if (core_next_state == PWRDM_POWER_OFF) {
->> > -			u32 voltctrl = OMAP3430_AUTO_OFF;
->> > -
->> > -			if (voltage_off_while_idle)
->> > -				voltctrl |= OMAP3430_SEL_OFF;
->> > -			prm_clear_mod_reg_bits(voltctrl,
->> > -					       OMAP3430_GR_MOD,
->> > -					       OMAP3_PRM_VOLTCTRL_OFFSET);
->> > -		} else if (core_next_state == PWRDM_POWER_RET)
->> > -			prm_clear_mod_reg_bits(OMAP3430_AUTO_RET,
->> > -						OMAP3430_GR_MOD,
->> > -						OMAP3_PRM_VOLTCTRL_OFFSET);
+> Hi Kevin,
+>
+>> -----Original Message-----
+>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>> Sent: Thursday, June 03, 2010 11:15 PM
+>> To: Lesly A M
+>> Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
+>> Samuel Ortiz
+>> Subject: Re: [PATCH v6 4/7] omap3: pm: changing vdd0_/vdd1_ to vdd1_/vdd2_
+>> in VC param structure
 >> 
->> ...in the resume path, this entire part is removed, but with
->> replacement call into the voltage layer.  This needs to be well
->> documented in the changelog as to why this is not needed.
+>> Lesly A M <leslyam@ti.com> writes:
+>> 
+>> > Rename vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure.
+>> 
+>> That answers "what?", but not "why?"
+>> 
+>> Yes, I know the answer right now, but I forget things often.
+>> 
+>> Please help ease the pain of my forgetfullness by writing a
+>> descriptive changelog so when I or anyone else looks at this in the
+>> git history, they will be able to understand.
+>> 
+>> Kevin
 >
-> The comment for removing this part is already there in the changelog:
-> ****
->> > Also removed the clearing of PRM_VOLTCTRL register bits, because this
->> will be
->> > used only when it goes to low power mode next time.
-> ****
->
-> OK, I will add more detail in next ver.
+> Actually there is no VDD0, its VDD1 & VDD2. So the renaming is done just to
+> avoid the confusion.
 
-Yes please, that description is not clear.
+Yes.  As I said above, I do know why.  I just want it to be in the
+changelog so when I forget, it will be easy for me to remember why.
 
-Thanks,
+*In the changelog*, you should be stating that you are changing the
+names to match the hardware documentation or something along those
+lines.
 
 Kevin
