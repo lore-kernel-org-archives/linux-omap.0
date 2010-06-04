@@ -1,130 +1,74 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Future of resource framework?
-Date: Fri, 4 Jun 2010 16:22:52 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032162382D@dbde02.ent.ti.com>
-References: <AANLkTilpHjef3xbxB9QN9bj6MFmJA1jMwVxNQyZQcSKy@mail.gmail.com>
-	<871vd5kxqg.fsf@deeprootsystems.com>
-	<AANLkTinSB0bIorWTwLuNhWC9g4oQArAhx-WdY-K-aadS@mail.gmail.com>,<87hbljisi1.fsf@deeprootsystems.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0321623820@dbde02.ent.ti.com>,<5A47E75E594F054BAF48C5E4FC4B92AB03232DA80F@dbde02.ent.ti.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: suspend blockers & Android integration
+Date: Fri, 04 Jun 2010 14:06:50 +0200
+Message-ID: <1275653210.27810.39762.camel@twins>
+References: <20100603193045.GA7188@elte.hu> <20100603231153.GA11302@elte.hu>
+	 <20100603232302.GA16184@elte.hu>
+	 <AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
+	 <20100604071354.GA14451@elte.hu>
+	 <AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
+	 <20100604083423.GD15181@elte.hu>
+	 <AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41076 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754320Ab0FDKzQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jun 2010 06:55:16 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03232DA80F@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Mike Chan <mike@android.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-
-> ________________________________________
-> From: Gopinath, Thara
-> Sent: Friday, June 04, 2010 4:20 PM
-> To: Gadiyar, Anand; Kevin Hilman; Mike Chan
-> Cc: linux-omap@vger.kernel.org; Paul Walmsley
-> Subject: RE: Future of resource framework?
-> 
-> >>-----Original Message-----
-> >>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> >>Gadiyar, Anand
-> >>Sent: Friday, June 04, 2010 8:32 AM
-> >>To: Kevin Hilman; Mike Chan
-> >>Cc: linux-omap@vger.kernel.org; Paul Walmsley
-> >>Subject: RE: Future of resource framework?
+On Fri, 2010-06-04 at 01:56 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
+> On Fri, Jun 4, 2010 at 1:34 AM, Ingo Molnar <mingo@elte.hu> wrote:
+> >
+> > * Arve Hj?nnev?g <arve@android.com> wrote:
+> >
+> >> > [...]
+> >> >
+> >> > Why do you need to track input wakeups? It's rather fragile and =
+rather
+> >> > unnecessary [...]
 > >>
-> >>Kevin Hilman wrote:
-> >>> Mike Chan <mike@android.com> writes:
-> >>>
-> >>> > On Fri, May 21, 2010 at 9:47 AM, Kevin Hilman
-> >>> > <khilman@deeprootsystems.com> wrote:
-> >>> >> Mike Chan <mike@android.com> writes:
-> >>> >>
-> >>> >>> I'm not sure if this has been discussed, yet but since it seems that
-> >>> >>> the resource framework will not be making it upstream, I am curious
-> >>> >>> what are the replacements under consideration. I am starting to see
-> >>> >>> similar issues on other platforms (msm / tegra) so more generic
-> >>> >>> (non-omap) solution might be something to consider.
-> >>> >>
-> >>> >> Hi Mike,
-> >>> >>
-> >>> >> Which parts of the SRF do you currently use and find useful?  It would
-> >>> >> be helpful for us to to understand the parts you see as useful and
-> >>> >> potentially helpful to generalize.
-> >>> >>
-> >>> >
-> >>> > Off the top of my head, for Droid specifically, OPP values are useful,
-> >>> > although in theory if you changed OPP requests to cpu throughput that
-> >>> > might give the equivalent functionality.
-> >>> >
-> >>> > Memory bus speeds / bandwidth, although its tied to CPU, which
-> >>> > ultimately ends up in a cpu speed bump.
-> >>> >
-> >>> > Although most of the usage I've seen are just hacks, ie: the driver
-> >>> > knows it needs 550mhz from the cpu so it will request some bogus
-> >>> > value.
-> >>> >
-> >>> >
-> >>> >> As you know, the current implementation has a several layers
-> >>> >> and attempts to manage several things: OPPs, latencies etc.
-> >>> >>
-> >>> >> Our current plans are essentially to break up the "one framework to
-> >>> >> rule them all" philosophy and design of SRF and manage the various
-> >>> >> pieces by exending other layers such as the new OPP layer and voltage
-> >>> >> layers.  Latencies are being managed by the omap_device layer and we
-> >>> >> will hopefully have some discussions with the broader linux-pm
-> >>> >> community about generalizing that more into the generic driver model
-> >>> >> over this year.
-> >>> >>
-> >>> >
-> >>> > Bus speed is a common resource I see for omap / msm / tegra. Clocks
-> >>> > for devices also.
-> >>> >
-> >>> > ie: If I'm doing heavy mem operation and need max memory bus, I might
-> >>> > need to request higher performance. (which might mean 600mhz on
-> >>> > omap34030, on msm it might mean AXI clock running at 128mhz, and
-> >>> > something else on tegra).
-> >>> >
-> >>> > Or if I'm doing graphics, I may need to up the gfx clock rate, or
-> >>> > swich which pll its sourcing etc.. etc..
-> >>> >
-> >>> > It doesn't look like pm qos has bus support, or even clock support,
-> >>> > and this gets tricky if you want something semi-general.
-> >>>
-> >>> What we're hoping to work towards (and has come up in the suspend
-> >>> blocker related discussions) is moving towards a way to track
-> >>> per-device (or per-subsystem) constraints like latency and throughput
-> >>> in real world terms (usecs, bytes/sec, etc.) that would be general
-> >>> way.
-> >>>
-> >>> These constraints would then be visible to the bus- or
-> >>> platform-specific code that could make intelligent decisions with them
-> >>> (i.e whether or not to raise/lower OPP or bus speed, or whether or not
-> >>> to power down a powerdomain etc.)
-> >>>
-> >>
-> >>
-> >>What if a driver knows that it cannot afford to let the PM layer
-> >>turn off the power domain at certain points of time (maybe as long
-> >>as a USB cable is connected). How can this be specified in terms
-> >>of a latency or throughput constraint?
-> >>
-> >>Just curious, since I don't understand current OMAP3 PM code
-> >>as well as I would like to.
-> 
-> Latency should internally map to a power domain state for the power domain
-> associated with the device. And the SRF/new replacement fmwk should take care
-> of taking requests from all devices associated with a power domain and
-> programming the power domain to hit the accepted low power state.
+> >> Because we have keys that should always turn the screen on, but th=
+e problem
+> >> is not specific to input events. If we enabled a wakeup event it u=
+sually
+> >> means we need this event to always work, not just when the system =
+is fully
+> >> awake or fully suspended.
+> >
+> > Hm, i cannot follow that generic claim. Could you please point out =
+the problem
+> > to me via a specific example? Which task does what, what undesirabl=
+e thing
+> > happens where, etc.
+> >
+>=20
+> We have many wakeup events, and some of them are invisible to the
+> user. For instance on the Nexus One wake up every 10 minutes monitor
+> the battery health.=20
 
-Sure. But how do I pick a latency number, when that's not quite what the
-driver wants.
+> If the user presses a key right after this work
+> has finished and we did not block suspend until userspace could
+> process this key event, we risk suspending before we could turn the
+> screen on, which to the user looks like the key did not work.=20
 
-The driver wants to prevent "loss of hardware context" - which is a different
-"real world" term than latency.
+> Another
+> example, the user pressed the power key which turns the screen off an=
+d
+> allows suspend. We initiate suspend and a phone call comes in. If we
+> don't block suspend until we processed the incoming phone call
+> notification, the phone may never ring (some devices will send a new
+> message every few seconds for this, so on those devices it would just
+> delay the ringing).
 
-- Anand
+Right, so in the proposed scheme all these tasks would be executed by
+trusted processes, and trusted processes will never get frozen and so
+will never be delayed in processing these events.
+
+Only untrusted code will be frozen. And trusted processes are reliable
+for thawing the untrusted processes and delivering events to it.
+
+Trusted processes are assumed to be sane and idle when there is nothing
+for them to do, allowing the machine to go into deep idle states.
