@@ -1,84 +1,100 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] - race-free suspend. Was: Re: [linux-pm] [PATCH 0/8]
- Suspend block api (version 8)
-Date: Fri, 4 Jun 2010 00:14:45 -0700
-Message-ID: <20100604071445.GG21239@core.coreip.homeip.net>
-References: <20100601122012.1edeaf48@notabene.brown>
- <alpine.LFD.2.00.1006011243350.2933@localhost.localdomain>
- <20100602153235.340a7852@notabene.brown>
- <AANLkTikVjAf5nHdMx2bcHRAUSkq99s-b5YZCECXIJJLy@mail.gmail.com>
- <20100602180614.729246ea@notabene.brown>
- <AANLkTimISbs4X2YR_Pal9A80mpkNyCy8laWBcOgR2Cl7@mail.gmail.com>
- <20100602210224.6ae2333f@notabene.brown>
- <20100602210521.54b9cd9b@schatten.dmk.lab>
- <20100602233243.GA27666@core.coreip.homeip.net>
- <AANLkTim3WQ6qgBH5Cx5tkf-LPtYZ7L6BN6OZIJpQbET1@mail.gmail.com>
+From: "Lesly Arackal Manuel" <leslyam@ti.com>
+Subject: RE: [PATCH v6 1/7] omap3: pm: fix for twl4030 script load
+Date: Fri, 4 Jun 2010 12:58:17 +0530
+Message-ID: <007301cb03b7$8248f8f0$e08818ac@apr.dhcp.ti.com>
+References: <1274185973-23839-1-git-send-email-leslyam@ti.com> <87bpbsyr17.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTim3WQ6qgBH5Cx5tkf-LPtYZ7L6BN6OZIJpQbET1@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>
-Cc: Florian Mickler <florian@mickler.org>, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, "Paul@smtp1.linux-foundation.org" <Paul@smtp1.linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37148 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752022Ab0FDH23 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Jun 2010 03:28:29 -0400
+In-Reply-To: <87bpbsyr17.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: 'Kevin Hilman' <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, 'Lesly A M' <x0080970@ti.com>, 'Nishanth Menon' <nm@ti.com>, 'David Derrick' <dderrick@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
 
-On Wed, Jun 02, 2010 at 07:44:59PM -0700, Arve Hj=F8nnev=E5g wrote:
-> On Wed, Jun 2, 2010 at 4:32 PM, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
-> > On Wed, Jun 02, 2010 at 09:05:21PM +0200, Florian Mickler wrote:
-> >> On Wed, 2 Jun 2010 21:02:24 +1000
-> >> Neil Brown <neilb@suse.de> wrote:
-> >> >
-> >> > And this decision (to block suspend) really needs to be made in =
-the driver,
-> >> > not in userspace?
-> >>
-> >> Well, it fits. The requirement is a direct consequence of the inti=
-mate
-> >> knowledge the driver has about the driven devices.
+Hi Kevin,
+
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Thursday, June 03, 2010 10:47 PM
+> To: Lesly A M
+> Cc: linux-omap@vger.kernel.org; Lesly A M; Nishanth Menon; David Derrick;
+> Samuel Ortiz
+> Subject: Re: [PATCH v6 1/7] omap3: pm: fix for twl4030 script load
+> 
+> Lesly A M <leslyam@ti.com> writes:
+> 
+> > This patch will fix the TRITON sleep/wakeup sequence.
 > >
-> > That is not really true. A driver does have intimate knowledge of t=
-he
-> > device, however it does not necessarily have an idea about the data=
- read
-> > from the device. Consider the gpio_matrix driver: Arve says that it=
- has
-> > to continue scanning matrix once first interrupt arrvies. But it re=
-ally
-> > depends on what key has been pressed - if user pressed KEY_SUSPEND =
-or
-> > KEY_POWER it cmight be better if we did not wait for key release bu=
-t
-> > initiated the action right away. The decision on how system reacts =
-to a
-> > key press does not belong to the driver but really to userspace.
->=20
-> If we just suspend while the keypad scan is active, a second press of
-> KEY_POWER would not be able wake the device up. The gpio keypad matri=
-x
-> driver has two operating modes. No keys are pressed: all the outputs
-> are active so a key press will generate an interrupt in one of the
-> inputs. Keys are pressed: Activate a single output at a time so we ca=
-n
-> determine which keys are pressed. The second mode is entered when the
-> driver gets an interrupt in the first mode. The first mode is entered
-> if the scan detected that no keys are pressed. The driver could be
-> modified to stop the scan on suspend and forcibly put the device back
-> in no-keys-pressed state, but pressing additional keys connected to
-> the same input can no longer generate any events (the input does not
-> change).
+> > Since the function to populate the sleep script is getting called always
+> > irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
+> > is getting over written by the sleep script.
+> 
+> OK, this is a clear bug fix and should be a patch on its own.
 
-Would that be still the case if you reprogram the device as wakeup
-source while suspending?
+OK, I will split the patch in the next version.
 
-Anyway, it does not really matter. Your case (current suspend blockers)
-would delay putting device to sleep till you release all the keys,
-including KEY_POWER. If you delegate the decision to userspace it would
-have an _option_ of putting the device to sleep earlier, however in bot=
-h
-cases user has to release all keys before the device can be resumed.
+> 
+> > Print warning if the sleep script is loaded before wakeup script.
+> > Because there is a chance that the Power chip may go to sleep before
+> > the wakeup script is completely loaded, which can cause a system hang.
+> 
+> OK, but your patch doesn't add this warning.  It's already  there.
 
---=20
-Dmitry
+The variable order is updated to '1' during wakeup script for P1_P2 is
+populated, and the warning is printed while loading sleep script if order is
+set to '1'(ie: warning is printed, if wakeup script is loaded before loading
+the sleep script).
+
+But actually we should print the warning, only if wakeup script is not
+loaded before loading the sleep script. 
+
+Regards,
+Lesly A M
+> 
+> Kevin
+> 
+> > Signed-off-by: Lesly A M <x0080970@ti.com>
+> > Cc: Nishanth Menon <nm@ti.com>
+> > Cc: David Derrick <dderrick@ti.com>
+> > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > ---
+> >  drivers/mfd/twl4030-power.c |    5 +++--
+> >  1 files changed, 3 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> > index 7efa878..b4fc190 100644
+> > --- a/drivers/mfd/twl4030-power.c
+> > +++ b/drivers/mfd/twl4030-power.c
+> > @@ -451,12 +451,13 @@ static int __init load_twl4030_script(struct
+> twl4030_script *tscript,
+> >  		if (err)
+> >  			goto out;
+> >  	}
+> > -	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+> > -		if (order)
+> > +	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+> > +		if (!order)
+> >  			pr_warning("TWL4030: Bad order of scripts (sleep "\
+> >  					"script before wakeup) Leads to
+boot"\
+> >  					"failure on some boards\n");
+> >  		err = twl4030_config_sleep_sequence(address);
+> > +	}
+> >  out:
+> >  	return err;
+> >  }
+> > --
+> > 1.7.0.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
