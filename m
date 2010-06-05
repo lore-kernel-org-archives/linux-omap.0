@@ -1,63 +1,73 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Sat, 5 Jun 2010 20:44:24 +0300
-Message-ID: <AANLkTikna-Vs_phy2VrJs0I8gIsdSmwuxTJ67gQ_2oTt@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<201005302202.39511.rjw@sisk.pl>
-	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
-	<201005312347.24251.rjw@sisk.pl>
-	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
-	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
-	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
-	<AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
-	<1275471561.27810.30865.camel@twins>
-	<AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: suspend blockers & Android integration
+Date: Sat, 5 Jun 2010 20:25:11 +0200
+Message-ID: <201006052025.11526.rjw@sisk.pl>
+References: <20100603193045.GA7188@elte.hu>
+	<20100605011826.GB21016@count0.beaverton.ibm.com>
+	<AANLkTim3MMfJ6oa9OhUJch_v1qGyxSfrfxF3zDZhxqHk@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Florian Mickler <florian@mickler.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <AANLkTim3MMfJ6oa9OhUJch_v1qGyxSfrfxF3zDZhxqHk@mail.gmail.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Felipe Balbi <felipe.balbi@nokia.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-2010/6/2 Arve Hj=C3=B8nnev=C3=A5g <arve@android.com>:
-> 2010/6/2 Peter Zijlstra <peterz@infradead.org>:
->> (and please don't mention @#$@ up x86 ACPI again, Intel knows, they'=
-re
->> fixing it, get over it already).
->>
->
-> I don't think it is realistic to drop support for all existing hardwa=
-re.
+On Saturday 05 June 2010, Arve Hj=F8nnev=E5g wrote:
+> 2010/6/4 Matt Helsley <matthltc@us.ibm.com>:
+> > On Fri, Jun 04, 2010 at 05:39:17PM -0700, Arve Hj=F8nnev=E5g wrote:
+> >> On Fri, Jun 4, 2010 at 5:05 PM, Thomas Gleixner <tglx@linutronix.de> w=
+rote:
+> >> > On Sat, 5 Jun 2010, Rafael J. Wysocki wrote:
+> >
+> > <snip>
+> >
+> >>
+> >> >     With the cgroup freezer you can "suspend" them right away and
+> >> >     just keep the trusted background task(s) alive which allows us to
+> >> >     go into deeper idle states instead of letting the crapplications
+> >> >     run unconfined until the download finished and the suspend
+> >> >     blocker goes away.
+> >> >
+> >>
+> >> Yes this would be better, but I want it in addition to suspend, not
+> >> instead of it. It is also unclear if our user-space code could easily
+> >> make use of it since our trusted code calls into untrusted code.
+> >>
+> >
+> > Perhaps I'm misunderstanding, but suspend and the cgroup freezer
+> > interoperate well today -- you don't have to choose one or the other.
+> > If you've discovered otherwise I'd consider it a bug and would like to
+> > hear more about it.
+> >
+> =
 
-We are talking about mainline here, there's no support for suspend
-blockers, so nothing is dropped.
+> I'm not aware of any bug with combining both, but we cannot use
+> suspend at all without suspend blockers in the kernel (since wakeup
+> events may be ignored)
 
-In the mind of everybody, suspend blockers is for opportunistic
-suspend, which only makes sense on sensible hw (not current x86). So
-in the mind of everybody, x86 should be out of scope for the analysis
-of suspend blockers.
+The more I think of it, the more it appears to me that the problem of
+lost wakeup events can actually be solved without suspend blockers.
+I'll send a bunch of patches to address this issue, probably tomorrow.
 
-Are you seriously suggesting that one of the strong arguments in favor
-of suspend blockers is x86 usage (nobody agrees)? If not, then drop
-it.
+> and I don't know how we can safely freeze
+> cgroups without funneling all potential wakeup events through a
+> process that never gets frozen.
 
->>> Unrelated to
->>> Android, I also want to use opportunistic suspend on my desktop.
->>
->> So you're going to sprinkle this suspend blocker shite all over regu=
-lar
->> userspace?
->
-> I have said several times, that regular user-space will not need to b=
-e
-> modified to maintain their current behavior.
+If your untrusted apps get called by the trusted ones, they aren't really
+untrusted in the first place.
 
-If I enable suspend blockers on my laptop, I have to modify my
-user-space. Otherwise my system will behave horribly.
+>From what you're saying it follows that you're not really willing to accept
+any solution different to your suspend blockers.  Is that really the case?
 
---=20
-=46elipe Contreras
+Rafael
