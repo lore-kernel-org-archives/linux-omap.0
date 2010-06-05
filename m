@@ -1,89 +1,57 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/8] Suspend block api (version 8)
-Date: Sat, 5 Jun 2010 23:26:27 +0300
-Message-ID: <AANLkTindQjsQRMUkxKNx-NqSiMlxUirmK2GO6zE7n0rf@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
-	<201005302202.39511.rjw@sisk.pl>
-	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
-	<201005312347.24251.rjw@sisk.pl>
-	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
-	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
-	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
-	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
-	<AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
-	<1275471561.27810.30865.camel@twins>
-	<AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
-	<AANLkTikna-Vs_phy2VrJs0I8gIsdSmwuxTJ67gQ_2oTt@mail.gmail.com>
-	<20100605220143.08774900@schatten.dmk.lab>
+From: Florian Mickler <florian@mickler.org>
+Subject: Re: suspend blockers & Android integration
+Date: Sat, 5 Jun 2010 22:37:08 +0200
+Message-ID: <20100605223708.7d8ff451@schatten.dmk.lab>
+References: <20100603193045.GA7188@elte.hu>
+	<20100603231153.GA11302@elte.hu>
+	<20100603232302.GA16184@elte.hu>
+	<alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
+	<20100603234634.GA21831@elte.hu>
+	<alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20100605220143.08774900@schatten.dmk.lab>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ist.d-labs.de ([213.239.218.44]:36586 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755244Ab0FEUh1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 5 Jun 2010 16:37:27 -0400
+In-Reply-To: <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 
-T24gU2F0LCBKdW4gNSwgMjAxMCBhdCAxMTowMSBQTSwgRmxvcmlhbiBNaWNrbGVyIDxmbG9yaWFu
-QG1pY2tsZXIub3JnPiB3cm90ZToKPiBPbiBTYXQsIDUgSnVuIDIwMTAgMjA6NDQ6MjQgKzAzMDAK
-PiBGZWxpcGUgQ29udHJlcmFzIDxmZWxpcGUuY29udHJlcmFzQGdtYWlsLmNvbT4gd3JvdGU6Cj4K
-Pj4gMjAxMC82LzIgQXJ2ZSBIasO4bm5ldsOlZyA8YXJ2ZUBhbmRyb2lkLmNvbT46Cj4+ID4gMjAx
-MC82LzIgUGV0ZXIgWmlqbHN0cmEgPHBldGVyekBpbmZyYWRlYWQub3JnPjoKPj4gPj4gKGFuZCBw
-bGVhc2UgZG9uJ3QgbWVudGlvbiBAIyRAIHVwIHg4NiBBQ1BJIGFnYWluLCBJbnRlbCBrbm93cywg
-dGhleSdyZQo+PiA+PiBmaXhpbmcgaXQsIGdldCBvdmVyIGl0IGFscmVhZHkpLgo+PiA+Pgo+PiA+
-Cj4+ID4gSSBkb24ndCB0aGluayBpdCBpcyByZWFsaXN0aWMgdG8gZHJvcCBzdXBwb3J0IGZvciBh
-bGwgZXhpc3RpbmcgaGFyZHdhcmUuCj4+Cj4+IFdlIGFyZSB0YWxraW5nIGFib3V0IG1haW5saW5l
-IGhlcmUsIHRoZXJlJ3Mgbm8gc3VwcG9ydCBmb3Igc3VzcGVuZAo+PiBibG9ja2Vycywgc28gbm90
-aGluZyBpcyBkcm9wcGVkLgo+Pgo+PiBJbiB0aGUgbWluZCBvZiBldmVyeWJvZHksIHN1c3BlbmQg
-YmxvY2tlcnMgaXMgZm9yIG9wcG9ydHVuaXN0aWMKPj4gc3VzcGVuZCwgd2hpY2ggb25seSBtYWtl
-cyBzZW5zZSBvbiBzZW5zaWJsZSBodyAobm90IGN1cnJlbnQgeDg2KS4gU28KPj4gaW4gdGhlIG1p
-bmQgb2YgZXZlcnlib2R5LCB4ODYgc2hvdWxkIGJlIG91dCBvZiBzY29wZSBmb3IgdGhlIGFuYWx5
-c2lzCj4+IG9mIHN1c3BlbmQgYmxvY2tlcnMuCj4+Cj4+IEFyZSB5b3Ugc2VyaW91c2x5IHN1Z2dl
-c3RpbmcgdGhhdCBvbmUgb2YgdGhlIHN0cm9uZyBhcmd1bWVudHMgaW4gZmF2b3IKPj4gb2Ygc3Vz
-cGVuZCBibG9ja2VycyBpcyB4ODYgdXNhZ2UgKG5vYm9keSBhZ3JlZXMpPyBJZiBub3QsIHRoZW4g
-ZHJvcAo+PiBpdC4KPgo+IEkgdGhpbmsgdGhleSBoYXZlIGFuIGFkdmFudGFnZSBvdmVyIHRoZQo+
-IDMwLW1pbnV0ZS1zY3JlZW5zYXZlci10aGVuLXN1c3BlbmQgdGhhdCBjdXJyZW50IGRlc2t0b3Bz
-IGRvLiBCZWNhdXNlCj4geW91IGNhbiBkZWZpbmUgd2hhdCBrZWVwcyB0aGUgc3lzdGVtIHVwLiBJ
-LmUuIHRoZQo+IHNjcmVlbnNhdmVyL3Bvd2VybWFuYWdlciBpcyBub3QgbGltaXRlZCB0byBrZXli
-b2FyZC0gYW5kCj4gbW91c2UtaW5hY3Rpdml0eS4KCldoYXQgcHJldmVudHMgeW91IGZyb20gZGVm
-aW5pbmcgb3RoZXIgdGhpbmdzIGtlZXBpbmcgdGhlIHN5c3RlbSB1cApyaWdodCBub3c/IE5vdGhp
-bmcuIEl0J3MgdXAgdG8gdXNlci1zcGFjZSB0byBkZWNpZGUgd2hlbiB0byBzdXNwZW5kLgpJbiBm
-YWN0IGFwcGxpY2F0aW9ucyBhbHJlYWR5IGJsb2NrIHN1c3BlbmQ7IFRyYW5zbWlzc2lvbiBoYXMg
-dGhlCm9wdGlvbiB0byBibG9jayBzdXNwZW5kIHdoZW4gZG93bmxvYWRpbmcgdG9ycmVudHMuCgo+
-PiBJZiBJIGVuYWJsZSBzdXNwZW5kIGJsb2NrZXJzIG9uIG15IGxhcHRvcCwgSSBoYXZlIHRvIG1v
-ZGlmeSBteQo+PiB1c2VyLXNwYWNlLiBPdGhlcndpc2UgbXkgc3lzdGVtIHdpbGwgYmVoYXZlIGhv
-cnJpYmx5Lgo+Pgo+Cj4gSW4gdGhlIHNpbXBsZXN0IGNhc2UgeW91IGhhdmUgYSBzaGVsbCBzY3Jp
-cHQgd2hpY2ggdGFrZXMgYSBzdXNwZW5kCj4gYmxvY2tlciBhbmQgcmVhZHMgZnJvbSBzdGRpbnB1
-dC4gV2hlbiB5b3Ugd3JpdGUgIm1lbSIgdG8gaXQsIGl0Cj4gcmVsZWFzZXMgdGhlIHN1c3BlbmQg
-YmxvY2tlciBhbmQgYWNxdWlyZXMgaXQgYmFjayBhZ2Fpbi4gVm9pbGEsIGZvcmNlZAo+IHN1c3Bl
-bmQgcmVpbXBsZW1lbnRlZCBvbiB0b3Agb2Ygb3Bwb3J0dW5pc3RpYyBzdXNwZW5kLgo+Cj4gVGhh
-dCB3YXNuJ3QgaGFyZCwgd2FzIGl0PwoKTm90IGhhcmQsIGJ1dCBzdGlsbCBhIG1vZGlmaWNhdGlv
-biBvZiB1c2VyLXNwYWNlLCBhbmQgYSBwcmV0dHkgYmFkIG9uZQpiZWNhdXNlIGl0IHdpbGwgcHJl
-dmVudCB0eXBpY2FsIGZvcmNlZCBzdXNwZW5kLCBhbmQgdHlwaWNhbCBzdXNwZW5kCmRlbGF5aW5n
-IChsaWtlIHdpdGggVHJhbnNtaXNzaW9uKS4gU3VwcG9zaW5nIHRoZSBvcHBvcnR1bmlzdGljIHN1
-c3BlbmQKZG9lc24ndCBibG9jayB0aGUgZm9yY2VkIHN1c3BlbmQsIHN0aWxsLCBhYnNvbHV0ZWx5
-IG5vdGhpbmcgd2lsbCBiZQphY2hpZXZlZCBieSBlbmFibGluZyBzdXNwZW5kIGJsb2NrZXJzLgoK
-SWYgeW91IHdhbnQgdG8gdGFrZSBldmVuIGEgbWluaW1hbCBhZHZhbnRhZ2Ugb2Ygc3VzcGVuZCBi
-bG9ja2VycyB5b3UKbmVlZCBzZXJpb3VzIG1vZGlmaWNhdGlvbnMgdG8gdXNlci1zcGFjZS4KClN1
-cHBvc2luZyB0aGVyZSdzIGEgcGVyZmVjdCB1c2FnZSBvZiBzdXNwZW5kIGJsb2NrZXJzIGZyb20g
-dXNlci1zcGFjZQpvbiBjdXJyZW50IHg4NiBwbGF0Zm9ybXMgKGluIHRoZW9yeSBBbmRyb2lkIHdv
-dWxkIGhhdmUgdGhhdCksIGlzIHRoZQpiZW5lZml0IHRoYXQgYmlnIHRvIGNvbnNpZGVyIHRoaXMg
-YSBzdHJvbmcgYXJndW1lbnQgaW4gZmF2b3Igb2YKc3VzcGVuZCBibG9ja2Vycz8gQ29uc2lkZXJp
-bmcgdGhlIHNtYWxsIGFtb3VudCBvZiB4ODYgcGxhdGZvcm1zIHVzaW5nCkFuZHJvaWQgKGlzIHRo
-ZXJlIGFueT8pLCB0aGUgZmFjdCB0aGF0IG5vYm9keSBlbHNlIHdpbGwgdXNlIHN1c3BlbmQKYmxv
-Y2tlcnMsIGFuZCB0aGF0IHg4NiBpcyBhbHJlYWR5IGJlaW5nIGZpeGVkIChhcyBtZW50aW9uZWQg
-bWFueSB0aW1lcwpiZWZvcmUpIHNvIGR5bmFtaWMgUE0gaXMgcG9zc2libGUsIEkgZG9uJ3QgdGhp
-bmsgd2Ugc2hvdWxkIGJlCmNvbnNpZGVyaW5nIGN1cnJlbnQgeDg2IGF0IGFsbCBmb3Igc3VzcGVu
-ZCBibG9ja2Vycy4KCi0tIApGZWxpcGUgQ29udHJlcmFzCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LXBtIG1haWxpbmcgbGlzdApsaW51eC1wbUBs
-aXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxpbnV4LWZvdW5kYXRpb24u
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtcG0=
+On Thu, 3 Jun 2010 19:16:55 -0700 (PDT)
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
+
+> The thing is, unless there is some _really_ deep other reason to do 
+> something like this, I still think it's total overdesign to push any 
+> knowledge/choices like this into the scheduler. I'd rather keep things way 
+> more independent, less tied to each other and to deep kernel subsystems.
+> 
+> IOW, my personal opinion is that somethng like a suspend (blocker or not) 
+> decision simply shouldn't be important enough to be tied into the 
+> scheduler. Especially not if it could just be its own layer.
+> 
+> That said, as far as I know, the Android people have mostly been looking 
+> at the suspend angle from a single-core standpoint. And I'm not at all 
+> convinced that they should hijack the existing "/sys/power/state" thing 
+> which is what I think they do now.
+> 
+> And those two things go together. The /sys/power/state thing is a global 
+> suspend - which I don't think is appropriate for a opportunistic thing in 
+> the first place, especially for multi-core.
+> 
+
+This sounds right. 
+
+If there is soo much need for a better solution, it will emerge. With
+merged suspend blockers or not.
+
+Just my 2 cents.
+
+> 			Linus
+
+Cheers,
+Flo
