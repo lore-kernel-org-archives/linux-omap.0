@@ -1,162 +1,106 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: suspend blockers & Android integration
-Date: Sat, 5 Jun 2010 18:47:43 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006051736040.2933@localhost.localdomain>
-References: <20100603193045.GA7188@elte.hu> <20100603232302.GA16184@elte.hu> <1275644619.27810.39462.camel@twins> <201006050138.30859.rjw@sisk.pl> <alpine.LFD.2.00.1006050148080.2933@localhost.localdomain> <AANLkTikGDSzaENwg_0BAtsYf3ulGd_6sGPR30WsvUxMi@mail.gmail.com>
- <alpine.LFD.2.00.1006050246350.2933@localhost.localdomain> <AANLkTikU21xF49Z-_Lnrq7U7buNmqw_gyEEST8LuN24z@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Sat, 5 Jun 2010 19:58:35 +0300
+Message-ID: <AANLkTinJLxT845j8fV39jIzO1yznnyugfyimk9zA93z8@mail.gmail.com>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<Pine.LNX.4.44L0.1005271730180.3239-100000@iolanthe.rowland.org>
+	<20100527230806.4deb6de3@lxorguk.ukuu.org.uk>
+	<20100527220949.GB10602@srcf.ucam.org>
+	<20100527232357.6d14fdb2@lxorguk.ukuu.org.uk>
+	<20100527223605.GB11364@srcf.ucam.org>
+	<20100527235546.09f3ce8a@lxorguk.ukuu.org.uk>
+	<20100528043114.GC26177@thunk.org>
+	<20100528103713.0a7952d9@lxorguk.ukuu.org.uk>
+	<20100528114123.GA22947@srcf.ucam.org>
+	<4BFFB681.1000105@nokia.com>
+	<AANLkTim04ZfMcPHRB2D_bqcAuguaGwySH2b6repuYLkk@mail.gmail.com>
+	<4BFFC5DF.5030504@nokia.com>
+	<AANLkTikKGeGHHL6AYC7uBuT7Zihj7lozfidWQ8zRHwab@mail.gmail.com>
+	<4BFFCF39.3010507@nokia.com>
+	<AANLkTinyh1YLmL6miVAxvkh9RMYDY5JChA-_f7oN0zvb@mail.gmail.com>
+	<4C034F55.1090807@nokia.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-852715769-1275756468=:2933"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikU21xF49Z-_Lnrq7U7buNmqw_gyEEST8LuN24z@mail.gmail.com>
+In-Reply-To: <4C034F55.1090807@nokia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+To: Igor Stoppa <igor.stoppa@nokia.com>
+Cc: ext Brian Swetland <swetland@google.com>, ext Matthew Garrett <mjg59@srcf.ucam.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "tytso@mit.edu" <tytso@mit.edu>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Mon, May 31, 2010 at 8:55 AM, Igor Stoppa <igor.stoppa@nokia.com> wr=
+ote:
+> ext Felipe Contreras wrote:
+>
+>> I think this information can be obtained dynamically while the
+>> application is running,
+>
+> yes, that was the idea
+>
+>> =C2=A0and perhaps the limits can be stored. It would
+>> be pretty difficult for the applications to give this kind of
+>> information because there are so many variables.
+>>
+>> For example, an media player can tell you: this clip has 24 fps, but
+>> if the user is moving the time slider, the fps would increase and dr=
+op
+>> very rapidly, and how much depends at least on the container format
+>> and type of seek.
+>>
+>
+> I doubt that belongs to typical QoS. Maybe the target could be to be =
+able to
+> decode a sequence of i-frames?
 
---8323328-852715769-1275756468=:2933
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+I'm not sure what you mean. I-frames comes usually one per second, so
+if you only decode I-frames, your experience would be really bad.
+Moreover, you don't know beforehand when an I-frame is coming, only
+when it's there, and some clips can have only one I-frame at the
+beginning.
 
-B1;2005;0cOn Fri, 4 Jun 2010, Arve Hjønnevåg wrote:
+>> A game or a telephony app could tell you "I need real-time priority"
+>> but so much as giving the details of latency and bandwidth? I find
+>> that very unlikely.
+>>
+>
+> from my gaming days the games were still evaluated in fps ... maybe i=
+ made
+> the wrong assumption?
 
-> 2010/6/4 Thomas Gleixner <tglx@linutronix.de>:
-> > Arve,
-> >
-> > On Fri, 4 Jun 2010, Arve Hjønnevåg wrote:
-> >
-> >> On Fri, Jun 4, 2010 at 5:05 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> >> > On Sat, 5 Jun 2010, Rafael J. Wysocki wrote:
-> >> >> I kind of agree here, so I'd like to focus a bit on that.
-> >> >>
-> >> >> Here's my idea in the very general terms:
-> >> >>
-> >> >> (1) Use the cgroup freezer to "suspend" the "untrusted" apps (ie. the ones
-> >> >>     that don't use suspend blockers aka wakelocks in the Android world) at the
-> >> >>     point Android would normally start opportunistic suspend.
-> >> >
-> >> > There is an additional benefit to this approach:
-> >> >
-> >> >     In the current android world a background task (e.g. download
-> >> >     initiated before the screensaver kicked in) prevents the suspend,
-> >> >     but that also means that the crapplications can still suck power
-> >> >     completely unconfined.
-> >> >
-> >>
-> >> Yes this can happen. It is usually only a big problem when you combine
-> >> an (trusted) application that has a bug that blocks suspend forever
-> >> with an application that wakes up too often for us to enter low power
-> >> idle modes.
-> >
-> > Why is it a BUG in the trusted app, when I initiate a download and put
-> > the phone down ?
-> >
-> 
-> It is not, but we have had bugs where a trusted app does not unblock
-> suspend after some failure case where it is no longer making any
-> progress.
+Yes, the more fps, the better, but you calculate that by counting the
+amount of frames rendered over a period of time; you know the fps
+*after* the fact.
 
-Well, that's simply an application bug which sucks battery with or
-without suspend blockers. So it's unrelated to the freezing of
-untrusted apps while a trusted app still works in the background
-before allowing the machine to suspend.
- 
-> > That download might take a minute or two, but that's not an
-> > justification for the crapplication to run unconfined and prevent
-> > lower power states.
-> >
-> 
-> I agree, but this is not a simple problem to solve.
+> A telephony app should still be able to tell if it's dropping audio f=
+rames.
 
-Not with suspend blockers, but with cgroup confinement of crap, it's
-straight forward.
+Yes, which could be unrelated to PM, like bad network conditions, but
+yeah, it should also be able to tell if the problem is with the
+application itself (audio decoder too slow).
 
-> >> >     With the cgroup freezer you can "suspend" them right away and
-> >> >     just keep the trusted background task(s) alive which allows us to
-> >> >     go into deeper idle states instead of letting the crapplications
-> >> >     run unconfined until the download finished and the suspend
-> >> >     blocker goes away.
-> >> >
-> >>
-> >> Yes this would be better, but I want it in addition to suspend, not
-> >> instead of it. It is also unclear if our user-space code could easily
-> >> make use of it since our trusted code calls into untrusted code.
-> >
-> > Sorry, that's really the worst argument I saw in this whole
-> > discussion.
-> >
-> > You're basically saying, that you have no idea what your user space
-> > stack is doing and you do not care at all as long as your suspend
-> > blocker scheme makes things work somehow.
-> >
-> 
-> Yes I don't know everything our user-space stack is doing, but I do
-> know that it makes many calls between processes (and in both
-> directions). As far as I know it uses timeouts when calling into
-> untrusted code, so a misbehaving application will cause an error
-> dialog to pop up asking if the user if it should wait longer or
-> terminate the application.
+> In all cases there should be some device independent limit - like: wh=
+at is
+> the sort of degradation that is considered acceptable by the typical =
+user?
 
-Sigh, the more I learn about the details of android and it's violation
-of all sane engineering principles the more I understand why you
-invented a huge nail to push through all layers in order to bring the
-system into idle at all. And yes, you need a sledge hammer to drive
-that big nail through everything, so you are using the right tool.
+It is easy to tell after the PM actions have been made, as in "wait!
+I'm not able to perform gimme more power!". But I don't see how that
+could be done _before_ the PM actions are done.
 
-Seriously, the cross app call goes through your framework, which
-already knows, that the untrusted part is frozen. So it can deal
-nicely with it in any way you want including unfreezing.
+=46rom all the QoS proposals I have seen here, and considering that som=
+e
+people said that suspend blockers could be a specific case of QOS, I
+don't think people have been considering QoS as something to state
+_after_.
 
-> > Up to that point, I really tried hard to step back from my initial
-> > "OMG, promoting crap is a nono" reaction and work with you on a
-> > sensible technical solution to confine crap and make it aligned with
-> > other efforts in this area.
-> >
-> > So now, after I spent a reasonable amount of time (as you did) to
-> > understand what your requirements are, you come up with another
-> > restriction which is so outside of any level of sanity, that I'm at
-> > the point of giving up and just going into NAK mode.
-> >
-> 
-> I don't think this is a new restriction. Both Brian and I have
-> mentioned that we have a lot of dependencies between processes.
-> 
-> > Can you please answer the following question:
-> >
-> >    What is the point of having the distinction of "trusted" and
-> >    "untrusted" when you have no way to prevent "trusted" code calling
-> >    "into "untrusted" code ?
-> >
-> 
-> Trusted code that calls into untrusted code has to deal with the
-> untrusted code not responding, but we only want to pop up a message
-> that the application is not responding if it is misbehaving, not just
-> because it was frozen though no fault of its own.
+> Tuning might be offered, but at least this should set some sane set o=
+f
+> defaults.
 
-See above.
- 
-> > That's violating any sense of abstraction and layering and makes it
-> > entirely clear that the only way you can deal with your own design
-> > failure is a big hammer which you need to force into the kernel.
-> >
-> 
-> How can it be fixed? The user presses the back button, the framework
-> determines that app A is in the foreground and send the key to app A,
-> app A decides that it it does not have anything internal to go back to
-> and tells the framework to switch back to the previous app. If the
-> user presses the back key again, the framework does not know which app
-> this key should go to until app A has finished processing the first
-> key press.
+Huh? Defaults in what units, based on what, and when and how to update?
 
-Errm, what has this to do with frozen apps? If your system is
-handling input events then there are no frozen apps and even if they
-are frozen your framework can unfreeze them _before_ talking to them.
+Cheers.
 
-So which unfixable problem are you describing with the above example ?
-
-Thanks,
-
-	tglx
---8323328-852715769-1275756468=:2933--
+--=20
+=46elipe Contreras
