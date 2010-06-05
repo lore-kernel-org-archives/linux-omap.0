@@ -1,44 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Florian Mickler <florian@mickler.org>
 Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Sat, 5 Jun 2010 21:39:31 +0200
-Message-ID: <201006052139.31253.rjw@sisk.pl>
-References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk> <201006052104.05324.rjw@sisk.pl> <1275765379.1645.532.camel@laptop>
+Date: Sat, 5 Jun 2010 21:49:39 +0200
+Message-ID: <20100605214939.49dd0ee0@schatten.dmk.lab>
+References: <20100527222514.0a1710bf@lxorguk.ukuu.org.uk>
+	<1275149418.4503.128.camel@mulgrave.site>
+	<1275156734.1645.496.camel@laptop>
+	<201005312314.12391.rjw@sisk.pl>
+	<AANLkTil4DLUciWMVmCiiygS2Y1vLZu0Lnfys-w4q3L7W@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1275765379.1645.532.camel@laptop>
+In-Reply-To: <AANLkTil4DLUciWMVmCiiygS2Y1vLZu0Lnfys-w4q3L7W@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, Arve =?utf-8?q?Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>, Brian Swetland <swetland@google.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Zijlstra <peterz@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Arve =?ISO-8859-15?Q?Hj=F8nnev=E5g?= <arve@android.com>, tytso@mit.edu, LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, felipe.balbi@nokia.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 05 June 2010, Peter Zijlstra wrote:
-> On Sat, 2010-06-05 at 21:04 +0200, Rafael J. Wysocki wrote:
-> > 
-> > > I have seen recent proposals that don't require changing the whole
-> > > user-space. That might actually be used by other players.
-> > 
-> > Sure, an approach benefitting more platforms than just Android would be better,
-> > but saying that the kernel shouldn't address the Android's specific needs as a
-> > rule if no one else has those needs too is quite too far reaching to me. 
-> 
-> Well, if the android people keep rejecting all sensible approaches to
-> power savings except their suspend blocker mess, then I don't see why we
-> should support their ill designed mess.
+On Sat, 5 Jun 2010 20:16:33 +0300
+=46elipe Contreras <felipe.contreras@gmail.com> wrote:
 
-Well, I certainly would like the Android people to be more appreciative of our
-ideas if they expect reciprocity.
+> On Tue, Jun 1, 2010 at 12:14 AM, Rafael J. Wysocki <rjw@sisk.pl> wrot=
+e:
+> > Do you realistically think that by hurting the _user_ you will make=
+ the
+> > _developer_ write better code? =A0No, really.
+>=20
+> As an application writer, if my users complain that their battery is
+> being drained (as it happened), they stop using it, and other people
+> see there are problems, so they stop using it, if people get angry
+> about it they will vote it down.
+>=20
+> New users will see it has low score; they will not install it. That's
+> a network effect.
+>=20
+> Having users is the quintessential reason people write code.
+>=20
 
-> We should strive to provide an interface that can be used by all
-> interested parties to conserve power; if Android really is the only
-> possible user of the interface then I don't see any reason at all to
-> merge it, they might as well keep it in their private tree.
+That is nice. But how does it impact the problem that suspend blockers
+solve? And why do suspend blockers interfere with that?
 
-There is a number of kernel users that depend on Android user space
-(phone vendors using Android on their hardware, but providing their own
-drivers), so I don't think we really can identify Android with Google in that
-respect.
-
-Rafael
+Cheers,
+=46lo
