@@ -1,123 +1,33 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: suspend blockers & Android integration
-Date: Fri, 4 Jun 2010 22:35:06 -0700
-Message-ID: <AANLkTim3MMfJ6oa9OhUJch_v1qGyxSfrfxF3zDZhxqHk@mail.gmail.com>
-References: <20100603193045.GA7188@elte.hu>
-	<20100603232302.GA16184@elte.hu>
-	<1275644619.27810.39462.camel@twins>
-	<201006050138.30859.rjw@sisk.pl>
-	<alpine.LFD.2.00.1006050148080.2933@localhost.localdomain>
-	<AANLkTikGDSzaENwg_0BAtsYf3ulGd_6sGPR30WsvUxMi@mail.gmail.com>
-	<20100605011826.GB21016@count0.beaverton.ibm.com>
+Date: Sat, 05 Jun 2010 11:54:13 +0200
+Message-ID: <1275731653.27810.41078.camel@twins>
+References: <20100603193045.GA7188@elte.hu> <20100603231153.GA11302@elte.hu>
+	 <20100603232302.GA16184@elte.hu>
+	 <AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
+	 <20100604071354.GA14451@elte.hu>
+	 <AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
+	 <20100604083423.GD15181@elte.hu>
+	 <AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com>
+	 <1275653210.27810.39762.camel@twins>
+	 <AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:36595 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752644Ab0FEFfI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Jun 2010 01:35:08 -0400
-In-Reply-To: <20100605011826.GB21016@count0.beaverton.ibm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>
+Cc: Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Matt Helsley <matthltc@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 
-2010/6/4 Matt Helsley <matthltc@us.ibm.com>:
-> On Fri, Jun 04, 2010 at 05:39:17PM -0700, Arve Hj=F8nnev=E5g wrote:
->> On Fri, Jun 4, 2010 at 5:05 PM, Thomas Gleixner <tglx@linutronix.de>=
- wrote:
->> > On Sat, 5 Jun 2010, Rafael J. Wysocki wrote:
->
-> <snip>
->
->>
->> > =A0 =A0 With the cgroup freezer you can "suspend" them right away =
-and
->> > =A0 =A0 just keep the trusted background task(s) alive which allow=
-s us to
->> > =A0 =A0 go into deeper idle states instead of letting the crapplic=
-ations
->> > =A0 =A0 run unconfined until the download finished and the suspend
->> > =A0 =A0 blocker goes away.
->> >
->>
->> Yes this would be better, but I want it in addition to suspend, not
->> instead of it. It is also unclear if our user-space code could easil=
-y
->> make use of it since our trusted code calls into untrusted code.
->>
->
-> Perhaps I'm misunderstanding, but suspend and the cgroup freezer
-> interoperate well today -- you don't have to choose one or the other.
-> If you've discovered otherwise I'd consider it a bug and would like t=
-o
-> hear more about it.
->
+On Fri, 2010-06-04 at 17:10 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
+> > Trusted processes are assumed to be sane and idle when there is not=
+hing
+> > for them to do, allowing the machine to go into deep idle states.
+> >
+>=20
+> Neither the kernel nor our trusted user-space code currently meets
+> this criteria.=20
 
-I'm not aware of any bug with combining both, but we cannot use
-suspend at all without suspend blockers in the kernel (since wakeup
-events may be ignored) and I don't know how we can safely freeze
-cgroups without funneling all potential wakeup events through a
-process that never gets frozen.
-
-> <snip>
->
->> it can handle bad apps better (assuming you don't combine
->> opportunistic suspend and cgroup freezing).
->
-> I don't see why that would be a problem. The cgroup freezer works
-> independently of the suspend freezer -- even with suspend blockers.
-> So my hunch is this is really the same as the next problem you refer =
-to:
->
->> The biggest hurdle is how
->> to handle dependencies between processes that gets frozen and
->> processes that don't get frozen.
->
-> I'm not sure it covers everything you want, but it should be possible=
- to
-> identify some of those so long as you know which process you're
-> communicating with.
->
-> A trusted app can look up the freezer cgroup of a target app in /proc=
-, then
-> look at the cgroup's freezer.state file. If it's FREEZING or FROZEN t=
-hen
-> you've very likely got a "bad" dependency.
->
-
-I don't think they are "bad" dependencies. Our framework has to
-communicate with apps.
-
-> For example, say a trusted app plans on doing a blocking read() to fe=
-tch
-> the output of an untrusted app via a pipe. Assuming we know the untru=
-sted
-> app's pid we could then check the dependency and determine that we're=
- likely
-> to block because the untrusted app's freezer cgroup is FREEZING or FR=
-OZEN.
-> (certain to block if we see FROZEN)
->
-> That said, it involves quite a few system calls compared to a simple =
-read()
-> from the pipe. So my guess is it would be a debugging tool at best --=
- not
-> something you always have enabled.
->
-> It may even be possible to make an lsof-like debugging tool to do tha=
-t from
-> outside both apps.
->
-> Cheers,
-> =A0 =A0 =A0 =A0-Matt Helsley
->
-
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Then both need fixing. Really, that's the only sane approach.
