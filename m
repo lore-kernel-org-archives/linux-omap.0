@@ -1,57 +1,82 @@
 From: Florian Mickler <florian@mickler.org>
-Subject: Re: suspend blockers & Android integration
-Date: Sat, 5 Jun 2010 22:37:08 +0200
-Message-ID: <20100605223708.7d8ff451@schatten.dmk.lab>
-References: <20100603193045.GA7188@elte.hu>
-	<20100603231153.GA11302@elte.hu>
-	<20100603232302.GA16184@elte.hu>
-	<alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
-	<20100603234634.GA21831@elte.hu>
-	<alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Sat, 5 Jun 2010 22:50:12 +0200
+Message-ID: <20100605225012.771332db@schatten.dmk.lab>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
+	<201005312347.24251.rjw@sisk.pl>
+	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
+	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
+	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
+	<AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
+	<1275471561.27810.30865.camel@twins>
+	<AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
+	<1275474088.27810.31000.camel@twins>
+	<20100602221309.6da754e7@schatten.dmk.lab>
+	<1275550802.27810.34863.camel@twins>
+	<20100603161205.73a2b56d@schatten.dmk.lab>
+	<1275578881.27810.35995.camel@twins>
+	<AANLkTinBg9W7zeomPbpGEDWkIsfxO9OfFUC0Kq7wafFb@mail.gmail.com>
+	<20100605215604.68efc4e5@schatten.dmk.lab>
+	<AANLkTilhvUn3PfnHsJTNzhr59xrUyvGlFmnAOnub65sE@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:36586 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755244Ab0FEUh1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 5 Jun 2010 16:37:27 -0400
-In-Reply-To: <alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTilhvUn3PfnHsJTNzhr59xrUyvGlFmnAOnub65sE@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Arve =?ISO-8859-15?Q?Hj=F8nnev?= =?ISO-8859-15?Q?=E5g?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 
-On Thu, 3 Jun 2010 19:16:55 -0700 (PDT)
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Sat, 5 Jun 2010 23:06:03 +0300
+Felipe Contreras <felipe.contreras@gmail.com> wrote:
 
-> The thing is, unless there is some _really_ deep other reason to do 
-> something like this, I still think it's total overdesign to push any 
-> knowledge/choices like this into the scheduler. I'd rather keep things way 
-> more independent, less tied to each other and to deep kernel subsystems.
+> On Sat, Jun 5, 2010 at 10:56 PM, Florian Mickler <florian@mickler.org> wrote:
+> > On Sat, 5 Jun 2010 20:30:40 +0300
+> > Felipe Contreras <felipe.contreras@gmail.com> wrote:
+> >> I don't think the suspend blockers solve much. A bad application will
+> >> behave bad on any system. Suppose somebody decides to port Firefox to
+> >> Android, and forgets to listen to the screen off event (bad on Android
+> >> or Maemo), however, notices the application behaves very badly, so by
+> >> googling finds these suspend blockers, and enables them all the time
+> >> the application runs.
+> >>
+> >> When the user install the application, will be greeted by a warning
+> >> "This application might break PM, do you want to enable suspend
+> >> blockers?" (or whatever), as any typical user would do, will press Yes
+> >> (whatever).
+> >>
+> >> We end up in exactly the same situation.
+> >>
+> > No. The application will show up in the suspend blocker stats and the
+> > user will remember: "Oh, yes. There was a warning about that. Well I
+> > think I'm going to file a bug there."
 > 
-> IOW, my personal opinion is that somethng like a suspend (blocker or not) 
-> decision simply shouldn't be important enough to be tied into the 
-> scheduler. Especially not if it could just be its own layer.
+> How would such stats be calculated? I presume at regular intervals you
+> check which applications are holding suspend blockers and increase a
+> counter.
 > 
-> That said, as far as I know, the Android people have mostly been looking 
-> at the suspend angle from a single-core standpoint. And I'm not at all 
-> convinced that they should hijack the existing "/sys/power/state" thing 
-> which is what I think they do now.
+> How would you do that with the dynamic PM approach? At regular
+> intervals you check for which applications are running (not idle).
+
+IIRC, the patches discussed have debugging infrastructure in
+them. The kernel does the accounting. 
+
 > 
-> And those two things go together. The /sys/power/state thing is a global 
-> suspend - which I don't think is appropriate for a opportunistic thing in 
-> the first place, especially for multi-core.
+> > The only difference is, that with suspend blockers, he can than
+> > dismiss the applications permission to block suspend and will not miss
+> > his job interview the next day because his phones battery run
+> > out. And also he can use the application to a certain extent.
 > 
-
-This sounds right. 
-
-If there is soo much need for a better solution, it will emerge. With
-merged suspend blockers or not.
-
-Just my 2 cents.
-
-> 			Linus
+> So the difference is between removing the app, and making it run
+> crappy. I don't think that's a strong argument in favor of suspend
+> blockers.
+> 
+If you think a little about it, it is. Because if the app wouldn't be
+usable at all, the bug wouldn't get fixed because the user wouldn't use
+it. Or not?
 
 Cheers,
 Flo
