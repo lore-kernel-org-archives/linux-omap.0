@@ -1,142 +1,86 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Arjan van de Ven <arjan@infradead.org>
 Subject: Re: suspend blockers & Android integration
-Date: Sun, 6 Jun 2010 00:11:06 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006052348200.2933@localhost.localdomain>
-References: <20100603193045.GA7188@elte.hu> <20100603232302.GA16184@elte.hu> <1275644619.27810.39462.camel@twins> <201006050138.30859.rjw@sisk.pl> <alpine.LFD.2.00.1006050148080.2933@localhost.localdomain> <AANLkTikGDSzaENwg_0BAtsYf3ulGd_6sGPR30WsvUxMi@mail.gmail.com>
- <alpine.LFD.2.00.1006050246350.2933@localhost.localdomain> <AANLkTikU21xF49Z-_Lnrq7U7buNmqw_gyEEST8LuN24z@mail.gmail.com> <alpine.LFD.2.00.1006051736040.2933@localhost.localdomain> <AANLkTinD39rI47innPbGz1Gi8PsXV5HqkmaQuJ70oQ63@mail.gmail.com>
+Date: Sat, 5 Jun 2010 15:23:26 -0700
+Message-ID: <20100605152326.7ccd5160@infradead.org>
+References: <20100603193045.GA7188@elte.hu>
+	<20100603231153.GA11302@elte.hu>
+	<20100603232302.GA16184@elte.hu>
+	<AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
+	<20100604071354.GA14451@elte.hu>
+	<AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
+	<20100604083423.GD15181@elte.hu>
+	<AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com>
+	<1275653210.27810.39762.camel@twins>
+	<AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com>
+	<1275731653.27810.41078.camel@twins>
+	<20100605092851.6ee15f13@infradead.org>
+	<AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-2022448962-1275775868=:2933"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinD39rI47innPbGz1Gi8PsXV5HqkmaQuJ70oQ63@mail.gmail.com>
+In-Reply-To: <AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+To: Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Sat, 5 Jun 2010 14:26:14 -0700
+Arve Hj=C3=B8nnev=C3=A5g <arve@android.com> wrote:
 
---8323328-2022448962-1275775868=:2933
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-
-On Sat, 5 Jun 2010, Arve Hjønnevåg wrote:
-> 2010/6/5 Thomas Gleixner <tglx@linutronix.de>:
-> > B1;2005;0cOn Fri, 4 Jun 2010, Arve Hjønnevåg wrote:
-> >> > Why is it a BUG in the trusted app, when I initiate a download and put
-> >> > the phone down ?
+> On Sat, Jun 5, 2010 at 9:28 AM, Arjan van de Ven
+> <arjan@infradead.org> wrote:
+> > On Sat, 05 Jun 2010 11:54:13 +0200
+> > Peter Zijlstra <peterz@infradead.org> wrote:
+> >
+> >> On Fri, 2010-06-04 at 17:10 -0700, Arve Hj=C3=B8nnev=C3=A5g wrote:
+> >> > > Trusted processes are assumed to be sane and idle when there i=
+s
+> >> > > nothing for them to do, allowing the machine to go into deep
+> >> > > idle states.
+> >> > >
 > >> >
+> >> > Neither the kernel nor our trusted user-space code currently
+> >> > meets this criteria.
 > >>
-> >> It is not, but we have had bugs where a trusted app does not unblock
-> >> suspend after some failure case where it is no longer making any
-> >> progress.
+> >> Then both need fixing. Really, that's the only sane approach.
 > >
-> > Well, that's simply an application bug which sucks battery with or
-> > without suspend blockers. So it's unrelated to the freezing of
-> > untrusted apps while a trusted app still works in the background
-> > before allowing the machine to suspend.
+> > fwiw... in MeeGo we're seeing quite good idle times (> 1 seconds)
+> > without really bad hacks.
 > >
-> 
-> It is not unrelated if the trusted app has stopped working but still
-> blocks suspend. The battery drains when you combine them.
+>=20
+> We clearly have different standards for what we consider good. We
+> measure time suspended in minutes or hours, not seconds, and waking u=
+p
+> every second or two causes a noticeable decrease in battery life on
+> the hardware we have today.
 
-What you are describing is a problem which is not solvable either way.
-If you take the lock and do not release it you're not going to
-suspend. I never claimed that any other mechanism resolves this.
+I guess I'm spoiled working with (unreleased) hardware that knows how
+to power gate ;-)
 
-But this is not related to the fact that freezing crap while running a
-sane background task is going to save you power vs. an approach where
-running a sane background task allows crap to consume power unconfined
-until it is done.
 
-> >> > That download might take a minute or two, but that's not an
-> >> > justification for the crapplication to run unconfined and prevent
-> >> > lower power states.
-> >> >
-> >>
-> >> I agree, but this is not a simple problem to solve.
-> >
-> > Not with suspend blockers, but with cgroup confinement of crap, it's
-> > straight forward.
-> >
-> 
-> I don't think is is straight forward. If the a process in the frozen
-> group holds a resource that a process in the unfrozen group needs, how
-> do deal with that?
+>=20
+> > the kernel has a set of infrastructure already to help here (range
+> > timers, with which you can wakeup-limit untrusted userspace crap),
+> > timer slack for legacy background timers, etc etc.
+>=20
+> Range timers allows the kernel to align different timers so they don'=
+t
+> each bring the cpu out of idle individually. They do not eliminate
+> timers or make individual timers fire less often.
 
-I'm going to fix the framework which puts the group into freeze state
-w/o making sure that there is no held shared resource. Come on it's
-not rocket science.
- 
-> >> Yes I don't know everything our user-space stack is doing, but I do
-> >> know that it makes many calls between processes (and in both
-> >> directions). As far as I know it uses timeouts when calling into
-> >> untrusted code, so a misbehaving application will cause an error
-> >> dialog to pop up asking if the user if it should wait longer or
-> >> terminate the application.
-> >
-> > Sigh, the more I learn about the details of android and it's violation
-> > of all sane engineering principles the more I understand why you
-> > invented a huge nail to push through all layers in order to bring the
-> > system into idle at all. And yes, you need a sledge hammer to drive
-> > that big nail through everything, so you are using the right tool.
-> >
-> > Seriously, the cross app call goes through your framework, which
-> > already knows, that the untrusted part is frozen. So it can deal
-> > nicely with it in any way you want including unfreezing.
-> 
-> Cross app calls do not go through a central process.
+you're incorrect.
+With range timers you can control the rate at which timers fire just
+fine.=20
 
-It's not about a central process, it goes through your framework,
-which should be able to deal with it. If not, it's a design failure
-which needs to be fixed at the place where the failure happened.
- 
-> >>
-> >> How can it be fixed? The user presses the back button, the framework
-> >> determines that app A is in the foreground and send the key to app A,
-> >> app A decides that it it does not have anything internal to go back to
-> >> and tells the framework to switch back to the previous app. If the
-> >> user presses the back key again, the framework does not know which app
-> >> this key should go to until app A has finished processing the first
-> >> key press.
-> >
-> > Errm, what has this to do with frozen apps? If your system is
-> > handling input events then there are no frozen apps and even if they
-> > are frozen your framework can unfreeze them _before_ talking to them.
-> >
-> > So which unfixable problem are you describing with the above example ?
-> >
-> 
-> You are claiming that trusted code should not have any dependencies on
-> untrusted code. I gave you a visible example of such a dependency and
-> want you to tell me how you can avoid this dependency. Since you are
-> claiming that our user-space framework is fundamentally broken if it
-> has to wait for untrusted code, I don't think it is unreasonable for
-> you to answer this. Or do you think it is valid to communicate with
-> untrusted code when the screen is on but not when it is off.
+=46or example if the Adobe Flash player puts a timer every 10
+milliseconds (yes it does that), and you give it a 3.99 seconds range,
+it will fire its timers every 4 seconds.... unless other activity
+happens independently, at which point it'll align with that instead.
 
-It does not matter whether the screen is off or not. If you need to
-call into that untrusted app from your trusted app and you know about
-the might be frozen state then you can deal with it.
 
-So taking your example:
 
-Event happens and gets delivered to the framework
-
-      framework selects A because it is in the foreground
-      
-      if (A is frozen)
-      	 unfreeze(A)
-
-      deliver_event_to(A)
-
-It's that simple.
-
-If your framework cannot deal with that simple problem then you have a
-much more serious problem already.
-
-Thanks,
-
-	tglx
-
---8323328-2022448962-1275775868=:2933--
+--=20
+Arjan van de Ven 	Intel Open Source Technology Centre
+=46or development, discussion and tips for power savings,=20
+visit http://www.lesswatts.org
