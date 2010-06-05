@@ -1,35 +1,29 @@
-From: Arjan van de Ven <arjan@infradead.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: suspend blockers & Android integration
-Date: Sat, 5 Jun 2010 15:48:33 -0700
-Message-ID: <20100605154833.7d05e404@infradead.org>
-References: <20100603193045.GA7188@elte.hu>
-	<20100603231153.GA11302@elte.hu>
-	<20100603232302.GA16184@elte.hu>
-	<AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
-	<20100604071354.GA14451@elte.hu>
-	<AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
-	<20100604083423.GD15181@elte.hu>
-	<AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com>
-	<1275653210.27810.39762.camel@twins>
-	<AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com>
-	<1275731653.27810.41078.camel@twins>
-	<20100605092851.6ee15f13@infradead.org>
-	<AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com>
-	<20100605152326.7ccd5160@infradead.org>
-	<AANLkTinRH52dSTPCAO9k1yEFup1LLYizeinunxeTBzbQ@mail.gmail.com>
+Date: Sun, 6 Jun 2010 00:52:21 +0200
+Message-ID: <201006060052.21501.rjw@sisk.pl>
+References: <20100603193045.GA7188@elte.hu> <20100605152326.7ccd5160@infradead.org> <AANLkTinRH52dSTPCAO9k1yEFup1LLYizeinunxeTBzbQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <AANLkTinRH52dSTPCAO9k1yEFup1LLYizeinunxeTBzbQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Brian Swetland <swetland@google.com>
-Cc: Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Arjan van de Ven <arjan@infradead.org>, Arve =?utf-8?q?Hj=C3=B8nnev=C3=A5g?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 5 Jun 2010 15:26:36 -0700
-Brian Swetland <swetland@google.com> wrote:
-
+On Sunday 06 June 2010, Brian Swetland wrote:
+> On Sat, Jun 5, 2010 at 3:23 PM, Arjan van de Ven <arjan@infradead.org> wrote:
+> >>
+> >> We clearly have different standards for what we consider good. We
+> >> measure time suspended in minutes or hours, not seconds, and waking up
+> >> every second or two causes a noticeable decrease in battery life on
+> >> the hardware we have today.
+> >
+> > I guess I'm spoiled working with (unreleased) hardware that knows how
+> > to power gate ;-)
 > 
 > I'm continually surprised by answers like this.  We run on hardware
 > that power gates very aggressively and draws in the neighborhood of
@@ -41,45 +35,14 @@ Brian Swetland <swetland@google.com> wrote:
 > "interesting" is happening is very useful and can have a significant
 > impact on overall battery life.
 
-It's relatively simple math.
+Yes, and if you look at the approach I proposed in this very thread
+(http://lkml.org/lkml/2010/6/4/368), it goes exactly in this direction.
 
-If you wake up for a burst of work, you burn power at the higher level
-P1 (versus the lower power level P2), for, lets say an average time T,
-with a relatively small T (few milliseconds at most).
+And I think it is superior to the opportunistic suspend framework you have
+right now, because, for example, it doesn't require you to carry out full
+system resume and full system suspend every once a while to check battery
+status.
 
-If you wake up X times per second (with X being a fractional number, so
-can be smaller than 1) the extra power consumption factor is
+And guess what, suspending and resuming the whole system actually uses energy.
 
-          X * T * P1
--------------------------------
-X * T * P1 + (1.0 - X * T) * P2
-
-if you draw a graph of this, for real values of P and T, there's a real
-point where you hit diminishing returns.
-
-if say T is 5 milliseconds (that's a high amount), and X is 1
-wakeup/second, then there's already a 200:1 ratio in time an power.
-
-If X goes to once every 10 seconds (not unreasonable, especially since
-any real device will pull email and stuff in the backgroudn), you have
-2000:1 time and power ratios...
-
-Unless your "on" power is insane high (and hopefully it's not, since
-you're not turning on the whole device obviously, you do selective
-power and clock gating)... that "divide by 200 or 2000" makes the whole
-problem go away.. in the "seconds" range for really low power devices.
-Not in "hours" range. 
-
-
-On laptops (which have much more poor powermanagement) this point is
-around 40 milliseconds or so.. but on phone silicon that I've seen,
-both Intel and others, this is in the 1 to 5 seconds range.
-
-
-
-
-
--- 
-Arjan van de Ven 	Intel Open Source Technology Centre
-For development, discussion and tips for power savings, 
-visit http://www.lesswatts.org
+Rafael
