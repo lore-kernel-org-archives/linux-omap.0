@@ -1,159 +1,108 @@
 From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
 Subject: Re: suspend blockers & Android integration
-Date: Sat, 5 Jun 2010 18:03:11 -0700
-Message-ID: <AANLkTikXUTZE1vesD-Ccn8VhPjhBYYS0Tw_Pq9u5nnq7@mail.gmail.com>
+Date: Sat, 5 Jun 2010 18:16:49 -0700
+Message-ID: <AANLkTikdM79nmARagK9gLveMWEiT6rlk44UELes1k8Ch@mail.gmail.com>
 References: <20100603193045.GA7188@elte.hu>
-	<201006052025.11526.rjw@sisk.pl>
-	<AANLkTilP0uyJRuUq6BlVeHDydPYi4oJsf37VvSAixwgN@mail.gmail.com>
-	<201006060103.20540.rjw@sisk.pl>
+	<20100603232302.GA16184@elte.hu>
+	<1275644619.27810.39462.camel@twins>
+	<201006050138.30859.rjw@sisk.pl>
+	<alpine.LFD.2.00.1006050148080.2933@localhost.localdomain>
+	<AANLkTikGDSzaENwg_0BAtsYf3ulGd_6sGPR30WsvUxMi@mail.gmail.com>
+	<alpine.LFD.2.00.1006050246350.2933@localhost.localdomain>
+	<AANLkTikU21xF49Z-_Lnrq7U7buNmqw_gyEEST8LuN24z@mail.gmail.com>
+	<alpine.LFD.2.00.1006051736040.2933@localhost.localdomain>
+	<AANLkTinD39rI47innPbGz1Gi8PsXV5HqkmaQuJ70oQ63@mail.gmail.com>
+	<alpine.LFD.2.00.1006052348200.2933@localhost.localdomain>
+	<AANLkTikmWDHYJ8wWF2cZapbkHHjV09R39I37yvQXFmor@mail.gmail.com>
+	<alpine.LFD.2.00.1006060148470.2933@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201006060103.20540.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matt Helsley <matthltc@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:47238 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933768Ab0FFBQu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Jun 2010 21:16:50 -0400
+In-Reply-To: <alpine.LFD.2.00.1006060148470.2933@localhost.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 
-2010/6/5 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Sunday 06 June 2010, Arve Hj=F8nnev=E5g wrote:
->> 2010/6/5 Rafael J. Wysocki <rjw@sisk.pl>:
->> > On Saturday 05 June 2010, Arve Hj=F8nnev=E5g wrote:
->> >> 2010/6/4 Matt Helsley <matthltc@us.ibm.com>:
->> >> > On Fri, Jun 04, 2010 at 05:39:17PM -0700, Arve Hj=F8nnev=E5g wr=
-ote:
->> >> >> On Fri, Jun 4, 2010 at 5:05 PM, Thomas Gleixner <tglx@linutron=
-ix.de> wrote:
->> >> >> > On Sat, 5 Jun 2010, Rafael J. Wysocki wrote:
->> >> >
->> >> > <snip>
->> >> >
->> >> >>
->> >> >> > =A0 =A0 With the cgroup freezer you can "suspend" them right=
- away and
->> >> >> > =A0 =A0 just keep the trusted background task(s) alive which=
- allows us to
->> >> >> > =A0 =A0 go into deeper idle states instead of letting the cr=
-applications
->> >> >> > =A0 =A0 run unconfined until the download finished and the s=
-uspend
->> >> >> > =A0 =A0 blocker goes away.
+2010/6/5 Thomas Gleixner <tglx@linutronix.de>:
+> On Sat, 5 Jun 2010, Arve Hj=F8nnev=E5g wrote:
+>> 2010/6/5 Thomas Gleixner <tglx@linutronix.de>:
+>> > On Sat, 5 Jun 2010, Arve Hj=F8nnev=E5g wrote:
+>> >> >> > That download might take a minute or two, but that's not an
+>> >> >> > justification for the crapplication to run unconfined and pr=
+event
+>> >> >> > lower power states.
 >> >> >> >
 >> >> >>
->> >> >> Yes this would be better, but I want it in addition to suspend=
-, not
->> >> >> instead of it. It is also unclear if our user-space code could=
- easily
->> >> >> make use of it since our trusted code calls into untrusted cod=
-e.
->> >> >>
+>> >> >> I agree, but this is not a simple problem to solve.
 >> >> >
->> >> > Perhaps I'm misunderstanding, but suspend and the cgroup freeze=
-r
->> >> > interoperate well today -- you don't have to choose one or the =
-other.
->> >> > If you've discovered otherwise I'd consider it a bug and would =
-like to
->> >> > hear more about it.
+>> >> > Not with suspend blockers, but with cgroup confinement of crap,=
+ it's
+>> >> > straight forward.
 >> >> >
 >> >>
->> >> I'm not aware of any bug with combining both, but we cannot use
->> >> suspend at all without suspend blockers in the kernel (since wake=
-up
->> >> events may be ignored)
+>> >> I don't think is is straight forward. If the a process in the fro=
+zen
+>> >> group holds a resource that a process in the unfrozen group needs=
+, how
+>> >> do deal with that?
 >> >
->> > The more I think of it, the more it appears to me that the problem=
- of
->> > lost wakeup events can actually be solved without suspend blockers=
-=2E
->> > I'll send a bunch of patches to address this issue, probably tomor=
-row.
+>> > I'm going to fix the framework which puts the group into freeze st=
+ate
+>> > w/o making sure that there is no held shared resource. Come on it'=
+s
+>> > not rocket science.
 >> >
 >>
->> I know of two ways to prevent lost wakeup events. Reset a timeout
->> every time you receive a wakeup event or prevents suspend until you
->> know the event has been fully processed. Does your solution fall ont=
-o
->> one of these two categories, or do you have a third way?
+>> I'm not sure which framework you are talking about here, but I don't
+>> think there is a single framework that knows about all shared
+>> resources.
 >
-> Basically, it involves two mechanisms, detection of wakeup events occ=
-uring
-> right before suspend is started
+> Damn, it's not me talking about "our framework", you are mentioning
+> when it fits your needs.
 
-This sounds like the timeout approach which I thought you did not like.
+You said you were going to fix the framework. I did know if you were
+talking about the cgroup framework, or the android user-space
+frameworks. I don't think either has knowledge about all shared
+resources.
 
-> and aborting suspend if wakeup events occur
-> in the middle of it.
 >
-Aborting suspend is easy, but when do you allow suspend again?
-
->> >> and I don't know how we can safely freeze
->> >> cgroups without funneling all potential wakeup events through a
->> >> process that never gets frozen.
->> >
->> > If your untrusted apps get called by the trusted ones, they aren't=
- really
->> > untrusted in the first place.
->> >
->> That is not a correct statement. A trusted apps can call into an
->> untrusted app, it just has to validate the response and handle not
->> getting a response at all. There are also different levels of trust.=
- I
->> may have trusted an app to provide a contact pictures, but not trust=
-ed
->> it to block suspend. When the phone rings the app will be called to
->> provide the picture for the incoming call dialog, but if it is froze=
-n
->> at this point the more trusted app that handles the incoming phone
->> call will not be able to get the picture.
+> If you do not have a clearly defined user space framework, then we
+> talk about a completely random conglomeration of applications which
+> need to be brought into submission by some global brute force
+> approach.
 >
-> It will be able to do that if it causes the frozen part of user space=
- to be
-> thawed.
+> I'm tired of this, really. You just use terminlology as it fits to
+> defend the complete design failure of android. But you fail to trick
+> me :)
 >
-> I think you have this problem already, though, because you use full s=
-ystem
-> suspend and all of your apps are frozen by it. =A0So, to handle the s=
-ituation you
-> describe above, you need to carry out full system resume that will th=
-aw the
-> tasks for you. =A0I don't see any fundamental difference betwee the t=
-wo cases.
+> Can you please explain in a consistent way how the application stack
+> and the underlying framework (which exists according to android docs)
+> is handling events and how the separation of trust level works ?
 >
 
-Yes, we can keep all our user space suspend blockers and thaw the
-frozen cgroup when any suspend blocker is held, but this would
-eliminate any power advantage that freezing a cgroup has over using
-suspend to freeze all processes. Without annotating the drivers to
-block the cgroup freezing in the same places as we now block suspend,
-it also prevents processes in the cgroup that we freeze from directly
-consuming wakup events.
+I don't think I can, since I only know small parts of it. I know some
+events like input event go though a single thread in our system
+process, while other events like network packets (which are also
+wakeup events) goes directly to the app.
 
->> > From what you're saying it follows that you're not really willing =
-to accept
->> > any solution different to your suspend blockers. =A0Is that really=
- the case?
->> >
->> I don't think that is a fair way to put it. We need to support our
->> user-space framework and I have not seen an alternative solution tha=
-t
->> clearly will work (other than replacing suspend_blockers with pm_qos
->> constraints that do the same thing).
+> We need to know that, otherwise we turn in circles forever.
 >
-> Then think again of the approach I proposed and explain to me why it =
-won't
-> work, because I haven't seen any convincing argument on that yet.
+> Thanks,
 >
+> =A0 =A0 =A0 =A0tglx
 
-If you are referring to the approach that we don't use suspend but
-freeze a cgroup instead, this only solves the problem of bad apps. It
-does not help pause timers in trusted user space code and in the
-kernel, so it does not lower our average power consumption. And, it
-does not solve the problem for systems that enters lower power states
-from suspend than it can from idle. The last point my not be relevant
-to android anymore, but desktop systems already have auto suspend and
-it would be preferable to have a race free kernel api for this.
+
 
 --=20
 Arve Hj=F8nnev=E5g
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
