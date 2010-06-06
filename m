@@ -1,18 +1,19 @@
 From: david@lang.hm
 Subject: Re: suspend blockers & Android integration
-Date: Sun, 6 Jun 2010 01:04:46 -0700 (PDT)
-Message-ID: <alpine.DEB.2.01.1006060100290.17462@asgard.lang.hm>
-References: <20100603193045.GA7188@elte.hu>
-	<AANLkTinsOF3wnxsruR0TvjBAQcHks4tf0ay_sM2xB_p4@mail.gmail.com>
-	<20100604075722.GA15181@elte.hu>
-	<AANLkTiksGnpL8tkcc5eScWHrGoijyZNUwZik5lXmU_TS@mail.gmail.com>
-	<20100604085513.GE15181@elte.hu>
-	<AANLkTinphtxn-8pGTYv_mBxKFMa7jU8i1yNbHrs50Vzl@mail.gmail.com>
+Date: Sun, 6 Jun 2010 01:16:34 -0700 (PDT)
+Message-ID: <alpine.DEB.2.01.1006060114240.17462@asgard.lang.hm>
+References: <20100603193045.GA7188@elte.hu> <20100603231153.GA11302@elte.hu>
+	<20100603232302.GA16184@elte.hu>
+	<alpine.LFD.2.00.1006031630300.8175@i5.linux-foundation.org>
+	<20100603234634.GA21831@elte.hu>
+	<alpine.LFD.2.00.1006031856420.8175@i5.linux-foundation.org>
+	<alpine.LFD.2.00.1006031917500.8175@i5.linux-foundation.org>
+	<20100603204521.09808a7f@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <AANLkTinphtxn-8pGTYv_mBxKFMa7jU8i1yNbHrs50Vzl@mail.gmail.com>
+In-Reply-To: <20100603204521.09808a7f@infradead.org>
 List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
@@ -22,24 +23,38 @@ List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
 Sender: linux-pm-bounces@lists.linux-foundation.org
 Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Brian Swetland <swetland@google.com>
-Cc: tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Florian Mickler <florian@mickler.org>, Neil Brown <neilb@suse.de>, LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Florian Mickler <florian@mickler.org>, Neil Brown <neilb@suse.de>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 4 Jun 2010, Brian Swetland wrote:
+On Thu, 3 Jun 2010, Arjan van de Ven wrote:
 
-> Yeah, I do understand that we're not making it easy for ourselves
-> here.  I think we hit the point where Rafael and Matthew signed off on
-> things and thought "aha, linux-pm maintainers are happy, now we're
-> getting somewhere" only to realize the light at the end of the tunnel
-> was a bit further out than we anticipated ^^
+> On Thu, 3 Jun 2010 19:26:50 -0700 (PDT)
+> Linus Torvalds <torvalds@linux-foundation.org> wrote:
+>
+>>
+>> If the system is idle (or almost idle) for long times, I would
+>> heartily recommend actively shutting down unused cores. Some CPU's
+>> are hopefully smart enough to not even need that kind of software
+>> management, but I suspect even the really smart ones might be able to
+>> take advantage of the kernel saying: "I'm shutting you down, you
+>> don't have to worry about latency AT ALL, because I'm keeping another
+>> CPU active to do any real work".
+>
+> sadly the reality is that "offline" is actually the same as "deepest C
+> state". At best.
+>
+> As far as I can see, this is at least true for all Intel and AMD cpus.
+>
+> And because there's then no power saving (but a performance cost), it's
+> actually a negative for battery life/total energy.
 
-What you missed is that the linux-pm maintainers have relativly little 
-weight in getting things into the kernel. They are gatekeeper, so until 
-they approve it there is basically no chance of getting in, but even 
-changes that they develop and push frequently have a uphill battle to get 
-into the kernel, especially if they would end up touching all drivers. 
-There have been several proposals by the pm team that have been shot down 
-much more completely than wavelocks.
+I believe that this assumes you are in the 'race to idle' situation where 
+when you finish your work you can shutdown. If the work is ongoing you may 
+never shutdown.
+
+Also, what about the new CPUs where you can ramp up the clockspeed on some 
+cores if you hsut down other cores? that couls also benifit individual 
+threads.
 
 David Lang
