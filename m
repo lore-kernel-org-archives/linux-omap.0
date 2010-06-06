@@ -1,93 +1,46 @@
-From: Brian Swetland <swetland@google.com>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Sun, 6 Jun 2010 12:58:10 -0700
-Message-ID: <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
-References: <1275834706.7227.545.camel@mulgrave.site>
-	<alpine.LFD.2.00.1006061725000.2933@localhost.localdomain>
-	<1275844114.7227.552.camel@mulgrave.site>
-	<20100606190525.GA20517@infradead.org>
-	<AANLkTikKx-gXCGtNo3woHLCpBoEQ7hG9Jbiq3hwUTW_w@mail.gmail.com>
-	<20100606192405.GA7559@infradead.org>
+From: "Luke-Jr" <luke@dashjr.org>
+Subject: OMAP video compile error; regression from 2.6.33-rc4 onward (including current master)
+Date: Sun, 6 Jun 2010 16:52:25 -0500
+Message-ID: <201006061652.39248.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100606192405.GA7559@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: James Bottomley <James.Bottomley@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <felipe.balbi@nokia.com>
+To: tomi.valkeinen@nokia.com, slapin@ossfans.org
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jun 6, 2010 at 12:24 PM, Christoph Hellwig <hch@infradead.org> =
-wrote:
->
-> Yes. =C2=A0That's what makes me wonder about some parts of the discus=
-sion
-> here. =C2=A0Getting the drivers for one or more of the android plattf=
-orms
-> in is not a problem. =C2=A0I'd say it could have easily been done wit=
-h the
-> manweeks spent arguing in this and related threads.
->
-> The much bigger issues is to get android userspace running on a more
-> or less vanilla kernel, that is withoutthe =C2=A0binder, without the =
-rather
-> interesting group ID based security hack^H^H^H^Hmodel, without the
-> suspend blocker userspace API and so on, and so on.
+This doesn't even build, so I don't know how it was tested... Reverting the 
+offending commit (simple, but does require conflict resolution) at least lets 
+it compile, but I haven't tested whether it alone is enough to work in 
+practise yet... hoping Tomi might provide a real fix. Maybe even in time for 
+2.6.35 final? :)
 
-Somebody will have to broker a deal with the frameworks/apps folks to
-get rid of the binder.  They like it a lot.  Of course if somebody
-built a drop-in replacement for the userspace side that didn't require
-a kernel driver, had the same performance characteristics, solved the
-same problems, etc, they could probably make an argument for it (or
-just provide it as a drop-in replacement for people who want a more
-"pure" linux underneath Android, even if we didn't pick it up).
+https://bugzilla.kernel.org/show_bug.cgi?id=16144
 
-The group ID stuff works incredibly well for gating device access --
-we ensure that devices that need access from various processes end up
-with perms like 0660 root audio (say for a raw audio interface), and
-then we assure that processes which have the "may use audio hardware"
-permission are executed with audio as an additional group.  We ended
-up using the same model to control socket, raw socket, and bt socket
-access because at the time we could not find a reasonable way to grant
-or exclude such permissions on a process by process basis.
-Maintaining about 20-30 lines of diffs to make that work was not a bad
-tradeoff (and we don't expect those patches to go upstream).  If
-there's a way to accomplish this without patching the kernel, we're
-all ears.
+CC      drivers/video/omap/rfbi.o                                               
+drivers/video/omap/rfbi.c: In function 'rfbi_get_clocks':                       
+drivers/video/omap/rfbi.c:86: error: 'dispc' undeclared (first use in this
+function)
+drivers/video/omap/rfbi.c:86: error: (Each undeclared identifier is reported
+only once
+drivers/video/omap/rfbi.c:86: error: for each function it appears in.)          
+make[1]: *** [drivers/video/omap/rfbi.o] Error 1                                
+make: *** [drivers/video/omap/rfbi.o] Error 2                                   
 
-While we do maintain some assorted patches to core code (like the
-permissions thing), we strongly prefer to keep our work localized to
-drivers (generic to android or specific to hardware), and try to
-migrate to common kernel features when possible, submit patches (like
-work Mike Chan is doing around cpufreq and power measurement), etc.
-Patches to core code cause more headaches when we rebase up to new
-kernel versions, after all.
+The 'dispc' referred to herein is and has always been defined in
+drivers/video/omap/dispc.c as an anonymous struct.
 
-> So for people who really care about running a mainline kernel on thei=
-r
-> android device doing that part first on a generic ARM board in qemu
-> might be much better first step work.
+Broken in...
+commit f778a12dd33200513596a0d4d3ba4d5f09e79c09
+Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Date:   Wed Dec 16 13:18:07 2009 +0200
 
-> On the other hand I've heard
-> that various hardware vendors or parties closed to them are rather
-> annoyed by their drivers beeing stuck in the android tree - but that
-> can be easily solved by getting removing the suspend blockers (at lea=
-st
-> temporarily), cleaning up a few bits here and there and getting them =
-in.
+    OMAP: OMAPFB: fix clk_get for RFBI
 
-This continues to baffle me.  If we (Google) are such a headache, why
-not just route around us.  The drivers we've written are GPLv2, the
-source is out there for anyone who wants it, etc.  The drivers other
-people have written we have no control over at all. From my point of
-view it'd be an annoyance if somebody took the code we wrote, modified
-it heavily, and pushed it upstream, but fundamentally I can't stop
-that from happening other than by pushing it upstream myself, first.
+    omapfb platform device was still used to get clocks inside rfbi.c
 
-Blaming me because you want me to send your drivers upstream and I'm
-not doing it or not doing it fast enough or not doing it the way you
-like does not seem very productive.  I'm not a gatekeeper for patch
-submission to the mainline kernel.
-
-Brian
+    Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+    Tested-by: Sergey Lapin <slapin@ossfans.org>
