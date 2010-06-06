@@ -1,62 +1,60 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: suspend blockers & Android integration
-Date: Sat, 5 Jun 2010 22:49:09 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006052233100.22666-100000@netrider.rowland.org>
-References: <AANLkTikXUTZE1vesD-Ccn8VhPjhBYYS0Tw_Pq9u5nnq7@mail.gmail.com>
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Sun, 6 Jun 2010 09:52:08 +0200
+Message-ID: <AANLkTimKknOurmCffOpHjc1FjrP2MKf10pBwEEbLJPg_@mail.gmail.com>
+References: <20100603193045.GA7188@elte.hu>
+	<20100603231153.GA11302@elte.hu>
+	<20100603232302.GA16184@elte.hu>
+	<AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
+	<20100604071354.GA14451@elte.hu>
+	<AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
+	<20100604083423.GD15181@elte.hu>
+	<AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com>
+	<1275653210.27810.39762.camel@twins>
+	<AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com>
+	<1275731653.27810.41078.camel@twins>
+	<20100605092851.6ee15f13@infradead.org>
+	<AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikXUTZE1vesD-Ccn8VhPjhBYYS0Tw_Pq9u5nnq7@mail.gmail.com>
+In-Reply-To: <AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matt Helsley <matthltc@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+Cc: Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 5 Jun 2010, Arve Hj=F8nnev=E5g wrote:
+2010/6/5 Arve Hj=F8nnev=E5g <arve@android.com>:
+> On Sat, Jun 5, 2010 at 9:28 AM, Arjan van de Ven <arjan@infradead.org=
+> wrote:
+>> On Sat, 05 Jun 2010 11:54:13 +0200
+>> Peter Zijlstra <peterz@infradead.org> wrote:
+>>
+>>> On Fri, 2010-06-04 at 17:10 -0700, Arve Hj=F8nnev=E5g wrote:
+>>> > > Trusted processes are assumed to be sane and idle when there is
+>>> > > nothing for them to do, allowing the machine to go into deep id=
+le
+>>> > > states.
+>>> > >
+>>> >
+>>> > Neither the kernel nor our trusted user-space code currently meet=
+s
+>>> > this criteria.
+>>>
+>>> Then both need fixing. Really, that's the only sane approach.
+>>
+>> fwiw... in MeeGo we're seeing quite good idle times (> 1 seconds)
+>> without really bad hacks.
+>>
+>
+> We clearly have different standards for what we consider good. We
+> measure time suspended in minutes or hours, not seconds, and waking u=
+p
+> every second or two causes a noticeable decrease in battery life on
+> the hardware we have today.
 
-> Yes, we can keep all our user space suspend blockers and thaw the
-> frozen cgroup when any suspend blocker is held, but this would
-> eliminate any power advantage that freezing a cgroup has over using
-> suspend to freeze all processes. Without annotating the drivers to
-> block the cgroup freezing in the same places as we now block suspend,
-> it also prevents processes in the cgroup that we freeze from directly
-> consuming wakup events.
+Are you stating that the existing Android implementation enters the
+suspended state for hours for any of the existing designs?
 
-The driver annotations don't need to block the cgroup freezing.  They
-just need to keep the system running long enough to awaken a thread
-that will handle the wakeup event.  (See below.)  A pm-qos constraint=20
-is good enough for this.
-
-> If you are referring to the approach that we don't use suspend but
-> freeze a cgroup instead, this only solves the problem of bad apps. It
-> does not help pause timers in trusted user space code and in the
-> kernel, so it does not lower our average power consumption.
-
-You can solve this problem if you restructure your "trusted" apps in
-the right way.  Require a trusted app to guarantee that whenever it
-doesn't hold any suspend blockers, it will do nothing but wait (in a
-poll() system call for example) for a wakeup event.  When the event
-occurs, it must then activate a suspend blocker.
-
-Better yet, make it more fine-grained.  Instead of trusted apps, have
-trusted threads.  Freeze the untrusted threads along with everything
-else, and require the trusted threads to satisfy this guarantee.
-
-In this way, while the system is idle no user timers will get renewed.
-Kernel timers are another matter, but we should be able to handle them.=
- =20
-There's nothing Android-specific about wanting to reduce kernel timer=20
-wakeups while in a low-power mode.
-
-> And, it
-> does not solve the problem for systems that enters lower power states
-> from suspend than it can from idle. The last point my not be relevant
-> to android anymore, but desktop systems already have auto suspend and
-> it would be preferable to have a race free kernel api for this.
-
-This is an entirely different matter from the rest of the discussion.
-It would be better to consider this separately after Android's current
-problems have been addressed.
-
-Alan Stern
+~Vitaly
