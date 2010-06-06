@@ -1,8 +1,10 @@
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: Re: suspend blockers & Android integration
-Date: Sun, 6 Jun 2010 12:57:10 +0200
-Message-ID: <AANLkTin2ULTBRpTdX6rWuBOKCzPTFMMAJLz4NDUPb6al@mail.gmail.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Sun, 6 Jun 2010 12:05:57 +0100
+Message-ID: <20100606120557.72356de9@lxorguk.ukuu.org.uk>
 References: <20100603193045.GA7188@elte.hu>
+	<20100603231153.GA11302@elte.hu>
+	<20100603232302.GA16184@elte.hu>
 	<AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
 	<20100604071354.GA14451@elte.hu>
 	<AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
@@ -18,42 +20,41 @@ References: <20100603193045.GA7188@elte.hu>
 	<AANLkTin1Za3GvfIKbcZdx6TzjIHzCvsg5uaY_Vk4nJIh@mail.gmail.com>
 	<AANLkTilQ1k78dDCYadOa1Wiyjm2nsBcRpxwdpGvYcf8z@mail.gmail.com>
 	<AANLkTin7oM3gVwHbIHWqYV8yeC6bbQ4q2jDDxAgz3DwQ@mail.gmail.com>
-	<alpine.DEB.2.01.1006060305060.17462@asgard.lang.hm>
-	<AANLkTinW-X5m85rUcqP-lrEdfBikVclJWgqiWDkpxnAc@mail.gmail.com>
-	<20100606124949.539fa636@schatten.dmk.lab>
+	<20100606124601.2f1f6714@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20100606124949.539fa636@schatten.dmk.lab>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100606124601.2f1f6714@schatten.dmk.lab>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Florian Mickler <florian@mickler.org>
-Cc: david@lang.hm, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
+Cc: Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, Arve =?ISO-8859-14?B?SGr4bm5lduVn?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-2010/6/6 Florian Mickler <florian@mickler.org>:
+On Sun, 6 Jun 2010 12:46:01 +0200
+Florian Mickler <florian@mickler.org> wrote:
 
-> Suspend_blockers allow the system to suspend ("mem">/sys/power/state
-> suspend), when the userspace decides that the device is not in use.
+> On Sun, 6 Jun 2010 12:00:47 +0200
+> Vitaly Wool <vitalywool@gmail.com> wrote:
+> 
+> > Even worse, the suspend wakelock will keep the
+> > whole kernel active, as opposed to powering off unused devices
+> > separately as it's done in runtime PM. 
+> 
+> That is not true. While the kernel is not suspended it does
+> runtime pm.
 
-Sorry. What? Blockers allow the system to suspend?
+On several of our platforms runtime PM already includes suspend so a
+suspend wakelock does interfere with existing power managemet at that
+level (not to mention the maintenance mess it causes).
 
-> So implementing suspend_blockers support does not impact any
-> optimizations done to either system A nor system B.
+This is one of the reasons you want QoS information, it provides
+parameters by which the power management code can make a decision.
+Suspend blocksers simply don't have sufficient variety to manage the
+direction of power policy.
 
-Suspend blockers by themselves are of no use. Completely. So any talks
-on suspend blockers separated from the sleep policy are completely
-pointless.
-The suspend blockers are of use when the userspace tries to blindly
-freeze the tasks to enter the suspend state. This way of hammering the
-system down obviously impacts everything.
+If Android chooses to abuse the QoS information for crude suspend
+blocking then that is fine, it doesn't interfere with doing the job
+'properly' on other systems or its use for realtime work on other boxes.
 
-~Vitaly
+Alan
