@@ -1,64 +1,56 @@
-From: david@lang.hm
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Sun, 6 Jun 2010 04:14:09 -0700 (PDT)
-Message-ID: <alpine.DEB.2.01.1006060410050.17462@asgard.lang.hm>
-References: <20100603193045.GA7188@elte.hu> <20100604071354.GA14451@elte.hu> <AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com> <20100604083423.GD15181@elte.hu> <AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com> <1275653210.27810.39762.camel@twins>
- <AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com> <1275731653.27810.41078.camel@twins> <20100605092851.6ee15f13@infradead.org> <AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com> <AANLkTimKknOurmCffOpHjc1FjrP2MKf10pBwEEbLJPg_@mail.gmail.com>
- <AANLkTil1NCX91bWhpXHtC88Opr29mNjdhXD9RXQ6DI0y@mail.gmail.com> <AANLkTin1Za3GvfIKbcZdx6TzjIHzCvsg5uaY_Vk4nJIh@mail.gmail.com> <AANLkTilQ1k78dDCYadOa1Wiyjm2nsBcRpxwdpGvYcf8z@mail.gmail.com> <AANLkTin7oM3gVwHbIHWqYV8yeC6bbQ4q2jDDxAgz3DwQ@mail.gmail.com>
- <alpine.DEB.2.01.1006060305060.17462@asgard.lang.hm> <AANLkTinW-X5m85rUcqP-lrEdfBikVclJWgqiWDkpxnAc@mail.gmail.com> <20100606124949.539fa636@schatten.dmk.lab>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: suspend blockers & Android integration
+Date: Sun, 6 Jun 2010 14:18:36 +0300
+Message-ID: <AANLkTimjtNhtI0CuxYd0wdN_svthC-vl9_a5abDS2yyo@mail.gmail.com>
+References: <20100603193045.GA7188@elte.hu>
+	<20100603231153.GA11302@elte.hu>
+	<20100603232302.GA16184@elte.hu>
+	<AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
+	<20100604071354.GA14451@elte.hu>
+	<AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
+	<20100604083423.GD15181@elte.hu>
+	<AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com>
+	<1275653210.27810.39762.camel@twins>
+	<AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com>
+	<1275731653.27810.41078.camel@twins>
+	<20100605092851.6ee15f13@infradead.org>
+	<AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com>
+	<20100605152326.7ccd5160@infradead.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100606124949.539fa636@schatten.dmk.lab>
+In-Reply-To: <20100605152326.7ccd5160@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Mickler <florian@mickler.org>
-Cc: Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 6 Jun 2010, Florian Mickler wrote:
-
-> On Sun, 6 Jun 2010 12:19:08 +0200
-> Vitaly Wool <vitalywool@gmail.com> wrote:
->
->> 2010/6/6  <david@lang.hm>:
+2010/6/6 Arjan van de Ven <arjan@infradead.org>:
+> On Sat, 5 Jun 2010 14:26:14 -0700
+> Arve Hj=C3=B8nnev=C3=A5g <arve@android.com> wrote:
+>> > the kernel has a set of infrastructure already to help here (range
+>> > timers, with which you can wakeup-limit untrusted userspace crap),
+>> > timer slack for legacy background timers, etc etc.
 >>
->>> as an example (taken from this thread).
->>>
->>> system A needs to wake up to get a battery reading, store it and go back to
->>> sleep, It does so every 10 seconds. But when it does so it only runs the one
->>> process and then goes back to sleep.
->>>
->>> system B has the same need, but wakes up every 10 minutes. but when it does
->>> so it fully wakes up and this allows the mail app to power up the radio,
->>> connect to the Internet and start checking for new mail before oppurtunistic
->>> sleep shuts things down (causing the mail check to fail)
->>>
->>> System A will last considerably longer on a battery than System B.
->>
->> Exactly, thanks for pointing out the specific example :)
->>
->> ~Vitaly
+>> Range timers allows the kernel to align different timers so they don=
+'t
+>> each bring the cpu out of idle individually. They do not eliminate
+>> timers or make individual timers fire less often.
 >
-> This does not affect suspend_blockers nor does suspend_blockers
-> interfere with that.
->
-> Suspend_blockers allow the system to suspend ("mem">/sys/power/state
-> suspend), when the userspace decides that the device is not in use.
->
-> So implementing suspend_blockers support does not impact any
-> optimizations done to either system A nor system B.
+> you're incorrect.
+> With range timers you can control the rate at which timers fire just
+> fine.
 
-Actually, it does.
+I was wondering... Currently GLib user-space aligns itself to fire
+burst of work at second boundaries without the need for IPC. But if
+you want to align beyond one second you need multi-process alignment.
+Say, one application says: wake me up between 30s and 1m. And the
+other one says: wake me up between 10m and 20m. They could very well
+align at some point if there was a central process keeping track of
+all the timers.
 
-system A is what's being proposed by kernel developers, where the 
-untrusted stuff is in a different cgroup and what puts the system to sleep 
-is 'normal' power management. It doesn't sleep as long, but when it wakes 
-up the untrusted stuff is still frozen, so it doesn't stay awake long, or 
-do very much.
+Does the kernel provide something to solve that problem already?
 
-System B is suspend blockers where you are either awake or asleep, and 
-when you wake up you wake up fully, but oppertunistic sleep can interrupt 
-untrusted processes at any time. The system sleeps longer (as fewer things 
-can wake it), but when it wakes up it's fully awake.
-
-David Lang
+--=20
+=46elipe Contreras
