@@ -1,74 +1,108 @@
-From: david@lang.hm
+From: Vitaly Wool <vitalywool@gmail.com>
 Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Sun, 6 Jun 2010 02:56:04 -0700 (PDT)
-Message-ID: <alpine.DEB.2.01.1006060235130.17462@asgard.lang.hm>
-References: <20100603193045.GA7188@elte.hu> <20100603231153.GA11302@elte.hu> <20100603232302.GA16184@elte.hu> <AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com> <20100604071354.GA14451@elte.hu> <AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
- <20100604083423.GD15181@elte.hu> <AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com> <1275653210.27810.39762.camel@twins> <AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com> <1275731653.27810.41078.camel@twins> <20100605092851.6ee15f13@infradead.org>
- <AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com> <AANLkTimKknOurmCffOpHjc1FjrP2MKf10pBwEEbLJPg_@mail.gmail.com> <AANLkTil1NCX91bWhpXHtC88Opr29mNjdhXD9RXQ6DI0y@mail.gmail.com> <AANLkTin1Za3GvfIKbcZdx6TzjIHzCvsg5uaY_Vk4nJIh@mail.gmail.com>
- <AANLkTilQ1k78dDCYadOa1Wiyjm2nsBcRpxwdpGvYcf8z@mail.gmail.com>
+Date: Sun, 6 Jun 2010 12:00:47 +0200
+Message-ID: <AANLkTin7oM3gVwHbIHWqYV8yeC6bbQ4q2jDDxAgz3DwQ@mail.gmail.com>
+References: <20100603193045.GA7188@elte.hu>
+	<20100603231153.GA11302@elte.hu>
+	<20100603232302.GA16184@elte.hu>
+	<AANLkTikZP3bmckpfb_jUdG7qZO5W9DgpZ79ugtSZaEpt@mail.gmail.com>
+	<20100604071354.GA14451@elte.hu>
+	<AANLkTimH4ihf3QqtKFpfGXRKtO55PrUuff9JYtaEBG44@mail.gmail.com>
+	<20100604083423.GD15181@elte.hu>
+	<AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com>
+	<1275653210.27810.39762.camel@twins>
+	<AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com>
+	<1275731653.27810.41078.camel@twins>
+	<20100605092851.6ee15f13@infradead.org>
+	<AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com>
+	<AANLkTimKknOurmCffOpHjc1FjrP2MKf10pBwEEbLJPg_@mail.gmail.com>
+	<AANLkTil1NCX91bWhpXHtC88Opr29mNjdhXD9RXQ6DI0y@mail.gmail.com>
+	<AANLkTin1Za3GvfIKbcZdx6TzjIHzCvsg5uaY_Vk4nJIh@mail.gmail.com>
+	<AANLkTilQ1k78dDCYadOa1Wiyjm2nsBcRpxwdpGvYcf8z@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.lang.hm ([64.81.33.126]:38715 "EHLO bifrost.lang.hm"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751140Ab0FFJ7G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 6 Jun 2010 05:59:06 -0400
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:42043 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751474Ab0FFKAt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Jun 2010 06:00:49 -0400
 In-Reply-To: <AANLkTilQ1k78dDCYadOa1Wiyjm2nsBcRpxwdpGvYcf8z@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Brian Swetland <swetland@google.com>
-Cc: Vitaly Wool <vitalywool@gmail.com>, =?ISO-8859-15?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Sun, 6 Jun 2010, Brian Swetland wrote:
+On Sun, Jun 6, 2010 at 11:21 AM, Brian Swetland <swetland@google.com> w=
+rote:
+>
+> The common case for a phone is to be sitting around. =A0Even for heav=
+y
+> smartphone users, unless they power on, use the device screen-on for =
+4
+> hours solid or whatnot and drain the battery straight away, the devic=
+e
+> is going to spend a significant portion of its operating time in
+> screen-off standby modes (conserving power for when you take a call,
+> browse the web, etc).
 
-> The savings in airplane mode (apart from preventing data connections,
-> which saves power by preventing data-hungry background apps from doing
-> much) is the difference between standby with radio (3-5mA) and without
-> (1-2mA).  I'm not suggesting that airplane mode is a typical case,
-> just using it as in illustration of the more extreme standby case.
+Sure, but my point was, some non-trivial (still kind of natural for a
+smartphone) activities with the device will prevent it from suspending
+for quite some time. Even worse, the suspend wakelock will keep the
+whole kernel active, as opposed to powering off unused devices
+separately as it's done in runtime PM. Yep, I know about the "early
+suspend" type of thing; yet it's excess, not mainlined and lacks
+granularity.
 
-for the sake of discussion, let's say that standby is 5ma and full 
-operation is 500ma and a minimal wakeup is 0.1 sec. these are probably 
-fairly pessimistic numbers.
+> For typical users on typical android devices, this means the device
+> stays suspended for 5-10 minutes at a time, coming up for air when a
+> network packet (mail sync, im, etc) or alarm (battery monitor) wakes
+> the device briefly. =A0Obviously with the right combination of bad ap=
+ps
+> you will see a device suspending more rarely.
 
-waking up every second would be awake 10% of the time, so in an hour you 
-would use .9*5mA + .1*500mA = 4.5mA +45mA = 49.5mAH
+Wasn't that you who stated that you so successfully tolerate bad apps
+with opportunistic suspend that anything of the kind should not really
+be the case? :)
 
-waking up every 10 seconds would be awake 1% of the time, so in an hour 
-you would use .99*5mA + 0.01*500mA = 4.95mA + 5mA = 9.95mAH
+>> E. g. when the wireless is connected to an AP, it takes a wake lock
+>> which is released on 15 minutes touchscreen inactivity timeout, as f=
+ar
+>> as I can tell. So:
+>>
+>> * the system will never hit suspend during this period;
+>> * if the download was ongoing and had not been completed during this
+>> period, it will be terminated.
+>
+> I'm pretty sure the wifi subsystem does not actually take a wakelock
+> while its connected -- it does have an alarm to spin down wifi after
+> 15 minutes (by default, and user disableable) largely due to power
+> inefficiencies in the wifi solution in some early devices.
 
-waking up every 100 seconds would be awake 0.1% of the time, so in an hour 
-you would use .999*5mA + 0.001*500mA =4.995mA + 0.5mA = 5.495mAH
+Oh? How does it make sure it's not powered off while scanning for APs,
+for instance?
 
-waking up every 1000 seconds would be awake 0.01% of the time so in an 
-hour you would use .9999*5mA + 0.0001*500mA = 4.9995mA + 0.05mAH = 
-5.0495mAH
+> Users do like that to work too -- I recall Arve leaving a device in
+> his filing cabinet with the radio off while he was out of the country
+> for three weeks once, and him discovering it was still running with
+> something like 25% battery remaining when he returned.
 
-now if you have a 1000mAH battery (small, but reasonable for a smartphone) 
-your standby life would be
+So what you're actually up to is that a user should restart the phone
+and turn the radio off if he wants to find it running when he's back
+from a long business trip or something. Nice...
 
-.1 second wakeup (on continuously) = 2 hours
-1 second wakup = 20 hours
-10 second wakeup = 100 hours
-100 second wakeup = 182 hours
-1000 second wakeup = 198 hours
+> In any case, I'm saying that suspending for minutes at a time
+> (typical, 10s of minutes or more in some cases, hours in others), doe=
+s
+> happen and it does represent an improvement over suspending or
+> otherwise entering your lowest power state for seconds at a time.
 
-if you could shrink the time awake to 0.01 second per wakeup you would 
-shift this all up a category (and avoiding the need to wake everything up 
-to service a timer would help do this)
+That's for sure, if _all_ the other parameters *are* *equal*. This is
+obviously not the case.
 
-this effort very definantly has diminishing returns as you go to larger 
-sleep periods as the constant standby power draw becomes more and more 
-dominating. someone mentioned that they were getting the sleep time of 
-normal systems up past the 1 second mark with the 10 second mark looking 
-very attainable. that is where you get the most benifit for whatever 
-changes are needed. getting up to a 2 min sleep time really gives you 
-about all the benifit that you can get, going from there to 15 min makes 
-very little difference.
-
-don't let chasing the best possible sleep time prevent you from 
-considering options that would be good enough in time, but would 
-drastically reduce the maintinance effort (as things could be upstreamed 
-more easily), and would be usable on far more systems.
-
-David Lang
+~Vitaly
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
