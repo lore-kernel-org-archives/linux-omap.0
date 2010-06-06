@@ -1,53 +1,48 @@
-From: Matt Helsley <matthltc@us.ibm.com>
-Subject: Re: suspend blockers & Android integration
-Date: Sun, 6 Jun 2010 07:43:22 -0700
-Message-ID: <20100606144322.GC21016@count0.beaverton.ibm.com>
-References: <AANLkTikGDSzaENwg_0BAtsYf3ulGd_6sGPR30WsvUxMi@mail.gmail.com>
- <alpine.LFD.2.00.1006050246350.2933@localhost.localdomain>
- <AANLkTikU21xF49Z-_Lnrq7U7buNmqw_gyEEST8LuN24z@mail.gmail.com>
- <alpine.LFD.2.00.1006051736040.2933@localhost.localdomain>
- <AANLkTinD39rI47innPbGz1Gi8PsXV5HqkmaQuJ70oQ63@mail.gmail.com>
- <alpine.LFD.2.00.1006052348200.2933@localhost.localdomain>
- <AANLkTikmWDHYJ8wWF2cZapbkHHjV09R39I37yvQXFmor@mail.gmail.com>
- <alpine.LFD.2.00.1006060148470.2933@localhost.localdomain>
- <AANLkTikdM79nmARagK9gLveMWEiT6rlk44UELes1k8Ch@mail.gmail.com>
- <alpine.LFD.2.00.1006061202351.2933@localhost.localdomain>
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Sun, 6 Jun 2010 17:26:09 +0200
+Message-ID: <AANLkTimXTgZS_fZQa8hjIptJrCn756gF_xakT1IQiLWa@mail.gmail.com>
+References: <1275653210.27810.39762.camel@twins>
+	<AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com>
+	<1275731653.27810.41078.camel@twins>
+	<20100605092851.6ee15f13@infradead.org>
+	<AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com>
+	<AANLkTimKknOurmCffOpHjc1FjrP2MKf10pBwEEbLJPg_@mail.gmail.com>
+	<AANLkTil1NCX91bWhpXHtC88Opr29mNjdhXD9RXQ6DI0y@mail.gmail.com>
+	<AANLkTin1Za3GvfIKbcZdx6TzjIHzCvsg5uaY_Vk4nJIh@mail.gmail.com>
+	<AANLkTilQ1k78dDCYadOa1Wiyjm2nsBcRpxwdpGvYcf8z@mail.gmail.com>
+	<AANLkTin7oM3gVwHbIHWqYV8yeC6bbQ4q2jDDxAgz3DwQ@mail.gmail.com>
+	<20100606133130.GA8513@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1006061202351.2933@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yw0-f187.google.com ([209.85.211.187]:51648 "EHLO
+	mail-yw0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754636Ab0FFP0K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Jun 2010 11:26:10 -0400
+In-Reply-To: <20100606133130.GA8513@srcf.ucam.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Brian Swetland <swetland@google.com>, =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Sun, Jun 06, 2010 at 12:36:21PM +0200, Thomas Gleixner wrote:
-> On Sat, 5 Jun 2010, Arve Hj=F8nnev=E5g wrote:
+2010/6/6 Matthew Garrett <mjg59@srcf.ucam.org>:
+> On Sun, Jun 06, 2010 at 12:00:47PM +0200, Vitaly Wool wrote:
+>
+>> Sure, but my point was, some non-trivial (still kind of natural for a
+>> smartphone) activities with the device will prevent it from suspending
+>> for quite some time. Even worse, the suspend wakelock will keep the
+>> whole kernel active, as opposed to powering off unused devices
+>> separately as it's done in runtime PM. Yep, I know about the "early
+>> suspend" type of thing; yet it's excess, not mainlined and lacks
+>> granularity.
+>
+> Holding a suspend blocker is entirely orthogonal to runtime pm. The
+> "whole kernel" will not be "active" - it can continue to hit the same
+> low power state in the idle loop, and any runtime pm implementation in
+> the drivers will continue to be active.
 
-<snip>
+Yeah, that might also be the case, But then again, what's the use of
+suspend blockers in this situation?
 
-> > events like input event go though a single thread in our system
-> > process, while other events like network packets (which are also
-> > wakeup events) goes directly to the app.
-
-If you want to wake up cgroup-frozen tasks for these fds perhaps your
-framework can fcnt(fd, F_SETOWN, <p[g]id>) to send SIGIO to a
-userspace-suspend-blocker thread/process/process group. When IO comes i=
-n, the
-suspend blocker is signalled which then unfreezes the cgroup of the fro=
-zen
-untrusted task. SIGIO works on pipes, fifos, sockets, ttys, and ptys --
-many of which are precisely the kinds of things that would connect [tru=
-sted
-and untrusted] apps. Notably absent (last I checked): inotify fds, sign=
-alfd,
-timerfd, eventfd, filesystem fds and likely more.
-
-Incidentally, this is just to show that it's not impossible to implemen=
-t
-"wakeups" for cgroup-frozen tasks in userspace.
-
-Cheers,
-	-Matt Helsley
+~Vitaly
