@@ -1,36 +1,35 @@
-From: Florian Mickler <florian@mickler.org>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Mon, 7 Jun 2010 17:56:04 +0200
-Message-ID: <20100607175604.4c8f1fa4@schatten.dmk.lab>
-References: <20100606152946.GA11351@srcf.ucam.org>
-	<Pine.LNX.4.44L0.1006061956510.4894-100000@netrider.rowland.org>
+From: "Luke-Jr" <luke@dashjr.org>
+Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
+Date: Mon, 7 Jun 2010 11:15:16 -0500
+Message-ID: <201006071115.34881.luke@dashjr.org>
+References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com> <201006070809.47853.luke@dashjr.org> <AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:45384 "EHLO mx01.d-labs.de"
+Received: from zinan.dashjr.org ([173.242.112.54]:56729 "EHLO zinan.dashjr.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752303Ab0FGP4Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Jun 2010 11:56:24 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1006061956510.4894-100000@netrider.rowland.org>
+	id S1751591Ab0FGQPv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Jun 2010 12:15:51 -0400
+In-Reply-To: <AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Vitaly Wool <vitalywool@gmail.com>, Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, James Bottomley <James.Bottomley@suse.de>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-On Sun, 6 Jun 2010 20:01:56 -0400 (EDT)
-Alan Stern <stern@rowland.harvard.edu> wrote:
-
-> And since Android can reach essentially the same low-power
-> state from idle as from suspend, it appears that they really don't need
-> any kernel changes at all.
-
-Well, perhaps a hint to the scheduler to fall through as fast as
-possible into deepest idle?
-
+On Monday 07 June 2010 08:28:51 am Govindraj wrote:
+> Link:
+> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summa
+> ry
 > 
-> Alan Stern
-> 
+> Branch:
+> pm-wip/uart
 
-Cheers,
-Flo
+This branch doesn't appear to have omap-serial.c at all...
+
+> If you are trying to use with any client device connected to uart
+> then we need to ensure the client driver speaks to omap-serial
+> dev entries.
+
+Does this mean anything beyond simply using ttyO* instead of ttyS*?
