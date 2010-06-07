@@ -1,69 +1,38 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: OMAP video compile error; regression from 2.6.33-rc4 onward
- (including current master)
-Date: Mon, 07 Jun 2010 10:47:34 +0300
-Message-ID: <1275896854.2549.14.camel@tubuntu.research.nokia.com>
-References: <201006061652.39248.luke@dashjr.org>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Mon, 7 Jun 2010 04:00:26 -0400
+Message-ID: <20100607080026.GA15851@infradead.org>
+References: <1275834706.7227.545.camel@mulgrave.site>
+ <alpine.LFD.2.00.1006061725000.2933@localhost.localdomain>
+ <1275844114.7227.552.camel@mulgrave.site>
+ <20100606190525.GA20517@infradead.org>
+ <AANLkTikKx-gXCGtNo3woHLCpBoEQ7hG9Jbiq3hwUTW_w@mail.gmail.com>
+ <20100606192405.GA7559@infradead.org>
+ <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
+ <alpine.LFD.2.00.1006070014380.2933@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201006061652.39248.luke@dashjr.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1006070014380.2933@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ext Luke-Jr <luke@dashjr.org>
-Cc: "slapin@ossfans.org" <slapin@ossfans.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Brian Swetland <swetland@google.com>, Christoph Hellwig <hch@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 2010-06-06 at 23:52 +0200, ext Luke-Jr wrote:
-> This doesn't even build, so I don't know how it was tested... Reverting the 
-> offending commit (simple, but does require conflict resolution) at least lets 
-> it compile, but I haven't tested whether it alone is enough to work in 
-> practise yet... hoping Tomi might provide a real fix. Maybe even in time for 
-> 2.6.35 final? :)
+On Mon, Jun 07, 2010 at 12:26:55AM +0200, Thomas Gleixner wrote:
+> That takes a lot of the bullshit arguments about downstream users
+> being hurt out of the discussion. The above problems are way more
+> complex to resolve than the suspend blocker details.
 > 
-> https://bugzilla.kernel.org/show_bug.cgi?id=16144
+> That's another prove why we can let the drivers flow in (in the worst
+> case w/o the suspend blocker stubs) and have no pressure to resolve
+> the suspend blocker problem yesterday.
 > 
-> CC      drivers/video/omap/rfbi.o                                               
-> drivers/video/omap/rfbi.c: In function 'rfbi_get_clocks':                       
-> drivers/video/omap/rfbi.c:86: error: 'dispc' undeclared (first use in this
-> function)
-> drivers/video/omap/rfbi.c:86: error: (Each undeclared identifier is reported
-> only once
-> drivers/video/omap/rfbi.c:86: error: for each function it appears in.)          
-> make[1]: *** [drivers/video/omap/rfbi.o] Error 1                                
-> make: *** [drivers/video/omap/rfbi.o] Error 2                                   
-> 
-> The 'dispc' referred to herein is and has always been defined in
-> drivers/video/omap/dispc.c as an anonymous struct.
+> That said, after thinking more about it, I'm advocating the stubs
+> solution with a clear removal / decision date constraint
+> (e.g. 2.6.37), as it forces all involved parties to stay tuned and not
+> to forget about it. I'm curious about the outcome :)
 
-I don't have any device that uses RFBI so I can't test it, but how about
-this patch:
-
-diff --git a/drivers/video/omap/rfbi.c b/drivers/video/omap/rfbi.c
-index 1162603..eada9f1 100644
---- a/drivers/video/omap/rfbi.c
-+++ b/drivers/video/omap/rfbi.c
-@@ -26,6 +26,7 @@
- #include <linux/interrupt.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/platform_device.h>
- 
- #include "omapfb.h"
- #include "dispc.h"
-@@ -83,13 +84,13 @@ static inline u32 rfbi_read_reg(int idx)
- 
- static int rfbi_get_clocks(void)
- {
--       rfbi.dss_ick = clk_get(&dispc.fbdev->dssdev->dev, "ick");
-+       rfbi.dss_ick = clk_get(&rfbi.fbdev->dssdev->dev, "ick");
-        if (IS_ERR(rfbi.dss_ick)) {
-                dev_err(rfbi.fbdev->dev, "can't get ick\n");
-                return PTR_ERR(rfbi.dss_ick);
-        }
- 
--       rfbi.dss1_fck = clk_get(&dispc.fbdev->dssdev->dev, "dss1_fck");
-+       rfbi.dss1_fck = clk_get(&rfbi.fbdev->dssdev->dev, "dss1_fck");
-        if (IS_ERR(rfbi.dss1_fck)) {
-                dev_err(rfbi.fbdev->dev, "can't get dss1_fck\n");
-                clk_put(rfbi.dss_ick);
+As long as we have that clear removal schedule I'm fine with in-kernel
+suspend blocker stubs.
