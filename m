@@ -1,66 +1,42 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
-Date: Mon, 7 Jun 2010 12:19:05 +0530
-Message-ID: <AANLkTinRsFvGv0HPYtDjYUM5fwA_A04T8VeIQWe6dOC3@mail.gmail.com>
-References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
-	<201006051348.30425.luke@dashjr.org>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: OMAP video compile error; regression from 2.6.33-rc4 onward
+ (including current master)
+Date: Mon, 07 Jun 2010 10:39:01 +0300
+Message-ID: <1275896341.2549.11.camel@tubuntu.research.nokia.com>
+References: <201006061652.39248.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:43830 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737Ab0FGGtI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 02:49:08 -0400
-In-Reply-To: <201006051348.30425.luke@dashjr.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201006061652.39248.luke@dashjr.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Luke-Jr <luke@dashjr.org>
+Cc: "slapin@ossfans.org" <slapin@ossfans.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Luke-Jr <luke@dashjr.org>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-On Sun, Jun 6, 2010 at 12:18 AM, Luke-Jr <luke@dashjr.org> wrote:
-> How do I actually get this to work? Built a kernel with it for my N81=
-0, but
-> there's no ttyO* (I'm using devtmpfs)...
+On Sun, 2010-06-06 at 23:52 +0200, ext Luke-Jr wrote:
+> This doesn't even build, so I don't know how it was tested... Reverting the 
+> offending commit (simple, but does require conflict resolution) at least lets 
+> it compile, but I haven't tested whether it alone is enough to work in 
+> practise yet... hoping Tomi might provide a real fix. Maybe even in time for 
+> 2.6.35 final? :)
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=16144
+> 
+> CC      drivers/video/omap/rfbi.o                                               
+> drivers/video/omap/rfbi.c: In function 'rfbi_get_clocks':                       
+> drivers/video/omap/rfbi.c:86: error: 'dispc' undeclared (first use in this
+> function)
+> drivers/video/omap/rfbi.c:86: error: (Each undeclared identifier is reported
+> only once
+> drivers/video/omap/rfbi.c:86: error: for each function it appears in.)          
+> make[1]: *** [drivers/video/omap/rfbi.o] Error 1                                
+> make: *** [drivers/video/omap/rfbi.o] Error 2                                   
+> 
+> The 'dispc' referred to herein is and has always been defined in
+> drivers/video/omap/dispc.c as an anonymous struct.
 
-Hope your are trying to use Kevins Wip-UART branch.
-Since platform data support is currently available in that branch.
+Hmm yes, looks rather broken. I don't know how that has gotten through
+=). Reverting the patch makes it compile, but RFBI won't work.
 
-If your are using kevins wip-uart branch then,
-ensure you have selected omap-serial driver
-
-Symbol: SERIAL_OMAP [=3Dy]
-  =E2=94=82 Prompt: OMAP serial port support
-  =E2=94=82   Defined at drivers/serial/Kconfig:1383
-  =E2=94=82   Depends on: HAS_IOMEM [=3Dy] && (ARCH_OMAP2 [=3Dy] || ARC=
-H_OMAP3
-[=3Dy] || ARCH_OMAP4 [=3Dy])
-  =E2=94=82   Location:
-  =E2=94=82     -> Device Drivers
-  =E2=94=82       -> Character devices
-  =E2=94=82         -> Serial drivers
-  =E2=94=82   Selects: SERIAL_CORE [=3Dy]
-
-
-Also ensure /etc/inittab is update with ttyO* for console usage.
-Update console bootparam accordingly based on UART used.
-
-=46or ex: if uart3 is used as console use console=3DttyO2.
-
----
-Regards,
-Govindraj.R
-
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-seria=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Tomi
