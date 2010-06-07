@@ -1,94 +1,66 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [linux-pm] suspend blockers & Android integrationy
-Date: Mon, 7 Jun 2010 03:07:18 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006070206060.2933@localhost.localdomain>
-References: <Pine.LNX.4.44L0.1006061956510.4894-100000@netrider.rowland.org>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
+Date: Mon, 7 Jun 2010 12:19:05 +0530
+Message-ID: <AANLkTinRsFvGv0HPYtDjYUM5fwA_A04T8VeIQWe6dOC3@mail.gmail.com>
+References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
+	<201006051348.30425.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1006061956510.4894-100000@netrider.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Vitaly Wool <vitalywool@gmail.com>, Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:43830 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737Ab0FGGtI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 02:49:08 -0400
+In-Reply-To: <201006051348.30425.luke@dashjr.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Luke-Jr <luke@dashjr.org>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-Alan,
+On Sun, Jun 6, 2010 at 12:18 AM, Luke-Jr <luke@dashjr.org> wrote:
+> How do I actually get this to work? Built a kernel with it for my N81=
+0, but
+> there's no ttyO* (I'm using devtmpfs)...
 
-On Sun, 6 Jun 2010, Alan Stern wrote:
+Hope your are trying to use Kevins Wip-UART branch.
+Since platform data support is currently available in that branch.
 
-> On Sun, 6 Jun 2010, Matthew Garrett wrote:
-> 
-> > The difference between idle-based suspend and opportunistic suspend is 
-> > that the former will continue to wake up for timers and will never be 
-> > entered if something is using CPU, whereas the latter will be entered 
-> > whenever no suspend blocks are held. The problem with opportunistic 
-> > suspend is that you might make the decision to suspend simultaneusly 
-> > with a wakeup event being received. Suspend blocks facilitate 
-> > synchronisation between the kernel and userspace to ensure that all such 
-> > events have been consumed and handld appropriately.
-> 
-> Remember that suspend takes place in several phases, the first of which 
-> is to freeze tasks.  The phases can be controlled individually by the 
-> process carrying out a suspend, and there's nothing to prevent you from 
-> stopping after the freezer phase.  Devices won't get powered down, but 
-> Android uses aggressive runtime power management for its devices 
-> anyway.
-> 
-> If you do this then the synchronization can be carried out entirely
-> from userspace, with no need for kernel modifications such as suspend
-> blockers. And since Android can reach essentially the same low-power
-> state from idle as from suspend, it appears that they really don't need
-> any kernel changes at all.
+If your are using kevins wip-uart branch then,
+ensure you have selected omap-serial driver
 
-Well there are some things to solve:
+Symbol: SERIAL_OMAP [=3Dy]
+  =E2=94=82 Prompt: OMAP serial port support
+  =E2=94=82   Defined at drivers/serial/Kconfig:1383
+  =E2=94=82   Depends on: HAS_IOMEM [=3Dy] && (ARCH_OMAP2 [=3Dy] || ARC=
+H_OMAP3
+[=3Dy] || ARCH_OMAP4 [=3Dy])
+  =E2=94=82   Location:
+  =E2=94=82     -> Device Drivers
+  =E2=94=82       -> Character devices
+  =E2=94=82         -> Serial drivers
+  =E2=94=82   Selects: SERIAL_CORE [=3Dy]
 
-     1) the confinement of untrusted apps 
 
-     2) the confinement of trusted apps firing periodic timers. 
+Also ensure /etc/inittab is update with ttyO* for console usage.
+Update console bootparam accordingly based on UART used.
 
-     Aside of that they need to shut off undesired interrupt sources,
-     but that's not a real problem to solve and probably possible
-     today already.
+=46or ex: if uart3 is used as console use console=3DttyO2.
 
-#1 can be solved elegantly by cgroups. We know how to freeze the
-   cgroup timers when the need arises, but that's not a real problem
-   as all periodic timers are firing only once when the target app
-   does not handle them.
+---
+Regards,
+Govindraj.R
 
-   Though the cgroup based approach of freezing timers might be
-   interesting for containers c/r as well and it might be necessary to
-   emulate the suspend semantics of freezing CLOCK_MONOTONIC, but
-   that's simple to do and basically no overhead.
 
-#2 is a tad harder, as it requires to fix the trusted apps not to fire
-   timers when there is nothing to do.
-
-   Though you can solve it with cgroups as well. The unfreeze problem
-   for real wakeups can be solved as mhelsley pointed out somewhere
-   else in this thread.
-
-But that depends on user space changes ....
-
-Though as we learned today that suspend blockers are the least of the
-problems which android is facing vs. mainline and we have a plan to
-get the drivers in we can relax a bit and think more about it.
-
-I'm not saying that we should ignore the shortcomings of todays code,
-but in the face of hardware which perfectly goes into the same power
-state from idle as it does from suspend we can IMNSHO safely ignore
-the x86/ACPI/BIOS crap and the user space wreckage (see above) and
-just focus on a sane design based on current/future hardware.
-
-That's nothing new, we do not go and make NOHZ/HIGHRES work on crappy
-hardware either, even if there have been patches around to do so. We
-do not make broken TSCs work, even if there are brute force ways to do
-so. ....
-
-It's more sane to say "Sorry, it does not work on your system" than
-trying to make it work under all circumstances for a questionable
-benefit and paying the price for it in terms of maintainability and/or
-complexity.
-
-Thanks,
-
-	tglx
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-seria=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
