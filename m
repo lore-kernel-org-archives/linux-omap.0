@@ -1,46 +1,91 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Mon, 7 Jun 2010 13:25:53 +0300
-Message-ID: <AANLkTinajoKfVD3eBNspiuf1e5jFb2jm-OyHJbcbk4xo@mail.gmail.com>
-References: <AANLkTil1NCX91bWhpXHtC88Opr29mNjdhXD9RXQ6DI0y@mail.gmail.com>
-	<AANLkTin1Za3GvfIKbcZdx6TzjIHzCvsg5uaY_Vk4nJIh@mail.gmail.com>
-	<AANLkTilQ1k78dDCYadOa1Wiyjm2nsBcRpxwdpGvYcf8z@mail.gmail.com>
-	<AANLkTin7oM3gVwHbIHWqYV8yeC6bbQ4q2jDDxAgz3DwQ@mail.gmail.com>
-	<20100606133130.GA8513@srcf.ucam.org>
-	<AANLkTimXTgZS_fZQa8hjIptJrCn756gF_xakT1IQiLWa@mail.gmail.com>
-	<20100606152946.GA11351@srcf.ucam.org>
-	<AANLkTilOq_5yUW1AIMH1qSE699gyRUTlzGPUVc4CrReY@mail.gmail.com>
-	<20100606164326.GA12570@srcf.ucam.org>
-	<AANLkTim0JD4V0RTc6CRIADypqYhQo3JYp3dJs0l7g7Ps@mail.gmail.com>
-	<20100606173146.GA13432@srcf.ucam.org>
+From: "Gurav , Pramod" <pramod.gurav@ti.com>
+Subject: RE: [PATCH V4 0/2] OMAP3: Dynamic Calculation of SDRC stall latency
+ during DVFS
+Date: Mon, 7 Jun 2010 16:43:29 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03232DAE08@dbde02.ent.ti.com>
+References: <> <1270142216-18118-1-git-send-email-pramod.gurav@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0322986980@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100606173146.GA13432@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49814 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424Ab0FGLNi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 07:13:38 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322986980@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-2010/6/6 Matthew Garrett <mjg59@srcf.ucam.org>:
-> On Sun, Jun 06, 2010 at 07:21:49PM +0200, Vitaly Wool wrote:
->> 2010/6/6 Matthew Garrett <mjg59@srcf.ucam.org>:
->>
->> > Suspend blocks prevent system suspend, not any per-device suspend.
->>
->> Can you suspend a device which is holding a wake lock?
->
-> Yes. Suspend blocks are orthogonal to runtime PM.
+Hello Paul,
+Can you please push these patches if you don't you are OK with them?
 
-In that sense yes, but as it has been stated before; if Android
-user-space concentrates on getting suspend blockers right, then the
-timers in user-space will not be aligned correctly, and runtime PM
-wouldn't work that great. Moreover, opportunistic suspend takes the
-device out of idle. So, as runtime PM gets better, there's a point
-where opportunistic suspend makes the situation worst.
+-
+Thanks and Best Regards
+Pramod Gurav
 
-So they are _mostly_ orthogonal, but not completely, at least for the
-analysis of suspend blockers' usefulness.
-
--- 
-Felipe Contreras
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Gurav , Pramod
+> Sent: Friday, April 23, 2010 7:53 PM
+> To: linux-omap@vger.kernel.org; Paul Walmsley; Kevin Hilman
+> Cc: Sripathy, Vishwanath; K, Ambresh
+> Subject: RE: [PATCH V4 0/2] OMAP3: Dynamic Calculation of SDRC stall
+> latency during DVFS
+> 
+> Hi Paul,
+> 
+> Please let me know if you have any comments on the patches below.
+> The comments from Kevin, Ambresh and Sergio have been addressed in the
+> last version of the patches and few in these patches.
+> 
+> > -----Original Message-----
+> > From: Gurav , Pramod
+> > Sent: Thursday, April 01, 2010 10:47 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: Gurav , Pramod
+> > Subject: [PATCH V4 0/2] OMAP3: Dynamic Calculation of SDRC stall latency
+> > during DVFS
+> >
+> > From: Pramod Gurav <pramod.gurav@ti.com>
+> >
+> > The patch has the changes to calculate the dpll3 clock stabilization
+> > delay dynamically. The SRAM delay is calibrated during bootup using the
+> > gptimers and used while calculating the stabilization delay. By using
+> > the dynamic method the dependency on the type of cache being used is
+> > removed.
+> >
+> > Formula to calculate the DVFS latency for 3430 and 3630 are different.
+> > The second patch implements the formula for later.
+> >
+> > This Version of patches adds optimisation to the formula implementation.
+> >
+> > Teerth Reddy (1):
+> >   OMAP3: SDRC: Dynamic Calculation of SDRC stall latency during DVFS
+> > Pramod Gurav (1):
+> >   OMAP3630 SDRC: Change in DVFS Latency Formula for OMAP3630
+> >
+> >  arch/arm/mach-omap2/clkt34xx_dpll3m2.c |   71
+> > +++++++++++++++++++++++++++-----
+> >  arch/arm/mach-omap2/clock34xx.h        |    2 +
+> >  arch/arm/mach-omap2/clock3xxx.c        |    2 +-
+> >  arch/arm/mach-omap2/clock3xxx.h        |    1 +
+> >  arch/arm/mach-omap2/clock3xxx_data.c   |   13 ++++++
+> >  arch/arm/mach-omap2/sram34xx.S         |    8 ++++
+> >  arch/arm/plat-omap/include/plat/sram.h |    4 ++
+> >  arch/arm/plat-omap/sram.c              |   51 +++++++++++++++++++++++
+> >  8 files changed, 140 insertions(+), 12 deletions(-)
+> 
+> 
+> 
+> -
+> Thanks and Best Regards
+> Pramod Gurav
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
