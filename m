@@ -1,49 +1,50 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Mon, 07 Jun 2010 15:20:30 +0200
-Message-ID: <1275916830.1645.566.camel@laptop>
-References: <1275834706.7227.545.camel@mulgrave.site>
-	 <alpine.LFD.2.00.1006061725000.2933@localhost.localdomain>
-	 <1275844114.7227.552.camel@mulgrave.site>
-	 <20100606190525.GA20517@infradead.org>
-	 <AANLkTikKx-gXCGtNo3woHLCpBoEQ7hG9Jbiq3hwUTW_w@mail.gmail.com>
-	 <20100606192405.GA7559@infradead.org>
-	 <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
+Date: Mon, 7 Jun 2010 18:58:51 +0530
+Message-ID: <AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
+References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
+	<201006051348.30425.luke@dashjr.org>
+	<AANLkTinRsFvGv0HPYtDjYUM5fwA_A04T8VeIQWe6dOC3@mail.gmail.com>
+	<201006070809.47853.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:39424 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754866Ab0FGNUk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 09:20:40 -0400
-Received: from f199130.upc-f.chello.nl ([80.56.199.130] helo=dyad.programming.kicks-ass.net)
-	by casper.infradead.org with esmtpsa (Exim 4.72 #1 (Red Hat Linux))
-	id 1OLcFr-000662-Bf
-	for linux-omap@vger.kernel.org; Mon, 07 Jun 2010 13:20:39 +0000
-In-Reply-To: <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <201006070809.47853.luke@dashjr.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: Luke-Jr <luke@dashjr.org>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Sun, 2010-06-06 at 12:58 -0700, Brian Swetland wrote:
-> Somebody will have to broker a deal with the frameworks/apps folks to
-> get rid of the binder.  They like it a lot.  Of course if somebody
-> built a drop-in replacement for the userspace side that didn't require
-> a kernel driver, had the same performance characteristics, solved the
-> same problems, etc, they could probably make an argument for it (or
-> just provide it as a drop-in replacement for people who want a more
-> "pure" linux underneath Android, even if we didn't pick it up). 
+On Mon, Jun 7, 2010 at 6:39 PM, Luke-Jr <luke@dashjr.org> wrote:
+> On Monday 07 June 2010 01:49:05 am Govindraj wrote:
+>> Hope your are trying to use Kevins Wip-UART branch.
+>> Since platform data support is currently available in that branch.
+>
+> Nope... Google doesn't seem to know where this branch is, either. :/
 
-So what's up with this Binder stuff, from what I can see its just
-yet-another-CORBA. Why does it need a kernel part at all, can't you
-simply run with a user-space ORB instead?
+Link:
+http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
 
-I really don't get why people keep re-inventing CORBA, there's some
-really nice (free) ORBs out there, like:
+Branch:
+pm-wip/uart
 
-  http://www.cs.wustl.edu/~schmidt/TAO.html
+>
+>> ensure you have selected omap-serial driver
+>
+> I'm not using it for console, anyway.
+>
 
+If you are trying to use with any client device connected to uart
+then we need to ensure the client driver speaks to omap-serial
+dev entries.
 
+The client device application may be designed to speak to
+8250 entries probably you may need to check.
 
+In that case you need to change device name to that of 8250
+so that no change is needed in application though and in that way
+we make it to speak with omap-serial.
+
+---
+Regards,
+Govindraj.R
