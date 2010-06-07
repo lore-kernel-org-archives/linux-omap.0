@@ -1,76 +1,42 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling for
-	3630
-Date: Mon, 7 Jun 2010 20:26:02 +0530
-Message-ID: <AANLkTikS_f5UWDr8WYrHga_W8kIeTwUienx6K37LWF80@mail.gmail.com>
-References: <53199.192.168.10.88.1275659023.squirrel@dbdmail.itg.ti.com>
-	<871vcmq08s.fsf@deeprootsystems.com>
-	<20100607100656.GE15515@atomide.com>
-	<AANLkTikpHFyvk28hTm-jTk4wdJ0oldqyncaGH2slq6w4@mail.gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [linux-pm] suspend blockers & Android integrationy
+Date: Mon, 7 Jun 2010 17:49:44 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1006071748270.2933@localhost.localdomain>
+References: <Pine.LNX.4.44L0.1006071010001.1398-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f187.google.com ([209.85.211.187]:51485 "EHLO
-	mail-yw0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751865Ab0FGO4G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 10:56:06 -0400
-Received: by ywh17 with SMTP id 17so390818ywh.1
-        for <linux-omap@vger.kernel.org>; Mon, 07 Jun 2010 07:56:04 -0700 (PDT)
-In-Reply-To: <AANLkTikpHFyvk28hTm-jTk4wdJ0oldqyncaGH2slq6w4@mail.gmail.com>
+Received: from www.tglx.de ([62.245.132.106]:58309 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752104Ab0FGPvb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Jun 2010 11:51:31 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1006071010001.1398-100000@iolanthe.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Vitaly Wool <vitalywool@gmail.com>, Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, =?ISO-8859-1?Q?Arve_Hj=EF=BF=BDnev=EF=BF=BD?= <arve@android.com>, Brian Swetland <swetland@google.com>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
 
-On Mon, Jun 7, 2010 at 5:02 PM, Govindraj <govindraj.ti@gmail.com> wrot=
-e:
-> On Mon, Jun 7, 2010 at 3:36 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
->> * Kevin Hilman <khilman@deeprootsystems.com> [100604 18:30]:
->>>
->>> > + =A0 w &=3D ~0x7;
->>> > + =A0 w |=3D OMAP_MUX_MODE2;
->>> > + =A0 omap_ctrl_writew(w, uart->padconf);
->>
->> Generic NAK for tinkering with the mux registers directly.
->>
->> Instead, Govindraj, please add omap_mux_request_signal() into mux.c:
->>
->> void __iomem * __init omap_mux_request_signal(char *muxname);
+Alan,
 
-Looking into mach-omap2/mux.c
+On Mon, 7 Jun 2010, Alan Stern wrote:
+> On Mon, 7 Jun 2010, Thomas Gleixner wrote:
+> > #2 is a tad harder, as it requires to fix the trusted apps not to fire
+> >    timers when there is nothing to do.
+> 
+> No; all you have to do is handle the trusted apps as though they were 
+> untrusted -- just as in the original wakelock approach.
+> 
+> >    Though you can solve it with cgroups as well. The unfreeze problem
+> >    for real wakeups can be solved as mhelsley pointed out somewhere
+> >    else in this thread.
+> > 
+> > But that depends on user space changes ....
+> 
+> If you handle all the apps uniformly, very few userspace changes are
+> needed.
 
-Wouldn't retrieving offset will be enough as i have to depend on
-again *_mux_* function call for remux which can have the offset and val
-as parameter.
+Oh, I see. I misunderstood you. -ENOTENOUGHSLEEP
+ 
+Thanks,
 
-So I need to use  ""K15_24XX_UART3_TX" as name to retrieve
-UART3 offset if I am correct and traverse through the list doing an str=
-cmp
-on name to retrieve offset.
-
-In that case I dont find uart1/2/4 in list,
-Should that be added into the list?
-
-Regards,
-Govindraj.R
-
->>
->> Which returns the address of the mux register in question based
->> on the signal name. Then in the platform init code you can request
->> the pins for all the UARTs in use, and provide functions to remux
->> them as needed for the idle modes.
->>
->> This will work for omap2 also at some point once it's converted to
->> use the common mux framework. And it will work in a generic way
->> for all omaps under mach-omap2 eventually.
->>
->> You can take a look at the omap_mux_get_gpio() in mux.c for a
->> similar example.
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Thomas
