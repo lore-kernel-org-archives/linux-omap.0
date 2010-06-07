@@ -1,99 +1,96 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
-Date: Mon, 7 Jun 2010 18:14:41 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CBA2C97A@dlee06.ent.ti.com>
-References: <1273073589-2485-1-git-send-email-ohad@wizery.com>
- 	<1273073589-2485-5-git-send-email-ohad@wizery.com>
- <4C0D4004.5060303@ti.com>
- <AANLkTik8tLfUzLxcd9tfC_VIgLcRGXbZPLM06nMsMHKz@mail.gmail.com>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: suspend blockers & Android integration
+Date: Mon, 7 Jun 2010 16:16:03 -0700
+Message-ID: <AANLkTik5gOt0OMY_-BK5Y2FiPvTSc97KeM-W8tVpVVkN@mail.gmail.com>
+References: <AANLkTikXUTZE1vesD-Ccn8VhPjhBYYS0Tw_Pq9u5nnq7@mail.gmail.com>
+	<Pine.LNX.4.44L0.1006052233100.22666-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39440 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753825Ab0FGXOu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 19:14:50 -0400
-In-Reply-To: <AANLkTik8tLfUzLxcd9tfC_VIgLcRGXbZPLM06nMsMHKz@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1006052233100.22666-100000@netrider.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matt Helsley <matthltc@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
+2010/6/5 Alan Stern <stern@rowland.harvard.edu>:
+> On Sat, 5 Jun 2010, Arve Hj=F8nnev=E5g wrote:
+>
+>> Yes, we can keep all our user space suspend blockers and thaw the
+>> frozen cgroup when any suspend blocker is held, but this would
+>> eliminate any power advantage that freezing a cgroup has over using
+>> suspend to freeze all processes. Without annotating the drivers to
+>> block the cgroup freezing in the same places as we now block suspend=
+,
+>> it also prevents processes in the cgroup that we freeze from directl=
+y
+>> consuming wakup events.
+>
+> The driver annotations don't need to block the cgroup freezing. =A0Th=
+ey
+> just need to keep the system running long enough to awaken a thread
+> that will handle the wakeup event. =A0(See below.) =A0A pm-qos constr=
+aint
+> is good enough for this.
+>
 
+I'm not sure what you mean by this, either you need to annotate the
+drivers or you don't.
 
-Hi,
+>> If you are referring to the approach that we don't use suspend but
+>> freeze a cgroup instead, this only solves the problem of bad apps. I=
+t
+>> does not help pause timers in trusted user space code and in the
+>> kernel, so it does not lower our average power consumption.
+>
+> You can solve this problem if you restructure your "trusted" apps in
+> the right way. =A0Require a trusted app to guarantee that whenever it
+> doesn't hold any suspend blockers, it will do nothing but wait (in a
+> poll() system call for example) for a wakeup event. =A0When the event
+> occurs, it must then activate a suspend blocker.
+>
 
-> -----Original Message-----
-> From: Ohad Ben-Cohen [mailto:ohad@wizery.com]
-> Sent: Monday, June 07, 2010 4:41 PM
-> To: Chitriki Rudramuni, Deepak; Guzman Lugo, Fernando; Ramirez Luna, Omar;
-> Kanigeri, Hari
-> Cc: linux-omap@vger.kernel.org; Hiroshi Doyu
-> Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
-> 
-> Hi Deepak,
-> 
-> On Mon, Jun 7, 2010 at 1:52 PM, Deepak Chitriki <deepak.chitriki@ti.com>
-> wrote:
-> > With this patch I observed "inconsistent lock state" warning.
-> 
-> Thanks for the report!
-> 
-> > Kfifo is acccessed in omap_mbox_msg_send() and mbox_tx_tasklet()
-> > functions.In order to protect this critical section we need to protect
-> by
-> > using spin_lock_bh() so that the tasklet cannot preempt
-> > omap_mobx_msg_send().
-> 
-> This is actually not the problem: it's ok if mbox_tx_tasklet preempts
-> omap_mbox_msg_send. In fact, such a use case is even ok if we don't
-> take a spinlock at all: kfifo is designed in a way that if you have
-> only 1 consumer and 1 producer, they can both access kfifo
-> simultaneously without any locking. That's why we don't take the
-> spinlock in the mbox_tx_tasklet. The reason, btw, that we take a
-> spinlock in omap_mbox_msg_send is to allow multiple simultaneous
-> sending contexts (taking a spinlock there ensures serialization of
-> those multiple simultaneous sending contexts).
-> 
-> The problem here lies in the fact (that I've just learnt) that
-> dspbridge also sends mbox messages from a tasklet context
-> (dpc_tasklet). Lockdep identifies that the spinlock is taken in a
-> softirq context (dspbridge's dpc_tasklet) after it was previously
-> taken in a softirq-enabled context. Your proposed fix will solve the
-> lockdep issue here, but:
+This breaks existing apps. It effectively requires that a process that
+use suspend blocker do no work that does not block suspend.
 
-I think the best thing to do here is remove the spinlock, if not, you are preventing that omap_mbox_msg_send be executed from a tasklet or isr context. That maybe in this moment it is not called but it could be needed in the future. The caller of omap_mbox_msg_send should be take care of that function can not be call simultaneously.
+> Better yet, make it more fine-grained. =A0Instead of trusted apps, ha=
+ve
+> trusted threads. =A0Freeze the untrusted threads along with everythin=
+g
+> else, and require the trusted threads to satisfy this guarantee.
+>
 
-> 
-> Do we really want to have tasklets in dspbridge ? Are we that
-> performance critical ?
+This would create a minefield of possible deadlocks. You now have to
+make sure that your trusted threads do not share any locks with your
+untrusted threads. For instance you cannot safely call into the heap
+while any threads in your process are frozen.
 
-We are facing some issues when the DSP send the request for hibernation and we get that message and start processing the request (because it is done in a workqueue and there some latency). I issue had been manage in other ways but maybe we would have that issue it the hibernation request could be handle immediately. Why not remove the workqueue at all and let the mailbox module user be the judge for using tasklet, workqueue or do the job in the same isr (if it is small task and need to be fast)?
+> In this way, while the system is idle no user timers will get renewed=
+=2E
+> Kernel timers are another matter, but we should be able to handle the=
+m.
+> There's nothing Android-specific about wanting to reduce kernel timer
+> wakeups while in a low-power mode.
+>
+>> And, it
+>> does not solve the problem for systems that enters lower power state=
+s
+>> from suspend than it can from idle. The last point my not be relevan=
+t
+>> to android anymore, but desktop systems already have auto suspend an=
+d
+>> it would be preferable to have a race free kernel api for this.
+>
+> This is an entirely different matter from the rest of the discussion.
+> It would be better to consider this separately after Android's curren=
+t
+> problems have been addressed.
+>
 
+Yes there has not been much discussion about this, but I don't
+understand why not. Automatic suspend is used outside Android, and it
+has the same race conditions that suspend blockers fix.
 
-> 
-> In general I'd prefer to switch to workqueues in both dspbridge and
-> mailbox. I'm really not convinced we have to use tasklets in those
-> modules, and workqueues are much more system friendly. This way we
-> would also not have to stop all bottom halves when sending a mailbox
-> message.
-> 
-> Somewhat relevant note about mailbox performance: omap_mbox_msg_send
-> often (i.e. when the kfifo is empty) can just send the message
-> directly, without triggering the tasklet to do that. Applying such a
-> change will substantially improve the mailbox performance, and will
-> make the shift to workqueues even more reasonable. I've got a patch
-> for that, I'll post it soon.
-
-What would be really good!
-
-Regards,
-Fernando.
-
-> 
-> What do you think (looping in Fernando, Omar and Hari) ?
-> 
-> Thanks,
-> Ohad.
+--=20
+Arve Hj=F8nnev=E5g
