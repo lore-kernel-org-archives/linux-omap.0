@@ -1,8 +1,8 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Subject: Re: OMAP video compile error; regression from 2.6.33-rc4 onward
  (including current master)
-Date: Mon, 07 Jun 2010 10:39:01 +0300
-Message-ID: <1275896341.2549.11.camel@tubuntu.research.nokia.com>
+Date: Mon, 07 Jun 2010 10:47:34 +0300
+Message-ID: <1275896854.2549.14.camel@tubuntu.research.nokia.com>
 References: <201006061652.39248.luke@dashjr.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -36,7 +36,34 @@ On Sun, 2010-06-06 at 23:52 +0200, ext Luke-Jr wrote:
 > The 'dispc' referred to herein is and has always been defined in
 > drivers/video/omap/dispc.c as an anonymous struct.
 
-Hmm yes, looks rather broken. I don't know how that has gotten through
-=). Reverting the patch makes it compile, but RFBI won't work.
+I don't have any device that uses RFBI so I can't test it, but how about
+this patch:
 
- Tomi
+diff --git a/drivers/video/omap/rfbi.c b/drivers/video/omap/rfbi.c
+index 1162603..eada9f1 100644
+--- a/drivers/video/omap/rfbi.c
++++ b/drivers/video/omap/rfbi.c
+@@ -26,6 +26,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/platform_device.h>
+ 
+ #include "omapfb.h"
+ #include "dispc.h"
+@@ -83,13 +84,13 @@ static inline u32 rfbi_read_reg(int idx)
+ 
+ static int rfbi_get_clocks(void)
+ {
+-       rfbi.dss_ick = clk_get(&dispc.fbdev->dssdev->dev, "ick");
++       rfbi.dss_ick = clk_get(&rfbi.fbdev->dssdev->dev, "ick");
+        if (IS_ERR(rfbi.dss_ick)) {
+                dev_err(rfbi.fbdev->dev, "can't get ick\n");
+                return PTR_ERR(rfbi.dss_ick);
+        }
+ 
+-       rfbi.dss1_fck = clk_get(&dispc.fbdev->dssdev->dev, "dss1_fck");
++       rfbi.dss1_fck = clk_get(&rfbi.fbdev->dssdev->dev, "dss1_fck");
+        if (IS_ERR(rfbi.dss1_fck)) {
+                dev_err(rfbi.fbdev->dev, "can't get dss1_fck\n");
+                clk_put(rfbi.dss_ick);
