@@ -1,48 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling for
- 3630
-Date: Mon, 7 Jun 2010 13:06:57 +0300
-Message-ID: <20100607100656.GE15515@atomide.com>
-References: <53199.192.168.10.88.1275659023.squirrel@dbdmail.itg.ti.com>
- <871vcmq08s.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Mon, 7 Jun 2010 13:25:53 +0300
+Message-ID: <AANLkTinajoKfVD3eBNspiuf1e5jFb2jm-OyHJbcbk4xo@mail.gmail.com>
+References: <AANLkTil1NCX91bWhpXHtC88Opr29mNjdhXD9RXQ6DI0y@mail.gmail.com>
+	<AANLkTin1Za3GvfIKbcZdx6TzjIHzCvsg5uaY_Vk4nJIh@mail.gmail.com>
+	<AANLkTilQ1k78dDCYadOa1Wiyjm2nsBcRpxwdpGvYcf8z@mail.gmail.com>
+	<AANLkTin7oM3gVwHbIHWqYV8yeC6bbQ4q2jDDxAgz3DwQ@mail.gmail.com>
+	<20100606133130.GA8513@srcf.ucam.org>
+	<AANLkTimXTgZS_fZQa8hjIptJrCn756gF_xakT1IQiLWa@mail.gmail.com>
+	<20100606152946.GA11351@srcf.ucam.org>
+	<AANLkTilOq_5yUW1AIMH1qSE699gyRUTlzGPUVc4CrReY@mail.gmail.com>
+	<20100606164326.GA12570@srcf.ucam.org>
+	<AANLkTim0JD4V0RTc6CRIADypqYhQo3JYp3dJs0l7g7Ps@mail.gmail.com>
+	<20100606173146.GA13432@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64496 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751521Ab0FGKGz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 06:06:55 -0400
-Content-Disposition: inline
-In-Reply-To: <871vcmq08s.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100606173146.GA13432@srcf.ucam.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100604 18:30]:
-> 
-> > +	w &= ~0x7;
-> > +	w |= OMAP_MUX_MODE2;
-> > +	omap_ctrl_writew(w, uart->padconf);
+2010/6/6 Matthew Garrett <mjg59@srcf.ucam.org>:
+> On Sun, Jun 06, 2010 at 07:21:49PM +0200, Vitaly Wool wrote:
+>> 2010/6/6 Matthew Garrett <mjg59@srcf.ucam.org>:
+>>
+>> > Suspend blocks prevent system suspend, not any per-device suspend.
+>>
+>> Can you suspend a device which is holding a wake lock?
+>
+> Yes. Suspend blocks are orthogonal to runtime PM.
 
-Generic NAK for tinkering with the mux registers directly. 
+In that sense yes, but as it has been stated before; if Android
+user-space concentrates on getting suspend blockers right, then the
+timers in user-space will not be aligned correctly, and runtime PM
+wouldn't work that great. Moreover, opportunistic suspend takes the
+device out of idle. So, as runtime PM gets better, there's a point
+where opportunistic suspend makes the situation worst.
 
-Instead, Govindraj, please add omap_mux_request_signal() into mux.c:
+So they are _mostly_ orthogonal, but not completely, at least for the
+analysis of suspend blockers' usefulness.
 
-void __iomem * __init omap_mux_request_signal(char *muxname);
-
-Which returns the address of the mux register in question based
-on the signal name. Then in the platform init code you can request
-the pins for all the UARTs in use, and provide functions to remux
-them as needed for the idle modes.
-
-This will work for omap2 also at some point once it's converted to
-use the common mux framework. And it will work in a generic way
-for all omaps under mach-omap2 eventually.
-
-You can take a look at the omap_mux_get_gpio() in mux.c for a
-similar example.
-
-Regards,
-
-Tony
+-- 
+Felipe Contreras
