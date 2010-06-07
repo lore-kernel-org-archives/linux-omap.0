@@ -1,37 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] OMAP3: PM: fix IO daisy chain enable to use PM_WKEN reg
-Date: Mon, 7 Jun 2010 08:05:01 -0400
-Message-ID: <notify-1275912303@atomide.com>
-References: <1275585202-9637-1-git-send-email-khilman@deeprootsystems.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] OMAP: GPIO: fix auto-disable of debounce clock
+Date: Mon, 7 Jun 2010 15:08:55 +0300
+Message-ID: <20100607120855.GB31590@nokia.com>
+References: <1275492149-29063-1-git-send-email-khilman@deeprootsystems.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50188 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754195Ab0FGMFB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 08:05:01 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1OLb4e-0009fw-O2
-	for linux-omap@vger.kernel.org; Mon, 07 Jun 2010 12:05:01 +0000
-In-Reply-To: <1275585202-9637-1-git-send-email-khilman@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.230]:25103 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754865Ab0FGMKF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 08:10:05 -0400
 Content-Disposition: inline
+In-Reply-To: <1275492149-29063-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+On Wed, Jun 02, 2010 at 05:22:29PM +0200, ext Kevin Hilman wrote:
+>The addition of the new debounce code (commit
+>168ef3d9a56bd8bffe0ef4189c450888b4aefefe) broke the auto-disable of
+>debounce clocks on idle by forgetting to update the debounce clock
+>enable mask.
+>
+>Add back the updating of bank->dbck_enable_mask so debounce clocks are
+>auto-disabled.
+>
+>Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>---
+>Please include for 2.6.35-rc series.
 
-Branch in linux-omap: omap-fixes
+oops, my bad :-(
 
-Initial commit ID (Likely to change): 4f4348dafd232a570641266e326c044abe5709fe
+-- 
+balbi
 
-PatchWorks
-http://patchwork.kernel.org/patch/104143/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=4f4348dafd232a570641266e326c044abe5709fe
-
-
+DefectiveByDesign.org
