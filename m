@@ -1,143 +1,76 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] suspend blockers & Android integrationy
-Date: Mon, 7 Jun 2010 10:42:21 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006071010001.1398-100000@iolanthe.rowland.org>
-References: <alpine.LFD.2.00.1006070206060.2933@localhost.localdomain>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling for
+	3630
+Date: Mon, 7 Jun 2010 20:26:02 +0530
+Message-ID: <AANLkTikS_f5UWDr8WYrHga_W8kIeTwUienx6K37LWF80@mail.gmail.com>
+References: <53199.192.168.10.88.1275659023.squirrel@dbdmail.itg.ti.com>
+	<871vcmq08s.fsf@deeprootsystems.com>
+	<20100607100656.GE15515@atomide.com>
+	<AANLkTikpHFyvk28hTm-jTk4wdJ0oldqyncaGH2slq6w4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:37243 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751307Ab0FGOmZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 10:42:25 -0400
-In-Reply-To: <alpine.LFD.2.00.1006070206060.2933@localhost.localdomain>
+Received: from mail-yw0-f187.google.com ([209.85.211.187]:51485 "EHLO
+	mail-yw0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865Ab0FGO4G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 10:56:06 -0400
+Received: by ywh17 with SMTP id 17so390818ywh.1
+        for <linux-omap@vger.kernel.org>; Mon, 07 Jun 2010 07:56:04 -0700 (PDT)
+In-Reply-To: <AANLkTikpHFyvk28hTm-jTk4wdJ0oldqyncaGH2slq6w4@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Vitaly Wool <vitalywool@gmail.com>, Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, =?ISO-8859-1?Q?Arve_Hj=EF=BF=BDnev=EF=BF=BD?= <arve@android.com>, Brian Swetland <swetland@google.com>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
 
-On Mon, 7 Jun 2010, Thomas Gleixner wrote:
+On Mon, Jun 7, 2010 at 5:02 PM, Govindraj <govindraj.ti@gmail.com> wrot=
+e:
+> On Mon, Jun 7, 2010 at 3:36 PM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+>> * Kevin Hilman <khilman@deeprootsystems.com> [100604 18:30]:
+>>>
+>>> > + =A0 w &=3D ~0x7;
+>>> > + =A0 w |=3D OMAP_MUX_MODE2;
+>>> > + =A0 omap_ctrl_writew(w, uart->padconf);
+>>
+>> Generic NAK for tinkering with the mux registers directly.
+>>
+>> Instead, Govindraj, please add omap_mux_request_signal() into mux.c:
+>>
+>> void __iomem * __init omap_mux_request_signal(char *muxname);
 
-> Alan,
+Looking into mach-omap2/mux.c
 
-Thomas:
+Wouldn't retrieving offset will be enough as i have to depend on
+again *_mux_* function call for remux which can have the offset and val
+as parameter.
 
-> On Sun, 6 Jun 2010, Alan Stern wrote:
+So I need to use  ""K15_24XX_UART3_TX" as name to retrieve
+UART3 offset if I am correct and traverse through the list doing an str=
+cmp
+on name to retrieve offset.
 
-> > Remember that suspend takes place in several phases, the first of which 
-> > is to freeze tasks.  The phases can be controlled individually by the 
-> > process carrying out a suspend, and there's nothing to prevent you from 
-> > stopping after the freezer phase.  Devices won't get powered down, but 
-> > Android uses aggressive runtime power management for its devices 
-> > anyway.
-> > 
-> > If you do this then the synchronization can be carried out entirely
-> > from userspace, with no need for kernel modifications such as suspend
-> > blockers. And since Android can reach essentially the same low-power
-> > state from idle as from suspend, it appears that they really don't need
-> > any kernel changes at all.
-> 
-> Well there are some things to solve:
-> 
->      1) the confinement of untrusted apps 
-> 
->      2) the confinement of trusted apps firing periodic timers. 
+In that case I dont find uart1/2/4 in list,
+Should that be added into the list?
 
-No, these things don't need to be solved.
+Regards,
+Govindraj.R
 
-The difference between our approaches is that you're trying to find a
-solution that can be used more generally, not just on Android, whereas
-I'm simply trying to find a way to help Arve and Brian accomplish what
-they want as easily as possible.
-
-(Even though some kernel developers may consider their design to be
-ill-conceived.  So long as the objectionable features are confined to
-userspace nobody will mind.  And if a few small kernel patches are
-needed, they will most likely be accepted if they aren't intrusive.)
-
-This means sticking to the "big-gun" approach of system-wide suspend or
-its equivalent, because Android's userspace is so unstructured and
-has so many widespread (perhaps even conflicting!) requirements.  And 
-of course the necessary changes to userspace should be minimal.
-
-Thus, in my proposed scheme there is no need to confine untrusted apps,
-just as there was no need to do so when using wakelocks in their
-original form.  Likewise, there is no need to worry about trusted apps
-firing periodic timers: Once processes are frozen, user timers really
-don't matter much.
-
->      Aside of that they need to shut off undesired interrupt sources,
->      but that's not a real problem to solve and probably possible
->      today already.
-
-Yes.  They may also need to shut off undesired kernel timers.  This 
-should be doable as well, and it would benefit all platforms.
-
-> #1 can be solved elegantly by cgroups. We know how to freeze the
->    cgroup timers when the need arises, but that's not a real problem
->    as all periodic timers are firing only once when the target app
->    does not handle them.
-
-That's why I said they don't matter much.
-
->    Though the cgroup based approach of freezing timers might be
->    interesting for containers c/r as well and it might be necessary to
->    emulate the suspend semantics of freezing CLOCK_MONOTONIC, but
->    that's simple to do and basically no overhead.
-
-Cgroups are not needed.  The power-manager process can simply freeze 
-all tasks other than itself.
-
-> #2 is a tad harder, as it requires to fix the trusted apps not to fire
->    timers when there is nothing to do.
-
-No; all you have to do is handle the trusted apps as though they were 
-untrusted -- just as in the original wakelock approach.
-
->    Though you can solve it with cgroups as well. The unfreeze problem
->    for real wakeups can be solved as mhelsley pointed out somewhere
->    else in this thread.
-> 
-> But that depends on user space changes ....
-
-If you handle all the apps uniformly, very few userspace changes are
-needed.
-
-> Though as we learned today that suspend blockers are the least of the
-> problems which android is facing vs. mainline and we have a plan to
-> get the drivers in we can relax a bit and think more about it.
-
-The only reason for inventing suspend blockers in the first place was
-to make system suspend reliable in the face of races with wakeup
-sources.  If system suspend doesn't run to completion, but stops after
-freezing all tasks other than the power manager, then these races can
-be handled entirely within userspace.  Hence there is no need to have
-suspend blockers at all.
-
-Assuming Arve doesn't find any fatal flaws in this approach, the issue 
-will become moot.  We can relax and _avoid_ thinking about it!  :-)
-
-> I'm not saying that we should ignore the shortcomings of todays code,
-> but in the face of hardware which perfectly goes into the same power
-> state from idle as it does from suspend we can IMNSHO safely ignore
-> the x86/ACPI/BIOS crap and the user space wreckage (see above) and
-> just focus on a sane design based on current/future hardware.
-
-You're preaching to the choir.  If the Google people want to use
-suspend blockers on ACPI-based systems ... well, we can resume the
-arguments then.  They won't be nearly as pressing.
-
-> That's nothing new, we do not go and make NOHZ/HIGHRES work on crappy
-> hardware either, even if there have been patches around to do so. We
-> do not make broken TSCs work, even if there are brute force ways to do
-> so. ....
-> 
-> It's more sane to say "Sorry, it does not work on your system" than
-> trying to make it work under all circumstances for a questionable
-> benefit and paying the price for it in terms of maintainability and/or
-> complexity.
-
-Agreed.
-
-Alan Stern
-
+>>
+>> Which returns the address of the mux register in question based
+>> on the signal name. Then in the platform init code you can request
+>> the pins for all the UARTs in use, and provide functions to remux
+>> them as needed for the idle modes.
+>>
+>> This will work for omap2 also at some point once it's converted to
+>> use the common mux framework. And it will work in a generic way
+>> for all omaps under mach-omap2 eventually.
+>>
+>> You can take a look at the omap_mux_get_gpio() in mux.c for a
+>> similar example.
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
