@@ -1,69 +1,80 @@
-From: Brian Swetland <swetland@google.com>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Mon, 7 Jun 2010 01:16:23 -0700
-Message-ID: <AANLkTiky_4yCx5RQkK5eums7vcQPy2uSMyd41hQ2MA-6@mail.gmail.com>
-References: <1275834706.7227.545.camel@mulgrave.site>
-	<alpine.LFD.2.00.1006061725000.2933@localhost.localdomain>
-	<1275844114.7227.552.camel@mulgrave.site>
-	<20100606190525.GA20517@infradead.org>
-	<AANLkTikKx-gXCGtNo3woHLCpBoEQ7hG9Jbiq3hwUTW_w@mail.gmail.com>
-	<20100606192405.GA7559@infradead.org>
-	<AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
-	<20100607080357.GB15851@infradead.org>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling for
+	3630
+Date: Mon, 7 Jun 2010 14:17:31 +0530
+Message-ID: <AANLkTilKWd9O3D4T-utnN2ookG5eP30JOxACxdJWKgXN@mail.gmail.com>
+References: <53199.192.168.10.88.1275659023.squirrel@dbdmail.itg.ti.com>
+	<871vcmq08s.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:34000 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753847Ab0FGIQ1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 04:16:27 -0400
-In-Reply-To: <20100607080357.GB15851@infradead.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:39888 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753500Ab0FGIrc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 04:47:32 -0400
+Received: by vws5 with SMTP id 5so3170420vws.19
+        for <linux-omap@vger.kernel.org>; Mon, 07 Jun 2010 01:47:32 -0700 (PDT)
+In-Reply-To: <871vcmq08s.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: James Bottomley <James.Bottomley@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
 
-On Mon, Jun 7, 2010 at 1:03 AM, Christoph Hellwig <hch@infradead.org> w=
-rote:
-> On Sun, Jun 06, 2010 at 12:58:10PM -0700, Brian Swetland wrote:
->> The group ID stuff works incredibly well for gating device access --
->> we ensure that devices that need access from various processes end u=
-p
->> with perms like 0660 root audio (say for a raw audio interface), and
->> then we assure that processes which have the "may use audio hardware=
-"
->> permission are executed with audio as an additional group. =C2=A0We =
-ended
->> up using the same model to control socket, raw socket, and bt socket
->> access because at the time we could not find a reasonable way to gra=
-nt
->> or exclude such permissions on a process by process basis.
->> Maintaining about 20-30 lines of diffs to make that work was not a b=
-ad
->> tradeoff (and we don't expect those patches to go upstream). =C2=A0I=
-f
->> there's a way to accomplish this without patching the kernel, we're
->> all ears.
+On Fri, Jun 4, 2010 at 9:05 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
 >
-> I'd have to take a look again on how this is implemented in details.
-> If it's just overriding the capabilities it's really hard to do in
-> the current model as the capabilities aren't fine grained enough
-> currently, even with the existing per-file and per-process capabiliti=
-es.
-> If it's mostly overriding regular unix file permissions it's easily
-> doable with ACLs, or in fact just with group ownership at the filesys=
-tem
-> level, without kernel hacks.
+>> This patch makes the following:
+>> =A0- Adds missing wakeup padding register handling.
+>> =A0- Fixes a hardcode to use PER module ONLY on UART3.
+>> =A0- Muxmode usage needed for uart4 for 3630 for padconf
+>> =A0 =A0wakeup on rx line.
+>
 
-=46or device nodes, we just use group ownership and it works fine with
-no kernel modifications.  For the "can create socket", "can create bt
-socket", and "can create raw socket" permissions we ended up throwing
-together a patch tying those operations to being in the appropriate
-group.  Obviously a hack, but it was the most straightforward solution
-we could find at the time.
+> The need for this muxmode needs to be better described.
+>
+> The usage of the new set muxmode function is not terribly clear.
+> You're calling it in both _enable_wakeup() and _disable_wakeup() and
+> in _resume_idle(), but it's not terribly clear (to me, or the casual
+> changelog reader) why this is being done.
 
-Brian
+Intention was to ensure being in the right mux mode before accessing th=
+e
+padconf reg. Since we have padconf usage in these function I have
+mux mode configuration before accessing padconf reg.
+Will update changelog accordingly.
+
+>>
+>> +static inline void omap_uart_setmux_mode(struct omap_uart_state *ua=
+rt)
+>
+> How about _set_muxmode()
+
+ok fine, will change to omap_uart_set_muxmode(
+
+>
+>> +{
+>> + =A0 =A0 u16 w =3D omap_ctrl_readw(uart->padconf);
+>
+> insert blank line
+
+Sure will do.
+
+> =A0 =A0 =A0 } else if (cpu_is_omap24xx()) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 wk_mask =3D 0;
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+---
+Thanks,
+Govindraj.R
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
