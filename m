@@ -1,91 +1,37 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [GIT PULL] omap iommu: fixes for 2.6.35-rc1
-Date: Mon, 07 Jun 2010 14:50:51 +0300 (EEST)
-Message-ID: <20100607.145051.71099999.Hiroshi.DOYU@nokia.com>
-References: <20100531122703.GD30216@atomide.com>
-	<20100602.105046.39180136.Hiroshi.DOYU@nokia.com>
-	<20100607111748.GM15515@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] OMAP: GPIO: fix auto-disable of debounce clock
+Date: Mon, 7 Jun 2010 08:04:35 -0400
+Message-ID: <notify-1275912278@atomide.com>
+References: <1275492149-29063-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:20300 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753068Ab0FGLvE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 07:51:04 -0400
-In-Reply-To: <20100607111748.GM15515@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55931 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761Ab0FGMEf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 08:04:35 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1OLb4E-0008LD-J0
+	for linux-omap@vger.kernel.org; Mon, 07 Jun 2010 12:04:35 +0000
+In-Reply-To: <1275492149-29063-1-git-send-email-khilman@deeprootsystems.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, x0124230@ti.com
+To: linux-omap@vger.kernel.org
 
-From: ext Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap iommu: fixes for 2.6.35-rc1
-Date: Mon, 7 Jun 2010 13:17:48 +0200
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-> Since Linus only wants regression fixes nowadays during the -rc
-> cycle, few more questions below.
-> 
-> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100602 10:45]:
->> Hi Tony,
->> 
->> Patches only for fixes for omap iommu module during -rc cycle.
->> 
->> The following changes since commit 67a3e12b05e055c0415c556a315a3d3eb637e29e:
->> 
->>   Linux 2.6.35-rc1 (2010-05-30 13:21:02 -0700)
->> 
->> are available in the git repository at:
->>   git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc1-iommu-fixes
->> 
->> Hiroshi DOYU (1):
->>       omap iommu: Make omap-iommu.o built-in
-> 
-> Does the above actually fix some problem? If it fixes some problem,
-> it should be in the description. If not, maybe move this one for
-> the next merge window?
+Branch in linux-omap: omap-fixes
 
-This is a fix for the previously overwriting obj-y/m as blow, and
-updated the description as well.
+Initial commit ID (Likely to change): 0b703473c328c991acf2366f4ebefc8d38884799
 
--obj-$(CONFIG_OMAP_IOMMU)               := iommu2.o omap-iommu.o
-+obj-$(CONFIG_OMAP_IOMMU)               += iommu2.o
+PatchWorks
+http://patchwork.kernel.org/patch/103831/
 
->> Kanigeri, Hari (1):
->>       omap iommu: update ducati mmu irq define name
-> 
-> This description does not seem to make sense as the ducati irq
-> define was added with e927f8d04ec8aff249beab2f7e1832c67623d0f5
-> and has not changed. The description is for some non-mainline
-> tree talking about 2.6.34-rc6 so it should be updated.
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=0b703473c328c991acf2366f4ebefc8d38884799
 
-Updated the description.
 
->  
->> Satish (1):
->>       omap iommu: Fix Memory leak
-> 
-> This one looks like a genuine fix :)
-
-I've also updated the branch against -rc2. Please merge it if no problem.
-
-The following changes since commit e44a21b7268a022c7749f521c06214145bd161e4:
-
-  Linux 2.6.35-rc2 (2010-06-05 20:43:24 -0700)
-
-are available in the git repository at:
-  git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc2-iommu-fixes
-
-Hiroshi DOYU (1):
-      omap iommu: fix: Make omap-iommu.o built-in
-
-Kanigeri, Hari (1):
-      omap iommu: fix ducati mmu irq define name
-
-Satish (1):
-      omap iommu: Fix Memory leak
-
- arch/arm/mach-omap2/Makefile     |    5 ++++-
- arch/arm/mach-omap2/omap-iommu.c |    2 +-
- arch/arm/plat-omap/iovmm.c       |    4 +++-
- 3 files changed, 8 insertions(+), 3 deletions(-)
