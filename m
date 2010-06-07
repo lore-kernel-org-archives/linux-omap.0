@@ -1,96 +1,122 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: suspend blockers & Android integration
-Date: Mon, 7 Jun 2010 16:16:03 -0700
-Message-ID: <AANLkTik5gOt0OMY_-BK5Y2FiPvTSc97KeM-W8tVpVVkN@mail.gmail.com>
-References: <AANLkTikXUTZE1vesD-Ccn8VhPjhBYYS0Tw_Pq9u5nnq7@mail.gmail.com>
-	<Pine.LNX.4.44L0.1006052233100.22666-100000@netrider.rowland.org>
+From: Linus Walleij <linus.ml.walleij@gmail.com>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Tue, 8 Jun 2010 01:17:13 +0200
+Message-ID: <AANLkTik-0JRJTEbVkr4LUsnELRuqpmGYrRsMxVZDpz8C@mail.gmail.com>
+References: <1275834706.7227.545.camel@mulgrave.site>
+	<alpine.LFD.2.00.1006061725000.2933@localhost.localdomain>
+	<1275844114.7227.552.camel@mulgrave.site>
+	<20100606190525.GA20517@infradead.org>
+	<AANLkTikKx-gXCGtNo3woHLCpBoEQ7hG9Jbiq3hwUTW_w@mail.gmail.com>
+	<20100606192405.GA7559@infradead.org>
+	<AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
+	<1275916830.1645.566.camel@laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1006052233100.22666-100000@netrider.rowland.org>
+In-Reply-To: <1275916830.1645.566.camel@laptop>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matt Helsley <matthltc@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Brian Swetland <swetland@google.com>, Christoph Hellwig <hch@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <felipe.balbi@nokia.com>, hackbod@android.com
 List-Id: linux-omap@vger.kernel.org
 
-2010/6/5 Alan Stern <stern@rowland.harvard.edu>:
-> On Sat, 5 Jun 2010, Arve Hj=F8nnev=E5g wrote:
+2010/6/7 Peter Zijlstra <peterz@infradead.org>:
+> On Sun, 2010-06-06 at 12:58 -0700, Brian Swetland wrote:
+>> Somebody will have to broker a deal with the frameworks/apps folks t=
+o
+>> get rid of the binder. =A0They like it a lot. =A0Of course if somebo=
+dy
+>> built a drop-in replacement for the userspace side that didn't requi=
+re
+>> a kernel driver, had the same performance characteristics, solved th=
+e
+>> same problems, etc, they could probably make an argument for it (or
+>> just provide it as a drop-in replacement for people who want a more
+>> "pure" linux underneath Android, even if we didn't pick it up).
 >
->> Yes, we can keep all our user space suspend blockers and thaw the
->> frozen cgroup when any suspend blocker is held, but this would
->> eliminate any power advantage that freezing a cgroup has over using
->> suspend to freeze all processes. Without annotating the drivers to
->> block the cgroup freezing in the same places as we now block suspend=
-,
->> it also prevents processes in the cgroup that we freeze from directl=
-y
->> consuming wakup events.
+> So what's up with this Binder stuff, from what I can see its just
+> yet-another-CORBA. Why does it need a kernel part at all, can't you
+> simply run with a user-space ORB instead?
 >
-> The driver annotations don't need to block the cgroup freezing. =A0Th=
-ey
-> just need to keep the system running long enough to awaken a thread
-> that will handle the wakeup event. =A0(See below.) =A0A pm-qos constr=
-aint
-> is good enough for this.
+> I really don't get why people keep re-inventing CORBA, there's some
+> really nice (free) ORBs out there, like:
 >
+> =A0http://www.cs.wustl.edu/~schmidt/TAO.html
 
-I'm not sure what you mean by this, either you need to annotate the
-drivers or you don't.
+There was a mailthread on LKML a while back where binder was
+discussed, where Dianne Hackborn explained in detail how Android
+uses binder. At the time it was contrasted with D-Bus (the IPC
+mechanism that has largely replaced DCOP (KDE) and Bonobo
+(GNOME), the latter was actually CORBA-based).
 
->> If you are referring to the approach that we don't use suspend but
->> freeze a cgroup instead, this only solves the problem of bad apps. I=
-t
->> does not help pause timers in trusted user space code and in the
->> kernel, so it does not lower our average power consumption.
->
-> You can solve this problem if you restructure your "trusted" apps in
-> the right way. =A0Require a trusted app to guarantee that whenever it
-> doesn't hold any suspend blockers, it will do nothing but wait (in a
-> poll() system call for example) for a wakeup event. =A0When the event
-> occurs, it must then activate a suspend blocker.
->
+I don't think there was any conclusion, but it was pretty clear that
+binder is an Android key asset, actually the key component that
+the Android people have brought with them from BeOS to
+Palmsource to Android to Google, and they really really like to use
+that thing.
 
-This breaks existing apps. It effectively requires that a process that
-use suspend blocker do no work that does not block suspend.
+It's built into the entire Android userspace for all IPC, except the
+stuff that's handled by D-Bus instead (yes they have
+both for some cases).
 
-> Better yet, make it more fine-grained. =A0Instead of trusted apps, ha=
-ve
-> trusted threads. =A0Freeze the untrusted threads along with everythin=
-g
-> else, and require the trusted threads to satisfy this guarantee.
->
+What sets binder aside from the others is that it's kernel-based;
+things like low-latency and large buffer-passing have been mentioned
+as key features of the kernel driver.
 
-This would create a minefield of possible deadlocks. You now have to
-make sure that your trusted threads do not share any locks with your
-untrusted threads. For instance you cannot safely call into the heap
-while any threads in your process are frozen.
+Solving binder one way is to just include it and say it's needed
+to run Android, the other is to define the technical issue at hand,
+which is: "can the kernel support high-speed, low-latency,
+partly marshalled, large-buffer IPC?"
 
-> In this way, while the system is idle no user timers will get renewed=
-=2E
-> Kernel timers are another matter, but we should be able to handle the=
-m.
-> There's nothing Android-specific about wanting to reduce kernel timer
-> wakeups while in a low-power mode.
->
->> And, it
->> does not solve the problem for systems that enters lower power state=
-s
->> from suspend than it can from idle. The last point my not be relevan=
-t
->> to android anymore, but desktop systems already have auto suspend an=
-d
->> it would be preferable to have a race free kernel api for this.
->
-> This is an entirely different matter from the rest of the discussion.
-> It would be better to consider this separately after Android's curren=
-t
-> problems have been addressed.
->
+D-Bus (on a local machine, mind you, it can use TCP also) will use
+a simple unix domain socket by:
 
-Yes there has not been much discussion about this, but I don't
-understand why not. Automatic suspend is used outside Android, and it
-has the same race conditions that suspend blockers fix.
+socket(PF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0)
+as can be seen here:
+http://cgit.freedesktop.org/dbus/dbus/tree/dbus/dbus-sysdeps-unix.c
 
---=20
-Arve Hj=F8nnev=E5g
+ACE/TAO as referenced seems to use only TCP sockets actually:
+https://svn.dre.vanderbilt.edu/viewvc/Middleware/trunk/ACE/ace/Sock_Con=
+nect.cpp?view=3Dco
+Perhaps it simply uses 127.0.0.1 for local IPC. (The source is
+voluminous and hard for me to navigate, perhaps someone
+familiar with it can add something here.)
+
+Then either D-Bus or TAO builds a complete marshalling stack on
+top of these sockets, it's all fully abstract, fully userspace. Several
+processes and dbus daemons push/pull bytes into these sockets.
+I think DCOP and Bonobo basically do the same thing, by
+the way.
+
+Binder on the other hand is a large kernel module:
+http://android.git.kernel.org/?p=3Dkernel/experimental.git;a=3Dblob;f=3D=
+drivers/staging/android/binder.c;h=3De13b4c4834076eb64680457049832af0b9=
+2d88b9;hb=3Dandroid-2.6.34-test2
+
+It will do some serious reference counting, handshaking back-and-forth
+and so on. Basically a lot of the stuff that other IPC mechanisms
+also does, but in kernelspace. (OK I'm oversimplifying, binder
+is far more lightweight for one.)
+
+The bigger question behind it all is this:
+
+Does the kernel provide the proper support for local IPC
+transport, or is there more it could do in terms of interface, latency,
+throughput?
+
+A domain socket bitsink should be enough for everybody?
+
+So I would really like to know from the Android people why the
+binder is in the kernel, after all. Could it *theoretically* be in
+userspace, on top of some unix domain sockets, running as a
+real-time scheduled daemon or whatever, still yielding the same
+performance? Or is there some discovered limitation with current
+interfaces, that everybody ought to know? Especially authors of
+D-Bus and TAO etc would be very interested in this I believe.
+
+It's not like I don't understand that it would be hard to move this
+thing to userspace, it's more that I'd like to know how you think it
+would be impacted by that.
+
+Yours,
+Linus Walleij
