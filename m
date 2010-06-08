@@ -1,183 +1,85 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Tue, 8 Jun 2010 10:50:57 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006080947050.1625-100000@iolanthe.rowland.org>
-References: <AANLkTimcDzHBmgqPkCHB6pW2RZivFhmb_zk68T0I3NJY@mail.gmail.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+Date: Tue, 8 Jun 2010 12:02:27 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CBB20226@dlee06.ent.ti.com>
+References: <1273073589-2485-5-git-send-email-ohad@wizery.com>
+	<4C0D4004.5060303@ti.com>
+	<AANLkTik8tLfUzLxcd9tfC_VIgLcRGXbZPLM06nMsMHKz@mail.gmail.com>
+ <20100608.064021.71111435.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimcDzHBmgqPkCHB6pW2RZivFhmb_zk68T0I3NJY@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Felipe Balbi <felipe.balbi@nokia.com>, Arjan van de Ven <arjan@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38798 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385Ab0FHRCc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 13:02:32 -0400
+In-Reply-To: <20100608.064021.71111435.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Mon, 7 Jun 2010, Arve Hj=F8nnev=E5g wrote:
-
-> The patch that modifies evdev (posted in this patchset) uses an ioctl
-> to enable the suspend blocker. Not all input devices are used for
-> wakeup events and those don't need to block suspend.
-
-But you do have a 1-1 correspondence, right?  That is, the input=20
-devices that are used for wakeup events are exactly the ones that block=
-=20
-suspend?
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>
+Cc: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-> If you read an event that occurred after you blocked the task
-> freezing, then tasks will never get frozen again (until more events
-> occur). I think my original description was less confusing, but it
-> seems you got completely distracted by my use of block and unblock
-> suspend when referring to the user space api.
 
-I still find your wording a little confusing.  Task freezing can be=20
-prevented (a more accurate term than "blocked") by two kinds of things:=
-=20
-a suspend blocker or an "active" wakeup source.  I'm not sure which=20
-kind you mean here.
-
-> It has an indirect connection. You report a wakeup event when it
-> occurs, but clear it when user space calls an api before reading the
-> event. So:
-
-Yes, that's right.
-
-> Wakeup event occurs, and the driver:
-> - report wakeup event type A
-> - queue event for delivery to user-space
-
-That's not really two distinct steps.  Queuing the event for delivery
-to userspace involves waking up any tasks that are waiting to read the
-device file; that action (calling wake_up_all() or whatever the driver=20
-does) is how the event gets reported.
-
-> User space wakes up:
-> - Calls api to block task freezing for event type A
-
-Again, that's a confusing way of putting it.  The API you're referring
-to is simply the function that activates a suspend blocker.  It does
-prevent task freezing, but you shouldn't say it prevents freezing for
-event type A.  More like the other way around: In addition to
-preventing freezing, the function tells the power manager that event
-type A should no longer be considered active.  Thus, in a sense it
-_stops_ event type A from preventing freezing.
-
-> Another wakeup event occurs, and the driver:
-> - report wakeup event type A
-> - queue event for delivery to user-space
-
-Same as above.
-
-> User space continues:
-> - Read events
-> - Wait for more events
->=20
-> Result: Task are not frozen again.
-
-Because the suspend blocker was never deactivated.  The same thing=20
-happens with wakelocks: If a task activates a wakelock and never=20
-deactivates it, the system won't go into opportunistic suspend again.
-
-Here's how my scheme is meant to work:
-
-	Wakeup event for input device A occurs.
-
-	A's driver adds an entry to the input device queue and
-	(if the queue was empty) does wake_up_all() on the device
-	file's wait_queue.
-
-	The PM process returns from poll() and sees that device
-	file A is now readable, so it adds A to its list of active=20
-	sources and unfreezes userspace.
-
-	Some other process sees that device file A is now readable,
-	so it activates a suspend blocker and reads events from A.
-
-	When the PM process receives the request to activate the
-	suspend blocker, it removes A from its list of active
-	sources.  But it doesn't freeze userspace yet, because now
-	a suspend blocker is active.
-
-	The other process consumes events from A and does other
-	stuff.  Maybe more input data arrives while this is happening
-	and the process reads it.  Eventually the process decides to
-	deactivate the suspend blocker, perhaps when no more data
-	is available from the device file, perhaps not.
-
-	When the PM process receives the request to deactivate the
-	suspend blocker, it sees that now there are no active
-	sources and no active suspend blockers.  Therefore it
-	freezes userspace and does a big poll() on all possible
-	sources.  (If there are still events on the input device
-	queue, the poll() returns immediately.)
-
-	Rinse and repeat.
-
-I don't see any dangerous races there.  The scheme can be made a little
-more efficient by having the PM process do another poll() (with 0
-timeout) just before freezing userspace; if the result indicates that a
-source is active then the freezing and unfreezing can be skipped.
-
-The big assumption here is that a user process never consumes wakeup=20
-events without first activating a suspend blocker.  This seems like a=20
-reasonable assumption, but we can work around it if necessary.
-
-> >> It seems you would need a way to pass the wakeup source id to use =
-from
-> >> user space to the driver and for this to work
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Monday, June 07, 2010 10:40 PM
+> To: ohad@wizery.com
+> Cc: Chitriki Rudramuni, Deepak; Guzman Lugo, Fernando; Ramirez Luna, Omar;
+> Kanigeri, Hari; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+> 
+> From: ext Ohad Ben-Cohen <ohad@wizery.com>
+> Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+> Date: Mon, 7 Jun 2010 23:40:34 +0200
+> 
+> > Hi Deepak,
 > >
-> > No, nothing needs to be passed from userspace to the kernel. =A0How=
-ever
-> > the source ID (or a set of source IDs) does need to be passed to th=
-e
-> > power manager process, probably when the suspend blocker is created=
-=2E
+> > On Mon, Jun 7, 2010 at 1:52 PM, Deepak Chitriki <deepak.chitriki@ti.com>
+> wrote:
+> >> With this patch I observed "inconsistent lock state" warning.
 > >
->=20
-> Then the source id need to be passed from the kernel to user-space.
+> > Thanks for the report!
+> >
+> >> Kfifo is acccessed in omap_mbox_msg_send() and mbox_tx_tasklet()
+> >> functions.In order to protect this critical section we need to protect
+> by
+> >> using spin_lock_bh() so that the tasklet cannot preempt
+> >> omap_mobx_msg_send().
+> >
+> > This is actually not the problem: it's ok if mbox_tx_tasklet preempts
+> > omap_mbox_msg_send. In fact, such a use case is even ok if we don't
+> > take a spinlock at all: kfifo is designed in a way that if you have
+> > only 1 consumer and 1 producer, they can both access kfifo
+> > simultaneously without any locking. That's why we don't take the
+> > spinlock in the mbox_tx_tasklet. The reason, btw, that we take a
+> > spinlock in omap_mbox_msg_send is to allow multiple simultaneous
+> > sending contexts (taking a spinlock there ensures serialization of
+> > those multiple simultaneous sending contexts).
+> >
+> > The problem here lies in the fact (that I've just learnt) that
+> > dspbridge also sends mbox messages from a tasklet context
+> > (dpc_tasklet). Lockdep identifies that the spinlock is taken in a
+> > softirq context (dspbridge's dpc_tasklet) after it was previously
+> > taken in a softirq-enabled context. Your proposed fix will solve the
+> > lockdep issue here, but:
+> >
+> > Do we really want to have tasklets in dspbridge ? Are we that
+> > performance critical ?
+> 
+> Can't a whole contents of bridge_msg_get()/bridge_msg_put() be
+> replaced with omap mailbox APIs?
+> 
+> It seems that dspbridge does the same message queueing and deferred
+> execution as omap mailbox does in the above 2 functions. At least
+> bridge_msg_put() looks similar to omap_mbox_msg_send(). If this works,
+> we can reduce the size of dspbridge again;)
 
-A source ID is a file descriptor.  File descriptors are passed from the
-kernel to userspace whenever a file is opened; I can't deny it.  And
-they are passed back to the kernel as part of the read() and poll() =20
-system calls.  Is that what you mean?
-
-> No, that is not the unclear part. What is unclear to me is where the
-> source IDs come from. Are they static and hardcoded in the driver and
-> user-space, or are they passed between the driver and user-space
-> client?
-
-They are not static; they are file descriptors.  I guess this should=20
-have been made more clear originally, but this is still pretty new to=20
-me too.
-
-> I don't understand how you are planning to ensure that the driver and
-> user-space code that consumes the real event use the same source id.
-
-How can it be otherwise?  The userspace code consumes the event by
-reading from the device file.  In order to do so, it has to use the
-same file descriptor it received when it opened the device file
-originally.
-
-> The biggest problem I have with it though is that you have created a
-> new race condition between reporting that a wakeup event has occurred
-> and processing of the real event.
-
-There is no race.  The driver reports an event has occurred by making
-the data available to be read from the device file, and the event is
-processed by reading it from the device file (or at least, that's the
-first step in processing the event).
+Yes, it has a pretty similar method to send the messages. However the messages send by bridge_msg_put() is a shared memory message, which has a cmd fiel and 2 arguments fields and the bridge used a mailbox message just to indicate to the DSP that it has some pending shared memory messages.
 
 
-There's one other thing worth mentioning.  All along I've been talking
-about a power manager process that coordinates all these activities. =20
-In theory there's no reason that process couldn't be implemented as a
-kernel thread.  This would improve efficiency by reducing the number of
-context switches, and it would change IPC calls into plain system
-calls.
+Regards,
+Fernando.
 
-If you did implement it that way, it could be done as a standalone=20
-kernel module, totally noninvasive.  It would not need to be part of=20
-the vanilla kernel and nobody would object to it.
-
-Alan Stern
