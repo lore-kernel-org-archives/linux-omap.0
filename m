@@ -1,55 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: suspend blockers & Android integration
-Date: Tue, 8 Jun 2010 11:11:39 +0200
-Message-ID: <201006081111.39333.rjw@sisk.pl>
-References: <20100603193045.GA7188@elte.hu> <201006061555.38526.rjw@sisk.pl> <AANLkTilwE8-9yi6gTI-Cx8etIX1Q6kzKobiIxtSW2Sb9@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+Date: Tue, 8 Jun 2010 12:43:28 +0300
+Message-ID: <AANLkTilasmQgcyckgBgpJspRHhsshDlVtdleItZiMp8M@mail.gmail.com>
+References: <4C0D4004.5060303@ti.com>
+	<AANLkTik8tLfUzLxcd9tfC_VIgLcRGXbZPLM06nMsMHKz@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602CBA2C97A@dlee06.ent.ti.com>
+	<20100608.064632.104051482.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTilwE8-9yi6gTI-Cx8etIX1Q6kzKobiIxtSW2Sb9@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.27]:17766 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751699Ab0FHJn3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 05:43:29 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so238044eya.19
+        for <linux-omap@vger.kernel.org>; Tue, 08 Jun 2010 02:43:28 -0700 (PDT)
+In-Reply-To: <20100608.064632.104051482.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: fernando.lugo@ti.com, ohad@wizery.com, deepak.chitriki@ti.com, omar.ramirez@ti.com, h-kanigeri2@ti.com, linux-omap@vger.kernel.org
 
-On Tuesday 08 June 2010, Arve Hj=F8nnev=E5g wrote:
-> 2010/6/6 Rafael J. Wysocki <rjw@sisk.pl>:
-> > On Sunday 06 June 2010, Arve Hj=F8nnev=E5g wrote:
-=2E..=20
-> If individual processes are frozen, we run into problems that we
-> cannot run into if we freeze and thaw all processes.
+On Tue, Jun 8, 2010 at 6:46 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> From: "ext Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+>> I think the best thing to do here is remove the spinlock, if not,
+>> you are preventing that omap_mbox_msg_send be executed from a
+>> tasklet or isr context. That maybe in this moment it is not called
+>> but it could be needed in the future. The caller of
+>> omap_mbox_msg_send should be take care of that function can not be
+>> call simultaneously.
+>
+> What about adding another function, omap_mbox_msg_send_sync()?
 
-Not individual processes, but the processes that don't use wakelocks in=
- the
-Android world all together.  And of course the approach has to be diffe=
-rent,
-because it's a different design, but I don't think there are any fundam=
-ental
-issues you can't solve within this approach.
+That's exactly what I was thinking about when I heard the problem.
+Would this function send all the msgs already queued, and then wait
+for the current one actually be sent?
 
-> >> The app that reads this event blocks suspend before reading it. If=
- it was
-> >> busy talking to a less trusted app when the event happened it stil=
-l works
-> >> since all apps are running at this point.
-> >
-> > And how is this different from an approach with cgroup freezing?  A=
-pps that
-> > use wakelock within the current framework would use "freeze locks" =
-to prevent
-> > the "untrusted" part of user space from being frozen or to thaw it.=
-  Where's
-> > the problem, then?
-> >
->=20
-> They will not be able to get wakeup events directly from the kernel.
-> If the kernel does not thaw processes when a wakeup event happens, th=
-e
-> app may never get to the point where it grabs its wakelock.
-
-The apps that use "freeze locks" (or wakelocks) are never frozen, so I =
-don't
-think this would be a problem.
-
-Rafael
+-- 
+Felipe Contreras
