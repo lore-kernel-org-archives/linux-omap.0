@@ -1,85 +1,112 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
-Date: Tue, 8 Jun 2010 12:02:27 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CBB20226@dlee06.ent.ti.com>
-References: <1273073589-2485-5-git-send-email-ohad@wizery.com>
-	<4C0D4004.5060303@ti.com>
-	<AANLkTik8tLfUzLxcd9tfC_VIgLcRGXbZPLM06nMsMHKz@mail.gmail.com>
- <20100608.064021.71111435.Hiroshi.DOYU@nokia.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH v5 0/3] omap3 nand: cleanup exiting platform related code
+Date: Tue, 8 Jun 2010 22:42:51 +0530
+Message-ID: <AANLkTinf8OcvHbLggdEJNGLvlAtSeExKri-IqNlwLpYD@mail.gmail.com>
+References: <s-ghorai@ti.com> <1275637205-489-1-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38798 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751385Ab0FHRCc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 13:02:32 -0400
-In-Reply-To: <20100608.064021.71111435.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:61377 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385Ab0FHRNM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 13:13:12 -0400
+Received: by pwj5 with SMTP id 5so1454188pwj.19
+        for <linux-omap@vger.kernel.org>; Tue, 08 Jun 2010 10:13:11 -0700 (PDT)
+In-Reply-To: <1275637205-489-1-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>
-Cc: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, tony@atomide.com, mike@compulab.co.il
+
+Reviewed-by: Vimal Singh <vimal.newwork@gmail.com>
+
+On Fri, Jun 4, 2010 at 1:10 PM, Sukumar Ghorai <s-ghorai@ti.com> wrote:
+> =A0 The following set of patches applies on top of for-next branch.
+> =A0 =A0 =A0 =A0http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind/lin=
+ux-omap-2.6.git
+> =A0 Patches verified on: omap3430-SDP, omap3630-sdp, zoom3 and beagle=
+ board
+>
+> =A0 And these are the patches required to address the following input=
+ -
+> =A0 =A0 1. The NAND driver needs to stop tinkering with the GPMC regi=
+sters
+> =A0 =A0 =A0 =A0The omap General Purpose Memory Controller (GPMC) regi=
+sters are omap
+> =A0 =A0 =A0 =A0specific, and not driver specific. Tinkering with thes=
+e registers can
+> =A0 =A0 =A0 =A0cause issues with the other devices on the GPMC.
+>
+> =A0 =A0 2. Passing hardcoded GPMC_CS0_BASE needs to go from the board=
+ files
+> =A0 =A0 =A0 =A0Passing hardcoded GPMC virtual addressess is sure way =
+to mess up things.
+> =A0 =A0 =A0 =A0This should all become unnecessary once the NAND drive=
+rs stops messing
+> =A0 =A0 =A0 =A0with the GPMC registers directly.
+> =A0 =A0 Discussion: http://www.mail-archive.com/linux-omap@vger.kerne=
+l.org/msg27630.html
+>
+> =A0 Changes in this series -
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Unused function removed.
+>
+> =A0Functions related to ecc and prefetch engine are optimized.
+> =A0v4: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg2945=
+8.html
+>
+> =A0Few functionality was missing =A0like - There should be some locki=
+ng as only
+> =A0 one chipselect can use the ECC or prefetch engine at a time. If y=
+ou have
+> =A0 NAND in two chipselects, bad things would happen.
+> =A0v3: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg2871=
+5.html
+>
+> =A0Additionally, it was needed to implement more functions for the pl=
+atform
+> =A0init code to use.
+> =A0v2: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg2846=
+7.html
+>
+> =A0v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg2816=
+4.html
+>
+>
+> Sukumar Ghorai (3):
+> =A0 =A0 =A0 =A0omap3 gpmc: functionality enhancement
+> =A0 =A0 =A0 =A0omap3 nand: cleanup virtual address usages
+> =A0 =A0 =A0 =A0omap3 nand: fix issue in board file to detect nand
+> =A0arch/arm/mach-omap2/board-cm-t35.c =A0 =A0 =A0 =A0 | =A0 20 +---
+> =A0arch/arm/mach-omap2/board-devkit8000.c =A0 =A0 | =A0 25 +---
+> =A0arch/arm/mach-omap2/board-omap3beagle.c =A0 =A0| =A0 24 +---
+> =A0arch/arm/mach-omap2/board-omap3touchbook.c | =A0 25 +---
+> =A0arch/arm/mach-omap2/board-overo.c =A0 =A0 =A0 =A0 =A0| =A0 24 +---
+> =A0arch/arm/mach-omap2/board-sdp-flash.c =A0 =A0 =A0| =A0 =A05 -
+> =A0arch/arm/mach-omap2/gpmc-nand.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 39 ++=
+----
+> =A0arch/arm/mach-omap2/gpmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A022=
+8 +++++++++++++++++++++++++---
+> =A0arch/arm/plat-omap/include/plat/gpmc.h =A0 =A0 | =A0 36 ++++-
+> =A0arch/arm/plat-omap/include/plat/nand.h =A0 =A0 | =A0 =A06 +-
+> =A0drivers/mtd/nand/omap2.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+229 ++++++++--------------------
+> =A011 files changed, 320 insertions(+), 341 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
 
 
-> -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> Sent: Monday, June 07, 2010 10:40 PM
-> To: ohad@wizery.com
-> Cc: Chitriki Rudramuni, Deepak; Guzman Lugo, Fernando; Ramirez Luna, Omar;
-> Kanigeri, Hari; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
-> 
-> From: ext Ohad Ben-Cohen <ohad@wizery.com>
-> Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
-> Date: Mon, 7 Jun 2010 23:40:34 +0200
-> 
-> > Hi Deepak,
-> >
-> > On Mon, Jun 7, 2010 at 1:52 PM, Deepak Chitriki <deepak.chitriki@ti.com>
-> wrote:
-> >> With this patch I observed "inconsistent lock state" warning.
-> >
-> > Thanks for the report!
-> >
-> >> Kfifo is acccessed in omap_mbox_msg_send() and mbox_tx_tasklet()
-> >> functions.In order to protect this critical section we need to protect
-> by
-> >> using spin_lock_bh() so that the tasklet cannot preempt
-> >> omap_mobx_msg_send().
-> >
-> > This is actually not the problem: it's ok if mbox_tx_tasklet preempts
-> > omap_mbox_msg_send. In fact, such a use case is even ok if we don't
-> > take a spinlock at all: kfifo is designed in a way that if you have
-> > only 1 consumer and 1 producer, they can both access kfifo
-> > simultaneously without any locking. That's why we don't take the
-> > spinlock in the mbox_tx_tasklet. The reason, btw, that we take a
-> > spinlock in omap_mbox_msg_send is to allow multiple simultaneous
-> > sending contexts (taking a spinlock there ensures serialization of
-> > those multiple simultaneous sending contexts).
-> >
-> > The problem here lies in the fact (that I've just learnt) that
-> > dspbridge also sends mbox messages from a tasklet context
-> > (dpc_tasklet). Lockdep identifies that the spinlock is taken in a
-> > softirq context (dspbridge's dpc_tasklet) after it was previously
-> > taken in a softirq-enabled context. Your proposed fix will solve the
-> > lockdep issue here, but:
-> >
-> > Do we really want to have tasklets in dspbridge ? Are we that
-> > performance critical ?
-> 
-> Can't a whole contents of bridge_msg_get()/bridge_msg_put() be
-> replaced with omap mailbox APIs?
-> 
-> It seems that dspbridge does the same message queueing and deferred
-> execution as omap mailbox does in the above 2 functions. At least
-> bridge_msg_put() looks similar to omap_mbox_msg_send(). If this works,
-> we can reduce the size of dspbridge again;)
-
-Yes, it has a pretty similar method to send the messages. However the messages send by bridge_msg_put() is a shared memory message, which has a cmd fiel and 2 arguments fields and the bridge used a mailbox message just to indicate to the DSP that it has some pending shared memory messages.
-
-
+--=20
 Regards,
-Fernando.
-
+Vimal Singh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
