@@ -1,86 +1,103 @@
 From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: suspend blockers & Android integration
-Date: Mon, 7 Jun 2010 17:05:32 -0700
-Message-ID: <AANLkTimWasxjM5wGu6fypktpdidFkvccd8202XqrRX12@mail.gmail.com>
-References: <20100603193045.GA7188@elte.hu>
-	<20100603232302.GA16184@elte.hu>
-	<1275644619.27810.39462.camel@twins>
-	<201006050138.30859.rjw@sisk.pl>
-	<alpine.LFD.2.00.1006050148080.2933@localhost.localdomain>
-	<AANLkTikGDSzaENwg_0BAtsYf3ulGd_6sGPR30WsvUxMi@mail.gmail.com>
-	<alpine.LFD.2.00.1006050246350.2933@localhost.localdomain>
-	<AANLkTikU21xF49Z-_Lnrq7U7buNmqw_gyEEST8LuN24z@mail.gmail.com>
-	<alpine.LFD.2.00.1006051736040.2933@localhost.localdomain>
-	<AANLkTinD39rI47innPbGz1Gi8PsXV5HqkmaQuJ70oQ63@mail.gmail.com>
-	<alpine.LFD.2.00.1006052348200.2933@localhost.localdomain>
-	<AANLkTikmWDHYJ8wWF2cZapbkHHjV09R39I37yvQXFmor@mail.gmail.com>
-	<alpine.LFD.2.00.1006060148470.2933@localhost.localdomain>
-	<AANLkTikdM79nmARagK9gLveMWEiT6rlk44UELes1k8Ch@mail.gmail.com>
-	<alpine.LFD.2.00.1006061236350.2933@localhost.localdomain>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Mon, 7 Jun 2010 17:23:24 -0700
+Message-ID: <AANLkTiny-hiPoKKKolNAhpvFUS-GaArBO8bwYBUg5glx@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1006052233100.22666-100000@netrider.rowland.org>
+	<Pine.LNX.4.44L0.1006060650270.28143-100000@netrider.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1006061236350.2933@localhost.localdomain>
+In-Reply-To: <Pine.LNX.4.44L0.1006060650270.28143-100000@netrider.rowland.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Brian Swetland <swetland@google.com>, Neil Brown <neilb@suse.de>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, "H. Peter Anvin" <hpa@zytor.com>, Arjan van de Ven <arjan@infradead.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Felipe Balbi <felipe.balbi@nokia.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-2010/6/6 Thomas Gleixner <tglx@linutronix.de>:
-> On Sat, 5 Jun 2010, Arve Hj=F8nnev=E5g wrote:
->> 2010/6/5 Thomas Gleixner <tglx@linutronix.de>:
->> >
->> > Can you please explain in a consistent way how the application sta=
-ck
->> > and the underlying framework (which exists according to android do=
-cs)
->> > is handling events and how the separation of trust level works ?
->> >
+2010/6/6 Alan Stern <stern@rowland.harvard.edu>:
+> On Sat, 5 Jun 2010, Alan Stern wrote:
+>
+>> > If you are referring to the approach that we don't use suspend but
+>> > freeze a cgroup instead, this only solves the problem of bad apps.=
+ It
+>> > does not help pause timers in trusted user space code and in the
+>> > kernel, so it does not lower our average power consumption.
 >>
->> I don't think I can, since I only know small parts of it. I know som=
+>> You can solve this problem if you restructure your "trusted" apps in
+>> the right way. =A0Require a trusted app to guarantee that whenever i=
+t
+>> doesn't hold any suspend blockers, it will do nothing but wait (in a
+>> poll() system call for example) for a wakeup event. =A0When the even=
+t
+>> occurs, it must then activate a suspend blocker.
+>>
+>> Better yet, make it more fine-grained. =A0Instead of trusted apps, h=
+ave
+>> trusted threads. =A0Freeze the untrusted threads along with everythi=
+ng
+>> else, and require the trusted threads to satisfy this guarantee.
+>>
+>> In this way, while the system is idle no user timers will get renewe=
+d.
+>> Kernel timers are another matter, but we should be able to handle th=
+em.
+>> There's nothing Android-specific about wanting to reduce kernel time=
+r
+>> wakeups while in a low-power mode.
+>
+> In fact it's possible to do this with only minimal changes to the
+> userspace, providing you can specify all your possible hardware wakeu=
+p
+> sources. =A0(On the Android this list probably isn't very large -- I
+> imagine it includes the keypad, the radio link(s), the RTC, and maybe
+> a few switches, buttons, or other things.)
+>
+> Here's how you can do it. =A0Extend the userspace suspend-blocker API=
+, so
+> that each suspend blocker can optionally have an associated wakeup
+> source.
+>
+> The power-manager process should keep a list of "active" wakeup
+> sources. =A0A source gets removed from the list when an associated
+> suspend blocker is activated.
+>
+
+How do you do this safely? If you remove the active wakeup only when
+activating the suspend blocker, you will never unblock suspend if
+another wakeup event happens after user-space blocked suspend but
+before user-space read the events.
+
+Also, I'm not sure we can easily associate a wakeup event with a user
+space suspend blocker. For instance when an alarm triggers it is
+sometimes because of a user-space alarm and sometimes because an
+in-kernel alarm.
+
+> When the "active" list is empty and no suspend blockers are activated=
+,
+> the power manager freezes ALL other processes, trusted and untrusted
+> alike. =A0It then does a big poll() on all the wakeup sources. =A0Whe=
+n the
+> poll() returns, its output is used to repopulate the "active" list an=
+d
+> processes are unfrozen.
+>
+> (You can also include some error detection: If a source remains on th=
 e
+> "active" list for too long then something has gone wrong.)
 >
-> Sigh, thats the whole reason why this discussion goes nowhere.
+> To do all this you don't even need to use cgroups. =A0The existing PM
+> implementation allows a user process to freeze everything but itself;
+> that's how swsusp and related programs work.
 >
-
-Please keep in mind that we also have third party applications and
-that it is not acceptable to break them. So even if I was able to tell
-you everything our framework does, you still need to make sure your
-solution does not break existing apps.
-
-> How in heavens sake should we be able to decide whether suspend
-> blockers are the right and only thing which solves a problem, when th=
-e
-> folks advocating suspend blockers are not able to explain the problem
-> in the first place ?
+> This is still a big-hammer sort of approach, but it doesn't require a=
+ny
+> kernel changes.
 >
->> events like input event go though a single thread in our system
->> process, while other events like network packets (which are also
->> wakeup events) goes directly to the app.
+> Alan Stern
 >
-> Yes, we know that already, but that's a completely useless informatio=
-n
-> as it does not describe the full constraints and dependencies.
->
-> Lemme summarize:
->
-> =A0Android needs suspend blockers, because it works, but cannot expla=
-in
-> =A0why it works and why it only works that way.
->
-> A brilliant argument to merge them - NOT.
 >
 
-Your solution changes the programming model in a way that suspend does
-not. Linux allow processes to communicate with each other, and if you
-freeze individual processes this breaks. For the android framework
-code a lack of a timely response from an application is treated as an
-error, and the user is notified that the application is misbehaving.
-It may be possible to change the framework to make sure that no
-processes are frozen while it is waiting for a response, but this is a
-major change and applications that receive wakeup events directly from
-the kernel will still be broken.
+
 
 --=20
 Arve Hj=F8nnev=E5g
