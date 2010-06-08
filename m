@@ -1,48 +1,65 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
-Date: Mon, 7 Jun 2010 22:11:50 -0500
-Message-ID: <AANLkTilRzAZbwEbc-52BfjntH83upmJZvAFE8fldRaXL@mail.gmail.com>
-References: <1273073589-2485-1-git-send-email-ohad@wizery.com>
-	<1273073589-2485-5-git-send-email-ohad@wizery.com> <4C0D4004.5060303@ti.com>
+Date: Tue, 08 Jun 2010 06:40:21 +0300 (EEST)
+Message-ID: <20100608.064021.71111435.Hiroshi.DOYU@nokia.com>
+References: <1273073589-2485-5-git-send-email-ohad@wizery.com>
+	<4C0D4004.5060303@ti.com>
 	<AANLkTik8tLfUzLxcd9tfC_VIgLcRGXbZPLM06nMsMHKz@mail.gmail.com>
-	<4C0D807E.2080607@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:48097 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752077Ab0FHDML (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 23:12:11 -0400
-Received: by wyi11 with SMTP id 11so2877407wyi.19
-        for <linux-omap@vger.kernel.org>; Mon, 07 Jun 2010 20:12:10 -0700 (PDT)
-In-Reply-To: <4C0D807E.2080607@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:55248 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752712Ab0FHDkn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 23:40:43 -0400
+In-Reply-To: <AANLkTik8tLfUzLxcd9tfC_VIgLcRGXbZPLM06nMsMHKz@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Deepak Chitriki <deepak.chitriki@ti.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: ohad@wizery.com
+Cc: deepak.chitriki@ti.com, fernando.lugo@ti.com, omar.ramirez@ti.com, h-kanigeri2@ti.com, linux-omap@vger.kernel.org
 
-Hi Deepak,
+From: ext Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+Date: Mon, 7 Jun 2010 23:40:34 +0200
 
-On Mon, Jun 7, 2010 at 6:27 PM, Deepak Chitriki <deepak.chitriki@ti.com> wrote:
->> Ohad Ben-Cohen wrote:
->> Somewhat relevant note about mailbox performance: omap_mbox_msg_send
->> often (i.e. when the kfifo is empty) can just send the message
->> directly, without triggering the tasklet to do that. Applying such a
->> change will substantially improve the mailbox performance, and will
->> make the shift to workqueues even more reasonable. I've got a patch
->> for that, I'll post it soon.
->>
->
-> tasklet is run in atomic context,so I wonder how mailbox performance will
-> increase if you switch from tasklet to workqueue?
+> Hi Deepak,
+> 
+> On Mon, Jun 7, 2010 at 1:52 PM, Deepak Chitriki <deepak.chitriki@ti.com> wrote:
+>> With this patch I observed "inconsistent lock state" warning.
+> 
+> Thanks for the report!
+> 
+>> Kfifo is acccessed in omap_mbox_msg_send() and mbox_tx_tasklet()
+>> functions.In order to protect this critical section we need to protect by
+>> using spin_lock_bh() so that the tasklet cannot preempt
+>> omap_mobx_msg_send().
+> 
+> This is actually not the problem: it's ok if mbox_tx_tasklet preempts
+> omap_mbox_msg_send. In fact, such a use case is even ok if we don't
+> take a spinlock at all: kfifo is designed in a way that if you have
+> only 1 consumer and 1 producer, they can both access kfifo
+> simultaneously without any locking. That's why we don't take the
+> spinlock in the mbox_tx_tasklet. The reason, btw, that we take a
+> spinlock in omap_mbox_msg_send is to allow multiple simultaneous
+> sending contexts (taking a spinlock there ensures serialization of
+> those multiple simultaneous sending contexts).
+> 
+> The problem here lies in the fact (that I've just learnt) that
+> dspbridge also sends mbox messages from a tasklet context
+> (dpc_tasklet). Lockdep identifies that the spinlock is taken in a
+> softirq context (dspbridge's dpc_tasklet) after it was previously
+> taken in a softirq-enabled context. Your proposed fix will solve the
+> lockdep issue here, but:
+> 
+> Do we really want to have tasklets in dspbridge ? Are we that
+> performance critical ?
 
-In general moving from tasklet to workqueues will probably increase
-some scheduling latencies.
+Can't a whole contents of bridge_msg_get()/bridge_msg_put() be
+replaced with omap mailbox APIs?
 
-Nevertheless, if we'll send mailbox messages directly whenever
-possible, without triggering any deferred context, we'll be improving
-mailbox performance on average, because most of the time we will get
-rid of the scheduling latencies entirely.
+It seems that dspbridge does the same message queueing and deferred
+execution as omap mailbox does in the above 2 functions. At least
+bridge_msg_put() looks similar to omap_mbox_msg_send(). If this works,
+we can reduce the size of dspbridge again;)
 
-Thanks,
-Ohad.
