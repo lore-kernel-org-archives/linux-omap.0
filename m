@@ -1,195 +1,47 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: Future of resource framework?
-Date: Tue, 8 Jun 2010 10:54:06 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03232DB041@dbde02.ent.ti.com>
-References: <AANLkTilpHjef3xbxB9QN9bj6MFmJA1jMwVxNQyZQcSKy@mail.gmail.com>
-	<871vd5kxqg.fsf@deeprootsystems.com>
-	<AANLkTinSB0bIorWTwLuNhWC9g4oQArAhx-WdY-K-aadS@mail.gmail.com>
-	<87hbljisi1.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0321623820@dbde02.ent.ti.com>
- <AANLkTinWlhSODuYOnIGugFKrQc0Z1t_ZMHFq9z59aJEy@mail.gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
+Date: Tue, 8 Jun 2010 12:00:13 +0530
+Message-ID: <AANLkTinod9geJbbfdOIhB465qi6xHqfH-1vL048Bc3fa@mail.gmail.com>
+References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
+	<201006070809.47853.luke@dashjr.org>
+	<AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
+	<201006071115.34881.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49696 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751849Ab0FHFYS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 01:24:18 -0400
-In-Reply-To: <AANLkTinWlhSODuYOnIGugFKrQc0Z1t_ZMHFq9z59aJEy@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:55403 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753440Ab0FHGaP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 02:30:15 -0400
+In-Reply-To: <201006071115.34881.luke@dashjr.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Chan <mike@android.com>, "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: Luke-Jr <luke@dashjr.org>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-
-
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.=
-kernel.org] On Behalf Of Mike
->>Chan
->>Sent: Tuesday, June 08, 2010 1:00 AM
->>To: Gadiyar, Anand
->>Cc: Kevin Hilman; linux-omap@vger.kernel.org; Paul Walmsley
->>Subject: Re: Future of resource framework?
+On Mon, Jun 7, 2010 at 9:45 PM, Luke-Jr <luke@dashjr.org> wrote:
+> On Monday 07 June 2010 08:28:51 am Govindraj wrote:
+>> Link:
+>> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summa
+>> ry
 >>
->>On Thu, Jun 3, 2010 at 8:01 PM, Gadiyar, Anand <gadiyar@ti.com> wrote=
-:
->>> Kevin Hilman wrote:
->>>> Mike Chan <mike@android.com> writes:
->>>>
->>>> > On Fri, May 21, 2010 at 9:47 AM, Kevin Hilman
->>>> > <khilman@deeprootsystems.com> wrote:
->>>> >> Mike Chan <mike@android.com> writes:
->>>> >>
->>>> >>> I'm not sure if this has been discussed, yet but since it seem=
-s that
->>>> >>> the resource framework will not be making it upstream, I am cu=
-rious
->>>> >>> what are the replacements under consideration. I am starting t=
-o see
->>>> >>> similar issues on other platforms (msm / tegra) so more generi=
-c
->>>> >>> (non-omap) solution might be something to consider.
->>>> >>
->>>> >> Hi Mike,
->>>> >>
->>>> >> Which parts of the SRF do you currently use and find useful? =A0=
-It would
->>>> >> be helpful for us to to understand the parts you see as useful =
-and
->>>> >> potentially helpful to generalize.
->>>> >>
->>>> >
->>>> > Off the top of my head, for Droid specifically, OPP values are u=
-seful,
->>>> > although in theory if you changed OPP requests to cpu throughput=
- that
->>>> > might give the equivalent functionality.
->>>> >
->>>> > Memory bus speeds / bandwidth, although its tied to CPU, which
->>>> > ultimately ends up in a cpu speed bump.
->>>> >
->>>> > Although most of the usage I've seen are just hacks, ie: the dri=
-ver
->>>> > knows it needs 550mhz from the cpu so it will request some bogus
->>>> > value.
->>>> >
->>>> >
->>>> >> As you know, the current implementation has a several layers
->>>> >> and attempts to manage several things: OPPs, latencies etc.
->>>> >>
->>>> >> Our current plans are essentially to break up the "one framewor=
-k to
->>>> >> rule them all" philosophy and design of SRF and manage the vari=
-ous
->>>> >> pieces by exending other layers such as the new OPP layer and v=
-oltage
->>>> >> layers. =A0Latencies are being managed by the omap_device layer=
- and we
->>>> >> will hopefully have some discussions with the broader linux-pm
->>>> >> community about generalizing that more into the generic driver =
-model
->>>> >> over this year.
->>>> >>
->>>> >
->>>> > Bus speed is a common resource I see for omap / msm / tegra. Clo=
-cks
->>>> > for devices also.
->>>> >
->>>> > ie: If I'm doing heavy mem operation and need max memory bus, I =
-might
->>>> > need to request higher performance. (which might mean 600mhz on
->>>> > omap34030, on msm it might mean AXI clock running at 128mhz, and
->>>> > something else on tegra).
->>>> >
->>>> > Or if I'm doing graphics, I may need to up the gfx clock rate, o=
-r
->>>> > swich which pll its sourcing etc.. etc..
->>>> >
->>>> > It doesn't look like pm qos has bus support, or even clock suppo=
-rt,
->>>> > and this gets tricky if you want something semi-general.
->>>>
->>>> What we're hoping to work towards (and has come up in the suspend
->>>> blocker related discussions) is moving towards a way to track
->>>> per-device (or per-subsystem) constraints like latency and through=
-put
->>>> in real world terms (usecs, bytes/sec, etc.) that would be general
->>>> way.
->>>>
->>>> These constraints would then be visible to the bus- or
->>>> platform-specific code that could make intelligent decisions with =
-them
->>>> (i.e whether or not to raise/lower OPP or bus speed, or whether or=
- not
->>>> to power down a powerdomain etc.)
->>>>
->>>
->>>
->>> What if a driver knows that it cannot afford to let the PM layer
->>> turn off the power domain at certain points of time (maybe as long
->>> as a USB cable is connected). How can this be specified in terms
->>> of a latency or throughput constraint?
->>>
->>
->>Are there cases for this in omap? From what I've seen with omap3430
->>(atleast our hw configuration for Droid) we haven't run into this
->>case.
->>
->>If you want to prevent a particular domain from entering RET or OFF, =
-I
->>believe you'd have to look at the latency values in the cpuidle34xx.c
->>(or whatever it maybe called in .35) and match those latency in your
->>driver against the PM_QOS_CPU_DMA_LATENCY. The omap cpuidle registers
->>a table of various cpu states, which are a combination of ON, RET and
->>OFF for various domains. (Note only handles a few domains so maybe yo=
-u
->>need to extend the table or rev a new constraint type or something to
->>pm_qos).
->>
->>It seems kind of hacky and not very general, but I've only seen a nee=
-d
->>for something like this on msm7k / msm8k, and the need was an msm
->>specific driver and have not yet seen a need for this on omap[3403] o=
-r
->>tegra but things could change.
+>> Branch:
+>> pm-wip/uart
+>
+> This branch doesn't appear to have omap-serial.c at all...
+>
+>> If you are trying to use with any client device connected to uart
+>> then we need to ensure the client driver speaks to omap-serial
+>> dev entries.
+>
 
-PM_QOS takes care of interrupt and dma latencies which today in OMAP bo=
-ils down
-to MPU and Core power domain states. But this will not take care of oth=
-er individual
-power domains. For preventing other power domains from entering low pow=
-er states,
-there are power domain constraint in the SRF which again takes latencie=
-s and converts
-them into power domain states.
+You need apply the driver patch on top of this branch.
 
-But, yes if you want to prevent power domains from entering low power s=
-tates for
-Non-latency reasons like hw bug etc there is no clean solution. You ll =
-have to
-have a hack and use a dummy latency value and achieve the same.
+[PATCH v3] serial: Add OMAP high-speed UART driver.
 
-Regards
-Thara
+> Does this mean anything beyond simply using ttyO* instead of ttyS*?
+>
 
->>
->>-- Mike
->>
->>> Just curious, since I don't understand current OMAP3 PM code
->>> as well as I would like to.
->>>
->>> - Anand
->>>
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+Regards,
+Govindraj.R
