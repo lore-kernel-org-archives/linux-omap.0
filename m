@@ -1,47 +1,29 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
-Date: Tue, 8 Jun 2010 12:00:13 +0530
-Message-ID: <AANLkTinod9geJbbfdOIhB465qi6xHqfH-1vL048Bc3fa@mail.gmail.com>
-References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
-	<201006070809.47853.luke@dashjr.org>
-	<AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
-	<201006071115.34881.luke@dashjr.org>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: OMAP video compile error; regression from 2.6.33-rc4 onward
+ (including current master)
+Date: Tue, 08 Jun 2010 11:36:52 +0300
+Message-ID: <1275986212.2549.41.camel@tubuntu.research.nokia.com>
+References: <201006061652.39248.luke@dashjr.org>
+	 <1275896854.2549.14.camel@tubuntu.research.nokia.com>
+	 <201006071117.22645.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:55403 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753440Ab0FHGaP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 02:30:15 -0400
-In-Reply-To: <201006071115.34881.luke@dashjr.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201006071117.22645.luke@dashjr.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Luke-Jr <luke@dashjr.org>
+Cc: "slapin@ossfans.org" <slapin@ossfans.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Luke-Jr <luke@dashjr.org>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-On Mon, Jun 7, 2010 at 9:45 PM, Luke-Jr <luke@dashjr.org> wrote:
-> On Monday 07 June 2010 08:28:51 am Govindraj wrote:
->> Link:
->> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summa
->> ry
->>
->> Branch:
->> pm-wip/uart
->
-> This branch doesn't appear to have omap-serial.c at all...
->
->> If you are trying to use with any client device connected to uart
->> then we need to ensure the client driver speaks to omap-serial
->> dev entries.
->
+On Mon, 2010-06-07 at 18:17 +0200, ext Luke-Jr wrote:
+> On Monday 07 June 2010 02:47:34 am Tomi Valkeinen wrote:
+> > I don't have any device that uses RFBI so I can't test it, but how about
+> > this patch:
+> 
+> Unfortunately, I can't test it either since N8x0 has no mainline support for 
+> video output, nor can until CBus is merged. :(
 
-You need apply the driver patch on top of this branch.
+Okay. I'll put it in, then, as it at least compiles.
 
-[PATCH v3] serial: Add OMAP high-speed UART driver.
-
-> Does this mean anything beyond simply using ttyO* instead of ttyS*?
->
-
----
-Regards,
-Govindraj.R
+ Tomi
