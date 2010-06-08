@@ -1,112 +1,90 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH v5 0/3] omap3 nand: cleanup exiting platform related code
-Date: Tue, 8 Jun 2010 22:42:51 +0530
-Message-ID: <AANLkTinf8OcvHbLggdEJNGLvlAtSeExKri-IqNlwLpYD@mail.gmail.com>
-References: <s-ghorai@ti.com> <1275637205-489-1-git-send-email-s-ghorai@ti.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+Date: Tue, 8 Jun 2010 13:49:45 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CBB202B2@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602CBA2C97A@dlee06.ent.ti.com>
+	<20100608.064632.104051482.Hiroshi.DOYU@nokia.com>
+	<AANLkTilasmQgcyckgBgpJspRHhsshDlVtdleItZiMp8M@mail.gmail.com>
+ <20100608.125539.39172600.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:61377 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751385Ab0FHRNM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 13:13:12 -0400
-Received: by pwj5 with SMTP id 5so1454188pwj.19
-        for <linux-omap@vger.kernel.org>; Tue, 08 Jun 2010 10:13:11 -0700 (PDT)
-In-Reply-To: <1275637205-489-1-git-send-email-s-ghorai@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33965 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753169Ab0FHStu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 14:49:50 -0400
+In-Reply-To: <20100608.125539.39172600.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sukumar Ghorai <s-ghorai@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, tony@atomide.com, mike@compulab.co.il
-
-Reviewed-by: Vimal Singh <vimal.newwork@gmail.com>
-
-On Fri, Jun 4, 2010 at 1:10 PM, Sukumar Ghorai <s-ghorai@ti.com> wrote:
-> =A0 The following set of patches applies on top of for-next branch.
-> =A0 =A0 =A0 =A0http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind/lin=
-ux-omap-2.6.git
-> =A0 Patches verified on: omap3430-SDP, omap3630-sdp, zoom3 and beagle=
- board
->
-> =A0 And these are the patches required to address the following input=
- -
-> =A0 =A0 1. The NAND driver needs to stop tinkering with the GPMC regi=
-sters
-> =A0 =A0 =A0 =A0The omap General Purpose Memory Controller (GPMC) regi=
-sters are omap
-> =A0 =A0 =A0 =A0specific, and not driver specific. Tinkering with thes=
-e registers can
-> =A0 =A0 =A0 =A0cause issues with the other devices on the GPMC.
->
-> =A0 =A0 2. Passing hardcoded GPMC_CS0_BASE needs to go from the board=
- files
-> =A0 =A0 =A0 =A0Passing hardcoded GPMC virtual addressess is sure way =
-to mess up things.
-> =A0 =A0 =A0 =A0This should all become unnecessary once the NAND drive=
-rs stops messing
-> =A0 =A0 =A0 =A0with the GPMC registers directly.
-> =A0 =A0 Discussion: http://www.mail-archive.com/linux-omap@vger.kerne=
-l.org/msg27630.html
->
-> =A0 Changes in this series -
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Unused function removed.
->
-> =A0Functions related to ecc and prefetch engine are optimized.
-> =A0v4: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg2945=
-8.html
->
-> =A0Few functionality was missing =A0like - There should be some locki=
-ng as only
-> =A0 one chipselect can use the ECC or prefetch engine at a time. If y=
-ou have
-> =A0 NAND in two chipselects, bad things would happen.
-> =A0v3: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg2871=
-5.html
->
-> =A0Additionally, it was needed to implement more functions for the pl=
-atform
-> =A0init code to use.
-> =A0v2: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg2846=
-7.html
->
-> =A0v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg2816=
-4.html
->
->
-> Sukumar Ghorai (3):
-> =A0 =A0 =A0 =A0omap3 gpmc: functionality enhancement
-> =A0 =A0 =A0 =A0omap3 nand: cleanup virtual address usages
-> =A0 =A0 =A0 =A0omap3 nand: fix issue in board file to detect nand
-> =A0arch/arm/mach-omap2/board-cm-t35.c =A0 =A0 =A0 =A0 | =A0 20 +---
-> =A0arch/arm/mach-omap2/board-devkit8000.c =A0 =A0 | =A0 25 +---
-> =A0arch/arm/mach-omap2/board-omap3beagle.c =A0 =A0| =A0 24 +---
-> =A0arch/arm/mach-omap2/board-omap3touchbook.c | =A0 25 +---
-> =A0arch/arm/mach-omap2/board-overo.c =A0 =A0 =A0 =A0 =A0| =A0 24 +---
-> =A0arch/arm/mach-omap2/board-sdp-flash.c =A0 =A0 =A0| =A0 =A05 -
-> =A0arch/arm/mach-omap2/gpmc-nand.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 39 ++=
-----
-> =A0arch/arm/mach-omap2/gpmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A022=
-8 +++++++++++++++++++++++++---
-> =A0arch/arm/plat-omap/include/plat/gpmc.h =A0 =A0 | =A0 36 ++++-
-> =A0arch/arm/plat-omap/include/plat/nand.h =A0 =A0 | =A0 =A06 +-
-> =A0drivers/mtd/nand/omap2.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
-229 ++++++++--------------------
-> =A011 files changed, 320 insertions(+), 341 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
+Cc: "ohad@wizery.com" <ohad@wizery.com>, "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
 
---=20
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Tuesday, June 08, 2010 4:56 AM
+> To: felipe.contreras@gmail.com
+> Cc: Guzman Lugo, Fernando; ohad@wizery.com; Chitriki Rudramuni, Deepak;
+> Ramirez Luna, Omar; Kanigeri, Hari; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+> 
+> From: ext Felipe Contreras <felipe.contreras@gmail.com>
+> Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+> Date: Tue, 8 Jun 2010 11:43:28 +0200
+> 
+> > On Tue, Jun 8, 2010 at 6:46 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> wrote:
+> >> From: "ext Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+> >>> I think the best thing to do here is remove the spinlock, if not,
+> >>> you are preventing that omap_mbox_msg_send be executed from a
+> >>> tasklet or isr context. That maybe in this moment it is not called
+> >>> but it could be needed in the future. The caller of
+> >>> omap_mbox_msg_send should be take care of that function can not be
+> >>> call simultaneously.
+> >>
+> >> What about adding another function, omap_mbox_msg_send_sync()?
+> >
+> > That's exactly what I was thinking about when I heard the problem.
+> > Would this function send all the msgs already queued, and then wait
+> > for the current one actually be sent?
+
+A function like that could be helpful in some cases I think. Maybe and other one to flush (discard) all pending messages would be good too. So that I can clean the mailbox and would not be needed to do a mbox_put and mbox_get.
+
+> 
+> Could be as you said. I haven't thought that much.
+> 
+> What I just thought was to bypass kfifo and tasklet and to put a
+> message directly to H/W fifo. Maily just for the above case which
+> Fernando described above.
+> 
+> Fernando, what do you think on Felipes?
+
+Why don't just bypass the tasklet? I think the kfifo is ok in order to not discard the message in case of full hw fifo. I was thinking in the omap_mbox_msg_send just check if we have messajes in the kfifo or if the hw fifo is full. If so, store the message en the kfifo and enable not full interrupt. Otherwise write the message to hw fifo.
+
+
+	if (kfifo_len(&mq->fifo) || mbox_fifo_full(mbox)) {
+		kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+		omap_mbox_enable_irq(mbox, IRQ_TX);
+	} else
+		mbox_fifo_write(mbox, msg);
+
+
+and in the tx isr just send the messages store in the kfifo, reding the messages from the kfifo is very fast and at last we will be able to send 4 messages (most of the cases we will be able to send 1 message), which I think is even faster than just doing the tasklet schedule.
+
+
+	while (kfifo_len(&mq->fifo) && !mbox_fifo_full(mbox)) {
+		kfifo_out(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+		mbox_fifo_write(mbox, msg);
+	}
+	If (!mbox_fifo_full(mbox))
+		omap_mbox_disable_irq(mbox, IRQ_TX);
+
+
+
 Regards,
-Vimal Singh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fernando.
+
+
