@@ -1,81 +1,100 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: suspend blockers & Android integration
-Date: Mon, 07 Jun 2010 22:15:00 -0400
-Message-ID: <9277.1275963300@localhost>
-References: <1275834706.7227.545.camel@mulgrave.site>
-	<alpine.LFD.2.00.1006061725000.2933@localhost.localdomain>
-	<1275844114.7227.552.camel@mulgrave.site>
-	<20100606190525.GA20517@infradead.org>
-	<AANLkTikKx-gXCGtNo3woHLCpBoEQ7hG9Jbiq3hwUTW_w@mail.gmail.com>
-	<20100606192405.GA7559@infradead.org>
-	<AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
-	<1275916830.1645.566.camel@laptop>
-	<AANLkTik-0JRJTEbVkr4LUsnELRuqpmGYrRsMxVZDpz8C@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Mon, 7 Jun 2010 22:32:53 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1006072153030.27878-100000@netrider.rowland.org>
+References: <AANLkTikRSV5dFX10apUntFi4eJkRt645Iod91qrPk9gI@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7958033586505686804=="
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: Your message of "Tue, 08 Jun 2010 01:17:13 +0200."
-	<AANLkTik-0JRJTEbVkr4LUsnELRuqpmGYrRsMxVZDpz8C@mail.gmail.com>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Mime-version: 1.0
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Linus Walleij <linus.ml.walleij@gmail.com>
-Cc: Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, hackbod@android.com, Christoph Hellwig <hch@infradead.org>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikRSV5dFX10apUntFi4eJkRt645Iod91qrPk9gI@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Cc: tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Felipe Balbi <felipe.balbi@nokia.com>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============7958033586505686804==
-Content-Type: multipart/signed; boundary="==_Exmh_1275963300_4518P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
+On Mon, 7 Jun 2010, Arve Hj=F8nnev=E5g wrote:
 
---==_Exmh_1275963300_4518P
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+> > It's true that under some exceptional circumstances the system woul=
+d
+> > never remove a wakeup source from the "active" list and then would
+> > never go idle. =A0But exactly the same problem exists with wakelock=
+s, if
+> > the kernel activates a wakelock and there's no user process reading=
+ the
+> > corresponding event queue.
+> >
+>=20
+> No, you have a different problem. If you open an input device and
+> issue the ioctl to enable the suspend blocker that blocks while the
 
-On Tue, 08 Jun 2010 01:17:13 +0200, Linus Walleij said:
+Um, the suspend blocker that is active while the queue is nonempty is
+an in-kernel suspend blocker, right?  Not a userspace suspend blocker. =
+=20
+Hence it doesn't have to be enabled by an ioctl.  Or is this some part
+of the whole wakelock design that hasn't yet been posted?  As far as I
+know, you intended the in-kernel suspend blocker to be enabled whenever
+the input device file is open.
 
-> So I would really like to know from the Android people why the
-> binder is in the kernel, after all. Could it *theoretically* be in
-> userspace, on top of some unix domain sockets, running as a
-> real-time scheduled daemon or whatever, still yielding the same
-> performance? Or is there some discovered limitation with current
-> interfaces, that everybody ought to know?
+> queue is not empty then don't read the event, that is a bug that is
+> easy to fix.
 
-Not an Android person, but...
+I assume you mean "you open an input device but then fail to read from=20
+it".  When that happens the device's driver will activate its in-kernel=
+=20
+suspend blocker, and since the input queue will never become empty, the=
+=20
+suspend blocker will never be deactivated.  Yes, that's a bug.
 
-How expensive is a userspace->kernel transition on Android-class hardware=
-?
-There's certainly something to be said for short-circuiting the path
-source_process -> kernel -> broker_process -> kernel -> dest_process
-down to the shorter source->kernel->dest
+> What you have is a race condition. If you read an event
+> that occurred after you blocked the task freezing tasks will never ge=
+t
+> frozen again (until more events occur).
 
---==_Exmh_1275963300_4518P
-Content-Type: application/pgp-signature
+Sorry, I can't parse that sentence.  Could you rephrase it more=20
+grammatically?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
+It seems to say: "If you read an event that occurred after [something],
+then tasks won't get frozen again until more events occur".  Which
+doesn't make sense, firstly because in my scheme reading events has no
+direct connection with freezing or unfreezing tasks, and secondly
+because the occurrence of events doesn't cause tasks to be frozen --
+just the opposite: occurrence of events _prevents_ tasks from being
+frozen.
 
-iD8DBQFMDaekcC3lWbTT17ARAt6/AKDbDjjyziWGe4de18hkFdAqzkypvwCghfkj
-Ynyp1vcd2/PGbvCNUFucXqo=
-=gM5X
------END PGP SIGNATURE-----
+> We have multiple input devices and one thread reading from them. Do
+> all input devices that can generate wakeup events share a wakeup
+> source?
 
---==_Exmh_1275963300_4518P--
+Basically, a wakeup source is a file descriptor that in your scheme,
+some user process would read from in order to clear an in-kernel
+wakelock.  Thus, if each of your input devices activates an in-kernel
+wakelock that is cleared when a user process reads the device, then the
+file descriptors for these input devices would each be considered a
+wakeup source.
 
+> It seems you would need a way to pass the wakeup source id to use fro=
+m
+> user space to the driver and for this to work
 
---===============7958033586505686804==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+No, nothing needs to be passed from userspace to the kernel.  However=20
+the source ID (or a set of source IDs) does need to be passed to the=20
+power manager process, probably when the suspend blocker is created.
 
+[On rereading this, I realized it might not have been clear that in my
+scheme, suspend blockers have no in-kernel component.  They are
+implemented entirely by IPC between the process owning the suspend
+blocker and the power manager process.  Would it be less confusing if I
+called them something else?]
 
---===============7958033586505686804==--
+> (ignoring the race if
+> you allow multiple alarms per file) which seems like more work than
+> using a suspend blocker.
+
+It's not very much more: just one additional argument to the routine
+that creates a suspend blocker.
+
+I get the impression that you don't fully understand how my scheme is=20
+meant to work.  Would some additional explanation or examples help?
+
+Alan Stern
