@@ -1,173 +1,48 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Mon, 7 Jun 2010 20:05:56 -0700
-Message-ID: <AANLkTimcDzHBmgqPkCHB6pW2RZivFhmb_zk68T0I3NJY@mail.gmail.com>
-References: <AANLkTikRSV5dFX10apUntFi4eJkRt645Iod91qrPk9gI@mail.gmail.com>
-	<Pine.LNX.4.44L0.1006072153030.27878-100000@netrider.rowland.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+Date: Mon, 7 Jun 2010 22:11:50 -0500
+Message-ID: <AANLkTilRzAZbwEbc-52BfjntH83upmJZvAFE8fldRaXL@mail.gmail.com>
+References: <1273073589-2485-1-git-send-email-ohad@wizery.com>
+	<1273073589-2485-5-git-send-email-ohad@wizery.com> <4C0D4004.5060303@ti.com>
+	<AANLkTik8tLfUzLxcd9tfC_VIgLcRGXbZPLM06nMsMHKz@mail.gmail.com>
+	<4C0D807E.2080607@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:33185 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751517Ab0FHDF7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 23:05:59 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1006072153030.27878-100000@netrider.rowland.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:48097 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752077Ab0FHDML (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jun 2010 23:12:11 -0400
+Received: by wyi11 with SMTP id 11so2877407wyi.19
+        for <linux-omap@vger.kernel.org>; Mon, 07 Jun 2010 20:12:10 -0700 (PDT)
+In-Reply-To: <4C0D807E.2080607@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Felipe Balbi <felipe.balbi@nokia.com>, Arjan van de Ven <arjan@infradead.org>
+To: Deepak Chitriki <deepak.chitriki@ti.com>
+Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-2010/6/7 Alan Stern <stern@rowland.harvard.edu>:
-> On Mon, 7 Jun 2010, Arve Hj=F8nnev=E5g wrote:
->
->> > It's true that under some exceptional circumstances the system wou=
-ld
->> > never remove a wakeup source from the "active" list and then would
->> > never go idle. =A0But exactly the same problem exists with wakeloc=
-ks, if
->> > the kernel activates a wakelock and there's no user process readin=
-g the
->> > corresponding event queue.
->> >
+Hi Deepak,
+
+On Mon, Jun 7, 2010 at 6:27 PM, Deepak Chitriki <deepak.chitriki@ti.com> wrote:
+>> Ohad Ben-Cohen wrote:
+>> Somewhat relevant note about mailbox performance: omap_mbox_msg_send
+>> often (i.e. when the kfifo is empty) can just send the message
+>> directly, without triggering the tasklet to do that. Applying such a
+>> change will substantially improve the mailbox performance, and will
+>> make the shift to workqueues even more reasonable. I've got a patch
+>> for that, I'll post it soon.
 >>
->> No, you have a different problem. If you open an input device and
->> issue the ioctl to enable the suspend blocker that blocks while the
 >
-> Um, the suspend blocker that is active while the queue is nonempty is
-> an in-kernel suspend blocker, right? =A0Not a userspace suspend block=
-er.
-> Hence it doesn't have to be enabled by an ioctl. =A0Or is this some p=
-art
-> of the whole wakelock design that hasn't yet been posted? =A0As far a=
-s I
-> know, you intended the in-kernel suspend blocker to be enabled whenev=
-er
-> the input device file is open.
->
+> tasklet is run in atomic context,so I wonder how mailbox performance will
+> increase if you switch from tasklet to workqueue?
 
-The patch that modifies evdev (posted in this patchset) uses an ioctl
-to enable the suspend blocker. Not all input devices are used for
-wakeup events and those don't need to block suspend.
+In general moving from tasklet to workqueues will probably increase
+some scheduling latencies.
 
->> queue is not empty then don't read the event, that is a bug that is
->> easy to fix.
->
-> I assume you mean "you open an input device but then fail to read fro=
-m
-> it". =A0When that happens the device's driver will activate its in-ke=
-rnel
-> suspend blocker, and since the input queue will never become empty, t=
-he
-> suspend blocker will never be deactivated. =A0Yes, that's a bug.
->
->> What you have is a race condition. If you read an event
->> that occurred after you blocked the task freezing tasks will never g=
-et
->> frozen again (until more events occur).
->
-> Sorry, I can't parse that sentence. =A0Could you rephrase it more
-> grammatically?
->
+Nevertheless, if we'll send mailbox messages directly whenever
+possible, without triggering any deferred context, we'll be improving
+mailbox performance on average, because most of the time we will get
+rid of the scheduling latencies entirely.
 
-If you read an event that occurred after you blocked the task
-freezing, then tasks will never get frozen again (until more events
-occur). I think my original description was less confusing, but it
-seems you got completely distracted by my use of block and unblock
-suspend when referring to the user space api.
-
-
-> It seems to say: "If you read an event that occurred after [something=
-],
-
-Block suspend, block task freezing or whatever you want to call it.
-
-> then tasks won't get frozen again until more events occur". =A0Which
-> doesn't make sense, firstly because in my scheme reading events has n=
-o
-> direct connection with freezing or unfreezing tasks, and secondly
-
-It has an indirect connection. You report a wakeup event when it
-occurs, but clear it when user space calls an api before reading the
-event. So:
-Wakeup event occurs, and the driver:
-- report wakeup event type A
-- queue event for delivery to user-space
-User space wakes up:
-- Calls api to block task freezing for event type A
-Another wakeup event occurs, and the driver:
-- report wakeup event type A
-- queue event for delivery to user-space
-User space continues:
-- Read events
-- Wait for more events
-
-Result: Task are not frozen again.
-
-> because the occurrence of events doesn't cause tasks to be frozen --
-> just the opposite: occurrence of events _prevents_ tasks from being
-> frozen.
->
->> We have multiple input devices and one thread reading from them. Do
->> all input devices that can generate wakeup events share a wakeup
->> source?
->
-> Basically, a wakeup source is a file descriptor that in your scheme,
-> some user process would read from in order to clear an in-kernel
-> wakelock. =A0Thus, if each of your input devices activates an in-kern=
-el
-> wakelock that is cleared when a user process reads the device, then t=
-he
-> file descriptors for these input devices would each be considered a
-> wakeup source.
->
->> It seems you would need a way to pass the wakeup source id to use fr=
-om
->> user space to the driver and for this to work
->
-> No, nothing needs to be passed from userspace to the kernel. =A0Howev=
-er
-> the source ID (or a set of source IDs) does need to be passed to the
-> power manager process, probably when the suspend blocker is created.
->
-
-Then the source id need to be passed from the kernel to user-space.
-
-> [On rereading this, I realized it might not have been clear that in m=
-y
-> scheme, suspend blockers have no in-kernel component. =A0They are
-> implemented entirely by IPC between the process owning the suspend
-> blocker and the power manager process. =A0Would it be less confusing =
-if I
-> called them something else?]
-
-No, that is not the unclear part. What is unclear to me is where the
-source IDs come from. Are they static and hardcoded in the driver and
-user-space, or are they passed between the driver and user-space
-client?
-
->
->> (ignoring the race if
->> you allow multiple alarms per file) which seems like more work than
->> using a suspend blocker.
->
-> It's not very much more: just one additional argument to the routine
-> that creates a suspend blocker.
->
-> I get the impression that you don't fully understand how my scheme is
-> meant to work. =A0Would some additional explanation or examples help?
->
-
-I don't understand how you are planning to ensure that the driver and
-user-space code that consumes the real event use the same source id.
-The biggest problem I have with it though is that you have created a
-new race condition between reporting that a wakeup event has occurred
-and processing of the real event.
-
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ohad.
