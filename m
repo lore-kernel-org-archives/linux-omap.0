@@ -1,45 +1,81 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Wed, 9 Jun 2010 13:33:57 +0100
-Message-ID: <20100609123356.GA7340@sirena.org.uk>
-References: <1275834706.7227.545.camel@mulgrave.site> <alpine.LFD.2.00.1006061725000.2933@localhost.localdomain> <1275844114.7227.552.camel@mulgrave.site> <20100606190525.GA20517@infradead.org> <AANLkTikKx-gXCGtNo3woHLCpBoEQ7hG9Jbiq3hwUTW_w@mail.gmail.com> <20100606192405.GA7559@infradead.org> <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling for
+ 3630
+Date: Wed, 9 Jun 2010 17:28:01 +0300
+Message-ID: <20100609142801.GK32208@atomide.com>
+References: <53199.192.168.10.88.1275659023.squirrel@dbdmail.itg.ti.com>
+ <871vcmq08s.fsf@deeprootsystems.com>
+ <20100607100656.GE15515@atomide.com>
+ <AANLkTikpHFyvk28hTm-jTk4wdJ0oldqyncaGH2slq6w4@mail.gmail.com>
+ <AANLkTikS_f5UWDr8WYrHga_W8kIeTwUienx6K37LWF80@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53305 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757858Ab0FIO2I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jun 2010 10:28:08 -0400
 Content-Disposition: inline
-In-Reply-To: <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <felipe.balbi@nokia.com>
+In-Reply-To: <AANLkTikS_f5UWDr8WYrHga_W8kIeTwUienx6K37LWF80@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
 
-On Sun, Jun 06, 2010 at 12:58:10PM -0700, Brian Swetland wrote:
-> On Sun, Jun 6, 2010 at 12:24 PM, Christoph Hellwig <hch@infradead.org> wrote:
+* Govindraj <govindraj.ti@gmail.com> [100607 17:50]:
+> On Mon, Jun 7, 2010 at 5:02 PM, Govindraj <govindraj.ti@gmail.com> wr=
+ote:
+> > On Mon, Jun 7, 2010 at 3:36 PM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+> >> * Kevin Hilman <khilman@deeprootsystems.com> [100604 18:30]:
+> >>>
+> >>> > + =C2=A0 w &=3D ~0x7;
+> >>> > + =C2=A0 w |=3D OMAP_MUX_MODE2;
+> >>> > + =C2=A0 omap_ctrl_writew(w, uart->padconf);
+> >>
+> >> Generic NAK for tinkering with the mux registers directly.
+> >>
+> >> Instead, Govindraj, please add omap_mux_request_signal() into mux.=
+c:
+> >>
+> >> void __iomem * __init omap_mux_request_signal(char *muxname);
+>=20
+> Looking into mach-omap2/mux.c
+>=20
+> Wouldn't retrieving offset will be enough as i have to depend on
+> again *_mux_* function call for remux which can have the offset and v=
+al
+> as parameter.
 
-> > On the other hand I've heard
-> > that various hardware vendors or parties closed to them are rather
-> > annoyed by their drivers beeing stuck in the android tree - but that
-> > can be easily solved by getting removing the suspend blockers (at least
-> > temporarily), cleaning up a few bits here and there and getting them in.
+You call omap_mux_request_signal with the signal name, and get
+the register address. Then you can just set it with readw/writew.
+=20
+> So I need to use  ""K15_24XX_UART3_TX" as name to retrieve
+> UART3 offset if I am correct and traverse through the list doing an s=
+trcmp
+> on name to retrieve offset.
+>=20
+> In that case I dont find uart1/2/4 in list,
+> Should that be added into the list?
 
-> This continues to baffle me.  If we (Google) are such a headache, why
-> not just route around us.  The drivers we've written are GPLv2, the
-> source is out there for anyone who wants it, etc.  The drivers other
-> people have written we have no control over at all. From my point of
-> view it'd be an annoyance if somebody took the code we wrote, modified
-> it heavily, and pushed it upstream, but fundamentally I can't stop
-> that from happening other than by pushing it upstream myself, first.
+No, that's the old mux code. You want to do something like
 
-AFAICT this is purely down to the fact that the vendors producing
-Android devices are using the kernel which is shipped with whatever
-release they are using so people doing drivers end up getting locked in
-to an older kernel with old APIs (independant of Android specifics) and
-don't have the resource to redo things for upstream.  Suspend blockers
-are one more API update in there, but general kernel development creates
-far more.
+void __iomem *uart1_rx;
 
-I was looking at this just today and one thing that it occurs to me
-might help is if when you guys rebase your work against upstream you
-were to tag the results - at the minute the only "release" Android
-kernels are those included in full stack releases so providing more
-hints that other kernel versions could be substituted in may help.
+uart1_rx =3D omap_mux_request_signal("uart1_rx");
+if (!uart1_rx)
+	return -ENODEV;
+=2E..
+
+See the signal names in mux34xx.c and the TRM. Then omap2 and omap4
+will work automatically once the mux code is ready for those.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
