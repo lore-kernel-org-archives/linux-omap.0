@@ -1,81 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling for
- 3630
-Date: Wed, 9 Jun 2010 17:28:01 +0300
-Message-ID: <20100609142801.GK32208@atomide.com>
-References: <53199.192.168.10.88.1275659023.squirrel@dbdmail.itg.ti.com>
- <871vcmq08s.fsf@deeprootsystems.com>
- <20100607100656.GE15515@atomide.com>
- <AANLkTikpHFyvk28hTm-jTk4wdJ0oldqyncaGH2slq6w4@mail.gmail.com>
- <AANLkTikS_f5UWDr8WYrHga_W8kIeTwUienx6K37LWF80@mail.gmail.com>
+From: "Robert Lukassen" <Robert.Lukassen@tomtom.com>
+Subject: Gumstix Overo non-responsive TTY after resume
+Date: Wed, 9 Jun 2010 16:28:08 +0200
+Message-ID: <D6DB9C7EDECDA944B870F62B587008622C89C6@NL-EXC-06.intra.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53305 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757858Ab0FIO2I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jun 2010 10:28:08 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTikS_f5UWDr8WYrHga_W8kIeTwUienx6K37LWF80@mail.gmail.com>
+Received: from mxvs2.esa.t-systems.com ([81.7.202.143]:17958 "EHLO
+	mxvs2.esa.t-systems.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754535Ab0FIOhx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jun 2010 10:37:53 -0400
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+To: linux-omap@vger.kernel.org
 
-* Govindraj <govindraj.ti@gmail.com> [100607 17:50]:
-> On Mon, Jun 7, 2010 at 5:02 PM, Govindraj <govindraj.ti@gmail.com> wr=
-ote:
-> > On Mon, Jun 7, 2010 at 3:36 PM, Tony Lindgren <tony@atomide.com> wr=
-ote:
-> >> * Kevin Hilman <khilman@deeprootsystems.com> [100604 18:30]:
-> >>>
-> >>> > + =C2=A0 w &=3D ~0x7;
-> >>> > + =C2=A0 w |=3D OMAP_MUX_MODE2;
-> >>> > + =C2=A0 omap_ctrl_writew(w, uart->padconf);
-> >>
-> >> Generic NAK for tinkering with the mux registers directly.
-> >>
-> >> Instead, Govindraj, please add omap_mux_request_signal() into mux.=
-c:
-> >>
-> >> void __iomem * __init omap_mux_request_signal(char *muxname);
->=20
-> Looking into mach-omap2/mux.c
->=20
-> Wouldn't retrieving offset will be enough as i have to depend on
-> again *_mux_* function call for remux which can have the offset and v=
-al
-> as parameter.
+Hi,
 
-You call omap_mux_request_signal with the signal name, and get
-the register address. Then you can just set it with readw/writew.
-=20
-> So I need to use  ""K15_24XX_UART3_TX" as name to retrieve
-> UART3 offset if I am correct and traverse through the list doing an s=
-trcmp
-> on name to retrieve offset.
->=20
-> In that case I dont find uart1/2/4 in list,
-> Should that be added into the list?
+I've just started with the linux-omap-pm branch, and are experiencing problems with the keyboard when resuming from sleep. There seems to be an earlier post on this matter:
 
-No, that's the old mux code. You want to do something like
+> > 4) Suspend to memory (echo mem > /sys/power/state) works now, but when I
+> > wake up the board (via a keypress), I am no longer able to type anything
+> > at the prompt. Any clue about this one?
+> 
+> Indeed, I was able to reproduce this as well and seems to be a new
+> regression in the PM branch.  I see the same on omap3evm and n900 now
+> too.mount 
+> 
+> If you enable the UART timeouts + sleep_while_idle, you should avoid
+> this problem while I try and figure out what's going on:
+> 
+> echo 5 > /sys/devices/platform/serial8250.0/sleep_timeout
+> echo 5 > /sys/devices/platform/serial8250.1/sleep_timeout
+> echo 5 > /sys/devices/platform/serial8250.2/sleep_timeout
+> echo 1 > /debug/pm_debug/sleep_while_idle
 
-void __iomem *uart1_rx;
+I've been following these lines as well, using the kernel from linux-pm-omap (tag: b1ce30edb70d1572d314b6a70de257150f5b20d1).
+I'm using an Overo Fire (OMAP3530 + OpenGL + Wifi/BT gumstix) on a Tobi board. The rootfs is straight from the org.openembedded.com build result.
 
-uart1_rx =3D omap_mux_request_signal("uart1_rx");
-if (!uart1_rx)
-	return -ENODEV;
-=2E..
+The lines above do not seem to help. After suspend (echo mem > /sys/power/state), the Overo resumes when waking it up with a key press on the console. However, after resume, the console does not accept any input from the keyboard. I've also experimented with a parallel 'ssh' session via the Ethernet connection of the Tobi. After resume, this session is still responsive, albeit somewhat sluggish compared to the state before the suspend.
 
-See the signal names in mux34xx.c and the TRM. Then omap2 and omap4
-will work automatically once the mux code is ready for those.
+Has there been any development on this issue? I saw the reference to an "OMAP3: Serial: improved sleep" thread that mentions an update to the PM branch, but in the git log of the linux-omap-pm branch, I do not see a change related to it.
+
+I am also interested in results concerning waking the Overo from suspend using a USB device connected to the USB Host port (not the USB OTG port).
 
 Regards,
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Robert Lukassen
