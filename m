@@ -1,63 +1,370 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH V3 2/2]OMAP: Disable internal I2C pull-ups in OMAP3630
-Date: Tue, 8 Jun 2010 18:29:50 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203BB6EAF57@dlee02.ent.ti.com>
-References: <1267211687-23551-1-git-send-email-m-sonasath@ti.com>
- <CD8CC2B65FEE304DA95744A5472698F202D3F744A2@dlee06.ent.ti.com>
- <20100608100437.GP15515@atomide.com>
+From: "Sapiens, Rene" <rene.sapiens@ti.com>
+Subject: RE: [PATCH 09/10] omap: mailbox: convert block api to kfifo
+Date: Tue, 8 Jun 2010 19:16:02 -0500
+Message-ID: <D2943F03B81C9C458E44DFB213905E02B6325C6A@dlee04.ent.ti.com>
+References: <1275546858-29507-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1275546858-29507-10-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60725 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752971Ab0FHX3z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 19:29:55 -0400
-In-Reply-To: <20100608100437.GP15515@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34765 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755538Ab0FIAQP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 20:16:15 -0400
+In-Reply-To: <1275546858-29507-10-git-send-email-Hiroshi.DOYU@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Sonasath, Moiz" <m-sonasath@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pais, Allen" <allen.pais@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
+Hi Ohad,
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Tuesday, June 08, 2010 5:05 AM
-
-> Sorry for the delay, here's some more info on this issue. So it looks
-> like starting with 3630 there are dedicated pull-up for all the I2C buses.
-> And the pull values are configurable with software.
-
-Even 3430 claimed to have this controllable in CONGROL.CONTROL_DEVCONF1[12,13,14]
-
-Last year I had read some of this for an omap34xx issue.  A read of TRM + schematic might imply you have 4 possible resistors to watch out for on a typical I2C channel.
-        1 weak pull through standard padconf
-        2 stronger pull accessible in CONTROL block of SOC
-        3 pulls available on T2 (if your i2c target was twl5030)
-        4 possible pull on trace for board schematic
-
-Depending on the TRM/DM you look at guidance of value is given in terms of capacitive loading and speed of operation.
-
-A very strong pull might be good to overcome capacitive loading but it will burn more power per bit transmitted.  I saw one customer stick with full speed and use a weaker pull just based on power savings.
-
-If you want to play around you can use pulls in parallel and attempt to make a stronger pull up.  What you end up doing is really determined by what the signal looks like for that design.
-
-> - Disable mux register pull-ups on 3630 and later
->
-> - Allow setting the dedicated I2C pull-up values from board-*.c files
->   for 3630 and later
->
-> - Warn if the dedicated pull-up values are not configured on 3630 and
->   later
-
-3430 claims to have some dedicated ones. I have heard that seconded guessed.  IIRC 2430 might even have had something. I don't think this is really so new for 36xx just no one used it.
-
-> - Allow disabling the dedicated I2C pull-up values on 3630 and later
->   in case external pull-up resistors are being used.
-
-The settings required are board specific and depend on speed in use.  Having more than available is not necessary an error and might even be deliberate if someone was trying to be cleaver.
+In mbox_rx_work() you are removing the lines that enable back the  mbox irq for the RX case, but inside  __mbox_rx_interrupt() this interrupt  is disabled in the case that the kfifo for Rx mailbox gets full. So I think that we need to enable it back as soon as there is space in this kfifo. 
 
 Regards,
-Richard W.
+Rene
 
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Hiroshi DOYU
+> Sent: Thursday, June 03, 2010 1:34 AM
+> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Cc: Ohad Ben-Cohen; Kanigeri, Hari; Hiroshi DOYU
+> Subject: [PATCH 09/10] omap: mailbox: convert block api to kfifo
+> 
+> From: Ohad Ben-Cohen <ohad@wizery.com>
+> 
+> The underlying buffering implementation of mailbox
+> is converted from block API to kfifo due to the simplicity
+> and speed of kfifo.
+> 
+> The default size of the kfifo buffer is set to 256 bytes.
+> This value is configurable at compile time (via
+> CONFIG_OMAP_MBOX_KFIFO_SIZE), and can be changed at
+> runtime (via the mbox_kfifo_size module parameter).
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  arch/arm/plat-omap/Kconfig                |    9 ++
+>  arch/arm/plat-omap/include/plat/mailbox.h |    4 +-
+>  arch/arm/plat-omap/mailbox.c              |  119 +++++++++++++-----------
+> -----
+>  3 files changed, 64 insertions(+), 68 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index 78b49a6..111d39a 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -106,6 +106,15 @@ config OMAP_MBOX_FWK
+>  	  Say Y here if you want to use OMAP Mailbox framework support for
+>  	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
+> 
+> +config OMAP_MBOX_KFIFO_SIZE
+> +	int "Mailbox kfifo default buffer size (bytes)"
+> +	depends on OMAP_MBOX_FWK
+> +	default 256
+> +	help
+> +	  Specify the default size of mailbox's kfifo buffers (bytes).
+> +	  This can also be changed at runtime (via the mbox_kfifo_size
+> +	  module parameter).
+> +
+>  config OMAP_IOMMU
+>  	tristate
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-
+> omap/include/plat/mailbox.h
+> index 729166b..0c3c4a5 100644
+> --- a/arch/arm/plat-omap/include/plat/mailbox.h
+> +++ b/arch/arm/plat-omap/include/plat/mailbox.h
+> @@ -5,8 +5,8 @@
+> 
+>  #include <linux/wait.h>
+>  #include <linux/workqueue.h>
+> -#include <linux/blkdev.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/kfifo.h>
+> 
+>  typedef u32 mbox_msg_t;
+>  struct omap_mbox;
+> @@ -42,7 +42,7 @@ struct omap_mbox_ops {
+> 
+>  struct omap_mbox_queue {
+>  	spinlock_t		lock;
+> -	struct request_queue	*queue;
+> +	struct kfifo		fifo;
+>  	struct work_struct	work;
+>  	struct tasklet_struct	tasklet;
+>  	int	(*callback)(void *);
+> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+> index 81076b5..ec0e159 100644
+> --- a/arch/arm/plat-omap/mailbox.c
+> +++ b/arch/arm/plat-omap/mailbox.c
+> @@ -21,11 +21,14 @@
+>   *
+>   */
+> 
+> +#include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/device.h>
+>  #include <linux/delay.h>
+>  #include <linux/slab.h>
+> +#include <linux/kfifo.h>
+> +#include <linux/err.h>
+> 
+>  #include <plat/mailbox.h>
+> 
+> @@ -37,6 +40,10 @@ static bool rq_full;
+>  static int mbox_configured;
+>  static DEFINE_MUTEX(mbox_configured_lock);
+> 
+> +static unsigned int mbox_kfifo_size = CONFIG_OMAP_MBOX_KFIFO_SIZE;
+> +module_param(mbox_kfifo_size, uint, S_IRUGO);
+> +MODULE_PARM_DESC(mbox_kfifo_size, "Size of omap's mailbox kfifo
+> (bytes)");
+> +
+>  /* Mailbox FIFO handle functions */
+>  static inline mbox_msg_t mbox_fifo_read(struct omap_mbox *mbox)
+>  {
+> @@ -69,7 +76,7 @@ static inline int is_mbox_irq(struct omap_mbox *mbox,
+> omap_mbox_irq_t irq)
+>  /*
+>   * message sender
+>   */
+> -static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+> +static int __mbox_poll_for_space(struct omap_mbox *mbox)
+>  {
+>  	int ret = 0, i = 1000;
+> 
+> @@ -80,49 +87,50 @@ static int __mbox_msg_send(struct omap_mbox *mbox,
+> mbox_msg_t msg)
+>  			return -1;
+>  		udelay(1);
+>  	}
+> -	mbox_fifo_write(mbox, msg);
+>  	return ret;
+>  }
+> 
+> -
+>  int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+>  {
+> +	struct omap_mbox_queue *mq = mbox->txq;
+> +	int ret = 0, len;
+> 
+> -	struct request *rq;
+> -	struct request_queue *q = mbox->txq->queue;
+> +	spin_lock(&mq->lock);
+> 
+> -	rq = blk_get_request(q, WRITE, GFP_ATOMIC);
+> -	if (unlikely(!rq))
+> -		return -ENOMEM;
+> +	if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
+> +		ret = -ENOMEM;
+> +		goto out;
+> +	}
+> +
+> +	len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+> +	WARN_ON(len != sizeof(msg));
+> 
+> -	blk_insert_request(q, rq, 0, (void *) msg);
+>  	tasklet_schedule(&mbox->txq->tasklet);
+> 
+> -	return 0;
+> +out:
+> +	spin_unlock(&mq->lock);
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL(omap_mbox_msg_send);
+> 
+>  static void mbox_tx_tasklet(unsigned long tx_data)
+>  {
+> -	int ret;
+> -	struct request *rq;
+>  	struct omap_mbox *mbox = (struct omap_mbox *)tx_data;
+> -	struct request_queue *q = mbox->txq->queue;
+> -
+> -	while (1) {
+> -
+> -		rq = blk_fetch_request(q);
+> -
+> -		if (!rq)
+> -			break;
+> +	struct omap_mbox_queue *mq = mbox->txq;
+> +	mbox_msg_t msg;
+> +	int ret;
+> 
+> -		ret = __mbox_msg_send(mbox, (mbox_msg_t)rq->special);
+> -		if (ret) {
+> +	while (kfifo_len(&mq->fifo)) {
+> +		if (__mbox_poll_for_space(mbox)) {
+>  			omap_mbox_enable_irq(mbox, IRQ_TX);
+> -			blk_requeue_request(q, rq);
+> -			return;
+> +			break;
+>  		}
+> -		blk_end_request_all(rq, 0);
+> +
+> +		ret = kfifo_out(&mq->fifo, (unsigned char *)&msg,
+> +								sizeof(msg));
+> +		WARN_ON(ret != sizeof(msg));
+> +
+> +		mbox_fifo_write(mbox, msg);
+>  	}
+>  }
+> 
+> @@ -133,41 +141,21 @@ static void mbox_rx_work(struct work_struct *work)
+>  {
+>  	struct omap_mbox_queue *mq =
+>  			container_of(work, struct omap_mbox_queue, work);
+> -	struct omap_mbox *mbox = mq->queue->queuedata;
+> -	struct request_queue *q = mbox->rxq->queue;
+> -	struct request *rq;
+>  	mbox_msg_t msg;
+> -	unsigned long flags;
+> -
+> -	while (1) {
+> -		spin_lock_irqsave(q->queue_lock, flags);
+> -		rq = blk_fetch_request(q);
+> -		if (rq_full) {
+> -			omap_mbox_enable_irq(mbox, IRQ_RX);
+> -			rq_full = false;
+> -		}
+> -		spin_unlock_irqrestore(q->queue_lock, flags);
+> -		if (!rq)
+> -			break;
+> +	int len;
+> +
+> +	while (kfifo_len(&mq->fifo) >= sizeof(msg)) {
+> +		len = kfifo_out(&mq->fifo, (unsigned char *)&msg,
+> sizeof(msg));
+> +		WARN_ON(len != sizeof(msg));
+> 
+> -		msg = (mbox_msg_t)rq->special;
+> -		blk_end_request_all(rq, 0);
+> -		if (mbox->rxq->callback)
+> -			mbox->rxq->callback((void *)msg);
+> +		if (mq->callback)
+> +			mq->callback((void *)msg);
+>  	}
+>  }
+> 
+>  /*
+>   * Mailbox interrupt handler
+>   */
+> -static void mbox_txq_fn(struct request_queue *q)
+> -{
+> -}
+> -
+> -static void mbox_rxq_fn(struct request_queue *q)
+> -{
+> -}
+> -
+>  static void __mbox_tx_interrupt(struct omap_mbox *mbox)
+>  {
+>  	omap_mbox_disable_irq(mbox, IRQ_TX);
+> @@ -177,13 +165,12 @@ static void __mbox_tx_interrupt(struct omap_mbox
+> *mbox)
+> 
+>  static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+>  {
+> -	struct request *rq;
+> +	struct omap_mbox_queue *mq = mbox->rxq;
+>  	mbox_msg_t msg;
+> -	struct request_queue *q = mbox->rxq->queue;
+> +	int len;
+> 
+>  	while (!mbox_fifo_empty(mbox)) {
+> -		rq = blk_get_request(q, WRITE, GFP_ATOMIC);
+> -		if (unlikely(!rq)) {
+> +		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
+>  			omap_mbox_disable_irq(mbox, IRQ_RX);
+>  			rq_full = true;
+>  			goto nomem;
+> @@ -191,8 +178,9 @@ static void __mbox_rx_interrupt(struct omap_mbox
+> *mbox)
+> 
+>  		msg = mbox_fifo_read(mbox);
+> 
+> +		len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+> +		WARN_ON(len != sizeof(msg));
+> 
+> -		blk_insert_request(q, rq, 0, (void *)msg);
+>  		if (mbox->ops->type == OMAP_MBOX_TYPE1)
+>  			break;
+>  	}
+> @@ -217,11 +205,9 @@ static irqreturn_t mbox_interrupt(int irq, void *p)
+>  }
+> 
+>  static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
+> -					request_fn_proc *proc,
+>  					void (*work) (struct work_struct *),
+>  					void (*tasklet)(unsigned long))
+>  {
+> -	struct request_queue *q;
+>  	struct omap_mbox_queue *mq;
+> 
+>  	mq = kzalloc(sizeof(struct omap_mbox_queue), GFP_KERNEL);
+> @@ -230,11 +216,8 @@ static struct omap_mbox_queue
+> *mbox_queue_alloc(struct omap_mbox *mbox,
+> 
+>  	spin_lock_init(&mq->lock);
+> 
+> -	q = blk_init_queue(proc, &mq->lock);
+> -	if (!q)
+> +	if (kfifo_alloc(&mq->fifo, mbox_kfifo_size, GFP_KERNEL))
+>  		goto error;
+> -	q->queuedata = mbox;
+> -	mq->queue = q;
+> 
+>  	if (work)
+>  		INIT_WORK(&mq->work, work);
+> @@ -249,7 +232,7 @@ error:
+> 
+>  static void mbox_queue_free(struct omap_mbox_queue *q)
+>  {
+> -	blk_cleanup_queue(q->queue);
+> +	kfifo_free(&q->fifo);
+>  	kfree(q);
+>  }
+> 
+> @@ -279,14 +262,14 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
+>  		goto fail_request_irq;
+>  	}
+> 
+> -	mq = mbox_queue_alloc(mbox, mbox_txq_fn, NULL, mbox_tx_tasklet);
+> +	mq = mbox_queue_alloc(mbox, NULL, mbox_tx_tasklet);
+>  	if (!mq) {
+>  		ret = -ENOMEM;
+>  		goto fail_alloc_txq;
+>  	}
+>  	mbox->txq = mq;
+> 
+> -	mq = mbox_queue_alloc(mbox, mbox_rxq_fn, mbox_rx_work, NULL);
+> +	mq = mbox_queue_alloc(mbox, mbox_rx_work, NULL);
+>  	if (!mq) {
+>  		ret = -ENOMEM;
+>  		goto fail_alloc_rxq;
+> @@ -418,6 +401,10 @@ static int __init omap_mbox_init(void)
+>  	if (!mboxd)
+>  		return -ENOMEM;
+> 
+> +	/* kfifo size sanity check: alignment and minimal size */
+> +	mbox_kfifo_size = ALIGN(mbox_kfifo_size, sizeof(mbox_msg_t));
+> +	mbox_kfifo_size = max_t(unsigned int, mbox_kfifo_size,
+> sizeof(mbox_msg_t));
+> +
+>  	return 0;
+>  }
+>  module_init(omap_mbox_init);
+> --
+> 1.7.1.rc1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
