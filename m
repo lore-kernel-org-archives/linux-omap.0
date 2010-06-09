@@ -1,101 +1,62 @@
-From: Neil Brown <neilb@suse.de>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Thu, 10 Jun 2010 08:04:25 +1000
-Message-ID: <20100610080425.6f005dbb@notabene.brown>
-References: <20100603193045.GA7188@elte.hu>
-	<alpine.LFD.2.00.1006082042020.4506@i5.linux-foundation.org>
-	<AANLkTino9hnqao9402dR543MIlf66qYYjxrknHrxd39o@mail.gmail.com>
-	<201006091140.28034.rjw@sisk.pl>
+From: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Subject: Re: Gumstix Overo non-responsive TTY after resume
+Date: Thu, 10 Jun 2010 00:48:18 +0200
+Message-ID: <4C101A32.20201@panicking.kicks-ass.org>
+References: <D6DB9C7EDECDA944B870F62B587008622C89C6@NL-EXC-06.intra.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:53267 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751454Ab0FIWEr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jun 2010 18:04:47 -0400
-In-Reply-To: <201006091140.28034.rjw@sisk.pl>
+Received: from panicking.kicks-ass.org ([95.141.32.57]:48477 "EHLO
+	panicking.kicks-ass.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757374Ab0FIXKZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jun 2010 19:10:25 -0400
+In-Reply-To: <D6DB9C7EDECDA944B870F62B587008622C89C6@NL-EXC-06.intra.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, david@lang.hm, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
+To: Robert Lukassen <Robert.Lukassen@tomtom.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, 9 Jun 2010 11:40:27 +0200
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
-
-> On Wednesday 09 June 2010, Felipe Contreras wrote:
-> > On Wed, Jun 9, 2010 at 6:46 AM, Linus Torvalds
-> > <torvalds@linux-foundation.org> wrote:
-> > > On Tue, 8 Jun 2010, david@lang.hm wrote:
-> > >>
-> > >> having suspend blockers inside the kernel adds significant complexity, it's
-> > >> worth it only if the complexity buys you enough. In this case the question is
-> > >> if the suspend blockers would extend the sleep time enough more to matter. As
-> > >> per my other e-mail, this is an area with rapidly diminishing returns as the
-> > >> sleep times get longer.
-> > >
-> > > Well, the counter-argument that nobody seems to have brought up is that
-> > > suspend blockers exist, are real code, and end up being shipped in a lot
-> > > of machines.
-> > >
-> > > That's a _big_ argument in favour of them. Certainly much bigger than
-> > > arguing against them based on some complexity-arguments for an alternative
-> > > that hasn't seen any testing at all.
-> > >
-> > > IOW, I would seriously hope that this discussion was more about real code
-> > > that _exists_ and does what people need. It seems to have degenerated into
-> > > something else.
-> > >
-> > > Because in the end, "code talks, bullshit walks". People can complain and
-> > > suggest alternatives all they want, but you can't just argue. At some
-> > > point you need to show the code that actually solves the problem.
-> > 
-> > That's assuming there is an actual problem, which according to all the
-> > embedded people except android, there is not.
+Robert Lukassen wrote:
+> Hi,
 > 
-> Yes, there is, but they've decided to ignore it.
+> I've just started with the linux-omap-pm branch, and are experiencing problems with the keyboard when resuming from sleep. There seems to be an earlier post on this matter:
 > 
-> > And if there is indeed such a problem (probably not big), it might be
-> > solved properly by the time suspend blockers are merged, or few
-> > releases after.
+>>> 4) Suspend to memory (echo mem > /sys/power/state) works now, but when I
+>>> wake up the board (via a keypress), I am no longer able to type anything
+>>> at the prompt. Any clue about this one?
+>> Indeed, I was able to reproduce this as well and seems to be a new
+>> regression in the PM branch.  I see the same on omap3evm and n900 now
+>> too.mount 
+>>
+>> If you enable the UART timeouts + sleep_while_idle, you should avoid
+>> this problem while I try and figure out what's going on:
+>>
+>> echo 5 > /sys/devices/platform/serial8250.0/sleep_timeout
+>> echo 5 > /sys/devices/platform/serial8250.1/sleep_timeout
+>> echo 5 > /sys/devices/platform/serial8250.2/sleep_timeout
+>> echo 1 > /debug/pm_debug/sleep_while_idle
 > 
-> Not quite.  Have you followed all of the discussion, actually?
+> I've been following these lines as well, using the kernel from linux-pm-omap (tag: b1ce30edb70d1572d314b6a70de257150f5b20d1).
+> I'm using an Overo Fire (OMAP3530 + OpenGL + Wifi/BT gumstix) on a Tobi board. The rootfs is straight from the org.openembedded.com build result.
 > 
-> > Whatever the solution (or workaround) is, it would be nice if it could
-> > be used by more than just android people, and it would also be nice to
-> > do it without introducing user-space API that *nobody* likes and might
-> > be quickly deprecated.
+> The lines above do not seem to help. After suspend (echo mem > /sys/power/state), the Overo resumes when waking it up with a key press on the console. However, after resume, the console does not accept any input from the keyboard. I've also experimented with a parallel 'ssh' session via the Ethernet connection of the Tobi. After resume, this session is still responsive, albeit somewhat sluggish compared to the state before the suspend.
 > 
-> I agree with Linus and I don't have that much of a problem with the API that
-> people seem to have.  In fact the much-hated user space API is just a char
-> device driver with 3 ioctls (that can be extended in future if need be) and
-> the kernel API is acceptable to me. 
-
-I think there is a little bit more to it than that.  It seems there is a new
-ioctl for input/event devices to say "Any events queued here should be
-treated as wake-up events".  There may be similar additions to other devices,
-but I know of no details.
-
-I wonder if we can get a complete statement of changes to the user-space
-API...
-
->                                       Yes, there is some overlap between it
-> and PM QoS, but IMhO that overlap may be reduced over time (eg. by
-> using PM QoS requirements to implement suspend blockers). 
+> Has there been any development on this issue? I saw the reference to an "OMAP3: Serial: improved sleep" thread that mentions an update to the PM branch, but in the git log of the linux-omap-pm branch, I do not see a change related to it.
 > 
-> To me, the question boils down to whether or not we're able to persuade the
-> Android people to use any other approach (eg. by demonstrating that something
-> else is actually better), because even if we invent a brilliant new approach,
-> but Android ends up using its old one anyway, the net result will be as though
-> we haven't done anything useful.
+> I am also interested in results concerning waking the Overo from suspend using a USB device connected to the USB Host port (not the USB OTG port).
 
-Yes.  There is no point unless we can meet somewhere in the middle.  I think
-that would have to include a full suspend that freezes all processes.
-Solutions which reject that - while quite clever - would require too much
-change to Android user-space to be acceptable.
+I have the same problem using the experimental android 2.6.34 branch. The console send garbage to the serial device. I will try tomorrow to investigate a little bit more
 
-NeilBrown
+Michael Trimarchi
 
 > 
-> Rafael
+> Regards,
+> 
+> Robert Lukassen
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
