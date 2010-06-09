@@ -1,68 +1,101 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: Timekeeping issue on aggressive suspend/resume
-Date: Wed, 9 Jun 2010 22:22:29 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1006092206020.2933@localhost.localdomain>
-References: <AANLkTinIO5a1EeK6Ej2ljkuyL9zv06OMfbyiZBaxTQTd@mail.gmail.com>
+From: Neil Brown <neilb@suse.de>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Thu, 10 Jun 2010 08:04:25 +1000
+Message-ID: <20100610080425.6f005dbb@notabene.brown>
+References: <20100603193045.GA7188@elte.hu>
+	<alpine.LFD.2.00.1006082042020.4506@i5.linux-foundation.org>
+	<AANLkTino9hnqao9402dR543MIlf66qYYjxrknHrxd39o@mail.gmail.com>
+	<201006091140.28034.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:47033 "EHLO www.tglx.de"
+Received: from cantor2.suse.de ([195.135.220.15]:53267 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755818Ab0FIUXQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jun 2010 16:23:16 -0400
-In-Reply-To: <AANLkTinIO5a1EeK6Ej2ljkuyL9zv06OMfbyiZBaxTQTd@mail.gmail.com>
+	id S1751454Ab0FIWEr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Jun 2010 18:04:47 -0400
+In-Reply-To: <201006091140.28034.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
-Cc: linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, John Stultz <johnstul@us.ibm.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, david@lang.hm, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, Arve =?UTF-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Wed, 9 Jun 2010, Suresh Rajashekara wrote:
+On Wed, 9 Jun 2010 11:40:27 +0200
+"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
 
-> I have an application (running on 2.6.29-omap1) which puts an OMAP1
-> system to suspend aggressively. The system wakes up every 4 seconds
-> and stays awake for about 35 milliseconds and sleeps again for another
-> 4 seconds. This design is to save power on a battery operated device.
+> On Wednesday 09 June 2010, Felipe Contreras wrote:
+> > On Wed, Jun 9, 2010 at 6:46 AM, Linus Torvalds
+> > <torvalds@linux-foundation.org> wrote:
+> > > On Tue, 8 Jun 2010, david@lang.hm wrote:
+> > >>
+> > >> having suspend blockers inside the kernel adds significant complexity, it's
+> > >> worth it only if the complexity buys you enough. In this case the question is
+> > >> if the suspend blockers would extend the sleep time enough more to matter. As
+> > >> per my other e-mail, this is an area with rapidly diminishing returns as the
+> > >> sleep times get longer.
+> > >
+> > > Well, the counter-argument that nobody seems to have brought up is that
+> > > suspend blockers exist, are real code, and end up being shipped in a lot
+> > > of machines.
+> > >
+> > > That's a _big_ argument in favour of them. Certainly much bigger than
+> > > arguing against them based on some complexity-arguments for an alternative
+> > > that hasn't seen any testing at all.
+> > >
+> > > IOW, I would seriously hope that this discussion was more about real code
+> > > that _exists_ and does what people need. It seems to have degenerated into
+> > > something else.
+> > >
+> > > Because in the end, "code talks, bullshit walks". People can complain and
+> > > suggest alternatives all they want, but you can't just argue. At some
+> > > point you need to show the code that actually solves the problem.
+> > 
+> > That's assuming there is an actual problem, which according to all the
+> > embedded people except android, there is not.
 > 
-> This aggressive suspend resume action seems like creating an issue to
-> other applications in the system waiting for some timeout to happen
-> (especially an application which is waiting using the mq_timedreceive
-> and is supposed to timeout every 30 seconds. It seems to wake up every
-> 90 seconds). Seems like the timekeeping is not happening properly in
-> side the kernel.
+> Yes, there is, but they've decided to ignore it.
 > 
-> If the suspend duration is changed from 4 second to 1 second, then
-> things work somewhat better. On reducing it to 0.5 second (which was
-> our earlier design on 2.6.16-rc3), the problem seems to disappear.
+> > And if there is indeed such a problem (probably not big), it might be
+> > solved properly by the time suspend blockers are merged, or few
+> > releases after.
 > 
-> Is this expected?
+> Not quite.  Have you followed all of the discussion, actually?
+> 
+> > Whatever the solution (or workaround) is, it would be nice if it could
+> > be used by more than just android people, and it would also be nice to
+> > do it without introducing user-space API that *nobody* likes and might
+> > be quickly deprecated.
+> 
+> I agree with Linus and I don't have that much of a problem with the API that
+> people seem to have.  In fact the much-hated user space API is just a char
+> device driver with 3 ioctls (that can be extended in future if need be) and
+> the kernel API is acceptable to me. 
 
-Yes, that's caused by the fact that suspend (via sys/power/state )
-freezes the kernel internal timers and the user space visible timers
-which are based on CLOCK_MONOTONIC or jiffies (like mq_timedreceive on
-your .29 kernel). Only CLOCK_REALTIME based timers are kept correct as
-we have to align to the wall clock time.
+I think there is a little bit more to it than that.  It seems there is a new
+ioctl for input/event devices to say "Any events queued here should be
+treated as wake-up events".  There may be similar additions to other devices,
+but I know of no details.
 
-The reason for this is, that otherwise almost all timers are expired
-when we resume and we get a thundering herd of apps and kernel
-facilities due to firing timeouts.
+I wonder if we can get a complete statement of changes to the user-space
+API...
 
-Another problem is that jiffies can wrap around on 32 bit systems
-during a long suspend though I don't think that's a real world problem
-as it takes between 49 to 497 days of suspend depending on the HZ
-setting. SO for your usecase it would not matter.
+>                                       Yes, there is some overlap between it
+> and PM QoS, but IMhO that overlap may be reduced over time (eg. by
+> using PM QoS requirements to implement suspend blockers). 
+> 
+> To me, the question boils down to whether or not we're able to persuade the
+> Android people to use any other approach (eg. by demonstrating that something
+> else is actually better), because even if we invent a brilliant new approach,
+> but Android ends up using its old one anyway, the net result will be as though
+> we haven't done anything useful.
 
-I'm more concerned about code getting surprised by firing timers as
-the kernel has this behaviour for a long time now.
+Yes.  There is no point unless we can meet somewhere in the middle.  I think
+that would have to include a full suspend that freezes all processes.
+Solutions which reject that - while quite clever - would require too much
+change to Android user-space to be acceptable.
 
-Though we could change that conditionally - the default would still be
-the freeze of jiffies and CLOCK_MONOTONIC for historical compability.
+NeilBrown
 
-There will be probably some accounting issues. uptime, cpu time of the
-suspend task and some others, but that needs to be found out.
-
-Thanks,
-
-	tglx
-
-
+> 
+> Rafael
 
