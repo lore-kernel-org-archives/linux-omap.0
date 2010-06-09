@@ -1,60 +1,33 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 09/10] omap: mailbox: convert block api to kfifo
-Date: Wed, 9 Jun 2010 00:38:55 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CA4D88F3@dlee06.ent.ti.com>
-References: <1275546858-29507-1-git-send-email-Hiroshi.DOYU@nokia.com>
- 	<1275546858-29507-10-git-send-email-Hiroshi.DOYU@nokia.com>
- 	<D2943F03B81C9C458E44DFB213905E02B6325C6A@dlee04.ent.ti.com>,<AANLkTik4lW3_xP_e4BStJEYpHlVoNjemEz8zWfIE7gRU@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 0/2] dspbridge: reorganize initialization and probe
+Date: Wed, 9 Jun 2010 10:25:17 +0300
+Message-ID: <AANLkTil4gAHQcEdAedxamD9mi5d-0CxGLqP_8h9vY77j@mail.gmail.com>
+References: <1276044493-23003-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35810 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751385Ab0FIFjC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jun 2010 01:39:02 -0400
-In-Reply-To: <AANLkTik4lW3_xP_e4BStJEYpHlVoNjemEz8zWfIE7gRU@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:34317 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab0FIHZT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jun 2010 03:25:19 -0400
+Received: by bwz11 with SMTP id 11so1442838bwz.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 Jun 2010 00:25:18 -0700 (PDT)
+In-Reply-To: <1276044493-23003-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>, "Sapiens, Rene" <rene.sapiens@ti.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Nishanth Menon <nm@ti.com>
 
+On Wed, Jun 9, 2010 at 3:48 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
+> Split the functions to have cleaner error handling paths, this
+> will aslo cover a case where bridge initialization has failed but
+> device entry is still available which leads to unknown behavior.
 
-Hi Ohad,
+Great, I was wondering why this was not the case.
 
-________________________________________
->From: Ohad Ben-Cohen [ohad@wizery.com]
->Sent: Tuesday, June 08, 2010 9:35 PM
->To: Sapiens, Rene; Guzman Lugo, Fernando
->Cc: Hiroshi DOYU; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Kanigeri, Hari
->Subject: Re: [PATCH 09/10] omap: mailbox: convert block api to kfifo
->
->Hi Rene,
->
->On Tue, Jun 8, 2010 at 7:16 PM, Sapiens, Rene <rene.sapiens@ti.com> wrote:
->> In mbox_rx_work() you are removing the lines that enable back the  mbox irq for the RX case, but inside  __mbox_rx_interrupt() this interrupt  is disabled in the case that the kfifo for Rx >mailbox gets full. So I think that we need to enable it back as soon as there is space in this kfifo.
->
->
->
->Actually these irq on/off lines are not part of my patch; they are
->introduced by patch 05/10 on top of which my patches were rebased.
->
->Nevertheless I agree with you - the kfifo migration patch should not
->affect that irq on/off behavior. It's probably just a rebase gotcha.
->
->But now that you point me to this irq on/off thing, it looks a bit
->broken in terms of multiple concurrent mbox support since it relies on
->a global rq_full state. I guess it'd be better to hold that rq_full
->state in the relevant mbox queue state itself.
->
->Fernando what do you think ?
+Now that you are on this, do you know if there's something missing in
+order to automatically load the module when somebody tries to open
+/dev/DspBridge?
 
-Yes, you are right Ohad. Only should be disable the "new message" interrupt of the mailbox which kfifo is full.
-
-regards,
-Fernando.
-
->
->Thanks,
->Ohad.
+-- 
+Felipe Contreras
