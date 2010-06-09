@@ -1,72 +1,80 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Wed, 9 Jun 2010 10:43:58 +0300
-Message-ID: <AANLkTino9hnqao9402dR543MIlf66qYYjxrknHrxd39o@mail.gmail.com>
-References: <20100603193045.GA7188@elte.hu>
-	<AANLkTinQyzzeF-NOAjrAqqQXqKjFJhx85nI4uyBGRtWd@mail.gmail.com>
-	<1275653210.27810.39762.camel@twins>
-	<AANLkTinyjBa0KYfFz3_EFbC65hoQFwFINlTDYjCe-wM3@mail.gmail.com>
-	<1275731653.27810.41078.camel@twins>
-	<20100605092851.6ee15f13@infradead.org>
-	<AANLkTimEwznq9c_8lkuBMxEQ-42rdvpZEqA9Y71Cu-qC@mail.gmail.com>
-	<AANLkTimKknOurmCffOpHjc1FjrP2MKf10pBwEEbLJPg_@mail.gmail.com>
-	<AANLkTil1NCX91bWhpXHtC88Opr29mNjdhXD9RXQ6DI0y@mail.gmail.com>
-	<AANLkTin1Za3GvfIKbcZdx6TzjIHzCvsg5uaY_Vk4nJIh@mail.gmail.com>
-	<AANLkTilQ1k78dDCYadOa1Wiyjm2nsBcRpxwdpGvYcf8z@mail.gmail.com>
-	<AANLkTin7oM3gVwHbIHWqYV8yeC6bbQ4q2jDDxAgz3DwQ@mail.gmail.com>
-	<alpine.DEB.2.01.1006060305060.17462@asgard.lang.hm>
-	<AANLkTinW-X5m85rUcqP-lrEdfBikVclJWgqiWDkpxnAc@mail.gmail.com>
-	<20100606124949.539fa636@schatten.dmk.lab>
-	<alpine.DEB.2.01.1006060410050.17462@asgard.lang.hm>
-	<20100607141624.3d004db2@schatten.dmk.lab>
-	<alpine.DEB.2.01.1006081759150.17462@asgard.lang.hm>
-	<alpine.LFD.2.00.1006082042020.4506@i5.linux-foundation.org>
+Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
+Date: Wed, 9 Jun 2010 11:13:47 +0300
+Message-ID: <AANLkTikzGkDU1dwNYLVT6p9cPEkaMHKRuc6u0FbTBW7L@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1005271253240.3239-100000@iolanthe.rowland.org>
+	<AANLkTilUQ2AG76nbK6LwI8_7zw0_yMSoAOr9pmuz7xrt@mail.gmail.com>
+	<201005312347.24251.rjw@sisk.pl>
+	<AANLkTilvOgSFTDFtXbjJobMZWxgfvsC97TqC7_a_NHBX@mail.gmail.com>
+	<alpine.LFD.2.00.1006011411200.2933@localhost.localdomain>
+	<AANLkTikZHmF6baP7dEXEGFE8YsbEteRjlhb5wqZX8ll1@mail.gmail.com>
+	<alpine.LFD.2.00.1006020905410.2933@localhost.localdomain>
+	<AANLkTinDm3FIrbS1jqEzW15THmr1hdd7ox0Mllm1VLjZ@mail.gmail.com>
+	<1275471561.27810.30865.camel@twins>
+	<AANLkTilLmAb2c9fQwuguzWtjcHfuTZvPUTbUx7vuwFI6@mail.gmail.com>
+	<1275474088.27810.31000.camel@twins>
+	<20100602221309.6da754e7@schatten.dmk.lab>
+	<1275550802.27810.34863.camel@twins>
+	<20100603161205.73a2b56d@schatten.dmk.lab>
+	<1275578881.27810.35995.camel@twins>
+	<AANLkTinBg9W7zeomPbpGEDWkIsfxO9OfFUC0Kq7wafFb@mail.gmail.com>
+	<20100605215604.68efc4e5@schatten.dmk.lab>
+	<AANLkTilhvUn3PfnHsJTNzhr59xrUyvGlFmnAOnub65sE@mail.gmail.com>
+	<20100605225012.771332db@schatten.dmk.lab>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1006082042020.4506@i5.linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: david@lang.hm, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:43436 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752986Ab0FIINt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jun 2010 04:13:49 -0400
+In-Reply-To: <20100605225012.771332db@schatten.dmk.lab>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Mickler <florian@mickler.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>, Alan Stern <stern@rowland.harvard.edu>, Paul@smtp1.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Wed, Jun 9, 2010 at 6:46 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Tue, 8 Jun 2010, david@lang.hm wrote:
+On Sat, Jun 5, 2010 at 11:50 PM, Florian Mickler <florian@mickler.org> wrote:
+> On Sat, 5 Jun 2010 23:06:03 +0300
+> Felipe Contreras <felipe.contreras@gmail.com> wrote:
+>> How would such stats be calculated? I presume at regular intervals you
+>> check which applications are holding suspend blockers and increase a
+>> counter.
 >>
->> having suspend blockers inside the kernel adds significant complexity, it's
->> worth it only if the complexity buys you enough. In this case the question is
->> if the suspend blockers would extend the sleep time enough more to matter. As
->> per my other e-mail, this is an area with rapidly diminishing returns as the
->> sleep times get longer.
+>> How would you do that with the dynamic PM approach? At regular
+>> intervals you check for which applications are running (not idle).
 >
-> Well, the counter-argument that nobody seems to have brought up is that
-> suspend blockers exist, are real code, and end up being shipped in a lot
-> of machines.
->
-> That's a _big_ argument in favour of them. Certainly much bigger than
-> arguing against them based on some complexity-arguments for an alternative
-> that hasn't seen any testing at all.
->
-> IOW, I would seriously hope that this discussion was more about real code
-> that _exists_ and does what people need. It seems to have degenerated into
-> something else.
->
-> Because in the end, "code talks, bullshit walks". People can complain and
-> suggest alternatives all they want, but you can't just argue. At some
-> point you need to show the code that actually solves the problem.
+> IIRC, the patches discussed have debugging infrastructure in
+> them. The kernel does the accounting.
 
-That's assuming there is an actual problem, which according to all the
-embedded people except android, there is not.
+We are not talking about debugging, we are talking about stats shown
+in user-space so that users can see the offending apps. It doesn't
+matter where the accounting is done, it would be at regular intervals
+and there's nothing that prevents the dynamic PM approach to offer
+similar stats.
 
-And if there is indeed such a problem (probably not big), it might be
-solved properly by the time suspend blockers are merged, or few
-releases after.
+>> > The only difference is, that with suspend blockers, he can than
+>> > dismiss the applications permission to block suspend and will not miss
+>> > his job interview the next day because his phones battery run
+>> > out. And also he can use the application to a certain extent.
+>>
+>> So the difference is between removing the app, and making it run
+>> crappy. I don't think that's a strong argument in favor of suspend
+>> blockers.
+>>
+> If you think a little about it, it is. Because if the app wouldn't be
+> usable at all, the bug wouldn't get fixed because the user wouldn't use
+> it. Or not?
 
-Whatever the solution (or workaround) is, it would be nice if it could
-be used by more than just android people, and it would also be nice to
-do it without introducing user-space API that *nobody* likes and might
-be quickly deprecated.
+I'm not sure what's your point here. One user not using a certain
+application doesn't prevent bugs to get fixed. In fact, less people
+using an app will cause less buzz, and less downloads, and less
+positive votes... which might wake up the author to think: hey, maybe
+I'm doing something wrong? Maybe I should really listen to those bug
+reports.
+
+Anyway, my point is that there's nothing special about 3rd party app
+stats with suspend blockers.
 
 -- 
 Felipe Contreras
