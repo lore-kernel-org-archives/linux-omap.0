@@ -1,275 +1,53 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Tue, 8 Jun 2010 18:48:32 -0700
-Message-ID: <AANLkTilALyvthzh8rMiDFFP_QTz_o5hxdE8tArMUonpP@mail.gmail.com>
-References: <AANLkTimcDzHBmgqPkCHB6pW2RZivFhmb_zk68T0I3NJY@mail.gmail.com>
-	<Pine.LNX.4.44L0.1006080947050.1625-100000@iolanthe.rowland.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 09/10] omap: mailbox: convert block api to kfifo
+Date: Tue, 8 Jun 2010 21:35:30 -0500
+Message-ID: <AANLkTik4lW3_xP_e4BStJEYpHlVoNjemEz8zWfIE7gRU@mail.gmail.com>
+References: <1275546858-29507-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	<1275546858-29507-10-git-send-email-Hiroshi.DOYU@nokia.com>
+	<D2943F03B81C9C458E44DFB213905E02B6325C6A@dlee04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:54775 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133Ab0FIBsg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 21:48:36 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1006080947050.1625-100000@iolanthe.rowland.org>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:65088 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548Ab0FICfy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jun 2010 22:35:54 -0400
+Received: by wwb28 with SMTP id 28so1026886wwb.19
+        for <linux-omap@vger.kernel.org>; Tue, 08 Jun 2010 19:35:51 -0700 (PDT)
+In-Reply-To: <D2943F03B81C9C458E44DFB213905E02B6325C6A@dlee04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: tytso@mit.edu, Alan Cox <alan@lxorguk.ukuu.org.uk>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, Neil Brown <neilb@suse.de>, James Bottomley <James.Bottomley@suse.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Felipe Balbi <felipe.balbi@nokia.com>, Arjan van de Ven <arjan@infradead.org>
+To: "Sapiens, Rene" <rene.sapiens@ti.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
-2010/6/8 Alan Stern <stern@rowland.harvard.edu>:
-> On Mon, 7 Jun 2010, Arve Hj=F8nnev=E5g wrote:
->
->> The patch that modifies evdev (posted in this patchset) uses an ioct=
-l
->> to enable the suspend blocker. Not all input devices are used for
->> wakeup events and those don't need to block suspend.
->
-> But you do have a 1-1 correspondence, right? =A0That is, the input
-> devices that are used for wakeup events are exactly the ones that blo=
-ck
-> suspend?
->
+Hi Rene,
 
-Yes.
-
->
->> If you read an event that occurred after you blocked the task
->> freezing, then tasks will never get frozen again (until more events
->> occur). I think my original description was less confusing, but it
->> seems you got completely distracted by my use of block and unblock
->> suspend when referring to the user space api.
->
-> I still find your wording a little confusing. =A0Task freezing can be
-> prevented (a more accurate term than "blocked") by two kinds of thing=
-s:
-> a suspend blocker or an "active" wakeup source. =A0I'm not sure which
-> kind you mean here.
-
-I mean prevented by a user space suspend blocker.
-
->
->> It has an indirect connection. You report a wakeup event when it
->> occurs, but clear it when user space calls an api before reading the
->> event. So:
->
-> Yes, that's right.
->
->> Wakeup event occurs, and the driver:
->> - report wakeup event type A
->> - queue event for delivery to user-space
->
-> That's not really two distinct steps. =A0Queuing the event for delive=
-ry
-> to userspace involves waking up any tasks that are waiting to read th=
-e
-> device file; that action (calling wake_up_all() or whatever the drive=
-r
-> does) is how the event gets reported.
->
-
-If you want to ensure that more than one process see the event it has
-to be two steps, but it does not affect the race I was trying to
-describe.
-
->> User space wakes up:
->> - Calls api to block task freezing for event type A
->
-> Again, that's a confusing way of putting it. =A0The API you're referr=
-ing
-> to is simply the function that activates a suspend blocker. =A0It doe=
-s
-> prevent task freezing, but you shouldn't say it prevents freezing for
-> event type A. =A0More like the other way around: In addition to
-> preventing freezing, the function tells the power manager that event
-> type A should no longer be considered active. =A0Thus, in a sense it
-> _stops_ event type A from preventing freezing.
->
->> Another wakeup event occurs, and the driver:
->> - report wakeup event type A
->> - queue event for delivery to user-space
->
-> Same as above.
->
->> User space continues:
->> - Read events
-
-Sorry, I missed the unblock task freezing step here.
-
->> - Wait for more events
->>
->> Result: Task are not frozen again.
->
-> Because the suspend blocker was never deactivated. =A0The same thing
-> happens with wakelocks: If a task activates a wakelock and never
-> deactivates it, the system won't go into opportunistic suspend again.
-
-Yes, but with the sequence of events above task will not be frozen
-again even if the wake-lock/suspend-blocker/task-freezing-preventer is
-released.
-
->
-> Here's how my scheme is meant to work:
->
-> =A0 =A0 =A0 =A0Wakeup event for input device A occurs.
->
-> =A0 =A0 =A0 =A0A's driver adds an entry to the input device queue and
-> =A0 =A0 =A0 =A0(if the queue was empty) does wake_up_all() on the dev=
-ice
-> =A0 =A0 =A0 =A0file's wait_queue.
->
-> =A0 =A0 =A0 =A0The PM process returns from poll() and sees that devic=
-e
-> =A0 =A0 =A0 =A0file A is now readable, so it adds A to its list of ac=
-tive
-> =A0 =A0 =A0 =A0sources and unfreezes userspace.
->
-> =A0 =A0 =A0 =A0Some other process sees that device file A is now read=
-able,
-> =A0 =A0 =A0 =A0so it activates a suspend blocker and reads events fro=
-m A.
->
-> =A0 =A0 =A0 =A0When the PM process receives the request to activate t=
-he
-> =A0 =A0 =A0 =A0suspend blocker, it removes A from its list of active
-> =A0 =A0 =A0 =A0sources. =A0But it doesn't freeze userspace yet, becau=
-se now
-> =A0 =A0 =A0 =A0a suspend blocker is active.
-
-If another event happens at this point don't you put A back on the
-list? If so, it never gets removed.
-
->
-> =A0 =A0 =A0 =A0The other process consumes events from A and does othe=
-r
-> =A0 =A0 =A0 =A0stuff. =A0Maybe more input data arrives while this is =
-happening
-> =A0 =A0 =A0 =A0and the process reads it. =A0Eventually the process de=
-cides to
-> =A0 =A0 =A0 =A0deactivate the suspend blocker, perhaps when no more d=
-ata
-> =A0 =A0 =A0 =A0is available from the device file, perhaps not.
->
-> =A0 =A0 =A0 =A0When the PM process receives the request to deactivate=
- the
-> =A0 =A0 =A0 =A0suspend blocker, it sees that now there are no active
-> =A0 =A0 =A0 =A0sources and no active suspend blockers. =A0Therefore i=
-t
-> =A0 =A0 =A0 =A0freezes userspace and does a big poll() on all possibl=
-e
-> =A0 =A0 =A0 =A0sources. =A0(If there are still events on the input de=
-vice
-> =A0 =A0 =A0 =A0queue, the poll() returns immediately.)
->
-> =A0 =A0 =A0 =A0Rinse and repeat.
->
-> I don't see any dangerous races there. =A0The scheme can be made a li=
-ttle
-> more efficient by having the PM process do another poll() (with 0
-> timeout) just before freezing userspace; if the result indicates that=
- a
-> source is active then the freezing and unfreezing can be skipped.
->
-> The big assumption here is that a user process never consumes wakeup
-> events without first activating a suspend blocker. =A0This seems like=
- a
-> reasonable assumption, but we can work around it if necessary.
->
->> >> It seems you would need a way to pass the wakeup source id to use=
- from
->> >> user space to the driver and for this to work
->> >
->> > No, nothing needs to be passed from userspace to the kernel. =A0Ho=
-wever
->> > the source ID (or a set of source IDs) does need to be passed to t=
-he
->> > power manager process, probably when the suspend blocker is create=
-d.
->> >
->>
->> Then the source id need to be passed from the kernel to user-space.
->
-> A source ID is a file descriptor. =A0File descriptors are passed from=
- the
-> kernel to userspace whenever a file is opened; I can't deny it. =A0An=
-d
-> they are passed back to the kernel as part of the read() and poll()
-> system calls. =A0Is that what you mean?
->
->> No, that is not the unclear part. What is unclear to me is where the
->> source IDs come from. Are they static and hardcoded in the driver an=
-d
->> user-space, or are they passed between the driver and user-space
->> client?
->
-> They are not static; they are file descriptors. =A0I guess this shoul=
-d
-> have been made more clear originally, but this is still pretty new to
-> me too.
->
->> I don't understand how you are planning to ensure that the driver an=
-d
->> user-space code that consumes the real event use the same source id.
->
-> How can it be otherwise? =A0The userspace code consumes the event by
-> reading from the device file. =A0In order to do so, it has to use the
-> same file descriptor it received when it opened the device file
-> originally.
->
->> The biggest problem I have with it though is that you have created a
->> new race condition between reporting that a wakeup event has occurre=
-d
->> and processing of the real event.
->
-> There is no race. =A0The driver reports an event has occurred by maki=
-ng
-> the data available to be read from the device file, and the event is
-> processed by reading it from the device file (or at least, that's the
-> first step in processing the event).
->
-
-If the driver making data available to be read triggers a wakeup event
-in the power manager process that has to be cleared by the process
-reading the events, then you have a race. Since the power manager is
-selecting/polling on the same file descriptor, I don't see what you
-gain from linking the wakeup events to suspend blockers. If you break
-this link it think can work, but it does require us to modify all code
-that reads wakeup events from the kernel to register the file
-descriptors they get events from. It would also require adding
-poll/select support to android alarm driver, and any driver that
-currently uses a wakelock with a timeout would need to notify the user
-space power manager instead.
-
->
-> There's one other thing worth mentioning. =A0All along I've been talk=
-ing
-> about a power manager process that coordinates all these activities.
-> In theory there's no reason that process couldn't be implemented as a
-> kernel thread. =A0This would improve efficiency by reducing the numbe=
-r of
-> context switches, and it would change IPC calls into plain system
-> calls.
->
-> If you did implement it that way, it could be done as a standalone
-> kernel module, totally noninvasive. =A0It would not need to be part o=
-f
-> the vanilla kernel and nobody would object to it.
->
-> Alan Stern
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at =A0http://www.tux.org/lkml/
->
+On Tue, Jun 8, 2010 at 7:16 PM, Sapiens, Rene <rene.sapiens@ti.com> wro=
+te:
+> In mbox_rx_work() you are removing the lines that enable back the =A0=
+mbox irq for the RX case, but inside =A0__mbox_rx_interrupt() this inte=
+rrupt =A0is disabled in the case that the kfifo for Rx mailbox gets ful=
+l. So I think that we need to enable it back as soon as there is space =
+in this kfifo.
 
 
 
---=20
-Arve Hj=F8nnev=E5g
+Actually these irq on/off lines are not part of my patch; they are
+introduced by patch 05/10 on top of which my patches were rebased.
+
+Nevertheless I agree with you - the kfifo migration patch should not
+affect that irq on/off behavior. It's probably just a rebase gotcha.
+
+But now that you point me to this irq on/off thing, it looks a bit
+broken in terms of multiple concurrent mbox support since it relies on
+a global rq_full state. I guess it'd be better to hold that rq_full
+state in the relevant mbox queue state itself.
+
+=46ernando what do you think ?
+
+Thanks,
+Ohad.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
