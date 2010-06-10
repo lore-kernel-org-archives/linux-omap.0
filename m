@@ -1,39 +1,97 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Thu, 10 Jun 2010 10:47:31 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006101043510.1702-100000@iolanthe.rowland.org>
-References: <201006101059.44411.rjw@sisk.pl>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: simple sd card performance bug fix on OMAP
+Date: Thu, 10 Jun 2010 10:31:07 -0500
+Message-ID: <005001cb08b1$f349ba40$544ff780@am.dhcp.ti.com>
+References: <4C0013DC.6060601@earthlink.net> <5A47E75E594F054BAF48C5E4FC4B92AB032162380F@dbde02.ent.ti.com> <007601cb0277$afa019a0$544ff780@am.dhcp.ti.com> <20100610063621.GP32208@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:40277 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1759188Ab0FJOrc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 10:47:32 -0400
-In-Reply-To: <201006101059.44411.rjw@sisk.pl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44674 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751893Ab0FJPbl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Jun 2010 11:31:41 -0400
+In-Reply-To: <20100610063621.GP32208@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Neil Brown <neilb@suse.de>, Felipe Contreras <felipe.contreras@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, david@lang.hm, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
+To: 'Tony Lindgren' <tony@atomide.com>
+Cc: "'Gadiyar, Anand'" <gadiyar@ti.com>, "'Stephen Schwarm, CSDP'" <w3eve@earthlink.net>, linux-omap@vger.kernel.org
 
-On Thu, 10 Jun 2010, Rafael J. Wysocki wrote:
 
-> Moreover, having thought a bit more about the "power manager in user space"
-> concept I'm not sure if it really is that better than the original wakelocks
-> idea.  Namely, it only repaces a kernel-based mechanism with a user space
-> task doing basically the same thing, but the communication between that task
-> and the other cooperating user space tasks is arguably more complicated (it
-> also uses the kernel resources, although indirectly).
 
-That is all true.  The "power manager in userspace" was meant to prove
-a point: that this _could_ be done without invasive changes to the
-kernel.  It wasn't necessarily meant to be a _better_ solution.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Thursday, June 10, 2010 1:36 AM
+> To: Madhusudhan
+> Cc: 'Gadiyar, Anand'; 'Stephen Schwarm, CSDP'; linux-omap@vger.kernel.org
+> Subject: Re: simple sd card performance bug fix on OMAP
+> 
+> * Madhusudhan <madhu.cr@ti.com> [100602 20:13]:
+> >
+> >
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > owner@vger.kernel.org] On Behalf Of Gadiyar, Anand
+> > > Sent: Friday, May 28, 2010 2:55 PM
+> > > To: Stephen Schwarm, CSDP; linux-omap@vger.kernel.org
+> > > Subject: RE: simple sd card performance bug fix on OMAP
+> > >
+> > > Stephen Schwarm, CSDP wrote:
+> > > >
+> > > > I have not had time to make a formal patch for this but I thought it
+> was
+> > > > significant enough just to send it out.  The problem is on omap
+> systems
+> > > > that use omap_hsmmc.c to run sd or mmc cards.  If the system you are
+> > > > using has an 8 wire interface, it will only use a one wire interface
+> to
+> > > > 4 wire cards (eg, sd class 4 and sd class 6).
+> > > >
+> > > > In the file driver/mmc/omap_hsmmc.c in the function
+> omap_hsmmc_probe:
+> > > > at about line 1739 change:
+> > > >
+> > > >     if (mmc_slot(host).wires >= 8)
+> > > >         mmc->caps |= MMC_CAP_8_BIT_DATA;
+> > > >     else if (mmc_slot(host).wires >= 4)
+> > > >         mmc->caps |= MMC_CAP_4_BIT_DATA;
+> > > >
+> > > > to:
+> > > >
+> > > >     if (mmc_slot(host).wires >= 8)
+> > > >         mmc->caps |= MMC_CAP_8_BIT_DATA;
+> > > >     if (mmc_slot(host).wires >= 4)
+> > > >         mmc->caps |= w;
+> > > >
+> > > > just delete the word "else".  This sets the MMC_CAP_4_BIT_DATA bit
+> on
+> > > > interfaces that have 8 wire interfaces.
+> > > >
+> > > > We have seen a BIG performance improvement on our systems.
+> > > >
+> > >
+> > > Thanks for reporting this.
+> > >
+> > > A similar patch was posted a while ago and is currently marked as
+> > > "awaiting upstream", although it looks like it got lost again.
+> > >
+> > > <https://patchwork.kernel.org/patch/78713/>
+> > >
+> > A revised version of the same patch was posted.
+> >
+> > https://patchwork.kernel.org/patch/93519/
+> >
+> > Tony, Can you please push this?
+> 
+> This needs to get merged via linux-mmc list.
+> 
+Sure. We will repost it.
 
-> So, for a phone-like system, where you'd generally want to simplify user space,
-> having a "power manager" in the kernel seems to make sense to me.
+Regards,
+Madhu
 
-This is a judgment call.  Obviously different people have different 
-opinions.
-
-Alan Stern
+> Regards,
+> 
+> Tony
 
