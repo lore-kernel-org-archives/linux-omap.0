@@ -1,23 +1,45 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Thu, 10 Jun 2010 14:57:15 +0100
-Message-ID: <20100610135714.GA27848@sirena.org.uk>
-References: <20100603193045.GA7188@elte.hu> <201006091140.28034.rjw@sisk.pl> <20100610080425.6f005dbb@notabene.brown> <201006101059.44411.rjw@sisk.pl>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: suspend blockers & Android integration
+Date: Thu, 10 Jun 2010 15:58:45 +0200
+Message-ID: <20100610135844.GH4514@ucw.cz>
+References: <20100603193045.GA7188@elte.hu>
+ <AANLkTinsOF3wnxsruR0TvjBAQcHks4tf0ay_sM2xB_p4@mail.gmail.com>
+ <20100604075722.GA15181@elte.hu>
+ <AANLkTiksGnpL8tkcc5eScWHrGoijyZNUwZik5lXmU_TS@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201006101059.44411.rjw@sisk.pl>
+In-Reply-To: <AANLkTiksGnpL8tkcc5eScWHrGoijyZNUwZik5lXmU_TS@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Neil Brown <neilb@suse.de>, Felipe Contreras <felipe.contreras@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, david@lang.hm, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, Arve Hj?nnev?g <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>, Alan Stern <stern@rowland.harvard.edu>
+To: Brian Swetland <swetland@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>, tytso@mit.edu, Neil Brown <neilb@suse.de>, Arve Hj?nnev?g <arve@android.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <felipe.balbi@nokia.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, James Bottomley <James.Bottomley@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 10, 2010 at 10:59:43AM +0200, Rafael J. Wysocki wrote:
+Hi!
 
-> So, for a phone-like system, where you'd generally want to simplify user space,
-> having a "power manager" in the kernel seems to make sense to me.
+> >> We started here because it's possibly the only api level change we have --
+> >> almost everything else is driver or subarch type work or controversial but
+> >> entirely self-contained (like the binder, which I would be shocked to see
+> >> ever hit mainline). [...]
+> >
+> > So why arent those bits mainline? It's a 1000 times easier to get drivers and
+> > small improvements and non-ABI changes upstream.
+> >
+> > After basically two years of growing your fork (and some attempts to get your
+> > drivers into drivers/staging/ - from where they have meanwhile dropped out
+> > again) you re-started with the worst possible thing to merge: a big and
+> > difficult kernel feature affecting many subsystems. Why?
+> 
+> Because a large number of our drivers depend on it.
 
-I'm not clear where this requirement to simplify user space specifically
-for phones comes from - phones do have pretty substantial software
-stacks that aren't that far away to PCs.
+The dependencies are trivial. Last time I checked, you had about
+150KLoC drivers, with about 100 lines depending on wakelock support --
+I know, I cleaned it up from staging.
+
+The changes required for merging 150KLoC will be definitely much
+bigger than 100 lines...
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
