@@ -1,33 +1,39 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: MTD repository for OMAP3
-Date: Thu, 10 Jun 2010 18:40:30 +0300
-Message-ID: <20100610154030.GB17345@nokia.com>
-References: <69D1EA98-195B-4203-A7B5-7F0C843AB330@mac.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Thu, 10 Jun 2010 17:44:55 +0200
+Message-ID: <201006101744.55754.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1006101043510.1702-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:64310 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752604Ab0FJPlu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 11:41:50 -0400
-Content-Disposition: inline
-In-Reply-To: <69D1EA98-195B-4203-A7B5-7F0C843AB330@mac.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1006101043510.1702-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Neil Brown <neilb@suse.de>, Felipe Contreras <felipe.contreras@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, david@lang.hm, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: ext Elvis Dowson <elvis.dowson@mac.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jun 10, 2010 at 04:56:04PM +0200, ext Elvis Dowson wrote:
->         Could someone tell me which repository is used for developing 
->         MTD support for OMAP3 devices?
+On Thursday, June 10, 2010, Alan Stern wrote:
+> On Thu, 10 Jun 2010, Rafael J. Wysocki wrote:
+> 
+> > Moreover, having thought a bit more about the "power manager in user space"
+> > concept I'm not sure if it really is that better than the original wakelocks
+> > idea.  Namely, it only repaces a kernel-based mechanism with a user space
+> > task doing basically the same thing, but the communication between that task
+> > and the other cooperating user space tasks is arguably more complicated (it
+> > also uses the kernel resources, although indirectly).
+> 
+> That is all true.  The "power manager in userspace" was meant to prove
+> a point: that this _could_ be done without invasive changes to the
+> kernel.  It wasn't necessarily meant to be a _better_ solution.
+> 
+> > So, for a phone-like system, where you'd generally want to simplify user space,
+> > having a "power manager" in the kernel seems to make sense to me.
+> 
+> This is a judgment call.  Obviously different people have different 
+> opinions.
 
-linux-2.6.git
+Agreed.
 
-Try to always use mainline kernel for every patch and send them to 
-correct mailing list with linux-omap@vger on Cc.
-
--- 
-balbi
-
-DefectiveByDesign.org
+Rafael
