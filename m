@@ -1,46 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [alsa-devel] [PATCH v3 0/5] OMAP/ASoC: McBSP: FIFO handling
- related fixes
-Date: Thu, 10 Jun 2010 09:27:45 +0300
-Message-ID: <20100610062744.GN32208@atomide.com>
-References: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
- <201006021205.41455.peter.ujfalusi@nokia.com>
- <1275470122.3037.3.camel@odin>
- <201006021514.33519.peter.ujfalusi@nokia.com>
+From: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
+Subject: Re: Timekeeping issue on aggressive suspend/resume
+Date: Wed, 9 Jun 2010 23:34:31 -0700
+Message-ID: <AANLkTin-6XsW49ECufTLcdzaD1eK9bAxe0j7RXvPqN7p@mail.gmail.com>
+References: <AANLkTinIO5a1EeK6Ej2ljkuyL9zv06OMfbyiZBaxTQTd@mail.gmail.com>
+	<alpine.LFD.2.00.1006092206020.2933@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59328 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712Ab0FJG1u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 02:27:50 -0400
-Content-Disposition: inline
-In-Reply-To: <201006021514.33519.peter.ujfalusi@nokia.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:33300 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754997Ab0FJGew (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 02:34:52 -0400
+In-Reply-To: <alpine.LFD.2.00.1006092206020.2933@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: ext Liam Girdwood <lrg@slimlogic.co.uk>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, John Stultz <johnstul@us.ibm.com>
 
-* Peter Ujfalusi <peter.ujfalusi@nokia.com> [100602 15:09]:
-> On Wednesday 02 June 2010 12:15:22 ext Liam Girdwood wrote:
-> > On Wed, 2010-06-02 at 12:05 +0300, Peter Ujfalusi wrote:
-> > > Hi,
-> > > 
-> > > On Tuesday 01 June 2010 14:18:19 Ujfalusi Peter (Nokia-D/Tampere) wrote:
-> > > 
-> > > ..
-> > > 
-> > > Liam if you are going to take the series, could you fix the patch names?
-> > > I can also resend them if it is easier for you.
-> > 
-> > Peter, I think it's probably better if you can resend. Can you also
-> > append the Acks too.
-> > 
-> > Tony, do we have your ack too ?
-> 
-> No problem, I'll wait for Tony's ack, and resend the series.
+On Wed, Jun 9, 2010 at 1:22 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
+> Though we could change that conditionally - the default would still be
+> the freeze of jiffies and CLOCK_MONOTONIC for historical compability.
 
-Hmm, I thought I already acked these.. Anyways, the whole series
-looks good to me:
+If I were to change it only for our implementation, and make all the
+user space timers use CLOCK_REALTIME, then could you please point me
+in a direction as to what part of the kernel I should be touching to
+make that change?
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Earlier we faced issue with time that the application sees. It wasn't
+getting updated when we suspend and resume the system (where as the
+time inside the kernel kept updating) and hence eventually would drift
+from the actual time.
+
+for eg, if I use this loop at the command prompt
+
+while date
+do
+echo mem > /sys/power/state
+done
+
+then the date command always displayed the same time, but the prints
+from the kernel (I was using the printk time information) was
+advancing as expected.
+
+I found a patch at
+https://patchwork.kernel.org/patch/50070/
+
+Though this fixed the application time update issue, there are lot of
+timers in the application which is still not working right.
+
+Could anyone please point in some direction to find the solution?
+
+Thanks,
+Suresh
