@@ -1,95 +1,80 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] omap4: mmc: Fix the regulator resource for MMC2
-Date: Thu, 10 Jun 2010 21:04:45 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5AB0D35@dbde02.ent.ti.com>
-References: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2] OMAP3EVM: Replace vdvi regulator supply with vdds_dsi
+Date: Thu, 10 Jun 2010 21:11:26 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E85304E@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1268997679-27869-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55242 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41289 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759249Ab0FJPeu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 11:34:50 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5AFYlqH015133
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 10 Jun 2010 10:34:49 -0500
-In-Reply-To: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
+	id S1751685Ab0FJPll convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 11:41:41 -0400
+In-Reply-To: <1268997679-27869-1-git-send-email-hvaibhav@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "tony@atomide.com" <tony@atomide.com>
+
+
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Friday, March 19, 2010 4:51 PM
+> To: linux-omap@vger.kernel.org
+> Cc: tomi.valkeinen@nokia.com; tony@atomide.com; Hiremath, Vaibhav
+> Subject: [PATCH-V2] OMAP3EVM: Replace vdvi regulator supply with vdds_dsi
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> With recent changes happened in OMAP2/3 DSS library for regulator interface,
+> it
+> is required to define DSI regulator supply, without this DSS (in turn Fbdev)
+> fails to get regulator.
+> 
+[Hiremath, Vaibhav] Tony,
+
+I have also completely missed about this patch, and today I realized that this patch is not merged.
 
 Tony,
-> -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Friday, May 28, 2010 9:38 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Shilimkar, Santosh; Nayak, Rajendra; Ghorai, Sukumar; Kadiyala, Kishore
-> Subject: [PATCH] omap4: mmc: Fix the regulator resource for MMC2
-> 
-> The MMC1 and MMC2 cards have seperate LDO supplies. Current code assumes
-> that they are powered by same LDO.
-> 
-> This patch fixes the same and has VAUX1 as supply to MMC2 card.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> Tested-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
-> Tested with omap3_defconfig on OMAP4430SDP
-> 
-Any comments on this one ??
 
->  arch/arm/mach-omap2/board-4430sdp.c |   12 ++++++++----
->  1 files changed, 8 insertions(+), 4 deletions(-)
+I have verified that this patch still gets applied cleanly ontop of linux-omap/master.
+
+Can it be merged, without this Video Display won't work on EVM?
+
+Thanks,
+Vaibhav
+
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Acked-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3evm.c |    7 ++-----
+>  1 files changed, 2 insertions(+), 5 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> index 7a78986..f62042e 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -384,14 +384,16 @@ static struct omap2_hsmmc_info mmc[] = {
->  	{}	/* Terminator */
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> omap2/board-omap3evm.c
+> index 017bb2f..74bbdcb 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -514,14 +514,11 @@ static struct regulator_init_data omap3_evm_vdac = {
 >  };
 > 
-> -static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
-> +static struct regulator_consumer_supply sdp4430_vaux_supply[] = {
->  	{
->  		.supply = "vmmc",
-> -		.dev_name = "mmci-omap-hs.0",
-> +		.dev_name = "mmci-omap-hs.1",
->  	},
-> +};
-> +static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
->  	{
->  		.supply = "vmmc",
-> -		.dev_name = "mmci-omap-hs.1",
-> +		.dev_name = "mmci-omap-hs.0",
->  	},
->  };
+>  /* VPLL2 for digital video outputs */
+> -static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
+> -	.supply		= "vdvi",
+> -	.dev		= &omap3_evm_lcd_device.dev,
+> -};
+> +static struct regulator_consumer_supply omap3_evm_vpll2_supply =
+> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
 > 
-> @@ -447,6 +449,8 @@ static struct regulator_init_data sdp4430_vaux1 = {
->  					| REGULATOR_CHANGE_MODE
->  					| REGULATOR_CHANGE_STATUS,
->  	},
-> +	.num_consumer_supplies  = 1,
-> +	.consumer_supplies      = sdp4430_vaux_supply,
->  };
-> 
->  static struct regulator_init_data sdp4430_vaux2 = {
-> @@ -487,7 +491,7 @@ static struct regulator_init_data sdp4430_vmmc = {
->  					| REGULATOR_CHANGE_MODE
->  					| REGULATOR_CHANGE_STATUS,
->  	},
-> -	.num_consumer_supplies  = 2,
-> +	.num_consumer_supplies  = 1,
->  	.consumer_supplies      = sdp4430_vmmc_supply,
->  };
-> 
+>  static struct regulator_init_data omap3_evm_vpll2 = {
+>  	.constraints = {
+> -		.name			= "VDVI",
+>  		.min_uV			= 1800000,
+>  		.max_uV			= 1800000,
+>  		.apply_uV		= true,
 > --
-> 1.6.0.4
+> 1.6.2.4
 
