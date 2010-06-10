@@ -1,57 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap2 usb-ehci: Add missing dma-mapping.h
-Date: Thu, 10 Jun 2010 09:22:54 +0300
-Message-ID: <20100610062253.GM32208@atomide.com>
-References: <1275930041-17500-1-git-send-email-jic23@cam.ac.uk>
+Subject: Re: [alsa-devel] [PATCH v3 0/5] OMAP/ASoC: McBSP: FIFO handling
+ related fixes
+Date: Thu, 10 Jun 2010 09:27:45 +0300
+Message-ID: <20100610062744.GN32208@atomide.com>
+References: <1275391104-26387-1-git-send-email-peter.ujfalusi@nokia.com>
+ <201006021205.41455.peter.ujfalusi@nokia.com>
+ <1275470122.3037.3.camel@odin>
+ <201006021514.33519.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62527 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733Ab0FJGWw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 02:22:52 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59328 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751712Ab0FJG1u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 02:27:50 -0400
 Content-Disposition: inline
-In-Reply-To: <1275930041-17500-1-git-send-email-jic23@cam.ac.uk>
+In-Reply-To: <201006021514.33519.peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: linux-omap@vger.kernel.org, eballetbo@iseebcn.com
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: ext Liam Girdwood <lrg@slimlogic.co.uk>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Jonathan Cameron <jic23@cam.ac.uk> [100607 19:55]:
-> Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
-> ---
->  I'm not a user of this code but was browsing the kautobuild logs
->  and saw the igep0020 build error that has been there since
->  24th of May using the defconfig.  Looks like a trivial
->  missing header to me.  I can not verify the resulting
->  build works, but it does build cleanly with this patch
->  on mainline as of a few minutes ago.  Sorry for the noise
->  if this has already been addressed but I'm not seeing
->  anything in the linux-omap@vger archive.
-
-Thanks, a similar patch from Amit Kucheria is already queued up:
-
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=bfb01197589965663772e6388f2bdf452e25adf2
-
-Regards,
-
-Tony
- 
->  arch/arm/mach-omap2/usb-ehci.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+* Peter Ujfalusi <peter.ujfalusi@nokia.com> [100602 15:09]:
+> On Wednesday 02 June 2010 12:15:22 ext Liam Girdwood wrote:
+> > On Wed, 2010-06-02 at 12:05 +0300, Peter Ujfalusi wrote:
+> > > Hi,
+> > > 
+> > > On Tuesday 01 June 2010 14:18:19 Ujfalusi Peter (Nokia-D/Tampere) wrote:
+> > > 
+> > > ..
+> > > 
+> > > Liam if you are going to take the series, could you fix the patch names?
+> > > I can also resend them if it is easier for you.
+> > 
+> > Peter, I think it's probably better if you can resend. Can you also
+> > append the Acks too.
+> > 
+> > Tony, do we have your ack too ?
 > 
-> diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
-> index c68f799..465699f 100644
-> --- a/arch/arm/mach-omap2/usb-ehci.c
-> +++ b/arch/arm/mach-omap2/usb-ehci.c
-> @@ -20,6 +20,7 @@
->  #include <linux/delay.h>
->  #include <linux/platform_device.h>
->  #include <linux/clk.h>
-> +#include <linux/dma-mapping.h>
->  #include <asm/io.h>
->  #include <plat/mux.h>
->  
-> -- 
-> 1.6.4.4
-> 
+> No problem, I'll wait for Tony's ack, and resend the series.
+
+Hmm, I thought I already acked these.. Anyways, the whole series
+looks good to me:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
