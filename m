@@ -1,12 +1,14 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v3 1/3] DSS2: Allow FB_OMAP2 to build without VRFB
-Date: Thu, 10 Jun 2010 16:53:55 +0530
-Message-ID: <1276169037-2598-1-git-send-email-svadivu@ti.com>
+Subject: [PATCH v3 2/3] DSS2: make VRFB depends on OMAP2,3
+Date: Thu, 10 Jun 2010 16:53:56 +0530
+Message-ID: <1276169037-2598-2-git-send-email-svadivu@ti.com>
+References: <1276169037-2598-1-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41637 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41635 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755799Ab0FJLYH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753738Ab0FJLYH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 10 Jun 2010 07:24:07 -0400
+In-Reply-To: <1276169037-2598-1-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, tony@atomide.com, tomi.valkeinen@nokia.com, hvaibhav@ti.com
@@ -14,45 +16,44 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-FB_OMAP2 can work without VRFB, but currently does not build. Fix this.
+config VRFB should depend on ARCH_OMAP2 or ARCH_OMAP3.
+
+Changes from v1:
+	- Addressed multi-omap build issue
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- arch/arm/plat-omap/include/plat/vrfb.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+), 0 deletions(-)
+ drivers/video/omap2/Kconfig            |    4 ++++
+ drivers/video/omap2/omapfb/Kconfig     |    1 -
+ 2 files changed,  4 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/vrfb.h b/arch/arm/plat-omap/include/plat/vrfb.h
-index d8a03ce..3792bde 100644
---- a/arch/arm/plat-omap/include/plat/vrfb.h
-+++ b/arch/arm/plat-omap/include/plat/vrfb.h
-@@ -35,6 +35,7 @@ struct vrfb {
- 	bool yuv_mode;
- };
+diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
+index d877c36..18bb835 100644
+--- a/drivers/video/omap2/Kconfig
++++ b/drivers/video/omap2/Kconfig
+@@ -3,6 +3,10 @@ config OMAP2_VRAM
  
-+#ifdef CONFIG_OMAP2_VRFB
- extern int omap_vrfb_request_ctx(struct vrfb *vrfb);
- extern void omap_vrfb_release_ctx(struct vrfb *vrfb);
- extern void omap_vrfb_adjust_size(u16 *width, u16 *height,
-@@ -47,4 +48,19 @@ extern void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
- extern int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot);
- extern void omap_vrfb_restore_context(void);
+ config OMAP2_VRFB
+ 	bool
++	depends on ARCH_OMAP2 || ARCH_OMAP3
++	default y if FB_OMAP2
++	help
++	  OMAP VRFB buffer support is efficient for rotation
  
-+#else
-+static inline int omap_vrfb_request_ctx(struct vrfb *vrfb) { return 0; }
-+static inline void omap_vrfb_release_ctx(struct vrfb *vrfb) {}
-+static inline void omap_vrfb_adjust_size(u16 *width, u16 *height,
-+		u8 bytespp) {}
-+static inline u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp)
-+		{ return 0; }
-+static inline u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
-+		{ return 0; }
-+static inline void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
-+		u16 width, u16 height, unsigned bytespp, bool yuv_mode) {}
-+static inline int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot)
-+		{ return 0; }
-+static inline void omap_vrfb_restore_context(void) {}
-+#endif
- #endif /* __VRFB_H */
+ source "drivers/video/omap2/dss/Kconfig"
+ source "drivers/video/omap2/omapfb/Kconfig"
+diff --git a/drivers/video/omap2/omapfb/Kconfig b/drivers/video/omap2/omapfb/Kconfig
+index a3ed15c..f186c2b 100644
+--- a/drivers/video/omap2/omapfb/Kconfig
++++ b/drivers/video/omap2/omapfb/Kconfig
+@@ -3,7 +3,6 @@ menuconfig FB_OMAP2
+         depends on FB && OMAP2_DSS
+ 
+ 	select OMAP2_VRAM
+-	select OMAP2_VRFB
+         select FB_CFB_FILLRECT
+         select FB_CFB_COPYAREA
+         select FB_CFB_IMAGEBLIT
 -- 
 1.5.4.7
 
