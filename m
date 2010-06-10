@@ -1,111 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Thu, 10 Jun 2010 10:59:43 +0200
-Message-ID: <201006101059.44411.rjw@sisk.pl>
-References: <20100603193045.GA7188@elte.hu> <201006091140.28034.rjw@sisk.pl> <20100610080425.6f005dbb@notabene.brown>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling for
+ 3630
+Date: Thu, 10 Jun 2010 14:12:17 +0300
+Message-ID: <20100610111217.GA32208@atomide.com>
+References: <53199.192.168.10.88.1275659023.squirrel@dbdmail.itg.ti.com>
+ <871vcmq08s.fsf@deeprootsystems.com>
+ <20100607100656.GE15515@atomide.com>
+ <AANLkTikpHFyvk28hTm-jTk4wdJ0oldqyncaGH2slq6w4@mail.gmail.com>
+ <AANLkTikS_f5UWDr8WYrHga_W8kIeTwUienx6K37LWF80@mail.gmail.com>
+ <20100609142801.GK32208@atomide.com>
+ <AANLkTimSZaqZbP84C35dKh5XVZxezo-54ihxkpNx_Dni@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47245 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752960Ab0FJJBi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Jun 2010 05:01:38 -0400
-In-Reply-To: <20100610080425.6f005dbb@notabene.brown>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61471 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758906Ab0FJLMT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 07:12:19 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTimSZaqZbP84C35dKh5XVZxezo-54ihxkpNx_Dni@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Neil Brown <neilb@suse.de>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, david@lang.hm, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Brian Swetland <swetland@google.com>, Arve =?iso-8859-1?q?Hj=F8nnev=E5g?= <arve@android.com>, Arjan van de Ven <arjan@infradead.org>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, LKML <linux-kernel@vger.kernel.org>, James Bottomley <James.Bottomley@suse.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux PM <linux-pm@lists.linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Felipe Balbi <felipe.balbi@nokia.com>, Alan Stern <stern@rowland.harvard.edu>
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
 
-On Thursday, June 10, 2010, Neil Brown wrote:
-> On Wed, 9 Jun 2010 11:40:27 +0200
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+* Govindraj <govindraj.ti@gmail.com> [100610 11:49]:
 > 
-> > On Wednesday 09 June 2010, Felipe Contreras wrote:
-> > > On Wed, Jun 9, 2010 at 6:46 AM, Linus Torvalds
-> > > <torvalds@linux-foundation.org> wrote:
-> > > > On Tue, 8 Jun 2010, david@lang.hm wrote:
-> > > >>
-> > > >> having suspend blockers inside the kernel adds significant complexity, it's
-> > > >> worth it only if the complexity buys you enough. In this case the question is
-> > > >> if the suspend blockers would extend the sleep time enough more to matter. As
-> > > >> per my other e-mail, this is an area with rapidly diminishing returns as the
-> > > >> sleep times get longer.
-> > > >
-> > > > Well, the counter-argument that nobody seems to have brought up is that
-> > > > suspend blockers exist, are real code, and end up being shipped in a lot
-> > > > of machines.
-> > > >
-> > > > That's a _big_ argument in favour of them. Certainly much bigger than
-> > > > arguing against them based on some complexity-arguments for an alternative
-> > > > that hasn't seen any testing at all.
-> > > >
-> > > > IOW, I would seriously hope that this discussion was more about real code
-> > > > that _exists_ and does what people need. It seems to have degenerated into
-> > > > something else.
-> > > >
-> > > > Because in the end, "code talks, bullshit walks". People can complain and
-> > > > suggest alternatives all they want, but you can't just argue. At some
-> > > > point you need to show the code that actually solves the problem.
-> > > 
-> > > That's assuming there is an actual problem, which according to all the
-> > > embedded people except android, there is not.
-> > 
-> > Yes, there is, but they've decided to ignore it.
-> > 
-> > > And if there is indeed such a problem (probably not big), it might be
-> > > solved properly by the time suspend blockers are merged, or few
-> > > releases after.
-> > 
-> > Not quite.  Have you followed all of the discussion, actually?
-> > 
-> > > Whatever the solution (or workaround) is, it would be nice if it could
-> > > be used by more than just android people, and it would also be nice to
-> > > do it without introducing user-space API that *nobody* likes and might
-> > > be quickly deprecated.
-> > 
-> > I agree with Linus and I don't have that much of a problem with the API that
-> > people seem to have.  In fact the much-hated user space API is just a char
-> > device driver with 3 ioctls (that can be extended in future if need be) and
-> > the kernel API is acceptable to me. 
-> 
-> I think there is a little bit more to it than that.  It seems there is a new
-> ioctl for input/event devices to say "Any events queued here should be
-> treated as wake-up events".  There may be similar additions to other devices,
-> but I know of no details.
+> -> Shouldn't we just retrieve the offset and then use
+>     omap_ctrl_writew\ omap_ctrl_readw calls?
 
-That's not in the patchset as in my pull request.
+Sure that works too. And that actually has the advantage
+that it's more likely to keep the mux read/write access
+in the platform init code.
+ 
+> -> I hope muxmode configuration can be done in the
+>     existing code itself by manually populating the mode
+>    and use offset retrieved from omap_mux_request_signal
+>    and use omap_ctrl_writew.
+>    Any comment?
 
-It is used on Android, though, and it would have been submitted separately, had
-the first patchset been merged.
+I'm not sure I follow you, but you should keep any mux
+functions in the platform init code and keep the driver
+as generic as possible.
 
-> I wonder if we can get a complete statement of changes to the user-space
-> API...
-> 
-> >                                       Yes, there is some overlap between it
-> > and PM QoS, but IMhO that overlap may be reduced over time (eg. by
-> > using PM QoS requirements to implement suspend blockers). 
-> > 
-> > To me, the question boils down to whether or not we're able to persuade the
-> > Android people to use any other approach (eg. by demonstrating that something
-> > else is actually better), because even if we invent a brilliant new approach,
-> > but Android ends up using its old one anyway, the net result will be as though
-> > we haven't done anything useful.
-> 
-> Yes.  There is no point unless we can meet somewhere in the middle.  I think
-> that would have to include a full suspend that freezes all processes.
-> Solutions which reject that - while quite clever - would require too much
-> change to Android user-space to be acceptable.
+Regards,
 
-Moreover, having thought a bit more about the "power manager in user space"
-concept I'm not sure if it really is that better than the original wakelocks
-idea.  Namely, it only repaces a kernel-based mechanism with a user space
-task doing basically the same thing, but the communication between that task
-and the other cooperating user space tasks is arguably more complicated (it
-also uses the kernel resources, although indirectly).
-
-So, for a phone-like system, where you'd generally want to simplify user space,
-having a "power manager" in the kernel seems to make sense to me.
-
-Rafael
+Tony
