@@ -1,48 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [pm-wip/uart][PATCH 2/4] OMAP3: serial: Fix uart4 handling for
- 3630
-Date: Thu, 10 Jun 2010 14:12:17 +0300
-Message-ID: <20100610111217.GA32208@atomide.com>
-References: <53199.192.168.10.88.1275659023.squirrel@dbdmail.itg.ti.com>
- <871vcmq08s.fsf@deeprootsystems.com>
- <20100607100656.GE15515@atomide.com>
- <AANLkTikpHFyvk28hTm-jTk4wdJ0oldqyncaGH2slq6w4@mail.gmail.com>
- <AANLkTikS_f5UWDr8WYrHga_W8kIeTwUienx6K37LWF80@mail.gmail.com>
- <20100609142801.GK32208@atomide.com>
- <AANLkTimSZaqZbP84C35dKh5XVZxezo-54ihxkpNx_Dni@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Guruswamy Senthilvadivu <svadivu@ti.com>
+Subject: [PATCH v3 3/3] DSS2 FB Allow usage of def_vrfb only for omap2,3
+Date: Thu, 10 Jun 2010 16:53:57 +0530
+Message-ID: <1276169037-2598-3-git-send-email-svadivu@ti.com>
+References: <1276169037-2598-1-git-send-email-svadivu@ti.com>
+ <1276169037-2598-2-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61471 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758906Ab0FJLMT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 07:12:19 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTimSZaqZbP84C35dKh5XVZxezo-54ihxkpNx_Dni@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41638 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758956Ab0FJLYI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Jun 2010 07:24:08 -0400
+In-Reply-To: <1276169037-2598-2-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, tony@atomide.com, tomi.valkeinen@nokia.com, hvaibhav@ti.com
+Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-* Govindraj <govindraj.ti@gmail.com> [100610 11:49]:
-> 
-> -> Shouldn't we just retrieve the offset and then use
->     omap_ctrl_writew\ omap_ctrl_readw calls?
+From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Sure that works too. And that actually has the advantage
-that it's more likely to keep the mux read/write access
-in the platform init code.
+Changes since v2:
+	Added a check to warn the wrong usage of vrfb in non-vrfb omap devices.
+
+Force def_vrfb to 0 for non omap2, omap3 devices
+
+Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+---
+ drivers/video/omap2/omapfb/omapfb-main.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index 4b4506d..0f79db8 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -2128,6 +2128,16 @@ static int omapfb_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
  
-> -> I hope muxmode configuration can be done in the
->     existing code itself by manually populating the mode
->    and use offset retrieved from omap_mux_request_signal
->    and use omap_ctrl_writew.
->    Any comment?
++	/* TODO : Replace cpu check with omap_has_vrfb once HAS_FEATURE
++	*	 available for OMAP2 and OMAP3
++	*/
++	if (def_vrfb && (!cpu_is_omap24xx()) && (!cpu_is_omap34xx())) {
++		def_vrfb = 0;
++		dev_warn(&pdev->dev, "VRFB is not in this device,"
++				"using DMA for rotation\n");
++	}
++
++
+ 	mutex_init(&fbdev->mtx);
+ 
+ 	fbdev->dev = &pdev->dev;
+-- 
+1.6.3.3
 
-I'm not sure I follow you, but you should keep any mux
-functions in the platform init code and keep the driver
-as generic as possible.
-
-Regards,
-
-Tony
