@@ -1,54 +1,78 @@
-From: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
-Subject: Re: Timekeeping issue on aggressive suspend/resume
-Date: Wed, 9 Jun 2010 23:34:31 -0700
-Message-ID: <AANLkTin-6XsW49ECufTLcdzaD1eK9bAxe0j7RXvPqN7p@mail.gmail.com>
-References: <AANLkTinIO5a1EeK6Ej2ljkuyL9zv06OMfbyiZBaxTQTd@mail.gmail.com>
-	<alpine.LFD.2.00.1006092206020.2933@localhost.localdomain>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: simple sd card performance bug fix on OMAP
+Date: Thu, 10 Jun 2010 09:36:22 +0300
+Message-ID: <20100610063621.GP32208@atomide.com>
+References: <4C0013DC.6060601@earthlink.net>
+ <5A47E75E594F054BAF48C5E4FC4B92AB032162380F@dbde02.ent.ti.com>
+ <007601cb0277$afa019a0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:33300 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754997Ab0FJGew (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 02:34:52 -0400
-In-Reply-To: <alpine.LFD.2.00.1006092206020.2933@localhost.localdomain>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49943 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751928Ab0FJGgU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 02:36:20 -0400
+Content-Disposition: inline
+In-Reply-To: <007601cb0277$afa019a0$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org, John Stultz <johnstul@us.ibm.com>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: "'Gadiyar, Anand'" <gadiyar@ti.com>, "'Stephen Schwarm, CSDP'" <w3eve@earthlink.net>, linux-omap@vger.kernel.org
 
-On Wed, Jun 9, 2010 at 1:22 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> Though we could change that conditionally - the default would still be
-> the freeze of jiffies and CLOCK_MONOTONIC for historical compability.
+* Madhusudhan <madhu.cr@ti.com> [100602 20:13]:
+> 
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Gadiyar, Anand
+> > Sent: Friday, May 28, 2010 2:55 PM
+> > To: Stephen Schwarm, CSDP; linux-omap@vger.kernel.org
+> > Subject: RE: simple sd card performance bug fix on OMAP
+> > 
+> > Stephen Schwarm, CSDP wrote:
+> > >
+> > > I have not had time to make a formal patch for this but I thought it was
+> > > significant enough just to send it out.  The problem is on omap systems
+> > > that use omap_hsmmc.c to run sd or mmc cards.  If the system you are
+> > > using has an 8 wire interface, it will only use a one wire interface to
+> > > 4 wire cards (eg, sd class 4 and sd class 6).
+> > >
+> > > In the file driver/mmc/omap_hsmmc.c in the function omap_hsmmc_probe:
+> > > at about line 1739 change:
+> > >
+> > >     if (mmc_slot(host).wires >= 8)
+> > >         mmc->caps |= MMC_CAP_8_BIT_DATA;
+> > >     else if (mmc_slot(host).wires >= 4)
+> > >         mmc->caps |= MMC_CAP_4_BIT_DATA;
+> > >
+> > > to:
+> > >
+> > >     if (mmc_slot(host).wires >= 8)
+> > >         mmc->caps |= MMC_CAP_8_BIT_DATA;
+> > >     if (mmc_slot(host).wires >= 4)
+> > >         mmc->caps |= w;
+> > >
+> > > just delete the word "else".  This sets the MMC_CAP_4_BIT_DATA bit on
+> > > interfaces that have 8 wire interfaces.
+> > >
+> > > We have seen a BIG performance improvement on our systems.
+> > >
+> > 
+> > Thanks for reporting this.
+> > 
+> > A similar patch was posted a while ago and is currently marked as
+> > "awaiting upstream", although it looks like it got lost again.
+> > 
+> > <https://patchwork.kernel.org/patch/78713/>
+> > 
+> A revised version of the same patch was posted.
+> 
+> https://patchwork.kernel.org/patch/93519/
+> 
+> Tony, Can you please push this?
 
-If I were to change it only for our implementation, and make all the
-user space timers use CLOCK_REALTIME, then could you please point me
-in a direction as to what part of the kernel I should be touching to
-make that change?
+This needs to get merged via linux-mmc list.
 
-Earlier we faced issue with time that the application sees. It wasn't
-getting updated when we suspend and resume the system (where as the
-time inside the kernel kept updating) and hence eventually would drift
-from the actual time.
+Regards,
 
-for eg, if I use this loop at the command prompt
-
-while date
-do
-echo mem > /sys/power/state
-done
-
-then the date command always displayed the same time, but the prints
-from the kernel (I was using the printk time information) was
-advancing as expected.
-
-I found a patch at
-https://patchwork.kernel.org/patch/50070/
-
-Though this fixed the application time update issue, there are lot of
-timers in the application which is still not working right.
-
-Could anyone please point in some direction to find the solution?
-
-Thanks,
-Suresh
+Tony
