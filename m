@@ -1,97 +1,95 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: simple sd card performance bug fix on OMAP
-Date: Thu, 10 Jun 2010 10:31:07 -0500
-Message-ID: <005001cb08b1$f349ba40$544ff780@am.dhcp.ti.com>
-References: <4C0013DC.6060601@earthlink.net> <5A47E75E594F054BAF48C5E4FC4B92AB032162380F@dbde02.ent.ti.com> <007601cb0277$afa019a0$544ff780@am.dhcp.ti.com> <20100610063621.GP32208@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] omap4: mmc: Fix the regulator resource for MMC2
+Date: Thu, 10 Jun 2010 21:04:45 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5AB0D35@dbde02.ent.ti.com>
+References: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44674 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55242 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751893Ab0FJPbl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Jun 2010 11:31:41 -0400
-In-Reply-To: <20100610063621.GP32208@atomide.com>
+	id S1759249Ab0FJPeu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jun 2010 11:34:50 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5AFYlqH015133
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 10 Jun 2010 10:34:49 -0500
+In-Reply-To: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Tony Lindgren' <tony@atomide.com>
-Cc: "'Gadiyar, Anand'" <gadiyar@ti.com>, "'Stephen Schwarm, CSDP'" <w3eve@earthlink.net>, linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
 
-
-
+Tony,
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, June 10, 2010 1:36 AM
-> To: Madhusudhan
-> Cc: 'Gadiyar, Anand'; 'Stephen Schwarm, CSDP'; linux-omap@vger.kernel.org
-> Subject: Re: simple sd card performance bug fix on OMAP
+> From: Shilimkar, Santosh
+> Sent: Friday, May 28, 2010 9:38 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Shilimkar, Santosh; Nayak, Rajendra; Ghorai, Sukumar; Kadiyala, Kishore
+> Subject: [PATCH] omap4: mmc: Fix the regulator resource for MMC2
 > 
-> * Madhusudhan <madhu.cr@ti.com> [100602 20:13]:
-> >
-> >
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of Gadiyar, Anand
-> > > Sent: Friday, May 28, 2010 2:55 PM
-> > > To: Stephen Schwarm, CSDP; linux-omap@vger.kernel.org
-> > > Subject: RE: simple sd card performance bug fix on OMAP
-> > >
-> > > Stephen Schwarm, CSDP wrote:
-> > > >
-> > > > I have not had time to make a formal patch for this but I thought it
-> was
-> > > > significant enough just to send it out.  The problem is on omap
-> systems
-> > > > that use omap_hsmmc.c to run sd or mmc cards.  If the system you are
-> > > > using has an 8 wire interface, it will only use a one wire interface
-> to
-> > > > 4 wire cards (eg, sd class 4 and sd class 6).
-> > > >
-> > > > In the file driver/mmc/omap_hsmmc.c in the function
-> omap_hsmmc_probe:
-> > > > at about line 1739 change:
-> > > >
-> > > >     if (mmc_slot(host).wires >= 8)
-> > > >         mmc->caps |= MMC_CAP_8_BIT_DATA;
-> > > >     else if (mmc_slot(host).wires >= 4)
-> > > >         mmc->caps |= MMC_CAP_4_BIT_DATA;
-> > > >
-> > > > to:
-> > > >
-> > > >     if (mmc_slot(host).wires >= 8)
-> > > >         mmc->caps |= MMC_CAP_8_BIT_DATA;
-> > > >     if (mmc_slot(host).wires >= 4)
-> > > >         mmc->caps |= w;
-> > > >
-> > > > just delete the word "else".  This sets the MMC_CAP_4_BIT_DATA bit
-> on
-> > > > interfaces that have 8 wire interfaces.
-> > > >
-> > > > We have seen a BIG performance improvement on our systems.
-> > > >
-> > >
-> > > Thanks for reporting this.
-> > >
-> > > A similar patch was posted a while ago and is currently marked as
-> > > "awaiting upstream", although it looks like it got lost again.
-> > >
-> > > <https://patchwork.kernel.org/patch/78713/>
-> > >
-> > A revised version of the same patch was posted.
-> >
-> > https://patchwork.kernel.org/patch/93519/
-> >
-> > Tony, Can you please push this?
+> The MMC1 and MMC2 cards have seperate LDO supplies. Current code assumes
+> that they are powered by same LDO.
 > 
-> This needs to get merged via linux-mmc list.
+> This patch fixes the same and has VAUX1 as supply to MMC2 card.
 > 
-Sure. We will repost it.
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> Tested-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+> Tested with omap3_defconfig on OMAP4430SDP
+> 
+Any comments on this one ??
 
-Regards,
-Madhu
-
-> Regards,
+>  arch/arm/mach-omap2/board-4430sdp.c |   12 ++++++++----
+>  1 files changed, 8 insertions(+), 4 deletions(-)
 > 
-> Tony
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 7a78986..f62042e 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -384,14 +384,16 @@ static struct omap2_hsmmc_info mmc[] = {
+>  	{}	/* Terminator */
+>  };
+> 
+> -static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+> +static struct regulator_consumer_supply sdp4430_vaux_supply[] = {
+>  	{
+>  		.supply = "vmmc",
+> -		.dev_name = "mmci-omap-hs.0",
+> +		.dev_name = "mmci-omap-hs.1",
+>  	},
+> +};
+> +static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+>  	{
+>  		.supply = "vmmc",
+> -		.dev_name = "mmci-omap-hs.1",
+> +		.dev_name = "mmci-omap-hs.0",
+>  	},
+>  };
+> 
+> @@ -447,6 +449,8 @@ static struct regulator_init_data sdp4430_vaux1 = {
+>  					| REGULATOR_CHANGE_MODE
+>  					| REGULATOR_CHANGE_STATUS,
+>  	},
+> +	.num_consumer_supplies  = 1,
+> +	.consumer_supplies      = sdp4430_vaux_supply,
+>  };
+> 
+>  static struct regulator_init_data sdp4430_vaux2 = {
+> @@ -487,7 +491,7 @@ static struct regulator_init_data sdp4430_vmmc = {
+>  					| REGULATOR_CHANGE_MODE
+>  					| REGULATOR_CHANGE_STATUS,
+>  	},
+> -	.num_consumer_supplies  = 2,
+> +	.num_consumer_supplies  = 1,
+>  	.consumer_supplies      = sdp4430_vmmc_supply,
+>  };
+> 
+> --
+> 1.6.0.4
 
