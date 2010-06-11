@@ -1,79 +1,49 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: Timekeeping issue on aggressive suspend/resume
-Date: Fri, 11 Jun 2010 09:21:35 +0200
-Message-ID: <20100611092135.415c2155@surf>
-References: <AANLkTinIO5a1EeK6Ej2ljkuyL9zv06OMfbyiZBaxTQTd@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] [PATCH v3 2/4] OMAP4: Keyboard device registration
+Date: Fri, 11 Jun 2010 10:31:14 +0300
+Message-ID: <20100611073114.GH32208@atomide.com>
+References: <27F9C60D11D683428E133F85D2BB4A53043E537F74@dlee03.ent.ti.com>
+ <20100601094358.GJ841@atomide.com>
+ <27F9C60D11D683428E133F85D2BB4A53043E538286@dlee03.ent.ti.com>
+ <20100601185358.GE23818@nokia.com>
+ <20100601201314.GA17468@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.191.76.200]:60272 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950Ab0FKHVn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 03:21:43 -0400
-In-Reply-To: <AANLkTinIO5a1EeK6Ej2ljkuyL9zv06OMfbyiZBaxTQTd@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61637 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756043Ab0FKHbQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 03:31:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20100601201314.GA17468@core.coreip.homeip.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, "ext Arce, Abraham" <x0066660@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Suresh,
-
-On Wed, 9 Jun 2010 12:50:39 -0700
-Suresh Rajashekara <suresh.raj+linuxomap@gmail.com> wrote:
-
-> I have an application (running on 2.6.29-omap1) which puts an OMAP1
-> system to suspend aggressively. The system wakes up every 4 seconds
-> and stays awake for about 35 milliseconds and sleeps again for another
-> 4 seconds. This design is to save power on a battery operated device.
+* Dmitry Torokhov <dmitry.torokhov@gmail.com> [100601 23:07]:
+> On Tue, Jun 01, 2010 at 09:53:58PM +0300, Felipe Balbi wrote:
+> > On Tue, Jun 01, 2010 at 05:14:09PM +0200, ext Arce, Abraham wrote:
+> > >I am using #ifdef CONFIG_ARCH_OMAP4 for this portion of code, what
+> > >you are suggesting is to check at runtime?
+> > 
+> > you need to add both checks. If you build omap3-only or omap2-only
+> > you don't want that code to be compiled, but if you build
+> > omap1-2-3-4 kernel, you want it to work correctly on all cases.
+> > 
 > 
-> This aggressive suspend resume action seems like creating an issue to
-> other applications in the system waiting for some timeout to happen
-> (especially an application which is waiting using the mq_timedreceive
-> and is supposed to timeout every 30 seconds. It seems to wake up every
-> 90 seconds). Seems like the timekeeping is not happening properly in
-> side the kernel.
-> 
-> If the suspend duration is changed from 4 second to 1 second, then
-> things work somewhat better. On reducing it to 0.5 second (which was
-> our earlier design on 2.6.16-rc3), the problem seems to disappear.
+> It sould be nice if cpu_is_xxx were stubbed out for "wrong" arches
+> withing the same group (like omap, etc) so we could reduce the #ifdef
+> clutter.
 
-I've done a relatively similar thing on different CPU architecture: in
-the idle loop, when the CPU is going to be idle for a sufficiently long
-period of time, I power down the CPU completely. Before that, I've
-programmed a RTC (clocked at 32 khz) to wake-up the CPU a little bit
-*before* the expiration of the next timer. When the CPU wakes-up, I
-adjust the clocksource (in this case the CPU cycle counter) to
-compensate the time spent while the CPU was off, and I reprogram the
-clockevents to make sure that the timer will actually expire at the
-correct time, also by compensating the time during which the CPU was
-off (note: when the CPU is off, the cycle counter stops incrementing,
-and the timer used as clockevents stops decrementing). This way, the
-CLOCK_MONOTONIC time continues to go forward even when the CPU is off.
-The goal was to make the "CPU is off" case just another idle state of
-the system, which should just be as transparent to the life of the
-system as other idle states. So an application that uses a periodic
-timer of say, 30 milliseconds, will see its timer actually fired every
-30 milliseconds even though the CPU goes off between each timer
-expiration (we've done measurements with a scope, and the timer rely
-expires every 30 milliseconds as expected).
+They are defined as stubs for for non-selected omaps. So in general a
+function doing this in the beginning of the function:
 
-FWIW, we do not use the normal suspend/resume infrastructure for this,
-because it was way too slow (in the order of ~100ms). On the particular
-hardware we're using, it takes roughly ~1ms to go OFF, and ~2ms to
-completely wake-up, so we can very aggressively put the CPU in the OFF
-state.
+	if (!cpu_is_omap44xx())
+		return -ENODEV;
 
-However, the way we're doing the "time compensation" is quite hackish,
-and it would be great to hear Thomas Gleixner's ideas on how this
-should be implemented properly at the clocksource/clock_event_device
-level.
+Should already get optimized out if 44xx is not selected in Kconfig.
 
-Sincerely,
+Regards,
 
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+Tony
