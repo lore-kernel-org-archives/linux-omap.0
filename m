@@ -1,61 +1,103 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE: fix incorrect reset in bridge_brd_start
- function
-Date: Fri, 11 Jun 2010 00:22:54 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E7CD941@dlee03.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602CB7A83DB@dlee06.ent.ti.com>
- <4BF54A33.7040909@ti.com>
+Subject: RE: [PATCH 0/4] DSPBRIDGE: Remove comments refering to Windows OS.
+Date: Fri, 11 Jun 2010 00:23:55 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E7CD942@dlee03.ent.ti.com>
+References: <1274307702-22637-1-git-send-email-ivan.gomez@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43180 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754446Ab0FKFXF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 01:23:05 -0400
-In-Reply-To: <4BF54A33.7040909@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36764 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753939Ab0FKFYD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 01:24:03 -0400
+In-Reply-To: <1274307702-22637-1-git-send-email-ivan.gomez@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>
+To: "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
->From: Chitriki Rudramuni, Deepak
->Sent: Thursday, May 20, 2010 9:42 AM
->To: Guzman Lugo, Fernando
->Cc: linux-omap@vger.kernel.org; Hiroshi DOYU; Ameya Palande; Ramirez Luna, Omar; Felipe Contreras
->Subject: Re: [PATCH] DSPBRIDGE: fix incorrect reset in bridge_brd_start function
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gomez
+>Castellanos, Ivan
+>Sent: Wednesday, May 19, 2010 5:22 PM
+>To: linux-omap@vger.kernel.org
+>Cc: Hiroshi.DOYU@nokia.com; ameya.palande@nokia.com; felipe.contreras@nokia.com; Gomez Castellanos,
+>Ivan
+>Subject: [PATCH 0/4] DSPBRIDGE: Remove comments refering to Windows OS.
 >
->Guzman Lugo, Fernando wrote:
->> From 595a54c6a886d8e707e04cbf5d0d9b6d6de7c6ec Mon Sep 17 00:00:00 2001
->> From: Fernando Guzman Lugo <x0095840@ti.com>
->> Date: Tue, 18 May 2010 20:14:20 -0500
->> Subject: [PATCH] DSPBRIDGE: fix incorrect reset in bridge_brd_start function
->>
->> IVA mmu reset was not being done properly, so dsp bootaddress
->> was not copied to SYSC register. Given as a result DSP was not
->> booting from that address after reloading baseimage.
->>
->> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
->> ---
->>  drivers/dsp/bridge/core/tiomap3430.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/dsp/bridge/core/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
->> index c7b0d83..805e6f3 100644
->> --- a/drivers/dsp/bridge/core/tiomap3430.c
->> +++ b/drivers/dsp/bridge/core/tiomap3430.c
->> @@ -443,7 +443,7 @@ static dsp_status bridge_brd_start(struct bridge_dev_context *hDevContext,
->>  		/* Reset and Unreset the RST2, so that BOOTADDR is copied to
->>  		 * IVA2 SYSC register */
->>  		(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2,
->> -			OMAP3430_RST1_IVA2, OMAP3430_IVA2_MOD, RM_RSTCTRL);
->> +			OMAP3430_RST2_IVA2, OMAP3430_IVA2_MOD, RM_RSTCTRL);
->>  		udelay(100);
->>  		(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2, 0,
->>  					OMAP3430_IVA2_MOD, RM_RSTCTRL);
->>
->Tested by: Deepak chitriki<deepak.chitriki@ti.com>
+>This patch series remove comments refering to:
+>
+>WMD (Windows Mini Driver)
+>WCD (Windows Class Driver)
+>Mini-driver
+>Class-driver
+>
+>As they refer to the Windows Driver Model. Instead of using these,
+>they are replaced as follows:
+>WMD => Bridge driver (Contain only hardware specific functionallity)
+>WCD => DSP API (Since WCD provides an interface between the different
+>layers of the Windows Driver Model and Applications)
+>
+>This patch series is a compliment of the patch series to remove code
+>refering to other OS.
+>
+>Ivan Gomez Castellanos (4):
+>  DSPBRIDGE: Remove comments refering to WMD.
+>  DSPBRIDGE: Remove comments refering to WCD.
+>  DSPBRIDGE: Remove comments refering to "mini driver"
+>  DSPBRIDGE: Remove comments refering to "class driver"
+>
+> arch/arm/plat-omap/include/dspbridge/_chnl_sm.h    |    2 +-
+> arch/arm/plat-omap/include/dspbridge/brddefs.h     |    2 +-
+> arch/arm/plat-omap/include/dspbridge/cfg.h         |    6 +-
+> arch/arm/plat-omap/include/dspbridge/cfgdefs.h     |    2 +-
+> arch/arm/plat-omap/include/dspbridge/chnl.h        |    4 +-
+> arch/arm/plat-omap/include/dspbridge/chnlpriv.h    |    3 +-
+> arch/arm/plat-omap/include/dspbridge/dehdefs.h     |    2 +-
+> arch/arm/plat-omap/include/dspbridge/dev.h         |   65 ++++++------
+> arch/arm/plat-omap/include/dspbridge/devdefs.h     |    4 +-
+> arch/arm/plat-omap/include/dspbridge/drvdefs.h     |    2 +-
+> .../arm/plat-omap/include/dspbridge/dspapi-ioctl.h |    2 +-
+> arch/arm/plat-omap/include/dspbridge/dspchnl.h     |    4 +-
+> arch/arm/plat-omap/include/dspbridge/dspdefs.h     |  115 ++++++++++----------
+> arch/arm/plat-omap/include/dspbridge/dspdeh.h      |    2 +-
+> arch/arm/plat-omap/include/dspbridge/dspdrv.h      |    2 +-
+> arch/arm/plat-omap/include/dspbridge/dspio.h       |    4 +-
+> arch/arm/plat-omap/include/dspbridge/dspioctl.h    |    4 +-
+> arch/arm/plat-omap/include/dspbridge/dspmsg.h      |    4 +-
+> arch/arm/plat-omap/include/dspbridge/io_sm.h       |    6 +-
+> arch/arm/plat-omap/include/dspbridge/ldr.h         |    2 +-
+> arch/arm/plat-omap/include/dspbridge/memdefs.h     |    2 +-
+> arch/arm/plat-omap/include/dspbridge/mgr.h         |    2 +-
+> arch/arm/plat-omap/include/dspbridge/mgrpriv.h     |    2 +-
+> arch/arm/plat-omap/include/dspbridge/node.h        |    2 +-
+> arch/arm/plat-omap/include/dspbridge/proc.h        |    4 +-
+> arch/arm/plat-omap/include/dspbridge/procpriv.h    |    2 +-
+> arch/arm/plat-omap/include/dspbridge/utildefs.h    |    2 +-
+> drivers/dsp/bridge/core/_msg_sm.h                  |    4 +-
+> drivers/dsp/bridge/core/_tiomap.h                  |   10 +-
+> drivers/dsp/bridge/core/chnl_sm.c                  |    8 +-
+> drivers/dsp/bridge/core/io_sm.c                    |   20 ++--
+> drivers/dsp/bridge/core/msg_sm.c                   |    2 +-
+> drivers/dsp/bridge/core/tiomap3430.c               |   12 +-
+> drivers/dsp/bridge/core/tiomap3430_pwr.c           |    6 +-
+> drivers/dsp/bridge/core/ue_deh.c                   |    2 +-
+> drivers/dsp/bridge/pmgr/chnl.c                     |   10 +-
+> drivers/dsp/bridge/pmgr/chnlobj.h                  |   16 ++--
+> drivers/dsp/bridge/pmgr/dev.c                      |   48 +++++----
+> drivers/dsp/bridge/pmgr/dspapi.c                   |    2 +-
+> drivers/dsp/bridge/pmgr/io.c                       |    4 +-
+> drivers/dsp/bridge/pmgr/ioobj.h                    |   10 +-
+> drivers/dsp/bridge/pmgr/msg.c                      |    8 +-
+> drivers/dsp/bridge/pmgr/msgobj.h                   |   11 +-
+> drivers/dsp/bridge/rmgr/disp.c                     |    5 +-
+> drivers/dsp/bridge/rmgr/node.c                     |    9 +-
+> drivers/dsp/bridge/rmgr/proc.c                     |   11 +-
+> drivers/dsp/bridge/rmgr/strm.c                     |    7 +-
+> drivers/dsp/bridge/services/cfg.c                  |    2 +-
+> 48 files changed, 235 insertions(+), 225 deletions(-)
+>
 
 Pushed to dspbridge.
 
