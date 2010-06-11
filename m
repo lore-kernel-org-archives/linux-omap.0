@@ -1,113 +1,159 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: suspend blockers & Android integration
-Date: Fri, 11 Jun 2010 15:18:44 -0700
-Message-ID: <AANLkTikEJ5pWNNg6fVNHEJqN_DA3iXWfUfKQaQyQv0mL@mail.gmail.com>
-References: <AANLkTik9xMxx8IdYkUhd-oa_ik_MjGFOff_siUztls-9@mail.gmail.com>
-	<Pine.LNX.4.44L0.1006111018190.12006-100000@netrider.rowland.org>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 00/40] dspbridge: trivial error code cleanup
+Date: Fri, 11 Jun 2010 18:00:34 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E7CE443@dlee03.ent.ti.com>
+References: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <Pine.LNX.4.44L0.1006111018190.12006-100000@netrider.rowland.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33454 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750861Ab0FKXAp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 19:00:45 -0400
+In-Reply-To: <1275544073-20418-1-git-send-email-omar.ramirez@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: "Hebbar, Shivananda" <x0hebbar@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Uribe de Leon, Armando" <x0095078@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-2010/6/11 Alan Stern <stern@rowland.harvard.edu>:
-> On Thu, 10 Jun 2010, Arve Hj=F8nnev=E5g wrote:
+>From: Ramirez Luna, Omar
 >
->> > You've lost me. =A0If the power manager is sitting inside a select/pol=
-l,
->> > how can it miss the event (given that the event will make data
->> > available to be read on one of the descriptors being polled)?
->> >
->>
->> It cannot sit inside of select/poll all the time.
->>
->> > Or put it another way: With wakelocks, if the app doesn't use a suspend
->> > blocker then once it reads the event data and the timed wakelock is
->> > deactivated, there is nothing to prevent the system from immediately
->> > going into opportunistic suspend. =A0My scheme can fail in the same wa=
-y.
->> > Is that what you meant?
->> >
->>
->> No, if an app reads from a file descriptor and block suspend when the
->> read call returns, then suspend is blocked while processing the data.
->> If the driver uses a wakelock with a timeout this will fail if the
->> thread does not get to the suspend block call before the timeout
->> expires, but unrelated events that don't prevent the app from running
->> will not cause any problems.
+>These set of patches gets rid of the custom error codes still present.
 >
-> Wait a second. =A0Maybe I have misunderstood how timeouts are supposed to
-> work with wakelocks. =A0I thought the idea was that the wakelock would be
-> released when the timeout expires or the event queue is emptied,
-
-That is one way to use it, and I did this so code that opened an input
-device without reading from it would not prevent suspend forever. In
-the last patchset I posted, I instead used an ioctl to enable the
-suspend blocker.
-
-> whichever comes first. =A0Now it sounds like you're saying that the
-> wakelock doesn't get released until the timeout expires, even if
-> userspace finishes processing all pending events before then.
+>Although there are a lot of patches most of them are just replacements
+>which were broken into single patches to avoid big patch files.
 >
-
-For incoming network traffic we use a wakelock with a timeout to
-prevent suspend long enough for the data to make it to user-space
-since we have not added wakelocks to the network stack.
-
->> In your scheme the user-space power
->> manager may miss events on this file descriptor since select/poll will
->> not see an event if the app read that event right before the power
->> manager called select/poll.
+>One of the patches creates a help file with the matching linux
+>error codes just in case the error is not descriptive enough, and
+>it also lists a common scenario where the error might be seen.
 >
-> If the wakelock is supposed to remain active until the timeout expires
-> then you are right. =A0On the other hand, this seems like a rather
-> strange and suspicious way of handling wakelocks. =A0Why would you want
-> to do it that way?
+>Finally, the last patch replaces a custom typedef (dsp_status)
+>with an int type as now those errors can have a negative value.
 >
-
-We did this to avoid changing to the network stack, tty layer, etc.
-
->> > There's one question that I don't remember ever seeing answered. =A0To
->> > which kernel drivers do you intend to add suspend blockers?
->> >
->>
->> All drivers that generate wakeup events need to either use suspend
->> blockers directly or call into something else that does. For instance,
->> with the patch to block suspend while input events are queued to
->> user-space, an input driver that fully handles its events in its
->> interrupt handler does not need any additional suspend blockers, but
->> if the driver needs a work function or a timer to run before it
->> reports the event it needs to block suspend until it has reported the
->> event.
+>Omar Ramirez Luna (40):
+>  DSPBRIDGE: Remove success codes
+>  DSPBRIDGE: change DSP_SENUMCOMPLETE for ENODATA
+>  DSPBRIDGE: err code replace CHNL_E_WAITTIMEOUT with ETIMEDOUT
+>  DSPBRIDGE: err code replace CHNL_E_NOEOS with EPERM
+>  DSPBRIDGE: err code replace CHNL_E_BUFSIZE with EINVAL
+>  DSPBRIDGE: err code replace CHNL_E_NOIORPS with EIO
+>  DSPBRIDGE: err code replace CHNL_E_ISR with EIO
+>  DSPBRIDGE: err code replace CHNL_E_MGREXISTS with EEXIST
+>  DSPBRIDGE: err code replace CHNL_E_NOMEMMAP with EFAULT
+>  DSPBRIDGE: err code replace CHNL_E_INVALIDMEMBASE with EINVAL
+>  DSPBRIDGE: err code replace CHNL_E_INVALIDWORDSIZE with EINVAL
+>  DSPBRIDGE: err code replace CHNL_E_EOS with EPIPE
+>  DSPBRIDGE: err code replace CHNL_E_NOIOC with EREMOTEIO
+>  DSPBRIDGE: err code replace CHNL_E_BADCHANID with ECHRNG
+>  DSPBRIDGE: err code replace CHNL_E_OUTOFSTREAMS with ENOSR
+>  DSPBRIDGE: err code replace CHNL_E_MAXCHANNELS with ECHRNG
+>  DSPBRIDGE: err code replace COD_E_ZLCREATEFAILED with ESPIPE
+>  DSPBRIDGE: err code replace COD_E_SYMBOLNOTFOUND with ESPIPE
+>  DSPBRIDGE: err code replace COD_E_NOSYMBOLSLOADED with ESPIPE
+>  DSPBRIDGE: err code replace DSP_EDPMSUSPEND with EPERM
+>  DSPBRIDGE: err code replace DSP_EDYNLOAD with EILSEQ
+>  DSPBRIDGE: err code replace DSP_EBADSEGID with EBADR
+>  DSPBRIDGE: err code replace DSP_EOVERLAYMEMORY with ENXIO
+>  DSPBRIDGE: err code replace DSP_ENOSECT with ENXIO
+>  DSPBRIDGE: err code replace DSP_ETRANSLATE with ESRCH
+>  DSPBRIDGE: err code replace DSP_ENOTFOUND with ENOENT
+>  DSPBRIDGE: err code replace DSP_EDCDNOAUTOREGISTER with EACCES
+>  DSPBRIDGE: err code replace DSP_EDCDLOADBASE with EACCES
+>  DSPBRIDGE: err code replace DSP_EDCDGETSECT with EACCES
+>  DSPBRIDGE: err code replace DSP_EDCDPARSESECT with EACCES
+>  DSPBRIDGE: err code replace DSP_EDCDREADSECT with EACCES
+>  DSPBRIDGE: err code replace DSP_ESYMBOL with ESPIPE
+>  DSPBRIDGE: err code replace DSP_EWRONGSTATE with EBADR
+>  DSPBRIDGE: err code replace DSP_EPENDING with EPIPE
+>  DSPBRIDGE: err code replace DSP_ECHANGEDURINGENUM with EIDRM
+>  DSPBRIDGE: remove custom errbase definitions
+>  DSPBRIDGE: cleanup for duplicated error codes
+>  DSPBRIDGE: removed unused error codes from comments
+>  DSPBRIDGE: error code guide
+>  DSPBRIDGE: remove dsp_status typedef
 >
-> Sure. =A0But specifically, which drivers on Android generate wakeup
-> events? =A0And which of them don't fully handle their events in their
-> interrupt handlers?
->
+> Documentation/tidspbridge/error-codes              |  157 ++++++++++++++
+> arch/arm/plat-omap/include/dspbridge/_chnl_sm.h    |    2 +-
+> arch/arm/plat-omap/include/dspbridge/cfg.h         |   57 +++---
+> arch/arm/plat-omap/include/dspbridge/chnl.h        |   31 ++--
+> arch/arm/plat-omap/include/dspbridge/clk.h         |    8 +-
+> arch/arm/plat-omap/include/dspbridge/cmm.h         |   44 ++--
+> arch/arm/plat-omap/include/dspbridge/cod.h         |   61 +++---
+> arch/arm/plat-omap/include/dspbridge/dbdcd.h       |   73 +++----
+> arch/arm/plat-omap/include/dspbridge/dbdcddef.h    |    2 +-
+> arch/arm/plat-omap/include/dspbridge/dbdefs.h      |    5 +-
+> arch/arm/plat-omap/include/dspbridge/dbldefs.h     |    2 +-
+> arch/arm/plat-omap/include/dspbridge/dbll.h        |   14 +-
+> arch/arm/plat-omap/include/dspbridge/dblldefs.h    |   47 ++---
+> arch/arm/plat-omap/include/dspbridge/dev.h         |  156 ++++++--------
+> arch/arm/plat-omap/include/dspbridge/disp.h        |   25 +--
+> arch/arm/plat-omap/include/dspbridge/dmm.h         |   18 +-
+> arch/arm/plat-omap/include/dspbridge/drv.h         |   38 ++--
+> .../arm/plat-omap/include/dspbridge/dspapi-ioctl.h |    2 +-
+> arch/arm/plat-omap/include/dspbridge/dspapi.h      |    8 +-
+> arch/arm/plat-omap/include/dspbridge/dspchnl.h     |   24 +-
+> arch/arm/plat-omap/include/dspbridge/dspdefs.h     |  226 ++++++++++----------
+> arch/arm/plat-omap/include/dspbridge/dspdeh.h      |    8 +-
+> arch/arm/plat-omap/include/dspbridge/dspio.h       |   10 +-
+> arch/arm/plat-omap/include/dspbridge/dspmsg.h      |   10 +-
+> arch/arm/plat-omap/include/dspbridge/errbase.h     |  177 ---------------
+> arch/arm/plat-omap/include/dspbridge/io.h          |   19 +-
+> arch/arm/plat-omap/include/dspbridge/io_sm.h       |    6 +-
+> arch/arm/plat-omap/include/dspbridge/mgr.h         |   34 ++--
+> arch/arm/plat-omap/include/dspbridge/msg.h         |    2 +-
+> arch/arm/plat-omap/include/dspbridge/nldr.h        |   14 +-
+> arch/arm/plat-omap/include/dspbridge/nldrdefs.h    |   31 ++--
+> arch/arm/plat-omap/include/dspbridge/node.h        |  148 ++++++-------
+> arch/arm/plat-omap/include/dspbridge/nodepriv.h    |    8 +-
+> arch/arm/plat-omap/include/dspbridge/ntfy.h        |   13 +-
+> arch/arm/plat-omap/include/dspbridge/proc.h        |  117 +++++------
+> arch/arm/plat-omap/include/dspbridge/pwr.h         |   25 +--
+> .../plat-omap/include/dspbridge/resourcecleanup.h  |   30 ++--
+> arch/arm/plat-omap/include/dspbridge/rmm.h         |   10 +-
+> arch/arm/plat-omap/include/dspbridge/strm.h        |   71 +++---
+> arch/arm/plat-omap/include/dspbridge/sync.h        |   11 +-
+> drivers/dsp/bridge/core/_tiomap.h                  |    4 +-
+> drivers/dsp/bridge/core/_tiomap_pwr.h              |   14 +-
+> drivers/dsp/bridge/core/chnl_sm.c                  |   83 ++++----
+> drivers/dsp/bridge/core/dsp-clock.c                |    9 +-
+> drivers/dsp/bridge/core/io_sm.c                    |   75 ++++----
+> drivers/dsp/bridge/core/mmu_fault.c                |    1 -
+> drivers/dsp/bridge/core/msg_sm.c                   |   31 ++--
+> drivers/dsp/bridge/core/tiomap3430.c               |  123 ++++++------
+> drivers/dsp/bridge/core/tiomap3430_pwr.c           |   45 ++--
+> drivers/dsp/bridge/core/tiomap_io.c                |   21 +-
+> drivers/dsp/bridge/core/tiomap_io.h                |    6 +-
+> drivers/dsp/bridge/core/ue_deh.c                   |   21 +-
+> drivers/dsp/bridge/core/wdt.c                      |    1 -
+> drivers/dsp/bridge/pmgr/chnl.c                     |   17 +-
+> drivers/dsp/bridge/pmgr/cmm.c                      |   47 ++--
+> drivers/dsp/bridge/pmgr/cod.c                      |   61 +++---
+> drivers/dsp/bridge/pmgr/dbll.c                     |   47 ++--
+> drivers/dsp/bridge/pmgr/dev.c                      |  113 +++++-----
+> drivers/dsp/bridge/pmgr/dmm.c                      |   43 ++--
+> drivers/dsp/bridge/pmgr/dspapi.c                   |  101 +++++-----
+> drivers/dsp/bridge/pmgr/io.c                       |   13 +-
+> drivers/dsp/bridge/pmgr/msg.c                      |    5 +-
+> drivers/dsp/bridge/rmgr/dbdcd.c                    |   97 +++++----
+> drivers/dsp/bridge/rmgr/disp.c                     |   35 ++--
+> drivers/dsp/bridge/rmgr/drv.c                      |   97 ++++-----
+> drivers/dsp/bridge/rmgr/drv_interface.c            |   13 +-
+> drivers/dsp/bridge/rmgr/dspdrv.c                   |    3 +-
+> drivers/dsp/bridge/rmgr/mgr.c                      |   43 ++--
+> drivers/dsp/bridge/rmgr/nldr.c                     |   91 ++++----
+> drivers/dsp/bridge/rmgr/node.c                     |  157 +++++++-------
+> drivers/dsp/bridge/rmgr/proc.c                     |  131 ++++++------
+> drivers/dsp/bridge/rmgr/pwr.c                      |   16 +-
+> drivers/dsp/bridge/rmgr/rmm.c                      |   11 +-
+> drivers/dsp/bridge/rmgr/strm.c                     |   84 ++++----
+> drivers/dsp/bridge/services/cfg.c                  |   41 ++--
+> drivers/dsp/bridge/services/sync.c                 |   10 +-
+> 76 files changed, 1666 insertions(+), 1788 deletions(-)
+> create mode 100644 Documentation/tidspbridge/error-codes
+> delete mode 100644 arch/arm/plat-omap/include/dspbridge/errbase.h
 
-Keypad, network, charger, rtc, but I'm sure I forgot some.
+Pushed to dspbridge
 
-> Maybe another way to put this is: Where in the kernel do you intend to
-> add suspend blockers?
->
-
-In addition to the drivers that enable the wakeup events, we have
-added suspend blockers to the input event code and power supply
-framework. The tty layer and network stack would also need suspend
-blockers to avoid using timeouts.
-
--- =
-
-Arve Hj=F8nnev=E5g
+- omar
