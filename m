@@ -1,49 +1,84 @@
-From: Tom Briggs <tbriggs6@gmail.com>
-Subject: asoc beagle audio capture fails in 2.6.33 dspbridge kernel
-Date: Fri, 11 Jun 2010 10:38:26 -0400
-Message-ID: <AANLkTikYFxty_uIJ1vS5tml3pd-N7tkXfnQ80gtA823V@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] suspend blockers & Android integration
+Date: Fri, 11 Jun 2010 10:42:07 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1006111036030.12006-100000@netrider.rowland.org>
+References: <527264.20535.qm@web180316.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:33828 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756841Ab0FKOi2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 10:38:28 -0400
-Received: by bwz7 with SMTP id 7so369155bwz.19
-        for <linux-omap@vger.kernel.org>; Fri, 11 Jun 2010 07:38:26 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <527264.20535.qm@web180316.mail.gq1.yahoo.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Brian Swetland <swetland@google.com>, Pavel Machek <pavel@ucw.cz>, tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Neil Brown <neilb@suse.de>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-I have spent the past few weeks whacking at a problem with the 2.6.33
-dspbridge kernel, and I'm hoping someone can help me out.
+On Thu, 10 Jun 2010, David Brownell wrote:
 
-With a straight-up build of the head of the dspbridge kernel
-(currently 2.6.33), doing an arecord fails to capture data.  Using
-JTAG, I was able to trace through the kernel calls, and found that
-registers on the McBSP were being set, the DMA request was being added
-to the request chain, the TWL4030 register is set to begin
-transferring data.  Comparing these to TRM, they seem to be
-appropriate settings.  The DMA interrupt does not seem to be generated
-by the audio capture (setting JTAG breakpoint at handle_level_irq I
-see many other interrupts come in, but not int 12 for DMA, or 32/33
-for McBSP framing errors).
+> This is a bit off the topic of Android
+> flamage, but I thought it would be worth
+> highlighting an example where the current
+> frameworks may still have a deficiency...
+> one that likewise relates to needing to
+> block entry ot a system suspend state, but
+> in this case user-space isn't very involved
+> (just drivers coping with hardware).
+> 
+> The example I wanted to re-post (I've done so
+> in the past) is one where drivers ouldn't really
+> do the right thing, since driver.suspend() wasn't
+> quite powerful enough as a programming interface.
+> 
+> The example works with USB on many ARM SoCs,
+> and similar non-USB examples aren't rare.
+> 
+>  - Want to enter a system suspend state, with
+>    some USB wakeup sources.  USB peripheral
+>    waken up by the host, or vice versa.
+> 
+>    NOTE ASSUMPTION:  there are multiple suspend
+>    states supported by the hardware, significantly
+>    different in hardware configuration Linux should
+>    be able to use more than one such state... (if
+>    only because their power savings differ.)  This
+> can mean driver-specific knowledge about those
+> various states.
+> 
+>  - The wakeup requires a particular clock to be active, so the USB controller can detect that the
+> wakeup should trigger,  then issue the right signals
+> triggering the non-USB parts of the system.
+> 
+> Problem:  how does the device driver suspend()
+>           method block entry to a suspend state
+>           when it can't ensure that clock is
+>           going to be active.  Magic return code?
 
-Audio capture works fine in the 2.6.35 and 2.6.29 kernel (but
-DSPBRIDGE doesn't).  So, I added the same printk's on the registers,
-and where there were differences, they were negligible, e.g. in
-2.6.35, the TWL4030 register 3A was set to 16, which was a higher gain
-on an audio channel.
+At the moment, drivers aren't told what suspend state the system is
+going into.  They know the difference between suspend and hibernate,
+but the PM core doesn't tell drivers whether it's going into standby
+vs. suspend.  (Strictly speaking, those terms apply mostly to ACPI
+systems and not so much elsewhere.  What I'm talking about is the
+/sys/power/state interface, where the user can write either "standby"
+or "mem".  Drivers aren't told which was written.)
 
-I've done a number of Google searches, and either I'm enough of a newb
-that I'm not using the correct terms to bring up meaningful results,
-or, noone else is reporting the same types of problems.  Is there a
-patch that addresses this?
+>  There are other issues here too.  (Is the target
+>  system suspend state one of the ones which doesn't
+> allow that clock to be active?  SoC-specific calls
+> might suffice for this issue.
 
--tom
+I imagine platforms have to answer all such questions when they decide 
+exactly how they will implement "standby" and "mem".
 
+> A number of years ago, this problem was insoluble
+> with the then-current Linux PM and clock frameworks.
+> I've been away from this issue for quite a while
+> now, but don't recall seeing its sub-problems get
+> solved ... If they're now solved, I'll be glad.
+> (I know Kevin's recent OMAP stuff addresses similar
+> issues, but It's OMAP-specific...) 
+> 
+> After all these thousands and thousands of emails...
+> I'm not sure how much forward motion has happened.
 
----------
-Tom Briggs, PhD
-Associate Professor, Department of Computer Science
-Shippensburg University of Pennsylvania
+I'm not aware of any progress.
+
+Alan Stern
