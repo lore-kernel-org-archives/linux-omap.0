@@ -1,73 +1,113 @@
-From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCH] mailbox: change full flag per mailbox queue instead of global
-Date: Fri, 11 Jun 2010 16:17:59 -0500
-Message-ID: <1276291079-14266-1-git-send-email-x0095840@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41589 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760337Ab0FKVLN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Jun 2010 17:11:13 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: suspend blockers & Android integration
+Date: Fri, 11 Jun 2010 15:18:44 -0700
+Message-ID: <AANLkTikEJ5pWNNg6fVNHEJqN_DA3iXWfUfKQaQyQv0mL@mail.gmail.com>
+References: <AANLkTik9xMxx8IdYkUhd-oa_ik_MjGFOff_siUztls-9@mail.gmail.com>
+	<Pine.LNX.4.44L0.1006111018190.12006-100000@netrider.rowland.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <Pine.LNX.4.44L0.1006111018190.12006-100000@netrider.rowland.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, Brian Swetland <swetland@google.com>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: hiroshi.doyu@nokia.com, ohad@wizery.com, Fernando Guzman Lugo <x0095840@ti.com>
 
-As pointer by Ben Ohand, the variable rq_full flag is a global
-variable, so if there are multiple mailbox user there will be
-conflics. Now there is a full flag per mailbox queue.
+2010/6/11 Alan Stern <stern@rowland.harvard.edu>:
+> On Thu, 10 Jun 2010, Arve Hj=F8nnev=E5g wrote:
+>
+>> > You've lost me. =A0If the power manager is sitting inside a select/pol=
+l,
+>> > how can it miss the event (given that the event will make data
+>> > available to be read on one of the descriptors being polled)?
+>> >
+>>
+>> It cannot sit inside of select/poll all the time.
+>>
+>> > Or put it another way: With wakelocks, if the app doesn't use a suspend
+>> > blocker then once it reads the event data and the timed wakelock is
+>> > deactivated, there is nothing to prevent the system from immediately
+>> > going into opportunistic suspend. =A0My scheme can fail in the same wa=
+y.
+>> > Is that what you meant?
+>> >
+>>
+>> No, if an app reads from a file descriptor and block suspend when the
+>> read call returns, then suspend is blocked while processing the data.
+>> If the driver uses a wakelock with a timeout this will fail if the
+>> thread does not get to the suspend block call before the timeout
+>> expires, but unrelated events that don't prevent the app from running
+>> will not cause any problems.
+>
+> Wait a second. =A0Maybe I have misunderstood how timeouts are supposed to
+> work with wakelocks. =A0I thought the idea was that the wakelock would be
+> released when the timeout expires or the event queue is emptied,
 
-Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
----
- arch/arm/plat-omap/include/plat/mailbox.h |    1 +
- arch/arm/plat-omap/mailbox.c              |    7 +++----
- 2 files changed, 4 insertions(+), 4 deletions(-)
+That is one way to use it, and I did this so code that opened an input
+device without reading from it would not prevent suspend forever. In
+the last patchset I posted, I instead used an ioctl to enable the
+suspend blocker.
 
-diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
-index 729166b..a6144b8 100644
---- a/arch/arm/plat-omap/include/plat/mailbox.h
-+++ b/arch/arm/plat-omap/include/plat/mailbox.h
-@@ -47,6 +47,7 @@ struct omap_mbox_queue {
- 	struct tasklet_struct	tasklet;
- 	int	(*callback)(void *);
- 	struct omap_mbox	*mbox;
-+	bool	full;
- };
- 
- struct omap_mbox {
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index 8d86b0b..a1e274e 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -30,7 +30,6 @@
- 
- static struct omap_mbox *mboxes;
- static DEFINE_RWLOCK(mboxes_lock);
--static bool rq_full;
- 
- static int mbox_configured;
- static DEFINE_MUTEX(mbox_configured_lock);
-@@ -140,9 +139,9 @@ static void mbox_rx_work(struct work_struct *work)
- 	while (1) {
- 		spin_lock_irqsave(q->queue_lock, flags);
- 		rq = blk_fetch_request(q);
--		if (rq_full) {
-+		if (mbox->rxq->full) {
- 			omap_mbox_enable_irq(mbox, IRQ_RX);
--			rq_full = false;
-+			mbox->rxq->full = false;
- 		}
- 		spin_unlock_irqrestore(q->queue_lock, flags);
- 		if (!rq)
-@@ -183,7 +182,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
- 		rq = blk_get_request(q, WRITE, GFP_ATOMIC);
- 		if (unlikely(!rq)) {
- 			omap_mbox_disable_irq(mbox, IRQ_RX);
--			rq_full = true;
-+			mbox->rxq->full = true;
- 			goto nomem;
- 		}
- 
--- 
-1.6.3.3
+> whichever comes first. =A0Now it sounds like you're saying that the
+> wakelock doesn't get released until the timeout expires, even if
+> userspace finishes processing all pending events before then.
+>
 
+For incoming network traffic we use a wakelock with a timeout to
+prevent suspend long enough for the data to make it to user-space
+since we have not added wakelocks to the network stack.
+
+>> In your scheme the user-space power
+>> manager may miss events on this file descriptor since select/poll will
+>> not see an event if the app read that event right before the power
+>> manager called select/poll.
+>
+> If the wakelock is supposed to remain active until the timeout expires
+> then you are right. =A0On the other hand, this seems like a rather
+> strange and suspicious way of handling wakelocks. =A0Why would you want
+> to do it that way?
+>
+
+We did this to avoid changing to the network stack, tty layer, etc.
+
+>> > There's one question that I don't remember ever seeing answered. =A0To
+>> > which kernel drivers do you intend to add suspend blockers?
+>> >
+>>
+>> All drivers that generate wakeup events need to either use suspend
+>> blockers directly or call into something else that does. For instance,
+>> with the patch to block suspend while input events are queued to
+>> user-space, an input driver that fully handles its events in its
+>> interrupt handler does not need any additional suspend blockers, but
+>> if the driver needs a work function or a timer to run before it
+>> reports the event it needs to block suspend until it has reported the
+>> event.
+>
+> Sure. =A0But specifically, which drivers on Android generate wakeup
+> events? =A0And which of them don't fully handle their events in their
+> interrupt handlers?
+>
+
+Keypad, network, charger, rtc, but I'm sure I forgot some.
+
+> Maybe another way to put this is: Where in the kernel do you intend to
+> add suspend blockers?
+>
+
+In addition to the drivers that enable the wakeup events, we have
+added suspend blockers to the input event code and power supply
+framework. The tty layer and network stack would also need suspend
+blockers to avoid using timeouts.
+
+-- =
+
+Arve Hj=F8nnev=E5g
