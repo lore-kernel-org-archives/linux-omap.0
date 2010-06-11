@@ -1,48 +1,63 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Fri, 11 Jun 2010 10:46:27 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006111045340.12006-100000@netrider.rowland.org>
-References: <1276266502.2862.74.camel@mulgrave.site>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: Alternative for defconfig
+Date: Fri, 11 Jun 2010 09:55:07 -0500
+Message-ID: <A24693684029E5489D1D202277BE894455DDEC44@dlee02.ent.ti.com>
+References: <201006091227.29175.laurent.pinchart@ideasonboard.com>
+	<FF55437E1F14DA4BAEB721A458B6701706BD9A3A73@dbde02.ent.ti.com>
+ <AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:34298 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756841Ab0FKOqa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 10:46:30 -0400
-In-Reply-To: <1276266502.2862.74.camel@mulgrave.site>
+Received: from devils.ext.ti.com ([198.47.26.153]:46140 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756376Ab0FKOzM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 10:55:12 -0400
+In-Reply-To: <AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: James Bottomley <James.Bottomley@suse.de>
-Cc: David Brownell <david-b@pacbell.net>, tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Neil Brown <neilb@suse.de>, Brian Swetland <swetland@google.com>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Felipe Contreras <felipe.contreras@gmail.com>, "Nagarajan, Rajkumar" <x0133774@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, 11 Jun 2010, James Bottomley wrote:
 
-> On Thu, 2010-06-10 at 21:21 -0700, David Brownell wrote:
-> > Do we at least have a clean way that a driver can
-> > reject a system suspend?  I've lost track of many
-> > issues, but maybe this could be phrased as a QOS
-> > constraint:  the current config of driver X needs
-> > clock Y active to enter the  target system suspend
-> > state, driver's suspend() method reports as much.  Then the entry to
-> > that system state gets blocked
-> > if the clock isn't enabled.
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Felipe Contreras
+> Sent: Friday, June 11, 2010 8:43 AM
+> To: Nagarajan, Rajkumar
+> Cc: Laurent Pinchart; linux-media@vger.kernel.org; Hiremath, Vaibhav;
+> linux-omap@vger.kernel.org
+> Subject: Re: Alternative for defconfig
 > 
-> So in QoS modifications to android patches, the answer is "yes" ...
-> except that the current android patch set didn't actually have this type
-> of wakelock in it.
+> On Fri, Jun 11, 2010 at 3:19 PM, Nagarajan, Rajkumar <x0133774@ti.com>
+> wrote:
+> > 1. What is the alternative way of submitting defconfig changes/files to
+> LO?
+
+I don't think defconfig changes are prohibited now. If I understand
+correctly, Linus just hates the fact that there is a big percentage of
+patches for defconfigs. Maybe he wants us to hold these, and better
+provide higher percentage of actual code changes.
+
+What about holding defconfig changes in a separate branch, and just send
+them for upstream once in a while, specially if there's a big quantity of
+them in the queue?
+
+IMHO, defconfigs are just meant to make us life easier, but changes to them
+should _never_ be a fix/solution to any problem, and therefore I understand
+that those aren't a priority over regressions.
+
+Regards,
+Sergio
+
 > 
-> Android wants an idleness suspend block (or pm qos constraint) that a
-> driver can set to prevent the system idleness power govenor from
-> dropping into a power state too low for the driver, so in USB terms this
-> would prevent the states that shut down the clock.  For android, it
-> prevented shutdown of an internal i2c bus.
+> I don't think we have any alternative yet.
 > 
-> The one thing that does look difficult is that these power constraints
-> are device (and sometimes SoC) specific.  Expressing them in a generic
-> way for the cpu govenors to make sense of might be hard.
-
-Doesn't the clock framework already handle this sort of thing?
-
-Alan Stern
-
+> --
+> Felipe Contreras
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
