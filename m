@@ -1,63 +1,54 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Alternative for defconfig
-Date: Fri, 11 Jun 2010 17:26:25 +0200
-Message-ID: <201006111726.28384.laurent.pinchart@ideasonboard.com>
-References: <201006091227.29175.laurent.pinchart@ideasonboard.com> <201006111707.34463.laurent.pinchart@ideasonboard.com> <5A47E75E594F054BAF48C5E4FC4B92AB03233C036E@dbde02.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 3/3] arm: omap1/2/3/4: convert 32k-sync driver to a
+ platform_driver
+Date: Fri, 11 Jun 2010 20:54:50 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5AB138E@dbde02.ent.ti.com>
+References: <20100407072102.GU16297@nokia.com>
+ <1270634244-22741-3-git-send-email-felipe.balbi@nokia.com>
+ <87bpdvfdoy.fsf@deeprootsystems.com> <20100407173420.GA11943@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03233C036E@dbde02.ent.ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "Aguirre, Sergio" <saaguirre@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, "Nagarajan, Rajkumar" <x0133774@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37243 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750781Ab0FKPY7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 11:24:59 -0400
+In-Reply-To: <20100407173420.GA11943@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi Anand,
-
-On Friday 11 June 2010 17:14:19 Gadiyar, Anand wrote:
-> Laurent Pinchart wrote:
-> > On Friday 11 June 2010 16:55:07 Aguirre, Sergio wrote:
-> > > > On Fri, Jun 11, 2010 at 3:19 PM, Nagarajan, Rajkumar wrote:
-> > > > > 1. What is the alternative way of submitting defconfig
-> > > > > changes/files to
-> > > > 
-> > > > LO?
-> > > 
-> > > I don't think defconfig changes are prohibited now. If I understand
-> > > correctly, Linus just hates the fact that there is a big percentage of
-> > > patches for defconfigs. Maybe he wants us to hold these, and better
-> > > provide higher percentage of actual code changes.
-> > > 
-> > > What about holding defconfig changes in a separate branch, and just
-> > > send them for upstream once in a while, specially if there's a big
-> > > quantity of them in the queue?
-> > > 
-> > > IMHO, defconfigs are just meant to make us life easier, but changes to
-> > > them should _never_ be a fix/solution to any problem, and therefore I
-> > > understand that those aren't a priority over regressions.
-> > 
-> > My understanding is that Linus will remove all ARM defconfigs in 2.6.36,
-> > unless someone can convince him not to. Board-specific defconfigs won't
-> > be allowed anymore, the number of defconfigs needs to be reduced
-> > drastically (ideally to one or two only).
+Felipe,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe
+> Balbi
+> Sent: Wednesday, April 07, 2010 11:04 PM
+> To: ext Kevin Hilman
+> Cc: Balbi Felipe (Nokia-D/Helsinki); Linux OMAP Mailing List
+> Subject: Re: [PATCH 3/3] arm: omap1/2/3/4: convert 32k-sync driver to a platform_driver
 > 
-> There is some good work going on on the linux-arm-kernel mailing list to
-> cut down heavily the ARM defconfigs. Would be good to join that discussion.
+> On Wed, Apr 07, 2010 at 06:08:13PM +0200, ext Kevin Hilman wrote:
+> >felipe.balbi@nokia.com writes:
+> >
+> >> From: Felipe Balbi <felipe.balbi@nokia.com>
+> >>
+> >> Convert the omap32k clocksource driver into a platform_driver
+> >> and while at that, also remove the ifdeferry around the code.
+> >>
+> >> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> >
+> >I'm OK with this for now.  Ideally, this would be further converted to
+> >use hwmod + omap_device to automatcially created the platform_devices
+> >for you.
 > 
-> For OMAP, I suppose maintaining omap1_defconfig and omap3_defconfig would
-> suffice to cover all OMAPs?
+> Yeah. I was asking Paul about it today. I can send as a follow up patch
+> on next week.
+> 
+Is there a newer version of this series already available/posted??
+Sorry I missed it.
 
-I'm not sure what the exact roadmap will be. Linus is complaining about the 
-defconfig changes taking up too much of the diffstat. I don't know if he will 
-accept patches to solve the problem gradually, or if he will just remove all 
-defconfig files in 2.6.36.
-
-In any case, all changes that make it possible to built more machine types and 
-platform types in the same kernel are a step in the right direction.
-
--- 
-Regards,
-
-Laurent Pinchart
+Regards
+Santosh
