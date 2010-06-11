@@ -1,62 +1,73 @@
-From: James Bottomley <James.Bottomley@suse.de>
-Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Fri, 11 Jun 2010 16:04:35 -0500
-Message-ID: <1276290275.2862.152.camel@mulgrave.site>
-References: <Pine.LNX.4.44L0.1006111638040.19894-100000@netrider.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1006111638040.19894-100000@netrider.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: David Brownell <david-b@pacbell.net>, tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Neil Brown <neilb@suse.de>, Brian Swetland <swetland@google.com>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCH] mailbox: change full flag per mailbox queue instead of global
+Date: Fri, 11 Jun 2010 16:17:59 -0500
+Message-ID: <1276291079-14266-1-git-send-email-x0095840@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41589 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760337Ab0FKVLN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Jun 2010 17:11:13 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: hiroshi.doyu@nokia.com, ohad@wizery.com, Fernando Guzman Lugo <x0095840@ti.com>
 
-On Fri, 2010-06-11 at 16:48 -0400, Alan Stern wrote:
-> On Fri, 11 Jun 2010, Mark Brown wrote:
-> 
-> > On Fri, Jun 11, 2010 at 10:46:27AM -0400, Alan Stern wrote:
-> > > On Fri, 11 Jun 2010, James Bottomley wrote:
-> > 
-> > > > The one thing that does look difficult is that these power constraints
-> > > > are device (and sometimes SoC) specific.  Expressing them in a generic
-> > > > way for the cpu govenors to make sense of might be hard.
-> > 
-> > > Doesn't the clock framework already handle this sort of thing?
-> > 
-> > The clock framework is implemented independantly for each CPU.
-> 
-> That's not an impediment, since drivers' requirements regarding which 
-> clocks remain running in which power states are necessarily 
-> platform-dependent also.
-> 
-> 
-> On Fri, 11 Jun 2010, James Bottomley wrote:
-> 
-> > Well, there are two elements to "this sort of thing":
-> > 
-> >      1. Allow a driver to request that a given clock not be turned off.
-> >      2. Make the cpuidle governors aware of a pending "don't turn off X
-> >         clock source" so they can keep the system in a state where the
-> >         clock doesn't get powered down.
-> > 
-> > As far as I can tell from the code, neither currently exists at the
-> > moment.
-> 
-> Well then, can (or should) the clock framework interact with the
-> pm-qos subsystem so that drivers don't have to worry about it?
+As pointer by Ben Ohand, the variable rq_full flag is a global
+variable, so if there are multiple mailbox user there will be
+conflics. Now there is a full flag per mailbox queue.
 
-So the implementation of this seems to be a bit complex:  We could have
-clockevents_register() do a per clock pm_qos variable but then the
-cpuidle governors need to know which to listen for so they don't
-transition to a state too low for them to be active if pm_qos says keep
-them running.  Even if that gets sorted out, how would USB know which
-platform specific clock source is driving the wakeup events on its bus?
+Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ arch/arm/plat-omap/include/plat/mailbox.h |    1 +
+ arch/arm/plat-omap/mailbox.c              |    7 +++----
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-How complex can SoC clocksources be?  If it's just a simple binary
-do/don't potentially stop all clocks, I think it's easy.  If SoC's have
-a hierarchical shutdown sequence, and they really need this to save
-power, then expressing that generically becomes rather problematic.
+diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
+index 729166b..a6144b8 100644
+--- a/arch/arm/plat-omap/include/plat/mailbox.h
++++ b/arch/arm/plat-omap/include/plat/mailbox.h
+@@ -47,6 +47,7 @@ struct omap_mbox_queue {
+ 	struct tasklet_struct	tasklet;
+ 	int	(*callback)(void *);
+ 	struct omap_mbox	*mbox;
++	bool	full;
+ };
+ 
+ struct omap_mbox {
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 8d86b0b..a1e274e 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -30,7 +30,6 @@
+ 
+ static struct omap_mbox *mboxes;
+ static DEFINE_RWLOCK(mboxes_lock);
+-static bool rq_full;
+ 
+ static int mbox_configured;
+ static DEFINE_MUTEX(mbox_configured_lock);
+@@ -140,9 +139,9 @@ static void mbox_rx_work(struct work_struct *work)
+ 	while (1) {
+ 		spin_lock_irqsave(q->queue_lock, flags);
+ 		rq = blk_fetch_request(q);
+-		if (rq_full) {
++		if (mbox->rxq->full) {
+ 			omap_mbox_enable_irq(mbox, IRQ_RX);
+-			rq_full = false;
++			mbox->rxq->full = false;
+ 		}
+ 		spin_unlock_irqrestore(q->queue_lock, flags);
+ 		if (!rq)
+@@ -183,7 +182,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+ 		rq = blk_get_request(q, WRITE, GFP_ATOMIC);
+ 		if (unlikely(!rq)) {
+ 			omap_mbox_disable_irq(mbox, IRQ_RX);
+-			rq_full = true;
++			mbox->rxq->full = true;
+ 			goto nomem;
+ 		}
+ 
+-- 
+1.6.3.3
 
-James
