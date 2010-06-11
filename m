@@ -1,84 +1,48 @@
 From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [linux-pm] suspend blockers & Android integration
-Date: Fri, 11 Jun 2010 10:42:07 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006111036030.12006-100000@netrider.rowland.org>
-References: <527264.20535.qm@web180316.mail.gq1.yahoo.com>
+Date: Fri, 11 Jun 2010 10:46:27 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1006111045340.12006-100000@netrider.rowland.org>
+References: <1276266502.2862.74.camel@mulgrave.site>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <527264.20535.qm@web180316.mail.gq1.yahoo.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Brian Swetland <swetland@google.com>, Pavel Machek <pavel@ucw.cz>, tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Neil Brown <neilb@suse.de>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, James Bottomley <James.Bottomley@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from netrider.rowland.org ([192.131.102.5]:34298 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756841Ab0FKOqa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 10:46:30 -0400
+In-Reply-To: <1276266502.2862.74.camel@mulgrave.site>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: David Brownell <david-b@pacbell.net>, tytso@mit.edu, Peter Zijlstra <a.p.zijlstra@chello.nl>, Neil Brown <neilb@suse.de>, Brian Swetland <swetland@google.com>, Felipe Balbi <felipe.balbi@nokia.com>, LKML <linux-kernel@vger.kernel.org>, Florian Mickler <florian@mickler.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Linux PM <linux-pm@lists.linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-On Thu, 10 Jun 2010, David Brownell wrote:
+On Fri, 11 Jun 2010, James Bottomley wrote:
 
-> This is a bit off the topic of Android
-> flamage, but I thought it would be worth
-> highlighting an example where the current
-> frameworks may still have a deficiency...
-> one that likewise relates to needing to
-> block entry ot a system suspend state, but
-> in this case user-space isn't very involved
-> (just drivers coping with hardware).
+> On Thu, 2010-06-10 at 21:21 -0700, David Brownell wrote:
+> > Do we at least have a clean way that a driver can
+> > reject a system suspend?  I've lost track of many
+> > issues, but maybe this could be phrased as a QOS
+> > constraint:  the current config of driver X needs
+> > clock Y active to enter the  target system suspend
+> > state, driver's suspend() method reports as much.  Then the entry to
+> > that system state gets blocked
+> > if the clock isn't enabled.
 > 
-> The example I wanted to re-post (I've done so
-> in the past) is one where drivers ouldn't really
-> do the right thing, since driver.suspend() wasn't
-> quite powerful enough as a programming interface.
+> So in QoS modifications to android patches, the answer is "yes" ...
+> except that the current android patch set didn't actually have this type
+> of wakelock in it.
 > 
-> The example works with USB on many ARM SoCs,
-> and similar non-USB examples aren't rare.
+> Android wants an idleness suspend block (or pm qos constraint) that a
+> driver can set to prevent the system idleness power govenor from
+> dropping into a power state too low for the driver, so in USB terms this
+> would prevent the states that shut down the clock.  For android, it
+> prevented shutdown of an internal i2c bus.
 > 
->  - Want to enter a system suspend state, with
->    some USB wakeup sources.  USB peripheral
->    waken up by the host, or vice versa.
-> 
->    NOTE ASSUMPTION:  there are multiple suspend
->    states supported by the hardware, significantly
->    different in hardware configuration Linux should
->    be able to use more than one such state... (if
->    only because their power savings differ.)  This
-> can mean driver-specific knowledge about those
-> various states.
-> 
->  - The wakeup requires a particular clock to be active, so the USB controller can detect that the
-> wakeup should trigger,  then issue the right signals
-> triggering the non-USB parts of the system.
-> 
-> Problem:  how does the device driver suspend()
->           method block entry to a suspend state
->           when it can't ensure that clock is
->           going to be active.  Magic return code?
+> The one thing that does look difficult is that these power constraints
+> are device (and sometimes SoC) specific.  Expressing them in a generic
+> way for the cpu govenors to make sense of might be hard.
 
-At the moment, drivers aren't told what suspend state the system is
-going into.  They know the difference between suspend and hibernate,
-but the PM core doesn't tell drivers whether it's going into standby
-vs. suspend.  (Strictly speaking, those terms apply mostly to ACPI
-systems and not so much elsewhere.  What I'm talking about is the
-/sys/power/state interface, where the user can write either "standby"
-or "mem".  Drivers aren't told which was written.)
-
->  There are other issues here too.  (Is the target
->  system suspend state one of the ones which doesn't
-> allow that clock to be active?  SoC-specific calls
-> might suffice for this issue.
-
-I imagine platforms have to answer all such questions when they decide 
-exactly how they will implement "standby" and "mem".
-
-> A number of years ago, this problem was insoluble
-> with the then-current Linux PM and clock frameworks.
-> I've been away from this issue for quite a while
-> now, but don't recall seeing its sub-problems get
-> solved ... If they're now solved, I'll be glad.
-> (I know Kevin's recent OMAP stuff addresses similar
-> issues, but It's OMAP-specific...) 
-> 
-> After all these thousands and thousands of emails...
-> I'm not sure how much forward motion has happened.
-
-I'm not aware of any progress.
+Doesn't the clock framework already handle this sort of thing?
 
 Alan Stern
+
