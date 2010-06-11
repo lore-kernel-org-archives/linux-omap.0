@@ -1,43 +1,47 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE: Always delete nodes during resource cleanup
-Date: Fri, 11 Jun 2010 00:09:37 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E7CD93D@dlee03.ent.ti.com>
-References: <B852767254C5C94EBB1040EE0EFA060092D763FC@dlee01.ent.ti.com>
+Subject: RE: [PATCH 1/3] DSPBRIDGE: fix cpufreq_register_notifier usage
+Date: Fri, 11 Jun 2010 00:18:45 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E7CD93F@dlee03.ent.ti.com>
+References: <1271895479-27744-1-git-send-email-nm@ti.com>
+ <1271895479-27744-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59568 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45684 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753011Ab0FKFJl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 01:09:41 -0400
-In-Reply-To: <B852767254C5C94EBB1040EE0EFA060092D763FC@dlee01.ent.ti.com>
+	id S1753456Ab0FKFSv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jun 2010 01:18:51 -0400
+In-Reply-To: <1271895479-27744-2-git-send-email-nm@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramos Falcon, Ernesto" <ernesto@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>
+To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: "Chitriki Rudramuni, Deepak" <deepak.chitriki@ti.com>, Ameya Palande <ameya.palande@nokia.com>, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ramos
->Falcon, Ernesto
->Sent: Friday, April 16, 2010 10:23 PM
->To: linux-omap@vger.kernel.org
->Cc: Ameya Palande; Doyu Hiroshi (Nokia-D/Helsinki); Contreras Felipe (Nokia-D/Helsinki)
->Subject: [PATCH] DSPBRIDGE: Always delete nodes during resource cleanup
+>From: Deepak Chitriki <deepak.chitriki@ti.com>
 >
->From 9b263cc8cf0dea7e440aabb77fc88d06e01d62a4 Mon Sep 17 00:00:00 2001
->From: Ernesto Ramos <ernesto@ernesto-desktop.(none)>
->Date: Thu, 18 Mar 2010 23:48:56 -0600
->Subject: [PATCH] DSPBRIDGE: Always delete nodes during resource cleanup
+>cpufreq_register_notifier() function calls
+>srcu_notifier_chain_register() which always returns 0  on success and
+>dspbridge throws the error message "clk_notifier_register failed for
+>iva2_ck". Fix the faulty ! in if logic and the faulty error message
+>we report to log.
 >
->Right now, during resource clean up, nodes are not being
->deleted if they are in state NODE_DONE. This fix makes
->sure they are deleted if they are in any valid state.
+>Cc: Ameya Palande <ameya.palande@nokia.com>
+>Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+>Cc: Deepak Chitriki <deepak.chitriki@ti.com>
+>Cc: Fernando Guzman Lugo <x0095840@ti.com>
+>Cc: Felipe Contreras <felipe.contreras@nokia.com>
+>Cc: Hari Kanigeri <h-kanigeri2@ti.com>
+>Cc: Hiroshi Doyu <hiroshi.doyu@nokia.com>
+>Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
+>Cc: Ramesh Gupta <grgupta@ti.com>
 >
->Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+>Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
+>
 >---
-> drivers/dsp/bridge/rmgr/drv.c |   12 +++---------
-> 1 files changed, 3 insertions(+), 9 deletions(-)
+> drivers/dsp/bridge/rmgr/drv_interface.c |   10 +++++-----
+> 1 files changed, 5 insertions(+), 5 deletions(-)
 >
 
 Pushed to dspbridge.
