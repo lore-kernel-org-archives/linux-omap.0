@@ -1,52 +1,97 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH 2/2] DSPBRIDGE: reorganize gpt8 overflow handling
-Date: Mon, 14 Jun 2010 12:59:37 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E872E49@dlee03.ent.ti.com>
-References: <1276172045-17267-1-git-send-email-omar.ramirez@ti.com>
- <1276172045-17267-2-git-send-email-omar.ramirez@ti.com>
+From: john stultz <johnstul@us.ibm.com>
+Subject: Re: Timekeeping issue on aggressive suspend/resume
+Date: Mon, 14 Jun 2010 12:25:57 -0700
+Message-ID: <1276543557.3076.30.camel@localhost.localdomain>
+References: <AANLkTinIO5a1EeK6Ej2ljkuyL9zv06OMfbyiZBaxTQTd@mail.gmail.com>
+	 <alpine.LFD.2.00.1006092206020.2933@localhost.localdomain>
+	 <AANLkTin-6XsW49ECufTLcdzaD1eK9bAxe0j7RXvPqN7p@mail.gmail.com>
+	 <1276199568.16089.35.camel@work-vm>
+	 <AANLkTikPwOWHUdqZH1S9QVh-sgjlzptAB27_hK_otQ4Y@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48818 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756672Ab0FNR7i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jun 2010 13:59:38 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5EHxcX4009965
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 14 Jun 2010 12:59:38 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id o5EHxbDE027627
-	for <linux-omap@vger.kernel.org>; Mon, 14 Jun 2010 12:59:37 -0500 (CDT)
-Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5EHxbXK006446
-	for <linux-omap@vger.kernel.org>; Mon, 14 Jun 2010 12:59:37 -0500 (CDT)
-In-Reply-To: <1276172045-17267-2-git-send-email-omar.ramirez@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikPwOWHUdqZH1S9QVh-sgjlzptAB27_hK_otQ4Y@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Hebbar, Shivananda" <x0hebbar@ti.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>
 
->From: Ramirez Luna, Omar
->
->New function to encapsulate previous code to configure gpt overflow,
->this prevents accessing dmtimer framework outside dsp-clock interface
->or exposing clock handles to other bridge modules.
->
->Besides that: duplicated and unused defines were removed, conditional
->test for cnt was replaced for a time after jiffes macro.
->
->Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
->Signed-off-by: Ernesto Ramos Falcon <ernesto@ti.com>
->---
-> arch/arm/plat-omap/include/dspbridge/clk.h |    2 +
-> drivers/dsp/bridge/core/dsp-clock.c        |   38 ++++++++++++++++++
-> drivers/dsp/bridge/core/ue_deh.c           |   59 ++-------------------------
-> 3 files changed, 45 insertions(+), 54 deletions(-)
->
+On Mon, 2010-06-14 at 00:46 -0700, Suresh Rajashekara wrote:
+> On Thu, Jun 10, 2010 at 12:52 PM, john stultz <johnstul@us.ibm.com> wrote:
+> > I think Thomas was suggesting that you consider creating a option for
+> > where CLOCK_MONOTONIC included total_sleep_time.
+> >
+> > In that case the *hack* (and this is a hack, we'll need some more
+> > thoughtful discussion before anything like it could make it upstream)
+> > would be in timekeeping_resume() to comment out the lines that update
+> > wall_to_monotonic and total_sleep_time.
+> >
+> > It would be interesting to hear if that hack works for you, and we can
+> > try to come up with a better way to think about how to accommodate both
+> > views of how to account time over suspend.
+> 
+> Thanks.
+> 
+> I tried this fix. It seemed to help, however the accuracy of sleep
+> time for the process was not quite right. A process thread which was
+> supposed to wake up every (X) seconds, seemed to wake up every (X -
+> delta X) seconds.
 
-Pushed to dspbridge.
+Ah, the sleep time is probably too coarse (seconds). We probably need to
+increase the granularity from read_persistent_clock() and see if that
+helps (although most persistent clocks aren't very fine grained).
 
-- omar
+> Also another side effect of this change was that the system time was
+> no longer in sync with the wall time.
+
+? This doesn't make much sense to me, as you shouldn't be manipulating
+xtime differently.
+
+Just to be clear, you mean the value from "date" doesn't match your
+watch after resume? 
+
+> These problems were more pronounced when the suspend/wakeup cycle time
+> was brought down to 0.5 seconds from 4 seconds. The periodicity of
+> most of the process threads were disturbed.
+> 
+> I decided to NOT suspend/resume the timekeeping subsystem in the
+> kernel and try. It seemed to work. Every application seems to work
+> fine.
+> 
+> Now my question is; Is it safe to disable suspend/resume of the
+> timekeeping subsystem? Will it have an effect (on
+> functionality/performance) which may not surface in my short
+> experiments?
+
+Well, the difficultly here is what folks actually mean by suspend. On
+some hardware it means everything is powered off, and so on resume we
+have to re-init hardware values.
+
+It seems in your case that the hardware isn't completely powered off,
+since the clocksource you're using seemed to continue counting while the
+system was suspended. 
+
+So in this case you might be ok. Your suspend seems closer to an deep
+idle state on x86. So suspending timekeeping might not be necessary.
+
+However, you're right that there may be lurking issues:
+
+1) The suspend time would have to be limited to the clocksource's
+max_idle_ns value, since after that amount of cycles have past, we might
+overflow the accumulation function, or the clocksource may have wrapped.
+
+2) If the hardware does reset the clocksource at some point during the
+suspend, you'll have odd time issues.
+
+3) You could run into some difficulty keeping close sync with an NTP
+server, as the long delays between accumulation will probably cause an
+oscillating over-shoot and over-correction.
+
+I suspect these different definitions of "suspend" on all of the
+different hardware types out there is going to be a growing problem in
+the near term. Especially as deep idle states start to power off more
+hardware and becomes closer to suspend in behavior.
+
+thanks
+-john
