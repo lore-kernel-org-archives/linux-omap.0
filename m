@@ -1,22 +1,60 @@
-From: Motorola company UK <villaga@xcelco.on.ca>
-Subject: TRANSFER YOUR FUNDS ONLINE
-Date: Mon, 14 Jun 2010 01:35:14 -0400
-Message-ID: <1276493714.4c15bf92c66e9__39259.4076031402$1276493737$gmane$org@webmail.xcelco.on.ca>
-Reply-To: yorkshir232@btinternet.com
+From: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
+Subject: Re: Timekeeping issue on aggressive suspend/resume
+Date: Mon, 14 Jun 2010 00:46:48 -0700
+Message-ID: <AANLkTikPwOWHUdqZH1S9QVh-sgjlzptAB27_hK_otQ4Y@mail.gmail.com>
+References: <AANLkTinIO5a1EeK6Ej2ljkuyL9zv06OMfbyiZBaxTQTd@mail.gmail.com>
+	<alpine.LFD.2.00.1006092206020.2933@localhost.localdomain>
+	<AANLkTin-6XsW49ECufTLcdzaD1eK9bAxe0j7RXvPqN7p@mail.gmail.com>
+	<1276199568.16089.35.camel@work-vm>
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta02.eastlink.ca ([24.224.136.13]:41858 "EHLO
-	mta02.eastlink.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751598Ab0FNFfb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jun 2010 01:35:31 -0400
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:58195 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751819Ab0FNHrJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jun 2010 03:47:09 -0400
+In-Reply-To: <1276199568.16089.35.camel@work-vm>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pm@lists.linux-foundation.org
 
+On Thu, Jun 10, 2010 at 12:52 PM, john stultz <johnstul@us.ibm.com> wrote:
+> I think Thomas was suggesting that you consider creating a option for
+> where CLOCK_MONOTONIC included total_sleep_time.
+>
+> In that case the *hack* (and this is a hack, we'll need some more
+> thoughtful discussion before anything like it could make it upstream)
+> would be in timekeeping_resume() to comment out the lines that update
+> wall_to_monotonic and total_sleep_time.
+>
+> It would be interesting to hear if that hack works for you, and we can
+> try to come up with a better way to think about how to accommodate both
+> views of how to account time over suspend.
 
+Thanks.
 
---
-Congratulation One million five hundred thousand has been awarded to you by
-Motorola promo.contact Yorkshire bank(yorkshire_customercare@hotmail.com.hk).
-your Name : Address : Age :Sex : occupation : Tel : Country
+I tried this fix. It seemed to help, however the accuracy of sleep
+time for the process was not quite right. A process thread which was
+supposed to wake up every (X) seconds, seemed to wake up every (X -
+delta X) seconds.
+
+Also another side effect of this change was that the system time was
+no longer in sync with the wall time.
+
+These problems were more pronounced when the suspend/wakeup cycle time
+was brought down to 0.5 seconds from 4 seconds. The periodicity of
+most of the process threads were disturbed.
+
+I decided to NOT suspend/resume the timekeeping subsystem in the
+kernel and try. It seemed to work. Every application seems to work
+fine.
+
+Now my question is; Is it safe to disable suspend/resume of the
+timekeeping subsystem? Will it have an effect (on
+functionality/performance) which may not surface in my short
+experiments?
+
+Thanks in advance,
+
+Suresh
