@@ -1,59 +1,58 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: [RFC] [PATCH] Board changes for tmp105 temperature sensor
-Date: Tue, 15 Jun 2010 20:15:11 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003B34A6404@dbde02.ent.ti.com>
+From: Mathieu Poirier <mathieu.poirier@canonical.com>
+Subject: SDHC card affected by preemption model in 2.6.35
+Date: Tue, 15 Jun 2010 08:52:28 -0600
+Message-ID: <1276613548.2824.46.camel@black>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49747 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757890Ab0FOOpv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jun 2010 10:45:51 -0400
-Content-Language: en-US
+Received: from adelie.canonical.com ([91.189.90.139]:44428 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757906Ab0FOOwR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jun 2010 10:52:17 -0400
+Received: from hutte.canonical.com ([91.189.90.181])
+	by adelie.canonical.com with esmtp (Exim 4.69 #1 (Debian))
+	id 1OOXUv-0003BT-6m
+	for <linux-omap@vger.kernel.org>; Tue, 15 Jun 2010 15:52:17 +0100
+Received: from s0106002369de4dac.cg.shawcable.net ([70.73.24.112] helo=[192.168.1.103])
+	by hutte.canonical.com with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <mathieu.poirier@canonical.com>)
+	id 1OOXUu-0008Mq-Rk
+	for linux-omap@vger.kernel.org; Tue, 15 Jun 2010 15:52:17 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>
+To: linux-omap@vger.kernel.org
 
-Adding board configuration for the tmp105
-temperature sensor. The interface to the sensor
-is I2C.
+HW: Beagleboard rev. C2 and C4
+Processor: OMAP3
+Kernel: 2.6.35-rc2
+Driver: mmci-omap-hs
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
- mode change 100644 => 100755 arch/arm/mach-omap2/board-4430sdp.c
+I am faced with an SDHC card problem on a beagleboard.  Some cards
+cannot be initialized on startup while others work perfectly.  I tracked
+the issue down to one single kernel config: PREEMPT_VOLUNTARY.  
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-old mode 100644
-new mode 100755
-index 4bb2c5d..3e3b222
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -353,6 +353,11 @@ static struct i2c_board_info __initdata sdp4430_i2c_boardinfo[] = {
- 		.platform_data = &sdp4430_twldata,
- 	},
- };
-+static struct i2c_board_info __initdata sdp4430_i2c_3_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("tmp105", 0x48),
-+	},
-+};
- static int __init omap4_i2c_init(void)
- {
- 	/*
-@@ -362,7 +367,8 @@ static int __init omap4_i2c_init(void)
- 	omap_register_i2c_bus(1, 400, sdp4430_i2c_boardinfo,
- 			ARRAY_SIZE(sdp4430_i2c_boardinfo));
- 	omap_register_i2c_bus(2, 400, NULL, 0);
--	omap_register_i2c_bus(3, 400, NULL, 0);
-+	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
-+				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
- 	omap_register_i2c_bus(4, 400, NULL, 0);
- 	return 0;
- }
--- 
-1.5.4.7
+When going from PREEMPT_VOLUNTARY to PREEMPT_NONE the problem goes away.
+
+When booting, a failing card (PREEMPT_VOLUNTARY) will output the
+following: 
+[ 2.283355] mmc0: error -110 whilst initialising SD card
+
+I have also seen transfer errors such as this one: 
+[ 105.343780] mmcblk0: error -110 transferring data, sector 798431, nr
+26, card status 0xc00 
+
+When working properly (PREEMPT_NONE), you get: 
+[   27.026519] mmc0: new high speed SDHC card at address 0007
+[   27.075775] mmcblk0: mmc0:0007 SD08G 7.49 GiB 
+
+We seem to have a little timing problem - has anyone seen the same
+issue ?  Can driver "mmci-omap-hs" actually work under
+PREEMPT_VOLUNTARY ? 
+
+Thanks, Mathieu.
+
+
+
 
