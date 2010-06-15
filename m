@@ -1,16 +1,19 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH 03/13 v3] OMAP: GPIO: Include platform_data structure for GPIO
-Date: Tue, 15 Jun 2010 20:35:38 +0530
-Message-ID: <1276614348-5201-4-git-send-email-charu@ti.com>
+Subject: [PATCH 06/13 v3] OMAP: GPIO: Introduce support for OMAP7xx chip GPIO init
+Date: Tue, 15 Jun 2010 20:35:41 +0530
+Message-ID: <1276614348-5201-7-git-send-email-charu@ti.com>
 References: <1276614348-5201-1-git-send-email-charu@ti.com>
  <1276614348-5201-2-git-send-email-charu@ti.com>
  <1276614348-5201-3-git-send-email-charu@ti.com>
+ <1276614348-5201-4-git-send-email-charu@ti.com>
+ <1276614348-5201-5-git-send-email-charu@ti.com>
+ <1276614348-5201-6-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40989 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758020Ab0FOPCc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Jun 2010 11:02:32 -0400
-In-Reply-To: <1276614348-5201-3-git-send-email-charu@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51012 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758024Ab0FOPC1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jun 2010 11:02:27 -0400
+In-Reply-To: <1276614348-5201-6-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: david-b@pacbell.net, broonie@opensource.wolfsonmicro.com, akpm@linux-foundation.org, linux-omap@vger.kernel.org
@@ -18,53 +21,295 @@ Cc: paul@pwsan.com, rnayak@ti.com, b-cousson@ti.com, khilman@deeprootsystems.com
 
 From: Charulatha V <charu@ti.com>
 
-This patch introduces platform_data structure for GPIO
-so that GPIO module can be implemented in platform device model.
+This patch adds support for handling OMAP7xx specific gpio_init
+by providing platform device data and doing device registration.
 
 Signed-off-by: Charulatha V <charu@ti.com>
 ---
- arch/arm/plat-omap/include/plat/gpio.h |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap1/gpio7xx.c |  274 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 274 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/gpio7xx.c
 
-diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-index de1c604..fa5c05f 100644
---- a/arch/arm/plat-omap/include/plat/gpio.h
-+++ b/arch/arm/plat-omap/include/plat/gpio.h
-@@ -28,6 +28,7 @@
- 
- #include <linux/io.h>
- #include <mach/irqs.h>
-+#include <linux/platform_device.h>
- 
- #define OMAP1_MPUIO_BASE			0xfffb5000
- 
-@@ -71,6 +72,26 @@
- 				 IH_MPUIO_BASE + ((nr) & 0x0f) : \
- 				 IH_GPIO_BASE + (nr))
- 
-+#define METHOD_MPUIO		0
-+#define METHOD_GPIO_1510	1
-+#define METHOD_GPIO_1610	2
-+#define METHOD_GPIO_7XX		3
-+#define METHOD_GPIO_24XX	5
-+#define METHOD_GPIO_44XX	6
+diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
+new file mode 100644
+index 0000000..6db124f
+--- /dev/null
++++ b/arch/arm/mach-omap1/gpio7xx.c
+@@ -0,0 +1,274 @@
++/*
++ * gpio7xx.c - OMAP7XX-specific gpio code
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ *
++ * Author:
++ *	Charulatha V <charu@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+struct omap_gpio_dev_attr {
-+	int gpio_bank_count;	/* No of GPIO banks - SoC specific */
-+	int gpio_bank_bits;	/* GPIO bank width */
-+	bool dbck_flag;		/* dbck validity - True only for OMAP3&4 */
-+	bool omap1_ick_flag;	/* OMAP1 ick - True only for OMAP15xx */
++#include <linux/gpio.h>
++
++#define OMAP7XX_GPIO1_BASE		0xfffbc000
++#define OMAP7XX_GPIO2_BASE		0xfffbc800
++#define OMAP7XX_GPIO3_BASE		0xfffbd000
++#define OMAP7XX_GPIO4_BASE		0xfffbd800
++#define OMAP7XX_GPIO5_BASE		0xfffbe000
++#define OMAP7XX_GPIO6_BASE		0xfffbe800
++#define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
++
++static struct omap_gpio_dev_attr omap7xx_gpio_attr = {
++	.gpio_bank_count = 7,
++	.gpio_bank_bits	= 32,
++	.omap1_ick_flag	= false,
 +};
 +
-+struct omap_gpio_platform_data {
-+	u16 virtual_irq_start;
-+	int method;
-+	struct omap_gpio_dev_attr *gpio_attr;
++/*
++ * OMAP7XX MPU GPIO interface data
++ */
++static struct __initdata resource omap7xx_mpu_gpio_resources[] = {
++	{
++		.start	= OMAP1_MPUIO_VBASE,
++		.end	= OMAP1_MPUIO_VBASE + SZ_2K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_7XX_MPUIO,
++		.flags	= IORESOURCE_IRQ,
++	},
 +};
 +
- extern int omap_gpio_init(void);	/* Call from board init only */
- extern void omap2_gpio_prepare_for_idle(int power_state);
- extern void omap2_gpio_resume_after_idle(void);
++static struct __initdata omap_gpio_platform_data omap7xx_mpu_gpio_config = {
++	.virtual_irq_start	= IH_MPUIO_BASE,
++	.method			= METHOD_MPUIO,
++	.gpio_attr		= &omap7xx_gpio_attr,
++};
++
++static struct __initdata platform_device omap7xx_mpu_gpio = {
++	.name           = "omap-gpio",
++	.id             = 0,
++	.dev            = {
++		.platform_data = &omap7xx_mpu_gpio_config,
++	},
++	.num_resources = ARRAY_SIZE(omap7xx_mpu_gpio_resources),
++	.resource = omap7xx_mpu_gpio_resources,
++};
++
++/*
++ * OMAP7XX GPIO1 interface data
++ */
++static struct __initdata resource omap7xx_gpio1_resources[] = {
++	{
++		.start	= OMAP7XX_GPIO1_BASE,
++		.end	= OMAP7XX_GPIO1_BASE + SZ_2K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_7XX_GPIO_BANK1,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct __initdata omap_gpio_platform_data omap7xx_gpio1_config = {
++	.virtual_irq_start	= IH_GPIO_BASE,
++	.method			= METHOD_GPIO_7XX,
++	.gpio_attr		= &omap7xx_gpio_attr,
++};
++
++static struct __initdata platform_device omap7xx_gpio1 = {
++	.name           = "omap-gpio",
++	.id             = 1,
++	.dev            = {
++		.platform_data = &omap7xx_gpio1_config,
++	},
++	.num_resources = ARRAY_SIZE(omap7xx_gpio1_resources),
++	.resource = omap7xx_gpio1_resources,
++};
++
++/*
++ * OMAP7XX GPIO2 interface data
++ */
++static struct __initdata resource omap7xx_gpio2_resources[] = {
++	{
++		.start	= OMAP7XX_GPIO2_BASE,
++		.end	= OMAP7XX_GPIO2_BASE + SZ_2K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_7XX_GPIO_BANK2,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct __initdata omap_gpio_platform_data omap7xx_gpio2_config = {
++	.virtual_irq_start	= IH_GPIO_BASE + 32,
++	.method			= METHOD_GPIO_7XX,
++	.gpio_attr		= &omap7xx_gpio_attr,
++};
++
++static struct __initdata platform_device omap7xx_gpio2 = {
++	.name           = "omap-gpio",
++	.id             = 2,
++	.dev            = {
++		.platform_data = &omap7xx_gpio2_config,
++	},
++	.num_resources = ARRAY_SIZE(omap7xx_gpio2_resources),
++	.resource = omap7xx_gpio2_resources,
++};
++
++/*
++ * OMAP7XX GPIO3 interface data
++ */
++static struct __initdata resource omap7xx_gpio3_resources[] = {
++	{
++		.start	= OMAP7XX_GPIO3_BASE,
++		.end	= OMAP7XX_GPIO3_BASE + SZ_2K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_7XX_GPIO_BANK3,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct __initdata omap_gpio_platform_data omap7xx_gpio3_config = {
++	.virtual_irq_start	= IH_GPIO_BASE + 64,
++	.method			= METHOD_GPIO_7XX,
++	.gpio_attr		= &omap7xx_gpio_attr,
++};
++
++static struct __initdata platform_device omap7xx_gpio3 = {
++	.name           = "omap-gpio",
++	.id             = 3,
++	.dev            = {
++		.platform_data = &omap7xx_gpio3_config,
++	},
++	.num_resources = ARRAY_SIZE(omap7xx_gpio3_resources),
++	.resource = omap7xx_gpio3_resources,
++};
++
++/*
++ * OMAP7XX GPIO4 interface data
++ */
++static struct __initdata resource omap7xx_gpio4_resources[] = {
++	{
++		.start	= OMAP7XX_GPIO4_BASE,
++		.end	= OMAP7XX_GPIO4_BASE + SZ_2K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_7XX_GPIO_BANK4,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct __initdata omap_gpio_platform_data omap7xx_gpio4_config = {
++	.virtual_irq_start	= IH_GPIO_BASE + 96,
++	.method			= METHOD_GPIO_7XX,
++	.gpio_attr		= &omap7xx_gpio_attr,
++};
++
++static struct __initdata platform_device omap7xx_gpio4 = {
++	.name           = "omap-gpio",
++	.id             = 4,
++	.dev            = {
++		.platform_data = &omap7xx_gpio4_config,
++	},
++	.num_resources = ARRAY_SIZE(omap7xx_gpio4_resources),
++	.resource = omap7xx_gpio4_resources,
++};
++
++/*
++ * OMAP7XX GPIO5 interface data
++  */
++static struct __initdata resource omap7xx_gpio5_resources[] = {
++	{
++		.start	= OMAP7XX_GPIO5_BASE,
++		.end	= OMAP7XX_GPIO5_BASE + SZ_2K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_7XX_GPIO_BANK5,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct __initdata omap_gpio_platform_data omap7xx_gpio5_config = {
++	.virtual_irq_start	= IH_GPIO_BASE + 128,
++	.method			= METHOD_GPIO_7XX,
++	.gpio_attr		= &omap7xx_gpio_attr,
++};
++
++static struct __initdata platform_device omap7xx_gpio5 = {
++	.name           = "omap-gpio",
++	.id             = 5,
++	.dev            = {
++		.platform_data = &omap7xx_gpio5_config,
++	},
++	.num_resources = ARRAY_SIZE(omap7xx_gpio5_resources),
++	.resource = omap7xx_gpio5_resources,
++};
++
++/*
++ * OMAP7XX GPIO6 interface data
++  */
++static struct __initdata resource omap7xx_gpio6_resources[] = {
++	{
++		.start	= OMAP7XX_GPIO6_BASE,
++		.end	= OMAP7XX_GPIO6_BASE + SZ_2K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_7XX_GPIO_BANK6,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct __initdata omap_gpio_platform_data omap7xx_gpio6_config = {
++	.virtual_irq_start	= IH_GPIO_BASE + 160,
++	.method			= METHOD_GPIO_7XX,
++	.gpio_attr		= &omap7xx_gpio_attr,
++};
++
++static struct __initdata platform_device omap7xx_gpio6 = {
++	.name           = "omap-gpio",
++	.id             = 6,
++	.dev            = {
++		.platform_data = &omap7xx_gpio6_config,
++	},
++	.num_resources = ARRAY_SIZE(omap7xx_gpio6_resources),
++	.resource = omap7xx_gpio6_resources,
++};
++
++static struct __initdata platform_device * omap7xx_gpio_dev[] = {
++	&omap7xx_mpu_gpio,
++	&omap7xx_gpio1,
++	&omap7xx_gpio2,
++	&omap7xx_gpio3,
++	&omap7xx_gpio4,
++	&omap7xx_gpio5,
++	&omap7xx_gpio6,
++};
++
++/*
++ * omap7xx_gpio_init needs to be done before
++ * machine_init functions access gpio APIs.
++ * Hence omap7xx_gpio_init is a postcore_initcall.
++ */
++static int __init omap7xx_gpio_init(void)
++{
++	int i;
++
++	if (!cpu_is_omap7xx())
++		return -EINVAL;
++
++	for (i = 0; i < sizeof(omap7xx_gpio_dev); i++)
++		platform_device_register(omap7xx_gpio_dev[i]);
++
++	return 0;
++}
++postcore_initcall(omap7xx_gpio_init);
 -- 
 1.6.3.3
 
