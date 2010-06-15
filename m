@@ -1,82 +1,89 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
-Date: Tue, 15 Jun 2010 11:04:49 +0300 (EEST)
-Message-ID: <20100615.110449.27786947.Hiroshi.DOYU@nokia.com>
-References: <AANLkTinixlUAjtwFZmGIkio4H0Gzy1Moww2ssoLBKQWr@mail.gmail.com>
-	<20100614.115804.260111776.Hiroshi.DOYU@nokia.com>
-	<AANLkTikNX09s4xflcOax3Ry3o5XgJZF0JbbZXSGeKryR@mail.gmail.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: [PATCH v5] OMAP: Fix for bus width which improves SD card's
+	peformance.
+Date: Tue, 15 Jun 2010 13:37:49 +0530
+Message-ID: <AANLkTil7PEqhzAcxkErry4ucc1bg07cr7Sj-OpJsGB4e@mail.gmail.com>
+References: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
+	<20100406163211.GA29117@nokia.com>
+	<4BBB6767.7010202@ti.com>
+	<20100406165720.GA17916@nokia.com>
+	<00b401cad5e0$1d1868d0$544ff780@am.dhcp.ti.com>
+	<4BBBC628.9030207@ti.com>
+	<00c901cad5e7$9de54350$544ff780@am.dhcp.ti.com>
+	<4BBBD87C.1040307@ti.com>
+	<003601cad73c$98c3aa50$544ff780@am.dhcp.ti.com>
+	<s2l7f9d1ffb1004190836l9ba703c5lab13638d968a5c55@mail.gmail.com>
+	<h2h7f9d1ffb1004190851gf08897awf198d3c8e5f9dbce@mail.gmail.com>
+	<008f01cae1b2$6262c970$544ff780@am.dhcp.ti.com>
+	<AANLkTikNlJLiJeXwbBuS_KGPN6soAlKLQH1EUeJCKYi2@mail.gmail.com>
+	<AANLkTiks-UvRtQiZtpp-zwlGhMcGNoPZdHKC29lrlFYr@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:20010 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755185Ab0FOIFL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jun 2010 04:05:11 -0400
-In-Reply-To: <AANLkTikNX09s4xflcOax3Ry3o5XgJZF0JbbZXSGeKryR@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <AANLkTiks-UvRtQiZtpp-zwlGhMcGNoPZdHKC29lrlFYr@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Madhusudhan <madhu.cr@ti.com>, akpm@linux-foundation.org, tony@atomide.com, Nishanth Menon <nm@ti.com>, felipe.balbi@nokia.com, Vimal Singh <vimal.newwork@gmail.com>, "S, Venkatraman" <svenkatr@ti.com>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: ohad@wizery.com
-Cc: fernando.lugo@ti.com, deepak.chitriki@ti.com, omar.ramirez@ti.com, h-kanigeri2@ti.com, linux-omap@vger.kernel.org, rene.sapiens@ti.com
 
-Hi Ohad,
+From: Kishore Kadiyala <kishore.kadiyala@ti.com>
 
-From: ext Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
-Date: Tue, 15 Jun 2010 06:43:21 +0200
+This patch improves low speeds for SD cards.
+OMAP-MMC controller's can support maximum bus width of '8'.
+when bus width is mentioned as "8" in controller data,the SD
+stack will check whether bus width is "4" and if not it will
+set bus width to "1" and there by degrading performance.
+This patch fixes the issue and improves the performance of
+SD cards.
 
-> Hi Hiroshi,
-> 
-> On Mon, Jun 14, 2010 at 3:58 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
->> Does dspbridge really need its own defered work for sending mailbox
->> messages?
-> 
-> We do, according to
-> 
-> http://permalink.gmane.org/gmane.linux.ports.arm.omap/38240
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Signed-off-by: Venkatraman S <svenkatr@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+Tested-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+In V5 : Rebasing on 2.6.35-rc3
+In V4 : Updated with Nishanth's comments and appened his Signed-off
+	http://marc.info/?t=127169149300006&r=1&w=2
+In V3 : Updated  with Madhu's comments  and appended Tested by Nikula
+In V2 : Appended Signed-off by Venkat and Ack by Madhu
 
-I am wondering that this defered work may not be necessary just for
-the serialization.
+Here are my experiment numbers, on a Class 6 SDHC card:
+Read peformance is increased by 220%
+Write Performance is increased by 52%
 
-> (thanks Rene for the explanation).
-> 
->> For recieving, its defered work(tasklet) can be trigered directly in
->> the above proposed callback, that callback can triger its own
->> workqueue if necessary, then.
-> 
-> Agree
-> 
->> I think that, for recieving, some PM
->> command may has to be sent back immedieately inside of
->> tasklet. omap_mbox_msg_send_sync() may handle this case.
-> 
-> Not sure how much QoS is an issue with mailbox (do we really have
-> latency issues ?), but I guess adding such interface can't hurt.
+ drivers/mmc/host/omap_hsmmc.c |   17 +++++++++++++++--
+ 1 files changed, 15 insertions(+), 2 deletions(-)
 
-This solves the one case of lockdep issue.
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index b032828..a0c8515 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2096,10 +2096,23 @@ static int __init omap_hsmmc_probe(struct
+ 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+ 		     MMC_CAP_WAIT_WHILE_BUSY;
 
->> I think that workqueue is only necessary when it has to sleep,
->> otherwise tasklet is prefered.
-> 
-> I must say I disagree; tasklets are really not friendly to the whole
-> system's responsiveness and should be used only if really needed
-> (there was even an attempt to remove them entirely in the past:
-> http://lwn.net/Articles/239633/).
+-	if (mmc_slot(host).wires >= 8)
++	switch (mmc_slot(host).wires) {
++	case 8:
+ 		mmc->caps |= MMC_CAP_8_BIT_DATA;
+-	else if (mmc_slot(host).wires >= 4)
++		/* Fall through */
++	case 4:
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
++		break;
++	case 1:
++		/* Nothing to crib here */
++	case 0:
++		/* Assuming nothing was given by board, Core use's 1-Bit */
++		break;
++	default:
++		/* Completely unexpected.. Core goes with 1-Bit Width */
++		dev_crit(mmc_dev(host->mmc), "Invalid width %d\n used!"
++			"using 1 instead\n", mmc_slot(host).wires);
++	}
 
-Evoking a workqueue may be overkilling just for putting several bytes
-into registers since large part of contents is usually passed through
-shared memory.
-
->> I'd like to allow mutiple listners in some way, as the flexibility of
->> mailbox functionalty.
-> 
-> This can be achieved using notifier chains of multiple listeners
-> callback, but I agree with Felipe: do we really want this
-> functionality ? I just rather not add code that no one is going to
-> use.
-> 
-> What do you say we start with enforcing only 1 listener and later, if
-> the use case of several listeners shows up, we'd add that support
-> (promise! :) ?
-
-Fair enough.
+ 	if (mmc_slot(host).nonremovable)
+ 		mmc->caps |= MMC_CAP_NONREMOVABLE;
+-- 
+1.6.3.3
