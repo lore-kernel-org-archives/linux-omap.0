@@ -1,183 +1,132 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH 11/13 v3] OMAP: GPIO: Introduce support for OMAP2PLUS
- chip GPIO init
-Date: Wed, 16 Jun 2010 14:16:01 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B708@dbde02.ent.ti.com>
-References: <1276614348-5201-1-git-send-email-charu@ti.com>
- <1276614348-5201-2-git-send-email-charu@ti.com>
- <1276614348-5201-3-git-send-email-charu@ti.com>
- <1276614348-5201-4-git-send-email-charu@ti.com>
- <1276614348-5201-5-git-send-email-charu@ti.com>
- <1276614348-5201-6-git-send-email-charu@ti.com>
- <1276614348-5201-7-git-send-email-charu@ti.com>
- <1276614348-5201-8-git-send-email-charu@ti.com>
- <1276614348-5201-9-git-send-email-charu@ti.com>
- <1276614348-5201-10-git-send-email-charu@ti.com>
- <1276614348-5201-11-git-send-email-charu@ti.com>
- <1276614348-5201-12-git-send-email-charu@ti.com> <4C17B6ED.203@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B62C@dbde02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B659@dbde02.ent.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 10/13 v3] OMAP: GPIO: Add gpio dev_attr and correct clks
+ in OMAP4 hwmod struct
+Date: Wed, 16 Jun 2010 10:57:27 +0200
+Message-ID: <4C1891F7.40101@ti.com>
+References: <1276614348-5201-1-git-send-email-charu@ti.com> <1276614348-5201-2-git-send-email-charu@ti.com> <1276614348-5201-3-git-send-email-charu@ti.com> <1276614348-5201-4-git-send-email-charu@ti.com> <1276614348-5201-5-git-send-email-charu@ti.com> <1276614348-5201-6-git-send-email-charu@ti.com> <1276614348-5201-7-git-send-email-charu@ti.com> <1276614348-5201-8-git-send-email-charu@ti.com> <1276614348-5201-9-git-send-email-charu@ti.com> <1276614348-5201-10-git-send-email-charu@ti.com> <1276614348-5201-11-git-send-email-charu@ti.com> <4C17ACE8.6000805@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B62A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43071 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:43475 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752369Ab0FPIqX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 04:46:23 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B659@dbde02.ent.ti.com>
-Content-Language: en-US
+	with ESMTP id S1752068Ab0FPI5r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 04:57:47 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B62A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
 Cc: "david-b@pacbell.net" <david-b@pacbell.net>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>, "Basak, Partha" <p-basak2@ti.com>
 
+On 6/16/2010 8:54 AM, Varadarajan, Charulatha wrote:
+>
+>> From: Cousson, Benoit
+>> Sent: Tuesday, June 15, 2010 10:10 PM
+>>
+>> Hi Charu,
+>>
+>> On 6/15/2010 5:05 PM, Varadarajan, Charulatha wrote:
+>>> From: Charulatha V<charu@ti.com>
+>>>
+>>> This patch adds gpio_dev_attr to OMAP4 gpio hwmod structure. This patch
+>>> also corrects the gpio .main_clk and .clk fields in gpio hwmod structures.
+>>>
+>>> Signed-off-by: Charulatha V<charu@ti.com>
+>>> ---
+>>>    arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   37 +++++++++++++++++++---------
+>>>    1 files changed, 25 insertions(+), 12 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-
+>> omap2/omap_hwmod_44xx_data.c
+>>> index 20f5f8c..b4c0878 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>>> @@ -22,6 +22,7 @@
+>>>
+>>>    #include<plat/omap_hwmod.h>
+>>>    #include<plat/cpu.h>
+>>> +#include<plat/gpio.h>
+>>>
+>>>    #include "omap_hwmod_common_data.h"
+>>>
+>>> @@ -1272,6 +1273,12 @@ static struct omap_hwmod omap44xx_fdif_hwmod = {
+>>>     * general purpose io module
+>>>     */
+>>>
+>>> +static struct omap_gpio_dev_attr gpio_dev_attr = {
+>>> +	.gpio_bank_count = 6,
+>>
+>> Why do you need that information?
+>> The point is that this struct is in theory a per instance data not a
+>> global one. If needed, you should be able to get that from the number of
+>> iteration done during the init of hwmods.
+>
+> Even though it is possible to get it through number of iterations, more efficient approach would be to keep this information here. My point is that this information can be auto-generated and hence it is better to keep it in hwmod database itself.
 
+It is still a duplication of an information we already have indirectly. 
+The number of GPIO bank is exactly the number of hwmod gpio instances. 
+You do not need any other parameters to get that.
 
-> -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Wednesday, June 16, 2010 12:51 PM
-> To: Varadarajan, Charulatha; Cousson, Benoit
-> Cc: david-b@pacbell.net; broonie@opensource.wolfsonmicro.com; akpm@linux-
-> foundation.org; linux-omap@vger.kernel.org; paul@pwsan.com; Nayak, Rajendra;
-> khilman@deeprootsystems.com; tony@atomide.com; Basak, Partha
-> Subject: RE: [PATCH 11/13 v3] OMAP: GPIO: Introduce support for OMAP2PLUS chip
-> GPIO init
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org]
-> On Behalf Of
-> > Varadarajan, Charulatha
-> > Sent: Wednesday, June 16, 2010 12:25 PM
-> > To: Cousson, Benoit
-> > Cc: david-b@pacbell.net; broonie@opensource.wolfsonmicro.com; akpm@linux-
-> foundation.org; linux-
-> > omap@vger.kernel.org; paul@pwsan.com; Nayak, Rajendra;
-> khilman@deeprootsystems.com; tony@atomide.com;
-> > Basak, Partha
-> > Subject: RE: [PATCH 11/13 v3] OMAP: GPIO: Introduce support for OMAP2PLUS chip
-> GPIO init
-> >
-> >
-> >
-> > > -----Original Message-----
-> > > From: Cousson, Benoit
-> > > Sent: Tuesday, June 15, 2010 10:53 PM
-> > > To: Varadarajan, Charulatha
-> > > Cc: david-b@pacbell.net; broonie@opensource.wolfsonmicro.com; akpm@linux-
-> > > foundation.org; linux-omap@vger.kernel.org; paul@pwsan.com; Nayak, Rajendra;
-> > > khilman@deeprootsystems.com; tony@atomide.com
-> > > Subject: Re: [PATCH 11/13 v3] OMAP: GPIO: Introduce support for OMAP2PLUS chip
-> > > GPIO init
-> > >
-> > > On 6/15/2010 5:05 PM, Varadarajan, Charulatha wrote:
-> > > > From: Charulatha V<charu@ti.com>
-> > > >
-> > > > This patch adds support for handling GPIO as a HWMOD FW adapted
-> > > > platform device for OMAP2PLUS chips.
-> > > >
-> > > > gpio_init needs to be done before machine_init functions access gpio APIs.
-> > > > Hence gpio_init is made as a postcore_initcall.
-> > > >
-> > > > Signed-off-by: Charulatha V<charu@ti.com>
-> > > > ---
-> > > >   arch/arm/mach-omap2/gpio.c |  104
-> ++++++++++++++++++++++++++++++++++++++++++++
-> > > >   1 files changed, 104 insertions(+), 0 deletions(-)
-> > > >   create mode 100644 arch/arm/mach-omap2/gpio.c
-> > > >
-> > > > diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-> > > > new file mode 100644
-> > > > index 0000000..993995a
-> > > > --- /dev/null
-> > > > +++ b/arch/arm/mach-omap2/gpio.c
-> > > > @@ -0,0 +1,104 @@
-> > > > +/*
-> > > > + * gpio.c - OMAP2PLUS-specific gpio code
-> > > > + *
-> > > > + * Copyright (C) 2010 Texas Instruments, Inc.
-> > > > + *
-> > > > + * Author:
-> > > > + *	Charulatha V<charu@ti.com>
-> > > > + *
-> > > > + * This program is free software; you can redistribute it and/or modify
-> > > > + * it under the terms of the GNU General Public License version 2 as
-> > > > + * published by the Free Software Foundation.
-> > > > + */
-> > > > +
-> > > > +#include<linux/gpio.h>
-> > > > +#include<linux/err.h>
-> > > > +#include<linux/slab.h>
-> > > > +
-> > > > +#include<plat/omap_hwmod.h>
-> > > > +#include<plat/omap_device.h>
-> > > > +
-> > > > +static struct omap_device_pm_latency omap_gpio_latency[] = {
-> > > > +	[0] = {
-> > > > +		.deactivate_func = omap_device_idle_hwmods,
-> > > > +		.activate_func   = omap_device_enable_hwmods,
-> > > > +		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> > > > +	},
-> > > > +};
-> > > > +
-> > > > +static int omap2_init_gpio(struct omap_hwmod *oh, void *user)
-> > > > +{
-> > > > +	struct omap_device *od;
-> > > > +	struct omap_gpio_platform_data *pdata;
-> > > > +	char *name = "omap-gpio";
-> > > > +	static int id;
-> > > > +	struct omap_gpio_dev_attr *gpio_dev_data;
-> > > > +
-> > > > +	if (!oh)
-> > > > +		pr_err("Could not look up omap gpio %d\n", id + 1);
-> > > > +
-> > > > +	pdata = kzalloc(sizeof(struct omap_gpio_platform_data),
-> > > > +					GFP_KERNEL);
-> > > > +	if (!pdata) {
-> > > > +		pr_err("Memory allocation failed gpio%d\n", id + 1);
-> > > > +		return -ENOMEM;
-> > > > +	}
-> > > > +
-> > > > +	gpio_dev_data = (struct omap_gpio_dev_attr *)oh->dev_attr;
-> > > > +	pdata->gpio_attr = gpio_dev_data;
-> > > > +	pdata->method = (int)user;
-> > >
-> > > That method seems to be an IP version specific information and not a Soc
-> > > specific one. You should store that in the hwmod dev_attr.
-> >
-> > 'method' is chip ID information mapped to GPIO driver specific enum that is
-> passed to the driver
-> > (eg., METHOD_GPIO_24XX, METHOD_GPIO_44XX). I think this should not be moved to
-> hwmod dev_attr because
-> > this is only an info required for the driver to identify the chip ID and
-> accordingly access
-> > functions/ registers.
-> >
-> > Also this 'method' would be removed once GPIO code undergoes a complete cleanup.
-> >
-> > >
-> > > What does 'method' mean in that context? Maybe the name should be revisited?
-> >
-> > Agree. 'method' is used throughout OMAP GPIO code. As mentioned above, this
-> field would be removed
-> > once the whole GPIO code is cleaned up. This patch series doesn't bother to
-> clean up GPIO code as the
-> > changes would be huge and intended only for HWMOD FW adaptation. Cleaning up
-> GPIO code would come as
-> > a separate series and we can address this then.
-> >
-> Sorry if my comment is not aligned but I thought we are addressing the
-> gpio clean up as well.
-> 
-> If we are re-vamping the code so much, is it not the right time to clean up as
-> well ??
+> FYI, in a meeting we recently had with Kevin, we discussed about "global data" information getting duplicated for each instance and it was agreed that it is okay to have pointers duplicated for each instance.
 
-We are not addressing GPIO code clean up in this series. As you mentioned, we are revamping the code so much just for doing HWMOD FW adaptation. If we attempt to clean up the whole GPIO code along with this, we will have many more changes as we need to introduce function pointers and cleanup almost each line of the existing code. This will be too much to be done in a single series. Hence HWMOD FW adaptation series is coming first. GPIO code clean up series can be done on top of this.
+I'm not OK with that. If we start mixing the pure IP specific 
+information with the global one it will be a mess, and it will prevent 
+the easy reuse accross SoC familly.
+hwmod structure is an IP information. The number of GPIO is an 
+integration information that has nothing to do inside the hwmod. If we 
+want to add an extra instance of GPIO in OMAP4440 for example, we will 
+not be able to reuse the current 4430 data.
 
-When GPIO code cleanup was attempted some months back along with HWMOD FW adaptation, the changes were so much that reviewing became difficult.
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26069.html
+So please, don't do that.
 
-> 
-> Regards,
-> Santosh
+BTW, you didn't answer the first answer, do you really need that?
+
+>>
+>>> +	.gpio_bank_bits = 32,
+>>> +	.dbck_flag = true,
+>>> +};
+>>
+>> Since this structure is the same than OMAP3, you should maybe consider
+>> sharing it.
+>
+> They are in different _data.c files. I feel that it will be good if they are kept decoupled as we need not have to mix up different SoC data. Here it's only a coincidence that OMAP3 and OMAP4 have same data
+
+No it is not a coincidence, it is because we are re-using the same IP 
+implementation. In that case, it is not a big deal, but you should try 
+to reuse as most as you can already existing data.
+
+Benoit
+
+>
+>>
+>>> +
+>>>    static struct omap_hwmod_class_sysconfig omap44xx_gpio_sysc = {
+>>>    	.rev_offs	= 0x0000,
+>>>    	.sysc_offs	= 0x0010,
+>>> @@ -1305,7 +1312,7 @@ static struct omap_hwmod_addr_space omap44xx_gpio1_addrs[]
+>> = {
+>>>    static struct omap_hwmod_ocp_if omap44xx_l4_wkup__gpio1 = {
+>>>    	.master		=&omap44xx_l4_wkup_hwmod,
+>>>    	.slave		=&omap44xx_gpio1_hwmod,
+>>> -	.clk		= "l4_wkup_clk_mux_ck",
+>>> +	.clk		= "gpio1_ick",
+>>>    	.addr		= omap44xx_gpio1_addrs,
+>>>    	.addr_cnt	= ARRAY_SIZE(omap44xx_gpio1_addrs),
+>>>    	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>>> @@ -1325,7 +1332,7 @@ static struct omap_hwmod omap44xx_gpio1_hwmod = {
+>>>    	.class		=&omap44xx_gpio_hwmod_class,
+>>>    	.mpu_irqs	= omap44xx_gpio1_irqs,
+>>>    	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio1_irqs),
+>>> -	.main_clk	= "gpio1_ick",
+>>> +	.main_clk	= NULL,
+>>
+>> Removing the line is enough. It will be null by default.
+>
+> Agreed.
+>
+>> I'm still not 100% sure that this is the good way to control the GPIO
+>> module mode, but at least this is cleaner than the previous clock mapping.
+>>
+>> Benoit
+>
 
