@@ -1,59 +1,174 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] omap4: Fix multi-omap boot with reset un-used
- clocks
-Date: Wed, 16 Jun 2010 03:22:36 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1006160322060.17630@utopia.booyaka.com>
-References: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1005191708320.27473@utopia.booyaka.com> <20100531124824.GF30216@atomide.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 11/13 v3] OMAP: GPIO: Introduce support for OMAP2PLUS
+ chip GPIO init
+Date: Wed, 16 Jun 2010 11:35:26 +0200
+Message-ID: <4C189ADE.5080408@ti.com>
+References: <1276614348-5201-1-git-send-email-charu@ti.com> <1276614348-5201-2-git-send-email-charu@ti.com> <1276614348-5201-3-git-send-email-charu@ti.com> <1276614348-5201-4-git-send-email-charu@ti.com> <1276614348-5201-5-git-send-email-charu@ti.com> <1276614348-5201-6-git-send-email-charu@ti.com> <1276614348-5201-7-git-send-email-charu@ti.com> <1276614348-5201-8-git-send-email-charu@ti.com> <1276614348-5201-9-git-send-email-charu@ti.com> <1276614348-5201-10-git-send-email-charu@ti.com> <1276614348-5201-11-git-send-email-charu@ti.com> <1276614348-5201-12-git-send-email-charu@ti.com> <4C17B6ED.203@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B62C@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B659@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B708@dbde02.ent.ti.com
+ >
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57516 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752971Ab0FPJWh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 05:22:37 -0400
-In-Reply-To: <20100531124824.GF30216@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:44699 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752621Ab0FPJgV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Jun 2010 05:36:21 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B708@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>, "Basak, Partha" <p-basak2@ti.com>
 
-On Mon, 31 May 2010, Tony Lindgren wrote:
+On 6/16/2010 10:46 AM, Varadarajan, Charulatha wrote:
+>
+>
+>> -----Original Message-----
+>> From: Shilimkar, Santosh
+>> Sent: Wednesday, June 16, 2010 12:51 PM
+>> To: Varadarajan, Charulatha; Cousson, Benoit
+>> Cc: david-b@pacbell.net; broonie@opensource.wolfsonmicro.com; akpm@linux-
+>> foundation.org; linux-omap@vger.kernel.org; paul@pwsan.com; Nayak, Rajendra;
+>> khilman@deeprootsystems.com; tony@atomide.com; Basak, Partha
+>> Subject: RE: [PATCH 11/13 v3] OMAP: GPIO: Introduce support for OMAP2PLUS chip
+>> GPIO init
+>>
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org]
+>> On Behalf Of
+>>> Varadarajan, Charulatha
+>>> Sent: Wednesday, June 16, 2010 12:25 PM
+>>> To: Cousson, Benoit
+>>> Cc: david-b@pacbell.net; broonie@opensource.wolfsonmicro.com; akpm@linux-
+>> foundation.org; linux-
+>>> omap@vger.kernel.org; paul@pwsan.com; Nayak, Rajendra;
+>> khilman@deeprootsystems.com; tony@atomide.com;
+>>> Basak, Partha
+>>> Subject: RE: [PATCH 11/13 v3] OMAP: GPIO: Introduce support for OMAP2PLUS chip
+>> GPIO init
+>>>
+>>>
+>>>
+>>>> -----Original Message-----
+>>>> From: Cousson, Benoit
+>>>> Sent: Tuesday, June 15, 2010 10:53 PM
+>>>> To: Varadarajan, Charulatha
+>>>> Cc: david-b@pacbell.net; broonie@opensource.wolfsonmicro.com; akpm@linux-
+>>>> foundation.org; linux-omap@vger.kernel.org; paul@pwsan.com; Nayak, Rajendra;
+>>>> khilman@deeprootsystems.com; tony@atomide.com
+>>>> Subject: Re: [PATCH 11/13 v3] OMAP: GPIO: Introduce support for OMAP2PLUS chip
+>>>> GPIO init
+>>>>
+>>>> On 6/15/2010 5:05 PM, Varadarajan, Charulatha wrote:
+>>>>> From: Charulatha V<charu@ti.com>
+>>>>>
+>>>>> This patch adds support for handling GPIO as a HWMOD FW adapted
+>>>>> platform device for OMAP2PLUS chips.
+>>>>>
+>>>>> gpio_init needs to be done before machine_init functions access gpio APIs.
+>>>>> Hence gpio_init is made as a postcore_initcall.
+>>>>>
+>>>>> Signed-off-by: Charulatha V<charu@ti.com>
+>>>>> ---
+>>>>>    arch/arm/mach-omap2/gpio.c |  104
+>> ++++++++++++++++++++++++++++++++++++++++++++
+>>>>>    1 files changed, 104 insertions(+), 0 deletions(-)
+>>>>>    create mode 100644 arch/arm/mach-omap2/gpio.c
+>>>>>
+>>>>> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+>>>>> new file mode 100644
+>>>>> index 0000000..993995a
+>>>>> --- /dev/null
+>>>>> +++ b/arch/arm/mach-omap2/gpio.c
+>>>>> @@ -0,0 +1,104 @@
+>>>>> +/*
+>>>>> + * gpio.c - OMAP2PLUS-specific gpio code
+>>>>> + *
+>>>>> + * Copyright (C) 2010 Texas Instruments, Inc.
+>>>>> + *
+>>>>> + * Author:
+>>>>> + *	Charulatha V<charu@ti.com>
+>>>>> + *
+>>>>> + * This program is free software; you can redistribute it and/or modify
+>>>>> + * it under the terms of the GNU General Public License version 2 as
+>>>>> + * published by the Free Software Foundation.
+>>>>> + */
+>>>>> +
+>>>>> +#include<linux/gpio.h>
+>>>>> +#include<linux/err.h>
+>>>>> +#include<linux/slab.h>
+>>>>> +
+>>>>> +#include<plat/omap_hwmod.h>
+>>>>> +#include<plat/omap_device.h>
+>>>>> +
+>>>>> +static struct omap_device_pm_latency omap_gpio_latency[] = {
+>>>>> +	[0] = {
+>>>>> +		.deactivate_func = omap_device_idle_hwmods,
+>>>>> +		.activate_func   = omap_device_enable_hwmods,
+>>>>> +		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>>>>> +	},
+>>>>> +};
+>>>>> +
+>>>>> +static int omap2_init_gpio(struct omap_hwmod *oh, void *user)
+>>>>> +{
+>>>>> +	struct omap_device *od;
+>>>>> +	struct omap_gpio_platform_data *pdata;
+>>>>> +	char *name = "omap-gpio";
+>>>>> +	static int id;
+>>>>> +	struct omap_gpio_dev_attr *gpio_dev_data;
+>>>>> +
+>>>>> +	if (!oh)
+>>>>> +		pr_err("Could not look up omap gpio %d\n", id + 1);
+>>>>> +
+>>>>> +	pdata = kzalloc(sizeof(struct omap_gpio_platform_data),
+>>>>> +					GFP_KERNEL);
+>>>>> +	if (!pdata) {
+>>>>> +		pr_err("Memory allocation failed gpio%d\n", id + 1);
+>>>>> +		return -ENOMEM;
+>>>>> +	}
+>>>>> +
+>>>>> +	gpio_dev_data = (struct omap_gpio_dev_attr *)oh->dev_attr;
+>>>>> +	pdata->gpio_attr = gpio_dev_data;
+>>>>> +	pdata->method = (int)user;
+>>>>
+>>>> That method seems to be an IP version specific information and not a Soc
+>>>> specific one. You should store that in the hwmod dev_attr.
+>>>
+>>> 'method' is chip ID information mapped to GPIO driver specific enum that is
+>> passed to the driver
+>>> (eg., METHOD_GPIO_24XX, METHOD_GPIO_44XX). I think this should not be moved to
+>> hwmod dev_attr because
+>>> this is only an info required for the driver to identify the chip ID and
+>> accordingly access
+>>> functions/ registers.
+>>>
+>>> Also this 'method' would be removed once GPIO code undergoes a complete cleanup.
+>>>
+>>>>
+>>>> What does 'method' mean in that context? Maybe the name should be revisited?
+>>>
+>>> Agree. 'method' is used throughout OMAP GPIO code. As mentioned above, this
+>> field would be removed
+>>> once the whole GPIO code is cleaned up. This patch series doesn't bother to
+>> clean up GPIO code as the
+>>> changes would be huge and intended only for HWMOD FW adaptation. Cleaning up
+>> GPIO code would come as
+>>> a separate series and we can address this then.
+>>>
+>> Sorry if my comment is not aligned but I thought we are addressing the
+>> gpio clean up as well.
+>>
+>> If we are re-vamping the code so much, is it not the right time to clean up as
+>> well ??
+>
+> We are not addressing GPIO code clean up in this series. As you mentioned, we are revamping the code so much just for doing HWMOD FW adaptation. If we attempt to clean up the whole GPIO code along with this, we will have many more changes as we need to introduce function pointers and cleanup almost each line of the existing code. This will be too much to be done in a single series. Hence HWMOD FW adaptation series is coming first. GPIO code clean up series can be done on top of this.
+>
+> When GPIO code cleanup was attempted some months back along with HWMOD FW adaptation, the changes were so much that reviewing became difficult.
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26069.html
 
-> * Paul Walmsley <paul@pwsan.com> [100520 02:05]:
-> > Hi,
-> > 
-> > On Wed, 19 May 2010, Santosh Shilimkar wrote:
-> > 
-> > > This patch uses "ENABLE_ON_INIT" flag on the emif clock nodes
-> > > to avoid the emif clk getting cut as part of reset un-used clock
-> > > routine which prevents boot.
-> > > 
-> > > Since omap4 "omap2_clk_init()" calls "clk_enable_init_clocks()"
-> > > which increases the usecount on all ENABLE_ON_INIT clocks, it
-> > > prevents "omap2_clk_disable_unused()" from disabling the clock.
-> > > 
-> > > The real fix is to have driver for EMIF and do clock get/enable
-> > > as part of it. The EMIF driver is planned to be done HWMOD way
-> > > so till that available to keep omap3_defconfig booting on OMAP4430,
-> > > this patch is necessary.
-> > > (Will updated the auto-gen script for 44xx accordingly)
-> > > 
-> > > The fix was suggested by Paul Walmsley
-> > > 
-> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > Cc: Paul Walmsley <paul@pwsan.com>
-> > 
-> > Thanks, I've added Nishanth's Tested-by: and fixed the patch changelog; 
-> > the following patch is now queued for 2.6.35-rc, unless there are any 
-> > further comments.
-> 
-> FYI, I'll also added this into omap-testing branch while we're waiting
-> for your clock fixes branch to be available.
+I didn't find anything in this thread saying that you will do both 
+cleanup and hwmod migration, so what is your plan? Do you already have a 
+second series that will do the cleanup on top of that one?
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+FWIW, in my case, the change is quite straightforward to do it right now.
 
-Feel free to send this one upstream separately if you like, until the 
-clock -rc series is ready.
-
-
-- Paul
+Benoit
