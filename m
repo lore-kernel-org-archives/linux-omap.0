@@ -1,54 +1,54 @@
 From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v3 3/8] omap3: add support for NAND on zoom3 board
-Date: Wed, 16 Jun 2010 17:09:55 +0530
-Message-ID: <1276688400-4812-4-git-send-email-s-ghorai@ti.com>
+Subject: [PATCH v3 2/8] omap3: add support for NAND on zoom2 board
+Date: Wed, 16 Jun 2010 17:09:54 +0530
+Message-ID: <1276688400-4812-3-git-send-email-s-ghorai@ti.com>
 References: <Sukumar Ghorai <s-ghorai@ti.com>
  <1276688400-4812-1-git-send-email-s-ghorai@ti.com>
  <1276688400-4812-2-git-send-email-s-ghorai@ti.com>
- <1276688400-4812-3-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48883 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48881 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758871Ab0FPLkH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Jun 2010 07:40:07 -0400
+	id S1758870Ab0FPLkG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Jun 2010 07:40:06 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5GBe4v0009598
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5GBe3xh009595
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 06:40:06 -0500
-In-Reply-To: <1276688400-4812-3-git-send-email-s-ghorai@ti.com>
+	for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 06:40:05 -0500
+In-Reply-To: <1276688400-4812-2-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
 
-patch adds NAND support to zoom3 board.
+This patch adds NAND support to ZOOM2 board.
 
 Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
 Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 ---
- arch/arm/mach-omap2/Makefile      |    1 +
- arch/arm/mach-omap2/board-zoom3.c |   43 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Makefile                  |    1 +
+ arch/arm/mach-omap2/board-zoom2.c             |   43 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    6 +++
+ 3 files changed, 50 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index e7159b0..00f4cfd 100644
+index 0d854f1..e7159b0 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -131,6 +131,7 @@ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
- 					   board-zoom-debugboard.o
- obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+@@ -126,6 +126,7 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
  					   board-zoom-peripherals.o \
 +					   board-flash.o \
  					   hsmmc.o \
  					   board-zoom-debugboard.o
- obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index 3314704..692c6c6 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -34,6 +34,47 @@ static void __init omap_zoom_map_io(void)
- static struct omap_board_config_kernel zoom_config[] __initdata = {
- };
+ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 803ef14..549f274 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -77,10 +77,53 @@ static struct omap_board_mux board_mux[] __initdata = {
+ #define board_mux	NULL
+ #endif
  
 +static struct mtd_partition zoom_nand_partitions[] = {
 +	/* All the partition sizes are listed in terms of NAND block size */
@@ -91,15 +91,28 @@ index 3314704..692c6c6 100644
 +	},
 +};
 +
- static void __init omap_zoom_init_irq(void)
+ static void __init omap_zoom2_init(void)
  {
- 	omap_board_config = zoom_config;
-@@ -66,6 +107,8 @@ static void __init omap_zoom_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
  	zoom_peripherals_init();
 +	board_nand_init(zoom_nand_partitions,
-+			 ARRAY_SIZE(zoom_nand_partitions), ZOOM_NAND_CS);
++			ARRAY_SIZE(zoom_nand_partitions), ZOOM_NAND_CS);
  	zoom_debugboard_init();
+ }
  
- 	omap_mux_init_gpio(64, OMAP_PIN_OUTPUT);
+diff --git a/arch/arm/mach-omap2/include/mach/board-zoom.h b/arch/arm/mach-omap2/include/mach/board-zoom.h
+index c93b29e..3af69d2 100644
+--- a/arch/arm/mach-omap2/include/mach/board-zoom.h
++++ b/arch/arm/mach-omap2/include/mach/board-zoom.h
+@@ -1,5 +1,11 @@
+ /*
+  * Defines for zoom boards
+  */
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/partitions.h>
++
++#define ZOOM_NAND_CS    0
++
++extern void __init board_nand_init(struct mtd_partition *, u8 nr_parts, u8 cs);
+ extern int __init zoom_debugboard_init(void);
+ extern void __init zoom_peripherals_init(void);
