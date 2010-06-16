@@ -1,85 +1,106 @@
 From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v3 6/8] omap-3630-sdp: enable Flash device support
-Date: Wed, 16 Jun 2010 17:09:58 +0530
-Message-ID: <1276688400-4812-7-git-send-email-s-ghorai@ti.com>
+Subject: [PATCH v3 5/8] omap3: add support for NAND on LDP board
+Date: Wed, 16 Jun 2010 17:09:57 +0530
+Message-ID: <1276688400-4812-6-git-send-email-s-ghorai@ti.com>
 References: <Sukumar Ghorai <s-ghorai@ti.com>
  <1276688400-4812-1-git-send-email-s-ghorai@ti.com>
  <1276688400-4812-2-git-send-email-s-ghorai@ti.com>
  <1276688400-4812-3-git-send-email-s-ghorai@ti.com>
  <1276688400-4812-4-git-send-email-s-ghorai@ti.com>
  <1276688400-4812-5-git-send-email-s-ghorai@ti.com>
- <1276688400-4812-6-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36776 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36775 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758882Ab0FPLkI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1758881Ab0FPLkI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 16 Jun 2010 07:40:08 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5GBe51N003610
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5GBe5fb003611
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 06:40:07 -0500
-In-Reply-To: <1276688400-4812-6-git-send-email-s-ghorai@ti.com>
+In-Reply-To: <1276688400-4812-5-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
 
-update config file to support for NAND, OneNAND, NOR on omap 3630-sdp board.
+patch adds NAND support to LDP board.
 
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
 ---
- arch/arm/configs/omap_3630sdp_defconfig |   31 ++++++++++++++++++++++++++++++-
- 1 files changed, 30 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/Makefile    |    1 +
+ arch/arm/mach-omap2/board-ldp.c |   35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/configs/omap_3630sdp_defconfig b/arch/arm/configs/omap_3630sdp_defconfig
-index 609f348..8c75c19
---- a/arch/arm/configs/omap_3630sdp_defconfig
-+++ b/arch/arm/configs/omap_3630sdp_defconfig
-@@ -461,7 +461,29 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
- # CONFIG_SYS_HYPERVISOR is not set
- CONFIG_CONNECTOR=y
- CONFIG_PROC_EVENTS=y
--# CONFIG_MTD is not set
-+CONFIG_MTD=y
-+CONFIG_MTD_CONCAT=y
-+CONFIG_MTD_PARTITIONS=y
-+CONFIG_MTD_CMDLINE_PARTS=y
-+CONFIG_MTD_CHAR=y
-+CONFIG_MTD_BLKDEVS=y
-+CONFIG_MTD_BLOCK=y
-+CONFIG_MTD_CFI=y
-+CONFIG_MTD_GEN_PROBE=y
-+CONFIG_MTD_MAP_BANK_WIDTH_1=y
-+CONFIG_MTD_MAP_BANK_WIDTH_2=y
-+CONFIG_MTD_MAP_BANK_WIDTH_4=y
-+CONFIG_MTD_CFI_I1=y
-+CONFIG_MTD_CFI_I2=y
-+CONFIG_MTD_CFI_INTELEXT=y
-+CONFIG_MTD_CFI_UTIL=y
-+CONFIG_MTD_PHYSMAP=y
-+CONFIG_MTD_NAND=y
-+CONFIG_MTD_NAND_OMAP2=y
-+CONFIG_MTD_NAND_OMAP_PREFETCH=y
-+CONFIG_MTD_NAND_IDS=y
-+CONFIG_MTD_ONENAND=y
-+CONFIG_MTD_ONENAND_OMAP2=y
- # CONFIG_PARPORT is not set
- CONFIG_BLK_DEV=y
- # CONFIG_BLK_DEV_COW_COMMON is not set
-@@ -1310,6 +1332,13 @@ CONFIG_MISC_FILESYSTEMS=y
- # CONFIG_BEFS_FS is not set
- # CONFIG_BFS_FS is not set
- # CONFIG_EFS_FS is not set
-+CONFIG_JFFS2_FS=y
-+CONFIG_JFFS2_FS_DEBUG=0
-+CONFIG_JFFS2_FS_WRITEBUFFER=y
-+CONFIG_JFFS2_COMPRESSION_OPTIONS=y
-+CONFIG_JFFS2_ZLIB=y
-+CONFIG_JFFS2_RTIME=y
-+CONFIG_JFFS2_CMODE_PRIORITY=y
- # CONFIG_CRAMFS is not set
- # CONFIG_SQUASHFS is not set
- # CONFIG_VXFS_FS is not set
--- 
-1.5.4.7
-
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 6c67126..af715fa 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -108,6 +108,7 @@ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+ obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o \
+                                            hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
++					   board-flash.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   hsmmc.o
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index fefd7e6..778afab 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -38,6 +38,7 @@
+ #include <plat/board.h>
+ #include <plat/common.h>
+ #include <plat/gpmc.h>
++#include <mach/board-zoom.h>
+ 
+ #include <asm/delay.h>
+ #include <plat/control.h>
+@@ -388,6 +389,38 @@ static struct omap_musb_board_data musb_board_data = {
+ 	.power			= 100,
+ };
+ 
++static struct mtd_partition ldp_nand_partitions[] = {
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "X-Loader-NAND",
++		.offset		= 0,
++		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot-NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
++		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "Boot Env-NAND",
++		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
++		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
++	},
++	{
++		.name		= "Kernel-NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
++		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
++	},
++	{
++		.name		= "File System - NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
++		.size		= MTDPART_SIZ_FULL,	/* 96MB, 0x6000000 */
++	},
++
++};
++
+ static void __init omap_ldp_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+@@ -400,6 +433,8 @@ static void __init omap_ldp_init(void)
+ 	ads7846_dev_init();
+ 	omap_serial_init();
+ 	usb_musb_init(&musb_board_data);
++	board_nand_init(ldp_nand_partitions,
++		ARRAY_SIZE(ldp_nand_partitions), ZOOM_NAND_CS);
+ 
+ 	omap2_hsmmc_init(mmc);
+ 	/* link regulators to MMC adapters */
