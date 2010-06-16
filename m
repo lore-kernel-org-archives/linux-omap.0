@@ -1,168 +1,109 @@
-From: "Sapiens, Rene" <rene.sapiens@ti.com>
-Subject: RE: Serial console not working after waking up from sleep
-Date: Wed, 16 Jun 2010 15:53:45 -0500
-Message-ID: <D2943F03B81C9C458E44DFB213905E02B65BA040@dlee04.ent.ti.com>
-References: <AANLkTind1hzgSWIfzNBxjCXPpdPhMYgUkSqYA0WjjYjR@mail.gmail.com>
-	<4C186A97.5040208@panicking.kicks-ass.org>
- <AANLkTikISCuLKjHTzn6FfiqMRlIKf7tY5RZlYXU40U1W@mail.gmail.com>
- <4C18E3F8.1060605@panicking.kicks-ass.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] mailbox: change full flag per mailbox queue instead of
+	global
+Date: Wed, 16 Jun 2010 16:17:58 -0500
+Message-ID: <AANLkTimQrOIbsvQw7yv2x_KJmsv2p5KfNdcsNk2_DWGm@mail.gmail.com>
+References: <1276534269-19179-1-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49587 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753576Ab0FPUy1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Jun 2010 16:54:27 -0400
-In-Reply-To: <4C18E3F8.1060605@panicking.kicks-ass.org>
-Content-Language: en-US
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:53136 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753534Ab0FPVSU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 17:18:20 -0400
+Received: by wwb18 with SMTP id 18so6079246wwb.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 14:18:19 -0700 (PDT)
+In-Reply-To: <1276534269-19179-1-git-send-email-x0095840@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Trimarchi <michael@panicking.kicks-ass.org>, Han Wang <hw342@cornell.edu>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Fernando Guzman Lugo <x0095840@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, hiroshi.doyu@nokia.com
 
-WW91IGNhbiBkbyBhIHRlbG5ldCB0byB0aGUgZGV2aWNlLi4uIHlvdSBzaG91bGQgYmUgYWJsZSB0
-byB3b3JrIHdpdGggaXQgYnV0IHlvdXIgc2VyaWFsIHNlc3Npb24gd2lsbCBzaG93IHRoZSBnYXJi
-YWdlLg0KDQpSZWdhcmRzLA0KUmVuZQ0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+
-IEZyb206IGxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtb21h
-cC0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgTWljaGFlbCBUcmltYXJj
-aGkNCj4gU2VudDogV2VkbmVzZGF5LCBKdW5lIDE2LCAyMDEwIDk6NDcgQU0NCj4gVG86IEhhbiBX
-YW5nDQo+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBSZTogU2Vy
-aWFsIGNvbnNvbGUgbm90IHdvcmtpbmcgYWZ0ZXIgd2FraW5nIHVwIGZyb20gc2xlZXANCj4gDQo+
-IEhpDQo+IA0KPiBIYW4gV2FuZyB3cm90ZToNCj4gPiBIaSwgbWljaGFlbCwNCj4gPg0KPiA+ICAg
-IEkgaGF2ZSB0aGUgbm9fY29uc29sZV9zdXNwZW5kIG9wdGlvbiBpbiBteSBib290IGNvbW1hbmQg
-bGluZSwgSSBhbQ0KPiA+IG5vdCBzdXJlIGlmIHRoYXQgaXMgdGhlIG9wdGlvbiB5b3Ugd2VyZSB0
-cnlpbmcgdG8gcG9pbnQgbWUgdG8gaW4gdGhlDQo+ID4gbGFzdCBlbWFpbD8NCj4gDQo+IEkgaGF2
-ZSBzYWlkIHRoYXQgaSBoYXZlIG5vIHByb2JsZW0gd2hlbiBJIHJlbW92ZSB0aGF0IG9wdGlvbi4N
-Cj4gQ2FuIHlvdSB0cnkgdG8gZWNobyAwIHRvIHRpbWVvdXQgb2YgdGhlIHNlcmlhbCBkZXZpY2U/
-DQo+IA0KPiBNaWNoYWVsDQo+IA0KPiA+DQo+ID4gICAgYW55d2F5LCBJIGFkZGVkIG5vX2RlYnVn
-X2NvbnNvbGUgaW50byBteSBib290IGNvbW1hbmQgYXJnLCBidXQgdGhhdA0KPiA+IGRvZXNuJ3Qg
-c2VlbSB0byBoZWxwIHdpdGggbXkgcHJvYmxlbS4NCj4gPg0KPiA+ICAgIGFueSBpZGVhcz8NCj4g
-Pg0KPiA+IFRoYW5rcywNCj4gPiBIYW4NCj4gPiBPbiBXZWQsIEp1biAxNiwgMjAxMCBhdCAyOjA5
-IEFNLCBNaWNoYWVsIFRyaW1hcmNoaQ0KPiA+IDxtaWNoYWVsQHBhbmlja2luZy5raWNrcy1hc3Mu
-b3JnPiB3cm90ZToNCj4gPj4gSGFuIFdhbmcgd3JvdGU6DQo+ID4+PiBIaSwNCj4gPj4+DQo+ID4+
-PiAgSSBhbSB0ZXN0aW5nIHRoZSAyLjYuMzUtcmMxIHBtIGJyYW5jaCBjb2RlIG9uIE92ZXJvLiBU
-aGUgc3lzdGVtDQo+ID4+PiBib290cyBvay4gKEkgY2FuIHByb3ZpZGUgYm9vdGluZyBsb2cgaWYg
-dGhhdCBpcyBuZWNlc3NhcnkpIEhvd2V2ZXIsDQo+ID4+PiB3aGVuIEkgdXNlICJlY2hvIG1lbSA+
-IC9zeXMvcG93ZXIvc3RhdGUiIHRvIHNlbmQgb3Zlcm8gdG8gc2xlZXAgYW5kDQo+ID4+PiB3YWtl
-IGl0IHVwIGJ5IGVudGVyIGEga2V5IGludG8gc2VyaWFsIGNvbnNvbGUuIEkgZ290IGdhcmJhZ2UN
-Cj4gPj4+IGNoYXJhY3RlcnMgaW4gdGhlIHNlcmlhbCBjb25zb2xlLCBhbmQgSSBjYW4gbm90IGVu
-dGVyIGFueXRoaW5nIGludG8NCj4gPj4+IHRoZSBjb25zb2xlIGFueW1vcmUuIEkgd29uZGVyIGlm
-IGFueW9uZSBoYXMgZW5jb3VudGVyZWQgYSBzaW1pbGFyDQo+ID4+PiBwcm9ibGVtLCBhbmQgcGxl
-YXNlIGdpdmUgbWUgc29tZSBzdWdnZXN0aW9uLg0KPiA+Pj4NCj4gPj4+IEkgaGF2ZSBhcHBlbmRl
-ZCBjb21tYW5kIGxvZyBiZWxvdy4NCj4gPj4+DQo+ID4+PiByb290QG92ZXJvOn4jIGVjaG8gbWVt
-ID4gL3N5cy9wb3dlci9zdGF0ZQ0KPiA+Pj4gUE06IFN5bmNpbmcgZmlsZXN5c3RlbXMgLi4uIGRv
-bmUuDQo+ID4+PiBQTTogUHJlcGFyaW5nIHN5c3RlbSBmb3IgbWVtIHNsZWVwDQo+ID4+PiBQTTog
-QWRkaW5nIGluZm8gZm9yIE5vIEJ1czp2Y3M2Mw0KPiA+Pj4gUE06IEFkZGluZyBpbmZvIGZvciBO
-byBCdXM6dmNzYTYzDQo+ID4+PiBGcmVlemluZyB1c2VyIHNwYWNlIHByb2Nlc3NlcyAuLi4gKGVs
-YXBzZWQgMC4wMiBzZWNvbmRzKSBkb25lLg0KPiA+Pj4gRnJlZXppbmcgcmVtYWluaW5nIGZyZWV6
-YWJsZSB0YXNrcyAuLi4gKGVsYXBzZWQgMC4wMSBzZWNvbmRzKSBkb25lLg0KPiA+Pj4gUE06IEVu
-dGVyaW5nIG1lbSBzbGVlcA0KPiA+Pj4gaTJjX29tYXAgaTJjX29tYXAuMTogcHJlcGFyaW5nIHN1
-c3BlbmQNCj4gPj4+IGkyY19vbWFwIGkyY19vbWFwLjM6IHByZXBhcmluZyBzdXNwZW5kDQo+ID4+
-PiBwbGF0Zm9ybSBvdmVyb19sY2Q6IHByZXBhcmluZyBzdXNwZW5kDQo+ID4+PiBzZXJpYWw4MjUw
-IHNlcmlhbDgyNTAuMDogcHJlcGFyaW5nIHN1c3BlbmQsIG1heSB3YWtldXANCj4gPj4+IHNlcmlh
-bDgyNTAgc2VyaWFsODI1MC4xOiBwcmVwYXJpbmcgc3VzcGVuZCwgbWF5IHdha2V1cA0KPiA+Pj4g
-c2VyaWFsODI1MCBzZXJpYWw4MjUwLjI6IHByZXBhcmluZyBzdXNwZW5kLCBtYXkgd2FrZXVwDQo+
-ID4+PiBwbGF0Zm9ybSBvbWFwMi1uYW5kOiBwcmVwYXJpbmcgc3VzcGVuZA0KPiA+Pj4gcGxhdGZv
-cm0gbXVzYl9oZHJjOiBwcmVwYXJpbmcgc3VzcGVuZA0KPiA+Pj4gcGxhdGZvcm0gc21zYzkxMXgu
-MDogcHJlcGFyaW5nIHN1c3BlbmQNCj4gPj4+IHBsYXRmb3JtIHNtc2M5MTF4LjE6IHByZXBhcmlu
-ZyBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9ybSBvbWFwMl9tY3NwaS4xOiBwcmVwYXJpbmcgc3VzcGVu
-ZA0KPiA+Pj4gcGxhdGZvcm0gb21hcDJfbWNzcGkuMjogcHJlcGFyaW5nIHN1c3BlbmQNCj4gPj4+
-IHBsYXRmb3JtIG9tYXAyX21jc3BpLjM6IHByZXBhcmluZyBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9y
-bSBvbWFwMl9tY3NwaS40OiBwcmVwYXJpbmcgc3VzcGVuZA0KPiA+Pj4gYXJtLXBtdSBhcm0tcG11
-LjA6IHByZXBhcmluZyBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9ybSBvbWFwX3JuZzogcHJlcGFyaW5n
-IHN1c3BlbmQNCj4gPj4+IHBsYXRmb3JtIG9tYXBmYjogcHJlcGFyaW5nIHN1c3BlbmQNCj4gPj4+
-IHR3bDQwMzBfZ3BpbyB0d2w0MDMwX2dwaW86IHByZXBhcmluZyBzdXNwZW5kDQo+ID4+PiBtbWNp
-LW9tYXAtaHMgbW1jaS1vbWFwLWhzLjA6IHByZXBhcmluZyBzdXNwZW5kDQo+ID4+PiBtbWNpLW9t
-YXAtaHMgbW1jaS1vbWFwLWhzLjE6IHByZXBhcmluZyBzdXNwZW5kDQo+ID4+PiB0d2xfcmVnIHR3
-bF9yZWcuMTc6IHByZXBhcmluZyBzdXNwZW5kDQo+ID4+PiB0d2xfcmVnIHR3bF9yZWcuMTg6IHBy
-ZXBhcmluZyBzdXNwZW5kDQo+ID4+PiB0d2xfcmVnIHR3bF9yZWcuMTk6IHByZXBhcmluZyBzdXNw
-ZW5kDQo+ID4+PiB0d2w0MDMwX3VzYiB0d2w0MDMwX3VzYjogcHJlcGFyaW5nIHN1c3BlbmQsIG1h
-eSB3YWtldXANCj4gPj4+IHR3bF9yZWcgdHdsX3JlZy42OiBwcmVwYXJpbmcgc3VzcGVuZA0KPiA+
-Pj4gc2VyaWFsODI1MCBzZXJpYWw4MjUwOiBwcmVwYXJpbmcgc3VzcGVuZA0KPiA+Pj4gbW1jYmxr
-IG1tYzA6ZmIyYTogbGVnYWN5IHN1c3BlbmQNCj4gPj4+IHNlcmlhbDgyNTAgc2VyaWFsODI1MDog
-c3VzcGVuZA0KPiA+Pj4gaTJjIGkyYy0zOiBzdXNwZW5kDQo+ID4+PiB0d2xfcmVnIHR3bF9yZWcu
-Njogc3VzcGVuZA0KPiA+Pj4gdHdsNDAzMF91c2IgdHdsNDAzMF91c2I6IHN1c3BlbmQsIG1heSB3
-YWtldXANCj4gPj4+IHR3bF9yZWcgdHdsX3JlZy4xOTogc3VzcGVuZA0KPiA+Pj4gdHdsX3JlZyB0
-d2xfcmVnLjE4OiBzdXNwZW5kDQo+ID4+PiB0d2xfcmVnIHR3bF9yZWcuMTc6IHN1c3BlbmQNCj4g
-Pj4+IG1tY2ktb21hcC1ocyBtbWNpLW9tYXAtaHMuMTogc3VzcGVuZA0KPiA+Pj4gbW1jaS1vbWFw
-LWhzIG1tY2ktb21hcC1ocy4wOiBzdXNwZW5kDQo+ID4+PiB0d2w0MDMwX2dwaW8gdHdsNDAzMF9n
-cGlvOiBzdXNwZW5kDQo+ID4+PiBkdW1teSAxLTAwNGI6IHN1c3BlbmQNCj4gPj4+IGR1bW15IDEt
-MDA0YTogc3VzcGVuZA0KPiA+Pj4gZHVtbXkgMS0wMDQ5OiBzdXNwZW5kDQo+ID4+PiB0d2wgMS0w
-MDQ4OiBzdXNwZW5kLCBtYXkgd2FrZXVwDQo+ID4+PiBpMmMgaTJjLTE6IHN1c3BlbmQNCj4gPj4+
-IHBsYXRmb3JtIG9tYXBmYjogc3VzcGVuZA0KPiA+Pj4gcGxhdGZvcm0gb21hcF9ybmc6IHN1c3Bl
-bmQNCj4gPj4+IGFybS1wbXUgYXJtLXBtdS4wOiBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9ybSBvbWFw
-Ml9tY3NwaS40OiBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9ybSBvbWFwMl9tY3NwaS4zOiBzdXNwZW5k
-DQo+ID4+PiBwbGF0Zm9ybSBvbWFwMl9tY3NwaS4yOiBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9ybSBv
-bWFwMl9tY3NwaS4xOiBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9ybSBzbXNjOTExeC4xOiBzdXNwZW5k
-DQo+ID4+PiBwbGF0Zm9ybSBzbXNjOTExeC4wOiBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9ybSBtdXNi
-X2hkcmM6IHN1c3BlbmQNCj4gPj4+IHBsYXRmb3JtIG9tYXAyLW5hbmQ6IHN1c3BlbmQNCj4gPj4+
-IHNlcmlhbDgyNTAgc2VyaWFsODI1MC4yOiBzdXNwZW5kLCBtYXkgd2FrZXVwDQo+ID4+PiBzZXJp
-YWw4MjUwIHNlcmlhbDgyNTAuMTogc3VzcGVuZCwgbWF5IHdha2V1cA0KPiA+Pj4gc2VyaWFsODI1
-MCBzZXJpYWw4MjUwLjA6IHN1c3BlbmQsIG1heSB3YWtldXANCj4gPj4+IHBsYXRmb3JtIG92ZXJv
-X2xjZDogc3VzcGVuZA0KPiA+Pj4gaTJjX29tYXAgaTJjX29tYXAuMzogc3VzcGVuZA0KPiA+Pj4g
-aTJjX29tYXAgaTJjX29tYXAuMTogc3VzcGVuZA0KPiA+Pj4gUE06IHN1c3BlbmQgb2YgZGV2aWNl
-cyBjb21wbGV0ZSBhZnRlciAyMDEuOTY1IG1zZWNzDQo+ID4+PiBzZXJpYWw4MjUwIHNlcmlhbDgy
-NTA6IExBVEUgc3VzcGVuZA0KPiA+Pj4gaTJjIGkyYy0zOiBMQVRFIHN1c3BlbmQNCj4gPj4+IHR3
-bF9yZWcgdHdsX3JlZy42OiBMQVRFIHN1c3BlbmQNCj4gPj4+IHR3bDQwMzBfdXNiIHR3bDQwMzBf
-dXNiOiBMQVRFIHN1c3BlbmQsIG1heSB3YWtldXANCj4gPj4+IHR3bF9yZWcgdHdsX3JlZy4xOTog
-TEFURSBzdXNwZW5kDQo+ID4+PiB0d2xfcmVnIHR3bF9yZWcuMTg6IExBVEUgc3VzcGVuZA0KPiA+
-Pj4gdHdsX3JlZyB0d2xfcmVnLjE3OiBMQVRFIHN1c3BlbmQNCj4gPj4+IG1tY2ktb21hcC1ocyBt
-bWNpLW9tYXAtaHMuMTogTEFURSBzdXNwZW5kDQo+ID4+PiBtbWNpLW9tYXAtaHMgbW1jaS1vbWFw
-LWhzLjA6IExBVEUgc3VzcGVuZA0KPiA+Pj4gdHdsNDAzMF9ncGlvIHR3bDQwMzBfZ3BpbzogTEFU
-RSBzdXNwZW5kDQo+ID4+PiBkdW1teSAxLTAwNGI6IExBVEUgc3VzcGVuZA0KPiA+Pj4gZHVtbXkg
-MS0wMDRhOiBMQVRFIHN1c3BlbmQNCj4gPj4+IGR1bW15IDEtMDA0OTogTEFURSBzdXNwZW5kDQo+
-ID4+PiB0d2wgMS0wMDQ4OiBMQVRFIHN1c3BlbmQsIG1heSB3YWtldXANCj4gPj4+IGkyYyBpMmMt
-MTogTEFURSBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9ybSBvbWFwZmI6IExBVEUgc3VzcGVuZA0KPiA+
-Pj4gcGxhdGZvcm0gb21hcF9ybmc6IExBVEUgc3VzcGVuZA0KPiA+Pj4gYXJtLXBtdSBhcm0tcG11
-LjA6IExBVEUgc3VzcGVuZA0KPiA+Pj4gcGxhdGZvcm0gb21hcDJfbWNzcGkuNDogTEFURSBzdXNw
-ZW5kDQo+ID4+PiBwbGF0Zm9ybSBvbWFwMl9tY3NwaS4zOiBMQVRFIHN1c3BlbmQNCj4gPj4+IHBs
-YXRmb3JtIG9tYXAyX21jc3BpLjI6IExBVEUgc3VzcGVuZA0KPiA+Pj4gcGxhdGZvcm0gb21hcDJf
-bWNzcGkuMTogTEFURSBzdXNwZW5kDQo+ID4+PiBwbGF0Zm9ybSBzbXNjOTExeC4xOiBMQVRFIHN1
-c3BlbmQNCj4gPj4+IHBsYXRmb3JtIHNtc2M5MTF4LjA6IExBVEUgc3VzcGVuZA0KPiA+Pj4gcGxh
-dGZvcm0gbXVzYl9oZHJjOiBMQVRFIHN1c3BlbmQNCj4gPj4+IHBsYXRmb3JtIG9tYXAyLW5hbmQ6
-IExBVEUgc3VzcGVuZA0KPiA+Pj4gc2VyaWFsODI1MCBzZXJpYWw4MjUwLjI6IExBVEUgc3VzcGVu
-ZCwgbWF5IHdha2V1cA0KPiA+Pj4gc2VyaWFsODI1MCBzZXJpYWw4MjUwLjE6IExBVEUgc3VzcGVu
-ZCwgbWF5IHdha2V1cA0KPiA+Pj4gc2VyaWFsODI1MCBzZXJpYWw4MjUwLjA6IExBVEUgc3VzcGVu
-ZCwgbWF5IHdha2V1cA0KPiA+Pj4gcGxhdGZvcm0gb3Zlcm9fbGNkOiBMQVRFIHN1c3BlbmQNCj4g
-Pj4+IGkyY19vbWFwIGkyY19vbWFwLjM6IExBVEUgc3VzcGVuZA0KPiA+Pj4gaTJjX29tYXAgaTJj
-X29tYXAuMTogTEFURSBzdXNwZW5kDQo+ID4+PiBQTTogbGF0ZSBzdXNwZW5kIG9mIGRldmljZXMg
-Y29tcGxldGUgYWZ0ZXIgMTAzLjA4OCBtc2Vjcw0KPiA+Pj4gU3VjY2Vzc2Z1bGx5IHB1dCBhbGwg
-cG93ZXJkb21haW5zIHRvIHRhcmdldCBzdGF0ZQ0KPiA+Pj4gaTJjX29tYXAgaTJjX29tYXAuMTog
-RUFSTFkgcmVzdW1lDQo+ID4+PiBpMmNfb21hcCBpMmNfb21hcC4zOiBFQVJMWSByZXN1bWUNCj4g
-Pj4+IHBsYXRmb3JtIG92ZXJvX2xjZDogRUFSTFkgcmVzdW1lDQo+ID4+PiBzZXJpYWw4MjUwIHNl
-cmlhbDgyNTAuMDogRUFSTFkgcmVzdW1lDQo+ID4+PiBzZXJpYWw4MjUwIHNlcmlhbDgyNTAuMTog
-RUFSTFkgcmVzdW1lDQo+ID4+PiBzZXJpYWw4MjUwIHNlcmlhbDgyNTAuMjogRUFSTFkgcmVzdW1l
-DQo+ID4+PiBwbGF0Zm9ybSBvbWFwMi1uYW5kOiBFQVJMWSByZXN1bWUNCj4gPj4+IHBsYXRmb3Jt
-IG11c2JfaGRyYzogRUFSTFkgcmVzdW1lDQo+ID4+PiBwbGF0Zm9ybSBzbXNjOTExeC4wOiBFQVJM
-WSByZXN1bWUNCj4gPj4+IHBsYXRmb3JtIHNtc2M5MTF4LjE6IEVBUkxZIHJlc3VtZQ0KPiA+Pj4g
-cGxhdGZvcm0gb21hcDJfbWNzcGkuMTogRUFSTFkgcmVzdW1lDQo+ID4+PiBwbGF0Zm9ybSBvbWFw
-Ml9tY3NwaS4yOiBFQVJMWSByZXN1bWUNCj4gPj4+IHBsYXRmb3JtIG9tYXAyX21jc3BpLjM6IEVB
-UkxZIHJlc3VtZQ0KPiA+Pj4gcGxhdGZvcm0gb21hcDJfbWNzcGkuNDogRUFSTFkgcmVzdW1lDQo+
-ID4+PiBhcm0tcG11IGFybS1wbXUuMDogRUFSTFkgcmVzdW1lDQo+ID4+PiBwbGF0Zm9ybSBvbWFw
-X3JuZzogRUFSTFkgcmVzdW1lDQo+ID4+PiBwbGF0Zm9ybSBvbWFwZmI6IEVBUkxZIHJlc3VtZQ0K
-PiA+Pj4gaTJjIGkyYy0xOiBFQVJMWSByZXN1bWUNCj4gPj4+IHR3bCAxLTAwNDg6IEVBUkxZIHJl
-c3VtZQ0KPiA+Pj4gZHVtbXkgMS0wMDQ5OiBFQVJMWSByZXN1bWUNCj4gPj4+IGR1bW15IDEtMDA0
-YTogRUFSTFkgcmVzdW1lDQo+ID4+PiBkdW1teSAxLTAwNGI6IEVBUkxZIHJlc3VtZQ0KPiA+Pj4g
-dHdsNDAzMF9ncGlvIHR3bDQwMzBfZ3BpbzogRUFSTFkgcmVzdW1lDQo+ID4+PiBtbWNpLW9tYXAt
-aHMgbW1jaS1vbWFwLWhzLjA6IEVBUkxZIHJlc3VtZQ0KPiA+Pj4gbW1jaS1vbWFwLWhzIG1tY2kt
-b21hcC1ocy4xOiBFQVJMWSByZXN1bWUNCj4gPj4+IHR3bF9yZWcgdHdsX3JlZy4xNzogRUFSTFkg
-cmVzdW1lDQo+ID4+PiB0d2xfcmVnIHR3bF9yZWcuMTg6IEVBUkxZIHJlc3VtZQ0KPiA+Pj4gdHds
-X3JlZyB0d2xfcmVnLjE5OiBFQVJMWSByZXN1bWUNCj4gPj4+IHR3bDQwMzBfdXNiIHR3bDQwMzBf
-dXNiOiBFQVJMWSByZXN1bWUNCj4gPj4+IHR3bF9yZWcgdHdsX3JlZy42OiBFQVJMWSByZXN1bWUN
-Cj4gPj4+IGkyYyBpMmMtMzogRUFSTFkgcmVzdW1lDQo+ID4+PiBzZXJpYWw4MjUwIHNlcmlhbDgy
-NTA6IEVBUkxZIHJlc3VtZQ0KPiA+Pj4gUE06IGVhcmx5IHJlc3VtZSBvZiBkZXZpY2VzIGNvbXBs
-ZXRlIGFmdGVyIDk3LjYyNSBtc2Vjcw0KPiA+Pj4gaTJjX29tYXAgaTJjX29tYXAuMTogcmVzdW1l
-DQo+ID4+PiBpMmNfb21hcCBpMmNfb21hcC4zOiByZXN1bWUNCj4gPj4+IHBsYXRmb3JtIG92ZXJv
-X2xjZDogcmVzdW1lDQo+ID4+PiBzZXJpYWw4MjUwIHNlcmlhbDgyNTAuMDogcmVzdW1lDQo+ID4+
-PiBzZXJpYWw4MjUwIHNlcmlhbDgyNTAuMTogcmVzdW1lDQo+ID4+PiBzZXJpYWw4MjUwIHNlcmlh
-bDgyNTAuMjogcmVzdW1lDQo+ID4+Pg0KPiA+Pj4NCj4gxah1Vj1WPcO9X+KAlWjDvsW+w77Fvi4/
-w71SxapIbMWMxYzFq8Wnxao9xas94oCVxKvFqsWLUSpexb7DvlHFqzk5OsWrxYzFjMO9Uk7FqcO1
-dMWqxLvEuzo7O1TFpz/DiVFRwrfEq8OWxKvDi1zFi3bDqcOdDQo+IMS4DQo+ID4+PiAoZ2FyYmFn
-ZSBzdHJpbmcuLi4pDQo+ID4+IFRoZSBwcm9ibGVtIGlzIHJlbGVhdGVkIHRvIG5vX2RlYnVnX2Nv
-bnNvbGUgb3B0aW9uLg0KPiA+Pg0KPiA+PiBNaWNoYWVsIFRyaW1hcmNoaQ0KPiA+Pg0KPiA+Pj4g
-VGhhbmtzLA0KPiA+Pg0KPiA+DQo+ID4NCj4gPg0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUg
-ZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9tYXAiIGlu
-DQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+
-IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21v
-LWluZm8uaHRtbA0K
+On Mon, Jun 14, 2010 at 11:51 AM, Fernando Guzman Lugo <x0095840@ti.com=
+> wrote:
+> As pointed by Ben Ohand, the variable rq_full flag is a global
+> variable, so if there are multiple mailbox users there will be
+> conflics. Now there is a full flag per mailbox queue.
+>
+> Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> ---
+> =A0arch/arm/plat-omap/include/plat/mailbox.h | =A0 =A01 +
+> =A0arch/arm/plat-omap/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A07=
+ +++----
+> =A02 files changed, 4 insertions(+), 4 deletions(-)
+
+
+Thanks, Fernando, it looks good !
+
+Since the original patch wasn't merged yet, it might make more sense
+to squash it with this fix into a single patch, instead of introducing
+this fix as a new patch. what do you think ?
+
+>
+> diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/pla=
+t-omap/include/plat/mailbox.h
+> index 729166b..a6144b8 100644
+> --- a/arch/arm/plat-omap/include/plat/mailbox.h
+> +++ b/arch/arm/plat-omap/include/plat/mailbox.h
+> @@ -47,6 +47,7 @@ struct omap_mbox_queue {
+> =A0 =A0 =A0 =A0struct tasklet_struct =A0 tasklet;
+> =A0 =A0 =A0 =A0int =A0 =A0 (*callback)(void *);
+> =A0 =A0 =A0 =A0struct omap_mbox =A0 =A0 =A0 =A0*mbox;
+> + =A0 =A0 =A0 bool =A0 =A0full;
+> =A0};
+>
+> =A0struct omap_mbox {
+> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbo=
+x.c
+> index 8d86b0b..a1e274e 100644
+> --- a/arch/arm/plat-omap/mailbox.c
+> +++ b/arch/arm/plat-omap/mailbox.c
+> @@ -30,7 +30,6 @@
+>
+> =A0static struct omap_mbox *mboxes;
+> =A0static DEFINE_RWLOCK(mboxes_lock);
+> -static bool rq_full;
+>
+> =A0static int mbox_configured;
+> =A0static DEFINE_MUTEX(mbox_configured_lock);
+> @@ -140,9 +139,9 @@ static void mbox_rx_work(struct work_struct *work=
+)
+> =A0 =A0 =A0 =A0while (1) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_lock_irqsave(q->queue_lock, flags=
+);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rq =3D blk_fetch_request(q);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (rq_full) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (mbox->rxq->full) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_mbox_enable_irq(m=
+box, IRQ_RX);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rq_full =3D false;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mbox->rxq->full =3D fal=
+se;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock_irqrestore(q->queue_lock, =
+flags);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (!rq)
+> @@ -183,7 +182,7 @@ static void __mbox_rx_interrupt(struct omap_mbox =
+*mbox)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rq =3D blk_get_request(q, WRITE, GFP_A=
+TOMIC);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (unlikely(!rq)) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_mbox_disable_irq(=
+mbox, IRQ_RX);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rq_full =3D true;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mbox->rxq->full =3D tru=
+e;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto nomem;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>
+> --
+> 1.6.3.3
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
