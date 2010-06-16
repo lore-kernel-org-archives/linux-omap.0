@@ -1,50 +1,130 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [pm-wip/uart][PATCH 4/5 v2] OMAP3: PM: Add prepare idle and resume
-     idle call for uart4
-Date: Wed, 16 Jun 2010 19:44:20 +0530 (IST)
-Message-ID: <2235.10.24.255.18.1276697660.squirrel@dbdmail.itg.ti.com>
+Subject: [pm-wip/uart][PATCH 5/5 v2] Serial: Avoid using hwmod lookup using
+     name string
+Date: Wed, 16 Jun 2010 19:44:29 +0530 (IST)
+Message-ID: <2335.10.24.255.18.1276697669.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43722 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758890Ab0FPOOW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Jun 2010 10:14:22 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:55316 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758944Ab0FPOOc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 10:14:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Add prepare idle and resume idle call for uart4 used by 3630.
+Avoid using hwmod lookup using name string rather
+retreive port info using the hwmod class interface.
 
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/serial.c |   71 ++++++++++++++++++-----------------------
+ 1 files changed, 31 insertions(+), 40 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index a120d4f..50c20a2 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -394,6 +394,7 @@ void omap_sram_idle(void)
- 	/* PER */
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		omap_uart_prepare_idle(2);
-+		omap_uart_prepare_idle(3);
- 		omap2_gpio_prepare_for_idle(per_next_state);
- 		if (per_next_state == PWRDM_POWER_OFF) {
- 			if (core_next_state == PWRDM_POWER_ON) {
-@@ -474,6 +475,7 @@ void omap_sram_idle(void)
- 		if (per_prev_state == PWRDM_POWER_OFF)
- 			omap3_per_restore_context();
- 		omap_uart_resume_idle(2);
-+		omap_uart_resume_idle(3);
- 		if (per_state_modified)
- 			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
- 	}
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 128e19b..0380ac8 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -56,8 +56,6 @@
+  */
+ #define DEFAULT_TIMEOUT 0
+
+-#define MAX_UART_HWMOD_NAME_LEN		16
+-
+ struct omap_uart_state {
+ 	int num;
+ 	int can_sleep;
+@@ -601,52 +599,45 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
+ }
+ #endif
+
+-void __init omap_serial_early_init(void)
++static int omap_serial_port_init(struct omap_hwmod *oh, void *user)
+ {
+-	int i = 0;
++	struct omap_uart_state *uart;
++	static int i;
+
+-	do {
+-		char oh_name[MAX_UART_HWMOD_NAME_LEN];
+-		struct omap_hwmod *oh;
+-		struct omap_uart_state *uart;
++	uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
++	if (WARN_ON(!uart))
++		return -ENOMEM;
+
+-		snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN,
+-			 "uart%d", i + 1);
+-		oh = omap_hwmod_lookup(oh_name);
+-		if (!oh)
+-			break;
++	uart->oh = oh;
++	uart->num = i++;
++	list_add_tail(&uart->node, &uart_list);
++	num_uarts++;
+
+-		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
+-		if (WARN_ON(!uart))
+-			return;
++	/*
++	 * During UART early init, device need to be probed
++	 * to determine SoC specific init before omap_device
++	 * is ready.  Therefore, don't allow idle here
++	 */
+
+-		uart->oh = oh;
+-		uart->num = i++;
+-		list_add_tail(&uart->node, &uart_list);
+-		num_uarts++;
++	uart->oh->flags |= HWMOD_INIT_NO_IDLE;
+
+-		/*
+-		 * NOTE: omap_hwmod_init() has not yet been called,
+-		 *       so no hwmod functions will work yet.
+-		 */
++	/*
++	 * Since UART hwmod is idle/enabled inside the
++	 * idle loop, interrupts are already disabled and
++	 * thus no locking is needed.  Since the mutex-based
++	 * locking in hwmod might sleep, allowing locking
++	 * may introduce problems.
++	 */
+
+-		/*
+-		 * During UART early init, device need to be probed
+-		 * to determine SoC specific init before omap_device
+-		 * is ready.  Therefore, don't allow idle here
+-		 */
+-		uart->oh->flags |= HWMOD_INIT_NO_IDLE;
+-
+-		/*
+-		 * Since UART hwmod is idle/enabled inside the
+-		 * idle loop, interrupts are already disabled and
+-		 * thus no locking is needed.  Since the mutex-based
+-		 * locking in hwmod might sleep, allowing locking
+-		 * may introduce problems.
+-		 */
+-		uart->oh->flags |= HWMOD_NO_IDLE_LOCKING;
++	uart->oh->flags |= HWMOD_NO_IDLE_LOCKING;
+
+-	} while (1);
++	return 0;
++}
++
++void __init omap_serial_early_init(void)
++{
++	omap_hwmod_for_each_by_class("uart",
++		omap_serial_port_init, NULL);
+ }
+
+ /**
 -- 
 1.6.3.3
+
+
 
 
