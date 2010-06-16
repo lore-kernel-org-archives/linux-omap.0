@@ -1,40 +1,59 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v4 00/14] omap: mailbox: bunch of cleanups
-Date: Wed, 16 Jun 2010 12:21:41 +0300 (EEST)
-Message-ID: <20100616.122141.245405863.Hiroshi.DOYU@nokia.com>
-References: <1276271509-11983-1-git-send-email-felipe.contreras@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2] omap4: Fix multi-omap boot with reset un-used
+ clocks
+Date: Wed, 16 Jun 2010 03:22:36 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1006160322060.17630@utopia.booyaka.com>
+References: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1005191708320.27473@utopia.booyaka.com> <20100531124824.GF30216@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49864 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249Ab0FPJWO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 05:22:14 -0400
-In-Reply-To: <1276271509-11983-1-git-send-email-felipe.contreras@gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:57516 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752971Ab0FPJWh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 05:22:37 -0400
+In-Reply-To: <20100531124824.GF30216@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
 
-From: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH v4 00/14] omap: mailbox: bunch of cleanups
-Date: Fri, 11 Jun 2010 17:51:35 +0200
+On Mon, 31 May 2010, Tony Lindgren wrote:
 
-> From: Felipe Contreras <--global>
+> * Paul Walmsley <paul@pwsan.com> [100520 02:05]:
+> > Hi,
+> > 
+> > On Wed, 19 May 2010, Santosh Shilimkar wrote:
+> > 
+> > > This patch uses "ENABLE_ON_INIT" flag on the emif clock nodes
+> > > to avoid the emif clk getting cut as part of reset un-used clock
+> > > routine which prevents boot.
+> > > 
+> > > Since omap4 "omap2_clk_init()" calls "clk_enable_init_clocks()"
+> > > which increases the usecount on all ENABLE_ON_INIT clocks, it
+> > > prevents "omap2_clk_disable_unused()" from disabling the clock.
+> > > 
+> > > The real fix is to have driver for EMIF and do clock get/enable
+> > > as part of it. The EMIF driver is planned to be done HWMOD way
+> > > so till that available to keep omap3_defconfig booting on OMAP4430,
+> > > this patch is necessary.
+> > > (Will updated the auto-gen script for 44xx accordingly)
+> > > 
+> > > The fix was suggested by Paul Walmsley
+> > > 
+> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > > Cc: Paul Walmsley <paul@pwsan.com>
+> > 
+> > Thanks, I've added Nishanth's Tested-by: and fixed the patch changelog; 
+> > the following patch is now queued for 2.6.35-rc, unless there are any 
+> > further comments.
 > 
-> Hi,
-> 
-> These are hopefully non-functional changes. Just shuffling code around, and
-> removing unecessary stuff.
-> 
-> This v4 includes minor changes suggested by Felipe Balbi, Hiroshi, and Russell.
-> 
-> Comments from Felipe Balbi, Tony Lindgren, Hiroshi DOYU, and Russell King.
+> FYI, I'll also added this into omap-testing branch while we're waiting
+> for your clock fixes branch to be available.
 
-Applied against:
-  git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc3-mailbox
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-Only [PATCH 1/14] isn't used since the original patch is correct but
-messed up at applying just in my branch.
+Feel free to send this one upstream separately if you like, until the 
+clock -rc series is ready.
 
+
+- Paul
