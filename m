@@ -1,42 +1,52 @@
-From: Abraham Arce <x0066660@ti.com>
-Subject: [PATCH v4 4/4] OMAP4: Keyboard kernel configuration
-Date: Wed, 16 Jun 2010 11:10:12 -0500
-Message-ID: <1276704612-30743-1-git-send-email-x0066660@ti.com>
-References: <x0066660@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 3/5] arm: omap: switch over to gpio_set_debounce
+Date: Wed, 16 Jun 2010 20:26:30 +0300
+Message-ID: <AANLkTikeS8VtXbO5iOgvDMxy7QIxrbfzS4Hob_BsHylj@mail.gmail.com>
+References: <1274090554-19420-1-git-send-email-felipe.balbi@nokia.com>
+	<1274090554-19420-4-git-send-email-felipe.balbi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51117 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753362Ab0FPQJq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Jun 2010 12:09:46 -0400
-In-Reply-To: <x0066660@ti.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:48898 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932482Ab0FPR0b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 13:26:31 -0400
+Received: by gye5 with SMTP id 5so4147134gye.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 10:26:30 -0700 (PDT)
+In-Reply-To: <1274090554-19420-4-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Syed Rafiuddin <rafiuddin.syed@ti.com>, Abraham Arce <x0066660@ti.com>
+To: felipe.balbi@nokia.com
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-From: Syed Rafiuddin <rafiuddin.syed@ti.com>
+On Mon, May 17, 2010 at 1:02 PM,  <felipe.balbi@nokia.com> wrote:
+> From: Felipe Balbi <felipe.balbi@nokia.com>
+>
+> stop using the omap-specific implementations for gpio
+> debouncing now that gpiolib provides its own support.
 
-Update OMAP4430 configuration to enable OMAP4 keyboard driver
+hmm, this gives me:
+[    0.000000] WARNING: at drivers/gpio/gpiolib.c:104
+gpio_ensure_requested+0x50/0xcc()
+[    0.000000] autorequest GPIO-96
+[    0.000000] Modules linked in:
+[    0.000000] [<c00302bc>] (unwind_backtrace+0x0/0xec) from
+[<c00510dc>] (warn_slowpath_common+0x4c/0x64)
+[    0.000000] [<c00510dc>] (warn_slowpath_common+0x4c/0x64) from
+[<c0051174>] (warn_slowpath_fmt+0x2c/0x3)
+[    0.000000] [<c0051174>] (warn_slowpath_fmt+0x2c/0x3c) from
+[<c0166c2c>] (gpio_ensure_requested+0x50/0x)
+[    0.000000] [<c0166c2c>] (gpio_ensure_requested+0x50/0xcc) from
+[<c0166d14>] (gpio_set_debounce+0x6c/0x)
+[    0.000000] [<c0166d14>] (gpio_set_debounce+0x6c/0xb0) from
+[<c000ee84>] (omap3pandora_init+0x94/0xcc)
+[    0.000000] [<c000ee84>] (omap3pandora_init+0x94/0xcc) from
+[<c000b300>] (customize_machine+0x18/0x24)
 
-Signed-off-by: Abraham Arce <x0066660@ti.com>
----
- arch/arm/configs/omap_4430sdp_defconfig |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+..and later gpio-keys is unable to request the same GPIO because of
+above autorequest.
 
-diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
-index 1fb0456..54c924f 100644
---- a/arch/arm/configs/omap_4430sdp_defconfig
-+++ b/arch/arm/configs/omap_4430sdp_defconfig
-@@ -578,7 +578,8 @@ CONFIG_INPUT_EVDEV=y
- #
- # Input Device Drivers
- #
--# CONFIG_INPUT_KEYBOARD is not set
-+CONFIG_INPUT_KEYBOARD=y
-+CONFIG_KEYBOARD_OMAP4=y
- # CONFIG_INPUT_MOUSE is not set
- # CONFIG_INPUT_JOYSTICK is not set
- # CONFIG_INPUT_TABLET is not set
--- 
-1.6.3.3
-
+So how is this supposed to be used here, should I request all GPIOs I
+want to have debouncing on, setup debounce time and release them for
+gpio-keys to take? Or should I wait for this to get supported in
+gpio-keys?
