@@ -1,156 +1,66 @@
-From: Abraham Arce <x0066660@ti.com>
-Subject: [PATCH v4 3/4] OMAP4: Keyboard board support
-Date: Wed, 16 Jun 2010 11:09:49 -0500
-Message-ID: <1276704589-30689-1-git-send-email-x0066660@ti.com>
-References: <x0066660@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] omap4: Fix multi-omap boot with reset un-used clocks
+Date: Wed, 16 Jun 2010 19:09:26 +0300
+Message-ID: <20100616160926.GE12255@atomide.com>
+References: <1274287087-4049-1-git-send-email-santosh.shilimkar@ti.com>
+ <alpine.DEB.2.00.1005191708320.27473@utopia.booyaka.com>
+ <20100531124824.GF30216@atomide.com>
+ <alpine.DEB.2.00.1006160322060.17630@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34716 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754987Ab0FPQJ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Jun 2010 12:09:26 -0400
-In-Reply-To: <x0066660@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50604 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755652Ab0FPQJP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 12:09:15 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1006160322060.17630@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Abraham Arce <x0066660@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
 
-Keyboard support for SDP OMAP4430
+* Paul Walmsley <paul@pwsan.com> [100616 12:16]:
+> On Mon, 31 May 2010, Tony Lindgren wrote:
+> 
+> > * Paul Walmsley <paul@pwsan.com> [100520 02:05]:
+> > > Hi,
+> > > 
+> > > On Wed, 19 May 2010, Santosh Shilimkar wrote:
+> > > 
+> > > > This patch uses "ENABLE_ON_INIT" flag on the emif clock nodes
+> > > > to avoid the emif clk getting cut as part of reset un-used clock
+> > > > routine which prevents boot.
+> > > > 
+> > > > Since omap4 "omap2_clk_init()" calls "clk_enable_init_clocks()"
+> > > > which increases the usecount on all ENABLE_ON_INIT clocks, it
+> > > > prevents "omap2_clk_disable_unused()" from disabling the clock.
+> > > > 
+> > > > The real fix is to have driver for EMIF and do clock get/enable
+> > > > as part of it. The EMIF driver is planned to be done HWMOD way
+> > > > so till that available to keep omap3_defconfig booting on OMAP4430,
+> > > > this patch is necessary.
+> > > > (Will updated the auto-gen script for 44xx accordingly)
+> > > > 
+> > > > The fix was suggested by Paul Walmsley
+> > > > 
+> > > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > > > Cc: Paul Walmsley <paul@pwsan.com>
+> > > 
+> > > Thanks, I've added Nishanth's Tested-by: and fixed the patch changelog; 
+> > > the following patch is now queued for 2.6.35-rc, unless there are any 
+> > > further comments.
+> > 
+> > FYI, I'll also added this into omap-testing branch while we're waiting
+> > for your clock fixes branch to be available.
+> 
+> Acked-by: Paul Walmsley <paul@pwsan.com>
+> 
+> Feel free to send this one upstream separately if you like, until the 
+> clock -rc series is ready.
 
-Signed-off-by: Abraham Arce <x0066660@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   99 +++++++++++++++++++++++++++++++++++
- 1 files changed, 99 insertions(+), 0 deletions(-)
+OK, thanks, will add into omap-fixes-for-linus.
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index e4a5d66..db30f15 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -34,12 +34,106 @@
- #include <plat/timer-gp.h>
- #include <plat/usb.h>
- #include <plat/mmc.h>
-+#include <plat/omap4-keypad.h>
- #include "hsmmc.h"
- 
- #define ETH_KS8851_IRQ			34
- #define ETH_KS8851_POWER_ON		48
- #define ETH_KS8851_QUART		138
- 
-+static int sdp4430_keymap[] = {
-+	KEY(0, 0, KEY_E),
-+	KEY(0, 1, KEY_R),
-+	KEY(0, 2, KEY_T),
-+	KEY(0, 3, KEY_HOME),
-+	KEY(0, 4, KEY_F5),
-+	KEY(0, 5, KEY_UNKNOWN),
-+	KEY(0, 6, KEY_I),
-+	KEY(0, 7, KEY_LEFTSHIFT),
-+
-+	KEY(1, 0, KEY_D),
-+	KEY(1, 1, KEY_F),
-+	KEY(1, 2, KEY_G),
-+	KEY(1, 3, KEY_SEND),
-+	KEY(1, 4, KEY_F6),
-+	KEY(1, 5, KEY_UNKNOWN),
-+	KEY(1, 6, KEY_K),
-+	KEY(1, 7, KEY_ENTER),
-+
-+	KEY(2, 0, KEY_X),
-+	KEY(2, 1, KEY_C),
-+	KEY(2, 2, KEY_V),
-+	KEY(2, 3, KEY_END),
-+	KEY(2, 4, KEY_F7),
-+	KEY(2, 5, KEY_UNKNOWN),
-+	KEY(2, 6, KEY_DOT),
-+	KEY(2, 7, KEY_CAPSLOCK),
-+
-+	KEY(3, 0, KEY_Z),
-+	KEY(3, 1, KEY_KPPLUS),
-+	KEY(3, 2, KEY_B),
-+	KEY(3, 3, KEY_F1),
-+	KEY(3, 4, KEY_F8),
-+	KEY(3, 5, KEY_UNKNOWN),
-+	KEY(3, 6, KEY_O),
-+	KEY(3, 7, KEY_SPACE),
-+
-+	KEY(4, 0, KEY_W),
-+	KEY(4, 1, KEY_Y),
-+	KEY(4, 2, KEY_U),
-+	KEY(4, 3, KEY_F2),
-+	KEY(4, 4, KEY_VOLUMEUP),
-+	KEY(4, 5, KEY_UNKNOWN),
-+	KEY(4, 6, KEY_L),
-+	KEY(4, 7, KEY_LEFT),
-+
-+	KEY(5, 0, KEY_S),
-+	KEY(5, 1, KEY_H),
-+	KEY(5, 2, KEY_J),
-+	KEY(5, 3, KEY_F3),
-+	KEY(5, 4, KEY_F9),
-+	KEY(5, 5, KEY_VOLUMEDOWN),
-+	KEY(5, 6, KEY_M),
-+	KEY(5, 7, KEY_RIGHT),
-+
-+	KEY(6, 0, KEY_Q),
-+	KEY(6, 1, KEY_A),
-+	KEY(6, 2, KEY_N),
-+	KEY(6, 3, KEY_BACK),
-+	KEY(6, 4, KEY_BACKSPACE),
-+	KEY(6, 5, KEY_UNKNOWN),
-+	KEY(6, 6, KEY_P),
-+	KEY(6, 7, KEY_UP),
-+
-+	KEY(7, 0, KEY_PROG1),
-+	KEY(7, 1, KEY_PROG2),
-+	KEY(7, 2, KEY_PROG3),
-+	KEY(7, 3, KEY_PROG4),
-+	KEY(7, 4, KEY_F4),
-+	KEY(7, 5, KEY_UNKNOWN),
-+	KEY(7, 6, KEY_OK),
-+	KEY(7, 7, KEY_DOWN),
-+};
-+
-+static struct matrix_keymap_data sdp4430_keymap_data = {
-+	.keymap			= sdp4430_keymap,
-+	.keymap_size		= ARRAY_SIZE(sdp4430_keymap),
-+};
-+
-+static struct omap4_keypad_platform_data sdp4430_keypad_data = {
-+	.keymap_data		= &sdp4430_keymap_data,
-+	.rows			= 8,
-+	.cols			= 8,
-+};
-+
-+static struct platform_device sdp4430_keypad_device = {
-+	.name		= "omap4-keypad",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data = &sdp4430_keypad_data,
-+	},
-+};
-+
- static struct spi_board_info sdp4430_spi_board_info[] __initdata = {
- 	{
- 		.modalias               = "ks8851",
-@@ -112,6 +206,7 @@ static struct platform_device sdp4430_lcd_device = {
- 
- static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_lcd_device,
-+	&sdp4430_keypad_device,
- };
- 
- static struct omap_lcd_config sdp4430_lcd_config __initdata = {
-@@ -380,6 +475,10 @@ static void __init omap_4430sdp_init(void)
- 	if (!cpu_is_omap44xx())
- 		usb_musb_init(&musb_board_data);
- 
-+	status = omap4_init_kp(&sdp4430_keypad_data);
-+	if (status)
-+		pr_err("Keypad initialization failed: %d\n", status);
-+
- 	status = omap_ethernet_init();
- 	if (status) {
- 		pr_err("Ethernet initialization failed: %d\n", status);
--- 
-1.6.3.3
+Regards,
 
+Tony
