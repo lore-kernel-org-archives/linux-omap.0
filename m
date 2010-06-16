@@ -1,74 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Alternative for defconfig
-Date: Wed, 16 Jun 2010 10:56:43 +0300
-Message-ID: <20100616075642.GA12255@atomide.com>
-References: <201006091227.29175.laurent.pinchart@ideasonboard.com>
- <AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
- <A24693684029E5489D1D202277BE894455DDEC44@dlee02.ent.ti.com>
- <201006111707.34463.laurent.pinchart@ideasonboard.com>
- <AANLkTikdUanfxhkbb0sYZ-Yhd_9dVywv9Yj1a5DL18oN@mail.gmail.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: Re: SDHC card affected by preemption model in 2.6.35
+Date: Wed, 16 Jun 2010 14:13:13 +0530
+Message-ID: <AANLkTikJE7fNYmRqFYL9WB7z_o3GcfaDsTJ4-yZUk4od@mail.gmail.com>
+References: <1276613548.2824.46.camel@black>
+	<AANLkTimOIzK4JsTBnOvRHTGj-dGduMRk8ZbZVqIL9shr@mail.gmail.com>
+	<1276636633.2824.88.camel@black>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTikdUanfxhkbb0sYZ-Yhd_9dVywv9Yj1a5DL18oN@mail.gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Nagarajan, Rajkumar" <x0133774@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:55735 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753057Ab0FPInP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 04:43:15 -0400
+Received: by iwn9 with SMTP id 9so5470536iwn.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 01:43:13 -0700 (PDT)
+In-Reply-To: <1276636633.2824.88.camel@black>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mathieu Poirier <mathieu.poirier@canonical.com>
+Cc: linux-omap@vger.kernel.org
 
-* Felipe Contreras <felipe.contreras@gmail.com> [100611 19:03]:
-> On Fri, Jun 11, 2010 at 6:07 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > My understanding is that Linus will remove all ARM defconfigs in 2.6.36,
-> > unless someone can convince him not to.
-> 
-> Huh? I thought he was only threatening to remove them[1]. I don't
-> think he said he was going to do that without any alternative in
-> place.
-> 
-> My suggestion[2] was to have minimal defconfigs so that we could do
-> $ cp arch/arm/configs/omap3_beagle_baseconfig .config
-> $ echo "" | make ARCH=arm oldconfig
-> 
-> [1] http://article.gmane.org/gmane.linux.kernel/994194
-> [2] http://article.gmane.org/gmane.linux.kernel/995412
+ Mathieu Poirier <mathieu.poirier@canonical.com> wrote:
+> On Tue, 2010-06-15 at 20:58 +0530, Venkatraman S wrote:
+>> Mathieu Poirier <mathieu.poirier@canonical.com> wrote:
+>> > HW: Beagleboard rev. C2 and C4
+>> > Processor: OMAP3
+>> > Kernel: 2.6.35-rc2
+>> > Driver: mmci-omap-hs
+>> >
+>> > I am faced with an SDHC card problem on a beagleboard. =A0Some car=
+ds
+>> > cannot be initialized on startup while others work perfectly. =A0I=
+ tracked
+>> > the issue down to one single kernel config: PREEMPT_VOLUNTARY.
+>> >
+>> > When going from PREEMPT_VOLUNTARY to PREEMPT_NONE the problem goes=
+ away.
+>> >
+>> > When booting, a failing card (PREEMPT_VOLUNTARY) will output the
+>> > following:
+>> > [ 2.283355] mmc0: error -110 whilst initialising SD card
+>> >
+>> > I have also seen transfer errors such as this one:
+>> > [ 105.343780] mmcblk0: error -110 transferring data, sector 798431=
+, nr
+>> > 26, card status 0xc00
+>> >
+>> > When working properly (PREEMPT_NONE), you get:
+>> > [ =A0 27.026519] mmc0: new high speed SDHC card at address 0007
+>> > [ =A0 27.075775] mmcblk0: mmc0:0007 SD08G 7.49 GiB
+>> >
+>> > We seem to have a little timing problem - has anyone seen the same
+>> > issue ? =A0Can driver "mmci-omap-hs" actually work under
+>> > PREEMPT_VOLUNTARY ?
+>> >
+>> > Thanks, Mathieu.
+>> >
+>>
+>> I will check this out - not tested with PREEMPT_VOLUNTARY so far.
+>> If it's not too much trouble, can you provide a log with CONFIG_MMC_=
+DEBUG ?
+>> Also, some details about the failing card would be helpful.
+>>
+>> Thanks,
+>> Venkat.
+>
+> Venkat,
+>
+> Unfortunately enabling CONFIG_MMC_DEBUG doesn't yield more informatio=
+n -
+> the error message is the same and no additional output shows on the
+> console.
+>
+> As for the cards, had failures with 3 different manufacturer:
+> - Patriot Memory, MicroSD card, 8GB, class 4, SDHC.
+> - Kinston, 4GB, class 6, SDHC.
+> - Sandisk, 4GB, Class 2, SDHC.
+>
+> I am more than willing to test kernels for you if need be.
+>
+> Thanks, Mathieu.
+>
 
-Sounds like the defconfigs will be going though and we'll use
-some Kconfig based system that's still open. I believe Russell
-said he is not taking any more defconfig patches, so we should
-not merge them either.
+=46or MMC/SD logs to be sent to the console, you need to
+a) "echo 8 > /proc/sys/kernel/printk" in the shell and
+b) insert the card
 
-Anyways, we already have multi-omap mostly working for both
-mach-omap1 and mach-omap2.
+If you are booting from the card itself, then this won't work and
+DEBUG_LL has to be enabled (in addition to CONFIG_MMC_DEBUG)
 
-So the remaining things to do are:
-
-1. For mach-omap1, patch entry-macro.S to allow compiling in
-   7xx, 15xx and 16xx. This can be done in a similar way as
-   for mach-omap2. The only issue is how to detect 7xx from
-   other mach-omap1 omaps. If anybody has a chance to work
-   on this, please go for it!
-
-2. The old omap_cfg_reg mux function needs to disappear
-   for mach-omap2 and use the new mux code instead. I'm
-   currently working on this and should have it ready
-   for testing this week.
-
-3. To boot both ARMv6 and 7, we need to get rid of
-   CONFIG_HAS_TLS_REG. I already have a patch for that,
-   I'll try to update that during this week.
-
-4. To make CONFIG_VFP work for both ARMv6 and 7, we need
-   to fix CONFIG_VFPv3 so it boots on ARMv6 too. It currently
-   oopses. Will take a look at this after I'm done with the
-   CONFIG_HAS_TLS_REG. This is another one where some help
-   would be nice. To reproduce, boot Linux on ARMv6 with
-   CONFIG_VFPv3 set.
-
-5. After all this works, we can participate on building
-   in multiple ARM platforms :)
+Apologies - I should have explained this initially.
 
 Regards,
-
-Tony
+Venkat.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
