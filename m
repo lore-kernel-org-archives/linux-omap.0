@@ -1,64 +1,191 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [RFC] DSS2: Need to make dsi, sdi, rfbi as platform drivers
- instead of a library in omapdss driver
-Date: Wed, 16 Jun 2010 14:38:20 +0300
-Message-ID: <1276688300.12438.22.camel@tubuntu.research.nokia.com>
-References: <1273764028-25822-1-git-send-email-svadivu@ti.com>
-	 <FCCFB4CDC6E5564B9182F639FC35608703042888D6@dbde02.ent.ti.com>
-	 <19F8576C6E063C45BE387C64729E7394044E852E04@dbde02.ent.ti.com>
-	 <FCCFB4CDC6E5564B9182F639FC35608703042888F8@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Sukumar Ghorai <s-ghorai@ti.com>
+Subject: [PATCH v3 4/8] omap-3630-sdp : Add support for Flash
+Date: Wed, 16 Jun 2010 17:09:56 +0530
+Message-ID: <1276688400-4812-5-git-send-email-s-ghorai@ti.com>
+References: <Sukumar Ghorai <s-ghorai@ti.com>
+ <1276688400-4812-1-git-send-email-s-ghorai@ti.com>
+ <1276688400-4812-2-git-send-email-s-ghorai@ti.com>
+ <1276688400-4812-3-git-send-email-s-ghorai@ti.com>
+ <1276688400-4812-4-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:60082 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758563Ab0FPLit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 07:38:49 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703042888F8@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:48882 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754705Ab0FPLkH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Jun 2010 07:40:07 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5GBe3kt009596
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 06:40:06 -0500
+In-Reply-To: <1276688400-4812-4-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sukumar Ghorai <s-ghorai@ti.com>
 
-On Wed, 2010-06-16 at 12:52 +0200, ext Guruswamy, Senthilvadivu wrote:
-> Hi,
-> 
-> When I started with RFC patch "DSS: Movement of base addr, silicon specific 
-> data from driver to platform_device",  I see a lot of encapsulation of OMAP
-> DSS IPs into the "omapdss" driver.
-> 
-> The previous RFC patch would only be good enough to handle base address and
-> IRQ for multi-omap.  But it won't address the PRCM power management handled
-> in HWMOD APIs.
-> 
-> The encapsulation of all the DSS IPs like RFBI, DSI, SDI, VENC into omapdss
-> driver would prevent these drivers being handled from the platform database.
-> 
-> For Eg:  
-> HWMOD adaptation to DSS would not be possible unless these libraries are made 
-> as platform drivers.
-> 	HWMOD would provide dynamic usage of multi-omap data like base addr,irq.
-> 	HWMOD would also manage the PRCM clocks needed for the dss.
-> 
-> I would make an RFC patch by introducing these IPs as platform drivers which
-> would comply and ease for HWMOD adpatation. 
-> 
-> Before I go ahead make the changes in the code, I would like to get opinions
-> on this proposed changes.
+add support for NAND, OneNAND, NOR on omap 3630-sdp board.
 
-I haven't looked at how HWMODs work, but I don't see any downsides to
-having the DSS HW modules as platform devices, if that is required.
+Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+---
+ arch/arm/mach-omap2/Makefile        |    1 +
+ arch/arm/mach-omap2/board-3630sdp.c |  120 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 121 insertions(+), 0 deletions(-)
 
-But the interface modules (DSI/DPI/RFBI/SDI) will still be tightly
-connected to the core DSS module, even if they are separate drivers. I'm
-not sure what complexities this may bring.
-
-This also raises the question that should the interface modules each
-have a bus of their own? This is something I've pondered for a long
-time, and sounds to me to be a cleaner architecture, but it may be a
-bigger change.
-
- Tomi
-
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index a795eb6..400f9cf
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -133,6 +133,7 @@ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+ 					   board-zoom-debugboard.o
+ obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
+ 					   board-zoom-peripherals.o \
++					   board-flash.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
+ 					   hsmmc.o
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index 504d2bd..a3f24cb
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -22,6 +22,7 @@
+ #include <plat/usb.h>
+ 
+ #include <mach/board-zoom.h>
++#include <mach/board-flash.h>
+ 
+ #include "mux.h"
+ #include "sdram-hynix-h8mbx00u0mer-0em.h"
+@@ -93,12 +94,131 @@ static struct omap_board_mux board_mux[] __initdata = {
+ #define board_mux	NULL
+ #endif
+ 
++/*
++ * SDP3630 CS organization
++ * See also the Switch S8 settings in the comments.
++ */
++static char chip_sel_sdp[][GPMC_CS_NUM] = {
++	{PDC_NOR, PDC_NAND, PDC_ONENAND, DBG_MPDB, 0, 0, 0, 0}, /* S8:1111 */
++	{PDC_ONENAND, PDC_NAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0}, /* S8:1110 */
++	{PDC_NAND, PDC_ONENAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0}, /* S8:1101 */
++};
++
++static struct mtd_partition sdp_nor_partitions[] = {
++	/* bootloader (U-Boot, etc) in first sector */
++	{
++		.name		= "Bootloader-NOR",
++		.offset		= 0,
++		.size		= SZ_256K,
++		.mask_flags	= MTD_WRITEABLE, /* force read-only */
++	},
++	/* bootloader params in the next sector */
++	{
++		.name		= "Params-NOR",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= SZ_256K,
++		.mask_flags	= 0,
++	},
++	/* kernel */
++	{
++		.name		= "Kernel-NOR",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= SZ_2M,
++		.mask_flags	= 0
++	},
++	/* file system */
++	{
++		.name		= "Filesystem-NOR",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= MTDPART_SIZ_FULL,
++		.mask_flags	= 0
++	}
++};
++
++static struct mtd_partition sdp_onenand_partitions[] = {
++	{
++		.name		= "X-Loader-OneNAND",
++		.offset		= 0,
++		.size		= 4 * (64 * 2048),
++		.mask_flags	= MTD_WRITEABLE  /* force read-only */
++	},
++	{
++		.name		= "U-Boot-OneNAND",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= 2 * (64 * 2048),
++		.mask_flags	= MTD_WRITEABLE  /* force read-only */
++	},
++	{
++		.name		= "U-Boot Environment-OneNAND",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= 1 * (64 * 2048),
++	},
++	{
++		.name		= "Kernel-OneNAND",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= 16 * (64 * 2048),
++	},
++	{
++		.name		= "File System-OneNAND",
++		.offset		= MTDPART_OFS_APPEND,
++		.size		= MTDPART_SIZ_FULL,
++	},
++};
++
++static struct mtd_partition sdp_nand_partitions[] = {
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "X-Loader-NAND",
++		.offset		= 0,
++		.size		= 4 * (64 * 2048),
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot-NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
++		.size		= 10 * (64 * 2048),
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "Boot Env-NAND",
++
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1c0000 */
++		.size		= 6 * (64 * 2048),
++	},
++	{
++		.name		= "Kernel-NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
++		.size		= 40 * (64 * 2048),
++	},
++	{
++		.name		= "File System - NAND",
++		.size		= MTDPART_SIZ_FULL,
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x780000 */
++	},
++};
++
++static struct flash_partitions sdp_flash_partitions[] = {
++	{
++		.parts = sdp_nor_partitions,
++		.nr_parts = ARRAY_SIZE(sdp_nor_partitions),
++	},
++	{
++		.parts = sdp_onenand_partitions,
++		.nr_parts = ARRAY_SIZE(sdp_onenand_partitions),
++	},
++	{
++		.parts = sdp_nand_partitions,
++		.nr_parts = ARRAY_SIZE(sdp_nand_partitions),
++	},
++};
++
+ static void __init omap_sdp_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 	omap_serial_init();
+ 	zoom_peripherals_init();
+ 	board_smc91x_init();
++	board_flash_init(sdp_flash_partitions, chip_sel_sdp);
+ 	enable_board_wakeup_source();
+ 	usb_ehci_init(&ehci_pdata);
+ }
+-- 
+1.5.4.7
 
