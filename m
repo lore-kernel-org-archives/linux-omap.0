@@ -1,84 +1,46 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v5 2/2] OMAP4 HSMMC: Adding card detect support for MMC1
-  Controller
-Date: Thu, 17 Jun 2010 13:27:37 -0700
-Message-ID: <20100617132737.d952d191.akpm@linux-foundation.org>
-References: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v4 0/4] OMAP4 Keyboard Controller Support
+Date: Thu, 17 Jun 2010 14:06:04 -0700
+Message-ID: <87wrtxl683.fsf@deeprootsystems.com>
+References: <x0066660@ti.com>
+	<1276704485-30486-1-git-send-email-x0066660@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: kishore kadiyala <kishore.kadiyala@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, madhu.cr@ti.com, adrian.hunter@nokia.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:39226 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757100Ab0FQVGI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jun 2010 17:06:08 -0400
+In-Reply-To: <1276704485-30486-1-git-send-email-x0066660@ti.com> (Abraham Arce's message of "Wed\, 16 Jun 2010 11\:08\:05 -0500")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Abraham Arce <x0066660@ti.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Thu, 17 Jun 2010 20:57:19 +0530 (IST)
-"kishore kadiyala" <kishore.kadiyala@ti.com> wrote:
+Abraham Arce <x0066660@ti.com> writes:
 
-> Adding card detect callback function which gives the status of
-> the card .For MMC1 Controller, Card detect interrupt source is
-> twl6030 and card present/absent status is provided by MMCCTRL
-> register of twl6030.
-> 
+> Keyboard controller for OMAP4 includes
 >
-> ...
+>  - built-in scanning algorithm
+>  - debouncing feature
+>  - handling mechanism up to 9 x 9 keys
+>  - wake-up event generation
 >
-> 
-> +	int ret = -ENOSYS;
-> +	int ret = -ENOSYS;
 
-ENOSYS seems an inappropriate errno to use in a driver.
+[...]
 
-"ENOSYS -- The system doesn't support that function.  For example, if
-you call setpgid() on a system without job control, you'll get an
-ENOSYS error."
+> v4
+>  Felipe.Balbi.01    | rows, cols, base and irq definitions
+>  Felipe.Balbi.02    | device_* calls
+>  Felipe.Balbi.03    | input device registration before irq enabling
+>  Felipe.Balbi.04    | kzalloc allocation never to be freed
+>
+>  Tony.Lindgren.01   | test in omap2 and omap3
+>  Tony.Lindgren.02   | add cpu_is_omap44xx()
+>
+>  Kevin.Hillman.01   | drop device_* calls
+>  Kevin.Hillman.01   | use runtime PM API
 
-I think it means "you the programmer tried to do something in a syscall
-which didn't make sense in this context".
+I don't see the runtime PM API used anywere in this series.
 
-I'm not sure what _is_ appropraite here.  There's always EIO I guess. 
-ENODEV?
-
-This happens a lot.  The userspace errnos just don't map well onto
-kernel-internal operations.  it was a mistake - we should have defined a kernel-internal namespace and perhaps type for such things.  Oh well.
-
-> +/* Configuring Card Detect for MMC1 */
-> +static inline int omap4_hsmmc1_card_detect_config(void)
-> +{
-> +	int res = -1;
-> +	u8 reg_val = 0;
-> +
-> +	/* Unmasking the Card detect Interrupt line for MMC1 from Phoenix */
-> +	if (twl_class_is_6030()) {
-> +		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
-> +							REG_INT_MSK_LINE_B);
-> +		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
-> +							REG_INT_MSK_STS_B);
-> +	}
-> +
-> +
-> +	/*
-> +	 * Intially Configuring MMC_CTRL for receving interrupts &
-> +	 * Card status on TWL6030 for MMC1
-> +	 */
-> +	res = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val, TWL6030_MMCCTRL);
-> +	if (res < 0)
-> +		return res;
-> +	reg_val &= ~VMMC_AUTO_OFF;
-> +	reg_val |= SW_FC;
-> +	twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_MMCCTRL);
-> +
-> +	 /* Configuring CFG_INPUT_PUPD3 */
-> +	res = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
-> +						TWL6030_CFG_INPUT_PUPD3);
-> +	if (res < 0)
-> +		return res;
-> +	reg_val &= ~(MMC_PU | MMC_PD);
-> +	twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_CFG_INPUT_PUPD3);
-> +	return res;
-> +}
-
-This is waaaaay to large to be inlined.  Why not put it in a .c file?
-
+Kevin
