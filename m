@@ -1,49 +1,84 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 04/13 v3] OMAP: GPIO: Introduce support for OMAP15xx chip GPIO init
-Date: Thu, 17 Jun 2010 13:23:51 -0700
-Message-ID: <87hbl1mmqw.fsf@deeprootsystems.com>
-References: <1276614348-5201-1-git-send-email-charu@ti.com>
-	<1276614348-5201-2-git-send-email-charu@ti.com>
-	<1276614348-5201-3-git-send-email-charu@ti.com>
-	<1276614348-5201-4-git-send-email-charu@ti.com>
-	<1276614348-5201-5-git-send-email-charu@ti.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v5 2/2] OMAP4 HSMMC: Adding card detect support for MMC1
+  Controller
+Date: Thu, 17 Jun 2010 13:27:37 -0700
+Message-ID: <20100617132737.d952d191.akpm@linux-foundation.org>
+References: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:44990 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933289Ab0FQUZn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jun 2010 16:25:43 -0400
-Received: by pwi1 with SMTP id 1so139714pwi.19
-        for <linux-omap@vger.kernel.org>; Thu, 17 Jun 2010 13:25:42 -0700 (PDT)
-In-Reply-To: <1276614348-5201-5-git-send-email-charu@ti.com> (Charulatha Varadarajan's message of "Tue\, 15 Jun 2010 20\:35\:39 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: kishore kadiyala <kishore.kadiyala@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, madhu.cr@ti.com, adrian.hunter@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: david-b@pacbell.net, broonie@opensource.wolfsonmicro.com, akpm@linux-foundation.org, linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, b-cousson@ti.com, tony@atomide.com
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+On Thu, 17 Jun 2010 20:57:19 +0530 (IST)
+"kishore kadiyala" <kishore.kadiyala@ti.com> wrote:
 
-> From: Charulatha V <charu@ti.com>
+> Adding card detect callback function which gives the status of
+> the card .For MMC1 Controller, Card detect interrupt source is
+> twl6030 and card present/absent status is provided by MMCCTRL
+> register of twl6030.
+> 
 >
-> This patch adds support for handling OMAP15xx specific gpio_init
-> by providing platform device data and doing device registration.
+> ...
 >
-> Signed-off-by: Charulatha V <charu@ti.com>
-> ---
->  arch/arm/mach-omap1/gpio15xx.c |  102 ++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 102 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap1/gpio15xx.c
->
-> diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
-> new file mode 100644
-> index 0000000..e4f1738
-> --- /dev/null
-> +++ b/arch/arm/mach-omap1/gpio15xx.c
-> @@ -0,0 +1,102 @@
-> +/*
-> + * gpio15xx.c - OMAP15XX-specific gpio code
+> 
+> +	int ret = -ENOSYS;
+> +	int ret = -ENOSYS;
 
-Minor detail, but you don't need the filename here.
+ENOSYS seems an inappropriate errno to use in a driver.
 
-Kevin
+"ENOSYS -- The system doesn't support that function.  For example, if
+you call setpgid() on a system without job control, you'll get an
+ENOSYS error."
+
+I think it means "you the programmer tried to do something in a syscall
+which didn't make sense in this context".
+
+I'm not sure what _is_ appropraite here.  There's always EIO I guess. 
+ENODEV?
+
+This happens a lot.  The userspace errnos just don't map well onto
+kernel-internal operations.  it was a mistake - we should have defined a kernel-internal namespace and perhaps type for such things.  Oh well.
+
+> +/* Configuring Card Detect for MMC1 */
+> +static inline int omap4_hsmmc1_card_detect_config(void)
+> +{
+> +	int res = -1;
+> +	u8 reg_val = 0;
+> +
+> +	/* Unmasking the Card detect Interrupt line for MMC1 from Phoenix */
+> +	if (twl_class_is_6030()) {
+> +		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
+> +							REG_INT_MSK_LINE_B);
+> +		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
+> +							REG_INT_MSK_STS_B);
+> +	}
+> +
+> +
+> +	/*
+> +	 * Intially Configuring MMC_CTRL for receving interrupts &
+> +	 * Card status on TWL6030 for MMC1
+> +	 */
+> +	res = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val, TWL6030_MMCCTRL);
+> +	if (res < 0)
+> +		return res;
+> +	reg_val &= ~VMMC_AUTO_OFF;
+> +	reg_val |= SW_FC;
+> +	twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_MMCCTRL);
+> +
+> +	 /* Configuring CFG_INPUT_PUPD3 */
+> +	res = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
+> +						TWL6030_CFG_INPUT_PUPD3);
+> +	if (res < 0)
+> +		return res;
+> +	reg_val &= ~(MMC_PU | MMC_PD);
+> +	twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_CFG_INPUT_PUPD3);
+> +	return res;
+> +}
+
+This is waaaaay to large to be inlined.  Why not put it in a .c file?
+
