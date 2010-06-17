@@ -1,94 +1,58 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 03/12] OMAP3: hwmod: add data for OMAP3 IVA2
-Date: Wed, 16 Jun 2010 17:17:04 -0700
-Message-ID: <1276733833-18510-4-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 12/12] OMAP: SRF: must be initialized before allowing constraints to be set
+Date: Wed, 16 Jun 2010 17:17:13 -0700
+Message-ID: <1276733833-18510-13-git-send-email-khilman@deeprootsystems.com>
 References: <1276733833-18510-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:60436 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759623Ab0FQARr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 20:17:47 -0400
-Received: by pva4 with SMTP id 4so937569pva.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 17:17:38 -0700 (PDT)
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:49651 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759607Ab0FQARm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 20:17:42 -0400
+Received: by mail-pw0-f46.google.com with SMTP id 1so3974097pwi.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 17:17:42 -0700 (PDT)
 In-Reply-To: <1276733833-18510-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: nm@ti.com, thara@ti.com, b-cousson@ti.com
 
-Add hwmod data for DSP on OMAP3 (a.k.a. IVA2.)
-
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   41 ++++++++++++++++++++++++++++
- 1 files changed, 41 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/omap-pm-srf.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index f1df4c9..571bb37 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -33,6 +33,7 @@
-  */
+diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
+index 5ebcda3..bf9163e 100644
+--- a/arch/arm/plat-omap/omap-pm-srf.c
++++ b/arch/arm/plat-omap/omap-pm-srf.c
+@@ -29,6 +29,8 @@
+ #define LAT_RES_POSTAMBLE "_latency"
+ #define MAX_LATENCY_RES_NAME 30
  
- static struct omap_hwmod omap3xxx_mpu_hwmod;
-+static struct omap_hwmod omap3xxx_iva2_hwmod;
- static struct omap_hwmod omap3xxx_l3_hwmod;
- static struct omap_hwmod omap3xxx_l4_core_hwmod;
- static struct omap_hwmod omap3xxx_l4_per_hwmod;
-@@ -205,6 +206,45 @@ static struct omap_hwmod omap3xxx_mpu_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
++static int initialized;
++
+ /**
+  * get_lat_res_name - gets the latency resource name given a power domain name
+  * @pwrdm_name: Name of the power domain.
+@@ -52,6 +54,9 @@ void get_lat_res_name(const char *pwrdm_name, char **lat_name, int size)
  
-+/*
-+ * IVA2_2 interface data
-+ */
+ void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
+ {
++	if (!initialized)
++		return;
 +
-+static struct omap_hwmod_addr_space omap3xxx_iva2_addrs[] = {
-+	{
-+		.pa_start	= 0x5c000000,
-+		.pa_end		= 0x5effffff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
+ 	if (!dev || t < -1) {
+ 		WARN_ON(1);
+ 		return;
+@@ -291,6 +296,8 @@ int __init omap_pm_if_early_init(void)
+ int __init omap_pm_if_init(void)
+ {
+ 	resource_init(resources_omap);
++	initialized = 1;
 +
-+/* IVA2 <- L3 interface */
-+static struct omap_hwmod_ocp_if omap3xxx_l3__iva2 = {
-+	.master		= &omap3xxx_l3_hwmod,
-+	.slave		= &omap3xxx_iva2_hwmod,
-+	.clk		= "iva2_ck",
-+	.addr		= omap3xxx_iva2_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_iva2_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_iva2_masters[] = {
-+	&omap3xxx_l3__iva2,
-+};
-+
-+/*
-+ * IVA2 (IVA2)
-+ */
-+
-+static struct omap_hwmod omap3xxx_iva2_hwmod = {
-+	.name		= "dsp",
-+	.class		= &dsp_hwmod_class,
-+	.main_clk	= "iva2_ck",
-+	.masters	= omap3xxx_iva2_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap3xxx_iva2_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+};
-+
- /* SR common */
- static struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
- 	.clkact_shift	= 20,
-@@ -373,6 +413,7 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l4_per_hwmod,
- 	&omap3xxx_l4_wkup_hwmod,
- 	&omap3xxx_mpu_hwmod,
-+	&omap3xxx_iva2_hwmod,
- 	&omap34xx_sr1_hwmod,
- 	&omap34xx_sr2_hwmod,
- 	&omap36xx_sr1_hwmod,
+ 	return 0;
+ }
+ 
 -- 
 1.7.0.2
 
