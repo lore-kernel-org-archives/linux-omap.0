@@ -1,87 +1,42 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH] OMAP: DSS2: DSI: disable manager on framedone timeout
-Date: Thu, 17 Jun 2010 15:27:51 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030580A7E5@dbde02.ent.ti.com>
-References: =?ISO-8859-1?Q?=20<\=1B[1~>?=
-  <1276763395-23922-1-git-send-email-archit@ti.com>
- <1276764694.12438.74.camel@tubuntu.research.nokia.com>
- <FCCFB4CDC6E5564B9182F639FC356087030580A772@dbde02.ent.ti.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: [PATCH v3 2/3] DSS2: make VRFB depends on OMAP2,3
+Date: Thu, 17 Jun 2010 15:35:57 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304288906@dbde02.ent.ti.com>
+References: <1276169037-2598-1-git-send-email-svadivu@ti.com>
+	 <1276169037-2598-2-git-send-email-svadivu@ti.com>
+ <1276765439.12438.80.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42704 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39391 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932822Ab0FQJ6A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jun 2010 05:58:00 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087030580A772@dbde02.ent.ti.com>
+	id S1757331Ab0FQKGS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Jun 2010 06:06:18 -0400
+In-Reply-To: <1276765439.12438.80.camel@tubuntu.research.nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Taneja, Archit
-> Sent: Thursday, June 17, 2010 2:37 PM
-> To: Tomi Valkeinen
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH] OMAP: DSS2: DSI: disable manager on framedone timeout
-> 
-> Hi,
-> 
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Thursday, June 17, 2010 2:22 PM
-> > To: Taneja, Archit
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH] OMAP: DSS2: DSI: disable manager on framedone
-> timeout
-> >
-> > Hi,
-> >
-> > On Thu, 2010-06-17 at 10:29 +0200, ext Archit Taneja wrote:
-> > > In the case of a dsi framedone timeout, we should set the LCD_EN
-> > > bit to 0 and reset the dsi tx fifo so that the next panel update
-> > > call goes through cleanly.
-> > >
-> > > With the new way of handling framedone interrupts, since everything
-> > > is handled in irq context, the only reason a framedone timeout occurs
-> > > is because of some hardware issue.
-> > >
-> > > The reset of LCD_EN and flush of TX_FIFO won't interfere with a frame
-> > > in progress.
-> >
-> > Does this work? There is the errata: 1.29. DSI: Tx FIFO flush is not
-> > supported. I've actually removed the dsi_reset_tx_fifo() function in my
-> > work tree, as I though the only way to recover is to reset the whole DSI
-> > block.
-> >
-> >  Tomi
-> >
-> The errata is there, but things still seem to be okay, the crucial thing
-> is disabling LCD_EN, this will at least prepare DISPC for the next frame.
-> 
-> I think that if a framedone timeout occurs, it is DISPC which is at fault
-> since it generates the framedone interrupt. It is quite likely that DSI is
-> in a ok state.
-> 
-> I agree it is risky to flush DSI TX fifo since it is in the errata, but we
-> should still disable LCD_EN here because no one else disables it.
-> 
-> Thanks,
-> 
-> Archit
-> --
-
-Hi,
-
-Also, the TX FIFO wouldn't flush only by calling dsi_reset_tx_fifo(), the TRM says that after changing the FIFO size to zero, we still need to disable the VC by resetting VC_EN and then wait for VC_BUSY to become 0. This is probably why calling the function itself doesn't actually start the TX flush hardware logic.
-
-But calling manager->disable is still essential. This is because after a framedone timeout, even if we reset the whole DSI engine block, LCD_EN could still be 1 (because of a DISPC failure); and in order to send another frame, LCD_EN should be 0 at the point of starting frame transfer.
-
-
-
+IA0KPiANCj4gSGksDQo+IA0KPiBPbiBUaHUsIDIwMTAtMDYtMTAgYXQgMTM6MjMgKzAyMDAsIGV4
+dCBHdXJ1c3dhbXkgU2VudGhpbHZhZGl2dSB3cm90ZToNCj4gPiBGcm9tOiBTZW50aGlsdmFkaXZ1
+IEd1cnVzd2FteSA8c3ZhZGl2dUB0aS5jb20+DQo+ID4gDQo+ID4gY29uZmlnIFZSRkIgc2hvdWxk
+IGRlcGVuZCBvbiBBUkNIX09NQVAyIG9yIEFSQ0hfT01BUDMuDQo+ID4gDQo+ID4gQ2hhbmdlcyBm
+cm9tIHYxOg0KPiA+IAktIEFkZHJlc3NlZCBtdWx0aS1vbWFwIGJ1aWxkIGlzc3VlDQo+IA0KPiBE
+aWQgeW91IG1lYW4gdGhlIFZSRkIgY29uZmlnIG9wdGlvbiB0byBiZSB2aXNpYmxlIHZpYSBLY29u
+ZmlnPyBJdA0KPiBkb2Vzbid0IHNob3cgdGhlcmUuDQpbU2VudGhpbF0gIFByZXZpb3VzbHkgVlJG
+QiB3YXMgZGVmYXVsdCBzZWxlY3RlZCBpZiBPTUFQX0ZCIGlycmVzZXBlY3RpdmUgb2YgQVJDSC4N
+Ck5vdyBpdCBpcyBtYWRlIHRvIGJlIHNlbGVjdGVkIGJ5IGRlZmF1bHQgaW4gY2FzZSBvZiBBUkNI
+X09NQVAyLDMgYW5kIE9NQVBfRkIuDQpUaGUgb3B0aW9uIGRvZXMgbm90IHNob3cgdXAgaW4gbWVu
+dWNvbmZpZyBhcyBiZWZvcmUuICANCg0KSSBzZWUgdGhhdCBpdCBpcyBnb29kIG5vdCB0byBzaG93
+IHVwIGFzIGJlZm9yZSB0aGlzIHBhdGNoIGJlY2F1c2UNCjEuICBpZiBpdCBzaG93cyB1cCB0aGVu
+IHVzZXIgd291bGQgdW5rbm93aW5nbHkgc2VsZWN0IGZvciBub24gb21hcDIsMyBhbHNvIHdoaWNo
+IGlzIG5vdCBhcHBsaWNhYmxlLg0KMi4gIGl0IGdldHMgc2VsZWN0ZWQgYnkgZGVmYXVsdCBpbiB0
+aGUgbmVlZGVkIGNhc2Ugd2l0aG91dCB0aGUgbmVlZCB0byBzaG93IHVwIGluIHRoZSBtZW51Y29u
+ZmlnLiBJZSBvbWFwMiwzIGFuZCBPTUFQX0ZCLiANCiANCj4gUGxlYXNlIHVzZSB0aGUgc2FtZSBw
+YXRjaCBzdWJqZWN0IGFzIHRoZSBvdGhlciBkc3MgcGF0Y2hlcyAoYXBwbGllcyB0bw0KPiBvdGhl
+ciBwYXRjaGVzIGluIHRoaXMgc2V0IGFsc28pOg0KPiANCj4gT01BUDogRFNTMjogPHN1YnN5cz46
+IGZvb2Jhcg0KW1NlbnRoaWxdIE9rYXkNCg0KPiBEb24ndCBhZGQgY2hhbmdlbG9ncyBpbnRvIHRo
+ZSBwYXRjaCBtZXNzYWdlLg0KPiANCltTZW50aGlsXSBPa2F5DQo+ICBUb21pDQo+IA0KPiANCj4g
