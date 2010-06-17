@@ -1,58 +1,81 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] Enable lm75 and hwmon in OMAP4
-Date: Thu, 17 Jun 2010 17:41:53 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03234B30E1@dbde02.ent.ti.com>
-References: <0680EC522D0CC943BC586913CF3768C003B34A6712@dbde02.ent.ti.com>
+From: "Maulik" <x0082077-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 8/8] usb: musb: Fix suspend interrupt issue in device mode
+Date: Thu, 17 Jun 2010 17:45:15 +0530
+Message-ID: <006501cb0e16$c08bae00$808918ac@apr.dhcp.ti.com>
+References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com> <1276771242-5201-2-git-send-email-ajay.gupta@ti.com> <1276771242-5201-3-git-send-email-ajay.gupta@ti.com> <1276771242-5201-4-git-send-email-ajay.gupta@ti.com> <1276771242-5201-5-git-send-email-ajay.gupta@ti.com> <1276771242-5201-6-git-send-email-ajay.gupta@ti.com> <1276771242-5201-7-git-send-email-ajay.gupta@ti.com> <1276771242-5201-8-git-send-email-ajay.gupta@ti.com> <1276771242-5201-9-git-send-email-ajay.gupta@ti.com> <4C1A0687.4080002@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43997 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759888Ab0FQML7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jun 2010 08:11:59 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5HCBuSa011872
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 17 Jun 2010 07:11:58 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5HCBtUC021280
-	for <linux-omap@vger.kernel.org>; Thu, 17 Jun 2010 17:41:56 +0530 (IST)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B34A6712@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C1A0687.4080002-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sergei Shtylyov' <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, 'Ajay Kumar Gupta' <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, 'David Brownell' <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Datta, Shubhrajyoti wrote:
-> Enabling hwmon and lm75 in the omap4 defconfig
+
+
+> -----Original Message-----
+> From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
+> Sent: Thursday, June 17, 2010 4:57 PM
+> To: Ajay Kumar Gupta
+> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; gregkh-l3A5Bk7waGM@public.gmane.org; Maulik Mankad; David Brownell
+> Subject: Re: [PATCH 8/8] usb: musb: Fix suspend interrupt issue in device
+> mode
 > 
-
-I believe we're not going to be taking defconfig changes now.
-
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
->  arch/arm/configs/omap_4430sdp_defconfig |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->  mode change 100644 => 100755 arch/arm/configs/omap_4430sdp_defconfig
+> Hello.
 > 
-> diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
-> old mode 100644
-> new mode 100755
+> Ajay Kumar Gupta wrote:
+> 
+> > From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+> 
+> > As a part of aligning the ISR code for MUSB with the specs, the
+> > ISR code was re-written.
+> 
+> > See Commit 1c25fda4a09e8229800979986ef399401053b46e (usb: musb: handle
+> > irqs in the order dictated by programming guide)
+> 
+> > With this the suspend interrupt came accidently under
+> CONFIG_USB_MUSB_HDRC_HCD.
+> 
+> > The fix brings suspend interrupt handling outside
+> > CONFIG_USB_MUSB_HDRC_HCD.
+> 
+> > Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+> > Acked-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> > Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> 
+> [...]
+> 
+> > diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> > index 4f43db7..64b08f9 100644
+> > --- a/drivers/usb/musb/musb_core.c
+> > +++ b/drivers/usb/musb/musb_core.c
+> > @@ -635,7 +635,7 @@ static irqreturn_t musb_stage0_irq(struct musb
+> *musb, u8 int_usb,
+> >  		handled = IRQ_HANDLED;
+> >  	}
+> >
+> > -
+> > +#endif
+> 
+>     Could you move #endif one line up, so that it closely embraces the
+> *if*
+> statement?
 
+The patch is already in Greg's queue. 
 
-And this mode change was unnecessary?
+Greg,
 
-> index 1fb0456..86d69ae
-> --- a/arch/arm/configs/omap_4430sdp_defconfig
-> +++ b/arch/arm/configs/omap_4430sdp_defconfig
-> @@ -724,7 +724,8 @@ CONFIG_GPIOLIB=y
->  #
->  # CONFIG_W1 is not set
->  # CONFIG_POWER_SUPPLY is not set
-> -# CONFIG_HWMON is not set
-> +CONFIG_HWMON=y
-> +CONFIG_SENSORS_LM75=y
->  # CONFIG_THERMAL is not set
->  CONFIG_WATCHDOG=y
->  # CONFIG_WATCHDOG_NOWAYOUT is not set
+Do you want me to resend this patch?
+
+Thanks,
+Maulik
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
