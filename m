@@ -1,133 +1,67 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 01/12] OMAP2/3: hwmod: remove '_hwmod' suffix from names
-Date: Wed, 16 Jun 2010 17:17:02 -0700
-Message-ID: <1276733833-18510-2-git-send-email-khilman@deeprootsystems.com>
-References: <1276733833-18510-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 00/12] rework OPP layer to handle device-based OPPs
+Date: Wed, 16 Jun 2010 17:17:01 -0700
+Message-ID: <1276733833-18510-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:49651 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755476Ab0FQARS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 20:17:18 -0400
-Received: by pwi1 with SMTP id 1so3974097pwi.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 17:17:18 -0700 (PDT)
-In-Reply-To: <1276733833-18510-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:51676 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755745Ab0FQARY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 20:17:24 -0400
+Received: by pva4 with SMTP id 4so937484pva.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Jun 2010 17:17:23 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: nm@ti.com, thara@ti.com, b-cousson@ti.com
 
-As per new naming convention for hwmods, remove the redundant _hwmod suffix
-from all hwmod names.
+The current OPP layer is based on a unique identifier (OPP_MPU,
+OPP_DSP, OPP_L3) which is not terribly portable or scalable for future
+devices.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
- 3 files changed, 10 insertions(+), 10 deletions(-)
+Since we'd also like to be able to manage OPPs for any device (as
+recently agreed upon during an OMAP PM meeting in TI Bangalore[1]), this
+patch changes the OPP API to be device-based instead of unique-ID
+based.  Essentially, this means passing a 'struct device' instead of a
+unique ID to determine which set of OPPs to be used.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index e5530c5..284fb23 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2420_l3_masters[] = {
- 
- /* L3 */
- static struct omap_hwmod omap2420_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap2420_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l3_masters),
-@@ -89,7 +89,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_core_masters[] = {
- 
- /* L4 CORE */
- static struct omap_hwmod omap2420_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2420_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_core_masters),
-@@ -109,7 +109,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_wkup_masters[] = {
- 
- /* L4 WKUP */
- static struct omap_hwmod omap2420_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2420_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_wkup_masters),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 0852d95..1e780b1 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2430_l3_masters[] = {
- 
- /* L3 */
- static struct omap_hwmod omap2430_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap2430_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l3_masters),
-@@ -91,7 +91,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_core_masters[] = {
- 
- /* L4 CORE */
- static struct omap_hwmod omap2430_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2430_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_core_masters),
-@@ -111,7 +111,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_wkup_masters[] = {
- 
- /* L4 WKUP */
- static struct omap_hwmod omap2430_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2430_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_wkup_masters),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 074347f..f1df4c9 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -73,7 +73,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l3_masters[] = {
- 
- /* L3 */
- static struct omap_hwmod omap3xxx_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap3xxx_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_masters),
-@@ -141,7 +141,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_core_masters[] = {
- 
- /* L4 CORE */
- static struct omap_hwmod omap3xxx_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_core_masters),
-@@ -161,7 +161,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_per_masters[] = {
- 
- /* L4 PER */
- static struct omap_hwmod omap3xxx_l4_per_hwmod = {
--	.name		= "l4_per_hwmod",
-+	.name		= "l4_per",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_per_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_per_masters),
-@@ -181,7 +181,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_masters[] = {
- 
- /* L4 WKUP */
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_masters),
--- 
-1.7.0.2
+The main part of this patch is PATCH 08/12 where the OPP API changes
+are made.   The earlier parts of the series are prep work for this and
+the remaining parts are updating users of the OPP API.
+
+Applies on top of current PM branch.
+
+[1] http://omappedia.org/wiki/Proceedings_of_the_PM_SW_Workshop_Jun_2010
+
+Kevin Hilman (12):
+  OMAP2/3: hwmod: remove '_hwmod' suffix from names
+  OMAP: hwmod: add class for DSP hwmods
+  OMAP3: hwmod: add data for OMAP3 IVA2
+  OMAP: omap_device: ensure hwmod tracks attached omap_device pointer
+  OMAP: create omap_devices for MPU, DSP, L3
+  OMAP: voltage: use device_initcall()
+  OMAP: SR: use device_initcall()
+  OMAP2: OPP: update API to be device-based
+  OMAP3: CPUfreq: update to device-based OPP API
+  OMAP: voltage: update to new device-based OPP API
+  OMAP: SRF: update to new device-based OPP API
+  OMAP: SRF: must be initialized before allowing constraints to be set
+
+ arch/arm/mach-omap2/cpufreq34xx.c            |  180 +++++--------
+ arch/arm/mach-omap2/devices.c                |    2 +
+ arch/arm/mach-omap2/io.c                     |   68 ++++-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    6 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    6 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   49 +++-
+ arch/arm/mach-omap2/omap_hwmod_common_data.c |    3 +
+ arch/arm/mach-omap2/omap_hwmod_common_data.h |    1 +
+ arch/arm/mach-omap2/resource34xx.c           |   95 ++++---
+ arch/arm/mach-omap2/sr_device.c              |    2 +-
+ arch/arm/mach-omap2/voltage.c                |   12 +-
+ arch/arm/plat-omap/cpu-omap.c                |   12 +-
+ arch/arm/plat-omap/include/plat/common.h     |    4 +
+ arch/arm/plat-omap/include/plat/opp.h        |   57 ++---
+ arch/arm/plat-omap/omap-pm-srf.c             |    7 +
+ arch/arm/plat-omap/omap_device.c             |    8 +-
+ arch/arm/plat-omap/opp.c                     |  396 +++++++++++---------------
+ 17 files changed, 474 insertions(+), 434 deletions(-)
 
