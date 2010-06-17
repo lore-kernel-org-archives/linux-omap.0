@@ -1,57 +1,67 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 1/8] musb_core: make disconnect and suspend interrupts work again
-Date: Thu, 17 Jun 2010 16:10:34 +0530
-Message-ID: <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
-References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40603 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759867Ab0FQKlZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Jun 2010 06:41:25 -0400
-In-Reply-To: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 3/8] musb: fix compilation warning in host only mode
+Date: Thu, 17 Jun 2010 15:18:49 +0400
+Message-ID: <4C1A0499.9020802@ru.mvista.com>
+References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com> <1276771242-5201-2-git-send-email-ajay.gupta@ti.com> <1276771242-5201-3-git-send-email-ajay.gupta@ti.com> <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1276771242-5201-4-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, gregkh@suse.de, Sergei Shtylyov <sshtylyov@ru.mvista.com>, stable@kernel.org, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Hello.
 
-Commit 1c25fda4a09e8229800979986ef399401053b46e (usb: musb: handle irqs in the
-order dictated by programming guide) forgot to get rid of the old 'STAGE0_MASK'
-filter for calling musb_stage0_irq(), so now disconnect and suspend interrupts
-are effectively ignored...
+Ajay Kumar Gupta wrote:
 
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: stable@kernel.org
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- drivers/usb/musb/musb_core.c |    6 +-----
- 1 files changed, 1 insertions(+), 5 deletions(-)
+> Fixes below compilation warning when host only configuration is
+> selected.
+> drivers/usb/musb/musb_core.c: In function 'musb_stage0_irq':
+> drivers/usb/musb/musb_core.c:711: warning: unused variable 'mbase'
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index fad70bc..f0ff893 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -451,10 +451,6 @@ void musb_hnp_stop(struct musb *musb)
-  * @param power
-  */
- 
--#define STAGE0_MASK (MUSB_INTR_RESUME | MUSB_INTR_SESSREQ \
--		| MUSB_INTR_VBUSERROR | MUSB_INTR_CONNECT \
--		| MUSB_INTR_RESET)
--
- static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
- 				u8 devctl, u8 power)
- {
-@@ -1597,7 +1593,7 @@ irqreturn_t musb_interrupt(struct musb *musb)
- 	/* the core can interrupt us for multiple reasons; docs have
- 	 * a generic interrupt flowchart to follow
- 	 */
--	if (musb->int_usb & STAGE0_MASK)
-+	if (musb->int_usb)
- 		retval |= musb_stage0_irq(musb, musb->int_usb,
- 				devctl, power);
- 
--- 
-1.6.2.4
+> Also removed definition of 'mbase' from multiple places to only
+> at function top.
 
+    AFAIR, it was intentionally removed from the function top and declared in 
+the multiple plcase instead by the former Felipe's patch [1] to fix exactly 
+the same issue, if I don't mistake. So, it hasn't worked out?
+
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+[...]
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index f0ff893..7cc8398 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -455,6 +455,9 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
+>  				u8 devctl, u8 power)
+>  {
+>  	irqreturn_t handled = IRQ_NONE;
+> +#ifdef CONFIG_USB_MUSB_HDRC_HCD
+> +	void __iomem	*mbase = musb->mregs;
+> +#endif
+
+    I'd rather see it declared multiple times...
+
+> @@ -703,7 +700,6 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
+>  
+>  	if (int_usb & MUSB_INTR_CONNECT) {
+>  		struct usb_hcd *hcd = musb_to_hcd(musb);
+> -		void __iomem *mbase = musb->mregs;
+
+    We could also move this into the #ifdef CONFIG_USB_MUSB_OTG block.
+
+>  
+>  		handled = IRQ_HANDLED;
+>  		musb->is_active = 1;
+
+[1] 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=aa4714560b4ea359bb7830188ebd06bce71bcdea
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
