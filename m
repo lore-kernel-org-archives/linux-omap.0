@@ -1,81 +1,60 @@
-From: "Maulik" <x0082077-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 8/8] usb: musb: Fix suspend interrupt issue in device mode
-Date: Thu, 17 Jun 2010 17:45:15 +0530
-Message-ID: <006501cb0e16$c08bae00$808918ac@apr.dhcp.ti.com>
-References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com> <1276771242-5201-2-git-send-email-ajay.gupta@ti.com> <1276771242-5201-3-git-send-email-ajay.gupta@ti.com> <1276771242-5201-4-git-send-email-ajay.gupta@ti.com> <1276771242-5201-5-git-send-email-ajay.gupta@ti.com> <1276771242-5201-6-git-send-email-ajay.gupta@ti.com> <1276771242-5201-7-git-send-email-ajay.gupta@ti.com> <1276771242-5201-8-git-send-email-ajay.gupta@ti.com> <1276771242-5201-9-git-send-email-ajay.gupta@ti.com> <4C1A0687.4080002@ru.mvista.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C1A0687.4080002-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sergei Shtylyov' <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, 'Ajay Kumar Gupta' <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, 'David Brownell' <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+From: Guruswamy Senthilvadivu <svadivu@ti.com>
+Subject: [PATCH v3 1/3] OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
+Date: Thu, 17 Jun 2010 18:15:00 +0530
+Message-ID: <1276778702-15280-2-git-send-email-svadivu@ti.com>
+References: <1276778702-15280-1-git-send-email-svadivu@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49712 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753237Ab0FQMpO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Jun 2010 08:45:14 -0400
+In-Reply-To: <1276778702-15280-1-git-send-email-svadivu@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-dev@vger.kernel.org, tony@atomide.com, tomi.valkeinen@nokia.com, hvaibhav@ti.com
+Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
+From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
+FB_OMAP2 can work without VRFB, but currently does not build. Fix this.
 
-> -----Original Message-----
-> From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
-> Sent: Thursday, June 17, 2010 4:57 PM
-> To: Ajay Kumar Gupta
-> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; gregkh-l3A5Bk7waGM@public.gmane.org; Maulik Mankad; David Brownell
-> Subject: Re: [PATCH 8/8] usb: musb: Fix suspend interrupt issue in device
-> mode
-> 
-> Hello.
-> 
-> Ajay Kumar Gupta wrote:
-> 
-> > From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-> 
-> > As a part of aligning the ISR code for MUSB with the specs, the
-> > ISR code was re-written.
-> 
-> > See Commit 1c25fda4a09e8229800979986ef399401053b46e (usb: musb: handle
-> > irqs in the order dictated by programming guide)
-> 
-> > With this the suspend interrupt came accidently under
-> CONFIG_USB_MUSB_HDRC_HCD.
-> 
-> > The fix brings suspend interrupt handling outside
-> > CONFIG_USB_MUSB_HDRC_HCD.
-> 
-> > Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-> > Acked-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> > Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> 
-> [...]
-> 
-> > diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> > index 4f43db7..64b08f9 100644
-> > --- a/drivers/usb/musb/musb_core.c
-> > +++ b/drivers/usb/musb/musb_core.c
-> > @@ -635,7 +635,7 @@ static irqreturn_t musb_stage0_irq(struct musb
-> *musb, u8 int_usb,
-> >  		handled = IRQ_HANDLED;
-> >  	}
-> >
-> > -
-> > +#endif
-> 
->     Could you move #endif one line up, so that it closely embraces the
-> *if*
-> statement?
+Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+---
+ arch/arm/plat-omap/include/plat/vrfb.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+), 0 deletions(-)
 
-The patch is already in Greg's queue. 
+diff --git a/arch/arm/plat-omap/include/plat/vrfb.h b/arch/arm/plat-omap/include/plat/vrfb.h
+index d8a03ce..3792bde 100644
+--- a/arch/arm/plat-omap/include/plat/vrfb.h
++++ b/arch/arm/plat-omap/include/plat/vrfb.h
+@@ -35,6 +35,7 @@ struct vrfb {
+ 	bool yuv_mode;
+ };
+ 
++#ifdef CONFIG_OMAP2_VRFB
+ extern int omap_vrfb_request_ctx(struct vrfb *vrfb);
+ extern void omap_vrfb_release_ctx(struct vrfb *vrfb);
+ extern void omap_vrfb_adjust_size(u16 *width, u16 *height,
+@@ -47,4 +48,19 @@ extern void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
+ extern int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot);
+ extern void omap_vrfb_restore_context(void);
+ 
++#else
++static inline int omap_vrfb_request_ctx(struct vrfb *vrfb) { return 0; }
++static inline void omap_vrfb_release_ctx(struct vrfb *vrfb) {}
++static inline void omap_vrfb_adjust_size(u16 *width, u16 *height,
++		u8 bytespp) {}
++static inline u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp)
++		{ return 0; }
++static inline u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
++		{ return 0; }
++static inline void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
++		u16 width, u16 height, unsigned bytespp, bool yuv_mode) {}
++static inline int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot)
++		{ return 0; }
++static inline void omap_vrfb_restore_context(void) {}
++#endif
+ #endif /* __VRFB_H */
+-- 
+1.5.4.7
 
-Greg,
-
-Do you want me to resend this patch?
-
-Thanks,
-Maulik
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
