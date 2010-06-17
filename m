@@ -1,99 +1,85 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 11/13 v3] OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init
-Date: Thu, 17 Jun 2010 09:34:41 -0700
-Message-ID: <87zkytmxcu.fsf@deeprootsystems.com>
-References: <1276614348-5201-1-git-send-email-charu@ti.com>
-	<1276614348-5201-2-git-send-email-charu@ti.com>
-	<1276614348-5201-3-git-send-email-charu@ti.com>
-	<1276614348-5201-4-git-send-email-charu@ti.com>
-	<1276614348-5201-5-git-send-email-charu@ti.com>
-	<1276614348-5201-6-git-send-email-charu@ti.com>
-	<1276614348-5201-7-git-send-email-charu@ti.com>
-	<1276614348-5201-8-git-send-email-charu@ti.com>
-	<1276614348-5201-9-git-send-email-charu@ti.com>
-	<1276614348-5201-10-git-send-email-charu@ti.com>
-	<1276614348-5201-11-git-send-email-charu@ti.com>
-	<1276614348-5201-12-git-send-email-charu@ti.com> <4C17B6ED.203@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B62C@dbde02.ent.ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B659@dbde02.ent.ti.com>
-	<4C189422.7020700@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B9B5@dbde02.ent.ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH] OMAP3630: Update ES1.1 silicon revision detection
+Date: Thu, 17 Jun 2010 11:38:56 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0133360CA7@dlee02.ent.ti.com>
+References: <1272466280-2784-1-git-send-email-manjugk@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03230B2831@dbde02.ent.ti.com>
+ <4C03C933.4090009@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:35548 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933020Ab0FQQer (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jun 2010 12:34:47 -0400
-Received: by pvg6 with SMTP id 6so53799pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 17 Jun 2010 09:34:45 -0700 (PDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B9B5@dbde02.ent.ti.com> (Charulatha Varadarajan's message of "Wed\, 16 Jun 2010 21\:13\:21 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:48699 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756615Ab0FQQjA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jun 2010 12:39:00 -0400
+In-Reply-To: <4C03C933.4090009@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
 
-[...]
+> From: Nishanth Menon [mailto:nm@ti.com]
+> Sent: Monday, May 31, 2010 9:36 AM
+> To: Gadiyar, Anand
+> Cc: G, Manjunath Kondaiah; linux-omap@vger.kernel.org; Tony Lindgren
+> Subject: Re: [PATCH] OMAP3630: Update ES1.1 silicon revision detection
+> 
+> On 05/31/2010 03:50 PM, Gadiyar, Anand wrote:
+> > Manjunatha GK wrote:
+> >> This patch updates ES1.1 silicon revision ID for OMAP3630
+> >> processor. The silicon revision can be read by reading hawkeye
+> >> and revision bits in IDCODE register.
+> >>
+> >> Tested on 3630sdp(with ES1.1 silicon) and Zoom3(with ES1.0) silicon.
+> >>
+> >> Signed-off-by: Manjunatha GK<manjugk@ti.com>
+> >> Cc: Nishanth Menon<nm@ti.com>
+> >> Cc: Tony Lindgren<tony@atomide.com>
+> >
+> > Ping?
+> >
+> > FWIW, tested on other OMAP3 ES1.1 boards too.
+> >
+> >> ---
+> >>   arch/arm/mach-omap2/id.c              |   20 ++++++++++++++++----
+> >>   arch/arm/plat-omap/include/plat/cpu.h |    3 +++
+> >>   2 files changed, 19 insertions(+), 4 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> >> index 37b8a1a..dd26092 100644
+> >> --- a/arch/arm/mach-omap2/id.c
+> >> +++ b/arch/arm/mach-omap2/id.c
+> >> @@ -259,11 +259,20 @@ void __init omap3_check_revision(void)
+> >>   		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+> >>   		break;
+> >>   	case 0xb891:
+> >> -	/* FALLTHROUGH */
+> >> -	default:
+> >> -		/* Unknown default to latest silicon rev as default*/
+> >> -		omap_revision = OMAP3630_REV_ES1_0;
+> >> +		/* Handle 36xx devices */
+> >>   		omap_chip.oc |= CHIP_IS_OMAP3630ES1;
+> >> +
+> >> +		switch(rev) {
+> >> +		case 0: /* Take care of early samples */
+> >> +			omap_revision = OMAP3630_REV_ES1_0;
+> >> +			break;
+> >> +		case 1:
+> >> +		/* Fall through */
+> >> +		default:
+> >> +			/* Use the latest known revision as default */
+> >> +			omap_revision =  OMAP3630_REV_ES1_1;
+> >> +			omap_chip.oc |= CHIP_IS_OMAP3630ES1_1;
+> 
+> just a late realization relooking at the code: omap_chip.oc is ES1 and
+> ES1_1?
 
->> >>
->> >>>
->> >>> What does 'method' mean in that context? Maybe the name should be revisited?
->> >>
->> >> Agree. 'method' is used throughout OMAP GPIO code. As mentioned above, this
->> field would be removed
->> >> once the whole GPIO code is cleaned up. This patch series doesn't bother to
->> clean up GPIO code as the
->> >> changes would be huge and intended only for HWMOD FW adaptation. Cleaning up
->> GPIO code would come as
->> >> a separate series and we can address this then.
->> >>
->> > Sorry if my comment is not aligned but I thought we are addressing the
->> > gpio clean up as well.
->> >
->> > If we are re-vamping the code so much, is it not the right time to clean up as
->> well ??
->> 
->> I agree with Santosh, you are already cleaning a bunch of things, and in
->> that case you can easily take advantage of HWMOD to remove a good amount
->> of useless code.
->> 
->> We'd better do that right now, instead of waiting a next phase that
->> might never happen...
->
-> Since hwmod migration would change mainly the init part of the code,
-> I started working on hwmod migration as part of the first
-> series. Once we agree upon the final patch set for GPIO hwmod
-> migration, I can work on top of the hwmod migration patch series to
-> clean up the GPIO code and send a dependent series. This will help
-> sending the changes in smaller chunks.
->
-> I would add a TODO section in patch description outlining the
-> cleanup to be done in the next patch series.
+Just realized that the logic is really sane. Thanks anand for pointing out.
 
-At a minimum, a TODO describing the rest of the cleanups would be
-helpful.
+Acked-by: Nishanth Menon <nm@ti.com>
 
-> Tony,
-> Can you add your feedback?
->
-> Please refer http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26065.html for the old context.
->
->> 
->> And BTW, this 'method' is a IP version dependent information and
->> not a Soc specific one. You can potentially use the HW revision
->> field, if it is available for the GPIO.
->
-> I agree that it is not SoC specific. But I still feel that it is
-> better not to have 'method' as part of dev_attr, considering that,
-> after clean-up, this information will no longer be needed.
-
-Considering just this 'method' issue, and not the entire cleanup, I
-don't like this extra 'user' field past to omap2_init_gpio() used for
-the method.
-
-Can you investigate whether or not this flag is even needed and if we
-can determine the method based on the REVISION register?
-
-Kevin
+Regards,
+Nishanth Menon
