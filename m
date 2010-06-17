@@ -1,91 +1,84 @@
-From: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 8/8] usb: musb: Fix suspend interrupt issue in device
- mode
-Date: Thu, 17 Jun 2010 07:18:54 -0700
-Message-ID: <20100617141854.GB9063@suse.de>
-References: <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-5-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-6-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-7-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-8-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-9-git-send-email-ajay.gupta@ti.com>
- <4C1A0687.4080002@ru.mvista.com>
- <006501cb0e16$c08bae00$808918ac@apr.dhcp.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Alternative for defconfig
+Date: Thu, 17 Jun 2010 17:23:21 +0300
+Message-ID: <20100617142321.GJ12255@atomide.com>
+References: <201006091227.29175.laurent.pinchart@ideasonboard.com>
+ <AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
+ <A24693684029E5489D1D202277BE894455DDEC44@dlee02.ent.ti.com>
+ <201006111707.34463.laurent.pinchart@ideasonboard.com>
+ <AANLkTikdUanfxhkbb0sYZ-Yhd_9dVywv9Yj1a5DL18oN@mail.gmail.com>
+ <20100616075642.GA12255@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <006501cb0e16$c08bae00$808918ac-wD+IZp/g4/2mHdYHvhjUOg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maulik <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: 'Sergei Shtylyov' <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, 'Ajay Kumar Gupta' <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, 'David Brownell' <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+In-Reply-To: <20100616075642.GA12255@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Nagarajan, Rajkumar" <x0133774@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 17, 2010 at 05:45:15PM +0530, Maulik wrote:
-> > -----Original Message-----
-> > From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
-> > Sent: Thursday, June 17, 2010 4:57 PM
-> > To: Ajay Kumar Gupta
-> > Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> > felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; gregkh-l3A5Bk7waGM@public.gmane.org; Maulik Mankad; David Brownell
-> > Subject: Re: [PATCH 8/8] usb: musb: Fix suspend interrupt issue in device
-> > mode
+* Tony Lindgren <tony@atomide.com> [100616 10:50]:
+> * Felipe Contreras <felipe.contreras@gmail.com> [100611 19:03]:
+> > On Fri, Jun 11, 2010 at 6:07 PM, Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com> wrote:
+> > > My understanding is that Linus will remove all ARM defconfigs in 2.6.36,
+> > > unless someone can convince him not to.
 > > 
-> > Hello.
+> > Huh? I thought he was only threatening to remove them[1]. I don't
+> > think he said he was going to do that without any alternative in
+> > place.
 > > 
-> > Ajay Kumar Gupta wrote:
+> > My suggestion[2] was to have minimal defconfigs so that we could do
+> > $ cp arch/arm/configs/omap3_beagle_baseconfig .config
+> > $ echo "" | make ARCH=arm oldconfig
 > > 
-> > > From: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-> > 
-> > > As a part of aligning the ISR code for MUSB with the specs, the
-> > > ISR code was re-written.
-> > 
-> > > See Commit 1c25fda4a09e8229800979986ef399401053b46e (usb: musb: handle
-> > > irqs in the order dictated by programming guide)
-> > 
-> > > With this the suspend interrupt came accidently under
-> > CONFIG_USB_MUSB_HDRC_HCD.
-> > 
-> > > The fix brings suspend interrupt handling outside
-> > > CONFIG_USB_MUSB_HDRC_HCD.
-> > 
-> > > Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-> > > Acked-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> > > Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-> > > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> > 
-> > [...]
-> > 
-> > > diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> > > index 4f43db7..64b08f9 100644
-> > > --- a/drivers/usb/musb/musb_core.c
-> > > +++ b/drivers/usb/musb/musb_core.c
-> > > @@ -635,7 +635,7 @@ static irqreturn_t musb_stage0_irq(struct musb
-> > *musb, u8 int_usb,
-> > >  		handled = IRQ_HANDLED;
-> > >  	}
-> > >
-> > > -
-> > > +#endif
-> > 
-> >     Could you move #endif one line up, so that it closely embraces the
-> > *if*
-> > statement?
+> > [1] http://article.gmane.org/gmane.linux.kernel/994194
+> > [2] http://article.gmane.org/gmane.linux.kernel/995412
 > 
-> The patch is already in Greg's queue. 
+> Sounds like the defconfigs will be going though and we'll use
+> some Kconfig based system that's still open. I believe Russell
+> said he is not taking any more defconfig patches, so we should
+> not merge them either.
 > 
-> Greg,
+> Anyways, we already have multi-omap mostly working for both
+> mach-omap1 and mach-omap2.
 > 
-> Do you want me to resend this patch?
+> So the remaining things to do are:
+> 
+> 1. For mach-omap1, patch entry-macro.S to allow compiling in
+>    7xx, 15xx and 16xx. This can be done in a similar way as
+>    for mach-omap2. The only issue is how to detect 7xx from
+>    other mach-omap1 omaps. If anybody has a chance to work
+>    on this, please go for it!
 
-No, it's already in my queue, so I don't need to reapply it :)
+Have not done anything about this.
+ 
+> 2. The old omap_cfg_reg mux function needs to disappear
+>    for mach-omap2 and use the new mux code instead. I'm
+>    currently working on this and should have it ready
+>    for testing this week.
 
-thanks,
+Got finally rid of these. These are in devel-mux branch
+on top of the devel-tls branch.
+ 
+> 3. To boot both ARMv6 and 7, we need to get rid of
+>    CONFIG_HAS_TLS_REG. I already have a patch for that,
+>    I'll try to update that during this week.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Need to still look at this, but a working version is in
+devel-tls branch.
+ 
+> 4. To make CONFIG_VFP work for both ARMv6 and 7, we need
+>    to fix CONFIG_VFPv3 so it boots on ARMv6 too. It currently
+>    oopses. Will take a look at this after I'm done with the
+>    CONFIG_HAS_TLS_REG. This is another one where some help
+>    would be nice. To reproduce, boot Linux on ARMv6 with
+>    CONFIG_VFPv3 set.
+
+Got this fixed, but need to still test. Also in devel-tls
+branch.
+
+Regards,
+
+Tony
