@@ -1,73 +1,65 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: RE: On the APIs for Enabling and Disabling Wakeup capability.
-Date: Thu, 17 Jun 2010 09:12:00 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94026FFCAA53@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E75F0BBF@dbde02.ent.ti.com>
- <87vd9isdxb.fsf@deeprootsystems.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 3/5] arm: omap: switch over to gpio_set_debounce
+Date: Thu, 17 Jun 2010 07:45:03 +0300
+Message-ID: <20100617044502.GB4237@nokia.com>
+References: <1274090554-19420-1-git-send-email-felipe.balbi@nokia.com>
+ <1274090554-19420-4-git-send-email-felipe.balbi@nokia.com>
+ <AANLkTikeS8VtXbO5iOgvDMxy7QIxrbfzS4Hob_BsHylj@mail.gmail.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36584 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756910Ab0FQDmL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jun 2010 23:42:11 -0400
-In-Reply-To: <87vd9isdxb.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:29663 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751208Ab0FQErE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jun 2010 00:47:04 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTikeS8VtXbO5iOgvDMxy7QIxrbfzS4Hob_BsHylj@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Basak, Partha" <p-basak2@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Grazvydas Ignotas <notasas@gmail.com>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Kevin,
-Kevin,
+Hi,
 
-There is no errata in the USB which needs the Enable/Disable wakeup to be done 
-Seperately. If it can be handled with omap_devie_enable/idle Apis it is sufficient.
+On Wed, Jun 16, 2010 at 07:26:30PM +0200, ext Grazvydas Ignotas wrote:
+>hmm, this gives me:
 
-But there is a need of setting the Auto idle bit seperately as for the USBOTG there is a need to set the Autoidle only after configuring the smart idle. It is recommended in the TRM not set the auto idle and smart idle together.
-This I discussed with Partha he sent a mail to you.
+yeah, funny thing is that this patch was cooking in the mailing list for 
+over a month since I said I didn't have the boards and they were 
+compile-tested only. Anyways,
 
-For setting autoidle there is an api at hwmod layer but not yet omap device layer.
-Is there a plan to add API at omap device layer for enabling/disabling the autoidle?
+>[    0.000000] WARNING: at drivers/gpio/gpiolib.c:104
+>gpio_ensure_requested+0x50/0xcc()
+>[    0.000000] autorequest GPIO-96
+>[    0.000000] Modules linked in:
+>[    0.000000] [<c00302bc>] (unwind_backtrace+0x0/0xec) from
+>[<c00510dc>] (warn_slowpath_common+0x4c/0x64)
+>[    0.000000] [<c00510dc>] (warn_slowpath_common+0x4c/0x64) from
+>[<c0051174>] (warn_slowpath_fmt+0x2c/0x3)
+>[    0.000000] [<c0051174>] (warn_slowpath_fmt+0x2c/0x3c) from
+>[<c0166c2c>] (gpio_ensure_requested+0x50/0x)
+>[    0.000000] [<c0166c2c>] (gpio_ensure_requested+0x50/0xcc) from
+>[<c0166d14>] (gpio_set_debounce+0x6c/0x)
+>[    0.000000] [<c0166d14>] (gpio_set_debounce+0x6c/0xb0) from
+>[<c000ee84>] (omap3pandora_init+0x94/0xcc)
+>[    0.000000] [<c000ee84>] (omap3pandora_init+0x94/0xcc) from
+>[<c000b300>] (customize_machine+0x18/0x24)
+>
+>..and later gpio-keys is unable to request the same GPIO because of
+>above autorequest.
+>
+>So how is this supposed to be used here, should I request all GPIOs I
+>want to have debouncing on, setup debounce time and release them for
+>gpio-keys to take? Or should I wait for this to get supported in
+>gpio-keys?
 
-Regards,
-Hema
- 
+to me it looks like the *_keys_gpio_init() function should be passed 
+down to gpio-keys as a ->setup() callback and you should probably also 
+pass a ->teardown() which would clear debounce time when you remove the 
+driver. Then only call those functions after gpio has been requested.
 
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->Sent: Thursday, June 17, 2010 5:56 AM
->To: Basak, Partha
->Cc: paul@pwsan.com; Kalliguddi, Hema; Nayak, Rajendra; 
->linux-omap@vger.kernel.org
->Subject: Re: On the APIs for Enabling and Disabling Wakeup capability.
->
->"Basak, Partha" <p-basak2@ti.com> writes:
->
->> I wanted to close on the introduction of two new OMAP device APIs
->> omap_device_enable_wakeup () & omap_device_disable_wakeup() in
->> omap_device layer.
->>
->> These APIs are potentially needed by the USB driver (via function
->> pointers) to work around some USB erratum.
->>
->> Alternatively, can we call omap_hwmod_enable_wakeup() via function
->> pointer?  Is it agreeable to call these from driver code (via
->> function pointers)in some special cases such as to handle some
->> errata?
->
->Hi Partha,
->
->First, we need to dig up the Errata details for that USB problem to
->better understand the USB-specific issue.
->
->In addition, Paul and I discussed the option of automatically managing
->the wakeup during the hwmod enable/idle, since there isn't really a
->need to have the wakeup enabled when the hwmod is active.
->
->Do you see any disadvantages to that?  That would be much cleaner than
->manually managing the wakeup feature per-driver.
->
->Kevin
->
+-- 
+balbi
+
+DefectiveByDesign.org
