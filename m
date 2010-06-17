@@ -1,88 +1,58 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 3/8] musb: fix compilation warning in host only mode
-Date: Thu, 17 Jun 2010 17:39:35 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E91B843@dbde02.ent.ti.com>
-References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
- <4C1A0499.9020802@ru.mvista.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] Enable lm75 and hwmon in OMAP4
+Date: Thu, 17 Jun 2010 17:41:53 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03234B30E1@dbde02.ent.ti.com>
+References: <0680EC522D0CC943BC586913CF3768C003B34A6712@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59513 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752164Ab0FQMJv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jun 2010 08:09:51 -0400
-In-Reply-To: <4C1A0499.9020802@ru.mvista.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43997 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759888Ab0FQML7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jun 2010 08:11:59 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5HCBuSa011872
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 17 Jun 2010 07:11:58 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5HCBtUC021280
+	for <linux-omap@vger.kernel.org>; Thu, 17 Jun 2010 17:41:56 +0530 (IST)
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B34A6712@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "gregkh@suse.de" <gregkh@suse.de>
+To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> > Fixes below compilation warning when host only configuration is
-> > selected.
-> > drivers/usb/musb/musb_core.c: In function 'musb_stage0_irq':
-> > drivers/usb/musb/musb_core.c:711: warning: unused variable 'mbase'
+Datta, Shubhrajyoti wrote:
+> Enabling hwmon and lm75 in the omap4 defconfig
 > 
-> > Also removed definition of 'mbase' from multiple places to only
-> > at function top.
-> 
->     AFAIR, it was intentionally removed from the function top and declared
-> in the multiple plcase instead by the former Felipe's patch [1] to fix
-> exactly the same issue, if I don't mistake. So, it hasn't worked out?
 
-Yes, it was removed by Felipe's below patch but it introduced
-compilation warning issue as reported.
+I believe we're not going to be taking defconfig changes now.
 
----------------
-commit aa4714560b4ea359bb7830188ebd06bce71bcdea
-usb: musb: core: declare mbase only where it's used
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+>  arch/arm/configs/omap_4430sdp_defconfig |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>  mode change 100644 => 100755 arch/arm/configs/omap_4430sdp_defconfig
+> 
+> diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
+> old mode 100644
+> new mode 100755
 
-... and avoid a compilation if we disable host side
-of musb.
---------------
 
-> 
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> [...]
-> > diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> > index f0ff893..7cc8398 100644
-> > --- a/drivers/usb/musb/musb_core.c
-> > +++ b/drivers/usb/musb/musb_core.c
-> > @@ -455,6 +455,9 @@ static irqreturn_t musb_stage0_irq(struct musb
-> *musb, u8 int_usb,
-> >  				u8 devctl, u8 power)
-> >  {
-> >  	irqreturn_t handled = IRQ_NONE;
-> > +#ifdef CONFIG_USB_MUSB_HDRC_HCD
-> > +	void __iomem	*mbase = musb->mregs;
-> > +#endif
-> 
->     I'd rather see it declared multiple times...
+And this mode change was unnecessary?
 
-I was thinking it's better to have it at one place and avoid multiple
-#ifdefs.
-
--Ajay
-> 
-> > @@ -703,7 +700,6 @@ static irqreturn_t musb_stage0_irq(struct musb
-> *musb, u8 int_usb,
-> >
-> >  	if (int_usb & MUSB_INTR_CONNECT) {
-> >  		struct usb_hcd *hcd = musb_to_hcd(musb);
-> > -		void __iomem *mbase = musb->mregs;
-> 
->     We could also move this into the #ifdef CONFIG_USB_MUSB_OTG block.
-> 
-> >
-> >  		handled = IRQ_HANDLED;
-> >  		musb->is_active = 1;
-> 
-> [1]
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
-> 2.6.git;a=commitdiff;h=aa4714560b4ea359bb7830188ebd06bce71bcdea
-> 
-> WBR, Sergei
+> index 1fb0456..86d69ae
+> --- a/arch/arm/configs/omap_4430sdp_defconfig
+> +++ b/arch/arm/configs/omap_4430sdp_defconfig
+> @@ -724,7 +724,8 @@ CONFIG_GPIOLIB=y
+>  #
+>  # CONFIG_W1 is not set
+>  # CONFIG_POWER_SUPPLY is not set
+> -# CONFIG_HWMON is not set
+> +CONFIG_HWMON=y
+> +CONFIG_SENSORS_LM75=y
+>  # CONFIG_THERMAL is not set
+>  CONFIG_WATCHDOG=y
+>  # CONFIG_WATCHDOG_NOWAYOUT is not set
