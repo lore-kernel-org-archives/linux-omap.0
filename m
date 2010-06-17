@@ -1,42 +1,52 @@
-From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Subject: RE: [PATCH v3 2/3] DSS2: make VRFB depends on OMAP2,3
-Date: Thu, 17 Jun 2010 15:35:57 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304288906@dbde02.ent.ti.com>
-References: <1276169037-2598-1-git-send-email-svadivu@ti.com>
-	 <1276169037-2598-2-git-send-email-svadivu@ti.com>
- <1276765439.12438.80.camel@tubuntu.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39391 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757331Ab0FQKGS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Jun 2010 06:06:18 -0400
-In-Reply-To: <1276765439.12438.80.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 7/8] musb: Kill board specific pinmux from driver file
+Date: Thu, 17 Jun 2010 16:10:40 +0530
+Message-ID: <1276771242-5201-8-git-send-email-ajay.gupta@ti.com>
+References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-5-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-6-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-7-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1276771242-5201-7-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-IA0KPiANCj4gSGksDQo+IA0KPiBPbiBUaHUsIDIwMTAtMDYtMTAgYXQgMTM6MjMgKzAyMDAsIGV4
-dCBHdXJ1c3dhbXkgU2VudGhpbHZhZGl2dSB3cm90ZToNCj4gPiBGcm9tOiBTZW50aGlsdmFkaXZ1
-IEd1cnVzd2FteSA8c3ZhZGl2dUB0aS5jb20+DQo+ID4gDQo+ID4gY29uZmlnIFZSRkIgc2hvdWxk
-IGRlcGVuZCBvbiBBUkNIX09NQVAyIG9yIEFSQ0hfT01BUDMuDQo+ID4gDQo+ID4gQ2hhbmdlcyBm
-cm9tIHYxOg0KPiA+IAktIEFkZHJlc3NlZCBtdWx0aS1vbWFwIGJ1aWxkIGlzc3VlDQo+IA0KPiBE
-aWQgeW91IG1lYW4gdGhlIFZSRkIgY29uZmlnIG9wdGlvbiB0byBiZSB2aXNpYmxlIHZpYSBLY29u
-ZmlnPyBJdA0KPiBkb2Vzbid0IHNob3cgdGhlcmUuDQpbU2VudGhpbF0gIFByZXZpb3VzbHkgVlJG
-QiB3YXMgZGVmYXVsdCBzZWxlY3RlZCBpZiBPTUFQX0ZCIGlycmVzZXBlY3RpdmUgb2YgQVJDSC4N
-Ck5vdyBpdCBpcyBtYWRlIHRvIGJlIHNlbGVjdGVkIGJ5IGRlZmF1bHQgaW4gY2FzZSBvZiBBUkNI
-X09NQVAyLDMgYW5kIE9NQVBfRkIuDQpUaGUgb3B0aW9uIGRvZXMgbm90IHNob3cgdXAgaW4gbWVu
-dWNvbmZpZyBhcyBiZWZvcmUuICANCg0KSSBzZWUgdGhhdCBpdCBpcyBnb29kIG5vdCB0byBzaG93
-IHVwIGFzIGJlZm9yZSB0aGlzIHBhdGNoIGJlY2F1c2UNCjEuICBpZiBpdCBzaG93cyB1cCB0aGVu
-IHVzZXIgd291bGQgdW5rbm93aW5nbHkgc2VsZWN0IGZvciBub24gb21hcDIsMyBhbHNvIHdoaWNo
-IGlzIG5vdCBhcHBsaWNhYmxlLg0KMi4gIGl0IGdldHMgc2VsZWN0ZWQgYnkgZGVmYXVsdCBpbiB0
-aGUgbmVlZGVkIGNhc2Ugd2l0aG91dCB0aGUgbmVlZCB0byBzaG93IHVwIGluIHRoZSBtZW51Y29u
-ZmlnLiBJZSBvbWFwMiwzIGFuZCBPTUFQX0ZCLiANCiANCj4gUGxlYXNlIHVzZSB0aGUgc2FtZSBw
-YXRjaCBzdWJqZWN0IGFzIHRoZSBvdGhlciBkc3MgcGF0Y2hlcyAoYXBwbGllcyB0bw0KPiBvdGhl
-ciBwYXRjaGVzIGluIHRoaXMgc2V0IGFsc28pOg0KPiANCj4gT01BUDogRFNTMjogPHN1YnN5cz46
-IGZvb2Jhcg0KW1NlbnRoaWxdIE9rYXkNCg0KPiBEb24ndCBhZGQgY2hhbmdlbG9ncyBpbnRvIHRo
-ZSBwYXRjaCBtZXNzYWdlLg0KPiANCltTZW50aGlsXSBPa2F5DQo+ICBUb21pDQo+IA0KPiANCj4g
+From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+
+This pin-muxing is best done in the board files. The driver should
+not do this explicitly.
+
+Also, this code causes a warning to be thrown when OMAP2430 and OMAP3/4
+support are enabled in the same kernel.
+
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/musb/omap2430.c |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index e06d65e..2111a24 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -32,8 +32,6 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ 
+-#include <plat/mux.h>
+-
+ #include "musb_core.h"
+ #include "omap2430.h"
+ 
+@@ -194,10 +192,6 @@ int __init musb_platform_init(struct musb *musb, void *board_data)
+ 	u32 l;
+ 	struct omap_musb_board_data *data = board_data;
+ 
+-#if defined(CONFIG_ARCH_OMAP2430)
+-	omap_cfg_reg(AE5_2430_USB0HS_STP);
+-#endif
