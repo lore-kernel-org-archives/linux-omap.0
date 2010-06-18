@@ -1,60 +1,101 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/5] OMAP: hwmod: if IDLEST fields are not set, use module defaults
-Date: Fri, 18 Jun 2010 09:43:21 -0700
-Message-ID: <87hbl070ly.fsf@deeprootsystems.com>
-References: <1274994816-30335-1-git-send-email-khilman@deeprootsystems.com>
-	<1274994816-30335-3-git-send-email-khilman@deeprootsystems.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [PATCH] DSS2 Include VRFB into omap2-3build only
+Date: Fri, 18 Jun 2010 11:57:22 -0500
+Message-ID: <A24693684029E5489D1D202277BE894456043018@dlee02.ent.ti.com>
+References: <1273474110-22451-1-git-send-email-svadivu@ti.com>
+ <1A2F53DA-903A-4667-A27F-492A3499F7ED@student.utwente.nl>
+ <FCCFB4CDC6E5564B9182F639FC356087030428879D@dbde02.ent.ti.com>
+ <73F3CED4-60D5-4351-A921-335110542B6F@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:55935 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757687Ab0FRQn0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 12:43:26 -0400
-Received: by pvg6 with SMTP id 6so528280pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 18 Jun 2010 09:43:24 -0700 (PDT)
-In-Reply-To: <1274994816-30335-3-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Thu\, 27 May 2010 14\:13\:33 -0700")
+Received: from devils.ext.ti.com ([198.47.26.153]:57045 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757769Ab0FRQ5k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 12:57:40 -0400
+In-Reply-To: <73F3CED4-60D5-4351-A921-335110542B6F@dominion.thruhere.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "tony@atomide.com" <tony@atomide.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Senthil,
 
-> In the _setup() hook, check for valid IDLEST fields.  If not set, use
-> the module defaults since they are the same as the module defaults
-> for most hwmods.
->
-> Problem found because _wait_target_ready() will fail if IDLEST
-> fields are not valid.
->
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Koen Kooi
+> Sent: Monday, May 10, 2010 3:03 AM
+> To: Guruswamy, Senthilvadivu
+> Cc: linux-omap@vger.kernel.org; linux-fbdev-devel@lists.sourceforge.net;
+> tony@atomide.com; tomi.valkeinen@nokia.com; Hiremath, Vaibhav
+> Subject: Re: [PATCH] DSS2 Include VRFB into omap2-3build only
+> 
+> 
+> Op 10 mei 2010, om 10:01 heeft Guruswamy, Senthilvadivu het volgende
+> geschreven:
+> 
+> > Building a multi-omap kernel is not impacted as long as the display is
+> not choosen in the build.  Usually display is chosen from the board file.
 
+Solving this problem involves doing these selections in run time, NOT in build time.
 
-FYI... dropping this patch in favor of simply updating the hwmod data
-files to have valid idlest_* fields.
+One of the solutions for this is to provide all this selections as part
+of some platform driver data.
 
-Kevin
+It _should_ be possible to build DSS2, VRFB AND Tiler code at the same time
+for a multi-omap build, and be executed selectively, depending on your
+silicon detection and board code execution.
 
+If you need to deselect it to succeed, then it's broken for multi-omap
+builds. That's the core problem and it hasn't been addressed until date.
 
->  arch/arm/mach-omap2/omap_hwmod.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index a127c9b..77fef90 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1036,6 +1036,12 @@ static int _setup(struct omap_hwmod *oh)
->  
->  	oh->_state = _HWMOD_STATE_INITIALIZED;
->  
-> +	/* if IDLEST values are not set, use module defaults */
-> +	if (!oh->prcm.omap2.idlest_reg_id)
-> +		oh->prcm.omap2.idlest_reg_id = oh->prcm.omap2.prcm_reg_id;
-> +	if (!oh->prcm.omap2.idlest_idle_bit)
-> +		oh->prcm.omap2.idlest_idle_bit = oh->prcm.omap2.module_bit;
-> +
->  	r = _enable(oh);
->  	if (r) {
->  		pr_warning("omap_hwmod: %s: cannot be enabled (%d)\n",
-> -- 
-> 1.7.0.2
+Regards,
+Sergio
+> 
+> So you are saying it *IS* broken when wanting vrfb on omap3 and tiler on
+> omap4, right?
+> 
+> 
+> 
+> >
+> >> -----Original Message-----
+> >> From: Koen Kooi [mailto:koen@dominion.thruhere.net]
+> >> Sent: Monday, May 10, 2010 1:10 PM
+> >> To: Guruswamy, Senthilvadivu
+> >> Cc: linux-omap@vger.kernel.org;
+> >> linux-fbdev-devel@lists.sourceforge.net; tony@atomide.com;
+> >> tomi.valkeinen@nokia.com; Hiremath, Vaibhav
+> >> Subject: Re: [PATCH] DSS2 Include VRFB into omap2-3build only
+> >>
+> >>
+> >> Op 10 mei 2010, om 08:48 heeft Senthilvadivu Guruswamy het
+> >> volgende geschreven:
+> >>
+> >>> Exclude VRFB from OMAP4 onwards and include only for
+> >>> OMAP2 and OMAP3 builds.  In OMAP4 VRFB HW IP is replaced
+> >>> with a new HW IP "TILER"
+> >>>
+> >>> --- a/drivers/video/omap2/Kconfig
+> >>> +++ b/drivers/video/omap2/Kconfig
+> >>> @@ -3,6 +3,10 @@ config OMAP2_VRAM
+> >>>
+> >>> config OMAP2_VRFB
+> >>> 	bool
+> >>> +	depends on FB_OMAP2 && (!ARCH_OMAP4)
+> >>> +	default y if (ARCH_OMAP2 || ARCH_OMAP3)
+> >>> +	help
+> >>> +	  OMAP VRFB buffer support is efficient for rotation
+> >>
+> >> How does this work for multi-omap kernels, e.g. building a
+> >> kernel with beagle and panda support?
+> >>
+> >> regards,
+> >>
+> >> Koen
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
