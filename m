@@ -1,48 +1,57 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 4/8] OMAP3: PM: Adding smartreflex hwmod data
-Date: Fri, 18 Jun 2010 13:46:59 -0700
-Message-ID: <87eig43w70.fsf@deeprootsystems.com>
-References: <1275150748-15386-1-git-send-email-thara@ti.com>
-	<1275150748-15386-2-git-send-email-thara@ti.com>
-	<1275150748-15386-3-git-send-email-thara@ti.com>
-	<1275150748-15386-4-git-send-email-thara@ti.com>
-	<1275150748-15386-5-git-send-email-thara@ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] OMAP3: wait on IDLEST after enabling USBTLL fclk
+Date: Sat, 19 Jun 2010 02:25:41 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032358E85A@dbde02.ent.ti.com>
+References: <1273127288-21590-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:40576 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063Ab0FRUrD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 16:47:03 -0400
-Received: by pwi1 with SMTP id 1so596767pwi.19
-        for <linux-omap@vger.kernel.org>; Fri, 18 Jun 2010 13:47:02 -0700 (PDT)
-In-Reply-To: <1275150748-15386-5-git-send-email-thara@ti.com> (Thara Gopinath's message of "Sat\, 29 May 2010 22\:02\:24 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45756 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751300Ab0FRUzw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 16:55:52 -0400
+In-Reply-To: <1273127288-21590-1-git-send-email-gadiyar@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Thara Gopinath <thara@ti.com> writes:
+Gadiyar, Anand wrote:
+> We need to wait on the IDLEST bit after the clocks are enabled
+> before attempting to access any register.
+> 
+> Currently, the USBTLL i-clock ops uses the clkops_omap2_dflt_wait,
+> while the USBTLL f-clock ops uses clkops_omap2_dflt. If the
+> i-clock is enabled first, the clkops_omap2_dflt_wait is
+> short-circuited as the companion f-clock is not enabled.
+> This can cause a data abort if the IDLEST has not transitioned,
+> and we try to access a USBTLL register.
+> 
+> Since the USBTLL i-clock and f-clock could be enabled in any order,
+> this is a bug. Fix it by changing the clkops for the f-clock.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 
-> This patch adds the smartreflex hwmod data for OMAP3430
-> and OMAP3630. A dev_attr is also added to the hwmod
-> structure for each smartreflex module which contains
-> SoC specific info like the efuse offsets, test n-values
-> etc.
->
-> Signed-off-by: Thara Gopinath <thara@ti.com>
+Ping?
 
-[...]
 
-> +static struct omap_hwmod_ocp_if omap3_l4_core__sr1 = {
-> +	.master		= &omap3xxx_l4_core_hwmod,
-> +	.slave		= &omap34xx_sr1_hwmod,
-> +	.clk		= "sr_l4_ick",
-> +	.addr		= omap3_sr1_addr_space,
-> +	.addr_cnt	= ARRAY_SIZE(omap3_sr1_addr_space),
-> +	.user		= OCP_USER_MPU,
-
-For enable to work, these all nee the .prcm.omap2 sub struct filled
-out.
-
-Kevin
+> ---
+> 
+>  arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap2/clock3xxx_data.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ linux-omap-2.6/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -1484,7 +1484,7 @@ static struct clk ts_fck = {
+>  
+>  static struct clk usbtll_fck = {
+>  	.name		= "usbtll_fck",
+> -	.ops		= &clkops_omap2_dflt,
+> +	.ops		= &clkops_omap2_dflt_wait,
+>  	.parent		= &dpll5_m2_ck,
+>  	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
+>  	.enable_bit	= OMAP3430ES2_EN_USBTLL_SHIFT,
+> 
