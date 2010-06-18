@@ -1,192 +1,58 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: [PATCH]OMAP:GPTIMER:1ms tick generation correction
-Date: Fri, 18 Jun 2010 17:47:39 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032358E75F@dbde02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: Alternative for defconfig
+Date: Fri, 18 Jun 2010 16:00:22 +0300
+Message-ID: <AANLkTinF9icY0SSHAKcurjP3DX4h7mA9vlRK6ZaAoHdx@mail.gmail.com>
+References: <201006091227.29175.laurent.pinchart@ideasonboard.com>
+	<AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
+	<A24693684029E5489D1D202277BE894455DDEC44@dlee02.ent.ti.com>
+	<201006111707.34463.laurent.pinchart@ideasonboard.com>
+	<AANLkTikdUanfxhkbb0sYZ-Yhd_9dVywv9Yj1a5DL18oN@mail.gmail.com>
+	<20100616075642.GA12255@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56630 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761125Ab0FRMRp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 08:17:45 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5ICHfl1004536
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 18 Jun 2010 07:17:44 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5ICHeDv018165
-	for <linux-omap@vger.kernel.org>; Fri, 18 Jun 2010 17:47:41 +0530 (IST)
-Content-Language: en-US
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62061 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758698Ab0FRNAY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 09:00:24 -0400
+In-Reply-To: <20100616075642.GA12255@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Aguirre, Sergio" <saaguirre@ti.com>, "Nagarajan, Rajkumar" <x0133774@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Generation of 1ms granular GPTIMER events using 32KHz or system clocks
-as inputs does not have whole number count value to loaded into the register. This inaccurate count value with respect to 1ms period leads to time drift subsequently. OMAP3 and later silicones have dedicated registers for GPTIMER1, GPTIMER2 and GPTIMER10, which can be programmed with computed values to keep this error controlled within specified limit.
+On Wed, Jun 16, 2010 at 10:56 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Felipe Contreras <felipe.contreras@gmail.com> [100611 19:03]:
+>> On Fri, Jun 11, 2010 at 6:07 PM, Laurent Pinchart
+>> <laurent.pinchart@ideasonboard.com> wrote:
+>> > My understanding is that Linus will remove all ARM defconfigs in 2.6.36,
+>> > unless someone can convince him not to.
+>>
+>> Huh? I thought he was only threatening to remove them[1]. I don't
+>> think he said he was going to do that without any alternative in
+>> place.
+>>
+>> My suggestion[2] was to have minimal defconfigs so that we could do
+>> $ cp arch/arm/configs/omap3_beagle_baseconfig .config
+>> $ echo "" | make ARCH=arm oldconfig
+>>
+>> [1] http://article.gmane.org/gmane.linux.kernel/994194
+>> [2] http://article.gmane.org/gmane.linux.kernel/995412
+>
+> Sounds like the defconfigs will be going though and we'll use
+> some Kconfig based system that's still open. I believe Russell
+> said he is not taking any more defconfig patches, so we should
+> not merge them either.
+>
+> Anyways, we already have multi-omap mostly working for both
+> mach-omap1 and mach-omap2.
 
-Signed-off-by: R Sricharan <r.sricharan@ti.com>
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
----
- arch/arm/plat-omap/dmtimer.c              |   99 ++++++++++++++++++-----------
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 +
- 2 files changed, 64 insertions(+), 36 deletions(-)
+Cool, that's a much better approach :)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-old mode 100644
-new mode 100755
-index c64875f..0d7d85a
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -160,6 +160,9 @@ struct omap_dm_timer {
- 	unsigned reserved:1;
- 	unsigned enabled:1;
- 	unsigned posted:1;
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+	unsigned ms_correction:1;
-+#endif
- };
- 
- static int dm_timer_count;
-@@ -185,18 +188,18 @@ static const int omap1_dm_timer_count = ARRAY_SIZE(omap1_dm_timers);
- 
- #ifdef CONFIG_ARCH_OMAP2
- static struct omap_dm_timer omap2_dm_timers[] = {
--	{ .phys_base = 0x48028000, .irq = INT_24XX_GPTIMER1 },
--	{ .phys_base = 0x4802a000, .irq = INT_24XX_GPTIMER2 },
--	{ .phys_base = 0x48078000, .irq = INT_24XX_GPTIMER3 },
--	{ .phys_base = 0x4807a000, .irq = INT_24XX_GPTIMER4 },
--	{ .phys_base = 0x4807c000, .irq = INT_24XX_GPTIMER5 },
--	{ .phys_base = 0x4807e000, .irq = INT_24XX_GPTIMER6 },
--	{ .phys_base = 0x48080000, .irq = INT_24XX_GPTIMER7 },
--	{ .phys_base = 0x48082000, .irq = INT_24XX_GPTIMER8 },
--	{ .phys_base = 0x48084000, .irq = INT_24XX_GPTIMER9 },
--	{ .phys_base = 0x48086000, .irq = INT_24XX_GPTIMER10 },
--	{ .phys_base = 0x48088000, .irq = INT_24XX_GPTIMER11 },
--	{ .phys_base = 0x4808a000, .irq = INT_24XX_GPTIMER12 },
-+	{ .phys_base = 0x48028000, .irq = INT_24XX_GPTIMER1, .ms_correction = 0 },
-+	{ .phys_base = 0x4802a000, .irq = INT_24XX_GPTIMER2, .ms_correction = 0 },
-+	{ .phys_base = 0x48078000, .irq = INT_24XX_GPTIMER3, .ms_correction = 0 },
-+	{ .phys_base = 0x4807a000, .irq = INT_24XX_GPTIMER4, .ms_correction = 0 },
-+	{ .phys_base = 0x4807c000, .irq = INT_24XX_GPTIMER5, .ms_correction = 0 },
-+	{ .phys_base = 0x4807e000, .irq = INT_24XX_GPTIMER6, .ms_correction = 0 },
-+	{ .phys_base = 0x48080000, .irq = INT_24XX_GPTIMER7, .ms_correction = 0 },
-+	{ .phys_base = 0x48082000, .irq = INT_24XX_GPTIMER8, .ms_correction = 0 },
-+	{ .phys_base = 0x48084000, .irq = INT_24XX_GPTIMER9, .ms_correction = 0 },
-+	{ .phys_base = 0x48086000, .irq = INT_24XX_GPTIMER10, .ms_correction = 0 },
-+	{ .phys_base = 0x48088000, .irq = INT_24XX_GPTIMER11, .ms_correction = 0 },
-+	{ .phys_base = 0x4808a000, .irq = INT_24XX_GPTIMER12, .ms_correction = 0 },
- };
- 
- static const char *omap2_dm_source_names[] __initdata = {
-@@ -218,18 +221,18 @@ static const int omap2_dm_timer_count = ARRAY_SIZE(omap2_dm_timers);
- 
- #ifdef CONFIG_ARCH_OMAP3
- static struct omap_dm_timer omap3_dm_timers[] = {
--	{ .phys_base = 0x48318000, .irq = INT_24XX_GPTIMER1 },
--	{ .phys_base = 0x49032000, .irq = INT_24XX_GPTIMER2 },
--	{ .phys_base = 0x49034000, .irq = INT_24XX_GPTIMER3 },
--	{ .phys_base = 0x49036000, .irq = INT_24XX_GPTIMER4 },
--	{ .phys_base = 0x49038000, .irq = INT_24XX_GPTIMER5 },
--	{ .phys_base = 0x4903A000, .irq = INT_24XX_GPTIMER6 },
--	{ .phys_base = 0x4903C000, .irq = INT_24XX_GPTIMER7 },
--	{ .phys_base = 0x4903E000, .irq = INT_24XX_GPTIMER8 },
--	{ .phys_base = 0x49040000, .irq = INT_24XX_GPTIMER9 },
--	{ .phys_base = 0x48086000, .irq = INT_24XX_GPTIMER10 },
--	{ .phys_base = 0x48088000, .irq = INT_24XX_GPTIMER11 },
--	{ .phys_base = 0x48304000, .irq = INT_34XX_GPT12_IRQ },
-+	{ .phys_base = 0x48318000, .irq = INT_24XX_GPTIMER1, .ms_correction = 1 },
-+	{ .phys_base = 0x49032000, .irq = INT_24XX_GPTIMER2, .ms_correction = 1 },
-+	{ .phys_base = 0x49034000, .irq = INT_24XX_GPTIMER3, .ms_correction = 0 },
-+	{ .phys_base = 0x49036000, .irq = INT_24XX_GPTIMER4, .ms_correction = 0 },
-+	{ .phys_base = 0x49038000, .irq = INT_24XX_GPTIMER5, .ms_correction = 0 },
-+	{ .phys_base = 0x4903A000, .irq = INT_24XX_GPTIMER6, .ms_correction = 0 },
-+	{ .phys_base = 0x4903C000, .irq = INT_24XX_GPTIMER7, .ms_correction = 0 },
-+	{ .phys_base = 0x4903E001, .irq = INT_24XX_GPTIMER8, .ms_correction = 0 },
-+	{ .phys_base = 0x49040000, .irq = INT_24XX_GPTIMER9, .ms_correction = 0 },
-+	{ .phys_base = 0x48086000, .irq = INT_24XX_GPTIMER10, .ms_correction = 1 },
-+	{ .phys_base = 0x48088000, .irq = INT_24XX_GPTIMER11, .ms_correction = 0 },
-+	{ .phys_base = 0x48304000, .irq = INT_34XX_GPT12_IRQ, .ms_correction = 0 },
- };
- 
- static const char *omap3_dm_source_names[] __initdata = {
-@@ -250,18 +253,18 @@ static const int omap3_dm_timer_count = ARRAY_SIZE(omap3_dm_timers);
- 
- #ifdef CONFIG_ARCH_OMAP4
- static struct omap_dm_timer omap4_dm_timers[] = {
--	{ .phys_base = 0x4a318000, .irq = OMAP44XX_IRQ_GPT1 },
--	{ .phys_base = 0x48032000, .irq = OMAP44XX_IRQ_GPT2 },
--	{ .phys_base = 0x48034000, .irq = OMAP44XX_IRQ_GPT3 },
--	{ .phys_base = 0x48036000, .irq = OMAP44XX_IRQ_GPT4 },
--	{ .phys_base = 0x40138000, .irq = OMAP44XX_IRQ_GPT5 },
--	{ .phys_base = 0x4013a000, .irq = OMAP44XX_IRQ_GPT6 },
--	{ .phys_base = 0x4013a000, .irq = OMAP44XX_IRQ_GPT7 },
--	{ .phys_base = 0x4013e000, .irq = OMAP44XX_IRQ_GPT8 },
--	{ .phys_base = 0x4803e000, .irq = OMAP44XX_IRQ_GPT9 },
--	{ .phys_base = 0x48086000, .irq = OMAP44XX_IRQ_GPT10 },
--	{ .phys_base = 0x48088000, .irq = OMAP44XX_IRQ_GPT11 },
--	{ .phys_base = 0x4a320000, .irq = OMAP44XX_IRQ_GPT12 },
-+	{ .phys_base = 0x4a318000, .irq = OMAP44XX_IRQ_GPT1, .ms_correction = 1 },
-+	{ .phys_base = 0x48032000, .irq = OMAP44XX_IRQ_GPT2, .ms_correction = 1 },
-+	{ .phys_base = 0x48034000, .irq = OMAP44XX_IRQ_GPT3, .ms_correction = 0 },
-+	{ .phys_base = 0x48036000, .irq = OMAP44XX_IRQ_GPT4, .ms_correction = 0 },
-+	{ .phys_base = 0x40138000, .irq = OMAP44XX_IRQ_GPT5, .ms_correction = 0 },
-+	{ .phys_base = 0x4013a000, .irq = OMAP44XX_IRQ_GPT6, .ms_correction = 0 },
-+	{ .phys_base = 0x4013a000, .irq = OMAP44XX_IRQ_GPT7, .ms_correction = 0 },
-+	{ .phys_base = 0x4013e000, .irq = OMAP44XX_IRQ_GPT8, .ms_correction = 0 },
-+	{ .phys_base = 0x4803e000, .irq = OMAP44XX_IRQ_GPT9, .ms_correction = 0 },
-+	{ .phys_base = 0x48086000, .irq = OMAP44XX_IRQ_GPT10, .ms_correction = 1 },
-+	{ .phys_base = 0x48088000, .irq = OMAP44XX_IRQ_GPT11, .ms_correction = 0 },
-+	{ .phys_base = 0x4a320000, .irq = OMAP44XX_IRQ_GPT12, .ms_correction = 0 },
- };
- static const char *omap4_dm_source_names[] __initdata = {
- 	"sys_clkin_ck",
-@@ -612,6 +615,11 @@ void omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
- {
- 	u32 l;
- 
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+	if (timer->ms_correction) {
-+		omap_dm_timer_ms_correction(timer, load);
-+	}
-+#endif
- 	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
- 	if (autoreload) {
- 		l |= OMAP_TIMER_CTRL_AR;
-@@ -733,6 +741,25 @@ int omap_dm_timers_active(void)
- }
- EXPORT_SYMBOL_GPL(omap_dm_timers_active);
- 
-+/**
-+ * omap_dm_timer_ms_correction - hardware correction for millisecond timer
-+ * @timer: GPTIMER on which the correction support is to be applied
-+ * @load: timer load value, used here to extract the expiry count
-+ */
-+void omap_dm_timer_ms_correction(struct omap_dm_timer *timer, \
-+					unsigned int load)
-+{
-+	int pos_increment, neg_increment;
-+	u32 fclk, tick; /* fclk: functional clock in Hz, ticks: ms count */
-+
-+	fclk = clk_get_rate(omap_dm_timer_get_fclk(timer));
-+	tick = (0xFFFFFFFF - load)/(fclk/1024);
-+	pos_increment = ((((fclk*tick)/1000)+1)*1000000) - (fclk*tick*1000000);
-+	neg_increment = (((fclk*tick)/1000)*1000000) - (fclk*tick*1000000);
-+	omap_dm_timer_write_reg(timer, OMAP_TIMER_TICK_POS_REG, pos_increment);
-+	omap_dm_timer_write_reg(timer, OMAP_TIMER_TICK_NEG_REG, neg_increment);
-+}
-+
- int __init omap_dm_timer_init(void)
- {
- 	struct omap_dm_timer *timer;
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 20f1054..39ac1e7 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -80,5 +80,6 @@ void omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value
- 
- int omap_dm_timers_active(void);
- 
-+void omap_dm_timer_ms_correction(struct omap_dm_timer *timer, unsigned int load);
- 
- #endif /* __ASM_ARCH_DMTIMER_H */
+Although it still doesn't solve the problem of default configuration
+for certain boards... I doubt many people know how to enable USB,
+audio, and so on. We would probably need some place to share
+configuration samples and documentation.
+
+-- 
+Felipe Contreras
