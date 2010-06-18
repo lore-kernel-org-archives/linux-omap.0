@@ -1,55 +1,76 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 8/8] OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
-Date: Fri, 18 Jun 2010 14:47:53 -0700
-Message-ID: <87ljac2et2.fsf@deeprootsystems.com>
-References: <1275150748-15386-1-git-send-email-thara@ti.com>
-	<1275150748-15386-2-git-send-email-thara@ti.com>
-	<1275150748-15386-3-git-send-email-thara@ti.com>
-	<1275150748-15386-4-git-send-email-thara@ti.com>
-	<1275150748-15386-5-git-send-email-thara@ti.com>
-	<1275150748-15386-6-git-send-email-thara@ti.com>
-	<1275150748-15386-7-git-send-email-thara@ti.com>
-	<1275150748-15386-8-git-send-email-thara@ti.com>
-	<1275150748-15386-9-git-send-email-thara@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH v3 0/7] DSPBRIDGE: fix mem+cache API issues
+Date: Fri, 18 Jun 2010 17:57:03 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043E975B4A@dlee03.ent.ti.com>
+References: <1274976134-22769-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:35021 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148Ab0FRVr4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 17:47:56 -0400
-Received: by pxi12 with SMTP id 12so603963pxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 18 Jun 2010 14:47:56 -0700 (PDT)
-In-Reply-To: <1275150748-15386-9-git-send-email-thara@ti.com> (Thara Gopinath's message of "Sat\, 29 May 2010 22\:02\:28 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50780 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753858Ab0FRW5K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 18:57:10 -0400
+In-Reply-To: <1274976134-22769-1-git-send-email-ohad@wizery.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: Ohad Ben-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "Menon, Nishanth" <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
 
-Thara Gopinath <thara@ti.com> writes:
-
-> From: Thara Gopinath <thara@ti.com>
-> Subject: [PATCH 8/8] OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
-> To: linux-omap@vger.kernel.org
-> Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com,
->         vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
-> Date: Sat, 29 May 2010 22:02:28 +0530
+>From: Ohad Ben-Cohen [mailto:ohad@wizery.com]
 >
-> This patch adds debug support to the voltage and smartreflex drivers.
-> This means a whole bunch of voltage processor and smartreflex
-> parameters are now visible through the pm debugfs. By default
-> only a read of these parameters are permitted. If you need to
-> write into them then
-> 	echo 1 > /pm_debug/enable_sr_vp_debug
+>This patchset introduces an approach to eliminate the direct calls
+>to follow_page and to the low level cache APIs.
 >
-> The voltage parameters can be viewed at
-> 	/pm_debug/Voltage/VDD<X>/<parameter>
-> and the smartreflex parameters can be viewed at
-> 	/pm_debug/Smartreflex/SR<X>/<parameter>
+>The patchset works by caching the page information while memory
+>is mapped, and then using that information later when needed
+>instead of calling follow_page. The low level cache API is then replaced
+>by standard DMA API.
+>
+>Changes from v2:
+>
+>* Fix rebase error that plagued the v2 series
+>* Added some debug logs to help analyzing missing mapping issues
+>
+>Notes:
+>1. The global bridge device struct is used by adding an 'extern'
+>   to proc. This issue should be handled in a different patch series
+>   (the struct should not be global. instead, it should be accessible
+>   to the dspbridge code via one of the context objects. This way we
+>   will also be able to transform pr_* prints to dev_* prints).
+>2. The patchset was tested with testsuite, DMM sample app and varios
+>    MM and recovery scenarios. Many thanks to Ivan Gomez Castellanos
+>    for the help here. Also Many thanks to Felipe Contreras for the
+>    thorough review, comments and testing.
+>
+>Thanks,
+>Ohad.
+>
+>---
+>If you want, you can also reach me at <  ohadb at ti dot com  >.
+>
+>Ohad Ben-Cohen (7):
+>  DSPBRIDGE: enhance dmm_map_object
+>  DSPBRIDGE: maintain mapping and page info
+>  DSPBRIDGE: do not call follow_page
+>  DSPBRIDGE: do not use low level cache manipulation API
+>  DSPBRIDGE: remove mem_flush_cache
+>  DSPBRIDGE: add dspbridge API to mark end of DMA
+>  DSPBRIDGE: add new PROC_BEGINDMA and PROC_ENDDMA ioctls
+>
+> arch/arm/plat-omap/include/dspbridge/drv.h         |   32 +-
+> .../arm/plat-omap/include/dspbridge/dspapi-ioctl.h |    9 +
+> arch/arm/plat-omap/include/dspbridge/dspapi.h      |    2 +
+> arch/arm/plat-omap/include/dspbridge/dspdefs.h     |    3 +-
+> arch/arm/plat-omap/include/dspbridge/proc.h        |   29 ++
+> drivers/dsp/bridge/core/io_sm.c                    |   11 +-
+> drivers/dsp/bridge/core/tiomap3430.c               |    9 +-
+> drivers/dsp/bridge/pmgr/dspapi.c                   |   34 ++-
+> drivers/dsp/bridge/rmgr/drv.c                      |   33 --
+> drivers/dsp/bridge/rmgr/proc.c                     |  410 ++++++++++++++++----
+> 10 files changed, 433 insertions(+), 139 deletions(-)
 
-Minor nit: there's no hard rule for this, but these debugfs files and
-directories are typically all lower-case.  Please continue that
-convention.
+Pushed to dspbridge.
 
-Kevin
-
+- omar
