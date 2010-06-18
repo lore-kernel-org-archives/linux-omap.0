@@ -1,182 +1,60 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Add OMAP4 Panda support
-Date: Fri, 18 Jun 2010 09:06:32 -0700
-Message-ID: <87wrtw8gvr.fsf@deeprootsystems.com>
-References: <7B4574D56E4ADF438756313E9A172A8799C0D3C6@dlee01.ent.ti.com>
-	<87y6ecbedt.fsf@deeprootsystems.com>
-	<7B4574D56E4ADF438756313E9A172A879A6933C2@dlee01.ent.ti.com>
-	<87sk4k9xw2.fsf@deeprootsystems.com>
-	<7B4574D56E4ADF438756313E9A172A879A6934A8@dlee01.ent.ti.com>
+Subject: Re: [PATCH 2/5] OMAP: hwmod: if IDLEST fields are not set, use module defaults
+Date: Fri, 18 Jun 2010 09:43:21 -0700
+Message-ID: <87hbl070ly.fsf@deeprootsystems.com>
+References: <1274994816-30335-1-git-send-email-khilman@deeprootsystems.com>
+	<1274994816-30335-3-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:34240 "EHLO
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:55935 "EHLO
 	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753696Ab0FRQGh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 12:06:37 -0400
-Received: by pvg6 with SMTP id 6so516012pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 18 Jun 2010 09:06:36 -0700 (PDT)
-In-Reply-To: <7B4574D56E4ADF438756313E9A172A879A6934A8@dlee01.ent.ti.com> (David Anders's message of "Fri\, 18 Jun 2010 10\:56\:20 -0500")
+	with ESMTP id S1757687Ab0FRQn0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 12:43:26 -0400
+Received: by pvg6 with SMTP id 6so528280pvg.19
+        for <linux-omap@vger.kernel.org>; Fri, 18 Jun 2010 09:43:24 -0700 (PDT)
+In-Reply-To: <1274994816-30335-3-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Thu\, 27 May 2010 14\:13\:33 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Anders, David" <x0132446@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
-"Anders, David" <x0132446@ti.com> writes:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
->> 
->> > The panda isn't 100% compatible with the blaze/sdp. There are/will
->> > be some significant differences. I understand the goal to make the
->> > "multi-boot" images and to reduce the amount of duplicated code in
->> > the kernel, however we can learn a little about this situation from
->> > the BeagleBoard. Due to it being a development board, many people
->> > who are new to embedded development will be purchasing the Panda and
->> > they generally need a clearly defined place to start. Blaze and SDP
->> > are officially support TI products and their machine files can be
->> > easily groomed and maintained. Having a clearly defined individual
->> > machine file and defconfig will make things a lot easier for
->> > starting development on the Panda.
->> >
->> > IMHO, I think it is a giant mistake not to have individual machine
->> > files and defconfigs for the panda. This doesn't preclude making
->> > sure that they files work properly with multi-boot images.
->> 
->> In my view, all this helps argue the case for having shared code
->> instead of the copy-paste duplicating.
->> 
->> I am not opposed to having a separate board file for Panda.  What I am
->> opposed to is having a separate board file if it's mostly identical to
->> another board.
->> 
->> If Panda and Blaze are mostly the same, they should share the same
->> board code and use their separate board files to express their
->> differences.  See how this was done for Zoom2 and Zoom3 which have a
->> shared set of peripherals and also a shared debug board.
->> 
->> When customers go to build their designs based on Panda, they can
->> still start from the Panda board file and start hacking away.  These
->> custom boards will then also use the shared common code instead of
->> duplicating.
->> 
->> Kevin
+> In the _setup() hook, check for valid IDLEST fields.  If not set, use
+> the module defaults since they are the same as the module defaults
+> for most hwmods.
 >
-> Panda will have different Ethernet, different video outputs,
-> different usb host controller configurations, and a number of
-> different pin muxes. Is there a quantitative way of deciding if
-> there are enough similarities/differences between boards for having
-> combined/individual machine files?
-
-Not really more of a feeling.
-
-But these feel like important enough differences to merit a separate
-board file.  I was under the impression that there was a lot more in
-common.
-
-So, I'm OK with the separate board file, please fix up the minor comments below...
-
-> I agree that Blaze and SDP are similar enough not to have separate files. 
+> Problem found because _wait_target_ready() will fail if IDLEST
+> fields are not valid.
 >
->> 
->> 
->> > -----Original Message-----
->> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> > Sent: Friday, June 18, 2010 9:32 AM
->> > To: Anders, David
->> > Cc: linux-omap@vger.kernel.org; tony@atomide.com
->> > Subject: Re: [PATCH] Add OMAP4 Panda support
->> >
->> > "Anders, David" <x0132446@ti.com> writes:
->> >
->> >> Add initial support for the OMAP4430 based Panda board.
->> >>
->> >> Signed-off-by: David Anders <x0132446@ti.com>
->> >> ---
->> >>  arch/arm/configs/omap4_panda_defconfig | 1094
->> ++++++++++++++++++++++++++++++++
->> >>  arch/arm/mach-omap2/Kconfig            |    4 +
->> >>  arch/arm/mach-omap2/Makefile           |    1 +
->> >>  arch/arm/mach-omap2/board-omap4panda.c |   80 +++
->> >>  4 files changed, 1179 insertions(+), 0 deletions(-)
->> >>  create mode 100644 arch/arm/configs/omap4_panda_defconfig
->> >>  create mode 100644 arch/arm/mach-omap2/board-omap4panda.c
->> >
->> > [...]
->> >
->> >> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-
->> omap2/board-omap4panda.c
->> >> new file mode 100644
->> >> index 0000000..95faec0
->> >> --- /dev/null
->> >> +++ b/arch/arm/mach-omap2/board-omap4panda.c
->> >> @@ -0,0 +1,80 @@
->> >> +/*
->> >> + * Board support file for OMAP4430 based Panda.
->> >> + *
->> >> + * Copyright (C) 2010 Texas Instruments
->> >> + *
->> >> + * Author: David Anders <x0132446@ti.com>
->> >> + *
->> >> + * Based on mach-omap2/board-4430sdp.c
->> >> + *
->> >> + * Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> >> + *
->> >> + * Based on mach-omap2/board-3430sdp.c
->> >> + *
->> >> + * This program is free software; you can redistribute it and/or
->> modify
->> >> + * it under the terms of the GNU General Public License version 2 as
->> >> + * published by the Free Software Foundation.
->> >> + */
->> >> +
->> >> +#include <linux/kernel.h>
->> >> +#include <linux/init.h>
->> >> +#include <linux/platform_device.h>
->> >> +#include <linux/io.h>
->> >> +#include <linux/gpio.h>
->> >> +#include <linux/usb/otg.h>
->> >> +
->> >> +#include <mach/hardware.h>
->> >> +#include <mach/omap4-common.h>
->> >> +#include <asm/mach-types.h>
->> >> +#include <asm/mach/arch.h>
->> >> +#include <asm/mach/map.h>
->> >> +
->> >> +#include <plat/board.h>
->> >> +#include <plat/common.h>
->> >> +#include <plat/control.h>
->> >> +#include <plat/timer-gp.h>
->> >> +#include <plat/usb.h>
->> >> +
->> >> +static void __init omap4_panda_init_irq(void)
->> >> +{
->> >> +       omap2_init_common_hw(NULL, NULL);
->> >> +#ifdef CONFIG_OMAP_32K_TIMER
->> >> +       omap2_gp_clockevent_set_gptimer(1);
->> >> +#endif
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-This part is not needed (here or in board-4430sdp.c) as the default
-timer is already 1.
 
->> >> +       gic_init_irq();
->> >> +       omap_gpio_init();
->> >> +}
->> >> +
->> >> +static struct omap_musb_board_data musb_board_data = {
->> >> +       .interface_type         = MUSB_INTERFACE_UTMI,
->> >> +       .mode                   = MUSB_PERIPHERAL,
->> >> +       .power                  = 100,
->> >> +};
->> >> +
->> >> +static void __init omap4_panda_init(void)
->> >> +{
->> >> +       omap_serial_init();
->> >> +       /* OMAP4 SDP uses internal transceiver so register nop
->> transceiver */
->> >
-
-s/SDP/Panda/
-
-Please change (or remove) this comment which was just copied from the
-SDP code.
+FYI... dropping this patch in favor of simply updating the hwmod data
+files to have valid idlest_* fields.
 
 Kevin
+
+
+>  arch/arm/mach-omap2/omap_hwmod.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index a127c9b..77fef90 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -1036,6 +1036,12 @@ static int _setup(struct omap_hwmod *oh)
+>  
+>  	oh->_state = _HWMOD_STATE_INITIALIZED;
+>  
+> +	/* if IDLEST values are not set, use module defaults */
+> +	if (!oh->prcm.omap2.idlest_reg_id)
+> +		oh->prcm.omap2.idlest_reg_id = oh->prcm.omap2.prcm_reg_id;
+> +	if (!oh->prcm.omap2.idlest_idle_bit)
+> +		oh->prcm.omap2.idlest_idle_bit = oh->prcm.omap2.module_bit;
+> +
+>  	r = _enable(oh);
+>  	if (r) {
+>  		pr_warning("omap_hwmod: %s: cannot be enabled (%d)\n",
+> -- 
+> 1.7.0.2
