@@ -1,22 +1,41 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Add OMAP4 Panda support
-Date: Fri, 18 Jun 2010 07:32:14 -0700
-Message-ID: <87y6ecbedt.fsf@deeprootsystems.com>
+From: "Anders, David" <x0132446@ti.com>
+Subject: RE: [PATCH] Add OMAP4 Panda support
+Date: Fri, 18 Jun 2010 09:57:28 -0500
+Message-ID: <7B4574D56E4ADF438756313E9A172A879A6933C2@dlee01.ent.ti.com>
 References: <7B4574D56E4ADF438756313E9A172A8799C0D3C6@dlee01.ent.ti.com>
+ <87y6ecbedt.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:64630 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933443Ab0FROcR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 10:32:17 -0400
-Received: by pxi12 with SMTP id 12so475702pxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 18 Jun 2010 07:32:16 -0700 (PDT)
-In-Reply-To: <7B4574D56E4ADF438756313E9A172A8799C0D3C6@dlee01.ent.ti.com> (David Anders's message of "Mon\, 17 May 2010 15\:18\:22 -0500")
+Received: from comal.ext.ti.com ([198.47.26.152]:46354 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933531Ab0FRO5e convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 10:57:34 -0400
+In-Reply-To: <87y6ecbedt.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Anders, David" <x0132446@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+
+Kevin,
+
+The panda isn't 100% compatible with the blaze/sdp. There are/will be some significant differences. I understand the goal to make the "multi-boot" images and to reduce the amount of duplicated code in the kernel, however we can learn a little about this situation from the BeagleBoard. Due to it being a development board, many people who are new to embedded development will be purchasing the Panda and they generally need a clearly defined place to start. Blaze and SDP are officially support TI products and their machine files can be easily groomed and maintained. Having a clearly defined individual machine file and defconfig will make things a lot easier for starting development on the Panda.
+
+IMHO, I think it is a giant mistake not to have individual machine files and defconfigs for the panda. This doesn't preclude making sure that they files work properly with multi-boot images.
+
+Dave
+ 
+
+
+
+-----Original Message-----
+From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+Sent: Friday, June 18, 2010 9:32 AM
+To: Anders, David
+Cc: linux-omap@vger.kernel.org; tony@atomide.com
+Subject: Re: [PATCH] Add OMAP4 Panda support
 
 "Anders, David" <x0132446@ti.com> writes:
 
