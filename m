@@ -1,157 +1,167 @@
-From: "Anders, David" <x0132446@ti.com>
-Subject: RE: [PATCH] Add OMAP4 Panda support
-Date: Fri, 18 Jun 2010 09:57:28 -0500
-Message-ID: <7B4574D56E4ADF438756313E9A172A879A6933C2@dlee01.ent.ti.com>
-References: <7B4574D56E4ADF438756313E9A172A8799C0D3C6@dlee01.ent.ti.com>
- <87y6ecbedt.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: On the APIs for Enabling and Disabling Wakeup capability.
+Date: Fri, 18 Jun 2010 07:58:37 -0700
+Message-ID: <87ljacbd5u.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E75F0BBF@dbde02.ent.ti.com>
+	<87vd9isdxb.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E94026FFCAA53@dbde02.ent.ti.com>
+	<74583B8642AB8841B30447520659FCA901AA4908FF@dnce01.ent.ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E940270056DEE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46354 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933531Ab0FRO5e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 10:57:34 -0400
-In-Reply-To: <87y6ecbedt.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:48201 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933531Ab0FRO6k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jun 2010 10:58:40 -0400
+Received: by pvg6 with SMTP id 6so490408pvg.19
+        for <linux-omap@vger.kernel.org>; Fri, 18 Jun 2010 07:58:39 -0700 (PDT)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940270056DEE@dbde02.ent.ti.com> (Hema Kalliguddi's message of "Fri\, 18 Jun 2010 14\:29\:12 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: "Kalliguddi, Hema" <hemahk@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin,
+"Kalliguddi, Hema" <hemahk@ti.com> writes:
 
-The panda isn't 100% compatible with the blaze/sdp. There are/will be some significant differences. I understand the goal to make the "multi-boot" images and to reduce the amount of duplicated code in the kernel, however we can learn a little about this situation from the BeagleBoard. Due to it being a development board, many people who are new to embedded development will be purchasing the Panda and they generally need a clearly defined place to start. Blaze and SDP are officially support TI products and their machine files can be easily groomed and maintained. Having a clearly defined individual machine file and defconfig will make things a lot easier for starting development on the Panda.
-
-IMHO, I think it is a giant mistake not to have individual machine files and defconfigs for the panda. This doesn't preclude making sure that they files work properly with multi-boot images.
-
-Dave
- 
-
-
-
------Original Message-----
-From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-Sent: Friday, June 18, 2010 9:32 AM
-To: Anders, David
-Cc: linux-omap@vger.kernel.org; tony@atomide.com
-Subject: Re: [PATCH] Add OMAP4 Panda support
-
-"Anders, David" <x0132446@ti.com> writes:
-
-> Add initial support for the OMAP4430 based Panda board.
+> Hi Benoit,
 >
-> Signed-off-by: David Anders <x0132446@ti.com>
-> ---
->  arch/arm/configs/omap4_panda_defconfig | 1094 ++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/Kconfig            |    4 +
->  arch/arm/mach-omap2/Makefile           |    1 +
->  arch/arm/mach-omap2/board-omap4panda.c |   80 +++
->  4 files changed, 1179 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/configs/omap4_panda_defconfig
->  create mode 100644 arch/arm/mach-omap2/board-omap4panda.c
+> I have 2 cases in usb for the need of separate API for setting the au=
+to idle bit.
+>
+> 1. Below the link for omap3430TRM. Please refer 24.1.5.4.2 and 24.1.5=
+=2E4.3 there is note not to set smart
+> idle and autoidle bit simultaneously. Suggestion is to set the auto i=
+dle 0 before setting smart idle. Then set to 1.
 
-[...]
+Maybe this sequence should be enforced by the hwmod code itself,
+rather than the knowledge living in the driver.
 
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> new file mode 100644
-> index 0000000..95faec0
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -0,0 +1,80 @@
-> +/*
-> + * Board support file for OMAP4430 based Panda.
-> + *
-> + * Copyright (C) 2010 Texas Instruments
-> + *
-> + * Author: David Anders <x0132446@ti.com>
-> + *
-> + * Based on mach-omap2/board-4430sdp.c
-> + *
-> + * Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> + *
-> + * Based on mach-omap2/board-3430sdp.c
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/io.h>
-> +#include <linux/gpio.h>
-> +#include <linux/usb/otg.h>
-> +
-> +#include <mach/hardware.h>
-> +#include <mach/omap4-common.h>
-> +#include <asm/mach-types.h>
-> +#include <asm/mach/arch.h>
-> +#include <asm/mach/map.h>
-> +
-> +#include <plat/board.h>
-> +#include <plat/common.h>
-> +#include <plat/control.h>
-> +#include <plat/timer-gp.h>
-> +#include <plat/usb.h>
-> +
-> +static void __init omap4_panda_init_irq(void)
-> +{
-> +       omap2_init_common_hw(NULL, NULL);
-> +#ifdef CONFIG_OMAP_32K_TIMER
-> +       omap2_gp_clockevent_set_gptimer(1);
-> +#endif
-> +       gic_init_irq();
-> +       omap_gpio_init();
-> +}
-> +
-> +static struct omap_musb_board_data musb_board_data = {
-> +       .interface_type         = MUSB_INTERFACE_UTMI,
-> +       .mode                   = MUSB_PERIPHERAL,
-> +       .power                  = 100,
-> +};
-> +
-> +static void __init omap4_panda_init(void)
-> +{
-> +       omap_serial_init();
-> +       /* OMAP4 SDP uses internal transceiver so register nop transceiver */
+However, based on the errata below, auto-idle will always be zero so
+the there should be no conflict in setting smart-idle and auto-idle
+simultaneously today.
 
-SDP?
+> This applicable for omap4 as well.  I don't have the omap4430 pblic T=
+RM to share.
+> http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf=20
+>
+> 2. There is a Errata in OMAP3 errata #1.59 that If auto idle is set t=
+hen the USB can't  wakeup the system by
+> usb external events. The suggested workaround is to disable the autoI=
+dle for omap3.
 
-> +       usb_nop_xceiv_register();
-> +       /* FIXME: allow multi-omap to boot until musb is updated for omap4 */
-> +       if (!cpu_is_omap44xx())
-> +               usb_musb_init(&musb_board_data);
-> +
-> +}
-> +
-> +static void __init omap4_panda_map_io(void)
-> +{
-> +       omap2_set_globals_443x();
-> +       omap44xx_map_common_io();
-> +}
-> +
-> +MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
-> +       /* Maintainer: David Anders - Texas Instruments Inc */
-> +       .phys_io        = 0x48000000,
-> +       .io_pg_offst    = ((0xfa000000) >> 18) & 0xfffc,
-> +       .boot_params    = 0x80000100,
-> +       .map_io         = omap4_panda_map_io,
-> +       .init_irq       = omap4_panda_init_irq,
-> +       .init_machine   = omap4_panda_init,
-> +       .timer          = &omap_timer,
-> +MACHINE_END
+This one could be handled at init time in usb-musb.c by setting
+HWMOD_NO_OCP_AUTOIDLE for the hwmod with a comment summarizing this
+errata.
 
-
-IIUC, Panda was built to be compatible with the SDP/Blaze, right?
-
-If so, is there any reason we can't support both boards from the same
-board file?
-
-Just add the above MACHINE_START.._END section to board-4430sdp.c to handle
-the both machine IDs, but all the functions could be common.
+Note also that Errata 1.166 is another one related to MUSB auto-idle
+and we have a workaround in the PM branch to ensure that MUSB
+auto-idle is disabled in the idle path since it may be re-enabled
+after an off-mode transition.
 
 Kevin
 
-
+>
+>>-----Original Message-----
+>>From: Cousson, Benoit=20
+>>Sent: Thursday, June 17, 2010 3:04 PM
+>>To: Kalliguddi, Hema; Kevin Hilman; Basak, Partha
+>>Cc: paul@pwsan.com; Nayak, Rajendra; linux-omap@vger.kernel.org
+>>Subject: RE: On the APIs for Enabling and Disabling Wakeup capability=
+=2E
+>>
+>>Hi Hema,
+>>
+>>>From: linux-omap-owner@vger.kernel.org=20
+>>>
+>>>Kevin,
+>>>
+>>>There is no errata in the USB which needs the Enable/Disable=20
+>>>wakeup to be done=20
+>>>Seperately. If it can be handled with omap_devie_enable/idle=20
+>>>Apis it is sufficient.
+>>>
+>>>But there is a need of setting the Auto idle bit seperately as=20
+>>>for the USBOTG there is a need to set the Autoidle only after=20
+>>>configuring the smart idle. It is recommended in the TRM not=20
+>>>set the auto idle and smart idle together.
+>>>This I discussed with Partha he sent a mail to you.
+>>>
+>>>For setting autoidle there is an api at hwmod layer but not=20
+>>>yet omap device layer.
+>>>Is there a plan to add API at omap device layer for=20
+>>>enabling/disabling the autoidle?
+>>
+>>The whole issue with exposing all the low level stuff at driver level
+>>is that the hwmod abstraction become less and less useful.
+>>Drivers will start hacking with that for no good reason. And=20
+>>then we will start adding again some omap version specific=20
+>>hacks in the driver.
+>>
+>>Could you provide the full errata description of that USB_OTG=20
+>>issue? Or at least that TRM part you are talking about.
+>>
+>>Thanks,
+>>Benoit
+>>
+>>>Regards,
+>>>Hema
+>>>=20
+>>>
+>>>>
+>>Texas Instruments France SA, 821 Avenue Jack Kilby, 06270=20
+>>Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+>>=A0
+>>-----Original Message-----
+>>
+>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]=20
+>>>>Sent: Thursday, June 17, 2010 5:56 AM
+>>>>To: Basak, Partha
+>>>>Cc: paul@pwsan.com; Kalliguddi, Hema; Nayak, Rajendra;=20
+>>>>linux-omap@vger.kernel.org
+>>>>Subject: Re: On the APIs for Enabling and Disabling Wakeup=20
+>>capability.
+>>>>
+>>>>"Basak, Partha" <p-basak2@ti.com> writes:
+>>>>
+>>>>> I wanted to close on the introduction of two new OMAP device APIs
+>>>>> omap_device_enable_wakeup () & omap_device_disable_wakeup() in
+>>>>> omap_device layer.
+>>>>>
+>>>>> These APIs are potentially needed by the USB driver (via function
+>>>>> pointers) to work around some USB erratum.
+>>>>>
+>>>>> Alternatively, can we call omap_hwmod_enable_wakeup() via functio=
+n
+>>>>> pointer?  Is it agreeable to call these from driver code (via
+>>>>> function pointers)in some special cases such as to handle some
+>>>>> errata?
+>>>>
+>>>>Hi Partha,
+>>>>
+>>>>First, we need to dig up the Errata details for that USB problem to
+>>>>better understand the USB-specific issue.
+>>>>
+>>>>In addition, Paul and I discussed the option of=20
+>>automatically managing
+>>>>the wakeup during the hwmod enable/idle, since there isn't really a
+>>>>need to have the wakeup enabled when the hwmod is active.
+>>>>
+>>>>Do you see any disadvantages to that?  That would be much=20
+>>cleaner than
+>>>>manually managing the wakeup feature per-driver.
+>>>>
+>>>>Kevin
+>>>>--
+>>>To unsubscribe from this list: send the line "unsubscribe=20
+>>>linux-omap" in
+>>>the body of a message to majordomo@vger.kernel.org
+>>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
