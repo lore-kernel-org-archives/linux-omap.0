@@ -1,102 +1,42 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] wait_for_completion_interruptible does not wait !!
-Date: Sun, 20 Jun 2010 11:52:42 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1006201120210.22272-100000@netrider.rowland.org>
-References: <AANLkTikPOcNZk5ISX2WDHSmsPDw_a5_3Ic3owAbO4o0y@mail.gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 3/5] arm: omap: switch over to gpio_set_debounce
+Date: Sun, 20 Jun 2010 20:03:45 +0300
+Message-ID: <AANLkTikf8S0ixtDTXftuhhCIM1cbRJlgYoU27drvUwUH@mail.gmail.com>
+References: <1274090554-19420-1-git-send-email-felipe.balbi@nokia.com>
+	<1274090554-19420-4-git-send-email-felipe.balbi@nokia.com>
+	<AANLkTikeS8VtXbO5iOgvDMxy7QIxrbfzS4Hob_BsHylj@mail.gmail.com>
+	<20100617044502.GB4237@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:59941 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750911Ab0FTPwn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Jun 2010 11:52:43 -0400
-In-Reply-To: <AANLkTikPOcNZk5ISX2WDHSmsPDw_a5_3Ic3owAbO4o0y@mail.gmail.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:55739 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753526Ab0FTRDq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Jun 2010 13:03:46 -0400
+Received: by gwj15 with SMTP id 15so1705448gwj.19
+        for <linux-omap@vger.kernel.org>; Sun, 20 Jun 2010 10:03:45 -0700 (PDT)
+In-Reply-To: <20100617044502.GB4237@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>
+To: felipe.balbi@nokia.com
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-On Sat, 19 Jun 2010, Suresh Rajashekara wrote:
+On Thu, Jun 17, 2010 at 7:45 AM, Felipe Balbi <felipe.balbi@nokia.com> wrote:
+> Hi,
+>
+> On Wed, Jun 16, 2010 at 07:26:30PM +0200, ext Grazvydas Ignotas wrote:
+>> So how is this supposed to be used here, should I request all GPIOs I
+>> want to have debouncing on, setup debounce time and release them for
+>> gpio-keys to take? Or should I wait for this to get supported in
+>> gpio-keys?
+>
+> to me it looks like the *_keys_gpio_init() function should be passed down to
+> gpio-keys as a ->setup() callback and you should probably also pass a
+> ->teardown() which would clear debounce time when you remove the driver.
+> Then only call those functions after gpio has been requested.
 
-> I have an application which calls the ioctl of the codec driver to
-> know the status of the headset.
-> 
-> The ioctl waits on a completion variable (using
-> wait_for_completion_interruptible).
-> 
-> The variable is completed in the interrupt handler, which happens on
-> headset insertion/removal. Once the variable is completed, the ioctl
-> returns (with appropriate value in the argument) and the application
-> decides what to do with the event.
-
-What happens if the variable is completed while nobody is waiting for
-it?  The next time somebody tries to wait, won't the wait terminate
-immediately?
-
-> Once done handling the event, the application then calls the ioctl
-> once again (bascially it polls the audio driver) to know the status of
-> the headset. The call is blocked until the headset status changes.
-> 
-> I am running the system on linux-2.6.29 on a OMAP1 based board. All
-> this works well when the OMAP is awake.
-> 
-> The problem starts when we suspend the OMAP. The moment we suspend,
-> the wait_for_completion_interruptible is interrupted and the ioctl
-> returns.
-
-Of course.  That's how processes that are blocked in the kernel are
-given a chance to enter the freezer.
-
-> Application ends up thinking that the headset was either
-> removed/inserted.
-
-It should not think that.  There are other reasons why an ioctl might
-return early, such as a genuine signal or two status changes occurring
-before the ioctl starts (the next two ioctls will both return
-immediately, but the first one will contain the final status and the
-second won't contain any status change).
-
-For this to work correctly, the kernel should accumulate a bitmap of
-status changes as they occur.  When an ioctl returns, it should provide
-the bitmap of all the status changes that have occurred since the last
-ioctl (and it should clear the status-change bitmap) along with the
-current status.  Otherwise the application has no way to know about
-changes that occur between ioctl calls.
-
-> Our system does an aggressive sleep (wakes up every
-> 500 ms and sleeps again) and hence the application gets the event of
-> headset every 500 ms.
-
-What's wrong with that?  It should be smart enough to realize that most
-of these events aren't actual status changes.
-
-> I tried wait_for_completion instead, but now the kernel refuses to suspend.
-> 
-> I have tried wait queues and mutexs with no success.
-> 
-> Could anyone please point me how I can resolve this issue? Is there
-> any construct which can block inside the kernel during suspend/resume?
-
-Yes: The freezer.
-
-> Can there be a blocking call active while we suspend?
-
-Yes, in theory.  In practice it's not a good idea, since the call 
-wouldn't be able to distinguish between an actual signal and the onset 
-of a suspend.  You might end up with a call that ignores all signals 
-and hence cannot be interrupted.
-
-> Ideally I would resort to a method in which I would signal the process
-> when there is a headset event, but I am not free to change the
-> application. Its a legacy application and I have to make the kernel
-> work for it.
-
-It's not clear that anything needs to be fixed, except possibly the
-application.  Hint: See the SA_RESTART flag for sigaction(2).
-
-It also sounds like the application's design may be fundamentally
-broken.  Certain kinds of defects cannot be worked around in the
-kernel.
-
-Alan Stern
-
+gpio-keys platform data already has 'debounce_interval' member, which
+is used to setup timer (if nonzero) in the driver. So I maybe it would
+be better to modify gpio-keys to try to set debounce, and if that
+fails make it fall back to it's current timer-based debounce
+functionality?
