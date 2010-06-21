@@ -1,61 +1,59 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 Subject: RE: [PATCH] DSS2 Include VRFB into omap2-3build only
-Date: Mon, 21 Jun 2010 11:38:26 +0300
-Message-ID: <1277109506.2526.19.camel@tubuntu.research.nokia.com>
+Date: Mon, 21 Jun 2010 14:20:17 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030428891E@dbde02.ent.ti.com>
 References: <1273474110-22451-1-git-send-email-svadivu@ti.com>
 	 <1A2F53DA-903A-4667-A27F-492A3499F7ED@student.utwente.nl>
 	 <FCCFB4CDC6E5564B9182F639FC356087030428879D@dbde02.ent.ti.com>
 	 <73F3CED4-60D5-4351-A921-335110542B6F@dominion.thruhere.net>
 	 <A24693684029E5489D1D202277BE894456043018@dlee02.ent.ti.com>
+ <1277109506.2526.19.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:33805 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449Ab0FUIjc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 04:39:32 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE894456043018@dlee02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36324 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756071Ab0FUIuv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Jun 2010 04:50:51 -0400
+In-Reply-To: <1277109506.2526.19.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Aguirre, Sergio" <saaguirre@ti.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Fri, 2010-06-18 at 18:57 +0200, ext Aguirre, Sergio wrote:
-> Senthil,
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Koen Kooi
-> > Sent: Monday, May 10, 2010 3:03 AM
-> > To: Guruswamy, Senthilvadivu
-> > Cc: linux-omap@vger.kernel.org; linux-fbdev-devel@lists.sourceforge.net;
-> > tony@atomide.com; tomi.valkeinen@nokia.com; Hiremath, Vaibhav
-> > Subject: Re: [PATCH] DSS2 Include VRFB into omap2-3build only
-> > 
-> > 
-> > Op 10 mei 2010, om 10:01 heeft Guruswamy, Senthilvadivu het volgende
-> > geschreven:
-> > 
-> > > Building a multi-omap kernel is not impacted as long as the display is
-> > not choosen in the build.  Usually display is chosen from the board file.
-> 
-> Solving this problem involves doing these selections in run time, NOT in build time.
-> 
-> One of the solutions for this is to provide all this selections as part
-> of some platform driver data.
-> 
-> It _should_ be possible to build DSS2, VRFB AND Tiler code at the same time
-> for a multi-omap build, and be executed selectively, depending on your
-> silicon detection and board code execution.
-> 
-> If you need to deselect it to succeed, then it's broken for multi-omap
-> builds. That's the core problem and it hasn't been addressed until date.
-
-I think the v3 patch set does it correctly. It allows VRFB to be built
-only if ARCH_OMAP2 || ARCH_OMAP3, but does not turn VRFB off on
-ARCH_OMAP4.
-
- Tomi
-
-
+IA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWkgVmFsa2VpbmVu
+IFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXSANCj4gU2VudDogTW9uZGF5LCBKdW5l
+IDIxLCAyMDEwIDI6MDggUE0NCj4gVG86IEFndWlycmUsIFNlcmdpbw0KPiBDYzogS29lbiBLb29p
+OyBHdXJ1c3dhbXksIFNlbnRoaWx2YWRpdnU7IA0KPiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9y
+ZzsgDQo+IGxpbnV4LWZiZGV2LWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldDsgdG9ueUBhdG9t
+aWRlLmNvbTsgDQo+IEhpcmVtYXRoLCBWYWliaGF2DQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0hdIERT
+UzIgSW5jbHVkZSBWUkZCIGludG8gb21hcDItM2J1aWxkIG9ubHkNCj4gDQo+IE9uIEZyaSwgMjAx
+MC0wNi0xOCBhdCAxODo1NyArMDIwMCwgZXh0IEFndWlycmUsIFNlcmdpbyB3cm90ZToNCj4gPiBT
+ZW50aGlsLA0KPiA+IA0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+IEZy
+b206IGxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtb21hcC0N
+Cj4gPiA+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEtvZW4gS29vaQ0KPiA+
+ID4gU2VudDogTW9uZGF5LCBNYXkgMTAsIDIwMTAgMzowMyBBTQ0KPiA+ID4gVG86IEd1cnVzd2Ft
+eSwgU2VudGhpbHZhZGl2dQ0KPiA+ID4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnOyAN
+Cj4gbGludXgtZmJkZXYtZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0Ow0KPiA+ID4gdG9ueUBh
+dG9taWRlLmNvbTsgdG9taS52YWxrZWluZW5Abm9raWEuY29tOyBIaXJlbWF0aCwgVmFpYmhhdg0K
+PiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSF0gRFNTMiBJbmNsdWRlIFZSRkIgaW50byBvbWFwMi0z
+YnVpbGQgb25seQ0KPiA+ID4gDQo+ID4gPiANCj4gPiA+IE9wIDEwIG1laSAyMDEwLCBvbSAxMDow
+MSBoZWVmdCBHdXJ1c3dhbXksIFNlbnRoaWx2YWRpdnUgDQo+IGhldCB2b2xnZW5kZQ0KPiA+ID4g
+Z2VzY2hyZXZlbjoNCj4gPiA+IA0KPiA+ID4gPiBCdWlsZGluZyBhIG11bHRpLW9tYXAga2VybmVs
+IGlzIG5vdCBpbXBhY3RlZCBhcyBsb25nIGFzIA0KPiB0aGUgZGlzcGxheSBpcw0KPiA+ID4gbm90
+IGNob29zZW4gaW4gdGhlIGJ1aWxkLiAgVXN1YWxseSBkaXNwbGF5IGlzIGNob3NlbiBmcm9tIA0K
+PiB0aGUgYm9hcmQgZmlsZS4NCj4gPiANCj4gPiBJdCBfc2hvdWxkXyBiZSBwb3NzaWJsZSB0byBi
+dWlsZCBEU1MyLCBWUkZCIEFORCBUaWxlciBjb2RlIA0KPiBhdCB0aGUgc2FtZSB0aW1lDQo+ID4g
+Zm9yIGEgbXVsdGktb21hcCBidWlsZCwgYW5kIGJlIGV4ZWN1dGVkIHNlbGVjdGl2ZWx5LCANCj4g
+ZGVwZW5kaW5nIG9uIHlvdXINCj4gPiBzaWxpY29uIGRldGVjdGlvbiBhbmQgYm9hcmQgY29kZSBl
+eGVjdXRpb24uDQo+ID4gDQo+ID4gSWYgeW91IG5lZWQgdG8gZGVzZWxlY3QgaXQgdG8gc3VjY2Vl
+ZCwgdGhlbiBpdCdzIGJyb2tlbiBmb3IgDQo+IG11bHRpLW9tYXANCj4gPiBidWlsZHMuIFRoYXQn
+cyB0aGUgY29yZSBwcm9ibGVtIGFuZCBpdCBoYXNuJ3QgYmVlbiANCj4gYWRkcmVzc2VkIHVudGls
+IGRhdGUuDQo+IA0KPiBJIHRoaW5rIHRoZSB2MyBwYXRjaCBzZXQgZG9lcyBpdCBjb3JyZWN0bHku
+IEl0IGFsbG93cyBWUkZCIHRvIGJlIGJ1aWx0DQo+IG9ubHkgaWYgQVJDSF9PTUFQMiB8fCBBUkNI
+X09NQVAzLCBidXQgZG9lcyBub3QgdHVybiBWUkZCIG9mZiBvbg0KPiBBUkNIX09NQVA0Lg0KW1Nl
+bnRoaWxdICBTZXJnaW8sIHRoZSB2MyBwYXRjaCBhbGxvd3MgVlJGQiBpbiBtdWx0aS1vbWFwIGJ1
+aWxkLiAgUnVudGltZQ0KVlJGQiB1c2FnZSBpcyBub3QgYWxsb3dlZCBvbiBvbWFwNCBkZXZpY2Ug
+YW5kIGlzIGFsbG93ZWQgZm9yIG9tYXAyLDMuDQpSZWZlciB0byB2MyBwYXRjaCAzLzMu
