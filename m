@@ -1,46 +1,61 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2] OMAP:GPTIMER:1ms tick generation correction
-Date: Mon, 21 Jun 2010 08:54:16 -0700
-Message-ID: <8739wg2xg7.fsf@deeprootsystems.com>
-References: <1277151798-26232-1-git-send-email-tarun.kanti@ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH 12/13 v3] OMAP: GPIO: Implement GPIO as a platform device
+Date: Mon, 21 Jun 2010 21:32:40 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5C92A5C@dbde02.ent.ti.com>
+References: <1276614348-5201-1-git-send-email-charu@ti.com>
+ <1276614348-5201-2-git-send-email-charu@ti.com>
+ <1276614348-5201-3-git-send-email-charu@ti.com>
+ <1276614348-5201-4-git-send-email-charu@ti.com>
+ <1276614348-5201-5-git-send-email-charu@ti.com>
+ <1276614348-5201-6-git-send-email-charu@ti.com>
+ <1276614348-5201-7-git-send-email-charu@ti.com>
+ <1276614348-5201-8-git-send-email-charu@ti.com>
+ <1276614348-5201-9-git-send-email-charu@ti.com>
+ <1276614348-5201-10-git-send-email-charu@ti.com>
+ <1276614348-5201-11-git-send-email-charu@ti.com>
+ <1276614348-5201-12-git-send-email-charu@ti.com>
+ <1276614348-5201-13-git-send-email-charu@ti.com> <4C19353C.5020302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:44801 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755853Ab0FUPyX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 11:54:23 -0400
-Received: by pvh11 with SMTP id 11so299705pvh.19
-        for <linux-omap@vger.kernel.org>; Mon, 21 Jun 2010 08:54:20 -0700 (PDT)
-In-Reply-To: <1277151798-26232-1-git-send-email-tarun.kanti@ti.com> (Tarun Kanti DebBarma's message of "Tue\, 22 Jun 2010 01\:53\:18 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:35851 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932293Ab0FUQDZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 12:03:25 -0400
+In-Reply-To: <4C19353C.5020302@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "david-b@pacbell.net" <david-b@pacbell.net>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-> Generation of 1ms granular GPTIMER events using 32KHz or system
-> clocks as inputs does not have whole number count value to load
-> into the register. This inaccurate count value with respect to 1ms
-> period leads to time drift subsequently. OMAP3 and later silicons
-> have dedicated registers for GPTIMER1, GPTIMER2 and GPTIMER10,
-> which can be programmed with computed values to keep this error
-> controlled within specified limit.
->
-> Version 2:
-> (i) optimized omap_dm_timer_ms_correction() function and corrected
-> error in computing the positive and negative increments.
-> (ii) typo corrections in comment section and warning removal related
-> to 80-character limit
->
-> Tested on Zoom3 using Linus tree.
->
-> Signed-off-by: R Sricharan <r.sricharan@ti.com>
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> [snip]
+> 
+> 
+> > +static inline int init_gpio_info(struct platform_device *pdev)
+> > +{
+> > +       gpio_bank = kzalloc(gpio_bank_count * sizeof(struct gpio_bank),
+> > +                               GFP_KERNEL);
+> 
+> This is the real issue with the gpio_bank_count.
+> 
+> You are creating a global driver information related to all instances of
+> this device with a per device variable.
+> You should store the registers per device, and that will remove the need
+> for that global information.
 
-Please coordinate this change with the GPTIMER hwmod changes.  The timers
-that have/need this feature should be flagged at the hwmod level (probably by
-a dev_attr flag.)
+Agreed. But "gpio_bank" can be removed only during cleanup, as this
+information is spread around the whole driver and the current
+gpio driver assumes it to be an array of all instances of the
+device.
 
-Kevin
+For now, would modify the code to get gpio_bank_count using
+omap_hwmod_class() iteration count.
+
+Until code cleanup is done, 'gpio_bank_count' would be given to driver
+by means of a global variable/ a function pointer to omap_get_gpio_count().
+
+> 
+> Benoit
