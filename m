@@ -1,75 +1,175 @@
-From: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
-Subject: Re: [PATCH] OMAP FB code to set DISPC_TIMING_{H,V} doesn't match
- TRM
-Date: Mon, 21 Jun 2010 17:31:23 -0400
-Message-ID: <20100621213123.GQ1248@gibbs.hungrycats.org>
-References: <20100616214340.GA27198@gibbs.hungrycats.org>
- <AANLkTinaUy_aPsEZIUUFFSgUdn1RmyAOKRPOop9AfSqL@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/4] OMAP: PM: use omap_device API for suspend/resume
+Date: Mon, 21 Jun 2010 15:39:24 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1006211130120.1550@utopia.booyaka.com>
+References: <1274994799-30297-1-git-send-email-khilman@deeprootsystems.com> <1274994799-30297-4-git-send-email-khilman@deeprootsystems.com> <5A47E75E594F054BAF48C5E4FC4B92AB032320719C@dbde02.ent.ti.com> <87mxvebrry.fsf@deeprootsystems.com>
+ <alpine.DEB.2.00.1006210911150.1550@utopia.booyaka.com> <87hbkw1idx.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ip-70-38-54-39.static.privatedns.com ([70.38.54.39]:49065 "EHLO
-	ginevra.hungrycats.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758322Ab0FUVbd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 17:31:33 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTinaUy_aPsEZIUUFFSgUdn1RmyAOKRPOop9AfSqL@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:41474 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758606Ab0FUVjZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 17:39:25 -0400
+In-Reply-To: <87hbkw1idx.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Nayak\\, Rajendra" <rnayak@ti.com>, "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Jun 21, 2010 at 04:34:33PM +0300, Grazvydas Ignotas wrote:
-> (CC Tomi)
->=20
-> On Thu, Jun 17, 2010 at 12:43 AM, Zygo Blaxell
-> <vger-linux-omap-esightcorp@mailtoo.hungrycats.org> wrote:
-> > The TRM and the OMAP FB driver have different ideas about the width=
-s
-> > of various bit fields in the DISPC_TIMING_{H,V} registers. =A0This =
-patch
-> > is based on what the TRM (TI document SPRUF98G) says.
-> >
-> > Note: =A0this patch changes the meanings of the vertical timing val=
-ues
-> > by one scan line. =A0It still works with my display, but it might b=
-reak
-> > things for other people.
->=20
-> Why? The TRM doesn't say VFP, VBP have to be programmed with value -1=
-=2E
+On Mon, 21 Jun 2010, Kevin Hilman wrote:
 
-Hmmm...that's correct.  Only VSW in DISPC_TIMING_V needs -1.  Sorry,
-my bad.
+> Paul Walmsley <paul@pwsan.com> writes:
+> 
+> > As far as I can tell, it's not safe for upper-layer code to idle a device 
+> > like this.  The driver itself needs to be aware of the device's idle 
+> > state.  
+> 
+> The driver is made aware using the standard dev_pm_ops callback for
+> suspend and resume.
 
-On the other hand, I've since found the equivalent code in the DSS driv=
-er,
-and it looks like this:
+I guess the intent of your patch is to avoid having to patch in 
+omap_device_{idle,enable}() into a bunch of driver DPM suspend/resume 
+callbacks?  If so, some comments:
 
-        if (cpu_is_omap24xx() || omap_rev() < OMAP3430_REV_ES3_0) {
-                timing_h =3D FLD_VAL(hsw-1, 5, 0) | FLD_VAL(hfp-1, 15, =
-8) |
-                        FLD_VAL(hbp-1, 27, 20);
+- dev_pm_ops->suspend_noirq() is intended for use on devices with
+  shared interrupts.  Right now the OMAP2+ codebase doesn't use any
+  shared interrupts for on-chip devices, as far as I can see.  It
+  looks like you use ->suspend_noirq() to ensure your code runs after
+  the existing driver suspend functions.  Using ->suspend_noirq() for
+  this purpose seems like a hack.  A better place for that code would
+  be in a bus->pm->suspend() callback, which will run after the
+  device's dev_pm_ops->suspend() callback.
 
-                timing_v =3D FLD_VAL(vsw-1, 5, 0) | FLD_VAL(vfp, 15, 8)=
- |
-                        FLD_VAL(vbp, 27, 20);
-        } else {
-                timing_h =3D FLD_VAL(hsw-1, 7, 0) | FLD_VAL(hfp-1, 19, =
-8) |
-                        FLD_VAL(hbp-1, 31, 20);
+- It is not safe to call omap_device_{idle,enable}() from DPM
+  callbacks as the patch does, because they will race with runtime PM
+  calls to omap_device_{idle,enable}().  (This is part of the reason
+  why it's important to be anal about enforcing the
+  omap_device_{enable,idle,shutdown}() state transition limitations -
+  so we get warned early when these types of conflicts appear.)
 
-                timing_v =3D FLD_VAL(vsw-1, 7, 0) | FLD_VAL(vfp, 19, 8)=
- |
-                        FLD_VAL(vbp, 31, 20);
-        }
+  omap_device*() calls should either be in runtime PM functions, or
+  DPM ->suspend/resume() callbacks, but not both.  Since we've decided
+  to focus on runtime PM power management as our primary driver power
+  management approach, and we expect drivers to aggressively idle
+  their devices, it seems best to keep the omap_device*() functions in
+  runtime PM code.
 
-so it would seem that the wider field widths are only available on
-newer hardware than the old omapfb code was intended to support?
+  At that point, the common DPM suspend/idle callbacks that you
+  propose can simply block until runtime PM indicates that the device
+  is idle.  For example, you could use a per-omap_device mutex.
+  A sketch of a sample implementation follows this message.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+- Paul
+
+
+In omap_device.c, add
+
+int omap_device_suspend_mpu_irqs(struct omap_device *od)
+{
+	/*
+         * For each hwmod, for each MPU IRQ, save current state,
+         * disable_irq(irq)
+         */
+}
+
+int omap_device_resume_mpu_irqs(struct omap_device *od)
+{
+	/*
+         * For each hwmod, for each MPU IRQ, enable_irq(irq) if
+         * it was previously
+         */
+}
+
+
+In your bus->pm->suspend()/resume() functions:
+
+int omap_bus_suspend(struct device *dev, pm_message_t state)
+{
+        dev_dbg("waiting for device %s to go idle\n", dev_name(dev));
+
+        mutex_lock(&od->active_mutex);
+
+        /* Device guaranteed to be idle at this point */
+
+        /*
+         * do anything else necessary to ensure that driver code is not
+         * entered after the unlock()
+         */
+        omap_device_suspend_mpu_irqs(od);
+
+        mutex_unlock(&od->active_mutex);
+
+        return 0;
+}
+
+int omap_bus_resume(struct device *dev, pm_message_t state)
+{
+        mutex_lock(&od->active_mutex);
+
+        /* Device guaranteed to be idle at this point */
+    
+        /*
+         * do anything else necessary to ensure that driver code can
+         * be entered after the unlock()
+         */
+        omap_device_resume_mpu_irqs(od);
+
+        mutex_unlock(&od->active_mutex);
+
+        return 0;
+}
+
+
+Then in the omap_device code, add a mutex active_mutex in struct
+omap_device, init the mutex in omap_device_build_ss(), then:
+
+int omap_device_enable(struct platform_device *pdev)
+{
+       struct omap_device *od;
+
+       od = _find_by_pdev(pdev);
+
+       ...
+       WARN(!mutex_trylock(&od->active_mutex),
+            "State transition violation - should never happen\n");
+       mutex_lock(&od->active_mutex);
+       ...
+}
+ 
+int omap_device_idle(struct platform_device *pdev)
+{
+        struct omap_device *od;
+
+        od = _find_by_pdev(pdev);
+
+        ...
+        mutex_unlock(&od->active_mutex);
+        ...
+}
+
+int omap_device_shutdown(struct platform_device *pdev)
+{
+        struct omap_device *od;
+
+        od = _find_by_pdev(pdev);
+
+        ...
+        mutex_unlock(&od->active_mutex);
+        ...
+}
+
+
+The driver needs the usual: 
+
+- add a DPM ->suspend() function that tries to stop whatever the
+  device is doing if it's in the middle of something that can be
+  stopped;
+
+- ensure all paths that start new I/O check dev->power.status, and
+  return an error if it is DPM_SUSPENDING
+
+
+
+- Paul
