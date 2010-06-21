@@ -1,148 +1,86 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v2] OMAP:GPTIMER:1ms tick generation correction
-Date: Mon, 21 Jun 2010 19:03:05 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032358ED30@dbde02.ent.ti.com>
-References: <1277151798-26232-1-git-send-email-tarun.kanti@ti.com>
- <4C1F429E.40107@gmail.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB032358ECE4@dbde02.ent.ti.com>
- <4C1F618E.4090700@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB032358ED1B@dbde02.ent.ti.com>
- <4C1F6871.2030807@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] OMAP FB code to set DISPC_TIMING_{H,V} doesn't match TRM
+Date: Mon, 21 Jun 2010 16:34:33 +0300
+Message-ID: <AANLkTinaUy_aPsEZIUUFFSgUdn1RmyAOKRPOop9AfSqL@mail.gmail.com>
+References: <20100616214340.GA27198@gibbs.hungrycats.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47647 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757612Ab0FUNdL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 09:33:11 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5LDX7ea015841
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 21 Jun 2010 08:33:10 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5LDX76A008767
-	for <linux-omap@vger.kernel.org>; Mon, 21 Jun 2010 19:03:07 +0530 (IST)
-In-Reply-To: <4C1F6871.2030807@ti.com>
-Content-Language: en-US
+Received: from mail-yw0-f198.google.com ([209.85.211.198]:44452 "EHLO
+	mail-yw0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757612Ab0FUNee convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 09:34:34 -0400
+Received: by ywh36 with SMTP id 36so2301896ywh.4
+        for <linux-omap@vger.kernel.org>; Mon, 21 Jun 2010 06:34:34 -0700 (PDT)
+In-Reply-To: <20100616214340.GA27198@gibbs.hungrycats.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
+To: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
+(CC Tomi)
 
-> -----Original Message-----
-> From: Menon, Nishanth
-> Sent: Monday, June 21, 2010 6:56 PM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; R, Sricharan
-> Subject: Re: [PATCH v2] OMAP:GPTIMER:1ms tick generation correction
-> 
-> DebBarma, Tarun Kanti had written, on 06/21/2010 08:19 AM, the following:
-> [...]
-> >>>>> ---
-> >>>>>   arch/arm/plat-omap/dmtimer.c              |  131
-> >>>> +++++++++++++++++++++--------
-> >>>>>   arch/arm/plat-omap/include/plat/dmtimer.h |    1 +
-> >>>>>   2 files changed, 96 insertions(+), 36 deletions(-)
-> >>>>>
-> >>>>> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-
-> >> omap/dmtimer.c
-> >>>>> index c64875f..42344a7
-> >>>>> --- a/arch/arm/plat-omap/dmtimer.c
-> >>>>> +++ b/arch/arm/plat-omap/dmtimer.c
-> >>>>> @@ -160,6 +160,9 @@ struct omap_dm_timer {
-> >>>>>           unsigned reserved:1;
-> >>>>>           unsigned enabled:1;
-> >>>>>           unsigned posted:1;
-> >>>>> +#ifdef CONFIG_ARCH_OMAP2PLUS
-> >>>>> + unsigned ms_correction:1;
-> >>>>> +#endif
-> >>>>>   };
-> >>>>>
-> >>>>>   static int dm_timer_count;
-> >>>>> @@ -185,18 +188,30 @@ static const int omap1_dm_timer_count =
-> >>>> ARRAY_SIZE(omap1_dm_timers);
-> >>>>>   #ifdef CONFIG_ARCH_OMAP2
-> >>>>>   static struct omap_dm_timer omap2_dm_timers[] = {
-> >>>>> - { .phys_base = 0x48028000, .irq = INT_24XX_GPTIMER1 },
-> >>>>> - { .phys_base = 0x4802a000, .irq = INT_24XX_GPTIMER2 },
-> >>>>> - { .phys_base = 0x48078000, .irq = INT_24XX_GPTIMER3 },
-> >>>>> - { .phys_base = 0x4807a000, .irq = INT_24XX_GPTIMER4 },
-> >>>>> - { .phys_base = 0x4807c000, .irq = INT_24XX_GPTIMER5 },
-> >>>>> - { .phys_base = 0x4807e000, .irq = INT_24XX_GPTIMER6 },
-> >>>>> - { .phys_base = 0x48080000, .irq = INT_24XX_GPTIMER7 },
-> >>>>> - { .phys_base = 0x48082000, .irq = INT_24XX_GPTIMER8 },
-> >>>>> - { .phys_base = 0x48084000, .irq = INT_24XX_GPTIMER9 },
-> >>>>> - { .phys_base = 0x48086000, .irq = INT_24XX_GPTIMER10 },
-> >>>>> - { .phys_base = 0x48088000, .irq = INT_24XX_GPTIMER11 },
-> >>>>> - { .phys_base = 0x4808a000, .irq = INT_24XX_GPTIMER12 },
-> >>>>> + { .phys_base = 0x48028000, .irq = INT_24XX_GPTIMER1,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x4802a000, .irq = INT_24XX_GPTIMER2,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x48078000, .irq = INT_24XX_GPTIMER3,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x4807a000, .irq = INT_24XX_GPTIMER4,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x4807c000, .irq = INT_24XX_GPTIMER5,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x4807e000, .irq = INT_24XX_GPTIMER6,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x48080000, .irq = INT_24XX_GPTIMER7,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x48082000, .irq = INT_24XX_GPTIMER8,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x48084000, .irq = INT_24XX_GPTIMER9,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x48086000, .irq = INT_24XX_GPTIMER10,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x48088000, .irq = INT_24XX_GPTIMER11,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>>> + { .phys_base = 0x4808a000, .irq = INT_24XX_GPTIMER12,
-> >>>>> +                                         .ms_correction = 0 },
-> >>>> ignore of previous comments on .ms_correction initialization.
-> >>>> try the output of the following code:
-> >>>> struct b {
-> >>>>          unsigned char z:1;
-> >>>>          unsigned char a:1;
-> >>>> };
-> >>>>
-> >>>> static struct b b1[2]={
-> >>>>          {.z =1},
-> >>>>          {.a = 1},
-> >>>> };
-> >>>>
-> >>>> unsigned int main()
-> >>>> {
-> >>>>          int i;
-> >>>>          for (i=0; i<2; i++)
-> >>>>          printf("%d: %d %d\n", i, b1[i].z, b1[i].a);
-> >>>> }
-> >>> This comment is not clear to me.
-> >>> Are you suggesting to make the initialization of ms_correction
-> variable
-> >>> in a separate function instead of doing the present way?
-> >> no. my suggestion is this:
-> >> you dont need to do .ms_correction = 0
-> >> when the variable is static - by C standards static variables are
-> >> initialized to 0. so, .ms_correction = 1 alone is needed in the
-> specific
-> >> GPTimer cases where this is needed.
-> >>
-> >> the example i posted shows that it works :).
-> >>
-> > OK.
-> > But in this case I have to re-design / re-structure the other bit fields
-> > Viz. reserved, enabled, posted. Then we have to decide what to name the
-> structure, etc. If you feel this is the right direction then I can go
-> ahead.
-> My only complaint is with the unwanted initialization.
-> 
-> [...]
-OK, I understand now!
+On Thu, Jun 17, 2010 at 12:43 AM, Zygo Blaxell
+<vger-linux-omap-esightcorp@mailtoo.hungrycats.org> wrote:
+> The TRM and the OMAP FB driver have different ideas about the widths
+> of various bit fields in the DISPC_TIMING_{H,V} registers. =A0This pa=
+tch
+> is based on what the TRM (TI document SPRUF98G) says.
+>
+> Note: =A0this patch changes the meanings of the vertical timing value=
+s
+> by one scan line. =A0It still works with my display, but it might bre=
+ak
+> things for other people.
 
-> 
+Why? The TRM doesn't say VFP, VBP have to be programmed with value -1.
+
+>
+> ---
+>
+> diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
+> index c7c6455..e58574b 100644
+> --- a/drivers/video/omap/dispc.c
+> +++ b/drivers/video/omap/dispc.c
+> @@ -795,17 +795,17 @@ static void set_lcd_timings(void)
+> =A0 =A0 =A0 =A0unsigned long fck;
+>
+> =A0 =A0 =A0 =A0l =3D dispc_read_reg(DISPC_TIMING_H);
+> - =A0 =A0 =A0 l &=3D ~(FLD_MASK(0, 6) | FLD_MASK(8, 8) | FLD_MASK(20,=
+ 8));
+> - =A0 =A0 =A0 l |=3D ( max(1, (min(64, =A0panel->hsw))) - 1 ) << 0;
+> - =A0 =A0 =A0 l |=3D ( max(1, (min(256, panel->hfp))) - 1 ) << 8;
+> - =A0 =A0 =A0 l |=3D ( max(1, (min(256, panel->hbp))) - 1 ) << 20;
+> + =A0 =A0 =A0 l &=3D ~(FLD_MASK(0, 8) | FLD_MASK(8, 12) | FLD_MASK(20=
+, 12));
+> + =A0 =A0 =A0 l |=3D ( max(1, (min(256, panel->hsw))) - 1 ) << 0;
+> + =A0 =A0 =A0 l |=3D ( max(1, (min(4096, panel->hfp))) - 1 ) << 8;
+> + =A0 =A0 =A0 l |=3D ( max(1, (min(4096, panel->hbp))) - 1 ) << 20;
+> =A0 =A0 =A0 =A0dispc_write_reg(DISPC_TIMING_H, l);
+>
+> =A0 =A0 =A0 =A0l =3D dispc_read_reg(DISPC_TIMING_V);
+> - =A0 =A0 =A0 l &=3D ~(FLD_MASK(0, 6) | FLD_MASK(8, 8) | FLD_MASK(20,=
+ 8));
+> - =A0 =A0 =A0 l |=3D ( max(1, (min(64, =A0panel->vsw))) - 1 ) << 0;
+> - =A0 =A0 =A0 l |=3D ( max(0, (min(255, panel->vfp))) - 0 ) << 8;
+> - =A0 =A0 =A0 l |=3D ( max(0, (min(255, panel->vbp))) - 0 ) << 20;
+> + =A0 =A0 =A0 l &=3D ~(FLD_MASK(0, 8) | FLD_MASK(8, 12) | FLD_MASK(20=
+, 12));
+> + =A0 =A0 =A0 l |=3D ( max(1, (min(256, panel->vsw))) - 1 ) << 0;
+> + =A0 =A0 =A0 l |=3D ( max(1, (min(4096, panel->vfp))) - 1 ) << 8;
+> + =A0 =A0 =A0 l |=3D ( max(1, (min(4096, panel->vbp))) - 1 ) << 20;
+> =A0 =A0 =A0 =A0dispc_write_reg(DISPC_TIMING_V, l);
+>
+> =A0 =A0 =A0 =A0l =3D dispc_read_reg(DISPC_POL_FREQ);
 > --
-> Regards,
-> Nishanth Menon
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
