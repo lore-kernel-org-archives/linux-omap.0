@@ -1,59 +1,76 @@
-From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Subject: RE: [PATCH] DSS2 Include VRFB into omap2-3build only
-Date: Mon, 21 Jun 2010 14:20:17 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030428891E@dbde02.ent.ti.com>
-References: <1273474110-22451-1-git-send-email-svadivu@ti.com>
-	 <1A2F53DA-903A-4667-A27F-492A3499F7ED@student.utwente.nl>
-	 <FCCFB4CDC6E5564B9182F639FC356087030428879D@dbde02.ent.ti.com>
-	 <73F3CED4-60D5-4351-A921-335110542B6F@dominion.thruhere.net>
-	 <A24693684029E5489D1D202277BE894456043018@dlee02.ent.ti.com>
- <1277109506.2526.19.camel@tubuntu.research.nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB depends on OMAP2,3
+Date: Mon, 21 Jun 2010 11:50:41 +0300
+Message-ID: <1277110241.2526.31.camel@tubuntu.research.nokia.com>
+References: <1276778702-15280-1-git-send-email-svadivu@ti.com>
+	 <1276778702-15280-2-git-send-email-svadivu@ti.com>
+	 <1276778702-15280-3-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36324 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756071Ab0FUIuv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Jun 2010 04:50:51 -0400
-In-Reply-To: <1277109506.2526.19.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:35064 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756071Ab0FUIvU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 04:51:20 -0400
+In-Reply-To: <1276778702-15280-3-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: ext Guruswamy Senthilvadivu <svadivu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-dev@vger.kernel.org" <linux-dev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "hvaibhav@ti.com" <hvaibhav@ti.com>
 
-IA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWkgVmFsa2VpbmVu
-IFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXSANCj4gU2VudDogTW9uZGF5LCBKdW5l
-IDIxLCAyMDEwIDI6MDggUE0NCj4gVG86IEFndWlycmUsIFNlcmdpbw0KPiBDYzogS29lbiBLb29p
-OyBHdXJ1c3dhbXksIFNlbnRoaWx2YWRpdnU7IA0KPiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9y
-ZzsgDQo+IGxpbnV4LWZiZGV2LWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldDsgdG9ueUBhdG9t
-aWRlLmNvbTsgDQo+IEhpcmVtYXRoLCBWYWliaGF2DQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0hdIERT
-UzIgSW5jbHVkZSBWUkZCIGludG8gb21hcDItM2J1aWxkIG9ubHkNCj4gDQo+IE9uIEZyaSwgMjAx
-MC0wNi0xOCBhdCAxODo1NyArMDIwMCwgZXh0IEFndWlycmUsIFNlcmdpbyB3cm90ZToNCj4gPiBT
-ZW50aGlsLA0KPiA+IA0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+IEZy
-b206IGxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtb21hcC0N
-Cj4gPiA+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEtvZW4gS29vaQ0KPiA+
-ID4gU2VudDogTW9uZGF5LCBNYXkgMTAsIDIwMTAgMzowMyBBTQ0KPiA+ID4gVG86IEd1cnVzd2Ft
-eSwgU2VudGhpbHZhZGl2dQ0KPiA+ID4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnOyAN
-Cj4gbGludXgtZmJkZXYtZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0Ow0KPiA+ID4gdG9ueUBh
-dG9taWRlLmNvbTsgdG9taS52YWxrZWluZW5Abm9raWEuY29tOyBIaXJlbWF0aCwgVmFpYmhhdg0K
-PiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSF0gRFNTMiBJbmNsdWRlIFZSRkIgaW50byBvbWFwMi0z
-YnVpbGQgb25seQ0KPiA+ID4gDQo+ID4gPiANCj4gPiA+IE9wIDEwIG1laSAyMDEwLCBvbSAxMDow
-MSBoZWVmdCBHdXJ1c3dhbXksIFNlbnRoaWx2YWRpdnUgDQo+IGhldCB2b2xnZW5kZQ0KPiA+ID4g
-Z2VzY2hyZXZlbjoNCj4gPiA+IA0KPiA+ID4gPiBCdWlsZGluZyBhIG11bHRpLW9tYXAga2VybmVs
-IGlzIG5vdCBpbXBhY3RlZCBhcyBsb25nIGFzIA0KPiB0aGUgZGlzcGxheSBpcw0KPiA+ID4gbm90
-IGNob29zZW4gaW4gdGhlIGJ1aWxkLiAgVXN1YWxseSBkaXNwbGF5IGlzIGNob3NlbiBmcm9tIA0K
-PiB0aGUgYm9hcmQgZmlsZS4NCj4gPiANCj4gPiBJdCBfc2hvdWxkXyBiZSBwb3NzaWJsZSB0byBi
-dWlsZCBEU1MyLCBWUkZCIEFORCBUaWxlciBjb2RlIA0KPiBhdCB0aGUgc2FtZSB0aW1lDQo+ID4g
-Zm9yIGEgbXVsdGktb21hcCBidWlsZCwgYW5kIGJlIGV4ZWN1dGVkIHNlbGVjdGl2ZWx5LCANCj4g
-ZGVwZW5kaW5nIG9uIHlvdXINCj4gPiBzaWxpY29uIGRldGVjdGlvbiBhbmQgYm9hcmQgY29kZSBl
-eGVjdXRpb24uDQo+ID4gDQo+ID4gSWYgeW91IG5lZWQgdG8gZGVzZWxlY3QgaXQgdG8gc3VjY2Vl
-ZCwgdGhlbiBpdCdzIGJyb2tlbiBmb3IgDQo+IG11bHRpLW9tYXANCj4gPiBidWlsZHMuIFRoYXQn
-cyB0aGUgY29yZSBwcm9ibGVtIGFuZCBpdCBoYXNuJ3QgYmVlbiANCj4gYWRkcmVzc2VkIHVudGls
-IGRhdGUuDQo+IA0KPiBJIHRoaW5rIHRoZSB2MyBwYXRjaCBzZXQgZG9lcyBpdCBjb3JyZWN0bHku
-IEl0IGFsbG93cyBWUkZCIHRvIGJlIGJ1aWx0DQo+IG9ubHkgaWYgQVJDSF9PTUFQMiB8fCBBUkNI
-X09NQVAzLCBidXQgZG9lcyBub3QgdHVybiBWUkZCIG9mZiBvbg0KPiBBUkNIX09NQVA0Lg0KW1Nl
-bnRoaWxdICBTZXJnaW8sIHRoZSB2MyBwYXRjaCBhbGxvd3MgVlJGQiBpbiBtdWx0aS1vbWFwIGJ1
-aWxkLiAgUnVudGltZQ0KVlJGQiB1c2FnZSBpcyBub3QgYWxsb3dlZCBvbiBvbWFwNCBkZXZpY2Ug
-YW5kIGlzIGFsbG93ZWQgZm9yIG9tYXAyLDMuDQpSZWZlciB0byB2MyBwYXRjaCAzLzMu
+On Thu, 2010-06-17 at 14:45 +0200, ext Guruswamy Senthilvadivu wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> 
+> config VRFB should depend on ARCH_OMAP2 or ARCH_OMAP3.
+> 
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> ---
+>  drivers/video/omap2/Kconfig            |    4 ++++
+>  drivers/video/omap2/omapfb/Kconfig     |    1 -
+>  2 files changed,  4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
+> index d877c36..18bb835 100644
+> --- a/drivers/video/omap2/Kconfig
+> +++ b/drivers/video/omap2/Kconfig
+> @@ -3,6 +3,10 @@ config OMAP2_VRAM
+>  
+>  config OMAP2_VRFB
+>  	bool
+> +	depends on ARCH_OMAP2 || ARCH_OMAP3
+> +	default y if FB_OMAP2
+> +	help
+> +	  OMAP VRFB buffer support is efficient for rotation
+>  
+>  source "drivers/video/omap2/dss/Kconfig"
+>  source "drivers/video/omap2/omapfb/Kconfig"
+> diff --git a/drivers/video/omap2/omapfb/Kconfig b/drivers/video/omap2/omapfb/Kconfig
+> index a3ed15c..f186c2b 100644
+> --- a/drivers/video/omap2/omapfb/Kconfig
+> +++ b/drivers/video/omap2/omapfb/Kconfig
+> @@ -3,7 +3,6 @@ menuconfig FB_OMAP2
+>          depends on FB && OMAP2_DSS
+>  
+>  	select OMAP2_VRAM
+> -	select OMAP2_VRFB
+>          select FB_CFB_FILLRECT
+>          select FB_CFB_COPYAREA
+>          select FB_CFB_IMAGEBLIT
+
+This is second patch set marked as v3. Please update the version for
+every patch set.
+
+I think the config selection is now a bit confusing. I think it should
+either be:
+
+The omap2/Kconfig left as it is, and omapfb/Kconfig changed to:
+select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
+
+or
+
+Let the user select VRFB.
+
+ Tomi
+
+
