@@ -1,78 +1,62 @@
 From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] OMAP FB code to set DISPC_TIMING_{H,V} doesn't match TRM
-Date: Mon, 21 Jun 2010 16:34:33 +0300
-Message-ID: <AANLkTinaUy_aPsEZIUUFFSgUdn1RmyAOKRPOop9AfSqL@mail.gmail.com>
-References: <20100616214340.GA27198@gibbs.hungrycats.org>
+Subject: Re: [PATCH] OMAP: DSS: Fix for dsi_pll to dpll4 clk switch
+Date: Mon, 21 Jun 2010 16:38:28 +0300
+Message-ID: <AANLkTim28bTkt71iKyydzg2RkusPQh8sTD_qrTun1aOf@mail.gmail.com>
+References: <FF55437E1F14DA4BAEB721A458B6701706BDA5E730@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f198.google.com ([209.85.211.198]:44452 "EHLO
-	mail-yw0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757612Ab0FUNee convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 09:34:34 -0400
-Received: by ywh36 with SMTP id 36so2301896ywh.4
-        for <linux-omap@vger.kernel.org>; Mon, 21 Jun 2010 06:34:34 -0700 (PDT)
-In-Reply-To: <20100616214340.GA27198@gibbs.hungrycats.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:49872 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756620Ab0FUNi3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 09:38:29 -0400
+In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706BDA5E730@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Zygo Blaxell <vger-linux-omap-esightcorp@mailtoo.hungrycats.org>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: "Nagarajan, Rajkumar" <x0133774@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev@vger.kernel.org
 
-(CC Tomi)
+when sending DSS patches, CC Tomi and fbdev.
 
-On Thu, Jun 17, 2010 at 12:43 AM, Zygo Blaxell
-<vger-linux-omap-esightcorp@mailtoo.hungrycats.org> wrote:
-> The TRM and the OMAP FB driver have different ideas about the widths
-> of various bit fields in the DISPC_TIMING_{H,V} registers. =A0This pa=
-tch
-> is based on what the TRM (TI document SPRUF98G) says.
+On Thu, Jun 17, 2010 at 8:12 AM, Nagarajan, Rajkumar <x0133774@ti.com> =
+wrote:
 >
-> Note: =A0this patch changes the meanings of the vertical timing value=
-s
-> by one scan line. =A0It still works with my display, but it might bre=
-ak
-> things for other people.
-
-Why? The TRM doesn't say VFP, VBP have to be programmed with value -1.
-
+> When switching between clocks, The new functional clock is
+> effective when the next vertical blanking interval occurs.
+> GOLCD bit has to be set for the new clock to take effect.
 >
+> Signed-off-by: Kishore Y <kishore.y@ti.com>
+> Signed-off-by: Mukund Mittal <mmittal@ti.com>
+> Signed-off-by: Rajkumar N <rajkumar.nagarajan@ti.com>
 > ---
+> =A0drivers/video/omap2/dss/dpi.c | =A0 =A05 +++++
+> =A01 files changed, 5 insertions(+), 0 deletions(-)
 >
-> diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-> index c7c6455..e58574b 100644
-> --- a/drivers/video/omap/dispc.c
-> +++ b/drivers/video/omap/dispc.c
-> @@ -795,17 +795,17 @@ static void set_lcd_timings(void)
-> =A0 =A0 =A0 =A0unsigned long fck;
+> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/=
+dpi.c
+> index 960e977..5d778d6 100644
+> --- a/drivers/video/omap2/dss/dpi.c
+> +++ b/drivers/video/omap2/dss/dpi.c
+> @@ -214,10 +214,15 @@ void omapdss_dpi_display_disable(struct omap_ds=
+s_device *dssdev)
 >
-> =A0 =A0 =A0 =A0l =3D dispc_read_reg(DISPC_TIMING_H);
-> - =A0 =A0 =A0 l &=3D ~(FLD_MASK(0, 6) | FLD_MASK(8, 8) | FLD_MASK(20,=
- 8));
-> - =A0 =A0 =A0 l |=3D ( max(1, (min(64, =A0panel->hsw))) - 1 ) << 0;
-> - =A0 =A0 =A0 l |=3D ( max(1, (min(256, panel->hfp))) - 1 ) << 8;
-> - =A0 =A0 =A0 l |=3D ( max(1, (min(256, panel->hbp))) - 1 ) << 20;
-> + =A0 =A0 =A0 l &=3D ~(FLD_MASK(0, 8) | FLD_MASK(8, 12) | FLD_MASK(20=
-, 12));
-> + =A0 =A0 =A0 l |=3D ( max(1, (min(256, panel->hsw))) - 1 ) << 0;
-> + =A0 =A0 =A0 l |=3D ( max(1, (min(4096, panel->hfp))) - 1 ) << 8;
-> + =A0 =A0 =A0 l |=3D ( max(1, (min(4096, panel->hbp))) - 1 ) << 20;
-> =A0 =A0 =A0 =A0dispc_write_reg(DISPC_TIMING_H, l);
+> =A0#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+> =A0 =A0 =A0 =A0dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
+> + =A0 =A0 =A0 dispc_go(OMAP_DSS_CHANNEL_LCD);
+> + =A0 =A0 =A0 while =A0 (dispc_go_busy(OMAP_DSS_CHANNEL_LCD))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ;
+> =A0 =A0 =A0 =A0dsi_pll_uninit();
+> =A0 =A0 =A0 =A0dss_clk_disable(DSS_CLK_FCK2);
+> =A0#endif
 >
-> =A0 =A0 =A0 =A0l =3D dispc_read_reg(DISPC_TIMING_V);
-> - =A0 =A0 =A0 l &=3D ~(FLD_MASK(0, 6) | FLD_MASK(8, 8) | FLD_MASK(20,=
- 8));
-> - =A0 =A0 =A0 l |=3D ( max(1, (min(64, =A0panel->vsw))) - 1 ) << 0;
-> - =A0 =A0 =A0 l |=3D ( max(0, (min(255, panel->vfp))) - 0 ) << 8;
-> - =A0 =A0 =A0 l |=3D ( max(0, (min(255, panel->vbp))) - 0 ) << 20;
-> + =A0 =A0 =A0 l &=3D ~(FLD_MASK(0, 8) | FLD_MASK(8, 12) | FLD_MASK(20=
-, 12));
-> + =A0 =A0 =A0 l |=3D ( max(1, (min(256, panel->vsw))) - 1 ) << 0;
-> + =A0 =A0 =A0 l |=3D ( max(1, (min(4096, panel->vfp))) - 1 ) << 8;
-> + =A0 =A0 =A0 l |=3D ( max(1, (min(4096, panel->vbp))) - 1 ) << 20;
-> =A0 =A0 =A0 =A0dispc_write_reg(DISPC_TIMING_V, l);
+> + =A0 =A0 =A0 dispc_enable_channel(OMAP_DSS_CHANNEL_LCD, 0);
+> +
+> =A0 =A0 =A0 =A0dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
 >
-> =A0 =A0 =A0 =A0l =3D dispc_read_reg(DISPC_POL_FREQ);
+> =A0 =A0 =A0 =A0if (cpu_is_omap34xx())
+> --
+> 1.5.4.3
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap"=
  in
