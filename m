@@ -1,92 +1,68 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 Subject: RE: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB depends on OMAP2,3
-Date: Mon, 21 Jun 2010 14:27:16 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E91BF03@dbde02.ent.ti.com>
+Date: Mon, 21 Jun 2010 14:47:35 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304288920@dbde02.ent.ti.com>
 References: <1276778702-15280-1-git-send-email-svadivu@ti.com>
 	 <1276778702-15280-2-git-send-email-svadivu@ti.com>
 	 <1276778702-15280-3-git-send-email-svadivu@ti.com>
  <1277110241.2526.31.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36540 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756529Ab0FUI50 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 04:57:26 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:41239 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754784Ab0FUJSS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 05:18:18 -0400
 In-Reply-To: <1277110241.2526.31.camel@tubuntu.research.nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-dev@vger.kernel.org" <linux-dev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Monday, June 21, 2010 2:21 PM
-> To: Guruswamy, Senthilvadivu
-> Cc: linux-omap@vger.kernel.org; linux-dev@vger.kernel.org; tony@atomide.com;
-> Hiremath, Vaibhav
-> Subject: Re: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB depends on OMAP2,3
-> 
-> On Thu, 2010-06-17 at 14:45 +0200, ext Guruswamy Senthilvadivu wrote:
-> > From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> >
-> > config VRFB should depend on ARCH_OMAP2 or ARCH_OMAP3.
-> >
-> > Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
-> > ---
-> >  drivers/video/omap2/Kconfig            |    4 ++++
-> >  drivers/video/omap2/omapfb/Kconfig     |    1 -
-> >  2 files changed,  4 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
-> > index d877c36..18bb835 100644
-> > --- a/drivers/video/omap2/Kconfig
-> > +++ b/drivers/video/omap2/Kconfig
-> > @@ -3,6 +3,10 @@ config OMAP2_VRAM
-> >
-> >  config OMAP2_VRFB
-> >  	bool
-> > +	depends on ARCH_OMAP2 || ARCH_OMAP3
-> > +	default y if FB_OMAP2
-> > +	help
-> > +	  OMAP VRFB buffer support is efficient for rotation
-> >
-> >  source "drivers/video/omap2/dss/Kconfig"
-> >  source "drivers/video/omap2/omapfb/Kconfig"
-> > diff --git a/drivers/video/omap2/omapfb/Kconfig
-> b/drivers/video/omap2/omapfb/Kconfig
-> > index a3ed15c..f186c2b 100644
-> > --- a/drivers/video/omap2/omapfb/Kconfig
-> > +++ b/drivers/video/omap2/omapfb/Kconfig
-> > @@ -3,7 +3,6 @@ menuconfig FB_OMAP2
-> >          depends on FB && OMAP2_DSS
-> >
-> >  	select OMAP2_VRAM
-> > -	select OMAP2_VRFB
-> >          select FB_CFB_FILLRECT
-> >          select FB_CFB_COPYAREA
-> >          select FB_CFB_IMAGEBLIT
-> 
-> This is second patch set marked as v3. Please update the version for
-> every patch set.
-> 
-> I think the config selection is now a bit confusing. I think it should
-> either be:
-> 
-> The omap2/Kconfig left as it is, and omapfb/Kconfig changed to:
-> select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
-> 
-[Hiremath, Vaibhav] If you are doing something like this, then please do not forget to change V4L2 Display driver also.
-
-Thanks,
-Vaibhav
-
-> or
-> 
-> Let the user select VRFB.
-> 
->  Tomi
-> 
-
+IA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWkgVmFsa2VpbmVu
+IFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXSANCj4gU2VudDogTW9uZGF5LCBKdW5l
+IDIxLCAyMDEwIDI6MjEgUE0NCj4gVG86IEd1cnVzd2FteSwgU2VudGhpbHZhZGl2dQ0KPiBDYzog
+bGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWRldkB2Z2VyLmtlcm5lbC5vcmc7IA0K
+PiB0b255QGF0b21pZGUuY29tOyBIaXJlbWF0aCwgVmFpYmhhdg0KPiBTdWJqZWN0OiBSZTogW1BB
+VENIIHYzIDIvM10gT01BUDogRFNTMjogT01BUEZCOiBtYWtlIFZSRkIgDQo+IGRlcGVuZHMgb24g
+T01BUDIsMw0KPiANCj4gT24gVGh1LCAyMDEwLTA2LTE3IGF0IDE0OjQ1ICswMjAwLCBleHQgR3Vy
+dXN3YW15IFNlbnRoaWx2YWRpdnUgd3JvdGU6DQo+ID4gRnJvbTogU2VudGhpbHZhZGl2dSBHdXJ1
+c3dhbXkgPHN2YWRpdnVAdGkuY29tPg0KPiA+IA0KPiA+IGNvbmZpZyBWUkZCIHNob3VsZCBkZXBl
+bmQgb24gQVJDSF9PTUFQMiBvciBBUkNIX09NQVAzLg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6
+IFNlbnRoaWx2YWRpdnUgR3VydXN3YW15IDxzdmFkaXZ1QHRpLmNvbT4NCj4gPiAtLS0NCj4gPiAg
+ZHJpdmVycy92aWRlby9vbWFwMi9LY29uZmlnICAgICAgICAgICAgfCAgICA0ICsrKysNCj4gPiAg
+ZHJpdmVycy92aWRlby9vbWFwMi9vbWFwZmIvS2NvbmZpZyAgICAgfCAgICAxIC0NCj4gPiAgMiBm
+aWxlcyBjaGFuZ2VkLCAgNCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQ0KPiA+IA0KPiA+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL29tYXAyL0tjb25maWcgDQo+IGIvZHJpdmVycy92
+aWRlby9vbWFwMi9LY29uZmlnDQo+ID4gaW5kZXggZDg3N2MzNi4uMThiYjgzNSAxMDA2NDQNCj4g
+PiAtLS0gYS9kcml2ZXJzL3ZpZGVvL29tYXAyL0tjb25maWcNCj4gPiArKysgYi9kcml2ZXJzL3Zp
+ZGVvL29tYXAyL0tjb25maWcNCj4gPiBAQCAtMyw2ICszLDEwIEBAIGNvbmZpZyBPTUFQMl9WUkFN
+DQo+ID4gIA0KPiA+ICBjb25maWcgT01BUDJfVlJGQg0KPiA+ICAJYm9vbA0KPiA+ICsJZGVwZW5k
+cyBvbiBBUkNIX09NQVAyIHx8IEFSQ0hfT01BUDMNCj4gPiArCWRlZmF1bHQgeSBpZiBGQl9PTUFQ
+Mg0KPiA+ICsJaGVscA0KPiA+ICsJICBPTUFQIFZSRkIgYnVmZmVyIHN1cHBvcnQgaXMgZWZmaWNp
+ZW50IGZvciByb3RhdGlvbg0KPiA+ICANCj4gPiAgc291cmNlICJkcml2ZXJzL3ZpZGVvL29tYXAy
+L2Rzcy9LY29uZmlnIg0KPiA+ICBzb3VyY2UgImRyaXZlcnMvdmlkZW8vb21hcDIvb21hcGZiL0tj
+b25maWciDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vb21hcDIvb21hcGZiL0tjb25m
+aWcgDQo+IGIvZHJpdmVycy92aWRlby9vbWFwMi9vbWFwZmIvS2NvbmZpZw0KPiA+IGluZGV4IGEz
+ZWQxNWMuLmYxODZjMmIgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy92aWRlby9vbWFwMi9vbWFw
+ZmIvS2NvbmZpZw0KPiA+ICsrKyBiL2RyaXZlcnMvdmlkZW8vb21hcDIvb21hcGZiL0tjb25maWcN
+Cj4gPiBAQCAtMyw3ICszLDYgQEAgbWVudWNvbmZpZyBGQl9PTUFQMg0KPiA+ICAgICAgICAgIGRl
+cGVuZHMgb24gRkIgJiYgT01BUDJfRFNTDQo+ID4gIA0KPiA+ICAJc2VsZWN0IE9NQVAyX1ZSQU0N
+Cj4gPiAtCXNlbGVjdCBPTUFQMl9WUkZCDQo+ID4gICAgICAgICAgc2VsZWN0IEZCX0NGQl9GSUxM
+UkVDVA0KPiA+ICAgICAgICAgIHNlbGVjdCBGQl9DRkJfQ09QWUFSRUENCj4gPiAgICAgICAgICBz
+ZWxlY3QgRkJfQ0ZCX0lNQUdFQkxJVA0KPiANCj4gVGhpcyBpcyBzZWNvbmQgcGF0Y2ggc2V0IG1h
+cmtlZCBhcyB2My4gUGxlYXNlIHVwZGF0ZSB0aGUgdmVyc2lvbiBmb3INCj4gZXZlcnkgcGF0Y2gg
+c2V0Lg0KW1NlbnRoaWxdICBXaXRoIHRoaXMgY29tbWVudCB0aGUgcGF0Y2ggd291bGQgcmVhbGx5
+IGJlY29tZSB2My4gIA0KRG8geW91IG1lYW4gdG8gc2F5IHRoYXQgdGhlIDEvMyBzaG91bGQgYmUg
+b2YgdjEsIGFuZCAyLzMgb2YgdjMgYW5kIDMvMyBvZiBubyB2ZXJzaW9uIG51bWJlcj8NCkkgdGhv
+dWdoIEkgc2hvdWxkIGFwcGx5IHRoZSBsYXRlc3QgdmVyc2lvbiB0byB0aGUgd2hvbGUgcGF0Y2hl
+cyBpbiB0aGUgc2VyaWVzLg0KDQo+IEkgdGhpbmsgdGhlIGNvbmZpZyBzZWxlY3Rpb24gaXMgbm93
+IGEgYml0IGNvbmZ1c2luZy4gSSB0aGluayBpdCBzaG91bGQNCj4gZWl0aGVyIGJlOg0KPiANCj4g
+VGhlIG9tYXAyL0tjb25maWcgbGVmdCBhcyBpdCBpcywgYW5kIG9tYXBmYi9LY29uZmlnIGNoYW5n
+ZWQgdG86DQo+IHNlbGVjdCBPTUFQMl9WUkZCIGlmIEFSQ0hfT01BUDIgfHwgQVJDSF9PTUFQMw0K
+W1NlbnRoaWxdICBJIHdvdWxkIGNob29zZSB0aGlzIHRvIGF2b2lkIGFub3RoZXIgdXNlciBzZWxl
+Y3Rpb24gaW4gbWVudWNvbmZpZy4NClNlbGVjdGluZyBjb25kaXRpb25hbGx5IHdvdWxkIGJlIG9m
+IG1pbmltYWwgY2hhbmdlIHRoYW4gdGhlIHByZXNlbnQgcGF0Y2guDQo+IG9yDQo+IA0KPiBMZXQg
+dGhlIHVzZXIgc2VsZWN0IFZSRkIuDQo+IA0KPiAgVG9taQ0KPiANCj4gDQo+IA==
