@@ -1,118 +1,61 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v5 2/2] OMAP4 HSMMC: Adding card detect support for MMC1
-	Controller
-Date: Mon, 21 Jun 2010 12:37:38 +0530
-Message-ID: <AANLkTinbuDL5VDxGjhNYGGTURlqa3THtotjY7tWLsZKx@mail.gmail.com>
-References: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
-	<20100617132737.d952d191.akpm@linux-foundation.org>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH] DSS2 Include VRFB into omap2-3build only
+Date: Mon, 21 Jun 2010 11:38:26 +0300
+Message-ID: <1277109506.2526.19.camel@tubuntu.research.nokia.com>
+References: <1273474110-22451-1-git-send-email-svadivu@ti.com>
+	 <1A2F53DA-903A-4667-A27F-492A3499F7ED@student.utwente.nl>
+	 <FCCFB4CDC6E5564B9182F639FC356087030428879D@dbde02.ent.ti.com>
+	 <73F3CED4-60D5-4351-A921-335110542B6F@dominion.thruhere.net>
+	 <A24693684029E5489D1D202277BE894456043018@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20100617132737.d952d191.akpm@linux-foundation.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: kishore kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, madhu.cr@ti.com, adrian.hunter@nokia.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:33805 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753449Ab0FUIjc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 04:39:32 -0400
+In-Reply-To: <A24693684029E5489D1D202277BE894456043018@dlee02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Aguirre, Sergio" <saaguirre@ti.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Fri, Jun 18, 2010 at 1:57 AM, Andrew Morton
-<akpm@linux-foundation.org> wrote:
-> On Thu, 17 Jun 2010 20:57:19 +0530 (IST)
-> "kishore kadiyala" <kishore.kadiyala@ti.com> wrote:
->
->> Adding card detect callback function which gives the status of
->> the card .For MMC1 Controller, Card detect interrupt source is
->> twl6030 and card present/absent status is provided by MMCCTRL
->> register of twl6030.
->>
->>
->> ...
->>
->>
->> + =A0 =A0 int ret =3D -ENOSYS;
->> + =A0 =A0 int ret =3D -ENOSYS;
->
-> ENOSYS seems an inappropriate errno to use in a driver.
->
-> "ENOSYS -- The system doesn't support that function. =A0For example, =
-if
-> you call setpgid() on a system without job control, you'll get an
-> ENOSYS error."
->
-> I think it means "you the programmer tried to do something in a sysca=
-ll
-> which didn't make sense in this context".
->
-> I'm not sure what _is_ appropraite here. =A0There's always EIO I gues=
-s.
-> ENODEV?
+On Fri, 2010-06-18 at 18:57 +0200, ext Aguirre, Sergio wrote:
+> Senthil,
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Koen Kooi
+> > Sent: Monday, May 10, 2010 3:03 AM
+> > To: Guruswamy, Senthilvadivu
+> > Cc: linux-omap@vger.kernel.org; linux-fbdev-devel@lists.sourceforge.net;
+> > tony@atomide.com; tomi.valkeinen@nokia.com; Hiremath, Vaibhav
+> > Subject: Re: [PATCH] DSS2 Include VRFB into omap2-3build only
+> > 
+> > 
+> > Op 10 mei 2010, om 10:01 heeft Guruswamy, Senthilvadivu het volgende
+> > geschreven:
+> > 
+> > > Building a multi-omap kernel is not impacted as long as the display is
+> > not choosen in the build.  Usually display is chosen from the board file.
+> 
+> Solving this problem involves doing these selections in run time, NOT in build time.
+> 
+> One of the solutions for this is to provide all this selections as part
+> of some platform driver data.
+> 
+> It _should_ be possible to build DSS2, VRFB AND Tiler code at the same time
+> for a multi-omap build, and be executed selectively, depending on your
+> silicon detection and board code execution.
+> 
+> If you need to deselect it to succeed, then it's broken for multi-omap
+> builds. That's the core problem and it hasn't been addressed until date.
 
-Agree, I will make changes with "EIO" .
+I think the v3 patch set does it correctly. It allows VRFB to be built
+only if ARCH_OMAP2 || ARCH_OMAP3, but does not turn VRFB off on
+ARCH_OMAP4.
 
->
-> This happens a lot. =A0The userspace errnos just don't map well onto
-> kernel-internal operations. =A0it was a mistake - we should have defi=
-ned a kernel-internal namespace and perhaps type for such things. =A0Oh=
- well.
->
->> +/* Configuring Card Detect for MMC1 */
->> +static inline int omap4_hsmmc1_card_detect_config(void)
->> +{
->> + =A0 =A0 int res =3D -1;
->> + =A0 =A0 u8 reg_val =3D 0;
->> +
->> + =A0 =A0 /* Unmasking the Card detect Interrupt line for MMC1 from =
-Phoenix */
->> + =A0 =A0 if (twl_class_is_6030()) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_MMCDETECT=
-_INT_MASK,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 REG_INT_MSK_LINE_B);
->> + =A0 =A0 =A0 =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_MMCDETECT=
-_INT_MASK,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 REG_INT_MSK_STS_B);
->> + =A0 =A0 }
->> +
->> +
->> + =A0 =A0 /*
->> + =A0 =A0 =A0* Intially Configuring MMC_CTRL for receving interrupts=
- &
->> + =A0 =A0 =A0* Card status on TWL6030 for MMC1
->> + =A0 =A0 =A0*/
->> + =A0 =A0 res =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val, TWL6=
-030_MMCCTRL);
->> + =A0 =A0 if (res < 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return res;
->> + =A0 =A0 reg_val &=3D ~VMMC_AUTO_OFF;
->> + =A0 =A0 reg_val |=3D SW_FC;
->> + =A0 =A0 twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_MMCC=
-TRL);
->> +
->> + =A0 =A0 =A0/* Configuring CFG_INPUT_PUPD3 */
->> + =A0 =A0 res =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 TWL6030_CFG_INPUT_PUPD3);
->> + =A0 =A0 if (res < 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return res;
->> + =A0 =A0 reg_val &=3D ~(MMC_PU | MMC_PD);
->> + =A0 =A0 twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_CFG_=
-INPUT_PUPD3);
->> + =A0 =A0 return res;
->> +}
->
-> This is waaaaay to large to be inlined. =A0Why not put it in a .c fil=
-e?
+ Tomi
 
-ok, I will repost with the inlined moved as a function in .c file .
 
-Regards,
-Kishore
-
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
