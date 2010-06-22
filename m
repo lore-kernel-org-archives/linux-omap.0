@@ -1,37 +1,58 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH] OMAP: DSS2: Remove extra return statement
-Date: Tue, 22 Jun 2010 13:44:01 +0530
-Message-ID: <1277194441-31508-1-git-send-email-archit@ti.com>
+From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: [PATCH] OMAP3 PM: fix the error messages printed when the system suspend
+Date: Tue, 22 Jun 2010 16:31:24 +0800
+Message-ID: <1277195484-5501-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39988 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757165Ab0FVIOJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jun 2010 04:14:09 -0400
+Received: from mail.windriver.com ([147.11.1.11]:46217 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753333Ab0FVIS4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 04:18:56 -0400
+Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
+	by mail.windriver.com (8.14.3/8.14.3) with ESMTP id o5M8ItEn004801
+	for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 01:18:55 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: linux-omap@vger.kernel.org
 
-Remove extra return statement in omapdss_default_get_recommended_bpp
-from overlay.c
+omap3505/omap3517 don't have the bit OMAP3430_EN_IO and the bit
+OMAP3430_EN_IO_CHAIN in the register PM_WKEN_WKUP. When the system
+suspend, the following messages will be printed:
 
-Signed-off-by: Archit Taneja <archit@ti.com>
+"Wake up daisy chain activation failed."
+
+Now fix it by adding "if (!cpu_is_omap3505() && !cpu_is_omap3517())".
+
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
 ---
- drivers/video/omap2/dss/display.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index 480aeaa..22dd7a4
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -346,7 +346,6 @@ int omapdss_default_get_recommended_bpp(struct omap_dss_device *dssdev)
- 	case OMAP_DISPLAY_TYPE_VENC:
- 	case OMAP_DISPLAY_TYPE_SDI:
- 		return 24;
--		return 24;
- 	default:
- 		BUG();
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 62529ff..d16648a 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -385,8 +385,9 @@ void omap_sram_idle(void)
+ 	/* Enable IO-PAD and IO-CHAIN wakeups */
+ 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+ 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+-	if (per_next_state < PWRDM_POWER_ON ||
+-			core_next_state < PWRDM_POWER_ON) {
++	if (!cpu_is_omap3505() && !cpu_is_omap3517() && \
++			(per_next_state < PWRDM_POWER_ON || \
++			  core_next_state < PWRDM_POWER_ON)) {
+ 		prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
+ 		omap3_enable_io_chain();
+ 	}
+@@ -479,7 +480,8 @@ void omap_sram_idle(void)
+ 	}
+ 
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+-	if (core_next_state < PWRDM_POWER_ON) {
++	if ((core_next_state < PWRDM_POWER_ON) && \
++			!cpu_is_omap3505() && !cpu_is_omap3517()) {
+ 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
+ 		omap3_disable_io_chain();
  	}
 -- 
-1.6.3.3
+1.5.4.3
 
