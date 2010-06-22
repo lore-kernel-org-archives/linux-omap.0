@@ -1,60 +1,78 @@
-From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCH] omap: fix the cpu type check in clock3xxx_data.c
-Date: Tue, 22 Jun 2010 14:26:23 +0800
-Message-ID: <1277187983-26142-1-git-send-email-stanley.miao@windriver.com>
+From: "Robert Lukassen" <Robert.Lukassen@tomtom.com>
+Subject: RE: Overo serial problems after resume, vs. Beagleboard
+Date: Tue, 22 Jun 2010 09:34:51 +0200
+Message-ID: <D6DB9C7EDECDA944B870F62B587008622C89CF@NL-EXC-06.intra.local>
+References: <4C1F9B80.9010708@gmail.com> <874ogw1dy2.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:50631 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563Ab0FVGNy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 02:13:54 -0400
-Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
-	by mail.windriver.com (8.14.3/8.14.3) with ESMTP id o5M6DsqQ010195
-	for <linux-omap@vger.kernel.org>; Mon, 21 Jun 2010 23:13:54 -0700 (PDT)
+Received: from mxvs2.esa.t-systems.com ([81.7.202.143]:47662 "EHLO
+	mxvs2.esa.t-systems.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752807Ab0FVHex convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 03:34:53 -0400
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-omap3517 and omap3505 belong to OMAP3 architecture, so the cpu_is_omap34xx
-will be true. Therefore, if the cpu omap3517 is a exception, we should check
-whether it is omap3517 before check whether it is omap34xx.
+I've reported this issue earlier this month, unfortunately I have no clue what is happening.
+When you telnet (or ssh) to the board via Ethernet-LAN you can see that the board is suspending
+and resuming. Output to the serial console works fine. If you do:
 
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
----
- arch/arm/mach-omap2/clock3xxx_data.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+> echo Hello > /dev/console
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 41b155a..6766612 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3412,7 +3412,13 @@ int __init omap3xxx_clk_init(void)
- 	struct omap_clk *c;
- 	u32 cpu_clkflg = CK_3XXX;
- 
--	if (cpu_is_omap34xx()) {
-+	if (cpu_is_omap3517()) {
-+		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
-+		cpu_clkflg |= CK_3517;
-+	} else if (cpu_is_omap3505()) {
-+		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
-+		cpu_clkflg |= CK_3505;
-+	} else if (cpu_is_omap34xx()) {
- 		cpu_mask = RATE_IN_3XXX;
- 		cpu_clkflg |= CK_343X;
- 
-@@ -3427,12 +3433,6 @@ int __init omap3xxx_clk_init(void)
- 			cpu_mask |= RATE_IN_3430ES2PLUS;
- 			cpu_clkflg |= CK_3430ES2;
- 		}
--	} else if (cpu_is_omap3517()) {
--		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
--		cpu_clkflg |= CK_3517;
--	} else if (cpu_is_omap3505()) {
--		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
--		cpu_clkflg |= CK_3505;
- 	}
- 
- 	if (omap3_has_192mhz_clk())
--- 
-1.5.4.3
+from the ssh/telnet session, you'll see the message being printed to the serial console.
 
+Also, if you have configured the serial console as a wakeup source:
+
+> echo enabled > /sys/devices/platform/serial8250.2/tty/ttyS2/wakeup
+
+then sending a character over the (USB) console link does resume the Overo.
+
+Any character send over the (USB) console link *after* the Overo has resumed will lock up the system in one of two ways:
+
+1) immediate
+
+   The system is locked completely, and the parallel telnet/ssh session cannot make any progress
+
+2) gradual failure
+
+   The system becomes sluggish, especially noticable in the parallel telnet/ssh session that makes progress
+   but only slowly. That situation gets worse progressively until there is no noticable progress anymore.
+
+The fact that the serial console does produce output should be proof that there is no problem with the UART clocks. In case (2), 
+'top' running in the parallel telnet/ssh session shows virtually no system load, so the lockup/worsening performance seem to have a kernel origin. 
+
+I haven't found an effective way to debug this on the Overo.
+
+Cheers,
+
+Robert  
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Monday, June 21, 2010 7:41 PM
+> To: Peter Tseng
+> Cc: linux-omap@vger.kernel.org; Han Wang
+> Subject: Re: Overo serial problems after resume, vs. Beagleboard
+> 
+> Peter Tseng <tsenpet09@gmail.com> writes:
+> 
+> > I am seeing some discrepancies between the Overo (I believe I have a
+> > Water) and the Beagleboard (I have a Rev. B5) when resuming after a 
+> > suspend to RAM.
+> 
+> Not that it is much comfort, but I have the same problem on 
+> Overo but don't see it on any other OMAP3 board.
+> 
+> I have yet to debug this particular issue further.
+> 
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
