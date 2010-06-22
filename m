@@ -1,120 +1,93 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 10/13 v3] OMAP: GPIO: Add gpio dev_attr and correct clks in OMAP4 hwmod struct
-Date: Tue, 22 Jun 2010 07:35:53 -0700
-Message-ID: <87r5jznnhy.fsf@deeprootsystems.com>
-References: <1276614348-5201-1-git-send-email-charu@ti.com>
-	<1276614348-5201-2-git-send-email-charu@ti.com>
-	<1276614348-5201-3-git-send-email-charu@ti.com>
-	<1276614348-5201-4-git-send-email-charu@ti.com>
-	<1276614348-5201-5-git-send-email-charu@ti.com>
-	<1276614348-5201-6-git-send-email-charu@ti.com>
-	<1276614348-5201-7-git-send-email-charu@ti.com>
-	<1276614348-5201-8-git-send-email-charu@ti.com>
-	<1276614348-5201-9-git-send-email-charu@ti.com>
-	<1276614348-5201-10-git-send-email-charu@ti.com>
-	<1276614348-5201-11-git-send-email-charu@ti.com>
-	<4C17ACE8.6000805@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B62A@dbde02.ent.ti.com>
-	<4C1891F7.40101@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02C5B4B9B3@dbde02.ent.ti.com>
-	<87ocf9mwzg.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02C5C93075@dbde02.ent.ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [pm-wip/uart][PATCH 3/5 v2] OMAP3: serial: Fix uart4 handling for
+	3630
+Date: Tue, 22 Jun 2010 20:25:09 +0530
+Message-ID: <AANLkTinc_UeaArVDogzSldW5SWfBPHE-h0pAOCkSRNEr@mail.gmail.com>
+References: <2232.10.24.255.18.1276697648.squirrel@dbdmail.itg.ti.com>
+	<87typ1jpt8.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:33410 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758640Ab0FVOf5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 10:35:57 -0400
-Received: by pwj8 with SMTP id 8so954806pwj.19
-        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 07:35:56 -0700 (PDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5C93075@dbde02.ent.ti.com> (Charulatha Varadarajan's message of "Tue\, 22 Jun 2010 19\:00\:53 +0530")
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:41894 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756481Ab0FVOzK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 10:55:10 -0400
+Received: by gwaa12 with SMTP id a12so1046872gwa.19
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 07:55:09 -0700 (PDT)
+In-Reply-To: <87typ1jpt8.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Basak, Partha" <p-basak2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+On Fri, Jun 18, 2010 at 3:15 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>
+>> This patch makes the following:
+>> =A0- Adds missing wakeup padding register handling.
+>> =A0- Fixes a hardcode to use PER module ONLY on UART3.
+>> =A0- Muxmode usage needed for uart4 for 3630, for padconf
+>> =A0 =A0wakeup on uart4_rx line. uart4_rx signal is available
+>> =A0 =A0under mode-2 in gpmc_wait3. Thus have to ensure we are
+>> =A0 =A0in right mux mode before accesing any padconf register.
+>> =A0 =A0So ensure right mux mode for uarti padconf access.
+>
+> I think this mux-mode handling should be done as a separate patch wit=
+h
+> more description as exactly what problem this is solving.
+>
+> Presumably, whatever problem you're solving not unique to 3630 UART4
+> as the UARTs on the other platforms can be muxed with other
+> peripherals as well.
+>
+> Based on the way it's being mux'd (and continually re-mux'd) in this
+> patch, it looks like the mux settings for that pin are being
+> dynamically changed elsewhere in the code. =A0If that's the case, the=
+n
+> that should be better understood, and this code should likely re-mux
+> to the original settings when its done.
+>
+> Kevin
 
->  
->
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->> Sent: Thursday, June 17, 2010 10:13 PM
->> To: Varadarajan, Charulatha
->> Cc: Cousson, Benoit; david-b@pacbell.net; 
->> broonie@opensource.wolfsonmicro.com; 
->> akpm@linux-foundation.org; linux-omap@vger.kernel.org; 
->> paul@pwsan.com; Nayak, Rajendra; tony@atomide.com; Basak, Partha
->> Subject: Re: [PATCH 10/13 v3] OMAP: GPIO: Add gpio dev_attr 
->> and correct clks in OMAP4 hwmod struct
->> 
->> "Varadarajan, Charulatha" <charu@ti.com> writes:
->> 
->> [...]
->> 
->> >> 
->> >> So please, don't do that.
->> >> 
->> >> BTW, you didn't answer the first answer, do you really need that?
->> >> 
->> > It is used in save/restore context which would be called
->> > from sram_idle path.
->> 
->> Cleaning this up should be considered instead of keeping around the
->> bank count.
->> 
->> The save/restore should be done per-bank whenever the bank usage count
->> goes to zero (or changes from zero.)
->
-> When a GPIO is acquired in a particular gpio bank, the gpio bank can still
-> go to idle if it is called by omap_sram_idle(). In such a case, restore
-> context will be called even when bank count is not 0.
+Since padconf and mux_mode value is populated based on a cpu_check I
+thought other platforms might not be affected
 
-If a GPIO has been requested, then it should have a non-zero usage
-count.  and save/restore should be used.  If it has a zero usage
-count, then save should be done when the usage count goes to zero, and
-restore should be done when usage count changes from zero.
+Actually uart4_rx in available under CONTROL_PADCONF_GPMC_WAIT2[31:16]
+in mux_mode 2
 
-The way it works today is that save/restore is blindly called for all banks
-every idle path.  This should be fixed.
+I am not sure whether this gpmc line is used or not.
 
-Kevin
+I was just trying to be cautious in read and write for uart4_rx
+Ensuring that I am using right mux mode wrt uart
+Yes I do agree that I can corrupt gpmc_wait2 padconf if used by other
+peripheral.
 
->> 
->> If you don't want to address that cleanup in this series, add it to
->> the TODO list for the cleanups and use the current variable, but it's
->> value should be set when iterating over the number of hwmods as
->> suggested by Benoit.
+So any thought how do we handle rx wakeup if not available as an
+seperate padconf
+as in this case uart4_rx
+I mean if uart_rx_padconf is not available straight forward and
+available under a muxmode
+
+Regards,
+Govindraj.R
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
-> Okay. Will add these changes in my next version of patchset. 
->
->> 
->> Kevin
->> 
->
->>>>>>
->>>>>>> +	.gpio_bank_bits = 32,
->>>>>>> +	.dbck_flag = true,
->>>>>>> +};
->>>>>>
->>>>>> Since this structure is the same than OMAP3, you should maybe consider
->>>>>> sharing it.
->>>>>
->>>>> They are in different _data.c files. I feel that it will be good if they are
->>>> kept decoupled as we need not have to mix up different SoC data. Here it's only a
->>>> coincidence that OMAP3 and OMAP4 have same data
->>>>
->>>> No it is not a coincidence, it is because we are re-using the same IP
->>>> implementation. In that case, it is not a big deal, but you should try
->>>> to reuse as most as you can already existing data.
->>>
->>> They are in two different omap_hwmod_xxxx_data.c files. Is there a way to share this data?
->
->> You can use omap_hwmod_common_data.c if you want.
->
-> It is common only for OMAP3/4 and not for OMAP2. But, omap_hwmod_common_data.c is common
-> for all OMAP2PLUS. Hence will maintain dev_attr for OMAP3&4 in their respective
-> hwmod database files.
->
->> Benoit
+
+
+
+--=20
+---
+Regards,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
