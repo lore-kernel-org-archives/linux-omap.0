@@ -1,61 +1,49 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v2] OMAP:GPTIMER:1ms tick generation correction
-Date: Tue, 22 Jun 2010 09:08:39 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032358EE5A@dbde02.ent.ti.com>
-References: <1277151798-26232-1-git-send-email-tarun.kanti@ti.com>
- <8739wg2xg7.fsf@deeprootsystems.com>
+From: "Mr Chen Guan" <info@w.cn>
+Subject: (unknown)
+Date: Tue, 22 Jun 2010 08:31:40 +0400 (MSD)
+Message-ID: <54003.193.220.26.130.1277181100.squirrel@mail.t-k.ru>
+Reply-To: chen_guan777@w.cn
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33199 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753640Ab0FVDiq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jun 2010 23:38:46 -0400
-In-Reply-To: <8739wg2xg7.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mx.tele-kom.ru ([91.102.104.6]:3957 "HELO mx.tele-kom.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751514Ab0FVFJX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Jun 2010 01:09:23 -0400
+Subject: 
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
-
-Kevin,
-
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Monday, June 21, 2010 9:24 PM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; R, Sricharan
-> Subject: Re: [PATCH v2] OMAP:GPTIMER:1ms tick generation correction
-> 
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
-> 
-> > Generation of 1ms granular GPTIMER events using 32KHz or system
-> > clocks as inputs does not have whole number count value to load
-> > into the register. This inaccurate count value with respect to 1ms
-> > period leads to time drift subsequently. OMAP3 and later silicons
-> > have dedicated registers for GPTIMER1, GPTIMER2 and GPTIMER10,
-> > which can be programmed with computed values to keep this error
-> > controlled within specified limit.
-> >
-> > Version 2:
-> > (i) optimized omap_dm_timer_ms_correction() function and corrected
-> > error in computing the positive and negative increments.
-> > (ii) typo corrections in comment section and warning removal related
-> > to 80-character limit
-> >
-> > Tested on Zoom3 using Linus tree.
-> >
-> > Signed-off-by: R Sricharan <r.sricharan@ti.com>
-> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> 
-> Please coordinate this change with the GPTIMER hwmod changes.  The timers
-> that have/need this feature should be flagged at the hwmod level (probably
-> by
-> a dev_attr flag.)
 
 
-OK!
 
-> 
-> Kevin
+
+-- 
+Dear Friend,
+
+I have a business suggestion for you. let me start by introducing myself
+to you fully. I am Mr. Chen Guan, Foreign Operations Manager of the Bank
+of China (Hong kong). Before the U.S and Iraqi war our client Ali Hussein
+who was with the Iraqi forces and also a businessman made a numbered fixed
+deposit for 12 calendar months, with a value of Seventeen Million Three
+Hundred Thousand United State Dollars only into an account with my branch.
+Upon maturity several notice was sent to him, even during the war . Again
+after the war another notification was sent and still no response came
+from him. We later found out that the Ali Hussein and his family had been
+killed during the war in bomb blast that hit their home. After further
+investigation it was also discovered that Ali Hussein did not declare any
+next of kin in his official papers including the paper work of his bank
+deposit. And he also confided in me the last time he was at my office that
+no one except me knew of his deposit in my bank. So, Seventeen Million
+Three Hundred Thousand United State Dollars(US$17,300,000.00) is still
+lying in my bank and no one will ever come forward to claim it. What
+bothers me most is that according to the laws of my country at the
+expiration 7years the funds will revert to the ownership of the Hong Kong
+Government if nobody applies to claim the funds. Against this backdrop, my
+suggestion to you is that I will like you as a foreigner to stand as the
+next of kin to Ali Hussein so that you will be able to receive his funds.
+Please reply to my private email for more Details (chen_guan777@w.cn)
+Thank you for your time and understanding.
+
+Kind Regards,
+Mr. Chen Guan
