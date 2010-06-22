@@ -1,68 +1,74 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: HWMOD: Fix compilation error due to sr hwmod usage
-Date: Tue, 22 Jun 2010 08:29:43 -0700
-Message-ID: <87iq5bkrvc.fsf@deeprootsystems.com>
-References: <1277218823-15133-1-git-send-email-charu@ti.com>
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+Date: Tue, 22 Jun 2010 18:36:33 +0300
+Message-ID: <20100622153633.GY17639@pcarmody-desktop>
+References: <20100602.143458.232754971.Hiroshi.DOYU@nokia.com> <1276841055-13843-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:33572 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753371Ab0FVP3q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 11:29:46 -0400
-Received: by pvh11 with SMTP id 11so429141pvh.19
-        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 08:29:45 -0700 (PDT)
-In-Reply-To: <1277218823-15133-1-git-send-email-charu@ti.com> (Charulatha V.'s message of "Tue\, 22 Jun 2010 20\:30\:23 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1276841055-13843-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Charulatha V <charu@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Charulatha V <charu@ti.com> writes:
+On 18/06/10 08:04 +0200, Doyu Hiroshi (Nokia-D/Helsinki) wrote:
+> Hi,
+> 
+> This is another version of "kmemleak: Fix false positive", which
+> introduces another alias tree to keep track of all alias address of
+> each objects, based on the discussion(*1)
+> 
+> You can also find the previous one(*2), which uses special scan area
+> for alias addresses with a conversion function.
+> 
+> Compared with both methods, it seems that the current one takes a bit
+> longer to scan as below, tested with 512 elementes of (*3).
+> 
+> "kmemleak: Fix false positive with alias":
+> # time echo scan > /mnt/kmemleak
+> real    0m 8.40s
+> user    0m 0.00s
+> sys     0m 8.40s
+> 
+> "kmemleak: Fix false positive with special scan":
+> # time echo scan > /mnt/kmemleak 
+> real    0m 3.96s
+> user    0m 0.00s
+> sys     0m 3.96s
+> 
+> For our case(*4) to reduce false positives for the 2nd level IOMMU
+> pagetable allocation, the previous special scan  seems to be enough
+> lightweight, although there might be possiblity to improve alias
+> one and also I might misunderstand the original proposal of aliasing.
+> 
+> Any comment would be appreciated.
 
-> On 'origin/pm-wip/hwmods-omap4' branch, fix the following
-> compilation error:
->
-> arch/arm/mach-omap2/omap_hwmod_3xxx_data.c:218:
-> 	error: 'omap34xx_sr1_hwmod' undeclared here (not in a function)
-> arch/arm/mach-omap2/omap_hwmod_3xxx_data.c:219:
-> 	error: 'omap34xx_sr2_hwmod' undeclared here (not in a function)
-> arch/arm/mach-omap2/omap_hwmod_3xxx_data.c:220: error:
-> 	'omap36xx_sr1_hwmod' undeclared here (not in a function)
-> arch/arm/mach-omap2/omap_hwmod_3xxx_data.c:221:
-> 	error: 'omap36xx_sr2_hwmod' undeclared here (not in a function)
-> make[1]: *** [arch/arm/mach-omap2/omap_hwmod_3xxx_data.o] Error 1
->
-> Signed-off-by: Charulatha V <charu@ti.com>
+After comparing the two, my Ack would still strongly be behind the 
+first one, the special scan. The additional work over a normal scan 
+is limited strictly to those regions that need it, which is a much 
+more clinical approach to the problem. Your timing data bears that 
+out.
 
-Oops, looks like a mis-merge on my part when adding the IVA hwmod data.
+Phil
 
-I fixed this and just pushed an updated version of the pm-wip/hwmods
-branch and (rebased pm-wip/runtime and pm-wip/hwmods-omap4 on top.)
-
-Note that it make take a little time to propagate to the kernel.org
-mirrors.
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    4 ----
->  1 files changed, 0 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index f7e1ace..fe92b5d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -215,10 +215,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
->  	&omap3xxx_l4_wkup_hwmod,
->  	&omap3xxx_mpu_hwmod,
->  	&omap3xxx_iva2_hwmod,
-> -	&omap34xx_sr1_hwmod,
-> -	&omap34xx_sr2_hwmod,
-> -	&omap36xx_sr1_hwmod,
-> -	&omap36xx_sr2_hwmod,
->  	NULL,
->  };
->  
-> -- 
-> 1.6.3.3
+> *1: http://lkml.org/lkml/2010/6/2/282
+> *2: kmemleak: Fix false positive with special scan
+>     http://lkml.org/lkml/2010/6/1/137
+> *3: kmemleak: Add special scan test case
+>     http://lkml.org/lkml/2010/6/1/134
+> *4: http://lkml.org/lkml/2010/6/1/136
+> 
+> Hiroshi DOYU (1):
+>   kmemleak: Fix false positive with alias
+> 
+>  include/linux/kmemleak.h |    4 +
+>  mm/kmemleak.c            |  198 ++++++++++++++++++++++++++++++++++++++--------
+>  2 files changed, 168 insertions(+), 34 deletions(-)
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
