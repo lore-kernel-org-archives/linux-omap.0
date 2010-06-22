@@ -1,61 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and
- check for it on V6
-Date: Tue, 22 Jun 2010 12:28:09 +0300
-Message-ID: <20100622092809.GX12255@atomide.com>
-References: <20100621133749.24299.36154.stgit@baageli.muru.com>
- <20100621135120.24299.98499.stgit@baageli.muru.com>
+From: "Robert Lukassen" <Robert.Lukassen@tomtom.com>
+Subject: RE: Overo serial problems after resume, vs. Beagleboard
+Date: Tue, 22 Jun 2010 11:37:02 +0200
+Message-ID: <D6DB9C7EDECDA944B870F62B587008622C89D1@NL-EXC-06.intra.local>
+References: <4C1F9B80.9010708@gmail.com> <874ogw1dy2.fsf@deeprootsystems.com> <4C207A9C.7070309@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="DIOMP1UsTsWJauNi"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64905 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751897Ab0FVJ17 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 05:27:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20100621135120.24299.98499.stgit@baageli.muru.com>
+Received: from mxvs2.esa.t-systems.com ([81.7.202.143]:28788 "EHLO
+	mxvs2.esa.t-systems.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754366Ab0FVJhN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 05:37:13 -0400
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Mike Rapoport <mike@compulab.co.il>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Tseng <tsenpet09@gmail.com>, linux-omap@vger.kernel.org, Han Wang <hw342@cornell.edu>
 
-
---DIOMP1UsTsWJauNi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Tony Lindgren <tony@atomide.com> [100621 16:45]:
-> The TLS register is only available on ARM1136 r1p0 and later.
-> Set HWCAP_TLS flags if hardware TLS is available.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Mike Rapoport
+> Sent: Tuesday, June 22, 2010 10:56 AM
+> To: Kevin Hilman
+> Cc: Peter Tseng; linux-omap@vger.kernel.org; Han Wang
+> Subject: Re: Overo serial problems after resume, vs. Beagleboard
 > 
-> Note that we now use 0xffff0ff4 for flagging software TLS to
-> __kuser_get_tls, and 0xffff0ff8 for storing the software TLS value.
+> Kevin Hilman wrote:
+> > Peter Tseng <tsenpet09@gmail.com> writes:
+> > 
+> >> I am seeing some discrepancies between the Overo (I 
+> believe I have a
+> >> Water) and the Beagleboard (I have a Rev. B5) when 
+> resuming after a 
+> >> suspend to RAM.
+> > 
+> > Not that it is much comfort, but I have the same problem on 
+> Overo but 
+> > don't see it on any other OMAP3 board.
+> > 
+> > I have yet to debug this particular issue further.
+> 
+> I had the same issue on CM-T35 and when I've disabled 
+> CONFIG_CPU_IDLE in the kernel configuration the issue 
+> disappeared. Maybe it'll be of some help.
 
-Forgot my own earlier comment to check only for ARM1136, will update
-with this patch.
+I just tried that. It helps. I no longer experience this lockup 
+of the console. Thanks. 
 
-Tony
+I'll make a note to try to figure out why this actually helps.
 
---DIOMP1UsTsWJauNi
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="tls-1136.patch"
+Regards,
 
-Check only for 1136.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/kernel/setup.c
-+++ b/arch/arm/kernel/setup.c
-@@ -277,8 +277,8 @@ static void __init feat_v6_fixup(void)
- 	if (id & 0x000f0000 != 0x00070000)
- 		return;
- 
--	/* HWCAP_TLS is available only on V6 r1p0 and later */
--	if (((id >> 20) & 3) == 0)
-+	/* HWCAP_TLS is available only on 1136 r1p0 and later */
-+	if ((((id >> 4) & 0xfff) == 0xb36) && (((id >> 20) & 3) == 0))
- 		elf_hwcap &= ~HWCAP_TLS;
- }
- #else
-
---DIOMP1UsTsWJauNi--
+Robert
