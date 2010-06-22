@@ -1,7 +1,7 @@
 From: Charulatha V <charu@ti.com>
-Subject: [PATCH:v4 09/13] OMAP: GPIO: add GPIO hwmods structures for OMAP243X
-Date: Tue, 22 Jun 2010 20:31:52 +0530
-Message-ID: <1277218916-15213-10-git-send-email-charu@ti.com>
+Subject: [PATCH:v4 11/13] OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init
+Date: Tue, 22 Jun 2010 20:31:54 +0530
+Message-ID: <1277218916-15213-12-git-send-email-charu@ti.com>
 References: <1277218916-15213-1-git-send-email-charu@ti.com>
  <1277218916-15213-2-git-send-email-charu@ti.com>
  <1277218916-15213-3-git-send-email-charu@ti.com>
@@ -11,341 +11,124 @@ References: <1277218916-15213-1-git-send-email-charu@ti.com>
  <1277218916-15213-7-git-send-email-charu@ti.com>
  <1277218916-15213-8-git-send-email-charu@ti.com>
  <1277218916-15213-9-git-send-email-charu@ti.com>
+ <1277218916-15213-10-git-send-email-charu@ti.com>
+ <1277218916-15213-11-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33377 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33376 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758654Ab0FVPBb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1758640Ab0FVPBb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 22 Jun 2010 11:01:31 -0400
-In-Reply-To: <1277218916-15213-9-git-send-email-charu@ti.com>
+In-Reply-To: <1277218916-15213-11-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, p-basak2@ti.com, b-cousson@ti.com, Charulatha V <charu@ti.com>
 
-Add hwmod structures for GPIO module on OMAP243X
+This patch adds support for handling GPIO as a HWMOD FW adapted
+platform device for OMAP2PLUS chips.
+
+gpio_init needs to be done before machine_init functions access gpio APIs.
+Hence gpio_init is made as a postcore_initcall.
 
 Signed-off-by: Charulatha V <charu@ti.com>
 Signed-off-by: Basak, Partha <p-basak2@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |  279 ++++++++++++++++++++++++++++
- 1 files changed, 279 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/gpio.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 86 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpio.c
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index b2100cf..b350928 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -15,6 +15,7 @@
- #include <mach/irqs.h>
- #include <plat/cpu.h>
- #include <plat/dma.h>
-+#include <plat/gpio.h>
- 
- #include "omap_hwmod_common_data.h"
- 
-@@ -72,6 +73,11 @@ static struct omap_hwmod omap2430_l3_hwmod = {
- static struct omap_hwmod omap2430_l4_wkup_hwmod;
- static struct omap_hwmod omap2430_mmc1_hwmod;
- static struct omap_hwmod omap2430_mmc2_hwmod;
-+static struct omap_hwmod omap2430_gpio1_hwmod;
-+static struct omap_hwmod omap2430_gpio2_hwmod;
-+static struct omap_hwmod omap2430_gpio3_hwmod;
-+static struct omap_hwmod omap2430_gpio4_hwmod;
-+static struct omap_hwmod omap2430_gpio5_hwmod;
- 
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap2430_l4_core__l4_wkup = {
-@@ -80,6 +86,96 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__l4_wkup = {
- 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* L4 WKUP -> GPIO1 interface */
-+static struct omap_hwmod_addr_space omap2430_gpio1_addr_space[] = {
-+	{
-+		.pa_start	= OMAP243X_GPIO1_BASE,
-+		.pa_end		= OMAP243X_GPIO1_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+new file mode 100644
+index 0000000..a5b0b60
+--- /dev/null
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -0,0 +1,86 @@
++/*
++ * gpio.c - OMAP2PLUS-specific gpio code
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ *
++ * Author:
++ *	Charulatha V <charu@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/gpio.h>
++#include <linux/err.h>
++#include <linux/slab.h>
++
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
++
++static struct omap_device_pm_latency omap_gpio_latency[] = {
++	[0] = {
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func   = omap_device_enable_hwmods,
++		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
 +	},
 +};
 +
-+static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio1 = {
-+	.master		= &omap2430_l4_wkup_hwmod,
-+	.slave		= &omap2430_gpio1_hwmod,
-+	.clk		= "gpios_ick",
-+	.addr		= omap2430_gpio1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_gpio1_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
++static int omap2_init_gpio(struct omap_hwmod *oh, void *user)
++{
++	struct omap_device *od;
++	struct omap_gpio_platform_data *pdata;
++	char *name = "omap-gpio";
++	static int id;
++	struct omap_gpio_dev_attr *gpio_dev_data;
 +
-+/* L4 WKUP -> GPIO2 interface */
-+static struct omap_hwmod_addr_space omap2430_gpio2_addr_space[] = {
-+	{
-+		.pa_start	= OMAP243X_GPIO2_BASE,
-+		.pa_end		= OMAP243X_GPIO2_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
++	if (!oh)
++		pr_err("Could not look up omap gpio %d\n", id + 1);
 +
-+static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio2 = {
-+	.master		= &omap2430_l4_wkup_hwmod,
-+	.slave		= &omap2430_gpio2_hwmod,
-+	.clk		= "gpios_ick",
-+	.addr		= omap2430_gpio2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_gpio2_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
++	pdata = kzalloc(sizeof(struct omap_gpio_platform_data),
++					GFP_KERNEL);
++	if (!pdata) {
++		pr_err("Memory allocation failed gpio%d\n", id + 1);
++		return -ENOMEM;
++	}
 +
-+/* L4 WKUP -> GPIO3 interface */
-+static struct omap_hwmod_addr_space omap2430_gpio3_addr_space[] = {
-+	{
-+		.pa_start	= OMAP243X_GPIO3_BASE,
-+		.pa_end		= OMAP243X_GPIO3_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
++	gpio_dev_data = (struct omap_gpio_dev_attr *)oh->dev_attr;
 +
-+static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio3 = {
-+	.master		= &omap2430_l4_wkup_hwmod,
-+	.slave		= &omap2430_gpio3_hwmod,
-+	.clk		= "gpios_ick",
-+	.addr		= omap2430_gpio3_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_gpio3_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
++	pdata->gpio_attr = gpio_dev_data;
++	pdata->virtual_irq_start = IH_GPIO_BASE + 32 * id;
++	switch (oh->class->rev) {
++	case 0:
++	case 1:
++		pdata->bank_type = METHOD_GPIO_24XX;
++		break;
++	case 2:
++		pdata->bank_type = METHOD_GPIO_44XX;
++		break;
++	default:
++		WARN(1, "Invalid gpio bank_type\n");
++		break;
++	}
++	gpio_bank_count++;
 +
-+/* L4 WKUP -> GPIO4 interface */
-+static struct omap_hwmod_addr_space omap2430_gpio4_addr_space[] = {
-+	{
-+		.pa_start	= OMAP243X_GPIO4_BASE,
-+		.pa_end		= OMAP243X_GPIO4_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
++	od = omap_device_build(name, id, oh, pdata,
++				sizeof(*pdata),	omap_gpio_latency,
++				ARRAY_SIZE(omap_gpio_latency),
++				false);
++	WARN(IS_ERR(od), "Cant build omap_device for %s:%s.\n",
++				name, oh->name);
 +
-+static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio4 = {
-+	.master		= &omap2430_l4_wkup_hwmod,
-+	.slave		= &omap2430_gpio4_hwmod,
-+	.clk		= "gpios_ick",
-+	.addr		= omap2430_gpio4_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_gpio4_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
++	id++;
++	return 0;
++}
 +
-+/* L4 CORE -> GPIO5 interface */
-+static struct omap_hwmod_addr_space omap2430_gpio5_addr_space[] = {
-+	{
-+		.pa_start	= OMAP243X_GPIO5_BASE,
-+		.pa_end		= OMAP243X_GPIO5_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2430_l4_core__gpio5 = {
-+	.master		= &omap2430_l4_core_hwmod,
-+	.slave		= &omap2430_gpio5_hwmod,
-+	.clk		= "gpio5_ick",
-+	.addr		= omap2430_gpio5_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_gpio5_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* Slave interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap2430_l4_core_slaves[] = {
- 	&omap2430_l3__l4_core,
-@@ -138,11 +234,194 @@ static struct omap_hwmod omap2430_mpu_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- };
- 
-+/* GPIO common */
-+
-+static struct omap_gpio_dev_attr gpio_dev_attr = {
-+	.gpio_bank_width = 32,
-+	.dbck_flag = false,
-+};
-+
-+static struct omap_hwmod_class_sysconfig omap243x_gpio_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap243x_gpio_hwmod_class = {
-+	.name = "gpio",
-+	.sysc = &omap243x_gpio_sysc,
-+	.rev = 0,
-+};
-+
-+/* GPIO1 */
-+
-+static struct omap_hwmod_irq_info omap243x_gpio1_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_24XX_GPIO_BANK1 },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_gpio1_slaves[] = {
-+	&omap2430_l4_wkup__gpio1,
-+};
-+
-+static struct omap_hwmod omap2430_gpio1_hwmod = {
-+	.name		= "gpio1",
-+	.mpu_irqs	= omap243x_gpio1_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio1_irqs),
-+	.main_clk	= "gpios_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPIOS_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_GPIOS_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_gpio1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_gpio1_slaves),
-+	.class		= &omap243x_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/* GPIO2 */
-+
-+static struct omap_hwmod_irq_info omap243x_gpio2_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_24XX_GPIO_BANK2 },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_gpio2_slaves[] = {
-+	&omap2430_l4_wkup__gpio2,
-+};
-+
-+static struct omap_hwmod omap2430_gpio2_hwmod = {
-+	.name		= "gpio2",
-+	.mpu_irqs	= omap243x_gpio2_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio2_irqs),
-+	.main_clk	= "gpios_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPIOS_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_GPIOS_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_gpio2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_gpio2_slaves),
-+	.class		= &omap243x_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/* GPIO3 */
-+
-+static struct omap_hwmod_irq_info omap243x_gpio3_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_24XX_GPIO_BANK3 },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_gpio3_slaves[] = {
-+	&omap2430_l4_wkup__gpio3,
-+};
-+
-+static struct omap_hwmod omap2430_gpio3_hwmod = {
-+	.name		= "gpio3",
-+	.mpu_irqs	= omap243x_gpio3_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio3_irqs),
-+	.main_clk	= "gpios_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPIOS_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_GPIOS_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_gpio3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_gpio3_slaves),
-+	.class		= &omap243x_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/* GPIO4 */
-+
-+static struct omap_hwmod_irq_info omap243x_gpio4_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_24XX_GPIO_BANK4 },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_gpio4_slaves[] = {
-+	&omap2430_l4_wkup__gpio4,
-+};
-+
-+static struct omap_hwmod omap2430_gpio4_hwmod = {
-+	.name		= "gpio4",
-+	.mpu_irqs	= omap243x_gpio4_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio4_irqs),
-+	.main_clk	= "gpios_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPIOS_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_GPIOS_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_gpio4_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_gpio4_slaves),
-+	.class		= &omap243x_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/* GPIO5 */
-+
-+static struct omap_hwmod_irq_info omap243x_gpio5_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_24XX_GPIO_BANK5 },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_gpio5_slaves[] = {
-+	&omap2430_l4_core__gpio5,
-+};
-+
-+static struct omap_hwmod omap2430_gpio5_hwmod = {
-+	.name		= "gpio5",
-+	.mpu_irqs	= omap243x_gpio5_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio5_irqs),
-+	.main_clk	= "gpio5_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP2430_ST_GPIO5_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP2430_ST_GPIO5_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_gpio5_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_gpio5_slaves),
-+	.class		= &omap243x_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
- static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	&omap2430_l3_hwmod,
- 	&omap2430_l4_core_hwmod,
- 	&omap2430_l4_wkup_hwmod,
- 	&omap2430_mpu_hwmod,
-+	&omap2430_gpio1_hwmod,
-+	&omap2430_gpio2_hwmod,
-+	&omap2430_gpio3_hwmod,
-+	&omap2430_gpio4_hwmod,
-+	&omap2430_gpio5_hwmod,
- 	NULL,
- };
- 
++/*
++ * gpio_init needs to be done before
++ * machine_init functions access gpio APIs.
++ * Hence gpio_init is a postcore_initcall.
++ */
++static int __init omap2_gpio_init(void)
++{
++	return omap_hwmod_for_each_by_class("gpio", omap2_init_gpio,
++						NULL);
++}
++postcore_initcall(omap2_gpio_init);
 -- 
 1.6.3.3
 
