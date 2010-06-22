@@ -1,79 +1,50 @@
-From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Subject: RE: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB depends on OMAP2,3
-Date: Tue, 22 Jun 2010 17:28:47 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304288933@dbde02.ent.ti.com>
-References: <1276778702-15280-1-git-send-email-svadivu@ti.com>
-	 <1276778702-15280-2-git-send-email-svadivu@ti.com>
-	 <1276778702-15280-3-git-send-email-svadivu@ti.com>
- <1277110241.2526.31.camel@tubuntu.research.nokia.com>
- <19F8576C6E063C45BE387C64729E7394044E91BF03@dbde02.ent.ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 2/2] arm: Make VFPv3 usable on ARMv6
+Date: Tue, 22 Jun 2010 13:59:52 +0100
+Message-ID: <1277211592.29532.20.camel@e102109-lin.cambridge.arm.com>
+References: <20100621135125.24299.91290.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60617 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752714Ab0FVL7A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 07:59:00 -0400
-Content-Language: en-US
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:39392 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755987Ab0FVM76 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Jun 2010 08:59:58 -0400
+In-Reply-To: <20100621135125.24299.91290.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-dev@vger.kernel.org" <linux-dev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
- 
+On Mon, 2010-06-21 at 14:51 +0100, Tony Lindgren wrote:
+> diff --git a/arch/arm/vfp/vfpmodule.c b/arch/arm/vfp/vfpmodule.c
+> index 315a540..19ba626 100644
+> --- a/arch/arm/vfp/vfpmodule.c
+> +++ b/arch/arm/vfp/vfpmodule.c
+> @@ -549,10 +549,14 @@ static int __init vfp_init(void)
+>                 /*
+>                  * Check for the presence of the Advanced SIMD
+>                  * load/store instructions, integer and single
+> -                * precision floating point operations.
+> +                * precision floating point operations. Only check
+> +                * for NEON if the hardware has TLS register as the
+> +                * MVFR registers got added in ARM1136 r1p0 with TLS.
+>                  */
+> -               if ((fmrx(MVFR1) & 0x000fff00) == 0x00011100)
+> -                       elf_hwcap |= HWCAP_NEON;
+> +               if (elf_hwcap & HWCAP_TLS) {
+> +                       if ((fmrx(MVFR1) & 0x000fff00) == 0x00011100)
+> +                               elf_hwcap |= HWCAP_NEON;
+> +               }
 
-> -----Original Message-----
-> From: Guruswamy, Senthilvadivu 
-> Sent: Monday, June 21, 2010 2:52 PM
-> To: Hiremath, Vaibhav; Tomi Valkeinen
-> Cc: linux-omap@vger.kernel.org; linux-dev@vger.kernel.org; 
-> tony@atomide.com
-> Subject: RE: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB 
-> depends on OMAP2,3
-> 
->  
-> 
-> > -----Original Message-----
-> > From: Hiremath, Vaibhav 
-> > Sent: Monday, June 21, 2010 2:27 PM
-> > To: Tomi Valkeinen; Guruswamy, Senthilvadivu
-> > Cc: linux-omap@vger.kernel.org; linux-dev@vger.kernel.org; 
-> > tony@atomide.com
-> > Subject: RE: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB 
-> > depends on OMAP2,3
-> > 
-> > > -----Original Message-----
-> > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > > Sent: Monday, June 21, 2010 2:21 PM
-> > > To: Guruswamy, Senthilvadivu
-> > > Cc: linux-omap@vger.kernel.org; linux-dev@vger.kernel.org; 
-> > tony@atomide.com;
-> > > Hiremath, Vaibhav
-> > > Subject: Re: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB 
-> > depends on OMAP2,3
-> > > 
-> > > On Thu, 2010-06-17 at 14:45 +0200, ext Guruswamy 
-> > Senthilvadivu wrote:
-> > > > From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> > > >
-> > > > config VRFB should depend on ARCH_OMAP2 or ARCH_OMAP3.
-> > > >
-> > > > Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
-> > > > ---
-> > > >  drivers/video/omap2/Kconfig            |    4 ++++
-> > > >  drivers/video/omap2/omapfb/Kconfig     |    1 -
-> > > >  2 files changed,  4 insertions(+), 1 deletions(-)
-<snip>
-> > > The omap2/Kconfig left as it is, and omapfb/Kconfig changed to:
-> > > select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
-> > > 
-> > [Hiremath, Vaibhav] If you are doing something like this, 
-> > then please do not forget to change V4L2 Display driver also.
-> [Senthil]  Yes, I would send a patch with a similar change in
-> media/video/omap/Kconfig also.
-[Senthil]  This V4L2 related patch would be along with the V4L2 change
-set, as it requires some work on the omap_vout.c also along with the kconfig change.
+MVFR should be available with the new CPU id format:
 
-Regards,
-Senthil
+	((read_cpuid_id() & 0x000f0000) == 0x000f0000)
+
+I think that would be a cleaner test than relying on the TLS presence.
+
+-- 
+Catalin
+
