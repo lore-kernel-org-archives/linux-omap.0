@@ -1,112 +1,40 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH] Disable the non working eMMC on Zoom2/3
-Date: Tue, 22 Jun 2010 17:13:41 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030DED2A3B@dbde02.ent.ti.com>
-References: <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
-	<20100407114938.GF7153@atomide.com>
-	<003801cad73e$86841df0$544ff780@am.dhcp.ti.com>
-	<20100427182111.GE7225@atomide.com>	<20100428192322.GG7225@atomide.com>
-	<006801cae709$e136fe40$544ff780@am.dhcp.ti.com>
-	<20100428194553.GH7225@atomide.com>
-	<006f01cae886$38da6920$544ff780@am.dhcp.ti.com>
-	<20100505182727.GA29604@atomide.com>
-	<00a501caecbc$761ded40$544ff780@am.dhcp.ti.com>
-	<20100506153044.GL29604@atomide.com>
-	<000901caee2b$e30ec1c0$544ff780@am.dhcp.ti.com>
- <AANLkTim5A1tlfDzFTb4A1KdmYJJeH1diVOmmpRiDduF3@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Guruswamy Senthilvadivu <svadivu@ti.com>
+Subject: [PATCH v4 2/3] OMAP: DSS2: OMAPFB: make VRFB depends on OMAP2,3
+Date: Tue, 22 Jun 2010 17:27:06 +0530
+Message-ID: <1277207827-15833-3-git-send-email-svadivu@ti.com>
+References: <1277207827-15833-1-git-send-email-svadivu@ti.com>
+ <1277207827-15833-2-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58556 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:59105 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754717Ab0FVLnt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 07:43:49 -0400
-In-Reply-To: <AANLkTim5A1tlfDzFTb4A1KdmYJJeH1diVOmmpRiDduF3@mail.gmail.com>
-Content-Language: en-US
+	with ESMTP id S1756595Ab0FVL5W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 07:57:22 -0400
+In-Reply-To: <1277207827-15833-2-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: zhangfei gao <zhangfei.gao@gmail.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, tony@atomide.com, tomi.valkeinen@nokia.com, hvaibhav@ti.com
+Cc: Guruswamy Senthilvadivu <svadivu@ti.com>
 
+config VRFB should depend on ARCH_OMAP2 or ARCH_OMAP3.
 
+Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+---
+ drivers/video/omap2/omapfb/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> -----Original Message-----
-> From: zhangfei gao [mailto:zhangfei.gao@gmail.com]
-> Sent: Tuesday, June 22, 2010 4:51 PM
-> To: Chikkature Rajashekar, Madhusudhan
-> Cc: Tony Lindgren; Menon, Nishanth; Ghorai, Sukumar; linux-
-> omap@vger.kernel.org; linux-mmc@vger.kernel.org
-> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
->=20
-> On Sat, May 8, 2010 at 5:25 AM, Madhusudhan <madhu.cr@ti.com> wrote:
-> >
-> >
-> >> -----Original Message-----
-> >> From: Tony Lindgren [mailto:tony@atomide.com]
-> >> Sent: Thursday, May 06, 2010 10:31 AM
-> >> To: Madhusudhan
-> >> Cc: 'Nishanth Menon'; 'Ghorai, Sukumar'; linux-omap@vger.kernel.or=
-g;
-> >> linux-mmc@vger.kernel.org
-> >> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
-> >>
-> >> * Madhusudhan <madhu.cr@ti.com> [100505 18:31]:
-> >> >
-> >> >
-> >> > > -----Original Message-----
-> >> > > From: Tony Lindgren [mailto:tony@atomide.com]
-> >> >
-> >> > > And what about this "Simulate multi mmc card as one big" patch=
-?
-> >> > >
-> >> > Did not get you, what patch are you referring to?
-> >>
-> >> Oops sorry forgot the link:
-> >>
-> >> https://patchwork.kernel.org/patch/87944/
-> >>
-> > This will not help. I don't know the history of the patch but what =
-this
-> is
-> > intended for is to support multiple MMC cards connected to a single
-> > controller. But on the Zoom the eMMC we are talking about is connec=
-ted
-> to
-> > MMC2.
-> >
-> > Regards,
-> > Madhu
-> >
-> >> Tony
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-mmc=
-" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
-> >
->=20
-> Hi, Guys
->=20
-> Just wander whether 16G Micron eMMC works on your platform.
-> I also have such issue, 16G Micron emmc can not work with read and
-> write, with data timeout.
-> While 8G Micron eMMC workable.
-> Do you have the same issue?
+diff --git a/drivers/video/omap2/omapfb/Kconfig b/drivers/video/omap2/omapfb/Kconfig
+index 43496d6..65149b2 100644
+--- a/drivers/video/omap2/omapfb/Kconfig
++++ b/drivers/video/omap2/omapfb/Kconfig
+@@ -3,7 +3,7 @@ menuconfig FB_OMAP2
+         depends on FB && OMAP2_DSS
+ 
+ 	select OMAP2_VRAM
+-	select OMAP2_VRFB
++	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
+         select FB_CFB_FILLRECT
+         select FB_CFB_COPYAREA
+         select FB_CFB_IMAGEBLIT
+-- 
+1.5.4.7
 
-[Ghorai] we have 16G eMMC in ZOOM3 and 3630-SDP and its working fine. L=
-et me know what board you are using.
-mmc1: new high speed MMC card at address 0001
-PM: Adding info for mmc:mmc1:0001
-mmcblk0: mmc1:0001 STM16G 14.8 GiB
-PM: Adding info for No Bus:mmcblk0
- mmcblk0: p1 p2
->=20
-> Thanks
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
