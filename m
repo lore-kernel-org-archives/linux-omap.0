@@ -1,16 +1,16 @@
 From: "Mr Chen Guan" <info@w.cn>
 Subject: (unknown)
-Date: Tue, 22 Jun 2010 08:31:40 +0400 (MSD)
-Message-ID: <54003.193.220.26.130.1277181100.squirrel@mail.t-k.ru>
+Date: Tue, 22 Jun 2010 08:34:22 +0400 (MSD)
+Message-ID: <46283.193.220.26.130.1277181262.squirrel__30879.7206533656$1277183425$gmane$org@mail.t-k.ru>
 Reply-To: chen_guan777@w.cn
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx.tele-kom.ru ([91.102.104.6]:3957 "HELO mx.tele-kom.ru"
+Received: from mx.tele-kom.ru ([91.102.104.6]:2520 "HELO mx.tele-kom.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751514Ab0FVFJX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jun 2010 01:09:23 -0400
+	id S1751511Ab0FVFKA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Jun 2010 01:10:00 -0400
 Subject: 
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
