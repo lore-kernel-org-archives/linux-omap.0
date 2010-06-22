@@ -1,85 +1,107 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH v2] OMAP: DSS2: DSI: disable manager on framedone timeout
-Date: Tue, 22 Jun 2010 20:37:43 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703058D0D26@dbde02.ent.ti.com>
-References: <1277118621-2086-1-git-send-email-archit@ti.com>
- <alpine.DEB.2.00.1006221314510.3023@tubuntu.research.nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [pm-wip/uart][PATCH 3/5 v2] OMAP3: serial: Fix uart4 handling for  3630
+Date: Tue, 22 Jun 2010 08:22:06 -0700
+Message-ID: <87tyovks81.fsf@deeprootsystems.com>
+References: <2232.10.24.255.18.1276697648.squirrel@dbdmail.itg.ti.com>
+	<87typ1jpt8.fsf@deeprootsystems.com>
+	<AANLkTinc_UeaArVDogzSldW5SWfBPHE-h0pAOCkSRNEr@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42219 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756498Ab0FVPHx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 11:07:53 -0400
-In-Reply-To: <alpine.DEB.2.00.1006221314510.3023@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from mail-px0-f174.google.com ([209.85.212.174]:33976 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742Ab0FVPWL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 11:22:11 -0400
+Received: by pxi12 with SMTP id 12so2030125pxi.19
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 08:22:10 -0700 (PDT)
+In-Reply-To: <AANLkTinc_UeaArVDogzSldW5SWfBPHE-h0pAOCkSRNEr@mail.gmail.com> (Govindraj's message of "Tue\, 22 Jun 2010 20\:25\:09 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
 
-Hi,
+Govindraj <govindraj.ti@gmail.com> writes:
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Tuesday, June 22, 2010 3:54 PM
-> To: Taneja, Archit
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v2] OMAP: DSS2: DSI: disable manager on framedone
-> timeout
-> 
-> Hi,
-> 
-> On Mon, 21 Jun 2010, ext Archit Taneja wrote:
-> 
-> > In the case of a dispc framedone timeout, we should set the LCD_EN
-> > bit in DISPC_CONTROL to 0 and reset the dsi tx fifo so that the next
-> > panel update call goes through cleanly.
-> >
-> > With the new way of handling dispc framedone interrupts, since
-> everything
-> > is handled in irq context, the only reason a dispc framedone timeout
-> > may occur is because of some dispc hardware issue.
-> >
-> > Resetting the TX FIFO is listed as an errata and hence shouldn't be
-> > performed on a dispc framedone timeout. But in the case of timeout,
-> > we need to disable the manager so that atleast DISPC is in a clean
-> > state for the next panel update call.
-> >
-> > Starting a new DSI transfer with the DSI TX fifo already having content
-> > of the previous frame is not desirable, but it is better than not to
-> have
-> > any future panel updates at all.
-> 
-> This sounds ok to me, but want to run some tests on this. Where did you
-> encounter this problem? Do you have some example scenario where this
-> happens?
-> 
-There is a use case in OMAP4 which requires a 1080p to WVGA downscale. There is some silicon issue which causes the first dispc framedone interrupt to never occur. So for the later frames, we have an issue if we don't clear the LCD_EN bit. I didn't have this issue when the dsi_update_thread existed as the code cleared the bit in the case of a framedone timeout.
+> On Fri, Jun 18, 2010 at 3:15 AM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>>
+>>> This patch makes the following:
+>>> =A0- Adds missing wakeup padding register handling.
+>>> =A0- Fixes a hardcode to use PER module ONLY on UART3.
+>>> =A0- Muxmode usage needed for uart4 for 3630, for padconf
+>>> =A0 =A0wakeup on uart4_rx line. uart4_rx signal is available
+>>> =A0 =A0under mode-2 in gpmc_wait3. Thus have to ensure we are
+>>> =A0 =A0in right mux mode before accesing any padconf register.
+>>> =A0 =A0So ensure right mux mode for uarti padconf access.
+>>
+>> I think this mux-mode handling should be done as a separate patch wi=
+th
+>> more description as exactly what problem this is solving.
+>>
+>> Presumably, whatever problem you're solving not unique to 3630 UART4
+>> as the UARTs on the other platforms can be muxed with other
+>> peripherals as well.
+>>
+>> Based on the way it's being mux'd (and continually re-mux'd) in this
+>> patch, it looks like the mux settings for that pin are being
+>> dynamically changed elsewhere in the code. =A0If that's the case, th=
+en
+>> that should be better understood, and this code should likely re-mux
+>> to the original settings when its done.
+>>
+>> Kevin
+>
+> Since padconf and mux_mode value is populated based on a cpu_check I
+> thought other platforms might not be affected
 
-I am not sure if such an issue is seen on OMAP3, is there any specific scenario on OMAP3 where you get a framedone timeout (apart from framedone interrupt handling latency)? I want to test too.
+What I meant was that the UART pins on OMAP3 are also mux'd with other
+peripherals, so if you're managing the mux for UART4, you should also
+manage them for the other UARTs.
 
-I think that on a dispc framedone timeout we can't be sure if there is a problem with only DISPC, only DSI, or a combination of both. But clearly it points more to a DISPC issue.
+> Actually uart4_rx in available under CONTROL_PADCONF_GPMC_WAIT2[31:16=
+]
+> in mux_mode 2
+>
+> I am not sure whether this gpmc line is used or not.
+>
+> I was just trying to be cautious in read and write for uart4_rx
+> Ensuring that I am using right mux mode wrt uart
+> Yes I do agree that I can corrupt gpmc_wait2 padconf if used by other
+> peripheral.
+>
+> So any thought how do we handle rx wakeup if not available as an
+> seperate padconf
+> as in this case uart4_rx
 
-As a future solution, we can probably have something like a dsi_error_worker which handles things like TA_TO, LP_RX timeout etc by resetting DSI in totality.
-> > This patch version removes the reset_tx_fifo call as per required by the
-> > errata.
-> 
-> Please don't add patch version notes to the commit message.
-> 
-> If you want to add extra information to the mail, I believe you can add
-> something like this after the commit message (somebody correct me if I'm
-> wrong =):
-> 
-> 
+The board code should be muxing the UARTs at init time.  If there is a
+need to dynamically manage the mux settings, then that is a separate
+issue.
+
+Kevin
+
+> I mean if uart_rx_padconf is not available straight forward and
+> available under a muxmode
+>
+> Regards,
+> Govindraj.R
+>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+>
+> --=20
 > ---
-> Version 3: blaa blaa
-> Version 4: foo bar
-> 
-Thanks for this suggestion. I will keep it in mind for future submissions.
-> 
-> 
->   Tomi
-
-Archit
+> Regards,
+> Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
