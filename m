@@ -1,40 +1,49 @@
-From: Western Union Office Annex <hjs153@eircom.net>
-Subject: PAYMENT FROM WESTERN UNION!!!!!
-Date: Tue, 22 Jun 2010 17:50:10 +0100 (IST)
-Message-ID: <7297962.289961277225410585.JavaMail.root@webmailbox400.eircom.net>
-Reply-To: Western Union Office Annex <westerunion90@live.hk>
+From: Jamie Lokier <jamie@shareable.org>
+Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and check for it on V6
+Date: Tue, 22 Jun 2010 18:00:20 +0100
+Message-ID: <20100622170020.GF4371@shareable.org>
+References: <20100621133749.24299.36154.stgit@baageli.muru.com> <20100621135120.24299.98499.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail21.svc.cra.dublin.eircom.net ([159.134.118.222]:42285 "HELO
-	mail21.svc.cra.dublin.eircom.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755801Ab0FVQuM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jun 2010 12:50:12 -0400
+Received: from mail2.shareable.org ([80.68.89.115]:55260 "EHLO
+	mail2.shareable.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321Ab0FVRAX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 13:00:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20100621135120.24299.98499.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-How are you today?
+Tony Lindgren wrote:
+>  __kuser_get_tls:				@ 0xffff0fe0
+> -
+> -#if !defined(CONFIG_HAS_TLS_REG) && !defined(CONFIG_TLS_REG_EMUL)
+> -	ldr	r0, [pc, #(16 - 8)]		@ TLS stored at 0xffff0ff0
+> -#else
+> -	mrc	p15, 0, r0, c13, c0, 3		@ read TLS register
+> -#endif
+> +	ldr     r0, [pc, #(20 - 8)]		@ software TLS set in 0xffff0ff4?
+> +	cmp	r0, #0				@ hardware TLS if flag not set
+> +	mrceq	p15, 0, r0, c13, c0, 3		@ read hardware TLS register
+> +	ldrne	r0, [pc, #(12 - 8)]		@ software TLS val at 0xffff0ff8
+>  	usr_ret	lr
+> -
+> -	.rep	5
+> -	.word	0			@ pad up to __kuser_helper_version
+> -	.endr
+> +	.word	0				@ non-zero for software TLS
+> +	.word	0				@ software TLS value
 
-I write to inform you that we have already sent you USD5000.00 dollars through Western union as we have been given the mandate to transfer your full compensation payment of USD1.800,000.00 via western union by this government.
+It'd be nice not to waste instructions checking for HWCAP_TLS on archs
+which definitely don't have it.  I guess it doesn't matter elsewhere;
+I'd expect this to be a warm path for some programs making extensive
+use of TLS (I haven't measured though).
 
-I called to give you the information through phone as internet hackers were many but i cannot reach you yesterday even this morning.So,I decided to email you the MTCN and sender name so that can pick up this USD5000.00 to enable us send another USD5000.00 by tomorrow as you knows we will be sending you only USD5000.00 per day.Please pick up this information and run to any western union in your country to pick up the USD5000.00 and send us email back to send you another payment tomorrow.
+As it's only a single instruction, and the code is in a writable page
+already (copied at init), how about just patching the instruction
+when ELF_HWCAP is set?
 
-ManagerMrs.Anita Daniel
-Email:westerunion90@live.hk
-
-email me once you picked up this USD5000.00 today.
-
-Here is the western union information to pick up the USD5000.00,
-
- MTCN : 622 155 4897
- Sender's Name:Mrs.Helene Bath
- Question: Honest
-Answer:Trust
- Amount: 5000.00USD
-
- I am waiting for your email once you pick up USD5000.00,
-
- Thanks
- Mrs.Anita Daniel
+-- Jamie
