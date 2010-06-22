@@ -1,49 +1,60 @@
-From: "Mr Chen Guan" <info@w.cn>
-Subject: (unknown)
-Date: Tue, 22 Jun 2010 08:34:22 +0400 (MSD)
-Message-ID: <46283.193.220.26.130.1277181262.squirrel__30879.7206533656$1277183425$gmane$org@mail.t-k.ru>
-Reply-To: chen_guan777@w.cn
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: [PATCH] omap: fix the cpu type check in clock3xxx_data.c
+Date: Tue, 22 Jun 2010 14:26:23 +0800
+Message-ID: <1277187983-26142-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx.tele-kom.ru ([91.102.104.6]:2520 "HELO mx.tele-kom.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751511Ab0FVFKA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jun 2010 01:10:00 -0400
-Subject: 
+Received: from mail.windriver.com ([147.11.1.11]:50631 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752563Ab0FVGNy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 02:13:54 -0400
+Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
+	by mail.windriver.com (8.14.3/8.14.3) with ESMTP id o5M6DsqQ010195
+	for <linux-omap@vger.kernel.org>; Mon, 21 Jun 2010 23:13:54 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
+omap3517 and omap3505 belong to OMAP3 architecture, so the cpu_is_omap34xx
+will be true. Therefore, if the cpu omap3517 is a exception, we should check
+whether it is omap3517 before check whether it is omap34xx.
 
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 41b155a..6766612 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3412,7 +3412,13 @@ int __init omap3xxx_clk_init(void)
+ 	struct omap_clk *c;
+ 	u32 cpu_clkflg = CK_3XXX;
+ 
+-	if (cpu_is_omap34xx()) {
++	if (cpu_is_omap3517()) {
++		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
++		cpu_clkflg |= CK_3517;
++	} else if (cpu_is_omap3505()) {
++		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
++		cpu_clkflg |= CK_3505;
++	} else if (cpu_is_omap34xx()) {
+ 		cpu_mask = RATE_IN_3XXX;
+ 		cpu_clkflg |= CK_343X;
+ 
+@@ -3427,12 +3433,6 @@ int __init omap3xxx_clk_init(void)
+ 			cpu_mask |= RATE_IN_3430ES2PLUS;
+ 			cpu_clkflg |= CK_3430ES2;
+ 		}
+-	} else if (cpu_is_omap3517()) {
+-		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+-		cpu_clkflg |= CK_3517;
+-	} else if (cpu_is_omap3505()) {
+-		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+-		cpu_clkflg |= CK_3505;
+ 	}
+ 
+ 	if (omap3_has_192mhz_clk())
 -- 
-Dear Friend,
+1.5.4.3
 
-I have a business suggestion for you. let me start by introducing myself
-to you fully. I am Mr. Chen Guan, Foreign Operations Manager of the Bank
-of China (Hong kong). Before the U.S and Iraqi war our client Ali Hussein
-who was with the Iraqi forces and also a businessman made a numbered fixed
-deposit for 12 calendar months, with a value of Seventeen Million Three
-Hundred Thousand United State Dollars only into an account with my branch.
-Upon maturity several notice was sent to him, even during the war . Again
-after the war another notification was sent and still no response came
-from him. We later found out that the Ali Hussein and his family had been
-killed during the war in bomb blast that hit their home. After further
-investigation it was also discovered that Ali Hussein did not declare any
-next of kin in his official papers including the paper work of his bank
-deposit. And he also confided in me the last time he was at my office that
-no one except me knew of his deposit in my bank. So, Seventeen Million
-Three Hundred Thousand United State Dollars(US$17,300,000.00) is still
-lying in my bank and no one will ever come forward to claim it. What
-bothers me most is that according to the laws of my country at the
-expiration 7years the funds will revert to the ownership of the Hong Kong
-Government if nobody applies to claim the funds. Against this backdrop, my
-suggestion to you is that I will like you as a foreigner to stand as the
-next of kin to Ali Hussein so that you will be able to receive his funds.
-Please reply to my private email for more Details (chen_guan777@w.cn)
-Thank you for your time and understanding.
-
-Kind Regards,
-Mr. Chen Guan
