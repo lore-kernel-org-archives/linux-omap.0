@@ -1,107 +1,68 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [pm-wip/uart][PATCH 3/5 v2] OMAP3: serial: Fix uart4 handling for  3630
-Date: Tue, 22 Jun 2010 08:22:06 -0700
-Message-ID: <87tyovks81.fsf@deeprootsystems.com>
-References: <2232.10.24.255.18.1276697648.squirrel@dbdmail.itg.ti.com>
-	<87typ1jpt8.fsf@deeprootsystems.com>
-	<AANLkTinc_UeaArVDogzSldW5SWfBPHE-h0pAOCkSRNEr@mail.gmail.com>
+Subject: Re: [PATCH] OMAP3: HWMOD: Fix compilation error due to sr hwmod usage
+Date: Tue, 22 Jun 2010 08:29:43 -0700
+Message-ID: <87iq5bkrvc.fsf@deeprootsystems.com>
+References: <1277218823-15133-1-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:33976 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753742Ab0FVPWL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 11:22:11 -0400
-Received: by pxi12 with SMTP id 12so2030125pxi.19
-        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 08:22:10 -0700 (PDT)
-In-Reply-To: <AANLkTinc_UeaArVDogzSldW5SWfBPHE-h0pAOCkSRNEr@mail.gmail.com> (Govindraj's message of "Tue\, 22 Jun 2010 20\:25\:09 +0530")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:33572 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753371Ab0FVP3q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 11:29:46 -0400
+Received: by pvh11 with SMTP id 11so429141pvh.19
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 08:29:45 -0700 (PDT)
+In-Reply-To: <1277218823-15133-1-git-send-email-charu@ti.com> (Charulatha V.'s message of "Tue\, 22 Jun 2010 20\:30\:23 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+To: Charulatha V <charu@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Govindraj <govindraj.ti@gmail.com> writes:
+Charulatha V <charu@ti.com> writes:
 
-> On Fri, Jun 18, 2010 at 3:15 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> "Govindraj.R" <govindraj.raja@ti.com> writes:
->>
->>> This patch makes the following:
->>> =A0- Adds missing wakeup padding register handling.
->>> =A0- Fixes a hardcode to use PER module ONLY on UART3.
->>> =A0- Muxmode usage needed for uart4 for 3630, for padconf
->>> =A0 =A0wakeup on uart4_rx line. uart4_rx signal is available
->>> =A0 =A0under mode-2 in gpmc_wait3. Thus have to ensure we are
->>> =A0 =A0in right mux mode before accesing any padconf register.
->>> =A0 =A0So ensure right mux mode for uarti padconf access.
->>
->> I think this mux-mode handling should be done as a separate patch wi=
-th
->> more description as exactly what problem this is solving.
->>
->> Presumably, whatever problem you're solving not unique to 3630 UART4
->> as the UARTs on the other platforms can be muxed with other
->> peripherals as well.
->>
->> Based on the way it's being mux'd (and continually re-mux'd) in this
->> patch, it looks like the mux settings for that pin are being
->> dynamically changed elsewhere in the code. =A0If that's the case, th=
-en
->> that should be better understood, and this code should likely re-mux
->> to the original settings when its done.
->>
->> Kevin
+> On 'origin/pm-wip/hwmods-omap4' branch, fix the following
+> compilation error:
 >
-> Since padconf and mux_mode value is populated based on a cpu_check I
-> thought other platforms might not be affected
-
-What I meant was that the UART pins on OMAP3 are also mux'd with other
-peripherals, so if you're managing the mux for UART4, you should also
-manage them for the other UARTs.
-
-> Actually uart4_rx in available under CONTROL_PADCONF_GPMC_WAIT2[31:16=
-]
-> in mux_mode 2
+> arch/arm/mach-omap2/omap_hwmod_3xxx_data.c:218:
+> 	error: 'omap34xx_sr1_hwmod' undeclared here (not in a function)
+> arch/arm/mach-omap2/omap_hwmod_3xxx_data.c:219:
+> 	error: 'omap34xx_sr2_hwmod' undeclared here (not in a function)
+> arch/arm/mach-omap2/omap_hwmod_3xxx_data.c:220: error:
+> 	'omap36xx_sr1_hwmod' undeclared here (not in a function)
+> arch/arm/mach-omap2/omap_hwmod_3xxx_data.c:221:
+> 	error: 'omap36xx_sr2_hwmod' undeclared here (not in a function)
+> make[1]: *** [arch/arm/mach-omap2/omap_hwmod_3xxx_data.o] Error 1
 >
-> I am not sure whether this gpmc line is used or not.
->
-> I was just trying to be cautious in read and write for uart4_rx
-> Ensuring that I am using right mux mode wrt uart
-> Yes I do agree that I can corrupt gpmc_wait2 padconf if used by other
-> peripheral.
->
-> So any thought how do we handle rx wakeup if not available as an
-> seperate padconf
-> as in this case uart4_rx
+> Signed-off-by: Charulatha V <charu@ti.com>
 
-The board code should be muxing the UARTs at init time.  If there is a
-need to dynamically manage the mux settings, then that is a separate
-issue.
+Oops, looks like a mis-merge on my part when adding the IVA hwmod data.
+
+I fixed this and just pushed an updated version of the pm-wip/hwmods
+branch and (rebased pm-wip/runtime and pm-wip/hwmods-omap4 on top.)
+
+Note that it make take a little time to propagate to the kernel.org
+mirrors.
 
 Kevin
 
-> I mean if uart_rx_padconf is not available straight forward and
-> available under a muxmode
->
-> Regards,
-> Govindraj.R
->
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
->
->
->
-> --=20
 > ---
-> Regards,
-> Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    4 ----
+>  1 files changed, 0 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index f7e1ace..fe92b5d 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -215,10 +215,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+>  	&omap3xxx_l4_wkup_hwmod,
+>  	&omap3xxx_mpu_hwmod,
+>  	&omap3xxx_iva2_hwmod,
+> -	&omap34xx_sr1_hwmod,
+> -	&omap34xx_sr2_hwmod,
+> -	&omap36xx_sr1_hwmod,
+> -	&omap36xx_sr2_hwmod,
+>  	NULL,
+>  };
+>  
+> -- 
+> 1.6.3.3
