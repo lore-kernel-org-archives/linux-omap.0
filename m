@@ -1,60 +1,79 @@
-From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v4 1/3] OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
-Date: Tue, 22 Jun 2010 17:27:05 +0530
-Message-ID: <1277207827-15833-2-git-send-email-svadivu@ti.com>
-References: <1277207827-15833-1-git-send-email-svadivu@ti.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB depends on OMAP2,3
+Date: Tue, 22 Jun 2010 17:28:47 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870304288933@dbde02.ent.ti.com>
+References: <1276778702-15280-1-git-send-email-svadivu@ti.com>
+	 <1276778702-15280-2-git-send-email-svadivu@ti.com>
+	 <1276778702-15280-3-git-send-email-svadivu@ti.com>
+ <1277110241.2526.31.camel@tubuntu.research.nokia.com>
+ <19F8576C6E063C45BE387C64729E7394044E91BF03@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48915 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60617 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755414Ab0FVL5T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jun 2010 07:57:19 -0400
-In-Reply-To: <1277207827-15833-1-git-send-email-svadivu@ti.com>
+	id S1752714Ab0FVL7A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 07:59:00 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, tony@atomide.com, tomi.valkeinen@nokia.com, hvaibhav@ti.com
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
+To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-dev@vger.kernel.org" <linux-dev@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-From: Senthilvadivu Guruswamy <svadivu@ti.com>
-
-FB_OMAP2 can work without VRFB, but currently does not build. Fix this.
-
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
----
- arch/arm/plat-omap/include/plat/vrfb.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/vrfb.h b/arch/arm/plat-omap/include/plat/vrfb.h
-index d8a03ce..3792bde 100644
---- a/arch/arm/plat-omap/include/plat/vrfb.h
-+++ b/arch/arm/plat-omap/include/plat/vrfb.h
-@@ -35,6 +35,7 @@ struct vrfb {
- 	bool yuv_mode;
- };
  
-+#ifdef CONFIG_OMAP2_VRFB
- extern int omap_vrfb_request_ctx(struct vrfb *vrfb);
- extern void omap_vrfb_release_ctx(struct vrfb *vrfb);
- extern void omap_vrfb_adjust_size(u16 *width, u16 *height,
-@@ -47,4 +48,19 @@ extern void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
- extern int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot);
- extern void omap_vrfb_restore_context(void);
- 
-+#else
-+static inline int omap_vrfb_request_ctx(struct vrfb *vrfb) { return 0; }
-+static inline void omap_vrfb_release_ctx(struct vrfb *vrfb) {}
-+static inline void omap_vrfb_adjust_size(u16 *width, u16 *height,
-+		u8 bytespp) {}
-+static inline u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp)
-+		{ return 0; }
-+static inline u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
-+		{ return 0; }
-+static inline void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
-+		u16 width, u16 height, unsigned bytespp, bool yuv_mode) {}
-+static inline int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot)
-+		{ return 0; }
-+static inline void omap_vrfb_restore_context(void) {}
-+#endif
- #endif /* __VRFB_H */
--- 
-1.5.4.7
 
+> -----Original Message-----
+> From: Guruswamy, Senthilvadivu 
+> Sent: Monday, June 21, 2010 2:52 PM
+> To: Hiremath, Vaibhav; Tomi Valkeinen
+> Cc: linux-omap@vger.kernel.org; linux-dev@vger.kernel.org; 
+> tony@atomide.com
+> Subject: RE: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB 
+> depends on OMAP2,3
+> 
+>  
+> 
+> > -----Original Message-----
+> > From: Hiremath, Vaibhav 
+> > Sent: Monday, June 21, 2010 2:27 PM
+> > To: Tomi Valkeinen; Guruswamy, Senthilvadivu
+> > Cc: linux-omap@vger.kernel.org; linux-dev@vger.kernel.org; 
+> > tony@atomide.com
+> > Subject: RE: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB 
+> > depends on OMAP2,3
+> > 
+> > > -----Original Message-----
+> > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > > Sent: Monday, June 21, 2010 2:21 PM
+> > > To: Guruswamy, Senthilvadivu
+> > > Cc: linux-omap@vger.kernel.org; linux-dev@vger.kernel.org; 
+> > tony@atomide.com;
+> > > Hiremath, Vaibhav
+> > > Subject: Re: [PATCH v3 2/3] OMAP: DSS2: OMAPFB: make VRFB 
+> > depends on OMAP2,3
+> > > 
+> > > On Thu, 2010-06-17 at 14:45 +0200, ext Guruswamy 
+> > Senthilvadivu wrote:
+> > > > From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> > > >
+> > > > config VRFB should depend on ARCH_OMAP2 or ARCH_OMAP3.
+> > > >
+> > > > Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> > > > ---
+> > > >  drivers/video/omap2/Kconfig            |    4 ++++
+> > > >  drivers/video/omap2/omapfb/Kconfig     |    1 -
+> > > >  2 files changed,  4 insertions(+), 1 deletions(-)
+<snip>
+> > > The omap2/Kconfig left as it is, and omapfb/Kconfig changed to:
+> > > select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
+> > > 
+> > [Hiremath, Vaibhav] If you are doing something like this, 
+> > then please do not forget to change V4L2 Display driver also.
+> [Senthil]  Yes, I would send a patch with a similar change in
+> media/video/omap/Kconfig also.
+[Senthil]  This V4L2 related patch would be along with the V4L2 change
+set, as it requires some work on the omap_vout.c also along with the kconfig change.
+
+Regards,
+Senthil
