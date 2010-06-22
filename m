@@ -1,439 +1,85 @@
-From: Charulatha V <charu@ti.com>
-Subject: [PATCH:v4 07/13] OMAP: GPIO: add GPIO hwmods structures for OMAP3
-Date: Tue, 22 Jun 2010 20:31:50 +0530
-Message-ID: <1277218916-15213-8-git-send-email-charu@ti.com>
-References: <1277218916-15213-1-git-send-email-charu@ti.com>
- <1277218916-15213-2-git-send-email-charu@ti.com>
- <1277218916-15213-3-git-send-email-charu@ti.com>
- <1277218916-15213-4-git-send-email-charu@ti.com>
- <1277218916-15213-5-git-send-email-charu@ti.com>
- <1277218916-15213-6-git-send-email-charu@ti.com>
- <1277218916-15213-7-git-send-email-charu@ti.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [PATCH v2] OMAP: DSS2: DSI: disable manager on framedone timeout
+Date: Tue, 22 Jun 2010 20:37:43 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703058D0D26@dbde02.ent.ti.com>
+References: <1277118621-2086-1-git-send-email-archit@ti.com>
+ <alpine.DEB.2.00.1006221314510.3023@tubuntu.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33365 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42219 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758559Ab0FVPB3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jun 2010 11:01:29 -0400
-In-Reply-To: <1277218916-15213-7-git-send-email-charu@ti.com>
+	id S1756498Ab0FVPHx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 11:07:53 -0400
+In-Reply-To: <alpine.DEB.2.00.1006221314510.3023@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, p-basak2@ti.com, b-cousson@ti.com, Charulatha V <charu@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Add hwmod structures for GPIO module on OMAP3
+Hi,
 
-Signed-off-by: Charulatha V <charu@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Basak, Partha <p-basak2@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  366 ++++++++++++++++++++++++++++
- 1 files changed, 366 insertions(+), 0 deletions(-)
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Tuesday, June 22, 2010 3:54 PM
+> To: Taneja, Archit
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v2] OMAP: DSS2: DSI: disable manager on framedone
+> timeout
+> 
+> Hi,
+> 
+> On Mon, 21 Jun 2010, ext Archit Taneja wrote:
+> 
+> > In the case of a dispc framedone timeout, we should set the LCD_EN
+> > bit in DISPC_CONTROL to 0 and reset the dsi tx fifo so that the next
+> > panel update call goes through cleanly.
+> >
+> > With the new way of handling dispc framedone interrupts, since
+> everything
+> > is handled in irq context, the only reason a dispc framedone timeout
+> > may occur is because of some dispc hardware issue.
+> >
+> > Resetting the TX FIFO is listed as an errata and hence shouldn't be
+> > performed on a dispc framedone timeout. But in the case of timeout,
+> > we need to disable the manager so that atleast DISPC is in a clean
+> > state for the next panel update call.
+> >
+> > Starting a new DSI transfer with the DSI TX fifo already having content
+> > of the previous frame is not desirable, but it is better than not to
+> have
+> > any future panel updates at all.
+> 
+> This sounds ok to me, but want to run some tests on this. Where did you
+> encounter this problem? Do you have some example scenario where this
+> happens?
+> 
+There is a use case in OMAP4 which requires a 1080p to WVGA downscale. There is some silicon issue which causes the first dispc framedone interrupt to never occur. So for the later frames, we have an issue if we don't clear the LCD_EN bit. I didn't have this issue when the dsi_update_thread existed as the code cleared the bit in the case of a framedone timeout.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index fe92b5d..d454ee1 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -17,6 +17,7 @@
- #include <mach/irqs.h>
- #include <plat/cpu.h>
- #include <plat/dma.h>
-+#include <plat/gpio.h>
- 
- #include "omap_hwmod_common_data.h"
- 
-@@ -82,6 +83,12 @@ static struct omap_hwmod omap3xxx_l3_hwmod = {
- };
- 
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod;
-+static struct omap_hwmod omap3xxx_gpio1_hwmod;
-+static struct omap_hwmod omap3xxx_gpio2_hwmod;
-+static struct omap_hwmod omap3xxx_gpio3_hwmod;
-+static struct omap_hwmod omap3xxx_gpio4_hwmod;
-+static struct omap_hwmod omap3xxx_gpio5_hwmod;
-+static struct omap_hwmod omap3xxx_gpio6_hwmod;
- 
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
-@@ -90,6 +97,114 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
- 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* L4 WKUP -> GPIO1 interface */
-+static struct omap_hwmod_addr_space omap3xxx_gpio1_addrs[] = {
-+	{
-+		.pa_start	= OMAP34XX_GPIO1_BASE,
-+		.pa_end		= OMAP34XX_GPIO1_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__gpio1 = {
-+	.master		= &omap3xxx_l4_wkup_hwmod,
-+	.slave		= &omap3xxx_gpio1_hwmod,
-+	.clk		= "gpio1_ick",
-+	.addr		= omap3xxx_gpio1_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio1_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 PER -> GPIO2 interface */
-+static struct omap_hwmod_addr_space omap3xxx_gpio2_addrs[] = {
-+	{
-+		.pa_start	= OMAP34XX_GPIO2_BASE,
-+		.pa_end		= OMAP34XX_GPIO2_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio2 = {
-+	.master		= &omap3xxx_l4_per_hwmod,
-+	.slave		= &omap3xxx_gpio2_hwmod,
-+	.clk		= "gpio2_ick",
-+	.addr		= omap3xxx_gpio2_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio2_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 PER -> GPIO3 interface */
-+static struct omap_hwmod_addr_space omap3xxx_gpio3_addrs[] = {
-+	{
-+		.pa_start	= OMAP34XX_GPIO3_BASE,
-+		.pa_end		= OMAP34XX_GPIO3_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio3 = {
-+	.master		= &omap3xxx_l4_per_hwmod,
-+	.slave		= &omap3xxx_gpio3_hwmod,
-+	.clk		= "gpio3_ick",
-+	.addr		= omap3xxx_gpio3_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio3_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 PER -> GPIO4 interface */
-+static struct omap_hwmod_addr_space omap3xxx_gpio4_addrs[] = {
-+	{
-+		.pa_start	= OMAP34XX_GPIO4_BASE,
-+		.pa_end		= OMAP34XX_GPIO4_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio4 = {
-+	.master		= &omap3xxx_l4_per_hwmod,
-+	.slave		= &omap3xxx_gpio4_hwmod,
-+	.clk		= "gpio4_ick",
-+	.addr		= omap3xxx_gpio4_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio4_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 PER -> GPIO5 interface */
-+static struct omap_hwmod_addr_space omap3xxx_gpio5_addrs[] = {
-+	{
-+		.pa_start	= OMAP34XX_GPIO5_BASE,
-+		.pa_end		= OMAP34XX_GPIO5_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio5 = {
-+	.master		= &omap3xxx_l4_per_hwmod,
-+	.slave		= &omap3xxx_gpio5_hwmod,
-+	.clk		= "gpio5_ick",
-+	.addr		= omap3xxx_gpio5_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio5_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 PER -> GPIO6 interface */
-+static struct omap_hwmod_addr_space omap3xxx_gpio6_addrs[] = {
-+	{
-+		.pa_start	= OMAP34XX_GPIO6_BASE,
-+		.pa_end		= OMAP34XX_GPIO6_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio6 = {
-+	.master		= &omap3xxx_l4_per_hwmod,
-+	.slave		= &omap3xxx_gpio6_hwmod,
-+	.clk		= "gpio6_ick",
-+	.addr		= omap3xxx_gpio6_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio6_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* Slave interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
- 	&omap3xxx_l3__l4_core,
-@@ -208,6 +323,251 @@ static struct omap_hwmod omap3xxx_iva2_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
- };
- 
-+/* GPIO common */
-+static struct omap_gpio_dev_attr gpio_dev_attr = {
-+	.gpio_bank_width = 32,
-+	.dbck_flag = true,
-+};
-+
-+static struct omap_hwmod_class_sysconfig omap3xxx_gpio_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap3xxx_gpio_hwmod_class = {
-+	.name = "gpio",
-+	.sysc = &omap3xxx_gpio_sysc,
-+	.rev = 1,
-+};
-+
-+/* GPIO1 */
-+
-+static struct omap_hwmod_irq_info omap3xxx_gpio1_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK1 },
-+};
-+
-+static struct omap_hwmod_opt_clk gpio1_opt_clks[] = {
-+	{ .role = "dbclk", .clk = "gpio1_dbck", },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_gpio1_slaves[] = {
-+	&omap3xxx_l4_wkup__gpio1,
-+};
-+
-+static struct omap_hwmod omap3xxx_gpio1_hwmod = {
-+	.name		= "gpio1",
-+	.mpu_irqs	= omap3xxx_gpio1_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio1_irqs),
-+	.main_clk	= NULL,
-+	.opt_clks	= gpio1_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(gpio1_opt_clks),
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_GPIO1_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = 3,
-+		},
-+	},
-+	.slaves		= omap3xxx_gpio1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio1_slaves),
-+	.class		= &omap3xxx_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* GPIO2 */
-+
-+static struct omap_hwmod_irq_info omap3xxx_gpio2_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK2 },
-+};
-+
-+static struct omap_hwmod_opt_clk gpio2_opt_clks[] = {
-+	{ .role = "dbclk", .clk = "gpio2_dbck", },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_gpio2_slaves[] = {
-+	&omap3xxx_l4_per__gpio2,
-+};
-+
-+static struct omap_hwmod omap3xxx_gpio2_hwmod = {
-+	.name		= "gpio2",
-+	.mpu_irqs	= omap3xxx_gpio2_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio2_irqs),
-+	.main_clk	= NULL,
-+	.opt_clks	= gpio2_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(gpio2_opt_clks),
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_GPIO2_SHIFT,
-+			.module_offs = OMAP3430_PER_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = 13,
-+		},
-+	},
-+	.slaves		= omap3xxx_gpio2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio2_slaves),
-+	.class		= &omap3xxx_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* GPIO3 */
-+
-+static struct omap_hwmod_irq_info omap3xxx_gpio3_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK3 },
-+};
-+
-+static struct omap_hwmod_opt_clk gpio3_opt_clks[] = {
-+	{ .role = "dbclk", .clk = "gpio3_dbck", },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_gpio3_slaves[] = {
-+	&omap3xxx_l4_per__gpio3,
-+};
-+
-+static struct omap_hwmod omap3xxx_gpio3_hwmod = {
-+	.name		= "gpio3",
-+	.mpu_irqs	= omap3xxx_gpio3_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio3_irqs),
-+	.main_clk	= NULL,
-+	.opt_clks	= gpio3_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(gpio3_opt_clks),
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_GPIO3_SHIFT,
-+			.module_offs = OMAP3430_PER_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = 14,
-+		},
-+	},
-+	.slaves		= omap3xxx_gpio3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio3_slaves),
-+	.class		= &omap3xxx_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* GPIO4 */
-+
-+static struct omap_hwmod_irq_info omap3xxx_gpio4_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK4 },
-+};
-+
-+static struct omap_hwmod_opt_clk gpio4_opt_clks[] = {
-+	{ .role = "dbclk", .clk = "gpio4_dbck", },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_gpio4_slaves[] = {
-+	&omap3xxx_l4_per__gpio4,
-+};
-+
-+static struct omap_hwmod omap3xxx_gpio4_hwmod = {
-+	.name		= "gpio4",
-+	.mpu_irqs	= omap3xxx_gpio4_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio4_irqs),
-+	.main_clk	= NULL,
-+	.opt_clks	= gpio4_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(gpio4_opt_clks),
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_GPIO4_SHIFT,
-+			.module_offs = OMAP3430_PER_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = 15,
-+		},
-+	},
-+	.slaves		= omap3xxx_gpio4_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio4_slaves),
-+	.class		= &omap3xxx_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+
-+/* GPIO5 */
-+
-+static struct omap_hwmod_irq_info omap3xxx_gpio5_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK5 },
-+};
-+
-+static struct omap_hwmod_opt_clk gpio5_opt_clks[] = {
-+	{ .role = "dbclk", .clk = "gpio5_dbck", },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_gpio5_slaves[] = {
-+	&omap3xxx_l4_per__gpio5,
-+};
-+
-+static struct omap_hwmod omap3xxx_gpio5_hwmod = {
-+	.name		= "gpio5",
-+	.mpu_irqs	= omap3xxx_gpio5_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio5_irqs),
-+	.main_clk	= NULL,
-+	.opt_clks	= gpio5_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(gpio5_opt_clks),
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_GPIO5_SHIFT,
-+			.module_offs = OMAP3430_PER_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = 16,
-+		},
-+	},
-+	.slaves		= omap3xxx_gpio5_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio5_slaves),
-+	.class		= &omap3xxx_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* GPIO6 */
-+
-+static struct omap_hwmod_irq_info omap3xxx_gpio6_irqs[] = {
-+	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK6 },
-+};
-+
-+static struct omap_hwmod_opt_clk gpio6_opt_clks[] = {
-+	{ .role = "dbclk", .clk = "gpio6_dbck", },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_gpio6_slaves[] = {
-+	&omap3xxx_l4_per__gpio6,
-+};
-+
-+static struct omap_hwmod omap3xxx_gpio6_hwmod = {
-+	.name		= "gpio6",
-+	.mpu_irqs	= omap3xxx_gpio6_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio6_irqs),
-+	.main_clk	= NULL,
-+	.opt_clks	= gpio6_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(gpio6_opt_clks),
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_GPIO6_SHIFT,
-+			.module_offs = OMAP3430_PER_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = 17,
-+		},
-+	},
-+	.slaves		= omap3xxx_gpio6_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio6_slaves),
-+	.class		= &omap3xxx_gpio_hwmod_class,
-+	.dev_attr	= &gpio_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
- static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l3_hwmod,
- 	&omap3xxx_l4_core_hwmod,
-@@ -215,6 +575,12 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l4_wkup_hwmod,
- 	&omap3xxx_mpu_hwmod,
- 	&omap3xxx_iva2_hwmod,
-+	&omap3xxx_gpio1_hwmod,
-+	&omap3xxx_gpio2_hwmod,
-+	&omap3xxx_gpio3_hwmod,
-+	&omap3xxx_gpio4_hwmod,
-+	&omap3xxx_gpio5_hwmod,
-+	&omap3xxx_gpio6_hwmod,
- 	NULL,
- };
- 
--- 
-1.6.3.3
+I am not sure if such an issue is seen on OMAP3, is there any specific scenario on OMAP3 where you get a framedone timeout (apart from framedone interrupt handling latency)? I want to test too.
 
+I think that on a dispc framedone timeout we can't be sure if there is a problem with only DISPC, only DSI, or a combination of both. But clearly it points more to a DISPC issue.
+
+As a future solution, we can probably have something like a dsi_error_worker which handles things like TA_TO, LP_RX timeout etc by resetting DSI in totality.
+> > This patch version removes the reset_tx_fifo call as per required by the
+> > errata.
+> 
+> Please don't add patch version notes to the commit message.
+> 
+> If you want to add extra information to the mail, I believe you can add
+> something like this after the commit message (somebody correct me if I'm
+> wrong =):
+> 
+> 
+> ---
+> Version 3: blaa blaa
+> Version 4: foo bar
+> 
+Thanks for this suggestion. I will keep it in mind for future submissions.
+> 
+> 
+>   Tomi
+
+Archit
