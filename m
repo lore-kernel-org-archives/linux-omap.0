@@ -1,51 +1,88 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [linux-pm] [PATCH 0/8] Suspend block api (version 8)
-Date: Mon, 21 Jun 2010 17:57:49 +0200
-Message-ID: <20100621155749.GD1447@ucw.cz>
-References: <20100526141612.3e2e0443@lxorguk.ukuu.org.uk>
- <AANLkTin97MMu-XO_Lk-snefBWz2ymhS0Qi1y1RxLwdVA@mail.gmail.com>
- <20100527003943.07c17f85@lxorguk.ukuu.org.uk>
- <20100527140655.GA28048@srcf.ucam.org>
- <alpine.LFD.2.00.1005271642440.3032@localhost.localdomain>
- <20100527155201.GA31937@srcf.ucam.org>
- <alpine.LFD.2.00.1005271808340.3032@localhost.localdomain>
- <20100527165931.GB1062@srcf.ucam.org>
- <alpine.LFD.2.00.1005271905000.3032@localhost.localdomain>
- <20100527172343.GB2468@srcf.ucam.org>
+From: zhangfei gao <zhangfei.gao@gmail.com>
+Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
+Date: Tue, 22 Jun 2010 19:20:59 +0800
+Message-ID: <AANLkTim5A1tlfDzFTb4A1KdmYJJeH1diVOmmpRiDduF3@mail.gmail.com>
+References: <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
+	<20100407114938.GF7153@atomide.com>
+	<003801cad73e$86841df0$544ff780@am.dhcp.ti.com>
+	<20100427182111.GE7225@atomide.com>
+	<20100428192322.GG7225@atomide.com>
+	<006801cae709$e136fe40$544ff780@am.dhcp.ti.com>
+	<20100428194553.GH7225@atomide.com>
+	<006f01cae886$38da6920$544ff780@am.dhcp.ti.com>
+	<20100505182727.GA29604@atomide.com>
+	<00a501caecbc$761ded40$544ff780@am.dhcp.ti.com>
+	<20100506153044.GL29604@atomide.com>
+	<000901caee2b$e30ec1c0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100527172343.GB2468@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arve Hj?nnev?g <arve@android.com>, Florian Mickler <florian@mickler.org>, Vitaly Wool <vitalywool@gmail.com>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Paul@smtp1.linux-foundation.org, felipe.balbi@nokia.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:52274 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751560Ab0FVLVB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 07:21:01 -0400
+In-Reply-To: <000901caee2b$e30ec1c0$544ff780@am.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 
-Hi!
+On Sat, May 8, 2010 at 5:25 AM, Madhusudhan <madhu.cr@ti.com> wrote:
+>
+>
+>> -----Original Message-----
+>> From: Tony Lindgren [mailto:tony@atomide.com]
+>> Sent: Thursday, May 06, 2010 10:31 AM
+>> To: Madhusudhan
+>> Cc: 'Nishanth Menon'; 'Ghorai, Sukumar'; linux-omap@vger.kernel.org;
+>> linux-mmc@vger.kernel.org
+>> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
+>>
+>> * Madhusudhan <madhu.cr@ti.com> [100505 18:31]:
+>> >
+>> >
+>> > > -----Original Message-----
+>> > > From: Tony Lindgren [mailto:tony@atomide.com]
+>> >
+>> > > And what about this "Simulate multi mmc card as one big" patch?
+>> > >
+>> > Did not get you, what patch are you referring to?
+>>
+>> Oops sorry forgot the link:
+>>
+>> https://patchwork.kernel.org/patch/87944/
+>>
+> This will not help. I don't know the history of the patch but what th=
+is is
+> intended for is to support multiple MMC cards connected to a single
+> controller. But on the Zoom the eMMC we are talking about is connecte=
+d to
+> MMC2.
+>
+> Regards,
+> Madhu
+>
+>> Tony
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
-(ok, so I'm little late to the party).
+Hi, Guys
 
-> > Nonsense, if we want to push the system into suspend from the idle
-> > state we can do that. It's just not implemented and we've never tried
-> > to do it as it requires a non trivial amount of work, but I have done
-> > it on an ARM two years ago as a prove of concept and it works like a
-> > charm.
-> 
-> ACPI provides no guarantees about what level of hardware functionality 
-> remains during S3. You don't have any useful ability to determine which 
-> events will generate wakeups. And from a purely practical point of view, 
+Just wander whether 16G Micron eMMC works on your platform.
+I also have such issue, 16G Micron emmc can not work with read and
+write, with data timeout.
+While 8G Micron eMMC workable.
+Do you have the same issue?
 
-We'll need ACPI extensions, then (or very conservative
-drivers). suspend blockers do *not* help here.
-
-> since the latency is in the range of seconds, you'll never have a low 
-> enough wakeup rate to hit it.
-
-I did 'sleepy linux' prototype on PC, and yes I was able to get to
-'once in 5 seconds' wakeup rate... good enough...
-									Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Thanks
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
