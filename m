@@ -1,39 +1,61 @@
-From: Vladimir Pantelic <pan@nt.tu-darmstadt.de>
-Subject: Re: Overo serial problems after resume, vs. Beagleboard
-Date: Tue, 22 Jun 2010 11:06:38 +0200
-Message-ID: <4C207D1E.7010508@nt.tu-darmstadt.de>
-References: <4C1F9B80.9010708@gmail.com> <874ogw1dy2.fsf@deeprootsystems.com> <4C207A9C.7070309@compulab.co.il>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and
+ check for it on V6
+Date: Tue, 22 Jun 2010 12:28:09 +0300
+Message-ID: <20100622092809.GX12255@atomide.com>
+References: <20100621133749.24299.36154.stgit@baageli.muru.com>
+ <20100621135120.24299.98499.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="DIOMP1UsTsWJauNi"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo-p05-ob.rzone.de ([81.169.146.181]:56660 "EHLO
-	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758957Ab0FVJGh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 05:06:37 -0400
-In-Reply-To: <4C207A9C.7070309@compulab.co.il>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64905 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751897Ab0FVJ17 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 05:27:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20100621135120.24299.98499.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Peter Tseng <tsenpet09@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Han Wang <hw342@cornell.edu>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Mike Rapoport wrote:
-> Kevin Hilman wrote:
->>  Peter Tseng<tsenpet09@gmail.com>  writes:
->>
->>>  I am seeing some discrepancies between the Overo (I believe I have a
->>>  Water) and the Beagleboard (I have a Rev. B5) when resuming after a
->>>  suspend to RAM.
->>
->>  Not that it is much comfort, but I have the same problem on Overo but
->>  don't see it on any other OMAP3 board.
->>
->>  I have yet to debug this particular issue further.
->
-> I had the same issue on CM-T35 and when I've disabled CONFIG_CPU_IDLE in the
-> kernel configuration the issue disappeared. Maybe it'll be of some help.
 
-I have that disabled as well on my debug builds, but only in order not to have
-1 char swallowed when the serial wakes the cpu... Still might be worth a
-try on overo/summit
+--DIOMP1UsTsWJauNi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+* Tony Lindgren <tony@atomide.com> [100621 16:45]:
+> The TLS register is only available on ARM1136 r1p0 and later.
+> Set HWCAP_TLS flags if hardware TLS is available.
+> 
+> Note that we now use 0xffff0ff4 for flagging software TLS to
+> __kuser_get_tls, and 0xffff0ff8 for storing the software TLS value.
+
+Forgot my own earlier comment to check only for ARM1136, will update
+with this patch.
+
+Tony
+
+--DIOMP1UsTsWJauNi
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="tls-1136.patch"
+
+Check only for 1136.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -277,8 +277,8 @@ static void __init feat_v6_fixup(void)
+ 	if (id & 0x000f0000 != 0x00070000)
+ 		return;
+ 
+-	/* HWCAP_TLS is available only on V6 r1p0 and later */
+-	if (((id >> 20) & 3) == 0)
++	/* HWCAP_TLS is available only on 1136 r1p0 and later */
++	if ((((id >> 4) & 0xfff) == 0xb36) && (((id >> 20) & 3) == 0))
+ 		elf_hwcap &= ~HWCAP_TLS;
+ }
+ #else
+
+--DIOMP1UsTsWJauNi--
