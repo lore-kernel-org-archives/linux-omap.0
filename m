@@ -1,20 +1,21 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/8] OMAP3: PM: Adding voltage driver support for OMAP3
-Date: Wed, 23 Jun 2010 11:57:50 -0700
-Message-ID: <87sk4dshjl.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 2/8] OMAP3: PM: Adding smartreflex driver support.
+Date: Wed, 23 Jun 2010 13:13:12 -0700
+Message-ID: <87k4ppse1z.fsf@deeprootsystems.com>
 References: <1275150748-15386-1-git-send-email-thara@ti.com>
 	<1275150748-15386-2-git-send-email-thara@ti.com>
+	<1275150748-15386-3-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:42118 "EHLO
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:49713 "EHLO
 	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322Ab0FWS5y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 14:57:54 -0400
-Received: by pvg2 with SMTP id 2so41559pvg.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 11:57:53 -0700 (PDT)
-In-Reply-To: <1275150748-15386-2-git-send-email-thara@ti.com> (Thara
-	Gopinath's message of "Sat, 29 May 2010 22:02:21 +0530")
+	with ESMTP id S1751287Ab0FWUNQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 16:13:16 -0400
+Received: by pvg2 with SMTP id 2so61329pvg.19
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 13:13:14 -0700 (PDT)
+In-Reply-To: <1275150748-15386-3-git-send-email-thara@ti.com> (Thara
+	Gopinath's message of "Sat, 29 May 2010 22:02:22 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Thara Gopinath <thara@ti.com>
@@ -22,66 +23,68 @@ Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@
 
 Thara Gopinath <thara@ti.com> writes:
 
-> This patch adds voltage driver support for OMAP3. The driver
-> allows  configuring the voltage controller and voltage
-> processors during init and exports APIs to enable/disable
-> voltage processors, scale voltage and reset voltage.
-> The driver also maintains the global voltage table on a per
-> VDD basis which contains the various voltages supported by the
-> VDD along with per voltage dependent data like smartreflex
-> n-target value, errminlimit and voltage processor errorgain.
-> The driver allows scaling of VDD voltages either through
-> "vc bypass method" or through "vp forceupdate method" the
-> choice being configurable through the board file.
+> SmartReflex modules do adaptive voltage control for real-time
+> voltage adjustments. With Smartreflex the power supply voltage
+> can be adapted to the silicon performance(manufacturing process,
+> temperature induced performance, age induced performance etc).
 >
-> This patch contains code originally in linux omap pm branch
-> smartreflex driver.  Major contributors to this driver are
+> There are differnet classes of smartreflex implementation.
+> 	Class-0: Manufacturing Test Calibration
+> 	Class-1: Boot-Time Software Calibration
+> 	Class-2: Continuous Software Calibration
+> 	Class-3: Continuous Hardware Calibration
+> 	Class-4: Fully Integrated Power Management
+>
+> OMAP3 has two smartreflex modules one associated with VDD1 and the
+> other associated with VDD2.
+> This patch adds support for  smartreflex driver. The driver is designed
+> for Class-1 , Class-2 and Class-3 support and is  a platform driver.
+> Smartreflex driver can be enabled through a Kconfig option
+> "SmartReflex support" under "System type"->"TI OMAP implementations" menu.
+>
+> Smartreflex autocompensation feature can be enabled runtime through
+> a debug fs option.
+> To enable smartreflex autocompensation feature
+> 	echo 1 > /debugfs/pm_debug/Smartreflex/SR<X>/autocomp
+> To disable smartreflex autocompensation feature
+> 	echo 0 > /debugfs/pm_debug/Smartreflex/SR<X>/autocomp
+>
+> This patch contains code originally in linux omap pm branch.
+> Major contributors to this driver are
 > Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
 > Nishant Menon, Kevin Hilman.
 >
 > Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile                  |    1 +
+>  arch/arm/mach-omap2/pm-debug.c                |    3 +-
+>  arch/arm/mach-omap2/smartreflex.c             |  934 +++++++++++++++++++++++++
 
 [...]
 
-> +/**
-> + * get_curr_vdd_voltage : Gets the current non-auto-compensated voltage
-> + * @vdd	: the VDD for which current voltage info is needed
-> + *
-> + * API to get the current non-auto-compensated voltage for a VDD.
-> + * Returns 0 in case of error else returns the current voltage for the VDD.
-> + */
-> +unsigned long get_curr_voltage(int vdd)
-> +{
-> +	struct omap_opp *opp;
-> +	unsigned long freq;
-> +
-> +	if (check_voltage_domain(vdd)) {
-> +		pr_warning("%s: VDD %d does not exist!\n", __func__, vdd);
-> +		return 0;
-> +	}
-> +
-> +	freq = vdd_info[vdd].volt_clk->rate;
-> +	opp = opp_find_freq_ceil(vdd_info[vdd].opp_type, &freq);
-> +	if (IS_ERR(opp)) {
-> +		pr_warning("%s: Unable to find OPP for VDD%d freq%ld\n",
-> +			__func__, vdd + 1, freq);
-> +		return 0;
-> +	}
-> +
-> +	/*
-> +	 * Use higher freq voltage even if an exact match is not available
-> +	 * we are probably masking a clock framework bug, so warn
-> +	 */
-> +	if (unlikely(freq != vdd_info[vdd].volt_clk->rate))
-> +		pr_warning("%s: Available freq %ld != dpll freq %ld.\n",
-> +			__func__, freq, vdd_info[vdd].volt_clk->rate);
-> +
-> +	return opp_get_voltage(opp);
-> +}
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index 6cac981..4280006 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -162,7 +162,7 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
+>  
+>  static void pm_dbg_regset_store(u32 *ptr);
+>  
+> -struct dentry *pm_dbg_dir;
+> +struct dentry *pm_dbg_dir, *pm_dbg_main_dir;
+>  
+>  static int pm_dbg_init_done;
+>  
+> @@ -606,6 +606,7 @@ static int __init pm_dbg_init(void)
+>  				   &sleep_while_idle, &pm_dbg_option_fops);
+>  	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUGO, d,
+>  				   &wakeup_timer_seconds, &pm_dbg_option_fops);
+> +	pm_dbg_main_dir = d;
+>  	pm_dbg_init_done = 1;
+>  
+>  	return 0;
 
-Rather than having to do an OPP lookup each time based on current clock
-rate, why not just store the current voltage into vdd_info and
-update it whenever it changes.  This function could then just return
-that value.
+Not clear what this change is doing in this patch.  I think this belongs
+with PATCH 8/8.
 
 Kevin
