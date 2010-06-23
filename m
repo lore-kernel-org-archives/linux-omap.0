@@ -1,51 +1,101 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH] select NOP_USB_XCEIV for OMAP4
-Date: Thu, 24 Jun 2010 02:15:17 +0400
-Message-ID: <4C228775.6030705@ru.mvista.com>
-References: <1277318873-8260-1-git-send-email-x0132446@ti.com> <87k4ppqyk2.fsf@deeprootsystems.com> <61951E1F-DEBF-450C-AF06-E0119DA3B33E@student.utwente.nl>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 11/11] staging: ti dspbridge: enable driver building
+Date: Wed, 23 Jun 2010 15:41:50 -0700
+Message-ID: <20100623224150.GA6680@kroah.com>
+References: <1277298125-17991-1-git-send-email-ohad@wizery.com>
+ <1277298840-18516-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:51224 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753455Ab0FWWQP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 18:16:15 -0400
-In-Reply-To: <61951E1F-DEBF-450C-AF06-E0119DA3B33E@student.utwente.nl>
+Received: from kroah.org ([198.145.64.141]:36474 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751708Ab0FWWpL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Jun 2010 18:45:11 -0400
+Content-Disposition: inline
+In-Reply-To: <1277298840-18516-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, David Anders <x0132446@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, ajay.gupta@ti.com, felipe.balbi@nokia.com
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Hebbar Shivananda <x0hebbar@ti.com>, Ramos Falcon Ernesto <ernesto@ti.com>, Anna Suman <s-anna@ti.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Felipe Balbi <felipe.balbi@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Gupta Ramesh <grgupta@ti.com>, Guzman Lugo Fernando <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>, Ameya Palande <ameya.palande@nokia.com>, Gomez Castellanos Ivan <ivan.gomez@ti.com>, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>, Armando Uribe De Leon <x0095078@ti.com>, Deepak Chitriki <deepak.chitriki@ti.com>, Menon Nishanth <nm@ti.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, Pitney Gilbert <gpitney@ti.com>, Bhavin Shah <bshah@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Hello.
+On Wed, Jun 23, 2010 at 04:14:00PM +0300, Ohad Ben-Cohen wrote:
+> From: Omar Ramirez Luna <omar.ramirez@ti.com>
+> 
+> Add Kconfig + Makefile for TI's DSP Bridge driver
+> and expose it to the staging menu.
+> 
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> Signed-off-by: Kanigeri, Hari <h-kanigeri2@ti.com>
+> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+> Signed-off-by: Guzman Lugo, Fernando <fernando.lugo@ti.com>
+> Signed-off-by: Hebbar, Shivananda <x0hebbar@ti.com>
+> Signed-off-by: Ramos Falcon, Ernesto <ernesto@ti.com>
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> Signed-off-by: Anna, Suman <s-anna@ti.com>
+> Signed-off-by: Gupta, Ramesh <grgupta@ti.com>
+> Signed-off-by: Gomez Castellanos, Ivan <ivan.gomez@ti.com>
+> Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+> Signed-off-by: Armando Uribe De Leon <x0095078@ti.com>
+> Signed-off-by: Deepak Chitriki <deepak.chitriki@ti.com>
+> Signed-off-by: Menon, Nishanth <nm@ti.com>
+> Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> ---
+>  drivers/staging/Kconfig              |    2 +
+>  drivers/staging/Makefile             |    1 +
+>  drivers/staging/tidspbridge/Kconfig  |   88 ++++++++++++++++++++++++++++++++++
+>  drivers/staging/tidspbridge/Makefile |   34 +++++++++++++
+>  4 files changed, 125 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/staging/tidspbridge/Kconfig
+>  create mode 100644 drivers/staging/tidspbridge/Makefile
+> 
+> 
+> diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
+> index 3de4bca..c9e8215 100644
+> --- a/drivers/staging/Kconfig
+> +++ b/drivers/staging/Kconfig
+> @@ -153,5 +153,9 @@ source "drivers/staging/easycap/Kconfig"
+>  
+>  source "drivers/staging/solo6x10/Kconfig"
+>  
+> +source "drivers/staging/tidspbridge/Kconfig"
+> +
+> +source "drivers/staging/tidspbridge/Kconfig"
+> +
+>  endif # !STAGING_EXCLUDE_BUILD
+>  endif # STAGING
+> diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
+> index b28d820..952b64e 100644
+> --- a/drivers/staging/Makefile
+> +++ b/drivers/staging/Makefile
+> @@ -57,3 +57,4 @@ obj-$(CONFIG_TOUCHSCREEN_MRSTOUCH)	+= mrst-touchscreen/
+>  obj-$(CONFIG_MSM_STAGING)	+= msm/
+>  obj-$(CONFIG_EASYCAP)		+= easycap/
+>  obj-$(CONFIG_SOLO6X10)		+= solo6x10/
+> +obj-$(CONFIG_TIDSPBRIDGE)	+= tidspbridge/
+> diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
+> new file mode 100644
+> index 0000000..37fa2b1
+> --- /dev/null
+> +++ b/drivers/staging/tidspbridge/Kconfig
+> @@ -0,0 +1,88 @@
+> +#
+> +# DSP Bridge Driver Support
+> +#
+> +
+> +menuconfig TIDSPBRIDGE
+> +	tristate "DSP Bridge driver"
+> +	default n
 
-Koen Kooi wrote:
+The default is always 'n' so you don't need this.
 
->>> Add select statement to force selection of NOP_USB_XCEIV for OMAP4.
+Also, this enables the driver to be built on x86, which fails horribly,
+and I don't think is what you really want to have happen :)
 
->>> Signed-off-by: David Anders <x0132446@ti.com>
->>> ---
->>> drivers/usb/musb/Kconfig |    1 +
->>> 1 files changed, 1 insertions(+), 0 deletions(-)
+So I need some more Kconfig changes here, care to redo just this one
+patch?  I've applied all the others and they will show up in linux-next
+tomorrow.
 
->>> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
->>> index cfd38ed..e4624bc 100644
->>> --- a/drivers/usb/musb/Kconfig
->>> +++ b/drivers/usb/musb/Kconfig
->>> @@ -11,6 +11,7 @@ config USB_MUSB_HDRC
->>> 	depends on (USB || USB_GADGET)
->>> 	depends on (ARM || (BF54x && !BF544) || (BF52x && !BF522 && !BF523))
->>> 	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN)
->>> +	select NOP_USB_XCEIV if ARCH_OMAP4
->>> 	select TWL4030_USB if MACH_OMAP_3430SDP
->>> 	select USB_OTG_UTILS
->>> 	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, ...)'
+thanks,
 
->> Shouldn't this be a board-specific option, and not set for every
->> OMAP4-based config?
-
-> If that's true, why do the  davinci and blackfin archs force it?
-
-    DaVincis have an integrated transceiver.
-
-WBR, Sergei
+greg k-h
