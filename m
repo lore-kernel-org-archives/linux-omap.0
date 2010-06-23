@@ -1,131 +1,71 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 3/3] OMAP1: PM: add simple runtime PM layer to manage clocks
-Date: Wed, 23 Jun 2010 16:37:04 -0700
-Message-ID: <1277336224-24826-4-git-send-email-khilman@deeprootsystems.com>
-References: <1277336224-24826-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 00/13] OMAP: CM, hwmod, omap_device fixes and updates
+Date: Wed, 23 Jun 2010 16:42:30 -0700
+Message-ID: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:43062 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753522Ab0FWXhM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:37:12 -0400
-Received: by mail-pv0-f174.google.com with SMTP id 2so110112pvg.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:37:12 -0700 (PDT)
-In-Reply-To: <1277336224-24826-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:42006 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753904Ab0FWXmq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:42:46 -0400
+Received: by pxi7 with SMTP id 7so469497pxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:42:45 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: paul@pwsan.com
 
-On OMAP1, we do not have omap_device + omap_hwmod to manage the
-device-specific idle, enable and shutdown.  Instead, just
-enable/disable device clocks automatically at the runtime PM level.
+This is a series of fixes & updates mostly to hwmod and omap_device
+that are required for the on-going hwmod conversions and runtime PM
+conversion of drivers.
 
-This allows drivers to not have any OMAP1 specific clock management
-and allows them to simply use the runtime PM API to manage clocks.
+While some of these are fixes, they are not urgent for 2.6.35 and can
+wait until the next merge window.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap1/Makefile |    2 +-
- arch/arm/mach-omap1/pm_bus.c |   77 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 78 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap1/pm_bus.c
+This series applies on top of the runtime PM series just posted and is
+also available as the pm-wip/hwmods branch of my linux-omap-pm git
+tree:
 
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index ea231c7..fd4df71 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -12,7 +12,7 @@ obj-$(CONFIG_OMAP_MPU_TIMER)	+= time.o
- obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
- 
- # Power Management
--obj-$(CONFIG_PM) += pm.o sleep.o
-+obj-$(CONFIG_PM) += pm.o sleep.o pm_bus.o
- 
- # DSP
- obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
-diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
-new file mode 100644
-index 0000000..29d651a
---- /dev/null
-+++ b/arch/arm/mach-omap1/pm_bus.c
-@@ -0,0 +1,77 @@
-+/*
-+ * Runtime PM support code for OMAP1
-+ *
-+ * Author: Kevin Hilman, Deep Root Systems, LLC
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ *
-+ * This file is licensed under the terms of the GNU General Public
-+ * License version 2. This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
-+ */
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/io.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/platform_device.h>
-+#include <linux/mutex.h>
-+
-+#include <plat/omap_device.h>
-+#include <plat/omap-pm.h>
-+
-+#ifdef CONFIG_PM_RUNTIME
-+int platform_pm_runtime_suspend(struct device *dev)
-+{
-+	struct clk *iclk, *fclk;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	if (dev->driver->pm && dev->driver->pm->runtime_suspend)
-+		ret = dev->driver->pm->runtime_suspend(dev);
-+
-+	fclk = clk_get(dev, "fck");
-+	if (!IS_ERR(fclk)) {
-+		clk_disable(fclk);
-+		clk_put(fclk);
-+	}
-+
-+	iclk = clk_get(dev, "ick");
-+	if (!IS_ERR(iclk)) {
-+		clk_disable(iclk);
-+		clk_put(iclk);
-+	}
-+
-+	return 0;
-+};
-+
-+int platform_pm_runtime_resume(struct device *dev)
-+{
-+	int r, ret = 0;
-+	struct clk *iclk, *fclk;
-+
-+	iclk = clk_get(dev, "ick");
-+	if (!IS_ERR(iclk)) {
-+		clk_enable(iclk);
-+		clk_put(iclk);
-+	}
-+
-+	fclk = clk_get(dev, "fck");
-+	if (!IS_ERR(fclk)) {
-+		clk_enable(fclk);
-+		clk_put(fclk);
-+	}
-+
-+	if (dev->driver->pm && dev->driver->pm->runtime_resume)
-+		ret = dev->driver->pm->runtime_resume(dev);
-+
-+	return ret;
-+};
-+
-+int platform_pm_runtime_idle(struct device *dev)
-+{
-+	ret = pm_runtime_suspend(dev);
-+	dev_dbg(dev, "%s [%d]\n", __func__, ret);
-+
-+	return 0;
-+};
-+#endif /* CONFIG_PM_RUNTIME */
--- 
-1.7.0.2
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+
+This has been tested with various hwmod & runtime PM conversions
+(UART, MMC, dmtimer) on OMAP2, OMAP3 and OMAP4.
+
+Kevin
+
+
+Benoit Cousson (2):
+  OMAP: hwmod: Fix the missing braces
+  OMAP2&3: hwmod: Remove _hwmod prefix in name string
+
+Kevin Hilman (10):
+  OMAP24xx: CM: fix mask used for checking IDLEST status
+  OMAP: hwmod: allow idle after HWMOD_INIT_NO_IDLE
+  OMAP2/3: hwmod: L3 and L4 CORE/PER/WKUP hwmods don't have IDLEST
+  OMAP: hwmod: add non-locking versions of enable and idle functions
+  OMAP: hwmod: don't auto-disable hwmod when !CONFIG_PM_RUNTIME
+  OMAP: omap_device: ensure hwmod tracks attached omap_device pointer
+  OMAP: omap_device: add flag to disable automatic bus-level
+    suspend/resume
+  OMAP: create omap_devices for MPU, DSP, L3
+  OMAP: hwmod data: add class for DSP hwmods
+  OMAP3: hwmod data: add data for OMAP3 IVA2
+
+Rajendra Nayak (1):
+  OMAP4: hwmod: Enable omap_device build for OMAP4
+
+ arch/arm/mach-omap2/cm.c                      |    6 +-
+ arch/arm/mach-omap2/devices.c                 |    2 +
+ arch/arm/mach-omap2/io.c                      |   55 ++++++++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod.c              |   60 +++++++++++++++++++++---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c    |   15 ++++---
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c    |   15 ++++---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   51 ++++++++++++++++++---
+ arch/arm/mach-omap2/omap_hwmod_common_data.c  |    3 +
+ arch/arm/mach-omap2/omap_hwmod_common_data.h  |    1 +
+ arch/arm/plat-omap/Makefile                   |    1 +
+ arch/arm/plat-omap/include/plat/common.h      |    4 ++
+ arch/arm/plat-omap/include/plat/omap_device.h |    5 ++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +
+ arch/arm/plat-omap/omap_device.c              |    8 +++-
+ 14 files changed, 194 insertions(+), 34 deletions(-)
 
