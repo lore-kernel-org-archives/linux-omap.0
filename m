@@ -1,58 +1,125 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 7/9] omap: introduce omap4 feature
-Date: Tue, 22 Jun 2010 21:16:13 -0500
-Message-ID: <1277259375-18521-8-git-send-email-nm@ti.com>
+Subject: [PATCH 3/9] omap: generic: introduce a single check_revision
+Date: Tue, 22 Jun 2010 21:16:09 -0500
+Message-ID: <1277259375-18521-4-git-send-email-nm@ti.com>
 References: <1277259375-18521-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45145 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039Ab0FWCQW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 22:16:22 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:45682 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751152Ab0FWCQ1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Jun 2010 22:16:27 -0400
 In-Reply-To: <1277259375-18521-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Venkatraman S <svenkatr@ti.com>, Senthilvadivu Guruswamy <svadivu@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Cc: Venkatraman S <svenkatr@ti.com>, Senthilvadivu Guruswamy <svadivu@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Vishwanath S <vishwa.s@ti.com>, linux-omap@vger.kernel.org
 
-introduce basic omap4 feature framework
+Introduce a single omap generic check_revision that routes the
+request to the right revision of check_revision.
+
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Angelo Arrifano <miknix@gmail.com>
+Cc: "Zebediah C. McClure" <zmc@lurian.net>
+Cc: Alistair Buxton <a.j.buxton@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Senthilvadivu Gurusamy <svadivu@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Vishwanath S <vishwa.s@ti.com>
+Cc: linux-omap@vger.kernel.org
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/id.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap1/io.c              |    3 +--
+ arch/arm/mach-omap2/io.c              |    2 +-
+ arch/arm/plat-omap/common.c           |   12 ++++++++++++
+ arch/arm/plat-omap/include/plat/cpu.h |   13 ++++++++++++-
+ 4 files changed, 26 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 01555b6..e3f5994 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -267,6 +267,19 @@ static void __init omap3_check_revision(void)
- 	}
+diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
+index e4d8680..4f9ee73 100644
+--- a/arch/arm/mach-omap1/io.c
++++ b/arch/arm/mach-omap1/io.c
+@@ -20,7 +20,6 @@
+ 
+ #include "clock.h"
+ 
+-extern void omap1_check_revision(void);
+ extern void omap_sram_init(void);
+ 
+ /*
+@@ -102,7 +101,7 @@ void __init omap1_map_common_io(void)
+ 	/* We want to check CPU revision early for cpu_is_omapxxxx() macros.
+ 	 * IO space mapping must be initialized before we can do that.
+ 	 */
+-	omap1_check_revision();
++	omap_check_revision();
+ 
+ #if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
+ 	if (cpu_is_omap7xx()) {
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 4e1f53d..eeb0e30 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -238,7 +238,7 @@ static void __init _omap2_map_common_io(void)
+ 	local_flush_tlb_all();
+ 	flush_cache_all();
+ 
+-	omap2_check_revision();
++	omap_check_revision();
+ 	omap_sram_init();
  }
  
-+static void __init omap4_check_features(void)
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index fca73cd..538e170 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -89,6 +89,18 @@ void __init omap_reserve(void)
+ 	omap_vram_reserve_sdram_lmb();
+ }
+ 
++void __init omap_check_revision()
 +{
-+	/*
-+	 * TODO: add a better check feature once we have
-+	 * more decent feature check
-+	 */
-+	if (cpu_is_omap4430())
-+		omap_features |= OMAP_HAS_L2CACHE |
-+			OMAP_HAS_IVA |
-+			OMAP_HAS_SGX |
-+			OMAP_HAS_NEON;
++#ifdef CONFIG_ARCH_OMAP1
++	if (cpu_is_omap7xx() || cpu_is_omap15xx() || cpu_is_omap16xx())
++		omap1_check_revision();
++#endif
++#ifdef CONFIG_ARCH_OMAP2PLUS
++	if (cpu_is_omap24xx() || cpu_is_omap34xx() || cpu_is_omap44xx())
++		omap2_check_revision();
++#endif
 +}
 +
- static void __init omap4_check_revision(void)
- {
- 	u32 idcode;
-@@ -382,6 +395,7 @@ void __init omap2_check_revision(void)
- 		return;
- 	} else if (cpu_is_omap44xx()) {
- 		omap4_check_revision();
-+		omap4_check_features();
- 		return;
- 	} else {
- 		pr_err("OMAP revision unknown, please fix!\n");
+ /*
+  * 32KHz clocksource ... always available, on pretty most chips except
+  * OMAP 730 and 1510.  Other timers could be used as clocksources, with
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 7514174..5f12a0b 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -431,7 +431,18 @@ IS_OMAP_TYPE(3517, 0x3517)
+ 
+ 
+ int omap_chip_is(struct omap_chip_id oci);
+-void omap2_check_revision(void);
++#ifdef CONFIG_ARCH_OMAP2PLUS
++extern void omap2_check_revision(void);
++#else
++static inline void omap2_check_revision(void) {}
++#endif
++
++#ifdef CONFIG_ARCH_OMAP1
++extern void omap1_check_revision(void);
++#else
++static inline void omap1_check_revision(void) {}
++#endif
++void omap_check_revision(void);
+ 
+ /*
+  * Runtime detection of OMAP3 features
 -- 
 1.6.3.3
 
