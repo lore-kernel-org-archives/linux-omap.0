@@ -1,66 +1,48 @@
-From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] select NOP_USB_XCEIV for OMAP4
-Date: Thu, 24 Jun 2010 04:33:20 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032366AD24@dbde02.ent.ti.com>
-References: <1277318873-8260-1-git-send-email-x0132446@ti.com>
- <87k4ppqyk2.fsf@deeprootsystems.com>
- <61951E1F-DEBF-450C-AF06-E0119DA3B33E@student.utwente.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <61951E1F-DEBF-450C-AF06-E0119DA3B33E-oe7qfRrRQfcdWmXj+hCI//P6llvjuJOh@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Hunter, Jon" <jon-hunter-l0cyMroinI0@public.gmane.org>
-Cc: "Anders, David" <x0132446-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 0/3] OMAP: add runtime PM support at bus-level
+Date: Wed, 23 Jun 2010 16:37:01 -0700
+Message-ID: <1277336224-24826-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:43062 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753287Ab0FWXhH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:37:07 -0400
+Received: by pvg2 with SMTP id 2so110112pvg.19
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:37:06 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-Koen Kooi wrote:
-> Op 23 jun 2010, om 22:33 heeft Kevin Hilman het volgende geschreven:
-> > David Anders <x0132446-l0cyMroinI0@public.gmane.org> writes:
-> > 
-> >> Add select statement to force selection of NOP_USB_XCEIV for OMAP4.
-> >> 
-> >> Signed-off-by: David Anders <x0132446-l0cyMroinI0@public.gmane.org>
-> >> ---
-> >> drivers/usb/musb/Kconfig |    1 +
-> >> 1 files changed, 1 insertions(+), 0 deletions(-)
-> >> 
-> >> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-> >> index cfd38ed..e4624bc 100644
-> >> --- a/drivers/usb/musb/Kconfig
-> >> +++ b/drivers/usb/musb/Kconfig
-> >> @@ -11,6 +11,7 @@ config USB_MUSB_HDRC
-> >> 	depends on (USB || USB_GADGET)
-> >> 	depends on (ARM || (BF54x && !BF544) || (BF52x && !BF522 && !BF523))
-> >> 	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN)
-> >> +	select NOP_USB_XCEIV if ARCH_OMAP4
-> >> 	select TWL4030_USB if MACH_OMAP_3430SDP
-> >> 	select USB_OTG_UTILS
-> >> 	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, ...)'
-> > 
-> > Shouldn't this be a board-specific option, and not set for every
-> > OMAP4-based config?
-> 
-> If that's true, why do the  davinci and blackfin archs force it?
-> 
+This series introduces runtime PM support at the platform bus level
+for OMAP.
 
-Kevin's right. For OMAP4 at least, this is something that is probably'
-best left up to the board to select.
+In a nutshell, when using the runtime PM API for any device with an
+assocated omap_device (and hwmod), the omap device API will be used to
+handle the hardware-level power management of that device, including
+managing clocks, etc.
 
-For the davinci's and blackfins, they don't have an option. They have
-a fully transparent internal PHY which doesn't need any configuring.
+Today, most drivers handle this by manually enabling/disabling their
+clocks when needed.  With this series (and an omap_device/hwmod for
+each device) direct clock managment can be removed from the driver in
+favor of using the runtime PM API.
 
+This series applies on top v2.6.35-rc2 + Tony's omap-fixes branch and
+is also available in the pm-wip/runtime branch of my linux-omap-pm git
+tree:
 
-However, with the OMAP4, you could potentially use an external ULPI transceiver.
-This can be another transparent PHY for which we could select the NOP_XCEIV.
-Or it could be something like the PHY in the TWL5030 which may need configuring
-over an I2C interface.
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
 
+Kevin Hilman (3):
+  OMAP: PM: initial runtime PM core support
+  OMAP: PM: use omap_device API for suspend/resume
+  OMAP1: PM: add simple runtime PM layer to manage clocks
 
-- Anand
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap1/Makefile |    2 +-
+ arch/arm/mach-omap1/pm_bus.c |   77 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/Makefile |    7 ++-
+ arch/arm/mach-omap2/pm_bus.c |  133 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 217 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/pm_bus.c
+ create mode 100644 arch/arm/mach-omap2/pm_bus.c
+
