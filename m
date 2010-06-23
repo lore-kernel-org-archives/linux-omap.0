@@ -1,53 +1,140 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 07/13] OMAP: hwmod: don't auto-disable hwmod when !CONFIG_PM_RUNTIME
-Date: Wed, 23 Jun 2010 16:42:37 -0700
-Message-ID: <1277336563-24988-8-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 05/13] OMAP2&3: hwmod: Remove _hwmod prefix in name string
+Date: Wed, 23 Jun 2010 16:42:35 -0700
+Message-ID: <1277336563-24988-6-git-send-email-khilman@deeprootsystems.com>
 References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pw0-f46.google.com ([209.85.160.46]:34330 "EHLO
 	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753983Ab0FWXm6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:42:58 -0400
+	with ESMTP id S1754093Ab0FWXmy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:42:54 -0400
 Received: by mail-pw0-f46.google.com with SMTP id 8so1605667pwj.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:42:57 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:42:54 -0700 (PDT)
 In-Reply-To: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com
+Cc: paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-When runtime PM is disabled, the pm_runtime_idle() and _enable()
-functions will be effectively noops and will not result in enable
-and idle calls at the hwmod level.
+From: Benoit Cousson <b-cousson@ti.com>
 
-In order for drivers to still work when runtime PM is disabled, ensure
-that all hwmods are left in an enabled state so that even without
-runtime PM management, they will still work.
+In the lastest OMAP4 hwmod data file, the _hwmod was removed
+in order to save some memory space and because it does not
+bring a lot.
+Align OMAP2420, 2430 and 3430 data files with the same convention.
 
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++---
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +++---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 8b2b44a..0184d74 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1059,6 +1059,14 @@ static int _setup(struct omap_hwmod *oh)
- 		}
- 	}
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index a8b57a6..646386c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2420_l3_masters[] = {
  
-+#ifndef CONFIG_PM_RUNTIME
-+	/*
-+	 * If runtime PM is not enabled, leave the device enabled
-+	 * since runtime PM will not be dynamically managing the device.
-+	 */
-+	oh->flags |= HWMOD_INIT_NO_IDLE;
-+#endif
-+
- 	if (!(oh->flags & HWMOD_INIT_NO_IDLE))
- 		_idle(oh);
+ /* L3 */
+ static struct omap_hwmod omap2420_l3_hwmod = {
+-	.name		= "l3_hwmod",
++	.name		= "l3_main",
+ 	.class		= &l3_hwmod_class,
+ 	.masters	= omap2420_l3_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap2420_l3_masters),
+@@ -90,7 +90,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_core_masters[] = {
  
+ /* L4 CORE */
+ static struct omap_hwmod omap2420_l4_core_hwmod = {
+-	.name		= "l4_core_hwmod",
++	.name		= "l4_core",
+ 	.class		= &l4_hwmod_class,
+ 	.masters	= omap2420_l4_core_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_core_masters),
+@@ -111,7 +111,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_wkup_masters[] = {
+ 
+ /* L4 WKUP */
+ static struct omap_hwmod omap2420_l4_wkup_hwmod = {
+-	.name		= "l4_wkup_hwmod",
++	.name		= "l4_wkup",
+ 	.class		= &l4_hwmod_class,
+ 	.masters	= omap2420_l4_wkup_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_wkup_masters),
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 8b1f74b..b2100cf 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2430_l3_masters[] = {
+ 
+ /* L3 */
+ static struct omap_hwmod omap2430_l3_hwmod = {
+-	.name		= "l3_hwmod",
++	.name		= "l3_main",
+ 	.class		= &l3_hwmod_class,
+ 	.masters	= omap2430_l3_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap2430_l3_masters),
+@@ -92,7 +92,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_core_masters[] = {
+ 
+ /* L4 CORE */
+ static struct omap_hwmod omap2430_l4_core_hwmod = {
+-	.name		= "l4_core_hwmod",
++	.name		= "l4_core",
+ 	.class		= &l4_hwmod_class,
+ 	.masters	= omap2430_l4_core_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_core_masters),
+@@ -113,7 +113,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_wkup_masters[] = {
+ 
+ /* L4 WKUP */
+ static struct omap_hwmod omap2430_l4_wkup_hwmod = {
+-	.name		= "l4_wkup_hwmod",
++	.name		= "l4_wkup",
+ 	.class		= &l4_hwmod_class,
+ 	.masters	= omap2430_l4_wkup_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_wkup_masters),
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index e288b20..ec6a5f8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -70,7 +70,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l3_masters[] = {
+ 
+ /* L3 */
+ static struct omap_hwmod omap3xxx_l3_hwmod = {
+-	.name		= "l3_hwmod",
++	.name		= "l3_main",
+ 	.class		= &l3_hwmod_class,
+ 	.masters	= omap3xxx_l3_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_masters),
+@@ -101,7 +101,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_core_masters[] = {
+ 
+ /* L4 CORE */
+ static struct omap_hwmod omap3xxx_l4_core_hwmod = {
+-	.name		= "l4_core_hwmod",
++	.name		= "l4_core",
+ 	.class		= &l4_hwmod_class,
+ 	.masters	= omap3xxx_l4_core_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_core_masters),
+@@ -122,7 +122,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_per_masters[] = {
+ 
+ /* L4 PER */
+ static struct omap_hwmod omap3xxx_l4_per_hwmod = {
+-	.name		= "l4_per_hwmod",
++	.name		= "l4_per",
+ 	.class		= &l4_hwmod_class,
+ 	.masters	= omap3xxx_l4_per_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_per_masters),
+@@ -143,7 +143,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_masters[] = {
+ 
+ /* L4 WKUP */
+ static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
+-	.name		= "l4_wkup_hwmod",
++	.name		= "l4_wkup",
+ 	.class		= &l4_hwmod_class,
+ 	.masters	= omap3xxx_l4_wkup_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_masters),
 -- 
 1.7.0.2
 
