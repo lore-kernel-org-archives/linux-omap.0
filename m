@@ -1,144 +1,81 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 03/13] OMAP2/3: hwmod: L3 and L4 CORE/PER/WKUP hwmods don't have IDLEST
-Date: Wed, 23 Jun 2010 16:42:33 -0700
-Message-ID: <1277336563-24988-4-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 04/13] OMAP: hwmod: Fix the missing braces
+Date: Wed, 23 Jun 2010 16:42:34 -0700
+Message-ID: <1277336563-24988-5-git-send-email-khilman@deeprootsystems.com>
 References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:34330 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754043Ab0FWXmv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:42:51 -0400
-Received: by pwj8 with SMTP id 8so1605667pwj.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:42:51 -0700 (PDT)
+Received: from mail-px0-f174.google.com ([209.85.212.174]:42006 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754093Ab0FWXmx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:42:53 -0400
+Received: by mail-px0-f174.google.com with SMTP id 7so469497pxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:42:52 -0700 (PDT)
 In-Reply-To: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com
+Cc: paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>
 
-Since these hwmods do not have IDLEST, set the HWMOD_NO_IDLEST flag,
-otherwise _enable() will fail due to failing _wait_target_ready().
+From: Benoit Cousson <b-cousson@ti.com>
 
+As reported by Sergei, a couple of braces were missing after
+the WARM removal patch.
+
+[07/22] OMAP: hwmod: Replace WARN by pr_warning if clock lookup failed
+
+https://patchwork.kernel.org/patch/100756/
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    9 ++++++---
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    9 ++++++---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   12 ++++++++----
- 3 files changed, 20 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index e5530c5..a8b57a6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -65,7 +65,8 @@ static struct omap_hwmod omap2420_l3_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l3_masters),
- 	.slaves		= omap2420_l3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2420_l3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
- };
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index ac75407..3d11523 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -409,10 +409,11 @@ static int _init_main_clk(struct omap_hwmod *oh)
+ 		return 0;
  
- static struct omap_hwmod omap2420_l4_wkup_hwmod;
-@@ -95,7 +96,8 @@ static struct omap_hwmod omap2420_l4_core_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_core_masters),
- 	.slaves		= omap2420_l4_core_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2420_l4_core_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
- };
+ 	oh->_clk = omap_clk_get_by_name(oh->main_clk);
+-	if (!oh->_clk)
++	if (!oh->_clk) {
+ 		pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
+ 			   oh->name, oh->main_clk);
+ 		return -EINVAL;
++	}
  
- /* Slave interfaces on the L4_WKUP interconnect */
-@@ -115,7 +117,8 @@ static struct omap_hwmod omap2420_l4_wkup_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_wkup_masters),
- 	.slaves		= omap2420_l4_wkup_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2420_l4_wkup_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+	.flags		= HWMOD_NO_IDLEST,
- };
+ 	if (!oh->_clk->clkdm)
+ 		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
+@@ -444,10 +445,11 @@ static int _init_interface_clks(struct omap_hwmod *oh)
+ 			continue;
  
- /* Master interfaces on the MPU device */
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 0852d95..8b1f74b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -65,7 +65,8 @@ static struct omap_hwmod omap2430_l3_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l3_masters),
- 	.slaves		= omap2430_l3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2430_l3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
+ 		c = omap_clk_get_by_name(os->clk);
+-		if (!c)
++		if (!c) {
+ 			pr_warning("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
+ 				   oh->name, os->clk);
+ 			ret = -EINVAL;
++		}
+ 		os->_clk = c;
+ 	}
  
- static struct omap_hwmod omap2430_l4_wkup_hwmod;
-@@ -97,7 +98,8 @@ static struct omap_hwmod omap2430_l4_core_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_core_masters),
- 	.slaves		= omap2430_l4_core_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2430_l4_core_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
+@@ -470,10 +472,11 @@ static int _init_opt_clks(struct omap_hwmod *oh)
  
- /* Slave interfaces on the L4_WKUP interconnect */
-@@ -117,7 +119,8 @@ static struct omap_hwmod omap2430_l4_wkup_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_wkup_masters),
- 	.slaves		= omap2430_l4_wkup_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap2430_l4_wkup_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
+ 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
+ 		c = omap_clk_get_by_name(oc->clk);
+-		if (!c)
++		if (!c) {
+ 			pr_warning("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
+ 				   oh->name, oc->clk);
+ 			ret = -EINVAL;
++		}
+ 		oc->_clk = c;
+ 	}
  
- /* Master interfaces on the MPU device */
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 39b0c0e..e288b20 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -76,7 +76,8 @@ static struct omap_hwmod omap3xxx_l3_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_masters),
- 	.slaves		= omap3xxx_l3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l3_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod;
-@@ -106,7 +107,8 @@ static struct omap_hwmod omap3xxx_l4_core_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_core_masters),
- 	.slaves		= omap3xxx_l4_core_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_core_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Slave interfaces on the L4_PER interconnect */
-@@ -126,7 +128,8 @@ static struct omap_hwmod omap3xxx_l4_per_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_per_masters),
- 	.slaves		= omap3xxx_l4_per_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_per_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Slave interfaces on the L4_WKUP interconnect */
-@@ -146,7 +149,8 @@ static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_masters),
- 	.slaves		= omap3xxx_l4_wkup_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_slaves),
--	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= HWMOD_NO_IDLEST,
- };
- 
- /* Master interfaces on the MPU device */
 -- 
 1.7.0.2
 
