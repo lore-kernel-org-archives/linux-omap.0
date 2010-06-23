@@ -1,52 +1,39 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 4/4] dspbridge: use mailbox API to set rx callback
-Date: Wed, 23 Jun 2010 03:11:36 +0300
-Message-ID: <1277251896-6890-4-git-send-email-ohad@wizery.com>
-References: <1277251896-6890-1-git-send-email-ohad@wizery.com>
+Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+Date: Wed, 23 Jun 2010 03:29:00 +0300
+Message-ID: <AANLkTinA-iPGHPSbbw5XZdMeDW0T4ltbhQ-LANDry9h9@mail.gmail.com>
+References: <AANLkTikNX09s4xflcOax3Ry3o5XgJZF0JbbZXSGeKryR@mail.gmail.com>
+	<20100615.110449.27786947.Hiroshi.DOYU@nokia.com> <AANLkTimC8xdQeuRRA5x7GomNfJjC5H_5YfqQBmSBAa50@mail.gmail.com>
+	<20100616.085056.189711722.Hiroshi.DOYU@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:46372 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914Ab0FWALt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 20:11:49 -0400
-Received: by wwc33 with SMTP id 33so584186wwc.19
-        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 17:11:48 -0700 (PDT)
-In-Reply-To: <1277251896-6890-1-git-send-email-ohad@wizery.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:34260 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751726Ab0FWA3W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 20:29:22 -0400
+Received: by wyi11 with SMTP id 11so344846wyi.19
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 17:29:20 -0700 (PDT)
+In-Reply-To: <20100616.085056.189711722.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: fernando.lugo@ti.com, deepak.chitriki@ti.com, omar.ramirez@ti.com, h-kanigeri2@ti.com, linux-omap@vger.kernel.org, rene.sapiens@ti.com
 
-use mailbox API to set rx callback
+On Wed, Jun 16, 2010 at 8:50 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> From: ext Ohad Ben-Cohen <ohad@wizery.com>
+>> Thanks, I'll prepare them and resubmit
+>
+> You can use the following branch which has accumulateed unmerged
+> mailbox patches.
+>
+> git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc3-mailbox
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
-I can also be contacted at < ohadb at ti dot com >
 
- drivers/dsp/bridge/core/tiomap3430.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+Done.
 
-diff --git a/drivers/dsp/bridge/core/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
-index 35c6678..1190c79 100644
---- a/drivers/dsp/bridge/core/tiomap3430.c
-+++ b/drivers/dsp/bridge/core/tiomap3430.c
-@@ -555,7 +555,7 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
- 		 * Enable Mailbox events and also drain any pending
- 		 * stale messages.
- 		 */
--		dev_context->mbox = omap_mbox_get("dsp");
-+		dev_context->mbox = omap_mbox_get("dsp", (int (*)(void *))io_mbox_msg);
- 		if (IS_ERR(dev_context->mbox)) {
- 			dev_context->mbox = NULL;
- 			pr_err("%s: Failed to get dsp mailbox handle\n",
-@@ -565,8 +565,6 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
- 
- 	}
- 	if (DSP_SUCCEEDED(status)) {
--		dev_context->mbox->rxq->callback = (int (*)(void *))io_mbox_msg;
--
- /*PM_IVA2GRPSEL_PER = 0xC0;*/
- 		temp = (u32) *((reg_uword32 *)
- 				((u32) (resources->dw_per_pm_base) + 0xA8));
--- 
-1.7.0.4
 
+>
+>
+>
+>
