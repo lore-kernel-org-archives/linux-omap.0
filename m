@@ -1,185 +1,66 @@
-From: Abraham Arce <abraham.arce.moreno@gmail.com>
-Subject: Re: [PATCH v4 2/4] OMAP4: Keyboard device registration
-Date: Tue, 22 Jun 2010 17:36:37 -0500
-Message-ID: <AANLkTimMbpmHZ5kh1fzuQYZsNQ22QqCKjZDoourCJtMY@mail.gmail.com>
-References: <x0066660@ti.com>
-	<1276704555-30625-1-git-send-email-x0066660@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02C5BEFCC3@dbde02.ent.ti.com>
-	<87mxutl64d.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <87mxutl64d.fsf@deeprootsystems.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "Arce, Abraham" <x0066660@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH 1/4] omap mailbox: extend API to take a callback param
+Date: Wed, 23 Jun 2010 03:11:33 +0300
+Message-ID: <1277251896-6890-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:59612 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752657Ab0FWALp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 20:11:45 -0400
+Received: by wyi11 with SMTP id 11so338208wyi.19
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 17:11:43 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-Charu, Kevin,
+Let mailbox users set the callback pointer via the
+omap_mbox_get API, instead of having users directly
+manipulating the mailbox structures.
 
-On Thu, Jun 17, 2010 at 4:08 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> "Varadarajan, Charulatha" <charu@ti.com> writes:
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+I can also be contacted at < ohadb at ti dot com >
 
-[...]
+ arch/arm/plat-omap/include/plat/mailbox.h |    2 +-
+ arch/arm/plat-omap/mailbox.c              |    4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
->>> +
->>> + =A0 =A0oh =3D omap_hwmod_lookup(oh_name);
->>
->> Use omap_hwmod_for_each_by_class() instead of lookup by name.
->
-> Yes.
-
-how about handling all keypad data in devices.c and add
-omap_init_keypad() under omap2_init_devices()?
-
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/device=
-s.c
-
-+#ifdef CONFIG_ARCH_OMAP4
-+static int sdp4430_keymap[] =3D {
-+	KEY(0, 0, KEY_E),
-+	KEY(0, 1, KEY_R),
-
-[...]
-
-+	KEY(7, 6, KEY_OK),
-+	KEY(7, 7, KEY_DOWN),
-+};
-+
-+static struct matrix_keymap_data sdp4430_keymap_data =3D {
-+	.keymap			=3D sdp4430_keymap,
-+	.keymap_size		=3D ARRAY_SIZE(sdp4430_keymap),
-+};
-+
-+static struct omap4_keypad_platform_data sdp4430_keypad_data =3D {
-+	.keymap_data		=3D &sdp4430_keymap_data,
-+	.rows			=3D 8,
-+	.cols			=3D 8,
-+};
-+
-+struct omap_device_pm_latency omap_keyboard_latency[] =3D {
-+	{
-+		.deactivate_func =3D omap_device_idle_hwmods,
-+		.activate_func   =3D omap_device_enable_hwmods,
-+		.flags =3D OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	},
-+};
-+
-+static int omap4_init_keypad(struct omap_hwmod *oh, void *user)
-+{
-+	struct omap_device *od;
-+	unsigned int id =3D -1;
-+	char *name =3D "omap4-keypad";
-+
-+	if (!oh)
-+		pr_err("Could not look up omap4 kbd\n");
-+
-+	od =3D omap_device_build(name, id, oh, &sdp4430_keypad_data,
-+			sizeof(struct omap4_keypad_platform_data),
-+			omap_keyboard_latency,
-+			ARRAY_SIZE(omap_keyboard_latency), 0);
-+	WARN(IS_ERR(od), "Could not build omap_device for %s %s\n",
-+		name, oh->name);
-+
-+	return 0;
-+}
-+
-+static int omap_init_keypad(void)
-+{
-+	if (!cpu_is_omap44xx())
-+		return -ENODEV;
-+
-+	return omap_hwmod_for_each_by_class("kbd", omap4_init_keypad, NULL);
-+}
-+#endif /* KEYBOARD CONFIG_ARCH_OMAP4 */
-+
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODU=
-LE)
-
- #define MBOX_REG_SIZE   0x120
-@@ -807,6 +931,7 @@ static int __init omap2_init_devices(void)
- 	 */
- 	omap_hsmmc_reset();
- 	omap_init_camera();
-+	omap_init_keypad();
- 	omap_init_mbox();
- 	omap_init_mcspi();
- 	omap_hdq_init();
-
->>> + =A0 =A0pdata->base =3D oh->_rt_va;
->>> + =A0 =A0pdata->irq =3D oh->mpu_irqs[0].irq;
->>
->> Use platform_get_() APIs to get base addr & irq instead of passing
->> it as pdata
->
-> Yes.
->
-> Thanks Charu!
->
-> For all those working on OMAP hwmod conversions, please take some tim=
-e
-> to read the reviews of the other hwmod conversions that have already
-> been posted and reviewed (some of them multiple times) so we don't
-> keep duplicating the same mistakes and wasting review time.
->
-
-These will be the changes....
-
-diff --git a/drivers/input/keyboard/omap4-keypad.c
-b/drivers/input/keyboard/omap4-keypad.c
-index 975f8bb..c606e36 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-
-@@ -158,12 +213,14 @@ static int __devinit omap4_keypad_probe(struct
-platform_device *pdev)
- 		return -EINVAL;
+diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
+index 9976565..0b45664 100644
+--- a/arch/arm/plat-omap/include/plat/mailbox.h
++++ b/arch/arm/plat-omap/include/plat/mailbox.h
+@@ -62,7 +62,7 @@ struct omap_mbox {
+ int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
+ void omap_mbox_init_seq(struct omap_mbox *);
+ 
+-struct omap_mbox *omap_mbox_get(const char *);
++struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *));
+ void omap_mbox_put(struct omap_mbox *);
+ 
+ int omap_mbox_register(struct device *parent, struct omap_mbox **);
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index d2fafb8..14b716d 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -305,7 +305,7 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
  	}
-
--	if (!pdata->base) {
-+	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
- 		dev_err(&pdev->dev, "no base address specified\n");
- 		return -EINVAL;
- 	}
-
--	if (!pdata->irq) {
-+	irq =3D platform_get_irq(pdev, 0);
-+	if (!irq) {
- 		dev_err(&pdev->dev, "no keyboard irq assigned\n");
- 		return -EINVAL;
- 	}
-
-@@ -184,9 +240,22 @@ static int __devinit omap4_keypad_probe(struct
-platform_device *pdev)
- 		return -ENOMEM;
- 	}
-
--	keypad_data->base =3D pdata->base;
--	keypad_data->irq =3D pdata->irq;
-+	mem =3D request_mem_region(res->start,
-+			resource_size(res), pdev->name);
-+	if (!mem) {
-+		dev_err(&pdev->dev, "no mem region available\n");
-+		return -ENOMEM;
-+		goto err_free_keypad;
-+	}
+ }
+ 
+-struct omap_mbox *omap_mbox_get(const char *name)
++struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *))
+ {
+ 	struct omap_mbox *mbox;
+ 	int ret;
+@@ -324,6 +324,8 @@ struct omap_mbox *omap_mbox_get(const char *name)
+ 	if (ret)
+ 		return ERR_PTR(-ENODEV);
+ 
++	mbox->rxq->callback = callback;
 +
-+	keypad_data->base =3D ioremap(res->start, resource_size(res));
-+	if (!keypad_data->base) {
-+		dev_err(&pdev->dev, "can't ioremap mem resource.\n");
-+		error =3D -ENOMEM;
-+		goto err_free_memreg;
-+	}
+ 	return mbox;
+ }
+ EXPORT_SYMBOL(omap_mbox_get);
+-- 
+1.7.0.4
 
-+	keypad_data->irq =3D irq;
-
-Best Regards
-Abraham
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
