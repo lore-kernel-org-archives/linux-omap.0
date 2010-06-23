@@ -1,140 +1,117 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 05/13] OMAP2&3: hwmod: Remove _hwmod prefix in name string
-Date: Wed, 23 Jun 2010 16:42:35 -0700
-Message-ID: <1277336563-24988-6-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 06/13] OMAP: hwmod: add non-locking versions of enable and idle functions
+Date: Wed, 23 Jun 2010 16:42:36 -0700
+Message-ID: <1277336563-24988-7-git-send-email-khilman@deeprootsystems.com>
 References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:34330 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754093Ab0FWXmy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:42:54 -0400
-Received: by mail-pw0-f46.google.com with SMTP id 8so1605667pwj.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:42:54 -0700 (PDT)
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:54392 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753983Ab0FWXm4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:42:56 -0400
+Received: by pvg2 with SMTP id 2so111388pvg.19
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:42:56 -0700 (PDT)
 In-Reply-To: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: paul@pwsan.com
 
-From: Benoit Cousson <b-cousson@ti.com>
+Some hwmods may need to be idled/enabled in atomic context, so
+non-locking versions of these functions are required.
 
-In the lastest OMAP4 hwmod data file, the _hwmod was removed
-in order to save some memory space and because it does not
-bring a lot.
-Align OMAP2420, 2430 and 3430 data files with the same convention.
+Most users should not need these and usage of theses should be
+controlled to understand why access is being done in atomic context.
+For this reason, the non-locking functions are only exposed at the
+hwmod level and not at the omap-device level.
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+The use-case that led to the need for the non-locking versions is
+hwmods that are enabled/idled from within the core idle/suspend path.
+Since interrupts are already disabled here, the mutex-based locking in
+hwmod can sleep and will cause potential deadlocks.
+
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |   32 ++++++++++++++++++++++---
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
+ 2 files changed, 30 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index a8b57a6..646386c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2420_l3_masters[] = {
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 3d11523..8b2b44a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1287,6 +1287,18 @@ int omap_hwmod_unregister(struct omap_hwmod *oh)
+ }
  
- /* L3 */
- static struct omap_hwmod omap2420_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3_main",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap2420_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l3_masters),
-@@ -90,7 +90,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_core_masters[] = {
+ /**
++ * __omap_hwmod_enable - enable an omap_hwmod (non-locking version)
++ * @oh: struct omap_hwmod *
++ *
++ * Enable an omap_hwomd @oh.  Intended to be called in rare cases
++ * where usage is required in atomic context.
++ */
++int __omap_hwmod_enable(struct omap_hwmod *oh)
++{
++	return _enable(oh);
++}
++
++/**
+  * omap_hwmod_enable - enable an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+@@ -1301,12 +1313,26 @@ int omap_hwmod_enable(struct omap_hwmod *oh)
+ 		return -EINVAL;
  
- /* L4 CORE */
- static struct omap_hwmod omap2420_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2420_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_core_masters),
-@@ -111,7 +111,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_wkup_masters[] = {
+ 	mutex_lock(&omap_hwmod_mutex);
+-	r = _enable(oh);
++	r = __omap_hwmod_enable(oh);
+ 	mutex_unlock(&omap_hwmod_mutex);
  
- /* L4 WKUP */
- static struct omap_hwmod omap2420_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2420_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_wkup_masters),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 8b1f74b..b2100cf 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2430_l3_masters[] = {
+ 	return r;
+ }
  
- /* L3 */
- static struct omap_hwmod omap2430_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3_main",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap2430_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l3_masters),
-@@ -92,7 +92,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_core_masters[] = {
++
++/**
++ * __omap_hwmod_idle - idle an omap_hwmod (non-locking)
++ * @oh: struct omap_hwmod *
++ *
++ * Idle an omap_hwomd @oh.  Intended to be called in rare instances where
++ * used in atomic context.
++ */
++int __omap_hwmod_idle(struct omap_hwmod *oh)
++{
++	_idle(oh);
++	return 0;
++}
++
+ /**
+  * omap_hwmod_idle - idle an omap_hwmod
+  * @oh: struct omap_hwmod *
+@@ -1319,9 +1345,7 @@ int omap_hwmod_idle(struct omap_hwmod *oh)
+ 	if (!oh)
+ 		return -EINVAL;
  
- /* L4 CORE */
- static struct omap_hwmod omap2430_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2430_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_core_masters),
-@@ -113,7 +113,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_wkup_masters[] = {
+-	mutex_lock(&omap_hwmod_mutex);
+-	_idle(oh);
+-	mutex_unlock(&omap_hwmod_mutex);
++	__omap_hwmod_idle(oh);
  
- /* L4 WKUP */
- static struct omap_hwmod omap2430_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2430_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_wkup_masters),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index e288b20..ec6a5f8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -70,7 +70,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l3_masters[] = {
+ 	return 0;
+ }
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 0eccc09..9a3f4dc 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -486,7 +486,9 @@ int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh));
+ int omap_hwmod_late_init(void);
  
- /* L3 */
- static struct omap_hwmod omap3xxx_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3_main",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap3xxx_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_masters),
-@@ -101,7 +101,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_core_masters[] = {
+ int omap_hwmod_enable(struct omap_hwmod *oh);
++int __omap_hwmod_enable(struct omap_hwmod *oh);
+ int omap_hwmod_idle(struct omap_hwmod *oh);
++int __omap_hwmod_idle(struct omap_hwmod *oh);
+ int omap_hwmod_shutdown(struct omap_hwmod *oh);
  
- /* L4 CORE */
- static struct omap_hwmod omap3xxx_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_core_masters),
-@@ -122,7 +122,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_per_masters[] = {
- 
- /* L4 PER */
- static struct omap_hwmod omap3xxx_l4_per_hwmod = {
--	.name		= "l4_per_hwmod",
-+	.name		= "l4_per",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_per_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_per_masters),
-@@ -143,7 +143,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_masters[] = {
- 
- /* L4 WKUP */
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_masters),
+ int omap_hwmod_enable_clocks(struct omap_hwmod *oh);
 -- 
 1.7.0.2
 
