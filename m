@@ -1,35 +1,78 @@
 From: Jamie Lokier <jamie@shareable.org>
 Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and check for it on V6
-Date: Wed, 23 Jun 2010 14:28:14 +0100
-Message-ID: <20100623132814.GB7058@shareable.org>
-References: <20100621133749.24299.36154.stgit@baageli.muru.com> <20100621135120.24299.98499.stgit@baageli.muru.com> <20100622170020.GF4371@shareable.org> <20100623073912.GA12255@atomide.com> <20100623081218.GA16385@n2100.arm.linux.org.uk> <20100623092843.GC12255@atomide.com>
+Date: Wed, 23 Jun 2010 14:36:36 +0100
+Message-ID: <20100623133636.GC7058@shareable.org>
+References: <20100621133749.24299.36154.stgit@baageli.muru.com> <20100621135120.24299.98499.stgit@baageli.muru.com> <20100622170020.GF4371@shareable.org> <20100623073912.GA12255@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail2.shareable.org ([80.68.89.115]:37871 "EHLO
+Received: from mail2.shareable.org ([80.68.89.115]:35563 "EHLO
 	mail2.shareable.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511Ab0FWN2R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 09:28:17 -0400
+	with ESMTP id S1751386Ab0FWNgj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 09:36:39 -0400
 Content-Disposition: inline
-In-Reply-To: <20100623092843.GC12255@atomide.com>
+In-Reply-To: <20100623073912.GA12255@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 Tony Lindgren wrote:
-> > Also problematical with XIP - if we go down the route of implementing
-> > these by copying code fragments into the kernel, we need to strip out
-> > XIP support or implement a second way.  Obviously having a second way
-> > adds maintainence burden, and the second way will probably lose out
-> > on updates.
+> * Jamie Lokier <jamie@shareable.org> [100622 19:54]:
+> > Tony Lindgren wrote:
+> > >  __kuser_get_tls:				@ 0xffff0fe0
+> > > -
+> > > -#if !defined(CONFIG_HAS_TLS_REG) && !defined(CONFIG_TLS_REG_EMUL)
+> > > -	ldr	r0, [pc, #(16 - 8)]		@ TLS stored at 0xffff0ff0
+> > > -#else
+> > > -	mrc	p15, 0, r0, c13, c0, 3		@ read TLS register
+> > > -#endif
+> > > +	ldr     r0, [pc, #(20 - 8)]		@ software TLS set in 0xffff0ff4?
+> > > +	cmp	r0, #0				@ hardware TLS if flag not set
+> > > +	mrceq	p15, 0, r0, c13, c0, 3		@ read hardware TLS register
+> > > +	ldrne	r0, [pc, #(12 - 8)]		@ software TLS val at 0xffff0ff8
+> > >  	usr_ret	lr
+> > > -
+> > > -	.rep	5
+> > > -	.word	0			@ pad up to __kuser_helper_version
+> > > -	.endr
+> > > +	.word	0				@ non-zero for software TLS
+> > > +	.word	0				@ software TLS value
+> > 
+> > It'd be nice not to waste instructions checking for HWCAP_TLS on archs
+> > which definitely don't have it.  I guess it doesn't matter elsewhere;
+> > I'd expect this to be a warm path for some programs making extensive
+> > use of TLS (I haven't measured though).
 > 
-> How about if we implement the default XIP-safe unoptimized functions,
-> with minimal iffdeffery and then allow optional override for non-XIP
-> kernels from mm/proc-*.S files?
+> OK, but let's try to figure out a way that does not add more ifdef else
+> code as that makes it harder to build support for multiple ARM cores.
+>  
+> > As it's only a single instruction, and the code is in a writable page
+> > already (copied at init), how about just patching the instruction
+> > when ELF_HWCAP is set?
+> 
+> Yeah that can be done for __kuser_get_tls if it's always writable.
+> But __switch_to is trickier because of the CONFIG_MMU ifdefs there.
 
-That might be a plan for some things like cache maintenance - skip a
-function call when not needed, call direct instead of indirect, but
-for XIP that status quo must remain.
+__kuser_get_tls must be writable in kernels where !HAS_TLS_REG is
+supported, because the TLS value is written to the same page.
+
+I was thinking of changing *only* __kuser_get_tls, by the way.  Out of
+all the different places, that's the only one I'd expect to be a hot
+path in some TLS-using programs.
+
+> What if we have optional __switch_to and __kuser_get_tls implementations
+> in the mm/proc-*.S files that get copied over the current locations
+> if implemented?
+
+As __kuser_get_tls varies by only ones instruction, I don't think
+there's any point doing anything other than a single word write, at
+the point where the HWCAP is set, with its initial value being the
+!HAS_TLS_REG instruction.
+
+For other things like __switch_to and maybe cache maintenance calls,
+dmb() etc, I'd suggest first doing a generic asm mechanism like x86's
+"alternatives", keeping in mind that one of the alternatives has to be
+XIP friendly.
 
 -- Jamie
