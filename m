@@ -1,39 +1,56 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
-Date: Wed, 23 Jun 2010 03:29:00 +0300
-Message-ID: <AANLkTinA-iPGHPSbbw5XZdMeDW0T4ltbhQ-LANDry9h9@mail.gmail.com>
-References: <AANLkTikNX09s4xflcOax3Ry3o5XgJZF0JbbZXSGeKryR@mail.gmail.com>
-	<20100615.110449.27786947.Hiroshi.DOYU@nokia.com> <AANLkTimC8xdQeuRRA5x7GomNfJjC5H_5YfqQBmSBAa50@mail.gmail.com>
-	<20100616.085056.189711722.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 8/9] omap: introduce omap24xx generic features
+Date: Tue, 22 Jun 2010 21:16:14 -0500
+Message-ID: <1277259375-18521-9-git-send-email-nm@ti.com>
+References: <1277259375-18521-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:34260 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751726Ab0FWA3W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jun 2010 20:29:22 -0400
-Received: by wyi11 with SMTP id 11so344846wyi.19
-        for <linux-omap@vger.kernel.org>; Tue, 22 Jun 2010 17:29:20 -0700 (PDT)
-In-Reply-To: <20100616.085056.189711722.Hiroshi.DOYU@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:45674 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998Ab0FWCQW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Jun 2010 22:16:22 -0400
+In-Reply-To: <1277259375-18521-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: fernando.lugo@ti.com, deepak.chitriki@ti.com, omar.ramirez@ti.com, h-kanigeri2@ti.com, linux-omap@vger.kernel.org, rene.sapiens@ti.com
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Venkatraman S <svenkatr@ti.com>, Senthilvadivu Guruswamy <svadivu@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
-On Wed, Jun 16, 2010 at 8:50 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
-> From: ext Ohad Ben-Cohen <ohad@wizery.com>
->> Thanks, I'll prepare them and resubmit
->
-> You can use the following branch which has accumulateed unmerged
-> mailbox patches.
->
-> git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc3-mailbox
+introduce generic features for omap2. omap2 uses mbx, not sgx, and
+it still has a dsp, though not iva2 as omap3 uses..
 
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/id.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-Done.
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index e3f5994..fe634dd 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -102,6 +102,16 @@ static struct omap_id omap_ids[] __initdata = {
+ static void __iomem *tap_base;
+ static u16 tap_prod_id;
+ 
++static void __init omap24xx_check_features(void)
++{
++	/*
++	 * TODO: add a better check feature once we have
++	 * more decent feature check
++	 */
++	omap_features |= OMAP_HAS_L2CACHE |
++		OMAP_HAS_IVA;
++}
++
+ static void __init omap24xx_check_revision(void)
+ {
+ 	int i, j;
+@@ -388,6 +398,7 @@ void __init omap2_check_revision(void)
+ 	 */
+ 	if (cpu_is_omap24xx()) {
+ 		omap24xx_check_revision();
++		omap24xx_check_features();
+ 	} else if (cpu_is_omap34xx()) {
+ 		omap3_check_revision();
+ 		omap3_check_features();
+-- 
+1.6.3.3
 
-
->
->
->
->
