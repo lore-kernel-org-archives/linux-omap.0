@@ -1,63 +1,150 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 10/13] OMAP: omap_device: add flag to disable automatic bus-level suspend/resume
-Date: Wed, 23 Jun 2010 16:42:40 -0700
-Message-ID: <1277336563-24988-11-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 11/13] OMAP: create omap_devices for MPU, DSP, L3
+Date: Wed, 23 Jun 2010 16:42:41 -0700
+Message-ID: <1277336563-24988-12-git-send-email-khilman@deeprootsystems.com>
 References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-px0-f174.google.com ([209.85.212.174]:42006 "EHLO
 	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754093Ab0FWXnF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:43:05 -0400
+	with ESMTP id S1754093Ab0FWXnH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:43:07 -0400
 Received: by mail-px0-f174.google.com with SMTP id 7so469497pxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:43:04 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:43:07 -0700 (PDT)
 In-Reply-To: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com
 
-As part of the runtime PM support, bus-level code can automatically
-handle the enable/idle for each omap_device.  There are, however, some
-special cases where we don't want the bus-level layer to handle this,
-and instead handle it manually.
+Create simple omap_devices for the main processors and busses.
 
-Specific use cases are for omap_devices that are controlled
-inside the idle path (like UART.)
+This is required to support the forth-coming device-based OPP
+approach, where OPPs are managed and tracked at the device level.
 
+So that these primary devices are available for early PM initialization,
+they are created as early platform_devices.
+
+Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/plat-omap/include/plat/omap_device.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c            |    2 +
+ arch/arm/mach-omap2/io.c                 |   55 +++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/common.h |    4 ++
+ 3 files changed, 60 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index 3694b62..2cdbcdd 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -68,12 +68,16 @@ struct omap_device {
- 	struct omap_device_pm_latency	*pm_lats;
- 	u32				dev_wakeup_lat;
- 	u32				_dev_wakeup_lat_limit;
-+	u32                             flags;
- 	u8				pm_lats_cnt;
- 	s8				pm_lat_level;
- 	u8				hwmods_cnt;
- 	u8				_state;
- };
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 03e6c9e..62920ac 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -15,6 +15,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ #include <linux/clk.h>
++#include <linux/err.h>
  
-+/* flags for struct omap_device */
-+#define OMAP_DEVICE_NO_BUS_SUSPEND     BIT(0)
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+@@ -29,6 +30,7 @@
+ #include <mach/gpio.h>
+ #include <plat/mmc.h>
+ #include <plat/dma.h>
++#include <plat/omap_device.h>
+ 
+ #include "mux.h"
+ 
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 3cfb425..ecebbbf 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -45,7 +45,7 @@
+ 
+ #include <plat/clockdomain.h>
+ #include "clockdomains.h"
+-#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
+ 
+ /*
+  * The machine specific code may provide the extra mapping besides the
+@@ -313,6 +313,58 @@ static int __init _omap2_init_reprogram_sdrc(void)
+ 	return v;
+ }
+ 
++static struct omap_device_pm_latency *pm_lats;
 +
- /* Device driver interface (call via platform_data fn ptrs) */
++static DEFINE_PER_CPU(struct device *, mpu_dev);
++static struct device *dsp_dev;
++static struct device *l3_dev;
++
++struct device *omap_get_mpu_device(void)
++{
++	mpu_dev = per_cpu(mpu_dev, smp_processor_id());
++	WARN_ON_ONCE(!mpu_dev);
++	return mpu_dev;
++}
++
++struct device *omap_get_dsp_device(void)
++{
++	WARN_ON_ONCE(!dsp_dev);
++	return dsp_dev;
++}
++
++struct device *omap_get_l3_device(void)
++{
++	WARN_ON_ONCE(!l3_dev);
++	return l3_dev;
++}
++
++static int _init_omap_device(struct omap_hwmod *oh, void *user)
++{
++	struct omap_device *od;
++	const char *name = oh->name;
++	struct device **new_dev = (struct device **)user;
++
++	od = omap_device_build(name, 0, oh, NULL, 0, pm_lats, 0, true);
++	if (WARN(IS_ERR(od), "Could not build omap_device for %s\n", name))
++		return -ENODEV;
++
++	*new_dev = &od->pdev.dev;
++
++	return 0;
++}
++
++/*
++ * Build omap_devices for processors and bus.
++ */
++static void omap_init_processor_devices(void)
++{
++	mpu_dev = per_cpu(mpu_dev, smp_processor_id());
++
++	omap_hwmod_for_each_by_class("mpu", _init_omap_device, &mpu_dev);
++	omap_hwmod_for_each_by_class("dsp", _init_omap_device, &dsp_dev);
++	omap_hwmod_for_each_by_class("l3", _init_omap_device, &l3_dev);
++}
++
+ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 				 struct omap_sdrc_params *sdrc_cs1)
+ {
+@@ -342,6 +394,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 	omap_serial_early_init();
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
+ 		omap_hwmod_late_init();
++	omap_init_processor_devices();
+ 	omap_pm_if_init();
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+ 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index d265018..0059dec 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -87,4 +87,8 @@ void omap2_set_globals_uart(struct omap_globals *);
+ 	}							\
+ })
  
- int omap_device_enable(struct platform_device *pdev);
-@@ -142,6 +146,7 @@ struct omap_device_pm_latency {
- 	u32 flags;
- };
- 
-+/* flags for struct omap_device_pm_latency */
- #define OMAP_DEVICE_LATENCY_AUTO_ADJUST BIT(1)
- 
- /* Get omap_device pointer from platform_device pointer */
++struct device *omap_get_mpu_device(void);
++struct device *omap_get_dsp_device(void);
++struct device *omap_get_l3_device(void);
++
+ #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
 -- 
 1.7.0.2
 
