@@ -1,98 +1,75 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/9] omap2/3: id: fix sparse warning
-Date: Tue, 22 Jun 2010 21:16:08 -0500
-Message-ID: <1277259375-18521-3-git-send-email-nm@ti.com>
-References: <1277259375-18521-1-git-send-email-nm@ti.com>
+Subject: [PATCH 4/5] omap2/3/4: serial: introduce errata handling
+Date: Tue, 22 Jun 2010 23:17:53 -0500
+Message-ID: <1277266674-5906-5-git-send-email-nm@ti.com>
+References: <1277266674-5906-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34618 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39728 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751152Ab0FWCQ3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jun 2010 22:16:29 -0400
-In-Reply-To: <1277259375-18521-1-git-send-email-nm@ti.com>
+	id S1750829Ab0FWESG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Jun 2010 00:18:06 -0400
+In-Reply-To: <1277266674-5906-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: Venkatraman S <svenkatr@ti.com>, Senthilvadivu Guruswamy <svadivu@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Vishwanath S <vishwa.s@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Deepak K <deepak.k@ti.com>, Govindraj R <govindraj.raja@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>
 
-omap24xx_check_revision, omap3_check_features,
-omap3_check_revision, omap4_check_revision, omap3_cpuinfo
-are not used elsewhere, it should be static
+introduce silicon specific quirks as a errata handling mechanism
 
-Also fixes the following sparse warnings:
-arch/arm/mach-omap2/id.c:105:13: warning: symbol 'omap24xx_check_revision' was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:167:13: warning: symbol 'omap3_check_features' was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:189:13: warning: symbol 'omap3_check_revision' was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:270:13: warning: symbol 'omap4_check_revision' was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:300:13: warning: symbol 'omap3_cpuinfo' was not declared. Should it be static?
+as a start UART_ERRATA_FIFO_FULL_ABORT is used to handle the override
+for fifo full condition for rx and tx.
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Angelo Arrifano <miknix@gmail.com>
-Cc: "Zebediah C. McClure" <zmc@lurian.net>
-Cc: Alistair Buxton <a.j.buxton@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Sanjeev Premi <premi@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Senthilvadivu Gurusamy <svadivu@ti.com>
+Cc: Deepak K <deepak.k@ti.com>
+Cc: Govindraj R <govindraj.raja@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Vikram Pandita <vikram.pandita@ti.com>
-Cc: Vishwanath S <vishwa.s@ti.com>
-Cc: linux-omap@vger.kernel.org
+Cc: Tero Kristo <tero.kristo@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/id.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/serial.c |   15 ++++++++++-----
+ 1 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 37b8a1a..c7bf0e1 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -102,7 +102,7 @@ static struct omap_id omap_ids[] __initdata = {
- static void __iomem *tap_base;
- static u16 tap_prod_id;
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 584a2ed..009b63f 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -37,6 +37,8 @@
+ #define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
+ #define UART_OMAP_WER		0x17	/* Wake-up enable register */
  
--void __init omap24xx_check_revision(void)
-+static void __init omap24xx_check_revision(void)
- {
- 	int i, j;
- 	u32 idcode, prod_id;
-@@ -164,7 +164,7 @@ void __init omap24xx_check_revision(void)
- 		omap3_features |= OMAP3_HAS_ ##feat;			\
- 	}
++#define UART_ERRATA_FIFO_FULL_ABORT	(0x1 << 0)
++
+ /*
+  * NOTE: By default the serial timeout is disabled as it causes lost characters
+  * over the serial ports. This means that the UART clocks will stay on until
+@@ -64,6 +66,7 @@ struct omap_uart_state {
+ 	struct list_head node;
+ 	struct platform_device pdev;
  
--void __init omap3_check_features(void)
-+static void __init omap3_check_features(void)
- {
- 	u32 status;
++	u32 errata;
+ #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+ 	int context_valid;
  
-@@ -186,7 +186,7 @@ void __init omap3_check_features(void)
+@@ -756,11 +759,13 @@ void __init omap_serial_init_port(int port)
+ 	 * omap3xxx: Never read empty UART fifo on UARTs
+ 	 * with IP rev >=0x52
  	 */
- }
- 
--void __init omap3_check_revision(void)
-+static void __init omap3_check_revision(void)
- {
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
-@@ -267,7 +267,7 @@ void __init omap3_check_revision(void)
+-	if (cpu_is_omap44xx()) {
+-		uart->p->serial_in = serial_in_override;
+-		uart->p->serial_out = serial_out_override;
+-	} else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
+-			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV) {
++	if (cpu_is_omap44xx())
++		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
++	else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
++			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
++		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
++
++	if (uart->errata & UART_ERRATA_FIFO_FULL_ABORT) {
+ 		uart->p->serial_in = serial_in_override;
+ 		uart->p->serial_out = serial_out_override;
  	}
- }
- 
--void __init omap4_check_revision(void)
-+static void __init omap4_check_revision(void)
- {
- 	u32 idcode;
- 	u16 hawkeye;
-@@ -297,7 +297,7 @@ void __init omap4_check_revision(void)
- 	if (omap3_has_ ##feat())		\
- 		printk(#feat" ");
- 
--void __init omap3_cpuinfo(void)
-+static void __init omap3_cpuinfo(void)
- {
- 	u8 rev = GET_OMAP_REVISION();
- 	char cpu_name[16], cpu_rev[16];
 -- 
 1.6.3.3
 
