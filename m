@@ -1,53 +1,84 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and
- check for it on V6
-Date: Wed, 23 Jun 2010 10:19:48 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1006231002530.24097@xanadu.home>
-References: <20100621133749.24299.36154.stgit@baageli.muru.com>
- <20100621135120.24299.98499.stgit@baageli.muru.com>
- <20100622170020.GF4371@shareable.org> <20100623073912.GA12255@atomide.com>
- <20100623133636.GC7058@shareable.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
+Date: Wed, 23 Jun 2010 07:48:41 -0700
+Message-ID: <878w6524ae.fsf@deeprootsystems.com>
+References: <1276733833-18510-1-git-send-email-khilman@deeprootsystems.com>
+	<1276733833-18510-6-git-send-email-khilman@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB032366AB60@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:32752 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752389Ab0FWOTt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 10:19:49 -0400
-Received: from xanadu.home ([66.130.28.92]) by VL-MO-MR004.ip.videotron.ca
- (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
- with ESMTP id <0L4H00K4X150QID0@VL-MO-MR004.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Wed, 23 Jun 2010 10:19:48 -0400 (EDT)
-In-reply-to: <20100623133636.GC7058@shareable.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:52395 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752507Ab0FWOsq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 10:48:46 -0400
+Received: by pwj8 with SMTP id 8so1454005pwj.19
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 07:48:45 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032366AB60@dbde02.ent.ti.com> (Thara Gopinath's message of "Wed\, 23 Jun 2010 16\:31\:44 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jamie Lokier <jamie@shareable.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Wed, 23 Jun 2010, Jamie Lokier wrote:
+"Gopinath, Thara" <thara@ti.com> writes:
 
-> For other things like __switch_to and maybe cache maintenance calls,
-> dmb() etc, I'd suggest first doing a generic asm mechanism like x86's
-> "alternatives", keeping in mind that one of the alternatives has to be
-> XIP friendly.
+>>>-----Original Message-----
+>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>Sent: Thursday, June 17, 2010 5:47 AM
+>>>To: linux-omap@vger.kernel.org
+>>>Cc: Menon, Nishanth; Gopinath, Thara; Cousson, Benoit
+>>>Subject: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
+>>>
+>>>Create simple omap_devices for the main processors and busses.
+>>>
+>>>This is required to support the forth-coming device-based OPP
+>>>approach, where OPPs are managed and tracked at the omap_device and
+>>>hwmod level.
+>>>
+>>>Because these omap_devices are based on platform_devices, they cannot
+>>>be created until the driver core has been initialized.  Therefore, move
+>>>the init of these into a device_initcall().  Also, OMAP PM init cannot
+>>>be done until after this step as it depends on the OPP layer.
+>>>
+>>>Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+[...]
 
-You cannot be XIP friendly unless you rewrite the concerned function(s) 
-into a RAM page in order to modify it.  And then of course you have to 
-play tricks with the linker so that the rewritten functions are 
-referenced with their final rewritten location.  And that means of 
-course that the RAM location has to be a constant unless we introduce 
-some indirect function calls.  And at that point we're not much better 
-than the proposed runtime test.
+>>>+
+>>>+static int __init omap2_late_common_init(void)
+>>>+{
+>>>+	omap_init_processor_devices();
+>>>+
+>>> 	/* initialize the opp table if board file has not done so */
+>>> 	omap3_pm_init_opp_table();
+>>>
+>>>+	omap_pm_if_init();
+>>>+
+>>>+	return 0;
+>>>+}
+>>>+device_initcall(omap2_late_common_init);
+> Hello Kevin,
+>
+> Any particular reason for making this a late init and not keeping
+> this a part of init_common_hw?  The reason is the board files also
+> have an option of calling/ overriding omap3_pm_init_opp_table. This
+> happens really early in init_irq. (Refer board_3430sdp.c). So if a
+> board file calls into omap3_pm_init_opp_table, the opp
+> initializations will happen before the omap_device pointers are
+> build for mpu, iva and l3. So the dev pointers stored as part of
+> dev_opp tables will be screwed up.  My personal preference would be
+> to call the omap_init_processor_devices just after
+> hwmod_late_init. This will remove any race conditions as above.
 
-Also, if you are interested by a XIP kernel, this usually means you have 
-a fairly highly customized kernel config.  In this context it is 
-senseless to have runtime patching of the kernel.  What you want in that 
-case is as much stuff as possible selected and optimized at compile 
-time, and anything you don't need configured out.
+I agree, I changed this yesterday and the current pm-wip/hwmods is
+doing exactly this.
 
-So it would be best if dynamic function patching could be statically 
-generated from the same source when XIP is active.
+The initial reason for the late initcall was because omap_device_build
+creates platform_devices and devices, but the driver core was not
+yet initialized at this point.
 
+To fix, I now create these devices as early platform devices so that
+the init sequence can remain the same.
 
-Nicolas
+I'll be posting an updated version of this series today.
+
+Kevin
