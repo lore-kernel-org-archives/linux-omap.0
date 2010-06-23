@@ -1,150 +1,53 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 11/13] OMAP: create omap_devices for MPU, DSP, L3
-Date: Wed, 23 Jun 2010 16:42:41 -0700
-Message-ID: <1277336563-24988-12-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 12/13] OMAP: hwmod data: add class for DSP hwmods
+Date: Wed, 23 Jun 2010 16:42:42 -0700
+Message-ID: <1277336563-24988-13-git-send-email-khilman@deeprootsystems.com>
 References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-px0-f174.google.com ([209.85.212.174]:42006 "EHLO
 	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754093Ab0FWXnH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:43:07 -0400
+	with ESMTP id S1754133Ab0FWXnJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 19:43:09 -0400
 Received: by mail-px0-f174.google.com with SMTP id 7so469497pxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:43:07 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jun 2010 16:43:09 -0700 (PDT)
 In-Reply-To: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com
 
-Create simple omap_devices for the main processors and busses.
-
-This is required to support the forth-coming device-based OPP
-approach, where OPPs are managed and tracked at the device level.
-
-So that these primary devices are available for early PM initialization,
-they are created as early platform_devices.
+Add a new hwmod class for DSP devices.  To be used when hwmods
+are created for DSP on OMAP3 (a.k.a. IVA2.)
 
 Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/devices.c            |    2 +
- arch/arm/mach-omap2/io.c                 |   55 +++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/common.h |    4 ++
- 3 files changed, 60 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_common_data.c |    3 +++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h |    1 +
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 03e6c9e..62920ac 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -15,6 +15,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/clk.h>
-+#include <linux/err.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.c b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+index 1e80b91..09f1e98 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+@@ -66,3 +66,6 @@ struct omap_hwmod_class mpu_hwmod_class = {
+ 	.name = "mpu"
+ };
  
- #include <mach/hardware.h>
- #include <mach/irqs.h>
-@@ -29,6 +30,7 @@
- #include <mach/gpio.h>
- #include <plat/mmc.h>
- #include <plat/dma.h>
-+#include <plat/omap_device.h>
++struct omap_hwmod_class dsp_hwmod_class = {
++	.name = "dsp"
++};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+index 3645a28..d03ebfa 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+@@ -20,5 +20,6 @@
+ extern struct omap_hwmod_class l3_hwmod_class;
+ extern struct omap_hwmod_class l4_hwmod_class;
+ extern struct omap_hwmod_class mpu_hwmod_class;
++extern struct omap_hwmod_class dsp_hwmod_class;
  
- #include "mux.h"
- 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 3cfb425..ecebbbf 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -45,7 +45,7 @@
- 
- #include <plat/clockdomain.h>
- #include "clockdomains.h"
--#include <plat/omap_hwmod.h>
-+#include <plat/omap_device.h>
- 
- /*
-  * The machine specific code may provide the extra mapping besides the
-@@ -313,6 +313,58 @@ static int __init _omap2_init_reprogram_sdrc(void)
- 	return v;
- }
- 
-+static struct omap_device_pm_latency *pm_lats;
-+
-+static DEFINE_PER_CPU(struct device *, mpu_dev);
-+static struct device *dsp_dev;
-+static struct device *l3_dev;
-+
-+struct device *omap_get_mpu_device(void)
-+{
-+	mpu_dev = per_cpu(mpu_dev, smp_processor_id());
-+	WARN_ON_ONCE(!mpu_dev);
-+	return mpu_dev;
-+}
-+
-+struct device *omap_get_dsp_device(void)
-+{
-+	WARN_ON_ONCE(!dsp_dev);
-+	return dsp_dev;
-+}
-+
-+struct device *omap_get_l3_device(void)
-+{
-+	WARN_ON_ONCE(!l3_dev);
-+	return l3_dev;
-+}
-+
-+static int _init_omap_device(struct omap_hwmod *oh, void *user)
-+{
-+	struct omap_device *od;
-+	const char *name = oh->name;
-+	struct device **new_dev = (struct device **)user;
-+
-+	od = omap_device_build(name, 0, oh, NULL, 0, pm_lats, 0, true);
-+	if (WARN(IS_ERR(od), "Could not build omap_device for %s\n", name))
-+		return -ENODEV;
-+
-+	*new_dev = &od->pdev.dev;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Build omap_devices for processors and bus.
-+ */
-+static void omap_init_processor_devices(void)
-+{
-+	mpu_dev = per_cpu(mpu_dev, smp_processor_id());
-+
-+	omap_hwmod_for_each_by_class("mpu", _init_omap_device, &mpu_dev);
-+	omap_hwmod_for_each_by_class("dsp", _init_omap_device, &dsp_dev);
-+	omap_hwmod_for_each_by_class("l3", _init_omap_device, &l3_dev);
-+}
-+
- void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 				 struct omap_sdrc_params *sdrc_cs1)
- {
-@@ -342,6 +394,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	omap_serial_early_init();
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
- 		omap_hwmod_late_init();
-+	omap_init_processor_devices();
- 	omap_pm_if_init();
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
- 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index d265018..0059dec 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -87,4 +87,8 @@ void omap2_set_globals_uart(struct omap_globals *);
- 	}							\
- })
- 
-+struct device *omap_get_mpu_device(void);
-+struct device *omap_get_dsp_device(void);
-+struct device *omap_get_l3_device(void);
-+
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+ #endif
 -- 
 1.7.0.2
 
