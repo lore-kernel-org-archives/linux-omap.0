@@ -1,370 +1,148 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP2&3: hwmod: Replace l3 -> l3_main and fix iva2
-Date: Thu, 24 Jun 2010 15:39:26 -0700
-Message-ID: <87pqzgxdgh.fsf@deeprootsystems.com>
-References: <1277418371-27322-1-git-send-email-b-cousson@ti.com>
+Subject: Re: [PATCH 0/8] OMAP3: Adding Smartreflex and Voltage driver support
+Date: Thu, 24 Jun 2010 16:25:18 -0700
+Message-ID: <878w64xbc1.fsf@deeprootsystems.com>
+References: <1275150748-15386-1-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:48575 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997Ab0FXWjd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 18:39:33 -0400
-Received: by pwj8 with SMTP id 8so2062543pwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 15:39:32 -0700 (PDT)
-In-Reply-To: <1277418371-27322-1-git-send-email-b-cousson@ti.com> (Benoit
-	Cousson's message of "Fri, 25 Jun 2010 00:26:11 +0200")
+Received: from mail-px0-f174.google.com ([209.85.212.174]:40240 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755401Ab0FXXZY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 19:25:24 -0400
+Received: by pxi8 with SMTP id 8so431896pxi.19
+        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 16:25:23 -0700 (PDT)
+In-Reply-To: <1275150748-15386-1-git-send-email-thara@ti.com> (Thara
+	Gopinath's message of "Sat, 29 May 2010 22:02:20 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
 
-Benoit Cousson <b-cousson@ti.com> writes:
+Thara Gopinath <thara@ti.com> writes:
 
-> Replace all the struct that contain l3 with l3_main in order
-> to be consistent with the OMAP4 naming convention.
+> This patch series introduces smartreflex and voltage driver support
+> for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
+> control for real-time voltage adjustments.
 >
-> Replace iva2 by iva for the same reason.
->
-> This patch is based on the latest-latest (45 min ago) pm-wip/hwmods
-> branch from Kevin's tree.
+> Originally all the functionalities introduced in this patch
+> were present in arch/arm/mach-omap2/smartreflex.c file in Kevin's
+> pm tree. This patch series does a major rewrite of this file
+> and introduces a separate voltage driver. Major contributors
+> to the original driver are
 
-Thanks, will merge into the pm-wip/hwmods series.  I'll merge the IVA
-changes into the existing IVA patch, and then leave the rest as a
-separate patch.
+I just noticed that one thing missing from this series compared to what
+was in the previous PM branch is the disable/enable of SR in the idle
+path, so SR is not getting exercised during idle anymore in the current
+PM branch.
 
-Thanks,
+Could you rememdy that please with another patch on top of this series
+(the new pm-sr branch?)
 
 Kevin
 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   34 +++++++-------
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   34 +++++++-------
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   65 ++++++++++++++--------------
->  3 files changed, 66 insertions(+), 67 deletions(-)
+
+> Eduardo Valentin (1):
+>       OMAP3: PM: SmartReflex: Fix scheduled while atomic problem
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> index 646386c..8c90b27 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> @@ -30,41 +30,41 @@
->   */
->  
->  static struct omap_hwmod omap2420_mpu_hwmod;
-> -static struct omap_hwmod omap2420_l3_hwmod;
-> +static struct omap_hwmod omap2420_l3_main_hwmod;
->  static struct omap_hwmod omap2420_l4_core_hwmod;
->  
->  /* L3 -> L4_CORE interface */
-> -static struct omap_hwmod_ocp_if omap2420_l3__l4_core = {
-> -	.master	= &omap2420_l3_hwmod,
-> +static struct omap_hwmod_ocp_if omap2420_l3_main__l4_core = {
-> +	.master	= &omap2420_l3_main_hwmod,
->  	.slave	= &omap2420_l4_core_hwmod,
->  	.user	= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
->  /* MPU -> L3 interface */
-> -static struct omap_hwmod_ocp_if omap2420_mpu__l3 = {
-> +static struct omap_hwmod_ocp_if omap2420_mpu__l3_main = {
->  	.master = &omap2420_mpu_hwmod,
-> -	.slave	= &omap2420_l3_hwmod,
-> +	.slave	= &omap2420_l3_main_hwmod,
->  	.user	= OCP_USER_MPU,
->  };
->  
->  /* Slave interfaces on the L3 interconnect */
-> -static struct omap_hwmod_ocp_if *omap2420_l3_slaves[] = {
-> -	&omap2420_mpu__l3,
-> +static struct omap_hwmod_ocp_if *omap2420_l3_main_slaves[] = {
-> +	&omap2420_mpu__l3_main,
->  };
->  
->  /* Master interfaces on the L3 interconnect */
-> -static struct omap_hwmod_ocp_if *omap2420_l3_masters[] = {
-> -	&omap2420_l3__l4_core,
-> +static struct omap_hwmod_ocp_if *omap2420_l3_main_masters[] = {
-> +	&omap2420_l3_main__l4_core,
->  };
->  
->  /* L3 */
-> -static struct omap_hwmod omap2420_l3_hwmod = {
-> +static struct omap_hwmod omap2420_l3_main_hwmod = {
->  	.name		= "l3_main",
->  	.class		= &l3_hwmod_class,
-> -	.masters	= omap2420_l3_masters,
-> -	.masters_cnt	= ARRAY_SIZE(omap2420_l3_masters),
-> -	.slaves		= omap2420_l3_slaves,
-> -	.slaves_cnt	= ARRAY_SIZE(omap2420_l3_slaves),
-> +	.masters	= omap2420_l3_main_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap2420_l3_main_masters),
-> +	.slaves		= omap2420_l3_main_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap2420_l3_main_slaves),
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
->  	.flags		= HWMOD_NO_IDLEST,
->  };
-> @@ -80,7 +80,7 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__l4_wkup = {
->  
->  /* Slave interfaces on the L4_CORE interconnect */
->  static struct omap_hwmod_ocp_if *omap2420_l4_core_slaves[] = {
-> -	&omap2420_l3__l4_core,
-> +	&omap2420_l3_main__l4_core,
->  };
->  
->  /* Master interfaces on the L4_CORE interconnect */
-> @@ -123,7 +123,7 @@ static struct omap_hwmod omap2420_l4_wkup_hwmod = {
->  
->  /* Master interfaces on the MPU device */
->  static struct omap_hwmod_ocp_if *omap2420_mpu_masters[] = {
-> -	&omap2420_mpu__l3,
-> +	&omap2420_mpu__l3_main,
->  };
->  
->  /* MPU */
-> @@ -137,7 +137,7 @@ static struct omap_hwmod omap2420_mpu_hwmod = {
->  };
->  
->  static __initdata struct omap_hwmod *omap2420_hwmods[] = {
-> -	&omap2420_l3_hwmod,
-> +	&omap2420_l3_main_hwmod,
->  	&omap2420_l4_core_hwmod,
->  	&omap2420_l4_wkup_hwmod,
->  	&omap2420_mpu_hwmod,
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> index b2100cf..c0f3311 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> @@ -30,41 +30,41 @@
->   */
->  
->  static struct omap_hwmod omap2430_mpu_hwmod;
-> -static struct omap_hwmod omap2430_l3_hwmod;
-> +static struct omap_hwmod omap2430_l3_main_hwmod;
->  static struct omap_hwmod omap2430_l4_core_hwmod;
->  
->  /* L3 -> L4_CORE interface */
-> -static struct omap_hwmod_ocp_if omap2430_l3__l4_core = {
-> -	.master	= &omap2430_l3_hwmod,
-> +static struct omap_hwmod_ocp_if omap2430_l3_main__l4_core = {
-> +	.master	= &omap2430_l3_main_hwmod,
->  	.slave	= &omap2430_l4_core_hwmod,
->  	.user	= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
->  /* MPU -> L3 interface */
-> -static struct omap_hwmod_ocp_if omap2430_mpu__l3 = {
-> +static struct omap_hwmod_ocp_if omap2430_mpu__l3_main = {
->  	.master = &omap2430_mpu_hwmod,
-> -	.slave	= &omap2430_l3_hwmod,
-> +	.slave	= &omap2430_l3_main_hwmod,
->  	.user	= OCP_USER_MPU,
->  };
->  
->  /* Slave interfaces on the L3 interconnect */
-> -static struct omap_hwmod_ocp_if *omap2430_l3_slaves[] = {
-> -	&omap2430_mpu__l3,
-> +static struct omap_hwmod_ocp_if *omap2430_l3_main_slaves[] = {
-> +	&omap2430_mpu__l3_main,
->  };
->  
->  /* Master interfaces on the L3 interconnect */
-> -static struct omap_hwmod_ocp_if *omap2430_l3_masters[] = {
-> -	&omap2430_l3__l4_core,
-> +static struct omap_hwmod_ocp_if *omap2430_l3_main_masters[] = {
-> +	&omap2430_l3_main__l4_core,
->  };
->  
->  /* L3 */
-> -static struct omap_hwmod omap2430_l3_hwmod = {
-> +static struct omap_hwmod omap2430_l3_main_hwmod = {
->  	.name		= "l3_main",
->  	.class		= &l3_hwmod_class,
-> -	.masters	= omap2430_l3_masters,
-> -	.masters_cnt	= ARRAY_SIZE(omap2430_l3_masters),
-> -	.slaves		= omap2430_l3_slaves,
-> -	.slaves_cnt	= ARRAY_SIZE(omap2430_l3_slaves),
-> +	.masters	= omap2430_l3_main_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap2430_l3_main_masters),
-> +	.slaves		= omap2430_l3_main_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap2430_l3_main_slaves),
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
->  	.flags		= HWMOD_NO_IDLEST,
->  };
-> @@ -82,7 +82,7 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__l4_wkup = {
->  
->  /* Slave interfaces on the L4_CORE interconnect */
->  static struct omap_hwmod_ocp_if *omap2430_l4_core_slaves[] = {
-> -	&omap2430_l3__l4_core,
-> +	&omap2430_l3_main__l4_core,
->  };
->  
->  /* Master interfaces on the L4_CORE interconnect */
-> @@ -125,7 +125,7 @@ static struct omap_hwmod omap2430_l4_wkup_hwmod = {
->  
->  /* Master interfaces on the MPU device */
->  static struct omap_hwmod_ocp_if *omap2430_mpu_masters[] = {
-> -	&omap2430_mpu__l3,
-> +	&omap2430_mpu__l3_main,
->  };
->  
->  /* MPU */
-> @@ -139,7 +139,7 @@ static struct omap_hwmod omap2430_mpu_hwmod = {
->  };
->  
->  static __initdata struct omap_hwmod *omap2430_hwmods[] = {
-> -	&omap2430_l3_hwmod,
-> +	&omap2430_l3_main_hwmod,
->  	&omap2430_l4_core_hwmod,
->  	&omap2430_l4_wkup_hwmod,
->  	&omap2430_mpu_hwmod,
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 69080fa..8f7a3de 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -32,51 +32,51 @@
->   */
->  
->  static struct omap_hwmod omap3xxx_mpu_hwmod;
-> -static struct omap_hwmod omap3xxx_iva2_hwmod;
-> -static struct omap_hwmod omap3xxx_l3_hwmod;
-> +static struct omap_hwmod omap3xxx_iva_hwmod;
-> +static struct omap_hwmod omap3xxx_l3_main_hwmod;
->  static struct omap_hwmod omap3xxx_l4_core_hwmod;
->  static struct omap_hwmod omap3xxx_l4_per_hwmod;
->  
->  /* L3 -> L4_CORE interface */
-> -static struct omap_hwmod_ocp_if omap3xxx_l3__l4_core = {
-> -	.master	= &omap3xxx_l3_hwmod,
-> +static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
-> +	.master	= &omap3xxx_l3_main_hwmod,
->  	.slave	= &omap3xxx_l4_core_hwmod,
->  	.user	= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
->  /* L3 -> L4_PER interface */
-> -static struct omap_hwmod_ocp_if omap3xxx_l3__l4_per = {
-> -	.master = &omap3xxx_l3_hwmod,
-> +static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_per = {
-> +	.master = &omap3xxx_l3_main_hwmod,
->  	.slave	= &omap3xxx_l4_per_hwmod,
->  	.user	= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
->  /* MPU -> L3 interface */
-> -static struct omap_hwmod_ocp_if omap3xxx_mpu__l3 = {
-> +static struct omap_hwmod_ocp_if omap3xxx_mpu__l3_main = {
->  	.master = &omap3xxx_mpu_hwmod,
-> -	.slave	= &omap3xxx_l3_hwmod,
-> +	.slave	= &omap3xxx_l3_main_hwmod,
->  	.user	= OCP_USER_MPU,
->  };
->  
->  /* Slave interfaces on the L3 interconnect */
-> -static struct omap_hwmod_ocp_if *omap3xxx_l3_slaves[] = {
-> -	&omap3xxx_mpu__l3,
-> +static struct omap_hwmod_ocp_if *omap3xxx_l3_main_slaves[] = {
-> +	&omap3xxx_mpu__l3_main,
->  };
->  
->  /* Master interfaces on the L3 interconnect */
-> -static struct omap_hwmod_ocp_if *omap3xxx_l3_masters[] = {
-> -	&omap3xxx_l3__l4_core,
-> -	&omap3xxx_l3__l4_per,
-> +static struct omap_hwmod_ocp_if *omap3xxx_l3_main_masters[] = {
-> +	&omap3xxx_l3_main__l4_core,
-> +	&omap3xxx_l3_main__l4_per,
->  };
->  
->  /* L3 */
-> -static struct omap_hwmod omap3xxx_l3_hwmod = {
-> +static struct omap_hwmod omap3xxx_l3_main_hwmod = {
->  	.name		= "l3_main",
->  	.class		= &l3_hwmod_class,
-> -	.masters	= omap3xxx_l3_masters,
-> -	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_masters),
-> -	.slaves		= omap3xxx_l3_slaves,
-> -	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l3_slaves),
-> +	.masters	= omap3xxx_l3_main_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_main_masters),
-> +	.slaves		= omap3xxx_l3_main_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l3_main_slaves),
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->  	.flags		= HWMOD_NO_IDLEST,
->  };
-> @@ -92,7 +92,7 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
->  
->  /* Slave interfaces on the L4_CORE interconnect */
->  static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
-> -	&omap3xxx_l3__l4_core,
-> +	&omap3xxx_l3_main__l4_core,
->  };
->  
->  /* Master interfaces on the L4_CORE interconnect */
-> @@ -114,7 +114,7 @@ static struct omap_hwmod omap3xxx_l4_core_hwmod = {
->  
->  /* Slave interfaces on the L4_PER interconnect */
->  static struct omap_hwmod_ocp_if *omap3xxx_l4_per_slaves[] = {
-> -	&omap3xxx_l3__l4_per,
-> +	&omap3xxx_l3_main__l4_per,
->  };
->  
->  /* Master interfaces on the L4_PER interconnect */
-> @@ -156,7 +156,7 @@ static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
->  
->  /* Master interfaces on the MPU device */
->  static struct omap_hwmod_ocp_if *omap3xxx_mpu_masters[] = {
-> -	&omap3xxx_mpu__l3,
-> +	&omap3xxx_mpu__l3_main,
->  };
->  
->  /* MPU */
-> @@ -174,36 +174,35 @@ static struct omap_hwmod omap3xxx_mpu_hwmod = {
->   */
->  
->  /* IVA2 <- L3 interface */
-> -static struct omap_hwmod_ocp_if omap3xxx_l3__iva2 = {
-> -	.master		= &omap3xxx_l3_hwmod,
-> -	.slave		= &omap3xxx_iva2_hwmod,
-> +static struct omap_hwmod_ocp_if omap3xxx_l3__iva = {
-> +	.master		= &omap3xxx_l3_main_hwmod,
-> +	.slave		= &omap3xxx_iva_hwmod,
->  	.clk		= "iva2_ck",
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> -static struct omap_hwmod_ocp_if *omap3xxx_iva2_masters[] = {
-> -	&omap3xxx_l3__iva2,
-> +static struct omap_hwmod_ocp_if *omap3xxx_iva_masters[] = {
-> +	&omap3xxx_l3__iva,
->  };
->  
->  /*
->   * IVA2 (IVA2)
->   */
->  
-> -static struct omap_hwmod omap3xxx_iva2_hwmod = {
-> -	.name		= "iva2",
-> -	.main_clk	= "iva2_ck",
-> -	.masters	= omap3xxx_iva2_masters,
-> -	.masters_cnt	= ARRAY_SIZE(omap3xxx_iva2_masters),
-> +static struct omap_hwmod omap3xxx_iva_hwmod = {
-> +	.name		= "iva",
-> +	.masters	= omap3xxx_iva_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap3xxx_iva_masters),
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
->  };
->  
->  static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
-> -	&omap3xxx_l3_hwmod,
-> +	&omap3xxx_l3_main_hwmod,
->  	&omap3xxx_l4_core_hwmod,
->  	&omap3xxx_l4_per_hwmod,
->  	&omap3xxx_l4_wkup_hwmod,
->  	&omap3xxx_mpu_hwmod,
-> -	&omap3xxx_iva2_hwmod,
-> +	&omap3xxx_iva_hwmod,
->  	NULL,
->  };
+> Kalle Jokiniemi (1):
+>       OMAP3: PM: SmartReflex driver integration
+>
+> Kevin Hilman (2):
+>       temp: SR: IO_ADDRESS conversion
+>       OMAP: SR: OPP interfaces removed from OMAP PM layer
+>
+> Nishanth Menon (1):
+>       omap3: pm: sr: replace get_opp with freq_to_opp
+>
+> Paul Walmsley (2):
+>       OMAP SR: use opp_find_opp_by_opp_id()
+>       OMAP SR: use OPP API for OPP ID, remove direct access
+>
+> Phil Carmody (2):
+>       OMAP3: PM: Don't do unnecessary searches in omap_sr_vdd*_autocomp_store
+>       OMAP3: PM: Early exit on invalid parameters
+>
+> Rajendra Nayak (9):
+>       OMAP3: SR: Fix init voltage on OPP change
+>       OMAP3: SR: Update VDD1/2 voltages at boot
+>       OMAP3: SR: Use sysclk for SR CLKLENGTH calc
+>       OMAP3: SR: Reset voltage level on SR disable
+>       OMAP3: SR: Replace printk's with pr_* calls
+>       OMAP3: SR: Remove redundant defines
+>       OMAP3: SR: Fix SR driver to check for omap-pm return values
+>       OMAP3: PM: Put optimal SMPS stabilization delay
+>       OMAP3: SR: Wait for VP idle before a VP disable
+>
+> Roger Quadros (4):
+>       OMAP3: PM: Fix Smartreflex when used with PM_NOOP layer
+>       OMAP3: PM: Make Smartreflex driver independent of SRF
+>       OMAP3: PM: Do not Enable SmartReflex if OPP tables not defined
+>       OMAP3: PM: Smartreflex: Fix VDD2 OPP determining logic
+>
+> Romit Dasgupta (1):
+>       omap: pm: SR: use enum for OPP types
+>
+> Teerth Reddy (1):
+>       OMAP3: SR: Replace SR_PASS/FAIL,SR_TRUE/FALSE
+>
+> Tero Kristo (1):
+>       Smartreflex: Avoid unnecessary spam
+>
+>
+> This patch series is based against origin/opp branch off
+> Kevin's pm tree which in turn is based off lo-master.
+> This series will apply against lo-master also but will
+> break compilation due to lack of opp framework support
+> on lo-master.
+>
+> This patch series has been tested on OMAP3430 SDP,
+> OMAP3630 SDP and ZOOM3 with the following menuconfig
+> options enabled.
+> System type -> TI OMAP Implementations -> Smartreflex Support
+> System type -> TI OMAP Implementations ->
+> 		Class 3 mode of Smartreflex Implementation
+> Device Drivers -> Multifunction device drivers ->
+> 		Support power resources on TWL4030 family chips
+>
+> Thara Gopinath (8):
+>   OMAP3: PM: Adding voltage driver support for OMAP3
+>   OMAP3: PM: Adding smartreflex driver support.
+>   OMAP3: PM: Adding smartreflex device file.
+>   OMAP3: PM: Adding smartreflex hwmod data
+>   OMAP3: PM: Adding smartreflex class3 driver
+>   OMAP3: PM: Adding T2 enabling of smartreflex support
+>   OMAP: PM: Allowing an early init of pm debugfs driver.
+>   OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
+>
+>  arch/arm/mach-omap2/Makefile                  |    5 +-
+>  arch/arm/mach-omap2/board-3430sdp.c           |    2 +
+>  arch/arm/mach-omap2/board-3630sdp.c           |    2 +
+>  arch/arm/mach-omap2/board-zoom3.c             |    2 +
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  209 +++++-
+>  arch/arm/mach-omap2/pm-debug.c                |   18 +-
+>  arch/arm/mach-omap2/smartreflex-class3.c      |   62 ++
+>  arch/arm/mach-omap2/smartreflex-class3.h      |   23 +
+>  arch/arm/mach-omap2/smartreflex.c             |  969 ++++++++++++++++++++
+>  arch/arm/mach-omap2/sr_device.c               |  177 ++++
+>  arch/arm/mach-omap2/voltage.c                 | 1199 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/voltage.h                 |  126 +++
+>  arch/arm/plat-omap/Kconfig                    |   41 +
+>  arch/arm/plat-omap/include/plat/control.h     |   27 +
+>  arch/arm/plat-omap/include/plat/smartreflex.h |  273 ++++++
+>  drivers/mfd/twl-core.c                        |    7 +-
+>  drivers/mfd/twl4030-power.c                   |   29 +
+>  include/linux/i2c/twl.h                       |    1 +
+>  18 files changed, 3166 insertions(+), 6 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+>  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.h
+>  create mode 100644 arch/arm/mach-omap2/smartreflex.c
+>  create mode 100644 arch/arm/mach-omap2/sr_device.c
+>  create mode 100644 arch/arm/mach-omap2/voltage.c
+>  create mode 100644 arch/arm/mach-omap2/voltage.h
+>  create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
