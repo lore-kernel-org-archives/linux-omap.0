@@ -1,65 +1,106 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 11/13] OMAP: create omap_devices for MPU, DSP, L3
-Date: Thu, 24 Jun 2010 12:57:58 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5D15E92@dbde02.ent.ti.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
- <1277336563-24988-12-git-send-email-khilman@deeprootsystems.com>
- <alpine.DEB.2.00.1006232325470.1550@utopia.booyaka.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5D15E5B@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1006240116450.1550@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53261 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754202Ab0FXH2E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 03:28:04 -0400
-In-Reply-To: <alpine.DEB.2.00.1006240116450.1550@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastien Jan <s-jan@ti.com>
+Subject: [PATCH] smsc95xx: Add module parameter to override MAC address
+Date: Thu, 24 Jun 2010 10:14:14 +0200
+Message-ID: <1277367254-9345-1-git-send-email-s-jan@ti.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Steve Glendinning <steve.glendinning@smsc.com>, netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Sebastien Jan <s-jan@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, June 24, 2010 12:50 PM
-> To: Shilimkar, Santosh
-> Cc: Kevin Hilman; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH 11/13] OMAP: create omap_devices for MPU, DSP, L3
-> 
-> On Thu, 24 Jun 2010, Shilimkar, Santosh wrote:
-> 
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> Paul
-> > > Walmsley
-> > > Sent: Thursday, June 24, 2010 11:57 AM
-> 
-> > > > +struct device *omap_get_mpu_device(void)
-> > > > +{
-> > > > +	mpu_dev = per_cpu(mpu_dev, smp_processor_id());
-> > >
-> > > Looks like this will trash the per-CPU mpu_dev on SMP.  You'll need to
-> > > rename one of these two mpu_devs.
-> > >
-> > > Also, won't the use of smp_processor_id() mean that this will just return
-> > > the struct device * for the MPU that is running this code?  So on a
-> > > two-CPU system, it would be either CPU 0 or 1, randomly.  I guess one
-> > > solution would be to pass in the processor ID to omap_get_mpu_device().
-> > >
-> > MPUSS and both CPU's are clocked from same clock source, so above assumption
-> > still work on OMAP4.
-> 
-> If the point is to only return an omap_device corresponding to the MPU
-> subsystem, then all the per_cpu() stuff is unnecessary and can be dropped,
-> and the function should be so named (e.g., omap_get_mpuss_device()).
-> 
-Indeed !!
-Even otherwise the patch is not really initializing per-cpu device because
-init(omap_hwmod_for_each_by_class("mpu", _init_omap_device, &mpu_dev);)
-is called only on one CPU.
+Define a new module parameter 'macaddr' to override the MAC address
+fetched either from eeprom, or randomly generated.
 
-Regards,
-Santosh
+The expected MAC address shall be in the 01:23:45:67:89:AB format.
+
+Signed-off-by: Sebastien Jan <s-jan@ti.com>
+---
+ drivers/net/usb/smsc95xx.c |   56 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 56 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/usb/smsc95xx.c b/drivers/net/usb/smsc95xx.c
+index 3135af6..0ba06d9 100644
+--- a/drivers/net/usb/smsc95xx.c
++++ b/drivers/net/usb/smsc95xx.c
+@@ -46,6 +46,7 @@
+ #define SMSC95XX_INTERNAL_PHY_ID	(1)
+ #define SMSC95XX_TX_OVERHEAD		(8)
+ #define SMSC95XX_TX_OVERHEAD_CSUM	(12)
++#define MAC_ADDR_LEN			(6)
+ 
+ struct smsc95xx_priv {
+ 	u32 mac_cr;
+@@ -63,6 +64,10 @@ static int turbo_mode = true;
+ module_param(turbo_mode, bool, 0644);
+ MODULE_PARM_DESC(turbo_mode, "Enable multiple frames per Rx transaction");
+ 
++static char *macaddr = ":";
++module_param(macaddr, charp, 0);
++MODULE_PARM_DESC(macaddr, "MAC address");
++
+ static int smsc95xx_read_reg(struct usbnet *dev, u32 index, u32 *data)
+ {
+ 	u32 *buf = kmalloc(4, GFP_KERNEL);
+@@ -637,8 +642,59 @@ static int smsc95xx_ioctl(struct net_device *netdev, struct ifreq *rq, int cmd)
+ 	return generic_mii_ioctl(&dev->mii, if_mii(rq), cmd, NULL);
+ }
+ 
++/* Check the macaddr module parameter for a MAC address */
++static int smsc95xx_is_macaddr_param(struct usbnet *dev, u8 *dev_mac)
++{
++	int i, j, got_num, num;
++	u8 mtbl[MAC_ADDR_LEN];
++
++	if (macaddr[0] == ':')
++		return 0;
++
++	i = 0;
++	j = 0;
++	num = 0;
++	got_num = 0;
++	while (j < MAC_ADDR_LEN) {
++		if (macaddr[i] && macaddr[i] != ':') {
++			got_num++;
++			if ('0' <= macaddr[i] && macaddr[i] <= '9')
++				num = num * 16 + macaddr[i] - '0';
++			else if ('A' <= macaddr[i] && macaddr[i] <= 'F')
++				num = num * 16 + 10 + macaddr[i] - 'A';
++			else if ('a' <= macaddr[i] && macaddr[i] <= 'f')
++				num = num * 16 + 10 + macaddr[i] - 'a';
++			else
++				break;
++			i++;
++		} else if (got_num == 2) {
++			mtbl[j++] = (u8) num;
++			num = 0;
++			got_num = 0;
++			i++;
++		} else {
++			break;
++		}
++	}
++
++	if (j == MAC_ADDR_LEN && !macaddr[i]) {
++		netif_dbg(dev, ifup, dev->net, "Overriding MAC address with: "
++		"%02x:%02x:%02x:%02x:%02x:%02x\n", mtbl[0], mtbl[1], mtbl[2],
++						mtbl[3], mtbl[4], mtbl[5]);
++		for (i = 0; i < MAC_ADDR_LEN; i++)
++			dev_mac[i] = mtbl[i];
++		return 1;
++	} else {
++		return 0;
++	}
++}
++
+ static void smsc95xx_init_mac_address(struct usbnet *dev)
+ {
++	/* Check module parameters */
++	if (smsc95xx_is_macaddr_param(dev, dev->net->dev_addr))
++		return;
++
+ 	/* try reading mac address from EEPROM */
+ 	if (smsc95xx_read_eeprom(dev, EEPROM_MAC_OFFSET, ETH_ALEN,
+ 			dev->net->dev_addr) == 0) {
+-- 
+1.6.3.3
+
