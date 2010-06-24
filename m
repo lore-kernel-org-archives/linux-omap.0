@@ -1,257 +1,88 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/4] OMAP: PM: use omap_device API for suspend/resume
-Date: Wed, 23 Jun 2010 21:27:48 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1006231832570.1550@utopia.booyaka.com>
-References: <1274994799-30297-1-git-send-email-khilman@deeprootsystems.com> <1274994799-30297-4-git-send-email-khilman@deeprootsystems.com> <5A47E75E594F054BAF48C5E4FC4B92AB032320719C@dbde02.ent.ti.com> <87mxvebrry.fsf@deeprootsystems.com>
- <alpine.DEB.2.00.1006210911150.1550@utopia.booyaka.com> <87hbkw1idx.fsf@deeprootsystems.com> <alpine.DEB.2.00.1006211130120.1550@utopia.booyaka.com> <87fx0gos2j.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 10/13] OMAP: omap_device: add flag to disable automatic
+ bus-level suspend/resume
+Date: Wed, 23 Jun 2010 21:40:05 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1006232136440.1550@utopia.booyaka.com>
+References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com> <1277336563-24988-11-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40772 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:59960 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755051Ab0FXD1u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 23:27:50 -0400
-In-Reply-To: <87fx0gos2j.fsf@deeprootsystems.com>
+	with ESMTP id S1753806Ab0FXDkG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 23:40:06 -0400
+In-Reply-To: <1277336563-24988-11-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Nayak\\, Rajendra" <rnayak@ti.com>, "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org
 
 Hi Kevin,
 
-On Mon, 21 Jun 2010, Kevin Hilman wrote:
+A few comments:
 
-> Paul Walmsley <paul@pwsan.com> writes:
+Your "add runtime PM support at bus-level" series has a unstated 
+dependency on this patch.  If you fix one minor issue (below), it's 
+probably easiest if you merge it with that other series to avoid 
+cross-dependencies.
+
+On Wed, 23 Jun 2010, Kevin Hilman wrote:
+
+> As part of the runtime PM support, bus-level code can automatically
+> handle the enable/idle for each omap_device.  There are, however, some
+> special cases where we don't want the bus-level layer to handle this,
+> and instead handle it manually.
 > 
-> > I guess the intent of your patch is to avoid having to patch in 
-> > omap_device_{idle,enable}() into a bunch of driver DPM suspend/resume 
-> > callbacks?  
+> Specific use cases are for omap_devices that are controlled
+> inside the idle path (like UART.)
 > 
-> Partially.  Actually, I think many (most?) drivers can get rid of
-> static suspend/resume paths all together and just use runtime PM.
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/plat-omap/include/plat/omap_device.h |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
 > 
-> There are some cases though (MMC comes to mind, more on that below)
-> where static suspend has some extra steps necessary and behaves
-> differently than runtime PM.
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index 3694b62..2cdbcdd 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -68,12 +68,16 @@ struct omap_device {
+>  	struct omap_device_pm_latency	*pm_lats;
+>  	u32				dev_wakeup_lat;
+>  	u32				_dev_wakeup_lat_limit;
+> +	u32                             flags;
 
-It's not just MMC, any driver that can be in the middle of doing something 
-during DPM ->suspend() will need to have DPM suspend code to stop what 
-it's doing and quiesce the device before returning from the suspend 
-callback.  Either that, or ->suspend() needs to return an error and block 
-the system suspend process...
+This should be a u8.  Fix that and it is 
 
-> > If so, some comments:
-> > - dev_pm_ops->suspend_noirq() is intended for use on devices with
-> >   shared interrupts.  
+Acked-by: Paul Walmsley <paul@pwsan.com>
+
+>  	u8				pm_lats_cnt;
+>  	s8				pm_lat_level;
+>  	u8				hwmods_cnt;
+>  	u8				_state;
+>  };
+>  
+> +/* flags for struct omap_device */
+> +#define OMAP_DEVICE_NO_BUS_SUSPEND     BIT(0)
+> +
+>  /* Device driver interface (call via platform_data fn ptrs) */
+>  
+>  int omap_device_enable(struct platform_device *pdev);
+> @@ -142,6 +146,7 @@ struct omap_device_pm_latency {
+>  	u32 flags;
+>  };
+>  
+> +/* flags for struct omap_device_pm_latency */
+>  #define OMAP_DEVICE_LATENCY_AUTO_ADJUST BIT(1)
+>  
+>  /* Get omap_device pointer from platform_device pointer */
+> -- 
+> 1.7.0.2
 > 
-> Just to clarify.  The functions I'm overriding here is the bus
-> functions (bus->pm->[suspend|resume]_noirq(), not any driver functions
-
-OK, I see that now - this code was confusing in the patch's 
-platform_pm_suspend_noirq():
-
-+       if (drv->pm) {
-+               if (drv->pm->suspend_noirq)
-+                       ret = drv->pm->suspend_noirq(dev);
-+       }
-
-This is already done by the DPM core in 
-drivers/base/power/main.c:device_suspend_noirq() and will result in 
-re-executing the driver's suspend_noirq function, which is potentially 
-quite bad.  Same thing for platform_pm_resume_noirq() in the patch.
-
-> Indeed, shared IRQs were an intended usage, but I don't see that as a
-> requirement.  Indeed, Documentation/power/devices.txt even seems to
-> suggest that the _noirq version is the place to turn the device "as
-> off as possible:
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
->     "For simple drivers, suspend might quiesce the device using class code
->     and then turn its hardware as "off" as possible during suspend_noirq"
-
-Further down in that file, it says:
-
-"2.  The suspend methods should quiesce the device to stop it from 
-     performing I/O.  They also may save the device registers and put it into the
-     appropriate low-power state, depending on the bus type the device
-     is on, and they may enable wakeup events."
-
-... and then:
-
-"The majority of subsystems and device drivers need not implement 
- [the suspend_noirq] callback.  However, bus types allowing devices to 
- share interrupt vectors, like PCI, generally need it; otherwise a driver 
- might encounter an error during the suspend phase by fielding a shared 
- interrupt generated by some other device after its own device had been 
- set to low power."
-
-> >   Right now the OMAP2+ codebase doesn't use any
-> >   shared interrupts for on-chip devices, as far as I can see.  It
-> >   looks like you use ->suspend_noirq() to ensure your code runs after
-> >   the existing driver suspend functions.  
-> 
-> No. The primary reason for using _noirq() is that if any driver ever
-> did use the _noirq() hooks (for any atomic activity, or late wakeup
-> detection, etc.)  the device will still be accessible.
->
-> >   Using ->suspend_noirq() for this purpose seems like a hack.  
-> >   A better place for that code would be in a bus->pm->suspend()
-> >   callback, which will run after the device's dev_pm_ops->suspend()
-> >   callback.
-> 
-> I originally put it in bus->pm->suspend, but moved it to
-> bus->pm->suspend_noirq() since I didn't do a full audit so see
-> if anything was using the _noirq hooks.
-> 
-> If we want to have a requirement that no on-chip devices can use the
-> _noirq hooks (or at least they can't touch hardware in those hooks)
-> then I can move it back to bus->pm->suspend().
-
-That sounds like the best argument for keeping these hooks in 
-_noirq() -- some driver writer may be likely to use suspend_noirq() 
-without understanding that they shouldn't... maybe we should add some code 
-that looks for this and warns.
-
-But thinking about it further, it also seems possible that a handful of 
-OMAP drivers might use shared IRQs at some point in the future.  DSS comes 
-to mind -- that really is a shared IRQ.  So, _noirq() is fine, then.
-
-> But personally, I would see that as an artificial requirement based on 
-> a very restrictive definiton of the _noirq() methods.
-
-It's just the definition from the kernel documentation.
-
-> > - It is not safe to call omap_device_{idle,enable}() from DPM
-> >   callbacks as the patch does, because they will race with runtime PM
-> >   calls to omap_device_{idle,enable}().  
-> 
-> No, they cannot race.  
-> 
-> Runtime PM transitions are prevented by the system PM core during a
-> system PM transition.  The system suspend path does a pm_runtime_get()
-> for each device being suspended, and then does a _put() upon resume.
-> (see drivers/base/power/main.c, grep for pm_runtime_)
-
-Yes, you are correct in terms of my original statement.  But the problem 
--- and the race -- that I did a poor job of describing is still present.
-
-What if this pm_bus ->suspend_noirq() calls omap_device_idle() while other 
-code in the driver is still in the middle of interacting with the device?  
-Although that would certainly be a driver bug, I certainly wouldn't trust 
-all of our existing driver DPM suspend* functions to adequately wait for 
-in-progress operations to complete and block new operations from starting 
-before returning.
-
-We shouldn't idle (and potentially power off) a device unless we know its 
-driver is done with it.  In an ideal world, this would always be taken 
-care of by driver ->suspend()/->suspend_noirq() functions.  But we know 
-this isn't always the case -- perhaps it's not even the case for most of 
-the OMAP drivers.
-
-We can use the device's runtime PM state to figure out whether the driver 
-thinks it's done with the device.  Unfortunately, the existing Linux DPM 
-suspend code makes it difficult to deal with this by calling 
-pm_runtime_get_noresume() before entering suspend and never calling 
-pm_runtime_put() until after resume -- no idea why.  That strikes me as a 
-bug.  From a semantic perspective it is certainly confusing: the PM 
-runtime implementation will think the device is still active after it's 
-been suspended.  I wouldn't want the full Linux system suspend code to 
-enter some low power state while some driver still thought its device 
-should stay powered.
-
-Anyway, given this strange behavior, I think there is probably a simple 
-workaround.  Rather than calling omap_device_idle() in 
-platform_pm_suspend_noirq(), how about calling pm_runtime_put_sync()?  It 
-probably needs a comment to indicate that it's intended to balance the 
-pm_runtime_get_noresume() that's in dpm_prepare().  Similarly it should be 
-possible to replace the omap_device_enable() in platform_pm_resume_noirq() 
-with pm_runtime_get_sync().  That way the pm_bus code will not call 
-omap_device_idle() on a device that the driver has not yet indicated is 
-safe to enter idle.
-
-> >   (This is part of the reason
-> >   why it's important to be anal about enforcing the
-> >   omap_device_{enable,idle,shutdown}() state transition limitations -
-> >   so we get warned early when these types of conflicts appear.)
-> >
-> >   omap_device*() calls should either be in runtime PM functions, or
-> >   DPM ->suspend/resume() callbacks, but not both.  
-> 
-> Why not both?  I don't follow the reason for this restriction.  We
-> certainly did the equivalent clock enable/disable calls in both cases
-> in the past.
-
-clk_enable()/clk_disable() use-count, unlike the omap_device_idle() 
-function.  So if an existing driver calls clk_enable()/clk_disable() in 
-its suspend function, if other driver code had been previously entered 
-that called clk_enable(), the kernel will not try to disable the clock 
-until that code completes.
-
-Also, clk_disable()/clk_enable() never touched the OCP_SYSCONFIG.*IDLEMODE 
-bits.  So even if clk_disable() told the PRCM to turn the device clock 
-off, the PRCM might not actually turn the clock off if the device doesn't 
-idle-ack, which would prevent the enclosing powerdomain from actually 
-turning off and destroying device context.  But with omap_device_idle(), 
-if we have any hwmods that have the HWMOD_SWSUP_SIDLE/HWMOD_SWSUP_MSTANDBY 
-flags set, those hwmods are going to be force-idled.  The PRCM will shut 
-off their clocks and potentially cause device context to be lost if the 
-driver wasn't expecting it.
-
-> >   Since we've decided
-> >   to focus on runtime PM power management as our primary driver power
-> >   management approach, and we expect drivers to aggressively idle
-> >   their devices, it seems best to keep the omap_device*() functions in
-> >   runtime PM code.
-> 
-> I agree, mostly.
-> 
-> As I mentioned above, I expect most drivers not to even have system PM
-> methods implemented.  They should implement everything as runtime PM.
-> However, there will be some exceptions.
-> 
-> The use case that brought this patch into existence was the MMC driver
-> where the suspend hook had to do some extra "stuff" before suspending.
-> Even if already runtime suspended, the MMC suspend hook has to
-> re-enable the device do "stuff" and then re-idle the device.
-
-I don't think it's just MMC; any driver that does external I/O will 
-probably need a DPM ->suspend() function to ensure that its external I/O 
-is completed before returning from ->suspend().  Even drivers that are 
-just doing some internal device work will need to know somehow that the 
-device is finished before completing ->suspend().
-
-> Initially, I tried to just use the same runtime PM calls in the suspend 
-> hook, but that doesn't work since runtime PM transitions are prevented 
-> during system PM.  So, I was forced to call omap_device_idle() in the 
-> suspend path, which led to the decision to move that into common code.
-
-Thanks, I see that now.  I think as long as the pm_bus common code ensures 
-that the PM runtime system thinks that the device is idle, it should be 
-okay to have this in common code.
-
-> >   At that point, the common DPM suspend/idle callbacks that you
-> >   propose can simply block until runtime PM indicates that the device
-> >   is idle.  
-> >
-> >   For example, you could use a per-omap_device mutex.
-> >   A sketch of a sample implementation follows this message.
-> 
-> That is an option, but since there is no potential racing between
-> runtime PM and system PM, I don't see the need for extra locking.
-
-Yep, but as mentioned above, we still need to check to see if the driver 
-thinks that the device is in use before calling omap_device_idle().  
-(Preferably it should just use the PM runtime put code for this rather 
-than calling omap_device_idle() directly).
-
-> Also, in your example, by manually [dis|en]abling IRQs, you're
-> re-inventing the _noirq versions of the hooks, even though the DPM
-> core is going to do it (again) soon.
->
-> I'd rather just use the noirq hooks that are already in place, and let
-> the driver manage IRQs itself.  Especially when it comes to wakeup
-> IRQs, I think it problematic to start managing IRQs in common code.
-
-Yeah, that part of the suggestion wasn't right.
 
 
 - Paul
