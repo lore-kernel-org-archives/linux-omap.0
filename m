@@ -1,190 +1,66 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 11/13] OMAP: create omap_devices for MPU, DSP, L3
-Date: Thu, 24 Jun 2010 00:26:35 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1006232325470.1550@utopia.booyaka.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com> <1277336563-24988-12-git-send-email-khilman@deeprootsystems.com>
+Subject: RE: [PATCH] OMAP3: wait on IDLEST after enabling USBTLL fclk
+Date: Thu, 24 Jun 2010 00:28:55 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1006240028140.1550@utopia.booyaka.com>
+References: <1273127288-21590-1-git-send-email-gadiyar@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB032358E85A@dbde02.ent.ti.com> <alpine.DEB.2.00.1006211540100.1550@utopia.booyaka.com> <alpine.DEB.2.00.1006231819420.1550@utopia.booyaka.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB032366AE2A@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42822 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:53585 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751353Ab0FXG0f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 02:26:35 -0400
-In-Reply-To: <1277336563-24988-12-git-send-email-khilman@deeprootsystems.com>
+	with ESMTP id S1751840Ab0FXG3J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 02:29:09 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032366AE2A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Kevin,
+Hi Tony,
 
-some comments below -
+what do you think on this one?  -rc or .36?
 
-On Wed, 23 Jun 2010, Kevin Hilman wrote:
 
-> Create simple omap_devices for the main processors and busses.
+- Paul
+
+On Thu, 24 Jun 2010, Gadiyar, Anand wrote:
+
+> Paul Walmsley wrote:
+> > On Mon, 21 Jun 2010, Paul Walmsley wrote:
+> > > On Sat, 19 Jun 2010, Gadiyar, Anand wrote:
+> > > > Gadiyar, Anand wrote:
+> > > > > We need to wait on the IDLEST bit after the clocks are enabled
+> > > > > before attempting to access any register.
+> > > > > 
+> > > > > Currently, the USBTLL i-clock ops uses the clkops_omap2_dflt_wait,
+> > > > > while the USBTLL f-clock ops uses clkops_omap2_dflt. If the
+> > > > > i-clock is enabled first, the clkops_omap2_dflt_wait is
+> > > > > short-circuited as the companion f-clock is not enabled.
+> > > > > This can cause a data abort if the IDLEST has not transitioned,
+> > > > > and we try to access a USBTLL register.
+> > > > > 
+> > > > > Since the USBTLL i-clock and f-clock could be enabled in any order,
+> > > > > this is a bug. Fix it by changing the clkops for the f-clock.
+> > > > > 
+> > > > > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> > > 
+> > > It looks fine to me.  I will queue it for a -rc branch. 
+> > 
+> > Will requeue this for 2.6.36 merge window since it is not a regression, 
+> > and it seems that Linus wants regression fixes for the -rc series...
+> > 
 > 
-> This is required to support the forth-coming device-based OPP
-> approach, where OPPs are managed and tracked at the device level.
+> I received a bug-report last Friday from some user of the recently-merged
+> ohci-omap3 driver about a data-abort caused at driver load. This patch
+> fixes that issue.
 > 
-> So that these primary devices are available for early PM initialization,
-> they are created as early platform_devices.
-
-The idea sounds good, but -
-
+> This wasn't known to me when I originally submitted the patch, but looks
+> like this is a problem caused in a driver that went in in the last merge
+> window. So maybe this patch can go in in the -rc series. ;)
 > 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/mach-omap2/devices.c            |    2 +
->  arch/arm/mach-omap2/io.c                 |   55 +++++++++++++++++++++++++++++-
->  arch/arm/plat-omap/include/plat/common.h |    4 ++
->  3 files changed, 60 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 03e6c9e..62920ac 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -15,6 +15,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/io.h>
->  #include <linux/clk.h>
-> +#include <linux/err.h>
->  
->  #include <mach/hardware.h>
->  #include <mach/irqs.h>
-> @@ -29,6 +30,7 @@
->  #include <mach/gpio.h>
->  #include <plat/mmc.h>
->  #include <plat/dma.h>
-> +#include <plat/omap_device.h>
->  
->  #include "mux.h"
->  
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 3cfb425..ecebbbf 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -45,7 +45,7 @@
->  
->  #include <plat/clockdomain.h>
->  #include "clockdomains.h"
-> -#include <plat/omap_hwmod.h>
-> +#include <plat/omap_device.h>
->  
->  /*
->   * The machine specific code may provide the extra mapping besides the
-> @@ -313,6 +313,58 @@ static int __init _omap2_init_reprogram_sdrc(void)
->  	return v;
->  }
->  
-> +static struct omap_device_pm_latency *pm_lats;
-> +
-> +static DEFINE_PER_CPU(struct device *, mpu_dev);
-> +static struct devicee *dsp_dev;
-> +static struct device *l3_dev;
-> +
-> +struct device *omap_get_mpu_device(void)
-> +{
-> +	mpu_dev = per_cpu(mpu_dev, smp_processor_id());
+> It's your call. I'm not particular.
 
-Looks like this will trash the per-CPU mpu_dev on SMP.  You'll need to 
-rename one of these two mpu_devs.
-
-Also, won't the use of smp_processor_id() mean that this will just return 
-the struct device * for the MPU that is running this code?  So on a 
-two-CPU system, it would be either CPU 0 or 1, randomly.  I guess one 
-solution would be to pass in the processor ID to omap_get_mpu_device().
-
-> +	WARN_ON_ONCE(!mpu_dev);
-> +	return mpu_dev;
-> +}
-> +
-> +struct device *omap_get_dsp_device(void)
-> +{
-> +	WARN_ON_ONCE(!dsp_dev);
-> +	return dsp_dev;
-> +}
-> +
-> +struct device *omap_get_l3_device(void)
-> +{
-> +	WARN_ON_ONCE(!l3_dev);
-> +	return l3_dev;
-> +}
-> +
-> +static int _init_omap_device(struct omap_hwmod *oh, void *user)
-> +{
-> +	struct omap_device *od;
-> +	const char *name = oh->name;
-> +	struct device **new_dev = (struct device **)user;
-> +
-> +	od = omap_device_build(name, 0, oh, NULL, 0, pm_lats, 0, true);
-> +	if (WARN(IS_ERR(od), "Could not build omap_device for %s\n", name))
-> +		return -ENODEV;
-> +
-> +	*new_dev = &od->pdev.dev;
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Build omap_devices for processors and bus.
-> + */
-> +static void omap_init_processor_devices(void)
-> +{
-> +	mpu_dev = per_cpu(mpu_dev, smp_processor_id());
-
-(same issues as above)
-
-> +
-> +	omap_hwmod_for_each_by_class("mpu", _init_omap_device, &mpu_dev);
-
-This won't work on SMP - it will use the same mpu_dev variable for each 
-MPU, so mpu_dev will contain the struct device * for the last MPU hwmod 
-iterated over. 
-
-Also, there is a hidden assumption that the hwmods of class "mpu" will be 
-iterated over in the order that the per_cpu() variable expects...
-
-> +	omap_hwmod_for_each_by_class("dsp", _init_omap_device, &dsp_dev);
-> +	omap_hwmod_for_each_by_class("l3", _init_omap_device, &l3_dev);
-
-If there is more than one hwmod in these classes, these will lose the 
-omap_device pointers for all but the final omap_hwmod iterated over.
-
-It's probably easier to just call omap_hwmod_lookup()/_init_omap_device() 
-directly and forget about omap_hwmod_for_each_by_class() for the above 
-two cases - maybe all three...
-
-> +}
-> +
->  void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  				 struct omap_sdrc_params *sdrc_cs1)
->  {
-> @@ -342,6 +394,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  	omap_serial_early_init();
->  	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
->  		omap_hwmod_late_init();
-> +	omap_init_processor_devices();
->  	omap_pm_if_init();
->  	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
->  		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
-> diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-> index d265018..0059dec 100644
-> --- a/arch/arm/plat-omap/include/plat/common.h
-> +++ b/arch/arm/plat-omap/include/plat/common.h
-> @@ -87,4 +87,8 @@ void omap2_set_globals_uart(struct omap_globals *);
->  	}							\
->  })
->  
-> +struct device *omap_get_mpu_device(void);
-> +struct device *omap_get_dsp_device(void);
-> +struct device *omap_get_l3_device(void);
-> +
->  #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
-> -- 
-> 1.7.0.2
-> 
 
 
 - Paul
