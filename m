@@ -1,55 +1,133 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 10/13] OMAP: omap_device: add flag to disable automatic bus-level suspend/resume
-Date: Thu, 24 Jun 2010 11:28:22 -0700
-Message-ID: <8739wcb7zt.fsf@deeprootsystems.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
-	<1277336563-24988-11-git-send-email-khilman@deeprootsystems.com>
-	<alpine.DEB.2.00.1006232136440.1550@utopia.booyaka.com>
-	<87zkykfhyp.fsf@deeprootsystems.com>
-	<alpine.DEB.2.00.1006241205460.1550@utopia.booyaka.com>
+Subject: Re: [PATCH] select NOP_USB_XCEIV for OMAP4
+Date: Thu, 24 Jun 2010 11:43:11 -0700
+Message-ID: <87wrto8e68.fsf@deeprootsystems.com>
+References: <1277318873-8260-1-git-send-email-x0132446@ti.com>
+	<87k4ppqyk2.fsf@deeprootsystems.com>
+	<61951E1F-DEBF-450C-AF06-E0119DA3B33E@student.utwente.nl>
+	<5A47E75E594F054BAF48C5E4FC4B92AB032366AD24@dbde02.ent.ti.com>
+	<7B4574D56E4ADF438756313E9A172A879A8E0D9E@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:54683 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005Ab0FXS2Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 14:28:25 -0400
-Received: by pxi8 with SMTP id 8so328872pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 11:28:24 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1006241205460.1550@utopia.booyaka.com> (Paul
-	Walmsley's message of "Thu, 24 Jun 2010 12:06:00 -0600 (MDT)")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:32906 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751312Ab0FXSnO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 14:43:14 -0400
+In-Reply-To: <7B4574D56E4ADF438756313E9A172A879A8E0D9E@dlee01.ent.ti.com>
+	(David Anders's message of "Thu, 24 Jun 2010 09:38:27 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: "Anders, David" <x0132446@ti.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
+"Anders, David" <x0132446@ti.com> writes:
 
-> On Thu, 24 Jun 2010, Kevin Hilman wrote:
->
->> Paul Walmsley <paul@pwsan.com> writes:
+>> -----Original Message-----
+>> From: Gadiyar, Anand
+>> Sent: Wednesday, June 23, 2010 6:03 PM
+>> To: Koen Kooi; Kevin Hilman; Hunter, Jon
+>> Cc: Anders, David; linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
+>> Gupta, Ajay Kumar; felipe.balbi@nokia.com
+>> Subject: RE: [PATCH] select NOP_USB_XCEIV for OMAP4
 >> 
->> > Hi Kevin,
+>> Koen Kooi wrote:
+>> > Op 23 jun 2010, om 22:33 heeft Kevin Hilman het volgende geschreven:
+>> > > David Anders <x0132446@ti.com> writes:
+>> > >
+>> > >> Add select statement to force selection of NOP_USB_XCEIV for OMAP4.
+>> > >>
+>> > >> Signed-off-by: David Anders <x0132446@ti.com>
+>> > >> ---
+>> > >> drivers/usb/musb/Kconfig |    1 +
+>> > >> 1 files changed, 1 insertions(+), 0 deletions(-)
+>> > >>
+>> > >> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+>> > >> index cfd38ed..e4624bc 100644
+>> > >> --- a/drivers/usb/musb/Kconfig
+>> > >> +++ b/drivers/usb/musb/Kconfig
+>> > >> @@ -11,6 +11,7 @@ config USB_MUSB_HDRC
+>> > >> 	depends on (USB || USB_GADGET)
+>> > >> 	depends on (ARM || (BF54x && !BF544) || (BF52x && !BF522 && !BF523))
+>> > >> 	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN)
+>> > >> +	select NOP_USB_XCEIV if ARCH_OMAP4
+>> > >> 	select TWL4030_USB if MACH_OMAP_3430SDP
+>> > >> 	select USB_OTG_UTILS
+>> > >> 	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, ...)'
+>> > >
+>> > > Shouldn't this be a board-specific option, and not set for every
+>> > > OMAP4-based config?
 >> >
->> > A few comments:
+>> > If that's true, why do the  davinci and blackfin archs force it?
 >> >
->> > Your "add runtime PM support at bus-level" series has a unstated 
->> > dependency on this patch.  If you fix one minor issue (below), it's 
->> > probably easiest if you merge it with that other series to avoid 
->> > cross-dependencies.
 >> 
->> If I switch (back) to just using pm_runtime_* API in the system PM
->> path _noirq methods, then rather than setting this flag at the
->> omap_device level, drivers that want to prevent this can simply
->> do a runtime_pm_get_sync() if they want to prevent a bus-level
->> suspend.
+>> Kevin's right. For OMAP4 at least, this is something that is probably'
+>> best left up to the board to select.
 >> 
->> Any thoughts/objectsion to that?
+>> For the davinci's and blackfins, they don't have an option. They have
+>> a fully transparent internal PHY which doesn't need any configuring.
+>> 
+>> 
+>> However, with the OMAP4, you could potentially use an external ULPI
+>> transceiver.
+>> This can be another transparent PHY for which we could select the
+>> NOP_XCEIV.
+>> Or it could be something like the PHY in the TWL5030 which may need
+>> configuring
+>> over an I2C interface.
+>> 
+>> 
+>> - Anand
 >
-> Sounds fine to me.
+> Normally I would agree with you, however there are a number of items
+> that I would like to iterate:
+>
+> 1. 100% of the currently known OMAP4 platforms use the NOP, wouldn't
+> it be easier to add an exception if/when one exists rather than add
+> each individual board that does require the NOP?
 
-OK, good.  Then I'll just drop this patch.
+Easier, yes.  But easier isn't always the guiding principle for
+scalable, portable software.
 
-Thanks,
+Personally, I would rather see these kinds of dependencies stated
+explicitly only where they are needed, and not stated in general rules
+with exceptons.
+
+> 2. Including the NOP does not preclude the usage of another
+> transceiver, simply don't register the NOP in your machine file.
+>
+> 3. The omap3_defconfig already has the NOP enabled. If we are pushing
+> towards a unified defconfig for omap2/3/4, then the NOP will be
+> enabled anyway. Linus is already pushing for more decisions to be made
+> directly in the Kconfig and consoldation of defconfigs(and/or removal
+> of them).
+>
+> 4. The NOP will need to be enabled if we intend to truly push for a
+> "Multi-Boot" image that will boot multiple omap3 and omap4
+> platforms. For example if we have a kernel image that is intended to
+> boot the 4430sdp, blaze, panda, and board-X(with an external
+> transceiver), NOP is going to be included anyway.
+
+The other thing to keep in mind is on the opposite end of the spectrum
+from multi-boot kernels.  Namely, minimal, tiny kernels targeted at
+specific platforms.  By always enabling a feature that is not needed,
+there is unncessary code in your kernel image.  I admit that for this
+particular feature, the code bloat is rather small.  But the point is
+we don't want to enable features just because it's easier, when there
+are code bloat side effects.  Even small amounts add up.
+
+> If the community in general is going to push for consolidated
+> defconfigs, more robust decision making in Kconfig, and Multi-Boot
+> support, then the way we thinking about what goes into Kconfig will
+> have to change as well.
+
+Agreed.
+
+But for this to scale, the dependencies must be stated specifically, not
+generally.  In this case, the specific dependencies are on *boards*, not
+on the SoC.
+
+All that being said, I am not the maintainer of this area, so I'll leave
+it to Anand/Felipe/Ajay to make the call.
 
 Kevin
