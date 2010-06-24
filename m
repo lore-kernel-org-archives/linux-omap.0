@@ -1,51 +1,56 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 02/13] OMAP: hwmod: allow idle after HWMOD_INIT_NO_IDLE
-Date: Thu, 24 Jun 2010 10:48:59 -0700
-Message-ID: <87sk4cfhis.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 08/13] OMAP4: hwmod: Enable omap_device build for OMAP4
+Date: Thu, 24 Jun 2010 10:52:02 -0700
+Message-ID: <87hbkse2t9.fsf@deeprootsystems.com>
 References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
-	<1277336563-24988-3-git-send-email-khilman@deeprootsystems.com>
-	<alpine.DEB.2.00.1006232254430.1550@utopia.booyaka.com>
+	<1277336563-24988-9-git-send-email-khilman@deeprootsystems.com>
+	<alpine.DEB.2.00.1006232310110.1550@utopia.booyaka.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB032366B0A0@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:42773 "EHLO
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:41600 "EHLO
 	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755342Ab0FXRtD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 13:49:03 -0400
-Received: by pwj8 with SMTP id 8so1956896pwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 10:49:02 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1006232254430.1550@utopia.booyaka.com> (Paul
-	Walmsley's message of "Wed, 23 Jun 2010 23:02:33 -0600 (MDT)")
+	with ESMTP id S1753020Ab0FXRwF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 13:52:05 -0400
+Received: by pwj8 with SMTP id 8so1958171pwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 10:52:04 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032366B0A0@dbde02.ent.ti.com>
+	(Rajendra Nayak's message of "Thu, 24 Jun 2010 19:53:35 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
+"Nayak, Rajendra" <rnayak@ti.com> writes:
 
-> Hi Kevin,
+>> -----Original Message-----
+>> From: Paul Walmsley [mailto:paul@pwsan.com]
+>> Sent: Thursday, June 24, 2010 12:11 AM
+>> To: Nayak, Rajendra
+>> Cc: Kevin Hilman; linux-omap@vger.kernel.org; Cousson, Benoit
+>> Subject: Re: [PATCH 08/13] OMAP4: hwmod: Enable omap_device build for OMAP4
+>> 
+>> Hi Rajendra
+>> 
+>> On Wed, 23 Jun 2010, Kevin Hilman wrote:
+>> 
+>> > From: Rajendra Nayak <rnayak@ti.com>
+>> >
+>> 
+>> Please add a brief patch changelog entry here.  Maybe just say this is
+>> necessary for integration code using omap_device to work on OMAP4?
 >
-> something doesn't make sense in this patch...
->
-> On Wed, 23 Jun 2010, Kevin Hilman wrote:
->
->> If an omap_hwmod is setup using HWMOD_INIT_NO_IDLE flag, there is
->> currently way to idle it since omap_hwmod_idle() requires the hwmod to
->> be in the enabled state.
->
-> The only thing that HWMOD_INIT_NO_IDLE does is prevent the hwmod from 
-> being idled at the end of _setup().  By that time, the hwmod has already 
-> been enabled, and its state has been set to _HWMOD_STATE_ENABLED.  So 
-> there shouldn't be anything preventing the hwmod from being idled at that 
-> point?
->
-> Maybe the problem is that some hwmods were failing _wait_target_ready() 
-> and so were never entering the ENABLED state?  If so, that looks like it's 
-> fixed appropriately by your patch 3.
+> Yes, will do, not sure how that got missed. 
 
-Hmm, strange.  
+Rajendra,
 
-Indeed, this patch predates patch 3, so may not be necessary anymore.  I will
-check into it.
+If you just reply here with the changelog entry, I will update it in
+this series.
+
+This patch is needed in this series as the patch 
+"OMAP: create omap_devices for MPU, DSP, L3"  depends on it.
+
+Thanks,
 
 Kevin
