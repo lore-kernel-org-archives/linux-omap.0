@@ -1,125 +1,190 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
-Date: Thu, 24 Jun 2010 11:53:42 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032366AE4F@dbde02.ent.ti.com>
-References: <1276733833-18510-1-git-send-email-khilman@deeprootsystems.com>
-	<1276733833-18510-6-git-send-email-khilman@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB032366AB60@dbde02.ent.ti.com>
-	<878w6524ae.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB032366AC83@dbde02.ent.ti.com>
- <87wrtpwsjb.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 11/13] OMAP: create omap_devices for MPU, DSP, L3
+Date: Thu, 24 Jun 2010 00:26:35 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1006232325470.1550@utopia.booyaka.com>
+References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com> <1277336563-24988-12-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50683 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752018Ab0FXGXs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 02:23:48 -0400
-In-Reply-To: <87wrtpwsjb.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:42822 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751353Ab0FXG0f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 02:26:35 -0400
+In-Reply-To: <1277336563-24988-12-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org
+
+Hi Kevin,
+
+some comments below -
+
+On Wed, 23 Jun 2010, Kevin Hilman wrote:
+
+> Create simple omap_devices for the main processors and busses.
+> 
+> This is required to support the forth-coming device-based OPP
+> approach, where OPPs are managed and tracked at the device level.
+> 
+> So that these primary devices are available for early PM initialization,
+> they are created as early platform_devices.
+
+The idea sounds good, but -
+
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/mach-omap2/devices.c            |    2 +
+>  arch/arm/mach-omap2/io.c                 |   55 +++++++++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/plat/common.h |    4 ++
+>  3 files changed, 60 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 03e6c9e..62920ac 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/io.h>
+>  #include <linux/clk.h>
+> +#include <linux/err.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <mach/irqs.h>
+> @@ -29,6 +30,7 @@
+>  #include <mach/gpio.h>
+>  #include <plat/mmc.h>
+>  #include <plat/dma.h>
+> +#include <plat/omap_device.h>
+>  
+>  #include "mux.h"
+>  
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 3cfb425..ecebbbf 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -45,7 +45,7 @@
+>  
+>  #include <plat/clockdomain.h>
+>  #include "clockdomains.h"
+> -#include <plat/omap_hwmod.h>
+> +#include <plat/omap_device.h>
+>  
+>  /*
+>   * The machine specific code may provide the extra mapping besides the
+> @@ -313,6 +313,58 @@ static int __init _omap2_init_reprogram_sdrc(void)
+>  	return v;
+>  }
+>  
+> +static struct omap_device_pm_latency *pm_lats;
+> +
+> +static DEFINE_PER_CPU(struct device *, mpu_dev);
+> +static struct devicee *dsp_dev;
+> +static struct device *l3_dev;
+> +
+> +struct device *omap_get_mpu_device(void)
+> +{
+> +	mpu_dev = per_cpu(mpu_dev, smp_processor_id());
+
+Looks like this will trash the per-CPU mpu_dev on SMP.  You'll need to 
+rename one of these two mpu_devs.
+
+Also, won't the use of smp_processor_id() mean that this will just return 
+the struct device * for the MPU that is running this code?  So on a 
+two-CPU system, it would be either CPU 0 or 1, randomly.  I guess one 
+solution would be to pass in the processor ID to omap_get_mpu_device().
+
+> +	WARN_ON_ONCE(!mpu_dev);
+> +	return mpu_dev;
+> +}
+> +
+> +struct device *omap_get_dsp_device(void)
+> +{
+> +	WARN_ON_ONCE(!dsp_dev);
+> +	return dsp_dev;
+> +}
+> +
+> +struct device *omap_get_l3_device(void)
+> +{
+> +	WARN_ON_ONCE(!l3_dev);
+> +	return l3_dev;
+> +}
+> +
+> +static int _init_omap_device(struct omap_hwmod *oh, void *user)
+> +{
+> +	struct omap_device *od;
+> +	const char *name = oh->name;
+> +	struct device **new_dev = (struct device **)user;
+> +
+> +	od = omap_device_build(name, 0, oh, NULL, 0, pm_lats, 0, true);
+> +	if (WARN(IS_ERR(od), "Could not build omap_device for %s\n", name))
+> +		return -ENODEV;
+> +
+> +	*new_dev = &od->pdev.dev;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Build omap_devices for processors and bus.
+> + */
+> +static void omap_init_processor_devices(void)
+> +{
+> +	mpu_dev = per_cpu(mpu_dev, smp_processor_id());
+
+(same issues as above)
+
+> +
+> +	omap_hwmod_for_each_by_class("mpu", _init_omap_device, &mpu_dev);
+
+This won't work on SMP - it will use the same mpu_dev variable for each 
+MPU, so mpu_dev will contain the struct device * for the last MPU hwmod 
+iterated over. 
+
+Also, there is a hidden assumption that the hwmods of class "mpu" will be 
+iterated over in the order that the per_cpu() variable expects...
+
+> +	omap_hwmod_for_each_by_class("dsp", _init_omap_device, &dsp_dev);
+> +	omap_hwmod_for_each_by_class("l3", _init_omap_device, &l3_dev);
+
+If there is more than one hwmod in these classes, these will lose the 
+omap_device pointers for all but the final omap_hwmod iterated over.
+
+It's probably easier to just call omap_hwmod_lookup()/_init_omap_device() 
+directly and forget about omap_hwmod_for_each_by_class() for the above 
+two cases - maybe all three...
+
+> +}
+> +
+>  void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+>  				 struct omap_sdrc_params *sdrc_cs1)
+>  {
+> @@ -342,6 +394,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+>  	omap_serial_early_init();
+>  	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
+>  		omap_hwmod_late_init();
+> +	omap_init_processor_devices();
+>  	omap_pm_if_init();
+>  	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+>  		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+> diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+> index d265018..0059dec 100644
+> --- a/arch/arm/plat-omap/include/plat/common.h
+> +++ b/arch/arm/plat-omap/include/plat/common.h
+> @@ -87,4 +87,8 @@ void omap2_set_globals_uart(struct omap_globals *);
+>  	}							\
+>  })
+>  
+> +struct device *omap_get_mpu_device(void);
+> +struct device *omap_get_dsp_device(void);
+> +struct device *omap_get_l3_device(void);
+> +
+>  #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+> -- 
+> 1.7.0.2
+> 
 
 
-
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Wednesday, June 23, 2010 11:17 PM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; Menon, Nishanth; Cousson, Benoit
->>Subject: Re: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
->>
->>"Gopinath, Thara" <thara@ti.com> writes:
->>
->>>>>-----Original Message-----
->>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>>Sent: Wednesday, June 23, 2010 8:19 PM
->>>>>To: Gopinath, Thara
->>>>>Cc: linux-omap@vger.kernel.org; Menon, Nishanth; Cousson, Benoit
->>>>>Subject: Re: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
->>>>>
->>>>>"Gopinath, Thara" <thara@ti.com> writes:
->>>>>
->>>>>>>>-----Original Message-----
->>>>>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>>>>>Sent: Thursday, June 17, 2010 5:47 AM
->>>>>>>>To: linux-omap@vger.kernel.org
->>>>>>>>Cc: Menon, Nishanth; Gopinath, Thara; Cousson, Benoit
->>>>>>>>Subject: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
->>>>>>>>
->>>>>>>>Create simple omap_devices for the main processors and busses.
->>>>>>>>
->>>>>>>>This is required to support the forth-coming device-based OPP
->>>>>>>>approach, where OPPs are managed and tracked at the omap_device and
->>>>>>>>hwmod level.
->>>>>>>>
->>>>>>>>Because these omap_devices are based on platform_devices, they cannot
->>>>>>>>be created until the driver core has been initialized.  Therefore, move
->>>>>>>>the init of these into a device_initcall().  Also, OMAP PM init cannot
->>>>>>>>be done until after this step as it depends on the OPP layer.
->>>>>>>>
->>>>>>>>Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->>>>>[...]
->>>>>
->>>>>>>>+
->>>>>>>>+static int __init omap2_late_common_init(void)
->>>>>>>>+{
->>>>>>>>+	omap_init_processor_devices();
->>>>>>>>+
->>>>>>>> 	/* initialize the opp table if board file has not done so */
->>>>>>>> 	omap3_pm_init_opp_table();
->>>>>>>>
->>>>>>>>+	omap_pm_if_init();
->>>>>>>>+
->>>>>>>>+	return 0;
->>>>>>>>+}
->>>>>>>>+device_initcall(omap2_late_common_init);
->>>>>> Hello Kevin,
->>>>>>
->>>>>> Any particular reason for making this a late init and not keeping
->>>>>> this a part of init_common_hw?  The reason is the board files also
->>>>>> have an option of calling/ overriding omap3_pm_init_opp_table. This
->>>>>> happens really early in init_irq. (Refer board_3430sdp.c). So if a
->>>>>> board file calls into omap3_pm_init_opp_table, the opp
->>>>>> initializations will happen before the omap_device pointers are
->>>>>> build for mpu, iva and l3. So the dev pointers stored as part of
->>>>>> dev_opp tables will be screwed up.  My personal preference would be
->>>>>> to call the omap_init_processor_devices just after
->>>>>> hwmod_late_init. This will remove any race conditions as above.
->>>>>
->>>>>I agree, I changed this yesterday and the current pm-wip/hwmods is
->>>>>doing exactly this.
->>>>>
->>>>>The initial reason for the late initcall was because omap_device_build
->>>>>creates platform_devices and devices, but the driver core was not
->>>>>yet initialized at this point.
->>>>>
->>>>>To fix, I now create these devices as early platform devices so that
->>>>>the init sequence can remain the same.
->>>>>
->>>>>I'll be posting an updated version of this series today.
->>>
->>> But then early platform devices do not create a dev pointer. So you do
->>> two initializations, eh?
->>
->>The early platform_device indeed has a struct device (it is a struct
->>inside the platfor_device.)  The difference is that the struct device
->>has not been fully initialized (no device_add() has been called.)
->>
->>For our purposes here, that is perfectly OK, as all that matters is that
->>there is a unique pointer to be used in the OPP layer.
-
-Ok. I also think that the initcalls for voltage and sr_device should be moved back to the original.
-The order of initialization should be as follows.
-
-1. Build the generic omap devices (like mpu, l3, dsp etc) (part of init_common_hw)
-2. Initialize the opp structures. (part of init_common_hw)
-3. Intialize the voltage layer. (arch_initcall)
-4. Initialize the smartreflex device layer(subsys initcall)
-5. Initialize the smartreflex srive.(late initcall)
-
-Regards
-Thara
+- Paul
