@@ -1,137 +1,172 @@
-From: "Anders, David" <x0132446-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] select NOP_USB_XCEIV for OMAP4
-Date: Thu, 24 Jun 2010 12:14:37 -0500
-Message-ID: <7B4574D56E4ADF438756313E9A172A879A8E10C1@dlee01.ent.ti.com>
-References: <1277318873-8260-1-git-send-email-x0132446@ti.com>
- <87k4ppqyk2.fsf@deeprootsystems.com>
- <61951E1F-DEBF-450C-AF06-E0119DA3B33E@student.utwente.nl>
- <5A47E75E594F054BAF48C5E4FC4B92AB032366AD24@dbde02.ent.ti.com>
- <7B4574D56E4ADF438756313E9A172A879A8E0D9E@dlee01.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB032366B0EA@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 3/4] OMAP: PM: use omap_device API for suspend/resume
+Date: Thu, 24 Jun 2010 10:23:05 -0700
+Message-ID: <87r5jwgxae.fsf@deeprootsystems.com>
+References: <1274994799-30297-1-git-send-email-khilman@deeprootsystems.com>
+	<1274994799-30297-4-git-send-email-khilman@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB032320719C@dbde02.ent.ti.com>
+	<87mxvebrry.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.1006210911150.1550@utopia.booyaka.com>
+	<87hbkw1idx.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.1006211130120.1550@utopia.booyaka.com>
+	<87fx0gos2j.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.1006231832570.1550@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032366B0EA-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Hunter, Jon" <jon-hunter-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:33935 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970Ab0FXRXJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 13:23:09 -0400
+Received: by pwj8 with SMTP id 8so1946291pwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 10:23:08 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1006231832570.1550@utopia.booyaka.com> (Paul
+	Walmsley's message of "Wed, 23 Jun 2010 21:27:48 -0600 (MDT)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Gadiyar, Anand
-> Sent: Thursday, June 24, 2010 10:53 AM
-> To: Anders, David; Koen Kooi; Kevin Hilman; Hunter, Jon
-> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Gupta, Ajay
-> Kumar; felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
-> Subject: RE: [PATCH] select NOP_USB_XCEIV for OMAP4
-> 
-> Anders, David wrote:
-> > > -----Original Message-----
-> > > From: Gadiyar, Anand
-> > > Sent: Wednesday, June 23, 2010 6:03 PM
-> > > To: Koen Kooi; Kevin Hilman; Hunter, Jon
-> > > Cc: Anders, David; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> > > Gupta, Ajay Kumar; felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
-> > > Subject: RE: [PATCH] select NOP_USB_XCEIV for OMAP4
-> > >
-> > > Koen Kooi wrote:
-> > > > Op 23 jun 2010, om 22:33 heeft Kevin Hilman het volgende geschreven:
-> > > > > David Anders <x0132446-l0cyMroinI0@public.gmane.org> writes:
-> > > > >
-> > > > >> Add select statement to force selection of NOP_USB_XCEIV for
-> OMAP4.
-> > > > >>
-> > > > >> Signed-off-by: David Anders <x0132446-l0cyMroinI0@public.gmane.org>
-> > > > >> ---
-> > > > >> drivers/usb/musb/Kconfig |    1 +
-> > > > >> 1 files changed, 1 insertions(+), 0 deletions(-)
-> > > > >>
-> > > > >> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-> > > > >> index cfd38ed..e4624bc 100644
-> > > > >> --- a/drivers/usb/musb/Kconfig
-> > > > >> +++ b/drivers/usb/musb/Kconfig
-> > > > >> @@ -11,6 +11,7 @@ config USB_MUSB_HDRC
-> > > > >> 	depends on (USB || USB_GADGET)
-> > > > >> 	depends on (ARM || (BF54x && !BF544) || (BF52x && !BF522 &&
-> !BF523))
-> > > > >> 	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM ||
-> BLACKFIN)
-> > > > >> +	select NOP_USB_XCEIV if ARCH_OMAP4
-> > > > >> 	select TWL4030_USB if MACH_OMAP_3430SDP
-> > > > >> 	select USB_OTG_UTILS
-> > > > >> 	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI,
-> ...)'
-> > > > >
-> > > > > Shouldn't this be a board-specific option, and not set for every
-> > > > > OMAP4-based config?
-> > > >
-> > > > If that's true, why do the  davinci and blackfin archs force it?
-> > > >
-> > >
-> > > Kevin's right. For OMAP4 at least, this is something that is probably'
-> > > best left up to the board to select.
-> > >
-> > > For the davinci's and blackfins, they don't have an option. They have
-> > > a fully transparent internal PHY which doesn't need any configuring.
-> > >
-> > >
-> > > However, with the OMAP4, you could potentially use an external ULPI
-> transceiver.
-> > > This can be another transparent PHY for which we could select the
-> NOP_XCEIV.
-> > > Or it could be something like the PHY in the TWL5030 which may need
-> configuring
-> > > over an I2C interface.
-> > >
-> > >
-> > > - Anand
-> >
-> > Normally I would agree with you, however there are a number
-> > of items that I would like to iterate:
-> >
-> > 1. 100% of the currently known OMAP4 platforms use the NOP,
-> > wouldn't it be easier to add an exception if/when one exists
-> > rather than add each individual board that does require the NOP?
-> >
-> > 2. Including the NOP does not preclude the usage of another
-> > transceiver, simply don't register the NOP in your machine file.
-> >
-> > 3. The omap3_defconfig already has the NOP enabled. If we are
-> > pushing towards a unified defconfig for omap2/3/4, then the
-> > NOP will be enabled anyway. Linus is already pushing for more
-> > decisions to be made directly in the Kconfig and consoldation
-> > of defconfigs(and/or removal of them).
-> >
-> > 4. The NOP will need to be enabled if we intend to truly push
-> > for a "Multi-Boot" image that will boot multiple omap3 and
-> > omap4 platforms. For example if we have a kernel image that
-> > is intended to boot the 4430sdp, blaze, panda, and
-> > board-X(with an external transceiver), NOP is going to be
-> > included anyway.
-> >
-> >
-> > If the community in general is going to push for consolidated
-> > defconfigs, more robust decision making in Kconfig, and
-> > Multi-Boot support, then the way we thinking about what goes
-> > into Kconfig will have to change as well.
-> >
-> >
-> 
-> I see what you mean. Agree with all your points. Having the NOP_XCEIV
-> selected doesn't prevent us from using an external PHY as long
-> as the board file doesn't register a NOP_XCEIV.
-> 
-> - Anand
+Paul Walmsley <paul@pwsan.com> writes:
 
-If there are no other objects, can we get someone to signoff/ack on this?
+> On Mon, 21 Jun 2010, Kevin Hilman wrote:
+>
+>> Paul Walmsley <paul@pwsan.com> writes:
+>> 
+>> > I guess the intent of your patch is to avoid having to patch in 
+>> > omap_device_{idle,enable}() into a bunch of driver DPM suspend/resume 
+>> > callbacks?  
+>> 
+>> Partially.  Actually, I think many (most?) drivers can get rid of
+>> static suspend/resume paths all together and just use runtime PM.
+>> 
+>> There are some cases though (MMC comes to mind, more on that below)
+>> where static suspend has some extra steps necessary and behaves
+>> differently than runtime PM.
+>
+> It's not just MMC, any driver that can be in the middle of doing something 
+> during DPM ->suspend() will need to have DPM suspend code to stop what 
+> it's doing and quiesce the device before returning from the suspend 
+> callback.  
 
+I don't think we do a very good job of that today in most drivers, but
+your point is valid.
 
-Dave
+Probably best to "trick" the runtime PM core by doing a runtime PM
+put/get in the bus code as you suggest below to avoid this kind of
+potential conflict.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Either that, or ->suspend() needs to return an error and block 
+> the system suspend process...
+>
+
+[...]
+
+>> >   Right now the OMAP2+ codebase doesn't use any
+>> >   shared interrupts for on-chip devices, as far as I can see.  It
+>> >   looks like you use ->suspend_noirq() to ensure your code runs after
+>> >   the existing driver suspend functions.  
+>> 
+>> No. The primary reason for using _noirq() is that if any driver ever
+>> did use the _noirq() hooks (for any atomic activity, or late wakeup
+>> detection, etc.)  the device will still be accessible.
+>>
+>> >   Using ->suspend_noirq() for this purpose seems like a hack.  
+>> >   A better place for that code would be in a bus->pm->suspend()
+>> >   callback, which will run after the device's dev_pm_ops->suspend()
+>> >   callback.
+>> 
+>> I originally put it in bus->pm->suspend, but moved it to
+>> bus->pm->suspend_noirq() since I didn't do a full audit so see
+>> if anything was using the _noirq hooks.
+>> 
+>> If we want to have a requirement that no on-chip devices can use the
+>> _noirq hooks (or at least they can't touch hardware in those hooks)
+>> then I can move it back to bus->pm->suspend().
+>
+> That sounds like the best argument for keeping these hooks in 
+> _noirq() -- some driver writer may be likely to use suspend_noirq() 
+> without understanding that they shouldn't... maybe we should add some code 
+> that looks for this and warns.
+>
+> But thinking about it further, it also seems possible that a handful of 
+> OMAP drivers might use shared IRQs at some point in the future.  DSS comes 
+> to mind -- that really is a shared IRQ.  So, _noirq() is fine, then.
+
+OK.
+
+[...]
+
+>> > - It is not safe to call omap_device_{idle,enable}() from DPM
+>> >   callbacks as the patch does, because they will race with runtime PM
+>> >   calls to omap_device_{idle,enable}().  
+>> 
+>> No, they cannot race.  
+>> 
+>> Runtime PM transitions are prevented by the system PM core during a
+>> system PM transition.  The system suspend path does a pm_runtime_get()
+>> for each device being suspended, and then does a _put() upon resume.
+>> (see drivers/base/power/main.c, grep for pm_runtime_)
+>
+> Yes, you are correct in terms of my original statement.  But the problem 
+> -- and the race -- that I did a poor job of describing is still present.
+>
+> What if this pm_bus ->suspend_noirq() calls omap_device_idle() while other 
+> code in the driver is still in the middle of interacting with the device?  
+> Although that would certainly be a driver bug, I certainly wouldn't trust 
+> all of our existing driver DPM suspend* functions to adequately wait for 
+> in-progress operations to complete and block new operations from starting 
+> before returning.
+
+Yes, I see the point now, and I agree that this is a problem.
+
+> We shouldn't idle (and potentially power off) a device unless we know its 
+> driver is done with it.  In an ideal world, this would always be taken 
+> care of by driver ->suspend()/->suspend_noirq() functions.  But we know 
+> this isn't always the case -- perhaps it's not even the case for most of 
+> the OMAP drivers.
+
+Yeah, I don't think we handle this very well currently in most drivers.
+
+> We can use the device's runtime PM state to figure out whether the driver 
+> thinks it's done with the device.  Unfortunately, the existing Linux DPM 
+> suspend code makes it difficult to deal with this by calling 
+> pm_runtime_get_noresume() before entering suspend and never calling 
+> pm_runtime_put() until after resume -- no idea why.  
+
+I gathered it was intended to minimize potential conflicts between
+system PM and runtime PM, but not sure.  I may ask on linux-pm.
+
+> That strikes me as a bug.  From a semantic perspective it is certainly
+> confusing: the PM runtime implementation will think the device is
+> still active after it's been suspended.  I wouldn't want the full
+> Linux system suspend code to enter some low power state while some
+> driver still thought its device should stay powered.
+
+Completely agree here, and this is the root cause of all this funny
+business in the first place.
+
+If I we could just put pm_runtime_put_sync() in the driver's suspend
+routine (and _get_sync() in the resume routine) this patch would be
+totally unncessary.
+
+> Anyway, given this strange behavior, I think there is probably a simple 
+> workaround.  Rather than calling omap_device_idle() in 
+> platform_pm_suspend_noirq(), how about calling pm_runtime_put_sync()?  It 
+> probably needs a comment to indicate that it's intended to balance the 
+> pm_runtime_get_noresume() that's in dpm_prepare().  Similarly it should be 
+> possible to replace the omap_device_enable() in platform_pm_resume_noirq() 
+> with pm_runtime_get_sync().  That way the pm_bus code will not call 
+> omap_device_idle() on a device that the driver has not yet indicated is 
+> safe to enter idle.
+
+Hehe.  This was actually the original implementation.    
+
+I decided I didn't like having to put those comments to admit defeat
+against the DPM core. ;) So, I decided to change it to directly use
+omap_device*.  But now, in light of the potential conflicts you raised,
+I will go back to this implementation.
+
+Thanks for the thorough feedback,
+
+Kevin
