@@ -1,40 +1,64 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [RFC] mm: iommu: An API to unify IOMMU, CPU and device memory management
-Date: Thu, 24 Jun 2010 12:11:56 +0200
-Message-ID: <876318ager.fsf@basil.nowhere.org>
-References: <1277355096-15596-1-git-send-email-zpfeffer@codeaurora.org>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH] OMAP: DSS: Fix for dsi_pll to dpll4 clk switch
+Date: Thu, 24 Jun 2010 13:51:12 +0300
+Message-ID: <1277376672.2464.188.camel@tubuntu.research.nokia.com>
+References: <FF55437E1F14DA4BAEB721A458B6701706BDA5E730@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1277355096-15596-1-git-send-email-zpfeffer@codeaurora.org> (Zach
-	Pfeffer's message of "Wed, 23 Jun 2010 21:51:36 -0700")
-Sender: owner-linux-mm@kvack.org
-To: Zach Pfeffer <zpfeffer@codeaurora.org>
-Cc: mel@csn.ul.ie, dwalker@codeaurora.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:65513 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754559Ab0FXKwR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 06:52:17 -0400
+In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706BDA5E730@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Nagarajan, Rajkumar" <x0133774@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Zach Pfeffer <zpfeffer@codeaurora.org> writes:
+On Thu, 2010-06-17 at 07:12 +0200, ext Nagarajan, Rajkumar wrote:
+> When switching between clocks, The new functional clock is
+> effective when the next vertical blanking interval occurs.
+> GOLCD bit has to be set for the new clock to take effect.
 
-> This patch contains the documentation for and the main header file of
-> the API, termed the Virtual Contiguous Memory Manager. Its use would
-> allow all of the IOMMU to VM, VM to device and device to IOMMU
-> interoperation code to be refactored into platform independent code.
+Where did you encounter this problem?
 
-I read all the description and it's still unclear what advantage
-this all has over the current architecture? 
+> Signed-off-by: Kishore Y <kishore.y@ti.com>
+> Signed-off-by: Mukund Mittal <mmittal@ti.com>
+> Signed-off-by: Rajkumar N <rajkumar.nagarajan@ti.com>
+> ---
+>  drivers/video/omap2/dss/dpi.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+> index 960e977..5d778d6 100644
+> --- a/drivers/video/omap2/dss/dpi.c
+> +++ b/drivers/video/omap2/dss/dpi.c
+> @@ -214,10 +214,15 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+>  
+>  #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+>  	dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
+> +	dispc_go(OMAP_DSS_CHANNEL_LCD);
 
-At least all the benefits mentioned seem to be rather nebulous.
+I don't think GO does anything here, as the channel has already been
+disabled.
 
-Can you describe a concrete use case that is improved by this code
-directly?
+> +	while	(dispc_go_busy(OMAP_DSS_CHANNEL_LCD))
+> +		;
 
--Andi
+Busy looping is not good.
 
--- 
-ak@linux.intel.com -- Speaking for myself only.
+>  	dsi_pll_uninit();
+>  	dss_clk_disable(DSS_CLK_FCK2);
+>  #endif
+>  
+> +	dispc_enable_channel(OMAP_DSS_CHANNEL_LCD, 0);
+> +
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+The channel has already been disabled above, in
+dssdev->manager->disable(dssdev->manager);
+
+ Tomi
+
+
