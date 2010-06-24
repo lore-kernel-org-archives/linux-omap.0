@@ -1,44 +1,49 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 5/8] usb: musb: fix Blackfin ulpi stubs
-Date: Thu, 24 Jun 2010 09:10:04 +0300
-Message-ID: <20100624061004.GH8078@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 6/8] usb: musb: Enable the maximum supported burst mode
+ for DMA
+Date: Thu, 24 Jun 2010 09:11:04 +0300
+Message-ID: <20100624061104.GI8078@nokia.com>
 References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
  <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
  <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
  <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
  <1276771242-5201-5-git-send-email-ajay.gupta@ti.com>
  <1276771242-5201-6-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi@nokia.com
+ <1276771242-5201-7-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:29175 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291Ab0FXGMb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 02:12:31 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1276771242-5201-6-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1276771242-5201-7-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "gregkh-l3A5Bk7waGM@public.gmane.org" <gregkh-l3A5Bk7waGM@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "gregkh@suse.de" <gregkh@suse.de>, Mike Frysinger <vapier@gentoo.org>
 
-On Thu, Jun 17, 2010 at 12:40:38PM +0200, ext Ajay Kumar Gupta wrote:
->From: Mike Frysinger <vapier@gentoo.org>
+On Thu, Jun 17, 2010 at 12:40:39PM +0200, ext Ajay Kumar Gupta wrote:
+>From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
 >
->The new ulpi code defines fallback stubs for the Blackfin arch, but does
->so incorrectly leading to a build failure:
->drivers/usb/musb/musb_core.c:227: error: 'musb_ulpi_read' undeclared here (not in a function)
->drivers/usb/musb/musb_core.c:228: error: 'musb_ulpi_write' undeclared here (not in a function)
+>Setting MUSB Burst Mode 3 automatically enables support for
+>lower burst modes (BURST4, BURST8, BURST16 or bursts of unspecified
+>length). There is no need to set these burst modes based on the
+>packet size. Also enable the burst mode for both mode1 and mode0.
 >
->Tweak the fallback stubs so that they do work as intended.
+>This is a fix for buggy hardware - having the lower burst modes
+>enabled can potentially cause lockups of the DMA engine used in
+>OMAP2/3/4 chips.
 >
->Signed-off-by: Mike Frysinger <vapier@gentoo.org>
->Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+>Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+>Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+>Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+Acked-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
 -- 
 balbi
 
 DefectiveByDesign.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
