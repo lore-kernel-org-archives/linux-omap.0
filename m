@@ -1,71 +1,46 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 08/13] OMAP4: hwmod: Enable omap_device build for OMAP4
-Date: Thu, 24 Jun 2010 19:53:35 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032366B0A0@dbde02.ent.ti.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
- <1277336563-24988-9-git-send-email-khilman@deeprootsystems.com>
- <alpine.DEB.2.00.1006232310110.1550@utopia.booyaka.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 3/8] musb: fix compilation warning in host only mode
+Date: Thu, 24 Jun 2010 20:06:10 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E9E3948@dbde02.ent.ti.com>
+References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
+ <20100624060338.GF8078@nokia.com>
+ <19F8576C6E063C45BE387C64729E7394044E9E38CA@dbde02.ent.ti.com>
+ <4C235929.9030605@ru.mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42929 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754058Ab0FXOXo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 10:23:44 -0400
-In-Reply-To: <alpine.DEB.2.00.1006232310110.1550@utopia.booyaka.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C235929.9030605-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-l3A5Bk7waGM@public.gmane.org" <gregkh-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
 
+> >> then you add another ifdef to this file, which is already insane. I'd
+> >> rather see you either keep the local variables and just fix what needs
+> >> to be fixed,
+> 
+> >> or use musb->mregs directly.
+> 
+> > This one seems to be a much better one. Copying the v-3 with this fix
+> below.
+> 
+>     I don't see how it's *much* better...
 
+As it doesn't require to create another variable and moreover within
+ugly #ifdefs of three different flavors (HOST, DEVCIE and OTG).
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, June 24, 2010 12:11 AM
-> To: Nayak, Rajendra
-> Cc: Kevin Hilman; linux-omap@vger.kernel.org; Cousson, Benoit
-> Subject: Re: [PATCH 08/13] OMAP4: hwmod: Enable omap_device build for OMAP4
-> 
-> Hi Rajendra
-> 
-> On Wed, 23 Jun 2010, Kevin Hilman wrote:
-> 
-> > From: Rajendra Nayak <rnayak@ti.com>
-> >
-> 
-> Please add a brief patch changelog entry here.  Maybe just say this is
-> necessary for integration code using omap_device to work on OMAP4?
+I think it's better to kill all 'mbase' variables and use musb->mregs
+directly for a better code readability.
 
-Yes, will do, not sure how that got missed. 
-thanks
+-Ajay 
+> 
 
-> 
-> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> > ---
-> >  arch/arm/plat-omap/Makefile |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> > index 98f0191..9405831 100644
-> > --- a/arch/arm/plat-omap/Makefile
-> > +++ b/arch/arm/plat-omap/Makefile
-> > @@ -15,6 +15,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
-> >  # omap_device support (OMAP2+ only at the moment)
-> >  obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
-> >  obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
-> > +obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
-> >
-> >  obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
-> >  obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
-> > --
-> > 1.7.0.2
-> >
-> 
-> 
-> - Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
