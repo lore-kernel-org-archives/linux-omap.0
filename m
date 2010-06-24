@@ -1,118 +1,78 @@
-From: zhangfei gao <zhangfei.gao@gmail.com>
-Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
-Date: Thu, 24 Jun 2010 18:55:37 +0800
-Message-ID: <AANLkTiks3HfE6iYN8nWDXnfNqncK-ETFLbtwTiHrW0Mn@mail.gmail.com>
-References: <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
-	<20100407114938.GF7153@atomide.com>
-	<003801cad73e$86841df0$544ff780@am.dhcp.ti.com>
-	<20100427182111.GE7225@atomide.com>
-	<20100428192322.GG7225@atomide.com>
-	<006801cae709$e136fe40$544ff780@am.dhcp.ti.com>
-	<20100428194553.GH7225@atomide.com>
-	<006f01cae886$38da6920$544ff780@am.dhcp.ti.com>
-	<20100505182727.GA29604@atomide.com>
-	<00a501caecbc$761ded40$544ff780@am.dhcp.ti.com>
-	<20100506153044.GL29604@atomide.com>
-	<000901caee2b$e30ec1c0$544ff780@am.dhcp.ti.com>
-	<AANLkTim5A1tlfDzFTb4A1KdmYJJeH1diVOmmpRiDduF3@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B030DED2A3B@dbde02.ent.ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 3/8] musb: fix compilation warning in host only mode
+Date: Thu, 24 Jun 2010 16:47:54 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E9E38CA@dbde02.ent.ti.com>
+References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
+ <20100624060338.GF8078@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030DED2A3B@dbde02.ent.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:46368 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754706Ab0FXLSG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 07:18:06 -0400
+In-Reply-To: <20100624060338.GF8078@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@suse.de" <gregkh@suse.de>
 
-On Tue, Jun 22, 2010 at 7:43 PM, Ghorai, Sukumar <s-ghorai@ti.com> wrot=
-e:
->
->
->> -----Original Message-----
->> From: zhangfei gao [mailto:zhangfei.gao@gmail.com]
->> Sent: Tuesday, June 22, 2010 4:51 PM
->> To: Chikkature Rajashekar, Madhusudhan
->> Cc: Tony Lindgren; Menon, Nishanth; Ghorai, Sukumar; linux-
->> omap@vger.kernel.org; linux-mmc@vger.kernel.org
->> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
->>
->> On Sat, May 8, 2010 at 5:25 AM, Madhusudhan <madhu.cr@ti.com> wrote:
->> >
->> >
->> >> -----Original Message-----
->> >> From: Tony Lindgren [mailto:tony@atomide.com]
->> >> Sent: Thursday, May 06, 2010 10:31 AM
->> >> To: Madhusudhan
->> >> Cc: 'Nishanth Menon'; 'Ghorai, Sukumar'; linux-omap@vger.kernel.o=
-rg;
->> >> linux-mmc@vger.kernel.org
->> >> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
->> >>
->> >> * Madhusudhan <madhu.cr@ti.com> [100505 18:31]:
->> >> >
->> >> >
->> >> > > -----Original Message-----
->> >> > > From: Tony Lindgren [mailto:tony@atomide.com]
->> >> >
->> >> > > And what about this "Simulate multi mmc card as one big" patc=
-h?
->> >> > >
->> >> > Did not get you, what patch are you referring to?
->> >>
->> >> Oops sorry forgot the link:
->> >>
->> >> https://patchwork.kernel.org/patch/87944/
->> >>
->> > This will not help. I don't know the history of the patch but what=
- this
->> is
->> > intended for is to support multiple MMC cards connected to a singl=
-e
->> > controller. But on the Zoom the eMMC we are talking about is conne=
-cted
->> to
->> > MMC2.
->> >
->> > Regards,
->> > Madhu
->> >
->> >> Tony
->> >
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-mm=
-c" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
->> >
->>
->> Hi, Guys
->>
->> Just wander whether 16G Micron eMMC works on your platform.
->> I also have such issue, 16G Micron emmc can not work with read and
->> write, with data timeout.
->> While 8G Micron eMMC workable.
->> Do you have the same issue?
->
-> [Ghorai] we have 16G eMMC in ZOOM3 and 3630-SDP and its working fine.=
- Let me know what board you are using.
-> mmc1: new high speed MMC card at address 0001
-> PM: Adding info for mmc:mmc1:0001
-> mmcblk0: mmc1:0001 STM16G 14.8 GiB
-> PM: Adding info for No Bus:mmcblk0
-> =A0mmcblk0: p1 p2
->>
->> Thanks
->
+> >+#ifdef CONFIG_USB_MUSB_HDRC_HCD
+> >+	void __iomem	*mbase = musb->mregs;
+> >+#endif
+> 
+> then you add another ifdef to this file, which is already insane. I'd
+> rather see you either keep the local variables and just fix what needs
+> to be fixed, 
 
-Hi, Ghorai
+> or use musb->mregs directly.
+This one seems to be a much better one. Copying the v-3 with this fix below.
 
-Thanks for your valueable info.
-We also enabled Micron 16G eMMC, two issues stuck us before.
-1. The bus_width should be inited otherwise read ext_csd would be fail.
-2. The emmc may stay in boot partition and kernel should switch to
-user partition, where filesystem is located.
+-------------- cut here --------------------
+Fixes below compilation warning when host only configuration is
+selected.
+drivers/usb/musb/musb_core.c: In function 'musb_stage0_irq':
+drivers/usb/musb/musb_core.c:711: warning: unused variable 'mbase'
 
-Thanks
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musb_core.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index a8b0440..ed6e1a4 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -704,7 +704,6 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
+ #ifdef CONFIG_USB_MUSB_HDRC_HCD
+ 	if (int_usb & MUSB_INTR_CONNECT) {
+ 		struct usb_hcd *hcd = musb_to_hcd(musb);
+-		void __iomem *mbase = musb->mregs;
+ 
+ 		handled = IRQ_HANDLED;
+ 		musb->is_active = 1;
+@@ -717,9 +716,9 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
+ 		if (is_peripheral_active(musb)) {
+ 			/* REVISIT HNP; just force disconnect */
+ 		}
+-		musb_writew(mbase, MUSB_INTRTXE, musb->epmask);
+-		musb_writew(mbase, MUSB_INTRRXE, musb->epmask & 0xfffe);
+-		musb_writeb(mbase, MUSB_INTRUSBE, 0xf7);
++		musb_writew(musb->mregs, MUSB_INTRTXE, musb->epmask);
++		musb_writew(musb->mregs, MUSB_INTRRXE, musb->epmask & 0xfffe);
++		musb_writeb(musb->mregs, MUSB_INTRUSBE, 0xf7);
+ #endif
+ 		musb->port1_status &= ~(USB_PORT_STAT_LOW_SPEED
+ 					|USB_PORT_STAT_HIGH_SPEED
+-- 
+1.6.2.4
+--------------------------------------------
+
+Thanks,
+Ajay
+> 
