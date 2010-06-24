@@ -1,50 +1,50 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 12/13] OMAP: hwmod data: add class for DSP hwmods
-Date: Thu, 24 Jun 2010 14:26:43 -0700
-Message-ID: <87y6e415rg.fsf@deeprootsystems.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
-	<1277336563-24988-13-git-send-email-khilman@deeprootsystems.com>
-	<alpine.DEB.2.00.1006241243130.1550@utopia.booyaka.com>
-	<87fx0c6udw.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PM-SR][PATCH 4/4] omap3: voltage: expose omap_change_voltscale_method
+Date: Thu, 24 Jun 2010 16:29:26 -0500
+Message-ID: <1277414966-31806-5-git-send-email-nm@ti.com>
+References: <1277414966-31806-1-git-send-email-nm@ti.com>
+ <1277414966-31806-2-git-send-email-nm@ti.com>
+ <1277414966-31806-3-git-send-email-nm@ti.com>
+ <1277414966-31806-4-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:57486 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754221Ab0FXV0q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 17:26:46 -0400
-Received: by pwj8 with SMTP id 8so2041977pwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 14:26:45 -0700 (PDT)
-In-Reply-To: <87fx0c6udw.fsf@deeprootsystems.com> (Kevin Hilman's message of
-	"Thu, 24 Jun 2010 13:35:55 -0700")
+Received: from devils.ext.ti.com ([198.47.26.153]:48899 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755192Ab0FXV3b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 17:29:31 -0400
+In-Reply-To: <1277414966-31806-4-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+omap_change_voltscale_method is to be used by board files
+to choose which mechanism they would prefer to do update
+of voltage to thier PMIC. unless we expose it, they cant
+use it.
 
-> Paul Walmsley <paul@pwsan.com> writes:
->
->> Hi Kevin,
->>
->> On Wed, 23 Jun 2010, Kevin Hilman wrote:
->>
->>> Add a new hwmod class for DSP devices.  To be used when hwmods
->>> are created for DSP on OMAP3 (a.k.a. IVA2.)
->>
->> I guess this patch is not needed any more?  But if it is, it might be best 
->> to name the class "iva2" or something like that, since the IVA2 subsystem 
->> contains more than just the DSP; it also contains the dedicated hardware 
->> video accelerator blocks, which are separate from the DSP.
->
-> Right, I'll be dropping this patch too as I'm just switching to use
-> omap_hwmod_lookup() instead of the class iterators.
+This also fixes sparse warning:
+arch/arm/mach-omap2/voltage.c:1046:6: warning: symbol 'omap_change_voltscale_method' was not declared. Should it be static?
 
-Turns out I need a class even when doing the omap_hwmod_lookup()
-as omap_hwmod_register() fails if there is no class or class name.
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Thara Gopinath <thara@ti.com>
 
-I'll keep this pach but s/dsp/iva2/
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/voltage.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Kevin
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index a7be515..6dc8ce4 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -113,6 +113,7 @@ void omap_voltageprocessor_enable(int vp_id);
+ void omap_voltageprocessor_disable(int vp_id);
+ int omap_voltage_scale(int vdd, unsigned long target_volt);
+ void omap_reset_voltage(int vdd);
++void omap_change_voltscale_method(int voltscale_method);
+ int omap_get_voltage_table(int vdd, struct omap_volt_data **volt_data);
+ struct omap_volt_data *omap_get_volt_data(int vdd, unsigned long volt);
+ void omap_voltage_register_pmic(struct omap_volt_pmic_info *pmic_info);
+-- 
+1.6.3.3
 
