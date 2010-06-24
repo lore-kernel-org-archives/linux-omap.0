@@ -1,87 +1,153 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 13/13] OMAP3: hwmod data: add data for OMAP3 IVA2
-Date: Thu, 24 Jun 2010 16:44:44 -0700
-Message-ID: <1277423084-25528-14-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 10/13] OMAP: create omap_devices for MPU, DSP, L3
+Date: Thu, 24 Jun 2010 16:44:41 -0700
+Message-ID: <1277423084-25528-11-git-send-email-khilman@deeprootsystems.com>
 References: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:45007 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754141Ab0FXXpQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 19:45:16 -0400
-Received: by mail-pv0-f174.google.com with SMTP id 2so587510pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 16:45:16 -0700 (PDT)
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:57989 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753904Ab0FXXpI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 19:45:08 -0400
+Received: by mail-pw0-f46.google.com with SMTP id 8so2080998pwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 16:45:08 -0700 (PDT)
 In-Reply-To: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>
+Cc: paul@pwsan.com
 
-Add hwmod data for IVA2 module on OMAP3.
+Create simple omap_devices for the main processors and busses.
 
-Naming of "iva" instead of "iva2" to be aligned with OMAP4 naming done
-by Benoit Cousson.
+This is required to support the forth-coming device-based OPP
+approach, where OPPs are managed and tracked at the device level.
+
+So that these primary devices are available for early PM initialization,
+they are created as early platform_devices.
 
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   30 ++++++++++++++++++++++++++++
- 1 files changed, 30 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c            |    2 +
+ arch/arm/mach-omap2/io.c                 |   58 +++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/common.h |    4 ++
+ 3 files changed, 63 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 9d9cfb9..d3bf85b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -32,6 +32,7 @@
-  */
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 03e6c9e..62920ac 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -15,6 +15,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ #include <linux/clk.h>
++#include <linux/err.h>
  
- static struct omap_hwmod omap3xxx_mpu_hwmod;
-+static struct omap_hwmod omap3xxx_iva_hwmod;
- static struct omap_hwmod omap3xxx_l3_main_hwmod;
- static struct omap_hwmod omap3xxx_l4_core_hwmod;
- static struct omap_hwmod omap3xxx_l4_per_hwmod;
-@@ -168,12 +169,41 @@ static struct omap_hwmod omap3xxx_mpu_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+@@ -29,6 +30,7 @@
+ #include <mach/gpio.h>
+ #include <plat/mmc.h>
+ #include <plat/dma.h>
++#include <plat/omap_device.h>
  
+ #include "mux.h"
+ 
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 3cfb425..407498d 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -45,7 +45,7 @@
+ 
+ #include <plat/clockdomain.h>
+ #include "clockdomains.h"
+-#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
+ 
+ /*
+  * The machine specific code may provide the extra mapping besides the
+@@ -313,6 +313,61 @@ static int __init _omap2_init_reprogram_sdrc(void)
+ 	return v;
+ }
+ 
++static struct omap_device_pm_latency *pm_lats;
++
++static struct device *mpu_dev;
++static struct device *dsp_dev;
++static struct device *l3_dev;
++
++struct device *omap_get_mpuss_device(void)
++{
++	WARN_ON_ONCE(!mpu_dev);
++	return mpu_dev;
++}
++
++struct device *omap_get_dsp_device(void)
++{
++	WARN_ON_ONCE(!dsp_dev);
++	return dsp_dev;
++}
++
++struct device *omap_get_l3_device(void)
++{
++	WARN_ON_ONCE(!l3_dev);
++	return l3_dev;
++}
++
++/* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
++static int _init_omap_device(char *name, struct device **new_dev)
++{
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++
++	oh = omap_hwmod_lookup(name);
++	if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
++		 __func__, name))
++		return -ENODEV;
++
++	od = omap_device_build(oh->name, 0, oh, NULL, 0, pm_lats, 0, true);
++	if (WARN(IS_ERR(od), "%s: could not build omap_device for %s\n",
++		 __func__, name))
++		return -ENODEV;
++
++	*new_dev = &od->pdev.dev;
++
++	return 0;
++}
++
 +/*
-+ * IVA2_2 interface data
++ * Build omap_devices for processors and bus.
 + */
++static void omap_init_processor_devices(void)
++{
++	_init_omap_device("mpu", &mpu_dev);
++	_init_omap_device("iva", &dsp_dev);
++	_init_omap_device("l3_main", &l3_dev);
++}
 +
-+/* IVA2 <- L3 interface */
-+static struct omap_hwmod_ocp_if omap3xxx_l3__iva = {
-+	.master		= &omap3xxx_l3_main_hwmod,
-+	.slave		= &omap3xxx_iva_hwmod,
-+	.clk		= "iva2_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_iva_masters[] = {
-+	&omap3xxx_l3__iva,
-+};
-+
-+/*
-+ * IVA2 (IVA2)
-+ */
-+
-+static struct omap_hwmod omap3xxx_iva_hwmod = {
-+	.name		= "iva",
-+	.class          = &iva_hwmod_class,
-+	.masters	= omap3xxx_iva_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap3xxx_iva_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+};
-+
- static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l3_main_hwmod,
- 	&omap3xxx_l4_core_hwmod,
- 	&omap3xxx_l4_per_hwmod,
- 	&omap3xxx_l4_wkup_hwmod,
- 	&omap3xxx_mpu_hwmod,
-+	&omap3xxx_iva_hwmod,
- 	NULL,
- };
+ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 				 struct omap_sdrc_params *sdrc_cs1)
+ {
+@@ -342,6 +397,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 	omap_serial_early_init();
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
+ 		omap_hwmod_late_init();
++	omap_init_processor_devices();
+ 	omap_pm_if_init();
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+ 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index d265018..9cdd9cd 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -87,4 +87,8 @@ void omap2_set_globals_uart(struct omap_globals *);
+ 	}							\
+ })
  
++struct device *omap_get_mpuss_device(void);
++struct device *omap_get_dsp_device(void);
++struct device *omap_get_l3_device(void);
++
+ #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
 -- 
 1.7.0.2
 
