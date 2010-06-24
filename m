@@ -1,194 +1,33 @@
-From: "Basak, Partha" <p-basak2@ti.com>
-Subject: RE: On the APIs for Enabling and Disabling Wakeup capability.
-Date: Thu, 24 Jun 2010 20:34:25 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E7761863@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E75F0BBF@dbde02.ent.ti.com>
-	<87vd9isdxb.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94026FFCAA53@dbde02.ent.ti.com>
-	<74583B8642AB8841B30447520659FCA901AA4908FF@dnce01.ent.ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E940270056DEE@dbde02.ent.ti.com>
-	<87ljacbd5u.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E76F4082@dbde02.ent.ti.com>
- <87sk4dqynm.fsf@deeprootsystems.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402700F3049@dbde02.ent.ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 3/4] omap mailbox: remove mbox_configured scheme
+Date: Thu, 24 Jun 2010 10:10:38 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4C890B71@dlee03.ent.ti.com>
+References: <1277251896-6890-1-git-send-email-ohad@wizery.com>
+ <1277251896-6890-3-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57231 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754149Ab0FXPEg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 11:04:36 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402700F3049@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45680 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754063Ab0FXPKn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 11:10:43 -0400
+In-Reply-To: <1277251896-6890-3-git-send-email-ohad@wizery.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kalliguddi, Hema" <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-Kevin,
+Ohad,
 
-Thanks
-Partha
+> mbox_configured is global and therefore does not support
+> concurrent usage of multiple mailbox instances.
 
-> -----Original Message-----
-> From: Kalliguddi, Hema
-> Sent: Thursday, June 24, 2010 8:25 PM
-> To: Kevin Hilman; Basak, Partha
-> Cc: Cousson, Benoit; paul@pwsan.com; Nayak, Rajendra; linux-
-> omap@vger.kernel.org; Gadiyar, Anand; Kamat, Nishant
-> Subject: RE: On the APIs for Enabling and Disabling Wakeup capability.
-> 
-> Kevin,
-> Replying on top of latest chin.
-> 
-> Thanks,
-> Hema
-> 
-> >-----Original Message-----
-> >From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> >Sent: Thursday, June 24, 2010 2:01 AM
-> >To: Basak, Partha
-> >Cc: Kalliguddi, Hema; Cousson, Benoit; paul@pwsan.com; Nayak,
-> >Rajendra; linux-omap@vger.kernel.org
-> >Subject: Re: On the APIs for Enabling and Disabling Wakeup capability.
-> >
-> >"Basak, Partha" <p-basak2@ti.com> writes:
-> >
-> >> Benoit/Kevin,
-> >>
-> >>> -----Original Message-----
-> >>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> >>> Sent: Friday, June 18, 2010 8:29 PM
-> >>> To: Kalliguddi, Hema
-> >>> Cc: Cousson, Benoit; Basak, Partha; paul@pwsan.com; Nayak, Rajendra;
-> >>> linux-omap@vger.kernel.org
-> >>> Subject: Re: On the APIs for Enabling and Disabling Wakeup
-> >capability.
-> >>>
-> >>> "Kalliguddi, Hema" <hemahk@ti.com> writes:
-> >>>
-> >>> > Hi Benoit,
-> >>> >
-> >>> > I have 2 cases in usb for the need of separate API for
-> >setting the auto
-> >>> idle bit.
-> >>> >
-> >>> > 1. Below the link for omap3430TRM. Please refer 24.1.5.4.2 and
-> >>> 24.1.5.4.3 there is note not to set smart
-> >>> > idle and autoidle bit simultaneously. Suggestion is to
-> >set the auto idle
-> >>> 0 before setting smart idle. Then set to 1.
-> >>>
-> >>> Maybe this sequence should be enforced by the hwmod code itself,
-> >>> rather than the knowledge living in the driver.
-> >>>
-> >>> However, based on the errata below, auto-idle will always be zero so
-> >>> the there should be no conflict in setting smart-idle and auto-idle
-> >>> simultaneously today.
-> >>>
-> >>> > This applicable for omap4 as well.  I don't have the
-> >omap4430 pblic TRM
-> >>> to share.
-> >>> > http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf
-> >>> >
-> 
-> [HK] The errata is applicable to OMAP3430 only.
-> But this sequence applicable for omap4 as well. So for submitting the
-> changes we need
-> to have the HWMOD api to be changed to enaforce the Autodile set only
-> after the smart idle.
-> 
-> >>> > 2. There is a Errata in OMAP3 errata #1.59 that If auto
-> >idle is set then
-> >>> the USB can't  wakeup the system by
-> >>> > usb external events. The suggested workaround is to
-> >disable the autoIdle
-> >>> for omap3.
-> >>>
-> >>> This one could be handled at init time in usb-musb.c by setting
-> >>> HWMOD_NO_OCP_AUTOIDLE for the hwmod with a comment summarizing this
-> >>> errata.
-> >>>
-> >>> Note also that Errata 1.166 is another one related to MUSB auto-idle
-> >>> and we have a workaround in the PM branch to ensure that MUSB
-> >>> auto-idle is disabled in the idle path since it may be re-enabled
-> >>> after an off-mode transition.
-> >>>
-> >> Few questions:
-> >> 1. Are you mentioning about the following patch:
-> >>
-> >http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm
-> >.git;a=commit;h=865f0e0b1dd25899fe30eee5c8f1dba420eea177?
-> >
-> >No, this is a totally unrelated problem related to a specific init
-> >sequene.
-[Partha] Please send the commit ID
-> >
-> >> Though this patch allows clearing of AutoIdle bit(signified by
-> >> HWMOD_INIT_NO_IDLE) while remaining in Idle state, it does not allow
-> >> the reverse, i.e. setting back the AutoIdle bit, while still
-> >remaining
-> >> in Idle state.
-> >
-> >The use-case for setting the auto-idle bit while leaving the device in
-> >idle have not been described.
-> >
-[Partha] My comment was more from a consistency of implementation standpoint. Once you clear the AutoIdle, there is no way to set it back before enabling the module. Anyhow, not clear what use-case you are trying to cater to here.
+-- Why do you say that it doesn't support concurrent usage of multiple mailbox instances ? If you take example of OMAP4, we have 2 mailbox instances, one talking to DSP and other to Ducati and they should be supported concurrently.
 
-> >> 2. Changing the hwmod flags (oh->flags) is acceptable in
-> >run-time. Correct?
-> >
-> >For errata workarounds, in device/SoC init code yes.  In drivers, no.
-> >Drivers should not have any knowledge of hwmod internals.
-> >
-> >> 3. I believe, SysConfig settings have been a tricky area because of
-> >> different h/w-errata. Instead of looking into particular errata, as
-> >> and when they come in time to time and explore how to fit them in the
-> >> framework, would it not be more useful to provide a more generic
-> >> framework to operate on the SysConfig settings? Of course, as you
-> >> suggested, the preferred approach would be to absorb the changes in
-> >> the omap_device/hw-mod layer as much as possible. But unfortunately,
-> >> that may not be sufficient in all situations.
-> >
-> >For this kind of thing, I strongly prefer to better understand the
-> >specific errata that require the special settings.
-> >
-> >History suggests that having an API to modify sysconfig means it would
-> >get used not just for errata workarounds but also because "it doesn't
-> >work unless I do this."   We *really* need to better understand the
-> >reasons behind these special cases.
-> >
-> 
-[Partha] Refer to the details provided by Hema for the supporting information.
-> [HK] I agree that this can be handled using hw->flags for omap3.
-> Can you please point me the commit for the above errata fix? I am not
-> successful in getting the exact commit.
-> 
-> There are few observation in the USBOTG with respect to offmode and
-> sysconfig settings.
-> Still the investigations are in progress. Current mainline code for 3630
-> have a patch for the offmode as below.
-> 
-> Enable the force ilde and force standby before going to offmode.
-> Reset the sysconfig with smart standby and smartidle in restore path.
-> With the current API support I will not be in a position to implement the
-> this workaround.
-> 
-> I think there are some more errata which needs the dynamic configuration
-> of the sysconfig register like
-> Set the force idle when data transfer is complete and set back to smart
-> idle/smart standby during data transfer.
-> I see the errata already in UART #2.15.
-> 
-> Can you please let me know how do we meet such requirement using the
-> existing APIs?
-> 
-[Partha] The issue is not about providing control to configure AutoIdle alone. It is about exposing a wider control of SysConfig to the driver so that errata can be taken care of.
+If you remove the mbox_configured variable, then the mailbox module would shut down once the first instance calls the omap_mbox_put function.
 
-Also, I assume, as per your earlier suggestion, you would absorb setting and clearing of EnableWakeup inside hwmod_nable/idle functions. Correct?
-
-> ~Hema
-> 
-> >Kevin
-> >
+Thank you,
+Best regards,
+Hari
