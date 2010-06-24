@@ -1,54 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 08/13] OMAP4: hwmod: Enable omap_device build for OMAP4
-Date: Wed, 23 Jun 2010 23:11:19 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1006232310110.1550@utopia.booyaka.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com> <1277336563-24988-9-git-send-email-khilman@deeprootsystems.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 2/8] MUSB: make non-OMAP platforms build with
+ CONFIG_PM=y
+Date: Thu, 24 Jun 2010 09:02:24 +0300
+Message-ID: <20100624060224.GE8078@nokia.com>
+References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39143 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751175Ab0FXFLT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 01:11:19 -0400
-In-Reply-To: <1277336563-24988-9-git-send-email-khilman@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.105.134]:30330 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753005Ab0FXGEv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 02:04:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "gregkh@suse.de" <gregkh@suse.de>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-Hi Rajendra
+On Thu, Jun 17, 2010 at 12:40:35PM +0200, ext Ajay Kumar Gupta wrote:
+>From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+>
+>Attempt to build MUSB driver with CONFIG_PM=y (e.g. in the OTG mode) on DaVinci
+>results in these link errors:
+>
+>drivers/built-in.o: In function `musb_restore_context':
+>led-triggers.c:(.text+0x714d8): undefined reference to
+>`musb_platform_restore_context'
+>drivers/built-in.o: In function `musb_save_context':
+>led-triggers.c:(.text+0x71788): undefined reference to
+>`musb_platform_save_context'
+>
+>This turned out to be caused by commit 9957dd97ec5e98dd334f87ade1d9a0b24d1f86eb
+>(usb: musb: Fix compile error for omaps for musb_hdrc). Revert it, taking into
+>account the rename of CONFIG_ARCH_OMAP34XX into CONFIG_ARCH_OMAP3 (which that
+>commit fixed in a completely inappropriate way) and the recent addition of
+>OMAP4 support.
+>
+>Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+>Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-On Wed, 23 Jun 2010, Kevin Hilman wrote:
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+-- 
+balbi
 
-> From: Rajendra Nayak <rnayak@ti.com>
-> 
-
-Please add a brief patch changelog entry here.  Maybe just say this is 
-necessary for integration code using omap_device to work on OMAP4?
-
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/plat-omap/Makefile |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> index 98f0191..9405831 100644
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -15,6 +15,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
->  # omap_device support (OMAP2+ only at the moment)
->  obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
->  obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
-> +obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
->  
->  obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
->  obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
-> -- 
-> 1.7.0.2
-> 
-
-
-- Paul
+DefectiveByDesign.org
