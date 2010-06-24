@@ -1,82 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP: hwmod: Fix the missing braces
-Date: Wed, 23 Jun 2010 18:24:47 -0600
-Message-ID: <20100624002438.12347.60529.stgit@localhost.localdomain>
-References: <20100624002249.12347.37548.stgit@localhost.localdomain>
+From: Jamie Lokier <jamie@shareable.org>
+Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and check for it on V6
+Date: Thu, 24 Jun 2010 01:28:53 +0100
+Message-ID: <20100624002853.GJ7058@shareable.org>
+References: <20100621133749.24299.36154.stgit@baageli.muru.com> <20100621135120.24299.98499.stgit@baageli.muru.com> <20100622170020.GF4371@shareable.org> <20100623073912.GA12255@atomide.com> <20100623133636.GC7058@shareable.org> <alpine.LFD.2.00.1006231002530.24097@xanadu.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33473 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520Ab0FXAZo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 20:25:44 -0400
-In-Reply-To: <20100624002249.12347.37548.stgit@localhost.localdomain>
+Received: from mail2.shareable.org ([80.68.89.115]:42514 "EHLO
+	mail2.shareable.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751520Ab0FXA2z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jun 2010 20:28:55 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1006231002530.24097@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Benoit Cousson <b-cousson@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>, Anand Gadiyar <gadiyar@ti.com>
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Benoit Cousson <b-cousson@ti.com>
+Nicolas Pitre wrote:
+> On Wed, 23 Jun 2010, Jamie Lokier wrote:
+> 
+> > For other things like __switch_to and maybe cache maintenance calls,
+> > dmb() etc, I'd suggest first doing a generic asm mechanism like x86's
+> > "alternatives", keeping in mind that one of the alternatives has to be
+> > XIP friendly.
+> 
+> You cannot be XIP friendly unless you rewrite the concerned function(s) 
+> into a RAM page in order to modify it.  And then of course you have to 
+> play tricks with the linker so that the rewritten functions are 
+> referenced with their final rewritten location.  And that means of 
+> course that the RAM location has to be a constant unless we introduce 
+> some indirect function calls.  And at that point we're not much better 
+> than the proposed runtime test.
+> 
+> Also, if you are interested by a XIP kernel, this usually means you have 
+> a fairly highly customized kernel config.  In this context it is 
+> senseless to have runtime patching of the kernel.  What you want in that 
+> case is as much stuff as possible selected and optimized at compile 
+> time, and anything you don't need configured out.
 
-As reported by Sergei, a couple of braces were missing after
-the WARN removal patch.
+I wasn't suggesting that XIP kernels do any run-time npatching.
+Sorry, I thought that was obvious.
 
-[07/22] OMAP: hwmod: Replace WARN by pr_warning if clock lookup failed
+What I mean is to provide a set of macros, a bit like x86's
+alternatives macros, which take various asm fragments and the
+condition which would choose between them, and compiles to
+unconditional code if the condition is known at compile time (XIP or
+not), otherwise compiles to fixed, run-time conditional code on XIP
+(it could be conditional code or an indirect functional call), and on
+non-XIP compiles to patchable code with an alternate-table section.
 
-https://patchwork.kernel.org/patch/100756/
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-[paul@pwsan.com: fixed patch description per Anand's E-mail]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 95c9a5f..b7a4133 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -409,10 +409,11 @@ static int _init_main_clk(struct omap_hwmod *oh)
- 		return 0;
- 
- 	oh->_clk = omap_clk_get_by_name(oh->main_clk);
--	if (!oh->_clk)
-+	if (!oh->_clk) {
- 		pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
- 			   oh->name, oh->main_clk);
- 		return -EINVAL;
-+	}
- 
- 	if (!oh->_clk->clkdm)
- 		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
-@@ -444,10 +445,11 @@ static int _init_interface_clks(struct omap_hwmod *oh)
- 			continue;
- 
- 		c = omap_clk_get_by_name(os->clk);
--		if (!c)
-+		if (!c) {
- 			pr_warning("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
- 				   oh->name, os->clk);
- 			ret = -EINVAL;
-+		}
- 		os->_clk = c;
- 	}
- 
-@@ -470,10 +472,11 @@ static int _init_opt_clks(struct omap_hwmod *oh)
- 
- 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
- 		c = omap_clk_get_by_name(oc->clk);
--		if (!c)
-+		if (!c) {
- 			pr_warning("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
- 				   oh->name, oc->clk);
- 			ret = -EINVAL;
-+		}
- 		oc->_clk = c;
- 	}
- 
-
-
+-- Jamie
