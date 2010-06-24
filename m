@@ -1,212 +1,141 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: [PATCH 05/13] OMAP2&3: hwmod: Remove _hwmod prefix in name
- string
-Date: Thu, 24 Jun 2010 13:53:29 +0200
-Message-ID: <74583B8642AB8841B30447520659FCA901AA590C9E@dnce01.ent.ti.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
- <1277336563-24988-6-git-send-email-khilman@deeprootsystems.com>
- <alpine.DEB.2.00.1006232302580.1550@utopia.booyaka.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH] Disable the non working eMMC on Zoom2/3
+Date: Thu, 24 Jun 2010 17:34:06 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030DF4E8F8@dbde02.ent.ti.com>
+References: <009a01cad1ee$e3bbae70$544ff780@am.dhcp.ti.com>
+	<20100407114938.GF7153@atomide.com>
+	<003801cad73e$86841df0$544ff780@am.dhcp.ti.com>
+	<20100427182111.GE7225@atomide.com>	<20100428192322.GG7225@atomide.com>
+	<006801cae709$e136fe40$544ff780@am.dhcp.ti.com>
+	<20100428194553.GH7225@atomide.com>
+	<006f01cae886$38da6920$544ff780@am.dhcp.ti.com>
+	<20100505182727.GA29604@atomide.com>
+	<00a501caecbc$761ded40$544ff780@am.dhcp.ti.com>
+	<20100506153044.GL29604@atomide.com>
+	<000901caee2b$e30ec1c0$544ff780@am.dhcp.ti.com>
+	<AANLkTim5A1tlfDzFTb4A1KdmYJJeH1diVOmmpRiDduF3@mail.gmail.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B030DED2A3B@dbde02.ent.ti.com>
+ <AANLkTiks3HfE6iYN8nWDXnfNqncK-ETFLbtwTiHrW0Mn@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51590 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753829Ab0FXLxq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 07:53:46 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <alpine.DEB.2.00.1006232302580.1550@utopia.booyaka.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <AANLkTiks3HfE6iYN8nWDXnfNqncK-ETFLbtwTiHrW0Mn@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-mmc-owner@vger.kernel.org
+To: zhangfei gao <zhangfei.gao@gmail.com>
+Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>
-
-Hi Paul,
-
->From: Paul Walmsley [mailto:paul@pwsan.com]
->Sent: Thursday, June 24, 2010 7:05 AM
->
->Beno=EEt,
->
->one minor comment here:
->
->On Wed, 23 Jun 2010, Kevin Hilman wrote:
->
->> From: Benoit Cousson <b-cousson@ti.com>
->>
->> In the lastest OMAP4 hwmod data file, the _hwmod was removed
->> in order to save some memory space and because it does not
->> bring a lot.
->> Align OMAP2420, 2430 and 3430 data files with the same convention.
->
->Shouldn't we also synchronize the names of the structures as
->well?  i.e.,
->if the name is changed to "l3_main", shouldn't the name of the
->structure
->also be changed from
->
->   static struct omap_hwmod omap2420_l3_hwmod =3D {
->
->to
->
->   static struct omap_hwmod omap2420_l3_main_hwmod =3D {
->
->(... as one example?)
-
-You're right, I didn't change that because only the string is relevant
-for the lookup, but it will be much more consitent to change the struct=
-ures
-as well.
-
-I'll do it.
-
-Thanks,
-Benoit
-
->
->
->- Paul
->
->>
->> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++---
->>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +++---
->>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
->>  3 files changed, 10 insertions(+), 10 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
->b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
->> index a8b57a6..646386c 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
->> @@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if
->*omap2420_l3_masters[] =3D {
->>
->>  /* L3 */
->>  static struct omap_hwmod omap2420_l3_hwmod =3D {
->> -    .name           =3D "l3_hwmod",
->> +    .name           =3D "l3_main",
->>      .class          =3D &l3_hwmod_class,
->>      .masters        =3D omap2420_l3_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap2420_l3_masters),
->> @@ -90,7 +90,7 @@ static struct omap_hwmod_ocp_if
->*omap2420_l4_core_masters[] =3D {
->>
->>  /* L4 CORE */
->>  static struct omap_hwmod omap2420_l4_core_hwmod =3D {
->> -    .name           =3D "l4_core_hwmod",
->> +    .name           =3D "l4_core",
->>      .class          =3D &l4_hwmod_class,
->>      .masters        =3D omap2420_l4_core_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap2420_l4_core_masters),
->> @@ -111,7 +111,7 @@ static struct omap_hwmod_ocp_if
->*omap2420_l4_wkup_masters[] =3D {
->>
->>  /* L4 WKUP */
->>  static struct omap_hwmod omap2420_l4_wkup_hwmod =3D {
->> -    .name           =3D "l4_wkup_hwmod",
->> +    .name           =3D "l4_wkup",
->>      .class          =3D &l4_hwmod_class,
->>      .masters        =3D omap2420_l4_wkup_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap2420_l4_wkup_masters),
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
->b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
->> index 8b1f74b..b2100cf 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
->> @@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if
->*omap2430_l3_masters[] =3D {
->>
->>  /* L3 */
->>  static struct omap_hwmod omap2430_l3_hwmod =3D {
->> -    .name           =3D "l3_hwmod",
->> +    .name           =3D "l3_main",
->>      .class          =3D &l3_hwmod_class,
->>      .masters        =3D omap2430_l3_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap2430_l3_masters),
->> @@ -92,7 +92,7 @@ static struct omap_hwmod_ocp_if
->*omap2430_l4_core_masters[] =3D {
->>
->>  /* L4 CORE */
->>  static struct omap_hwmod omap2430_l4_core_hwmod =3D {
->> -    .name           =3D "l4_core_hwmod",
->> +    .name           =3D "l4_core",
->>      .class          =3D &l4_hwmod_class,
->>      .masters        =3D omap2430_l4_core_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap2430_l4_core_masters),
->> @@ -113,7 +113,7 @@ static struct omap_hwmod_ocp_if
->*omap2430_l4_wkup_masters[] =3D {
->>
->>  /* L4 WKUP */
->>  static struct omap_hwmod omap2430_l4_wkup_hwmod =3D {
->> -    .name           =3D "l4_wkup_hwmod",
->> +    .name           =3D "l4_wkup",
->>      .class          =3D &l4_hwmod_class,
->>      .masters        =3D omap2430_l4_wkup_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap2430_l4_wkup_masters),
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->> index e288b20..ec6a5f8 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->> @@ -70,7 +70,7 @@ static struct omap_hwmod_ocp_if
->*omap3xxx_l3_masters[] =3D {
->>
->>  /* L3 */
->>  static struct omap_hwmod omap3xxx_l3_hwmod =3D {
->> -    .name           =3D "l3_hwmod",
->> +    .name           =3D "l3_main",
->>      .class          =3D &l3_hwmod_class,
->>      .masters        =3D omap3xxx_l3_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap3xxx_l3_masters),
->> @@ -101,7 +101,7 @@ static struct omap_hwmod_ocp_if
->*omap3xxx_l4_core_masters[] =3D {
->>
->>  /* L4 CORE */
->>  static struct omap_hwmod omap3xxx_l4_core_hwmod =3D {
->> -    .name           =3D "l4_core_hwmod",
->> +    .name           =3D "l4_core",
->>      .class          =3D &l4_hwmod_class,
->>      .masters        =3D omap3xxx_l4_core_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap3xxx_l4_core_masters),
->> @@ -122,7 +122,7 @@ static struct omap_hwmod_ocp_if
->*omap3xxx_l4_per_masters[] =3D {
->>
->>  /* L4 PER */
->>  static struct omap_hwmod omap3xxx_l4_per_hwmod =3D {
->> -    .name           =3D "l4_per_hwmod",
->> +    .name           =3D "l4_per",
->>      .class          =3D &l4_hwmod_class,
->>      .masters        =3D omap3xxx_l4_per_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap3xxx_l4_per_masters),
->> @@ -143,7 +143,7 @@ static struct omap_hwmod_ocp_if
->*omap3xxx_l4_wkup_masters[] =3D {
->>
->>  /* L4 WKUP */
->>  static struct omap_hwmod omap3xxx_l4_wkup_hwmod =3D {
->> -    .name           =3D "l4_wkup_hwmod",
->> +    .name           =3D "l4_wkup",
->>      .class          =3D &l4_hwmod_class,
->>      .masters        =3D omap3xxx_l4_wkup_masters,
->>      .masters_cnt    =3D ARRAY_SIZE(omap3xxx_l4_wkup_masters),
->> --
->> 1.7.0.2
->>
->
->
->- Paul
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Lo=
-ubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: zhangfei gao [mailto:zhangfei.gao@gmail.com]
+> Sent: Thursday, June 24, 2010 4:26 PM
+> To: Ghorai, Sukumar
+> Cc: Chikkature Rajashekar, Madhusudhan; Tony Lindgren; Menon, Nishant=
+h;
+> linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org
+> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
+>=20
+> On Tue, Jun 22, 2010 at 7:43 PM, Ghorai, Sukumar <s-ghorai@ti.com> wr=
+ote:
+> >
+> >
+> >> -----Original Message-----
+> >> From: zhangfei gao [mailto:zhangfei.gao@gmail.com]
+> >> Sent: Tuesday, June 22, 2010 4:51 PM
+> >> To: Chikkature Rajashekar, Madhusudhan
+> >> Cc: Tony Lindgren; Menon, Nishanth; Ghorai, Sukumar; linux-
+> >> omap@vger.kernel.org; linux-mmc@vger.kernel.org
+> >> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
+> >>
+> >> On Sat, May 8, 2010 at 5:25 AM, Madhusudhan <madhu.cr@ti.com> wrot=
+e:
+> >> >
+> >> >
+> >> >> -----Original Message-----
+> >> >> From: Tony Lindgren [mailto:tony@atomide.com]
+> >> >> Sent: Thursday, May 06, 2010 10:31 AM
+> >> >> To: Madhusudhan
+> >> >> Cc: 'Nishanth Menon'; 'Ghorai, Sukumar'; linux-omap@vger.kernel=
+=2Eorg;
+> >> >> linux-mmc@vger.kernel.org
+> >> >> Subject: Re: [PATCH] Disable the non working eMMC on Zoom2/3
+> >> >>
+> >> >> * Madhusudhan <madhu.cr@ti.com> [100505 18:31]:
+> >> >> >
+> >> >> >
+> >> >> > > -----Original Message-----
+> >> >> > > From: Tony Lindgren [mailto:tony@atomide.com]
+> >> >> >
+> >> >> > > And what about this "Simulate multi mmc card as one big" pa=
+tch?
+> >> >> > >
+> >> >> > Did not get you, what patch are you referring to?
+> >> >>
+> >> >> Oops sorry forgot the link:
+> >> >>
+> >> >> https://patchwork.kernel.org/patch/87944/
+> >> >>
+> >> > This will not help. I don't know the history of the patch but wh=
+at
+> this
+> >> is
+> >> > intended for is to support multiple MMC cards connected to a sin=
+gle
+> >> > controller. But on the Zoom the eMMC we are talking about is
+> connected
+> >> to
+> >> > MMC2.
+> >> >
+> >> > Regards,
+> >> > Madhu
+> >> >
+> >> >> Tony
+> >> >
+> >> > --
+> >> > To unsubscribe from this list: send the line "unsubscribe linux-=
+mmc"
+> in
+> >> > the body of a message to majordomo@vger.kernel.org
+> >> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.=
+html
+> >> >
+> >>
+> >> Hi, Guys
+> >>
+> >> Just wander whether 16G Micron eMMC works on your platform.
+> >> I also have such issue, 16G Micron emmc can not work with read and
+> >> write, with data timeout.
+> >> While 8G Micron eMMC workable.
+> >> Do you have the same issue?
+> >
+> > [Ghorai] we have 16G eMMC in ZOOM3 and 3630-SDP and its working fin=
+e.
+> Let me know what board you are using.
+> > mmc1: new high speed MMC card at address 0001
+> > PM: Adding info for mmc:mmc1:0001
+> > mmcblk0: mmc1:0001 STM16G 14.8 GiB
+> > PM: Adding info for No Bus:mmcblk0
+> > =A0mmcblk0: p1 p2
+> >>
+> >> Thanks
+> >
+>=20
+> Hi, Ghorai
+>=20
+> Thanks for your valueable info.
+> We also enabled Micron 16G eMMC, two issues stuck us before.
+> 1. The bus_width should be inited otherwise read ext_csd would be fai=
+l.
+> 2. The emmc may stay in boot partition and kernel should switch to
+> user partition, where filesystem is located.
+[Ghorai]=20
+1. If my understanding is not wrong, then the same problem exists in ex=
+ternal MMC card too.=20
+2. So, can you share your eMMC log, just to check if I have any clue! O=
+r let me know how I can reproduce the issue.
+
+>=20
+> Thanks
