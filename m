@@ -1,133 +1,55 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
-Date: Thu, 24 Jun 2010 11:09:45 -0700
-Message-ID: <87eifwcnfa.fsf@deeprootsystems.com>
-References: <1276733833-18510-1-git-send-email-khilman@deeprootsystems.com>
-	<1276733833-18510-6-git-send-email-khilman@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB032366AB60@dbde02.ent.ti.com>
-	<878w6524ae.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB032366AC83@dbde02.ent.ti.com>
-	<87wrtpwsjb.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB032366AE4F@dbde02.ent.ti.com>
+Subject: Re: [PATCH 10/13] OMAP: omap_device: add flag to disable automatic bus-level suspend/resume
+Date: Thu, 24 Jun 2010 11:28:22 -0700
+Message-ID: <8739wcb7zt.fsf@deeprootsystems.com>
+References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
+	<1277336563-24988-11-git-send-email-khilman@deeprootsystems.com>
+	<alpine.DEB.2.00.1006232136440.1550@utopia.booyaka.com>
+	<87zkykfhyp.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.1006241205460.1550@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:42612 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754467Ab0FXSJs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 14:09:48 -0400
-Received: by pvg2 with SMTP id 2so472006pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 11:09:47 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032366AE4F@dbde02.ent.ti.com>
-	(Thara Gopinath's message of "Thu, 24 Jun 2010 11:53:42 +0530")
+Received: from mail-px0-f174.google.com ([209.85.212.174]:54683 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005Ab0FXS2Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 14:28:25 -0400
+Received: by pxi8 with SMTP id 8so328872pxi.19
+        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 11:28:24 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1006241205460.1550@utopia.booyaka.com> (Paul
+	Walmsley's message of "Thu, 24 Jun 2010 12:06:00 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-"Gopinath, Thara" <thara@ti.com> writes:
+Paul Walmsley <paul@pwsan.com> writes:
 
->>>-----Original Message-----
->>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>Sent: Wednesday, June 23, 2010 11:17 PM
->>>To: Gopinath, Thara
->>>Cc: linux-omap@vger.kernel.org; Menon, Nishanth; Cousson, Benoit
->>>Subject: Re: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
->>>
->>>"Gopinath, Thara" <thara@ti.com> writes:
->>>
->>>>>>-----Original Message-----
->>>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>>>Sent: Wednesday, June 23, 2010 8:19 PM
->>>>>>To: Gopinath, Thara
->>>>>>Cc: linux-omap@vger.kernel.org; Menon, Nishanth; Cousson, Benoit
->>>>>>Subject: Re: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
->>>>>>
->>>>>>"Gopinath, Thara" <thara@ti.com> writes:
->>>>>>
->>>>>>>>>-----Original Message-----
->>>>>>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>>>>>>Sent: Thursday, June 17, 2010 5:47 AM
->>>>>>>>>To: linux-omap@vger.kernel.org
->>>>>>>>>Cc: Menon, Nishanth; Gopinath, Thara; Cousson, Benoit
->>>>>>>>>Subject: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
->>>>>>>>>
->>>>>>>>>Create simple omap_devices for the main processors and busses.
->>>>>>>>>
->>>>>>>>>This is required to support the forth-coming device-based OPP
->>>>>>>>>approach, where OPPs are managed and tracked at the omap_device and
->>>>>>>>>hwmod level.
->>>>>>>>>
->>>>>>>>>Because these omap_devices are based on platform_devices, they cannot
->>>>>>>>>be created until the driver core has been initialized.  Therefore, move
->>>>>>>>>the init of these into a device_initcall().  Also, OMAP PM init cannot
->>>>>>>>>be done until after this step as it depends on the OPP layer.
->>>>>>>>>
->>>>>>>>>Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->>>>>>[...]
->>>>>>
->>>>>>>>>+
->>>>>>>>>+static int __init omap2_late_common_init(void)
->>>>>>>>>+{
->>>>>>>>>+	omap_init_processor_devices();
->>>>>>>>>+
->>>>>>>>> 	/* initialize the opp table if board file has not done so */
->>>>>>>>> 	omap3_pm_init_opp_table();
->>>>>>>>>
->>>>>>>>>+	omap_pm_if_init();
->>>>>>>>>+
->>>>>>>>>+	return 0;
->>>>>>>>>+}
->>>>>>>>>+device_initcall(omap2_late_common_init);
->>>>>>> Hello Kevin,
->>>>>>>
->>>>>>> Any particular reason for making this a late init and not keeping
->>>>>>> this a part of init_common_hw?  The reason is the board files also
->>>>>>> have an option of calling/ overriding omap3_pm_init_opp_table. This
->>>>>>> happens really early in init_irq. (Refer board_3430sdp.c). So if a
->>>>>>> board file calls into omap3_pm_init_opp_table, the opp
->>>>>>> initializations will happen before the omap_device pointers are
->>>>>>> build for mpu, iva and l3. So the dev pointers stored as part of
->>>>>>> dev_opp tables will be screwed up.  My personal preference would be
->>>>>>> to call the omap_init_processor_devices just after
->>>>>>> hwmod_late_init. This will remove any race conditions as above.
->>>>>>
->>>>>>I agree, I changed this yesterday and the current pm-wip/hwmods is
->>>>>>doing exactly this.
->>>>>>
->>>>>>The initial reason for the late initcall was because omap_device_build
->>>>>>creates platform_devices and devices, but the driver core was not
->>>>>>yet initialized at this point.
->>>>>>
->>>>>>To fix, I now create these devices as early platform devices so that
->>>>>>the init sequence can remain the same.
->>>>>>
->>>>>>I'll be posting an updated version of this series today.
->>>>
->>>> But then early platform devices do not create a dev pointer. So you do
->>>> two initializations, eh?
->>>
->>>The early platform_device indeed has a struct device (it is a struct
->>>inside the platfor_device.)  The difference is that the struct device
->>>has not been fully initialized (no device_add() has been called.)
->>>
->>>For our purposes here, that is perfectly OK, as all that matters is that
->>>there is a unique pointer to be used in the OPP layer.
+> On Thu, 24 Jun 2010, Kevin Hilman wrote:
 >
-> Ok. I also think that the initcalls for voltage and sr_device should be moved back to the original.
+>> Paul Walmsley <paul@pwsan.com> writes:
+>> 
+>> > Hi Kevin,
+>> >
+>> > A few comments:
+>> >
+>> > Your "add runtime PM support at bus-level" series has a unstated 
+>> > dependency on this patch.  If you fix one minor issue (below), it's 
+>> > probably easiest if you merge it with that other series to avoid 
+>> > cross-dependencies.
+>> 
+>> If I switch (back) to just using pm_runtime_* API in the system PM
+>> path _noirq methods, then rather than setting this flag at the
+>> omap_device level, drivers that want to prevent this can simply
+>> do a runtime_pm_get_sync() if they want to prevent a bus-level
+>> suspend.
+>> 
+>> Any thoughts/objectsion to that?
+>
+> Sounds fine to me.
 
-Agreed, I will drop those initcall change commits  I made to the pm-sr
-branch.
+OK, good.  Then I'll just drop this patch.
+
+Thanks,
 
 Kevin
-
-> The order of initialization should be as follows.
->
-> 1. Build the generic omap devices (like mpu, l3, dsp etc) (part of init_common_hw)
-> 2. Initialize the opp structures. (part of init_common_hw)
-> 3. Intialize the voltage layer. (arch_initcall)
-> 4. Initialize the smartreflex device layer(subsys initcall)
-> 5. Initialize the smartreflex srive.(late initcall)
->
-> Regards
-> Thara
