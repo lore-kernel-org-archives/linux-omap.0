@@ -1,48 +1,57 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 0/3] OMAP: add runtime PM support at bus-level
-Date: Thu, 24 Jun 2010 16:43:08 -0700
-Message-ID: <1277422991-25350-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 01/13] OMAP24xx: CM: fix mask used for checking IDLEST status
+Date: Thu, 24 Jun 2010 16:44:32 -0700
+Message-ID: <1277423084-25528-2-git-send-email-khilman@deeprootsystems.com>
+References: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:35598 "EHLO
+Received: from mail-px0-f174.google.com ([209.85.212.174]:57993 "EHLO
 	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312Ab0FXXnO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 19:43:14 -0400
-Received: by pxi8 with SMTP id 8so437017pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 16:43:13 -0700 (PDT)
+	with ESMTP id S1752402Ab0FXXor (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 19:44:47 -0400
+Received: by pxi8 with SMTP id 8so437462pxi.19
+        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 16:44:47 -0700 (PDT)
+In-Reply-To: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: paul@pwsan.com
 
-This series introduces runtime PM support at the platform bus level
-for OMAP.
+On OMAP24xx, the polarity for the IDLEST bits is opposite of OMAP3.
+The mask used to check this was using the bit position instead of the
+bit mask.
 
-In a nutshell, when using the runtime PM API for any device with an
-assocated omap_device (and hwmod), the omap device API will be used to
-handle the hardware-level power management of that device, including
-managing clocks, etc.
+This patch fixes the problem by using the bit mask instead of the bit
+field.
 
-Today, most drivers handle this by manually enabling/disabling their
-clocks when needed.  With this series (and an omap_device/hwmod for
-each device) direct clock managment can be removed from the driver in
-favor of using the runtime PM API.
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/cm.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-This series applies on top v2.6.35-rc2 + Tony's omap-fixes branch and
-is also available in the pm-wip/runtime branch of my linux-omap-pm git
-tree:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-
-Kevin Hilman (3):
-  OMAP: PM: initial runtime PM core support
-  OMAP: bus-level PM: enable use of runtime PM API for suspend/resume
-  OMAP1: PM: add simple runtime PM layer to manage clocks
-
- arch/arm/mach-omap1/Makefile |    2 +-
- arch/arm/mach-omap1/pm_bus.c |   77 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/Makefile |    7 ++-
- arch/arm/mach-omap2/pm_bus.c |  118 ++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 202 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/mach-omap1/pm_bus.c
- create mode 100644 arch/arm/mach-omap2/pm_bus.c
+diff --git a/arch/arm/mach-omap2/cm.c b/arch/arm/mach-omap2/cm.c
+index 2d83565..721c3b6 100644
+--- a/arch/arm/mach-omap2/cm.c
++++ b/arch/arm/mach-omap2/cm.c
+@@ -50,15 +50,15 @@ int omap2_cm_wait_module_ready(s16 prcm_mod, u8 idlest_id, u8 idlest_shift)
+ 
+ 	cm_idlest_reg = cm_idlest_offs[idlest_id - 1];
+ 
++	mask = 1 << idlest_shift;
++
+ 	if (cpu_is_omap24xx())
+-		ena = idlest_shift;
++		ena = mask;
+ 	else if (cpu_is_omap34xx())
+ 		ena = 0;
+ 	else
+ 		BUG();
+ 
+-	mask = 1 << idlest_shift;
+-
+ 	/* XXX should be OMAP2 CM */
+ 	omap_test_timeout(((cm_read_mod_reg(prcm_mod, cm_idlest_reg) & mask) == ena),
+ 			  MAX_MODULE_READY_TIME, i);
+-- 
+1.7.0.2
 
