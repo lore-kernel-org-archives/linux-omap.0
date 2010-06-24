@@ -1,40 +1,125 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/8] musb_core: make disconnect and suspend interrupts
- work again
-Date: Thu, 24 Jun 2010 09:01:51 +0300
-Message-ID: <20100624060151.GD8078@nokia.com>
-References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
+Date: Thu, 24 Jun 2010 11:53:42 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032366AE4F@dbde02.ent.ti.com>
+References: <1276733833-18510-1-git-send-email-khilman@deeprootsystems.com>
+	<1276733833-18510-6-git-send-email-khilman@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB032366AB60@dbde02.ent.ti.com>
+	<878w6524ae.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB032366AC83@dbde02.ent.ti.com>
+ <87wrtpwsjb.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1276771242-5201-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "gregkh-l3A5Bk7waGM@public.gmane.org" <gregkh-l3A5Bk7waGM@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, "stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50683 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752018Ab0FXGXs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 02:23:48 -0400
+In-Reply-To: <87wrtpwsjb.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Thu, Jun 17, 2010 at 12:40:34PM +0200, ext Ajay Kumar Gupta wrote:
->From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
->
->Commit 1c25fda4a09e8229800979986ef399401053b46e (usb: musb: handle irqs in the
->order dictated by programming guide) forgot to get rid of the old 'STAGE0_MASK'
->filter for calling musb_stage0_irq(), so now disconnect and suspend interrupts
->are effectively ignored...
->
->Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
->Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
->Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-Acked-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
--- 
-balbi
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Wednesday, June 23, 2010 11:17 PM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; Menon, Nishanth; Cousson, Benoit
+>>Subject: Re: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
+>>
+>>"Gopinath, Thara" <thara@ti.com> writes:
+>>
+>>>>>-----Original Message-----
+>>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>>>Sent: Wednesday, June 23, 2010 8:19 PM
+>>>>>To: Gopinath, Thara
+>>>>>Cc: linux-omap@vger.kernel.org; Menon, Nishanth; Cousson, Benoit
+>>>>>Subject: Re: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
+>>>>>
+>>>>>"Gopinath, Thara" <thara@ti.com> writes:
+>>>>>
+>>>>>>>>-----Original Message-----
+>>>>>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>>>>>>Sent: Thursday, June 17, 2010 5:47 AM
+>>>>>>>>To: linux-omap@vger.kernel.org
+>>>>>>>>Cc: Menon, Nishanth; Gopinath, Thara; Cousson, Benoit
+>>>>>>>>Subject: [PATCH 05/12] OMAP: create omap_devices for MPU, DSP, L3
+>>>>>>>>
+>>>>>>>>Create simple omap_devices for the main processors and busses.
+>>>>>>>>
+>>>>>>>>This is required to support the forth-coming device-based OPP
+>>>>>>>>approach, where OPPs are managed and tracked at the omap_device and
+>>>>>>>>hwmod level.
+>>>>>>>>
+>>>>>>>>Because these omap_devices are based on platform_devices, they cannot
+>>>>>>>>be created until the driver core has been initialized.  Therefore, move
+>>>>>>>>the init of these into a device_initcall().  Also, OMAP PM init cannot
+>>>>>>>>be done until after this step as it depends on the OPP layer.
+>>>>>>>>
+>>>>>>>>Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>>>>>[...]
+>>>>>
+>>>>>>>>+
+>>>>>>>>+static int __init omap2_late_common_init(void)
+>>>>>>>>+{
+>>>>>>>>+	omap_init_processor_devices();
+>>>>>>>>+
+>>>>>>>> 	/* initialize the opp table if board file has not done so */
+>>>>>>>> 	omap3_pm_init_opp_table();
+>>>>>>>>
+>>>>>>>>+	omap_pm_if_init();
+>>>>>>>>+
+>>>>>>>>+	return 0;
+>>>>>>>>+}
+>>>>>>>>+device_initcall(omap2_late_common_init);
+>>>>>> Hello Kevin,
+>>>>>>
+>>>>>> Any particular reason for making this a late init and not keeping
+>>>>>> this a part of init_common_hw?  The reason is the board files also
+>>>>>> have an option of calling/ overriding omap3_pm_init_opp_table. This
+>>>>>> happens really early in init_irq. (Refer board_3430sdp.c). So if a
+>>>>>> board file calls into omap3_pm_init_opp_table, the opp
+>>>>>> initializations will happen before the omap_device pointers are
+>>>>>> build for mpu, iva and l3. So the dev pointers stored as part of
+>>>>>> dev_opp tables will be screwed up.  My personal preference would be
+>>>>>> to call the omap_init_processor_devices just after
+>>>>>> hwmod_late_init. This will remove any race conditions as above.
+>>>>>
+>>>>>I agree, I changed this yesterday and the current pm-wip/hwmods is
+>>>>>doing exactly this.
+>>>>>
+>>>>>The initial reason for the late initcall was because omap_device_build
+>>>>>creates platform_devices and devices, but the driver core was not
+>>>>>yet initialized at this point.
+>>>>>
+>>>>>To fix, I now create these devices as early platform devices so that
+>>>>>the init sequence can remain the same.
+>>>>>
+>>>>>I'll be posting an updated version of this series today.
+>>>
+>>> But then early platform devices do not create a dev pointer. So you do
+>>> two initializations, eh?
+>>
+>>The early platform_device indeed has a struct device (it is a struct
+>>inside the platfor_device.)  The difference is that the struct device
+>>has not been fully initialized (no device_add() has been called.)
+>>
+>>For our purposes here, that is perfectly OK, as all that matters is that
+>>there is a unique pointer to be used in the OPP layer.
 
-DefectiveByDesign.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok. I also think that the initcalls for voltage and sr_device should be moved back to the original.
+The order of initialization should be as follows.
+
+1. Build the generic omap devices (like mpu, l3, dsp etc) (part of init_common_hw)
+2. Initialize the opp structures. (part of init_common_hw)
+3. Intialize the voltage layer. (arch_initcall)
+4. Initialize the smartreflex device layer(subsys initcall)
+5. Initialize the smartreflex srive.(late initcall)
+
+Regards
+Thara
