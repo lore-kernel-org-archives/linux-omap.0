@@ -1,73 +1,135 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 08/13] OMAP4: hwmod: Enable omap_device build for OMAP4
-Date: Thu, 24 Jun 2010 14:47:34 -0700
-Message-ID: <87hbksyufd.fsf@deeprootsystems.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
-	<1277336563-24988-9-git-send-email-khilman@deeprootsystems.com>
-	<alpine.DEB.2.00.1006232310110.1550@utopia.booyaka.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB032366B0A0@dbde02.ent.ti.com>
-	<87hbkse2t9.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB032366B13A@dbde02.ent.ti.com>
+From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: RE: [PATCH 3/4] omap mailbox: remove mbox_configured scheme
+Date: Fri, 25 Jun 2010 03:54:06 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E7761943@dbde02.ent.ti.com>
+References: <1277251896-6890-1-git-send-email-ohad@wizery.com>
+ 	<1277251896-6890-3-git-send-email-ohad@wizery.com>
+ <8F7AF80515AF0D4D93307E594F3CB40E4C890B71@dlee03.ent.ti.com>
+ <AANLkTilB45f1zLBCw-tytQKTGJXVu5IoXNNpBNjr5bm3@mail.gmail.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E7761941@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:57814 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754463Ab0FXVrh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 17:47:37 -0400
-Received: by pxi8 with SMTP id 8so403552pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 14:47:37 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032366B13A@dbde02.ent.ti.com>
-	(Rajendra Nayak's message of "Fri, 25 Jun 2010 00:59:35 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53850 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752192Ab0FXWYQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 18:24:16 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7761941@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
+To: "C.A, Subramaniam" <subramaniam.ca@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
 
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Thursday, June 24, 2010 12:52 PM
->> To: Nayak, Rajendra
->> Cc: Paul Walmsley; linux-omap@vger.kernel.org; Cousson, Benoit
->> Subject: Re: [PATCH 08/13] OMAP4: hwmod: Enable omap_device build for OMAP4
->> 
->> "Nayak, Rajendra" <rnayak@ti.com> writes:
->> 
->> >> -----Original Message-----
->> >> From: Paul Walmsley [mailto:paul@pwsan.com]
->> >> Sent: Thursday, June 24, 2010 12:11 AM
->> >> To: Nayak, Rajendra
->> >> Cc: Kevin Hilman; linux-omap@vger.kernel.org; Cousson, Benoit
->> >> Subject: Re: [PATCH 08/13] OMAP4: hwmod: Enable omap_device build for
->> OMAP4
->> >>
->> >> Hi Rajendra
->> >>
->> >> On Wed, 23 Jun 2010, Kevin Hilman wrote:
->> >>
->> >> > From: Rajendra Nayak <rnayak@ti.com>
->> >> >
->> >>
->> >> Please add a brief patch changelog entry here.  Maybe just say this is
->> >> necessary for integration code using omap_device to work on OMAP4?
->> >
->> > Yes, will do, not sure how that got missed.
->> 
->> Rajendra,
->> 
->> If you just reply here with the changelog entry, I will update it in
->> this series.
->
-> Ok, this one should do.
->
-> Enable omap_device layer support for OMAP4, so that drivers can
-> use them to enable/idle/shutdown devices.
->
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of C.A, 
+> Subramaniam
+> Sent: Thursday, June 24, 2010 4:36 PM
+> To: Ohad Ben-Cohen; Kanigeri, Hari
+> Cc: linux-omap@vger.kernel.org; Hiroshi Doyu; Ramirez Luna, Omar
+> Subject: RE: [PATCH 3/4] omap mailbox: remove mbox_configured scheme
+> 
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ohad 
+> Ben-Cohen
+> > Sent: Thursday, June 24, 2010 3:23 PM
+> > To: Kanigeri, Hari
+> > Cc: linux-omap@vger.kernel.org; Hiroshi Doyu; Ramirez Luna, Omar
+> > Subject: Re: [PATCH 3/4] omap mailbox: remove mbox_configured scheme
+> > 
+> > On Thu, Jun 24, 2010 at 6:10 PM, Kanigeri, Hari 
+> <h-kanigeri2@ti.com> 
+> > wrote:
+> > > Ohad,
+> > >
+> > >> mbox_configured is global and therefore does not support
+> > concurrent
+> > >> usage of multiple mailbox instances.
+> > >
+> > > -- Why do you say that it doesn't support concurrent usage
+> > of multiple mailbox instances ? If you take example of 
+> OMAP4, we have 
+> > 2 mailbox instances, one talking to DSP and other to Ducati 
+> and they 
+> > should be supported concurrently.
+> > 
+> > 
+> > Interesting. was this actually tested and found working ?
+> > 
+> I think by supporting multiple instances, what Hari meant was 
+> that, for DSP and Ducati 2 different struct omap_mbox * are 
+> returned. They still can maintain their own callback function
+> (http://dev.omapzoom.org/?p=tisyslink/kernel-syslink.git;a=blo
+> b;f=arch/arm/mach-omap2/mailbox.c;h=a23c7edf1e84ab4fa51e56d0c2
+> daf2922084751a;hb=438f7a6a3cced478eb121426201206f6205fbbdc#l32
+> 7 for Ducati and
+> 
+> http://dev.omapzoom.org/?p=tisyslink/kernel-syslink.git;a=blob
+> ;f=arch/arm/mach-omap2/mailbox.c;h=a23c7edf1e84ab4fa51e56d0c2d
+> af2922084751a;hb=438f7a6a3cced478eb121426201206f6205fbbdc#l334
+> for DSP).
+> 
+> The "mbox_configured" was a means to reference count for one 
+> instance of the struct omap_mbox * .
+Sorry I that that back. Even though we maintain 2 strucutres, only the one that calls the request_irq() is honoured. Hence yes only one callback will be serviced (Thank to Ramesh for pointing that out). Chaining of callbacks is a good way to allow multiple clients to be notified.
 
-Thanks, will add for next spin of this series.
+>   
+> > AFAICT (I don't have OMAP4, this is just by looking at the
+> > code) this doesn't work:
+> > mbox_configured will prevent omap2_mbox_startup from being invoked 
+> > more than once. This means that omap2_mbox_enable_irq(mbox, IRQ_RX) 
+> > will only be called once too, which seems like a problem if 
+> you want 
+> > to start receiving RX interrupts from both mbox instances 
+> at the same 
+> > time.
+> > 
+> > To fix that I guess we should decouple the RX interrupt 
+> enabling from 
+> > the mbox startup function. I can write something, but I'd need your 
+> > help to test it on OMAP4 :)
+> > 
+> > >
+> > > If you remove the mbox_configured variable, then the 
+> mailbox module 
+> > > would shut down once the first instance calls the
+> > omap_mbox_put function.
+> > 
+> > Also interesting point.
+> > 
+> > So you use mbox_configures as a reference counter to allow 
+> concurrent 
+> > multiple senders to the same mbox instance.
+> > 
+> > I will update the previous patch (that introduced the atomic_t 
+> > reference counter) to reflect this use case, thanks!
+> > 
+> > >
+> > > Thank you,
+> > > Best regards,
+> > > Hari
+> > >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" 
+> > in the body of a message to majordomo@vger.kernel.org More 
+> majordomo 
+> > info at http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> 
+> Thank you and Regards
+> Subbu--
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
 
-Thanks,
-
-Kevin
+Thank you and Regards
+Subbu
