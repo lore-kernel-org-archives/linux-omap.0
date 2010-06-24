@@ -1,50 +1,36 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 2/8] MUSB: make non-OMAP platforms build with
- CONFIG_PM=y
-Date: Thu, 24 Jun 2010 09:02:24 +0300
-Message-ID: <20100624060224.GE8078@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/8] musb: fix compilation warning in host only mode
+Date: Thu, 24 Jun 2010 09:03:38 +0300
+Message-ID: <20100624060338.GF8078@nokia.com>
 References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
  <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
  <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi@nokia.com
+ <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:30330 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753005Ab0FXGEv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 02:04:51 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1276771242-5201-4-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "gregkh-l3A5Bk7waGM@public.gmane.org" <gregkh-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "gregkh@suse.de" <gregkh@suse.de>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-On Thu, Jun 17, 2010 at 12:40:35PM +0200, ext Ajay Kumar Gupta wrote:
->From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
->
->Attempt to build MUSB driver with CONFIG_PM=y (e.g. in the OTG mode) on DaVinci
->results in these link errors:
->
->drivers/built-in.o: In function `musb_restore_context':
->led-triggers.c:(.text+0x714d8): undefined reference to
->`musb_platform_restore_context'
->drivers/built-in.o: In function `musb_save_context':
->led-triggers.c:(.text+0x71788): undefined reference to
->`musb_platform_save_context'
->
->This turned out to be caused by commit 9957dd97ec5e98dd334f87ade1d9a0b24d1f86eb
->(usb: musb: Fix compile error for omaps for musb_hdrc). Revert it, taking into
->account the rename of CONFIG_ARCH_OMAP34XX into CONFIG_ARCH_OMAP3 (which that
->commit fixed in a completely inappropriate way) and the recent addition of
->OMAP4 support.
->
->Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
->Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+On Thu, Jun 17, 2010 at 12:40:36PM +0200, ext Ajay Kumar Gupta wrote:
+>+#ifdef CONFIG_USB_MUSB_HDRC_HCD
+>+	void __iomem	*mbase = musb->mregs;
+>+#endif
 
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+then you add another ifdef to this file, which is already insane. I'd 
+rather see you either keep the local variables and just fix what needs 
+to be fixed, or use musb->mregs directly.
+
 -- 
 balbi
 
 DefectiveByDesign.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
