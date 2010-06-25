@@ -1,87 +1,204 @@
-From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCHv3 1/1] OMAP3: AM3505/3517 do not have IO wakeup capability
-Date: Fri, 25 Jun 2010 14:53:46 +0800
-Message-ID: <1277448826-20006-1-git-send-email-stanley.miao@windriver.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:37877 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324Ab0FYGlS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 02:41:18 -0400
-Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
-	by mail.windriver.com (8.14.3/8.14.3) with ESMTP id o5P6fI6U019490
-	for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 23:41:18 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC] mm: iommu: An API to unify IOMMU, CPU and device memory
+ management
+Date: Thu, 24 Jun 2010 23:48:50 -0700
+Message-ID: <4C245152.1090301@codeaurora.org>
+References: <1277355096-15596-1-git-send-email-zpfeffer@codeaurora.org> <876318ager.fsf@basil.nowhere.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <876318ager.fsf@basil.nowhere.org>
+Sender: owner-linux-mm@kvack.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: mel@csn.ul.ie, dwalker@codeaurora.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-AM3505/3517 don't have IO wakeup capability, so we don not need to set
-the bit OMAP3430_EN_IO and the bit OMAP3430_EN_IO_CHAIN in the register
-PM_WKEN_WKUP when the system enters retention.
+Andi Kleen wrote:
+> Zach Pfeffer <zpfeffer@codeaurora.org> writes:
+> 
+>> This patch contains the documentation for and the main header file of
+>> the API, termed the Virtual Contiguous Memory Manager. Its use would
+>> allow all of the IOMMU to VM, VM to device and device to IOMMU
+>> interoperation code to be refactored into platform independent code.
+> 
+> I read all the description and it's still unclear what advantage
+> this all has over the current architecture? 
+> 
+> At least all the benefits mentioned seem to be rather nebulous.
+> 
+> Can you describe a concrete use case that is improved by this code
+> directly?
 
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
----
- arch/arm/mach-omap2/id.c              |    2 ++
- arch/arm/mach-omap2/pm34xx.c          |    7 ++++---
- arch/arm/plat-omap/include/plat/cpu.h |    2 ++
- 3 files changed, 8 insertions(+), 3 deletions(-)
+Sure. On a SoC with many IOMMUs (10-100), where each IOMMU may have
+its own set of page-tables or share page-tables, and where devices
+with and without IOMMUs and CPUs with or without MMUS want to
+communicate, an abstraction like the VCM helps manage all conceivable
+mapping topologies. In the same way that the Linux MM manages pages
+apart from page-frames, the VCMM allows the Linux MM to manage ideal
+memory regions, VCMs, apart from the actual memory region.
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 37b8a1a..67bd971 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -179,6 +179,8 @@ void __init omap3_check_features(void)
- 	OMAP3_CHECK_FEATURE(status, ISP);
- 	if (cpu_is_omap3630())
- 		omap3_features |= OMAP3_HAS_192MHZ_CLK;
-+	if (!cpu_is_omap3505() && !cpu_is_omap3517())
-+		omap3_features |= OMAP3_HAS_IO_WAKEUP;
+One real scenario would be video playback from a file on a memory
+card. To read and display the video, a DMA engine would read blocks of
+data from the memory card controller into memory. These would
+typically be managed using a scatter-gather list. This list would be
+mapped into a contiguous buffer of the video decoder's IOMMU. The
+video decoder would write into a buffer mapped by the display engine's
+IOMMU as well as the CPU (if the kernel needed to intercept the
+buffers). In this instance, the video decoder's IOMMU and the display
+engine's IOMMU use different page-table formats.
+
+Using the VCM API, this topology can be created without worrying about
+the device's IOMMUs or how to map the buffers into the kernel, or how
+to interoperate with the scatter-gather list. The call flow would would go:
+
+1. Establish a memory region for the video decoder and the display engine
+that's 128 MB and starts at 0x1000.
+
+    vcm_out = vcm_create(0x1000, SZ_128M);
+
+
+2. Associate the memory region with the video decoder's IOMMU and the
+display engine's IOMMU.
+
+    avcm_dec = vcm_assoc(vcm_out, video_dec_dev, 0);
+    avcm_disp = vcm_assoc(vcm_out, disp_dev, 0);
+
+The 2 dev_ids, video_dec_dev and disp_dev allow the right IOMMU
+low-level functions to be called underneath.
+
+
+3. Actually program the underlying IOMMUs.
+
+    vcm_activate(avcm_dec);
+    vcm_activate(avcm_disp);
+
+
+4. Allocate 2 physical buffers that the DMA engine and video decoder will
+use. Make sure each buffer is 64 KB contiguous.
+
+    buf_64k = vcm_phys_alloc(MT0, 2*SZ_64K, VCM_64KB);
+
+
+5. Allocate a 16 MB buffer for the output of the video decoder and the
+input of the display engine. Use 1MB, 64KB and 4KB blocks to map the
+buffer.
+
+    buf_frame = vcm_phys_alloc(MT0, SZ_16M);
+
+
+6. Program the DMA controller.
+
+buf = vcm_get_next_phys_addr(buf_64k, NULL, &len);
+while (buf) {
+	   dma_prg(buf);
+	   buf = vcm_get_next_phys_addr(buf_64k, NULL, &len);
+}
+
+
+7. Create virtual memory regions for the DMA buffers and the video
+decoder output from the vcm_out region. Make sure the buffers are
+aligned to the buffer size.
+
+    res_64k = vcm_reserve(vcm_out, 8*SZ_64K, VCM_ALIGN_64K);
+    res_16M = vcm_reserve(vcm_out, SZ_16M, VCM_ALIGN_16M);
+
+
+8. Connect the virtual reservations with the physical allocations.
+
+vcm_back(res_64k, buf_64k);
+vcm_back(res_16M, buf_frame);
+
+
+9. Program the decoder and the display engine with addresses from the
+ IOMMU side of the mapping:
+
+base_64k = vcm_get_dev_addr(res_64k);
+base_16M = vcm_get_dev_addr(res_16M);
+
+
+10. Create a kernel mapping to read and write the 16M buffer.
+
+cpu_vcm = vcm_create_from_prebuilt(VCM_PREBUILT_KERNEL);
+
+
+11. Create a reservation on that prebuilt VCM. Use any alignment.
+
+res_cpu_16M = vcm_reserve(cpu_vcm, SZ_16M, 0);
+
+
+12. Back the reservation using the same physical memory that the
+decoder and the display engine are looking at.
+
+vcm_back(res_cpu_16M, buf_frame);
+
+
+13. Get a pointer that kernel can dereference.
+
+base_cpu_16M = vcm_get_dev_addr(res_cpu_16M);
+
+
+The general point of the VCMM is to allow users a higher level API
+than the current IOMMU abstraction provides that solves the general
+mapping problem. This means that all of the common mapping code would
+be written once. In addition, the API allows all the low level details
+of IOMMU programing and VM interoperation to be handled at the right
+level.
+
+Eventually the following functions could all be reworked and their
+users could call VCM functions.
+
+arch/arm/plat-omap/iovmm.c
+map_iovm_area()
+
+arch/m68k/sun3/sun3dvma.c
+dvma_map_align()
+
+arch/alpha/kernel/pci_iommu.c
+pci_map_single_1()
+
+arch/powerpc/platforms/pasemi/iommu.c
+iobmap_build()
+
+arch/powerpc/kernel/iommu.c
+iommu_map_page()
+
+arch/sparc/mm/iommu.c
+iommu_map_dma_area()
+
+arch/sparc/kernel/pci_sun4v_asm.S
+ENTRY(pci_sun4v_iommu_map)
+
+arch/ia64/hp/common/sba_iommu.c
+sba_map_page()
+
+arch/arm/mach-omap2/iommu2.c
+omap2_iommu_init()
+
+arch/arm/plat-omap/iovmm.c
+map_iovm_area()
+
+arch/x86/kernel/amd_iommu.c
+iommu_map_page()
+
+drivers/parisc/sba_iommu.c
+sba_map_single()
+
+drivers/pci/intel-iommu.c
+intel_iommu_map()
  
- 	/*
- 	 * TODO: Get additional info (where applicable)
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index b88737f..fb4994a 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -385,8 +385,9 @@ void omap_sram_idle(void)
- 	/* Enable IO-PAD and IO-CHAIN wakeups */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
--	if (per_next_state < PWRDM_POWER_ON ||
--			core_next_state < PWRDM_POWER_ON) {
-+	if (omap3_has_io_wakeup() && \
-+			(per_next_state < PWRDM_POWER_ON ||
-+			core_next_state < PWRDM_POWER_ON)) {
- 		prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
- 		omap3_enable_io_chain();
- 	}
-@@ -479,7 +480,7 @@ void omap_sram_idle(void)
- 	}
- 
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (core_next_state < PWRDM_POWER_ON) {
-+	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
- 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
- 		omap3_disable_io_chain();
- 	}
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 7514174..aa2f4f0 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -444,6 +444,7 @@ extern u32 omap3_features;
- #define OMAP3_HAS_NEON			BIT(3)
- #define OMAP3_HAS_ISP			BIT(4)
- #define OMAP3_HAS_192MHZ_CLK		BIT(5)
-+#define OMAP3_HAS_IO_WAKEUP		BIT(6)
- 
- #define OMAP3_HAS_FEATURE(feat,flag)			\
- static inline unsigned int omap3_has_ ##feat(void)	\
-@@ -457,5 +458,6 @@ OMAP3_HAS_FEATURE(iva, IVA)
- OMAP3_HAS_FEATURE(neon, NEON)
- OMAP3_HAS_FEATURE(isp, ISP)
- OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-+OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
- 
- #endif
+
+> 
+> -Andi
+> 
+
+
 -- 
-1.5.4.3
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
