@@ -1,64 +1,69 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PM-SR] [PATCH] OMAP: PM: Remove the usage of vdd id's.
-Date: Fri, 25 Jun 2010 11:25:32 -0700
-Message-ID: <87hbkrm0kj.fsf@deeprootsystems.com>
-References: <1277391768-3361-1-git-send-email-thara@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: static inline function style (was Re: [PATCH 3/9 v3] omap: generic:
+ introduce a single check_revision)
+Date: Fri, 25 Jun 2010 13:26:35 -0500
+Message-ID: <4C24F4DB.5030100@ti.com>
+References: <1277483122-3616-1-git-send-email-nm@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5D167DB@dbde02.ent.ti.com> <4C24E7F8.90007@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C5D167E5@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:55196 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754857Ab0FYSZf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 14:25:35 -0400
-Received: by pxi8 with SMTP id 8so830747pxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 11:25:35 -0700 (PDT)
-In-Reply-To: <1277391768-3361-1-git-send-email-thara@ti.com> (Thara Gopinath's
-	message of "Thu, 24 Jun 2010 20:32:48 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:59236 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752974Ab0FYS0s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Jun 2010 14:26:48 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5D167E5@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-Thara Gopinath <thara@ti.com> writes:
+Shilimkar, Santosh had written, on 06/25/2010 01:07 PM, the following:
+>> -----Original Message-----
+>> From: Menon, Nishanth
+>> Sent: Friday, June 25, 2010 11:02 PM
 
-> This patch removes the usage of vdd and sr id alltogether.
-> This is achieved by introducing a separte voltage domain per
-> VDD and hooking this up with the voltage and smartreflex
-> internal info structure. Any user of voltage or smartreflex layer
-> should call into omap_volt_domain_get to get the voltage
-> domain handle and make use of this to call into the various
-> exported API's.
+[..]
 
-Great, I'm glad to see those gone.
+>>>> --- a/arch/arm/plat-omap/include/plat/cpu.h
+>>>> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+>>>> @@ -431,7 +431,18 @@ IS_OMAP_TYPE(3517, 0x3517)
+>>>>
+>>>>
+>>>>  int omap_chip_is(struct omap_chip_id oci);
+>>>> -void omap2_check_revision(void);
+>>>> +#ifdef CONFIG_ARCH_OMAP2PLUS
+>>>> +extern void omap2_check_revision(void);
+>>>> +#else
+>>>> +static inline void omap2_check_revision(void) {}
+>>> I think codingstyle suggest empty function braces to be on next line
+>>> like
+>>> static inline void omap2_check_revision(void)
+>>> {}
+>> are you sure about that? can you point me to the documentation for that?
+>> Style I followed is off:
+>> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
+>> 2.6.git;a=blob;f=Documentation/SubmittingPatches;h=72651f788f4e3536149ef5e7ddfbed96a8f14d2f;hb=HEAD#l
+>> 661
+>>
+> I got similar comment long back and hence remembered. Looks like it's not explicitly documented
+changing subject to get folks interested..
 
-Minor comment on naming:
+i would think that checkpatch should crib about it, but it being an 
+automated script, could be messed up sometimes..
 
-In current code, we currently have
+but I am curious -
+static inline void foo(void) { }
+static inline int foo(void)
+{
+	return -ENODEV;
+}
 
-   struct clockdomain *clkdm;
-   struct powerdomain *pwrdm;
+is the style I have seen to date. usually without a functional code, it 
+made more sense to have it out of line and more in the style of a normal 
+function..
 
-so, for consistency, I'd suggest using
-
-   struct voltagedomain *voltdm;
-
-instead of this:
-
-   struct omap_volt_domain *volt_domain;
-
-
-Also, it looks like your 'struct omap_vdd_info' is the real struct that
-represents a voltage domain.
-
-Maybe you're planning this already, but I suggest you get rid of
-omap_vdd_info and just move all that stuff into the voltagedomain.
-Again, that will probably create a diff with a ton of renames, so this
-should just be part of your V2 series.
-
-> These changes should be part of V2 of the sr/voltage series
-> instead of being a separate patch in itself.
-
-Agreed.
-
-Kevin
-
+could someone give any suggestions on this?
+-- 
+Regards,
+Nishanth Menon
