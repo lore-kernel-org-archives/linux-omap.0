@@ -1,67 +1,47 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: [PM-SR] [PATCH] OMAP: PM: Remove the usage of vdd id's.
-Date: Fri, 25 Jun 2010 23:25:31 +0200
-Message-ID: <74583B8642AB8841B30447520659FCA901AA60B73C@dnce01.ent.ti.com>
-References: <1277391768-3361-1-git-send-email-thara@ti.com>
- <87aaqjj6cd.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+From: Nishanth Menon <nm@ti.com>
+Subject: [PM-SR] [PATCH 4/7] omap3: sr: device: cleanup pr_xxx
+Date: Fri, 25 Jun 2010 16:46:37 -0500
+Message-ID: <1277502400-9915-5-git-send-email-nm@ti.com>
+References: <1277502400-9915-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52745 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52910 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751862Ab0FYVZg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 17:25:36 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <87aaqjj6cd.fsf@deeprootsystems.com>
-Content-Language: en-US
+	id S1751895Ab0FYVqp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Jun 2010 17:46:45 -0400
+In-Reply-To: <1277502400-9915-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
 
->From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->Sent: Friday, June 25, 2010 8:49 PM
->
->Thara Gopinath <thara@ti.com> writes:
->
->> This patch removes the usage of vdd and sr id alltogether.
->> This is achieved by introducing a separte voltage domain per
->> VDD and hooking this up with the voltage and smartreflex
->> internal info structure. Any user of voltage or smartreflex layer
->> should call into omap_volt_domain_get to get the voltage
->> domain handle and make use of this to call into the various
->> exported API's.
->>
->> These changes should be part of V2 of the sr/voltage series
->> instead of being a separate patch in itself.
->>
->> Signed-off-by: Thara Gopinath <thara@ti.com>
->
->[...]
->
->> -static struct omap_sr *_sr_lookup(int srid)
->> +static struct omap_sr *_sr_lookup(struct omap_volt_domain
->*volt_domain)
->>  {
->>      struct omap_sr *sr_info, *temp_sr_info;
->>
->>      sr_info = NULL;
->>      list_for_each_entry(temp_sr_info, &sr_list, node) {
->> -            if (srid == temp_sr_info->srid) {
->> +            if (volt_domain == temp_sr_info->volt_domain) {
->>                      sr_info = temp_sr_info;
->>                      break;
->
->Do we still need an _sr_lookup() function?  Isn't there a single SR
->instance per voltage domain?
+strings in c dont need to be split accross multiple lines with \
+. instead they can be put as "abc " "def " and it is equivalent to
+"abc def". fix the same
 
-Yep, it must be a one to one mapping. But you still need to get the smartreflex
-instance that belong to a certain voltage domain. A voltage domain does not know
-if it has a SR that can control it.
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Thara Gopinath <thara@ti.com>
 
-Benoit
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/sr_device.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index dbf7603..7d13704 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -151,8 +151,9 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 	sr_dev_data->volts_supported = omap_get_voltage_table(i,
+ 				&sr_dev_data->volt_data);
+ 	if (!sr_dev_data->volts_supported) {
+-		pr_warning("%s: No Voltage table registerd fo VDD%d.Something \
+-				really wrong\n\n", __func__, i + 1);
++		pr_warning("%s: No Voltage table registerd fo VDD%d. "
++				"Something is really wrong\n",
++				__func__, i + 1);
+ 		i++;
+ 		kfree(sr_data);
+ 		return 0;
+-- 
+1.6.3.3
 
