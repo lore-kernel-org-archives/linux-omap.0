@@ -1,57 +1,71 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 7/8] OMAP: PM: Allowing an early init of pm debugfs driver.
-Date: Fri, 25 Jun 2010 15:55:52 -0700
-Message-ID: <87wrtmbu2v.fsf@deeprootsystems.com>
-References: <1275150748-15386-1-git-send-email-thara@ti.com>
-	<1275150748-15386-2-git-send-email-thara@ti.com>
-	<1275150748-15386-3-git-send-email-thara@ti.com>
-	<1275150748-15386-4-git-send-email-thara@ti.com>
-	<1275150748-15386-5-git-send-email-thara@ti.com>
-	<1275150748-15386-6-git-send-email-thara@ti.com>
-	<1275150748-15386-7-git-send-email-thara@ti.com>
-	<1275150748-15386-8-git-send-email-thara@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 1/3] OMAP: PM: initial runtime PM core support
+Date: Fri, 25 Jun 2010 17:04:13 -0600
+Message-ID: <AANLkTimB0_OfLDvtkwwTE-kVeZrardIxVIsD5IEia-vL@mail.gmail.com>
+References: <1277422991-25350-1-git-send-email-khilman@deeprootsystems.com>
+	<1277422991-25350-2-git-send-email-khilman@deeprootsystems.com>
+	<AANLkTim4p54brsmph6oaKfoEZwO1GOGfgRNV9vJykOjl@mail.gmail.com>
+	<874ogrng3j.fsf@deeprootsystems.com> <AANLkTimMnJvOJrRHDiE6PH1BXpRz2-6pY1M9nKHw7vpn@mail.gmail.com>
+	<876316eno5.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:41843 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753Ab0FYWzy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 18:55:54 -0400
-Received: by pwj8 with SMTP id 8so2564517pwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 15:55:54 -0700 (PDT)
-In-Reply-To: <1275150748-15386-8-git-send-email-thara@ti.com> (Thara
-	Gopinath's message of "Sat, 29 May 2010 22:02:27 +0530")
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:40134 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807Ab0FYXEf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 19:04:35 -0400
+Received: by iwn41 with SMTP id 41so2484302iwn.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 16:04:33 -0700 (PDT)
+In-Reply-To: <876316eno5.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Eric Miao <eric.miao@canonical.com>, Nicolas Pitre <nico@fluxnic.net>
 
-Thara Gopinath <thara@ti.com> writes:
-
-> This patch changes the pm_db_init from arch initcall to a postcore
-> initcall. With arch initcall, it is impossible for pm driver that
-> gets initialized prior to this driver to use one of the
-> pm debug fs entries during its init. Making it a postcore initcall
-> ensures that this drver gets initialized early on before any pm
-> drivers.
+On Fri, Jun 25, 2010 at 4:46 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Grant Likely <grant.likely@secretlab.ca> writes:
 >
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
->  arch/arm/mach-omap2/pm-debug.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>> Another way to look at the problem is that these runtime
+>> customizations are kind of a property of the parent device (the bus,
+>> not the bus_type). =A0Would it make sense for parent devices to have
+>> runtime ops to perform for each child that is suspended/resumed? =A0=
+That
+>> would make it simple to register another device that implements the
+>> bus behaviour and attach it at runtime instead of compile time.
 >
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-> index 4280006..b239c16 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -611,6 +611,6 @@ static int __init pm_dbg_init(void)
->  
->  	return 0;
->  }
-> -arch_initcall(pm_dbg_init);
-> +postcore_initcall(pm_dbg_init);
+> Maybe I didn't fully understand your idea, but the problem here is
+> devices do not have dev_pm_ops. =A0Only busses, classes, and types ha=
+ve
+> dev_pm_ops.
 
-There's already a 'pm_dbg_init_done' flag in this code being used for
-that purpose.  That  should be re-used instead.
+Sorry, I mistyped.  What I meant was for the parent device's
+device_driver to be able to have a set of child dev_pm_ops; but I'm
+wading into territory (power management) I'm not particularly familiar
+with, and that might be making things far too complex.
 
-Kevin
+> Though I'm horribly unfamiliar with the intended usage of 'struct
+> device_type', an interesing discovery is that dev->type also has
+> dev_pm_ops, and it takes precedence over the bus type in the
+> suspend/resume. =A0IOW, when suspending, when deciding which dev_pm_o=
+ps to
+> use, it checks class, type, then bus in that order.
+
+So I guess my suggestion above boils down to somehow inserting
+"parent" between type and bus in that list.
+
+> I need to explore this 'type' feature a little more, but using that o=
+r
+> the 'class' might be another way to have custom PM ops for certain
+> platform_devices.
+
+Should maybe start cc'ing Greg and linux-kernel/linux-pm in this discus=
+sion.
+
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
