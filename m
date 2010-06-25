@@ -1,45 +1,52 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 1/3] OMAP: PM: initial runtime PM core support
-Date: Fri, 25 Jun 2010 21:20:02 +0100
-Message-ID: <20100625202002.GC22090@n2100.arm.linux.org.uk>
-References: <1277422991-25350-1-git-send-email-khilman@deeprootsystems.com> <1277422991-25350-2-git-send-email-khilman@deeprootsystems.com> <AANLkTim4p54brsmph6oaKfoEZwO1GOGfgRNV9vJykOjl@mail.gmail.com> <20100625200659.GB22090@n2100.arm.linux.org.uk> <AANLkTikYE6Kg8C_ZClx9aKLvOa9CQRUT587hQnB91sua@mail.gmail.com>
+From: "Que, Simon" <sque@ti.com>
+Subject: RE: [RFC] omap: hwspinlock: Added hwspinlock driver
+Date: Fri, 25 Jun 2010 15:31:22 -0500
+Message-ID: <F39349C6FA641B4A831B7BF4EBF4D4E14728E5B3@dlee03.ent.ti.com>
+References: <F39349C6FA641B4A831B7BF4EBF4D4E14728DDBB@dlee03.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C5D167E8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51302 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137Ab0FYUUQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 16:20:16 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTikYE6Kg8C_ZClx9aKLvOa9CQRUT587hQnB91sua@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49760 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751157Ab0FYUbY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 16:31:24 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5D167E8@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-On Fri, Jun 25, 2010 at 02:13:15PM -0600, Grant Likely wrote:
-> On Fri, Jun 25, 2010 at 2:06 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Fri, Jun 25, 2010 at 09:26:43AM -0600, Grant Likely wrote:
-> >> This approach is also not multiplatform friendly (cc'ing Eric and
-> >> Nicolas who are working on ARM multiplatform). =A0It won't work fo=
-r
-> >> building a kernel that supports, say, both versatile and OMAP.
-> >
-> > And I should also point out that multiplatform is not the answer to
-> > Linus' concerns. =A0There's no way such work is going to be anywher=
-e
-> > near complete come the next merge window.
->=20
-> Yes, but solving the defconfig problem isn't the reason for multiplat=
-form.
+Santosh,
 
-Does anyone know where we are on the defconfig problem?  From what I
-can see, it's mostly stalled for the time being, which is not good
-news for us.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This reservation KCONFIG isn't necessary. HWSPINLOCK IP is not really for
+> very generic use
+> but specific usages where you need to protect the data between independent
+> softwares
+> running on different masters.
+> For other Linux only side software even with dual core, kernel spinlock
+> library
+> is sufficient.
+
+We will consider this.
+
+> Are you building this for all OMAP's ?? 
+
+> Move this base address to plat/omap44xx.h and use it from there
+
+> " OMAP2_L4_IO_ADDRESS" this should not be used anymore. Rather, use
+> "ioremap and readl/writel"
+
+Good points, we'll implement these.
+
+> Why do you have two files ? This IP is not part of OMAP1 and all the code
+> can
+> go in mach-omap and can be exported from there.
+
+Are you suggesting we use a library approach instead of a driver approach?  We want to make this expandable in the future.  If something in the underlying hardware changes with OMAP5, OMAP6, etc, we only need to update the device initialization file.  The driver can remain unchanged.
+
+
+Thank you,
+Simon
