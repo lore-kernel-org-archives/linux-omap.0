@@ -1,24 +1,25 @@
 From: "Que, Simon" <sque@ti.com>
-Subject: [RFC] omap:
-Date: Thu, 24 Jun 2010 19:39:38 -0500
-Message-ID: <F39349C6FA641B4A831B7BF4EBF4D4E14728DDBA@dlee03.ent.ti.com>
+Subject: [RFC] omap: hwspinlock: Added hwspinlock driver
+Date: Thu, 24 Jun 2010 19:40:17 -0500
+Message-ID: <F39349C6FA641B4A831B7BF4EBF4D4E14728DDBB@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="_002_F39349C6FA641B4A831B7BF4EBF4D4E14728DDBAdlee03entticom_"
+	boundary="_002_F39349C6FA641B4A831B7BF4EBF4D4E14728DDBBdlee03entticom_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44131 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753091Ab0FYAjl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Jun 2010 20:39:41 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:56174 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753091Ab0FYAkT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 20:40:19 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
---_002_F39349C6FA641B4A831B7BF4EBF4D4E14728DDBAdlee03entticom_
+--_002_F39349C6FA641B4A831B7BF4EBF4D4E14728DDBBdlee03entticom_
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
+
 
 Hi,
 
@@ -666,7 +667,7 @@ gs);
 1.7.0
 
 
---_002_F39349C6FA641B4A831B7BF4EBF4D4E14728DDBAdlee03entticom_
+--_002_F39349C6FA641B4A831B7BF4EBF4D4E14728DDBBdlee03entticom_
 Content-Type: application/octet-stream;
 	name="0001-omap-hwspinlock-Added-hwspinlock-driver.patch"
 Content-Description: 0001-omap-hwspinlock-Added-hwspinlock-driver.patch
@@ -996,4 +997,4 @@ ZXF1ZXN0X3NwZWNpZmljKHVuc2lnbmVkIGludCBpZCk7CitpbnQgaHdzcGlubG9ja19mcmVlKHN0
 cnVjdCBod3NwaW5sb2NrICpod3NwaW5sb2NrX3B0cik7CisKKyNlbmRpZiAvKiBIV1NQSU5MT0NL
 X0ggKi8KLS0gCjEuNy4wCgo=
 
---_002_F39349C6FA641B4A831B7BF4EBF4D4E14728DDBAdlee03entticom_--
+--_002_F39349C6FA641B4A831B7BF4EBF4D4E14728DDBBdlee03entticom_--
