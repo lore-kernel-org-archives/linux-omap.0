@@ -1,286 +1,181 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 1/3] OMAP: PM: initial runtime PM core support
-Date: Fri, 25 Jun 2010 11:04:48 -0700
-Message-ID: <874ogrng3j.fsf@deeprootsystems.com>
-References: <1277422991-25350-1-git-send-email-khilman@deeprootsystems.com>
-	<1277422991-25350-2-git-send-email-khilman@deeprootsystems.com>
-	<AANLkTim4p54brsmph6oaKfoEZwO1GOGfgRNV9vJykOjl@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 3/9 v3] omap: generic: introduce a single check_revision
+Date: Fri, 25 Jun 2010 23:37:54 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5D167E5@dbde02.ent.ti.com>
+References: <1277483122-3616-1-git-send-email-nm@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C5D167DB@dbde02.ent.ti.com>
+ <4C24E7F8.90007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:33677 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753187Ab0FYSEw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 14:04:52 -0400
-Received: by pvg2 with SMTP id 2so972363pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 11:04:51 -0700 (PDT)
-In-Reply-To: <AANLkTim4p54brsmph6oaKfoEZwO1GOGfgRNV9vJykOjl@mail.gmail.com>
-	(Grant Likely's message of "Fri, 25 Jun 2010 09:26:43 -0600")
+Received: from bear.ext.ti.com ([192.94.94.41]:43447 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932247Ab0FYSIH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 14:08:07 -0400
+In-Reply-To: <4C24E7F8.90007@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Eric Miao <eric.miao@canonical.com>, Nicolas Pitre <nico@fluxnic.net>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-Grant Likely <grant.likely@secretlab.ca> writes:
-
-> On Thu, Jun 24, 2010 at 5:43 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> Implement the new runtime PM framework as a thin layer on top of the
->> omap_device API. =A0Since we don't have an OMAP-specific bus, overri=
-de
->> the runtime PM hooks for the platform_bus for the OMAP specific
->> implementation.
->>
->> While the runtime PM API has three main states (idle, suspend, resum=
-e)
->> This version treats idle and suspend the same way by implementing bo=
-th
->> on top of omap_device_disable(), which follows closely with how driv=
-er
->> are currently using clock enable/disable calls. Longer-termm
->> pm_runtime_idle() could take other constraints into consideration to
->> make the decision, but the current
->>
->> Device driver ->runtime_suspend() hooks are called just before the
->> device is disabled (via omap_device_idle()), and device driver
->> ->runtime_resume() hooks are called just after device has been
->> enabled (via omap_device_enable().)
->
-> Hi Kevin,
-
-Hi Grant.  Thanks for the review and suggestions.
-
-> You shouldn't hijack the platform bus in this way, for a number of
-> reasons.  Not all platform devices in an OMAP system are internal OMA=
-P
-> devices (as you know since you do an explicit check for omap devices)=
-=2E
->  Right there that says that the abstraction is at the wrong level.
-> What happens when an mostly transparent bridge is added with its own
-> peripherals and its own special operations?  Does this routine then
-> need to be extended for each new special case?  It's not maintainable
-> in the long run.
->
-> This approach is also not multiplatform friendly (cc'ing Eric and
-> Nicolas who are working on ARM multiplatform).  It won't work for
-> building a kernel that supports, say, both versatile and OMAP.
-
-Totally agree here, but this a separate issue not specifically created
-by this series (it was created when runtime PM support for SH was
-added), but indeed I am continuining bad behavior. :/
-
-The issue is that the current method to override bus methods is by
-overriding weak symbols.  This clearly doesn't scale to support multipl=
-e
-platforms in the same image.
-
-What would be needed (if we continue to override the platform_bus
-methods) is to have some sort of register function for overriding these
-methods.  I'll look into that based on the result of discussions
-below...
-
-> The kernel already has the facility to do what you need.  We talked
-> about it briefly at ELC, and now that I look at it closer, I thing
-> gregkh is absolutely right.  Just create a new bus type for OMAP
-> devices.  It is simple to add one.  You can probably even call out to
-> the platform bus ops for most of the operations.  The fact that OMAP
-> devices have special behaviour that needs to be handled at the bus
-> type level means that they are not platform devices anymore.  This
-> also eliminates all the omap_device_is_valid and OMAP_DEVICE_MAGIC
-> gymnastics.
->
-> I see from the comments in omap_device.c that doing an
-> omap_bus/omap_device is being considered anyway.  Please don't merge
-> this patch and do the omap_bus_type instead.
-
-Agreed, it is logicially simpler in many ways and as you've noticed,
-we've been discussing it in the OMAP community.
-
-However, I keep coming back to extending the platform bus, primarily
-since the resulting new bus code would look almost identical to the
-platform bus.  All I really needed is the ability to extend a small
-subset of the PM functions, so this led to me the "extend instead of
-duplicate" approach.
-
-In addition, I really don't want to duplicate all the platform_driver
-and platform_device code, again because it would be identical but
-especially since this would seriously impact many drivers.  For drivers
-that are used on OMAP and also on other platforms, do we want drivers t=
-o
-know (or care) if they are on the platform bus or on the OMAP bus?  I
-think this is how it is done for OF devices, but I'm not crazy about
-that approach (after our discussions at ELC, I remember thinking you'd
-been through this with the OF devices as well and are moving towards
-using platform_bus/platform_device for those too.  Did I understand
-correctly?)
-
-This affects many aspects of all drivers, from register and probe (for
-early devices/drivers too!) to all the plaform_get_resource() usage, al=
-l
-of which assumes a platform_driver and platform_device.  I didn't look
-closely, but I didn't see if (or how) OF was handling early devices.
-
-All that being said, if I could create a custom bus, but continue to us=
-e
-platform_devices, that would greatly simply the changes to drivers.  Do
-you think that's acceptable?  If so, I can take a stab at that and see
-what it looks like.
-
-> Also, I notice that most of these hooks open-code the generic version=
-s
-> of the runtime hooks.  Instead of open coding it, can the omap hooks
-> call the generic hooks before/after doing the omap-specific work?
-
-Ah, good point.
-
-This patch pre-dates the creation of pm_generic_runtime_*, but certainl=
-y
-should be upgraded to use those.  Thanks.
-
-Kevin
-
-
-> Cheers,
-> g.
->
->>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->> =A0arch/arm/mach-omap2/Makefile | =A0 =A07 +++-
->> =A0arch/arm/mach-omap2/pm_bus.c | =A0 70 +++++++++++++++++++++++++++=
-+++++++++++++++
->> =A02 files changed, 76 insertions(+), 1 deletions(-)
->> =A0create mode 100644 arch/arm/mach-omap2/pm_bus.c
->>
->> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Make=
-file
->> index ea52b03..8ed47ea 100644
->> --- a/arch/arm/mach-omap2/Makefile
->> +++ b/arch/arm/mach-omap2/Makefile
->> @@ -46,12 +46,17 @@ obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0=
-+=3D sdrc2xxx.o
->> =A0ifeq ($(CONFIG_PM),y)
->> =A0obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm24xx.=
-o
->> =A0obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D sleep24=
-xx.o
->> -obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm34xx.o =
-sleep34xx.o cpuidle34xx.o
->> +obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm34xx.o =
-sleep34xx.o cpuidle34xx.o \
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0pm_bus.o
->> =A0obj-$(CONFIG_PM_DEBUG) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm-de=
-bug.o
->>
->> =A0AFLAGS_sleep24xx.o =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 :=3D-W=
-a,-march=3Darmv6
->> =A0AFLAGS_sleep34xx.o =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 :=3D-W=
-a,-march=3Darmv7-a
->>
->> +ifeq ($(CONFIG_PM_VERBOSE),y)
->> +CFLAGS_pm_bus.o =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0+=3D -DDEBUG
->> +endif
->> +
->> =A0endif
->>
->> =A0# PRCM
->> diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_b=
-us.c
->> new file mode 100644
->> index 0000000..9719a9f
->> --- /dev/null
->> +++ b/arch/arm/mach-omap2/pm_bus.c
->> @@ -0,0 +1,70 @@
->> +/*
->> + * Runtime PM support code for OMAP
->> + *
->> + * Author: Kevin Hilman, Deep Root Systems, LLC
->> + *
->> + * Copyright (C) 2010 Texas Instruments, Inc.
->> + *
->> + * This file is licensed under the terms of the GNU General Public
->> + * License version 2. This program is licensed "as is" without any
->> + * warranty of any kind, whether express or implied.
->> + */
->> +#include <linux/init.h>
->> +#include <linux/kernel.h>
->> +#include <linux/io.h>
->> +#include <linux/pm_runtime.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/mutex.h>
->> +
->> +#include <plat/omap_device.h>
->> +#include <plat/omap-pm.h>
->> +
->> +#ifdef CONFIG_PM_RUNTIME
->> +int platform_pm_runtime_suspend(struct device *dev)
->> +{
->> + =A0 =A0 =A0 struct platform_device *pdev =3D to_platform_device(de=
-v);
->> + =A0 =A0 =A0 struct omap_device *odev =3D to_omap_device(pdev);
->> + =A0 =A0 =A0 int r, ret =3D 0;
->> +
->> + =A0 =A0 =A0 dev_dbg(dev, "%s\n", __func__);
->> +
->> + =A0 =A0 =A0 if (dev->driver->pm && dev->driver->pm->runtime_suspen=
-d)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D dev->driver->pm->runtime_suspe=
-nd(dev);
->> + =A0 =A0 =A0 if (!ret && omap_device_is_valid(odev)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D omap_device_idle(pdev);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN_ON(r);
->> + =A0 =A0 =A0 }
->> +
->> + =A0 =A0 =A0 return ret;
->> +};
->> +
->> +int platform_pm_runtime_resume(struct device *dev)
->> +{
->> + =A0 =A0 =A0 struct platform_device *pdev =3D to_platform_device(de=
-v);
->> + =A0 =A0 =A0 struct omap_device *odev =3D to_omap_device(pdev);
->> + =A0 =A0 =A0 int r, ret =3D 0;
->> +
->> + =A0 =A0 =A0 dev_dbg(dev, "%s\n", __func__);
->> +
->> + =A0 =A0 =A0 if (omap_device_is_valid(odev)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D omap_device_enable(pdev);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN_ON(r);
->> + =A0 =A0 =A0 }
->> +
->> + =A0 =A0 =A0 if (dev->driver->pm && dev->driver->pm->runtime_resume=
-)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D dev->driver->pm->runtime_resum=
-e(dev);
->> +
->> + =A0 =A0 =A0 return ret;
->> +};
->> +
->> +int platform_pm_runtime_idle(struct device *dev)
->> +{
->> + =A0 =A0 =A0 int ret;
->> +
->> + =A0 =A0 =A0 ret =3D pm_runtime_suspend(dev);
->> + =A0 =A0 =A0 dev_dbg(dev, "%s [%d]\n", __func__, ret);
->> +
->> + =A0 =A0 =A0 return 0;
->> +};
->> +#endif /* CONFIG_PM_RUNTIME */
->> +
->> --
->> 1.7.0.2
->>
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Menon, Nishanth
+> Sent: Friday, June 25, 2010 11:02 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap; Tony Lindgren; Angelo Arrifano; Zebediah C. McClure; Alistair Buxton; Grazvydas
+> Ignotas; Paul Walmsley; Premi, Sanjeev; Guruswamy, Senthilvadivu; Kevin Hilman; DebBarma, Tarun
+> Kanti; Tomi Valkeinen; Aaro Koskinen; Pandita, Vikram; S, Vishwanath
+> Subject: Re: [PATCH 3/9 v3] omap: generic: introduce a single check_revision
+> 
+> Shilimkar, Santosh had written, on 06/25/2010 11:41 AM, the following:
+> >> -----Original Message-----
+> >> From: Menon, Nishanth
+> >> Sent: Friday, June 25, 2010 9:55 PM
+> >> To: linux-omap
+> >> Cc: Tony Lindgren; Menon, Nishanth; Angelo Arrifano; Zebediah C. McClure; Alistair Buxton;
+> Grazvydas
+> >> Ignotas; Paul Walmsley; Premi, Sanjeev; Shilimkar, Santosh; Guruswamy, Senthilvadivu; Kevin
+> Hilman;
+> >> DebBarma, Tarun Kanti; Tomi Valkeinen; Aaro Koskinen; Pandita, Vikram; S, Vishwanath; linux-
+> >> omap@vger.kernel.org
+> >> Subject: [PATCH 3/9 v3] omap: generic: introduce a single check_revision
+> >>
+> >> Introduce a single omap generic check_revision that routes the
+> >> request to the right revision of check_revision.
+> >>
+> >> Note: OMAP1 and OMAP2+ are not built into a single kernel. This
+> >> allows for the headers definitions of omap1_check_revision() and
+> >> omap2_check_revision() to be used without #ifdefs and additional cpu
+> >> checks in our single check_revision.
+> >>
+> >> Cc: Tony Lindgren <tony@atomide.com>
+> >> Cc: Angelo Arrifano <miknix@gmail.com>
+> >> Cc: "Zebediah C. McClure" <zmc@lurian.net>
+> >> Cc: Alistair Buxton <a.j.buxton@gmail.com>
+> >> Cc: Grazvydas Ignotas <notasas@gmail.com>
+> >> Cc: Paul Walmsley <paul@pwsan.com>
+> >> Cc: Sanjeev Premi <premi@ti.com>
+> >> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >> Cc: Senthilvadivu Gurusamy <svadivu@ti.com>
+> >> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> >> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> >> Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> >> Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+> >> Cc: Vikram Pandita <vikram.pandita@ti.com>
+> >> Cc: Vishwanath S <vishwa.s@ti.com>
+> >> Cc: linux-omap@vger.kernel.org
+> >>
+> >> Signed-off-by: Nishanth Menon <nm@ti.com>
+> >> ---
+> >> V3: comments from http://marc.info/?t=127747252000003&r=1&w=2
+> >> 	fixed
+> >> V2: comments from http://marc.info/?t=127725956100006&r=1&w=2
+> >> 	fixed
+> >> V1: original
+> >>  arch/arm/mach-omap1/io.c              |    3 +--
+> >>  arch/arm/mach-omap2/io.c              |    2 +-
+> >>  arch/arm/plat-omap/common.c           |    6 ++++++
+> >>  arch/arm/plat-omap/include/plat/cpu.h |   13 ++++++++++++-
+> >>  4 files changed, 20 insertions(+), 4 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
+> >> index e4d8680..4f9ee73 100644
+> >> --- a/arch/arm/mach-omap1/io.c
+> >> +++ b/arch/arm/mach-omap1/io.c
+> >> @@ -20,7 +20,6 @@
+> >>
+> >>  #include "clock.h"
+> >>
+> >> -extern void omap1_check_revision(void);
+> >>  extern void omap_sram_init(void);
+> >>
+> >>  /*
+> >> @@ -102,7 +101,7 @@ void __init omap1_map_common_io(void)
+> >>  	/* We want to check CPU revision early for cpu_is_omapxxxx() macros.
+> >>  	 * IO space mapping must be initialized before we can do that.
+> >>  	 */
+> >> -	omap1_check_revision();
+> >> +	omap_check_revision();
+> >>
+> >>  #if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
+> >>  	if (cpu_is_omap7xx()) {
+> >> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> >> index 4e1f53d..eeb0e30 100644
+> >> --- a/arch/arm/mach-omap2/io.c
+> >> +++ b/arch/arm/mach-omap2/io.c
+> >> @@ -238,7 +238,7 @@ static void __init _omap2_map_common_io(void)
+> >>  	local_flush_tlb_all();
+> >>  	flush_cache_all();
+> >>
+> >> -	omap2_check_revision();
+> >> +	omap_check_revision();
+> >>  	omap_sram_init();
+> >>  }
+> >>
+> >> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> >> index fca73cd..4a0e333 100644
+> >> --- a/arch/arm/plat-omap/common.c
+> >> +++ b/arch/arm/plat-omap/common.c
+> >> @@ -89,6 +89,12 @@ void __init omap_reserve(void)
+> >>  	omap_vram_reserve_sdram_lmb();
+> >>  }
+> >>
+> >> +void __init omap_check_revision(void)
+> >> +{
+> >> +	omap1_check_revision();
+> >> +	omap2_check_revision();
+> >> +}
+> >> +
+> >>  /*
+> >>   * 32KHz clocksource ... always available, on pretty most chips except
+> >>   * OMAP 730 and 1510.  Other timers could be used as clocksources, with
+> >> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+> >> index 7514174..5f12a0b 100644
+> >> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> >> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> >> @@ -431,7 +431,18 @@ IS_OMAP_TYPE(3517, 0x3517)
+> >>
+> >>
+> >>  int omap_chip_is(struct omap_chip_id oci);
+> >> -void omap2_check_revision(void);
+> >> +#ifdef CONFIG_ARCH_OMAP2PLUS
+> >> +extern void omap2_check_revision(void);
+> >> +#else
+> >> +static inline void omap2_check_revision(void) {}
+> > I think codingstyle suggest empty function braces to be on next line
+> > like
+> > static inline void omap2_check_revision(void)
+> > {}
+> 
+> are you sure about that? can you point me to the documentation for that?
+> Style I followed is off:
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
+> 2.6.git;a=blob;f=Documentation/SubmittingPatches;h=72651f788f4e3536149ef5e7ddfbed96a8f14d2f;hb=HEAD#l
+> 661
+> 
+I got similar comment long back and hence remembered. Looks like it's not explicitly documented
+> >> +#endif
+> >> +
+> >> +#ifdef CONFIG_ARCH_OMAP1
+> >> +extern void omap1_check_revision(void);
+> >> +#else
+> >> +static inline void omap1_check_revision(void) {}
+> >> +#endif
+> >> +void omap_check_revision(void);
+> >>
+> >>  /*
+> >>   * Runtime detection of OMAP3 features
+> >
+> > Otherwise patch looks good to me.
+> thanks for the ack.
+> 
+> >> --
+> >> 1.6.3.3
+> >
+> 
+> 
+> --
+> Regards,
+> Nishanth Menon
