@@ -1,71 +1,137 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v2 1/3] OMAP: PM: initial runtime PM core support
-Date: Fri, 25 Jun 2010 17:04:13 -0600
-Message-ID: <AANLkTimB0_OfLDvtkwwTE-kVeZrardIxVIsD5IEia-vL@mail.gmail.com>
-References: <1277422991-25350-1-git-send-email-khilman@deeprootsystems.com>
-	<1277422991-25350-2-git-send-email-khilman@deeprootsystems.com>
-	<AANLkTim4p54brsmph6oaKfoEZwO1GOGfgRNV9vJykOjl@mail.gmail.com>
-	<874ogrng3j.fsf@deeprootsystems.com> <AANLkTimMnJvOJrRHDiE6PH1BXpRz2-6pY1M9nKHw7vpn@mail.gmail.com>
-	<876316eno5.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH:v4 12/13] OMAP: GPIO: Implement GPIO as a platform device
+Date: Fri, 25 Jun 2010 16:36:18 -0700
+Message-ID: <87lja28z2l.fsf@deeprootsystems.com>
+References: <1277218916-15213-1-git-send-email-charu@ti.com>
+	<1277218916-15213-2-git-send-email-charu@ti.com>
+	<1277218916-15213-3-git-send-email-charu@ti.com>
+	<1277218916-15213-4-git-send-email-charu@ti.com>
+	<1277218916-15213-5-git-send-email-charu@ti.com>
+	<1277218916-15213-6-git-send-email-charu@ti.com>
+	<1277218916-15213-7-git-send-email-charu@ti.com>
+	<1277218916-15213-8-git-send-email-charu@ti.com>
+	<1277218916-15213-9-git-send-email-charu@ti.com>
+	<1277218916-15213-10-git-send-email-charu@ti.com>
+	<1277218916-15213-11-git-send-email-charu@ti.com>
+	<1277218916-15213-12-git-send-email-charu@ti.com>
+	<1277218916-15213-13-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:40134 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab0FYXEf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 19:04:35 -0400
-Received: by iwn41 with SMTP id 41so2484302iwn.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 16:04:33 -0700 (PDT)
-In-Reply-To: <876316eno5.fsf@deeprootsystems.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:50822 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751245Ab0FYXgW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 19:36:22 -0400
+Received: by pvg2 with SMTP id 2so1080708pvg.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 16:36:21 -0700 (PDT)
+In-Reply-To: <1277218916-15213-13-git-send-email-charu@ti.com> (Charulatha
+	V.'s message of "Tue, 22 Jun 2010 20:31:55 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Eric Miao <eric.miao@canonical.com>, Nicolas Pitre <nico@fluxnic.net>
+To: Charulatha V <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, p-basak2@ti.com, b-cousson@ti.com
 
-On Fri, Jun 25, 2010 at 4:46 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Grant Likely <grant.likely@secretlab.ca> writes:
+Charulatha V <charu@ti.com> writes:
+
+> This patch implements GPIO as a platform device. Also it
+> implements OMAP2PLUS specific GPIO as HWMOD FW adapted device.
+> This patch makes GPIO to use runtime APIs.
 >
->> Another way to look at the problem is that these runtime
->> customizations are kind of a property of the parent device (the bus,
->> not the bus_type). =A0Would it make sense for parent devices to have
->> runtime ops to perform for each child that is suspended/resumed? =A0=
-That
->> would make it simple to register another device that implements the
->> bus behaviour and attach it at runtime instead of compile time.
+> GPIO APIs are used in machine_init functions. Hence it is
+> required to complete GPIO probe before machine_init. Therefore
+> GPIO device register and driver register are implemented as
+> postcore_initcalls.
 >
-> Maybe I didn't fully understand your idea, but the problem here is
-> devices do not have dev_pm_ops. =A0Only busses, classes, and types ha=
-ve
-> dev_pm_ops.
+> Inorder to convert GPIO as platform device, modifications are
+> required in clockxxxx_data.c file for OMAP1 so that device names
+> can be used to obtain clock instead of getting clocks by
+> name/NULL ptr.
+>
+> omap_gpio_init() does nothing now and this function would be
+> removed in the next patch as it's usage is spread across most of
+> the board files.
+>
+> TODO:
+> 1. Cleanup the GPIO driver. Use function pointers and register
+> offest pointers instead of using hardcoded values
+> 2. Remove all cpu_is_ checks and OMAP specific macros
+> 3. Remove usage of gpio_bank array so that only
+> instance specific information is used in driver code
+> 4. Modify save/restore context, gpio_prepare_for_idle,
+> and gpio_resume_after_idle functions as instance
+> specific function and not for all instances in a single call
 
-Sorry, I mistyped.  What I meant was for the parent device's
-device_driver to be able to have a set of child dev_pm_ops; but I'm
-wading into territory (power management) I'm not particularly familiar
-with, and that might be making things far too complex.
+init_gpio_info() too.
 
-> Though I'm horribly unfamiliar with the intended usage of 'struct
-> device_type', an interesing discovery is that dev->type also has
-> dev_pm_ops, and it takes precedence over the bus type in the
-> suspend/resume. =A0IOW, when suspending, when deciding which dev_pm_o=
-ps to
-> use, it checks class, type, then bus in that order.
+I think this item (TODO #4) needs to be done as part of this series, as
+this new generic driver needs to be completely ignorant of how many
+banks are on chip, or currently in use.  All operations should be on a
+single device (in this case, a single GPIO bank.)
 
-So I guess my suggestion above boils down to somehow inserting
-"parent" between type and bus in that list.
+As each hwmod has its own device, it can have it's own independent
+suspend/resume.  To do this, you should remove the sysdev_class and
+sys_device just use the regular device.  Here's a little patch[1] on top
+of your current series that shows how you would hook up the standard PM
+methods.  Also, the prepare_for_idle, resume_from_idle should be handled
+by the runtime PM callbacks.
 
-> I need to explore this 'type' feature a little more, but using that o=
-r
-> the 'class' might be another way to have custom PM ops for certain
-> platform_devices.
+With the save/restore context handled on demand (when mod_usage
+transitions to/from zero), and the runtime PM calls handled from within
+the driver, we could get rid of all the GPIO calls from
+omap_sram_idle().  That would be a huge improvement.
 
-Should maybe start cc'ing Greg and linux-kernel/linux-pm in this discus=
-sion.
+Kevin
 
-g.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] compile-tested only
+
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 6dc5e4b..6a5a8f4 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -2091,10 +2091,44 @@ void omap_gpio_restore_context(void)
+ }
+ #endif
+ 
++static int gpio_bank_suspend(struct device *dev)
++{
++	return 0;
++}
++
++static int gpio_bank_resume(struct device *dev)
++{
++	return 0;
++}
++
++static int gpio_bank_runtime_idle(struct device *dev)
++{
++	return 0;
++}
++
++static int gpio_bank_runtime_suspend(struct device *dev)
++{
++	return 0;
++}
++
++static int gpio_bank_runtime_resume(struct device *dev)
++{
++	return 0;
++}
++
++static struct dev_pm_ops gpio_pm_ops = {
++	.suspend	 = gpio_bank_suspend,
++	.resume		 = gpio_bank_resume,
++	.runtime_idle	 = gpio_bank_runtime_idle,
++	.runtime_suspend = gpio_bank_runtime_suspend,
++	.runtime_resume	 = gpio_bank_runtime_resume,
++};
++
+ static struct platform_driver omap_gpio_driver = {
+ 	.probe		= omap_gpio_probe,
+ 	.driver		= {
+ 		.name	= "omap-gpio",
++		.pm	= &gpio_pm_ops,
+ 	},
+ };
+ 
+
+
