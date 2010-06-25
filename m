@@ -1,44 +1,179 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH 2/2] arm: Make VFPv3 usable on ARMv6
-Date: Fri, 25 Jun 2010 14:50:38 +0100
-Message-ID: <1277473838.13134.30.camel@e102109-lin.cambridge.arm.com>
-References: <20100621135125.24299.91290.stgit@baageli.muru.com>
-	 <1277211592.29532.20.camel@e102109-lin.cambridge.arm.com>
-	 <20100622132037.GV12255@atomide.com>  <20100623075703.GB12255@atomide.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH 3/9 v2] omap: generic: introduce a single check_revision
+Date: Fri, 25 Jun 2010 19:20:59 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032366B404@dbde02.ent.ti.com>
+References: <[PATCH 3/9] omap: generic: introduce a single check_revision>
+ <1277472414-8676-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:33001 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753750Ab0FYNup (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Jun 2010 09:50:45 -0400
-In-Reply-To: <20100623075703.GB12255@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57075 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753206Ab0FYNvO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 09:51:14 -0400
+In-Reply-To: <1277472414-8676-1-git-send-email-nm@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2010-06-23 at 08:57 +0100, Tony Lindgren wrote:
-> MVFR0 and MVFR1 are only available starting with ARM1136 r1p0 release
-> according to "B.5 VFP changes" in DDI0211F_arm1136_r1p0_trm.pdf. This is
-> also when TLS register got added, so we can use HAS_TLS also to test for
-> MVFR0 and MVFR1.
+Nishant,
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+> Sent: Friday, June 25, 2010 6:57 PM
+> To: linux-omap
+> Cc: Menon, Nishanth; Tony Lindgren; Angelo Arrifano; Zebediah C. McClure;
+> Alistair Buxton; Grazvydas Ignotas; Paul Walmsley; Premi, Sanjeev;
+> Shilimkar, Santosh; Guruswamy, Senthilvadivu; Kevin Hilman; Tomi
+> Valkeinen; Aaro Koskinen; Pandita, Vikram; S, Vishwanath; linux-
+> omap@vger.kernel.org
+> Subject: [PATCH 3/9 v2] omap: generic: introduce a single check_revision
 > 
-> Otherwise VFPFMRX and VFPFMXR access fails and we get:
+> Introduce a single omap generic check_revision that routes the
+> request to the right revision of check_revision.
 > 
-> Internal error: Oops - undefined instruction: 0 [#1]
-> PC is at no_old_VFP_process+0x8/0x3c
-> LR is at __und_svc+0x48/0x80
-> ...
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Angelo Arrifano <miknix@gmail.com>
+> Cc: "Zebediah C. McClure" <zmc@lurian.net>
+> Cc: Alistair Buxton <a.j.buxton@gmail.com>
+> Cc: Grazvydas Ignotas <notasas@gmail.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Sanjeev Premi <premi@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Senthilvadivu Gurusamy <svadivu@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+> Cc: Vikram Pandita <vikram.pandita@ti.com>
+> Cc: Vishwanath S <vishwa.s@ti.com>
+> Cc: linux-omap@vger.kernel.org
 > 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> V2: comments from http://marc.info/?t=127725956100006&r=1&w=2
+> 	fixed
+> V1: original
+>  arch/arm/mach-omap1/io.c              |    3 +--
+>  arch/arm/mach-omap2/io.c              |    2 +-
+>  arch/arm/plat-omap/common.c           |   12 ++++++++++++
+>  arch/arm/plat-omap/include/plat/cpu.h |   13 ++++++++++++-
+>  4 files changed, 26 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
+> index e4d8680..4f9ee73 100644
+> --- a/arch/arm/mach-omap1/io.c
+> +++ b/arch/arm/mach-omap1/io.c
+> @@ -20,7 +20,6 @@
+> 
+>  #include "clock.h"
+> 
+> -extern void omap1_check_revision(void);
+>  extern void omap_sram_init(void);
+> 
+>  /*
+> @@ -102,7 +101,7 @@ void __init omap1_map_common_io(void)
+>  	/* We want to check CPU revision early for cpu_is_omapxxxx() macros.
+>  	 * IO space mapping must be initialized before we can do that.
+>  	 */
+> -	omap1_check_revision();
+> +	omap_check_revision();
+> 
+>  #if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
+>  	if (cpu_is_omap7xx()) {
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 4e1f53d..eeb0e30 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -238,7 +238,7 @@ static void __init _omap2_map_common_io(void)
+>  	local_flush_tlb_all();
+>  	flush_cache_all();
+> 
+> -	omap2_check_revision();
+> +	omap_check_revision();
+>  	omap_sram_init();
+>  }
+> 
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> index fca73cd..f240d9a 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -89,6 +89,18 @@ void __init omap_reserve(void)
+>  	omap_vram_reserve_sdram_lmb();
+>  }
+> 
+> +void __init omap_check_revision(void)
+> +{
+> +#ifdef CONFIG_ARCH_OMAP1
+> +	if (cpu_is_omap7xx() || cpu_is_omap15xx() || cpu_is_omap16xx())
+> +		omap1_check_revision();
+> +#endif
+> +#ifdef CONFIG_ARCH_OMAP2PLUS
+> +	if (cpu_is_omap24xx() || cpu_is_omap34xx() || cpu_is_omap44xx())
+> +		omap2_check_revision();
+> +#endif
+> +}
 
-The new version looks fine to me.
+Inside omap2_check_revision() there is already check for cpu type. So do we need to have it here? Here is the code snippet!!
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+void __init omap2_check_revision(void)
+{
+        /*
+         * At this point we have an idea about the processor revision set
+         * earlier with omap2_set_globals_tap().
+         */
+        if (cpu_is_omap24xx()) {
+                omap24xx_check_revision();
+        } else if (cpu_is_omap34xx()) {
+                omap3_check_revision();
+                omap3_check_features();
+                omap3_cpuinfo();
+                return;
+        } else if (cpu_is_omap44xx()) {
+                omap4_check_revision();
+                return;
+        } else {
+                pr_err("OMAP revision unknown, please fix!\n");
+        }
+...
 
--- 
-Catalin
 
+> +
+>  /*
+>   * 32KHz clocksource ... always available, on pretty most chips except
+>   * OMAP 730 and 1510.  Other timers could be used as clocksources, with
+> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
+> omap/include/plat/cpu.h
+> index 7514174..5f12a0b 100644
+> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> @@ -431,7 +431,18 @@ IS_OMAP_TYPE(3517, 0x3517)
+> 
+> 
+>  int omap_chip_is(struct omap_chip_id oci);
+> -void omap2_check_revision(void);
+> +#ifdef CONFIG_ARCH_OMAP2PLUS
+> +extern void omap2_check_revision(void);
+> +#else
+> +static inline void omap2_check_revision(void) {}
+> +#endif
+> +
+> +#ifdef CONFIG_ARCH_OMAP1
+> +extern void omap1_check_revision(void);
+> +#else
+> +static inline void omap1_check_revision(void) {}
+> +#endif
+> +void omap_check_revision(void);
+> 
+>  /*
+>   * Runtime detection of OMAP3 features
+> --
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
