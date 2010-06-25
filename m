@@ -1,197 +1,223 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH 3/9 v2] omap: generic: introduce a single check_revision
-Date: Fri, 25 Jun 2010 20:46:46 +0530
-Message-ID: <AANLkTimXf-dV1cWYhmAvVK2k9pGof1UNkInz8dUfZkDW@mail.gmail.com>
-References: <1277472414-8676-1-git-send-email-nm@ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB032366B404@dbde02.ent.ti.com>
-	<4C24B54A.7050005@ti.com>
-	<AANLkTinU4sQuZJmiqNWtIL8a68onvZeaMByI7XYME14v@mail.gmail.com>
-	<4C24C097.70503@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 1/3] OMAP: PM: initial runtime PM core support
+Date: Fri, 25 Jun 2010 09:26:43 -0600
+Message-ID: <AANLkTim4p54brsmph6oaKfoEZwO1GOGfgRNV9vJykOjl@mail.gmail.com>
+References: <1277422991-25350-1-git-send-email-khilman@deeprootsystems.com>
+	<1277422991-25350-2-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:61255 "EHLO
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:39572 "EHLO
 	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756196Ab0FYPQs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 11:16:48 -0400
-Received: by iwn41 with SMTP id 41so2092579iwn.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 08:16:47 -0700 (PDT)
-In-Reply-To: <4C24C097.70503@ti.com>
+	with ESMTP id S1755348Ab0FYP1E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 11:27:04 -0400
+Received: by iwn41 with SMTP id 41so2101431iwn.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 08:27:03 -0700 (PDT)
+In-Reply-To: <1277422991-25350-2-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Eric Miao <eric.miao@canonical.com>, Nicolas Pitre <nico@fluxnic.net>
 
-On Fri, Jun 25, 2010 at 8:13 PM, Nishanth Menon <nm@ti.com> wrote:
-> S, Venkatraman had written, on 06/25/2010 09:38 AM, the following:
->>
->> On Fri, Jun 25, 2010 at 7:25 PM, Nishanth Menon <nm@ti.com> wrote:
->>>
->>> DebBarma, Tarun Kanti had written, on 06/25/2010 08:50 AM, the foll=
-owing:
->>>>
->>>> Nishant,
->>>>
->>>>> -----Original Message-----
->>>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>>>> owner@vger.kernel.org] On Behalf Of Menon, Nishanth
->>>>> Sent: Friday, June 25, 2010 6:57 PM
->>>>> To: linux-omap
->>>>> Cc: Menon, Nishanth; Tony Lindgren; Angelo Arrifano; Zebediah C.
->>>>> McClure;
->>>>> Alistair Buxton; Grazvydas Ignotas; Paul Walmsley; Premi, Sanjeev=
-;
->>>
->>> [...]
->>>
->>>>> diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
->>>>> index e4d8680..4f9ee73 100644
->>>>> --- a/arch/arm/mach-omap1/io.c
->>>>> +++ b/arch/arm/mach-omap1/io.c
->>>>> @@ -20,7 +20,6 @@
->>>>>
->>>>> =A0#include "clock.h"
->>>>>
->>>>> -extern void omap1_check_revision(void);
->>>>> =A0extern void omap_sram_init(void);
->>>>>
->>>>> =A0/*
->>>>> @@ -102,7 +101,7 @@ void __init omap1_map_common_io(void)
->>>>> =A0 =A0 =A0 /* We want to check CPU revision early for cpu_is_oma=
-pxxxx()
->>>>> macros.
->>>>> =A0 =A0 =A0 =A0* IO space mapping must be initialized before we c=
-an do that.
->>>>> =A0 =A0 =A0 =A0*/
->>>>> - =A0 =A0 =A0 omap1_check_revision();
->>>>> + =A0 =A0 =A0 omap_check_revision();
->>>>>
->>>>> =A0#if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP=
-850)
->>>>> =A0 =A0 =A0 if (cpu_is_omap7xx()) {
->>>>> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
->>>>> index 4e1f53d..eeb0e30 100644
->>>>> --- a/arch/arm/mach-omap2/io.c
->>>>> +++ b/arch/arm/mach-omap2/io.c
->>>>> @@ -238,7 +238,7 @@ static void __init _omap2_map_common_io(void)
->>>>> =A0 =A0 =A0 local_flush_tlb_all();
->>>>> =A0 =A0 =A0 flush_cache_all();
->>>>>
->>>>> - =A0 =A0 =A0 omap2_check_revision();
->>>>> + =A0 =A0 =A0 omap_check_revision();
->>>>> =A0 =A0 =A0 omap_sram_init();
->>>>> =A0}
->>>>>
->>>>> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/com=
-mon.c
->>>>> index fca73cd..f240d9a 100644
->>>>> --- a/arch/arm/plat-omap/common.c
->>>>> +++ b/arch/arm/plat-omap/common.c
->>>>> @@ -89,6 +89,18 @@ void __init omap_reserve(void)
->>>>> =A0 =A0 =A0 omap_vram_reserve_sdram_lmb();
->>>>> =A0}
->>>>>
->>>>> +void __init omap_check_revision(void)
->>>>> +{
->>>>> +#ifdef CONFIG_ARCH_OMAP1
->>>>> + =A0 =A0 =A0 if (cpu_is_omap7xx() || cpu_is_omap15xx() || cpu_is=
-_omap16xx())
->>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap1_check_revision();
->>>>> +#endif
->>>>> +#ifdef CONFIG_ARCH_OMAP2PLUS
->>>>> + =A0 =A0 =A0 if (cpu_is_omap24xx() || cpu_is_omap34xx() ||
->>>>> cpu_is_omap44xx())
->>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap2_check_revision();
->>>>> +#endif
->>>>> +}
->>>>
->>>> Inside omap2_check_revision() there is already check for cpu type.=
- So do
->>>> we need to have it here? Here is the code snippet!!
->>>>
->>>> void __init omap2_check_revision(void)
->>>> {
->>>> =A0 =A0 =A0 /*
->>>> =A0 =A0 =A0 =A0* At this point we have an idea about the processor=
- revision set
->>>> =A0 =A0 =A0 =A0* earlier with omap2_set_globals_tap().
->>>> =A0 =A0 =A0 =A0*/
->>>> =A0 =A0 =A0 if (cpu_is_omap24xx()) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap24xx_check_revision();
->>>> =A0 =A0 =A0 } else if (cpu_is_omap34xx()) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_check_revision();
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_check_features();
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_cpuinfo();
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->>>> =A0 =A0 =A0 } else if (cpu_is_omap44xx()) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap4_check_revision();
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->>>> =A0 =A0 =A0 } else {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("OMAP revision unknown, please =
-fix!\n");
->>>> =A0 =A0 =A0 }
->>>> ...
->>>
->>> thanks for your comment.
->>>
->>> My rationale for doing it is to allow for a single OMAP build for b=
-oth
->>> omap1
->>> and omap2+ in which case the cpu_is check makes sense.
->>> we have two choices:
->>> a) remove the hope of having a single omap build (and the above log=
-ic is
->>> a
->>> bit simpler.
->>
->> I think Tarun Kanti intended to point out the redundancy within the
->> OMAP2PLUS build path.
+On Thu, Jun 24, 2010 at 5:43 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Implement the new runtime PM framework as a thin layer on top of the
+> omap_device API. =A0Since we don't have an OMAP-specific bus, overrid=
+e
+> the runtime PM hooks for the platform_bus for the OMAP specific
+> implementation.
 >
-> yes I am aware of that. but consider the following:
-> CONFIG_ARCH_OMAP1 and CONFIG_ARCH_OMAP2PLUS being defined at the same=
- time.
+> While the runtime PM API has three main states (idle, suspend, resume=
+)
+> This version treats idle and suspend the same way by implementing bot=
+h
+> on top of omap_device_disable(), which follows closely with how drive=
+r
+> are currently using clock enable/disable calls. Longer-termm
+> pm_runtime_idle() could take other constraints into consideration to
+> make the decision, but the current
 >
-> the logic will enter without a reason for it to do so, instead it wil=
-l print
-> OMAP revision unknown for OMAP1 - not desired.
+> Device driver ->runtime_suspend() hooks are called just before the
+> device is disabled (via omap_device_idle()), and device driver
+> ->runtime_resume() hooks are called just after device has been
+> enabled (via omap_device_enable().)
 
-AFAIK, Tony has ruled out OMAP1 _and_ OMAP2+ multi-omap build.
-If it was indeed possible, then
-a) #ifdefs are not needed
-b) omap2_check_revision() shouldn't emit the warning, as it doesn't
-cater to all SoCs.
-  omap99_check_revision() could be in the later code path of
-omap_check_revision()
+Hi Kevin,
+
+You shouldn't hijack the platform bus in this way, for a number of
+reasons.  Not all platform devices in an OMAP system are internal OMAP
+devices (as you know since you do an explicit check for omap devices).
+ Right there that says that the abstraction is at the wrong level.
+What happens when an mostly transparent bridge is added with its own
+peripherals and its own special operations?  Does this routine then
+need to be extended for each new special case?  It's not maintainable
+in the long run.
+
+This approach is also not multiplatform friendly (cc'ing Eric and
+Nicolas who are working on ARM multiplatform).  It won't work for
+building a kernel that supports, say, both versatile and OMAP.
+
+The kernel already has the facility to do what you need.  We talked
+about it briefly at ELC, and now that I look at it closer, I thing
+gregkh is absolutely right.  Just create a new bus type for OMAP
+devices.  It is simple to add one.  You can probably even call out to
+the platform bus ops for most of the operations.  The fact that OMAP
+devices have special behaviour that needs to be handled at the bus
+type level means that they are not platform devices anymore.  This
+also eliminates all the omap_device_is_valid and OMAP_DEVICE_MAGIC
+gymnastics.
+
+I see from the comments in omap_device.c that doing an
+omap_bus/omap_device is being considered anyway.  Please don't merge
+this patch and do the omap_bus_type instead.
+
+Also, I notice that most of these hooks open-code the generic versions
+of the runtime hooks.  Instead of open coding it, can the omap hooks
+call the generic hooks before/after doing the omap-specific work?
+
+Cheers,
+g.
 
 >
->>
->> i.e =A0the cpu checks
->>>>>
->>>>> +#ifdef CONFIG_ARCH_OMAP2PLUS
->>>>> + =A0 =A0 =A0 if (cpu_is_omap24xx() || cpu_is_omap34xx() ||
->>>>> cpu_is_omap44xx())
->>
->> =A0^^^ are not needed, as the omap2_check_revision does it anyway.
->>
->> Then eventually omap_is_55xx() would be needed only inside
->> omap2_check_revision, and not in
->> omap_check_revision().
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+> =A0arch/arm/mach-omap2/Makefile | =A0 =A07 +++-
+> =A0arch/arm/mach-omap2/pm_bus.c | =A0 70 ++++++++++++++++++++++++++++=
+++++++++++++++
+> =A02 files changed, 76 insertions(+), 1 deletions(-)
+> =A0create mode 100644 arch/arm/mach-omap2/pm_bus.c
 >
-> yes if we dont depend of if check as I mentioned above, I agree.
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makef=
+ile
+> index ea52b03..8ed47ea 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -46,12 +46,17 @@ obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0+=
+=3D sdrc2xxx.o
+> =A0ifeq ($(CONFIG_PM),y)
+> =A0obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm24xx.o
+> =A0obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D sleep24x=
+x.o
+> -obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm34xx.o s=
+leep34xx.o cpuidle34xx.o
+> +obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm34xx.o s=
+leep34xx.o cpuidle34xx.o \
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0pm_bus.o
+> =A0obj-$(CONFIG_PM_DEBUG) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm-deb=
+ug.o
 >
-> option a: as above
-> option b:
-> +#ifdef CONFIG_ARCH_OMAP1
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap1_check_revision();
-> +#endif
-> +#ifdef CONFIG_ARCH_OMAP2PLUS
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap2_check_revision();
-> +#endif
+> =A0AFLAGS_sleep24xx.o =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 :=3D-Wa=
+,-march=3Darmv6
+> =A0AFLAGS_sleep34xx.o =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 :=3D-Wa=
+,-march=3Darmv7-a
 >
-> I know this is what Tarun and you are proposing, i dont have a strong
-> feeling against it if community is aligned on it.
->>
+> +ifeq ($(CONFIG_PM_VERBOSE),y)
+> +CFLAGS_pm_bus.o =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0+=3D -DDEBUG
+> +endif
+> +
+> =A0endif
+>
+> =A0# PRCM
+> diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_bu=
+s.c
+> new file mode 100644
+> index 0000000..9719a9f
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/pm_bus.c
+> @@ -0,0 +1,70 @@
+> +/*
+> + * Runtime PM support code for OMAP
+> + *
+> + * Author: Kevin Hilman, Deep Root Systems, LLC
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + *
+> + * This file is licensed under the terms of the GNU General Public
+> + * License version 2. This program is licensed "as is" without any
+> + * warranty of any kind, whether express or implied.
+> + */
+> +#include <linux/init.h>
+> +#include <linux/kernel.h>
+> +#include <linux/io.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/mutex.h>
+> +
+> +#include <plat/omap_device.h>
+> +#include <plat/omap-pm.h>
+> +
+> +#ifdef CONFIG_PM_RUNTIME
+> +int platform_pm_runtime_suspend(struct device *dev)
+> +{
+> + =A0 =A0 =A0 struct platform_device *pdev =3D to_platform_device(dev=
+);
+> + =A0 =A0 =A0 struct omap_device *odev =3D to_omap_device(pdev);
+> + =A0 =A0 =A0 int r, ret =3D 0;
+> +
+> + =A0 =A0 =A0 dev_dbg(dev, "%s\n", __func__);
+> +
+> + =A0 =A0 =A0 if (dev->driver->pm && dev->driver->pm->runtime_suspend=
+)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D dev->driver->pm->runtime_suspen=
+d(dev);
+> + =A0 =A0 =A0 if (!ret && omap_device_is_valid(odev)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D omap_device_idle(pdev);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN_ON(r);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 return ret;
+> +};
+> +
+> +int platform_pm_runtime_resume(struct device *dev)
+> +{
+> + =A0 =A0 =A0 struct platform_device *pdev =3D to_platform_device(dev=
+);
+> + =A0 =A0 =A0 struct omap_device *odev =3D to_omap_device(pdev);
+> + =A0 =A0 =A0 int r, ret =3D 0;
+> +
+> + =A0 =A0 =A0 dev_dbg(dev, "%s\n", __func__);
+> +
+> + =A0 =A0 =A0 if (omap_device_is_valid(odev)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D omap_device_enable(pdev);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN_ON(r);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 if (dev->driver->pm && dev->driver->pm->runtime_resume)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D dev->driver->pm->runtime_resume=
+(dev);
+> +
+> + =A0 =A0 =A0 return ret;
+> +};
+> +
+> +int platform_pm_runtime_idle(struct device *dev)
+> +{
+> + =A0 =A0 =A0 int ret;
+> +
+> + =A0 =A0 =A0 ret =3D pm_runtime_suspend(dev);
+> + =A0 =A0 =A0 dev_dbg(dev, "%s [%d]\n", __func__, ret);
+> +
+> + =A0 =A0 =A0 return 0;
+> +};
+> +#endif /* CONFIG_PM_RUNTIME */
+> +
+> --
+> 1.7.0.2
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
+
+
+
+--=20
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
