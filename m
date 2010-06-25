@@ -1,98 +1,92 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [pm-wip/uart][PATCH] Serial: Avoid populating uart_list in early  init phase
-Date: Fri, 25 Jun 2010 09:23:02 -0700
-Message-ID: <871vbvt72x.fsf@deeprootsystems.com>
-References: <61551.192.168.10.88.1277384156.squirrel@dbdmail.itg.ti.com>
-	<87zkykxdqe.fsf@deeprootsystems.com>
-	<17901.10.24.255.17.1277473301.squirrel@dbdmail.itg.ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/9 v2] omap: generic: introduce a single check_revision
+Date: Fri, 25 Jun 2010 11:24:01 -0500
+Message-ID: <4C24D821.2050207@ti.com>
+References: <1277472414-8676-1-git-send-email-nm@ti.com>	<5A47E75E594F054BAF48C5E4FC4B92AB032366B404@dbde02.ent.ti.com>	<4C24B54A.7050005@ti.com>	<AANLkTinU4sQuZJmiqNWtIL8a68onvZeaMByI7XYME14v@mail.gmail.com>	<4C24C097.70503@ti.com> <AANLkTimXf-dV1cWYhmAvVK2k9pGof1UNkInz8dUfZkDW@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:61935 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752605Ab0FYQXH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 12:23:07 -0400
-Received: by pvg2 with SMTP id 2so927157pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 09:23:07 -0700 (PDT)
-In-Reply-To: <17901.10.24.255.17.1277473301.squirrel@dbdmail.itg.ti.com>
-	(Govindraj R.'s message of "Fri, 25 Jun 2010 19:11:41 +0530 (IST)")
+Received: from devils.ext.ti.com ([198.47.26.153]:37586 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752540Ab0FYQYL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 12:24:11 -0400
+In-Reply-To: <AANLkTimXf-dV1cWYhmAvVK2k9pGof1UNkInz8dUfZkDW@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+S, Venkatraman had written, on 06/25/2010 10:16 AM, the following:
+> On Fri, Jun 25, 2010 at 8:13 PM, Nishanth Menon <nm@ti.com> wrote:
+>> S, Venkatraman had written, on 06/25/2010 09:38 AM, the following:
+>>> On Fri, Jun 25, 2010 at 7:25 PM, Nishanth Menon <nm@ti.com> wrote:
+>>>> DebBarma, Tarun Kanti had written, on 06/25/2010 08:50 AM, the following:
 
-> Leave the uart_list empty and keep the omap hwmod info
-> in a seperate uart_oh list and if board file calls
-> serial init use this uart_oh list info to fill uart_list.
-> The board file can also call just init_port to initialise
-> a single uart instance, so make init_port flexible to handle
-> individual uart instance by avoiding filling uart_list
-> in any non port_init function.
->
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> ---
-> As per earlier dicussion:
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31157.html
+[...]
+>>>>>> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+>>>>>> index fca73cd..f240d9a 100644
+>>>>>> --- a/arch/arm/plat-omap/common.c
+>>>>>> +++ b/arch/arm/plat-omap/common.c
+>>>>>> @@ -89,6 +89,18 @@ void __init omap_reserve(void)
+>>>>>>       omap_vram_reserve_sdram_lmb();
+>>>>>>  }
+>>>>>>
+>>>>>> +void __init omap_check_revision(void)
+>>>>>> +{
+>>>>>> +#ifdef CONFIG_ARCH_OMAP1
+>>>>>> +       if (cpu_is_omap7xx() || cpu_is_omap15xx() || cpu_is_omap16xx())
+>>>>>> +               omap1_check_revision();
+>>>>>> +#endif
+>>>>>> +#ifdef CONFIG_ARCH_OMAP2PLUS
+>>>>>> +       if (cpu_is_omap24xx() || cpu_is_omap34xx() ||
+>>>>>> cpu_is_omap44xx())
+>>>>>> +               omap2_check_revision();
+>>>>>> +#endif
+>>>>>> +}
+>>>>> Inside omap2_check_revision() there is already check for cpu type. So do
+>>>>> we need to have it here? Here is the code snippet!!
+>>>>>
+>>>>> void __init omap2_check_revision(void)
 
-Thanks.
+[...]
 
-Your inline patch is still getting mangled somehow.  It looks like
-you're using a webmail client (SquirrelMail) that seems to be altering
-the whitespace in the patch.  The attached .zip worked fine.  Please
-spend some time figuring out how to use git send-email directly
+>>>> My rationale for doing it is to allow for a single OMAP build for both
+>>>> omap1
+>>>> and omap2+ in which case the cpu_is check makes sense.
+>>>> we have two choices:
+>>>> a) remove the hope of having a single omap build (and the above logic is
+>>>> a
+>>>> bit simpler.
+>>> I think Tarun Kanti intended to point out the redundancy within the
+>>> OMAP2PLUS build path.
+>> yes I am aware of that. but consider the following:
+>> CONFIG_ARCH_OMAP1 and CONFIG_ARCH_OMAP2PLUS being defined at the same time.
+>>
+>> the logic will enter without a reason for it to do so, instead it will print
+>> OMAP revision unknown for OMAP1 - not desired.
+> 
+> AFAIK, Tony has ruled out OMAP1 _and_ OMAP2+ multi-omap build.
 
-However, I just discovered another snag...
+Thanks for clarifying. my bad.. missed that thread :(.
 
-I did some more testing on Zoom3 and discovered that because we do the
-HWMOD_INIT_NO_IDLE, and omap_serial_init[_port] is never called on Zoom3
-(since it only uses debug board UART) the UART hwmods are left active 
-are never disabled (since they are not used.)  This prevents retention :(
+Will post a v3 - do feel free to review and reviewd/Ack if you find it ok.
 
-So, here's an idea... (I know, you're growing more and more to not like
-my ideas that are going around in circles... sorry about that)
+> If it was indeed possible, then
+> a) #ifdefs are not needed
+ofcourse :)
 
-The ultimate goal is fix up all this serial.c hackery by getting your
-OMAP serial driver upstream and moving PM handling there, so lets focus
-on that instead of continuing to make this hacky layer perfect.
+> b) omap2_check_revision() shouldn't emit the warning, as it doesn't
+> cater to all SoCs.
+>   omap99_check_revision() could be in the later code path of
+> omap_check_revision()
+> 
+hmm.. This will not be relevant anymore. will post a v3 which assumes 
+that omap1 and omap2 are independent.
+the headers ensure that null functions are introduced when the defines 
+are not present.
 
-So for now, lets accept that with our current serial.c layer, we have to
-always initialize all the UARTs for our PM core to work.  Currently,
-Zoom2/3 are the only ones not doing that, so lets just change that until
-we get your OMAP serial driver merged.
-
-The patch below does it for Zoom3, can you test and do similar for
-Zoom2?  Note that the default console will need to be changed to ttyS4
-(Zoom3) and ttyS3 (Zoom2) after this patch.
-
-Thanks,
-
-Kevin
-
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-index 1d7f827..9307f58 100644
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -96,7 +96,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 
- static struct platform_device zoom_debugboard_serial_device = {
- 	.name			= "serial8250",
--	.id			= PLAT8250_DEV_PLATFORM,
-+	.id			= PLAT8250_DEV_PLATFORM + 4,
- 	.dev			= {
- 		.platform_data	= serial_platform_data,
- 	},
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index 3314704..ff3b144 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -65,6 +65,7 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- static void __init omap_zoom_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
-+	omap_serial_init();
- 	zoom_peripherals_init();
- 	zoom_debugboard_init();
- 
+[...]
+-- 
+Regards,
+Nishanth Menon
