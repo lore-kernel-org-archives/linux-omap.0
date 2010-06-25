@@ -1,137 +1,49 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH:v4 12/13] OMAP: GPIO: Implement GPIO as a platform device
-Date: Fri, 25 Jun 2010 16:36:18 -0700
-Message-ID: <87lja28z2l.fsf@deeprootsystems.com>
-References: <1277218916-15213-1-git-send-email-charu@ti.com>
-	<1277218916-15213-2-git-send-email-charu@ti.com>
-	<1277218916-15213-3-git-send-email-charu@ti.com>
-	<1277218916-15213-4-git-send-email-charu@ti.com>
-	<1277218916-15213-5-git-send-email-charu@ti.com>
-	<1277218916-15213-6-git-send-email-charu@ti.com>
-	<1277218916-15213-7-git-send-email-charu@ti.com>
-	<1277218916-15213-8-git-send-email-charu@ti.com>
-	<1277218916-15213-9-git-send-email-charu@ti.com>
-	<1277218916-15213-10-git-send-email-charu@ti.com>
-	<1277218916-15213-11-git-send-email-charu@ti.com>
-	<1277218916-15213-12-git-send-email-charu@ti.com>
-	<1277218916-15213-13-git-send-email-charu@ti.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH v2 1/3] OMAP: PM: initial runtime PM core support
+Date: Fri, 25 Jun 2010 19:46:05 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1006251941190.24097@xanadu.home>
+References: <1277422991-25350-1-git-send-email-khilman@deeprootsystems.com>
+ <1277422991-25350-2-git-send-email-khilman@deeprootsystems.com>
+ <AANLkTim4p54brsmph6oaKfoEZwO1GOGfgRNV9vJykOjl@mail.gmail.com>
+ <20100625200659.GB22090@n2100.arm.linux.org.uk>
+ <AANLkTikYE6Kg8C_ZClx9aKLvOa9CQRUT587hQnB91sua@mail.gmail.com>
+ <20100625202002.GC22090@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="Boundary_(ID_sdymeHNpOcde8gM8Q5CRLA)"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:50822 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245Ab0FYXgW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 19:36:22 -0400
-Received: by pvg2 with SMTP id 2so1080708pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 16:36:21 -0700 (PDT)
-In-Reply-To: <1277218916-15213-13-git-send-email-charu@ti.com> (Charulatha
-	V.'s message of "Tue, 22 Jun 2010 20:31:55 +0530")
+Received: from relais.videotron.ca ([24.201.245.36]:20753 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026Ab0FYXqI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 19:46:08 -0400
+Received: from xanadu.home ([66.130.28.92]) by VL-MO-MR006.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0L4L007L2GOTGT20@VL-MO-MR006.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Fri, 25 Jun 2010 19:46:05 -0400 (EDT)
+In-reply-to: <20100625202002.GC22090@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charulatha V <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, p-basak2@ti.com, b-cousson@ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@deeprootsystems.com>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Charulatha V <charu@ti.com> writes:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> This patch implements GPIO as a platform device. Also it
-> implements OMAP2PLUS specific GPIO as HWMOD FW adapted device.
-> This patch makes GPIO to use runtime APIs.
->
-> GPIO APIs are used in machine_init functions. Hence it is
-> required to complete GPIO probe before machine_init. Therefore
-> GPIO device register and driver register are implemented as
-> postcore_initcalls.
->
-> Inorder to convert GPIO as platform device, modifications are
-> required in clockxxxx_data.c file for OMAP1 so that device names
-> can be used to obtain clock instead of getting clocks by
-> name/NULL ptr.
->
-> omap_gpio_init() does nothing now and this function would be
-> removed in the next patch as it's usage is spread across most of
-> the board files.
->
-> TODO:
-> 1. Cleanup the GPIO driver. Use function pointers and register
-> offest pointers instead of using hardcoded values
-> 2. Remove all cpu_is_ checks and OMAP specific macros
-> 3. Remove usage of gpio_bank array so that only
-> instance specific information is used in driver code
-> 4. Modify save/restore context, gpio_prepare_for_idle,
-> and gpio_resume_after_idle functions as instance
-> specific function and not for all instances in a single call
+--Boundary_(ID_sdymeHNpOcde8gM8Q5CRLA)
+Content-type: TEXT/PLAIN; charset=ISO-8859-15
+Content-transfer-encoding: 8BIT
 
-init_gpio_info() too.
+On Fri, 25 Jun 2010, Russell King - ARM Linux wrote:
 
-I think this item (TODO #4) needs to be done as part of this series, as
-this new generic driver needs to be completely ignorant of how many
-banks are on chip, or currently in use.  All operations should be on a
-single device (in this case, a single GPIO bank.)
+> Does anyone know where we are on the defconfig problem?  From what I
+> can see, it's mostly stalled for the time being, which is not good
+> news for us.
 
-As each hwmod has its own device, it can have it's own independent
-suspend/resume.  To do this, you should remove the sysdev_class and
-sys_device just use the regular device.  Here's a little patch[1] on top
-of your current series that shows how you would hook up the standard PM
-methods.  Also, the prepare_for_idle, resume_from_idle should be handled
-by the runtime PM callbacks.
-
-With the save/restore context handled on demand (when mod_usage
-transitions to/from zero), and the runtime PM calls handled from within
-the driver, we could get rid of all the GPIO calls from
-omap_sram_idle().  That would be a huge improvement.
-
-Kevin
-
-[1] compile-tested only
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 6dc5e4b..6a5a8f4 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -2091,10 +2091,44 @@ void omap_gpio_restore_context(void)
- }
- #endif
- 
-+static int gpio_bank_suspend(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static int gpio_bank_resume(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static int gpio_bank_runtime_idle(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static int gpio_bank_runtime_suspend(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static int gpio_bank_runtime_resume(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static struct dev_pm_ops gpio_pm_ops = {
-+	.suspend	 = gpio_bank_suspend,
-+	.resume		 = gpio_bank_resume,
-+	.runtime_idle	 = gpio_bank_runtime_idle,
-+	.runtime_suspend = gpio_bank_runtime_suspend,
-+	.runtime_resume	 = gpio_bank_runtime_resume,
-+};
-+
- static struct platform_driver omap_gpio_driver = {
- 	.probe		= omap_gpio_probe,
- 	.driver		= {
- 		.name	= "omap-gpio",
-+		.pm	= &gpio_pm_ops,
- 	},
- };
- 
+What looked to be promizing is the work by Uwe Kleine-König according to 
+the preview he posted on June 10:
+  
+Message-id: <20100610063234.GA22533@pengutronix.de>
 
 
+Nicolas
+
+--Boundary_(ID_sdymeHNpOcde8gM8Q5CRLA)--
