@@ -1,40 +1,183 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 1/4] omap mailbox: extend API to take a callback param
-Date: Fri, 25 Jun 2010 16:20:24 +0300
-Message-ID: <AANLkTinby3nM9OMMBPEjWohsrDlaolMpe1rEx2OrWdPS@mail.gmail.com>
-References: <1277251896-6890-1-git-send-email-ohad@wizery.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4C890B4A@dlee03.ent.ti.com>
-	<AANLkTinS1rPAEu-S-HOtslq7M1WeH3oCkPaeSh__8OIa@mail.gmail.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4C8912F7@dlee03.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 6/9 v2] omap: move generic omap3 features to generic
+Date: Fri, 25 Jun 2010 08:26:54 -0500
+Message-ID: <1277472414-8676-2-git-send-email-nm@ti.com>
+References: <[PATCH 3/9] omap: generic: introduce a single check_revision>
+ <1277472414-8676-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:56263 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753404Ab0FYNUp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 09:20:45 -0400
-Received: by wwi17 with SMTP id 17so1050822wwi.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 06:20:44 -0700 (PDT)
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4C8912F7@dlee03.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56890 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755398Ab0FYN1E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Jun 2010 09:27:04 -0400
+In-Reply-To: <1277472414-8676-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Senthilvadivu Gurusamy <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Vishwanath S <vishwa.s@ti.com>, linux-omap@vger.kernel.org
 
-On Fri, Jun 25, 2010 at 3:52 AM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
-> I don't know what PCMIIW stands for :)
+sgx, iva, l2cache, sgx, neon, isp are generic features, make
+them generic features, current OMAP3 detection mechanism
+is still retained. 192Mhz is more specific OMAP3 feature
+so it is retained as is
 
-please correct me if I'm wrong :)
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Angelo Arrifano <miknix@gmail.com>
+Cc: "Zebediah C. McClure" <zmc@lurian.net>
+Cc: Alistair Buxton <a.j.buxton@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Senthilvadivu Gurusamy <svadivu@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Vishwanath S <vishwa.s@ti.com>
+Cc: linux-omap@vger.kernel.org
 
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+V2: rebased patch after changes to 3/9
+V1: original
+ arch/arm/mach-omap2/id.c              |   20 ++++++++--------
+ arch/arm/plat-omap/common.c           |    4 +++
+ arch/arm/plat-omap/include/plat/cpu.h |   39 +++++++++++++++++++-------------
+ 3 files changed, 37 insertions(+), 26 deletions(-)
 
-> It looks like the variable mbox_configured that was added previously doesn't cover all the issues. It covers the shutdown issue with reference counting but as you mentioned that it poses an issue at startup as the RX interrupt for the second mbox instance doesn't get enabled.
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 809e13a..01555b6 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -161,7 +161,7 @@ static void __init omap24xx_check_revision(void)
+ #define OMAP3_CHECK_FEATURE(status,feat)				\
+ 	if (((status & OMAP3_ ##feat## _MASK) 				\
+ 		>> OMAP3_ ##feat## _SHIFT) != FEAT_ ##feat## _NONE) { 	\
+-		omap3_features |= OMAP3_HAS_ ##feat;			\
++		omap_features |= OMAP_HAS_ ##feat;			\
+ 	}
+ 
+ static void __init omap3_check_features(void)
+@@ -310,20 +310,20 @@ static void __init omap3_cpuinfo(void)
+ 		/*
+ 		 * AM35xx devices
+ 		 */
+-		if (omap3_has_sgx()) {
++		if (omap_has_sgx()) {
+ 			omap_revision = OMAP3517_REV(rev);
+ 			strcpy(cpu_name, "AM3517");
+ 		} else {
+ 			/* Already set in omap3_check_revision() */
+ 			strcpy(cpu_name, "AM3505");
+ 		}
+-	} else if (omap3_has_iva() && omap3_has_sgx()) {
++	} else if (omap_has_iva() && omap_has_sgx()) {
+ 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
+ 		strcpy(cpu_name, "OMAP3430/3530");
+-	} else if (omap3_has_iva()) {
++	} else if (omap_has_iva()) {
+ 		omap_revision = OMAP3525_REV(rev);
+ 		strcpy(cpu_name, "OMAP3525");
+-	} else if (omap3_has_sgx()) {
++	} else if (omap_has_sgx()) {
+ 		omap_revision = OMAP3515_REV(rev);
+ 		strcpy(cpu_name, "OMAP3515");
+ 	} else {
+@@ -354,11 +354,11 @@ static void __init omap3_cpuinfo(void)
+ 	/* Print verbose information */
+ 	pr_info("%s ES%s (", cpu_name, cpu_rev);
+ 
+-	OMAP_SHOW_FEATURE(3, l2cache);
+-	OMAP_SHOW_FEATURE(3, iva);
+-	OMAP_SHOW_FEATURE(3, sgx);
+-	OMAP_SHOW_FEATURE(3, neon);
+-	OMAP_SHOW_FEATURE(3, isp);
++	OMAP_SHOW_FEATURE(, l2cache);
++	OMAP_SHOW_FEATURE(, iva);
++	OMAP_SHOW_FEATURE(, sgx);
++	OMAP_SHOW_FEATURE(, neon);
++	OMAP_SHOW_FEATURE(, isp);
+ 	OMAP_SHOW_FEATURE(3, 192mhz_clk);
+ 
+ 	printk(")\n");
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index f240d9a..60db750 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -89,6 +89,10 @@ void __init omap_reserve(void)
+ 	omap_vram_reserve_sdram_lmb();
+ }
+ 
++/* OMAP Generic features */
++u32 omap_features;
++EXPORT_SYMBOL(omap_features);
++
+ void __init omap_check_revision(void)
+ {
+ #ifdef CONFIG_ARCH_OMAP1
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index f8ecbc4..3cc4947 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -331,14 +331,14 @@ IS_OMAP_TYPE(3517, 0x3517)
+ # undef cpu_is_omap3517
+ # define cpu_is_omap3430()		is_omap3430()
+ # define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
+-						(!omap3_has_iva()) &&	\
+-						(!omap3_has_sgx()))
++						(!omap_has_iva()) &&	\
++						(!omap_has_sgx()))
+ # define cpu_is_omap3515()		(cpu_is_omap3430() &&		\
+-						(!omap3_has_iva()) &&	\
+-						(omap3_has_sgx()))
++						(!omap_has_iva()) &&	\
++						(omap_has_sgx()))
+ # define cpu_is_omap3525()		(cpu_is_omap3430() &&		\
+-						(!omap3_has_sgx()) &&	\
+-						(omap3_has_iva()))
++						(!omap_has_sgx()) &&	\
++						(omap_has_iva()))
+ # define cpu_is_omap3530()		(cpu_is_omap3430())
+ # define cpu_is_omap3505()		is_omap3505()
+ # define cpu_is_omap3517()		is_omap3517()
+@@ -457,22 +457,29 @@ static inline unsigned int omap##rev##_has_ ##feat(void)		\
+ }									\
+ 
+ /*
++ * Runtime detection of Generic OMAP features
++ */
++extern u32 omap_features;
++
++#define OMAP_HAS_L2CACHE		BIT(0)
++#define OMAP_HAS_IVA			BIT(1)
++#define OMAP_HAS_SGX			BIT(2)
++#define OMAP_HAS_NEON			BIT(3)
++#define OMAP_HAS_ISP			BIT(4)
++
++OMAP_HAS_FEATURE(, l2cache, L2CACHE)
++OMAP_HAS_FEATURE(, sgx, SGX)
++OMAP_HAS_FEATURE(, iva, IVA)
++OMAP_HAS_FEATURE(, neon, NEON)
++OMAP_HAS_FEATURE(, isp, ISP)
++
++/*
+  * Runtime detection of OMAP3 features
+  */
+ extern u32 omap3_features;
+ 
+-#define OMAP3_HAS_L2CACHE		BIT(0)
+-#define OMAP3_HAS_IVA			BIT(1)
+-#define OMAP3_HAS_SGX			BIT(2)
+-#define OMAP3_HAS_NEON			BIT(3)
+-#define OMAP3_HAS_ISP			BIT(4)
+ #define OMAP3_HAS_192MHZ_CLK		BIT(5)
+ 
+-OMAP_HAS_FEATURE(3, l2cache, L2CACHE)
+-OMAP_HAS_FEATURE(3, sgx, SGX)
+-OMAP_HAS_FEATURE(3, iva, IVA)
+-OMAP_HAS_FEATURE(3, neon, NEON)
+-OMAP_HAS_FEATURE(3, isp, ISP)
+ OMAP_HAS_FEATURE(3, 192mhz_clk, 192MHZ_CLK)
+ 
+ #endif
+-- 
+1.6.3.3
 
-
-yeah.
-
-
-> -- Even though this might not be relevant to mbox_configured issue, this looks like a nice feature to add. So this means we are going to support multiple writers to mailbox instance?
-
-
-yes, multiple writers, but also it will allow multiple readers.
