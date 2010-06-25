@@ -1,84 +1,60 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PM-SR] [PATCH 5/7] omap3: sr: device: add unlikely checks
-Date: Fri, 25 Jun 2010 16:46:38 -0500
-Message-ID: <1277502400-9915-6-git-send-email-nm@ti.com>
-References: <1277502400-9915-1-git-send-email-nm@ti.com>
+Subject: [PM-SR] [PATCH 0/7] Janitor series 2: cleanups
+Date: Fri, 25 Jun 2010 16:46:33 -0500
+Message-ID: <1277502400-9915-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53627 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:40636 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932088Ab0FYVqq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S932065Ab0FYVqq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 25 Jun 2010 17:46:46 -0400
-In-Reply-To: <1277502400-9915-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
 
-Add unlikely checks to better optimize the rare occurrance of
-erroneous conditions.
+More misc cleanups for Sr branch including print cleans, checks etc.
+This series probably should be squashed with other patches in pm-sr
+branch. note some of these patches address few other comments I had
+made in an unrelated patch.
+
+Related comments prior to providing patches:
+
+a) I looked close into sr_device.c, I dont think we should
+decide in sr_device.c if SR is enabled by default or not. IMHO, this
+should be passed on from board files. it is not the sr_device's call
+to make. we have boards which are comfortable with SR and which are not.
+example some boards may choose to enable SR late in the game, while
+some may choose to enable it by default. we need to cater to both.
+
+e.g. currently 3430 es3.1 would have SR enabled by default. N900 as an
+example chooses to allow users to decide what to have and is enabled
+late in the game (boots up disabled, gets enabled once userspace starts).
+
+
+b) It assumes that 3630 have ntargets - this is true from ES1.1 onwards.
+the older silicon dont have ntargets fused in them.
+
+How do we want to handle these?
+
+This is the second series independent of series 1:
+http://marc.info/?l=linux-omap&m=127741497415352&w=2
+
+Nishanth Menon (7):
+  omap3: voltage: cleanup pr_xxxx
+  omap3: sr: cleanup pr_xxx
+  omap3: sr: enable/disable sr only if required
+  omap3: sr: device: cleanup pr_xxx
+  omap3: sr: device: add unlikely checks
+  omap3: sr: device: check for dev_attr
+  omap3: sr: device: fail sr_dev_init should return error
+
+ arch/arm/mach-omap2/smartreflex.c |   24 ++++++++++++++++++------
+ arch/arm/mach-omap2/sr_device.c   |   29 +++++++++++++++++++----------
+ arch/arm/mach-omap2/voltage.c     |    7 ++++---
+ 3 files changed, 41 insertions(+), 19 deletions(-)
+
+Regards,
+Nishanth Menon
 
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Thara Gopinath <thara@ti.com>
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/sr_device.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index 7d13704..177299a 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -43,8 +43,9 @@ static void __init sr_read_efuse(struct omap_sr_dev_data *dev_data,
- {
- 	int i;
- 
--	if (!dev_data || !dev_data->volts_supported || !dev_data->volt_data ||
--			!dev_data->efuse_nvalues_offs) {
-+	if (unlikely(!dev_data || !dev_data->volts_supported ||
-+			!dev_data->volt_data ||
-+			!dev_data->efuse_nvalues_offs)) {
- 		pr_warning("%s: Bad parameters! dev_data = %x,"
- 			"dev_data->volts_supported = %x,"
- 			"dev_data->volt_data = %x,"
-@@ -87,8 +88,8 @@ static void __init sr_set_testing_nvalues(struct omap_sr_dev_data *dev_data,
- {
- 	int i;
- 
--	if (!dev_data || !dev_data->volts_supported ||
--			!dev_data->volt_data || !dev_data->test_nvalues) {
-+	if (unlikely(!dev_data || !dev_data->volts_supported ||
-+			!dev_data->volt_data || !dev_data->test_nvalues)) {
- 		pr_warning("%s: Bad parameters! dev_data = %x,"
- 			"dev_data->volts_supported = %x,"
- 			"dev_data->volt_data = %x,"
-@@ -123,7 +124,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
- 	static int i;
- 
- 	sr_data = kzalloc(sizeof(struct omap_sr_data), GFP_KERNEL);
--	if (!sr_data) {
-+	if (unlikely(!sr_data)) {
- 		pr_err("%s: Unable to allocate memory for %s sr_data.Error!\n",
- 			__func__, oh->name);
- 		return -ENOMEM;
-@@ -150,7 +151,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
- 	sr_data->device_idle = omap_device_idle;
- 	sr_dev_data->volts_supported = omap_get_voltage_table(i,
- 				&sr_dev_data->volt_data);
--	if (!sr_dev_data->volts_supported) {
-+	if (unlikely(!sr_dev_data->volts_supported)) {
- 		pr_warning("%s: No Voltage table registerd fo VDD%d. "
- 				"Something is really wrong\n",
- 				__func__, i + 1);
-@@ -162,7 +163,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
- 	od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
- 			       omap_sr_latency,
- 			       ARRAY_SIZE(omap_sr_latency), 0);
--	if (IS_ERR(od)) {
-+	if (unlikely(IS_ERR(od))) {
- 		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
- 			__func__, name, oh->name);
- 		kfree(sr_data);
--- 
-1.6.3.3
-
