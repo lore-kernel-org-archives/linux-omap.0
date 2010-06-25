@@ -1,44 +1,87 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] Add OMAP4 Panda Support
-Date: Fri, 25 Jun 2010 06:59:09 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032194B79C@dbde02.ent.ti.com>
-References: <1277407989-30914-1-git-send-email-x0132446@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: [PATCHv3 1/1] OMAP3: AM3505/3517 do not have IO wakeup capability
+Date: Fri, 25 Jun 2010 14:53:46 +0800
+Message-ID: <1277448826-20006-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45781 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752024Ab0FYB3Q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jun 2010 21:29:16 -0400
-In-Reply-To: <1277407989-30914-1-git-send-email-x0132446@ti.com>
-Content-Language: en-US
+Received: from mail.windriver.com ([147.11.1.11]:37877 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751324Ab0FYGlS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 02:41:18 -0400
+Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
+	by mail.windriver.com (8.14.3/8.14.3) with ESMTP id o5P6fI6U019490
+	for <linux-omap@vger.kernel.org>; Thu, 24 Jun 2010 23:41:18 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Anders, David" <x0132446@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
-> +static void __init omap4_panda_init(void)
-> +{
-> +	int status;
-> +
-> +	omap4_panda_i2c_init();
-> +	omap_serial_init();
-> +	omap4_twl6030_hsmmc_init(mmc);
-> +	/* OMAP4 Panda uses internal transceiver so register nop transceiver */
-> +	usb_nop_xceiv_register();
-> +	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
-> +	if (!cpu_is_omap44xx())
-> +		usb_musb_init(&musb_board_data);
-> +}
+AM3505/3517 don't have IO wakeup capability, so we don not need to set
+the bit OMAP3430_EN_IO and the bit OMAP3430_EN_IO_CHAIN in the register
+PM_WKEN_WKUP when the system enters retention.
 
-Dave,
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+---
+ arch/arm/mach-omap2/id.c              |    2 ++
+ arch/arm/mach-omap2/pm34xx.c          |    7 ++++---
+ arch/arm/plat-omap/include/plat/cpu.h |    2 ++
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
-I think this should be resolved by now - the OMAP4 MUSB support went
-through linux-usb for .35-rc1. So it should be safe to call
-usb_musb_init() unconditionally.
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 37b8a1a..67bd971 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -179,6 +179,8 @@ void __init omap3_check_features(void)
+ 	OMAP3_CHECK_FEATURE(status, ISP);
+ 	if (cpu_is_omap3630())
+ 		omap3_features |= OMAP3_HAS_192MHZ_CLK;
++	if (!cpu_is_omap3505() && !cpu_is_omap3517())
++		omap3_features |= OMAP3_HAS_IO_WAKEUP;
+ 
+ 	/*
+ 	 * TODO: Get additional info (where applicable)
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index b88737f..fb4994a 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -385,8 +385,9 @@ void omap_sram_idle(void)
+ 	/* Enable IO-PAD and IO-CHAIN wakeups */
+ 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+ 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+-	if (per_next_state < PWRDM_POWER_ON ||
+-			core_next_state < PWRDM_POWER_ON) {
++	if (omap3_has_io_wakeup() && \
++			(per_next_state < PWRDM_POWER_ON ||
++			core_next_state < PWRDM_POWER_ON)) {
+ 		prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
+ 		omap3_enable_io_chain();
+ 	}
+@@ -479,7 +480,7 @@ void omap_sram_idle(void)
+ 	}
+ 
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+-	if (core_next_state < PWRDM_POWER_ON) {
++	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
+ 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
+ 		omap3_disable_io_chain();
+ 	}
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 7514174..aa2f4f0 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -444,6 +444,7 @@ extern u32 omap3_features;
+ #define OMAP3_HAS_NEON			BIT(3)
+ #define OMAP3_HAS_ISP			BIT(4)
+ #define OMAP3_HAS_192MHZ_CLK		BIT(5)
++#define OMAP3_HAS_IO_WAKEUP		BIT(6)
+ 
+ #define OMAP3_HAS_FEATURE(feat,flag)			\
+ static inline unsigned int omap3_has_ ##feat(void)	\
+@@ -457,5 +458,6 @@ OMAP3_HAS_FEATURE(iva, IVA)
+ OMAP3_HAS_FEATURE(neon, NEON)
+ OMAP3_HAS_FEATURE(isp, ISP)
+ OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
++OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
+ 
+ #endif
+-- 
+1.5.4.3
 
-(Not actually tested by me yet. I'll try and do this tomorrow).
-
-
-- Anand
