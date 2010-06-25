@@ -1,60 +1,50 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PM-SR] [PATCH 0/7] Janitor series 2: cleanups
-Date: Fri, 25 Jun 2010 16:46:33 -0500
-Message-ID: <1277502400-9915-1-git-send-email-nm@ti.com>
+Subject: [PM-SR] [PATCH 7/7] omap3: sr: device: fail sr_dev_init should return error
+Date: Fri, 25 Jun 2010 16:46:40 -0500
+Message-ID: <1277502400-9915-8-git-send-email-nm@ti.com>
+References: <1277502400-9915-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40636 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932065Ab0FYVqq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Jun 2010 17:46:46 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:53133 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756582Ab0FYVqq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 17:46:46 -0400
+In-Reply-To: <1277502400-9915-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
 
-More misc cleanups for Sr branch including print cleans, checks etc.
-This series probably should be squashed with other patches in pm-sr
-branch. note some of these patches address few other comments I had
-made in an unrelated patch.
-
-Related comments prior to providing patches:
-
-a) I looked close into sr_device.c, I dont think we should
-decide in sr_device.c if SR is enabled by default or not. IMHO, this
-should be passed on from board files. it is not the sr_device's call
-to make. we have boards which are comfortable with SR and which are not.
-example some boards may choose to enable SR late in the game, while
-some may choose to enable it by default. we need to cater to both.
-
-e.g. currently 3430 es3.1 would have SR enabled by default. N900 as an
-example chooses to allow users to decide what to have and is enabled
-late in the game (boots up disabled, gets enabled once userspace starts).
-
-
-b) It assumes that 3630 have ntargets - this is true from ES1.1 onwards.
-the older silicon dont have ntargets fused in them.
-
-How do we want to handle these?
-
-This is the second series independent of series 1:
-http://marc.info/?l=linux-omap&m=127741497415352&w=2
-
-Nishanth Menon (7):
-  omap3: voltage: cleanup pr_xxxx
-  omap3: sr: cleanup pr_xxx
-  omap3: sr: enable/disable sr only if required
-  omap3: sr: device: cleanup pr_xxx
-  omap3: sr: device: add unlikely checks
-  omap3: sr: device: check for dev_attr
-  omap3: sr: device: fail sr_dev_init should return error
-
- arch/arm/mach-omap2/smartreflex.c |   24 ++++++++++++++++++------
- arch/arm/mach-omap2/sr_device.c   |   29 +++++++++++++++++++----------
- arch/arm/mach-omap2/voltage.c     |    7 ++++---
- 3 files changed, 41 insertions(+), 19 deletions(-)
-
-Regards,
-Nishanth Menon
+sr_dev_init should return error on error conditions
 
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Thara Gopinath <thara@ti.com>
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/sr_device.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index 81d2532..945ff45 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -163,7 +163,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 				__func__, i + 1);
+ 		i++;
+ 		kfree(sr_data);
+-		return 0;
++		return -ENODATA;
+ 	}
+ 	sr_set_nvalues(sr_dev_data, sr_data);
+ 	od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
+@@ -173,6 +173,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
+ 			__func__, name, oh->name);
+ 		kfree(sr_data);
++		return PTR_ERR(od);
+ 	}
+ 	i++;
+ 	return 0;
+-- 
+1.6.3.3
+
