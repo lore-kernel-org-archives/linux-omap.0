@@ -1,28 +1,26 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 6/9 v2] omap: move generic omap3 features to generic
-Date: Fri, 25 Jun 2010 08:26:54 -0500
-Message-ID: <1277472414-8676-2-git-send-email-nm@ti.com>
+Subject: [PATCH 3/9 v2] omap: generic: introduce a single check_revision
+Date: Fri, 25 Jun 2010 08:26:53 -0500
+Message-ID: <1277472414-8676-1-git-send-email-nm@ti.com>
 References: <[PATCH 3/9] omap: generic: introduce a single check_revision>
- <1277472414-8676-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56890 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43557 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755398Ab0FYN1E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Jun 2010 09:27:04 -0400
-In-Reply-To: <1277472414-8676-1-git-send-email-nm@ti.com>
+	id S1755398Ab0FYN1H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Jun 2010 09:27:07 -0400
+In-Reply-To: <[PATCH 3/9] omap: generic: introduce a single check_revision>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Paul Walmsley <paul@pwsan.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Senthilvadivu Gurusamy <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Vishwanath S <vishwa.s@ti.com>, linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Senthilvadivu Gurusamy <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Vishwanath S <vishwa.s@ti.com>, linux-omap@vger.kernel.org
 
-sgx, iva, l2cache, sgx, neon, isp are generic features, make
-them generic features, current OMAP3 detection mechanism
-is still retained. 192Mhz is more specific OMAP3 feature
-so it is retained as is
+Introduce a single omap generic check_revision that routes the
+request to the right revision of check_revision.
 
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Angelo Arrifano <miknix@gmail.com>
 Cc: "Zebediah C. McClure" <zmc@lurian.net>
 Cc: Alistair Buxton <a.j.buxton@gmail.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Sanjeev Premi <premi@ti.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
@@ -36,148 +34,96 @@ Cc: linux-omap@vger.kernel.org
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
-V2: rebased patch after changes to 3/9
+V2: comments from http://marc.info/?t=127725956100006&r=1&w=2
+	fixed
 V1: original
- arch/arm/mach-omap2/id.c              |   20 ++++++++--------
- arch/arm/plat-omap/common.c           |    4 +++
- arch/arm/plat-omap/include/plat/cpu.h |   39 +++++++++++++++++++-------------
- 3 files changed, 37 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap1/io.c              |    3 +--
+ arch/arm/mach-omap2/io.c              |    2 +-
+ arch/arm/plat-omap/common.c           |   12 ++++++++++++
+ arch/arm/plat-omap/include/plat/cpu.h |   13 ++++++++++++-
+ 4 files changed, 26 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 809e13a..01555b6 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -161,7 +161,7 @@ static void __init omap24xx_check_revision(void)
- #define OMAP3_CHECK_FEATURE(status,feat)				\
- 	if (((status & OMAP3_ ##feat## _MASK) 				\
- 		>> OMAP3_ ##feat## _SHIFT) != FEAT_ ##feat## _NONE) { 	\
--		omap3_features |= OMAP3_HAS_ ##feat;			\
-+		omap_features |= OMAP_HAS_ ##feat;			\
- 	}
+diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
+index e4d8680..4f9ee73 100644
+--- a/arch/arm/mach-omap1/io.c
++++ b/arch/arm/mach-omap1/io.c
+@@ -20,7 +20,6 @@
  
- static void __init omap3_check_features(void)
-@@ -310,20 +310,20 @@ static void __init omap3_cpuinfo(void)
- 		/*
- 		 * AM35xx devices
- 		 */
--		if (omap3_has_sgx()) {
-+		if (omap_has_sgx()) {
- 			omap_revision = OMAP3517_REV(rev);
- 			strcpy(cpu_name, "AM3517");
- 		} else {
- 			/* Already set in omap3_check_revision() */
- 			strcpy(cpu_name, "AM3505");
- 		}
--	} else if (omap3_has_iva() && omap3_has_sgx()) {
-+	} else if (omap_has_iva() && omap_has_sgx()) {
- 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
- 		strcpy(cpu_name, "OMAP3430/3530");
--	} else if (omap3_has_iva()) {
-+	} else if (omap_has_iva()) {
- 		omap_revision = OMAP3525_REV(rev);
- 		strcpy(cpu_name, "OMAP3525");
--	} else if (omap3_has_sgx()) {
-+	} else if (omap_has_sgx()) {
- 		omap_revision = OMAP3515_REV(rev);
- 		strcpy(cpu_name, "OMAP3515");
- 	} else {
-@@ -354,11 +354,11 @@ static void __init omap3_cpuinfo(void)
- 	/* Print verbose information */
- 	pr_info("%s ES%s (", cpu_name, cpu_rev);
+ #include "clock.h"
  
--	OMAP_SHOW_FEATURE(3, l2cache);
--	OMAP_SHOW_FEATURE(3, iva);
--	OMAP_SHOW_FEATURE(3, sgx);
--	OMAP_SHOW_FEATURE(3, neon);
--	OMAP_SHOW_FEATURE(3, isp);
-+	OMAP_SHOW_FEATURE(, l2cache);
-+	OMAP_SHOW_FEATURE(, iva);
-+	OMAP_SHOW_FEATURE(, sgx);
-+	OMAP_SHOW_FEATURE(, neon);
-+	OMAP_SHOW_FEATURE(, isp);
- 	OMAP_SHOW_FEATURE(3, 192mhz_clk);
+-extern void omap1_check_revision(void);
+ extern void omap_sram_init(void);
  
- 	printk(")\n");
+ /*
+@@ -102,7 +101,7 @@ void __init omap1_map_common_io(void)
+ 	/* We want to check CPU revision early for cpu_is_omapxxxx() macros.
+ 	 * IO space mapping must be initialized before we can do that.
+ 	 */
+-	omap1_check_revision();
++	omap_check_revision();
+ 
+ #if defined (CONFIG_ARCH_OMAP730) || defined (CONFIG_ARCH_OMAP850)
+ 	if (cpu_is_omap7xx()) {
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 4e1f53d..eeb0e30 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -238,7 +238,7 @@ static void __init _omap2_map_common_io(void)
+ 	local_flush_tlb_all();
+ 	flush_cache_all();
+ 
+-	omap2_check_revision();
++	omap_check_revision();
+ 	omap_sram_init();
+ }
+ 
 diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index f240d9a..60db750 100644
+index fca73cd..f240d9a 100644
 --- a/arch/arm/plat-omap/common.c
 +++ b/arch/arm/plat-omap/common.c
-@@ -89,6 +89,10 @@ void __init omap_reserve(void)
+@@ -89,6 +89,18 @@ void __init omap_reserve(void)
  	omap_vram_reserve_sdram_lmb();
  }
  
-+/* OMAP Generic features */
-+u32 omap_features;
-+EXPORT_SYMBOL(omap_features);
++void __init omap_check_revision(void)
++{
++#ifdef CONFIG_ARCH_OMAP1
++	if (cpu_is_omap7xx() || cpu_is_omap15xx() || cpu_is_omap16xx())
++		omap1_check_revision();
++#endif
++#ifdef CONFIG_ARCH_OMAP2PLUS
++	if (cpu_is_omap24xx() || cpu_is_omap34xx() || cpu_is_omap44xx())
++		omap2_check_revision();
++#endif
++}
 +
- void __init omap_check_revision(void)
- {
- #ifdef CONFIG_ARCH_OMAP1
+ /*
+  * 32KHz clocksource ... always available, on pretty most chips except
+  * OMAP 730 and 1510.  Other timers could be used as clocksources, with
 diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index f8ecbc4..3cc4947 100644
+index 7514174..5f12a0b 100644
 --- a/arch/arm/plat-omap/include/plat/cpu.h
 +++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -331,14 +331,14 @@ IS_OMAP_TYPE(3517, 0x3517)
- # undef cpu_is_omap3517
- # define cpu_is_omap3430()		is_omap3430()
- # define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
--						(!omap3_has_iva()) &&	\
--						(!omap3_has_sgx()))
-+						(!omap_has_iva()) &&	\
-+						(!omap_has_sgx()))
- # define cpu_is_omap3515()		(cpu_is_omap3430() &&		\
--						(!omap3_has_iva()) &&	\
--						(omap3_has_sgx()))
-+						(!omap_has_iva()) &&	\
-+						(omap_has_sgx()))
- # define cpu_is_omap3525()		(cpu_is_omap3430() &&		\
--						(!omap3_has_sgx()) &&	\
--						(omap3_has_iva()))
-+						(!omap_has_sgx()) &&	\
-+						(omap_has_iva()))
- # define cpu_is_omap3530()		(cpu_is_omap3430())
- # define cpu_is_omap3505()		is_omap3505()
- # define cpu_is_omap3517()		is_omap3517()
-@@ -457,22 +457,29 @@ static inline unsigned int omap##rev##_has_ ##feat(void)		\
- }									\
+@@ -431,7 +431,18 @@ IS_OMAP_TYPE(3517, 0x3517)
+ 
+ 
+ int omap_chip_is(struct omap_chip_id oci);
+-void omap2_check_revision(void);
++#ifdef CONFIG_ARCH_OMAP2PLUS
++extern void omap2_check_revision(void);
++#else
++static inline void omap2_check_revision(void) {}
++#endif
++
++#ifdef CONFIG_ARCH_OMAP1
++extern void omap1_check_revision(void);
++#else
++static inline void omap1_check_revision(void) {}
++#endif
++void omap_check_revision(void);
  
  /*
-+ * Runtime detection of Generic OMAP features
-+ */
-+extern u32 omap_features;
-+
-+#define OMAP_HAS_L2CACHE		BIT(0)
-+#define OMAP_HAS_IVA			BIT(1)
-+#define OMAP_HAS_SGX			BIT(2)
-+#define OMAP_HAS_NEON			BIT(3)
-+#define OMAP_HAS_ISP			BIT(4)
-+
-+OMAP_HAS_FEATURE(, l2cache, L2CACHE)
-+OMAP_HAS_FEATURE(, sgx, SGX)
-+OMAP_HAS_FEATURE(, iva, IVA)
-+OMAP_HAS_FEATURE(, neon, NEON)
-+OMAP_HAS_FEATURE(, isp, ISP)
-+
-+/*
   * Runtime detection of OMAP3 features
-  */
- extern u32 omap3_features;
- 
--#define OMAP3_HAS_L2CACHE		BIT(0)
--#define OMAP3_HAS_IVA			BIT(1)
--#define OMAP3_HAS_SGX			BIT(2)
--#define OMAP3_HAS_NEON			BIT(3)
--#define OMAP3_HAS_ISP			BIT(4)
- #define OMAP3_HAS_192MHZ_CLK		BIT(5)
- 
--OMAP_HAS_FEATURE(3, l2cache, L2CACHE)
--OMAP_HAS_FEATURE(3, sgx, SGX)
--OMAP_HAS_FEATURE(3, iva, IVA)
--OMAP_HAS_FEATURE(3, neon, NEON)
--OMAP_HAS_FEATURE(3, isp, ISP)
- OMAP_HAS_FEATURE(3, 192mhz_clk, 192MHZ_CLK)
- 
- #endif
 -- 
 1.6.3.3
 
