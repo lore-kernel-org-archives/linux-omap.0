@@ -1,72 +1,45 @@
 From: Neshama Parhoti <pneshama@gmail.com>
 Subject: Re: ZOOM2 doesn't boot on upstream kernel
-Date: Fri, 25 Jun 2010 17:05:53 +0300
-Message-ID: <AANLkTikkCeusIKA2KyRcVWbxVXKmLA8-_RfC2A4u3ySM@mail.gmail.com>
+Date: Fri, 25 Jun 2010 17:17:06 +0300
+Message-ID: <AANLkTilLQbawpgWRq2aawszYKIdvsC-keyPFoAVTWWnr@mail.gmail.com>
 References: <AANLkTilypMkwLYcpFCI5ZwSKOGHIAwDI7Bp9IdN9UAv_@mail.gmail.com>
 	<2A3DCF3DA181AD40BDE86A3150B27B6B030DED31F3@dbde02.ent.ti.com>
+	<AANLkTikkCeusIKA2KyRcVWbxVXKmLA8-_RfC2A4u3ySM@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55993 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754278Ab0FYOF4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 10:05:56 -0400
-Received: by bwz7 with SMTP id 7so722874bwz.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 07:05:54 -0700 (PDT)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030DED31F3@dbde02.ent.ti.com>
+Received: from fg-out-1718.google.com ([72.14.220.153]:23886 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756198Ab0FYORI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jun 2010 10:17:08 -0400
+Received: by fg-out-1718.google.com with SMTP id l26so1255929fgb.1
+        for <linux-omap@vger.kernel.org>; Fri, 25 Jun 2010 07:17:06 -0700 (PDT)
+In-Reply-To: <AANLkTikkCeusIKA2KyRcVWbxVXKmLA8-_RfC2A4u3ySM@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Ghorai, Sukumar" <s-ghorai@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Jun 23, 2010 at 4:03 PM, Ghorai, Sukumar <s-ghorai@ti.com> wrote:
-> [Ghorai] It's working for me.
-
-it's good to hear !
-
-This is what I see:
-
-## Booting image at 81c00000 ...
-   Image Name:   Linux-2.6.35-rc3-00001-g945a7eb
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    2409672 Bytes =  2.3 MB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-OK
-
-Starting kernel ...
-
-Uncompressing Linux... done, booting the kernel.
-
-(and then nothing happens, you don't even see the penguin on the screen)
-
-> 1. console=ttyS0
-
-are you sure ?  all TI's docs state ttyS2 (and this works for me with
-TI's BSP kernels)
-
-but since I don't see the penguin on the screen, I don't think this is
-the problem
-
-btw I see there is CMDLINE in the .config, and also boot cmds that I
-pass via uboot.. I wonder if they should be the same..
+On Fri, Jun 25, 2010 at 5:05 PM, Neshama Parhoti <pneshama@gmail.com> wrote:
+>> 1. console=ttyS0
 
 
-> 2. And can you try omap3_defconfig
+you are absolutely right !!!!!!!
 
-it doesn't compile:
-
-
-arch/arm/mach-omap2/built-in.o: In function `ads7846_dev_init':
-linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:542: undefined
-reference to `omap_set_gpio_debounce'
-linux-2.6/arch/arm/mach-omap2/board-omap3stalker.c:543: undefined
-reference to `omap_set_gpio_debounce_time'
+i changed it to ttyS0 and now I get the boot msgs ! :)
 
 
-I'll see what I can do about it...
+can you please check out my whole boot args to see if i have any other error ?
+
+just to make sure..
+
+setenv bootcmd 'tftpboot 0x81C00000 /srv/tftp/uImage; bootm 0x81C00000'
+setenv nfsdata nfsroot=192.168.1.4:/home/pnesh/myfs,nolock,devfs=mount
+ip=192.168.1.160
+setenv bootargs console=ttyS3,115200n8 root=/dev/nfs rw rootdelay=1
+mem=256M init=/init videoout=omap24xxvout
+omap_vout.video1_numbuffers=4 omap_vout.vid1_static_vrfb_alloc=y
+${nfsdata}
 
 
-thank you !
-~pnesh
+thank you a lot !!
