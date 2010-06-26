@@ -1,197 +1,184 @@
-From: "Nagarajan, Rajkumar" <x0133774@ti.com>
-Subject: [PATCH] OMAP:DSS: Enable TV Detection support
-Date: Sat, 26 Jun 2010 16:39:34 +0530
-Message-ID: <FF55437E1F14DA4BAEB721A458B6701706BDB39F8D@dbde02.ent.ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [pm-wip/uart][PATCH] Serial: Avoid populating uart_list in
+ early      init phase
+Date: Sat, 26 Jun 2010 21:38:11 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032366B505@dbde02.ent.ti.com>
+References: <61551.192.168.10.88.1277384156.squirrel@dbdmail.itg.ti.com>
+    <87zkykxdqe.fsf@deeprootsystems.com>
+ <17901.10.24.255.17.1277473301.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42228 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48980 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753275Ab0FZLJm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Jun 2010 07:09:42 -0400
+	id S1753236Ab0FZQIK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Jun 2010 12:08:10 -0400
+In-Reply-To: <17901.10.24.255.17.1277473301.squirrel@dbdmail.itg.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+To: "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
 
-Enabled TVDET and created a sysfs entry for TV Detection
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Govindraj.R
+> Sent: Friday, June 25, 2010 7:12 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Kevin Hilman
+> Subject: [pm-wip/uart][PATCH] Serial: Avoid populating uart_list in early
+> init phase
+> 
+> Leave the uart_list empty and keep the omap hwmod info
+> in a seperate uart_oh list and if board file calls
+> serial init use this uart_oh list info to fill uart_list.
+> The board file can also call just init_port to initialise
+> a single uart instance, so make init_port flexible to handle
+> individual uart instance by avoiding filling uart_list
+> in any non port_init function.
+> 
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+> As per earlier dicussion:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31157.html
+> 
+>  arch/arm/mach-omap2/serial.c |   60 +++++++++++++++++++++++++------------
+> ----
+>  1 files changed, 36 insertions(+), 24 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 24b8c60..246ae02 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -97,6 +97,13 @@ struct omap_uart_state {
+>  #endif
+>  };
+> 
+> +struct uart_oh {
+> +	struct list_head node;
+> +	struct omap_hwmod *oh;
+> +	int uart_num;
+> +};
+> +
+> +static LIST_HEAD(uart_oh_list);
+>  static LIST_HEAD(uart_list);
+>  static u8 num_uarts;
+> 
+> @@ -593,39 +600,32 @@ static void serial_out_override(struct uart_port
+> *up, int offset, int value)
+> 
+>  void __init omap_serial_early_init(void)
+>  {
+> -	int i = 0;
+> +	struct omap_hwmod *oh;
+> +	struct uart_oh *uoh;
+> +	char oh_name[MAX_UART_HWMOD_NAME_LEN];
+> 
+>  	do {
+> -		char oh_name[MAX_UART_HWMOD_NAME_LEN];
+> -		struct omap_hwmod *oh;
+> -		struct omap_uart_state *uart;
+> +		uoh = kzalloc(sizeof(struct uart_oh), GFP_KERNEL);
+> +		if (WARN_ON(!uoh))
+> +			return;
+> 
+>  		snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN,
+> -			 "uart%d", i + 1);
+> +			 "uart%d", num_uarts + 1);
+>  		oh = omap_hwmod_lookup(oh_name);
+>  		if (!oh)
+>  			break;
 
-To detect if tv set is connected run this command
-cat /sys/devices/platform/omapdss/display1/device_state
-1: TV set connected
-0: TV set disconnected
+[Tarun Kanti DebBarma] 
+What happens to the successfully allocated memory (uoh)? Are we not supposed to free it before breaking?
 
-Signed-off-by: Axel Castaneda Gonzalez <x0055901@ti.com>
-Signed-off-by: Kishore Y <kishore.y@ti.com>
-Signed-off-by: Mukund Mittal <mmittal@ti.com>
-Signed-off-by: Rajkumar N <rajkumar.nagarajan@ti.com>
----
- arch/arm/plat-omap/include/plat/display.h |    2 +
- drivers/video/omap2/dss/display.c         |   23 +++++++++++++
- drivers/video/omap2/dss/venc.c            |   52 +++++++++++++++++++++++++++++
- 3 files changed, 77 insertions(+), 0 deletions(-)
+In fact, is there any problem if we do the allocation at this point? 
++		uoh = kzalloc(sizeof(struct uart_oh), GFP_KERNEL);
++		if (WARN_ON(!uoh))
++			return;
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 7842efa..522240b 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -464,6 +464,8 @@ struct omap_dss_device {
- 
- 	enum omap_dss_display_state state;
- 
-+	u32 (*get_device_state)(struct omap_dss_device *dssdev);
-+
- 	/* platform specific  */
- 	int (*platform_enable)(struct omap_dss_device *dssdev);
- 	void (*platform_disable)(struct omap_dss_device *dssdev);
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index ef8c852..2b937fe 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -278,6 +278,26 @@ static ssize_t display_wss_store(struct device *dev,
- 	return size;
- }
- 
-+static ssize_t device_state_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	unsigned int device_state;
-+
-+	if (!dssdev->get_device_state)
-+		return -ENOENT;
-+
-+	device_state = dssdev->get_device_state(dssdev);
-+
-+	return snprintf(buf, PAGE_SIZE, "%u\n", device_state);
-+}
-+
-+static ssize_t device_state_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	return size;
-+}
-+
- static DEVICE_ATTR(enabled, S_IRUGO|S_IWUSR,
- 		display_enabled_show, display_enabled_store);
- static DEVICE_ATTR(update_mode, S_IRUGO|S_IWUSR,
-@@ -290,6 +310,8 @@ static DEVICE_ATTR(rotate, S_IRUGO|S_IWUSR,
- 		display_rotate_show, display_rotate_store);
- static DEVICE_ATTR(mirror, S_IRUGO|S_IWUSR,
- 		display_mirror_show, display_mirror_store);
-+static DEVICE_ATTR(device_state, S_IRUGO|S_IWUSR,
-+		device_state_show, device_state_store);
- static DEVICE_ATTR(wss, S_IRUGO|S_IWUSR,
- 		display_wss_show, display_wss_store);
- 
-@@ -301,6 +323,7 @@ static struct device_attribute *display_sysfs_attrs[] = {
- 	&dev_attr_rotate,
- 	&dev_attr_mirror,
- 	&dev_attr_wss,
-+	&dev_attr_device_state,
- 	NULL
- };
- 
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index eff3505..3b5093b 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -33,12 +33,15 @@
- #include <linux/seq_file.h>
- #include <linux/platform_device.h>
- #include <linux/regulator/consumer.h>
-+#include <linux/gpio.h>
- 
- #include <plat/display.h>
- #include <plat/cpu.h>
- 
- #include "dss.h"
- 
-+#define TV_INT_GPIO			33
-+#define TV_DETECT_DELAY			40 /*Delay for TV detection logic*/
- #define VENC_BASE	0x48050C00
- 
- /* Venc registers */
-@@ -612,6 +615,46 @@ static int venc_set_wss(struct omap_dss_device *dssdev,	u32 wss)
- 	return 0;
- }
- 
-+/**
-+ * Enables TVDET pulse generation
-+ */
-+static void venc_enable_tv_detect(void)
-+{
-+       u32 l;
-+
-+       l = venc_read_reg(VENC_GEN_CTRL);
-+       /* TVDET Active High Setting */
-+       l |= FLD_VAL(1, 16, 16);
-+       /* Enable TVDET pulse generation */
-+       l |= FLD_VAL(1, 0, 0);
-+       venc_write_reg(VENC_GEN_CTRL, l);
-+}
-+
-+/**
-+ * Disables TVDET pulse generation
-+ */
-+static void venc_disable_tv_detect(void)
-+{
-+       u32 l;
-+
-+       /* Disable TVDET pulse generation */
-+       l = venc_read_reg(VENC_GEN_CTRL);
-+       l |= FLD_VAL(0, 0, 0);
-+       venc_write_reg(VENC_GEN_CTRL, l);
-+}
-+
-+static u32 venc_detect_device(struct omap_dss_device *dssdev)
-+{
-+       u32 tv_state;
-+
-+       venc_enable_tv_detect();
-+       mdelay(TV_DETECT_DELAY);
-+       tv_state = gpio_get_value(TV_INT_GPIO);
-+       venc_disable_tv_detect();
-+
-+       return tv_state;
-+}
-+
- static struct omap_dss_driver venc_driver = {
- 	.probe		= venc_panel_probe,
- 	.remove		= venc_panel_remove,
-@@ -646,6 +689,7 @@ static struct omap_dss_driver venc_driver = {
- int venc_init(struct platform_device *pdev)
- {
- 	u8 rev_id;
-+	int ret;
- 
- 	mutex_init(&venc.venc_lock);
- 
-@@ -671,7 +715,14 @@ int venc_init(struct platform_device *pdev)
- 
- 	venc_enable_clocks(0);
- 
-+	ret = gpio_request(TV_INT_GPIO, "tv_detect");
-+	if (ret)
-+		pr_err("Failed to get TV_INT_GPIO gpio_33.\n");
-+	else
-+		gpio_direction_input(TV_INT_GPIO);
-+
- 	return omap_dss_register_driver(&venc_driver);
-+
- }
- 
- void venc_exit(void)
-@@ -684,6 +735,7 @@ void venc_exit(void)
- int venc_init_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("init_display\n");
-+	dssdev->get_device_state = venc_detect_device;
- 
- 	return 0;
- }
--- 
-1.5.4.3
+This would mean that we allocate and do the rest of initialization only when omap_hwmod_lookup() is successful.
+
+> -
+> -		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
+> -		if (WARN_ON(!uart))
+> -			return;
+> -
+> -		uart->oh = oh;
+> -		uart->num = i++;
+> -		list_add_tail(&uart->node, &uart_list);
+> -		num_uarts++;
+> -
+>  		/*
+>  		 * NOTE: omap_hwmod_init() has not yet been called,
+> -		 *       so no hwmod functions will work yet.
+> -		 */
+> -
+> -		/*
+> +		 * so no hwmod functions will work yet.
+>  		 * During UART early init, device need to be probed
+>  		 * to determine SoC specific init before omap_device
+> -		 * is ready.  Therefore, don't allow idle here
+> +		 * is ready. Therefore, don't allow idle here
+>  		 */
+> -		uart->oh->flags |= HWMOD_INIT_NO_IDLE;
+> +		oh->flags |= HWMOD_INIT_NO_IDLE;
+> +		uoh->oh = oh;
+> +		uoh->uart_num = num_uarts;
+> +		list_add_tail(&uoh->node, &uart_oh_list);
+> +		num_uarts++;
+>  	} while (1);
+>  }
+> 
+> @@ -645,6 +645,7 @@ void __init omap_serial_init_port(int port)
+>  	struct omap_uart_state *uart;
+>  	struct omap_hwmod *oh;
+>  	struct omap_device *od;
+> +	struct uart_oh *uoh;
+>  	void *pdata = NULL;
+>  	u32 pdata_size = 0;
+>  	char *name;
+> @@ -663,6 +664,17 @@ void __init omap_serial_init_port(int port)
+>  	if (WARN_ON(port >= num_uarts))
+>  		return;
+[Tarun Kanti DebBarma]
+I am not sure if this check is needed at all since this is called for all valid ports in uart_oh_list. In other words validation of port number has happened already while creating the uart_oh_list. 
+
+> 
+> +	uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
+> +	if (WARN_ON(!uart))
+> +		return;
+> +
+> +	uart->num = port;
+> +	list_add_tail(&uart->node, &uart_list);
+> +	list_for_each_entry(uoh, &uart_oh_list, node)
+> +		if (port == uoh->uart_num)
+> +			break;
+> +
+[Tarun Kanti DebBarma] 
+BTW, why can't we pass (uoh) to this function instead of port number? In that case we would any way get the port number using uoh->uart_num as well as avoid the above loop for parsing the uart_oh_list for identifying the respective uoh just for making the below assignment.
+
+> +	uart->oh = uoh->oh;
+>  	list_for_each_entry(uart, &uart_list, node)
+>  		if (port == uart->num)
+>  			break;
+> @@ -781,8 +793,8 @@ void __init omap_serial_init_port(int port)
+>   */
+>  void __init omap_serial_init(void)
+>  {
+> -	struct omap_uart_state *uart;
+> +	struct uart_oh *uoh;
+> 
+> -	list_for_each_entry(uart, &uart_list, node)
+> -		omap_serial_init_port(uart->num);
+> +	list_for_each_entry(uoh, &uart_oh_list, node)
+> +		omap_serial_init_port(uoh->uart_num);
+[Tarun Kanti DebBarma] 
+As mentioned above, can we pass (uoh) directly instead of (uoh->uart_num) ?
+
+>  }
+> --
+> 1.6.3.3
