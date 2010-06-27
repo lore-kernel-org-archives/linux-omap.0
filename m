@@ -1,79 +1,81 @@
-From: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
-Subject: Re: [linux-pm] wait_for_completion_interruptible does not wait !!
-Date: Sat, 26 Jun 2010 21:08:07 -0700
-Message-ID: <AANLkTiktmoiyX4c8x1XtJ353sv0flV5NqIQrptrDXPnM@mail.gmail.com>
-References: <AANLkTikPOcNZk5ISX2WDHSmsPDw_a5_3Ic3owAbO4o0y@mail.gmail.com>
-	<Pine.LNX.4.44L0.1006201120210.22272-100000@netrider.rowland.org>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: Re: [RFC] mm: iommu: An API to unify IOMMU, CPU and device memory
+ management
+Date: Sun, 27 Jun 2010 13:46:07 +0900
+Message-ID: <20100627134401G.fujita.tomonori@lab.ntt.co.jp>
+References: <1277355096-15596-1-git-send-email-zpfeffer@codeaurora.org>
+	<876318ager.fsf@basil.nowhere.org>
+	<4C245152.1090301@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:45416 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707Ab0F0EI1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 27 Jun 2010 00:08:27 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1006201120210.22272-100000@netrider.rowland.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4C245152.1090301@codeaurora.org>
+Sender: owner-linux-mm@kvack.org
+To: zpfeffer@codeaurora.org
+Cc: andi@firstfloor.org, mel@csn.ul.ie, dwalker@codeaurora.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>, vivin uthappa <vivinuthappa@gmail.com>, Sudhakar R <sudhakar.raj@gmail.com>
 
-On Sun, Jun 20, 2010 at 8:52 AM, Alan Stern <stern@rowland.harvard.edu>=
- wrote:
->
-> What happens if the variable is completed while nobody is waiting for
-> it? =A0The next time somebody tries to wait, won't the wait terminate
-> immediately?
->
+On Thu, 24 Jun 2010 23:48:50 -0700
+Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
 
-Haven't tested it but will reply with the answer once I get a chance to=
- test it.
+> Andi Kleen wrote:
+> > Zach Pfeffer <zpfeffer@codeaurora.org> writes:
+> > 
+> >> This patch contains the documentation for and the main header file of
+> >> the API, termed the Virtual Contiguous Memory Manager. Its use would
+> >> allow all of the IOMMU to VM, VM to device and device to IOMMU
+> >> interoperation code to be refactored into platform independent code.
+> > 
+> > I read all the description and it's still unclear what advantage
+> > this all has over the current architecture? 
+> > 
+> > At least all the benefits mentioned seem to be rather nebulous.
+> > 
+> > Can you describe a concrete use case that is improved by this code
+> > directly?
+> 
+> Sure. On a SoC with many IOMMUs (10-100), where each IOMMU may have
+> its own set of page-tables or share page-tables, and where devices
+> with and without IOMMUs and CPUs with or without MMUS want to
+> communicate, an abstraction like the VCM helps manage all conceivable
+> mapping topologies. In the same way that the Linux MM manages pages
+> apart from page-frames, the VCMM allows the Linux MM to manage ideal
+> memory regions, VCMs, apart from the actual memory region.
+> 
+> One real scenario would be video playback from a file on a memory
+> card. To read and display the video, a DMA engine would read blocks of
+> data from the memory card controller into memory. These would
+> typically be managed using a scatter-gather list. This list would be
+> mapped into a contiguous buffer of the video decoder's IOMMU. The
+> video decoder would write into a buffer mapped by the display engine's
+> IOMMU as well as the CPU (if the kernel needed to intercept the
+> buffers). In this instance, the video decoder's IOMMU and the display
+> engine's IOMMU use different page-table formats.
+> 
+> Using the VCM API, this topology can be created without worrying about
+> the device's IOMMUs or how to map the buffers into the kernel, or how
+> to interoperate with the scatter-gather list. The call flow would would go:
+
+Can you explain how you can't do the above with the existing API?
 
 
->> I tried wait_for_completion instead, but now the kernel refuses to s=
-uspend.
->>
->> I have tried wait queues and mutexs with no success.
->>
->> Could anyone please point me how I can resolve this issue? Is there
->> any construct which can block inside the kernel during suspend/resum=
-e?
->
-> Yes: The freezer.
->
->> Can there be a blocking call active while we suspend?
->
-> Yes, in theory. =A0In practice it's not a good idea, since the call
-> wouldn't be able to distinguish between an actual signal and the onse=
-t
-> of a suspend. =A0You might end up with a call that ignores all signal=
-s
-> and hence cannot be interrupted.
->
+> The general point of the VCMM is to allow users a higher level API
+> than the current IOMMU abstraction provides that solves the general
+> mapping problem. This means that all of the common mapping code would
+> be written once. In addition, the API allows all the low level details
+> of IOMMU programing and VM interoperation to be handled at the right
+> level.
+> 
+> Eventually the following functions could all be reworked and their
+> users could call VCM functions.
 
-Just for the information of others on the list, here is what we did to
-solve this issue, we designed a freezer-friendly wrapper around
-wait_for_completion_interruptible()
+There are more IOMMUs (e.g. x86 has calgary, gart too). And what is
+the point of converting old IOMMUs (the majority of the below)? are
+there any potential users of your API for such old IOMMUs?
 
-<SNIP>
-#define wait_for_completion_freezable(ptr_completion)           \
-({                                                              \
-   int __retval;                                                \
-   do {                                                         \
-       __retval =3D wait_for_completion_interruptible(            \
-                       ptr_completion);                         \
-       if (__retval && !freezing(current))                      \
-           break;                                               \
-   } while (try_to_freeze());                                   \
-   __retval;                                                    \
-})
-
-</SNIP>
-
-Thanks
-Suresh
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
