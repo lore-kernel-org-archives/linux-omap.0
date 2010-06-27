@@ -1,81 +1,55 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC] mm: iommu: An API to unify IOMMU, CPU and device memory
- management
-Date: Sun, 27 Jun 2010 13:46:07 +0900
-Message-ID: <20100627134401G.fujita.tomonori@lab.ntt.co.jp>
-References: <1277355096-15596-1-git-send-email-zpfeffer@codeaurora.org>
-	<876318ager.fsf@basil.nowhere.org>
-	<4C245152.1090301@codeaurora.org>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: pm_debug/voltage_off_while_idle has gone?
+Date: Sun, 27 Jun 2010 08:21:30 +0300
+Message-ID: <4C26DFDA.9050104@compulab.co.il>
+References: <4C21FCF1.20600@compulab.co.il> <87d3vhwrp2.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4C245152.1090301@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: zpfeffer@codeaurora.org
-Cc: andi@firstfloor.org, mel@csn.ul.ie, dwalker@codeaurora.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from compulab.co.il ([67.18.134.219]:52567 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751084Ab0F0FW4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 27 Jun 2010 01:22:56 -0400
+In-Reply-To: <87d3vhwrp2.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mike Rapoport <mike@compulab.co.il>
 
-On Thu, 24 Jun 2010 23:48:50 -0700
-Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
-
-> Andi Kleen wrote:
-> > Zach Pfeffer <zpfeffer@codeaurora.org> writes:
-> > 
-> >> This patch contains the documentation for and the main header file of
-> >> the API, termed the Virtual Contiguous Memory Manager. Its use would
-> >> allow all of the IOMMU to VM, VM to device and device to IOMMU
-> >> interoperation code to be refactored into platform independent code.
-> > 
-> > I read all the description and it's still unclear what advantage
-> > this all has over the current architecture? 
-> > 
-> > At least all the benefits mentioned seem to be rather nebulous.
-> > 
-> > Can you describe a concrete use case that is improved by this code
-> > directly?
+Kevin Hilman wrote:
+> Mike Rapoport <mike@compulab.co.il> writes:
 > 
-> Sure. On a SoC with many IOMMUs (10-100), where each IOMMU may have
-> its own set of page-tables or share page-tables, and where devices
-> with and without IOMMUs and CPUs with or without MMUS want to
-> communicate, an abstraction like the VCM helps manage all conceivable
-> mapping topologies. In the same way that the Linux MM manages pages
-> apart from page-frames, the VCMM allows the Linux MM to manage ideal
-> memory regions, VCMs, apart from the actual memory region.
+>> There used to be 'voltage_off_while_idle' attribute in the PM-enabled
+>> kernels that allowed to put PMIC into OFF mode.  In the current tip of
+>> the linux-omap-pm tree this attribute seem to be gone Is there
+>> possibility to make PMIC enter the OFF mode when suspending to RAM?
 > 
-> One real scenario would be video playback from a file on a memory
-> card. To read and display the video, a DMA engine would read blocks of
-> data from the memory card controller into memory. These would
-> typically be managed using a scatter-gather list. This list would be
-> mapped into a contiguous buffer of the video decoder's IOMMU. The
-> video decoder would write into a buffer mapped by the display engine's
-> IOMMU as well as the CPU (if the kernel needed to intercept the
-> buffers). In this instance, the video decoder's IOMMU and the display
-> engine's IOMMU use different page-table formats.
+> Hi Mike,
 > 
-> Using the VCM API, this topology can be created without worrying about
-> the device's IOMMUs or how to map the buffers into the kernel, or how
-> to interoperate with the scatter-gather list. The call flow would would go:
-
-Can you explain how you can't do the above with the existing API?
-
-
-> The general point of the VCMM is to allow users a higher level API
-> than the current IOMMU abstraction provides that solves the general
-> mapping problem. This means that all of the common mapping code would
-> be written once. In addition, the API allows all the low level details
-> of IOMMU programing and VM interoperation to be handled at the right
-> level.
+> We are currently in the middle of a major rewrite of the SmartReflex and
+> voltage layers of the PM branch.
 > 
-> Eventually the following functions could all be reworked and their
-> users could call VCM functions.
+> The previous voltage-related work (like voltage_off_while_idle) are
+> still available in the pm-vc branch of my tree, but are not currently
+> merged with the new voltage work due to conflicts.
+> 
+> For this particular feature, I suspect you could just apply the first
+> patch in my pm-vc branch to add back this feature.
+> 
+> Let me know if that works,
 
-There are more IOMMUs (e.g. x86 has calgary, gart too). And what is
-the point of converting old IOMMUs (the majority of the below)? are
-there any potential users of your API for such old IOMMUs?
+I've cherry-picked two commits from your pm-vc and it failed to compile :)
+After fixing it, I did several small tests, but is seems that PMIC does not 
+execute the power scripts... I'll continue to work on it.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+Sincerely yours,
+Mike.
