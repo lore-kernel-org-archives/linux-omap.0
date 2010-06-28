@@ -1,83 +1,53 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v5 2/2] OMAP4 HSMMC: Adding card detect support for MMC1
-	Controller
-Date: Mon, 28 Jun 2010 21:40:56 +0530
-Message-ID: <AANLkTimVB7N0Oa9bDbYfSfcivy6afhvHW5Bdt-8dWVxD@mail.gmail.com>
-References: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
-	<4C1FB2A0.6000503@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: On the APIs for Enabling and Disabling Wakeup capability.
+Date: Mon, 28 Jun 2010 09:25:26 -0700
+Message-ID: <878w5z6s5l.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E75F0BBF@dbde02.ent.ti.com>
+	<87vd9isdxb.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E94026FFCAA53@dbde02.ent.ti.com>
+	<74583B8642AB8841B30447520659FCA901AA4908FF@dnce01.ent.ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E940270056DEE@dbde02.ent.ti.com>
+	<87ljacbd5u.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E76F4082@dbde02.ent.ti.com>
+	<87sk4dqynm.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402700F3049@dbde02.ent.ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E940270192021@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4C1FB2A0.6000503@nokia.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: kishore kadiyala <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:57737 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751045Ab0F1QZa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 12:25:30 -0400
+Received: by pxi8 with SMTP id 8so1876673pxi.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 Jun 2010 09:25:30 -0700 (PDT)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940270192021@dbde02.ent.ti.com>
+	(Hema Kalliguddi's message of "Mon, 28 Jun 2010 19:55:00 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Kalliguddi, Hema" <hemahk@ti.com>
+Cc: "Basak, Partha" <p-basak2@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
 
-Adrian ,
+"Kalliguddi, Hema" <hemahk@ti.com> writes:
 
-Sorry for the late response
-
-<snip>
+>>>>> > http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf
+>>>>> >
+>>
+>>[HK] The errata is applicable to OMAP3430 only.  But this sequence
+>>applicable for omap4 as well. So for submitting the changes we need to
+>>have the HWMOD api to be changed to enaforce the Autodile set only
+>>after the smart idle.
 >
-> As per my email 5/5/10, I would suggest the only change to omap_hsmmc=
- is:
+> When can I expect the HWMOD API change which includes the auto idle
+> setting only after Smart idle setting and wakeup enable/disable
+> settings?
 
-Agreed  and followed the changes mostly but made some more changes on t=
-op of it.
+Hi Hema,
 
->
-<snip>
-> And that the late init function is used to do the rest e.g.
-> find a home for these 3 functions:
+If this is blocking you, rather than waiting for somone else to add this
+feature, I suggest that you add the API you think would be needed with
+proposed patches to the hwmod layer.  One for the idle settings, another
+for wakeups.  In the changelog, describe (in detail) the reasons these
+APIs would be used.
 
-I agree just having the 3 functions makes it work.
-
->
-> static int omap4_twl6030_hsmmc_late_init(struct device *dev)
-> {
-> =A0 =A0 =A0 =A0int ret =3D 0;
-> =A0 =A0 =A0 =A0struct platform_device *pdev =3D container_of(dev,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0struct platform_device, dev);
-> =A0 =A0 =A0 =A0struct omap_mmc_platform_data *pdata =3D dev->platform=
-_data;
->
-> =A0 =A0 =A0 =A0/* MMC1 Card detect Configuration */
-> =A0 =A0 =A0 =A0if (pdev->id =3D=3D 0) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D omap4_hsmmc1_card_detect_confi=
-g();
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (ret < 0)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("Unable to conf=
-igure Card detect for MMC1\n");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect =3D twl603=
-0_mmc_card_detect;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect_irq =3D TW=
-L6030_IRQ_BASE +
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0MMCDETECT_INTR_OFFSET;
-> =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0return ret;
-
-<snip>
-
-=46ew Comments below:
-
-1) In the above function, initializing "card_detect"  in the driver as
-done in omap_hsmmc_gpio_init might be more readable and this has been
-done in nongpio_init instead.
-Even having initialization of  "card_detect_irq" inside nongpio_init is=
- fine.
-
-2)Also calling omap_hsmmc_gpio_init in case of a card detect line
-which is not GPIO
-doesn't make sense though it assigns -EINVAL to switch_pin in case of
-invalid GPIO
-which is intended for a non-removable card .
-
-3) And also having some thing like GPIO and NON_GPIO flag to
-distinguish might make sense.
-
-Regards,
-Kishore
+Kevin
