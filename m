@@ -1,53 +1,33 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: On the APIs for Enabling and Disabling Wakeup capability.
-Date: Mon, 28 Jun 2010 09:25:26 -0700
-Message-ID: <878w5z6s5l.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E75F0BBF@dbde02.ent.ti.com>
-	<87vd9isdxb.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94026FFCAA53@dbde02.ent.ti.com>
-	<74583B8642AB8841B30447520659FCA901AA4908FF@dnce01.ent.ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E940270056DEE@dbde02.ent.ti.com>
-	<87ljacbd5u.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E76F4082@dbde02.ent.ti.com>
-	<87sk4dqynm.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402700F3049@dbde02.ent.ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E940270192021@dbde02.ent.ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 4/8] USB: musb: suppress warning about unused flags
+Date: Mon, 28 Jun 2010 21:27:23 +0400
+Message-ID: <4C28DB7B.5010100@ru.mvista.com>
+References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com> <1276771242-5201-2-git-send-email-ajay.gupta@ti.com> <1276771242-5201-3-git-send-email-ajay.gupta@ti.com> <1276771242-5201-4-git-send-email-ajay.gupta@ti.com> <1276771242-5201-5-git-send-email-ajay.gupta@ti.com> <20100624060857.GG8078@nokia.com> <4C232A4C.6040102@ru.mvista.com> <20100628142445.GA21562@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:57737 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751045Ab0F1QZa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 12:25:30 -0400
-Received: by pxi8 with SMTP id 8so1876673pxi.19
-        for <linux-omap@vger.kernel.org>; Mon, 28 Jun 2010 09:25:30 -0700 (PDT)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940270192021@dbde02.ent.ti.com>
-	(Hema Kalliguddi's message of "Mon, 28 Jun 2010 19:55:00 +0530")
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:60801 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753130Ab0F1R22 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 13:28:28 -0400
+In-Reply-To: <20100628142445.GA21562@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kalliguddi, Hema" <hemahk@ti.com>
-Cc: "Basak, Partha" <p-basak2@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
+To: me@felipebalbi.com
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, felipe.balbi@nokia.com, ext Ajay Kumar Gupta <ajay.gupta@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@suse.de" <gregkh@suse.de>, Jon Povey <jon.povey@racelogic.co.uk>
 
-"Kalliguddi, Hema" <hemahk@ti.com> writes:
+Hello.
 
->>>>> > http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf
->>>>> >
->>
->>[HK] The errata is applicable to OMAP3430 only.  But this sequence
->>applicable for omap4 as well. So for submitting the changes we need to
->>have the HWMOD api to be changed to enaforce the Autodile set only
->>after the smart idle.
->
-> When can I expect the HWMOD API change which includes the auto idle
-> setting only after Smart idle setting and wakeup enable/disable
-> settings?
+Felipe Balbi wrote:
 
-Hi Hema,
+>>> I think the problem here is different. First of all, an IRQ of number 0 
+>>> is valid
 
-If this is blocking you, rather than waiting for somone else to add this
-feature, I suggest that you add the API you think would be needed with
-proposed patches to the hwmod layer.  One for the idle settings, another
-for wakeups.  In the changelog, describe (in detail) the reasons these
-APIs would be used.
+>>     It's not valid for this driver.
 
-Kevin
+> it's not valid for the boards we have available so far.
+
+    And the current driver doesn't accept it as a valid IRQ.
+
+WBR, Sergei
