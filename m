@@ -1,136 +1,100 @@
-From: Zach Pfeffer <zpfeffer@codeaurora.org>
-Subject: Re: [RFC] mm: iommu: An API to unify IOMMU, CPU and device memory
- management
-Date: Mon, 28 Jun 2010 14:16:56 -0700
-Message-ID: <4C291148.2020402@codeaurora.org>
-References: <1277355096-15596-1-git-send-email-zpfeffer@codeaurora.org>	<876318ager.fsf@basil.nowhere.org>	<4C245152.1090301@codeaurora.org> <20100627134401G.fujita.tomonori@lab.ntt.co.jp>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 1/3] OMAP: PM: initial runtime PM core support
+Date: Mon, 28 Jun 2010 14:49:23 -0700
+Message-ID: <87d3vaygik.fsf@deeprootsystems.com>
+References: <1277422991-25350-1-git-send-email-khilman@deeprootsystems.com>
+	<1277422991-25350-2-git-send-email-khilman@deeprootsystems.com>
+	<AANLkTim4p54brsmph6oaKfoEZwO1GOGfgRNV9vJykOjl@mail.gmail.com>
+	<874ogrng3j.fsf@deeprootsystems.com>
+	<AANLkTimMnJvOJrRHDiE6PH1BXpRz2-6pY1M9nKHw7vpn@mail.gmail.com>
+	<876316eno5.fsf@deeprootsystems.com>
+	<AANLkTimB0_OfLDvtkwwTE-kVeZrardIxVIsD5IEia-vL@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:46906 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870Ab0F1VQ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 17:16:57 -0400
-In-Reply-To: <20100627134401G.fujita.tomonori@lab.ntt.co.jp>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:43913 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753502Ab0F1Vt1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 17:49:27 -0400
+Received: by pvg2 with SMTP id 2so2158283pvg.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 Jun 2010 14:49:26 -0700 (PDT)
+In-Reply-To: <AANLkTimB0_OfLDvtkwwTE-kVeZrardIxVIsD5IEia-vL@mail.gmail.com>
+	(Grant Likely's message of "Fri, 25 Jun 2010 17:04:13 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: andi@firstfloor.org, mel@csn.ul.ie, dwalker@codeaurora.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Eric Miao <eric.miao@canonical.com>, Nicolas Pitre <nico@fluxnic.net>
 
-FUJITA Tomonori wrote:
-> On Thu, 24 Jun 2010 23:48:50 -0700
-> Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
-> 
->> Andi Kleen wrote:
->>> Zach Pfeffer <zpfeffer@codeaurora.org> writes:
->>>
->>>> This patch contains the documentation for and the main header file of
->>>> the API, termed the Virtual Contiguous Memory Manager. Its use would
->>>> allow all of the IOMMU to VM, VM to device and device to IOMMU
->>>> interoperation code to be refactored into platform independent code.
->>> I read all the description and it's still unclear what advantage
->>> this all has over the current architecture? 
->>>
->>> At least all the benefits mentioned seem to be rather nebulous.
->>>
->>> Can you describe a concrete use case that is improved by this code
->>> directly?
->> Sure. On a SoC with many IOMMUs (10-100), where each IOMMU may have
->> its own set of page-tables or share page-tables, and where devices
->> with and without IOMMUs and CPUs with or without MMUS want to
->> communicate, an abstraction like the VCM helps manage all conceivable
->> mapping topologies. In the same way that the Linux MM manages pages
->> apart from page-frames, the VCMM allows the Linux MM to manage ideal
->> memory regions, VCMs, apart from the actual memory region.
+Grant Likely <grant.likely@secretlab.ca> writes:
+
+> On Fri, Jun 25, 2010 at 4:46 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> Grant Likely <grant.likely@secretlab.ca> writes:
 >>
->> One real scenario would be video playback from a file on a memory
->> card. To read and display the video, a DMA engine would read blocks of
->> data from the memory card controller into memory. These would
->> typically be managed using a scatter-gather list. This list would be
->> mapped into a contiguous buffer of the video decoder's IOMMU. The
->> video decoder would write into a buffer mapped by the display engine's
->> IOMMU as well as the CPU (if the kernel needed to intercept the
->> buffers). In this instance, the video decoder's IOMMU and the display
->> engine's IOMMU use different page-table formats.
+>>> Another way to look at the problem is that these runtime
+>>> customizations are kind of a property of the parent device (the bus=
+,
+>>> not the bus_type). =A0Would it make sense for parent devices to hav=
+e
+>>> runtime ops to perform for each child that is suspended/resumed? =A0=
+That
+>>> would make it simple to register another device that implements the
+>>> bus behaviour and attach it at runtime instead of compile time.
 >>
->> Using the VCM API, this topology can be created without worrying about
->> the device's IOMMUs or how to map the buffers into the kernel, or how
->> to interoperate with the scatter-gather list. The call flow would would go:
-> 
-> Can you explain how you can't do the above with the existing API?
+>> Maybe I didn't fully understand your idea, but the problem here is
+>> devices do not have dev_pm_ops. =A0Only busses, classes, and types h=
+ave
+>> dev_pm_ops.
+>
+> Sorry, I mistyped.  What I meant was for the parent device's
+> device_driver to be able to have a set of child dev_pm_ops; but I'm
+> wading into territory (power management) I'm not particularly familia=
+r
+> with, and that might be making things far too complex.
 
-Sure. You can do the same thing with the current API, but the VCM takes a
-wider view; the mapper is a parameter.
+I see your point now, but I think this indeed might complicate things
+too much. =20
 
-Taking include/linux/iommu.h as a common interface, the key function
-is iommu_map(). This function maps a physical memory region, paddr, of
-gfp_order, to a virtual region starting at iova:
+Also, I'm not crazy about how this would delay the per-device PM hooks
+to be essentially batched until all devices under the parent are
+"ready."
 
-extern int iommu_map(struct iommu_domain *domain, unsigned long iova,
-		     phys_addr_t paddr, int gfp_order, int prot);
+But anyways, it just needs some more research on my part.
+Unfortunately, I'll be away from this work on vacation for most of July=
+,
+so this won't get any attention from me until August.
 
-Users who call this, kvm_iommu_map_pages() for instance, run similar
-loops:
+>> Though I'm horribly unfamiliar with the intended usage of 'struct
+>> device_type', an interesing discovery is that dev->type also has
+>> dev_pm_ops, and it takes precedence over the bus type in the
+>> suspend/resume. =A0IOW, when suspending, when deciding which dev_pm_=
+ops to
+>> use, it checks class, type, then bus in that order.
+>
+> So I guess my suggestion above boils down to somehow inserting
+> "parent" between type and bus in that list.
+>
+>> I need to explore this 'type' feature a little more, but using that =
+or
+>> the 'class' might be another way to have custom PM ops for certain
+>> platform_devices.
+>
+> Should maybe start cc'ing Greg and linux-kernel/linux-pm in this disc=
+ussion.
 
-foreach page 
-	iommu_map(domain, va(page), ...)
-	
-The VCM encapsulates this as vcm_back(). This function iterates over a
-set of physical regions and maps those physical regions to a virtual
-address space that has been associated with a mapper at run-time. The
-loop above, and the other loops (and other associated IOMMU software)
-that don't use the common interface like arch/powerpc/kernel/vio.c all
-do similar work.
+They were involved in the early discussions about overriding the
+platform_bus dev_pm_ops methods, which led us to the current
+implementation.
 
-In the end the VCM's dynamic virtual region association mechanism (and
-multihomed physical memory targeting) allows all IOMMU mapping code in
-the system to use the same API.
+But as I explore the custom bus approach a bit more (in August) I'll
+broaden the audience.
 
-This may seem like syntactic sugar, but treating devices with IOMMUs
-(bus-masters), device with MMUs (CPUs) and devices without MMUs (DMA
-engines) as endpoints in a mapping graph allows new features to be
-developed. One such feature is system-wide memory migration (including
-memory that devices map). With a common API a loop like this can be
-written one place:
+Thanks again for all your helpful suggestions,
 
-foreach mapper of pa_region
-	remap(mapper, new_pa_region)
-
-It could also be used for better power-management:
-
-foreach mapper of soon_to_be_powered_off_pa_region
-	ask(mapper, soon_to_be_powered_off_pa_region)
-
-The VCM is just the first step.
-
-More concretely, the way the VCM works allows the transparent use and
-interoperation of different mapping chunk sizes. This is important in
-multimedia devices because IOMMU TLB misses may cause multimedia
-devices to miss their performance goals. Multi-chunk size support has
-been added for IOMMU mappers and wouldn't be hard to add to CPU
-mappers (CPU mappers still use 4KB).
-
->> The general point of the VCMM is to allow users a higher level API
->> than the current IOMMU abstraction provides that solves the general
->> mapping problem. This means that all of the common mapping code would
->> be written once. In addition, the API allows all the low level details
->> of IOMMU programing and VM interoperation to be handled at the right
->> level.
->>
->> Eventually the following functions could all be reworked and their
->> users could call VCM functions.
-> 
-> There are more IOMMUs (e.g. x86 has calgary, gart too). And what is
-> the point of converting old IOMMUs (the majority of the below)? are
-> there any potential users of your API for such old IOMMUs?
-
-That's a good question. I gave the list of the current IOMMU mapping
-functions to bring awareness to the fact that the general system-wide
-mapping problem hasn't yet been solved and won't be solved completely
-until something that looks at memory mapping from a system-wide
-perspective, like the VCMM, has been built.
-
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
