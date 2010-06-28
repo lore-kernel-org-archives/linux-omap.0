@@ -1,38 +1,70 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] wait_for_completion_interruptible does not wait !!
-Date: Mon, 28 Jun 2010 13:28:18 +0100
-Message-ID: <20100628122817.GA27811@sirena.org.uk>
-References: <AANLkTikPOcNZk5ISX2WDHSmsPDw_a5_3Ic3owAbO4o0y@mail.gmail.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 3/4]usb: musb: HWMOD database structures addition for
+ OMAP3
+Date: Mon, 28 Jun 2010 17:10:10 +0400
+Message-ID: <4C289F32.7070709@ru.mvista.com>
+References: <1277727391-6041-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:40251 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752410Ab0F1M2W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 08:28:22 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTikPOcNZk5ISX2WDHSmsPDw_a5_3Ic3owAbO4o0y@mail.gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:41565 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754023Ab0F1NLL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 09:11:11 -0400
+In-Reply-To: <1277727391-6041-1-git-send-email-hemahk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suresh Rajashekara <suresh.raj+linuxomap@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, LKML <linux-kernel@vger.kernel.org>
+To: Hema HK <hemahk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, tony@atomide.com
 
-On Sat, Jun 19, 2010 at 11:52:10PM -0700, Suresh Rajashekara wrote:
-> I have an application which calls the ioctl of the codec driver to
-> know the status of the headset.
+Hello.
 
-> The ioctl waits on a completion variable (using
-> wait_for_completion_interruptible).
+Hema HK wrote:
 
-There is standard support for headset status reporting via the input
-layer in mainline, I would recommend implementing your headset detection
-in terms of this.
+> OMAP3 hwmod data stuctures are populated with base address, L3 and L4 
+> interface clocks, IRQs,and sysconfig register details. 
 
-> The problem starts when we suspend the OMAP. The moment we suspend,
-> the wait_for_completion_interruptible is interrupted and the ioctl
-> returns. Application ends up thinking that the headset was either
-> removed/inserted. Our system does an aggressive sleep (wakes up every
-> 500 ms and sleeps again) and hence the application gets the event of
-> headset every 500 ms.
+> Signed-off-by: Hema HK <hemahk@ti.com>
+> Cc: Felipe Balbi <felipe.balbi@nokia.com>,tony@atomide.com
+[...]
+> @@ -90,6 +99,37 @@ static struct omap_hwmod_ocp_if omap3xxx
+>  	.user	= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+>  
+> +/*
+> +* USBHSOTG interface data
+> +*/
+> +
+> +static struct omap_hwmod_addr_space omap3xxx_usbhsotg_addrs[] = {
+> +	{
+> +	.pa_start	= OMAP34XX_HSUSB_OTG_BASE,
+> +	.pa_end		= OMAP34XX_HSUSB_OTG_BASE + SZ_4K - 1,
+> +	.flags		= ADDR_TYPE_RT
 
-The input layer does not have this problem.
+    Indentation: should add one more tab.
+
+> +	},
+> +};
+
+[...]
+
+> @@ -197,6 +237,56 @@ static struct omap_hwmod omap3xxx_iva_hw
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>  };
+>  
+> +/*
+> + * USBHSOTG (USBHS)
+> + */
+> +static struct omap_hwmod_class_sysconfig omap3xxx_usbhsotg_sysc = {
+> + 	.rev_offs	= 0x0400,
+> + 	.sysc_offs	= 0x0404,
+> + 	.syss_offs	= 0x0408,
+> + 	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
+> + 			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+> + 			   SYSC_HAS_AUTOIDLE),
+> + 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+
+    Parens are not useful here.
+
+WBR, Sergei
