@@ -1,70 +1,33 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 3/4]usb: musb: HWMOD database structures addition for
- OMAP3
-Date: Mon, 28 Jun 2010 17:10:10 +0400
-Message-ID: <4C289F32.7070709@ru.mvista.com>
-References: <1277727391-6041-1-git-send-email-hemahk@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 4/4]usb : musb:USB driver using omap_device_build for
+ device registration.
+Date: Mon, 28 Jun 2010 16:29:13 +0300
+Message-ID: <20100628132912.GG2822@atomide.com>
+References: <1277727427-6144-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:41565 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754023Ab0F1NLL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 09:11:11 -0400
-In-Reply-To: <1277727391-6041-1-git-send-email-hemahk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1277727427-6144-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hema HK <hemahk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, tony@atomide.com
 
-Hello.
+* Hema HK <hemahk-l0cyMroinI0@public.gmane.org> [100628 15:12]:
+> -
+> -	/*
+> -	 * REVISIT: This line can be removed once all the platforms using
+> -	 * musb_core.c have been converted to use use clkdev.
+> -	 */
+> -	musb_plat.clock = "ick";
 
-Hema HK wrote:
+This comment is still valid, please don't remove it.
 
-> OMAP3 hwmod data stuctures are populated with base address, L3 and L4 
-> interface clocks, IRQs,and sysconfig register details. 
+Regards,
 
-> Signed-off-by: Hema HK <hemahk@ti.com>
-> Cc: Felipe Balbi <felipe.balbi@nokia.com>,tony@atomide.com
-[...]
-> @@ -90,6 +99,37 @@ static struct omap_hwmod_ocp_if omap3xxx
->  	.user	= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/*
-> +* USBHSOTG interface data
-> +*/
-> +
-> +static struct omap_hwmod_addr_space omap3xxx_usbhsotg_addrs[] = {
-> +	{
-> +	.pa_start	= OMAP34XX_HSUSB_OTG_BASE,
-> +	.pa_end		= OMAP34XX_HSUSB_OTG_BASE + SZ_4K - 1,
-> +	.flags		= ADDR_TYPE_RT
-
-    Indentation: should add one more tab.
-
-> +	},
-> +};
-
-[...]
-
-> @@ -197,6 +237,56 @@ static struct omap_hwmod omap3xxx_iva_hw
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
->  };
->  
-> +/*
-> + * USBHSOTG (USBHS)
-> + */
-> +static struct omap_hwmod_class_sysconfig omap3xxx_usbhsotg_sysc = {
-> + 	.rev_offs	= 0x0400,
-> + 	.sysc_offs	= 0x0404,
-> + 	.syss_offs	= 0x0408,
-> + 	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
-> + 			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-> + 			   SYSC_HAS_AUTOIDLE),
-> + 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-
-    Parens are not useful here.
-
-WBR, Sergei
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
