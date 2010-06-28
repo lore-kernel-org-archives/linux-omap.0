@@ -1,90 +1,83 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
-Date: Mon, 28 Jun 2010 15:46:12 +0100
-Message-ID: <1277736372.25271.102.camel@e102109-lin.cambridge.arm.com>
-References: <1276841055-13843-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH v5 2/2] OMAP4 HSMMC: Adding card detect support for MMC1
+	Controller
+Date: Mon, 28 Jun 2010 21:40:56 +0530
+Message-ID: <AANLkTimVB7N0Oa9bDbYfSfcivy6afhvHW5Bdt-8dWVxD@mail.gmail.com>
+References: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
+	<4C1FB2A0.6000503@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:65422 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754645Ab0F1OqV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Jun 2010 10:46:21 -0400
-In-Reply-To: <1276841055-13843-1-git-send-email-Hiroshi.DOYU@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4C1FB2A0.6000503@nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: kishore kadiyala <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
 
-Hi,
+Adrian ,
 
-(and sorry for the delay)
+Sorry for the late response
 
-On Fri, 2010-06-18 at 07:04 +0100, Hiroshi DOYU wrote:
-> This is another version of "kmemleak: Fix false positive", which
-> introduces another alias tree to keep track of all alias address of
-> each objects, based on the discussion(*1)
-> 
-> You can also find the previous one(*2), which uses special scan area
-> for alias addresses with a conversion function.
-> 
-> Compared with both methods, it seems that the current one takes a bit
-> longer to scan as below, tested with 512 elementes of (*3).
-> 
-> "kmemleak: Fix false positive with alias":
-> # time echo scan > /mnt/kmemleak
-> real    0m 8.40s
-> user    0m 0.00s
-> sys     0m 8.40s
-> 
-> "kmemleak: Fix false positive with special scan":
-> # time echo scan > /mnt/kmemleak
-> real    0m 3.96s
-> user    0m 0.00s
-> sys     0m 3.96s
+<snip>
+>
+> As per my email 5/5/10, I would suggest the only change to omap_hsmmc=
+ is:
 
-Have you tried without your patches (just the test module but without
-aliasing the pointers)? I'm curious what's the impact of your first set
-of patches.
+Agreed  and followed the changes mostly but made some more changes on t=
+op of it.
 
-> For our case(*4) to reduce false positives for the 2nd level IOMMU
-> pagetable allocation, the previous special scan  seems to be enough
-> lightweight, although there might be possiblity to improve alias
-> one and also I might misunderstand the original proposal of aliasing.
+>
+<snip>
+> And that the late init function is used to do the rest e.g.
+> find a home for these 3 functions:
 
-The performance impact is indeed pretty high, though some parts of the
-code look over-engineered to me (the __scan_block function with a loop
-going through an array of two function pointers - I think the compiler
-cannot figure out what to inline). You could just extend the
-find_and_get_object() to search both trees under a single spinlock
-region (as locking also takes time).
+I agree just having the 3 functions makes it work.
 
-Anyway, you still get to search two trees for any pointer so there would
-always be some performance impact. I just hoped they weren't be as bad.
-In a normal system (not test module), how many elements would the alias
-tree have?
+>
+> static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+> {
+> =A0 =A0 =A0 =A0int ret =3D 0;
+> =A0 =A0 =A0 =A0struct platform_device *pdev =3D container_of(dev,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0struct platform_device, dev);
+> =A0 =A0 =A0 =A0struct omap_mmc_platform_data *pdata =3D dev->platform=
+_data;
+>
+> =A0 =A0 =A0 =A0/* MMC1 Card detect Configuration */
+> =A0 =A0 =A0 =A0if (pdev->id =3D=3D 0) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D omap4_hsmmc1_card_detect_confi=
+g();
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (ret < 0)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("Unable to conf=
+igure Card detect for MMC1\n");
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect =3D twl603=
+0_mmc_card_detect;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect_irq =3D TW=
+L6030_IRQ_BASE +
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0MMCDETECT_INTR_OFFSET;
+> =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0return ret;
 
-Another approach - if we assume that there is a single alias per object
-and such aliases don't overlap, we could just move (delete + re-insert)
-the corresponding kmemleak_object in the tree to the alias position.
-This way we only keep a single tree and a single object for an allocated
-block. But in your use-case, the physical address of an object may
-actually match the virtual address of a different object, so
-lookup_object() needs to be iterative. You need two new kmemleak API
-functions, e.g. kmemleak_alias() and kmemleak_unalias(), to be called
-after allocation and before freeing a memory block.
+<snip>
 
-If we can't make the performance hit acceptable, we could go for the
-first approach and maybe just extend kmemleak_scan_area with a function
-pointer structure rather than adding a new one. But as I said
-previously, my main issue with your original approach is that I would
-prefer to call the kmemleak API at the point where the false positive is
-allocated rather than where the parent object was.
+=46ew Comments below:
 
-Thanks for working on this. Regards.
+1) In the above function, initializing "card_detect"  in the driver as
+done in omap_hsmmc_gpio_init might be more readable and this has been
+done in nongpio_init instead.
+Even having initialization of  "card_detect_irq" inside nongpio_init is=
+ fine.
 
--- 
-Catalin
+2)Also calling omap_hsmmc_gpio_init in case of a card detect line
+which is not GPIO
+doesn't make sense though it assigns -EINVAL to switch_pin in case of
+invalid GPIO
+which is intended for a non-removable card .
 
+3) And also having some thing like GPIO and NON_GPIO flag to
+distinguish might make sense.
+
+Regards,
+Kishore
