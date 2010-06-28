@@ -1,100 +1,136 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv3 1/1] OMAP3: AM3505/3517 do not have IO wakeup capability
-Date: Mon, 28 Jun 2010 13:17:18 -0700
-Message-ID: <87pqza6hf5.fsf@deeprootsystems.com>
-References: <1277448826-20006-1-git-send-email-stanley.miao@windriver.com>
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC] mm: iommu: An API to unify IOMMU, CPU and device memory
+ management
+Date: Mon, 28 Jun 2010 14:16:56 -0700
+Message-ID: <4C291148.2020402@codeaurora.org>
+References: <1277355096-15596-1-git-send-email-zpfeffer@codeaurora.org>	<876318ager.fsf@basil.nowhere.org>	<4C245152.1090301@codeaurora.org> <20100627134401G.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:59334 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751479Ab0F1URU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 16:17:20 -0400
-Received: by pxi8 with SMTP id 8so1978061pxi.19
-        for <linux-omap@vger.kernel.org>; Mon, 28 Jun 2010 13:17:20 -0700 (PDT)
-In-Reply-To: <1277448826-20006-1-git-send-email-stanley.miao@windriver.com>
-	(Stanley Miao's message of "Fri, 25 Jun 2010 14:53:46 +0800")
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:46906 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751870Ab0F1VQ5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 17:16:57 -0400
+In-Reply-To: <20100627134401G.fujita.tomonori@lab.ntt.co.jp>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Stanley.Miao" <stanley.miao@windriver.com>
-Cc: linux-omap@vger.kernel.org
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: andi@firstfloor.org, mel@csn.ul.ie, dwalker@codeaurora.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org
 
-"Stanley.Miao" <stanley.miao@windriver.com> writes:
+FUJITA Tomonori wrote:
+> On Thu, 24 Jun 2010 23:48:50 -0700
+> Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
+> 
+>> Andi Kleen wrote:
+>>> Zach Pfeffer <zpfeffer@codeaurora.org> writes:
+>>>
+>>>> This patch contains the documentation for and the main header file of
+>>>> the API, termed the Virtual Contiguous Memory Manager. Its use would
+>>>> allow all of the IOMMU to VM, VM to device and device to IOMMU
+>>>> interoperation code to be refactored into platform independent code.
+>>> I read all the description and it's still unclear what advantage
+>>> this all has over the current architecture? 
+>>>
+>>> At least all the benefits mentioned seem to be rather nebulous.
+>>>
+>>> Can you describe a concrete use case that is improved by this code
+>>> directly?
+>> Sure. On a SoC with many IOMMUs (10-100), where each IOMMU may have
+>> its own set of page-tables or share page-tables, and where devices
+>> with and without IOMMUs and CPUs with or without MMUS want to
+>> communicate, an abstraction like the VCM helps manage all conceivable
+>> mapping topologies. In the same way that the Linux MM manages pages
+>> apart from page-frames, the VCMM allows the Linux MM to manage ideal
+>> memory regions, VCMs, apart from the actual memory region.
+>>
+>> One real scenario would be video playback from a file on a memory
+>> card. To read and display the video, a DMA engine would read blocks of
+>> data from the memory card controller into memory. These would
+>> typically be managed using a scatter-gather list. This list would be
+>> mapped into a contiguous buffer of the video decoder's IOMMU. The
+>> video decoder would write into a buffer mapped by the display engine's
+>> IOMMU as well as the CPU (if the kernel needed to intercept the
+>> buffers). In this instance, the video decoder's IOMMU and the display
+>> engine's IOMMU use different page-table formats.
+>>
+>> Using the VCM API, this topology can be created without worrying about
+>> the device's IOMMUs or how to map the buffers into the kernel, or how
+>> to interoperate with the scatter-gather list. The call flow would would go:
+> 
+> Can you explain how you can't do the above with the existing API?
 
-> AM3505/3517 don't have IO wakeup capability, so we don not need to set
-> the bit OMAP3430_EN_IO and the bit OMAP3430_EN_IO_CHAIN in the register
-> PM_WKEN_WKUP when the system enters retention.
->
-> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+Sure. You can do the same thing with the current API, but the VCM takes a
+wider view; the mapper is a parameter.
 
-This looks much better, thanks.
+Taking include/linux/iommu.h as a common interface, the key function
+is iommu_map(). This function maps a physical memory region, paddr, of
+gfp_order, to a virtual region starting at iova:
 
-Can your report what platforms this was tested/validated on?    Ideally
-a test on AM3505/3517 as well as a "normal" 35xx would be very helpful
-in giving confidence to the patch.
+extern int iommu_map(struct iommu_domain *domain, unsigned long iova,
+		     phys_addr_t paddr, int gfp_order, int prot);
 
-Kevin
+Users who call this, kvm_iommu_map_pages() for instance, run similar
+loops:
 
-> ---
->  arch/arm/mach-omap2/id.c              |    2 ++
->  arch/arm/mach-omap2/pm34xx.c          |    7 ++++---
->  arch/arm/plat-omap/include/plat/cpu.h |    2 ++
->  3 files changed, 8 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 37b8a1a..67bd971 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -179,6 +179,8 @@ void __init omap3_check_features(void)
->  	OMAP3_CHECK_FEATURE(status, ISP);
->  	if (cpu_is_omap3630())
->  		omap3_features |= OMAP3_HAS_192MHZ_CLK;
-> +	if (!cpu_is_omap3505() && !cpu_is_omap3517())
-> +		omap3_features |= OMAP3_HAS_IO_WAKEUP;
->  
->  	/*
->  	 * TODO: Get additional info (where applicable)
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index b88737f..fb4994a 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -385,8 +385,9 @@ void omap_sram_idle(void)
->  	/* Enable IO-PAD and IO-CHAIN wakeups */
->  	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
->  	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
-> -	if (per_next_state < PWRDM_POWER_ON ||
-> -			core_next_state < PWRDM_POWER_ON) {
-> +	if (omap3_has_io_wakeup() && \
-> +			(per_next_state < PWRDM_POWER_ON ||
-> +			core_next_state < PWRDM_POWER_ON)) {
->  		prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
->  		omap3_enable_io_chain();
->  	}
-> @@ -479,7 +480,7 @@ void omap_sram_idle(void)
->  	}
->  
->  	/* Disable IO-PAD and IO-CHAIN wakeup */
-> -	if (core_next_state < PWRDM_POWER_ON) {
-> +	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
->  		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
->  		omap3_disable_io_chain();
->  	}
-> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-> index 7514174..aa2f4f0 100644
-> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -444,6 +444,7 @@ extern u32 omap3_features;
->  #define OMAP3_HAS_NEON			BIT(3)
->  #define OMAP3_HAS_ISP			BIT(4)
->  #define OMAP3_HAS_192MHZ_CLK		BIT(5)
-> +#define OMAP3_HAS_IO_WAKEUP		BIT(6)
->  
->  #define OMAP3_HAS_FEATURE(feat,flag)			\
->  static inline unsigned int omap3_has_ ##feat(void)	\
-> @@ -457,5 +458,6 @@ OMAP3_HAS_FEATURE(iva, IVA)
->  OMAP3_HAS_FEATURE(neon, NEON)
->  OMAP3_HAS_FEATURE(isp, ISP)
->  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-> +OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
->  
->  #endif
+foreach page 
+	iommu_map(domain, va(page), ...)
+	
+The VCM encapsulates this as vcm_back(). This function iterates over a
+set of physical regions and maps those physical regions to a virtual
+address space that has been associated with a mapper at run-time. The
+loop above, and the other loops (and other associated IOMMU software)
+that don't use the common interface like arch/powerpc/kernel/vio.c all
+do similar work.
+
+In the end the VCM's dynamic virtual region association mechanism (and
+multihomed physical memory targeting) allows all IOMMU mapping code in
+the system to use the same API.
+
+This may seem like syntactic sugar, but treating devices with IOMMUs
+(bus-masters), device with MMUs (CPUs) and devices without MMUs (DMA
+engines) as endpoints in a mapping graph allows new features to be
+developed. One such feature is system-wide memory migration (including
+memory that devices map). With a common API a loop like this can be
+written one place:
+
+foreach mapper of pa_region
+	remap(mapper, new_pa_region)
+
+It could also be used for better power-management:
+
+foreach mapper of soon_to_be_powered_off_pa_region
+	ask(mapper, soon_to_be_powered_off_pa_region)
+
+The VCM is just the first step.
+
+More concretely, the way the VCM works allows the transparent use and
+interoperation of different mapping chunk sizes. This is important in
+multimedia devices because IOMMU TLB misses may cause multimedia
+devices to miss their performance goals. Multi-chunk size support has
+been added for IOMMU mappers and wouldn't be hard to add to CPU
+mappers (CPU mappers still use 4KB).
+
+>> The general point of the VCMM is to allow users a higher level API
+>> than the current IOMMU abstraction provides that solves the general
+>> mapping problem. This means that all of the common mapping code would
+>> be written once. In addition, the API allows all the low level details
+>> of IOMMU programing and VM interoperation to be handled at the right
+>> level.
+>>
+>> Eventually the following functions could all be reworked and their
+>> users could call VCM functions.
+> 
+> There are more IOMMUs (e.g. x86 has calgary, gart too). And what is
+> the point of converting old IOMMUs (the majority of the below)? are
+> there any potential users of your API for such old IOMMUs?
+
+That's a good question. I gave the list of the current IOMMU mapping
+functions to bring awareness to the fact that the general system-wide
+mapping problem hasn't yet been solved and won't be solved completely
+until something that looks at memory mapping from a system-wide
+perspective, like the VCMM, has been built.
+
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
