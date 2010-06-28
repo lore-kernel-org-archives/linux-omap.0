@@ -1,177 +1,226 @@
-From: Hema HK <hemahk@ti.com>
-Subject: [PATCH 4/4]usb : musb:USB driver using omap_device_build for device registration.
-Date: Mon, 28 Jun 2010 17:47:07 +0530
-Message-ID: <1277727427-6144-1-git-send-email-hemahk@ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [pm-wip/uart][PATCH] Serial: Avoid populating uart_list in early
+	init phase
+Date: Mon, 28 Jun 2010 17:48:32 +0530
+Message-ID: <AANLkTilJE1sTL97zLkt_Wp0QnVy39mePr9WBPxgdwOZh@mail.gmail.com>
+References: <61551.192.168.10.88.1277384156.squirrel@dbdmail.itg.ti.com>
+	<87zkykxdqe.fsf@deeprootsystems.com>
+	<17901.10.24.255.17.1277473301.squirrel@dbdmail.itg.ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB032366B505@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59471 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006Ab0F1MRQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 08:17:16 -0400
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:58592 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753008Ab0F1MSe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 08:18:34 -0400
+Received: by qwi4 with SMTP id 4so1715042qwi.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 Jun 2010 05:18:33 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032366B505@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Hema HK <hemahk@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, tony@atomide.com
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-From: Hema HK  <hemahk@ti.com>
+On Sat, Jun 26, 2010 at 9:38 PM, DebBarma, Tarun Kanti
+<tarun.kanti@ti.com> wrote:
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Govindraj.R
+>> Sent: Friday, June 25, 2010 7:12 PM
+>> To: linux-omap@vger.kernel.org
+>> Cc: Kevin Hilman
+>> Subject: [pm-wip/uart][PATCH] Serial: Avoid populating uart_list in =
+early
+>> init phase
+>>
+>> Leave the uart_list empty and keep the omap hwmod info
+>> in a seperate uart_oh list and if board file calls
+>> serial init use this uart_oh list info to fill uart_list.
+>> The board file can also call just init_port to initialise
+>> a single uart instance, so make init_port flexible to handle
+>> individual uart instance by avoiding filling uart_list
+>> in any non port_init function.
+>>
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>> ---
+>> As per earlier dicussion:
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31157.html
+>>
+>> =A0arch/arm/mach-omap2/serial.c | =A0 60 +++++++++++++++++++++++++--=
+----------
+>> ----
+>> =A01 files changed, 36 insertions(+), 24 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seri=
+al.c
+>> index 24b8c60..246ae02 100644
+>> --- a/arch/arm/mach-omap2/serial.c
+>> +++ b/arch/arm/mach-omap2/serial.c
+>> @@ -97,6 +97,13 @@ struct omap_uart_state {
+>> =A0#endif
+>> =A0};
+>>
+>> +struct uart_oh {
+>> + =A0 =A0 struct list_head node;
+>> + =A0 =A0 struct omap_hwmod *oh;
+>> + =A0 =A0 int uart_num;
+>> +};
+>> +
+>> +static LIST_HEAD(uart_oh_list);
+>> =A0static LIST_HEAD(uart_list);
+>> =A0static u8 num_uarts;
+>>
+>> @@ -593,39 +600,32 @@ static void serial_out_override(struct uart_po=
+rt
+>> *up, int offset, int value)
+>>
+>> =A0void __init omap_serial_early_init(void)
+>> =A0{
+>> - =A0 =A0 int i =3D 0;
+>> + =A0 =A0 struct omap_hwmod *oh;
+>> + =A0 =A0 struct uart_oh *uoh;
+>> + =A0 =A0 char oh_name[MAX_UART_HWMOD_NAME_LEN];
+>>
+>> =A0 =A0 =A0 do {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 char oh_name[MAX_UART_HWMOD_NAME_LEN];
+>> - =A0 =A0 =A0 =A0 =A0 =A0 struct omap_hwmod *oh;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 struct omap_uart_state *uart;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 uoh =3D kzalloc(sizeof(struct uart_oh), GF=
+P_KERNEL);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (WARN_ON(!uoh))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 snprintf(oh_name, MAX_UART_HWMOD_NAME_LE=
+N,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"uart%d", i + 1);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"uart%d", num_uarts + 1=
+);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh =3D omap_hwmod_lookup(oh_name);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!oh)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>
+> [Tarun Kanti DebBarma]
+> What happens to the successfully allocated memory (uoh)? Are we not s=
+upposed to free it before breaking?
+>
 
-Changed the musb driver to use omap_build_device api instead of 
-platform_device_registration.The device specific resources defined in 
-centralized database will be used. So removed the resource definitions from
-the driver file. 
+oh is based on port instance if one instance of device is successful
+we should retain
+its instance rather warn only on the port instance where we failed.
 
-Signed-off-by: Hema HK <hemahk@ti.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>,tony@atomide.com
----
-Based off  pm-wip/hwmods-omap4.
 
- arch/arm/mach-omap2/clock44xx_data.c       |    2 
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 
- arch/arm/mach-omap2/usb-musb.c             |   94 ++++++++++++++---------------
- 3 files changed, 49 insertions(+), 49 deletions(-)
+> In fact, is there any problem if we do the allocation at this point?
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 uoh =3D kzalloc(sizeof(struct uart_oh),=
+ GFP_KERNEL);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (WARN_ON(!uoh))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>
+> This would mean that we allocate and do the rest of initialization on=
+ly when omap_hwmod_lookup() is >successful.
+>
+>> -
+>> - =A0 =A0 =A0 =A0 =A0 =A0 uart =3D kzalloc(sizeof(struct omap_uart_s=
+tate), GFP_KERNEL);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (WARN_ON(!uart))
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> -
+>> - =A0 =A0 =A0 =A0 =A0 =A0 uart->oh =3D oh;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 uart->num =3D i++;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 list_add_tail(&uart->node, &uart_list);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 num_uarts++;
+>> -
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* NOTE: omap_hwmod_init() has not yet=
+ been called,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0* =A0 =A0 =A0 so no hwmod functions wil=
+l work yet.
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+>> -
+>> - =A0 =A0 =A0 =A0 =A0 =A0 /*
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* so no hwmod functions will work yet.
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* During UART early init, device need=
+ to be probed
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* to determine SoC specific init befo=
+re omap_device
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0* is ready. =A0Therefore, don't allow i=
+dle here
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* is ready. Therefore, don't allow idle=
+ here
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+>> - =A0 =A0 =A0 =A0 =A0 =A0 uart->oh->flags |=3D HWMOD_INIT_NO_IDLE;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 oh->flags |=3D HWMOD_INIT_NO_IDLE;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 uoh->oh =3D oh;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 uoh->uart_num =3D num_uarts;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 list_add_tail(&uoh->node, &uart_oh_list);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 num_uarts++;
+>> =A0 =A0 =A0 } while (1);
+>> =A0}
+>>
+>> @@ -645,6 +645,7 @@ void __init omap_serial_init_port(int port)
+>> =A0 =A0 =A0 struct omap_uart_state *uart;
+>> =A0 =A0 =A0 struct omap_hwmod *oh;
+>> =A0 =A0 =A0 struct omap_device *od;
+>> + =A0 =A0 struct uart_oh *uoh;
+>> =A0 =A0 =A0 void *pdata =3D NULL;
+>> =A0 =A0 =A0 u32 pdata_size =3D 0;
+>> =A0 =A0 =A0 char *name;
+>> @@ -663,6 +664,17 @@ void __init omap_serial_init_port(int port)
+>> =A0 =A0 =A0 if (WARN_ON(port >=3D num_uarts))
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> [Tarun Kanti DebBarma]
+> I am not sure if this check is needed at all since this is called for=
+ all valid ports in uart_oh_list. In other >words validation of port nu=
+mber has happened already while creating the uart_oh_list.
+>
+>>
+>> + =A0 =A0 uart =3D kzalloc(sizeof(struct omap_uart_state), GFP_KERNE=
+L);
+>> + =A0 =A0 if (WARN_ON(!uart))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> +
+>> + =A0 =A0 uart->num =3D port;
+>> + =A0 =A0 list_add_tail(&uart->node, &uart_list);
+>> + =A0 =A0 list_for_each_entry(uoh, &uart_oh_list, node)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (port =3D=3D uoh->uart_num)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> +
+> [Tarun Kanti DebBarma]
+> BTW, why can't we pass (uoh) to this function instead of port number?=
+ In that case we would any way get >the port number using uoh->uart_num=
+ as well as avoid the above loop for parsing the uart_oh_list for >iden=
+tifying the respective uoh just for making the below assignment.
+>
+>> + =A0 =A0 uart->oh =3D uoh->oh;
+>> =A0 =A0 =A0 list_for_each_entry(uart, &uart_list, node)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (port =3D=3D uart->num)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> @@ -781,8 +793,8 @@ void __init omap_serial_init_port(int port)
+>> =A0 */
+>> =A0void __init omap_serial_init(void)
+>> =A0{
+>> - =A0 =A0 struct omap_uart_state *uart;
+>> + =A0 =A0 struct uart_oh *uoh;
+>>
+>> - =A0 =A0 list_for_each_entry(uart, &uart_list, node)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 omap_serial_init_port(uart->num);
+>> + =A0 =A0 list_for_each_entry(uoh, &uart_oh_list, node)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_serial_init_port(uoh->uart_num);
+> [Tarun Kanti DebBarma]
+> As mentioned above, can we pass (uoh) directly instead of (uoh->uart_=
+num) ?
 
-Index: linux-omap-pm/arch/arm/mach-omap2/clock44xx_data.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/clock44xx_data.c
-+++ linux-omap-pm/arch/arm/mach-omap2/clock44xx_data.c
-@@ -2296,7 +2296,7 @@ static struct clk usb_host_fs_fck = {
- };
- 
- static struct clk usb_otg_ick = {
--	.name		= "usb_otg_ick",
-+	.name		= "usb_otg_hs_ick",
- 	.ops		= &clkops_omap2_dflt,
- 	.enable_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
- 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
-Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -4884,7 +4884,7 @@ static __initdata struct omap_hwmod *oma
- 	/* usb_host_hs class */
- /*	&omap44xx_usb_host_hs_hwmod, */
- 	/* usb_otg_hs class */
--/*	&omap44xx_usb_otg_hs_hwmod, */
-+	&omap44xx_usb_otg_hs_hwmod,
- 	/* usb_tll_hs class */
- /*	&omap44xx_usb_tll_hs_hwmod, */
- 	/* wd_timer class */
-Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
-+++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-@@ -30,24 +30,12 @@
- #include <mach/irqs.h>
- #include <plat/mux.h>
- #include <plat/usb.h>
-+#include <plat/omap_device.h>
- 
- #ifdef CONFIG_USB_MUSB_SOC
- 
--static struct resource musb_resources[] = {
--	[0] = { /* start and end set dynamically */
--		.flags	= IORESOURCE_MEM,
--	},
--	[1] = {	/* general IRQ */
--		.start	= INT_243X_HS_USB_MC,
--		.flags	= IORESOURCE_IRQ,
--		.name	= "mc",
--	},
--	[2] = {	/* DMA IRQ */
--		.start	= INT_243X_HS_USB_DMA,
--		.flags	= IORESOURCE_IRQ,
--		.name	= "dma",
--	},
--};
-+static const char name[] = "musb_hdrc";
-+#define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
- 
- static struct musb_hdrc_config musb_config = {
- 	.multipoint	= 1,
-@@ -76,43 +64,55 @@ static struct musb_hdrc_platform_data mu
- 
- static u64 musb_dmamask = DMA_BIT_MASK(32);
- 
--static struct platform_device musb_device = {
--	.name		= "musb_hdrc",
--	.id		= -1,
--	.dev = {
--		.dma_mask		= &musb_dmamask,
--		.coherent_dma_mask	= DMA_BIT_MASK(32),
--		.platform_data		= &musb_plat,
-+static struct omap_device_pm_latency omap_musb_latency[] = {
-+	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func	 = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
- 	},
--	.num_resources	= ARRAY_SIZE(musb_resources),
--	.resource	= musb_resources,
- };
- 
- void __init usb_musb_init(struct omap_musb_board_data *board_data)
- {
--	if (cpu_is_omap243x()) {
--		musb_resources[0].start = OMAP243X_HS_BASE;
--	} else if (cpu_is_omap34xx()) {
--		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
--	} else if (cpu_is_omap44xx()) {
--		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
--		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
--		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
--	}
--	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
--
--	/*
--	 * REVISIT: This line can be removed once all the platforms using
--	 * musb_core.c have been converted to use use clkdev.
--	 */
--	musb_plat.clock = "ick";
--	musb_plat.board_data = board_data;
--	musb_plat.power = board_data->power >> 1;
--	musb_plat.mode = board_data->mode;
--	musb_plat.extvbus = board_data->extvbus;
--
--	if (platform_device_register(&musb_device) < 0)
--		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
-+	char oh_name[MAX_OMAP_MUSB_HWMOD_NAME_LEN];
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+	struct platform_device *pdev;
-+	struct device	*dev;
-+	int l, bus_id = -1;
-+	struct musb_hdrc_platform_data *pdata;
-+
-+	l = snprintf(oh_name, MAX_OMAP_MUSB_HWMOD_NAME_LEN,
-+						"usb_otg_hs");
-+	WARN(l >= MAX_OMAP_MUSB_HWMOD_NAME_LEN,
-+	"String buffer overflow in MUSB device setup\n");
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+		pr_err("Could not look up %s\n", oh_name);
-+	} else {
-+		musb_plat.clock = "ick";
-+		musb_plat.board_data = board_data;
-+		musb_plat.power = board_data->power >> 1;
-+		musb_plat.mode = board_data->mode;
-+		pdata = &musb_plat;
-+
-+		od = omap_device_build(name, bus_id, oh, pdata,
-+				       sizeof(struct musb_hdrc_platform_data),
-+							omap_musb_latency,
-+				       ARRAY_SIZE(omap_musb_latency), false);
-+		if (IS_ERR(od)) {
-+			pr_err("Could not build omap_device for %s %s\n",
-+						name, oh_name);
-+		} else {
-+
-+			pdev = &od->pdev;
-+			dev = &pdev->dev;
-+			get_device(dev);
-+			dev->dma_mask = &musb_dmamask;
-+			dev->coherent_dma_mask = musb_dmamask;
-+			put_device(dev);
-+		}
-+ 	}
- }
- 
- #else
+the reason for not passing uoh to init_port is because init_port can
+be called directly to initialize any single
+instance of the port with a port number based on the board used.
+
+Regards,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
