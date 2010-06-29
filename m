@@ -1,80 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/6] omap: Make omap specific features appear under Kconfig
-	menu
-Date: Tue, 29 Jun 2010 14:47:29 +0300
-Message-ID: <20100629114729.16008.70219.stgit@baageli.muru.com>
+Subject: [PATCH 4/6] omap2/3/4: Move Kconfig options to mach-omap2/Kconfig
+Date: Tue, 29 Jun 2010 14:47:32 +0300
+Message-ID: <20100629114732.16008.56598.stgit@baageli.muru.com>
 References: <20100629113229.16008.2931.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64232 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755778Ab0F2LrR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 07:47:17 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63967 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755813Ab0F2LrU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 07:47:20 -0400
 In-Reply-To: <20100629113229.16008.2931.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-This will make Kconfig look nicer for selecting omap processor type
+Move omap2/3/4 specific Kconfig options to mach-omap2/Kconfig
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/Kconfig |    7 +++++++
- arch/arm/mach-omap2/Kconfig |    7 +++++++
- arch/arm/plat-omap/Kconfig  |    2 +-
- 3 files changed, 15 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/Kconfig |   18 ++++++++++++++++++
+ arch/arm/plat-omap/Kconfig  |   18 ------------------
+ 2 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-index b18d7c2..c911cdb 100644
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -1,3 +1,7 @@
-+if ARCH_OMAP1
-+
-+menu "TI OMAP1 specific features"
-+
- comment "OMAP Core Type"
- 	depends on ARCH_OMAP1
- 
-@@ -237,3 +241,6 @@ config OMAP_ARM_30MHZ
- 	help
-           Enable 30MHz clock for OMAP CPU. If unsure, say N.
- 
-+endmenu
-+
-+endif
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index f67f037..e94ee6b 100644
+index e94ee6b..d306aa1 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -1,3 +1,7 @@
-+if ARCH_OMAP2PLUS
+@@ -2,6 +2,24 @@ if ARCH_OMAP2PLUS
+ 
+ menu "TI OMAP2/3/4 Specific Features"
+ 
++config ARCH_OMAP2
++	bool "TI OMAP2"
++	depends on ARCH_OMAP2PLUS
++	select CPU_V6
 +
-+menu "TI OMAP2/3/4 Specific Features"
++config ARCH_OMAP3
++	bool "TI OMAP3"
++	depends on ARCH_OMAP2PLUS
++	select CPU_V7
++	select USB_ARCH_HAS_EHCI
++	select ARM_L1_CACHE_SHIFT_6
++
++config ARCH_OMAP4
++	bool "TI OMAP4"
++	depends on ARCH_OMAP2PLUS
++	select CPU_V7
++	select ARM_GIC
 +
  comment "OMAP Core Type"
  	depends on ARCH_OMAP2
  
-@@ -186,3 +190,6 @@ config OMAP3_SDRC_AC_TIMING
- 	  wish to say no.  Selecting yes without understanding what is
- 	  going on could result in system crashes;
- 
-+endmenu
-+
-+endif
 diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 3e2e7a8..a4e8727 100644
+index a4e8727..b7a3d80 100644
 --- a/arch/arm/plat-omap/Kconfig
 +++ b/arch/arm/plat-omap/Kconfig
-@@ -1,6 +1,6 @@
- if ARCH_OMAP
+@@ -21,24 +21,6 @@ config ARCH_OMAP2PLUS
+ 	help
+ 	  "Systems based on omap24xx, omap34xx or omap44xx"
  
--menu "TI OMAP Implementations"
-+menu "TI OMAP Common Features"
+-config ARCH_OMAP2
+-	bool "TI OMAP2"
+-	depends on ARCH_OMAP2PLUS
+-	select CPU_V6
+-
+-config ARCH_OMAP3
+-	bool "TI OMAP3"
+-	depends on ARCH_OMAP2PLUS
+-	select CPU_V7
+-	select USB_ARCH_HAS_EHCI
+-	select ARM_L1_CACHE_SHIFT_6
+-
+-config ARCH_OMAP4
+-	bool "TI OMAP4"
+-	depends on ARCH_OMAP2PLUS
+-	select CPU_V7
+-	select ARM_GIC
+-
+ endchoice
  
- config ARCH_OMAP_OTG
- 	bool
+ comment "OMAP Feature Selections"
 
