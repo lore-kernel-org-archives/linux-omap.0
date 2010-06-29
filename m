@@ -1,47 +1,52 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 4/4]usb : musb:USB driver using omap_device_build for
- device registration.
-Date: Tue, 29 Jun 2010 15:05:28 +0400
-Message-ID: <4C29D378.90408@ru.mvista.com>
-References: <1277727427-6144-1-git-send-email-hemahk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/6] omap Kconfig improvments for 2.6.36 merge window
+Date: Tue, 29 Jun 2010 14:47:08 +0300
+Message-ID: <20100629113229.16008.2931.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1277727427-6144-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63670 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755688Ab0F2LrH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 07:47:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Hello.
+Hi all,
 
-Hema HK wrote:
+Here are some Kconfig improvments to produce a mostly sane .config for
+omap2/3/4 without a defconfig. This assumes that CONFIG_ARCH_OMAP is
+selected, for example with:
 
-> From: Hema HK  <hemahk-l0cyMroinI0@public.gmane.org>
+$ echo "CONFIG_ARCH_OMAP=y" > .config && yes "" | ARCH=arm make oldconfig
 
-    I think the patch description has clarity issues...
+or
 
-> Changed the musb driver to use omap_build_device api instead of 
+$ rm .config; ARCH=arm make xconfig, then select System Type -> TI OMAP
 
-    I don't see where are you changing the MUSB driver.
+Regards,
 
-> platform_device_registration.
+Tony
 
-    Why underscores here?
+---
 
-> The device specific resources defined in 
-> centralized database will be used. So removed the resource definitions from
-> the driver file.
+Tony Lindgren (6):
+      omap: Disable VGA console for omaps
+      omap: Use 32KiHZ timer by default
+      omap: Make omap specific features appear under Kconfig menu
+      omap2/3/4: Move Kconfig options to mach-omap2/Kconfig
+      omap2/3/4: Select all omaps and boards by default
+      omap2/3/4: Add Kconfig option to compile in typical omap features
 
-    Do you mean usb-musb.c here? This is certainly not a driver.
 
-> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>,tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+ arch/arm/mach-omap1/Kconfig   |    7 ++++
+ arch/arm/mach-omap2/Kconfig   |   74 +++++++++++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/Kconfig    |   22 +-----------
+ drivers/video/console/Kconfig |    2 +
+ 4 files changed, 84 insertions(+), 21 deletions(-)
 
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Signature
