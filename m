@@ -1,100 +1,98 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH 3/3] omap: pandora: pass wl1251 information to SDIO core
-Date: Tue, 29 Jun 2010 16:49:25 +0300
-Message-ID: <1277819365-2761-4-git-send-email-notasas@gmail.com>
-References: <1277819365-2761-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1277819365-2761-1-git-send-email-notasas@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Adrian Hunter <adrian.hunter@nokia.com>, Tony Lindgren <tony@atomide.com>, Bob Copeland <me@bobcopeland.com>, Kalle Valo <kvalo@adurom.com>, Grazvydas Ignotas <notasas@gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in typical
+ omap	features
+Date: Tue, 29 Jun 2010 19:23:15 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB6FC3@dbde02.ent.ti.com>
+References: <20100629113229.16008.2931.stgit@baageli.muru.com>
+ <20100629114738.16008.62006.stgit@baageli.muru.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43836 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755665Ab0F2NxX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 09:53:23 -0400
+In-Reply-To: <20100629114738.16008.62006.stgit@baageli.muru.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Pandora has TI WL1251 attached on MMC3, which is non-standard SDIO chip.
-Make use MMC_QUIRK_NONSTD_SDIO to tell SDIO core about it.
+Tony,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Tuesday, June 29, 2010 5:18 PM
+> To: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in typical
+> omap features
+> 
+> This produces a sane config that's suitable for using as the
+> base for most omap2/3/4 boards.
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig |   21 +++++++++++++++++++++
+>  1 files changed, 21 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 4802988..84fecd0 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -2,6 +2,27 @@ if ARCH_OMAP2PLUS
+> 
+>  menu "TI OMAP2/3/4 Specific Features"
+> 
+> +config ARCH_OMAP2PLUS_TYPICAL
+> +	bool "Typical OMAP configuration"
+> +	default y
+> +	select AEABI
+> +	select REGULATOR
+> +	select PM
+> +	select PM_RUNTIME
+> +	select VFP
+> +	select NEON if ARCH_OMAP3 || ARCH_OMAP4
+> +	select SERIAL_8250
+> +	select SERIAL_CORE_CONSOLE
+> +	select SERIAL_8250_CONSOLE
+> +	select I2C
+> +	select I2C_OMAP
+> +	select MFD
+> +	select MENELAUS if ARCH_OMAP2
+> +	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
+> +	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
+> +	help
+> +	  Compile a kernel suitable for booting most boards
+> +
+>  config ARCH_OMAP2
+>  	bool "TI OMAP2"
+>  	depends on ARCH_OMAP2PLUS
+> 
+With your series OMAP4 build breaks because of PM and SMP dependencies.
+To ensure that build doesn't break on OMAP4, I needed below change. With
+This change I tried your series and it boots OK on OMAP4430 SDP
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- arch/arm/mach-omap2/board-omap3pandora.c |   16 ++++++++++++++++
- arch/arm/mach-omap2/hsmmc.c              |    1 +
- arch/arm/mach-omap2/hsmmc.h              |    4 ++++
- 3 files changed, 21 insertions(+), 0 deletions(-)
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 84fecd0..f48f275 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -7,8 +7,8 @@ config ARCH_OMAP2PLUS_TYPICAL
+        default y
+        select AEABI
+        select REGULATOR
+-       select PM
+-       select PM_RUNTIME
++       select PM if !ARCH_OMAP4
++       select PM_RUNTIME if !ARCH_OMAP4
+        select VFP
+        select NEON if ARCH_OMAP3 || ARCH_OMAP4
+        select SERIAL_8250
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index db06dc9..ebbfb49 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -29,6 +29,7 @@
- #include <linux/input.h>
- #include <linux/input/matrix_keypad.h>
- #include <linux/gpio_keys.h>
-+#include <linux/mmc/card.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -227,6 +228,20 @@ static struct platform_device pandora_dss_device = {
- 	},
- };
- 
-+static void pandora_wl1251_init_card(struct mmc_card *card)
-+{
-+	/*
-+	 * We have TI wl1251 attached to MMC3. Pass this information to
-+	 * SDIO core because it can't be probed by normal methods.
-+	 */
-+	card->quirks |= MMC_QUIRK_NONSTD_SDIO;
-+	card->cccr.wide_bus = 1;
-+	card->cis.vendor = 0x104c;
-+	card->cis.device = 0x9066;
-+	card->cis.blksize = 512;
-+	card->cis.max_dtr = 20000000;
-+}
-+
- static struct omap2_hsmmc_info omap3pandora_mmc[] = {
- 	{
- 		.mmc		= 1,
-@@ -248,6 +263,7 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
- 		.wires		= 4,
- 		.gpio_cd	= -EINVAL,
- 		.gpio_wp	= -EINVAL,
-+		.init_card	= pandora_wl1251_init_card,
- 	},
- 	{}	/* Terminator */
- };
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index 1ef54b0..c8f647b 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -268,6 +268,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 		mmc->slots[0].gpio_wp = c->gpio_wp;
- 
- 		mmc->slots[0].remux = c->remux;
-+		mmc->slots[0].init_card = c->init_card;
- 
- 		if (c->cover_only)
- 			mmc->slots[0].cover = 1;
-diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
-index 36f0ba8..1fe6f01 100644
---- a/arch/arm/mach-omap2/hsmmc.h
-+++ b/arch/arm/mach-omap2/hsmmc.h
-@@ -6,6 +6,8 @@
-  * published by the Free Software Foundation.
-  */
- 
-+struct mmc_card;
-+
- struct omap2_hsmmc_info {
- 	u8	mmc;		/* controller 1/2/3 */
- 	u8	wires;		/* 1/4/8 wires */
-@@ -23,6 +25,8 @@ struct omap2_hsmmc_info {
- 	int	ocr_mask;	/* temporary HACK */
- 	/* Remux (pad configuation) when powering on/off */
- 	void (*remux)(struct device *dev, int slot, int power_on);
-+	/* init some special card */
-+	void (*init_card)(struct mmc_card *card);
- };
- 
- #if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
--- 
-1.6.3.3
+Regards
+Santosh
+
+
 
