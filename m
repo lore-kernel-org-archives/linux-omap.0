@@ -1,114 +1,80 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in typical
- omap	features
-Date: Tue, 29 Jun 2010 20:16:20 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB7026@dbde02.ent.ti.com>
-References: <20100629113229.16008.2931.stgit@baageli.muru.com>
- <20100629114738.16008.62006.stgit@baageli.muru.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB6FC3@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/3] OMAP3:PM:  Keep UART clocks disabled is resume idle path
+Date: Tue, 29 Jun 2010 08:10:44 -0700
+Message-ID: <87zkydub63.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0323763481@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47415 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756206Ab0F2Oqa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 10:46:30 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB6FC3@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-px0-f174.google.com ([209.85.212.174]:33435 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756520Ab0F2PKu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 11:10:50 -0400
+Received: by pxi8 with SMTP id 8so2363124pxi.19
+        for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 08:10:48 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323763481@dbde02.ent.ti.com>
+	(Teerth Reddy's message of "Tue, 29 Jun 2010 12:28:56 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Reddy, Teerth" <teerth@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
-> Sent: Tuesday, June 29, 2010 7:23 PM
-> To: Tony Lindgren; linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in
-> typical omap features
-> 
-> Tony,
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> > Sent: Tuesday, June 29, 2010 5:18 PM
-> > To: linux-arm-kernel@lists.infradead.org
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in typical
-> > omap features
-> >
-> > This produces a sane config that's suitable for using as the
-> > base for most omap2/3/4 boards.
-> >
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  arch/arm/mach-omap2/Kconfig |   21 +++++++++++++++++++++
-> >  1 files changed, 21 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> > index 4802988..84fecd0 100644
-> > --- a/arch/arm/mach-omap2/Kconfig
-> > +++ b/arch/arm/mach-omap2/Kconfig
-> > @@ -2,6 +2,27 @@ if ARCH_OMAP2PLUS
-> >
-> >  menu "TI OMAP2/3/4 Specific Features"
-> >
-> > +config ARCH_OMAP2PLUS_TYPICAL
-> > +	bool "Typical OMAP configuration"
-> > +	default y
-> > +	select AEABI
-> > +	select REGULATOR
-> > +	select PM
-> > +	select PM_RUNTIME
-> > +	select VFP
-> > +	select NEON if ARCH_OMAP3 || ARCH_OMAP4
-> > +	select SERIAL_8250
-> > +	select SERIAL_CORE_CONSOLE
-> > +	select SERIAL_8250_CONSOLE
-> > +	select I2C
-> > +	select I2C_OMAP
-> > +	select MFD
-> > +	select MENELAUS if ARCH_OMAP2
-> > +	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
-> > +	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
-> > +	help
-> > +	  Compile a kernel suitable for booting most boards
-> > +
-> >  config ARCH_OMAP2
-> >  	bool "TI OMAP2"
-> >  	depends on ARCH_OMAP2PLUS
-> >
-> With your series OMAP4 build breaks because of PM and SMP dependencies.
-> To ensure that build doesn't break on OMAP4, I needed below change. With
-> This change I tried your series and it boots OK on OMAP4430 SDP
-> 
-Also tested the multi-omap build on OMAP3430 SDP and OMAP4430 SDP. Both boots OK.
+"Reddy, Teerth" <teerth@ti.com> writes:
 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 84fecd0..f48f275 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -7,8 +7,8 @@ config ARCH_OMAP2PLUS_TYPICAL
->         default y
->         select AEABI
->         select REGULATOR
-> -       select PM
-> -       select PM_RUNTIME
-> +       select PM if !ARCH_OMAP4
-> +       select PM_RUNTIME if !ARCH_OMAP4
->         select VFP
->         select NEON if ARCH_OMAP3 || ARCH_OMAP4
->         select SERIAL_8250
-> 
-> Regards
-> Santosh
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> From: Teerth Reddy <teerth@ti.com>
+>
+> The UART clocks should not be turned on in resume idle path. The UART clocks
+> should be turned on only when there is a uart wakeup event. 
+
+No, UART clocks should be on whenever someone is accessing the UART.
+
+Besides wakeups, applications can open/access UARTs whenever they want.
+With this patch, an application wil fault if it tries to open a UART as
+the 8250 driver will access registers and not know how to turn on clocks.
+
+After the UART hwmod conversion done and the omap-serial driver is
+merged, we will convert the omap-serial driver to use runtime PM which
+will then be much more efficient in power as the driver is the only
+place that knows when the device needs to be enabled.
+
+Kevin
+
+> This optimization
+> will help save power.
+>
+> Signed-off-by: Raja Govindraj <govindraj.raja@ti.com>
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
+>
+> ---
+>  arch/arm/mach-omap2/serial.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 3771254..d545eed 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -343,6 +343,7 @@ static void omap_uart_idle_timer(unsigned long data)
+>  {
+>  	struct omap_uart_state *uart = (struct omap_uart_state *)data;
+>  
+> +	uart->timeout = DEFAULT_TIMEOUT;
+>  	omap_uart_allow_sleep(uart);
+>  }
+>  
+> @@ -364,7 +365,6 @@ void omap_uart_resume_idle(int num)
+>  
+>  	list_for_each_entry(uart, &uart_list, node) {
+>  		if (num == uart->num) {
+> -			omap_uart_enable_clocks(uart);
+>  
+>  			/* Check for IO pad wakeup */
+>  			if (cpu_is_omap34xx() && uart->padconf) {
+> @@ -436,7 +436,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+>  	int ret;
+>  
+>  	uart->can_sleep = 0;
+> -	uart->timeout = DEFAULT_TIMEOUT;
+> +	uart->timeout = 30 * HZ;
+>  	setup_timer(&uart->timer, omap_uart_idle_timer,
+>  		    (unsigned long) uart);
+>  	if (uart->timeout)
