@@ -1,49 +1,81 @@
-From: "Reddy, Teerth" <teerth@ti.com>
-Subject: [PATCH 3/3]: OMAP3:PM: Add power state parameter for
- omap_uart_prepare_idle
-Date: Tue, 29 Jun 2010 12:29:09 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323763485@dbde02.ent.ti.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH v5 2/2] OMAP4 HSMMC: Adding card detect support for MMC1
+ 	Controller
+Date: Tue, 29 Jun 2010 10:30:31 +0300
+Message-ID: <4C29A117.50707@nokia.com>
+References: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>	<4C1FB2A0.6000503@nokia.com> <AANLkTimVB7N0Oa9bDbYfSfcivy6afhvHW5Bdt-8dWVxD@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42178 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752850Ab0F2G7P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 02:59:15 -0400
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:56522 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753203Ab0F2Hau (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 03:30:50 -0400
+In-Reply-To: <AANLkTimVB7N0Oa9bDbYfSfcivy6afhvHW5Bdt-8dWVxD@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Cc: kishore kadiyala <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 
-From: Teerth Reddy <teerth@ti.com>
+ext kishore kadiyala wrote:
+> Adrian ,
+> 
+> Sorry for the late response
+> 
+> <snip>
+>> As per my email 5/5/10, I would suggest the only change to omap_hsmmc is:
+> 
+> Agreed  and followed the changes mostly but made some more changes on top of it.
+> 
+> <snip>
+>> And that the late init function is used to do the rest e.g.
+>> find a home for these 3 functions:
+> 
+> I agree just having the 3 functions makes it work.
+> 
+>> static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+>> {
+>>        int ret = 0;
+>>        struct platform_device *pdev = container_of(dev,
+>>                                        struct platform_device, dev);
+>>        struct omap_mmc_platform_data *pdata = dev->platform_data;
+>>
+>>        /* MMC1 Card detect Configuration */
+>>        if (pdev->id == 0) {
+>>                ret = omap4_hsmmc1_card_detect_config();
+>>                if (ret < 0)
+>>                        pr_err("Unable to configure Card detect for MMC1\n");
+>>                pdata->slots[0].card_detect = twl6030_mmc_card_detect;
+>>                pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
+>>                                                  MMCDETECT_INTR_OFFSET;
+>>        }
+>>        return ret;
+> 
+> <snip>
+> 
+> Few Comments below:
+> 
+> 1) In the above function, initializing "card_detect"  in the driver as
+> done in omap_hsmmc_gpio_init might be more readable and this has been
+> done in nongpio_init instead.
+> Even having initialization of  "card_detect_irq" inside nongpio_init is fine.
 
-This patch has the changes which adds power state parameter
-for the omap_uart_prepare_idle idle function.
+The problem is that referencing twl6030 from omap_hsmmc.c is not ok.
+The driver must work with any platform and that is the reason that
+platform data provides callbacks.
 
-Signed-off-by: Teerth Reddy <teerth@ti.com>
----
- arch/arm/mach-omap2/pm24xx.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index e321281..7046e74 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -119,9 +119,9 @@ static void omap2_enter_full_retention(void)
- 	if (omap_irq_pending())
- 		goto no_sleep;
- 
--	omap_uart_prepare_idle(0);
--	omap_uart_prepare_idle(1);
--	omap_uart_prepare_idle(2);
-+	omap_uart_prepare_idle(0, PWRDM_POWER_RET);
-+	omap_uart_prepare_idle(1, PWRDM_POWER_RET);
-+	omap_uart_prepare_idle(2, PWRDM_POWER_RET);
- 
- 	/* Jump to SRAM suspend code */
- 	omap2_sram_suspend(sdrc_read_reg(SDRC_DLLA_CTRL),
--- 
-1.5.4.3
+> 
+> 2)Also calling omap_hsmmc_gpio_init in case of a card detect line
+> which is not GPIO
+> doesn't make sense though it assigns -EINVAL to switch_pin in case of
+> invalid GPIO
+> which is intended for a non-removable card .
+> 
+> 3) And also having some thing like GPIO and NON_GPIO flag to
+> distinguish might make sense.
+> 
+> Regards,
+> Kishore
+> 
 
