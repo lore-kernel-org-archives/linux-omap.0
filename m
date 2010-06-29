@@ -1,98 +1,78 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in typical
- omap	features
-Date: Tue, 29 Jun 2010 19:23:15 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB6FC3@dbde02.ent.ti.com>
-References: <20100629113229.16008.2931.stgit@baageli.muru.com>
- <20100629114738.16008.62006.stgit@baageli.muru.com>
+From: "Nagarajan, Rajkumar" <x0133774@ti.com>
+Subject: RE: [PATCH] OMAP: DSS: Fix for dsi_pll to dpll4 clk switch
+Date: Tue, 29 Jun 2010 19:43:54 +0530
+Message-ID: <FF55437E1F14DA4BAEB721A458B6701706BDB3A5CA@dbde02.ent.ti.com>
+References: <1277376672.2464.188.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43836 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:45069 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755665Ab0F2NxX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 09:53:23 -0400
-In-Reply-To: <20100629114738.16008.62006.stgit@baageli.muru.com>
+	with ESMTP id S1754919Ab0F2OOF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 10:14:05 -0400
+In-Reply-To: <1277376672.2464.188.camel@tubuntu.research.nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony,
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Tuesday, June 29, 2010 5:18 PM
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> Subject: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in typical
-> omap features
-> 
-> This produces a sane config that's suitable for using as the
-> base for most omap2/3/4 boards.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/Kconfig |   21 +++++++++++++++++++++
->  1 files changed, 21 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 4802988..84fecd0 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -2,6 +2,27 @@ if ARCH_OMAP2PLUS
-> 
->  menu "TI OMAP2/3/4 Specific Features"
-> 
-> +config ARCH_OMAP2PLUS_TYPICAL
-> +	bool "Typical OMAP configuration"
-> +	default y
-> +	select AEABI
-> +	select REGULATOR
-> +	select PM
-> +	select PM_RUNTIME
-> +	select VFP
-> +	select NEON if ARCH_OMAP3 || ARCH_OMAP4
-> +	select SERIAL_8250
-> +	select SERIAL_CORE_CONSOLE
-> +	select SERIAL_8250_CONSOLE
-> +	select I2C
-> +	select I2C_OMAP
-> +	select MFD
-> +	select MENELAUS if ARCH_OMAP2
-> +	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
-> +	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
-> +	help
-> +	  Compile a kernel suitable for booting most boards
-> +
->  config ARCH_OMAP2
->  	bool "TI OMAP2"
->  	depends on ARCH_OMAP2PLUS
-> 
-With your series OMAP4 build breaks because of PM and SMP dependencies.
-To ensure that build doesn't break on OMAP4, I needed below change. With
-This change I tried your series and it boots OK on OMAP4430 SDP
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 84fecd0..f48f275 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -7,8 +7,8 @@ config ARCH_OMAP2PLUS_TYPICAL
-        default y
-        select AEABI
-        select REGULATOR
--       select PM
--       select PM_RUNTIME
-+       select PM if !ARCH_OMAP4
-+       select PM_RUNTIME if !ARCH_OMAP4
-        select VFP
-        select NEON if ARCH_OMAP3 || ARCH_OMAP4
-        select SERIAL_8250
-
-Regards
-Santosh
-
-
-
+IA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWkgVmFsa2VpbmVu
+IFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXSANCj4gU2VudDogVGh1cnNkYXksIEp1
+bmUgMjQsIDIwMTAgNDoyMSBQTQ0KPiBUbzogTmFnYXJhamFuLCBSYWprdW1hcg0KPiBDYzogbGlu
+dXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gT01BUDogRFNT
+OiBGaXggZm9yIGRzaV9wbGwgdG8gZHBsbDQgY2xrIHN3aXRjaA0KPiANCj4gT24gVGh1LCAyMDEw
+LTA2LTE3IGF0IDA3OjEyICswMjAwLCBleHQgTmFnYXJhamFuLCBSYWprdW1hciB3cm90ZToNCj4g
+PiBXaGVuIHN3aXRjaGluZyBiZXR3ZWVuIGNsb2NrcywgVGhlIG5ldyBmdW5jdGlvbmFsIGNsb2Nr
+IGlzDQo+ID4gZWZmZWN0aXZlIHdoZW4gdGhlIG5leHQgdmVydGljYWwgYmxhbmtpbmcgaW50ZXJ2
+YWwgb2NjdXJzLg0KPiA+IEdPTENEIGJpdCBoYXMgdG8gYmUgc2V0IGZvciB0aGUgbmV3IGNsb2Nr
+IHRvIHRha2UgZWZmZWN0Lg0KPiANCj4gV2hlcmUgZGlkIHlvdSBlbmNvdW50ZXIgdGhpcyBwcm9i
+bGVtPw0KPiANClJhajogVGhlIGJlbG93IGV4cGVyaW1lbnRzIHdpbGwgbWFrZSB5b3UgdG8gdW5k
+ZXJzdGFuZCB0aGUgc2lnbmlmaWNhbmNlIG9mIHRoZSBwYXRjaDoNCg0KMS4gU2VsZWN0ICJkc2lf
+cGxsIiBhcyBkZWZhdWx0IGNsb2NrLg0KMi4gQWZ0ZXIgdGhlIHpvb20zIGRpc3BsYXkgY29tZXMg
+dXAsc3dpdGNoIHRoZSBkZWZhdWx0IHNjcmVlbiBvbiBMQ0QgdG8gVFYgdXNpbmcgYmVsb3cgY29t
+bWFuZHMuDQoJZWNobyAiMCIgPiAvc3lzL2RldmljZXMvcGxhdGZvcm0vb21hcGRzcy9vdmVybGF5
+MC9lbmFibGVkDQoJZWNobyAiNzIwLDU3NCIgPiAvc3lzL2RldmljZXMvcGxhdGZvcm0vb21hcGRz
+cy9vdmVybGF5MC9pbnB1dF9zaXplDQoJZWNobyAiNzIwLDU3NCIgPiAvc3lzL2RldmljZXMvcGxh
+dGZvcm0vb21hcGRzcy9vdmVybGF5MC9vdXRwdXRfc2l6ZQ0KCWVjaG8gInR2IiA+ICAvc3lzL2Rl
+dmljZXMvcGxhdGZvcm0vb21hcGRzcy9vdmVybGF5MC9tYW5hZ2VyDQoJZWNobyAiMSIgPiAvc3lz
+L2RldmljZXMvcGxhdGZvcm0vb21hcGRzcy9kaXNwbGF5MS9lbmFibGVkDQoJZWNobyAiMSIgPiAv
+c3lzL2RldmljZXMvcGxhdGZvcm0vb21hcGRzcy9vdmVybGF5MC9lbmFibGVkDQozLiBOb3cgdGhl
+IGRpc3BsYXkgaXMgYXBwZWFyaW5nIG9uIFRWLlNvLCBOb3cgc3dpdGNoIHRoZSBkaXNwbGF5IGJh
+Y2sgdG8gTENEIHVzaW5nIHRoZSBiZWxvdyBjb21tYW5kcy4NCgllY2hvICIwIiA+IC9zeXMvZGV2
+aWNlcy9wbGF0Zm9ybS9vbWFwZHNzL292ZXJsYXkwL2VuYWJsZWQNCgllY2hvICI4MDAsNDgwIiA+
+IC9zeXMvZGV2aWNlcy9wbGF0Zm9ybS9vbWFwZHNzL292ZXJsYXkwL2lucHV0X3NpemUNCgllY2hv
+ICI4MDAsNDgwIiA+IC9zeXMvZGV2aWNlcy9wbGF0Zm9ybS9vbWFwZHNzL292ZXJsYXkwL291dHB1
+dF9zaXplDQoJZWNobyAibGNkIiA+ICAvc3lzL2RldmljZXMvcGxhdGZvcm0vb21hcGRzcy9vdmVy
+bGF5MC9tYW5hZ2VyDQoJZWNobyAiMSIgPiAvc3lzL2RldmljZXMvcGxhdGZvcm0vb21hcGRzcy9k
+aXNwbGF5MS9lbmFibGVkDQoJZWNobyAiMSIgPiAvc3lzL2RldmljZXMvcGxhdGZvcm0vb21hcGRz
+cy9vdmVybGF5MC9lbmFibGVkDQo0LiBOb3cgdGhlIGRpc3BsYXkgd2lsbCBub3QgYXBwZWFyIG9u
+IExDRCxpZiB0aGUgcGF0Y2ggaXMgbm90IGluY2x1ZGVkLg0KICAgIEJ1dCx0aGUgZGlzcGxheSB3
+aWxsIGFwcGVhciBvbiBMQ0QsIGlmIHRoZSBwYXRjaCBpcyBpbmNsdWRlZC4NCg0KPiA+IFNpZ25l
+ZC1vZmYtYnk6IEtpc2hvcmUgWSA8a2lzaG9yZS55QHRpLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5
+OiBNdWt1bmQgTWl0dGFsIDxtbWl0dGFsQHRpLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBSYWpr
+dW1hciBOIDxyYWprdW1hci5uYWdhcmFqYW5AdGkuY29tPg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJz
+L3ZpZGVvL29tYXAyL2Rzcy9kcGkuYyB8ICAgIDUgKysrKysNCj4gPiAgMSBmaWxlcyBjaGFuZ2Vk
+LCA1IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvdmlkZW8vb21hcDIvZHNzL2RwaS5jIA0KPiBiL2RyaXZlcnMvdmlkZW8vb21hcDIv
+ZHNzL2RwaS5jDQo+ID4gaW5kZXggOTYwZTk3Ny4uNWQ3NzhkNiAxMDA2NDQNCj4gPiAtLS0gYS9k
+cml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kcGkuYw0KPiA+ICsrKyBiL2RyaXZlcnMvdmlkZW8vb21h
+cDIvZHNzL2RwaS5jDQo+ID4gQEAgLTIxNCwxMCArMjE0LDE1IEBAIHZvaWQgDQo+IG9tYXBkc3Nf
+ZHBpX2Rpc3BsYXlfZGlzYWJsZShzdHJ1Y3Qgb21hcF9kc3NfZGV2aWNlICpkc3NkZXYpDQo+ID4g
+IA0KPiA+ICAjaWZkZWYgQ09ORklHX09NQVAyX0RTU19VU0VfRFNJX1BMTA0KPiA+ICAJZHNzX3Nl
+bGVjdF9kaXNwY19jbGtfc291cmNlKERTU19TUkNfRFNTMV9BTFdPTl9GQ0xLKTsNCj4gPiArCWRp
+c3BjX2dvKE9NQVBfRFNTX0NIQU5ORUxfTENEKTsNCj4gDQo+IEkgZG9uJ3QgdGhpbmsgR08gZG9l
+cyBhbnl0aGluZyBoZXJlLCBhcyB0aGUgY2hhbm5lbCBoYXMgYWxyZWFkeSBiZWVuDQo+IGRpc2Fi
+bGVkLg0KUmFqOlRoaXMgaXMgdGhlIGFjdHVhbCBmaXguU28sIHRoZSBhYm92ZSBleHBlcmltZW50
+IHRoYXQgSSBleHBsYWluZWQgd2lsbCBiZSB0aGUgdXNlY2FzZSB0byB1bmRlcnN0YW5kIHRoZSBu
+ZWVkIG9mIHRoaXMgc3RhdGVtZW50Lg0KPiANCj4gPiArCXdoaWxlCShkaXNwY19nb19idXN5KE9N
+QVBfRFNTX0NIQU5ORUxfTENEKSkNCj4gPiArCQk7DQo+IA0KPiBCdXN5IGxvb3BpbmcgaXMgbm90
+IGdvb2QuDQpSYWo6IHdpbGwgcmVwbGFjZSB3aXRoIG5vbiBibG9ja2luZyBjYWxsIGluIHRoZSBu
+ZXh0IHZlcnNpb24gb2YgdGhpcyBwYXRjaC4NCj4gDQo+ID4gIAlkc2lfcGxsX3VuaW5pdCgpOw0K
+PiA+ICAJZHNzX2Nsa19kaXNhYmxlKERTU19DTEtfRkNLMik7DQo+ID4gICNlbmRpZg0KPiA+ICAN
+Cj4gPiArCWRpc3BjX2VuYWJsZV9jaGFubmVsKE9NQVBfRFNTX0NIQU5ORUxfTENELCAwKTsNCj4g
+PiArDQo+IA0KPiBUaGUgY2hhbm5lbCBoYXMgYWxyZWFkeSBiZWVuIGRpc2FibGVkIGFib3ZlLCBp
+bg0KPiBkc3NkZXYtPm1hbmFnZXItPmRpc2FibGUoZHNzZGV2LT5tYW5hZ2VyKTsNClJhajogd2ls
+bCByZW1vdmUgdGhpcyBzdGF0ZW1lbnQgaW4gdGhlIG5leHQgdmVyc2lvbiBvZiB0aGlzIHBhdGNo
+Lg0KPiANCj4gIFRvbWkNCj4gDQo+IA0KPiA=
