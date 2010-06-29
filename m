@@ -1,124 +1,329 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: Boot fail on OMAP3430SDP
-Date: Tue, 29 Jun 2010 19:45:27 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305A40FBB@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870305A40F8A@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and
+ check for it on V6
+Date: Tue, 29 Jun 2010 17:18:36 +0300
+Message-ID: <20100629141836.GM2822@atomide.com>
+References: <20100621133749.24299.36154.stgit@baageli.muru.com>
+ <20100621135120.24299.98499.stgit@baageli.muru.com>
+ <20100622170020.GF4371@shareable.org>
+ <20100623073912.GA12255@atomide.com>
+ <20100623133636.GC7058@shareable.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed; boundary="61jdw2sOBCFtR2d/"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50547 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754919Ab0F2OPd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 10:15:33 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5TEFTVB012514
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 09:15:32 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5TEFSod024090
-	for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 19:45:29 +0530 (IST)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870305A40F8A@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62463 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754919Ab0F2OSb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 10:18:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20100623133636.GC7058@shareable.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-Here is the log from Early printk.
-
-Bytes transferred = 2094808 (1ff6d8 hex)
-## Booting image at 80300000 ...
-   Image Name:   Linux-2.6.35-rc3-10791-g305f453
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    2094744 Bytes =  2 MB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-OK
-
-Starting kernel ...
-
-Uncompressing Linux... done, booting the kernel.
-Linux version 2.6.35-rc3-10791-g305f453 (vishwa@vishwa-desktop) (gcc version 4.3
-.3 (Sourcery G++ Lite 2009q1-203) ) #38 PREEMPT Tue Jun 29 19:13:42 IST 2010
-CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7), cr=10c53c7f
-CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-Machine: OMAP3430 3430SDP board
-bootconsole [earlycon0] enabled
-Memory policy: ECC disabled, Data cache writeback
-OMAP3430/3530 ES3.0 (l2cache iva sgx neon isp )
-SRAM: Mapped pa 0x40200000 to va 0xfe400000 size: 0x100000
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
-Kernel command line: console=ttyS0,115200n8 noinitrd root=/dev/nfs rw nfsroot=17
-2.24.136.185:/home/a0876481/testtarget,nolock,tcp, ip=dhcp earlyprintk
-PID hash table entries: 512 (order: -1, 2048 bytes)
-Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
-Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
-Memory: 128MB = 128MB total
-Memory: 125508k/125508k available, 5564k reserved, 0K highmem
-Virtual kernel memory layout:
-    vector  : 0xffff0000 - 0xffff1000   (   4 kB)
-    fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
-    DMA     : 0xffc00000 - 0xffe00000   (   2 MB)
-    vmalloc : 0xc8800000 - 0xf8000000   ( 760 MB)
-    lowmem  : 0xc0000000 - 0xc8000000   ( 128 MB)
-    modules : 0xbf000000 - 0xc0000000   (  16 MB)
-      .init : 0xc0008000 - 0xc0034000   ( 176 kB)
-      .text : 0xc0034000 - 0xc03ee000   (3816 kB)
-      .data : 0xc03ee000 - 0xc0432280   ( 273 kB)
-SLUB: Genslabs=9, HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
-Hierarchical RCU implementation.
-        RCU-based detection of stalled CPUs is disabled.
-        Verbose stalled-CPUs detection is disabled.
-NR_IRQS:402
-Clocking rate (Crystal/Core/MPU): 26.0/332/500 MHz
-omap_hwmod: l3_hwmod: cannot be enabled (3)
-omap_hwmod: l4_core_hwmod: cannot be enabled (3)
-omap_hwmod: l4_per_hwmod: cannot be enabled (3)
-omap_hwmod: l4_wkup_hwmod: cannot be enabled (3)
-omap_hwmod: sr1_hwmod: cannot be enabled (3)
-omap_hwmod: sr2_hwmod: cannot be enabled (3)
-Reprogramming SDRC clock to 332000000 Hz
-GPMC revision 5.0
-IRQ: Found an INTC at 0xfa200000 (revision 4.0) with 96 interrupts
-Total of 96 interrupts on 1 active controller
-Could not get gpios_ick
-Could not get gpios_fck
-OMAP GPIO hardware version 2.5
-OMAP clockevent source: GPTIMER1 at 32768 Hz
-Console: colour dummy device 80x30
-Calibrating delay loop... 499.92 BogoMIPS (lpj=1949696)
-pid_max: default: 32768 minimum: 301
-Mount-cache hash table entries: 512
-CPU: Testing write buffer coherency: ok
-regulator: core version 0.5
-NET: Registered protocol family 16
-SmartReflex CLASS3 initialized
-OMAP DMA hardware revision 4.0
-bio: create slab <bio-0> at 0
-usbcore: registered new interface driver usbfs
-usbcore: registered new interface driver hub
-usbcore: registered new device driver usb
-i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
+To: Jamie Lokier <jamie@shareable.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 
-Vishwa
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Sripathy, Vishwanath
-> Sent: Tuesday, June 29, 2010 7:06 PM
-> To: linux-omap@vger.kernel.org
-> Subject: Boot fail on OMAP3430SDP
+--61jdw2sOBCFtR2d/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+* Jamie Lokier <jamie@shareable.org> [100623 16:30]:
+> Tony Lindgren wrote:
+> > * Jamie Lokier <jamie@shareable.org> [100622 19:54]:
+> > > Tony Lindgren wrote:
+> > > >  __kuser_get_tls:				@ 0xffff0fe0
+> > > > -
+> > > > -#if !defined(CONFIG_HAS_TLS_REG) && !defined(CONFIG_TLS_REG_EMUL)
+> > > > -	ldr	r0, [pc, #(16 - 8)]		@ TLS stored at 0xffff0ff0
+> > > > -#else
+> > > > -	mrc	p15, 0, r0, c13, c0, 3		@ read TLS register
+> > > > -#endif
+> > > > +	ldr     r0, [pc, #(20 - 8)]		@ software TLS set in 0xffff0ff4?
+> > > > +	cmp	r0, #0				@ hardware TLS if flag not set
+> > > > +	mrceq	p15, 0, r0, c13, c0, 3		@ read hardware TLS register
+> > > > +	ldrne	r0, [pc, #(12 - 8)]		@ software TLS val at 0xffff0ff8
+> > > >  	usr_ret	lr
+> > > > -
+> > > > -	.rep	5
+> > > > -	.word	0			@ pad up to __kuser_helper_version
+> > > > -	.endr
+> > > > +	.word	0				@ non-zero for software TLS
+> > > > +	.word	0				@ software TLS value
+> > > 
+> > > It'd be nice not to waste instructions checking for HWCAP_TLS on archs
+> > > which definitely don't have it.  I guess it doesn't matter elsewhere;
+> > > I'd expect this to be a warm path for some programs making extensive
+> > > use of TLS (I haven't measured though).
+> > 
+> > OK, but let's try to figure out a way that does not add more ifdef else
+> > code as that makes it harder to build support for multiple ARM cores.
+> >  
+> > > As it's only a single instruction, and the code is in a writable page
+> > > already (copied at init), how about just patching the instruction
+> > > when ELF_HWCAP is set?
+> > 
+> > Yeah that can be done for __kuser_get_tls if it's always writable.
+> > But __switch_to is trickier because of the CONFIG_MMU ifdefs there.
 > 
-> Hi,
+> __kuser_get_tls must be writable in kernels where !HAS_TLS_REG is
+> supported, because the TLS value is written to the same page.
 > 
-> I am observing that image built using omap3_pm_defconfig on Kevin's pm branch
-> does not seem to boot on OMAP3430 SDP board. It just stops after printing
-> "Uncompressing Linux... done, booting the kernel". I am using console=ttyS0 as part
-> of my bootargs. Any hints?
-> 
-> Vishwa
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I was thinking of changing *only* __kuser_get_tls, by the way.  Out of
+> all the different places, that's the only one I'd expect to be a hot
+> path in some TLS-using programs.
+
+OK. Sorry for the delay again. Here's an updated version that sets
+__kuser_get_tls instruction dynamically. Does this do what you were
+thinking, or did I miss something?
+
+Also, can we detect somehow the hardware that uses CONFIG_TLS_REG_EMUL?
+Might be possible to remove that Kconfig option too later on..
+
+Regards,
+
+Tony
+
+--61jdw2sOBCFtR2d/
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="arm-tls-v3.patch"
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 29 Jun 2010 13:34:53 +0300
+Subject: [PATCH] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and check for it on V6
+
+The TLS register is only available on ARM1136 r1p0 and later.
+Set HWCAP_TLS flags if hardware TLS is available.
+
+Note that we set the TLS instruction in __kuser_get_tls
+dynamically as suggested by Jamie Lokier <jamie@shareable.org>.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/include/asm/hwcap.h b/arch/arm/include/asm/hwcap.h
+index f7bd52b..c1062c3 100644
+--- a/arch/arm/include/asm/hwcap.h
++++ b/arch/arm/include/asm/hwcap.h
+@@ -19,6 +19,7 @@
+ #define HWCAP_NEON	4096
+ #define HWCAP_VFPv3	8192
+ #define HWCAP_VFPv3D16	16384
++#define HWCAP_TLS	32768
+ 
+ #if defined(__KERNEL__) && !defined(__ASSEMBLY__)
+ /*
+diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
+index 7ee48e7..949df9b 100644
+--- a/arch/arm/kernel/entry-armv.S
++++ b/arch/arm/kernel/entry-armv.S
+@@ -739,11 +739,13 @@ ENTRY(__switch_to)
+ #ifdef CONFIG_MMU
+ 	ldr	r6, [r2, #TI_CPU_DOMAIN]
+ #endif
+-#if defined(CONFIG_HAS_TLS_REG)
+-	mcr	p15, 0, r3, c13, c0, 3		@ set TLS register
+-#elif !defined(CONFIG_TLS_REG_EMUL)
+-	mov	r4, #0xffff0fff
+-	str	r3, [r4, #-15]			@ TLS val at 0xffff0ff0
++#if !defined(CONFIG_TLS_REG_EMUL)
++	ldr	r4, =elf_hwcap
++	ldr	r4, [r4, #0]
++	mov	r5, #0xffff0fff
++	tst	r4, #HWCAP_TLS			@ hardware TLS available?
++	mcrne	p15, 0, r3, c13, c0, 3		@ yes, set TLS register
++	streq	r3, [r5, #-15]			@ set TLS value at 0xffff0ff0
+ #endif
+ #ifdef CONFIG_MMU
+ 	mcr	p15, 0, r6, c3, c0, 0		@ Set domain register
+@@ -1009,16 +1011,13 @@ kuser_cmpxchg_fixup:
+  */
+ 
+ __kuser_get_tls:				@ 0xffff0fe0
+-
+-#if !defined(CONFIG_HAS_TLS_REG) && !defined(CONFIG_TLS_REG_EMUL)
+-	ldr	r0, [pc, #(16 - 8)]		@ TLS stored at 0xffff0ff0
+-#else
+-	mrc	p15, 0, r0, c13, c0, 3		@ read TLS register
+-#endif
++	nop				@ read TLS, set in kuser_get_tls_init
+ 	usr_ret	lr
+-
+-	.rep	5
+-	.word	0			@ pad up to __kuser_helper_version
++	mrc	p15, 0, r0, c13, c0, 3	@ 0xffff0fe8 hardware TLS code
++	ldr	r0, [pc, #(16 - 8)]	@ 0xffff0fec software TLS code
++	.word	0			@ 0xffff0ff0 software TLS value
++	nop				@ pad up to __kuser_helper_version
++	nop
+ 	.endr
+ 
+ /*
+diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+index 122d999..a675260 100644
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -269,6 +269,27 @@ static void __init cacheid_init(void)
+ extern struct proc_info_list *lookup_processor_type(unsigned int);
+ extern struct machine_desc *lookup_machine_type(unsigned int);
+ 
++#ifdef CONFIG_CPU_V6
++static void __init feat_v6_fixup(void)
++{
++	int id = read_cpuid_id();
++
++	if (id & 0x000f0000 != 0x00070000)
++		return;
++
++	/*
++	 * HWCAP_TLS is available only on 1136 r1p0 and later,
++	 * see also kuser_get_tls_init.
++	 */
++	if ((((id >> 4) & 0xfff) == 0xb36) && (((id >> 20) & 3) == 0))
++		elf_hwcap &= ~HWCAP_TLS;
++}
++#else
++static inline void feat_v6_fixup(void)
++{
++}
++#endif
++
+ static void __init setup_processor(void)
+ {
+ 	struct proc_info_list *list;
+@@ -311,6 +332,8 @@ static void __init setup_processor(void)
+ 	elf_hwcap &= ~HWCAP_THUMB;
+ #endif
+ 
++	feat_v6_fixup();
++
+ 	cacheid_init();
+ 	cpu_proc_init();
+ }
+diff --git a/arch/arm/kernel/traps.c b/arch/arm/kernel/traps.c
+index 1621e53..85dd001 100644
+--- a/arch/arm/kernel/traps.c
++++ b/arch/arm/kernel/traps.c
+@@ -518,16 +518,19 @@ asmlinkage int arm_syscall(int no, struct pt_regs *regs)
+ 
+ 	case NR(set_tls):
+ 		thread->tp_value = regs->ARM_r0;
+-#if defined(CONFIG_HAS_TLS_REG)
+-		asm ("mcr p15, 0, %0, c13, c0, 3" : : "r" (regs->ARM_r0) );
+-#elif !defined(CONFIG_TLS_REG_EMUL)
+-		/*
+-		 * User space must never try to access this directly.
+-		 * Expect your app to break eventually if you do so.
+-		 * The user helper at 0xffff0fe0 must be used instead.
+-		 * (see entry-armv.S for details)
+-		 */
+-		*((unsigned int *)0xffff0ff0) = regs->ARM_r0;
++#if !defined(CONFIG_TLS_REG_EMUL)
++		if (elf_hwcap & HWCAP_TLS) {
++			asm ("mcr p15, 0, %0, c13, c0, 3"
++				: : "r" (regs->ARM_r0));
++		} else {
++			/*
++			 * User space must never try to access this directly.
++			 * Expect your app to break eventually if you do so.
++			 * The user helper at 0xffff0fe0 must be used instead.
++			 * (see entry-armv.S for details)
++			 */
++			*((unsigned int *)0xffff0ff0) = regs->ARM_r0;
++		}
+ #endif
+ 		return 0;
+ 
+@@ -743,6 +746,21 @@ void __init trap_init(void)
+ 	return;
+ }
+ 
++#if defined(CONFIG_TLS_REG_EMUL)
++static void __init kuser_get_tls_init(unsigned long vectors)
++{
++	memcpy((void *)vectors + 0xfe0, (void *)vectors + 0xfe8, 4);
++}
++#else
++static void __init kuser_get_tls_init(unsigned long vectors)
++{
++	if (elf_hwcap & HWCAP_TLS)
++		memcpy((void *)vectors + 0xfe0, (void *)vectors + 0xfe8, 4);
++	else
++		memcpy((void *)vectors + 0xfe0, (void *)vectors + 0xfec, 4);
++}
++#endif
++
+ void __init early_trap_init(void)
+ {
+ 	unsigned long vectors = CONFIG_VECTORS_BASE;
+@@ -761,6 +779,11 @@ void __init early_trap_init(void)
+ 	memcpy((void *)vectors + 0x1000 - kuser_sz, __kuser_helper_start, kuser_sz);
+ 
+ 	/*
++	 * Do processor specific fixups for the kuser helpers
++	 */
++	kuser_get_tls_init(vectors);
++
++	/*
+ 	 * Copy signal return handlers into the vector page, and
+ 	 * set sigreturn to be a pointer to these.
+ 	 */
+diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+index 346ae14..71d5d5e 100644
+--- a/arch/arm/mm/Kconfig
++++ b/arch/arm/mm/Kconfig
+@@ -717,17 +717,6 @@ config TLS_REG_EMUL
+ 	  a few prototypes like that in existence) and therefore access to
+ 	  that required register must be emulated.
+ 
+-config HAS_TLS_REG
+-	bool
+-	depends on !TLS_REG_EMUL
+-	default y if SMP || CPU_32v7
+-	help
+-	  This selects support for the CP15 thread register.
+-	  It is defined to be available on some ARMv6 processors (including
+-	  all SMP capable ARMv6's) or later processors.  User space may
+-	  assume directly accessing that register and always obtain the
+-	  expected value only on ARMv7 and above.
+-
+ config NEEDS_SYSCALL_FOR_CMPXCHG
+ 	bool
+ 	help
+diff --git a/arch/arm/mm/proc-v6.S b/arch/arm/mm/proc-v6.S
+index 7a5337e..e10626a 100644
+--- a/arch/arm/mm/proc-v6.S
++++ b/arch/arm/mm/proc-v6.S
+@@ -239,7 +239,8 @@ __v6_proc_info:
+ 	b	__v6_setup
+ 	.long	cpu_arch_name
+ 	.long	cpu_elf_name
+-	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_JAVA
++	/* See also feat_v6_fixup() for HWCAP_TLS */
++	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_JAVA|HWCAP_TLS
+ 	.long	cpu_v6_name
+ 	.long	v6_processor_functions
+ 	.long	v6wbi_tlb_fns
+@@ -262,7 +263,8 @@ __pj4_v6_proc_info:
+ 	b	__v6_setup
+ 	.long	cpu_arch_name
+ 	.long	cpu_elf_name
+-	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP
++	/* See also feat_v6_fixup() for HWCAP_TLS */
++	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_TLS
+ 	.long	cpu_pj4_name
+ 	.long	v6_processor_functions
+ 	.long	v6wbi_tlb_fns
+diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+index 7aaf88a..8071bcd 100644
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -344,7 +344,7 @@ __v7_proc_info:
+ 	b	__v7_setup
+ 	.long	cpu_arch_name
+ 	.long	cpu_elf_name
+-	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP
++	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_TLS
+ 	.long	cpu_v7_name
+ 	.long	v7_processor_functions
+ 	.long	v7wbi_tlb_fns
+
+--61jdw2sOBCFtR2d/--
