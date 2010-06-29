@@ -1,29 +1,52 @@
-From: "Nagarajan, Rajkumar" <x0133774@ti.com>
-Subject: OMAP3 display  patches
-Date: Tue, 29 Jun 2010 17:50:36 +0530
-Message-ID: <FF55437E1F14DA4BAEB721A458B6701706BDB3A55F@dbde02.ent.ti.com>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@nokia.com>
+Subject: Re: OMAP3 display  patches
+Date: Tue, 29 Jun 2010 15:39:02 +0300
+Message-ID: <20100629123902.GZ9381@nokia.com>
+References: <FF55437E1F14DA4BAEB721A458B6701706BDB3A55F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37509 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752805Ab0F2MUt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 08:20:49 -0400
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:39550 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753330Ab0F2MjU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 08:39:20 -0400
+Content-Disposition: inline
+In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706BDB3A55F@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "Mittal, Mukund" <mmittal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: "ext Nagarajan, Rajkumar" <x0133774@ti.com>
+Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "Mittal, Mukund" <mmittal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
+On Tue, Jun 29, 2010 at 02:20:36PM +0200, ext Nagarajan, Rajkumar wrote=
+:
+>=20
+> Tomi,
+>=20
+> Would you please check if there are no further comments and can you p=
+lease pull the following patches in?
+>
+> https://patchwork.kernel.org/patch/106498/
 
-Tomi,
+This one seems to have two separate changes in the same patch. Needs
+splitting.
 
-Would you please check if there are no further comments and can you please pull the following patches in?
+> https://patchwork.kernel.org/patch/106670/
 
-https://patchwork.kernel.org/patch/106498/
-https://patchwork.kernel.org/patch/106670/
-https://patchwork.kernel.org/patch/107547/
+I think this one needs a (cpu_is_omap3630() && id =3D=3D OMAP_DSS_VIDEO=
+2)
+check in store() so that the user gets a proper error if he tries to
+write an unsupported value.
 
-Regards,
-Rajkumar N.
+> https://patchwork.kernel.org/patch/107547/
+
+You never addressed any of my comments so asking Tomi to pull this
+seems rather premature.
+
+--=20
+Ville Syrj=E4l=E4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
