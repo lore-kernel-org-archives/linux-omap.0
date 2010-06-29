@@ -1,58 +1,38 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 02/13] OMAP: hwmod: allow idle after HWMOD_INIT_NO_IDLE
-Date: Tue, 29 Jun 2010 14:47:30 -0700
-Message-ID: <87iq51o6j1.fsf@deeprootsystems.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com>
-	<1277336563-24988-3-git-send-email-khilman@deeprootsystems.com>
-	<alpine.DEB.2.00.1006232254430.1550@utopia.booyaka.com>
-	<87sk4cfhis.fsf@deeprootsystems.com>
+Subject: Re: [RFC][PATCH] omap3: Unify omap2_set_globals_3[43,6x]x functions
+Date: Tue, 29 Jun 2010 15:24:45 -0700
+Message-ID: <87mxudlbo2.fsf@deeprootsystems.com>
+References: <1277843427-25596-1-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:53677 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab0F2Vrf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 17:47:35 -0400
-Received: by pvc7 with SMTP id 7so65869pvc.19
-        for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 14:47:34 -0700 (PDT)
-In-Reply-To: <87sk4cfhis.fsf@deeprootsystems.com> (Kevin Hilman's message of
-	"Thu, 24 Jun 2010 10:48:59 -0700")
+Received: from mail-px0-f174.google.com ([209.85.212.174]:52047 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752824Ab0F2Wqb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 18:46:31 -0400
+Received: by pxi8 with SMTP id 8so94647pxi.19
+        for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 15:46:31 -0700 (PDT)
+In-Reply-To: <1277843427-25596-1-git-send-email-saaguirre@ti.com> (Sergio
+	Aguirre's message of "Tue, 29 Jun 2010 15:30:27 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Sergio Aguirre <saaguirre@ti.com> writes:
 
-> Paul Walmsley <paul@pwsan.com> writes:
+> The only difference between them is the physical address of the
+> uart4 port, which is only present in 36xx chips.
 >
->> Hi Kevin,
->>
->> something doesn't make sense in this patch...
->>
->> On Wed, 23 Jun 2010, Kevin Hilman wrote:
->>
->>> If an omap_hwmod is setup using HWMOD_INIT_NO_IDLE flag, there is
->>> currently way to idle it since omap_hwmod_idle() requires the hwmod to
->>> be in the enabled state.
->>
->> The only thing that HWMOD_INIT_NO_IDLE does is prevent the hwmod from 
->> being idled at the end of _setup().  By that time, the hwmod has already 
->> been enabled, and its state has been set to _HWMOD_STATE_ENABLED.  So 
->> there shouldn't be anything preventing the hwmod from being idled at that 
->> point?
->>
->> Maybe the problem is that some hwmods were failing _wait_target_ready() 
->> and so were never entering the ENABLED state?  If so, that looks like it's 
->> fixed appropriately by your patch 3.
->
-> Hmm, strange.  
->
-> Indeed, this patch predates patch 3, so may not be necessary anymore.  I will
-> check into it.
->
+> We don't really need to care about keeping these 2 functions, since
+> the decision to use uart4 is more cleanly done later when we do have
+> access to omap_revision variable.
 
-Just to update... this patch is no longer needed.  Dropping from the
-series and an updated pm-hwmods branch has been pushed.
+Also, with the converion of UART to hwmod, there is no longer any need
+for UART base addresses in the globals struct (they've been removed in
+the work-in-progress conversion of UART.
 
-Kevin
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+
