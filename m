@@ -1,166 +1,98 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/3] OMAP3: PM: Conditional UART context save restore
-Date: Tue, 29 Jun 2010 08:32:48 -0700
-Message-ID: <87k4phua5b.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0323763482@dbde02.ent.ti.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: Boot fail on OMAP3430SDP
+Date: Tue, 29 Jun 2010 11:06:14 -0500
+Message-ID: <A24693684029E5489D1D202277BE8944562E8FB4@dlee02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870305A40F8A@dbde02.ent.ti.com>
+ <FCCFB4CDC6E5564B9182F639FC3560870305A40FBB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:50370 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756572Ab0F2PkN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 11:40:13 -0400
-Received: by pwj8 with SMTP id 8so3894414pwj.19
-        for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 08:40:10 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323763482@dbde02.ent.ti.com>
-	(Teerth Reddy's message of "Tue, 29 Jun 2010 12:29:02 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:44082 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756627Ab0F2QGS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 12:06:18 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5TG6IeL021475
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 11:06:18 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5TG6Hnq013770
+	for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 11:06:17 -0500 (CDT)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5TG6HSB020056
+	for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 11:06:17 -0500 (CDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870305A40FBB@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Reddy, Teerth" <teerth@ti.com> writes:
+Hi Vishwa,
 
-> From: Teerth Reddy <teerth@ti.com>
->
-> Currently UART context save is done in idle thread thru a call
-> to omap_uart_prepare_idle irrespective of what power state is 
-> attained by the power domain to which the UART belongs to. This
-> patch allows omap_uart_prepare_idle to take power state as a 
-> parameter and this function in turn does a uart context save 
-> only if the passed power state is PWRDM_POWER_OFF. In the restore
-> path a restore will happen only if a valid save has happened.
->
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Sripathy, Vishwanath
+> Sent: Tuesday, June 29, 2010 9:15 AM
+> To: linux-omap@vger.kernel.org
+> Subject: RE: Boot fail on OMAP3430SDP
+> 
+> Here is the log from Early printk.
+> 
 
-The idea is fine, but the implementation is not quite right.  Some
-comments on that below.
+<snip>
 
-I like this as it also removes the dependency on enable_off_mode.
+> Could not get gpios_ick
+> Could not get gpios_fck
 
-That being said, I'd rather not spend much more time hacking on this
-layer.  Soon, we will have the new omap-serial driver, and we will be
-moving most of this PM smarts into the the omap-serial driver itself
-using runtime PM.
+Probably Tony will be the best to answer this, but... This code shouldn't get executed I think (the one producing above prints)..
 
-> ---
->  arch/arm/mach-omap2/pm34xx.c             |    6 +++---
->  arch/arm/mach-omap2/serial.c             |   26 ++++++++++++++++----------
->  arch/arm/plat-omap/include/plat/serial.h |    2 +-
->  3 files changed, 20 insertions(+), 14 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 207905d..85a21e7 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -418,7 +418,7 @@ void omap_sram_idle(void)
->  			} else
->  				omap3_per_save_context();
->  		}
-> -		omap_uart_prepare_idle(2);
-> +		omap_uart_prepare_idle(2, per_next_state);
->  	}
->  
->  	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
-> @@ -426,8 +426,8 @@ void omap_sram_idle(void)
->  
->  	/* CORE */
->  	if (core_next_state < PWRDM_POWER_ON) {
-> -		omap_uart_prepare_idle(0);
-> -		omap_uart_prepare_idle(1);
-> +		omap_uart_prepare_idle(0, core_next_state);
-> +		omap_uart_prepare_idle(1, core_next_state);
->  		if (core_next_state == PWRDM_POWER_OFF) {
->  			omap3_core_save_context();
->  			omap3_prcm_save_context();
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index d545eed..85e09ef 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -185,9 +185,6 @@ static void omap_uart_save_context(struct omap_uart_state *uart)
->  	u16 lcr = 0;
->  	struct plat_serial8250_port *p = uart->p;
->  
-> -	if (!enable_off_mode)
-> -		return;
-> -
->  	lcr = serial_read_reg(p, UART_LCR);
->  	serial_write_reg(p, UART_LCR, 0xBF);
->  	uart->dll = serial_read_reg(p, UART_DLL);
-> @@ -206,9 +203,6 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
->  	u16 efr = 0;
->  	struct plat_serial8250_port *p = uart->p;
->  
-> -	if (!enable_off_mode)
-> -		return;
-> -
->  	if (!uart->context_valid)
->  		return;
->  
-> @@ -252,12 +246,24 @@ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
->  
->  #ifdef CONFIG_PM
->  
-> -static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
-> +static inline void omap_uart_disable_clocks(struct omap_uart_state *uart,
-> +						int power_state)
->  {
->  	if (!uart->clocked)
->  		return;
->  
-> -	omap_uart_save_context(uart);
-> +	if (power_state == PWRDM_POWER_OFF) {
-> +		if (uart->context_valid)
-> +			return;
+Above clocks are declared for omap2 only (in arch/arm/mach-omap2/clock24[20,30]_data.c), and even this clk_get calls are
+inside of a supposedly omap2 only execution in arch/arm/plat-omap/gpio.c:
 
-This check is done inside save_context
+static int __init _omap_gpio_init(void)
+{
+...
+...
+#if defined(CONFIG_ARCH_OMAP2)
+	if (cpu_class_is_omap2()) {
+		gpio_ick = clk_get(NULL, "gpios_ick");
+		if (IS_ERR(gpio_ick))
+			printk("Could not get gpios_ick\n");
+		else
+			clk_enable(gpio_ick);
+		gpio_fck = clk_get(NULL, "gpios_fck");
+		if (IS_ERR(gpio_fck))
+			printk("Could not get gpios_fck\n");
+		else
+			clk_enable(gpio_fck);
 
-> +		if (!uart->clocked) {
-> +			clk_enable(uart->ick);
-> +			clk_enable(uart->fck);
-> +		}
+		/*
+		 * On 2430 & 3430 GPIO 5 uses CORE L4 ICLK
+		 */
+#if defined(CONFIG_ARCH_OMAP2430)
+		if (cpu_is_omap2430()) {
+			gpio5_ick = clk_get(NULL, "gpio5_ick");
+			if (IS_ERR(gpio5_ick))
+				printk("Could not get gpio5_ick\n");
+			else
+				clk_enable(gpio5_ick);
+			gpio5_fck = clk_get(NULL, "gpio5_fck");
+			if (IS_ERR(gpio5_fck))
+				printk("Could not get gpio5_fck\n");
+			else
+				clk_enable(gpio5_fck);
+		}
+#endif
+	}
+#endif
+...
+}
 
-What is this for?  The first statement above checks for !uart->clocked
-and returns, so this should never happen.
+So, I guess your board is trying to get initialized as omap2 somehow...
 
-> +		omap_uart_save_context(uart);
-> +	} else if (!uart->clocked) {
-> +		return;
+Regards,
+Sergio
 
-This else clause isn't needed.  It's already checked above.
+<snip>
 
-> +	}
-> +
->  	uart->clocked = 0;
->  	clk_disable(uart->ick);
->  	clk_disable(uart->fck);
-> @@ -347,13 +353,13 @@ static void omap_uart_idle_timer(unsigned long data)
->  	omap_uart_allow_sleep(uart);
->  }
->  
-> -void omap_uart_prepare_idle(int num)
-> +void omap_uart_prepare_idle(int num, int power_state)
->  {
->  	struct omap_uart_state *uart;
->  
->  	list_for_each_entry(uart, &uart_list, node) {
->  		if (num == uart->num && uart->can_sleep) {
-> -			omap_uart_disable_clocks(uart);
-> +			omap_uart_disable_clocks(uart, power_state);
->  			return;
->  		}
->  	}
-> diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-> index 19145f5..71ca2da 100644
-> --- a/arch/arm/plat-omap/include/plat/serial.h
-> +++ b/arch/arm/plat-omap/include/plat/serial.h
-> @@ -99,7 +99,7 @@ extern void omap_serial_init_port(int port);
->  extern int omap_uart_can_sleep(void);
->  extern void omap_uart_check_wakeup(void);
->  extern void omap_uart_prepare_suspend(void);
-> -extern void omap_uart_prepare_idle(int num);
-> +extern void omap_uart_prepare_idle(int num, int power_state);
->  extern void omap_uart_resume_idle(int num);
->  extern void omap_uart_enable_irqs(int enable);
->  #endif
