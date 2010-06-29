@@ -1,29 +1,45 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: Boot fail on OMAP3430SDP
-Date: Tue, 29 Jun 2010 19:05:48 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305A40F8A@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH 0/3] add non-standard SDIO card support
+Date: Tue, 29 Jun 2010 16:49:22 +0300
+Message-ID: <1277819365-2761-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36406 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752564Ab0F2Nfy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 09:35:54 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5TDZocG025119
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 08:35:53 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5TDZo7M017199
-	for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 19:05:50 +0530 (IST)
-Content-Language: en-US
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:34970 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755099Ab0F2Ntc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 09:49:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-mmc@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Adrian Hunter <adrian.hunter@nokia.com>, Tony Lindgren <tony@atomide.com>, Bob Copeland <me@bobcopeland.com>, Kalle Valo <kvalo@adurom.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-Hi,
+This is my attempt to make SDIO interfaced TI WL1251 wifi chip usable
+on mainline kernels. It's driver has already been merged several releases
+back, but the problem is current SDIO core can't detect the card because
+it's not following SDIO standards and does not have any required SDIO
+registers. Currenty attempting to use this chip only results in several
+pages of complains about invalid register data from SDIO core.
+WL1251 is used on various HTC devices and Pandora handheld at least.
 
-I am observing that image built using omap3_pm_defconfig on Kevin's pm branch does not seem to boot on OMAP3430 SDP board. It just stops after printing "Uncompressing Linux... done, booting the kernel". I am using console=ttyS0 as part of my bootargs. Any hints?
+People wanting to use this are forced to use forked trees or patches.
+My solution to this problem is to add new MMC quirk that will tell SDIO
+core not to access any SDIO registers and rely on host's init_card
+callback instead, which is now responsible for filling card related
+structures for SDIO core to function. Patches 2 and 3 set up the card
+for pandora, similar method could be used for MSM too.
 
-Vishwa
+Only patches 2,3 depend on each other, so patch 1 can be merged separately.
+
+Grazvydas Ignotas (3):
+  sdio: allow non-standard SDIO cards
+  omap_hsmmc: add init_card pass-through callback
+  omap: pandora: pass information about wl1251 to SDIO core
+
+ arch/arm/mach-omap2/board-omap3pandora.c |   16 +++++++++++++
+ arch/arm/mach-omap2/hsmmc.c              |    1 +
+ arch/arm/mach-omap2/hsmmc.h              |    4 +++
+ arch/arm/plat-omap/include/plat/mmc.h    |    2 +
+ drivers/mmc/core/sdio.c                  |   36 +++++++++++++++++++++++++-----
+ drivers/mmc/host/omap_hsmmc.c            |   10 ++++++++
+ include/linux/mmc/card.h                 |    2 +
+ 7 files changed, 65 insertions(+), 6 deletions(-)
+
