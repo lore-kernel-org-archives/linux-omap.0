@@ -1,93 +1,81 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
-Date: Tue, 29 Jun 2010 07:44:23 +0300 (EEST)
-Message-ID: <20100629.074423.71111160.Hiroshi.DOYU@nokia.com>
-References: <1276841055-13843-1-git-send-email-Hiroshi.DOYU@nokia.com>
-	<1277736372.25271.102.camel@e102109-lin.cambridge.arm.com>
+Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
+Date: Tue, 29 Jun 2010 07:57:44 +0300 (EEST)
+Message-ID: <20100629.075744.104054771.Hiroshi.DOYU@nokia.com>
+References: <20100602.105054.59678037.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1277736372.25271.102.camel@e102109-lin.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: catalin.marinas@arm.com
-Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:34109 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751270Ab0F2E5x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 00:57:53 -0400
+In-Reply-To: <20100602.105054.59678037.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
 
-From: ext Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
-Date: Mon, 28 Jun 2010 16:46:12 +0200
+Hi Tony,
 
-> Hi,
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
+Date: Wed, 02 Jun 2010 10:50:54 +0300 (EEST)
+
+> Hi Tony,
 > 
-> (and sorry for the delay)
+> Patches for for-next for omap iommu module.
 > 
-> On Fri, 2010-06-18 at 07:04 +0100, Hiroshi DOYU wrote:
->> This is another version of "kmemleak: Fix false positive", which
->> introduces another alias tree to keep track of all alias address of
->> each objects, based on the discussion(*1)
->> 
->> You can also find the previous one(*2), which uses special scan area
->> for alias addresses with a conversion function.
->> 
->> Compared with both methods, it seems that the current one takes a bit
->> longer to scan as below, tested with 512 elementes of (*3).
->> 
->> "kmemleak: Fix false positive with alias":
->> # time echo scan > /mnt/kmemleak
->> real    0m 8.40s
->> user    0m 0.00s
->> sys     0m 8.40s
->> 
->> "kmemleak: Fix false positive with special scan":
->> # time echo scan > /mnt/kmemleak
->> real    0m 3.96s
->> user    0m 0.00s
->> sys     0m 3.96s
+> The following changes since commit 67a3e12b05e055c0415c556a315a3d3eb637e29e:
 > 
-> Have you tried without your patches (just the test module but without
-> aliasing the pointers)? I'm curious what's the impact of your first set
-> of patches.
-
-IIRC, not much difference against the one with the first patches. I'll
-measure it again later.
-
->> For our case(*4) to reduce false positives for the 2nd level IOMMU
->> pagetable allocation, the previous special scan  seems to be enough
->> lightweight, although there might be possiblity to improve alias
->> one and also I might misunderstand the original proposal of aliasing.
+>   Linux 2.6.35-rc1 (2010-05-30 13:21:02 -0700)
 > 
-> The performance impact is indeed pretty high, though some parts of the
-> code look over-engineered to me (the __scan_block function with a loop
-> going through an array of two function pointers - I think the compiler
-> cannot figure out what to inline). You could just extend the
-> find_and_get_object() to search both trees under a single spinlock
-> region (as locking also takes time).
+> are available in the git repository at:
+>   git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc1-iommu
+> 
+> Hiroshi DOYU (3):
+>       omap iommu: Introduce iopgd_is_table MACRO
+>       omap iommu: Rename iopte_[p,v]addr -> iopte_page_[p,v]addr
+>       omap iommu: move iommu_disable at fault to the above layer
+> 
+> Kanigeri, Hari (2):
+>       omap iommu: update irq mask to be specific about twl and tlb
+>       omap iommu: add functionality to get TLB miss interrupt
+> 
+>  arch/arm/mach-omap2/iommu2.c            |   44 ++++++++++++++++++++++++------
+>  arch/arm/plat-omap/include/plat/iommu.h |    2 +
+>  arch/arm/plat-omap/iommu.c              |   27 ++++++++++++++++---
+>  arch/arm/plat-omap/iopgtable.h          |    8 +++--
+>  4 files changed, 65 insertions(+), 16 deletions(-)
 
-Ok, a good point.
+Any chance to merge?
 
-> Anyway, you still get to search two trees for any pointer so there would
-> always be some performance impact. I just hoped they weren't be as bad.
-> In a normal system (not test module), how many elements would the alias
-> tree have?
+I have added 2 patches which were dropped from omap iommu fix as
+below. Please pull the following branch.
 
-Just in our case, it's 512 at most.
+The following changes since commit 7e27d6e778cd87b6f2415515d7127eba53fe5d02:
 
-> Another approach - if we assume that there is a single alias per object
-> and such aliases don't overlap, we could just move (delete + re-insert)
-> the corresponding kmemleak_object in the tree to the alias position.
-> This way we only keep a single tree and a single object for an allocated
-> block. But in your use-case, the physical address of an object may
-> actually match the virtual address of a different object, so
-> lookup_object() needs to be iterative. You need two new kmemleak API
-> functions, e.g. kmemleak_alias() and kmemleak_unalias(), to be called
-> after allocation and before freeing a memory block.
->
-> If we can't make the performance hit acceptable, we could go for the
-> first approach and maybe just extend kmemleak_scan_area with a function
-> pointer structure rather than adding a new one. But as I said
-> previously, my main issue with your original approach is that I would
-> prefer to call the kmemleak API at the point where the false positive is
-> allocated rather than where the parent object was.
+  Linux 2.6.35-rc3 (2010-06-11 19:14:04 -0700)
 
-I'll try both and measure their impact again. Thank you for your comment.
+are available in the git repository at:
+  git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc3-iommu-for-next
+
+Hiroshi DOYU (4):
+      omap iommu: Introduce iopgd_is_table MACRO
+      omap iommu: Rename iopte_[p,v]addr -> iopte_page_[p,v]addr
+      omap iommu: move iommu_disable at fault to the above layer
+      omap iommu: Make omap-iommu.o built-in
+
+Kanigeri, Hari (3):
+      omap iommu: update irq mask to be specific about twl and tlb
+      omap iommu: add functionality to get TLB miss interrupt
+      omap iommu: update ducati mmu irq define name
+
+ arch/arm/mach-omap2/Makefile            |    5 +++-
+ arch/arm/mach-omap2/iommu2.c            |   44 ++++++++++++++++++++++++------
+ arch/arm/mach-omap2/omap-iommu.c        |    2 +-
+ arch/arm/plat-omap/include/plat/iommu.h |    2 +
+ arch/arm/plat-omap/iommu.c              |   27 ++++++++++++++++---
+ arch/arm/plat-omap/iopgtable.h          |    8 +++--
+ 6 files changed, 70 insertions(+), 18 deletions(-)
