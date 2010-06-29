@@ -1,195 +1,240 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 10/13] OMAP: create omap_devices for MPU, DSP, L3
-Date: Tue, 29 Jun 2010 10:29:43 -0700
-Message-ID: <87y6dxrblk.fsf@deeprootsystems.com>
-References: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com>
-	<1277423084-25528-11-git-send-email-khilman@deeprootsystems.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and
+ check for it on V6
+Date: Tue, 29 Jun 2010 15:20:33 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1006291355520.24097@xanadu.home>
+References: <20100621133749.24299.36154.stgit@baageli.muru.com>
+ <20100621135120.24299.98499.stgit@baageli.muru.com>
+ <20100622170020.GF4371@shareable.org> <20100623073912.GA12255@atomide.com>
+ <20100623133636.GC7058@shareable.org> <20100629141836.GM2822@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:60972 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755697Ab0F2R3s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 13:29:48 -0400
-Received: by pxi8 with SMTP id 8so2430344pxi.19
-        for <linux-omap@vger.kernel.org>; Tue, 29 Jun 2010 10:29:47 -0700 (PDT)
-In-Reply-To: <1277423084-25528-11-git-send-email-khilman@deeprootsystems.com>
-	(Kevin Hilman's message of "Thu, 24 Jun 2010 16:44:41 -0700")
+Received: from relais.videotron.ca ([24.201.245.36]:55558 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753212Ab0F2TUx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 15:20:53 -0400
+Received: from xanadu.home ([66.130.28.92]) by VL-MR-MR002.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0L4S009J5J29JNE0@VL-MR-MR002.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Tue, 29 Jun 2010 15:20:34 -0400 (EDT)
+In-reply-to: <20100629141836.GM2822@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jamie Lokier <jamie@shareable.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+On Tue, 29 Jun 2010, Tony Lindgren wrote:
 
-> Create simple omap_devices for the main processors and busses.
->
-> This is required to support the forth-coming device-based OPP
-> approach, where OPPs are managed and tracked at the device level.
->
-> So that these primary devices are available for early PM initialization,
-> they are created as early platform_devices.
+> OK. Sorry for the delay again. Here's an updated version that sets
+> __kuser_get_tls instruction dynamically. Does this do what you were
+> thinking, or did I miss something?
 
-I've reworked this patch so that it is no longer using early devices,
-updated version below.
+See my comments below.
 
-This requires delaying some other PM init as well (OMAP PM layer, OPP
-layer etc.) so a common_pm_init() function was created and initialized
-as a device_initcall().
+> Also, can we detect somehow the hardware that uses CONFIG_TLS_REG_EMUL?
+> Might be possible to remove that Kconfig option too later on..
 
-My pm-hwmods branch has been updated with this version, and the PM
-branch now has corresponding changes to the SR/voltage layers to
-initialize them as device_initcalls as well.
+Well... I don't think we _should_ try to detect it as it is not widely 
+available if at all.
 
-Kevin
+And there is actually a "bug" with __kuser_get_tls because if ever 
+CONFIG_TLS_REG_EMUL is selected then a call to __kuser_get_tls is 
+currently doing nothing while it should actually use the mrc 
+instruction.
 
->From 5180e0c52509fcf30ad92503b817326856231efb Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Mon, 21 Jun 2010 10:53:13 -0700
-Subject: [PATCH] OMAP: create omap_devices for MPU, DSP, L3
+> diff --git a/arch/arm/include/asm/hwcap.h b/arch/arm/include/asm/hwcap.h
+> index f7bd52b..c1062c3 100644
+> --- a/arch/arm/include/asm/hwcap.h
+> +++ b/arch/arm/include/asm/hwcap.h
+> @@ -19,6 +19,7 @@
+>  #define HWCAP_NEON	4096
+>  #define HWCAP_VFPv3	8192
+>  #define HWCAP_VFPv3D16	16384
+> +#define HWCAP_TLS	32768
+>  
+>  #if defined(__KERNEL__) && !defined(__ASSEMBLY__)
+>  /*
+> diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
+> index 7ee48e7..949df9b 100644
+> --- a/arch/arm/kernel/entry-armv.S
+> +++ b/arch/arm/kernel/entry-armv.S
+> @@ -739,11 +739,13 @@ ENTRY(__switch_to)
+>  #ifdef CONFIG_MMU
+>  	ldr	r6, [r2, #TI_CPU_DOMAIN]
+>  #endif
+> -#if defined(CONFIG_HAS_TLS_REG)
+> -	mcr	p15, 0, r3, c13, c0, 3		@ set TLS register
+> -#elif !defined(CONFIG_TLS_REG_EMUL)
+> -	mov	r4, #0xffff0fff
+> -	str	r3, [r4, #-15]			@ TLS val at 0xffff0ff0
+> +#if !defined(CONFIG_TLS_REG_EMUL)
+> +	ldr	r4, =elf_hwcap
+> +	ldr	r4, [r4, #0]
+> +	mov	r5, #0xffff0fff
+> +	tst	r4, #HWCAP_TLS			@ hardware TLS available?
+> +	mcrne	p15, 0, r3, c13, c0, 3		@ yes, set TLS register
+> +	streq	r3, [r5, #-15]			@ set TLS value at 0xffff0ff0
+>  #endif
 
-Create simple omap_devices for the main processors and busses.
+Could this be a tristate instead?  There are actually 3 cases:
 
-This is required to support the forth-coming device-based OPP
-approach, where OPPs are managed and tracked at the device level.
+1) We know the TLS reg is _always_ available i.e. ARMv6K, ARMV7 and 
+   above.  In that case the test on elf_hwcap is redundant and wasteful.
 
-Also, move these common PM init functions into a common_pm_init call
-that is called as a device_initcall().  The PM init is done at this level
-to ensure that the driver core is initialized before initialized.
+2) We know the TLS reg is _never_ available i.e. pre-ARMv6.  The test on 
+   elf_hwcap is again redundant and wasteful.
 
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/devices.c            |    2 +
- arch/arm/mach-omap2/io.c                 |   67 +++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/common.h |    4 ++
- 3 files changed, 71 insertions(+), 2 deletions(-)
+3) We're unsure as the actual CPU is known only at run time.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 03e6c9e..62920ac 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -15,6 +15,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/clk.h>
-+#include <linux/err.h>
- 
- #include <mach/hardware.h>
- #include <mach/irqs.h>
-@@ -29,6 +30,7 @@
- #include <mach/gpio.h>
- #include <plat/mmc.h>
- #include <plat/dma.h>
-+#include <plat/omap_device.h>
- 
- #include "mux.h"
- 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 3cfb425..f406fac 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -45,7 +45,7 @@
- 
- #include <plat/clockdomain.h>
- #include "clockdomains.h"
--#include <plat/omap_hwmod.h>
-+#include <plat/omap_device.h>
- 
- /*
-  * The machine specific code may provide the extra mapping besides the
-@@ -313,6 +313,70 @@ static int __init _omap2_init_reprogram_sdrc(void)
- 	return v;
- }
- 
-+static struct omap_device_pm_latency *pm_lats;
-+
-+static struct device *mpu_dev;
-+static struct device *dsp_dev;
-+static struct device *l3_dev;
-+
-+struct device *omap_get_mpuss_device(void)
-+{
-+	WARN_ON_ONCE(!mpu_dev);
-+	return mpu_dev;
-+}
-+
-+struct device *omap_get_dsp_device(void)
-+{
-+	WARN_ON_ONCE(!dsp_dev);
-+	return dsp_dev;
-+}
-+
-+struct device *omap_get_l3_device(void)
-+{
-+	WARN_ON_ONCE(!l3_dev);
-+	return l3_dev;
-+}
-+
-+/* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
-+static int _init_omap_device(char *name, struct device **new_dev)
-+{
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+
-+	oh = omap_hwmod_lookup(name);
-+	if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
-+		 __func__, name))
-+		return -ENODEV;
-+
-+	od = omap_device_build(oh->name, 0, oh, NULL, 0, pm_lats, 0, false);
-+	if (WARN(IS_ERR(od), "%s: could not build omap_device for %s\n",
-+		 __func__, name))
-+		return -ENODEV;
-+
-+	*new_dev = &od->pdev.dev;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Build omap_devices for processors and bus.
-+ */
-+static void omap_init_processor_devices(void)
-+{
-+	_init_omap_device("mpu", &mpu_dev);
-+	_init_omap_device("iva", &dsp_dev);
-+	_init_omap_device("l3_main", &l3_dev);
-+}
-+
-+static int __init omap_common_pm_init(void)
-+{
-+	omap_init_processor_devices();
-+	omap_pm_if_init();
-+
-+	return 0;
-+}
-+device_initcall(omap_common_pm_init);
-+
- void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 				 struct omap_sdrc_params *sdrc_cs1)
- {
-@@ -342,7 +406,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	omap_serial_early_init();
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
- 		omap_hwmod_late_init();
--	omap_pm_if_init();
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
- 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
- 		_omap2_init_reprogram_sdrc();
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index d265018..9cdd9cd 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -87,4 +87,8 @@ void omap2_set_globals_uart(struct omap_globals *);
- 	}							\
- })
- 
-+struct device *omap_get_mpuss_device(void);
-+struct device *omap_get_dsp_device(void);
-+struct device *omap_get_l3_device(void);
-+
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
--- 
-1.7.1
+Case #1 will become the common case in the future.  Case #2 is still 
+widely relevant for deployed systems in the field, and some popular 
+ARMv5TE based SOCs are still produced right now.  So instead of 
+replacing #1 and #2 with #3, I think you should add #3 to the other 
+cases instead.
 
+>  #ifdef CONFIG_MMU
+>  	mcr	p15, 0, r6, c3, c0, 0		@ Set domain register
+> @@ -1009,16 +1011,13 @@ kuser_cmpxchg_fixup:
+>   */
+>  
+>  __kuser_get_tls:				@ 0xffff0fe0
+> -
+> -#if !defined(CONFIG_HAS_TLS_REG) && !defined(CONFIG_TLS_REG_EMUL)
+> -	ldr	r0, [pc, #(16 - 8)]		@ TLS stored at 0xffff0ff0
+> -#else
+> -	mrc	p15, 0, r0, c13, c0, 3		@ read TLS register
+> -#endif
+> +	nop				@ read TLS, set in kuser_get_tls_init
+>  	usr_ret	lr
+> -
+> -	.rep	5
+> -	.word	0			@ pad up to __kuser_helper_version
+> +	mrc	p15, 0, r0, c13, c0, 3	@ 0xffff0fe8 hardware TLS code
+> +	ldr	r0, [pc, #(16 - 8)]	@ 0xffff0fec software TLS code
+> +	.word	0			@ 0xffff0ff0 software TLS value
+> +	nop				@ pad up to __kuser_helper_version
+> +	nop
+>  	.endr
+
+This looks obscur.  The idea of patching the appropriate instruction at 
+runtime here is a good one.  However I'd simply keep the ldr version in 
+place otherwise the pc displacement doesn't match anymore when 
+disassembling.  And simply overwrite it with the mrc version when 
+necessary.
+
+BTW you left a stray .endr here.
+
+>  /*
+> diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+> index 122d999..a675260 100644
+> --- a/arch/arm/kernel/setup.c
+> +++ b/arch/arm/kernel/setup.c
+> @@ -269,6 +269,27 @@ static void __init cacheid_init(void)
+>  extern struct proc_info_list *lookup_processor_type(unsigned int);
+>  extern struct machine_desc *lookup_machine_type(unsigned int);
+>  
+> +#ifdef CONFIG_CPU_V6
+> +static void __init feat_v6_fixup(void)
+> +{
+> +	int id = read_cpuid_id();
+> +
+> +	if (id & 0x000f0000 != 0x00070000)
+> +		return;
+> +
+> +	/*
+> +	 * HWCAP_TLS is available only on 1136 r1p0 and later,
+> +	 * see also kuser_get_tls_init.
+> +	 */
+> +	if ((((id >> 4) & 0xfff) == 0xb36) && (((id >> 20) & 3) == 0))
+> +		elf_hwcap &= ~HWCAP_TLS;
+
+You should probably test for the vendor ID as well (ARM in this case).
+
+> +}
+> +#else
+> +static inline void feat_v6_fixup(void)
+> +{
+> +}
+> +#endif
+
+I think the #ifdef is unnecessary here.  This is __init code anyway, so 
+this could as well be always compiled in.
+
+> +
+>  static void __init setup_processor(void)
+>  {
+>  	struct proc_info_list *list;
+> @@ -311,6 +332,8 @@ static void __init setup_processor(void)
+>  	elf_hwcap &= ~HWCAP_THUMB;
+>  #endif
+>  
+> +	feat_v6_fixup();
+> +
+>  	cacheid_init();
+>  	cpu_proc_init();
+>  }
+> diff --git a/arch/arm/kernel/traps.c b/arch/arm/kernel/traps.c
+> index 1621e53..85dd001 100644
+> --- a/arch/arm/kernel/traps.c
+> +++ b/arch/arm/kernel/traps.c
+> @@ -518,16 +518,19 @@ asmlinkage int arm_syscall(int no, struct pt_regs *regs)
+>  
+>  	case NR(set_tls):
+>  		thread->tp_value = regs->ARM_r0;
+> -#if defined(CONFIG_HAS_TLS_REG)
+> -		asm ("mcr p15, 0, %0, c13, c0, 3" : : "r" (regs->ARM_r0) );
+> -#elif !defined(CONFIG_TLS_REG_EMUL)
+> -		/*
+> -		 * User space must never try to access this directly.
+> -		 * Expect your app to break eventually if you do so.
+> -		 * The user helper at 0xffff0fe0 must be used instead.
+> -		 * (see entry-armv.S for details)
+> -		 */
+> -		*((unsigned int *)0xffff0ff0) = regs->ARM_r0;
+> +#if !defined(CONFIG_TLS_REG_EMUL)
+> +		if (elf_hwcap & HWCAP_TLS) {
+> +			asm ("mcr p15, 0, %0, c13, c0, 3"
+> +				: : "r" (regs->ARM_r0));
+> +		} else {
+> +			/*
+> +			 * User space must never try to access this directly.
+> +			 * Expect your app to break eventually if you do so.
+> +			 * The user helper at 0xffff0fe0 must be used instead.
+> +			 * (see entry-armv.S for details)
+> +			 */
+> +			*((unsigned int *)0xffff0ff0) = regs->ARM_r0;
+> +		}
+>  #endif
+
+The same comment as for __kuser_get_tls would apply here.  However, 
+instead of duplicating the code block, you could define a macro, such as 
+has_tls_reg(), that would be either 0, 1, or ((elf_hwcap & HWCAP_TLS).
+
+>  		return 0;
+>  
+> @@ -743,6 +746,21 @@ void __init trap_init(void)
+>  	return;
+>  }
+>  
+> +#if defined(CONFIG_TLS_REG_EMUL)
+> +static void __init kuser_get_tls_init(unsigned long vectors)
+> +{
+> +	memcpy((void *)vectors + 0xfe0, (void *)vectors + 0xfe8, 4);
+> +}
+> +#else
+> +static void __init kuser_get_tls_init(unsigned long vectors)
+> +{
+> +	if (elf_hwcap & HWCAP_TLS)
+> +		memcpy((void *)vectors + 0xfe0, (void *)vectors + 0xfe8, 4);
+> +	else
+> +		memcpy((void *)vectors + 0xfe0, (void *)vectors + 0xfec, 4);
+> +}
+> +#endif
+
+Please move the #ifdef within the function body.  Also it would be nice 
+to add comments about what those magic offsets are.
+
+
+Nicolas
