@@ -1,89 +1,128 @@
-From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCHv4 1/1] OMAP3: AM3505/3517 do not have IO wakeup capability
-Date: Tue, 29 Jun 2010 16:40:04 +0800
-Message-ID: <1277800804-9957-2-git-send-email-stanley.miao@windriver.com>
-References: <1277800804-9957-1-git-send-email-stanley.miao@windriver.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:57350 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772Ab0F2I1m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 04:27:42 -0400
-In-Reply-To: <1277800804-9957-1-git-send-email-stanley.miao@windriver.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH v5 2/2] OMAP4 HSMMC: Adding card detect support for MMC1
+	Controller
+Date: Tue, 29 Jun 2010 14:08:10 +0530
+Message-ID: <AANLkTiltTZ8D5M77N-b-MS67onGSYaF1NHKYQO20WgBY@mail.gmail.com>
+References: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
+	<4C1FB2A0.6000503@nokia.com>
+	<AANLkTimVB7N0Oa9bDbYfSfcivy6afhvHW5Bdt-8dWVxD@mail.gmail.com>
+	<4C29A117.50707@nokia.com>
+	<AANLkTilVq_MrO0s3hiKLqeOokivjZ5F9G6VT78gSGGGE@mail.gmail.com>
+	<4C29AC5E.10409@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4C29AC5E.10409@nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: kishore kadiyala <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "madhu.cr@ti.com" <madhu.cr@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com
 
-AM3505/3517 doesn't have IO wakeup capability, so we do not need to set
-the bit OMAP3430_EN_IO and the bit OMAP3430_EN_IO_CHAIN in the register
-PM_WKEN_WKUP when the system enters suspend state.
+On Tue, Jun 29, 2010 at 1:48 PM, Adrian Hunter <adrian.hunter@nokia.com=
+> wrote:
+> kishore kadiyala wrote:
+>>
+>> On Tue, Jun 29, 2010 at 1:00 PM, Adrian Hunter <adrian.hunter@nokia.=
+com>
+>> wrote:
+>>>
+>>> ext kishore kadiyala wrote:
+>>>>
+>>>> Adrian ,
+>>>>
+>>>> Sorry for the late response
+>>>>
+>>>> <snip>
+>>>>>
+>>>>> As per my email 5/5/10, I would suggest the only change to omap_h=
+smmc
+>>>>> is:
+>>>>
+>>>> Agreed =A0and followed the changes mostly but made some more chang=
+es on
+>>>> top
+>>>> of it.
+>>>>
+>>>> <snip>
+>>>>>
+>>>>> And that the late init function is used to do the rest e.g.
+>>>>> find a home for these 3 functions:
+>>>>
+>>>> I agree just having the 3 functions makes it work.
+>>>>
+>>>>> static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+>>>>> {
+>>>>> =A0 =A0 =A0int ret =3D 0;
+>>>>> =A0 =A0 =A0struct platform_device *pdev =3D container_of(dev,
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0struct platform_device, dev);
+>>>>> =A0 =A0 =A0struct omap_mmc_platform_data *pdata =3D dev->platform=
+_data;
+>>>>>
+>>>>> =A0 =A0 =A0/* MMC1 Card detect Configuration */
+>>>>> =A0 =A0 =A0if (pdev->id =3D=3D 0) {
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D omap4_hsmmc1_card_detect_confi=
+g();
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0if (ret < 0)
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("Unable to conf=
+igure Card detect for
+>>>>> MMC1\n");
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect =3D twl603=
+0_mmc_card_detect;
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect_irq =3D TW=
+L6030_IRQ_BASE +
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0MMCDETECT_INTR_OFFSET;
+>>>>> =A0 =A0 =A0}
+>>>>> =A0 =A0 =A0return ret;
+>>>>
+>>>> <snip>
+>>>>
+>>>> Few Comments below:
+>>>>
+>>>> 1) In the above function, initializing "card_detect" =A0in the dri=
+ver as
+>>>> done in omap_hsmmc_gpio_init might be more readable and this has b=
+een
+>>>> done in nongpio_init instead.
+>>>> Even having initialization of =A0"card_detect_irq" inside nongpio_=
+init is
+>>>> fine.
+>>>
+>>> The problem is that referencing twl6030 from omap_hsmmc.c is not ok=
+=2E
+>>> The driver must work with any platform and that is the reason that
+>>> platform data provides callbacks.
+>>
+>> ok, in that case how about having handler initialized in
+>> mach-omap2/hsmmc.c =A0for both gpio and non-gpio case.
+>
+> Unless twl6030 is part of OMAP4 then it doesn't belong in hsmmc.c eit=
+her
 
-Tested on AM3517EVM and OMAP3530EVM.
+ok, I'll make changes as suggested and post next version.
 
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
----
- arch/arm/mach-omap2/id.c              |    2 ++
- arch/arm/mach-omap2/pm34xx.c          |    7 ++++---
- arch/arm/plat-omap/include/plat/cpu.h |    2 ++
- 3 files changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 37b8a1a..67bd971 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -179,6 +179,8 @@ void __init omap3_check_features(void)
- 	OMAP3_CHECK_FEATURE(status, ISP);
- 	if (cpu_is_omap3630())
- 		omap3_features |= OMAP3_HAS_192MHZ_CLK;
-+	if (!cpu_is_omap3505() && !cpu_is_omap3517())
-+		omap3_features |= OMAP3_HAS_IO_WAKEUP;
- 
- 	/*
- 	 * TODO: Get additional info (where applicable)
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index b88737f..fb4994a 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -385,8 +385,9 @@ void omap_sram_idle(void)
- 	/* Enable IO-PAD and IO-CHAIN wakeups */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
--	if (per_next_state < PWRDM_POWER_ON ||
--			core_next_state < PWRDM_POWER_ON) {
-+	if (omap3_has_io_wakeup() && \
-+			(per_next_state < PWRDM_POWER_ON ||
-+			core_next_state < PWRDM_POWER_ON)) {
- 		prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
- 		omap3_enable_io_chain();
- 	}
-@@ -479,7 +480,7 @@ void omap_sram_idle(void)
- 	}
- 
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (core_next_state < PWRDM_POWER_ON) {
-+	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
- 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
- 		omap3_disable_io_chain();
- 	}
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 7514174..aa2f4f0 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -444,6 +444,7 @@ extern u32 omap3_features;
- #define OMAP3_HAS_NEON			BIT(3)
- #define OMAP3_HAS_ISP			BIT(4)
- #define OMAP3_HAS_192MHZ_CLK		BIT(5)
-+#define OMAP3_HAS_IO_WAKEUP		BIT(6)
- 
- #define OMAP3_HAS_FEATURE(feat,flag)			\
- static inline unsigned int omap3_has_ ##feat(void)	\
-@@ -457,5 +458,6 @@ OMAP3_HAS_FEATURE(iva, IVA)
- OMAP3_HAS_FEATURE(neon, NEON)
- OMAP3_HAS_FEATURE(isp, ISP)
- OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-+OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
- 
- #endif
--- 
-1.5.4.3
-
+Regards,
+Kishore
+>
+>>
+>> -Kishore
+>>>>
+>>>> 2)Also calling omap_hsmmc_gpio_init in case of a card detect line
+>>>> which is not GPIO
+>>>> doesn't make sense though it assigns -EINVAL to switch_pin in case=
+ of
+>>>> invalid GPIO
+>>>> which is intended for a non-removable card .
+>>>>
+>>>> 3) And also having some thing like GPIO and NON_GPIO flag to
+>>>> distinguish might make sense.
+>>>>
+>>>> Regards,
+>>>> Kishore
+>>>>
+>>>
+>>
+>
+>
