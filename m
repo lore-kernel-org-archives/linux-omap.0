@@ -1,101 +1,93 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v2 1/3] OMAP: PM: initial runtime PM core support
-Date: Mon, 28 Jun 2010 16:47:49 -0700
-Message-ID: <AANLkTimgPdrhpDKxd9YhficNddzLEbw_hxkM6_6rh4Wg@mail.gmail.com>
-References: <1277422991-25350-1-git-send-email-khilman@deeprootsystems.com>
-	<1277422991-25350-2-git-send-email-khilman@deeprootsystems.com>
-	<AANLkTim4p54brsmph6oaKfoEZwO1GOGfgRNV9vJykOjl@mail.gmail.com>
-	<874ogrng3j.fsf@deeprootsystems.com> <AANLkTimMnJvOJrRHDiE6PH1BXpRz2-6pY1M9nKHw7vpn@mail.gmail.com>
-	<87fx06viuc.fsf@deeprootsystems.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+Date: Tue, 29 Jun 2010 07:44:23 +0300 (EEST)
+Message-ID: <20100629.074423.71111160.Hiroshi.DOYU@nokia.com>
+References: <1276841055-13843-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	<1277736372.25271.102.camel@e102109-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:35195 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752289Ab0F1XsL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jun 2010 19:48:11 -0400
-Received: by gxk23 with SMTP id 23so354257gxk.19
-        for <linux-omap@vger.kernel.org>; Mon, 28 Jun 2010 16:48:09 -0700 (PDT)
-In-Reply-To: <87fx06viuc.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1277736372.25271.102.camel@e102109-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: catalin.marinas@arm.com
+Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Eric Miao <eric.miao@canonical.com>, Nicolas Pitre <nico@fluxnic.net>
 
-On Mon, Jun 28, 2010 at 4:27 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Grant Likely <grant.likely@secretlab.ca> writes:
->
-> [...]
->
->>
->>> This affects many aspects of all drivers, from register and probe (=
-for
->>> early devices/drivers too!) to all the plaform_get_resource() usage=
-, all
->>> of which assumes a platform_driver and platform_device. =A0I didn't=
- look
->>> closely, but I didn't see if (or how) OF was handling early devices=
-=2E
->>
->> You don't have to reimplement the entire platform bus. =A0You could
->> simply create a new bus type, but reuse all the existing platform bu=
-s
->> code. =A0All that changes is the bus type that the device and the dr=
-iver
->> gets registered on. =A0Then you could easily replace only the functi=
-ons
->> that matter. =A0(do a git grep platform_bus_type to see how few
->> references there actually are. =A0It looks like there are only 5
->> references to it in drivers/base/platform.c that you'd need to work
->> around; in platform_device_add(), platform_driver_register(), 2 in
->> platform_driver_probe(), and the register in platform_bus_init(). =A0=
-You
->> may not even need to reimplement platform_driver_probe().
->>
->> It might even be as simple as doing this:
->> - =A0 =A0 =A0 =A0pdev->dev.bus =3D &platform_bus_type;
->> + =A0 =A0 =A0 if (!pdev->dev.bus)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdev->dev.bus =3D &platform_bus_typ=
-e;
->>
->> So that a different bus type can be selected at device registration
->> time
->
-> just FYI...
->
-> as a quick proof of concept, I've done a quick hack just to prove to
-> myself that I could use platform_devices on a custom bus, and it inde=
-ed
-> works. =A0The small patch below[1] shows the changes required to the
-> platform code.
->
-> Next step was to hack up minimal custom bus code. =A0The quickest (an=
-d
-> dirtiest) way was to simply memcpy platform_bus_type into my new
-> omap_bus_type and then override the few dev_pm_ops functions I needed=
-[2].
->
-> So, with these in place, and using the dev_pm_ops functions from
-> $SUBJECT patch, I was able register a platform_device and
-> platform_driver onto my custom bus and see my custom dev_pm_ops
-> functions being used as expected.
+From: ext Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+Date: Mon, 28 Jun 2010 16:46:12 +0200
 
-Nice!
+> Hi,
+> 
+> (and sorry for the delay)
+> 
+> On Fri, 2010-06-18 at 07:04 +0100, Hiroshi DOYU wrote:
+>> This is another version of "kmemleak: Fix false positive", which
+>> introduces another alias tree to keep track of all alias address of
+>> each objects, based on the discussion(*1)
+>> 
+>> You can also find the previous one(*2), which uses special scan area
+>> for alias addresses with a conversion function.
+>> 
+>> Compared with both methods, it seems that the current one takes a bit
+>> longer to scan as below, tested with 512 elementes of (*3).
+>> 
+>> "kmemleak: Fix false positive with alias":
+>> # time echo scan > /mnt/kmemleak
+>> real    0m 8.40s
+>> user    0m 0.00s
+>> sys     0m 8.40s
+>> 
+>> "kmemleak: Fix false positive with special scan":
+>> # time echo scan > /mnt/kmemleak
+>> real    0m 3.96s
+>> user    0m 0.00s
+>> sys     0m 3.96s
+> 
+> Have you tried without your patches (just the test module but without
+> aliasing the pointers)? I'm curious what's the impact of your first set
+> of patches.
 
-> While admittedly a bit hacky, at least this paves the way in my head
-> that this is indeed do-able, and I can take my vacation in peace with=
-out
-> this particular problem haunting me (too much.)
+IIRC, not much difference against the one with the first patches. I'll
+measure it again later.
 
-indeed.  It could be less hacky also by adding a
-platform_bus_type_init() function to the common platform code.
+>> For our case(*4) to reduce false positives for the 2nd level IOMMU
+>> pagetable allocation, the previous special scan  seems to be enough
+>> lightweight, although there might be possiblity to improve alias
+>> one and also I might misunderstand the original proposal of aliasing.
+> 
+> The performance impact is indeed pretty high, though some parts of the
+> code look over-engineered to me (the __scan_block function with a loop
+> going through an array of two function pointers - I think the compiler
+> cannot figure out what to inline). You could just extend the
+> find_and_get_object() to search both trees under a single spinlock
+> region (as locking also takes time).
 
-Cheers,
-g.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok, a good point.
+
+> Anyway, you still get to search two trees for any pointer so there would
+> always be some performance impact. I just hoped they weren't be as bad.
+> In a normal system (not test module), how many elements would the alias
+> tree have?
+
+Just in our case, it's 512 at most.
+
+> Another approach - if we assume that there is a single alias per object
+> and such aliases don't overlap, we could just move (delete + re-insert)
+> the corresponding kmemleak_object in the tree to the alias position.
+> This way we only keep a single tree and a single object for an allocated
+> block. But in your use-case, the physical address of an object may
+> actually match the virtual address of a different object, so
+> lookup_object() needs to be iterative. You need two new kmemleak API
+> functions, e.g. kmemleak_alias() and kmemleak_unalias(), to be called
+> after allocation and before freeing a memory block.
+>
+> If we can't make the performance hit acceptable, we could go for the
+> first approach and maybe just extend kmemleak_scan_area with a function
+> pointer structure rather than adding a new one. But as I said
+> previously, my main issue with your original approach is that I would
+> prefer to call the kmemleak API at the point where the false positive is
+> allocated rather than where the parent object was.
+
+I'll try both and measure their impact again. Thank you for your comment.
