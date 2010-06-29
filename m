@@ -1,52 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/6] omap Kconfig improvments for 2.6.36 merge window
-Date: Tue, 29 Jun 2010 14:47:08 +0300
-Message-ID: <20100629113229.16008.2931.stgit@baageli.muru.com>
+Subject: [PATCH 1/6] omap: Disable VGA console for omaps
+Date: Tue, 29 Jun 2010 14:47:20 +0300
+Message-ID: <20100629114720.16008.84291.stgit@baageli.muru.com>
+References: <20100629113229.16008.2931.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63670 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755688Ab0F2LrH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 07:47:07 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64081 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755748Ab0F2LrL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 07:47:11 -0400
+In-Reply-To: <20100629113229.16008.2931.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi all,
+Otherwise we have to disable it manually to avoid compile errors.
 
-Here are some Kconfig improvments to produce a mostly sane .config for
-omap2/3/4 without a defconfig. This assumes that CONFIG_ARCH_OMAP is
-selected, for example with:
-
-$ echo "CONFIG_ARCH_OMAP=y" > .config && yes "" | ARCH=arm make oldconfig
-
-or
-
-$ rm .config; ARCH=arm make xconfig, then select System Type -> TI OMAP
-
-Regards,
-
-Tony
-
+Cc: linux-fbdev@vger.kernel.org
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ drivers/video/console/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Tony Lindgren (6):
-      omap: Disable VGA console for omaps
-      omap: Use 32KiHZ timer by default
-      omap: Make omap specific features appear under Kconfig menu
-      omap2/3/4: Move Kconfig options to mach-omap2/Kconfig
-      omap2/3/4: Select all omaps and boards by default
-      omap2/3/4: Add Kconfig option to compile in typical omap features
+diff --git a/drivers/video/console/Kconfig b/drivers/video/console/Kconfig
+index 8e8f18d..467a966 100644
+--- a/drivers/video/console/Kconfig
++++ b/drivers/video/console/Kconfig
+@@ -6,7 +6,7 @@ menu "Console display driver support"
+ 
+ config VGA_CONSOLE
+ 	bool "VGA text console" if EMBEDDED || !X86
+-	depends on !ARCH_ACORN && !ARCH_EBSA110 && !4xx && !8xx && !SPARC && !M68K && !PARISC && !FRV && !ARCH_VERSATILE && !SUPERH && !BLACKFIN && !AVR32 && !MN10300
++	depends on !ARCH_ACORN && !ARCH_EBSA110 && !4xx && !8xx && !SPARC && !M68K && !PARISC && !FRV && !ARCH_VERSATILE && !SUPERH && !BLACKFIN && !AVR32 && !MN10300 && !ARCH_OMAP
+ 	default y
+ 	help
+ 	  Saying Y here will allow you to use Linux in text mode through a
 
-
- arch/arm/mach-omap1/Kconfig   |    7 ++++
- arch/arm/mach-omap2/Kconfig   |   74 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/Kconfig    |   22 +-----------
- drivers/video/console/Kconfig |    2 +
- 4 files changed, 84 insertions(+), 21 deletions(-)
-
--- 
-Signature
