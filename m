@@ -1,42 +1,114 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/6] omap: Disable VGA console for omaps
-Date: Tue, 29 Jun 2010 17:21:45 +0300
-Message-ID: <20100629142144.GN2822@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in typical
+ omap	features
+Date: Tue, 29 Jun 2010 20:16:20 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB7026@dbde02.ent.ti.com>
 References: <20100629113229.16008.2931.stgit@baageli.muru.com>
- <20100629114720.16008.84291.stgit@baageli.muru.com>
- <20100629120724.GA23884@oksana.dev.rtsoft.ru>
+ <20100629114738.16008.62006.stgit@baageli.muru.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB6FC3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52523 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754919Ab0F2OVh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 10:21:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20100629120724.GA23884@oksana.dev.rtsoft.ru>
+Received: from devils.ext.ti.com ([198.47.26.153]:47415 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756206Ab0F2Oqa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jun 2010 10:46:30 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB6FC3@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Anton Vorontsov <cbouatmailru@gmail.com> [100629 15:04]:
-> On Tue, Jun 29, 2010 at 02:47:20PM +0300, Tony Lindgren wrote:
-> > Otherwise we have to disable it manually to avoid compile errors.
-> > 
-> > Cc: linux-fbdev@vger.kernel.org
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
+> Sent: Tuesday, June 29, 2010 7:23 PM
+> To: Tony Lindgren; linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in
+> typical omap features
+> 
+> Tony,
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> > Sent: Tuesday, June 29, 2010 5:18 PM
+> > To: linux-arm-kernel@lists.infradead.org
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in typical
+> > omap features
+> >
+> > This produces a sane config that's suitable for using as the
+> > base for most omap2/3/4 boards.
+> >
 > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/mach-omap2/Kconfig |   21 +++++++++++++++++++++
+> >  1 files changed, 21 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> > index 4802988..84fecd0 100644
+> > --- a/arch/arm/mach-omap2/Kconfig
+> > +++ b/arch/arm/mach-omap2/Kconfig
+> > @@ -2,6 +2,27 @@ if ARCH_OMAP2PLUS
+> >
+> >  menu "TI OMAP2/3/4 Specific Features"
+> >
+> > +config ARCH_OMAP2PLUS_TYPICAL
+> > +	bool "Typical OMAP configuration"
+> > +	default y
+> > +	select AEABI
+> > +	select REGULATOR
+> > +	select PM
+> > +	select PM_RUNTIME
+> > +	select VFP
+> > +	select NEON if ARCH_OMAP3 || ARCH_OMAP4
+> > +	select SERIAL_8250
+> > +	select SERIAL_CORE_CONSOLE
+> > +	select SERIAL_8250_CONSOLE
+> > +	select I2C
+> > +	select I2C_OMAP
+> > +	select MFD
+> > +	select MENELAUS if ARCH_OMAP2
+> > +	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
+> > +	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
+> > +	help
+> > +	  Compile a kernel suitable for booting most boards
+> > +
+> >  config ARCH_OMAP2
+> >  	bool "TI OMAP2"
+> >  	depends on ARCH_OMAP2PLUS
+> >
+> With your series OMAP4 build breaks because of PM and SMP dependencies.
+> To ensure that build doesn't break on OMAP4, I needed below change. With
+> This change I tried your series and it boots OK on OMAP4430 SDP
 > 
-> We'll need this for mach-cns3xxx too. And doing that change for
-> every ARM subarch is going to produce lots of rejects.
-> 
-> I'd suggest to disable (or make it 'default n') for all ARMs,
-> except these:
-> 
-> $ git grep VGA_CONSOLE= arch/arm/configs/
-> arch/arm/configs/footbridge_defconfig:CONFIG_VGA_CONSOLE=y
-> arch/arm/configs/integrator_defconfig:CONFIG_VGA_CONSOLE=y
-> arch/arm/configs/netwinder_defconfig:CONFIG_VGA_CONSOLE=y
+Also tested the multi-omap build on OMAP3430 SDP and OMAP4430 SDP. Both boots OK.
 
-Good idea, will post a modified patch tomorrow.
-
-Tony
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 84fecd0..f48f275 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -7,8 +7,8 @@ config ARCH_OMAP2PLUS_TYPICAL
+>         default y
+>         select AEABI
+>         select REGULATOR
+> -       select PM
+> -       select PM_RUNTIME
+> +       select PM if !ARCH_OMAP4
+> +       select PM_RUNTIME if !ARCH_OMAP4
+>         select VFP
+>         select NEON if ARCH_OMAP3 || ARCH_OMAP4
+>         select SERIAL_8250
+> 
+> Regards
+> Santosh
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
