@@ -1,725 +1,861 @@
-From: Randy Dunlap <randy.dunlap@Oracle.COM>
-Subject: Re: [RFC 1/3] mm: iommu: An API to unify IOMMU, CPU and device
- memory management
-Date: Wed, 30 Jun 2010 16:40:58 -0700
-Message-ID: <20100630164058.aa6aa3a2.randy.dunlap@oracle.com>
-References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: Zach Pfeffer <zpfeffer@codeaurora.org>
-Cc: mel@csn.ul.ie, andi@firstfloor.org, dwalker@codeaurora.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCHv3 1/9] dspbridge: replace iommu custom for opensource implementation
+Date: Wed, 30 Jun 2010 18:59:53 -0500
+Message-ID: <1277942401-3566-2-git-send-email-x0095840@ti.com>
+References: <1277942401-3566-1-git-send-email-x0095840@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1277942401-3566-1-git-send-email-x0095840@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: ohad@wizery.com, hiroshi.doyo@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Fernando Guzman Lugo <x0095840@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 29 Jun 2010 22:55:48 -0700 Zach Pfeffer wrote:
+This patch replace the call to custom dsp mmu implemenation
+for the once on iommu module.
 
-> This patch contains the documentation for the API, termed the Virtual
-> Contiguous Memory Manager. Its use would allow all of the IOMMU to VM,
-> VM to device and device to IOMMU interoperation code to be refactored
-> into platform independent code.
-> 
-> Comments, suggestions and criticisms are welcome and wanted.
-> 
-> Signed-off-by: Zach Pfeffer <zpfeffer@codeaurora.org>
-> ---
->  Documentation/vcm.txt |  583 +++++++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 583 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/vcm.txt
-> 
-> diff --git a/Documentation/vcm.txt b/Documentation/vcm.txt
-> new file mode 100644
-> index 0000000..d29c757
-> --- /dev/null
-> +++ b/Documentation/vcm.txt
-> @@ -0,0 +1,583 @@
-> +What is this document about?
-> +============================
-> +
-> +This document covers how to use the Virtual Contiguous Memory Manager
-> +(VCMM), how the first implmentation works with a specific low-level
-> +Input/Output Memory Management Unit (IOMMU) and the way the VCMM is used
-> +from user-space. It also contains a section that describes why something
-> +like the VCMM is needed in the kernel.
-> +
-> +If anything in this document is wrong please send patches to the
-
-                                is wrong,
-
-> +maintainer of this file, listed at the bottom of the document.
-> +
-> +
-> +The Virtual Contiguous Memory Manager
-> +=====================================
-> +
-> +The VCMM was built to solve the system-wide memory mapping issues that
-> +occur when many bus-masters have IOMMUs.
-> +
-> +An IOMMU maps device addresses to physical addresses. It also insulates
-> +the system from spurious or malicious device bus transactions and allows
-> +fine-grained mapping attribute control. The Linux kernel core does not
-> +contain a generic API to handle IOMMU mapped memory; device driver writers
-> +must implement device specific code to interoperate with the Linux kernel
-> +core. As the number of IOMMUs increases, coordinating the many address
-> +spaces mapped by all discrete IOMMUs becomes difficult without in-kernel
-> +support.
-> +
-> +The VCMM API enables device independent IOMMU control, virtual memory
-> +manager (VMM) interoperation and non-IOMMU enabled device interoperation
-> +by treating devices with or without IOMMUs and all CPUs with or without
-> +MMUs, their mapping contexts and their mappings using common
-> +abstractions. Physical hardware is given a generic device type and mapping
-> +contexts are abstracted into Virtual Contiguous Memory (VCM)
-> +regions. Users "reserve" memory from VCMs and "back" their reservations
-> +with physical memory.
-> +
-> +Why the VCMM is Needed
-> +----------------------
-> +
-> +Driver writers who control devices with IOMMUs must contend with device
-> +control and memory management. Driver writers have a large device driver
-> +API that they can leverage to control their devices, but they are lacking
-> +a unified API to help them program mappings into IOMMUs and share those
-> +mappings with other devices and CPUs in the system.
-> +
-> +Sharing is complicated by Linux's CPU centric VMM. The CPU centric model
-
-                                     CPU-centric          CPU-centric
-
-> +generally makes sense because average hardware only contains a MMU for the
-> +CPU and possibly a graphics MMU. If every device in the system has one or
-> +more MMUs the CPU centric memory management (MM) programming model breaks
-
-                 ditto
-
-> +down.
-> +
-> +Abstracting IOMMU device programming into a common API has already begun
-> +in the Linux kernel. It was built to abstract the difference between AMDs
-
-                                                                        AMD's
-(or just "AMD")
-
-> +and Intels IOMMUs to support x86 virtualization on both platforms. The
-
-       Intel's (or just "Intel")
-
-> +interface is listed in kernel/include/linux/iommu.h. It contains
-
-                          drop "kernel/"
-
-> +interfaces for mapping and unmapping as well as domain management. This
-> +interface has not gained widespread use outside the x86; PA-RISC, Alpha
-> +and SPARC architectures and ARM and PowerPC platforms all use their own
-> +mapping modules to control their IOMMUs. The VCMM contains an IOMMU
-> +programming layer, but since its abstraction supports map management
-> +independent of device control, the layer is not used directly. This
-> +higher-level view enables a new kernel service, not just an IOMMU
-> +interoperation layer.
-> +
-> +The General Idea: Map Management using Graphs
-> +---------------------------------------------
-> +
-> +Looking at mapping from a system-wide perspective reveals a general graph
-> +problem. The VCMMs API is built to manage the general mapping graph. Each
-
-                VMCC's
-
-> +node that talks to memory, either through an MMU or directly (physically
-> +mapped) can be thought of as the device-end of a mapping edge. The other
-> +edge is the physical memory (or intermediate virtual space) that is
-> +mapped.
-> +
-> +In the direct mapped case the device is assigned a one-to-one MMU. This
-
-          direct-mapped
-
-> +scheme allows direct mapped devices to participate in general graph
-> +management.
-> +
-> +The CPU nodes can also be brought under the same mapping abstraction with
-> +the use of a light overlay on the existing VMM. This light overlay allows
-> +VMM managed mappings to interoperate with the common API. The light
-
-   VMM-managed
-
-> +overlay enables this without substantial modifications to the existing
-> +VMM.
-> +
-> +In addition to CPU nodes that are running Linux (and the VMM), remote CPU
-> +nodes that may be running other operating systems can be brought into the
-> +general abstraction. Routing all memory management requests from a remote
-> +node through the central memory management framework enables new features
-> +like system-wide memory migration. This feature may only be feasible for
-> +large buffers that are managed outside of the fast-path, but having remote
-> +allocation in a system enables features that are impossible to build
-> +without it.
-> +
-> +The fundamental objects that support graph-based map management are:
-> +
-> +1) Virtual Contiguous Memory Regions
-> +
-> +2) Reservations
-> +
-> +3) Associated Virtual Contiguous Memory Regions
-> +
-> +4) Memory Targets
-> +
-> +5) Physical Memory Allocations
-> +
-> +Usage Overview
-> +--------------
-> +
-> +In a nut-shell, users allocate Virtual Contiguous Memory Regions and
-
-        nutshell,
-
-> +associate those regions with one or more devices by creating an Associated
-> +Virtual Contiguous Memory Region. Users then create Reservations from the
-> +Virtual Contiguous Memory Region. At this point no physical memory has
-> +been committed to the reservation. To associate physical memory with a
-> +reservation a Physical Memory Allocation is created and the Reservation is
-> +backed with this allocation.
-> +
-> +include/linux/vcm.h includes comments documenting each API.
-> +
-> +Virtual Contiguous Memory Regions
-> +---------------------------------
-> +
-> +A Virtual Contiguous Memory Region (VCM) abstracts the memory space a
-> +device sees. The addresses of the region are only used by the devices
-> +which are associated with the region. This address space would normally be
-> +implemented as a device page-table.
-
-                           page table.
-
-> +
-> +A VCM is created and destroyed with three functions:
-> +
-> +    struct vcm *vcm_create(size_t start_addr, size_t len);
-
-Seems odd to use size_t for start_addr.
-
-> +    struct vcm *vcm_create_from_prebuilt(size_t ext_vcm_id);
-> +
-> +    int vcm_free(struct vcm *vcm);
-> +
-> +start_addr is an offset into the address space where allocations will
-> +start from. len is the length from start_addr of the VCM. Both functions
-> +generate an instance of a VCM.
-> +
-> +ext_vcm_id is used to pass a request to the VMM to generate a VCM
-> +instance. In the current implementation the call simply makes a note that
-> +the VCM instance is a VMM VCM instance for other interfaces usage. This
-> +muxing is seen throughout the implementation.
-> +
-> +vcm_create() and vcm_create_from_prebuilt() produce VCM instances for
-> +virtually mapped devices (IOMMUs and CPUs). To create a one-to-one mapped
-> +VCM users pass the start_addr and len of the physical region. The VCMM
-
-   VCM,
-
-> +matches this and records that the VCM instance is a one-to-one VCM.
-> +
-> +The newly created VCM instance can be passed to any function that needs to
-> +operate on or with a virtual contiguous memory region. Its main attributes
-> +are a start_addr and a len as well as an internal setting that allows the
-> +implementation to mux between true virtual spaces, one-to-one mapped
-> +spaces and VMM managed spaces.
-> +
-> +The current implementation uses the genalloc library to manage the VCM for
-> +IOMMU devices. Return values and more in-depth per-function documentation
-> +for these and the ones listed below are in include/linux/vcm.h.
-> +
-> +Reservations
-> +------------
-> +
-> +A Reservation is a contiguous region allocated from a VCM. There is no
-> +physical memory associated with it.
-> +
-> +A Reservation is created and destroyed with:
-> +
-> +    struct res *vcm_reserve(struct vcm *vcm, size_t len, uint32_t attr);
-
-s/uint32_t/u32/ ?
-
-> +    int vcm_unreserve(struct res *res);
-> +
-> +A vcm is a VCM created above. len is the length of the request. It can be
-> +up to the length of the VCM region the reservation is being created
-> +from. attr are mapping attributes: read, write, execute, user, supervisor,
-> +secure, not-cached, write-back/write-allocate, write-back/no
-> +write-allocate, write-through. These attrs are appropriate for ARM but can
-> +be changed to match to any architecture.
-> +
-> +The implementation calls gen_pool_alloc() for IOMMU devices,
-> +alloc_vm_area() for VMM areas and is a pass through for one-to-one mapped
-
-                                          pass-through
-
-> +areas.
-> +
-> +Associated Virtual Contiguous Memory Regions and Activation
-> +-----------------------------------------------------------
-> +
-> +An Associated Virtual Contiguous Memory Region (AVCM) is a mapping of a
-> +VCM to a device. The mapping can be active or inactive.
-> +
-> +An AVCM is managed with:
-> +
-> +struct avcm *vcm_assoc(struct vcm *vcm, size_t dev, uint32_t attr);
-> +
-> +    int vcm_deassoc(struct avcm *avcm);
-> +
-> +    int vcm_activate(struct avcm *avcm);
-> +
-> +    int vcm_deactivate(struct avcm *avcm);
-> +
-> +A VCM instance is a VCM created above. A dev is an opaque device handle
-> +thats passed down to the device driver the VCMM muxes in to handle a
-> +request. attr are association attributes: split, use-high or
-
-size_t used for an opaque device handle seems odd.
-
-> +use-low. split controls which transactions hit a high-address page-table
-> +and which transactions hit a low-address page-table. For instance, all
-> +transactions whose most significant address bit is one would use the
-> +high-address page-table, any other transaction would use the low address
-> +page-table. This scheme is ARM specific and could be changed in other
-
-                              ARM-specific
-
-> +architectures. One VCM instance can be associated with many devices and
-> +many VCM instances can be associated with one device.
-> +
-> +An AVCM is only a link. To program and deprogram a device with a VCM the
-> +user calls vcm_activate() and vcm_deactivate().For IOMMU devices,
-
-                                 vcm_deactivate(). For
-
-> +activating a mapping programs the base address of a page-table into an
-
-                                                       page table
-
-> +IOMMU. For VMM and one-to-one based devices, mappings are active
-> +immediately but the API does require an activation call for them for
-> +internal reference counting.
-> +
-> +Memory Targets
-> +--------------
-> +
-> +A Memory Target is a platform independent way of specifying a physical
-> +pool; it abstracts a pool of physical memory. The physical memory pool may
-> +be physically discontiguous, need to be allocated from in a unique way or
-> +have other user-defined attributes.
-> +
-> +Physical Memory Allocation and Reservation Backing
-> +--------------------------------------------------
-> +
-> +Physical memory is allocated as a separate step from reserving
-> +memory. This allows multiple reservations to back the same physical
-> +memory.
-> +
-> +A Physical Memory Allocation is managed using the following functions:
-> +
-> +    struct physmem *vcm_phys_alloc(enum memtype_t memtype, size_t len,
-> +                                   uint32_t attr);
-> +
-> +    int vcm_phys_free(struct physmem *physmem);
-> +
-> +    int vcm_back(struct res *res, struct physmem *physmem);
-> +
-> +    int vcm_unback(struct res *res);
-> +
-> +attr can include an alignment request, a specification to map memory using
-> +various block sizes and/or to use physically contiguous memory. memtype is
-> +one of the memory types listed in Memory Targets.
-> +
-> +The current implementation manages two pools of memory. One pool is a
-> +contiguous block of memory and the other is a set of contiguous block
-> +pools. In the current implementation the block pools contain 4K, 64K and
-> +1M blocks. The physical allocator does not try to split blocks from the
-> +contiguous block pools to satisfy requests.
-> +
-> +The use of 4K, 64K and 1M blocks solves a problem with some IOMMU
-> +hardware. IOMMUs are placed in front of multimedia engines to provide a
-> +contiguous address space to the device. Multimedia devices need large
-> +buffers and large buffers may map to a large number of physical
-> +blocks. IOMMUs tend to have small translation lookaside buffers
-> +(TLBs). Since the TLB is small the number of physical blocks that map a
-> +given range needs to be small or else the IOMMU will continually fetch new
-> +translations during a typical streamed multimedia flow. By using a 1 MB
-> +mapping (or 64K mapping) instead of a 4K mapping the number of misses can
-> +be minimized, allowing the multimedia block to meet its performance goals.
-> +
-> +Low Level Control
-> +-----------------
-> +
-> +It is necessary in some instances to access attributes and provide
-> +higher-level control of the low-level hardware abstraction. The API
-> +contains many functions for this task but the two that are typically used
-> +are:
-> +
-> +    size_t vcm_get_dev_addr(struct res *res);
-> +
-> +    int vcm_hook(size_t dev, vcm_handler handler, void *data);
-> +
-> +The first function, vcm_get_dev_addr() returns a device address given a
-> +reservation. This device address is a virtual IOMMU address for
-> +reservations on IOMMU VCMs, a virtual VMM address for reservations on VMM
-> +VCMs and a virtual (really physical since its one-to-one mapped) address
-> +for one-to-one devices.
-> +
-> +The second function, vcm_hook allows a caller in the kernel to register a
-
-                        vcm_hook,
-
-> +user_handler. The handler is passed the data member passed to vcm_hook
-> +during a fault. The user can return 1 to indicate that the underlying
-> +driver should handle the fault and retry the transaction or they can
-> +return 0 to halt the transaction. If the user doesn't register a handler
-> +the low-level driver will print a warning and terminate the transaction.
-> +
-> +A Detailed Walk Through
-> +-----------------------
-> +
-> +The following call sequence walks through a typical allocation
-> +sequence. In the first stage the memory for a device is reserved and
-> +backed. This occurs without mapping the memory into a VMM VCM region. The
-> +second stage maps the first VCM region into a VMM VCM region so the kernel
-> +can read or write it. The second stage is not necessary if the VMM does
-> +not need to read or modify the contents of the original mapping.
-> +
-> +    Stage 1: Map and Allocate Memory for a Device
-> +
-> +    The call sequence starts by creating a VCM region:
-> +
-> +        vcm = vcm_create(start_addr, len);
-> +
-> +    The next call associates a VCM region with a device:
-> +
-> +        avcm = vcm_assoc(vcm, dev, attr);
-> +
-> +    To activate the association users call vcm_activate() on the avcm from
-
-                       association,
-
-> +    the associate call. This programs the underlining device with the
-> +    mappings.
-> +
-> +        ret = vcm_activate(avcm);
-> +
-> +    Once a VCM region is created and associated it can be reserved from
-> +    with:
-> +
-> +        res = vcm_reserve(vcm, res_len, res_attr);
-> +
-> +    A user then allocates physical memory with:
-> +
-> +        physmem = vcm_phys_alloc(memtype, len, phys_attr);
-> +
-> +    To back the reservation with the physical memory allocation the user
-> +    calls:
-> +
-> +        vcm_back(res, physmem);
-> +
-> +
-> +    Stage 2: Map the Device's Memory into the VMM's VCM region
-> +
-> +    If the VMM needs to read and/or write the region that was just created
-
-                                                                      created,
-
-> +    the following calls are made.
-> +
-> +    The first call creates a prebuilt VCM with:
-> +
-> +        vcm_vmm = vcm_from_prebuilt(ext_vcm_id);
-> +
-> +    The prebuilt VCM is associated with the CPU device and activated with:
-> +
-> +        avcm_vmm = vcm_assoc(vcm_vmm, dev_cpu, attr);
-> +        vcm_activate(avcm_vmm);
-> +
-> +    A reservation is made on the VMM VCM with:
-> +
-> +        res_vmm = vcm_reserve(vcm_vmm, res_len, attr);
-> +
-> +    Finally, once the topology has been set up a vcm_back() allows the VMM
-> +    to read the memory using the physmem generated in stage 1:
-> +
-> +        vcm_back(res_vmm, physmem);
-> +
-> +Mapping IOMMU, one-to-one and VMM Reservations
-> +----------------------------------------------
-> +
-> +The following example demonstrates mapping IOMMU, one-to-one and VMM
-> +reservations to the same physical memory. It shows the use of phys_addr
-> +and phys_size to create a contiguous VCM for one-to-one mapped devices.
-> +
-> +    The user allocates physical memory:
-> +
-> +        physmem = vcm_phys_alloc(memtype, SZ_2MB + SZ_4K, CONTIGUOUS);
-> +
-> +    Creates an IOMMU VCM:
-> +
-> +        vcm_iommu = vcm_create(SZ_1K, SZ_16M);
-> +
-> +    Creates an one-to-one VCM:
-
-               a one-to-one
-
-> +
-> +        vcm_onetoone = vcm_create(phys_addr, phys_size);
-> +
-> +    Creates a Prebuit VCM:
-> +
-> +        vcm_vmm = vcm_from_prebuit(ext_vcm_id);
-> +
-> +    Associate and activate all three to their respective devices:
-> +
-> +        avcm_iommu = vcm_assoc(vcm_iommu, dev_iommu, attr0);
-> +        avcm_onetoone = vcm_assoc(vcm_onetoone, dev_onetoone, attr1);
-> +        avcm_vmm = vcm_assoc(vcm_vmm, dev_cpu, attr2);
-
-error handling on vcm_assoc() failures?
-
-> +        vcm_activate(avcm_iommu);
-> +        vcm_activate(avcm_onetoone);
-> +        vcm_activate(avcm_vmm);
-> +
-> +    And finally, creates and backs reservations on all 3 such that they
-> +    all point to the same memory:
-> +
-> +        res_iommu = vcm_reserve(vcm_iommu, SZ_2MB + SZ_4K, attr);
-> +        res_onetoone = vcm_reserve(vcm_onetoone, SZ_2MB + SZ_4K, attr);
-> +        res_vmm = vcm_reserve(vcm_vmm, SZ_2MB + SZ_4K, attr);
-
-error handling?
-
-> +        vcm_back(res_iommu, physmem);
-> +        vcm_back(res_onetoone, physmem);
-> +        vcm_back(res_vmm, physmem);
-> +
-> +VCM Summary
-> +-----------
-> +
-> +The VCMM is an attempt to abstract attributes of three distinct classes of
-> +mappings into one API. The VCMM allows users to reason about mappings as
-> +first class objects. It also allows memory mappings to flow from the
-> +traditional 4K mappings prevalent on systems today to more efficient block
-> +sizes. Finally, it allows users to manage mapping interoperation without
-> +becoming VMM experts. These features will allow future systems with many
-> +MMU mapped devices to interoperate simply and therefore correctly.
-> +
-> +
-> +IOMMU Hardware Control
-> +======================
-> +
-> +The VCM currently supports a single type of IOMMU, a Qualcomm System MMU
-> +(SMMU). The SMMU interface contains functions to map and unmap virtual
-> +addresses, perform address translations and initialize hardware. A
-> +Qualcomm SMMU can contain multiple MMU contexts. Each context can
-> +translate in parallel. All contexts in a SMMU share one global translation
-> +look-aside buffer (TLB).
-> +
-> +To support context muxing the SMMU module creates and manages device
-> +independent virtual contexts. These context abstractions are bound to
-> +actual contexts at run-time. Once bound, a context can be activated. This
-> +activation programs the underlying context with the virtual context
-> +affecting a context switch.
-> +
-> +The following functions are all documented in:
-> +
-> +    arch/arm/mach-msm/include/mach/smmu_driver.h.
-> +
-> +Mapping
-> +-------
-> +
-> +To map and unmap a virtual page into physical space the VCM calls:
-> +
-> +    int smmu_map(struct smmu_dev *dev, unsigned long pa,
-> +                 unsigned long va, unsigned long len, unsigned int attr);
-> +
-> +    int smmu_unmap(struct smmu_dev *dev, unsigned long va,
-> +                   unsigned long len);
-> +
-> +    int smmu_update_start(struct smmu_dev *dev);
-> +
-> +    int smmu_update_done(struct smmu_dev *dev);
-> +
-> +The size given to map must be 4K, 64K, 1M or 16M and the VA and PA must be
-> +aligned to the given size. smmu_update_start() and smmu_update_done()
-> +should be called before and after each map or unmap.
-> +
-> +Translation
-> +-----------
-> +
-> +To request a hardware VA to PA translation on a single address the VCM
-> +calls:
-> +
-> +    unsigned long smmu_translate(struct smmu_dev *dev,
-> +                                 unsigned long va);
-> +
-> +Fault Handling
-> +--------------
-> +
-> +To register an interrupt handler for a context the VCM calls:
-> +
-> +    int smmu_hook_irpt(struct smmu_dev *dev, vcm_handler handler,
-> +                       void *data);
-
-We try to spell out things like "interrupt" in function names
-because I/we can't remember just how you decided to abbreviate it.
-
-> +
-> +The registered interrupt handler should return 1 if it wants the SMMU
-> +driver to retry the transaction again and 0 if it wants the SMMU driver to
-> +terminate the transaction.
-> +
-> +Managing SMMU Initialization and Contexts
-> +-----------------------------------------
-> +
-> +SMMU hardware initialization and management happens in 2 steps. The first
-> +step initializes global SMMU devices and abstract device contexts. The
-> +second step binds contexts and devices.
-> +
-> +A SMMU hardware instance is built with:
-
-   An SMMU
-
-> +
-> +    int smmu_drvdata_init(struct smmu_driver *drv, unsigned long base,
-> +                          int irq);
-> +
-> +A SMMU context is Initialized and deinitialized with:
-
-   An SMMU           initialized
-
-> +
-> +    struct smmu_dev *smmu_ctx_init(int ctx);
-> +    int smmu_ctx_deinit(struct smmu_dev *dev);
-> +
-> +An abstract SMMU context is bound to a particular SMMU with:
-> +
-> +    int smmu_ctx_bind(struct smmu_dev *ctx, struct smmu_driver *drv);
-> +
-> +Activation
-> +----------
-> +
-> +Activation affects a context switch.
-> +
-> +Activation, deactivation and activation state testing are done with:
-> +
-> +    int smmu_activate(struct smmu_dev *dev);
-> +    int smmu_deactivate(struct smmu_dev *dev);
-> +    int smmu_is_active(struct smmu_dev *dev);
-> +
-> +
-> +Userspace Access to Devices with IOMMUs
-> +=======================================
-> +
-> +A device that issues transactions through an IOMMU must work with two
-> +APIs. The first API is the VCM. The VCM API is device independent. Users
-> +pass the VCM a dev_id and the VCM makes calls on the hardware device it
-> +has been configured with using this dev_id. The second API is whatever
-> +device topology has been created to organize the particular IOMMUs in a
-> +system. The only constraint on this second API is that it must give the
-> +user a single dev_id that it can pass through the VCM.
-> +
-> +For the Qualcomm SMMUs the second API consists of a tree of platform
-> +devices and two platform drivers as well as a context lookup function that
-> +traverses the device tree and returns a dev_id given a context name.
-> +
-> +Qualcomm SMMU Device Tree
-> +-------------------------
-> +
-> +The current tree organizes the devices into a tree that looks like the
-> +following:
-> +
-> +smmu/
-> +               smmu0/
-> +                                ctx0
-> +                                ctx1
-> +                                ctx2
-> +               smmu1/
-> +                                ctx3
-> +
-> +
-> +Each context, ctx[n] and each smmu, smmu[n] is given a name. Since users
-> +are interested in contexts not smmus, the contexts name is passed to a
-
-                                             context
-
-> +function to find the dev_id associated with that name. The functions to
-> +find, free and get the base address (since the device probe function calls
-> +ioremap to map the SMMUs configuration registers into the kernel) are
-> +listed here:
-> +
-> +    struct smmu_dev *smmu_get_ctx_instance(char *ctx_name);
-> +    int smmu_free_ctx_instance(struct smmu_dev *dev);
-> +    unsigned long smmu_get_base_addr(struct smmu_dev *dev);
-> +
-> +Documentation for these functions is in:
-> +
-> +    arch/arm/mach-msm/include/mach/smmu_device.h
-> +
-> +Each context is given a dev node named after the context. For example:
-> +
-> +    /dev/vcodec_a_mm1
-> +    /dev/vcodec_b_mm2
-> +    /dev/vcodec_stream
-> +    etc...
-> +
-> +Users open, close and mmap these nodes to access VCM buffers from
-> +userspace in the same way that they used to open, close and mmap /dev
-> +nodes that represented large physically contiguous buffers (called PMEM
-> +buffers on Android).
-> +
-> +Example
-> +-------
-> +
-> +An abbreviated example is shown here:
-> +
-> +Users get the dev_id associated with their target context, create a VCM
-> +topology appropriate for their device and finally associate the VCMs of
-> +the topology with the contexts that will take the VCMs:
-> +
-> +    dev_id = smmu_get_ctx_instance(vcodec_a_stream);
-> +
-> +create vcm and needed topology
-> +
-> +    avcm = vcm_assoc(vcm, dev_id, attr);
-> +
-> +Tying it all Together
-> +---------------------
-> +
-> +VCMs, IOMMUs and the device tree all work to support system-wide memory
-> +mappings. The use of each API in this system allows users to concentrate
-> +on the relevant details without needing to worry about low-level
-> +details. The APIs clear separation of memory spaces and the devices that
-
-                API's
-
-> +support those memory spaces continues Linuxs tradition of abstracting the
-
-                                         the Linux tradition
-
-> +what from the how.
-> +
-> +
-> +Maintainer: Zach Pfeffer <zpfeffer@codeaurora.org>
-> -- 
-
-
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+ drivers/dsp/bridge/core/_tiomap.h    |   16 +
+ drivers/dsp/bridge/core/io_sm.c      |  114 ++------
+ drivers/dsp/bridge/core/tiomap3430.c |  501 +++++-----------------------------
+ drivers/dsp/bridge/core/ue_deh.c     |   10 -
+ 4 files changed, 118 insertions(+), 523 deletions(-)
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/dsp/bridge/core/_tiomap.h b/drivers/dsp/bridge/core/_tiomap.h
+index bf0164e..d13677a 100644
+--- a/drivers/dsp/bridge/core/_tiomap.h
++++ b/drivers/dsp/bridge/core/_tiomap.h
+@@ -23,6 +23,8 @@
+ #include <plat/clockdomain.h>
+ #include <mach-omap2/prm-regbits-34xx.h>
+ #include <mach-omap2/cm-regbits-34xx.h>
++#include <plat/iommu.h>
++#include <plat/iovmm.h>
+ #include <dspbridge/devdefs.h>
+ #include <hw_defs.h>
+ #include <dspbridge/dspioctl.h>	/* for bridge_ioctl_extproc defn */
+@@ -330,6 +332,7 @@ struct bridge_dev_context {
+ 	u32 dw_internal_size;	/* Internal memory size */
+ 
+ 	struct omap_mbox *mbox;		/* Mail box handle */
++	struct iommu *dsp_mmu;		/* iommu for iva2 handler */
+ 
+ 	struct cfg_hostres *resources;	/* Host Resources */
+ 
+@@ -374,4 +377,17 @@ extern s32 dsp_debug;
+  */
+ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val);
+ 
++static inline void dsp_iotlb_init(struct iotlb_entry *e, u32 da, u32 pa,
++							u32 pgsz)
++{
++	e->da = da;
++	e->pa = pa;
++	e->valid = 1;
++	e->prsvd = 1;
++	e->pgsz = pgsz & MMU_CAM_PGSZ_MASK;
++	e->endian = MMU_RAM_ENDIAN_LITTLE;
++	e->elsz = MMU_RAM_ELSZ_32;
++	e->mixed = 0;
++}
++
+ #endif /* _TIOMAP_ */
+diff --git a/drivers/dsp/bridge/core/io_sm.c b/drivers/dsp/bridge/core/io_sm.c
+index 7fb840d..1f47f8b 100644
+--- a/drivers/dsp/bridge/core/io_sm.c
++++ b/drivers/dsp/bridge/core/io_sm.c
+@@ -290,6 +290,8 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 	struct cod_manager *cod_man;
+ 	struct chnl_mgr *hchnl_mgr;
+ 	struct msg_mgr *hmsg_mgr;
++	struct iommu *mmu;
++	struct iotlb_entry e;
+ 	u32 ul_shm_base;
+ 	u32 ul_shm_base_offset;
+ 	u32 ul_shm_limit;
+@@ -312,7 +314,6 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 	struct bridge_ioctl_extproc ae_proc[BRDIOCTL_NUMOFMMUTLB];
+ 	struct cfg_hostres *host_res;
+ 	struct bridge_dev_context *pbridge_context;
+-	u32 map_attrs;
+ 	u32 shm0_end;
+ 	u32 ul_dyn_ext_base;
+ 	u32 ul_seg1_size = 0;
+@@ -336,6 +337,21 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 		status = -EFAULT;
+ 		goto func_end;
+ 	}
++
++	mmu = pbridge_context->dsp_mmu;
++
++	if (mmu)
++		iommu_put(mmu);
++	mmu = iommu_get("iva2");
++
++	if (IS_ERR_OR_NULL(mmu)) {
++		pr_err("Error in iommu_get\n");
++		pbridge_context->dsp_mmu = NULL;
++		status = -EFAULT;
++		goto func_end;
++	}
++	pbridge_context->dsp_mmu = mmu;
++
+ 	status = dev_get_cod_mgr(hio_mgr->hdev_obj, &cod_man);
+ 	if (!cod_man) {
+ 		status = -EFAULT;
+@@ -477,55 +493,16 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 	gpp_va_curr = ul_gpp_va;
+ 	num_bytes = ul_seg1_size;
+ 
+-	/*
+-	 * Try to fit into TLB entries. If not possible, push them to page
+-	 * tables. It is quite possible that if sections are not on
+-	 * bigger page boundary, we may end up making several small pages.
+-	 * So, push them onto page tables, if that is the case.
+-	 */
+-	map_attrs = 0x00000000;
+-	map_attrs = DSP_MAPLITTLEENDIAN;
+-	map_attrs |= DSP_MAPPHYSICALADDR;
+-	map_attrs |= DSP_MAPELEMSIZE32;
+-	map_attrs |= DSP_MAPDONOTLOCK;
+-
+-	while (num_bytes) {
+-		/*
+-		 * To find the max. page size with which both PA & VA are
+-		 * aligned.
+-		 */
+-		all_bits = pa_curr | va_curr;
+-		dev_dbg(bridge, "all_bits %x, pa_curr %x, va_curr %x, "
+-			"num_bytes %x\n", all_bits, pa_curr, va_curr,
+-			num_bytes);
+-		for (i = 0; i < 4; i++) {
+-			if ((num_bytes >= page_size[i]) && ((all_bits &
+-							     (page_size[i] -
+-							      1)) == 0)) {
+-				status =
+-				    hio_mgr->intf_fxns->
+-				    pfn_brd_mem_map(hio_mgr->hbridge_context,
+-						    pa_curr, va_curr,
+-						    page_size[i], map_attrs,
+-						    NULL);
+-				if (DSP_FAILED(status))
+-					goto func_end;
+-				pa_curr += page_size[i];
+-				va_curr += page_size[i];
+-				gpp_va_curr += page_size[i];
+-				num_bytes -= page_size[i];
+-				/*
+-				 * Don't try smaller sizes. Hopefully we have
+-				 * reached an address aligned to a bigger page
+-				 * size.
+-				 */
+-				break;
+-			}
+-		}
++	va_curr = iommu_kmap(mmu, va_curr, pa_curr, num_bytes,
++					IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_32);
++	if (IS_ERR_VALUE(va_curr)) {
++		status = (int)va_curr;
++		goto func_end;
+ 	}
+-	pa_curr += ul_pad_size;
+-	va_curr += ul_pad_size;
+-	gpp_va_curr += ul_pad_size;
++
++	pa_curr += ul_pad_size + num_bytes;
++	va_curr += ul_pad_size + num_bytes;
++	gpp_va_curr += ul_pad_size + num_bytes;
+ 
+ 	/* Configure the TLB entries for the next cacheable segment */
+ 	num_bytes = ul_seg_size;
+@@ -567,22 +544,6 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 					ae_proc[ndx].ul_dsp_va *
+ 					hio_mgr->word_size, page_size[i]);
+ 				ndx++;
+-			} else {
+-				status =
+-				    hio_mgr->intf_fxns->
+-				    pfn_brd_mem_map(hio_mgr->hbridge_context,
+-						    pa_curr, va_curr,
+-						    page_size[i], map_attrs,
+-						    NULL);
+-				dev_dbg(bridge,
+-					"shm MMU PTE entry PA %x"
+-					" VA %x DSP_VA %x Size %x\n",
+-					ae_proc[ndx].ul_gpp_pa,
+-					ae_proc[ndx].ul_gpp_va,
+-					ae_proc[ndx].ul_dsp_va *
+-					hio_mgr->word_size, page_size[i]);
+-				if (DSP_FAILED(status))
+-					goto func_end;
+ 			}
+ 			pa_curr += page_size[i];
+ 			va_curr += page_size[i];
+@@ -635,35 +596,20 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 					"DSP_VA 0x%x\n", ae_proc[ndx].ul_gpp_pa,
+ 					ae_proc[ndx].ul_dsp_va);
+ 				ndx++;
+-			} else {
+-				status = hio_mgr->intf_fxns->pfn_brd_mem_map
+-				    (hio_mgr->hbridge_context,
+-				     hio_mgr->ext_proc_info.ty_tlb[i].
+-				     ul_gpp_phys,
+-				     hio_mgr->ext_proc_info.ty_tlb[i].
+-				     ul_dsp_virt, 0x100000, map_attrs,
+-				     NULL);
+ 			}
+ 		}
+ 		if (DSP_FAILED(status))
+ 			goto func_end;
+ 	}
+ 
+-	map_attrs = 0x00000000;
+-	map_attrs = DSP_MAPLITTLEENDIAN;
+-	map_attrs |= DSP_MAPPHYSICALADDR;
+-	map_attrs |= DSP_MAPELEMSIZE32;
+-	map_attrs |= DSP_MAPDONOTLOCK;
++	dsp_iotlb_init(&e, 0, 0, IOVMF_PGSZ_4K);
+ 
+ 	/* Map the L4 peripherals */
+ 	i = 0;
+ 	while (l4_peripheral_table[i].phys_addr) {
+-		status = hio_mgr->intf_fxns->pfn_brd_mem_map
+-		    (hio_mgr->hbridge_context, l4_peripheral_table[i].phys_addr,
+-		     l4_peripheral_table[i].dsp_virt_addr, HW_PAGE_SIZE4KB,
+-		     map_attrs, NULL);
+-		if (DSP_FAILED(status))
+-			goto func_end;
++		e.da = l4_peripheral_table[i].dsp_virt_addr;
++		e.pa = l4_peripheral_table[i].phys_addr;
++		iopgtable_store_entry(mmu, &e);
+ 		i++;
+ 	}
+ 
+diff --git a/drivers/dsp/bridge/core/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
+index 35c6678..e750767 100644
+--- a/drivers/dsp/bridge/core/tiomap3430.c
++++ b/drivers/dsp/bridge/core/tiomap3430.c
+@@ -373,6 +373,8 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
+ {
+ 	int status = 0;
+ 	struct bridge_dev_context *dev_context = hDevContext;
++	struct iommu *mmu;
++	struct iotlb_entry en;
+ 	u32 dw_sync_addr = 0;
+ 	u32 ul_shm_base;	/* Gpp Phys SM base addr(byte) */
+ 	u32 ul_shm_base_virt;	/* Dsp Virt SM base addr */
+@@ -392,6 +394,8 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
+ 	struct dspbridge_platform_data *pdata =
+ 				omap_dspbridge_dev->dev.platform_data;
+ 
++	mmu = dev_context->dsp_mmu;
++
+ 	/* The device context contains all the mmu setup info from when the
+ 	 * last dsp base image was loaded. The first entry is always
+ 	 * SHMMEM base. */
+@@ -442,30 +446,10 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
+ 		}
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+-		/* Reset and Unreset the RST2, so that BOOTADDR is copied to
+-		 * IVA2 SYSC register */
+-		(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2,
+-			OMAP3430_RST2_IVA2, OMAP3430_IVA2_MOD, RM_RSTCTRL);
+-		udelay(100);
+-		(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2, 0,
+-					OMAP3430_IVA2_MOD, RM_RSTCTRL);
+-		udelay(100);
+-
+-		/* Disbale the DSP MMU */
+-		hw_mmu_disable(resources->dw_dmmu_base);
+-		/* Disable TWL */
+-		hw_mmu_twl_disable(resources->dw_dmmu_base);
+-
+ 		/* Only make TLB entry if both addresses are non-zero */
+ 		for (entry_ndx = 0; entry_ndx < BRDIOCTL_NUMOFMMUTLB;
+ 		     entry_ndx++) {
+ 			struct bridge_ioctl_extproc *e = &dev_context->atlb_entry[entry_ndx];
+-			struct hw_mmu_map_attrs_t map_attrs = {
+-				.endianism = e->endianism,
+-				.element_size = e->elem_size,
+-				.mixed_size = e->mixed_mode,
+-			};
+-
+ 			if (!e->ul_gpp_pa || !e->ul_dsp_va)
+ 				continue;
+ 
+@@ -476,13 +460,9 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
+ 					e->ul_dsp_va,
+ 					e->ul_size);
+ 
+-			hw_mmu_tlb_add(dev_context->dw_dsp_mmu_base,
+-					e->ul_gpp_pa,
+-					e->ul_dsp_va,
+-					e->ul_size,
+-					itmp_entry_ndx,
+-					&map_attrs, 1, 1);
+-
++			dsp_iotlb_init(&en, e->ul_dsp_va, e->ul_gpp_pa,
++					bytes_to_iopgsz(e->ul_size));
++			iopgtable_store_entry(mmu, &en);
+ 			itmp_entry_ndx++;
+ 		}
+ 	}
+@@ -490,19 +470,6 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
+ 	/* Lock the above TLB entries and get the BIOS and load monitor timer
+ 	 * information */
+ 	if (DSP_SUCCEEDED(status)) {
+-		hw_mmu_num_locked_set(resources->dw_dmmu_base, itmp_entry_ndx);
+-		hw_mmu_victim_num_set(resources->dw_dmmu_base, itmp_entry_ndx);
+-		hw_mmu_ttb_set(resources->dw_dmmu_base,
+-			       dev_context->pt_attrs->l1_base_pa);
+-		hw_mmu_twl_enable(resources->dw_dmmu_base);
+-		/* Enable the SmartIdle and AutoIdle bit for MMU_SYSCONFIG */
+-
+-		temp = __raw_readl((resources->dw_dmmu_base) + 0x10);
+-		temp = (temp & 0xFFFFFFEF) | 0x11;
+-		__raw_writel(temp, (resources->dw_dmmu_base) + 0x10);
+-
+-		/* Let the DSP MMU run */
+-		hw_mmu_enable(resources->dw_dmmu_base);
+ 
+ 		/* Enable the BIOS clock */
+ 		(void)dev_get_symbol(dev_context->hdev_obj,
+@@ -510,9 +477,6 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
+ 		(void)dev_get_symbol(dev_context->hdev_obj,
+ 				     BRIDGEINIT_LOADMON_GPTIMER,
+ 				     &ul_load_monitor_timer);
+-	}
+-
+-	if (DSP_SUCCEEDED(status)) {
+ 		if (ul_load_monitor_timer != 0xFFFF) {
+ 			clk_cmd = (BPWR_ENABLE_CLOCK << MBX_PM_CLK_CMDSHIFT) |
+ 			    ul_load_monitor_timer;
+@@ -593,9 +557,6 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
+ 
+ 		/* Let DSP go */
+ 		dev_dbg(bridge, "%s Unreset\n", __func__);
+-		/* Enable DSP MMU Interrupts */
+-		hw_mmu_event_enable(resources->dw_dmmu_base,
+-				    HW_MMU_ALL_INTERRUPTS);
+ 		/* release the RST1, DSP starts executing now .. */
+ 		(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST1_IVA2, 0,
+ 					OMAP3430_IVA2_MOD, RM_RSTCTRL);
+@@ -754,6 +715,9 @@ static int bridge_brd_delete(struct bridge_dev_context *hDevContext)
+ 		omap_mbox_put(dev_context->mbox);
+ 		dev_context->mbox = NULL;
+ 	}
++
++	if (dev_context->dsp_mmu)
++		dev_context->dsp_mmu = (iommu_put(dev_context->dsp_mmu), NULL);
+ 	/* Reset IVA2 clocks*/
+ 	(*pdata->dsp_prm_write)(OMAP3430_RST1_IVA2 | OMAP3430_RST2_IVA2 |
+ 			OMAP3430_RST3_IVA2, OMAP3430_IVA2_MOD, RM_RSTCTRL);
+@@ -1199,219 +1163,67 @@ static int bridge_brd_mem_write(struct bridge_dev_context *hDevContext,
+  *
+  *  TODO: Disable MMU while updating the page tables (but that'll stall DSP)
+  */
+-static int bridge_brd_mem_map(struct bridge_dev_context *hDevContext,
+-				  u32 ul_mpu_addr, u32 ulVirtAddr,
+-				  u32 ul_num_bytes, u32 ul_map_attr,
+-				  struct page **mapped_pages)
++static int bridge_brd_mem_map(struct bridge_dev_context *dev_ctx,
++			u32 uva, u32 da, u32 size, u32 attr,
++			struct page **usr_pgs)
+ {
+-	u32 attrs;
+-	int status = 0;
+-	struct bridge_dev_context *dev_context = hDevContext;
+-	struct hw_mmu_map_attrs_t hw_attrs;
++	int res, w;
++	unsigned pages, i;
++	struct iommu *mmu = dev_ctx->dsp_mmu;
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+-	u32 write = 0;
+-	u32 num_usr_pgs = 0;
+-	struct page *mapped_page, *pg;
+-	s32 pg_num;
+-	u32 va = ulVirtAddr;
+-	struct task_struct *curr_task = current;
+-	u32 pg_i = 0;
+-	u32 mpu_addr, pa;
+-
+-	dev_dbg(bridge,
+-		"%s hDevCtxt %p, pa %x, va %x, size %x, ul_map_attr %x\n",
+-		__func__, hDevContext, ul_mpu_addr, ulVirtAddr, ul_num_bytes,
+-		ul_map_attr);
+-	if (ul_num_bytes == 0)
+-		return -EINVAL;
++	struct sg_table *sgt;
++	struct scatterlist *sg;
+ 
+-	if (ul_map_attr & DSP_MAP_DIR_MASK) {
+-		attrs = ul_map_attr;
+-	} else {
+-		/* Assign default attributes */
+-		attrs = ul_map_attr | (DSP_MAPVIRTUALADDR | DSP_MAPELEMSIZE16);
+-	}
+-	/* Take mapping properties */
+-	if (attrs & DSP_MAPBIGENDIAN)
+-		hw_attrs.endianism = HW_BIG_ENDIAN;
+-	else
+-		hw_attrs.endianism = HW_LITTLE_ENDIAN;
+-
+-	hw_attrs.mixed_size = (enum hw_mmu_mixed_size_t)
+-	    ((attrs & DSP_MAPMIXEDELEMSIZE) >> 2);
+-	/* Ignore element_size if mixed_size is enabled */
+-	if (hw_attrs.mixed_size == 0) {
+-		if (attrs & DSP_MAPELEMSIZE8) {
+-			/* Size is 8 bit */
+-			hw_attrs.element_size = HW_ELEM_SIZE8BIT;
+-		} else if (attrs & DSP_MAPELEMSIZE16) {
+-			/* Size is 16 bit */
+-			hw_attrs.element_size = HW_ELEM_SIZE16BIT;
+-		} else if (attrs & DSP_MAPELEMSIZE32) {
+-			/* Size is 32 bit */
+-			hw_attrs.element_size = HW_ELEM_SIZE32BIT;
+-		} else if (attrs & DSP_MAPELEMSIZE64) {
+-			/* Size is 64 bit */
+-			hw_attrs.element_size = HW_ELEM_SIZE64BIT;
+-		} else {
+-			/*
+-			 * Mixedsize isn't enabled, so size can't be
+-			 * zero here
+-			 */
+-			return -EINVAL;
+-		}
+-	}
+-	if (attrs & DSP_MAPDONOTLOCK)
+-		hw_attrs.donotlockmpupage = 1;
+-	else
+-		hw_attrs.donotlockmpupage = 0;
++	if (!size || !usr_pgs)
++		return -EINVAL;
+ 
+-	if (attrs & DSP_MAPVMALLOCADDR) {
+-		return mem_map_vmalloc(hDevContext, ul_mpu_addr, ulVirtAddr,
+-				       ul_num_bytes, &hw_attrs);
+-	}
+-	/*
+-	 * Do OS-specific user-va to pa translation.
+-	 * Combine physically contiguous regions to reduce TLBs.
+-	 * Pass the translated pa to pte_update.
+-	 */
+-	if ((attrs & DSP_MAPPHYSICALADDR)) {
+-		status = pte_update(dev_context, ul_mpu_addr, ulVirtAddr,
+-				    ul_num_bytes, &hw_attrs);
+-		goto func_cont;
+-	}
++	pages = size / PG_SIZE4K;
+ 
+-	/*
+-	 * Important Note: ul_mpu_addr is mapped from user application process
+-	 * to current process - it must lie completely within the current
+-	 * virtual memory address space in order to be of use to us here!
+-	 */
+ 	down_read(&mm->mmap_sem);
+-	vma = find_vma(mm, ul_mpu_addr);
+-	if (vma)
+-		dev_dbg(bridge,
+-			"VMAfor UserBuf: ul_mpu_addr=%x, ul_num_bytes=%x, "
+-			"vm_start=%lx, vm_end=%lx, vm_flags=%lx\n", ul_mpu_addr,
+-			ul_num_bytes, vma->vm_start, vma->vm_end,
+-			vma->vm_flags);
+-
+-	/*
+-	 * It is observed that under some circumstances, the user buffer is
+-	 * spread across several VMAs. So loop through and check if the entire
+-	 * user buffer is covered
+-	 */
+-	while ((vma) && (ul_mpu_addr + ul_num_bytes > vma->vm_end)) {
+-		/* jump to the next VMA region */
++	vma = find_vma(mm, uva);
++	while (vma && (uva + size > vma->vm_end))
+ 		vma = find_vma(mm, vma->vm_end + 1);
+-		dev_dbg(bridge,
+-			"VMA for UserBuf ul_mpu_addr=%x ul_num_bytes=%x, "
+-			"vm_start=%lx, vm_end=%lx, vm_flags=%lx\n", ul_mpu_addr,
+-			ul_num_bytes, vma->vm_start, vma->vm_end,
+-			vma->vm_flags);
+-	}
++
+ 	if (!vma) {
+ 		pr_err("%s: Failed to get VMA region for 0x%x (%d)\n",
+-		       __func__, ul_mpu_addr, ul_num_bytes);
+-		status = -EINVAL;
++						       __func__, uva, size);
+ 		up_read(&mm->mmap_sem);
+-		goto func_cont;
++		return -EINVAL;
+ 	}
++	if (vma->vm_flags & (VM_WRITE | VM_MAYWRITE))
++		w = 1;
++	res = get_user_pages(current, mm, uva, pages, w, 1, usr_pgs, NULL);
++	up_read(&mm->mmap_sem);
++	if (res < 0)
++		return res;
+ 
+-	if (vma->vm_flags & VM_IO) {
+-		num_usr_pgs = ul_num_bytes / PG_SIZE4K;
+-		mpu_addr = ul_mpu_addr;
+-
+-		/* Get the physical addresses for user buffer */
+-		for (pg_i = 0; pg_i < num_usr_pgs; pg_i++) {
+-			pa = user_va2_pa(mm, mpu_addr);
+-			if (!pa) {
+-				status = -EPERM;
+-				pr_err("DSPBRIDGE: VM_IO mapping physical"
+-				       "address is invalid\n");
+-				break;
+-			}
+-			if (pfn_valid(__phys_to_pfn(pa))) {
+-				pg = PHYS_TO_PAGE(pa);
+-				get_page(pg);
+-				if (page_count(pg) < 1) {
+-					pr_err("Bad page in VM_IO buffer\n");
+-					bad_page_dump(pa, pg);
+-				}
+-			}
+-			status = pte_set(dev_context->pt_attrs, pa,
+-					 va, HW_PAGE_SIZE4KB, &hw_attrs);
+-			if (DSP_FAILED(status))
+-				break;
++	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
+ 
+-			va += HW_PAGE_SIZE4KB;
+-			mpu_addr += HW_PAGE_SIZE4KB;
+-			pa += HW_PAGE_SIZE4KB;
+-		}
+-	} else {
+-		num_usr_pgs = ul_num_bytes / PG_SIZE4K;
+-		if (vma->vm_flags & (VM_WRITE | VM_MAYWRITE))
+-			write = 1;
+-
+-		for (pg_i = 0; pg_i < num_usr_pgs; pg_i++) {
+-			pg_num = get_user_pages(curr_task, mm, ul_mpu_addr, 1,
+-						write, 1, &mapped_page, NULL);
+-			if (pg_num > 0) {
+-				if (page_count(mapped_page) < 1) {
+-					pr_err("Bad page count after doing"
+-					       "get_user_pages on"
+-					       "user buffer\n");
+-					bad_page_dump(page_to_phys(mapped_page),
+-						      mapped_page);
+-				}
+-				status = pte_set(dev_context->pt_attrs,
+-						 page_to_phys(mapped_page), va,
+-						 HW_PAGE_SIZE4KB, &hw_attrs);
+-				if (DSP_FAILED(status))
+-					break;
+-
+-				if (mapped_pages)
+-					mapped_pages[pg_i] = mapped_page;
+-
+-				va += HW_PAGE_SIZE4KB;
+-				ul_mpu_addr += HW_PAGE_SIZE4KB;
+-			} else {
+-				pr_err("DSPBRIDGE: get_user_pages FAILED,"
+-				       "MPU addr = 0x%x,"
+-				       "vma->vm_flags = 0x%lx,"
+-				       "get_user_pages Err"
+-				       "Value = %d, Buffer"
+-				       "size=0x%x\n", ul_mpu_addr,
+-				       vma->vm_flags, pg_num, ul_num_bytes);
+-				status = -EPERM;
+-				break;
+-			}
+-		}
+-	}
+-	up_read(&mm->mmap_sem);
+-func_cont:
+-	if (DSP_SUCCEEDED(status)) {
+-		status = 0;
+-	} else {
+-		/*
+-		 * Roll out the mapped pages incase it failed in middle of
+-		 * mapping
+-		 */
+-		if (pg_i) {
+-			bridge_brd_mem_un_map(dev_context, ulVirtAddr,
+-					   (pg_i * PG_SIZE4K));
+-		}
+-		status = -EPERM;
++	if (!sgt)
++		return -ENOMEM;
++
++	res = sg_alloc_table(sgt, pages, GFP_KERNEL);
++
++	if (res < 0)
++		goto err_sg;
++
++	for_each_sg(sgt->sgl, sg, sgt->nents, i)
++		sg_set_page(sg, usr_pgs[i], PAGE_SIZE, 0);
++
++	da = iommu_vmap(mmu, da, sgt, IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_32);
++
++	if (IS_ERR_VALUE(da)) {
++		res = (int)da;
++		goto err_map;
+ 	}
+-	/*
+-	 * In any case, flush the TLB
+-	 * This is called from here instead from pte_update to avoid unnecessary
+-	 * repetition while mapping non-contiguous physical regions of a virtual
+-	 * region
+-	 */
+-	flush_all(dev_context);
+-	dev_dbg(bridge, "%s status %x\n", __func__, status);
+-	return status;
++	return 0;
++
++err_map:
++	sg_free_table(sgt);
++err_sg:
++	kfree(sgt);
++	return res;
+ }
+ 
+ /*
+@@ -1422,196 +1234,27 @@ func_cont:
+  *      So, instead of looking up the PTE address for every 4K block,
+  *      we clear consecutive PTEs until we unmap all the bytes
+  */
+-static int bridge_brd_mem_un_map(struct bridge_dev_context *hDevContext,
+-				     u32 ulVirtAddr, u32 ul_num_bytes)
++static int bridge_brd_mem_un_map(struct bridge_dev_context *dev_ctx,
++				     u32 da, u32 size)
+ {
+-	u32 l1_base_va;
+-	u32 l2_base_va;
+-	u32 l2_base_pa;
+-	u32 l2_page_num;
+-	u32 pte_val;
+-	u32 pte_size;
+-	u32 pte_count;
+-	u32 pte_addr_l1;
+-	u32 pte_addr_l2 = 0;
+-	u32 rem_bytes;
+-	u32 rem_bytes_l2;
+-	u32 va_curr;
+-	struct page *pg = NULL;
+-	int status = 0;
+-	struct bridge_dev_context *dev_context = hDevContext;
+-	struct pg_table_attrs *pt = dev_context->pt_attrs;
+-	u32 temp;
+-	u32 paddr;
+-	u32 numof4k_pages = 0;
+-
+-	va_curr = ulVirtAddr;
+-	rem_bytes = ul_num_bytes;
+-	rem_bytes_l2 = 0;
+-	l1_base_va = pt->l1_base_va;
+-	pte_addr_l1 = hw_mmu_pte_addr_l1(l1_base_va, va_curr);
+-	dev_dbg(bridge, "%s hDevContext %p, va %x, NumBytes %x l1_base_va %x, "
+-		"pte_addr_l1 %x\n", __func__, hDevContext, ulVirtAddr,
+-		ul_num_bytes, l1_base_va, pte_addr_l1);
++	unsigned i;
++	struct sg_table *sgt;
++	struct scatterlist *sg;
+ 
+-	while (rem_bytes && (DSP_SUCCEEDED(status))) {
+-		u32 va_curr_orig = va_curr;
+-		/* Find whether the L1 PTE points to a valid L2 PT */
+-		pte_addr_l1 = hw_mmu_pte_addr_l1(l1_base_va, va_curr);
+-		pte_val = *(u32 *) pte_addr_l1;
+-		pte_size = hw_mmu_pte_size_l1(pte_val);
+-
+-		if (pte_size != HW_MMU_COARSE_PAGE_SIZE)
+-			goto skip_coarse_page;
+-
+-		/*
+-		 * Get the L2 PA from the L1 PTE, and find
+-		 * corresponding L2 VA
+-		 */
+-		l2_base_pa = hw_mmu_pte_coarse_l1(pte_val);
+-		l2_base_va = l2_base_pa - pt->l2_base_pa + pt->l2_base_va;
+-		l2_page_num =
+-		    (l2_base_pa - pt->l2_base_pa) / HW_MMU_COARSE_PAGE_SIZE;
+-		/*
+-		 * Find the L2 PTE address from which we will start
+-		 * clearing, the number of PTEs to be cleared on this
+-		 * page, and the size of VA space that needs to be
+-		 * cleared on this L2 page
+-		 */
+-		pte_addr_l2 = hw_mmu_pte_addr_l2(l2_base_va, va_curr);
+-		pte_count = pte_addr_l2 & (HW_MMU_COARSE_PAGE_SIZE - 1);
+-		pte_count = (HW_MMU_COARSE_PAGE_SIZE - pte_count) / sizeof(u32);
+-		if (rem_bytes < (pte_count * PG_SIZE4K))
+-			pte_count = rem_bytes / PG_SIZE4K;
+-		rem_bytes_l2 = pte_count * PG_SIZE4K;
+-
+-		/*
+-		 * Unmap the VA space on this L2 PT. A quicker way
+-		 * would be to clear pte_count entries starting from
+-		 * pte_addr_l2. However, below code checks that we don't
+-		 * clear invalid entries or less than 64KB for a 64KB
+-		 * entry. Similar checking is done for L1 PTEs too
+-		 * below
+-		 */
+-		while (rem_bytes_l2 && (DSP_SUCCEEDED(status))) {
+-			pte_val = *(u32 *) pte_addr_l2;
+-			pte_size = hw_mmu_pte_size_l2(pte_val);
+-			/* va_curr aligned to pte_size? */
+-			if (pte_size == 0 || rem_bytes_l2 < pte_size ||
+-			    va_curr & (pte_size - 1)) {
+-				status = -EPERM;
+-				break;
+-			}
++	if (!size)
++		return -EINVAL;
+ 
+-			/* Collect Physical addresses from VA */
+-			paddr = (pte_val & ~(pte_size - 1));
+-			if (pte_size == HW_PAGE_SIZE64KB)
+-				numof4k_pages = 16;
+-			else
+-				numof4k_pages = 1;
+-			temp = 0;
+-			while (temp++ < numof4k_pages) {
+-				if (!pfn_valid(__phys_to_pfn(paddr))) {
+-					paddr += HW_PAGE_SIZE4KB;
+-					continue;
+-				}
+-				pg = PHYS_TO_PAGE(paddr);
+-				if (page_count(pg) < 1) {
+-					pr_info("DSPBRIDGE: UNMAP function: "
+-						"COUNT 0 FOR PA 0x%x, size = "
+-						"0x%x\n", paddr, ul_num_bytes);
+-					bad_page_dump(paddr, pg);
+-				} else {
+-					SetPageDirty(pg);
+-					page_cache_release(pg);
+-				}
+-				paddr += HW_PAGE_SIZE4KB;
+-			}
+-			if (hw_mmu_pte_clear(pte_addr_l2, va_curr, pte_size)
+-			    == RET_FAIL) {
+-				status = -EPERM;
+-				goto EXIT_LOOP;
+-			}
++	sgt = iommu_vunmap(dev_ctx->dsp_mmu, da);
++	if (!sgt)
++		return -EFAULT;
+ 
+-			status = 0;
+-			rem_bytes_l2 -= pte_size;
+-			va_curr += pte_size;
+-			pte_addr_l2 += (pte_size >> 12) * sizeof(u32);
+-		}
+-		spin_lock(&pt->pg_lock);
+-		if (rem_bytes_l2 == 0) {
+-			pt->pg_info[l2_page_num].num_entries -= pte_count;
+-			if (pt->pg_info[l2_page_num].num_entries == 0) {
+-				/*
+-				 * Clear the L1 PTE pointing to the L2 PT
+-				 */
+-				if (hw_mmu_pte_clear(l1_base_va, va_curr_orig,
+-						     HW_MMU_COARSE_PAGE_SIZE) ==
+-				    RET_OK)
+-					status = 0;
+-				else {
+-					status = -EPERM;
+-					spin_unlock(&pt->pg_lock);
+-					goto EXIT_LOOP;
+-				}
+-			}
+-			rem_bytes -= pte_count * PG_SIZE4K;
+-		} else
+-			status = -EPERM;
++	for_each_sg(sgt->sgl, sg, sgt->nents, i)
++		put_page(sg_page(sg));
+ 
+-		spin_unlock(&pt->pg_lock);
+-		continue;
+-skip_coarse_page:
+-		/* va_curr aligned to pte_size? */
+-		/* pte_size = 1 MB or 16 MB */
+-		if (pte_size == 0 || rem_bytes < pte_size ||
+-		    va_curr & (pte_size - 1)) {
+-			status = -EPERM;
+-			break;
+-		}
++	sg_free_table(sgt);
++	kfree(sgt);
+ 
+-		if (pte_size == HW_PAGE_SIZE1MB)
+-			numof4k_pages = 256;
+-		else
+-			numof4k_pages = 4096;
+-		temp = 0;
+-		/* Collect Physical addresses from VA */
+-		paddr = (pte_val & ~(pte_size - 1));
+-		while (temp++ < numof4k_pages) {
+-			if (pfn_valid(__phys_to_pfn(paddr))) {
+-				pg = PHYS_TO_PAGE(paddr);
+-				if (page_count(pg) < 1) {
+-					pr_info("DSPBRIDGE: UNMAP function: "
+-						"COUNT 0 FOR PA 0x%x, size = "
+-						"0x%x\n", paddr, ul_num_bytes);
+-					bad_page_dump(paddr, pg);
+-				} else {
+-					SetPageDirty(pg);
+-					page_cache_release(pg);
+-				}
+-			}
+-			paddr += HW_PAGE_SIZE4KB;
+-		}
+-		if (hw_mmu_pte_clear(l1_base_va, va_curr, pte_size) == RET_OK) {
+-			status = 0;
+-			rem_bytes -= pte_size;
+-			va_curr += pte_size;
+-		} else {
+-			status = -EPERM;
+-			goto EXIT_LOOP;
+-		}
+-	}
+-	/*
+-	 * It is better to flush the TLB here, so that any stale old entries
+-	 * get flushed
+-	 */
+-EXIT_LOOP:
+-	flush_all(dev_context);
+-	dev_dbg(bridge,
+-		"%s: va_curr %x, pte_addr_l1 %x pte_addr_l2 %x rem_bytes %x,"
+-		" rem_bytes_l2 %x status %x\n", __func__, va_curr, pte_addr_l1,
+-		pte_addr_l2, rem_bytes, rem_bytes_l2, status);
+-	return status;
++	return 0;
+ }
+ 
+ /*
+diff --git a/drivers/dsp/bridge/core/ue_deh.c b/drivers/dsp/bridge/core/ue_deh.c
+index 64e9366..ce13e6c 100644
+--- a/drivers/dsp/bridge/core/ue_deh.c
++++ b/drivers/dsp/bridge/core/ue_deh.c
+@@ -99,14 +99,6 @@ int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
+ 	deh_mgr->err_info.dw_val2 = 0L;
+ 	deh_mgr->err_info.dw_val3 = 0L;
+ 
+-	/* Install ISR function for DSP MMU fault */
+-	if ((request_irq(INT_DSP_MMU_IRQ, mmu_fault_isr, 0,
+-					"DspBridge\tiommu fault",
+-					(void *)deh_mgr)) == 0)
+-		status = 0;
+-	else
+-		status = -EPERM;
+-
+ err:
+ 	if (DSP_FAILED(status)) {
+ 		/* If create failed, cleanup */
+@@ -131,8 +123,6 @@ int bridge_deh_destroy(struct deh_mgr *deh_mgr)
+ 		ntfy_delete(deh_mgr->ntfy_obj);
+ 		kfree(deh_mgr->ntfy_obj);
+ 	}
+-	/* Disable DSP MMU fault */
+-	free_irq(INT_DSP_MMU_IRQ, deh_mgr);
+ 
+ 	/* Free DPC object */
+ 	tasklet_kill(&deh_mgr->dpc_tasklet);
+-- 
+1.7.0.4
