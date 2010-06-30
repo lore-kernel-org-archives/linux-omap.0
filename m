@@ -1,74 +1,80 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in typical
- omap	features
-Date: Wed, 30 Jun 2010 12:17:23 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5E4124A@dbde02.ent.ti.com>
-References: <20100629113229.16008.2931.stgit@baageli.muru.com>
- <20100629114738.16008.62006.stgit@baageli.muru.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB6FC3@dbde02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5DB7026@dbde02.ent.ti.com>
- <20100630061726.GQ2822@atomide.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [RFC][PATCH] omap3: Unify omap2_set_globals_3[43,6x]x functions
+Date: Wed, 30 Jun 2010 10:04:48 +0300
+Message-ID: <4C2AEC90.2050709@compulab.co.il>
+References: <1277843427-25596-1-git-send-email-saaguirre@ti.com> <4C2AD54A.9070101@compulab.co.il> <20100630063646.GS2822@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54914 "EHLO arroyo.ext.ti.com"
+Received: from compulab.co.il ([67.18.134.219]:50252 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751685Ab0F3Gre convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 02:47:34 -0400
-In-Reply-To: <20100630061726.GQ2822@atomide.com>
-Content-Language: en-US
+	id S1752589Ab0F3HGU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Jun 2010 03:06:20 -0400
+In-Reply-To: <20100630063646.GS2822@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Sergio Aguirre <saaguirre@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Mike Rapoport <mike@compulab.co.il>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Wednesday, June 30, 2010 11:47 AM
-> To: Shilimkar, Santosh
-> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 6/6] omap2/3/4: Add Kconfig option to compile in
-> typical omap features
+Tony Lindgren wrote:
+> * Mike Rapoport <mike@compulab.co.il> [100630 08:20]:
+>> Sergio Aguirre wrote:
+>>> The only difference between them is the physical address of the
+>>> uart4 port, which is only present in 36xx chips.
+>>>
+>>> We don't really need to care about keeping these 2 functions, since
+>>> the decision to use uart4 is more cleanly done later when we do have
+>>> access to omap_revision variable.
+>>>
+>>> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+>>> ---
+>>> arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
+>>> arch/arm/mach-omap2/board-3630sdp.c        |    2 +-
+>>> arch/arm/mach-omap2/board-am3517evm.c      |    2 +-
+>>> arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
+>>> arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
+>>> arch/arm/mach-omap2/board-igep0020.c       |    2 +-
+>>> arch/arm/mach-omap2/board-ldp.c            |    2 +-
+>>> arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
+>>> arch/arm/mach-omap2/board-omap3evm.c       |    2 +-
+>>> arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
+>>> arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
+>>> arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
+>>> arch/arm/mach-omap2/board-overo.c          |    2 +-
+>>> arch/arm/mach-omap2/board-rx51.c           |    2 +-
+>>> arch/arm/mach-omap2/board-zoom2.c          |    2 +-
+>>> arch/arm/mach-omap2/board-zoom3.c          |    2 +-
+>>> arch/arm/plat-omap/common.c                |   10 ++--------
+>>> arch/arm/plat-omap/include/plat/common.h   |    3 +--
+>>> 18 files changed, 19 insertions(+), 26 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+>>> index dd9c031..4961f3b 100644
+>>> --- a/arch/arm/mach-omap2/board-3430sdp.c
+>>> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+>>> @@ -805,7 +805,7 @@ static void __init omap_3430sdp_init(void)
+>>> static void __init omap_3430sdp_map_io(void)
+>>> {
+>>> -	omap2_set_globals_343x();
+>>> +	omap2_set_globals_3xxx();
+>>> 	omap34xx_map_common_io();
+>>> }
+>> Maybe we should take it one step further and replace board_map_io
+>> functions with common omap3_map_io?
 > 
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [100629 17:40]:
-> > > >
-> > > With your series OMAP4 build breaks because of PM and SMP
-> dependencies.
-> > > To ensure that build doesn't break on OMAP4, I needed below change.
-> With
-> > > This change I tried your series and it boots OK on OMAP4430 SDP
-> 
-> Hmm the build does not break for me?
->
-Looks like I am missing something here. How do you build OMAP4 alone with
-these new changes ??
- 
-> > Also tested the multi-omap build on OMAP3430 SDP and OMAP4430 SDP. Both
-> boots OK.
-> >
-> > > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> > > index 84fecd0..f48f275 100644
-> > > --- a/arch/arm/mach-omap2/Kconfig
-> > > +++ b/arch/arm/mach-omap2/Kconfig
-> > > @@ -7,8 +7,8 @@ config ARCH_OMAP2PLUS_TYPICAL
-> > >         default y
-> > >         select AEABI
-> > >         select REGULATOR
-> > > -       select PM
-> > > -       select PM_RUNTIME
-> > > +       select PM if !ARCH_OMAP4
-> > > +       select PM_RUNTIME if !ARCH_OMAP4
-> > >         select VFP
-> > >         select NEON if ARCH_OMAP3 || ARCH_OMAP4
-> > >         select SERIAL_8250
-> 
-> Let's rather fix whatever the issue is for booting (or building?)
-> omap4 with CONFIG_PM and CONFIG_PM_RUNTIME. If we can't implement
-> PM yet for omap4, we can just return early if cpu_is_omap44xx.
-> 
-> CONFIG_SMP we can't enable as that requires various ARM changes
-> to work on unicore systems. But hopefully we can enable that too
-> at some point with select SMP if ARCH_OMAP4.
-> 
+> Could be done yeah. If special handling is needed, it can still
+> be done in the board-*.c files. Care to do a patch for that?
 
+no problem.
+
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+Sincerely yours,
+Mike.
