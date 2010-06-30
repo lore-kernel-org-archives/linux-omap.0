@@ -1,59 +1,52 @@
 From: Marek Vasut <marek.vasut@gmail.com>
-Subject: Re: [PATCH 17/33] Removing dead SX1_OLD_FLASH
-Date: Wed, 30 Jun 2010 20:24:46 +0200
-Message-ID: <201006302024.47025.marek.vasut@gmail.com>
-References: <cover.1277911345.git.siccegge@cs.fau.de>
-	<5b21086199b139a61888c16e92d3efe6b205dae2.1277911346.git.siccegge@cs.fau.de>
+Subject: Re: [PATCH 18/33] Removing dead OMAP_ARM_96MHZ
+Date: Wed, 30 Jun 2010 20:25:14 +0200
+Message-ID: <201006302025.14881.marek.vasut@gmail.com>
+References: <cover.1277911345.git.siccegge@cs.fau.de> <8304abb0dbda307c488b6fe2b3cc8df3c9909eb6.1277911346.git.siccegge@cs.fau.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5b21086199b139a61888c16e92d3efe6b205dae2.1277911346.git.siccegge@cs.fau.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Christoph Egger <siccegge@cs.fau.de>
-Cc: Kalle Valo <kalle.valo@iki.fi>, Ladislav Michl <ladis@linux-mips.org>, Russell King <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, vamos@i4.informatik.uni-erlangen.de, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:39115 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754511Ab0F3S1d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 14:27:33 -0400
+In-Reply-To: <8304abb0dbda307c488b6fe2b3cc8df3c9909eb6.1277911346.git.siccegge@cs.fau.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Christoph Egger <siccegge@cs.fau.de>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, vamos@i4.informatik.uni-erlangen.de
 
-RG5lIFN0IDMwLiDEjWVydm5hIDIwMTAgMTc6NTk6MjUgQ2hyaXN0b3BoIEVnZ2VyIG5hcHNhbChh
-KToKPiBTWDFfT0xEX0ZMQVNIIGRvZXNuJ3QgZXhpc3QgaW4gS2NvbmZpZywgdGhlcmVmb3JlIHJl
-bW92aW5nIGFsbAo+IHJlZmVyZW5jZXMgZm9yIGl0IGZyb20gdGhlIHNvdXJjZSBjb2RlLgoKVGhl
-cmUgd2VyZSB0d28gbW9kZWxzIG9mIHRoZSBwaG9uZSBtYWRlLCB5b3UgY2FuIHRvZ2dsZSBiZXR3
-ZWVuIG9sZCBhbmQgbmV3IAp2ZXJzaW9uLiBNYXliZSBiZXR0ZXIgZG9jdW1lbnRhdGlvbiB3b24n
-dCBodXJ0Lgo+IAo+IFNpZ25lZC1vZmYtYnk6IENocmlzdG9waCBFZ2dlciA8c2ljY2VnZ2VAY3Mu
-ZmF1LmRlPgo+IC0tLQo+ICBhcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXN4MS5jIHwgICAyNiAt
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ICAxIGZpbGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9u
-cygrKSwgMjYgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21h
-cDEvYm9hcmQtc3gxLmMKPiBiL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtc3gxLmMgaW5kZXgg
-MmZiMWU1Zi4uMWRlODA5ZCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJk
-LXN4MS5jCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1zeDEuYwo+IEBAIC0yOTUs
-MzEgKzI5NSw2IEBAIHN0YXRpYyBzdHJ1Y3QgcGh5c21hcF9mbGFzaF9kYXRhIHN4MV9mbGFzaF9k
-YXRhID0gewo+ICAJLm5yX3BhcnRzCT0gQVJSQVlfU0laRShzeDFfcGFydGl0aW9ucyksCj4gIH07
-Cj4gCj4gLSNpZmRlZiBDT05GSUdfU1gxX09MRF9GTEFTSAo+IC0vKiBNVEQgSW50ZWwgU3RyYXRh
-Rmxhc2ggLSBvbGQgZmxhc2hlcyAqLwo+IC1zdGF0aWMgc3RydWN0IHJlc291cmNlIHN4MV9vbGRf
-Zmxhc2hfcmVzb3VyY2VbXSA9IHsKPiAtCVswXSA9IHsKPiAtCQkuc3RhcnQJPSBPTUFQX0NTMF9Q
-SFlTLAkvKiBQaHlzaWNhbCAqLwo+IC0JCS5lbmQJPSBPTUFQX0NTMF9QSFlTICsgU1pfMTZNIC0g
-MSwsCj4gLQkJLmZsYWdzCT0gSU9SRVNPVVJDRV9NRU0sCj4gLQl9LAo+IC0JWzFdID0gewo+IC0J
-CS5zdGFydAk9IE9NQVBfQ1MxX1BIWVMsCj4gLQkJLmVuZAk9IE9NQVBfQ1MxX1BIWVMgKyBTWl84
-TSAtIDEsCj4gLQkJLmZsYWdzCT0gSU9SRVNPVVJDRV9NRU0sCj4gLQl9LAo+IC19Owo+IC0KPiAt
-c3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugc3gxX2ZsYXNoX2RldmljZSA9IHsKPiAtCS5u
-YW1lCQk9ICJwaHlzbWFwLWZsYXNoIiwKPiAtCS5pZAkJPSAwLAo+IC0JLmRldgkJPSB7Cj4gLQkJ
-LnBsYXRmb3JtX2RhdGEJPSAmc3gxX2ZsYXNoX2RhdGEsCj4gLQl9LAo+IC0JLm51bV9yZXNvdXJj
-ZXMJPSAyLAo+IC0JLnJlc291cmNlCT0gJnN4MV9vbGRfZmxhc2hfcmVzb3VyY2UsCj4gLX07Cj4g
-LSNlbHNlCj4gIC8qIE1URCBJbnRlbCA0MDAwIGZsYXNoIC0gbmV3IGZsYXNoZXMgKi8KPiAgc3Rh
-dGljIHN0cnVjdCByZXNvdXJjZSBzeDFfbmV3X2ZsYXNoX3Jlc291cmNlID0gewo+ICAJLnN0YXJ0
-CQk9IE9NQVBfQ1MwX1BIWVMsCj4gQEAgLTMzNiw3ICszMTEsNiBAQCBzdGF0aWMgc3RydWN0IHBs
-YXRmb3JtX2RldmljZSBzeDFfZmxhc2hfZGV2aWNlID0gewo+ICAJLm51bV9yZXNvdXJjZXMJPSAx
-LAo+ICAJLnJlc291cmNlCT0gJnN4MV9uZXdfZmxhc2hfcmVzb3VyY2UsCj4gIH07Cj4gLSNlbmRp
-Zgo+IAo+ICAvKi0tLS0tLS0tLS0tIFVTQiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKi8KCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1r
-ZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpo
-dHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJu
-ZWwK
+Dne St 30. =C4=8Dervna 2010 17:59:45 Christoph Egger napsal(a):
+> OMAP_ARM_96MHZ doesn't exist in Kconfig, therefore removing all
+> references for it from the source code.
+
+I'd be for adding it to Kconfig rather than removing from here
+>=20
+> Signed-off-by: Christoph Egger <siccegge@cs.fau.de>
+> ---
+>  arch/arm/mach-omap1/opp_data.c |    3 ---
+>  1 files changed, 0 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap1/opp_data.c
+> b/arch/arm/mach-omap1/opp_data.c index 75a5465..060df86 100644
+> --- a/arch/arm/mach-omap1/opp_data.c
+> +++ b/arch/arm/mach-omap1/opp_data.c
+> @@ -45,9 +45,6 @@ struct mpu_rate omap1_rate_table[] =3D {
+>  #if defined(CONFIG_OMAP_ARM_120MHZ)
+>  	{ 120000000, 12000000, 120000000, 0x010a, 0x2510 }, /* 1/1/1/2/4/4 =
+*/
+>  #endif
+> -#if defined(CONFIG_OMAP_ARM_96MHZ)
+> -	{  96000000, 12000000,  96000000, 0x0005, 0x2410 }, /* 1/1/1/1/2/2 =
+*/
+> -#endif
+>  #if defined(CONFIG_OMAP_ARM_60MHZ)
+>  	{  60000000, 12000000,  60000000, 0x0005, 0x2290 }, /* 1/1/1/1/2/2 =
+*/
+>  #endif
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
