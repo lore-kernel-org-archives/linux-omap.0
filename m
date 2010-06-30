@@ -1,72 +1,73 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [RFC][PATCH] board-omap3beagle: Remove duplicate DVI reset gpio
- handling
-Date: Wed, 30 Jun 2010 11:44:32 -0500
-Message-ID: <A24693684029E5489D1D202277BE89445638FF34@dlee02.ent.ti.com>
-References: <1277843560-25630-1-git-send-email-saaguirre@ti.com>
- <1277887269.2474.117.camel@tubuntu.research.nokia.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 22/33] Removing dead MPU_{BRIDGE,TESLA}_IOMMU
+Date: Wed, 30 Jun 2010 21:23:46 +0300 (EEST)
+Message-ID: <20100630.212346.226780589.Hiroshi.DOYU@nokia.com>
+References: <cover.1277911345.git.siccegge@cs.fau.de>
+	<fcfa44a43c21c70f89ced96b96d7c1489d28cc51.1277911346.git.siccegge@cs.fau.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57607 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754530Ab0F3Qoi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 12:44:38 -0400
-In-Reply-To: <1277887269.2474.117.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <fcfa44a43c21c70f89ced96b96d7c1489d28cc51.1277911346.git.siccegge@cs.fau.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: siccegge@cs.fau.de, h-kanigeri2@ti.com
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, vamos@i4.informatik.uni-erlangen.de
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Koen Kooi <koen.kooi@gmail.com>
 
-Hi Tomi,
+From: ext Christoph Egger <siccegge@cs.fau.de>
+Subject: [PATCH 22/33] Removing dead MPU_{BRIDGE,TESLA}_IOMMU
+Date: Wed, 30 Jun 2010 18:01:01 +0200
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Wednesday, June 30, 2010 3:41 AM
-> To: Aguirre, Sergio
-> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Koen Kooi
-> Subject: Re: [RFC][PATCH] board-omap3beagle: Remove duplicate DVI reset
-> gpio handling
+> MPU_{BRIDGE,TESLA}_IOMMU doesn't exist in Kconfig, therefore removing
+> all references for it from the source code.
+
+Coming soon, I guess. Hari?
+
+> Signed-off-by: Christoph Egger <siccegge@cs.fau.de>
+> ---
+>  arch/arm/mach-omap2/omap-iommu.c |   22 ----------------------
+>  1 files changed, 0 insertions(+), 22 deletions(-)
 > 
-> On Tue, 2010-06-29 at 22:32 +0200, ext Sergio Aguirre wrote:
-> > Following commit missed to remove this:
-> >
-> >   commit 044d32ffbcb4a1d400088e3575508f46c0a9face
-> >   Author: Koen Kooi <koen.kooi@gmail.com>
-> >   Date:   Thu Apr 22 10:23:42 2010 +0200
-> >
-> >       board-omap3-beagle: add DSS2 support
-> >
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> > Cc: Koen Kooi <koen.kooi@gmail.com>
-> > ---
-> >  arch/arm/mach-omap2/board-omap3beagle.c |    7 ++-----
-> >  1 files changed, 2 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-
-> omap2/board-omap3beagle.c
-> > index 7b95cc1..867a4ad 100644
-> > --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> > +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> > @@ -169,6 +169,8 @@ static void __init beagle_display_init(void)
-> >  {
-> >  	int r;
-> >
-> > +	omap_mux_init_gpio(beagle_dvi_device.reset_gpio, OMAP_PIN_INPUT);
+> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+> index eb9bee7..3aa3fe9 100644
+> --- a/arch/arm/mach-omap2/omap-iommu.c
+> +++ b/arch/arm/mach-omap2/omap-iommu.c
+> @@ -35,17 +35,6 @@ static struct iommu_device omap3_devices[] = {
+>  			.clk_name = "cam_ick",
+>  		},
+>  	},
+> -#if defined(CONFIG_MPU_BRIDGE_IOMMU)
+> -	{
+> -		.base = 0x5d000000,
+> -		.irq = 28,
+> -		.pdata = {
+> -			.name = "iva2",
+> -			.nr_tlb_entries = 32,
+> -			.clk_name = "iva2_ck",
+> -		},
+> -	},
+> -#endif
+>  };
+>  #define NR_OMAP3_IOMMU_DEVICES ARRAY_SIZE(omap3_devices)
+>  static struct platform_device *omap3_iommu_pdev[NR_OMAP3_IOMMU_DEVICES];
+> @@ -66,17 +55,6 @@ static struct iommu_device omap4_devices[] = {
+>  			.clk_name = "ducati_ick",
+>  		},
+>  	},
+> -#if defined(CONFIG_MPU_TESLA_IOMMU)
+> -	{
+> -		.base = OMAP4_MMU2_BASE,
+> -		.irq = INT_44XX_DSP_MMU,
+> -		.pdata = {
+> -			.name = "tesla",
+> -			.nr_tlb_entries = 32,
+> -			.clk_name = "tesla_ick",
+> -		},
+> -	},
+> -#endif
+>  };
+>  #define NR_OMAP4_IOMMU_DEVICES ARRAY_SIZE(omap4_devices)
+>  static struct platform_device *omap4_iommu_pdev[NR_OMAP4_IOMMU_DEVICES];
+> -- 
+> 1.7.0.4
 > 
-> It's a reset gpio (actually power up/down, if I recall right), it should
-> be configured as output, shouldn't it?
-
-You're probably right :)
-
-I just shuffled around the same code, which I guessed that works already. (right beagleboard guys?).
-
-Regards,
-Sergio
-
-> 
->  Tomi
-> 
-
