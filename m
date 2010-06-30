@@ -1,91 +1,50 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: PATCH[V2 1/3]: Update Platform files for SPI
-Date: Wed, 30 Jun 2010 14:03:32 -0600
-Message-ID: <AANLkTinEfJqvRZKqMaXY3_EE4WJT3W3_j0Kwg89pt_SU@mail.gmail.com>
-References: <9629.10.24.255.17.1265192505.squirrel@dbdmail.itg.ti.com>
-	<20100209222513.GJ21755@atomide.com> <fa686aa41002180828l378a9550u125752e1e972a345@mail.gmail.com>
-	<20100218170946.GO21755@atomide.com> <fa686aa41002180929u555e2af0s9f0646fccb744955@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 10/13] OMAP: create omap_devices for MPU, DSP, L3
+Date: Wed, 30 Jun 2010 13:38:56 -0700
+Message-ID: <87ocesjlwf.fsf@deeprootsystems.com>
+References: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com>
+	<1277423084-25528-11-git-send-email-khilman@deeprootsystems.com>
+	<87y6dxrblk.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0323763838@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:42702 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757221Ab0F3UDx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 16:03:53 -0400
-Received: by gwb15 with SMTP id 15so659909gwb.19
-        for <linux-omap@vger.kernel.org>; Wed, 30 Jun 2010 13:03:52 -0700 (PDT)
-In-Reply-To: <fa686aa41002180929u555e2af0s9f0646fccb744955@mail.gmail.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:39581 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754947Ab0F3UjA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 16:39:00 -0400
+Received: by pwj8 with SMTP id 8so431226pwj.19
+        for <linux-omap@vger.kernel.org>; Wed, 30 Jun 2010 13:38:59 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323763838@dbde02.ent.ti.com>
+	(Thara Gopinath's message of "Wed, 30 Jun 2010 09:48:27 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Hemanth V <hemanthv@ti.com>, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Thu, Feb 18, 2010 at 11:29 AM, Grant Likely
-<grant.likely@secretlab.ca> wrote:
-> On Thu, Feb 18, 2010 at 10:09 AM, Tony Lindgren <tony@atomide.com> wr=
-ote:
->> * Grant Likely <grant.likely@secretlab.ca> [100218 08:26]:
->>> On Tue, Feb 9, 2010 at 3:25 PM, Tony Lindgren <tony@atomide.com> wr=
-ote:
->>> > * Hemanth V <hemanthv@ti.com> [100203 02:19]:
->>> >> From ee48142ddc43129a21676dbb56a83e3e7d8063de Mon Sep 17 00:00:0=
-0 2001
->>> >> From: Hemanth V <hemanthv@ti.com>
->>> >> Date: Fri, 27 Nov 2009 14:22:30 +0530
->>> >> Subject: [PATCH] Update platform files
->>> >>
->>> >> This patch updates platform files for
->>> >> fifo, slave support
->>> >>
->>> >> Signed-off-by: Hemanth V <hemanthv@ti.com>
->>> >
->>> > This should get merged via the spi-devel list with the other patc=
-hes.
->>> >
->>> > Acked-by: Tony Lindgren <tony@atomide.com>
->>>
->>> Tony, do you want me to add your acked-by to patches 2 & 3?
->>
->> No thanks, I've only looked at them briefly.
->
-> Okay, thanks.
->
-> Hemanth, I'm going to drop this series for the moment. =A0I'd like to
-> see some feedback/acks from current users and maintainers of the
-> omap2_mcspi driver before I merge support, especially now when the
-> merge window is about to open and it hasn't gotten any linux-next
-> exposure.
->
->>> Also, what is your feeling about patch 3/3, spi slave support. =A0s=
-pi
->>> slave usage model is still a matter under debate, but that patch
->>> doesn't touch core spi code, so I'm okay to merge it as a
->>> driver-specific feature. =A0However, I'm not convinced that it is
->>> actually a useful patch to merge yet, so I'll defer to you on this
->>> one. =A0Thoughts?
->>
->> Up to you to decide. But here's my experience so far..
->>
->> Based on my experience if temporary hacks are merged, then nobody
->> bothers to clean them up properly afterwards and the clean-up task
->> unfairly falls on the maintainer.
->>
->> So IMHO, hacks like that are better floating on the mailing list
->> until they're properly done. It's best to concentrate on getting
->> the core things done right to make long term support easier.
->
-> Right, I agree. =A0I'll ignore patch 3 entirely until I at least see =
-a
-> patch for an in-tree user.
+"Gopinath, Thara" <thara@ti.com> writes:
 
-Hi Hemanth.  Could you please respin patches 1 and 2 against
-2.6.35-rc3?  The current patches do not apply anymore.
+[...]
 
-Thanks,
-g.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>+static int __init omap_common_pm_init(void)
+>>>+{
+>>>+	omap_init_processor_devices();
+>>>+	omap_pm_if_init();
+>>>+
+>>>+	return 0;
+>>>+}
+>>>+device_initcall(omap_common_pm_init);
+
+>
+> But I guess opp layer is still getting initialized before this. Esp if
+> the board files are initializing the opp structures. Or do you have a
+> patch to fix it in some other branch ?
+>
+
+The common OPP init will be done in this function as well (see current
+PM branch.)  Board files no longer do OPP init (by default) as it is
+handled by common code.  Only boards that add OPPs need to call the init
+function, and we'll have to figure out way to handle that late.
+
+Kevin
+
