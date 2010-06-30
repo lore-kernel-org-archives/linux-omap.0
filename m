@@ -1,127 +1,59 @@
 From: Marek Vasut <marek.vasut@gmail.com>
-Subject: Re: [PATCH 16/33] Removing dead APM
-Date: Wed, 30 Jun 2010 20:23:47 +0200
-Message-ID: <201006302023.47382.marek.vasut@gmail.com>
-References: <cover.1277911345.git.siccegge@cs.fau.de> <51c095a4c49baacbfdd6ed332d1375ab64209753.1277911346.git.siccegge@cs.fau.de>
+Subject: Re: [PATCH 17/33] Removing dead SX1_OLD_FLASH
+Date: Wed, 30 Jun 2010 20:24:46 +0200
+Message-ID: <201006302024.47025.marek.vasut@gmail.com>
+References: <cover.1277911345.git.siccegge@cs.fau.de>
+	<5b21086199b139a61888c16e92d3efe6b205dae2.1277911346.git.siccegge@cs.fau.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51c095a4c49baacbfdd6ed332d1375ab64209753.1277911346.git.siccegge@cs.fau.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5b21086199b139a61888c16e92d3efe6b205dae2.1277911346.git.siccegge@cs.fau.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Christoph Egger <siccegge@cs.fau.de>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kalle Valo <kalle.valo@iki.fi>, Ladislav Michl <ladis@linux-mips.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, vamos@i4.informatik.uni-erlangen.de
+Cc: Kalle Valo <kalle.valo@iki.fi>, Ladislav Michl <ladis@linux-mips.org>, Russell King <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, vamos@i4.informatik.uni-erlangen.de, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Dne St 30. =C4=8Dervna 2010 17:59:06 Christoph Egger napsal(a):
-> APM doesn't exist in Kconfig, therefore removing all references for i=
-t
-> from the source code.
-
-Tony, do you know Andrzej Zaborowski's new email address? Maybe he shou=
-ld be=20
-CCed here
->=20
-> Signed-off-by: Christoph Egger <siccegge@cs.fau.de>
-> ---
->  arch/arm/mach-omap1/board-palmte.c |   84
-> ------------------------------------ 1 files changed, 0 insertions(+)=
-, 84
-> deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap1/board-palmte.c
-> b/arch/arm/mach-omap1/board-palmte.c index 569b4c9..23bb0c9 100644
-> --- a/arch/arm/mach-omap1/board-palmte.c
-> +++ b/arch/arm/mach-omap1/board-palmte.c
-> @@ -213,90 +213,6 @@ static struct omap_lcd_config palmte_lcd_config
-> __initdata =3D { .ctrl_name	=3D "internal",
->  };
->=20
-> -#ifdef CONFIG_APM
-> -/*
-> - * Values measured in 10 minute intervals averaged over 10 samples.
-> - * May differ slightly from device to device but should be accurate
-> - * enough to give basic idea of battery life left and trigger
-> - * potential alerts.
-> - */
-> -static const int palmte_battery_sample[] =3D {
-> -	2194, 2157, 2138, 2120,
-> -	2104, 2089, 2075, 2061,
-> -	2048, 2038, 2026, 2016,
-> -	2008, 1998, 1989, 1980,
-> -	1970, 1958, 1945, 1928,
-> -	1910, 1888, 1860, 1827,
-> -	1791, 1751, 1709, 1656,
-> -};
-> -
-> -#define INTERVAL		10
-> -#define BATTERY_HIGH_TRESHOLD	66
-> -#define BATTERY_LOW_TRESHOLD	33
-> -
-> -static void palmte_get_power_status(struct apm_power_info *info, int
-> *battery) -{
-> -	int charging, batt, hi, lo, mid;
-> -
-> -	charging =3D !gpio_get_value(PALMTE_DC_GPIO);
-> -	batt =3D battery[0];
-> -	if (charging)
-> -		batt -=3D 60;
-> -
-> -	hi =3D ARRAY_SIZE(palmte_battery_sample);
-> -	lo =3D 0;
-> -
-> -	info->battery_flag =3D 0;
-> -	info->units =3D APM_UNITS_MINS;
-> -
-> -	if (batt > palmte_battery_sample[lo]) {
-> -		info->battery_life =3D 100;
-> -		info->time =3D INTERVAL * ARRAY_SIZE(palmte_battery_sample);
-> -	} else if (batt <=3D palmte_battery_sample[hi - 1]) {
-> -		info->battery_life =3D 0;
-> -		info->time =3D 0;
-> -	} else {
-> -		while (hi > lo + 1) {
-> -			mid =3D (hi + lo) >> 1;
-> -			if (batt <=3D palmte_battery_sample[mid])
-> -				lo =3D mid;
-> -			else
-> -				hi =3D mid;
-> -		}
-> -
-> -		mid =3D palmte_battery_sample[lo] - palmte_battery_sample[hi];
-> -		hi =3D palmte_battery_sample[lo] - batt;
-> -		info->battery_life =3D 100 - (100 * lo + 100 * hi / mid) /
-> -			ARRAY_SIZE(palmte_battery_sample);
-> -		info->time =3D INTERVAL * (ARRAY_SIZE(palmte_battery_sample) -
-> -				lo) - INTERVAL * hi / mid;
-> -	}
-> -
-> -	if (charging) {
-> -		info->ac_line_status =3D APM_AC_ONLINE;
-> -		info->battery_status =3D APM_BATTERY_STATUS_CHARGING;
-> -		info->battery_flag |=3D APM_BATTERY_FLAG_CHARGING;
-> -	} else {
-> -		info->ac_line_status =3D APM_AC_OFFLINE;
-> -		if (info->battery_life > BATTERY_HIGH_TRESHOLD)
-> -			info->battery_status =3D APM_BATTERY_STATUS_HIGH;
-> -		else if (info->battery_life > BATTERY_LOW_TRESHOLD)
-> -			info->battery_status =3D APM_BATTERY_STATUS_LOW;
-> -		else
-> -			info->battery_status =3D APM_BATTERY_STATUS_CRITICAL;
-> -	}
-> -
-> -	if (info->battery_life > BATTERY_HIGH_TRESHOLD)
-> -		info->battery_flag |=3D APM_BATTERY_FLAG_HIGH;
-> -	else if (info->battery_life > BATTERY_LOW_TRESHOLD)
-> -		info->battery_flag |=3D APM_BATTERY_FLAG_LOW;
-> -	else
-> -		info->battery_flag |=3D APM_BATTERY_FLAG_CRITICAL;
-> -}
-> -#else
-> -#define palmte_get_power_status	NULL
-> -#endif
-> -
->  static struct omap_board_config_kernel palmte_config[] __initdata =3D=
- {
->  	{ OMAP_TAG_LCD,		&palmte_lcd_config },
->  };
+RG5lIFN0IDMwLiDEjWVydm5hIDIwMTAgMTc6NTk6MjUgQ2hyaXN0b3BoIEVnZ2VyIG5hcHNhbChh
+KToKPiBTWDFfT0xEX0ZMQVNIIGRvZXNuJ3QgZXhpc3QgaW4gS2NvbmZpZywgdGhlcmVmb3JlIHJl
+bW92aW5nIGFsbAo+IHJlZmVyZW5jZXMgZm9yIGl0IGZyb20gdGhlIHNvdXJjZSBjb2RlLgoKVGhl
+cmUgd2VyZSB0d28gbW9kZWxzIG9mIHRoZSBwaG9uZSBtYWRlLCB5b3UgY2FuIHRvZ2dsZSBiZXR3
+ZWVuIG9sZCBhbmQgbmV3IAp2ZXJzaW9uLiBNYXliZSBiZXR0ZXIgZG9jdW1lbnRhdGlvbiB3b24n
+dCBodXJ0Lgo+IAo+IFNpZ25lZC1vZmYtYnk6IENocmlzdG9waCBFZ2dlciA8c2ljY2VnZ2VAY3Mu
+ZmF1LmRlPgo+IC0tLQo+ICBhcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXN4MS5jIHwgICAyNiAt
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ICAxIGZpbGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9u
+cygrKSwgMjYgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21h
+cDEvYm9hcmQtc3gxLmMKPiBiL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtc3gxLmMgaW5kZXgg
+MmZiMWU1Zi4uMWRlODA5ZCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJk
+LXN4MS5jCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1zeDEuYwo+IEBAIC0yOTUs
+MzEgKzI5NSw2IEBAIHN0YXRpYyBzdHJ1Y3QgcGh5c21hcF9mbGFzaF9kYXRhIHN4MV9mbGFzaF9k
+YXRhID0gewo+ICAJLm5yX3BhcnRzCT0gQVJSQVlfU0laRShzeDFfcGFydGl0aW9ucyksCj4gIH07
+Cj4gCj4gLSNpZmRlZiBDT05GSUdfU1gxX09MRF9GTEFTSAo+IC0vKiBNVEQgSW50ZWwgU3RyYXRh
+Rmxhc2ggLSBvbGQgZmxhc2hlcyAqLwo+IC1zdGF0aWMgc3RydWN0IHJlc291cmNlIHN4MV9vbGRf
+Zmxhc2hfcmVzb3VyY2VbXSA9IHsKPiAtCVswXSA9IHsKPiAtCQkuc3RhcnQJPSBPTUFQX0NTMF9Q
+SFlTLAkvKiBQaHlzaWNhbCAqLwo+IC0JCS5lbmQJPSBPTUFQX0NTMF9QSFlTICsgU1pfMTZNIC0g
+MSwsCj4gLQkJLmZsYWdzCT0gSU9SRVNPVVJDRV9NRU0sCj4gLQl9LAo+IC0JWzFdID0gewo+IC0J
+CS5zdGFydAk9IE9NQVBfQ1MxX1BIWVMsCj4gLQkJLmVuZAk9IE9NQVBfQ1MxX1BIWVMgKyBTWl84
+TSAtIDEsCj4gLQkJLmZsYWdzCT0gSU9SRVNPVVJDRV9NRU0sCj4gLQl9LAo+IC19Owo+IC0KPiAt
+c3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugc3gxX2ZsYXNoX2RldmljZSA9IHsKPiAtCS5u
+YW1lCQk9ICJwaHlzbWFwLWZsYXNoIiwKPiAtCS5pZAkJPSAwLAo+IC0JLmRldgkJPSB7Cj4gLQkJ
+LnBsYXRmb3JtX2RhdGEJPSAmc3gxX2ZsYXNoX2RhdGEsCj4gLQl9LAo+IC0JLm51bV9yZXNvdXJj
+ZXMJPSAyLAo+IC0JLnJlc291cmNlCT0gJnN4MV9vbGRfZmxhc2hfcmVzb3VyY2UsCj4gLX07Cj4g
+LSNlbHNlCj4gIC8qIE1URCBJbnRlbCA0MDAwIGZsYXNoIC0gbmV3IGZsYXNoZXMgKi8KPiAgc3Rh
+dGljIHN0cnVjdCByZXNvdXJjZSBzeDFfbmV3X2ZsYXNoX3Jlc291cmNlID0gewo+ICAJLnN0YXJ0
+CQk9IE9NQVBfQ1MwX1BIWVMsCj4gQEAgLTMzNiw3ICszMTEsNiBAQCBzdGF0aWMgc3RydWN0IHBs
+YXRmb3JtX2RldmljZSBzeDFfZmxhc2hfZGV2aWNlID0gewo+ICAJLm51bV9yZXNvdXJjZXMJPSAx
+LAo+ICAJLnJlc291cmNlCT0gJnN4MV9uZXdfZmxhc2hfcmVzb3VyY2UsCj4gIH07Cj4gLSNlbmRp
+Zgo+IAo+ICAvKi0tLS0tLS0tLS0tIFVTQiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKi8KCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1r
+ZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpo
+dHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJu
+ZWwK
