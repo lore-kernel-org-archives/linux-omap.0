@@ -1,66 +1,96 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for 2.6.35-rc3
-Date: Wed, 30 Jun 2010 14:39:19 +0300
-Message-ID: <20100630113919.GB2822@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH] OMAP: DSS: Fix for dsi_pll to dpll4 clk switch
+Date: Wed, 30 Jun 2010 14:38:44 +0300
+Message-ID: <1277897924.2474.224.camel@tubuntu.research.nokia.com>
+References: <FF55437E1F14DA4BAEB721A458B6701706BDB3A5CA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:54323 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311Ab0F3LjK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 07:39:10 -0400
+In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706BDB3A5CA@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Nagarajan, Rajkumar" <x0133774@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Linus,
+On Tue, 2010-06-29 at 16:13 +0200, ext Nagarajan, Rajkumar wrote:
+> 
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com] 
+> > Sent: Thursday, June 24, 2010 4:21 PM
+> > To: Nagarajan, Rajkumar
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH] OMAP: DSS: Fix for dsi_pll to dpll4 clk switch
+> > 
+> > On Thu, 2010-06-17 at 07:12 +0200, ext Nagarajan, Rajkumar wrote:
+> > > When switching between clocks, The new functional clock is
+> > > effective when the next vertical blanking interval occurs.
+> > > GOLCD bit has to be set for the new clock to take effect.
+> > 
+> > Where did you encounter this problem?
+> > 
+> Raj: The below experiments will make you to understand the significance of the patch:
+> 
+> 1. Select "dsi_pll" as default clock.
+> 2. After the zoom3 display comes up,switch the default screen on LCD to TV using below commands.
+> 	echo "0" > /sys/devices/platform/omapdss/overlay0/enabled
+> 	echo "720,574" > /sys/devices/platform/omapdss/overlay0/input_size
+> 	echo "720,574" > /sys/devices/platform/omapdss/overlay0/output_size
+> 	echo "tv" >  /sys/devices/platform/omapdss/overlay0/manager
+> 	echo "1" > /sys/devices/platform/omapdss/display1/enabled
+> 	echo "1" > /sys/devices/platform/omapdss/overlay0/enabled
+> 3. Now the display is appearing on TV.So, Now switch the display back to LCD using the below commands.
+> 	echo "0" > /sys/devices/platform/omapdss/overlay0/enabled
+> 	echo "800,480" > /sys/devices/platform/omapdss/overlay0/input_size
+> 	echo "800,480" > /sys/devices/platform/omapdss/overlay0/output_size
+> 	echo "lcd" >  /sys/devices/platform/omapdss/overlay0/manager
+> 	echo "1" > /sys/devices/platform/omapdss/display1/enabled
+> 	echo "1" > /sys/devices/platform/omapdss/overlay0/enabled
+> 4. Now the display will not appear on LCD,if the patch is not included.
+>     But,the display will appear on LCD, if the patch is included.
 
-Please pull omap fixes from:
+The LCD is never turned off in the sequence above. Was that supposed to
+be there somewhere?
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+> > > Signed-off-by: Kishore Y <kishore.y@ti.com>
+> > > Signed-off-by: Mukund Mittal <mmittal@ti.com>
+> > > Signed-off-by: Rajkumar N <rajkumar.nagarajan@ti.com>
+> > > ---
+> > >  drivers/video/omap2/dss/dpi.c |    5 +++++
+> > >  1 files changed, 5 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/drivers/video/omap2/dss/dpi.c 
+> > b/drivers/video/omap2/dss/dpi.c
+> > > index 960e977..5d778d6 100644
+> > > --- a/drivers/video/omap2/dss/dpi.c
+> > > +++ b/drivers/video/omap2/dss/dpi.c
+> > > @@ -214,10 +214,15 @@ void 
+> > omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+> > >  
+> > >  #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+> > >  	dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
+> > > +	dispc_go(OMAP_DSS_CHANNEL_LCD);
+> > 
+> > I don't think GO does anything here, as the channel has already been
+> > disabled.
+> Raj:This is the actual fix.So, the above experiment that I explained will be the usecase to understand the need of this statement.
 
-These all should match your "major bugs or regressions" criteria for
-various omaps :)
+So, how does the OMAP DSS HW actually work then? My understanding was
+that GO bit doesn't do anything if the channel is disabled. It's only
+used when the channel is enabled.
 
-Regards,
+Setting the GO bit should make the new register changes to be effective
+after next VFP. If the channel is disabled, there's no VFP, thus it
+shouldn't do anything...?
 
-Tony
+Also related to using DSI PLL, there's an OMAP bug that causes glitches
+on TV-out if DSI PLL is used for DISPC fclk, basically making DSI PLL
+unusable for DISPC fclk. Have you encountered this?
+
+ Tomi
 
 
-The following changes since commit 7e27d6e778cd87b6f2415515d7127eba53fe5d02:
-
-  Linux 2.6.35-rc3 (2010-06-11 19:14:04 -0700)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes
-
-Amit Kucheria (1):
-      omap: fix build failure due to missing include dma-mapping.h
-
-Benoit Cousson (1):
-      OMAP: hwmod: Fix the missing braces
-
-Kevin Hilman (2):
-      omap: GPIO: fix auto-disable of debounce clock
-      OMAP3: PM: fix IO daisy chain enable to use PM_WKEN reg
-
-Santosh Shilimkar (2):
-      omap: Stalker board: switch over to gpio_set_debounce
-      OMAP4: clock: Fix multi-omap boot with reset un-used clocks
-
-Satish (1):
-      omap iommu: Fix Memory leak
-
-Tero Kristo (1):
-      omap: DMTIMER: Ack pending interrupt always when stopping a timer
-
-Tony Lindgren (1):
-      Merge branch 'for_2.6.35rc' of git://git.pwsan.com/linux-2.6 into omap-fixes-for-linus
-
- arch/arm/mach-omap2/board-omap3stalker.c |    4 +---
- arch/arm/mach-omap2/clock44xx_data.c     |    2 ++
- arch/arm/mach-omap2/omap_hwmod.c         |    9 ++++++---
- arch/arm/mach-omap2/pm34xx.c             |    4 ++--
- arch/arm/mach-omap2/usb-ehci.c           |    2 ++
- arch/arm/plat-omap/dmtimer.c             |    6 +++---
- arch/arm/plat-omap/gpio.c                |    1 +
- arch/arm/plat-omap/iovmm.c               |    4 +++-
- 8 files changed, 20 insertions(+), 12 deletions(-)
