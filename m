@@ -1,49 +1,66 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [RFC][PATCH 0/1] ARM: Add initial hibernation support
-Date: Wed, 30 Jun 2010 17:28:00 +0300
-Message-ID: <1277908081-17195-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and
+ check for it on V6
+Date: Wed, 30 Jun 2010 10:42:18 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1006301011520.24097@xanadu.home>
+References: <20100621133749.24299.36154.stgit@baageli.muru.com>
+ <20100621135120.24299.98499.stgit@baageli.muru.com>
+ <20100622170020.GF4371@shareable.org> <20100623073912.GA12255@atomide.com>
+ <20100623133636.GC7058@shareable.org> <20100629141836.GM2822@atomide.com>
+ <alpine.LFD.2.00.1006291355520.24097@xanadu.home>
+ <20100630110828.GZ2822@atomide.com> <20100630131737.GF2822@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: khilman@deeprootsystems.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Yoshiya.Hirase@nokia.com, teerth@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:10971 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754226Ab0F3OmU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 10:42:20 -0400
+Received: from xanadu.home ([66.130.28.92]) by VL-MR-MR002.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0L4U00HWK0UIL480@VL-MR-MR002.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Wed, 30 Jun 2010 10:42:19 -0400 (EDT)
+In-reply-to: <20100630131737.GF2822@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jamie Lokier <jamie@shareable.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This is the experimental patch to add hibernation (a.k.a:
-Suspend-To-Disk) support for ARM architecutre.
+On Wed, 30 Jun 2010, Tony Lindgren wrote:
 
-Presently it seems to work with OMAP3, and apparently it still needs
-more efforts to make it enough stable and to support other ARM
-platforms cleanly but I am sending this patch to get some feedbacks at
-its early phase to find out the further direction. It would be really
-appreciated if you give some comment on this.
+> * Tony Lindgren <tony@atomide.com> [100630 14:02]:
+> > * Nicolas Pitre <nico@fluxnic.net> [100629 22:14]:
+> > 
+> > Updated patch below.
+> 
+> And a bug crept in..
+> 
+> > +	.macro set_tls_v6, tp, tmp1, tmp2
+> > +	ldr	\tmp1, =elf_hwcap
+> > +	ldr	\tmp1, [\tmp1, #0]
+> > +	mov	\tmp2, #0xffff0fff
+> > +	tst	\tmp2, #HWCAP_TLS		@ hardware TLS available?
+> > +	mcrne	p15, 0, \tp, c13, c0, 3		@ yes, set TLS register
+> > +	streq	\tp, [\tmp2, #-15]		@ set TLS value at 0xffff0ff0
+> > +	.endm
+> 
+> The tst	\tmp2, #HWCAP_TLS should of course use \tmp1.
+> 
+> Also fixed a warning about adding parentheses around comparison
+> if (id & 0x410f0000) != 0x41070000).
 
-This patch is based on the one sent to loml(*1) by Teerth Reddy, which
-was originally from Romit and Raghu at TI.
+Here you probably want (id & 0xff0f0000) and not (id & 0x410f0000).
 
-    *1: https://patchwork.kernel.org/patch/96442/
+> Again, updated patch below.
 
-Hiroshi DOYU (1):
-  ARM: Add initial hibernation support
+I like it.  However, in proc-v6.S, you don't need to add a reference to 
+feat_v6_fixup() to the __pj4_v6_proc_info block.  Simply adding 
+HWCAP_TLS in that case should be fine as PJ4 always has the TLS reg.
 
- arch/arm/Kconfig                |    4 +
- arch/arm/include/asm/memory.h   |    1 +
- arch/arm/include/asm/suspend.h  |    6 +
- arch/arm/kernel/Makefile        |    1 +
- arch/arm/kernel/hibernate.c     |  234 +++++++++++++++++++++++++++++++++++++++
- arch/arm/kernel/hibernate_asm.S |  135 ++++++++++++++++++++++
- arch/arm/kernel/vmlinux.lds.S   |    3 +-
- 7 files changed, 383 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/include/asm/suspend.h
- create mode 100644 arch/arm/kernel/hibernate.c
- create mode 100644 arch/arm/kernel/hibernate_asm.S
+With the above fixes, you can add
+
+Reviewed-by: Nicolas Pitre <nicolas.pitre@linaro.org>
+
+
+Nicolas
