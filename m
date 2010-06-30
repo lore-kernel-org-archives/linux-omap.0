@@ -1,73 +1,114 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/16] omap: mux: Select POP package for 2430SDP
-Date: Wed, 30 Jun 2010 15:07:06 +0300
-Message-ID: <20100630120706.2637.40524.stgit@baageli.muru.com>
+Subject: [PATCH 11/16] omap: mux: Make omap2 FS USB code use new mux functions
+Date: Wed, 30 Jun 2010 15:07:10 +0300
+Message-ID: <20100630120710.2637.93333.stgit@baageli.muru.com>
 References: <20100630120226.2637.31198.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57742 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755764Ab0F3MGz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 08:06:55 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52051 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755786Ab0F3MHA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 08:07:00 -0400
 In-Reply-To: <20100630120226.2637.31198.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org
 
-Select POP package for 2430SDP
+Make omap2 FS USB code use new mux functions. Do not mux usb2_tllse0
+as it has multiple options.
 
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Kconfig         |    1 +
- arch/arm/mach-omap2/board-2430sdp.c |   11 +++++++++++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/usb-fs.c |   33 ++++++++++++++++++---------------
+ 1 files changed, 18 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 4158368..f67f037 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -61,6 +61,7 @@ config MACH_OMAP_APOLLON
- config MACH_OMAP_2430SDP
- 	bool "OMAP 2430 SDP board"
- 	depends on ARCH_OMAP2
-+	select OMAP_PACKAGE_ZAC
+diff --git a/arch/arm/mach-omap2/usb-fs.c b/arch/arm/mach-omap2/usb-fs.c
+index a445519..a216d88 100644
+--- a/arch/arm/mach-omap2/usb-fs.c
++++ b/arch/arm/mach-omap2/usb-fs.c
+@@ -30,7 +30,6 @@
+ #include <asm/irq.h>
  
- config MACH_OMAP3_BEAGLE
- 	bool "OMAP3 BEAGLE board"
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index ec920c9..281aa13 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -38,6 +38,7 @@
+ #include <plat/control.h>
+-#include <plat/mux.h>
  #include <plat/usb.h>
- #include <plat/gpmc-smc91x.h>
+ #include <plat/board.h>
+ 
+@@ -40,6 +39,8 @@
+ #define INT_USB_IRQ_HGEN	INT_24XX_USB_IRQ_HGEN
+ #define INT_USB_IRQ_OTG		INT_24XX_USB_IRQ_OTG
  
 +#include "mux.h"
- #include "hsmmc.h"
- 
- #define SDP2430_CS0_BASE	0x04000000
-@@ -217,10 +218,20 @@ static struct omap_usb_config sdp2430_usb_config __initdata = {
- 	.pins[0]	= 3,
- };
- 
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
 +
- static void __init omap_2430sdp_init(void)
- {
- 	int ret;
+ #if defined(CONFIG_ARCH_OMAP2)
  
-+	omap2430_mux_init(board_mux, OMAP_PACKAGE_ZAC);
+ #ifdef	CONFIG_USB_GADGET_OMAP
+@@ -209,13 +210,13 @@ static u32 __init omap2_usb0_init(unsigned nwires, unsigned is_device)
+ 		return 0;
+ 
+ 	if (is_device)
+-		omap_cfg_reg(J20_24XX_USB0_PUEN);
++		omap_mux_init_signal("usb0_puen", 0);
+ 
+-	omap_cfg_reg(K18_24XX_USB0_DAT);
+-	omap_cfg_reg(K19_24XX_USB0_TXEN);
+-	omap_cfg_reg(J14_24XX_USB0_SE0);
++	omap_mux_init_signal("usb0_dat", 0);
++	omap_mux_init_signal("usb0_txen", 0);
++	omap_mux_init_signal("usb0_se0", 0);
+ 	if (nwires != 3)
+-		omap_cfg_reg(J18_24XX_USB0_RCV);
++		omap_mux_init_signal("usb0_rcv", 0);
+ 
+ 	switch (nwires) {
+ 	case 3:
+@@ -228,8 +229,8 @@ static u32 __init omap2_usb0_init(unsigned nwires, unsigned is_device)
+ 		break;
+ 	case 6:
+ 		syscon1 = 3;
+-		omap_cfg_reg(J19_24XX_USB0_VP);
+-		omap_cfg_reg(K20_24XX_USB0_VM);
++		omap_mux_init_signal("usb0_vp", 0);
++		omap_mux_init_signal("usb0_vm", 0);
+ 		omap2_usb_devconf_set(0, USB_UNIDIR);
+ 		break;
+ 	default:
+@@ -289,12 +290,12 @@ static u32 __init omap2_usb2_init(unsigned nwires, unsigned alt_pingroup)
+ 	if (alt_pingroup || nwires == 0)
+ 		return 0;
+ 
+-	omap_cfg_reg(Y11_24XX_USB2_DAT);
+-	omap_cfg_reg(AA10_24XX_USB2_SE0);
++	omap_mux_init_signal("usb2_dat", 0);
++	omap_mux_init_signal("usb2_se0", 0);
+ 	if (nwires > 2)
+-		omap_cfg_reg(AA12_24XX_USB2_TXEN);
++		omap_mux_init_signal("usb2_txen", 0);
+ 	if (nwires > 3)
+-		omap_cfg_reg(AA6_24XX_USB2_RCV);
++		omap_mux_init_signal("usb2_rcv", 0);
+ 
+ 	switch (nwires) {
+ 	case 2:
+@@ -313,11 +314,13 @@ static u32 __init omap2_usb2_init(unsigned nwires, unsigned alt_pingroup)
+ 		omap2_usb_devconf_set(2, USB_BIDIR);
+ 		break;
+ 	case 5:
+-		omap_cfg_reg(AA4_24XX_USB2_TLLSE0);
+-		/* NOTE: board-specific code must override this setting if
+-		 * this TLL link is not using DP/DM.  Something must also
++		/* NOTE: board-specific code must mux this setting depending
++		 * on TLL link using DP/DM.  Something must also
+ 		 * set up OTG_SYSCON2.HMC_TLL{ATTACH,SPEED}
++		 * 2420: hdq_sio.usb2_tllse0 or vlynq_rx0.usb2_tllse0
++		 * 2430: hdq_sio.usb2_tllse0 or sdmmc2_dat0.usb2_tllse0
+ 		 */
 +
- 	omap2430_i2c_init();
- 
- 	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
+ 		syscon1 = 3;
+ 		omap2_usb2_enable_5pinunitll();
+ 		break;
 
