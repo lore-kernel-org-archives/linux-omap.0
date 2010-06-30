@@ -1,165 +1,100 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH v5 0/3] omap3 nand: cleanup exiting platform related code
-Date: Wed, 30 Jun 2010 20:12:13 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030DFE9927@dbde02.ent.ti.com>
-References: <s-ghorai@ti.com>
- <1275637205-489-1-git-send-email-s-ghorai@ti.com>
- <AANLkTinf8OcvHbLggdEJNGLvlAtSeExKri-IqNlwLpYD@mail.gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [pm-wip/uart][PATCH] Serial: Avoid populating uart_list in early
+	init phase
+Date: Wed, 30 Jun 2010 20:13:04 +0530
+Message-ID: <AANLkTimHkAujlsEXf7dbkek48yltLe8w-ajeMWNqzShL@mail.gmail.com>
+References: <61551.192.168.10.88.1277384156.squirrel@dbdmail.itg.ti.com>
+	<87zkykxdqe.fsf@deeprootsystems.com>
+	<17901.10.24.255.17.1277473301.squirrel@dbdmail.itg.ti.com>
+	<871vbvt72x.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34675 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756527Ab0F3Om2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 10:42:28 -0400
-Content-Language: en-US
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:60633 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754712Ab0F3OnG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jun 2010 10:43:06 -0400
+Received: by gyd12 with SMTP id 12so429616gyd.19
+        for <linux-omap@vger.kernel.org>; Wed, 30 Jun 2010 07:43:05 -0700 (PDT)
+In-Reply-To: <871vbvt72x.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "mike@compulab.co.il" <mike@compulab.co.il>, Vimal Singh <vimal.newwork@gmail.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org
 
-Tony,
-Please let me know if any have input on following two series.=20
+>
+> Your inline patch is still getting mangled somehow. =A0It looks like
+> you're using a webmail client (SquirrelMail) that seems to be alterin=
+g
+> the whitespace in the patch. =A0The attached .zip worked fine. =A0Ple=
+ase
+> spend some time figuring out how to use git send-email directly
+>
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30305.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30735.html
+Have been trying to setup git-send quite some time, but firewall is blo=
+cking.
+Will try to get this enabled somehow.
 
-Regards,
-Ghorai
-
-> -----Original Message-----
-> From: Ghorai, Sukumar
-> Sent: Tuesday, June 15, 2010 6:57 PM
-> To: 'Tony Lindgren'
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org;
-> tony@atomide.com; mike@compulab.co.il; 'Vimal Singh'
-> Subject: RE: [PATCH v5 0/3] omap3 nand: cleanup exiting platform rela=
-ted
-> code
->=20
-> Tony,
->=20
-> > -----Original Message-----
-> > From: Vimal Singh [mailto:vimal.newwork@gmail.com]
-> > Sent: Tuesday, June 08, 2010 10:43 PM
-> > To: Ghorai, Sukumar
-> > Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org;
-> > tony@atomide.com; mike@compulab.co.il
-> > Subject: Re: [PATCH v5 0/3] omap3 nand: cleanup exiting platform re=
-lated
-> > code
-> >
-> > Reviewed-by: Vimal Singh <vimal.newwork@gmail.com>
-> >
-> > On Fri, Jun 4, 2010 at 1:10 PM, Sukumar Ghorai <s-ghorai@ti.com> wr=
-ote:
-> > > =A0 The following set of patches applies on top of for-next branc=
-h.
-> > > =A0 =A0 =A0 =A0http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind=
-/linux-omap-
-> > 2.6.git
-> > > =A0 Patches verified on: omap3430-SDP, omap3630-sdp, zoom3 and be=
-agle
-> > board
-> > >
-> > > =A0 And these are the patches required to address the following i=
-nput -
-> > > =A0 =A0 1. The NAND driver needs to stop tinkering with the GPMC =
-registers
-> > > =A0 =A0 =A0 =A0The omap General Purpose Memory Controller (GPMC) =
-registers are
-> > omap
-> > > =A0 =A0 =A0 =A0specific, and not driver specific. Tinkering with =
-these
-> registers
-> > can
-> > > =A0 =A0 =A0 =A0cause issues with the other devices on the GPMC.
-> > >
-> > > =A0 =A0 2. Passing hardcoded GPMC_CS0_BASE needs to go from the b=
-oard
-> files
-> > > =A0 =A0 =A0 =A0Passing hardcoded GPMC virtual addressess is sure =
-way to mess
-> up
-> > things.
-> > > =A0 =A0 =A0 =A0This should all become unnecessary once the NAND d=
-rivers stops
-> > messing
-> > > =A0 =A0 =A0 =A0with the GPMC registers directly.
-> > > =A0 =A0 Discussion: http://www.mail-archive.com/linux-
-> > omap@vger.kernel.org/msg27630.html
-> > >
-> > > =A0 Changes in this series -
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Unused function removed.
-> > >
-> > > =A0Functions related to ecc and prefetch engine are optimized.
-> > > =A0v4: http://www.mail-archive.com/linux-
-> > omap@vger.kernel.org/msg29458.html
-> > >
-> > > =A0Few functionality was missing =A0like - There should be some l=
-ocking as
-> > only
-> > > =A0 one chipselect can use the ECC or prefetch engine at a time. =
-If you
-> > have
-> > > =A0 NAND in two chipselects, bad things would happen.
-> > > =A0v3: http://www.mail-archive.com/linux-
-> > omap@vger.kernel.org/msg28715.html
-> > >
-> > > =A0Additionally, it was needed to implement more functions for th=
+> However, I just discovered another snag...
+>
+> I did some more testing on Zoom3 and discovered that because we do th=
 e
-> > platform
-> > > =A0init code to use.
-> > > =A0v2: http://www.mail-archive.com/linux-
-> > omap@vger.kernel.org/msg28467.html
-> > >
-> > > =A0v1: http://www.mail-archive.com/linux-
-> > omap@vger.kernel.org/msg28164.html
-> > >
-> > >
-> > > Sukumar Ghorai (3):
-> > > =A0 =A0 =A0 =A0omap3 gpmc: functionality enhancement
-> > > =A0 =A0 =A0 =A0omap3 nand: cleanup virtual address usages
-> > > =A0 =A0 =A0 =A0omap3 nand: fix issue in board file to detect nand
-> > > =A0arch/arm/mach-omap2/board-cm-t35.c =A0 =A0 =A0 =A0 | =A0 20 +-=
---
-> > > =A0arch/arm/mach-omap2/board-devkit8000.c =A0 =A0 | =A0 25 +---
-> > > =A0arch/arm/mach-omap2/board-omap3beagle.c =A0 =A0| =A0 24 +---
-> > > =A0arch/arm/mach-omap2/board-omap3touchbook.c | =A0 25 +---
-> > > =A0arch/arm/mach-omap2/board-overo.c =A0 =A0 =A0 =A0 =A0| =A0 24 =
-+---
-> > > =A0arch/arm/mach-omap2/board-sdp-flash.c =A0 =A0 =A0| =A0 =A05 -
-> > > =A0arch/arm/mach-omap2/gpmc-nand.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 3=
-9 ++----
-> > > =A0arch/arm/mach-omap2/gpmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
-228
-> > +++++++++++++++++++++++++---
-> > > =A0arch/arm/plat-omap/include/plat/gpmc.h =A0 =A0 | =A0 36 ++++-
-> > > =A0arch/arm/plat-omap/include/plat/nand.h =A0 =A0 | =A0 =A06 +-
-> > > =A0drivers/mtd/nand/omap2.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |=
- =A0229 ++++++++-----------
-> --
-> > -------
-> > > =A011 files changed, 320 insertions(+), 341 deletions(-)
->=20
-> [Ghorai] Any comments or input on these patch?
->=20
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-o=
-map"
-> in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at =A0http://vger.kernel.org/majordomo-info.h=
-tml
-> > >
-> >
-> >
-> >
-> > --
-> > Regards,
-> > Vimal Singh
+> HWMOD_INIT_NO_IDLE, and omap_serial_init[_port] is never called on Zo=
+om3
+> (since it only uses debug board UART) the UART hwmods are left active
+> are never disabled (since they are not used.) =A0This prevents retent=
+ion :(
+>
+
+Yes I was able to reproduce this as said.
+
+But I was trying to set this option from flags field from uart_hmwod
+in omap_hwmod data file as below
+
+=2Eflags          =3D (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
+
+But strangely it doesn't work, but works only when we set the flag
+from serial_early_init phase
+any idea why so?
+
+It was hitting retention for zoom2 with earlier suggested changes as
+below: [ttyS3->console]
+
+diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c
+b/arch/arm/mach-omap2/board-zoom-debugboard.c
+index 1d7f827..9307f58 100644
+--- a/arch/arm/mach-omap2/board-zoom-debugboard.c
++++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
+@@ -96,7 +96,7 @@ static struct plat_serial8250_port serial_platform_da=
+ta[] =3D {
+
+ static struct platform_device zoom_debugboard_serial_device =3D {
+        .name                   =3D "serial8250",
+-       .id                     =3D PLAT8250_DEV_PLATFORM,
++       .id                     =3D PLAT8250_DEV_PLATFORM + 4,
+        .dev                    =3D {
+                .platform_data  =3D serial_platform_data,
+        },
+diff --git a/arch/arm/mach-omap2/board-zoom2.c
+b/arch/arm/mach-omap2/board-zoom2.c
+index 803ef14..c858b43 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -80,6 +80,7 @@ static struct omap_board_mux board_mux[] __initdata =3D=
+ {
+ static void __init omap_zoom2_init(void)
+ {
+        omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++       omap_serial_init();
+        zoom_peripherals_init();
+        zoom_debugboard_init();
+ }
+
+
+---
+Regards,
+Govindraj.R
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
