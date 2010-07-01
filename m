@@ -1,63 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] OMAP4: Add support for PWM LED
-Date: Thu, 1 Jul 2010 15:19:05 +0300
-Message-ID: <20100701121905.GN2822@atomide.com>
-References: <17175.10.24.255.18.1277906683.squirrel@dbdmail.itg.ti.com>
- <20100701103727.GJ2822@atomide.com>
- <028701cb1917$5313cd60$LocalHost@wipblrx0099946>
+Subject: Re: [PATCH] Enable lm75 and hwmon in OMAP4
+Date: Thu, 1 Jul 2010 15:27:22 +0300
+Message-ID: <20100701122722.GO2822@atomide.com>
+References: <0680EC522D0CC943BC586913CF3768C003B34A6712@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51758 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755255Ab0GAMSz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:18:55 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53315 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753827Ab0GAM1M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:27:12 -0400
 Content-Disposition: inline
-In-Reply-To: <028701cb1917$5313cd60$LocalHost@wipblrx0099946>
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B34A6712@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Hemanth V <hemanthv@ti.com> [100701 15:11]:
-> ----- Original Message ----- From: "Tony Lindgren"
-> <tony@atomide.com>
-> To: "Hemanth V" <hemanthv@ti.com>
-> Cc: <linux-omap@vger.kernel.org>
-> Sent: Thursday, July 01, 2010 4:07 PM
-> Subject: Re: [PATCH 2/2] OMAP4: Add support for PWM LED
+* Datta, Shubhrajyoti <shubhrajyoti@ti.com> [100617 09:14]:
+> Enabling hwmon and lm75 in the omap4 defconfig
 > 
-> 
-> >* Hemanth V <hemanthv@ti.com> [100630 17:12]:
-> >>From 713727188b99465341767eedaa42004862261211 Mon Sep 17 00:00:00 2001
-> >>From: Hemanth V <hemanthv@ti.com>
-> >>Date: Wed, 30 Jun 2010 18:16:33 +0530
-> >>Subject: [PATCH] OMAP4: Add support for PWM LED
-> >>
-> >>TWL6030 supports PWM (Pulse Width Modulator) which is used
-> >>to control charging LED. This allows for controlling brightness
-> >>This patch implements the APIs needed by leds-pwm driver.
-> >
-> ><snip>
-> >
-> >>--- /dev/null
-> >>+++ b/arch/arm/mach-omap2/twl6030_pwm.c
-> >>@@ -0,0 +1,168 @@
-> >>+/*
-> >>+ * twl6030_pwm.c
-> >>+ * Driver for PHOENIX (TWL6030) Pulse Width Modulator
-> >
-> >This should go to somewhere under drivers instead of
-> >arch/arm/mach-omap2.
-> 
-> Tony, since PWM is specific to each platform, they are typically
-> under platform folder. Some examples below
-> 
-> arch/arm/plat-mxc/pwm.c
-> arch/arm/plat-pxa/pwm.c
-> arch/arm/plat-samsung/pwm.c
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+>  arch/arm/configs/omap_4430sdp_defconfig |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>  mode change 100644 => 100755 arch/arm/configs/omap_4430sdp_defconfig
 
-But this is related to an external PM chip that can be
-potentially used for other chips than omaps.
+Again a bad mode change for a while.
+
+Sorry no more defconfig patches until the situation clears out
+on what they will be replaced with.
 
 Tony
