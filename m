@@ -1,150 +1,157 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCH] iovmm: add superpages support to fixed da address
-Date: Wed, 30 Jun 2010 19:00:30 -0500
-Message-ID: <1277942430-3629-1-git-send-email-x0095840@ti.com>
+Subject: [PATCHv3 9/9] dspbridge: cleanup bridge_dev_context and cfg_hostres structures
+Date: Wed, 30 Jun 2010 19:00:01 -0500
+Message-ID: <1277942401-3566-10-git-send-email-x0095840@ti.com>
+References: <1277942401-3566-1-git-send-email-x0095840@ti.com>
+ <1277942401-3566-2-git-send-email-x0095840@ti.com>
+ <1277942401-3566-3-git-send-email-x0095840@ti.com>
+ <1277942401-3566-4-git-send-email-x0095840@ti.com>
+ <1277942401-3566-5-git-send-email-x0095840@ti.com>
+ <1277942401-3566-6-git-send-email-x0095840@ti.com>
+ <1277942401-3566-7-git-send-email-x0095840@ti.com>
+ <1277942401-3566-8-git-send-email-x0095840@ti.com>
+ <1277942401-3566-9-git-send-email-x0095840@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37410 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52312 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757526Ab0F3Xut (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Jun 2010 19:50:49 -0400
+	id S1756056Ab0F3Xue (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Jun 2010 19:50:34 -0400
+In-Reply-To: <1277942401-3566-9-git-send-email-x0095840@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: ohad@wizery.com, hiroshi.doyo@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Fernando Guzman Lugo <x0095840@ti.com>
 
-This patch adds superpages support to fixed ad address
-inside iommu_kmap function.
+this patch cleans up cfg_hostres and bridge_dev_context
+structures of custom mmu code not needed anymore.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- arch/arm/plat-omap/iovmm.c |   52 +++++++++++++++++++++++++++-----------------
- 1 files changed, 32 insertions(+), 20 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/cfgdefs.h |    1 -
+ drivers/dsp/bridge/core/_tiomap.h              |    5 -----
+ drivers/dsp/bridge/core/tiomap3430.c           |    8 --------
+ drivers/dsp/bridge/core/tiomap_io.c            |    2 +-
+ drivers/dsp/bridge/rmgr/drv.c                  |    4 ----
+ 5 files changed, 1 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 936aef1..7cde09f 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -86,35 +86,45 @@ static size_t sgtable_len(const struct sg_table *sgt)
- }
- #define sgtable_ok(x)	(!!sgtable_len(x))
+diff --git a/arch/arm/plat-omap/include/dspbridge/cfgdefs.h b/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
+index 38122db..dfb55cc 100644
+--- a/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
+@@ -68,7 +68,6 @@ struct cfg_hostres {
+ 	void __iomem *dw_per_base;
+ 	u32 dw_per_pm_base;
+ 	u32 dw_core_pm_base;
+-	void __iomem *dw_dmmu_base;
+ 	void __iomem *dw_sys_ctrl_base;
+ };
  
-+
-+static inline unsigned max_alignment(u32 addr)
-+{
-+	int i;
-+	unsigned pagesize[] = { SZ_16M, SZ_1M, SZ_64K, SZ_4K, };
-+	for (i = 0; i < ARRAY_SIZE(pagesize) && addr & (pagesize[i] - 1); i++)
-+		;
-+	return (i < ARRAY_SIZE(pagesize)) ? pagesize[i] : 0;
-+}
-+
-+
- /*
-  * calculate the optimal number sg elements from total bytes based on
-  * iommu superpages
-  */
--static unsigned int sgtable_nents(size_t bytes)
-+static unsigned int sgtable_nents(size_t bytes, u32 da, u32 pa)
- {
--	int i;
--	unsigned int nr_entries;
--	const unsigned long pagesize[] = { SZ_16M, SZ_1M, SZ_64K, SZ_4K, };
-+	unsigned int nr_entries = 0, ent_sz;
+diff --git a/drivers/dsp/bridge/core/_tiomap.h b/drivers/dsp/bridge/core/_tiomap.h
+index 8a9a822..82bce7d 100644
+--- a/drivers/dsp/bridge/core/_tiomap.h
++++ b/drivers/dsp/bridge/core/_tiomap.h
+@@ -323,7 +323,6 @@ struct bridge_dev_context {
+ 	 */
+ 	u32 dw_dsp_ext_base_addr;	/* See the comment above */
+ 	u32 dw_api_reg_base;	/* API mem map'd registers */
+-	void __iomem *dw_dsp_mmu_base;	/* DSP MMU Mapped registers */
+ 	u32 dw_api_clk_base;	/* CLK Registers */
+ 	u32 dw_dsp_clk_m2_base;	/* DSP Clock Module m2 */
+ 	u32 dw_public_rhea;	/* Pub Rhea */
+@@ -347,10 +346,6 @@ struct bridge_dev_context {
+ 	/* DMMU TLB entries */
+ 	struct bridge_ioctl_extproc atlb_entry[BRDIOCTL_NUMOFMMUTLB];
+ 	u32 dw_brd_state;	/* Last known board state. */
+-	u32 ul_int_mask;	/* int mask */
+-	u16 io_base;		/* Board I/O base */
+-	u32 num_tlb_entries;	/* DSP MMU TLB entry counter */
+-	u32 fixed_tlb_entries;	/* Fixed DSPMMU TLB entry count */
  
- 	if (!IS_ALIGNED(bytes, PAGE_SIZE)) {
- 		pr_err("%s: wrong size %08x\n", __func__, bytes);
- 		return 0;
+ 	/* TC Settings */
+ 	bool tc_word_swap_on;	/* Traffic Controller Word Swap */
+diff --git a/drivers/dsp/bridge/core/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
+index aa6e999..83a9561 100644
+--- a/drivers/dsp/bridge/core/tiomap3430.c
++++ b/drivers/dsp/bridge/core/tiomap3430.c
+@@ -753,7 +753,6 @@ static int bridge_dev_create(OUT struct bridge_dev_context
+ 		dev_context->atlb_entry[entry_ndx].ul_gpp_pa =
+ 		    dev_context->atlb_entry[entry_ndx].ul_dsp_va = 0;
  	}
+-	dev_context->num_tlb_entries = 0;
+ 	dev_context->dw_dsp_base_addr = (u32) MEM_LINEAR_ADDRESS((void *)
+ 								 (pConfig->
+ 								  dw_mem_base
+@@ -766,11 +765,7 @@ static int bridge_dev_create(OUT struct bridge_dev_context
  
--	nr_entries = 0;
--	for (i = 0; i < ARRAY_SIZE(pagesize); i++) {
--		if (bytes >= pagesize[i]) {
--			nr_entries += (bytes / pagesize[i]);
--			bytes %= pagesize[i];
--		}
-+	while (bytes) {
-+		ent_sz = max_alignment(da | pa);
-+		ent_sz = min(ent_sz, (unsigned)iopgsz_max(bytes));
-+		nr_entries++;
-+		da += ent_sz;
-+		pa += ent_sz;
-+		bytes -= ent_sz;
- 	}
--	BUG_ON(bytes);
+ 	if (DSP_SUCCEEDED(status)) {
+ 		dev_context->tc_word_swap_on = drv_datap->tc_wordswapon;
+-		/* MMU address is obtained from the host
+-		 * resources struct */
+-		dev_context->dw_dsp_mmu_base = resources->dw_dmmu_base;
+ 		dev_context->hdev_obj = hdev_obj;
+-		dev_context->ul_int_mask = 0;
+ 		/* Store current board state. */
+ 		dev_context->dw_brd_state = BRD_STOPPED;
+ 		dev_context->resources = resources;
+@@ -887,8 +882,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *hDevContext)
+ 			iounmap((void *)host_res->dw_mem_base[3]);
+ 		if (host_res->dw_mem_base[4])
+ 			iounmap((void *)host_res->dw_mem_base[4]);
+-		if (host_res->dw_dmmu_base)
+-			iounmap(host_res->dw_dmmu_base);
+ 		if (host_res->dw_per_base)
+ 			iounmap(host_res->dw_per_base);
+ 		if (host_res->dw_per_pm_base)
+@@ -902,7 +895,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *hDevContext)
+ 		host_res->dw_mem_base[2] = (u32) NULL;
+ 		host_res->dw_mem_base[3] = (u32) NULL;
+ 		host_res->dw_mem_base[4] = (u32) NULL;
+-		host_res->dw_dmmu_base = NULL;
+ 		host_res->dw_sys_ctrl_base = NULL;
  
- 	return nr_entries;
- }
+ 		kfree(host_res);
+diff --git a/drivers/dsp/bridge/core/tiomap_io.c b/drivers/dsp/bridge/core/tiomap_io.c
+index 3c0d3a3..2f2f8c2 100644
+--- a/drivers/dsp/bridge/core/tiomap_io.c
++++ b/drivers/dsp/bridge/core/tiomap_io.c
+@@ -437,7 +437,7 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
+ 		omap_mbox_restore_ctx(dev_context->mbox);
  
- /* allocate and initialize sg_table header(a kind of 'superblock') */
--static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags)
-+static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags,
-+							u32 da, u32 pa)
- {
- 	unsigned int nr_entries;
- 	int err;
-@@ -126,9 +136,8 @@ static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags)
- 	if (!IS_ALIGNED(bytes, PAGE_SIZE))
- 		return ERR_PTR(-EINVAL);
+ 		/* Access MMU SYS CONFIG register to generate a short wakeup */
+-		__raw_readl(resources->dw_dmmu_base + 0x10);
++		iommu_read_reg(dev_context->dsp_mmu, MMU_SYSCONFIG);
  
--	/* FIXME: IOVMF_DA_FIXED should support 'superpages' */
--	if ((flags & IOVMF_LINEAR) && (flags & IOVMF_DA_ANON)) {
--		nr_entries = sgtable_nents(bytes);
-+	if (flags & IOVMF_LINEAR) {
-+		nr_entries = sgtable_nents(bytes, da, pa);
- 		if (!nr_entries)
- 			return ERR_PTR(-EINVAL);
- 	} else
-@@ -403,7 +412,8 @@ static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
- 	BUG_ON(!sgt);
- }
+ 		dev_context->dw_brd_state = BRD_RUNNING;
+ 	} else if (dev_context->dw_brd_state == BRD_RETENTION) {
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index c6e38e5..7804479 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -829,7 +829,6 @@ static int request_bridge_resources(struct cfg_hostres *res)
+ 	host_res->dw_sys_ctrl_base = ioremap(OMAP_SYSC_BASE, OMAP_SYSC_SIZE);
+ 	dev_dbg(bridge, "dw_mem_base[0] 0x%x\n", host_res->dw_mem_base[0]);
+ 	dev_dbg(bridge, "dw_mem_base[3] 0x%x\n", host_res->dw_mem_base[3]);
+-	dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
  
--static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_t len)
-+static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, u32 da,
-+								size_t len)
- {
- 	unsigned int i;
- 	struct scatterlist *sg;
-@@ -414,7 +424,8 @@ static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_t len)
- 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
- 		size_t bytes;
+ 	/* for 24xx base port is not mapping the mamory for DSP
+ 	 * internal memory TODO Do a ioremap here */
+@@ -883,8 +882,6 @@ int drv_request_bridge_res_dsp(void **phost_resources)
+ 							 OMAP_PER_PRM_SIZE);
+ 		host_res->dw_core_pm_base = (u32) ioremap(OMAP_CORE_PRM_BASE,
+ 							  OMAP_CORE_PRM_SIZE);
+-		host_res->dw_dmmu_base = ioremap(OMAP_DMMU_BASE,
+-						 OMAP_DMMU_SIZE);
  
--		bytes = iopgsz_max(len);
-+		bytes = max_alignment(da | pa);
-+		bytes = min(bytes, (size_t)iopgsz_max(len));
+ 		dev_dbg(bridge, "dw_mem_base[0] 0x%x\n",
+ 			host_res->dw_mem_base[0]);
+@@ -896,7 +893,6 @@ int drv_request_bridge_res_dsp(void **phost_resources)
+ 			host_res->dw_mem_base[3]);
+ 		dev_dbg(bridge, "dw_mem_base[4] 0x%x\n",
+ 			host_res->dw_mem_base[4]);
+-		dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
  
- 		BUG_ON(!iopgsz_ok(bytes));
- 
-@@ -423,6 +434,7 @@ static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_t len)
- 		 * 'pa' is cotinuous(linear).
- 		 */
- 		pa += bytes;
-+		da += bytes;
- 		len -= bytes;
- 	}
- 	BUG_ON(len);
-@@ -689,7 +701,7 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- 	if (!va)
- 		return -ENOMEM;
- 
--	sgt = sgtable_alloc(bytes, flags);
-+	sgt = sgtable_alloc(bytes, flags, da, 0);
- 	if (IS_ERR(sgt)) {
- 		da = PTR_ERR(sgt);
- 		goto err_sgt_alloc;
-@@ -740,11 +752,11 @@ static u32 __iommu_kmap(struct iommu *obj, u32 da, u32 pa, void *va,
- {
- 	struct sg_table *sgt;
- 
--	sgt = sgtable_alloc(bytes, flags);
-+	sgt = sgtable_alloc(bytes, flags, da, pa);
- 	if (IS_ERR(sgt))
- 		return PTR_ERR(sgt);
- 
--	sgtable_fill_kmalloc(sgt, pa, bytes);
-+	sgtable_fill_kmalloc(sgt, pa, da, bytes);
- 
- 	da = map_iommu_region(obj, da, sgt, va, bytes, flags);
- 	if (IS_ERR_VALUE(da)) {
+ 		shm_size = drv_datap->shm_size;
+ 		if (shm_size >= 0x10000) {
 -- 
-1.6.3.3
+1.7.0.4
 
