@@ -1,91 +1,155 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCHv3 0/9] dspbridge: iommu migration
-Date: Wed, 30 Jun 2010 19:09:48 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CBDD34E2@dlee06.ent.ti.com>
-References: <1277942401-3566-1-git-send-email-x0095840@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1277942401-3566-1-git-send-email-x0095840@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyo@nokia.com" <hiroshi.doyo@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCH 8/9] dspbridge: add map support for big buffers
+Date: Wed, 30 Jun 2010 19:20:59 -0500
+Message-ID: <1277943660-4112-9-git-send-email-x0095840@ti.com>
+References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
+ <1277943660-4112-2-git-send-email-x0095840@ti.com>
+ <1277943660-4112-3-git-send-email-x0095840@ti.com>
+ <1277943660-4112-4-git-send-email-x0095840@ti.com>
+ <1277943660-4112-5-git-send-email-x0095840@ti.com>
+ <1277943660-4112-6-git-send-email-x0095840@ti.com>
+ <1277943660-4112-7-git-send-email-x0095840@ti.com>
+ <1277943660-4112-8-git-send-email-x0095840@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48437 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932313Ab0GAALo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Jun 2010 20:11:44 -0400
+In-Reply-To: <1277943660-4112-8-git-send-email-x0095840@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: ohad@wizery.com, hiroshi.doyu@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Fernando Guzman Lugo <x0095840@ti.com>
 
+due to a restriction in scatter gather lists, it can
+not be created a list for a buffer bigger than 1MB.
+This patch is spliting big mappings into 1MB mappings.
 
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/dsp-mmu.h |    2 +-
+ drivers/dsp/bridge/core/dsp-mmu.c              |   55 ++++++++++++++---------
+ drivers/dsp/bridge/rmgr/proc.c                 |    3 +-
+ 3 files changed, 36 insertions(+), 24 deletions(-)
 
-Sorry wrong version of the patches. Please discard them.
+diff --git a/arch/arm/plat-omap/include/dspbridge/dsp-mmu.h b/arch/arm/plat-omap/include/dspbridge/dsp-mmu.h
+index 266f38b..2e4bf6a 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dsp-mmu.h
++++ b/arch/arm/plat-omap/include/dspbridge/dsp-mmu.h
+@@ -85,6 +85,6 @@ int user_to_dsp_map(struct iommu *mmu, u32 uva, u32 da, u32 size,
+  * This function unmaps a user space buffer into DSP virtual address.
+  *
+  */
+-int user_to_dsp_unmap(struct iommu *mmu, u32 da);
++int user_to_dsp_unmap(struct iommu *mmu, u32 da, unsigned size);
+ 
+ #endif
+diff --git a/drivers/dsp/bridge/core/dsp-mmu.c b/drivers/dsp/bridge/core/dsp-mmu.c
+index e8da327..9a46206 100644
+--- a/drivers/dsp/bridge/core/dsp-mmu.c
++++ b/drivers/dsp/bridge/core/dsp-mmu.c
+@@ -133,7 +133,7 @@ int user_to_dsp_map(struct iommu *mmu, u32 uva, u32 da, u32 size,
+ 						struct page **usr_pgs)
+ {
+ 	int res, w;
+-	unsigned pages, i;
++	unsigned pages, i, j = 0;
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 	struct sg_table *sgt;
+@@ -162,24 +162,31 @@ int user_to_dsp_map(struct iommu *mmu, u32 uva, u32 da, u32 size,
+ 	if (res < 0)
+ 		return res;
+ 
+-	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
++	while (pages) {
++		sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
+ 
+-	if (!sgt)
+-		return -ENOMEM;
++		if (!sgt)
++			return -ENOMEM;
+ 
+-	res = sg_alloc_table(sgt, pages, GFP_KERNEL);
++		res = sg_alloc_table(sgt,
++			min((unsigned)SG_MAX_SINGLE_ALLOC, pages), GFP_KERNEL);
++		pages -= min((unsigned)SG_MAX_SINGLE_ALLOC, pages);
+ 
+-	if (res < 0)
+-		goto err_sg;
++		if (res < 0)
++			goto err_sg;
++
++		for_each_sg(sgt->sgl, sg, sgt->nents, i)
++			sg_set_page(sg, usr_pgs[j++], PAGE_SIZE, 0);
+ 
+-	for_each_sg(sgt->sgl, sg, sgt->nents, i)
+-		sg_set_page(sg, usr_pgs[i], PAGE_SIZE, 0);
++		da = iommu_vmap(mmu, da, sgt, IOVMF_ENDIAN_LITTLE |
++							IOVMF_ELSZ_32);
+ 
+-	da = iommu_vmap(mmu, da, sgt, IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_32);
++		if (IS_ERR_VALUE(da)) {
++			res = (int)da;
++			goto err_map;
++		}
+ 
+-	if (IS_ERR_VALUE(da)) {
+-		res = (int)da;
+-		goto err_map;
++		da += SG_MAX_SINGLE_ALLOC * PAGE_SIZE;
+ 	}
+ 	return 0;
+ 
+@@ -198,21 +205,25 @@ err_sg:
+  * This function unmaps a user space buffer into DSP virtual address.
+  *
+  */
+-int user_to_dsp_unmap(struct iommu *mmu, u32 da)
++int user_to_dsp_unmap(struct iommu *mmu, u32 da, unsigned size)
+ {
+ 	unsigned i;
+ 	struct sg_table *sgt;
+ 	struct scatterlist *sg;
++	const unsigned max_sz = SG_MAX_SINGLE_ALLOC * PAGE_SIZE;
+ 
+-	sgt = iommu_vunmap(mmu, da);
+-	if (!sgt)
+-		return -EFAULT;
+-
+-	for_each_sg(sgt->sgl, sg, sgt->nents, i)
+-		put_page(sg_page(sg));
++	while (size) {
++		size -= min(max_sz, size);
++		sgt = iommu_vunmap(mmu, da);
++		if (!sgt)
++			return -EFAULT;
+ 
+-	sg_free_table(sgt);
+-	kfree(sgt);
++		for_each_sg(sgt->sgl, sg, sgt->nents, i)
++			put_page(sg_page(sg));
+ 
++		sg_free_table(sgt);
++		kfree(sgt);
++		da += max_sz;
++	}
+ 	return 0;
+ }
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 4f10a41..997918e 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -1713,7 +1713,8 @@ int proc_un_map(void *hprocessor, void *map_addr,
+ 	/* Remove mapping from the page tables. */
+ 	if (DSP_SUCCEEDED(status)) {
+ 		status = user_to_dsp_unmap(
+-			p_proc_object->hbridge_context->dsp_mmu, va_align);
++			p_proc_object->hbridge_context->dsp_mmu,
++			va_align, size_align);
+ 	}
+ 
+ 	mutex_unlock(&proc_lock);
+-- 
+1.6.3.3
 
-Sorry for the spam,
-Fernando.
-
-
-> -----Original Message-----
-> From: Guzman Lugo, Fernando
-> Sent: Wednesday, June 30, 2010 7:00 PM
-> To: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org
-> Cc: ohad@wizery.com; hiroshi.doyo@nokia.com; ameya.palande@nokia.com;
-> felipe.contreras@nokia.com; Guzman Lugo, Fernando
-> Subject: [PATCHv3 0/9] dspbridge: iommu migration
-> 
-> This set of patches remove the dspbridge custom mmu implementation
-> and use iommu module instead.
-> 
-> 
-> NOTE: in order to dspbridge can work properly the patch
-> "0001-iovmm-add-superpages-support-to-fixed-da-address.patch"
-> is needed (specifically iommu_kmap calls need this patch).
-> 
-> Fernando Guzman Lugo (9):
->   dspbridge: replace iommu custom for opensource implementation
->   dspbridge: move shared memory iommu maps to tiomap3430.c
->   dspbridge: rename bridge_brd_mem_map/unmap to a proper name
->   dspbridge: remove custom mmu code from tiomap3430.c
->   dspbridge: add mmufault support
->   dspbridge: remove hw directory
->   dspbridge: move all iommu related code to a new file
->   dspbridge: add map support for big buffers
->   dspbridge: cleanup bridge_dev_context and cfg_hostres structures
-> 
->  arch/arm/plat-omap/include/dspbridge/cfgdefs.h  |    1 -
->  arch/arm/plat-omap/include/dspbridge/dsp-mmu.h  |   90 ++
->  arch/arm/plat-omap/include/dspbridge/dspdefs.h  |   44 -
->  arch/arm/plat-omap/include/dspbridge/dspdeh.h   |    1 -
->  arch/arm/plat-omap/include/dspbridge/dspioctl.h |    7 -
->  drivers/dsp/bridge/Makefile                     |    5 +-
->  drivers/dsp/bridge/core/_deh.h                  |    3 -
->  drivers/dsp/bridge/core/_tiomap.h               |   15 +-
->  drivers/dsp/bridge/core/dsp-mmu.c               |  229 ++++
->  drivers/dsp/bridge/core/io_sm.c                 |  185 +---
->  drivers/dsp/bridge/core/mmu_fault.c             |  139 ---
->  drivers/dsp/bridge/core/mmu_fault.h             |   36 -
->  drivers/dsp/bridge/core/tiomap3430.c            | 1297 ++++--------------
-> -----
->  drivers/dsp/bridge/core/tiomap3430_pwr.c        |  183 +---
->  drivers/dsp/bridge/core/tiomap_io.c             |   16 +-
->  drivers/dsp/bridge/core/ue_deh.c                |   87 +--
->  drivers/dsp/bridge/hw/EasiGlobal.h              |   41 -
->  drivers/dsp/bridge/hw/GlobalTypes.h             |  308 ------
->  drivers/dsp/bridge/hw/MMUAccInt.h               |   76 --
->  drivers/dsp/bridge/hw/MMURegAcM.h               |  226 ----
->  drivers/dsp/bridge/hw/hw_defs.h                 |   60 --
->  drivers/dsp/bridge/hw/hw_mmu.c                  |  587 ----------
->  drivers/dsp/bridge/hw/hw_mmu.h                  |  161 ---
->  drivers/dsp/bridge/pmgr/dev.c                   |    2 -
->  drivers/dsp/bridge/rmgr/drv.c                   |    4 -
->  drivers/dsp/bridge/rmgr/node.c                  |    4 +-
->  drivers/dsp/bridge/rmgr/proc.c                  |   19 +-
->  27 files changed, 599 insertions(+), 3227 deletions(-)
->  create mode 100644 arch/arm/plat-omap/include/dspbridge/dsp-mmu.h
->  create mode 100644 drivers/dsp/bridge/core/dsp-mmu.c
->  delete mode 100644 drivers/dsp/bridge/core/mmu_fault.c
->  delete mode 100644 drivers/dsp/bridge/core/mmu_fault.h
->  delete mode 100644 drivers/dsp/bridge/hw/EasiGlobal.h
->  delete mode 100644 drivers/dsp/bridge/hw/GlobalTypes.h
->  delete mode 100644 drivers/dsp/bridge/hw/MMUAccInt.h
->  delete mode 100644 drivers/dsp/bridge/hw/MMURegAcM.h
->  delete mode 100644 drivers/dsp/bridge/hw/hw_defs.h
->  delete mode 100644 drivers/dsp/bridge/hw/hw_mmu.c
->  delete mode 100644 drivers/dsp/bridge/hw/hw_mmu.h
