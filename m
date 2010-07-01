@@ -1,73 +1,52 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [RFC][PATCH 3/8] OMAP: DSS2: Modify dss_recheck_connections
-Date: Thu, 01 Jul 2010 16:12:34 +0300
-Message-ID: <1277989954.2474.333.camel@tubuntu.research.nokia.com>
-References: <1277980285-20996-1-git-send-email-archit@ti.com>
-	 <1277980285-20996-2-git-send-email-archit@ti.com>
-	 <1277980285-20996-3-git-send-email-archit@ti.com>
-	 <1277980285-20996-4-git-send-email-archit@ti.com>
-	 <1277983917.2474.319.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC3560870305A419C2@dbde02.ent.ti.com>
+From: Christoph Egger <siccegge@cs.fau.de>
+Subject: Re: [PATCH 03/33] Removing dead OMAP_MUX_ERRORS
+Date: Thu, 1 Jul 2010 15:22:55 +0200
+Message-ID: <20100701132255.GA32541@faui48a.informatik.uni-erlangen.de>
+References: <cover.1277911345.git.siccegge@cs.fau.de> <b6ca168f9459162f2c96aa8ef999047a3c4f6f9c.1277911346.git.siccegge@cs.fau.de> <20100630195409.GC3969@shutemov.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:23527 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751564Ab0GANNJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 09:13:09 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870305A419C2@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100630195409.GC3969@shutemov.name>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Cory Maccarrone <darkstar6262@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, vamos@i4.informatik.uni-erlangen.de
 List-Id: linux-omap@vger.kernel.org
-To: "ext Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
 
-On Thu, 2010-07-01 at 14:28 +0200, ext Taneja, Archit wrote:
-> > On Thu, 2010-07-01 at 12:31 +0200, ext Archit Taneja wrote:
-> > > From: Sumit Semwal <sumit.semwal@ti.com>
-> > > 
-> > > The addition of the new 2lcd manager requires modifications in the 
-> > > dss_recheck_connections patch, this function behaves the 
-> > same if the 
-> > > 2lcd manager doesn't exist
-> > 
-> > Here (and also in the previous patch) you talk about 2lcd, 
-> > but the code uses lcd2.
+On Wed, Jun 30, 2010 at 10:54:09PM +0300, Kirill A. Shutemov wrote:
+> On Wed, Jun 30, 2010 at 05:54:42PM +0200, Christoph Egger wrote:
+> > OMAP_MUX_ERRORS doesn't exist in Kconfig, therefore removing all
+> > references for it from the source code.
 > 
-> Archit:  The new manager's name defined in manager.c is 2lcd,
-> The channel's name in the enum is OMAP_DSS_CHANNEL_LCD2, and
-> the overlay manager enum is OMAP_DSS_OVL_MGR_LCD2.
-> 
-> 2lcd as the manager name was taken so that no one makes mistakes
-> while reading/writing sysfs entries.
-> 
-> Also, in the dss2 code we use strncmp() to compare the manager
-> names in overlay_manager_store(). Now, if we name the new manager
-> as "lcd2", consider the following scenario:
-> 
-> Suppose an overlay has its manager presently set as "lcd2". Now
-> someone does a sysfs entry to make the manager as "lcd". So in this
-> case the variable buf is "lcd" and and mgr->name is "lcd2". The
-> variable len is calculated on the basis of buf ("lcd") as 3.
-> 
-> So strncmp just compares the first 3 chars, and in that case "lcd"
-> and "lcd2" are the same, luckily this doesn't cause an issue as the
-> first manager fetched by omap_dss_get_overlay_manager() is "lcd". If
-> the manager_list was filled in some other way then this would have
-> resulted an issue.
+> IIUC, CONFIG_OMAP_MUX_WARNINGS should be used here instead of it.
 
-If the DSS sysfs code if broken, let's rather fix it than name the
-manager with a rather strange name, just to circumvent a bug.
+Something like the patch below?
 
-> 
-> In my opinion, len should be calculated as:
-> 
-> len = max(len, strlen(mgr->name));
-> 
-> This way strncmp would work correctly in all the cases.
+----
+From: Christoph Egger <siccegge@cs.fau.de>
+Date: Wed, 30 Jun 2010 12:30:36 +0200
+Subject: [PATCH 03/33] Replace dead OMAP_MUX_ERRORS with OMAP_MUX_WARNINGS
 
-sysfs_streq() could be used there.
+OMAP_MUX_ERRORS doesn't exist in Kconfig, therefore replacing all
+references for it with OMAP_MUX_WARNINGS in the source code.
 
- Tomi
+Signed-off-by: Christoph Egger <siccegge@cs.fau.de>
+---
+ arch/arm/mach-omap1/mux.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-
+diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
+index 8434137..3e98835 100644
+--- a/arch/arm/mach-omap1/mux.c
++++ b/arch/arm/mach-omap1/mux.c
+@@ -440,7 +440,7 @@ int __init_or_module omap1_cfg_reg(const struct pin_config *cfg)
+ 	}
+ #endif
+ 
+-#ifdef CONFIG_OMAP_MUX_ERRORS
++#ifdef CONFIG_OMAP_MUX_WARNINGS
+ 	return warn ? -ETXTBSY : 0;
+ #else
+ 	return 0;
+-- 
+1.7.0.4
