@@ -1,87 +1,89 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: FW: [RFC][PATCH 4/8] OMAP: DSS2: OMAP4 Secondary LCD Channel DISPC
- Registers
-Date: Thu, 1 Jul 2010 17:35:23 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305A419A3@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: mux: Add api to retrieve padconf offset based on
+ muxname
+Date: Thu, 1 Jul 2010 15:15:56 +0300
+Message-ID: <20100701121556.GL2822@atomide.com>
+References: <48791.192.168.10.88.1276524799.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38446 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753462Ab0GAMF2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:05:28 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o61C5PrG013989
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 1 Jul 2010 07:05:27 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o61C5Or3028969
-	for <linux-omap@vger.kernel.org>; Thu, 1 Jul 2010 17:35:24 +0530 (IST)
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53403 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753789Ab0GAMPq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:15:46 -0400
+Content-Disposition: inline
+In-Reply-To: <48791.192.168.10.88.1276524799.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, Nil
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org
 
- Hi,
-
-> On Thu, 2010-07-01 at 12:31 +0200, ext Archit Taneja wrote:
-> > From: Semwal, Sumit <sumit.semwal@ti.com>
-> > 
-> > Introduce OMAP4 DISPC base address and Secondary LCD Channel 
-> > registers, use them in register dumps.
-
-<snip>
-
-> >  #define DISPC_DIVISOR			DISPC_REG(0x0070)
-> > +#define DISPC_DIVISOR1			DISPC_REG(0x0804)
+* Govindraj.R <govindraj.raja@ti.com> [100614 17:07]:
+> Adds a padconf offset retrieval api which will
+> get us the padconf offset based on muxname provided
+> which can be later used with omap_ctrl_writew,
+> omap_ctrl_readw calls for remuxing signals.
 > 
-> What is this?
-
-On OMAP4 there are 3 divisor registers, DIVISOR, DIVISOR1, DIVISOR2.
-The first one can divide the DSS_CLK coming from the PRCM for DISPC_FCLK,
-the last 2 provide pcd and lcd divisors for the 2 channels respectively.
-The addresses and the naming are a bit confusing:
-
-OMAP3:
-DISPC_DIVISOR - 0x0070
-
-OMAP4:
-DISPC_DIVISOR - 0x0804
-DISPC_DIVISOR1 - 0x0070
-DISPC_DIVISOR2 - 0x040C
-
-We really don't need this common divisor thing, so in order to make
-minimal changes in the code we swapped the names of DIVISOR and DIVISOR1,
-this also makes it fit well with the OMAP3 code.
-You will see that DIPC_DIVISOR1 is not used at all, I just added it
-for completeness, I will remove when I resubmit this series.
-
-<snip>
-
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+> Patch is based on earlier discussion with Tony
+> http://marc.info/?l=linux-omap&m=127609369220618&w=2
 > 
-> >  #define DISPC_GLOBAL_ALPHA		DISPC_REG(0x0074)
-> > +#define DISPC_DIVISOR2		DISPC_REG(0x040C)
-> > +#define DISPC_CONFIG2		DISPC_REG(0x0620)
-> > +
-> >  #define DISPC_MAX_NR_ISRS		8
+>  arch/arm/mach-omap2/mux.c |   17 +++++++++++++++++
+>  arch/arm/mach-omap2/mux.h |    6 ++++++
+>  2 files changed, 23 insertions(+), 0 deletions(-)
 > 
-> Would it be possible to have similar system to these registers as with 
-> for example the VID registers:
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 8b3d269..afe45ce 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -882,6 +882,23 @@ free:
 > 
-> DISPC_SIZE_LCD(n) where n is 0 or 1, or possibly the channel.
+>  #endif	/* CONFIG_OMAP_MUX */
 > 
-> This would reduce ifs quite a bit in the following patches.
+> +u16 omap_mux_request_signal(char *muxname)
+> +{
+> +	struct omap_mux_entry *e;
+> +	u16 offset = -EINVAL;
+> +
+> +	list_for_each_entry(e, &muxmodes, node) {
+> +		struct omap_mux *m = &e->mux;
+> +		char *m0_entry = m->muxnames[0];
+> +
+> +		if (!strcmp(muxname, m0_entry)) {
+> +			offset = m->reg_offset + OMAP_MUX_BASE_OFFSET;
+> +			break;
+> +		}
+> +	}
+> +	return offset;
+> +}
 
-Unfortunately, there is no linear mapping for the channel registers
-as it is in the video plane. But I agree it is still worth it to
-explicitly mention the addresses in the definitions.
-It would make the later patches much cleaner.
+You need to consider few more things..
 
-> 
->  Tomi
-> 
+Note that omap_mux_late_init frees the memory for all pins except
+for GPIO pins unless CONFIG_DEBUG_FS is set.
 
-Thanks,
+This means that omap_mux_request_signal needs to be __init function
+and accessible only in the board-*.c files. Then the board-*.c file
+can then implement it's pin muxing functions and pass the function 
+pointers along to a driver via platform data as needed. Then the
+driver can call the board specific function if implemented.
 
-Archit
+Then you need to also consider full pin names such as
+mcbsp2_clkx.gpio_12. Relying on the mode0 name is not enough
+as there can be multiple pinouts. Also from user point of view
+it is confusing to have to look up the mode0 name when 
+omap_mux_request_signal can do the work.
+
+Then you probably want to add a comment about using omap_mux_read/write
+on the returned offset to avoid accidentally modifying other
+registers :)
+
+Anyways, please also make sure you code does the right thing
+with CONFIG_OMAP_MUX set and not set, and CONFIG_DEBUG_FS
+set and not set.
+
+Regards,
+
+Tony
