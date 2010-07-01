@@ -1,15 +1,15 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [RFC 6/6] omap: enable remoteproc building
-Date: Fri,  2 Jul 2010 01:23:14 +0300
-Message-ID: <1278022994-28476-7-git-send-email-ohad@wizery.com>
+Subject: [RFC 5/6] omap: add remoteproc device(s)
+Date: Fri,  2 Jul 2010 01:23:13 +0300
+Message-ID: <1278022994-28476-6-git-send-email-ohad@wizery.com>
 References: <1278022994-28476-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:39213 "EHLO
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:49802 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933515Ab0GAWXo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 18:23:44 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 1so1212641bwz.19
-        for <linux-omap@vger.kernel.org>; Thu, 01 Jul 2010 15:23:44 -0700 (PDT)
+	with ESMTP id S1759822Ab0GAWXm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 18:23:42 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 1so1212780bwz.19
+        for <linux-omap@vger.kernel.org>; Thu, 01 Jul 2010 15:23:41 -0700 (PDT)
 In-Reply-To: <1278022994-28476-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,63 +18,135 @@ Cc: Kanigeri Hari <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohadb@ti.com>
 
 From: Ohad Ben-Cohen <ohadb@ti.com>
 
-Make it possible to build omap's remoteproc module
+Add an omap_device for each remote processor on the system
 
 Signed-off-by: Ohad Ben-Cohen <ohadb@ti.com>
 Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- arch/arm/mach-omap2/Makefile |    6 ++++++
- arch/arm/plat-omap/Kconfig   |    7 +++++++
- arch/arm/plat-omap/Makefile  |    1 +
- 3 files changed, 14 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c |   86 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 86 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 307f8b0..edb65b3 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -59,6 +59,12 @@ obj-$(CONFIG_OMAP3_EMU)		+= emu.o
- obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
- mailbox_mach-objs			:= mailbox.o
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 18ad931..d365db6 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -15,6 +15,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ #include <linux/clk.h>
++#include <linux/err.h>
  
-+ifneq ($(CONFIG_OMAP_REMOTE_PROC),)
-+obj-$(CONFIG_ARCH_OMAP2)		+= remoteproc24xx.o
-+obj-$(CONFIG_ARCH_OMAP3)		+= remoteproc3xxx.o
-+obj-$(CONFIG_ARCH_OMAP4)		+= remoteproc44xx.o
-+endif
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -26,9 +27,13 @@
+ #include <plat/mux.h>
+ #include <mach/gpio.h>
+ #include <plat/mmc.h>
++#include <plat/remoteproc.h>
+ 
+ #include "mux.h"
+ 
++#include <plat/omap_device.h>
++#include <plat/omap_hwmod.h>
 +
- iommu-y					+= iommu2.o
- iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
  
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index e2ea04a..e7d7372 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -96,6 +96,13 @@ config OMAP_MBOX_FWK
- 	  Say Y here if you want to use OMAP Mailbox framework support for
- 	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
+ static struct resource cam_resources[] = {
+@@ -136,6 +141,86 @@ static inline void omap_init_camera(void)
+ }
+ #endif
  
-+config OMAP_REMOTE_PROC
-+	bool "Remote Processor framework support"
-+	depends on ARCH_OMAP
-+	help
-+	  Say Y here if you want to use OMAP Remote Processor framework
-+	  support for DSP, Tesla and/or Ducati (OMAP3/4).
++#if defined(CONFIG_OMAP_REMOTE_PROC) || defined(CONFIG_OMAP_REMOTE_PROC_MODULE)
++static struct omap_device_pm_latency omap_rproc_latency[] = {
++	{
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func = omap_device_enable_hwmods,
++		.deactivate_lat = 1,
++		.activate_lat = 1,
++	},
++};
 +
- config OMAP_IOMMU
- 	tristate
++static struct omap_rproc_platform_data *omap_get_remoteproc_data(void)
++{
++	struct omap_rproc_platform_data *rproc_data = NULL;
++
++	if (cpu_is_omap3430() || cpu_is_omap3630())
++		rproc_data = omap3_get_rproc_data();
++	else if (cpu_is_omap44xx())
++		rproc_data = omap4_get_rproc_data();
++	else
++		pr_err("%s: platform not supported\n", __func__);
++
++	return rproc_data;
++}
++
++int omap_get_num_of_remoteproc(void)
++{
++	int num = -1;
++
++	if (cpu_is_omap3430() || cpu_is_omap3630())
++		num = omap3_get_rproc_data_size();
++	else if (cpu_is_omap44xx())
++		num = omap4_get_rproc_data_size();
++	else
++		pr_err("%s: platform not supported\n", __func__);
++
++	return num;
++}
++EXPORT_SYMBOL(omap_get_num_of_remoteproc);
++
++static inline void omap_init_rproc(void)
++{
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++	struct omap_device_pm_latency *ohl;
++	char *oh_name, *pdev_name;
++	int ohl_cnt = 0, i;
++	int rproc_data_size;
++	struct omap_rproc_platform_data *rproc_data;
++
++	pdev_name = "omap-rproc";
++	ohl = omap_rproc_latency;
++	ohl_cnt = ARRAY_SIZE(omap_rproc_latency);
++
++	rproc_data = omap_get_remoteproc_data();
++	rproc_data_size = omap_get_num_of_remoteproc();
++	if (rproc_data == NULL || rproc_data_size <= 0) {
++		pr_err("%s: platform not supported\n", __func__);
++		return;
++	}
++
++	for (i = 0; i < rproc_data_size; i++) {
++		oh_name = rproc_data[i].oh_name;
++		oh = omap_hwmod_lookup(oh_name);
++		if (!oh) {
++			pr_err("%s: could not look up %s\n", __func__, oh_name);
++			continue;
++		}
++
++		od = omap_device_build(pdev_name, i, oh,
++					&rproc_data[i],
++					sizeof(struct omap_rproc_platform_data),
++					ohl, ohl_cnt);
++		WARN(IS_ERR(od), "Could not build omap_device for %s %s\n",
++			pdev_name, oh_name);
++	}
++}
++#else
++static inline void omap_init_rproc(void) { }
++#endif /* CONFIG_OMAP_REMOTE_PROC */
++
+ #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
  
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 98f0191..bacb5c3 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -29,5 +29,6 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
- 
- # OMAP mailbox framework
- obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
-+obj-$(CONFIG_OMAP_REMOTE_PROC) += remoteproc.o
- 
- obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
-\ No newline at end of file
+ #define MBOX_REG_SIZE   0x120
+@@ -773,6 +858,7 @@ static int __init omap2_init_devices(void)
+ 	omap_hsmmc_reset();
+ 	omap_init_camera();
+ 	omap_init_mbox();
++	omap_init_rproc();
+ 	omap_init_mcspi();
+ 	omap_hdq_init();
+ 	omap_init_sti();
 -- 
 1.7.0.4
 
