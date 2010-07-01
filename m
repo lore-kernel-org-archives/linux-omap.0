@@ -1,34 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Enable lm75 and hwmon in OMAP4
-Date: Thu, 1 Jul 2010 15:27:22 +0300
-Message-ID: <20100701122722.GO2822@atomide.com>
-References: <0680EC522D0CC943BC586913CF3768C003B34A6712@dbde02.ent.ti.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [RFC][PATCH 3/8] OMAP: DSS2: Modify dss_recheck_connections
+Date: Thu, 1 Jul 2010 17:58:18 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305A419C2@dbde02.ent.ti.com>
+References: <1277980285-20996-1-git-send-email-archit@ti.com>
+	 <1277980285-20996-2-git-send-email-archit@ti.com>
+	 <1277980285-20996-3-git-send-email-archit@ti.com>
+	 <1277980285-20996-4-git-send-email-archit@ti.com>
+ <1277983917.2474.319.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53315 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753827Ab0GAM1M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:27:12 -0400
-Content-Disposition: inline
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B34A6712@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:36448 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754966Ab0GAM2Y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:28:24 -0400
+In-Reply-To: <1277983917.2474.319.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
 
-* Datta, Shubhrajyoti <shubhrajyoti@ti.com> [100617 09:14]:
-> Enabling hwmon and lm75 in the omap4 defconfig
+
+> On Thu, 2010-07-01 at 12:31 +0200, ext Archit Taneja wrote:
+> > From: Sumit Semwal <sumit.semwal@ti.com>
+> > 
+> > The addition of the new 2lcd manager requires modifications in the 
+> > dss_recheck_connections patch, this function behaves the 
+> same if the 
+> > 2lcd manager doesn't exist
 > 
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
->  arch/arm/configs/omap_4430sdp_defconfig |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->  mode change 100644 => 100755 arch/arm/configs/omap_4430sdp_defconfig
+> Here (and also in the previous patch) you talk about 2lcd, 
+> but the code uses lcd2.
 
-Again a bad mode change for a while.
+Archit:  The new manager's name defined in manager.c is 2lcd,
+The channel's name in the enum is OMAP_DSS_CHANNEL_LCD2, and
+the overlay manager enum is OMAP_DSS_OVL_MGR_LCD2.
 
-Sorry no more defconfig patches until the situation clears out
-on what they will be replaced with.
+2lcd as the manager name was taken so that no one makes mistakes
+while reading/writing sysfs entries.
 
-Tony
+Also, in the dss2 code we use strncmp() to compare the manager
+names in overlay_manager_store(). Now, if we name the new manager
+as "lcd2", consider the following scenario:
+
+Suppose an overlay has its manager presently set as "lcd2". Now
+someone does a sysfs entry to make the manager as "lcd". So in this
+case the variable buf is "lcd" and and mgr->name is "lcd2". The
+variable len is calculated on the basis of buf ("lcd") as 3.
+
+So strncmp just compares the first 3 chars, and in that case "lcd"
+and "lcd2" are the same, luckily this doesn't cause an issue as the
+first manager fetched by omap_dss_get_overlay_manager() is "lcd". If
+the manager_list was filled in some other way then this would have
+resulted an issue.
+
+In my opinion, len should be calculated as:
+
+len = max(len, strlen(mgr->name));
+
+This way strncmp would work correctly in all the cases.
+
+In order to take no risks, we named it as "2lcd".
+
+Thanks,
+
+Archit
+
+
