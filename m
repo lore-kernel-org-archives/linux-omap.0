@@ -1,28 +1,32 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/2] pandora updates for .36
-Date: Thu, 1 Jul 2010 14:24:42 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1007011424180.13691@utopia.booyaka.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 0/2] pandora updates for .36
+Date: Fri, 2 Jul 2010 01:59:01 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03216238DC@dbde02.ent.ti.com>
 References: <1278014301-24645-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48399 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752037Ab0GAUYn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 16:24:43 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44578 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752037Ab0GAUb0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 16:31:26 -0400
 In-Reply-To: <1278014301-24645-1-git-send-email-notasas@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
-On Thu, 1 Jul 2010, Grazvydas Ignotas wrote:
-
+Grazvydas Ignotas wrote:
+> 
+> Hi Tony,
+> 
 > here are some updates for Pandora, which we have now around 700 units
 > shipped (finally!) after years of developemt hell. More are being
 > made at the moment.
+> 
 
-Woohoo!  Congratulations to you and the rest of the team :-)
+Neat! Hope you sell a zillion. I'll try and buy one someday.
 
-
-- Paul
+- Anand
