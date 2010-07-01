@@ -1,51 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 2/2] OMAP4 HSMMC: Adding card detect support for
- MMC1 Controller
-Date: Thu, 1 Jul 2010 15:33:43 +0300
-Message-ID: <20100701123342.GQ2822@atomide.com>
-References: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
- <20100617131520.3b676052.akpm@linux-foundation.org>
+Subject: Re: [PATCH 2/2] arm: Make VFPv3 usable on ARMv6
+Date: Thu, 1 Jul 2010 15:42:53 +0300
+Message-ID: <20100701124252.GR2822@atomide.com>
+References: <20100621135125.24299.91290.stgit@baageli.muru.com>
+ <1277211592.29532.20.camel@e102109-lin.cambridge.arm.com>
+ <20100622132037.GV12255@atomide.com>
+ <20100623075703.GB12255@atomide.com>
+ <1277473838.13134.30.camel@e102109-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61421 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755770Ab0GAMdi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:33:38 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52325 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753624Ab0GAMmt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:42:49 -0400
 Content-Disposition: inline
-In-Reply-To: <20100617131520.3b676052.akpm@linux-foundation.org>
+In-Reply-To: <1277473838.13134.30.camel@e102109-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: kishore kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, adrian.hunter@nokia.com
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Andrew Morton <akpm@linux-foundation.org> [100617 23:09]:
-> On Thu, 17 Jun 2010 20:57:19 +0530 (IST)
-> "kishore kadiyala" <kishore.kadiyala@ti.com> wrote:
-> 
-> > Adding card detect callback function which gives the status of
-> > the card .For MMC1 Controller, Card detect interrupt source is
-> > twl6030 and card present/absent status is provided by MMCCTRL
-> > register of twl6030.
+* Catalin Marinas <catalin.marinas@arm.com> [100625 16:44]:
+> On Wed, 2010-06-23 at 08:57 +0100, Tony Lindgren wrote:
+> > MVFR0 and MVFR1 are only available starting with ARM1136 r1p0 release
+> > according to "B.5 VFP changes" in DDI0211F_arm1136_r1p0_trm.pdf. This is
+> > also when TLS register got added, so we can use HAS_TLS also to test for
+> > MVFR0 and MVFR1.
 > > 
-> > Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/board-4430sdp.c   |   11 +++++--
-> >  arch/arm/mach-omap2/hsmmc.c           |    1 +
-> >  arch/arm/plat-omap/include/plat/mmc.h |    1 +
-> >  drivers/mfd/twl6030-irq.c             |   23 ++++++++++++++++
-> >  drivers/mmc/host/omap_hsmmc.c         |   30 ++++++++++++++++++---
-> >  include/linux/i2c/twl.h               |   46 +++++++++++++++++++++++++++++++++
-> >  6 files changed, 104 insertions(+), 8 deletions(-)
+> > Otherwise VFPFMRX and VFPFMXR access fails and we get:
+> > 
+> > Internal error: Oops - undefined instruction: 0 [#1]
+> > PC is at no_old_VFP_process+0x8/0x3c
+> > LR is at __und_svc+0x48/0x80
+> > ...
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > 
-> I assume this depends on "[PATCH v5 1/2] OMAP HSMMC: Adding a Flag to
-> determine the type of Card detect"?
+> The new version looks fine to me.
 > 
-> It's all a bit too remote from my (ever-expanding) work area, so I'll
-> assume that Tony or someone will look after these.
- 
-Yeah we'll queue these via the omap patches once everybody is
-happy with them.
+> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+
+Thanks. Added your ack and posted to Russell's patch system:
+
+http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=6203/1
 
 Regards,
 
