@@ -1,64 +1,58 @@
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: Re: [PATCH 03/33] Removing dead OMAP_MUX_ERRORS
-Date: Thu, 1 Jul 2010 18:27:43 +0300
-Message-ID: <20100701152743.GA8588@shutemov.name>
-References: <cover.1277911345.git.siccegge@cs.fau.de>
- <b6ca168f9459162f2c96aa8ef999047a3c4f6f9c.1277911346.git.siccegge@cs.fau.de>
- <20100630195409.GC3969@shutemov.name>
- <20100701132255.GA32541@faui48a.informatik.uni-erlangen.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC][PATCH 4/8] OMAP: DSS2: OMAP4 Secondary LCD Channel DISPC
+ Registers
+Date: Thu, 1 Jul 2010 10:28:27 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1007011027070.1550@utopia.booyaka.com>
+References: <1277980285-20996-1-git-send-email-archit@ti.com> <1277980285-20996-2-git-send-email-archit@ti.com> <1277980285-20996-3-git-send-email-archit@ti.com> <1277980285-20996-4-git-send-email-archit@ti.com>
+ <1277980285-20996-5-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100701132255.GA32541@faui48a.informatik.uni-erlangen.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Egger <siccegge@cs.fau.de>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Cory Maccarrone <darkstar6262@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, vamos@i4.informatik.uni-erlangen.de
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:45040 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755748Ab0GAQ23 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 12:28:29 -0400
+In-Reply-To: <1277980285-20996-5-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, "Semwal, Sumit" <sumit.semwal@ti.com>, Senthilvadivu Guruswamy <svadivu@ti.com>, Mukund Mittal <mmittal@ti.com>, Samreen <samreen@ti.com>
 
-On Thu, Jul 01, 2010 at 03:22:55PM +0200, Christoph Egger wrote:
-> On Wed, Jun 30, 2010 at 10:54:09PM +0300, Kirill A. Shutemov wrote:
-> > On Wed, Jun 30, 2010 at 05:54:42PM +0200, Christoph Egger wrote:
-> > > OMAP_MUX_ERRORS doesn't exist in Kconfig, therefore removing all
-> > > references for it from the source code.
-> > 
-> > IIUC, CONFIG_OMAP_MUX_WARNINGS should be used here instead of it.
-> 
-> Something like the patch below?
+On Thu, 1 Jul 2010, Archit Taneja wrote:
 
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
-
+> From: Semwal, Sumit <sumit.semwal@ti.com>
 > 
-> ----
-> From: Christoph Egger <siccegge@cs.fau.de>
-> Date: Wed, 30 Jun 2010 12:30:36 +0200
-> Subject: [PATCH 03/33] Replace dead OMAP_MUX_ERRORS with OMAP_MUX_WARNINGS
+> Introduce OMAP4 DISPC base address and Secondary LCD Channel registers, use them
+> in register dumps.
 > 
-> OMAP_MUX_ERRORS doesn't exist in Kconfig, therefore replacing all
-> references for it with OMAP_MUX_WARNINGS in the source code.
-> 
-> Signed-off-by: Christoph Egger <siccegge@cs.fau.de>
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> Signed-off-by: Mukund Mittal <mmittal@ti.com>
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> Signed-off-by: Samreen <samreen@ti.com>
 > ---
->  arch/arm/mach-omap1/mux.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  drivers/video/omap2/dss/dispc.c |   42 ++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 41 insertions(+), 1 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
-> index 8434137..3e98835 100644
-> --- a/arch/arm/mach-omap1/mux.c
-> +++ b/arch/arm/mach-omap1/mux.c
-> @@ -440,7 +440,7 @@ int __init_or_module omap1_cfg_reg(const struct pin_config *cfg)
->  	}
->  #endif
+> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+> index 5ecdc00..08b36d6
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -41,9 +41,13 @@
+>  #include "dss.h"
 >  
-> -#ifdef CONFIG_OMAP_MUX_ERRORS
-> +#ifdef CONFIG_OMAP_MUX_WARNINGS
->  	return warn ? -ETXTBSY : 0;
->  #else
->  	return 0;
-> -- 
-> 1.7.0.4
-> 
-> 
+>  /* DISPC */
+> +#ifdef CONFIG_ARCH_OMAP4
+> +#define DISPC_BASE			0x58001000
+> +#define DISPC_SZ_REGS			SZ_16K
+> +#else
+>  #define DISPC_BASE			0x48050400
+> -
+>  #define DISPC_SZ_REGS			SZ_1K
+> +#endif
 
--- 
- Kirill A. Shutemov
+This will break multi-OMAP builds.  Instead, get the DISPC_BASE at runtime 
+through platform_get_resource*().
+
+
+- Paul
