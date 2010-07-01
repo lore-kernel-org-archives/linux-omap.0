@@ -1,39 +1,39 @@
-From: Kyungmin Park <kmpark@infradead.org>
-Subject: Re: [PATCH 13/16] omap: mux: Mux Apollon LCD power in board-apollon.c
-Date: Thu, 1 Jul 2010 19:41:16 +0900
-Message-ID: <AANLkTimbk7NP6VFT0WZAsBKVuY5jMZ3omNwhl7kR7b5A@mail.gmail.com>
-References: <20100630120226.2637.31198.stgit@baageli.muru.com>
-	<20100630120719.2637.65586.stgit@baageli.muru.com>
-	<1277967954.2474.269.camel@tubuntu.research.nokia.com>
-	<004d01cb18f5$ff27be80$fd773b80$%park@samsung.com>
-	<20100701103359.GI2822@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Sukumar Ghorai <s-ghorai@ti.com>
+Subject: [PATCH v2 0/4] nand prefetch-irq support and ecc layout chanage
+Date: Thu,  1 Jul 2010 16:12:11 +0530
+Message-ID: <1277980935-24070-1-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:33337 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751307Ab0GAKlT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 06:41:19 -0400
-Received: by pwi5 with SMTP id 5so93396pwi.19
-        for <linux-omap@vger.kernel.org>; Thu, 01 Jul 2010 03:41:16 -0700 (PDT)
-In-Reply-To: <20100701103359.GI2822@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44721 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754517Ab0GAKmW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Jul 2010 06:42:22 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-mtd@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>
 
-On Thu, Jul 1, 2010 at 7:33 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Kyungmin Park <kyungmin.park@samsung.com> [100701 11:12]:
->> Hi,
->>
->> This value is set from bootloader, and kernel side only change the mode.
->> Right it runs by luck.
->
-> So should we just drop the omap_cfg_reg for now, then add it back
-> later with proper gpio_request etc?
+   The following set of patches applies on top of for-next branch. And
+   is dependent on the following patches not yet applied onto this branch.
+	1. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30305.html
+	2. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30735.html
+   
+   v2: Rebase on latest codebase and previous patch(posted).	
+   v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26666.html
 
-I mean the original patch is okay. Now that's find. I'll send a patch
-if require.
+Sukumar Ghorai (4):
+	omap3: nand: prefetch in irq mode support
+	omap: nand: configurable fifo threshold to gain the throughput
+	omap: nand: ecc layout select from board file
+	omap: nand: making ecc layout as compatible with romcode ecc
 
-Thank you,
-Kyungmin Park
+ arch/arm/mach-omap2/board-flash.c              |    4 +-
+ arch/arm/mach-omap2/gpmc.c                     |   18 ++-
+ arch/arm/mach-omap2/include/mach/board-flash.h |    3 +
+ arch/arm/plat-omap/include/plat/gpmc.h         |    8 +-
+ arch/arm/plat-omap/include/plat/nand.h         |    7 +
+ drivers/mtd/nand/Kconfig                       |   14 +-
+ drivers/mtd/nand/omap2.c                       |  280 +++++++++++++++++++++---
+ 7 files changed, 300 insertions(+), 34 deletions(-)
+
+
+
