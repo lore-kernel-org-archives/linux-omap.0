@@ -1,42 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] OMAP4: Add support for PWM LED
-Date: Thu, 1 Jul 2010 13:37:28 +0300
-Message-ID: <20100701103727.GJ2822@atomide.com>
-References: <17175.10.24.255.18.1277906683.squirrel@dbdmail.itg.ti.com>
+From: Kyungmin Park <kmpark@infradead.org>
+Subject: Re: [PATCH 13/16] omap: mux: Mux Apollon LCD power in board-apollon.c
+Date: Thu, 1 Jul 2010 19:41:16 +0900
+Message-ID: <AANLkTimbk7NP6VFT0WZAsBKVuY5jMZ3omNwhl7kR7b5A@mail.gmail.com>
+References: <20100630120226.2637.31198.stgit@baageli.muru.com>
+	<20100630120719.2637.65586.stgit@baageli.muru.com>
+	<1277967954.2474.269.camel@tubuntu.research.nokia.com>
+	<004d01cb18f5$ff27be80$fd773b80$%park@samsung.com>
+	<20100701103359.GI2822@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51039 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752307Ab0GAKhU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 06:37:20 -0400
-Content-Disposition: inline
-In-Reply-To: <17175.10.24.255.18.1277906683.squirrel@dbdmail.itg.ti.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:33337 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab0GAKlT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 06:41:19 -0400
+Received: by pwi5 with SMTP id 5so93396pwi.19
+        for <linux-omap@vger.kernel.org>; Thu, 01 Jul 2010 03:41:16 -0700 (PDT)
+In-Reply-To: <20100701103359.GI2822@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Hemanth V <hemanthv@ti.com> [100630 17:12]:
-> From 713727188b99465341767eedaa42004862261211 Mon Sep 17 00:00:00 2001
-> From: Hemanth V <hemanthv@ti.com>
-> Date: Wed, 30 Jun 2010 18:16:33 +0530
-> Subject: [PATCH] OMAP4: Add support for PWM LED
-> 
-> TWL6030 supports PWM (Pulse Width Modulator) which is used
-> to control charging LED. This allows for controlling brightness
-> This patch implements the APIs needed by leds-pwm driver.
+On Thu, Jul 1, 2010 at 7:33 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Kyungmin Park <kyungmin.park@samsung.com> [100701 11:12]:
+>> Hi,
+>>
+>> This value is set from bootloader, and kernel side only change the mode.
+>> Right it runs by luck.
+>
+> So should we just drop the omap_cfg_reg for now, then add it back
+> later with proper gpio_request etc?
 
-<snip>
+I mean the original patch is okay. Now that's find. I'll send a patch
+if require.
 
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/twl6030_pwm.c
-> @@ -0,0 +1,168 @@
-> +/*
-> + * twl6030_pwm.c
-> + * Driver for PHOENIX (TWL6030) Pulse Width Modulator
-
-This should go to somewhere under drivers instead of
-arch/arm/mach-omap2.
-
-Tony
+Thank you,
+Kyungmin Park
