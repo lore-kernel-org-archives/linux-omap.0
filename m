@@ -1,61 +1,115 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCHv3 5/9] dspbridge: add mmufault support
-Date: Thu, 1 Jul 2010 13:26:35 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CBDD3777@dlee06.ent.ti.com>
-References: <1277942401-3566-1-git-send-email-x0095840@ti.com>
- <1277942401-3566-2-git-send-email-x0095840@ti.com>
- <1277942401-3566-3-git-send-email-x0095840@ti.com>
- <1277942401-3566-4-git-send-email-x0095840@ti.com>
- <1277942401-3566-5-git-send-email-x0095840@ti.com>
- <1277942401-3566-6-git-send-email-x0095840@ti.com>
- <8F7AF80515AF0D4D93307E594F3CB40E4CA563BC@dlee03.ent.ti.com>
- <496565EC904933469F292DDA3F1663E602CBDD373C@dlee06.ent.ti.com>
- <8F7AF80515AF0D4D93307E594F3CB40E4CA5645D@dlee03.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH V4 0/2] OMAP3: Dynamic Calculation of SDRC stall latency
+ during DVFS
+Date: Thu, 1 Jul 2010 12:42:17 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1007011235090.13691@utopia.booyaka.com>
+References: <> <1270142216-18118-1-git-send-email-pramod.gurav@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0322986980@dbde02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB03232DAE08@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38773 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758123Ab0GAS0m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 14:26:42 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4CA5645D@dlee03.ent.ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:43035 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932297Ab0GASmS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 14:42:18 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03232DAE08@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "ohad@wizery.com" <ohad@wizery.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: "Gurav , Pramod" <pramod.gurav@ti.com>, teerth@ti.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, b-cousson@ti.com, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
+Pramod, Teerth,
 
+On Mon, 7 Jun 2010, Gurav , Pramod wrote:
 
-> -----Original Message-----
-> From: Kanigeri, Hari
-> Sent: Thursday, July 01, 2010 1:04 PM
-> To: Guzman Lugo, Fernando; linux-omap@vger.kernel.org; linux-
-> kernel@vger.kernel.org
-> Cc: ohad@wizery.com; Hiroshi DOYU; ameya.palande@nokia.com;
-> felipe.contreras@nokia.com
-> Subject: RE: [PATCHv3 5/9] dspbridge: add mmufault support
+> Can you please push these patches if you don't you are OK with them?
+
+As we discussed in Bangalore, these patches need some changes:
+
+1. The delay needs to be precisely characterized in terms of what the 
+hardware actually needs.  It should not be necessary to add any extra 
+timing slop, due to unknown sources, in the code.  Unknown sources of 
+delay can cause problems if, for example, a customer changes some board 
+characteristics (such as sys_clk frequency, or DPLL multipliers/dividers) 
+that the delay depends on.
+
+Also, my understanding is that RX-51 shipped without unknown timing 
+factors in this code.  Please work with the hardware people to precisely 
+characterize the delay, assuming that it does not match what is documented 
+in the TRM.
+
+2. Please split out the individual components of the delay calculation to 
+the code that handles those clocks.  For example, HSDIVIDER change delay 
+should be calculated by code that handles the HSDIVIDER.  DPLL relock 
+delay should be calculated by code in the dpll*.c files.  etc.
+
+regards
+
+- Paul
+
+> -
+> Thanks and Best Regards
+> Pramod Gurav
 > 
-> > > > +	da = iommu_read_reg(mmu, MMU_FAULT_AD);
-> > > > +	iommu_write_reg(mmu, 0, MMU_IRQENABLE);
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Gurav , Pramod
+> > Sent: Friday, April 23, 2010 7:53 PM
+> > To: linux-omap@vger.kernel.org; Paul Walmsley; Kevin Hilman
+> > Cc: Sripathy, Vishwanath; K, Ambresh
+> > Subject: RE: [PATCH V4 0/2] OMAP3: Dynamic Calculation of SDRC stall
+> > latency during DVFS
+> > 
+> > Hi Paul,
+> > 
+> > Please let me know if you have any comments on the patches below.
+> > The comments from Kevin, Ambresh and Sergio have been addressed in the
+> > last version of the patches and few in these patches.
+> > 
+> > > -----Original Message-----
+> > > From: Gurav , Pramod
+> > > Sent: Thursday, April 01, 2010 10:47 PM
+> > > To: linux-omap@vger.kernel.org
+> > > Cc: Gurav , Pramod
+> > > Subject: [PATCH V4 0/2] OMAP3: Dynamic Calculation of SDRC stall latency
+> > > during DVFS
 > > >
-> > > -- Isn't the MMU already enabled at this point when the function
-> > callback
-> > > is called by iommu ?
-> >
-> > This line is actually disabling the interrupts. I am writing "0x0" in
-> the
-> > MMU_IRQENABLE.
+> > > From: Pramod Gurav <pramod.gurav@ti.com>
+> > >
+> > > The patch has the changes to calculate the dpll3 clock stabilization
+> > > delay dynamically. The SRAM delay is calibrated during bootup using the
+> > > gptimers and used while calculating the stabilization delay. By using
+> > > the dynamic method the dependency on the type of cache being used is
+> > > removed.
+> > >
+> > > Formula to calculate the DVFS latency for 3430 and 3630 are different.
+> > > The second patch implements the formula for later.
+> > >
+> > > This Version of patches adds optimisation to the formula implementation.
+> > >
+> > > Teerth Reddy (1):
+> > >   OMAP3: SDRC: Dynamic Calculation of SDRC stall latency during DVFS
+> > > Pramod Gurav (1):
+> > >   OMAP3630 SDRC: Change in DVFS Latency Formula for OMAP3630
+> > >
+> > >  arch/arm/mach-omap2/clkt34xx_dpll3m2.c |   71
+> > > +++++++++++++++++++++++++++-----
+> > >  arch/arm/mach-omap2/clock34xx.h        |    2 +
+> > >  arch/arm/mach-omap2/clock3xxx.c        |    2 +-
+> > >  arch/arm/mach-omap2/clock3xxx.h        |    1 +
+> > >  arch/arm/mach-omap2/clock3xxx_data.c   |   13 ++++++
+> > >  arch/arm/mach-omap2/sram34xx.S         |    8 ++++
+> > >  arch/arm/plat-omap/include/plat/sram.h |    4 ++
+> > >  arch/arm/plat-omap/sram.c              |   51 +++++++++++++++++++++++
+> > >  8 files changed, 140 insertions(+), 12 deletions(-)
+> > 
+> > 
+> > 
+> > -
+> > Thanks and Best Regards
+> > Pramod Gurav
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> -- oops ! sorry about that. Didn't pay attention to 0x0. Yes, this should
-> work.
-
-Not problem :). Could you please comment in the second set of patches I sent? The previous ones have version 3 which is not correct, that was a version I was using internally, but the patches shouldn't have sent to mailing list with that version. Because it is the first version posted.
-
-Thanks and regards,
-Fernando.
-
-> 
-> Best regards,
-> Hari
