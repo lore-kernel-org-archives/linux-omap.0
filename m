@@ -1,45 +1,52 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: RE: [RFC] [PATCH] Board changes for tmp105 temperature sensor
-Date: Thu, 1 Jul 2010 18:02:30 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003B360314E@dbde02.ent.ti.com>
-References: <0680EC522D0CC943BC586913CF3768C003B34A6404@dbde02.ent.ti.com>
- <20100701121711.GM2822@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 2/2] OMAP4 HSMMC: Adding card detect support for
+ MMC1 Controller
+Date: Thu, 1 Jul 2010 15:33:43 +0300
+Message-ID: <20100701123342.GQ2822@atomide.com>
+References: <43584.10.24.255.17.1276788439.squirrel@dbdmail.itg.ti.com>
+ <20100617131520.3b676052.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49102 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755651Ab0GAMdB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:33:01 -0400
-In-Reply-To: <20100701121711.GM2822@atomide.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61421 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755770Ab0GAMdi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 08:33:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20100617131520.3b676052.akpm@linux-foundation.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: kishore kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, adrian.hunter@nokia.com
 
-Hi Tony,
-
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, July 01, 2010 5:47 PM
-> To: Datta, Shubhrajyoti
-> Cc: linux-omap@vger.kernel.org; LM Sensors
-> Subject: Re: [RFC] [PATCH] Board changes for tmp105 temperature sensor
+* Andrew Morton <akpm@linux-foundation.org> [100617 23:09]:
+> On Thu, 17 Jun 2010 20:57:19 +0530 (IST)
+> "kishore kadiyala" <kishore.kadiyala@ti.com> wrote:
 > 
-> * Datta, Shubhrajyoti <shubhrajyoti@ti.com> [100615 17:40]:
-> > Adding board configuration for the tmp105
-> > temperature sensor. The interface to the sensor
-> > is I2C.
-> >
-> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> > Adding card detect callback function which gives the status of
+> > the card .For MMC1 Controller, Card detect interrupt source is
+> > twl6030 and card present/absent status is provided by MMCCTRL
+> > register of twl6030.
+> > 
+> > Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
 > > ---
-> >  arch/arm/mach-omap2/board-4430sdp.c |    8 +++++++-
-> >  1 files changed, 7 insertions(+), 1 deletions(-)
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/board-4430sdp.c
+> >  arch/arm/mach-omap2/board-4430sdp.c   |   11 +++++--
+> >  arch/arm/mach-omap2/hsmmc.c           |    1 +
+> >  arch/arm/plat-omap/include/plat/mmc.h |    1 +
+> >  drivers/mfd/twl6030-irq.c             |   23 ++++++++++++++++
+> >  drivers/mmc/host/omap_hsmmc.c         |   30 ++++++++++++++++++---
+> >  include/linux/i2c/twl.h               |   46 +++++++++++++++++++++++++++++++++
+> >  6 files changed, 104 insertions(+), 8 deletions(-)
 > 
-> Please be careful with the mode changes.
-Will send a corrected patch
+> I assume this depends on "[PATCH v5 1/2] OMAP HSMMC: Adding a Flag to
+> determine the type of Card detect"?
 > 
-> Tony
+> It's all a bit too remote from my (ever-expanding) work area, so I'll
+> assume that Tony or someone will look after these.
+ 
+Yeah we'll queue these via the omap patches once everybody is
+happy with them.
+
+Regards,
+
+Tony
