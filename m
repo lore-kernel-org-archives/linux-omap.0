@@ -1,152 +1,270 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCH 9/9] dspbridge: cleanup bridge_dev_context and cfg_hostres structures
-Date: Wed, 30 Jun 2010 19:21:00 -0500
-Message-ID: <1277943660-4112-10-git-send-email-x0095840@ti.com>
+Subject: [PATCH 3/9] dspbridge: rename bridge_brd_mem_map/unmap to a proper name
+Date: Wed, 30 Jun 2010 19:20:54 -0500
+Message-ID: <1277943660-4112-4-git-send-email-x0095840@ti.com>
 References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
  <1277943660-4112-2-git-send-email-x0095840@ti.com>
  <1277943660-4112-3-git-send-email-x0095840@ti.com>
- <1277943660-4112-4-git-send-email-x0095840@ti.com>
- <1277943660-4112-5-git-send-email-x0095840@ti.com>
- <1277943660-4112-6-git-send-email-x0095840@ti.com>
- <1277943660-4112-7-git-send-email-x0095840@ti.com>
- <1277943660-4112-8-git-send-email-x0095840@ti.com>
- <1277943660-4112-9-git-send-email-x0095840@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1277943660-4112-9-git-send-email-x0095840@ti.com>
+In-Reply-To: <1277943660-4112-3-git-send-email-x0095840@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: ohad@wizery.com, hiroshi.doyu@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Fernando Guzman Lugo <x0095840@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-this patch cleans up cfg_hostres and bridge_dev_context
-structures of custom mmu code not needed anymore.
+Now these functions only map user space addresses to dsp virtual
+addresses, so now the functions have a more meaningful name
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/cfgdefs.h |    1 -
- drivers/dsp/bridge/core/_tiomap.h              |    5 -----
- drivers/dsp/bridge/core/tiomap3430.c           |    8 --------
- drivers/dsp/bridge/core/tiomap_io.c            |    2 +-
- drivers/dsp/bridge/rmgr/drv.c                  |    4 ----
- 5 files changed, 1 insertions(+), 19 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/dspdefs.h |   44 --------------------
+ drivers/dsp/bridge/core/_tiomap.h              |   25 +++++++++++
+ drivers/dsp/bridge/core/tiomap3430.c           |   52 ++++++++++--------------
+ drivers/dsp/bridge/pmgr/dev.c                  |    2 -
+ drivers/dsp/bridge/rmgr/proc.c                 |   12 +++--
+ 5 files changed, 53 insertions(+), 82 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/cfgdefs.h b/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-index 38122db..dfb55cc 100644
---- a/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/cfgdefs.h
-@@ -68,7 +68,6 @@ struct cfg_hostres {
- 	void __iomem *dw_per_base;
- 	u32 dw_per_pm_base;
- 	u32 dw_core_pm_base;
--	void __iomem *dw_dmmu_base;
- 	void __iomem *dw_sys_ctrl_base;
- };
+diff --git a/arch/arm/plat-omap/include/dspbridge/dspdefs.h b/arch/arm/plat-omap/include/dspbridge/dspdefs.h
+index 493f62e..4f56ae6 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dspdefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/dspdefs.h
+@@ -162,48 +162,6 @@ typedef int(*fxn_brd_memwrite) (struct bridge_dev_context
+ 				       u32 ulMemType);
  
+ /*
+- *  ======== bridge_brd_mem_map ========
+- *  Purpose:
+- *      Map a MPU memory region to a DSP/IVA memory space
+- *  Parameters:
+- *      hDevContext:    Handle to Bridge driver defined device info.
+- *      ul_mpu_addr:      MPU memory region start address.
+- *      ulVirtAddr:     DSP/IVA memory region u8 address.
+- *      ul_num_bytes:     Number of bytes to map.
+- *      map_attrs:       Mapping attributes (e.g. endianness).
+- *  Returns:
+- *      0:        Success.
+- *      -EPERM:      Other, unspecified error.
+- *  Requires:
+- *      hDevContext != NULL;
+- *  Ensures:
+- */
+-typedef int(*fxn_brd_memmap) (struct bridge_dev_context
+-				     * hDevContext, u32 ul_mpu_addr,
+-				     u32 ulVirtAddr, u32 ul_num_bytes,
+-				     u32 ulMapAttrs,
+-				     struct page **mapped_pages);
+-
+-/*
+- *  ======== bridge_brd_mem_un_map ========
+- *  Purpose:
+- *      UnMap an MPU memory region from DSP/IVA memory space
+- *  Parameters:
+- *      hDevContext:    Handle to Bridge driver defined device info.
+- *      ulVirtAddr:     DSP/IVA memory region u8 address.
+- *      ul_num_bytes:     Number of bytes to unmap.
+- *  Returns:
+- *      0:        Success.
+- *      -EPERM:      Other, unspecified error.
+- *  Requires:
+- *      hDevContext != NULL;
+- *  Ensures:
+- */
+-typedef int(*fxn_brd_memunmap) (struct bridge_dev_context
+-				       * hDevContext,
+-				       u32 ulVirtAddr, u32 ul_num_bytes);
+-
+-/*
+  *  ======== bridge_brd_stop ========
+  *  Purpose:
+  *      Bring board to the BRD_STOPPED state.
+@@ -1061,8 +1019,6 @@ struct bridge_drv_interface {
+ 	fxn_brd_setstate pfn_brd_set_state;	/* Sets the Board State */
+ 	fxn_brd_memcopy pfn_brd_mem_copy;	/* Copies DSP Memory */
+ 	fxn_brd_memwrite pfn_brd_mem_write;	/* Write DSP Memory w/o halt */
+-	fxn_brd_memmap pfn_brd_mem_map;	/* Maps MPU mem to DSP mem */
+-	fxn_brd_memunmap pfn_brd_mem_un_map;	/* Unmaps MPU mem to DSP mem */
+ 	fxn_chnl_create pfn_chnl_create;	/* Create channel manager. */
+ 	fxn_chnl_destroy pfn_chnl_destroy;	/* Destroy channel manager. */
+ 	fxn_chnl_open pfn_chnl_open;	/* Create a new channel. */
 diff --git a/drivers/dsp/bridge/core/_tiomap.h b/drivers/dsp/bridge/core/_tiomap.h
-index 8a9a822..82bce7d 100644
+index 6a822c6..4aa2358 100644
 --- a/drivers/dsp/bridge/core/_tiomap.h
 +++ b/drivers/dsp/bridge/core/_tiomap.h
-@@ -323,7 +323,6 @@ struct bridge_dev_context {
- 	 */
- 	u32 dw_dsp_ext_base_addr;	/* See the comment above */
- 	u32 dw_api_reg_base;	/* API mem map'd registers */
--	void __iomem *dw_dsp_mmu_base;	/* DSP MMU Mapped registers */
- 	u32 dw_api_clk_base;	/* CLK Registers */
- 	u32 dw_dsp_clk_m2_base;	/* DSP Clock Module m2 */
- 	u32 dw_public_rhea;	/* Pub Rhea */
-@@ -347,10 +346,6 @@ struct bridge_dev_context {
- 	/* DMMU TLB entries */
- 	struct bridge_ioctl_extproc atlb_entry[BRDIOCTL_NUMOFMMUTLB];
- 	u32 dw_brd_state;	/* Last known board state. */
--	u32 ul_int_mask;	/* int mask */
--	u16 io_base;		/* Board I/O base */
--	u32 num_tlb_entries;	/* DSP MMU TLB entry counter */
--	u32 fixed_tlb_entries;	/* Fixed DSPMMU TLB entry count */
+@@ -396,4 +396,29 @@ static inline void dsp_iotlb_init(struct iotlb_entry *e, u32 da, u32 pa,
+ 	e->mixed = 0;
+ }
  
- 	/* TC Settings */
- 	bool tc_word_swap_on;	/* Traffic Controller Word Swap */
++/**
++ * user_to_dsp_map() - maps user to dsp virtual address
++ * @mmu:	Pointer to iommu handle.
++ * @uva:		Virtual user space address.
++ * @da		DSP address
++ * @size		Buffer size to map.
++ * @usr_pgs	struct page array pointer where the user pages will be stored
++ *
++ * This function maps a user space buffer into DSP virtual address.
++ *
++ */
++
++int user_to_dsp_map(struct iommu *mmu, u32 uva, u32 da, u32 size,
++						struct page **usr_pgs);
++
++/**
++ * user_to_dsp_unmap() - unmaps DSP virtual buffer.
++ * @mmu:	Pointer to iommu handle.
++ * @da		DSP address
++ *
++ * This function unmaps a user space buffer into DSP virtual address.
++ *
++ */
++int user_to_dsp_unmap(struct iommu *mmu, u32 da);
++
+ #endif /* _TIOMAP_ */
 diff --git a/drivers/dsp/bridge/core/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
-index aa6e999..83a9561 100644
+index 89d4936..88f5167 100644
 --- a/drivers/dsp/bridge/core/tiomap3430.c
 +++ b/drivers/dsp/bridge/core/tiomap3430.c
-@@ -753,7 +753,6 @@ static int bridge_dev_create(OUT struct bridge_dev_context
- 		dev_context->atlb_entry[entry_ndx].ul_gpp_pa =
- 		    dev_context->atlb_entry[entry_ndx].ul_dsp_va = 0;
+@@ -98,12 +98,6 @@ static int bridge_brd_mem_copy(struct bridge_dev_context *hDevContext,
+ static int bridge_brd_mem_write(struct bridge_dev_context *dev_context,
+ 				    IN u8 *pbHostBuf, u32 dwDSPAddr,
+ 				    u32 ul_num_bytes, u32 ulMemType);
+-static int bridge_brd_mem_map(struct bridge_dev_context *hDevContext,
+-				  u32 ul_mpu_addr, u32 ulVirtAddr,
+-				  u32 ul_num_bytes, u32 ul_map_attr,
+-				  struct page **mapped_pages);
+-static int bridge_brd_mem_un_map(struct bridge_dev_context *hDevContext,
+-				     u32 ulVirtAddr, u32 ul_num_bytes);
+ static int bridge_dev_create(OUT struct bridge_dev_context
+ 					**ppDevContext,
+ 					struct dev_object *hdev_obj,
+@@ -181,8 +175,6 @@ static struct bridge_drv_interface drv_interface_fxns = {
+ 	bridge_brd_set_state,
+ 	bridge_brd_mem_copy,
+ 	bridge_brd_mem_write,
+-	bridge_brd_mem_map,
+-	bridge_brd_mem_un_map,
+ 	/* The following CHNL functions are provided by chnl_io.lib: */
+ 	bridge_chnl_create,
+ 	bridge_chnl_destroy,
+@@ -1221,22 +1213,24 @@ static int bridge_brd_mem_write(struct bridge_dev_context *hDevContext,
+ 	return status;
+ }
+ 
+-/*
+- *  ======== bridge_brd_mem_map ========
+- *      This function maps MPU buffer to the DSP address space. It performs
+- *  linear to physical address translation if required. It translates each
+- *  page since linear addresses can be physically non-contiguous
+- *  All address & size arguments are assumed to be page aligned (in proc.c)
++/**
++ * user_to_dsp_map() - maps user to dsp virtual address
++ * @mmu:	Pointer to iommu handle.
++ * @uva:		Virtual user space address.
++ * @da		DSP address
++ * @size		Buffer size to map.
++ * @usr_pgs	struct page array pointer where the user pages will be stored
++ *
++ * This function maps a user space buffer into DSP virtual address.
+  *
+- *  TODO: Disable MMU while updating the page tables (but that'll stall DSP)
+  */
+-static int bridge_brd_mem_map(struct bridge_dev_context *dev_ctx,
+-			u32 uva, u32 da, u32 size, u32 attr,
+-			struct page **usr_pgs)
++
++int user_to_dsp_map(struct iommu *mmu, u32 uva, u32 da, u32 size,
++						struct page **usr_pgs)
++
+ {
+ 	int res, w;
+ 	unsigned pages, i;
+-	struct iommu *mmu = dev_ctx->dsp_mmu;
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 	struct sg_table *sgt;
+@@ -1293,25 +1287,21 @@ err_sg:
+ 	return res;
+ }
+ 
+-/*
+- *  ======== bridge_brd_mem_un_map ========
+- *      Invalidate the PTEs for the DSP VA block to be unmapped.
++/**
++ * user_to_dsp_unmap() - unmaps DSP virtual buffer.
++ * @mmu:	Pointer to iommu handle.
++ * @da		DSP address
++ *
++ * This function unmaps a user space buffer into DSP virtual address.
+  *
+- *      PTEs of a mapped memory block are contiguous in any page table
+- *      So, instead of looking up the PTE address for every 4K block,
+- *      we clear consecutive PTEs until we unmap all the bytes
+  */
+-static int bridge_brd_mem_un_map(struct bridge_dev_context *dev_ctx,
+-				     u32 da, u32 size)
++int user_to_dsp_unmap(struct iommu *mmu, u32 da)
+ {
+ 	unsigned i;
+ 	struct sg_table *sgt;
+ 	struct scatterlist *sg;
+ 
+-	if (!size)
+-		return -EINVAL;
+-
+-	sgt = iommu_vunmap(dev_ctx->dsp_mmu, da);
++	sgt = iommu_vunmap(mmu, da);
+ 	if (!sgt)
+ 		return -EFAULT;
+ 
+diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
+index 50a5d97..39c1faf 100644
+--- a/drivers/dsp/bridge/pmgr/dev.c
++++ b/drivers/dsp/bridge/pmgr/dev.c
+@@ -1101,8 +1101,6 @@ static void store_interface_fxns(struct bridge_drv_interface *drv_fxns,
+ 		STORE_FXN(fxn_brd_setstate, pfn_brd_set_state);
+ 		STORE_FXN(fxn_brd_memcopy, pfn_brd_mem_copy);
+ 		STORE_FXN(fxn_brd_memwrite, pfn_brd_mem_write);
+-		STORE_FXN(fxn_brd_memmap, pfn_brd_mem_map);
+-		STORE_FXN(fxn_brd_memunmap, pfn_brd_mem_un_map);
+ 		STORE_FXN(fxn_chnl_create, pfn_chnl_create);
+ 		STORE_FXN(fxn_chnl_destroy, pfn_chnl_destroy);
+ 		STORE_FXN(fxn_chnl_open, pfn_chnl_open);
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index c5a8b6b..299bef3 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -53,6 +53,7 @@
+ #include <dspbridge/msg.h>
+ #include <dspbridge/dspioctl.h>
+ #include <dspbridge/drv.h>
++#include <_tiomap.h>
+ 
+ /*  ----------------------------------- This */
+ #include <dspbridge/proc.h>
+@@ -1384,9 +1385,10 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 		if (!map_obj)
+ 			status = -ENOMEM;
+ 		else
+-			status = (*p_proc_object->intf_fxns->pfn_brd_mem_map)
+-			    (p_proc_object->hbridge_context, pa_align, va_align,
+-			     size_align, ul_map_attr, map_obj->pages);
++			status = user_to_dsp_map(
++				p_proc_object->hbridge_context->dsp_mmu,
++				pa_align, va_align, size_align,
++				map_obj->pages);
  	}
--	dev_context->num_tlb_entries = 0;
- 	dev_context->dw_dsp_base_addr = (u32) MEM_LINEAR_ADDRESS((void *)
- 								 (pConfig->
- 								  dw_mem_base
-@@ -766,11 +765,7 @@ static int bridge_dev_create(OUT struct bridge_dev_context
- 
  	if (DSP_SUCCEEDED(status)) {
- 		dev_context->tc_word_swap_on = drv_datap->tc_wordswapon;
--		/* MMU address is obtained from the host
--		 * resources struct */
--		dev_context->dw_dsp_mmu_base = resources->dw_dmmu_base;
- 		dev_context->hdev_obj = hdev_obj;
--		dev_context->ul_int_mask = 0;
- 		/* Store current board state. */
- 		dev_context->dw_brd_state = BRD_STOPPED;
- 		dev_context->resources = resources;
-@@ -887,8 +882,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *hDevContext)
- 			iounmap((void *)host_res->dw_mem_base[3]);
- 		if (host_res->dw_mem_base[4])
- 			iounmap((void *)host_res->dw_mem_base[4]);
--		if (host_res->dw_dmmu_base)
--			iounmap(host_res->dw_dmmu_base);
- 		if (host_res->dw_per_base)
- 			iounmap(host_res->dw_per_base);
- 		if (host_res->dw_per_pm_base)
-@@ -902,7 +895,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *hDevContext)
- 		host_res->dw_mem_base[2] = (u32) NULL;
- 		host_res->dw_mem_base[3] = (u32) NULL;
- 		host_res->dw_mem_base[4] = (u32) NULL;
--		host_res->dw_dmmu_base = NULL;
- 		host_res->dw_sys_ctrl_base = NULL;
+ 		/* Mapped address = MSB of VA | LSB of PA */
+@@ -1714,8 +1716,8 @@ int proc_un_map(void *hprocessor, void *map_addr,
+ 	status = dmm_un_map_memory(dmm_mgr, (u32) va_align, &size_align);
+ 	/* Remove mapping from the page tables. */
+ 	if (DSP_SUCCEEDED(status)) {
+-		status = (*p_proc_object->intf_fxns->pfn_brd_mem_un_map)
+-		    (p_proc_object->hbridge_context, va_align, size_align);
++		status = user_to_dsp_unmap(
++			p_proc_object->hbridge_context->dsp_mmu, va_align);
+ 	}
  
- 		kfree(host_res);
-diff --git a/drivers/dsp/bridge/core/tiomap_io.c b/drivers/dsp/bridge/core/tiomap_io.c
-index 3c0d3a3..2f2f8c2 100644
---- a/drivers/dsp/bridge/core/tiomap_io.c
-+++ b/drivers/dsp/bridge/core/tiomap_io.c
-@@ -437,7 +437,7 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
- 		omap_mbox_restore_ctx(dev_context->mbox);
- 
- 		/* Access MMU SYS CONFIG register to generate a short wakeup */
--		__raw_readl(resources->dw_dmmu_base + 0x10);
-+		iommu_read_reg(dev_context->dsp_mmu, MMU_SYSCONFIG);
- 
- 		dev_context->dw_brd_state = BRD_RUNNING;
- 	} else if (dev_context->dw_brd_state == BRD_RETENTION) {
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index c6e38e5..7804479 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -829,7 +829,6 @@ static int request_bridge_resources(struct cfg_hostres *res)
- 	host_res->dw_sys_ctrl_base = ioremap(OMAP_SYSC_BASE, OMAP_SYSC_SIZE);
- 	dev_dbg(bridge, "dw_mem_base[0] 0x%x\n", host_res->dw_mem_base[0]);
- 	dev_dbg(bridge, "dw_mem_base[3] 0x%x\n", host_res->dw_mem_base[3]);
--	dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
- 
- 	/* for 24xx base port is not mapping the mamory for DSP
- 	 * internal memory TODO Do a ioremap here */
-@@ -883,8 +882,6 @@ int drv_request_bridge_res_dsp(void **phost_resources)
- 							 OMAP_PER_PRM_SIZE);
- 		host_res->dw_core_pm_base = (u32) ioremap(OMAP_CORE_PRM_BASE,
- 							  OMAP_CORE_PRM_SIZE);
--		host_res->dw_dmmu_base = ioremap(OMAP_DMMU_BASE,
--						 OMAP_DMMU_SIZE);
- 
- 		dev_dbg(bridge, "dw_mem_base[0] 0x%x\n",
- 			host_res->dw_mem_base[0]);
-@@ -896,7 +893,6 @@ int drv_request_bridge_res_dsp(void **phost_resources)
- 			host_res->dw_mem_base[3]);
- 		dev_dbg(bridge, "dw_mem_base[4] 0x%x\n",
- 			host_res->dw_mem_base[4]);
--		dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
- 
- 		shm_size = drv_datap->shm_size;
- 		if (shm_size >= 0x10000) {
+ 	mutex_unlock(&proc_lock);
 -- 
 1.6.3.3
