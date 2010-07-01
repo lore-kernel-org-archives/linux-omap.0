@@ -1,93 +1,63 @@
-From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v7 8/8] omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP board
-Date: Thu,  1 Jul 2010 15:42:24 +0530
-Message-ID: <1277979144-2210-1-git-send-email-leslyam@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [RFC][PATCH 0/8] OMAP: DSS2: Overlay Manager LCD2 support in DISPC
+Date: Thu,  1 Jul 2010 16:01:17 +0530
+Message-ID: <1277980285-20996-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59122 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755152Ab0GAKPw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 06:15:52 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:34566 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755045Ab0GAKbd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Jul 2010 06:31:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: tomi.valkeinen@nokia.com, "Semwal, Sumit" <sumit.semwal@ti.com>
 
-Adding the power script data for zoom board to TWL4030 platform data.
-Updating the sleep/wakeup/warm_reset sequence & resource configuration
-from generic script file.
+From: Semwal, Sumit <sumit.semwal@ti.com>
 
-Signed-off-by: Lesly A M <leslyam@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: David Derrick <dderrick@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
----
- arch/arm/mach-omap2/Makefile                 |    9 ++++++---
- arch/arm/mach-omap2/board-zoom-peripherals.c |    6 ++++++
- 2 files changed, 12 insertions(+), 3 deletions(-)
+This patch series incorporates changes in DSS2 to enable
+omap_dss_device instances to use the new Overlay Manager LCD2 in
+DISPC.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f60dca3..ba3de05 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -137,14 +137,17 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
- 					   board-zoom-peripherals.o \
- 					   hsmmc.o \
--					   board-zoom-debugboard.o
-+					   board-zoom-debugboard.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
- 					   board-zoom-peripherals.o \
- 					   hsmmc.o \
--					   board-zoom-debugboard.o
-+					   board-zoom-debugboard.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
- 					   board-zoom-peripherals.o \
--					   hsmmc.o
-+					   hsmmc.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o \
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 6b39849..ea9b921 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -26,6 +26,7 @@
- 
- #include "mux.h"
- #include "hsmmc.h"
-+#include "twl4030.h"
- 
- /* Zoom2 has Qwerty keyboard*/
- static int board_keymap[] = {
-@@ -94,6 +95,8 @@ static struct twl4030_keypad_data zoom_kp_twl4030_data = {
- 	.rep		= 1,
- };
- 
-+static struct __initdata twl4030_power_data zoom_t2scripts_data;
-+
- static struct regulator_consumer_supply zoom_vmmc1_supply = {
- 	.supply		= "vmmc",
- };
-@@ -239,6 +242,7 @@ static struct twl4030_platform_data zoom_twldata = {
- 	.usb		= &zoom_usb_data,
- 	.gpio		= &zoom_gpio_data,
- 	.keypad		= &zoom_kp_twl4030_data,
-+	.power		= &zoom_t2scripts_data,
- 	.codec		= &zoom_codec_data,
- 	.vmmc1          = &zoom_vmmc1,
- 	.vmmc2          = &zoom_vmmc2,
-@@ -279,6 +283,8 @@ static void enable_board_wakeup_source(void)
- 
- void __init zoom_peripherals_init(void)
- {
-+	twl4030_get_scripts(&zoom_t2scripts_data);
-+
- 	omap_i2c_init();
- 	usb_musb_init(&musb_board_data);
- 	enable_board_wakeup_source();
--- 
-1.7.0.4
+On OMAP4, we have a new DISPC channel for Overlay Manager LCD2. This
+channel's video port is a source port for RFBI, DSI2 and DPI. The
+Primary channel's video port is connected to RFBI and DSI1.
 
+There is a set of regsiters for LCD2 channel similar to the existing
+LCD channel, like DISPC_CONTROL2, DISPC_DIVISOR2, DISPC_CONFIG2 and so
+on.
+
+In order to decide which LCD Overlay Manager to configure(LCD/LCD2),
+there is a need for the omap_dss_device instances to tell the interface
+drivers(DSI, DPI, RFBI etc) which LCD channel they want to connect to, so
+that the corresponding registers get configured. Therefore, a new
+enum omap_channel member is introduced to omap_dss_device.
+
+This design was made keeping in mind the possible addition of more
+Overlay Managers in future OMAPs, this code is also backward compatible
+with OMAP3 as omap_dss_device instances in OMAP3 will stick only with
+OMAP_DSS_CHANNEL_LCD.
+
+Sumit Semwal (7):
+  OMAP: DSS2: Overlay Manager LCD2 changes in dispay.h
+  OMAP: DSS2: Add new Overlay Manager
+  OMAP: DSS2: Modify dss_recheck_connections
+  OMAP: DSS2: OMAP4 Secondary LCD Channel DISPC Registers
+  OMAP: DSS2: Secondary LCD Channel in DISPC functions
+  OMAP: DSS2: Secondary LCD Channel DISPC IRQs
+  OMAP: DSS2: Interface driver changes for Secondary LCD Channel
+
+Mayuresh Janorkar (1)
+  OMAP: DSS2: Context Save and Restore of DISPC registers for Secondary LCD
+
+ arch/arm/plat-omap/include/plat/display.h |    7 +
+ drivers/video/omap2/dss/core.c            |    2 +-
+ drivers/video/omap2/dss/dispc.c           |  478 +++++++++++++++++++++++------
+ drivers/video/omap2/dss/dpi.c             |   38 ++-
+ drivers/video/omap2/dss/dsi.c             |   22 +-
+ drivers/video/omap2/dss/dss.h             |   37 ++-
+ drivers/video/omap2/dss/manager.c         |   87 ++++--
+ drivers/video/omap2/dss/overlay.c         |   14 +-
+ drivers/video/omap2/dss/rfbi.c            |   21 +-
+ drivers/video/omap2/dss/sdi.c             |   22 +-
+ 10 files changed, 536 insertions(+), 192 deletions(-)
+--
