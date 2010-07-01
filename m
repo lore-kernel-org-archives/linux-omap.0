@@ -1,187 +1,130 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v7 7/8] omap3: pm: Use generic TRITON power scripts for 3430SDP board
-Date: Thu,  1 Jul 2010 15:42:18 +0530
-Message-ID: <1277979138-2177-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH v7 5/8] omap3: pm: changing vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure
+Date: Thu,  1 Jul 2010 15:42:02 +0530
+Message-ID: <1277979122-2113-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33643 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755082Ab0GAKPq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Jul 2010 06:15:46 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59111 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755099Ab0GAKPa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 06:15:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-This patch has the changes to remove the sleep/wakeup/warm_rest sequence &
-resource configuration from the 3430SDP board file and use the generic script.
+Renaming vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure,
+since there is no VDD0. It's VDD1 voltage domain with processor voltage &
+VDD2 voltage domain with CORE voltage.
 
-Updating the sleep/wakeup/warm_rest sequence & resource configuration in the
-board file from generic script file.
+VDD1 voltage specific values are stored in PRM_VC_CMD_VAL_0 register &
+VDD2 voltage specific values are stored in PRM_VC_CMD_VAL_1 register.
+
+PRM_VC_CMD_VAL_n (n = 0/1 for VDD1/VDD2):
+ON_voltage[31:24], ONLP_voltage[23:16], RET_voltage[15:8], OFF_voltage[14:0]
 
 Signed-off-by: Lesly A M <leslyam@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/mach-omap2/Makefile        |    3 +-
- arch/arm/mach-omap2/board-3430sdp.c |   92 +---------------------------------
- include/linux/i2c/twl.h             |    4 ++
- 3 files changed, 9 insertions(+), 90 deletions(-)
+ arch/arm/mach-omap2/voltage.c |   34 +++++++++++++++++-----------------
+ arch/arm/mach-omap2/voltage.h |   10 +++++-----
+ 2 files changed, 22 insertions(+), 22 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 184badd..f60dca3 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -127,7 +127,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
- 					   hsmmc.o \
--					   board-sdp-flash.o
-+					   board-sdp-flash.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-sdram.o \
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index c7f0fa8..b5786e2 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -46,6 +46,7 @@
- #include "mux.h"
- #include "sdram-qimonda-hyb18m512160af-6.h"
- #include "hsmmc.h"
-+#include "twl4030.h"
- #include "pm.h"
- #include "omap3-opp.h"
- #include "smartreflex-class3.h"
-@@ -424,95 +425,7 @@ static struct twl4030_madc_platform_data sdp3430_madc_data = {
- 	.irq_line	= 1,
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 1be1ccf..a496d19 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -147,14 +147,14 @@ struct __initdata prm_setup_vc omap3430_vc_config = {
+ 		.voltoffset = 0x32,
+ 	},
+ 	/* VC COMMAND VALUES for VDD1/VDD2 */
+-	.vdd0_on = 0x30,        /* 1.2v */
+-	.vdd0_onlp = 0x20,      /* 1.0v */
+-	.vdd0_ret = 0x1e,       /* 0.975v */
+-	.vdd0_off = 0x00,       /* 0.6v */
+-	.vdd1_on = 0x2c,        /* 1.15v */
++	.vdd1_on = 0x30,        /* 1.2v */
+ 	.vdd1_onlp = 0x20,      /* 1.0v */
+-	.vdd1_ret = 0x1e,       /* .975v */
++	.vdd1_ret = 0x1e,       /* 0.975v */
+ 	.vdd1_off = 0x00,       /* 0.6v */
++	.vdd2_on = 0x2c,        /* 1.15v */
++	.vdd2_onlp = 0x20,      /* 1.0v */
++	.vdd2_ret = 0x1e,       /* 0.975v */
++	.vdd2_off = 0x00,       /* 0.6v */
  };
  
--
--static struct twl4030_ins __initdata sleep_on_seq[] = {
--	/* Turn off HFCLKOUT */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_OFF), 2},
--	/* Turn OFF VDD1 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 2},
--	/* Turn OFF VDD2 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
--	/* Turn OFF VPLL1 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 2},
--};
--
--static struct twl4030_script sleep_on_script __initdata = {
--	.script	= sleep_on_seq,
--	.size	= ARRAY_SIZE(sleep_on_seq),
--	.flags	= TWL4030_SLEEP_SCRIPT,
--};
--
--static struct twl4030_ins wakeup_p12_seq[] __initdata = {
--	/* Turn on HFCLKOUT */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
--	/* Turn ON VDD1 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 2},
--	/* Turn ON VDD2 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 2},
--	/* Turn ON VPLL1 */
--	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 2},
--};
--
--static struct twl4030_script wakeup_p12_script __initdata = {
--	.script	= wakeup_p12_seq,
--	.size	= ARRAY_SIZE(wakeup_p12_seq),
--	.flags	= TWL4030_WAKEUP12_SCRIPT,
--};
--
--static struct twl4030_ins wakeup_p3_seq[] __initdata = {
--	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
--};
--
--static struct twl4030_script wakeup_p3_script __initdata = {
--	.script = wakeup_p3_seq,
--	.size   = ARRAY_SIZE(wakeup_p3_seq),
--	.flags  = TWL4030_WAKEUP3_SCRIPT,
--};
--
--static struct twl4030_ins wrst_seq[] __initdata = {
--/*
-- * Reset twl4030.
-- * Reset VDD1 regulator.
-- * Reset VDD2 regulator.
-- * Reset VPLL1 regulator.
-- * Enable sysclk output.
-- * Reenable twl4030.
-- */
--	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
--	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
--	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
--	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
--	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
--	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
--};
--static struct twl4030_script wrst_script __initdata = {
--	.script = wrst_seq,
--	.size   = ARRAY_SIZE(wrst_seq),
--	.flags  = TWL4030_WRST_SCRIPT,
--};
--
--static struct twl4030_script *twl4030_scripts[] __initdata = {
--	&sleep_on_script,
--	&wakeup_p12_script,
--	&wakeup_p3_script,
--	&wrst_script,
--};
--
--static struct twl4030_resconfig twl4030_rconfig[] = {
--	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
--		.type2 = -1 },
--	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
--		.type2 = -1 },
--	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
--		.type2 = -1 },
--	{ 0, 0},
--};
--
--static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
--	.scripts	= twl4030_scripts,
--	.num		= ARRAY_SIZE(twl4030_scripts),
--	.resource_config = twl4030_rconfig,
--};
-+static struct __initdata twl4030_power_data sdp3430_t2scripts_data;
- 
  /*
-  * Apply all the fixed voltages since most versions of U-Boot
-@@ -877,6 +790,7 @@ static struct omap_musb_board_data musb_board_data = {
+@@ -178,14 +178,14 @@ struct __initdata prm_setup_vc omap3630_vc_config = {
+ 		.voltoffset = 0x32,
+ 	},
+ 	/* VC COMMAND VALUES for VDD1/VDD2 */
+-	.vdd0_on = 0x28,	/* 1.1v */
+-	.vdd0_onlp = 0x20,	/* 1.0v */
+-	.vdd0_ret = 0x13,	/* 0.83v */
+-	.vdd0_off = 0x00,	/* 0.6v */
+-	.vdd1_on = 0x2B,	/* 1.1375v */
++	.vdd1_on = 0x28,	/* 1.1v */
+ 	.vdd1_onlp = 0x20,	/* 1.0v */
+ 	.vdd1_ret = 0x13,	/* 0.83v */
+ 	.vdd1_off = 0x00,	/* 0.6v */
++	.vdd2_on = 0x2B,	/* 1.1375v */
++	.vdd2_onlp = 0x20,	/* 1.0v */
++	.vdd2_ret = 0x13,	/* 0.83v */
++	.vdd2_off = 0x00,	/* 0.6v */
+ };
  
- static void __init omap_3430sdp_init(void)
- {
-+	twl4030_get_scripts(&sdp3430_t2scripts_data);
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap3430_i2c_init();
- 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index fb6784e..2e00e83 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -371,6 +371,7 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
- #define DEV_GRP_P1		0x1	/* P1: all OMAP devices */
- #define DEV_GRP_P2		0x2	/* P2: all Modem devices */
- #define DEV_GRP_P3		0x4	/* P3: all peripheral devices */
-+#define DEV_GRP_ALL		0x7	/* P1/P2/P3: all devices */
+ static struct prm_setup_vc vc_config;
+@@ -279,17 +279,17 @@ static void __init init_voltagecontroller(void)
+ 			VC_VOLRA0_SHIFT));
  
- /* Resource groups */
- #define RES_GRP_RES		0x0	/* Reserved */
-@@ -383,7 +384,10 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
- #define RES_GRP_ALL		0x7	/* All resource groups */
+ 	voltage_write_reg(vc_reg.cmdval0_reg,
+-			(vc_config.vdd0_on << VC_CMD_ON_SHIFT) |
+-			(vc_config.vdd0_onlp << VC_CMD_ONLP_SHIFT) |
+-			(vc_config.vdd0_ret << VC_CMD_RET_SHIFT) |
+-			(vc_config.vdd0_off << VC_CMD_OFF_SHIFT));
+-
+-	voltage_write_reg(vc_reg.cmdval1_reg,
+ 			(vc_config.vdd1_on << VC_CMD_ON_SHIFT) |
+ 			(vc_config.vdd1_onlp << VC_CMD_ONLP_SHIFT) |
+ 			(vc_config.vdd1_ret << VC_CMD_RET_SHIFT) |
+ 			(vc_config.vdd1_off << VC_CMD_OFF_SHIFT));
  
- #define RES_TYPE2_R0		0x0
-+#define RES_TYPE2_R1		0x1
-+#define RES_TYPE2_R2		0x2
++	voltage_write_reg(vc_reg.cmdval1_reg,
++			(vc_config.vdd2_on << VC_CMD_ON_SHIFT) |
++			(vc_config.vdd2_onlp << VC_CMD_ONLP_SHIFT) |
++			(vc_config.vdd2_ret << VC_CMD_RET_SHIFT) |
++			(vc_config.vdd2_off << VC_CMD_OFF_SHIFT));
++
+ 	voltage_write_reg(vc_ch_conf_reg, VC_CMD1 | VC_RAV1);
  
-+#define RES_TYPE_R0		0x0
- #define RES_TYPE_ALL		0x7
+ 	voltage_write_reg(vc_i2c_cfg_reg, VC_MCODE_SHIFT | VC_HSEN);
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 9ca20e5..bfd5048 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -28,15 +28,15 @@ struct prm_setup_vc {
+ 	/* CLK & VOLT SETUPTIME for OFF */
+ 	struct setuptime_vc off;
+ 	/* PRM_VC_CMD_VAL_0 specific bits */
+-	u16 vdd0_on;
+-	u16 vdd0_onlp;
+-	u16 vdd0_ret;
+-	u16 vdd0_off;
+-	/* PRM_VC_CMD_VAL_1 specific bits */
+ 	u16 vdd1_on;
+ 	u16 vdd1_onlp;
+ 	u16 vdd1_ret;
+ 	u16 vdd1_off;
++	/* PRM_VC_CMD_VAL_1 specific bits */
++	u16 vdd2_on;
++	u16 vdd2_onlp;
++	u16 vdd2_ret;
++	u16 vdd2_off;
+ };
  
- /* Resource states */
+ #define VOLTSCALE_VPFORCEUPDATE		1
 -- 
 1.7.0.4
 
