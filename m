@@ -1,270 +1,150 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCHv3 5/9] dspbridge: add mmufault support
-Date: Wed, 30 Jun 2010 18:59:57 -0500
-Message-ID: <1277942401-3566-6-git-send-email-x0095840@ti.com>
-References: <1277942401-3566-1-git-send-email-x0095840@ti.com>
- <1277942401-3566-2-git-send-email-x0095840@ti.com>
- <1277942401-3566-3-git-send-email-x0095840@ti.com>
- <1277942401-3566-4-git-send-email-x0095840@ti.com>
- <1277942401-3566-5-git-send-email-x0095840@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1277942401-3566-5-git-send-email-x0095840@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH] iovmm: add superpages support to fixed da address
+Date: Wed, 30 Jun 2010 19:00:30 -0500
+Message-ID: <1277942430-3629-1-git-send-email-x0095840@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37410 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757526Ab0F3Xut (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Jun 2010 19:50:49 -0400
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: ohad@wizery.com, hiroshi.doyo@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, Fernando Guzman Lugo <x0095840@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-With changes for iommu migration mmu fault report and dsp track
-dump is broken, this patch fixes that.
+This patch adds superpages support to fixed ad address
+inside iommu_kmap function.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- drivers/dsp/bridge/core/mmu_fault.c  |   93 ++++++---------------------------
- drivers/dsp/bridge/core/mmu_fault.h  |    5 +-
- drivers/dsp/bridge/core/tiomap3430.c |    2 +
- drivers/dsp/bridge/core/ue_deh.c     |   31 +++++-------
- 4 files changed, 34 insertions(+), 97 deletions(-)
+ arch/arm/plat-omap/iovmm.c |   52 +++++++++++++++++++++++++++-----------------
+ 1 files changed, 32 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/dsp/bridge/core/mmu_fault.c b/drivers/dsp/bridge/core/mmu_fault.c
-index 5c0124f..d991c6a 100644
---- a/drivers/dsp/bridge/core/mmu_fault.c
-+++ b/drivers/dsp/bridge/core/mmu_fault.c
-@@ -23,9 +23,12 @@
- /*  ----------------------------------- Trace & Debug */
- #include <dspbridge/host_os.h>
- #include <dspbridge/dbc.h>
-+#include <plat/iommu.h>
- 
- /*  ----------------------------------- OS Adaptation Layer */
- #include <dspbridge/drv.h>
-+#include <dspbridge/dev.h>
-+
- 
- /*  ----------------------------------- Link Driver */
- #include <dspbridge/dspdeh.h>
-@@ -40,11 +43,6 @@
- #include "_tiomap.h"
- #include "mmu_fault.h"
- 
--static u32 dmmu_event_mask;
--u32 fault_addr;
--
--static bool mmu_check_if_fault(struct bridge_dev_context *dev_context);
--
- /*
-  *  ======== mmu_fault_dpc ========
-  *      Deferred procedure call to handle DSP MMU fault.
-@@ -62,78 +60,21 @@ void mmu_fault_dpc(IN unsigned long pRefData)
-  *  ======== mmu_fault_isr ========
-  *      ISR to be triggered by a DSP MMU fault interrupt.
-  */
--irqreturn_t mmu_fault_isr(int irq, IN void *pRefData)
--{
--	struct deh_mgr *deh_mgr_obj = (struct deh_mgr *)pRefData;
--	struct bridge_dev_context *dev_context;
--	struct cfg_hostres *resources;
--
--	DBC_REQUIRE(irq == INT_DSP_MMU_IRQ);
--	DBC_REQUIRE(deh_mgr_obj);
--
--	if (deh_mgr_obj) {
--
--		dev_context =
--		    (struct bridge_dev_context *)deh_mgr_obj->hbridge_context;
--
--		resources = dev_context->resources;
--
--		if (!resources) {
--			dev_dbg(bridge, "%s: Failed to get Host Resources\n",
--				__func__);
--			return IRQ_HANDLED;
--		}
--		if (mmu_check_if_fault(dev_context)) {
--			printk(KERN_INFO "***** DSPMMU FAULT ***** IRQStatus "
--			       "0x%x\n", dmmu_event_mask);
--			printk(KERN_INFO "***** DSPMMU FAULT ***** fault_addr "
--			       "0x%x\n", fault_addr);
--			/*
--			 * Schedule a DPC directly. In the future, it may be
--			 * necessary to check if DSP MMU fault is intended for
--			 * Bridge.
--			 */
--			tasklet_schedule(&deh_mgr_obj->dpc_tasklet);
--
--			/* Reset err_info structure before use. */
--			deh_mgr_obj->err_info.dw_err_mask = DSP_MMUFAULT;
--			deh_mgr_obj->err_info.dw_val1 = fault_addr >> 16;
--			deh_mgr_obj->err_info.dw_val2 = fault_addr & 0xFFFF;
--			deh_mgr_obj->err_info.dw_val3 = 0L;
--			/* Disable the MMU events, else once we clear it will
--			 * start to raise INTs again */
--			hw_mmu_event_disable(resources->dw_dmmu_base,
--					     HW_MMU_TRANSLATION_FAULT);
--		} else {
--			hw_mmu_event_disable(resources->dw_dmmu_base,
--					     HW_MMU_ALL_INTERRUPTS);
--		}
--	}
--	return IRQ_HANDLED;
--}
-+int mmu_fault_isr(struct iommu *mmu)
- 
--/*
-- *  ======== mmu_check_if_fault ========
-- *      Check to see if MMU Fault is valid TLB miss from DSP
-- *  Note: This function is called from an ISR
-- */
--static bool mmu_check_if_fault(struct bridge_dev_context *dev_context)
- {
-+	struct deh_mgr *dm;
-+	u32 da;
-+
-+	dev_get_deh_mgr(dev_get_first(), &dm);
-+
-+	if (!dm)
-+		return -EPERM;
-+
-+	da = iommu_read_reg(mmu, MMU_FAULT_AD);
-+	iommu_write_reg(mmu, 0, MMU_IRQENABLE);
-+	dm->err_info.dw_val1 = da;
-+	tasklet_schedule(&dm->dpc_tasklet);
- 
--	bool ret = false;
--	hw_status hw_status_obj;
--	struct cfg_hostres *resources = dev_context->resources;
--
--	if (!resources) {
--		dev_dbg(bridge, "%s: Failed to get Host Resources in\n",
--			__func__);
--		return ret;
--	}
--	hw_status_obj =
--	    hw_mmu_event_status(resources->dw_dmmu_base, &dmmu_event_mask);
--	if (dmmu_event_mask == HW_MMU_TRANSLATION_FAULT) {
--		hw_mmu_fault_addr_read(resources->dw_dmmu_base, &fault_addr);
--		ret = true;
--	}
--	return ret;
-+	return 0;
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 936aef1..7cde09f 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -86,35 +86,45 @@ static size_t sgtable_len(const struct sg_table *sgt)
  }
-diff --git a/drivers/dsp/bridge/core/mmu_fault.h b/drivers/dsp/bridge/core/mmu_fault.h
-index 74db489..df3fba6 100644
---- a/drivers/dsp/bridge/core/mmu_fault.h
-+++ b/drivers/dsp/bridge/core/mmu_fault.h
-@@ -19,8 +19,6 @@
- #ifndef MMU_FAULT_
- #define MMU_FAULT_
+ #define sgtable_ok(x)	(!!sgtable_len(x))
  
--extern u32 fault_addr;
--
++
++static inline unsigned max_alignment(u32 addr)
++{
++	int i;
++	unsigned pagesize[] = { SZ_16M, SZ_1M, SZ_64K, SZ_4K, };
++	for (i = 0; i < ARRAY_SIZE(pagesize) && addr & (pagesize[i] - 1); i++)
++		;
++	return (i < ARRAY_SIZE(pagesize)) ? pagesize[i] : 0;
++}
++
++
  /*
-  *  ======== mmu_fault_dpc ========
-  *      Deferred procedure call to handle DSP MMU fault.
-@@ -31,6 +29,7 @@ void mmu_fault_dpc(IN unsigned long pRefData);
-  *  ======== mmu_fault_isr ========
-  *      ISR to be triggered by a DSP MMU fault interrupt.
+  * calculate the optimal number sg elements from total bytes based on
+  * iommu superpages
   */
--irqreturn_t mmu_fault_isr(int irq, IN void *pRefData);
-+int mmu_fault_isr(struct iommu *mmu);
-+
- 
- #endif /* MMU_FAULT_ */
-diff --git a/drivers/dsp/bridge/core/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
-index 96cceea..89867e7 100644
---- a/drivers/dsp/bridge/core/tiomap3430.c
-+++ b/drivers/dsp/bridge/core/tiomap3430.c
-@@ -57,6 +57,7 @@
- #include "_tiomap.h"
- #include "_tiomap_pwr.h"
- #include "tiomap_io.h"
-+#include "mmu_fault.h"
- 
- /* Offset in shared mem to write to in order to synchronize start with DSP */
- #define SHMSYNCOFFSET 4		/* GPP byte offset */
-@@ -382,6 +383,7 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
- 		goto end;
- 	}
- 	dev_context->dsp_mmu = mmu;
-+	mmu->isr = mmu_fault_isr;
- 	sm_sg = dev_context->sh_s;
- 
- 	sm_sg->seg0_da = iommu_kmap(mmu, sm_sg->seg0_da, sm_sg->seg0_pa,
-diff --git a/drivers/dsp/bridge/core/ue_deh.c b/drivers/dsp/bridge/core/ue_deh.c
-index ce13e6c..a03d172 100644
---- a/drivers/dsp/bridge/core/ue_deh.c
-+++ b/drivers/dsp/bridge/core/ue_deh.c
-@@ -18,6 +18,7 @@
- 
- /*  ----------------------------------- Host OS */
- #include <dspbridge/host_os.h>
-+#include <plat/iommu.h>
- 
- /*  ----------------------------------- DSP/BIOS Bridge */
- #include <dspbridge/std.h>
-@@ -51,12 +52,6 @@
- #include "_tiomap_pwr.h"
- #include <dspbridge/io_sm.h>
- 
--
--static struct hw_mmu_map_attrs_t map_attrs = { HW_LITTLE_ENDIAN,
--	HW_ELEM_SIZE16BIT,
--	HW_MMU_CPUES
--};
--
- static void *dummy_va_addr;
- 
- int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
-@@ -154,10 +149,10 @@ int bridge_deh_register_notify(struct deh_mgr *deh_mgr, u32 event_mask,
- void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
+-static unsigned int sgtable_nents(size_t bytes)
++static unsigned int sgtable_nents(size_t bytes, u32 da, u32 pa)
  {
- 	struct bridge_dev_context *dev_context;
--	int status = 0;
- 	u32 hw_mmu_max_tlb_count = 31;
- 	struct cfg_hostres *resources;
--	hw_status hw_status_obj;
-+	u32 fault_addr, tmp;
-+	struct iotlb_entry e;
+-	int i;
+-	unsigned int nr_entries;
+-	const unsigned long pagesize[] = { SZ_16M, SZ_1M, SZ_64K, SZ_4K, };
++	unsigned int nr_entries = 0, ent_sz;
  
- 	if (!deh_mgr)
- 		return;
-@@ -181,6 +176,9 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
- 		break;
- 	case DSP_MMUFAULT:
- 		/* MMU fault routine should have set err info structure. */
-+		fault_addr = iommu_read_reg(dev_context->dsp_mmu,
-+							MMU_FAULT_AD);
-+
- 		deh_mgr->err_info.dw_err_mask = DSP_MMUFAULT;
- 		dev_err(bridge, "%s: %s, err_info = 0x%x\n",
- 				__func__, "DSP_MMUFAULT", dwErrInfo);
-@@ -206,21 +204,18 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
- 			dev_context->num_tlb_entries =
- 				dev_context->fixed_tlb_entries;
- 		}
--		if (DSP_SUCCEEDED(status)) {
--			hw_status_obj =
--				hw_mmu_tlb_add(resources->dw_dmmu_base,
--						virt_to_phys(dummy_va_addr), fault_addr,
--						HW_PAGE_SIZE4KB, 1,
--						&map_attrs, HW_SET, HW_SET);
+ 	if (!IS_ALIGNED(bytes, PAGE_SIZE)) {
+ 		pr_err("%s: wrong size %08x\n", __func__, bytes);
+ 		return 0;
+ 	}
+ 
+-	nr_entries = 0;
+-	for (i = 0; i < ARRAY_SIZE(pagesize); i++) {
+-		if (bytes >= pagesize[i]) {
+-			nr_entries += (bytes / pagesize[i]);
+-			bytes %= pagesize[i];
 -		}
-+		dsp_iotlb_init(&e, fault_addr & PAGE_MASK,
-+			virt_to_phys(dummy_va_addr), IOVMF_PGSZ_4K);
-+		load_iotlb_entry(dev_context->dsp_mmu, &e);
-+
++	while (bytes) {
++		ent_sz = max_alignment(da | pa);
++		ent_sz = min(ent_sz, (unsigned)iopgsz_max(bytes));
++		nr_entries++;
++		da += ent_sz;
++		pa += ent_sz;
++		bytes -= ent_sz;
+ 	}
+-	BUG_ON(bytes);
  
- 		dsp_clk_enable(DSP_CLK_GPT8);
+ 	return nr_entries;
+ }
  
- 		dsp_gpt_wait_overflow(DSP_CLK_GPT8, 0xfffffffe);
+ /* allocate and initialize sg_table header(a kind of 'superblock') */
+-static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags)
++static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags,
++							u32 da, u32 pa)
+ {
+ 	unsigned int nr_entries;
+ 	int err;
+@@ -126,9 +136,8 @@ static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags)
+ 	if (!IS_ALIGNED(bytes, PAGE_SIZE))
+ 		return ERR_PTR(-EINVAL);
  
--		/* Clear MMU interrupt */
--		hw_mmu_event_ack(resources->dw_dmmu_base,
--				HW_MMU_TRANSLATION_FAULT);
-+		tmp = iommu_read_reg(dev_context->dsp_mmu, MMU_IRQSTATUS);
-+		iommu_write_reg(dev_context->dsp_mmu, tmp, MMU_IRQSTATUS);
-+
- 		dump_dsp_stack(deh_mgr->hbridge_context);
- 		dsp_clk_disable(DSP_CLK_GPT8);
- 		break;
+-	/* FIXME: IOVMF_DA_FIXED should support 'superpages' */
+-	if ((flags & IOVMF_LINEAR) && (flags & IOVMF_DA_ANON)) {
+-		nr_entries = sgtable_nents(bytes);
++	if (flags & IOVMF_LINEAR) {
++		nr_entries = sgtable_nents(bytes, da, pa);
+ 		if (!nr_entries)
+ 			return ERR_PTR(-EINVAL);
+ 	} else
+@@ -403,7 +412,8 @@ static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
+ 	BUG_ON(!sgt);
+ }
+ 
+-static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_t len)
++static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, u32 da,
++								size_t len)
+ {
+ 	unsigned int i;
+ 	struct scatterlist *sg;
+@@ -414,7 +424,8 @@ static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_t len)
+ 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+ 		size_t bytes;
+ 
+-		bytes = iopgsz_max(len);
++		bytes = max_alignment(da | pa);
++		bytes = min(bytes, (size_t)iopgsz_max(len));
+ 
+ 		BUG_ON(!iopgsz_ok(bytes));
+ 
+@@ -423,6 +434,7 @@ static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_t len)
+ 		 * 'pa' is cotinuous(linear).
+ 		 */
+ 		pa += bytes;
++		da += bytes;
+ 		len -= bytes;
+ 	}
+ 	BUG_ON(len);
+@@ -689,7 +701,7 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ 	if (!va)
+ 		return -ENOMEM;
+ 
+-	sgt = sgtable_alloc(bytes, flags);
++	sgt = sgtable_alloc(bytes, flags, da, 0);
+ 	if (IS_ERR(sgt)) {
+ 		da = PTR_ERR(sgt);
+ 		goto err_sgt_alloc;
+@@ -740,11 +752,11 @@ static u32 __iommu_kmap(struct iommu *obj, u32 da, u32 pa, void *va,
+ {
+ 	struct sg_table *sgt;
+ 
+-	sgt = sgtable_alloc(bytes, flags);
++	sgt = sgtable_alloc(bytes, flags, da, pa);
+ 	if (IS_ERR(sgt))
+ 		return PTR_ERR(sgt);
+ 
+-	sgtable_fill_kmalloc(sgt, pa, bytes);
++	sgtable_fill_kmalloc(sgt, pa, da, bytes);
+ 
+ 	da = map_iommu_region(obj, da, sgt, va, bytes, flags);
+ 	if (IS_ERR_VALUE(da)) {
 -- 
-1.7.0.4
+1.6.3.3
+
