@@ -1,30 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] OMAP:DSS2:OMAPFB: Fix probe error path
-Date: Thu, 01 Jul 2010 12:54:32 +0300
-Message-ID: <1277978072.2474.283.camel@tubuntu.research.nokia.com>
-References: <1277907327-3443-1-git-send-email-lazfamam@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1277907327-3443-1-git-send-email-lazfamam@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Afzal Mohammed <lazfamam@gmail.com>
-Cc: "Syrjala Ville (Nokia-D/Helsinki)" <ville.syrjala@nokia.com>, "tj@kernel.org" <tj@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Lesly A M <leslyam@ti.com>
+Subject: [PATCH v7 0/8] omap3: pm: Update TRITON power scripts and making it generic
+Date: Thu,  1 Jul 2010 15:40:06 +0530
+Message-ID: <1277979006-1847-1-git-send-email-leslyam@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59006 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754947Ab0GAKNc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 06:13:32 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o61ADSTe001756
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 1 Jul 2010 05:13:30 -0500
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id o61ADQ3k027429
+	for <linux-omap@vger.kernel.org>; Thu, 1 Jul 2010 15:43:27 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
+T2 script changes rebased on top of Thara's SmartReflex patches.
 
-On Wed, 2010-06-30 at 16:15 +0200, ext Afzal Mohammed wrote:
-> If enabling fb0 fails in omapfb_create_framebuffers(), remove
-> sysfs file before returning to probe. This is required to complete
-> the cleanup in the above mentioned error case.
+This series of patch implements a updated TRITON power scripts.
+Also moving the sleep, wakeup & warm_reset sequence to a generic script file,
+which can be used by different OMAP3 board with the power companion chip TWL4030.
 
-omapfb frees the resources in omapfb_free_resources(). I believe
-removing sysfs should also be put into omapfb_free_resources() to be
-consistent, and not as an explicit call like in this patch.
+This patch series is based off Kevin's tree remotes/origin/pm-wip-sr branch,
+which have the SmartReflex changes done by Thara Gopinath.
 
-However, I'm not sure if some sysfs-allocated flag is needed for this to
-work in all cases.
+Changes in v7:
+	split the first patch in v6
+		i)  fix for twl4030 script load
+		ii) correct the warning print during script loading
 
- Tomi
+	Updated the change logs
+
+This changes are tested on OMAP3430, OMAP3630 SDP & ZOOM3 board with:
+	enable_off_mode
+	voltage_off_while_idle
+	sleep_while_idle (VDD1/VDD2 voltage scaling to 0v) enabled in cpuidle and suspned path.
+
+Lesly A M (8):
+  omap3: pm: fix for twl4030 script load
+  omap3: pm: correct the warning print during script loading
+  omap3: pm: Using separate clk/volt setup_time for RET and OFF states
+  omap3: pm: re-programing the setup time based on CORE_DOMAIN target
+    state
+  omap3: pm: changing vdd0_/vdd1_ to vdd1_/vdd2_ in VC param structure
+  omap3: pm: Generic TRITON power scripts for OMAP3 based boards
+  omap3: pm: Use generic TRITON power scripts for 3430SDP board
+  omap3: pm: Use generic TRITON power scripts for ZOOM[2,3], 3630SDP
+    board
+
+ arch/arm/mach-omap2/Makefile                 |   12 +-
+ arch/arm/mach-omap2/board-3430sdp.c          |  111 +---------------
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    6 +
+ arch/arm/mach-omap2/pm.h                     |   18 ---
+ arch/arm/mach-omap2/pm34xx.c                 |   26 +---
+ arch/arm/mach-omap2/twl4030.c                |  185 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/twl4030.h                |   23 +++
+ arch/arm/mach-omap2/voltage.c                |  156 +++++++++++++++++-----
+ arch/arm/mach-omap2/voltage.h                |   26 ++++
+ drivers/mfd/twl4030-power.c                  |    5 +-
+ include/linux/i2c/twl.h                      |    4 +
+ 11 files changed, 380 insertions(+), 192 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl4030.c
+ create mode 100644 arch/arm/mach-omap2/twl4030.h
+
