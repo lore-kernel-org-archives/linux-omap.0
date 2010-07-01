@@ -1,281 +1,149 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v7 3/8] omap3: pm: Using separate clk/volt setup_time for RET and OFF states
-Date: Thu,  1 Jul 2010 15:41:44 +0530
-Message-ID: <1277979104-2045-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH v7 4/8] omap3: pm: re-programing the setup time based on CORE_DOMAIN target state
+Date: Thu,  1 Jul 2010 15:41:52 +0530
+Message-ID: <1277979112-2081-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43494 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754960Ab0GAKPM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Jul 2010 06:15:12 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59107 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754946Ab0GAKPU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 06:15:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-This patch has the changes to use separate clk/volt setup_time
-for RET and OFF state. Because the clocksetup voltsetup time1
-used for RET & OFF is different.
+This patch will add a new function omap_voltage_vc_update() to re-program
+the VC parameters while entering low power mode, based on CORE_DOMAIN target state.
+The voltsetup2 is used only when the device exits sys_off mode
+(with PRM_VOLTCTRL[3]SEL_OFF set to 1).
 
-Create separate copies of VC parameters for each Si in voltage.c.
-Since the voltage vales for each state is different in different OMAP Si.
-
-Updates the VC setuptime struct during init based on the OMAP Si.
-Removes the VC setuptime struct from board files.
+Also removed the clearing of PRM_VOLTCTRL register bits
+(SEL_OFF, AUTO_OFF, AUTO_RET, ...) after wakeup from wfi,
+because this will be used by the voltage FSM only when
+it goes to low power mode next time. So it is not necessary
+to clear these bits, if we are reconfiguring it each time before
+entering the low power modes.
 
 Signed-off-by: Lesly A M <leslyam@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |   19 -------
- arch/arm/mach-omap2/pm.h            |   18 -------
- arch/arm/mach-omap2/voltage.c       |   93 +++++++++++++++++++++++++---------
- arch/arm/mach-omap2/voltage.h       |   25 +++++++++
- 4 files changed, 93 insertions(+), 62 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c  |   26 +++-----------------------
+ arch/arm/mach-omap2/voltage.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/voltage.h |    1 +
+ 3 files changed, 44 insertions(+), 23 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 75c66dd..c7f0fa8 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -47,7 +47,6 @@
- #include "sdram-qimonda-hyb18m512160af-6.h"
- #include "hsmmc.h"
- #include "pm.h"
--#include "voltage.h"
- #include "omap3-opp.h"
- #include "smartreflex-class3.h"
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 5039b35..1ff6293 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -439,20 +439,12 @@ void omap_sram_idle(void)
+ 	if (core_next_state < PWRDM_POWER_ON) {
+ 		omap_uart_prepare_idle(0);
+ 		omap_uart_prepare_idle(1);
+-		if (core_next_state == PWRDM_POWER_OFF) {
+-			u32 voltctrl = OMAP3430_AUTO_OFF;
++		/* Update the voltsetup time for RET/OFF */
++		omap_voltage_vc_update(core_next_state);
  
-@@ -77,23 +76,6 @@ static struct cpuidle_params omap3_cpuidle_params_table[] = {
- 	{1, 10000, 30000, 300000},
- };
+-			if (voltage_off_while_idle)
+-				voltctrl |= OMAP3430_SEL_OFF;
+-			prm_set_mod_reg_bits(voltctrl,
+-					     OMAP3430_GR_MOD,
+-					     OMAP3_PRM_VOLTCTRL_OFFSET);
++		if (core_next_state == PWRDM_POWER_OFF) {
+ 			omap3_core_save_context();
+ 			omap3_prcm_save_context();
+-		} else if (core_next_state == PWRDM_POWER_RET) {
+-			prm_set_mod_reg_bits(OMAP3430_AUTO_RET,
+-						OMAP3430_GR_MOD,
+-						OMAP3_PRM_VOLTCTRL_OFFSET);
+ 		}
+ 	}
  
--/* FIXME: These are not the optimal setup values to be used on 3430sdp*/
--static struct prm_setup_vc omap3_setuptime_table = {
--	.clksetup = 0xff,
--	.voltsetup_time1 = 0xfff,
--	.voltsetup_time2 = 0xfff,
--	.voltoffset = 0xff,
--	.voltsetup2 = 0xff,
--	.vdd0_on = 0x30,
--	.vdd0_onlp = 0x20,
--	.vdd0_ret = 0x1e,
--	.vdd0_off = 0x00,
--	.vdd1_on = 0x2c,
--	.vdd1_onlp = 0x20,
--	.vdd1_ret = 0x1e,
--	.vdd1_off = 0x00,
--};
+@@ -510,18 +502,6 @@ void omap_sram_idle(void)
+ 		}
+ 		omap_uart_resume_idle(0);
+ 		omap_uart_resume_idle(1);
+-		if (core_next_state == PWRDM_POWER_OFF) {
+-			u32 voltctrl = OMAP3430_AUTO_OFF;
 -
- static int board_keymap[] = {
- 	KEY(0, 0, KEY_LEFT),
- 	KEY(0, 1, KEY_RIGHT),
-@@ -347,7 +329,6 @@ static void __init omap_3430sdp_init_irq(void)
- 	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
- 	omap3_pm_init_opp_table();
- 	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
--	omap_voltage_init_vc(&omap3_setuptime_table);
- 	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index b608490..bad9058 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -40,24 +40,6 @@ inline void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
- }
- #endif
- 
--struct prm_setup_vc {
--	u16 clksetup;
--	u16 voltsetup_time1;
--	u16 voltsetup_time2;
--	u16 voltoffset;
--	u16 voltsetup2;
--/* PRM_VC_CMD_VAL_0 specific bits */
--	u16 vdd0_on;
--	u16 vdd0_onlp;
--	u16 vdd0_ret;
--	u16 vdd0_off;
--/* PRM_VC_CMD_VAL_1 specific bits */
--	u16 vdd1_on;
--	u16 vdd1_onlp;
--	u16 vdd1_ret;
--	u16 vdd1_off;
--};
--
- extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
- extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+-			if (voltage_off_while_idle)
+-				voltctrl |= OMAP3430_SEL_OFF;
+-			prm_clear_mod_reg_bits(voltctrl,
+-					       OMAP3430_GR_MOD,
+-					       OMAP3_PRM_VOLTCTRL_OFFSET);
+-		} else if (core_next_state == PWRDM_POWER_RET)
+-			prm_clear_mod_reg_bits(OMAP3430_AUTO_RET,
+-						OMAP3430_GR_MOD,
+-						OMAP3_PRM_VOLTCTRL_OFFSET);
+ 	}
+ 	omap3_intc_resume_idle();
  
 diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index c5e9c42..efa16d4 100644
+index efa16d4..1be1ccf 100644
 --- a/arch/arm/mach-omap2/voltage.c
 +++ b/arch/arm/mach-omap2/voltage.c
-@@ -127,14 +127,26 @@ struct vc_reg_info {
- } vc_reg;
- 
- /*
-- * Default voltage controller settings for OMAP3
-+ * Default voltage controller settings for OMAP3430
-  */
--static struct prm_setup_vc vc_config = {
--	.clksetup = 0xff,
--	.voltsetup_time1 = 0xfff,
--	.voltsetup_time2 = 0xfff,
--	.voltoffset = 0xff,
--	.voltsetup2 = 0xff,
-+struct __initdata prm_setup_vc omap3430_vc_config = {
-+	/* CLK & VOLT SETUPTIME for RET */
-+	.ret = {
-+		.clksetup = 0x1,
-+		.voltsetup1_vdd1 = 0x005B,
-+		.voltsetup1_vdd2 = 0x0055,
-+		.voltsetup2 = 0x0,
-+		.voltoffset = 0x0,
-+	},
-+	/* CLK & VOLT SETUPTIME for OFF */
-+	.off = {
-+		.clksetup = 0x14A,
-+		.voltsetup1_vdd1 = 0x00B3,
-+		.voltsetup1_vdd2 = 0x00A0,
-+		.voltsetup2 = 0x118,
-+		.voltoffset = 0x32,
-+	},
-+	/* VC COMMAND VALUES for VDD1/VDD2 */
- 	.vdd0_on = 0x30,        /* 1.2v */
- 	.vdd0_onlp = 0x20,      /* 1.0v */
- 	.vdd0_ret = 0x1e,       /* 0.975v */
-@@ -146,6 +158,39 @@ static struct prm_setup_vc vc_config = {
- };
- 
- /*
-+ * Default voltage controller settings for OMAP3630
-+ */
-+struct __initdata prm_setup_vc omap3630_vc_config = {
-+	/* CLK & VOLT SETUPTIME for RET */
-+	.ret = {
-+		.clksetup = 0x1,
-+		.voltsetup1_vdd1 = 0x005B,
-+		.voltsetup1_vdd2 = 0x0055,
-+		.voltsetup2 = 0x0,
-+		.voltoffset = 0x0,
-+	},
-+	/* CLK & VOLT SETUPTIME for OFF */
-+	.off = {
-+		.clksetup = 0x14A,
-+		.voltsetup1_vdd1 = 0x00B3,
-+		.voltsetup1_vdd2 = 0x00A0,
-+		.voltsetup2 = 0x118,
-+		.voltoffset = 0x32,
-+	},
-+	/* VC COMMAND VALUES for VDD1/VDD2 */
-+	.vdd0_on = 0x28,	/* 1.1v */
-+	.vdd0_onlp = 0x20,	/* 1.0v */
-+	.vdd0_ret = 0x13,	/* 0.83v */
-+	.vdd0_off = 0x00,	/* 0.6v */
-+	.vdd1_on = 0x2B,	/* 1.1375v */
-+	.vdd1_onlp = 0x20,	/* 1.0v */
-+	.vdd1_ret = 0x13,	/* 0.83v */
-+	.vdd1_off = 0x00,	/* 0.6v */
-+};
-+
-+static struct prm_setup_vc vc_config;
-+
-+/*
-  * Structures containing OMAP3430 voltage supported and various data
-  * associated with it per voltage domain basis. Smartreflex Ntarget
-  * vales are left as 0 as they have to be populated by smartreflex
-@@ -250,12 +295,12 @@ static void __init init_voltagecontroller(void)
- 	voltage_write_reg(vc_i2c_cfg_reg, VC_MCODE_SHIFT | VC_HSEN);
- 
- 	/* Write setup times */
--	voltage_write_reg(prm_clksetup_reg, vc_config.clksetup);
-+	voltage_write_reg(prm_clksetup_reg, vc_config.ret.clksetup);
- 	voltage_write_reg(prm_voltsetup1_reg,
--			(vc_config.voltsetup_time2 << VC_SETUP_TIME2_SHIFT) |
--			(vc_config.voltsetup_time1 << VC_SETUP_TIME1_SHIFT));
--	voltage_write_reg(prm_voltoffset_reg, vc_config.voltoffset);
--	voltage_write_reg(prm_voltsetup2_reg, vc_config.voltsetup2);
-+		(vc_config.ret.voltsetup1_vdd2 << VC_SETUP_TIME2_SHIFT) |
-+		(vc_config.ret.voltsetup1_vdd1 << VC_SETUP_TIME1_SHIFT));
-+	voltage_write_reg(prm_voltoffset_reg, vc_config.ret.voltoffset);
-+	voltage_write_reg(prm_voltsetup2_reg, vc_config.ret.voltsetup2);
+@@ -943,6 +943,46 @@ void __init omap_voltage_init_vc(struct prm_setup_vc *setup_vc)
+ 	vc_config.off.clksetup = setup_vc->off.clksetup;
  }
  
- static void vp_latch_vsel(int vp_id)
-@@ -893,19 +938,9 @@ void __init omap_voltage_init_vc(struct prm_setup_vc *setup_vc)
- 	if (!setup_vc)
- 		return;
- 
--	vc_config.clksetup = setup_vc->clksetup;
--	vc_config.voltsetup_time1 = setup_vc->voltsetup_time1;
--	vc_config.voltsetup_time2 = setup_vc->voltsetup_time2;
--	vc_config.voltoffset = setup_vc->voltoffset;
--	vc_config.voltsetup2 = setup_vc->voltsetup2;
--	vc_config.vdd0_on = setup_vc->vdd0_on;
--	vc_config.vdd0_onlp = setup_vc->vdd0_onlp;
--	vc_config.vdd0_ret = setup_vc->vdd0_ret;
--	vc_config.vdd0_off = setup_vc->vdd0_off;
--	vc_config.vdd1_on = setup_vc->vdd1_on;
--	vc_config.vdd1_onlp = setup_vc->vdd1_onlp;
--	vc_config.vdd1_ret = setup_vc->vdd1_ret;
--	vc_config.vdd1_off = setup_vc->vdd1_off;
-+	/* CLK SETUPTIME for RET & OFF */
-+	vc_config.ret.clksetup = setup_vc->ret.clksetup;
-+	vc_config.off.clksetup = setup_vc->off.clksetup;
- }
- 
++void omap_voltage_vc_update(int core_next_state)
++{
++	u32 voltctrl = 0;
++
++	/* update voltsetup time */
++	if (core_next_state == PWRDM_POWER_OFF) {
++		voltctrl = OMAP3430_AUTO_OFF;
++		prm_write_mod_reg(vc_config.off.clksetup, OMAP3430_GR_MOD,
++				OMAP3_PRM_CLKSETUP_OFFSET);
++		prm_write_mod_reg((vc_config.off.voltsetup1_vdd2 <<
++				OMAP3430_SETUP_TIME2_SHIFT) |
++				(vc_config.off.voltsetup1_vdd1 <<
++				OMAP3430_SETUP_TIME1_SHIFT),
++				OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
++
++		if (voltage_off_while_idle) {
++			voltctrl |= OMAP3430_SEL_OFF;
++			prm_write_mod_reg(vc_config.off.voltsetup2,
++					OMAP3430_GR_MOD,
++					OMAP3_PRM_VOLTSETUP2_OFFSET);
++		}
++
++	} else if (core_next_state == PWRDM_POWER_RET) {
++		voltctrl = OMAP3430_AUTO_RET;
++		prm_write_mod_reg(vc_config.ret.clksetup, OMAP3430_GR_MOD,
++				OMAP3_PRM_CLKSETUP_OFFSET);
++		prm_write_mod_reg((vc_config.ret.voltsetup1_vdd2 <<
++				OMAP3430_SETUP_TIME2_SHIFT) |
++				(vc_config.ret.voltsetup1_vdd1 <<
++				OMAP3430_SETUP_TIME1_SHIFT),
++				OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
++
++		/* clear voltsetup2_reg if sys_off not enabled */
++		prm_write_mod_reg(vc_config.ret.voltsetup2, OMAP3430_GR_MOD,
++				OMAP3_PRM_VOLTSETUP2_OFFSET);
++	}
++
++	prm_write_mod_reg(voltctrl, OMAP3430_GR_MOD, OMAP3_PRM_VOLTCTRL_OFFSET);
++}
++
  /**
-@@ -972,6 +1007,14 @@ void __init omap_voltage_init(void)
- 		volt_mod = OMAP3430_GR_MOD;
- 	else
- 		return;
-+
-+	if (cpu_is_omap3430())
-+		memcpy(&vc_config, &omap3430_vc_config,
-+				sizeof(struct prm_setup_vc));
-+	else if (cpu_is_omap3630())
-+		memcpy(&vc_config, &omap3630_vc_config,
-+				sizeof(struct prm_setup_vc));
-+
- 	init_voltagecontroller();
- 	init_voltageprocessors();
- }
+  * omap_get_voltage_table : API to get the voltage table associated with a
+  *			    particular voltage domain.
 diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index c6445c5..526c02d 100644
+index 526c02d..9ca20e5 100644
 --- a/arch/arm/mach-omap2/voltage.h
 +++ b/arch/arm/mach-omap2/voltage.h
-@@ -14,6 +14,31 @@
- #define VDD1	0
- #define VDD2	1
- 
-+struct setuptime_vc{
-+	u16 clksetup;
-+	u16 voltsetup1_vdd1;
-+	u16 voltsetup1_vdd2;
-+	u16 voltsetup2;
-+	u16 voltoffset;
-+};
-+
-+struct prm_setup_vc {
-+	/* CLK & VOLT SETUPTIME for RET */
-+	struct setuptime_vc ret;
-+	/* CLK & VOLT SETUPTIME for OFF */
-+	struct setuptime_vc off;
-+	/* PRM_VC_CMD_VAL_0 specific bits */
-+	u16 vdd0_on;
-+	u16 vdd0_onlp;
-+	u16 vdd0_ret;
-+	u16 vdd0_off;
-+	/* PRM_VC_CMD_VAL_1 specific bits */
-+	u16 vdd1_on;
-+	u16 vdd1_onlp;
-+	u16 vdd1_ret;
-+	u16 vdd1_off;
-+};
-+
- #define VOLTSCALE_VPFORCEUPDATE		1
- #define VOLTSCALE_VCBYPASS		2
- 
+@@ -126,6 +126,7 @@ struct omap_volt_data {
+ void omap_voltageprocessor_enable(int vp_id);
+ void omap_voltageprocessor_disable(int vp_id);
+ void omap_voltage_init_vc(struct prm_setup_vc *setup_vc);
++void omap_voltage_vc_update(int core_next_state);
+ void omap_voltage_init(void);
+ int omap_voltage_scale(int vdd, unsigned long target_volt,
+ 					unsigned long current_volt);
 -- 
 1.7.0.4
 
