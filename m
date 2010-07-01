@@ -1,16 +1,14 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [RFC 1/6] omap: add iva2 hwmod support to omap3
-Date: Fri,  2 Jul 2010 01:23:09 +0300
-Message-ID: <1278022994-28476-2-git-send-email-ohad@wizery.com>
-References: <1278022994-28476-1-git-send-email-ohad@wizery.com>
+Subject: [RFC 0/6] Introducing OMAP Remote Processor module
+Date: Fri,  2 Jul 2010 01:23:08 +0300
+Message-ID: <1278022994-28476-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:39213 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932451Ab0GAWXd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 18:23:33 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 1so1212641bwz.19
-        for <linux-omap@vger.kernel.org>; Thu, 01 Jul 2010 15:23:32 -0700 (PDT)
-In-Reply-To: <1278022994-28476-1-git-send-email-ohad@wizery.com>
+	with ESMTP id S932518Ab0GAWXY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 18:23:24 -0400
+Received: by bwz1 with SMTP id 1so1212641bwz.19
+        for <linux-omap@vger.kernel.org>; Thu, 01 Jul 2010 15:23:21 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -18,86 +16,72 @@ Cc: Kanigeri Hari <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohadb@ti.com>
 
 From: Ohad Ben-Cohen <ohadb@ti.com>
 
-Add preliminary iva2 hwmod support to omap3.
-We do not include iva2_clk; that will be part of a separate
-hwmod, which will be controlled by iommu.
+This is a preliminary version of OMAP's remoteproc module,
+submitted for RFC purposes.
 
-Signed-off-by: Ohad Ben-Cohen <ohadb@ti.com>
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_34xx.h        |   23 +++++++++++++++++++++++
+The purpose of the remoteproc module is to decouple
+hw-specific code from generic IPC drivers (such as
+dspbridge and syslink), in order to eventually make
+those IPC drivers platform-independent.
+
+Currently the supported operations are starting and stopping
+the remote processor, but in the future additional functionality
+might be added.
+
+Both OMAP3 and OMAP4 are supported; OMAP3 supports the dsp
+remote processor, and OMAP4 supports ducati (tesla support
+is planned as well).
+
+The code was tested on both OMAP3 (using dspbridge) and OMAP4
+(using syslink).
+
+The code is preliminary: we plan to add much more extensive
+hwmod support, ideally squashing as much hw-specific code
+as possible (including RST and PRCM manipulations).
+In addition, a rebase to recent code bases is needed.
+
+While dspbridge accesses remoteproc's interface via pdata
+pointers, syslink accesses it from user space, via character
+device interface, so both kernel and user space interfaces
+are supported.
+
+A few words on the char device interface:
+
+* Each remote processor is represented by a different
+  character device: /dev/omap-rproc0, /dev/omap-rproc1, ...
+* A rproc character device can only be opened by a single user
+  (e.g. the syslink daemon)
+* The start/stop/get_state functionality is exposed via ioctl's
+* We plan to add automatic stop() invokation in case the user
+  closes the device after starting a remote processor (for
+  resource cleanup purposes. Thus the user will be required
+  to hold the device open as long as it lives).
+
+Thanks,
+
+Hari Kanigeri (1):
+  omap: introduce OMAP4 remoteproc module
+
+Ohad Ben-Cohen (5):
+  omap: add iva2 hwmod support to omap3
+  omap: introduce OMAP3 remoteproc module
+  omap: introduce common remoteproc module
+  omap: add remoteproc device(s)
+  omap: enable remoteproc building
+
+ arch/arm/mach-omap2/Makefile                 |    6 +
+ arch/arm/mach-omap2/devices.c                |   86 +++++++
+ arch/arm/mach-omap2/omap_hwmod_34xx.h        |   23 ++
+ arch/arm/mach-omap2/remoteproc3xxx.c         |  226 ++++++++++++++++++
+ arch/arm/mach-omap2/remoteproc44xx.c         |  196 ++++++++++++++++
+ arch/arm/plat-omap/Kconfig                   |    7 +
+ arch/arm/plat-omap/Makefile                  |    1 +
  arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 2 files changed, 24 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-index b6076b9..d363a95 100644
---- a/arch/arm/mach-omap2/omap_hwmod_34xx.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-@@ -22,6 +22,7 @@
- #include "prm-regbits-34xx.h"
- 
- static struct omap_hwmod omap34xx_mpu_hwmod;
-+static struct omap_hwmod omap34xx_iva2_hwmod;
- static struct omap_hwmod omap34xx_l3_hwmod;
- static struct omap_hwmod omap34xx_l4_core_hwmod;
- static struct omap_hwmod omap34xx_l4_per_hwmod;
-@@ -47,9 +48,17 @@ static struct omap_hwmod_ocp_if omap34xx_mpu__l3 = {
- 	.user	= OCP_USER_MPU,
- };
- 
-+/* IVA2 -> L3 interface */
-+static struct omap_hwmod_ocp_if omap34xx_iva2__l3 = {
-+	.master	= &omap34xx_iva2_hwmod,
-+	.slave	= &omap34xx_l3_hwmod,
-+	.user	= OCP_USER_IVA2,
-+};
-+
- /* Slave interfaces on the L3 interconnect */
- static struct omap_hwmod_ocp_if *omap34xx_l3_slaves[] = {
- 	&omap34xx_mpu__l3,
-+	&omap34xx_iva2__l3,
- };
- 
- /* Master interfaces on the L3 interconnect */
-@@ -150,12 +159,26 @@ static struct omap_hwmod omap34xx_mpu_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
- 
-+/* Master interfaces on the IVA2 device */
-+static struct omap_hwmod_ocp_if *omap34xx_iva2_masters[] = {
-+	&omap34xx_iva2__l3,
-+};
-+
-+/* IVA2 */
-+static struct omap_hwmod omap34xx_iva2_hwmod = {
-+	.name		= "iva2_hwmod",
-+	.masters	= omap34xx_iva2_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap34xx_iva2_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
- static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
- 	&omap34xx_l3_hwmod,
- 	&omap34xx_l4_core_hwmod,
- 	&omap34xx_l4_per_hwmod,
- 	&omap34xx_l4_wkup_hwmod,
- 	&omap34xx_mpu_hwmod,
-+	&omap34xx_iva2_hwmod,
- 	NULL,
- };
- 
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 3393325..5e64992 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -160,6 +160,7 @@ struct omap_hwmod_addr_space {
-  */
- #define OCP_USER_MPU			(1 << 0)
- #define OCP_USER_SDMA			(1 << 1)
-+#define OCP_USER_IVA2			(1 << 2)
- 
- /* omap_hwmod_ocp_if.flags bits */
- #define OCPIF_HAS_IDLEST		(1 << 0)
--- 
-1.7.0.4
+ arch/arm/plat-omap/include/plat/remoteproc.h |   75 ++++++
+ arch/arm/plat-omap/remoteproc.c              |  316 ++++++++++++++++++++++++++
+ 10 files changed, 937 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/remoteproc3xxx.c
+ create mode 100644 arch/arm/mach-omap2/remoteproc44xx.c
+ create mode 100644 arch/arm/plat-omap/include/plat/remoteproc.h
+ create mode 100644 arch/arm/plat-omap/remoteproc.c
 
