@@ -1,7 +1,7 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
 Subject: RE: [PATCHv3 5/9] dspbridge: add mmufault support
-Date: Thu, 1 Jul 2010 13:04:08 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4CA5645D@dlee03.ent.ti.com>
+Date: Thu, 1 Jul 2010 13:26:35 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CBDD3777@dlee06.ent.ti.com>
 References: <1277942401-3566-1-git-send-email-x0095840@ti.com>
  <1277942401-3566-2-git-send-email-x0095840@ti.com>
  <1277942401-3566-3-git-send-email-x0095840@ti.com>
@@ -10,28 +10,52 @@ References: <1277942401-3566-1-git-send-email-x0095840@ti.com>
  <1277942401-3566-6-git-send-email-x0095840@ti.com>
  <8F7AF80515AF0D4D93307E594F3CB40E4CA563BC@dlee03.ent.ti.com>
  <496565EC904933469F292DDA3F1663E602CBDD373C@dlee06.ent.ti.com>
+ <8F7AF80515AF0D4D93307E594F3CB40E4CA5645D@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CBDD373C@dlee06.ent.ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38773 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758123Ab0GAS0m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 14:26:42 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4CA5645D@dlee03.ent.ti.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "ohad@wizery.com" <ohad@wizery.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "ohad@wizery.com" <ohad@wizery.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-> > > +	da = iommu_read_reg(mmu, MMU_FAULT_AD);
-> > > +	iommu_write_reg(mmu, 0, MMU_IRQENABLE);
-> >
-> > -- Isn't the MMU already enabled at this point when the function
-> callback
-> > is called by iommu ?
+
+
+> -----Original Message-----
+> From: Kanigeri, Hari
+> Sent: Thursday, July 01, 2010 1:04 PM
+> To: Guzman Lugo, Fernando; linux-omap@vger.kernel.org; linux-
+> kernel@vger.kernel.org
+> Cc: ohad@wizery.com; Hiroshi DOYU; ameya.palande@nokia.com;
+> felipe.contreras@nokia.com
+> Subject: RE: [PATCHv3 5/9] dspbridge: add mmufault support
 > 
-> This line is actually disabling the interrupts. I am writing "0x0" in the
-> MMU_IRQENABLE.
+> > > > +	da = iommu_read_reg(mmu, MMU_FAULT_AD);
+> > > > +	iommu_write_reg(mmu, 0, MMU_IRQENABLE);
+> > >
+> > > -- Isn't the MMU already enabled at this point when the function
+> > callback
+> > > is called by iommu ?
+> >
+> > This line is actually disabling the interrupts. I am writing "0x0" in
+> the
+> > MMU_IRQENABLE.
+> 
+> -- oops ! sorry about that. Didn't pay attention to 0x0. Yes, this should
+> work.
 
--- oops ! sorry about that. Didn't pay attention to 0x0. Yes, this should work.
+Not problem :). Could you please comment in the second set of patches I sent? The previous ones have version 3 which is not correct, that was a version I was using internally, but the patches shouldn't have sent to mailing list with that version. Because it is the first version posted.
 
-Best regards,
-Hari
+Thanks and regards,
+Fernando.
+
+> 
+> Best regards,
+> Hari
