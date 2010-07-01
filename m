@@ -1,81 +1,102 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: wait on IDLEST after enabling USBTLL fclk
-Date: Thu, 1 Jul 2010 13:53:00 +0300
-Message-ID: <20100701105259.GK2822@atomide.com>
-References: <1273127288-21590-1-git-send-email-gadiyar@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB032358E85A@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1006211540100.1550@utopia.booyaka.com>
- <alpine.DEB.2.00.1006231819420.1550@utopia.booyaka.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB032366AE2A@dbde02.ent.ti.com>
- <alpine.DEB.2.00.1006240028140.1550@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [RFC][PATCH 4/8] OMAP: DSS2: OMAP4 Secondary LCD Channel DISPC
+ Registers
+Date: Thu, 01 Jul 2010 14:30:37 +0300
+Message-ID: <1277983837.2474.317.camel@tubuntu.research.nokia.com>
+References: <1277980285-20996-1-git-send-email-archit@ti.com>
+	 <1277980285-20996-2-git-send-email-archit@ti.com>
+	 <1277980285-20996-3-git-send-email-archit@ti.com>
+	 <1277980285-20996-4-git-send-email-archit@ti.com>
+	 <1277980285-20996-5-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50907 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754976Ab0GAKwx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 06:52:53 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1006240028140.1550@utopia.booyaka.com>
+Received: from smtp.nokia.com ([192.100.105.134]:50772 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753244Ab0GALat (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 07:30:49 -0400
+In-Reply-To: <1277980285-20996-5-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Archit Taneja <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, Senthilvadivu Guruswamy <svadivu@ti.com>, Mukund Mittal <mmittal@ti.com>, Samreen <samreen@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [100624 09:22]:
-> Hi Tony,
+On Thu, 2010-07-01 at 12:31 +0200, ext Archit Taneja wrote:
+> From: Semwal, Sumit <sumit.semwal@ti.com>
 > 
-> what do you think on this one?  -rc or .36?
+> Introduce OMAP4 DISPC base address and Secondary LCD Channel registers, use them
+> in register dumps.
+> 
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> Signed-off-by: Mukund Mittal <mmittal@ti.com>
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> Signed-off-by: Samreen <samreen@ti.com>
+> ---
+>  drivers/video/omap2/dss/dispc.c |   42 ++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 41 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+> index 5ecdc00..08b36d6
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -41,9 +41,13 @@
+>  #include "dss.h"
+>  
+>  /* DISPC */
+> +#ifdef CONFIG_ARCH_OMAP4
+> +#define DISPC_BASE			0x58001000
+> +#define DISPC_SZ_REGS			SZ_16K
+> +#else
+>  #define DISPC_BASE			0x48050400
+> -
+>  #define DISPC_SZ_REGS			SZ_1K
+> +#endif
+>  
+>  struct dispc_reg { u16 idx; };
+>  
+> @@ -68,6 +72,7 @@ struct dispc_reg { u16 idx; };
+>  #define DISPC_TIMING_V			DISPC_REG(0x0068)
+>  #define DISPC_POL_FREQ			DISPC_REG(0x006C)
+>  #define DISPC_DIVISOR			DISPC_REG(0x0070)
+> +#define DISPC_DIVISOR1			DISPC_REG(0x0804)
 
-If we want to try to get it into the -rc cycle, the description
-should mention what it fixes and show the error. Otherwise it might
-be hard to argue this is a real fix or a regression.
+What is this?
 
-Regards,
+>  #define DISPC_GLOBAL_ALPHA		DISPC_REG(0x0074)
+>  #define DISPC_SIZE_DIG			DISPC_REG(0x0078)
+>  #define DISPC_SIZE_LCD			DISPC_REG(0x007C)
+> @@ -131,6 +136,23 @@ struct dispc_reg { u16 idx; };
+>  					 DISPC_IRQ_SYNC_LOST | \
+>  					 DISPC_IRQ_SYNC_LOST_DIGIT)
+>  
+> +/* OMAP4 new global registers */
+> +#define DISPC_CONTROL2		DISPC_REG(0x0238)
+> +#define DISPC_DEFAULT_COLOR2		DISPC_REG(0x03AC)
+> +#define DISPC_TRANS_COLOR2		DISPC_REG(0x03B0)
+> +#define DISPC_CPR2_COEF_B		DISPC_REG(0x03B4)
+> +#define DISPC_CPR2_COEF_G		DISPC_REG(0x03B8)
+> +#define DISPC_CPR2_COEF_R		DISPC_REG(0x03BC)
+> +#define DISPC_DATA2_CYCLE1		DISPC_REG(0x03C0)
+> +#define DISPC_DATA2_CYCLE2		DISPC_REG(0x03C4)
+> +#define DISPC_DATA2_CYCLE3		DISPC_REG(0x03C8)
+> +#define DISPC_SIZE_LCD2		DISPC_REG(0x03CC)
+> +#define DISPC_TIMING_H2		DISPC_REG(0x0400)
+> +#define DISPC_TIMING_V2		DISPC_REG(0x0404)
+> +#define DISPC_POL_FREQ2		DISPC_REG(0x0408)
+> +#define DISPC_DIVISOR2		DISPC_REG(0x040C)
+> +#define DISPC_CONFIG2		DISPC_REG(0x0620)
+> +
+>  #define DISPC_MAX_NR_ISRS		8
 
-Tony
+Would it be possible to have similar system to these registers as with
+for example the VID registers:
 
- 
-> 
-> - Paul
-> 
-> On Thu, 24 Jun 2010, Gadiyar, Anand wrote:
-> 
-> > Paul Walmsley wrote:
-> > > On Mon, 21 Jun 2010, Paul Walmsley wrote:
-> > > > On Sat, 19 Jun 2010, Gadiyar, Anand wrote:
-> > > > > Gadiyar, Anand wrote:
-> > > > > > We need to wait on the IDLEST bit after the clocks are enabled
-> > > > > > before attempting to access any register.
-> > > > > > 
-> > > > > > Currently, the USBTLL i-clock ops uses the clkops_omap2_dflt_wait,
-> > > > > > while the USBTLL f-clock ops uses clkops_omap2_dflt. If the
-> > > > > > i-clock is enabled first, the clkops_omap2_dflt_wait is
-> > > > > > short-circuited as the companion f-clock is not enabled.
-> > > > > > This can cause a data abort if the IDLEST has not transitioned,
-> > > > > > and we try to access a USBTLL register.
-> > > > > > 
-> > > > > > Since the USBTLL i-clock and f-clock could be enabled in any order,
-> > > > > > this is a bug. Fix it by changing the clkops for the f-clock.
-> > > > > > 
-> > > > > > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> > > > 
-> > > > It looks fine to me.  I will queue it for a -rc branch. 
-> > > 
-> > > Will requeue this for 2.6.36 merge window since it is not a regression, 
-> > > and it seems that Linus wants regression fixes for the -rc series...
-> > > 
-> > 
-> > I received a bug-report last Friday from some user of the recently-merged
-> > ohci-omap3 driver about a data-abort caused at driver load. This patch
-> > fixes that issue.
-> > 
-> > This wasn't known to me when I originally submitted the patch, but looks
-> > like this is a problem caused in a driver that went in in the last merge
-> > window. So maybe this patch can go in in the -rc series. ;)
-> > 
-> > It's your call. I'm not particular.
-> 
-> 
-> 
-> - Paul
+DISPC_SIZE_LCD(n) where n is 0 or 1, or possibly the channel.
+
+This would reduce ifs quite a bit in the following patches.
+
+ Tomi
+
+
