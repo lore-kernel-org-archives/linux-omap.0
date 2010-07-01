@@ -1,98 +1,55 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v2 10/13] OMAP: create omap_devices for MPU, DSP, L3
-Date: Thu, 1 Jul 2010 09:50:44 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323763D43@dbde02.ent.ti.com>
-References: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com>
-	<1277423084-25528-11-git-send-email-khilman@deeprootsystems.com>
-	<87y6dxrblk.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0323763838@dbde02.ent.ti.com>
- <87ocesjlwf.fsf@deeprootsystems.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0323763D1C@dbde02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5E417E1@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 13/16] omap: mux: Mux Apollon LCD power in board-apollon.c
+Date: Thu, 01 Jul 2010 10:05:54 +0300
+Message-ID: <1277967954.2474.269.camel@tubuntu.research.nokia.com>
+References: <20100630120226.2637.31198.stgit@baageli.muru.com>
+	<20100630120719.2637.65586.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43737 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750848Ab0GAEUk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 00:20:40 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5E417E1@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20100630120719.2637.65586.stgit@baageli.muru.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
 
+On Wed, 2010-06-30 at 14:07 +0200, ext Tony Lindgren wrote:
+> Use the new mux function for that.
+> 
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/board-apollon.c |    3 +++
+>  drivers/video/omap/lcd_apollon.c    |    3 ---
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+> index b86a879..bc67026 100644
+> --- a/arch/arm/mach-omap2/board-apollon.c
+> +++ b/arch/arm/mach-omap2/board-apollon.c
+> @@ -332,6 +332,9 @@ static void __init omap_apollon_init(void)
+>  	/* REVISIT: where's the correct place */
+>  	omap_cfg_reg(W19_24XX_SYS_NIRQ);
+>  
+> +	/* LCD PWR_EN */
+> +	omap_mux_init_signal("mcbsp2_dr.gpio_11", OMAP_PULL_ENA | OMAP_PULL_UP);
 
+LCD_PWR_EN sounds like output pin. However, I don't see lcd_apollon.c
+nor board-apollon.c set the gpio.
 
->>-----Original Message-----
->>From: Shilimkar, Santosh
->>Sent: Thursday, July 01, 2010 9:46 AM
->>To: Gopinath, Thara; Kevin Hilman
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com
->>Subject: RE: [PATCH v2 10/13] OMAP: create omap_devices for MPU, DSP, L3
->>
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>> owner@vger.kernel.org] On Behalf Of Gopinath, Thara
->>> Sent: Thursday, July 01, 2010 9:35 AM
->>> To: Kevin Hilman
->>> Cc: linux-omap@vger.kernel.org; paul@pwsan.com
->>> Subject: RE: [PATCH v2 10/13] OMAP: create omap_devices for MPU, DSP, L3
->>>
->>>
->>>
->>> >>-----Original Message-----
->>> >>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>> >>Sent: Thursday, July 01, 2010 2:09 AM
->>> >>To: Gopinath, Thara
->>> >>Cc: linux-omap@vger.kernel.org; paul@pwsan.com
->>> >>Subject: Re: [PATCH v2 10/13] OMAP: create omap_devices for MPU, DSP, L3
->>> >>
->>> >>"Gopinath, Thara" <thara@ti.com> writes:
->>> >>
->>> >>[...]
->>> >>
->>> >>>>>+static int __init omap_common_pm_init(void)
->>> >>>>>+{
->>> >>>>>+	omap_init_processor_devices();
->>> >>>>>+	omap_pm_if_init();
->>> >>>>>+
->>> >>>>>+	return 0;
->>> >>>>>+}
->>> >>>>>+device_initcall(omap_common_pm_init);
->>> >>
->>> >>>
->>> >>> But I guess opp layer is still getting initialized before this. Esp if
->>> >>> the board files are initializing the opp structures. Or do you have a
->>> >>> patch to fix it in some other branch ?
->>> >>>
->>> >>
->>> >>The common OPP init will be done in this function as well (see current
->>> >>PM branch.)  Board files no longer do OPP init (by default) as it is
->>> >>handled by common code.  Only boards that add OPPs need to call the init
->>> >>function, and we'll have to figure out way to handle that late.
->>>
->>> Yes you are correct. The common OPP init is done in this function. One
->>> other thing I am a bit worried about is the order of initializations. The
->>> order should be
->>> 				Opp layer
->>> 				Voltage layer
->>> 				Smartreflex device layer.
->>>
->>> Presently all three layers are device_initcalls. The sequence is
->>> maintained due to the way these drivers are compiled in. We need to make
->>> them work independent of the way the drivers are compiled.
->>> One way is to have the omap_common_pm_init call into the inits of all
->>> these layers sequentially and
->>> remove the separate init calls. Any other suggestion anyone?
->>>
->>Grouping the initcalls is good idea but with this you can never be
->>able to build any of these as loadable modules.
->>This is valid only if any of above you plan to build as loadable module
+I don't know what omap_cfg_reg(M21_242X_GPIO11) does, but if it does the
+same thing as the line above, then does the apollon LCD work by luck?
+OMAP pulling the line up, and by chance the pull is stronger than the
+LCDs (possible) pull down, and thus the LCD is powered up...
 
-I do not think we need to build voltage, opp and smartreflex as modules. I would consider them as system critical layers and should be part of the basic kernel. Do you see a use case where these layers need to be modules? Also all these layers are stand alone libraries. Not registered with any bus or anything. So we will have to do some work if we need to load them as modules.
-
-Regards
-Thara
+ Tomi
