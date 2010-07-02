@@ -1,84 +1,115 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [RFC][PATCH 3/8] OMAP: DSS2: Modify dss_recheck_connections
-Date: Fri, 2 Jul 2010 09:55:43 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305A41BA9@dbde02.ent.ti.com>
-References: <1277980285-20996-1-git-send-email-archit@ti.com>
-	 <1277980285-20996-2-git-send-email-archit@ti.com>
-	 <1277980285-20996-3-git-send-email-archit@ti.com>
-	 <1277980285-20996-4-git-send-email-archit@ti.com>
-	 <1277983917.2474.319.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC3560870305A419C2@dbde02.ent.ti.com>
- <1277989954.2474.333.camel@tubuntu.research.nokia.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC 1/6] omap: add iva2 hwmod support to omap3
+Date: Fri, 02 Jul 2010 07:43:55 +0200
+Message-ID: <4C2D7C9B.8080003@ti.com>
+References: <1278022994-28476-1-git-send-email-ohad@wizery.com> <1278022994-28476-2-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34088 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36416 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750753Ab0GBEZw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 00:25:52 -0400
-In-Reply-To: <1277989954.2474.333.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+	id S1752817Ab0GBFoD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Jul 2010 01:44:03 -0400
+In-Reply-To: <1278022994-28476-2-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Ben-cohen, Ohad" <ohadb@ti.com>
 
-Hi,
+On 7/2/2010 12:23 AM, Ohad Ben-Cohen wrote:
+> From: Ohad Ben-Cohen<ohadb@ti.com>
+>
+> Add preliminary iva2 hwmod support to omap3.
+> We do not include iva2_clk; that will be part of a separate
+> hwmod, which will be controlled by iommu.
 
-> On Thu, 2010-07-01 at 14:28 +0200, ext Taneja, Archit wrote:
-> > > On Thu, 2010-07-01 at 12:31 +0200, ext Archit Taneja wrote:
-> > > > From: Sumit Semwal <sumit.semwal@ti.com>
-> > > > 
-> > > > The addition of the new 2lcd manager requires 
-> modifications in the 
-> > > > dss_recheck_connections patch, this function behaves the
-> > > same if the
-> > > > 2lcd manager doesn't exist
-> > > 
-> > > Here (and also in the previous patch) you talk about 
-> 2lcd, but the 
-> > > code uses lcd2.
-> > 
-> > Archit:  The new manager's name defined in manager.c is 2lcd, The 
-> > channel's name in the enum is OMAP_DSS_CHANNEL_LCD2, and 
-> the overlay 
-> > manager enum is OMAP_DSS_OVL_MGR_LCD2.
-> > 
-> > 2lcd as the manager name was taken so that no one makes 
-> mistakes while 
-> > reading/writing sysfs entries.
-> > 
-> > Also, in the dss2 code we use strncmp() to compare the 
-> manager names 
-> > in overlay_manager_store(). Now, if we name the new manager 
-> as "lcd2", 
-> > consider the following scenario:
-> > 
-> > Suppose an overlay has its manager presently set as "lcd2". Now 
-> > someone does a sysfs entry to make the manager as "lcd". So in this 
-> > case the variable buf is "lcd" and and mgr->name is "lcd2". The 
-> > variable len is calculated on the basis of buf ("lcd") as 3.
-> > 
-> > So strncmp just compares the first 3 chars, and in that case "lcd"
-> > and "lcd2" are the same, luckily this doesn't cause an issue as the 
-> > first manager fetched by omap_dss_get_overlay_manager() is 
-> "lcd". If 
-> > the manager_list was filled in some other way then this would have 
-> > resulted an issue.
-> 
-> If the DSS sysfs code if broken, let's rather fix it than 
-> name the manager with a rather strange name, just to circumvent a bug.
-> 
-> > 
-> > In my opinion, len should be calculated as:
-> > 
-> > len = max(len, strlen(mgr->name));
-> > 
-> > This way strncmp would work correctly in all the cases.
-> 
-> sysfs_streq() could be used there.
+I think Kevin already sent a hwmod for IVA2... one week ago:
+[PATCH 13/13] OMAP3: hwmod data: add data for OMAP3 IVA2
 
-I agree, I will make this change.
+> Signed-off-by: Ohad Ben-Cohen<ohadb@ti.com>
+> Signed-off-by: Hari Kanigeri<h-kanigeri2@ti.com>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod_34xx.h        |   23 +++++++++++++++++++++++
+>   arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+>   2 files changed, 24 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap2/omap_hwmod_34xx.h
+> index b6076b9..d363a95 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_34xx.h
+> +++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
+> @@ -22,6 +22,7 @@
+>   #include "prm-regbits-34xx.h"
+>
+>   static struct omap_hwmod omap34xx_mpu_hwmod;
+> +static struct omap_hwmod omap34xx_iva2_hwmod;
+>   static struct omap_hwmod omap34xx_l3_hwmod;
+>   static struct omap_hwmod omap34xx_l4_core_hwmod;
+>   static struct omap_hwmod omap34xx_l4_per_hwmod;
+> @@ -47,9 +48,17 @@ static struct omap_hwmod_ocp_if omap34xx_mpu__l3 = {
+>   	.user	= OCP_USER_MPU,
+>   };
+>
+> +/* IVA2 ->  L3 interface */
+> +static struct omap_hwmod_ocp_if omap34xx_iva2__l3 = {
+> +	.master	=&omap34xx_iva2_hwmod,
+> +	.slave	=&omap34xx_l3_hwmod,
+> +	.user	= OCP_USER_IVA2,
+> +};
+> +
+>   /* Slave interfaces on the L3 interconnect */
+>   static struct omap_hwmod_ocp_if *omap34xx_l3_slaves[] = {
+>   	&omap34xx_mpu__l3,
+> +	&omap34xx_iva2__l3,
+>   };
+>
+>   /* Master interfaces on the L3 interconnect */
+> @@ -150,12 +159,26 @@ static struct omap_hwmod omap34xx_mpu_hwmod = {
+>   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+>   };
+>
+> +/* Master interfaces on the IVA2 device */
+> +static struct omap_hwmod_ocp_if *omap34xx_iva2_masters[] = {
+> +	&omap34xx_iva2__l3,
+> +};
+> +
+> +/* IVA2 */
+> +static struct omap_hwmod omap34xx_iva2_hwmod = {
+> +	.name		= "iva2_hwmod",
 
-Archit
+Should be "iva" only.
+
+> +	.masters	= omap34xx_iva2_masters,
+> +	.masters_cnt	= ARRAY_SIZE(omap34xx_iva2_masters),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> +};
+> +
+>   static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
+>   	&omap34xx_l3_hwmod,
+>   	&omap34xx_l4_core_hwmod,
+>   	&omap34xx_l4_per_hwmod,
+>   	&omap34xx_l4_wkup_hwmod,
+>   	&omap34xx_mpu_hwmod,
+> +	&omap34xx_iva2_hwmod,
+>   	NULL,
+>   };
+>
+> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> index 3393325..5e64992 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> @@ -160,6 +160,7 @@ struct omap_hwmod_addr_space {
+>    */
+>   #define OCP_USER_MPU			(1<<  0)
+>   #define OCP_USER_SDMA			(1<<  1)
+> +#define OCP_USER_IVA2			(1<<  2)
+
+Are you going to use that information somewhere?
+In that case, you should populate the address space view from the DSP.
+
+Benoit
+
+>
+>   /* omap_hwmod_ocp_if.flags bits */
+>   #define OCPIF_HAS_IDLEST		(1<<  0)
+
