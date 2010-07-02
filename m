@@ -1,142 +1,75 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 1/9] dspbridge: replace iommu custom for opensource
- implementation
-Date: Fri, 2 Jul 2010 11:40:32 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602CBDD3AF5@dlee06.ent.ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 8/9] dspbridge: add map support for big buffers
+Date: Fri, 2 Jul 2010 12:02:51 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
 References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
- <20100702.093205.59662898.Hiroshi.DOYU@nokia.com>
+ <1277943660-4112-2-git-send-email-x0095840@ti.com>
+ <1277943660-4112-3-git-send-email-x0095840@ti.com>
+ <1277943660-4112-4-git-send-email-x0095840@ti.com>
+ <1277943660-4112-5-git-send-email-x0095840@ti.com>
+ <1277943660-4112-6-git-send-email-x0095840@ti.com>
+ <1277943660-4112-7-git-send-email-x0095840@ti.com>
+ <1277943660-4112-8-git-send-email-x0095840@ti.com>
+ <1277943660-4112-9-git-send-email-x0095840@ti.com>
+ <8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
+ <496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56077 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759261Ab0GBQkg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 12:40:36 -0400
-In-Reply-To: <20100702.093205.59662898.Hiroshi.DOYU@nokia.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-
+Fernando,
 
 > -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> Sent: Friday, July 02, 2010 1:32 AM
-> To: Guzman Lugo, Fernando
-> Cc: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org;
-> ohad@wizery.com; ameya.palande@nokia.com; felipe.contreras@nokia.com
-> Subject: Re: [PATCH 1/9] dspbridge: replace iommu custom for opensource
-> implementation
+> From: Guzman Lugo, Fernando
+> Sent: Friday, July 02, 2010 11:27 AM
+> To: Kanigeri, Hari; linux-omap@vger.kernel.org; linux-
+> kernel@vger.kernel.org
+> Cc: ohad@wizery.com; hiroshi.doyu@nokia.com; ameya.palande@nokia.com;
+> felipe.contreras@nokia.com
+> Subject: RE: [PATCH 8/9] dspbridge: add map support for big buffers
 > 
-> Hi Fernando,
 > 
-> From: ext Fernando Guzman Lugo <x0095840@ti.com>
-> Subject: [PATCH 1/9] dspbridge: replace iommu custom for opensource
-> implementation
-> Date: Thu, 1 Jul 2010 02:20:52 +0200
 > 
-> > This patch replace the call to custom dsp mmu implemenation
-> > for the once on iommu module.
-> >
-> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> > ---
-> >  drivers/dsp/bridge/core/_tiomap.h    |   16 +
-> >  drivers/dsp/bridge/core/io_sm.c      |  114 ++------
-> >  drivers/dsp/bridge/core/tiomap3430.c |  501 +++++----------------------
-> -------
-> >  drivers/dsp/bridge/core/ue_deh.c     |   10 -
-> >  4 files changed, 118 insertions(+), 523 deletions(-)
-> >
-> > diff --git a/drivers/dsp/bridge/core/_tiomap.h
-> b/drivers/dsp/bridge/core/_tiomap.h
-> > index bf0164e..d13677a 100644
-> > --- a/drivers/dsp/bridge/core/_tiomap.h
-> > +++ b/drivers/dsp/bridge/core/_tiomap.h
-> > @@ -23,6 +23,8 @@
-> >  #include <plat/clockdomain.h>
-> >  #include <mach-omap2/prm-regbits-34xx.h>
-> >  #include <mach-omap2/cm-regbits-34xx.h>
-> > +#include <plat/iommu.h>
-> > +#include <plat/iovmm.h>
-> >  #include <dspbridge/devdefs.h>
-> >  #include <hw_defs.h>
-> >  #include <dspbridge/dspioctl.h>        /* for bridge_ioctl_extproc defn
-> */
-> > @@ -330,6 +332,7 @@ struct bridge_dev_context {
-> >         u32 dw_internal_size;   /* Internal memory size */
-> >
-> >         struct omap_mbox *mbox;         /* Mail box handle */
-> > +       struct iommu *dsp_mmu;          /* iommu for iva2 handler */
-> >
-> >         struct cfg_hostres *resources;  /* Host Resources */
-> >
-> > @@ -374,4 +377,17 @@ extern s32 dsp_debug;
-> >   */
-> >  int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16
-> mb_val);
-> >
-> > +static inline void dsp_iotlb_init(struct iotlb_entry *e, u32 da, u32
-> pa,
-> > +                                                       u32 pgsz)
-> > +{
-> > +       e->da = da;
-> > +       e->pa = pa;
-> > +       e->valid = 1;
-> > +       e->prsvd = 1;
-> > +       e->pgsz = pgsz & MMU_CAM_PGSZ_MASK;
-> > +       e->endian = MMU_RAM_ENDIAN_LITTLE;
-> > +       e->elsz = MMU_RAM_ELSZ_32;
-> > +       e->mixed = 0;
-> > +}
-> > +
-> >  #endif /* _TIOMAP_ */
-> > diff --git a/drivers/dsp/bridge/core/io_sm.c
-> b/drivers/dsp/bridge/core/io_sm.c
-> > index 7fb840d..1f47f8b 100644
-> > --- a/drivers/dsp/bridge/core/io_sm.c
-> > +++ b/drivers/dsp/bridge/core/io_sm.c
-> > @@ -290,6 +290,8 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
-> >         struct cod_manager *cod_man;
-> >         struct chnl_mgr *hchnl_mgr;
-> >         struct msg_mgr *hmsg_mgr;
-> > +       struct iommu *mmu;
-> > +       struct iotlb_entry e;
-> >         u32 ul_shm_base;
-> >         u32 ul_shm_base_offset;
-> >         u32 ul_shm_limit;
-> > @@ -312,7 +314,6 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
-> >         struct bridge_ioctl_extproc ae_proc[BRDIOCTL_NUMOFMMUTLB];
-> >         struct cfg_hostres *host_res;
-> >         struct bridge_dev_context *pbridge_context;
-> > -       u32 map_attrs;
-> >         u32 shm0_end;
-> >         u32 ul_dyn_ext_base;
-> >         u32 ul_seg1_size = 0;
-> > @@ -336,6 +337,21 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
-> >                 status = -EFAULT;
-> >                 goto func_end;
-> >         }
-> > +
-> > +       mmu = pbridge_context->dsp_mmu;
-> > +
-> > +       if (mmu)
-> > +               iommu_put(mmu);
-> > +       mmu = iommu_get("iva2");
+> Hi Hari,
 > 
-> +       mmu = iommu_get("iva2", mmu_fault_isr);
+> > -----Original Message-----
+> > From: Kanigeri, Hari
+> > Sent: Thursday, July 01, 2010 6:36 PM
+> > To: Guzman Lugo, Fernando; linux-omap@vger.kernel.org; linux-
+> > kernel@vger.kernel.org
+> > Cc: ohad@wizery.com; hiroshi.doyu@nokia.com; ameya.palande@nokia.com;
+> > felipe.contreras@nokia.com; Guzman Lugo, Fernando
+> > Subject: RE: [PATCH 8/9] dspbridge: add map support for big buffers
+> >
+> > Fernando,
+> >
+> > > -	for_each_sg(sgt->sgl, sg, sgt->nents, i)
+> > > -		sg_set_page(sg, usr_pgs[i], PAGE_SIZE, 0);
+> > > +		da = iommu_vmap(mmu, da, sgt, IOVMF_ENDIAN_LITTLE |
+> > > +							IOVMF_ELSZ_32);
+> >
+> > -- iommu_vmap does the Kernel mapping to the buffers you are mapping to
+> > DSP MMU. Why do you need Kernel mappings ?
+> >
+> > If there is no benefit in maintaining Kernel mapping I would rather call
+> > iopgtable_store_entry directly to map the entries.
 > 
-> I'm considering that it might be better to pass a mmu fault callback
-> at this iommu_get.
-> 
-> What do you think?
+> Where inside iommu_vmap is the mapping done?
 
-That sounds good.
+-- The mapping is done to track down the Device mappings. But since you already have it in dmm.c this is kind of redundant right now, and we might see performance impact due to this. 
 
-Thanks and regards,
-Fernando.
+I think it might be good to transition to iovmm when we phase out dmm.c. 
+Few things to take into account transitioning to iovmm approach:
+	- DSPBridge used to have linked list approach to track down the mapped entries and profiling showed it took considerable amount of traversing through the list. Jeff Taylor's algorithm in dmm.c helped to reduce this impact. 
+	- How would you manage the Device virtual pool moving to iovmm ? And how about the reservation ?
 
-
+Thank you,
+Best regards,
+Hari
