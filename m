@@ -1,45 +1,63 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
-Date: Fri, 02 Jul 2010 12:42:39 +0300 (EEST)
-Message-ID: <20100702.124239.260109498.Hiroshi.DOYU@nokia.com>
-References: <20100629.075744.104054771.Hiroshi.DOYU@nokia.com>
-	<20100702.093534.115912504.Hiroshi.DOYU@nokia.com>
-	<20100702090411.GH6632@atomide.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Thara Gopinath <thara@ti.com>
+Subject: [RFC 7/7] OMAP3: Update cpufreq driver to use the new set_rate API
+Date: Fri,  2 Jul 2010 15:48:29 +0530
+Message-ID: <1278065909-32148-8-git-send-email-thara@ti.com>
+References: <1278065909-32148-1-git-send-email-thara@ti.com>
+ <1278065909-32148-2-git-send-email-thara@ti.com>
+ <1278065909-32148-3-git-send-email-thara@ti.com>
+ <1278065909-32148-4-git-send-email-thara@ti.com>
+ <1278065909-32148-5-git-send-email-thara@ti.com>
+ <1278065909-32148-6-git-send-email-thara@ti.com>
+ <1278065909-32148-7-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35874 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752742Ab0GBJnO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 05:43:14 -0400
-In-Reply-To: <20100702090411.GH6632@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47178 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752478Ab0GBKSk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Jul 2010 06:18:40 -0400
+In-Reply-To: <1278065909-32148-7-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, p-basak2@ti.com, Thara Gopinath <thara@ti.com>
 
-From: ext Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
-Date: Fri, 2 Jul 2010 11:04:11 +0200
+This patch updates the cpufreq driver to use the device
+set rate API to scale the mpu frequency for OMAP3.
 
-> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100702 09:29]:
->> 
->> Do you have any plan for pulling for-next patches?
->> 
->> I have some "omap iommu" and "omap mailbox" patches for for-next. Now
->> the merge window seems so small and I don't want to miss it.
-> 
-> Pulled now into omap-for-linus for the next merge window. Sorry
-> for the delay.
-> 
-> BTW, I did not add that Makefile fix into omap-fixes-for-linus,
-> I figured we should first make sure to get the pending fixes
-> in, and then maybe do another set of fixes.
-> 
-> But looks like that's in your for-next, so we might as well
-> keep it there. If there's urgent need to get that in as a fix,
-> let me know ASAP, I can still rebuild omap-for-linus as that's
-> the only set merged there.
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
+ arch/arm/plat-omap/cpu-omap.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Ok, Thanks. I'll send another pull request for omap mailbox for-next.
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index 9467827..cde02b5 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -29,6 +29,7 @@
+ #include <mach/hardware.h>
+ #include <plat/clock.h>
+ #include <asm/system.h>
++#include <plat/omap_device.h>
+ 
+ #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+ #include <plat/omap-pm.h>
+@@ -84,7 +85,7 @@ static int omap_target(struct cpufreq_policy *policy,
+ 		       unsigned int target_freq,
+ 		       unsigned int relation)
+ {
+-#ifdef CONFIG_ARCH_OMAP1
++#ifdef CONFIG_ARiCH_OMAP1
+ 	struct cpufreq_freqs freqs;
+ #endif
+ #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+@@ -117,7 +118,7 @@ static int omap_target(struct cpufreq_policy *policy,
+ #elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+ 	freq = target_freq * 1000;
+ 	if (opp_find_freq_ceil(mpu_dev, &freq))
+-		omap_pm_cpu_set_freq(freq);
++		omap_device_set_rate(mpu_dev, freq);
+ #endif
+ 	return ret;
+ }
+-- 
+1.7.0.rc1.33.g07cf0f
+
