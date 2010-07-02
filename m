@@ -1,37 +1,65 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 8/9] dspbridge: add map support for big buffers
-Date: Thu, 1 Jul 2010 18:36:06 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
- <1277943660-4112-2-git-send-email-x0095840@ti.com>
- <1277943660-4112-3-git-send-email-x0095840@ti.com>
- <1277943660-4112-4-git-send-email-x0095840@ti.com>
- <1277943660-4112-5-git-send-email-x0095840@ti.com>
- <1277943660-4112-6-git-send-email-x0095840@ti.com>
- <1277943660-4112-7-git-send-email-x0095840@ti.com>
- <1277943660-4112-8-git-send-email-x0095840@ti.com>
- <1277943660-4112-9-git-send-email-x0095840@ti.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and
+ check for it on V6
+Date: Thu, 01 Jul 2010 22:37:20 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1007012226170.26524@xanadu.home>
+References: <20100621135120.24299.98499.stgit@baageli.muru.com>
+ <20100622170020.GF4371@shareable.org> <20100623073912.GA12255@atomide.com>
+ <20100623133636.GC7058@shareable.org> <20100629141836.GM2822@atomide.com>
+ <alpine.LFD.2.00.1006291355520.24097@xanadu.home>
+ <20100630110828.GZ2822@atomide.com> <20100630131737.GF2822@atomide.com>
+ <alpine.LFD.2.00.1006301011520.24097@xanadu.home>
+ <20100701092510.GH2822@atomide.com> <20100701174051.GA8786@shareable.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1277943660-4112-9-git-send-email-x0095840@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:33322 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754453Ab0GBChW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 22:37:22 -0400
+Received: from xanadu.home ([66.130.28.92]) by VL-MR-MR002.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
+ with ESMTP id <0L4W00K0CSM84B10@VL-MR-MR002.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Thu, 01 Jul 2010 22:37:21 -0400 (EDT)
+In-reply-to: <20100701174051.GA8786@shareable.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jamie Lokier <jamie@shareable.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Fernando,
+On Thu, 1 Jul 2010, Jamie Lokier wrote:
 
-> -	for_each_sg(sgt->sgl, sg, sgt->nents, i)
-> -		sg_set_page(sg, usr_pgs[i], PAGE_SIZE, 0);
-> +		da = iommu_vmap(mmu, da, sgt, IOVMF_ENDIAN_LITTLE |
-> +							IOVMF_ELSZ_32);
+> Tony Lindgren wrote:
+> > +static void __init kuser_get_tls_init(unsigned long vectors)
+> > +{
+> > +	/*
+> > +	 * vectors + 0xfe0 = __kuser_get_tls
+> > +	 * vectors + 0xfe8 = hardware TLS instruction at 0xffff0fe8
+> > +	 */
+> > +	if (tls_emu || has_tls)
+> > +		memcpy((void *)vectors + 0xfe0, (void *)vectors + 0xfe8, 4);
+> > +}
+> 
+> Just a little opinion: Perhaps has_tls_reg would be a clearer name.
+> All variants "have TLS" after all.
 
--- iommu_vmap does the Kernel mapping to the buffers you are mapping to DSP MMU. Why do you need Kernel mappings ? 
+Good point.
 
-If there is no benefit in maintaining Kernel mapping I would rather call iopgtable_store_entry directly to map the entries. 
+> Also - and this isn't directly related to your change so feel free to
+> ignore it - wouldn't it make more sense for the tls_emu case to use
+> the memory version (and update the memory location), so that even on
+> tls_emu systems, user programs which call the kuser code will run faster?
+> With that change, there would be no real penalty to enabling tls_emu
+> for any system that finds it useful.
 
-Thank you,
-Best regards, Hari
+No, that's not possible.
+
+The tls_emu case was created to allow SMP system without the actual 
+TLS register to still work.  With SMP you cannot rely on a global memory 
+location to hold the TLS value.  And because such systems are so 
+"unusual" it was simpler to just do as if the TLS register was there and 
+then emulate it within the instruction exception handler.
+
+
+Nicolas
