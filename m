@@ -1,12 +1,12 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 2/3] omap mailbox: prevent multiple concurrent receivers race
-Date: Fri,  2 Jul 2010 15:05:04 +0300
-Message-ID: <1278072305-17943-2-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 3/3] omap mailbox: remove mbox_configured scheme
+Date: Fri,  2 Jul 2010 15:05:05 +0300
+Message-ID: <1278072305-17943-3-git-send-email-Hiroshi.DOYU@nokia.com>
 References: <1278072305-17943-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:46719 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:46721 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752595Ab0GBMFU (ORCPT
+	with ESMTP id S1752740Ab0GBMFU (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 08:05:20 -0400
 In-Reply-To: <1278072305-17943-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,70 +16,68 @@ Cc: linux-omap@vger.kernel.org, ext Ohad Ben-Cohen <ohad@wizery.com>, Hiroshi DO
 
 From: ext Ohad Ben-Cohen <ohad@wizery.com>
 
-We currently maintain only a single mailbox receiver callback.
-To prevent multiple receivers race scenarios (in which receivers
-will end up overwriting each other's callback pointers), we make
-sure that mailbox instances cannot be taken by more than
-one receiver at the same time.
+mbox_configured is global and therefore does not support
+concurrent usage of multiple mailbox instances.
+Instead of fixing this, we can just eliminate mbox_configured
+(and its locking) entirely, since any given mailbox instance
+can only be taken by a single receiver now.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/plat-omap/include/plat/mailbox.h |    1 +
- arch/arm/plat-omap/mailbox.c              |   12 +++++++++++-
- 2 files changed, 12 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/mailbox.c |   24 ++++--------------------
+ 1 files changed, 4 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
-index 0b45664..5df35b4 100644
---- a/arch/arm/plat-omap/include/plat/mailbox.h
-+++ b/arch/arm/plat-omap/include/plat/mailbox.h
-@@ -57,6 +57,7 @@ struct omap_mbox {
- 	struct omap_mbox_ops	*ops;
- 	struct device		*dev;
- 	void			*priv;
-+	atomic_t		count;
- };
- 
- int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
 diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index 14b716d..aafa63f 100644
+index aafa63f..6a9dfe5 100644
 --- a/arch/arm/plat-omap/mailbox.c
 +++ b/arch/arm/plat-omap/mailbox.c
-@@ -320,9 +320,17 @@ struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *))
- 	if (!mbox)
- 		return ERR_PTR(-ENOENT);
+@@ -35,9 +35,6 @@ static struct workqueue_struct *mboxd;
+ static struct omap_mbox **mboxes;
+ static bool rq_full;
  
-+	if (atomic_inc_return(&mbox->count) > 1) {
-+		pr_err("%s: mbox %s already in use\n", __func__, name);
-+		atomic_dec(&mbox->count);
-+		return ERR_PTR(-EBUSY);
-+	}
-+
- 	ret = omap_mbox_startup(mbox);
--	if (ret)
-+	if (ret) {
-+		atomic_dec(&mbox->count);
- 		return ERR_PTR(-ENODEV);
-+	}
+-static int mbox_configured;
+-static DEFINE_MUTEX(mbox_configured_lock);
+-
+ static unsigned int mbox_kfifo_size = CONFIG_OMAP_MBOX_KFIFO_SIZE;
+ module_param(mbox_kfifo_size, uint, S_IRUGO);
+ MODULE_PARM_DESC(mbox_kfifo_size, "Size of omap's mailbox kfifo (bytes)");
+@@ -240,16 +237,9 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
+ 	struct omap_mbox_queue *mq;
  
- 	mbox->rxq->callback = callback;
+ 	if (mbox->ops->startup) {
+-		mutex_lock(&mbox_configured_lock);
+-		if (!mbox_configured)
+-			ret = mbox->ops->startup(mbox);
+-
+-		if (ret) {
+-			mutex_unlock(&mbox_configured_lock);
++		ret = mbox->ops->startup(mbox);
++		if (ret)
+ 			return ret;
+-		}
+-		mbox_configured++;
+-		mutex_unlock(&mbox_configured_lock);
+ 	}
  
-@@ -333,6 +341,7 @@ EXPORT_SYMBOL(omap_mbox_get);
- void omap_mbox_put(struct omap_mbox *mbox)
- {
- 	omap_mbox_fini(mbox);
-+	atomic_dec(&mbox->count);
+ 	ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
+@@ -295,14 +285,8 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
+ 	mbox_queue_free(mbox->txq);
+ 	mbox_queue_free(mbox->rxq);
+ 
+-	if (mbox->ops->shutdown) {
+-		mutex_lock(&mbox_configured_lock);
+-		if (mbox_configured > 0)
+-			mbox_configured--;
+-		if (!mbox_configured)
+-			mbox->ops->shutdown(mbox);
+-		mutex_unlock(&mbox_configured_lock);
+-	}
++	if (mbox->ops->shutdown)
++		mbox->ops->shutdown(mbox);
  }
- EXPORT_SYMBOL(omap_mbox_put);
  
-@@ -349,6 +358,7 @@ int omap_mbox_register(struct device *parent, struct omap_mbox **list)
- 
- 	for (i = 0; mboxes[i]; i++) {
- 		struct omap_mbox *mbox = mboxes[i];
-+		atomic_set(&mbox->count, 0);
- 		mbox->dev = device_create(&omap_mbox_class,
- 				parent, 0, mbox, "%s", mbox->name);
- 		if (IS_ERR(mbox->dev)) {
+ struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *))
 -- 
 1.7.1.rc2
 
