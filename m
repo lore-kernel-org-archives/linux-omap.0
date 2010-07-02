@@ -1,75 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 09/13] OMAP: omap_device: ensure hwmod tracks attached
- omap_device pointer
-Date: Fri, 2 Jul 2010 03:05:44 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1007020304230.13691@utopia.booyaka.com>
-References: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com> <1277423084-25528-10-git-send-email-khilman@deeprootsystems.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
+Date: Fri, 02 Jul 2010 12:42:39 +0300 (EEST)
+Message-ID: <20100702.124239.260109498.Hiroshi.DOYU@nokia.com>
+References: <20100629.075744.104054771.Hiroshi.DOYU@nokia.com>
+	<20100702.093534.115912504.Hiroshi.DOYU@nokia.com>
+	<20100702090411.GH6632@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36250 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757954Ab0GBJFp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 05:05:45 -0400
-In-Reply-To: <1277423084-25528-10-git-send-email-khilman@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.233]:35874 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752742Ab0GBJnO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 05:43:14 -0400
+In-Reply-To: <20100702090411.GH6632@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
 
-Hi,
+From: ext Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
+Date: Fri, 2 Jul 2010 11:04:11 +0200
 
-On Thu, 24 Jun 2010, Kevin Hilman wrote:
-
-> The omap_hwmod struct has a field to track the omap_device that is
-> attached to it, but it was not being assigned.  Fix by assigning omap_device
-> pointer when omap_device is built.
+> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100702 09:29]:
+>> 
+>> Do you have any plan for pulling for-next patches?
+>> 
+>> I have some "omap iommu" and "omap mailbox" patches for for-next. Now
+>> the merge window seems so small and I don't want to miss it.
 > 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Pulled now into omap-for-linus for the next merge window. Sorry
+> for the delay.
+> 
+> BTW, I did not add that Makefile fix into omap-fixes-for-linus,
+> I figured we should first make sure to get the pending fixes
+> in, and then maybe do another set of fixes.
+> 
+> But looks like that's in your for-next, so we might as well
+> keep it there. If there's urgent need to get that in as a fix,
+> let me know ASAP, I can still rebuild omap-for-linus as that's
+> the only set merged there.
 
-Just FYI, this patch has been converted to use an array index instead of 
-pointer arithmetic - edited patch below.
-
-
-- Paul
-
-
-OMAP: omap_device: ensure hwmod tracks attached omap_device pointer
-
-From: Kevin Hilman <khilman@deeprootsystems.com>
-
-The omap_hwmod struct has a field to track the omap_device that is
-attached to it, but it was not being assigned.  Fix by assigning omap_device
-pointer when omap_device is built.
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-[paul@pwsan.com: use an array index rather than pointer arithmetic]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/plat-omap/omap_device.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index f899603..f9dec0d 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -359,7 +359,7 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
- 	struct omap_device *od;
- 	char *pdev_name2;
- 	struct resource *res = NULL;
--	int res_count;
-+	int i, res_count;
- 	struct omap_hwmod **hwmods;
- 
- 	if (!ohs || oh_cnt == 0 || !pdev_name)
-@@ -416,6 +416,9 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
- 	else
- 		ret = omap_device_register(od);
- 
-+	for (i = 0; i < oh_cnt; i++)
-+		hwmods[i]->od = od;
-+
- 	if (ret)
- 		goto odbs_exit4;
- 
+Ok, Thanks. I'll send another pull request for omap mailbox for-next.
