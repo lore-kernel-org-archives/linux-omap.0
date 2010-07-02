@@ -1,17 +1,16 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 09/13] OMAP: omap_device: ensure hwmod tracks attached
- omap_device pointer
-Date: Fri, 2 Jul 2010 05:40:24 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1007020539080.13691@utopia.booyaka.com>
-References: <1277336563-24988-1-git-send-email-khilman@deeprootsystems.com> <1277336563-24988-10-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 10/13] OMAP: create omap_devices for MPU, DSP, L3
+Date: Fri, 2 Jul 2010 05:45:07 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1007020541081.13691@utopia.booyaka.com>
+References: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com> <1277423084-25528-11-git-send-email-khilman@deeprootsystems.com> <87y6dxrblk.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36637 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:40284 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756584Ab0GBLkY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 07:40:24 -0400
-In-Reply-To: <1277336563-24988-10-git-send-email-khilman@deeprootsystems.com>
+	with ESMTP id S1755421Ab0GBLpI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 07:45:08 -0400
+In-Reply-To: <87y6dxrblk.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
@@ -19,56 +18,206 @@ Cc: linux-omap@vger.kernel.org
 
 Hi,
 
-On Wed, 23 Jun 2010, Kevin Hilman wrote:
+On Tue, 29 Jun 2010, Kevin Hilman wrote:
 
-> The omap_hwmod struct has a field to track the omap_device that is
-> attached to it, but it was not being assigned.  Fix by assigning omap_device
-> pointer when omap_device is built.
+> Kevin Hilman <khilman@deeprootsystems.com> writes:
 > 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> > Create simple omap_devices for the main processors and busses.
+> >
+> > This is required to support the forth-coming device-based OPP
+> > approach, where OPPs are managed and tracked at the device level.
+> >
+> > So that these primary devices are available for early PM initialization,
+> > they are created as early platform_devices.
+> 
+> I've reworked this patch so that it is no longer using early devices,
+> updated version below.
+> 
+> This requires delaying some other PM init as well (OMAP PM layer, OPP
+> layer etc.) so a common_pm_init() function was created and initialized
+> as a device_initcall().
+> 
+> My pm-hwmods branch has been updated with this version, and the PM
+> branch now has corresponding changes to the SR/voltage layers to
+> initialize them as device_initcalls as well.
 
-This patch has been modified to use array indexing rather than pointer 
-arithmetic; I think it is easier to read and debug; revised patch below.
+Thanks for these changes, this seems better than the early_platform_device 
+approach.  I've made a few more changes:
+
+- the newly-created functions have been moved to a new file, 
+  mach-omap2/pm.c.  I'm not convinced that this file is the right place
+  for these functions either, but it didn't make sense to me to create 
+  these functions in mach-omap2/io.c;
+
+- the functions have been renamed to start with "omap2" to indicate that
+  they are OMAP2+-only functions;
+
+- sparse warnings have been resolved.
+
+Revised patch below.
 
 
 - Paul
 
-OMAP: omap_device: ensure hwmod tracks attached omap_device pointer
+OMAP: PM: create omap_devices for MPU, DSP, L3
 
 From: Kevin Hilman <khilman@deeprootsystems.com>
 
-The omap_hwmod struct has a field to track the omap_device that is
-attached to it, but it was not being assigned.  Fix by assigning omap_device
-pointer when omap_device is built.
+Create simple omap_devices for the main processors and busses.
+
+This is required to support the forth-coming device-based OPP
+approach, where OPPs are managed and tracked at the device level.
+
+Also, move these common PM init functions into a common_pm_init call
+that is called as a device_initcall().  The PM init is done at this level
+to ensure that the driver core is initialized before initialized.
 
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-[paul@pwsan.com: use an array index rather than pointer arithmetic]
+[paul@pwsan.com: sparse warnings cleaned up; newly-created functions moved
+ from mach-omap2/io.c to mach-omap2/pm.c; newly-created functions renamed
+ to start with "omap2" rather than "omap"]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/plat-omap/omap_device.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/Makefile             |    2 -
+ arch/arm/mach-omap2/io.c                 |    2 -
+ arch/arm/mach-omap2/pm.c                 |   84 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/common.h |    4 +
+ 4 files changed, 90 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/pm.c
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index f899603..f9dec0d 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -359,7 +359,7 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
- 	struct omap_device *od;
- 	char *pdev_name2;
- 	struct resource *res = NULL;
--	int res_count;
-+	int i, res_count;
- 	struct omap_hwmod **hwmods;
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 2fa3418..213f1df 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -3,7 +3,7 @@
+ #
  
- 	if (!ohs || oh_cnt == 0 || !pdev_name)
-@@ -416,6 +416,9 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
- 	else
- 		ret = omap_device_register(od);
+ # Common support
+-obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
++obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o
  
-+	for (i = 0; i < oh_cnt; i++)
-+		hwmods[i]->od = od;
+ omap-2-3-common				= irq.o sdrc.o
+ hwmod-common				= omap_hwmod.o \
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 05c9cdb..2b983ac 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -44,6 +44,7 @@
+ 
+ #include <plat/clockdomain.h>
+ #include "clockdomains.h"
 +
- 	if (ret)
- 		goto odbs_exit4;
+ #include <plat/omap_hwmod.h>
  
+ /*
+@@ -346,7 +347,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
+ 		omap_hwmod_late_init(skip_setup_idle);
+ 
+-	omap_pm_if_init();
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+ 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+ 		_omap2_init_reprogram_sdrc();
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+new file mode 100644
+index 0000000..68f9f2e
+--- /dev/null
++++ b/arch/arm/mach-omap2/pm.c
+@@ -0,0 +1,84 @@
++/*
++ * pm.c - Common OMAP2+ power management-related code
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Copyright (C) 2010 Nokia Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/err.h>
++
++#include <plat/omap-pm.h>
++#include <plat/omap_device.h>
++#include <plat/common.h>
++
++static struct omap_device_pm_latency *pm_lats;
++
++static struct device *mpu_dev;
++static struct device *dsp_dev;
++static struct device *l3_dev;
++
++struct device *omap2_get_mpuss_device(void)
++{
++	WARN_ON_ONCE(!mpu_dev);
++	return mpu_dev;
++}
++
++struct device *omap2_get_dsp_device(void)
++{
++	WARN_ON_ONCE(!dsp_dev);
++	return dsp_dev;
++}
++
++struct device *omap2_get_l3_device(void)
++{
++	WARN_ON_ONCE(!l3_dev);
++	return l3_dev;
++}
++
++/* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
++static int _init_omap_device(char *name, struct device **new_dev)
++{
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++
++	oh = omap_hwmod_lookup(name);
++	if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
++		 __func__, name))
++		return -ENODEV;
++
++	od = omap_device_build(oh->name, 0, oh, NULL, 0, pm_lats, 0, false);
++	if (WARN(IS_ERR(od), "%s: could not build omap_device for %s\n",
++		 __func__, name))
++		return -ENODEV;
++
++	*new_dev = &od->pdev.dev;
++
++	return 0;
++}
++
++/*
++ * Build omap_devices for processors and bus.
++ */
++static void omap2_init_processor_devices(void)
++{
++	_init_omap_device("mpu", &mpu_dev);
++	_init_omap_device("iva", &dsp_dev);
++	_init_omap_device("l3_main", &l3_dev);
++}
++
++static int __init omap2_common_pm_init(void)
++{
++	omap2_init_processor_devices();
++	omap_pm_if_init();
++
++	return 0;
++}
++device_initcall(omap2_common_pm_init);
++
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index 5e4afbe..5cf9509 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -89,4 +89,8 @@ void omap2_set_globals_uart(struct omap_globals *);
+ 	}							\
+ })
+ 
++extern struct device *omap2_get_mpuss_device(void);
++extern struct device *omap2_get_dsp_device(void);
++extern struct device *omap2_get_l3_device(void);
++
+ #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
