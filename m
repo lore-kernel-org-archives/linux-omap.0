@@ -1,111 +1,93 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/9] dspbridge: replace iommu custom for opensource
- implementation
-Date: Fri, 02 Jul 2010 09:32:05 +0300 (EEST)
-Message-ID: <20100702.093205.59662898.Hiroshi.DOYU@nokia.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
+Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
+Date: Fri, 02 Jul 2010 09:35:34 +0300 (EEST)
+Message-ID: <20100702.093534.115912504.Hiroshi.DOYU@nokia.com>
+References: <20100602.105054.59678037.Hiroshi.DOYU@nokia.com>
+	<20100629.075744.104054771.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1277943660-4112-2-git-send-email-x0095840@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: x0095840@ti.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:16971 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754023Ab0GBGft (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 02:35:49 -0400
+In-Reply-To: <20100629.075744.104054771.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
 
-Hi Fernando,
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
+Date: Tue, 29 Jun 2010 07:57:44 +0300 (EEST)
 
-From: ext Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCH 1/9] dspbridge: replace iommu custom for opensource implementation
-Date: Thu, 1 Jul 2010 02:20:52 +0200
+> Hi Tony,
+> 
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Subject: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
+> Date: Wed, 02 Jun 2010 10:50:54 +0300 (EEST)
+> 
+>> Hi Tony,
+>> 
+>> Patches for for-next for omap iommu module.
+>> 
+>> The following changes since commit 67a3e12b05e055c0415c556a315a3d3eb637e29e:
+>> 
+>>   Linux 2.6.35-rc1 (2010-05-30 13:21:02 -0700)
+>> 
+>> are available in the git repository at:
+>>   git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc1-iommu
+>> 
+>> Hiroshi DOYU (3):
+>>       omap iommu: Introduce iopgd_is_table MACRO
+>>       omap iommu: Rename iopte_[p,v]addr -> iopte_page_[p,v]addr
+>>       omap iommu: move iommu_disable at fault to the above layer
+>> 
+>> Kanigeri, Hari (2):
+>>       omap iommu: update irq mask to be specific about twl and tlb
+>>       omap iommu: add functionality to get TLB miss interrupt
+>> 
+>>  arch/arm/mach-omap2/iommu2.c            |   44 ++++++++++++++++++++++++------
+>>  arch/arm/plat-omap/include/plat/iommu.h |    2 +
+>>  arch/arm/plat-omap/iommu.c              |   27 ++++++++++++++++---
+>>  arch/arm/plat-omap/iopgtable.h          |    8 +++--
+>>  4 files changed, 65 insertions(+), 16 deletions(-)
+> 
+> Any chance to merge?
+> 
+> I have added 2 patches which were dropped from omap iommu fix as
+> below. Please pull the following branch.
 
-> This patch replace the call to custom dsp mmu implemenation
-> for the once on iommu module.
-> 
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> ---
->  drivers/dsp/bridge/core/_tiomap.h    |   16 +
->  drivers/dsp/bridge/core/io_sm.c      |  114 ++------
->  drivers/dsp/bridge/core/tiomap3430.c |  501 +++++-----------------------------
->  drivers/dsp/bridge/core/ue_deh.c     |   10 -
->  4 files changed, 118 insertions(+), 523 deletions(-)
-> 
-> diff --git a/drivers/dsp/bridge/core/_tiomap.h b/drivers/dsp/bridge/core/_tiomap.h
-> index bf0164e..d13677a 100644
-> --- a/drivers/dsp/bridge/core/_tiomap.h
-> +++ b/drivers/dsp/bridge/core/_tiomap.h
-> @@ -23,6 +23,8 @@
->  #include <plat/clockdomain.h>
->  #include <mach-omap2/prm-regbits-34xx.h>
->  #include <mach-omap2/cm-regbits-34xx.h>
-> +#include <plat/iommu.h>
-> +#include <plat/iovmm.h>
->  #include <dspbridge/devdefs.h>
->  #include <hw_defs.h>
->  #include <dspbridge/dspioctl.h>        /* for bridge_ioctl_extproc defn */
-> @@ -330,6 +332,7 @@ struct bridge_dev_context {
->         u32 dw_internal_size;   /* Internal memory size */
-> 
->         struct omap_mbox *mbox;         /* Mail box handle */
-> +       struct iommu *dsp_mmu;          /* iommu for iva2 handler */
-> 
->         struct cfg_hostres *resources;  /* Host Resources */
-> 
-> @@ -374,4 +377,17 @@ extern s32 dsp_debug;
->   */
->  int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val);
-> 
-> +static inline void dsp_iotlb_init(struct iotlb_entry *e, u32 da, u32 pa,
-> +                                                       u32 pgsz)
-> +{
-> +       e->da = da;
-> +       e->pa = pa;
-> +       e->valid = 1;
-> +       e->prsvd = 1;
-> +       e->pgsz = pgsz & MMU_CAM_PGSZ_MASK;
-> +       e->endian = MMU_RAM_ENDIAN_LITTLE;
-> +       e->elsz = MMU_RAM_ELSZ_32;
-> +       e->mixed = 0;
-> +}
-> +
->  #endif /* _TIOMAP_ */
-> diff --git a/drivers/dsp/bridge/core/io_sm.c b/drivers/dsp/bridge/core/io_sm.c
-> index 7fb840d..1f47f8b 100644
-> --- a/drivers/dsp/bridge/core/io_sm.c
-> +++ b/drivers/dsp/bridge/core/io_sm.c
-> @@ -290,6 +290,8 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
->         struct cod_manager *cod_man;
->         struct chnl_mgr *hchnl_mgr;
->         struct msg_mgr *hmsg_mgr;
-> +       struct iommu *mmu;
-> +       struct iotlb_entry e;
->         u32 ul_shm_base;
->         u32 ul_shm_base_offset;
->         u32 ul_shm_limit;
-> @@ -312,7 +314,6 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
->         struct bridge_ioctl_extproc ae_proc[BRDIOCTL_NUMOFMMUTLB];
->         struct cfg_hostres *host_res;
->         struct bridge_dev_context *pbridge_context;
-> -       u32 map_attrs;
->         u32 shm0_end;
->         u32 ul_dyn_ext_base;
->         u32 ul_seg1_size = 0;
-> @@ -336,6 +337,21 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
->                 status = -EFAULT;
->                 goto func_end;
->         }
-> +
-> +       mmu = pbridge_context->dsp_mmu;
-> +
-> +       if (mmu)
-> +               iommu_put(mmu);
-> +       mmu = iommu_get("iva2");
+Hi Tony,
 
-+       mmu = iommu_get("iva2", mmu_fault_isr);
+Do you have any plan for pulling for-next patches?
 
-I'm considering that it might be better to pass a mmu fault callback
-at this iommu_get.
+I have some "omap iommu" and "omap mailbox" patches for for-next. Now
+the merge window seems so small and I don't want to miss it.
 
-What do you think?
+> The following changes since commit 7e27d6e778cd87b6f2415515d7127eba53fe5d02:
+> 
+>   Linux 2.6.35-rc3 (2010-06-11 19:14:04 -0700)
+> 
+> are available in the git repository at:
+>   git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc3-iommu-for-next
+> 
+> Hiroshi DOYU (4):
+>       omap iommu: Introduce iopgd_is_table MACRO
+>       omap iommu: Rename iopte_[p,v]addr -> iopte_page_[p,v]addr
+>       omap iommu: move iommu_disable at fault to the above layer
+>       omap iommu: Make omap-iommu.o built-in
+> 
+> Kanigeri, Hari (3):
+>       omap iommu: update irq mask to be specific about twl and tlb
+>       omap iommu: add functionality to get TLB miss interrupt
+>       omap iommu: update ducati mmu irq define name
+> 
+>  arch/arm/mach-omap2/Makefile            |    5 +++-
+>  arch/arm/mach-omap2/iommu2.c            |   44 ++++++++++++++++++++++++------
+>  arch/arm/mach-omap2/omap-iommu.c        |    2 +-
+>  arch/arm/plat-omap/include/plat/iommu.h |    2 +
+>  arch/arm/plat-omap/iommu.c              |   27 ++++++++++++++++---
+>  arch/arm/plat-omap/iopgtable.h          |    8 +++--
+>  6 files changed, 70 insertions(+), 18 deletions(-)
