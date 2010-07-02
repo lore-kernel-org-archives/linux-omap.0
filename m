@@ -1,99 +1,339 @@
-From: Zach Pfeffer <zpfeffer@codeaurora.org>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Thu, 01 Jul 2010 23:17:34 -0700
-Message-ID: <4C2D847E.5080602@codeaurora.org>
-References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org> <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org> <20100701101746.3810cc3b.randy.dunlap@oracle.com> <20100701180241.GA3594@basil.fritz.box> <1278012503.7738.17.camel@c-dwalke-linux.qualcomm.com> <20100701193850.GB3594@basil.fritz.box> <4C2D0FF1.6010206@codeaurora.org> <20100701230056.GD3594@basil.fritz.box>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 5/9] dspbridge: add mmufault support
+Date: Fri, 02 Jul 2010 09:27:31 +0300 (EEST)
+Message-ID: <20100702.092731.39168665.Hiroshi.DOYU@nokia.com>
+References: <1277943660-4112-4-git-send-email-x0095840@ti.com>
+	<1277943660-4112-5-git-send-email-x0095840@ti.com>
+	<1277943660-4112-6-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:52645 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754807Ab0GBGRm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 02:17:42 -0400
-In-Reply-To: <20100701230056.GD3594@basil.fritz.box>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1277943660-4112-6-git-send-email-x0095840@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: x0095840@ti.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Daniel Walker <dwalker@codeaurora.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Andi Kleen wrote:
->> The VCMM provides a more abstract, global view with finer-grained
->> control of each mapping a user wants to create. For instance, the
->> semantics of iommu_map preclude its use in setting up just the IOMMU
->> side of a mapping. With a one-sided map, two IOMMU devices can be
+Hi Fernando,
+
+From: ext Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCH 5/9] dspbridge: add mmufault support
+Date: Thu, 1 Jul 2010 02:20:56 +0200
+
+> With changes for iommu migration mmu fault report and dsp track
+> dump is broken, this patch fixes that.
 > 
-> Hmm? dma_map_* does not change any CPU mappings. It only sets up
-> DMA mapping(s).
-
-Sure, but I was saying that iommu_map() doesn't just set up the IOMMU
-mappings, its sets up both the iommu and kernel buffer mappings.
-
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> ---
+>  drivers/dsp/bridge/core/mmu_fault.c  |   93 ++++++---------------------------
+>  drivers/dsp/bridge/core/mmu_fault.h  |    5 +-
+>  drivers/dsp/bridge/core/tiomap3430.c |    2 +
+>  drivers/dsp/bridge/core/ue_deh.c     |   31 +++++-------
+>  4 files changed, 34 insertions(+), 97 deletions(-)
 > 
->> Additionally, the current IOMMU interface does not allow users to
->> associate one page table with multiple IOMMUs unless the user explicitly
-> 
-> That assumes that all the IOMMUs on the system support the same page table
-> format, right?
+> diff --git a/drivers/dsp/bridge/core/mmu_fault.c b/drivers/dsp/bridge/core/mmu_fault.c
+> index 5c0124f..d991c6a 100644
+> --- a/drivers/dsp/bridge/core/mmu_fault.c
+> +++ b/drivers/dsp/bridge/core/mmu_fault.c
+> @@ -23,9 +23,12 @@
+>  /*  ----------------------------------- Trace & Debug */
+>  #include <dspbridge/host_os.h>
+>  #include <dspbridge/dbc.h>
+> +#include <plat/iommu.h>
+>  
+>  /*  ----------------------------------- OS Adaptation Layer */
+>  #include <dspbridge/drv.h>
+> +#include <dspbridge/dev.h>
+> +
+>  
+>  /*  ----------------------------------- Link Driver */
+>  #include <dspbridge/dspdeh.h>
+> @@ -40,11 +43,6 @@
+>  #include "_tiomap.h"
+>  #include "mmu_fault.h"
+>  
+> -static u32 dmmu_event_mask;
+> -u32 fault_addr;
+> -
+> -static bool mmu_check_if_fault(struct bridge_dev_context *dev_context);
+> -
+>  /*
+>   *  ======== mmu_fault_dpc ========
+>   *      Deferred procedure call to handle DSP MMU fault.
+> @@ -62,78 +60,21 @@ void mmu_fault_dpc(IN unsigned long pRefData)
+>   *  ======== mmu_fault_isr ========
+>   *      ISR to be triggered by a DSP MMU fault interrupt.
+>   */
+> -irqreturn_t mmu_fault_isr(int irq, IN void *pRefData)
+> -{
+> -	struct deh_mgr *deh_mgr_obj = (struct deh_mgr *)pRefData;
+> -	struct bridge_dev_context *dev_context;
+> -	struct cfg_hostres *resources;
+> -
+> -	DBC_REQUIRE(irq == INT_DSP_MMU_IRQ);
+> -	DBC_REQUIRE(deh_mgr_obj);
+> -
+> -	if (deh_mgr_obj) {
+> -
+> -		dev_context =
+> -		    (struct bridge_dev_context *)deh_mgr_obj->hbridge_context;
+> -
+> -		resources = dev_context->resources;
+> -
+> -		if (!resources) {
+> -			dev_dbg(bridge, "%s: Failed to get Host Resources\n",
+> -				__func__);
+> -			return IRQ_HANDLED;
+> -		}
+> -		if (mmu_check_if_fault(dev_context)) {
+> -			printk(KERN_INFO "***** DSPMMU FAULT ***** IRQStatus "
+> -			       "0x%x\n", dmmu_event_mask);
+> -			printk(KERN_INFO "***** DSPMMU FAULT ***** fault_addr "
+> -			       "0x%x\n", fault_addr);
+> -			/*
+> -			 * Schedule a DPC directly. In the future, it may be
+> -			 * necessary to check if DSP MMU fault is intended for
+> -			 * Bridge.
+> -			 */
+> -			tasklet_schedule(&deh_mgr_obj->dpc_tasklet);
+> -
+> -			/* Reset err_info structure before use. */
+> -			deh_mgr_obj->err_info.dw_err_mask = DSP_MMUFAULT;
+> -			deh_mgr_obj->err_info.dw_val1 = fault_addr >> 16;
+> -			deh_mgr_obj->err_info.dw_val2 = fault_addr & 0xFFFF;
+> -			deh_mgr_obj->err_info.dw_val3 = 0L;
+> -			/* Disable the MMU events, else once we clear it will
+> -			 * start to raise INTs again */
+> -			hw_mmu_event_disable(resources->dw_dmmu_base,
+> -					     HW_MMU_TRANSLATION_FAULT);
+> -		} else {
+> -			hw_mmu_event_disable(resources->dw_dmmu_base,
+> -					     HW_MMU_ALL_INTERRUPTS);
+> -		}
+> -	}
+> -	return IRQ_HANDLED;
+> -}
+> +int mmu_fault_isr(struct iommu *mmu)
+>  
+> -/*
+> - *  ======== mmu_check_if_fault ========
+> - *      Check to see if MMU Fault is valid TLB miss from DSP
+> - *  Note: This function is called from an ISR
+> - */
+> -static bool mmu_check_if_fault(struct bridge_dev_context *dev_context)
+>  {
+> +	struct deh_mgr *dm;
+> +	u32 da;
+> +
+> +	dev_get_deh_mgr(dev_get_first(), &dm);
+> +
+> +	if (!dm)
+> +		return -EPERM;
+> +
+> +	da = iommu_read_reg(mmu, MMU_FAULT_AD);
+> +	iommu_write_reg(mmu, 0, MMU_IRQENABLE);
+> +	dm->err_info.dw_val1 = da;
+> +	tasklet_schedule(&dm->dpc_tasklet);
 
-Actually no. Since the VCMM abstracts a page-table as a Virtual
-Contiguous Region (VCM) a VCM can be associated with any device,
-regardless of their individual page table format.
+I think that the following "iommu_disable()" does disabling MMU.
 
-> 
-> As I understand your approach would help if you have different
-> IOMMus with an different low level interface, which just 
-> happen to have the same pte format. Is that very likely?
-> 
-> I would assume if you have lots of copies of the same IOMMU
-> in the system then you could just use a single driver with multiple
-> instances that share some state for all of them.  That model
-> would fit in the current interfaces. There's no reason multiple
-> instances couldn't share the same allocation data structure.
-> 
-> And if you have lots of truly different IOMMUs then they likely
-> won't be able to share PTEs at the hardware level anyways, because
-> the formats are too different.
+	Modified arch/arm/plat-omap/iommu.c
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index a202a2c..17407f1 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -800,7 +800,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+ 	if (!stat)
+ 		return IRQ_HANDLED;
+ 
+-	iommu_disable(obj);
++	iommu_disable(obj);	<- HERE!
+ 
+ 	iopgd = iopgd_offset(obj, da);
 
-See VCM's above.
+You can find the latest omap iommu code from:
+git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc3-iommu-for-next
 
+Also I just thought that, passing 'da' to user callback might be
+cleaner as below. Then you can avoid the direct access to IOMMU
+registers. Basically we should avoid the direct access to IOMMU
+registers from client. If you have to, then it would be better to
+modify omap iommu code itself.
+
+	Modified arch/arm/plat-omap/iommu.c
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index a202a2c..64d918e 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -787,13 +787,6 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+ 	if (!obj->refcount)
+ 		return IRQ_NONE;
+ 
+-	/* Dynamic loading TLB or PTE */
+-	if (obj->isr)
+-		err = obj->isr(obj);
+-
+-	if (!err)
+-		return IRQ_HANDLED;
+-
+ 	clk_enable(obj->clk);
+ 	stat = iommu_report_fault(obj, &da);
+ 	clk_disable(obj->clk);
+@@ -802,6 +795,13 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+ 
+ 	iommu_disable(obj);
+ 
++	/* user registered callback */
++	if (obj->isr)
++		err = obj->isr(obj, da);
++
++	if (!err)
++		return IRQ_HANDLED;
++
+ 	iopgd = iopgd_offset(obj, da);
+
+>  
+> -	bool ret = false;
+> -	hw_status hw_status_obj;
+> -	struct cfg_hostres *resources = dev_context->resources;
+> -
+> -	if (!resources) {
+> -		dev_dbg(bridge, "%s: Failed to get Host Resources in\n",
+> -			__func__);
+> -		return ret;
+> -	}
+> -	hw_status_obj =
+> -	    hw_mmu_event_status(resources->dw_dmmu_base, &dmmu_event_mask);
+> -	if (dmmu_event_mask == HW_MMU_TRANSLATION_FAULT) {
+> -		hw_mmu_fault_addr_read(resources->dw_dmmu_base, &fault_addr);
+> -		ret = true;
+> -	}
+> -	return ret;
+> +	return 0;
+>  }
+> diff --git a/drivers/dsp/bridge/core/mmu_fault.h b/drivers/dsp/bridge/core/mmu_fault.h
+> index 74db489..df3fba6 100644
+> --- a/drivers/dsp/bridge/core/mmu_fault.h
+> +++ b/drivers/dsp/bridge/core/mmu_fault.h
+> @@ -19,8 +19,6 @@
+>  #ifndef MMU_FAULT_
+>  #define MMU_FAULT_
+>  
+> -extern u32 fault_addr;
+> -
+>  /*
+>   *  ======== mmu_fault_dpc ========
+>   *      Deferred procedure call to handle DSP MMU fault.
+> @@ -31,6 +29,7 @@ void mmu_fault_dpc(IN unsigned long pRefData);
+>   *  ======== mmu_fault_isr ========
+>   *      ISR to be triggered by a DSP MMU fault interrupt.
+>   */
+> -irqreturn_t mmu_fault_isr(int irq, IN void *pRefData);
+> +int mmu_fault_isr(struct iommu *mmu);
+> +
+>  
+>  #endif /* MMU_FAULT_ */
+> diff --git a/drivers/dsp/bridge/core/tiomap3430.c b/drivers/dsp/bridge/core/tiomap3430.c
+> index 96cceea..89867e7 100644
+> --- a/drivers/dsp/bridge/core/tiomap3430.c
+> +++ b/drivers/dsp/bridge/core/tiomap3430.c
+> @@ -57,6 +57,7 @@
+>  #include "_tiomap.h"
+>  #include "_tiomap_pwr.h"
+>  #include "tiomap_io.h"
+> +#include "mmu_fault.h"
+>  
+>  /* Offset in shared mem to write to in order to synchronize start with DSP */
+>  #define SHMSYNCOFFSET 4		/* GPP byte offset */
+> @@ -382,6 +383,7 @@ static int bridge_brd_start(struct bridge_dev_context *hDevContext,
+>  		goto end;
+>  	}
+>  	dev_context->dsp_mmu = mmu;
+> +	mmu->isr = mmu_fault_isr;
+>  	sm_sg = dev_context->sh_s;
+>  
+>  	sm_sg->seg0_da = iommu_kmap(mmu, sm_sg->seg0_da, sm_sg->seg0_pa,
+> diff --git a/drivers/dsp/bridge/core/ue_deh.c b/drivers/dsp/bridge/core/ue_deh.c
+> index ce13e6c..a03d172 100644
+> --- a/drivers/dsp/bridge/core/ue_deh.c
+> +++ b/drivers/dsp/bridge/core/ue_deh.c
+> @@ -18,6 +18,7 @@
+>  
+>  /*  ----------------------------------- Host OS */
+>  #include <dspbridge/host_os.h>
+> +#include <plat/iommu.h>
+>  
+>  /*  ----------------------------------- DSP/BIOS Bridge */
+>  #include <dspbridge/std.h>
+> @@ -51,12 +52,6 @@
+>  #include "_tiomap_pwr.h"
+>  #include <dspbridge/io_sm.h>
+>  
+> -
+> -static struct hw_mmu_map_attrs_t map_attrs = { HW_LITTLE_ENDIAN,
+> -	HW_ELEM_SIZE16BIT,
+> -	HW_MMU_CPUES
+> -};
+> -
+>  static void *dummy_va_addr;
+>  
+>  int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
+> @@ -154,10 +149,10 @@ int bridge_deh_register_notify(struct deh_mgr *deh_mgr, u32 event_mask,
+>  void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
+>  {
+>  	struct bridge_dev_context *dev_context;
+> -	int status = 0;
+>  	u32 hw_mmu_max_tlb_count = 31;
+>  	struct cfg_hostres *resources;
+> -	hw_status hw_status_obj;
+> +	u32 fault_addr, tmp;
+> +	struct iotlb_entry e;
+>  
+>  	if (!deh_mgr)
+>  		return;
+> @@ -181,6 +176,9 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
+>  		break;
+>  	case DSP_MMUFAULT:
+>  		/* MMU fault routine should have set err info structure. */
+> +		fault_addr = iommu_read_reg(dev_context->dsp_mmu,
+> +							MMU_FAULT_AD);
+> +
+>  		deh_mgr->err_info.dw_err_mask = DSP_MMUFAULT;
+>  		dev_err(bridge, "%s: %s, err_info = 0x%x\n",
+>  				__func__, "DSP_MMUFAULT", dwErrInfo);
+> @@ -206,21 +204,18 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
+>  			dev_context->num_tlb_entries =
+>  				dev_context->fixed_tlb_entries;
+>  		}
+> -		if (DSP_SUCCEEDED(status)) {
+> -			hw_status_obj =
+> -				hw_mmu_tlb_add(resources->dw_dmmu_base,
+> -						virt_to_phys(dummy_va_addr), fault_addr,
+> -						HW_PAGE_SIZE4KB, 1,
+> -						&map_attrs, HW_SET, HW_SET);
+> -		}
+> +		dsp_iotlb_init(&e, fault_addr & PAGE_MASK,
+> +			virt_to_phys(dummy_va_addr), IOVMF_PGSZ_4K);
+> +		load_iotlb_entry(dev_context->dsp_mmu, &e);
+> +
+>  
+>  		dsp_clk_enable(DSP_CLK_GPT8);
+>  
+>  		dsp_gpt_wait_overflow(DSP_CLK_GPT8, 0xfffffffe);
+>  
+> -		/* Clear MMU interrupt */
+> -		hw_mmu_event_ack(resources->dw_dmmu_base,
+> -				HW_MMU_TRANSLATION_FAULT);
+> +		tmp = iommu_read_reg(dev_context->dsp_mmu, MMU_IRQSTATUS);
+> +		iommu_write_reg(dev_context->dsp_mmu, tmp, MMU_IRQSTATUS);
+> +
+
+Why is the above necessary?
+
+>  		dump_dsp_stack(deh_mgr->hbridge_context);
+>  		dsp_clk_disable(DSP_CLK_GPT8);
+>  		break;
+> -- 
+> 1.6.3.3
 > 
->> The VCMM takes the long view. Its designed for a future in which the
->> number of IOMMUs will go up and the ways in which these IOMMUs are
->> composed will vary from system to system, and may vary at
->> runtime. Already, there are ~20 different IOMMU map implementations in
->> the kernel. Had the Linux kernel had the VCMM, many of those
->> implementations could have leveraged the mapping and topology management
->> of a VCMM, while focusing on a few key hardware specific functions (map
->> this physical address, program the page table base register).
-> 
-> The standard Linux approach to such a problem is to write
-> a library that drivers can use for common functionality, not put a middle 
-> layer in between. Libraries are much more flexible than layers.
-
-That's true up to the, "is this middle layer so useful that its worth
-it" point. The VM is a middle layer, you could make the same argument
-about it, "the mapping code isn't too hard, just map in the memory
-that you need and be done with it". But the VM middle layer provides a
-clean separation between page frames and pages which turns out to be
-infinitely useful. The VCMM is built in the same spirit, It says
-things like, "mapping is a global problem, I'm going to abstract
-entire virtual spaces and allow people arbitrary chuck size
-allocation, I'm not going to care that my device is physically mapping
-this buffer and this other device is a virtual, virtual device."
-
-> 
-> That said I'm not sure there's all that much duplicated code anyways.
-> A lot of the code is always IOMMU specific. The only piece
-> which might be shareable is the mapping allocation, but I don't
-> think that's very much of a typical driver
-> 
-> In my old pci-gart driver the allocation was all only a few lines of code, 
-> although given it was somewhat dumb in this regard because it only managed a 
-> small remapping window.
-
-I agree that its not a lot of code, and that this layer may be a bit heavy, but I'd like to focus on is a global mapping view useful and if so is something like the graph management that the VCMM provides generally useful.
-
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
