@@ -1,14 +1,12 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 3/3] omap mailbox: remove mbox_configured scheme
-Date: Fri,  2 Jul 2010 15:05:05 +0300
-Message-ID: <1278072305-17943-3-git-send-email-Hiroshi.DOYU@nokia.com>
-References: <1278072305-17943-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/3] omap mailbox: extend API to take a callback param
+Date: Fri,  2 Jul 2010 15:05:03 +0300
+Message-ID: <1278072305-17943-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:46721 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752740Ab0GBMFU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 08:05:20 -0400
-In-Reply-To: <1278072305-17943-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:48064 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756527Ab0GBMFt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 08:05:49 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
@@ -16,68 +14,52 @@ Cc: linux-omap@vger.kernel.org, ext Ohad Ben-Cohen <ohad@wizery.com>, Hiroshi DO
 
 From: ext Ohad Ben-Cohen <ohad@wizery.com>
 
-mbox_configured is global and therefore does not support
-concurrent usage of multiple mailbox instances.
-Instead of fixing this, we can just eliminate mbox_configured
-(and its locking) entirely, since any given mailbox instance
-can only be taken by a single receiver now.
+Let mailbox users set the callback pointer via the
+omap_mbox_get API, instead of having users directly
+manipulating the mailbox structures.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/plat-omap/mailbox.c |   24 ++++--------------------
- 1 files changed, 4 insertions(+), 20 deletions(-)
+ arch/arm/plat-omap/include/plat/mailbox.h |    2 +-
+ arch/arm/plat-omap/mailbox.c              |    4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
+index 9976565..0b45664 100644
+--- a/arch/arm/plat-omap/include/plat/mailbox.h
++++ b/arch/arm/plat-omap/include/plat/mailbox.h
+@@ -62,7 +62,7 @@ struct omap_mbox {
+ int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
+ void omap_mbox_init_seq(struct omap_mbox *);
+ 
+-struct omap_mbox *omap_mbox_get(const char *);
++struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *));
+ void omap_mbox_put(struct omap_mbox *);
+ 
+ int omap_mbox_register(struct device *parent, struct omap_mbox **);
 diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index aafa63f..6a9dfe5 100644
+index d2fafb8..14b716d 100644
 --- a/arch/arm/plat-omap/mailbox.c
 +++ b/arch/arm/plat-omap/mailbox.c
-@@ -35,9 +35,6 @@ static struct workqueue_struct *mboxd;
- static struct omap_mbox **mboxes;
- static bool rq_full;
- 
--static int mbox_configured;
--static DEFINE_MUTEX(mbox_configured_lock);
--
- static unsigned int mbox_kfifo_size = CONFIG_OMAP_MBOX_KFIFO_SIZE;
- module_param(mbox_kfifo_size, uint, S_IRUGO);
- MODULE_PARM_DESC(mbox_kfifo_size, "Size of omap's mailbox kfifo (bytes)");
-@@ -240,16 +237,9 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 	struct omap_mbox_queue *mq;
- 
- 	if (mbox->ops->startup) {
--		mutex_lock(&mbox_configured_lock);
--		if (!mbox_configured)
--			ret = mbox->ops->startup(mbox);
--
--		if (ret) {
--			mutex_unlock(&mbox_configured_lock);
-+		ret = mbox->ops->startup(mbox);
-+		if (ret)
- 			return ret;
--		}
--		mbox_configured++;
--		mutex_unlock(&mbox_configured_lock);
+@@ -305,7 +305,7 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
  	}
- 
- 	ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
-@@ -295,14 +285,8 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
- 	mbox_queue_free(mbox->txq);
- 	mbox_queue_free(mbox->rxq);
- 
--	if (mbox->ops->shutdown) {
--		mutex_lock(&mbox_configured_lock);
--		if (mbox_configured > 0)
--			mbox_configured--;
--		if (!mbox_configured)
--			mbox->ops->shutdown(mbox);
--		mutex_unlock(&mbox_configured_lock);
--	}
-+	if (mbox->ops->shutdown)
-+		mbox->ops->shutdown(mbox);
  }
  
- struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *))
+-struct omap_mbox *omap_mbox_get(const char *name)
++struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *))
+ {
+ 	struct omap_mbox *mbox;
+ 	int ret;
+@@ -324,6 +324,8 @@ struct omap_mbox *omap_mbox_get(const char *name)
+ 	if (ret)
+ 		return ERR_PTR(-ENODEV);
+ 
++	mbox->rxq->callback = callback;
++
+ 	return mbox;
+ }
+ EXPORT_SYMBOL(omap_mbox_get);
 -- 
 1.7.1.rc2
 
