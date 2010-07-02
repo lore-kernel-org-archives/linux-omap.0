@@ -1,176 +1,106 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [RFC 1/7] OMAP: Introduce a user list for each voltage domain instance in the voltage driver.
-Date: Fri,  2 Jul 2010 15:48:23 +0530
-Message-ID: <1278065909-32148-2-git-send-email-thara@ti.com>
-References: <1278065909-32148-1-git-send-email-thara@ti.com>
+Subject: [RFC 0/7] OMAP: Basic DVFS framework
+Date: Fri,  2 Jul 2010 15:48:22 +0530
+Message-ID: <1278065909-32148-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47177 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47174 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751801Ab0GBKSk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Jul 2010 06:18:40 -0400
-In-Reply-To: <1278065909-32148-1-git-send-email-thara@ti.com>
+	id S1750813Ab0GBKSj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Jul 2010 06:18:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, p-basak2@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch introduces a user list of devices associated with each
-voltage domain instance. The user list is implemented using plist
-structure with priority node populated with the voltage values.
-This patch also adds an API which will take in a device and
-requested voltage as parameters, adds the info to the user list
-and returns back the maximum voltage requested by all the user
-devices. This can be used anytime to get the voltage that the
-voltage domain instance can be transitioned into.
+This patch series is RFC for support of Dynamic Voltage and
+Frequency Scaling (DVFS) for OMAP devices. DVFS is a technique that
+uses the optimal operating frequency and voltage to allow a task to be
+performed in the required amount of time.
+OMAP processors have voltage domains whose voltage can be scaled to
+various levels depending on which the operating frequencies of certain
+devices belonging to the domain will also need to be scaled. This voltage
+frequency tuple is known as Operating Performance Point (OPP). A device
+can have multiple OPP's. Also a voltage domain could be shared between
+multiple devices. Also there could be dependencies between various
+voltage domains for maintaining system performance like VDD<X>
+should be at voltage v1 when VDD<Y> is at voltage v2.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
- arch/arm/mach-omap2/voltage.c             |   83 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/voltage.h |    2 +
- 2 files changed, 85 insertions(+), 0 deletions(-)
+The design of this framework take into account all the above mentioned points.
+To summarize the basic design of DVFS framework:-
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 30f1770..a2f30a4 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -24,6 +24,9 @@
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/debugfs.h>
-+#include <linux/spinlock.h>
-+#include <linux/plist.h>
-+#include <linux/slab.h>
- 
- #include <plat/omap-pm.h>
- #include <plat/omap34xx.h>
-@@ -93,6 +96,20 @@ struct vp_reg_val {
- };
- 
- /**
-+ * omap_vdd_user_list	- The per vdd user list
-+ *
-+ * @dev		: The device asking for the vdd to be set at a particular
-+ *		  voltage
-+ * @node	: The list head entry
-+ * @volt	: The voltage requested by the device <dev>
-+ */
-+struct omap_vdd_user_list {
-+	struct device *dev;
-+	struct plist_node node;
-+	u32 volt;
-+};
-+
-+/**
-  * omap_vdd_info - Per Voltage Domain info
-  *
-  * @volt_data		: voltage table having the distinct voltages supported
-@@ -103,6 +120,9 @@ struct vp_reg_val {
-  *			  vp registers
-  * @volt_clk		: the clock associated with the vdd.
-  * @opp_dev		: the 'struct device' associated with this vdd.
-+ * @user_lock		: the lock to be used by the plist user_list
-+ * @user_list		: the list head maintaining the various users
-+ *			  of this vdd with the voltage requested by each user.
-  * @volt_data_count	: Number of distinct voltages supported by this vdd.
-  * @nominal_volt	: Nominal voltaged for this vdd.
-  * cmdval_reg		: Voltage controller cmdval register.
-@@ -115,6 +135,8 @@ struct omap_vdd_info{
- 	struct clk *volt_clk;
- 	struct device *opp_dev;
- 	struct omap_volt_domain volt_domain;
-+	spinlock_t user_lock;
-+	struct plist_head user_list;
- 	int volt_data_count;
- 	unsigned long nominal_volt;
- 	u8 cmdval_reg;
-@@ -361,6 +383,10 @@ static void __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
- 	struct clk *sys_ck;
- 	u32 sys_clk_speed, timeout_val, waittime;
- 
-+	/* Init the plist */
-+	spin_lock_init(&vdd->user_lock);
-+	plist_head_init(&vdd->user_list, &vdd->user_lock);
-+
- 	if (!strcmp(vdd->volt_domain.name, "mpu")) {
- 		if (cpu_is_omap3630()) {
- 			vdd->vp_reg.vlimitto_vddmin =
-@@ -881,6 +907,63 @@ unsigned long omap_voltageprocessor_get_curr_volt(
- }
- 
- /**
-+ * omap_voltage_get_final : API to keep track of various requests to
-+ *			    scale the VDD and returns the best possible
-+ *			    voltage the VDD can be put to.
-+ * @volt_domain: pointer to the voltage domain.
-+ * @dev : the device pointer.
-+ * @volt : the voltage which is requested by the device.
-+ *
-+ * This API is to be called before the actual voltage scaling is
-+ * done to determine what is the best possible voltage the VDD can
-+ * be put to. This API adds the device <dev> in the user list of the
-+ * vdd <volt_domain> with <volt> as the requested voltage. The user list
-+ * is a plist with the priority element absolute voltage values.
-+ * The API then finds the maximum of all the requested voltages for
-+ * the VDD and returns it back through <volt> pointer itself.
-+ * Returns error value in case of any errors.
-+ */
-+int omap_volt_get_final(struct omap_volt_domain *volt_domain,
-+		struct device *dev, unsigned long *volt)
-+{
-+	struct omap_vdd_info *vdd;
-+	struct omap_vdd_user_list *user;
-+	struct plist_node *node;
-+	int found = 0;
-+
-+	if (!volt_domain || IS_ERR(volt_domain)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	vdd = container_of(volt_domain, struct omap_vdd_info, volt_domain);
-+
-+	plist_for_each_entry(user, &vdd->user_list, node) {
-+		if (user->dev == dev) {
-+			found = 1;
-+			break;
-+		}
-+	}
-+
-+	if (!found) {
-+		user = kzalloc(sizeof(struct omap_vdd_user_list), GFP_KERNEL);
-+		if (!user) {
-+			pr_err("%s: Unable to creat a new user for vdd_%s\n",
-+				__func__, volt_domain->name);
-+			return -ENOMEM;
-+		}
-+		user->dev = dev;
-+		plist_node_init(&user->node, *volt);
-+		plist_add(&user->node, &vdd->user_list);
-+	}
-+
-+	user->node.prio = *volt;
-+	node = plist_first(&vdd->user_list);
-+	*volt = node->prio;
-+	return 0;
-+}
-+
-+/**
-  * omap_voltageprocessor_enable : API to enable a particular VP
-  * @volt_domain: pointer to the VDD whose VP is to be enabled.
-  *
-diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
-index b7ac318..bc1e4d3 100644
---- a/arch/arm/plat-omap/include/plat/voltage.h
-+++ b/arch/arm/plat-omap/include/plat/voltage.h
-@@ -128,6 +128,8 @@ int omap_get_voltage_table(struct omap_volt_domain *volt_domain,
- struct omap_volt_data *omap_get_volt_data(
- 		struct omap_volt_domain *volt_domain, unsigned long volt);
- unsigned long get_curr_voltage(struct omap_volt_domain *volt_domain);
-+int omap_volt_get_final(struct omap_volt_domain *volt_domain,
-+		struct device *dev, unsigned long *volt);
- #ifdef CONFIG_PM
- void omap_voltage_init_vc(struct omap_volt_vc_data *setup_vc);
- #else
--- 
-1.7.0.rc1.33.g07cf0f
+1. Have device opp tables for each device whose operating frequency can be
+   scaled. This is easy now due to the existance of hwmod layer which
+   allow storing of device specific info. The device opp tables contain
+   the opp pairs (frequency voltage tuples), the voltage domain pointer
+   to which the device belongs to, the device specific set_rate and
+   get_rate API's which will do the actual scaling of the device frequency
+   and retrieve the current device frequency.
+2. Introduce use counting on a per VDD basis. This is to take care multiple
+   requests to scale a VDD. The VDD will be scaled to the maximum of the
+   voltages requested.
+3. Keep track of all scalable devices belonging to a particular voltage
+   domain the voltage layer.
+4. Generic API in the omap device layer which can be called by anybody
+   to scale a device opp. This API will take in the device pointer and
+   frequency to which the device needs to be scaled to. This API will
+   then internally find out the voltage domain to which the device
+   belongs to and the voltage to which the voltage domain needs to
+   be put to for the device to be scaled to the new frequency from
+   the device opp table. Then this API will call into the newly
+   introduced API in voltage layer (as mentioned in 2) to see if
+   there are other requests for the associated voltage domain to
+   be at a voltage higher than the current chosen one. If not this
+   API will go ahead and scale the voltage domain to the new voltage,
+   run through the list of all scalable devices belonging to this
+   voltage domain and scale them to the appropriate frequencies using
+   the set_rate pointer in the device opp table.s
+
+Work pending -
+1. Handle inter VDD dependencies.
+2. Add OMAP4 support.
+
+Contributors to conceptualization of the design include
+Benoit Cousson <b-cousson@ti.com>,
+Kevin Hilman <khilman@deeprootsystems.com>,
+Paul Wamsley <paul@pwsan.com>,
+Vishwanath Sripathy <vishwanath.bs@ti.com>
+Parthasarathy Basak <p-basak2@ti.com>
+Anand Sawant <sawant@ti.com>
+
+This patch series is primarily based of pm-sr branch of kevin's PM tree due to
+it's dependency on the newly introduced opp and voltage layer. On top of this
+branch I had to apply a few patches to test out dvfs using cpufreq framework.
+The following are the link to these additional patches.
+	https://patchwork.kernel.org/patch/107876/
+	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=aa14cb9937e67c48f760c99a3c7fb3b2e7f5e623
+	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=8f1298921d10789bb2f0a2d56cd3b92d844a1450
+	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=10474ce3b07949d791b419aad433590e072e7159
+	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=52fd40b873f8cd5aaea2d01d86ef35017c207eba
+	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=57a2e45ff4a596a175aba27ae55a2b0d99adc3b5	
+
+This series has been tested on OMAP3430 SDP for mpu and iva DVFS through
+cpu freq framework.
+
+Thara Gopinath (7):
+  OMAP: Introduce a user list for each voltage domain instance in the
+    voltage driver.
+  OMAP: Introduce API in the OPP layer to find the opp entry
+    corresponding to a voltage.
+  OMAP: Introduce voltage domain pointer and device specific set rate
+    and get rate in device opp structures.
+  OMAP: Voltage layer changes to support DVFS.
+  OMAP: Introduce device set_rate and get_rate.
+  OMAP3: Update OMAP3 opp tables to contain the voltage domain and
+    device set rate get rate info
+  OMAP3: Update cpufreq driver to use the new set_rate API
+
+ arch/arm/mach-omap2/cpufreq34xx.c             |  160 +++++++++++++++++++----
+ arch/arm/mach-omap2/voltage.c                 |  172 ++++++++++++++++++++++++-
+ arch/arm/plat-omap/cpu-omap.c                 |    5 +-
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+ arch/arm/plat-omap/include/plat/opp.h         |   39 ++++++-
+ arch/arm/plat-omap/include/plat/voltage.h     |    6 +-
+ arch/arm/plat-omap/omap_device.c              |   87 +++++++++++++
+ arch/arm/plat-omap/opp.c                      |   75 +++++++++--
+ 8 files changed, 505 insertions(+), 41 deletions(-)
 
