@@ -1,83 +1,69 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Fri, 2 Jul 2010 10:22:25 +0200
-Message-ID: <20100702082225.GA12221@basil.fritz.box>
-References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org>
- <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org>
- <20100701101746.3810cc3b.randy.dunlap@oracle.com>
- <20100701180241.GA3594@basil.fritz.box>
- <1278012503.7738.17.camel@c-dwalke-linux.qualcomm.com>
- <20100701193850.GB3594@basil.fritz.box>
- <4C2D0FF1.6010206@codeaurora.org>
- <20100701230056.GD3594@basil.fritz.box>
- <4C2D847E.5080602@codeaurora.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
+Date: Fri, 2 Jul 2010 12:04:11 +0300
+Message-ID: <20100702090411.GH6632@atomide.com>
+References: <20100602.105054.59678037.Hiroshi.DOYU@nokia.com>
+ <20100629.075744.104054771.Hiroshi.DOYU@nokia.com>
+ <20100702.093534.115912504.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60944 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757954Ab0GBJED (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 05:04:03 -0400
 Content-Disposition: inline
-In-Reply-To: <4C2D847E.5080602@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: Zach Pfeffer <zpfeffer@codeaurora.org>
-Cc: Andi Kleen <andi@firstfloor.org>, Daniel Walker <dwalker@codeaurora.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20100702.093534.115912504.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
 
-On Thu, Jul 01, 2010 at 11:17:34PM -0700, Zach Pfeffer wrote:
-> Andi Kleen wrote:
-> >> The VCMM provides a more abstract, global view with finer-grained
-> >> control of each mapping a user wants to create. For instance, the
-> >> semantics of iommu_map preclude its use in setting up just the IOMMU
-> >> side of a mapping. With a one-sided map, two IOMMU devices can be
+* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100702 09:29]:
+> 
+> Do you have any plan for pulling for-next patches?
+> 
+> I have some "omap iommu" and "omap mailbox" patches for for-next. Now
+> the merge window seems so small and I don't want to miss it.
+
+Pulled now into omap-for-linus for the next merge window. Sorry
+for the delay.
+
+BTW, I did not add that Makefile fix into omap-fixes-for-linus,
+I figured we should first make sure to get the pending fixes
+in, and then maybe do another set of fixes.
+
+But looks like that's in your for-next, so we might as well
+keep it there. If there's urgent need to get that in as a fix,
+let me know ASAP, I can still rebuild omap-for-linus as that's
+the only set merged there.
+
+Regards,
+
+Tony
+ 
+> > The following changes since commit 7e27d6e778cd87b6f2415515d7127eba53fe5d02:
 > > 
-> > Hmm? dma_map_* does not change any CPU mappings. It only sets up
-> > DMA mapping(s).
-> 
-> Sure, but I was saying that iommu_map() doesn't just set up the IOMMU
-> mappings, its sets up both the iommu and kernel buffer mappings.
-
-Normally the data is already in the kernel or mappings, so why
-would you need another CPU mapping too? Sometimes the CPU
-code has to scatter-gather, but that is considered acceptable
-(and if it really cannot be rewritten to support sg it's better
-to have an explicit vmap operation) 
-
-In general on larger systems with many CPUs changing CPU mappings
-also gets expensive (because you have to communicate with all cores), 
-and is not a good idea on frequent IO paths.
-
-> 
+> >   Linux 2.6.35-rc3 (2010-06-11 19:14:04 -0700)
 > > 
-> >> Additionally, the current IOMMU interface does not allow users to
-> >> associate one page table with multiple IOMMUs unless the user explicitly
+> > are available in the git repository at:
+> >   git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc3-iommu-for-next
 > > 
-> > That assumes that all the IOMMUs on the system support the same page table
-> > format, right?
-> 
-> Actually no. Since the VCMM abstracts a page-table as a Virtual
-> Contiguous Region (VCM) a VCM can be associated with any device,
-> regardless of their individual page table format.
-
-But then there is no real page table sharing, isn't it? 
-The real information should be in the page tables, nowhere else.
-
-> > The standard Linux approach to such a problem is to write
-> > a library that drivers can use for common functionality, not put a middle 
-> > layer in between. Libraries are much more flexible than layers.
-> 
-> That's true up to the, "is this middle layer so useful that its worth
-> it" point. The VM is a middle layer, you could make the same argument
-> about it, "the mapping code isn't too hard, just map in the memory
-> that you need and be done with it". But the VM middle layer provides a
-> clean separation between page frames and pages which turns out to be
-
-Actually we use both PFNs and struct page *s in many layers up
-and down, there's not really any layering in that.
-
--Andi
--- 
-ak@linux.intel.com -- Speaking for myself only.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> > Hiroshi DOYU (4):
+> >       omap iommu: Introduce iopgd_is_table MACRO
+> >       omap iommu: Rename iopte_[p,v]addr -> iopte_page_[p,v]addr
+> >       omap iommu: move iommu_disable at fault to the above layer
+> >       omap iommu: Make omap-iommu.o built-in
+> > 
+> > Kanigeri, Hari (3):
+> >       omap iommu: update irq mask to be specific about twl and tlb
+> >       omap iommu: add functionality to get TLB miss interrupt
+> >       omap iommu: update ducati mmu irq define name
+> > 
+> >  arch/arm/mach-omap2/Makefile            |    5 +++-
+> >  arch/arm/mach-omap2/iommu2.c            |   44 ++++++++++++++++++++++++------
+> >  arch/arm/mach-omap2/omap-iommu.c        |    2 +-
+> >  arch/arm/plat-omap/include/plat/iommu.h |    2 +
+> >  arch/arm/plat-omap/iommu.c              |   27 ++++++++++++++++---
+> >  arch/arm/plat-omap/iopgtable.h          |    8 +++--
+> >  6 files changed, 70 insertions(+), 18 deletions(-)
