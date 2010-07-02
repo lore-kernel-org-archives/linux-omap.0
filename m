@@ -1,65 +1,44 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/3] omap mailbox: extend API to take a callback param
-Date: Fri,  2 Jul 2010 15:05:03 +0300
-Message-ID: <1278072305-17943-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH v3 4/4] omap: mailbox: convert block api to kfifo
+Date: Fri, 2 Jul 2010 15:08:02 +0300
+Message-ID: <20100702150802.b5347000.Hiroshi.DOYU@nokia.com>
+References: <AANLkTikNX09s4xflcOax3Ry3o5XgJZF0JbbZXSGeKryR@mail.gmail.com>
+	<20100615.110449.27786947.Hiroshi.DOYU@nokia.com>
+	<AANLkTimC8xdQeuRRA5x7GomNfJjC5H_5YfqQBmSBAa50@mail.gmail.com>
+	<20100616.085056.189711722.Hiroshi.DOYU@nokia.com>
+	<AANLkTinA-iPGHPSbbw5XZdMeDW0T4ltbhQ-LANDry9h9@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:48064 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756527Ab0GBMFt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 08:05:49 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:47248 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752595Ab0GBMIS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 08:08:18 -0400
+In-Reply-To: <AANLkTinA-iPGHPSbbw5XZdMeDW0T4ltbhQ-LANDry9h9@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, ext Ohad Ben-Cohen <ohad@wizery.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: ext Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "fernando.lugo@ti.com" <fernando.lugo@ti.com>, "deepak.chitriki@ti.com" <deepak.chitriki@ti.com>, "omar.ramirez@ti.com" <omar.ramirez@ti.com>, "h-kanigeri2@ti.com" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rene.sapiens@ti.com" <rene.sapiens@ti.com>
 
-From: ext Ohad Ben-Cohen <ohad@wizery.com>
+On Wed, 23 Jun 2010 02:29:00 +0200
+ext Ohad Ben-Cohen <ohad@wizery.com> wrote:
 
-Let mailbox users set the callback pointer via the
-omap_mbox_get API, instead of having users directly
-manipulating the mailbox structures.
+> On Wed, Jun 16, 2010 at 8:50 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> > From: ext Ohad Ben-Cohen <ohad@wizery.com>
+> >> Thanks, I'll prepare them and resubmit
+> >
+> > You can use the following branch which has accumulateed unmerged
+> > mailbox patches.
+> >
+> > git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc3-mailbox
+> 
+> 
+> Done.
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/include/plat/mailbox.h |    2 +-
- arch/arm/plat-omap/mailbox.c              |    4 +++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+Thansk.
+[PATCH 1-3/4] are queued on the above branch and will be pulled soon.
 
-diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
-index 9976565..0b45664 100644
---- a/arch/arm/plat-omap/include/plat/mailbox.h
-+++ b/arch/arm/plat-omap/include/plat/mailbox.h
-@@ -62,7 +62,7 @@ struct omap_mbox {
- int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
- void omap_mbox_init_seq(struct omap_mbox *);
- 
--struct omap_mbox *omap_mbox_get(const char *);
-+struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *));
- void omap_mbox_put(struct omap_mbox *);
- 
- int omap_mbox_register(struct device *parent, struct omap_mbox **);
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index d2fafb8..14b716d 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -305,7 +305,7 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
- 	}
- }
- 
--struct omap_mbox *omap_mbox_get(const char *name)
-+struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *))
- {
- 	struct omap_mbox *mbox;
- 	int ret;
-@@ -324,6 +324,8 @@ struct omap_mbox *omap_mbox_get(const char *name)
- 	if (ret)
- 		return ERR_PTR(-ENODEV);
- 
-+	mbox->rxq->callback = callback;
-+
- 	return mbox;
- }
- EXPORT_SYMBOL(omap_mbox_get);
--- 
-1.7.1.rc2
+The following should be taken care of dspbridge:
 
+"[PATCH 4/4] dspbridge: use mailbox API to set rx callback"
