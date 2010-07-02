@@ -1,115 +1,99 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC 1/6] omap: add iva2 hwmod support to omap3
-Date: Fri, 02 Jul 2010 07:43:55 +0200
-Message-ID: <4C2D7C9B.8080003@ti.com>
-References: <1278022994-28476-1-git-send-email-ohad@wizery.com> <1278022994-28476-2-git-send-email-ohad@wizery.com>
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
+Date: Thu, 01 Jul 2010 23:17:34 -0700
+Message-ID: <4C2D847E.5080602@codeaurora.org>
+References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org> <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org> <20100701101746.3810cc3b.randy.dunlap@oracle.com> <20100701180241.GA3594@basil.fritz.box> <1278012503.7738.17.camel@c-dwalke-linux.qualcomm.com> <20100701193850.GB3594@basil.fritz.box> <4C2D0FF1.6010206@codeaurora.org> <20100701230056.GD3594@basil.fritz.box>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36416 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752817Ab0GBFoD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Jul 2010 01:44:03 -0400
-In-Reply-To: <1278022994-28476-2-git-send-email-ohad@wizery.com>
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:52645 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754807Ab0GBGRm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 02:17:42 -0400
+In-Reply-To: <20100701230056.GD3594@basil.fritz.box>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Ben-cohen, Ohad" <ohadb@ti.com>
+To: Andi Kleen <andi@firstfloor.org>
+Cc: Daniel Walker <dwalker@codeaurora.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 7/2/2010 12:23 AM, Ohad Ben-Cohen wrote:
-> From: Ohad Ben-Cohen<ohadb@ti.com>
->
-> Add preliminary iva2 hwmod support to omap3.
-> We do not include iva2_clk; that will be part of a separate
-> hwmod, which will be controlled by iommu.
+Andi Kleen wrote:
+>> The VCMM provides a more abstract, global view with finer-grained
+>> control of each mapping a user wants to create. For instance, the
+>> semantics of iommu_map preclude its use in setting up just the IOMMU
+>> side of a mapping. With a one-sided map, two IOMMU devices can be
+> 
+> Hmm? dma_map_* does not change any CPU mappings. It only sets up
+> DMA mapping(s).
 
-I think Kevin already sent a hwmod for IVA2... one week ago:
-[PATCH 13/13] OMAP3: hwmod data: add data for OMAP3 IVA2
+Sure, but I was saying that iommu_map() doesn't just set up the IOMMU
+mappings, its sets up both the iommu and kernel buffer mappings.
 
-> Signed-off-by: Ohad Ben-Cohen<ohadb@ti.com>
-> Signed-off-by: Hari Kanigeri<h-kanigeri2@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_34xx.h        |   23 +++++++++++++++++++++++
->   arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
->   2 files changed, 24 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-> index b6076b9..d363a95 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_34xx.h
-> +++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-> @@ -22,6 +22,7 @@
->   #include "prm-regbits-34xx.h"
->
->   static struct omap_hwmod omap34xx_mpu_hwmod;
-> +static struct omap_hwmod omap34xx_iva2_hwmod;
->   static struct omap_hwmod omap34xx_l3_hwmod;
->   static struct omap_hwmod omap34xx_l4_core_hwmod;
->   static struct omap_hwmod omap34xx_l4_per_hwmod;
-> @@ -47,9 +48,17 @@ static struct omap_hwmod_ocp_if omap34xx_mpu__l3 = {
->   	.user	= OCP_USER_MPU,
->   };
->
-> +/* IVA2 ->  L3 interface */
-> +static struct omap_hwmod_ocp_if omap34xx_iva2__l3 = {
-> +	.master	=&omap34xx_iva2_hwmod,
-> +	.slave	=&omap34xx_l3_hwmod,
-> +	.user	= OCP_USER_IVA2,
-> +};
-> +
->   /* Slave interfaces on the L3 interconnect */
->   static struct omap_hwmod_ocp_if *omap34xx_l3_slaves[] = {
->   	&omap34xx_mpu__l3,
-> +	&omap34xx_iva2__l3,
->   };
->
->   /* Master interfaces on the L3 interconnect */
-> @@ -150,12 +159,26 @@ static struct omap_hwmod omap34xx_mpu_hwmod = {
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->   };
->
-> +/* Master interfaces on the IVA2 device */
-> +static struct omap_hwmod_ocp_if *omap34xx_iva2_masters[] = {
-> +	&omap34xx_iva2__l3,
-> +};
-> +
-> +/* IVA2 */
-> +static struct omap_hwmod omap34xx_iva2_hwmod = {
-> +	.name		= "iva2_hwmod",
+> 
+>> Additionally, the current IOMMU interface does not allow users to
+>> associate one page table with multiple IOMMUs unless the user explicitly
+> 
+> That assumes that all the IOMMUs on the system support the same page table
+> format, right?
 
-Should be "iva" only.
+Actually no. Since the VCMM abstracts a page-table as a Virtual
+Contiguous Region (VCM) a VCM can be associated with any device,
+regardless of their individual page table format.
 
-> +	.masters	= omap34xx_iva2_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap34xx_iva2_masters),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +};
-> +
->   static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
->   	&omap34xx_l3_hwmod,
->   	&omap34xx_l4_core_hwmod,
->   	&omap34xx_l4_per_hwmod,
->   	&omap34xx_l4_wkup_hwmod,
->   	&omap34xx_mpu_hwmod,
-> +	&omap34xx_iva2_hwmod,
->   	NULL,
->   };
->
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> index 3393325..5e64992 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -160,6 +160,7 @@ struct omap_hwmod_addr_space {
->    */
->   #define OCP_USER_MPU			(1<<  0)
->   #define OCP_USER_SDMA			(1<<  1)
-> +#define OCP_USER_IVA2			(1<<  2)
+> 
+> As I understand your approach would help if you have different
+> IOMMus with an different low level interface, which just 
+> happen to have the same pte format. Is that very likely?
+> 
+> I would assume if you have lots of copies of the same IOMMU
+> in the system then you could just use a single driver with multiple
+> instances that share some state for all of them.  That model
+> would fit in the current interfaces. There's no reason multiple
+> instances couldn't share the same allocation data structure.
+> 
+> And if you have lots of truly different IOMMUs then they likely
+> won't be able to share PTEs at the hardware level anyways, because
+> the formats are too different.
 
-Are you going to use that information somewhere?
-In that case, you should populate the address space view from the DSP.
+See VCM's above.
 
-Benoit
+> 
+>> The VCMM takes the long view. Its designed for a future in which the
+>> number of IOMMUs will go up and the ways in which these IOMMUs are
+>> composed will vary from system to system, and may vary at
+>> runtime. Already, there are ~20 different IOMMU map implementations in
+>> the kernel. Had the Linux kernel had the VCMM, many of those
+>> implementations could have leveraged the mapping and topology management
+>> of a VCMM, while focusing on a few key hardware specific functions (map
+>> this physical address, program the page table base register).
+> 
+> The standard Linux approach to such a problem is to write
+> a library that drivers can use for common functionality, not put a middle 
+> layer in between. Libraries are much more flexible than layers.
 
->
->   /* omap_hwmod_ocp_if.flags bits */
->   #define OCPIF_HAS_IDLEST		(1<<  0)
+That's true up to the, "is this middle layer so useful that its worth
+it" point. The VM is a middle layer, you could make the same argument
+about it, "the mapping code isn't too hard, just map in the memory
+that you need and be done with it". But the VM middle layer provides a
+clean separation between page frames and pages which turns out to be
+infinitely useful. The VCMM is built in the same spirit, It says
+things like, "mapping is a global problem, I'm going to abstract
+entire virtual spaces and allow people arbitrary chuck size
+allocation, I'm not going to care that my device is physically mapping
+this buffer and this other device is a virtual, virtual device."
 
+> 
+> That said I'm not sure there's all that much duplicated code anyways.
+> A lot of the code is always IOMMU specific. The only piece
+> which might be shareable is the mapping allocation, but I don't
+> think that's very much of a typical driver
+> 
+> In my old pci-gart driver the allocation was all only a few lines of code, 
+> although given it was somewhat dumb in this regard because it only managed a 
+> small remapping window.
+
+I agree that its not a lot of code, and that this layer may be a bit heavy, but I'd like to focus on is a global mapping view useful and if so is something like the graph management that the VCMM provides generally useful.
+
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
