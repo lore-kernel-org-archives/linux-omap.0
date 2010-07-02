@@ -1,85 +1,62 @@
-From: Zach Pfeffer <zpfeffer@codeaurora.org>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Fri, 02 Jul 2010 11:42:57 -0700
-Message-ID: <4C2E3331.3090405@codeaurora.org>
-References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org> <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org> <20100701101746.3810cc3b.randy.dunlap@oracle.com> <20100701180241.GA3594@basil.fritz.box> <1278012503.7738.17.camel@c-dwalke-linux.qualcomm.com> <20100701193850.GB3594@basil.fritz.box> <4C2D0FF1.6010206@codeaurora.org> <20100701230056.GD3594@basil.fritz.box> <4C2D847E.5080602@codeaurora.org> <20100702082225.GA12221@basil.fritz.box>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20100702082225.GA12221@basil.fritz.box>
-Sender: owner-linux-mm@kvack.org
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Daniel Walker <dwalker@codeaurora.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] OMAP: DSS2: OMAPFB: add support for FBIO_WAITFORVSYNC
+Date: Fri,  2 Jul 2010 23:54:56 +0300
+Message-ID: <1278104096-27809-1-git-send-email-notasas@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:55102 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757479Ab0GBUzA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 16:55:00 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-Andi Kleen wrote:
-> On Thu, Jul 01, 2010 at 11:17:34PM -0700, Zach Pfeffer wrote:
->> Andi Kleen wrote:
->>>> The VCMM provides a more abstract, global view with finer-grained
->>>> control of each mapping a user wants to create. For instance, the
->>>> semantics of iommu_map preclude its use in setting up just the IOMMU
->>>> side of a mapping. With a one-sided map, two IOMMU devices can be
->>> Hmm? dma_map_* does not change any CPU mappings. It only sets up
->>> DMA mapping(s).
->> Sure, but I was saying that iommu_map() doesn't just set up the IOMMU
->> mappings, its sets up both the iommu and kernel buffer mappings.
-> 
-> Normally the data is already in the kernel or mappings, so why
-> would you need another CPU mapping too? Sometimes the CPU
-> code has to scatter-gather, but that is considered acceptable
-> (and if it really cannot be rewritten to support sg it's better
-> to have an explicit vmap operation) 
-> 
-> In general on larger systems with many CPUs changing CPU mappings
-> also gets expensive (because you have to communicate with all cores), 
-> and is not a good idea on frequent IO paths.
+FBIO_WAITFORVSYNC is a stardard ioctl for waiting vsync, already
+used by some userspace, so add it as an alias for OMAPFB_WAITFORVSYNC.
 
-That's all true, but what a VCMM allows is for these trade-offs to be
-made by the user for future systems. It may not be too expensive to
-change the IO path around on future chips or the user may be okay with
-the performance penalty. A VCMM doesn't enforce a policy on the user,
-it lets the user make their own policy.
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+Tomi,
 
+I know I already sent this earlier, but as now FBIO_WAITFORVSYNC is a
+standard ioctl, so why don't we support it? I know you might not like
+that omapfb_ioctl will have one standard ioctl handler between all OMAP
+specific ones, but that's something plenty of other drivers do.
 
->>>> Additionally, the current IOMMU interface does not allow users to
->>>> associate one page table with multiple IOMMUs unless the user explicitly
->>> That assumes that all the IOMMUs on the system support the same page table
->>> format, right?
->> Actually no. Since the VCMM abstracts a page-table as a Virtual
->> Contiguous Region (VCM) a VCM can be associated with any device,
->> regardless of their individual page table format.
-> 
-> But then there is no real page table sharing, isn't it? 
-> The real information should be in the page tables, nowhere else.
+ drivers/video/omap2/omapfb/omapfb-ioctl.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-Yeah, and the implementation ensures that it. The VCMM just adds a few
-fields like start_addr, len and the device. The device still manages
-the its page-tables.
-
->>> The standard Linux approach to such a problem is to write
->>> a library that drivers can use for common functionality, not put a middle 
->>> layer in between. Libraries are much more flexible than layers.
->> That's true up to the, "is this middle layer so useful that its worth
->> it" point. The VM is a middle layer, you could make the same argument
->> about it, "the mapping code isn't too hard, just map in the memory
->> that you need and be done with it". But the VM middle layer provides a
->> clean separation between page frames and pages which turns out to be
-> 
-> Actually we use both PFNs and struct page *s in many layers up
-> and down, there's not really any layering in that.
-
-Sure, but the PFNs and the struct page *s are the middle layer. Its
-just that things haven't been layered on top of them. A VCMM is the
-higher level abstraction, since it allows the size of the PFs to vary
-and the consumers of the VCM's to be determined at run-time.
-
+diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+index 9c73618..32fab5a 100644
+--- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
++++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+@@ -490,6 +490,7 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg)
+ 		struct omapfb_vram_info		vram_info;
+ 		struct omapfb_tearsync_info	tearsync_info;
+ 		struct omapfb_display_info	display_info;
++		u32				crt;
+ 	} p;
+ 
+ 	int r = 0;
+@@ -648,6 +649,17 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg)
+ 			r = -EFAULT;
+ 		break;
+ 
++	case FBIO_WAITFORVSYNC:
++		if (get_user(p.crt, (__u32 __user *)arg)) {
++			r = -EFAULT;
++			break;
++		}
++		if (p.crt != 0) {
++			r = -ENODEV;
++			break;
++		}
++		/* FALLTHROUGH */
++
+ 	case OMAPFB_WAITFORVSYNC:
+ 		DBG("ioctl WAITFORVSYNC\n");
+ 		if (!display) {
 -- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+1.6.3.3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
