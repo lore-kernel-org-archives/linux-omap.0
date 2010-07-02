@@ -1,106 +1,147 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [RFC 0/7] OMAP: Basic DVFS framework
-Date: Fri,  2 Jul 2010 15:48:22 +0530
-Message-ID: <1278065909-32148-1-git-send-email-thara@ti.com>
+Subject: [RFC 5/7] OMAP: Introduce set_rate and get_rate API in omap device layer
+Date: Fri,  2 Jul 2010 15:48:27 +0530
+Message-ID: <1278065909-32148-6-git-send-email-thara@ti.com>
+References: <1278065909-32148-1-git-send-email-thara@ti.com>
+ <1278065909-32148-2-git-send-email-thara@ti.com>
+ <1278065909-32148-3-git-send-email-thara@ti.com>
+ <1278065909-32148-4-git-send-email-thara@ti.com>
+ <1278065909-32148-5-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47174 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750813Ab0GBKSj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Jul 2010 06:18:39 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:38686 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752925Ab0GBKSk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 06:18:40 -0400
+In-Reply-To: <1278065909-32148-5-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, p-basak2@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch series is RFC for support of Dynamic Voltage and
-Frequency Scaling (DVFS) for OMAP devices. DVFS is a technique that
-uses the optimal operating frequency and voltage to allow a task to be
-performed in the required amount of time.
-OMAP processors have voltage domains whose voltage can be scaled to
-various levels depending on which the operating frequencies of certain
-devices belonging to the domain will also need to be scaled. This voltage
-frequency tuple is known as Operating Performance Point (OPP). A device
-can have multiple OPP's. Also a voltage domain could be shared between
-multiple devices. Also there could be dependencies between various
-voltage domains for maintaining system performance like VDD<X>
-should be at voltage v1 when VDD<Y> is at voltage v2.
+This patch adds omap_device_set_rate and omap_device_get_rate
+API's which can be used to generic device rate scaling.
 
-The design of this framework take into account all the above mentioned points.
-To summarize the basic design of DVFS framework:-
-
-1. Have device opp tables for each device whose operating frequency can be
-   scaled. This is easy now due to the existance of hwmod layer which
-   allow storing of device specific info. The device opp tables contain
-   the opp pairs (frequency voltage tuples), the voltage domain pointer
-   to which the device belongs to, the device specific set_rate and
-   get_rate API's which will do the actual scaling of the device frequency
-   and retrieve the current device frequency.
-2. Introduce use counting on a per VDD basis. This is to take care multiple
-   requests to scale a VDD. The VDD will be scaled to the maximum of the
-   voltages requested.
-3. Keep track of all scalable devices belonging to a particular voltage
-   domain the voltage layer.
-4. Generic API in the omap device layer which can be called by anybody
-   to scale a device opp. This API will take in the device pointer and
-   frequency to which the device needs to be scaled to. This API will
-   then internally find out the voltage domain to which the device
-   belongs to and the voltage to which the voltage domain needs to
-   be put to for the device to be scaled to the new frequency from
-   the device opp table. Then this API will call into the newly
-   introduced API in voltage layer (as mentioned in 2) to see if
-   there are other requests for the associated voltage domain to
-   be at a voltage higher than the current chosen one. If not this
-   API will go ahead and scale the voltage domain to the new voltage,
-   run through the list of all scalable devices belonging to this
-   voltage domain and scale them to the appropriate frequencies using
-   the set_rate pointer in the device opp table.s
-
-Work pending -
-1. Handle inter VDD dependencies.
-2. Add OMAP4 support.
-
-Contributors to conceptualization of the design include
-Benoit Cousson <b-cousson@ti.com>,
-Kevin Hilman <khilman@deeprootsystems.com>,
-Paul Wamsley <paul@pwsan.com>,
-Vishwanath Sripathy <vishwanath.bs@ti.com>
-Parthasarathy Basak <p-basak2@ti.com>
-Anand Sawant <sawant@ti.com>
-
-This patch series is primarily based of pm-sr branch of kevin's PM tree due to
-it's dependency on the newly introduced opp and voltage layer. On top of this
-branch I had to apply a few patches to test out dvfs using cpufreq framework.
-The following are the link to these additional patches.
-	https://patchwork.kernel.org/patch/107876/
-	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=aa14cb9937e67c48f760c99a3c7fb3b2e7f5e623
-	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=8f1298921d10789bb2f0a2d56cd3b92d844a1450
-	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=10474ce3b07949d791b419aad433590e072e7159
-	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=52fd40b873f8cd5aaea2d01d86ef35017c207eba
-	http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=57a2e45ff4a596a175aba27ae55a2b0d99adc3b5	
-
-This series has been tested on OMAP3430 SDP for mpu and iva DVFS through
-cpu freq framework.
-
-Thara Gopinath (7):
-  OMAP: Introduce a user list for each voltage domain instance in the
-    voltage driver.
-  OMAP: Introduce API in the OPP layer to find the opp entry
-    corresponding to a voltage.
-  OMAP: Introduce voltage domain pointer and device specific set rate
-    and get rate in device opp structures.
-  OMAP: Voltage layer changes to support DVFS.
-  OMAP: Introduce device set_rate and get_rate.
-  OMAP3: Update OMAP3 opp tables to contain the voltage domain and
-    device set rate get rate info
-  OMAP3: Update cpufreq driver to use the new set_rate API
-
- arch/arm/mach-omap2/cpufreq34xx.c             |  160 +++++++++++++++++++----
- arch/arm/mach-omap2/voltage.c                 |  172 ++++++++++++++++++++++++-
- arch/arm/plat-omap/cpu-omap.c                 |    5 +-
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
- arch/arm/plat-omap/include/plat/opp.h         |   39 ++++++-
- arch/arm/plat-omap/include/plat/voltage.h     |    6 +-
- arch/arm/plat-omap/omap_device.c              |   87 +++++++++++++
- arch/arm/plat-omap/opp.c                      |   75 +++++++++--
- 8 files changed, 505 insertions(+), 41 deletions(-)
+ arch/arm/plat-omap/omap_device.c              |   87 +++++++++++++++++++++++++
+ 2 files changed, 89 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 3694b62..e0d06bb 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -114,6 +114,8 @@ int omap_device_enable_hwmods(struct omap_device *od);
+ int omap_device_disable_clocks(struct omap_device *od);
+ int omap_device_enable_clocks(struct omap_device *od);
+ 
++int omap_device_set_rate(struct device *dev, unsigned long rate);
++unsigned long omap_device_get_rate(struct device *dev);
+ 
+ /*
+  * Entries should be kept in latency order ascending
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 6614cba..900bb5d 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -85,6 +85,8 @@
+ 
+ #include <plat/omap_device.h>
+ #include <plat/omap_hwmod.h>
++#include <plat/opp.h>
++#include <plat/voltage.h>
+ 
+ /* These parameters are passed to _omap_device_{de,}activate() */
+ #define USE_WAKEUP_LAT			0
+@@ -734,3 +736,88 @@ int omap_device_enable_clocks(struct omap_device *od)
+ 	/* XXX pass along return value here? */
+ 	return 0;
+ }
++
++/**
++ * omap_device_set_rate - Set a new rate at which the device is to operate
++ * @dev : the device pointer
++ * @rate : the rnew rate for the device.
++ *
++ * This API gets the device opp table associated with this device and
++ * tries putting the device to the requested rate and the voltage domain
++ * associated with the device to the voltage corresponding to the
++ * requested rate. Since multiple devices can be assocciated with a
++ * voltage domain this API finds out the possible voltage the
++ * voltage domain can enter and then decides on the final device
++ * rate. Return 0 on success else the error value
++ */
++int omap_device_set_rate(struct device *dev, unsigned long rate)
++{
++	struct device_opp *dev_opp;
++	struct omap_opp *opp;
++	unsigned long volt, freq;
++	int ret;
++
++	dev_opp = opp_find_dev_opp(dev);
++	if (IS_ERR(dev_opp)) {
++		dev_warn(dev, "%s: Unable to find device opp table\n",
++			__func__);
++		return -ENODEV;
++	}
++
++	/* Get the possible rate from the opp layer */
++	freq = rate;
++	opp = opp_find_freq_ceil(dev, &freq);
++	if (IS_ERR(opp)) {
++		dev_err(dev, "%s: Unable to find OPP for freq%ld\n",
++			__func__, rate);
++		return -ENODEV;
++	}
++	if (unlikely(freq != rate))
++		dev_warn(dev, "%s: Available freq %ld != dpll freq %ld.\n",
++			__func__, freq, rate);
++
++	/* Get the voltage corresponding to the requested frequency */
++	volt = opp_get_voltage(opp);
++
++	/*
++	 * Call into the voltage layer to get the final voltage possible
++	 * for the voltage domain associated with the device.
++	 */
++
++	ret = omap_volt_get_final(dev_opp->volt_domain, dev, &volt);
++	if (ret) {
++		dev_err(dev, "%s: Unable to get the final volt for scaling\n",
++			__func__);
++		return ret;
++	}
++
++	/* Do the actual scaling */
++	return omap_voltage_scale(dev_opp->volt_domain, volt);
++}
++
++/**
++ * omap_device_get_rate - Gets the current operating rate of the device
++ * @dev - the device pointer
++ *
++ * This API returns the current operating rate of the device on success.
++ * Else returns the error value.
++ */
++unsigned long omap_device_get_rate(struct device *dev)
++{
++	struct device_opp *dev_opp;
++
++	dev_opp = opp_find_dev_opp(dev);
++
++	if (IS_ERR(dev_opp)) {
++		dev_warn(dev, "%s: Unable to find device opp table\n",
++			__func__);
++		return -ENODEV;
++	}
++
++	if (!dev_opp->get_rate) {
++		dev_warn(dev, "%s: No get_rate API\n", __func__);
++		return -EINVAL;
++	}
++
++	return dev_opp->get_rate(dev);
++}
+-- 
+1.7.0.rc1.33.g07cf0f
 
