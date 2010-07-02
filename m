@@ -1,8 +1,7 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 03/20] OMAP1: OPP: add KConfig entry for 96MHz ARM rate
-	(using a 12MHz oscillator)
-Date: Fri, 02 Jul 2010 09:29:15 -0600
-Message-ID: <20100702152912.6221.48228.stgit@localhost.localdomain>
+Subject: [PATCH 05/20] OMAP24xx: CM: fix mask used for checking IDLEST status
+Date: Fri, 02 Jul 2010 09:29:18 -0600
+Message-ID: <20100702152917.6221.89090.stgit@localhost.localdomain>
 References: <20100702152703.6221.33529.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,47 +18,44 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, The VAMOS Research Project <vamos@i4.informatik.uni-erlangen.de>, Marek Vasut <marek.vasut@gmail.com>, Christoph Egger <siccegge@cs.fau.de>, Tuukka Tikkanen <tuukka.tikkanen@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add KConfig entry for one of the OMAP1 DVFS rates that was missing it.
-Based on the surrounding rate KConfigs and the oscillator frequency,
-this patch marks it as valid for all OMAP1 platforms -- Richard,
-Tuukka, Tony, perhaps you can comment if this does not look right?
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-In the long term, all of these CONFIG_OMAP_ARM_*MHZ should be removed.
-The OPP settings should be associated with the platform information in
-the structure data (perhaps by extending the omap_chip defines).  The
-selection of which rates to use should be handled at runtime; rates
-that are impossible due to xtal frequency mismatch or SoC-type
-mismatch should not be included.  If implemented correctly, this
-should save some CPU time and some memory on OMAP1 kernels.
+On OMAP24xx, the polarity for the IDLEST bits is opposite of OMAP3.
+The mask used to check this was using the bit position instead of the
+bit mask.
 
-Reported-by: Christoph Egger <siccegge@cs.fau.de>
-Reported-by: The VAMOS Research Project <vamos@i4.informatik.uni-erlangen.de>
-Cc: Marek Vasut <marek.vasut@gmail.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
-Cc: Tuukka Tikkanen <tuukka.tikkanen@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
+This patch fixes the problem by using the bit mask instead of the bit
+field.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap1/Kconfig |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/cm.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-index b18d7c2..b9f0c4c 100644
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -224,6 +224,12 @@ config OMAP_ARM_120MHZ
- 	help
-           Enable 120MHz clock for OMAP CPU. If unsure, say N.
+diff --git a/arch/arm/mach-omap2/cm.c b/arch/arm/mach-omap2/cm.c
+index 2d83565..721c3b6 100644
+--- a/arch/arm/mach-omap2/cm.c
++++ b/arch/arm/mach-omap2/cm.c
+@@ -50,15 +50,15 @@ int omap2_cm_wait_module_ready(s16 prcm_mod, u8 idlest_id, u8 idlest_shift)
  
-+config OMAP_ARM_96MHZ
-+	bool "OMAP ARM 96 MHz CPU"
-+	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_OMAP850)
-+	help
-+          Enable 96MHz clock for OMAP CPU. If unsure, say N.
+ 	cm_idlest_reg = cm_idlest_offs[idlest_id - 1];
+ 
++	mask = 1 << idlest_shift;
 +
- config OMAP_ARM_60MHZ
- 	bool "OMAP ARM 60 MHz CPU"
- 	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_OMAP850)
+ 	if (cpu_is_omap24xx())
+-		ena = idlest_shift;
++		ena = mask;
+ 	else if (cpu_is_omap34xx())
+ 		ena = 0;
+ 	else
+ 		BUG();
+ 
+-	mask = 1 << idlest_shift;
+-
+ 	/* XXX should be OMAP2 CM */
+ 	omap_test_timeout(((cm_read_mod_reg(prcm_mod, cm_idlest_reg) & mask) == ena),
+ 			  MAX_MODULE_READY_TIME, i);
