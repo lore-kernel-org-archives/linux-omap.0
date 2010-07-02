@@ -1,7 +1,8 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 07/20] OMAP2&3: hwmod: Remove _hwmod prefix in name string
-Date: Fri, 02 Jul 2010 09:29:21 -0600
-Message-ID: <20100702152920.6221.86072.stgit@localhost.localdomain>
+Subject: [PATCH 11/20] OMAP: omap_device: ensure hwmod tracks attached
+	omap_device pointer
+Date: Fri, 02 Jul 2010 09:29:30 -0600
+Message-ID: <20100702152927.6221.90018.stgit@localhost.localdomain>
 References: <20100702152703.6221.33529.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,125 +19,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Benoit Cousson <b-cousson@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-In the lastest OMAP4 hwmod data file, the _hwmod was removed
-in order to save some memory space and because it does not
-bring a lot.
-Align OMAP2420, 2430 and 3430 data files with the same convention.
+The omap_hwmod struct has a field to track the omap_device that is
+attached to it, but it was not being assigned.  Fix by assigning omap_device
+pointer when omap_device is built.
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+[paul@pwsan.com: use an array index rather than pointer arithmetic]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/plat-omap/omap_device.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index a8b57a6..646386c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2420_l3_masters[] = {
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index f899603..f9dec0d 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -359,7 +359,7 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	struct omap_device *od;
+ 	char *pdev_name2;
+ 	struct resource *res = NULL;
+-	int res_count;
++	int i, res_count;
+ 	struct omap_hwmod **hwmods;
  
- /* L3 */
- static struct omap_hwmod omap2420_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3_main",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap2420_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l3_masters),
-@@ -90,7 +90,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_core_masters[] = {
+ 	if (!ohs || oh_cnt == 0 || !pdev_name)
+@@ -416,6 +416,9 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	else
+ 		ret = omap_device_register(od);
  
- /* L4 CORE */
- static struct omap_hwmod omap2420_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2420_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_core_masters),
-@@ -111,7 +111,7 @@ static struct omap_hwmod_ocp_if *omap2420_l4_wkup_masters[] = {
- 
- /* L4 WKUP */
- static struct omap_hwmod omap2420_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2420_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2420_l4_wkup_masters),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 8b1f74b..b2100cf 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -59,7 +59,7 @@ static struct omap_hwmod_ocp_if *omap2430_l3_masters[] = {
- 
- /* L3 */
- static struct omap_hwmod omap2430_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3_main",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap2430_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l3_masters),
-@@ -92,7 +92,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_core_masters[] = {
- 
- /* L4 CORE */
- static struct omap_hwmod omap2430_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2430_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_core_masters),
-@@ -113,7 +113,7 @@ static struct omap_hwmod_ocp_if *omap2430_l4_wkup_masters[] = {
- 
- /* L4 WKUP */
- static struct omap_hwmod omap2430_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap2430_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap2430_l4_wkup_masters),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index e288b20..ec6a5f8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -70,7 +70,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l3_masters[] = {
- 
- /* L3 */
- static struct omap_hwmod omap3xxx_l3_hwmod = {
--	.name		= "l3_hwmod",
-+	.name		= "l3_main",
- 	.class		= &l3_hwmod_class,
- 	.masters	= omap3xxx_l3_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_masters),
-@@ -101,7 +101,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_core_masters[] = {
- 
- /* L4 CORE */
- static struct omap_hwmod omap3xxx_l4_core_hwmod = {
--	.name		= "l4_core_hwmod",
-+	.name		= "l4_core",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_core_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_core_masters),
-@@ -122,7 +122,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_per_masters[] = {
- 
- /* L4 PER */
- static struct omap_hwmod omap3xxx_l4_per_hwmod = {
--	.name		= "l4_per_hwmod",
-+	.name		= "l4_per",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_per_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_per_masters),
-@@ -143,7 +143,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_masters[] = {
- 
- /* L4 WKUP */
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
--	.name		= "l4_wkup_hwmod",
-+	.name		= "l4_wkup",
- 	.class		= &l4_hwmod_class,
- 	.masters	= omap3xxx_l4_wkup_masters,
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_masters),
++	for (i = 0; i < oh_cnt; i++)
++		hwmods[i]->od = od;
++
+ 	if (ret)
+ 		goto odbs_exit4;
