@@ -1,259 +1,212 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [RFC 6/7] OMAP3: Update OMAP3 opp tables to contain the voltage domain and device set rate get rate info
-Date: Fri,  2 Jul 2010 15:48:28 +0530
-Message-ID: <1278065909-32148-7-git-send-email-thara@ti.com>
+Subject: [RFC 3/7] OMAP: Introduce voltage domain pointer and device specific set rate and get rate in device opp structures.
+Date: Fri,  2 Jul 2010 15:48:25 +0530
+Message-ID: <1278065909-32148-4-git-send-email-thara@ti.com>
 References: <1278065909-32148-1-git-send-email-thara@ti.com>
  <1278065909-32148-2-git-send-email-thara@ti.com>
  <1278065909-32148-3-git-send-email-thara@ti.com>
- <1278065909-32148-4-git-send-email-thara@ti.com>
- <1278065909-32148-5-git-send-email-thara@ti.com>
- <1278065909-32148-6-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47176 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750875Ab0GBKSk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Jul 2010 06:18:40 -0400
-In-Reply-To: <1278065909-32148-6-git-send-email-thara@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38687 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753344Ab0GBKSk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 06:18:40 -0400
+In-Reply-To: <1278065909-32148-3-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, p-basak2@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch updates the omap3 opp tables to contain the voltage domain
-associated with the opp. This patch also introduces
-omap3_mpu_set_rate, omap3_iva_set_rate, omap3_l3_set_rate,
-omap3_mpu_get_rate, omap3_iva_get_rate, omap3_l3_get_rate as device
-specific set rate and get rate API's for OMAP3 mpu, iva and l3_main devices
-and hooks them up in the correspoinding opp table entries.
+This patch extends the device opp structure to contain
+info about the voltage domain to which the device belongs to
+and to contain pointers to scale the operating rate of the
+device. This patch also adds an API in the opp layer that
+can be used by the voltage layer to get a list of all the
+scalable devices belonging to a particular voltage domain.
+This API is to be typically called only once by the voltage
+layer per voltage domain instance and the device list should
+be stored. This approach makes it easy during dvfs to scale
+all the devices associated with a voltage domain and then
+scale the voltage domain.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/cpufreq34xx.c |  160 +++++++++++++++++++++++++++++++------
- 1 files changed, 136 insertions(+), 24 deletions(-)
+ arch/arm/plat-omap/include/plat/opp.h |   37 +++++++++++++++++++++++++-
+ arch/arm/plat-omap/opp.c              |   47 +++++++++++++++++++++++++-------
+ 2 files changed, 72 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
-index 1589542..1f65f7e 100644
---- a/arch/arm/mach-omap2/cpufreq34xx.c
-+++ b/arch/arm/mach-omap2/cpufreq34xx.c
-@@ -21,22 +21,41 @@
+diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
+index 893731f..15e1e70 100644
+--- a/arch/arm/plat-omap/include/plat/opp.h
++++ b/arch/arm/plat-omap/include/plat/opp.h
+@@ -16,6 +16,7 @@
  
- #include <linux/module.h>
  #include <linux/err.h>
-+#include <linux/cpufreq.h>
+ #include <linux/cpufreq.h>
++#include <linux/clk.h>
  
- #include <plat/opp.h>
- #include <plat/cpu.h>
-+#include <plat/clock.h>
-+#include "cm-regbits-34xx.h"
-+#include "prm.h"
- #include "omap3-opp.h"
+ #include <plat/common.h>
  
-+static int omap3_mpu_set_rate(struct device *dev, unsigned long rate);
-+static int omap3_iva_set_rate(struct device *dev, unsigned long rate);
-+static int omap3_l3_set_rate(struct device *dev, unsigned long rate);
+@@ -38,21 +39,45 @@
+  */
+ struct omap_opp_def {
+ 	char *hwmod_name;
++	char *vdd_name;
+ 
+ 	unsigned long freq;
+ 	unsigned long u_volt;
+ 
++	int (*set_rate)(struct device *dev, unsigned long rate);
++	unsigned long (*get_rate) (struct device *dev);
 +
-+static unsigned long omap3_mpu_get_rate(struct device *dev);
-+static unsigned long omap3_iva_get_rate(struct device *dev);
-+static unsigned long omap3_l3_get_rate(struct device *dev);
-+
-+struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk;
-+
- static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	/* MPU OPP1 */
--	OMAP_OPP_DEF("mpu", true, 125000000, 975000),
-+	OMAP_OPP_DEF("mpu", "mpu", omap3_mpu_set_rate, omap3_mpu_get_rate,
-+			true, 125000000, 975000),
- 	/* MPU OPP2 */
--	OMAP_OPP_DEF("mpu", true, 250000000, 1075000),
-+	OMAP_OPP_DEF("mpu", "mpu", omap3_mpu_set_rate, omap3_mpu_get_rate,
-+		true, 250000000, 1075000),
- 	/* MPU OPP3 */
--	OMAP_OPP_DEF("mpu", true, 500000000, 1200000),
-+	OMAP_OPP_DEF("mpu", "mpu", omap3_mpu_set_rate, omap3_mpu_get_rate,
-+			true, 500000000, 1200000),
- 	/* MPU OPP4 */
--	OMAP_OPP_DEF("mpu", true, 550000000, 1270000),
-+	OMAP_OPP_DEF("mpu", "mpu", omap3_mpu_set_rate, omap3_mpu_get_rate,
-+			true, 550000000, 1270000),
- 	/* MPU OPP5 */
--	OMAP_OPP_DEF("mpu", true, 600000000, 1350000),
-+	OMAP_OPP_DEF("mpu", "mpu", omap3_mpu_set_rate, omap3_mpu_get_rate,
-+			true, 600000000, 1350000),
- 
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -46,52 +65,141 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	 * impact that frequency will do to the MPU and the whole system in
- 	 * general.
- 	 */
--	OMAP_OPP_DEF("l3_main", false, 41500000, 975000),
-+	OMAP_OPP_DEF("l3_main", "core", omap3_l3_set_rate, omap3_l3_get_rate,
-+			false, 41500000, 975000),
- 	/* L3 OPP2 */
--	OMAP_OPP_DEF("l3_main", true, 83000000, 1050000),
-+	OMAP_OPP_DEF("l3_main", "core", omap3_l3_set_rate, omap3_l3_get_rate,
-+			true, 83000000, 1050000),
- 	/* L3 OPP3 */
--	OMAP_OPP_DEF("l3_main", true, 166000000, 1150000),
--
-+	OMAP_OPP_DEF("l3_main", "core", omap3_l3_set_rate, omap3_l3_get_rate,
-+			true, 166000000, 1150000),
- 
- 	/* DSP OPP1 */
--	OMAP_OPP_DEF("iva", true, 90000000, 975000),
-+	OMAP_OPP_DEF("iva", "mpu", omap3_iva_set_rate, omap3_iva_get_rate,
-+			true, 90000000, 975000),
- 	/* DSP OPP2 */
--	OMAP_OPP_DEF("iva", true, 180000000, 1075000),
-+	OMAP_OPP_DEF("iva", "mpu", omap3_iva_set_rate, omap3_iva_get_rate,
-+			true, 180000000, 1075000),
- 	/* DSP OPP3 */
--	OMAP_OPP_DEF("iva", true, 360000000, 1200000),
-+	OMAP_OPP_DEF("iva", "mpu", omap3_iva_set_rate, omap3_iva_get_rate,
-+			true, 360000000, 1200000),
- 	/* DSP OPP4 */
--	OMAP_OPP_DEF("iva", true, 400000000, 1270000),
-+	OMAP_OPP_DEF("iva", "mpu", omap3_iva_set_rate, omap3_iva_get_rate,
-+			true, 400000000, 1270000),
- 	/* DSP OPP5 */
--	OMAP_OPP_DEF("iva", true, 430000000, 1350000),
-+	OMAP_OPP_DEF("iva", "mpu", omap3_iva_set_rate, omap3_iva_get_rate,
-+			true, 430000000, 1350000),
+ 	bool enabled;
  };
- static u32 omap34xx_opp_def_size = ARRAY_SIZE(omap34xx_opp_def_list);
  
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
- 	/* MPU OPP1 - OPP50 */
--	OMAP_OPP_DEF("mpu", true,  300000000, 930000),
-+	OMAP_OPP_DEF("mpu", "mpu", omap3_mpu_set_rate, omap3_mpu_get_rate,
-+			true, 300000000, 930000),
- 	/* MPU OPP2 - OPP100 */
--	OMAP_OPP_DEF("mpu", true,  600000000, 1100000),
-+	OMAP_OPP_DEF("mpu", "mpu", omap3_mpu_set_rate, omap3_mpu_get_rate,
-+			true,  600000000, 1100000),
- 	/* MPU OPP3 - OPP-Turbo */
--	OMAP_OPP_DEF("mpu", false, 800000000, 1260000),
-+	OMAP_OPP_DEF("mpu", "mpu", omap3_mpu_set_rate, omap3_mpu_get_rate,
-+			false, 800000000, 1260000),
- 	/* MPU OPP4 - OPP-SB */
--	OMAP_OPP_DEF("mpu", false, 1000000000, 1350000),
-+	OMAP_OPP_DEF("mpu", "mpu", omap3_mpu_set_rate, omap3_mpu_get_rate,
-+			false, 1000000000, 1350000),
++struct device_opp {
++	struct list_head node;
++	char *vdd_name;
++
++	struct omap_hwmod *oh;
++	struct device *dev;
++	struct omap_volt_domain *volt_domain;
++
++	struct list_head opp_list;
++	u32 opp_count;
++	u32 enabled_opp_count;
++
++	int (*set_rate)(struct device *dev, unsigned long rate);
++	unsigned long (*get_rate) (struct device *dev);
++};
++
+ /*
+  * Initialization wrapper used to define an OPP.
+  * To point at the end of a terminator of a list of OPPs,
+  * use OMAP_OPP_DEF(0, 0, 0)
+  */
+-#define OMAP_OPP_DEF(_hwmod_name, _enabled, _freq, _uv)	\
++#define OMAP_OPP_DEF(_hwmod_name, _vdd_name, _set_rate, _get_rate, \
++			_enabled, _freq, _uv)	\
+ {						\
+ 	.hwmod_name	= _hwmod_name,		\
++	.vdd_name	= _vdd_name,		\
++	.set_rate	= _set_rate,		\
++	.get_rate	= _get_rate,		\
+ 	.enabled	= _enabled,		\
+ 	.freq		= _freq,		\
+ 	.u_volt		= _uv,			\
+@@ -77,6 +102,8 @@ struct omap_opp *opp_find_freq_ceil(struct device *dev, unsigned long *freq);
  
- 	/* L3 OPP1 - OPP50 */
--	OMAP_OPP_DEF("l3_main", true, 100000000, 930000),
-+	OMAP_OPP_DEF("l3_main", "core", omap3_l3_set_rate, omap3_l3_get_rate,
-+			true, 100000000, 930000),
- 	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
--	OMAP_OPP_DEF("l3_main", true, 200000000, 1137500),
-+	OMAP_OPP_DEF("l3_main", "core", omap3_l3_set_rate, omap3_l3_get_rate,
-+			true, 200000000, 1137500),
+ struct omap_opp *opp_find_voltage(struct device *dev, unsigned long volt);
  
- 	/* DSP OPP1 - OPP50 */
--	OMAP_OPP_DEF("iva", true,  260000000, 930000),
-+	OMAP_OPP_DEF("iva", "mpu", omap3_iva_set_rate, omap3_iva_get_rate,
-+			true,  260000000, 930000),
- 	/* DSP OPP2 - OPP100 */
--	OMAP_OPP_DEF("iva", true,  520000000, 1100000),
-+	OMAP_OPP_DEF("iva", "mpu", omap3_iva_set_rate, omap3_iva_get_rate,
-+			true,  520000000, 1100000),
- 	/* DSP OPP3 - OPP-Turbo */
--	OMAP_OPP_DEF("iva", false, 660000000, 1260000),
-+	OMAP_OPP_DEF("iva", "mpu", omap3_iva_set_rate, omap3_iva_get_rate,
-+			false, 660000000, 1260000),
- 	/* DSP OPP4 - OPP-SB */
--	OMAP_OPP_DEF("iva", false, 800000000, 1350000),
-+	OMAP_OPP_DEF("iva", "mpu", omap3_iva_set_rate, omap3_iva_get_rate,
-+			false, 800000000, 1350000),
- };
- static u32 omap36xx_opp_def_size = ARRAY_SIZE(omap36xx_opp_def_list);
++struct device_opp *opp_find_dev_opp(struct device *dev);
++
+ int opp_add(const struct omap_opp_def *opp_def);
  
-+static int omap3_iva_set_rate(struct device *dev, unsigned long rate)
-+{
-+	dev_warn(dev, "%s: Setting device rate to %ld", __func__, rate);
-+	return clk_set_rate(dpll2_clk, rate);
-+}
-+
-+static unsigned long omap3_iva_get_rate(struct device *dev)
-+{
-+	return dpll2_clk->rate;
-+}
-+
-+static int omap3_mpu_set_rate(struct device *dev, unsigned long rate)
-+{
-+	unsigned long cur_rate = omap3_mpu_get_rate(dev);
-+	int ret;
-+
-+#ifdef CONFIG_CPU_FREQ
-+	struct cpufreq_freqs freqs_notify;
-+
-+	freqs_notify.old = cur_rate / 1000;
-+	freqs_notify.new = rate / 1000;
-+	freqs_notify.cpu = 0;
-+	/* Send pre notification to CPUFreq */
-+	cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
-+#endif
-+	dev_warn(dev, "%s: Setting device rate to %ld", __func__, rate);
-+	ret = clk_set_rate(dpll1_clk, rate);
-+	if (ret) {
-+		dev_warn(dev, "%s: Unable to set rate to %ld\n",
-+			__func__, rate);
-+		return ret;
-+	}
-+
-+#ifdef CONFIG_CPU_FREQ
-+	/* Send a post notification to CPUFreq */
-+	cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
-+#endif
-+
-+#ifndef CONFIG_CPU_FREQ
-+	/*Update loops_per_jiffy if processor speed is being changed*/
-+	loops_per_jiffy = compute_lpj(loops_per_jiffy,
-+			cur_rate / 1000, rate / 1000);
-+#endif
-+	return 0;
-+}
-+
-+static unsigned long omap3_mpu_get_rate(struct device *dev)
-+{
-+	return dpll1_clk->rate;
-+}
-+
-+static int omap3_l3_set_rate(struct device *dev, unsigned long rate)
-+{
-+	int l3_div;
-+
-+	dev_warn(dev, "%s: Setting device rate to %ld", __func__, rate);
-+
-+	l3_div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
-+			OMAP3430_CLKSEL_L3_MASK;
-+
-+	return clk_set_rate(dpll3_clk, rate * l3_div);
-+}
-+
-+static unsigned long omap3_l3_get_rate(struct device *dev)
-+{
-+	int l3_div;
-+
-+	l3_div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
-+			OMAP3430_CLKSEL_L3_MASK;
-+	return dpll3_clk->rate / l3_div;
-+}
-+
- /* Temp variable to allow multiple calls */
- static u8 __initdata omap3_table_init;
+ int opp_enable(struct omap_opp *opp);
+@@ -89,6 +116,9 @@ u8 __deprecated opp_get_opp_id(struct omap_opp *opp);
  
-@@ -122,6 +230,10 @@ int __init omap3_pm_init_opp_table(void)
- 				opp_def->freq, opp_def->hwmod_name);
- 	}
- 
-+	dpll1_clk = clk_get(NULL, "dpll1_ck");
-+	dpll2_clk = clk_get(NULL, "dpll2_ck");
-+	dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
+ void opp_init_cpufreq_table(struct device *dev,
+ 			    struct cpufreq_frequency_table **table);
 +
- 	return 0;
++struct device **opp_init_voltage_params(struct omap_volt_domain *volt_domain,
++		int *dev_count);
+ #else
+ static inline unsigned long opp_get_voltage(const struct omap_opp *opp)
+ {
+@@ -124,6 +154,11 @@ static inline struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl,
+ 	return ERR_PTR(-EINVAL);
  }
  
++static inline struct device_opp *opp_find_dev_opp(struct device *dev)
++{
++	return ERR_PTR(-EINVAL);
++}
++
+ static inline struct omap_opp *opp_add(struct omap_opp *oppl,
+ 				       const struct omap_opp_def *opp_def)
+ {
+diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+index 070ff5b..9bc53e8 100644
+--- a/arch/arm/plat-omap/opp.c
++++ b/arch/arm/plat-omap/opp.c
+@@ -22,6 +22,7 @@
+ #include <plat/opp_twl_tps.h>
+ #include <plat/opp.h>
+ #include <plat/omap_device.h>
++#include <plat/voltage.h>
+ 
+ /**
+  * struct omap_opp - OMAP OPP description structure
+@@ -43,17 +44,6 @@ struct omap_opp {
+ 	struct device_opp *dev_opp;  /* containing device_opp struct */
+ };
+ 
+-struct device_opp {
+-	struct list_head node;
+-
+-	struct omap_hwmod *oh;
+-	struct device *dev;
+-
+-	struct list_head opp_list;
+-	u32 opp_count;
+-	u32 enabled_opp_count;
+-};
+-
+ static LIST_HEAD(dev_opp_list);
+ 
+ /**
+@@ -330,6 +320,11 @@ struct omap_opp *opp_find_voltage(struct device *dev, unsigned long volt)
+ 	return opp;
+ }
+ 
++struct device_opp *opp_find_dev_opp(struct device *dev)
++{
++	return find_device_opp(dev);
++}
++
+ /* wrapper to reuse converting opp_def to opp struct */
+ static void omap_opp_populate(struct omap_opp *opp,
+ 			      const struct omap_opp_def *opp_def)
+@@ -385,6 +380,11 @@ int opp_add(const struct omap_opp_def *opp_def)
+ 
+ 		dev_opp->oh = oh;
+ 		dev_opp->dev = &oh->od->pdev.dev;
++		dev_opp->vdd_name = kzalloc(strlen(opp_def->vdd_name) + 1,
++				GFP_KERNEL);
++		strcpy(dev_opp->vdd_name, opp_def->vdd_name);
++		dev_opp->set_rate = opp_def->set_rate;
++		dev_opp->get_rate = opp_def->get_rate;
+ 		INIT_LIST_HEAD(&dev_opp->opp_list);
+ 
+ 		list_add(&dev_opp->node, &dev_opp_list);
+@@ -511,3 +511,28 @@ void opp_init_cpufreq_table(struct device *dev,
+ 
+ 	*table = &freq_table[0];
+ }
++
++struct device **opp_init_voltage_params(struct omap_volt_domain *volt_domain,
++		int *dev_count)
++{
++	struct device_opp *dev_opp;
++	struct device **dev_list;
++	int count = 0, i = 0;
++
++	list_for_each_entry(dev_opp, &dev_opp_list, node) {
++		if (!strcmp(dev_opp->vdd_name, volt_domain->name)) {
++			dev_opp->volt_domain = volt_domain;
++			count++;
++		}
++	}
++
++	dev_list = kzalloc(sizeof(struct device *) * count, GFP_KERNEL);
++
++	list_for_each_entry(dev_opp, &dev_opp_list, node) {
++		if (dev_opp->volt_domain == volt_domain)
++			dev_list[i++] = dev_opp->dev;
++	}
++
++	*dev_count = count;
++	return dev_list;
++}
 -- 
 1.7.0.rc1.33.g07cf0f
 
