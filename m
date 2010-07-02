@@ -1,65 +1,84 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 1/2] arm: Replace CONFIG_HAS_TLS_REG with HWCAP_TLS and
- check for it on V6
-Date: Thu, 01 Jul 2010 22:37:20 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007012226170.26524@xanadu.home>
-References: <20100621135120.24299.98499.stgit@baageli.muru.com>
- <20100622170020.GF4371@shareable.org> <20100623073912.GA12255@atomide.com>
- <20100623133636.GC7058@shareable.org> <20100629141836.GM2822@atomide.com>
- <alpine.LFD.2.00.1006291355520.24097@xanadu.home>
- <20100630110828.GZ2822@atomide.com> <20100630131737.GF2822@atomide.com>
- <alpine.LFD.2.00.1006301011520.24097@xanadu.home>
- <20100701092510.GH2822@atomide.com> <20100701174051.GA8786@shareable.org>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [RFC][PATCH 3/8] OMAP: DSS2: Modify dss_recheck_connections
+Date: Fri, 2 Jul 2010 09:55:43 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305A41BA9@dbde02.ent.ti.com>
+References: <1277980285-20996-1-git-send-email-archit@ti.com>
+	 <1277980285-20996-2-git-send-email-archit@ti.com>
+	 <1277980285-20996-3-git-send-email-archit@ti.com>
+	 <1277980285-20996-4-git-send-email-archit@ti.com>
+	 <1277983917.2474.319.camel@tubuntu.research.nokia.com>
+	 <FCCFB4CDC6E5564B9182F639FC3560870305A419C2@dbde02.ent.ti.com>
+ <1277989954.2474.333.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:33322 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754453Ab0GBChW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jul 2010 22:37:22 -0400
-Received: from xanadu.home ([66.130.28.92]) by VL-MR-MR002.ip.videotron.ca
- (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
- with ESMTP id <0L4W00K0CSM84B10@VL-MR-MR002.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Thu, 01 Jul 2010 22:37:21 -0400 (EDT)
-In-reply-to: <20100701174051.GA8786@shareable.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34088 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750753Ab0GBEZw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 00:25:52 -0400
+In-Reply-To: <1277989954.2474.333.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jamie Lokier <jamie@shareable.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
 
-On Thu, 1 Jul 2010, Jamie Lokier wrote:
+Hi,
 
-> Tony Lindgren wrote:
-> > +static void __init kuser_get_tls_init(unsigned long vectors)
-> > +{
-> > +	/*
-> > +	 * vectors + 0xfe0 = __kuser_get_tls
-> > +	 * vectors + 0xfe8 = hardware TLS instruction at 0xffff0fe8
-> > +	 */
-> > +	if (tls_emu || has_tls)
-> > +		memcpy((void *)vectors + 0xfe0, (void *)vectors + 0xfe8, 4);
-> > +}
+> On Thu, 2010-07-01 at 14:28 +0200, ext Taneja, Archit wrote:
+> > > On Thu, 2010-07-01 at 12:31 +0200, ext Archit Taneja wrote:
+> > > > From: Sumit Semwal <sumit.semwal@ti.com>
+> > > > 
+> > > > The addition of the new 2lcd manager requires 
+> modifications in the 
+> > > > dss_recheck_connections patch, this function behaves the
+> > > same if the
+> > > > 2lcd manager doesn't exist
+> > > 
+> > > Here (and also in the previous patch) you talk about 
+> 2lcd, but the 
+> > > code uses lcd2.
+> > 
+> > Archit:  The new manager's name defined in manager.c is 2lcd, The 
+> > channel's name in the enum is OMAP_DSS_CHANNEL_LCD2, and 
+> the overlay 
+> > manager enum is OMAP_DSS_OVL_MGR_LCD2.
+> > 
+> > 2lcd as the manager name was taken so that no one makes 
+> mistakes while 
+> > reading/writing sysfs entries.
+> > 
+> > Also, in the dss2 code we use strncmp() to compare the 
+> manager names 
+> > in overlay_manager_store(). Now, if we name the new manager 
+> as "lcd2", 
+> > consider the following scenario:
+> > 
+> > Suppose an overlay has its manager presently set as "lcd2". Now 
+> > someone does a sysfs entry to make the manager as "lcd". So in this 
+> > case the variable buf is "lcd" and and mgr->name is "lcd2". The 
+> > variable len is calculated on the basis of buf ("lcd") as 3.
+> > 
+> > So strncmp just compares the first 3 chars, and in that case "lcd"
+> > and "lcd2" are the same, luckily this doesn't cause an issue as the 
+> > first manager fetched by omap_dss_get_overlay_manager() is 
+> "lcd". If 
+> > the manager_list was filled in some other way then this would have 
+> > resulted an issue.
 > 
-> Just a little opinion: Perhaps has_tls_reg would be a clearer name.
-> All variants "have TLS" after all.
+> If the DSS sysfs code if broken, let's rather fix it than 
+> name the manager with a rather strange name, just to circumvent a bug.
+> 
+> > 
+> > In my opinion, len should be calculated as:
+> > 
+> > len = max(len, strlen(mgr->name));
+> > 
+> > This way strncmp would work correctly in all the cases.
+> 
+> sysfs_streq() could be used there.
 
-Good point.
+I agree, I will make this change.
 
-> Also - and this isn't directly related to your change so feel free to
-> ignore it - wouldn't it make more sense for the tls_emu case to use
-> the memory version (and update the memory location), so that even on
-> tls_emu systems, user programs which call the kuser code will run faster?
-> With that change, there would be no real penalty to enabling tls_emu
-> for any system that finds it useful.
-
-No, that's not possible.
-
-The tls_emu case was created to allow SMP system without the actual 
-TLS register to still work.  With SMP you cannot rely on a global memory 
-location to hold the TLS value.  And because such systems are so 
-"unusual" it was simpler to just do as if the TLS register was there and 
-then emulate it within the instruction exception handler.
-
-
-Nicolas
+Archit
