@@ -1,167 +1,85 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [RFC 5/7] OMAP: Introduce set_rate and get_rate API in omap
- device layer
-Date: Fri, 2 Jul 2010 17:22:08 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305B05DAE@dbde02.ent.ti.com>
-References: <1278065909-32148-1-git-send-email-thara@ti.com>
- <1278065909-32148-2-git-send-email-thara@ti.com>
- <1278065909-32148-3-git-send-email-thara@ti.com>
- <1278065909-32148-4-git-send-email-thara@ti.com>
- <1278065909-32148-5-git-send-email-thara@ti.com>
- <1278065909-32148-6-git-send-email-thara@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 2/3] omap mailbox: prevent multiple concurrent receivers race
+Date: Fri,  2 Jul 2010 15:05:04 +0300
+Message-ID: <1278072305-17943-2-git-send-email-Hiroshi.DOYU@nokia.com>
+References: <1278072305-17943-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42047 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756527Ab0GBLwP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 07:52:15 -0400
-In-Reply-To: <1278065909-32148-6-git-send-email-thara@ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:46719 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752595Ab0GBMFU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 08:05:20 -0400
+In-Reply-To: <1278072305-17943-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, ext Ohad Ben-Cohen <ohad@wizery.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
+From: ext Ohad Ben-Cohen <ohad@wizery.com>
 
+We currently maintain only a single mailbox receiver callback.
+To prevent multiple receivers race scenarios (in which receivers
+will end up overwriting each other's callback pointers), we make
+sure that mailbox instances cannot be taken by more than
+one receiver at the same time.
 
-> -----Original Message-----
-> From: Gopinath, Thara
-> Sent: Friday, July 02, 2010 3:48 PM
-> To: linux-omap@vger.kernel.org
-> Cc: khilman@deeprootsystems.com; paul@pwsan.com; Cousson, Benoit; Sripathy,
-> Vishwanath; Sawant, Anand; Basak, Partha; Gopinath, Thara
-> Subject: [RFC 5/7] OMAP: Introduce set_rate and get_rate API in omap device layer
-> 
-> This patch adds omap_device_set_rate and omap_device_get_rate
-> API's which can be used to generic device rate scaling.
-> 
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
->  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
->  arch/arm/plat-omap/omap_device.c              |   87
-> +++++++++++++++++++++++++
->  2 files changed, 89 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-
-> omap/include/plat/omap_device.h
-> index 3694b62..e0d06bb 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -114,6 +114,8 @@ int omap_device_enable_hwmods(struct omap_device *od);
->  int omap_device_disable_clocks(struct omap_device *od);
->  int omap_device_enable_clocks(struct omap_device *od);
-> 
-> +int omap_device_set_rate(struct device *dev, unsigned long rate);
-> +unsigned long omap_device_get_rate(struct device *dev);
-> 
->  /*
->   * Entries should be kept in latency order ascending
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 6614cba..900bb5d 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -85,6 +85,8 @@
-> 
->  #include <plat/omap_device.h>
->  #include <plat/omap_hwmod.h>
-> +#include <plat/opp.h>
-> +#include <plat/voltage.h>
-> 
->  /* These parameters are passed to _omap_device_{de,}activate() */
->  #define USE_WAKEUP_LAT			0
-> @@ -734,3 +736,88 @@ int omap_device_enable_clocks(struct omap_device *od)
->  	/* XXX pass along return value here? */
->  	return 0;
->  }
-> +
-> +/**
-> + * omap_device_set_rate - Set a new rate at which the device is to operate
-> + * @dev : the device pointer
-> + * @rate : the rnew rate for the device.
-> + *
-> + * This API gets the device opp table associated with this device and
-> + * tries putting the device to the requested rate and the voltage domain
-> + * associated with the device to the voltage corresponding to the
-> + * requested rate. Since multiple devices can be assocciated with a
-> + * voltage domain this API finds out the possible voltage the
-> + * voltage domain can enter and then decides on the final device
-> + * rate. Return 0 on success else the error value
-> + */
-> +int omap_device_set_rate(struct device *dev, unsigned long rate)
-> +{
-> +	struct device_opp *dev_opp;
-> +	struct omap_opp *opp;
-> +	unsigned long volt, freq;
-> +	int ret;
-> +
-> +	dev_opp = opp_find_dev_opp(dev);
-> +	if (IS_ERR(dev_opp)) {
-> +		dev_warn(dev, "%s: Unable to find device opp table\n",
-> +			__func__);
-> +		return -ENODEV;
-> +	}
-> +
-> +	/* Get the possible rate from the opp layer */
-> +	freq = rate;
-> +	opp = opp_find_freq_ceil(dev, &freq);
-> +	if (IS_ERR(opp)) {
-> +		dev_err(dev, "%s: Unable to find OPP for freq%ld\n",
-> +			__func__, rate);
-> +		return -ENODEV;
-> +	}
-> +	if (unlikely(freq != rate))
-> +		dev_warn(dev, "%s: Available freq %ld != dpll freq %ld.\n",
-> +			__func__, freq, rate);
-> +
-> +	/* Get the voltage corresponding to the requested frequency */
-> +	volt = opp_get_voltage(opp);
-> +
-> +	/*
-> +	 * Call into the voltage layer to get the final voltage possible
-> +	 * for the voltage domain associated with the device.
-> +	 */
-> +
-> +	ret = omap_volt_get_final(dev_opp->volt_domain, dev, &volt);
-> +	if (ret) {
-> +		dev_err(dev, "%s: Unable to get the final volt for scaling\n",
-> +			__func__);
-> +		return ret;
-> +	}
-> +
-> +	/* Do the actual scaling */
-> +	return omap_voltage_scale(dev_opp->volt_domain, volt);
-This function also needs to be lock protected to avoid race conditions involved when multiple guys try to scale the voltage simultaneously.
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/plat-omap/include/plat/mailbox.h |    1 +
+ arch/arm/plat-omap/mailbox.c              |   12 +++++++++++-
+ 2 files changed, 12 insertions(+), 1 deletions(-)
 
-> +}
-> +
-> +/**
-> + * omap_device_get_rate - Gets the current operating rate of the device
-> + * @dev - the device pointer
-> + *
-> + * This API returns the current operating rate of the device on success.
-> + * Else returns the error value.
-> + */
-> +unsigned long omap_device_get_rate(struct device *dev)
-> +{
-> +	struct device_opp *dev_opp;
-> +
-> +	dev_opp = opp_find_dev_opp(dev);
-> +
-> +	if (IS_ERR(dev_opp)) {
-> +		dev_warn(dev, "%s: Unable to find device opp table\n",
-> +			__func__);
-> +		return -ENODEV;
-> +	}
-> +
-> +	if (!dev_opp->get_rate) {
-> +		dev_warn(dev, "%s: No get_rate API\n", __func__);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return dev_opp->get_rate(dev);
-> +}
-> --
-> 1.7.0.rc1.33.g07cf0f
+diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
+index 0b45664..5df35b4 100644
+--- a/arch/arm/plat-omap/include/plat/mailbox.h
++++ b/arch/arm/plat-omap/include/plat/mailbox.h
+@@ -57,6 +57,7 @@ struct omap_mbox {
+ 	struct omap_mbox_ops	*ops;
+ 	struct device		*dev;
+ 	void			*priv;
++	atomic_t		count;
+ };
+ 
+ int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 14b716d..aafa63f 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -320,9 +320,17 @@ struct omap_mbox *omap_mbox_get(const char *name, int (*callback)(void *))
+ 	if (!mbox)
+ 		return ERR_PTR(-ENOENT);
+ 
++	if (atomic_inc_return(&mbox->count) > 1) {
++		pr_err("%s: mbox %s already in use\n", __func__, name);
++		atomic_dec(&mbox->count);
++		return ERR_PTR(-EBUSY);
++	}
++
+ 	ret = omap_mbox_startup(mbox);
+-	if (ret)
++	if (ret) {
++		atomic_dec(&mbox->count);
+ 		return ERR_PTR(-ENODEV);
++	}
+ 
+ 	mbox->rxq->callback = callback;
+ 
+@@ -333,6 +341,7 @@ EXPORT_SYMBOL(omap_mbox_get);
+ void omap_mbox_put(struct omap_mbox *mbox)
+ {
+ 	omap_mbox_fini(mbox);
++	atomic_dec(&mbox->count);
+ }
+ EXPORT_SYMBOL(omap_mbox_put);
+ 
+@@ -349,6 +358,7 @@ int omap_mbox_register(struct device *parent, struct omap_mbox **list)
+ 
+ 	for (i = 0; mboxes[i]; i++) {
+ 		struct omap_mbox *mbox = mboxes[i];
++		atomic_set(&mbox->count, 0);
+ 		mbox->dev = device_create(&omap_mbox_class,
+ 				parent, 0, mbox, "%s", mbox->name);
+ 		if (IS_ERR(mbox->dev)) {
+-- 
+1.7.1.rc2
 
