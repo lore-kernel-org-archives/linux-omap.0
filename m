@@ -1,106 +1,57 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 18/20] OMAP2+: hwmod/device: update documentation and
- copyright
-Date: Fri, 02 Jul 2010 09:29:51 -0600
-Message-ID: <20100702152948.6221.19663.stgit@localhost.localdomain>
+Subject: [PATCH 01/20] OMAP3: wait on IDLEST after enabling USBTLL fclk
+Date: Fri, 02 Jul 2010 09:29:10 -0600
+Message-ID: <20100702152906.6221.27841.stgit@localhost.localdomain>
 References: <20100702152703.6221.33529.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45319 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758916Ab0GBPbG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 11:31:06 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20100702152703.6221.33529.stgit@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Update some minor documentation issues and update copyright for
-omap_device/omap_hwmod code.
+From: Anand Gadiyar <gadiyar@ti.com>
 
+We need to wait on the IDLEST bit after the clocks are enabled
+before attempting to access any register.
+
+Currently, the USBTLL i-clock ops uses the clkops_omap2_dflt_wait,
+while the USBTLL f-clock ops uses clkops_omap2_dflt. If the
+i-clock is enabled first, the clkops_omap2_dflt_wait is
+short-circuited as the companion f-clock is not enabled.
+This can cause a data abort if the IDLEST has not transitioned,
+and we try to access a USBTLL register.
+
+Since the USBTLL i-clock and f-clock could be enabled in any order,
+this is a bug. Fix it by changing the clkops for the f-clock.
+
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   17 ++++++++++++++++-
- arch/arm/plat-omap/omap_device.c |    9 ++++++---
- 2 files changed, 22 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-index b012057..4002774 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -422,7 +422,7 @@ static int _init_main_clk(struct omap_hwmod *oh)
- }
-=20
- /**
-- * _init_interface_clk - get a struct clk * for the the hwmod's interf=
-ace clks
-+ * _init_interface_clks - get a struct clk * for the the hwmod's inter=
-face clks
-  * @oh: struct omap_hwmod *
-  *
-  * Called from _init_clocks().  Populates the @oh OCP slave interface
-@@ -1074,6 +1074,21 @@ void omap_hwmod_writel(u32 v, struct omap_hwmod =
-*oh, u16 reg_offs)
- 	__raw_writel(v, oh->_mpu_rt_va + reg_offs);
- }
-=20
-+/**
-+ * omap_hwmod_set_slave_idlemode - set the hwmod's OCP slave idlemode
-+ * @oh: struct omap_hwmod *
-+ * @idlemode: SIDLEMODE field bits (shifted to bit 0)
-+ *
-+ * Sets the IP block's OCP slave idlemode in hardware, and updates our
-+ * local copy.  Intended to be used by drivers that have some erratum
-+ * that requires direct manipulation of the SIDLEMODE bits.  Returns
-+ * -EINVAL if @oh is null, or passes along the return value from
-+ * _set_slave_idlemode().
-+ *
-+ * XXX Does this function have any current users?  If not, we should
-+ * remove it; it is better to let the rest of the hwmod code handle th=
-is.
-+ * Any users of this function should be scrutinized carefully.
-+ */
- int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode)
- {
- 	u32 v;
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap=
-_device.c
-index dee4629..ea0d659 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -1,7 +1,7 @@
- /*
-  * omap_device implementation
-  *
-- * Copyright (C) 2009 Nokia Corporation
-+ * Copyright (C) 2009-2010 Nokia Corporation
-  * Paul Walmsley, Kevin Hilman
-  *
-  * Developed in collaboration with (alphabetical order): Benoit
-@@ -90,8 +90,11 @@
- #define USE_WAKEUP_LAT			0
- #define IGNORE_WAKEUP_LAT		1
-=20
--
--#define OMAP_DEVICE_MAGIC 0xf00dcafe
-+/*
-+ * OMAP_DEVICE_MAGIC: used to determine whether a struct omap_device
-+ * obtained via container_of() is in fact a struct omap_device
-+ */
-+#define OMAP_DEVICE_MAGIC		 0xf00dcafe
-=20
- /* Private functions */
-=20
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 41b155a..c226798 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -1408,7 +1408,7 @@ static struct clk ts_fck = {
+ 
+ static struct clk usbtll_fck = {
+ 	.name		= "usbtll_fck",
+-	.ops		= &clkops_omap2_dflt,
++	.ops		= &clkops_omap2_dflt_wait,
+ 	.parent		= &dpll5_m2_ck,
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
+ 	.enable_bit	= OMAP3430ES2_EN_USBTLL_SHIFT,
