@@ -1,69 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap iommu: for-next for 2.6.35-rc1
-Date: Fri, 2 Jul 2010 12:04:11 +0300
-Message-ID: <20100702090411.GH6632@atomide.com>
-References: <20100602.105054.59678037.Hiroshi.DOYU@nokia.com>
- <20100629.075744.104054771.Hiroshi.DOYU@nokia.com>
- <20100702.093534.115912504.Hiroshi.DOYU@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 09/13] OMAP: omap_device: ensure hwmod tracks attached
+ omap_device pointer
+Date: Fri, 2 Jul 2010 03:05:44 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1007020304230.13691@utopia.booyaka.com>
+References: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com> <1277423084-25528-10-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60944 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757954Ab0GBJED (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 05:04:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20100702.093534.115912504.Hiroshi.DOYU@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:36250 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757954Ab0GBJFp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 05:05:45 -0400
+In-Reply-To: <1277423084-25528-10-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [100702 09:29]:
+Hi,
+
+On Thu, 24 Jun 2010, Kevin Hilman wrote:
+
+> The omap_hwmod struct has a field to track the omap_device that is
+> attached to it, but it was not being assigned.  Fix by assigning omap_device
+> pointer when omap_device is built.
 > 
-> Do you have any plan for pulling for-next patches?
-> 
-> I have some "omap iommu" and "omap mailbox" patches for for-next. Now
-> the merge window seems so small and I don't want to miss it.
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-Pulled now into omap-for-linus for the next merge window. Sorry
-for the delay.
+Just FYI, this patch has been converted to use an array index instead of 
+pointer arithmetic - edited patch below.
 
-BTW, I did not add that Makefile fix into omap-fixes-for-linus,
-I figured we should first make sure to get the pending fixes
-in, and then maybe do another set of fixes.
 
-But looks like that's in your for-next, so we might as well
-keep it there. If there's urgent need to get that in as a fix,
-let me know ASAP, I can still rebuild omap-for-linus as that's
-the only set merged there.
+- Paul
 
-Regards,
 
-Tony
+OMAP: omap_device: ensure hwmod tracks attached omap_device pointer
+
+From: Kevin Hilman <khilman@deeprootsystems.com>
+
+The omap_hwmod struct has a field to track the omap_device that is
+attached to it, but it was not being assigned.  Fix by assigning omap_device
+pointer when omap_device is built.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+[paul@pwsan.com: use an array index rather than pointer arithmetic]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/plat-omap/omap_device.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index f899603..f9dec0d 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -359,7 +359,7 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	struct omap_device *od;
+ 	char *pdev_name2;
+ 	struct resource *res = NULL;
+-	int res_count;
++	int i, res_count;
+ 	struct omap_hwmod **hwmods;
  
-> > The following changes since commit 7e27d6e778cd87b6f2415515d7127eba53fe5d02:
-> > 
-> >   Linux 2.6.35-rc3 (2010-06-11 19:14:04 -0700)
-> > 
-> > are available in the git repository at:
-> >   git://gitorious.org/~doyu/lk/mainline.git v2.6.35-rc3-iommu-for-next
-> > 
-> > Hiroshi DOYU (4):
-> >       omap iommu: Introduce iopgd_is_table MACRO
-> >       omap iommu: Rename iopte_[p,v]addr -> iopte_page_[p,v]addr
-> >       omap iommu: move iommu_disable at fault to the above layer
-> >       omap iommu: Make omap-iommu.o built-in
-> > 
-> > Kanigeri, Hari (3):
-> >       omap iommu: update irq mask to be specific about twl and tlb
-> >       omap iommu: add functionality to get TLB miss interrupt
-> >       omap iommu: update ducati mmu irq define name
-> > 
-> >  arch/arm/mach-omap2/Makefile            |    5 +++-
-> >  arch/arm/mach-omap2/iommu2.c            |   44 ++++++++++++++++++++++++------
-> >  arch/arm/mach-omap2/omap-iommu.c        |    2 +-
-> >  arch/arm/plat-omap/include/plat/iommu.h |    2 +
-> >  arch/arm/plat-omap/iommu.c              |   27 ++++++++++++++++---
-> >  arch/arm/plat-omap/iopgtable.h          |    8 +++--
-> >  6 files changed, 70 insertions(+), 18 deletions(-)
+ 	if (!ohs || oh_cnt == 0 || !pdev_name)
+@@ -416,6 +416,9 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	else
+ 		ret = omap_device_register(od);
+ 
++	for (i = 0; i < oh_cnt; i++)
++		hwmods[i]->od = od;
++
+ 	if (ret)
+ 		goto odbs_exit4;
+ 
