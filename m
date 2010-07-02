@@ -1,232 +1,295 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 17/20] OMAP: hwmod/device: add omap_{device,
- hwmod}_get_mpu_rt_va
-Date: Fri, 02 Jul 2010 09:29:48 -0600
-Message-ID: <20100702152943.6221.96850.stgit@localhost.localdomain>
+Subject: [PATCH 19/20] OMAP: PM constraints: add return values;
+ add requesting device param to omap_pm_set_max_dev_wakeup_lat()
+Date: Fri, 02 Jul 2010 09:29:58 -0600
+Message-ID: <20100702152951.6221.74187.stgit@localhost.localdomain>
 References: <20100702152703.6221.33529.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45317 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:45318 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758913Ab0GBPbG (ORCPT
+	with ESMTP id S1758914Ab0GBPbG (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 11:31:06 -0400
 In-Reply-To: <20100702152703.6221.33529.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Add omap_device_get_mpu_rt_va().  This is intended to be used by
-device drivers (currently, via a struct platform_data function
-pointer) to retrieve their corresponding device's virtual base address
-that the MPU should use to access the device.  This is needed because
-the omap_hwmod code does its own ioremap(), in order to gain access to
-the module's OCP_SYSCONFIG register.
+Add return values to the PM constraint functions.  This allows the PM
+core to provide feedback to the caller if a constraint is not
+possible.  Update the one upstream user of omap_pm_set_max_mpu_wakeup_lat()
+to add a compatibility wrapper, needed until the driver is changed.
 
-Add omap_hwmod_get_mpu_rt_va().  omap_device_get_mpu_rt_va() calls this
-function to do the real work.
+Update some of the documentation to conform more closely to kerneldoc style.
 
-While here, rename struct omap_hwmod._rt_va to struct
-omap_hwmod._mpu_rt_va, to reinforce that it refers to the MPU's
-register target virtual address base (as opposed to, for example, the
-L3's).
-
-In the future, this belongs as a function in an omap_bus, so it is not
-necessary to call this through a platform_data function pointer.
-
-The use-case for this function was originally presented by Santosh
-Shilimkar <santosh.shilimkar@ti.com>.
+Add an additional device parameter to omap_pm_set_max_dev_wakeup_lat()
+to identify the device requesting the constraint.  This is so repeated calls
+to omap_pm_set_max_dev_wakeup_lat() with the same requesting device can
+override the device's previously-set constraint.  Also, it allows the PM
+core to make a decision as to whether or not the constraint should be
+satisfied, based on the caller's identity.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c              |   33 +++++++++++++++++=
-++++----
- arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    7 +++--
- arch/arm/plat-omap/omap_device.c              |   19 ++++++++++++++
- 4 files changed, 53 insertions(+), 8 deletions(-)
+ arch/arm/plat-omap/i2c.c                  |   12 +++++
+ arch/arm/plat-omap/include/plat/omap-pm.h |   69 ++++++++++++++++-------------
+ arch/arm/plat-omap/omap-pm-noop.c         |   34 +++++++++-----
+ 3 files changed, 71 insertions(+), 44 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-index d9e96fa..b012057 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1,7 +1,7 @@
- /*
-  * omap_hwmod implementation for OMAP2/3/4
-  *
-- * Copyright (C) 2009 Nokia Corporation
-+ * Copyright (C) 2009-2010 Nokia Corporation
-  *
-  * Paul Walmsley, Beno=C3=AEt Cousson, Kevin Hilman
-  *
-@@ -1066,12 +1066,12 @@ static int _setup(struct omap_hwmod *oh, void *=
-data)
-=20
- u32 omap_hwmod_readl(struct omap_hwmod *oh, u16 reg_offs)
- {
--	return __raw_readl(oh->_rt_va + reg_offs);
-+	return __raw_readl(oh->_mpu_rt_va + reg_offs);
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index eec2b49..a5ce4f0 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -138,6 +138,16 @@ static inline int omap1_i2c_add_bus(struct platform_device *pdev, int bus_id)
+ 	return platform_device_register(pdev);
  }
-=20
- void omap_hwmod_writel(u32 v, struct omap_hwmod *oh, u16 reg_offs)
- {
--	__raw_writel(v, oh->_rt_va + reg_offs);
-+	__raw_writel(v, oh->_mpu_rt_va + reg_offs);
- }
-=20
- int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode)
-@@ -1128,7 +1128,7 @@ int omap_hwmod_register(struct omap_hwmod *oh)
- 	ms_id =3D _find_mpu_port_index(oh);
- 	if (!IS_ERR_VALUE(ms_id)) {
- 		oh->_mpu_port_index =3D ms_id;
--		oh->_rt_va =3D _find_mpu_rt_base(oh, oh->_mpu_port_index);
-+		oh->_mpu_rt_va =3D _find_mpu_rt_base(oh, oh->_mpu_port_index);
- 	} else {
- 		oh->_int_flags |=3D _HWMOD_NO_MPU_PORT;
- 	}
-@@ -1280,7 +1280,7 @@ int omap_hwmod_unregister(struct omap_hwmod *oh)
- 	pr_debug("omap_hwmod: %s: unregistering\n", oh->name);
-=20
- 	mutex_lock(&omap_hwmod_mutex);
--	iounmap(oh->_rt_va);
-+	iounmap(oh->_mpu_rt_va);
- 	list_del(&oh->node);
- 	mutex_unlock(&omap_hwmod_mutex);
-=20
-@@ -1541,6 +1541,29 @@ struct powerdomain *omap_hwmod_get_pwrdm(struct =
-omap_hwmod *oh)
- }
-=20
- /**
-+ * omap_hwmod_get_mpu_rt_va - return the module's base address (for th=
-e MPU)
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Returns the virtual address corresponding to the beginning of the
-+ * module's register target, in the address range that is intended to
-+ * be used by the MPU.  Returns the virtual address upon success or NU=
-LL
-+ * upon error.
+ 
++/*
++ * XXX This function is a temporary compatibility wrapper - only
++ * needed until the I2C driver can be converted to call
++ * omap_pm_set_max_dev_wakeup_lat() and handle a return code.
 + */
-+void __iomem *omap_hwmod_get_mpu_rt_va(struct omap_hwmod *oh)
++static void omap_pm_set_max_mpu_wakeup_lat_compat(struct device *dev, long t)
 +{
-+	if (!oh)
-+		return NULL;
-+
-+	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
-+		return NULL;
-+
-+	if (oh->_state =3D=3D _HWMOD_STATE_UNKNOWN)
-+		return NULL;
-+
-+	return oh->_mpu_rt_va;
++	omap_pm_set_max_mpu_wakeup_lat(dev, t);
 +}
 +
-+/**
-  * omap_hwmod_add_initiator_dep - add sleepdep from @init_oh to @oh
-  * @oh: struct omap_hwmod *
-  * @init_oh: struct omap_hwmod * (initiator)
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/p=
-lat-omap/include/plat/omap_device.h
-index 3694b62..25cd9ac 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -101,6 +101,8 @@ struct omap_device *omap_device_build_ss(const char=
- *pdev_name, int pdev_id,
- int omap_device_register(struct omap_device *od);
- int omap_early_device_register(struct omap_device *od);
-=20
-+void __iomem *omap_device_get_rt_va(struct omap_device *od);
-+
- /* OMAP PM interface */
- int omap_device_align_pm_lat(struct platform_device *pdev,
- 			     u32 new_wakeup_lat_limit);
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/pl=
-at-omap/include/plat/omap_hwmod.h
-index aebfacb..a4e508d 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -1,7 +1,7 @@
+ static inline int omap2_i2c_add_bus(struct platform_device *pdev, int bus_id)
+ {
+ 	struct resource *res;
+@@ -168,7 +178,7 @@ static inline int omap2_i2c_add_bus(struct platform_device *pdev, int bus_id)
+ 		struct omap_i2c_bus_platform_data *pd;
+ 
+ 		pd = pdev->dev.platform_data;
+-		pd->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat;
++		pd->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
+ 	}
+ 
+ 	return platform_device_register(pdev);
+diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+index 3ee41d7..3d468ba 100644
+--- a/arch/arm/plat-omap/include/plat/omap-pm.h
++++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+@@ -1,8 +1,8 @@
  /*
-  * omap_hwmod macros, structures
+  * omap-pm.h - OMAP power management interface
   *
-- * Copyright (C) 2009 Nokia Corporation
-+ * Copyright (C) 2009-2010 Nokia Corporation
+- * Copyright (C) 2008-2009 Texas Instruments, Inc.
+- * Copyright (C) 2008-2009 Nokia Corporation
++ * Copyright (C) 2008-2010 Texas Instruments, Inc.
++ * Copyright (C) 2008-2010 Nokia Corporation
   * Paul Walmsley
   *
-  * Created in collaboration with (alphabetical order): Beno=C3=AEt Cou=
-sson,
-@@ -419,7 +419,7 @@ struct omap_hwmod_class {
-  * @slaves: ptr to array of OCP ifs that this hwmod can respond on
-  * @dev_attr: arbitrary device attributes that can be passed to the dr=
-iver
-  * @_sysc_cache: internal-use hwmod flags
-- * @_rt_va: cached register target start address (internal use)
-+ * @_mpu_rt_va: cached register target start address (internal use)
-  * @_mpu_port_index: cached MPU register target slave ID (internal use=
-)
-  * @msuspendmux_reg_id: CONTROL_MSUSPENDMUX register ID (1-6)
-  * @msuspendmux_shift: CONTROL_MSUSPENDMUX register bit shift
-@@ -460,7 +460,7 @@ struct omap_hwmod {
- 	struct omap_hwmod_ocp_if	**slaves;  /* connect to *_TA */
- 	void				*dev_attr;
- 	u32				_sysc_cache;
--	void __iomem			*_rt_va;
-+	void __iomem			*_mpu_rt_va;
- 	struct list_head		node;
- 	u16				flags;
- 	u8				_mpu_port_index;
-@@ -507,6 +507,7 @@ int omap_hwmod_count_resources(struct omap_hwmod *o=
-h);
- int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *=
-res);
-=20
- struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh);
-+void __iomem *omap_hwmod_get_mpu_rt_va(struct omap_hwmod *oh);
-=20
- int omap_hwmod_add_initiator_dep(struct omap_hwmod *oh,
- 				 struct omap_hwmod *init_oh);
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap=
-_device.c
-index f9dec0d..dee4629 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -655,6 +655,25 @@ struct powerdomain *omap_device_get_pwrdm(struct o=
-map_device *od)
- 	return omap_hwmod_get_pwrdm(od->hwmods[0]);
- }
-=20
-+/**
-+ * omap_device_get_mpu_rt_va - return the MPU's virtual addr for the h=
-wmod base
-+ * @od: struct omap_device *
+  * Interface developed by (in alphabetical order): Karthik Dasu, Jouni
+@@ -89,7 +89,7 @@ void omap_pm_if_exit(void);
+  * @t: maximum MPU wakeup latency in microseconds
+  *
+  * Request that the maximum interrupt latency for the MPU to be no
+- * greater than 't' microseconds. "Interrupt latency" in this case is
++ * greater than @t microseconds. "Interrupt latency" in this case is
+  * defined as the elapsed time from the occurrence of a hardware or
+  * timer interrupt to the time when the device driver's interrupt
+  * service routine has been entered by the MPU.
+@@ -105,15 +105,19 @@ void omap_pm_if_exit(void);
+  * elapsed from when a device driver enables a hardware device with
+  * clk_enable(), to when the device is ready for register access or
+  * other use.  To control this device wakeup latency, use
+- * set_max_dev_wakeup_lat()
++ * omap_pm_set_max_dev_wakeup_lat()
+  *
+- * Multiple calls to set_max_mpu_wakeup_lat() will replace the
++ * Multiple calls to omap_pm_set_max_mpu_wakeup_lat() will replace the
+  * previous t value.  To remove the latency target for the MPU, call
+  * with t = -1.
+  *
+- * No return value.
++ * XXX This constraint will be deprecated soon in favor of the more
++ * general omap_pm_set_max_dev_wakeup_lat()
 + *
-+ * Return the MPU's virtual address for the base of the hwmod, from
-+ * the ioremap() that the hwmod code does.  Only valid if there is one
-+ * hwmod associated with this device.  Returns NULL if there are zero
-+ * or more than one hwmods associated with this omap_device;
-+ * otherwise, passes along the return value from
-+ * omap_hwmod_get_mpu_rt_va().
-+ */
-+void __iomem *omap_device_get_rt_va(struct omap_device *od)
-+{
-+	if (od->hwmods_cnt !=3D 1)
-+		return NULL;
-+
-+	return omap_hwmod_get_mpu_rt_va(od->hwmods[0]);
-+}
-+
++ * Returns -EINVAL for an invalid argument, -ERANGE if the constraint
++ * is not satisfiable, or 0 upon success.
+  */
+-void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t);
++int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t);
+ 
+ 
+ /**
+@@ -123,8 +127,8 @@ void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t);
+  * @r: minimum throughput (in KiB/s)
+  *
+  * Request that the minimum data throughput on the OCP interconnect
+- * attached to device 'dev' interconnect agent 'tbus_id' be no less
+- * than 'r' KiB/s.
++ * attached to device @dev interconnect agent @tbus_id be no less
++ * than @r KiB/s.
+  *
+  * It is expected that the OMAP PM or bus code will use this
+  * information to set the interconnect clock to run at the lowest
+@@ -138,40 +142,44 @@ void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t);
+  * code will also need to add an minimum L3 interconnect speed
+  * constraint,
+  *
+- * Multiple calls to set_min_bus_tput() will replace the previous rate
+- * value for this device.  To remove the interconnect throughput
+- * restriction for this device, call with r = 0.
++ * Multiple calls to omap_pm_set_min_bus_tput() will replace the
++ * previous rate value for this device.  To remove the interconnect
++ * throughput restriction for this device, call with r = 0.
+  *
+- * No return value.
++ * Returns -EINVAL for an invalid argument, -ERANGE if the constraint
++ * is not satisfiable, or 0 upon success.
+  */
+-void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r);
++int omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r);
+ 
+ 
+ /**
+  * omap_pm_set_max_dev_wakeup_lat - set the maximum device enable latency
+- * @dev: struct device *
++ * @req_dev: struct device * requesting the constraint, or NULL if none
++ * @dev: struct device * to set the constraint one
+  * @t: maximum device wakeup latency in microseconds
+  *
+- * Request that the maximum amount of time necessary for a device to
+- * become accessible after its clocks are enabled should be no greater
+- * than 't' microseconds.  Specifically, this represents the time from
+- * when a device driver enables device clocks with clk_enable(), to
+- * when the register reads and writes on the device will succeed.
+- * This function should be called before clk_disable() is called,
+- * since the power state transition decision may be made during
+- * clk_disable().
++ * Request that the maximum amount of time necessary for a device @dev
++ * to become accessible after its clocks are enabled should be no
++ * greater than @t microseconds.  Specifically, this represents the
++ * time from when a device driver enables device clocks with
++ * clk_enable(), to when the register reads and writes on the device
++ * will succeed.  This function should be called before clk_disable()
++ * is called, since the power state transition decision may be made
++ * during clk_disable().
+  *
+  * It is intended that underlying PM code will use this information to
+  * determine what power state to put the powerdomain enclosing this
+  * device into.
+  *
+- * Multiple calls to set_max_dev_wakeup_lat() will replace the
+- * previous wakeup latency values for this device.  To remove the wakeup
+- * latency restriction for this device, call with t = -1.
++ * Multiple calls to omap_pm_set_max_dev_wakeup_lat() will replace the
++ * previous wakeup latency values for this device.  To remove the
++ * wakeup latency restriction for this device, call with t = -1.
+  *
+- * No return value.
++ * Returns -EINVAL for an invalid argument, -ERANGE if the constraint
++ * is not satisfiable, or 0 upon success.
+  */
+-void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t);
++int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
++				   long t);
+ 
+ 
+ /**
+@@ -198,9 +206,10 @@ void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t);
+  * value for this device.  To remove the maximum DMA latency for this
+  * device, call with t = -1.
+  *
+- * No return value.
++ * Returns -EINVAL for an invalid argument, -ERANGE if the constraint
++ * is not satisfiable, or 0 upon success.
+  */
+-void omap_pm_set_max_sdma_lat(struct device *dev, long t);
++int omap_pm_set_max_sdma_lat(struct device *dev, long t);
+ 
+ 
  /*
-  * Public functions intended for use in omap_device_pm_latency
-  * .activate_func and .deactivate_func function pointers
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+index 186bca8..b0414f9 100644
+--- a/arch/arm/plat-omap/omap-pm-noop.c
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -34,11 +34,11 @@ struct omap_opp *l3_opps;
+  * Device-driver-originated constraints (via board-*.c files)
+  */
+ 
+-void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
++int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
+ {
+ 	if (!dev || t < -1) {
+-		WARN_ON(1);
+-		return;
++		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
++		return -EINVAL;
+ 	};
+ 
+ 	if (t == -1)
+@@ -58,14 +58,16 @@ void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
+ 	 *
+ 	 * TI CDP code can call constraint_set here.
+ 	 */
++
++	return 0;
+ }
+ 
+-void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
++int omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
+ {
+ 	if (!dev || (agent_id != OCP_INITIATOR_AGENT &&
+ 	    agent_id != OCP_TARGET_AGENT)) {
+-		WARN_ON(1);
+-		return;
++		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
++		return -EINVAL;
+ 	};
+ 
+ 	if (r == 0)
+@@ -83,13 +85,16 @@ void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
+ 	 *
+ 	 * TI CDP code can call constraint_set here on the VDD2 OPP.
+ 	 */
++
++	return 0;
+ }
+ 
+-void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
++int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
++				   long t)
+ {
+-	if (!dev || t < -1) {
+-		WARN_ON(1);
+-		return;
++	if (!req_dev || !dev || t < -1) {
++		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
++		return -EINVAL;
+ 	};
+ 
+ 	if (t == -1)
+@@ -111,13 +116,15 @@ void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
+ 	 *
+ 	 * TI CDP code can call constraint_set here.
+ 	 */
++
++	return 0;
+ }
+ 
+-void omap_pm_set_max_sdma_lat(struct device *dev, long t)
++int omap_pm_set_max_sdma_lat(struct device *dev, long t)
+ {
+ 	if (!dev || t < -1) {
+-		WARN_ON(1);
+-		return;
++		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
++		return -EINVAL;
+ 	};
+ 
+ 	if (t == -1)
+@@ -139,6 +146,7 @@ void omap_pm_set_max_sdma_lat(struct device *dev, long t)
+ 	 * TI CDP code can call constraint_set here.
+ 	 */
+ 
++	return 0;
+ }
+ 
+ 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
