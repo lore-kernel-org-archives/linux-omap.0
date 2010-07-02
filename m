@@ -1,223 +1,199 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 10/13] OMAP: create omap_devices for MPU, DSP, L3
-Date: Fri, 2 Jul 2010 05:45:07 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1007020541081.13691@utopia.booyaka.com>
-References: <1277423084-25528-1-git-send-email-khilman@deeprootsystems.com> <1277423084-25528-11-git-send-email-khilman@deeprootsystems.com> <87y6dxrblk.fsf@deeprootsystems.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [RFC 1/7] OMAP: Introduce a user list for each voltage domain
+ instance in the voltage driver.
+Date: Fri, 2 Jul 2010 17:14:23 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305B05DA8@dbde02.ent.ti.com>
+References: <1278065909-32148-1-git-send-email-thara@ti.com>
+ <1278065909-32148-2-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40284 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755421Ab0GBLpI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 07:45:08 -0400
-In-Reply-To: <87y6dxrblk.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50142 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756973Ab0GBLpy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 07:45:54 -0400
+In-Reply-To: <1278065909-32148-2-git-send-email-thara@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-Hi,
+Thara,
 
-On Tue, 29 Jun 2010, Kevin Hilman wrote:
-
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
+> -----Original Message-----
+> From: Gopinath, Thara
+> Sent: Friday, July 02, 2010 3:48 PM
+> To: linux-omap@vger.kernel.org
+> Cc: khilman@deeprootsystems.com; paul@pwsan.com; Cousson, Benoit; Sripathy,
+> Vishwanath; Sawant, Anand; Basak, Partha; Gopinath, Thara
+> Subject: [RFC 1/7] OMAP: Introduce a user list for each voltage domain instance in
+> the voltage driver.
 > 
-> > Create simple omap_devices for the main processors and busses.
-> >
-> > This is required to support the forth-coming device-based OPP
-> > approach, where OPPs are managed and tracked at the device level.
-> >
-> > So that these primary devices are available for early PM initialization,
-> > they are created as early platform_devices.
+> This patch introduces a user list of devices associated with each
+> voltage domain instance. The user list is implemented using plist
+> structure with priority node populated with the voltage values.
+> This patch also adds an API which will take in a device and
+> requested voltage as parameters, adds the info to the user list
+> and returns back the maximum voltage requested by all the user
+> devices. This can be used anytime to get the voltage that the
+> voltage domain instance can be transitioned into.
 > 
-> I've reworked this patch so that it is no longer using early devices,
-> updated version below.
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/voltage.c             |   83
+> +++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/voltage.h |    2 +
+>  2 files changed, 85 insertions(+), 0 deletions(-)
 > 
-> This requires delaying some other PM init as well (OMAP PM layer, OPP
-> layer etc.) so a common_pm_init() function was created and initialized
-> as a device_initcall().
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index 30f1770..a2f30a4 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -24,6 +24,9 @@
+>  #include <linux/clk.h>
+>  #include <linux/err.h>
+>  #include <linux/debugfs.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/plist.h>
+> +#include <linux/slab.h>
 > 
-> My pm-hwmods branch has been updated with this version, and the PM
-> branch now has corresponding changes to the SR/voltage layers to
-> initialize them as device_initcalls as well.
+>  #include <plat/omap-pm.h>
+>  #include <plat/omap34xx.h>
+> @@ -93,6 +96,20 @@ struct vp_reg_val {
+>  };
+> 
+>  /**
+> + * omap_vdd_user_list	- The per vdd user list
+> + *
+> + * @dev		: The device asking for the vdd to be set at a particular
+> + *		  voltage
+> + * @node	: The list head entry
+> + * @volt	: The voltage requested by the device <dev>
+> + */
+> +struct omap_vdd_user_list {
+> +	struct device *dev;
+> +	struct plist_node node;
+> +	u32 volt;
+> +};
+> +
+> +/**
+>   * omap_vdd_info - Per Voltage Domain info
+>   *
+>   * @volt_data		: voltage table having the distinct voltages supported
+> @@ -103,6 +120,9 @@ struct vp_reg_val {
+>   *			  vp registers
+>   * @volt_clk		: the clock associated with the vdd.
+>   * @opp_dev		: the 'struct device' associated with this vdd.
+> + * @user_lock		: the lock to be used by the plist user_list
+> + * @user_list		: the list head maintaining the various users
+> + *			  of this vdd with the voltage requested by each user.
+>   * @volt_data_count	: Number of distinct voltages supported by this vdd.
+>   * @nominal_volt	: Nominal voltaged for this vdd.
+>   * cmdval_reg		: Voltage controller cmdval register.
+> @@ -115,6 +135,8 @@ struct omap_vdd_info{
+>  	struct clk *volt_clk;
+>  	struct device *opp_dev;
+>  	struct omap_volt_domain volt_domain;
+> +	spinlock_t user_lock;
+> +	struct plist_head user_list;
+>  	int volt_data_count;
+>  	unsigned long nominal_volt;
+>  	u8 cmdval_reg;
+> @@ -361,6 +383,10 @@ static void __init omap3_vdd_data_configure(struct
+> omap_vdd_info *vdd)
+>  	struct clk *sys_ck;
+>  	u32 sys_clk_speed, timeout_val, waittime;
+> 
+> +	/* Init the plist */
+> +	spin_lock_init(&vdd->user_lock);
+> +	plist_head_init(&vdd->user_list, &vdd->user_lock);
+> +
+>  	if (!strcmp(vdd->volt_domain.name, "mpu")) {
+>  		if (cpu_is_omap3630()) {
+>  			vdd->vp_reg.vlimitto_vddmin =
+> @@ -881,6 +907,63 @@ unsigned long omap_voltageprocessor_get_curr_volt(
+>  }
+> 
+>  /**
+> + * omap_voltage_get_final : API to keep track of various requests to
+[minor] This name does not match the actual API
+> + *			    scale the VDD and returns the best possible
+> + *			    voltage the VDD can be put to.
+> + * @volt_domain: pointer to the voltage domain.
+> + * @dev : the device pointer.
+> + * @volt : the voltage which is requested by the device.
+> + *
+> + * This API is to be called before the actual voltage scaling is
+> + * done to determine what is the best possible voltage the VDD can
+> + * be put to. This API adds the device <dev> in the user list of the
+> + * vdd <volt_domain> with <volt> as the requested voltage. The user list
+> + * is a plist with the priority element absolute voltage values.
+> + * The API then finds the maximum of all the requested voltages for
+> + * the VDD and returns it back through <volt> pointer itself.
+> + * Returns error value in case of any errors.
+> + */
+> +int omap_volt_get_final(struct omap_volt_domain *volt_domain,
+> +		struct device *dev, unsigned long *volt)
+> +{
+> +	struct omap_vdd_info *vdd;
+> +	struct omap_vdd_user_list *user;
+> +	struct plist_node *node;
+> +	int found = 0;
+> +
+> +	if (!volt_domain || IS_ERR(volt_domain)) {
+> +		pr_warning("%s: VDD specified does not exist!\n", __func__);
+> +		return -EINVAL;
+> +	}
+> +
+> +	vdd = container_of(volt_domain, struct omap_vdd_info, volt_domain);
+> +
+> +	plist_for_each_entry(user, &vdd->user_list, node) {
+> +		if (user->dev == dev) {
+> +			found = 1;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (!found) {
+> +		user = kzalloc(sizeof(struct omap_vdd_user_list), GFP_KERNEL);
+> +		if (!user) {
+> +			pr_err("%s: Unable to creat a new user for vdd_%s\n",
+> +				__func__, volt_domain->name);
+> +			return -ENOMEM;
+> +		}
+> +		user->dev = dev;
+> +		plist_node_init(&user->node, *volt);
+> +		plist_add(&user->node, &vdd->user_list);
+> +	}
+> +
+> +	user->node.prio = *volt;
+> +	node = plist_first(&vdd->user_list);
+> +	*volt = node->prio;
+> +	return 0;
+Shouldn't this function be protected using a mutex_lock/semaphore? It's possible that just after you are done with plist search, some other thread might get scheduled and try to add the same user.
+> +}
+> +
+> +/**
+>   * omap_voltageprocessor_enable : API to enable a particular VP
+>   * @volt_domain: pointer to the VDD whose VP is to be enabled.
+>   *
+> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-
+> omap/include/plat/voltage.h
+> index b7ac318..bc1e4d3 100644
+> --- a/arch/arm/plat-omap/include/plat/voltage.h
+> +++ b/arch/arm/plat-omap/include/plat/voltage.h
+> @@ -128,6 +128,8 @@ int omap_get_voltage_table(struct omap_volt_domain
+> *volt_domain,
+>  struct omap_volt_data *omap_get_volt_data(
+>  		struct omap_volt_domain *volt_domain, unsigned long volt);
+>  unsigned long get_curr_voltage(struct omap_volt_domain *volt_domain);
+> +int omap_volt_get_final(struct omap_volt_domain *volt_domain,
+> +		struct device *dev, unsigned long *volt);
+>  #ifdef CONFIG_PM
+>  void omap_voltage_init_vc(struct omap_volt_vc_data *setup_vc);
+>  #else
+> --
+> 1.7.0.rc1.33.g07cf0f
 
-Thanks for these changes, this seems better than the early_platform_device 
-approach.  I've made a few more changes:
-
-- the newly-created functions have been moved to a new file, 
-  mach-omap2/pm.c.  I'm not convinced that this file is the right place
-  for these functions either, but it didn't make sense to me to create 
-  these functions in mach-omap2/io.c;
-
-- the functions have been renamed to start with "omap2" to indicate that
-  they are OMAP2+-only functions;
-
-- sparse warnings have been resolved.
-
-Revised patch below.
-
-
-- Paul
-
-OMAP: PM: create omap_devices for MPU, DSP, L3
-
-From: Kevin Hilman <khilman@deeprootsystems.com>
-
-Create simple omap_devices for the main processors and busses.
-
-This is required to support the forth-coming device-based OPP
-approach, where OPPs are managed and tracked at the device level.
-
-Also, move these common PM init functions into a common_pm_init call
-that is called as a device_initcall().  The PM init is done at this level
-to ensure that the driver core is initialized before initialized.
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-[paul@pwsan.com: sparse warnings cleaned up; newly-created functions moved
- from mach-omap2/io.c to mach-omap2/pm.c; newly-created functions renamed
- to start with "omap2" rather than "omap"]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/Makefile             |    2 -
- arch/arm/mach-omap2/io.c                 |    2 -
- arch/arm/mach-omap2/pm.c                 |   84 ++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/common.h |    4 +
- 4 files changed, 90 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pm.c
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 2fa3418..213f1df 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -3,7 +3,7 @@
- #
- 
- # Common support
--obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
-+obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o
- 
- omap-2-3-common				= irq.o sdrc.o
- hwmod-common				= omap_hwmod.o \
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 05c9cdb..2b983ac 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -44,6 +44,7 @@
- 
- #include <plat/clockdomain.h>
- #include "clockdomains.h"
-+
- #include <plat/omap_hwmod.h>
- 
- /*
-@@ -346,7 +347,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
- 		omap_hwmod_late_init(skip_setup_idle);
- 
--	omap_pm_if_init();
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
- 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
- 		_omap2_init_reprogram_sdrc();
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-new file mode 100644
-index 0000000..68f9f2e
---- /dev/null
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -0,0 +1,84 @@
-+/*
-+ * pm.c - Common OMAP2+ power management-related code
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Copyright (C) 2010 Nokia Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/err.h>
-+
-+#include <plat/omap-pm.h>
-+#include <plat/omap_device.h>
-+#include <plat/common.h>
-+
-+static struct omap_device_pm_latency *pm_lats;
-+
-+static struct device *mpu_dev;
-+static struct device *dsp_dev;
-+static struct device *l3_dev;
-+
-+struct device *omap2_get_mpuss_device(void)
-+{
-+	WARN_ON_ONCE(!mpu_dev);
-+	return mpu_dev;
-+}
-+
-+struct device *omap2_get_dsp_device(void)
-+{
-+	WARN_ON_ONCE(!dsp_dev);
-+	return dsp_dev;
-+}
-+
-+struct device *omap2_get_l3_device(void)
-+{
-+	WARN_ON_ONCE(!l3_dev);
-+	return l3_dev;
-+}
-+
-+/* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
-+static int _init_omap_device(char *name, struct device **new_dev)
-+{
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+
-+	oh = omap_hwmod_lookup(name);
-+	if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
-+		 __func__, name))
-+		return -ENODEV;
-+
-+	od = omap_device_build(oh->name, 0, oh, NULL, 0, pm_lats, 0, false);
-+	if (WARN(IS_ERR(od), "%s: could not build omap_device for %s\n",
-+		 __func__, name))
-+		return -ENODEV;
-+
-+	*new_dev = &od->pdev.dev;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Build omap_devices for processors and bus.
-+ */
-+static void omap2_init_processor_devices(void)
-+{
-+	_init_omap_device("mpu", &mpu_dev);
-+	_init_omap_device("iva", &dsp_dev);
-+	_init_omap_device("l3_main", &l3_dev);
-+}
-+
-+static int __init omap2_common_pm_init(void)
-+{
-+	omap2_init_processor_devices();
-+	omap_pm_if_init();
-+
-+	return 0;
-+}
-+device_initcall(omap2_common_pm_init);
-+
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 5e4afbe..5cf9509 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -89,4 +89,8 @@ void omap2_set_globals_uart(struct omap_globals *);
- 	}							\
- })
- 
-+extern struct device *omap2_get_mpuss_device(void);
-+extern struct device *omap2_get_dsp_device(void);
-+extern struct device *omap2_get_l3_device(void);
-+
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
