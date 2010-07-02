@@ -1,181 +1,207 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 12/20] OMAP: PM: create omap_devices for MPU, DSP, L3
-Date: Fri, 02 Jul 2010 09:29:32 -0600
-Message-ID: <20100702152930.6221.32877.stgit@localhost.localdomain>
+Subject: [PATCH 09/20] OMAP: hwmod: allow omap_hwmod_late_init() caller to
+	skip module idle in _setup()
+Date: Fri, 02 Jul 2010 09:29:25 -0600
+Message-ID: <20100702152923.6221.8507.stgit@localhost.localdomain>
 References: <20100702152703.6221.33529.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45293 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758779Ab0GBPbF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jul 2010 11:31:05 -0400
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20100702152703.6221.33529.stgit@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
+List-Id: linux-omap@vger.kernel.org
 
-From: Kevin Hilman <khilman@deeprootsystems.com>
+On kernels that don't use the omap_device_enable() calls to enable
+devices, leave all on-chip devices enabled in hwmod _setup().
+Otherwise, accesses to those devices are likely to fail, crashing the
+system.  It's expected that kernels built without CONFIG_PM_RUNTIME
+will be the primary use-case for this.  This functionality is
+controlled by adding an extra parameter to omap_hwmod_late_init().
 
-Create simple omap_devices for the main processors and busses.
+This patch is based on the patch "OMAP: hwmod: don't auto-disable
+hwmod when !CONFIG_PM_RUNTIME" by Kevin Hilman
+<khilman@deeprootsystems.com>.
 
-This is required to support the forth-coming device-based OPP
-approach, where OPPs are managed and tracked at the device level.
-
-Also, move these common PM init functions into a common_pm_init call
-that is called as a device_initcall().  The PM init is done at this level
-to ensure that the driver core is initialized before initialized.
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-[paul@pwsan.com: sparse warnings cleaned up; newly-created functions moved
- from mach-omap2/io.c to mach-omap2/pm.c; newly-created functions renamed
- to start with "omap2" rather than "omap"]
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/Makefile             |    2 -
- arch/arm/mach-omap2/io.c                 |    2 -
- arch/arm/mach-omap2/pm.c                 |   84 ++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/common.h |    4 +
- 4 files changed, 90 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pm.c
+ arch/arm/mach-omap2/io.c                     |    9 ++++++
+ arch/arm/mach-omap2/omap_hwmod.c             |   37 ++++++++++++++++++--------
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    5 ++--
+ 3 files changed, 36 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 2fa3418..213f1df 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -3,7 +3,7 @@
- #
- 
- # Common support
--obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
-+obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o
- 
- omap-2-3-common				= irq.o sdrc.o
- hwmod-common				= omap_hwmod.o \
 diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 05c9cdb..2b983ac 100644
+index 4e1f53d..05c9cdb 100644
 --- a/arch/arm/mach-omap2/io.c
 +++ b/arch/arm/mach-omap2/io.c
-@@ -44,6 +44,7 @@
- 
- #include <plat/clockdomain.h>
- #include "clockdomains.h"
+@@ -313,6 +313,8 @@ static int __init _omap2_init_reprogram_sdrc(void)
+ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 				 struct omap_sdrc_params *sdrc_cs1)
+ {
++	u8 skip_setup_idle = 0;
 +
- #include <plat/omap_hwmod.h>
+ 	pwrdm_init(powerdomains_omap);
+ 	clkdm_init(clockdomains_omap, clkdm_autodeps);
+ 	if (cpu_is_omap242x())
+@@ -337,8 +339,13 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 		pr_err("Could not init clock framework - unknown CPU\n");
  
- /*
-@@ -346,7 +347,6 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ 	omap_serial_early_init();
++
++#ifndef CONFIG_PM_RUNTIME
++	skip_setup_idle = 1;
++#endif
  	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
- 		omap_hwmod_late_init(skip_setup_idle);
- 
--	omap_pm_if_init();
+-		omap_hwmod_late_init();
++		omap_hwmod_late_init(skip_setup_idle);
++
+ 	omap_pm_if_init();
  	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
  		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
- 		_omap2_init_reprogram_sdrc();
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-new file mode 100644
-index 0000000..68f9f2e
---- /dev/null
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -0,0 +1,84 @@
-+/*
-+ * pm.c - Common OMAP2+ power management-related code
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Copyright (C) 2010 Nokia Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/err.h>
-+
-+#include <plat/omap-pm.h>
-+#include <plat/omap_device.h>
-+#include <plat/common.h>
-+
-+static struct omap_device_pm_latency *pm_lats;
-+
-+static struct device *mpu_dev;
-+static struct device *dsp_dev;
-+static struct device *l3_dev;
-+
-+struct device *omap2_get_mpuss_device(void)
-+{
-+	WARN_ON_ONCE(!mpu_dev);
-+	return mpu_dev;
-+}
-+
-+struct device *omap2_get_dsp_device(void)
-+{
-+	WARN_ON_ONCE(!dsp_dev);
-+	return dsp_dev;
-+}
-+
-+struct device *omap2_get_l3_device(void)
-+{
-+	WARN_ON_ONCE(!l3_dev);
-+	return l3_dev;
-+}
-+
-+/* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
-+static int _init_omap_device(char *name, struct device **new_dev)
-+{
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+
-+	oh = omap_hwmod_lookup(name);
-+	if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
-+		 __func__, name))
-+		return -ENODEV;
-+
-+	od = omap_device_build(oh->name, 0, oh, NULL, 0, pm_lats, 0, false);
-+	if (WARN(IS_ERR(od), "%s: could not build omap_device for %s\n",
-+		 __func__, name))
-+		return -ENODEV;
-+
-+	*new_dev = &od->pdev.dev;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Build omap_devices for processors and bus.
-+ */
-+static void omap2_init_processor_devices(void)
-+{
-+	_init_omap_device("mpu", &mpu_dev);
-+	_init_omap_device("iva", &dsp_dev);
-+	_init_omap_device("l3_main", &l3_dev);
-+}
-+
-+static int __init omap2_common_pm_init(void)
-+{
-+	omap2_init_processor_devices();
-+	omap_pm_if_init();
-+
-+	return 0;
-+}
-+device_initcall(omap2_common_pm_init);
-+
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 5e4afbe..5cf9509 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -89,4 +89,8 @@ void omap2_set_globals_uart(struct omap_globals *);
- 	}							\
- })
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 47943ec..d9e96fa 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -761,6 +761,7 @@ static struct omap_hwmod *_lookup(const char *name)
+ /**
+  * _init_clocks - clk_get() all clocks associated with this hwmod
+  * @oh: struct omap_hwmod *
++ * @data: not used; pass NULL
+  *
+  * Called by omap_hwmod_late_init() (after omap2_clk_init()).
+  * Resolves all clock names embedded in the hwmod.  Must be called
+@@ -768,7 +769,7 @@ static struct omap_hwmod *_lookup(const char *name)
+  * has not yet been registered or if the clocks have already been
+  * initialized, 0 on success, or a non-zero error on failure.
+  */
+-static int _init_clocks(struct omap_hwmod *oh)
++static int _init_clocks(struct omap_hwmod *oh, void *data)
+ {
+ 	int ret = 0;
  
-+extern struct device *omap2_get_mpuss_device(void);
-+extern struct device *omap2_get_dsp_device(void);
-+extern struct device *omap2_get_l3_device(void);
+@@ -993,19 +994,25 @@ static int _shutdown(struct omap_hwmod *oh)
+ /**
+  * _setup - do initial configuration of omap_hwmod
+  * @oh: struct omap_hwmod *
++ * @skip_setup_idle_p: do not idle hwmods at the end of the fn if 1
+  *
+  * Writes the CLOCKACTIVITY bits @clockact to the hwmod @oh
+- * OCP_SYSCONFIG register.  Must be called with omap_hwmod_mutex
+- * held.  Returns -EINVAL if the hwmod is in the wrong state or returns
+- * 0.
++ * OCP_SYSCONFIG register.  Must be called with omap_hwmod_mutex held.
++ * @skip_setup_idle is intended to be used on a system that will not
++ * call omap_hwmod_enable() to enable devices (e.g., a system without
++ * PM runtime).  Returns -EINVAL if the hwmod is in the wrong state or
++ * returns 0.
+  */
+-static int _setup(struct omap_hwmod *oh)
++static int _setup(struct omap_hwmod *oh, void *data)
+ {
+ 	int i, r;
++	u8 skip_setup_idle;
+ 
+-	if (!oh)
++	if (!oh || !data)
+ 		return -EINVAL;
+ 
++	skip_setup_idle = *(u8 *)data;
 +
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
-
-
+ 	/* Set iclk autoidle mode */
+ 	if (oh->slaves_cnt > 0) {
+ 		for (i = 0; i < oh->slaves_cnt; i++) {
+@@ -1047,7 +1054,7 @@ static int _setup(struct omap_hwmod *oh)
+ 		}
+ 	}
+ 
+-	if (!(oh->flags & HWMOD_INIT_NO_IDLE))
++	if (!(oh->flags & HWMOD_INIT_NO_IDLE) && !skip_setup_idle)
+ 		_omap_hwmod_idle(oh);
+ 
+ 	return 0;
+@@ -1161,6 +1168,7 @@ struct omap_hwmod *omap_hwmod_lookup(const char *name)
+ /**
+  * omap_hwmod_for_each - call function for each registered omap_hwmod
+  * @fn: pointer to a callback function
++ * @data: void * data to pass to callback function
+  *
+  * Call @fn for each registered omap_hwmod, passing @data to each
+  * function.  @fn must return 0 for success or any other value for
+@@ -1169,7 +1177,8 @@ struct omap_hwmod *omap_hwmod_lookup(const char *name)
+  * caller of omap_hwmod_for_each().  @fn is called with
+  * omap_hwmod_for_each() held.
+  */
+-int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh))
++int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
++			void *data)
+ {
+ 	struct omap_hwmod *temp_oh;
+ 	int ret;
+@@ -1179,7 +1188,7 @@ int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh))
+ 
+ 	mutex_lock(&omap_hwmod_mutex);
+ 	list_for_each_entry(temp_oh, &omap_hwmod_list, node) {
+-		ret = (*fn)(temp_oh);
++		ret = (*fn)(temp_oh, data);
+ 		if (ret)
+ 			break;
+ 	}
+@@ -1226,24 +1235,28 @@ int omap_hwmod_init(struct omap_hwmod **ohs)
+ 
+ /**
+  * omap_hwmod_late_init - do some post-clock framework initialization
++ * @skip_setup_idle: if 1, do not idle hwmods in _setup()
+  *
+  * Must be called after omap2_clk_init().  Resolves the struct clk names
+  * to struct clk pointers for each registered omap_hwmod.  Also calls
+  * _setup() on each hwmod.  Returns 0.
+  */
+-int omap_hwmod_late_init(void)
++int omap_hwmod_late_init(u8 skip_setup_idle)
+ {
+ 	int r;
+ 
+ 	/* XXX check return value */
+-	r = omap_hwmod_for_each(_init_clocks);
++	r = omap_hwmod_for_each(_init_clocks, NULL);
+ 	WARN(r, "omap_hwmod: omap_hwmod_late_init(): _init_clocks failed\n");
+ 
+ 	mpu_oh = omap_hwmod_lookup(MPU_INITIATOR_NAME);
+ 	WARN(!mpu_oh, "omap_hwmod: could not find MPU initiator hwmod %s\n",
+ 	     MPU_INITIATOR_NAME);
+ 
+-	omap_hwmod_for_each(_setup);
++	if (skip_setup_idle)
++		pr_debug("omap_hwmod: will leave hwmods enabled during setup\n");
++
++	omap_hwmod_for_each(_setup, &skip_setup_idle);
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 253f6e5..aebfacb 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -482,8 +482,9 @@ int omap_hwmod_init(struct omap_hwmod **ohs);
+ int omap_hwmod_register(struct omap_hwmod *oh);
+ int omap_hwmod_unregister(struct omap_hwmod *oh);
+ struct omap_hwmod *omap_hwmod_lookup(const char *name);
+-int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh));
+-int omap_hwmod_late_init(void);
++int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
++			void *data);
++int omap_hwmod_late_init(u8 skip_setup_idle);
+ 
+ int omap_hwmod_enable(struct omap_hwmod *oh);
+ int _omap_hwmod_enable(struct omap_hwmod *oh);
