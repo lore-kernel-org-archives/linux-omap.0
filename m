@@ -1,581 +1,262 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RFC v.3] omap: hwspinlock: Added hwspinlock driver
-Date: Sat, 3 Jul 2010 12:24:29 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5ECEF1B@dbde02.ent.ti.com>
-References: <F39349C6FA641B4A831B7BF4EBF4D4E1474EA6A1@dlee03.ent.ti.com>
+Subject: RE: [PATCH 17/20] OMAP: hwmod/device: add omap_{device,
+ hwmod}_get_mpu_rt_va
+Date: Sat, 3 Jul 2010 14:51:06 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5ECEF35@dbde02.ent.ti.com>
+References: <20100702152703.6221.33529.stgit@localhost.localdomain>
+ <20100702152943.6221.96850.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39642 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59283 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751180Ab0GCGyg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Jul 2010 02:54:36 -0400
-In-Reply-To: <F39349C6FA641B4A831B7BF4EBF4D4E1474EA6A1@dlee03.ent.ti.com>
+	id S1751664Ab0GCJVS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Jul 2010 05:21:18 -0400
+In-Reply-To: <20100702152943.6221.96850.stgit@localhost.localdomain>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Que, Simon" <sque@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Que, Simon
-> Sent: Saturday, July 03, 2010 5:49 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Kanigeri, Hari; Ohad Ben-Cohen
-> Subject: [RFC v.3] omap: hwspinlock: Added hwspinlock driver
->
-[..]
->
-> Created driver for OMAP hardware spinlock.  This driver supports:
-> - Reserved spinlocks for internal use
-> - Dynamic allocation of unreserved locks
-> - Lock, unlock, and trylock functions, with or without disabling
-> irqs/preempt
-> - Registered as a platform device driver
->
-> The device initialization uses hwmod to configure the devices.  One device
-> will
-> be created for each hardware spinlock.  It will pass spinlock register
-> addresses to the driver.  The device initialization file is:
->                 arch/arm/mach-omap2/hwspinlocks.c
->
-> The driver takes in data passed in device initialization.  The function
-> hwspinlock_probe() initializes the array of spinlock structures, each
-> containing a spinlock register address provided by the device
-> initialization.
-> The device driver file is:
->                 arch/arm/plat-omap/hwspinlock.c
->
-> Here's an API summary:
-> int hwspinlock_lock(struct hwspinlock *);
->         Attempt to lock a hardware spinlock.  If it is busy, the function
-> will
->         keep trying until it succeeds.  This is a blocking function.
-> int hwspinlock_trylock(struct hwspinlock *);
->         Attempt to lock a hardware spinlock.  If it is busy, the function
-> will
->         return BUSY.  If it succeeds in locking, the function will return
->         ACQUIRED.  This is a non-blocking function
-> int hwspinlock_unlock(struct hwspinlock *);
->         Unlock a hardware spinlock.
->
-> struct hwspinlock *hwspinlock_request(void);
->         Provides for "dynamic allocation" of a hardware spinlock.  It
-> returns
->         the handle to the next available (unallocated) spinlock.  If no
-> more
->         locks are available, it returns NULL.
-> struct hwspinlock *hwspinlock_request_specific(unsigned int);
->         Provides for "static allocation" of a specific hardware spinlock.
-> This
->         allows the system to use a specific spinlock, identified by an ID.
-> If
->         the ID is invalid or if the desired lock is already allocated,
-> this
->         will return NULL.  Otherwise it returns a spinlock handle.
-> int hwspinlock_free(struct hwspinlock *);
->         Frees an allocated hardware spinlock (either reserved or
-> unreserved).
->
-> Signed-off-by: Simon Que <sque@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile                 |    2 +
->  arch/arm/mach-omap2/hwspinlocks.c            |   72 ++++++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    2 +-
->  arch/arm/plat-omap/Makefile                  |    3 +-
->  arch/arm/plat-omap/hwspinlock.c              |  298
-> ++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/hwspinlock.h |   29 +++
->  arch/arm/plat-omap/include/plat/omap44xx.h   |    2 +
->  7 files changed, 406 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/hwspinlocks.c
->  create mode 100644 arch/arm/plat-omap/hwspinlock.c
->  create mode 100644 arch/arm/plat-omap/include/plat/hwspinlock.h
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 6725b3a..5f5c87b 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -170,3 +170,5 @@ obj-y                                       += $(nand-
-> m) $(nand-y)
->
->  smc91x-$(CONFIG_SMC91X)                        := gpmc-smc91x.o
->  obj-y                                  += $(smc91x-m) $(smc91x-y)
-> +
-> +obj-$(CONFIG_ARCH_OMAP4)               += hwspinlocks.o
-> \ No newline at end of file
-> diff --git a/arch/arm/mach-omap2/hwspinlocks.c b/arch/arm/mach-
-> omap2/hwspinlocks.c
-> new file mode 100644
-> index 0000000..f0b212b
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/hwspinlocks.c
-> @@ -0,0 +1,72 @@
-> +/*
-> + * OMAP hardware spinlock device initialization
-> + *
-> + * Copyright (C) 2010 Texas Instruments. All rights reserved.
-> + *
-> + * Contact: Simon Que <sque@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/device.h>
-> +#include <linux/delay.h>
-> +#include <linux/io.h>
-> +#include <linux/slab.h>
-> +
-> +#include <plat/hwspinlock.h>
-> +
-No need of new  line here.
-> +#include <plat/omap_device.h>
-> +#include <plat/omap_hwmod.h>
-> +
-> +/* Spinlock register offsets */
-> +#define REVISION_OFFSET                        0x0000
-> +#define SYSCONFIG_OFFSET               0x0010
-> +#define SYSSTATUS_OFFSET               0x0014
-> +#define LOCK_BASE_OFFSET               0x0800
-> +#define LOCK_OFFSET(i)                 (LOCK_BASE_OFFSET + 0x4 * (i))
-> +
-> +/* Initialization function */
-> +int __init hwspinlocks_init(void)
-Since it's only init, can this go to "arch/arm/mach-omap2/omap4-commin.c" ?
-> +{
-> +       int retval = 0;
-> +
-> +       struct hwspinlock_plat_info *pdata;
-> +       struct omap_hwmod *oh;
-> +       char *oh_name, *pdev_name;
-> +
-> +       oh_name = "spinlock";
-> +       oh = omap_hwmod_lookup(oh_name);
-> +       if (WARN_ON(oh == NULL))
-> +               return -EINVAL;
-> +
-> +       pdev_name = "hwspinlock";
-> +
-> +       /* Pass data to device initialization */
-> +       pdata = kzalloc(sizeof(struct hwspinlock_plat_info), GFP_KERNEL);
-> +       if (WARN_ON(pdata == NULL))
-> +               return -ENOMEM;
-> +       pdata->sysstatus_offset = SYSSTATUS_OFFSET;
-> +       pdata->lock_base_offset = LOCK_BASE_OFFSET;
-> +
-> +       omap_device_build(pdev_name, 0, oh, pdata,
-> +                       sizeof(struct hwspinlock_plat_info), NULL, 0,
-> false);
-> +
-> +       return retval;
-> +}
-> +module_init(hwspinlocks_init);
-> +
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-
-> omap2/omap_hwmod_44xx_data.c
-> index d8d6d58..ce6c5ff 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -4875,7 +4875,7 @@ static __initdata struct omap_hwmod
-> *omap44xx_hwmods[] = {
->  /*     &omap44xx_smartreflex_iva_hwmod, */
->  /*     &omap44xx_smartreflex_mpu_hwmod, */
->         /* spinlock class */
-> -/*     &omap44xx_spinlock_hwmod, */
-> +       &omap44xx_spinlock_hwmod,
->         /* timer class */
->         &omap44xx_timer1_hwmod,
->         &omap44xx_timer2_hwmod,
-> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> index a37abf5..f725afc 100644
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -32,4 +32,5 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
->  obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
->  obj-$(CONFIG_OMAP_REMOTE_PROC) += remoteproc.o
->
-> -obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
-> \ No newline at end of file
-> +obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
-> +obj-$(CONFIG_ARCH_OMAP4) += hwspinlock.o
-> \ No newline at end of file
-> diff --git a/arch/arm/plat-omap/hwspinlock.c b/arch/arm/plat-
-> omap/hwspinlock.c
-> new file mode 100644
-> index 0000000..7cfd2c0
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/hwspinlock.c
-> @@ -0,0 +1,298 @@
-> +/*
-> + * OMAP hardware spinlock driver
-> + *
-> + * Copyright (C) 2010 Texas Instruments. All rights reserved.
-> + *
-> + * Contact: Simon Que <sque@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/device.h>
-> +#include <linux/delay.h>
-> +#include <linux/io.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/slab.h>
-> +#include <linux/spinlock.h>
-> +
-> +#include <plat/hwspinlock.h>
-> +
-> +/* Spinlock count code */
-> +#define SPINLOCK_32_REGS               1
-> +#define SPINLOCK_64_REGS               2
-> +#define SPINLOCK_128_REGS              4
-> +#define SPINLOCK_256_REGS              8
-> +#define SPINLOCK_NUMLOCKS_OFFSET       24
-> +
-> +/* for managing a hardware spinlock module */
-> +struct hwspinlock_state {
-> +       bool is_init;                   /* For first-time initialization
-> */
-> +       int num_locks;                  /* Total number of locks in system
-> */
-> +       spinlock_t local_lock;          /* Local protection */
-> +       void __iomem *io_base;          /* Mapped base address */
-> +};
-> +
-> +/* Points to the hardware spinlock module */
-> +static struct hwspinlock_state hwspinlock_state;
-> +static struct hwspinlock_state *hwspinlock_module = &hwspinlock_state;
-> +
-> +/* Spinlock object */
-> +struct hwspinlock {
-> +       bool is_init;
-> +       int id;
-> +       void __iomem *lock_reg;
-> +       bool is_allocated;
-> +       struct platform_device *pdev;
-> +};
-> +
-> +/* Array of spinlocks */
-> +static struct hwspinlock *hwspinlocks;
-> +
-> +/* API functions */
-> +
-> +/* Busy loop to acquire a spinlock */
-> +int hwspinlock_lock(struct hwspinlock *handle)
-> +{
-> +       int retval;
-> +
-> +       if (WARN_ON(handle == NULL))
-> +               return -EINVAL;
-> +
-> +       if (WARN_ON(in_atomic() || in_irq()))
-> +               return -EPERM;
-> +
-> +       if (pm_runtime_get(&handle->pdev->dev) < 0)
-> +               return -ENODEV;
-> +
-> +       /* Attempt to acquire the lock by reading from it */
-> +       do {
-> +               retval = readl(handle->lock_reg);
-> +       } while (retval == HWSPINLOCK_BUSY);
-> +
-> +       if (retval == HWSPINLOCK_BUSY)
-> +               pm_runtime_put(&handle->pdev->dev);
-What resource is getting release with above ??
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_lock);
-> +
-> +/* Attempt to acquire a spinlock once */
-> +int hwspinlock_trylock(struct hwspinlock *handle)
-> +{
-> +       int retval = 0;
-> +
-> +       if (WARN_ON(handle == NULL))
-> +               return -EINVAL;
-> +
-> +       if (WARN_ON(in_atomic() || in_irq()))
-> +               return -EPERM;
-> +
-> +       if (pm_runtime_get(&handle->pdev->dev) < 0)
-> +               return -ENODEV;
-> +
-> +       /* Attempt to acquire the lock by reading from it */
-> +       retval = readl(handle->lock_reg);
-> +
-> +       if (retval == HWSPINLOCK_BUSY)
-> +               pm_runtime_put(&handle->pdev->dev);
-> +
-> +       return retval;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_trylock);
-> +
-> +/* Release a spinlock */
-> +int hwspinlock_unlock(struct hwspinlock *handle)
-> +{
-> +       if (WARN_ON(handle == NULL))
-> +               return -EINVAL;
-> +
-> +       /* Release it by writing 0 to it */
-> +       writel(0, handle->lock_reg);
-> +
-> +       pm_runtime_put(&handle->pdev->dev);
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_unlock);
-> +
-> +/* Request an unclaimed spinlock */
-> +struct hwspinlock *hwspinlock_request(void)
-> +{
-> +       int i;
-> +       bool found = false;
-> +       struct hwspinlock *handle = NULL;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&hwspinlock_module->local_lock, flags);
-> +       /* Search for an unclaimed, unreserved lock */
-> +       for (i = 0; i < hwspinlock_module->num_locks && !found; i++) {
-> +               if (!hwspinlocks[i].is_allocated) {
-> +                       found = true;
-> +                       handle = &hwspinlocks[i];
-> +               }
-> +       }
-> +       spin_unlock_irqrestore(&hwspinlock_module->local_lock, flags);
-> +
-> +       /* Return error if no more locks available */
-> +       if (!found)
-> +               return NULL;
-> +
-> +       handle->is_allocated = true;
-> +
-> +       return handle;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_request);
-> +
-> +/* Request an unclaimed spinlock by ID */
-> +struct hwspinlock *hwspinlock_request_specific(unsigned int id)
-> +{
-> +       struct hwspinlock *handle = NULL;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&hwspinlock_module->local_lock, flags);
-> +
-> +       if (WARN_ON(hwspinlocks[id].is_allocated))
-> +               goto exit;
-> +
-> +       handle = &hwspinlocks[id];
-> +       handle->is_allocated = true;
-> +
-> +exit:
-> +       spin_unlock_irqrestore(&hwspinlock_module->local_lock, flags);
-> +       return handle;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_request_specific);
-> +
-> +/* Release a claimed spinlock */
-> +int hwspinlock_free(struct hwspinlock *handle)
-> +{
-> +       if (WARN_ON(handle == NULL))
-> +               return -EINVAL;
-> +
-> +       if (WARN_ON(!handle->is_allocated))
-> +               return -ENOMEM;
-> +
-> +       handle->is_allocated = false;
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_free);
-> +
-> +/* Probe function */
-> +static int __devinit hwspinlock_probe(struct platform_device *pdev)
-> +{
-> +       struct hwspinlock_plat_info *pdata = pdev->dev.platform_data;
-> +       struct resource *res;
-> +       void __iomem *io_base;
-> +       int id;
-> +
-> +       void __iomem *sysstatus_reg;
-> +
-> +       /* Determine number of locks */
-> +       sysstatus_reg = ioremap(OMAP44XX_SPINLOCK_BASE +
-> +                                       pdata->sysstatus_offset,
-> sizeof(u32));
-> +       switch (readl(sysstatus_reg) >> SPINLOCK_NUMLOCKS_OFFSET) {
-> +       case SPINLOCK_32_REGS:
-> +               hwspinlock_module->num_locks = 32;
-> +               break;
-> +       case SPINLOCK_64_REGS:
-> +               hwspinlock_module->num_locks = 64;
-> +               break;
-> +       case SPINLOCK_128_REGS:
-> +               hwspinlock_module->num_locks = 128;
-> +               break;
-> +       case SPINLOCK_256_REGS:
-> +               hwspinlock_module->num_locks = 256;
-> +               break;
-> +       default:
-> +               return -EINVAL; /* Invalid spinlock count code */
-> +       }
-> +       iounmap(sysstatus_reg);
-> +
-> +       /* Allocate spinlock device objects */
-> +       hwspinlocks = kmalloc(sizeof(struct hwspinlock) *
-> +                       hwspinlock_module->num_locks, GFP_KERNEL);
-> +       if (WARN_ON(hwspinlocks == NULL))
-> +               return -ENOMEM;
-> +
-> +       /* Initialize local lock */
-> +       spin_lock_init(&hwspinlock_module->local_lock);
-> +
-> +       /* Get address info */
-> +       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +
-> +       /* Map spinlock module address space */
-> +       io_base = ioremap(res->start, resource_size(res));
-> +       hwspinlock_module->io_base = io_base;
-> +
-> +       /* Set up each individual lock handle */
-> +       for (id = 0; id < hwspinlock_module->num_locks; id++) {
-> +               hwspinlocks[id].id              = id;
-> +               hwspinlocks[id].pdev            = pdev;
-> +
-> +               hwspinlocks[id].is_init         = true;
-> +               hwspinlocks[id].is_allocated    = false;
-> +
-> +               hwspinlocks[id].lock_reg        = io_base + pdata->
-> +                                       lock_base_offset + sizeof(u32) *
-> id;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static struct platform_driver hwspinlock_driver = {
-> +       .probe          = hwspinlock_probe,
-> +       .driver         = {
-> +               .name   = "hwspinlock",
-> +       },
-> +};
-> +
-> +/* Initialization function */
-> +static int __init hwspinlock_init(void)
-> +{
-> +       int retval = 0;
-> +
-> +       /* Register spinlock driver */
-> +       retval = platform_driver_register(&hwspinlock_driver);
-> +
-> +       return retval;
-> +}
-> +
-> +/* Cleanup function */
-> +static void __exit hwspinlock_exit(void)
-> +{
-> +       int id;
-> +
-> +       platform_driver_unregister(&hwspinlock_driver);
-> +
-> +       for (id = 0; id < hwspinlock_module->num_locks; id++)
-> +               hwspinlocks[id].is_init = false;
-> +       iounmap(hwspinlock_module->io_base);
-> +
-> +       /* Free spinlock device objects */
-> +       if (hwspinlock_module->is_init)
-> +               kfree(hwspinlocks);
-> +}
-> +
-> +module_init(hwspinlock_init);
-> +module_exit(hwspinlock_exit);
-> +
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_DESCRIPTION("Hardware spinlock driver");
-> +MODULE_AUTHOR("Simon Que");
-> +MODULE_AUTHOR("Hari Kanigeri");
-> diff --git a/arch/arm/plat-omap/include/plat/hwspinlock.h b/arch/arm/plat-
-> omap/include/plat/hwspinlock.h
-> new file mode 100644
-> index 0000000..8c69ca5
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/include/plat/hwspinlock.h
-> @@ -0,0 +1,29 @@
-> +/* hwspinlock.h */
-> +
-> +#ifndef HWSPINLOCK_H
-> +#define HWSPINLOCK_H
-> +
-> +#include <linux/platform_device.h>
-> +#include <plat/omap44xx.h>
-> +
-> +/* Read values from the spinlock register */
-> +#define HWSPINLOCK_ACQUIRED 0
-> +#define HWSPINLOCK_BUSY 1
-> +
-> +/* Device data */
-> +struct hwspinlock_plat_info {
-> +       u32 sysstatus_offset;           /* System status register offset
-> */
-> +       u32 lock_base_offset;           /* Offset of spinlock registers */
-> +};
-> +
-> +struct hwspinlock;
-> +
-> +int hwspinlock_lock(struct hwspinlock *handle);
-> +int hwspinlock_trylock(struct hwspinlock *handle);
-> +int hwspinlock_unlock(struct hwspinlock *handle);
-> +
-> +struct hwspinlock *hwspinlock_request(void);
-> +struct hwspinlock *hwspinlock_request_specific(unsigned int id);
-> +int hwspinlock_free(struct hwspinlock *hwspinlock_ptr);
-> +
-> +#endif /* HWSPINLOCK_H */
-> diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-
-> omap/include/plat/omap44xx.h
-> index 8b3f12f..8016508 100644
-> --- a/arch/arm/plat-omap/include/plat/omap44xx.h
-> +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
-> @@ -52,5 +52,7 @@
->  #define OMAP4_MMU1_BASE                        0x55082000
->  #define OMAP4_MMU2_BASE                        0x4A066000
->
-> +#define OMAP44XX_SPINLOCK_BASE         (L4_44XX_BASE + 0xF6000)
-> +
->  #endif /* __ASM_ARCH_OMAP44XX_H */
->
-> --
-> 1.7.0
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Friday, July 02, 2010 9:00 PM
+> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Cc: Shilimkar, Santosh
+> Subject: [PATCH 17/20] OMAP: hwmod/device: add omap_{device,
+> hwmod}_get_mpu_rt_va
+>=20
+> Add omap_device_get_mpu_rt_va().  This is intended to be used by
+> device drivers (currently, via a struct platform_data function
+> pointer) to retrieve their corresponding device's virtual base addres=
+s
+> that the MPU should use to access the device.  This is needed because
+> the omap_hwmod code does its own ioremap(), in order to gain access t=
+o
+> the module's OCP_SYSCONFIG register.
+>=20
+> Add omap_hwmod_get_mpu_rt_va().  omap_device_get_mpu_rt_va() calls th=
+is
+> function to do the real work.
+>=20
+Thanks Paul for handling this in the hwmod fw !!
+This makes ioremap/iounmap usage consistent and HWMOD converted=20
+drivers can retrieve the VA directly instead of redoing ioremap.
+Add on benefit is drivers need not no about the physical base address a=
+nymore since it's already taken care in HWMOD fw
 
+> While here, rename struct omap_hwmod._rt_va to struct
+> omap_hwmod._mpu_rt_va, to reinforce that it refers to the MPU's
+> register target virtual address base (as opposed to, for example, the
+> L3's).
+>=20
+> In the future, this belongs as a function in an omap_bus, so it is no=
+t
+> necessary to call this through a platform_data function pointer.
+>=20
+> The use-case for this function was originally presented by Santosh
+> Shilimkar <santosh.shilimkar@ti.com>.
+>=20
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c              |   33
+> +++++++++++++++++++++----
+>  arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    7 +++--
+>  arch/arm/plat-omap/omap_device.c              |   19 ++++++++++++++
+>  4 files changed, 53 insertions(+), 8 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-
+> omap2/omap_hwmod.c
+> index d9e96fa..b012057 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -1,7 +1,7 @@
+>  /*
+>   * omap_hwmod implementation for OMAP2/3/4
+>   *
+> - * Copyright (C) 2009 Nokia Corporation
+> + * Copyright (C) 2009-2010 Nokia Corporation
+>   *
+>   * Paul Walmsley, Beno=EEt Cousson, Kevin Hilman
+>   *
+> @@ -1066,12 +1066,12 @@ static int _setup(struct omap_hwmod *oh, void
+> *data)
+>=20
+>  u32 omap_hwmod_readl(struct omap_hwmod *oh, u16 reg_offs)
+>  {
+> -	return __raw_readl(oh->_rt_va + reg_offs);
+> +	return __raw_readl(oh->_mpu_rt_va + reg_offs);
+>  }
+>=20
+>  void omap_hwmod_writel(u32 v, struct omap_hwmod *oh, u16 reg_offs)
+>  {
+> -	__raw_writel(v, oh->_rt_va + reg_offs);
+> +	__raw_writel(v, oh->_mpu_rt_va + reg_offs);
+>  }
+>=20
+>  int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode=
+)
+> @@ -1128,7 +1128,7 @@ int omap_hwmod_register(struct omap_hwmod *oh)
+>  	ms_id =3D _find_mpu_port_index(oh);
+>  	if (!IS_ERR_VALUE(ms_id)) {
+>  		oh->_mpu_port_index =3D ms_id;
+> -		oh->_rt_va =3D _find_mpu_rt_base(oh, oh->_mpu_port_index);
+> +		oh->_mpu_rt_va =3D _find_mpu_rt_base(oh, oh->_mpu_port_index);
+>  	} else {
+>  		oh->_int_flags |=3D _HWMOD_NO_MPU_PORT;
+>  	}
+> @@ -1280,7 +1280,7 @@ int omap_hwmod_unregister(struct omap_hwmod *oh=
+)
+>  	pr_debug("omap_hwmod: %s: unregistering\n", oh->name);
+>=20
+>  	mutex_lock(&omap_hwmod_mutex);
+> -	iounmap(oh->_rt_va);
+> +	iounmap(oh->_mpu_rt_va);
+>  	list_del(&oh->node);
+>  	mutex_unlock(&omap_hwmod_mutex);
+>=20
+> @@ -1541,6 +1541,29 @@ struct powerdomain *omap_hwmod_get_pwrdm(struc=
+t
+> omap_hwmod *oh)
+>  }
+>=20
+>  /**
+> + * omap_hwmod_get_mpu_rt_va - return the module's base address (for =
+the
+> MPU)
+> + * @oh: struct omap_hwmod *
+> + *
+> + * Returns the virtual address corresponding to the beginning of the
+> + * module's register target, in the address range that is intended t=
+o
+> + * be used by the MPU.  Returns the virtual address upon success or =
+NULL
+> + * upon error.
+> + */
+> +void __iomem *omap_hwmod_get_mpu_rt_va(struct omap_hwmod *oh)
+> +{
+> +	if (!oh)
+> +		return NULL;
+> +
+> +	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
+> +		return NULL;
+> +
+> +	if (oh->_state =3D=3D _HWMOD_STATE_UNKNOWN)
+> +		return NULL;
+> +
+> +	return oh->_mpu_rt_va;
+> +}
+> +
+> +/**
+>   * omap_hwmod_add_initiator_dep - add sleepdep from @init_oh to @oh
+>   * @oh: struct omap_hwmod *
+>   * @init_oh: struct omap_hwmod * (initiator)
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h
+> b/arch/arm/plat-omap/include/plat/omap_device.h
+> index 3694b62..25cd9ac 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -101,6 +101,8 @@ struct omap_device *omap_device_build_ss(const ch=
+ar
+> *pdev_name, int pdev_id,
+>  int omap_device_register(struct omap_device *od);
+>  int omap_early_device_register(struct omap_device *od);
+>=20
+> +void __iomem *omap_device_get_rt_va(struct omap_device *od);
+> +
+>  /* OMAP PM interface */
+>  int omap_device_align_pm_lat(struct platform_device *pdev,
+>  			     u32 new_wakeup_lat_limit);
+> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/=
+plat-
+> omap/include/plat/omap_hwmod.h
+> index aebfacb..a4e508d 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> @@ -1,7 +1,7 @@
+>  /*
+>   * omap_hwmod macros, structures
+>   *
+> - * Copyright (C) 2009 Nokia Corporation
+> + * Copyright (C) 2009-2010 Nokia Corporation
+>   * Paul Walmsley
+>   *
+>   * Created in collaboration with (alphabetical order): Beno=EEt Cous=
+son,
+> @@ -419,7 +419,7 @@ struct omap_hwmod_class {
+>   * @slaves: ptr to array of OCP ifs that this hwmod can respond on
+>   * @dev_attr: arbitrary device attributes that can be passed to the
+> driver
+>   * @_sysc_cache: internal-use hwmod flags
+> - * @_rt_va: cached register target start address (internal use)
+> + * @_mpu_rt_va: cached register target start address (internal use)
+>   * @_mpu_port_index: cached MPU register target slave ID (internal u=
+se)
+>   * @msuspendmux_reg_id: CONTROL_MSUSPENDMUX register ID (1-6)
+>   * @msuspendmux_shift: CONTROL_MSUSPENDMUX register bit shift
+> @@ -460,7 +460,7 @@ struct omap_hwmod {
+>  	struct omap_hwmod_ocp_if	**slaves;  /* connect to *_TA */
+>  	void				*dev_attr;
+>  	u32				_sysc_cache;
+> -	void __iomem			*_rt_va;
+> +	void __iomem			*_mpu_rt_va;
+>  	struct list_head		node;
+>  	u16				flags;
+>  	u8				_mpu_port_index;
+> @@ -507,6 +507,7 @@ int omap_hwmod_count_resources(struct omap_hwmod =
+*oh);
+>  int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource
+> *res);
+>=20
+>  struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh);
+> +void __iomem *omap_hwmod_get_mpu_rt_va(struct omap_hwmod *oh);
+>=20
+>  int omap_hwmod_add_initiator_dep(struct omap_hwmod *oh,
+>  				 struct omap_hwmod *init_oh);
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-
+> omap/omap_device.c
+> index f9dec0d..dee4629 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -655,6 +655,25 @@ struct powerdomain *omap_device_get_pwrdm(struct
+> omap_device *od)
+>  	return omap_hwmod_get_pwrdm(od->hwmods[0]);
+>  }
+>=20
+> +/**
+> + * omap_device_get_mpu_rt_va - return the MPU's virtual addr for the
+> hwmod base
+> + * @od: struct omap_device *
+> + *
+> + * Return the MPU's virtual address for the base of the hwmod, from
+> + * the ioremap() that the hwmod code does.  Only valid if there is o=
+ne
+> + * hwmod associated with this device.  Returns NULL if there are zer=
+o
+> + * or more than one hwmods associated with this omap_device;
+> + * otherwise, passes along the return value from
+> + * omap_hwmod_get_mpu_rt_va().
+> + */
+> +void __iomem *omap_device_get_rt_va(struct omap_device *od)
+> +{
+> +	if (od->hwmods_cnt !=3D 1)
+> +		return NULL;
+> +
+> +	return omap_hwmod_get_mpu_rt_va(od->hwmods[0]);
+> +}
+> +
+>  /*
+>   * Public functions intended for use in omap_device_pm_latency
+>   * .activate_func and .deactivate_func function pointers
+>=20
+
+Regards,
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
