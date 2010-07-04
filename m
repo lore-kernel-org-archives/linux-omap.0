@@ -1,47 +1,75 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 11/11] staging: ti dspbridge: enable driver building
-Date: Sun, 4 Jul 2010 13:53:52 +0300
-Message-ID: <AANLkTik0rm12w4jplD1vSTZnPbwguDU6xtOdAfs9C-3r@mail.gmail.com>
-References: <1277298125-17991-1-git-send-email-ohad@wizery.com>
-	<1277298840-18516-1-git-send-email-ohad@wizery.com>
-	<20100623224150.GA6680@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH] staging: ti dspbridge: remove contributor leftovers
+Date: Sun,  4 Jul 2010 16:31:47 +0300
+Message-ID: <1278250307-16880-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:54543 "EHLO
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39559 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757172Ab0GDKxy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 06:53:54 -0400
-In-Reply-To: <20100623224150.GA6680@kroah.com>
+	with ESMTP id S1757524Ab0GDNb5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:31:57 -0400
+Received: by bwz1 with SMTP id 1so2294646bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:31:55 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Hebbar Shivananda <x0hebbar@ti.com>, Ramos Falcon Ernesto <ernesto@ti.com>, Anna Suman <s-anna@ti.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Gupta Ramesh <grgupta@ti.com>, Guzman Lugo Fernando <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>, Ameya Palande <ameya.palande@nokia.com>, Gomez Castellanos Ivan <ivan.gomez@ti.com>, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>, Armando Uribe De Leon <x0095078@ti.com>, Deepak Chitriki <deepak.chitriki@ti.com>, Menon Nishanth <nm@ti.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, Pitney Gilbert <gpitney@ti.com>, Bhavin Shah <bshah@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg KH <greg@kroah.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Thu, Jun 24, 2010 at 1:41 AM, Greg KH <greg@kroah.com> wrote:
-> The default is always 'n' so you don't need this.
->
-> Also, this enables the driver to be built on x86, which fails horribl=
-y,
-> and I don't think is what you really want to have happen :)
->
-> So I need some more Kconfig changes here, care to redo just this one
-> patch? =C2=A0I've applied all the others and they will show up in lin=
-ux-next
-> tomorrow.
+The old history (before git) had these two character ids that never
+stood any chance to identify anybody.
 
-I fixed all that stuff some time ago:
-http://article.gmane.org/gmane.linux.ports.arm.omap/36065
+Nobody from that list was moved to the good list of contributors, so
+let's get rid of it.
 
-But the patches were ignored.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ .../staging/tidspbridge/Documentation/CONTRIBUTORS |   37 --------------------
+ 1 files changed, 0 insertions(+), 37 deletions(-)
 
-I might rebase them if nobody beats me to it.
+diff --git a/drivers/staging/tidspbridge/Documentation/CONTRIBUTORS b/drivers/staging/tidspbridge/Documentation/CONTRIBUTORS
+index b40e7a6..86f5787 100644
+--- a/drivers/staging/tidspbridge/Documentation/CONTRIBUTORS
++++ b/drivers/staging/tidspbridge/Documentation/CONTRIBUTORS
+@@ -43,40 +43,3 @@ Please keep the following list in alphabetical order.
+ 	Armando Uribe de Leon
+ 	Nischal Varide
+ 	Wenbiao Wang
+-
+-
+-
+-The following list was taken from file Revision History, if you recognize your
+-alias or did any contribution to the project please let us now, so we can
+-proper credit your work.
+-
+-	ag
+-	ap
+-	cc
+-	db
+-	dh4
+-	dr
+-	hp
+-	jg
+-	kc
+-	kln
+-	kw
+-	ge
+-	gv
+-	map
+-	mf
+-	mk
+-	mr
+-	nn
+-	rajesh
+-	rg
+-	rr
+-	rt
+-	sb
+-	sg
+-	sh
+-	sp
+-	srid
+-	swa
+-	vp
+-	ww
+-- 
+1.7.1
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
