@@ -1,64 +1,107 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 0/5] staging: ti dspbridge: improve Kconfig
-Date: Sun,  4 Jul 2010 16:36:21 +0300
-Message-ID: <1278250586-17062-1-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 1/5] omap: OMAP_DSP is not in mainline, remove it
+Date: Sun,  4 Jul 2010 16:36:22 +0300
+Message-ID: <1278250586-17062-2-git-send-email-felipe.contreras@gmail.com>
+References: <1278250586-17062-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:65451 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757587Ab0GDNga (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:36:30 -0400
-Received: by bwz1 with SMTP id 1so2295721bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:36:28 -0700 (PDT)
+	with ESMTP id S1757840Ab0GDNgb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:36:31 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 1so2295721bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:36:31 -0700 (PDT)
+In-Reply-To: <1278250586-17062-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg KH <greg@kroah.com>, Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg KH <greg@kroah.com>, Felipe Contreras <felipe.contreras@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-Hi,
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ arch/arm/plat-omap/devices.c |   62 ------------------------------------------
+ 1 files changed, 0 insertions(+), 62 deletions(-)
 
-The current Kconfig really needed some attention. I have tried to standarize
-everything to CONFIG_TIDSPBRIDGE, unfortunately, it seems the dspgateway was
-using that. Since that was never mainlined, I removed the dead code that was
-relying on it (should move to the dspgateway branch).
-
-Also, make some code only useful for debugging or testing configurable.
-
- 1) in production, DEBUG=n BACKTRACE=n
- 2) in internal testing, DEBUG=n BACKTRACE=y
- 3) in development debugging, DEBUG=y BACKTRACE=y
-
-These apply on top of the deh rewrite patches.
-
-(Essentially the same as the previous try, but rebased on top of staging tree)
-
-Felipe Contreras (5):
-  omap: OMAP_DSP is not in mainline, remove it
-  staging: ti dspbridge: prefix configs with TIDSPBRIDGE
-  staging: ti dspbridge: improve Kconfig
-  staging: ti dspbridge: use _DEBUG for debug trace
-  staging: ti dspbridge: add _BACKTRACE config
-
- arch/arm/plat-omap/devices.c                       |   62 --------------------
- drivers/staging/tidspbridge/Kconfig                |   42 +++++++------
- drivers/staging/tidspbridge/core/io_sm.c           |   30 +++++-----
- drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |   30 +++++-----
- drivers/staging/tidspbridge/core/tiomap_io.c       |    4 +-
- drivers/staging/tidspbridge/core/ue_deh.c          |    8 ++-
- drivers/staging/tidspbridge/core/wdt.c             |    4 +-
- drivers/staging/tidspbridge/gen/gh.c               |    2 +
- .../tidspbridge/include/dspbridge/_chnl_sm.h       |    2 +-
- .../staging/tidspbridge/include/dspbridge/dbc.h    |    2 +-
- .../staging/tidspbridge/include/dspbridge/dbll.h   |    2 +
- .../staging/tidspbridge/include/dspbridge/drv.h    |    2 +-
- drivers/staging/tidspbridge/include/dspbridge/gh.h |    2 +
- .../staging/tidspbridge/include/dspbridge/io_sm.h  |    6 +-
- .../staging/tidspbridge/include/dspbridge/nldr.h   |    2 +
- .../staging/tidspbridge/include/dspbridge/node.h   |    2 +
- drivers/staging/tidspbridge/pmgr/dbll.c            |    2 +
- drivers/staging/tidspbridge/rmgr/drv.c             |    2 +-
- drivers/staging/tidspbridge/rmgr/drv_interface.c   |   32 +++++-----
- drivers/staging/tidspbridge/rmgr/nldr.c            |    2 +
- drivers/staging/tidspbridge/rmgr/node.c            |    9 ++-
- drivers/staging/tidspbridge/rmgr/proc.c            |    8 +-
- 22 files changed, 111 insertions(+), 146 deletions(-)
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 95677d1..a3997ec 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -31,67 +31,6 @@
+ #include <plat/dsp_common.h>
+ #include <plat/omap44xx.h>
+ 
+-#if	defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
+-
+-static struct dsp_platform_data dsp_pdata = {
+-	.kdev_list = LIST_HEAD_INIT(dsp_pdata.kdev_list),
+-};
+-
+-static struct resource omap_dsp_resources[] = {
+-	{
+-		.name	= "dsp_mmu",
+-		.start	= -1,
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static struct platform_device omap_dsp_device = {
+-	.name		= "dsp",
+-	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(omap_dsp_resources),
+-	.resource	= omap_dsp_resources,
+-	.dev = {
+-		.platform_data = &dsp_pdata,
+-	},
+-};
+-
+-static inline void omap_init_dsp(void)
+-{
+-	struct resource *res;
+-	int irq;
+-
+-	if (cpu_is_omap15xx())
+-		irq = INT_1510_DSP_MMU;
+-	else if (cpu_is_omap16xx())
+-		irq = INT_1610_DSP_MMU;
+-	else if (cpu_is_omap24xx())
+-		irq = INT_24XX_DSP_MMU;
+-
+-	res = platform_get_resource_byname(&omap_dsp_device,
+-					   IORESOURCE_IRQ, "dsp_mmu");
+-	res->start = irq;
+-
+-	platform_device_register(&omap_dsp_device);
+-}
+-
+-int dsp_kfunc_device_register(struct dsp_kfunc_device *kdev)
+-{
+-	static DEFINE_MUTEX(dsp_pdata_lock);
+-
+-	spin_lock_init(&kdev->lock);
+-
+-	mutex_lock(&dsp_pdata_lock);
+-	list_add_tail(&kdev->entry, &dsp_pdata.kdev_list);
+-	mutex_unlock(&dsp_pdata_lock);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(dsp_kfunc_device_register);
+-
+-#else
+-static inline void omap_init_dsp(void) { }
+-#endif	/* CONFIG_OMAP_DSP */
+-
+ /*-------------------------------------------------------------------------*/
+ #if	defined(CONFIG_KEYBOARD_OMAP) || defined(CONFIG_KEYBOARD_OMAP_MODULE)
+ 
+@@ -419,7 +358,6 @@ static int __init omap_init_devices(void)
+ 	/* please keep these calls, and their implementations above,
+ 	 * in alphabetical order so they're easier to sort through.
+ 	 */
+-	omap_init_dsp();
+ 	omap_init_kp();
+ 	omap_init_rng();
+ 	omap_init_mcpdm();
+-- 
+1.7.1
 
