@@ -1,97 +1,163 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 05/13] staging: ti dspbridge: mmu: add hw_mmu_tlb_flush_all()
-Date: Sun,  4 Jul 2010 16:34:31 +0300
-Message-ID: <1278250479-16982-6-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 08/13] staging: ti dspbridge: deh: remove get_info
+Date: Sun,  4 Jul 2010 16:34:34 +0300
+Message-ID: <1278250479-16982-9-git-send-email-felipe.contreras@gmail.com>
 References: <1278250479-16982-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:40955 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757698Ab0GDNex (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:34:53 -0400
+	with ESMTP id S1757756Ab0GDNfD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:35:03 -0400
 Received: by mail-bw0-f46.google.com with SMTP id 1so2295322bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:34:52 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:34:58 -0700 (PDT)
 In-Reply-To: <1278250479-16982-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg KH <greg@kroah.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-So that it can be used in more than one place.
+Nobody is using it.
 
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- drivers/staging/tidspbridge/core/tiomap3430.c |    9 +--------
- drivers/staging/tidspbridge/hw/hw_mmu.c       |    6 ++++++
- drivers/staging/tidspbridge/hw/hw_mmu.h       |    2 ++
- 3 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/staging/tidspbridge/core/tiomap3430.c      |    1 -
+ drivers/staging/tidspbridge/core/ue_deh.c          |   15 ---------------
+ .../tidspbridge/include/dspbridge/dspdefs.h        |   19 -------------------
+ .../staging/tidspbridge/include/dspbridge/dspdeh.h |    3 ---
+ drivers/staging/tidspbridge/pmgr/dev.c             |    2 --
+ drivers/staging/tidspbridge/rmgr/proc.c            |    6 ------
+ 6 files changed, 0 insertions(+), 46 deletions(-)
 
 diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index d1fa560..1000c04 100644
+index 1000c04..ef4abb4 100644
 --- a/drivers/staging/tidspbridge/core/tiomap3430.c
 +++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -73,8 +73,6 @@
- #define PAGES_II_LVL_TABLE   512
- #define PHYS_TO_PAGE(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
- 
--#define MMU_GFLUSH 0x60
--
- /* Forward Declarations: */
- static int bridge_brd_monitor(struct bridge_dev_context *dev_context);
- static int bridge_brd_read(struct bridge_dev_context *dev_context,
-@@ -218,18 +216,13 @@ static struct bridge_drv_interface drv_interface_fxns = {
- 	bridge_msg_set_queue_id,
- };
- 
--static inline void tlb_flush_all(const void __iomem *base)
--{
--	__raw_writeb(__raw_readb(base + MMU_GFLUSH) | 1, base + MMU_GFLUSH);
--}
--
- static inline void flush_all(struct bridge_dev_context *dev_context)
- {
- 	if (dev_context->dw_brd_state == BRD_DSP_HIBERNATION ||
- 	    dev_context->dw_brd_state == BRD_HIBERNATION)
- 		wake_dsp(dev_context, NULL);
- 
--	tlb_flush_all(dev_context->dw_dsp_mmu_base);
-+	hw_mmu_tlb_flush_all(dev_context->dw_dsp_mmu_base);
+@@ -199,7 +199,6 @@ static struct bridge_drv_interface drv_interface_fxns = {
+ 	bridge_deh_destroy,
+ 	bridge_deh_notify,
+ 	bridge_deh_register_notify,
+-	bridge_deh_get_info,
+ 	/* The following IO functions are provided by chnl_io.lib: */
+ 	bridge_io_create,
+ 	bridge_io_destroy,
+diff --git a/drivers/staging/tidspbridge/core/ue_deh.c b/drivers/staging/tidspbridge/core/ue_deh.c
+index 1e506d7..a4940a8 100644
+--- a/drivers/staging/tidspbridge/core/ue_deh.c
++++ b/drivers/staging/tidspbridge/core/ue_deh.c
+@@ -262,18 +262,3 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
+ 	 */
+ 	dsp_wdt_enable(false);
  }
- 
- static void bad_page_dump(u32 pa, struct page *pg)
-diff --git a/drivers/staging/tidspbridge/hw/hw_mmu.c b/drivers/staging/tidspbridge/hw/hw_mmu.c
-index 965b659..e593358 100644
---- a/drivers/staging/tidspbridge/hw/hw_mmu.c
-+++ b/drivers/staging/tidspbridge/hw/hw_mmu.c
-@@ -35,6 +35,7 @@
- #define MMU_SMALL_PAGE_MASK      0xFFFFF000
- 
- #define MMU_LOAD_TLB	0x00000001
-+#define MMU_GFLUSH	0x60
+-
+-int bridge_deh_get_info(struct deh_mgr *deh_mgr,
+-		struct dsp_errorinfo *pErrInfo)
+-{
+-	if (!deh_mgr)
+-		return -EFAULT;
+-
+-	/* Copy DEH error info structure to PROC error info structure. */
+-	pErrInfo->dw_err_mask = deh_mgr->err_info.dw_err_mask;
+-	pErrInfo->dw_val1 = deh_mgr->err_info.dw_val1;
+-	pErrInfo->dw_val2 = deh_mgr->err_info.dw_val2;
+-	pErrInfo->dw_val3 = deh_mgr->err_info.dw_val3;
+-
+-	return 0;
+-}
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
+index 493f62e..49842a2 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
+@@ -775,24 +775,6 @@ typedef int(*fxn_deh_registernotify)
+   u32 event_mask, u32 notify_type, struct dsp_notification *hnotification);
  
  /*
-  * hw_mmu_page_size_t: Enumerated Type used to specify the MMU Page Size(SLSS)
-@@ -585,3 +586,8 @@ static hw_status mmu_set_ram_entry(const void __iomem *baseAddress,
- 	return status;
+- *  ======== bridge_deh_get_info ========
+- *  Purpose:
+- *      Get DSP exception info.
+- *  Parameters:
+- *      phDehMgr:       Location to store DEH manager on output.
+- *      pErrInfo:       Ptr to error info structure.
+- *  Returns:
+- *      0:        Success.
+- *      -EPERM:      Creation failed.
+- *  Requires:
+- *      phDehMgr != NULL;
+- *      pErrorInfo != NULL;
+- *  Ensures:
+- */
+-typedef int(*fxn_deh_getinfo) (struct deh_mgr *phDehMgr,
+-				      struct dsp_errorinfo *pErrInfo);
+-
+-/*
+  *  ======== bridge_io_create ========
+  *  Purpose:
+  *      Create an object that manages I/O between CHNL and msg_ctrl.
+@@ -1082,7 +1064,6 @@ struct bridge_drv_interface {
+ 	fxn_deh_notify pfn_deh_notify;	/* Notify of DSP error */
+ 	/* register for deh notif. */
+ 	fxn_deh_registernotify pfn_deh_register_notify;
+-	fxn_deh_getinfo pfn_deh_get_info;	/* register for deh notif. */
+ 	fxn_io_create pfn_io_create;	/* Create IO manager */
+ 	fxn_io_destroy pfn_io_destroy;	/* Destroy IO manager */
+ 	fxn_io_onloaded pfn_io_on_loaded;	/* Notify of program loaded */
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspdeh.h b/drivers/staging/tidspbridge/include/dspbridge/dspdeh.h
+index af19926..f2bfd89 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dspdeh.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dspdeh.h
+@@ -32,9 +32,6 @@ extern int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
  
- }
-+
-+void hw_mmu_tlb_flush_all(const void __iomem *base)
-+{
-+	__raw_writeb(1, base + MMU_GFLUSH);
-+}
-diff --git a/drivers/staging/tidspbridge/hw/hw_mmu.h b/drivers/staging/tidspbridge/hw/hw_mmu.h
-index 9b13468..0436974 100644
---- a/drivers/staging/tidspbridge/hw/hw_mmu.h
-+++ b/drivers/staging/tidspbridge/hw/hw_mmu.h
-@@ -97,6 +97,8 @@ extern hw_status hw_mmu_pte_set(const u32 pg_tbl_va,
- extern hw_status hw_mmu_pte_clear(const u32 pg_tbl_va,
- 				  u32 page_size, u32 virtualAddr);
+ extern int bridge_deh_destroy(struct deh_mgr *deh_mgr);
  
-+void hw_mmu_tlb_flush_all(const void __iomem *base);
-+
- static inline u32 hw_mmu_pte_addr_l1(u32 L1_base, u32 va)
- {
- 	u32 pte_addr;
+-extern int bridge_deh_get_info(struct deh_mgr *deh_mgr,
+-		struct dsp_errorinfo *pErrInfo);
+-
+ extern int bridge_deh_register_notify(struct deh_mgr *deh_mgr,
+ 		u32 event_mask,
+ 		u32 notify_type,
+diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
+index 50a5d97..353b81a 100644
+--- a/drivers/staging/tidspbridge/pmgr/dev.c
++++ b/drivers/staging/tidspbridge/pmgr/dev.c
+@@ -1119,7 +1119,6 @@ static void store_interface_fxns(struct bridge_drv_interface *drv_fxns,
+ 		STORE_FXN(fxn_deh_destroy, pfn_deh_destroy);
+ 		STORE_FXN(fxn_deh_notify, pfn_deh_notify);
+ 		STORE_FXN(fxn_deh_registernotify, pfn_deh_register_notify);
+-		STORE_FXN(fxn_deh_getinfo, pfn_deh_get_info);
+ 		STORE_FXN(fxn_io_create, pfn_io_create);
+ 		STORE_FXN(fxn_io_destroy, pfn_io_destroy);
+ 		STORE_FXN(fxn_io_onloaded, pfn_io_on_loaded);
+@@ -1160,7 +1159,6 @@ static void store_interface_fxns(struct bridge_drv_interface *drv_fxns,
+ 	DBC_ENSURE(intf_fxns->pfn_deh_destroy != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_deh_notify != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_deh_register_notify != NULL);
+-	DBC_ENSURE(intf_fxns->pfn_deh_get_info != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_io_create != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_io_destroy != NULL);
+ 	DBC_ENSURE(intf_fxns->pfn_io_on_loaded != NULL);
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
+index b1979ce..c31f8b8 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -970,7 +970,6 @@ int proc_get_state(void *hprocessor,
+ 	int status = 0;
+ 	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
+ 	int brd_status;
+-	struct deh_mgr *hdeh_mgr;
+ 
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(proc_state_obj != NULL);
+@@ -1003,11 +1002,6 @@ int proc_get_state(void *hprocessor,
+ 				break;
+ 			}
+ 		}
+-		/* Next, retrieve error information, if any */
+-		status = dev_get_deh_mgr(p_proc_object->hdev_obj, &hdeh_mgr);
+-		if (DSP_SUCCEEDED(status) && hdeh_mgr)
+-			status = (*p_proc_object->intf_fxns->pfn_deh_get_info)
+-			    (hdeh_mgr, &(proc_state_obj->err_info));
+ 	} else {
+ 		status = -EFAULT;
+ 	}
 -- 
 1.7.1
 
