@@ -1,96 +1,119 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 3/5] staging: ti dspbridge: improve Kconfig
-Date: Sun,  4 Jul 2010 16:36:24 +0300
-Message-ID: <1278250586-17062-4-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 4/5] staging: ti dspbridge: use _DEBUG for debug trace
+Date: Sun,  4 Jul 2010 16:36:25 +0300
+Message-ID: <1278250586-17062-5-git-send-email-felipe.contreras@gmail.com>
 References: <1278250586-17062-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:65451 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757851Ab0GDNgg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:36:36 -0400
+	with ESMTP id S1757856Ab0GDNgi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:36:38 -0400
 Received: by mail-bw0-f46.google.com with SMTP id 1so2295721bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:36:35 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:36:37 -0700 (PDT)
 In-Reply-To: <1278250586-17062-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg KH <greg@kroah.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
+Obviously nobody was using DSP_TRACEBUF_DISABLED, since it wasn't even
+standarized between TRACEBUF and TRACE_BUF.
+
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- drivers/staging/tidspbridge/Kconfig |   19 +++++++------------
- 1 files changed, 7 insertions(+), 12 deletions(-)
+ drivers/staging/tidspbridge/core/io_sm.c           |   16 ++++++++--------
+ .../staging/tidspbridge/include/dspbridge/io_sm.h  |    2 +-
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
-index 6ce443a..4d63b66 100644
---- a/drivers/staging/tidspbridge/Kconfig
-+++ b/drivers/staging/tidspbridge/Kconfig
-@@ -17,7 +17,6 @@ menuconfig TIDSPBRIDGE
- config TIDSPBRIDGE_DVFS
- 	bool "Enable Bridge Dynamic Voltage and Frequency Scaling (DVFS)"
- 	depends on TIDSPBRIDGE && OMAP_PM_SRF && CPU_FREQ
--	default n
- 	help
- 	  DVFS allows DSP Bridge to initiate the operating point change to
- 	  scale the chip voltage and frequency in order to match the
-@@ -33,14 +32,15 @@ config TIDSPBRIDGE_MEMPOOL_SIZE
- 	  failure under heavy memory fragmentation after some use time.
+diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
+index ee33abb..8909c41 100644
+--- a/drivers/staging/tidspbridge/core/io_sm.c
++++ b/drivers/staging/tidspbridge/core/io_sm.c
+@@ -114,7 +114,7 @@ struct io_mgr {
+ 	struct mgr_processorextinfo ext_proc_info;
+ 	struct cmm_object *hcmm_mgr;	/* Shared Mem Mngr */
+ 	struct work_struct io_workq;	/* workqueue */
+-#ifndef DSP_TRACEBUF_DISABLED
++#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+ 	u32 ul_trace_buffer_begin;	/* Trace message start address */
+ 	u32 ul_trace_buffer_end;	/* Trace message end address */
+ 	u32 ul_trace_buffer_current;	/* Trace message current address */
+@@ -210,7 +210,7 @@ int bridge_io_create(OUT struct io_mgr **phIOMgr,
+ 	}
  
- config TIDSPBRIDGE_DEBUG
--	bool "DSP Bridge Debug Support"
-+	bool "Debug Support"
- 	depends on TIDSPBRIDGE
- 	help
- 	  Say Y to enable Bridge debugging capabilities
+ 	/* Initialize chnl_mgr object */
+-#ifndef DSP_TRACEBUF_DISABLED
++#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+ 	pio_mgr->pmsg = NULL;
+ #endif
+ 	pio_mgr->hchnl_mgr = hchnl_mgr;
+@@ -265,7 +265,7 @@ int bridge_io_destroy(struct io_mgr *hio_mgr)
+ 		/* Free IO DPC object */
+ 		tasklet_kill(&hio_mgr->dpc_tasklet);
  
- config TIDSPBRIDGE_RECOVERY
--	bool "DSP Recovery Support"
-+	bool "Recovery Support"
- 	depends on TIDSPBRIDGE
-+	default y
- 	help
- 	  In case of DSP fatal error, BRIDGE driver will try to
- 	  recover itself.
-@@ -48,7 +48,6 @@ config TIDSPBRIDGE_RECOVERY
- config TIDSPBRIDGE_CACHE_LINE_CHECK
- 	bool "Check buffers to be 128 byte aligned"
- 	depends on TIDSPBRIDGE
--	default n
- 	help
- 	  When the DSP processes data, the DSP cache controller loads 128-Byte
- 	  chunks (lines) from SDRAM and writes the data back in 128-Byte chunks.
-@@ -60,27 +59,23 @@ config TIDSPBRIDGE_CACHE_LINE_CHECK
- 	  byte alignment, buffers failing this check will be rejected.
+-#ifndef DSP_TRACEBUF_DISABLED
++#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+ 		kfree(hio_mgr->pmsg);
+ #endif
+ 		dsp_wdt_exit();
+@@ -407,7 +407,7 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 		status = -EFAULT;
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+-#ifndef DSP_TRACEBUF_DISABLED
++#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+ 		status =
+ 		    cod_get_sym_value(cod_man, DSP_TRACESEC_END, &shm0_end);
+ #else
+@@ -752,7 +752,7 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
+ 		hmsg_mgr->max_msgs);
+ 	memset((void *)hio_mgr->shared_mem, 0, sizeof(struct shm));
  
- config TIDSPBRIDGE_WDT3
--	bool "Enable WDT3 interruptions"
-+	bool "Enable watchdog timer"
- 	depends on TIDSPBRIDGE
--	default n
- 	help
- 	  WTD3 is managed by DSP and once it is enabled, DSP side bridge is in
- 	  charge of refreshing the timer before overflow, if the DSP hangs MPU
- 	  will caught the interrupt and try to recover DSP.
+-#ifndef DSP_TRACEBUF_DISABLED
++#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+ 	/* Get the start address of trace buffer */
+ 	status = cod_get_sym_value(cod_man, SYS_PUTCBEG,
+ 				   &hio_mgr->ul_trace_buffer_begin);
+@@ -949,7 +949,7 @@ void io_dpc(IN OUT unsigned long pRefData)
+ 		    (pio_mgr->intr_val < DEH_LIMIT)) {
+ 			/* Notify DSP/BIOS exception */
+ 			if (hdeh_mgr) {
+-#ifndef DSP_TRACE_BUF_DISABLED
++#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+ 				print_dsp_debug_trace(pio_mgr);
+ #endif
+ 				bridge_deh_notify(hdeh_mgr, DSP_SYSERROR,
+@@ -961,7 +961,7 @@ void io_dpc(IN OUT unsigned long pRefData)
+ 		if (msg_mgr_obj)
+ 			io_dispatch_msg(pio_mgr, msg_mgr_obj);
+ #endif
+-#ifndef DSP_TRACEBUF_DISABLED
++#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+ 		if (pio_mgr->intr_val & MBX_DBG_SYSPRINTF) {
+ 			/* Notify DSP Trace message */
+ 			print_dsp_debug_trace(pio_mgr);
+@@ -1810,7 +1810,7 @@ int bridge_io_get_proc_load(IN struct io_mgr *hio_mgr,
+ 	return 0;
+ }
  
- config TIDSPBRIDGE_WDT_TIMEOUT
--	int "DSP watchdog timer timeout (in secs)"
--	depends on TIDSPBRIDGE_WDT3
-+	int "Watchdog timer timeout (in secs)"
-+	depends on TIDSPBRIDGE && TIDSPBRIDGE_WDT3
- 	default 5
- 	help
- 	   Watchdog timer timeout value, after that time if the watchdog timer
- 	   counter is not reset the wdt overflow interrupt will be triggered
+-#ifndef DSP_TRACEBUF_DISABLED
++#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+ void print_dsp_debug_trace(struct io_mgr *hio_mgr)
+ {
+ 	u32 ul_new_message_length = 0, ul_gpp_cur_pointer;
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/io_sm.h b/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
+index c3557ef..6e67f10 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
+@@ -302,7 +302,7 @@ int dump_dsp_stack(struct bridge_dev_context *bridge_context);
  
--comment "Bridge Notifications"
--	depends on TIDSPBRIDGE
--
- config TIDSPBRIDGE_NTFY_PWRERR
--	bool "Notify DSP Power Error"
-+	bool "Notify power errors"
- 	depends on TIDSPBRIDGE
- 	help
- 	  Enable notifications to registered clients on the event of power errror
+ void dump_dl_modules(struct bridge_dev_context *bridge_context);
+ 
+-#ifndef DSP_TRACEBUF_DISABLED
++#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+ void print_dsp_debug_trace(struct io_mgr *hio_mgr);
+ #endif
+ 
 -- 
 1.7.1
 
