@@ -1,15 +1,15 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 01/13] staging: ti dspbridge: deh: trivial cleanups
-Date: Sun,  4 Jul 2010 16:34:27 +0300
-Message-ID: <1278250479-16982-2-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 02/13] staging: ti dspbridge: mmufault: trivial cleanups
+Date: Sun,  4 Jul 2010 16:34:28 +0300
+Message-ID: <1278250479-16982-3-git-send-email-felipe.contreras@gmail.com>
 References: <1278250479-16982-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:40955 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757665Ab0GDNep (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:34:45 -0400
+	with ESMTP id S1757669Ab0GDNes (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:34:48 -0400
 Received: by mail-bw0-f46.google.com with SMTP id 1so2295322bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:34:44 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:34:47 -0700 (PDT)
 In-Reply-To: <1278250479-16982-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,172 +20,146 @@ No functional changes.
 
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- drivers/staging/tidspbridge/core/ue_deh.c |   72 ++++++++++-------------------
- 1 files changed, 25 insertions(+), 47 deletions(-)
+ drivers/staging/tidspbridge/core/mmu_fault.c |  102 +++++++++-----------------
+ 1 files changed, 34 insertions(+), 68 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/core/ue_deh.c b/drivers/staging/tidspbridge/core/ue_deh.c
-index 64e9366..ee2d23a 100644
---- a/drivers/staging/tidspbridge/core/ue_deh.c
-+++ b/drivers/staging/tidspbridge/core/ue_deh.c
-@@ -52,11 +52,6 @@
- #include <dspbridge/io_sm.h>
+diff --git a/drivers/staging/tidspbridge/core/mmu_fault.c b/drivers/staging/tidspbridge/core/mmu_fault.c
+index 5c0124f..42fe23f 100644
+--- a/drivers/staging/tidspbridge/core/mmu_fault.c
++++ b/drivers/staging/tidspbridge/core/mmu_fault.c
+@@ -40,11 +40,8 @@
+ #include "_tiomap.h"
+ #include "mmu_fault.h"
  
+-static u32 dmmu_event_mask;
+ u32 fault_addr;
  
--static struct hw_mmu_map_attrs_t map_attrs = { HW_LITTLE_ENDIAN,
--	HW_ELEM_SIZE16BIT,
--	HW_MMU_CPUES
--};
+-static bool mmu_check_if_fault(struct bridge_dev_context *dev_context);
 -
- static void *dummy_va_addr;
+ /*
+  *  ======== mmu_fault_dpc ========
+  *      Deferred procedure call to handle DSP MMU fault.
+@@ -53,9 +50,10 @@ void mmu_fault_dpc(IN unsigned long pRefData)
+ {
+ 	struct deh_mgr *hdeh_mgr = (struct deh_mgr *)pRefData;
  
- int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
-@@ -71,23 +66,20 @@ int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
- 	 *  the base image. */
- 	/* Get Bridge context info. */
- 	dev_get_bridge_context(hdev_obj, &hbridge_context);
--	DBC_ASSERT(hbridge_context);
--	dummy_va_addr = NULL;
- 	/* Allocate IO manager object: */
- 	deh_mgr = kzalloc(sizeof(struct deh_mgr), GFP_KERNEL);
- 	if (!deh_mgr) {
- 		status = -ENOMEM;
--		goto leave;
-+		goto err;
- 	}
+-	if (hdeh_mgr)
+-		bridge_deh_notify(hdeh_mgr, DSP_MMUFAULT, 0L);
++	if (!hdeh_mgr)
++		return;
  
- 	/* Create an NTFY object to manage notifications */
- 	deh_mgr->ntfy_obj = kmalloc(sizeof(struct ntfy_object), GFP_KERNEL);
--	if (deh_mgr->ntfy_obj) {
--		ntfy_init(deh_mgr->ntfy_obj);
--	} else {
-+	if (!deh_mgr->ntfy_obj) {
- 		status = -ENOMEM;
- 		goto err;
- 	}
-+	ntfy_init(deh_mgr->ntfy_obj);
- 
- 	/* Create a MMUfault DPC */
- 	tasklet_init(&deh_mgr->dpc_tasklet, mmu_fault_dpc, (u32) deh_mgr);
-@@ -100,22 +92,17 @@ int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
- 	deh_mgr->err_info.dw_val3 = 0L;
- 
- 	/* Install ISR function for DSP MMU fault */
--	if ((request_irq(INT_DSP_MMU_IRQ, mmu_fault_isr, 0,
--					"DspBridge\tiommu fault",
--					(void *)deh_mgr)) == 0)
--		status = 0;
--	else
--		status = -EPERM;
-+	status = request_irq(INT_DSP_MMU_IRQ, mmu_fault_isr, 0,
-+			"DspBridge\tiommu fault", deh_mgr);
-+	if (status < 0)
-+		goto err;
- 
--err:
--	if (DSP_FAILED(status)) {
--		/* If create failed, cleanup */
--		bridge_deh_destroy(deh_mgr);
--		deh_mgr = NULL;
--	}
--leave:
- 	*ret_deh_mgr = deh_mgr;
-+	return 0;
- 
-+err:
-+	bridge_deh_destroy(deh_mgr);
-+	*ret_deh_mgr = NULL;
- 	return status;
++	bridge_deh_notify(hdeh_mgr, DSP_MMUFAULT, 0L);
  }
  
-@@ -147,33 +134,32 @@ int bridge_deh_register_notify(struct deh_mgr *deh_mgr, u32 event_mask,
- 		u32 notify_type,
- 		struct dsp_notification *hnotification)
+ /*
+@@ -64,76 +62,44 @@ void mmu_fault_dpc(IN unsigned long pRefData)
+  */
+ irqreturn_t mmu_fault_isr(int irq, IN void *pRefData)
  {
--	int status = 0;
--
- 	if (!deh_mgr)
- 		return -EFAULT;
- 
- 	if (event_mask)
--		status = ntfy_register(deh_mgr->ntfy_obj, hnotification,
--					event_mask, notify_type);
-+		return ntfy_register(deh_mgr->ntfy_obj, hnotification,
-+				event_mask, notify_type);
- 	else
--		status = ntfy_unregister(deh_mgr->ntfy_obj, hnotification);
--
--	return status;
-+		return ntfy_unregister(deh_mgr->ntfy_obj, hnotification);
- }
- 
- void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
- {
- 	struct bridge_dev_context *dev_context;
--	int status = 0;
- 	u32 hw_mmu_max_tlb_count = 31;
+-	struct deh_mgr *deh_mgr_obj = (struct deh_mgr *)pRefData;
+-	struct bridge_dev_context *dev_context;
++	struct deh_mgr *deh_mgr_obj = pRefData;
  	struct cfg_hostres *resources;
--	hw_status hw_status_obj;
-+	struct hw_mmu_map_attrs_t map_attrs = {
-+		.endianism = HW_LITTLE_ENDIAN,
-+		.element_size = HW_ELEM_SIZE16BIT,
-+		.mixed_size = HW_MMU_CPUES,
-+	};
++	u32 dmmu_event_mask;
  
- 	if (!deh_mgr)
- 		return;
- 
- 	dev_info(bridge, "%s: device exception\n", __func__);
--	dev_context = (struct bridge_dev_context *)deh_mgr->hbridge_context;
-+	dev_context = deh_mgr->hbridge_context;
- 	resources = dev_context->resources;
- 
- 	switch (ulEventMask) {
-@@ -200,8 +186,6 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
- 			(unsigned int) deh_mgr->err_info.dw_val2,
- 			(unsigned int) fault_addr);
- 		dummy_va_addr = (void*)__get_free_page(GFP_ATOMIC);
--		dev_context = (struct bridge_dev_context *)
--			deh_mgr->hbridge_context;
- 
- 		print_dsp_trace_buffer(dev_context);
- 		dump_dl_modules(dev_context);
-@@ -216,13 +200,10 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
- 			dev_context->num_tlb_entries =
- 				dev_context->fixed_tlb_entries;
- 		}
--		if (DSP_SUCCEEDED(status)) {
--			hw_status_obj =
--				hw_mmu_tlb_add(resources->dw_dmmu_base,
--						virt_to_phys(dummy_va_addr), fault_addr,
--						HW_PAGE_SIZE4KB, 1,
--						&map_attrs, HW_SET, HW_SET);
--		}
-+		hw_mmu_tlb_add(resources->dw_dmmu_base,
-+				virt_to_phys(dummy_va_addr), fault_addr,
-+				HW_PAGE_SIZE4KB, 1,
-+				&map_attrs, HW_SET, HW_SET);
- 
- 		dsp_clk_enable(DSP_CLK_GPT8);
- 
-@@ -231,7 +212,7 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
- 		/* Clear MMU interrupt */
- 		hw_mmu_event_ack(resources->dw_dmmu_base,
- 				HW_MMU_TRANSLATION_FAULT);
--		dump_dsp_stack(deh_mgr->hbridge_context);
-+		dump_dsp_stack(dev_context);
- 		dsp_clk_disable(DSP_CLK_GPT8);
- 		break;
- #ifdef CONFIG_BRIDGE_NTFY_PWRERR
-@@ -281,9 +262,6 @@ void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
- int bridge_deh_get_info(struct deh_mgr *deh_mgr,
- 		struct dsp_errorinfo *pErrInfo)
- {
--	DBC_REQUIRE(deh_mgr);
--	DBC_REQUIRE(pErrInfo);
+-	DBC_REQUIRE(irq == INT_DSP_MMU_IRQ);
+-	DBC_REQUIRE(deh_mgr_obj);
 -
- 	if (!deh_mgr)
- 		return -EFAULT;
+-	if (deh_mgr_obj) {
+-
+-		dev_context =
+-		    (struct bridge_dev_context *)deh_mgr_obj->hbridge_context;
+-
+-		resources = dev_context->resources;
++	if (!deh_mgr_obj)
++		return IRQ_HANDLED;
  
+-		if (!resources) {
+-			dev_dbg(bridge, "%s: Failed to get Host Resources\n",
++	resources = deh_mgr_obj->hbridge_context->resources;
++	if (!resources) {
++		dev_dbg(bridge, "%s: Failed to get Host Resources\n",
+ 				__func__);
+-			return IRQ_HANDLED;
+-		}
+-		if (mmu_check_if_fault(dev_context)) {
+-			printk(KERN_INFO "***** DSPMMU FAULT ***** IRQStatus "
+-			       "0x%x\n", dmmu_event_mask);
+-			printk(KERN_INFO "***** DSPMMU FAULT ***** fault_addr "
+-			       "0x%x\n", fault_addr);
+-			/*
+-			 * Schedule a DPC directly. In the future, it may be
+-			 * necessary to check if DSP MMU fault is intended for
+-			 * Bridge.
+-			 */
+-			tasklet_schedule(&deh_mgr_obj->dpc_tasklet);
+-
+-			/* Reset err_info structure before use. */
+-			deh_mgr_obj->err_info.dw_err_mask = DSP_MMUFAULT;
+-			deh_mgr_obj->err_info.dw_val1 = fault_addr >> 16;
+-			deh_mgr_obj->err_info.dw_val2 = fault_addr & 0xFFFF;
+-			deh_mgr_obj->err_info.dw_val3 = 0L;
+-			/* Disable the MMU events, else once we clear it will
+-			 * start to raise INTs again */
+-			hw_mmu_event_disable(resources->dw_dmmu_base,
+-					     HW_MMU_TRANSLATION_FAULT);
+-		} else {
+-			hw_mmu_event_disable(resources->dw_dmmu_base,
+-					     HW_MMU_ALL_INTERRUPTS);
+-		}
++		return IRQ_HANDLED;
+ 	}
+-	return IRQ_HANDLED;
+-}
+ 
+-/*
+- *  ======== mmu_check_if_fault ========
+- *      Check to see if MMU Fault is valid TLB miss from DSP
+- *  Note: This function is called from an ISR
+- */
+-static bool mmu_check_if_fault(struct bridge_dev_context *dev_context)
+-{
+-
+-	bool ret = false;
+-	hw_status hw_status_obj;
+-	struct cfg_hostres *resources = dev_context->resources;
+-
+-	if (!resources) {
+-		dev_dbg(bridge, "%s: Failed to get Host Resources in\n",
+-			__func__);
+-		return ret;
+-	}
+-	hw_status_obj =
+-	    hw_mmu_event_status(resources->dw_dmmu_base, &dmmu_event_mask);
++	hw_mmu_event_status(resources->dw_dmmu_base, &dmmu_event_mask);
+ 	if (dmmu_event_mask == HW_MMU_TRANSLATION_FAULT) {
+ 		hw_mmu_fault_addr_read(resources->dw_dmmu_base, &fault_addr);
+-		ret = true;
++		dev_info(bridge, "%s: status=0x%x, fault_addr=0x%x\n", __func__,
++				dmmu_event_mask, fault_addr);
++		/*
++		 * Schedule a DPC directly. In the future, it may be
++		 * necessary to check if DSP MMU fault is intended for
++		 * Bridge.
++		 */
++		tasklet_schedule(&deh_mgr_obj->dpc_tasklet);
++
++		/* Reset err_info structure before use. */
++		deh_mgr_obj->err_info.dw_err_mask = DSP_MMUFAULT;
++		deh_mgr_obj->err_info.dw_val1 = fault_addr >> 16;
++		deh_mgr_obj->err_info.dw_val2 = fault_addr & 0xFFFF;
++		deh_mgr_obj->err_info.dw_val3 = 0L;
++		/* Disable the MMU events, else once we clear it will
++		 * start to raise INTs again */
++		hw_mmu_event_disable(resources->dw_dmmu_base,
++				HW_MMU_TRANSLATION_FAULT);
++	} else {
++		hw_mmu_event_disable(resources->dw_dmmu_base,
++				HW_MMU_ALL_INTERRUPTS);
+ 	}
+-	return ret;
++	return IRQ_HANDLED;
+ }
 -- 
 1.7.1
 
