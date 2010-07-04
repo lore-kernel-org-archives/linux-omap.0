@@ -1,372 +1,66 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 12/13] staging: ti dspbridge: deh: tidying up
-Date: Sun,  4 Jul 2010 16:34:38 +0300
-Message-ID: <1278250479-16982-13-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 13/13] staging: ti dspbridge: deh: update copyright notice
+Date: Sun,  4 Jul 2010 16:34:39 +0300
+Message-ID: <1278250479-16982-14-git-send-email-felipe.contreras@gmail.com>
 References: <1278250479-16982-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:40955 "EHLO
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:56879 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757767Ab0GDNfG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:35:06 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 1so2295322bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:35:05 -0700 (PDT)
+	with ESMTP id S1757781Ab0GDNfI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:35:08 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 1so2295391bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:35:07 -0700 (PDT)
 In-Reply-To: <1278250479-16982-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg KH <greg@kroah.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
+Add myself... git blame seems to agree :)
+
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- drivers/staging/tidspbridge/core/_deh.h            |    1 -
- drivers/staging/tidspbridge/core/ue_deh.c          |  164 +++++++++-----------
- .../staging/tidspbridge/include/dspbridge/dspdeh.h |   15 +-
- 3 files changed, 78 insertions(+), 102 deletions(-)
+ drivers/staging/tidspbridge/core/_deh.h            |    1 +
+ drivers/staging/tidspbridge/core/ue_deh.c          |    1 +
+ .../staging/tidspbridge/include/dspbridge/dspdeh.h |    1 +
+ 3 files changed, 3 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/staging/tidspbridge/core/_deh.h b/drivers/staging/tidspbridge/core/_deh.h
-index 32b84f3..9fb727b 100644
+index 9fb727b..16723cd 100644
 --- a/drivers/staging/tidspbridge/core/_deh.h
 +++ b/drivers/staging/tidspbridge/core/_deh.h
-@@ -26,7 +26,6 @@
- struct deh_mgr {
- 	struct bridge_dev_context *hbridge_context;	/* Bridge context. */
- 	struct ntfy_object *ntfy_obj;	/* NTFY object */
--	u32 fault_addr;
- 
- 	/* MMU Fault DPC */
- 	struct tasklet_struct dpc_tasklet;
+@@ -6,6 +6,7 @@
+  * Private header for DEH module.
+  *
+  * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ * Copyright (C) 2010 Felipe Contreras
+  *
+  * This package is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
 diff --git a/drivers/staging/tidspbridge/core/ue_deh.c b/drivers/staging/tidspbridge/core/ue_deh.c
-index 26aec91..ae6ee9f 100644
+index ae6ee9f..f73604f 100644
 --- a/drivers/staging/tidspbridge/core/ue_deh.c
 +++ b/drivers/staging/tidspbridge/core/ue_deh.c
-@@ -16,78 +16,59 @@
-  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-  */
- 
--/*  ----------------------------------- Host OS */
--#include <dspbridge/host_os.h>
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <plat/dmtimer.h>
- 
--/*  ----------------------------------- DSP/BIOS Bridge */
--#include <dspbridge/std.h>
- #include <dspbridge/dbdefs.h>
--
--/*  ----------------------------------- Trace & Debug */
--#include <dspbridge/dbc.h>
--
--/*  ----------------------------------- OS Adaptation Layer */
--#include <dspbridge/cfg.h>
--#include <dspbridge/clk.h>
--#include <dspbridge/ntfy.h>
--#include <dspbridge/drv.h>
--
--/*  ----------------------------------- Link Driver */
- #include <dspbridge/dspdeh.h>
--
--/*  ----------------------------------- Platform Manager */
- #include <dspbridge/dev.h>
--#include <dspbridge/dspapi.h>
--#include <dspbridge/wdt.h>
--
--/* ------------------------------------ Hardware Abstraction Layer */
--#include <hw_defs.h>
--#include <hw_mmu.h>
--
--/*  ----------------------------------- This */
- #include "_tiomap.h"
- #include "_deh.h"
--#include "_tiomap_pwr.h"
-+
- #include <dspbridge/io_sm.h>
-+#include <dspbridge/drv.h>
-+#include <dspbridge/wdt.h>
- 
-+static u32 fault_addr;
- 
- static void mmu_fault_dpc(unsigned long data)
- {
--	struct deh_mgr *hdeh_mgr = (void *)data;
-+	struct deh_mgr *deh = (void *)data;
- 
--	if (!hdeh_mgr)
-+	if (!deh)
- 		return;
- 
--	bridge_deh_notify(hdeh_mgr, DSP_MMUFAULT, 0);
-+	bridge_deh_notify(deh, DSP_MMUFAULT, 0);
- }
- 
- static irqreturn_t mmu_fault_isr(int irq, void *data)
- {
--	struct deh_mgr *deh_mgr_obj = data;
-+	struct deh_mgr *deh = data;
- 	struct cfg_hostres *resources;
--	u32 dmmu_event_mask;
-+	u32 event;
- 
--	if (!deh_mgr_obj)
-+	if (!deh)
- 		return IRQ_HANDLED;
- 
--	resources = deh_mgr_obj->hbridge_context->resources;
-+	resources = deh->hbridge_context->resources;
- 	if (!resources) {
- 		dev_dbg(bridge, "%s: Failed to get Host Resources\n",
- 				__func__);
- 		return IRQ_HANDLED;
- 	}
- 
--	hw_mmu_event_status(resources->dw_dmmu_base, &dmmu_event_mask);
--	if (dmmu_event_mask == HW_MMU_TRANSLATION_FAULT) {
--		hw_mmu_fault_addr_read(resources->dw_dmmu_base, &deh_mgr_obj->fault_addr);
--		dev_info(bridge, "%s: status=0x%x, fault_addr=0x%x\n", __func__,
--				dmmu_event_mask, deh_mgr_obj->fault_addr);
-+	hw_mmu_event_status(resources->dw_dmmu_base, &event);
-+	if (event == HW_MMU_TRANSLATION_FAULT) {
-+		hw_mmu_fault_addr_read(resources->dw_dmmu_base, &fault_addr);
-+		dev_dbg(bridge, "%s: event=0x%x, fault_addr=0x%x\n", __func__,
-+				event, fault_addr);
- 		/*
- 		 * Schedule a DPC directly. In the future, it may be
- 		 * necessary to check if DSP MMU fault is intended for
- 		 * Bridge.
- 		 */
--		tasklet_schedule(&deh_mgr_obj->dpc_tasklet);
-+		tasklet_schedule(&deh->dpc_tasklet);
- 
- 		/* Disable the MMU events, else once we clear it will
- 		 * start to raise INTs again */
-@@ -100,11 +81,11 @@ static irqreturn_t mmu_fault_isr(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
--int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
-+int bridge_deh_create(struct deh_mgr **ret_deh,
- 		struct dev_object *hdev_obj)
- {
--	int status = 0;
--	struct deh_mgr *deh_mgr;
-+	int status;
-+	struct deh_mgr *deh;
- 	struct bridge_dev_context *hbridge_context = NULL;
- 
- 	/*  Message manager will be created when a file is loaded, since
-@@ -113,79 +94,78 @@ int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
- 	/* Get Bridge context info. */
- 	dev_get_bridge_context(hdev_obj, &hbridge_context);
- 	/* Allocate IO manager object: */
--	deh_mgr = kzalloc(sizeof(struct deh_mgr), GFP_KERNEL);
--	if (!deh_mgr) {
-+	deh = kzalloc(sizeof(*deh), GFP_KERNEL);
-+	if (!deh) {
- 		status = -ENOMEM;
- 		goto err;
- 	}
- 
- 	/* Create an NTFY object to manage notifications */
--	deh_mgr->ntfy_obj = kmalloc(sizeof(struct ntfy_object), GFP_KERNEL);
--	if (!deh_mgr->ntfy_obj) {
-+	deh->ntfy_obj = kmalloc(sizeof(struct ntfy_object), GFP_KERNEL);
-+	if (!deh->ntfy_obj) {
- 		status = -ENOMEM;
- 		goto err;
- 	}
--	ntfy_init(deh_mgr->ntfy_obj);
-+	ntfy_init(deh->ntfy_obj);
- 
- 	/* Create a MMUfault DPC */
--	tasklet_init(&deh_mgr->dpc_tasklet, mmu_fault_dpc, (u32) deh_mgr);
-+	tasklet_init(&deh->dpc_tasklet, mmu_fault_dpc, (u32) deh);
- 
- 	/* Fill in context structure */
--	deh_mgr->hbridge_context = hbridge_context;
-+	deh->hbridge_context = hbridge_context;
- 
- 	/* Install ISR function for DSP MMU fault */
- 	status = request_irq(INT_DSP_MMU_IRQ, mmu_fault_isr, 0,
--			"DspBridge\tiommu fault", deh_mgr);
-+			"DspBridge\tiommu fault", deh);
- 	if (status < 0)
- 		goto err;
- 
--	*ret_deh_mgr = deh_mgr;
-+	*ret_deh = deh;
- 	return 0;
- 
- err:
--	bridge_deh_destroy(deh_mgr);
--	*ret_deh_mgr = NULL;
-+	bridge_deh_destroy(deh);
-+	*ret_deh = NULL;
- 	return status;
- }
- 
--int bridge_deh_destroy(struct deh_mgr *deh_mgr)
-+int bridge_deh_destroy(struct deh_mgr *deh)
- {
--	if (!deh_mgr)
-+	if (!deh)
- 		return -EFAULT;
- 
- 	/* If notification object exists, delete it */
--	if (deh_mgr->ntfy_obj) {
--		ntfy_delete(deh_mgr->ntfy_obj);
--		kfree(deh_mgr->ntfy_obj);
-+	if (deh->ntfy_obj) {
-+		ntfy_delete(deh->ntfy_obj);
-+		kfree(deh->ntfy_obj);
- 	}
- 	/* Disable DSP MMU fault */
--	free_irq(INT_DSP_MMU_IRQ, deh_mgr);
-+	free_irq(INT_DSP_MMU_IRQ, deh);
- 
- 	/* Free DPC object */
--	tasklet_kill(&deh_mgr->dpc_tasklet);
-+	tasklet_kill(&deh->dpc_tasklet);
- 
- 	/* Deallocate the DEH manager object */
--	kfree(deh_mgr);
-+	kfree(deh);
- 
- 	return 0;
- }
- 
--int bridge_deh_register_notify(struct deh_mgr *deh_mgr, u32 event_mask,
-+int bridge_deh_register_notify(struct deh_mgr *deh, u32 event_mask,
- 		u32 notify_type,
- 		struct dsp_notification *hnotification)
- {
--	if (!deh_mgr)
-+	if (!deh)
- 		return -EFAULT;
- 
- 	if (event_mask)
--		return ntfy_register(deh_mgr->ntfy_obj, hnotification,
-+		return ntfy_register(deh->ntfy_obj, hnotification,
- 				event_mask, notify_type);
- 	else
--		return ntfy_unregister(deh_mgr->ntfy_obj, hnotification);
-+		return ntfy_unregister(deh->ntfy_obj, hnotification);
- }
- 
--static void mmu_fault_print_stack(struct bridge_dev_context *dev_context,
--		u32 fault_addr)
-+static void mmu_fault_print_stack(struct bridge_dev_context *dev_context)
- {
- 	struct cfg_hostres *resources;
- 	struct hw_mmu_map_attrs_t map_attrs = {
-@@ -225,52 +205,50 @@ static void mmu_fault_print_stack(struct bridge_dev_context *dev_context,
- 	free_page((unsigned long)dummy_va_addr);
- }
- 
--void bridge_deh_notify(struct deh_mgr *deh_mgr, u32 ulEventMask, u32 dwErrInfo)
-+static inline const char *event_to_string(int event)
-+{
-+	switch (event) {
-+	case DSP_SYSERROR: return "DSP_SYSERROR"; break;
-+	case DSP_MMUFAULT: return "DSP_MMUFAULT"; break;
-+	case DSP_PWRERROR: return "DSP_PWRERROR"; break;
-+	case DSP_WDTOVERFLOW: return "DSP_WDTOVERFLOW"; break;
-+	default: return "unkown event"; break;
-+	}
-+}
-+
-+void bridge_deh_notify(struct deh_mgr *deh, int event, int info)
- {
- 	struct bridge_dev_context *dev_context;
-+	const char *str = event_to_string(event);
- 
--	if (!deh_mgr)
-+	if (!deh)
- 		return;
- 
--	dev_info(bridge, "%s: device exception\n", __func__);
--	dev_context = deh_mgr->hbridge_context;
-+	dev_dbg(bridge, "%s: device exception", __func__);
-+	dev_context = deh->hbridge_context;
- 
--	switch (ulEventMask) {
-+	switch (event) {
- 	case DSP_SYSERROR:
--		dev_err(bridge, "%s: %s, err_info = 0x%x\n",
--				__func__, "DSP_SYSERROR", dwErrInfo);
-+		dev_err(bridge, "%s: %s, info=0x%x", __func__,
-+				str, info);
- 		dump_dl_modules(dev_context);
- 		dump_dsp_stack(dev_context);
- 		break;
- 	case DSP_MMUFAULT:
--		dev_err(bridge, "%s: %s, err_info = 0x%x\n",
--				__func__, "DSP_MMUFAULT", dwErrInfo);
--		dev_info(bridge, "%s: %s, fault=0x%x\n", __func__, "DSP_MMUFAULT",
--				deh_mgr->fault_addr);
--
-+		dev_err(bridge, "%s: %s, addr=0x%x", __func__,
-+				str, fault_addr);
- 		print_dsp_trace_buffer(dev_context);
- 		dump_dl_modules(dev_context);
--
--		mmu_fault_print_stack(dev_context, deh_mgr->fault_addr);
--		break;
--#ifdef CONFIG_BRIDGE_NTFY_PWRERR
--	case DSP_PWRERROR:
--		dev_err(bridge, "%s: %s, err_info = 0x%x\n",
--				__func__, "DSP_PWRERROR", dwErrInfo);
--		break;
--#endif /* CONFIG_BRIDGE_NTFY_PWRERR */
--	case DSP_WDTOVERFLOW:
--		dev_err(bridge, "%s: DSP_WDTOVERFLOW\n", __func__);
-+		mmu_fault_print_stack(dev_context);
- 		break;
- 	default:
--		dev_dbg(bridge, "%s: Unknown Error, err_info = 0x%x\n",
--				__func__, dwErrInfo);
-+		dev_err(bridge, "%s: %s", __func__, str);
- 		break;
- 	}
- 
- 	/* Filter subsequent notifications when an error occurs */
- 	if (dev_context->dw_brd_state != BRD_ERROR) {
--		ntfy_notify(deh_mgr->ntfy_obj, ulEventMask);
-+		ntfy_notify(deh->ntfy_obj, event);
- #ifdef CONFIG_BRIDGE_RECOVERY
- 		bridge_recover_schedule();
- #endif
+@@ -6,6 +6,7 @@
+  * Implements upper edge DSP exception handling (DEH) functions.
+  *
+  * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ * Copyright (C) 2010 Felipe Contreras
+  *
+  * This package is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
 diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspdeh.h b/drivers/staging/tidspbridge/include/dspbridge/dspdeh.h
-index f2bfd89..eca56a5 100644
+index eca56a5..d258ab6 100644
 --- a/drivers/staging/tidspbridge/include/dspbridge/dspdeh.h
 +++ b/drivers/staging/tidspbridge/include/dspbridge/dspdeh.h
-@@ -23,21 +23,20 @@
- #ifndef DSPDEH_
- #define DSPDEH_
- 
--#include <dspbridge/devdefs.h>
-+struct deh_mgr;
-+struct dev_object;
-+struct dsp_notification;
- 
--#include <dspbridge/dehdefs.h>
--
--extern int bridge_deh_create(struct deh_mgr **ret_deh_mgr,
-+int bridge_deh_create(struct deh_mgr **ret_deh,
- 		struct dev_object *hdev_obj);
- 
--extern int bridge_deh_destroy(struct deh_mgr *deh_mgr);
-+int bridge_deh_destroy(struct deh_mgr *deh);
- 
--extern int bridge_deh_register_notify(struct deh_mgr *deh_mgr,
-+int bridge_deh_register_notify(struct deh_mgr *deh,
- 		u32 event_mask,
- 		u32 notify_type,
- 		struct dsp_notification *hnotification);
- 
--extern void bridge_deh_notify(struct deh_mgr *deh_mgr,
--		u32 ulEventMask, u32 dwErrInfo);
-+void bridge_deh_notify(struct deh_mgr *deh, int event, int info);
- 
- #endif /* DSPDEH_ */
+@@ -10,6 +10,7 @@
+  *   Function comment headers reside with the function typedefs in dspdefs.h.
+  *
+  * Copyright (C) 2005-2006 Texas Instruments, Inc.
++ * Copyright (C) 2010 Felipe Contreras
+  *
+  * This package is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
 -- 
 1.7.1
 
