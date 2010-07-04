@@ -1,40 +1,64 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 4/5] staging: ti dspbridge: use _DEBUG for debug trace
-Date: Sun,  4 Jul 2010 16:36:25 +0300
-Message-ID: <1278250586-17062-5-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 5/5] staging: ti dspbridge: add _BACKTRACE config
+Date: Sun,  4 Jul 2010 16:36:26 +0300
+Message-ID: <1278250586-17062-6-git-send-email-felipe.contreras@gmail.com>
 References: <1278250586-17062-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:65451 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757856Ab0GDNgi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:36:38 -0400
+	with ESMTP id S1757856Ab0GDNgk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jul 2010 09:36:40 -0400
 Received: by mail-bw0-f46.google.com with SMTP id 1so2295721bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:36:37 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Sun, 04 Jul 2010 06:36:39 -0700 (PDT)
 In-Reply-To: <1278250586-17062-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg KH <greg@kroah.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Obviously nobody was using DSP_TRACEBUF_DISABLED, since it wasn't even
-standarized between TRACEBUF and TRACE_BUF.
+We only want this code when testing.
 
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- drivers/staging/tidspbridge/core/io_sm.c           |   16 ++++++++--------
- .../staging/tidspbridge/include/dspbridge/io_sm.h  |    2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/staging/tidspbridge/Kconfig                |    7 +++++
+ drivers/staging/tidspbridge/core/io_sm.c           |   26 ++++++++++---------
+ drivers/staging/tidspbridge/core/ue_deh.c          |    6 ++++
+ drivers/staging/tidspbridge/gen/gh.c               |    2 +
+ .../staging/tidspbridge/include/dspbridge/dbll.h   |    2 +
+ drivers/staging/tidspbridge/include/dspbridge/gh.h |    2 +
+ .../staging/tidspbridge/include/dspbridge/io_sm.h  |    4 ++-
+ .../staging/tidspbridge/include/dspbridge/nldr.h   |    2 +
+ .../staging/tidspbridge/include/dspbridge/node.h   |    2 +
+ drivers/staging/tidspbridge/pmgr/dbll.c            |    2 +
+ drivers/staging/tidspbridge/rmgr/nldr.c            |    2 +
+ drivers/staging/tidspbridge/rmgr/node.c            |    3 +-
+ 12 files changed, 46 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
+index 4d63b66..93de4f2 100644
+--- a/drivers/staging/tidspbridge/Kconfig
++++ b/drivers/staging/tidspbridge/Kconfig
+@@ -81,3 +81,10 @@ config TIDSPBRIDGE_NTFY_PWRERR
+ 	  Enable notifications to registered clients on the event of power errror
+ 	  trying to suspend bridge driver. Say Y, to signal this event as a fatal
+ 	  error, this will require a bridge restart to recover.
++
++config TIDSPBRIDGE_BACKTRACE
++	bool "Dump backtraces on fatal errors"
++	depends on TIDSPBRIDGE
++	help
++	  Enable useful information to backtrace fatal errors. Say Y if you
++	  want to dump information for testing purposes.
 diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
-index ee33abb..8909c41 100644
+index 8909c41..1503968 100644
 --- a/drivers/staging/tidspbridge/core/io_sm.c
 +++ b/drivers/staging/tidspbridge/core/io_sm.c
 @@ -114,7 +114,7 @@ struct io_mgr {
  	struct mgr_processorextinfo ext_proc_info;
  	struct cmm_object *hcmm_mgr;	/* Shared Mem Mngr */
  	struct work_struct io_workq;	/* workqueue */
--#ifndef DSP_TRACEBUF_DISABLED
-+#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+-#ifdef CONFIG_TIDSPBRIDGE_DEBUG
++#if defined(CONFIG_TIDSPBRIDGE_BACKTRACE) || defined(CONFIG_TIDSPBRIDGE_DEBUG)
  	u32 ul_trace_buffer_begin;	/* Trace message start address */
  	u32 ul_trace_buffer_end;	/* Trace message end address */
  	u32 ul_trace_buffer_current;	/* Trace message current address */
@@ -42,8 +66,8 @@ index ee33abb..8909c41 100644
  	}
  
  	/* Initialize chnl_mgr object */
--#ifndef DSP_TRACEBUF_DISABLED
-+#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+-#ifdef CONFIG_TIDSPBRIDGE_DEBUG
++#if defined(CONFIG_TIDSPBRIDGE_BACKTRACE) || defined(CONFIG_TIDSPBRIDGE_DEBUG)
  	pio_mgr->pmsg = NULL;
  #endif
  	pio_mgr->hchnl_mgr = hchnl_mgr;
@@ -51,8 +75,8 @@ index ee33abb..8909c41 100644
  		/* Free IO DPC object */
  		tasklet_kill(&hio_mgr->dpc_tasklet);
  
--#ifndef DSP_TRACEBUF_DISABLED
-+#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+-#ifdef CONFIG_TIDSPBRIDGE_DEBUG
++#if defined(CONFIG_TIDSPBRIDGE_BACKTRACE) || defined(CONFIG_TIDSPBRIDGE_DEBUG)
  		kfree(hio_mgr->pmsg);
  #endif
  		dsp_wdt_exit();
@@ -60,8 +84,8 @@ index ee33abb..8909c41 100644
  		status = -EFAULT;
  	}
  	if (DSP_SUCCEEDED(status)) {
--#ifndef DSP_TRACEBUF_DISABLED
-+#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+-#ifdef CONFIG_TIDSPBRIDGE_DEBUG
++#if defined(CONFIG_TIDSPBRIDGE_BACKTRACE) || defined(CONFIG_TIDSPBRIDGE_DEBUG)
  		status =
  		    cod_get_sym_value(cod_man, DSP_TRACESEC_END, &shm0_end);
  #else
@@ -69,8 +93,8 @@ index ee33abb..8909c41 100644
  		hmsg_mgr->max_msgs);
  	memset((void *)hio_mgr->shared_mem, 0, sizeof(struct shm));
  
--#ifndef DSP_TRACEBUF_DISABLED
-+#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+-#ifdef CONFIG_TIDSPBRIDGE_DEBUG
++#if defined(CONFIG_TIDSPBRIDGE_BACKTRACE) || defined(CONFIG_TIDSPBRIDGE_DEBUG)
  	/* Get the start address of trace buffer */
  	status = cod_get_sym_value(cod_man, SYS_PUTCBEG,
  				   &hio_mgr->ul_trace_buffer_begin);
@@ -78,42 +102,241 @@ index ee33abb..8909c41 100644
  		    (pio_mgr->intr_val < DEH_LIMIT)) {
  			/* Notify DSP/BIOS exception */
  			if (hdeh_mgr) {
--#ifndef DSP_TRACE_BUF_DISABLED
-+#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+-#ifdef CONFIG_TIDSPBRIDGE_DEBUG
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
  				print_dsp_debug_trace(pio_mgr);
  #endif
  				bridge_deh_notify(hdeh_mgr, DSP_SYSERROR,
-@@ -961,7 +961,7 @@ void io_dpc(IN OUT unsigned long pRefData)
- 		if (msg_mgr_obj)
- 			io_dispatch_msg(pio_mgr, msg_mgr_obj);
- #endif
--#ifndef DSP_TRACEBUF_DISABLED
-+#ifdef CONFIG_TIDSPBRIDGE_DEBUG
- 		if (pio_mgr->intr_val & MBX_DBG_SYSPRINTF) {
- 			/* Notify DSP Trace message */
- 			print_dsp_debug_trace(pio_mgr);
-@@ -1810,7 +1810,7 @@ int bridge_io_get_proc_load(IN struct io_mgr *hio_mgr,
+@@ -1810,7 +1810,12 @@ int bridge_io_get_proc_load(IN struct io_mgr *hio_mgr,
  	return 0;
  }
  
--#ifndef DSP_TRACEBUF_DISABLED
-+#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+-#ifdef CONFIG_TIDSPBRIDGE_DEBUG
++void io_sm_init(void)
++{
++	/* Do nothing */
++}
++
++#if defined(CONFIG_TIDSPBRIDGE_BACKTRACE) || defined(CONFIG_TIDSPBRIDGE_DEBUG)
  void print_dsp_debug_trace(struct io_mgr *hio_mgr)
  {
  	u32 ul_new_message_length = 0, ul_gpp_cur_pointer;
+@@ -1871,6 +1876,7 @@ void print_dsp_debug_trace(struct io_mgr *hio_mgr)
+ }
+ #endif
+ 
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ /*
+  *  ======== print_dsp_trace_buffer ========
+  *      Prints the trace buffer returned from the DSP (if DBG_Trace is enabled).
+@@ -2045,10 +2051,6 @@ func_end:
+ 	return status;
+ }
+ 
+-void io_sm_init(void)
+-{
+-	/* Do nothing */
+-}
+ /**
+  * dump_dsp_stack() - This function dumps the data on the DSP stack.
+  * @bridge_context:	Bridge driver's device context pointer.
+@@ -2407,4 +2409,4 @@ void dump_dl_modules(struct bridge_dev_context *bridge_context)
+ func_end:
+ 	kfree(module_struct);
+ }
+-
++#endif
+diff --git a/drivers/staging/tidspbridge/core/ue_deh.c b/drivers/staging/tidspbridge/core/ue_deh.c
+index 2bdf92e..3430418 100644
+--- a/drivers/staging/tidspbridge/core/ue_deh.c
++++ b/drivers/staging/tidspbridge/core/ue_deh.c
+@@ -166,6 +166,7 @@ int bridge_deh_register_notify(struct deh_mgr *deh, u32 event_mask,
+ 		return ntfy_unregister(deh->ntfy_obj, hnotification);
+ }
+ 
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ static void mmu_fault_print_stack(struct bridge_dev_context *dev_context)
+ {
+ 	struct cfg_hostres *resources;
+@@ -205,6 +206,7 @@ static void mmu_fault_print_stack(struct bridge_dev_context *dev_context)
+ 	hw_mmu_disable(resources->dw_dmmu_base);
+ 	free_page((unsigned long)dummy_va_addr);
+ }
++#endif
+ 
+ static inline const char *event_to_string(int event)
+ {
+@@ -232,15 +234,19 @@ void bridge_deh_notify(struct deh_mgr *deh, int event, int info)
+ 	case DSP_SYSERROR:
+ 		dev_err(bridge, "%s: %s, info=0x%x", __func__,
+ 				str, info);
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ 		dump_dl_modules(dev_context);
+ 		dump_dsp_stack(dev_context);
++#endif
+ 		break;
+ 	case DSP_MMUFAULT:
+ 		dev_err(bridge, "%s: %s, addr=0x%x", __func__,
+ 				str, fault_addr);
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ 		print_dsp_trace_buffer(dev_context);
+ 		dump_dl_modules(dev_context);
+ 		mmu_fault_print_stack(dev_context);
++#endif
+ 		break;
+ 	default:
+ 		dev_err(bridge, "%s: %s", __func__, str);
+diff --git a/drivers/staging/tidspbridge/gen/gh.c b/drivers/staging/tidspbridge/gen/gh.c
+index d1e7b38..44fad88 100644
+--- a/drivers/staging/tidspbridge/gen/gh.c
++++ b/drivers/staging/tidspbridge/gen/gh.c
+@@ -188,6 +188,7 @@ static void myfree(void *ptr, s32 size)
+ 	gs_free(ptr);
+ }
+ 
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ /**
+  * gh_iterate() - This function goes through all the elements in the hash table
+  *		looking for the dsp symbols.
+@@ -211,3 +212,4 @@ void gh_iterate(struct gh_t_hash_tab *hash_tab,
+ 			}
+ 		}
+ }
++#endif
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dbll.h b/drivers/staging/tidspbridge/include/dspbridge/dbll.h
+index 54c6219..0d03714 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dbll.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dbll.h
+@@ -53,7 +53,9 @@ extern void dbll_set_attrs(struct dbll_tar_obj *target,
+ extern void dbll_unload(struct dbll_library_obj *lib, struct dbll_attrs *attrs);
+ extern int dbll_unload_sect(struct dbll_library_obj *lib,
+ 				   char *sectName, struct dbll_attrs *attrs);
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ bool dbll_find_dsp_symbol(struct dbll_library_obj *zl_lib, u32 address,
+ 		u32 offset_range, u32 *sym_addr_output, char *name_output);
++#endif
+ 
+ #endif /* DBLL_ */
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/gh.h b/drivers/staging/tidspbridge/include/dspbridge/gh.h
+index 55c0489..9de291d 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/gh.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/gh.h
+@@ -27,6 +27,8 @@ extern void gh_exit(void);
+ extern void *gh_find(struct gh_t_hash_tab *hash_tab, void *key);
+ extern void gh_init(void);
+ extern void *gh_insert(struct gh_t_hash_tab *hash_tab, void *key, void *value);
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ void gh_iterate(struct gh_t_hash_tab *hash_tab,
+ 	void (*callback)(void *, void *), void *user_data);
++#endif
+ #endif /* GH_ */
 diff --git a/drivers/staging/tidspbridge/include/dspbridge/io_sm.h b/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
-index c3557ef..6e67f10 100644
+index 6e67f10..0befe90 100644
 --- a/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
 +++ b/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
-@@ -302,7 +302,7 @@ int dump_dsp_stack(struct bridge_dev_context *bridge_context);
+@@ -291,6 +291,7 @@ extern void io_intr_dsp2(IN struct io_mgr *pio_mgr, IN u16 mb_val);
+ 
+ extern void io_sm_init(void);
+ 
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ /*
+  *  ========print_dsp_trace_buffer ========
+  *      Print DSP tracebuffer.
+@@ -302,7 +303,8 @@ int dump_dsp_stack(struct bridge_dev_context *bridge_context);
  
  void dump_dl_modules(struct bridge_dev_context *bridge_context);
  
--#ifndef DSP_TRACEBUF_DISABLED
-+#ifdef CONFIG_TIDSPBRIDGE_DEBUG
+-#ifdef CONFIG_TIDSPBRIDGE_DEBUG
++#endif
++#if defined(CONFIG_TIDSPBRIDGE_BACKTRACE) || defined(CONFIG_TIDSPBRIDGE_DEBUG)
  void print_dsp_debug_trace(struct io_mgr *hio_mgr);
  #endif
  
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/nldr.h b/drivers/staging/tidspbridge/include/dspbridge/nldr.h
+index 073aa9f..b1dbccd 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/nldr.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/nldr.h
+@@ -49,7 +49,9 @@ extern int nldr_load(struct nldr_nodeobject *nldr_node_obj,
+ 			    enum nldr_phase phase);
+ extern int nldr_unload(struct nldr_nodeobject *nldr_node_obj,
+ 			      enum nldr_phase phase);
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ int nldr_find_addr(struct nldr_nodeobject *nldr_node, u32 sym_addr,
+ 	u32 offset_range, void *offset_output, char *sym_name);
++#endif
+ 
+ #endif /* NLDR_ */
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/node.h b/drivers/staging/tidspbridge/include/dspbridge/node.h
+index 7587213..e9d8439 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/node.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/node.h
+@@ -558,6 +558,7 @@ extern int node_get_uuid_props(void *hprocessor,
+ 				      OUT struct dsp_ndbprops
+ 				      *node_props);
+ 
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ /**
+  * node_find_addr() - Find the closest symbol to the given address.
+  *
+@@ -575,5 +576,6 @@ int node_find_addr(struct node_mgr *node_mgr, u32 sym_addr,
+ 				char *sym_name);
+ 
+ enum node_state node_get_state(void *hnode);
++#endif
+ 
+ #endif /* NODE_ */
+diff --git a/drivers/staging/tidspbridge/pmgr/dbll.c b/drivers/staging/tidspbridge/pmgr/dbll.c
+index 3619d53..3636aa3 100644
+--- a/drivers/staging/tidspbridge/pmgr/dbll.c
++++ b/drivers/staging/tidspbridge/pmgr/dbll.c
+@@ -1500,6 +1500,7 @@ static void release(struct dynamic_loader_initialize *this)
+ {
+ }
+ 
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ /**
+  *  find_symbol_context - Basic symbol context structure
+  * @address:		Symbol Adress
+@@ -1583,3 +1584,4 @@ bool dbll_find_dsp_symbol(struct dbll_library_obj *zl_lib, u32 address,
+ 
+ 	return status;
+ }
++#endif
+diff --git a/drivers/staging/tidspbridge/rmgr/nldr.c b/drivers/staging/tidspbridge/rmgr/nldr.c
+index d0138af..53fd371 100644
+--- a/drivers/staging/tidspbridge/rmgr/nldr.c
++++ b/drivers/staging/tidspbridge/rmgr/nldr.c
+@@ -1919,6 +1919,7 @@ static u32 find_gcf(u32 a, u32 b)
+ 	return b;
+ }
+ 
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ /**
+  * nldr_find_addr() - Find the closest symbol to the given address based on
+  *		dynamic node object.
+@@ -1997,3 +1998,4 @@ int nldr_find_addr(struct nldr_nodeobject *nldr_node, u32 sym_addr,
+ 
+ 	return status;
+ }
++#endif
+diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
+index 329fe5e..1870b80 100644
+--- a/drivers/staging/tidspbridge/rmgr/node.c
++++ b/drivers/staging/tidspbridge/rmgr/node.c
+@@ -3200,6 +3200,7 @@ static u32 mem_write(void *priv_ref, u32 ulDspAddr, void *pbuf,
+ 	return ul_num_bytes;
+ }
+ 
++#ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
+ /*
+  *  ======== node_find_addr ========
+  */
+@@ -3229,4 +3230,4 @@ int node_find_addr(struct node_mgr *node_mgr, u32 sym_addr,
+ 
+ 	return status;
+ }
+-
++#endif
 -- 
 1.7.1
 
