@@ -1,62 +1,49 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH resend 1/3] AM35x: Add musb support
-Date: Mon, 5 Jul 2010 17:24:30 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044EAAD8F6@dbde02.ent.ti.com>
-References: <1278053879-6850-1-git-send-email-ajay.gupta@ti.com>
- <20100705095015.GP15951@atomide.com> <4C31ADCA.40607@ru.mvista.com>
- <20100705102322.GR15951@atomide.com> <4C31B54F.6040109@ru.mvista.com>
- <20100705104841.GS15951@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 1/8] omap3 flash: rename board-sdp-flash.c to be use
+ by other boards
+Date: Mon, 5 Jul 2010 15:23:12 +0300
+Message-ID: <20100705122310.GU15951@atomide.com>
+References: <s-ghorai@ti.com>
+ <1276688400-4812-1-git-send-email-s-ghorai@ti.com>
+ <1276688400-4812-2-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42820 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753171Ab0GELyi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 07:54:38 -0400
-In-Reply-To: <20100705104841.GS15951@atomide.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61597 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753182Ab0GEMXT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 08:23:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1276688400-4812-2-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-> > >>   I think Ajay has explained why it's needed. The option is
-> > >>necessary in one or another form.
-> >
-> > >It's not needed for omaps, we can already build in support for
-> > >omap2, omap3 and omap4 into the same kernel binary.
-> >
-> >    Not with AM35x USB support merged -- at least you won't be able
-> > to build single kernel with monolithic MUSB support.
+* Sukumar Ghorai <s-ghorai@ti.com> [100616 14:34]:
+> rename board-sdp-flash.c(board-flash.c) and board-sdp.h(board-flash.h) to
+> used by other board e.g. zoom
 > 
-> Right. I believe musb is pretty much the only remaining driver
-> that won't behave with multi-omap. But let's not merge code that
-> would make fixing that even harder.
-> 
-> > >If a Kconfig option is needed for optionally compiling in the support
-> > >for am35x musb, it should be called USB_MUSB_AM35X or similar that
-> > >gets selected if the boards using it are selected.
-> >
-> >    Do you mean that we should have this option in
-> drivers/usb/musb/Kconfig?
-> 
-> Yeah, it could be set automatically with default y if
-> MACH_AM35X_SOME_BOARD.
-> 
-> Then options like this should not be mutually exclusive like they
-> currently are for musb, that breaks using musb with multi omap.
+> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile                   |    2 +-
+>  arch/arm/mach-omap2/board-3430sdp.c            |   16 ++-
+>  arch/arm/mach-omap2/board-flash.c              |  253 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-sdp-flash.c          |  267 ------------------------
+>  arch/arm/mach-omap2/include/mach/board-flash.h |   28 +++
+>  arch/arm/mach-omap2/include/mach/board-sdp.h   |   21 --
+>  6 files changed, 296 insertions(+), 291 deletions(-)
+>  create mode 100755 arch/arm/mach-omap2/board-flash.c
+>  delete mode 100755 arch/arm/mach-omap2/board-sdp-flash.c
+>  create mode 100644 arch/arm/mach-omap2/include/mach/board-flash.h
+>  delete mode 100644 arch/arm/mach-omap2/include/mach/board-sdp.h
 
-Choosing USB_MUSB_AM35X would anyways compile am35x.c and not omap2430.c
-File; thus musb would not work on OMAP3x boards with same binary.
+Looks like this one won't apply:
 
-I will update the patches and submit for further reviews.
+patching file arch/arm/mach-omap2/board-sdp-flash.c
+Hunk #1 FAILED at 1.
+File arch/arm/mach-omap2/board-sdp-flash.c is not empty after patch, as expected
 
-Thanks,
-Ajay
-> 
-> Regards,
-> 
-> Tony
-> 
+Regards,
 
+Tony
