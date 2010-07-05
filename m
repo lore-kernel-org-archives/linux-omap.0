@@ -1,63 +1,44 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH resend 1/3] AM35x: Add musb support
-Date: Mon, 5 Jul 2010 16:45:53 +0300
-Message-ID: <20100705134552.GD15951@atomide.com>
-References: <1278053879-6850-1-git-send-email-ajay.gupta@ti.com>
- <20100705095015.GP15951@atomide.com>
- <4C31ADCA.40607@ru.mvista.com>
- <20100705102322.GR15951@atomide.com>
- <4C31B54F.6040109@ru.mvista.com>
- <20100705104841.GS15951@atomide.com>
- <19F8576C6E063C45BE387C64729E7394044EAAD8F6@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: Devkit8000: Use DIE id to initialize dm9000 MAC
+ address
+Date: Mon, 5 Jul 2010 16:49:56 +0300
+Message-ID: <20100705134956.GE15951@atomide.com>
+References: <1278308819-9531-1-git-send-email-kanru@0xlab.org>
+ <20100705094432.GO15951@atomide.com>
+ <AANLkTimnLo0b--CkMP1DO_RDuDngy_bi2DlKoy69DVY0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54631 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752495Ab0GENuC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 09:50:02 -0400
 Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044EAAD8F6-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <AANLkTimnLo0b--CkMP1DO_RDuDngy_bi2DlKoy69DVY0@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kan-Ru Chen <kanru@0xlab.org>
+Cc: linux-omap@vger.kernel.org, Thomas Weber <weber@corscience.de>
 
-* Gupta, Ajay Kumar <ajay.gupta-l0cyMroinI0@public.gmane.org> [100705 14:48]:
-> > > >>   I think Ajay has explained why it's needed. The option is
-> > > >>necessary in one or another form.
-> > >
-> > > >It's not needed for omaps, we can already build in support for
-> > > >omap2, omap3 and omap4 into the same kernel binary.
-> > >
-> > >    Not with AM35x USB support merged -- at least you won't be able
-> > > to build single kernel with monolithic MUSB support.
-> > 
-> > Right. I believe musb is pretty much the only remaining driver
-> > that won't behave with multi-omap. But let's not merge code that
-> > would make fixing that even harder.
-> > 
-> > > >If a Kconfig option is needed for optionally compiling in the support
-> > > >for am35x musb, it should be called USB_MUSB_AM35X or similar that
-> > > >gets selected if the boards using it are selected.
-> > >
-> > >    Do you mean that we should have this option in
-> > drivers/usb/musb/Kconfig?
-> > 
-> > Yeah, it could be set automatically with default y if
-> > MACH_AM35X_SOME_BOARD.
-> > 
-> > Then options like this should not be mutually exclusive like they
-> > currently are for musb, that breaks using musb with multi omap.
+* Kan-Ru Chen <kanru@0xlab.org> [100705 14:48]:
+> On Mon, Jul 5, 2010 at 5:44 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > How about adding a function for getting this from mach-omap2/id.c?
+> > Other boards might want to use it too.
 > 
-> Choosing USB_MUSB_AM35X would anyways compile am35x.c and not omap2430.c
-> File; thus musb would not work on OMAP3x boards with same binary.
+> I had originally intended to do so, but I was not sure how to design the api.
+> 
+> omap_read_die_0(), omap_read_die_id_1() and so on? or a function that
+> return those ids at once?
+> 
+> Any suggestions?
 
-You should set up things so both can be compiled in, that's standard
-behaviour for all Linux drivers :)
- 
-> I will update the patches and submit for further reviews.
+No preferences from me, up to you. But some TI people might have better
+ideas on how future proof it will be.
 
-Thanks,
+If it's likely to change, the maybe set up struct omap_die_id to start
+with.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
