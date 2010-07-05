@@ -1,68 +1,81 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: linux-next: manual merge of the omap tree with the arm tree
-Date: Sun, 04 Jul 2010 21:46:27 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007042144410.6020@xanadu.home>
-References: <20100705092055.859d31d8.sfr@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20100705092055.859d31d8.sfr@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
+From: Kan-Ru Chen <kanru@0xlab.org>
+Subject: [PATCH] omap: Devkit8000: Use DIE id to initialize dm9000 MAC address
+Date: Mon,  5 Jul 2010 13:46:59 +0800
+Message-ID: <1278308819-9531-1-git-send-email-kanru@0xlab.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cp20.secserverpros.com ([67.220.217.187]:52414 "EHLO
+	cp20.secserverpros.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751863Ab0GEGdx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 02:33:53 -0400
+Received: from 61-30-10-70.static.tfn.net.tw ([61.30.10.70] helo=kanru.info)
+	by cp20.secserverpros.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <kanru@kanru.info>)
+	id 1OVeZS-0001rn-Ij
+	for linux-omap@vger.kernel.org; Mon, 05 Jul 2010 05:50:26 +0000
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Thomas Weber <weber@corscience.de>, Kan-Ru Chen <kanru@0xlab.org>
 
-On Mon, 5 Jul 2010, Stephen Rothwell wrote:
+The devkit8000 debug boards often come with empty EEPROM thus without
+valid ethernet MAC address. The DIE id to MAC formula is copied from
+u-boot.
 
-> Hi all,
-> 
-> Today's linux-next merge of the omap tree got a conflict in
-> arch/arm/kernel/entry-armv.S between commit
-> df0698be14c6683606d5df2d83e3ae40f85ed0d9 ("ARM: stack protector: change
-> the canary value per task") from the arm tree and commit
-> 4481d0c7d25c9de9a3986c8b4c52389ca8bbf929 ("arm: Replace
-> CONFIG_HAS_TLS_REG with HWCAP_TLS and check for it on V6") from the omap
-> tree.
-> 
-> Just context changes (I think).  I fixed it up (see below) and can carry
-> the fix as necessary.
+Signed-off-by: Kan-Ru Chen <kanru@0xlab.org>
+---
+ arch/arm/mach-omap2/board-devkit8000.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-Yes, the fix is fine.  If you can carry it until either of those is 
-merged upstream that would be great.
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index a2a8afe..807ceee 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -45,6 +45,7 @@
+ #include <plat/usb.h>
+ #include <plat/timer-gp.h>
+ #include <plat/display.h>
++#include <plat/io.h>
+ 
+ #include <plat/mcspi.h>
+ #include <linux/input/matrix_keypad.h>
+@@ -66,6 +67,10 @@
+ #define OMAP_DM9000_GPIO_IRQ	25
+ #define OMAP3_DEVKIT_TS_GPIO	27
+ 
++#define DIE_ID_REG_BASE	(L4_34XX_PHYS + 0xA000)
++#define DIE_ID_REG_0		0x218
++#define DIE_ID_REG_1		0x21C
++
+ struct flash_partitions {
+        struct mtd_partition *parts;
+        int nr_parts;
+@@ -603,6 +608,9 @@ static struct platform_device omap_dm9000_dev = {
+ 
+ static void __init omap_dm9000_init(void)
+ {
++	unsigned char *eth_addr = omap_dm9000_platdata.dev_addr;
++	unsigned int die_id_0;
++
+ 	if (gpio_request(OMAP_DM9000_GPIO_IRQ, "dm9000 irq") < 0) {
+ 		printk(KERN_ERR "Failed to request GPIO%d for dm9000 IRQ\n",
+ 			OMAP_DM9000_GPIO_IRQ);
+@@ -610,6 +618,15 @@ static void __init omap_dm9000_init(void)
+ 		}
+ 
+ 	gpio_direction_input(OMAP_DM9000_GPIO_IRQ);
++
++	/* init the mac address using DIE id */
++	die_id_0 = omap_readl(DIE_ID_REG_BASE + DIE_ID_REG_0);
++	eth_addr[0] = 0x02; /* locally administered */
++	eth_addr[1] = omap_readl(DIE_ID_REG_BASE + DIE_ID_REG_1) & 0xff;
++	eth_addr[2] = (die_id_0 & 0xff000000) >> 24;
++	eth_addr[3] = (die_id_0 & 0x00ff0000) >> 16;
++	eth_addr[4] = (die_id_0 & 0x0000ff00) >> 8;
++	eth_addr[5] = (die_id_0 & 0x000000ff);
+ }
+ 
+ static struct platform_device *devkit8000_devices[] __initdata = {
+-- 
+1.7.1
 
-
-
-> -- 
-> Cheers,
-> Stephen Rothwell                    sfr@canb.auug.org.au
-> 
-> diff --cc arch/arm/kernel/entry-armv.S
-> index 2d14081,a6cfb17..0000000
-> --- a/arch/arm/kernel/entry-armv.S
-> +++ b/arch/arm/kernel/entry-armv.S
-> @@@ -739,17 -740,7 +740,12 @@@ ENTRY(__switch_to
->   #ifdef CONFIG_MMU
->   	ldr	r6, [r2, #TI_CPU_DOMAIN]
->   #endif
-> - #if defined(CONFIG_HAS_TLS_REG)
-> - 	mcr	p15, 0, r3, c13, c0, 3		@ set TLS register
-> - #elif !defined(CONFIG_TLS_REG_EMUL)
-> - 	mov	r4, #0xffff0fff
-> - 	str	r3, [r4, #-15]			@ TLS val at 0xffff0ff0
-> - #endif
-> + 	set_tls	r3, r4, r5
->  +#if defined(CONFIG_CC_STACKPROTECTOR) && !defined(CONFIG_SMP)
->  +	ldr	r7, [r2, #TI_TASK]
->  +	ldr	r8, =__stack_chk_guard
->  +	ldr	r7, [r7, #TSK_STACK_CANARY]
->  +#endif
->   #ifdef CONFIG_MMU
->   	mcr	p15, 0, r6, c3, c0, 0		@ Set domain register
->   #endif
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
