@@ -1,53 +1,49 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: manual merge of the omap tree with the arm tree
-Date: Mon, 5 Jul 2010 17:14:28 +1000
-Message-ID: <20100705171428.cb58b867.sfr@canb.auug.org.au>
-References: <20100705092055.859d31d8.sfr@canb.auug.org.au>
-	<alpine.LFD.2.00.1007042144410.6020@xanadu.home>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: multipath mux question
+Date: Mon, 5 Jul 2010 10:36:44 +0300
+Message-ID: <20100705073642.GB15951@atomide.com>
+References: <AANLkTikb2w3is46Gw-r22F9n2Ockx5rzOWHGo49cnQ8G@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Mon__5_Jul_2010_17_14_28_+1000_/vDDx_G0VNELdCOB"
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1007042144410.6020@xanadu.home>
-Sender: linux-next-owner@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
-List-Id: linux-omap@vger.kernel.org
-
---Signature=_Mon__5_Jul_2010_17_14_28_+1000_/vDDx_G0VNELdCOB
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65249 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891Ab0GEHg3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 03:36:29 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <AANLkTikb2w3is46Gw-r22F9n2Ockx5rzOWHGo49cnQ8G@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Nicolas,
+* Grazvydas Ignotas <notasas@gmail.com> [100703 00:21]:
+> Hi,
+> 
+> on OMAP3 CBB package GPIO126 can be muxed on 2 pins: mmc1_dat4 and
+> cam_strobe. On pandora mmc1_dat4 is connected to mmc1 write protect,
+> this makes omap2_mmc_mux() call omap_mux_init_gpio() on GPIO126, which
+> muxes both pins and warns:
+> mux: Multiple gpio paths for gpio126
 
-On Sun, 04 Jul 2010 21:46:27 -0400 (EDT) Nicolas Pitre <nico@fluxnic.net> w=
-rote:
->
-> Yes, the fix is fine.  If you can carry it until either of those is=20
-> merged upstream that would be great.
+OK.
+ 
+> This results in unusable GPIO. I wonder how should I handle this,
+> perhaps overriding mux by calling omap_mux_init_signal() after
+> omap2_hsmmc_init() call? Or maybe omap_mux_init_gpio() should be
+> patched not to set up GPIOs if it encounters multiple paths?
 
-Thanks for the confirmation.  I can carry the merge fix as long as
-necessary.
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+To me the safest route is the second option you suggest where
+we refuse to mux GPIO pins that have multiple outputs. 
 
---Signature=_Mon__5_Jul_2010_17_14_28_+1000_/vDDx_G0VNELdCOB
-Content-Type: application/pgp-signature
+We should just print a warning and return an error. Then we should
+also start checking the return values for omap_mux_init_gpio
+now that the code is converted over to use the new mux code.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+If you do a patch, please do it against omap for-next branch
+as omap_mux_init_gpio has a pending patch for MUXABLE_GPIO_MODE3.
 
-iQEcBAEBAgAGBQJMMYZUAAoJEDMEi1NhKgbsUv4H/0pIpdoRc7OZRb75AKq9Wpzj
-9UC4iSiMu2FLBbxwfmnCmLHw5B9Uk6v12hDlGEY1gl9L5WIuyXzRsv8nwkcjrD36
-dyRdrEMhWMZ6janlHSIs4NQ+CbZnoBPriJESdKyvViF98aw7Cqo5mDBVwRGvmra6
-4P2GUL8GIgZ/tu/7CUzKr53b4bE9yEOvob/AowVemqLpmkSgv51WiGrPTNxfXnq9
-iYpwG6t0ir7uoVJuFmfgaSAw2upWm2Sqpkux6eSvLRGL9Nlif5dL3b4eDi4z1UlX
-4eN3Nn9trRDGF2LvrBWecGkPKWx3fgnM34JJ4CvTfb+ehjdNUCcBtuHgqulI2jw=
-=lhrh
------END PGP SIGNATURE-----
+Regards,
 
---Signature=_Mon__5_Jul_2010_17_14_28_+1000_/vDDx_G0VNELdCOB--
+Tony 
+
