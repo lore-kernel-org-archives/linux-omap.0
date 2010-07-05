@@ -1,60 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] [omap1] Bluetooth device code common to HTC smartphones
-Date: Mon, 5 Jul 2010 16:25:40 +0300
-Message-ID: <20100705132539.GB15951@atomide.com>
-References: <1275431571-28547-1-git-send-email-darkstar6262@gmail.com>
- <1275431571-28547-3-git-send-email-darkstar6262@gmail.com>
+Subject: Re: linux-next: manual merge of the omap tree with the arm tree
+Date: Mon, 5 Jul 2010 16:44:02 +0300
+Message-ID: <20100705134401.GC15951@atomide.com>
+References: <20100705092055.859d31d8.sfr@canb.auug.org.au>
+ <alpine.LFD.2.00.1007042144410.6020@xanadu.home>
+ <20100705171428.cb58b867.sfr@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58542 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755757Ab0GENZr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 09:25:47 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1275431571-28547-3-git-send-email-darkstar6262@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20100705171428.cb58b867.sfr@canb.auug.org.au>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Nicolas Pitre <nico@fluxnic.net>, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org, linwizard-devel@lists.sf.net
 
-* Cory Maccarrone <darkstar6262@gmail.com> [100602 01:27]:
-> This change adds in a bluetooth controld driver/rfkill
-> interface to the serial bluetooth controller found on many
-> HTC smartphones such as the HTC Herald and HTC Wizard.
+* Stephen Rothwell <sfr@canb.auug.org.au> [100705 10:08]:
+> Hi Nicolas,
+> 
+> On Sun, 04 Jul 2010 21:46:27 -0400 (EDT) Nicolas Pitre <nico@fluxnic.net> wrote:
+> >
+> > Yes, the fix is fine.  If you can carry it until either of those is 
+> > merged upstream that would be great.
+> 
+> Thanks for the confirmation.  I can carry the merge fix as long as
+> necessary.
 
-<snip>
- 
-> +static void htc_bt_on(struct htc_bt_data *data)
-> +{
-> +	gpio_set_value(data->gpio_pwr, 1);
-> +
-> +	if (uart_ck)
-> +		clk_enable(uart_ck);
-> +
-> +	mdelay(1000);
-> +
-> +	if (data->gpio_enable)
-> +		gpio_set_value(data->gpio_enable, 1);
-> +}
-
-Maybe you can use msleep here instead? Otherwise the whole system
-will hang for a second..
-
-> +static void htc_bt_off(struct htc_bt_data *data)
-> +{
-> +	gpio_set_value(data->gpio_pwr, 0);
-> +
-> +	if (uart_ck)
-> +		clk_disable(uart_ck);
-> +
-> +	mdelay(1000);
-> +
-> +	if (data->gpio_enable)
-> +		gpio_set_value(data->gpio_enable, 0);
-> +}
-
-Here too.
+Thanks, I've dropped this patch from omap for-next branch, I'll send
+it into Russell's patch system.
 
 Regards,
 
