@@ -1,29 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 04/11] OMAP2: Devkit8000: Setup LCD reset
-Date: Mon, 5 Jul 2010 15:57:16 +0300
-Message-ID: <20100705125714.GW15951@atomide.com>
-References: <1275478671-24563-1-git-send-email-weber@corscience.de>
- <1275478671-24563-5-git-send-email-weber@corscience.de>
+Subject: Re: multipath mux question
+Date: Mon, 5 Jul 2010 16:10:22 +0300
+Message-ID: <20100705131020.GX15951@atomide.com>
+References: <AANLkTikb2w3is46Gw-r22F9n2Ockx5rzOWHGo49cnQ8G@mail.gmail.com>
+ <20100705073642.GB15951@atomide.com>
+ <AANLkTinuFnpTyMJaMLLulio2hmGHKfL_6VkJogsV_nDa@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55052 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642Ab0GENKd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 09:10:33 -0400
 Content-Disposition: inline
-In-Reply-To: <1275478671-24563-5-git-send-email-weber@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Weber <weber@corscience.de>
-Cc: linux-omap@vger.kernel.org, Kan-Ru Chen <kanru@0xlab.org>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <AANLkTinuFnpTyMJaMLLulio2hmGHKfL_6VkJogsV_nDa@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Thomas Weber <weber@corscience.de> [100602 14:33]:
-> From: Kan-Ru Chen <kanru@0xlab.org>
+* Grazvydas Ignotas <notasas@gmail.com> [100705 14:43]:
+> On Mon, Jul 5, 2010 at 10:36 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > We should just print a warning and return an error. Then we should
+> > also start checking the return values for omap_mux_init_gpio
+> > now that the code is converted over to use the new mux code.
 > 
-> This patch corrects the LCD reset pin configuration.
-> 
-> Original code from early devkit8000 patch sets the TWL4030 GPIO_1
-> to EHCI_nOC and TWL4030_GPIO_MAX+1 to ledA. Indeed these two pins
-> are both LCD_PWREN. Setup the lcd reset_gpio properly so it can be
-> disabled when other display is turned on.
+> Hm, not sure about return checking, what omap2_mmc_mux() can do when
+> it sees omap_mux_init_gpio failing because of that inevitable gpio126
+> multipath error?
 
-Applied this and the rest of the series too.
+Heh, right :) I guess in that case omap2_mmc_mux should not do anything
+and assume the board-*.c file has set up the muxing.
+ 
+Regards,
 
 Tony
