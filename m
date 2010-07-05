@@ -1,35 +1,68 @@
-From: "GOLD STAR LOANS" <info@loanlender.com>
-Subject: LOAN AID
-Date: Mon, 5 Jul 2010 16:17:22 +0200 (CEST)
-Message-ID: <71f5234418f8da1cb6c2c50852c32fbb.squirrel__15812.7344366678$1278340921$gmane$org@webmail.automation.ro>
-Reply-To: samuelmarkloanfirm@ufo.tc
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH resend 1/3] AM35x: Add musb support
+Date: Mon, 05 Jul 2010 18:50:29 +0400
+Message-ID: <4C31F135.5060108@ru.mvista.com>
+References: <1278053879-6850-1-git-send-email-ajay.gupta@ti.com> <20100705095015.GP15951@atomide.com> <4C31ADCA.40607@ru.mvista.com> <20100705102322.GR15951@atomide.com> <4C31B54F.6040109@ru.mvista.com> <20100705104841.GS15951@atomide.com> <19F8576C6E063C45BE387C64729E7394044EAAD8F6@dbde02.ent.ti.com> <20100705134552.GD15951@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [193.231.33.1] ([193.231.33.1]:51376 "EHLO automation.ro"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752171Ab0GEOlo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Jul 2010 10:41:44 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100705134552.GD15951-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hello.
 
+Tony Lindgren wrote:
 
-Hello Sir/Madam,Are you in need of a registered and real loan lender
- or are you tired of being scammed by lenders that takes away your
-money after sending them money?Then worry no more and contact us for
-fast,reliable,considerate loans with a low interest rate . contact
-us via Email: samuelmarkloanfirm@ufo.tc. Please if you are
-interested in getting a loan,kindly fill out the borrowers
-information`s below.
-THE BORROWER`S INFORMATION: Your Full Name:_____________ Your
-Sex:__________________ Your Address:________ Your
-Occupation:____________ Monthly Income:_____________ Your
-Country:_______________ Loan Amount:_______________ Loan
-Duration:_______________ Your Cell phone Number:_________
-State:______________________ Applied before:_____________
+>>>>>>   I think Ajay has explained why it's needed. The option is
+>>>>>> necessary in one or another form.
 
+>>>>> It's not needed for omaps, we can already build in support for
+>>>>> omap2, omap3 and omap4 into the same kernel binary.
 
+    Don't see how it hinders that.
 
+>>>>    Not with AM35x USB support merged -- at least you won't be able
+>>>> to build single kernel with monolithic MUSB support.
 
+>>> Right. I believe musb is pretty much the only remaining driver
+>>> that won't behave with multi-omap. But let's not merge code that
+>>> would make fixing that even harder.
+
+    I don't see how it's making fixing this harder... (though it's already hard).
+
+>>>>> If a Kconfig option is needed for optionally compiling in the support
+>>>>> for am35x musb, it should be called USB_MUSB_AM35X or similar that
+>>>>> gets selected if the boards using it are selected.
+
+>>>>    Do you mean that we should have this option in
+
+>>> drivers/usb/musb/Kconfig?
+
+>>> Yeah, it could be set automatically with default y if
+>>> MACH_AM35X_SOME_BOARD.
+
+>>> Then options like this should not be mutually exclusive like they
+>>> currently are for musb, that breaks using musb with multi omap.
+
+>> Choosing USB_MUSB_AM35X would anyways compile am35x.c and not omap2430.c
+>> File; thus musb would not work on OMAP3x boards with same binary.
+
+> You should set up things so both can be compiled in, that's standard
+> behaviour for all Linux drivers :)
+
+   This is much easier said than done.
+
+>> I will update the patches and submit for further reviews.
+
+> Thanks,
+> Tony
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
