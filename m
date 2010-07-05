@@ -1,33 +1,53 @@
-From: "Afzal Mohammed" <lazfamam@gmail.com>
-Subject: [PATCH] OMAP:DSS2:OMAPFB: Fix probe error path
-Date: Mon, 5 Jul 2010 06:38:10 +0000
-Message-ID: <519048.454796092-sendEmail@afzal-laptop>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: manual merge of the omap tree with the arm tree
+Date: Mon, 5 Jul 2010 17:14:28 +1000
+Message-ID: <20100705171428.cb58b867.sfr@canb.auug.org.au>
+References: <20100705092055.859d31d8.sfr@canb.auug.org.au>
+	<alpine.LFD.2.00.1007042144410.6020@xanadu.home>
 Mime-Version: 1.0
-Content-Type: multipart/related; boundary="----MIME delimiter for sendEmail-700403.923475282"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:41425 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751580Ab0GEGiQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 02:38:16 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__5_Jul_2010_17_14_28_+1000_/vDDx_G0VNELdCOB"
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1007042144410.6020@xanadu.home>
+Sender: linux-next-owner@vger.kernel.org
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "ville.syrjala@nokia.com" <ville.syrjala@nokia.com>, "tj@kernel.org" <tj@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-This is a multi-part message in MIME format. To properly display this message you need a MIME-Version 1.0 compliant Email program.
+--Signature=_Mon__5_Jul_2010_17_14_28_+1000_/vDDx_G0VNELdCOB
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-------MIME delimiter for sendEmail-700403.923475282
-Content-Type: text/plain;
-        charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Hi Nicolas,
 
-Hi Tomi,
+On Sun, 04 Jul 2010 21:46:27 -0400 (EDT) Nicolas Pitre <nico@fluxnic.net> w=
+rote:
+>
+> Yes, the fix is fine.  If you can carry it until either of those is=20
+> merged upstream that would be great.
 
-Can you please help this change get integrated onto mainline kernel.
+Thanks for the confirmation.  I can carry the merge fix as long as
+necessary.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-Regards
-Afzal
+--Signature=_Mon__5_Jul_2010_17_14_28_+1000_/vDDx_G0VNELdCOB
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-------MIME delimiter for sendEmail-700403.923475282--
+iQEcBAEBAgAGBQJMMYZUAAoJEDMEi1NhKgbsUv4H/0pIpdoRc7OZRb75AKq9Wpzj
+9UC4iSiMu2FLBbxwfmnCmLHw5B9Uk6v12hDlGEY1gl9L5WIuyXzRsv8nwkcjrD36
+dyRdrEMhWMZ6janlHSIs4NQ+CbZnoBPriJESdKyvViF98aw7Cqo5mDBVwRGvmra6
+4P2GUL8GIgZ/tu/7CUzKr53b4bE9yEOvob/AowVemqLpmkSgv51WiGrPTNxfXnq9
+iYpwG6t0ir7uoVJuFmfgaSAw2upWm2Sqpkux6eSvLRGL9Nlif5dL3b4eDi4z1UlX
+4eN3Nn9trRDGF2LvrBWecGkPKWx3fgnM34JJ4CvTfb+ehjdNUCcBtuHgqulI2jw=
+=lhrh
+-----END PGP SIGNATURE-----
 
+--Signature=_Mon__5_Jul_2010_17_14_28_+1000_/vDDx_G0VNELdCOB--
