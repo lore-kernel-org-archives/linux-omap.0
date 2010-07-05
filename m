@@ -1,53 +1,393 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: multipath mux question
-Date: Mon, 5 Jul 2010 14:49:22 +0300
-Message-ID: <AANLkTinuFnpTyMJaMLLulio2hmGHKfL_6VkJogsV_nDa@mail.gmail.com>
-References: <AANLkTikb2w3is46Gw-r22F9n2Ockx5rzOWHGo49cnQ8G@mail.gmail.com>
-	<20100705073642.GB15951@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Add OMAP4 Panda Support
+Date: Mon, 5 Jul 2010 14:51:32 +0300
+Message-ID: <20100705115127.GT15951@atomide.com>
+References: <1277407989-30914-1-git-send-email-x0132446@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB032194B79C@dbde02.ent.ti.com>
+ <7B4574D56E4ADF438756313E9A172A879A96D2F6@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed; boundary="HWvPVVuAAfuRc6SZ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:50413 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab0GELtY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 07:49:24 -0400
-Received: by yxi11 with SMTP id 11so659485yxi.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Jul 2010 04:49:23 -0700 (PDT)
-In-Reply-To: <20100705073642.GB15951@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64045 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752448Ab0GELvj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 07:51:39 -0400
+Content-Disposition: inline
+In-Reply-To: <7B4574D56E4ADF438756313E9A172A879A96D2F6@dlee01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Anders, David" <x0132446@ti.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Jul 5, 2010 at 10:36 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Grazvydas Ignotas <notasas@gmail.com> [100703 00:21]:
->> Hi,
->>
->> on OMAP3 CBB package GPIO126 can be muxed on 2 pins: mmc1_dat4 and
->> cam_strobe. On pandora mmc1_dat4 is connected to mmc1 write protect,
->> this makes omap2_mmc_mux() call omap_mux_init_gpio() on GPIO126, which
->> muxes both pins and warns:
->> mux: Multiple gpio paths for gpio126
->
-> OK.
->
->> This results in unusable GPIO. I wonder how should I handle this,
->> perhaps overriding mux by calling omap_mux_init_signal() after
->> omap2_hsmmc_init() call? Or maybe omap_mux_init_gpio() should be
->> patched not to set up GPIOs if it encounters multiple paths?
->
-> To me the safest route is the second option you suggest where
-> we refuse to mux GPIO pins that have multiple outputs.
->
-> We should just print a warning and return an error. Then we should
-> also start checking the return values for omap_mux_init_gpio
-> now that the code is converted over to use the new mux code.
 
-Hm, not sure about return checking, what omap2_mmc_mux() can do when
-it sees omap_mux_init_gpio failing because of that inevitable gpio126
-multipath error?
+--HWvPVVuAAfuRc6SZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> If you do a patch, please do it against omap for-next branch
-> as omap_mux_init_gpio has a pending patch for MUXABLE_GPIO_MODE3.
+* Anders, David <x0132446@ti.com> [100628 20:41]:
+> 
+> Tony,
+> If there are no objections, can we get someone to signoff on this so we can get it in the window?
 
-ok
+I've added default y to Kconfig for Panda and queued this patch.
+Updated patch below.
+
+Tony
+
+--HWvPVVuAAfuRc6SZ
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="panda.patch"
+
+>From 73c95f0240b27e3b413c32b8e5b323e86ea5bff0 Mon Sep 17 00:00:00 2001
+From: David Anders <x0132446@ti.com>
+Date: Thu, 24 Jun 2010 19:33:09 +0000
+Subject: [PATCH] Add OMAP4 Panda Support
+
+Add initial support for the OMAP4 based Panda Board.
+
+Signed-off-by: David Anders <x0132446@ti.com>
+[tony@atomide.com: selected board by default in Kconfig]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 84fecd0..b48bacf 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -238,6 +238,11 @@ config MACH_OMAP_4430SDP
+ 	default y
+ 	depends on ARCH_OMAP4
+ 
++config MACH_OMAP4_PANDA
++	bool "OMAP4 Panda Board"
++	default y
++	depends on ARCH_OMAP4
++
+ config OMAP3_EMU
+ 	bool "OMAP3 debugging peripherals"
+ 	depends on ARCH_OMAP3
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 0f2f508..33dedee 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -142,6 +142,8 @@ obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK)	+= board-omap3touchbook.o \
+ 					   hsmmc.o
+ obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o \
+ 					   hsmmc.o
++obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
++					   hsmmc.o
+ 
+ obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
+ 
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+new file mode 100644
+index 0000000..ed08226
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -0,0 +1,305 @@
++/*
++ * Board support file for OMAP4430 based PandaBoard.
++ *
++ * Copyright (C) 2010 Texas Instruments
++ *
++ * Author: David Anders <x0132446@ti.com>
++ *
++ * Based on mach-omap2/board-4430sdp.c
++ *
++ * Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *
++ * Based on mach-omap2/board-3430sdp.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
++#include <linux/gpio.h>
++#include <linux/usb/otg.h>
++#include <linux/i2c/twl.h>
++#include <linux/regulator/machine.h>
++
++#include <mach/hardware.h>
++#include <mach/omap4-common.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
++#include <plat/board.h>
++#include <plat/common.h>
++#include <plat/control.h>
++#include <plat/timer-gp.h>
++#include <plat/usb.h>
++#include <plat/mmc.h>
++#include "hsmmc.h"
++
++
++static void __init omap4_panda_init_irq(void)
++{
++	omap2_init_common_hw(NULL, NULL);
++	gic_init_irq();
++	omap_gpio_init();
++}
++
++static struct omap_musb_board_data musb_board_data = {
++	.interface_type		= MUSB_INTERFACE_UTMI,
++	.mode			= MUSB_PERIPHERAL,
++	.power			= 100,
++};
++
++static struct omap2_hsmmc_info mmc[] = {
++	{
++		.mmc		= 1,
++		.wires		= 8,
++		.gpio_wp	= -EINVAL,
++	},
++	{}	/* Terminator */
++};
++
++static struct regulator_consumer_supply omap4_panda_vmmc_supply[] = {
++	{
++		.supply = "vmmc",
++		.dev_name = "mmci-omap-hs.0",
++	},
++	{
++		.supply = "vmmc",
++		.dev_name = "mmci-omap-hs.1",
++	},
++};
++
++static int omap4_twl6030_hsmmc_late_init(struct device *dev)
++{
++	int ret = 0;
++	struct platform_device *pdev = container_of(dev,
++				struct platform_device, dev);
++	struct omap_mmc_platform_data *pdata = dev->platform_data;
++
++	/* Setting MMC1 Card detect Irq */
++	if (pdev->id == 0)
++		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
++						MMCDETECT_INTR_OFFSET;
++	return ret;
++}
++
++static __init void omap4_twl6030_hsmmc_set_late_init(struct device *dev)
++{
++	struct omap_mmc_platform_data *pdata = dev->platform_data;
++
++	pdata->init =	omap4_twl6030_hsmmc_late_init;
++}
++
++static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
++{
++	struct omap2_hsmmc_info *c;
++
++	omap2_hsmmc_init(controllers);
++	for (c = controllers; c->mmc; c++)
++		omap4_twl6030_hsmmc_set_late_init(c->dev);
++
++	return 0;
++}
++
++static struct regulator_init_data omap4_panda_vaux1 = {
++	.constraints = {
++		.min_uV			= 1000000,
++		.max_uV			= 3000000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data omap4_panda_vaux2 = {
++	.constraints = {
++		.min_uV			= 1200000,
++		.max_uV			= 2800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data omap4_panda_vaux3 = {
++	.constraints = {
++		.min_uV			= 1000000,
++		.max_uV			= 3000000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++/* VMMC1 for MMC1 card */
++static struct regulator_init_data omap4_panda_vmmc = {
++	.constraints = {
++		.min_uV			= 1200000,
++		.max_uV			= 3000000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 2,
++	.consumer_supplies      = omap4_panda_vmmc_supply,
++};
++
++static struct regulator_init_data omap4_panda_vpp = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 2500000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data omap4_panda_vusim = {
++	.constraints = {
++		.min_uV			= 1200000,
++		.max_uV			= 2900000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data omap4_panda_vana = {
++	.constraints = {
++		.min_uV			= 2100000,
++		.max_uV			= 2100000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data omap4_panda_vcxio = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data omap4_panda_vdac = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct regulator_init_data omap4_panda_vusb = {
++	.constraints = {
++		.min_uV			= 3300000,
++		.max_uV			= 3300000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask	 =	REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++};
++
++static struct twl4030_platform_data omap4_panda_twldata = {
++	.irq_base	= TWL6030_IRQ_BASE,
++	.irq_end	= TWL6030_IRQ_END,
++
++	/* Regulators */
++	.vmmc		= &omap4_panda_vmmc,
++	.vpp		= &omap4_panda_vpp,
++	.vusim		= &omap4_panda_vusim,
++	.vana		= &omap4_panda_vana,
++	.vcxio		= &omap4_panda_vcxio,
++	.vdac		= &omap4_panda_vdac,
++	.vusb		= &omap4_panda_vusb,
++	.vaux1		= &omap4_panda_vaux1,
++	.vaux2		= &omap4_panda_vaux2,
++	.vaux3		= &omap4_panda_vaux3,
++};
++
++static struct i2c_board_info __initdata omap4_panda_i2c_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("twl6030", 0x48),
++		.flags = I2C_CLIENT_WAKE,
++		.irq = OMAP44XX_IRQ_SYS_1N,
++		.platform_data = &omap4_panda_twldata,
++	},
++};
++static int __init omap4_panda_i2c_init(void)
++{
++	/*
++	 * Phoenix Audio IC needs I2C1 to
++	 * start with 400 KHz or less
++	 */
++	omap_register_i2c_bus(1, 400, omap4_panda_i2c_boardinfo,
++			ARRAY_SIZE(omap4_panda_i2c_boardinfo));
++	omap_register_i2c_bus(2, 400, NULL, 0);
++	omap_register_i2c_bus(3, 400, NULL, 0);
++	omap_register_i2c_bus(4, 400, NULL, 0);
++	return 0;
++}
++static void __init omap4_panda_init(void)
++{
++	int status;
++
++	omap4_panda_i2c_init();
++	omap_serial_init();
++	omap4_twl6030_hsmmc_init(mmc);
++	/* OMAP4 Panda uses internal transceiver so register nop transceiver */
++	usb_nop_xceiv_register();
++	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
++	if (!cpu_is_omap44xx())
++		usb_musb_init(&musb_board_data);
++}
++
++static void __init omap4_panda_map_io(void)
++{
++	omap2_set_globals_443x();
++	omap44xx_map_common_io();
++}
++
++MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
++	/* Maintainer: David Anders - Texas Instruments Inc */
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap4_panda_map_io,
++	.reserve	= omap_reserve,
++	.init_irq	= omap4_panda_init_irq,
++	.init_machine	= omap4_panda_init,
++	.timer		= &omap_timer,
++MACHINE_END
+
+--HWvPVVuAAfuRc6SZ--
