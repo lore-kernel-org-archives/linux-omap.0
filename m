@@ -1,98 +1,102 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] omap: mux: fix multipath gpio handling
-Date: Mon,  5 Jul 2010 23:06:51 +0300
-Message-ID: <1278360411-25797-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:47419 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299Ab0GEUHK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jul 2010 16:07:10 -0400
-Received: by ewy23 with SMTP id 23so1680600ewy.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Jul 2010 13:07:09 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 00/15] wlan+omap+mmc: out-of-the-box WLAN support for ZOOM2/3
+Date: Tue,  6 Jul 2010 03:37:31 +0300
+Message-ID: <1278376666-3509-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ohad Ben-Cohen <ohadb-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-OMAP3530 CBB package can have GPIO126 muxed on 2 pins: mmc1_dat4 and
-cam_strobe. This causes a problem with current multipath GPIO mux
-handling, which muxes both pins as GPIO126 and makes the GPIO unusable.
+From: Ohad Ben-Cohen <ohadb-l0cyMroinI0@public.gmane.org>
 
-Fix this by not muxing any pins if multipath GPIO is detected and
-just print a warning instead. It's up to board files to set correct
-mux using omap_mux_init_signal and pin name.
+The ZOOM2/3 boards include TI's wl1271 wlan sdio device,
+hardwired to the 3rd mmc controller.
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
- arch/arm/mach-omap2/mux.c |   38 ++++++++++++++++++++------------------
- 1 files changed, 20 insertions(+), 18 deletions(-)
+These patches add support for WLAN on the ZOOM2/3 boards
+using only mainline components (most notably mac80211 and wl1271).
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index be52fab..ab403b2 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -87,6 +87,9 @@ static char *omap_mux_options;
- int __init omap_mux_init_gpio(int gpio, int val)
- {
- 	struct omap_mux_entry *e;
-+	struct omap_mux *gpio_mux;
-+	u16 old_mode;
-+	u16 mux_mode;
- 	int found = 0;
- 
- 	if (!gpio)
-@@ -95,34 +98,33 @@ int __init omap_mux_init_gpio(int gpio, int val)
- 	list_for_each_entry(e, &muxmodes, node) {
- 		struct omap_mux *m = &e->mux;
- 		if (gpio == m->gpio) {
--			u16 old_mode;
--			u16 mux_mode;
--
--			old_mode = omap_mux_read(m->reg_offset);
--			mux_mode = val & ~(OMAP_MUX_NR_MODES - 1);
--			if (omap_mux_flags & MUXABLE_GPIO_MODE3)
--				mux_mode |= OMAP_MUX_MODE3;
--			else
--				mux_mode |= OMAP_MUX_MODE4;
--			printk(KERN_DEBUG "mux: Setting signal "
--				"%s.gpio%i 0x%04x -> 0x%04x\n",
--				m->muxnames[0], gpio, old_mode, mux_mode);
--			omap_mux_write(mux_mode, m->reg_offset);
-+			gpio_mux = m;
- 			found++;
- 		}
- 	}
- 
--	if (found == 1)
--		return 0;
-+	if (found == 0) {
-+		printk(KERN_ERR "mux: Could not set gpio%i\n", gpio);
-+		return -ENODEV;
-+	}
- 
- 	if (found > 1) {
--		printk(KERN_ERR "mux: Multiple gpio paths for gpio%i\n", gpio);
-+		printk(KERN_INFO "mux: Multiple gpio paths (%d) for gpio%i\n",
-+				found, gpio);
- 		return -EINVAL;
- 	}
- 
--	printk(KERN_ERR "mux: Could not set gpio%i\n", gpio);
-+	old_mode = omap_mux_read(gpio_mux->reg_offset);
-+	mux_mode = val & ~(OMAP_MUX_NR_MODES - 1);
-+	if (omap_mux_flags & MUXABLE_GPIO_MODE3)
-+		mux_mode |= OMAP_MUX_MODE3;
-+	else
-+		mux_mode |= OMAP_MUX_MODE4;
-+	printk(KERN_DEBUG "mux: Setting signal %s.gpio%i 0x%04x -> 0x%04x\n",
-+			gpio_mux->muxnames[0], gpio, old_mode, mux_mode);
-+	omap_mux_write(mux_mode, gpio_mux->reg_offset);
- 
--	return -ENODEV;
-+	return 0;
- }
- 
- int __init omap_mux_init_signal(char *muxname, int val)
--- 
-1.5.6.3
+Patches were tested on both ZOOM2 and ZOOM3.
 
+In short, these patches add software control for emulating
+card detect events, add board configurations to support the
+wl1271 device, and update the wl1271 driver to make use of
+these new mechanisms.
+
+Software card detect emulation is based on Android's
+EMBEDDED_SDIO patch by San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> (thanks, San!).
+
+These patches span over several differnt subsystems, but since
+they are highly dependent on each other, it is preferrable
+to pull them all together into a single tree (once approved).
+
+Patches are available at:
+
+git://wizery.com/pub/linux-2.6.git wl1271
+
+And will also be sent as a follow-on to this message to the
+omap, mmc, arm and wireless mailing lists.
+
+Patches are based on mainline 2.6.35-rc4, but can easily be applied
+on wireless-testing (with two minor conflicts). If desired, I can
+rebase to wireless-testing and resend.
+
+Note: last missing part for full mainline community support
+of the wl1271 on ZOOM is the firmware, and for that there is already
+on-going TI work to provide it in linux-firmware. Hopefully
+that would be resolved soon.
+
+Thanks,
+
+Ohad Ben-Cohen (15):
+  sdio: add TI + wl1271 ids
+  wireless: wl1271: remove SDIO IDs from driver
+  omap: mmc: prepare for software card detect support
+  mmc: support embedded data field in mmc_host
+  omap: hsmmc: add virtual card detect support
+  omap zoom2: wlan board muxing
+  omap zoom3: wlan board muxing
+  wireless: wl1271: make wl12xx.h common to both spi and sdio
+  wireless: wl12xx: support pdata SDIO handlers
+  wireless: wl1271: support return value for the set power func
+  wireless: wl1271: introduce platform device support
+  wireless: wl1271: take irq info from platform data
+  wireless: wl1271: make ref_clock configurable by board
+  omap: zoom: add WLAN device
+  omap: zoom: enable WLAN device
+
+ arch/arm/mach-omap2/Kconfig                   |    5 +
+ arch/arm/mach-omap2/Makefile                  |    1 +
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |   15 ++
+ arch/arm/mach-omap2/board-zoom-wlan.c         |  129 ++++++++++++++++
+ arch/arm/mach-omap2/board-zoom2.c             |   15 ++
+ arch/arm/mach-omap2/board-zoom3.c             |   15 ++
+ arch/arm/mach-omap2/hsmmc.c                   |    4 +
+ arch/arm/mach-omap2/hsmmc.h                   |    5 +
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    5 +
+ arch/arm/plat-omap/include/plat/mmc.h         |    5 +
+ drivers/mmc/core/Kconfig                      |    8 +
+ drivers/mmc/host/omap_hsmmc.c                 |   37 +++++-
+ drivers/net/wireless/wl12xx/Kconfig           |    1 +
+ drivers/net/wireless/wl12xx/wl1251_sdio.c     |    2 +-
+ drivers/net/wireless/wl12xx/wl1251_spi.c      |    2 +-
+ drivers/net/wireless/wl12xx/wl1271.h          |    8 +-
+ drivers/net/wireless/wl12xx/wl1271_boot.c     |   13 +-
+ drivers/net/wireless/wl12xx/wl1271_boot.h     |    1 -
+ drivers/net/wireless/wl12xx/wl1271_io.h       |    8 +-
+ drivers/net/wireless/wl12xx/wl1271_main.c     |    4 +-
+ drivers/net/wireless/wl12xx/wl1271_sdio.c     |  204 +++++++++++++++++++------
+ drivers/net/wireless/wl12xx/wl1271_spi.c      |    8 +-
+ include/linux/mmc/host.h                      |   16 ++
+ include/linux/mmc/sdio_ids.h                  |    3 +
+ include/linux/spi/wl12xx.h                    |   34 ----
+ include/linux/wl12xx.h                        |   37 +++++
+ 26 files changed, 486 insertions(+), 99 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-zoom-wlan.c
+ delete mode 100644 include/linux/spi/wl12xx.h
+ create mode 100644 include/linux/wl12xx.h
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
