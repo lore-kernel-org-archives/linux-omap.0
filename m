@@ -1,116 +1,45 @@
-From: Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>
-Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
-Date: Tue, 06 Jul 2010 13:42:26 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007061316010.6020@xanadu.home>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
- <1278376666-3509-12-git-send-email-ohad@wizery.com>
- <4C32EF19.1000604@nokia.com>
- <AANLkTintIz-N7MwwtqhVq2LR3Ln5JTNYSbJUBSSClcA-@mail.gmail.com>
- <4C3306F4.8060907@nokia.com>
- <AANLkTin5W52fPzWToRrAzm56SLZI-taSuI16rCEhLWqH@mail.gmail.com>
- <4C333E0D.2070601@nokia.com>
+From: "Que, Simon" <sque@ti.com>
+Subject: RE: [RFC v.3] omap: hwspinlock: Added hwspinlock driver
+Date: Tue, 6 Jul 2010 14:03:02 -0500
+Message-ID: <F39349C6FA641B4A831B7BF4EBF4D4E1475D1956@dlee03.ent.ti.com>
+References: <F39349C6FA641B4A831B7BF4EBF4D4E1474EA6A1@dlee03.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C5ECEF1B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <4C333E0D.2070601-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: ext Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:35493 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752733Ab0GFTDG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 15:03:06 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5ECEF1B@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-On Tue, 6 Jul 2010, Roger Quadros wrote:
+Thanks Santosh, I have responded to your feedback.
 
-> On 07/06/2010 03:53 PM, ext Ohad Ben-Cohen wrote:
-> > Hi Roger,
-> > 
-> > On Tue, Jul 6, 2010 at 1:35 PM, Roger Quadros<roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> > wrote:
-> > > My point is that shouldn't this be handled by SDIO core?
-> > 
-> > Care to explain what you mean / give a code example ?
-> 
-> If the Power enable GPIO can be treated as SDIO slot supply (i.e. vmmc), then
-> the SDIO/MMC core should tackle it, just like it deals with supply for slots
-> with removable cards.
+> > +#include <plat/hwspinlock.h>
+> > +
+> No need of new  line here.
+> > +#include <plat/omap_device.h>
+> > +#include <plat/omap_hwmod.h>
 
-Exact.
+Alright I will fix that.
 
-> > You need card detect events in order to trigger card&  sdio function
-> > initialization and removals.
+> > +/* Initialization function */
+> > +int __init hwspinlocks_init(void)
+> Since it's only init, can this go to "arch/arm/mach-omap2/omap4-commin.c" ?
 
-Why would you trigger function initialization and removal?  Just to turn 
-off power?  That's a bit like pulling off the battery from your laptop 
-when you want to suspend it.  There is a better way to go about things.
+No, since it uses local #defines, we would prefer to put it in its own file.
 
-> > Please share any alternative approach you may be thinking on.
-> 
-> OK, this is how I see it.
-> 
-> - Treat the non-removable card as non-removable. So no need to do card detect
-> emulation.
-> 
-> - Treat the GPIO power enable on wl1271 as VMMC supply. Use fixed regulator
-> framework to define this regulator & supply. Even though you mention that it
-> is not actually a supply, it fits well in the fixed supply framework.
-> 
-> - When the host controller is enumerated, the mmc core will power up the slot,
-> find the sdio card, and probe the function driver (i.e. wl1271_sdio).
-> 
-> - if interface is not in use, the function driver must release the sdio host,
-> and this should eventually disable the vmmc supply.
-> 
-> - Whenever the wlan interface must be brought up, wl1271_sdio, can claim the
-> sdio host. this will cause the vmmc supply to be enabled, for as long as the
-> interface is up.
-> 
-> Does this address all issues?
+> > +       if (retval == HWSPINLOCK_BUSY)
+> > +               pm_runtime_put(&handle->pdev->dev);
+> What resource is getting release with above ??
 
-This is mostly all good, except that claiming/releasing the SDIO host is 
-about access to the bus.  It must be claimed right before doing any IO, 
-and released right after that, even when the card is expected to remain 
-powered.  This is not the proper place to hook power control.
-
-Another function pair would be needed instead, which would do almost 
-like the suspend/resume code is already doing.  Something like:
-
-/*
- * Indicate to the core SDIO layer that we're not requiring that the
- * function remain powered.  If all functions for the card are in the 
- * same "no power" state, then the host controller can remove power from
- * the card.  Note: the function driver must preserve hardware states if
- * necessary.
- */
-int sdio_release_power(struct sdio_func *func);
-
-/*
- * Indicate to the core SDIO layer that we want power back for this
- * SDIO function.  The power may or may not actually have been removed
- * since last call to sdio_release_power(), so the function driver must 
- * not assume any preserved state at the hardware level and re-perform
- * all the necessary hardware config.  This function returns 0 when
- * power is actually restored, or some error code if this cannot be 
- * achieved.  One error reason might be that the card is no longer 
- * available on the bus (was removed while powered down and card 
- * detection didn't trigger yet).
- */
-int sdio_claim_power(struct sdio_func *func);
-
-That's it.  When the network interface is down and the hardware is not 
-needed, you call sdio_release_power().  When the request to activate the 
-network interface is received, you call sdio_claim_power() and configure 
-the hardware appropriately.  If sdio_claim_power() returns an error, 
-then you just return an error to the network request, and eventually the 
-driver's remove method will be called if this is indeed because the card 
-was removed.
-
-In the core SDIO code, this is almost identical to a suspend/resume 
-request, except that the request comes from the function driver instead 
-of the core MMC code.
+That was a mistake actually.  It should not be called because the device will be locked by the time that code is reached.
 
 
-Nicolas
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Simon
