@@ -1,45 +1,73 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: Re: [PATCHv2 04/11] OMAP2: Devkit8000: Setup LCD reset
-Date: Tue, 06 Jul 2010 07:42:16 +0200
-Message-ID: <4C32C238.4090405@corscience.de>
-References: <1275478671-24563-1-git-send-email-weber@corscience.de> <1275478671-24563-5-git-send-email-weber@corscience.de> <20100705125714.GW15951@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 21/33] Removing dead OMAP2_VENC_OUT_TYPE_SVIDEO,
+ OMAP2_VENC_OUT_TYPE_COMPOSITE
+Date: Tue, 6 Jul 2010 11:26:03 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044EAAD9EF@dbde02.ent.ti.com>
+References: <cover.1277911345.git.siccegge@cs.fau.de>
+ <2709d1406900af2436f6f8af00555507baf8dac9.1277911346.git.siccegge@cs.fau.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:59906 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751684Ab0GFFnC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 01:43:02 -0400
-In-Reply-To: <20100705125714.GW15951@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33480 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751040Ab0GFF4a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 01:56:30 -0400
+In-Reply-To: <2709d1406900af2436f6f8af00555507baf8dac9.1277911346.git.siccegge@cs.fau.de>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Christoph Egger <siccegge@cs.fau.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jason Lam <lzg@ema-tech.com>, "linux-omap@vger.kernel.org" <linux-omap@>
+Cc: "vamos@i4.informatik.uni-erlangen.de" <vamos@i4.informatik.uni-erlangen.de>
 
-Am 05.07.2010 14:57, schrieb Tony Lindgren:
-> * Thomas Weber <weber@corscience.de> [100602 14:33]:
->   
->> From: Kan-Ru Chen <kanru@0xlab.org>
->>
->> This patch corrects the LCD reset pin configuration.
->>
->> Original code from early devkit8000 patch sets the TWL4030 GPIO_1
->> to EHCI_nOC and TWL4030_GPIO_MAX+1 to ledA. Indeed these two pins
->> are both LCD_PWREN. Setup the lcd reset_gpio properly so it can be
->> disabled when other display is turned on.
->>     
-> Applied this and the rest of the series too.
->
->   
-Thanks.
-Thomas
-> Tony
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Christoph Egger
+> Sent: Wednesday, June 30, 2010 9:31 PM
+> To: Tony Lindgren; Russell King; Jason Lam; linux-omap@vger.kernel.org;
+> linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org
+> Cc: vamos@i4.informatik.uni-erlangen.de
+> Subject: [PATCH 21/33] Removing dead OMAP2_VENC_OUT_TYPE_SVIDEO,
+> OMAP2_VENC_OUT_TYPE_COMPOSITE
+> 
+> OMAP2_VENC_OUT_TYPE_SVIDEO, OMAP2_VENC_OUT_TYPE_COMPOSITE doesn't
+> exist in Kconfig, therefore removing all references for it from the
+> source code.
+> 
+> Signed-off-by: Christoph Egger <siccegge@cs.fau.de>
+> ---
+>  arch/arm/mach-omap2/board-omap3stalker.c |    5 -----
+>  1 files changed, 0 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-
+> omap2/board-omap3stalker.c
+> index f848ba8..b38afd5 100644
+> --- a/arch/arm/mach-omap2/board-omap3stalker.c
+> +++ b/arch/arm/mach-omap2/board-omap3stalker.c
+> @@ -181,11 +181,6 @@ static struct omap_dss_device omap3_stalker_tv_device =
+> {
+>  	.name			= "tv",
+>  	.driver_name		= "venc",
+>  	.type			= OMAP_DISPLAY_TYPE_VENC,
+> -#if defined(CONFIG_OMAP2_VENC_OUT_TYPE_SVIDEO)
+> -	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
+> -#elif defined(CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE)
+> -	.u.venc.type		= OMAP_DSS_VENC_TYPE_COMPOSITE,
+> -#endif
+[Hiremath, Vaibhav] I understand that currently we do not have any mechanism to dynamically change the VENC output type, but I think we should make some default type assumption and keep that initialization here, which is anyway happening to CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE. But explicitly initialize it to CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE for completeness/readability.
+
+Just wanted to add one more thing here is, in our internal releases we do have config option to choose between this. But ideally it would be configurable dynamically.
+
+Thanks,
+Vaibhav
+>  	.platform_enable	= omap3_stalker_enable_tv,
+>  	.platform_disable	= omap3_stalker_disable_tv,
+>  };
+> --
+> 1.7.0.4
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
->   
-
