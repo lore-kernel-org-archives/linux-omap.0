@@ -1,49 +1,98 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCH 05/15] omap: hsmmc: add virtual card detect support
-Date: Tue, 06 Jul 2010 14:02:15 +0300
-Message-ID: <4C330D37.4090104@nokia.com>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com> 	<1278376666-3509-6-git-send-email-ohad@wizery.com> <alpine.LFD.2.00.1007052134460.6020@xanadu.home> <AANLkTim4E4LlFERmfYA1M0HLBOoRAsQuvdW6QBNu6pC0@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] OMAP: clock, hwmod, omap_device, PM constraints:
+ patches for 2.6.36
+Date: Tue, 6 Jul 2010 14:09:20 +0300
+Message-ID: <20100706110918.GJ3192@atomide.com>
+References: <alpine.DEB.2.00.1007031548010.16344@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTim4E4LlFERmfYA1M0HLBOoRAsQuvdW6QBNu6pC0@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: ext Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, San Mehat <san@google.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60912 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754655Ab0GFLJ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 07:09:28 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1007031548010.16344@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/06/2010 01:22 PM, ext Ohad Ben-Cohen wrote:
-> Hi Nicolas,
->
-> On Tue, Jul 6, 2010 at 4:45 AM, Nicolas Pitre<nico@fluxnic.net>  wrote:
->> On Tue, 6 Jul 2010, Ohad Ben-Cohen wrote:
->>
->>> From: Ohad Ben-Cohen<ohadb@ti.com>
->>>
->>> Add support for software emulation of card detect
->>> events.
->>>
->>> This is required for specific controllers
->>> that are hard wired with embedded SDIO devices
->>> (such as TI's wl1271 WLAN device).
->>
->> Why?
->>
->> Many instances of hardwired SDIO based WLAN devices do exist already,
->> and they don't need extra card detect events to be generated.  The core
->> MMC code already triggers a probe for cards whenever a new host
->> controller is registered.
->
-> We prefer not to power up the chip as early as boot time; instead, we
-Why? if the card is hard wired with no card detect then it should be powered up. 
-The function driver should power it down later if required. no?
+* Paul Walmsley <paul@pwsan.com> [100704 00:43]:
+> 
+> Hi Tony,
+> 
+> here's the pull request for some clock, hwmod, omap_device, PM constraints 
+> patches for 2.6.36.
 
-> would like to have it powered off until the wlan interface is brought
-> up, power it on when the interface is brought up,
+Thanks, pulled into omap-for-linus.
 
-If it was powered OFF then how did the wlan interface come into picture?
+Tony
 
-> and power it off again as soon as the interface is brought down again
-> (to minimize power consumption when the wlan is not in use).
-I agree, we some how need to power down the card when not in use in the right way.
+ 
+> 
+> - Paul
+> 
+> The following changes since commit 7e27d6e778cd87b6f2415515d7127eba53fe5d02:
+> 
+>   Linux 2.6.35-rc3 (2010-06-11 19:14:04 -0700)
+> 
+> are available in the git repository at:
+>   git://git.pwsan.com/linux-2.6 for_2.6.36
+> 
+> Anand Gadiyar (1):
+>       OMAP3: wait on IDLEST after enabling USBTLL fclk
+> 
+> Benoit Cousson (1):
+>       OMAP2&3: hwmod: Remove _hwmod prefix in name string
+> 
+> Kevin Hilman (8):
+>       OMAP24xx: CM: fix mask used for checking IDLEST status
+>       OMAP2/3: hwmod: L3 and L4 CORE/PER/WKUP hwmods don't have IDLEST
+>       OMAP: hwmod: add non-locking versions of enable and idle functions
+>       OMAP: omap_device: ensure hwmod tracks attached omap_device pointer
+>       OMAP: PM: create omap_devices for MPU, DSP, L3
+>       OMAP: hwmod data: add class for IVA hwmods
+>       OMAP2&3: hwmod: Replace l3 -> l3_main
+>       OMAP3: hwmod data: add data for OMAP3 IVA2
+> 
+> Paul Walmsley (9):
+>       OMAP: clock: add kerneldoc for structures; move flags closer to structs
+>       OMAP1: OPP: add KConfig entry for 96MHz ARM rate (using a 12MHz oscillator)
+>       OMAP1: clock: some cleanup
+>       OMAP: hwmod: allow omap_hwmod_late_init() caller to skip module idle in _setup()
+>       OMAP2: hwmod data: add IVA1 (2420), IVA2 (2430) hwmods
+>       OMAP: hwmod/device: add omap_{device,hwmod}_get_mpu_rt_va
+>       OMAP2+: hwmod/device: update documentation and copyright
+>       OMAP: PM constraints: add return values; add requesting device param to omap_pm_set_max_dev_wakeup_lat()
+>       OMAP: PM constraints: add omap_pm_set_min_clk_rate()
+> 
+> Rajendra Nayak (1):
+>       OMAP4: hwmod: Enable omap_device build for OMAP4
+> 
+>  arch/arm/mach-omap1/Kconfig                   |    6 +
+>  arch/arm/mach-omap1/clock.c                   |   22 +++--
+>  arch/arm/mach-omap1/clock.h                   |    2 +-
+>  arch/arm/mach-omap1/clock_data.c              |  129 +++++++++++++++++++-----
+>  arch/arm/mach-omap2/Makefile                  |    4 +-
+>  arch/arm/mach-omap2/clock3xxx_data.c          |    2 +-
+>  arch/arm/mach-omap2/cm.c                      |    6 +-
+>  arch/arm/mach-omap2/io.c                      |   11 ++-
+>  arch/arm/mach-omap2/omap_hwmod.c              |  106 +++++++++++++++-----
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c    |   79 +++++++++++-----
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c    |   81 +++++++++++-----
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   92 ++++++++++++------
+>  arch/arm/mach-omap2/omap_hwmod_common_data.c  |    3 +
+>  arch/arm/mach-omap2/omap_hwmod_common_data.h  |    1 +
+>  arch/arm/mach-omap2/pm.c                      |   84 ++++++++++++++++
+>  arch/arm/plat-omap/Makefile                   |    1 +
+>  arch/arm/plat-omap/i2c.c                      |   12 ++-
+>  arch/arm/plat-omap/include/plat/clock.h       |  130 ++++++++++++++++++++-----
+>  arch/arm/plat-omap/include/plat/common.h      |    4 +
+>  arch/arm/plat-omap/include/plat/omap-pm.h     |  130 +++++++++++++++++++------
+>  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h  |   14 ++-
+>  arch/arm/plat-omap/omap-pm-noop.c             |   61 +++++++++---
+>  arch/arm/plat-omap/omap_device.c              |   33 ++++++-
+>  24 files changed, 790 insertions(+), 225 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/pm.c
