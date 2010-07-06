@@ -1,47 +1,47 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCH 05/15] omap: hsmmc: add virtual card detect support
-Date: Tue, 06 Jul 2010 15:39:06 +0300
-Message-ID: <4C3323EA.902@nokia.com>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com> 	<1278376666-3509-6-git-send-email-ohad@wizery.com> <alpine.LFD.2.00.1007052134460.6020@xanadu.home> 	<AANLkTim4E4LlFERmfYA1M0HLBOoRAsQuvdW6QBNu6pC0@mail.gmail.com> <AANLkTinE5LygUWJsJSEE2miZF1GK58LTr8zErkuu_7yM@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 9/9] omap: id: add feature check for omap1
+Date: Tue, 6 Jul 2010 15:46:07 +0300
+Message-ID: <20100706124606.GP3192@atomide.com>
+References: <1277259375-18521-1-git-send-email-nm@ti.com>
+ <1277259375-18521-10-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinE5LygUWJsJSEE2miZF1GK58LTr8zErkuu_7yM@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: ext Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, San Mehat <san@google.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53046 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754789Ab0GFMqM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 08:46:12 -0400
+Content-Disposition: inline
+In-Reply-To: <1277259375-18521-10-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Venkatraman S <svenkatr@ti.com>, Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Hi,
+* Nishanth Menon <nm@ti.com> [100623 05:10]:
+> add a minimalist feature - l2cache for omap1.
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap1/id.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/id.c b/arch/arm/mach-omap1/id.c
+> index 91dbb71..b98a17f 100644
+> --- a/arch/arm/mach-omap1/id.c
+> +++ b/arch/arm/mach-omap1/id.c
+> @@ -200,5 +200,11 @@ void __init omap1_check_revision(void)
+>  	printk(KERN_INFO " revision %i handled as %02xxx id: %08x%08x\n",
+>  	       die_rev, omap_revision & 0xff, system_serial_low,
+>  	       system_serial_high);
+> +
+> +	/*
+> +	 * TODO: add a better check feature once we have
+> +	 * more decent feature check
+> +	 */
+> +	omap_features |= OMAP_HAS_L2CACHE;
+>  }
 
-On 07/06/2010 02:48 PM, ext Ohad Ben-Cohen wrote:
-> On Tue, Jul 6, 2010 at 1:22 PM, Ohad Ben-Cohen<ohad@wizery.com>  wrote:
->> Note: the wl1271 device does support standard card detection, but
->> AFAIK there's a limitation to use that with the specific omap
->> controller the device is hardwired to. I will try to get more info
->> about that, but probably Madhu can comment on that better.
->
->
-> Some correction and additional info:
->
-> The wl1271 device has an issue which makes the standard card detect
-> mechanism irrelevant: it is always up, even if the power enable gpio
-> input of the device is down (the power enable input does not supply
-> the power to the chip, it's just logical digital high/low input upon
-> which the device reacts).  That's why we must use software control for
-> emulating card detect with that device.
+There's no L2 cache on omap1?
 
-Just to clarify, is the wl1271 device always powered on the board?
-
-And this GPIO power enable (OMAP_ZOOM_WLAN_PMENA_GPIO) is used to gate this 
-supply internally?
-
-and what do these do ?
-
-set_bit(WL1271_FLAG_GPIO_POWER, &wl->flags);
-
-clear_bit(WL1271_FLAG_GPIO_POWER, &wl->flags);
-
-regards,
--roger
+Tony
