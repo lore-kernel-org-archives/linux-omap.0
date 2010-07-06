@@ -1,37 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] omap4: mmc: Fix the regulator resource for MMC2
-Date: Tue, 6 Jul 2010 04:59:28 -0400
-Message-ID: <notify-1278406764@atomide.com>
-References: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 3/8] musb: fix compilation warning in host only mode
+Date: Tue, 6 Jul 2010 12:12:44 +0300
+Message-ID: <20100706091243.GF3035@nokia.com>
+References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
+ <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
+ <20100624060338.GF8078@nokia.com>
+ <19F8576C6E063C45BE387C64729E7394044E9E38CA@dbde02.ent.ti.com>
+ <4C235929.9030605@ru.mvista.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64768 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756548Ab0GFI72 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 04:59:28 -0400
-Received: from 80-186-228-71.elisa-mobile.fi ([80.186.228.71] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1OW3zz-0000mn-GM
-	for linux-omap@vger.kernel.org; Tue, 06 Jul 2010 08:59:27 +0000
-In-Reply-To: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:21890 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752954Ab0GFJNK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 05:13:10 -0400
 Content-Disposition: inline
+In-Reply-To: <4C235929.9030605@ru.mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@suse.de" <gregkh@suse.de>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+On Thu, Jun 24, 2010 at 03:10:01PM +0200, ext Sergei Shtylyov wrote:
+>@@ -714,12 +713,16 @@ static irqreturn_t musb_stage0_irq(struct musb
+>
+>  #ifdef CONFIG_USB_MUSB_OTG
+>  		/* flush endpoints when transitioning from Device Mode */
+>- 		if (is_peripheral_active(musb)) {
+>- 			/* REVISIT HNP; just force disconnect */
+>- 		}
+>-		musb_writew(mbase, MUSB_INTRTXE, musb->epmask);
+>-		musb_writew(mbase, MUSB_INTRRXE, musb->epmask & 0xfffe);
+>-		musb_writeb(mbase, MUSB_INTRUSBE, 0xf7);
+>+		{
 
-Branch in linux-omap: devel-boards
+and adding unneded identation level ?? no thanks. Dereferencing musb to 
+access mbase sounds better to me.
 
-Initial commit ID (Likely to change): 4b78f83d08ecac0c9b7aa1ee72345be4657abcb9
+-- 
+balbi
 
-PatchWorks
-http://patchwork.kernel.org/patch/102918/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=4b78f83d08ecac0c9b7aa1ee72345be4657abcb9
-
-
+DefectiveByDesign.org
