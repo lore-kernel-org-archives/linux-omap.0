@@ -1,43 +1,37 @@
-From: Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
-Date: Tue, 06 Jul 2010 11:53:45 +0300
-Message-ID: <4C32EF19.1000604@nokia.com>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com> <1278376666-3509-12-git-send-email-ohad@wizery.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] omap4: mmc: Fix the regulator resource for MMC2
+Date: Tue, 6 Jul 2010 04:59:28 -0400
+Message-ID: <notify-1278406764@atomide.com>
+References: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1278376666-3509-12-git-send-email-ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ohad Ben-Cohen <ohadb-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64768 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756548Ab0GFI72 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 04:59:28 -0400
+Received: from 80-186-228-71.elisa-mobile.fi ([80.186.228.71] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1OW3zz-0000mn-GM
+	for linux-omap@vger.kernel.org; Tue, 06 Jul 2010 08:59:27 +0000
+In-Reply-To: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-On 07/06/2010 03:37 AM, ext Ohad Ben-Cohen wrote:
-> From: Ohad Ben-Cohen<ohadb-l0cyMroinI0@public.gmane.org>
->
-> Introduce a platform device support which is decoupled
-> from the life cycle of the sdio function.
->
-> The platform device objective is to deliver board-specific
-> values (like irq, ref_clock, and software card-detect
-> emulation control).
->
-> The driver can then dynamically create (or destroy)
-> the sdio function whenever the wlan interface is
-> brought up (or down), as part of the power() operation.
+Branch in linux-omap: devel-boards
 
-Is this the right approach? Why should you emulate a card disconnect event when 
-the wlan interface is brought down?
+Initial commit ID (Likely to change): 4b78f83d08ecac0c9b7aa1ee72345be4657abcb9
 
-Physically the card is never disconnected. So I don't see why we should fake it.
-Could you please explain why you need to do this?
+PatchWorks
+http://patchwork.kernel.org/patch/102918/
 
-br,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=4b78f83d08ecac0c9b7aa1ee72345be4657abcb9
+
+
