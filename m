@@ -1,60 +1,87 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 8/8 v2] omap: introduce omap24xx generic features
-Date: Tue,  6 Jul 2010 11:13:21 -0500
-Message-ID: <1278432801-28611-1-git-send-email-nm@ti.com>
-References: <[PATCH 9/9] omap: id: add feature check for omap1>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: RE: [PATCH 05/15] omap: hsmmc: add virtual card detect support
+Date: Tue, 06 Jul 2010 13:00:11 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1007061249280.6020@xanadu.home>
+References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
+ <1278376666-3509-6-git-send-email-ohad@wizery.com>
+ <alpine.LFD.2.00.1007052134460.6020@xanadu.home>
+ <AANLkTim4E4LlFERmfYA1M0HLBOoRAsQuvdW6QBNu6pC0@mail.gmail.com>
+ <AANLkTinE5LygUWJsJSEE2miZF1GK58LTr8zErkuu_7yM@mail.gmail.com>
+ <822D79B5C25543B1A6F148B39E061459@am.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36686 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755134Ab0GFQN1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 12:13:27 -0400
-In-Reply-To: <[PATCH 9/9] omap: id: add feature check for omap1>
+Received: from relais.videotron.ca ([24.201.245.36]:61926 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751773Ab0GFRAN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 13:00:13 -0400
+In-reply-to: <822D79B5C25543B1A6F148B39E061459@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Venkatraman S <svenkatr@ti.com>, Senthil G <svadivu@ti.com>, Nishanth Menon <nm@ti.com>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Ohad Ben-Cohen' <ohad@wizery.com>, linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, 'Luciano Coelho' <luciano.coelho@nokia.com>, 'Andrew Morton' <akpm@linux-foundation.org>, 'San Mehat' <san@google.com>, "'Pandita, Vikram'" <vikram.pandita@ti.com>
 
-introduce generic features for omap2. omap2 uses mbx, not sgx, and
-it still has a dsp, though not iva2 as omap3 uses..
+On Tue, 6 Jul 2010, Madhusudhan wrote:
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-V2: comments from http://marc.info/?t=127725956100003&r=1&w=2&n=4
-    incorporated - L2 cache is removed from enabled features for omap2.
+> 
+> 
+> > -----Original Message-----
+> > From: Ohad Ben-Cohen [mailto:ohad@wizery.com]
+> > Sent: Tuesday, July 06, 2010 6:48 AM
+> > To: Nicolas Pitre
+> > Cc: linux-wireless@vger.kernel.org; linux-mmc@vger.kernel.org; linux-
+> > omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> > linux@arm.linux.org.uk; Chikkature Rajashekar Madhusudhan; Luciano Coelho;
+> > Andrew Morton; San Mehat; Pandita, Vikram
+> > Subject: Re: [PATCH 05/15] omap: hsmmc: add virtual card detect support
+> > 
+> > On Tue, Jul 6, 2010 at 1:22 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> > > Note: the wl1271 device does support standard card detection, but
+> > > AFAIK there's a limitation to use that with the specific omap
+> > > controller the device is hardwired to. I will try to get more info
+> > > about that, but probably Madhu can comment on that better.
+> > 
+> > 
+> > Some correction and additional info:
+> > 
+> > The wl1271 device has an issue which makes the standard card detect
+> > mechanism irrelevant: it is always up, even if the power enable gpio
+> > input of the device is down (the power enable input does not supply
+> > the power to the chip, it's just logical digital high/low input upon
+> > which the device reacts).  That's why we must use software control for
+> > emulating card detect with that device.
+> > 
+> > In addition, as far as I could find out, the card detect mechanism on
+> > the ZOOM is implemented by mechanical means, and thus is not relevant
+> > for hardwired embedded SDIO devices (I'm not even sure card detect is
+> > supported for the 3rd mmc controller).
+> 
+> The card detect is supported through T2 GPIO interrupts only for MMC1 and
+> MMC2. Such a mechanism is not present for MMC3 to which the WLAN chip is
+> hardwired.
 
-V1: original patch including L2 cache being set as available feature
+Many existing implementations simply have no (or a broken) card 
+detection signal.  In that case, either the host controller passes the 
+MMC_CAP_NEEDS_POLL flag to the core so that the bus is probed on a 
+regular interval for card presence.  Or, like in this case where the 
+"card" is always hardwired on the board, you simply rely on the initial 
+probe which is always performed at least once when the host controller 
+driver is registered.
 
- arch/arm/mach-omap2/id.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+Now the issue of having the card powered off when not in use is a valid 
+one, whether or not it is actually hardwired on the board or 
+hot insertable/removable.  This fake insertion thing is not the best way 
+to go about it.
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index e3f5994..ab8eb41 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -102,6 +102,15 @@ static struct omap_id omap_ids[] __initdata = {
- static void __iomem *tap_base;
- static u16 tap_prod_id;
- 
-+static void __init omap24xx_check_features(void)
-+{
-+	/*
-+	 * TODO: add a better check feature once we have
-+	 * more decent feature check
-+	 */
-+	omap_features |= OMAP_HAS_IVA;
-+}
-+
- static void __init omap24xx_check_revision(void)
- {
- 	int i, j;
-@@ -388,6 +397,7 @@ void __init omap2_check_revision(void)
- 	 */
- 	if (cpu_is_omap24xx()) {
- 		omap24xx_check_revision();
-+		omap24xx_check_features();
- 	} else if (cpu_is_omap34xx()) {
- 		omap3_check_revision();
- 		omap3_check_features();
--- 
-1.6.3.3
+It would be way more useful, generic, and less hackish to simply improve 
+the generic code so to power down the card when it is 1) not claimed by 
+any function driver, and 2) provide an API to let a function driver 
+signify to the core and host controller that it is not interested by the 
+hardware at the moment (if the network interface is not up for example) 
+and therefore the core could again power down the card.  This would work 
+in all cases with no need for exceptions  for so called "enbedded 
+controllers".
 
+
+Nicolas
