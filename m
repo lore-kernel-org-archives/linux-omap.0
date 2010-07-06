@@ -1,56 +1,52 @@
-From: "MICROSOFT EMAIL PROMOTION" <info.winner@microsoft.com>
-Subject: Congratulations: You have won
-Date: Tue, 6 Jul 2010 04:54:45 -0200 (FNT)
-Message-ID: <10118.41.206.15.1.1278399285.squirrel__48172.7684535601$1278407973$gmane$org@41.206.15.1>
-Reply-To: mrglenn.bradley@yahoo.com.hk
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
+Date: Tue, 6 Jul 2010 12:30:50 +0300
+Message-ID: <AANLkTintIz-N7MwwtqhVq2LR3Ln5JTNYSbJUBSSClcA-@mail.gmail.com>
+References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
+	<1278376666-3509-12-git-send-email-ohad@wizery.com> <4C32EF19.1000604@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.avellaneda-ba.gov.ar ([200.71.230.2]:55369 "EHLO
-	ns2.avellaneda-ba.gov.ar" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751126Ab0GFJSw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 05:18:52 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C32EF19.1000604-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ohad Ben-Cohen <ohadb-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Congratulations: You have won
+Hi Roger,
 
-The MICROSOFT EMAIL PROMO TEAM is glad to announce that
-after a successful completion of the PROMO DRAWS held on
-the 5th July 2010,your e-mail address,attached to
-winning numbers:(11) (80) (12)(96) (09) (43) won in the
-Tenth lottery category.
+On Tue, Jul 6, 2010 at 11:53 AM, Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> wrote:
+> Could you please explain why you need to do this?
 
-You have therefore been approved to claim a total sum of
-=A3250,000,00 Pounds Sterling in cash credited to REF
-NO:MICRO-L/2009-END10.
+To minimize power consumption when the wlan device is not in use, we
+would like to keep the device powered off as long as the interface is
+down, and only power it on when the user brings up the interface.
 
-All participants were selected through our Microsoft
-computer ballot system drawn from 167,000 Names,as part
-of our International  "E-MAIL" Promotion Program for our
+Whenever the chip is powered on, it must be initialized and
+reconfigured by mmc_attach_sdio, and the wl1271 driver have to wait
+for that phase to successfully complete (essentially waiting for the
+sdio_driver's probe function to be called).
 
-prominent MS-WORD users all over the world and for the
-continuous use of the internet. You are advised to
-contact the claims processor with the details below via
-his e-mail address :
+To make sure this SDIO init step occurs correctly every time we toggle
+the device's power back on, and to prevent potential races, we also
+have to make sure that the sdio function is removed every time we
+power off the chip (the driver waits for the sdio_driver's remove
+function to be called).
 
-NAME:  GLENN BRADLEY
-EMAIL: mrglenn_bradley@yahoo.com.hk
+That's why we let the mmc layer think that the card is removed:
+physically it is still there, but for all practical purposes it is
+really removed, because once you power off the chip, you must
+reinitialize it again next time you power it on, as if the card was
+really removed and re-inserted.
 
-PLEASE NOTE YOU ARE TO SEND THE FOLLOWING INFORMATION TO
+Thanks,
+Ohad.
 
-CLAIM YOUR PRIZE:
-1.Full Name:... 2.Address:... 3.Phone:... 4.Country:...
-
-5.Sex/Gender:...
-
-
-YOURS SINCERELY,
-Eileen Quincy.
-
+>
+> br,
+> -roger
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
