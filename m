@@ -1,40 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2]   Adding LogicPD OMAP 3530 LV SOM and OMAP 35x
- Torpedo
-Date: Tue, 6 Jul 2010 14:15:26 +0300
-Message-ID: <20100706111526.GL3192@atomide.com>
-References: <1274880936-23648-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
+Subject: [APPLIED] [PATCH 1/3] omap: rx51: Add platform_data for tlv320aic3x with
+Date: Tue, 6 Jul 2010 07:20:43 -0400
+Message-ID: <notify-1278415239@atomide.com>
+References: <1274859017-19509-2-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53500 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368Ab0GFLPb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 07:15:31 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61351 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752313Ab0GFLUn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 07:20:43 -0400
+Received: from 80-186-248-161.elisa-mobile.fi ([80.186.248.161] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1OW6Cg-000DYN-4W
+	for linux-omap@vger.kernel.org; Tue, 06 Jul 2010 11:20:42 +0000
+In-Reply-To: <1274859017-19509-2-git-send-email-jhnikula@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <1274880936-23648-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
+To: linux-omap@vger.kernel.org
 
-Hi,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-* Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com> [100526 16:30]:
->         Adding LogicPD OMAP3 board support
-> 
->         Adding support for LogicPD's OMAP 3530 LV SOM and
->         OMAP 35x Torpedo board.
+Branch in linux-omap: devel-boards
 
-Please update this patch to leave out the defconfig as we won't
-be patching those any longer as requested by Linus.
+Initial commit ID (Likely to change): 47c7cdf07979102128ff4056416135c994690263
 
-Instead, please  just add default y for the board in
-arch/arm/mach-omap2/Kconfig.
+PatchWorks
+http://patchwork.kernel.org/patch/102348/
 
-Please also test these patches with the linux-omap for-next
-branch.
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=47c7cdf07979102128ff4056416135c994690263
 
-Regards,
 
-Tony
