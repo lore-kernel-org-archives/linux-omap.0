@@ -1,231 +1,60 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH] staging: tidspbridge: gen: simplify and clean up
-Date: Tue,  6 Jul 2010 18:08:52 +0300
-Message-ID: <1278428932-9145-1-git-send-email-andy.shevchenko@gmail.com>
-References: <AANLkTimdDuce7ZCVGhmMpbY5vKO_2AB7Ew3gTAYW77QW@mail.gmail.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH 05/15] omap: hsmmc: add virtual card detect support
+Date: Tue, 6 Jul 2010 10:34:09 -0500
+Message-ID: <822D79B5C25543B1A6F148B39E061459@am.dhcp.ti.com>
+References: <1278376666-3509-1-git-send-email-ohad@wizery.com> <1278376666-3509-6-git-send-email-ohad@wizery.com> <alpine.LFD.2.00.1007052134460.6020@xanadu.home> <AANLkTim4E4LlFERmfYA1M0HLBOoRAsQuvdW6QBNu6pC0@mail.gmail.com> <AANLkTinE5LygUWJsJSEE2miZF1GK58LTr8zErkuu_7yM@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:44506 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814Ab0GFPI5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 11:08:57 -0400
-In-Reply-To: <AANLkTimdDuce7ZCVGhmMpbY5vKO_2AB7Ew3gTAYW77QW@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48824 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753913Ab0GFPen (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Jul 2010 11:34:43 -0400
+In-reply-to: <AANLkTinE5LygUWJsJSEE2miZF1GK58LTr8zErkuu_7yM@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-omap@vger.kernel.org
+To: 'Ohad Ben-Cohen' <ohad@wizery.com>, 'Nicolas Pitre' <nico@fluxnic.net>
+Cc: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, 'Luciano Coelho' <luciano.coelho@nokia.com>, 'Andrew Morton' <akpm@linux-foundation.org>, 'San Mehat' <san@google.com>, "'Pandita, Vikram'" <vikram.pandita@ti.com>
 
-There is recently added hex_to_bin() kernel's method which we could use
-instead of custom long function.
 
-Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: linux-omap@vger.kernel.org
----
- drivers/staging/tidspbridge/gen/uuidutil.c |  167 +++++-----------------------
- 1 files changed, 28 insertions(+), 139 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/gen/uuidutil.c b/drivers/staging/tidspbridge/gen/uuidutil.c
-index ce9319d..eb09bc3 100644
---- a/drivers/staging/tidspbridge/gen/uuidutil.c
-+++ b/drivers/staging/tidspbridge/gen/uuidutil.c
-@@ -54,61 +54,19 @@ void uuid_uuid_to_string(IN struct dsp_uuid *uuid_obj, OUT char *pszUuid,
- 	DBC_ENSURE(i != -1);
- }
- 
--/*
-- *  ======== htoi ========
-- *  Purpose:
-- *      Converts a hex value to a decimal integer.
-- */
--
--static int htoi(char c)
-+static s32 uuid_hex_to_bin(char *buf, s32 len)
- {
--	switch (c) {
--	case '0':
--		return 0;
--	case '1':
--		return 1;
--	case '2':
--		return 2;
--	case '3':
--		return 3;
--	case '4':
--		return 4;
--	case '5':
--		return 5;
--	case '6':
--		return 6;
--	case '7':
--		return 7;
--	case '8':
--		return 8;
--	case '9':
--		return 9;
--	case 'A':
--		return 10;
--	case 'B':
--		return 11;
--	case 'C':
--		return 12;
--	case 'D':
--		return 13;
--	case 'E':
--		return 14;
--	case 'F':
--		return 15;
--	case 'a':
--		return 10;
--	case 'b':
--		return 11;
--	case 'c':
--		return 12;
--	case 'd':
--		return 13;
--	case 'e':
--		return 14;
--	case 'f':
--		return 15;
-+	s32 i;
-+	s32 result = 0;
-+
-+	for (i = 0; i < len; i++) {
-+		value = hex_to_bin(*buf++);
-+		result *= 16;
-+		if (value > 0)
-+			result += value;
- 	}
--	return 0;
-+
-+	return result;
- }
- 
- /*
-@@ -118,106 +76,37 @@ static int htoi(char c)
-  */
- void uuid_uuid_from_string(IN char *pszUuid, OUT struct dsp_uuid *uuid_obj)
- {
--	char c;
--	s32 i, j;
--	s32 result;
--	char *temp = pszUuid;
-+	s32 j;
- 
--	result = 0;
--	for (i = 0; i < 8; i++) {
--		/* Get first character in string */
--		c = *temp;
--
--		/* Increase the results by new value */
--		result *= 16;
--		result += htoi(c);
--
--		/* Go to next character in string */
--		temp++;
--	}
--	uuid_obj->ul_data1 = result;
-+	uuid_obj->ul_data1 = uuid_hex_to_bin(pszUuid, 8);
-+	pszUuid += 8;
- 
- 	/* Step over underscore */
--	temp++;
-+	pszUuid++;
- 
--	result = 0;
--	for (i = 0; i < 4; i++) {
--		/* Get first character in string */
--		c = *temp;
--
--		/* Increase the results by new value */
--		result *= 16;
--		result += htoi(c);
--
--		/* Go to next character in string */
--		temp++;
--	}
--	uuid_obj->us_data2 = (u16) result;
-+	uuid_obj->us_data2 = (u16) uuid_hex_to_bin(pszUuid, 4);
-+	pszUuid += 4;
- 
- 	/* Step over underscore */
--	temp++;
--
--	result = 0;
--	for (i = 0; i < 4; i++) {
--		/* Get first character in string */
--		c = *temp;
-+	pszUuid++;
- 
--		/* Increase the results by new value */
--		result *= 16;
--		result += htoi(c);
--
--		/* Go to next character in string */
--		temp++;
--	}
--	uuid_obj->us_data3 = (u16) result;
-+	uuid_obj->us_data3 = (u16) uuid_hex_to_bin(pszUuid, 4);
-+	pszUuid += 4;
- 
- 	/* Step over underscore */
--	temp++;
--
--	result = 0;
--	for (i = 0; i < 2; i++) {
--		/* Get first character in string */
--		c = *temp;
-+	pszUuid++;
- 
--		/* Increase the results by new value */
--		result *= 16;
--		result += htoi(c);
-+	uuid_obj->uc_data4 = (u8) uuid_hex_to_bin(pszUuid, 2);
-+	pszUuid += 2;
- 
--		/* Go to next character in string */
--		temp++;
--	}
--	uuid_obj->uc_data4 = (u8) result;
--
--	result = 0;
--	for (i = 0; i < 2; i++) {
--		/* Get first character in string */
--		c = *temp;
--
--		/* Increase the results by new value */
--		result *= 16;
--		result += htoi(c);
--
--		/* Go to next character in string */
--		temp++;
--	}
--	uuid_obj->uc_data5 = (u8) result;
-+	uuid_obj->uc_data5 = (u8) uuid_hex_to_bin(pszUuid, 2);
-+	pszUuid += 2;
- 
- 	/* Step over underscore */
--	temp++;
-+	pszUuid++;
- 
- 	for (j = 0; j < 6; j++) {
--		result = 0;
--		for (i = 0; i < 2; i++) {
--			/* Get first character in string */
--			c = *temp;
--
--			/* Increase the results by new value */
--			result *= 16;
--			result += htoi(c);
--
--			/* Go to next character in string */
--			temp++;
--		}
--		uuid_obj->uc_data6[j] = (u8) result;
-+		uuid_obj->uc_data6[j] = (u8) uuid_hex_to_bin(pszUuid, 2);
-+		pszUuid += 2;
- 	}
- }
--- 
-1.6.6.1
+> -----Original Message-----
+> From: Ohad Ben-Cohen [mailto:ohad@wizery.com]
+> Sent: Tuesday, July 06, 2010 6:48 AM
+> To: Nicolas Pitre
+> Cc: linux-wireless@vger.kernel.org; linux-mmc@vger.kernel.org; linux-
+> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> linux@arm.linux.org.uk; Chikkature Rajashekar Madhusudhan; Luciano Coelho;
+> Andrew Morton; San Mehat; Pandita, Vikram
+> Subject: Re: [PATCH 05/15] omap: hsmmc: add virtual card detect support
+> 
+> On Tue, Jul 6, 2010 at 1:22 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> > Note: the wl1271 device does support standard card detection, but
+> > AFAIK there's a limitation to use that with the specific omap
+> > controller the device is hardwired to. I will try to get more info
+> > about that, but probably Madhu can comment on that better.
+> 
+> 
+> Some correction and additional info:
+> 
+> The wl1271 device has an issue which makes the standard card detect
+> mechanism irrelevant: it is always up, even if the power enable gpio
+> input of the device is down (the power enable input does not supply
+> the power to the chip, it's just logical digital high/low input upon
+> which the device reacts).  That's why we must use software control for
+> emulating card detect with that device.
+> 
+> In addition, as far as I could find out, the card detect mechanism on
+> the ZOOM is implemented by mechanical means, and thus is not relevant
+> for hardwired embedded SDIO devices (I'm not even sure card detect is
+> supported for the 3rd mmc controller).
+
+The card detect is supported through T2 GPIO interrupts only for MMC1 and
+MMC2. Such a mechanism is not present for MMC3 to which the WLAN chip is
+hardwired.
+
+Regards,
+Madhu
 
