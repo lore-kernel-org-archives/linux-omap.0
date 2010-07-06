@@ -1,68 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 9/9] omap: id: add feature check for omap1
-Date: Tue, 6 Jul 2010 16:14:57 +0300
-Message-ID: <20100706131457.GQ3192@atomide.com>
-References: <1277259375-18521-1-git-send-email-nm@ti.com>
- <1277259375-18521-10-git-send-email-nm@ti.com>
- <20100706124606.GP3192@atomide.com>
- <4C33275E.4030506@ti.com>
+Subject: Re: [PATCH:v4 00/13] OMAP: GPIO: Implement GPIO in HWMOD way
+Date: Tue, 6 Jul 2010 16:17:41 +0300
+Message-ID: <20100706131741.GR3192@atomide.com>
+References: <1277218916-15213-1-git-send-email-charu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58891 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556Ab0GFNPF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 09:15:05 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49310 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754968Ab0GFNRr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 09:17:47 -0400
 Content-Disposition: inline
-In-Reply-To: <4C33275E.4030506@ti.com>
+In-Reply-To: <1277218916-15213-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "S, Venkatraman" <svenkatr@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+To: Charulatha V <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, rnayak@ti.com, p-basak2@ti.com, b-cousson@ti.com
 
-* Nishanth Menon <nm@ti.com> [100706 15:47]:
-> On 07/06/2010 07:46 AM, Tony Lindgren wrote:
-> >* Nishanth Menon<nm@ti.com>  [100623 05:10]:
-> >>add a minimalist feature - l2cache for omap1.
-> >>
-> >>Signed-off-by: Nishanth Menon<nm@ti.com>
-> >>---
-> >>  arch/arm/mach-omap1/id.c |    6 ++++++
-> >>  1 files changed, 6 insertions(+), 0 deletions(-)
-> >>
-> >>diff --git a/arch/arm/mach-omap1/id.c b/arch/arm/mach-omap1/id.c
-> >>index 91dbb71..b98a17f 100644
-> >>--- a/arch/arm/mach-omap1/id.c
-> >>+++ b/arch/arm/mach-omap1/id.c
-> >>@@ -200,5 +200,11 @@ void __init omap1_check_revision(void)
-> >>  	printk(KERN_INFO " revision %i handled as %02xxx id: %08x%08x\n",
-> >>  	       die_rev, omap_revision&  0xff, system_serial_low,
-> >>  	       system_serial_high);
-> >>+
-> >>+	/*
-> >>+	 * TODO: add a better check feature once we have
-> >>+	 * more decent feature check
-> >>+	 */
-> >>+	omap_features |= OMAP_HAS_L2CACHE;
-> >>  }
-> >
-> >There's no L2 cache on omap1?
+* Charulatha V <charu@ti.com> [100622 17:55]:
+> This patch series makes OMAP2PLUS specific GPIO implemented in HWMOD
+> FW way. This is done by implementing GPIO module in platform device model.
 > 
-> I thought it did, hence added.. am I wrong?
+> This patch series is generated on "origin/pm-wip/hwmods-omap4".
 
-Maybe you're thinking something else.. But for example, 1710 TRM says:
+Do we still have a dependency on this series to pm-wip?
 
-ARM926EJ
-L1 32K-byte, four-way set-associative instruction cache
-L1 16K-byte, four-way set-associative data cache with write buffer
+Can you please try to rebase this on top of linux-omap for-next
+branch?
 
-Then 2430 TRM says:
-
-ARM1136JF-S
-32K-byte instructions and 32K-byte data--4-way associative
-64-entry instruction and 64-entry data memory management units (MMUs)
-
-So no L2 until 34xx I believe.
+Let's see if we can merge this into linux-omap master
+branch for some testing before we merge it.
 
 Regards,
 
