@@ -1,66 +1,85 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v3 1/8] omap3 flash: rename board-sdp-flash.c to be use
- by other boards
-Date: Tue, 6 Jul 2010 11:35:01 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5ECF359@dbde02.ent.ti.com>
-References: <s-ghorai@ti.com>
- <1276688400-4812-1-git-send-email-s-ghorai@ti.com>
- <1276688400-4812-2-git-send-email-s-ghorai@ti.com>
- <20100705122310.GU15951@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] OMAP: DSS2: OMAPFB: add support for FBIO_WAITFORVSYNC
+Date: Tue, 6 Jul 2010 11:38:14 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044EAADA06@dbde02.ent.ti.com>
+References: <1278104096-27809-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33915 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34059 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751391Ab0GFGFH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 02:05:07 -0400
-In-Reply-To: <20100705122310.GU15951@atomide.com>
+	id S1751094Ab0GFGIW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 02:08:22 -0400
+In-Reply-To: <1278104096-27809-1-git-send-email-notasas@gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Grazvydas Ignotas <notasas@gmail.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Sukumar,
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Monday, July 05, 2010 5:53 PM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v3 1/8] omap3 flash: rename board-sdp-flash.c to be
-> use by other boards
+> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
+> Sent: Saturday, July 03, 2010 2:25 AM
+> To: linux-fbdev@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org; Tomi Valkeinen; Hiremath, Vaibhav; Grazvydas
+> Ignotas
+> Subject: [PATCH] OMAP: DSS2: OMAPFB: add support for FBIO_WAITFORVSYNC
 > 
-> * Sukumar Ghorai <s-ghorai@ti.com> [100616 14:34]:
-> > rename board-sdp-flash.c(board-flash.c) and board-sdp.h(board-flash.h)
-> to
-> > used by other board e.g. zoom
-> >
-> > Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/Makefile                   |    2 +-
-> >  arch/arm/mach-omap2/board-3430sdp.c            |   16 ++-
-> >  arch/arm/mach-omap2/board-flash.c              |  253
-> ++++++++++++++++++++++
-> >  arch/arm/mach-omap2/board-sdp-flash.c          |  267 -----------------
-> -------
-> >  arch/arm/mach-omap2/include/mach/board-flash.h |   28 +++
-> >  arch/arm/mach-omap2/include/mach/board-sdp.h   |   21 --
-> >  6 files changed, 296 insertions(+), 291 deletions(-)
-> >  create mode 100755 arch/arm/mach-omap2/board-flash.c
-> >  delete mode 100755 arch/arm/mach-omap2/board-sdp-flash.c
-> >  create mode 100644 arch/arm/mach-omap2/include/mach/board-flash.h
-> >  delete mode 100644 arch/arm/mach-omap2/include/mach/board-sdp.h
+> FBIO_WAITFORVSYNC is a stardard ioctl for waiting vsync, already
+> used by some userspace, so add it as an alias for OMAPFB_WAITFORVSYNC.
 > 
-> Looks like this one won't apply:
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> ---
+> Tomi,
 > 
-> patching file arch/arm/mach-omap2/board-sdp-flash.c
-> Hunk #1 FAILED at 1.
-> File arch/arm/mach-omap2/board-sdp-flash.c is not empty after patch, as
-> expected
+> I know I already sent this earlier, but as now FBIO_WAITFORVSYNC is a
+> standard ioctl, so why don't we support it? I know you might not like
+> that omapfb_ioctl will have one standard ioctl handler between all OMAP
+> specific ones, but that's something plenty of other drivers do.
 > 
-Try "git format-patch -M " when creating renaming patch.
+[Hiremath, Vaibhav] We should always use standard interfaces wherever possible and I think Tomi will also be aligned on this.
 
-Regards,
-Santosh
+>  drivers/video/omap2/omapfb/omapfb-ioctl.c |   12 ++++++++++++
+>  1 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c
+> b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+> index 9c73618..32fab5a 100644
+> --- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
+> +++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+> @@ -490,6 +490,7 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd,
+> unsigned long arg)
+>  		struct omapfb_vram_info		vram_info;
+>  		struct omapfb_tearsync_info	tearsync_info;
+>  		struct omapfb_display_info	display_info;
+> +		u32				crt;
+>  	} p;
+> 
+>  	int r = 0;
+> @@ -648,6 +649,17 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd,
+> unsigned long arg)
+>  			r = -EFAULT;
+>  		break;
+> 
+> +	case FBIO_WAITFORVSYNC:
+> +		if (get_user(p.crt, (__u32 __user *)arg)) {
+> +			r = -EFAULT;
+> +			break;
+> +		}
+> +		if (p.crt != 0) {
+> +			r = -ENODEV;
+> +			break;
+> +		}
+> +		/* FALLTHROUGH */
+> +
+>  	case OMAPFB_WAITFORVSYNC:
+[Hiremath, Vaibhav] I don't see any reason why we should still keep old custom IOCTL support here. 
+
+Thanks,
+Vaibhav
+>  		DBG("ioctl WAITFORVSYNC\n");
+>  		if (!display) {
+> --
+> 1.6.3.3
+
