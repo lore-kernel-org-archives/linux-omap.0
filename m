@@ -1,41 +1,41 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH 05/15] omap: hsmmc: add virtual card detect support
-Date: Mon, 05 Jul 2010 21:45:12 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007052134460.6020@xanadu.home>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
- <1278376666-3509-6-git-send-email-ohad@wizery.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-reply-to: <1278376666-3509-6-git-send-email-ohad@wizery.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, San Mehat <san@google.com>, Ohad Ben-Cohen <ohadb@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] Replace strncmp() with sysfs_streq() in overlay_manager_store()
+Date: Tue,  6 Jul 2010 09:33:06 +0530
+Message-ID: <1278388986-8324-1-git-send-email-archit@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:58116 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750721Ab0GFEDS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Jul 2010 00:03:18 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Tue, 6 Jul 2010, Ohad Ben-Cohen wrote:
+In the function overlay_manager_store, the length of the string
+buf is used to comapre the 2 strings, there is a possibility of
+false positive match if buf is a prefix string of another manager.
 
-> From: Ohad Ben-Cohen <ohadb@ti.com>
-> 
-> Add support for software emulation of card detect
-> events.
-> 
-> This is required for specific controllers
-> that are hard wired with embedded SDIO devices
-> (such as TI's wl1271 WLAN device).
+The use of sysfs_streq() fixes this.
 
-Why?
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/overlay.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Many instances of hardwired SDIO based WLAN devices do exist already, 
-and they don't need extra card detect events to be generated.  The core 
-MMC code already triggers a probe for cards whenever a new host 
-controller is registered.
+diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+index 8233658..244dca8
+--- a/drivers/video/omap2/dss/overlay.c
++++ b/drivers/video/omap2/dss/overlay.c
+@@ -65,7 +65,7 @@ static ssize_t overlay_manager_store(struct omap_overlay *ovl, const char *buf,
+ 		for (i = 0; i < omap_dss_get_num_overlay_managers(); ++i) {
+ 			mgr = omap_dss_get_overlay_manager(i);
+ 
+-			if (strncmp(buf, mgr->name, len) == 0)
++			if (sysfs_streq(buf, mgr->name))
+ 				break;
+ 
+ 			mgr = NULL;
+-- 
+1.5.4.7
 
-> Board-specific configuration is required to
-> enable this software card detect control.
-
-Could you elaborate please?
-
-
-Nicolas
