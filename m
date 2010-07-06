@@ -1,70 +1,50 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
-Date: Tue, 06 Jul 2010 17:30:37 +0300
-Message-ID: <4C333E0D.2070601@nokia.com>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com> 	<1278376666-3509-12-git-send-email-ohad@wizery.com> <4C32EF19.1000604@nokia.com> 	<AANLkTintIz-N7MwwtqhVq2LR3Ln5JTNYSbJUBSSClcA-@mail.gmail.com> 	<4C3306F4.8060907@nokia.com> <AANLkTin5W52fPzWToRrAzm56SLZI-taSuI16rCEhLWqH@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTin5W52fPzWToRrAzm56SLZI-taSuI16rCEhLWqH@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: ext Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/3] omap4: Add basic suspend support
+Date: Tue,  6 Jul 2010 20:26:44 +0530
+Message-ID: <1278428204-8419-1-git-send-email-santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46470 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751814Ab0GFO5D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Jul 2010 10:57:03 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 07/06/2010 03:53 PM, ext Ohad Ben-Cohen wrote:
-> Hi Roger,
->
-> On Tue, Jul 6, 2010 at 1:35 PM, Roger Quadros<roger.quadros@nokia.com>  wrote:
->> My point is that shouldn't this be handled by SDIO core?
->
-> Care to explain what you mean / give a code example ?
+This series is based of linux-omap "for-next" branch,also applies
+to the latest 2.6.35-rc4 and is targeted for 2.6.36 merge window
 
-If the Power enable GPIO can be treated as SDIO slot supply (i.e. vmmc), then 
-the SDIO/MMC core should tackle it, just like it deals with supply for slots 
-with removable cards.
+It adds basic supsend and cpu hotplug support so that CONFIG_PM can be
+enabled on all OMAP4 platforms. This is essential to keep build working
+after Tony's "omap Kconfig improvments for 2.6.36 merge window" series
+	
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31303.html
 
-see mmc_regulator_set_ocr()
-mmc_power_up()
-mmc_set_ios()
+The following changes since commit e3dc03cb09a37ce61534c5922d3d383465f5e2ed:
+  Tony Lindgren (1):
+        omap: Add back UART MDR1 check into uncompress.h
 
-in drivers/mmc/core/core.c
+are available in the git repository at:
 
-and omap_hsmmc_set_ios()
+  origin/for-next 
 
-in drivers/mmc/host/omap_hsmmc.c
+Rajendra Nayak (1):
+  omap4: suspend: Add basic system suspend support
 
->
->> If there are no users for the SDIO function and the card, doesn't the SDIO
->> core power down the slot and take care of re-initialization when it is
->> powered up?
->
-> You need card detect events in order to trigger card&  sdio function
-> initialization and removals.
->
-> Please share any alternative approach you may be thinking on.
+Santosh Shilimkar (2):
+  omap4: Add smc API to read AuxCoreBoot0 register
+  omap4: hotplug: Add basic CPU hotplug support
 
-OK, this is how I see it.
+ arch/arm/mach-omap2/Makefile                    |    2 +
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    7 +
+ arch/arm/mach-omap2/omap-headsmp.S              |   16 ---
+ arch/arm/mach-omap2/omap-hotplug.c              |   79 +++++++++++++
+ arch/arm/mach-omap2/omap-smp.c                  |    3 +-
+ arch/arm/mach-omap2/omap44xx-smc.S              |   25 ++++
+ arch/arm/mach-omap2/pm44xx.c                    |  135 +++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/smp.h           |    1 +
+ 8 files changed, 251 insertions(+), 17 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap-hotplug.c
+ create mode 100644 arch/arm/mach-omap2/pm44xx.c
 
-- Treat the non-removable card as non-removable. So no need to do card detect 
-emulation.
-
-- Treat the GPIO power enable on wl1271 as VMMC supply. Use fixed regulator 
-framework to define this regulator & supply. Even though you mention that it is 
-not actually a supply, it fits well in the fixed supply framework.
-
-- When the host controller is enumerated, the mmc core will power up the slot, 
-find the sdio card, and probe the function driver (i.e. wl1271_sdio).
-
-- if interface is not in use, the function driver must release the sdio host, 
-and this should eventually disable the vmmc supply.
-
-- Whenever the wlan interface must be brought up, wl1271_sdio, can claim the 
-sdio host. this will cause the vmmc supply to be enabled, for as long as the 
-interface is up.
-
-Does this address all issues?
-
-regards,
--roger
