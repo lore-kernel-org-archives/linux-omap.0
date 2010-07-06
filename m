@@ -1,33 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: mux: fix multipath gpio handling
-Date: Tue, 6 Jul 2010 16:25:10 +0300
-Message-ID: <20100706132510.GS3192@atomide.com>
-References: <1278360411-25797-1-git-send-email-notasas@gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 05/15] omap: hsmmc: add virtual card detect support
+Date: Tue, 6 Jul 2010 16:44:48 +0300
+Message-ID: <AANLkTikyeaVRxLDVjGmCOtcw9vZtHspKDK22Xojk7n8x@mail.gmail.com>
+References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
+	<1278376666-3509-6-git-send-email-ohad@wizery.com> <alpine.LFD.2.00.1007052134460.6020@xanadu.home>
+	<AANLkTim4E4LlFERmfYA1M0HLBOoRAsQuvdW6QBNu6pC0@mail.gmail.com>
+	<AANLkTinE5LygUWJsJSEE2miZF1GK58LTr8zErkuu_7yM@mail.gmail.com>
+	<4C3323EA.902@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60028 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754726Ab0GFNZP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 09:25:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1278360411-25797-1-git-send-email-notasas@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4C3323EA.902@nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Roger Quadros <roger.quadros@nokia.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, San Mehat <san@google.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org
 
-* Grazvydas Ignotas <notasas@gmail.com> [100705 23:00]:
-> OMAP3530 CBB package can have GPIO126 muxed on 2 pins: mmc1_dat4 and
-> cam_strobe. This causes a problem with current multipath GPIO mux
-> handling, which muxes both pins as GPIO126 and makes the GPIO unusable.
-> 
-> Fix this by not muxing any pins if multipath GPIO is detected and
-> just print a warning instead. It's up to board files to set correct
-> mux using omap_mux_init_signal and pin name.
+On Tue, Jul 6, 2010 at 3:39 PM, Roger Quadros <roger.quadros@nokia.com> wrote:
+> Just to clarify, is the wl1271 device always powered on the board?
 
-This looks good to me. Are you OK if we merge it during the upcoming
-merge window? Kind of worried that we might break some other boards
-that rely on the first GPIO getting muxed..
+Yes.
 
-Tony
+> And this GPIO power enable (OMAP_ZOOM_WLAN_PMENA_GPIO) is used to gate this
+> supply internally?
+
+Yes. It's a digital input that the chip does not draw current from
+(well, only a very minimal one).
+
+> and what do these do ?
+>
+> set_bit(WL1271_FLAG_GPIO_POWER, &wl->flags);
+>
+> clear_bit(WL1271_FLAG_GPIO_POWER, &wl->flags);
+
+This is an internal driver bit that maintains the power state of the chip.
+AFAICT, it does not "do" anything. The only place I can see it is
+being used is in a debugfs entry.
