@@ -1,106 +1,66 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] omap4: mmc: Fix the regulator resource for MMC2
-Date: Tue, 6 Jul 2010 11:32:02 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5ECF34F@dbde02.ent.ti.com>
-References: <1275062884-8584-1-git-send-email-santosh.shilimkar@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C5AB0D35@dbde02.ent.ti.com>
+Subject: RE: [PATCH v3 1/8] omap3 flash: rename board-sdp-flash.c to be use
+ by other boards
+Date: Tue, 6 Jul 2010 11:35:01 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C5ECF359@dbde02.ent.ti.com>
+References: <s-ghorai@ti.com>
+ <1276688400-4812-1-git-send-email-s-ghorai@ti.com>
+ <1276688400-4812-2-git-send-email-s-ghorai@ti.com>
+ <20100705122310.GU15951@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58303 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751692Ab0GFGCH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 02:02:07 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o666246C031549
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 6 Jul 2010 01:02:06 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C5AB0D35@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33915 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751391Ab0GFGFH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 02:05:07 -0400
+In-Reply-To: <20100705122310.GU15951@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+To: Tony Lindgren <tony@atomide.com>, "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ping 
+Sukumar,
 > -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Thursday, June 10, 2010 9:05 PM
-> To: Shilimkar, Santosh; linux-omap@vger.kernel.org
-> Cc: Nayak, Rajendra; Ghorai, Sukumar; Kadiyala, Kishore
-> Subject: RE: [PATCH] omap4: mmc: Fix the regulator resource for MMC2
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Monday, July 05, 2010 5:53 PM
+> To: Ghorai, Sukumar
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v3 1/8] omap3 flash: rename board-sdp-flash.c to be
+> use by other boards
 > 
-> Tony,
-> > -----Original Message-----
-> > From: Shilimkar, Santosh
-> > Sent: Friday, May 28, 2010 9:38 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: Shilimkar, Santosh; Nayak, Rajendra; Ghorai, Sukumar; Kadiyala,
-> Kishore
-> > Subject: [PATCH] omap4: mmc: Fix the regulator resource for MMC2
+> * Sukumar Ghorai <s-ghorai@ti.com> [100616 14:34]:
+> > rename board-sdp-flash.c(board-flash.c) and board-sdp.h(board-flash.h)
+> to
+> > used by other board e.g. zoom
 > >
-> > The MMC1 and MMC2 cards have seperate LDO supplies. Current code assumes
-> > that they are powered by same LDO.
-> >
-> > This patch fixes the same and has VAUX1 as supply to MMC2 card.
-> >
-> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > > Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-> > Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> > Tested-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > > ---
-> > Tested with omap3_defconfig on OMAP4430SDP
-> >
-> Any comments on this one ??
+> >  arch/arm/mach-omap2/Makefile                   |    2 +-
+> >  arch/arm/mach-omap2/board-3430sdp.c            |   16 ++-
+> >  arch/arm/mach-omap2/board-flash.c              |  253
+> ++++++++++++++++++++++
+> >  arch/arm/mach-omap2/board-sdp-flash.c          |  267 -----------------
+> -------
+> >  arch/arm/mach-omap2/include/mach/board-flash.h |   28 +++
+> >  arch/arm/mach-omap2/include/mach/board-sdp.h   |   21 --
+> >  6 files changed, 296 insertions(+), 291 deletions(-)
+> >  create mode 100755 arch/arm/mach-omap2/board-flash.c
+> >  delete mode 100755 arch/arm/mach-omap2/board-sdp-flash.c
+> >  create mode 100644 arch/arm/mach-omap2/include/mach/board-flash.h
+> >  delete mode 100644 arch/arm/mach-omap2/include/mach/board-sdp.h
 > 
-> >  arch/arm/mach-omap2/board-4430sdp.c |   12 ++++++++----
-> >  1 files changed, 8 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-
-> omap2/board-4430sdp.c
-> > index 7a78986..f62042e 100644
-> > --- a/arch/arm/mach-omap2/board-4430sdp.c
-> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> > @@ -384,14 +384,16 @@ static struct omap2_hsmmc_info mmc[] = {
-> >  	{}	/* Terminator */
-> >  };
-> >
-> > -static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
-> > +static struct regulator_consumer_supply sdp4430_vaux_supply[] = {
-> >  	{
-> >  		.supply = "vmmc",
-> > -		.dev_name = "mmci-omap-hs.0",
-> > +		.dev_name = "mmci-omap-hs.1",
-> >  	},
-> > +};
-> > +static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
-> >  	{
-> >  		.supply = "vmmc",
-> > -		.dev_name = "mmci-omap-hs.1",
-> > +		.dev_name = "mmci-omap-hs.0",
-> >  	},
-> >  };
-> >
-> > @@ -447,6 +449,8 @@ static struct regulator_init_data sdp4430_vaux1 = {
-> >  					| REGULATOR_CHANGE_MODE
-> >  					| REGULATOR_CHANGE_STATUS,
-> >  	},
-> > +	.num_consumer_supplies  = 1,
-> > +	.consumer_supplies      = sdp4430_vaux_supply,
-> >  };
-> >
-> >  static struct regulator_init_data sdp4430_vaux2 = {
-> > @@ -487,7 +491,7 @@ static struct regulator_init_data sdp4430_vmmc = {
-> >  					| REGULATOR_CHANGE_MODE
-> >  					| REGULATOR_CHANGE_STATUS,
-> >  	},
-> > -	.num_consumer_supplies  = 2,
-> > +	.num_consumer_supplies  = 1,
-> >  	.consumer_supplies      = sdp4430_vmmc_supply,
-> >  };
-> >
-> > --
-> > 1.6.0.4
+> Looks like this one won't apply:
+> 
+> patching file arch/arm/mach-omap2/board-sdp-flash.c
+> Hunk #1 FAILED at 1.
+> File arch/arm/mach-omap2/board-sdp-flash.c is not empty after patch, as
+> expected
+> 
+Try "git format-patch -M " when creating renaming patch.
 
+Regards,
+Santosh
