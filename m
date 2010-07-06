@@ -1,43 +1,36 @@
-From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 14/15] omap: zoom: add WLAN device
-Date: Tue, 6 Jul 2010 16:47:33 +0300
-Message-ID: <AANLkTilARXB6NVMOAC7lW1HSOzDnONveS0oK6MomvDy0@mail.gmail.com>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
-	<1278376666-3509-15-git-send-email-ohad@wizery.com> <4C33228D.8000908@nokia.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] omap: mux: fix multipath gpio handling
+Date: Tue, 6 Jul 2010 16:54:45 +0300
+Message-ID: <AANLkTinoHVSoQ9bl448jgS-5jBDK2vgA2G3OcjpOaw_n@mail.gmail.com>
+References: <1278360411-25797-1-git-send-email-notasas@gmail.com>
+	<20100706132510.GS3192@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C33228D.8000908-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ohad Ben-Cohen <ohadb-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:43558 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751823Ab0GFNyq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jul 2010 09:54:46 -0400
+Received: by pvc7 with SMTP id 7so2587219pvc.19
+        for <linux-omap@vger.kernel.org>; Tue, 06 Jul 2010 06:54:46 -0700 (PDT)
+In-Reply-To: <20100706132510.GS3192@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Roger,
-
-On Tue, Jul 6, 2010 at 3:33 PM, Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>=
- wrote:
->> +static void omap_zoom_wlan_power(bool enable)
->> +{
->> + =A0 =A0 =A0 int val =3D enable ? 1 : 0;
->> +
->> + =A0 =A0 =A0 pr_info("%s: set power %d\n", __func__, val);
->> +
->> + =A0 =A0 =A0 gpio_set_value(OMAP_ZOOM_WLAN_PMENA_GPIO, val);
->> +}
+On Tue, Jul 6, 2010 at 4:25 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Grazvydas Ignotas <notasas@gmail.com> [100705 23:00]:
+>> OMAP3530 CBB package can have GPIO126 muxed on 2 pins: mmc1_dat4 and
+>> cam_strobe. This causes a problem with current multipath GPIO mux
+>> handling, which muxes both pins as GPIO126 and makes the GPIO unusable.
+>>
+>> Fix this by not muxing any pins if multipath GPIO is detected and
+>> just print a warning instead. It's up to board files to set correct
+>> mux using omap_mux_init_signal and pin name.
 >
-> Can we consider that OMAP_ZOOM_WLAN_PMENA_GPIO is equivalent to vmmc =
-supply
-> or equivalent to supply voltage to the SDIO card?
+> This looks good to me. Are you OK if we merge it during the upcoming
+> merge window? Kind of worried that we might break some other boards
+> that rely on the first GPIO getting muxed..
 
-Not really, this gpio does not supply power to the chip. It's only a
-digital indication that instructs the chip to go into on or off mode.
-
-Thanks,
-Ohad.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireles=
-s" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah that should be fine, no need to rush.
